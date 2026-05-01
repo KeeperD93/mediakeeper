@@ -174,11 +174,17 @@ async def auto_close_resolved_tickets(
     admin marked it resolved, the second transition is silent.
     """
     cutoff = datetime.now(timezone.utc) - timedelta(days=after_days)
+    # ``synchronize_session="fetch"`` resolves matching IDs via a SELECT and
+    # expires only those rows in the active session, instead of asking the
+    # SQLAlchemy evaluator to compare ``Ticket.updated_at`` against ``cutoff``
+    # in Python. The evaluator path raises on SQLite (test backend) where
+    # the column comes back tz-naive even for ``DateTime(timezone=True)``.
     result = await db.execute(
         update(Ticket)
         .where(Ticket.status == "resolved")
         .where(Ticket.updated_at < cutoff)
         .values(status="closed", updated_at=datetime.now(timezone.utc))
+        .execution_options(synchronize_session="fetch")
     )
     closed = result.rowcount or 0
     if closed:

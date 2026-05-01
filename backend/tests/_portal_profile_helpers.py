@@ -6,6 +6,7 @@ Kept out of ``conftest.py`` because the helpers are scoped to one feature.
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from typing import Any
 
 from core.security import create_access_token, hash_password
 from models.portal.profile import UserProfile
@@ -13,6 +14,11 @@ from models.user import User
 
 
 PORTAL_COOKIE = "rq_token"
+
+# Sentinel that distinguishes "argument omitted" from "explicit None". Tests
+# that need a local-only profile (no Emby account) pass ``emby_user_id=None``
+# on purpose; everything else falls back to a unique auto-generated value.
+_EMBY_USER_ID_UNSET: Any = object()
 
 
 def portal_token(username: str) -> str:
@@ -28,6 +34,7 @@ async def make_portal_user(
     is_public: bool = True,
     must_set: bool = False,
     changed_days_ago: int | None = None,
+    emby_user_id: str | None = _EMBY_USER_ID_UNSET,
 ) -> tuple[User, UserProfile]:
     user = User(
         username=username,
@@ -43,6 +50,17 @@ async def make_portal_user(
     if changed_days_ago is not None:
         changed_at = datetime.now(timezone.utc) - timedelta(days=changed_days_ago)
 
+    # Ranking surfaces (compute_ranking, leaderboard widgets) exclude any
+    # profile whose ``emby_user_id`` is NULL, treating it as a non-Emby
+    # local-only account. Default to a unique auto-generated value so the
+    # user shows up in ranking assertions; tests that intentionally want
+    # a local-only profile pass ``emby_user_id=None`` explicitly.
+    resolved_emby_user_id = (
+        f"emby-{username}"
+        if emby_user_id is _EMBY_USER_ID_UNSET
+        else emby_user_id
+    )
+
     profile = UserProfile(
         user_id=user.id,
         display_name=display_name or username,
@@ -51,6 +69,7 @@ async def make_portal_user(
         is_public=is_public,
         display_name_must_set=must_set,
         display_name_changed_at=changed_at,
+        emby_user_id=resolved_emby_user_id,
     )
     db_session.add(profile)
     await db_session.commit()
