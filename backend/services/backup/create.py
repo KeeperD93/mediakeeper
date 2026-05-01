@@ -13,6 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import DATABASE_URL
+from core.encryption import get_persistent_fernet_key
 from models.scheduler_task import SchedulerTask
 from models.user_preferences import UserPreference
 from services.logs import LOG_DIR
@@ -21,6 +22,22 @@ from services.settings import get_all_settings
 from ._state import DEFAULT_COMPONENTS, get_current_backup_dir
 
 logger = logging.getLogger("mediakeeper.backup")
+
+ENCRYPTION_KEY_ARCHIVE_NAME = "secrets/.encryption_key"
+
+_INCLUDED_KEY_WARNING = (
+    "This archive embeds the active Fernet key under "
+    f"'{ENCRYPTION_KEY_ARCHIVE_NAME}'. Anyone with this ZIP can decrypt "
+    "every encrypted setting (API keys, webhooks, passwords). Store it "
+    "encrypted at rest and treat it as a secret."
+)
+_EPHEMERAL_KEY_WARNING = (
+    "No persistent Fernet key was available when this backup was created "
+    "(MEDIAKEEPER_ENCRYPTION_KEY unset and no readable /data/.encryption_key). "
+    "Encrypted settings inside this archive will only be decryptable by the "
+    "instance that produced it; restoring on another host without first "
+    "providing the original key will leave secrets unreadable."
+)
 
 
 async def create_backup(
@@ -135,12 +152,15 @@ async def create_backup(
             except Exception as e:
                 logger.error(f"[backup] pg_dump: {e}")
 
+        encryption_key_meta = _embed_encryption_key(zf)
+
         manifest = {
-            "version":    "1.0",
+            "version":    "1.1",
             "created_at": datetime.now(timezone.utc).isoformat(),
             "label":      label,
             "components": opts,
             "filename":   filename,
+            "encryption_key": encryption_key_meta,
         }
         zf.writestr("manifest.json", json.dumps(manifest, ensure_ascii=False, indent=2))
 
@@ -148,6 +168,43 @@ async def create_backup(
     size_kb = dest.stat().st_size // 1024
     logger.info(f"[backup] Created : {dest.name} ({size_kb} KB)")
     return dest
+
+
+def _embed_encryption_key(zf: zipfile.ZipFile) -> dict:
+    """Embed the active persistent Fernet key in the archive.
+
+    Returns the metadata block to write into the manifest. When no
+    persistent key is available the archive intentionally ships without
+    the secret and the manifest carries an explicit warning so an operator
+    cannot mistake a partial backup for a full one.
+    """
+    persistent = get_persistent_fernet_key()
+    if persistent is None:
+        logger.warning(
+            "[backup] No persistent Fernet key found — backup will ship "
+            "without %s. Encrypted settings will be unreadable on a fresh "
+            "host until the original key is restored manually.",
+            ENCRYPTION_KEY_ARCHIVE_NAME,
+        )
+        return {
+            "status": "absent",
+            "source": None,
+            "archive_path": None,
+            "warning": _EPHEMERAL_KEY_WARNING,
+        }
+
+    zf.writestr(ENCRYPTION_KEY_ARCHIVE_NAME, persistent.key)
+    logger.info(
+        "[backup] Persistent Fernet key embedded (source=%s) at %s",
+        persistent.source,
+        ENCRYPTION_KEY_ARCHIVE_NAME,
+    )
+    return {
+        "status": "included",
+        "source": persistent.source,
+        "archive_path": ENCRYPTION_KEY_ARCHIVE_NAME,
+        "warning": _INCLUDED_KEY_WARNING,
+    }
 
 
 async def _pg_dump_async() -> Optional[str]:

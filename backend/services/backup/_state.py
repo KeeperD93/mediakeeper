@@ -9,7 +9,7 @@ DEFAULT_COMPONENTS = {
     "scheduler":   True,   # scheduler
     "watchlist":   True,   # watchlist scan data
     "logs":        False,  # log files
-    "pg_dump":     False,  # full PostgreSQL dump
+    "pg_dump":     True,   # full PostgreSQL dump
 }
 
 RETENTION_DAYS_KEY = "backup.retention_days"

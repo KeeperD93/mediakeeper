@@ -5,8 +5,10 @@ from sqlalchemy import select
 
 from core.encryption import (
     ENCRYPTED_PREFIX,
+    PersistentFernetKey,
     decrypt_value,
     encrypt_value,
+    get_persistent_fernet_key,
     is_sensitive_key,
 )
 from models.settings import Setting
@@ -46,6 +48,39 @@ def test_decrypt_passthrough_on_plaintext():
 
 def test_encrypt_empty_stays_empty():
     assert encrypt_value("") == ""
+
+
+def test_get_persistent_fernet_key_prefers_env(monkeypatch, tmp_path):
+    other = tmp_path / "encryption_key"
+    other.write_text("file-key", encoding="ascii")
+    monkeypatch.setenv("MEDIAKEEPER_ENCRYPTION_KEY", "env-key")
+    monkeypatch.setattr("core.encryption._KEY_FILE_PATHS", (other,))
+
+    resolved = get_persistent_fernet_key()
+    assert isinstance(resolved, PersistentFernetKey)
+    assert resolved.key == "env-key"
+    assert resolved.source == "env"
+    assert resolved.path is None
+
+
+def test_get_persistent_fernet_key_falls_back_to_file(monkeypatch, tmp_path):
+    target = tmp_path / "encryption_key"
+    target.write_text("file-key", encoding="ascii")
+    monkeypatch.delenv("MEDIAKEEPER_ENCRYPTION_KEY", raising=False)
+    monkeypatch.setattr("core.encryption._KEY_FILE_PATHS", (target,))
+
+    resolved = get_persistent_fernet_key()
+    assert resolved is not None
+    assert resolved.key == "file-key"
+    assert resolved.source == "file"
+    assert resolved.path == str(target)
+
+
+def test_get_persistent_fernet_key_returns_none_when_ephemeral(monkeypatch, tmp_path):
+    monkeypatch.delenv("MEDIAKEEPER_ENCRYPTION_KEY", raising=False)
+    monkeypatch.setattr("core.encryption._KEY_FILE_PATHS", (tmp_path / "missing",))
+
+    assert get_persistent_fernet_key() is None
 
 
 def test_encrypt_idempotent_on_already_encrypted():

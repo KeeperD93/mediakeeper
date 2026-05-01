@@ -12,6 +12,26 @@ from models.scheduler_task import SchedulerTask
 
 logger = logging.getLogger("mediakeeper.backup")
 
+ENCRYPTION_KEY_ARCHIVE_NAME = "secrets/.encryption_key"
+
+# Restore never writes the Fernet key automatically: an operator must extract
+# it consciously and place it where the next process will pick it up. The
+# string below is surfaced through the restore result so the UI/CLI can
+# display the recovery procedure without parsing the manifest itself.
+_ENCRYPTION_KEY_MANUAL_HINT = (
+    "Encryption key found in backup. Manual recovery required: extract "
+    f"'{ENCRYPTION_KEY_ARCHIVE_NAME}' from the ZIP and either set "
+    "MEDIAKEEPER_ENCRYPTION_KEY or write the value to /data/.encryption_key "
+    "before starting the application. The key is intentionally not restored "
+    "automatically to keep secret rotation under operator control."
+)
+_ENCRYPTION_KEY_MISSING_HINT = (
+    "No encryption key found in this backup. Encrypted settings inside the "
+    "archive will only be decryptable by the instance that produced it. "
+    "Provide the original key on the target host before starting the "
+    "application or expect encrypted values to read back as empty strings."
+)
+
 
 class InvalidBackupArchiveError(Exception):
     """Raised when the provided archive is not a valid ZIP backup."""
@@ -91,6 +111,40 @@ async def _run_restore_plan(
         return results
 
 
+def _inspect_encryption_key(zf: zipfile.ZipFile) -> dict:
+    """Read the manifest's encryption-key block + verify the archive entry.
+
+    Never extracts or writes the key — only reports what is available so an
+    operator can perform the recovery manually. The status returned drives
+    the hint surfaced in the restore results.
+    """
+    manifest: dict = {}
+    if "manifest.json" in zf.namelist():
+        try:
+            manifest = json.loads(zf.read("manifest.json"))
+        except Exception:
+            manifest = {}
+
+    block = manifest.get("encryption_key") if isinstance(manifest, dict) else None
+    archive_has_key = ENCRYPTION_KEY_ARCHIVE_NAME in zf.namelist()
+    declared_status = (block or {}).get("status") if isinstance(block, dict) else None
+
+    if archive_has_key:
+        return {
+            "status": "present",
+            "source": (block or {}).get("source") if isinstance(block, dict) else None,
+            "archive_path": ENCRYPTION_KEY_ARCHIVE_NAME,
+            "hint": _ENCRYPTION_KEY_MANUAL_HINT,
+        }
+
+    return {
+        "status": declared_status or "absent",
+        "source": None,
+        "archive_path": None,
+        "hint": _ENCRYPTION_KEY_MISSING_HINT,
+    }
+
+
 async def restore_backup(
     db: AsyncSession,
     zip_path: Path,
@@ -105,6 +159,7 @@ async def restore_backup(
     }
     opts = components or {}
     restore_plan: list[tuple[str, object, object]] = []
+    encryption_key_info: dict | None = None
 
     try:
         with zipfile.ZipFile(zip_path) as zf:
@@ -145,10 +200,15 @@ async def restore_backup(
                         _restore_watchlist,
                     )
                 )
+
+            encryption_key_info = _inspect_encryption_key(zf)
     except zipfile.BadZipFile:
         raise InvalidBackupArchiveError("invalid_or_corrupted_zip") from None
 
     await _run_restore_plan(db, restore_plan, results, raise_on_error=True)
+
+    if encryption_key_info is not None:
+        results["encryption_key"] = encryption_key_info
 
     logger.info(f"[backup] Restore complete : {results}")
     return results
