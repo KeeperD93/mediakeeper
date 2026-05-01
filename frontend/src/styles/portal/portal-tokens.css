@@ -1,0 +1,29 @@
+/* ============================================
+   PORTAL DESIGN TOKENS — ENTRY POINT
+   ============================================
+   Portal is a project-within-the-project: its own
+   design system independent of MediaKeeper admin,
+   namespaced `--portal-*`.
+
+   Imported once from main.css so all portal views
+   inherit tokens. Safe to import globally because
+   namespace prevents collision with admin tokens.
+
+   For future portal theme variants, override the
+   tokens under `.portal-theme-<name>` scopes.
+
+   Structure:
+     tokens/_motion.css     — durations, easings
+     tokens/_layout.css     — radius, shadows, blurs, gradients, z-index
+     tokens/_typography.css — font sizes, weights, tracking, line-height
+     tokens/_colors.css     — surfaces, borders, text, semantic
+     tokens/_tiers.css      — rank tier palette (bronze → legendary)
+     tokens/_rarity.css     — trophy rarity palette (common → mythic)
+   ============================================ */
+
+@import './tokens/_motion.css';
+@import './tokens/_layout.css';
+@import './tokens/_typography.css';
+@import './tokens/_colors.css';
+@import './tokens/_tiers.css';
+@import './tokens/_rarity.css';

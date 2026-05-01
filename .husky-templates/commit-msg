@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+# MediaKeeper — commit-msg hook (activate after `git init`)
+#
+# Validates the commit message against the Conventional Commits spec
+# (see commitlint.config.js at repo root).
+
+cd frontend && npx commitlint --edit "$1"

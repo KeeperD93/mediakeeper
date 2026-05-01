@@ -1,0 +1,148 @@
+"""Endpoints profil current : /me, /change-password, /refresh, /logout, /preferences."""
+import json
+import logging
+
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.database import get_db
+from core.security import create_access_token, hash_password, verify_password
+from models.user import User
+
+from ._cookies import PORTAL_COOKIE_NAME, _clear_jwt_cookie, _set_jwt_cookie
+from ._csrf import clear_csrf_cookie, ensure_csrf_cookie, require_csrf
+from ._deps import get_current_user
+from ._schemas import ChangePasswordRequest, LocaleRequest, PreferencesRequest
+
+logger = logging.getLogger("mediakeeper.api.auth")
+router = APIRouter()
+
+
+@router.get("/me")
+async def get_me(
+    request: Request,
+    response: Response,
+    current_user: User = Depends(get_current_user),
+):
+    ensure_csrf_cookie(response, request)
+    return {
+        "username":             current_user.username,
+        "must_change_password": current_user.must_change_password,
+    }
+
+
+@router.post("/change-password")
+async def change_password(
+    req:          ChangePasswordRequest,
+    request:      Request,
+    response:     Response,
+    csrf_protected: None = Depends(require_csrf),
+    current_user: User = Depends(get_current_user),
+    db:           AsyncSession = Depends(get_db),
+):
+    if req.new_password != req.confirm_password:
+        raise HTTPException(status_code=400, detail="password_mismatch")
+
+    if not verify_password(req.current_password, current_user.hashed_password):
+        raise HTTPException(status_code=400, detail="current_password_invalid")
+
+    if req.current_password == req.new_password:
+        raise HTTPException(status_code=400, detail="new_password_must_differ")
+
+    result = await db.execute(select(User).where(User.username == current_user.username))
+    user   = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="user_not_found")
+
+    user.hashed_password      = hash_password(req.new_password)
+    user.must_change_password = False
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+
+    new_token = create_access_token({"sub": user.username})
+    _set_jwt_cookie(response, new_token, request)
+    ensure_csrf_cookie(response, request)
+    logger.info(f"[PASSWORD] Password changed for user={user.username}")
+    return {"success": True}
+
+
+@router.post("/refresh")
+async def refresh_token(
+    request: Request,
+    response: Response,
+    csrf_protected: None = Depends(require_csrf),
+    current_user: User = Depends(get_current_user),
+):
+    """Renew le cookie JWT."""
+    new_token = create_access_token({"sub": current_user.username})
+    _set_jwt_cookie(response, new_token, request)
+    ensure_csrf_cookie(response, request)
+    return {"success": True}
+
+
+@router.post("/logout")
+async def logout(
+    request: Request,
+    response: Response,
+    csrf_protected: None = Depends(require_csrf),
+):
+    """Delete the admin JWT cookie AND any Requests session.
+
+    Not clearing ``rq_token`` here would leave an admin who logs out
+    of MediaKeeper still connected to the Requests area in the same
+    browser — a possible bypass of the intended separation.
+    """
+    _clear_jwt_cookie(response)
+    response.delete_cookie(key=PORTAL_COOKIE_NAME, path="/")
+    clear_csrf_cookie(response)
+    return {"success": True}
+
+
+@router.get("/preferences")
+async def get_preferences(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    from services.settings import get_user_preferences
+    row = await get_user_preferences(db, current_user.id)
+    if not row or not row.preferences:
+        return {"theme": "dark", "sidebar_collapsed": False}
+    try:
+        return json.loads(row.preferences)
+    except Exception:
+        return {"theme": "dark", "sidebar_collapsed": False}
+
+
+@router.post("/preferences")
+async def save_preferences(
+    req: PreferencesRequest,
+    csrf_protected: None = Depends(require_csrf),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    from services.settings import upsert_user_preferences
+    await upsert_user_preferences(db, current_user.id, preferences=json.dumps(req.model_dump()))
+    return {"success": True}
+
+
+@router.post("/locale")
+async def save_locale(
+    req: LocaleRequest,
+    csrf_protected: None = Depends(require_csrf),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Persist just the locale field, merging with existing preferences."""
+    from services.settings import get_user_preferences, upsert_user_preferences
+    row = await get_user_preferences(db, current_user.id)
+    current = {}
+    if row and row.preferences:
+        try:
+            current = json.loads(row.preferences)
+        except Exception:
+            current = {}
+    current["locale"] = req.locale
+    await upsert_user_preferences(db, current_user.id, preferences=json.dumps(current))
+    return {"success": True}

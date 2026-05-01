@@ -1,0 +1,258 @@
+"""
+    Trailer resolution service for the Portal.
+
+Cascade order, used by ``resolve_trailer``:
+
+  1. Emby ``LocalTrailers`` API   → MP4 streamed by the MediaKeeper backend
+                                    (the Emby URL is never exposed to the client).
+  2. TMDB ``videos`` filtered on the user's preferred language.
+  3. TMDB ``videos`` filtered on English (``en``).
+  4. TMDB ``videos`` filtered on the media's original language.
+  5. TMDB ``videos`` — any language at all.
+  6. ``None`` — no trailer found.
+
+The function returns a small dict the frontend can render uniformly:
+
+    {
+        "source":   "emby" | "youtube" | "vimeo",
+        "url":      str,        # backend proxy URL for emby, embed URL otherwise
+        "key":      str | None, # video provider id (YouTube/Vimeo only)
+        "language": str | None, # ISO 639-1 of the picked trailer
+        "name":     str,
+    }
+"""
+from __future__ import annotations
+
+import logging
+from typing import Optional
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.http_client import get_external_client, get_internal_client
+from services.settings import get_active_media_source
+from services.tmdb import _get_tmdb_key, _tmdb_headers_sync, TMDB_BASE
+
+logger = logging.getLogger("mediakeeper.portal.trailers")
+
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
+
+async def resolve_trailer(
+    db: AsyncSession,
+    media_type: str,
+    tmdb_id: int,
+    user_language: str = "en",
+    emby_item_id: Optional[str] = None,
+) -> Optional[dict]:
+    """
+    Run the trailer cascade and return the first hit, or ``None``.
+
+    Parameters
+    ----------
+    db
+        Active SQLAlchemy session (used to read settings + TMDB key).
+    media_type
+        ``"movie"`` or ``"tv"``.
+    tmdb_id
+        TMDB id of the media.
+    user_language
+        ISO 639-1 code of the user's preferred trailer language. Falls
+        back to English when no match is found at this step.
+    emby_item_id
+        Optional Emby item id; when provided we try LocalTrailers first.
+    """
+    # 1) Local trailer hosted on Emby
+    if emby_item_id:
+        local = await _resolve_emby_local_trailer(db, emby_item_id)
+        if local:
+            return local
+
+    # 2-5) TMDB cascade
+    return await _resolve_tmdb_trailer(db, media_type, tmdb_id, user_language)
+
+
+# ---------------------------------------------------------------------------
+# Step 1 — Emby local trailers
+# ---------------------------------------------------------------------------
+
+async def _resolve_emby_local_trailer(
+    db: AsyncSession, emby_item_id: str
+) -> Optional[dict]:
+    """
+    Ask Emby whether the item has any local trailer files attached.
+    Returns a proxy URL the frontend can stream through the backend
+    (so the private Emby URL never leaks to the user agent).
+    """
+    source = await get_active_media_source(db)
+    if not source or source.get("source") not in ("emby", "jellyfin"):
+        return None
+    internal_url = (source.get("url") or "").rstrip("/")
+    api_key = source.get("api_key") or ""
+    if not internal_url or not api_key:
+        return None
+
+    try:
+        client = get_internal_client()
+        res = await client.get(
+            f"{internal_url}/Items/{emby_item_id}/LocalTrailers",
+            headers={"X-Emby-Token": api_key},
+        )
+        if res.status_code != 200:
+            return None
+        trailers = res.json() or []
+        if not trailers:
+            return None
+        # Pick the first trailer; Emby returns them in disk order.
+        first = trailers[0]
+        trailer_id = first.get("Id")
+        if not trailer_id:
+            return None
+        return {
+            "source": "emby",
+            "url": f"/api/portal/trailers/emby/{trailer_id}",
+            "key": None,
+            "language": None,
+            "name": first.get("Name", "Local trailer"),
+        }
+    except Exception as e:
+        logger.warning(f"[TRAILERS] LocalTrailers lookup failed for {emby_item_id}: {e}")
+        return None
+
+
+async def stream_emby_trailer(
+    db: AsyncSession, trailer_item_id: str
+):
+    """
+    Generator-style proxy that streams an Emby local trailer to the client.
+    Returns (status_code, headers, async_iterator) — used by the FastAPI
+    endpoint with ``StreamingResponse``.
+    """
+    source = await get_active_media_source(db)
+    if not source or source.get("source") not in ("emby", "jellyfin"):
+        return None
+    internal_url = (source.get("url") or "").rstrip("/")
+    api_key = source.get("api_key") or ""
+    if not internal_url or not api_key:
+        return None
+    return {
+        "url": f"{internal_url}/Videos/{trailer_item_id}/stream?Static=true&api_key={api_key}",
+    }
+
+
+# ---------------------------------------------------------------------------
+# Steps 2-5 — TMDB cascade
+# ---------------------------------------------------------------------------
+
+_VALID_TYPES = ("Trailer", "Teaser")
+
+
+async def _resolve_tmdb_trailer(
+    db: AsyncSession, media_type: str, tmdb_id: int, user_language: str
+) -> Optional[dict]:
+    api_key = await _get_tmdb_key(db)
+    if not api_key:
+        return None
+    try:
+        client = get_external_client()
+        # Primary request covers user_language + English + language-agnostic
+        # videos. TMDB filters ``videos`` server-side by
+        # ``include_video_language``, so the film's original language is
+        # only fetched when the first pass yields nothing usable (see below).
+        res = await client.get(
+            f"{TMDB_BASE}/{media_type}/{tmdb_id}",
+            params={
+                "language": user_language,
+                "append_to_response": "videos",
+                "include_video_language": f"{user_language},en,null",
+            },
+            headers=_tmdb_headers_sync(api_key),
+        )
+        if res.status_code != 200:
+            return None
+        data = res.json()
+        videos = list((data.get("videos") or {}).get("results") or [])
+        original_lang = data.get("original_language") or None
+
+        # Cascade: user_language → en → original_language → null (any).
+        # Original-language videos live outside the primary payload when
+        # they differ from user_language/en, so we pull them lazily just
+        # before step 3.
+        def try_step(pool: list[dict], lang: Optional[str], seen: set) -> Optional[dict]:
+            if lang in seen:
+                return None
+            seen.add(lang)
+            return _pick_video(pool, lang)
+
+        seen: set[Optional[str]] = set()
+        for lang in (user_language, "en"):
+            picked = try_step(videos, lang, seen)
+            if picked:
+                return picked
+
+        if original_lang and original_lang not in (user_language, "en"):
+            try:
+                res_extra = await client.get(
+                    f"{TMDB_BASE}/{media_type}/{tmdb_id}/videos",
+                    params={"include_video_language": original_lang},
+                    headers=_tmdb_headers_sync(api_key),
+                )
+                if res_extra.status_code == 200:
+                    extra_videos = res_extra.json().get("results") or []
+                    picked = try_step(extra_videos, original_lang, seen)
+                    if picked:
+                        return picked
+            except Exception as exc:
+                logger.debug(f"[TRAILERS] original-lang fallback failed: {exc}")
+        elif original_lang:
+            picked = try_step(videos, original_lang, seen)
+            if picked:
+                return picked
+
+        # Final step: any language-agnostic video from the primary call.
+        return try_step(videos, None, seen)
+    except Exception as e:
+        logger.warning(f"[TRAILERS] TMDB lookup failed for {media_type}/{tmdb_id}: {e}")
+        return None
+
+
+def _pick_video(videos: list[dict], language: Optional[str]) -> Optional[dict]:
+    """
+    Pick the best video matching ``language``.
+
+    - ``language=None`` matches *any* video and is the final fallback step.
+    - We prefer ``Trailer`` over ``Teaser`` and earlier results over later.
+    - We only consider YouTube and Vimeo (the two TMDB-supported providers).
+    """
+    candidates = []
+    for v in videos:
+        if v.get("site") not in ("YouTube", "Vimeo"):
+            continue
+        if v.get("type") not in _VALID_TYPES:
+            continue
+        if language is not None and (v.get("iso_639_1") or "") != language:
+            continue
+        candidates.append(v)
+
+    if not candidates:
+        return None
+
+    # Trailers before teasers, then keep TMDB's own ordering.
+    candidates.sort(key=lambda v: 0 if v.get("type") == "Trailer" else 1)
+    best = candidates[0]
+    site = best.get("site", "YouTube").lower()
+    return {
+        "source": site,  # "youtube" or "vimeo"
+        "url": _embed_url(site, best["key"]),
+        "key": best["key"],
+        "language": best.get("iso_639_1") or None,
+        "name": best.get("name", ""),
+    }
+
+
+def _embed_url(site: str, key: str) -> str:
+    if site == "vimeo":
+        return f"https://player.vimeo.com/video/{key}"
+    # YouTube via the privacy-enhanced domain.
+    return f"https://www.youtube-nocookie.com/embed/{key}"

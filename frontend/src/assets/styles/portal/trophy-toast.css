@@ -1,0 +1,62 @@
+/* Achievement unlock toast — sliding notification with confetti.
+ * Classes: .gc-unlock-*, .gc-confetti-*. Global styles. */
+
+.gc-unlock-toast {
+  position: fixed; top: 2rem; left: 50%; transform: translateX(-50%);
+  z-index: 10000;
+  display: flex; align-items: center; gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, rgba(var(--portal-color-warning-rgb),0.2), rgba(var(--portal-color-premium-rgb),0.15));
+  border: 1px solid rgba(var(--portal-color-warning-rgb),0.4);
+  border-radius: 16px;
+  backdrop-filter: blur(16px);
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(var(--portal-color-warning-rgb),0.2), 0 0 60px rgba(var(--portal-color-premium-rgb),0.1);
+  animation: gc-toast-glow 2s ease-in-out infinite;
+}
+@keyframes gc-toast-glow {
+  0%, 100% { box-shadow: 0 8px 32px rgba(var(--portal-color-warning-rgb),0.2), 0 0 60px rgba(var(--portal-color-premium-rgb),0.1); }
+  50% { box-shadow: 0 8px 40px rgba(var(--portal-color-warning-rgb),0.35), 0 0 80px rgba(var(--portal-color-premium-rgb),0.2); }
+}
+.gc-toast-enter-active { animation: gc-toast-in 0.5s ease; }
+.gc-toast-leave-active { animation: gc-toast-out 0.3s ease; }
+@keyframes gc-toast-in { from { opacity: 0; transform: translateX(-50%) translateY(-30px) scale(0.9); } to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } }
+@keyframes gc-toast-out { to { opacity: 0; transform: translateX(-50%) translateY(-20px) scale(0.95); } }
+.gc-unlock-icon { font-size: var(--portal-text-3xl); }
+.gc-unlock-title { font-size: var(--portal-text-2xs); font-weight: var(--portal-font-extrabold); text-transform: uppercase; letter-spacing: var(--portal-tracking-eyebrow); color: var(--portal-color-warning); }
+.gc-unlock-name { font-size: var(--portal-text-md); font-weight: var(--portal-font-black); color: #fff; font-family: var(--portal-font-display); }
+.gc-unlock-xp { font-size: var(--portal-text-sm); font-weight: var(--portal-font-bold); color: var(--portal-color-warning); }
+
+/* Confetti bits */
+.gc-unlock-confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.gc-confetti-bit {
+  position: absolute;
+  width: 6px; height: 6px;
+  border-radius: 1px;
+  animation: gc-confetti-fall 2s ease-out forwards;
+}
+.gc-confetti-bit:nth-child(1) { left: 10%; top: -10%; background: var(--portal-color-warning); animation-delay: 0s; }
+.gc-confetti-bit:nth-child(2) { left: 20%; top: -10%; background: var(--portal-color-error); animation-delay: 0.1s; }
+.gc-confetti-bit:nth-child(3) { left: 30%; top: -10%; background: var(--portal-color-success); animation-delay: 0.05s; }
+.gc-confetti-bit:nth-child(4) { left: 40%; top: -10%; background: var(--portal-color-info); animation-delay: 0.15s; }
+.gc-confetti-bit:nth-child(5) { left: 50%; top: -10%; background: #a78bfa; animation-delay: 0.08s; }
+.gc-confetti-bit:nth-child(6) { left: 60%; top: -10%; background: var(--portal-color-warning); animation-delay: 0.2s; }
+.gc-confetti-bit:nth-child(7) { left: 70%; top: -10%; background: var(--portal-color-accent-hot); animation-delay: 0.03s; }
+.gc-confetti-bit:nth-child(8) { left: 80%; top: -10%; background: var(--portal-color-error); animation-delay: 0.12s; }
+.gc-confetti-bit:nth-child(9) { left: 90%; top: -10%; background: var(--portal-color-success); animation-delay: 0.18s; }
+.gc-confetti-bit:nth-child(10) { left: 15%; top: -10%; background: var(--portal-color-cinema); animation-delay: 0.07s; width: 4px; height: 8px; }
+.gc-confetti-bit:nth-child(11) { left: 25%; top: -10%; background: var(--portal-color-highlight); animation-delay: 0.22s; }
+.gc-confetti-bit:nth-child(12) { left: 35%; top: -10%; background: #a78bfa; animation-delay: 0.14s; width: 8px; height: 4px; }
+.gc-confetti-bit:nth-child(13) { left: 45%; top: -10%; background: var(--portal-color-warning); animation-delay: 0.09s; }
+.gc-confetti-bit:nth-child(14) { left: 55%; top: -10%; background: var(--portal-color-error); animation-delay: 0.25s; }
+.gc-confetti-bit:nth-child(15) { left: 65%; top: -10%; background: var(--portal-color-success); animation-delay: 0.16s; width: 5px; height: 7px; }
+.gc-confetti-bit:nth-child(16) { left: 75%; top: -10%; background: var(--portal-color-info); animation-delay: 0.06s; }
+.gc-confetti-bit:nth-child(17) { left: 85%; top: -10%; background: var(--portal-color-accent-hot); animation-delay: 0.19s; }
+.gc-confetti-bit:nth-child(18) { left: 5%; top: -10%; background: var(--portal-color-warning); animation-delay: 0.11s; width: 4px; height: 4px; border-radius: var(--portal-radius-circle); }
+.gc-confetti-bit:nth-child(19) { left: 48%; top: -10%; background: #a78bfa; animation-delay: 0.23s; border-radius: var(--portal-radius-circle); }
+.gc-confetti-bit:nth-child(20) { left: 92%; top: -10%; background: var(--portal-color-error); animation-delay: 0.04s; }
+@keyframes gc-confetti-fall {
+  0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+  100% { transform: translateY(120px) rotate(720deg) scale(0.5); opacity: 0; }
+}

@@ -1,0 +1,205 @@
+/* EventDetailModal — private/public event detail overlay with invitees, marathon list, cinema-room CTA. */
+
+.pt-evd-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9600;
+  background: var(--portal-overlay-modal);
+  backdrop-filter: var(--portal-blur-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(0.5rem, 2vw, 2rem);
+}
+.pt-evd {
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  background: #14141e;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--portal-radius-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: #fff;
+}
+.pt-evd-loading { color: #fff; }
+
+.pt-evd-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--portal-border-default);
+}
+.pt-evd-kind {
+  display: inline-block;
+  font-size: var(--portal-text-2xs);
+  font-weight: var(--portal-font-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--portal-tracking-caps);
+  padding: 2px 7px;
+  border-radius: 3px;
+  margin-bottom: 0.4rem;
+}
+.pt-evd-kind--private { background: rgba(var(--portal-color-info-rgb), 0.25); color: var(--portal-color-info-soft); }
+.pt-evd-kind--public  { background: rgba(var(--portal-color-success-rgb), 0.25); color: var(--portal-color-success-soft); }
+.pt-evd-title { font-size: var(--portal-text-lg); font-weight: var(--portal-font-extrabold); line-height: 1.2; }
+.pt-evd-x {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  padding: 4px;
+}
+.pt-evd-x:hover { color: #fff; }
+
+.pt-evd-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1rem 1.25rem;
+}
+
+.pt-evd-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: var(--portal-surface-2);
+  border-radius: var(--radius-btn);
+  margin-bottom: 1rem;
+}
+.pt-evd-meta-item { display: flex; flex-direction: column; gap: 2px; font-size: var(--portal-text-sm); }
+.pt-evd-meta-label {
+  font-size: var(--portal-text-2xs);
+  text-transform: uppercase;
+  font-weight: var(--portal-font-bold);
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: var(--portal-tracking-caps);
+}
+
+.pt-evd-section-title {
+  font-size: var(--portal-text-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--portal-tracking-caps);
+  font-weight: var(--portal-font-extrabold);
+  color: var(--portal-text-secondary);
+  margin: 1rem 0 0.5rem;
+}
+
+.pt-evd-medias { display: flex; flex-direction: column; gap: 0.5rem; }
+.pt-evd-media {
+  display: flex;
+  gap: 0.7rem;
+  padding: 0.5rem;
+  background: var(--portal-surface-2);
+  border-radius: var(--radius-btn);
+  align-items: center;
+}
+.pt-evd-media img {
+  width: 40px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: var(--portal-radius-xs);
+}
+.pt-evd-media-info { flex: 1; min-width: 0; }
+.pt-evd-media-title {
+  font-size: var(--portal-text-base);
+  font-weight: var(--portal-font-bold);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pt-evd-media-type {
+  font-size: var(--portal-text-2xs);
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.pt-evd-comment {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: var(--portal-surface-2);
+  border-left: 3px solid rgba(67, 56, 202, 0.6);
+  border-radius: var(--radius-sm);
+  font-size: var(--portal-text-sm);
+  font-style: italic;
+  color: var(--portal-text-body);
+  white-space: pre-wrap;
+}
+
+.pt-evd-invitees { display: flex; flex-direction: column; gap: 0.35rem; }
+.pt-evd-invitee {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  background: var(--portal-surface-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--portal-text-sm);
+}
+.pt-evd-invitee-name { flex: 1; }
+.pt-evd-invitee-status {
+  font-size: var(--portal-text-2xs);
+  text-transform: uppercase;
+  font-weight: var(--portal-font-bold);
+  padding: 2px 7px;
+  border-radius: 3px;
+}
+.pt-evd-invitee--accepted .pt-evd-invitee-status { background: rgba(var(--portal-color-success-rgb), 0.25); color: var(--portal-color-success-soft); }
+.pt-evd-invitee--pending  .pt-evd-invitee-status { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; }
+.pt-evd-invitee--declined { opacity: 0.55; }
+.pt-evd-invitee--declined .pt-evd-invitee-status { background: rgba(var(--portal-color-error-rgb), 0.2); color: var(--portal-color-error-soft); }
+.pt-evd-invitee--removed { opacity: 0.4; text-decoration: line-through; }
+.pt-evd-invitee-x {
+  background: transparent;
+  border: none;
+  color: var(--portal-text-muted);
+  font-size: var(--portal-text-md);
+  cursor: pointer;
+}
+.pt-evd-invitee-x:hover { color: var(--portal-color-error); }
+
+.pt-evd-warn {
+  margin-top: 0.75rem;
+  padding: 0.6rem 0.85rem;
+  background: rgba(var(--portal-color-warning-rgb), 0.12);
+  border: 1px solid rgba(var(--portal-color-warning-rgb), 0.4);
+  border-radius: var(--radius-sm);
+  font-size: var(--portal-text-sm);
+  color: var(--portal-color-warning-soft);
+}
+
+.pt-evd-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.85rem 1.25rem;
+  border-top: 1px solid var(--portal-border-default);
+  flex-wrap: wrap;
+}
+.pt-evd-btn {
+  padding: 0.55rem 1.2rem;
+  border-radius: var(--radius-sm);
+  border: none;
+  font-weight: var(--portal-font-bold);
+  cursor: pointer;
+  font-size: var(--portal-text-sm);
+}
+.pt-evd-btn--ghost   { background: var(--portal-surface-4); color: #fff; }
+.pt-evd-btn--primary { background: var(--accent-700); color: #fff; }
+.pt-evd-btn--primary:hover { background: #5145e0; }
+.pt-evd-btn--danger  { background: #b91c1c; color: #fff; }
+.pt-evd-btn--danger:hover { background: #dc2626; }
+.pt-evd-btn--cinema {
+  background: var(--portal-gradient-gold);
+  color: #1a0a05;
+  box-shadow: 0 4px 14px rgba(var(--portal-color-warning-rgb), 0.35);
+  animation: pt-evd-pulse 1.6s ease-in-out infinite;
+}
+.pt-evd-btn--cinema:hover { transform: translateY(-1px); }
+@keyframes pt-evd-pulse {
+  0%, 100% { box-shadow: 0 4px 14px rgba(var(--portal-color-warning-rgb), 0.35); }
+  50%      { box-shadow: 0 6px 22px rgba(var(--portal-color-warning-rgb), 0.6); }
+}

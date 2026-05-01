@@ -1,0 +1,62 @@
+/* ============================================
+   PORTAL DESIGN TOKENS — LAYOUT
+   ============================================
+   Radius, shadows, blurs, gradients, z-index.
+   Namespace: --portal-*
+   ============================================ */
+
+:root {
+  /* Radius --------------------------------------------------- */
+  --portal-radius-xs:      4px;     /* tags, micro chips */
+  --portal-radius-sm:      6px;     /* small pills, meta */
+  --portal-radius-md:      10px;    /* admin rows, posters */
+  --portal-radius-lg:      14px;    /* cards, chat, modals */
+  --portal-radius-xl:      20px;    /* trophy modal, avatar pop, panels */
+  --portal-radius-pill:    999px;   /* pill shape (60+ usages) */
+  --portal-radius-circle:  50%;     /* avatars, close buttons, dots */
+
+  /* Blurs (portal goes deeper than admin for cinema feel) --- */
+  --portal-blur-xs:    blur(6px);
+  --portal-blur-sm:    blur(8px);
+  --portal-blur-md:    blur(14px);
+  --portal-blur-lg:    blur(20px);
+  --portal-blur-solid: blur(20px) saturate(1.2);
+  --portal-blur-nav:   blur(18px) saturate(1.15);
+
+  /* Shadows (dramatic cinema-feel) -------------------------- */
+  --portal-shadow-sm:      0 4px 12px rgba(0, 0, 0, 0.3);
+  --portal-shadow-md:      0 8px 24px rgba(0, 0, 0, 0.4);
+  --portal-shadow-lg:      0 12px 32px rgba(0, 0, 0, 0.5);
+  --portal-shadow-popup:   0 24px 60px rgba(0, 0, 0, 0.55);
+  --portal-shadow-panel:   0 32px 80px rgba(0, 0, 0, 0.55);
+  --portal-shadow-deep:    0 30px 80px rgba(0, 0, 0, 0.7);
+  --portal-shadow-arrow:   0 6px 24px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  --portal-shadow-fab:     0 8px 28px rgba(67, 56, 202, 0.45), 0 4px 12px rgba(0, 0, 0, 0.3);
+  --portal-shadow-accent:  0 6px 18px rgba(var(--accent-rgb), 0.35);
+  --portal-shadow-accent-strong: 0 10px 24px rgba(var(--accent-rgb), 0.45);
+  --portal-shadow-gold:    0 12px 32px rgba(251, 191, 36, 0.4);
+
+  /* Gradients ----------------------------------------------- */
+  --portal-gradient-glass:    linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015));
+  --portal-gradient-glass-soft: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  --portal-gradient-accent:   linear-gradient(135deg, var(--accent-500), var(--accent-700));
+  --portal-gradient-gold:     linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  --portal-gradient-gold-bar: linear-gradient(90deg, #b8860b, #fbbf24, #fde68a);
+  --portal-gradient-shine:    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.04) 50%, transparent);
+
+  /* Overlays ------------------------------------------------ */
+  --portal-veil-page:      rgba(3, 7, 18, 0.6);    /* page root backdrop tint */
+  --portal-overlay-modal:  rgba(5, 5, 10, 0.85);   /* modal/sheet backdrop */
+  --portal-panel-bg:       rgba(20, 20, 30, 0.9);  /* notification popup, chat aside */
+  --portal-panel-bg-dark:  rgba(12, 16, 30, 0.96); /* daily digest panel */
+
+  /* Z-index (portal layers) -------------------------------- */
+  --portal-z-sticky:    200;
+  --portal-z-nav:       500;
+  --portal-z-fab:       8900;
+  --portal-z-modal:     9000;
+  --portal-z-overlay:   9920;
+  --portal-z-trailer:   9997;
+  --portal-z-toast:     9998;
+  --portal-z-top:       9999;
+}

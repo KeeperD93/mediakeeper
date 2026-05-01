@@ -1,0 +1,33 @@
+/* ============================================
+   PORTAL DESIGN TOKENS — MOTION
+   ============================================
+   Durations and easings for portal components.
+   Scoped to :root so all portal views inherit them.
+   Namespace: --portal-*
+   ============================================ */
+
+:root {
+  /* Durations ------------------------------------------------ */
+  --portal-dur-fast:    0.15s;   /* hover swaps, color transitions */
+  --portal-dur-base:    0.2s;    /* default (most frequent) */
+  --portal-dur-med:     0.25s;   /* cards scale + shadow */
+  --portal-dur-slow:    0.3s;    /* panels, chat toggles */
+  --portal-dur-slower:  0.5s;    /* reveal, fill bars */
+  --portal-dur-long:    0.6s;    /* hero opacity, sweep */
+
+  /* Animation durations (with infinite keyframes) ------------ */
+  --portal-anim-pulse:    1.6s;   /* cta gold pulse */
+  --portal-anim-shimmer:  3.5s;   /* bar shimmer */
+  --portal-anim-loop-sm:  3s;     /* halos, pulses */
+  --portal-anim-loop-md:  4s;     /* shimmer cards */
+  --portal-anim-loop-lg:  6s;     /* halo cycles */
+
+  /* Easings -------------------------------------------------- */
+  --portal-ease-default:   ease;
+  --portal-ease-in-out:    ease-in-out;
+  --portal-ease-out:       ease-out;
+  --portal-ease-linear:    linear;
+  --portal-ease-emphasis:  cubic-bezier(0.22, 1, 0.36, 1);
+  --portal-ease-swift:     cubic-bezier(0.2, 0.8, 0.2, 1);
+  --portal-ease-dramatic:  cubic-bezier(0.16, 1, 0.3, 1);
+}

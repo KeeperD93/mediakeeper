@@ -1,0 +1,130 @@
+/* Form controls + permission list + tags + audit list shared by every
+   tab inside the user drawer. Imported by the drawer wrapper. */
+
+.ru-form { display: flex; flex-direction: column; gap: 1rem; }
+.ru-form-row label,
+.ru-form-grid label {
+  display: flex; flex-direction: column; gap: .35rem;
+  font-size: var(--text-xs); color: var(--text-muted); min-width: 0;
+}
+.ru-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media (max-width: 700px) { .ru-form-grid { grid-template-columns: 1fr; } }
+
+.ru-form input[type="text"],
+.ru-form input[type="email"],
+.ru-form input[type="password"],
+.ru-form input[type="datetime-local"],
+.ru-tab-access input[type="datetime-local"],
+.ru-form select, .ru-input, .ru-textarea {
+  width: 100%; min-width: 0; box-sizing: border-box;
+  background: var(--bg-primary); color: var(--text-primary);
+  border: 1px solid var(--border); border-radius: var(--radius-btn);
+  padding: .55rem .75rem;
+  font: inherit; font-size: var(--text-sm);
+  /* Tells the browser to draw native pickers in dark mode so the
+     calendar icon stays visible on a dark input. */
+  color-scheme: dark;
+}
+/* Replace the native (often invisible on dark backgrounds) calendar icon
+   with an inline white SVG so it stays visible regardless of how the
+   browser interprets color-scheme. */
+.ru-form input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+.ru-tab-access input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: none;
+  opacity: 1;
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='4' width='18' height='18' rx='2' ry='2'/><line x1='16' y1='2' x2='16' y2='6'/><line x1='8' y1='2' x2='8' y2='6'/><line x1='3' y1='10' x2='21' y2='10'/></svg>");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 18px 18px;
+}
+.ru-form input:disabled { opacity: .6; }
+.ru-form-row--inline { flex-direction: row; align-items: center; gap: .5rem; }
+.ru-form-actions { display: flex; gap: .5rem; justify-content: flex-end; }
+.ru-form-actions--inline { justify-content: flex-start; align-items: center; flex-wrap: wrap; }
+.ru-form-divider { width: 1px; height: 22px; background: var(--border); margin: 0 .35rem; }
+.ru-form-error { color: #ef4444; font-size: var(--text-xs); margin: 0; }
+.ru-textarea { width: 100%; min-height: 120px; resize: vertical; box-sizing: border-box; }
+
+.ru-danger-list {
+  margin: .5rem 0 .75rem; padding-left: 1.25rem;
+  color: var(--text-secondary);
+  font-size: var(--text-xs); line-height: 1.55;
+}
+.ru-danger-list li { margin-bottom: .15rem; }
+.ru-source-cell { display: inline-flex; flex-wrap: wrap; gap: .25rem; align-items: center; }
+
+.ru-pill-row { display: flex; gap: .5rem; flex-wrap: wrap; }
+
+/* Permissions list */
+.ru-perm-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .65rem; }
+.ru-perm-row {
+  display: flex; flex-direction: column; gap: .25rem;
+  padding: .55rem .75rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.ru-perm-head { display: inline-flex; align-items: center; gap: .65rem; }
+.ru-perm-label {
+  font-weight: var(--font-bold); color: var(--text-primary);
+  font-size: var(--text-sm);
+}
+.ru-perm-row p.ru-help { padding-left: calc(36px + .65rem); margin: 0; }
+
+/* Switch */
+.ru-toggle-row { display: flex; align-items: center; gap: 1rem; }
+.ru-toggle-row--column { flex-direction: column; align-items: flex-start; gap: .35rem; }
+.ru-switch { position: relative; display: inline-block; width: 36px; height: 20px; flex-shrink: 0; }
+.ru-switch input { opacity: 0; width: 0; height: 0; }
+.ru-switch span {
+  position: absolute; cursor: pointer; inset: 0;
+  background: #555; border-radius: 20px;
+  transition: background var(--duration-base);
+}
+.ru-switch span::before {
+  content: ''; position: absolute;
+  height: 14px; width: 14px; left: 3px; top: 3px;
+  background: #fff; border-radius: 50%;
+  transition: transform var(--duration-base);
+}
+.ru-switch input:checked + span { background: var(--accent); }
+.ru-switch input:checked + span::before { transform: translateX(16px); }
+
+/* Tags */
+.ru-tag-row { display: flex; flex-wrap: wrap; gap: .35rem; }
+.ru-tag {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: rgba(var(--accent-rgb), .15); color: var(--accent);
+  border-radius: 999px; padding: .15rem .65rem;
+  font-size: var(--text-2xs); font-weight: var(--font-bold);
+}
+.ru-tag-remove {
+  background: transparent; border: none; color: inherit; cursor: pointer;
+  font-size: var(--text-sm); line-height: 1;
+}
+
+/* Audit list */
+.ru-audit-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .35rem; }
+.ru-audit-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: .75rem;
+  align-items: baseline;
+  padding: .55rem .75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  font-size: var(--text-xs);
+}
+.ru-audit-date {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-2xs);
+  white-space: nowrap;
+}
+.ru-audit-body { display: flex; flex-direction: column; gap: .15rem; min-width: 0; }
+.ru-audit-action { color: var(--text-primary); font-weight: var(--font-bold); }
+.ru-audit-detail { color: var(--text-secondary); font-size: var(--text-2xs); word-break: break-word; }

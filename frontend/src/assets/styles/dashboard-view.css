@@ -1,0 +1,120 @@
+/* DashboardView — grid shell, customize bar, widgets container, skeleton. */
+
+.cinema-dash {
+  --dash-bg: #060a14; --hero-bg: #060a14; --ribbon-bg: #0b1020;
+  --ribbon-gap: rgba(255,255,255,0.04); --card-bg: rgba(255,255,255,0.025);
+  --card-border: rgba(255,255,255,0.06); --card-border-hover: rgba(99,102,241,0.2);
+  --text-primary: #fff; --text-secondary: rgba(255,255,255,0.8); --text-muted: rgba(255,255,255,0.35);
+  --pop-bg: rgba(15,20,35,0.97);
+  --heat-0: rgba(255,255,255,0.04); --heat-1: rgba(99,102,241,0.2); --heat-2: rgba(99,102,241,0.4); --heat-3: rgba(99,102,241,0.6); --heat-4: rgba(99,102,241,0.85);
+  background: var(--dash-bg); border-radius: var(--radius-card); margin: 16px; border: 0.5px solid var(--card-border);
+  max-height: calc(100vh - 32px); overflow-x: hidden; overflow-y: auto; position: relative;
+}
+.cinema-dash::-webkit-scrollbar { width: 4px; }
+.cinema-dash::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+
+
+.dash-particles { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+
+.dash-skeleton { padding: 0 28px 48px; position: relative; z-index: 1; }
+.skel-block { border-radius: var(--radius-card); background: linear-gradient(90deg, rgba(255,255,255,0.02) 25%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.02) 75%); background-size: 200% 100%; animation: skel-shimmer var(--duration-animation) ease-in-out infinite; border: 0.5px solid var(--border-subtle); }
+.skel-row { display: flex; gap: 14px; } .skel-row-main { gap: 14px; }
+.skel-col { display: flex; flex-direction: column; gap: 14px; flex: 1; }
+.skel-timeline { width: 58%; height: 400px; flex-shrink: 0; } .skel-card { flex: 1; height: 72px; } .skel-wide { flex: 1; height: 140px; } .skel-tall { height: 200px; }
+@keyframes skel-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+.dash-grid-wrap { padding: 0 28px 48px; position: relative; z-index: 1; }
+
+.dash-customize-wrap { display: flex; justify-content: flex-end; padding: 12px 28px 0; position: relative; z-index: 1; }
+.dash-customize-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 5px 14px;
+  border-radius: var(--radius-pill);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border-strong);
+  color: rgba(255,255,255,.6);
+  font-size: var(--text-2xs);
+  font-weight: var(--font-extrabold);
+  letter-spacing: var(--tracking-wide);
+  cursor: pointer;
+  transition: all .18s;
+  backdrop-filter: var(--blur-xs);
+  -webkit-tap-highlight-color: transparent;
+}
+@media (hover: hover) {
+  .dash-customize-btn:hover { border-color: rgba(255,255,255,0.18); color: rgba(255,255,255,.85); transform: translateY(-1px); }
+}
+
+.dash-editbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 10px 28px; background: rgba(99,102,241,0.04); backdrop-filter: var(--blur-sm); border-bottom: 1px solid rgba(99,102,241,0.1); max-height: 0; overflow: hidden; opacity: 0; transition: max-height var(--duration-slow), opacity var(--duration-base), padding var(--duration-slow); padding-top: 0; padding-bottom: 0; position: relative; z-index: 2; }
+.dash-editbar.visible { max-height: 200px; opacity: 1; padding-top: 10px; padding-bottom: 10px; }
+.editbar-left { display: flex; align-items: center; gap: 8px; font-size: var(--text-xs); color: var(--accent-400); font-weight: var(--font-regular); }
+.editbar-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.editbar-toggles { display: flex; gap: 6px; flex-wrap: wrap; }
+.editbar-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  min-height: 28px; padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--gradient-pill-active);
+  border: 1px solid var(--accent-500);
+  color: #fff;
+  font-size: var(--text-3xs);
+  font-weight: var(--font-extrabold);
+  letter-spacing: var(--tracking-wide);
+  cursor: pointer;
+  transition: all .18s;
+  backdrop-filter: var(--blur-xs);
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: var(--mk-pill-shadow-sm);
+}
+@media (hover: hover) {
+  .editbar-chip:hover { transform: translateY(-1px); }
+}
+.editbar-chip.chip-hidden {
+  background: rgba(255,255,255,0.03);
+  border-color: var(--border-strong);
+  color: rgba(255,255,255,.5);
+  box-shadow: none;
+  opacity: 0.7;
+}
+.chip-icon { flex-shrink: 0; } .chip-label { white-space: nowrap; } .chip-toggle { font-size: var(--text-3xs); color: var(--text-muted); margin-left: 2px; }
+.editbar-btn { font-size: var(--text-2xs); font-weight: var(--font-regular); padding: 5px 12px; border-radius: var(--radius-btn); cursor: pointer; transition: all var(--duration-fast); border: none; }
+.editbar-reset { display: flex; align-items: center; gap: 4px; background: var(--surface-2); color: var(--text-muted); }
+.editbar-reset:hover { background: rgba(255,255,255,0.08); color: var(--text-secondary); }
+.editbar-done { background: var(--accent-500); color: #fff; } .editbar-done:hover { background: #5558e6; }
+
+.dash-widget { border-radius: var(--radius-card); overflow: visible; position: relative; }
+.dash-widget.widget-editing { outline: 2px dashed rgba(99,102,241,0.25); outline-offset: -1px; cursor: move; }
+.dash-widget.widget-editing:hover { outline-color: rgba(99,102,241,0.5); }
+
+/* Widget internals — :deep() dropped since all children have unscoped styles. */
+.cinema-dash .widget-inner { height: 100%; position: relative; animation: widget-cascade 0.6s ease-out forwards; opacity: 0; }
+@keyframes widget-cascade { from { opacity: 0; transform: translateY(14px) scale(0.97); } to { opacity: 1; transform: none; } }
+
+.widget-badge-icon { position: absolute; top: 8px; right: 10px; z-index: 10; opacity: 0.15; pointer-events: none; stroke: var(--text-primary); transition: opacity var(--duration-base); }
+.dash-widget:hover .widget-badge-icon { opacity: 0.3; }
+.dash-wl-icon { color: #8b5cf6; }
+
+.cinema-dash .vgl-item > div { height: 100%; }
+.cinema-dash .vgl-item { overflow: hidden; border-radius: var(--radius-card); transition: box-shadow var(--duration-slow); }
+.cinema-dash .vgl-item:hover { box-shadow: 0 0 24px rgba(99,102,241,0.06); }
+
+.cinema-dash .widget-inner > .tl-root,
+.cinema-dash .widget-inner > .wg-stat,
+.cinema-dash .widget-inner > .hm,
+.cinema-dash .widget-inner > .tu,
+.cinema-dash .widget-inner > .ql-link,
+.cinema-dash .widget-inner > .uc {
+  backdrop-filter: var(--blur-md); -webkit-backdrop-filter: var(--blur-md);
+  border-color: rgba(255,255,255,0.07) !important;
+}
+.cinema-dash .widget-inner > .tl-root { background: var(--card-bg, rgba(255,255,255,0.025)); border: 0.5px solid rgba(255,255,255,0.07); border-radius: var(--radius-card); padding: 16px; }
+
+.cinema-dash .vgl-layout { min-height: 200px; --vgl-placeholder-bg: rgba(99,102,241,0.15); --vgl-placeholder-opacity: 100%; --vgl-item-resizing-opacity: 85%; --vgl-item-dragging-opacity: 90%; --vgl-resizer-border-color: rgba(99,102,241,0.3); }
+.cinema-dash .vgl-item--placeholder { background-color: rgba(99,102,241,0.06) !important; border: 1.5px dashed rgba(99,102,241,0.25) !important; border-radius: var(--radius-card) !important; opacity: 1 !important; }
+.cinema-dash .vgl-item__resizer { width: 14px; height: 14px; }
+.cinema-dash .vgl-item__resizer::before { border-color: rgba(99,102,241,0.3) !important; }
+
+@media (max-width: 1024px) { .dash-grid-wrap { padding: 0 16px 32px; } .dash-particles { opacity: 0.5; } }

@@ -1,0 +1,910 @@
+/**
+ * Premium Settings page styles. Externalised because the file is large
+ * (extensive FX) and must reach the global stylesheet to feed the
+ * staggered reveal classes shared with profile-page.css. Every
+ * selector is prefixed by .pt-settings to simulate Vue scoped CSS;
+ * values come from the design tokens only.
+ *
+ * The page reacts to the user's rank tier via the ``gc--{tier}`` class
+ * applied on the root: aurora colors, halo glow and accent gradients
+ * shift accordingly, mirroring the RankSidebarCard treatment used on
+ * the profile dashboard.
+ */
+
+@import '@/assets/styles/portal/profile-page.css';  /* dp-reveal-item--dN */
+
+/* ───────────────────────────────────────────────────────────────────
+   Root + ambient aurora
+   ─────────────────────────────────────────────────────────────────── */
+
+.pt-settings {
+  --pt-set-gap: clamp(1rem, 2.5vw, 1.75rem);
+  --pt-set-pad: clamp(1rem, 2.5vw, 1.75rem);
+  --pt-set-c1: var(--portal-color-premium);
+  --pt-set-c2: var(--portal-color-info);
+  --pt-set-rgb1: var(--portal-color-premium-rgb, 168, 85, 247);
+  --pt-set-rgb2: var(--portal-color-info-rgb, 96, 165, 250);
+
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--pt-set-gap);
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: var(--pt-set-pad);
+  overflow-x: clip;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (min-width: 1024px) {
+  .pt-settings { grid-template-columns: 320px minmax(0, 1fr); }
+}
+
+/* Tier-aware accent palette. Mirrors the SideRankCard tier colors
+   exactly so every gradient, halo, glow and focus ring on the page
+   matches the border of the rank card the user just looked at. The
+   two stops (c1 → c2) are always two shades of the same tier, never
+   a mix with a neutral color. */
+.pt-settings.gc--bronze {
+  --pt-set-c1: #cd7f32; --pt-set-c2: #8b5e3c;
+  --pt-set-rgb1: 205, 127, 50; --pt-set-rgb2: 139, 94, 60;
+}
+.pt-settings.gc--silver {
+  --pt-set-c1: #c0c0c0; --pt-set-c2: #6b7280;
+  --pt-set-rgb1: 192, 192, 192; --pt-set-rgb2: 107, 114, 128;
+}
+.pt-settings.gc--gold {
+  --pt-set-c1: #fbbf24; --pt-set-c2: #d97706;
+  --pt-set-rgb1: 251, 191, 36; --pt-set-rgb2: 217, 119, 6;
+}
+.pt-settings.gc--platinum {
+  --pt-set-c1: #38bdf8; --pt-set-c2: #0ea5e9;
+  --pt-set-rgb1: 56, 189, 248; --pt-set-rgb2: 14, 165, 233;
+}
+.pt-settings.gc--diamond {
+  --pt-set-c1: #a78bfa; --pt-set-c2: #7c3aed;
+  --pt-set-rgb1: 167, 139, 250; --pt-set-rgb2: 124, 58, 237;
+}
+.pt-settings.gc--master {
+  --pt-set-c1: #ef4444; --pt-set-c2: #f97316;
+  --pt-set-rgb1: 239, 68, 68; --pt-set-rgb2: 249, 115, 22;
+}
+/* Legendary stays multi-hue on purpose — the rank card itself uses a
+   rotating rainbow border, so two warm stops + the gold→red sweep
+   here keeps the page coherent with that signature. */
+.pt-settings.gc--legendary {
+  --pt-set-c1: #fbbf24; --pt-set-c2: #ef4444;
+  --pt-set-rgb1: 251, 191, 36; --pt-set-rgb2: 239, 68, 68;
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   Hero (sticky on desktop, halo glow behind RankCard)
+   ─────────────────────────────────────────────────────────────────── */
+
+.pt-settings-hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--pt-set-gap);
+}
+
+@media (min-width: 1024px) {
+  .pt-settings-hero { position: sticky; top: 88px; align-self: start; }
+}
+
+.pt-settings-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pt-settings-hero-streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.95rem;
+  background: linear-gradient(135deg,
+    rgba(var(--pt-set-rgb1), 0.18),
+    rgba(var(--pt-set-rgb2), 0.18));
+  border: 1px solid rgba(var(--pt-set-rgb1), 0.35);
+  border-radius: var(--portal-radius-pill);
+  color: var(--portal-text-primary);
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-bold);
+  box-shadow: 0 0 18px rgba(var(--pt-set-rgb1), 0.25),
+              inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   Header
+   ─────────────────────────────────────────────────────────────────── */
+
+.pt-settings .pt-settings-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.pt-settings .pt-settings-h1 {
+  margin: 0;
+  font-size: clamp(1.6rem, 2.4vw + 0.4rem, 2.4rem);
+  font-weight: var(--portal-font-black);
+  letter-spacing: -0.02em;
+  line-height: var(--portal-lh-tight);
+  background: linear-gradient(135deg,
+    var(--portal-text-primary) 0%,
+    var(--pt-set-c1) 60%,
+    var(--pt-set-c2) 100%);
+  -webkit-background-clip: text;
+          background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 24px rgba(var(--pt-set-rgb1), 0.35));
+}
+
+.pt-settings .pt-settings-sub {
+  margin: 0;
+  font-size: var(--portal-text-base);
+  color: var(--portal-text-secondary);
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   Body / Tabs
+   ─────────────────────────────────────────────────────────────────── */
+
+.pt-settings-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pt-set-gap);
+}
+
+.pt-settings-tabs {
+  position: sticky;
+  top: 64px;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.5rem;
+  background: linear-gradient(180deg,
+    rgba(255, 255, 255, 0.06),
+    rgba(255, 255, 255, 0.02));
+  backdrop-filter: var(--portal-blur-md);
+  -webkit-backdrop-filter: var(--portal-blur-md);
+  border: 1px solid var(--portal-border-default);
+  border-radius: var(--portal-radius-lg);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35),
+              inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.pt-settings-tab {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 44px;
+  padding: 0.55rem 1.1rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--portal-radius-md);
+  color: var(--portal-text-secondary);
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-medium);
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    color var(--portal-dur-fast) var(--portal-ease-default),
+    background var(--portal-dur-fast) var(--portal-ease-default),
+    border-color var(--portal-dur-fast) var(--portal-ease-default),
+    transform var(--portal-dur-fast) var(--portal-ease-default);
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: hover) {
+  .pt-settings-tab:hover {
+    color: var(--portal-text-primary);
+    background: var(--portal-surface-3);
+  }
+}
+.pt-settings-tab:active { transform: scale(0.97); }
+
+.pt-settings-tab--active {
+  color: var(--portal-text-primary);
+  background: linear-gradient(135deg,
+    rgba(var(--pt-set-rgb1), 0.22),
+    rgba(var(--pt-set-rgb2), 0.18));
+  border-color: rgba(var(--pt-set-rgb1), 0.45);
+  box-shadow:
+    0 0 24px rgba(var(--pt-set-rgb1), 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.10);
+  font-weight: var(--portal-font-bold);
+}
+.pt-settings-tab--active::after {
+  content: '';
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: 4px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg,
+    transparent,
+    var(--pt-set-c1),
+    var(--pt-set-c2),
+    transparent);
+  filter: drop-shadow(0 0 6px rgba(var(--pt-set-rgb1), 0.7));
+  animation: pt-settings-tab-underline 0.45s var(--portal-ease-emphasis);
+}
+@keyframes pt-settings-tab-underline {
+  from { transform: scaleX(0); opacity: 0; }
+  to   { transform: scaleX(1); opacity: 1; }
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   Cards (premium glass + top edge highlight + hover lift)
+   ─────────────────────────────────────────────────────────────────── */
+
+.pt-settings-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: clamp(1.1rem, 2vw, 1.65rem);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01)),
+    var(--portal-surface-2);
+  border: 1px solid var(--portal-border-default);
+  border-radius: var(--portal-radius-lg);
+  backdrop-filter: var(--portal-blur-md);
+  -webkit-backdrop-filter: var(--portal-blur-md);
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  /* No overflow:hidden — the avatar ring's tier glow has to bleed out
+     of the card boundary, otherwise it crops to a square at gold/
+     platinum/diamond/master/legendary. The top-edge highlight pseudo
+     stays inside the card naturally. */
+  transition:
+    transform var(--portal-dur-base) var(--portal-ease-emphasis),
+    border-color var(--portal-dur-base) var(--portal-ease-default),
+    box-shadow var(--portal-dur-base) var(--portal-ease-default);
+}
+
+.pt-settings-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 5%;
+  right: 5%;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(var(--pt-set-rgb1), 0.55),
+    rgba(var(--pt-set-rgb2), 0.55),
+    transparent);
+  pointer-events: none;
+}
+
+@media (hover: hover) {
+  .pt-settings-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(var(--pt-set-rgb1), 0.30);
+    box-shadow:
+      0 16px 40px rgba(0, 0, 0, 0.45),
+      0 0 32px rgba(var(--pt-set-rgb1), 0.10),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   Section title (accent bar + glow)
+   ─────────────────────────────────────────────────────────────────── */
+
+.pt-settings-section-title {
+  position: relative;
+  margin: 0;
+  padding-left: 14px;
+  font-size: var(--portal-text-md);
+  font-weight: var(--portal-font-bold);
+  color: var(--portal-text-primary);
+}
+.pt-settings-section-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 3px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--pt-set-c1), var(--pt-set-c2));
+  box-shadow: 0 0 10px rgba(var(--pt-set-rgb1), 0.6);
+}
+
+.pt-settings-section-sub {
+  margin: -0.5rem 0 0;
+  padding-left: 14px;
+  font-size: var(--portal-text-xs);
+  color: var(--portal-text-secondary);
+}
+
+.pt-settings-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pt-settings-label {
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-medium);
+  color: var(--portal-text-body);
+}
+
+.pt-settings-hint {
+  font-size: var(--portal-text-xs);
+  color: var(--portal-text-muted);
+  line-height: var(--portal-lh-relaxed);
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   Inputs (focus glow tier-aware)
+   ─────────────────────────────────────────────────────────────────── */
+
+.pt-settings-input,
+.pt-settings-textarea,
+.pt-settings-select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.6rem 0.95rem;
+  background: var(--portal-surface-1);
+  border: 1px solid var(--portal-border-default);
+  border-radius: var(--portal-radius-md);
+  color: var(--portal-text-primary);
+  font-size: var(--portal-text-base);
+  font-family: inherit;
+  transition:
+    border-color var(--portal-dur-fast) var(--portal-ease-default),
+    box-shadow var(--portal-dur-fast) var(--portal-ease-default),
+    background var(--portal-dur-fast) var(--portal-ease-default);
+}
+
+.pt-settings-input:focus,
+.pt-settings-textarea:focus,
+.pt-settings-select:focus {
+  outline: none;
+  border-color: rgba(var(--pt-set-rgb1), 0.55);
+  background: var(--portal-surface-2);
+  box-shadow: 0 0 0 3px rgba(var(--pt-set-rgb1), 0.20),
+              0 0 24px rgba(var(--pt-set-rgb1), 0.15);
+}
+
+.pt-settings-textarea {
+  min-height: 96px;
+  resize: vertical;
+  line-height: var(--portal-lh-relaxed);
+}
+
+/* Force a dark background on dropdown options — the browser renders
+   the menu natively and would otherwise inherit the OS white. */
+.pt-settings-select option {
+  background: #141414;
+  color: var(--portal-text-primary);
+}
+
+.pt-settings-counter {
+  align-self: flex-end;
+  font-size: var(--portal-text-xs);
+  color: var(--portal-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   Username state flags
+   ─────────────────────────────────────────────────────────────────── */
+
+.pt-settings-uname-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+.pt-settings-uname-row > .pt-settings-input { flex: 1 1 220px; }
+
+.pt-settings-uname-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.85rem;
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-bold);
+  border-radius: var(--portal-radius-pill);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.pt-settings-uname-flag--ok {
+  color: var(--portal-color-success);
+  background: rgba(var(--portal-color-success-rgb, 34, 197, 94), 0.18);
+  box-shadow: 0 0 12px rgba(var(--portal-color-success-rgb, 34, 197, 94), 0.25);
+}
+.pt-settings-uname-flag--err {
+  color: var(--portal-color-error);
+  background: rgba(var(--portal-color-error-rgb, 239, 68, 68), 0.18);
+  box-shadow: 0 0 12px rgba(var(--portal-color-error-rgb, 239, 68, 68), 0.25);
+}
+.pt-settings-uname-flag--warn {
+  color: var(--portal-color-warning);
+  background: rgba(var(--portal-color-warning-rgb, 251, 191, 36), 0.18);
+}
+
+.pt-settings-uname-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+  align-items: center;
+}
+
+.pt-settings-uname-chip {
+  min-height: 32px;
+  padding: 0.3rem 0.85rem;
+  background: linear-gradient(135deg,
+    rgba(var(--pt-set-rgb1), 0.18),
+    rgba(var(--pt-set-rgb2), 0.10));
+  border: 1px solid rgba(var(--pt-set-rgb1), 0.30);
+  border-radius: var(--portal-radius-pill);
+  color: var(--portal-text-primary);
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-medium);
+  cursor: pointer;
+  transition:
+    background var(--portal-dur-fast) var(--portal-ease-default),
+    border-color var(--portal-dur-fast) var(--portal-ease-default),
+    transform var(--portal-dur-fast) var(--portal-ease-default);
+  -webkit-tap-highlight-color: transparent;
+}
+@media (hover: hover) {
+  .pt-settings-uname-chip:hover {
+    background: linear-gradient(135deg,
+      rgba(var(--pt-set-rgb1), 0.28),
+      rgba(var(--pt-set-rgb2), 0.18));
+    border-color: rgba(var(--pt-set-rgb1), 0.55);
+    transform: translateY(-1px);
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   Avatar block (animated ring)
+   ─────────────────────────────────────────────────────────────────── */
+
+.pt-settings-avatar-block {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Avatar preview wraps the gc-avatar-zone/-ring/-inner trio from the
+   SideRankCard so it inherits the tier ring + equipped FX (via the
+   global rank-card.css). The gc-* classes own their dimensions, so
+   we only need to anchor the flex behaviour. */
+.pt-settings-avatar-preview {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.pt-settings-avatar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1 1 220px;
+}
+
+.pt-settings-avatar-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   Buttons (default + primary with shine sweep + danger)
+   ─────────────────────────────────────────────────────────────────── */
+
+.pt-settings-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 44px;
+  padding: 0.55rem 1.25rem;
+  background: var(--portal-surface-3);
+  border: 1px solid var(--portal-border-default);
+  border-radius: var(--portal-radius-md);
+  color: var(--portal-text-primary);
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-medium);
+  cursor: pointer;
+  text-decoration: none;
+  overflow: hidden;
+  transition:
+    background var(--portal-dur-fast) var(--portal-ease-default),
+    border-color var(--portal-dur-fast) var(--portal-ease-default),
+    transform var(--portal-dur-fast) var(--portal-ease-default),
+    box-shadow var(--portal-dur-fast) var(--portal-ease-default);
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: hover) {
+  .pt-settings-btn:hover {
+    background: var(--portal-surface-4);
+    border-color: var(--portal-border-strong);
+    transform: translateY(-1px);
+  }
+}
+.pt-settings-btn:active { transform: scale(0.97); }
+
+.pt-settings-btn--primary {
+  background: linear-gradient(135deg, var(--pt-set-c1), var(--pt-set-c2));
+  border-color: transparent;
+  color: #fff;
+  font-weight: var(--portal-font-bold);
+  box-shadow: 0 8px 24px rgba(var(--pt-set-rgb1), 0.40),
+              inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+.pt-settings-btn--primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.30) 50%,
+    transparent 70%);
+  transform: translateX(-110%);
+  transition: transform var(--portal-dur-slow) var(--portal-ease-emphasis);
+  pointer-events: none;
+}
+@media (hover: hover) {
+  .pt-settings-btn--primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 36px rgba(var(--pt-set-rgb1), 0.55),
+                inset 0 1px 0 rgba(255, 255, 255, 0.20);
+  }
+  .pt-settings-btn--primary:hover::before { transform: translateX(110%); }
+}
+
+.pt-settings-btn--danger {
+  color: var(--portal-color-error);
+}
+@media (hover: hover) {
+  .pt-settings-btn--danger:hover {
+    color: var(--portal-color-error);
+    background: rgba(var(--portal-color-error-rgb, 239, 68, 68), 0.14);
+    border-color: rgba(var(--portal-color-error-rgb, 239, 68, 68), 0.40);
+  }
+}
+
+.pt-settings-btn[disabled],
+.pt-settings-btn--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+.pt-settings-btn[disabled]:hover,
+.pt-settings-btn--disabled:hover { transform: none; }
+
+/* ───────────────────────────────────────────────────────────────────
+   Chips (genres, titles, locales)
+   ─────────────────────────────────────────────────────────────────── */
+
+.pt-settings-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pt-settings-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 36px;
+  padding: 0.45rem 0.95rem;
+  background: var(--portal-surface-2);
+  border: 1px solid var(--portal-border-default);
+  border-radius: var(--portal-radius-pill);
+  color: var(--portal-text-secondary);
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-medium);
+  cursor: pointer;
+  transition:
+    background var(--portal-dur-fast) var(--portal-ease-default),
+    border-color var(--portal-dur-fast) var(--portal-ease-default),
+    color var(--portal-dur-fast) var(--portal-ease-default),
+    transform var(--portal-dur-fast) var(--portal-ease-default),
+    box-shadow var(--portal-dur-fast) var(--portal-ease-default);
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 767px) {
+  .pt-settings-chip { min-height: 44px; }
+}
+
+@media (hover: hover) {
+  .pt-settings-chip:hover {
+    background: var(--portal-surface-3);
+    border-color: var(--portal-border-strong);
+    color: var(--portal-text-primary);
+    transform: translateY(-1px);
+  }
+}
+
+.pt-settings-chip--on {
+  background: linear-gradient(135deg,
+    rgba(var(--pt-set-rgb1), 0.22),
+    rgba(var(--pt-set-rgb2), 0.16));
+  border-color: rgba(var(--pt-set-rgb1), 0.50);
+  color: var(--portal-text-primary);
+  box-shadow: 0 0 20px rgba(var(--pt-set-rgb1), 0.25),
+              inset 0 0 0 1px rgba(var(--pt-set-rgb1), 0.18);
+}
+
+.pt-settings-chip--locked { opacity: 0.55; cursor: not-allowed; }
+
+/* ───────────────────────────────────────────────────────────────────
+   How-to-unlock list
+   ─────────────────────────────────────────────────────────────────── */
+
+.pt-settings-howto {
+  margin-top: 0.5rem;
+  padding: 0.85rem;
+  background: var(--portal-surface-1);
+  border: 1px solid var(--portal-border-faint);
+  border-radius: var(--portal-radius-md);
+}
+
+.pt-settings-howto-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.pt-settings-howto-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem;
+  align-items: baseline;
+  font-size: var(--portal-text-xs);
+  color: var(--portal-text-muted);
+}
+
+.pt-settings-howto-row.is-unlocked { color: var(--portal-text-body); }
+.pt-settings-howto-name { font-weight: var(--portal-font-medium); }
+
+/* ───────────────────────────────────────────────────────────────────
+   Visibility radio cards
+   ─────────────────────────────────────────────────────────────────── */
+
+.pt-settings-radios {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.65rem;
+}
+
+.pt-settings-radio {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1rem;
+  background: var(--portal-surface-2);
+  border: 1px solid var(--portal-border-default);
+  border-radius: var(--portal-radius-md);
+  cursor: pointer;
+  transition:
+    border-color var(--portal-dur-fast) var(--portal-ease-default),
+    background var(--portal-dur-fast) var(--portal-ease-default),
+    transform var(--portal-dur-fast) var(--portal-ease-default),
+    box-shadow var(--portal-dur-fast) var(--portal-ease-default);
+  -webkit-tap-highlight-color: transparent;
+}
+@media (hover: hover) {
+  .pt-settings-radio:hover {
+    border-color: var(--portal-border-strong);
+    transform: translateY(-1px);
+  }
+}
+
+.pt-settings-radio--on {
+  border-color: rgba(var(--pt-set-rgb1), 0.55);
+  background: linear-gradient(135deg,
+    rgba(var(--pt-set-rgb1), 0.16),
+    rgba(var(--pt-set-rgb2), 0.10));
+  box-shadow: 0 0 22px rgba(var(--pt-set-rgb1), 0.22),
+              inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.pt-settings-radio-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: var(--portal-text-base);
+  font-weight: var(--portal-font-bold);
+  color: var(--portal-text-primary);
+}
+
+.pt-settings-radio-hint {
+  font-size: var(--portal-text-xs);
+  color: var(--portal-text-secondary);
+}
+
+.pt-settings-radio input[type="radio"] { display: none; }
+
+/* ───────────────────────────────────────────────────────────────────
+   Toggle row
+   ─────────────────────────────────────────────────────────────────── */
+
+.pt-settings-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1rem;
+  background: var(--portal-surface-2);
+  border: 1px solid var(--portal-border-default);
+  border-radius: var(--portal-radius-md);
+  cursor: pointer;
+  transition:
+    border-color var(--portal-dur-fast) var(--portal-ease-default),
+    background var(--portal-dur-fast) var(--portal-ease-default);
+  -webkit-tap-highlight-color: transparent;
+}
+@media (hover: hover) {
+  .pt-settings-toggle:hover { border-color: var(--portal-border-strong); }
+}
+
+.pt-settings-toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--pt-set-c1);
+}
+
+.pt-settings-toggle-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.pt-settings-toggle-label {
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-medium);
+  color: var(--portal-text-primary);
+}
+.pt-settings-toggle-hint {
+  font-size: var(--portal-text-xs);
+  color: var(--portal-text-muted);
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   Save bar (sticky HUD with pulsing glow when dirty)
+   ─────────────────────────────────────────────────────────────────── */
+
+.pt-settings-savebar {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  padding: 0.85rem 1.1rem;
+  margin-top: 0.5rem;
+  background:
+    linear-gradient(180deg,
+      rgba(20, 20, 30, 0.55),
+      rgba(20, 20, 30, 0.85));
+  backdrop-filter: var(--portal-blur-lg);
+  -webkit-backdrop-filter: var(--portal-blur-lg);
+  border: 1px solid var(--portal-border-strong);
+  border-radius: var(--portal-radius-lg);
+  box-shadow:
+    0 -8px 30px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  padding-bottom: max(0.85rem, env(safe-area-inset-bottom, 0px));
+  transition: box-shadow var(--portal-dur-base) var(--portal-ease-default),
+              border-color var(--portal-dur-base) var(--portal-ease-default);
+}
+
+.pt-settings-savebar--dirty {
+  border-color: rgba(var(--pt-set-rgb1), 0.45);
+  animation: pt-settings-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes pt-settings-pulse {
+  0%, 100% {
+    box-shadow:
+      0 -8px 30px rgba(0, 0, 0, 0.45),
+      0 0 0 rgba(var(--pt-set-rgb1), 0),
+      inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  }
+  50% {
+    box-shadow:
+      0 -8px 30px rgba(0, 0, 0, 0.45),
+      0 0 36px rgba(var(--pt-set-rgb1), 0.40),
+      inset 0 1px 0 rgba(255, 255, 255, 0.10);
+  }
+}
+
+.pt-settings-savebar-status {
+  font-size: var(--portal-text-sm);
+  color: var(--portal-text-secondary);
+  font-weight: var(--portal-font-medium);
+}
+.pt-settings-savebar-status--dirty {
+  color: var(--portal-color-warning);
+}
+.pt-settings-savebar-status--ok {
+  color: var(--portal-color-success);
+}
+.pt-settings-savebar-status--err {
+  color: var(--portal-color-error);
+}
+.pt-settings-savebar-actions { display: flex; gap: 0.5rem; }
+
+/* ───────────────────────────────────────────────────────────────────
+   Force-username modal (kept in sync with the rest of the design)
+   ─────────────────────────────────────────────────────────────────── */
+
+.pt-force-uname-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--portal-z-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 1rem;
+}
+
+.pt-force-uname-panel {
+  position: relative;
+  width: min(480px, 100%);
+  padding: 1.75rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01)),
+    var(--portal-surface-3);
+  border: 1px solid rgba(var(--pt-set-rgb1, 168, 85, 247), 0.30);
+  border-radius: var(--portal-radius-xl);
+  box-shadow:
+    var(--portal-shadow-popup),
+    0 0 60px rgba(var(--pt-set-rgb1, 168, 85, 247), 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.pt-force-uname-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(var(--pt-set-rgb1, 168, 85, 247), 0.7),
+    transparent);
+}
+
+.pt-force-uname-title {
+  margin: 0;
+  font-size: var(--portal-text-xl);
+  font-weight: var(--portal-font-extrabold);
+  color: var(--portal-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.pt-force-uname-sub {
+  margin: 0;
+  font-size: var(--portal-text-sm);
+  color: var(--portal-text-secondary);
+  line-height: var(--portal-lh-relaxed);
+}

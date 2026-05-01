@@ -1,0 +1,118 @@
+/* Shared table styles for StatsUsersTab + StatsActivityTab.
+ * Prefixed with `.cinema-stats` so these rules stay scoped to the Stats view
+ * and don't leak into other tables in the app.
+ */
+
+.cinema-stats .stats-sort-arrow--idle { opacity: .3; }
+.cinema-stats .stats-sort-arrow--active { color: var(--accent-500); }
+
+.cinema-stats .tbl-wrap { padding: 18px 20px; background: var(--surface-1); backdrop-filter: blur(16px); border: .5px solid var(--border-default); border-radius: var(--radius-card); }
+.cinema-stats .tbl-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+.cinema-stats .tbl-title { font-size: var(--text-md); font-weight: var(--font-medium); color: var(--text-primary); margin: 0; }
+.cinema-stats .tbl-controls { display: flex; align-items: center; gap: 10px; }
+.cinema-stats .tbl-ctrl { display: flex; align-items: center; gap: 6px; }
+.cinema-stats .ctrl-lbl { font-size: var(--text-2xs); color: var(--text-muted); }
+.cinema-stats .ctrl-sel { background: var(--surface-2); border: .5px solid var(--border-strong); border-radius: var(--radius-sm); padding: 4px 8px; font-size: var(--text-xs); color: var(--text-primary); outline: none; }
+.cinema-stats .ctrl-sel option { background: var(--bg-secondary); color: var(--text-primary); }
+.cinema-stats .ctrl-search { background: var(--surface-2); border: .5px solid var(--border-strong); border-radius: var(--radius-btn); padding: 6px 12px; font-size: var(--text-xs); color: var(--text-primary); outline: none; width: 180px; transition: border-color var(--duration-base); }
+.cinema-stats .ctrl-search:focus { border-color: var(--accent-500); }
+.cinema-stats .tbl-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+/* On mobile, let the dense fixed-width admin table lay out naturally
+   with a minimum width so the horizontal scroll kicks in (card-mode
+   would lose the sortable column headers that are the whole point
+   of an admin data table). The header + controls are stacked and
+   wrap so the search input and toggles never overflow the card. */
+@media (max-width: 767px) {
+  .cinema-stats .tbl-wrap { padding: 14px 12px; }
+  .cinema-stats .tbl-header { flex-direction: column; align-items: stretch; gap: 10px; }
+  .cinema-stats .tbl-controls { flex-wrap: wrap; gap: 6px; }
+  .cinema-stats .ctrl-search { flex: 1 1 140px; width: auto; min-width: 0; }
+  .cinema-stats .dt { table-layout: auto; min-width: 640px; }
+}
+.cinema-stats .tbl-loading { display: flex; flex-direction: column; gap: 12px; padding: 12px 0; }
+.cinema-stats .skel-tbl-row { display: flex; gap: 16px; }
+
+.cinema-stats .dt { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.cinema-stats .dt th { text-align: left; padding: 8px 10px; font-size: var(--text-2xs); font-weight: var(--font-medium); color: rgba(255,255,255,.3); text-transform: uppercase; letter-spacing: .3px; border-bottom: 1px solid var(--border-default); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cinema-stats .dt th.sortable { cursor: pointer; user-select: none; }
+.cinema-stats .dt th.sortable:hover { color: rgba(255,255,255,.5); }
+.cinema-stats .dt th.dt-r,
+.cinema-stats .dt td.dt-r { text-align: right; }
+.cinema-stats .dt th.dt-c,
+.cinema-stats .dt td.dt-c { text-align: center; }
+.cinema-stats .dt td { padding: 10px; border-bottom: .5px solid var(--border-subtle); font-size: var(--text-sm); color: rgba(255,255,255,.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; }
+.cinema-stats .dt tbody tr:hover td { background: rgba(var(--accent-rgb),.03); }
+.cinema-stats .dt-name { font-weight: var(--font-regular); }
+.cinema-stats .dt-sec { color: rgba(255,255,255,.45); font-size: var(--text-xs); }
+.cinema-stats .dt-muted { color: var(--text-very-faint); font-size: var(--text-2xs); }
+.cinema-stats .dt-bold { font-weight: var(--font-medium); }
+.cinema-stats .dt-accent { color: #22d3ee; font-size: var(--text-xs); }
+.cinema-stats .dt-ep { font-size: var(--text-3xs); color: var(--text-very-faint); margin-left: 4px; }
+.cinema-stats .dt-empty { text-align: center; color: var(--text-muted); padding: 24px; }
+.cinema-stats .dt-clickable { cursor: pointer; color: var(--accent-400); transition: color var(--duration-fast); }
+.cinema-stats .dt-clickable:hover { color: var(--accent-300); text-decoration: underline; }
+.cinema-stats .dt-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xs); font-weight: var(--font-bold); color: #fff; }
+.cinema-stats .dt-actions { display: flex; gap: 4px; align-items: center; justify-content: flex-end; }
+.cinema-stats .dt-act-btn { background: none; border: none; cursor: pointer; padding: 4px; border-radius: var(--radius-sm); color: var(--text-muted); transition: all var(--duration-fast); display: flex; align-items: center; }
+.cinema-stats .dt-act-btn:hover { background: var(--surface-3); color: var(--text-primary); }
+.cinema-stats .dt-act-del:hover { color: var(--color-error); background: rgba(var(--color-error-rgb),.08); }
+.cinema-stats .dt-act-show:hover { color: var(--color-success); background: rgba(var(--color-success-rgb),.08); }
+.cinema-stats .dt-act-merge:hover { color: var(--accent-400); background: rgba(var(--accent-rgb),.08); }
+
+.cinema-stats .ctrl-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 5px 14px;
+  border-radius: var(--radius-pill);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border-strong);
+  color: rgba(255,255,255,.6);
+  font-size: var(--text-2xs);
+  font-weight: var(--font-extrabold);
+  letter-spacing: var(--tracking-wide);
+  cursor: pointer;
+  transition: all .18s;
+  backdrop-filter: var(--blur-xs);
+  -webkit-tap-highlight-color: transparent;
+}
+@media (hover: hover) {
+  .cinema-stats .ctrl-toggle:hover:not(.active) {
+    border-color: rgba(255,255,255,0.18);
+    color: rgba(255,255,255,.85);
+    transform: translateY(-1px);
+  }
+}
+.cinema-stats .ctrl-toggle.active {
+  background: var(--gradient-pill-active);
+  border-color: var(--accent-500);
+  color: #fff;
+  box-shadow: var(--mk-pill-shadow);
+}
+.cinema-stats .ctrl-toggle input { display: none; }
+
+.cinema-stats .user-badge { font-size: var(--text-3xs); padding: 1px 5px; border-radius: var(--radius-sm); margin-left: 6px; vertical-align: middle; font-weight: var(--font-regular); }
+.cinema-stats .user-badge-hist { background: rgba(107,114,128,.15); color: #9ca3af; }
+.cinema-stats .user-badge-hidden { background: rgba(245,158,11,.12); color: var(--color-warning); }
+.cinema-stats .user-hidden-row { opacity: .5; }
+.cinema-stats .user-historical-row .dt-avatar { border: 1.5px dashed rgba(255,255,255,.2); }
+
+.cinema-stats .act-chk { width: 15px; height: 15px; accent-color: var(--accent-500); cursor: pointer; }
+.cinema-stats .act-row-selected { background: rgba(99,102,241,.08) !important; }
+.cinema-stats .act-bulk-del-btn { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: var(--radius-sm); font-size: var(--text-2xs); font-weight: var(--font-medium); background: rgba(239,68,68,.1); color: #ef4444; border: .5px solid rgba(239,68,68,.2); cursor: pointer; font-family: inherit; transition: all var(--duration-fast); margin-right: auto; }
+.cinema-stats .act-bulk-del-btn:hover { background: rgba(239,68,68,.2); }
+
+.cinema-stats .flux-badge { font-size: var(--text-2xs); font-weight: var(--font-medium); padding: 2px 8px; border-radius: 5px; }
+.cinema-stats .flux-direct { background: rgba(34,197,94,.1); color: var(--color-success); }
+.cinema-stats .flux-transcode { background: rgba(245,158,11,.1); color: var(--color-warning); }
+.cinema-stats .flux-other { background: rgba(59,130,246,.1); color: var(--color-info); }
+
+.cinema-stats .tbl-pag { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 14px; }
+.cinema-stats .pag-info { font-size: var(--text-2xs); color: var(--text-muted); }
+.cinema-stats .pag-btns { display: flex; align-items: center; gap: 4px; }
+.cinema-stats .pag-btn { background: var(--surface-2); border: .5px solid var(--border-strong); color: var(--text-secondary); border-radius: var(--radius-sm); padding: 5px 8px; cursor: pointer; display: flex; align-items: center; transition: all var(--duration-fast); }
+.cinema-stats .pag-btn:hover:not(:disabled) { border-color: var(--accent-500); color: var(--accent-500); }
+.cinema-stats .pag-btn:disabled { opacity: .3; cursor: default; }
+.cinema-stats .pag-next { background: rgba(var(--accent-rgb),.2); border-color: rgba(var(--accent-rgb),.3); color: #fff; }
+.cinema-stats .pag-cur { font-size: var(--text-xs); font-weight: var(--font-medium); color: var(--text-primary); min-width: 24px; text-align: center; }

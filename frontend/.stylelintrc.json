@@ -1,0 +1,49 @@
+{
+  "extends": [
+    "stylelint-config-standard",
+    "stylelint-config-recommended-vue"
+  ],
+  "rules": {
+    "selector-class-pattern": null,
+    "custom-property-pattern": null,
+    "no-descending-specificity": null,
+    "declaration-block-single-line-max-declarations": null,
+    "no-duplicate-selectors": null,
+    "value-keyword-case": null,
+    "alpha-value-notation": null,
+    "hue-degree-notation": null,
+    "color-function-notation": null,
+    "media-feature-range-notation": null,
+    "property-no-vendor-prefix": null,
+    "value-no-vendor-prefix": null,
+    "selector-no-vendor-prefix": null,
+    "at-rule-no-vendor-prefix": null,
+    "comment-empty-line-before": null,
+    "declaration-empty-line-before": null,
+    "rule-empty-line-before": null,
+    "at-rule-empty-line-before": null,
+    "selector-pseudo-class-no-unknown": [
+      true,
+      { "ignorePseudoClasses": ["deep", "global", "slotted"] }
+    ],
+    "number-max-precision": 4,
+    "length-zero-no-unit": true,
+    "color-no-invalid-hex": true,
+    "declaration-block-no-duplicate-properties": [
+      true,
+      { "ignore": ["consecutive-duplicates-with-different-values"] }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["**/*.vue"],
+      "customSyntax": "postcss-html"
+    }
+  ],
+  "ignoreFiles": [
+    "node_modules/**",
+    "dist/**",
+    "coverage/**",
+    "public/**"
+  ]
+}

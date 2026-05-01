@@ -1,0 +1,33 @@
+name: Commitlint
+
+on:
+  pull_request:
+
+jobs:
+  commitlint:
+    name: Validate commit messages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install commitlint
+        working-directory: frontend
+        run: npm ci
+
+      - name: Validate PR commits against Conventional Commits
+        working-directory: frontend
+        run: |
+          npx commitlint \
+            --from ${{ github.event.pull_request.base.sha }} \
+            --to ${{ github.event.pull_request.head.sha }} \
+            --verbose

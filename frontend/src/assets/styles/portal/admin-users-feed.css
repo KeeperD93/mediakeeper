@@ -1,0 +1,184 @@
+/* Trophy grid + activity feed lists used by the drawer's Activity and
+   Trophies tabs. Imported by RuTabActivity.vue and RuTabTrophies.vue. */
+
+/* Activity overview cards (drawer Activity tab) */
+.ru-act-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: .75rem;
+}
+.ru-act-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: .75rem;
+  align-items: center;
+  padding: .85rem 1rem;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border);
+  background: var(--bg-tertiary);
+  overflow: hidden;
+}
+.ru-act-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--ru-act-tint, rgba(99,102,241,.10)) 0%, transparent 65%);
+  pointer-events: none;
+}
+.ru-act-card--info    { --ru-act-tint: rgba(59,130,246,.18);  }
+.ru-act-card--info .ru-act-icon    { background: rgba(59,130,246,.15); color: var(--color-info); }
+.ru-act-card--warn    { --ru-act-tint: rgba(251,191,36,.18); }
+.ru-act-card--warn .ru-act-icon    { background: rgba(251,191,36,.15); color: var(--color-warning); }
+.ru-act-card--success { --ru-act-tint: rgba(34,197,94,.18); }
+.ru-act-card--success .ru-act-icon { background: rgba(34,197,94,.15); color: var(--color-success); }
+.ru-act-card--accent  { --ru-act-tint: rgba(var(--accent-rgb), .18); }
+.ru-act-card--accent .ru-act-icon  { background: rgba(var(--accent-rgb), .15); color: var(--accent); }
+.ru-act-icon {
+  position: relative;
+  width: 44px; height: 44px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+}
+.ru-act-body {
+  position: relative;
+  display: flex; flex-direction: column; gap: .15rem; min-width: 0;
+}
+.ru-act-label {
+  font-size: var(--text-2xs);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-widest);
+  color: var(--text-muted);
+  font-weight: var(--font-bold);
+}
+.ru-act-val {
+  font-size: var(--text-xl);
+  font-weight: var(--font-extrabold);
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.ru-act-foot {
+  font-size: var(--text-2xs);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+.ru-trophy-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: .5rem;
+}
+.ru-trophy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .35rem;
+  padding: .55rem .35rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  text-align: center;
+}
+.ru-trophy--unlocked { border-color: rgba(var(--accent-rgb), .35); }
+.ru-trophy--progress { opacity: .65; }
+
+.ru-trophy-icon {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(var(--accent-rgb), .12);
+  color: var(--accent);
+}
+.ru-trophy-icon--muted {
+  background: rgba(255, 255, 255, .04);
+  color: var(--text-muted);
+}
+.ru-trophy-name {
+  font-size: var(--text-2xs);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+.ru-trophy-progress {
+  font-size: var(--text-3xs);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.ru-trophy-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .2rem;
+  margin-top: .15rem;
+}
+.ru-trophy-rarity {
+  font-size: var(--text-3xs);
+  font-weight: var(--font-bold);
+  padding: 1px 6px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.ru-trophy-rarity--common    { background: rgba(156,163,175,0.12); color: #9ca3af; }
+.ru-trophy-rarity--uncommon  { background: rgba(34,197,94,0.18);  color: #22c55e; }
+.ru-trophy-rarity--rare      { background: rgba(59,130,246,0.18); color: #3b82f6; }
+.ru-trophy-rarity--epic      { background: rgba(168,85,247,0.18); color: #a855f7; }
+.ru-trophy-rarity--legendary { background: rgba(255,140,0,0.18);  color: #ff8c00; }
+.ru-trophy-rarity--mythic    { background: rgba(153,27,27,0.18);  color: #b91c1c; }
+.ru-trophy-xp {
+  font-size: var(--text-3xs);
+  color: rgba(var(--accent-rgb), .9);
+  font-variant-numeric: tabular-nums;
+}
+
+.ru-feed-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+}
+.ru-feed-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: .75rem;
+  padding: .45rem .65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  font-size: var(--text-xs);
+}
+.ru-feed-date {
+  color: var(--text-muted);
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: var(--text-2xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ru-feed-main {
+  color: var(--text-primary);
+  font-weight: var(--font-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.ru-feed-year { color: var(--text-muted); font-weight: var(--font-medium); }
+.ru-feed-tail {
+  color: var(--accent);
+  font-weight: var(--font-extrabold);
+  font-variant-numeric: tabular-nums;
+}

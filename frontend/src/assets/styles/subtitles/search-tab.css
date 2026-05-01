@@ -1,0 +1,150 @@
+/* SubSearchTab — mode toggle, subtitle search (OpenSubtitles + TMDB) and stream search panels.
+ *
+ * Every rule is prefixed with `.sub-panel--search` (the component root
+ * modifier) so it can never collide with sibling subtitle tabs
+ * (SubHistoryTab, SubStatisticsTab, SubLibraryTab) which also render a
+ * `.sub-panel` root and declare overlapping `.sub-filter-sel`,
+ * `.badge-*`, `.tag-*` classes in their own scoped styles.
+ */
+
+/* Mode toggle — pill filter style shared with the rest of the app (arr-pill). */
+.sub-panel--search .ss-mode-toggle { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+.sub-panel--search .ss-mode-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 32px; padding: 5px 14px;
+  border-radius: var(--radius-pill);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border-strong);
+  color: rgba(255,255,255,.6);
+  font-size: var(--text-2xs);
+  font-weight: var(--font-extrabold);
+  letter-spacing: var(--tracking-wide);
+  cursor: pointer;
+  transition: all .18s;
+  backdrop-filter: var(--blur-xs);
+  -webkit-tap-highlight-color: transparent;
+  font-family: inherit;
+}
+@media (hover: hover) {
+  .sub-panel--search .ss-mode-btn:hover:not(.active) {
+    border-color: rgba(255,255,255,0.18);
+    color: rgba(255,255,255,.85);
+    transform: translateY(-1px);
+  }
+}
+.sub-panel--search .ss-mode-btn.active {
+  background: var(--gradient-pill-active);
+  border-color: var(--accent-500);
+  color: #fff;
+  box-shadow: var(--mk-pill-shadow);
+}
+
+/* Shared card */
+.sub-panel--search .ss-card { background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: 14px; }
+
+/* Search bar */
+.sub-panel--search .sub-search-card { padding: 14px; margin-bottom: 12px; }
+.sub-panel--search .sub-search-row { display: flex; gap: 8px; }
+.sub-panel--search .sub-search-input {
+  flex: 1; padding: 9px 12px; border-radius: var(--radius-input); font-size: var(--text-sm);
+  background: var(--surface-2); border: 1px solid var(--border-default);
+  color: var(--text-primary); outline: none; font-family: inherit;
+}
+.sub-panel--search .sub-search-input:focus { border-color: rgba(var(--accent-rgb),.3); }
+.sub-panel--search .sub-filter-sel {
+  padding: 8px 10px; border-radius: var(--radius-input); font-size: var(--text-2xs);
+  background: var(--surface-2); border: 1px solid var(--border-default);
+  color: var(--text-primary); outline: none; font-family: inherit; cursor: pointer;
+}
+.sub-panel--search .sub-filter-sel option { background: var(--bg-secondary); color: var(--text-primary); }
+.sub-panel--search .sub-search-go {
+  padding: 8px 14px; border-radius: var(--radius-input); background: var(--accent-500); color: #fff;
+  border: none; cursor: pointer; display: flex; align-items: center;
+}
+.sub-panel--search .sub-search-go:disabled { opacity: .4; cursor: default; }
+.sub-panel--search .sub-search-hint { font-size: var(--text-2xs); color: var(--text-muted); margin-top: 10px; }
+.sub-panel--search .sub-section-title { font-size: var(--text-2xs); color: var(--text-muted); margin-bottom: 10px; font-weight: var(--font-medium); }
+
+/* TMDB */
+.sub-panel--search .sub-tmdb-card { padding: 14px; margin-bottom: 12px; }
+.sub-panel--search .sub-tmdb-row { display: flex; align-items: center; gap: 12px; padding: 8px 6px; border-bottom: .5px solid var(--border-subtle); cursor: pointer; border-radius: var(--radius-btn); }
+.sub-panel--search .sub-tmdb-row:hover { background: rgba(var(--accent-rgb),.06); }
+.sub-panel--search .sub-tmdb-row:last-child { border-bottom: none; }
+.sub-panel--search .sub-tmdb-poster { width: 32px; height: 48px; border-radius: 4px; object-fit: cover; flex-shrink: 0; }
+.sub-panel--search .sub-tmdb-poster-empty { display: flex; align-items: center; justify-content: center; background: var(--surface-2); color: var(--text-muted); }
+.sub-panel--search .sub-tmdb-info { flex: 1; min-width: 0; }
+.sub-panel--search .sub-tmdb-name { display: block; font-size: var(--text-sm); font-weight: var(--font-regular); color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sub-panel--search .sub-tmdb-meta { display: flex; gap: 6px; margin-top: 2px; font-size: var(--text-2xs); color: var(--text-muted); }
+.sub-panel--search .sub-tmdb-vote::before { content: '\2605 '; color: var(--color-warning); }
+.sub-panel--search .sub-selected-banner { display: flex; align-items: center; gap: 12px; padding: 10px 14px; margin-bottom: 12px; }
+.sub-panel--search .sub-selected-poster { width: 28px; height: 42px; border-radius: 4px; object-fit: cover; flex-shrink: 0; }
+.sub-panel--search .sub-selected-info { flex: 1; min-width: 0; }
+.sub-panel--search .sub-selected-name { font-size: var(--text-sm); font-weight: var(--font-medium); color: var(--text-primary); }
+.sub-panel--search .sub-selected-year { font-size: var(--text-2xs); color: var(--text-muted); margin-left: 6px; }
+.sub-panel--search .sub-selected-clear { width: 28px; height: 28px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; background: var(--surface-2); color: var(--text-muted); border: .5px solid var(--border-strong); cursor: pointer; flex-shrink: 0; }
+.sub-panel--search .sub-selected-clear:hover { background: rgba(244,63,94,.1); color: #fb7185; }
+.sub-panel--search .sub-os-card { padding: 14px; }
+.sub-panel--search .sub-os-results { display: flex; flex-direction: column; }
+
+/* ═══ Stream search results ═══ */
+.sub-panel--search .ss-stream-results { display: flex; flex-direction: column; gap: 6px; }
+.sub-panel--search .ss-batch-bar { display: flex; align-items: center; gap: 12px; padding: 8px 0; margin-bottom: 4px; }
+.sub-panel--search .ss-select-all { display: flex; align-items: center; gap: 6px; font-size: var(--text-2xs); color: var(--text-secondary); cursor: pointer; }
+.sub-panel--search .ss-select-all input { accent-color: var(--accent-500); }
+.sub-panel--search .ss-batch-del {
+  display: inline-flex; align-items: center; gap: 5px; padding: 6px 14px; border-radius: var(--radius-btn);
+  font-size: var(--text-2xs); font-weight: var(--font-medium); background: rgba(244,63,94,.12); color: #fb7185;
+  border: .5px solid rgba(244,63,94,.2); cursor: pointer; font-family: inherit;
+}
+.sub-panel--search .ss-batch-del:hover:not(:disabled) { background: rgba(244,63,94,.22); }
+.sub-panel--search .ss-batch-del:disabled { opacity: .4; cursor: default; }
+.sub-panel--search .ss-batch-total { margin-left: auto; font-size: var(--text-3xs); color: var(--text-muted); }
+
+.sub-panel--search .ss-stream-item { padding: 12px 14px; }
+.sub-panel--search .ss-stream-header { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.sub-panel--search .ss-stream-poster { width: 32px; height: 48px; border-radius: 4px; object-fit: cover; flex-shrink: 0; }
+.sub-panel--search .ss-stream-info { flex: 1; min-width: 0; }
+.sub-panel--search .ss-stream-name { display: block; font-size: var(--text-sm); font-weight: var(--font-regular); color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sub-panel--search .ss-stream-meta { display: flex; gap: 6px; margin-top: 2px; }
+.sub-panel--search .ss-stream-tag { font-size: .58rem; font-weight: var(--font-bold); padding: 1px 6px; border-radius: 4px; }
+.sub-panel--search .tag-movie { background: rgba(var(--color-warning-rgb),.12); color: var(--color-warning); }
+.sub-panel--search .tag-ep { background: rgba(var(--accent-rgb),.12); color: var(--accent-300); }
+.sub-panel--search .ss-stream-year { font-size: var(--text-3xs); color: var(--text-muted); }
+
+.sub-panel--search .ss-stream-list { display: flex; flex-direction: column; gap: 3px; }
+.sub-panel--search .ss-stream-row { display: flex; align-items: center; gap: 8px; padding: 5px 8px; background: rgba(255,255,255,.02); border-radius: var(--radius-btn); }
+.sub-panel--search .ss-stream-check { accent-color: var(--accent-500); cursor: pointer; flex-shrink: 0; }
+.sub-panel--search .ss-stream-type-badge { font-size: .52rem; font-weight: var(--font-bold); padding: 2px 5px; border-radius: 3px; flex-shrink: 0; }
+.sub-panel--search .badge-audio { background: rgba(var(--color-warning-rgb),.1); color: var(--color-warning); }
+.sub-panel--search .badge-sub { background: rgba(99,102,241,.1); color: var(--accent-400); }
+.sub-panel--search .ss-stream-lang { font-size: var(--text-2xs); font-weight: var(--font-bold); color: var(--accent-400); min-width: 24px; }
+.sub-panel--search .ss-stream-title { flex: 1; font-size: var(--text-2xs); color: var(--text-primary); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sub-panel--search .ss-stream-codec { font-size: var(--text-3xs); color: var(--text-muted); }
+.sub-panel--search .ss-stream-channels { font-size: .58rem; color: var(--text-muted); }
+.sub-panel--search .ss-badge { font-size: .52rem; padding: 1px 5px; border-radius: 3px; font-weight: var(--font-medium); }
+.sub-panel--search .badge-default { background: rgba(var(--color-success-rgb),.1); color: var(--color-success); }
+.sub-panel--search .badge-forced { background: rgba(168,85,247,.1); color: #a855f7; }
+.sub-panel--search .ss-del-btn { margin-left: auto; width: 22px; height: 22px; border-radius: 4px; display: flex; align-items: center; justify-content: center; background: transparent; border: none; color: var(--text-muted); cursor: pointer; }
+.sub-panel--search .ss-del-btn:hover { background: rgba(244,63,94,.1); color: #f43f5e; }
+
+.sub-panel--search .ss-more { display: flex; justify-content: center; padding: 12px; }
+.sub-panel--search .ss-more-btn { padding: 8px 20px; border-radius: var(--radius-btn); font-size: var(--text-2xs); background: var(--surface-2); border: 1px solid var(--border-default); color: var(--text-secondary); cursor: pointer; font-family: inherit; }
+
+.sub-panel--search .sub-center { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px; gap: 12px; }
+
+/* ═══ Mobile (≤ 767px) — stack dense filter rows ═══ */
+@media (max-width: 767px) {
+  /* Mode toggle: full-width stacked buttons so the long labels never truncate. */
+  .sub-panel--search .ss-mode-toggle { flex-direction: column; gap: 8px; }
+  .sub-panel--search .ss-mode-btn { width: 100%; min-height: 44px; }
+
+  /* Search row: input on its own line, then selects + go button share the next line. */
+  .sub-panel--search .sub-search-row { flex-wrap: wrap; gap: 8px; }
+  .sub-panel--search .sub-search-input { flex: 1 1 100%; min-width: 0; min-height: 44px; }
+  .sub-panel--search .sub-search-row .sub-filter-sel { flex: 1 1 0; min-width: 0; min-height: 44px; }
+  .sub-panel--search .sub-search-go { flex: 0 0 auto; min-width: 44px; min-height: 44px; padding: 8px 12px; }
+
+  /* Batch bar: wrap cleanly, total pushed to its own line. */
+  .sub-panel--search .ss-batch-bar { flex-wrap: wrap; row-gap: 6px; }
+  .sub-panel--search .ss-batch-total { margin-left: 0; flex: 1 1 100%; }
+}

@@ -1,0 +1,71 @@
+/* StatsView — shell styles.
+ * Selectors prefixed with `.cinema-stats` so they don't collide with
+ * other views sharing `.glass-card`, `.tab-panel`.
+ * Tab-specific styles live inside each tab sub-component's scoped block.
+ */
+
+.cinema-stats { position: relative; min-height: 100vh; }
+.cinema-stats .stats-content { position: relative; z-index: 1; padding: 12px 24px 40px; }
+
+.cinema-stats .tab-panel { animation: cinema-stats-tab-in .25s ease; }
+@keyframes cinema-stats-tab-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.cinema-stats .glass-card { background: var(--surface-1); backdrop-filter: var(--blur-md); -webkit-backdrop-filter: var(--blur-md); border: .5px solid var(--border-default); border-radius: var(--radius-card); transition: border-color var(--duration-base); }
+.cinema-stats .glass-card:hover { border-color: rgba(255,255,255,.1); }
+
+/* Common section heading */
+.cinema-stats .section-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.cinema-stats .section-title { font-size: var(--text-base); font-weight: var(--font-medium); color: var(--text-primary); margin: 0; }
+
+/* Common skeletons (used by multiple tabs) */
+.cinema-stats .skel-block { border-radius: var(--radius-card); background: linear-gradient(90deg, rgba(255,255,255,.02) 25%, rgba(255,255,255,.05) 50%, rgba(255,255,255,.02) 75%); background-size: 200% 100%; animation: cinema-stats-sk var(--duration-animation) ease-in-out infinite; }
+.cinema-stats .skel-line { height: 12px; border-radius: 4px; background: linear-gradient(90deg, rgba(255,255,255,.02) 25%, rgba(255,255,255,.05) 50%, rgba(255,255,255,.02) 75%); background-size: 200% 100%; animation: cinema-stats-sk var(--duration-animation) ease-in-out infinite; }
+.cinema-stats .w30 { width: 30%; }
+.cinema-stats .w40 { width: 40%; }
+.cinema-stats .w50 { width: 50%; }
+.cinema-stats .w60 { width: 60%; }
+.cinema-stats .w70 { width: 70%; }
+@keyframes cinema-stats-sk { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* Common pills (used across general, charts, activity) — same visual identity
+ * as the `arr-pill` used on Portal toolbars so filters stay consistent across
+ * the app (round pill shape, accent gradient + glow on active state). */
+.cinema-stats .period-pills { display: flex; gap: 6px; margin-left: auto; flex-wrap: wrap; }
+.cinema-stats .pill {
+  min-height: 32px;
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border-strong);
+  color: rgba(255,255,255,.6);
+  font-size: var(--text-2xs);
+  font-weight: var(--font-extrabold);
+  letter-spacing: var(--tracking-wide);
+  cursor: pointer;
+  transition: all .18s;
+  backdrop-filter: var(--blur-xs);
+  -webkit-tap-highlight-color: transparent;
+}
+@media (hover: hover) {
+  .cinema-stats .pill:hover:not(.active) {
+    border-color: rgba(255,255,255,0.18);
+    color: rgba(255,255,255,.85);
+    transform: translateY(-1px);
+  }
+}
+.cinema-stats .pill.active {
+  background: var(--gradient-pill-active);
+  border-color: var(--accent-500);
+  color: #fff;
+  box-shadow: var(--mk-pill-shadow);
+}
+.cinema-stats .pill-input { width: 72px; text-align: center; outline: none; font-family: inherit; -moz-appearance: textfield; }
+.cinema-stats .pill-input::-webkit-outer-spin-button,
+.cinema-stats .pill-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.cinema-stats .pill-input::placeholder { color: rgba(255,255,255,.35); font-size: var(--text-2xs); font-weight: var(--font-medium); }
+.cinema-stats .pill-input:focus { border-color: var(--accent-500); box-shadow: 0 0 0 3px rgba(var(--accent-rgb),.12); }
+
+/* Responsive */
+@media (max-width: 767px) {
+  .cinema-stats .stats-content { padding: 12px 16px 24px; }
+}

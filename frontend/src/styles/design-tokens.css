@@ -1,0 +1,33 @@
+/* Design tokens — entry point.
+ * ----------------------------------------------------------------
+ * Aggregates the 4 token fragments under tokens/. Import this file
+ * once from main.css and every component gets the full token set.
+ *
+ *   tokens/_colors.css      surfaces, borders, text extensions, statuses
+ *   tokens/_typography.css  font sizes, weights, tracking, line-height
+ *   tokens/_layout.css      spacing, radius, shadows, blur, z-index, gradients
+ *   tokens/_motion.css      durations, easings
+ *
+ * ── Naming convention ──
+ *   --<category>-<role>[-<modifier>]
+ *   Examples: --surface-1, --text-sm, --shadow-lg, --duration-fast
+ *
+ * ── Adding a new token ──
+ *   1. Decide its category → pick the right fragment under tokens/
+ *   2. Use a semantic name (describe the INTENT, not the value).
+ *   3. Keep the value once; never inline it elsewhere.
+ *   4. Document the intended usage in a 1-line comment.
+ *
+ * ── Future themes (v1.0+) ──
+ *   Each theme will re-declare these tokens under a body.theme-<name>
+ *   selector, overriding the :root defaults. The public token names
+ *   must stay stable — themes are additive overrides, never renames.
+ *
+ *   frontend/src/styles/themes/
+ *     ocean.css      body.theme-ocean { --surface-1: ...; ... }
+ *     forest.css     body.theme-forest { ... }
+ */
+@import './tokens/_colors.css';
+@import './tokens/_typography.css';
+@import './tokens/_layout.css';
+@import './tokens/_motion.css';

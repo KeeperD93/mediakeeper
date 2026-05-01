@@ -1,0 +1,239 @@
+/* Rank sidebar card — gaming dashboard style with tier-based effects.
+ * Used by RankSidebarCard.vue. Global styles.
+ *
+ * Requires CSS custom properties (--rk-c1, --rk-c2, --rk-c3) to be set on an
+ * ancestor via the .gc--<tier> class (bronze/silver/gold/platinum/diamond/master/legendary).
+ * The @property --border-angle declaration lives in the Portal profile page.
+ */
+
+.gc-sidebar {
+  position: relative; overflow: hidden;
+  background: transparent;
+  border-radius: var(--portal-radius-xl);
+  max-width: 340px;
+  margin-left: auto;
+  margin-right: auto;
+  contain: layout paint;
+}
+@media (min-width: 1024px) {
+  .gc-sidebar { max-width: none; margin-left: 0; margin-right: 0; }
+}
+.gc-sidebar-inner {
+  position: relative; z-index: 2;
+  padding: 2rem 1.25rem 2.5rem;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  background: rgba(8,10,20,0.92);
+  height: 100%;
+  border-radius: 18px;
+}
+@media (min-width: 768px) {
+  .gc-sidebar-inner { padding: 5rem 1.25rem 10rem; }
+}
+/* Tier border on inner */
+.gc--bronze .gc-sidebar-inner { border: 2px solid rgba(205,127,50,0.35); }
+.gc--silver .gc-sidebar-inner { border: 2px solid rgba(192,192,192,0.4); }
+.gc--gold .gc-sidebar-inner { border: 2px solid rgba(var(--portal-color-warning-rgb),0.5); }
+.gc--platinum .gc-sidebar-inner { border: 2px solid rgba(var(--portal-color-cinema-rgb),0.45); }
+.gc--diamond .gc-sidebar-inner { border: 2px solid rgba(var(--portal-color-premium-rgb),0.5); }
+.gc--master .gc-sidebar-inner { border: 2px solid rgba(var(--portal-color-error-rgb),0.5); }
+.gc--legendary .gc-sidebar-inner {
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  position: relative;
+}
+.gc--legendary .gc-sidebar-inner::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: var(--portal-radius-xl);
+  background: conic-gradient(
+    from var(--border-angle),
+    #ff0000, #ff8800, #ffff00, #00ff00,
+    #0088ff, #8855ff, #ff00ff, #ff0000
+  );
+  z-index: -1;
+  animation: gc-rotate 4s linear infinite;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  padding: 2px;
+  border-radius: var(--portal-radius-xl);
+}
+/* Inner sweep reflection */
+.gc-sidebar::after {
+  content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+  background: linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.03) 45%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 55%, transparent 60%);
+  opacity: 0; pointer-events: none; z-index: 1;
+  animation: gc-sweep 6s ease-in-out infinite;
+}
+@keyframes gc-sweep { 0%,100%{transform:translateX(-100%) rotate(45deg)} 50%{transform:translateX(100%) rotate(45deg)} }
+
+/* Rotation animée du cadre rainbow legendary (.gc-sidebar-inner::before). */
+@keyframes gc-rotate { to { --border-angle: 360deg; } }
+
+/* ─── TIER SIDEBAR BORDERS ─── */
+.gc--bronze .gc-sidebar { border-color: rgba(205,127,50,0.35); }
+.gc--silver .gc-sidebar { border-color: rgba(192,192,192,0.4); }
+.gc--gold .gc-sidebar { border-color: rgba(var(--portal-color-warning-rgb),0.5); }
+.gc--gold .gc-sidebar::after { opacity: 1; }
+.gc--platinum .gc-sidebar { border-color: rgba(var(--portal-color-cinema-rgb),0.45); }
+.gc--platinum .gc-sidebar::after { opacity: 1; }
+.gc--diamond .gc-sidebar { border-color: rgba(var(--portal-color-premium-rgb),0.5); }
+.gc--diamond .gc-sidebar::after { opacity: 1; }
+.gc--master .gc-sidebar { border-color: rgba(var(--portal-color-error-rgb),0.5); }
+.gc--master .gc-sidebar::after { opacity: 1; }
+.gc--legendary .gc-sidebar { border-color: rgba(var(--portal-color-warning-rgb),0.6); }
+.gc--legendary .gc-sidebar::after { opacity: 1; animation-duration: 4s; }
+
+/* Avatar zone */
+/* contain: layout (not "layout paint") — keeps the perf isolation but
+   stops the tier ring's box-shadow glow from being clipped to a square
+   at gold / platinum / diamond / master / legendary. */
+.gc-avatar-zone { position: relative; margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: center; contain: layout; }
+.gc-avatar-ring { width: 64px; height: 64px; border-radius: var(--portal-radius-circle); padding: 3px; background: linear-gradient(135deg, var(--rk-c1), var(--rk-c3)); transition: box-shadow var(--portal-dur-slow); }
+@media (min-width: 768px) {
+  .gc-avatar-ring { width: 88px; height: 88px; }
+}
+.gc--gold .gc-avatar-ring { box-shadow: 0 0 18px rgba(var(--portal-color-warning-rgb),0.3); }
+.gc--platinum .gc-avatar-ring { box-shadow: 0 0 22px rgba(var(--portal-color-cinema-rgb),0.35); }
+.gc--diamond .gc-avatar-ring { background: linear-gradient(135deg, #a78bfa, #7c3aed, #c084fc); background-size: 200% 200%; animation: gc-ring-shift 3s ease infinite; box-shadow: 0 0 28px rgba(var(--portal-color-premium-rgb),0.4); }
+.gc--master .gc-avatar-ring { background: linear-gradient(135deg, var(--portal-color-error), #dc2626, var(--portal-color-highlight)); background-size: 200% 200%; animation: gc-ring-shift 2s ease infinite; box-shadow: 0 0 30px rgba(var(--portal-color-error-rgb),0.4); }
+.gc--legendary .gc-avatar-ring { background: linear-gradient(135deg, var(--portal-color-warning), var(--portal-color-error), #a78bfa, var(--portal-color-warning)); background-size: 300% 300%; animation: gc-ring-shift 1.5s ease infinite; box-shadow: 0 0 35px rgba(var(--portal-color-warning-rgb),0.5), 0 0 70px rgba(var(--portal-color-error-rgb),0.2); }
+@keyframes gc-ring-shift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+.gc-avatar-inner { width: 100%; height: 100%; border-radius: var(--portal-radius-circle); overflow: hidden; }
+.gc-avatar-img { width: 100%; height: 100%; object-fit: cover; border-radius: var(--portal-radius-circle); }
+.gc-avatar-letter { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(10,12,25,0.95); font-size: var(--portal-text-3xl); font-weight: var(--portal-font-black); color: #fff; font-family: var(--portal-font-display); }
+.gc--master .gc-avatar-inner, .gc--legendary .gc-avatar-inner { animation: gc-float 3s ease-in-out infinite; }
+@keyframes gc-float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+
+/* Godrays */
+.gc-godrays { position: absolute; width: 180px; height: 180px; border-radius: var(--portal-radius-circle); background: conic-gradient(from 0deg, rgba(var(--portal-color-warning-rgb),0.2), transparent 15%, rgba(var(--portal-color-error-rgb),0.15) 25%, transparent 35%, rgba(var(--portal-color-premium-rgb),0.15) 45%, transparent 55%, rgba(var(--portal-color-warning-rgb),0.15) 65%, transparent 75%, rgba(var(--portal-color-error-rgb),0.1) 85%, transparent 95%, rgba(var(--portal-color-warning-rgb),0.2)); animation: gc-godrays 10s linear infinite; filter: blur(3px); z-index: -1; }
+@keyframes gc-godrays { to { transform: rotate(360deg); } }
+
+/* Energy rings */
+.gc-energy-rings { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); pointer-events: none; z-index: -1; }
+.gc-ering { position: absolute; border-radius: var(--portal-radius-circle); border: 1.5px solid var(--rk-c1); top: 50%; left: 50%; transform: translate(-50%,-50%); animation: gc-ering 3s ease-out infinite; opacity: 0.5; }
+.gc-ering--1 { animation-delay: 0s; } .gc-ering--2 { animation-delay: 1s; } .gc-ering--3 { animation-delay: 2s; }
+@keyframes gc-ering { 0%{width:80px;height:80px;opacity:0.6} 100%{width:160px;height:160px;opacity:0} }
+
+/* Sidebar text */
+.gc-rank-title { font-size: var(--portal-text-3xs); font-weight: var(--portal-font-extrabold); letter-spacing: var(--portal-tracking-widest); text-transform: uppercase; color: var(--portal-text-muted); margin-bottom: 0.25rem; font-family: var(--portal-font-display); }
+.gc--gold .gc-rank-title { color: var(--portal-color-warning-soft); } .gc--platinum .gc-rank-title { color: var(--portal-color-cinema-soft); } .gc--diamond .gc-rank-title { color: var(--portal-color-premium-soft); text-shadow: 0 0 10px rgba(var(--portal-color-premium-rgb),0.4); } .gc--master .gc-rank-title { color: var(--portal-color-error-soft); text-shadow: 0 0 12px rgba(var(--portal-color-error-rgb),0.4); } .gc--legendary .gc-rank-title { color: var(--portal-color-warning-soft); text-shadow: 0 0 16px rgba(var(--portal-color-warning-rgb),0.5); animation: gc-title-glow 2s ease-in-out infinite; }
+@keyframes gc-title-glow { 0%,100%{text-shadow:0 0 16px rgba(var(--portal-color-warning-rgb),0.5)} 50%{text-shadow:0 0 24px rgba(var(--portal-color-warning-rgb),0.8),0 0 40px rgba(var(--portal-color-error-rgb),0.3)} }
+.gc-name { font-size: var(--portal-text-lg); font-weight: var(--portal-font-black); color: #fff; font-family: var(--portal-font-display); margin-bottom: 0.1rem; }
+.gc--gold .gc-name, .gc--platinum .gc-name, .gc--diamond .gc-name, .gc--master .gc-name, .gc--legendary .gc-name { color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+.gc--legendary .gc-name { text-shadow: 0 0 10px rgba(var(--portal-color-warning-rgb),0.25), 0 2px 8px rgba(0,0,0,0.5); }
+.gc-custom-title { font-size: var(--portal-text-3xs); font-weight: var(--portal-font-bold); font-style: italic; margin-bottom: 0.15rem; font-family: var(--portal-font-display); }
+.gc-custom-title--common    { color: #d1d5db; }
+.gc-custom-title--uncommon  { color: var(--portal-color-success-soft); }
+.gc-custom-title--rare      { color: var(--portal-color-info-soft); text-shadow: 0 0 6px rgba(var(--portal-color-info-rgb),0.3); }
+.gc-custom-title--epic      { color: #d8b4fe; text-shadow: 0 0 6px rgba(var(--portal-color-premium-rgb),0.35); }
+.gc-custom-title--legendary { color: #fdba74; text-shadow: 0 0 8px rgba(255,140,0,0.4); }
+.gc-custom-title--mythic    { color: var(--portal-color-error-soft); text-shadow: 0 0 8px rgba(153,27,27,0.5); }
+.gc--gold .gc-level, .gc--platinum .gc-level, .gc--diamond .gc-level, .gc--master .gc-level, .gc--legendary .gc-level { color: rgba(255,255,255,0.6); }
+.gc-level { font-size: var(--portal-text-2xs); font-weight: var(--portal-font-bold); color: var(--portal-text-muted); letter-spacing: var(--portal-tracking-caps); margin-bottom: 0.75rem; text-transform: uppercase; }
+.gc-xp-wrap { width: 100%; margin-bottom: 0.5rem; }
+.gc-xp-track { position: relative; height: 6px; background: rgba(255,255,255,0.07); border-radius: 3px; overflow: hidden; margin-bottom: 0.2rem; }
+.gc-xp-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--rk-c1), var(--rk-c3)); }
+.gc-xp-shine { display: none; }
+.gc-xp-text { font-size: var(--portal-text-3xs); color: rgba(255,255,255,0.35); }
+.gc--gold .gc-xp-text, .gc--platinum .gc-xp-text, .gc--diamond .gc-xp-text, .gc--master .gc-xp-text, .gc--legendary .gc-xp-text { color: var(--portal-text-secondary); }
+.gc--gold .gc-ranking-label, .gc--platinum .gc-ranking-label, .gc--diamond .gc-ranking-label, .gc--master .gc-ranking-label, .gc--legendary .gc-ranking-label { color: rgba(255,255,255,0.6); }
+.gc--gold .gc-ranking-pct-text { color: var(--portal-color-warning-soft); }
+.gc--platinum .gc-ranking-pct-text { color: var(--portal-color-cinema-soft); }
+.gc--diamond .gc-ranking-pct-text { color: var(--portal-color-premium-soft); }
+.gc--master .gc-ranking-pct-text { color: var(--portal-color-error-soft); }
+.gc--legendary .gc-ranking-pct-text { color: var(--portal-color-warning-soft); }
+
+/* Ranking detail block */
+.gc-ranking-block {
+  width: 100%; padding: 0.75rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--portal-border-subtle);
+  border-radius: var(--radius-card);
+  margin-bottom: 1rem;
+  text-align: center;
+}
+.gc-ranking-label { font-size: var(--portal-text-3xs); font-weight: var(--portal-font-bold); color: var(--portal-text-muted); text-transform: uppercase; letter-spacing: var(--portal-tracking-eyebrow); margin-bottom: 0.3rem; }
+.gc-ranking-pos { font-size: 2rem; font-weight: var(--portal-font-black); font-family: var(--portal-font-display); color: var(--rk-c1, var(--accent, #818cf8)); line-height: var(--portal-lh-tight); margin-bottom: 0.2rem; }
+.gc-ranking-move { font-size: var(--portal-text-xs); font-weight: var(--portal-font-bold); margin-bottom: 0.5rem; }
+.gc-ranking-move--up { color: var(--portal-color-success); }
+.gc-ranking-move--down { color: var(--portal-color-error); }
+.gc-ranking-move--same { color: rgba(255,255,255,0.35); }
+.gc-ranking-pct-row { margin: 0 auto 0.3rem; max-width: 80%; }
+.gc-ranking-pct-bar { height: 4px; background: rgba(255,255,255,0.07); border-radius: 2px; overflow: hidden; }
+.gc-ranking-pct-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--rk-c1, var(--accent, #4338ca)), var(--rk-c3, #818cf8)); }
+.gc-ranking-pct-text { font-size: var(--portal-text-2xs); font-weight: var(--portal-font-extrabold); color: var(--rk-c1, var(--accent, #818cf8)); font-family: var(--portal-font-display); }
+
+/* Member since */
+.gc-member-since { margin-bottom: 1rem; font-size: var(--portal-text-2xs); color: var(--portal-text-muted); }
+.gc-member-since strong { color: rgba(255,255,255,0.65); }
+
+.gc-edit { padding: 0.4rem 1rem; border: 1px solid rgba(255,255,255,0.1); background: transparent; border-radius: var(--portal-radius-pill); color: rgba(255,255,255,0.65); font-size: var(--portal-text-2xs); font-weight: var(--portal-font-medium); cursor: pointer; transition: all var(--portal-dur-base); }
+.gc-edit:hover { background: var(--portal-surface-3); border-color: rgba(255,255,255,0.2); }
+
+/* Particles (master + legendary rising embers) */
+.gc-particles { position: absolute; left: 0; right: 0; bottom: 0; top: 0; z-index: 3; pointer-events: none; overflow: hidden; border-radius: var(--portal-radius-xl); }
+.gc-particle { position: absolute; bottom: 5px; width: 3px; height: 3px; border-radius: var(--portal-radius-circle); background: var(--rk-c1); opacity: 0; }
+.gc--platinum .gc-particle, .gc--diamond .gc-particle { opacity: 0; animation: gc-pfloat 10s linear infinite; }
+.gc--master .gc-particle { opacity: 0; background: #fbbf24; box-shadow: 0 0 4px #f97316; }
+.gc--legendary .gc-particle { opacity: 0; width: 4px; height: 4px; }
+.gc--master .gc-particle:nth-child(1), .gc--legendary .gc-particle:nth-child(1) { animation: gc-ember-1 9s 0s linear infinite; }
+.gc--master .gc-particle:nth-child(2), .gc--legendary .gc-particle:nth-child(2) { animation: gc-ember-2 7.5s 2s linear infinite; }
+.gc--master .gc-particle:nth-child(3), .gc--legendary .gc-particle:nth-child(3) { animation: gc-ember-3 8.5s 4.5s linear infinite; }
+.gc--master .gc-particle:nth-child(4), .gc--legendary .gc-particle:nth-child(4) { animation: gc-ember-4 10s 7s linear infinite; }
+.gc--master .gc-particle:nth-child(5), .gc--legendary .gc-particle:nth-child(5) { animation: gc-ember-5 8s 3s linear infinite; }
+.gc--master .gc-particle:nth-child(6), .gc--legendary .gc-particle:nth-child(6) { animation: gc-ember-6 9.5s 5.5s linear infinite; }
+.gc--master .gc-particle:nth-child(7), .gc--legendary .gc-particle:nth-child(7) { animation: gc-ember-7 7s 8.5s linear infinite; }
+.gc--master .gc-particle:nth-child(8), .gc--legendary .gc-particle:nth-child(8) { animation: gc-ember-8 11s 1s linear infinite; }
+.gc--legendary .gc-particle:nth-child(odd) { background: #fbbf24; box-shadow: 0 0 5px #fbbf24; }
+.gc--legendary .gc-particle:nth-child(even) { background: #ef4444; box-shadow: 0 0 5px #ef4444; }
+.gc-particle:nth-child(1){left:12%;animation-delay:0s}
+.gc-particle:nth-child(2){left:78%;animation-delay:1.8s}
+.gc-particle:nth-child(3){left:35%;animation-delay:4.5s}
+.gc-particle:nth-child(4){left:55%;animation-delay:7s}
+.gc-particle:nth-child(5){left:22%;animation-delay:2.8s}
+.gc-particle:nth-child(6){left:88%;animation-delay:5.5s}
+.gc-particle:nth-child(7){left:48%;animation-delay:8.5s}
+.gc-particle:nth-child(8){left:65%;animation-delay:3.8s}
+@keyframes gc-pfloat { 0%,1%{transform:translateY(0) scale(1);opacity:0} 2%{opacity:0} 5%{opacity:0.6} 90%{opacity:0.4} 100%{transform:translateY(-350px) scale(0.3);opacity:0} }
+@keyframes gc-ember-1 { 0%,3%{transform:translateY(0);opacity:0} 6%{opacity:0.8} 50%{opacity:0.6;transform:translateY(-180px) translateX(3px)} 100%{transform:translateY(-380px) translateX(-2px);opacity:0} }
+@keyframes gc-ember-2 { 0%,3%{transform:translateY(0);opacity:0} 6%{opacity:0.8} 50%{opacity:0.6;transform:translateY(-190px) translateX(-4px)} 100%{transform:translateY(-360px) translateX(1px);opacity:0} }
+@keyframes gc-ember-3 { 0%,3%{transform:translateY(0);opacity:0} 6%{opacity:0.7} 50%{opacity:0.5;transform:translateY(-170px) translateX(2px)} 100%{transform:translateY(-370px) translateX(-3px);opacity:0} }
+@keyframes gc-ember-4 { 0%,3%{transform:translateY(0);opacity:0} 6%{opacity:0.8} 50%{opacity:0.6;transform:translateY(-200px) translateX(-1px)} 100%{transform:translateY(-390px) translateX(4px);opacity:0} }
+@keyframes gc-ember-5 { 0%,3%{transform:translateY(0);opacity:0} 6%{opacity:0.7} 50%{opacity:0.5;transform:translateY(-175px) translateX(-5px)} 100%{transform:translateY(-350px) translateX(2px);opacity:0} }
+@keyframes gc-ember-6 { 0%,3%{transform:translateY(0);opacity:0} 6%{opacity:0.8} 50%{opacity:0.6;transform:translateY(-185px) translateX(5px)} 100%{transform:translateY(-375px) translateX(-1px);opacity:0} }
+@keyframes gc-ember-7 { 0%,3%{transform:translateY(0);opacity:0} 6%{opacity:0.7} 50%{opacity:0.5;transform:translateY(-195px) translateX(-3px)} 100%{transform:translateY(-385px) translateX(3px);opacity:0} }
+@keyframes gc-ember-8 { 0%,3%{transform:translateY(0);opacity:0} 6%{opacity:0.8} 50%{opacity:0.6;transform:translateY(-165px) translateX(1px)} 100%{transform:translateY(-365px) translateX(-4px);opacity:0} }
+
+/* Pinned trophies row (max 5) */
+.gc-pinned { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; margin: 0.5rem 0 0.75rem; z-index: 2; position: relative; }
+.gc-pinned-label { font-size: var(--portal-text-4xs); font-weight: var(--portal-font-extrabold); letter-spacing: var(--portal-tracking-eyebrow); text-transform: uppercase; color: rgba(255,255,255,0.45); }
+.gc-pinned-row { display: flex; gap: 0.4rem; }
+.gc-pinned-item { width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-sm); background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); cursor: help; transition: transform var(--portal-dur-base); }
+.gc-pinned-item:hover { transform: translateY(-2px) scale(1.1); }
+.gc-pinned-item--rarity-common    { color: #d1d5db; border-color: rgba(156,163,175,0.4); }
+.gc-pinned-item--rarity-uncommon  { color: #86efac; border-color: rgba(34,197,94,0.4);   box-shadow: 0 0 6px rgba(34,197,94,0.25); }
+.gc-pinned-item--rarity-rare      { color: #93c5fd; border-color: rgba(59,130,246,0.45);  box-shadow: 0 0 6px rgba(59,130,246,0.3); }
+.gc-pinned-item--rarity-epic      { color: #d8b4fe; border-color: rgba(168,85,247,0.5);   box-shadow: 0 0 6px rgba(168,85,247,0.35); }
+.gc-pinned-item--rarity-legendary { color: #fdba74; border-color: rgba(255,140,0,0.55);   box-shadow: 0 0 8px rgba(255,140,0,0.4); }
+.gc-pinned-item--rarity-mythic    { color: #fca5a5; border-color: rgba(153,27,27,0.6);    box-shadow: 0 0 8px rgba(153,27,27,0.45); }
+
+/* Legendary extras */
+.gc-aurora { position: absolute; inset: 0; z-index: 0; opacity: 0.5; background: radial-gradient(ellipse at 30% 30%, rgba(var(--portal-color-premium-rgb),0.4) 0%, transparent 50%), radial-gradient(ellipse at 70% 70%, rgba(var(--portal-color-error-rgb),0.3) 0%, transparent 50%), radial-gradient(ellipse at 50% 50%, rgba(var(--portal-color-warning-rgb),0.25) 0%, transparent 50%); background-size: 200% 200%; animation: gc-aurora 8s ease-in-out infinite; }
+@keyframes gc-aurora { 0%{background-position:0% 0%} 25%{background-position:100% 50%} 50%{background-position:50% 100%} 75%{background-position:0% 50%} 100%{background-position:0% 0%} }
+.gc-starfield { position: absolute; inset: 0; z-index: 1; overflow: hidden; pointer-events: none; }
+.gc-star { position: absolute; width: 2px; height: 2px; border-radius: var(--portal-radius-circle); background: #fff; animation: gc-twinkle var(--d, 3s) ease-in-out var(--dl, 0s) infinite; }
+.gc-star:nth-child(1){top:8%;left:15%;--d:2.5s}.gc-star:nth-child(2){top:20%;left:70%;--d:3.2s;--dl:0.4s}.gc-star:nth-child(3){top:35%;left:40%;--d:2.8s;--dl:1s}.gc-star:nth-child(4){top:50%;left:80%;--d:3.5s;--dl:0.7s}.gc-star:nth-child(5){top:65%;left:20%;--d:2.3s;--dl:1.5s}.gc-star:nth-child(6){top:78%;left:55%;--d:3s;--dl:0.2s}.gc-star:nth-child(7){top:15%;left:50%;--d:2.6s;--dl:2s}.gc-star:nth-child(8){top:42%;left:10%;--d:3.1s;--dl:0.9s}.gc-star:nth-child(9){top:88%;left:35%;--d:2.4s;--dl:1.3s}.gc-star:nth-child(10){top:55%;left:65%;--d:3.4s;--dl:0.5s}.gc-star:nth-child(11){top:30%;left:85%;--d:2.7s;--dl:1.8s}.gc-star:nth-child(12){top:70%;left:45%;--d:3.3s;--dl:0.3s}.gc-star:nth-child(13){top:5%;left:30%;--d:2.9s;--dl:2.2s}.gc-star:nth-child(14){top:92%;left:75%;--d:2.2s;--dl:1.6s}.gc-star:nth-child(15){top:48%;left:25%;--d:3.6s;--dl:0.8s}
+@keyframes gc-twinkle { 0%,100%{opacity:0.1;transform:scale(1)} 50%{opacity:1;transform:scale(1.8);box-shadow:0 0 6px rgba(255,255,255,0.7)} }
+
+/* ─── Optimisations mobile (<768px) ─────────────────────────────
+   Sur petits écrans, on coupe le sweep diagonal et on réduit le nuage
+   d'étoiles/embers du legendary pour rester fluide. */
+@media (max-width: 767px) {
+  .gc-sidebar::after { display: none; }
+  .gc-star:nth-child(n+9) { display: none; }
+  .gc-particle:nth-child(n+5) { display: none; }
+}

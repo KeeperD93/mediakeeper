@@ -1,0 +1,98 @@
+/* Trophy overlay — reward badges (title pill + seasonal year badges).
+ * Extracted from trophy-overlay.css to keep each file under 300 lines.
+ * Classes: .ta-row-title-*, .ta-year-*.
+ * Loaded automatically via @import in trophy-overlay.css. */
+
+.ta-row-title-wrap {
+  --tt-color: #fde68a;
+  --tt-glow: rgba(251,191,36,0.5);
+  --tt-bg-a: rgba(251,191,36,0.18);
+  --tt-bg-b: rgba(251,191,36,0.06);
+  --tt-border: rgba(251,191,36,0.35);
+  display: inline-flex; align-items: center; gap: 5px;
+  cursor: help;
+  max-width: 100%;
+  min-width: 0;
+}
+.ta-row-title-wrap--rarity-common    { --tt-color: #d1d5db; --tt-glow: rgba(156,163,175,0.45); --tt-bg-a: rgba(156,163,175,0.18); --tt-bg-b: rgba(156,163,175,0.06); --tt-border: rgba(156,163,175,0.35); }
+.ta-row-title-wrap--rarity-uncommon  { --tt-color: #86efac; --tt-glow: rgba(34,197,94,0.5);   --tt-bg-a: rgba(34,197,94,0.18);   --tt-bg-b: rgba(34,197,94,0.06);   --tt-border: rgba(34,197,94,0.35); }
+.ta-row-title-wrap--rarity-rare      { --tt-color: #93c5fd; --tt-glow: rgba(59,130,246,0.5);  --tt-bg-a: rgba(59,130,246,0.18);  --tt-bg-b: rgba(59,130,246,0.06);  --tt-border: rgba(59,130,246,0.4); }
+.ta-row-title-wrap--rarity-epic      { --tt-color: #d8b4fe; --tt-glow: rgba(168,85,247,0.55); --tt-bg-a: rgba(168,85,247,0.2);   --tt-bg-b: rgba(168,85,247,0.06);  --tt-border: rgba(168,85,247,0.45); }
+.ta-row-title-wrap--rarity-legendary { --tt-color: #fdba74; --tt-glow: rgba(255,140,0,0.6);   --tt-bg-a: rgba(255,140,0,0.2);    --tt-bg-b: rgba(255,140,0,0.06);   --tt-border: rgba(255,140,0,0.5); }
+.ta-row-title-wrap--rarity-mythic    { --tt-color: #fca5a5; --tt-glow: rgba(153,27,27,0.65);  --tt-bg-a: rgba(153,27,27,0.25);   --tt-bg-b: rgba(153,27,27,0.08);   --tt-border: rgba(153,27,27,0.55); }
+.ta-row-title-icon {
+  color: var(--tt-color);
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 4px var(--tt-glow));
+}
+.ta-row-title {
+  display: inline-flex; align-items: center;
+  padding: 1px 6px;
+  background: linear-gradient(135deg, var(--tt-bg-a), var(--tt-bg-b));
+  border: 1px solid var(--tt-border);
+  border-radius: 3px;
+  box-shadow: 0 0 6px var(--tt-glow);
+  min-width: 0; max-width: 100%;
+  overflow: hidden;
+}
+.ta-row-title-name {
+  font-size: var(--portal-text-3xs); font-weight: var(--portal-font-extrabold); color: var(--tt-color);
+  font-family: var(--portal-font-display);
+  letter-spacing: var(--portal-tracking-wide);
+  line-height: var(--portal-lh-display);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  min-width: 0;
+}
+
+/* Master variant: gold crown prepended before the Gift icon */
+.ta-row-title-wrap--master .ta-row-title-crown {
+  color: #fbbf24;
+  filter: drop-shadow(0 0 6px rgba(251,191,36,0.75));
+}
+
+/* Avatar-fx chip (cyan variant, displayed below the title chip for mastery) */
+.ta-row-avatar-fx-wrap {
+  --tt-color: #7dd3fc;
+  --tt-glow: rgba(6,182,212,0.55);
+  --tt-bg-a: rgba(6,182,212,0.22);
+  --tt-bg-b: rgba(6,182,212,0.06);
+  --tt-border: rgba(6,182,212,0.45);
+  margin-top: 2px;
+}
+
+/* Locked — icon only, desaturated, hints at an upcoming reward without
+   spoiling the title or effect name. Overrides the rarity/master tint. */
+.ta-row-title-wrap--locked {
+  --tt-color: #6b7280 !important;
+  --tt-glow: rgba(107,114,128,0.3) !important;
+  --tt-bg-a: rgba(107,114,128,0.1) !important;
+  --tt-bg-b: rgba(107,114,128,0.04) !important;
+  --tt-border: rgba(107,114,128,0.25) !important;
+  opacity: 0.7;
+}
+.ta-row-title-wrap--locked .ta-row-title-icon {
+  filter: grayscale(1) drop-shadow(0 0 2px rgba(107,114,128,0.3)) !important;
+}
+
+.ta-row-years {
+  display: flex; flex-wrap: wrap; gap: 0.3rem;
+  margin-top: 0.3rem;
+}
+.ta-year-badge {
+  font-size: var(--portal-text-3xs); font-weight: var(--portal-font-extrabold);
+  padding: 2px 8px; border-radius: var(--radius-input);
+  font-family: var(--portal-font-display);
+  letter-spacing: var(--portal-tracking-caps);
+  background: var(--portal-surface-3);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--portal-text-body-muted);
+  transition: all var(--portal-dur-base);
+}
+.ta-year-badge:hover { transform: translateY(-1px); }
+.ta-year-badge--xmas { background: rgba(var(--portal-color-success-rgb),0.12); border-color: rgba(var(--portal-color-success-rgb),0.3); color: var(--portal-color-success-soft); box-shadow: 0 0 6px rgba(var(--portal-color-success-rgb),0.3); }
+.ta-year-badge--halloween { background: rgba(var(--portal-color-highlight-rgb),0.12); border-color: rgba(var(--portal-color-highlight-rgb),0.3); color: #fdba74; }
+.ta-year-badge--valentine { background: rgba(var(--portal-color-accent-hot-rgb),0.12); border-color: rgba(var(--portal-color-accent-hot-rgb),0.3); color: #f9a8d4; }
+.ta-year-badge--newyear { background: rgba(var(--portal-color-warning-rgb),0.12); border-color: rgba(var(--portal-color-warning-rgb),0.3); color: var(--portal-color-warning-soft); box-shadow: 0 0 6px rgba(var(--portal-color-warning-rgb),0.15); }
+.ta-year-badge--summer { background: rgba(var(--portal-color-highlight-rgb),0.12); border-color: rgba(var(--portal-color-highlight-rgb),0.3); color: var(--portal-color-warning); }
+.ta-year-badge--friday13 { background: rgba(var(--portal-color-error-rgb),0.12); border-color: rgba(var(--portal-color-error-rgb),0.3); color: var(--portal-color-error-soft); }

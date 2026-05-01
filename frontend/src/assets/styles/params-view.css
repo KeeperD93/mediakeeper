@@ -1,0 +1,36 @@
+/* ParametresView — common layout styles.
+ * All selectors prefixed with `.cinema-params` to avoid collisions
+ * with other views that share class names (`.stats-tabs`, `.stats-tab`,
+ * `.params-section`, `.params-skel`…).
+ * Tab-specific styles live in each tab component's scoped block.
+ */
+
+.cinema-params { position: relative; min-height: 100%; padding: 12px 24px 24px; overflow: hidden; }
+.cinema-params .params-inner { position: relative; z-index: 1; }
+
+/* ── Content shell ── */
+.cinema-params .params-content { position: relative; z-index: 1; }
+.cinema-params .params-title { font-size: var(--text-lg); font-weight: var(--font-extrabold); color: var(--text-primary); margin-bottom: 4px; }
+.cinema-params .params-desc { font-size: var(--text-sm); color: var(--text-muted); margin-bottom: 24px; }
+.cinema-params .params-section { margin-bottom: 36px; max-width: 860px; }
+.cinema-params .params-section.params-section-full { max-width: none; }
+.cinema-params .params-section-title { font-size: var(--text-base); font-weight: var(--font-bold); color: var(--text-primary); margin-bottom: 4px; }
+.cinema-params .params-section-title-tight { margin-bottom: 2px; }
+.cinema-params .params-section-desc { font-size: var(--text-xs); color: var(--text-muted); margin-bottom: 12px; }
+.cinema-params .params-cards { display: flex; flex-direction: column; gap: 8px; }
+
+/* ── Loading skeletons ── */
+.cinema-params .params-loading { display: flex; flex-direction: column; gap: 12px; }
+.cinema-params .params-skel { height: 60px; border-radius: var(--radius-btn); background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-secondary) 50%, var(--bg-tertiary) 75%); background-size: 200% 100%; animation: params-shimmer var(--duration-animation) ease-in-out infinite; }
+@keyframes params-shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+/* ── Shared danger button ── */
+.cinema-params .params-danger-btn { padding: 7px 16px; border-radius: var(--radius-btn); background: transparent; border: .5px solid rgba(var(--color-error-rgb),.3); color: var(--color-error); font-size: var(--text-sm); cursor: pointer; font-family: inherit; transition: all var(--duration-fast); }
+.cinema-params .params-danger-btn:hover { background: rgba(var(--color-error-rgb),.08); border-color: var(--color-error); }
+.cinema-params .params-danger-btn-preview { border-color: rgba(var(--accent-rgb),.3); color: var(--accent-400); }
+.cinema-params .params-danger-btn-preview:hover { background: rgba(var(--accent-rgb),.08); border-color: var(--accent-400); }
+
+/* ── Responsive ── */
+@media (max-width: 767px) {
+  .cinema-params { padding: 0 16px 16px; }
+}

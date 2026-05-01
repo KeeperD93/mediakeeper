@@ -1,0 +1,288 @@
+/* PortalNav — avatar trigger, dropdown menu, responsive overrides. */
+
+.pt-avatar-menu {
+  position: relative;
+}
+
+.pt-avatar-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+  height: 42px;
+  padding: 0.25rem 0.5rem 0.25rem 0.25rem;
+  /* Shares radius-lg with the rest of the top-bar buttons. */
+  border-radius: var(--portal-radius-lg);
+  border: 1px solid var(--portal-border-default);
+  background: var(--portal-surface-3);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+@media (hover: hover) {
+  .pt-avatar-trigger:hover {
+    background: var(--portal-surface-5);
+    border-color: rgba(255, 255, 255, 0.14);
+    transform: translateY(-1px);
+  }
+}
+
+.pt-avatar-img,
+.pt-avatar-placeholder {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-card);
+  flex-shrink: 0;
+}
+
+.pt-avatar-img {
+  object-fit: cover;
+}
+
+.pt-avatar-placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent, #6366f1);
+  color: #fff;
+  font-size: var(--portal-text-base);
+  font-weight: var(--portal-font-extrabold);
+}
+
+.pt-avatar-chevron {
+  color: rgba(255, 255, 255, 0.62);
+  flex-shrink: 0;
+}
+
+.pt-avatar-pop {
+  position: absolute;
+  top: calc(100% + 0.75rem);
+  right: 0;
+  width: 220px;
+  padding: 0.5rem;
+  border-radius: var(--portal-radius-xl);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(9, 14, 24, 0.96);
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.46);
+  backdrop-filter: blur(22px);
+}
+
+.pt-avatar-pop-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  padding: 0.55rem 0.7rem 0.7rem;
+}
+
+.pt-avatar-pop-name {
+  color: #fff;
+  font-size: var(--portal-text-base);
+  font-weight: var(--portal-font-bold);
+}
+
+.pt-avatar-pop-role {
+  color: rgba(255, 255, 255, 0.48);
+  font-size: var(--portal-text-xs);
+}
+
+.pt-avatar-pop-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0.78rem 0.8rem;
+  border: none;
+  border-radius: var(--portal-radius-lg);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.86);
+  cursor: pointer;
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-medium);
+  text-align: left;
+  transition: background 0.16s ease, color 0.16s ease;
+}
+
+@media (hover: hover) {
+  .pt-avatar-pop-item:hover {
+    background: rgba(255, 255, 255, 0.07);
+    color: #fff;
+  }
+}
+
+/* Mobile-only shortcuts (Dashboard, Lists, Calendar, Admin). Hidden by
+   default; revealed by the ≤767px media query below where the matching
+   top-bar icons get hidden to keep the mobile bar breathable. */
+.pt-avatar-pop-item--mobile { display: none; }
+
+.pt-avatar-pop-item--danger {
+  color: var(--portal-color-error-soft);
+}
+
+@media (hover: hover) {
+  .pt-avatar-pop-item--danger:hover {
+    background: rgba(var(--portal-color-error-rgb), 0.12);
+    color: #fecaca;
+  }
+}
+.pt-avatar-pop-item:active {
+  background: var(--portal-surface-5);
+}
+.pt-avatar-pop-item--danger:active {
+  background: rgba(var(--portal-color-error-rgb), 0.18);
+}
+
+.pt-avatar-pop-enter-active,
+.pt-avatar-pop-leave-active {
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+.pt-avatar-pop-enter-from,
+.pt-avatar-pop-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+/* ---------- Search drawer (compact mode) ---------- */
+.pt-nav-search-drawer {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  padding: 0.75rem 3.5%;
+  background: rgba(var(--bg-primary-rgb), 0.96);
+  backdrop-filter: var(--portal-blur-nav);
+  border-bottom: 1px solid var(--portal-border-default);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+  z-index: 99;
+}
+.pt-nav-search-drawer-box {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+}
+.pt-search-drawer-enter-active,
+.pt-search-drawer-leave-active {
+  transition: opacity 0.18s ease, transform 0.22s var(--portal-ease-emphasis);
+}
+.pt-search-drawer-enter-from,
+.pt-search-drawer-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1320px) {
+  .pt-brand-text { display: none; }
+  .pt-nav-inner { grid-template-columns: auto auto 1fr auto; }
+}
+
+/* Compact mode: the full search input would start overflowing into
+   the quick-actions column. Collapse it into an icon + drawer, and
+   reduce the Dashboard pill to its house icon. The 4 nav tabs stay
+   textual because they're the primary navigation — icon-only tabs
+   lose 30-40% of clicks on users who haven't memorised the iconography. */
+@media (max-width: 1280px) {
+  /* Collapse col 3: search goes into a drawer, quick actions slide left. */
+  .pt-nav-inner {
+    grid-template-columns: auto auto 1fr auto;
+    column-gap: 0.5rem;
+  }
+  .pt-nav-search { display: none; }
+  .pt-nav-icon.pt-nav-search-trigger { display: inline-flex; }
+}
+
+@media (max-width: 1080px) {
+  .pt-nav-inner {
+    gap: 0.8rem;
+    padding-left: 2.5%;
+    padding-right: 2.5%;
+  }
+  .pt-tab {
+    padding: 0.64rem 0.8rem;
+    font-size: var(--portal-text-sm);
+  }
+}
+
+@media (max-width: 920px) {
+  .pt-nav-inner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem 0.75rem;
+  }
+  .pt-nav-brand { order: 1; }
+  .pt-nav-quick {
+    order: 2;
+    margin-left: auto;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .pt-nav-search { order: 3; flex: 1 0 100%; }
+  .pt-nav-tabs {
+    order: 4;
+    flex: 1 0 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 0.2rem;
+    margin-left: 0;
+  }
+  .pt-nav-tabs::-webkit-scrollbar { display: none; }
+}
+
+@media (max-width: 640px) {
+  .pt-brand-img { width: 38px; height: 38px; }
+  .pt-nav-quick { gap: 0.45rem; }
+  .pt-tab {
+    padding: 0.6rem 0.72rem;
+    font-size: var(--portal-text-sm);
+  }
+}
+
+/* ≤768px: tabs row moves to the fixed bottom nav (PortalBottomNav).
+ * Mobile top-bar is minimal — brand + search + bell + avatar only.
+ * Everything else (Dashboard, Lists, Calendar, Admin) slides into the
+ * avatar popup as "mobile-only" entries. Pattern borrowed from
+ * Instagram / LinkedIn / GitHub mobile: the top bar keeps only
+ * identity + time-sensitive alerts (notifications), and the rest is one
+ * extra tap away via the account menu. */
+@media (max-width: 767px) {
+  /* Force a single nav row on phones. Without flex-wrap: nowrap, the
+     ``@media (max-width: 920px)`` rule above sets ``flex-wrap: wrap``
+     and keeps it active here — icons wrap to a second line and the top
+     bar becomes two rows tall (a visible dark band above the hero). */
+  .pt-nav-inner {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.4rem 0.6rem;
+  }
+  .pt-nav-tabs { display: none; }
+  .pt-nav-search { display: none; }
+  .pt-nav-brand { flex: 0 0 auto; gap: 0.5rem; }
+  .pt-brand-img { width: 30px; height: 30px; }
+  /* Brand text re-enabled on phones (the @media 1320px rule above hides
+     it). The tabs + search are gone on mobile so there's plenty of room
+     for "MediaKeeper" next to the logo. */
+  .pt-brand-text { display: inline; font-size: var(--portal-text-base); }
+  .pt-nav-quick {
+    flex: 1 1 auto;
+    min-width: 0;
+    justify-content: flex-end;
+    gap: 0.3rem;
+  }
+  .pt-nav-icon.pt-nav-search-trigger { display: inline-flex; }
+  /* The 3 remaining icons (search, bell, avatar) keep their default
+     42×42 size — plenty of room at 400px now that the rest is hidden. */
+  .pt-nav-icon,
+  .pt-bell { flex-shrink: 0; }
+  /* Icons relocated to the avatar menu on mobile. */
+  .pt-nav-icon--heart,
+  .pt-nav-icon--lists,
+  .pt-nav-icon--dashboard,
+  .pt-cal-wrap { display: none; }
+  .pt-avatar-trigger { flex-shrink: 0; }
+  /* Counterpart: surface the mobile-only entries inside the popup. */
+  .pt-avatar-pop-item--mobile { display: flex; }
+}

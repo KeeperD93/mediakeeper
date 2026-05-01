@@ -1,0 +1,220 @@
+/* PortalNav — top bar shell, brand, tabs, search, quick actions. */
+
+.pt-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: linear-gradient(to bottom, rgba(4, 8, 16, 0.86) 0%, rgba(4, 8, 16, 0.14) 76%, transparent 100%);
+  transition: background 0.28s ease, border-color 0.28s ease, box-shadow 0.28s ease;
+}
+
+.pt-nav--solid {
+  background: rgba(var(--bg-primary-rgb), 0.84);
+  backdrop-filter: var(--portal-blur-nav);
+  border-bottom: 1px solid var(--portal-border-default);
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.28);
+}
+
+/* On phones the topbar is always opaque — the translucent gradient
+   used on desktop reads as a glitch on a small screen, where the bar
+   takes up a much larger share of the viewport and the icon row needs
+   a stable backdrop to stay legible against any hero image. Apply
+   the same look as the scrolled (.pt-nav--solid) state regardless of
+   scroll position. */
+@media (max-width: 767px) {
+  .pt-nav {
+    background: rgba(var(--bg-primary-rgb), 0.96);
+    backdrop-filter: var(--portal-blur-nav);
+    border-bottom: 1px solid var(--portal-border-default);
+    box-shadow: 0 16px 44px rgba(0, 0, 0, 0.28);
+  }
+}
+
+/* Profile page — no hero behind the nav, apply the same solid look the
+   home nav gets once the user scrolls past the hero. */
+.pt-layout:has(.dp) .pt-nav {
+  background: rgba(var(--bg-primary-rgb), 0.84);
+  backdrop-filter: var(--portal-blur-nav);
+  border-bottom: 1px solid var(--portal-border-default);
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.28);
+}
+
+.pt-nav-inner {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  align-items: center;
+  gap: 0.25rem;
+  column-gap: 0.25rem;
+  max-width: 1800px;
+  margin: 0 auto;
+  padding: 0.95rem 3.5% 0.85rem;
+}
+
+.pt-nav-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+
+.pt-brand-img {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  transition: transform var(--portal-dur-med) ease, filter var(--portal-dur-med) ease;
+}
+
+@media (hover: hover) {
+  .pt-nav-brand:hover .pt-brand-img {
+    transform: scale(1.06);
+    filter: brightness(1.15);
+  }
+}
+
+.pt-brand-text {
+  font-size: var(--portal-text-md);
+  font-weight: var(--portal-font-extrabold);
+  white-space: nowrap;
+}
+
+.pt-nav-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.35rem;
+  min-width: 0;
+  margin-left: 1.25rem;
+}
+
+.pt-tab {
+  border: none;
+  border-radius: var(--portal-radius-pill);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.68);
+  cursor: pointer;
+  padding: 0.68rem 0.96rem;
+  font-size: var(--portal-text-base);
+  font-weight: var(--portal-font-medium);
+  white-space: nowrap;
+  transition: color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+}
+
+@media (hover: hover) {
+  .pt-tab:hover {
+    color: #fff;
+    background: var(--portal-surface-3);
+  }
+}
+
+.pt-tab--active {
+  color: #fff;
+  background: linear-gradient(135deg, rgba(var(--accent-rgb, 99, 102, 241), 0.26), rgba(255, 255, 255, 0.08));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.pt-nav-search {
+  width: 100%;
+  max-width: 360px;
+  justify-self: end;
+  margin-right: 0.75rem;
+}
+
+.pt-nav-quick {
+  display: flex;
+  align-items: center;
+  justify-self: end;
+  gap: 0.55rem;
+}
+
+/* Compact-mode search trigger — hidden by default; revealed by the
+   responsive rules in nav-avatar.css when the full search input can't
+   fit the grid anymore. */
+.pt-nav-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--portal-radius-lg);
+  border: 1px solid var(--portal-border-default);
+  background: var(--portal-surface-3);
+  color: rgba(255, 255, 255, 0.76);
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+/* Compact-mode search trigger — hidden by default (wins specifherety over
+   the generic .pt-nav-icon display rule above). Revealed by the responsive
+   @media blocks in nav-avatar.css when the full search input can't fit. */
+.pt-nav-icon.pt-nav-search-trigger { display: none; }
+
+@media (hover: hover) {
+  .pt-nav-icon:hover:not(:disabled) {
+    color: #fff;
+    background: var(--portal-surface-5);
+    border-color: rgba(255, 255, 255, 0.14);
+    transform: translateY(-1px);
+  }
+}
+
+.pt-nav-icon--disabled,
+.pt-nav-icon:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Support heart — red pulsing icon. Animation runs on the inner SVG so
+ * the button's own transition/hover transform doesn't override it.
+ * The pulse stays on even when the link is unset so the icon still feels
+ * alive (it's the visual cue, not the clickability). */
+.pt-nav-icon--heart,
+.pt-nav-icon--heart[disabled],
+.pt-nav-icon--heart.pt-nav-icon--disabled {
+  color: var(--portal-color-error) !important;
+  opacity: 1;
+}
+.pt-nav-icon--heart.pt-nav-icon--disabled { opacity: 0.75; }
+.pt-nav-icon--heart svg {
+  animation: pt-heart-pulse 1.1s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px rgba(var(--portal-color-error-rgb), 0.55));
+  transform-origin: center;
+  transform-box: fill-box;
+}
+.pt-nav-icon--heart:hover:not(:disabled) svg {
+  filter: drop-shadow(0 0 10px rgba(var(--portal-color-error-rgb), 0.85));
+}
+@keyframes pt-heart-pulse {
+  0%, 100% { transform: scale(1); }
+  15%      { transform: scale(1.25); }
+  30%      { transform: scale(1); }
+  45%      { transform: scale(1.18); }
+  60%      { transform: scale(1); }
+}
+
+/* Notification bell styled to match the .pt-nav-icon shell. The calendar
+   trigger manages its own circular style (see calendar-button.css). */
+.pt-bell {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--portal-radius-lg);
+  border: 1px solid var(--portal-border-default);
+  background: var(--portal-surface-3);
+  color: rgba(255, 255, 255, 0.76);
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+@media (hover: hover) {
+  .pt-bell:hover {
+    background: var(--portal-surface-5);
+    border-color: rgba(255, 255, 255, 0.14);
+    color: #fff;
+    transform: translateY(-1px);
+  }
+}

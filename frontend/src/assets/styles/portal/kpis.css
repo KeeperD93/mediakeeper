@@ -1,0 +1,14 @@
+/* Profile KPI tiles — 5-column grid with tier-themed backgrounds.
+ * Used by KpiRow.vue. Global styles. */
+
+.gc-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(115px, 1fr)); gap: 0.6rem; margin-bottom: 1.25rem; }
+.gc-kpi { padding: 0.8rem 0.6rem; border-radius: var(--radius-input); border: 1px solid rgba(255,255,255,0.05); text-align: center; }
+.gc-kpi--accent { background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(67,56,202,0.05)); }
+.gc-kpi--warm { background: linear-gradient(135deg, rgba(251,146,60,0.12), rgba(234,88,12,0.05)); }
+.gc-kpi--fire { background: linear-gradient(135deg, rgba(var(--portal-color-error-rgb),0.12), rgba(220,38,38,0.05)); }
+.gc-kpi--gold { background: linear-gradient(135deg, rgba(var(--portal-color-warning-rgb),0.12), rgba(245,158,11,0.05)); }
+.gc-kpi--purple { background: linear-gradient(135deg, rgba(var(--portal-color-premium-rgb),0.12), rgba(139,92,246,0.05)); }
+.gc-kpi-val { font-size: var(--portal-text-lg); font-weight: var(--portal-font-black); color: #fff; font-family: var(--portal-font-display); display: inline-flex; align-items: center; gap: 0.3rem; }
+.gc-kpi-flame { color: var(--portal-color-highlight); filter: drop-shadow(0 0 6px rgba(var(--portal-color-highlight-rgb),0.6)); }
+.gc-kpi-lbl { font-size: var(--portal-text-4xs); color: var(--portal-text-muted); text-transform: uppercase; margin-top: 0.12rem; }
+.gc-kpi-fun { font-size: var(--portal-text-4xs); color: rgba(255,255,255,0.3); font-style: italic; margin-top: 0.12rem; }

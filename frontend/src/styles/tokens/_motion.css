@@ -1,0 +1,31 @@
+/* Motion — durations, easings.
+ * ----------------------------------------------------------------
+ * Durations split between short interactions (fast / base / slow /
+ * slower) and continuous loops (animation / pulse). Easings cover
+ * the three canonical curves used across the app, plus linear for
+ * spinners and progress fills.
+ *
+ * Keyframes themselves live in main.css or per-component files —
+ * this file only provides the timing knobs. Example usage:
+ *
+ *   .btn  { transition: background var(--duration-fast) var(--ease-default); }
+ *   .modal { animation: modal-in var(--duration-slow) var(--ease-out); }
+ *   .skel { animation: shimmer var(--duration-animation) var(--ease-linear) infinite; }
+ */
+:root {
+  /* ─── Durations — interaction feedback ─── */
+  --duration-fast:    0.15s;   /* hover, focus — snappy (67 occ in audit) */
+  --duration-base:    0.2s;    /* standard state transitions (42 occ) */
+  --duration-slow:    0.3s;    /* enter / leave, expand / collapse (18 occ) */
+  --duration-slower:  0.5s;    /* ceremonial reveals, route transitions */
+
+  /* ─── Durations — continuous animations ─── */
+  --duration-animation:  1.5s;   /* skeleton shimmer, progress stripes */
+  --duration-pulse:      2s;     /* pulsating dots, status indicators */
+
+  /* ─── Easings ─── */
+  --ease-default:     ease;                            /* generic */
+  --ease-out:         cubic-bezier(0.22, 1, 0.36, 1);  /* spring-out — modals, bottom sheets */
+  --ease-in-out:      cubic-bezier(0.4, 0, 0.2, 1);    /* Material — drawers, sidebar */
+  --ease-linear:      linear;                          /* spinners, progress bars */
+}

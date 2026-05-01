@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="/assets/icons/mediakeeper.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#4338ca" />
+  <meta name="description" content="MediaKeeper - votre médiathèque privée, gérée intelligemment" />
+  <!-- Google Fonts: Montserrat is used by the Demandes home for the
+       "Catégories par genres" labels. Preconnect shaves ~100ms off
+       the first paint by opening the TCP + TLS handshake before the
+       CSS file is parsed. `display=swap` keeps text visible during
+       the webfont download instead of blanking it. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet" />
+  <title>MediaKeeper</title>
+</head>
+<body class="font-sans">
+  <div id="app"></div>
+  <script type="module" src="/src/main.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {})
+      })
+    }
+  </script>
+</body>
+</html>

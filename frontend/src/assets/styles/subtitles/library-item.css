@@ -1,0 +1,159 @@
+/* SubLibraryItem — grid card + list row + shared detail panel.
+ *
+ * All selectors are prefixed with `.sg-wrapper` (this component's root)
+ * so they can never bleed into HealthCheckView, SubSeriesOverlay,
+ * SubLibraryTab or SubItemOverlay, which all declare overlapping
+ * `.sg-*` / `.sl-*` / `.sd-*` classes inside their own `<style scoped>`
+ * blocks.
+ */
+
+/* ═══════════════════════════════════════════
+   GRID CARD
+   ═══════════════════════════════════════════ */
+.sg-wrapper .sg-card {
+  position: relative; border-radius: 14px; overflow: hidden; cursor: pointer;
+  background: rgba(255,255,255,.02);
+  border: 1px solid var(--border-subtle);
+  transition: all var(--duration-slow) var(--ease-in-out);
+}
+.sg-wrapper .sg-card.sg-hovered { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,.4); }
+.sg-wrapper .sg-card.sg-selected { border-color: rgba(var(--accent-rgb),.3); }
+
+.sg-wrapper .sg-poster-wrap { position: relative; aspect-ratio: 2/3; overflow: hidden; }
+.sg-wrapper .sg-poster {
+  width: 100%; height: 100%; object-fit: cover;
+  filter: brightness(.85); transition: all .4s;
+}
+.sg-wrapper .sg-card.sg-hovered .sg-poster { filter: brightness(1.1); }
+.sg-wrapper .sg-gradient {
+  position: absolute; inset: 0;
+  background: linear-gradient(0deg, rgba(10,10,15,.95) 0%, rgba(10,10,15,.4) 40%, transparent 70%);
+}
+
+/* Tag */
+.sg-wrapper .sg-tag {
+  position: absolute; top: 10px; left: 10px; z-index: 1;
+  padding: 3px 10px; border-radius: var(--radius-btn); font-size: var(--text-3xs); font-weight: var(--font-bold);
+  font-family: 'Space Mono', monospace; backdrop-filter: blur(8px);
+}
+.sg-wrapper .sg-tag-movie { background: rgba(var(--color-warning-rgb),.15); color: var(--color-warning); border: 1px solid rgba(var(--color-warning-rgb),.15); }
+.sg-wrapper .sg-tag-ep { background: rgba(var(--accent-rgb),.15); color: var(--accent-300); border: 1px solid rgba(var(--accent-rgb),.15); }
+
+/* Missing dot */
+.sg-wrapper .sg-missing-dot {
+  position: absolute; top: 10px; right: 10px; z-index: 1;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #f43f5e; box-shadow: 0 0 8px rgba(244,63,94,.5);
+}
+
+/* Select check */
+.sg-wrapper .sg-check {
+  position: absolute; top: 10px; right: 10px; z-index: 2;
+  accent-color: var(--accent-500); cursor: pointer;
+}
+
+/* Bottom info */
+.sg-wrapper .sg-bottom { position: absolute; bottom: 0; left: 0; right: 0; padding: 12px 14px; z-index: 1; }
+.sg-wrapper .sg-title { font-size: var(--text-sm); font-weight: var(--font-medium); line-height: var(--lh-compact); color: #fff; }
+.sg-wrapper .sg-episode { font-size: var(--text-2xs); color: rgba(255,255,255,.45); margin-top: 2px; line-height: var(--lh-compact); }
+.sg-wrapper .sg-pills { display: flex; gap: 6px; margin-top: 8px; }
+
+/* Language pills (shared grid + list) */
+.sg-wrapper .sg-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 20px; font-size: var(--text-2xs); font-weight: var(--font-bold);
+  letter-spacing: .5px; transition: all var(--duration-slow);
+}
+.sg-wrapper .sg-pill-ok { border: none; }
+.sg-wrapper .sg-pill-miss { background: var(--surface-2); color: rgba(255,255,255,.2); border: 1px dashed var(--border-strong); }
+.sg-wrapper .sg-pill-dot { width: 5px; height: 5px; border-radius: 50%; }
+
+/* Action bar */
+.sg-wrapper .sg-actions {
+  padding: 10px 12px; display: flex; gap: 8px;
+  border-top: 1px solid var(--border-subtle);
+  animation: sg-wrapper-fadeUp var(--duration-base) ease;
+}
+.sg-wrapper .sg-action-btn {
+  flex: 1; padding: 8px 0; border-radius: var(--radius-btn); border: none; cursor: pointer;
+  font-size: var(--text-2xs); font-weight: var(--font-medium); font-family: inherit; transition: opacity var(--duration-base);
+}
+.sg-wrapper .sg-action-btn:hover { opacity: .8; }
+.sg-wrapper .sg-action-search { background: rgba(var(--accent-rgb),.12); color: var(--accent-300); }
+.sg-wrapper .sg-action-matrix { background: rgba(139,92,246,.1); color: #a78bfa; }
+
+/* ═══════════════════════════════════════════
+   LIST ROW
+   ═══════════════════════════════════════════ */
+.sg-wrapper .sl-row {
+  display: flex; align-items: center; gap: 16px; padding: 10px 16px;
+  border-radius: var(--radius-card); cursor: pointer; transition: all var(--duration-base);
+}
+.sg-wrapper .sl-row.sl-hovered { background: rgba(255,255,255,.03); }
+.sg-wrapper .sl-row.sl-expanded { background: rgba(255,255,255,.02); border: 1px solid rgba(var(--accent-rgb),.15); }
+.sg-wrapper .sl-check { accent-color: var(--accent-500); cursor: pointer; flex-shrink: 0; }
+.sg-wrapper .sl-poster { width: 36px; height: 54px; border-radius: var(--radius-sm); object-fit: cover; flex-shrink: 0; border: 1px solid var(--border-default); }
+.sg-wrapper .sl-info { flex: 1; min-width: 0; }
+.sg-wrapper .sl-name { font-size: var(--text-sm); font-weight: var(--font-regular); color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sg-wrapper .sl-ep { font-size: var(--text-2xs); color: rgba(255,255,255,.35); margin-top: 1px; }
+.sg-wrapper .sl-tag {
+  padding: 3px 10px; border-radius: var(--radius-btn); font-size: var(--text-3xs); font-weight: var(--font-bold);
+  font-family: 'Space Mono', monospace; flex-shrink: 0;
+}
+.sg-wrapper .sl-tag-movie { background: rgba(var(--color-warning-rgb),.1); color: var(--color-warning); }
+.sg-wrapper .sl-tag-ep { background: rgba(var(--accent-rgb),.08); color: var(--accent-300); }
+.sg-wrapper .sl-pills { display: flex; gap: 6px; margin-left: 8px; flex-shrink: 0; }
+
+/* ═══════════════════════════════════════════
+   DETAIL PANEL (shared)
+   ═══════════════════════════════════════════ */
+.sg-wrapper .sd-panel { padding: 14px; margin-top: 4px; margin-bottom: 4px; }
+.sg-wrapper .sd-section { padding: 8px 0; }
+.sg-wrapper .sd-section + .sd-section { border-top: .5px solid var(--border-subtle); }
+.sg-wrapper .sd-title { font-size: var(--text-2xs); font-weight: var(--font-medium); color: var(--text-muted); margin: 0 0 8px; text-transform: uppercase; letter-spacing: .3px; }
+.sg-wrapper .sd-loading { padding: 8px; }
+.sg-wrapper .sd-empty { font-size: var(--text-2xs); color: var(--text-muted); padding: 4px 0; }
+
+.sg-wrapper .sd-sub-list { display: flex; flex-direction: column; gap: 4px; }
+.sg-wrapper .sd-sub-row { display: flex; align-items: center; gap: 8px; padding: 5px 8px; background: rgba(255,255,255,.02); border-radius: var(--radius-btn); }
+.sg-wrapper .sd-sub-lang { font-size: var(--text-3xs); font-weight: var(--font-bold); color: var(--accent-400); min-width: 24px; }
+.sg-wrapper .sd-sub-codec { font-size: var(--text-3xs); color: var(--text-muted); }
+.sg-wrapper .sd-sub-badge { font-size: .55rem; padding: 1px 5px; border-radius: 3px; font-weight: var(--font-medium); }
+.sg-wrapper .badge-emb { background: rgba(59,130,246,.1); color: var(--color-info); }
+.sg-wrapper .badge-ext { background: rgba(var(--color-success-rgb),.1); color: var(--color-success); }
+.sg-wrapper .badge-forced { background: rgba(168,85,247,.1); color: #a855f7; }
+.sg-wrapper .badge-audio { background: rgba(var(--color-warning-rgb),.1); color: var(--color-warning); }
+.sg-wrapper .badge-default { background: rgba(var(--color-success-rgb),.1); color: var(--color-success); }
+.sg-wrapper .badge-pgs { background: rgba(var(--color-warning-rgb),.1); color: var(--color-warning); }
+.sg-wrapper .sd-sub-del {
+  margin-left: auto; width: 22px; height: 22px; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent; border: none; color: var(--text-muted); cursor: pointer;
+}
+.sg-wrapper .sd-sub-del:hover { background: rgba(244,63,94,.1); color: #f43f5e; }
+
+.sg-wrapper .sd-os-results { display: flex; flex-direction: column; }
+
+.sg-wrapper .sub-cmp-hint { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; margin-bottom: 4px; }
+.sg-wrapper .sub-cmp-hint span { font-size: var(--text-3xs); color: var(--text-muted); }
+.sg-wrapper .sub-cmp-go {
+  padding: 4px 10px; border-radius: var(--radius-btn); font-size: var(--text-2xs); font-weight: var(--font-medium);
+  background: rgba(var(--accent-rgb),.12); color: var(--accent-400);
+  border: .5px solid rgba(var(--accent-rgb),.2); cursor: pointer; font-family: inherit;
+}
+
+.sg-wrapper .sd-solid { background: var(--bg-secondary); border: 1px solid var(--border-strong); border-radius: 14px; }
+
+/* Transitions — Vue injects these classes on the .sd-panel which lives
+   inside .sg-wrapper, so the scope holds. */
+.sg-wrapper .sub-slide-enter-active { transition: all .25s ease; }
+.sg-wrapper .sub-slide-leave-active { transition: all var(--duration-base) ease; }
+.sg-wrapper .sub-slide-enter-from { opacity: 0; max-height: 0; }
+.sg-wrapper .sub-slide-enter-to { opacity: 1; max-height: 600px; }
+.sg-wrapper .sub-slide-leave-from { opacity: 1; max-height: 600px; }
+.sg-wrapper .sub-slide-leave-to { opacity: 0; max-height: 0; }
+
+@keyframes sg-wrapper-fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}

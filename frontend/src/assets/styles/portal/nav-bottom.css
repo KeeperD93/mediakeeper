@@ -1,0 +1,103 @@
+/* PortalBottomNav — mobile bottom tab bar (≤768px only).
+ *
+ * Fixed at the bottom of the viewport with a safe-area inset so the
+ * last tab never sits under the iPhone home indicator. Hidden entirely
+ * on desktop — the primary nav lives in the top bar there.
+ */
+
+.pt-bottom-nav {
+  display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 95;
+  padding: 0.35rem 0.25rem calc(0.35rem + env(safe-area-inset-bottom, 0px));
+  background: rgba(var(--bg-primary-rgb), 0.9);
+  backdrop-filter: var(--portal-blur-solid);
+  -webkit-backdrop-filter: var(--portal-blur-solid);
+  border-top: 1px solid var(--portal-border-default);
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.pt-bottom-nav-inner {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-around;
+  gap: 0.1rem;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.pt-bottom-tab {
+  display: inline-flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  min-height: 52px;
+  padding: 6px 8px;
+  border: none;
+  border-radius: var(--radius-input);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: var(--portal-text-3xs);
+  font-weight: var(--portal-font-medium);
+  letter-spacing: var(--portal-tracking-wide);
+  cursor: pointer;
+  transition: color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease, transform var(--portal-dur-fast) ease;
+  -webkit-tap-highlight-color: transparent;
+  text-decoration: none;
+}
+
+.pt-bottom-tab:active {
+  transform: scale(0.94);
+}
+
+.pt-bottom-tab--active {
+  color: #fff;
+  background: linear-gradient(135deg,
+    rgba(var(--accent-rgb, 99, 102, 241), 0.28),
+    rgba(var(--accent-rgb, 99, 102, 241), 0.12));
+  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb, 99, 102, 241), 0.32);
+}
+
+.pt-bottom-tab-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+}
+
+.pt-bottom-tab-label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: var(--portal-lh-display);
+}
+
+.pt-bottom-tab-badge {
+  position: absolute;
+  top: -3px;
+  right: -4px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  border-radius: var(--portal-radius-pill);
+  background: var(--portal-color-error);
+  color: #fff;
+  font-size: var(--portal-text-4xs);
+  font-weight: var(--portal-font-bold);
+  line-height: 14px;
+  text-align: center;
+  box-shadow: 0 0 0 2px rgba(var(--bg-primary-rgb), 0.9);
+}
+
+@media (min-width: 1px) and (max-width: 767px) {
+  .pt-bottom-nav { display: block; }
+}

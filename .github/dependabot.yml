@@ -1,0 +1,50 @@
+version: 2
+
+# Dependabot automatic dependency updates — MediaKeeper.
+# Groups patch + minor updates into weekly PRs to reduce noise.
+# Major bumps come in separate PRs (human review needed).
+
+updates:
+  # Frontend — npm
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Paris"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      frontend-patch:
+        update-types: ["patch"]
+      frontend-minor:
+        update-types: ["minor"]
+
+  # Backend — pip
+  - package-ecosystem: "pip"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Paris"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      backend-patch:
+        update-types: ["patch"]
+      backend-minor:
+        update-types: ["minor"]
+
+  # GitHub Actions themselves
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "chore(ci)"

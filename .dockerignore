@@ -1,0 +1,18 @@
+.git
+.gitignore
+*.md
+!backend/CHANGELOG*.md
+backend/tests/
+.vscode/
+.idea/
+frontend/node_modules/
+__pycache__/
+*.pyc
+logs/
+backups/
+
+# Workshop (outil dev jetable, hors périmètre prod)
+frontend/src/views/portal/TrophyWorkshop.vue
+frontend/src/composables/portal/useTrophyWorkshopMocks.js
+frontend/src/composables/portal/useTrophyWorkshopPrompt.js
+frontend/src/assets/styles/portal/trophy-workshop-fx-*.css

@@ -1,0 +1,50 @@
+/* Colors — surfaces, borders, text extensions, semantic statuses.
+ * ----------------------------------------------------------------
+ * Every color that should flex per theme lives here. Primitive
+ * palette (--accent-*, --bg-*, --text-primary/secondary/muted,
+ * --border, --border-hover) is defined in main.css alongside the
+ * theme block; this file adds the mid-level tokens that were
+ * previously hardcoded everywhere.
+ *
+ * Convention:
+ *   --surface-N            progressive glass layers (1 = most subtle)
+ *   --border-{subtle|…}    border color strength, three steps
+ *   --text-{faint|…}       extensions to the existing --text-* trio
+ *   --color-<status>       canonical hex per semantic status
+ *   --color-<status>-rgb   comma-separated RGB for rgba() composition
+ *
+ * Theme extensibility:
+ *   Future theme files re-declare these names under body.theme-<x>.
+ *   Keep the name list stable — themes are additive overrides.
+ */
+:root {
+  /* ─── Surfaces — glass hierarchy ─── */
+  --surface-1: rgba(255, 255, 255, 0.025);   /* base glass — cards, panels */
+  --surface-2: rgba(255, 255, 255, 0.04);    /* hover, secondary layer */
+  --surface-3: rgba(255, 255, 255, 0.06);    /* active / pressed / tertiary */
+
+  /* ─── Overlays — modals, dropdowns, backdrops ─── */
+  --overlay-bg:        rgba(12, 16, 30, 0.96);   /* modal / dropdown body */
+  --overlay-backdrop:  rgba(0, 0, 0, 0.6);       /* veil behind modals */
+
+  /* ─── Borders — stroke color strength ─── */
+  --border-subtle:   rgba(255, 255, 255, 0.04);  /* on surface-1 */
+  --border-default:  rgba(255, 255, 255, 0.06);  /* standard cards */
+  --border-strong:   rgba(255, 255, 255, 0.08);  /* modals, dropdowns */
+
+  /* ─── Text extensions — covers raw rgba(255,255,255,x) patterns
+   * that don't fit the primary/secondary/muted trio. ─── */
+  --text-faint:       rgba(255, 255, 255, 0.4);    /* disabled labels, hints */
+  --text-very-faint:  rgba(255, 255, 255, 0.25);   /* placeholders, sub-hints */
+
+  /* ─── Semantic statuses — one canonical hex per family.
+   * RGB companions let components compose rgba(var(--color-*-rgb), a). ─── */
+  --color-success:      #4ade80;
+  --color-success-rgb:  74, 222, 128;
+  --color-warning:      #fbbf24;
+  --color-warning-rgb:  251, 191, 36;
+  --color-error:        #f87171;
+  --color-error-rgb:    248, 113, 113;
+  --color-info:         #60a5fa;
+  --color-info-rgb:     96, 165, 250;
+}

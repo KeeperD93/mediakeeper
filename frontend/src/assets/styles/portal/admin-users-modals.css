@@ -1,0 +1,126 @@
+/* Modals (import / create / notify) used by the premium admin "Users" page.
+   The .atl-* classes used in templates are defined inline-scoped in
+   AddToListOverlay.vue and don't leak here, so we re-style them locally
+   to keep header padding, close-button alignment and body padding
+   consistent across the module. */
+
+.ru-import-panel,
+.ru-create-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+}
+@media (min-width: 768px) {
+  .ru-import-panel,
+  .ru-create-panel {
+    width: min(640px, 90vw);
+    max-width: 90vw;
+    max-height: 85vh;
+  }
+}
+
+.ru-import-panel .atl-header,
+.ru-create-panel .atl-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 1.25rem .75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, .05);
+}
+.ru-import-panel .atl-title,
+.ru-create-panel .atl-title {
+  font-size: var(--text-lg);
+  font-weight: var(--font-extrabold);
+  color: var(--text-primary);
+  margin: 0;
+}
+.ru-import-panel .atl-close,
+.ru-create-panel .atl-close {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-btn);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-size: var(--text-base);
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.ru-import-panel .atl-close:hover,
+.ru-create-panel .atl-close:hover {
+  background: rgba(239, 68, 68, .15);
+  color: #ef4444;
+}
+.ru-import-panel .atl-body,
+.ru-create-panel .atl-body {
+  padding: 1rem 1.25rem;
+  overflow-y: auto;
+}
+
+.ru-import-sub {
+  color: var(--text-muted);
+  padding: 0 1.25rem;
+  font-size: var(--text-sm);
+  margin: 0 0 .5rem;
+}
+
+.atl-fade-enter-active,
+.atl-fade-leave-active { transition: opacity 220ms ease; }
+.atl-fade-enter-from,
+.atl-fade-leave-to { opacity: 0; }
+
+.ru-import-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .5rem 0 .75rem;
+}
+.ru-import-counter { color: var(--text-muted); font-size: var(--text-xs); }
+.ru-import-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+}
+.ru-import-row label {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .55rem .65rem;
+  border-radius: var(--radius-btn);
+  cursor: pointer;
+}
+.ru-import-row label:hover { background: var(--bg-tertiary); }
+.ru-import-info {
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+  flex: 1;
+}
+.ru-import-name {
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+}
+.ru-import-meta {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+.ru-import-footer {
+  display: flex;
+  gap: .5rem;
+  justify-content: flex-end;
+  padding: .75rem 1.25rem 1rem;
+  border-top: 1px solid var(--border);
+}

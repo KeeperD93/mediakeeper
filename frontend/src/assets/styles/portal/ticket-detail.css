@@ -1,0 +1,205 @@
+/* PortalTicketDetail — premium layout with backdrop hero, status pills,
+   scope summary and replies card. Mobile-first. CSS lives outside the
+   SFC because the styles + template + script would otherwise blow §14's
+   300L cap. Every selector is prefixed `.ptd*` so externalising stays
+   leak-free. */
+
+.ptd {
+  width: 100%;
+  margin: 0;
+  padding: 0.75rem 0.875rem 2rem;
+  overflow-x: clip;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ptd-back {
+  background: none; border: none;
+  color: var(--accent); cursor: pointer;
+  font-size: var(--portal-text-sm);
+  padding: 8px 4px;
+  min-height: 44px;
+  margin-bottom: 8px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Hero --------------------------------------------------------------- */
+
+.ptd-hero {
+  position: relative;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  background-color: var(--bg-secondary);
+  background-size: cover;
+  background-position: center;
+  margin-bottom: 12px;
+  min-height: 220px;
+}
+.ptd-hero-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(3, 7, 18, 0.55) 0%,
+    rgba(3, 7, 18, 0.85) 60%,
+    rgba(3, 7, 18, 0.96) 100%
+  );
+}
+.ptd-hero-inner {
+  position: relative;
+  display: flex; flex-direction: column; gap: 14px; align-items: flex-start;
+  padding: 16px;
+}
+.ptd-hero-poster {
+  width: 96px; height: 144px; flex-shrink: 0;
+  border-radius: var(--radius-input);
+  object-fit: cover;
+  box-shadow: var(--portal-shadow-popup);
+}
+.ptd-hero-meta { flex: 1; min-width: 0; width: 100%; }
+.ptd-hero-id {
+  font-size: var(--portal-text-xs);
+  color: rgba(255, 255, 255, 0.65);
+  font-weight: var(--portal-font-bold);
+  letter-spacing: var(--portal-tracking-wide);
+}
+.ptd-hero-title {
+  font-size: var(--portal-text-lg);
+  font-weight: var(--portal-font-extrabold);
+  color: #fff;
+  margin: 4px 0 12px;
+  line-height: 1.2;
+}
+.ptd-hero-pills {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-bottom: 8px;
+}
+.ptd-hero-scope {
+  font-size: var(--portal-text-sm);
+  color: rgba(255, 255, 255, 0.85);
+  margin-top: 4px;
+}
+
+.ptd-other-header {
+  background: var(--bg-secondary);
+  border: 1px solid var(--portal-border-default);
+  border-radius: var(--radius-card);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.ptd-other-title {
+  font-size: var(--portal-text-md);
+  font-weight: var(--portal-font-bold);
+  color: var(--text-primary);
+  margin: 6px 0 12px;
+}
+
+/* Pills -------------------------------------------------------------- */
+
+.ptd-pill {
+  display: inline-flex; align-items: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: var(--portal-text-2xs);
+  font-weight: var(--portal-font-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--portal-tracking-wide);
+  white-space: nowrap;
+}
+.ptd-pill--kind {
+  background: rgba(var(--portal-color-info-rgb), 0.18);
+  color: var(--portal-color-info-soft);
+}
+.ptd-pill--issue {
+  background: rgba(var(--portal-color-premium-rgb), 0.18);
+  color: var(--portal-color-premium-soft);
+}
+.ptd-pill--status-open {
+  background: rgba(var(--portal-color-warning-rgb), 0.18);
+  color: var(--portal-color-warning);
+}
+.ptd-pill--status-in_progress {
+  background: rgba(var(--portal-color-info-rgb), 0.20);
+  color: var(--portal-color-info-light);
+}
+.ptd-pill--status-resolved {
+  background: rgba(var(--portal-color-success-rgb), 0.20);
+  color: var(--portal-color-success-light);
+}
+.ptd-pill--status-closed {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--portal-text-secondary);
+}
+.ptd-pill--priority-minor {
+  background: rgba(var(--portal-color-warning-rgb), 0.16);
+  color: var(--portal-color-warning-soft);
+}
+.ptd-pill--priority-blocking {
+  background: rgba(var(--portal-color-error-rgb), 0.20);
+  color: var(--portal-color-error-light);
+}
+
+/* Toolbar ------------------------------------------------------------ */
+
+.ptd-toolbar {
+  display: flex; flex-direction: column; align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--portal-border-default);
+  border-radius: var(--radius-card);
+  margin-bottom: 12px;
+}
+.ptd-timestamps {
+  display: inline-flex; flex-wrap: wrap; gap: 4px;
+  font-size: var(--portal-text-xs);
+  color: var(--text-muted);
+}
+.ptd-status-control {
+  display: inline-flex; align-items: center; gap: 8px;
+  width: 100%;
+}
+.ptd-status-label {
+  font-size: var(--portal-text-xs);
+  color: var(--text-muted);
+}
+.ptd-status-select {
+  flex: 1;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--portal-border-default);
+  border-radius: var(--radius-input);
+  color: var(--text-primary);
+  padding: 8px 10px;
+  min-height: 44px;
+  font-size: var(--portal-text-sm);
+}
+
+.ptd-loading {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 3rem;
+}
+
+/* Desktop ------------------------------------------------------------ */
+
+@media (min-width: 768px) {
+  .ptd { padding: 1rem 1.5rem 3rem; }
+  .ptd-back { padding: 6px 0; min-height: auto; }
+  .ptd-hero { min-height: 260px; margin-bottom: 16px; }
+  .ptd-hero-inner {
+    flex-direction: row; gap: 20px; align-items: flex-end;
+    padding: 24px;
+  }
+  .ptd-hero-poster {
+    width: 130px; height: 195px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+  }
+  .ptd-hero-title { font-size: var(--portal-text-2xl); }
+  .ptd-other-header { padding: 20px; }
+  .ptd-other-title { font-size: var(--portal-text-xl); }
+  .ptd-toolbar {
+    flex-direction: row; align-items: center; justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .ptd-status-control { width: auto; }
+  .ptd-status-select { flex: 0 0 auto; padding: 6px 10px; min-height: auto; }
+}

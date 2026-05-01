@@ -1,0 +1,27 @@
+/* PortalHome — outer shell + skeleton loading state. */
+
+.pt-home {
+  background: var(--bg-primary);
+  min-height: 100vh;
+}
+.pt-home-body {
+  position: relative;
+  z-index: 2;
+  padding-top: 0;
+  /* Bottom padding accounts for the mobile bottom nav (52px). */
+  padding-bottom: calc(3rem + 60px);
+  /* No overlap on mobile: the body used to sit -8vh inside the hero's
+     bottom, but that geometric overlap covers the hero carousel dots
+     and makes them unclickable in the empty padding-top area. Let the
+     hero's own bottom gradient handle the visual transition instead. */
+  margin-top: 0;
+}
+@media (min-width: 640px) {
+  .pt-home-body { padding-top: 3rem; padding-bottom: 3rem; }
+}
+.pt-skeleton-row {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0 4%;
+  overflow: hidden;
+}

@@ -1,0 +1,67 @@
+/* ============================================
+   PORTAL DESIGN TOKENS — COLORS
+   ============================================
+   Surfaces, borders, text shades, semantic colors.
+   Cohérent avec MK admin mais enrichi pour portal (premium, immersion).
+   Namespace: --portal-*
+   ============================================ */
+
+:root {
+  /* Surfaces (background layers) --------------------------- */
+  --portal-surface-1: rgba(255, 255, 255, 0.02);    /* subtle tint */
+  --portal-surface-2: rgba(255, 255, 255, 0.04);    /* glass tile default */
+  --portal-surface-3: rgba(255, 255, 255, 0.06);    /* panels */
+  --portal-surface-4: rgba(255, 255, 255, 0.08);    /* prominent bg */
+  --portal-surface-5: rgba(255, 255, 255, 0.12);    /* hover prominent */
+
+  /* Borders ------------------------------------------------ */
+  --portal-border-faint:   rgba(255, 255, 255, 0.04);
+  --portal-border-subtle:  rgba(255, 255, 255, 0.06);
+  --portal-border-default: rgba(255, 255, 255, 0.08);   /* most frequent */
+  --portal-border-strong:  rgba(255, 255, 255, 0.12);
+  --portal-border-intense: rgba(255, 255, 255, 0.18);
+
+  /* Text shades (white alphas) ----------------------------- */
+  --portal-text-primary:     rgba(255, 255, 255, 0.92);
+  --portal-text-body:        rgba(255, 255, 255, 0.85);
+  --portal-text-body-muted:  rgba(255, 255, 255, 0.7);
+  --portal-text-secondary:   rgba(255, 255, 255, 0.55);
+  --portal-text-muted:       rgba(255, 255, 255, 0.4);
+  --portal-text-disabled:    rgba(255, 255, 255, 0.25);
+
+  /* Semantic colors (cohérent avec MK admin) -------------- */
+  --portal-color-success:       #22c55e;
+  --portal-color-success-rgb:   34, 197, 94;
+  --portal-color-success-light: #4ade80;
+  --portal-color-success-soft:  #86efac;
+
+  --portal-color-warning:       #fbbf24;
+  --portal-color-warning-rgb:   251, 191, 36;
+  --portal-color-warning-dark:  #f59e0b;
+  --portal-color-warning-soft:  #fde68a;
+
+  --portal-color-error:         #ef4444;
+  --portal-color-error-rgb:     239, 68, 68;
+  --portal-color-error-light:   #f87171;
+  --portal-color-error-soft:    #fca5a5;
+
+  --portal-color-info:          #3b82f6;
+  --portal-color-info-rgb:      59, 130, 246;
+  --portal-color-info-light:    #60a5fa;
+  --portal-color-info-soft:     #93c5fd;
+
+  /* Portal-specific palette (immersion) ------------------- */
+  --portal-color-premium:       #a855f7;    /* purple premium badges */
+  --portal-color-premium-rgb:   168, 85, 247;
+  --portal-color-premium-soft:  #c4b5fd;
+
+  --portal-color-cinema:        #38bdf8;    /* cyan ticket / subtitles / tmdb */
+  --portal-color-cinema-rgb:    56, 189, 248;
+  --portal-color-cinema-soft:   #7dd3fc;
+
+  --portal-color-accent-hot:    #ec4899;    /* hot pink — events, hype */
+  --portal-color-accent-hot-rgb: 236, 72, 153;
+
+  --portal-color-highlight:     #f97316;    /* orange — ticket audio, highlights */
+  --portal-color-highlight-rgb: 249, 115, 22;
+}

@@ -1,0 +1,29 @@
+/**
+ * Shared Lucide icon map for the achievement system.
+ * Used by trophy templates (grid, overlay, modal, toast, preview).
+ *
+ * Keys mirror the `icon` field stored in achievement_defs (PascalCase Lucide names).
+ */
+import {
+  Film, Tv, Flame, Zap, Globe, Send, RotateCcw, Target, Subtitles, Gamepad2,
+  FastForward, Compass, MessageCircle, Sparkles, Sunrise, Moon, Skull, TreePine,
+  Heart, MonitorPlay, Languages, Eye, Crown, HelpCircle,
+  Trophy, Award, TrendingUp, Camera, Clock, BadgeCheck, Flag, Hourglass, Timer,
+  CheckCircle, BookOpen, PartyPopper, Clapperboard, BedDouble, Rabbit, MapPin,
+  Megaphone, PlayCircle, Layers, CalendarPlus, Dice5, Shuffle, SunMedium, Rewind,
+  Rocket, Ghost, Copy, MonitorUp, Egg, CircleCheckBig, CloudRain, Repeat, AlarmClock,
+  Droplets, Flower2, Volume2, Coffee, Glasses, Link, TimerReset, Archive, UtensilsCrossed, Gem,
+} from 'lucide-vue-next'
+
+export const ICON_MAP = {
+  Film, Tv, Flame, Zap, Globe, Send, RotateCcw, Target, Subtitles, Gamepad2,
+  FastForward, Compass, MessageCircle, Sparkles, Sunrise, Moon, Skull, TreePine,
+  Heart, MonitorPlay, Languages, Eye, Crown, HelpCircle,
+  Trophy, Award, TrendingUp, Camera, Clock, BadgeCheck, Flag, Hourglass, Timer,
+  CheckCircle, BookOpen, PartyPopper, Clapperboard, BedDouble, Rabbit, MapPin,
+  Megaphone, PlayCircle, Layers, CalendarPlus, Dice5, Shuffle, SunMedium, Rewind,
+  Rocket, Ghost, Copy, MonitorUp, Egg, CircleCheckBig, CloudRain, Repeat, AlarmClock,
+  Droplets, Flower2, Volume2, Coffee, Glasses, Link, TimerReset, Archive, UtensilsCrossed, Gem,
+}
+
+export { HelpCircle, Trophy }

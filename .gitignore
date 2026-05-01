@@ -1,0 +1,92 @@
+# ============================================
+# MediaKeeper — .gitignore
+# ============================================
+
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+*.whl
+.venv/
+.venv-audit/
+venv/
+env/
+
+# ---------- Node / Frontend ----------
+node_modules/
+frontend/dist/
+frontend/.vite/
+.npm
+*.tgz
+
+# ---------- Données & secrets ----------
+*.db
+*.sqlite
+*.sqlite3
+/data/
+.env
+.env.*
+!.env.example
+
+# Secrets auto-générés par le container
+.pg_password
+.jwt_secret
+
+# ---------- Docker (volumes locaux) ----------
+docker-compose.override.yml
+
+# ---------- IDE / OS ----------
+.vscode/
+.idea/
+.claude/
+.aiignore
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ---------- Logs & backups ----------
+*.log
+logs/
+backups/
+
+# ---------- Audits locaux (workflow IA, hors périmètre public) ----------
+audits/
+
+# ---------- Tests ----------
+.pytest_cache/
+htmlcov/
+coverage/
+frontend/coverage/
+coverage.xml
+backend/coverage.xml
+.coverage
+.ruff_cache/
+.mypy_cache/
+pytest-cache-files-*/
+
+# ---------- Audit / QA tool outputs ----------
+.audit-tmp/
+playwright-report/
+test-results/
+frontend/playwright-report/
+frontend/test-results/
+frontend/.lighthouseci/
+.semgrep/
+
+# ---------- Drafts personnels (à arbitrer) ----------
+recap-mediakeeper-v1.md
+ROADMAP.md
+Rules.md
+
+# ---------- Workshop (outil dev jetable, hors périmètre prod) ----------
+frontend/src/views/portal/TrophyWorkshop.vue
+frontend/src/composables/portal/useTrophyWorkshopMocks.js
+frontend/src/composables/portal/useTrophyWorkshopPrompt.js
+frontend/src/assets/styles/portal/trophy-workshop-fx-*.css

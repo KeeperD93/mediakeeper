@@ -1,0 +1,211 @@
+"""User-lists workflow: privacy, dedup, contributors, copy, admin moderation."""
+import pytest
+from sqlalchemy import select
+
+from core.security import create_access_token, hash_password
+from models.portal.profile import UserProfile
+from models.portal.social import UserList
+from models.user import User
+
+
+async def _bootstrap(db, username, role="viewer"):
+    user = User(
+        username=username,
+        hashed_password=hash_password("Irrelevant123!"),
+        is_active=True,
+        must_change_password=False,
+    )
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+    db.add(UserProfile(
+        user_id=user.id, display_name=username,
+        role=role, account_active=True,
+    ))
+    await db.commit()
+    return user
+
+
+def _rq(client, user):
+    client.cookies.set(
+        "rq_token",
+        create_access_token({"sub": user.username, "scope": "portal"}),
+    )
+
+
+@pytest.mark.asyncio
+async def test_create_add_and_dedup(client, db_session):
+    user = await _bootstrap(db_session, "alice")
+    _rq(client, user)
+
+    resp = await client.post("/api/portal/lists", json={
+        "name": "Mon top",
+        "privacy": "private",
+        "content_type": "movies",
+    })
+    assert resp.status_code == 200
+    list_id = resp.json()["id"]
+
+    resp = await client.post(f"/api/portal/lists/{list_id}/items", json={
+        "items": [
+            {"tmdb_id": 100, "media_type": "movie"},
+            {"tmdb_id": 100, "media_type": "movie"},
+            {"tmdb_id": 200, "media_type": "movie"},
+        ],
+    })
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["added"] == 2
+    assert body["duplicates"] == 1
+
+
+@pytest.mark.asyncio
+async def test_private_list_not_visible_to_other_user(client, db_session):
+    owner = await _bootstrap(db_session, "owner")
+    other = await _bootstrap(db_session, "stranger")
+
+    _rq(client, owner)
+    resp = await client.post("/api/portal/lists",
+                             json={"name": "Secret", "privacy": "private"})
+    list_id = resp.json()["id"]
+
+    _rq(client, other)
+    resp = await client.get(f"/api/portal/lists/{list_id}")
+    assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_public_readonly_blocks_other_user_edits(client, db_session):
+    owner = await _bootstrap(db_session, "pub_owner")
+    other = await _bootstrap(db_session, "pub_other")
+
+    _rq(client, owner)
+    resp = await client.post("/api/portal/lists",
+                             json={"name": "Public", "privacy": "public_readonly"})
+    list_id = resp.json()["id"]
+
+    _rq(client, other)
+    # Non-owner can view
+    assert (await client.get(f"/api/portal/lists/{list_id}")).status_code == 200
+    # Non-owner cannot add
+    resp = await client.post(f"/api/portal/lists/{list_id}/items", json={
+        "items": [{"tmdb_id": 1, "media_type": "movie"}],
+    })
+    assert resp.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_collaborative_requires_contributor_optin(client, db_session):
+    owner = await _bootstrap(db_session, "co_owner")
+    friend = await _bootstrap(db_session, "co_friend")
+
+    _rq(client, owner)
+    resp = await client.post("/api/portal/lists",
+                             json={"name": "Collab", "privacy": "collaborative"})
+    list_id = resp.json()["id"]
+
+    _rq(client, friend)
+    # Not yet opted-in → cannot add
+    resp = await client.post(f"/api/portal/lists/{list_id}/items", json={
+        "items": [{"tmdb_id": 1, "media_type": "movie"}],
+    })
+    assert resp.status_code == 403
+
+    _rq(client, owner)
+    resp = await client.post(f"/api/portal/lists/{list_id}/contributors",
+                             json={"user_id": friend.id})
+    assert resp.status_code == 200
+
+    _rq(client, friend)
+    resp = await client.post(f"/api/portal/lists/{list_id}/items", json={
+        "items": [{"tmdb_id": 777, "media_type": "movie"}],
+    })
+    assert resp.status_code == 200
+    assert resp.json()["added"] == 1
+
+
+@pytest.mark.asyncio
+async def test_copy_public_list_notifies_owner(client, db_session):
+    owner = await _bootstrap(db_session, "cp_owner")
+    other = await _bootstrap(db_session, "cp_other")
+
+    _rq(client, owner)
+    resp = await client.post("/api/portal/lists",
+                             json={"name": "Top", "privacy": "public_readonly"})
+    list_id = resp.json()["id"]
+    await client.post(f"/api/portal/lists/{list_id}/items", json={
+        "items": [{"tmdb_id": 1, "media_type": "movie"}],
+    })
+
+    _rq(client, other)
+    resp = await client.post(f"/api/portal/lists/{list_id}/copy",
+                             json={"new_name": "My copy"})
+    assert resp.status_code == 200
+    assert resp.json()["items_copied"] == 1
+
+    from models.portal.event import MKNotification
+    rows = (await db_session.execute(
+        select(MKNotification).where(MKNotification.user_id == owner.id)
+    )).scalars().all()
+    assert any(n.type == "list_copied" for n in rows)
+
+
+@pytest.mark.asyncio
+async def test_delete_is_soft_and_admin_can_undelete(client, db_session):
+    owner = await _bootstrap(db_session, "sd_owner")
+    admin = await _bootstrap(db_session, "sd_admin", role="admin")
+
+    _rq(client, owner)
+    resp = await client.post("/api/portal/lists",
+                             json={"name": "Rayon", "privacy": "private"})
+    list_id = resp.json()["id"]
+
+    resp = await client.delete(f"/api/portal/lists/{list_id}")
+    assert resp.status_code == 200
+
+    lst = await db_session.get(UserList, list_id)
+    await db_session.refresh(lst)
+    assert lst.is_deleted is True
+
+    _rq(client, admin)
+    resp = await client.post(f"/api/portal/admin/lists/{list_id}/undelete")
+    assert resp.status_code == 200
+
+    await db_session.refresh(lst)
+    assert lst.is_deleted is False
+
+
+@pytest.mark.asyncio
+async def test_history_is_logged(client, db_session):
+    user = await _bootstrap(db_session, "hist_owner")
+    _rq(client, user)
+
+    resp = await client.post("/api/portal/lists",
+                             json={"name": "Audit", "privacy": "private"})
+    list_id = resp.json()["id"]
+
+    await client.post(f"/api/portal/lists/{list_id}/items", json={
+        "items": [{"tmdb_id": 42, "media_type": "movie"}],
+    })
+
+    resp = await client.get(f"/api/portal/lists/{list_id}/history")
+    assert resp.status_code == 200
+    actions = [entry["action"] for entry in resp.json()["items"]]
+    assert "created" in actions
+    assert "added" in actions
+
+
+@pytest.mark.asyncio
+async def test_export_json(client, db_session):
+    user = await _bootstrap(db_session, "exp_owner")
+    _rq(client, user)
+    list_id = (await client.post("/api/portal/lists",
+                                 json={"name": "Export"})).json()["id"]
+    await client.post(f"/api/portal/lists/{list_id}/items", json={
+        "items": [{"tmdb_id": 7, "media_type": "movie"}],
+    })
+
+    resp = await client.get(f"/api/portal/lists/{list_id}/export?fmt=json")
+    assert resp.status_code == 200
+    assert resp.headers["content-type"].startswith("application/json")
+    assert "attachment" in resp.headers["content-disposition"]

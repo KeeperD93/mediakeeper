@@ -1,0 +1,164 @@
+/* Mobile helpers — global utility classes that enforce the project
+ * mobile-first responsive convention.
+ *
+ * Add one of the classes below to an element to get the responsive
+ * behaviour without rewriting it on every page. Mobile = ≤ 767px.
+ * Desktop = ≥ 768px (project standard breakpoints).
+ */
+
+/* ═══════════ Safe-area + tap highlight safety net ═══════════ */
+/* Apply to any interactive surface. Prevents the grey flash on tap
+   (iOS Safari + Android Chrome). */
+.mk-tap-safe { -webkit-tap-highlight-color: transparent; }
+
+/* Page root helper: kills horizontal overflow + tap flash. Every page
+   template should add this class to its outermost wrapper.
+   Note: ``overflow-x: clip`` over ``hidden`` — ``hidden`` implicitly
+   promotes the element to a scroll container (overflow-y becomes auto)
+   and steals the document's vertical scroll on long pages. ``clip``
+   just clips without creating a scroll context. */
+.mk-page-root {
+  overflow-x: clip;
+  -webkit-tap-highlight-color: transparent;
+}
+
+
+/* ═══════════ Touch target (≥ 44 × 44 px) ═══════════ */
+/* Minimum interactive size on mobile (WCAG 2.5.5 + project touch-target convention). */
+.mk-touch {
+  min-height: 44px;
+  min-width: 44px;
+}
+@media (max-width: 767px) {
+  .mk-touch-mobile { min-height: 44px; min-width: 44px; }
+}
+
+
+/* ═══════════ Table → card-mode on mobile ═══════════ */
+/* Wrap the table in ``<div class="mk-table-wrap"><table class="mk-table">``
+   and put ``data-label="Column name"`` on each <td> for the card-mode
+   label to render on mobile. */
+.mk-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+@media (max-width: 767px) {
+  .mk-table-wrap { overflow-x: visible; }
+  .mk-table,
+  .mk-table thead,
+  .mk-table tbody,
+  .mk-table tr,
+  .mk-table td {
+    display: block;
+    width: 100%;
+  }
+  .mk-table thead { display: none; }
+  .mk-table tr {
+    margin-bottom: 0.6rem;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-card);
+    background: rgba(255, 255, 255, 0.02);
+  }
+  .mk-table td {
+    padding: 0.25rem 0;
+    border: none;
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    font-size: var(--text-sm);
+  }
+  .mk-table td::before {
+    content: attr(data-label);
+    font-weight: var(--font-bold);
+    color: rgba(255, 255, 255, 0.55);
+    font-size: var(--text-2xs);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-widest);
+  }
+}
+
+
+/* ═══════════ Modal → bottom-sheet on mobile ═══════════ */
+/* Apply ``.mk-modal-sheet`` to the overlay and ``.mk-modal-sheet-panel``
+   to the inner card. Behaviour:
+   - Mobile : panel flush to bottom, 85vh max, rounded top corners.
+   - Desktop : panel centered, floating, rounded corners all sides. */
+.mk-modal-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 9990;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.mk-modal-sheet-panel {
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: rgba(12, 16, 30, 0.96);
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: 0 -24px 60px rgba(0, 0, 0, 0.45);
+  animation: mk-sheet-in 0.28s var(--ease-out);
+}
+@keyframes mk-sheet-in {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+/* Drag handle — a small pill at the top of the sheet on mobile only,
+   signalling it can be dismissed with a swipe. */
+.mk-modal-sheet-panel::before {
+  content: '';
+  display: block;
+  width: 38px;
+  height: 4px;
+  margin: 10px auto 0;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.2);
+}
+@media (min-width: 768px) {
+  .mk-modal-sheet { align-items: center; }
+  .mk-modal-sheet-panel {
+    width: min(520px, 90vw);
+    max-height: 85vh;
+    border-radius: var(--radius-card);
+    animation: mk-modal-pop 0.22s var(--ease-out);
+  }
+  .mk-modal-sheet-panel::before { display: none; }
+}
+@keyframes mk-modal-pop {
+  from { transform: scale(0.96); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+
+/* ═══════════ Grid helpers ═══════════ */
+/* Auto-fit grid where cells shrink instead of overflowing. The
+   ``--mk-grid-min`` variable lets callers tweak the minimum cell
+   width per instance (defaults to 240px). */
+.mk-grid-autofit {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(var(--mk-grid-min, 240px), 1fr));
+  gap: 1rem;
+}
+/* Fixed 2-col that collapses to 1-col ≤ 767px without manual media queries. */
+.mk-grid-2 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.85rem;
+}
+@media (min-width: 768px) {
+  .mk-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* Fixed 3-col that collapses to 2 then 1. */
+.mk-grid-3 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.85rem;
+}
+@media (min-width: 480px) { .mk-grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { .mk-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

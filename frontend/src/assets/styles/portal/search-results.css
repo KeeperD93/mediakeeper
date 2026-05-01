@@ -1,0 +1,105 @@
+/* PortalSearchResults — dedicated full-page search grid. */
+
+.pt-search-page {
+  min-height: 100vh;
+  padding: 7rem 1rem 5.5rem;
+  background:
+    radial-gradient(circle at top, rgba(var(--accent-rgb, 99, 102, 241), 0.12), transparent 34%),
+    var(--bg-primary);
+  color: #fff;
+}
+
+.pt-search-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  margin-bottom: 1.4rem;
+}
+
+@media (min-width: 768px) {
+  .pt-search-page {
+    padding: 5.75rem 4% 4rem;
+  }
+  .pt-search-head {
+    gap: 1rem;
+    margin-bottom: 1.8rem;
+  }
+}
+
+.pt-search-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--portal-radius-circle);
+  border: 1px solid var(--portal-border-strong);
+  background: var(--portal-surface-3);
+  color: #fff;
+  cursor: pointer;
+}
+
+.pt-search-back:hover {
+  background: var(--portal-surface-5);
+}
+
+.pt-search-copy {
+  min-width: 0;
+}
+
+.pt-search-kicker {
+  display: inline-block;
+  margin-bottom: 0.45rem;
+  color: rgba(255, 255, 255, 0.52);
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-bold);
+  letter-spacing: var(--portal-tracking-eyebrow);
+  text-transform: uppercase;
+}
+
+.pt-search-title {
+  margin: 0;
+  font-size: clamp(1.7rem, 3vw + 0.45rem, 2.65rem);
+  font-weight: var(--portal-font-black);
+  line-height: 1.05;
+}
+
+.pt-search-subtitle {
+  margin: 0.6rem 0 0;
+  max-width: 760px;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: var(--portal-text-md);
+  line-height: var(--portal-lh-normal);
+}
+
+.pt-search-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .pt-search-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+}
+
+.pt-search-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  min-height: 120px;
+  color: rgba(255, 255, 255, 0.54);
+  font-size: var(--portal-text-base);
+  text-align: center;
+}
+
+.pt-search-state--tail {
+  min-height: 90px;
+}
+
+.pt-search-sentinel {
+  height: 1px;
+  width: 100%;
+}

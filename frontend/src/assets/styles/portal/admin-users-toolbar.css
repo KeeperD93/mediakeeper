@@ -1,0 +1,88 @@
+/* Toolbar (search input, filter selects, pills, view switcher) used at
+   the top of the admin Users page. Imported by RuUsersPage.vue. */
+
+.ru-toolbar {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) auto auto;
+  gap: .75rem;
+  align-items: center;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: .75rem;
+}
+@media (max-width: 1023px) {
+  .ru-toolbar { grid-template-columns: 1fr; }
+}
+
+.ru-toolbar-search { position: relative; }
+.ru-toolbar-search-icon {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  color: var(--text-muted);
+}
+.ru-toolbar-input {
+  width: 100%; min-height: 36px;
+  padding: 0 .75rem 0 32px;
+  border-radius: var(--radius-btn);
+  border: 1px solid var(--border);
+  background: var(--bg-primary); color: var(--text-primary);
+  font: inherit; font-size: var(--text-sm);
+}
+.ru-toolbar-input:focus { outline: 1px solid var(--accent); border-color: var(--accent); }
+
+.ru-toolbar-filters { display: flex; gap: .5rem; flex-wrap: wrap; }
+.ru-toolbar-pill-input {
+  display: inline-flex; align-items: center; gap: .35rem;
+  min-height: 32px; padding: 0 .65rem;
+  border-radius: 999px; border: 1px solid var(--border);
+  background: var(--bg-tertiary); color: var(--text-secondary);
+  font-size: var(--text-xs);
+}
+.ru-toolbar-pill-input input {
+  width: 50px; background: transparent; border: none;
+  color: var(--text-primary); font: inherit; font-weight: var(--font-bold);
+}
+.ru-toolbar-pill-input input:focus { outline: none; }
+.ru-toolbar-select {
+  min-height: 36px; padding: 0 .6rem;
+  border-radius: var(--radius-btn);
+  border: 1px solid var(--border);
+  background: var(--bg-primary); color: var(--text-primary);
+  font: inherit; font-size: var(--text-sm);
+}
+
+.ru-pill {
+  display: inline-flex; align-items: center; gap: .35rem;
+  min-height: 32px; padding: 0 .85rem;
+  border-radius: 999px; border: 1px solid var(--border);
+  background: var(--bg-tertiary); color: var(--text-secondary);
+  font: inherit; font-size: var(--text-xs); font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+.ru-pill:disabled { opacity: .5; cursor: default; }
+.ru-pill:hover:not(:disabled) { color: var(--text-primary); border-color: rgba(var(--accent-rgb), .35); }
+.ru-pill--active {
+  background: rgba(var(--accent-rgb), .15);
+  border-color: rgba(var(--accent-rgb), .55);
+  color: var(--accent);
+  box-shadow: var(--mk-pill-shadow-sm, 0 1px 0 rgba(var(--accent-rgb), .2));
+}
+
+.ru-toolbar-right {
+  display: flex; gap: .5rem; align-items: center; justify-content: flex-end;
+}
+.ru-toolbar-count { color: var(--text-muted); font-size: var(--text-xs); }
+.ru-toolbar-view {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-btn);
+  overflow: hidden;
+}
+.ru-toolbar-view-btn {
+  width: 36px; height: 36px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--bg-primary); color: var(--text-secondary);
+  border: none; cursor: pointer;
+}
+.ru-toolbar-view-btn.is-active { background: var(--accent); color: #fff; }

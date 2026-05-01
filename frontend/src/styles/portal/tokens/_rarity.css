@@ -1,0 +1,39 @@
+/* ============================================
+   PORTAL DESIGN TOKENS — RARITY SYSTEM
+   ============================================
+   Trophy rarity palette (common → mythic) used in
+   trophy-grid, trophy-overlay-row, trophy-overlay-reward.
+   Namespace: --portal-rarity-*
+   ============================================ */
+
+:root {
+  /* Common (grey) ------------------------------------------- */
+  --portal-rarity-common:       #94a3b8;
+  --portal-rarity-common-rgb:   148, 163, 184;
+  --portal-rarity-common-soft:  #cbd5e1;
+
+  /* Uncommon (green) ---------------------------------------- */
+  --portal-rarity-uncommon:     #22c55e;
+  --portal-rarity-uncommon-rgb: 34, 197, 94;
+  --portal-rarity-uncommon-soft: #86efac;
+
+  /* Rare (blue) --------------------------------------------- */
+  --portal-rarity-rare:         #3b82f6;
+  --portal-rarity-rare-rgb:     59, 130, 246;
+  --portal-rarity-rare-soft:    #93c5fd;
+
+  /* Epic (purple) ------------------------------------------- */
+  --portal-rarity-epic:         #a855f7;
+  --portal-rarity-epic-rgb:     168, 85, 247;
+  --portal-rarity-epic-soft:    #c4b5fd;
+
+  /* Legendary (gold) ---------------------------------------- */
+  --portal-rarity-legendary:     #fbbf24;
+  --portal-rarity-legendary-rgb: 251, 191, 36;
+  --portal-rarity-legendary-soft: #fde68a;
+
+  /* Mythic (red-orange) ------------------------------------- */
+  --portal-rarity-mythic:        #ef4444;
+  --portal-rarity-mythic-rgb:    239, 68, 68;
+  --portal-rarity-mythic-soft:   #fca5a5;
+}

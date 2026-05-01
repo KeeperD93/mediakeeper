@@ -1,0 +1,256 @@
+@import './breakpoints.css';
+@import './mobile-helpers.css';
+@import './design-tokens.css';
+@import './portal/portal-tokens.css';
+@import '../assets/styles/portal/portal-utilities.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   GLOBAL STATE — Portal video playing
+   ============================================
+   When a hero / mini-hero trailer is actively playing AND the user is
+   still at the top of the page (nav not in --solid mode), we drop the
+   topbar's backdrop-filter so the nav doesn't smear over the video.
+   Once the user scrolls past the hero, .pt-nav--solid kicks in and
+   wins, restoring the dark opaque background.
+
+   Desktop only (≥ 768px): on phones the topbar must stay fully opaque
+   regardless of trailer playback (see nav-base.css mobile rule). */
+@media (min-width: 768px) {
+  body.mk-portal-video-playing .pt-nav:not(.pt-nav--solid) {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 100%) !important;
+  }
+}
+
+/* ============================================
+   DEFAULT THEME (dark)
+   Only one theme ships with v0.x. Alternate themes return in v1.0,
+   rebuilt on top of the design tokens.
+   ============================================ */
+:root {
+  --bg-primary:    #030712;
+  --bg-primary-rgb: 3, 7, 18;     /* Companion RGB triplet for rgba() composition */
+  --bg-secondary:  #111827;
+  --bg-tertiary:   #1f2937;
+  --bg-panel:      var(--bg-secondary); /* Alias — modal / panel surface */
+  --border:        #1f2937;
+  --border-hover:  #374151;
+  --text-primary:  #ffffff;
+  --text-secondary:#9ca3af;
+  --text-muted:    #4b5563;
+  --accent:        #4338ca;
+  --accent-light:  #312e81;
+  /* Accent color system — overridden by useTheme */
+  --accent-500:    #6366f1;
+  --accent-400:    #818cf8;
+  --accent-300:    #a5b4fc;
+  --accent-600:    #4f46e5;
+  --accent-700:    #4338ca;
+  --accent-rgb:    99,102,241;
+
+  /* Pill "neon" glow — controlled by the Appearance slider via --mk-glow (0..2, default 1).
+   * Two sizes: regular (3px ring + 18px blur) and compact (2px ring + 12px blur).
+   * Alpha values scale with --mk-glow so users can dim or boost the effect app-wide. */
+  --mk-glow: 1;
+  --mk-pill-shadow:
+    0 0 0 3px rgba(var(--accent-rgb), calc(0.12 * var(--mk-glow))),
+    0 0 18px rgba(var(--accent-rgb), calc(0.25 * var(--mk-glow)));
+  --mk-pill-shadow-sm:
+    0 0 0 2px rgba(var(--accent-rgb), calc(0.12 * var(--mk-glow))),
+    0 0 12px rgba(var(--accent-rgb), calc(0.2 * var(--mk-glow)));
+}
+
+/* ── Global radius — applied automatically via --radius-* ── */
+.mk-card, .params-section, .stats-tab, .mm-modal, .mm-overlay .mm-modal,
+[class*="-card"], [class*="-modal"], [class*="glass-card"],
+[class*="glass-"], [class*="-kpi"], [class*="-tabs"],
+[class*="-toast"]:not(.mk-toast-container) {
+  border-radius: var(--radius-card) !important;
+}
+[class*="-btn"]:not(.tb-action-btn):not(.mm-row-btn):not(.mm-drag-handle),
+[class*="Btn"]:not([class*="row"]),
+[class*="-tab"]:not([class*="-tabs"]):not([class*="table"]) {
+  border-radius: var(--radius-btn) !important;
+}
+input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+select, textarea {
+  border-radius: var(--radius-input) !important;
+}
+
+
+/* ============================================================
+   CSS VARIABLES GLOBALES — Radius & Custom BG
+   ============================================================ */
+:root {
+  --radius-card:  12px;
+  --radius-btn:   8px;
+  --radius-input: 10px;
+  --custom-bg-url: none;
+  --custom-bg-opacity: 0.15;
+  --custom-bg-blur: 20px;
+}
+
+/* Custom background — dedicated element injected by JS into the body */
+#mk-custom-bg {
+  position: fixed;
+  inset: -5%;
+  width: 110%;
+  height: 110%;
+  z-index: 0;
+  background-image: var(--custom-bg-url);
+  background-size: cover;
+  background-position: center;
+  opacity: var(--custom-bg-opacity);
+  filter: blur(var(--custom-bg-blur));
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+body.has-custom-bg { isolation: auto; }
+
+
+/* Application des variables */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  margin: 0;
+  /* Prevent layout shift when scrollbar appears/disappears */
+  scrollbar-gutter: stable;
+}
+
+/* ============================================
+   REUSABLE COMPONENTS
+   ============================================ */
+
+/* Cartes */
+.mk-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius:var(--radius-card);
+  padding: 20px;
+  transition: border-color var(--duration-base);
+}
+
+.mk-card:hover {
+  border-color: var(--border-hover);
+}
+
+/* Stat cards (small tuiles) */
+.mk-stat-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius:var(--radius-card);
+  padding: 20px;
+  transition: border-color var(--duration-base);
+}
+
+.mk-stat-card:hover {
+  border-color: var(--border-hover);
+}
+
+/* ============================================
+   SCROLLBAR CUSTOM
+   ============================================ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-hover);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ============================================
+   TRANSITIONS VUE ROUTER
+   ============================================ */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity var(--duration-fast) ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+
+/* ============================================
+   TRANSITIONS ROUTES — slide directionnel
+   ============================================ */
+.route-slide-enter-active,
+.route-slide-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.route-slide-enter-from {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.route-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+/* ============================================
+   KONAMI EASTER EGG
+   ============================================ */
+@keyframes mk-konami-rainbow {
+  0%   { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+
+@keyframes mk-konami-shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+body.mk-konami-active {
+  animation: mk-konami-rainbow 3s linear infinite;
+}
+
+body.mk-konami-active .mk-sidebar {
+  animation: mk-konami-shake 0.6s ease-in-out;
+}
+
+.mk-konami-toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100000;
+  font-size: 3rem;
+  text-align: center;
+  pointer-events: none;
+  animation: mk-konami-pop 2s ease-out forwards;
+}
+
+@keyframes mk-konami-pop {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+  20%  { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+  40%  { transform: translate(-50%, -50%) scale(0.95); }
+  60%  { transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1) translateY(-30px); }
+}
+
+/* Pages with a mobile-bottom TabStrip (Watchlist, Settings, Stats, Logs,
+ * Notifications, Duplicates, Subtitles, Media health): add a matching
+ * padding-bottom on the scroll container so content above the fixed tab
+ * bar isn't hidden. Uses :has() — supported on Chrome 105+, Safari 15.4+,
+ * Firefox 121+. Falls back silently on older browsers. */
+@media (max-width: 767px) {
+  .mk-app-content:has(.mk-tabs-placement-bottom-mobile) {
+    padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+  }
+}

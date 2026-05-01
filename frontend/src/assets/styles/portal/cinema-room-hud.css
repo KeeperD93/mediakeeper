@@ -1,0 +1,123 @@
+/* Cinema room — HUD (leave/mute/countdown), launch CTA, mobile fallback. */
+
+.pt-cr-hud {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.55rem;
+}
+.pt-cr-leave,
+.pt-cr-mute {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.85rem;
+  background: rgba(0, 0, 0, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-sm);
+  color: #fff;
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-medium);
+  cursor: pointer;
+  backdrop-filter: var(--portal-blur-sm);
+}
+.pt-cr-leave:hover,
+.pt-cr-mute:hover { background: rgba(0, 0, 0, 0.85); }
+
+.pt-cr-countdown {
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-btn);
+  padding: 0.6rem 1rem;
+  text-align: left;
+  backdrop-filter: blur(10px);
+  min-width: 140px;
+}
+.pt-cr-countdown-label {
+  display: block;
+  font-size: var(--portal-text-2xs);
+  text-transform: uppercase;
+  letter-spacing: var(--portal-tracking-caps);
+  color: var(--portal-text-secondary);
+  margin-bottom: 4px;
+}
+.pt-cr-countdown-value {
+  font-size: var(--portal-text-xl);
+  font-weight: var(--portal-font-black);
+  font-variant-numeric: tabular-nums;
+}
+.pt-cr-countdown--late .pt-cr-countdown-value { color: var(--portal-color-warning); }
+
+/* ---------- Launch CTA ---------- */
+.pt-cr-launch {
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+.pt-cr-launch-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.95rem 2.3rem;
+  background: var(--portal-gradient-gold);
+  color: #1a0a05;
+  border: none;
+  border-radius: var(--portal-radius-pill);
+  font-size: var(--portal-text-md);
+  font-weight: var(--portal-font-black);
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow:
+    0 12px 36px rgba(var(--portal-color-warning-rgb), 0.45),
+    0 0 60px rgba(var(--portal-color-warning-rgb), 0.25);
+  animation: pt-cr-pulse 1.6s ease-in-out infinite;
+}
+@keyframes pt-cr-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+.pt-cr-launch-marathon {
+  font-size: var(--portal-text-sm);
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: var(--portal-font-bold);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+}
+.pt-cr-cta-enter-active, .pt-cr-cta-leave-active {
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.pt-cr-cta-enter-from, .pt-cr-cta-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-12px);
+}
+
+/* ---------- Mobile base (applied by default; desktop is an override) ---------- */
+.pt-cr-screen-frame { width: 92vw; }
+.pt-cr-seats {
+  transform: perspective(1100px) rotateX(24deg);
+  gap: 1.1rem;
+}
+.pt-cr-stair { width: 1rem; }
+.pt-cr-curtain { width: 11vw; }
+.pt-cr-pelmet { left: 2vw; right: 2vw; }
+
+/* ---------- Desktop — restore the wide-viewport cinema layout ---------- */
+@media (min-width: 1024px) {
+  .pt-cr-screen-frame { width: min(74vw, 1280px); }
+  .pt-cr-seats {
+    transform: perspective(1400px) rotateX(20deg);
+    gap: 1.4rem;
+  }
+  .pt-cr-stair { width: 2.6rem; }
+  .pt-cr-curtain { width: 16vw; }
+  .pt-cr-pelmet { left: 4vw; right: 4vw; }
+}

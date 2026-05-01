@@ -1,0 +1,266 @@
+/**
+ * Public profile page (/portal/u/:id) styles. All selectors prefixed
+ * by .pt-up to simulate Vue scoped CSS, since this file is imported
+ * by JS and not protected by Vue's scoped-style attribute.
+ *
+ * Tier-aware accents: every card on the right column borrows two
+ * shades of the user's rank-card border, so the visual signature
+ * stays coherent across the SideRankCard and the surrounding panels.
+ */
+
+.pt-up {
+  --pt-up-c1: var(--portal-color-premium);
+  --pt-up-c2: var(--portal-color-info);
+  --pt-up-rgb1: var(--portal-color-premium-rgb, 168, 85, 247);
+  --pt-up-rgb2: var(--portal-color-info-rgb, 96, 165, 250);
+
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: clamp(1rem, 2.5vw, 1.75rem);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1rem, 2vw, 1.5rem);
+}
+
+/* Mirror the SideRankCard tier palette — same two-stop gradient as
+   /portal/settings so the page reads as a single coherent surface. */
+.pt-up.gc--bronze {
+  --pt-up-c1: #cd7f32; --pt-up-c2: #8b5e3c;
+  --pt-up-rgb1: 205, 127, 50; --pt-up-rgb2: 139, 94, 60;
+}
+.pt-up.gc--silver {
+  --pt-up-c1: #c0c0c0; --pt-up-c2: #6b7280;
+  --pt-up-rgb1: 192, 192, 192; --pt-up-rgb2: 107, 114, 128;
+}
+.pt-up.gc--gold {
+  --pt-up-c1: #fbbf24; --pt-up-c2: #d97706;
+  --pt-up-rgb1: 251, 191, 36; --pt-up-rgb2: 217, 119, 6;
+}
+.pt-up.gc--platinum {
+  --pt-up-c1: #38bdf8; --pt-up-c2: #0ea5e9;
+  --pt-up-rgb1: 56, 189, 248; --pt-up-rgb2: 14, 165, 233;
+}
+.pt-up.gc--diamond {
+  --pt-up-c1: #a78bfa; --pt-up-c2: #7c3aed;
+  --pt-up-rgb1: 167, 139, 250; --pt-up-rgb2: 124, 58, 237;
+}
+.pt-up.gc--master {
+  --pt-up-c1: #ef4444; --pt-up-c2: #f97316;
+  --pt-up-rgb1: 239, 68, 68; --pt-up-rgb2: 249, 115, 22;
+}
+.pt-up.gc--legendary {
+  --pt-up-c1: #fbbf24; --pt-up-c2: #ef4444;
+  --pt-up-rgb1: 251, 191, 36; --pt-up-rgb2: 239, 68, 68;
+}
+
+.pt-up .pt-up-loading,
+.pt-up .pt-up-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 50vh;
+  color: var(--portal-text-secondary);
+  text-align: center;
+}
+
+.pt-up .pt-up-admin-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0.55rem 0.95rem;
+  background: rgba(var(--portal-color-warning-rgb, 251, 191, 36), 0.14);
+  border: 1px solid rgba(var(--portal-color-warning-rgb, 251, 191, 36), 0.40);
+  border-radius: var(--portal-radius-pill);
+  color: var(--portal-color-warning);
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-medium);
+  align-self: flex-start;
+}
+
+.pt-up .pt-up-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+}
+@media (min-width: 1024px) {
+  .pt-up .pt-up-hero { grid-template-columns: 320px minmax(0, 1fr); }
+}
+
+.pt-up .pt-up-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.pt-up .pt-up-name {
+  margin: 0;
+  font-size: var(--portal-text-3xl);
+  font-weight: var(--portal-font-extrabold);
+  letter-spacing: -0.02em;
+  font-family: var(--portal-font-display, inherit);
+  background: linear-gradient(135deg,
+    var(--portal-text-primary) 0%,
+    var(--pt-up-c1) 60%,
+    var(--pt-up-c2) 100%);
+  -webkit-background-clip: text;
+          background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 22px rgba(var(--pt-up-rgb1), 0.32));
+}
+
+.pt-up .pt-up-bio {
+  margin: 0;
+  font-size: var(--portal-text-base);
+  color: var(--portal-text-body);
+  line-height: var(--portal-lh-relaxed);
+}
+.pt-up .pt-up-bio--empty { color: var(--portal-text-muted); font-style: italic; }
+
+.pt-up .pt-up-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+.pt-up .pt-up-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.75rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+}
+
+.pt-up .pt-up-stat {
+  position: relative;
+  padding: 0.75rem 1rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01)),
+    var(--portal-surface-2);
+  border: 1px solid rgba(var(--pt-up-rgb1), 0.30);
+  border-radius: var(--portal-radius-md);
+  box-shadow:
+    0 0 18px rgba(var(--pt-up-rgb1), 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+}
+.pt-up .pt-up-stat::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 8%;
+  right: 8%;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(var(--pt-up-rgb1), 0.55),
+    rgba(var(--pt-up-rgb2), 0.55),
+    transparent);
+}
+.pt-up .pt-up-stat dt {
+  margin: 0 0 0.25rem;
+  font-size: var(--portal-text-xs);
+  color: var(--portal-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.pt-up .pt-up-stat dd {
+  margin: 0;
+  font-size: var(--portal-text-lg);
+  font-weight: var(--portal-font-bold);
+  color: var(--portal-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.pt-up .pt-up-stat dd small {
+  font-size: var(--portal-text-xs);
+  color: var(--portal-text-secondary);
+  font-weight: var(--portal-font-medium);
+}
+
+.pt-up .pt-up-block {
+  position: relative;
+  padding: clamp(1rem, 2vw, 1.5rem);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01)),
+    var(--portal-surface-2);
+  border: 1px solid rgba(var(--pt-up-rgb1), 0.32);
+  border-radius: var(--portal-radius-lg);
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.30),
+    0 0 24px rgba(var(--pt-up-rgb1), 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+}
+.pt-up .pt-up-block::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 6%;
+  right: 6%;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(var(--pt-up-rgb1), 0.60),
+    rgba(var(--pt-up-rgb2), 0.60),
+    transparent);
+}
+.pt-up .pt-up-block-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.85rem;
+  font-size: var(--portal-text-md);
+  font-weight: var(--portal-font-bold);
+  color: var(--portal-text-primary);
+}
+.pt-up .pt-up-block-count {
+  padding: 0.15rem 0.55rem;
+  background: var(--portal-surface-3);
+  border-radius: var(--portal-radius-pill);
+  font-size: var(--portal-text-xs);
+  color: var(--portal-text-secondary);
+  font-weight: var(--portal-font-medium);
+}
+
+.pt-up .pt-up-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+.pt-up .pt-up-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  background: var(--portal-surface-3);
+  border: 1px solid var(--portal-border-default);
+  border-radius: var(--portal-radius-pill);
+  color: var(--portal-text-body);
+  font-size: var(--portal-text-sm);
+}
+
+.pt-up .pt-up-trophy-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.5rem;
+}
+
+.pt-up .pt-up-trophy {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  background: var(--portal-surface-3);
+  border: 1px solid var(--portal-border-default);
+  border-radius: var(--portal-radius-md);
+  color: var(--portal-text-primary);
+}
+
+.pt-up .pt-up-trophy-name {
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pt-up .pt-up-trophy--legendary { border-color: var(--portal-color-premium, #a855f7); }
+.pt-up .pt-up-trophy--mythic    { border-color: var(--portal-color-accent-hot, #ec4899); }
+.pt-up .pt-up-trophy--epic      { border-color: var(--portal-color-info, #3b82f6); }
+.pt-up .pt-up-trophy--rare      { border-color: var(--portal-color-cinema, #38bdf8); }
+.pt-up .pt-up-trophy--uncommon  { border-color: var(--portal-color-success, #22c55e); }

@@ -1,0 +1,96 @@
+"""
+Onboarding API — first-run configuration wizard.
+"""
+import logging
+
+from fastapi import APIRouter, Depends, HTTPException, Request
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.database import get_db
+from api.auth import get_current_user, COOKIE_NAME
+from core.security import decode_access_token
+from models.user import User
+from services.settings import get_setting, set_setting, get_tools_config
+from services.media_manager import get_categories
+
+logger = logging.getLogger("mediakeeper.onboarding")
+router = APIRouter(prefix="/api/onboarding", tags=["onboarding"])
+
+ONBOARDING_KEY = "setup.onboarding_done"
+
+
+# ── Status ────────────────────────────────────────────────────────────────────
+
+@router.get("/status")
+async def get_status(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Return the onboarding status.
+    Accessible without full auth (just a valid JWT) so the wizard can render
+    before everything is configured.
+    """
+    # Light auth — we only check the JWT
+    token = request.cookies.get(COOKIE_NAME)
+    if not token:
+        return {"authenticated": False}
+    payload = decode_access_token(token)
+    if not payload:
+        return {"authenticated": False}
+
+    done = await get_setting(db, ONBOARDING_KEY)
+    config = await get_tools_config(db)
+
+    emby_cfg = config.get("emby", {})
+    tmdb_cfg = config.get("tmdb", {})
+
+    return {
+        "authenticated":    True,
+        "onboarding_done":  done == "true",
+        "steps": {
+            "emby":    bool(emby_cfg.get("url") and emby_cfg.get("api_key")),
+            "tmdb":    bool(tmdb_cfg.get("api_key")),
+            "folders": await _check_folders_configured(db),
+        },
+    }
+
+
+async def _check_folders_configured(db: AsyncSession) -> bool:
+    """Check whether at least one media folder is configured via DB or env."""
+    categories = await get_categories(db)
+    if any((c.get("path") or "").strip() for c in categories):
+        return True
+
+    import os
+    return bool(
+        os.getenv("MEDIAKEEPER_PATH_ROOTS")
+        or os.getenv("MEDIA_TELECHARGEMENT")
+        or os.getenv("MEDIA_FILMS")
+        or os.getenv("MEDIA_SERIES")
+    )
+
+
+# ── Complete ──────────────────────────────────────────────────────────────────
+
+@router.post("/complete")
+async def complete_onboarding(
+    db: AsyncSession = Depends(get_db),
+    _:  User         = Depends(get_current_user),
+):
+    """Mark onboarding as completed."""
+    if not await _check_folders_configured(db):
+        raise HTTPException(status_code=400, detail="folders_not_configured")
+    await set_setting(db, ONBOARDING_KEY, "true")
+    logger.info("[ONBOARDING] Onboarding marked as completed")
+    return {"success": True}
+
+
+@router.post("/reset")
+async def reset_onboarding(
+    db: AsyncSession = Depends(get_db),
+    _:  User         = Depends(get_current_user),
+):
+    """Reset onboarding (admin only)."""
+    await set_setting(db, ONBOARDING_KEY, "false")
+    return {"success": True}

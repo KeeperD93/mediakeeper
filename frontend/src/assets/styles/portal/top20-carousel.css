@@ -1,0 +1,193 @@
+/* Top20Carousel — podium-style Top 20 monthly carousel with medal glow. */
+
+.pt-top20 {
+  position: relative;
+  margin-bottom: 2.5rem;
+  /* `overflow: visible` so the edge fades + arrows can extend slightly
+     outside the section box. `hidden` would clip the medal glow on
+     podium cards and the arrow shadow. */
+  overflow: visible;
+}
+.pt-top20-title {
+  font-size: var(--portal-text-xl);
+  font-weight: var(--portal-font-extrabold);
+  color: #fff;
+  padding: 0 4%;
+  margin-bottom: 0.75rem;
+}
+.pt-top20-track {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  overflow-x: auto;
+  /* `clip` lets the medal + hover glow spill above/below the track box
+     without being cropped (which `hidden` would do). */
+  overflow-y: clip;
+  padding: 2rem 0 2rem 0;
+  scrollbar-width: none;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: 4%;
+}
+.pt-top20-track::before,
+.pt-top20-track::after {
+  content: '';
+  flex-shrink: 0;
+  width: 4%;
+}
+.pt-top20-track::-webkit-scrollbar { display: none; }
+.pt-top20-card { scroll-snap-align: start; }
+
+.pt-top20-card {
+  flex-shrink: 0;
+  position: relative;
+  cursor: pointer;
+  transition: transform var(--portal-dur-slow);
+  /* Allow the laurel + glow to spill outside the card box. */
+  overflow: visible;
+}
+.pt-top20-card:hover { transform: translateY(-4px); }
+
+/* Podium frame: a coloured border + outer glow around the poster
+   inside the embedded MediaCard. Selectors target the bare class
+   because MediaCard's CSS is now global (not scoped). */
+.pt-top20-card--rank-1 .pt-card-poster,
+.pt-top20-card--rank-2 .pt-card-poster,
+.pt-top20-card--rank-3 .pt-card-poster {
+  border: 3px solid var(--medal, transparent);
+  box-shadow:
+    0 0 14px rgba(var(--medal-rgb), 0.35),
+    0 0 32px rgba(var(--medal-rgb), 0.15),
+    inset 0 0 12px rgba(var(--medal-rgb), 0.08);
+  transition: box-shadow 0.4s, border-color 0.4s;
+}
+.pt-top20-card--rank-1:hover .pt-card-poster,
+.pt-top20-card--rank-2:hover .pt-card-poster,
+.pt-top20-card--rank-3:hover .pt-card-poster {
+  box-shadow:
+    0 0 28px rgba(var(--medal-rgb), 0.65),
+    0 0 56px rgba(var(--medal-rgb), 0.25),
+    inset 0 0 16px rgba(var(--medal-rgb), 0.12);
+}
+
+/* Shift the SERIES/MOVIE tag just right of the medal on podium cards so
+   it sits flush beside it instead of being hidden underneath. Offset
+   matches the medal width (clamp 34→46px) minus the -10px left inset. */
+.pt-top20-card--rank-1 .pt-card-type,
+.pt-top20-card--rank-2 .pt-card-type,
+.pt-top20-card--rank-3 .pt-card-type {
+  left: clamp(28px, 4vw, 40px);
+}
+
+/* Medal palette per rank — gold / silver / bronze. */
+.pt-top20-card--rank-1 { --medal: #fbbf24; --medal-rgb: 251, 191, 36; }
+.pt-top20-card--rank-2 { --medal: #cbd5e1; --medal-rgb: 203, 213, 225; }
+.pt-top20-card--rank-3 { --medal: #cd7f32; --medal-rgb: 205, 127, 50; }
+
+/* Top 1 gets a slow pulse so it's the unmistakable winner without
+   needing an oversized digit. ~3s cycle, very subtle glow shift. */
+.pt-top20-card--rank-1 .pt-card-poster {
+  animation: pt-top20-pulse 3.2s ease-in-out infinite;
+}
+@keyframes pt-top20-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 14px rgba(251, 191, 36, 0.35),
+      0 0 32px rgba(251, 191, 36, 0.15),
+      inset 0 0 12px rgba(251, 191, 36, 0.08);
+  }
+  50% {
+    box-shadow:
+      0 0 22px rgba(251, 191, 36, 0.55),
+      0 0 48px rgba(251, 191, 36, 0.22),
+      inset 0 0 16px rgba(251, 191, 36, 0.12);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pt-top20-card--rank-1 .pt-card-poster { animation: none; }
+}
+
+/* Laurel medallion — small floating SVG anchored to the top-left of
+   the poster. Inherits the medal colour from the parent rank. */
+.pt-top20-laurel {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  /* Must beat .pt-card-poster's hover z-index (5) so the medal stays
+     on top when the underlying poster scales up. */
+  z-index: 10;
+  width: clamp(34px, 4vw, 46px);
+  height: clamp(34px, 4vw, 46px);
+  border-radius: var(--portal-radius-circle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.18) 0%, rgba(0,0,0,0.55) 70%);
+  border: 1.5px solid var(--medal);
+  color: var(--medal);
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.5),
+    0 0 18px rgba(var(--medal-rgb), 0.35);
+  pointer-events: none;
+  backdrop-filter: var(--portal-blur-xs);
+  -webkit-backdrop-filter: var(--portal-blur-xs);
+}
+.pt-top20-laurel svg {
+  width: 70%;
+  height: 70%;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.6));
+}
+
+/* Poster sits above the digit so the digit appears half-tucked behind it. */
+.pt-top20-poster { position: relative; z-index: 1; }
+
+/* Hover overlay: full poster cover with title at the top and a watch
+   button anchored at the bottom. */
+.pt-top20-info {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  padding: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 40%, rgba(0,0,0,0.2) 60%, rgba(0,0,0,0.9) 100%);
+  border-radius: 0 0 6px 6px;
+  opacity: 0;
+  transition: opacity var(--portal-dur-med);
+}
+.pt-top20-card:hover .pt-top20-info { opacity: 1; }
+.pt-top20-info-top { display: flex; flex-direction: column; }
+.pt-top20-name {
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-bold);
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pt-top20-plays {
+  font-size: var(--portal-text-2xs);
+  color: var(--portal-text-body-muted);
+  margin-top: 0.15rem;
+}
+.pt-top20-watch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  border: none;
+  border-radius: var(--portal-radius-xs);
+  background: #fff;
+  color: #141414;
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-bold);
+  cursor: pointer;
+  transition: background var(--portal-dur-fast);
+}
+.pt-top20-watch:hover { background: #e5e5e5; }
+
+/* Edge fades + scroll arrows now come from portal-utilities.css
+   (`.pt-edge-fade` / `.pt-carousel-arrow`). */

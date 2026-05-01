@@ -1,0 +1,260 @@
+/**
+ * Help Center overlay — shell, sidebar, transitions, responsive.
+ * Article cards + reader prose live in help-overlay-content.css to stay
+ * under the 300-line file-size cap.
+ *
+ * Visual contract: aligned with ``.ddd-overlay`` / ``.ddd-panel``
+ * (Daily Digest) so every full-screen takeover in the portal shares the
+ * same backdrop dimming, the same opaque panel surface, the same
+ * close-button affordance and the same mobile fullscreen behaviour.
+ *
+ * Selectors prefixed by .pt-help-* to simulate Vue scoped CSS, since the
+ * file is JS-imported outside Vue's scoped style boundary.
+ */
+
+/* ─────────────────────────── Accent palette ─────────────────────────── */
+
+/* The Help Center uses the global indigo accent — same hue as the
+   product's primary surface (admin badges, FAB, accent-shadow tokens).
+   ``c1`` is the principal stop, ``c2`` a darker shade for gradients;
+   child selectors throughout this file consume the local variables so
+   the accent can be swapped in one place if it ever moves. */
+
+.pt-help-panel {
+  --pt-help-c1: var(--accent-500);
+  --pt-help-c2: var(--accent-700);
+  --pt-help-rgb1: var(--accent-rgb);
+  --pt-help-rgb2: 67, 56, 202;
+}
+
+/* ─────────────────────────── Overlay shell ─────────────────────────── */
+
+.pt-help-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--portal-z-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--portal-overlay-modal);
+  -webkit-backdrop-filter: var(--portal-blur-md);
+          backdrop-filter: var(--portal-blur-md);
+}
+@media (max-width: 767px) {
+  .pt-help-overlay { padding: 0; align-items: stretch; }
+}
+
+/* Layered mesh gradient backdrop — same idea as ddd-backdrop-fx but
+   scoped to the help overlay so the colour balance can drift with the
+   help-specific accent (premium / info) without affecting other surfaces. */
+.pt-help-backdrop-fx {
+  position: absolute;
+  inset: -20% -20% -20% -20%;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 22%,
+      rgba(var(--pt-help-rgb1), 0.26), transparent 50%),
+    radial-gradient(circle at 82% 78%,
+      rgba(var(--pt-help-rgb2), 0.22), transparent 55%);
+  filter: blur(40px);
+}
+
+.pt-help-panel {
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  max-height: 92vh;
+  height: 840px;
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  background: var(--portal-panel-bg-dark);
+  border: 1px solid var(--portal-border-default);
+  border-radius: var(--portal-radius-xl);
+  box-shadow:
+    var(--portal-shadow-panel),
+    0 0 0 1px var(--portal-border-faint) inset;
+  overflow: hidden;
+  outline: none;
+  animation: pt-help-panel-in 0.5s var(--portal-ease-emphasis);
+}
+@keyframes pt-help-panel-in {
+  from { opacity: 0; transform: translateY(24px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.pt-help-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 4;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--portal-surface-2);
+  border: 1px solid var(--portal-border-default);
+  border-radius: var(--portal-radius-circle);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--portal-dur-fast) ease;
+  -webkit-tap-highlight-color: transparent;
+}
+@media (hover: hover) {
+  .pt-help-close:hover {
+    background: var(--portal-surface-5);
+    color: var(--text-primary);
+    transform: rotate(90deg);
+  }
+}
+
+/* ─────────────────────────── Sidebar ─────────────────────────── */
+
+.pt-help-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: var(--portal-surface-2);
+  border-right: 1px solid var(--portal-border-default);
+  overflow-y: auto;
+}
+
+.pt-help-side-head {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--portal-text-primary);
+}
+.pt-help-side-title {
+  margin: 0;
+  font-size: var(--portal-text-lg);
+  font-weight: var(--portal-font-extrabold);
+  letter-spacing: -0.01em;
+  color: var(--portal-text-primary);
+}
+
+.pt-help-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.pt-help-search-icon {
+  position: absolute;
+  left: 0.75rem;
+  color: var(--portal-text-muted);
+  pointer-events: none;
+}
+.pt-help-search-input {
+  width: 100%;
+  padding: 0.6rem 0.75rem 0.6rem 2.1rem;
+  background: var(--portal-surface-3);
+  border: 1px solid var(--portal-border-default);
+  border-radius: var(--portal-radius-pill);
+  color: var(--portal-text-primary);
+  font-size: var(--portal-text-sm);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+.pt-help-search-input:focus {
+  outline: none;
+  border-color: rgba(var(--pt-help-rgb1), 0.55);
+  box-shadow: 0 0 0 3px rgba(var(--pt-help-rgb1), 0.18);
+}
+.pt-help-search-input::-webkit-search-cancel-button { filter: invert(0.6); }
+
+.pt-help-cats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.pt-help-cat {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.75rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--portal-radius-md);
+  color: var(--portal-text-body);
+  font-size: var(--portal-text-sm);
+  cursor: pointer;
+  text-align: left;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+.pt-help-cat[disabled] { opacity: 0.4; cursor: not-allowed; }
+@media (hover: hover) {
+  .pt-help-cat:not([disabled]):hover {
+    background: var(--portal-surface-3);
+    color: var(--portal-text-primary);
+  }
+}
+.pt-help-cat--active {
+  background: var(--portal-surface-3);
+  border-color: rgba(var(--pt-help-rgb1), 0.45);
+  color: var(--portal-text-primary);
+  box-shadow: inset 3px 0 0 var(--pt-help-c1);
+}
+
+.pt-help-cat-label { flex: 1; }
+.pt-help-cat-count {
+  min-width: 1.6em;
+  padding: 0.05rem 0.45rem;
+  background: var(--portal-surface-4);
+  border-radius: var(--portal-radius-pill);
+  color: var(--portal-text-secondary);
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-medium);
+  text-align: center;
+}
+
+/* ─────────────────────────── Content shell ─────────────────────────── */
+
+.pt-help-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(1.25rem, 2.4vw, 2rem);
+  overflow-y: auto;
+}
+
+.pt-help-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 220px;
+  color: var(--portal-text-secondary);
+  font-size: var(--portal-text-sm);
+}
+.pt-help-state--error { color: var(--portal-color-error); }
+.pt-help-state--empty { color: var(--portal-text-muted); font-style: italic; }
+
+/* ─────────────────────────── Transitions ─────────────────────────── */
+
+.pt-help-fade-enter-active,
+.pt-help-fade-leave-active { transition: opacity 200ms ease; }
+.pt-help-fade-enter-from,
+.pt-help-fade-leave-to     { opacity: 0; }
+
+/* ─────────────────────────── Responsive ─────────────────────────── */
+
+@media (max-width: 860px) {
+  .pt-help-panel {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+    height: 100vh;
+    max-height: none;
+    min-height: 100vh;
+    border-radius: 0;
+    border: none;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .pt-help-side {
+    border-right: none;
+    border-bottom: 1px solid var(--portal-border-default);
+    max-height: 38vh;
+  }
+}

@@ -1,0 +1,52 @@
+services:
+  mediakeeper:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mediakeeper
+    restart: unless-stopped
+    ports:
+      - "8888:8888"
+    volumes:
+      - mk_data:/data
+      # ── Médias / backups : montez ici les chemins que Mediakeeper doit voir ──
+      # Conseil : gardez le même chemin dans l'hôte et dans le container.
+      #   Synology  : /volume1/medias:/volume1/medias
+      #   Linux/NAS : /mnt/medias:/mnt/medias
+      #   Backups   : /volume1/docker/mediakeeper/backups:/volume1/docker/mediakeeper/backups
+      # - /volume1/medias:/volume1/medias
+      # - /volume1/docker/mediakeeper/backups:/volume1/docker/mediakeeper/backups
+      #
+    environment:
+      # ── Fuseau horaire : adaptez selon votre localisation ──
+      #   Europe/Paris, America/New_York, Asia/Tokyo, etc.
+      - TZ=Europe/Paris
+      - PUID=1024
+      - PGID=100
+      - MK_SEPARATE_BACKGROUND_WORKER=true
+      # ── Mode d'initialisation du schéma DB ──
+      # validate   : refuse de démarrer si le schéma attendu n'est pas présent.
+      # create_all : uniquement pour bootstrap/dev ponctuel, pas pour une release stable.
+      - MK_DB_SCHEMA_MODE=validate
+      # ── Variables sensibles / réseau (à renseigner via un fichier .env) ──
+      # - JWT_SECRET_KEY=change-me-with-at-least-32-random-bytes
+      # - MK_ADMIN_USERS=admin
+      # - FRONTEND_ORIGIN=https://mediakeeper.example.com
+      # - COOKIE_SECURE=true
+      # - COOKIE_SAMESITE=lax
+      # - VERIFY_SSL=true
+      # - TMDB_API_KEY=tmdb-api-key
+      # ── Racines visibles par l'application (browser, media manager, sous-titres) ──
+      # Séparez plusieurs chemins par ';' ou ','.
+      # - MEDIAKEEPER_PATH_ROOTS=/volume1/medias;/volume1/docker/mediakeeper/backups
+      #
+      # ── Répertoire de sauvegarde ──
+      # - BACKUP_PATH=/volume1/docker/mediakeeper/backups
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  mk_data:

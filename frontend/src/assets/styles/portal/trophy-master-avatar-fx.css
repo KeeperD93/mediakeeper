@@ -1,0 +1,400 @@
+/* Master avatar cosmetics — one effect per meta-achievement (Master).
+ *
+ * Applied on `.gc-avatar-zone` via the modifier class
+ * `.gc-avatar-fx--<category>` (watching / dedication / diversity / special
+ * / community / ranking / meta). The seven effects are reproduced from the
+ * /demo-master-effects.html preview — keep visuals in sync manually.
+ *
+ * The .gc-avatar-zone element must be position: relative, ~160px square,
+ * with a .gc-avatar-ring child at z-index ≥ 10 holding the actual avatar.
+ * Extra children per effect (orbits, stars, crystals, halos…) are emitted
+ * by RankSidebarCard conditionally, one block per active effect.
+ */
+
+/* When an effect is active, force a 160×160 zone so masks/orbits have room */
+.gc-avatar-zone[class*="gc-avatar-fx--"] {
+  width: 160px; height: 160px;
+}
+.gc-avatar-zone[class*="gc-avatar-fx--"] .gc-avatar-ring { z-index: 10; }
+
+/* ═══════════════════════════════════════════════════════════════
+   WATCHING — Film reel
+   ═══════════════════════════════════════════════════════════════ */
+.gc-avatar-fx--watching::before {
+  content: ''; position: absolute; inset: 8px;
+  border-radius: var(--portal-radius-circle);
+  background:
+    conic-gradient(from 0deg,
+      #1a1a1a 0 3%, #4a4a4a 3% 4%, #1a1a1a 4% 7%,
+      transparent 7% 8.33%, transparent 8.33% 16.66%,
+      #1a1a1a 16.66% 19.66%, #4a4a4a 19.66% 20.66%, #1a1a1a 20.66% 23.66%,
+      transparent 23.66% 25%, transparent 25% 33.33%,
+      #1a1a1a 33.33% 36.33%, #4a4a4a 36.33% 37.33%, #1a1a1a 37.33% 40.33%,
+      transparent 40.33% 41.66%, transparent 41.66% 50%,
+      #1a1a1a 50% 53%, #4a4a4a 53% 54%, #1a1a1a 54% 57%,
+      transparent 57% 58.33%, transparent 58.33% 66.66%,
+      #1a1a1a 66.66% 69.66%, #4a4a4a 69.66% 70.66%, #1a1a1a 70.66% 73.66%,
+      transparent 73.66% 75%, transparent 75% 83.33%,
+      #1a1a1a 83.33% 86.33%, #4a4a4a 86.33% 87.33%, #1a1a1a 87.33% 90.33%,
+      transparent 90.33% 91.66%, transparent 91.66% 100%);
+  mask: radial-gradient(circle, transparent 56px, #000 58px, #000 66px, transparent 68px);
+  -webkit-mask: radial-gradient(circle, transparent 56px, #000 58px, #000 66px, transparent 68px);
+  animation: gc-reel-spin 12s linear infinite;
+  filter: drop-shadow(0 0 4px rgba(99,102,241,0.4));
+  pointer-events: none;
+}
+.gc-avatar-fx--watching::after {
+  content: ''; position: absolute; inset: 2px;
+  border-radius: var(--portal-radius-circle);
+  background: conic-gradient(from 15deg, transparent 0 12%, rgba(99,102,241,0.5) 12% 13%, transparent 13% 25%);
+  mask: radial-gradient(circle, transparent 64px, #000 66px);
+  -webkit-mask: radial-gradient(circle, transparent 64px, #000 66px);
+  animation: gc-reel-spin 8s linear infinite reverse;
+  pointer-events: none;
+}
+@keyframes gc-reel-spin { to { transform: rotate(360deg); } }
+
+/* ═══════════════════════════════════════════════════════════════
+   DEDICATION — Cosmic comet
+   ═══════════════════════════════════════════════════════════════ */
+.gc-avatar-fx--dedication .gc-fx-comet-trail {
+  position: absolute; inset: 10px;
+  border-radius: var(--portal-radius-circle);
+  background: conic-gradient(from 0deg,
+    transparent 0 50%,
+    rgba(147,197,253,0.15) 60%,
+    rgba(147,197,253,0.4) 70%,
+    rgba(191,219,254,0.7) 78%,
+    #ffffff 82%,
+    rgba(186,230,253,0.9) 85%,
+    transparent 86%);
+  mask: radial-gradient(circle, transparent 62px, #000 64px, #000 70px, transparent 72px);
+  -webkit-mask: radial-gradient(circle, transparent 62px, #000 64px, #000 70px, transparent 72px);
+  filter: blur(1px) drop-shadow(0 0 8px #60a5fa) drop-shadow(0 0 16px #3b82f6);
+  animation: gc-comet-spin 2.5s linear infinite;
+  pointer-events: none;
+}
+.gc-avatar-fx--dedication .gc-fx-comet-head {
+  position: absolute; inset: 10px;
+  border-radius: var(--portal-radius-circle);
+  animation: gc-comet-spin 2.5s linear infinite;
+  pointer-events: none;
+}
+.gc-avatar-fx--dedication .gc-fx-comet-head::before {
+  content: ''; position: absolute;
+  top: 50%; right: -4px;
+  width: 14px; height: 14px; margin-top: -7px;
+  border-radius: var(--portal-radius-circle);
+  background: radial-gradient(circle, #ffffff 0%, #dbeafe 40%, #60a5fa 100%);
+  box-shadow:
+    0 0 10px #ffffff,
+    0 0 20px #93c5fd,
+    0 0 36px #3b82f6,
+    0 0 56px #6366f1;
+  animation: gc-comet-pulse 0.8s ease-in-out infinite alternate;
+}
+.gc-avatar-fx--dedication .gc-fx-comet-core {
+  position: absolute; inset: 22px;
+  border-radius: var(--portal-radius-circle);
+  background: radial-gradient(circle,
+    rgba(191,219,254,0.2) 0%,
+    rgba(99,102,241,0.1) 50%,
+    transparent 75%);
+  filter: blur(6px);
+  animation: gc-comet-pulse 2s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes gc-comet-spin  { to { transform: rotate(360deg); } }
+@keyframes gc-comet-pulse { 0%,100% { opacity: 0.85; transform: scale(1); } 50% { opacity: 1; transform: scale(1.15); } }
+
+/* ═══════════════════════════════════════════════════════════════
+   DIVERSITY — Halo prismatique
+   ═══════════════════════════════════════════════════════════════ */
+.gc-avatar-fx--diversity::before {
+  content: ''; position: absolute; inset: 14px;
+  border-radius: var(--portal-radius-circle);
+  background: conic-gradient(from 0deg,
+    var(--portal-color-error), var(--portal-color-highlight), var(--portal-color-warning), #a3e635, #14b8a6,
+    var(--portal-color-cinema), #6366f1, var(--portal-color-premium), var(--portal-color-accent-hot), var(--portal-color-error));
+  mask: radial-gradient(circle, transparent 58px, #000 60px, #000 68px, transparent 70px);
+  -webkit-mask: radial-gradient(circle, transparent 58px, #000 60px, #000 68px, transparent 70px);
+  filter: blur(2px) saturate(1.4);
+  animation: gc-prism-spin 6s linear infinite;
+  pointer-events: none;
+}
+.gc-avatar-fx--diversity::after {
+  content: ''; position: absolute; inset: 8px;
+  border-radius: var(--portal-radius-circle);
+  background: conic-gradient(from 180deg,
+    transparent 0 40%,
+    rgba(255,255,255,0.8) 45% 50%,
+    transparent 55% 100%);
+  mask: radial-gradient(circle, transparent 52px, #000 54px, #000 74px, transparent 76px);
+  -webkit-mask: radial-gradient(circle, transparent 52px, #000 54px, #000 74px, transparent 76px);
+  animation: gc-prism-spin 3s linear infinite reverse;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+@keyframes gc-prism-spin { to { transform: rotate(360deg); } }
+
+/* ═══════════════════════════════════════════════════════════════
+   SPECIAL — Divine crown (golden ring + godrays + runes)
+   ═══════════════════════════════════════════════════════════════ */
+.gc-avatar-fx--special .gc-fx-holy-rays {
+  position: absolute; inset: -10px;
+  border-radius: var(--portal-radius-circle);
+  background:
+    conic-gradient(from 0deg,
+      transparent 0 3%, rgba(253,230,138,0.9) 3% 4%, transparent 4% 12.5%,
+      transparent 12.5% 15.5%, rgba(251,191,36,0.8) 15.5% 16.5%, transparent 16.5% 25%,
+      transparent 25% 28%, rgba(253,230,138,0.9) 28% 29%, transparent 29% 37.5%,
+      transparent 37.5% 40.5%, rgba(251,191,36,0.8) 40.5% 41.5%, transparent 41.5% 50%,
+      transparent 50% 53%, rgba(253,230,138,0.9) 53% 54%, transparent 54% 62.5%,
+      transparent 62.5% 65.5%, rgba(251,191,36,0.8) 65.5% 66.5%, transparent 66.5% 75%,
+      transparent 75% 78%, rgba(253,230,138,0.9) 78% 79%, transparent 79% 87.5%,
+      transparent 87.5% 90.5%, rgba(251,191,36,0.8) 90.5% 91.5%, transparent 91.5% 100%);
+  animation: gc-halo-spin 25s linear infinite;
+  pointer-events: none;
+  will-change: transform;
+}
+.gc-avatar-fx--special .gc-fx-holy-ring {
+  position: absolute; inset: 12px;
+  border-radius: var(--portal-radius-circle);
+  border: 2px solid transparent;
+  background:
+    linear-gradient(#0a0a1a, #0a0a1a) padding-box,
+    conic-gradient(from 0deg, #854d0e, #fbbf24, #fde68a, #fbbf24, #b45309, #fde68a, #854d0e) border-box;
+  animation: gc-halo-spin 8s linear infinite reverse;
+  box-shadow: 0 0 8px rgba(251,191,36,0.6);
+  pointer-events: none;
+  will-change: transform;
+}
+.gc-avatar-fx--special .gc-fx-holy-ring::before {
+  content: ''; position: absolute; inset: -5px;
+  border-radius: var(--portal-radius-circle);
+  border: 1px dashed rgba(253,230,138,0.5);
+  animation: gc-halo-spin 14s linear infinite;
+  will-change: transform;
+}
+.gc-avatar-fx--special .gc-fx-holy-glow {
+  position: absolute; inset: 20px;
+  border-radius: var(--portal-radius-circle);
+  background: radial-gradient(circle, rgba(251,191,36,0.4) 0%, rgba(253,230,138,0.2) 40%, transparent 75%);
+  filter: blur(4px);
+  animation: gc-halo-pulse 3s ease-in-out infinite;
+  pointer-events: none;
+  will-change: opacity;
+}
+.gc-avatar-fx--special .gc-fx-rune {
+  position: absolute; left: 50%; top: 50%;
+  width: 14px; height: 14px;
+  margin: -7px 0 0 -7px;
+  border: 1.5px solid #fbbf24;
+  background: rgba(10,10,26,0.7);
+  box-shadow: 0 0 8px #fbbf24, inset 0 0 4px #fde68a;
+  animation: gc-rune-orbit 12s linear infinite;
+  border-radius: 2px;
+  pointer-events: none;
+  will-change: transform;
+}
+.gc-avatar-fx--special .gc-fx-rune::before {
+  content: ''; position: absolute; inset: 3px;
+  background: linear-gradient(45deg, transparent 40%, #fde68a 40% 60%, transparent 60%),
+              linear-gradient(-45deg, transparent 40%, #fde68a 40% 60%, transparent 60%);
+}
+.gc-avatar-fx--special .gc-fx-rune:nth-of-type(1) { animation-delay: 0s; }
+.gc-avatar-fx--special .gc-fx-rune:nth-of-type(2) { animation-delay: -3s; }
+.gc-avatar-fx--special .gc-fx-rune:nth-of-type(3) { animation-delay: -6s; }
+.gc-avatar-fx--special .gc-fx-rune:nth-of-type(4) { animation-delay: -9s; }
+@keyframes gc-halo-spin  { to { transform: rotate(360deg); } }
+@keyframes gc-halo-pulse { 0%,100% { opacity: 0.55; } 50% { opacity: 1; } }
+@keyframes gc-rune-orbit {
+  from { transform: rotate(0) translateX(60px) rotate(0); }
+  to   { transform: rotate(360deg) translateX(60px) rotate(-360deg); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMMUNITY — Living constellation (nebula + stars)
+   ═══════════════════════════════════════════════════════════════ */
+.gc-avatar-fx--community .gc-fx-nebula {
+  position: absolute; inset: -10px;
+  border-radius: var(--portal-radius-circle);
+  background:
+    radial-gradient(circle at 20% 30%, rgba(168,85,247,0.5) 0%, transparent 30%),
+    radial-gradient(circle at 80% 20%, rgba(236,72,153,0.4) 0%, transparent 30%),
+    radial-gradient(circle at 70% 80%, rgba(99,102,241,0.45) 0%, transparent 35%),
+    radial-gradient(circle at 25% 75%, rgba(192,132,252,0.4) 0%, transparent 35%);
+  filter: blur(6px);
+  animation: gc-nebula-drift 10s ease-in-out infinite alternate;
+  mask: radial-gradient(circle, #000 45%, transparent 70%);
+  -webkit-mask: radial-gradient(circle, #000 45%, transparent 70%);
+  pointer-events: none;
+}
+.gc-avatar-fx--community .gc-fx-star {
+  position: absolute;
+  width: 3px; height: 3px; border-radius: var(--portal-radius-circle);
+  background: #fff;
+  box-shadow: 0 0 6px #fff, 0 0 12px #a855f7;
+  animation: gc-star-twinkle 2s ease-in-out infinite;
+  pointer-events: none;
+}
+.gc-avatar-fx--community .gc-fx-star:nth-of-type(1) { top: 12%; left: 30%; animation-delay: 0s; }
+.gc-avatar-fx--community .gc-fx-star:nth-of-type(2) { top: 18%; left: 72%; animation-delay: 0.3s; }
+.gc-avatar-fx--community .gc-fx-star:nth-of-type(3) { top: 42%; left: 88%; animation-delay: 0.6s; }
+.gc-avatar-fx--community .gc-fx-star:nth-of-type(4) { top: 75%; left: 80%; animation-delay: 0.9s; }
+.gc-avatar-fx--community .gc-fx-star:nth-of-type(5) { top: 88%; left: 45%; animation-delay: 1.2s; }
+.gc-avatar-fx--community .gc-fx-star:nth-of-type(6) { top: 80%; left: 15%; animation-delay: 1.5s; }
+.gc-avatar-fx--community .gc-fx-star:nth-of-type(7) { top: 45%; left: 6%;  animation-delay: 1.8s; }
+.gc-avatar-fx--community .gc-fx-star:nth-of-type(8) { top: 8%;  left: 55%; animation-delay: 0.5s; transform: scale(1.3); }
+@keyframes gc-nebula-drift { 0%{transform:rotate(0)} 100%{transform:rotate(30deg)} }
+@keyframes gc-star-twinkle { 0%,100%{opacity:0.4;transform:scale(0.8)} 50%{opacity:1;transform:scale(1.3)} }
+
+/* ═══════════════════════════════════════════════════════════════
+   RANKING — 5-star insignia (orbit, individual halos, pulse)
+   ═══════════════════════════════════════════════════════════════ */
+.gc-avatar-fx--ranking .gc-fx-rhalo {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 40px; height: 40px;
+  margin: -20px 0 0 -20px;
+  border-radius: var(--portal-radius-circle);
+  background: radial-gradient(circle, rgba(251,191,36,0.7) 0%, rgba(253,230,138,0.35) 40%, transparent 70%);
+  filter: blur(5px);
+  opacity: 0;
+  animation: gc-rstar-orbit 11s linear infinite;
+  z-index: 14;
+  pointer-events: none;
+}
+.gc-avatar-fx--ranking .gc-fx-rstar {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 22px; height: 22px;
+  margin: -11px 0 0 -11px;
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  background: linear-gradient(135deg, #fffbeb 0%, #fde68a 25%, #fbbf24 55%, #d97706 100%);
+  filter: drop-shadow(0 0 4px #fbbf24) drop-shadow(0 0 10px rgba(253,230,138,0.8));
+  opacity: 0;
+  animation: gc-rstar-orbit 11s linear infinite;
+  z-index: 15;
+  pointer-events: none;
+}
+.gc-avatar-fx--ranking .gc-fx-rstar::after {
+  content: ''; position: absolute; inset: 0;
+  clip-path: inherit;
+  background: linear-gradient(180deg, rgba(255,255,255,0.6) 0%, transparent 45%);
+}
+.gc-avatar-fx--ranking .gc-fx-rstar--1,
+.gc-avatar-fx--ranking .gc-fx-rhalo--1 { --target: -60deg; animation-delay: 0s; }
+.gc-avatar-fx--ranking .gc-fx-rstar--2,
+.gc-avatar-fx--ranking .gc-fx-rhalo--2 { --target: -30deg; animation-delay: 0.3s; }
+.gc-avatar-fx--ranking .gc-fx-rstar--3,
+.gc-avatar-fx--ranking .gc-fx-rhalo--3 { --target: 0deg;   animation-delay: 0.6s; }
+.gc-avatar-fx--ranking .gc-fx-rstar--4,
+.gc-avatar-fx--ranking .gc-fx-rhalo--4 { --target: 30deg;  animation-delay: 0.9s; }
+.gc-avatar-fx--ranking .gc-fx-rstar--5,
+.gc-avatar-fx--ranking .gc-fx-rhalo--5 { --target: 60deg;  animation-delay: 1.2s; }
+@keyframes gc-rstar-orbit {
+  0%   {
+    transform: rotate(calc(var(--target) - 180deg)) translateY(-95px) rotate(calc(180deg - var(--target))) scale(0.15);
+    opacity: 0;
+    animation-timing-function: cubic-bezier(0.25, 0.5, 0.25, 1);
+  }
+  30%  {
+    transform: rotate(var(--target)) translateY(-65px) rotate(calc(-1 * var(--target))) scale(1);
+    opacity: 1;
+    animation-timing-function: ease-in-out;
+  }
+  41%  {
+    transform: rotate(var(--target)) translateY(-65px) rotate(calc(-1 * var(--target))) scale(1.2);
+    opacity: 1;
+    animation-timing-function: ease-in-out;
+  }
+  52%  {
+    transform: rotate(var(--target)) translateY(-65px) rotate(calc(-1 * var(--target))) scale(0.92);
+    opacity: 1;
+    animation-timing-function: ease-in-out;
+  }
+  63%  {
+    transform: rotate(var(--target)) translateY(-65px) rotate(calc(-1 * var(--target))) scale(1.15);
+    opacity: 1;
+    animation-timing-function: ease-in-out;
+  }
+  65%  {
+    transform: rotate(var(--target)) translateY(-65px) rotate(calc(-1 * var(--target))) scale(1);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.75, 0, 0.75, 0.5);
+  }
+  95%  {
+    transform: rotate(calc(var(--target) + 180deg)) translateY(-95px) rotate(calc(-180deg - var(--target))) scale(0.15);
+    opacity: 0;
+    animation-timing-function: linear;
+  }
+  100% {
+    transform: rotate(calc(var(--target) + 180deg)) translateY(-95px) rotate(calc(-180deg - var(--target))) scale(0.15);
+    opacity: 0;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   META — Quantum mandala (4 sacred layers)
+   ═══════════════════════════════════════════════════════════════ */
+.gc-avatar-fx--meta .gc-fx-mandala {
+  position: absolute; left: 50%; top: 50%;
+  transform-origin: center;
+  pointer-events: none;
+}
+.gc-avatar-fx--meta .gc-fx-mandala--outer {
+  width: 150px; height: 150px;
+  margin: -75px 0 0 -75px;
+  background: conic-gradient(from 0deg,
+    transparent 0 8%, rgba(6,182,212,0.6) 8% 9%, transparent 9% 16.66%,
+    transparent 16.66% 24.66%, rgba(6,182,212,0.6) 24.66% 25.66%, transparent 25.66% 33.33%,
+    transparent 33.33% 41.33%, rgba(6,182,212,0.6) 41.33% 42.33%, transparent 42.33% 50%,
+    transparent 50% 58%, rgba(6,182,212,0.6) 58% 59%, transparent 59% 66.66%,
+    transparent 66.66% 74.66%, rgba(6,182,212,0.6) 74.66% 75.66%, transparent 75.66% 83.33%,
+    transparent 83.33% 91.33%, rgba(6,182,212,0.6) 91.33% 92.33%, transparent 92.33% 100%);
+  mask: radial-gradient(circle, transparent 70px, #000 71px, #000 75px, transparent 76px);
+  -webkit-mask: radial-gradient(circle, transparent 70px, #000 71px, #000 75px, transparent 76px);
+  animation: gc-mandala-spin-cw 20s linear infinite;
+  filter: drop-shadow(0 0 6px #06b6d4);
+}
+.gc-avatar-fx--meta .gc-fx-mandala--mid {
+  width: 120px; height: 120px;
+  margin: -60px 0 0 -60px;
+  clip-path: polygon(50% 0, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
+  background:
+    linear-gradient(0deg, transparent 45%, rgba(125,211,252,0.4) 48% 52%, transparent 55%),
+    linear-gradient(60deg, transparent 45%, rgba(125,211,252,0.4) 48% 52%, transparent 55%),
+    linear-gradient(120deg, transparent 45%, rgba(125,211,252,0.4) 48% 52%, transparent 55%);
+  animation: gc-mandala-spin-ccw 14s linear infinite;
+  filter: drop-shadow(0 0 4px #7dd3fc);
+}
+.gc-avatar-fx--meta .gc-fx-mandala--inner {
+  width: 96px; height: 96px;
+  margin: -48px 0 0 -48px;
+  clip-path: polygon(50% 2%, 62% 35%, 98% 35%, 70% 58%, 80% 92%, 50% 72%, 20% 92%, 30% 58%, 2% 35%, 38% 35%);
+  background: radial-gradient(circle, rgba(6,182,212,0.6), rgba(14,165,233,0.3));
+  animation: gc-mandala-pulse 4s ease-in-out infinite;
+  filter: drop-shadow(0 0 10px #06b6d4);
+}
+.gc-avatar-fx--meta .gc-fx-mandala--dots {
+  width: 170px; height: 170px;
+  margin: -85px 0 0 -85px;
+  background:
+    radial-gradient(circle 3px at 50% 0%, #7dd3fc, transparent),
+    radial-gradient(circle 3px at 100% 50%, #06b6d4, transparent),
+    radial-gradient(circle 3px at 50% 100%, #7dd3fc, transparent),
+    radial-gradient(circle 3px at 0% 50%, #06b6d4, transparent),
+    radial-gradient(circle 2px at 15% 15%, #e0f2fe, transparent),
+    radial-gradient(circle 2px at 85% 15%, #e0f2fe, transparent),
+    radial-gradient(circle 2px at 85% 85%, #e0f2fe, transparent),
+    radial-gradient(circle 2px at 15% 85%, #e0f2fe, transparent);
+  filter: drop-shadow(0 0 4px #7dd3fc);
+  animation: gc-mandala-spin-cw 10s linear infinite;
+}
+@keyframes gc-mandala-spin-cw  { to { transform: rotate(360deg); } }
+@keyframes gc-mandala-spin-ccw { to { transform: rotate(-360deg); } }
+@keyframes gc-mandala-pulse {
+  0%,100% { opacity: 0.7; filter: drop-shadow(0 0 8px #06b6d4); }
+  50%     { opacity: 1; filter: drop-shadow(0 0 18px #06b6d4) drop-shadow(0 0 28px #7dd3fc); }
+}

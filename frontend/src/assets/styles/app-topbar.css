@@ -1,0 +1,115 @@
+/* AppTopbar — base layout, burger, breadcrumb, buttons, avatar, badge.
+   Classes unique to the component (tb-*, mk-topbar): no root prefix required. */
+
+.mk-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; height: 56px; flex-shrink: 0;
+  background: transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  position: relative; z-index: 10;
+  /* iPhone safe-area support so the topbar sits flush under the
+     status bar / dynamic island when the browser chrome hides. */
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-left: max(24px, env(safe-area-inset-left, 0px));
+  padding-right: max(24px, env(safe-area-inset-right, 0px));
+}
+@media (max-width: 767px) {
+  .mk-topbar {
+    padding-left: max(12px, env(safe-area-inset-left, 0px));
+    padding-right: max(12px, env(safe-area-inset-right, 0px));
+  }
+}
+
+/* Left */
+.tb-left { display: flex; align-items: center; gap: 12px; }
+
+.tb-burger {
+  display: none; align-items: center; justify-content: center;
+  width: 44px; height: 44px; border-radius: var(--radius-btn);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-default);
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer; transition: all var(--duration-base);
+}
+@media (max-width: 1023px) { .tb-burger { display: flex; } }
+@media (hover: hover) {
+  .tb-burger:hover { background: var(--surface-3); color: rgba(255, 255, 255, 0.8); }
+}
+
+.tb-breadcrumb { display: flex; flex-direction: column; gap: 1px; }
+.tb-page-title { font-size: var(--text-base); font-weight: var(--font-medium); color: var(--text-primary); letter-spacing: -0.2px; }
+.tb-page-sub { font-size: var(--text-2xs); color: var(--text-muted); }
+
+/* Right */
+.tb-right { display: flex; align-items: center; gap: 6px; }
+.tb-action-wrap { position: relative; }
+
+/* Action button (bell, theme) */
+.tb-action-btn {
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: var(--radius-btn);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--text-faint);
+  cursor: pointer; transition: all var(--duration-base);
+}
+@media (max-width: 767px) {
+  .tb-action-btn { width: 44px; height: 44px; }
+}
+@media (hover: hover) {
+  .tb-action-btn:hover {
+    background: var(--surface-3);
+    border-color: var(--border-strong);
+    color: rgba(255, 255, 255, 0.75);
+  }
+}
+
+/* Badge count */
+.tb-badge {
+  position: absolute; top: -2px; right: -2px;
+  min-width: 16px; height: 16px; padding: 0 4px;
+  border-radius: var(--radius-btn); background: #ef4444;
+  color: #fff; font-size: 9px; font-weight: var(--font-bold);
+  display: flex; align-items: center; justify-content: center; line-height: var(--lh-tight);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+  animation: tb-badge-pulse var(--duration-pulse) ease-in-out infinite;
+}
+@keyframes tb-badge-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); }
+  50% { box-shadow: 0 0 14px rgba(239, 68, 68, 0.6); }
+}
+
+/* User button */
+.tb-user-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 10px 4px 4px; border-radius: var(--radius-btn);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer; transition: all var(--duration-base);
+  min-height: 36px;
+}
+@media (max-width: 767px) {
+  .tb-user-btn { min-height: 44px; padding: 4px 8px 4px 4px; }
+}
+@media (hover: hover) {
+  .tb-user-btn:hover {
+    background: var(--surface-3);
+    border-color: var(--border-strong);
+    color: rgba(255, 255, 255, 0.8);
+  }
+}
+
+.tb-avatar {
+  width: 28px; height: 28px; border-radius: var(--radius-btn);
+  background: linear-gradient(135deg, var(--accent-500), #8b5cf6);
+  display: flex; align-items: center; justify-content: center;
+  font-size: var(--text-xs); font-weight: var(--font-medium); color: #fff; flex-shrink: 0;
+}
+.tb-avatar-lg { width: 36px; height: 36px; font-size: var(--text-base); border-radius: var(--radius-btn); }
+.tb-username { font-size: var(--text-xs); font-weight: var(--font-regular); }
+@media (max-width: 639px) { .tb-username { display: none; } }
+
+.tb-chevron { transition: transform var(--duration-base); opacity: 0.4; }
+.tb-chevron.open { transform: rotate(180deg); }

@@ -1,0 +1,28 @@
+services:
+  mediakeeper:
+    volumes:
+      # Montez ici uniquement les chemins que Mediakeeper doit voir.
+      # Conseil : gardez le meme chemin dans l'hote et dans le container.
+      #
+      # Les medias doivent EXISTER avant le premier lancement (on ne veut
+      # pas qu'une faute de frappe cree un dossier vide qui masque la vraie
+      # bibliotheque).
+      - /volume1/medias:/volume1/medias
+
+      # Le dossier de backups, lui, est auto-cree s'il n'existe pas.
+      # On utilise la syntaxe longue pour activer `create_host_path: true`
+      # (sinon Docker / Synology Container Manager echoue avec
+      # "Bind mount failed: ... does not exist" au premier run).
+      - type: bind
+        source: /volume1/docker/mediakeeper/backups
+        target: /volume1/docker/mediakeeper/backups
+        bind:
+          create_host_path: true
+
+    environment:
+      # Racines autorisees pour le browser de dossiers, Media Manager,
+      # les sauvegardes configurees et l'ecriture des sous-titres.
+      - MEDIAKEEPER_PATH_ROOTS=/volume1/medias;/volume1/docker/mediakeeper/backups
+
+      # Dossier de sauvegarde principal.
+      - BACKUP_PATH=/volume1/docker/mediakeeper/backups

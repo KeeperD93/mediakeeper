@@ -1,0 +1,47 @@
+/* ============================================
+   PORTAL DESIGN TOKENS — TYPOGRAPHY
+   ============================================
+   Scale spans 9 steps (portal goes bigger than admin for immersion).
+   Namespace: --portal-*
+   ============================================ */
+
+:root {
+  /* Font sizes --------------------------------------------- */
+  --portal-text-4xs:  0.56rem;   /* uppercase micro labels */
+  --portal-text-3xs:  0.62rem;   /* chips, mini badges */
+  --portal-text-2xs:  0.7rem;    /* captions, meta */
+  --portal-text-xs:   0.75rem;   /* small body */
+  --portal-text-sm:   0.82rem;   /* body small */
+  --portal-text-base: 0.9rem;    /* body standard (pivot) */
+  --portal-text-md:   1rem;      /* titles h3/h4 */
+  --portal-text-lg:   1.2rem;    /* modal titles */
+  --portal-text-xl:   1.3rem;    /* section titles */
+  --portal-text-2xl:  1.5rem;    /* page titles, login */
+  --portal-text-3xl:  2rem;      /* stat values, hero */
+
+  /* Font weights ------------------------------------------- */
+  --portal-font-regular:   500;
+  --portal-font-medium:    600;
+  --portal-font-bold:      700;   /* default body strong */
+  --portal-font-extrabold: 800;   /* titles, CTAs */
+  --portal-font-black:     900;   /* hero, stat values, display */
+
+  /* Letter spacing ----------------------------------------- */
+  --portal-tracking-tight:    -0.02em;   /* hero titles */
+  --portal-tracking-normal:   0;
+  --portal-tracking-wide:     0.02em;    /* micro labels */
+  --portal-tracking-caps:     0.05em;    /* uppercase labels */
+  --portal-tracking-eyebrow:  0.1em;     /* eyebrow / hero-badge */
+  --portal-tracking-widest:   0.18em;    /* rank-title, marketing caps */
+
+  /* Line height -------------------------------------------- */
+  --portal-lh-tight:     1;
+  --portal-lh-display:   1.1;     /* hero titles */
+  --portal-lh-compact:   1.3;
+  --portal-lh-normal:    1.5;
+  --portal-lh-relaxed:   1.6;
+
+  /* Font family -------------------------------------------- */
+  --portal-font-display: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --portal-font-mono:    'SF Mono', 'Cascadia Mono', 'Courier New', monospace;
+}

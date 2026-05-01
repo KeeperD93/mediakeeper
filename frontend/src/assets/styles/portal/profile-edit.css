@@ -1,0 +1,157 @@
+/* Portal profile settings — profile edit form + titles catalogue + badges.
+ * Selectors are root-prefixed with ``.pt-profile`` to simulate Vue
+ * scoped CSS (this file was extracted from a <style scoped> block).
+ * Any new rule must keep that prefix.
+ */
+
+.pt-profile { max-width: 800px; margin: 0 auto; padding: 1.5rem; }
+.pt-profile .pt-profile-card {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border);
+  margin-bottom: 1.5rem;
+}
+.pt-profile .pt-profile-info { flex: 1; }
+.pt-profile .pt-profile-info h2 { font-size: var(--portal-text-lg); font-weight: var(--portal-font-bold); color: var(--text-primary); }
+.pt-profile .pt-profile-level { font-size: var(--portal-text-sm); color: var(--accent); }
+.pt-profile .pt-profile-bio { font-size: var(--portal-text-sm); color: var(--text-secondary); margin-top: 0.3rem; }
+.pt-profile .pt-profile-edit-btn {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-btn);
+  color: var(--text-secondary);
+  padding: 0.4rem 1rem;
+  cursor: pointer;
+  font-size: var(--portal-text-sm);
+}
+.pt-profile .pt-profile-form {
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border);
+  margin-bottom: 1.5rem;
+}
+.pt-profile .pt-profile-form label {
+  display: block;
+  font-size: var(--portal-text-sm);
+  color: var(--text-muted);
+  margin: 0.75rem 0 0.25rem;
+}
+.pt-profile .pt-input {
+  width: 100%;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  color: var(--text-primary);
+  padding: 0.5rem 0.75rem;
+  font-size: var(--portal-text-sm);
+}
+.pt-profile .pt-profile-toggle-row {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-size: var(--portal-text-sm); cursor: pointer; margin-top: 0.5rem;
+}
+.pt-profile .pt-profile-hint {
+  font-size: var(--portal-text-xs); color: var(--text-muted); font-style: italic;
+  margin: 0.35rem 0 0;
+}
+.pt-profile .pt-title-howto {
+  margin: 0.6rem 0 0.5rem;
+  background: rgba(0,0,0,0.18);
+  border: 1px solid rgba(var(--portal-color-warning-rgb),0.18);
+  border-radius: var(--radius-btn);
+  padding: 0.5rem 0.75rem;
+}
+.pt-profile .pt-title-howto > summary {
+  cursor: pointer; font-size: var(--portal-text-xs); font-weight: var(--portal-font-bold); color: var(--portal-color-warning-soft);
+  padding: 0.25rem 0; user-select: none;
+}
+.pt-profile .pt-title-howto-search { margin: 0.5rem 0 0.4rem; font-size: var(--portal-text-xs); }
+.pt-profile .pt-title-howto-list {
+  list-style: none; margin: 0; padding: 0;
+  max-height: 280px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 0.3rem;
+}
+.pt-profile .pt-title-howto-list li {
+  display: flex; flex-direction: column; gap: 0.15rem;
+  padding: 0.4rem 0.55rem;
+  border-radius: var(--radius-sm);
+  background: var(--portal-surface-1);
+  border-left: 2px solid rgba(255,255,255,0.1);
+  font-size: var(--portal-text-xs);
+}
+.pt-profile .pt-title-howto-list li.is-unlocked {
+  border-left-color: var(--portal-color-success);
+  background: rgba(var(--portal-color-success-rgb),0.05);
+}
+.pt-profile .pt-title-howto-name {
+  color: #fff; font-weight: var(--portal-font-bold);
+  display: flex; align-items: center; gap: 0.4rem;
+}
+.pt-profile .pt-title-howto-status { font-size: var(--portal-text-sm); }
+.pt-profile .pt-title-howto-from { color: var(--portal-text-secondary); font-size: var(--portal-text-2xs); }
+.pt-profile .pt-title-howto-from em { color: var(--portal-text-muted); font-style: normal; }
+.pt-profile .pt-profile-form-actions {
+  display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;
+}
+.pt-profile .pt-btn {
+  padding: 0.45rem 1.25rem;
+  border-radius: var(--radius-btn);
+  border: none;
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-medium);
+  cursor: pointer;
+}
+.pt-profile .pt-btn--primary { background: var(--accent); color: #fff; }
+.pt-profile .pt-btn--secondary {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+.pt-profile .pt-section-title {
+  font-size: var(--portal-text-md);
+  font-weight: var(--portal-font-bold);
+  color: var(--text-primary);
+  margin: 1.5rem 0 0.75rem;
+}
+.pt-profile .pt-badge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.75rem;
+}
+.pt-profile .pt-empty { color: var(--text-muted); font-size: var(--portal-text-sm); }
+.pt-profile .pt-list-card {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.6rem 1rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border);
+  margin-bottom: 0.5rem;
+}
+.pt-profile .pt-list-name { font-weight: var(--portal-font-medium); color: var(--text-primary); font-size: var(--portal-text-base); }
+.pt-profile .pt-list-count { font-size: var(--portal-text-sm); color: var(--text-muted); }
+.pt-profile .pt-genre-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.25rem 0 0.75rem;
+}
+.pt-profile .pt-genre-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  color: var(--text-secondary);
+  font-size: var(--portal-text-sm);
+  cursor: pointer;
+  transition: background 120ms, border-color 120ms, color 120ms;
+}
+.pt-profile .pt-genre-chip:hover { color: var(--text-primary); }
+.pt-profile .pt-genre-chip--on { color: var(--text-primary); font-weight: var(--portal-font-medium); }

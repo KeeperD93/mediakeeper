@@ -1,0 +1,85 @@
+/* MediaCarousel — scrollable track with snap, edge fades and arrow buttons. */
+
+.pt-carousel {
+  position: relative;
+  margin-bottom: 2.5rem;
+}
+
+/* --- Header / title --- */
+.pt-carousel-header {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0 5%;
+  margin-bottom: 0.5rem;
+}
+@media (min-width: 640px) {
+  .pt-carousel-header { padding: 0 4%; }
+}
+.pt-carousel-title {
+  font-size: clamp(1rem, 2vw + 0.3rem, 1.3rem);
+  font-weight: var(--portal-font-extrabold);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+}
+.pt-carousel-title--link {
+  cursor: pointer;
+  transition: color var(--portal-dur-base);
+}
+.pt-carousel-title--link:hover {
+  color: var(--accent, #818cf8);
+}
+.pt-carousel-title--link:hover .pt-carousel-title-chevron {
+  transform: translateX(3px);
+  opacity: 1;
+}
+.pt-carousel-title-chevron {
+  opacity: 0.6;
+  transition: transform var(--portal-dur-base) ease, opacity var(--portal-dur-base) ease;
+}
+
+/* --- Scrollable track with scroll-snap --- */
+.pt-carousel-track {
+  display: flex;
+  gap: 12px;
+  /* `overflow: clip` is the only way to keep horizontal scroll while
+     letting children spill above/below the track (box-shadows of the
+     hover zoom). `overflow-x: auto` would force overflow-y: auto and
+     clip the glow at the top/bottom edges. */
+  overflow-x: auto;
+  overflow-y: clip;
+  scroll-behavior: smooth;
+  /* scroll-snap guarantees that any scroll operation — click on the
+     arrows, drag, wheel, swipe — lands cleanly on a card edge instead
+     of leaving a poster half-cut at the viewport boundary. The padding
+     matches `.pt-carousel-header` exactly so title + first card align
+     pixel-for-pixel, and scroll-padding-left matches the padding so
+     scroll-snap never nudges scrollLeft away from zero on mount. */
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: 5%;
+  /* Generous vertical padding so the scaled-up poster (1.08) and its
+     drop-shadow stay inside the track's box and aren't clipped. */
+  padding: 1.75rem 5%;
+  scrollbar-width: none;
+}
+@media (min-width: 640px) {
+  .pt-carousel-track {
+    gap: 14px;
+    padding: 2rem 4%;
+    scroll-padding-left: 4%;
+  }
+}
+.pt-carousel-track::-webkit-scrollbar { display: none; }
+.pt-carousel-track > .pt-card {
+  scroll-snap-align: start;
+}
+
+/* Edge fades + scroll arrows now come from portal-utilities.css
+   (`.pt-edge-fade` / `.pt-carousel-arrow`). Nothing else to declare here. */

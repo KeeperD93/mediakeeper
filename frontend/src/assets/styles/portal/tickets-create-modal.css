@@ -1,0 +1,140 @@
+/* PortalTickets create modal — bottom-sheet on mobile, centered popup ≥768px.
+   Extracted from the SFC to keep it under §14's 300L cap.
+   Every selector is prefixed `.pt-popup` / `.pt-mode-pill` / `.pt-input` /
+   `.pt-btn` so leakage is impossible. */
+
+.pt-popup-overlay {
+  position: fixed; inset: 0; z-index: 9000;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex; align-items: flex-end; justify-content: center;
+  padding: 0;
+}
+.pt-popup {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  border: 1px solid var(--portal-border-default);
+  border-bottom: none;
+  width: 100%;
+  max-height: 90vh;
+  display: flex; flex-direction: column;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.pt-popup-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--portal-border-default);
+}
+.pt-popup-header h2 {
+  font-size: var(--portal-text-md);
+  font-weight: var(--portal-font-bold);
+  color: var(--text-primary);
+}
+.pt-popup-close {
+  background: none; border: none;
+  color: var(--text-muted);
+  font-size: var(--portal-text-md);
+  cursor: pointer;
+  width: 44px; height: 44px;
+  -webkit-tap-highlight-color: transparent;
+}
+.pt-popup-body {
+  padding: 14px 18px;
+  overflow-y: auto;
+  flex: 1 1 auto; min-height: 0;
+}
+.pt-popup-body label {
+  display: block;
+  font-size: var(--portal-text-xs);
+  color: var(--text-muted);
+  margin: 0.75rem 0 0.25rem;
+}
+.pt-mode-pills {
+  display: flex; gap: 6px;
+  padding: 4px;
+  background: var(--bg-tertiary);
+  border-radius: 999px;
+  margin-bottom: 4px;
+}
+.pt-mode-pill {
+  flex: 1;
+  padding: 10px 14px;
+  min-height: 44px;
+  border: none; background: transparent;
+  border-radius: 999px;
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-medium);
+  color: var(--text-muted);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background var(--portal-dur-base) var(--portal-ease-emphasis),
+    color var(--portal-dur-base) var(--portal-ease-emphasis),
+    box-shadow var(--portal-dur-base) var(--portal-ease-emphasis);
+}
+.pt-mode-pill--active {
+  background: var(--portal-gradient-accent);
+  color: #fff;
+  font-weight: var(--portal-font-bold);
+  box-shadow: var(--mk-pill-shadow-sm);
+}
+.pt-input {
+  width: 100%;
+  min-height: 44px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--portal-border-default);
+  border-radius: var(--radius-input);
+  color: var(--text-primary);
+  padding: 8px 12px;
+  font-size: var(--portal-text-sm);
+  font-family: inherit;
+}
+.pt-popup-footer {
+  padding: 14px 18px;
+  border-top: 1px solid var(--portal-border-default);
+  text-align: right;
+  flex-shrink: 0;
+}
+.pt-btn {
+  padding: 10px 18px;
+  min-height: 44px;
+  border-radius: var(--radius-btn);
+  border: none;
+  font-weight: var(--portal-font-bold);
+  cursor: pointer;
+  font-size: var(--portal-text-sm);
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: var(--mk-pill-shadow-sm);
+  transition:
+    transform var(--portal-dur-base) var(--portal-ease-emphasis),
+    box-shadow var(--portal-dur-base) var(--portal-ease-emphasis);
+}
+.pt-btn--primary {
+  background: var(--portal-gradient-accent);
+  color: #fff;
+}
+@media (hover: hover) {
+  .pt-btn--primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: var(--mk-pill-shadow);
+  }
+}
+.pt-btn:active:not(:disabled) { transform: scale(0.97); }
+.pt-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+@media (min-width: 768px) {
+  .pt-popup-overlay {
+    align-items: center;
+    padding: 1rem;
+  }
+  .pt-popup {
+    max-width: 480px;
+    max-height: 80vh;
+    border-radius: var(--radius-card);
+    border-bottom: 1px solid var(--portal-border-default);
+    padding-bottom: 0;
+  }
+  .pt-popup-header { padding: 1rem 1.5rem; }
+  .pt-popup-body { padding: 1rem 1.5rem; }
+  .pt-popup-footer { padding: 1rem 1.5rem; }
+  .pt-popup-close { width: auto; height: auto; }
+}

@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+# MediaKeeper — pre-commit hook (activate after `git init`)
+#
+# Runs lint-staged on the frontend: ESLint + Prettier + stylelint on the
+# files that are actually about to be committed. Fast and scoped.
+#
+# To activate once git is initialized at repo root:
+#   cd c:/Projets/mediakeeper
+#   mkdir -p .husky
+#   cp .husky-templates/pre-commit .husky/pre-commit
+#   cp .husky-templates/commit-msg .husky/commit-msg
+#   git config core.hooksPath .husky
+
+cd frontend && npx lint-staged

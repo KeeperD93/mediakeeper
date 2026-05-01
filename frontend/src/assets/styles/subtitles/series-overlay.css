@@ -1,0 +1,128 @@
+/* SubSeriesOverlay — teleported series/seasons modal with per-episode
+ * subtitle management.
+ *
+ * All selectors are prefixed with `.so-overlay` (the teleported root)
+ * so `.sg-pill*`, `.sd-*`, `.badge-*`, `.sub-cmp-*` rules can't bleed
+ * into SubLibraryItem, SubItemOverlay, SubLibraryTab or any other
+ * subtitle component that declares overlapping class names.
+ */
+
+.so-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.so-overlay .so-modal { width: 680px; max-width: 95vw; max-height: 85vh; overflow-y: auto; padding: 0; border-radius: 16px; }
+
+.so-overlay .so-header { display: flex; align-items: center; gap: 14px; padding: 18px 20px; border-bottom: 1px solid var(--border-subtle); }
+.so-overlay .so-poster { width: 48px; height: 72px; border-radius: var(--radius-btn); object-fit: cover; flex-shrink: 0; }
+.so-overlay .so-header-info { flex: 1; min-width: 0; }
+.so-overlay .so-title { font-size: var(--text-md); font-weight: var(--font-bold); color: var(--text-primary); margin: 0; }
+.so-overlay .so-count { font-size: var(--text-2xs); color: var(--text-muted); }
+.so-overlay .so-close { width: 32px; height: 32px; border-radius: var(--radius-btn); display: flex; align-items: center; justify-content: center; background: var(--surface-2); border: none; color: var(--text-muted); cursor: pointer; }
+.so-overlay .so-close:hover { background: rgba(244,63,94,.1); color: #fb7185; }
+
+.so-overlay .so-episodes { padding: 8px 12px; }
+.so-overlay .so-season-header {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+  cursor: pointer; border-bottom: .5px solid var(--border-default);
+  font-weight: var(--font-bold); font-size: var(--text-sm); color: var(--text-primary);
+  transition: background var(--duration-fast);
+}
+.so-overlay .so-season-header:hover { background: rgba(255,255,255,.03); }
+.so-overlay .so-season-label { flex-shrink: 0; }
+.so-overlay .so-season-count { font-size: var(--text-3xs); color: var(--text-muted); font-weight: var(--font-regular); flex-shrink: 0; }
+.so-overlay .so-season-chev { transition: transform var(--duration-base); flex-shrink: 0; color: var(--text-muted); }
+.so-overlay .so-chev-open { transform: rotate(180deg); }
+.so-overlay .so-ep-indent { padding-left: 28px; }
+.so-overlay .so-ep-row {
+  display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: var(--radius-input);
+  cursor: pointer; transition: background var(--duration-fast); border-bottom: .5px solid rgba(255,255,255,.03);
+}
+.so-overlay .so-ep-row:hover { background: rgba(255,255,255,.03); }
+.so-overlay .so-ep-row.so-ep-active { background: rgba(var(--accent-rgb),.08); border-color: rgba(var(--accent-rgb),.15); }
+.so-overlay .so-ep-row:last-child { border-bottom: none; }
+.so-overlay .so-ep-tag { font-size: var(--text-3xs); font-weight: var(--font-bold); font-family: 'Space Mono', monospace; color: var(--accent-300); min-width: 46px; }
+.so-overlay .so-ep-name { flex: 1; font-size: var(--text-sm); color: var(--text-primary); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.so-overlay .so-ep-pills { display: flex; gap: 5px; flex-shrink: 0; }
+.so-overlay .so-ep-chevron { color: var(--text-muted); opacity: .3; flex-shrink: 0; transition: transform var(--duration-base); }
+.so-overlay .so-ep-chevron-open { transform: rotate(90deg); opacity: .8; }
+.so-overlay .so-ep-loading { width: 14px; height: 14px; flex-shrink: 0; }
+
+.so-overlay .so-detail { margin: 8px 12px 12px; padding: 14px; }
+.so-overlay .so-detail-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.so-overlay .so-detail-tag { font-size: var(--text-2xs); font-weight: var(--font-bold); color: var(--accent-300); }
+.so-overlay .so-detail-name { flex: 1; font-size: var(--text-sm); font-weight: var(--font-medium); color: var(--text-primary); }
+.so-overlay .so-detail-close { width: 22px; height: 22px; border-radius: 4px; display: flex; align-items: center; justify-content: center; background: transparent; border: none; color: var(--text-muted); cursor: pointer; }
+.so-overlay .so-detail-close:hover { background: rgba(244,63,94,.1); color: #f43f5e; }
+
+.so-overlay .so-search-btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; margin-bottom: 10px;
+  border-radius: var(--radius-btn); font-size: var(--text-2xs); font-weight: var(--font-medium);
+  background: rgba(var(--accent-rgb),.12); color: var(--accent-300);
+  border: .5px solid rgba(var(--accent-rgb),.2); cursor: pointer; font-family: inherit;
+}
+.so-overlay .so-search-btn:disabled { opacity: .5; cursor: default; }
+
+/* Reuse pill styles from SubLibraryItem */
+.so-overlay .sg-pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: var(--text-3xs); font-weight: var(--font-bold); letter-spacing: .5px; transition: all var(--duration-slow); }
+.so-overlay .sg-pill-ok { border: none; }
+.so-overlay .sg-pill-miss { background: var(--surface-2); color: rgba(255,255,255,.2); border: 1px dashed var(--border-strong); }
+.so-overlay .sg-pill-dot { width: 5px; height: 5px; border-radius: 50%; }
+
+/* Detail reuse */
+.so-overlay .sd-section { padding: 8px 0; }
+.so-overlay .sd-section + .sd-section { border-top: .5px solid var(--border-subtle); }
+.so-overlay .sd-title { font-size: var(--text-2xs); font-weight: var(--font-medium); color: var(--text-muted); margin: 0 0 8px; text-transform: uppercase; letter-spacing: .3px; }
+.so-overlay .sd-loading { padding: 8px; }
+.so-overlay .sd-empty { font-size: var(--text-2xs); color: var(--text-muted); }
+.so-overlay .sd-sub-list { display: flex; flex-direction: column; gap: 4px; }
+.so-overlay .sd-sub-row { display: flex; align-items: center; gap: 8px; padding: 5px 8px; background: rgba(255,255,255,.02); border-radius: var(--radius-btn); }
+.so-overlay .sd-sub-lang { font-size: var(--text-3xs); font-weight: var(--font-bold); color: var(--accent-400); min-width: 24px; }
+.so-overlay .sd-sub-title { font-size: var(--text-3xs); font-weight: var(--font-medium); color: var(--text-primary); opacity: .7; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.so-overlay .sd-sub-codec { font-size: var(--text-3xs); color: var(--text-muted); }
+.so-overlay .sd-sub-badge { font-size: .55rem; padding: 1px 5px; border-radius: 3px; font-weight: var(--font-medium); }
+.so-overlay .badge-emb { background: rgba(59,130,246,.1); color: var(--color-info); }
+.so-overlay .badge-ext { background: rgba(var(--color-success-rgb),.1); color: var(--color-success); }
+.so-overlay .badge-forced { background: rgba(168,85,247,.1); color: #a855f7; }
+.so-overlay .badge-audio { background: rgba(var(--color-warning-rgb),.1); color: var(--color-warning); }
+.so-overlay .badge-default { background: rgba(var(--color-success-rgb),.1); color: var(--color-success); }
+.so-overlay .badge-pgs { background: rgba(var(--color-warning-rgb),.1); color: var(--color-warning); }
+.so-overlay .sd-sub-del { margin-left: auto; width: 22px; height: 22px; border-radius: 4px; display: flex; align-items: center; justify-content: center; background: transparent; border: none; color: var(--text-muted); cursor: pointer; }
+.so-overlay .sd-sub-del:hover:not(:disabled) { background: rgba(244,63,94,.1); color: #f43f5e; }
+.so-overlay .sd-sub-del:disabled { opacity: .3; cursor: not-allowed; }
+.so-overlay .sd-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.so-overlay .sd-title-row .sd-title { margin: 0; }
+.so-overlay .sd-batch-del { padding: 4px 10px; border-radius: var(--radius-sm); font-size: var(--text-3xs); font-weight: var(--font-medium); background: rgba(244,63,94,.1); color: var(--color-error); border: .5px solid rgba(244,63,94,.15); cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 4px; }
+.so-overlay .sd-batch-del:disabled { opacity: .4; cursor: not-allowed; }
+.so-overlay .sd-sub-check { accent-color: var(--color-error); cursor: pointer; flex-shrink: 0; width: 14px; height: 14px; }
+.so-overlay .sd-os-results { display: flex; flex-direction: column; }
+
+.so-overlay .so-solid { background: var(--bg-secondary); border: 1px solid var(--border-strong); border-radius: 14px; }
+
+/* `sub-fade` transition applies directly to the .so-overlay root — kept unprefixed. */
+.sub-fade-enter-active, .sub-fade-leave-active { transition: opacity var(--duration-base); }
+.sub-fade-enter-from, .sub-fade-leave-to { opacity: 0; }
+
+/* Inline detail panel — grid-template-rows trick lets the height animate
+   smoothly from 0 to the actual content size without needing a fixed
+   max-height. Tolerates async content growth (subs/audio loading) cleanly. */
+.so-overlay .so-detail-slot {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows .28s ease;
+}
+.so-overlay .so-detail-slot--open { grid-template-rows: 1fr; }
+.so-overlay .so-detail-clip { overflow: hidden; }
+.so-overlay .so-detail-slot .so-detail,
+.so-overlay .so-detail-slot .so-results-inner {
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity .25s ease .05s, transform .25s ease .05s;
+}
+.so-overlay .so-detail-slot--open .so-detail,
+.so-overlay .so-detail-slot--open .so-results-inner {
+  opacity: 1;
+  transform: translateY(0);
+}
+.so-overlay .so-results-inner { padding-top: 8px; }
+
+.so-overlay .sub-cmp-hint { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; margin-bottom: 4px; }
+.so-overlay .sub-cmp-hint span { font-size: var(--text-3xs); color: var(--text-muted); }
+.so-overlay .sub-cmp-go { padding: 4px 10px; border-radius: var(--radius-btn); font-size: var(--text-2xs); font-weight: var(--font-medium); background: rgba(var(--accent-rgb),.12); color: var(--accent-400); border: .5px solid rgba(var(--accent-rgb),.2); cursor: pointer; font-family: inherit; }

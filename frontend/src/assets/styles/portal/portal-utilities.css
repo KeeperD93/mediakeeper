@@ -1,0 +1,69 @@
+/* Portal — reusable utility classes for patterns that appear 3+ times across
+   the portal module (carousel arrows, edge fade gradients, etc.). */
+
+/* ========================================================================
+   Carousel arrow — used on media-carousel, emby-recent-hero-row,
+   top20-carousel, category-cards. Floating pill-circular button with
+   blur, hover scale, accent glow.
+   ======================================================================== */
+.pt-carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--portal-radius-circle);
+  background: var(--portal-panel-bg);
+  backdrop-filter: var(--portal-blur-md);
+  -webkit-backdrop-filter: var(--portal-blur-md);
+  border: 1px solid var(--portal-border-default);
+  color: var(--text-primary);
+  cursor: pointer;
+  box-shadow: var(--portal-shadow-arrow);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity var(--portal-dur-base) var(--portal-ease-default),
+    transform var(--portal-dur-fast) var(--portal-ease-default),
+    background var(--portal-dur-fast) var(--portal-ease-default);
+  z-index: 6;
+}
+.pt-carousel-arrow--visible { opacity: 1; pointer-events: auto; }
+.pt-carousel-arrow--left  { left: 0.75rem; }
+.pt-carousel-arrow--right { right: 0.75rem; }
+@media (hover: hover) {
+  .pt-carousel-arrow:hover { transform: translateY(-50%) scale(1.06); }
+}
+.pt-carousel-arrow:active { transform: translateY(-50%) scale(0.96); }
+/* Sur tactile, le swipe natif suffit — pas de flèches. */
+@media (hover: none) {
+  .pt-carousel-arrow { display: none; }
+}
+
+/* ========================================================================
+   Edge fade — gradient overlay that fades scroll edges into the page
+   background. Used on media-carousel, emby-recent-hero-row,
+   top20-carousel, category-cards, hero-banner.
+   ======================================================================== */
+.pt-edge-fade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 64px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--portal-dur-base) var(--portal-ease-default);
+  z-index: 5;
+}
+.pt-edge-fade--visible { opacity: 1; }
+.pt-edge-fade--left {
+  left: 0;
+  background: linear-gradient(to right, var(--bg-primary), transparent);
+}
+.pt-edge-fade--right {
+  right: 0;
+  background: linear-gradient(to left, var(--bg-primary), transparent);
+}

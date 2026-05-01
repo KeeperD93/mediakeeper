@@ -1,0 +1,256 @@
+import json
+from unittest.mock import AsyncMock, patch
+
+import pytest
+
+from core.security import create_access_token, hash_password
+from models.user import User
+from models.portal.profile import UserProfile
+from models.portal.request import MediaRequest
+from services.settings import get_notification_channel, get_setting
+
+
+async def _create_user_with_profile(
+    db_session,
+    *,
+    username: str,
+    role: str = "viewer",
+) -> tuple[User, UserProfile]:
+    user = User(
+        username=username,
+        hashed_password=hash_password("TestPassword123!"),
+        is_active=True,
+        must_change_password=False,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+
+    profile = UserProfile(
+        user_id=user.id,
+        display_name=username.title(),
+        role=role,
+        account_active=True,
+        chat_enabled=True,
+    )
+    db_session.add(profile)
+    await db_session.commit()
+    await db_session.refresh(profile)
+    return user, profile
+
+
+@pytest.mark.asyncio
+async def test_portal_request_contracts_split_admin_and_user(client, admin_user, db_session):
+    admin_profile = UserProfile(
+        user_id=admin_user.id,
+        display_name="Admin",
+        role="admin",
+        account_active=True,
+        chat_enabled=True,
+    )
+    db_session.add(admin_profile)
+    await db_session.commit()
+
+    viewer, _ = await _create_user_with_profile(db_session, username="viewer")
+    other, _ = await _create_user_with_profile(db_session, username="other")
+
+    first = MediaRequest(
+        user_id=viewer.id,
+        tmdb_id=10,
+        media_type="movie",
+        title="Safe Request",
+        status="pending",
+        vote_count=3,
+    )
+    second = MediaRequest(
+        user_id=other.id,
+        tmdb_id=11,
+        media_type="movie",
+        title="Rejected Request",
+        status="rejected",
+        vote_count=1,
+        reject_reason="Already blocked",
+        requested_by_admin=admin_user.id,
+    )
+    db_session.add_all([first, second])
+    await db_session.commit()
+
+    client.cookies.set("rq_token", create_access_token({"sub": viewer.username, "scope": "portal"}))
+    user_resp = await client.get("/api/portal/requests")
+
+    assert user_resp.status_code == 200
+    user_items = user_resp.json()["items"]
+    assert {item["title"] for item in user_items} == {"Safe Request", "Rejected Request"}
+    assert all("user_id" not in item for item in user_items)
+    assert all("reject_reason" not in item for item in user_items)
+    assert all("requested_by_admin" not in item for item in user_items)
+
+    client.cookies.set("rq_token", create_access_token({"sub": admin_user.username, "scope": "portal"}))
+    admin_resp = await client.get("/api/portal/requests/admin")
+
+    assert admin_resp.status_code == 200
+    admin_items = admin_resp.json()["items"]
+    rejected = next(item for item in admin_items if item["title"] == "Rejected Request")
+    assert rejected["user_id"] == other.id
+    assert rejected["reject_reason"] == "Already blocked"
+    assert rejected["requested_by_admin"] == admin_user.id
+
+
+@pytest.mark.asyncio
+async def test_onboarding_folders_use_db_source_of_truth_and_gate_completion(client, admin_user, db_session):
+    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username}))
+
+    status_before = await client.get("/api/onboarding/status")
+    assert status_before.status_code == 200
+    assert status_before.json()["steps"]["folders"] is False
+
+    blocked = await client.post("/api/onboarding/complete")
+    assert blocked.status_code == 400
+    assert blocked.json()["detail"] == "folders_not_configured"
+
+    save_resp = await client.put("/api/settings/media-folders", json={
+        "folders": [
+            {"key": "MEDIA_FILMS", "label": "Films", "path": "/media/films"},
+            {"key": "MEDIA_SERIES", "label": "Series", "path": "/media/series"},
+        ]
+    })
+    assert save_resp.status_code == 200
+
+    list_resp = await client.get("/api/settings/media-folders")
+    assert list_resp.status_code == 200
+    assert {item["label"] for item in list_resp.json()} == {"Films", "Series"}
+
+    status_after = await client.get("/api/onboarding/status")
+    assert status_after.status_code == 200
+    assert status_after.json()["steps"]["folders"] is True
+
+    complete = await client.post("/api/onboarding/complete")
+    assert complete.status_code == 200
+    assert complete.json()["success"] is True
+
+
+@pytest.mark.asyncio
+async def test_settings_tools_mask_secrets_and_preserve_partial_updates(client, admin_user, db_session):
+    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username}))
+
+    first_save = await client.post("/api/settings/tools/emby", json={
+        "enabled": True,
+        "url": "http://emby.local",
+        "api_key": "super-secret",
+    })
+    assert first_save.status_code == 200
+
+    get_resp = await client.get("/api/settings/tools")
+    assert get_resp.status_code == 200
+    emby = get_resp.json()["emby"]
+    assert emby["url"] == "http://emby.local"
+    assert emby["api_key"] == ""
+    assert emby["api_key_configured"] is True
+    assert emby["api_key_length"] == len("super-secret")
+
+    second_save = await client.post("/api/settings/tools/emby", json={
+        "enabled": True,
+        "url": "http://emby.internal",
+    })
+    assert second_save.status_code == 200
+
+    assert await get_setting(db_session, "emby.api_key") == "super-secret"
+    assert await get_setting(db_session, "emby.url") == "http://emby.internal"
+
+
+@pytest.mark.asyncio
+async def test_notification_configs_mask_secrets_and_preserve_hidden_values(client, admin_user, db_session):
+    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username}))
+
+    discord_save = await client.post("/api/notifications/discord/config", json={
+        "enabled": True,
+        "delay": 15,
+        "image_host": "imgur",
+        "webhooks": [
+            {
+                "id": "wh-main",
+                "name": "Main",
+                "url": "https://discord.com/api/webhooks/1/token",
+                "enabled": True,
+            }
+        ],
+    })
+    assert discord_save.status_code == 200
+
+    discord_get = await client.get("/api/notifications/discord/config")
+    assert discord_get.status_code == 200
+    discord_cfg = discord_get.json()
+    assert discord_cfg["webhooks"][0]["url"] == ""
+    assert discord_cfg["webhooks"][0]["url_configured"] is True
+
+    discord_update = await client.post("/api/notifications/discord/config", json={
+        "enabled": True,
+        "delay": 20,
+        "image_host": "imgur",
+        "webhooks": [
+            {
+                "id": "wh-main",
+                "name": "Main",
+                "url": "",
+                "url_configured": True,
+                "enabled": True,
+            }
+        ],
+    })
+    assert discord_update.status_code == 200
+
+    stored_discord = json.loads(await get_notification_channel(db_session, "discord"))
+    assert stored_discord["delay"] == 20
+    assert stored_discord["webhooks"][0]["url"] == "https://discord.com/api/webhooks/1/token"
+
+    imgur_save = await client.post("/api/notifications/imgur/config", json={
+        "client_id": "imgur-id",
+        "client_secret": "imgur-secret",
+    })
+    assert imgur_save.status_code == 200
+
+    imgur_get = await client.get("/api/notifications/imgur/config")
+    assert imgur_get.status_code == 200
+    assert imgur_get.json()["client_secret"] == ""
+    assert imgur_get.json()["client_secret_configured"] is True
+    assert imgur_get.json()["client_secret_length"] == len("imgur-secret")
+
+    imgur_update = await client.post("/api/notifications/imgur/config", json={
+        "client_id": "imgur-id-2",
+        "client_secret": "",
+        "client_secret_configured": True,
+    })
+    assert imgur_update.status_code == 200
+
+    stored_imgur = json.loads(await get_notification_channel(db_session, "imgur"))
+    assert stored_imgur["client_id"] == "imgur-id-2"
+    assert stored_imgur["client_secret"] == "imgur-secret"
+
+
+@pytest.mark.asyncio
+async def test_discord_test_can_use_stored_webhook_id(client, admin_user, db_session):
+    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username}))
+
+    await client.post("/api/notifications/discord/config", json={
+        "enabled": True,
+        "delay": 10,
+        "image_host": "imgur",
+        "webhooks": [
+            {
+                "id": "wh-main",
+                "name": "Main",
+                "url": "https://discord.com/api/webhooks/2/token",
+                "enabled": True,
+            }
+        ],
+    })
+
+    with patch("api.notifications.send_discord_test", new=AsyncMock(return_value={"ok": True})) as mocked:
+        resp = await client.post("/api/notifications/discord/test", json={
+            "webhook_id": "wh-main",
+            "wh_config": {},
+            "test_type": "movie",
+        })
+
+    assert resp.status_code == 200
+    mocked.assert_awaited_once_with("https://discord.com/api/webhooks/2/token", {}, "movie")

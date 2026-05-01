@@ -1,0 +1,109 @@
+import { ref, reactive, computed } from 'vue'
+import { useApi } from '@/composables/useApi'
+import { useToast } from '@/composables/useToast'
+import { TOAST_TYPE } from '@/constants/toast'
+import { useI18n } from 'vue-i18n'
+
+const activeTab = ref('general')
+const preview = reactive({ show: false, x: 0, y: 0, img: '', name: '' })
+
+const profileOpen = ref(false)
+const profileName = ref('')
+const profileStyle = ref({})
+const userProfile = ref(null)
+
+const mergeModal = reactive({ open: false, source: null, targetId: null, allUsers: [], search: '' })
+const activitySearchSeed = ref('')
+
+const avatarColors = ['var(--accent-500)', '#8b5cf6', '#f59e0b', '#06b6d4', '#ec4899']
+
+let refreshUsersList = null
+
+export function useStatsUI() {
+  const { apiGet, apiPost } = useApi()
+  const { showToast } = useToast()
+  const { t } = useI18n()
+
+  function showPreview(e, item, imgKey) {
+    preview.img = '/api/emby/image/' + item[imgKey]
+    preview.name = item.name || ''
+    preview.x = e.clientX + 16
+    preview.y = e.clientY - 40
+    if (preview.x + 140 > window.innerWidth) preview.x = e.clientX - 150
+    if (preview.y + 220 > window.innerHeight) preview.y = e.clientY - 220
+    preview.show = true
+  }
+  function hidePreview() { preview.show = false }
+
+  async function fetchUserProfile(userId) {
+    userProfile.value = null
+    try {
+      const res = await apiGet(`/api/stats/user_profile?user_id=${encodeURIComponent(String(userId))}&_t=${Date.now()}`)
+      userProfile.value = res || { _error: true }
+    } catch {
+      userProfile.value = { _error: true }
+    }
+  }
+
+  async function openUserProfile(userId, name, event) {
+    if (!userId) return
+    profileName.value = name || '?'
+    const el = event?.target
+    if (el) {
+      const rect = el.getBoundingClientRect()
+      const popW = 640, popH = 450
+      const vw = window.innerWidth, vh = window.innerHeight
+      const spaceBelow = vh - rect.bottom
+      const above = spaceBelow < popH + 12 && rect.top > spaceBelow
+      const top = above ? Math.max(8, rect.top - popH - 6) : rect.bottom + 6
+      let left = rect.left
+      if (left + popW > vw - 12) left = vw - popW - 12
+      if (left < 12) left = 12
+      profileStyle.value = { top: top + 'px', left: left + 'px' }
+    }
+    profileOpen.value = true
+    await fetchUserProfile(userId)
+  }
+
+  async function openMergeModal(user) {
+    mergeModal.source = user
+    mergeModal.targetId = null
+    mergeModal.search = ''
+    mergeModal.open = true
+    try {
+      const d = await apiGet('/api/stats/users?per_page=500&show_hidden=true')
+      mergeModal.allUsers = d?.users || []
+    } catch { mergeModal.allUsers = [] }
+  }
+
+  const mergeTargets = computed(() =>
+    mergeModal.allUsers.filter(u =>
+      u.user_id !== mergeModal.source?.user_id
+      && (!mergeModal.search || u.name.toLowerCase().includes(mergeModal.search.toLowerCase())),
+    ),
+  )
+
+  async function handleMerge() {
+    if (!mergeModal.targetId || !mergeModal.source) return
+    const target = mergeModal.allUsers.find(u => u.user_id === mergeModal.targetId)
+    await apiPost(`/api/stats/users/${encodeURIComponent(mergeModal.source.user_id)}/merge`, { target_user_id: mergeModal.targetId })
+    showToast(t('stats.userMerged', { source: mergeModal.source.name, target: target?.name || '?' }), TOAST_TYPE.OK)
+    mergeModal.open = false
+    if (refreshUsersList) refreshUsersList()
+  }
+
+  function registerUsersRefresh(fn) { refreshUsersList = fn }
+
+  function goToActivitySearch(name) {
+    activeTab.value = 'activity'
+    activitySearchSeed.value = name
+  }
+
+  return {
+    activeTab, preview, profileOpen, profileName, profileStyle, userProfile,
+    mergeModal, mergeTargets, activitySearchSeed, avatarColors,
+    showPreview, hidePreview,
+    openUserProfile, openMergeModal, handleMerge,
+    registerUsersRefresh, goToActivitySearch,
+  }
+}

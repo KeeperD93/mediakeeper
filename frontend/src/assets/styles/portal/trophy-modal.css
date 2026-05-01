@@ -1,0 +1,80 @@
+/* Single-trophy detail modal — shared popup for clicking a trophy card.
+ * Classes: .gc-trophy-modal-*. Global styles. */
+
+.gc-trophy-modal-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0,0,0,0.7); backdrop-filter: var(--portal-blur-xs);
+  display: flex; align-items: center; justify-content: center;
+  animation: gc-modal-fade 0.2s ease;
+}
+@keyframes gc-modal-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes gc-modal-pop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.gc-trophy-modal {
+  position: relative;
+  background: rgba(15,17,30,0.97);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--portal-radius-xl);
+  padding: 2.5rem 2rem;
+  max-width: 380px; width: 90%;
+  text-align: center;
+  animation: gc-modal-pop 0.25s ease;
+}
+.gc-trophy-modal-close {
+  position: absolute; top: 1rem; right: 1rem;
+  background: none; border: none; color: var(--portal-text-muted);
+  font-size: var(--portal-text-2xl); cursor: pointer; line-height: var(--portal-lh-tight);
+}
+.gc-trophy-modal-close:hover { color: #fff; }
+.gc-trophy-modal-icon {
+  font-size: 3rem; margin-bottom: 0.75rem; line-height: var(--portal-lh-tight);
+}
+.gc-trophy-modal-icon--locked { opacity: 0.3; filter: grayscale(1); }
+.gc-trophy-modal-name {
+  font-size: var(--portal-text-lg); font-weight: var(--portal-font-black); color: #fff;
+  font-family: var(--portal-font-display);
+  margin-bottom: 0.5rem;
+}
+.gc-trophy-modal-desc {
+  font-size: var(--portal-text-sm); color: rgba(255,255,255,0.5);
+  margin-bottom: 1rem; line-height: 1.4;
+}
+.gc-trophy-modal-tier {
+  display: flex; align-items: center; justify-content: center; gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.gc-trophy-modal-stars { font-size: var(--portal-text-sm); letter-spacing: -1px; }
+.gc-trophy-modal-progress { margin-bottom: 1rem; }
+.gc-trophy-modal-pbar {
+  height: 8px; background: rgba(255,255,255,0.07);
+  border-radius: var(--portal-radius-xs); overflow: hidden; margin-bottom: 0.3rem;
+}
+.gc-trophy-modal-pfill {
+  height: 100%; border-radius: var(--portal-radius-xs);
+  background: linear-gradient(90deg, var(--accent, #4338ca), #818cf8);
+  transition: width var(--portal-dur-long) ease;
+}
+.gc-trophy-modal-ptxt {
+  font-size: var(--portal-text-xs); font-weight: var(--portal-font-bold); color: rgba(255,255,255,0.5);
+}
+.gc-trophy-modal-rarity { margin-bottom: 0.75rem; }
+.gc-trophy-modal-xp {
+  font-size: var(--portal-text-md); font-weight: var(--portal-font-black); color: var(--portal-color-warning);
+  font-family: var(--portal-font-display);
+  margin-bottom: 0.5rem;
+}
+.gc-trophy-modal-date {
+  font-size: var(--portal-text-2xs); color: rgba(255,255,255,0.35);
+  margin-bottom: 1rem;
+}
+.gc-trophy-modal-pin {
+  padding: 0.5rem 1.2rem;
+  background: rgba(var(--accent-rgb, 99,102,241), 0.15);
+  border: 1px solid rgba(var(--accent-rgb), 0.3);
+  border-radius: var(--portal-radius-pill); color: var(--accent, #818cf8);
+  font-size: var(--portal-text-xs); font-weight: var(--portal-font-medium); cursor: pointer;
+  transition: all var(--portal-dur-base);
+}
+.gc-trophy-modal-pin:hover {
+  background: rgba(var(--accent-rgb, 99,102,241), 0.25);
+  border-color: rgba(var(--accent-rgb), 0.5);
+}
