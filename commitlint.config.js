@@ -1,8 +1,11 @@
 /**
  * commitlint config — MediaKeeper
  *
- * Enforces the Conventional Commits spec (https://www.conventionalcommits.org).
- * Enables clean auto-generated changelogs later.
+ * Standalone config (no ``extends``) so it resolves identically whether
+ * commitlint is invoked from the repo root, from ``frontend/`` (CI), or
+ * from a sibling tool that does not have ``@commitlint/config-conventional``
+ * available on its ``node_modules`` path. The ruleset below is the
+ * Conventional Commits subset MediaKeeper actually enforces.
  *
  * Allowed types:
  *   feat      new user-facing feature
@@ -23,16 +26,11 @@
  *   [optional body]
  *
  *   [optional footer(s)]
- *
- * Examples:
- *   feat(portal): add trophy unlock toast
- *   fix(media-manager): handle empty filename in rename batch
- *   refactor(stats): split StatsUsersTab into composable
- *   chore(deps): bump vite to 6.2.4
  */
 export default {
-  extends: ['@commitlint/config-conventional'],
   rules: {
+    'type-empty': [2, 'never'],
+    'subject-empty': [2, 'never'],
     'type-enum': [
       2,
       'always',

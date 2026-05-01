@@ -8,8 +8,13 @@ backend/tests/
 frontend/node_modules/
 __pycache__/
 *.pyc
-logs/
-backups/
+# Anchored: unanchored ``logs/`` / ``backups/`` would also exclude the
+# ``backend/services/logs`` Python package and starve the image of
+# application code.
+/logs/
+/backend/logs/
+/backups/
+/backend/backups/
 
 # Workshop (outil dev jetable, hors périmètre prod)
 frontend/src/views/portal/TrophyWorkshop.vue

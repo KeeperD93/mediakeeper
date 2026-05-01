@@ -52,9 +52,14 @@ docker-compose.override.yml
 Thumbs.db
 
 # ---------- Logs & backups ----------
+# Anchored on purpose: an unanchored ``logs/`` would also exclude code
+# packages such as ``backend/services/logs/``, which is application code,
+# not runtime log files. Same reasoning for ``backups/``.
 *.log
-logs/
-backups/
+/logs/
+/backend/logs/
+/backups/
+/backend/backups/
 
 # ---------- Audits locaux (workflow IA, hors périmètre public) ----------
 audits/
