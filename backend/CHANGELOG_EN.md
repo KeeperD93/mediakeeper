@@ -23,6 +23,7 @@ This section intentionally has no date so it is not shown to users.
 - Users — online indicator, < 7 d expiry badge, "never logged in" filter
 - Users — automatic deactivation on expiry (Emby + MediaKeeper, sessions killed, dedicated audit)
 - Project documentation (README, SECURITY, ARCHITECTURE, CONTRIBUTING, attributions)
+- Backups — SQL dump and encryption key embedded by default
 
 ### Fixed
 - Users — local admin account flagged as "Local" instead of an Emby source

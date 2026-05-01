@@ -22,8 +22,10 @@ from __future__ import annotations
 
 import logging
 import os
+from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
+from typing import Optional
 
 from cryptography.fernet import Fernet, InvalidToken
 
@@ -36,6 +38,16 @@ _KEY_FILE_PATHS = (
     Path("/data/.encryption_key"),
     Path(os.environ.get("MEDIAKEEPER_ENCRYPTION_KEY_FILE", "")) if os.environ.get("MEDIAKEEPER_ENCRYPTION_KEY_FILE") else None,
 )
+
+
+@dataclass(frozen=True)
+class PersistentFernetKey:
+    """Resolved persistent Fernet key with its provenance."""
+
+    key: str
+    source: str  # "env" or "file"
+    path: Optional[str] = None  # absolute file path when source == "file"
+
 
 _SENSITIVE_SUFFIXES = (
     ".api_key",
@@ -53,19 +65,42 @@ def is_sensitive_key(key: str) -> bool:
     return any(key.endswith(suffix) for suffix in _SENSITIVE_SUFFIXES)
 
 
+def get_persistent_fernet_key() -> Optional[PersistentFernetKey]:
+    """Return the active persistent Fernet key with its provenance.
+
+    Resolution order matches ``_load_fernet``:
+      1. ``MEDIAKEEPER_ENCRYPTION_KEY`` env var (highest priority).
+      2. First readable file in ``_KEY_FILE_PATHS``.
+
+    Returns ``None`` when no persistent source is available — the running
+    process is then on an ephemeral in-memory key. Callers that need to
+    snapshot the key (e.g. backup export) rely on this signal to skip the
+    snapshot rather than embed a value that will be useless after a
+    restart.
+    """
+    env_key = os.environ.get(_KEY_ENV_VAR, "").strip()
+    if env_key:
+        return PersistentFernetKey(key=env_key, source="env", path=None)
+
+    for path in _KEY_FILE_PATHS:
+        if path and path.exists():
+            try:
+                data = path.read_text(encoding="ascii").strip()
+            except OSError:
+                continue
+            if data:
+                return PersistentFernetKey(key=data, source="file", path=str(path))
+
+    return None
+
+
 @lru_cache(maxsize=1)
 def _load_fernet() -> Fernet:
     """Load the Fernet key from env, from the persisted file, or generate a
     process-local one as a last resort (tests / dev without the entrypoint)."""
-    env_key = os.environ.get(_KEY_ENV_VAR, "").strip()
-    if env_key:
-        return Fernet(env_key.encode("ascii"))
-
-    for path in _KEY_FILE_PATHS:
-        if path and path.exists():
-            data = path.read_text(encoding="ascii").strip()
-            if data:
-                return Fernet(data.encode("ascii"))
+    persistent = get_persistent_fernet_key()
+    if persistent is not None:
+        return Fernet(persistent.key.encode("ascii"))
 
     generated = Fernet.generate_key()
     logger.warning(
