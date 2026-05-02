@@ -150,7 +150,10 @@ async def restore_backup(
     zip_path: Path,
     components: Optional[dict] = None,
 ) -> dict:
-    """Restaure un backup. Return un dict {component: 'ok'|'error'|'skipped'}."""
+    """Restaure un backup. Return un dict {component: 'ok'|'error'|'skipped'}.
+    Does NOT restore PostgreSQL relational data; run `psql -f pg_dump.sql`
+    first — see docs/operations/backup-restore.md.
+    """
     results = {
         "settings": "skipped",
         "preferences": "skipped",
@@ -221,7 +224,8 @@ async def restore_json_backup(
 ) -> dict:
     """
     Restore a single JSON file (settings, preferences, scheduler or watchlist).
-    Automatic content-type detection.
+    Automatic content-type detection. Does NOT touch PostgreSQL data
+    (no pg_dump.sql in single-file payloads).
     """
     results = {}
     opts = components or {}

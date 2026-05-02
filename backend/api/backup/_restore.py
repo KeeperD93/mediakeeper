@@ -20,6 +20,8 @@ from services.backup.restore import BackupRestoreError, InvalidBackupArchiveErro
 from ._schemas import RestoreRequest
 from ._shared import _parse_components_payload, _save_upload_to_path, logger
 
+_RESTORE_WARNING = "This restore does NOT replay pg_dump.sql; restore PostgreSQL relational data manually first — see docs/operations/backup-restore.md."
+
 router = APIRouter()
 
 
@@ -38,7 +40,7 @@ async def restore_backup_endpoint(
         raise HTTPException(status_code=400, detail="invalid_or_corrupted_zip")
     except BackupRestoreError:
         raise HTTPException(status_code=500, detail="backup_restore_failed")
-    return {"success": True, "results": results}
+    return {"success": True, "results": results, "warning": _RESTORE_WARNING}
 
 
 @router.post("/upload-restore")
@@ -65,7 +67,7 @@ async def upload_and_restore(
             raise HTTPException(status_code=400, detail="invalid_or_corrupted_zip")
         except BackupRestoreError:
             raise HTTPException(status_code=500, detail="backup_restore_failed")
-        return {"success": True, "results": results}
+        return {"success": True, "results": results, "warning": _RESTORE_WARNING}
     finally:
         await file.close()
         if tmp.exists():
@@ -97,7 +99,7 @@ async def upload_and_restore_json(
             raise HTTPException(status_code=500, detail="backup_restore_failed")
         if any(str(status).startswith("error:") for status in results.values()):
             raise HTTPException(status_code=500, detail="backup_restore_failed")
-        return {"success": True, "results": results}
+        return {"success": True, "results": results, "warning": _RESTORE_WARNING}
     except HTTPException:
         raise
     except (UnicodeDecodeError, json.JSONDecodeError):
