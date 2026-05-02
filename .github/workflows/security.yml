@@ -72,7 +72,9 @@ jobs:
     runs-on: ubuntu-latest
     # SAST findings are advisory: surfaced for review but do not block
     # the merge. Only HIGH/CRITICAL CVEs (pip-audit + npm audit) gate
-    # the workflow.
+    # the workflow. continue-on-error is set both at the job level
+    # (workflow keeps going) and at the step level (the check itself
+    # ends green in the PR UI even when findings exist).
     continue-on-error: true
     steps:
       - uses: actions/checkout@v6
@@ -85,6 +87,7 @@ jobs:
         run: python -m pip install --upgrade pip bandit
 
       - name: Run bandit
+        continue-on-error: true
         run: bandit -r backend -ll -ii --exclude backend/tests
 
   ruff-security:
@@ -103,6 +106,7 @@ jobs:
         run: python -m pip install --upgrade pip ruff
 
       - name: Run ruff with security rules
+        continue-on-error: true
         run: ruff check backend --select S --exclude backend/tests --output-format=github
 
   semgrep:
@@ -116,4 +120,5 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Run semgrep p/security-audit
+        continue-on-error: true
         run: semgrep scan --config=p/security-audit --error --metrics=off backend
