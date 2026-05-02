@@ -516,24 +516,25 @@ This runbook was validated end-to-end during the Batch 2C drill on
   `opensubtitles.api_key`) decrypted cleanly with the embedded
   Fernet key.
 
-The drill report is filed under
-`audits/reports/2026-05/2026-05-02-FIX-remediation-batch-2C.md`,
-§15.
+The detailed drill log is kept in the operator's private notes
+rather than in this repository, since it lists the exact ZIP
+filename and row counts of the production instance it was run
+against.
 
 ---
 
-## 10. TODO — Batch 3 (`RUNBOOK-incidents.md`)
+## 10. See also
 
-The sections below are placeholders for the dedicated incident
-runbook. They are intentionally not detailed here so the present
-runbook stays focused on the restore procedure.
+The decision flow that wraps these restore commands — when to invoke
+which path, who to contact, how to triage a live incident — lives in
+the dedicated operator runbook:
 
-- **TODO Batch 3.** Incident response decision tree (DB corruption,
-  full host wipe, accidental data loss, ransomware).
-- **TODO Batch 3.** Escalation contacts and ownership.
-- **TODO Batch 3.** Communication templates (status page entry,
-  user-facing notice, post-mortem skeleton).
-- **TODO Batch 3.** Off-site recovery flow once `V1=A` (USB
-  encrypted via DSM Hyper Backup) is enabled post-v1.0.
-- **TODO Batch 3.** Rollback procedure for a failed deployment that
-  was not caught by the deployment checklist in §8.
+- [`runbook-incidents.md`](runbook-incidents.md) — incident triage and
+  recovery decision flow for the three critical disaster-recovery
+  scenarios (database corruption, host loss, bad deployment),
+  including operator contacts, post-incident checklist and
+  post-mortem template.
+
+That runbook references **back** to the present file for every actual
+restore command, so the two documents stay non-redundant: this one
+holds the *how*, the incident runbook holds the *when* and *which*.
