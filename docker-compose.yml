@@ -34,6 +34,11 @@ services:
       # - FRONTEND_ORIGIN=https://mediakeeper.example.com
       # - COOKIE_SECURE=true
       # - COOKIE_SAMESITE=lax
+      # ── Reverse-proxy whitelist (CSV of CIDR/IPs) ──
+      # Empty by default = X-Forwarded-* headers ignored. Set to the
+      # CIDR of your reverse proxy to enable HTTPS detection and real
+      # client IP recovery. See docs/operations/tls-deployment.md.
+      # - TRUSTED_PROXIES=127.0.0.1,172.18.0.0/16
       # - VERIFY_SSL=true
       # - TMDB_API_KEY=tmdb-api-key
       # ── Racines visibles par l'application (browser, media manager, sous-titres) ──

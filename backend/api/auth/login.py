@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
+from core.proxy import get_client_ip
 from core.security import (
     create_access_token,
     is_backoffice_admin,
@@ -73,7 +74,7 @@ router = APIRouter()
 @router.post("/login")
 async def login(req: LoginRequest, request: Request, response: Response, db: AsyncSession = Depends(get_db)):
     """Authenticate and place the admin JWT in an httpOnly cookie."""
-    client_ip = request.client.host if request.client else "unknown"
+    client_ip = get_client_ip(request) or "unknown"
     user_agent = request.headers.get("user-agent")
     await ensure_not_blocked(db, client_ip, req.username, "admin")
 
@@ -131,7 +132,7 @@ async def portal_login(
     - Imported Emby/Jellyfin accounts only receive rq_token and
       are redirected to the portal on the frontend.
     """
-    client_ip = request.client.host if request.client else "unknown"
+    client_ip = get_client_ip(request) or "unknown"
     user_agent = request.headers.get("user-agent")
     # Only gate on the admin scope here. The portal scope is gated later,
     # in the cascade branch, so a brute-force attempt on the portal doesn't

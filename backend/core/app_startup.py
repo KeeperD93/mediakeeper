@@ -220,6 +220,38 @@ async def prime_watchlist_cache() -> None:
         logger.warning(f"Watchlist cache unavailable at startup: {e}")
 
 
+def _warn_if_secure_cookies_unavailable() -> None:
+    """Log a single startup warning when production-like settings cannot
+    produce ``Secure`` cookies.
+
+    Triggers when all three conditions hold:
+      - ``MK_DEBUG`` is unset or false (production-like).
+      - ``COOKIE_SECURE`` is not explicitly set (otherwise the operator
+        has overridden the auto-detection on purpose).
+      - ``TRUSTED_PROXIES`` is empty (so ``X-Forwarded-Proto`` would be
+        ignored by ``ProxyHeadersMiddleware``).
+
+    The startup proceeds normally — this is informational only, to
+    surface a misconfiguration that would otherwise silently downgrade
+    cookie protection in production.
+    """
+    debug = os.getenv("MK_DEBUG", "").strip().lower() in {"true", "1", "yes", "on"}
+    if debug:
+        return
+    cookie_secure_set = os.getenv("COOKIE_SECURE", "").strip() != ""
+    if cookie_secure_set:
+        return
+    trusted_proxies = os.getenv("TRUSTED_PROXIES", "").strip()
+    if trusted_proxies:
+        return
+    logger.warning(
+        "[startup] COOKIE_SECURE is unset and TRUSTED_PROXIES is empty in "
+        "production-like mode. Session cookies will not carry the Secure flag "
+        "until the app is reached over HTTPS or a reverse proxy is whitelisted. "
+        "See docs/operations/tls-deployment.md."
+    )
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application startup / shutdown."""
@@ -227,6 +259,8 @@ async def lifespan(app: FastAPI):
     from services.subtitle_sources.registry import register_source
 
     background_manager: BackgroundTaskManager | None = None
+
+    _warn_if_secure_cookies_unavailable()
 
     await init_clients()
     await init_db()
