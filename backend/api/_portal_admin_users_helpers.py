@@ -7,14 +7,13 @@ utilities used by every endpoint of the premium "Users" page.
 from fastapi import HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.proxy import get_client_ip
 from services.portal.admin_users import get_admin_user
 
 
 def client_ip(request: Request) -> str | None:
-    forwarded = request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
-    if forwarded:
-        return forwarded[:64]
-    return (request.client.host if request.client else None)
+    ip = get_client_ip(request)
+    return ip[:64] if ip else None
 
 
 def client_ua(request: Request) -> str | None:

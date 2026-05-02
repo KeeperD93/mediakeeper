@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
+from core.proxy import get_client_ip
 from api.auth import PORTAL_COOKIE_NAME, _set_portal_jwt_cookie
 from api.auth._csrf import ensure_csrf_cookie
 from api.portal.deps import get_current_profile
@@ -92,7 +93,7 @@ async def portal_login(
     db: AsyncSession = Depends(get_db),
 ):
     """Authenticate via Emby and issue JWT cookie."""
-    client_ip = request.client.host if request.client else "unknown"
+    client_ip = get_client_ip(request) or "unknown"
     user_agent = request.headers.get("user-agent")
     await ensure_not_blocked(db, client_ip, req.username, "portal")
 

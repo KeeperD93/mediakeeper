@@ -57,6 +57,8 @@ from api.watchlist import router as watchlist_router
 from core.app_spa import register_spa
 from core.app_startup import is_db_ready, lifespan, setup_logging
 from core.csrf_middleware import CsrfMiddleware
+from core.proxy import ProxyHeadersMiddleware, get_client_ip
+from core.security_headers import SecurityHeadersMiddleware
 
 setup_logging()
 logger = logging.getLogger("mediakeeper")
@@ -76,8 +78,14 @@ class _StartupMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(_StartupMiddleware)
 app.add_middleware(CsrfMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
 
-limiter = Limiter(key_func=get_remote_address, default_limits=["120/minute"])
+
+def _rate_limit_key(request: Request) -> str:
+    return get_client_ip(request) or get_remote_address(request)
+
+
+limiter = Limiter(key_func=_rate_limit_key, default_limits=["120/minute"])
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
@@ -102,6 +110,10 @@ else:
             allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
             allow_headers=["Content-Type", "X-CSRF-Token"],
         )
+
+# Outermost: rewrite scope before any other middleware reads request.client
+# or request.url.scheme. Stays a no-op when TRUSTED_PROXIES is empty.
+app.add_middleware(ProxyHeadersMiddleware)
 
 app.include_router(auth_router)
 app.include_router(media_router)

@@ -96,19 +96,16 @@ def has_backoffice_access(
 def should_use_secure_cookies(request) -> bool:
     """
     Determine whether cookies should be marked Secure.
-    - Explheret override via COOKIE_SECURE=true/false
-    - Otherwise detected via X-Forwarded-Proto or the request scheme
+    - Explicit override via COOKIE_SECURE=true/false
+    - Otherwise consult ``request.url.scheme`` (already rewritten by
+      ``ProxyHeadersMiddleware`` when the request comes from a trusted
+      proxy with ``X-Forwarded-Proto: https``).
     """
     override = os.getenv("COOKIE_SECURE", "").strip().lower()
     if override in ("1", "true", "yes", "on"):
         return True
     if override in ("0", "false", "no", "off"):
         return False
-
-    headers = getattr(request, "headers", {}) or {}
-    forwarded_proto = headers.get("x-forwarded-proto", "")
-    if forwarded_proto:
-        return forwarded_proto.split(",", 1)[0].strip().lower() == "https"
 
     scheme = getattr(getattr(request, "url", None), "scheme", "")
     return str(scheme).lower() == "https"
