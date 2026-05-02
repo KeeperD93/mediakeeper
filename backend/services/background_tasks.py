@@ -2,7 +2,7 @@ import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import delete
+from sqlalchemy import delete, text
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from models.portal.chat import ChatMessage
@@ -12,6 +12,12 @@ from services.stats import collect_active_sessions, refresh_library_cache
 from services.watchlist import engine_ref as wl_engine_ref
 
 logger = logging.getLogger("mediakeeper")
+
+HEALTH_MONITOR_INTERVAL_SEC = 300
+HEALTH_MONITOR_DB_TIMEOUT_SEC = 3.0
+# Two consecutive failed pings (~10 minutes) before alerting, to ride
+# out brief connectivity blips without spamming the webhook.
+HEALTH_MONITOR_FAILURES_BEFORE_ALERT = 2
 
 
 class BackgroundTaskManager:
@@ -34,6 +40,15 @@ class BackgroundTaskManager:
                     f"Task {name} crashed: {e} — restarting in {restart_delay}s",
                     exc_info=True,
                 )
+                try:
+                    from services.monitoring import AlertType, send_alert
+
+                    await send_alert(
+                        AlertType.BACKGROUND_LOOP_CRASHED,
+                        {"loop": name, "error": str(e)[:200]},
+                    )
+                except Exception:
+                    logger.exception("Failed to push monitoring alert for loop %s", name)
                 await asyncio.sleep(restart_delay)
 
     async def _run_scheduler(self):
@@ -93,6 +108,70 @@ class BackgroundTaskManager:
                 logger.error(f"[TICKET_AUTO_CLOSE] error: {e}")
             await asyncio.sleep(21600)  # every 6 hours
 
+    async def _periodic_health_monitor(self):
+        """Watch the DB liveness and the connection-pool saturation.
+
+        Runs independently of ``/api/health`` so it still reports during
+        startup hiccups, and never relies on the DB to remember its
+        debounce state (which lives in :mod:`services.monitoring`).
+        """
+        from services.monitoring import AlertType, send_alert
+
+        await asyncio.sleep(60)
+        consecutive_failures = 0
+        last_state_was_down = False
+        pool_saturation_streak = 0
+
+        while True:
+            db_ok = False
+            try:
+                async with AsyncSession(self._engine, expire_on_commit=False) as session:
+                    await asyncio.wait_for(
+                        session.execute(text("SELECT 1")),
+                        timeout=HEALTH_MONITOR_DB_TIMEOUT_SEC,
+                    )
+                db_ok = True
+            except Exception as exc:
+                consecutive_failures += 1
+                logger.warning(
+                    "[health_monitor] DB ping failed (%d consecutive): %s",
+                    consecutive_failures,
+                    exc,
+                )
+
+            if db_ok:
+                if last_state_was_down:
+                    await send_alert(AlertType.DB_RECOVERED, {"after_failures": consecutive_failures})
+                    last_state_was_down = False
+                consecutive_failures = 0
+            elif consecutive_failures >= HEALTH_MONITOR_FAILURES_BEFORE_ALERT and not last_state_was_down:
+                await send_alert(
+                    AlertType.DB_UNAVAILABLE,
+                    {"consecutive_failures": consecutive_failures},
+                )
+                last_state_was_down = True
+
+            try:
+                pool = self._engine.pool
+                checked_out = pool.checkedout()
+                size = pool.size()
+                overflow = pool.overflow()
+                capacity = size + max(overflow, 0)
+                if capacity > 0 and checked_out >= capacity - 1:
+                    pool_saturation_streak += 1
+                else:
+                    pool_saturation_streak = 0
+                if pool_saturation_streak >= HEALTH_MONITOR_FAILURES_BEFORE_ALERT:
+                    await send_alert(
+                        AlertType.POOL_SATURATED,
+                        {"checked_out": checked_out, "capacity": capacity},
+                    )
+                    pool_saturation_streak = 0
+            except Exception as exc:
+                logger.debug("[health_monitor] pool inspection failed: %s", exc)
+
+            await asyncio.sleep(HEALTH_MONITOR_INTERVAL_SEC)
+
     async def _periodic_chat_purge(self):
         await asyncio.sleep(120)
         while True:
@@ -127,6 +206,7 @@ class BackgroundTaskManager:
             asyncio.create_task(self._supervised("emby_index", self._periodic_emby_index)),
             asyncio.create_task(self._supervised("ticket_auto_close", self._periodic_ticket_auto_close)),
             asyncio.create_task(self._supervised("chat_purge", self._periodic_chat_purge)),
+            asyncio.create_task(self._supervised("health_monitor", self._periodic_health_monitor)),
         ]
         self._started = True
 

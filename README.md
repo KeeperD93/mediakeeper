@@ -78,7 +78,7 @@ cd frontend && npm run dev
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | Code map: layers, modules, data flow, design system, auth scopes. |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | Developer workflow: setup, lint, tests, commits, PRs, the public coding-conventions checklist, adding a language or a dependency. |
 | [`SECURITY.md`](SECURITY.md) | Security policy and how to report a vulnerability privately. |
-| [`docs/operations/`](docs/operations/) | Operator runbooks: restore procedure ([`backup-restore.md`](docs/operations/backup-restore.md)) and incident response ([`runbook-incidents.md`](docs/operations/runbook-incidents.md)). |
+| [`docs/operations/`](docs/operations/) | Operator runbooks: restore procedure ([`backup-restore.md`](docs/operations/backup-restore.md)), incident response ([`runbook-incidents.md`](docs/operations/runbook-incidents.md)) and runtime monitoring ([`monitoring.md`](docs/operations/monitoring.md)). |
 | [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md) | Licences of the main third-party dependencies. |
 
 ## Attribution
