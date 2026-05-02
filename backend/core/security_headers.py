@@ -5,6 +5,14 @@ Emits the standard defensive headers on every HTTP response:
     deployment (no per-request nonce — the SPA is served as a static
     bundle by ``core.app_spa``). Allows Google Fonts (preconnect already
     declared in ``frontend/index.html``), TMDB poster CDN, Imgur uploads.
+
+    ``script-src`` includes ``'unsafe-eval'``: vue-i18n compiles its
+    message templates at runtime via ``new Function()``, which a strict
+    ``script-src 'self'`` rejects with ``EvalError``. The eval surface is
+    bounded to translation strings shipped in our own bundle, not to
+    arbitrary user input. Tracked as tech debt — switch vue-i18n to
+    pre-compiled messages (``@intlify/unplugin-vue-i18n``) and drop
+    ``'unsafe-eval'`` in a follow-up batch.
   - ``Strict-Transport-Security``: emitted only when the request is
     confirmed HTTPS (after ``ProxyHeadersMiddleware`` rewrites the scope
     based on a trusted proxy).
@@ -26,7 +34,9 @@ from core.proxy import is_request_secure
 
 CSP_DIRECTIVES = "; ".join([
     "default-src 'self'",
-    "script-src 'self'",
+    # 'unsafe-eval' is required by vue-i18n's runtime template compiler
+    # (new Function). See module docstring for the removal plan.
+    "script-src 'self' 'unsafe-eval'",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: https://image.tmdb.org https://i.imgur.com",
