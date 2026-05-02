@@ -28,6 +28,7 @@ This section intentionally has no date so it is not shown to users.
 - Backups — operator restore runbook + explicit API restore warning
 - Incident runbook with documented recovery procedures
 - Automatic webhook alerts on critical incidents (health, DB, scheduler, dump)
+- Security updates (JWT, cryptography, multipart, frontend build)
 
 ### Fixed
 - Users — local admin account flagged as "Local" instead of an Emby source
