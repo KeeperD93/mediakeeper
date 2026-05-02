@@ -24,6 +24,7 @@ This section intentionally has no date so it is not shown to users.
 - Users — automatic deactivation on expiry (Emby + MediaKeeper, sessions killed, dedicated audit)
 - Project documentation (README, SECURITY, ARCHITECTURE, CONTRIBUTING, attributions)
 - Backups — SQL dump and encryption key embedded by default
+- Backups — refuse to start when BACKUP_PATH is missing in production (safety)
 
 ### Fixed
 - Users — local admin account flagged as "Local" instead of an Emby source

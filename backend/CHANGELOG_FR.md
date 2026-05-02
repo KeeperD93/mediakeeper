@@ -24,6 +24,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Utilisateurs — désactivation automatique à l'expiration (Emby + MediaKeeper, sessions coupées, audit dédié)
 - Documentation projet (README, SECURITY, ARCHITECTURE, CONTRIBUTING, attributions)
 - Sauvegardes — dump SQL et clé de chiffrement embarqués par défaut
+- Sauvegardes — refus de démarrage si BACKUP_PATH absent en production (sécurité)
 
 ### Fixed
 - Utilisateurs — compte admin local marqué « Local » et plus comme source Emby

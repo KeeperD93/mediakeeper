@@ -2,6 +2,8 @@ import shutil
 import uuid
 from pathlib import Path
 
+import pytest
+
 from services import path_config
 from services.path_config import (
     get_backup_dir,
@@ -141,7 +143,10 @@ def test_get_backup_dir_uses_env(monkeypatch):
         shutil.rmtree(root, ignore_errors=True)
 
 
-def test_get_backup_dir_prefers_data_root_when_available(monkeypatch):
+def test_get_backup_dir_raises_in_prod_without_env(monkeypatch):
+    """When BACKUP_PATH is unset and DATA_ROOT is mounted (container case),
+    the helper must refuse to fall back to /data/backups so backups never
+    end up inside the same volume as the database they protect."""
     root = _make_workspace_tmp()
     try:
         data_root = root / "data"
@@ -149,6 +154,23 @@ def test_get_backup_dir_prefers_data_root_when_available(monkeypatch):
         monkeypatch.delenv("BACKUP_PATH", raising=False)
         monkeypatch.setattr(path_config, "DATA_ROOT", data_root)
 
-        assert get_backup_dir() == (data_root / "backups").resolve()
+        with pytest.raises(RuntimeError, match=r"BACKUP_PATH"):
+            get_backup_dir()
+    finally:
+        shutil.rmtree(root, ignore_errors=True)
+
+
+def test_get_backup_dir_dev_fallback_when_no_data_root(monkeypatch):
+    """Development fallback (no /data, no BACKUP_PATH) keeps using a backups
+    directory under the project root — required for local pytest runs and
+    contributors that do not mount /data."""
+    root = _make_workspace_tmp()
+    try:
+        absent_data_root = root / "absent-data"
+        # Do not create absent_data_root → DATA_ROOT.is_dir() returns False.
+        monkeypatch.delenv("BACKUP_PATH", raising=False)
+        monkeypatch.setattr(path_config, "DATA_ROOT", absent_data_root)
+
+        assert get_backup_dir() == (path_config.PROJECT_ROOT / "backups").resolve()
     finally:
         shutil.rmtree(root, ignore_errors=True)
