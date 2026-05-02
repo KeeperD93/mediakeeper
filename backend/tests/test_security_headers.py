@@ -28,6 +28,9 @@ async def test_csp_directive_present_in_enforce_mode(client, monkeypatch):
     )
     assert csp is not None
     assert "default-src 'self'" in csp
+    # vue-i18n compiles message templates at runtime via new Function() —
+    # 'unsafe-eval' must stay until messages are pre-compiled at build time.
+    assert "script-src 'self' 'unsafe-eval'" in csp
     assert "frame-ancestors 'none'" in csp
     assert "https://image.tmdb.org" in csp
     assert "https://fonts.googleapis.com" in csp
