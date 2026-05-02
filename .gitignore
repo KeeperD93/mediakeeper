@@ -95,3 +95,8 @@ frontend/src/views/portal/TrophyWorkshop.vue
 frontend/src/composables/portal/useTrophyWorkshopMocks.js
 frontend/src/composables/portal/useTrophyWorkshopPrompt.js
 frontend/src/assets/styles/portal/trophy-workshop-fx-*.css
+
+# ---------- Drill workspace (Batch 2C, restore drill, jetable, contient des secrets) ----------
+# Anchored: only the top-level ``drill/`` workspace, not any future
+# ``backend/.../drill/`` test fixtures.
+/drill/
