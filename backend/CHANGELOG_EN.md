@@ -26,6 +26,7 @@ This section intentionally has no date so it is not shown to users.
 - Backups — SQL dump and encryption key embedded by default
 - Backups — refuse to start when BACKUP_PATH is missing in production (safety)
 - Backups — operator restore runbook + explicit API restore warning
+- Incident runbook with documented recovery procedures
 
 ### Fixed
 - Users — local admin account flagged as "Local" instead of an Emby source
