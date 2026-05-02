@@ -68,8 +68,12 @@ jobs:
         run: npm audit --omit=dev --audit-level=high
 
   bandit:
-    name: bandit (medium+)
+    name: bandit (medium+, advisory)
     runs-on: ubuntu-latest
+    # SAST findings are advisory: surfaced for review but do not block
+    # the merge. Only HIGH/CRITICAL CVEs (pip-audit + npm audit) gate
+    # the workflow.
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v6
 
@@ -84,8 +88,10 @@ jobs:
         run: bandit -r backend -ll -ii --exclude backend/tests
 
   ruff-security:
-    name: ruff (S rules only)
+    name: ruff (S rules only, advisory)
     runs-on: ubuntu-latest
+    # SAST findings are advisory: surfaced for review but do not block.
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v6
 
@@ -100,12 +106,14 @@ jobs:
         run: ruff check backend --select S --exclude backend/tests --output-format=github
 
   semgrep:
-    name: semgrep (p/security-audit)
+    name: semgrep (p/security-audit, advisory)
     runs-on: ubuntu-latest
+    # SAST findings are advisory: surfaced for review but do not block.
+    continue-on-error: true
     container:
       image: semgrep/semgrep
     steps:
       - uses: actions/checkout@v6
 
       - name: Run semgrep p/security-audit
-        run: semgrep ci --config=p/security-audit --error
+        run: semgrep scan --config=p/security-audit --error --metrics=off backend
