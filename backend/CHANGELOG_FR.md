@@ -28,6 +28,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Sauvegardes — guide opérateur de restauration + avertissement explicite côté API
 - Runbook incidents avec procédures de récupération documentées
 - Alertes webhook automatiques sur incidents critiques (santé, base, planificateur, dump)
+- Mises à jour sécurité (JWT, chiffrement, multipart, build frontend)
 
 ### Fixed
 - Utilisateurs — compte admin local marqué « Local » et plus comme source Emby

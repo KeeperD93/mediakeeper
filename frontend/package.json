@@ -33,6 +33,9 @@
       "prettier --write"
     ]
   },
+  "overrides": {
+    "uuid": "^14.0.0"
+  },
   "dependencies": {
     "@primevue/themes": "^4.3.1",
     "@tiptap/core": "^2.10.3",

@@ -182,6 +182,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { useApi } from '@/composables/useApi'
+import { useConfirm } from '@/composables/useConfirm'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 
@@ -190,6 +191,7 @@ import '@/assets/styles/portal/admin-debug.css'
 const { apiGet, apiPost } = useApi()
 const { showToast } = useToast()
 const { t } = useI18n()
+const mkConfirm = useConfirm()
 
 const users = ref([])
 const achievements = ref([])
@@ -290,7 +292,12 @@ async function unlockAch(ach) {
 
 async function resetAchievementForAll() {
   if (!resetAchievementId.value) return
-  if (!confirm(t('portal.admin.debug.resetForAllConfirm', { ach: resetAchievementId.value }))) return
+  const ok = await mkConfirm({
+    title: t('common.confirmTitle.reset'),
+    message: t('portal.admin.debug.resetForAllConfirm', { ach: resetAchievementId.value }),
+    variant: 'danger',
+  })
+  if (!ok) return
   resetLoading.value = true
   try {
     const res = await apiPost('/api/portal/admin/debug/reset-achievement-for-all', {
