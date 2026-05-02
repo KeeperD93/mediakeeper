@@ -26,3 +26,8 @@ services:
 
       # Dossier de sauvegarde principal.
       - BACKUP_PATH=/volume1/docker/mediakeeper/backups
+
+      # Webhook recevant les alertes runtime critiques (BDD KO, planificateur
+      # planté, échec sauvegarde, saturation du pool de connexions).
+      # Vide = monitoring désactivé. Voir docs/operations/monitoring.md.
+      # - MK_DISCORD_ALERT_WEBHOOK=

@@ -234,5 +234,14 @@ async def _pg_dump_async() -> Optional[str]:
 
     if proc.returncode != 0:
         logger.error(f"[backup] pg_dump failed: {stderr.decode()[:300]}")
+        try:
+            from services.monitoring import AlertType, send_alert
+
+            await send_alert(
+                AlertType.BACKUP_FAILED,
+                {"component": "pg_dump", "returncode": proc.returncode},
+            )
+        except Exception:
+            logger.exception("[backup] Failed to push monitoring alert")
         return None
     return stdout.decode()

@@ -73,6 +73,15 @@ class Scheduler:
         except Exception as e:
             error = str(e)
             logger.error(f"[scheduler] Task error {key}: {e}", exc_info=True)
+            try:
+                from services.monitoring import AlertType, send_alert
+
+                await send_alert(
+                    AlertType.SCHEDULER_TASK_CRASHED,
+                    {"task": key, "error": error[:200]},
+                )
+            except Exception:
+                logger.exception("[scheduler] Failed to push monitoring alert")
         clear_progress(key)
         async with AsyncSession(self._engine, expire_on_commit=False) as db:
             await _mark_done(db, key, error)
