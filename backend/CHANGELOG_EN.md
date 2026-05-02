@@ -29,6 +29,7 @@ This section intentionally has no date so it is not shown to users.
 - Incident runbook with documented recovery procedures
 - Automatic webhook alerts on critical incidents (health, DB, scheduler, dump)
 - Security updates (JWT, cryptography, multipart, frontend build)
+- Strict proxy trust, security headers (CSP/HSTS) and secure cookies
 
 ### Fixed
 - Users — local admin account flagged as "Local" instead of an Emby source
