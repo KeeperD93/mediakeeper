@@ -112,7 +112,17 @@ def get_backup_dir() -> Path:
     if raw:
         return _resolve_path(raw)
     if DATA_ROOT.is_dir():
-        return (DATA_ROOT / "backups").resolve(strict=False)
+        # Production container detected (DATA_ROOT mounted) but BACKUP_PATH
+        # is unset. Refuse to fall back to /data/backups: that would store
+        # backups inside the same Docker volume as the PostgreSQL cluster
+        # they are meant to protect, defeating their purpose during a volume
+        # corruption or cryptolocker incident.
+        raise RuntimeError(
+            f"{BACKUP_PATH_ENV} is required when running with {DATA_ROOT} "
+            "mounted. Configure it through your compose override "
+            "(see docker-compose.override.example.yml) so backups land on "
+            "a host-managed bind mount, not inside the application volume."
+        )
     return (PROJECT_ROOT / "backups").resolve(strict=False)
 
 
