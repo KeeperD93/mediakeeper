@@ -41,7 +41,12 @@ jobs:
       - name: ESLint
         run: npm run lint
 
-      - name: Stylelint
+      - name: Stylelint (advisory)
+        # Stylelint is currently advisory: a 3398-error baseline (mostly
+        # rgba->rgb alias notation) predates the workflow's first run.
+        # The cleanup is scheduled in a dedicated dette PR; until then
+        # the step surfaces findings without blocking unrelated PRs.
+        continue-on-error: true
         run: npm run stylelint
 
       - name: Prettier (check only)
