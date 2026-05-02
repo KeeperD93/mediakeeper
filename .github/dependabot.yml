@@ -3,6 +3,8 @@ version: 2
 # Dependabot automatic dependency updates — MediaKeeper.
 # Groups patch + minor updates into weekly PRs to reduce noise.
 # Major bumps come in separate PRs (human review needed).
+# Major bumps for frameworks scheduled for the post-1.0 frontend roadmap
+# are ignored explicitly to keep the PR queue actionable.
 
 updates:
   # Frontend — npm
@@ -22,6 +24,18 @@ updates:
         update-types: ["patch"]
       frontend-minor:
         update-types: ["minor"]
+    ignore:
+      # Held back for the post-1.0 frontend modernization wave.
+      - dependency-name: "vite"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "vue-i18n"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@tiptap/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
 
   # Backend — pip
   - package-ecosystem: "pip"
@@ -40,6 +54,14 @@ updates:
         update-types: ["patch"]
       backend-minor:
         update-types: ["minor"]
+    ignore:
+      # Major bumps deferred to a dedicated batch (psutil 5 -> 7,
+      # chardet 5 -> 7) — runtime profile + character detection
+      # changes need their own validation cycle.
+      - dependency-name: "psutil"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "chardet"
+        update-types: ["version-update:semver-major"]
 
   # GitHub Actions themselves
   - package-ecosystem: "github-actions"
