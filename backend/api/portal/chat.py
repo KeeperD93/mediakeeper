@@ -1,19 +1,21 @@
 """Portal chat endpoints (REST + WebSocket)."""
-from __future__ import annotations
-
 import json
 import logging
 import os
+import time
 from datetime import datetime, timezone
 from typing import Optional
 from urllib.parse import urlsplit
 
-from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.csrf_helpers import same_origin, websocket_canonical_origin
 from core.database import get_db, AsyncSessionLocal
+from core.rate_limit import limiter, portal_user_or_ip_key
 from core.security import decode_access_token, is_token_valid_for_revocation_pivot
 from models.user import User
 from models.portal.profile import UserProfile
@@ -47,30 +49,71 @@ _ws_rooms: dict[int, dict[int, tuple[WebSocket, datetime]]] = {}
 
 
 def _allowed_origins() -> list[str]:
-    """Return the allowlist of origins that may open a chat WebSocket.
-
-    Sources ``FRONTEND_ORIGIN`` (CSV of fully-qualified origins). An empty
-    env var keeps the strict default — no origin is accepted, which is
-    safe for handshake rejection during initial setup. Operators add
-    their public origin via ``.env`` to enable chat.
-    """
+    """Return the operator-supplied allowlist of origins that may open a
+    chat WebSocket. Sources ``FRONTEND_ORIGIN`` (CSV of fully-qualified
+    origins). When empty, the helper returns ``[]`` and the caller
+    falls back to the auto-derive path (see ``_origin_is_allowed``)."""
     raw = os.getenv("FRONTEND_ORIGIN", "")
     return [item.strip() for item in raw.split(",") if item.strip()]
 
 
-def _origin_is_allowed(origin: str | None) -> bool:
+_AUTO_DERIVE_WARNING_LOGGED = False
+
+
+def _log_auto_derive_warning_once() -> None:
+    """Emit a single warning log when chat falls back to the auto-derive
+    path. Repeated handshakes don't spam the logs — the operator only
+    needs the hint once per process lifetime."""
+    global _AUTO_DERIVE_WARNING_LOGGED
+    if _AUTO_DERIVE_WARNING_LOGGED:
+        return
+    _AUTO_DERIVE_WARNING_LOGGED = True
+    logger.warning(
+        "[CHAT_WS] FRONTEND_ORIGIN is not set: accepting chat WebSocket "
+        "handshakes against the auto-derived canonical origin (Host header "
+        "or trusted X-Forwarded-Host). Set FRONTEND_ORIGIN explicitly in "
+        "production for stricter posture."
+    )
+
+
+def _origin_is_allowed(origin: str | None, websocket: WebSocket | None = None) -> bool:
+    """Decide whether the WebSocket handshake should proceed.
+
+    Two modes:
+
+    1. Operator allowlist — ``FRONTEND_ORIGIN`` env CSV is honoured
+       strictly when set.
+    2. Auto-derive — when ``FRONTEND_ORIGIN`` is empty, the Origin
+       header is compared against the canonical origin derived from
+       the WebSocket scope (``Host`` for direct LAN, trusted
+       ``X-Forwarded-Host`` for reverse-proxy mode). A WARN line is
+       logged once per process so the operator knows to tighten the
+       posture for production.
+    """
     if not origin:
         return False
     parsed = urlsplit(origin)
     if not parsed.scheme or not parsed.netloc:
         return False
-    canonical = f"{parsed.scheme}://{parsed.netloc}".lower()
-    for allowed in _allowed_origins():
-        ap = urlsplit(allowed)
-        if not ap.scheme or not ap.netloc:
-            continue
-        if f"{ap.scheme}://{ap.netloc}".lower() == canonical:
-            return True
+    canonical_request = f"{parsed.scheme}://{parsed.netloc}".lower()
+
+    allow_list = _allowed_origins()
+    if allow_list:
+        for allowed in allow_list:
+            ap = urlsplit(allowed)
+            if not ap.scheme or not ap.netloc:
+                continue
+            if f"{ap.scheme}://{ap.netloc}".lower() == canonical_request:
+                return True
+        return False
+
+    # Auto-derive fallback — operator did not opt into the allowlist.
+    if websocket is None:
+        return False
+    expected = websocket_canonical_origin(websocket).lower()
+    if same_origin(origin, expected):
+        _log_auto_derive_warning_once()
+        return True
     return False
 
 
@@ -119,13 +162,19 @@ async def get_messages(
     up: tuple[User, UserProfile] = Depends(require_permission("can_chat")),
     db: AsyncSession = Depends(get_db),
 ):
-    return await chat_svc.get_messages(db, room_id, cursor, limit)
+    user, _ = up
+    result = await chat_svc.get_messages(db, room_id, user.id, cursor, limit)
+    if isinstance(result, dict) and result.get("error") == "forbidden":
+        raise HTTPException(status_code=403, detail="forbidden")
+    return result
 
 
 @router.post("/rooms/{room_id}/messages")
+@limiter.limit("30/minute", key_func=portal_user_or_ip_key)
 async def send_message(
     room_id: int,
     data: SendMessage,
+    request: Request,
     up: tuple[User, UserProfile] = Depends(require_permission("can_chat")),
     db: AsyncSession = Depends(get_db),
 ):
@@ -179,11 +228,51 @@ async def report_message(
     return result
 
 
+# Cooldown between two diagnostic WARN lines fired by the WS upgrade
+# fallback (HTTP GET on the WS path). One per hour is enough — the hint
+# is for the operator, not the attacker.
+_WS_UPGRADE_LOG_COOLDOWN_SECONDS = 3600
+# Initialised to -inf so the very first occurrence always passes the
+# cooldown check, regardless of the value time.monotonic() returns at
+# process start (it is monotonic, not Unix epoch).
+_last_ws_upgrade_log: float = float("-inf")
+
+
+def _log_ws_upgrade_missing_once_per_hour() -> None:
+    global _last_ws_upgrade_log
+    now = time.monotonic()
+    if now - _last_ws_upgrade_log < _WS_UPGRADE_LOG_COOLDOWN_SECONDS:
+        return
+    _last_ws_upgrade_log = now
+    logger.warning(
+        "[CHAT_WS] received an HTTP GET on the chat WebSocket path. "
+        "The reverse proxy is probably not forwarding the Upgrade / "
+        "Connection headers. See docs/deployment for the matching "
+        "stack (synology-dsm, nginx-proxy-manager, caddy, traefik)."
+    )
+
+
+@router.get("/ws/{room_id}")
+async def chat_ws_http_fallback(room_id: int):
+    """HTTP GET arriving at the WS path means the reverse proxy did not
+    upgrade the connection to a WebSocket. Return 426 with the explicit
+    ``Upgrade: websocket`` header and log a one-line operator hint
+    (rate-limited 1/h) so the misconfiguration surfaces in container
+    logs without flooding them.
+    """
+    _log_ws_upgrade_missing_once_per_hour()
+    return JSONResponse(
+        status_code=426,
+        content={"detail": "websocket_upgrade_required"},
+        headers={"Upgrade": "websocket", "Connection": "Upgrade"},
+    )
+
+
 @router.websocket("/ws/{room_id}")
 async def websocket_chat(websocket: WebSocket, room_id: int):
     """WebSocket endpoint for real-time chat."""
     origin = websocket.headers.get("origin")
-    if not _origin_is_allowed(origin):
+    if not _origin_is_allowed(origin, websocket=websocket):
         await websocket.close(code=WS_CLOSE_ORIGIN_REJECTED)
         return
 
@@ -192,6 +281,14 @@ async def websocket_chat(websocket: WebSocket, room_id: int):
         await websocket.close(code=WS_CLOSE_AUTH_FAILED)
         return
     user_id, jwt_iat = auth
+
+    # Hand-shake membership gate: refuse the connection if the user is
+    # not allowed in this room. Without this, an attacker who knows a
+    # private ``room_id`` could open the socket and only fail on send.
+    async with AsyncSessionLocal() as db:
+        if not await chat_svc.user_can_access_room(db, room_id, user_id):
+            await websocket.close(code=WS_CLOSE_AUTH_FAILED)
+            return
 
     await websocket.accept()
 

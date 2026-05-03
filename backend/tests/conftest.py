@@ -27,6 +27,12 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 
 import models  # noqa: F401  # Ensure every model is registered in Base.metadata
+# Importing ``main`` at conftest load time guarantees that every top-level
+# model file (security, healthcheck, scheduler…) is imported before
+# ``setup_db`` runs ``Base.metadata.create_all``. Without this, isolated
+# test runs (``pytest -k single_test``) hit ``no such table`` errors
+# because ``models/__init__.py`` only re-exports the portal submodule.
+import main  # noqa: F401, E402
 from models.base import Base
 from models.user import User
 from core.security import hash_password
@@ -77,6 +83,17 @@ async def setup_db():
     yield
     async with _test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
+
+
+@pytest.fixture(autouse=True)
+def _reset_rate_limiter():
+    """Clear slowapi's in-memory buckets between tests so a noisy
+    rate-limit test cannot starve an unrelated one. Cheap (memory-only
+    reset) so applying it globally has no measurable cost."""
+    from core.rate_limit import limiter
+    limiter.reset()
+    yield
+    limiter.reset()
 
 
 @pytest_asyncio.fixture

@@ -229,7 +229,11 @@ async def public_profile_by_user(
         raise HTTPException(status_code=404, detail="profile_not_found")
 
     if not is_self and not row.is_public:
-        raise HTTPException(status_code=403, detail="profile_private")
+        # Return 404 instead of 403 so a caller cannot tell apart
+        # "this account exists but is private" from "this account does
+        # not exist" — both are equally non-discoverable from the
+        # outside.
+        raise HTTPException(status_code=404, detail="profile_not_found")
 
     base = _serialize_public(row)
 

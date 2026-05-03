@@ -36,27 +36,44 @@ from starlette.types import ASGIApp
 from core.proxy import is_request_secure
 
 
+CSP_REPORT_PATH = "/api/csp-violation-report"
+
+# Each whitelisted third-party host carries a one-line traceability
+# comment so a future audit can confirm the source is still in use.
+# Drop a domain from this list iff the corresponding feature is gone
+# AND a grep on the codebase confirms no remaining reference.
 CSP_DIRECTIVES = "; ".join([
     "default-src 'self'",
     # ``'unsafe-eval'`` is required by vue-i18n's runtime template
-    # compiler (``new Function()``). ``https://www.youtube.com`` is the
-    # origin of the IFrame API loader (``/iframe_api``); the embedded
-    # iframes themselves still target ``youtube-nocookie.com`` (see
-    # ``frame-src`` below) so cookies stay disabled. See module
-    # docstring for the ``'unsafe-eval'`` removal plan.
+    # compiler (``new Function()``). See module docstring for removal
+    # plan.
+    # https://www.youtube.com — IFrame API loader (/iframe_api); embed
+    # iframes themselves target youtube-nocookie.com on frame-src.
     "script-src 'self' 'unsafe-eval' https://www.youtube.com",
+    # https://fonts.googleapis.com — Google Fonts CSS preconnect from
+    # frontend/index.html.
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    # https://fonts.gstatic.com — woff2 binary served alongside the CSS.
     "font-src 'self' https://fonts.gstatic.com",
-    "img-src 'self' data: https://image.tmdb.org https://i.imgur.com",
+    # https://image.tmdb.org — TMDB posters / backdrops.
+    # https://i.imgur.com — operator-supplied banner uploads.
+    # https://img.youtube.com — YouTube trailer thumbnails (hqdefault.jpg)
+    # composed by services.portal.discover_details_enrich.
+    "img-src 'self' data: https://image.tmdb.org https://i.imgur.com https://img.youtube.com",
     "connect-src 'self'",
-    # Trailers embed YouTube and Vimeo players; without an explicit
-    # ``frame-src`` the ``default-src 'self'`` fallback would block them.
+    # https://www.youtube-nocookie.com — privacy-friendly YouTube embed
+    # used by the trailer player.
+    # https://player.vimeo.com — Vimeo embed used by the same player.
     "frame-src 'self' https://www.youtube-nocookie.com https://player.vimeo.com",
     # Defence in depth: MediaKeeper never renders ``<object>`` / ``<embed>``.
     "object-src 'none'",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
+    # Browsers POST violation reports here. Kept on the legacy
+    # ``report-uri`` directive — broader support than ``report-to``
+    # across the Chromium / Firefox / Safari matrix as of 2026.
+    f"report-uri {CSP_REPORT_PATH}",
 ])
 
 HSTS_VALUE = "max-age=31536000; includeSubDomains"

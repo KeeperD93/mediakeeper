@@ -5,9 +5,9 @@ import os
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from slowapi.util import get_remote_address
+from slowapi.middleware import SlowAPIMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse as _JSONResponse
 
@@ -35,6 +35,7 @@ from api.auth import router as auth_router
 from api.backup import router as backup_router
 from api.changelog import APP_VERSION, router as changelog_router
 from api.core_routes import register_health_route, router as core_router
+from api.csp_report import router as csp_report_router
 from api.portal import router as portal_router
 from api.portal_changelog import router as portal_changelog_router
 from api.duplicates import router as duplicates_router
@@ -57,7 +58,8 @@ from api.watchlist import router as watchlist_router
 from core.app_spa import register_spa
 from core.app_startup import is_db_ready, lifespan, setup_logging
 from core.csrf_middleware import CsrfMiddleware
-from core.proxy import ProxyHeadersMiddleware, get_client_ip
+from core.proxy import ProxyHeadersMiddleware
+from core.rate_limit import limiter
 from core.security_headers import SecurityHeadersMiddleware
 
 setup_logging()
@@ -76,18 +78,16 @@ class _StartupMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
 
-app.add_middleware(_StartupMiddleware)
-app.add_middleware(CsrfMiddleware)
-app.add_middleware(SecurityHeadersMiddleware)
-
-
-def _rate_limit_key(request: Request) -> str:
-    return get_client_ip(request) or get_remote_address(request)
-
-
-limiter = Limiter(key_func=_rate_limit_key, default_limits=["120/minute"])
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+app.add_middleware(_StartupMiddleware)
+app.add_middleware(CsrfMiddleware)
+# Slowapi sits between CSRF and SecurityHeaders so 429 responses still
+# carry the security headers (defence-in-depth on every response) while
+# the rate-limit kicks in before the inner application work runs.
+app.add_middleware(SlowAPIMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
 
 MK_DEBUG = os.getenv("MK_DEBUG", "false").lower() in ("true", "1", "yes")
 
@@ -138,6 +138,7 @@ app.include_router(portal_admin_users_actions_router)
 app.include_router(portal_admin_users_emby_router)
 app.include_router(portal_admin_users_feed_router)
 app.include_router(security_router)
+app.include_router(csp_report_router)
 app.include_router(core_router)
 
 register_health_route(app, APP_VERSION, is_db_ready)
