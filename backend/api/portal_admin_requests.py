@@ -9,7 +9,6 @@ Exposed routes (mounted under ``/api/portal/admin/requests``):
 - ``POST   /users/import``      — batch import Emby users
 - ``GET    /users``             — list every UserProfile
 - ``PATCH  /users/{id}``        — update active flag, role, chat settings
-- ``DELETE /users/{id}``        — delete a profile (and its User row)
 - ``POST   /enter``             — grant current MK admin a Portal session
 - ``GET    /chat/reports``      — list open chat moderation reports
 - ``POST   /chat/reports/{id}/dismiss`` — mark report handled
@@ -20,7 +19,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, Field
 from typing import Optional
-from sqlalchemy import select, delete
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
@@ -232,31 +231,5 @@ async def admin_delete_chat_message(
         .where(ChatReport.message_id == message_id, ChatReport.handled.is_(False))
         .values(handled=True)
     )
-    await db.commit()
-    return {"ok": True}
-
-
-@router.delete("/users/{profile_id}")
-async def delete_user(
-    profile_id: int,
-    csrf_protected: None = Depends(require_csrf),
-    _: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    """
-    Delete a Portal profile *and* its associated MediaKeeper user
-    row. We intentionally cascade because the User row exists only for
-        the Portal login path — removing one without the other would
-    leave orphans around.
-    """
-    profile = (
-        await db.execute(select(UserProfile).where(UserProfile.id == profile_id))
-    ).scalar_one_or_none()
-    if not profile:
-        raise HTTPException(status_code=404, detail="profile_not_found")
-
-    user_id = profile.user_id
-    await db.delete(profile)
-    await db.execute(delete(User).where(User.id == user_id))
     await db.commit()
     return {"ok": True}
