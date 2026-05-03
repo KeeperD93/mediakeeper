@@ -38,6 +38,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Déploiement — guides par stack reverse-proxy (LAN, DSM, NPM, Caddy, Traefik)
 
 ### Fixed
+- Portail — corrige le 500 quand le portail envoie un tmdb_id texte
 - Utilisateurs — compte admin local marqué « Local » et plus comme source Emby
 - Utilisateurs — date de dernière connexion admin renseignée à chaque login MK
 - Utilisateurs — bandeau de stats actualisé immédiatement après désactivation/changement

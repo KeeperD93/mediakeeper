@@ -2,6 +2,7 @@
 import asyncio
 import logging
 from datetime import date
+from typing import Literal
 
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
@@ -41,8 +42,22 @@ router = APIRouter(prefix="/availability", tags=["portal-availability"])
 logger = logging.getLogger("mediakeeper.portal.availability")
 
 
+class AvailabilityItem(BaseModel):
+    """Single entry in the batch availability query.
+
+    Pydantic v2 coerces a numeric string into an ``int`` automatically
+    (matches the historical frontend payload that occasionally sent
+    ``tmdb_id`` as a string). Non-numeric input returns a clean 422
+    instead of crashing on the asyncpg parameter binding — the
+    underlying ``EmbyTmdbIndex.tmdb_id`` is a strict ``Integer`` column
+    that refuses anything else.
+    """
+    tmdb_id: int
+    media_type: Literal["movie", "tv"] = "movie"
+
+
 class AvailabilityQuery(BaseModel):
-    items: list[dict]
+    items: list[AvailabilityItem]
 
 
 @router.post("")
@@ -60,7 +75,7 @@ async def check_availability(
     if not query.items:
         return {"results": {}}
 
-    tmdb_ids = [it.get("tmdb_id") for it in query.items if it.get("tmdb_id")]
+    tmdb_ids = [it.tmdb_id for it in query.items if it.tmdb_id]
     if not tmdb_ids:
         return {"results": {}}
 
@@ -97,8 +112,8 @@ async def check_availability(
     # Movies and non-indexed items skip the check entirely.
     tv_jobs: dict[int, asyncio.Task] = {}
     for it in query.items:
-        tmdb_id = it.get("tmdb_id")
-        media_type = it.get("media_type", "movie")
+        tmdb_id = it.tmdb_id
+        media_type = it.media_type
         entries_for_tmdb = index_map.get(tmdb_id)
         if entries_for_tmdb and media_type == "tv":
             emby_ids = [e.emby_item_id for e in entries_for_tmdb]
@@ -118,8 +133,8 @@ async def check_availability(
 
     results = {}
     for it in query.items:
-        tmdb_id = it.get("tmdb_id")
-        media_type = it.get("media_type", "movie")
+        tmdb_id = it.tmdb_id
+        media_type = it.media_type
         if not tmdb_id:
             continue
 
