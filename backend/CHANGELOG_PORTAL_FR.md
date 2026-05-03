@@ -17,6 +17,7 @@ utilisateurs.
 ## [Unreleased]
 
 ### Added
+- Crédits — nouvelle page (TMDB, OpenSubtitles, Emby, Imgur, YouTube) accessible depuis le pied de page
 - Paramètres — onglet Compte affiche la date d'expiration du compte (ou « Aucune limite »)
 - Notifications — admins et modérateurs voient les messages de chat signalés dans la cloche
 - Chat — bouton signalement animé puis verrouillé après envoi (impossible de re-signaler)
