@@ -1,0 +1,10 @@
+# Force LF on shell scripts and Docker config so Windows core.autocrlf=true
+# cannot break entrypoints in Docker. See https://git-scm.com/docs/gitattributes
+*.sh           text eol=lf
+*.bash         text eol=lf
+Dockerfile     text eol=lf
+docker-compose*.yml text eol=lf
+.dockerignore  text eol=lf
+
+# Default: Git auto-detects line endings on text files.
+* text=auto

@@ -63,7 +63,9 @@ RUN mkdir -p /data/pg /data/logs /data/backups \
 # Entrypoint
 # ============================================
 COPY entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
+# Strip CRLF if a Windows checkout slipped through gitattributes.
+# Self-healing — the image always has LF regardless of source line endings.
+RUN sed -i 's/\r$//' /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 
 EXPOSE 8888
 
