@@ -32,6 +32,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Confiance proxy stricte, en-têtes sécurité (CSP/HSTS) et cookies sécurisés
 - Sessions révocables, scopes tokens stricts et WebSocket sécurisé
 - Renforcement XSS — schémas d'URL filtrés, sanitization HTML resserrée
+- CSP — autorise le loader YouTube et conserve l'iframe sans cookies
 
 ### Fixed
 - Utilisateurs — compte admin local marqué « Local » et plus comme source Emby

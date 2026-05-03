@@ -73,6 +73,12 @@ export function useEmbyHeroTrailer({ onTrailerEnded } = {}) {
     // the IFrame API throw a cryptic error.
     if (!document.getElementById(playerId)) return
     player = new window.YT.Player(playerId, {
+      // Force the iframe origin to ``youtube-nocookie.com`` so the
+      // privacy-enhanced mode is honoured even though the IFrame API
+      // loader itself is served from ``youtube.com`` (see CSP
+      // ``script-src``). Aligns with ``frame-src`` in
+      // ``backend/core/security_headers.py``.
+      host: 'https://www.youtube-nocookie.com',
       videoId: key,
       playerVars: {
         autoplay: 1,

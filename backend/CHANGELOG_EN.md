@@ -32,6 +32,7 @@ This section intentionally has no date so it is not shown to users.
 - Strict proxy trust, security headers (CSP/HSTS) and secure cookies
 - Revocable sessions, strict token scopes and secured WebSocket
 - XSS hardening — URL scheme filtering, tighter HTML sanitization
+- CSP — allow YouTube loader and keep iframe in privacy mode
 
 ### Fixed
 - Users — local admin account flagged as "Local" instead of an Emby source
