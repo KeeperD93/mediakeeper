@@ -118,7 +118,11 @@ async def get_messages(
     up: tuple[User, UserProfile] = Depends(require_permission("can_chat")),
     db: AsyncSession = Depends(get_db),
 ):
-    return await chat_svc.get_messages(db, room_id, cursor, limit)
+    user, _ = up
+    result = await chat_svc.get_messages(db, room_id, user.id, cursor, limit)
+    if isinstance(result, dict) and result.get("error") == "forbidden":
+        raise HTTPException(status_code=403, detail="forbidden")
+    return result
 
 
 @router.post("/rooms/{room_id}/messages")
@@ -193,6 +197,14 @@ async def websocket_chat(websocket: WebSocket, room_id: int):
         await websocket.close(code=WS_CLOSE_AUTH_FAILED)
         return
     user_id, jwt_iat = auth
+
+    # Hand-shake membership gate: refuse the connection if the user is
+    # not allowed in this room. Without this, an attacker who knows a
+    # private ``room_id`` could open the socket and only fail on send.
+    async with AsyncSessionLocal() as db:
+        if not await chat_svc.user_can_access_room(db, room_id, user_id):
+            await websocket.close(code=WS_CLOSE_AUTH_FAILED)
+            return
 
     await websocket.accept()
 

@@ -13,6 +13,32 @@ from services.portal.chat_presenters import resolve_display_name, serialize_mess
 
 logger = logging.getLogger("mediakeeper.portal.chat")
 
+# Room types every chat-enabled user is allowed to read/write into.
+# ``lounge`` is the only type currently seeded, but the schema supports
+# request-linked and event-linked rooms. Membership for those types
+# must be enforced explicitly at call sites that create them — the
+# default policy here errs on the side of refusing access.
+PUBLIC_ROOM_TYPES = frozenset({"lounge"})
+
+
+async def user_can_access_room(
+    db: AsyncSession, room_id: int, user_id: int,
+) -> bool:
+    """Return True iff the caller may read or post into ``room_id``.
+
+    Today the lounge is shared by every chat-enabled user, so the default
+    answer is permissive for ``type='lounge'``. Future room types
+    (``event`` party rooms with invitation, ``request`` per-thread rooms)
+    should branch here so the membership check stays in one place rather
+    than being duplicated on every call site.
+    """
+    room = await db.get(ChatRoom, room_id)
+    if room is None:
+        return False
+    if room.type in PUBLIC_ROOM_TYPES:
+        return True
+    return False
+
 
 async def get_or_create_room(
     db: AsyncSession,
@@ -138,6 +164,8 @@ async def send_message(
     content: str,
 ) -> dict:
     """Send a message to a room."""
+    if not await user_can_access_room(db, room_id, user_id):
+        return {"error": "forbidden"}
     if await is_muted(db, user_id):
         return {"error": "muted"}
 
@@ -162,10 +190,13 @@ async def send_message(
 async def get_messages(
     db: AsyncSession,
     room_id: int,
+    user_id: int,
     cursor: str | None = None,
     limit: int = 50,
 ) -> dict:
     """Get messages for a room with cursor pagination."""
+    if not await user_can_access_room(db, room_id, user_id):
+        return {"error": "forbidden"}
     query = (
         select(ChatMessage)
         .where(ChatMessage.room_id == room_id, ChatMessage.deleted == False)  # noqa: E712
