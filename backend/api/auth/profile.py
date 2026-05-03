@@ -60,8 +60,10 @@ async def change_password(
     user.must_change_password = False
     # Stamp the revocation pivot before issuing the new token so every JWT
     # already minted for this account on other devices is rejected on the
-    # next request, while the new token (iat == now) stays valid.
-    user.tokens_invalidated_at = datetime.now(timezone.utc)
+    # next request, while the new token (iat == now) stays valid. The
+    # pivot is floored to whole seconds because JWT ``iat`` is encoded
+    # with second resolution.
+    user.tokens_invalidated_at = datetime.now(timezone.utc).replace(microsecond=0)
     db.add(user)
     await db.commit()
     await db.refresh(user)

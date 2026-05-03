@@ -30,6 +30,7 @@ This section intentionally has no date so it is not shown to users.
 - Automatic webhook alerts on critical incidents (health, DB, scheduler, dump)
 - Security updates (JWT, cryptography, multipart, frontend build)
 - Strict proxy trust, security headers (CSP/HSTS) and secure cookies
+- Revocable sessions, strict token scopes and secured WebSocket
 
 ### Fixed
 - Users — local admin account flagged as "Local" instead of an Emby source

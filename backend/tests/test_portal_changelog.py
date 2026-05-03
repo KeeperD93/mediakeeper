@@ -5,6 +5,7 @@ import pytest
 from api.portal_changelog import PORTAL_VERSION, _parse_changelog
 from core.security import create_access_token, hash_password
 from models.user import User
+from models.portal.profile import UserProfile
 
 
 @pytest.mark.asyncio
@@ -28,12 +29,21 @@ async def test_parser_reads_the_shipped_changelog():
 
 
 async def _seed_portal_viewer(client, db_session, username: str = "viewer_portal"):
-    """Create a user and attach a valid Portal-scoped token to the client."""
-    db_session.add(User(
+    """Create a user + portal profile and attach a Portal-scoped token."""
+    user = User(
         username=username,
         hashed_password=hash_password("ViewerPassword123!"),
         is_active=True,
         must_change_password=False,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    db_session.add(UserProfile(
+        user_id=user.id,
+        display_name=username,
+        role="viewer",
+        account_active=True,
     ))
     await db_session.commit()
 

@@ -307,6 +307,8 @@ async def prune_revoked_ws_sessions(db: AsyncSession) -> int:
         pivot = pivots.get(user_id)
         if pivot is None:
             continue
+        if pivot.tzinfo is None:
+            pivot = pivot.replace(tzinfo=timezone.utc)
         if iat >= pivot:
             continue
         try:
