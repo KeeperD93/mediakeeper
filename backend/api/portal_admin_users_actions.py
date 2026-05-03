@@ -14,6 +14,7 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
+from core.rate_limit import ip_key, limiter
 from models.user import User
 from api.auth import get_current_user, require_csrf
 
@@ -259,6 +260,7 @@ async def post_notify(
 
 
 @router.post("/{profile_id}/reset-password")
+@limiter.limit("3/minute", key_func=ip_key)
 async def post_reset_password(
     profile_id: int,
     request: Request,
