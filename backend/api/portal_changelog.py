@@ -14,7 +14,8 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from core.database import get_db
 from models.user import User
-from api.portal.deps import get_portal_user
+from models.portal.profile import UserProfile
+from api.portal.deps import get_current_profile
 
 logger = logging.getLogger("mediakeeper.portal_changelog")
 
@@ -96,7 +97,7 @@ def _parse_changelog(lang: str = "fr", max_versions: int = 0) -> list[dict]:
 async def get_portal_changelog(
     limit: int = 0,
     lang: str = "fr",
-    _: User = Depends(get_portal_user),
+    up: tuple[User, UserProfile] = Depends(get_current_profile),
 ):
     """Return the parsed Portal changelog in the requested language."""
     return {
@@ -107,17 +108,23 @@ async def get_portal_changelog(
 
 @router.get("/current")
 async def get_current_portal_version():
-    """Return the current Portal viewer version (no auth required)."""
+    """Return the current Portal viewer version.
+
+    Public on purpose — exposes a version badge with no PII, intentionally
+    unauthenticated so a marketing/landing surface can render it without
+    a login round-trip.
+    """
     return {"version": PORTAL_VERSION}
 
 
 @router.get("/check")
 async def check_new_portal_version(
     db: AsyncSession = Depends(get_db),
-    user: User = Depends(get_portal_user),
+    up: tuple[User, UserProfile] = Depends(get_current_profile),
 ):
     """Check whether the user has seen the current Portal viewer version."""
     from services.settings import get_user_preferences
+    user, _ = up
     prefs = await get_user_preferences(db, user.id)
     prefs_data = json.loads(prefs.preferences) if prefs and prefs.preferences else {}
     seen_version = prefs_data.get("portal_changelog_seen_version", "")
@@ -136,9 +143,10 @@ class MarkSeenRequest(BaseModel):
 async def mark_portal_changelog_seen(
     req: MarkSeenRequest,
     db: AsyncSession = Depends(get_db),
-    user: User = Depends(get_portal_user),
+    up: tuple[User, UserProfile] = Depends(get_current_profile),
 ):
     """Mark the Portal viewer version as seen by the user."""
+    user, _ = up
     version = req.version or PORTAL_VERSION
     from services.settings import get_user_preferences, upsert_user_preferences
     prefs = await get_user_preferences(db, user.id)
