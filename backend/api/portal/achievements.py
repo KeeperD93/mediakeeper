@@ -1,6 +1,7 @@
 """Portal achievement and leaderboard endpoints."""
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
@@ -38,7 +39,28 @@ async def user_achievements(
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):
-    """Get another user's achievements (only unlocked shown)."""
+    """Get another user's achievements (only unlocked shown).
+
+    Visibility mirrors the public profile rules in
+    ``profile_settings.public_profile_by_user``: 404 when the target
+    profile is missing, deactivated, or admin (unless the caller is
+    looking at themselves), and 403 when the target keeps their
+    profile private. Without this gate an attacker could enumerate the
+    admin account's trophies even when ``role=admin`` profiles are
+    hidden everywhere else.
+    """
+    me, _ = up
+    target = (await db.execute(
+        select(UserProfile).where(UserProfile.user_id == user_id)
+    )).scalar_one_or_none()
+    if not target or not target.account_active:
+        raise HTTPException(status_code=404, detail="profile_not_found")
+    is_self = me.id == user_id
+    if target.role == "admin" and not is_self:
+        raise HTTPException(status_code=404, detail="profile_not_found")
+    if not is_self and not target.is_public:
+        raise HTTPException(status_code=403, detail="profile_private")
+
     data = await ach_svc.get_achievements_for_profile(db, user_id)
     data["items"] = [a for a in data["items"] if a["status"] == "unlocked"]
     return data
