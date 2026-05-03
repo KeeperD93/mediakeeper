@@ -45,6 +45,7 @@ This section intentionally has no date so it is not shown to users.
 - Tests — automatic detection of third-party hosts missing from the security policy
 
 ### Fixed
+- Enforce LF line endings on scripts and auto-fix CRLF during Docker build
 - UX: credits padding, deduplicated login GitHub link, dropped container mention
 - Fix Discord notification titles rendered as raw text instead of links
 - Portal — fix 500 when the portal sends a tmdb_id as text

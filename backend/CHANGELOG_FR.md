@@ -45,6 +45,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Tests — détection automatique des domaines tiers absents de la politique de sécurité
 
 ### Fixed
+- Force fin de ligne LF sur scripts et auto-fix CRLF au build Docker
 - UX : padding crédits, lien GitHub login dédupliqué, retrait mention container
 - Corrige les titres Discord affichés en texte brut au lieu de liens
 - Portail — corrige le 500 quand le portail envoie un tmdb_id texte
