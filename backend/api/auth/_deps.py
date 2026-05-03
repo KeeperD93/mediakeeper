@@ -4,7 +4,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
-from core.security import decode_access_token, is_backoffice_admin
+from core.security import (
+    decode_access_token,
+    is_backoffice_admin,
+    is_token_valid_for_revocation_pivot,
+)
 from models.user import User
 
 from ._cookies import COOKIE_NAME
@@ -43,6 +47,11 @@ async def get_current_user(
 
     if not user or not user.is_active:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="user_not_found")
+    if not is_token_valid_for_revocation_pivot(payload.get("iat"), user.tokens_invalidated_at):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="session_revoked",
+        )
     # Blocking of imported Emby/Jellyfin accounts is already done at login.
     # Here we avoid a bcrypt.checkpw on every protected request.
     if not is_backoffice_admin(user.username):
