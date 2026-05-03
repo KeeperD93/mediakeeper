@@ -8,14 +8,19 @@ from sqlalchemy import select, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.url_safety import safe_url
 from models.portal.social import (
     UserList, UserListItem, PRIVACY_COLLABORATIVE, PRIVACY_PRIVATE,
 )
-from services.portal import sanitize
+from services.portal import strip_tags_and_trim
 from services.portal.lists import (
     MAX_ITEMS_PER_LIST, MAX_NAME_LEN,
     can_view, can_edit_items, _log, _rate_limited,
 )
+
+# Mirrors the CSP ``img-src`` whitelist so the persisted poster URL can
+# always be rendered without bumping into the page's content policy.
+_POSTER_ALLOWED_HOSTS = ("image.tmdb.org", "i.imgur.com")
 
 logger = logging.getLogger("mediakeeper.portal.lists_items")
 
@@ -48,8 +53,11 @@ async def add_items(
         media_type = str(raw.get("media_type") or "").strip().lower()
         if not tmdb_id or media_type not in ("movie", "tv"):
             continue
-        title = sanitize(raw.get("title") or "", 500) or None
-        poster_url = sanitize(raw.get("poster_url") or "", 500) or None
+        title = strip_tags_and_trim(raw.get("title") or "", 500) or None
+        poster_url = safe_url(
+            raw.get("poster_url") or "",
+            allowed_hosts=_POSTER_ALLOWED_HOSTS,
+        )
         year_raw = raw.get("year")
         try:
             year = int(year_raw) if year_raw not in (None, "") else None
@@ -236,7 +244,7 @@ async def copy_list(
     if src.privacy == PRIVACY_PRIVATE and src.user_id != user_id:
         return {"error": "forbidden"}
 
-    name = sanitize(new_name or src.name, MAX_NAME_LEN) or src.name
+    name = strip_tags_and_trim(new_name or src.name, MAX_NAME_LEN) or src.name
     new_list = UserList(
         user_id=user_id, name=name, description=src.description,
         privacy=PRIVACY_PRIVATE, content_type=src.content_type,
