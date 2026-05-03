@@ -12,7 +12,7 @@
     <div class="login-grid" aria-hidden="true" />
 
     <div v-if="!backendReady" class="login-waiting">
-      <img src="/assets/icons/mediakeeper.png" alt="MediaKeeper" class="login-waiting-logo" />
+      <img :src="logoUrl" alt="MediaKeeper" class="login-waiting-logo" />
       <div class="login-waiting-ring">
         <svg viewBox="0 0 48 48">
           <circle cx="24" cy="24" r="20" stroke="rgba(255,255,255,.06)" stroke-width="2" fill="none" />
@@ -34,7 +34,7 @@
         <div class="login-hero">
           <div class="login-hero-glow" aria-hidden="true" />
           <div class="login-hero-content">
-            <img src="/assets/icons/mediakeeper_banner.png" alt="MediaKeeper" class="login-hero-banner" />
+            <img :src="bannerUrl" alt="MediaKeeper" class="login-hero-banner" />
             <h1 class="sr-only">{{ t('login.title') }}</h1>
             <p class="login-hero-sub">{{ t('login.title') }}</p>
           </div>
@@ -93,7 +93,12 @@
             </a>
           </div>
 
-          <span v-if="appVersion" class="login-version">v{{ appVersion }}</span>
+          <p v-if="appVersion" class="login-version" data-test="login-version">
+            MediaKeeper v{{ appVersion }} —
+            <a :href="repoUrl" target="_blank" rel="noopener noreferrer" data-test="login-github-link">
+              {{ t('attribution.githubLink') }}
+            </a>
+          </p>
         </div>
       </div>
     </transition>
@@ -129,6 +134,10 @@ const appVersion = ref('')
 const pageRef = ref(null)
 const canvasRef = ref(null)
 let cleanupParticles = null
+
+const repoUrl = 'https://github.com/KeeperD93/mediakeeper'
+const logoUrl = '/assets/icons/mediakeeper.png'
+const bannerUrl = '/assets/icons/mediakeeper_banner.png'
 
 function getRedirectTarget() {
   return typeof route.query.redirect === 'string' ? route.query.redirect : ''

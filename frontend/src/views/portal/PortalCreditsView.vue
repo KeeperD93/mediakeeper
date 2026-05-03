@@ -26,7 +26,6 @@
           />
         </a>
         <p class="pc-legal" data-test="pc-tmdb-legal">{{ tmdbLegalText }}</p>
-        <p v-if="locale !== 'en'" class="pc-legal-note">{{ t('attribution.tmdb.unofficialNote') }}</p>
       </section>
 
       <section class="pc-section" data-test="pc-opensubtitles">
@@ -56,7 +55,7 @@
         <p>
           MediaKeeper v{{ appVersion }} —
           <a :href="repoUrl" target="_blank" rel="noopener noreferrer">
-            {{ t('attribution.credits.sourceOnGithub') }}
+            {{ t('attribution.githubLink') }}
           </a>
         </p>
       </footer>
@@ -68,7 +67,7 @@
 import { useI18n } from 'vue-i18n'
 import pkg from '../../../package.json'
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 
 const appVersion = pkg.version
 const repoUrl = 'https://github.com/KeeperD93/mediakeeper'
@@ -86,7 +85,11 @@ const tmdbLegalText = 'This product uses the TMDB API but is not endorsed or cer
 <style scoped>
 .pc-root {
   min-height: 100%;
-  padding: 24px 16px 48px;
+  padding: 88px 16px 48px;
+}
+
+@media (max-width: 767px) {
+  .pc-root { padding-top: 76px; }
 }
 
 .pc-inner {
@@ -169,12 +172,6 @@ const tmdbLegalText = 'This product uses the TMDB API but is not endorsed or cer
 .pc-legal {
   max-width: 60ch;
   font-size: var(--text-sm, 14px);
-}
-
-.pc-legal-note {
-  font-size: var(--text-xs, 12px);
-  color: var(--text-muted);
-  font-style: italic;
 }
 
 .pc-footer {
