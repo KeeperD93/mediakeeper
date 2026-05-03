@@ -15,6 +15,9 @@ from __future__ import annotations
 from typing import Any, Iterable
 
 from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.security import EXTERNAL_AUTH_PASSWORD_SENTINEL, hash_password
@@ -34,6 +37,72 @@ from .admin_users_constants import (
     SOURCE_EMBY,
     SOURCE_LOCAL,
 )
+
+
+async def _insert_user_or_fetch(db: AsyncSession, username: str) -> User | None:
+    """Idempotent ``users`` insert that survives a parallel import.
+
+    Returns the row owning the username after the call, whether it
+    already existed or was just created. ``None`` is only returned when
+    the row is genuinely missing on a backend that does not support
+    ``ON CONFLICT`` (defensive — should never happen in practice).
+    """
+    dialect_name = db.bind.dialect.name if db.bind is not None else ""
+    values = {
+        "username": username,
+        "hashed_password": hash_password(EXTERNAL_AUTH_PASSWORD_SENTINEL),
+        "is_active": True,
+        "must_change_password": False,
+    }
+    if dialect_name == "postgresql":
+        await db.execute(
+            pg_insert(User).values(**values).on_conflict_do_nothing(
+                index_elements=["username"]
+            )
+        )
+    elif dialect_name == "sqlite":
+        await db.execute(
+            sqlite_insert(User).values(**values).on_conflict_do_nothing(
+                index_elements=["username"]
+            )
+        )
+    else:
+        try:
+            await db.execute(User.__table__.insert().values(**values))
+        except IntegrityError:
+            await db.rollback()
+    return (
+        await db.execute(select(User).where(User.username == username))
+    ).scalar_one_or_none()
+
+
+async def _insert_profile_or_skip(db: AsyncSession, **values: Any) -> bool:
+    """Idempotent insert that swallows the duplicate ``user_id`` race.
+
+    Returns ``True`` when a new row was inserted, ``False`` when the
+    profile already existed (concurrent admin won the race).
+    """
+    dialect_name = db.bind.dialect.name if db.bind is not None else ""
+    if dialect_name == "postgresql":
+        result = await db.execute(
+            pg_insert(UserProfile).values(**values).on_conflict_do_nothing(
+                index_elements=["user_id"]
+            )
+        )
+        return (result.rowcount or 0) > 0
+    if dialect_name == "sqlite":
+        result = await db.execute(
+            sqlite_insert(UserProfile).values(**values).on_conflict_do_nothing(
+                index_elements=["user_id"]
+            )
+        )
+        return (result.rowcount or 0) > 0
+    try:
+        await db.execute(UserProfile.__table__.insert().values(**values))
+        return True
+    except IntegrityError:
+        await db.rollback()
+        return False
 
 
 async def backfill_emby_user_ids(db: AsyncSession) -> dict[str, Any]:
@@ -172,26 +241,17 @@ async def import_selected_emby_users(
             skipped += 1
             continue
 
-        existing_user = (await db.execute(
-            select(User).where(User.username == emby_name)
-        )).scalar_one_or_none()
-        if existing_user:
+        # Idempotent insert — survives a parallel import on the same name.
+        user = await _insert_user_or_fetch(db, emby_name)
+        if user is None:
             skipped += 1
             continue
-
-        user = User(
-            username=emby_name,
-            hashed_password=hash_password(EXTERNAL_AUTH_PASSWORD_SENTINEL),
-            is_active=True,
-            must_change_password=False,
-        )
-        db.add(user)
-        await db.flush()
 
         unique_name = await resolve_unique_display_name(
             db, emby_name, exclude_user_id=user.id,
         )
-        profile = UserProfile(
+        inserted = await _insert_profile_or_skip(
+            db,
             user_id=user.id,
             display_name=unique_name,
             avatar_url=f"/api/emby/user-image/{emby_id}",
@@ -201,8 +261,17 @@ async def import_selected_emby_users(
             account_active=False,
             display_name_must_set=True,
         )
-        db.add(profile)
-        db.add(UserPreference(user_id=user.id))
+        if not inserted:
+            # Concurrent admin already materialised the profile.
+            skipped += 1
+            continue
+        # ``UserPreference`` rides the same idempotent contract — a race
+        # would just leave a single row, never two.
+        try:
+            db.add(UserPreference(user_id=user.id))
+            await db.flush()
+        except IntegrityError:
+            await db.rollback()
         await record_audit(
             db,
             admin_user_id=admin_user_id,
