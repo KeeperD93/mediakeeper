@@ -4,7 +4,6 @@ import { mount } from '@vue/test-utils'
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key) => key,
-    locale: { value: 'en' },
   }),
 }))
 
@@ -25,7 +24,7 @@ const mountOpts = {
 }
 
 describe('PortalCreditsView', () => {
-  it('renders the TMDB logo and the mandatory legal text', () => {
+  it('renders the TMDB logo and the mandatory legal text without the unofficial-translation caveat', () => {
     const w = mount(PortalCreditsView, mountOpts)
     const logo = w.find('[data-test="pc-tmdb-logo"]')
     expect(logo.exists()).toBe(true)
@@ -34,6 +33,7 @@ describe('PortalCreditsView', () => {
     expect(legal.exists()).toBe(true)
     expect(legal.text()).toContain('TMDB API')
     expect(legal.text()).toContain('not endorsed or certified')
+    expect(w.find('.pc-legal-note').exists()).toBe(false)
   })
 
   it('renders sections for the 5 third-party services', () => {

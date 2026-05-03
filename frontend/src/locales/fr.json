@@ -187,14 +187,13 @@
     "footer": {
       "fullCredits": "Crédits complets"
     },
+    "githubLink": "code source sur GitHub",
     "credits": {
       "title": "Crédits et attributions",
-      "subtitle": "Services tiers et sources de données utilisés par MediaKeeper.",
-      "sourceOnGithub": "code source sur GitHub"
+      "subtitle": "Services tiers et sources de données utilisés par MediaKeeper."
     },
     "tmdb": {
-      "logoAlt": "TMDB",
-      "unofficialNote": "Traduction non officielle — seul le texte légal anglais ci-dessus est imposé par TMDB."
+      "logoAlt": "TMDB"
     },
     "opensubtitles": {
       "text": "Sous-titres fournis par OpenSubtitles. Visitez"
