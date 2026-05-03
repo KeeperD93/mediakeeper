@@ -213,7 +213,6 @@
       "stackTitle": "Stack technique",
       "backendLabel": "Backend",
       "frontendLabel": "Frontend",
-      "containerLabel": "Conteneur",
       "licensesTitle": "Licences open-source",
       "ffmpegText": "MediaKeeper utilise des outils du projet FFmpeg sous licence LGPLv2.1+. Voir",
       "dependenciesText": "Voir requirements.txt et package.json pour l'arborescence complète des dépendances open-source sur",

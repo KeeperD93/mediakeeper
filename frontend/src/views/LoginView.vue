@@ -82,9 +82,6 @@
             <a href="https://discord.gg/mediakeeper" target="_blank" rel="noopener" title="Discord">
               <IconDiscord :size="18" />
             </a>
-            <a href="https://github.com/mediakeeper" target="_blank" rel="noopener" title="GitHub">
-              <Github :size="18" />
-            </a>
             <a href="https://wiki.mediakeeper.app" target="_blank" rel="noopener" title="Wiki">
               <BookOpen :size="18" :stroke-width="1.8" />
             </a>
@@ -113,7 +110,7 @@ import { useAuth } from '@/composables/useAuth'
 import { fetchApiResponse, resolveApiError } from '@/composables/useApi'
 import { useTheme } from '@/composables/useTheme'
 import { initLoginParticles } from '@/composables/useLoginParticles'
-import { BookOpen, Github, Globe, LockKeyhole, LogIn, TriangleAlert, User } from 'lucide-vue-next'
+import { BookOpen, Globe, LockKeyhole, LogIn, TriangleAlert, User } from 'lucide-vue-next'
 import IconDiscord from '@/components/icons/IconDiscord.vue'
 import MkSpinner from '@/components/common/MkSpinner.vue'
 import '@/assets/styles/login-view.css'

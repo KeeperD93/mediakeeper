@@ -41,6 +41,7 @@ This section intentionally has no date so it is not shown to users.
 - UX — clear message when the server throttles requests
 
 ### Fixed
+- UX: credits padding, deduplicated login GitHub link, dropped container mention
 - Fix Discord notification titles rendered as raw text instead of links
 - Portal — fix 500 when the portal sends a tmdb_id as text
 - Users — local admin account flagged as "Local" instead of an Emby source
