@@ -52,8 +52,10 @@ async def test_public_profile_private_blocks_strangers(client, db_session):
     client.cookies.set(PORTAL_COOKIE, portal_token(me.username))
 
     resp = await client.get(f"/api/portal/profiles/by-user-id/{target.id}/public")
-    assert resp.status_code == 403
-    assert resp.json()["detail"] == "profile_private"
+    # Private profiles return 404 (same shape as missing/admin) so the
+    # caller cannot distinguish the underlying reason.
+    assert resp.status_code == 404
+    assert resp.json()["detail"] == "profile_not_found"
 
 
 @pytest.mark.asyncio
