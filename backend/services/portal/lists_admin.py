@@ -93,8 +93,17 @@ async def get_contributors(db: AsyncSession, list_id: int) -> list[dict]:
 async def get_history(
     db: AsyncSession, list_id: int, user_id: int, *, limit: int = 100,
 ) -> list[dict]:
+    """Return audit log entries for a list — restricted to the owner
+    and named contributors. ``can_view`` is too permissive here: it
+    grants ``public_readonly`` viewers access, but the history reveals
+    *who* added or removed *which* item, which is contributor metadata
+    rather than published content."""
     lst = await db.get(UserList, list_id)
-    if not lst or not await can_view(db, lst, user_id):
+    if not lst:
+        return []
+    is_owner = lst.user_id == user_id
+    is_contributor = (await _contributor_row(db, list_id, user_id)) is not None
+    if not (is_owner or is_contributor):
         return []
     rows = (await db.execute(
         select(UserListHistory, User)
