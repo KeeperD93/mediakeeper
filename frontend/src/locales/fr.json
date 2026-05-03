@@ -78,6 +78,8 @@
       "token_invalid": "Session expirée, reconnectez-vous.",
       "must_change_password": "Vous devez changer votre mot de passe avant de continuer.",
       "login_blocked": "Trop de tentatives. Réessayez plus tard.",
+      "rate_limited": "Trop de tentatives, réessayez dans quelques instants.",
+      "rate_limited_retry": "Trop de tentatives, réessayez dans {seconds} secondes.",
       "backup_create_failed": "Échec de la création de la sauvegarde.",
       "backup_restore_failed": "Échec de la restauration de la sauvegarde.",
       "backup_directory_invalid": "Dossier de sauvegarde invalide.",

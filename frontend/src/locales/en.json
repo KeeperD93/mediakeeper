@@ -78,6 +78,8 @@
       "token_invalid": "Session expired, please sign in again.",
       "must_change_password": "You must change your password before continuing.",
       "login_blocked": "Too many attempts. Try again later.",
+      "rate_limited": "Too many requests, please try again in a moment.",
+      "rate_limited_retry": "Too many requests, please try again in {seconds} seconds.",
       "backup_create_failed": "Failed to create the backup.",
       "backup_restore_failed": "Failed to restore the backup.",
       "backup_directory_invalid": "Invalid backup directory.",

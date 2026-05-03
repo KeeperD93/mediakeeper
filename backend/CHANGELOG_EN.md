@@ -36,6 +36,7 @@ This section intentionally has no date so it is not shown to users.
 - API hardening — rate limiting, origin checks, authorization enforcement
 - CSP — dedicated violation report endpoint with rate-limited logging
 - Deployment — per-stack reverse-proxy guides (LAN, DSM, NPM, Caddy, Traefik)
+- UX — clear message when the server throttles requests
 
 ### Fixed
 - Users — local admin account flagged as "Local" instead of an Emby source

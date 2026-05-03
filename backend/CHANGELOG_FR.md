@@ -36,6 +36,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Renforcement API — limites de débit, contrôle d'origine, vérification d'autorisation
 - CSP — endpoint dédié de remontée de violations + journalisation rythmée
 - Déploiement — guides par stack reverse-proxy (LAN, DSM, NPM, Caddy, Traefik)
+- UX — message clair quand le serveur limite les tentatives
 
 ### Fixed
 - Utilisateurs — compte admin local marqué « Local » et plus comme source Emby

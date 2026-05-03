@@ -1,5 +1,6 @@
 import { ref, readonly } from 'vue'
 import { fetchApiResponse, useApi } from '@/composables/useApi'
+import { showRateLimitToast } from '@/composables/handle429'
 
 const profile = ref(null)
 const isPortalAuth = ref(false)
@@ -27,6 +28,10 @@ export function usePortalAuth() {
         redirectOn401: false,
       })
       if (!res) return { ok: false, status: 0, data: null }
+
+      if (res.status === 429) {
+        showRateLimitToast(res)
+      }
 
       let data = null
       try {
