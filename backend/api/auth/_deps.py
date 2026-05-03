@@ -18,18 +18,12 @@ async def get_current_user(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ) -> User:
-    """
-    Verify the JWT and return the current user.
-    Lit le token from :
-      1. Cookie httpOnly `mk_token` (prioritaire)
-      2. Authorization Bearer header (transitional backwards compatibility)
+    """Verify the JWT cookie and return the current admin user.
+
+    Cookies-only on purpose: the legacy ``Authorization: Bearer`` fallback
+    was removed so a stolen JWT can no longer be replayed via header.
     """
     token = request.cookies.get(COOKIE_NAME)
-
-    if not token:
-        auth_header = request.headers.get("Authorization", "")
-        if auth_header.startswith("Bearer "):
-            token = auth_header[7:]
 
     if not token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not_authenticated")
