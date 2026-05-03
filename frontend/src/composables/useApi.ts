@@ -1,6 +1,7 @@
 import { ref, type Ref } from 'vue'
 import i18n from '@/i18n'
 import { fetchApiResponse, type ApiFetchOptions } from './apiClient'
+import { showRateLimitToast } from './handle429'
 
 export { buildApiHeaders, fetchApiResponse, getCsrfToken } from './apiClient'
 export type { ApiFetchOptions } from './apiClient'
@@ -54,6 +55,12 @@ export function useApi(): UseApiReturn {
       }
 
       if (!res.ok) {
+        if (res.status === 429) {
+          // Surface the rate-limit response as a friendly toast before
+          // the throw — the calling component can still react via its
+          // own catch block, but the user already has a visible hint.
+          showRateLimitToast(res)
+        }
         const data = await res.json().catch(() => ({}))
         throw new Error(data.detail || `http_${res.status}`)
       }

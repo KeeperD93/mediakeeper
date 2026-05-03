@@ -1,5 +1,6 @@
 import { ref, readonly } from 'vue'
 import { fetchApiResponse } from '@/composables/useApi'
+import { showRateLimitToast } from '@/composables/handle429'
 
 const user = ref(null)
 const isAuthenticated = ref(false)
@@ -58,6 +59,10 @@ export function useAuth() {
 
     if (res.status === 503) {
       throw new Error(data.detail || 'starting')
+    }
+
+    if (res.status === 429) {
+      showRateLimitToast(res)
     }
 
     if (!res.ok) {
@@ -169,6 +174,10 @@ export function useAuth() {
       body,
       redirectOn401: false,
     })
+
+    if (res.status === 429) {
+      showRateLimitToast(res)
+    }
 
     const data = await res.json()
     if (!res.ok) throw new Error(data.detail || 'unknown')
