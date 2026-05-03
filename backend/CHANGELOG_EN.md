@@ -10,6 +10,7 @@ This section intentionally has no date so it is not shown to users.
 ## [Unreleased]
 
 ### Added
+- Tightened credits page UX and added GitHub link on the login page
 - About — admin page (stack, licenses, FFmpeg LGPL) and notes under TMDB / OpenSubtitles in Settings
 - Requests — top-bar stat cards now show the all-time total under each counter (pending, approved, rejected, available)
 - Requests / Users — premium full-width revamp (search, filters, table/card view, bulk actions)

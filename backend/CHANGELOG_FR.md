@@ -10,6 +10,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 ## [Unreleased]
 
 ### Added
+- UX page crédits resserrée et lien GitHub sur la page de connexion
 - À propos — page admin (stack, licences, FFmpeg LGPL) et mentions sous TMDB / OpenSubtitles dans Paramètres
 - Demandes — cartes statistiques affichent désormais le total cumulé sous chaque compteur (en attente, approuvées, refusées, disponibles)
 - Demandes / Utilisateurs — refonte premium pleine largeur (recherche, filtres, vue tableau/cartes, actions groupées)
