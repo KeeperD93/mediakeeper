@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.auth import get_current_user
+from core.encryption import get_persistent_fernet_key
 from core.http_client import get_internal_client
 from core.database import engine, get_db
 from core.security import decode_access_token
@@ -75,6 +76,21 @@ def register_health_route(app, version: str, is_db_ready_fn) -> None:
         if full and status["status"] != "ok":
             return JSONResponse(status_code=503, content=status)
         return status
+
+
+@router.get("/api/health/encryption")
+async def health_encryption_key(_: User = Depends(get_current_user)):
+    """Report the provenance of the at-rest encryption key.
+
+    The admin UI surfaces a persistent banner when this returns
+    ``warning: true`` (ephemeral key) so the operator notices that
+    every secret stored from now on will be unreadable after a
+    container restart.
+    """
+    persistent = get_persistent_fernet_key()
+    if persistent is None:
+        return {"persistent": False, "source": "ephemeral", "warning": True}
+    return {"persistent": True, "source": persistent.source, "warning": False}
 
 
 @router.get("/api/config")

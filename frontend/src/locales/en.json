@@ -257,6 +257,12 @@
     "notifications": "Notifications",
     "noNotifications": "No notifications"
   },
+  "deploymentBanner": {
+    "encryptionKey": {
+      "title": "Encryption key is ephemeral",
+      "text": "MediaKeeper is running on an in-memory key. Every secret saved now will be unreadable after a container restart. Set MEDIAKEEPER_ENCRYPTION_KEY (or mount /data/.encryption_key) and restart the service."
+    }
+  },
   "search": {
     "placeholder": "Search...",
     "navigate": "navigate",

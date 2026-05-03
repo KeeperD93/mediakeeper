@@ -43,6 +43,20 @@ on a permanent hostname.
 If you reach the UI over HTTPS via a self-signed certificate or VPN,
 flip `COOKIE_SECURE=true` so session cookies stop downgrading.
 
+### Persistent encryption key
+
+Even on a direct-LAN deployment, set `MEDIAKEEPER_ENCRYPTION_KEY`
+**before the first `docker compose up`** so encrypted secrets
+(integration tokens, Discord URLs…) survive a container restart:
+
+```dotenv
+MEDIAKEEPER_ENCRYPTION_KEY=<paste your fernet key here>
+```
+
+Without it, MediaKeeper boots on an in-memory key and the admin UI
+shows a persistent red banner; values written under that key become
+unreadable as soon as the container restarts.
+
 ## 3. Verify your setup
 
 After boot, the container logs should show:
