@@ -16,10 +16,46 @@ def _hex_to_int(color_val) -> int:
     return 3066993  # default green
 
 
+# Variables whose values are already valid Discord markdown — the engine
+# composes them itself (e.g. ``[Fiche TMDB](url)``) and they must NOT be
+# double-escaped.
+PREFORMATTED_VARS = frozenset({"tmdb", "tmdb_url", "imgur"})
+
+# Discord markdown control characters. Escaping them defangs poisoned
+# media titles such as ``[click](https://evil)`` arriving from TMDB,
+# while leaving the template's own formatting (``**bold**``, ``[link
+# label](url)``) intact because templates are admin-edited, not
+# user-supplied.
+_DISCORD_MD_RE = re.compile(r"([\\*_~|`>\[\]()])")
+
+
+def escape_discord_markdown(value: str) -> str:
+    """Backslash-escape Discord markdown control characters in ``value``.
+
+    Discord's parser interprets ``*_~|`` and link brackets even when
+    they appear deep inside an otherwise-plain text field. We escape
+    them so a hostile content source (TMDB title with ``[click](evil)``,
+    chat-relayed username with ``**ping**`` etc.) cannot smuggle
+    formatting / clickable links into the rendered embed.
+    """
+    return _DISCORD_MD_RE.sub(r"\\\1", value)
+
+
 def _apply_vars(tmpl: str, vars_dict: dict) -> str:
-    """Replace all <key> variables in the template."""
+    """Replace all ``<key>`` variables in the template.
+
+    Values are markdown-escaped before substitution unless the key is
+    in :data:`PREFORMATTED_VARS` (URLs, engine-composed link blocks)
+    where escaping would break the intended formatting.
+    """
     for key, value in vars_dict.items():
-        tmpl = tmpl.replace(f"<{key}>", str(value) if value else "")
+        if value:
+            text = str(value)
+            if key not in PREFORMATTED_VARS:
+                text = escape_discord_markdown(text)
+        else:
+            text = ""
+        tmpl = tmpl.replace(f"<{key}>", text)
     return tmpl
 
 
