@@ -1,6 +1,6 @@
 import json
 from copy import deepcopy
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from core.database import get_db
@@ -52,6 +52,10 @@ class DiscordConfig(BaseModel):
     delay: int = 10
     image_host: str = "emby"
     webhooks: list[WebhookItem] = Field(default_factory=list)
+    # Set true to acknowledge wiping every previously-saved webhook.
+    # The server refuses an empty webhook list otherwise to prevent a
+    # partially-filled form from silently destroying the encrypted URLs.
+    confirm_clear: bool = False
 
 
 class ImgurConfig(BaseModel):
@@ -59,6 +63,10 @@ class ImgurConfig(BaseModel):
     client_secret: str = ""
     client_secret_configured: bool = False
     client_secret_length: int = 0
+    # Same opt-in clear acknowledgement as DiscordConfig — a blank
+    # client_secret with client_secret_configured=False would otherwise
+    # wipe the encrypted secret stored in the database.
+    confirm_clear: bool = False
 
 
 def _load_channel_json(raw: str, default: dict) -> dict:
@@ -87,6 +95,7 @@ def _mask_discord_config(data: dict) -> dict:
 
 def _merge_discord_config(existing: dict, incoming: dict) -> dict:
     merged = deepcopy(incoming)
+    merged.pop("confirm_clear", None)
     existing_by_id = {
         str(webhook.get("id")): webhook
         for webhook in existing.get("webhooks", [])
@@ -120,6 +129,7 @@ def _mask_imgur_config(data: dict) -> dict:
 
 def _merge_imgur_config(existing: dict, incoming: dict) -> dict:
     merged = deepcopy(incoming)
+    merged.pop("confirm_clear", None)
     secret = (merged.get("client_secret") or "").strip()
     if not secret and merged.get("client_secret_configured") and existing.get("client_secret"):
         merged["client_secret"] = existing["client_secret"]
@@ -128,6 +138,27 @@ def _merge_imgur_config(existing: dict, incoming: dict) -> dict:
     merged.pop("client_secret_configured", None)
     merged.pop("client_secret_length", None)
     return merged
+
+
+def _assert_clear_acknowledged(
+    existing: dict,
+    merged: dict,
+    *,
+    sensitive_fields: tuple[str, ...],
+    confirm_clear: bool,
+    detail: str,
+) -> None:
+    """Refuse a save that would wipe a previously-set sensitive value
+    unless the caller explicitly acknowledged the clear.
+
+    Truthy comparison covers both list shapes (Discord ``webhooks``)
+    and scalar shapes (Imgur ``client_secret``).
+    """
+    if confirm_clear:
+        return
+    for field in sensitive_fields:
+        if bool(existing.get(field)) and not bool(merged.get(field)):
+            raise HTTPException(status_code=409, detail=detail)
 
 
 @router.post("/discord/test")
@@ -182,7 +213,14 @@ async def save_discord_config(
     default = DiscordConfig().model_dump() if hasattr(DiscordConfig, "model_dump") else DiscordConfig().dict()
     existing = _load_channel_json(await get_notification_channel(db, "discord"), default)
     incoming = req.model_dump() if hasattr(req, "model_dump") else req.dict()
+    confirm_clear = bool(incoming.get("confirm_clear"))
     merged = _merge_discord_config(existing, incoming)
+    _assert_clear_acknowledged(
+        existing, merged,
+        sensitive_fields=("webhooks",),
+        confirm_clear=confirm_clear,
+        detail="discord_config_empty_webhooks_requires_confirm_clear",
+    )
     await set_notification_channel(db, "discord", json.dumps(merged))
     return {"success": True}
 
@@ -209,7 +247,14 @@ async def save_imgur_config(
     default = ImgurConfig().model_dump() if hasattr(ImgurConfig, "model_dump") else ImgurConfig().dict()
     existing = _load_channel_json(await get_notification_channel(db, "imgur"), default)
     incoming = req.model_dump() if hasattr(req, "model_dump") else req.dict()
+    confirm_clear = bool(incoming.get("confirm_clear"))
     merged = _merge_imgur_config(existing, incoming)
+    _assert_clear_acknowledged(
+        existing, merged,
+        sensitive_fields=("client_secret",),
+        confirm_clear=confirm_clear,
+        detail="imgur_config_empty_secret_requires_confirm_clear",
+    )
     await set_notification_channel(db, "imgur", json.dumps(merged))
     return {"success": True}
 
