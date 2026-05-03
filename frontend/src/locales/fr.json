@@ -256,6 +256,12 @@
     "notifications": "Notifications",
     "noNotifications": "Aucune notification"
   },
+  "deploymentBanner": {
+    "encryptionKey": {
+      "title": "Clé de chiffrement éphémère",
+      "text": "MediaKeeper utilise une clé temporaire en mémoire. Tout secret enregistré maintenant sera illisible après un redémarrage du conteneur. Définissez MEDIAKEEPER_ENCRYPTION_KEY (ou montez /data/.encryption_key) puis redémarrez le service."
+    }
+  },
   "search": {
     "placeholder": "Rechercher...",
     "navigate": "naviguer",

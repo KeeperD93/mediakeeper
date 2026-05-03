@@ -20,9 +20,13 @@ If your stack is not listed, the contract is identical to the others:
 2. Forward the WebSocket `Upgrade` and `Connection` headers (chat
    WebSocket lives at `/api/portal/chat/ws/<room_id>`).
 3. List the proxy IP or CIDR in `TRUSTED_PROXIES` so MediaKeeper
-   honours the forwarded headers.
+   honours the forwarded headers. A private-LAN default
+   (`192.168.0.0/16`) is acceptable on a trusted home network — pin
+   the exact proxy IP when the LAN is shared with untrusted hosts.
 4. Set `FRONTEND_ORIGIN` to the public origin so the chat WebSocket
-   guard switches to strict-allowlist mode.
+   guard switches to strict-allowlist mode. Leaving it empty in Mode B
+   triggers a one-shot startup WARN reminding you to set it (CORS
+   preflights need it even though CSRF auto-derives).
 
 The TLS deployment guide at [../operations/tls-deployment.md](../operations/tls-deployment.md)
 covers cross-cutting concerns (HSTS, certificate rotation, CSP report

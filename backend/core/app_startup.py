@@ -252,6 +252,39 @@ def _warn_if_secure_cookies_unavailable() -> None:
     )
 
 
+def _warn_if_frontend_origin_missing_in_proxy_mode() -> None:
+    """Log a single startup warning when Mode B (reverse proxy) is set
+    up but ``FRONTEND_ORIGIN`` was left empty.
+
+    In Mode B the operator routes the browser traffic through a TLS
+    reverse proxy, so cross-origin checks need an explicit allowlist.
+    The CSRF middleware tolerates an unset ``FRONTEND_ORIGIN`` by
+    auto-deriving the expected Origin from a trusted ``X-Forwarded-Host``,
+    but ``CORSMiddleware`` does not — without ``FRONTEND_ORIGIN`` it will
+    refuse browser preflights from the public hostname.
+
+    Triggers when all three conditions hold:
+      - ``MK_DEBUG`` is unset or false (production-like).
+      - ``TRUSTED_PROXIES`` is non-empty (Mode B reverse proxy).
+      - ``FRONTEND_ORIGIN`` is empty.
+    """
+    debug = os.getenv("MK_DEBUG", "").strip().lower() in {"true", "1", "yes", "on"}
+    if debug:
+        return
+    trusted_proxies = os.getenv("TRUSTED_PROXIES", "").strip()
+    if not trusted_proxies:
+        return
+    frontend_origin = os.getenv("FRONTEND_ORIGIN", "").strip()
+    if frontend_origin:
+        return
+    logger.warning(
+        "[startup] FRONTEND_ORIGIN is unset while TRUSTED_PROXIES is configured "
+        "(reverse-proxy mode). CORS preflights from the public origin will be "
+        "rejected until FRONTEND_ORIGIN is set to the public URL "
+        "(e.g. https://your-domain.example.com)."
+    )
+
+
 def _log_deployment_mode() -> None:
     """Print a one-shot diagnostic summary so an operator opening the
     container logs at boot can sanity-check the deployment mode.
@@ -290,6 +323,7 @@ async def lifespan(app: FastAPI):
 
     _log_deployment_mode()
     _warn_if_secure_cookies_unavailable()
+    _warn_if_frontend_origin_missing_in_proxy_mode()
 
     await init_clients()
     await init_db()

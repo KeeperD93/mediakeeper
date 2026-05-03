@@ -53,7 +53,49 @@ strict allowlist; `COOKIE_SECURE=true` is redundant once HTTPS is
 detected, but explicit is better when DSM ever swaps to a non-stable
 intermediate hop.
 
+If pinning a single DSM IP is awkward (DHCP, dual-stack, multiple
+NAS), a private LAN range works as a safe wider default:
+
+```dotenv
+TRUSTED_PROXIES=192.168.0.0/16
+```
+
+Trade-off: any host on the same LAN that can reach port `8888`
+directly will then have its `X-Forwarded-Host` honoured — fine for a
+home network, less appropriate for a co-tenanted VLAN. Pin the exact
+proxy IP when the LAN is shared with untrusted hosts.
+
+If MediaKeeper boots with `TRUSTED_PROXIES` set but `FRONTEND_ORIGIN`
+left empty, you will see this WARN once at startup — set the public
+origin to silence it:
+
+```
+[startup] FRONTEND_ORIGIN is unset while TRUSTED_PROXIES is configured
+(reverse-proxy mode). CORS preflights from the public origin will be
+rejected until FRONTEND_ORIGIN is set to the public URL …
+```
+
 Restart the container so the new env takes effect.
+
+### Persistent encryption key
+
+Set `MEDIAKEEPER_ENCRYPTION_KEY` (any 32-byte url-safe base64 value)
+**before the first `docker compose up`** so every encrypted secret
+written from then on (Discord webhooks, Imgur secret, Emby tokens…)
+survives a container restart:
+
+```dotenv
+# Generate once and keep safe — losing it makes encrypted DB rows unreadable.
+MEDIAKEEPER_ENCRYPTION_KEY=<paste your fernet key here>
+```
+
+If neither the env var nor `/data/.encryption_key` is provided,
+MediaKeeper falls back to a process-local key. The admin UI shows a
+persistent red banner on every page until the key is made persistent;
+the same condition is exposed at `GET /api/health/encryption`
+(`source: "ephemeral"`, `warning: true`). Backups bundle the active
+persistent key automatically (under `secrets/.encryption_key` in the
+ZIP) so a restored archive keeps the secrets readable.
 
 ## 3. Verify your setup
 

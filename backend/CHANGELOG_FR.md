@@ -39,6 +39,10 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - CSP — endpoint dédié de remontée de violations + journalisation rythmée
 - Déploiement — guides par stack reverse-proxy (LAN, DSM, NPM, Caddy, Traefik)
 - UX — message clair quand le serveur limite les tentatives
+- Paramètres notifications — confirmation explicite obligatoire avant d'effacer toutes les destinations
+- Démarrage — alerte si l'origine publique manque en mode reverse-proxy
+- Bandeau d'alerte persistant si la clé de chiffrement est éphémère
+- Tests — détection automatique des domaines tiers absents de la politique de sécurité
 
 ### Fixed
 - Corrige les titres Discord affichés en texte brut au lieu de liens
