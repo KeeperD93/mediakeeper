@@ -231,6 +231,20 @@
 }
 @keyframes sb-dot-pulse { 0%,100% { opacity: 1; } 50% { opacity: .5; } }
 
+.sb-about-link {
+  display: block;
+  margin-top: 4px;
+  text-align: center;
+  font-size: var(--text-3xs);
+  color: rgba(255, 255, 255, 0.16);
+  letter-spacing: 0.4px;
+  text-decoration: none;
+  padding: 2px 8px;
+  border-radius: var(--radius-btn);
+  transition: color var(--duration-fast);
+}
+.sb-about-link:hover { color: rgba(255, 255, 255, 0.4); }
+
 /* Transitions */
 .sb-fade-enter-active { transition: opacity var(--duration-base) 0.1s; }
 .sb-fade-leave-active { transition: opacity var(--duration-fast); }
