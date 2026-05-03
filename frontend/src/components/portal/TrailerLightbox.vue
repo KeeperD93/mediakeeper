@@ -30,6 +30,7 @@
         :src="`${trailer.url}?autoplay=1&controls=1&rel=0&modestbranding=1&playsinline=1`"
         frameborder="0"
         allow="autoplay; encrypted-media; fullscreen"
+        sandbox="allow-scripts allow-same-origin allow-presentation"
         class="pt-tlb-media"
       />
 
