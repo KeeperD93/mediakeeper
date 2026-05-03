@@ -34,7 +34,10 @@ logger = logging.getLogger("mediakeeper.csrf")
 # Cooldown between two diagnostic WARN lines on origin mismatch — the
 # operator needs the hint once per hour, not on every hostile probe.
 _ORIGIN_MISMATCH_LOG_COOLDOWN_SECONDS = 3600
-_last_origin_mismatch_log = 0.0
+# Initialised to -inf so the very first occurrence always passes the
+# cooldown check, regardless of the value time.monotonic() returns at
+# process start (it is monotonic, not Unix epoch).
+_last_origin_mismatch_log: float = float("-inf")
 
 
 def _log_origin_mismatch_once_per_hour(path: str, origin: str, expected: str) -> None:

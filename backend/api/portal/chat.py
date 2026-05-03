@@ -232,7 +232,10 @@ async def report_message(
 # fallback (HTTP GET on the WS path). One per hour is enough — the hint
 # is for the operator, not the attacker.
 _WS_UPGRADE_LOG_COOLDOWN_SECONDS = 3600
-_last_ws_upgrade_log = 0.0
+# Initialised to -inf so the very first occurrence always passes the
+# cooldown check, regardless of the value time.monotonic() returns at
+# process start (it is monotonic, not Unix epoch).
+_last_ws_upgrade_log: float = float("-inf")
 
 
 def _log_ws_upgrade_missing_once_per_hour() -> None:

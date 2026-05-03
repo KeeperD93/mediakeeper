@@ -17,6 +17,28 @@ import time
 import pytest
 
 
+def test_diagnostic_log_sentinels_pass_cooldown_at_boot():
+    """Regression guard: the module-level sentinels must allow the very
+    first diagnostic line even when ``time.monotonic()`` returns a
+    small value at process start (it is monotonic, not Unix epoch).
+    Bug fixed by setting the sentinels to ``-inf``.
+
+    Declared first in the file so it runs before the WARN-once tests
+    below mutate the sentinels — the assertion holds against the
+    module-init state of both modules.
+    """
+    import api.portal.chat as chat_module
+    import core.csrf_middleware as mw
+
+    now = time.monotonic()
+    assert now - mw._last_origin_mismatch_log >= mw._ORIGIN_MISMATCH_LOG_COOLDOWN_SECONDS, (
+        f"sentinel {mw._last_origin_mismatch_log!r} too close to monotonic clock"
+    )
+    assert now - chat_module._last_ws_upgrade_log >= chat_module._WS_UPGRADE_LOG_COOLDOWN_SECONDS, (
+        f"sentinel {chat_module._last_ws_upgrade_log!r} too close to monotonic clock"
+    )
+
+
 def test_log_deployment_mode_emits_summary_line(monkeypatch, caplog):
     import core.app_startup as startup
     monkeypatch.setenv("TRUSTED_PROXIES", "192.0.2.0/24")
@@ -47,7 +69,7 @@ def test_log_deployment_mode_reports_mode_a_when_no_proxy(monkeypatch, caplog):
 @pytest.mark.asyncio
 async def test_csrf_origin_mismatch_writes_diagnostic_warn_once(client, admin_user, caplog):
     import core.csrf_middleware as mw
-    mw._last_origin_mismatch_log = 0.0  # cooldown reset
+    mw._last_origin_mismatch_log = float("-inf")  # cooldown reset (matches module init)
 
     # Open the backoffice session.
     r = await client.post("/api/auth/login", json={
@@ -80,7 +102,7 @@ async def test_chat_ws_path_returns_426_on_http_get(raw_client, caplog):
     handshake into a plain GET. The fallback handler answers with 426
     and writes one operator hint."""
     import api.portal.chat as chat_module
-    chat_module._last_ws_upgrade_log = 0.0  # cooldown reset
+    chat_module._last_ws_upgrade_log = float("-inf")  # cooldown reset (matches module init)
 
     with caplog.at_level("WARNING", logger="mediakeeper.portal.chat"):
         resp = await raw_client.get("/api/portal/chat/ws/1")
