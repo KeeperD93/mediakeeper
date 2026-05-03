@@ -17,14 +17,6 @@ from models.security import SecurityAttempt
 from sqlalchemy import select
 
 
-@pytest.fixture(autouse=True)
-def _reset_limiter():
-    import main as main_module
-    main_module.limiter.reset()
-    yield
-    main_module.limiter.reset()
-
-
 async def _login(client) -> None:
     """Open a backoffice session so the change-password endpoint sees an auth cookie."""
     r = await client.post("/api/auth/login", json={

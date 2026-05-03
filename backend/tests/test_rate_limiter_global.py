@@ -12,17 +12,6 @@ request from one IP receives a 429 response.
 from __future__ import annotations
 
 import pytest
-import pytest_asyncio
-
-
-@pytest.fixture(autouse=True)
-def _reset_limiter():
-    """Clear the in-memory limiter buckets before and after each test so
-    one test cannot starve the budget of another."""
-    import main as main_module
-    main_module.limiter.reset()
-    yield
-    main_module.limiter.reset()
 
 
 @pytest.mark.asyncio

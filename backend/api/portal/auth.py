@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
 from core.proxy import get_client_ip
+from core.rate_limit import ip_key, limiter
 from core.security import decode_access_token
 from api.auth import PORTAL_COOKIE_NAME, _set_portal_jwt_cookie
 from api.auth._csrf import ensure_csrf_cookie
@@ -89,6 +90,7 @@ async def _log_login(
 
 
 @router.post("/login")
+@limiter.limit("5/minute", key_func=ip_key)
 async def portal_login(
     req: PortalLoginRequest,
     request: Request,

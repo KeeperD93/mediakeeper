@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
 from core.proxy import get_client_ip
+from core.rate_limit import ip_key, limiter
 from core.security import (
     create_access_token,
     is_backoffice_admin,
@@ -72,6 +73,7 @@ router = APIRouter()
 
 
 @router.post("/login")
+@limiter.limit("5/minute", key_func=ip_key)
 async def login(req: LoginRequest, request: Request, response: Response, db: AsyncSession = Depends(get_db)):
     """Authenticate and place the admin JWT in an httpOnly cookie."""
     client_ip = get_client_ip(request) or "unknown"
@@ -118,6 +120,7 @@ async def login(req: LoginRequest, request: Request, response: Response, db: Asy
 
 
 @router.post("/portal-login")
+@limiter.limit("5/minute", key_func=ip_key)
 async def portal_login(
     req: LoginRequest,
     request: Request,
