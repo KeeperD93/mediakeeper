@@ -39,6 +39,7 @@ This section intentionally has no date so it is not shown to users.
 - UX — clear message when the server throttles requests
 
 ### Fixed
+- Portal — fix 500 when the portal sends a tmdb_id as text
 - Users — local admin account flagged as "Local" instead of an Emby source
 - Users — admin last-login stamped on every MK sign-in
 - Users — stats banner refreshed immediately after deactivation/changes
