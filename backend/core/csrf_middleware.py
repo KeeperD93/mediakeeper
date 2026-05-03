@@ -53,8 +53,12 @@ def _log_origin_mismatch_once_per_hour(path: str, origin: str, expected: str) ->
 SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
 
 # Fully exempt from every CSRF check — public, no auth side-effect.
+# ``/api/csp-violation-report`` is reached by the browser's reporting
+# pipeline which never carries the application's auth cookies; refusing
+# it for missing CSRF would silently lose every CSP violation telemetry.
 EXEMPT_PATHS = {
     "/api/health",
+    "/api/csp-violation-report",
 }
 
 # Login bootstraps the CSRF cookie itself. The double-submit token check

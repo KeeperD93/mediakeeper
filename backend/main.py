@@ -35,6 +35,7 @@ from api.auth import router as auth_router
 from api.backup import router as backup_router
 from api.changelog import APP_VERSION, router as changelog_router
 from api.core_routes import register_health_route, router as core_router
+from api.csp_report import router as csp_report_router
 from api.portal import router as portal_router
 from api.portal_changelog import router as portal_changelog_router
 from api.duplicates import router as duplicates_router
@@ -137,6 +138,7 @@ app.include_router(portal_admin_users_actions_router)
 app.include_router(portal_admin_users_emby_router)
 app.include_router(portal_admin_users_feed_router)
 app.include_router(security_router)
+app.include_router(csp_report_router)
 app.include_router(core_router)
 
 register_health_route(app, APP_VERSION, is_db_ready)
