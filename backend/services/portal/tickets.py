@@ -9,7 +9,7 @@ from models.user import User
 from models.portal.ticket import Ticket, TicketReply
 from models.portal.profile import UserProfile
 from core.pagination import decode_cursor, build_cursor_response
-from services.portal import sanitize
+from services.portal import strip_tags_and_trim
 from services.portal.avatars import avatar_public_url
 
 logger = logging.getLogger("mediakeeper.portal.tickets")
@@ -23,12 +23,12 @@ async def create_ticket(
         emby_item_id=data.get("emby_item_id"),
         series_emby_id=data.get("series_emby_id"),
         tmdb_id=data.get("tmdb_id"),
-        media_title=sanitize(data["media_title"], 500),
+        media_title=strip_tags_and_trim(data["media_title"], 500),
         media_type=data["media_type"],
         selected_seasons=data.get("selected_seasons"),
         issue_type=data["issue_type"],
         priority=data.get("priority", "minor"),
-        description=sanitize(data["description"], 2000),
+        description=strip_tags_and_trim(data["description"], 2000),
     )
     db.add(ticket)
     await db.commit()
@@ -143,7 +143,7 @@ async def add_reply(
     reply = TicketReply(
         ticket_id=ticket_id,
         user_id=user_id,
-        content=sanitize(content, 2000),
+        content=strip_tags_and_trim(content, 2000),
     )
     db.add(reply)
     await db.commit()

@@ -25,10 +25,11 @@ from services.portal.avatars import (
     avatar_path_for, avatar_public_url, delete_avatar, save_avatar,
 )
 from services.portal.profile_stats_ranking import compute_ranking
+from services.portal import strip_tags_and_trim
 from services.portal.profiles import (
     DISPLAY_NAME_LOCK_DAYS, _serialize_public, display_name_locked_until,
     is_display_name_locked, is_display_name_taken, is_reserved_display_name,
-    sanitize, suggest_display_names,
+    suggest_display_names,
 )
 
 
@@ -60,7 +61,7 @@ async def check_username(
     setting it for the first time or out of the 6-month cooldown.
     """
     user, profile = up
-    cleaned = sanitize(name, max_len=50)
+    cleaned = strip_tags_and_trim(name, max_len=50)
     if not cleaned:
         return {
             "available": False, "reason": "invalid",

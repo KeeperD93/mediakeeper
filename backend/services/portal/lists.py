@@ -24,7 +24,7 @@ from models.portal.social import (
     VALID_PRIVACY, VALID_CONTENT_TYPES,
     PRIVACY_PRIVATE, PRIVACY_PUBLIC_READONLY, PRIVACY_COLLABORATIVE,
 )
-from services.portal import sanitize
+from services.portal import strip_tags_and_trim
 
 logger = logging.getLogger("mediakeeper.portal.lists")
 
@@ -139,13 +139,13 @@ async def _log(
 # ── CRUD ──
 
 async def create_list(db: AsyncSession, user_id: int, data: dict) -> dict:
-    name = sanitize(data.get("name", ""), MAX_NAME_LEN)
+    name = strip_tags_and_trim(data.get("name", ""), MAX_NAME_LEN)
     if not name:
         return {"error": "name_required"}
     lst = UserList(
         user_id=user_id,
         name=name,
-        description=sanitize(data.get("description", ""), MAX_DESCRIPTION_LEN) or None,
+        description=strip_tags_and_trim(data.get("description", ""), MAX_DESCRIPTION_LEN) or None,
         privacy=_normalize_privacy(data.get("privacy")),
         content_type=_normalize_content_type(data.get("content_type")),
         genres=_normalize_genres(data.get("genres")),
@@ -170,12 +170,12 @@ async def update_list(
 
     changes: dict[str, Any] = {}
     if "name" in data:
-        new_name = sanitize(data["name"], MAX_NAME_LEN)
+        new_name = strip_tags_and_trim(data["name"], MAX_NAME_LEN)
         if new_name and new_name != lst.name:
             changes["name"] = {"from": lst.name, "to": new_name}
             lst.name = new_name
     if "description" in data:
-        new_desc = sanitize(data["description"] or "", MAX_DESCRIPTION_LEN) or None
+        new_desc = strip_tags_and_trim(data["description"] or "", MAX_DESCRIPTION_LEN) or None
         if new_desc != lst.description:
             changes["description"] = True
             lst.description = new_desc

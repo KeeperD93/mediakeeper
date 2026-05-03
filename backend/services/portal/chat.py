@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.portal.chat import ChatRoom, ChatMessage
 from models.portal.profile import UserProfile
 from core.pagination import decode_cursor, build_cursor_response
-from services.portal import sanitize
+from services.portal import strip_tags_and_trim
 from services.portal.chat_mutes import is_muted
 from services.portal.chat_presenters import resolve_display_name, serialize_message
 
@@ -144,7 +144,7 @@ async def send_message(
     msg = ChatMessage(
         room_id=room_id,
         user_id=user_id,
-        content=sanitize(content, 2000),
+        content=strip_tags_and_trim(content, 2000),
     )
     db.add(msg)
     await db.commit()

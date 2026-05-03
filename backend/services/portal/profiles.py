@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.user import User
 from models.portal.profile import UserProfile
-from services.portal import sanitize
+from services.portal import strip_tags_and_trim
 from services.portal.profile_serializers import (
     DISPLAY_NAME_LOCK_DAYS as DISPLAY_NAME_LOCK_DAYS,
     display_name_locked_until,
@@ -151,7 +151,7 @@ async def update_profile(
             continue
 
         if key == "display_name" and isinstance(value, str):
-            cleaned = sanitize(value, max_len=50)
+            cleaned = strip_tags_and_trim(value, max_len=50)
             if not cleaned:
                 continue
             current_lower = (profile.display_name or "").lower()
@@ -183,7 +183,7 @@ async def update_profile(
             continue
 
         if key == "bio" and isinstance(value, str):
-            value = sanitize(value, max_len=500)
+            value = strip_tags_and_trim(value, max_len=500)
 
         setattr(profile, key, value)
 
