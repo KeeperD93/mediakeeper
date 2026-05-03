@@ -40,4 +40,18 @@ def admin_user_or_ip_key(request: Request) -> str:
     return f"ip:{ip_key(request)}"
 
 
+def portal_user_or_ip_key(request: Request) -> str:
+    """Same idea as ``admin_user_or_ip_key`` but on the Portal cookie.
+    Used by hot endpoints (availability lookup, chat send) where a
+    legitimate user must keep their own per-account budget intact even
+    when sharing an IP with the rest of the household."""
+    token = request.cookies.get("rq_token")
+    if token:
+        payload = decode_access_token(token)
+        username = (payload or {}).get("sub")
+        if username:
+            return f"user:{username}"
+    return f"ip:{ip_key(request)}"
+
+
 limiter = Limiter(key_func=ip_key, default_limits=["120/minute"])

@@ -3,13 +3,14 @@ import asyncio
 import logging
 from datetime import date
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
 from core.http_client import get_internal_client
+from core.rate_limit import limiter, portal_user_or_ip_key
 from models.user import User
 from models.portal.profile import UserProfile
 from models.portal.emby_tmdb_index import EmbyTmdbIndex
@@ -45,8 +46,10 @@ class AvailabilityQuery(BaseModel):
 
 
 @router.post("")
+@limiter.limit("30/minute", key_func=portal_user_or_ip_key)
 async def check_availability(
     query: AvailabilityQuery,
+    request: Request,
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):

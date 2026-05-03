@@ -1,6 +1,4 @@
 """Portal chat endpoints (REST + WebSocket)."""
-from __future__ import annotations
-
 import json
 import logging
 import os
@@ -8,12 +6,13 @@ from datetime import datetime, timezone
 from typing import Optional
 from urllib.parse import urlsplit
 
-from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db, AsyncSessionLocal
+from core.rate_limit import limiter, portal_user_or_ip_key
 from core.security import decode_access_token, is_token_valid_for_revocation_pivot
 from models.user import User
 from models.portal.profile import UserProfile
@@ -123,9 +122,11 @@ async def get_messages(
 
 
 @router.post("/rooms/{room_id}/messages")
+@limiter.limit("30/minute", key_func=portal_user_or_ip_key)
 async def send_message(
     room_id: int,
     data: SendMessage,
+    request: Request,
     up: tuple[User, UserProfile] = Depends(require_permission("can_chat")),
     db: AsyncSession = Depends(get_db),
 ):
