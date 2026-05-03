@@ -33,6 +33,9 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Sessions révocables, scopes tokens stricts et WebSocket sécurisé
 - Renforcement XSS — schémas d'URL filtrés, sanitization HTML resserrée
 - CSP — autorise le loader YouTube et conserve l'iframe sans cookies
+- Renforcement API — limites de débit, contrôle d'origine, vérification d'autorisation
+- CSP — endpoint dédié de remontée de violations + journalisation rythmée
+- Déploiement — guides par stack reverse-proxy (LAN, DSM, NPM, Caddy, Traefik)
 
 ### Fixed
 - Utilisateurs — compte admin local marqué « Local » et plus comme source Emby

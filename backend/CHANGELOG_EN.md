@@ -33,6 +33,9 @@ This section intentionally has no date so it is not shown to users.
 - Revocable sessions, strict token scopes and secured WebSocket
 - XSS hardening — URL scheme filtering, tighter HTML sanitization
 - CSP — allow YouTube loader and keep iframe in privacy mode
+- API hardening — rate limiting, origin checks, authorization enforcement
+- CSP — dedicated violation report endpoint with rate-limited logging
+- Deployment — per-stack reverse-proxy guides (LAN, DSM, NPM, Caddy, Traefik)
 
 ### Fixed
 - Users — local admin account flagged as "Local" instead of an Emby source
