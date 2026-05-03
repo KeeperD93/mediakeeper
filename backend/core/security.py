@@ -146,3 +146,22 @@ def decode_access_token(token: str) -> dict | None:
         return payload
     except jwt.PyJWTError:
         return None
+
+
+def is_token_valid_for_revocation_pivot(payload_iat, revocation_pivot) -> bool:
+    """Return ``False`` when the JWT was issued before the revocation pivot.
+
+    ``payload_iat`` accepts the raw ``iat`` claim (epoch int or float) and
+    ``revocation_pivot`` accepts a tz-aware ``datetime`` or ``None``. A
+    ``None`` pivot means the account has never been revoked, so every
+    token signed with the current key remains valid.
+    """
+    if revocation_pivot is None:
+        return True
+    if payload_iat is None:
+        return False
+    try:
+        issued = datetime.fromtimestamp(int(payload_iat), tz=timezone.utc)
+    except (TypeError, ValueError):
+        return False
+    return issued >= revocation_pivot
