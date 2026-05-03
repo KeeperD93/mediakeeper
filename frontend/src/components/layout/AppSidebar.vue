@@ -176,6 +176,14 @@
         <span class="sb-version">{{ collapsed ? ('v' + appVersion) : ('MediaKeeper v' + appVersion) }}</span>
         <span v-if="hasNewChangelog" class="sb-version-dot" />
       </router-link>
+      <router-link
+        v-if="!collapsed"
+        to="/about"
+        class="sb-about-link"
+        :title="$t('attribution.about.title')"
+      >
+        {{ $t('attribution.about.title') }}
+      </router-link>
     </div>
   </aside>
 

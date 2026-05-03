@@ -183,6 +183,50 @@
       "logoAlt": "TMDB"
     }
   },
+  "attribution": {
+    "footer": {
+      "fullCredits": "Full credits"
+    },
+    "credits": {
+      "title": "Credits & attributions",
+      "subtitle": "Third-party services and data sources used by MediaKeeper.",
+      "sourceOnGithub": "source code on GitHub"
+    },
+    "tmdb": {
+      "logoAlt": "TMDB",
+      "unofficialNote": "Unofficial translation — the legal text above is the only version mandated by TMDB."
+    },
+    "opensubtitles": {
+      "text": "Subtitles powered by OpenSubtitles. Visit"
+    },
+    "emby": {
+      "text": "Emby is a trademark of Emby LLC. MediaKeeper is not affiliated with or endorsed by Emby LLC."
+    },
+    "imgur": {
+      "text": "Avatar uploads via Imgur. Imgur is a trademark of MediaCrush LLC."
+    },
+    "youtube": {
+      "text": "Embedded trailers use YouTube's privacy-enhanced mode (youtube-nocookie.com). YouTube is a trademark of Google LLC."
+    },
+    "about": {
+      "title": "About",
+      "subtitle": "Technical stack and open-source licenses.",
+      "stackTitle": "Technical stack",
+      "backendLabel": "Backend",
+      "frontendLabel": "Frontend",
+      "containerLabel": "Container",
+      "licensesTitle": "Open-source licenses",
+      "ffmpegText": "MediaKeeper uses tools from the FFmpeg project under the LGPLv2.1+ license. See",
+      "dependenciesText": "See requirements.txt and package.json for the full open-source dependency tree on",
+      "thirdPartyTitle": "Third-party API attributions",
+      "thirdPartyText": "User-facing attributions for TMDB, OpenSubtitles, Emby, Imgur and YouTube are listed on"
+    },
+    "settings": {
+      "tmdb": "By using the TMDB API, you agree to their Terms of Use.",
+      "opensubtitles": "By using OpenSubtitles credentials, you agree to their Terms of Use.",
+      "linkText": "View full attribution"
+    }
+  },
   "sidebar": {
     "dashboard": "Dashboard",
     "statistics": "Statistics",
@@ -1962,7 +2006,8 @@
     "requestsAdmin": "Blacklist, issues, news, XP events, lists and settings",
     "logs": "System and Emby logs",
     "settings": "MediaKeeper configuration",
-    "changelog": "Change history"
+    "changelog": "Change history",
+    "about": "Stack, licenses and third-party attributions"
   },
   "portal": {
     "title": "Requests",
@@ -1973,6 +2018,7 @@
       "profile": "Profile",
       "tickets": "Issues",
       "changelog": "What's new",
+      "credits": "Credits",
       "lists": "Lists",
       "media": "Media",
       "person": "Person",

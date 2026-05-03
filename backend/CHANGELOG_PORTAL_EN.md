@@ -15,6 +15,7 @@ This section intentionally has no date so it is not shown to users.
 ## [Unreleased]
 
 ### Added
+- Credits — new page (TMDB, OpenSubtitles, Emby, Imgur, YouTube) reachable from the footer
 - Settings — Account tab shows the account expiry date (or "No limit")
 - Notifications — admins and moderators see flagged chat messages in the bell
 - Chat — report button animates then locks after submission (cannot re-report)

@@ -40,6 +40,12 @@
           {{ pinging ? $t('common.test')+'...' : pingResult || $t('settings.testConnection') }}
         </button>
       </div>
+      <p v-if="hasAttributionNote" class="tc-attribution-note">
+        {{ attributionNoteText }}
+        <router-link :to="{ name: 'portal-credits' }" target="_blank" rel="noopener">
+          {{ $t('attribution.settings.linkText') }}
+        </router-link>
+      </p>
     </div>
   </div>
 </template>
@@ -47,7 +53,7 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
-import { ref, reactive, watch } from 'vue'
+import { ref, reactive, watch, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { KeyRound } from 'lucide-vue-next'
 
@@ -65,6 +71,14 @@ const open = ref(false)
 const saving = ref(false)
 const pinging = ref(false)
 const pingResult = ref(null)
+
+const ATTRIBUTION_TOOLS = ['tmdb', 'opensubtitles']
+const hasAttributionNote = computed(() => ATTRIBUTION_TOOLS.includes(props.toolKey))
+const attributionNoteText = computed(() =>
+  props.toolKey === 'tmdb'
+    ? t('attribution.settings.tmdb')
+    : t('attribution.settings.opensubtitles')
+)
 
 const fieldValues = reactive({})
 const secretEditing = reactive({})
@@ -198,4 +212,7 @@ async function ping() {
 .tc-ping-btn { padding: 8px 14px; border-radius:var(--radius-btn); background: var(--bg-tertiary); color: var(--text-secondary); border: 1px solid var(--border); font-size: var(--text-sm); cursor: pointer; transition: all var(--duration-fast); }
 .tc-ping-btn:hover { border-color: var(--accent-500); color: var(--text-primary); }
 .tc-ping-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.tc-attribution-note { margin: 8px 0 0; font-size: var(--text-2xs); color: var(--text-muted); line-height: 1.45; }
+.tc-attribution-note a { color: var(--accent-500); text-decoration: underline; text-underline-offset: 2px; }
 </style>

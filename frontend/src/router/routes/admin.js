@@ -93,4 +93,10 @@ export const adminRoutes = [
     component: () => import('@/views/ChangelogView.vue'),
     meta: { titleKey: 'changelog.title', subtitleKey: 'pageMeta.changelog' },
   },
+  {
+    path: 'about',
+    name: 'about',
+    component: () => import('@/views/AdminAboutView.vue'),
+    meta: { titleKey: 'attribution.about.title', subtitleKey: 'pageMeta.about' },
+  },
 ]
