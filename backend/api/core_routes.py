@@ -142,6 +142,11 @@ def _authenticate_media_proxy_request(request: Request) -> str:
     """
     Validate the JWT on image proxy routes without hitting the DB
     for every poster/avatar loaded.
+
+    Accepts both the admin and the portal cookies because posters and
+    avatars are consumed by both surfaces, but each token must carry an
+    explicit ``scope`` claim — a JWT without a scope is rejected so a
+    forged or migrated-out-of-scope token cannot ride image routes.
     """
     from api.auth import COOKIE_NAME, PORTAL_COOKIE_NAME
 
@@ -150,7 +155,7 @@ def _authenticate_media_proxy_request(request: Request) -> str:
         jwt_token = request.cookies.get(PORTAL_COOKIE_NAME)
 
     payload = decode_access_token(jwt_token) if jwt_token else None
-    if not payload:
+    if not payload or payload.get("scope") not in ("admin", "portal"):
         raise HTTPException(status_code=401, detail="not_authenticated")
 
     username = payload.get("sub")

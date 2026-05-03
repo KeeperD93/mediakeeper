@@ -31,12 +31,13 @@ async def get_status(
     Accessible without full auth (just a valid JWT) so the wizard can render
     before everything is configured.
     """
-    # Light auth — we only check the JWT
+    # Light auth — we only check the JWT, but the scope claim must still
+    # match the admin surface so a portal token can never read this route.
     token = request.cookies.get(COOKIE_NAME)
     if not token:
         return {"authenticated": False}
     payload = decode_access_token(token)
-    if not payload:
+    if not payload or payload.get("scope") != "admin":
         return {"authenticated": False}
 
     done = await get_setting(db, ONBOARDING_KEY)

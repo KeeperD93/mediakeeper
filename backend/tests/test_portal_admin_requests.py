@@ -20,7 +20,7 @@ async def test_list_users_returns_profiles(client, admin_user, db_session):
     await db_session.commit()
     await db_session.refresh(profile)
 
-    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username}))
+    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
     resp = await client.get("/api/portal/admin/requests/users")
 
     assert resp.status_code == 200

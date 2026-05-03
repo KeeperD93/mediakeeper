@@ -98,7 +98,7 @@ async def test_portal_request_contracts_split_admin_and_user(client, admin_user,
 
 @pytest.mark.asyncio
 async def test_onboarding_folders_use_db_source_of_truth_and_gate_completion(client, admin_user, db_session):
-    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username}))
+    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
 
     status_before = await client.get("/api/onboarding/status")
     assert status_before.status_code == 200
@@ -131,7 +131,7 @@ async def test_onboarding_folders_use_db_source_of_truth_and_gate_completion(cli
 
 @pytest.mark.asyncio
 async def test_settings_tools_mask_secrets_and_preserve_partial_updates(client, admin_user, db_session):
-    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username}))
+    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
 
     first_save = await client.post("/api/settings/tools/emby", json={
         "enabled": True,
@@ -160,7 +160,7 @@ async def test_settings_tools_mask_secrets_and_preserve_partial_updates(client, 
 
 @pytest.mark.asyncio
 async def test_notification_configs_mask_secrets_and_preserve_hidden_values(client, admin_user, db_session):
-    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username}))
+    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
 
     discord_save = await client.post("/api/notifications/discord/config", json={
         "enabled": True,
@@ -229,7 +229,7 @@ async def test_notification_configs_mask_secrets_and_preserve_hidden_values(clie
 
 @pytest.mark.asyncio
 async def test_discord_test_can_use_stored_webhook_id(client, admin_user, db_session):
-    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username}))
+    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
 
     await client.post("/api/notifications/discord/config", json={
         "enabled": True,

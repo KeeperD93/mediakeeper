@@ -29,7 +29,7 @@ async def get_current_user(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not_authenticated")
 
     payload = decode_access_token(token)
-    if not payload:
+    if not payload or payload.get("scope") != "admin":
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="token_invalid")
 
     username = payload.get("sub")

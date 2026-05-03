@@ -66,7 +66,7 @@ async def change_password(
     await db.commit()
     await db.refresh(user)
 
-    new_token = create_access_token({"sub": user.username})
+    new_token = create_access_token({"sub": user.username, "scope": "admin"})
     _set_jwt_cookie(response, new_token, request)
     ensure_csrf_cookie(response, request)
     logger.info(f"[PASSWORD] Password changed for user={user.username}")
@@ -81,7 +81,7 @@ async def refresh_token(
     current_user: User = Depends(get_current_user),
 ):
     """Renew le cookie JWT."""
-    new_token = create_access_token({"sub": current_user.username})
+    new_token = create_access_token({"sub": current_user.username, "scope": "admin"})
     _set_jwt_cookie(response, new_token, request)
     ensure_csrf_cookie(response, request)
     return {"success": True}

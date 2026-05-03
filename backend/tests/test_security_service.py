@@ -141,7 +141,7 @@ async def test_admin_can_list_and_manage_blocks(client, db_session):
     await db_session.commit()
     await db_session.refresh(admin)
 
-    client.cookies.set("mk_token", create_access_token({"sub": admin.username}))
+    client.cookies.set("mk_token", create_access_token({"sub": admin.username, "scope": "admin"}))
 
     resp = await client.post("/api/security/blocks", json={
         "ip": "10.0.0.1",

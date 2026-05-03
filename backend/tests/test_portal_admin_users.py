@@ -10,7 +10,7 @@ from models.portal.profile import UserProfile
 def _auth(client, admin_user) -> None:
     client.cookies.set(
         "mk_token",
-        create_access_token({"sub": admin_user.username}),
+        create_access_token({"sub": admin_user.username, "scope": "admin"}),
     )
 
 
@@ -188,7 +188,7 @@ async def test_csrf_required_on_mutations(raw_client, admin_user, db_session):
         source="local", account_active=True,
     ))
     await db_session.commit()
-    raw_client.cookies.set("mk_token", create_access_token({"sub": admin_user.username}))
+    raw_client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
     resp = await raw_client.patch(
         "/api/portal/admin/users/1/role",
         json={"role": "moderator"},

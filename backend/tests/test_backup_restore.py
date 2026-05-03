@@ -122,7 +122,7 @@ async def test_restore_signals_missing_key_with_recovery_hint(
 
 @pytest.mark.asyncio
 async def test_restore_endpoint_returns_error_on_partial_restore(client, admin_user):
-    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username}))
+    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
 
     with patch(
         "api.backup._restore.get_backup_path",

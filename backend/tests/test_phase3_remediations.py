@@ -19,7 +19,7 @@ def _csrf_headers(client):
 @pytest.mark.asyncio
 async def test_me_bootstraps_csrf_cookie_for_admin_session(raw_client, admin_user):
     client = raw_client
-    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username}))
+    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
 
     resp = await client.get("/api/auth/me")
 
@@ -32,7 +32,7 @@ async def test_me_bootstraps_csrf_cookie_for_admin_session(raw_client, admin_use
 @pytest.mark.asyncio
 async def test_admin_enter_requires_valid_csrf_header(raw_client, admin_user):
     client = raw_client
-    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username}))
+    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
     await client.get("/api/auth/me")
 
     blocked = await client.post("/api/portal/admin/requests/enter")
@@ -47,7 +47,7 @@ async def test_admin_enter_requires_valid_csrf_header(raw_client, admin_user):
 @pytest.mark.asyncio
 async def test_admin_enter_rejects_cross_origin_even_with_valid_token(raw_client, admin_user):
     client = raw_client
-    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username}))
+    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
     await client.get("/api/auth/me")
 
     resp = await client.post("/api/portal/admin/requests/enter", headers={
@@ -62,7 +62,7 @@ async def test_admin_enter_rejects_cross_origin_even_with_valid_token(raw_client
 @pytest.mark.asyncio
 async def test_scheduler_run_returns_conflict_when_task_already_running(raw_client, admin_user):
     client = raw_client
-    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username}))
+    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
     await client.get("/api/auth/me")
     task_key = next(iter(TASK_DEFINITIONS.keys()))
 
@@ -80,7 +80,7 @@ async def test_scheduler_run_returns_conflict_when_task_already_running(raw_clie
 @pytest.mark.asyncio
 async def test_healthcheck_and_watchlist_refuse_duplicate_manual_runs(raw_client, admin_user):
     client = raw_client
-    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username}))
+    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
     await client.get("/api/auth/me")
 
     sleep_task = asyncio.create_task(asyncio.sleep(60))

@@ -11,7 +11,7 @@ from core.security import create_access_token
 
 @pytest.mark.asyncio
 async def test_jellystats_import_rejects_non_json(client, admin_user):
-    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username}))
+    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
 
     resp = await client.post(
         "/api/stats/import/jellystats",
@@ -24,7 +24,7 @@ async def test_jellystats_import_rejects_non_json(client, admin_user):
 
 @pytest.mark.asyncio
 async def test_jellystats_import_reads_valid_json(client, admin_user):
-    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username}))
+    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
 
     with patch(
         "api.stats._import.import_jellystats_backup",
@@ -41,7 +41,7 @@ async def test_jellystats_import_reads_valid_json(client, admin_user):
 
 @pytest.mark.asyncio
 async def test_jellystats_import_stops_when_file_is_too_large(client, admin_user, monkeypatch):
-    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username}))
+    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
     monkeypatch.setattr("api.stats._import._MAX_IMPORT_SIZE", 8)
 
     resp = await client.post(
