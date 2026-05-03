@@ -31,6 +31,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Mises à jour sécurité (JWT, chiffrement, multipart, build frontend)
 - Confiance proxy stricte, en-têtes sécurité (CSP/HSTS) et cookies sécurisés
 - Sessions révocables, scopes tokens stricts et WebSocket sécurisé
+- Renforcement XSS — schémas d'URL filtrés, sanitization HTML resserrée
 
 ### Fixed
 - Utilisateurs — compte admin local marqué « Local » et plus comme source Emby

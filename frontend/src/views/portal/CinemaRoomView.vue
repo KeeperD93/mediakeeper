@@ -45,6 +45,7 @@
               class="pt-cr-screen-video"
               frameborder="0"
               allow="autoplay; encrypted-media"
+              sandbox="allow-scripts allow-same-origin allow-presentation"
               allowfullscreen
             />
 

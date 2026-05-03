@@ -37,6 +37,27 @@ async def test_csp_directive_present_in_enforce_mode(client, monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_csp_includes_frame_src_youtube_and_vimeo(client):
+    """Trailer iframes embed YouTube and Vimeo players. Without an
+    explicit ``frame-src`` whitelist they'd fall back to ``default-src
+    'self'`` and be blocked under enforce mode."""
+    r = await client.get("/api/health")
+    csp = r.headers.get("Content-Security-Policy") or ""
+    assert "frame-src" in csp
+    assert "https://www.youtube-nocookie.com" in csp
+    assert "https://player.vimeo.com" in csp
+
+
+@pytest.mark.asyncio
+async def test_csp_object_src_none(client):
+    """``object-src 'none'`` blocks legacy ``<object>`` / ``<embed>``
+    plugin loaders MediaKeeper never uses."""
+    r = await client.get("/api/health")
+    csp = r.headers.get("Content-Security-Policy") or ""
+    assert "object-src 'none'" in csp
+
+
+@pytest.mark.asyncio
 async def test_hsts_absent_on_plain_http_request(client):
     # The test transport speaks plain HTTP; HSTS must NOT be emitted.
     r = await client.get("/api/health")

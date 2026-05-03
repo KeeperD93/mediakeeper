@@ -64,13 +64,28 @@ export function useLogs() {
   })
 
   function lineClass(line) { return `log-${getLevel(line).toLowerCase()}` }
-  function highlightLine(line) {
-    let html = line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    if (search.value.trim()) {
-      const q = search.value.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-      html = html.replace(new RegExp(`(${q})`, 'gi'), '<mark class="log-highlight">$1</mark>')
+
+  // Returns an array of ``{ text, highlight }`` segments so the template
+  // can render the line as plain text (Vue auto-escaped) with ``<mark>``
+  // wrappers around the matched search term — no ``v-html`` needed.
+  function lineSegments(line) {
+    const q = search.value.trim()
+    if (!q) return [{ text: line, highlight: false }]
+    const lower = line.toLowerCase()
+    const needle = q.toLowerCase()
+    const out = []
+    let cursor = 0
+    while (cursor < line.length) {
+      const found = lower.indexOf(needle, cursor)
+      if (found === -1) {
+        out.push({ text: line.slice(cursor), highlight: false })
+        break
+      }
+      if (found > cursor) out.push({ text: line.slice(cursor, found), highlight: false })
+      out.push({ text: line.slice(found, found + needle.length), highlight: true })
+      cursor = found + needle.length
     }
-    return html
+    return out
   }
 
   async function fetchFiles() {
@@ -129,7 +144,7 @@ export function useLogs() {
     currentFile, rawLines, search, autoRefresh,
     filters, filterModule, detectedModules,
     filteredLines, displayLines, statusText, countText,
-    lineClass, highlightLine,
+    lineClass, lineSegments,
     fetchFiles, loadDebugMode, toggleDebug, viewFile, backToFiles, downloadFile, toggleAutoRefresh,
   }
 }

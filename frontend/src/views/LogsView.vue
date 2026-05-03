@@ -76,7 +76,17 @@
           <div v-if="!rawLines.length" class="reader-empty">{{ $t('logs.fileEmpty') }}</div>
           <div v-else-if="!filteredLines.length" class="reader-empty">{{ $t('logs.noMatch') }}</div>
           <template v-else>
-            <div v-for="(line, i) in displayLines" :key="i" class="log-line" :class="lineClass(line)" v-html="highlightLine(line)" />
+            <div
+              v-for="(line, i) in displayLines"
+              :key="i"
+              class="log-line"
+              :class="lineClass(line)"
+            >
+              <template v-for="(seg, j) in lineSegments(line)" :key="j">
+                <mark v-if="seg.highlight" class="log-highlight">{{ seg.text }}</mark>
+                <template v-else>{{ seg.text }}</template>
+              </template>
+            </div>
           </template>
         </div>
       </template>
@@ -127,7 +137,7 @@ const {
   currentFile, rawLines, search, autoRefresh,
   filters, filterModule, detectedModules,
   filteredLines, displayLines, statusText, countText,
-  lineClass, highlightLine,
+  lineClass, lineSegments,
   fetchFiles, loadDebugMode, toggleDebug, viewFile, backToFiles, downloadFile, toggleAutoRefresh,
 } = useLogs()
 

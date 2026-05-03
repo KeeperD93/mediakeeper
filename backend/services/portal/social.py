@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.portal.social import (
     UserRating, UserRatingLike, ReleaseReminder,
 )
-from services.portal import sanitize
+from services.portal import strip_tags_and_trim
 
 logger = logging.getLogger("mediakeeper.portal.social")
 
@@ -29,14 +29,14 @@ async def rate_media(
     rating = result.scalar_one_or_none()
     if rating:
         rating.rating = data["rating"]
-        rating.review = sanitize(data.get("review", ""), 5000) if data.get("review") else None
+        rating.review = strip_tags_and_trim(data.get("review", ""), 5000) if data.get("review") else None
     else:
         rating = UserRating(
             user_id=user_id,
             tmdb_id=data["tmdb_id"],
             media_type=data["media_type"],
             rating=data["rating"],
-            review=sanitize(data.get("review", ""), 5000) if data.get("review") else None,
+            review=strip_tags_and_trim(data.get("review", ""), 5000) if data.get("review") else None,
         )
     db.add(rating)
     await db.commit()

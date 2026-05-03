@@ -13,6 +13,10 @@ Emits the standard defensive headers on every HTTP response:
     arbitrary user input. Tracked as tech debt — switch vue-i18n to
     pre-compiled messages (``@intlify/unplugin-vue-i18n``) and drop
     ``'unsafe-eval'`` in a follow-up batch.
+
+    ``frame-src`` whitelists the YouTube and Vimeo embed origins so the
+    portal trailer player keeps working under enforce mode; ``object-src``
+    is locked to ``'none'`` because MediaKeeper never embeds plugins.
   - ``Strict-Transport-Security``: emitted only when the request is
     confirmed HTTPS (after ``ProxyHeadersMiddleware`` rewrites the scope
     based on a trusted proxy).
@@ -41,6 +45,11 @@ CSP_DIRECTIVES = "; ".join([
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: https://image.tmdb.org https://i.imgur.com",
     "connect-src 'self'",
+    # Trailers embed YouTube and Vimeo players; without an explicit
+    # ``frame-src`` the ``default-src 'self'`` fallback would block them.
+    "frame-src 'self' https://www.youtube-nocookie.com https://player.vimeo.com",
+    # Defence in depth: MediaKeeper never renders ``<object>`` / ``<embed>``.
+    "object-src 'none'",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",

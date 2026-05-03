@@ -53,6 +53,7 @@
     "@tiptap/starter-kit": "^2.10.3",
     "@tiptap/vue-3": "^2.10.3",
     "chart.js": "^4.4.7",
+    "dompurify": "^3.4.2",
     "grid-layout-plus": "^1.0.5",
     "lucide-vue-next": "^1.0.0",
     "primeicons": "^7.0.0",

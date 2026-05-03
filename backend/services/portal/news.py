@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.news import News, NewsRead
 from core.pagination import decode_cursor, build_cursor_response
-from services.portal import sanitize
+from services.portal import strip_tags_and_trim
 
 logger = logging.getLogger("mediakeeper.portal.news")
 
@@ -13,8 +13,8 @@ logger = logging.getLogger("mediakeeper.portal.news")
 async def create_news(db: AsyncSession, author_id: int, data: dict) -> dict:
     article = News(
         author_id=author_id,
-        title=sanitize(data["title"], 300),
-        content=sanitize(data["content"], 10000),
+        title=strip_tags_and_trim(data["title"], 300),
+        content=strip_tags_and_trim(data["content"], 10000),
         image_url=data.get("image_url"),
         type=data.get("type", "announcement"),
         pinned=data.get("pinned", False),
@@ -86,7 +86,7 @@ async def update_news(db: AsyncSession, news_id: int, data: dict) -> dict:
         if key in data:
             val = data[key]
             if key in ("title", "content") and isinstance(val, str):
-                val = sanitize(val, 10000 if key == "content" else 300)
+                val = strip_tags_and_trim(val, 10000 if key == "content" else 300)
             setattr(article, key, val)
     db.add(article)
     await db.commit()

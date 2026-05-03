@@ -100,10 +100,12 @@
                         <span class="nf-discord-bot-tag">APP</span>
                       </div>
                       <template v-for="(pv, pvk) in [renderPreview(webhooks[activeTplWh].templates[tf.key] || defaultTpl(tf.key), tf.key, getTplSetting(webhooks[activeTplWh], tf.key, 'image_style') || 'image')]" :key="pvk">
+                        <!-- eslint-disable-next-line vue/no-v-html -->
                         <div v-if="pv.content" class="nf-discord-content" v-html="pv.content"></div>
                         <div class="nf-discord-embed-wrap">
                           <div class="nf-discord-embed-bar"
                             :style="{ background: getTplSetting(webhooks[activeTplWh], tf.key, 'color') || defaultColor(tf.key) }"></div>
+                          <!-- eslint-disable-next-line vue/no-v-html -->
                           <div class="nf-discord-embed-body" v-html="pv.embed"></div>
                         </div>
                       </template>

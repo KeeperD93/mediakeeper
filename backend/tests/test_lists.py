@@ -209,3 +209,84 @@ async def test_export_json(client, db_session):
     assert resp.status_code == 200
     assert resp.headers["content-type"].startswith("application/json")
     assert "attachment" in resp.headers["content-disposition"]
+
+
+@pytest.mark.asyncio
+async def test_add_item_drops_javascript_scheme_poster_url(client, db_session):
+    """A user-supplied ``poster_url`` carrying ``javascript:`` is rejected
+    at persistence — the row stores ``NULL`` and the rendering layer
+    falls back to the placeholder. Defence in depth even though
+    ``<img src=javascript:...>`` does not execute on modern browsers."""
+    user = await _bootstrap(db_session, "xss_owner")
+    _rq(client, user)
+    list_id = (await client.post("/api/portal/lists",
+                                 json={"name": "XSS"})).json()["id"]
+
+    resp = await client.post(f"/api/portal/lists/{list_id}/items", json={
+        "items": [{
+            "tmdb_id": 101, "media_type": "movie",
+            "poster_url": "javascript:alert(1)",
+        }],
+    })
+    assert resp.status_code == 200
+
+    body = (await client.get(f"/api/portal/lists/{list_id}")).json()
+    assert body["items"][0]["poster_url"] is None
+
+
+@pytest.mark.asyncio
+async def test_add_item_drops_data_uri_poster_url(client, db_session):
+    user = await _bootstrap(db_session, "data_owner")
+    _rq(client, user)
+    list_id = (await client.post("/api/portal/lists",
+                                 json={"name": "Data"})).json()["id"]
+
+    resp = await client.post(f"/api/portal/lists/{list_id}/items", json={
+        "items": [{
+            "tmdb_id": 102, "media_type": "movie",
+            "poster_url": "data:image/svg+xml,<svg/onload=alert(1)>",
+        }],
+    })
+    assert resp.status_code == 200
+    body = (await client.get(f"/api/portal/lists/{list_id}")).json()
+    assert body["items"][0]["poster_url"] is None
+
+
+@pytest.mark.asyncio
+async def test_add_item_drops_off_whitelist_host(client, db_session):
+    """``https://evil.example.com/poster.jpg`` is HTTPS but outside the
+    poster CDN whitelist (``image.tmdb.org`` / ``i.imgur.com``) — the
+    backend refuses to persist it."""
+    user = await _bootstrap(db_session, "host_owner")
+    _rq(client, user)
+    list_id = (await client.post("/api/portal/lists",
+                                 json={"name": "Host"})).json()["id"]
+
+    resp = await client.post(f"/api/portal/lists/{list_id}/items", json={
+        "items": [{
+            "tmdb_id": 103, "media_type": "movie",
+            "poster_url": "https://evil.example.com/poster.jpg",
+        }],
+    })
+    assert resp.status_code == 200
+    body = (await client.get(f"/api/portal/lists/{list_id}")).json()
+    assert body["items"][0]["poster_url"] is None
+
+
+@pytest.mark.asyncio
+async def test_add_item_keeps_whitelisted_tmdb_poster(client, db_session):
+    user = await _bootstrap(db_session, "ok_owner")
+    _rq(client, user)
+    list_id = (await client.post("/api/portal/lists",
+                                 json={"name": "OK"})).json()["id"]
+
+    poster = "https://image.tmdb.org/t/p/w500/abc.jpg"
+    resp = await client.post(f"/api/portal/lists/{list_id}/items", json={
+        "items": [{
+            "tmdb_id": 104, "media_type": "movie",
+            "poster_url": poster,
+        }],
+    })
+    assert resp.status_code == 200
+    body = (await client.get(f"/api/portal/lists/{list_id}")).json()
+    assert body["items"][0]["poster_url"] == poster

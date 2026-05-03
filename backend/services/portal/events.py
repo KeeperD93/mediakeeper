@@ -8,7 +8,7 @@ from models.portal.event import (
     SeasonalEvent, SeasonalProgress, WatchParty, WatchPartyParticipant,
 )
 from models.portal.chat import ChatRoom
-from services.portal import sanitize
+from services.portal import strip_tags_and_trim
 
 logger = logging.getLogger("mediakeeper.portal.events")
 
@@ -19,8 +19,8 @@ async def create_seasonal_event(
     db: AsyncSession, admin_id: int, data: dict
 ) -> dict:
     event = SeasonalEvent(
-        name=sanitize(data["name"], 200),
-        description=sanitize(data.get("description", ""), 2000),
+        name=strip_tags_and_trim(data["name"], 200),
+        description=strip_tags_and_trim(data.get("description", ""), 2000),
         start_date=data["start_date"],
         end_date=data["end_date"],
         genre_filter=data.get("genre_filter"),
@@ -92,13 +92,13 @@ async def update_event_progress(
 async def create_watch_party(
     db: AsyncSession, host_id: int, data: dict
 ) -> dict:
-    room = ChatRoom(type="party", name=sanitize(data["title"], 100))
+    room = ChatRoom(type="party", name=strip_tags_and_trim(data["title"], 100))
     db.add(room)
     await db.flush()
 
     party = WatchParty(
         host_user_id=host_id,
-        title=sanitize(data["title"], 300),
+        title=strip_tags_and_trim(data["title"], 300),
         tmdb_id=data.get("tmdb_id"),
         media_type=data.get("media_type"),
         scheduled_at=data["scheduled_at"],
