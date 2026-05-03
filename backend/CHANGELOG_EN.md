@@ -38,6 +38,10 @@ This section intentionally has no date so it is not shown to users.
 - CSP — dedicated violation report endpoint with rate-limited logging
 - Deployment — per-stack reverse-proxy guides (LAN, DSM, NPM, Caddy, Traefik)
 - UX — clear message when the server throttles requests
+- Notification settings — explicit confirmation required before clearing every destination
+- Startup — warn when the public origin is unset in reverse-proxy mode
+- Persistent banner alert when the at-rest encryption key is ephemeral
+- Tests — automatic detection of third-party hosts missing from the security policy
 
 ### Fixed
 - Fix Discord notification titles rendered as raw text instead of links
