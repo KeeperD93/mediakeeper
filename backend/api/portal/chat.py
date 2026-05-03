@@ -2,11 +2,13 @@
 import json
 import logging
 import os
+import time
 from datetime import datetime, timezone
 from typing import Optional
 from urllib.parse import urlsplit
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -224,6 +226,43 @@ async def report_message(
     if "error" in result:
         raise HTTPException(status_code=404, detail=result["error"])
     return result
+
+
+# Cooldown between two diagnostic WARN lines fired by the WS upgrade
+# fallback (HTTP GET on the WS path). One per hour is enough — the hint
+# is for the operator, not the attacker.
+_WS_UPGRADE_LOG_COOLDOWN_SECONDS = 3600
+_last_ws_upgrade_log = 0.0
+
+
+def _log_ws_upgrade_missing_once_per_hour() -> None:
+    global _last_ws_upgrade_log
+    now = time.monotonic()
+    if now - _last_ws_upgrade_log < _WS_UPGRADE_LOG_COOLDOWN_SECONDS:
+        return
+    _last_ws_upgrade_log = now
+    logger.warning(
+        "[CHAT_WS] received an HTTP GET on the chat WebSocket path. "
+        "The reverse proxy is probably not forwarding the Upgrade / "
+        "Connection headers. See docs/deployment for the matching "
+        "stack (synology-dsm, nginx-proxy-manager, caddy, traefik)."
+    )
+
+
+@router.get("/ws/{room_id}")
+async def chat_ws_http_fallback(room_id: int):
+    """HTTP GET arriving at the WS path means the reverse proxy did not
+    upgrade the connection to a WebSocket. Return 426 with the explicit
+    ``Upgrade: websocket`` header and log a one-line operator hint
+    (rate-limited 1/h) so the misconfiguration surfaces in container
+    logs without flooding them.
+    """
+    _log_ws_upgrade_missing_once_per_hour()
+    return JSONResponse(
+        status_code=426,
+        content={"detail": "websocket_upgrade_required"},
+        headers={"Upgrade": "websocket", "Connection": "Upgrade"},
+    )
 
 
 @router.websocket("/ws/{room_id}")

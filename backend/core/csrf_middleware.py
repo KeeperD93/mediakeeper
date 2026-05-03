@@ -18,7 +18,9 @@ via ``useApi.buildApiHeaders``.
 """
 from __future__ import annotations
 
+import logging
 import secrets
+import time
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
@@ -26,6 +28,27 @@ from starlette.responses import JSONResponse
 from api.auth._cookies import COOKIE_NAME, PORTAL_COOKIE_NAME
 from api.auth._csrf import CSRF_COOKIE_NAME
 from core.csrf_helpers import request_origin, same_origin
+
+logger = logging.getLogger("mediakeeper.csrf")
+
+# Cooldown between two diagnostic WARN lines on origin mismatch — the
+# operator needs the hint once per hour, not on every hostile probe.
+_ORIGIN_MISMATCH_LOG_COOLDOWN_SECONDS = 3600
+_last_origin_mismatch_log = 0.0
+
+
+def _log_origin_mismatch_once_per_hour(path: str, origin: str, expected: str) -> None:
+    global _last_origin_mismatch_log
+    now = time.monotonic()
+    if now - _last_origin_mismatch_log < _ORIGIN_MISMATCH_LOG_COOLDOWN_SECONDS:
+        return
+    _last_origin_mismatch_log = now
+    logger.warning(
+        "[CSRF] origin mismatch on %s: got %r expected %r. "
+        "Check FRONTEND_ORIGIN and TRUSTED_PROXIES — see "
+        "docs/deployment for the matching reverse-proxy stack.",
+        path, origin or "(empty)", expected,
+    )
 
 SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
 
@@ -55,8 +78,10 @@ def _origin_matches(request) -> bool:
     origin = request.headers.get("origin", "")
     referer = request.headers.get("referer", "")
     if origin and not same_origin(origin, expected_origin):
+        _log_origin_mismatch_once_per_hour(request.url.path, origin, expected_origin)
         return False
     if not origin and referer and not same_origin(referer, expected_origin):
+        _log_origin_mismatch_once_per_hour(request.url.path, referer, expected_origin)
         return False
     return True
 

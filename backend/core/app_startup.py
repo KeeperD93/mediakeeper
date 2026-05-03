@@ -252,6 +252,34 @@ def _warn_if_secure_cookies_unavailable() -> None:
     )
 
 
+def _log_deployment_mode() -> None:
+    """Print a one-shot diagnostic summary so an operator opening the
+    container logs at boot can sanity-check the deployment mode.
+
+    The line surfaces three values that drive the rest of the security
+    posture: ``TRUSTED_PROXIES`` (Mode A vs Mode B), ``FRONTEND_ORIGIN``
+    (chat WS allowlist) and ``COOKIE_SECURE`` (cookie hardening). All
+    three are read fresh from the environment at startup so a config
+    reload via container restart shows up here.
+    """
+    trusted = os.getenv("TRUSTED_PROXIES", "").strip()
+    frontend = os.getenv("FRONTEND_ORIGIN", "").strip()
+    cookie_secure = os.getenv("COOKIE_SECURE", "").strip()
+
+    mode = "B (reverse proxy)" if trusted else "A (direct LAN)"
+    frontend_label = frontend if frontend else "auto-derived"
+    cookie_label = cookie_secure if cookie_secure else "auto"
+
+    logger.info(
+        "[startup] deployment mode=%s | TRUSTED_PROXIES=%s | "
+        "FRONTEND_ORIGIN=%s | COOKIE_SECURE=%s",
+        mode,
+        trusted or "(empty)",
+        frontend_label,
+        cookie_label,
+    )
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application startup / shutdown."""
@@ -260,6 +288,7 @@ async def lifespan(app: FastAPI):
 
     background_manager: BackgroundTaskManager | None = None
 
+    _log_deployment_mode()
     _warn_if_secure_cookies_unavailable()
 
     await init_clients()
