@@ -19,7 +19,7 @@
       <div class="ob-field">
         <label class="ob-label">
           {{ keyLabel }}
-          <a v-if="keyHelpUrl" :href="keyHelpUrl" target="_blank" class="ob-label-link">{{ keyHelpText }} ↗</a>
+          <a v-if="keyHelpHref" :href="keyHelpHref" target="_blank" rel="noopener noreferrer" class="ob-label-link">{{ keyHelpText }} ↗</a>
         </label>
         <input
           :type="inputType"
@@ -63,6 +63,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { Info, MessageSquare, Zap } from 'lucide-vue-next'
+import { safeHref } from '@/utils/safeUrl'
 
 const model = defineModel({ type: Object, required: true })
 
@@ -82,6 +83,11 @@ const props = defineProps({
 })
 
 defineEmits(['test'])
+
+// Tool definitions are admin-managed but the help link is rendered as
+// an anchor — refuse anything outside http(s)/mailto so a poisoned
+// config can never expose ``javascript:`` to operators.
+const keyHelpHref = computed(() => safeHref(props.keyHelpUrl))
 
 const secretEditing = ref(false)
 

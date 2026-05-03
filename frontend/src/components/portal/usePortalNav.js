@@ -3,6 +3,7 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 import { PORTAL_TAB } from '@/constants/portal'
+import { safeHref } from '@/utils/safeUrl'
 
 export function usePortalNav(props, emit) {
   const { t } = useI18n()
@@ -106,8 +107,9 @@ export function usePortalNav(props, emit) {
   }
 
   function openSupport() {
-    if (!props.supportUrl) return
-    window.open(props.supportUrl, '_blank', 'noopener,noreferrer')
+    const target = safeHref(props.supportUrl)
+    if (!target) return
+    window.open(target, '_blank', 'noopener,noreferrer')
   }
 
   async function doLogout() {

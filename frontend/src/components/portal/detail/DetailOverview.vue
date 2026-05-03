@@ -86,8 +86,8 @@
             target="_blank" rel="noopener"
           >IMDb</a>
           <a
-            v-if="media.homepage"
-            :href="media.homepage"
+            v-if="homepageHref"
+            :href="homepageHref"
             target="_blank" rel="noopener"
           >{{ $t('portal.detail.officialSite') }}</a>
         </div>
@@ -99,12 +99,17 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { safeHref } from '@/utils/safeUrl'
 
 const props = defineProps({
   media: { type: Object, required: true },
 })
 
 const { te, t } = useI18n()
+
+// TMDB ``homepage`` is a free-form URL field; refuse anything that is
+// not http(s)/mailto so a poisoned entry cannot smuggle ``javascript:``.
+const homepageHref = computed(() => safeHref(props.media?.homepage))
 
 // TMDB returns status in English ("Returning Series", "Released", …).
 // Map it through the portal.detail.statusValues table; fall back to the
