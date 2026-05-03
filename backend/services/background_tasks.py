@@ -172,6 +172,24 @@ class BackgroundTaskManager:
 
             await asyncio.sleep(HEALTH_MONITOR_INTERVAL_SEC)
 
+    async def _periodic_ws_revocation_sweep(self):
+        """Disconnect chat sockets whose JWT was revoked while idle."""
+        from api.portal.chat import (
+            WS_REVOCATION_CHECK_INTERVAL_SEC,
+            prune_revoked_ws_sessions,
+        )
+
+        await asyncio.sleep(WS_REVOCATION_CHECK_INTERVAL_SEC)
+        while True:
+            try:
+                async with AsyncSession(self._engine, expire_on_commit=False) as session:
+                    closed = await prune_revoked_ws_sessions(session)
+                    if closed:
+                        logger.info("[ws_revocation] Closed %d revoked socket(s)", closed)
+            except Exception as exc:
+                logger.error("[ws_revocation] sweep error: %s", exc)
+            await asyncio.sleep(WS_REVOCATION_CHECK_INTERVAL_SEC)
+
     async def _periodic_chat_purge(self):
         await asyncio.sleep(120)
         while True:
@@ -207,6 +225,7 @@ class BackgroundTaskManager:
             asyncio.create_task(self._supervised("ticket_auto_close", self._periodic_ticket_auto_close)),
             asyncio.create_task(self._supervised("chat_purge", self._periodic_chat_purge)),
             asyncio.create_task(self._supervised("health_monitor", self._periodic_health_monitor)),
+            asyncio.create_task(self._supervised("ws_revocation", self._periodic_ws_revocation_sweep)),
         ]
         self._started = True
 
