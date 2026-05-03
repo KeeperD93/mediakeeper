@@ -39,6 +39,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - UX — message clair quand le serveur limite les tentatives
 
 ### Fixed
+- Corrige les titres Discord affichés en texte brut au lieu de liens
 - Portail — corrige le 500 quand le portail envoie un tmdb_id texte
 - Utilisateurs — compte admin local marqué « Local » et plus comme source Emby
 - Utilisateurs — date de dernière connexion admin renseignée à chaque login MK

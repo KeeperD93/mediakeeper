@@ -1,7 +1,10 @@
 """Build Discord payloads (media + system)."""
 
 from ._defaults import DEFAULT_COLORS, get_default_templates
-from ._render import _hex_to_int, _apply_vars, _add_aliases, _build_embed
+from ._render import (
+    _hex_to_int, _apply_vars, _add_aliases, _build_embed,
+    escape_discord_markdown,
+)
 from ._images import _get_image_url
 
 
@@ -93,7 +96,13 @@ async def build_discord_payload(
         code    = f"S{s_num:02d}E{e_num:02d}" if s_num and e_num else ""
         tmdb_ep = f"{tmdb_base}/season/{s_num}/episode/{e_num}" if tmdb_base and s_num and e_num else tmdb_base
         tmdb_lnk = f"[Fiche TMDB]({tmdb_ep})" if tmdb_ep else ""
-        title_linked = f"[{series}]({tmdb_base})" if tmdb_base else series
+        # Escape the raw series name BEFORE wrapping it in markdown link
+        # syntax. The wrapped value is registered as preformatted in
+        # ``_render.PREFORMATTED_VARS`` so ``_apply_vars`` keeps it
+        # clickable; without the early escape, a hostile series name
+        # like ``[click](evil)`` would smuggle a malicious link.
+        safe_series = escape_discord_markdown(series)
+        title_linked = f"[{safe_series}]({tmdb_base})" if tmdb_base else safe_series
         vars_dict = {
             "titre_serie":   title_linked,
             "titre_episode": name,
@@ -111,7 +120,8 @@ async def build_discord_payload(
         nb_ep    = item.get("ChildCount", "")
         tmdb_s   = f"{tmdb_base}/season/{s_num}" if tmdb_base and s_num else tmdb_base
         tmdb_lnk = f"[Fiche TMDB]({tmdb_s})" if tmdb_s else ""
-        title_linked = f"[{series}]({tmdb_base})" if tmdb_base else series
+        safe_series = escape_discord_markdown(series)
+        title_linked = f"[{safe_series}]({tmdb_base})" if tmdb_base else safe_series
         image_id = item.get("SeriesId", item.get("Id", ""))
         vars_dict = {
             "titre_serie": title_linked,
@@ -131,7 +141,8 @@ async def build_discord_payload(
         nb_ep    = item.get("ChildCount", "")
         tmdb_s   = f"{tmdb_base}/season/{s_num}" if tmdb_base and s_num else tmdb_base
         tmdb_lnk = f"[Fiche TMDB]({tmdb_s})" if tmdb_s else ""
-        title_linked = f"[{series}]({tmdb_base})" if tmdb_base else series
+        safe_series = escape_discord_markdown(series)
+        title_linked = f"[{safe_series}]({tmdb_base})" if tmdb_base else safe_series
         vars_dict = {
             "titre_serie": title_linked,
             "num_saison":  str(s_num) if s_num else "",
@@ -145,7 +156,8 @@ async def build_discord_payload(
     elif item_type == "Series":
         nb_s     = item.get("ChildCount", "")
         tmdb_lnk = f"[Fiche TMDB]({tmdb_base})" if tmdb_base else ""
-        title_linked = f"[{name}]({tmdb_base})" if tmdb_base else name
+        safe_name = escape_discord_markdown(name)
+        title_linked = f"[{safe_name}]({tmdb_base})" if tmdb_base else safe_name
         vars_dict = {
             "titre":      title_linked,
             "annee":      year,
@@ -158,7 +170,8 @@ async def build_discord_payload(
 
     else:  # Movie
         tmdb_lnk = f"[Fiche TMDB]({tmdb_base})" if tmdb_base else ""
-        title_linked = f"[{name}]({tmdb_base})" if tmdb_base else name
+        safe_name = escape_discord_markdown(name)
+        title_linked = f"[{safe_name}]({tmdb_base})" if tmdb_base else safe_name
         vars_dict = {
             "titre":   title_linked,
             "annee":   year,
