@@ -59,7 +59,10 @@ async def user_achievements(
     if target.role == "admin" and not is_self:
         raise HTTPException(status_code=404, detail="profile_not_found")
     if not is_self and not target.is_public:
-        raise HTTPException(status_code=403, detail="profile_private")
+        # Same fail-closed shape as the public profile endpoint: 404
+        # for any account the caller cannot read, regardless of the
+        # underlying reason.
+        raise HTTPException(status_code=404, detail="profile_not_found")
 
     data = await ach_svc.get_achievements_for_profile(db, user_id)
     data["items"] = [a for a in data["items"] if a["status"] == "unlocked"]

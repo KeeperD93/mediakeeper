@@ -75,14 +75,16 @@ async def test_returns_404_when_target_is_admin_and_caller_is_someone_else(clien
 
 
 @pytest.mark.asyncio
-async def test_returns_403_when_target_profile_is_private(client, admin_user, db_session):
+async def test_returns_404_when_target_profile_is_private(client, admin_user, db_session):
+    """Private profiles return 404 — same shape as missing/admin so the
+    caller cannot distinguish the underlying reason."""
     await _portal_login_admin(client)
     user, _ = await _make_user(
         db_session, username="private", role="viewer", is_public=False, active=True,
     )
     r = await client.get(f"/api/portal/achievements/user/{user.id}")
-    assert r.status_code == 403
-    assert r.json()["detail"] == "profile_private"
+    assert r.status_code == 404
+    assert r.json()["detail"] == "profile_not_found"
 
 
 @pytest.mark.asyncio
