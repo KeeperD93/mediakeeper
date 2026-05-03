@@ -81,6 +81,9 @@ def _rate_limit_key(request: Request) -> str:
     return get_client_ip(request) or get_remote_address(request)
 
 
+# storage=in-memory: acceptable for single-instance deployments (NAS).
+# Switch storage_uri to redis://... if MediaKeeper ever runs as multi-replica;
+# the per-IP buckets currently live in the worker process only.
 limiter = Limiter(key_func=_rate_limit_key, default_limits=["120/minute"])
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
