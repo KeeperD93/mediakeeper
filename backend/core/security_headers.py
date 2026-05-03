@@ -38,9 +38,13 @@ from core.proxy import is_request_secure
 
 CSP_DIRECTIVES = "; ".join([
     "default-src 'self'",
-    # 'unsafe-eval' is required by vue-i18n's runtime template compiler
-    # (new Function). See module docstring for the removal plan.
-    "script-src 'self' 'unsafe-eval'",
+    # ``'unsafe-eval'`` is required by vue-i18n's runtime template
+    # compiler (``new Function()``). ``https://www.youtube.com`` is the
+    # origin of the IFrame API loader (``/iframe_api``); the embedded
+    # iframes themselves still target ``youtube-nocookie.com`` (see
+    # ``frame-src`` below) so cookies stay disabled. See module
+    # docstring for the ``'unsafe-eval'`` removal plan.
+    "script-src 'self' 'unsafe-eval' https://www.youtube.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: https://image.tmdb.org https://i.imgur.com",

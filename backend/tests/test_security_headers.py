@@ -49,6 +49,30 @@ async def test_csp_includes_frame_src_youtube_and_vimeo(client):
 
 
 @pytest.mark.asyncio
+async def test_csp_allows_youtube_iframe_api_loader_only_in_script_src(client):
+    """The IFrame API script ships from ``youtube.com``; the embedded
+    iframe still targets ``youtube-nocookie.com``. ``script-src`` and
+    ``frame-src`` must reflect that split — no trailing ``youtube.com``
+    on ``frame-src`` and no missing loader origin on ``script-src``."""
+    r = await client.get("/api/health")
+    csp = r.headers.get("Content-Security-Policy") or ""
+
+    # Walk each directive so we can assert per-directive sources without
+    # accidentally matching the youtube.com prefix on youtube-nocookie.com.
+    directives = {}
+    for chunk in csp.split(";"):
+        chunk = chunk.strip()
+        if not chunk:
+            continue
+        name, _, sources = chunk.partition(" ")
+        directives[name] = sources.split()
+
+    assert "https://www.youtube.com" in directives["script-src"]
+    assert "https://www.youtube-nocookie.com" in directives["frame-src"]
+    assert "https://www.youtube.com" not in directives["frame-src"]
+
+
+@pytest.mark.asyncio
 async def test_csp_object_src_none(client):
     """``object-src 'none'`` blocks legacy ``<object>`` / ``<embed>``
     plugin loaders MediaKeeper never uses."""
