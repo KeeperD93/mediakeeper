@@ -1,6 +1,7 @@
 """Endpoints profil current : /me, /change-password, /refresh, /logout, /preferences."""
 import json
 import logging
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy import select
@@ -57,6 +58,10 @@ async def change_password(
 
     user.hashed_password      = hash_password(req.new_password)
     user.must_change_password = False
+    # Stamp the revocation pivot before issuing the new token so every JWT
+    # already minted for this account on other devices is rejected on the
+    # next request, while the new token (iat == now) stays valid.
+    user.tokens_invalidated_at = datetime.now(timezone.utc)
     db.add(user)
     await db.commit()
     await db.refresh(user)
