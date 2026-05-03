@@ -1,6 +1,7 @@
 """Endpoints profil current : /me, /change-password, /refresh, /logout, /preferences."""
 import json
 import logging
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy import select
@@ -57,11 +58,17 @@ async def change_password(
 
     user.hashed_password      = hash_password(req.new_password)
     user.must_change_password = False
+    # Stamp the revocation pivot before issuing the new token so every JWT
+    # already minted for this account on other devices is rejected on the
+    # next request, while the new token (iat == now) stays valid. The
+    # pivot is floored to whole seconds because JWT ``iat`` is encoded
+    # with second resolution.
+    user.tokens_invalidated_at = datetime.now(timezone.utc).replace(microsecond=0)
     db.add(user)
     await db.commit()
     await db.refresh(user)
 
-    new_token = create_access_token({"sub": user.username})
+    new_token = create_access_token({"sub": user.username, "scope": "admin"})
     _set_jwt_cookie(response, new_token, request)
     ensure_csrf_cookie(response, request)
     logger.info(f"[PASSWORD] Password changed for user={user.username}")
@@ -76,7 +83,7 @@ async def refresh_token(
     current_user: User = Depends(get_current_user),
 ):
     """Renew le cookie JWT."""
-    new_token = create_access_token({"sub": current_user.username})
+    new_token = create_access_token({"sub": current_user.username, "scope": "admin"})
     _set_jwt_cookie(response, new_token, request)
     ensure_csrf_cookie(response, request)
     return {"success": True}

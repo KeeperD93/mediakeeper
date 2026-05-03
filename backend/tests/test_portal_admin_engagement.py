@@ -37,7 +37,7 @@ async def test_engagement_counts_lists_within_window(client, admin_user, db_sess
     db_session.add_all([recent, old, deleted])
     await db_session.commit()
 
-    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username}))
+    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
 
     # 24h window: only "recent" counts (deleted excluded, old outside window)
     resp = await client.get("/api/portal/admin/engagement?window=1")
@@ -61,7 +61,7 @@ async def test_engagement_invalid_window_falls_back_to_24h(client, admin_user, d
     db_session.add(profile)
     await db_session.commit()
 
-    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username}))
+    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
     resp = await client.get("/api/portal/admin/engagement?window=99")
     assert resp.status_code == 200
     assert resp.json()["window_days"] == 1

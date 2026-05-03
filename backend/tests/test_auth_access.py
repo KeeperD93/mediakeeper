@@ -18,7 +18,7 @@ async def test_non_admin_token_cannot_access_backoffice(client, db_session):
     ))
     await db_session.commit()
 
-    token = create_access_token({"sub": "viewer"})
+    token = create_access_token({"sub": "viewer", "scope": "admin"})
     client.cookies.set("mk_token", token)
     resp = await client.get("/api/auth/me")
     assert resp.status_code == 403
@@ -47,7 +47,7 @@ async def test_protected_route_without_auth(client):
 @pytest.mark.asyncio
 async def test_emby_image_proxy_accepts_valid_cookie_without_db_lookup(client):
     """The image proxy must accept a valid JWT without requiring a DB user per poster."""
-    token = create_access_token({"sub": "viewer"})
+    token = create_access_token({"sub": "viewer", "scope": "admin"})
     client.cookies.set("mk_token", token)
 
     with patch("api.core_routes.proxy_image", new=AsyncMock(return_value=(b"img", "image/jpeg"))):
@@ -61,7 +61,7 @@ async def test_emby_image_proxy_accepts_valid_cookie_without_db_lookup(client):
 @pytest.mark.asyncio
 async def test_emby_image_proxy_rejects_query_token_without_cookie(client):
     """JWTs passed in the query string must no longer authenticate image proxies."""
-    token = create_access_token({"sub": "viewer"})
+    token = create_access_token({"sub": "viewer", "scope": "admin"})
     resp = await client.get(f"/api/emby/image/14437?token={token}")
     assert resp.status_code == 401
 
@@ -69,7 +69,7 @@ async def test_emby_image_proxy_rejects_query_token_without_cookie(client):
 @pytest.mark.asyncio
 async def test_emby_user_image_missing_returns_204(client):
     """Une absence d'avatar Emby ne doit pas polluer le frontend with une 404."""
-    token = create_access_token({"sub": "admin"})
+    token = create_access_token({"sub": "admin", "scope": "admin"})
     client.cookies.set("mk_token", token)
 
     with patch("api.core_routes.proxy_user_image", new=AsyncMock(return_value=None)):

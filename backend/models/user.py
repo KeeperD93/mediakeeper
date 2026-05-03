@@ -11,6 +11,7 @@ class User(Base):
     hashed_password      = Column(String(255), nullable=False)
     is_active            = Column(Boolean, default=True, nullable=False)
     must_change_password = Column(Boolean, default=True, nullable=False)
+    tokens_invalidated_at = Column(DateTime(timezone=True), nullable=True)
     created_at           = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at           = Column(
         DateTime(timezone=True),

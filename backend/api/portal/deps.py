@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
-from core.security import decode_access_token
+from core.security import decode_access_token, is_token_valid_for_revocation_pivot
 from api.auth import PORTAL_COOKIE_NAME
 from models.user import User
 from models.portal.profile import UserProfile
@@ -69,20 +69,14 @@ async def get_current_profile(
     # Force-logout: every JWT issued before ``tokens_invalidated_at`` is
     # rejected so the admin can kick a session in one click.
     if profile.tokens_invalidated_at:
-        from datetime import datetime, timezone
         token = request.cookies.get(PORTAL_COOKIE_NAME)
         payload = decode_access_token(token) if token else None
         iat = (payload or {}).get("iat")
-        if iat:
-            try:
-                issued = datetime.fromtimestamp(int(iat), tz=timezone.utc)
-                if issued < profile.tokens_invalidated_at:
-                    raise HTTPException(
-                        status_code=status.HTTP_401_UNAUTHORIZED,
-                        detail="session_revoked",
-                    )
-            except (ValueError, TypeError):
-                pass
+        if not is_token_valid_for_revocation_pivot(iat, profile.tokens_invalidated_at):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="session_revoked",
+            )
     return current_user, profile
 
 

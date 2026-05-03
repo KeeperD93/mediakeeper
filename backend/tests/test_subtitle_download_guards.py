@@ -78,7 +78,7 @@ async def test_subtitle_search_rejects_file_path_outside_roots_before_hash(
     outside_file.write_bytes(b"0" * 70000)
 
     monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
-    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username}))
+    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
 
     with patch(
         "api.subtitles._search.search_subtitles",

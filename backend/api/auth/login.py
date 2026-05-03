@@ -103,7 +103,7 @@ async def login(req: LoginRequest, request: Request, response: Response, db: Asy
             detail="backoffice_forbidden",
         )
 
-    token = create_access_token({"sub": user.username})
+    token = create_access_token({"sub": user.username, "scope": "admin"})
     _set_jwt_cookie(response, token, request)
     ensure_csrf_cookie(response, request)
     await record_attempt(db, client_ip, user.username, "admin", success=True, user_agent=user_agent)
@@ -157,7 +157,7 @@ async def portal_login(
             )
 
         if local_admin_ok:
-            token = create_access_token({"sub": user.username})
+            token = create_access_token({"sub": user.username, "scope": "admin"})
             _set_jwt_cookie(response, token, request)
             ensure_csrf_cookie(response, request)
             await grant_portal_admin_session(request, response, user, db)

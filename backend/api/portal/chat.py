@@ -1,13 +1,20 @@
 """Portal chat endpoints (REST + WebSocket)."""
+from __future__ import annotations
+
 import json
 import logging
+import os
+from datetime import datetime, timezone
+from typing import Optional
+from urllib.parse import urlsplit
+
 from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, Field
-from typing import Optional
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db, AsyncSessionLocal
-from core.security import decode_access_token
+from core.security import decode_access_token, is_token_valid_for_revocation_pivot
 from models.user import User
 from models.portal.profile import UserProfile
 from api.auth import PORTAL_COOKIE_NAME
@@ -18,13 +25,62 @@ from services.portal.profiles import get_or_create_profile
 router = APIRouter(prefix="/chat", tags=["portal-chat"])
 logger = logging.getLogger("mediakeeper.portal.chat")
 
+# Cadence used by the background task that prunes WebSocket sessions whose
+# JWT was revoked while the connection was idle. Exposed as a module-level
+# constant so an operator can tune the interval without touching the loop.
+WS_REVOCATION_CHECK_INTERVAL_SEC = 300
+
+# Close codes — kept in one place for the test suite.
+WS_CLOSE_AUTH_FAILED = 4001
+WS_CLOSE_ORIGIN_REJECTED = 4003
+
 
 class SendMessage(BaseModel):
     content: str = Field(..., min_length=1, max_length=2000)
 
 
-# Active WebSocket connections: {room_id: {user_id: websocket}}
-_ws_rooms: dict[int, dict[int, WebSocket]] = {}
+# Active WebSocket connections: {room_id: {user_id: (websocket, jwt_iat)}}.
+# The iat is stored alongside the socket so the periodic revocation sweep
+# can compare it to ``UserProfile.tokens_invalidated_at`` without decoding
+# the JWT a second time.
+_ws_rooms: dict[int, dict[int, tuple[WebSocket, datetime]]] = {}
+
+
+def _allowed_origins() -> list[str]:
+    """Return the allowlist of origins that may open a chat WebSocket.
+
+    Sources ``FRONTEND_ORIGIN`` (CSV of fully-qualified origins). An empty
+    env var keeps the strict default — no origin is accepted, which is
+    safe for handshake rejection during initial setup. Operators add
+    their public origin via ``.env`` to enable chat.
+    """
+    raw = os.getenv("FRONTEND_ORIGIN", "")
+    return [item.strip() for item in raw.split(",") if item.strip()]
+
+
+def _origin_is_allowed(origin: str | None) -> bool:
+    if not origin:
+        return False
+    parsed = urlsplit(origin)
+    if not parsed.scheme or not parsed.netloc:
+        return False
+    canonical = f"{parsed.scheme}://{parsed.netloc}".lower()
+    for allowed in _allowed_origins():
+        ap = urlsplit(allowed)
+        if not ap.scheme or not ap.netloc:
+            continue
+        if f"{ap.scheme}://{ap.netloc}".lower() == canonical:
+            return True
+    return False
+
+
+def _coerce_iat(payload_iat) -> datetime | None:
+    if payload_iat is None:
+        return None
+    try:
+        return datetime.fromtimestamp(int(payload_iat), tz=timezone.utc)
+    except (TypeError, ValueError):
+        return None
 
 
 @router.get("/rooms")
@@ -126,16 +182,22 @@ async def report_message(
 @router.websocket("/ws/{room_id}")
 async def websocket_chat(websocket: WebSocket, room_id: int):
     """WebSocket endpoint for real-time chat."""
-    user_id = await _authenticate_ws(websocket)
-    if not user_id:
-        await websocket.close(code=4001)
+    origin = websocket.headers.get("origin")
+    if not _origin_is_allowed(origin):
+        await websocket.close(code=WS_CLOSE_ORIGIN_REJECTED)
         return
+
+    auth = await _authenticate_ws(websocket)
+    if not auth:
+        await websocket.close(code=WS_CLOSE_AUTH_FAILED)
+        return
+    user_id, jwt_iat = auth
 
     await websocket.accept()
 
     if room_id not in _ws_rooms:
         _ws_rooms[room_id] = {}
-    _ws_rooms[room_id][user_id] = websocket
+    _ws_rooms[room_id][user_id] = (websocket, jwt_iat)
 
     try:
         while True:
@@ -161,8 +223,13 @@ async def websocket_chat(websocket: WebSocket, room_id: int):
             del _ws_rooms[room_id]
 
 
-async def _authenticate_ws(websocket: WebSocket) -> int | None:
-    """Authenticate WebSocket via the Portal-specific cookie."""
+async def _authenticate_ws(websocket: WebSocket) -> tuple[int, datetime] | None:
+    """Authenticate WebSocket via the Portal-specific cookie.
+
+    Returns ``(user_id, jwt_iat_datetime)`` on success — the ``iat`` is
+    surfaced to the caller so the connection can be tracked alongside
+    the timestamp used by the periodic revocation sweep.
+    """
     token = websocket.cookies.get(PORTAL_COOKIE_NAME)
     if not token:
         return None
@@ -172,8 +239,10 @@ async def _authenticate_ws(websocket: WebSocket) -> int | None:
     username = payload.get("sub")
     if not username:
         return None
+    iat = _coerce_iat(payload.get("iat"))
+    if iat is None:
+        return None
 
-    from sqlalchemy import select
     async with AsyncSessionLocal() as db:
         result = await db.execute(
             select(User).where(User.username == username, User.is_active == True)  # noqa: E712
@@ -184,7 +253,9 @@ async def _authenticate_ws(websocket: WebSocket) -> int | None:
         profile = await get_or_create_profile(db, user)
         if not profile.chat_enabled or not profile.can_chat or not profile.account_active:
             return None
-        return user.id
+        if not is_token_valid_for_revocation_pivot(payload.get("iat"), profile.tokens_invalidated_at):
+            return None
+        return user.id, iat
 
 
 async def _broadcast(room_id: int, message: dict):
@@ -192,10 +263,60 @@ async def _broadcast(room_id: int, message: dict):
     room = _ws_rooms.get(room_id, {})
     payload = json.dumps({"type": "message", "data": message})
     disconnected = []
-    for uid, ws in room.items():
+    for uid, (ws, _iat) in room.items():
         try:
             await ws.send_text(payload)
         except Exception:
             disconnected.append(uid)
     for uid in disconnected:
         room.pop(uid, None)
+
+
+def _snapshot_connections() -> list[tuple[int, int, WebSocket, datetime]]:
+    """Return a flat snapshot ``(room_id, user_id, ws, iat)`` for the sweep."""
+    items: list[tuple[int, int, WebSocket, datetime]] = []
+    for room_id, members in _ws_rooms.items():
+        for user_id, (ws, iat) in members.items():
+            items.append((room_id, user_id, ws, iat))
+    return items
+
+
+async def prune_revoked_ws_sessions(db: AsyncSession) -> int:
+    """Close every chat WebSocket whose JWT was revoked since handshake.
+
+    Returns the number of sockets closed. Safe to call from a background
+    loop — exceptions on individual close calls are swallowed so one
+    misbehaving socket never blocks the whole sweep.
+    """
+    snapshot = _snapshot_connections()
+    if not snapshot:
+        return 0
+
+    user_ids = list({user_id for _, user_id, _, _ in snapshot})
+    rows = (
+        await db.execute(
+            select(UserProfile.user_id, UserProfile.tokens_invalidated_at).where(
+                UserProfile.user_id.in_(user_ids)
+            )
+        )
+    ).all()
+    pivots: dict[int, datetime | None] = {uid: ts for uid, ts in rows}
+
+    closed = 0
+    for room_id, user_id, ws, iat in snapshot:
+        pivot = pivots.get(user_id)
+        if pivot is None:
+            continue
+        if pivot.tzinfo is None:
+            pivot = pivot.replace(tzinfo=timezone.utc)
+        if iat >= pivot:
+            continue
+        try:
+            await ws.close(code=WS_CLOSE_AUTH_FAILED)
+        except Exception:
+            pass
+        _ws_rooms.get(room_id, {}).pop(user_id, None)
+        if room_id in _ws_rooms and not _ws_rooms[room_id]:
+            del _ws_rooms[room_id]
+        closed += 1
+    return closed

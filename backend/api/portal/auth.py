@@ -1,12 +1,15 @@
 """Portal authentication via Emby."""
 import logging
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from sqlalchemy import select, update
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
 from core.proxy import get_client_ip
+from core.security import decode_access_token
 from api.auth import PORTAL_COOKIE_NAME, _set_portal_jwt_cookie
 from api.auth._csrf import ensure_csrf_cookie
 from api.portal.deps import get_current_profile
@@ -204,7 +207,35 @@ async def portal_me(
 
 
 @router.post("/logout")
-async def portal_logout(response: Response):
-    """Clear the portal cookie only (leaves the admin session intact)."""
+async def portal_logout(
+    request: Request,
+    response: Response,
+    db: AsyncSession = Depends(get_db),
+):
+    """Clear the portal cookie and revoke the server-side session.
+
+    Stamps ``user_profiles.tokens_invalidated_at`` so a leaked ``rq_token``
+    cannot be replayed after the legitimate owner clicked "logout". The
+    handler is intentionally tolerant: a missing or already-revoked
+    cookie still returns 200 so the frontend logout flow stays
+    idempotent.
+    """
     response.delete_cookie(key=PORTAL_COOKIE_NAME, path="/")
+    token = request.cookies.get(PORTAL_COOKIE_NAME)
+    payload = decode_access_token(token) if token else None
+    username = (payload or {}).get("sub")
+    if username:
+        try:
+            user = (
+                await db.execute(select(User).where(User.username == username))
+            ).scalar_one_or_none()
+            if user:
+                await db.execute(
+                    update(UserProfile)
+                    .where(UserProfile.user_id == user.id)
+                    .values(tokens_invalidated_at=datetime.now(timezone.utc))
+                )
+                await db.commit()
+        except Exception:
+            await db.rollback()
     return {"ok": True}

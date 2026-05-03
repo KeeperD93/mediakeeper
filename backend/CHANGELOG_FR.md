@@ -30,6 +30,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Alertes webhook automatiques sur incidents critiques (santé, base, planificateur, dump)
 - Mises à jour sécurité (JWT, chiffrement, multipart, build frontend)
 - Confiance proxy stricte, en-têtes sécurité (CSP/HSTS) et cookies sécurisés
+- Sessions révocables, scopes tokens stricts et WebSocket sécurisé
 
 ### Fixed
 - Utilisateurs — compte admin local marqué « Local » et plus comme source Emby

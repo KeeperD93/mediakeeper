@@ -4,7 +4,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
-from core.security import decode_access_token, is_backoffice_admin
+from core.security import (
+    decode_access_token,
+    is_backoffice_admin,
+    is_token_valid_for_revocation_pivot,
+)
 from models.user import User
 
 from ._cookies import COOKIE_NAME
@@ -14,24 +18,18 @@ async def get_current_user(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ) -> User:
-    """
-    Verify the JWT and return the current user.
-    Lit le token from :
-      1. Cookie httpOnly `mk_token` (prioritaire)
-      2. Authorization Bearer header (transitional backwards compatibility)
+    """Verify the JWT cookie and return the current admin user.
+
+    Cookies-only on purpose: the legacy ``Authorization: Bearer`` fallback
+    was removed so a stolen JWT can no longer be replayed via header.
     """
     token = request.cookies.get(COOKIE_NAME)
-
-    if not token:
-        auth_header = request.headers.get("Authorization", "")
-        if auth_header.startswith("Bearer "):
-            token = auth_header[7:]
 
     if not token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not_authenticated")
 
     payload = decode_access_token(token)
-    if not payload:
+    if not payload or payload.get("scope") != "admin":
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="token_invalid")
 
     username = payload.get("sub")
@@ -43,6 +41,11 @@ async def get_current_user(
 
     if not user or not user.is_active:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="user_not_found")
+    if not is_token_valid_for_revocation_pivot(payload.get("iat"), user.tokens_invalidated_at):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="session_revoked",
+        )
     # Blocking of imported Emby/Jellyfin accounts is already done at login.
     # Here we avoid a bcrypt.checkpw on every protected request.
     if not is_backoffice_admin(user.username):
