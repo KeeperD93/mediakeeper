@@ -8,8 +8,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
+from core.proxy import get_client_ip
+from core.rate_limit import admin_user_or_ip_key, limiter
 from core.security import create_access_token, hash_password, verify_password
 from models.user import User
+from services.security import ensure_not_blocked, record_attempt, record_failure
 
 from ._cookies import PORTAL_COOKIE_NAME, _clear_jwt_cookie, _set_jwt_cookie
 from ._csrf import clear_csrf_cookie, ensure_csrf_cookie, require_csrf
@@ -18,6 +21,11 @@ from ._schemas import ChangePasswordRequest, LocaleRequest, PreferencesRequest
 
 logger = logging.getLogger("mediakeeper.api.auth")
 router = APIRouter()
+
+# Scope name surfaced in the security dashboard alongside ``admin`` /
+# ``portal``. Kept distinct so a series of failed change-password attempts
+# does not auto-block the legitimate login flow on the same identity.
+PASSWORD_CHANGE_SCOPE = "admin_password"
 
 
 @router.get("/me")
@@ -34,6 +42,7 @@ async def get_me(
 
 
 @router.post("/change-password")
+@limiter.limit("5/minute", key_func=admin_user_or_ip_key)
 async def change_password(
     req:          ChangePasswordRequest,
     request:      Request,
@@ -42,10 +51,17 @@ async def change_password(
     current_user: User = Depends(get_current_user),
     db:           AsyncSession = Depends(get_db),
 ):
+    client_ip = get_client_ip(request) or "unknown"
+    user_agent = request.headers.get("user-agent")
+    await ensure_not_blocked(db, client_ip, current_user.username, PASSWORD_CHANGE_SCOPE)
+
     if req.new_password != req.confirm_password:
         raise HTTPException(status_code=400, detail="password_mismatch")
 
     if not verify_password(req.current_password, current_user.hashed_password):
+        await record_failure(
+            db, client_ip, current_user.username, PASSWORD_CHANGE_SCOPE, user_agent,
+        )
         raise HTTPException(status_code=400, detail="current_password_invalid")
 
     if req.current_password == req.new_password:
@@ -68,6 +84,9 @@ async def change_password(
     await db.commit()
     await db.refresh(user)
 
+    await record_attempt(
+        db, client_ip, user.username, PASSWORD_CHANGE_SCOPE, success=True, user_agent=user_agent,
+    )
     new_token = create_access_token({"sub": user.username, "scope": "admin"})
     _set_jwt_cookie(response, new_token, request)
     ensure_csrf_cookie(response, request)

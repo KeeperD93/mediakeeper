@@ -19,7 +19,7 @@ from api.auth import get_current_user
 
 router = APIRouter(prefix="/api/security", tags=["security"])
 
-VALID_SCOPES = {"admin", "portal", "all"}
+VALID_SCOPES = {"admin", "admin_password", "portal", "all"}
 
 
 class BlockRequest(BaseModel):

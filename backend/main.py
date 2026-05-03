@@ -5,10 +5,9 @@ import os
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
-from slowapi.util import get_remote_address
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse as _JSONResponse
 
@@ -58,7 +57,8 @@ from api.watchlist import router as watchlist_router
 from core.app_spa import register_spa
 from core.app_startup import is_db_ready, lifespan, setup_logging
 from core.csrf_middleware import CsrfMiddleware
-from core.proxy import ProxyHeadersMiddleware, get_client_ip
+from core.proxy import ProxyHeadersMiddleware
+from core.rate_limit import limiter
 from core.security_headers import SecurityHeadersMiddleware
 
 setup_logging()
@@ -77,14 +77,6 @@ class _StartupMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
 
-def _rate_limit_key(request: Request) -> str:
-    return get_client_ip(request) or get_remote_address(request)
-
-
-# storage=in-memory: acceptable for single-instance deployments (NAS).
-# Switch storage_uri to redis://... if MediaKeeper ever runs as multi-replica;
-# the per-IP buckets currently live in the worker process only.
-limiter = Limiter(key_func=_rate_limit_key, default_limits=["120/minute"])
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
