@@ -43,6 +43,12 @@ export const portalRoutes = [
     meta: { titleKey: 'portal.routeTitles.changelog', portal: true },
   },
   {
+    path: 'credits',
+    name: 'portal-credits',
+    component: () => import('@/views/portal/PortalCreditsView.vue'),
+    meta: { titleKey: 'portal.routeTitles.credits', portal: true },
+  },
+  {
     path: 'lists',
     name: 'portal-lists',
     alias: ['lists'],
