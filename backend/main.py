@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse as _JSONResponse
@@ -76,11 +77,6 @@ class _StartupMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
 
-app.add_middleware(_StartupMiddleware)
-app.add_middleware(CsrfMiddleware)
-app.add_middleware(SecurityHeadersMiddleware)
-
-
 def _rate_limit_key(request: Request) -> str:
     return get_client_ip(request) or get_remote_address(request)
 
@@ -88,6 +84,14 @@ def _rate_limit_key(request: Request) -> str:
 limiter = Limiter(key_func=_rate_limit_key, default_limits=["120/minute"])
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+app.add_middleware(_StartupMiddleware)
+app.add_middleware(CsrfMiddleware)
+# Slowapi sits between CSRF and SecurityHeaders so 429 responses still
+# carry the security headers (defence-in-depth on every response) while
+# the rate-limit kicks in before the inner application work runs.
+app.add_middleware(SlowAPIMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
 
 MK_DEBUG = os.getenv("MK_DEBUG", "false").lower() in ("true", "1", "yes")
 
