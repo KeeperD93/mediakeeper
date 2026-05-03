@@ -85,11 +85,11 @@ const tmdbLegalText = 'This product uses the TMDB API but is not endorsed or cer
 <style scoped>
 .pc-root {
   min-height: 100%;
-  padding: 88px 16px 48px;
+  padding: 120px 16px 48px;
 }
 
 @media (max-width: 767px) {
-  .pc-root { padding-top: 76px; }
+  .pc-root { padding-top: 100px; }
 }
 
 .pc-inner {

@@ -14,7 +14,6 @@
         <ul class="ab-list">
           <li><strong>{{ t('attribution.about.backendLabel') }} :</strong> {{ stack.backend }}</li>
           <li><strong>{{ t('attribution.about.frontendLabel') }} :</strong> {{ stack.frontend }}</li>
-          <li><strong>{{ t('attribution.about.containerLabel') }} :</strong> {{ stack.container }}</li>
         </ul>
       </section>
 
@@ -55,7 +54,6 @@ const repoUrl = 'https://github.com/KeeperD93/mediakeeper'
 const stack = {
   backend: 'Python 3.12, FastAPI, SQLAlchemy, asyncpg, PostgreSQL',
   frontend: 'Vue 3, Vite, PrimeVue, Pinia',
-  container: 'Docker Compose',
 }
 
 const links = {

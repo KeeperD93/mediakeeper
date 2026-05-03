@@ -10,7 +10,7 @@ vi.mock('vue-i18n', () => ({
 import AdminAboutView from '@/views/AdminAboutView.vue'
 
 describe('AdminAboutView', () => {
-  it('renders the technical stack section with backend, frontend and container lines', () => {
+  it('renders the technical stack section with backend and frontend lines', () => {
     const w = mount(AdminAboutView, {
       global: { stubs: { 'router-link': { template: '<a><slot /></a>' } } },
     })
@@ -19,7 +19,7 @@ describe('AdminAboutView', () => {
     expect(stack.text()).toContain('Python 3.12')
     expect(stack.text()).toContain('FastAPI')
     expect(stack.text()).toContain('Vue 3')
-    expect(stack.text()).toContain('Docker Compose')
+    expect(stack.text()).not.toContain('Docker')
   })
 
   it('renders the FFmpeg LGPL license credit with the official legal URL', () => {
