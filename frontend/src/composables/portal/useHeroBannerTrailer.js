@@ -46,6 +46,12 @@ export function useHeroBannerTrailer({ onEnded } = {}) {
     if (!window.YT?.Player) return
     nextTick(() => {
       player = new window.YT.Player(playerId, {
+        // Pin the iframe origin to ``youtube-nocookie.com`` so the
+        // privacy-enhanced mode applies even though the IFrame API
+        // loader itself ships from ``youtube.com`` (see CSP
+        // ``script-src`` and ``frame-src`` in
+        // ``backend/core/security_headers.py``).
+        host: 'https://www.youtube-nocookie.com',
         videoId,
         playerVars: {
           autoplay: 1,
