@@ -19,7 +19,13 @@ def _hex_to_int(color_val) -> int:
 # Variables whose values are already valid Discord markdown — the engine
 # composes them itself (e.g. ``[Fiche TMDB](url)``) and they must NOT be
 # double-escaped.
-PREFORMATTED_VARS = frozenset({"tmdb", "tmdb_url", "imgur"})
+PREFORMATTED_VARS = frozenset({
+    "tmdb", "tmdb_url", "imgur",
+    # Pre-built markdown links — the underlying raw name is escaped
+    # at construction site in ``payloads.py`` before being wrapped in
+    # ``[name](url)``, so re-escaping here would mangle the link.
+    "titre", "title", "titre_serie", "series_title",
+})
 
 # Discord markdown control characters. Escaping them defangs poisoned
 # media titles such as ``[click](https://evil)`` arriving from TMDB,
