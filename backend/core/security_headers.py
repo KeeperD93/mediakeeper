@@ -59,7 +59,12 @@ CSP_DIRECTIVES = "; ".join([
     # https://i.imgur.com — operator-supplied banner uploads.
     # https://img.youtube.com — YouTube trailer thumbnails (hqdefault.jpg)
     # composed by services.portal.discover_details_enrich.
-    "img-src 'self' data: https://image.tmdb.org https://i.imgur.com https://img.youtube.com",
+    # blob: — Emby user avatars proxied via /api/emby/user-image/{id} are
+    # fetched as binary and rendered through URL.createObjectURL() in
+    # useUserImages.js. Same pattern is used by any Vue component that
+    # previews an upload before sending it. blob: URLs are local to the
+    # browser tab and never cross-origin.
+    "img-src 'self' data: blob: https://image.tmdb.org https://i.imgur.com https://img.youtube.com",
     "connect-src 'self'",
     # https://www.youtube-nocookie.com — privacy-friendly YouTube embed
     # used by the trailer player.
