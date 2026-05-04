@@ -47,6 +47,7 @@ from api.onboarding import router as onboarding_router
 from api.portal_admin_requests import router as portal_admin_requests_router
 from api.portal_admin_users import router as portal_admin_users_router
 from api.portal_admin_users_actions import router as portal_admin_users_actions_router
+from api.portal_admin_gdpr import router as portal_admin_gdpr_router
 from api.portal_admin_users_emby import router as portal_admin_users_emby_router
 from api.portal_admin_users_feed import router as portal_admin_users_feed_router
 from api.portal_admin_users_gdpr import router as portal_admin_users_gdpr_router
@@ -140,6 +141,7 @@ app.include_router(portal_admin_users_actions_router)
 app.include_router(portal_admin_users_emby_router)
 app.include_router(portal_admin_users_feed_router)
 app.include_router(portal_admin_users_gdpr_router)
+app.include_router(portal_admin_gdpr_router)
 app.include_router(security_router)
 app.include_router(csp_report_router)
 app.include_router(core_router)

@@ -46,6 +46,8 @@
       </label>
 
       <p v-if="savedMessage" class="pt-settings-saved">{{ savedMessage }}</p>
+
+      <GdprSection />
     </div>
   </div>
 </template>
@@ -54,6 +56,7 @@
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useApi } from '@/composables/useApi'
+import GdprSection from '@/components/portal/admin/GdprSection.vue'
 
 const { t } = useI18n()
 const { apiGet, apiPatch } = useApi()
