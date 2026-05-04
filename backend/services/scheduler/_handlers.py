@@ -64,3 +64,14 @@ async def _handler_subtitle_auto(db: AsyncSession) -> None:
 async def _handler_expire_users(db: AsyncSession) -> None:
     from services.portal.admin_users_expiration import expire_due_users
     await expire_due_users(db)
+
+
+async def _handler_gdpr_purge(db: AsyncSession) -> None:
+    """Hard-delete users whose GDPR grace period has lapsed.
+
+    Early-returns when ``gdpr.enabled`` is false so the task is safe
+    to leave on by default — flipping the toggle is the only way for
+    rows to actually be removed.
+    """
+    from services.portal.gdpr import purge_pending_deletions
+    await purge_pending_deletions(db)

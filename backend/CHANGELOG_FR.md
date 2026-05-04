@@ -54,6 +54,9 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Base de données — chat anonymisé (et non effacé) à la suppression du compte
 - Base de données — colonnes utilisateur préparées pour la suppression différée
 - Confidentialité — paramètres préchargés (désactivés par défaut)
+- Confidentialité — export ZIP, suppression différée et annulation (mode opt-in)
+- Utilisateurs — filtre « en attente de suppression » et annulation côté admin
+- Planificateur — purge quotidienne des comptes en attente (opt-in, désactivé par défaut)
 
 ### Fixed
 - Base de données — contraintes manquantes sur `seen_alerts` et `xp_ledger`

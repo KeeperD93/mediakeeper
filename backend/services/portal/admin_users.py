@@ -44,11 +44,14 @@ def _apply_filters(
     expires_within: int | None,
     include_deleted: bool,
     tag: str | None,
+    pending_deletion: bool | None,
     ref,
 ):
     """Mutate ``base_query`` in-place to match the front-end filters."""
     if not include_deleted:
         base_query = base_query.where(UserProfile.deleted_at.is_(None))
+    if pending_deletion:
+        base_query = base_query.where(User.pending_deletion_at.isnot(None))
 
     if search:
         like = f"%{search}%"
@@ -118,6 +121,7 @@ async def list_admin_users(
     expires_within: int | None = None,
     include_deleted: bool = False,
     tag: str | None = None,
+    pending_deletion: bool | None = None,
     sort: str = "display_name",
     order: str = "asc",
     limit: int = 50,
@@ -127,6 +131,8 @@ async def list_admin_users(
 
     ``status`` can be: ``active``, ``inactive``, ``expired``,
     ``never_logged_in``. ``expires_within`` is a day count.
+    ``pending_deletion=true`` restricts to users whose
+    ``pending_deletion_at`` is set — used by the admin GDPR section.
     """
     ref = now_utc()
     base = (
@@ -142,6 +148,7 @@ async def list_admin_users(
         expires_within=expires_within,
         include_deleted=include_deleted,
         tag=tag,
+        pending_deletion=pending_deletion,
         ref=ref,
     )
 
@@ -170,6 +177,7 @@ async def list_admin_users(
         expires_within=expires_within,
         include_deleted=include_deleted,
         tag=tag,
+        pending_deletion=pending_deletion,
         ref=ref,
     )
     total = (await db.execute(total_q)).scalar() or 0

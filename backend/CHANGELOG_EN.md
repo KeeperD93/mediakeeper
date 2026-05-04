@@ -54,6 +54,9 @@ This section intentionally has no date so it is not shown to users.
 - Database — chat anonymised (not erased) when an account is removed
 - Database — user columns prepared for delayed account deletion
 - Privacy — preset settings shipped (disabled by default)
+- Privacy — ZIP export, delayed deletion and cancel (opt-in mode)
+- Users — "pending deletion" filter and admin-side cancel
+- Scheduler — daily purge of pending accounts (opt-in, off by default)
 
 ### Fixed
 - Database — missing foreign-key constraints on `seen_alerts` and `xp_ledger`

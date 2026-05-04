@@ -4,6 +4,7 @@ from ._handlers import (
     _handler_duplicates,
     _handler_emby_refresh,
     _handler_expire_users,
+    _handler_gdpr_purge,
     _handler_healthcheck,
     _handler_log_cleanup,
     _handler_notifications,
@@ -77,5 +78,13 @@ TASK_DEFINITIONS: dict[str, dict] = {
         "default_on":  True,    # Security-critical: ON by default.
         "handler":     _handler_expire_users,
         "description": "scheduler.expire_users",
+    },
+    "gdpr_purge": {
+        "label":       "GDPR purge of pending deletions",
+        "default_sec": 86400,   # 24h
+        "default_on":  True,    # Gated by ``gdpr.enabled``: harmless
+                                # when off (early return, no query).
+        "handler":     _handler_gdpr_purge,
+        "description": "scheduler.gdpr_purge",
     },
 }
