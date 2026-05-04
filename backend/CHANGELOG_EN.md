@@ -67,6 +67,7 @@ This section intentionally has no date so it is not shown to users.
 
 ### Fixed
 - PWA — portal URLs aligned, system name unified, maskable icon fixed
+- Privacy — English tab label rendered as raw key (missing translation restored)
 - Database — missing foreign-key constraints on `seen_alerts` and `xp_ledger`
 - Login — GitHub icon restored with the correct link, text version line dropped
 - Enforce LF line endings on scripts and auto-fix CRLF during Docker build

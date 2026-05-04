@@ -3033,7 +3033,8 @@
         "appearance": "Appearance",
         "preferences": "Preferences",
         "visibility": "Visibility",
-        "account": "Account"
+        "account": "Account",
+        "privacy": "Privacy"
       },
       "save": {
         "saveBtn": "Save",
