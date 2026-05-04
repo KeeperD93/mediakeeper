@@ -205,6 +205,28 @@ async def portal_me(
         "profile": serialize_profile(profile, user=user),
         "unread_news_count": len(unread),
         "ui": await _safe_serialize_ui_flags(db, profile),
+        "gdpr": await _safe_serialize_gdpr(db, user),
+    }
+
+
+async def _safe_serialize_gdpr(db: AsyncSession, user: User) -> dict:
+    """Expose the toggle + this user's pending deletion timestamp.
+
+    The UI uses ``enabled`` to decide whether to show the Privacy tab,
+    and ``pending_deletion_at`` to render the grace-period banner. A DB
+    hiccup must not break ``/me`` — fall back to the disabling defaults.
+    """
+    try:
+        from services.portal.gdpr import is_gdpr_enabled
+        enabled = await is_gdpr_enabled(db)
+    except Exception:
+        enabled = False
+    pending = getattr(user, "pending_deletion_at", None)
+    requested = getattr(user, "deletion_requested_at", None)
+    return {
+        "enabled": bool(enabled),
+        "deletion_requested_at": requested.isoformat() if requested else None,
+        "pending_deletion_at": pending.isoformat() if pending else None,
     }
 
 

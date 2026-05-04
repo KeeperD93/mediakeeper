@@ -77,6 +77,7 @@ ACTION_USER_SOFT_DELETED = "user.soft_deleted"
 ACTION_USER_RESTORED = "user.restored"
 ACTION_USER_BULK = "user.bulk_action"
 ACTION_USER_FORCE_LOGOUT = "user.force_logout"
+ACTION_USER_DELETION_REQUEST_CANCELLED = "user.deletion_request_cancelled"
 
 # Bulk action ids used by the list view.
 BULK_ACTIVATE = "activate"
