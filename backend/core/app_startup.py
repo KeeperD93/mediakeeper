@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import DATABASE_URL, engine
 from core.http_client import close_clients, init_clients
+from core.log_redaction import install_log_redactor
 from core.logging_config import JSONFormatter
 from core.security import hash_password
 from models.base import Base
@@ -65,6 +66,11 @@ def setup_logging() -> None:
 
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)
+
+    # Attach the redactor last so every handler registered above is
+    # covered. Idempotent — safe under repeated setup_logging() calls
+    # from API + worker entrypoints.
+    install_log_redactor()
 
 
 def _schema_mode() -> str:

@@ -58,6 +58,7 @@ from api.watchlist import router as watchlist_router
 from core.app_spa import register_spa
 from core.app_startup import is_db_ready, lifespan, setup_logging
 from core.csrf_middleware import CsrfMiddleware
+from core.log_redaction import safe_request_url
 from core.proxy import ProxyHeadersMiddleware
 from core.rate_limit import limiter
 from core.security_headers import SecurityHeadersMiddleware
@@ -146,8 +147,19 @@ register_health_route(app, APP_VERSION, is_db_ready)
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    """Capture unhandled exceptions and return a clean JSON response."""
-    logger.error(f"Unhandled error on {request.method} {request.url}: {exc}", exc_info=True)
+    """Capture unhandled exceptions and return a clean JSON response.
+
+    The URL we log is stripped of its query string via
+    :func:`safe_request_url` so an unhandled error never echoes
+    ``?token=...`` or any other secret-bearing parameter to disk. The
+    full URL stays accessible to local developers via the ``request``
+    object — production logs only see ``scheme://host/path``.
+    """
+    logger.error(
+        "Unhandled error on %s %s: %s",
+        request.method, safe_request_url(request), exc,
+        exc_info=True,
+    )
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal server error"},

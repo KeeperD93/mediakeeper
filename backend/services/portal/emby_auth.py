@@ -115,7 +115,10 @@ async def authenticate_emby_user(
         await db.commit()
 
     token = create_access_token({"sub": user.username, "scope": "portal"})
-    logger.info(f"[EMBY_AUTH] Success for user={username}")
+    # Authenticated path: log the numeric user id instead of the
+    # PII-bearing username. Failure branches above keep the username
+    # clear on purpose for enumeration / brute-force diagnostics.
+    logger.info(f"[EMBY_AUTH] Success for user_id={user.id}")
 
     return {"token": token, "user": user, "profile": profile}
 

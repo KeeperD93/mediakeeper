@@ -110,7 +110,12 @@ async def login(req: LoginRequest, request: Request, response: Response, db: Asy
     ensure_csrf_cookie(response, request)
     await record_attempt(db, client_ip, user.username, "admin", success=True, user_agent=user_agent)
     await _stamp_admin_login(db, user, client_ip=client_ip, user_agent=user_agent)
-    logger.info(f"[LOGIN] Success for user={user.username}")
+    # Once authenticated, identify the actor by numeric id rather than
+    # username: a successful login no longer needs the PII handle in
+    # logs, and an admin can resolve the id from the users table. The
+    # FAILURE branches above keep the username clear on purpose so an
+    # operator can still spot enumeration / brute-force patterns.
+    logger.info(f"[LOGIN] Success for user_id={user.id}")
 
     return {
         "success":              True,
@@ -166,7 +171,7 @@ async def portal_login(
             await grant_portal_admin_session(request, response, user, db)
             await record_attempt(db, client_ip, user.username, "admin", success=True, user_agent=user_agent)
             await _stamp_admin_login(db, user, client_ip=client_ip, user_agent=user_agent)
-            logger.info(f"[PORTAL_LOGIN] Admin success for user={user.username}")
+            logger.info(f"[PORTAL_LOGIN] Admin success for user_id={user.id}")
             return {
                 "success": True,
                 "scope": "admin",
@@ -234,7 +239,7 @@ async def portal_login(
     except Exception:
         pass
 
-    logger.info(f"[PORTAL_LOGIN] Requests success for user={portal_username}")
+    logger.info(f"[PORTAL_LOGIN] Requests success for user_id={portal_user_id}")
     return {
         "success": True,
         "scope": "portal",
