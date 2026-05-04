@@ -1,5 +1,5 @@
-const CACHE_NAME = 'mk-demandes-v2'
-const PRECACHE = ['/demandes', '/manifest.json']
+const CACHE_NAME = 'mk-portal-v3'
+const PRECACHE = ['/portal', '/manifest.json']
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -47,7 +47,7 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .catch(() =>
-          caches.match('/demandes').then(
+          caches.match('/portal').then(
             (cached) => cached || new Response('', { status: 504, statusText: 'Offline' })
           )
         )
@@ -77,7 +77,7 @@ self.addEventListener('push', (event) => {
   if (!event.data) return
   const data = event.data.json()
   event.waitUntil(
-    self.registration.showNotification(data.title || 'Demandes', {
+    self.registration.showNotification(data.title || 'MediaKeeper', {
       body: data.body || '',
       icon: '/assets/icons/mediakeeper.png',
       badge: '/assets/icons/mediakeeper.png',
@@ -88,6 +88,6 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
-  const url = event.notification.data?.url || '/demandes'
+  const url = event.notification.data?.url || '/portal'
   event.waitUntil(clients.openWindow(url))
 })
