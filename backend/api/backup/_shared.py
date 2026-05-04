@@ -11,6 +11,28 @@ logger = logging.getLogger("mediakeeper.backup_api")
 MAX_BACKUP_UPLOAD_BYTES = int(os.getenv("BACKUP_UPLOAD_MAX_BYTES", str(512 * 1024 * 1024)))
 UPLOAD_CHUNK_SIZE = 1024 * 1024
 
+# Total uncompressed size cap for a backup archive — set to 2x the upload
+# cap to leave headroom for legitimately compressible payloads (notably
+# pg_dump.sql) while still rejecting obvious zip-bombs. Per-entry ratio
+# is enforced separately by the validator (default 100x).
+MAX_BACKUP_UNCOMPRESSED_BYTES = MAX_BACKUP_UPLOAD_BYTES * 2
+
+# Whitelist of entries a legitimate backup archive may contain. Combined
+# with ``BACKUP_ARCHIVE_ALLOWED_PREFIXES`` so the rotated log files under
+# ``logs/`` are accepted without enumerating each one.
+BACKUP_ARCHIVE_ALLOWED_NAMES = frozenset(
+    {
+        "manifest.json",
+        "settings.json",
+        "preferences.json",
+        "scheduler.json",
+        "watchlist.json",
+        "pg_dump.sql",
+        "secrets/.encryption_key",
+    }
+)
+BACKUP_ARCHIVE_ALLOWED_PREFIXES = ("logs/",)
+
 
 def _parse_components_payload(components: str) -> dict:
     try:

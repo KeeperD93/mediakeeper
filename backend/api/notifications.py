@@ -1,7 +1,7 @@
 import json
 from copy import deepcopy
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from core.database import get_db
 from models.user import User
@@ -14,6 +14,8 @@ router = APIRouter(prefix="/api/notifications", tags=["notifications"])
 
 
 class DiscordTestRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     webhook_url: str = ""
     webhook_id:  str | None = None
     wh_config:   dict = Field(default_factory=dict)   # full webhook config
@@ -21,6 +23,8 @@ class DiscordTestRequest(BaseModel):
 
 
 class DiscordEvents(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     added: bool = False
     offline: bool = False
     duplicate: bool = False
@@ -36,6 +40,8 @@ class DiscordEvents(BaseModel):
 
 
 class WebhookItem(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     id: str
     name: str
     url: str
@@ -48,6 +54,8 @@ class WebhookItem(BaseModel):
 
 
 class DiscordConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     enabled: bool = False
     delay: int = 10
     image_host: str = "emby"
@@ -59,6 +67,8 @@ class DiscordConfig(BaseModel):
 
 
 class ImgurConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     client_id: str = ""
     client_secret: str = ""
     client_secret_configured: bool = False

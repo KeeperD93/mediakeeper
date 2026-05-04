@@ -125,6 +125,9 @@ async def test_restore_endpoint_returns_error_on_partial_restore(client, admin_u
     client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
 
     with patch(
+        "api.backup._restore._validate_uploaded_backup_archive",
+        return_value=None,
+    ), patch(
         "api.backup._restore.get_backup_path",
         return_value=Path("C:/fake/restore.zip"),
     ), patch(

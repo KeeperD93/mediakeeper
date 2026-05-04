@@ -43,6 +43,8 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Démarrage — alerte si l'origine publique manque en mode reverse-proxy
 - Bandeau d'alerte persistant si la clé de chiffrement est éphémère
 - Tests — détection automatique des domaines tiers absents de la politique de sécurité
+- Sauvegardes — vérification de signature ZIP et liste blanche d'entrées (anti zip-bomb)
+- API — paramètres de configuration : rejet des champs inconnus (sécurité)
 
 ### Fixed
 - Connexion — icône GitHub restaurée avec le bon lien, ligne version texte retirée
