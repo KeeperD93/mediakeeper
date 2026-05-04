@@ -67,6 +67,8 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 
 ### Fixed
+- PWA — URLs portail alignées, nom système unifié, icône maskable corrigée
+- Confidentialité — onglet anglais affichait la clé brute (traduction manquante restaurée)
 - Base de données — contraintes manquantes sur `seen_alerts` et `xp_ledger`
 - Connexion — icône GitHub restaurée avec le bon lien, ligne version texte retirée
 - Force fin de ligne LF sur scripts et auto-fix CRLF au build Docker
