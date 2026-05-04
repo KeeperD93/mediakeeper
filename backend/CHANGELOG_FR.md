@@ -48,6 +48,9 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Notifications — signature HMAC sur les webhooks sortants (forward-compat intégrateurs)
 - Notifications — retry unique sur Discord 429 (Retry-After cap 5 s)
 - Notifications — log structuré sur échec Imgur (statut + extrait, pas de secret)
+- Logs — filtre global de rédaction (mots de passe, tokens, JWT, webhooks)
+- Connexion — succès journalisés avec user_id (échec garde l'identifiant pour audit)
+- API — handler global d'erreur masque la query string (jamais de secret en log)
 
 ### Fixed
 - Connexion — icône GitHub restaurée avec le bon lien, ligne version texte retirée

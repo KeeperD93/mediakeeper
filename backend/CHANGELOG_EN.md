@@ -48,6 +48,9 @@ This section intentionally has no date so it is not shown to users.
 - Notifications — HMAC signature header on outbound webhooks (forward-compat)
 - Notifications — single retry on Discord 429 (Retry-After capped at 5 s)
 - Notifications — structured log on Imgur failure (status + snippet, no secrets)
+- Logs — global redaction filter (passwords, tokens, JWTs, webhook URLs)
+- Login — success entries log user_id (failure keeps the username for audit)
+- API — global error handler strips query strings (no secrets in logs)
 
 ### Fixed
 - Login — GitHub icon restored with the correct link, text version line dropped
