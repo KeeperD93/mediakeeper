@@ -116,13 +116,26 @@ async def get_ticket(db: AsyncSession, ticket_id: int) -> dict | None:
     replies = await _get_replies(db, ticket_id)
     # Pull every author + the ticket creator in one round-trip so the
     # premium thread can render avatars/role badges without N+1 fetches.
-    actor_ids = {ticket.user_id, *(r["user_id"] for r in replies)}
+    # Filter out NULLs (FK ``SET NULL`` since migration 041) so the
+    # ``IN (…)`` clause in ``_load_user_summaries`` doesn't waste a slot.
+    actor_ids = {
+        uid
+        for uid in {ticket.user_id, *(r["user_id"] for r in replies)}
+        if uid is not None
+    }
     summaries = await _load_user_summaries(db, actor_ids)
 
     data = _serialize(ticket)
-    data["requester"] = summaries.get(ticket.user_id)
+    requester = summaries.get(ticket.user_id) if ticket.user_id is not None else None
+    data["requester"] = requester
+    data["requester_deleted"] = ticket.user_id is None
     data["replies"] = [
-        {**r, "author": summaries.get(r["user_id"])} for r in replies
+        {
+            **r,
+            "author": summaries.get(r["user_id"]) if r["user_id"] is not None else None,
+            "author_deleted": r["user_id"] is None,
+        }
+        for r in replies
     ]
     return data
 
@@ -150,8 +163,10 @@ async def add_reply(
     await db.refresh(reply)
 
     # Notify the ticket owner only when someone else answered. The
-    # owner's own replies don't trigger a bell for themselves.
-    if user_id != ticket.user_id:
+    # owner's own replies don't trigger a bell for themselves. Skip if
+    # the owner has been purged (FK ``SET NULL``); ``mk_notifications``
+    # forbids ``user_id=NULL``.
+    if ticket.user_id is not None and user_id != ticket.user_id:
         from services.portal import notifications as notif_svc
         try:
             await notif_svc.create(db, ticket.user_id, "ticket_replied", {
@@ -206,7 +221,15 @@ async def update_ticket_status(
 
     # Only ping the user when the ticket moves into a terminal state —
     # intermediate changes (e.g. open → in_progress) would be noise.
-    if new_status in ("resolved", "closed") and previous_status != new_status:
+    # The ``ticket.user_id`` guard skips the notif when the author has
+    # been GDPR-purged (FK ``SET NULL`` since migration 041); inserting
+    # into ``mk_notifications`` with ``user_id=None`` would violate the
+    # NOT NULL constraint there.
+    if (
+        new_status in ("resolved", "closed")
+        and previous_status != new_status
+        and ticket.user_id is not None
+    ):
         from services.portal import notifications as notif_svc
         try:
             await notif_svc.create(db, ticket.user_id, "ticket_resolved", {

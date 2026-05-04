@@ -10,8 +10,13 @@ class MediaRequest(Base):
     __tablename__ = "media_requests"
 
     id              = Column(Integer, primary_key=True, index=True)
-    user_id         = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"),
-                             nullable=False, index=True)
+    # ``user_id`` becomes nullable + ``ON DELETE SET NULL`` from migration
+    # 041 onwards: media requests carry significant admin/audit value
+    # (queue history, blacklist trail) that must outlive the requester
+    # disappearing. ``approved_by`` and ``requested_by_admin`` already
+    # use SET NULL — this aligns ``user_id`` with the same policy.
+    user_id         = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"),
+                             nullable=True, index=True)
     tmdb_id         = Column(Integer, nullable=False, index=True)
     media_type      = Column(String(20), nullable=False)
     title           = Column(String(500), nullable=False)

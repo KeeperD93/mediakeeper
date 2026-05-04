@@ -17,10 +17,11 @@
         :class="[
           entry.mine ? 'tth-row--mine' : 'tth-row--other',
           entry.isAdmin ? 'tth-row--admin' : null,
+          entry.deleted ? 'tth-row--anon' : null,
         ]"
       >
         <img
-          v-if="entry.author?.avatar_url"
+          v-if="!entry.deleted && entry.author?.avatar_url"
           :src="entry.author.avatar_url"
           class="tth-avatar"
           :alt="entry.author.display_name"
@@ -28,13 +29,19 @@
           @error="$event.target.style.visibility='hidden'"
         />
         <span v-else class="tth-avatar tth-avatar--fallback">
-          {{ (entry.author?.display_name || '?').charAt(0).toUpperCase() }}
+          {{ entry.deleted ? '?' : (entry.author?.display_name || '?').charAt(0).toUpperCase() }}
         </span>
 
         <div class="tth-bubble">
           <div class="tth-meta">
-            <span class="tth-name">{{ entry.author?.display_name || $t('portal.tickets.user') }}</span>
-            <span v-if="entry.isAdmin" class="tth-role-pill">
+            <span class="tth-name">
+              {{
+                entry.deleted
+                  ? $t('portal.common.deletedUser')
+                  : (entry.author?.display_name || $t('portal.tickets.user'))
+              }}
+            </span>
+            <span v-if="!entry.deleted && entry.isAdmin" class="tth-role-pill">
               {{ $t('portal.tickets.thread.adminBadge') }}
             </span>
             <span class="tth-time" :title="formatAbsolute(entry.created_at)">
@@ -114,6 +121,7 @@ const entries = computed(() => {
       author: tk.requester,
       isAdmin: tk.requester?.role === 'admin',
       mine: tk.requester?.user_id === myUserId.value,
+      deleted: !!tk.requester_deleted,
     })
   }
   for (const r of tk.replies || []) {
@@ -124,6 +132,7 @@ const entries = computed(() => {
       author: r.author,
       isAdmin: r.author?.role === 'admin',
       mine: r.author?.user_id === myUserId.value,
+      deleted: !!r.author_deleted,
     })
   }
   return list

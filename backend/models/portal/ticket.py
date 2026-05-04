@@ -7,8 +7,12 @@ class Ticket(Base):
     __tablename__ = "tickets"
 
     id              = Column(Integer, primary_key=True, index=True)
-    user_id         = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"),
-                             nullable=False, index=True)
+    # ``user_id`` becomes nullable + ``ON DELETE SET NULL`` from migration
+    # 041 onwards: when a GDPR purge removes the author, the ticket row
+    # is preserved (anonymised) so the admin audit trail of past media
+    # issues survives.
+    user_id         = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"),
+                             nullable=True, index=True)
     emby_item_id    = Column(String(64), nullable=True)
     series_emby_id  = Column(String(64), nullable=True)
     tmdb_id         = Column(Integer, nullable=True)
@@ -33,8 +37,11 @@ class TicketReply(Base):
     id          = Column(Integer, primary_key=True, index=True)
     ticket_id   = Column(Integer, ForeignKey("tickets.id", ondelete="CASCADE"),
                          nullable=False, index=True)
-    user_id     = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"),
-                         nullable=False)
+    # See ``Ticket.user_id`` for the rationale — replies follow the same
+    # SET NULL policy so the surrounding thread stays readable after a
+    # purge.
+    user_id     = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"),
+                         nullable=True)
     content     = Column(Text, nullable=False)
     created_at  = Column(DateTime(timezone=True),
                          default=lambda: datetime.now(timezone.utc))

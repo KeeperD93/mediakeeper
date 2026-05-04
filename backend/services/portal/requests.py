@@ -78,7 +78,16 @@ async def get_batch_status(
             "reject_reason": req.reject_reason if req.status == "rejected" else None,
         }
         if not anonymize:
-            entry["requested_by"] = username or f"user#{req.user_id}"
+            # ``user_id IS NULL`` once the requester has been GDPR-purged
+            # (FK ``SET NULL`` since migration 041). Surface a flag so
+            # the frontend can render an i18n placeholder instead of
+            # an obviously broken ``user#None`` label.
+            if req.user_id is None:
+                entry["requested_by"] = None
+                entry["requested_by_deleted"] = True
+            else:
+                entry["requested_by"] = username or f"user#{req.user_id}"
+                entry["requested_by_deleted"] = False
         out[key] = entry
     return out
 
@@ -236,9 +245,13 @@ async def update_request_status(
         "poster_url": req.poster_url,
         "request_id": req.id,
     }
-    if new_status == "approved":
+    # Skip the user-bound bell when the requester has been GDPR-purged
+    # (FK ``SET NULL`` since migration 041): ``mk_notifications.user_id``
+    # is NOT NULL, so an insert with ``None`` would crash. The admin
+    # action itself still succeeds.
+    if new_status == "approved" and req.user_id is not None:
         await notif_svc.create(db, req.user_id, "request_approved", payload)
-    elif new_status == "available":
+    elif new_status == "available" and req.user_id is not None:
         await notif_svc.create(db, req.user_id, "request_available", payload)
     elif new_status == "rejected":
         await maybe_blacklist_media(db, req, admin_id)
@@ -276,5 +289,9 @@ def _serialize_request(
             "requested_by_admin": r.requested_by_admin,
             "approved_by": r.approved_by,
             "requester": requester,
+            # ``True`` once the requester has been GDPR-purged (FK
+            # ``SET NULL`` since migration 041). Lets the admin row
+            # render an explicit "Deleted user" label.
+            "requester_deleted": r.user_id is None,
         })
     return data

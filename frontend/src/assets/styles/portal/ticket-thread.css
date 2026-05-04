@@ -72,6 +72,21 @@
   border-color: rgba(var(--portal-color-premium-rgb), 0.32);
 }
 
+/* Anonymised author (GDPR purge) — bubble dimmed + italic name. */
+.tth-row--anon .tth-bubble {
+  background: var(--bg-secondary);
+  border-color: var(--portal-border-default);
+  opacity: 0.85;
+}
+.tth-row--anon .tth-name {
+  font-style: italic;
+  color: var(--text-muted);
+}
+.tth-row--anon .tth-avatar {
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+}
+
 .tth-meta {
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
   margin-bottom: 4px;

@@ -66,6 +66,7 @@ This section intentionally has no date so it is not shown to users.
 - Privacy — user tab (policy, export, delayed deletion) and grace-period banner
 
 ### Fixed
+- User deletion — community content anonymised instead of cascade-deleted
 - PWA — portal URLs aligned, system name unified, maskable icon fixed
 - PWA — Android icons now opaque on every variant (no more white square)
 - Privacy — English tab label rendered as raw key (missing translation restored)

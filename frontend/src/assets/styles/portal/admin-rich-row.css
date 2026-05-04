@@ -243,6 +243,13 @@
   color: #fff; font-weight: var(--portal-font-extrabold);
   text-shadow: 0 0 10px color-mix(in srgb, var(--accent-500) 55%, transparent);
 }
+.arr-row-foot .arr-who--deleted {
+  color: var(--portal-text-secondary);
+  font-style: italic;
+  text-shadow: none;
+  font-weight: var(--portal-font-medium);
+}
+.arr-row-by--anon { opacity: 0.78; }
 
 .arr-row-seasons { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .arr-row-seasons-label {

@@ -56,8 +56,13 @@ class ChatReport(Base):
     id          = Column(Integer, primary_key=True, index=True)
     message_id  = Column(Integer, ForeignKey("chat_messages.id", ondelete="CASCADE"),
                          nullable=False, index=True)
-    reporter_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"),
-                         nullable=False)
+    # ``reporter_id`` becomes nullable + ``ON DELETE SET NULL`` from
+    # migration 041 onwards: the moderation history (handled flag,
+    # reason text) keeps its audit value even once the reporter is
+    # purged. Notification payloads carry a snapshot pseudo so the
+    # bell stays meaningful.
+    reporter_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"),
+                         nullable=True)
     reason      = Column(String(500), nullable=True)
     handled     = Column(Boolean, server_default="false", nullable=False)
     created_at  = Column(DateTime(timezone=True),

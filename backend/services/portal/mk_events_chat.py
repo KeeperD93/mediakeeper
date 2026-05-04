@@ -38,11 +38,19 @@ async def list_messages(
         .order_by(MKEventMessage.sent_at.asc())
         .limit(limit)
     )).all()
+    # ``user_id`` is nullable since migration 041 (``ON DELETE SET NULL``):
+    # surface a ``user_deleted`` flag so the frontend can render the
+    # "Deleted user" placeholder, mirroring ``chat_presenters.serialize_message``.
     return {"items": [
         {
             "id": m.id,
             "user_id": m.user_id,
-            "username": display or username or f"user#{m.user_id}",
+            "username": (
+                None
+                if m.user_id is None
+                else (display or username or f"user#{m.user_id}")
+            ),
+            "user_deleted": m.user_id is None,
             "content": m.content,
             "sent_at": m.sent_at.isoformat() if m.sent_at else None,
         }

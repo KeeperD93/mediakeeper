@@ -67,6 +67,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 
 ### Fixed
+- Suppression d'utilisateur — contenus communautaires anonymisés au lieu d'être effacés
 - PWA — URLs portail alignées, nom système unifié, icône maskable corrigée
 - PWA — icônes Android avec fond opaque sur toutes les variantes (plus de carré blanc)
 - Confidentialité — onglet anglais affichait la clé brute (traduction manquante restaurée)
