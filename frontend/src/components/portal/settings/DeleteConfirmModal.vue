@@ -20,7 +20,7 @@
             {{ $t('portal.privacy.deleteModal.warning') }}
           </p>
 
-          <p class="pt-dcm-emby">
+          <p v-if="showEmbyNotice" class="pt-dcm-emby">
             {{ $t('portal.privacy.embyNotice') }}
           </p>
 
@@ -76,6 +76,9 @@ import { AlertTriangle } from 'lucide-vue-next'
 const props = defineProps({
   open: { type: Boolean, default: false },
   submitting: { type: Boolean, default: false },
+  // Only Emby-linked accounts see the "linked to Emby" reminder
+  // (cf. PrivacyTab.vue isEmbyAccount). Local accounts hide it.
+  showEmbyNotice: { type: Boolean, default: false },
 })
 const emit = defineEmits(['confirm', 'cancel'])
 

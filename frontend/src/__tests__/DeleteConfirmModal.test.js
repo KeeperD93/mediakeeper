@@ -90,4 +90,16 @@ describe('DeleteConfirmModal', () => {
     await w.findAll('.pt-dcm-btn')[0].trigger('click')
     expect(w.emitted('cancel')).toBeFalsy()
   })
+
+  it('renders the Emby notice when showEmbyNotice is true', async () => {
+    const w = buildModal({ showEmbyNotice: true })
+    await flushPromises()
+    expect(w.find('.pt-dcm-emby').exists()).toBe(true)
+  })
+
+  it('hides the Emby notice by default (local accounts)', async () => {
+    const w = buildModal()
+    await flushPromises()
+    expect(w.find('.pt-dcm-emby').exists()).toBe(false)
+  })
 })

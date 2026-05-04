@@ -59,13 +59,14 @@
       </button>
     </div>
 
-    <p class="pt-privacy-emby-final">
+    <p v-if="isEmbyAccount" class="pt-privacy-emby-final">
       {{ $t('portal.privacy.embyNotice') }}
     </p>
 
     <DeleteConfirmModal
       :open="modalOpen"
       :submitting="submittingDeletion"
+      :show-emby-notice="isEmbyAccount"
       @confirm="onConfirmDeletion"
       @cancel="modalOpen = false"
     />
@@ -88,7 +89,7 @@ import DeleteConfirmModal from './DeleteConfirmModal.vue'
 
 const { t, locale } = useI18n()
 const { showToast } = useToast()
-const { refreshAuth } = usePortalAuth()
+const { profile, refreshAuth } = usePortalAuth()
 const { getPrivacyText, exportMyData, submitDeletion } = useGdprUser()
 
 const loading = ref(false)
@@ -97,6 +98,11 @@ const dpoContact = ref('')
 const exporting = ref(false)
 const modalOpen = ref(false)
 const submittingDeletion = ref(false)
+
+// The "linked to Emby" reminder only makes sense for Emby-sourced
+// accounts. Locally-created accounts (admin or manual) get no such
+// notice — the message would be misleading.
+const isEmbyAccount = computed(() => profile.value?.source === 'emby')
 
 // Server already sanitises through bleach on the admin write path —
 // DOMPurify here is defence in depth, mirroring HelpCardList. If the

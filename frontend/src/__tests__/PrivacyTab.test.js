@@ -14,6 +14,9 @@ const mocks = vi.hoisted(() => ({
   submitDeletion: vi.fn(),
   refreshAuth: vi.fn(),
   showToast: vi.fn(),
+  // ``profile`` mirrors the readonly ref shape exposed by usePortalAuth.
+  // Tests mutate ``profile.value`` to swap between Emby / local accounts.
+  profile: { value: { source: 'emby' } },
 }))
 
 vi.mock('vue-i18n', () => ({
@@ -40,7 +43,10 @@ vi.mock('@/composables/portal/useGdprUser', () => ({
 }))
 
 vi.mock('@/composables/portal/usePortalAuth', () => ({
-  usePortalAuth: () => ({ refreshAuth: mocks.refreshAuth }),
+  usePortalAuth: () => ({
+    profile: mocks.profile,
+    refreshAuth: mocks.refreshAuth,
+  }),
 }))
 
 vi.mock('@/composables/useToast', () => ({
@@ -81,6 +87,9 @@ beforeEach(() => {
   mocks.submitDeletion.mockReset()
   mocks.refreshAuth.mockReset()
   mocks.showToast.mockReset()
+  // Default to an Emby-linked account so the existing tests keep
+  // exercising the same surface.
+  mocks.profile.value = { source: 'emby' }
 })
 
 
@@ -219,5 +228,29 @@ describe('PrivacyTab', () => {
       'portal.privacy.deleteModal.scheduled', 'ok',
     )
     expect(mocks.refreshAuth).toHaveBeenCalledOnce()
+  })
+
+  it('renders the Emby notice for an Emby-sourced account', async () => {
+    mocks.profile.value = { source: 'emby' }
+    mocks.getPrivacyText.mockResolvedValueOnce({
+      lang: 'fr', text_html: '<p>x</p>', dpo_contact: '',
+    })
+    const w = buildTab()
+    await flushPromises()
+
+    expect(w.find('.pt-privacy-emby-final').exists()).toBe(true)
+    expect(w.find('.pt-privacy-emby-final').text())
+      .toContain('portal.privacy.embyNotice')
+  })
+
+  it('hides the Emby notice for a locally-sourced account', async () => {
+    mocks.profile.value = { source: 'local' }
+    mocks.getPrivacyText.mockResolvedValueOnce({
+      lang: 'fr', text_html: '<p>x</p>', dpo_contact: '',
+    })
+    const w = buildTab()
+    await flushPromises()
+
+    expect(w.find('.pt-privacy-emby-final').exists()).toBe(false)
   })
 })
