@@ -36,6 +36,11 @@
       @dismiss="dismissNews"
     />
 
+    <!-- GDPR opt-in: persistent grace-period banner shown on every page
+         while a deletion request is pending. EventBanner stacks below
+         it so neither hides the other. -->
+    <DeletionPendingBanner />
+
     <!-- Top scrolling banner for upcoming events I'm part of. -->
     <EventBanner />
 
@@ -74,6 +79,7 @@ import HomeFab from './HomeFab.vue'
 import SurpriseOverlay from './SurpriseOverlay.vue'
 import NewsPopup from './NewsPopup.vue'
 import EventBanner from './EventBanner.vue'
+import DeletionPendingBanner from './DeletionPendingBanner.vue'
 import PortalWhatsNewModal from './PortalWhatsNewModal.vue'
 import PortalDailyDigestOverlay from './PortalDailyDigestOverlay.vue'
 import PortalHelpOverlay from './PortalHelpOverlay.vue'

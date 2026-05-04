@@ -3132,6 +3132,44 @@
         "copied": "Link copied"
       }
     },
+    "privacy": {
+      "banner": {
+        "message": "Your account will be deleted on {date}.",
+        "cancel": "Cancel deletion",
+        "cancelling": "Cancelling…",
+        "cancelled": "Deletion request cancelled.",
+        "cancelFailed": "Could not cancel the request. Try again."
+      },
+      "policy": {
+        "title": "Privacy policy",
+        "notConfigured": "The privacy policy is not configured yet. Contact your administrator."
+      },
+      "dpo": "Questions: {contact}",
+      "data": {
+        "title": "Your data",
+        "subtitle": "Download a copy of your data or request the deletion of your account.",
+        "exportBtn": "Export my data",
+        "exporting": "Preparing…",
+        "exportStarted": "Download started.",
+        "exportLimited": "Export is limited to once per hour, try again later.",
+        "exportLimitedAt": "Export is limited to once per hour, try again at {when}.",
+        "exportTooLarge": "Your data exceeds the maximum export size, contact your administrator.",
+        "exportFailed": "Export is unavailable right now.",
+        "deleteBtn": "Delete my account"
+      },
+      "embyNotice": "Your MediaKeeper account is linked to Emby. Deleting it here does not affect your Emby account.",
+      "deleteModal": {
+        "title": "Delete your account?",
+        "warning": "This schedules the permanent deletion of your MediaKeeper account and all associated data. You can cancel the request during the grace period shown on the portal banner.",
+        "magicWord": "DELETE",
+        "confirmLabel": "To confirm, type {word} below.",
+        "confirm": "Confirm deletion",
+        "submitting": "Submitting…",
+        "abort": "Cancel",
+        "scheduled": "Deletion scheduled. You can still cancel it from the portal banner.",
+        "failed": "Could not submit the request. Try again."
+      }
+    },
     "admin": {
       "title": "Requests configuration",
       "totalUsers": "Users",
