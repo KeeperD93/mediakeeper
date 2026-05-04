@@ -45,6 +45,9 @@ This section intentionally has no date so it is not shown to users.
 - Tests — automatic detection of third-party hosts missing from the security policy
 - Backups — ZIP signature check and entry whitelist (zip-bomb guard)
 - API — configuration payloads reject unknown fields (security hardening)
+- Notifications — HMAC signature header on outbound webhooks (forward-compat)
+- Notifications — single retry on Discord 429 (Retry-After capped at 5 s)
+- Notifications — structured log on Imgur failure (status + snippet, no secrets)
 
 ### Fixed
 - Login — GitHub icon restored with the correct link, text version line dropped

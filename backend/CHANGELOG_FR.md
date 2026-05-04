@@ -45,6 +45,9 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Tests — détection automatique des domaines tiers absents de la politique de sécurité
 - Sauvegardes — vérification de signature ZIP et liste blanche d'entrées (anti zip-bomb)
 - API — paramètres de configuration : rejet des champs inconnus (sécurité)
+- Notifications — signature HMAC sur les webhooks sortants (forward-compat intégrateurs)
+- Notifications — retry unique sur Discord 429 (Retry-After cap 5 s)
+- Notifications — log structuré sur échec Imgur (statut + extrait, pas de secret)
 
 ### Fixed
 - Connexion — icône GitHub restaurée avec le bon lien, ligne version texte retirée

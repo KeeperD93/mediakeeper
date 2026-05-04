@@ -1,0 +1,172 @@
+"""Outbound-webhook helpers shared by every notifier.
+
+Three concerns live here, all stdlib + httpx:
+
+* :func:`sign_webhook_payload` — HMAC-SHA256 signature of the JSON body.
+  The key is derived from the existing Fernet master so no new env var
+  is required. Discord ignores the header today; it is forward-compat
+  for any future custom receiver and lets an operator detect MITM
+  tampering during incident review.
+
+* :func:`post_signed_with_retry` — single retry on Discord rate limits
+  (HTTP 429). The ``Retry-After`` header is parsed and capped at five
+  seconds to avoid blocking notification workers behind a chatty
+  webhook. After the retry the result is returned to the caller, which
+  is responsible for logging the final outcome.
+
+* :func:`webhook_log_id` — non-secret identifier for log lines. Discord
+  webhook URLs ship a public numeric id and a secret token; we drop
+  the token entirely. Non-Discord URLs are reduced to a short SHA-256
+  prefix so log files never embed a usable webhook URL.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import hashlib
+import hmac
+import json
+import logging
+import os
+from functools import lru_cache
+
+import httpx
+
+logger = logging.getLogger("mediakeeper.webhooks")
+
+#: Header name used on every outbound webhook POST.
+SIGNATURE_HEADER_NAME = "X-MediaKeeper-Signature"
+
+#: Domain-separation label for the HMAC key derivation. Bump the version
+#: suffix if the derivation algorithm ever needs to change so receivers
+#: can negotiate the scheme.
+_SIGNING_PURPOSE = b"mediakeeper-webhook-sig-v1"
+
+#: Maximum delay we honour from a server-side ``Retry-After`` header. A
+#: misbehaving server cannot pin a notification worker for minutes.
+RETRY_AFTER_CAP_SECONDS = 5.0
+
+#: Default short backoff when ``Retry-After`` is missing or unparseable.
+RETRY_AFTER_DEFAULT_SECONDS = 1.0
+
+_DISCORD_PREFIX = "https://discord.com/api/webhooks/"
+
+
+@lru_cache(maxsize=1)
+def _master_key_bytes() -> bytes:
+    """Return the bytes used as the HMAC master key.
+
+    Resolves the persistent Fernet key when one is configured, otherwise
+    falls back to a process-local random buffer so signatures are still
+    well-formed in dev/test. The fallback intentionally shares its
+    ephemeral lifecycle with the Fernet ephemeral key path: a restart
+    invalidates both, which is consistent with "no persistent secret =
+    no persistent identity" semantics.
+    """
+    from core.encryption import get_persistent_fernet_key
+
+    persistent = get_persistent_fernet_key()
+    if persistent is not None:
+        return persistent.key.encode("ascii")
+    return os.urandom(44)
+
+
+@lru_cache(maxsize=1)
+def _signing_key() -> bytes:
+    """Return the 32-byte HMAC-SHA256 signing key derived from the master."""
+    return hmac.new(
+        _master_key_bytes(), _SIGNING_PURPOSE, hashlib.sha256
+    ).digest()
+
+
+def reset_signing_key_cache() -> None:
+    """Tests only — drop the cached master and derived signing key."""
+    _master_key_bytes.cache_clear()
+    _signing_key.cache_clear()
+
+
+def sign_webhook_payload(body: bytes) -> str:
+    """Return ``"sha256=<hex>"`` HMAC-SHA256 of ``body``.
+
+    ``body`` must be the exact bytes that will travel in the HTTP request
+    — sign the serialised JSON, not the dict, so the receiver's
+    verification matches byte-for-byte.
+    """
+    digest = hmac.new(_signing_key(), body, hashlib.sha256).hexdigest()
+    return f"sha256={digest}"
+
+
+def webhook_log_id(url: str) -> str:
+    """Return a non-secret identifier for ``url`` suitable for log lines.
+
+    For Discord URLs the public numeric id is preserved (operators can
+    correlate it with the webhook config). For anything else we emit a
+    truncated SHA-256 prefix so log files never carry the live URL.
+    """
+    if not url:
+        return "external:unset"
+    if url.startswith(_DISCORD_PREFIX):
+        rest = url[len(_DISCORD_PREFIX) :]
+        wid = rest.split("/", 1)[0] if "/" in rest else rest
+        if wid.isdigit():
+            return f"discord:{wid}"
+    return f"external:{hashlib.sha256(url.encode('utf-8')).hexdigest()[:8]}"
+
+
+def parse_retry_after_header(
+    value: str | None,
+    *,
+    cap: float = RETRY_AFTER_CAP_SECONDS,
+    default: float = RETRY_AFTER_DEFAULT_SECONDS,
+) -> float:
+    """Parse a ``Retry-After`` header (seconds form). Returns a capped float.
+
+    HTTP also allows an absolute date, but Discord only emits seconds.
+    Anything we cannot parse falls back to ``default`` so callers always
+    get a deterministic short backoff.
+    """
+    if not value:
+        return min(default, cap)
+    try:
+        seconds = float(value)
+    except (TypeError, ValueError):
+        return min(default, cap)
+    if seconds < 0:
+        return 0.0
+    return min(seconds, cap)
+
+
+def _serialize_payload(payload: dict) -> bytes:
+    """JSON-serialise ``payload`` to compact UTF-8 bytes (deterministic)."""
+    return json.dumps(payload, separators=(",", ":"), ensure_ascii=False).encode(
+        "utf-8"
+    )
+
+
+async def post_signed_with_retry(
+    client: httpx.AsyncClient,
+    url: str,
+    payload: dict,
+    *,
+    timeout: float,
+) -> httpx.Response:
+    """POST ``payload`` to ``url`` with a signature header and a single 429 retry.
+
+    The body is signed with :func:`sign_webhook_payload` and sent as raw
+    bytes (``content=...``) so the receiver verifies the exact bytes we
+    signed. On HTTP 429 the ``Retry-After`` header is honoured up to
+    :data:`RETRY_AFTER_CAP_SECONDS`, then the request is replayed once.
+    The caller decides what to do with the final response.
+    """
+    body = _serialize_payload(payload)
+    headers = {
+        "Content-Type": "application/json",
+        SIGNATURE_HEADER_NAME: sign_webhook_payload(body),
+    }
+    res = await client.post(url, content=body, headers=headers, timeout=timeout)
+    if res.status_code != 429:
+        return res
+    delay = parse_retry_after_header(res.headers.get("Retry-After"))
+    if delay > 0:
+        await asyncio.sleep(delay)
+    return await client.post(url, content=body, headers=headers, timeout=timeout)
