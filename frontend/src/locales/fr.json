@@ -3241,6 +3241,41 @@
         "heroTrendCount": {
           "title": "Tendances dans le héro",
           "desc": "Nombre total d'éléments affichés dans la bannière héro de l'accueil (tendances TMDB + mises en avant). Si vous mettez en avant un film manuellement, il prend la place d'une tendance. 0 masque le héro complètement."
+        },
+        "gdpr": {
+          "title": "Mode Confidentialité",
+          "intro": "Active les surfaces utilisateur dédiées à la protection des données. Désactivé par défaut : aucun impact tant que vous ne basculez pas l'interrupteur.",
+          "toggle": {
+            "title": "Activer le mode Confidentialité",
+            "desc": "Lorsqu'il est actif, les utilisateurs voient un onglet Confidentialité avec export et demande de suppression. Désactivé : aucune surface utilisateur exposée."
+          },
+          "privacyFr": {
+            "title": "Politique de confidentialité — Français",
+            "desc": "HTML rendu côté utilisateur. Le contenu passe par le filtre de sécurité avant enregistrement."
+          },
+          "privacyEn": {
+            "title": "Politique de confidentialité — Anglais",
+            "desc": "Version anglaise affichée aux utilisateurs dont la langue est en."
+          },
+          "dpo": {
+            "title": "Contact responsable des données",
+            "desc": "Email ou texte affiché aux utilisateurs comme point de contact. Laisser vide pour masquer."
+          },
+          "delay": {
+            "title": "Délai avant suppression définitive (jours)",
+            "desc": "Durée pendant laquelle un utilisateur peut annuler une demande de suppression avant que le compte ne soit purgé.",
+            "invalid": "Valeur invalide. Plage acceptée : {min} à {max} jours."
+          },
+          "pending": {
+            "title": "Comptes en attente de suppression",
+            "desc": "Liste des utilisateurs ayant demandé la suppression de leur compte. Vous pouvez annuler la demande depuis cette ligne.",
+            "empty": "Aucune demande de suppression en cours.",
+            "colUsername": "Utilisateur",
+            "colRequestedAt": "Demandé le",
+            "colScheduledAt": "Suppression prévue",
+            "colAction": "Action",
+            "cancel": "Annuler"
+          }
         }
       },
       "xpEvents": {
