@@ -23,11 +23,19 @@ async def resolve_display_name(db: AsyncSession, user_id: int) -> str:
 
 
 def serialize_message(m: ChatMessage, user_name: str | None = None) -> dict:
+    """Serialise a chat message for the API.
+
+    Once a GDPR purge removes the original author, ``m.user_id`` is
+    NULL (FK ``ON DELETE SET NULL``, migration 040). The frontend
+    relies on the ``user_deleted`` flag to render an anonymous
+    placeholder instead of the live username + avatar.
+    """
     return {
         "id": m.id,
         "room_id": m.room_id,
         "user_id": m.user_id,
-        "user_name": user_name,
+        "user_name": user_name if m.user_id is not None else None,
+        "user_deleted": m.user_id is None,
         "content": m.content,
         "deleted": bool(getattr(m, "deleted", False)),
         "created_at": m.created_at.isoformat() if m.created_at else None,

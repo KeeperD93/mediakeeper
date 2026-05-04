@@ -2049,6 +2049,7 @@
     "chatReport": "Report this message",
     "chatReportedTitle": "Already reported",
     "chatMessageDeleted": "Message deleted",
+    "chatDeletedUser": "[Deleted account]",
     "chatEmoji": "Emoji",
     "chatGifDisabled": "GIFs coming soon",
     "surprise": {

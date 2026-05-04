@@ -11,6 +11,7 @@ class SeenAlert(Base):
     __tablename__ = "seen_alerts"
 
     id       = Column(Integer, primary_key=True, index=True)
-    user_id  = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    user_id  = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"),
+                      nullable=False, index=True)
     alert_id = Column(String(255), nullable=False)
     seen_at  = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))

@@ -215,8 +215,10 @@ async def get_messages(
     raw = (await db.execute(query.limit(limit))).scalars().all()
 
     # Resolve every author's display_name in a single SELECT rather
-    # than N+1 lookups while serialising.
-    user_ids = list({m.user_id for m in raw})
+    # than N+1 lookups while serialising. ``user_id`` may be NULL after
+    # a GDPR purge (migration 040, ``ON DELETE SET NULL``); skip those
+    # rows here — the serializer flags them via ``user_deleted=True``.
+    user_ids = [uid for uid in {m.user_id for m in raw} if uid is not None]
     name_map: dict[int, str] = {}
     if user_ids:
         prof_rows = (

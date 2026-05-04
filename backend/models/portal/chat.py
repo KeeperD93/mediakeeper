@@ -23,8 +23,12 @@ class ChatMessage(Base):
     id          = Column(Integer, primary_key=True, index=True)
     room_id     = Column(Integer, ForeignKey("chat_rooms.id", ondelete="CASCADE"),
                          nullable=False, index=True)
-    user_id     = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"),
-                         nullable=False, index=True)
+    # ``user_id`` becomes nullable + ``ON DELETE SET NULL`` from migration
+    # 040 onwards: when a GDPR purge hard-deletes the user, their messages
+    # are anonymised instead of vanishing so the surrounding conversation
+    # stays readable for the other participants.
+    user_id     = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"),
+                         nullable=True, index=True)
     content     = Column(Text, nullable=False)
     deleted     = Column(Boolean, server_default="false", nullable=False)
     created_at  = Column(DateTime(timezone=True),

@@ -25,11 +25,19 @@
         v-for="msg in messages"
         :key="msg.id"
         class="pt-chat-row"
-        :class="{ 'pt-chat-row--mine': msg.user_id === ownUserId, 'pt-chat-row--deleted': msg.deleted }"
+        :class="{
+          'pt-chat-row--mine': msg.user_id === ownUserId,
+          'pt-chat-row--deleted': msg.deleted,
+          'pt-chat-row--anon': msg.user_deleted,
+        }"
       >
         <div class="pt-chat-meta">
           <span class="pt-chat-date">{{ formatMeta(msg.created_at) }}</span>
-          <span class="pt-chat-pseudo">{{ msg.user_name || ('#' + msg.user_id) }}</span>
+          <span class="pt-chat-pseudo">
+            {{ msg.user_deleted
+              ? $t('portal.chatDeletedUser')
+              : (msg.user_name || ('#' + msg.user_id)) }}
+          </span>
         </div>
         <div v-if="msg.deleted" class="pt-chat-body pt-chat-body--deleted">
           {{ $t('portal.chatMessageDeleted') }}
@@ -46,7 +54,7 @@
             <span>{{ secondsLeft(msg) }}s</span>
           </button>
           <button
-            v-if="msg.user_id !== ownUserId && !reportedIds.has(msg.id)"
+            v-if="!msg.user_deleted && msg.user_id !== ownUserId && !reportedIds.has(msg.id)"
             class="pt-chat-act pt-chat-act--warn"
             :class="{ 'pt-chat-act--reporting': reportingId === msg.id }"
             :disabled="reportingId === msg.id"
@@ -56,7 +64,7 @@
             <Flag :size="13" />
           </button>
           <span
-            v-else-if="msg.user_id !== ownUserId && reportedIds.has(msg.id)"
+            v-else-if="!msg.user_deleted && msg.user_id !== ownUserId && reportedIds.has(msg.id)"
             class="pt-chat-act pt-chat-act--reported"
             :class="{ 'pt-chat-act--reported-flash': flashId === msg.id }"
             :title="$t('portal.chatReportedTitle')"

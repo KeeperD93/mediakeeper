@@ -10,7 +10,8 @@ class XpLedger(Base):
     )
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"),
+                     nullable=False, index=True)
     action = Column(String(50), nullable=False)
     reference = Column(String(200), nullable=False)
     xp = Column(Integer, nullable=False, default=0)

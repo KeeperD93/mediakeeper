@@ -48,6 +48,22 @@ _test_engine = create_async_engine(
     connect_args={"check_same_thread": False},
 )
 
+
+# SQLite ignores foreign-key constraints unless told otherwise. Enabling
+# the pragma on every connection lets ``ON DELETE CASCADE`` /
+# ``ON DELETE SET NULL`` behave like Postgres in production and exposes
+# missing-FK bugs early.
+from sqlalchemy import event as _sa_event  # noqa: E402
+
+
+@_sa_event.listens_for(_test_engine.sync_engine, "connect")
+def _sqlite_enable_foreign_keys(dbapi_conn, _record):
+    cursor = dbapi_conn.cursor()
+    try:
+        cursor.execute("PRAGMA foreign_keys = ON")
+    finally:
+        cursor.close()
+
 _TestSession = sessionmaker(
     bind=_test_engine,
     class_=AsyncSession,
