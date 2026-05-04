@@ -21,6 +21,48 @@
   font-size: var(--portal-text-xs);
   color: var(--text-muted);
 }
+
+/* Toggle row — local copy of the ``pt-setting-row`` shape used in
+   AdminSettings.vue. Cannot reuse the parent rules because they live
+   in a scoped style block and Vue's data-v hashing prevents bleed. */
+.pt-gdpr-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  cursor: pointer;
+  transition: border-color var(--portal-dur-fast), background var(--portal-dur-fast);
+}
+.pt-gdpr-toggle-row:hover { border-color: var(--border-hover); }
+.pt-gdpr-toggle-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
+}
+.pt-gdpr-toggle-title {
+  font-size: var(--portal-text-base);
+  font-weight: var(--portal-font-medium);
+  color: var(--text-primary);
+}
+.pt-gdpr-toggle-desc {
+  font-size: var(--portal-text-xs);
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+.pt-gdpr-toggle-input {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
 .pt-gdpr-loading {
   padding: 1rem;
   color: var(--text-muted);

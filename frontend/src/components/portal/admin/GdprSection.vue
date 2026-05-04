@@ -14,19 +14,22 @@
     </div>
 
     <template v-else>
-      <!-- Toggle: persists immediately -->
-      <label class="pt-setting-row">
-        <div class="pt-setting-info">
-          <span class="pt-setting-title">
+      <!-- Toggle: persists immediately. Class names are local to this
+           component because the AdminSettings.vue ``pt-setting-*`` rules
+           live in a parent ``<style scoped>`` block and would not bleed
+           through Vue's data-v hashing. -->
+      <label class="pt-gdpr-toggle-row">
+        <div class="pt-gdpr-toggle-info">
+          <span class="pt-gdpr-toggle-title">
             {{ $t('portal.admin.settings.gdpr.toggle.title') }}
           </span>
-          <span class="pt-setting-desc">
+          <span class="pt-gdpr-toggle-desc">
             {{ $t('portal.admin.settings.gdpr.toggle.desc') }}
           </span>
         </div>
         <input
           type="checkbox"
-          class="pt-setting-toggle"
+          class="pt-gdpr-toggle-input"
           :checked="form.enabled"
           :disabled="saving"
           @change="onToggle($event.target.checked)"

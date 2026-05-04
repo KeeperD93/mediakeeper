@@ -103,7 +103,7 @@ describe('GdprSection', () => {
     const w = mount(GdprSection)
     await flushPromises()
 
-    const cb = w.find('.pt-setting-toggle')
+    const cb = w.find('.pt-gdpr-toggle-input')
     cb.element.checked = true
     await cb.trigger('change')
     await flushPromises()
@@ -192,7 +192,7 @@ describe('GdprSection', () => {
 
     expect(w.find('.pt-gdpr-config').exists()).toBe(true)
 
-    const cb = w.find('.pt-setting-toggle')
+    const cb = w.find('.pt-gdpr-toggle-input')
     cb.element.checked = false
     await cb.trigger('change')
     await flushPromises()
