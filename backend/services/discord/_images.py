@@ -7,6 +7,30 @@ from core.http_client import get_internal_client, get_external_client
 
 logger = logging.getLogger("mediakeeper.notifications.discord")
 
+#: Maximum response-body slice we are willing to copy into a log line. Imgur
+#: error responses are short JSON blobs; 200 chars is enough to diagnose
+#: ``{"data":{"error":"..."},"status":401,"success":false}`` without
+#: bloating the rotated log file.
+_IMGUR_LOG_BODY_SNIPPET = 200
+
+
+def _imgur_response_snippet(response) -> str:
+    """Return a length-bounded text view of an Imgur response for logs.
+
+    The Imgur API echoes the request error code in JSON form and never
+    reflects ``Authorization`` or ``Client-ID`` values back, so logging a
+    truncated snippet is safe. Defensive: if ``.text`` itself raises for
+    some reason (binary body, encoding glitch), fall back to a marker.
+    """
+    try:
+        text = response.text or ""
+    except Exception:
+        return "<unreadable-body>"
+    text = text.strip().replace("\n", " ").replace("\r", " ")
+    if len(text) > _IMGUR_LOG_BODY_SNIPPET:
+        return text[:_IMGUR_LOG_BODY_SNIPPET] + "…"
+    return text
+
 
 async def _fetch_tmdb_poster(tmdb_id: str | int, tmdb_type: str, db) -> str:
     """Return a public TMDB poster URL (image.tmdb.org CDN) or empty string."""
@@ -36,7 +60,13 @@ async def _fetch_tmdb_poster(tmdb_id: str | int, tmdb_type: str, db) -> str:
 
 
 async def _upload_emby_to_imgur(emby_image_url: str, emby_api_key: str, imgur_client_id: str) -> str:
-    """Download from Emby, upload to Imgur, return the Imgur CDN URL."""
+    """Download from Emby, upload to Imgur, return the Imgur CDN URL.
+
+    On any failure (Emby fetch, Imgur HTTP error, timeout) the function
+    returns ``""`` so the caller can fall back to a no-image embed. The
+    failure is always logged at WARNING with enough context to diagnose
+    without exposing the Imgur ``Client-ID`` header.
+    """
     if not imgur_client_id:
         return ""
     try:
@@ -47,6 +77,11 @@ async def _upload_emby_to_imgur(emby_image_url: str, emby_api_key: str, imgur_cl
             timeout=10.0,
         )
         if img_res.status_code != 200:
+            logger.warning(
+                "[discord] Imgur upload skipped: Emby image fetch failed "
+                "(status=%s); falling back to no-image embed",
+                img_res.status_code,
+            )
             return ""
         external_client = get_external_client()
         b64 = base64.b64encode(img_res.content).decode("utf-8")
@@ -58,8 +93,20 @@ async def _upload_emby_to_imgur(emby_image_url: str, emby_api_key: str, imgur_cl
         )
         if imgur_res.status_code == 200:
             return imgur_res.json().get("data", {}).get("link", "")
+        logger.warning(
+            "[discord] Imgur upload failed (status=%s, body=%r); falling "
+            "back to no-image embed",
+            imgur_res.status_code,
+            _imgur_response_snippet(imgur_res),
+        )
+        return ""
     except Exception as e:
-        logger.warning(f"[DISCORD] Imgur upload failed: {e}")
+        logger.warning(
+            "[discord] Imgur upload exception (%s: %s); falling back to "
+            "no-image embed",
+            type(e).__name__,
+            e,
+        )
     return ""
 
 

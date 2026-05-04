@@ -2,6 +2,7 @@
 import logging
 
 from core.http_client import get_external_client
+from core.webhooks import post_signed_with_retry, webhook_log_id
 
 from ._defaults import DEFAULT_COLORS, get_default_templates
 from ._render import _hex_to_int, _apply_vars, _add_aliases, _build_embed
@@ -53,26 +54,49 @@ async def send_discord_test(
 
     content_text, embed = _build_embed(tmpl, color, image_url, image_style)
     payload = {"username": "MediaKeeper", "content": content_text, "embeds": [embed]}
+    log_id = webhook_log_id(webhook_url)
 
     try:
         client = get_external_client()
-        res = await client.post(webhook_url, json=payload, timeout=10.0)
+        res = await post_signed_with_retry(
+            client, webhook_url, payload, timeout=10.0
+        )
         if res.status_code in (200, 204):
             return {"success": True}
-        logger.error(f"[DISCORD] Test webhook HTTP {res.status_code}: {res.text}")
+        logger.warning(
+            "[discord] test webhook %s rejected delivery (status=%s)",
+            log_id, res.status_code,
+        )
         return {"error": f"Discord rejected (HTTP {res.status_code})"}
     except Exception as e:
-        logger.error(f"[DISCORD] Exception test: {e}")
+        # ``e`` formatting is restricted to the exception class so a
+        # malformed httpx error never leaks the webhook URL into logs.
+        logger.warning(
+            "[discord] test webhook %s delivery exception (%s)",
+            log_id, type(e).__name__,
+        )
         return {"error": "Unable to reach Discord."}
 
 
 async def send_discord_webhook(webhook_url: str, payload: dict) -> bool:
     if not webhook_url:
         return False
+    log_id = webhook_log_id(webhook_url)
     try:
         client = get_external_client()
-        res = await client.post(webhook_url, json=payload, timeout=10.0)
-        return res.status_code in (200, 204)
+        res = await post_signed_with_retry(
+            client, webhook_url, payload, timeout=10.0
+        )
+        if res.status_code in (200, 204):
+            return True
+        logger.warning(
+            "[discord] webhook %s rejected delivery (status=%s)",
+            log_id, res.status_code,
+        )
+        return False
     except Exception as e:
-        logger.error(f"[DISCORD] Exception sending: {e}")
+        logger.warning(
+            "[discord] webhook %s delivery exception (%s)",
+            log_id, type(e).__name__,
+        )
         return False
