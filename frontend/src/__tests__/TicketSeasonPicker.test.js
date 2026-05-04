@@ -82,9 +82,7 @@ describe('TicketSeasonPicker', () => {
 
     const last = w.emitted('update:selection').at(-1)[0]
     expect(last.media_type).toBe('episode')
-    expect(last.selected_seasons).toEqual([
-      { season_number: 1, episodes: [1, 3] },
-    ])
+    expect(last.selected_seasons).toEqual([{ season_number: 1, episodes: [1, 3] }])
   })
 
   it('reset button clears the selection back to the whole series', async () => {

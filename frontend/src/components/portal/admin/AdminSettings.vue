@@ -89,7 +89,9 @@ async function update(key, value) {
       settings.value = { ...settings.value, ...res }
       savedMessage.value = t('common.saved')
       if (savedTimer) clearTimeout(savedTimer)
-      savedTimer = setTimeout(() => { savedMessage.value = '' }, 2000)
+      savedTimer = setTimeout(() => {
+        savedMessage.value = ''
+      }, 2000)
     }
   } finally {
     saving.value = false
@@ -123,7 +125,9 @@ onMounted(fetchSettings)
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
   cursor: pointer;
-  transition: border-color var(--portal-dur-fast), background var(--portal-dur-fast);
+  transition:
+    border-color var(--portal-dur-fast),
+    background var(--portal-dur-fast);
 }
 .pt-setting-row:hover {
   border-color: var(--border-hover);

@@ -13,7 +13,7 @@ const CACHE_TTL_MS = 60_000
 function _isFresh(entry) {
   if (!entry || typeof entry !== 'object') return false
   const ts = entry._ts
-  return typeof ts === 'number' && (Date.now() - ts) < CACHE_TTL_MS
+  return typeof ts === 'number' && Date.now() - ts < CACHE_TTL_MS
 }
 
 export function useAvailability() {

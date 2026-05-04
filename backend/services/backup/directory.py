@@ -30,7 +30,7 @@ def list_available_backup_dirs() -> list[str]:
                 parent = p.parent
                 if parent.exists() and os.access(str(parent), os.W_OK):
                     result.append(c)
-        except Exception:
+        except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
             pass
 
     return result

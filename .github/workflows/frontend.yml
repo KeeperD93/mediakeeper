@@ -41,19 +41,10 @@ jobs:
       - name: ESLint
         run: npm run lint
 
-      - name: Stylelint (advisory)
-        # Stylelint is currently advisory: a 3398-error baseline (mostly
-        # rgba->rgb alias notation) predates the workflow's first run.
-        # The cleanup is scheduled in a dedicated dette PR; until then
-        # the step surfaces findings without blocking unrelated PRs.
-        continue-on-error: true
+      - name: Stylelint
         run: npm run stylelint
 
-      - name: Prettier (check only, advisory)
-        # Same situation as Stylelint above: 413 files drift from the
-        # current Prettier config. Cleanup will land in the same dette
-        # PR as the stylelint fix (one npm run format pass).
-        continue-on-error: true
+      - name: Prettier (check only)
         run: npm run format:check
 
       - name: TypeScript typecheck

@@ -18,7 +18,9 @@ defineProps({
 </script>
 
 <style scoped>
-.pt-skeleton { flex-shrink: 0; }
+.pt-skeleton {
+  flex-shrink: 0;
+}
 .pt-skeleton-poster {
   width: 100%;
   aspect-ratio: 2/3;
@@ -27,10 +29,24 @@ defineProps({
   overflow: hidden;
   position: relative;
 }
-.pt-skeleton-info { padding: 0.5rem 0.2rem 0; }
-.pt-skeleton-line { border-radius: var(--portal-radius-xs); background: var(--bg-tertiary); position: relative; overflow: hidden; }
-.pt-skeleton-line--title { width: 80%; height: 12px; }
-.pt-skeleton-line--sub   { width: 40%; height: 10px; margin-top: 6px; }
+.pt-skeleton-info {
+  padding: 0.5rem 0.2rem 0;
+}
+.pt-skeleton-line {
+  border-radius: var(--portal-radius-xs);
+  background: var(--bg-tertiary);
+  position: relative;
+  overflow: hidden;
+}
+.pt-skeleton-line--title {
+  width: 80%;
+  height: 12px;
+}
+.pt-skeleton-line--sub {
+  width: 40%;
+  height: 10px;
+  margin-top: 6px;
+}
 
 .pt-shimmer {
   position: relative;
@@ -40,17 +56,16 @@ defineProps({
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    var(--portal-surface-2) 50%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg, transparent 0%, var(--portal-surface-2) 50%, transparent 100%);
   animation: pt-shimmer-wave 1.5s infinite;
 }
 
 @keyframes pt-shimmer-wave {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
 </style>

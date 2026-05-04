@@ -24,7 +24,7 @@ async def _merge_folder_into(src_path: str, dest_path: str) -> dict:
         if src.samefile(dest):
             logger.error(f"[MERGE] Self-merge refused: src and dest point to the same inode: {src_path}")
             return {"error": "self_merge_refused"}
-    except Exception:
+    except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
         pass
     if str(src.resolve()) == str(dest.resolve()):
         logger.error(f"[MERGE] Self-merge refused: resolved paths are identical: {src_path}")
@@ -108,7 +108,7 @@ async def apply_rename(old_path: str, new_name: str):
                         f"[RENAME] Refused self-merge — dest is the same file as src: {old_path}"
                     )
                     return {"error": f"'{new_name}' refers to the folder itself"}
-            except Exception:
+            except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
                 pass
 
             if src.is_dir() and dest.is_dir():

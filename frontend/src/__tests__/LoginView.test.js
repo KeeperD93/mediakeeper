@@ -1,14 +1,18 @@
-import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest'
+import { describe, it, expect, vi, beforeAll } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 
 beforeAll(() => {
   const proto = globalThis.HTMLImageElement?.prototype
   if (proto && !Object.getOwnPropertyDescriptor(proto, 'src')?.set?.__patched) {
-    const setter = function () { /* no-op: avoid jsdom resource fetch on file:/// paths */ }
+    const setter = function () {
+      /* no-op: avoid jsdom resource fetch on file:/// paths */
+    }
     setter.__patched = true
     Object.defineProperty(proto, 'src', {
       configurable: true,
-      get() { return this.getAttribute('src') || '' },
+      get() {
+        return this.getAttribute('src') || ''
+      },
       set: setter,
     })
   }
@@ -16,7 +20,7 @@ beforeAll(() => {
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
-    t: (key) => key,
+    t: key => key,
   }),
 }))
 
@@ -39,7 +43,7 @@ vi.mock('@/composables/portal/usePortalAuth', () => ({
 }))
 
 vi.mock('@/composables/useApi', () => ({
-  fetchApiResponse: vi.fn().mockImplementation((url) => {
+  fetchApiResponse: vi.fn().mockImplementation(url => {
     if (url === '/api/health') return Promise.resolve({ status: 200, ok: true })
     if (url === '/api/changelog/current') {
       return Promise.resolve({

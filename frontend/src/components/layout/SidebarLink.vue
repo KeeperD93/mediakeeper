@@ -27,7 +27,11 @@
     </transition>
 
     <transition name="sb-badge-anim">
-      <span v-if="badge > 0" class="sb-badge" :class="{ 'sb-badge-alert': badgeColor === 'red', 'sb-badge-collapsed': collapsed }">
+      <span
+        v-if="badge > 0"
+        class="sb-badge"
+        :class="{ 'sb-badge-alert': badgeColor === 'red', 'sb-badge-collapsed': collapsed }"
+      >
         {{ badge > 99 ? '99+' : badge }}
       </span>
     </transition>
@@ -104,7 +108,7 @@ const iconComponent = computed(() => ICONS[props.icon] || ICONS.home)
   align-items: center;
   gap: 12px;
   padding: 9px 12px;
-  border-radius:var(--radius-btn);
+  border-radius: var(--radius-btn);
   text-decoration: none;
   color: var(--text-faint);
   transition: all var(--duration-base) ease;
@@ -119,8 +123,8 @@ const iconComponent = computed(() => ICONS[props.icon] || ICONS.home)
 
 @media (hover: hover) {
   .sb-link:hover {
-    color: rgba(255, 255, 255, 0.75);
-    background: rgba(255, 255, 255, 0.03);
+    color: rgb(255, 255, 255, 0.75);
+    background: rgb(255, 255, 255, 0.03);
   }
 }
 .sb-link:active {
@@ -131,12 +135,14 @@ const iconComponent = computed(() => ICONS[props.icon] || ICONS.home)
     min-height: 44px;
     padding: 10px 14px;
   }
-  .sb-label { font-size: var(--text-base); }
+  .sb-label {
+    font-size: var(--text-base);
+  }
 }
 
 .sb-link.active {
-  color: rgba(255, 255, 255, 0.95);
-  background: rgba(var(--accent-rgb), 0.08);
+  color: rgb(255, 255, 255, 0.95);
+  background: rgb(var(--accent-rgb), 0.08);
 }
 
 .sb-indicator {
@@ -148,7 +154,9 @@ const iconComponent = computed(() => ICONS[props.icon] || ICONS.home)
   height: 0;
   border-radius: 0 3px 3px 0;
   background: linear-gradient(180deg, var(--accent-400), var(--accent-500));
-  box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.5), 0 0 24px rgba(var(--accent-rgb), 0.2);
+  box-shadow:
+    0 0 12px rgb(var(--accent-rgb), 0.5),
+    0 0 24px rgb(var(--accent-rgb), 0.2);
   transition: height 0.25s var(--ease-in-out);
 }
 
@@ -168,7 +176,7 @@ const iconComponent = computed(() => ICONS[props.icon] || ICONS.home)
 
 .sb-link.active .sb-icon {
   color: var(--accent-300);
-  filter: drop-shadow(0 0 6px rgba(var(--accent-rgb), 0.4));
+  filter: drop-shadow(0 0 6px rgb(var(--accent-rgb), 0.4));
 }
 
 .sb-label-wrap {
@@ -207,13 +215,26 @@ const iconComponent = computed(() => ICONS[props.icon] || ICONS.home)
   will-change: height;
 }
 
-.sb-eq-1 { height: 4px; animation: sb-eq-bounce 0.8s ease-in-out infinite alternate; }
-.sb-eq-2 { height: 8px; animation: sb-eq-bounce 0.6s ease-in-out 0.15s infinite alternate; }
-.sb-eq-3 { height: 5px; animation: sb-eq-bounce 0.75s ease-in-out 0.3s infinite alternate; }
+.sb-eq-1 {
+  height: 4px;
+  animation: sb-eq-bounce 0.8s ease-in-out infinite alternate;
+}
+.sb-eq-2 {
+  height: 8px;
+  animation: sb-eq-bounce 0.6s ease-in-out 0.15s infinite alternate;
+}
+.sb-eq-3 {
+  height: 5px;
+  animation: sb-eq-bounce 0.75s ease-in-out 0.3s infinite alternate;
+}
 
 @keyframes sb-eq-bounce {
-  0% { height: 3px; }
-  100% { height: 11px; }
+  0% {
+    height: 3px;
+  }
+  100% {
+    height: 11px;
+  }
 }
 
 .sb-badge {
@@ -224,18 +245,18 @@ const iconComponent = computed(() => ICONS[props.icon] || ICONS.home)
   min-width: 18px;
   height: 18px;
   padding: 0 5px;
-  border-radius:var(--radius-btn);
+  border-radius: var(--radius-btn);
   font-size: var(--text-3xs);
   font-weight: var(--font-medium);
   line-height: 18px;
   text-align: center;
-  background: rgba(var(--accent-rgb), 0.15);
+  background: rgb(var(--accent-rgb), 0.15);
   color: var(--accent-300);
   flex-shrink: 0;
 }
 
 .sb-badge-alert {
-  background: rgba(239, 68, 68, 0.15);
+  background: rgb(239, 68, 68, 0.15);
   color: #fca5a5;
 }
 
@@ -253,32 +274,66 @@ const iconComponent = computed(() => ICONS[props.icon] || ICONS.home)
   padding: 0 3px;
   font-size: 8px;
   line-height: 14px;
-  border-radius:var(--radius-sm);
+  border-radius: var(--radius-sm);
 }
 
-.sb-badge-anim-enter-active { transition: opacity var(--duration-base), transform var(--duration-base); }
-.sb-badge-anim-leave-active { transition: opacity var(--duration-fast), transform var(--duration-fast); }
-.sb-badge-anim-enter-from { opacity: 0; transform: translateY(-50%) scale(0.5); }
-.sb-badge-anim-leave-to { opacity: 0; transform: translateY(-50%) scale(0.5); }
-.sb-badge-collapsed.sb-badge-anim-enter-from { transform: translateX(6px) scale(0.5); }
-.sb-badge-collapsed.sb-badge-anim-leave-to { transform: translateX(6px) scale(0.5); }
+.sb-badge-anim-enter-active {
+  transition:
+    opacity var(--duration-base),
+    transform var(--duration-base);
+}
+.sb-badge-anim-leave-active {
+  transition:
+    opacity var(--duration-fast),
+    transform var(--duration-fast);
+}
+.sb-badge-anim-enter-from {
+  opacity: 0;
+  transform: translateY(-50%) scale(0.5);
+}
+.sb-badge-anim-leave-to {
+  opacity: 0;
+  transform: translateY(-50%) scale(0.5);
+}
+.sb-badge-collapsed.sb-badge-anim-enter-from {
+  transform: translateX(6px) scale(0.5);
+}
+.sb-badge-collapsed.sb-badge-anim-leave-to {
+  transform: translateX(6px) scale(0.5);
+}
 
 .sb-hover-glow {
   position: absolute;
   inset: 0;
-  border-radius:var(--radius-btn);
+  border-radius: var(--radius-btn);
   opacity: 0;
-  background: radial-gradient(circle at 50% 50%, rgba(var(--accent-rgb), 0.06) 0%, transparent 60%);
+  background: radial-gradient(circle at 50% 50%, rgb(var(--accent-rgb), 0.06) 0%, transparent 60%);
   transition: opacity var(--duration-slow);
   pointer-events: none;
 }
 
-.sb-link:hover .sb-hover-glow { opacity: 1; }
+.sb-link:hover .sb-hover-glow {
+  opacity: 1;
+}
 
-.sb-label-enter-active { transition: opacity var(--duration-base) 0.08s, transform var(--duration-base) 0.08s; }
-.sb-label-leave-active { transition: opacity 0.12s, transform 0.12s; }
-.sb-label-enter-from { opacity: 0; transform: translateX(-6px); }
-.sb-label-leave-to { opacity: 0; transform: translateX(-6px); }
+.sb-label-enter-active {
+  transition:
+    opacity var(--duration-base) 0.08s,
+    transform var(--duration-base) 0.08s;
+}
+.sb-label-leave-active {
+  transition:
+    opacity 0.12s,
+    transform 0.12s;
+}
+.sb-label-enter-from {
+  opacity: 0;
+  transform: translateX(-6px);
+}
+.sb-label-leave-to {
+  opacity: 0;
+  transform: translateX(-6px);
+}
 
 .sb-chevron {
   display: inline-flex;
@@ -288,10 +343,19 @@ const iconComponent = computed(() => ICONS[props.icon] || ICONS.home)
   width: 14px;
   height: 14px;
   margin-left: auto;
-  color: rgba(255, 255, 255, 0.35);
-  transition: transform var(--duration-base) ease, color var(--duration-base) ease;
+  color: rgb(255, 255, 255, 0.35);
+  transition:
+    transform var(--duration-base) ease,
+    color var(--duration-base) ease;
 }
-.sb-chevron.open { transform: rotate(180deg); color: var(--accent-300); }
-.sb-link.active .sb-chevron { color: rgba(255, 255, 255, 0.7); }
-.sb-link.active .sb-chevron.open { color: var(--accent-300); }
+.sb-chevron.open {
+  transform: rotate(180deg);
+  color: var(--accent-300);
+}
+.sb-link.active .sb-chevron {
+  color: rgb(255, 255, 255, 0.7);
+}
+.sb-link.active .sb-chevron.open {
+  color: var(--accent-300);
+}
 </style>

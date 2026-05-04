@@ -39,7 +39,7 @@
             v-if="toast.meta?.thumb"
             :src="toast.meta.thumb"
             class="mk-toast-poster"
-            @error="($event) => $event.target.style.display='none'"
+            @error="$event => ($event.target.style.display = 'none')"
           />
           <div v-else class="mk-toast-icon">
             <Check v-if="toast.type === 'ok'" :size="16" :stroke-width="2.5" />
@@ -80,9 +80,7 @@ let healthInterval = null
 let failCount = 0
 
 function syncDocumentTitle() {
-  const routeTitle = route.meta?.titleKey
-    ? t(route.meta.titleKey)
-    : (route.meta?.title || '')
+  const routeTitle = route.meta?.titleKey ? t(route.meta.titleKey) : route.meta?.title || ''
   document.title = routeTitle ? `MediaKeeper · ${routeTitle}` : 'MediaKeeper'
 }
 
@@ -123,12 +121,7 @@ onUnmounted(() => {
 })
 
 watch(
-  [
-    () => route.fullPath,
-    () => route.meta?.title,
-    () => route.meta?.titleKey,
-    () => locale.value,
-  ],
+  [() => route.fullPath, () => route.meta?.title, () => route.meta?.titleKey, () => locale.value],
   syncDocumentTitle,
   { immediate: true },
 )

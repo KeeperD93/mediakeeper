@@ -70,13 +70,19 @@ function formatLike(target, num) {
   const suffix = s.replace(/^[\d\s.,]+/, '')
   const decMatch = s.match(/[.,](\d+)/)
   const dec = decMatch ? decMatch[1].length : 0
-  const formatted = num.toLocaleString(undefined, { minimumFractionDigits: dec, maximumFractionDigits: dec })
+  const formatted = num.toLocaleString(undefined, {
+    minimumFractionDigits: dec,
+    maximumFractionDigits: dec,
+  })
   return formatted + suffix
 }
 
 function animateCounter(target) {
   const num = parseNumeric(target)
-  if (num === null || num === 0) { displayValue.value = target; return }
+  if (num === null || num === 0) {
+    displayValue.value = target
+    return
+  }
   const duration = 900
   const start = performance.now()
   function tick(now) {
@@ -95,10 +101,13 @@ onMounted(() => {
   if (props.value && props.value !== '—') animateCounter(props.value)
 })
 
-watch(() => props.value, (val) => {
-  if (val && val !== '—') animateCounter(val)
-  else displayValue.value = val
-})
+watch(
+  () => props.value,
+  val => {
+    if (val && val !== '—') animateCounter(val)
+    else displayValue.value = val
+  },
+)
 
 // ---- 3D tilt ----
 const tiltX = ref(0)
@@ -116,13 +125,16 @@ function onTilt(e) {
   tiltY.value = +(x * 8).toFixed(2)
   tiltX.value = +(-y * 8).toFixed(2)
 }
-function resetTilt() { tiltX.value = 0; tiltY.value = 0 }
+function resetTilt() {
+  tiltX.value = 0
+  tiltY.value = 0
+}
 
 // ---- Glow ----
 function hexToRgba(hex, alpha) {
   const m = hex.replace('#', '').match(/.{2}/g)
   if (!m) return `rgba(99,102,241,${alpha})`
-  const [r, g, b] = m.map((h) => parseInt(h, 16))
+  const [r, g, b] = m.map(h => parseInt(h, 16))
   return `rgba(${r},${g},${b},${alpha})`
 }
 const glowStyle = computed(() => {
@@ -139,14 +151,24 @@ function onClick() {
 <style scoped>
 .wg-stat {
   background: var(--card-bg, var(--surface-1));
-  border-radius:var(--radius-card); padding: 10px 12px;
+  border-radius: var(--radius-card);
+  padding: 10px 12px;
   border: 0.5px solid var(--border-default);
-  height: 100%; display: flex; flex-direction: column; justify-content: center;
-  overflow: hidden; min-width: 0; position: relative;
-  transition: border-color 0.25s, box-shadow 0.35s;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  min-width: 0;
+  position: relative;
+  transition:
+    border-color 0.25s,
+    box-shadow 0.35s;
   will-change: transform;
 }
-.wg-stat-click { cursor: pointer; }
+.wg-stat-click {
+  cursor: pointer;
+}
 .wg-stat:hover {
   border-color: color-mix(in srgb, var(--wg-accent) 35%, transparent);
   box-shadow:
@@ -155,18 +177,28 @@ function onClick() {
     inset 0 0 20px color-mix(in srgb, var(--wg-accent) 4%, transparent);
 }
 .wg-stat-body {
-  display: flex; align-items: center; gap: 12px;
-  position: relative; z-index: 1; min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+  min-width: 0;
 }
 .wg-stat-icon {
   flex-shrink: 0;
-  width: 44px; height: 44px;
+  width: 44px;
+  height: 44px;
   border-radius: var(--radius-card);
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--wg-accent, #6366f1);
   background: color-mix(in srgb, var(--wg-accent) 18%, transparent);
   border: 1px solid color-mix(in srgb, var(--wg-accent) 28%, transparent);
-  transition: background 0.25s, border-color 0.25s, transform 0.25s;
+  transition:
+    background 0.25s,
+    border-color 0.25s,
+    transform 0.25s;
 }
 .wg-stat:hover .wg-stat-icon {
   background: color-mix(in srgb, var(--wg-accent) 26%, transparent);
@@ -178,38 +210,76 @@ function onClick() {
   border-color: var(--border-default);
 }
 .wg-stat-text {
-  display: flex; flex-direction: column; min-width: 0; flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
 }
 .wg-stat-label {
-  display: block; font-size: var(--text-2xs); line-height: 1.2;
-  color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  display: block;
+  font-size: var(--text-2xs);
+  line-height: 1.2;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .wg-stat-val {
-  display: block; font-size: 24px; font-weight: var(--font-regular); line-height: 1.1;
-  color: var(--text-primary); margin-top: 4px;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  display: block;
+  font-size: 24px;
+  font-weight: var(--font-regular);
+  line-height: 1.1;
+  color: var(--text-primary);
+  margin-top: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Skeleton shimmer */
-.wg-skel-label, .wg-skel-val {
-  border-radius:var(--radius-sm);
-  background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.07) 50%, rgba(255,255,255,0.03) 75%);
+.wg-skel-label,
+.wg-skel-val {
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    90deg,
+    rgb(255, 255, 255, 0.03) 25%,
+    rgb(255, 255, 255, 0.07) 50%,
+    rgb(255, 255, 255, 0.03) 75%
+  );
   background-size: 200% 100%;
   animation: wg-shimmer var(--duration-animation) ease-in-out infinite;
 }
-.wg-skel-label { width: 60%; height: 12px; }
-.wg-skel-val { width: 45%; height: 24px; margin-top: 6px; }
+.wg-skel-label {
+  width: 60%;
+  height: 12px;
+}
+.wg-skel-val {
+  width: 45%;
+  height: 24px;
+  margin-top: 6px;
+}
 @keyframes wg-shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 /* Amwellt glow orb */
 .wg-glow {
-  position: absolute; inset: -20%; border-radius: 50%;
-  opacity: 0; transition: opacity 0.4s;
-  pointer-events: none; z-index: 0;
+  position: absolute;
+  inset: -20%;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.4s;
+  pointer-events: none;
+  z-index: 0;
 }
-.wg-stat:hover .wg-glow { opacity: 1; }
+.wg-stat:hover .wg-glow {
+  opacity: 1;
+}
 </style>

@@ -1,10 +1,7 @@
 <template>
   <div
     class="mk-avatar"
-    :class="[
-      'mk-avatar-' + shape,
-      { 'mk-avatar-fallback': !showImage },
-    ]"
+    :class="['mk-avatar-' + shape, { 'mk-avatar-fallback': !showImage }]"
     :style="{
       width: size + 'px',
       height: size + 'px',
@@ -12,13 +9,7 @@
     }"
     :aria-label="name"
   >
-    <img
-      v-if="showImage"
-      :src="src"
-      :alt="name"
-      class="mk-avatar-img"
-      @error="onError"
-    />
+    <img v-if="showImage" :src="src" :alt="name" class="mk-avatar-img" @error="onError" />
     <span v-else class="mk-avatar-letter">{{ letter }}</span>
   </div>
 </template>
@@ -39,7 +30,12 @@ const props = defineProps({
 
 const failed = ref(false)
 
-watch(() => props.src, () => { failed.value = false })
+watch(
+  () => props.src,
+  () => {
+    failed.value = false
+  },
+)
 
 const showImage = computed(() => !!props.src && !failed.value)
 
@@ -66,8 +62,12 @@ function onError() {
   line-height: 1;
 }
 
-.mk-avatar-circle { border-radius: 50%; }
-.mk-avatar-square { border-radius: var(--radius-sm); }
+.mk-avatar-circle {
+  border-radius: 50%;
+}
+.mk-avatar-square {
+  border-radius: var(--radius-sm);
+}
 
 .mk-avatar-img {
   width: 100%;

@@ -37,7 +37,9 @@ export function useVideoPlayingFlag() {
   }
 
   // Always release on unmount, even if the caller forgot.
-  function release() { setPlaying(false) }
+  function release() {
+    setPlaying(false)
+  }
 
   return { setPlaying, release }
 }

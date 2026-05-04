@@ -57,7 +57,7 @@ async def get_config(
     if raw:
         try:
             return {**DEFAULT_CONFIG, **json.loads(raw)}
-        except Exception:
+        except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
             pass
     return {**DEFAULT_CONFIG}
 

@@ -1,5 +1,8 @@
 <template>
-  <div class="pt-badge" :class="[`pt-badge--tier-${achievement.tier}`, { 'pt-badge--locked': !unlocked }]">
+  <div
+    class="pt-badge"
+    :class="[`pt-badge--tier-${achievement.tier}`, { 'pt-badge--locked': !unlocked }]"
+  >
     <div class="pt-badge-icon">
       <i :class="achievement.icon" />
     </div>
@@ -40,8 +43,13 @@ const progressPct = computed(() => {
   border: 1px solid var(--border);
   transition: transform var(--portal-dur-base);
 }
-.pt-badge:hover { transform: translateY(-2px); }
-.pt-badge--locked { opacity: 0.5; filter: grayscale(0.6); }
+.pt-badge:hover {
+  transform: translateY(-2px);
+}
+.pt-badge--locked {
+  opacity: 0.5;
+  filter: grayscale(0.6);
+}
 .pt-badge-icon {
   width: 40px;
   height: 40px;
@@ -52,12 +60,30 @@ const progressPct = computed(() => {
   font-size: var(--portal-text-lg);
   flex-shrink: 0;
 }
-.pt-badge--tier-1 .pt-badge-icon { background: rgba(var(--accent-rgb),0.15); color: var(--accent); }
-.pt-badge--tier-2 .pt-badge-icon { background: rgba(var(--portal-color-success-rgb),0.15); color: var(--portal-color-success); }
-.pt-badge--tier-3 .pt-badge-icon { background: rgba(234,179,8,0.15); color: #eab308; }
-.pt-badge--tier-4 .pt-badge-icon { background: rgba(var(--portal-color-premium-rgb),0.15); color: var(--portal-color-premium); }
-.pt-badge--tier-5 .pt-badge-icon { background: rgba(var(--portal-color-error-rgb),0.15); color: var(--portal-color-error); }
-.pt-badge-info { flex: 1; min-width: 0; }
+.pt-badge--tier-1 .pt-badge-icon {
+  background: rgb(var(--accent-rgb), 0.15);
+  color: var(--accent);
+}
+.pt-badge--tier-2 .pt-badge-icon {
+  background: rgb(var(--portal-color-success-rgb), 0.15);
+  color: var(--portal-color-success);
+}
+.pt-badge--tier-3 .pt-badge-icon {
+  background: rgb(234, 179, 8, 0.15);
+  color: #eab308;
+}
+.pt-badge--tier-4 .pt-badge-icon {
+  background: rgb(var(--portal-color-premium-rgb), 0.15);
+  color: var(--portal-color-premium);
+}
+.pt-badge--tier-5 .pt-badge-icon {
+  background: rgb(var(--portal-color-error-rgb), 0.15);
+  color: var(--portal-color-error);
+}
+.pt-badge-info {
+  flex: 1;
+  min-width: 0;
+}
 .pt-badge-name {
   display: block;
   font-size: var(--portal-text-sm);

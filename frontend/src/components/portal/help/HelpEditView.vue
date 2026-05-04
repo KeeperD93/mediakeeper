@@ -50,7 +50,7 @@
       </label>
     </div>
 
-    <HelpEditor v-model="local.bodyHtml" @update:modelValue="scheduleSave" />
+    <HelpEditor v-model="local.bodyHtml" @update:model-value="scheduleSave" />
 
     <footer class="pt-help-edit-foot">
       <button
@@ -179,16 +179,19 @@ async function onDelete() {
 
 const statusLabel = computed(() => {
   switch (saveState.value) {
-    case 'saving': return t('portal.help.admin.saving')
-    case 'saved':  return t('portal.help.admin.saved')
-    case 'dirty':  return t('portal.help.admin.unsaved')
-    case 'error':  return t('portal.help.admin.errorSave')
-    default:       return ''
+    case 'saving':
+      return t('portal.help.admin.saving')
+    case 'saved':
+      return t('portal.help.admin.saved')
+    case 'dirty':
+      return t('portal.help.admin.unsaved')
+    case 'error':
+      return t('portal.help.admin.errorSave')
+    default:
+      return ''
   }
 })
-const statusIcon = computed(() =>
-  saveState.value === 'saving' ? Loader2 : Check,
-)
+const statusIcon = computed(() => (saveState.value === 'saving' ? Loader2 : Check))
 const statusClass = computed(() => `pt-help-edit-status--${saveState.value}`)
 
 watch(

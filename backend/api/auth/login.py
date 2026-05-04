@@ -236,7 +236,7 @@ async def portal_login(
     try:
         from services.portal.xp import grant_daily_login_xp
         await grant_daily_login_xp(db, portal_user_id)
-    except Exception:
+    except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
         pass
 
     logger.info(f"[PORTAL_LOGIN] Requests success for user_id={portal_user_id}")

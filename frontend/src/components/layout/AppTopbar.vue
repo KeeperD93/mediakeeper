@@ -16,9 +16,16 @@
     <div class="tb-right">
       <!-- Notifications bell -->
       <div ref="notifRef" class="tb-action-wrap">
-        <button class="tb-action-btn" :class="{ 'has-notif': alertCount > 0 }" :title="$t('topbar.notifications')" @click="toggleNotifPanel">
+        <button
+          class="tb-action-btn"
+          :class="{ 'has-notif': alertCount > 0 }"
+          :title="$t('topbar.notifications')"
+          @click="toggleNotifPanel"
+        >
           <Bell :size="18" :stroke-width="1.8" />
-          <span v-if="alertCount > 0" class="tb-badge">{{ alertCount > 9 ? '9+' : alertCount }}</span>
+          <span v-if="alertCount > 0" class="tb-badge">
+            {{ alertCount > 9 ? '9+' : alertCount }}
+          </span>
         </button>
 
         <Teleport to="body">
@@ -28,12 +35,17 @@
                 <span>{{ $t('topbar.notifications') }}</span>
               </div>
               <div class="tb-notif-list">
-                <p v-if="recentAlerts.length === 0" class="tb-notif-empty">{{ $t('topbar.noNotifications') }}</p>
+                <p v-if="recentAlerts.length === 0" class="tb-notif-empty">
+                  {{ $t('topbar.noNotifications') }}
+                </p>
                 <div
                   v-for="a in recentAlerts"
                   :key="a.id || a.date"
                   class="tb-notif-item"
-                  :class="{ unread: !isAlertSeen(a), 'tb-notif-item--chat': a.kind === 'chat_report' }"
+                  :class="{
+                    unread: !isAlertSeen(a),
+                    'tb-notif-item--chat': a.kind === 'chat_report',
+                  }"
                 >
                   <div class="tb-notif-content">
                     <p class="tb-notif-text">
@@ -70,7 +82,12 @@
         <button class="tb-user-btn" @click="showUserMenu = !showUserMenu">
           <span class="tb-avatar">{{ userInitial }}</span>
           <span class="tb-username">{{ username }}</span>
-          <ChevronDown class="tb-chevron" :class="{ open: showUserMenu }" :size="12" :stroke-width="2.5" />
+          <ChevronDown
+            class="tb-chevron"
+            :class="{ open: showUserMenu }"
+            :size="12"
+            :stroke-width="2.5"
+          />
         </button>
 
         <Teleport to="body">
@@ -131,9 +148,13 @@ const { user, logout } = useAuth()
 const { accentName, accentPresets, setAccent } = useTheme()
 
 const {
-  alertCount, recentAlerts,
-  dismissChatReport, deleteChatMessage,
-  isAlertSeen, markAllRead, formatDate,
+  alertCount,
+  recentAlerts,
+  dismissChatReport,
+  deleteChatMessage,
+  isAlertSeen,
+  markAllRead,
+  formatDate,
 } = useTopbarAlerts()
 
 const showNotifPanel = ref(false)
@@ -159,8 +180,8 @@ function positionDropdown(refEl, posRef) {
   const rect = refEl.value.getBoundingClientRect()
   posRef.value = {
     position: 'fixed',
-    top: (rect.bottom + 8) + 'px',
-    right: (window.innerWidth - rect.right) + 'px',
+    top: rect.bottom + 8 + 'px',
+    right: window.innerWidth - rect.right + 'px',
     zIndex: 9999,
   }
 }
@@ -179,11 +200,18 @@ function onClickOutside(e) {
 }
 
 function onKeydown(e) {
-  if (e.key === 'Escape') { showNotifPanel.value = false; showUserMenu.value = false }
+  if (e.key === 'Escape') {
+    showNotifPanel.value = false
+    showUserMenu.value = false
+  }
 }
 
-watch(showNotifPanel, (v) => { if (v) positionDropdown(notifRef, notifDdPos) })
-watch(showUserMenu, (v) => { if (v) positionDropdown(userRef, userDdPos) })
+watch(showNotifPanel, v => {
+  if (v) positionDropdown(notifRef, notifDdPos)
+})
+watch(showUserMenu, v => {
+  if (v) positionDropdown(userRef, userDdPos)
+})
 
 onMounted(() => {
   document.addEventListener('click', onClickOutside)

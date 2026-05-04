@@ -60,7 +60,9 @@ export function usePortalTicketEmby() {
   async function fetchSeriesSeasons(seriesId) {
     if (!seriesId) return []
     try {
-      const res = await apiGet(`/api/portal/tickets/emby/series/${encodeURIComponent(seriesId)}/seasons`)
+      const res = await apiGet(
+        `/api/portal/tickets/emby/series/${encodeURIComponent(seriesId)}/seasons`,
+      )
       return res?.seasons || []
     } catch {
       return []

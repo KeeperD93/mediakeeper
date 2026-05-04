@@ -42,12 +42,19 @@ export function useEventCreateModal(emit) {
           `/api/portal/catalog/search?q=${encodeURIComponent(mediaQuery.value)}&available_only=true`,
         )
         mediaResults.value = res?.items || []
-      } catch { mediaResults.value = [] }
+      } catch {
+        mediaResults.value = []
+      }
     }, 250)
   }
 
   function addMedia(r) {
-    if (selectedMedia.value.some((m) => m.tmdb_id === (r.tmdb_id || r.id) && m.media_type === r.media_type)) return
+    if (
+      selectedMedia.value.some(
+        m => m.tmdb_id === (r.tmdb_id || r.id) && m.media_type === r.media_type,
+      )
+    )
+      return
     if (selectedMedia.value.length >= 20) return
     selectedMedia.value.push({
       tmdb_id: r.tmdb_id || r.id,
@@ -59,7 +66,9 @@ export function useEventCreateModal(emit) {
     mediaQuery.value = ''
     mediaResults.value = []
   }
-  function removeMedia(i) { selectedMedia.value.splice(i, 1) }
+  function removeMedia(i) {
+    selectedMedia.value.splice(i, 1)
+  }
 
   let dragIdx = null
   function onDragStart(i, e) {
@@ -86,14 +95,14 @@ export function useEventCreateModal(emit) {
     }, 200)
   }
   function addUser(u) {
-    if (selectedUsers.value.some((x) => x.id === u.id)) return
+    if (selectedUsers.value.some(x => x.id === u.id)) return
     if (selectedUsers.value.length >= 19) return
     selectedUsers.value.push(u)
     userQuery.value = ''
     userResults.value = []
   }
   function removeUser(id) {
-    selectedUsers.value = selectedUsers.value.filter((u) => u.id !== id)
+    selectedUsers.value = selectedUsers.value.filter(u => u.id !== id)
   }
 
   const canSubmit = computed(() => {
@@ -119,7 +128,7 @@ export function useEventCreateModal(emit) {
       tmdb_ids: selectedMedia.value,
       scheduled_at: scheduled.toISOString(),
       comment: comment.value.trim() || null,
-      invitees: kind.value === EVENT_KIND.PRIVATE ? selectedUsers.value.map((u) => u.id) : null,
+      invitees: kind.value === EVENT_KIND.PRIVATE ? selectedUsers.value.map(u => u.id) : null,
     }
     try {
       const res = await create(payload)
@@ -138,13 +147,29 @@ export function useEventCreateModal(emit) {
   }
 
   return {
-    kind, title, date, time, comment,
-    mediaQuery, mediaResults, selectedMedia,
-    userQuery, userResults, selectedUsers,
-    error, submitting, todayISO, canSubmit,
-    onMediaInput, addMedia, removeMedia,
-    onDragStart, onDrop,
-    onUserInput, addUser, removeUser,
+    kind,
+    title,
+    date,
+    time,
+    comment,
+    mediaQuery,
+    mediaResults,
+    selectedMedia,
+    userQuery,
+    userResults,
+    selectedUsers,
+    error,
+    submitting,
+    todayISO,
+    canSubmit,
+    onMediaInput,
+    addMedia,
+    removeMedia,
+    onDragStart,
+    onDrop,
+    onUserInput,
+    addUser,
+    removeUser,
     submit,
   }
 }

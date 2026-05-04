@@ -1,12 +1,6 @@
 <template>
   <div class="mk-empty" :class="'mk-empty-' + size">
-    <component
-      :is="icon"
-      v-if="icon"
-      class="mk-empty-icon"
-      :size="iconSize"
-      :stroke-width="1.5"
-    />
+    <component :is="icon" v-if="icon" class="mk-empty-icon" :size="iconSize" :stroke-width="1.5" />
     <div class="mk-empty-title">{{ title }}</div>
     <div v-if="sub" class="mk-empty-sub">{{ sub }}</div>
   </div>

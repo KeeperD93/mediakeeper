@@ -18,8 +18,14 @@ import { useApi } from '@/composables/useApi'
 import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 
 const FIELDS = [
-  'display_name', 'bio', 'language', 'hide_adult', 'is_public',
-  'selected_title', 'avatar_effect', 'favorite_genres',
+  'display_name',
+  'bio',
+  'language',
+  'hide_adult',
+  'is_public',
+  'selected_title',
+  'avatar_effect',
+  'favorite_genres',
 ]
 
 function snapshot(profile) {
@@ -32,9 +38,7 @@ function snapshot(profile) {
     is_public: profile.is_public !== false,
     selected_title: profile.selected_title || null,
     avatar_effect: profile.avatar_effect || null,
-    favorite_genres: Array.isArray(profile.favorite_genres)
-      ? [...profile.favorite_genres]
-      : [],
+    favorite_genres: Array.isArray(profile.favorite_genres) ? [...profile.favorite_genres] : [],
   }
 }
 
@@ -66,12 +70,12 @@ export function usePortalSettings() {
   })
   const usernameCheck = reactive({
     pending: false,
-    available: null,   // null=unknown, true/false otherwise
-    reason: null,      // 'free' | 'taken' | 'locked' | 'current' | 'invalid'
+    available: null, // null=unknown, true/false otherwise
+    reason: null, // 'free' | 'taken' | 'locked' | 'current' | 'invalid'
     suggestions: [],
   })
 
-  watch(profile, (next) => {
+  watch(profile, next => {
     if (!next) return
     Object.assign(form, snapshot(next))
     pristine = snapshot(next)

@@ -20,30 +20,30 @@
  */
 :root {
   /* ─── Font sizes ─── */
-  --text-3xs:  0.62rem;
-  --text-2xs:  0.7rem;
-  --text-xs:   0.75rem;
-  --text-sm:   0.82rem;
+  --text-3xs: 0.62rem;
+  --text-2xs: 0.7rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.82rem;
   --text-base: 0.9rem;
-  --text-md:   1rem;
-  --text-lg:   1.3rem;
-  --text-xl:   clamp(1.5rem, 3vw + 0.5rem, 2rem);
+  --text-md: 1rem;
+  --text-lg: 1.3rem;
+  --text-xl: clamp(1.5rem, 3vw + 0.5rem, 2rem);
 
   /* ─── Font weights — the four we actually use. ─── */
-  --font-regular:    500;   /* body, nav items */
-  --font-medium:     600;   /* labels, section titles */
-  --font-bold:       700;   /* KPIs, strong emphasis */
-  --font-extrabold:  800;   /* pill buttons (standard across the app) */
+  --font-regular: 500; /* body, nav items */
+  --font-medium: 600; /* labels, section titles */
+  --font-bold: 700; /* KPIs, strong emphasis */
+  --font-extrabold: 800; /* pill buttons (standard across the app) */
 
   /* ─── Letter spacing ─── */
-  --tracking-tight:    -0.02em;   /* page titles (snap lines together) */
-  --tracking-normal:   0;         /* default */
-  --tracking-wide:     0.02em;    /* pill buttons (app-wide standard) */
-  --tracking-widest:   0.06em;    /* uppercase labels, section headers */
+  --tracking-tight: -0.02em; /* page titles (snap lines together) */
+  --tracking-normal: 0; /* default */
+  --tracking-wide: 0.02em; /* pill buttons (app-wide standard) */
+  --tracking-widest: 0.06em; /* uppercase labels, section headers */
 
   /* ─── Line heights ─── */
-  --lh-tight:    1;     /* inline counters, KPI values */
-  --lh-compact:  1.3;   /* titles, dense lists */
-  --lh-normal:   1.5;   /* body paragraphs */
-  --lh-relaxed:  1.6;   /* long-form descriptions */
+  --lh-tight: 1; /* inline counters, KPI values */
+  --lh-compact: 1.3; /* titles, dense lists */
+  --lh-normal: 1.5; /* body paragraphs */
+  --lh-relaxed: 1.6; /* long-form descriptions */
 }

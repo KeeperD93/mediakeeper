@@ -1,6 +1,11 @@
 <template>
   <div class="pt-cal-wrap">
-    <button ref="btnRef" class="pt-nav-icon pt-cal-trigger" :title="$t('portal.mkCalendar.title')" @click="toggle">
+    <button
+      ref="btnRef"
+      class="pt-nav-icon pt-cal-trigger"
+      :title="$t('portal.mkCalendar.title')"
+      @click="toggle"
+    >
       <Calendar :size="20" stroke-width="1.8" />
     </button>
 
@@ -15,7 +20,9 @@
           </header>
           <div class="pt-cal-list">
             <div v-if="loading" class="pt-cal-empty">{{ $t('common.loading') }}</div>
-            <div v-else-if="!sortedEvents.length" class="pt-cal-empty">{{ $t('portal.mkCalendar.empty') }}</div>
+            <div v-else-if="!sortedEvents.length" class="pt-cal-empty">
+              {{ $t('portal.mkCalendar.empty') }}
+            </div>
             <button
               v-for="ev in sortedEvents"
               :key="ev.id"
@@ -47,11 +54,7 @@
       <div v-if="open" class="pt-cal-shade" @click="close" />
     </Teleport>
 
-    <EventDetailModal
-      v-if="detailEventId"
-      :event-id="detailEventId"
-      @close="onDetailClose"
-    />
+    <EventDetailModal v-if="detailEventId" :event-id="detailEventId" @close="onDetailClose" />
   </div>
 </template>
 
@@ -104,7 +107,9 @@ async function toggle() {
     await fetchAll()
   }
 }
-function close() { open.value = false }
+function close() {
+  open.value = false
+}
 
 // Exposed so PortalNav's avatar menu can open the calendar on mobile —
 // the visible trigger is hidden there to free up space in the top bar.
@@ -112,7 +117,9 @@ async function openFromMenu() {
   if (!open.value) await toggle()
 }
 defineExpose({ open: openFromMenu })
-function onResize() { if (open.value) computePopupStyle() }
+function onResize() {
+  if (open.value) computePopupStyle()
+}
 function openDetail(ev) {
   detailEventId.value = ev.id
   close()
@@ -126,21 +133,22 @@ function onDetailClose() {
 const sortedEvents = computed(() => {
   const now = Date.now()
   return [...events.value]
-    .filter((e) => e.status === EVENT_STATUS.SCHEDULED)
-    .filter((e) => new Date(e.scheduled_at).getTime() > now - 3600 * 1000)
+    .filter(e => e.status === EVENT_STATUS.SCHEDULED)
+    .filter(e => new Date(e.scheduled_at).getTime() > now - 3600 * 1000)
     .sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at))
 })
 
 function myInvitation(ev) {
   if (!profile.value) return null
-  return ev.invitations?.find((i) => i.user_id === (profile.value.user_id || profile.value.id))
+  return ev.invitations?.find(i => i.user_id === (profile.value.user_id || profile.value.id))
 }
 
 function statusClass(ev) {
   const inv = myInvitation(ev)
   if (!inv && ev.kind === EVENT_KIND.PUBLIC) return 'pending-public'
   if (!inv) return 'pending'
-  if (inv.status === INVITATION_STATUS.ACCEPTED) return ev.kind === EVENT_KIND.PUBLIC ? 'accepted-public' : 'accepted-private'
+  if (inv.status === INVITATION_STATUS.ACCEPTED)
+    return ev.kind === EVENT_KIND.PUBLIC ? 'accepted-public' : 'accepted-private'
   if (inv.status === INVITATION_STATUS.DECLINED) return 'declined'
   return 'pending'
 }

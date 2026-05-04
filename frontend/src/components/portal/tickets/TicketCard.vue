@@ -15,7 +15,7 @@
         class="tcd-poster"
         :alt="ticket.media_title"
         loading="lazy"
-        @error="$event.target.style.display='none'"
+        @error="$event.target.style.display = 'none'"
       />
     </div>
     <div v-else class="tcd-visual tcd-visual--icon" :style="iconBg">
@@ -31,10 +31,7 @@
         <span class="tcd-pill" :class="`tcd-pill--status-${ticket.status}`">
           {{ $t(`portal.tickets.status.${ticket.status}`) }}
         </span>
-        <span
-          v-if="ticket.priority === 'blocking'"
-          class="tcd-pill tcd-pill--blocking"
-        >
+        <span v-if="ticket.priority === 'blocking'" class="tcd-pill tcd-pill--blocking">
           {{ $t('portal.tickets.detail.priority.blocking') }}
         </span>
       </div>
@@ -64,7 +61,15 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
-  Captions, ChevronRight, FileText, HardDrive, HelpCircle, MessageSquare, MonitorPlay, PlayCircle, Volume2,
+  Captions,
+  ChevronRight,
+  FileText,
+  HardDrive,
+  HelpCircle,
+  MessageSquare,
+  MonitorPlay,
+  PlayCircle,
+  Volume2,
 } from 'lucide-vue-next'
 
 import '@/assets/styles/portal/ticket-card.css'
@@ -77,13 +82,13 @@ defineEmits(['open'])
 const { t } = useI18n()
 
 const ISSUE_META = {
-  audio:     { icon: Volume2,     color: '#f97316' },
-  subtitles: { icon: Captions,    color: '#22d3ee' },
-  video:     { icon: MonitorPlay, color: '#a855f7' },
-  metadata:  { icon: FileText,    color: '#fbbf24' },
-  playback:  { icon: PlayCircle,  color: '#f472b6' },
-  file:      { icon: HardDrive,   color: '#94a3b8' },
-  other:     { icon: HelpCircle,  color: '#818cf8' },
+  audio: { icon: Volume2, color: '#f97316' },
+  subtitles: { icon: Captions, color: '#22d3ee' },
+  video: { icon: MonitorPlay, color: '#a855f7' },
+  metadata: { icon: FileText, color: '#fbbf24' },
+  playback: { icon: PlayCircle, color: '#f472b6' },
+  file: { icon: HardDrive, color: '#94a3b8' },
+  other: { icon: HelpCircle, color: '#818cf8' },
 }
 const issueMeta = computed(() => ISSUE_META[props.ticket.issue_type] || ISSUE_META.other)
 const iconBg = computed(() => ({

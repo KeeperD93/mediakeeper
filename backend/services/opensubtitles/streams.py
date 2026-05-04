@@ -133,7 +133,7 @@ def _scan_external_subtitles(local_path: str) -> list[dict]:
                     "is_image_based": False,
                     "path": str(ext_file),
                 })
-    except Exception:
+    except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
         pass
 
     return streams

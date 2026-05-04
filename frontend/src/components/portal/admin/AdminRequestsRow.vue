@@ -1,12 +1,6 @@
 <template>
-  <article
-    class="arr-row"
-    :class="[`arr-row--${req.status}`, { 'arr-row--fresh': isFresh }]"
-  >
-    <div
-      class="arr-row-backdrop"
-      :style="backdropStyle"
-    />
+  <article class="arr-row" :class="[`arr-row--${req.status}`, { 'arr-row--fresh': isFresh }]">
+    <div class="arr-row-backdrop" :style="backdropStyle" />
     <div class="arr-row-bar" />
 
     <div v-if="index !== null" class="arr-row-index">{{ String(index).padStart(2, '0') }}</div>
@@ -25,7 +19,9 @@
     <div class="arr-row-info">
       <div class="arr-row-meta-top">
         <span v-if="req.year" class="arr-row-year">{{ req.year }}</span>
-        <span class="arr-row-type">{{ isTv(req) ? $t('portal.card.series') : $t('portal.card.movie') }}</span>
+        <span class="arr-row-type">
+          {{ isTv(req) ? $t('portal.card.series') : $t('portal.card.movie') }}
+        </span>
         <span class="arr-row-status">
           <span class="arr-row-status-dot" />
           {{ $t(`portal.requests.${req.status}`) }}
@@ -34,7 +30,9 @@
           v-if="retryBadge"
           class="arr-row-retry arr-row-retry--inline"
           :title="$t('portal.card.retryBadgeTooltip', { count: retryBadge })"
-        >x{{ retryBadge }}</span>
+        >
+          x{{ retryBadge }}
+        </span>
       </div>
       <h3 class="arr-row-title">
         <span class="arr-row-title-text">{{ req.title }}</span>
@@ -51,14 +49,10 @@
       </h3>
       <div class="arr-row-foot">
         <span v-if="req.requester_deleted" class="arr-row-by arr-row-by--anon">
-          <MkAvatar
-            :src="null"
-            :name="'?'"
-            :size="22"
-            class="arr-row-by-avatar"
-          />
+          <MkAvatar :src="null" :name="'?'" :size="22" class="arr-row-by-avatar" />
           <span class="arr-who arr-who--deleted">{{ $t('portal.common.deletedUser') }}</span>
-          · <strong>{{ formatAgo(req.created_at) }}</strong>
+          ·
+          <strong>{{ formatAgo(req.created_at) }}</strong>
         </span>
         <span v-else-if="req.requester" class="arr-row-by">
           <MkAvatar
@@ -68,18 +62,16 @@
             class="arr-row-by-avatar"
           />
           <span class="arr-who">{{ req.requester.display_name }}</span>
-          · <strong>{{ formatAgo(req.created_at) }}</strong>
+          ·
+          <strong>{{ formatAgo(req.created_at) }}</strong>
         </span>
         <span v-if="req.updated_at && req.updated_at !== req.created_at">
-          {{ $t('portal.admin.req.modifiedAt') }} <strong>{{ formatAgo(req.updated_at) }}</strong>
+          {{ $t('portal.admin.req.modifiedAt') }}
+          <strong>{{ formatAgo(req.updated_at) }}</strong>
         </span>
         <span v-if="hasSeasons" class="arr-row-seasons">
           <span class="arr-row-seasons-label">{{ seasonLabel }}</span>
-          <span
-            v-for="s in visibleSeasons"
-            :key="s"
-            class="arr-row-season-pill"
-          >{{ s }}</span>
+          <span v-for="s in visibleSeasons" :key="s" class="arr-row-season-pill">{{ s }}</span>
         </span>
       </div>
     </div>
@@ -154,7 +146,9 @@ async function copyTitle() {
   try {
     await navigator.clipboard?.writeText(props.req.title || '')
     copied.value = true
-    setTimeout(() => { copied.value = false }, 1600)
+    setTimeout(() => {
+      copied.value = false
+    }, 1600)
   } catch {
     /* clipboard blocked (http, old browser) — silent */
   }
@@ -169,8 +163,8 @@ const retryBadge = computed(() => {
   return n >= 1 ? n + 1 : null
 })
 
-const hasSeasons = computed(() =>
-  Array.isArray(props.req.requested_seasons) && props.req.requested_seasons.length > 0,
+const hasSeasons = computed(
+  () => Array.isArray(props.req.requested_seasons) && props.req.requested_seasons.length > 0,
 )
 const visibleSeasons = computed(() =>
   (props.req.requested_seasons || []).map(s => s.season ?? s).slice(0, 14),

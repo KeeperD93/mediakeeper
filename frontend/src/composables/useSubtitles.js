@@ -18,25 +18,62 @@ const historyTotal = ref(0)
 const _initialized = ref(false)
 
 // ── Computed ───────────────────────────────────────────────────────────────
-const activeProfile = computed(() =>
-  profiles.value.find(p => p.id === activeProfileId.value) || null
+const activeProfile = computed(
+  () => profiles.value.find(p => p.id === activeProfileId.value) || null,
 )
 
-const defaultProfile = computed(() =>
-  profiles.value.find(p => p.is_default) || null
-)
+const defaultProfile = computed(() => profiles.value.find(p => p.is_default) || null)
 
 // Mapping ISO 639-2 (3 lettres) → ISO 639-1 (2 lettres) for l'API OpenSubtitles
 const LANG_3_TO_2 = {
-  fre: 'fr', eng: 'en', spa: 'es', ger: 'de', ita: 'it', por: 'pt',
-  jpn: 'ja', chi: 'zh', kor: 'ko', rus: 'ru', ara: 'ar', hin: 'hi',
-  nld: 'nl', pol: 'pl', tur: 'tr', swe: 'sv', dan: 'da', nor: 'no',
-  fin: 'fi', ces: 'cs', ron: 'ro', hun: 'hu', ell: 'el', heb: 'he',
-  tha: 'th', vie: 'vi', ind: 'id', ukr: 'uk',
+  fre: 'fr',
+  eng: 'en',
+  spa: 'es',
+  ger: 'de',
+  ita: 'it',
+  por: 'pt',
+  jpn: 'ja',
+  chi: 'zh',
+  kor: 'ko',
+  rus: 'ru',
+  ara: 'ar',
+  hin: 'hi',
+  nld: 'nl',
+  pol: 'pl',
+  tur: 'tr',
+  swe: 'sv',
+  dan: 'da',
+  nor: 'no',
+  fin: 'fi',
+  ces: 'cs',
+  ron: 'ro',
+  hun: 'hu',
+  ell: 'el',
+  heb: 'he',
+  tha: 'th',
+  vie: 'vi',
+  ind: 'id',
+  ukr: 'uk',
 }
 
 // Locale UI → langue principale par default (fallback when no profil n'existe)
-const LOCALE_DEFAULT_LANG = { fr: 'fre', en: 'eng', es: 'spa', de: 'ger', it: 'ita', pt: 'por', ja: 'jpn', ko: 'kor', zh: 'chi', ru: 'rus', ar: 'ara', nl: 'nld', pl: 'pol', tr: 'tur', sv: 'swe' }
+const LOCALE_DEFAULT_LANG = {
+  fr: 'fre',
+  en: 'eng',
+  es: 'spa',
+  de: 'ger',
+  it: 'ita',
+  pt: 'por',
+  ja: 'jpn',
+  ko: 'kor',
+  zh: 'chi',
+  ru: 'rus',
+  ar: 'ara',
+  nl: 'nld',
+  pl: 'pol',
+  tr: 'tur',
+  sv: 'swe',
+}
 
 const defaultLanguages = computed(() => {
   const p = activeProfile.value || defaultProfile.value
@@ -81,7 +118,9 @@ export function useSubtitles() {
     try {
       const d = await apiGet('/api/subtitles/status')
       if (d) configured.value = d.configured
-    } catch { /* silent: status fetch */ }
+    } catch {
+      /* silent: status fetch */
+    }
   }
 
   async function loadQuota() {
@@ -89,14 +128,18 @@ export function useSubtitles() {
     try {
       const d = await apiGet('/api/subtitles/quota')
       if (d && !d.error) quota.value = d
-    } catch { /* silent: quota fetch */ }
+    } catch {
+      /* silent: quota fetch */
+    }
   }
 
   async function loadLibraries() {
     try {
       const d = await apiGet('/api/subtitles/libraries')
       if (Array.isArray(d)) embyLibraries.value = d
-    } catch { /* silent: libraries fetch */ }
+    } catch {
+      /* silent: libraries fetch */
+    }
   }
 
   // --- Init (calle une seule fois) ---
@@ -121,7 +164,9 @@ export function useSubtitles() {
           if (def) activeProfileId.value = def.id
         }
       }
-    } catch { /* silent: profiles fetch */ }
+    } catch {
+      /* silent: profiles fetch */
+    }
   }
 
   function setActiveProfile(id) {
@@ -168,7 +213,9 @@ export function useSubtitles() {
         history.value = d.items
         historyTotal.value = d.total
       }
-    } catch { /* silent: history fetch */ }
+    } catch {
+      /* silent: history fetch */
+    }
   }
 
   async function loadItemHistory(itemId) {
@@ -206,7 +253,9 @@ export function useSubtitles() {
         if (counts) {
           Object.assign(_osCountCache, counts)
         }
-      } catch { /* silent: OS count lookup, result falls back to null */ }
+      } catch {
+        /* silent: OS count lookup, result falls back to null */
+      }
     }
 
     // Return all counts

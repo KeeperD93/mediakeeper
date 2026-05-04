@@ -1,10 +1,6 @@
 <template>
   <section class="pt-eh">
-    <TrailerLightbox
-      v-if="lightboxOpen && trailer"
-      :trailer="trailer"
-      @close="closeLightbox"
-    />
+    <TrailerLightbox v-if="lightboxOpen && trailer" :trailer="trailer" @close="closeLightbox" />
 
     <div class="pt-eh-hero" @click="onHeroTap">
       <div
@@ -41,11 +37,7 @@
       <div class="pt-eh-gradient-top" />
       <div class="pt-eh-gradient-bottom" />
 
-      <div
-        class="pt-eh-fade"
-        :class="{ 'pt-eh-fade--active': transitioning }"
-        :style="fadeStyle"
-      />
+      <div class="pt-eh-fade" :class="{ 'pt-eh-fade--active': transitioning }" :style="fadeStyle" />
 
       <div class="pt-eh-content">
         <h3 class="pt-eh-row-title">{{ $t('portal.sections.recentlyAdded') }}</h3>
@@ -65,11 +57,7 @@
             <img src="/assets/icons/emby.svg" alt="" class="pt-eh-btn-emby" />
             {{ $t('portal.hero.play') }}
           </a>
-          <button
-            v-if="trailer"
-            class="pt-eh-btn pt-eh-btn--trailer"
-            @click="openLightbox"
-          >
+          <button v-if="trailer" class="pt-eh-btn pt-eh-btn--trailer" @click="openLightbox">
             <Video :size="20" />
             {{ $t('portal.detail.watchTrailer') }}
           </button>
@@ -112,8 +100,14 @@
         <div class="pt-eh-track-padding" />
       </div>
 
-      <div class="pt-edge-fade pt-edge-fade--left"  :class="{ 'pt-edge-fade--visible': canScrollLeft }" />
-      <div class="pt-edge-fade pt-edge-fade--right" :class="{ 'pt-edge-fade--visible': canScrollRight }" />
+      <div
+        class="pt-edge-fade pt-edge-fade--left"
+        :class="{ 'pt-edge-fade--visible': canScrollLeft }"
+      />
+      <div
+        class="pt-edge-fade pt-edge-fade--right"
+        :class="{ 'pt-edge-fade--visible': canScrollRight }"
+      />
 
       <button
         class="pt-carousel-arrow pt-carousel-arrow--left"
@@ -183,30 +177,42 @@ function startTimer() {
   }, ROTATE_MS)
 }
 function stopTimer() {
-  if (rotateTimer) { clearInterval(rotateTimer); rotateTimer = null }
+  if (rotateTimer) {
+    clearInterval(rotateTimer)
+    rotateTimer = null
+  }
 }
 
 const {
-  trailer, muted, embyVideoRef, videoPlaying, playerId,
-  loadTrailer, peekTrailer, setVideoPlaying,
-  toggleMute, onEmbyPause, onEmbyEnded,
+  trailer,
+  muted,
+  embyVideoRef,
+  videoPlaying,
+  playerId,
+  loadTrailer,
+  peekTrailer,
+  setVideoPlaying,
+  toggleMute,
+  onEmbyPause,
+  onEmbyEnded,
 } = useEmbyHeroTrailer({ onTrailerEnded: nextItem })
 
 function peekItemTrailer(item) {
   if (!item) return undefined
-  return peekTrailer(
-    item.media_type || 'movie',
-    item.tmdb_id || item.id,
-    item.emby_item_id || null,
-  )
+  return peekTrailer(item.media_type || 'movie', item.tmdb_id || item.id, item.emby_item_id || null)
 }
-const { transitioning, fadeStyle, onItemChange, startInitial, dispose: disposeVeil } =
-  useHeroCinemaVeil({
-    videoPlaying,
-    peekItem: peekItemTrailer,
-    loadItem: (it) => loadTrailer(it),
-    hasTrailer: () => !!trailer.value,
-  })
+const {
+  transitioning,
+  fadeStyle,
+  onItemChange,
+  startInitial,
+  dispose: disposeVeil,
+} = useHeroCinemaVeil({
+  videoPlaying,
+  peekItem: peekItemTrailer,
+  loadItem: it => loadTrailer(it),
+  hasTrailer: () => !!trailer.value,
+})
 
 function onMuteToggle() {
   toggleMute()
@@ -221,8 +227,14 @@ function onHeroTap(e) {
   onMuteToggle()
 }
 
-function openLightbox()  { lightboxOpen.value = true;  stopTimer() }
-function closeLightbox() { lightboxOpen.value = false; startTimer() }
+function openLightbox() {
+  lightboxOpen.value = true
+  stopTimer()
+}
+function closeLightbox() {
+  lightboxOpen.value = false
+  startTimer()
+}
 
 function onPosterClick(item, idx) {
   currentIndex.value = idx
@@ -257,11 +269,14 @@ function scrollTrack(dir) {
   el.scrollBy({ left: dir * visible * step, behavior: 'smooth' })
 }
 
-watch(currentItem, (it) => onItemChange(it))
-watch(() => props.items.length, () => {
-  if (props.items.length && !trailer.value) startInitial(currentItem.value)
-  nextTick(updateArrows)
-})
+watch(currentItem, it => onItemChange(it))
+watch(
+  () => props.items.length,
+  () => {
+    if (props.items.length && !trailer.value) startInitial(currentItem.value)
+    nextTick(updateArrows)
+  },
+)
 
 let resizeObs = null
 onMounted(() => {

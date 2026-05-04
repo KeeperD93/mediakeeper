@@ -120,6 +120,6 @@ async def fetch_runtimes(
                 iid = item.get("Id")
                 if iid:
                     out[iid] = int(item.get("RunTimeTicks") or 0)
-        except Exception:
+        except Exception:  # noqa: S112 -- intentional best-effort iteration, skip individual failure
             continue
     return out

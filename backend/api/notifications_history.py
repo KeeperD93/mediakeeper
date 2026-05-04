@@ -125,7 +125,7 @@ async def get_rules(db: AsyncSession = Depends(get_db), _: User = Depends(get_cu
     if val:
         try:
             return json.loads(val)
-        except Exception:
+        except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
             pass
     return NotifRulesConfig().model_dump() if hasattr(NotifRulesConfig, 'model_dump') else NotifRulesConfig().dict()
 

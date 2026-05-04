@@ -23,10 +23,15 @@
   align-items: flex-end;
 }
 @media (min-width: 640px) {
-  .pt-hero { height: 94vh; min-height: 540px; }
+  .pt-hero {
+    height: 94vh;
+    min-height: 540px;
+  }
 }
 @media (min-aspect-ratio: 2/1) {
-  .pt-hero { height: 84vh; }
+  .pt-hero {
+    height: 84vh;
+  }
 }
 .pt-hero-bg {
   position: absolute;
@@ -36,7 +41,9 @@
   background-color: #0a0a0a;
   transition: opacity 1s ease;
 }
-.pt-hero-bg--hidden { opacity: 0; }
+.pt-hero-bg--hidden {
+  opacity: 0;
+}
 
 .pt-hero-video {
   position: absolute;
@@ -50,7 +57,9 @@
   mask-image: radial-gradient(ellipse 110% 95% at 50% 40%, #000 50%, transparent 100%);
   -webkit-mask-image: radial-gradient(ellipse 110% 95% at 50% 40%, #000 50%, transparent 100%);
 }
-.pt-hero-video--playing { opacity: 1; }
+.pt-hero-video--playing {
+  opacity: 1;
+}
 @media (min-width: 640px) {
   .pt-hero-video {
     mask-image: radial-gradient(ellipse 90% 85% at 50% 45%, #000 60%, transparent 100%);
@@ -91,21 +100,30 @@
   position: absolute;
   inset: 0;
   z-index: 2;
-  background: radial-gradient(ellipse at top right, transparent 50%, rgba(0,0,0,0.5) 100%);
+  background: radial-gradient(ellipse at top right, transparent 50%, rgb(0, 0, 0, 0.5) 100%);
 }
 .pt-hero-gradient-bottom {
   position: absolute;
-  left: 0; right: 0; bottom: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   height: 45%;
   z-index: 3;
-  background: linear-gradient(to top, var(--bg-primary) 0%, rgba(20,20,20,0.8) 40%, transparent 100%);
+  background: linear-gradient(
+    to top,
+    var(--bg-primary) 0%,
+    rgb(20, 20, 20, 0.8) 40%,
+    transparent 100%
+  );
 }
 .pt-hero-gradient-left {
   position: absolute;
-  left: 0; top: 0; bottom: 0;
+  left: 0;
+  top: 0;
+  bottom: 0;
   width: 50%;
   z-index: 3;
-  background: linear-gradient(to right, rgba(20,20,20,0.7) 0%, transparent 100%);
+  background: linear-gradient(to right, rgb(20, 20, 20, 0.7) 0%, transparent 100%);
   /* Fade the left overlay to transparent near the bottom so it doesn't
      tint the last rows — otherwise the bottom gradient of the hero
      lands on a slightly darker shade than the page body and a seam
@@ -132,7 +150,9 @@
      already matches the page body, so a uniformly black veil doesn't
      create a visible seam with the carousels below. */
 }
-.pt-hero-fade--active { opacity: 1; }
+.pt-hero-fade--active {
+  opacity: 1;
+}
 
 .pt-hero-content {
   position: relative;
@@ -144,18 +164,29 @@
   /* Content sits close to the hero's bottom edge on desktop so the
      backdrop image has more breathing room above. 2.5% ≈ 25 px on a
      1080 p screen. */
-  .pt-hero-content { padding: 0 4% 2.5%; }
+  .pt-hero-content {
+    padding: 0 4% 2.5%;
+  }
 }
 /* Ultrawide — give the title block more room. */
 @media (min-aspect-ratio: 2/1) {
-  .pt-hero-content { max-width: 1100px; }
+  .pt-hero-content {
+    max-width: 1100px;
+  }
 }
 @media (min-aspect-ratio: 21/9) {
-  .pt-hero-content { max-width: 1300px; }
+  .pt-hero-content {
+    max-width: 1300px;
+  }
 }
 
-.pt-hero-btn-emby { width: 22px; height: 22px; }
-.pt-hero-btn--play { text-decoration: none; }
+.pt-hero-btn-emby {
+  width: 22px;
+  height: 22px;
+}
+.pt-hero-btn--play {
+  text-decoration: none;
+}
 
 .pt-hero-badge {
   display: inline-flex;
@@ -174,7 +205,7 @@
   line-height: 1.05;
   margin-bottom: 0.75rem;
   color: #fff;
-  text-shadow: 0 2px 16px rgba(0,0,0,0.7);
+  text-shadow: 0 2px 16px rgb(0, 0, 0, 0.7);
 }
 /* Green accent bar on the left of the title when the media is on Emby.
    Flexbox so the bar stretches across every wrapped line. */
@@ -192,7 +223,10 @@
   /* Cap the bar to glyph height instead of the full line-box. */
   margin: 0.28em 0 0.08em;
 }
-.pt-hero-title-text { flex: 1; min-width: 0; }
+.pt-hero-title-text {
+  flex: 1;
+  min-width: 0;
+}
 
 .pt-hero-rank {
   display: inline-flex;
@@ -218,13 +252,18 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   margin-bottom: 1.25rem;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+  text-shadow: 0 1px 4px rgb(0, 0, 0, 0.5);
 }
 @media (min-width: 1024px) {
-  .pt-hero-overview { -webkit-line-clamp: 3; }
+  .pt-hero-overview {
+    -webkit-line-clamp: 3;
+  }
 }
 
-.pt-hero-actions { display: flex; gap: 0.75rem; }
+.pt-hero-actions {
+  display: flex;
+  gap: 0.75rem;
+}
 .pt-hero-btn {
   display: flex;
   align-items: center;
@@ -237,11 +276,26 @@
   cursor: pointer;
   transition: opacity var(--portal-dur-base);
 }
-.pt-hero-btn:hover { opacity: 0.85; }
-.pt-hero-btn--play { background: #fff; color: #141414; }
-.pt-hero-btn--info { background: rgba(109,109,110,0.7); color: #fff; }
-.pt-hero-btn--trailer { background: rgba(109,109,110,0.7); color: #fff; }
-.pt-hero-btn--icon { padding: 0.6rem; aspect-ratio: 1 / 1; justify-content: center; }
+.pt-hero-btn:hover {
+  opacity: 0.85;
+}
+.pt-hero-btn--play {
+  background: #fff;
+  color: #141414;
+}
+.pt-hero-btn--info {
+  background: rgb(109, 109, 110, 0.7);
+  color: #fff;
+}
+.pt-hero-btn--trailer {
+  background: rgb(109, 109, 110, 0.7);
+  color: #fff;
+}
+.pt-hero-btn--icon {
+  padding: 0.6rem;
+  aspect-ratio: 1 / 1;
+  justify-content: center;
+}
 
 /* Mobile: shrink the action buttons so they stay readable on a 400 px
    wide hero without wrapping. The mask on .pt-hero-video is also
@@ -249,15 +303,25 @@
    demarcation, and the top touches the nav instead of revealing the
    backdrop behind). */
 @media (max-width: 639px) {
-  .pt-hero-actions { gap: 0.5rem; }
+  .pt-hero-actions {
+    gap: 0.5rem;
+  }
   .pt-hero-btn {
     gap: 0.35rem;
     padding: 0.4rem 0.85rem;
     font-size: 0.82rem;
   }
-  .pt-hero-btn-emby { width: 18px; height: 18px; }
-  .pt-hero-btn--icon { padding: 0.45rem; }
-  .pt-hero-btn svg { width: 18px; height: 18px; }
+  .pt-hero-btn-emby {
+    width: 18px;
+    height: 18px;
+  }
+  .pt-hero-btn--icon {
+    padding: 0.45rem;
+  }
+  .pt-hero-btn svg {
+    width: 18px;
+    height: 18px;
+  }
   .pt-hero-video {
     mask-image: none;
     -webkit-mask-image: none;
@@ -280,8 +344,8 @@
   width: 40px;
   height: 40px;
   border-radius: var(--portal-radius-circle);
-  border: 1px solid rgba(255,255,255,0.5);
-  background: rgba(0,0,0,0.4);
+  border: 1px solid rgb(255, 255, 255, 0.5);
+  background: rgb(0, 0, 0, 0.4);
   color: #fff;
   display: flex;
   align-items: center;
@@ -292,7 +356,9 @@
    toggled by tapping the hero background (see HeroBanner.vue
    ``onHeroTap``), which leaves the action row uncluttered. */
 @media (max-width: 639px) {
-  .pt-hero-mute { display: none; }
+  .pt-hero-mute {
+    display: none;
+  }
 }
 
 .pt-hero-dots {
@@ -306,8 +372,10 @@
 .pt-hero-dot {
   width: 12px;
   height: 3px;
-  background: rgba(255,255,255,0.3);
+  background: rgb(255, 255, 255, 0.3);
   cursor: pointer;
   transition: background var(--portal-dur-slow);
 }
-.pt-hero-dot.active { background: #fff; }
+.pt-hero-dot.active {
+  background: #fff;
+}

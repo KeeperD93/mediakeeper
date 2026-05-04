@@ -15,10 +15,15 @@ export function useMMConfigPanels() {
   const { t } = useI18n()
   const { showToast } = useToast()
   const {
-    anomalyRules, saveAnomalyRules, showAdvancedModal,
-    saveProfile, applyProfile,
-    customRules, addCustomRule,
-    newNames, importRenameCsv,
+    anomalyRules,
+    saveAnomalyRules,
+    showAdvancedModal,
+    saveProfile,
+    applyProfile,
+    customRules,
+    addCustomRule,
+    newNames,
+    importRenameCsv,
   } = useMediaManager()
 
   // ── Profiles ──
@@ -37,8 +42,14 @@ export function useMMConfigPanels() {
   }
 
   function saveCurrentAsProfile() {
-    if (!newProfileName.value.trim()) { showToast(t('mediaManager.enterProfileName'), TOAST_TYPE.WARN); return false }
-    const fmt = anomalyRules.value._renameFormat || { movie: '{t} ({y})', tv: '{n} - {s00e00} - {t}' }
+    if (!newProfileName.value.trim()) {
+      showToast(t('mediaManager.enterProfileName'), TOAST_TYPE.WARN)
+      return false
+    }
+    const fmt = anomalyRules.value._renameFormat || {
+      movie: '{t} ({y})',
+      tv: '{n} - {s00e00} - {t}',
+    }
     const lang = anomalyRules.value._tmdbLang || 'fr-FR'
     saveProfile(newProfileName.value.trim(), { ...fmt, lang })
     newProfileName.value = ''
@@ -62,7 +73,11 @@ export function useMMConfigPanels() {
   }
 
   function saveRulesChange() {
-    try { localStorage.setItem('mk_custom_rules', JSON.stringify(customRules.value)) } catch { /* silent: localStorage quota/privacy mode */ }
+    try {
+      localStorage.setItem('mk_custom_rules', JSON.stringify(customRules.value))
+    } catch {
+      /* silent: localStorage quota/privacy mode */
+    }
   }
 
   // ── CSV import/export ──
@@ -84,14 +99,19 @@ export function useMMConfigPanels() {
     try {
       csvPreview.value = await importRenameCsv(file)
       showToast(t('mediaManager.csvLinesLoaded', { count: csvPreview.value.length }), TOAST_TYPE.OK)
-    } catch { showToast(t('mediaManager.csvError'), TOAST_TYPE.ERR) }
+    } catch {
+      showToast(t('mediaManager.csvError'), TOAST_TYPE.ERR)
+    }
   }
 
   function applyCsvImport() {
     newNames.value = csvPreview.value.map(r => ({
       name: r.newName + (r.ext ? '.' + r.ext : ''),
-      oldName: r.oldName, ext: r.ext || '', path: '',
-      mismatch: false, mismatchStrong: false,
+      oldName: r.oldName,
+      ext: r.ext || '',
+      path: '',
+      mismatch: false,
+      mismatchStrong: false,
     }))
     csvPreview.value = []
     showAdvancedModal.value = false
@@ -107,13 +127,24 @@ export function useMMConfigPanels() {
     const blob = new Blob(['\ufeff' + rows.join('\n')], { type: 'text/csv;charset=utf-8' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
-    a.href = url; a.download = 'rename_template.csv'; a.click()
+    a.href = url
+    a.download = 'rename_template.csv'
+    a.click()
     URL.revokeObjectURL(url)
   }
 
   return {
-    newProfileName, applyProfileLocal, saveCurrentAsProfile,
-    newRule, addRuleLocal, saveRulesChange,
-    csvDragOver, csvPreview, dropCsv, pickCsvFile, applyCsvImport, downloadCsvTemplate,
+    newProfileName,
+    applyProfileLocal,
+    saveCurrentAsProfile,
+    newRule,
+    addRuleLocal,
+    saveRulesChange,
+    csvDragOver,
+    csvPreview,
+    dropCsv,
+    pickCsvFile,
+    applyCsvImport,
+    downloadCsvTemplate,
   }
 }

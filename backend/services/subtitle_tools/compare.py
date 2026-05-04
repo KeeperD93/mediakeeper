@@ -35,7 +35,7 @@ async def compare_subtitles(
 
         try:
             Path(tmp_path).unlink()
-        except Exception:
+        except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
             pass
 
     diff = {

@@ -11,33 +11,47 @@ export function usePortalAchievements() {
     try {
       const res = await apiGet('/api/portal/achievements')
       achievements.value = res?.items || []
-    } catch { achievements.value = [] }
+    } catch {
+      achievements.value = []
+    }
   }
 
   async function fetchMine() {
     try {
       const res = await apiGet('/api/portal/achievements/me')
       myAchievements.value = res?.items || []
-    } catch { myAchievements.value = [] }
+    } catch {
+      myAchievements.value = []
+    }
   }
 
   async function fetchUserAchievements(userId) {
     try {
       const res = await apiGet(`/api/portal/achievements/user/${userId}`)
       return res?.items || []
-    } catch { return [] }
+    } catch {
+      return []
+    }
   }
 
   async function fetchLeaderboard(limit = 20) {
     try {
       const res = await apiGet(`/api/portal/achievements/leaderboard?limit=${limit}`)
       leaderboard.value = res?.items || []
-    } catch { leaderboard.value = [] }
+    } catch {
+      leaderboard.value = []
+    }
   }
 
   return {
-    achievements, myAchievements, leaderboard,
-    fetchAll, fetchMine, fetchUserAchievements, fetchLeaderboard,
-    loading, error,
+    achievements,
+    myAchievements,
+    leaderboard,
+    fetchAll,
+    fetchMine,
+    fetchUserAchievements,
+    fetchLeaderboard,
+    loading,
+    error,
   }
 }

@@ -4,59 +4,130 @@
  */
 
 .gc-trophy-box {
-  padding: 1rem; background: var(--portal-surface-1);
-  border: 1px solid rgba(255,255,255,0.05); border-radius: var(--radius-card);
+  padding: 1rem;
+  background: var(--portal-surface-1);
+  border: 1px solid rgb(255, 255, 255, 0.05);
+  border-radius: var(--radius-card);
 }
-.gc-trophy-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+.gc-trophy-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
 .gc-trophy-count {
-  font-size: var(--portal-text-md); font-weight: var(--portal-font-black); color: #fff;
+  font-size: var(--portal-text-md);
+  font-weight: var(--portal-font-black);
+  color: #fff;
   font-family: var(--portal-font-display);
 }
-.gc-trophy-count span { font-size: var(--portal-text-2xs); color: rgba(255,255,255,0.35); font-weight: var(--portal-font-medium); }
+.gc-trophy-count span {
+  font-size: var(--portal-text-2xs);
+  color: rgb(255, 255, 255, 0.35);
+  font-weight: var(--portal-font-medium);
+}
 
 /* Next achievement */
 .gc-trophy-next {
-  display: flex; align-items: center; gap: 0.5rem;
-  padding: 0.5rem; margin-bottom: 0.75rem;
-  background: linear-gradient(90deg, rgba(251,191,36,0.1), rgba(251,191,36,0.02));
-  border: 1px solid rgba(251,191,36,0.2);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  margin-bottom: 0.75rem;
+  background: linear-gradient(90deg, rgb(251, 191, 36, 0.1), rgb(251, 191, 36, 0.02));
+  border: 1px solid rgb(251, 191, 36, 0.2);
   border-radius: var(--radius-input);
   animation: gc-next-pulse 3s ease-in-out infinite;
 }
 @keyframes gc-next-pulse {
-  0%, 100% { border-color: rgba(251,191,36,0.2); }
-  50% { border-color: rgba(251,191,36,0.45); box-shadow: 0 0 15px rgba(251,191,36,0.08); }
+  0%,
+  100% {
+    border-color: rgb(251, 191, 36, 0.2);
+  }
+  50% {
+    border-color: rgb(251, 191, 36, 0.45);
+    box-shadow: 0 0 15px rgb(251, 191, 36, 0.08);
+  }
 }
 .gc-trophy-next-icon {
-  font-size: var(--portal-text-lg); width: 32px; height: 32px;
-  display: flex; align-items: center; justify-content: center;
-  border-radius: var(--radius-btn); flex-shrink: 0;
+  font-size: var(--portal-text-lg);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-btn);
+  flex-shrink: 0;
 }
-.gc-trophy-next-icon--gold { background: rgba(251,191,36,0.15); }
-.gc-trophy-next-info { flex: 1; min-width: 0; }
-.gc-trophy-next-name { font-size: var(--portal-text-2xs); font-weight: var(--portal-font-bold); color: #fff; margin-bottom: 0.2rem; }
+.gc-trophy-next-icon--gold {
+  background: rgb(251, 191, 36, 0.15);
+}
+.gc-trophy-next-info {
+  flex: 1;
+  min-width: 0;
+}
+.gc-trophy-next-name {
+  font-size: var(--portal-text-2xs);
+  font-weight: var(--portal-font-bold);
+  color: #fff;
+  margin-bottom: 0.2rem;
+}
 .gc-trophy-tier {
-  font-size: var(--portal-text-4xs); font-weight: var(--portal-font-extrabold); padding: 1px 6px;
-  border-radius: var(--portal-radius-xs); text-transform: uppercase; letter-spacing: var(--portal-tracking-caps);
+  font-size: var(--portal-text-4xs);
+  font-weight: var(--portal-font-extrabold);
+  padding: 1px 6px;
+  border-radius: var(--portal-radius-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--portal-tracking-caps);
   margin-left: 0.3rem;
 }
-.gc-trophy-tier--bronze { background: rgba(205,127,50,0.25); color: #cd7f32; }
-.gc-trophy-tier--silver { background: rgba(192,192,192,0.2); color: #c0c0c0; }
-.gc-trophy-tier--gold { background: rgba(251,191,36,0.2); color: #fbbf24; }
-.gc-trophy-tier--platinum { background: rgba(56,189,248,0.2); color: #38bdf8; }
-.gc-trophy-tier--mythic { background: rgba(168,85,247,0.2); color: #a78bfa; }
-.gc-trophy-tier--supreme { background: rgba(153,27,27,0.22); color: #fca5a5; text-shadow: 0 0 6px rgba(153,27,27,0.5); }
+.gc-trophy-tier--bronze {
+  background: rgb(205, 127, 50, 0.25);
+  color: #cd7f32;
+}
+.gc-trophy-tier--silver {
+  background: rgb(192, 192, 192, 0.2);
+  color: #c0c0c0;
+}
+.gc-trophy-tier--gold {
+  background: rgb(251, 191, 36, 0.2);
+  color: #fbbf24;
+}
+.gc-trophy-tier--platinum {
+  background: rgb(56, 189, 248, 0.2);
+  color: #38bdf8;
+}
+.gc-trophy-tier--mythic {
+  background: rgb(168, 85, 247, 0.2);
+  color: #a78bfa;
+}
+.gc-trophy-tier--supreme {
+  background: rgb(153, 27, 27, 0.22);
+  color: #fca5a5;
+  text-shadow: 0 0 6px rgb(153, 27, 27, 0.5);
+}
 .gc-trophy-next-bar {
-  height: 5px; background: rgba(255,255,255,0.07); border-radius: 3px;
-  overflow: hidden; margin-bottom: 0.2rem;
+  height: 5px;
+  background: rgb(255, 255, 255, 0.07);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 0.2rem;
 }
 .gc-trophy-next-fill {
-  height: 100%; border-radius: 3px;
+  height: 100%;
+  border-radius: 3px;
   background: linear-gradient(90deg, #b8860b, #fbbf24);
-  box-shadow: 0 0 6px rgba(251,191,36,0.4);
+  box-shadow: 0 0 6px rgb(251, 191, 36, 0.4);
 }
-.gc-trophy-next-text { font-size: var(--portal-text-2xs); color: rgba(255,255,255,0.5); }
-.gc-trophy-next-text em { color: #fbbf24; font-style: normal; font-weight: var(--portal-font-bold); }
+.gc-trophy-next-text {
+  font-size: var(--portal-text-2xs);
+  color: rgb(255, 255, 255, 0.5);
+}
+.gc-trophy-next-text em {
+  color: #fbbf24;
+  font-style: normal;
+  font-weight: var(--portal-font-bold);
+}
 
 /* Grid */
 .gc-trophy-grid {
@@ -69,218 +140,669 @@
 
 /* Base trophy card */
 .gc-trophy {
-  display: flex; flex-direction: column; align-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: flex-start;
   padding: 0.6rem 0.35rem 0.55rem;
-  border-radius: var(--radius-input); text-align: center;
-  transition: transform var(--portal-dur-fast), box-shadow var(--portal-dur-fast);
-  position: relative; cursor: pointer; overflow: hidden;
+  border-radius: var(--radius-input);
+  text-align: center;
+  transition:
+    transform var(--portal-dur-fast),
+    box-shadow var(--portal-dur-fast);
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
   min-height: 140px;
 }
-.gc-trophy:hover { transform: translateY(-2px); }
+.gc-trophy:hover {
+  transform: translateY(-2px);
+}
 .gc-trophy-icon-wrap {
-  width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
-  margin-bottom: 0.3rem; color: var(--portal-text-body); position: relative; z-index: 2;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.3rem;
+  color: var(--portal-text-body);
+  position: relative;
+  z-index: 2;
   flex-shrink: 0;
 }
-.gc-trophy-icon--dim { opacity: 0.35; filter: saturate(0.2) brightness(0.7); }
+.gc-trophy-icon--dim {
+  opacity: 0.35;
+  filter: saturate(0.2) brightness(0.7);
+}
 .gc-trophy-label {
-  font-size: var(--portal-text-4xs); font-weight: var(--portal-font-bold); color: rgba(255,255,255,0.75);
-  line-height: 1.2; margin-bottom: 0.2rem;
-  display: flex; align-items: center; justify-content: center;
+  font-size: var(--portal-text-4xs);
+  font-weight: var(--portal-font-bold);
+  color: rgb(255, 255, 255, 0.75);
+  line-height: 1.2;
+  margin-bottom: 0.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* stylelint-disable-next-line declaration-property-value-keyword-no-deprecated -- non-standard but widely supported; behaviour differs from overflow-wrap: break-word on CJK */
   word-break: break-word;
 }
-.gc-trophy-stars { font-size: 0.45rem; letter-spacing: -1px; }
-.gc-trophy-rarity { font-size: 0.48rem; font-weight: var(--portal-font-bold); padding: 1px 5px; border-radius: 3px; text-transform: uppercase; letter-spacing: var(--portal-tracking-wide); }
+.gc-trophy-stars {
+  font-size: 0.45rem;
+  letter-spacing: -1px;
+}
+.gc-trophy-rarity {
+  font-size: 0.48rem;
+  font-weight: var(--portal-font-bold);
+  padding: 1px 5px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: var(--portal-tracking-wide);
+}
 /* --- Rarity-driven card visuals (non-secrets only) ---
    Icon glow and faint background tint follow the rarity palette.
    The bottom tier bar stays tied to the production tier classes below.
    Secrets keep their themed visuals untouched. */
-.gc-trophy-tier-bar--rarity-common    { background: linear-gradient(90deg, rgba(156,163,175,0.25), rgba(156,163,175,0.6),  rgba(156,163,175,0.25)); }
-.gc-trophy-tier-bar--rarity-uncommon  { background: linear-gradient(90deg, rgba(34,197,94,0.3),    rgba(34,197,94,0.7),    rgba(34,197,94,0.3)); }
-.gc-trophy-tier-bar--rarity-rare      { background: linear-gradient(90deg, rgba(59,130,246,0.3),   rgba(59,130,246,0.7),   rgba(59,130,246,0.3)); }
-.gc-trophy-tier-bar--rarity-epic      { background: linear-gradient(90deg, rgba(168,85,247,0.3),   rgba(168,85,247,0.7),   rgba(168,85,247,0.3)); }
-.gc-trophy-tier-bar--rarity-legendary { background: linear-gradient(90deg, rgba(255,140,0,0.3),    rgba(255,140,0,0.75),   rgba(255,140,0,0.3)); }
-.gc-trophy-tier-bar--rarity-mythic    { background: linear-gradient(90deg, rgba(153,27,27,0.3),    rgba(153,27,27,0.75),   rgba(153,27,27,0.3)); }
-.gc-trophy--unlocked .gc-trophy-tier-bar--rarity-common    { background: linear-gradient(90deg, rgba(156,163,175,0.4), #9ca3af, rgba(156,163,175,0.4)); box-shadow: 0 0 6px rgba(156,163,175,0.3); }
-.gc-trophy--unlocked .gc-trophy-tier-bar--rarity-uncommon  { background: linear-gradient(90deg, rgba(34,197,94,0.5),   #22c55e, rgba(34,197,94,0.5));   box-shadow: 0 0 6px rgba(34,197,94,0.4); }
-.gc-trophy--unlocked .gc-trophy-tier-bar--rarity-rare      { background: linear-gradient(90deg, rgba(59,130,246,0.5),  #3b82f6, rgba(59,130,246,0.5));  box-shadow: 0 0 8px rgba(59,130,246,0.4); }
-.gc-trophy--unlocked .gc-trophy-tier-bar--rarity-epic      { background: linear-gradient(90deg, rgba(168,85,247,0.5),  #a855f7, rgba(168,85,247,0.5));  box-shadow: 0 0 8px rgba(168,85,247,0.4); }
-.gc-trophy--unlocked .gc-trophy-tier-bar--rarity-legendary { background: linear-gradient(90deg, rgba(255,140,0,0.5),   #ff8c00, rgba(255,140,0,0.5));   box-shadow: 0 0 10px rgba(255,140,0,0.5); }
-.gc-trophy--unlocked .gc-trophy-tier-bar--rarity-mythic    { background: linear-gradient(90deg, rgba(153,27,27,0.5),   #991b1b, rgba(153,27,27,0.5));   box-shadow: 0 0 10px rgba(153,27,27,0.55); }
+.gc-trophy-tier-bar--rarity-common {
+  background: linear-gradient(
+    90deg,
+    rgb(156, 163, 175, 0.25),
+    rgb(156, 163, 175, 0.6),
+    rgb(156, 163, 175, 0.25)
+  );
+}
+.gc-trophy-tier-bar--rarity-uncommon {
+  background: linear-gradient(
+    90deg,
+    rgb(34, 197, 94, 0.3),
+    rgb(34, 197, 94, 0.7),
+    rgb(34, 197, 94, 0.3)
+  );
+}
+.gc-trophy-tier-bar--rarity-rare {
+  background: linear-gradient(
+    90deg,
+    rgb(59, 130, 246, 0.3),
+    rgb(59, 130, 246, 0.7),
+    rgb(59, 130, 246, 0.3)
+  );
+}
+.gc-trophy-tier-bar--rarity-epic {
+  background: linear-gradient(
+    90deg,
+    rgb(168, 85, 247, 0.3),
+    rgb(168, 85, 247, 0.7),
+    rgb(168, 85, 247, 0.3)
+  );
+}
+.gc-trophy-tier-bar--rarity-legendary {
+  background: linear-gradient(
+    90deg,
+    rgb(255, 140, 0, 0.3),
+    rgb(255, 140, 0, 0.75),
+    rgb(255, 140, 0, 0.3)
+  );
+}
+.gc-trophy-tier-bar--rarity-mythic {
+  background: linear-gradient(
+    90deg,
+    rgb(153, 27, 27, 0.3),
+    rgb(153, 27, 27, 0.75),
+    rgb(153, 27, 27, 0.3)
+  );
+}
+.gc-trophy--unlocked .gc-trophy-tier-bar--rarity-common {
+  background: linear-gradient(90deg, rgb(156, 163, 175, 0.4), #9ca3af, rgb(156, 163, 175, 0.4));
+  box-shadow: 0 0 6px rgb(156, 163, 175, 0.3);
+}
+.gc-trophy--unlocked .gc-trophy-tier-bar--rarity-uncommon {
+  background: linear-gradient(90deg, rgb(34, 197, 94, 0.5), #22c55e, rgb(34, 197, 94, 0.5));
+  box-shadow: 0 0 6px rgb(34, 197, 94, 0.4);
+}
+.gc-trophy--unlocked .gc-trophy-tier-bar--rarity-rare {
+  background: linear-gradient(90deg, rgb(59, 130, 246, 0.5), #3b82f6, rgb(59, 130, 246, 0.5));
+  box-shadow: 0 0 8px rgb(59, 130, 246, 0.4);
+}
+.gc-trophy--unlocked .gc-trophy-tier-bar--rarity-epic {
+  background: linear-gradient(90deg, rgb(168, 85, 247, 0.5), #a855f7, rgb(168, 85, 247, 0.5));
+  box-shadow: 0 0 8px rgb(168, 85, 247, 0.4);
+}
+.gc-trophy--unlocked .gc-trophy-tier-bar--rarity-legendary {
+  background: linear-gradient(90deg, rgb(255, 140, 0, 0.5), #ff8c00, rgb(255, 140, 0, 0.5));
+  box-shadow: 0 0 10px rgb(255, 140, 0, 0.5);
+}
+.gc-trophy--unlocked .gc-trophy-tier-bar--rarity-mythic {
+  background: linear-gradient(90deg, rgb(153, 27, 27, 0.5), #991b1b, rgb(153, 27, 27, 0.5));
+  box-shadow: 0 0 10px rgb(153, 27, 27, 0.55);
+}
 
-.gc-trophy--rarity-common    { background: rgba(156,163,175,0.03); }
-.gc-trophy--rarity-uncommon  { background: rgba(34,197,94,0.03); }
-.gc-trophy--rarity-rare      { background: rgba(59,130,246,0.03); }
-.gc-trophy--rarity-epic      { background: rgba(168,85,247,0.03); }
-.gc-trophy--rarity-legendary { background: rgba(255,140,0,0.04); }
-.gc-trophy--rarity-mythic    { background: rgba(153,27,27,0.05); }
-.gc-trophy--unlocked.gc-trophy--rarity-common    { background: rgba(156,163,175,0.07); }
-.gc-trophy--unlocked.gc-trophy--rarity-uncommon  { background: rgba(34,197,94,0.07); }
-.gc-trophy--unlocked.gc-trophy--rarity-rare      { background: rgba(59,130,246,0.07); }
-.gc-trophy--unlocked.gc-trophy--rarity-epic      { background: rgba(168,85,247,0.07); }
-.gc-trophy--unlocked.gc-trophy--rarity-legendary { background: rgba(255,140,0,0.08); }
-.gc-trophy--unlocked.gc-trophy--rarity-mythic    { background: rgba(153,27,27,0.09); }
+.gc-trophy--rarity-common {
+  background: rgb(156, 163, 175, 0.03);
+}
+.gc-trophy--rarity-uncommon {
+  background: rgb(34, 197, 94, 0.03);
+}
+.gc-trophy--rarity-rare {
+  background: rgb(59, 130, 246, 0.03);
+}
+.gc-trophy--rarity-epic {
+  background: rgb(168, 85, 247, 0.03);
+}
+.gc-trophy--rarity-legendary {
+  background: rgb(255, 140, 0, 0.04);
+}
+.gc-trophy--rarity-mythic {
+  background: rgb(153, 27, 27, 0.05);
+}
+.gc-trophy--unlocked.gc-trophy--rarity-common {
+  background: rgb(156, 163, 175, 0.07);
+}
+.gc-trophy--unlocked.gc-trophy--rarity-uncommon {
+  background: rgb(34, 197, 94, 0.07);
+}
+.gc-trophy--unlocked.gc-trophy--rarity-rare {
+  background: rgb(59, 130, 246, 0.07);
+}
+.gc-trophy--unlocked.gc-trophy--rarity-epic {
+  background: rgb(168, 85, 247, 0.07);
+}
+.gc-trophy--unlocked.gc-trophy--rarity-legendary {
+  background: rgb(255, 140, 0, 0.08);
+}
+.gc-trophy--unlocked.gc-trophy--rarity-mythic {
+  background: rgb(153, 27, 27, 0.09);
+}
 
-.gc-icon-glow--rarity-common    { color: #9ca3af; filter: drop-shadow(0 0 6px rgba(156,163,175,0.4)); }
-.gc-icon-glow--rarity-uncommon  { color: #22c55e; filter: drop-shadow(0 0 6px rgba(34,197,94,0.5)); }
-.gc-icon-glow--rarity-rare      { color: #3b82f6; filter: drop-shadow(0 0 8px rgba(59,130,246,0.5)); }
-.gc-icon-glow--rarity-epic      { color: #a855f7; filter: drop-shadow(0 0 8px rgba(168,85,247,0.55)); }
-.gc-icon-glow--rarity-legendary { color: #ff8c00; filter: drop-shadow(0 0 10px rgba(255,140,0,0.6)); }
-.gc-icon-glow--rarity-mythic    { color: #991b1b; filter: drop-shadow(0 0 10px rgba(153,27,27,0.65)) drop-shadow(0 0 20px rgba(153,27,27,0.3)); }
+.gc-icon-glow--rarity-common {
+  color: #9ca3af;
+  filter: drop-shadow(0 0 6px rgb(156, 163, 175, 0.4));
+}
+.gc-icon-glow--rarity-uncommon {
+  color: #22c55e;
+  filter: drop-shadow(0 0 6px rgb(34, 197, 94, 0.5));
+}
+.gc-icon-glow--rarity-rare {
+  color: #3b82f6;
+  filter: drop-shadow(0 0 8px rgb(59, 130, 246, 0.5));
+}
+.gc-icon-glow--rarity-epic {
+  color: #a855f7;
+  filter: drop-shadow(0 0 8px rgb(168, 85, 247, 0.55));
+}
+.gc-icon-glow--rarity-legendary {
+  color: #ff8c00;
+  filter: drop-shadow(0 0 10px rgb(255, 140, 0, 0.6));
+}
+.gc-icon-glow--rarity-mythic {
+  color: #991b1b;
+  filter: drop-shadow(0 0 10px rgb(153, 27, 27, 0.65)) drop-shadow(0 0 20px rgb(153, 27, 27, 0.3));
+}
 
 /* Loot-rarity palette — ascending scarcity:
    common gray → uncommon green → rare blue → epic purple →
    legendary orange → mythic red. The mythic tier is reserved for
    the rarest trophies (< 1 % of players) and gets an animated
    shimmer + glow to feel truly singular. */
-.gc-trophy-rarity--common    { background: rgba(156,163,175,0.12); color: #9ca3af; }
-.gc-trophy-rarity--uncommon  { background: rgba(34,197,94,0.18);  color: #22c55e; }
-.gc-trophy-rarity--rare      { background: rgba(59,130,246,0.18); color: #3b82f6; }
-.gc-trophy-rarity--epic      { background: rgba(168,85,247,0.18); color: #a855f7; }
-.gc-trophy-rarity--legendary { background: rgba(255,140,0,0.18);  color: #ff8c00; text-shadow: 0 0 6px rgba(255,140,0,0.4); }
+.gc-trophy-rarity--common {
+  background: rgb(156, 163, 175, 0.12);
+  color: #9ca3af;
+}
+.gc-trophy-rarity--uncommon {
+  background: rgb(34, 197, 94, 0.18);
+  color: #22c55e;
+}
+.gc-trophy-rarity--rare {
+  background: rgb(59, 130, 246, 0.18);
+  color: #3b82f6;
+}
+.gc-trophy-rarity--epic {
+  background: rgb(168, 85, 247, 0.18);
+  color: #a855f7;
+}
+.gc-trophy-rarity--legendary {
+  background: rgb(255, 140, 0, 0.18);
+  color: #ff8c00;
+  text-shadow: 0 0 6px rgb(255, 140, 0, 0.4);
+}
 .gc-trophy-rarity--mythic {
-  background: rgba(153,27,27,0.18);
+  background: rgb(153, 27, 27, 0.18);
   color: #b91c1c;
-  text-shadow: 0 0 6px rgba(127,29,29,0.5);
+  text-shadow: 0 0 6px rgb(127, 29, 29, 0.5);
 }
 @keyframes gc-mythic-shimmer {
-  0%, 100% { background-position: 0% 50%; }
-  50%      { background-position: 100% 50%; }
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
-.gc-trophy-ptxt { font-size: 0.52rem; color: rgba(255,255,255,0.35); }
-.gc-trophy-pbar { width: 80%; height: 3px; background: rgba(255,255,255,0.07); border-radius: 2px; overflow: hidden; margin-bottom: 0.15rem; }
-.gc-trophy-pfill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, #4338ca, #818cf8); }
-.gc-trophy-pfill--gold { background: linear-gradient(90deg, #b8860b, #fbbf24); }
-.gc-trophy-pfill--platinum { background: linear-gradient(90deg, #0284c7, #38bdf8); }
-.gc-trophy-pfill--mythic { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
-.gc-trophy-pfill--supreme { background: linear-gradient(90deg, #7f1d1d, #991b1b, #dc2626); background-size: 200% 100%; animation: gc-mythic-shimmer 2.5s ease-in-out infinite; }
+.gc-trophy-ptxt {
+  font-size: 0.52rem;
+  color: rgb(255, 255, 255, 0.35);
+}
+.gc-trophy-pbar {
+  width: 80%;
+  height: 3px;
+  background: rgb(255, 255, 255, 0.07);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 0.15rem;
+}
+.gc-trophy-pfill {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #4338ca, #818cf8);
+}
+.gc-trophy-pfill--gold {
+  background: linear-gradient(90deg, #b8860b, #fbbf24);
+}
+.gc-trophy-pfill--platinum {
+  background: linear-gradient(90deg, #0284c7, #38bdf8);
+}
+.gc-trophy-pfill--mythic {
+  background: linear-gradient(90deg, #7c3aed, #a78bfa);
+}
+.gc-trophy-pfill--supreme {
+  background: linear-gradient(90deg, #7f1d1d, #991b1b, #dc2626);
+  background-size: 200% 100%;
+  animation: gc-mythic-shimmer 2.5s ease-in-out infinite;
+}
 
 /* Gift indicator (top-right corner) — signals the trophy unlocks a title */
 .gc-trophy-gift {
-  position: absolute; top: 6px; right: 6px;
-  width: 20px; height: 20px;
-  display: flex; align-items: center; justify-content: center;
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: var(--portal-radius-circle);
-  background: rgba(251,191,36,0.15);
-  border: 1px solid rgba(251,191,36,0.4);
+  background: rgb(251, 191, 36, 0.15);
+  border: 1px solid rgb(251, 191, 36, 0.4);
   color: #fbbf24;
   z-index: 3;
   cursor: help;
-  filter: drop-shadow(0 0 4px rgba(251,191,36,0.4));
+  filter: drop-shadow(0 0 4px rgb(251, 191, 36, 0.4));
 }
-.gc-trophy-gift--rarity-common    { background: rgba(156,163,175,0.15); border-color: rgba(156,163,175,0.4); color: #d1d5db; filter: none; }
-.gc-trophy-gift--rarity-uncommon  { background: rgba(34,197,94,0.15);   border-color: rgba(34,197,94,0.4);   color: #86efac; filter: drop-shadow(0 0 4px rgba(34,197,94,0.4)); }
-.gc-trophy-gift--rarity-rare      { background: rgba(59,130,246,0.15);  border-color: rgba(59,130,246,0.45); color: #93c5fd; filter: drop-shadow(0 0 4px rgba(59,130,246,0.45)); }
-.gc-trophy-gift--rarity-epic      { background: rgba(168,85,247,0.18);  border-color: rgba(168,85,247,0.5);  color: #d8b4fe; filter: drop-shadow(0 0 5px rgba(168,85,247,0.5)); }
-.gc-trophy-gift--rarity-legendary { background: rgba(255,140,0,0.18);   border-color: rgba(255,140,0,0.55);  color: #fdba74; filter: drop-shadow(0 0 5px rgba(255,140,0,0.55)); }
-.gc-trophy-gift--rarity-mythic    { background: rgba(153,27,27,0.22);   border-color: rgba(153,27,27,0.6);   color: #fca5a5; filter: drop-shadow(0 0 5px rgba(153,27,27,0.55)); }
+.gc-trophy-gift--rarity-common {
+  background: rgb(156, 163, 175, 0.15);
+  border-color: rgb(156, 163, 175, 0.4);
+  color: #d1d5db;
+  filter: none;
+}
+.gc-trophy-gift--rarity-uncommon {
+  background: rgb(34, 197, 94, 0.15);
+  border-color: rgb(34, 197, 94, 0.4);
+  color: #86efac;
+  filter: drop-shadow(0 0 4px rgb(34, 197, 94, 0.4));
+}
+.gc-trophy-gift--rarity-rare {
+  background: rgb(59, 130, 246, 0.15);
+  border-color: rgb(59, 130, 246, 0.45);
+  color: #93c5fd;
+  filter: drop-shadow(0 0 4px rgb(59, 130, 246, 0.45));
+}
+.gc-trophy-gift--rarity-epic {
+  background: rgb(168, 85, 247, 0.18);
+  border-color: rgb(168, 85, 247, 0.5);
+  color: #d8b4fe;
+  filter: drop-shadow(0 0 5px rgb(168, 85, 247, 0.5));
+}
+.gc-trophy-gift--rarity-legendary {
+  background: rgb(255, 140, 0, 0.18);
+  border-color: rgb(255, 140, 0, 0.55);
+  color: #fdba74;
+  filter: drop-shadow(0 0 5px rgb(255, 140, 0, 0.55));
+}
+.gc-trophy-gift--rarity-mythic {
+  background: rgb(153, 27, 27, 0.22);
+  border-color: rgb(153, 27, 27, 0.6);
+  color: #fca5a5;
+  filter: drop-shadow(0 0 5px rgb(153, 27, 27, 0.55));
+}
 
 /* Locked state — overrides every rarity variant with a desaturated grey look */
 .gc-trophy-gift--locked {
-  background: rgba(75,85,99,0.15) !important;
-  border-color: rgba(107,114,128,0.35) !important;
+  background: rgb(75, 85, 99, 0.15) !important;
+  border-color: rgb(107, 114, 128, 0.35) !important;
   color: #6b7280 !important;
   filter: grayscale(1) !important;
   opacity: 0.55;
 }
 
 /* Tier bar */
-.gc-trophy-tier-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; border-radius: 0 0 12px 12px; }
-.gc-trophy-tier-bar--bronze { background: linear-gradient(90deg, rgba(205,127,50,0.3), rgba(205,127,50,0.7), rgba(205,127,50,0.3)); }
-.gc-trophy-tier-bar--silver { background: linear-gradient(90deg, rgba(192,192,192,0.25), rgba(192,192,192,0.65), rgba(192,192,192,0.25)); }
-.gc-trophy-tier-bar--gold { background: linear-gradient(90deg, rgba(251,191,36,0.3), rgba(251,191,36,0.75), rgba(251,191,36,0.3)); }
-.gc-trophy-tier-bar--platinum { background: linear-gradient(90deg, rgba(56,189,248,0.3), rgba(56,189,248,0.7), rgba(56,189,248,0.3)); }
-.gc-trophy-tier-bar--mythic { background: linear-gradient(90deg, rgba(168,85,247,0.3), rgba(168,85,247,0.75), rgba(168,85,247,0.3)); }
-.gc-trophy-tier-bar--supreme { background: linear-gradient(90deg, rgba(127,29,29,0.35), rgba(153,27,27,0.82), rgba(220,38,38,0.4)); }
-.gc-trophy--unlocked .gc-trophy-tier-bar--bronze { background: linear-gradient(90deg, rgba(205,127,50,0.5), #cd7f32, rgba(205,127,50,0.5)); box-shadow: 0 0 6px rgba(205,127,50,0.3); }
-.gc-trophy--unlocked .gc-trophy-tier-bar--silver { background: linear-gradient(90deg, rgba(192,192,192,0.4), #c0c0c0, rgba(192,192,192,0.4)); box-shadow: 0 0 6px rgba(192,192,192,0.3); }
-.gc-trophy--unlocked .gc-trophy-tier-bar--gold { background: linear-gradient(90deg, rgba(251,191,36,0.5), #fbbf24, rgba(251,191,36,0.5)); box-shadow: 0 0 8px rgba(251,191,36,0.4); }
-.gc-trophy--unlocked .gc-trophy-tier-bar--platinum { background: linear-gradient(90deg, rgba(56,189,248,0.5), #38bdf8, rgba(56,189,248,0.5)); box-shadow: 0 0 8px rgba(56,189,248,0.4); }
-.gc-trophy--unlocked .gc-trophy-tier-bar--mythic { background: linear-gradient(90deg, rgba(168,85,247,0.5), #a78bfa, rgba(168,85,247,0.5)); box-shadow: 0 0 10px rgba(168,85,247,0.5); }
-.gc-trophy--unlocked .gc-trophy-tier-bar--supreme { background: linear-gradient(90deg, rgba(127,29,29,0.6), #991b1b, #dc2626); box-shadow: 0 0 10px rgba(153,27,27,0.55); }
+.gc-trophy-tier-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 0 0 12px 12px;
+}
+.gc-trophy-tier-bar--bronze {
+  background: linear-gradient(
+    90deg,
+    rgb(205, 127, 50, 0.3),
+    rgb(205, 127, 50, 0.7),
+    rgb(205, 127, 50, 0.3)
+  );
+}
+.gc-trophy-tier-bar--silver {
+  background: linear-gradient(
+    90deg,
+    rgb(192, 192, 192, 0.25),
+    rgb(192, 192, 192, 0.65),
+    rgb(192, 192, 192, 0.25)
+  );
+}
+.gc-trophy-tier-bar--gold {
+  background: linear-gradient(
+    90deg,
+    rgb(251, 191, 36, 0.3),
+    rgb(251, 191, 36, 0.75),
+    rgb(251, 191, 36, 0.3)
+  );
+}
+.gc-trophy-tier-bar--platinum {
+  background: linear-gradient(
+    90deg,
+    rgb(56, 189, 248, 0.3),
+    rgb(56, 189, 248, 0.7),
+    rgb(56, 189, 248, 0.3)
+  );
+}
+.gc-trophy-tier-bar--mythic {
+  background: linear-gradient(
+    90deg,
+    rgb(168, 85, 247, 0.3),
+    rgb(168, 85, 247, 0.75),
+    rgb(168, 85, 247, 0.3)
+  );
+}
+.gc-trophy-tier-bar--supreme {
+  background: linear-gradient(
+    90deg,
+    rgb(127, 29, 29, 0.35),
+    rgb(153, 27, 27, 0.82),
+    rgb(220, 38, 38, 0.4)
+  );
+}
+.gc-trophy--unlocked .gc-trophy-tier-bar--bronze {
+  background: linear-gradient(90deg, rgb(205, 127, 50, 0.5), #cd7f32, rgb(205, 127, 50, 0.5));
+  box-shadow: 0 0 6px rgb(205, 127, 50, 0.3);
+}
+.gc-trophy--unlocked .gc-trophy-tier-bar--silver {
+  background: linear-gradient(90deg, rgb(192, 192, 192, 0.4), #c0c0c0, rgb(192, 192, 192, 0.4));
+  box-shadow: 0 0 6px rgb(192, 192, 192, 0.3);
+}
+.gc-trophy--unlocked .gc-trophy-tier-bar--gold {
+  background: linear-gradient(90deg, rgb(251, 191, 36, 0.5), #fbbf24, rgb(251, 191, 36, 0.5));
+  box-shadow: 0 0 8px rgb(251, 191, 36, 0.4);
+}
+.gc-trophy--unlocked .gc-trophy-tier-bar--platinum {
+  background: linear-gradient(90deg, rgb(56, 189, 248, 0.5), #38bdf8, rgb(56, 189, 248, 0.5));
+  box-shadow: 0 0 8px rgb(56, 189, 248, 0.4);
+}
+.gc-trophy--unlocked .gc-trophy-tier-bar--mythic {
+  background: linear-gradient(90deg, rgb(168, 85, 247, 0.5), #a78bfa, rgb(168, 85, 247, 0.5));
+  box-shadow: 0 0 10px rgb(168, 85, 247, 0.5);
+}
+.gc-trophy--unlocked .gc-trophy-tier-bar--supreme {
+  background: linear-gradient(90deg, rgb(127, 29, 29, 0.6), #991b1b, #dc2626);
+  box-shadow: 0 0 10px rgb(153, 27, 27, 0.55);
+}
 
 /* Tier states (unlocked / locked / progress / secret) */
-.gc-trophy--unlocked { background: var(--portal-surface-2); border: 1px solid var(--portal-border-default); }
-.gc-trophy--locked, .gc-trophy--progress { background: rgba(255,255,255,0.015); border: 1px solid var(--portal-border-faint); }
-.gc-trophy--locked.gc-trophy--bronze, .gc-trophy--progress.gc-trophy--bronze { background: rgba(205,127,50,0.03); }
-.gc-trophy--locked.gc-trophy--silver, .gc-trophy--progress.gc-trophy--silver { background: rgba(192,192,192,0.03); }
-.gc-trophy--locked.gc-trophy--gold, .gc-trophy--progress.gc-trophy--gold { background: rgba(251,191,36,0.03); }
-.gc-trophy--locked.gc-trophy--platinum, .gc-trophy--progress.gc-trophy--platinum { background: rgba(56,189,248,0.03); }
-.gc-trophy--locked.gc-trophy--mythic, .gc-trophy--progress.gc-trophy--mythic { background: rgba(168,85,247,0.03); }
-.gc-trophy--locked .gc-trophy-label { color: rgba(255,255,255,0.3); }
-.gc-trophy--secret { background: rgba(168,85,247,0.04); border: 1px dashed rgba(168,85,247,0.2); }
-.gc-trophy--secret .gc-trophy-icon-wrap { animation: gc-secret-pulse 4s ease-in-out infinite; }
-@keyframes gc-secret-pulse { 0%,100% { opacity: 0.3; } 50% { opacity: 0.6; } }
-.gc-trophy--secret .gc-trophy-label { color: rgba(168,85,247,0.5); font-style: italic; }
+.gc-trophy--unlocked {
+  background: var(--portal-surface-2);
+  border: 1px solid var(--portal-border-default);
+}
+.gc-trophy--locked,
+.gc-trophy--progress {
+  background: rgb(255, 255, 255, 0.015);
+  border: 1px solid var(--portal-border-faint);
+}
+.gc-trophy--locked.gc-trophy--bronze,
+.gc-trophy--progress.gc-trophy--bronze {
+  background: rgb(205, 127, 50, 0.03);
+}
+.gc-trophy--locked.gc-trophy--silver,
+.gc-trophy--progress.gc-trophy--silver {
+  background: rgb(192, 192, 192, 0.03);
+}
+.gc-trophy--locked.gc-trophy--gold,
+.gc-trophy--progress.gc-trophy--gold {
+  background: rgb(251, 191, 36, 0.03);
+}
+.gc-trophy--locked.gc-trophy--platinum,
+.gc-trophy--progress.gc-trophy--platinum {
+  background: rgb(56, 189, 248, 0.03);
+}
+.gc-trophy--locked.gc-trophy--mythic,
+.gc-trophy--progress.gc-trophy--mythic {
+  background: rgb(168, 85, 247, 0.03);
+}
+.gc-trophy--locked .gc-trophy-label {
+  color: rgb(255, 255, 255, 0.3);
+}
+.gc-trophy--secret {
+  background: rgb(168, 85, 247, 0.04);
+  border: 1px dashed rgb(168, 85, 247, 0.2);
+}
+.gc-trophy--secret .gc-trophy-icon-wrap {
+  animation: gc-secret-pulse 4s ease-in-out infinite;
+}
+@keyframes gc-secret-pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+.gc-trophy--secret .gc-trophy-label {
+  color: rgb(168, 85, 247, 0.5);
+  font-style: italic;
+}
 .gc-trophy--secret-unlocked {
-  background: rgba(168,85,247,0.06);
-  border: 1px solid rgba(168,85,247,0.2);
+  background: rgb(168, 85, 247, 0.06);
+  border: 1px solid rgb(168, 85, 247, 0.2);
 }
 
 /* FX per tier (progressive effects: shimmer, sparkles, holo) */
-.gc-fx { overflow: hidden; }
-.gc-fx--bronze { box-shadow: inset 0 -15px 25px rgba(205,127,50,0.06); }
-.gc-fx--silver { box-shadow: inset 0 -15px 25px rgba(192,192,192,0.06); }
+.gc-fx {
+  overflow: hidden;
+}
+.gc-fx--bronze {
+  box-shadow: inset 0 -15px 25px rgb(205, 127, 50, 0.06);
+}
+.gc-fx--silver {
+  box-shadow: inset 0 -15px 25px rgb(192, 192, 192, 0.06);
+}
 .gc-fx-shimmer {
-  position: absolute; top: -50%; left: -100%; width: 60%; height: 200%;
-  background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.06) 45%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.06) 55%, transparent 60%);
-  pointer-events: none; z-index: 1;
+  position: absolute;
+  top: -50%;
+  left: -100%;
+  width: 60%;
+  height: 200%;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgb(255, 255, 255, 0.06) 45%,
+    rgb(255, 255, 255, 0.12) 50%,
+    rgb(255, 255, 255, 0.06) 55%,
+    transparent 60%
+  );
+  pointer-events: none;
+  z-index: 1;
   animation: gc-shimmer 4s ease-in-out infinite;
 }
-@keyframes gc-shimmer { 0%,100% { left: -100%; } 50% { left: 100%; } }
-.gc-fx--gold { box-shadow: inset 0 -15px 30px rgba(251,191,36,0.08), 0 0 10px rgba(251,191,36,0.04); }
-.gc-fx--platinum { box-shadow: inset 0 -15px 30px rgba(56,189,248,0.08), 0 0 12px rgba(56,189,248,0.05); }
-.gc-fx-sparkles { position: absolute; inset: 0; pointer-events: none; z-index: 1; overflow: hidden; }
+@keyframes gc-shimmer {
+  0%,
+  100% {
+    left: -100%;
+  }
+  50% {
+    left: 100%;
+  }
+}
+.gc-fx--gold {
+  box-shadow:
+    inset 0 -15px 30px rgb(251, 191, 36, 0.08),
+    0 0 10px rgb(251, 191, 36, 0.04);
+}
+.gc-fx--platinum {
+  box-shadow:
+    inset 0 -15px 30px rgb(56, 189, 248, 0.08),
+    0 0 12px rgb(56, 189, 248, 0.05);
+}
+.gc-fx-sparkles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
 .gc-sparkle {
-  position: absolute; width: 3px; height: 3px; border-radius: var(--portal-radius-circle);
-  background: #fff; opacity: 0;
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: var(--portal-radius-circle);
+  background: #fff;
+  opacity: 0;
   animation: gc-sparkle 3s ease-in-out infinite;
 }
-.gc-sparkle:nth-child(1) { top: 15%; left: 20%; animation-delay: 0s; }
-.gc-sparkle:nth-child(2) { top: 30%; left: 75%; animation-delay: 0.5s; }
-.gc-sparkle:nth-child(3) { top: 60%; left: 40%; animation-delay: 1s; }
-.gc-sparkle:nth-child(4) { top: 45%; left: 85%; animation-delay: 1.5s; }
-.gc-sparkle:nth-child(5) { top: 70%; left: 15%; animation-delay: 2s; }
-.gc-sparkle:nth-child(6) { top: 80%; left: 60%; animation-delay: 2.5s; }
-.gc-sparkle:nth-child(7) { top: 20%; left: 55%; animation-delay: 0.8s; }
-.gc-sparkle:nth-child(8) { top: 55%; left: 10%; animation-delay: 1.8s; }
+.gc-sparkle:nth-child(1) {
+  top: 15%;
+  left: 20%;
+  animation-delay: 0s;
+}
+.gc-sparkle:nth-child(2) {
+  top: 30%;
+  left: 75%;
+  animation-delay: 0.5s;
+}
+.gc-sparkle:nth-child(3) {
+  top: 60%;
+  left: 40%;
+  animation-delay: 1s;
+}
+.gc-sparkle:nth-child(4) {
+  top: 45%;
+  left: 85%;
+  animation-delay: 1.5s;
+}
+.gc-sparkle:nth-child(5) {
+  top: 70%;
+  left: 15%;
+  animation-delay: 2s;
+}
+.gc-sparkle:nth-child(6) {
+  top: 80%;
+  left: 60%;
+  animation-delay: 2.5s;
+}
+.gc-sparkle:nth-child(7) {
+  top: 20%;
+  left: 55%;
+  animation-delay: 0.8s;
+}
+.gc-sparkle:nth-child(8) {
+  top: 55%;
+  left: 10%;
+  animation-delay: 1.8s;
+}
 @keyframes gc-sparkle {
-  0%,100% { opacity: 0; transform: scale(0.5); }
-  50% { opacity: 0.9; transform: scale(1.5); box-shadow: 0 0 4px rgba(255,255,255,0.6); }
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.5);
+    box-shadow: 0 0 4px rgb(255, 255, 255, 0.6);
+  }
 }
 /* --- Legendary (tier 5) — orange halo pulse + rising embers ---
    Replaces the old rainbow border to align with the orange legendary
    rarity colour. The halo pulses from inside the card; embers float
    upward like a controlled fire. */
 .gc-fx-legendary-halo {
-  position: absolute; inset: 0;
+  position: absolute;
+  inset: 0;
   border-radius: var(--radius-card);
-  pointer-events: none; z-index: 0;
-  box-shadow: inset 0 0 24px rgba(255,140,0,0.18), 0 0 16px rgba(255,140,0,0.32);
+  pointer-events: none;
+  z-index: 0;
+  box-shadow:
+    inset 0 0 24px rgb(255, 140, 0, 0.18),
+    0 0 16px rgb(255, 140, 0, 0.32);
 }
 .gc-fx-legendary-embers {
-  position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 1;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
 }
 .gc-ember {
-  position: absolute; bottom: -4px; width: 4px; height: 4px;
-  border-radius: var(--portal-radius-circle); background: #ff8c00;
+  position: absolute;
+  bottom: -4px;
+  width: 4px;
+  height: 4px;
+  border-radius: var(--portal-radius-circle);
+  background: #ff8c00;
   opacity: 0;
   filter: blur(0.5px);
   box-shadow: 0 0 6px #ff8c00;
   animation: gc-ember-rise 4s ease-in infinite;
 }
-.gc-ember:nth-child(1) { left: 12%; animation-delay: 0s; }
-.gc-ember:nth-child(2) { left: 28%; animation-delay: 0.6s; }
-.gc-ember:nth-child(3) { left: 50%; animation-delay: 1.2s; }
-.gc-ember:nth-child(4) { left: 72%; animation-delay: 1.8s; }
-.gc-ember:nth-child(5) { left: 88%; animation-delay: 2.4s; }
-.gc-ember:nth-child(6) { left: 60%; animation-delay: 3.0s; }
+.gc-ember:nth-child(1) {
+  left: 12%;
+  animation-delay: 0s;
+}
+.gc-ember:nth-child(2) {
+  left: 28%;
+  animation-delay: 0.6s;
+}
+.gc-ember:nth-child(3) {
+  left: 50%;
+  animation-delay: 1.2s;
+}
+.gc-ember:nth-child(4) {
+  left: 72%;
+  animation-delay: 1.8s;
+}
+.gc-ember:nth-child(5) {
+  left: 88%;
+  animation-delay: 2.4s;
+}
+.gc-ember:nth-child(6) {
+  left: 60%;
+  animation-delay: 3s;
+}
 @keyframes gc-ember-rise {
-  0%   { bottom: -4px; opacity: 0;   transform: translateX(0); }
-  15%  { opacity: 0.9; }
-  85%  { opacity: 0.5; transform: translateX(6px); }
-  100% { bottom: 100%; opacity: 0;   transform: translateX(-4px); }
+  0% {
+    bottom: -4px;
+    opacity: 0;
+    transform: translateX(0);
+  }
+  15% {
+    opacity: 0.9;
+  }
+  85% {
+    opacity: 0.5;
+    transform: translateX(6px);
+  }
+  100% {
+    bottom: 100%;
+    opacity: 0;
+    transform: translateX(-4px);
+  }
 }
 
 /* --- Mythic (tier 6 = supreme) — dark-red halo + rising sparks ---
@@ -288,37 +810,94 @@
    denser. Tier 6 is the rarest tier so the pulse is more intense and
    the spark count is bumped to 10. */
 .gc-fx-mythic-halo {
-  position: absolute; inset: 0;
+  position: absolute;
+  inset: 0;
   border-radius: var(--radius-card);
-  pointer-events: none; z-index: 0;
-  box-shadow: inset 0 0 30px rgba(157,28,40,0.35), 0 0 22px rgba(170,28,40,0.55);
+  pointer-events: none;
+  z-index: 0;
+  box-shadow:
+    inset 0 0 30px rgb(157, 28, 40, 0.35),
+    0 0 22px rgb(170, 28, 40, 0.55);
 }
 .gc-fx-mythic-embers {
-  position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 1;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
 }
 .gc-mythic-spark {
-  position: absolute; bottom: -4px; width: 4px; height: 4px;
-  border-radius: var(--portal-radius-circle); background: #b91c1c;
+  position: absolute;
+  bottom: -4px;
+  width: 4px;
+  height: 4px;
+  border-radius: var(--portal-radius-circle);
+  background: #b91c1c;
   opacity: 0;
   filter: blur(0.5px);
-  box-shadow: 0 0 6px #991b1b, 0 0 12px rgba(127,29,29,0.6);
+  box-shadow:
+    0 0 6px #991b1b,
+    0 0 12px rgb(127, 29, 29, 0.6);
   animation: gc-mythic-rise 3.6s ease-in infinite;
 }
-.gc-mythic-spark:nth-child(1)  { left: 8%;  animation-delay: 0s;   }
-.gc-mythic-spark:nth-child(2)  { left: 20%; animation-delay: 0.4s; }
-.gc-mythic-spark:nth-child(3)  { left: 32%; animation-delay: 0.8s; }
-.gc-mythic-spark:nth-child(4)  { left: 44%; animation-delay: 1.2s; }
-.gc-mythic-spark:nth-child(5)  { left: 56%; animation-delay: 1.6s; }
-.gc-mythic-spark:nth-child(6)  { left: 68%; animation-delay: 2.0s; }
-.gc-mythic-spark:nth-child(7)  { left: 80%; animation-delay: 2.4s; }
-.gc-mythic-spark:nth-child(8)  { left: 92%; animation-delay: 2.8s; }
-.gc-mythic-spark:nth-child(9)  { left: 38%; animation-delay: 3.2s; }
-.gc-mythic-spark:nth-child(10) { left: 64%; animation-delay: 3.4s; }
+.gc-mythic-spark:nth-child(1) {
+  left: 8%;
+  animation-delay: 0s;
+}
+.gc-mythic-spark:nth-child(2) {
+  left: 20%;
+  animation-delay: 0.4s;
+}
+.gc-mythic-spark:nth-child(3) {
+  left: 32%;
+  animation-delay: 0.8s;
+}
+.gc-mythic-spark:nth-child(4) {
+  left: 44%;
+  animation-delay: 1.2s;
+}
+.gc-mythic-spark:nth-child(5) {
+  left: 56%;
+  animation-delay: 1.6s;
+}
+.gc-mythic-spark:nth-child(6) {
+  left: 68%;
+  animation-delay: 2s;
+}
+.gc-mythic-spark:nth-child(7) {
+  left: 80%;
+  animation-delay: 2.4s;
+}
+.gc-mythic-spark:nth-child(8) {
+  left: 92%;
+  animation-delay: 2.8s;
+}
+.gc-mythic-spark:nth-child(9) {
+  left: 38%;
+  animation-delay: 3.2s;
+}
+.gc-mythic-spark:nth-child(10) {
+  left: 64%;
+  animation-delay: 3.4s;
+}
 @keyframes gc-mythic-rise {
-  0%   { bottom: -4px; opacity: 0;   transform: translateX(0); }
-  15%  { opacity: 1; }
-  85%  { opacity: 0.6; transform: translateX(-6px); }
-  100% { bottom: 100%; opacity: 0;   transform: translateX(4px); }
+  0% {
+    bottom: -4px;
+    opacity: 0;
+    transform: translateX(0);
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 0.6;
+    transform: translateX(-6px);
+  }
+  100% {
+    bottom: 100%;
+    opacity: 0;
+    transform: translateX(4px);
+  }
 }
 
 /* Subtle WOW: a single arc of crimson glow slowly rotating around
@@ -327,72 +906,122 @@
    feel that elevates the card without being noisy. */
 .gc-fx-mythic-aura-arc {
   position: absolute;
-  top: 50%; left: 50%;
-  width: 90px; height: 90px;
+  top: 50%;
+  left: 50%;
+  width: 90px;
+  height: 90px;
   margin: -45px 0 0 -45px;
   border-radius: var(--portal-radius-circle);
-  pointer-events: none; z-index: 0;
-  background: conic-gradient(from 0deg,
+  pointer-events: none;
+  z-index: 0;
+  background: conic-gradient(
+    from 0deg,
     transparent 0%,
     transparent 55%,
-    rgba(185,28,28,0.55) 72%,
-    rgba(127,29,29,0.85) 82%,
-    rgba(185,28,28,0.55) 92%,
-    transparent 100%);
+    rgb(185, 28, 28, 0.55) 72%,
+    rgb(127, 29, 29, 0.85) 82%,
+    rgb(185, 28, 28, 0.55) 92%,
+    transparent 100%
+  );
   filter: blur(7px);
   opacity: 0.7;
   animation: gc-mythic-aura-spin 7s linear infinite;
 }
-@keyframes gc-mythic-aura-spin { to { transform: rotate(360deg); } }
+@keyframes gc-mythic-aura-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 /* Icon glow per tier (shared with overlay) */
-.gc-icon-glow { filter: drop-shadow(0 0 6px currentColor); }
-.gc-icon-glow--gold { color: #fbbf24; filter: drop-shadow(0 0 8px rgba(251,191,36,0.5)); }
-.gc-icon-glow--platinum { color: #38bdf8; filter: drop-shadow(0 0 8px rgba(56,189,248,0.5)); }
-.gc-icon-glow--mythic { color: #c084fc; filter: drop-shadow(0 0 10px rgba(168,85,247,0.6)) drop-shadow(0 0 20px rgba(168,85,247,0.3)); }
-.gc-icon-glow--supreme  { color: #fca5a5; filter: drop-shadow(0 0 10px rgba(153,27,27,0.7)) drop-shadow(0 0 20px rgba(153,27,27,0.4)); }
+.gc-icon-glow {
+  filter: drop-shadow(0 0 6px currentColor);
+}
+.gc-icon-glow--gold {
+  color: #fbbf24;
+  filter: drop-shadow(0 0 8px rgb(251, 191, 36, 0.5));
+}
+.gc-icon-glow--platinum {
+  color: #38bdf8;
+  filter: drop-shadow(0 0 8px rgb(56, 189, 248, 0.5));
+}
+.gc-icon-glow--mythic {
+  color: #c084fc;
+  filter: drop-shadow(0 0 10px rgb(168, 85, 247, 0.6)) drop-shadow(0 0 20px rgb(168, 85, 247, 0.3));
+}
+.gc-icon-glow--supreme {
+  color: #fca5a5;
+  filter: drop-shadow(0 0 10px rgb(153, 27, 27, 0.7)) drop-shadow(0 0 20px rgb(153, 27, 27, 0.4));
+}
 
 /* Pagination */
 .gc-trophy-pagination {
-  display: flex; align-items: center; justify-content: center;
-  gap: 0.75rem; margin: 0.75rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin: 0.75rem 0;
 }
 .gc-trophy-page-btn {
   background: var(--portal-surface-2);
   border: 1px solid var(--portal-border-default);
   border-radius: var(--radius-sm);
   color: var(--portal-text-body-muted);
-  font-size: var(--portal-text-sm); font-weight: var(--portal-font-bold);
-  width: 28px; height: 28px;
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-bold);
+  width: 28px;
+  height: 28px;
   cursor: pointer;
   transition: all var(--portal-dur-fast);
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.gc-trophy-page-btn:hover:not(:disabled) { background: rgba(251,191,36,0.15); border-color: rgba(251,191,36,0.3); color: #fbbf24; }
-.gc-trophy-page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-.gc-trophy-page-dots { display: flex; gap: 0.4rem; }
+.gc-trophy-page-btn:hover:not(:disabled) {
+  background: rgb(251, 191, 36, 0.15);
+  border-color: rgb(251, 191, 36, 0.3);
+  color: #fbbf24;
+}
+.gc-trophy-page-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+.gc-trophy-page-dots {
+  display: flex;
+  gap: 0.4rem;
+}
 .gc-trophy-page-dot {
-  width: 7px; height: 7px; border-radius: var(--portal-radius-circle);
-  background: rgba(255,255,255,0.15);
+  width: 7px;
+  height: 7px;
+  border-radius: var(--portal-radius-circle);
+  background: rgb(255, 255, 255, 0.15);
   cursor: pointer;
   transition: all var(--portal-dur-fast);
 }
-.gc-trophy-page-dot:hover { background: rgba(251,191,36,0.5); }
+.gc-trophy-page-dot:hover {
+  background: rgb(251, 191, 36, 0.5);
+}
 .gc-trophy-page-dot--active {
   background: #fbbf24;
-  box-shadow: 0 0 6px rgba(251,191,36,0.5);
-  width: 18px; border-radius: var(--portal-radius-xs);
+  box-shadow: 0 0 6px rgb(251, 191, 36, 0.5);
+  width: 18px;
+  border-radius: var(--portal-radius-xs);
 }
 
 .gc-trophy-see-all {
-  width: 100%; padding: 0.5rem;
-  background: transparent; border: 1px solid var(--portal-border-default);
-  border-radius: var(--radius-btn); color: rgba(255,255,255,0.5);
-  font-size: var(--portal-text-2xs); font-weight: var(--portal-font-medium); cursor: pointer;
+  width: 100%;
+  padding: 0.5rem;
+  background: transparent;
+  border: 1px solid var(--portal-border-default);
+  border-radius: var(--radius-btn);
+  color: rgb(255, 255, 255, 0.5);
+  font-size: var(--portal-text-2xs);
+  font-weight: var(--portal-font-medium);
+  cursor: pointer;
   transition: all var(--portal-dur-fast);
 }
 .gc-trophy-see-all:hover {
   background: var(--portal-surface-2);
-  border-color: rgba(255,255,255,0.15);
-  color: rgba(255,255,255,0.8);
+  border-color: rgb(255, 255, 255, 0.15);
+  color: rgb(255, 255, 255, 0.8);
 }

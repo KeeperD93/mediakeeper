@@ -2,7 +2,13 @@
   <div class="ob-panel">
     <div class="ob-step-header">
       <div class="ob-step-icon" :style="{ background: iconBg }">
-        <img v-if="iconSrc" :src="iconSrc" width="26" height="26" onerror="this.style.display='none'" />
+        <img
+          v-if="iconSrc"
+          :src="iconSrc"
+          width="26"
+          height="26"
+          onerror="this.style.display = 'none'"
+        />
         <MessageSquare v-else :size="22" :stroke-width="1.8" />
       </div>
       <div>
@@ -19,7 +25,15 @@
       <div class="ob-field">
         <label class="ob-label">
           {{ keyLabel }}
-          <a v-if="keyHelpHref" :href="keyHelpHref" target="_blank" rel="noopener noreferrer" class="ob-label-link">{{ keyHelpText }} ↗</a>
+          <a
+            v-if="keyHelpHref"
+            :href="keyHelpHref"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="ob-label-link"
+          >
+            {{ keyHelpText }} ↗
+          </a>
         </label>
         <input
           :type="inputType"
@@ -102,9 +116,9 @@ const displayedApiKey = computed(() => {
   return apiKeyMask.value
 })
 
-const inputType = computed(() => (
-  model.value?._configured && !secretEditing.value ? 'text' : 'password'
-))
+const inputType = computed(() =>
+  model.value?._configured && !secretEditing.value ? 'text' : 'password',
+)
 
 function onKeyFocus() {
   if (model.value?._configured && !secretEditing.value) {

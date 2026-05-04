@@ -4,11 +4,15 @@
     <div class="mm-section">
       <div class="mm-label">{{ $t('mediaManager.contentType') }}</div>
       <div class="mm-type-row">
-        <button class="mm-type-btn" :class="{active: searchType==='movie'}" @click="setType('movie')">
+        <button
+          class="mm-type-btn"
+          :class="{ active: searchType === 'movie' }"
+          @click="setType('movie')"
+        >
           <Film />
           {{ $t('common.film') }}
         </button>
-        <button class="mm-type-btn" :class="{active: searchType==='tv'}" @click="setType('tv')">
+        <button class="mm-type-btn" :class="{ active: searchType === 'tv' }" @click="setType('tv')">
           <Monitor />
           {{ $t('common.series') }}
         </button>
@@ -19,7 +23,15 @@
     <div class="mm-section">
       <div class="mm-label">{{ $t('mediaManager.tmdbSearch') }}</div>
       <div class="mm-search-row">
-        <input id="tmdb-q-vue" ref="tmdbQRef" name="tmdb-search" autocomplete="off" class="mm-search-in" :placeholder="$t('mediaManager.tmdbSearch')" @keydown.enter="doSearch(false, $event.target.value)" />
+        <input
+          id="tmdb-q-vue"
+          ref="tmdbQRef"
+          name="tmdb-search"
+          autocomplete="off"
+          class="mm-search-in"
+          :placeholder="$t('mediaManager.tmdbSearch')"
+          @keydown.enter="doSearch(false, $event.target.value)"
+        />
         <button class="mm-search-btn" @click="doSearch(false, tmdbQRef?.value)">
           <Search />
         </button>
@@ -32,7 +44,9 @@
       <div class="mm-season-row">
         <select v-model="currentSeason" class="mm-season-sel">
           <option :value="null">{{ $t('mediaManager.allSeasons') }}</option>
-          <option v-for="s in seasons" :key="s.number" :value="s.number">{{ $t('mediaManager.seasonLabel', { n: s.number, eps: s.episodes }) }}</option>
+          <option v-for="s in seasons" :key="s.number" :value="s.number">
+            {{ $t('mediaManager.seasonLabel', { n: s.number, eps: s.episodes }) }}
+          </option>
         </select>
       </div>
       <div class="mm-season-row mm-row-spaced">
@@ -54,8 +68,10 @@
         <span>{{ $t('mediaManager.searchTitle') }}</span>
       </div>
       <div
-        v-for="(item, i) in tmdbResults" :key="item.id"
-        class="mm-tmdb-card" :class="{selected: selectedTmdb?.id === item.id}"
+        v-for="(item, i) in tmdbResults"
+        :key="item.id"
+        class="mm-tmdb-card"
+        :class="{ selected: selectedTmdb?.id === item.id }"
         @click="pickTMDB(i)"
         @mouseenter="e => showTooltipTmdb(item, e)"
         @mousemove="moveTooltip"
@@ -74,11 +90,30 @@
               <Calendar :size="10" />
               {{ item.year }}
             </span>
-            <span v-if="item.vote && item.vote > 0" class="mm-badge">★ {{ item.vote.toFixed(1) }}</span>
-            <span class="mm-badge">{{ item.type==='tv' ? $t('common.series') : $t('common.film') }}</span>
-            <span v-if="getGenreCategory(item.genre_ids)" class="mm-badge-genre" :style="{background: getGenreCategory(item.genre_ids).color}">{{ getGenreCategory(item.genre_ids).label }}</span>
+            <span v-if="item.vote && item.vote > 0" class="mm-badge">
+              ★ {{ item.vote.toFixed(1) }}
+            </span>
+            <span class="mm-badge">
+              {{ item.type === 'tv' ? $t('common.series') : $t('common.film') }}
+            </span>
+            <span
+              v-if="getGenreCategory(item.genre_ids)"
+              class="mm-badge-genre"
+              :style="{ background: getGenreCategory(item.genre_ids).color }"
+            >
+              {{ getGenreCategory(item.genre_ids).label }}
+            </span>
           </div>
-          <a v-if="item.tmdb_url" :href="item.tmdb_url" target="_blank" rel="noopener" class="mm-tmdb-link" @click.stop>{{ $t('mediaManager.viewOnTmdb') }}</a>
+          <a
+            v-if="item.tmdb_url"
+            :href="item.tmdb_url"
+            target="_blank"
+            rel="noopener"
+            class="mm-tmdb-link"
+            @click.stop
+          >
+            {{ $t('mediaManager.viewOnTmdb') }}
+          </a>
         </div>
       </div>
     </div>
@@ -106,12 +141,16 @@
         {{ $t('mediaManager.scanEmby') }}
       </button>
       <div v-if="progress > 0" class="mm-progress">
-        <div class="mm-progress-fill" :style="{width: progress + '%'}"></div>
+        <div class="mm-progress-fill" :style="{ width: progress + '%' }"></div>
       </div>
     </div>
 
     <!-- Tooltip TMDB -->
-    <div class="mm-tooltip" :class="{visible: tooltip.visible}" :style="{left: tooltip.x+'px', top: tooltip.y+'px'}">
+    <div
+      class="mm-tooltip"
+      :class="{ visible: tooltip.visible }"
+      :style="{ left: tooltip.x + 'px', top: tooltip.y + 'px' }"
+    >
       <div class="mm-tt-title">{{ tooltip.title }}</div>
       <div class="mm-tt-meta">{{ tooltip.year }} · ★ {{ tooltip.vote }}</div>
       <div class="mm-tt-overview">{{ tooltip.overview || $t('mediaManager.noSynopsis') }}</div>
@@ -122,15 +161,45 @@
 <script setup>
 import { ref } from 'vue'
 import { useMediaManager } from '@/composables/useMediaManager'
-import { ArrowLeftRight, Calendar, Check, Film, Folder, Monitor, Plus, RefreshCw, Search, Settings } from 'lucide-vue-next'
+import {
+  ArrowLeftRight,
+  Calendar,
+  Check,
+  Film,
+  Folder,
+  Monitor,
+  Plus,
+  RefreshCw,
+  Search,
+  Settings,
+} from 'lucide-vue-next'
 
 const emit = defineEmits(['openConfig'])
 
 const {
-  searchType, tmdbResults, selectedTmdb, currentSeason, seasons, showSeasonPanel,
-  tooltip, progress, canGenerate, canRename, canFolders, showAdvancedModal,
-  setType, doSearch, pickTMDB, showTooltipTmdb, moveTooltip, hideTooltip,
-  doMatch, dropOnTmdb, startRename, openFolderModal, refreshEmby, getGenreCategory,
+  searchType,
+  tmdbResults,
+  selectedTmdb,
+  currentSeason,
+  seasons,
+  showSeasonPanel,
+  tooltip,
+  progress,
+  canGenerate,
+  canRename,
+  canFolders,
+  setType,
+  doSearch,
+  pickTMDB,
+  showTooltipTmdb,
+  moveTooltip,
+  hideTooltip,
+  doMatch,
+  dropOnTmdb,
+  startRename,
+  openFolderModal,
+  refreshEmby,
+  getGenreCategory,
 } = useMediaManager()
 
 const tmdbQRef = ref(null)

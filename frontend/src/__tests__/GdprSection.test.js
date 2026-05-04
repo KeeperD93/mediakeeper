@@ -61,12 +61,14 @@ beforeEach(() => {
   cancelDeletionRequest.mockReset()
 })
 
-
 describe('GdprSection', () => {
   it('does not render the config zone when the toggle is off', async () => {
     fetchSettings.mockResolvedValueOnce({
-      enabled: false, privacy_text_fr: '', privacy_text_en: '',
-      dpo_contact: '', account_purge_delay_days: 30,
+      enabled: false,
+      privacy_text_fr: '',
+      privacy_text_en: '',
+      dpo_contact: '',
+      account_purge_delay_days: 30,
     })
     const w = mount(GdprSection)
     await flushPromises()
@@ -77,8 +79,11 @@ describe('GdprSection', () => {
 
   it('renders the config zone and loads pending users when toggle is on', async () => {
     fetchSettings.mockResolvedValueOnce({
-      enabled: true, privacy_text_fr: '<p>fr</p>', privacy_text_en: '<p>en</p>',
-      dpo_contact: 'op@example.org', account_purge_delay_days: 30,
+      enabled: true,
+      privacy_text_fr: '<p>fr</p>',
+      privacy_text_en: '<p>en</p>',
+      dpo_contact: 'op@example.org',
+      account_purge_delay_days: 30,
     })
     fetchPendingDeletions.mockResolvedValueOnce([])
     const w = mount(GdprSection)
@@ -92,12 +97,18 @@ describe('GdprSection', () => {
 
   it('persists the toggle change immediately (PUT enabled=true)', async () => {
     fetchSettings.mockResolvedValueOnce({
-      enabled: false, privacy_text_fr: '', privacy_text_en: '',
-      dpo_contact: '', account_purge_delay_days: 30,
+      enabled: false,
+      privacy_text_fr: '',
+      privacy_text_en: '',
+      dpo_contact: '',
+      account_purge_delay_days: 30,
     })
     saveSettings.mockResolvedValueOnce({
-      enabled: true, privacy_text_fr: '', privacy_text_en: '',
-      dpo_contact: '', account_purge_delay_days: 30,
+      enabled: true,
+      privacy_text_fr: '',
+      privacy_text_en: '',
+      dpo_contact: '',
+      account_purge_delay_days: 30,
     })
     fetchPendingDeletions.mockResolvedValueOnce([])
     const w = mount(GdprSection)
@@ -115,8 +126,11 @@ describe('GdprSection', () => {
 
   it('disables the Save button when the delay is below the floor', async () => {
     fetchSettings.mockResolvedValueOnce({
-      enabled: true, privacy_text_fr: '', privacy_text_en: '',
-      dpo_contact: '', account_purge_delay_days: 30,
+      enabled: true,
+      privacy_text_fr: '',
+      privacy_text_en: '',
+      dpo_contact: '',
+      account_purge_delay_days: 30,
     })
     fetchPendingDeletions.mockResolvedValueOnce([])
     const w = mount(GdprSection)
@@ -134,8 +148,11 @@ describe('GdprSection', () => {
 
   it('disables the Save button when the delay is above the cap', async () => {
     fetchSettings.mockResolvedValueOnce({
-      enabled: true, privacy_text_fr: '', privacy_text_en: '',
-      dpo_contact: '', account_purge_delay_days: 30,
+      enabled: true,
+      privacy_text_fr: '',
+      privacy_text_en: '',
+      dpo_contact: '',
+      account_purge_delay_days: 30,
     })
     fetchPendingDeletions.mockResolvedValueOnce([])
     const w = mount(GdprSection)
@@ -149,13 +166,19 @@ describe('GdprSection', () => {
 
   it('persists privacy texts + DPO + delay through Save', async () => {
     fetchSettings.mockResolvedValueOnce({
-      enabled: true, privacy_text_fr: '<p>fr</p>', privacy_text_en: '<p>en</p>',
-      dpo_contact: '', account_purge_delay_days: 30,
+      enabled: true,
+      privacy_text_fr: '<p>fr</p>',
+      privacy_text_en: '<p>en</p>',
+      dpo_contact: '',
+      account_purge_delay_days: 30,
     })
     fetchPendingDeletions.mockResolvedValueOnce([])
     saveSettings.mockResolvedValueOnce({
-      enabled: true, privacy_text_fr: '<p>fr</p>', privacy_text_en: '<p>en</p>',
-      dpo_contact: 'dpo@example.org', account_purge_delay_days: 45,
+      enabled: true,
+      privacy_text_fr: '<p>fr</p>',
+      privacy_text_en: '<p>en</p>',
+      dpo_contact: 'dpo@example.org',
+      account_purge_delay_days: 45,
     })
     const w = mount(GdprSection)
     await flushPromises()
@@ -177,15 +200,21 @@ describe('GdprSection', () => {
 
   it('flips the form back when the toggle is switched off', async () => {
     fetchSettings.mockResolvedValueOnce({
-      enabled: true, privacy_text_fr: '', privacy_text_en: '',
-      dpo_contact: '', account_purge_delay_days: 30,
+      enabled: true,
+      privacy_text_fr: '',
+      privacy_text_en: '',
+      dpo_contact: '',
+      account_purge_delay_days: 30,
     })
     fetchPendingDeletions.mockResolvedValueOnce([
       { id: 1, username: 'pending-user', deletion_requested_at: '', pending_deletion_at: '' },
     ])
     saveSettings.mockResolvedValueOnce({
-      enabled: false, privacy_text_fr: '', privacy_text_en: '',
-      dpo_contact: '', account_purge_delay_days: 30,
+      enabled: false,
+      privacy_text_fr: '',
+      privacy_text_en: '',
+      dpo_contact: '',
+      account_purge_delay_days: 30,
     })
     const w = mount(GdprSection)
     await flushPromises()

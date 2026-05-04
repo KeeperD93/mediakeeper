@@ -53,9 +53,17 @@ export function usePortalNews() {
   }
 
   return {
-    news, unreadNews, hasMore, nextCursor,
-    fetchNews, fetchUnread, markRead,
-    createNews, updateNews, deleteNews,
-    loading, error,
+    news,
+    unreadNews,
+    hasMore,
+    nextCursor,
+    fetchNews,
+    fetchUnread,
+    markRead,
+    createNews,
+    updateNews,
+    deleteNews,
+    loading,
+    error,
   }
 }

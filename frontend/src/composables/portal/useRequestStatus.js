@@ -19,7 +19,7 @@ function _isFresh(entry) {
   if (!entry || typeof entry !== 'object') return false
   const ts = entry._ts
   if (typeof ts !== 'number') return false
-  return (Date.now() - ts) < CACHE_TTL_MS
+  return Date.now() - ts < CACHE_TTL_MS
 }
 
 export function useRequestStatus() {
@@ -142,7 +142,7 @@ export function useRequestStatus() {
   }
 
   /**
- * Nuke the cache entirely. Called when the Portal home page
+   * Nuke the cache entirely. Called when the Portal home page
    * mounts/activates so each visit starts from a clean slate — that's
    * the main safety net for the "admin just toggled anonymize_requests"
    * scenario: navigating back to Home forces a full re-fetch.
@@ -154,7 +154,12 @@ export function useRequestStatus() {
   }
 
   return {
-    checkStatus, getStatus, markRequested, markStatus, invalidate,
-    clearCache, cache,
+    checkStatus,
+    getStatus,
+    markRequested,
+    markStatus,
+    invalidate,
+    clearCache,
+    cache,
   }
 }

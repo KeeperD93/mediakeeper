@@ -10,12 +10,7 @@ import { useVideoPlayingFlag } from '@/composables/portal/useVideoPlayingFlag'
 import { TRAILER_SOURCE } from '@/constants/trailers'
 
 export function useEmbyHeroTrailer({ onTrailerEnded } = {}) {
-  const {
-    trailer,
-    resolve: resolveTrailer,
-    peek: peekTrailer,
-    clear: clearTrailer,
-  } = useTrailer()
+  const { trailer, resolve: resolveTrailer, peek: peekTrailer, clear: clearTrailer } = useTrailer()
   const muted = ref(true)
   const embyVideoRef = ref(null)
   const videoPlaying = ref(false)
@@ -97,12 +92,12 @@ export function useEmbyHeroTrailer({ onTrailerEnded } = {}) {
         // forward the event to nextItem and rotate to the next item.
       },
       events: {
-        onReady: (e) => {
+        onReady: e => {
           if (muted.value) e.target.mute()
           else e.target.unMute()
           e.target.playVideo()
         },
-        onStateChange: (e) => {
+        onStateChange: e => {
           // 1 = playing, 0 = ended, 2 = paused
           setVideoPlaying(e.data === 1)
           if (e.data === 0) onTrailerEnded?.()
@@ -112,7 +107,11 @@ export function useEmbyHeroTrailer({ onTrailerEnded } = {}) {
   }
 
   function destroyPlayer() {
-    try { if (player && player.destroy) player.destroy() } catch { /* ignore */ }
+    try {
+      if (player && player.destroy) player.destroy()
+    } catch {
+      /* ignore */
+    }
     player = null
     setVideoPlaying(false)
   }
@@ -128,8 +127,13 @@ export function useEmbyHeroTrailer({ onTrailerEnded } = {}) {
     }
   }
 
-  function onEmbyPause() { setVideoPlaying(false) }
-  function onEmbyEnded() { setVideoPlaying(false); onTrailerEnded?.() }
+  function onEmbyPause() {
+    setVideoPlaying(false)
+  }
+  function onEmbyEnded() {
+    setVideoPlaying(false)
+    onTrailerEnded?.()
+  }
 
   onBeforeUnmount(() => {
     destroyPlayer()

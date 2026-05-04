@@ -1,13 +1,30 @@
 import { computed } from 'vue'
 import {
-  apiGet, apiFetch, showToast, _t,
-  CATS, activeCat, subPath, filtered,
-  modalMoveSrc, modalMoveShow,
-  moveCat, movePath, moveFolders, moveSearchQ, moveSelectedPath, moveLoading, moveManualPath,
+  apiGet,
+  apiFetch,
+  showToast,
+  _t,
+  CATS,
+  activeCat,
+  subPath,
+  filtered,
+  modalMoveSrc,
+  modalMoveShow,
+  moveCat,
+  movePath,
+  moveFolders,
+  moveSearchQ,
+  moveSelectedPath,
+  moveLoading,
+  moveManualPath,
   dragFileIdx,
-  moveHistory, _saveMoveHistory,
-  modalRenameFolderShow, renameFolderCurrent, renameFolderValue,
-  setProgress, endProgress,
+  moveHistory,
+  _saveMoveHistory,
+  modalRenameFolderShow,
+  renameFolderCurrent,
+  renameFolderValue,
+  setProgress,
+  endProgress,
 } from './mediaManagerState'
 import { loadFiles, checkedFiles } from './mediaManagerNavigation'
 import { _checkAndMove } from './mediaManagerMove'
@@ -58,15 +75,26 @@ export const moveFoldersFiltered = computed(() => {
   const q = moveSearchQ.value.toLowerCase()
   return list.filter(f => f.name.toLowerCase().includes(q))
 })
-export const moveBreadcrumbs = computed(() => movePath.value ? movePath.value.split('/').filter(Boolean) : [])
+export const moveBreadcrumbs = computed(() =>
+  movePath.value ? movePath.value.split('/').filter(Boolean) : [],
+)
 export const canMoveMulti = computed(() => checkedFiles.value.length > 0)
 
-export function openMoveModal(idx) { modalMoveSrc.value = 'single'; dragFileIdx.value = idx; _openMoveCommon() }
-export function openMoveModalMulti() { modalMoveSrc.value = 'multi'; _openMoveCommon() }
+export function openMoveModal(idx) {
+  modalMoveSrc.value = 'single'
+  dragFileIdx.value = idx
+  _openMoveCommon()
+}
+export function openMoveModalMulti() {
+  modalMoveSrc.value = 'multi'
+  _openMoveCommon()
+}
 
 async function _openMoveCommon() {
-  moveCat.value = activeCat.value; movePath.value = ''
-  moveSelectedPath.value = null; moveSearchQ.value = ''
+  moveCat.value = activeCat.value
+  movePath.value = ''
+  moveSelectedPath.value = null
+  moveSearchQ.value = ''
   moveManualPath.value = ''
   modalMoveShow.value = true
   await _loadMoveFolders()
@@ -132,23 +160,51 @@ export async function jumpToAbsolutePath(absPath) {
 // puis on vide le champ. Toast d'erreur si chemin vide.
 export async function applyManualPath() {
   const raw = (moveManualPath.value || '').trim()
-  if (!raw) { showToast(_t('mediaManager.manualPathEmpty'), TOAST_TYPE.ERR); return }
+  if (!raw) {
+    showToast(_t('mediaManager.manualPathEmpty'), TOAST_TYPE.ERR)
+    return
+  }
   await jumpToAbsolutePath(raw)
   moveManualPath.value = ''
 }
 async function _loadMoveFolders() {
   moveLoading.value = true
   try {
-    const url = `/api/media/files/${moveCat.value}` + (movePath.value ? `?subpath=${encodeURIComponent(movePath.value)}` : '')
+    const url =
+      `/api/media/files/${moveCat.value}` +
+      (movePath.value ? `?subpath=${encodeURIComponent(movePath.value)}` : '')
     const data = await apiGet(url)
     moveFolders.value = Array.isArray(data) ? data.filter(f => f.type === FILE_TYPE.FOLDER) : []
-  } catch { moveFolders.value = [] }
+  } catch {
+    moveFolders.value = []
+  }
   moveLoading.value = false
 }
-export async function moveChangeCat(key) { moveCat.value = key; movePath.value = ''; moveSelectedPath.value = null; moveSearchQ.value = ''; await _loadMoveFolders() }
-export async function moveEnterFolder(path, name) { movePath.value = path ? `${path}/${name}` : name; moveSelectedPath.value = null; moveSearchQ.value = ''; await _loadMoveFolders() }
-export async function moveNavTo(idx) { movePath.value = moveBreadcrumbs.value.slice(0, idx + 1).join('/'); moveSelectedPath.value = null; moveSearchQ.value = ''; await _loadMoveFolders() }
-export async function moveNavRoot() { movePath.value = ''; moveSelectedPath.value = null; moveSearchQ.value = ''; await _loadMoveFolders() }
+export async function moveChangeCat(key) {
+  moveCat.value = key
+  movePath.value = ''
+  moveSelectedPath.value = null
+  moveSearchQ.value = ''
+  await _loadMoveFolders()
+}
+export async function moveEnterFolder(path, name) {
+  movePath.value = path ? `${path}/${name}` : name
+  moveSelectedPath.value = null
+  moveSearchQ.value = ''
+  await _loadMoveFolders()
+}
+export async function moveNavTo(idx) {
+  movePath.value = moveBreadcrumbs.value.slice(0, idx + 1).join('/')
+  moveSelectedPath.value = null
+  moveSearchQ.value = ''
+  await _loadMoveFolders()
+}
+export async function moveNavRoot() {
+  movePath.value = ''
+  moveSelectedPath.value = null
+  moveSearchQ.value = ''
+  await _loadMoveFolders()
+}
 export function movePickFolder(pathOrAbsolute, name) {
   if (pathOrAbsolute && pathOrAbsolute.startsWith('/')) moveSelectedPath.value = pathOrAbsolute
   else moveSelectedPath.value = pathOrAbsolute ? `${pathOrAbsolute}/${name}` : name
@@ -157,19 +213,33 @@ export async function movePickCurrent() {
   if (movePath.value) {
     try {
       const rootData = await apiGet(`/api/media/rootpath/${moveCat.value}`)
-      if (rootData?.path) { moveSelectedPath.value = rootData.path.replace(/\/$/, '') + '/' + movePath.value.replace(/^\//, ''); return }
-    } catch { /* silent: fallback to movePath below */ }
+      if (rootData?.path) {
+        moveSelectedPath.value =
+          rootData.path.replace(/\/$/, '') + '/' + movePath.value.replace(/^\//, '')
+        return
+      }
+    } catch {
+      /* silent: fallback to movePath below */
+    }
     moveSelectedPath.value = movePath.value
   } else {
     try {
       const rootData = await apiGet(`/api/media/rootpath/${moveCat.value}`)
-      if (rootData?.path) { moveSelectedPath.value = rootData.path; return }
-    } catch { /* silent: fallback to local CATS.path */ }
+      if (rootData?.path) {
+        moveSelectedPath.value = rootData.path
+        return
+      }
+    } catch {
+      /* silent: fallback to local CATS.path */
+    }
     const cat = CATS.value.find(c => c.key === moveCat.value)
     moveSelectedPath.value = cat?.path ?? ''
   }
 }
-export function closeMoveModal() { modalMoveShow.value = false; dragFileIdx.value = null }
+export function closeMoveModal() {
+  modalMoveShow.value = false
+  dragFileIdx.value = null
+}
 
 // Resolve the absolute path of the folder currently shown in the move modal.
 // Reused by the in-modal "create folder" action so the new folder lands at
@@ -181,7 +251,9 @@ async function _resolveMoveAbsolutePath() {
       const root = rootData.path.replace(/\/$/, '')
       return movePath.value ? `${root}/${movePath.value.replace(/^\//, '')}` : root
     }
-  } catch { /* silent: fall back to local CATS metadata */ }
+  } catch {
+    /* silent: fall back to local CATS metadata */
+  }
   const cat = CATS.value.find(c => c.key === moveCat.value)
   const root = (cat?.path ?? '').replace(/\/$/, '')
   if (!root) return ''
@@ -193,15 +265,24 @@ async function _resolveMoveAbsolutePath() {
 // the user just has to confirm with the footer "Move here" button.
 export async function createMoveFolder(rawName) {
   const name = sanitize((rawName || '').trim())
-  if (!name) { showToast(_t('mediaManager.folderNameRequired'), TOAST_TYPE.ERR); return false }
+  if (!name) {
+    showToast(_t('mediaManager.folderNameRequired'), TOAST_TYPE.ERR)
+    return false
+  }
   if (moveFolders.value.some(f => f.name.toLowerCase() === name.toLowerCase())) {
     showToast(_t('mediaManager.folderAlreadyExists', { name }), TOAST_TYPE.ERR)
     return false
   }
   const parentPath = await _resolveMoveAbsolutePath()
-  if (!parentPath) { showToast(_t('common.apiError.unknown', { status: '' }), TOAST_TYPE.ERR); return false }
+  if (!parentPath) {
+    showToast(_t('common.apiError.unknown', { status: '' }), TOAST_TYPE.ERR)
+    return false
+  }
   try {
-    const res = await apiFetch('/api/media/create-folders', { method: 'POST', body: JSON.stringify({ folders: [{ parent_path: parentPath, folder_name: name }] }) })
+    const res = await apiFetch('/api/media/create-folders', {
+      method: 'POST',
+      body: JSON.stringify({ folders: [{ parent_path: parentPath, folder_name: name }] }),
+    })
     const data = await res.json()
     const entry = Array.isArray(data) ? data[0] : null
     if (!entry || entry.error) {
@@ -229,7 +310,10 @@ export async function execMove() {
   if (!dest) return
   const filesToMove = []
   if (modalMoveSrc.value === 'multi') checkedFiles.value.forEach(f => filesToMove.push(f))
-  else if (dragFileIdx.value !== null) { const f = filtered.value[dragFileIdx.value]; if (f) filesToMove.push(f) }
+  else if (dragFileIdx.value !== null) {
+    const f = filtered.value[dragFileIdx.value]
+    if (f) filesToMove.push(f)
+  }
   closeMoveModal()
   if (!filesToMove.length) return
   await _checkAndMove(filesToMove, dest)
@@ -246,21 +330,40 @@ export async function undoMove(histIdx) {
   })
   if (!confirmed) return
   setProgress(5)
-  let ok = 0, err = 0
+  let ok = 0,
+    err = 0
   const results = await Promise.allSettled(
     entry.items.map((item, i) => {
       setProgress(5 + 90 * ((i + 1) / entry.items.length))
       const oldDir = item.oldPath.split('/').slice(0, -1).join('/')
-      return apiFetch('/api/media/move', { method: 'POST', body: JSON.stringify({ src_path: item.newPath, dest_folder: oldDir }) }).then(r => r.json())
+      return apiFetch('/api/media/move', {
+        method: 'POST',
+        body: JSON.stringify({ src_path: item.newPath, dest_folder: oldDir }),
+      }).then(r => r.json())
     }),
   )
-  results.forEach(r => { if (r.status === 'fulfilled' && !r.value?.error) ok++; else err++ })
+  results.forEach(r => {
+    if (r.status === 'fulfilled' && !r.value?.error) ok++
+    else err++
+  })
   endProgress()
-  if (ok > 0) { moveHistory.value.splice(histIdx, 1); _saveMoveHistory() }
-  showToast(err === 0 ? _t('mediaManager.filesRestored', { count: ok }) : _t('mediaManager.partialResult', { ok, errors: err }), err === 0 ? TOAST_TYPE.OK : TOAST_TYPE.ERR)
+  if (ok > 0) {
+    moveHistory.value.splice(histIdx, 1)
+    _saveMoveHistory()
+  }
+  showToast(
+    err === 0
+      ? _t('mediaManager.filesRestored', { count: ok })
+      : _t('mediaManager.partialResult', { ok, errors: err }),
+    err === 0 ? TOAST_TYPE.OK : TOAST_TYPE.ERR,
+  )
   loadFiles()
 }
-export function clearMoveHistory() { moveHistory.value = []; _saveMoveHistory(); showToast(_t('mediaManager.historyCleared'), TOAST_TYPE.OK) }
+export function clearMoveHistory() {
+  moveHistory.value = []
+  _saveMoveHistory()
+  showToast(_t('mediaManager.historyCleared'), TOAST_TYPE.OK)
+}
 
 // ─── RENOMMER DOSSIER (simple) ───
 export function openRenameFolderModal() {
@@ -271,23 +374,31 @@ export function openRenameFolderModal() {
 }
 export async function execRenameFolder() {
   const newName = renameFolderValue.value.trim()
-  if (!newName || newName === renameFolderCurrent.value) { modalRenameFolderShow.value = false; return }
+  if (!newName || newName === renameFolderCurrent.value) {
+    modalRenameFolderShow.value = false
+    return
+  }
   modalRenameFolderShow.value = false
   setProgress(40)
   try {
-    const res = await apiFetch('/api/media/rename-folder', { method: 'POST', body: JSON.stringify({ cat: activeCat.value, subpath: subPath.value, new_name: newName }) })
+    const res = await apiFetch('/api/media/rename-folder', {
+      method: 'POST',
+      body: JSON.stringify({ cat: activeCat.value, subpath: subPath.value, new_name: newName }),
+    })
     const d = await res.json()
     endProgress()
     if (d.error) {
       console.error('[mediaManagerMoveModal.execRenameFolder] backend error', d.error)
       showToast(_t('common.apiError.unknown', { status: '' }), TOAST_TYPE.ERR)
-    }
-    else {
+    } else {
       const parts = subPath.value.split('/')
       parts[parts.length - 1] = newName
       subPath.value = parts.join('/')
       showToast(_t('mediaManager.folderRenamed', { name: newName }), TOAST_TYPE.OK)
     }
     loadFiles()
-  } catch { endProgress(); showToast(_t('mediaManager.renameError'), TOAST_TYPE.ERR) }
+  } catch {
+    endProgress()
+    showToast(_t('mediaManager.renameError'), TOAST_TYPE.ERR)
+  }
 }

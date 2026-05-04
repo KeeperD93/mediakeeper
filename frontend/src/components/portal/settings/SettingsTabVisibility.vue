@@ -3,10 +3,7 @@
     <h3 class="pt-settings-section-title">{{ $t('portal.settings.visibility.profileSection') }}</h3>
 
     <div class="pt-settings-radios">
-      <label
-        class="pt-settings-radio"
-        :class="{ 'pt-settings-radio--on': form.is_public }"
-      >
+      <label class="pt-settings-radio" :class="{ 'pt-settings-radio--on': form.is_public }">
         <input
           type="radio"
           :value="true"
@@ -18,13 +15,12 @@
           <Globe :size="14" />
           {{ $t('portal.settings.visibility.public') }}
         </span>
-        <span class="pt-settings-radio-hint">{{ $t('portal.settings.visibility.publicHint') }}</span>
+        <span class="pt-settings-radio-hint">
+          {{ $t('portal.settings.visibility.publicHint') }}
+        </span>
       </label>
 
-      <label
-        class="pt-settings-radio"
-        :class="{ 'pt-settings-radio--on': !form.is_public }"
-      >
+      <label class="pt-settings-radio" :class="{ 'pt-settings-radio--on': !form.is_public }">
         <input
           type="radio"
           :value="false"
@@ -36,7 +32,9 @@
           <Lock :size="14" />
           {{ $t('portal.settings.visibility.private') }}
         </span>
-        <span class="pt-settings-radio-hint">{{ $t('portal.settings.visibility.privateHint') }}</span>
+        <span class="pt-settings-radio-hint">
+          {{ $t('portal.settings.visibility.privateHint') }}
+        </span>
       </label>
     </div>
 
@@ -55,8 +53,12 @@
         @change="updateField('hide_adult', $event.target.checked)"
       />
       <span class="pt-settings-toggle-text">
-        <span class="pt-settings-toggle-label">{{ $t('portal.settings.visibility.hideAdult') }}</span>
-        <span class="pt-settings-toggle-hint">{{ $t('portal.settings.visibility.hideAdultHint') }}</span>
+        <span class="pt-settings-toggle-label">
+          {{ $t('portal.settings.visibility.hideAdult') }}
+        </span>
+        <span class="pt-settings-toggle-hint">
+          {{ $t('portal.settings.visibility.hideAdultHint') }}
+        </span>
       </span>
     </label>
   </div>

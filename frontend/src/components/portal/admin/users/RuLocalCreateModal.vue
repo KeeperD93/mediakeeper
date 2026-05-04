@@ -12,13 +12,22 @@
         <form class="atl-panel mk-modal-sheet-panel ru-create-panel" @submit.prevent="submit">
           <div class="atl-header">
             <h2 class="atl-title">{{ $t('requestsAdmin.users.drawerLocal.title') }}</h2>
-            <button class="atl-close" type="button" :aria-label="$t('common.close')" @click="close"><X :size="14" /></button>
+            <button class="atl-close" type="button" :aria-label="$t('common.close')" @click="close">
+              <X :size="14" />
+            </button>
           </div>
 
           <div class="ru-form atl-body">
             <label>
               <span>{{ $t('requestsAdmin.users.drawerLocal.username') }} *</span>
-              <input v-model="form.username" type="text" minlength="3" maxlength="50" required autofocus />
+              <input
+                v-model="form.username"
+                type="text"
+                minlength="3"
+                maxlength="50"
+                required
+                autofocus
+              />
             </label>
             <label>
               <span>{{ $t('requestsAdmin.users.drawerLocal.password') }} *</span>
@@ -26,7 +35,9 @@
                 <input
                   v-model="form.password"
                   :type="showPwd ? 'text' : 'password'"
-                  minlength="8" maxlength="128" required
+                  minlength="8"
+                  maxlength="128"
+                  required
                 />
                 <button
                   type="button"
@@ -60,7 +71,9 @@
               <span>{{ $t('requestsAdmin.users.drawerLocal.role') }}</span>
               <select v-model="form.role">
                 <option value="viewer">{{ $t('requestsAdmin.users.filters.role.viewer') }}</option>
-                <option value="moderator">{{ $t('requestsAdmin.users.filters.role.moderator') }}</option>
+                <option value="moderator">
+                  {{ $t('requestsAdmin.users.filters.role.moderator') }}
+                </option>
                 <option value="admin">{{ $t('requestsAdmin.users.filters.role.admin') }}</option>
               </select>
             </label>
@@ -73,7 +86,9 @@
           </div>
 
           <footer class="ru-import-footer">
-            <button type="button" class="ru-btn ru-btn--ghost" @click="close">{{ $t('common.cancel') }}</button>
+            <button type="button" class="ru-btn ru-btn--ghost" @click="close">
+              {{ $t('common.cancel') }}
+            </button>
             <button type="submit" class="ru-btn ru-btn--primary" :disabled="busy">
               {{ $t('requestsAdmin.users.drawerLocal.create') }}
             </button>
@@ -98,22 +113,30 @@ const { t } = useI18n()
 const api = usePortalAdminUsers()
 
 const empty = () => ({
-  username: '', password: '', display_name: '',
-  email: '', first_name: '', last_name: '',
-  role: 'viewer', account_active: true,
+  username: '',
+  password: '',
+  display_name: '',
+  email: '',
+  first_name: '',
+  last_name: '',
+  role: 'viewer',
+  account_active: true,
 })
 const form = reactive(empty())
 const busy = ref(false)
 const error = ref('')
 const showPwd = ref(false)
 
-watch(() => props.open, (v) => {
-  if (v) {
-    Object.assign(form, empty())
-    error.value = ''
-    showPwd.value = false
-  }
-})
+watch(
+  () => props.open,
+  v => {
+    if (v) {
+      Object.assign(form, empty())
+      error.value = ''
+      showPwd.value = false
+    }
+  },
+)
 
 async function submit() {
   busy.value = true
@@ -125,7 +148,9 @@ async function submit() {
       return
     }
     emit('created', res)
-  } finally { busy.value = false }
+  } finally {
+    busy.value = false
+  }
 }
 
 function close() {

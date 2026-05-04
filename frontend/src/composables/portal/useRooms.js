@@ -33,7 +33,7 @@ export function useRooms() {
   async function update(id, payload) {
     const res = await apiPatch(`/api/portal/events/rooms/${id}`, payload)
     if (res && !res.error) {
-      const idx = events.value.findIndex((e) => e.id === id)
+      const idx = events.value.findIndex(e => e.id === id)
       if (idx >= 0) events.value[idx] = res
     }
     return res
@@ -42,7 +42,7 @@ export function useRooms() {
   async function cancel(id) {
     const res = await apiDelete(`/api/portal/events/rooms/${id}`)
     if (res && !res.error) {
-      events.value = events.value.filter((e) => e.id !== id)
+      events.value = events.value.filter(e => e.id !== id)
     }
     return res
   }

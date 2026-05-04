@@ -27,60 +27,60 @@
       </div>
 
       <!-- 1. Top 20 du mois sur Emby — NON cliquable -->
-        <Top20Carousel
-          v-if="top20.length"
-          :title="$t('portal.sections.top20')"
-          :items="top20.slice(0, 20)"
-          @select="showDetail"
-        />
+      <Top20Carousel
+        v-if="top20.length"
+        :title="$t('portal.sections.top20')"
+        :items="top20.slice(0, 20)"
+        @select="showDetail"
+      />
 
-        <!-- 2. Recommandations for vous -->
-        <MediaCarousel
-          v-if="recommended.length"
-          :title="$t('portal.sections.recommended')"
-          :items="recommended.slice(0, 20)"
-          card-width="185px"
-          :title-route="{ name: 'portal-category', params: { type: 'recommended-full' } }"
-          @select="showDetail"
-          @request="handleRequest"
-        />
+      <!-- 2. Recommandations for vous -->
+      <MediaCarousel
+        v-if="recommended.length"
+        :title="$t('portal.sections.recommended')"
+        :items="recommended.slice(0, 20)"
+        card-width="185px"
+        :title-route="{ name: 'portal-category', params: { type: 'recommended-full' } }"
+        @select="showDetail"
+        @request="handleRequest"
+      />
 
-        <!-- 3. Films populaires -->
-        <MediaCarousel
-          v-if="popularMovies.length"
-          :title="$t('portal.sections.popularMovies')"
-          :items="popularMovies.slice(0, 20)"
-          card-width="185px"
-          :title-route="{ name: 'portal-category', params: { type: 'popular-movies' } }"
-          @select="showDetail"
-          @request="handleRequest"
-        />
+      <!-- 3. Films populaires -->
+      <MediaCarousel
+        v-if="popularMovies.length"
+        :title="$t('portal.sections.popularMovies')"
+        :items="popularMovies.slice(0, 20)"
+        card-width="185px"
+        :title-route="{ name: 'portal-category', params: { type: 'popular-movies' } }"
+        @select="showDetail"
+        @request="handleRequest"
+      />
 
-        <!-- 4. Seriess populaires -->
-        <MediaCarousel
-          v-if="popularTv.length"
-          :title="$t('portal.sections.popularTv')"
-          :items="popularTv.slice(0, 20)"
-          card-width="185px"
-          :title-route="{ name: 'portal-category', params: { type: 'popular-tv' } }"
-          @select="showDetail"
-          @request="handleRequest"
-        />
+      <!-- 4. Seriess populaires -->
+      <MediaCarousel
+        v-if="popularTv.length"
+        :title="$t('portal.sections.popularTv')"
+        :items="popularTv.slice(0, 20)"
+        card-width="185px"
+        :title-route="{ name: 'portal-category', params: { type: 'popular-tv' } }"
+        @select="showDetail"
+        @request="handleRequest"
+      />
 
-        <!-- 5. Because you watched X — NOT clickable (personal pivot) -->
-        <MediaCarousel
-          v-if="becauseYouWatched.items?.length && becauseYouWatched.pivot"
-          :title="becauseYouWatchedTitle"
-          :items="becauseYouWatched.items.slice(0, 20)"
-          card-width="185px"
-          @select="showDetail"
-          @request="handleRequest"
-        />
+      <!-- 5. Because you watched X — NOT clickable (personal pivot) -->
+      <MediaCarousel
+        v-if="becauseYouWatched.items?.length && becauseYouWatched.pivot"
+        :title="becauseYouWatchedTitle"
+        :items="becauseYouWatched.items.slice(0, 20)"
+        card-width="185px"
+        @select="showDetail"
+        @request="handleRequest"
+      />
 
-        <!-- 6. Categorys par genres — header non cliquable, cartes cliquables -->
-        <CategoryCards :title="$t('portal.sections.genres')" :items="genres" @select="goGenre" />
+      <!-- 6. Categorys par genres — header non cliquable, cartes cliquables -->
+      <CategoryCards :title="$t('portal.sections.genres')" :items="genres" @select="goGenre" />
 
-        <!-- 7. Recently added to Emby — scroll-triggered hero.
+      <!-- 7. Recently added to Emby — scroll-triggered hero.
              @select is intentionally NOT bound here. Clicking a poster
              inside the mini hero must update the hero strip (handled
              internally by EmbyRecentHero), not navigate. The
@@ -88,71 +88,75 @@
              @detail which is the only thing routed to the detail page.
              The 21st card is an Emby-branded "See more" shortcut to
              the full paginated recently-added list. -->
-        <EmbyRecentHero
-          v-if="recentEmby.length"
-          :items="recentEmby"
-          @detail="showDetail"
-          @request="handleRequest"
-          @add-watchlist="addToWatchlist"
-        />
+      <EmbyRecentHero
+        v-if="recentEmby.length"
+        :items="recentEmby"
+        @detail="showDetail"
+        @request="handleRequest"
+        @add-watchlist="addToWatchlist"
+      />
 
-        <!-- 8. Prochainement -->
-        <MediaCarousel
-          v-if="upcoming.length"
-          :title="$t('portal.sections.upcoming')"
-          :items="upcoming.slice(0, 20)"
-          card-width="185px"
-          :title-route="{ name: 'portal-category', params: { type: 'upcoming' } }"
-          @select="showDetail"
-          @request="handleRequest"
-        />
+      <!-- 8. Prochainement -->
+      <MediaCarousel
+        v-if="upcoming.length"
+        :title="$t('portal.sections.upcoming')"
+        :items="upcoming.slice(0, 20)"
+        card-width="185px"
+        :title-route="{ name: 'portal-category', params: { type: 'upcoming' } }"
+        @select="showDetail"
+        @request="handleRequest"
+      />
 
-        <!-- 9. Top rated this year -->
-        <MediaCarousel
-          v-if="topRatedYear.length"
-          :title="topRatedYearTitle"
-          :items="topRatedYear.slice(0, 20)"
-          card-width="185px"
-          :title-route="{ name: 'portal-category', params: { type: 'top-rated-year' } }"
-          @select="showDetail"
-          @request="handleRequest"
-        />
+      <!-- 9. Top rated this year -->
+      <MediaCarousel
+        v-if="topRatedYear.length"
+        :title="topRatedYearTitle"
+        :items="topRatedYear.slice(0, 20)"
+        card-width="185px"
+        :title-route="{ name: 'portal-category', params: { type: 'top-rated-year' } }"
+        @select="showDetail"
+        @request="handleRequest"
+      />
 
-        <!-- 10. Platforms (international + FR merged) -->
-        <CategoryCards :title="$t('portal.sections.platforms')" :items="allPlatforms" @select="goPlatform" />
+      <!-- 10. Platforms (international + FR merged) -->
+      <CategoryCards
+        :title="$t('portal.sections.platforms')"
+        :items="allPlatforms"
+        @select="goPlatform"
+      />
 
-        <!-- 11. Oscars & award winners -->
-        <MediaCarousel
-          v-if="oscars.length"
-          :title="$t('portal.sections.oscars')"
-          :items="oscars.slice(0, 20)"
-          card-width="185px"
-          :title-route="{ name: 'portal-category', params: { type: 'oscars' } }"
-          @select="showDetail"
-          @request="handleRequest"
-        />
+      <!-- 11. Oscars & award winners -->
+      <MediaCarousel
+        v-if="oscars.length"
+        :title="$t('portal.sections.oscars')"
+        :items="oscars.slice(0, 20)"
+        card-width="185px"
+        :title-route="{ name: 'portal-category', params: { type: 'oscars' } }"
+        @select="showDetail"
+        @request="handleRequest"
+      />
 
-        <!-- 12. Family-friendly -->
-        <MediaCarousel
-          v-if="family.length"
-          :title="$t('portal.sections.family')"
-          :items="family.slice(0, 20)"
-          card-width="185px"
-          :title-route="{ name: 'portal-category', params: { type: 'family' } }"
-          @select="showDetail"
-          @request="handleRequest"
-        />
+      <!-- 12. Family-friendly -->
+      <MediaCarousel
+        v-if="family.length"
+        :title="$t('portal.sections.family')"
+        :items="family.slice(0, 20)"
+        card-width="185px"
+        :title-route="{ name: 'portal-category', params: { type: 'family' } }"
+        @select="showDetail"
+        @request="handleRequest"
+      />
 
-        <!-- 13. Animation — series only -->
-        <MediaCarousel
-          v-if="animation.length"
-          :title="$t('portal.sections.animation')"
-          :items="animation.slice(0, 20)"
-          card-width="185px"
-          :title-route="{ name: 'portal-category', params: { type: 'animation' } }"
-          @select="showDetail"
-          @request="handleRequest"
-        />
+      <!-- 13. Animation — series only -->
+      <MediaCarousel
+        v-if="animation.length"
+        :title="$t('portal.sections.animation')"
+        :items="animation.slice(0, 20)"
+        card-width="185px"
+        :title-route="{ name: 'portal-category', params: { type: 'animation' } }"
+        @select="showDetail"
+        @request="handleRequest"
+      />
     </div>
 
     <RequestModal
@@ -196,12 +200,24 @@ const isAdmin = computed(() => profile.value?.role === USER_ROLE.ADMIN)
 const requestItem = ref(null)
 
 const {
-  top20, popularMovies, popularTv, recentEmby,
-  upcoming, topRatedYear, recommended,
-  oscars, family, animation, becauseYouWatched,
+  top20,
+  popularMovies,
+  popularTv,
+  recentEmby,
+  upcoming,
+  topRatedYear,
+  recommended,
+  oscars,
+  family,
+  animation,
+  becauseYouWatched,
   loadingAll,
-  heroItems, heroIndex, heroPaused, featuredCount,
-  nextHero, loadAllData,
+  heroItems,
+  heroIndex,
+  heroPaused,
+  featuredCount,
+  nextHero,
+  loadAllData,
 } = usePortalHomeData()
 
 // Hide the initial skeleton as soon as ANY row has landed — the hero
@@ -210,12 +226,13 @@ const {
 // endpoint (typically recommended-for-me / because-you-watched) came
 // back, which is exactly what the all-or-nothing gate used to do.
 const showInitialSkeleton = computed(
-  () => loadingAll.value
-    && !heroItems.value.length
-    && !top20.value.length
-    && !popularMovies.value.length
-    && !popularTv.value.length
-    && !recentEmby.value.length,
+  () =>
+    loadingAll.value &&
+    !heroItems.value.length &&
+    !top20.value.length &&
+    !popularMovies.value.length &&
+    !popularTv.value.length &&
+    !recentEmby.value.length,
 )
 
 const currentYear = new Date().getFullYear()
@@ -267,8 +284,14 @@ function onRequestDone(payload) {
 }
 
 async function handleRequest(item) {
-  if (isAdmin.value) { requestItem.value = item; return }
-  if (isTv(item)) { requestItem.value = item; return }
+  if (isAdmin.value) {
+    requestItem.value = item
+    return
+  }
+  if (isTv(item)) {
+    requestItem.value = item
+    return
+  }
   const res = await apiPost('/api/portal/requests', {
     tmdb_id: item.tmdb_id || item.id,
     media_type: MEDIA_TYPE.MOVIE,

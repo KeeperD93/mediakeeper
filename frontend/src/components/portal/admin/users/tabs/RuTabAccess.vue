@@ -4,7 +4,7 @@
       <h3>{{ $t('requestsAdmin.users.drawer.access.role') }}</h3>
       <div class="ru-pill-row">
         <button
-          v-for="r in (presets?.roles || ['viewer','moderator','admin'])"
+          v-for="r in presets?.roles || ['viewer', 'moderator', 'admin']"
           :key="r"
           type="button"
           class="ru-pill"
@@ -161,23 +161,32 @@ const accessWindow = reactive({
   end: toLocal(props.user.access_end_date),
 })
 
-watch(() => props.user, (u) => {
-  accessWindow.start = toLocal(u.access_start_date || u.created_at)
-  accessWindow.end = toLocal(u.access_end_date)
-})
+watch(
+  () => props.user,
+  u => {
+    accessWindow.start = toLocal(u.access_start_date || u.created_at)
+    accessWindow.end = toLocal(u.access_end_date)
+  },
+)
 
 function toLocal(iso) {
   if (!iso) return ''
   try {
     const d = new Date(iso)
-    const pad = (v) => String(v).padStart(2, '0')
+    const pad = v => String(v).padStart(2, '0')
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
-  } catch { return '' }
+  } catch {
+    return ''
+  }
 }
 
 function toIso(local) {
   if (!local) return null
-  try { return new Date(local).toISOString() } catch { return null }
+  try {
+    return new Date(local).toISOString()
+  } catch {
+    return null
+  }
 }
 
 async function changeRole(role) {
@@ -186,7 +195,9 @@ async function changeRole(role) {
     await api.patchRole(props.user.id, role)
     showToast(t('requestsAdmin.users.toasts.saved'), TOAST_TYPE.OK)
     emit('changed')
-  } finally { busy.value = false }
+  } finally {
+    busy.value = false
+  }
 }
 
 async function togglePerm(key, value) {
@@ -194,16 +205,23 @@ async function togglePerm(key, value) {
   try {
     await api.patchPermissions(props.user.id, { [key]: value })
     emit('changed')
-  } finally { busy.value = false }
+  } finally {
+    busy.value = false
+  }
 }
 
 async function saveWindow() {
   busy.value = true
   try {
-    await api.patchAccess(props.user.id, { start: toIso(accessWindow.start), end: toIso(accessWindow.end) })
+    await api.patchAccess(props.user.id, {
+      start: toIso(accessWindow.start),
+      end: toIso(accessWindow.end),
+    })
     showToast(t('requestsAdmin.users.toasts.saved'), TOAST_TYPE.OK)
     emit('changed')
-  } finally { busy.value = false }
+  } finally {
+    busy.value = false
+  }
 }
 
 async function extend(months) {
@@ -212,7 +230,9 @@ async function extend(months) {
     await api.postExtendAccess(props.user.id, months)
     showToast(t('requestsAdmin.users.toasts.saved'), TOAST_TYPE.OK)
     emit('changed')
-  } finally { busy.value = false }
+  } finally {
+    busy.value = false
+  }
 }
 
 async function toggleActive(active) {
@@ -233,7 +253,9 @@ async function toggleActive(active) {
       return
     }
     emit('changed')
-  } finally { busy.value = false }
+  } finally {
+    busy.value = false
+  }
 }
 
 async function toggleEmby(enabled) {
@@ -253,9 +275,18 @@ async function toggleEmby(enabled) {
       showToast(t(`requestsAdmin.users.errors.${res.error}`, t('common.error')), TOAST_TYPE.ERR)
       return
     }
-    showToast(t(enabled ? 'requestsAdmin.users.toasts.embyEnabled' : 'requestsAdmin.users.toasts.embyDisabled'), TOAST_TYPE.OK)
+    showToast(
+      t(
+        enabled
+          ? 'requestsAdmin.users.toasts.embyEnabled'
+          : 'requestsAdmin.users.toasts.embyDisabled',
+      ),
+      TOAST_TYPE.OK,
+    )
     emit('changed')
-  } finally { busy.value = false }
+  } finally {
+    busy.value = false
+  }
 }
 
 async function onDelete() {
@@ -271,7 +302,9 @@ async function onDelete() {
     await api.softDelete(props.user.id)
     showToast(t('requestsAdmin.users.toasts.saved'), TOAST_TYPE.OK)
     emit('changed')
-  } finally { busy.value = false }
+  } finally {
+    busy.value = false
+  }
 }
 
 async function onRestore() {
@@ -280,6 +313,8 @@ async function onRestore() {
     await api.restoreUser(props.user.id)
     showToast(t('requestsAdmin.users.toasts.saved'), TOAST_TYPE.OK)
     emit('changed')
-  } finally { busy.value = false }
+  } finally {
+    busy.value = false
+  }
 }
 </script>

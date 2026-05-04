@@ -12,7 +12,8 @@
       @click="$emit('open', u.id)"
     >
       <input
-        type="checkbox" class="ru-card-check"
+        type="checkbox"
+        class="ru-card-check"
         :checked="selectedIds.includes(u.id)"
         @click.stop
         @change="$emit('toggle', u.id)"

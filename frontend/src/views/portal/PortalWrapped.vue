@@ -2,7 +2,6 @@
   <div class="pt-wrapped" @click="nextSlide">
     <transition name="pt-slide" mode="out-in">
       <div :key="currentSlide" class="pt-wrapped-slide" :class="`pt-slide-${currentSlide}`">
-
         <template v-if="currentSlide === 0">
           <h1 class="pt-wrapped-title">{{ $t('portal.wrapped.yourYear') }}</h1>
           <p class="pt-wrapped-sub">{{ $t('portal.wrapped.tapToContinue') }}</p>
@@ -39,7 +38,10 @@
 
         <template v-else>
           <h2>{{ $t('portal.wrapped.thanks') }}</h2>
-          <button class="pt-btn pt-btn--primary" @click.stop="$router.push({ name: 'portal-settings' })">
+          <button
+            class="pt-btn pt-btn--primary"
+            @click.stop="$router.push({ name: 'portal-settings' })"
+          >
             {{ $t('portal.wrapped.backToProfile') }}
           </button>
         </template>
@@ -47,7 +49,12 @@
     </transition>
 
     <div class="pt-wrapped-dots">
-      <span v-for="i in totalSlides" :key="i" class="pt-dot" :class="{ active: currentSlide === i - 1 }" />
+      <span
+        v-for="i in totalSlides"
+        :key="i"
+        class="pt-dot"
+        :class="{ active: currentSlide === i - 1 }"
+      />
     </div>
   </div>
 </template>
@@ -87,29 +94,118 @@ onMounted(async () => {
 
 <style scoped>
 .pt-wrapped {
-  position: fixed; inset: 0; z-index: 8000;
+  position: fixed;
+  inset: 0;
+  z-index: 8000;
   background: linear-gradient(135deg, #0f0a1a 0%, #1a0a2e 50%, #0a1628 100%);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
 }
 .pt-wrapped-slide {
-  text-align: center; padding: 2rem; max-width: 600px;
+  text-align: center;
+  padding: 2rem;
+  max-width: 600px;
 }
-.pt-wrapped-title { font-size: 3rem; font-weight: var(--portal-font-black); color: #fff; margin-bottom: 0.5rem; }
-.pt-wrapped-label { font-size: var(--portal-text-md); color: rgba(255,255,255,0.6); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: var(--portal-tracking-eyebrow); }
-.pt-wrapped-big-number { font-size: 5rem; font-weight: var(--portal-font-black); color: var(--accent); display: block; }
-.pt-wrapped-sub { font-size: var(--portal-text-md); color: rgba(255,255,255,0.5); margin-top: 0.5rem; }
-.pt-wrapped-glitch { font-size: 2.5rem; font-weight: var(--portal-font-extrabold); color: #fff; animation: pt-glitch 0.3s ease-in-out; }
-.pt-wrapped-dots { position: absolute; bottom: 2rem; display: flex; gap: 0.5rem; }
-.pt-dot { width: 8px; height: 8px; border-radius: var(--portal-radius-circle); background: rgba(255,255,255,0.2); }
-.pt-dot.active { background: var(--accent); }
-.pt-btn { padding: 0.6rem 2rem; border-radius: var(--radius-btn); border: none; font-weight: var(--portal-font-bold); cursor: pointer; font-size: var(--portal-text-md); }
-.pt-btn--primary { background: var(--accent); color: #fff; }
+.pt-wrapped-title {
+  font-size: 3rem;
+  font-weight: var(--portal-font-black);
+  color: #fff;
+  margin-bottom: 0.5rem;
+}
+.pt-wrapped-label {
+  font-size: var(--portal-text-md);
+  color: rgb(255, 255, 255, 0.6);
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: var(--portal-tracking-eyebrow);
+}
+.pt-wrapped-big-number {
+  font-size: 5rem;
+  font-weight: var(--portal-font-black);
+  color: var(--accent);
+  display: block;
+}
+.pt-wrapped-sub {
+  font-size: var(--portal-text-md);
+  color: rgb(255, 255, 255, 0.5);
+  margin-top: 0.5rem;
+}
+.pt-wrapped-glitch {
+  font-size: 2.5rem;
+  font-weight: var(--portal-font-extrabold);
+  color: #fff;
+  animation: pt-glitch 0.3s ease-in-out;
+}
+.pt-wrapped-dots {
+  position: absolute;
+  bottom: 2rem;
+  display: flex;
+  gap: 0.5rem;
+}
+.pt-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--portal-radius-circle);
+  background: rgb(255, 255, 255, 0.2);
+}
+.pt-dot.active {
+  background: var(--accent);
+}
+.pt-btn {
+  padding: 0.6rem 2rem;
+  border-radius: var(--radius-btn);
+  border: none;
+  font-weight: var(--portal-font-bold);
+  cursor: pointer;
+  font-size: var(--portal-text-md);
+}
+.pt-btn--primary {
+  background: var(--accent);
+  color: #fff;
+}
 
-.pt-slide-enter-active { animation: pt-slide-in 0.5s ease; }
-.pt-slide-leave-active { animation: pt-slide-out 0.3s ease; }
+.pt-slide-enter-active {
+  animation: pt-slide-in 0.5s ease;
+}
+.pt-slide-leave-active {
+  animation: pt-slide-out 0.3s ease;
+}
 
-@keyframes pt-slide-in { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: none; } }
-@keyframes pt-slide-out { from { opacity: 1; } to { opacity: 0; transform: translateY(-20px); } }
-@keyframes pt-glitch { 0%,100% { transform: none; } 25% { transform: translate(-3px, 2px); } 50% { transform: translate(3px, -2px); } 75% { transform: translate(-1px, 1px); } }
+@keyframes pt-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes pt-slide-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+@keyframes pt-glitch {
+  0%,
+  100% {
+    transform: none;
+  }
+  25% {
+    transform: translate(-3px, 2px);
+  }
+  50% {
+    transform: translate(3px, -2px);
+  }
+  75% {
+    transform: translate(-1px, 1px);
+  }
+}
 </style>

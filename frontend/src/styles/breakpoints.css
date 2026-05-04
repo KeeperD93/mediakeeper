@@ -22,18 +22,18 @@
 
 :root {
   /* Breakpoints (min width) */
-  --bp-sm:  480px;  /* large smartphones */
-  --bp-md:  640px;  /* phablets, portrait tablets */
-  --bp-lg:  768px;  /* iPad, small laptops */
-  --bp-xl:  1024px; /* standard laptops */
+  --bp-sm: 480px; /* large smartphones */
+  --bp-md: 640px; /* phablets, portrait tablets */
+  --bp-lg: 768px; /* iPad, small laptops */
+  --bp-xl: 1024px; /* standard laptops */
   --bp-2xl: 1280px; /* Full HD desktops */
   --bp-3xl: 1536px; /* 2K, 4K, ultrawide */
 
   /* Fluid poster sizes — usable with auto-fill/minmax */
-  --poster-min-xs: 110px;  /* very narrow mobile */
-  --poster-min-sm: 140px;  /* mobile / tablet */
-  --poster-min-md: 170px;  /* tablet / small laptop */
-  --poster-min-lg: 200px;  /* laptop / desktop */
+  --poster-min-xs: 110px; /* very narrow mobile */
+  --poster-min-sm: 140px; /* mobile / tablet */
+  --poster-min-md: 170px; /* tablet / small laptop */
+  --poster-min-lg: 200px; /* laptop / desktop */
 
   /* Min available heights for full-screen modals */
   --modal-safe-top: 1rem;
@@ -78,25 +78,63 @@
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
-  padding-left:  clamp(0.75rem, 2vw, 2rem);
+  padding-left: clamp(0.75rem, 2vw, 2rem);
   padding-right: clamp(0.75rem, 2vw, 2rem);
 }
 
 /* Standard fluid titles */
-.mk-title-xl { font-size: clamp(1.5rem, 3vw + 0.5rem, 3rem);   font-weight: 900; line-height: 1.1; }
-.mk-title-lg { font-size: clamp(1.25rem, 2vw + 0.4rem, 2rem);  font-weight: 800; line-height: 1.15; }
-.mk-title-md { font-size: clamp(1rem, 1vw + 0.5rem, 1.4rem);   font-weight: 700; line-height: 1.2; }
+.mk-title-xl {
+  font-size: clamp(1.5rem, 3vw + 0.5rem, 3rem);
+  font-weight: 900;
+  line-height: 1.1;
+}
+.mk-title-lg {
+  font-size: clamp(1.25rem, 2vw + 0.4rem, 2rem);
+  font-weight: 800;
+  line-height: 1.15;
+}
+.mk-title-md {
+  font-size: clamp(1rem, 1vw + 0.5rem, 1.4rem);
+  font-weight: 700;
+  line-height: 1.2;
+}
 
 /* Responsive hide — hide PROGRESSIVELY so mobile is not broken */
-.mk-hide-below-md { display: none; }
-@media (min-width: 640px)  { .mk-hide-below-md { display: initial; } }
+.mk-hide-below-md {
+  display: none;
+}
+@media (min-width: 640px) {
+  .mk-hide-below-md {
+    display: initial;
+  }
+}
 
-.mk-hide-below-lg { display: none; }
-@media (min-width: 768px)  { .mk-hide-below-lg { display: initial; } }
+.mk-hide-below-lg {
+  display: none;
+}
+@media (min-width: 768px) {
+  .mk-hide-below-lg {
+    display: initial;
+  }
+}
 
-.mk-hide-below-xl { display: none; }
-@media (min-width: 1024px) { .mk-hide-below-xl { display: initial; } }
+.mk-hide-below-xl {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .mk-hide-below-xl {
+    display: initial;
+  }
+}
 
 /* Reverse — hide above a breakpoint (e.g. mobile hamburger) */
-@media (min-width: 768px)  { .mk-hide-above-lg { display: none !important; } }
-@media (min-width: 1024px) { .mk-hide-above-xl { display: none !important; } }
+@media (min-width: 768px) {
+  .mk-hide-above-lg {
+    display: none !important;
+  }
+}
+@media (min-width: 1024px) {
+  .mk-hide-above-xl {
+    display: none !important;
+  }
+}

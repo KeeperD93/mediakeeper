@@ -18,9 +18,13 @@ export function useDailyDigestPresenters(digest, profile) {
   const formattedDate = computed(() => {
     try {
       return new Date().toLocaleDateString(locale.value, {
-        weekday: 'long', day: 'numeric', month: 'long',
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
       })
-    } catch { return '' }
+    } catch {
+      return ''
+    }
   })
 
   const greeting = computed(() => {
@@ -39,17 +43,22 @@ export function useDailyDigestPresenters(digest, profile) {
     const r = d.ranking
     if (r?.position) {
       out.push({
-        key: 'rank', icon: Crown, cls: 'ddd-stat--rank',
+        key: 'rank',
+        icon: Crown,
+        cls: 'ddd-stat--rank',
         label: t('portal.dailyDigest.pills.rank'),
         value: `#${r.position}`,
         caption: t('portal.dailyDigest.pills.rankOf', { total: r.total }),
         delta: r.movement ? (r.movement > 0 ? `↑${r.movement}` : `↓${Math.abs(r.movement)}`) : '',
-        deltaClass: r.movement > 0 ? 'ddd-stat-delta--up' : r.movement < 0 ? 'ddd-stat-delta--down' : '',
+        deltaClass:
+          r.movement > 0 ? 'ddd-stat-delta--up' : r.movement < 0 ? 'ddd-stat-delta--down' : '',
       })
     }
     if (d.streak > 0) {
       out.push({
-        key: 'streak', icon: Flame, cls: 'ddd-stat--streak',
+        key: 'streak',
+        icon: Flame,
+        cls: 'ddd-stat--streak',
         label: t('portal.dailyDigest.pills.streak'),
         value: d.streak,
         caption: t('portal.dailyDigest.pills.streakDays', { n: d.streak }),
@@ -58,7 +67,9 @@ export function useDailyDigestPresenters(digest, profile) {
     const q = d.quota
     if (q && !q.unlimited && q.max_allowed > 0) {
       out.push({
-        key: 'quota', icon: Send, cls: 'ddd-stat--quota',
+        key: 'quota',
+        icon: Send,
+        cls: 'ddd-stat--quota',
         label: t('portal.dailyDigest.pills.quota'),
         value: q.remaining,
         caption: t('portal.dailyDigest.pills.quotaOf', { total: q.max_allowed }),
@@ -66,7 +77,9 @@ export function useDailyDigestPresenters(digest, profile) {
     }
     if (d.tickets_open > 0) {
       out.push({
-        key: 'tickets', icon: MessageCircle, cls: 'ddd-stat--tickets',
+        key: 'tickets',
+        icon: MessageCircle,
+        cls: 'ddd-stat--tickets',
         label: t('portal.dailyDigest.pills.tickets'),
         value: d.tickets_open,
         caption: t('portal.dailyDigest.pills.ticketsCaption'),
@@ -94,18 +107,36 @@ export function useDailyDigestPresenters(digest, profile) {
   }
 
   function formatEventDay(iso) {
-    try { return new Date(iso).toLocaleDateString(locale.value, { day: '2-digit' }) } catch { return '' }
+    try {
+      return new Date(iso).toLocaleDateString(locale.value, { day: '2-digit' })
+    } catch {
+      return ''
+    }
   }
   function formatEventMonth(iso) {
-    try { return new Date(iso).toLocaleDateString(locale.value, { month: 'short' }) } catch { return '' }
+    try {
+      return new Date(iso).toLocaleDateString(locale.value, { month: 'short' })
+    } catch {
+      return ''
+    }
   }
   function formatEventTime(iso) {
-    try { return new Date(iso).toLocaleTimeString(locale.value, { hour: '2-digit', minute: '2-digit' }) } catch { return '' }
+    try {
+      return new Date(iso).toLocaleTimeString(locale.value, { hour: '2-digit', minute: '2-digit' })
+    } catch {
+      return ''
+    }
   }
 
   return {
-    formattedDate, greeting, statCards, achPercent,
-    movementLabel, movementClass,
-    formatEventDay, formatEventMonth, formatEventTime,
+    formattedDate,
+    greeting,
+    statCards,
+    achPercent,
+    movementLabel,
+    movementClass,
+    formatEventDay,
+    formatEventMonth,
+    formatEventTime,
   }
 }

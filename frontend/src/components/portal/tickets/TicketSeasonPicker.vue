@@ -9,20 +9,13 @@
     <template v-else>
       <div class="tsp-summary">
         <span class="tsp-summary-label">{{ summaryLabel }}</span>
-        <button
-          v-if="hasAnySelection"
-          type="button"
-          class="tsp-clear"
-          @click="clearAll"
-        >{{ $t('portal.tickets.seasonPicker.reset') }}</button>
+        <button v-if="hasAnySelection" type="button" class="tsp-clear" @click="clearAll">
+          {{ $t('portal.tickets.seasonPicker.reset') }}
+        </button>
       </div>
 
       <div class="tsp-list">
-        <div
-          v-for="s in seasons"
-          :key="s.season_number"
-          class="tsp-season"
-        >
+        <div v-for="s in seasons" :key="s.season_number" class="tsp-season">
           <div class="tsp-season-header" @click="toggleExpanded(s.season_number)">
             <input
               type="checkbox"
@@ -40,15 +33,13 @@
               class="tsp-chevron"
               :class="{ 'tsp-chevron--open': expanded.has(s.season_number) }"
               aria-hidden="true"
-            >▾</span>
+            >
+              ▾
+            </span>
           </div>
 
           <div v-if="expanded.has(s.season_number)" class="tsp-episodes">
-            <label
-              v-for="ep in s.episodes"
-              :key="ep.episode_number"
-              class="tsp-episode"
-            >
+            <label v-for="ep in s.episodes" :key="ep.episode_number" class="tsp-episode">
               <input
                 type="checkbox"
                 class="tsp-chk"
@@ -56,7 +47,8 @@
                 @change="toggleEpisode(s.season_number, ep.episode_number)"
               />
               <span class="tsp-ep-label">
-                E{{ String(ep.episode_number).padStart(2, '0') }}<template v-if="ep.name"> — {{ ep.name }}</template>
+                E{{ String(ep.episode_number).padStart(2, '0') }}
+                <template v-if="ep.name">— {{ ep.name }}</template>
               </span>
             </label>
           </div>
@@ -94,22 +86,26 @@ const expanded = ref(new Set())
 // Map<seasonNumber, 'full' | Set<episodeNumber>>
 const selection = ref(new Map())
 
-watch(() => props.seriesId, async (id) => {
-  selection.value = new Map()
-  expanded.value = new Set()
-  seasons.value = []
-  if (!id) {
+watch(
+  () => props.seriesId,
+  async id => {
+    selection.value = new Map()
+    expanded.value = new Set()
+    seasons.value = []
+    if (!id) {
+      emitSelection()
+      return
+    }
+    loading.value = true
+    try {
+      seasons.value = await fetchSeriesSeasons(id)
+    } finally {
+      loading.value = false
+    }
     emitSelection()
-    return
-  }
-  loading.value = true
-  try {
-    seasons.value = await fetchSeriesSeasons(id)
-  } finally {
-    loading.value = false
-  }
-  emitSelection()
-}, { immediate: true })
+  },
+  { immediate: true },
+)
 
 function toggleExpanded(num) {
   const next = new Set(expanded.value)

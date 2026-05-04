@@ -23,7 +23,7 @@ async def fetch_and_store_emby_logs(db):
                     all_lines = f.readlines()
                     for line in all_lines[-200:]:
                         existing_lines.add(line.strip())
-            except Exception:
+            except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
                 pass
 
         new_count = 0

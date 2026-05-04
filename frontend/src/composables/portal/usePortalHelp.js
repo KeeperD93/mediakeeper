@@ -44,13 +44,16 @@ export function usePortalHelp() {
 
   function stripHtml(html) {
     if (!html) return ''
-    return String(html).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+    return String(html)
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
   }
 
   const filteredArticles = computed(() => {
     const q = search.value.trim().toLowerCase()
     if (!q) return articles.value
-    return articles.value.filter((a) => {
+    return articles.value.filter(a => {
       const blob = `${a.title || ''} ${stripHtml(a.body_html)}`.toLowerCase()
       return blob.includes(q)
     })
@@ -80,7 +83,7 @@ export function usePortalHelp() {
 
   const activeArticle = computed(() => {
     if (activeArticleId.value == null) return null
-    return articles.value.find((a) => a.id === activeArticleId.value) || null
+    return articles.value.find(a => a.id === activeArticleId.value) || null
   })
 
   function selectArticle(id) {
@@ -100,10 +103,21 @@ export function usePortalHelp() {
 
   return {
     HELP_CATEGORIES,
-    articles, lang, loading, error,
-    search, activeCategory, activeArticleId,
-    filteredArticles, groupedByCategory, categoryCounts,
-    articlesInActiveCategory, activeArticle,
-    load, selectArticle, clearArticle, selectCategory,
+    articles,
+    lang,
+    loading,
+    error,
+    search,
+    activeCategory,
+    activeArticleId,
+    filteredArticles,
+    groupedByCategory,
+    categoryCounts,
+    articlesInActiveCategory,
+    activeArticle,
+    load,
+    selectArticle,
+    clearArticle,
+    selectCategory,
   }
 }

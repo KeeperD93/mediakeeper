@@ -28,11 +28,7 @@
     <!-- Scrollable track. scroll-snap aligns cards on their left edge
          so a click on the arrows (or any swipe/drag/wheel) can never
          leave a poster half-cut in the viewport. -->
-    <div
-      ref="trackRef"
-      class="pt-carousel-track"
-      @scroll="onScroll"
-    >
+    <div ref="trackRef" class="pt-carousel-track" @scroll="onScroll">
       <MediaCard
         v-for="item in items"
         :key="item.id || item.tmdb_id"
@@ -96,7 +92,7 @@ const props = defineProps({
   // Backwards-compat alias — old callers used `seeAllRoute`, new ones
   // use `titleRoute`. They mean exactly the same thing.
   seeAllRoute: { type: [String, Object], default: null },
-  titleRoute:  { type: [String, Object], default: null },
+  titleRoute: { type: [String, Object], default: null },
 })
 
 defineEmits(['select', 'play', 'request'])
@@ -104,8 +100,9 @@ defineEmits(['select', 'play', 'request'])
 const router = useRouter()
 const hovered = ref(false)
 
-const { trackRef, canScrollLeft, canScrollRight, onScroll, scroll } =
-  useCarouselArrows(toRef(props, 'items'))
+const { trackRef, canScrollLeft, canScrollRight, onScroll, scroll } = useCarouselArrows(
+  toRef(props, 'items'),
+)
 
 // Unify the two prop aliases in a single computed used everywhere
 // in the template. titleRoute wins if both are set.

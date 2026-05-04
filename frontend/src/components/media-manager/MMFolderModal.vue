@@ -1,5 +1,5 @@
 <template>
-  <div class="mf-overlay" :class="{show: modalFolders.show}" @click.self="close">
+  <div class="mf-overlay" :class="{ show: modalFolders.show }" @click.self="close">
     <div class="mf-modal" role="dialog" aria-modal="true">
       <header class="mf-header">
         <div class="mf-header-title">
@@ -7,7 +7,13 @@
           <h3>{{ $t('mediaManager.organizeFolders') }}</h3>
           <span v-if="folderExistingDirs.length" class="mf-chip">
             <Files :size="11" />
-            {{ $t('mediaManager.existingFoldersCount', { count: folderExistingDirs.length }, folderExistingDirs.length) }}
+            {{
+              $t(
+                'mediaManager.existingFoldersCount',
+                { count: folderExistingDirs.length },
+                folderExistingDirs.length,
+              )
+            }}
           </span>
         </div>
         <button class="mf-close" :title="$t('common.close')" @click="close">
@@ -25,18 +31,25 @@
               <span class="mf-folder-icon"><Folder :size="14" /></span>
               <span class="mf-folder-old" :title="d.name">{{ d.name }}</span>
               <ArrowRight :size="11" class="mf-folder-arrow" />
-              <input v-model="folderExistingDirs[i].newName"
+              <input
+                v-model="folderExistingDirs[i].newName"
                 class="mf-folder-input"
-                :class="{dirty: d.newName !== d.name}" />
+                :class="{ dirty: d.newName !== d.name }"
+              />
             </div>
           </div>
 
           <div class="mf-section-label">{{ $t('mediaManager.audioTag') }}</div>
           <div class="mf-tag-row">
-            <span v-for="tag in audioTagsForLang" :key="`b-${tag}`"
+            <span
+              v-for="tag in audioTagsForLang"
+              :key="`b-${tag}`"
               class="mf-tag"
-              :class="{active: folderBatchAudioTags.has(tag)}"
-              @click="toggleBatchAudioTag(tag)">{{ tag }}</span>
+              :class="{ active: folderBatchAudioTags.has(tag) }"
+              @click="toggleBatchAudioTag(tag)"
+            >
+              {{ tag }}
+            </span>
           </div>
 
           <div class="mf-actions-row">
@@ -44,7 +57,11 @@
               <RefreshCw :size="12" />
               {{ $t('mediaManager.autoDetect') }}
             </button>
-            <button class="mf-btn-accent" :disabled="!hasFolderChanges" @click="execRenameAllFolders">
+            <button
+              class="mf-btn-accent"
+              :disabled="!hasFolderChanges"
+              @click="execRenameAllFolders"
+            >
               <Check :size="12" />
               {{ $t('mediaManager.renameAll') }}
             </button>
@@ -58,26 +75,36 @@
           <div class="mf-section-label">{{ $t('mediaManager.seriesName') }}</div>
           <div class="mf-input-wrap">
             <Pencil :size="12" />
-            <input v-model="folderSeriesName"
+            <input
+              v-model="folderSeriesName"
               :placeholder="$t('mediaManager.seriesNamePlaceholder')"
-              @input="updateFolderPreview" />
+              @input="updateFolderPreview"
+            />
           </div>
 
           <div class="mf-section-label">{{ $t('mediaManager.audioTag') }}</div>
           <div class="mf-tag-row">
-            <span v-for="tag in audioTagsForLang" :key="`a-${tag}`"
+            <span
+              v-for="tag in audioTagsForLang"
+              :key="`a-${tag}`"
               class="mf-tag"
-              :class="{active: folderAudioTags.has(tag)}"
-              @click="toggleAudioTag(tag)">{{ tag }}</span>
+              :class="{ active: folderAudioTags.has(tag) }"
+              @click="toggleAudioTag(tag)"
+            >
+              {{ tag }}
+            </span>
           </div>
 
           <div v-if="folderSeasonTags.length">
             <div class="mf-section-label">{{ $t('mediaManager.seasonsToCreate') }}</div>
             <div class="mf-tag-row">
-              <span v-for="s in folderSeasonTags" :key="s.season"
+              <span
+                v-for="s in folderSeasonTags"
+                :key="s.season"
                 class="mf-tag"
-                :class="{active: s.active}"
-                @click="s.active = !s.active; updateFolderPreview()">
+                :class="{ active: s.active }"
+                @click="((s.active = !s.active), updateFolderPreview())"
+              >
                 Saison {{ String(s.season).padStart(2, '0') }}
               </span>
             </div>
@@ -91,7 +118,7 @@
       <footer class="mf-footer">
         <div class="mf-footer-info">
           <span class="mf-footer-label">{{ $t('mediaManager.seriesName') }}</span>
-          <span class="mf-footer-value" :class="{empty: !trimmedSeriesName}">
+          <span class="mf-footer-value" :class="{ empty: !trimmedSeriesName }">
             {{ trimmedSeriesName || $t('mediaManager.seriesNameMissingShort') }}
           </span>
         </div>
@@ -115,10 +142,18 @@ import '@/assets/styles/folder-modal.css'
 
 const {
   modalFolders,
-  folderExistingDirs, folderSeriesName, folderAudioTags, folderBatchAudioTags,
-  folderSeasonTags, folderPreview,
-  toggleAudioTag, toggleBatchAudioTag, updateFolderPreview,
-  autoDetectFolders, execRenameAllFolders, execFolderOrganize,
+  folderExistingDirs,
+  folderSeriesName,
+  folderAudioTags,
+  folderBatchAudioTags,
+  folderSeasonTags,
+  folderPreview,
+  toggleAudioTag,
+  toggleBatchAudioTag,
+  updateFolderPreview,
+  autoDetectFolders,
+  execRenameAllFolders,
+  execFolderOrganize,
   anomalyRules,
 } = useMediaManager()
 
@@ -138,7 +173,11 @@ const audioTagsForLang = computed(() => {
 })
 
 const trimmedSeriesName = computed(() => (folderSeriesName.value || '').trim())
-const hasFolderChanges = computed(() => folderExistingDirs.value.some(d => d.newName && d.newName !== d.name))
+const hasFolderChanges = computed(() =>
+  folderExistingDirs.value.some(d => d.newName && d.newName !== d.name),
+)
 
-function close() { modalFolders.value.show = false }
+function close() {
+  modalFolders.value.show = false
+}
 </script>

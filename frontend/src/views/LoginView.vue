@@ -15,9 +15,25 @@
       <img :src="logoUrl" alt="MediaKeeper" class="login-waiting-logo" />
       <div class="login-waiting-ring">
         <svg viewBox="0 0 48 48">
-          <circle cx="24" cy="24" r="20" stroke="rgba(255,255,255,.06)" stroke-width="2" fill="none" />
-          <circle cx="24" cy="24" r="20" stroke="url(#wait-grad)" stroke-width="2" fill="none"
-            stroke-linecap="round" stroke-dasharray="100 26" class="login-waiting-arc" />
+          <circle
+            cx="24"
+            cy="24"
+            r="20"
+            stroke="rgba(255,255,255,.06)"
+            stroke-width="2"
+            fill="none"
+          />
+          <circle
+            cx="24"
+            cy="24"
+            r="20"
+            stroke="url(#wait-grad)"
+            stroke-width="2"
+            fill="none"
+            stroke-linecap="round"
+            stroke-dasharray="100 26"
+            class="login-waiting-arc"
+          />
           <defs>
             <linearGradient id="wait-grad" x1="0" y1="0" x2="1" y2="1">
               <stop offset="0%" stop-color="#818cf8" />
@@ -52,7 +68,17 @@
               <label class="login-label">{{ t('login.username') }}</label>
               <div class="login-input-wrap">
                 <User class="login-input-icon" :size="15" :stroke-width="1.8" />
-                <input v-model="username" type="text" :placeholder="t('login.username')" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="login-input" @keydown.enter="doLogin" />
+                <input
+                  v-model="username"
+                  type="text"
+                  :placeholder="t('login.username')"
+                  autocomplete="off"
+                  autocorrect="off"
+                  autocapitalize="off"
+                  spellcheck="false"
+                  class="login-input"
+                  @keydown.enter="doLogin"
+                />
               </div>
             </div>
 
@@ -60,7 +86,14 @@
               <label class="login-label">{{ t('login.password') }}</label>
               <div class="login-input-wrap">
                 <LockKeyhole class="login-input-icon" :size="15" :stroke-width="1.8" />
-                <input v-model="password" type="password" :placeholder="t('login.password')" autocomplete="new-password" class="login-input" @keydown.enter="doLogin" />
+                <input
+                  v-model="password"
+                  type="password"
+                  :placeholder="t('login.password')"
+                  autocomplete="new-password"
+                  class="login-input"
+                  @keydown.enter="doLogin"
+                />
               </div>
             </div>
 
@@ -82,18 +115,31 @@
             <a href="https://discord.gg/mediakeeper" target="_blank" rel="noopener" title="Discord">
               <IconDiscord :size="18" />
             </a>
-            <a :href="repoUrl" target="_blank" rel="noopener noreferrer" title="GitHub" data-test="login-github-link">
+            <a
+              :href="repoUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="GitHub"
+              data-test="login-github-link"
+            >
               <Github :size="18" />
             </a>
             <a href="https://wiki.mediakeeper.app" target="_blank" rel="noopener" title="Wiki">
               <BookOpen :size="18" :stroke-width="1.8" />
             </a>
-            <a href="https://mediakeeper.app" target="_blank" rel="noopener" :title="$t('login.officialSite')">
+            <a
+              href="https://mediakeeper.app"
+              target="_blank"
+              rel="noopener"
+              :title="$t('login.officialSite')"
+            >
               <Globe :size="18" :stroke-width="1.8" />
             </a>
           </div>
 
-          <span v-if="appVersion" class="login-version" data-test="login-version">v{{ appVersion }}</span>
+          <span v-if="appVersion" class="login-version" data-test="login-version">
+            v{{ appVersion }}
+          </span>
         </div>
       </div>
     </transition>
@@ -145,8 +191,13 @@ async function waitForAuth() {
         retryOn401: false,
         redirectOn401: false,
       })
-      if (res.status < 500) { backendReady.value = true; return }
-    } catch { /* silent: health poll retries by design */ }
+      if (res.status < 500) {
+        backendReady.value = true
+        return
+      }
+    } catch {
+      /* silent: health poll retries by design */
+    }
     await new Promise(r => setTimeout(r, 1500))
   }
 }
@@ -161,20 +212,25 @@ async function fetchVersion() {
       const data = await res.json()
       appVersion.value = data.version || ''
     }
-  } catch { /* silent: version display is cosmetic */ }
+  } catch {
+    /* silent: version display is cosmetic */
+  }
 }
 
 onMounted(async () => {
   if (particlesEnabled.value) cleanupParticles = initLoginParticles(canvasRef.value, pageRef.value)
   await waitForAuth()
-  const justLoggedOut = route.query.logged_out === '1' || sessionStorage.getItem('mk_just_logged_out') === '1'
+  const justLoggedOut =
+    route.query.logged_out === '1' || sessionStorage.getItem('mk_just_logged_out') === '1'
   const redirect = getRedirectTarget()
-      const isPortalRedirect = redirect.startsWith('/portal')
+  const isPortalRedirect = redirect.startsWith('/portal')
 
   if (justLoggedOut) {
     try {
       sessionStorage.removeItem('mk_just_logged_out')
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     fetchVersion()
     const saved = localStorage.getItem('mediakeeper_saved_username')
     if (saved) {
@@ -193,7 +249,7 @@ onMounted(async () => {
     const { usePortalAuth } = await import('@/composables/portal/usePortalAuth')
     const ok = await usePortalAuth().checkPortalAuth()
     if (ok) {
-        router.replace(isPortalRedirect ? redirect : '/portal')
+      router.replace(isPortalRedirect ? redirect : '/portal')
       return
     }
   } catch {
@@ -224,7 +280,7 @@ async function doLogin() {
   try {
     const data = await login(username.value.trim(), password.value)
     const redirect = getRedirectTarget()
-      const isPortalRedirect = redirect.startsWith('/portal')
+    const isPortalRedirect = redirect.startsWith('/portal')
 
     if (remember.value) {
       localStorage.setItem('mediakeeper_saved_username', username.value.trim())
@@ -235,7 +291,7 @@ async function doLogin() {
     localStorage.setItem('mediakeeper_username', data.username)
 
     if (data.scope === 'portal') {
-        router.push(isPortalRedirect ? redirect : '/portal')
+      router.push(isPortalRedirect ? redirect : '/portal')
     } else if (data.must_change_password) {
       router.push('/?force_change_password=1')
     } else {

@@ -67,7 +67,6 @@ vi.mock('lucide-vue-next', () => ({
 
 import PrivacyTab from '@/components/portal/settings/PrivacyTab.vue'
 
-
 function buildTab() {
   return mount(PrivacyTab, {
     global: {
@@ -80,7 +79,6 @@ function buildTab() {
   })
 }
 
-
 beforeEach(() => {
   mocks.getPrivacyText.mockReset()
   mocks.exportMyData.mockReset()
@@ -91,7 +89,6 @@ beforeEach(() => {
   // exercising the same surface.
   mocks.profile.value = { source: 'emby' }
 })
-
 
 describe('PrivacyTab', () => {
   it('renders the privacy HTML returned by the backend', async () => {
@@ -110,7 +107,9 @@ describe('PrivacyTab', () => {
 
   it('renders the not-configured fallback when text is empty', async () => {
     mocks.getPrivacyText.mockResolvedValueOnce({
-      lang: 'fr', text_html: '', dpo_contact: '',
+      lang: 'fr',
+      text_html: '',
+      dpo_contact: '',
     })
     const w = buildTab()
     await flushPromises()
@@ -120,7 +119,9 @@ describe('PrivacyTab', () => {
 
   it('shows the DPO contact when configured', async () => {
     mocks.getPrivacyText.mockResolvedValueOnce({
-      lang: 'fr', text_html: '', dpo_contact: 'dpo@example.org',
+      lang: 'fr',
+      text_html: '',
+      dpo_contact: 'dpo@example.org',
     })
     const w = buildTab()
     await flushPromises()
@@ -129,7 +130,9 @@ describe('PrivacyTab', () => {
 
   it('triggers the export composable on click and toasts success', async () => {
     mocks.getPrivacyText.mockResolvedValueOnce({
-      lang: 'fr', text_html: '', dpo_contact: '',
+      lang: 'fr',
+      text_html: '',
+      dpo_contact: '',
     })
     mocks.exportMyData.mockResolvedValueOnce({ filename: 'mk.zip' })
     const w = buildTab()
@@ -140,14 +143,14 @@ describe('PrivacyTab', () => {
     await flushPromises()
 
     expect(mocks.exportMyData).toHaveBeenCalledOnce()
-    expect(mocks.showToast).toHaveBeenCalledWith(
-      'portal.privacy.data.exportStarted', 'ok',
-    )
+    expect(mocks.showToast).toHaveBeenCalledWith('portal.privacy.data.exportStarted', 'ok')
   })
 
   it('toasts a localised limit message on export 429', async () => {
     mocks.getPrivacyText.mockResolvedValueOnce({
-      lang: 'fr', text_html: '', dpo_contact: '',
+      lang: 'fr',
+      text_html: '',
+      dpo_contact: '',
     })
     const limitErr = new Error('export_rate_limited')
     limitErr.code = 'export_rate_limited'
@@ -159,14 +162,14 @@ describe('PrivacyTab', () => {
     await w.findAll('button.pt-settings-btn')[0].trigger('click')
     await flushPromises()
 
-    expect(mocks.showToast).toHaveBeenCalledWith(
-      'portal.privacy.data.exportLimited', 'err',
-    )
+    expect(mocks.showToast).toHaveBeenCalledWith('portal.privacy.data.exportLimited', 'err')
   })
 
   it('toasts a too-large error on export 413', async () => {
     mocks.getPrivacyText.mockResolvedValueOnce({
-      lang: 'fr', text_html: '', dpo_contact: '',
+      lang: 'fr',
+      text_html: '',
+      dpo_contact: '',
     })
     const tooBig = new Error('export_too_large')
     tooBig.code = 'export_too_large'
@@ -177,14 +180,14 @@ describe('PrivacyTab', () => {
     await w.findAll('button.pt-settings-btn')[0].trigger('click')
     await flushPromises()
 
-    expect(mocks.showToast).toHaveBeenCalledWith(
-      'portal.privacy.data.exportTooLarge', 'err',
-    )
+    expect(mocks.showToast).toHaveBeenCalledWith('portal.privacy.data.exportTooLarge', 'err')
   })
 
   it('opens the deletion modal on Delete click and submits on confirm', async () => {
     mocks.getPrivacyText.mockResolvedValueOnce({
-      lang: 'fr', text_html: '', dpo_contact: '',
+      lang: 'fr',
+      text_html: '',
+      dpo_contact: '',
     })
     mocks.submitDeletion.mockResolvedValueOnce({ ok: true, alreadyPending: false })
     mocks.refreshAuth.mockResolvedValueOnce(true)
@@ -203,14 +206,14 @@ describe('PrivacyTab', () => {
 
     expect(mocks.submitDeletion).toHaveBeenCalledOnce()
     expect(mocks.refreshAuth).toHaveBeenCalledOnce()
-    expect(mocks.showToast).toHaveBeenCalledWith(
-      'portal.privacy.deleteModal.scheduled', 'ok',
-    )
+    expect(mocks.showToast).toHaveBeenCalledWith('portal.privacy.deleteModal.scheduled', 'ok')
   })
 
   it('closes the modal silently when the backend reports already_pending', async () => {
     mocks.getPrivacyText.mockResolvedValueOnce({
-      lang: 'fr', text_html: '', dpo_contact: '',
+      lang: 'fr',
+      text_html: '',
+      dpo_contact: '',
     })
     mocks.submitDeletion.mockResolvedValueOnce({ ok: true, alreadyPending: true })
     mocks.refreshAuth.mockResolvedValueOnce(true)
@@ -224,29 +227,30 @@ describe('PrivacyTab', () => {
     await flushPromises()
 
     // No success toast — the visual answer is the banner appearing.
-    expect(mocks.showToast).not.toHaveBeenCalledWith(
-      'portal.privacy.deleteModal.scheduled', 'ok',
-    )
+    expect(mocks.showToast).not.toHaveBeenCalledWith('portal.privacy.deleteModal.scheduled', 'ok')
     expect(mocks.refreshAuth).toHaveBeenCalledOnce()
   })
 
   it('renders the Emby notice for an Emby-sourced account', async () => {
     mocks.profile.value = { source: 'emby' }
     mocks.getPrivacyText.mockResolvedValueOnce({
-      lang: 'fr', text_html: '<p>x</p>', dpo_contact: '',
+      lang: 'fr',
+      text_html: '<p>x</p>',
+      dpo_contact: '',
     })
     const w = buildTab()
     await flushPromises()
 
     expect(w.find('.pt-privacy-emby-final').exists()).toBe(true)
-    expect(w.find('.pt-privacy-emby-final').text())
-      .toContain('portal.privacy.embyNotice')
+    expect(w.find('.pt-privacy-emby-final').text()).toContain('portal.privacy.embyNotice')
   })
 
   it('hides the Emby notice for a locally-sourced account', async () => {
     mocks.profile.value = { source: 'local' }
     mocks.getPrivacyText.mockResolvedValueOnce({
-      lang: 'fr', text_html: '<p>x</p>', dpo_contact: '',
+      lang: 'fr',
+      text_html: '<p>x</p>',
+      dpo_contact: '',
     })
     const w = buildTab()
     await flushPromises()

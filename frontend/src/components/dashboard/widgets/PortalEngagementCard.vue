@@ -9,20 +9,25 @@
           :class="{ 'is-active': window === 1 }"
           :aria-pressed="window === 1"
           @click="setWindow(1)"
-        >24h</button>
+        >
+          24h
+        </button>
         <button
           type="button"
           class="wg-eng-toggle-btn"
           :class="{ 'is-active': window === 7 }"
           :aria-pressed="window === 7"
           @click="setWindow(7)"
-        >7j</button>
+        >
+          7j
+        </button>
       </div>
     </div>
 
     <div class="wg-eng-grid">
       <button
-        v-for="tile in tiles" :key="tile.key"
+        v-for="tile in tiles"
+        :key="tile.key"
         class="wg-eng-tile"
         :class="{ 'wg-eng-tile-static': !tile.route }"
         :disabled="editing || !tile.route"
@@ -56,10 +61,34 @@ const data = ref({
 })
 
 const tiles = computed(() => [
-  { key: 'new_lists',             icon: ListPlus,       color: 'var(--accent-500)', labelKey: 'dashboard.portalEngagement.newLists',  route: { path: '/admin/portal', query: { tab: 'lists' } } },
-  { key: 'achievements_unlocked', icon: Trophy,         color: '#fbbf24', labelKey: 'dashboard.portalEngagement.achievements',     route: '/portal/leaderboard' },
-  { key: 'chat_messages',         icon: MessageSquare,  color: '#60a5fa', labelKey: 'dashboard.portalEngagement.chatMessages',     route: null },
-  { key: 'reviews',               icon: Star,           color: '#f472b6', labelKey: 'dashboard.portalEngagement.reviews',          route: null },
+  {
+    key: 'new_lists',
+    icon: ListPlus,
+    color: 'var(--accent-500)',
+    labelKey: 'dashboard.portalEngagement.newLists',
+    route: { path: '/admin/portal', query: { tab: 'lists' } },
+  },
+  {
+    key: 'achievements_unlocked',
+    icon: Trophy,
+    color: '#fbbf24',
+    labelKey: 'dashboard.portalEngagement.achievements',
+    route: '/portal/leaderboard',
+  },
+  {
+    key: 'chat_messages',
+    icon: MessageSquare,
+    color: '#60a5fa',
+    labelKey: 'dashboard.portalEngagement.chatMessages',
+    route: null,
+  },
+  {
+    key: 'reviews',
+    icon: Star,
+    color: '#f472b6',
+    labelKey: 'dashboard.portalEngagement.reviews',
+    route: null,
+  },
 ])
 
 function goTo(target) {
@@ -77,7 +106,9 @@ async function load() {
       const d = await res.json().catch(() => null)
       if (d) data.value = { ...data.value, ...d }
     }
-  } catch { /* silent: widget fetch, card stays blank */ }
+  } catch {
+    /* silent: widget fetch, card stays blank */
+  }
   loading.value = false
 }
 
@@ -130,15 +161,15 @@ onMounted(load)
   min-height: 26px;
   padding: 3px 10px;
   border-radius: var(--radius-pill);
-  background: rgba(255,255,255,0.03);
+  background: rgb(255, 255, 255, 0.03);
   border: 1px solid var(--border-strong);
-  color: rgba(255,255,255,.6);
+  color: rgb(255, 255, 255, 0.6);
   font-size: var(--text-3xs);
   font-weight: var(--font-extrabold);
   letter-spacing: var(--tracking-wide);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: all .18s;
+  transition: all 0.18s;
   backdrop-filter: var(--blur-xs);
 }
 .wg-eng-toggle-btn.is-active {
@@ -148,7 +179,11 @@ onMounted(load)
   box-shadow: var(--mk-pill-shadow-sm);
 }
 @media (hover: hover) {
-  .wg-eng-toggle-btn:not(.is-active):hover { border-color: rgba(255,255,255,0.18); color: rgba(255,255,255,.85); transform: translateY(-1px); }
+  .wg-eng-toggle-btn:not(.is-active):hover {
+    border-color: rgb(255, 255, 255, 0.18);
+    color: rgb(255, 255, 255, 0.85);
+    transform: translateY(-1px);
+  }
 }
 
 .wg-eng-grid {
@@ -165,28 +200,39 @@ onMounted(load)
   align-items: flex-start;
   gap: 2px;
   padding: 10px 12px;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.05);
+  background: rgb(255, 255, 255, 0.02);
+  border: 1px solid rgb(255, 255, 255, 0.05);
   border-radius: var(--radius-card);
   color: inherit;
   cursor: pointer;
   text-align: left;
   min-width: 0;
   min-height: 44px;
-  transition: border-color var(--duration-base), background var(--duration-base), transform var(--duration-fast);
+  transition:
+    border-color var(--duration-base),
+    background var(--duration-base),
+    transform var(--duration-fast);
   -webkit-tap-highlight-color: transparent;
 }
-.wg-eng-tile:disabled { cursor: default; }
-.wg-eng-tile-static { cursor: default; }
+.wg-eng-tile:disabled {
+  cursor: default;
+}
+.wg-eng-tile-static {
+  cursor: default;
+}
 @media (hover: hover) {
   .wg-eng-tile:not(:disabled):hover {
     border-color: color-mix(in srgb, var(--accent-500) 35%, transparent);
-    background: rgba(var(--accent-rgb), 0.05);
+    background: rgb(var(--accent-rgb), 0.05);
   }
 }
-.wg-eng-tile:not(:disabled):active { transform: scale(0.98); }
+.wg-eng-tile:not(:disabled):active {
+  transform: scale(0.98);
+}
 
-.wg-eng-ic { flex-shrink: 0; }
+.wg-eng-ic {
+  flex-shrink: 0;
+}
 .wg-eng-val {
   font-size: 20px;
   font-weight: var(--font-medium);

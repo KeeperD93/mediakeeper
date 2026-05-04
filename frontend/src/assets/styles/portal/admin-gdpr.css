@@ -35,9 +35,13 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
   cursor: pointer;
-  transition: border-color var(--portal-dur-fast), background var(--portal-dur-fast);
+  transition:
+    border-color var(--portal-dur-fast),
+    background var(--portal-dur-fast);
 }
-.pt-gdpr-toggle-row:hover { border-color: var(--border-hover); }
+.pt-gdpr-toggle-row:hover {
+  border-color: var(--border-hover);
+}
 .pt-gdpr-toggle-info {
   display: flex;
   flex-direction: column;
@@ -68,18 +72,32 @@
   color: var(--text-muted);
   font-size: var(--portal-text-sm);
 }
-.pt-gdpr-config { display: flex; flex-direction: column; gap: 1rem; }
+.pt-gdpr-config {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
 .pt-gdpr-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 1rem;
 }
 @media (min-width: 960px) {
-  .pt-gdpr-grid { grid-template-columns: 1fr 1fr; }
-  .pt-gdpr-grid--inline { grid-template-columns: 2fr 1fr; }
+  .pt-gdpr-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .pt-gdpr-grid--inline {
+    grid-template-columns: 2fr 1fr;
+  }
 }
-.pt-gdpr-field { display: flex; flex-direction: column; gap: 0.4rem; }
-.pt-gdpr-field--narrow .pt-gdpr-input { max-width: 8rem; }
+.pt-gdpr-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.pt-gdpr-field--narrow .pt-gdpr-input {
+  max-width: 8rem;
+}
 .pt-gdpr-label {
   display: flex;
   flex-direction: column;
@@ -101,13 +119,22 @@
   color: var(--text-primary);
   font-size: var(--portal-text-sm);
 }
-.pt-gdpr-input:focus { border-color: var(--accent); outline: none; }
-.pt-gdpr-input--number { text-align: center; }
+.pt-gdpr-input:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+.pt-gdpr-input--number {
+  text-align: center;
+}
 .pt-gdpr-error {
   font-size: var(--portal-text-xs);
   color: var(--accent);
 }
-.pt-gdpr-actions { display: flex; align-items: center; gap: 0.75rem; }
+.pt-gdpr-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
 .pt-gdpr-save {
   display: inline-flex;
   align-items: center;
@@ -122,8 +149,13 @@
   cursor: pointer;
   transition: filter var(--portal-dur-fast);
 }
-.pt-gdpr-save:disabled { opacity: 0.5; cursor: not-allowed; }
-.pt-gdpr-save:hover:not(:disabled) { filter: brightness(1.1); }
+.pt-gdpr-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.pt-gdpr-save:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
 .pt-gdpr-saved {
   font-size: var(--portal-text-xs);
   color: var(--accent);
@@ -163,11 +195,18 @@
   color: var(--text-primary);
   font-size: var(--portal-text-xs);
   cursor: pointer;
-  transition: border-color var(--portal-dur-fast), background var(--portal-dur-fast);
+  transition:
+    border-color var(--portal-dur-fast),
+    background var(--portal-dur-fast);
 }
-.pt-gdpr-pending-cancel:hover:not(:disabled) { border-color: var(--accent); }
+.pt-gdpr-pending-cancel:hover:not(:disabled) {
+  border-color: var(--accent);
+}
 .pt-gdpr-pending-refresh:disabled,
-.pt-gdpr-pending-cancel:disabled { opacity: 0.5; cursor: not-allowed; }
+.pt-gdpr-pending-cancel:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 .pt-gdpr-pending-desc {
   margin: 0;
   font-size: var(--portal-text-xs);
@@ -206,8 +245,12 @@
   font-size: var(--portal-text-xs);
 }
 .pt-gdpr-pending-th--act,
-.pt-gdpr-pending-td--act { text-align: right; }
-.pt-gdpr-pending-username { font-weight: var(--portal-font-medium); }
+.pt-gdpr-pending-td--act {
+  text-align: right;
+}
+.pt-gdpr-pending-username {
+  font-weight: var(--portal-font-medium);
+}
 .pt-gdpr-pending-scheduled--overdue {
   color: var(--accent);
   font-weight: var(--portal-font-medium);

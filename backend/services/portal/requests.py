@@ -160,7 +160,7 @@ async def _backfill_backdrops(
             if backdrop:
                 r.backdrop_url = backdrop
                 changed = True
-        except Exception:
+        except Exception:  # noqa: S112 -- intentional best-effort iteration, skip individual failure
             continue
     if changed:
         await db.commit()

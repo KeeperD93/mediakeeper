@@ -44,7 +44,7 @@ async def _load_from_db(db: AsyncSession) -> dict | None:
         try:
             _cache = json.loads(raw)
             return _cache
-        except Exception:
+        except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
             pass
     return None
 

@@ -6,11 +6,20 @@
         <p class="ru-page-sub">{{ $t('requestsAdmin.users.subtitle') }}</p>
       </div>
       <div class="ru-page-actions">
-        <button type="button" class="ru-btn ru-btn--ghost" :disabled="syncing" @click="onSyncEmbyIds">
+        <button
+          type="button"
+          class="ru-btn ru-btn--ghost"
+          :disabled="syncing"
+          @click="onSyncEmbyIds"
+        >
           <RefreshCw :size="16" />
-          <span>{{ syncing
-            ? $t('requestsAdmin.users.actions.sync_emby_ids_running')
-            : $t('requestsAdmin.users.actions.sync_emby_ids') }}</span>
+          <span>
+            {{
+              syncing
+                ? $t('requestsAdmin.users.actions.sync_emby_ids_running')
+                : $t('requestsAdmin.users.actions.sync_emby_ids')
+            }}
+          </span>
         </button>
         <button type="button" class="ru-btn ru-btn--ghost" @click="openImport">
           <DownloadCloud :size="16" />
@@ -82,17 +91,9 @@
       @navigate="onDrawerNavigate"
     />
 
-    <RuEmbyImportOverlay
-      :open="importOpen"
-      @close="importOpen = false"
-      @imported="onImported"
-    />
+    <RuEmbyImportOverlay :open="importOpen" @close="importOpen = false" @imported="onImported" />
 
-    <RuLocalCreateModal
-      :open="createOpen"
-      @close="createOpen = false"
-      @created="onCreated"
-    />
+    <RuLocalCreateModal :open="createOpen" @close="createOpen = false" @created="onCreated" />
   </div>
 </template>
 
@@ -159,8 +160,8 @@ const bannerActive = computed(() => {
   return 'all'
 })
 
-const allIds = computed(() => items.value.map((u) => u.id))
-const orderedIds = computed(() => items.value.map((u) => u.id))
+const allIds = computed(() => items.value.map(u => u.id))
+const orderedIds = computed(() => items.value.map(u => u.id))
 
 let reloadTimer = null
 
@@ -184,7 +185,7 @@ async function reload() {
     ])
     items.value = res?.items || []
     total.value = res?.total || 0
-    selectedIds.value = selectedIds.value.filter((id) => allIds.value.includes(id))
+    selectedIds.value = selectedIds.value.filter(id => allIds.value.includes(id))
     if (freshStats) stats.value = freshStats
   } finally {
     loading.value = false
@@ -222,16 +223,24 @@ function toggleAll() {
   if (selectedIds.value.length === allIds.value.length) selectedIds.value = []
   else selectedIds.value = [...allIds.value]
 }
-function openDrawer(profileId) { drawerProfileId.value = profileId }
-function closeDrawer() { drawerProfileId.value = null }
+function openDrawer(profileId) {
+  drawerProfileId.value = profileId
+}
+function closeDrawer() {
+  drawerProfileId.value = null
+}
 function onDrawerNavigate(direction) {
   const idx = orderedIds.value.indexOf(drawerProfileId.value)
   if (idx < 0) return
   const next = direction === 'prev' ? idx - 1 : idx + 1
   if (next >= 0 && next < orderedIds.value.length) drawerProfileId.value = orderedIds.value[next]
 }
-function openImport() { importOpen.value = true }
-function openCreate() { createOpen.value = true }
+function openImport() {
+  importOpen.value = true
+}
+function openCreate() {
+  createOpen.value = true
+}
 
 async function onSyncEmbyIds() {
   syncing.value = true
@@ -241,11 +250,18 @@ async function onSyncEmbyIds() {
       showToast(t(`requestsAdmin.users.errors.${res.error}`, t('common.error')), TOAST_TYPE.ERR)
       return
     }
-    showToast(t('requestsAdmin.users.toasts.embyIdsSynced', {
-      updated: res?.updated || 0, already: res?.already_linked || 0, unmatched: res?.unmatched || 0,
-    }), TOAST_TYPE.OK)
+    showToast(
+      t('requestsAdmin.users.toasts.embyIdsSynced', {
+        updated: res?.updated || 0,
+        already: res?.already_linked || 0,
+        unmatched: res?.unmatched || 0,
+      }),
+      TOAST_TYPE.OK,
+    )
     await reload()
-  } finally { syncing.value = false }
+  } finally {
+    syncing.value = false
+  }
 }
 
 async function onBulkAction({ action, payload = null }) {
@@ -263,7 +279,9 @@ async function onBulkAction({ action, payload = null }) {
       try {
         const data = await api.exportUser(id)
         downloadJsonFile(data, `mk-user-${id}.json`)
-      } catch (_e) { /* per-user failure already toasted by useApi */ }
+      } catch {
+        /* per-user failure already toasted by useApi */
+      }
     }
     showToast(t('requestsAdmin.users.toasts.exported'), TOAST_TYPE.OK)
     return
@@ -282,7 +300,10 @@ async function onBulkAction({ action, payload = null }) {
 
 async function onImported(summary) {
   importOpen.value = false
-  showToast(t('requestsAdmin.users.toasts.imported', { created: summary?.created || 0 }), TOAST_TYPE.OK)
+  showToast(
+    t('requestsAdmin.users.toasts.imported', { created: summary?.created || 0 }),
+    TOAST_TYPE.OK,
+  )
   await reload()
 }
 async function onCreated() {
@@ -290,5 +311,7 @@ async function onCreated() {
   showToast(t('requestsAdmin.users.toasts.created'), TOAST_TYPE.OK)
   await reload()
 }
-onMounted(async () => { await Promise.all([reload(), reloadMeta()]) })
+onMounted(async () => {
+  await Promise.all([reload(), reloadMeta()])
+})
 </script>

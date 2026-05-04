@@ -1,16 +1,10 @@
 <template>
   <div v-if="currentTicket" class="ptd">
-    <button class="ptd-back" @click="$router.back()">
-      ← {{ $t('common.back') }}
-    </button>
+    <button class="ptd-back" @click="$router.back()">← {{ $t('common.back') }}</button>
 
     <!-- Hero — only when the ticket points to a real library item.
          "Other" tickets get the compact card layout below directly. -->
-    <header
-      v-if="hasMedia"
-      class="ptd-hero"
-      :style="backdropStyle"
-    >
+    <header v-if="hasMedia" class="ptd-hero" :style="backdropStyle">
       <div class="ptd-hero-overlay" />
       <div class="ptd-hero-inner">
         <img
@@ -19,7 +13,7 @@
           class="ptd-hero-poster"
           :alt="currentTicket.media_title"
           loading="lazy"
-          @error="$event.target.style.display='none'"
+          @error="$event.target.style.display = 'none'"
         />
         <div class="ptd-hero-meta">
           <div class="ptd-hero-id">#{{ currentTicket.id }}</div>
@@ -66,18 +60,18 @@
     <!-- Admin status control + timestamps -->
     <section class="ptd-toolbar">
       <div class="ptd-timestamps">
-        <span>{{ $t('portal.tickets.detail.openedAt') }}: {{ formatDate(currentTicket.created_at) }}</span>
-        <span v-if="currentTicket.updated_at && currentTicket.updated_at !== currentTicket.created_at">
+        <span>
+          {{ $t('portal.tickets.detail.openedAt') }}: {{ formatDate(currentTicket.created_at) }}
+        </span>
+        <span
+          v-if="currentTicket.updated_at && currentTicket.updated_at !== currentTicket.created_at"
+        >
           · {{ $t('portal.tickets.detail.updatedAt') }}: {{ formatDate(currentTicket.updated_at) }}
         </span>
       </div>
       <div v-if="isAdmin" class="ptd-status-control">
         <label class="ptd-status-label">{{ $t('portal.tickets.detail.changeStatus') }}</label>
-        <select
-          class="ptd-status-select"
-          :value="currentTicket.status"
-          @change="onStatusChange"
-        >
+        <select class="ptd-status-select" :value="currentTicket.status" @change="onStatusChange">
           <option v-for="s in statusOptions" :key="s" :value="s">
             {{ $t(`portal.tickets.status.${s}`) }}
           </option>
@@ -92,7 +86,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { usePortalTickets } from '@/composables/portal/usePortalTickets'

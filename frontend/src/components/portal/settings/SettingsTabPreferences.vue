@@ -1,6 +1,8 @@
 <template>
   <div class="pt-settings-card">
-    <h3 class="pt-settings-section-title">{{ $t('portal.settings.preferences.languageSection') }}</h3>
+    <h3 class="pt-settings-section-title">
+      {{ $t('portal.settings.preferences.languageSection') }}
+    </h3>
     <p class="pt-settings-section-sub">{{ $t('portal.settings.preferences.languageHint') }}</p>
 
     <div class="pt-settings-chips">
@@ -29,9 +31,11 @@
         type="button"
         class="pt-settings-chip"
         :class="{ 'pt-settings-chip--on': isGenreSelected(g) }"
-        :style="isGenreSelected(g)
-          ? { borderColor: g.color, background: g.color + '22', color: '#fff' }
-          : null"
+        :style="
+          isGenreSelected(g)
+            ? { borderColor: g.color, background: g.color + '22', color: '#fff' }
+            : null
+        "
         @click="toggleGenre(g)"
       >
         <span>{{ g.emoji }}</span>
@@ -50,32 +54,35 @@ const props = defineProps({
 const emit = defineEmits(['update-field'])
 
 const GENRE_PICKER = [
-  { label: 'action',          ids: [28, 10759],  emoji: '💥', color: '#ef4444' },
-  { label: 'aventure',        ids: [12],         emoji: '⚔️', color: '#f97316' },
-  { label: 'animation',       ids: [16],         emoji: '✏️', color: '#a78bfa' },
-  { label: 'comedie',         ids: [35],         emoji: '😂', color: '#fbbf24' },
-  { label: 'crime',           ids: [80],         emoji: '🔫', color: '#dc2626' },
-  { label: 'documentaire',    ids: [99],         emoji: '🎥', color: '#22c55e' },
-  { label: 'drame',           ids: [18],         emoji: '🎭', color: '#3b82f6' },
-  { label: 'familial',        ids: [10751],      emoji: '👨‍👩‍👧', color: '#22c55e' },
-  { label: 'fantastique',     ids: [14],         emoji: '🧙', color: '#8b5cf6' },
-  { label: 'guerre',          ids: [10752, 10768], emoji: '⚔️', color: '#7c2d12' },
-  { label: 'histoire',        ids: [36],         emoji: '🏛️', color: '#b45309' },
-  { label: 'horreur',         ids: [27],         emoji: '😱', color: '#991b1b' },
-  { label: 'mystere',         ids: [9648],       emoji: '🔍', color: '#6366f1' },
-  { label: 'musique',         ids: [10402],      emoji: '🎵', color: '#c084fc' },
-  { label: 'romance',         ids: [10749],      emoji: '❤️', color: '#ec4899' },
-  { label: 'scienceFiction',  ids: [878, 10765], emoji: '🚀', color: '#38bdf8' },
-  { label: 'thriller',        ids: [53],         emoji: '😰', color: '#64748b' },
-  { label: 'western',         ids: [37],         emoji: '🤠', color: '#a16207' },
+  { label: 'action', ids: [28, 10759], emoji: '💥', color: '#ef4444' },
+  { label: 'aventure', ids: [12], emoji: '⚔️', color: '#f97316' },
+  { label: 'animation', ids: [16], emoji: '✏️', color: '#a78bfa' },
+  { label: 'comedie', ids: [35], emoji: '😂', color: '#fbbf24' },
+  { label: 'crime', ids: [80], emoji: '🔫', color: '#dc2626' },
+  { label: 'documentaire', ids: [99], emoji: '🎥', color: '#22c55e' },
+  { label: 'drame', ids: [18], emoji: '🎭', color: '#3b82f6' },
+  { label: 'familial', ids: [10751], emoji: '👨‍👩‍👧', color: '#22c55e' },
+  { label: 'fantastique', ids: [14], emoji: '🧙', color: '#8b5cf6' },
+  { label: 'guerre', ids: [10752, 10768], emoji: '⚔️', color: '#7c2d12' },
+  { label: 'histoire', ids: [36], emoji: '🏛️', color: '#b45309' },
+  { label: 'horreur', ids: [27], emoji: '😱', color: '#991b1b' },
+  { label: 'mystere', ids: [9648], emoji: '🔍', color: '#6366f1' },
+  { label: 'musique', ids: [10402], emoji: '🎵', color: '#c084fc' },
+  { label: 'romance', ids: [10749], emoji: '❤️', color: '#ec4899' },
+  { label: 'scienceFiction', ids: [878, 10765], emoji: '🚀', color: '#38bdf8' },
+  { label: 'thriller', ids: [53], emoji: '😰', color: '#64748b' },
+  { label: 'western', ids: [37], emoji: '🤠', color: '#a16207' },
 ]
 
 function isGenreSelected(g) {
-  return g.ids.some((id) => props.form.favorite_genres.includes(id))
+  return g.ids.some(id => props.form.favorite_genres.includes(id))
 }
 function toggleGenre(g) {
   if (isGenreSelected(g)) {
-    updateField('favorite_genres', props.form.favorite_genres.filter((id) => !g.ids.includes(id)))
+    updateField(
+      'favorite_genres',
+      props.form.favorite_genres.filter(id => !g.ids.includes(id)),
+    )
   } else {
     updateField('favorite_genres', [...props.form.favorite_genres, ...g.ids])
   }

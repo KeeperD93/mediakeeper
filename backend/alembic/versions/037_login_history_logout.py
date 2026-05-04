@@ -57,7 +57,7 @@ def downgrade() -> None:
     if "user_login_history" in inspector.get_table_names():
         try:
             op.drop_index("ix_user_login_history_user_created", table_name="user_login_history")
-        except Exception:
+        except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
             pass
         op.drop_table("user_login_history")
     cols = {c["name"] for c in inspector.get_columns("user_profiles")}

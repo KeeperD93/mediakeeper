@@ -34,18 +34,14 @@
            for requested items. Same flag shape as the "New" ribbon
            but mirrored (flush to the right edge). Only shows when the
            item has an active request AND is not already available. -->
-      <span
-        v-if="showRequestedTag"
-        class="pt-requested-tag"
-        :title="postitTooltip"
-      >{{ $t('portal.card.requestedTag') }}</span>
+      <span v-if="showRequestedTag" class="pt-requested-tag" :title="postitTooltip">
+        {{ $t('portal.card.requestedTag') }}
+      </span>
 
       <!-- "New on Emby" ribbon -->
-      <span
-        v-if="isNewOnEmby"
-        class="pt-new-ribbon"
-        :title="newRibbonTooltip"
-      >{{ $t('portal.card.newRibbon') }}</span>
+      <span v-if="isNewOnEmby" class="pt-new-ribbon" :title="newRibbonTooltip">
+        {{ $t('portal.card.newRibbon') }}
+      </span>
 
       <!-- Watched-status tag — the profile "Recent plays" carousel
            stamps ``watched_at`` + ``watch_status`` on each item so we
@@ -58,7 +54,13 @@
         :class="`pt-watched-tag--${item.watch_status === 'in_progress' ? 'in-progress' : 'watched'}`"
         :title="watchedTooltip"
       >
-        {{ $t(item.watch_status === 'in_progress' ? 'portal.card.inProgressTag' : 'portal.card.watchedTag') }}
+        {{
+          $t(
+            item.watch_status === 'in_progress'
+              ? 'portal.card.inProgressTag'
+              : 'portal.card.watchedTag',
+          )
+        }}
       </span>
 
       <!-- Request status tags — shown when either the profile carousel
@@ -71,11 +73,14 @@
         :class="`pt-req-status-tag--${displayedReqStatus}`"
         :title="reqStatusTooltip"
       >
-        {{ requestStatusLabel }}<span
+        {{ requestStatusLabel }}
+        <span
           v-if="retryCount >= 1"
           class="pt-req-retry-badge"
           :title="$t('portal.card.retryBadgeTooltip', { count: retryCount + 1 })"
-        >x{{ retryCount + 1 }}</span>
+        >
+          x{{ retryCount + 1 }}
+        </span>
       </span>
 
       <!-- Hover overlay -->
@@ -130,7 +135,13 @@
             'pt-card-request-btn--resubmit': canResubmit,
           }"
           :disabled="!!reqStatus && !canResubmit"
-          :title="reqStatus && !canResubmit ? postitTooltip : (isRejected && reqStatus?.reject_reason ? reqStatus.reject_reason : '')"
+          :title="
+            reqStatus && !canResubmit
+              ? postitTooltip
+              : isRejected && reqStatus?.reject_reason
+                ? reqStatus.reject_reason
+                : ''
+          "
           @click.stop="onRequestClick"
         >
           <span class="pt-card-request-icon">
@@ -139,22 +150,20 @@
             <Check v-else :size="14" :stroke-width="2.5" />
           </span>
           <span class="pt-card-request-text">
-            {{ canResubmit
+            {{
+              canResubmit
                 ? $t('portal.card.resubmitBtn')
                 : reqStatus
                   ? $t('portal.card.requestedBtn')
-                  : $t('portal.card.requestBtn') }}
+                  : $t('portal.card.requestBtn')
+            }}
           </span>
           <span class="pt-card-request-shine" />
         </button>
       </div>
     </div>
 
-    <AddToListOverlay
-      :open="addToListOpen"
-      :media="item"
-      @close="addToListOpen = false"
-    />
+    <AddToListOverlay :open="addToListOpen" :media="item" @close="addToListOpen = false" />
   </div>
 </template>
 
@@ -185,7 +194,11 @@ const watchedTooltip = computed(() => {
   if (!props.item.watched_at) return ''
   const d = new Date(props.item.watched_at)
   if (Number.isNaN(d.getTime())) return ''
-  const date = d.toLocaleDateString(locale.value, { day: 'numeric', month: 'long', year: 'numeric' })
+  const date = d.toLocaleDateString(locale.value, {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
   return props.item.watch_status === 'in_progress'
     ? t('portal.card.inProgressTooltip', { date })
     : t('portal.card.watchedTooltip', { date })
@@ -210,9 +223,13 @@ const reqStatusTooltip = computed(() => {
   if (r.requested_at) {
     try {
       when = new Date(r.requested_at).toLocaleDateString(locale.value, {
-        day: 'numeric', month: 'long', year: 'numeric',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
       })
-    } catch { /**/ }
+    } catch {
+      /**/
+    }
   }
   const label = requestStatusLabel.value
   return when ? `${label} — ${when}` : label

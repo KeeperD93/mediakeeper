@@ -1,12 +1,7 @@
 <template>
   <Teleport to="body">
     <transition name="pt-dpb">
-      <div
-        v-if="visible"
-        class="pt-dpb"
-        role="status"
-        :style="{ top: `${navOffset}px` }"
-      >
+      <div v-if="visible" class="pt-dpb" role="status" :style="{ top: `${navOffset}px` }">
         <div class="pt-dpb-inner">
           <AlertTriangle :size="18" class="pt-dpb-icon" />
           <span class="pt-dpb-text">
@@ -16,15 +11,12 @@
               </template>
             </i18n-t>
           </span>
-          <button
-            type="button"
-            class="pt-dpb-cancel"
-            :disabled="cancelling"
-            @click="onCancel"
-          >
-            {{ cancelling
-              ? $t('portal.privacy.banner.cancelling')
-              : $t('portal.privacy.banner.cancel') }}
+          <button type="button" class="pt-dpb-cancel" :disabled="cancelling" @click="onCancel">
+            {{
+              cancelling
+                ? $t('portal.privacy.banner.cancelling')
+                : $t('portal.privacy.banner.cancel')
+            }}
           </button>
         </div>
       </div>
@@ -115,11 +107,11 @@ async function onCancel() {
   left: 0;
   right: 0;
   z-index: 100; /* one above EventBanner so the user always sees it */
-  background: rgba(180, 83, 9, 0.92);
+  background: rgb(180, 83, 9, 0.92);
   color: #fff;
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+  border-top: 1px solid rgb(255, 255, 255, 0.15);
+  border-bottom: 1px solid rgb(255, 255, 255, 0.15);
+  box-shadow: 0 2px 12px rgb(0, 0, 0, 0.35);
   font-size: var(--portal-text-sm);
 }
 .pt-dpb-inner {
@@ -130,14 +122,23 @@ async function onCancel() {
   gap: 0.6rem;
   padding: 0.45rem 1rem;
 }
-.pt-dpb-icon { flex: 0 0 auto; color: #fef3c7; }
-.pt-dpb-text { flex: 1 1 auto; line-height: 1.4; }
-.pt-dpb-date { font-weight: var(--portal-font-bold); white-space: nowrap; }
+.pt-dpb-icon {
+  flex: 0 0 auto;
+  color: #fef3c7;
+}
+.pt-dpb-text {
+  flex: 1 1 auto;
+  line-height: 1.4;
+}
+.pt-dpb-date {
+  font-weight: var(--portal-font-bold);
+  white-space: nowrap;
+}
 .pt-dpb-cancel {
   flex: 0 0 auto;
-  background: rgba(255, 255, 255, 0.18);
+  background: rgb(255, 255, 255, 0.18);
   color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgb(255, 255, 255, 0.4);
   border-radius: 999px;
   padding: 0.3rem 0.85rem;
   font-size: var(--portal-text-xs);
@@ -147,21 +148,37 @@ async function onCancel() {
   transition: background 0.18s ease;
 }
 .pt-dpb-cancel:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.28);
+  background: rgb(255, 255, 255, 0.28);
 }
-.pt-dpb-cancel:disabled { opacity: 0.6; cursor: progress; }
+.pt-dpb-cancel:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
 
-.pt-dpb-enter-active, .pt-dpb-leave-active {
-  transition: transform 0.3s ease, opacity 0.3s ease;
+.pt-dpb-enter-active,
+.pt-dpb-leave-active {
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease;
 }
-.pt-dpb-enter-from, .pt-dpb-leave-to {
+.pt-dpb-enter-from,
+.pt-dpb-leave-to {
   transform: translateY(-100%);
   opacity: 0;
 }
 
 @media (max-width: 640px) {
-  .pt-dpb-inner { flex-wrap: wrap; padding: 0.45rem 0.75rem; }
-  .pt-dpb-text { flex-basis: 100%; order: 2; }
-  .pt-dpb-cancel { order: 3; margin-left: auto; }
+  .pt-dpb-inner {
+    flex-wrap: wrap;
+    padding: 0.45rem 0.75rem;
+  }
+  .pt-dpb-text {
+    flex-basis: 100%;
+    order: 2;
+  }
+  .pt-dpb-cancel {
+    order: 3;
+    margin-left: auto;
+  }
 }
 </style>

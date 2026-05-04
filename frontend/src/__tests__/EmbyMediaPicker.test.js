@@ -33,8 +33,11 @@ describe('EmbyMediaPicker', () => {
     const w = mount(EmbyMediaPicker, {
       props: {
         modelValue: {
-          id: 'emby-1', type: 'movie', title: 'Interstellar',
-          poster_id: 'emby-1', year: '2014',
+          id: 'emby-1',
+          type: 'movie',
+          title: 'Interstellar',
+          poster_id: 'emby-1',
+          year: '2014',
         },
       },
     })
@@ -44,9 +47,9 @@ describe('EmbyMediaPicker', () => {
   })
 
   it('debounces the search and calls the autocomplete endpoint', async () => {
-    apiGet.mockResolvedValueOnce({ items: [
-      { id: 'mov-1', type: 'movie', title: 'Inception', poster_id: 'mov-1', year: '2010' },
-    ] })
+    apiGet.mockResolvedValueOnce({
+      items: [{ id: 'mov-1', type: 'movie', title: 'Inception', poster_id: 'mov-1', year: '2010' }],
+    })
 
     const w = mount(EmbyMediaPicker, { props: { modelValue: null } })
     const input = w.find('.emp-input')
@@ -63,9 +66,9 @@ describe('EmbyMediaPicker', () => {
   })
 
   it('emits update:modelValue with the picked hit on click', async () => {
-    apiGet.mockResolvedValueOnce({ items: [
-      { id: 'mov-1', type: 'movie', title: 'Inception', poster_id: 'mov-1', year: '2010' },
-    ] })
+    apiGet.mockResolvedValueOnce({
+      items: [{ id: 'mov-1', type: 'movie', title: 'Inception', poster_id: 'mov-1', year: '2010' }],
+    })
 
     const w = mount(EmbyMediaPicker, { props: { modelValue: null } })
     await w.find('.emp-input').setValue('inc')

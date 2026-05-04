@@ -33,7 +33,12 @@
         </button>
       </div>
     </div>
-    <RuBulkPermsModal :open="permsOpen" :count="count" @close="permsOpen = false" @apply="onApplyPerms" />
+    <RuBulkPermsModal
+      :open="permsOpen"
+      :count="count"
+      @close="permsOpen = false"
+      @apply="onApplyPerms"
+    />
   </Teleport>
 </template>
 

@@ -32,7 +32,10 @@
         <h2 class="pc-h2">OpenSubtitles</h2>
         <p>
           {{ t('attribution.opensubtitles.text') }}
-          <a :href="links.opensubtitles" target="_blank" rel="noopener noreferrer">opensubtitles.org</a>.
+          <a :href="links.opensubtitles" target="_blank" rel="noopener noreferrer">
+            opensubtitles.org
+          </a>
+          .
         </p>
       </section>
 
@@ -89,7 +92,9 @@ const tmdbLegalText = 'This product uses the TMDB API but is not endorsed or cer
 }
 
 @media (max-width: 767px) {
-  .pc-root { padding-top: 100px; }
+  .pc-root {
+    padding-top: 100px;
+  }
 }
 
 .pc-inner {

@@ -30,7 +30,10 @@
       <h3 class="params-section-title">{{ $t('settings.testWizardTitle') }}</h3>
       <p class="params-section-desc">{{ $t('settings.testWizardDesc') }}</p>
       <div class="params-test-actions">
-        <button class="params-danger-btn params-danger-btn-preview" @click="showOnboardingPreview = true">
+        <button
+          class="params-danger-btn params-danger-btn-preview"
+          @click="showOnboardingPreview = true"
+        >
           {{ $t('settings.previewOnboarding') }}
         </button>
         <button class="params-danger-btn" @click="resetOnboarding">
@@ -39,7 +42,11 @@
       </div>
     </section>
 
-    <OnboardingWizard v-if="showOnboardingPreview" :force-show="true" @done="showOnboardingPreview = false" />
+    <OnboardingWizard
+      v-if="showOnboardingPreview"
+      :force-show="true"
+      @done="showOnboardingPreview = false"
+    />
   </div>
 </template>
 
@@ -86,18 +93,49 @@ async function resetOnboarding() {
 </script>
 
 <style scoped>
-.test-toast-grid { display: flex; gap: 8px; flex-wrap: wrap; }
+.test-toast-grid {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 .test-toast-btn {
-  display: flex; align-items: center; gap: 6px;
-  padding: 9px 18px; border-radius: var(--radius-btn);
-  font-size: var(--text-sm); font-weight: var(--font-medium); cursor: pointer;
-  font-family: inherit; border: .5px solid var(--border);
-  background: var(--bg-secondary); color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border-radius: var(--radius-btn);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  font-family: inherit;
+  border: 0.5px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
   transition: all var(--duration-fast);
 }
-.test-toast-ok:hover   { border-color: var(--color-success); color: var(--color-success); background: rgba(var(--color-success-rgb),.08); }
-.test-toast-err:hover  { border-color: var(--color-error); color: var(--color-error); background: rgba(var(--color-error-rgb),.08); }
-.test-toast-warn:hover { border-color: var(--color-warning); color: var(--color-warning); background: rgba(var(--color-warning-rgb),.08); }
-.test-toast-media:hover { border-color: var(--accent-400); color: var(--accent-400); background: rgba(var(--accent-rgb),.08); }
-.params-test-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.test-toast-ok:hover {
+  border-color: var(--color-success);
+  color: var(--color-success);
+  background: rgb(var(--color-success-rgb), 0.08);
+}
+.test-toast-err:hover {
+  border-color: var(--color-error);
+  color: var(--color-error);
+  background: rgb(var(--color-error-rgb), 0.08);
+}
+.test-toast-warn:hover {
+  border-color: var(--color-warning);
+  color: var(--color-warning);
+  background: rgb(var(--color-warning-rgb), 0.08);
+}
+.test-toast-media:hover {
+  border-color: var(--accent-400);
+  color: var(--accent-400);
+  background: rgb(var(--accent-rgb), 0.08);
+}
+.params-test-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 </style>

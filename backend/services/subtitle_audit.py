@@ -181,7 +181,7 @@ async def run_audit(
                             if enc not in ("UTF-8", "ASCII", "UTF-8-SIG"):
                                 issues.append(f"encoding:{enc}")
                                 summary["encoding_issues"] += 1
-                        except Exception:
+                        except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
                             pass
 
                 if issues:

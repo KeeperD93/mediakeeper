@@ -17,7 +17,9 @@ const { status, refresh } = useEncryptionKeyStatus()
 
 const show = computed(() => status.value?.warning === true)
 
-onMounted(() => { refresh() })
+onMounted(() => {
+  refresh()
+})
 </script>
 
 <style scoped>
@@ -32,7 +34,15 @@ onMounted(() => { refresh() })
   font-size: 0.875rem;
   line-height: 1.35;
 }
-.mk-deployment-banner svg { flex-shrink: 0; }
-.mk-deployment-banner__body { display: flex; flex-direction: column; gap: 0.125rem; }
-.mk-deployment-banner__body strong { font-weight: 600; }
+.mk-deployment-banner svg {
+  flex-shrink: 0;
+}
+.mk-deployment-banner__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+.mk-deployment-banner__body strong {
+  font-weight: 600;
+}
 </style>

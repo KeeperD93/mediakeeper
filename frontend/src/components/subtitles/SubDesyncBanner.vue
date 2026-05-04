@@ -5,7 +5,8 @@
       {{ $t('subtitles.desyncWarning') }}
       <strong>{{ desync.delta_sec > 0 ? '+' : '' }}{{ desync.delta_sec }}s</strong>
       <span class="sub-desync-detail">
-        (SRT: {{ formatDuration(desync.srt_duration_sec) }} / {{ $t('subtitles.source') }}: {{ formatDuration(desync.media_duration_sec) }})
+        (SRT: {{ formatDuration(desync.srt_duration_sec) }} / {{ $t('subtitles.source') }}:
+        {{ formatDuration(desync.media_duration_sec) }})
       </span>
     </span>
   </div>
@@ -28,20 +29,39 @@ function formatDuration(sec) {
   const h = Math.floor(sec / 3600)
   const m = Math.floor((sec % 3600) / 60)
   const s = Math.floor(sec % 60)
-  return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${m}:${String(s).padStart(2, '0')}`
+  return h > 0
+    ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+    : `${m}:${String(s).padStart(2, '0')}`
 }
 </script>
 
 <style scoped>
 .sub-desync-banner {
-  display: flex; align-items: center; gap: 8px; padding: 8px 12px; margin-top: 8px;
-  border-radius: var(--radius-btn); font-size: var(--text-2xs);
-  background: rgba(var(--color-warning-rgb),.08); border: .5px solid rgba(var(--color-warning-rgb),.2); color: var(--color-warning);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  margin-top: 8px;
+  border-radius: var(--radius-btn);
+  font-size: var(--text-2xs);
+  background: rgb(var(--color-warning-rgb), 0.08);
+  border: 0.5px solid rgb(var(--color-warning-rgb), 0.2);
+  color: var(--color-warning);
 }
-.sub-desync-detail { font-size: var(--text-3xs); color: var(--text-muted); }
+.sub-desync-detail {
+  font-size: var(--text-3xs);
+  color: var(--text-muted);
+}
 .sub-encoding-banner {
-  display: flex; align-items: center; gap: 8px; padding: 8px 12px; margin-top: 4px;
-  border-radius: var(--radius-btn); font-size: var(--text-2xs);
-  background: rgba(var(--color-success-rgb),.08); border: .5px solid rgba(var(--color-success-rgb),.2); color: var(--color-success);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  margin-top: 4px;
+  border-radius: var(--radius-btn);
+  font-size: var(--text-2xs);
+  background: rgb(var(--color-success-rgb), 0.08);
+  border: 0.5px solid rgb(var(--color-success-rgb), 0.2);
+  color: var(--color-success);
 }
 </style>

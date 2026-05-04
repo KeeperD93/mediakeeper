@@ -2,7 +2,7 @@
   <div class="gc-sidebar">
     <template v-if="rankTier === 'legendary'">
       <div class="gc-aurora" />
-      <div class="gc-starfield"><span v-for="i in 15" :key="'s'+i" class="gc-star" /></div>
+      <div class="gc-starfield"><span v-for="i in 15" :key="'s' + i" class="gc-star" /></div>
     </template>
     <div class="gc-sidebar-inner">
       <!-- Avatar zone -->
@@ -17,15 +17,17 @@
           <div class="gc-fx-holy-rays" />
           <div class="gc-fx-holy-glow" />
           <div class="gc-fx-holy-ring" />
-          <div class="gc-fx-rune" /><div class="gc-fx-rune" />
-          <div class="gc-fx-rune" /><div class="gc-fx-rune" />
+          <div class="gc-fx-rune" />
+          <div class="gc-fx-rune" />
+          <div class="gc-fx-rune" />
+          <div class="gc-fx-rune" />
         </template>
         <template v-else-if="avatarEffect === 'community'">
           <div class="gc-fx-nebula" />
-          <span v-for="i in 8" :key="'cstar'+i" class="gc-fx-star" />
+          <span v-for="i in 8" :key="'cstar' + i" class="gc-fx-star" />
         </template>
         <template v-else-if="avatarEffect === 'ranking'">
-          <div v-for="i in 5" :key="'rhalo'+i" class="gc-fx-rhalo" :class="`gc-fx-rhalo--${i}`" />
+          <div v-for="i in 5" :key="'rhalo' + i" class="gc-fx-rhalo" :class="`gc-fx-rhalo--${i}`" />
         </template>
         <template v-else-if="avatarEffect === 'meta'">
           <div class="gc-fx-mandala gc-fx-mandala--dots" />
@@ -51,13 +53,21 @@
         <!-- Ranking stars render above the avatar — must be placed AFTER the
              avatar-ring so they're z-stacked on top with their orbit paths. -->
         <template v-if="avatarEffect === 'ranking'">
-          <div v-for="i in 5" :key="'rstar'+i" class="gc-fx-rstar" :class="`gc-fx-rstar--${i}`" />
+          <div v-for="i in 5" :key="'rstar' + i" class="gc-fx-rstar" :class="`gc-fx-rstar--${i}`" />
         </template>
       </div>
 
       <div class="gc-rank-title">✦ {{ $t(`portal.profile.titles.${titleKey}`) }} ✦</div>
-      <h3 class="gc-name">{{ profileData?.display_name || $t('portal.profile.defaultUserName') }}</h3>
-      <div v-if="profileData?.selected_title" class="gc-custom-title" :class="`gc-custom-title--${titleTierName}`">{{ $t(profileData.selected_title) }}</div>
+      <h3 class="gc-name">
+        {{ profileData?.display_name || $t('portal.profile.defaultUserName') }}
+      </h3>
+      <div
+        v-if="profileData?.selected_title"
+        class="gc-custom-title"
+        :class="`gc-custom-title--${titleTierName}`"
+      >
+        {{ $t(profileData.selected_title) }}
+      </div>
       <div class="gc-level">{{ $t('portal.profile.level') }} {{ profileData?.level || 1 }}</div>
 
       <div class="gc-xp-wrap">
@@ -65,24 +75,30 @@
           <div class="gc-xp-fill" :style="{ width: xpPercent + '%' }" />
           <div class="gc-xp-shine" />
         </div>
-        <span class="gc-xp-text">{{ Math.min(profileData?.xp || 0, nextLevelXp).toLocaleString() }} / {{ nextLevelXp.toLocaleString() }} XP</span>
+        <span class="gc-xp-text">
+          {{ Math.min(profileData?.xp || 0, nextLevelXp).toLocaleString() }} /
+          {{ nextLevelXp.toLocaleString() }} XP
+        </span>
       </div>
 
       <!-- Ranking detail block -->
       <div class="gc-ranking-block">
         <div class="gc-ranking-label">{{ $t('portal.profile.ranking') }}</div>
         <div class="gc-ranking-pos">#{{ ranking.position || '—' }}</div>
-        <div
-          v-if="ranking.movement > 0"
-          class="gc-ranking-move gc-ranking-move--up"
-        >+{{ ranking.movement }} {{ $t('portal.profile.places') }}</div>
-        <div
-          v-else-if="ranking.movement < 0"
-          class="gc-ranking-move gc-ranking-move--down"
-        >{{ ranking.movement }} {{ $t('portal.profile.places') }}</div>
+        <div v-if="ranking.movement > 0" class="gc-ranking-move gc-ranking-move--up">
+          +{{ ranking.movement }} {{ $t('portal.profile.places') }}
+        </div>
+        <div v-else-if="ranking.movement < 0" class="gc-ranking-move gc-ranking-move--down">
+          {{ ranking.movement }} {{ $t('portal.profile.places') }}
+        </div>
         <div v-else class="gc-ranking-move gc-ranking-move--same">=</div>
         <div class="gc-ranking-pct-row">
-          <div class="gc-ranking-pct-bar"><div class="gc-ranking-pct-fill" :style="{ width: (100 - (ranking.percentile || 50)) + '%' }" /></div>
+          <div class="gc-ranking-pct-bar">
+            <div
+              class="gc-ranking-pct-fill"
+              :style="{ width: 100 - (ranking.percentile || 50) + '%' }"
+            />
+          </div>
         </div>
         <div class="gc-ranking-pct-text">Top {{ ranking.percentile || '—' }}%</div>
       </div>
@@ -93,10 +109,13 @@
       <div v-if="pinnedTrophies.length" class="gc-pinned">
         <div class="gc-pinned-label">{{ $t('portal.profile.pinnedBadges') || 'Pinned' }}</div>
         <div class="gc-pinned-row">
-          <div v-for="t in pinnedTrophies" :key="t.id"
+          <div
+            v-for="t in pinnedTrophies"
+            :key="t.id"
             class="gc-pinned-item"
             :class="`gc-pinned-item--rarity-${t.rarity}`"
-            :title="$t(t.name_key)">
+            :title="$t(t.name_key)"
+          >
             <component :is="iconMap[t.icon] || HelpCircle" :size="16" />
           </div>
         </div>
@@ -107,7 +126,7 @@
       </button>
     </div>
     <!-- Particles -->
-    <div class="gc-particles"><span v-for="i in 8" :key="'p'+i" class="gc-particle" /></div>
+    <div class="gc-particles"><span v-for="i in 8" :key="'p' + i" class="gc-particle" /></div>
   </div>
 </template>
 
@@ -131,8 +150,13 @@ const props = defineProps({
 defineEmits(['edit-profile'])
 
 const VALID_AVATAR_FX = new Set([
-  'watching', 'dedication', 'diversity', 'special',
-  'community', 'ranking', 'meta',
+  'watching',
+  'dedication',
+  'diversity',
+  'special',
+  'community',
+  'ranking',
+  'meta',
 ])
 const avatarEffect = computed(() => {
   const raw = props.profileData?.avatar_effect
@@ -145,13 +169,11 @@ const avatarEffectClass = computed(() =>
 const pinnedTrophies = computed(() => {
   const ids = props.profileData?.selected_badges || []
   if (!ids.length) return []
-  return ids
-    .map(id => props.trophies.find(t => t.id === id))
-    .filter(Boolean)
+  return ids.map(id => props.trophies.find(t => t.id === id)).filter(Boolean)
 })
 </script>
 
 <style>
-@import '@/assets/styles/portal/rank-card.css';
-@import '@/assets/styles/portal/trophy-master-avatar-fx.css';
+@import url('@/assets/styles/portal/rank-card.css');
+@import url('@/assets/styles/portal/trophy-master-avatar-fx.css');
 </style>

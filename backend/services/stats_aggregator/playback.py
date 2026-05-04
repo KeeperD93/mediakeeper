@@ -195,7 +195,7 @@ async def get_playback_stats(db: AsyncSession, days: int = 30):
     except Exception:
         try:
             await db.rollback()
-        except Exception:
+        except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
             pass
 
     return {

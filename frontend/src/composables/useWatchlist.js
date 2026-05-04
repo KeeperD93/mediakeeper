@@ -3,7 +3,7 @@ import { useI18n } from 'vue-i18n'
 import { useApi } from './useApi'
 import { useToast } from './useToast'
 import { TOAST_TYPE } from '@/constants/toast'
-import { MEDIA_TYPE, isMovie } from '@/constants/media'
+import { isMovie } from '@/constants/media'
 import { EPISODE_STATUS } from '@/constants/watchlist'
 import { TRAILER_SOURCE } from '@/constants/trailers'
 
@@ -18,11 +18,11 @@ let calDirty = false
 // Timeline & Calendar — singleton, pre-filled in the background
 const timelineItems = ref([])
 const timelineLoading = ref(true)
-const calVersion = ref(0)        // notifie le calendrier d'un changement de mois
+const calVersion = ref(0) // notifie le calendrier d'un changement de mois
 
 const { apiGet, apiFetch, apiPost } = useApi()
 const { showToast } = useToast()
-let _t = (k) => k // fallback until useI18n is initialized
+let _t = k => k // fallback until useI18n is initialized
 
 // ---- Computed ----
 const ignoredSet = computed(() => new Set(ignored.value))
@@ -30,12 +30,20 @@ const ignoredSet = computed(() => new Set(ignored.value))
 const missingCount = computed(() => {
   if (!data.value?.series) return 0
   const ign = ignoredSet.value
-  return data.value.series.reduce((sum, s) =>
-    sum + (s.seasons || []).reduce((a, sn) =>
-      a + sn.episodes.filter(e =>
-        e.status === EPISODE_STATUS.MISSING && !ign.has(`${s.tmdb_id}_s${sn.season}_e${e.episode}`)
-      ).length, 0
-    ), 0
+  return data.value.series.reduce(
+    (sum, s) =>
+      sum +
+      (s.seasons || []).reduce(
+        (a, sn) =>
+          a +
+          sn.episodes.filter(
+            e =>
+              e.status === EPISODE_STATUS.MISSING &&
+              !ign.has(`${s.tmdb_id}_s${sn.season}_e${e.episode}`),
+          ).length,
+        0,
+      ),
+    0,
   )
 })
 
@@ -50,14 +58,18 @@ async function loadIgnored() {
   try {
     const d = await apiGet('/api/watchlist/ignored')
     if (d?.ignored) ignored.value = d.ignored
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 async function loadTracked() {
   try {
     const d = await apiGet('/api/watchlist/tracked')
     if (Array.isArray(d)) tracked.value = d
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 async function loadScan() {
@@ -66,7 +78,9 @@ async function loadScan() {
   try {
     const d = await apiGet('/api/watchlist/scan')
     if (d) data.value = d
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   loading.value = false
 }
 
@@ -89,7 +103,9 @@ async function ignoreEpisode(key) {
   ignored.value.push(key)
   try {
     await apiPost('/api/watchlist/ignored/add', { keys: [key] })
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   showToast(_t('watchlist.episodeIgnored'), TOAST_TYPE.OK, 2000)
 }
 
@@ -97,7 +113,9 @@ async function ignoreMultiple(keys) {
   for (const k of keys) if (!ignored.value.includes(k)) ignored.value.push(k)
   try {
     await apiPost('/api/watchlist/ignored/add', { keys })
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   showToast(_t('watchlist.ignoredCount', { count: keys.length }), TOAST_TYPE.OK, 2000)
 }
 
@@ -106,22 +124,36 @@ async function restoreKeys(keys) {
     await apiPost('/api/watchlist/ignored/remove', { keys })
     ignored.value = ignored.value.filter(k => !keys.includes(k))
     showToast(_t('watchlist.restored'), TOAST_TYPE.OK, 2000)
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 async function toggleTrack(item) {
-  const isT = tracked.value.some(t => t.tmdb_id === item.tmdb_id && t.media_type === item.media_type)
+  const isT = tracked.value.some(
+    t => t.tmdb_id === item.tmdb_id && t.media_type === item.media_type,
+  )
   try {
     if (isT) {
-      await apiPost('/api/watchlist/tracked/remove', { tmdb_id: item.tmdb_id, media_type: item.media_type })
-      tracked.value = tracked.value.filter(t => !(t.tmdb_id === item.tmdb_id && t.media_type === item.media_type))
+      await apiPost('/api/watchlist/tracked/remove', {
+        tmdb_id: item.tmdb_id,
+        media_type: item.media_type,
+      })
+      tracked.value = tracked.value.filter(
+        t => !(t.tmdb_id === item.tmdb_id && t.media_type === item.media_type),
+      )
       _removeFromCalCache(item.tmdb_id)
     } else {
       await apiPost('/api/watchlist/tracked/add', {
-        tmdb_id: item.tmdb_id, media_type: item.media_type,
-        name: item.name, poster: item.poster || '', overview: item.overview || '',
-        release_date: item.release_date || '', year: item.year || '',
-        total_seasons: item.total_seasons || 0, total_episodes: item.total_episodes || 0,
+        tmdb_id: item.tmdb_id,
+        media_type: item.media_type,
+        name: item.name,
+        poster: item.poster || '',
+        overview: item.overview || '',
+        release_date: item.release_date || '',
+        year: item.year || '',
+        total_seasons: item.total_seasons || 0,
+        total_episodes: item.total_episodes || 0,
       })
       tracked.value.push(item)
       if (isMovie(item) && item.release_date) {
@@ -153,24 +185,36 @@ function _addMovieToCalCache(item) {
   const ck = `${parseInt(y)}-${parseInt(m)}`
   if (!calCache[ck]) return
   calCache[ck].push({
-    date: item.release_date, series_name: item.name, series_id: '',
-    tmdb_id: item.tmdb_id, season: 0, episode: 0,
-    episode_name: _t('dashboard.movieRelease'), poster: item.poster || '',
-    emby_poster: '', source: TRAILER_SOURCE.TRACKED,
+    date: item.release_date,
+    series_name: item.name,
+    series_id: '',
+    tmdb_id: item.tmdb_id,
+    season: 0,
+    episode: 0,
+    episode_name: _t('dashboard.movieRelease'),
+    poster: item.poster || '',
+    emby_poster: '',
+    source: TRAILER_SOURCE.TRACKED,
     overview: (item.overview || '').slice(0, 300),
-    total_seasons: 0, total_episodes: 0,
-    first_air_date: item.release_date, is_movie: true,
+    total_seasons: 0,
+    total_episodes: 0,
+    first_air_date: item.release_date,
+    is_movie: true,
   })
   calCache[ck].sort((a, b) => a.date.localeCompare(b.date))
 }
 
 function _rebuildTimeline() {
-  const seen = new Set(), out = []
+  const seen = new Set(),
+    out = []
   for (const items of Object.values(calCache)) {
     if (!Array.isArray(items)) continue
     for (const it of items) {
       const k = `${it.series_name}_${it.date}_${it.season}_${it.episode}`
-      if (!seen.has(k)) { seen.add(k); out.push({ ...it, _key: k }) }
+      if (!seen.has(k)) {
+        seen.add(k)
+        out.push({ ...it, _key: k })
+      }
     }
   }
   timelineItems.value = out.sort((a, b) => a.date.localeCompare(b.date))
@@ -191,7 +235,9 @@ async function getCalendar(year, month) {
     const d = await apiGet(`/api/watchlist/calendar?year=${year}&month=${month}`)
     if (d) calCache[ck] = d
     return d || []
-  } catch { return [] }
+  } catch {
+    return []
+  }
 }
 
 async function prefetchCalendar() {
@@ -226,7 +272,9 @@ async function searchTMDB(q) {
     const res = await apiFetch(`/api/watchlist/search?q=${encodeURIComponent(q)}`)
     if (res?.ok) return await res.json()
     return []
-  } catch { return [] }
+  } catch {
+    return []
+  }
 }
 
 export function useWatchlist() {

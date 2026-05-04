@@ -36,40 +36,203 @@ export function useOnboarding(props, emit) {
   const tourActive = ref(0)
 
   const steps = computed(() => [
-    { id: 'welcome',       label: t('onboarding.stepWelcome') },
-    { id: 'emby',          label: 'Emby' },
-    { id: 'tmdb',          label: 'TMDB' },
+    { id: 'welcome', label: t('onboarding.stepWelcome') },
+    { id: 'emby', label: 'Emby' },
+    { id: 'tmdb', label: 'TMDB' },
     { id: 'opensubtitles', label: 'OpenSubtitles' },
-    { id: 'folders',       label: t('onboarding.stepFolders') },
-    { id: 'tour',          label: t('onboarding.stepTour') },
-    { id: 'done',          label: t('onboarding.stepDone') },
+    { id: 'folders', label: t('onboarding.stepFolders') },
+    { id: 'tour', label: t('onboarding.stepTour') },
+    { id: 'done', label: t('onboarding.stepDone') },
   ])
 
   const features = computed(() => [
-    { id: 'dash', bg: 'rgba(99,102,241,.12)', name: t('sidebar.dashboard'), desc: t('onboarding.modDashboard'), icon: ICONS.dashboard },
-    { id: 'stats', bg: 'rgba(16,185,129,.1)', name: t('sidebar.statistics'), desc: t('onboarding.modStats'), icon: ICONS.stats },
-    { id: 'wl', bg: 'rgba(139,92,246,.12)', name: t('sidebar.watchlist'), desc: t('onboarding.modWatchlist'), icon: ICONS.watchlist },
-    { id: 'media', bg: 'rgba(6,182,212,.1)', name: t('sidebar.mediaManager'), desc: t('onboarding.modMedia'), icon: ICONS.media },
-    { id: 'doub', bg: 'rgba(245,158,11,.1)', name: t('sidebar.duplicates'), desc: t('onboarding.modDoublons'), icon: ICONS.duplicates },
-    { id: 'health', bg: 'rgba(234,179,8,.1)', name: t('sidebar.healthCheck'), desc: t('onboarding.modHealth'), icon: ICONS.health },
-    { id: 'subs', bg: 'rgba(168,85,247,.1)', name: t('sidebar.subtitles'), desc: t('onboarding.modSubtitles'), icon: ICONS.subtitles },
-    { id: 'notif', bg: 'rgba(244,63,94,.1)', name: t('sidebar.notifications'), desc: t('onboarding.modNotifs'), icon: ICONS.notifications },
+    {
+      id: 'dash',
+      bg: 'rgba(99,102,241,.12)',
+      name: t('sidebar.dashboard'),
+      desc: t('onboarding.modDashboard'),
+      icon: ICONS.dashboard,
+    },
+    {
+      id: 'stats',
+      bg: 'rgba(16,185,129,.1)',
+      name: t('sidebar.statistics'),
+      desc: t('onboarding.modStats'),
+      icon: ICONS.stats,
+    },
+    {
+      id: 'wl',
+      bg: 'rgba(139,92,246,.12)',
+      name: t('sidebar.watchlist'),
+      desc: t('onboarding.modWatchlist'),
+      icon: ICONS.watchlist,
+    },
+    {
+      id: 'media',
+      bg: 'rgba(6,182,212,.1)',
+      name: t('sidebar.mediaManager'),
+      desc: t('onboarding.modMedia'),
+      icon: ICONS.media,
+    },
+    {
+      id: 'doub',
+      bg: 'rgba(245,158,11,.1)',
+      name: t('sidebar.duplicates'),
+      desc: t('onboarding.modDoublons'),
+      icon: ICONS.duplicates,
+    },
+    {
+      id: 'health',
+      bg: 'rgba(234,179,8,.1)',
+      name: t('sidebar.healthCheck'),
+      desc: t('onboarding.modHealth'),
+      icon: ICONS.health,
+    },
+    {
+      id: 'subs',
+      bg: 'rgba(168,85,247,.1)',
+      name: t('sidebar.subtitles'),
+      desc: t('onboarding.modSubtitles'),
+      icon: ICONS.subtitles,
+    },
+    {
+      id: 'notif',
+      bg: 'rgba(244,63,94,.1)',
+      name: t('sidebar.notifications'),
+      desc: t('onboarding.modNotifs'),
+      icon: ICONS.notifications,
+    },
   ])
 
   const modules = computed(() => [
-    { id: 'dashboard', name: t('sidebar.dashboard'), bg: 'rgba(99,102,241,.12)', desc: t('onboarding.modDashboard'), icon: ICONS.dashboard, features: [t('onboarding.featSessions'), t('onboarding.featStats'), t('onboarding.featAlerts'), t('onboarding.featWidgets')] },
-    { id: 'stats', name: t('sidebar.statistics'), bg: 'rgba(16,185,129,.1)', desc: t('onboarding.modStats'), icon: ICONS.stats, features: [t('onboarding.featHistory'), t('onboarding.featTopUsers'), t('onboarding.featLibraries'), t('onboarding.featHeatmap')] },
-    { id: 'watchlist', name: t('sidebar.watchlist'), bg: 'rgba(139,92,246,.12)', desc: t('onboarding.modWatchlist'), icon: ICONS.watchlist, features: [t('onboarding.featMissing'), t('onboarding.featCalendar'), t('onboarding.featTimeline'), t('onboarding.featTracking')] },
-    { id: 'media', name: t('sidebar.mediaManager'), bg: 'rgba(6,182,212,.1)', desc: t('onboarding.modMedia'), icon: ICONS.media, features: [t('onboarding.featTmdbRename'), t('onboarding.featBatchRename'), t('onboarding.featMove'), t('onboarding.featFolders')] },
-    { id: 'duplicates', name: t('sidebar.duplicates'), bg: 'rgba(245,158,11,.1)', desc: t('onboarding.modDoublons'), icon: ICONS.duplicates, features: [t('onboarding.featDetect'), t('onboarding.featCompare'), t('onboarding.featAutoClean'), t('onboarding.featIgnore')] },
-    { id: 'health', name: t('sidebar.healthCheck'), bg: 'rgba(234,179,8,.1)', desc: t('onboarding.modHealth'), icon: ICONS.health, features: [t('onboarding.featHealthCodecs'), t('onboarding.featHealthResolution'), t('onboarding.featHealthSubtitles'), t('onboarding.featHealthRules')] },
-    { id: 'subtitles', name: t('sidebar.subtitles'), bg: 'rgba(168,85,247,.1)', desc: t('onboarding.modSubtitles'), icon: ICONS.subtitles, features: [t('onboarding.featSubSearch'), t('onboarding.featSubProfiles'), t('onboarding.featSubAuto'), t('onboarding.featSubAudit')] },
-    { id: 'notifs', name: t('sidebar.notifications'), bg: 'rgba(244,63,94,.1)', desc: t('onboarding.modNotifs'), icon: ICONS.notifications, features: [t('onboarding.featDiscord'), t('onboarding.featDnd'), t('onboarding.featTemplates'), t('onboarding.featFilters')] },
+    {
+      id: 'dashboard',
+      name: t('sidebar.dashboard'),
+      bg: 'rgba(99,102,241,.12)',
+      desc: t('onboarding.modDashboard'),
+      icon: ICONS.dashboard,
+      features: [
+        t('onboarding.featSessions'),
+        t('onboarding.featStats'),
+        t('onboarding.featAlerts'),
+        t('onboarding.featWidgets'),
+      ],
+    },
+    {
+      id: 'stats',
+      name: t('sidebar.statistics'),
+      bg: 'rgba(16,185,129,.1)',
+      desc: t('onboarding.modStats'),
+      icon: ICONS.stats,
+      features: [
+        t('onboarding.featHistory'),
+        t('onboarding.featTopUsers'),
+        t('onboarding.featLibraries'),
+        t('onboarding.featHeatmap'),
+      ],
+    },
+    {
+      id: 'watchlist',
+      name: t('sidebar.watchlist'),
+      bg: 'rgba(139,92,246,.12)',
+      desc: t('onboarding.modWatchlist'),
+      icon: ICONS.watchlist,
+      features: [
+        t('onboarding.featMissing'),
+        t('onboarding.featCalendar'),
+        t('onboarding.featTimeline'),
+        t('onboarding.featTracking'),
+      ],
+    },
+    {
+      id: 'media',
+      name: t('sidebar.mediaManager'),
+      bg: 'rgba(6,182,212,.1)',
+      desc: t('onboarding.modMedia'),
+      icon: ICONS.media,
+      features: [
+        t('onboarding.featTmdbRename'),
+        t('onboarding.featBatchRename'),
+        t('onboarding.featMove'),
+        t('onboarding.featFolders'),
+      ],
+    },
+    {
+      id: 'duplicates',
+      name: t('sidebar.duplicates'),
+      bg: 'rgba(245,158,11,.1)',
+      desc: t('onboarding.modDoublons'),
+      icon: ICONS.duplicates,
+      features: [
+        t('onboarding.featDetect'),
+        t('onboarding.featCompare'),
+        t('onboarding.featAutoClean'),
+        t('onboarding.featIgnore'),
+      ],
+    },
+    {
+      id: 'health',
+      name: t('sidebar.healthCheck'),
+      bg: 'rgba(234,179,8,.1)',
+      desc: t('onboarding.modHealth'),
+      icon: ICONS.health,
+      features: [
+        t('onboarding.featHealthCodecs'),
+        t('onboarding.featHealthResolution'),
+        t('onboarding.featHealthSubtitles'),
+        t('onboarding.featHealthRules'),
+      ],
+    },
+    {
+      id: 'subtitles',
+      name: t('sidebar.subtitles'),
+      bg: 'rgba(168,85,247,.1)',
+      desc: t('onboarding.modSubtitles'),
+      icon: ICONS.subtitles,
+      features: [
+        t('onboarding.featSubSearch'),
+        t('onboarding.featSubProfiles'),
+        t('onboarding.featSubAuto'),
+        t('onboarding.featSubAudit'),
+      ],
+    },
+    {
+      id: 'notifs',
+      name: t('sidebar.notifications'),
+      bg: 'rgba(244,63,94,.1)',
+      desc: t('onboarding.modNotifs'),
+      icon: ICONS.notifications,
+      features: [
+        t('onboarding.featDiscord'),
+        t('onboarding.featDnd'),
+        t('onboarding.featTemplates'),
+        t('onboarding.featFilters'),
+      ],
+    },
   ])
 
-  const emby = ref({ url: '', api_key: '', api_key_length: 0, _testing: false, _status: null, _configured: false })
-  const tmdb = ref({ api_key: '', api_key_length: 0, _testing: false, _status: null, _configured: false })
-  const openSubs = ref({ api_key: '', api_key_length: 0, _testing: false, _status: null, _configured: false })
+  const emby = ref({
+    url: '',
+    api_key: '',
+    api_key_length: 0,
+    _testing: false,
+    _status: null,
+    _configured: false,
+  })
+  const tmdb = ref({
+    api_key: '',
+    api_key_length: 0,
+    _testing: false,
+    _status: null,
+    _configured: false,
+  })
+  const openSubs = ref({
+    api_key: '',
+    api_key_length: 0,
+    _testing: false,
+    _status: null,
+    _configured: false,
+  })
 
   function buildToolPayload(model, extra = {}) {
     const payload = { enabled: true, ...extra }
@@ -78,27 +241,36 @@ export function useOnboarding(props, emit) {
   }
 
   async function _testTool(obj, endpoint, body) {
-    obj.value._testing = true; obj.value._status = null
+    obj.value._testing = true
+    obj.value._status = null
     try {
-      await apiFetch(`/api/settings/tools/${endpoint}`, { method: 'POST', body: JSON.stringify(body) })
+      await apiFetch(`/api/settings/tools/${endpoint}`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      })
       const res = await apiGet(`/api/settings/tools/${endpoint}/ping`)
-      obj.value._status = res?.online ? { type: 'ok', msg: t('onboarding.testOk') } : { type: 'err', msg: t('onboarding.testFail') }
-    } catch { obj.value._status = { type: 'err', msg: t('common.networkError') } }
+      obj.value._status = res?.online
+        ? { type: 'ok', msg: t('onboarding.testOk') }
+        : { type: 'err', msg: t('onboarding.testFail') }
+    } catch {
+      obj.value._status = { type: 'err', msg: t('common.networkError') }
+    }
     obj.value._testing = false
   }
 
-  const testEmby = () => _testTool(emby, 'emby', buildToolPayload(emby.value, { url: emby.value.url }))
+  const testEmby = () =>
+    _testTool(emby, 'emby', buildToolPayload(emby.value, { url: emby.value.url }))
   const testTmdb = () => _testTool(tmdb, 'tmdb', buildToolPayload(tmdb.value))
   const testOpenSubs = () => _testTool(openSubs, 'opensubtitles', buildToolPayload(openSubs.value))
 
   let _folderId = 0
   const DEFAULT_FOLDERS = [
-    { key: 'MEDIA_TELECHARGEMENT',  label: 'Downloads',       default: '/media/telechargement' },
-    { key: 'MEDIA_FILMS',           label: 'Movies',          default: '/media/films' },
-    { key: 'MEDIA_SERIES',          label: 'Series',          default: '/media/series' },
-    { key: 'MEDIA_DOCUMENTAIRES',   label: 'Documentaries',   default: '/media/documentaires' },
-    { key: 'MEDIA_FILMS_ANIMATION', label: 'Animation',       default: '/media/filmsdanimation' },
-    { key: 'MEDIA_MANGAS',          label: 'Manga & Anime',   default: '/media/mangasetanimes' },
+    { key: 'MEDIA_TELECHARGEMENT', label: 'Downloads', default: '/media/telechargement' },
+    { key: 'MEDIA_FILMS', label: 'Movies', default: '/media/films' },
+    { key: 'MEDIA_SERIES', label: 'Series', default: '/media/series' },
+    { key: 'MEDIA_DOCUMENTAIRES', label: 'Documentaries', default: '/media/documentaires' },
+    { key: 'MEDIA_FILMS_ANIMATION', label: 'Animation', default: '/media/filmsdanimation' },
+    { key: 'MEDIA_MANGAS', label: 'Manga & Anime', default: '/media/mangasetanimes' },
   ]
   const folders = ref(DEFAULT_FOLDERS.map(f => ({ ...f, path: '', _id: ++_folderId })))
   const hasFolders = computed(() => folders.value.some(f => f.path.trim()))
@@ -112,7 +284,9 @@ export function useOnboarding(props, emit) {
     try {
       const res = await apiGet(`/api/media/browse-dirs?path=${encodeURIComponent(path)}`)
       browseDirs.value = res?.dirs || []
-    } catch { browseDirs.value = [] }
+    } catch {
+      browseDirs.value = []
+    }
     browseLoading.value = false
   }
 
@@ -145,9 +319,17 @@ export function useOnboarding(props, emit) {
   }
 
   function addFolder() {
-    folders.value.push({ key: 'MEDIA_CUSTOM_' + _folderId, label: '', path: '', default: '/media/...', _id: ++_folderId })
+    folders.value.push({
+      key: 'MEDIA_CUSTOM_' + _folderId,
+      label: '',
+      path: '',
+      default: '/media/...',
+      _id: ++_folderId,
+    })
   }
-  function removeFolder(i) { folders.value.splice(i, 1) }
+  function removeFolder(i) {
+    folders.value.splice(i, 1)
+  }
 
   async function next() {
     if (saving.value) return
@@ -160,22 +342,39 @@ export function useOnboarding(props, emit) {
     }
     if (currentStep.value < steps.value.length - 1) currentStep.value++
   }
-  function prev() { if (currentStep.value > 0) currentStep.value-- }
-  function skip() { currentStep.value++ }
+  function prev() {
+    if (currentStep.value > 0) currentStep.value--
+  }
+  function skip() {
+    currentStep.value++
+  }
 
   async function saveCurrentStep() {
     saving.value = true
     try {
-      if (currentStep.value === 1 && emby.value.url && (emby.value.api_key || emby.value._configured)) {
-        await apiFetch('/api/settings/tools/emby', { method: 'POST', body: JSON.stringify(buildToolPayload(emby.value, { url: emby.value.url })) })
+      if (
+        currentStep.value === 1 &&
+        emby.value.url &&
+        (emby.value.api_key || emby.value._configured)
+      ) {
+        await apiFetch('/api/settings/tools/emby', {
+          method: 'POST',
+          body: JSON.stringify(buildToolPayload(emby.value, { url: emby.value.url })),
+        })
         emby.value._configured = true
       }
       if (currentStep.value === 2 && (tmdb.value.api_key || tmdb.value._configured)) {
-        await apiFetch('/api/settings/tools/tmdb', { method: 'POST', body: JSON.stringify(buildToolPayload(tmdb.value)) })
+        await apiFetch('/api/settings/tools/tmdb', {
+          method: 'POST',
+          body: JSON.stringify(buildToolPayload(tmdb.value)),
+        })
         tmdb.value._configured = true
       }
       if (currentStep.value === 3 && (openSubs.value.api_key || openSubs.value._configured)) {
-        await apiFetch('/api/settings/tools/opensubtitles', { method: 'POST', body: JSON.stringify(buildToolPayload(openSubs.value)) })
+        await apiFetch('/api/settings/tools/opensubtitles', {
+          method: 'POST',
+          body: JSON.stringify(buildToolPayload(openSubs.value)),
+        })
         openSubs.value._configured = true
       }
       if (currentStep.value === 4 && hasFolders.value) {
@@ -210,34 +409,62 @@ export function useOnboarding(props, emit) {
   async function checkAndShow() {
     try {
       const tools = await apiGet('/api/settings/tools').catch(() => ({}))
-      if (tools?.emby?.url)              emby.value.url     = tools.emby.url
+      if (tools?.emby?.url) emby.value.url = tools.emby.url
       emby.value._configured = !!(tools?.emby?.api_key_configured || tools?.emby?.api_key)
       emby.value.api_key_length = Number(tools?.emby?.api_key_length) || 0
       tmdb.value._configured = !!(tools?.tmdb?.api_key_configured || tools?.tmdb?.api_key)
       tmdb.value.api_key_length = Number(tools?.tmdb?.api_key_length) || 0
-      openSubs.value._configured = !!(tools?.opensubtitles?.api_key_configured || tools?.opensubtitles?.api_key)
+      openSubs.value._configured = !!(
+        tools?.opensubtitles?.api_key_configured || tools?.opensubtitles?.api_key
+      )
       openSubs.value.api_key_length = Number(tools?.opensubtitles?.api_key_length) || 0
 
       const savedFolders = await apiGet('/api/settings/media-folders').catch(() => [])
       hydrateFolders(savedFolders)
 
-      if (props.forceShow) { visible.value = true; return }
+      if (props.forceShow) {
+        visible.value = true
+        return
+      }
 
       const status = await apiGet('/api/onboarding/status')
       if (status?.authenticated && !status?.onboarding_done) visible.value = true
-    } catch { /* silent: onboarding check is best-effort, modal stays hidden */ }
+    } catch {
+      /* silent: onboarding check is best-effort, modal stays hidden */
+    }
   }
 
   onMounted(checkAndShow)
 
   return {
-    visible, currentStep, saving, tourActive,
-    steps, features, modules,
-    emby, tmdb, openSubs,
-    testEmby, testTmdb, testOpenSubs,
-    folders, hasFolders, addFolder, removeFolder,
-    browsePath, browseDirs, browseLoading, browseOpen,
-    openBrowser, browseTo, selectBrowsePath,
-    next, prev, skip, complete, checkAndShow,
+    visible,
+    currentStep,
+    saving,
+    tourActive,
+    steps,
+    features,
+    modules,
+    emby,
+    tmdb,
+    openSubs,
+    testEmby,
+    testTmdb,
+    testOpenSubs,
+    folders,
+    hasFolders,
+    addFolder,
+    removeFolder,
+    browsePath,
+    browseDirs,
+    browseLoading,
+    browseOpen,
+    openBrowser,
+    browseTo,
+    selectBrowsePath,
+    next,
+    prev,
+    skip,
+    complete,
+    checkAndShow,
   }
 }

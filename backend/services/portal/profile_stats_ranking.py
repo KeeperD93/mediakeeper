@@ -40,7 +40,7 @@ def tier_for_title(title_key: str | None) -> int | None:
                 if ach_def:
                     return ach_def.get("tier", 1)
                 break
-    except Exception:
+    except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
         pass
     return None
 

@@ -8,83 +8,131 @@
      fixed-position overlay (see ::before) so it stays with the viewport
      rather than the element — the bottom halo never clips against the
      page edge when the list is short. */
-  background: rgba(3, 7, 18, 0.6);
+  background: rgb(3, 7, 18, 0.6);
   min-height: calc(100vh - 64px);
   /* Extend the flat tint beyond the padding box so any overflow of an
      ancestor (tall topbar, scroll area) keeps the same colour. */
-  box-shadow: 0 0 0 100vmax rgba(3, 7, 18, 0.6);
+  box-shadow: 0 0 0 100vmax rgb(3, 7, 18, 0.6);
   clip-path: inset(-100vmax);
 }
 /* Halo/mesh aurora retiré à la demande — fond plat uniquement. */
 
 .arr-head {
-  display: flex; align-items: flex-start; justify-content: space-between;
-  gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
 }
 .arr-title {
-  font-size: var(--portal-text-2xl); font-weight: var(--portal-font-black); margin: 0;
-  letter-spacing: var(--portal-tracking-tight); color: #fff;
-  display: flex; align-items: center; gap: 10px;
+  font-size: var(--portal-text-2xl);
+  font-weight: var(--portal-font-black);
+  margin: 0;
+  letter-spacing: var(--portal-tracking-tight);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 .arr-title-accent {
   display: inline-block;
-  width: 8px; height: 26px; border-radius: 2px;
+  width: 8px;
+  height: 26px;
+  border-radius: 2px;
   background: linear-gradient(180deg, var(--accent-400), var(--accent-600));
   box-shadow: 0 0 18px color-mix(in srgb, var(--accent-500) 60%, transparent);
 }
 .arr-sub {
-  font-size: var(--portal-text-sm); color: rgba(255,255,255,.52);
-  margin: 10px 0 0; max-width: 60ch;
+  font-size: var(--portal-text-sm);
+  color: rgb(255, 255, 255, 0.52);
+  margin: 10px 0 0;
+  max-width: 60ch;
 }
 
 /* ── Top stats bar ─────────────────────────────────────────── */
 .arr-stats {
-  display: grid; gap: 12px;
+  display: grid;
+  gap: 12px;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   margin-bottom: 1.5rem;
 }
 .arr-stat {
-  position: relative; overflow: hidden;
+  position: relative;
+  overflow: hidden;
   padding: 16px 18px;
-  background:
-    linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));
+  background: linear-gradient(135deg, rgb(255, 255, 255, 0.03), rgb(255, 255, 255, 0.015));
   border: 1px solid var(--portal-border-subtle);
   border-radius: var(--portal-radius-lg);
-  display: flex; flex-direction: column; gap: 3px;
-  transition: transform .22s ease, border-color .22s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  transition:
+    transform 0.22s ease,
+    border-color 0.22s ease;
 }
 .arr-stat::before {
-  content: ''; position: absolute; inset: 0 auto 0 0; width: 4px;
-  background: linear-gradient(to bottom, currentColor, color-mix(in srgb, currentColor 50%, transparent));
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: linear-gradient(
+    to bottom,
+    currentColor,
+    color-mix(in srgb, currentColor 50%, transparent)
+  );
   box-shadow: 0 0 16px currentColor;
-  opacity: .85;
+  opacity: 0.85;
 }
 .arr-stat::after {
-  content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 50%;
-  background: radial-gradient(ellipse at top right, color-mix(in srgb, currentColor 18%, transparent), transparent 60%);
+  content: '';
+  position: absolute;
+  inset: 0 0 0 50%;
+  background: radial-gradient(
+    ellipse at top right,
+    color-mix(in srgb, currentColor 18%, transparent),
+    transparent 60%
+  );
   pointer-events: none;
 }
 @media (hover: hover) {
-  .arr-stat:hover { transform: translateY(-2px); border-color: color-mix(in srgb, currentColor 40%, transparent); }
+  .arr-stat:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, currentColor 40%, transparent);
+  }
 }
-.arr-stat--pending { color: #818cf8; }
-.arr-stat--approved { color: var(--portal-color-success-light); }
-.arr-stat--available { color: #22d3ee; }
-.arr-stat--rejected { color: var(--portal-color-error-light); }
+.arr-stat--pending {
+  color: #818cf8;
+}
+.arr-stat--approved {
+  color: var(--portal-color-success-light);
+}
+.arr-stat--available {
+  color: #22d3ee;
+}
+.arr-stat--rejected {
+  color: var(--portal-color-error-light);
+}
 .arr-stat-value {
-  font-size: var(--portal-text-2xl); font-weight: var(--portal-font-black); color: #fff;
+  font-size: var(--portal-text-2xl);
+  font-weight: var(--portal-font-black);
+  color: #fff;
   font-family: var(--portal-font-display);
-  line-height: var(--portal-lh-tight); letter-spacing: var(--portal-tracking-tight);
+  line-height: var(--portal-lh-tight);
+  letter-spacing: var(--portal-tracking-tight);
 }
 .arr-stat-label {
-  font-size: var(--portal-text-3xs); font-weight: var(--portal-font-extrabold); text-transform: uppercase;
-  letter-spacing: var(--portal-tracking-eyebrow); color: currentColor;
+  font-size: var(--portal-text-3xs);
+  font-weight: var(--portal-font-extrabold);
+  text-transform: uppercase;
+  letter-spacing: var(--portal-tracking-eyebrow);
+  color: currentColor;
   margin-top: 6px;
 }
 .arr-stat-total {
   font-size: var(--portal-text-2xs);
   font-weight: var(--portal-font-medium);
-  color: rgba(255, 255, 255, 0.42);
+  color: rgb(255, 255, 255, 0.42);
   margin-top: 4px;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.01em;
@@ -92,31 +140,43 @@
 
 /* ── Toolbar: filter pills + sort ───────────────────────────── */
 .arr-toolbar {
-  display: flex; align-items: center; gap: 10px;
-  flex-wrap: wrap; margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
 }
-.arr-pills { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; align-items: center; }
+.arr-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+  align-items: center;
+}
 .arr-pills-sep {
   display: inline-block;
-  width: 1px; height: 22px;
+  width: 1px;
+  height: 22px;
   background: var(--portal-surface-5);
   margin: 0 4px;
 }
 .arr-pill {
-  padding: 7px 14px; min-height: 36px;
+  padding: 7px 14px;
+  min-height: 36px;
   border-radius: var(--portal-radius-pill);
-  background: rgba(255,255,255,0.03);
+  background: rgb(255, 255, 255, 0.03);
   border: 1px solid var(--portal-border-default);
-  color: rgba(255,255,255,.6);
-  font-size: var(--portal-text-xs); font-weight: var(--portal-font-extrabold);
+  color: rgb(255, 255, 255, 0.6);
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-extrabold);
   letter-spacing: var(--portal-tracking-wide);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: all .18s;
+  transition: all 0.18s;
   backdrop-filter: var(--portal-blur-xs);
 }
 .arr-pill--active {
-  background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.22), rgba(var(--accent-rgb), 0.1));
+  background: linear-gradient(135deg, rgb(var(--accent-rgb), 0.22), rgb(var(--accent-rgb), 0.1));
   border-color: var(--accent-500);
   color: #fff;
   box-shadow: var(--mk-pill-shadow);
@@ -130,24 +190,38 @@
 }
 
 .arr-sort {
-  padding: 8px 12px; min-height: 36px;
-  background: rgba(255,255,255,0.03);
+  padding: 8px 12px;
+  min-height: 36px;
+  background: rgb(255, 255, 255, 0.03);
   border: 1px solid var(--portal-border-default);
   border-radius: var(--radius-btn);
-  color: rgba(255,255,255,.72);
-  font-size: var(--portal-text-xs); font-weight: var(--portal-font-bold);
+  color: rgb(255, 255, 255, 0.72);
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-bold);
   cursor: pointer;
   font-family: inherit;
   backdrop-filter: var(--portal-blur-xs);
 }
-.arr-sort:focus { outline: 2px solid rgba(var(--accent-rgb), .4); outline-offset: 1px; }
+.arr-sort:focus {
+  outline: 2px solid rgb(var(--accent-rgb), 0.4);
+  outline-offset: 1px;
+}
 /* Native <option> dropdown list (browsers ignore most styles here, but
    explicitly setting bg+color prevents white-on-white in dark themes). */
-.arr-sort option { background: #141414; color: #fff; }
+.arr-sort option {
+  background: #141414;
+  color: #fff;
+}
 
 /* Empty & loading */
 .arr-empty {
-  text-align: center; padding: 4rem 1rem;
-  color: var(--text-muted); font-size: var(--portal-text-base);
+  text-align: center;
+  padding: 4rem 1rem;
+  color: var(--text-muted);
+  font-size: var(--portal-text-base);
 }
-.arr-loading { display: flex; justify-content: center; padding: 4rem; }
+.arr-loading {
+  display: flex;
+  justify-content: center;
+  padding: 4rem;
+}

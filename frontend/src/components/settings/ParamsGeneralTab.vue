@@ -7,7 +7,11 @@
       <h3 class="params-section-title">{{ $t('settings.languageLabel') }}</h3>
       <p class="params-section-desc">{{ $t('settings.languageDesc') }}</p>
       <div class="params-lang-select-wrap">
-        <select class="params-lang-select" :value="currentLocale" @change="onLocaleChange($event.target.value)">
+        <select
+          class="params-lang-select"
+          :value="currentLocale"
+          @change="onLocaleChange($event.target.value)"
+        >
           <option v-for="loc in AVAILABLE_LOCALES" :key="loc.code" :value="loc.code">
             {{ loc.flag }} {{ loc.label }}
           </option>
@@ -21,7 +25,12 @@
       <form class="params-pwd-form" @submit.prevent="submit">
         <label class="params-pwd-field">
           <span>{{ $t('forcePassword.current') }}</span>
-          <input v-model="current" type="password" autocomplete="current-password" :disabled="saving" />
+          <input
+            v-model="current"
+            type="password"
+            autocomplete="current-password"
+            :disabled="saving"
+          />
         </label>
         <label class="params-pwd-field">
           <span>{{ $t('forcePassword.new') }}</span>
@@ -66,8 +75,8 @@ const next = ref('')
 const confirm = ref('')
 const saving = ref(false)
 
-const canSubmit = computed(() =>
-  current.value && next.value && confirm.value && next.value.length >= 12,
+const canSubmit = computed(
+  () => current.value && next.value && confirm.value && next.value.length >= 12,
 )
 
 async function onLocaleChange(code) {

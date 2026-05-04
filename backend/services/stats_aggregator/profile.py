@@ -113,7 +113,7 @@ async def get_user_profile(db: AsyncSession, user_id: str):
                 if g:
                     genre_counts[g] = genre_counts.get(g, 0) + row[1]
         by_genre = sorted([{"name": k, "plays": v} for k, v in genre_counts.items()], key=lambda x: x["plays"], reverse=True)[:12]
-    except Exception:
+    except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
         pass
 
     return {

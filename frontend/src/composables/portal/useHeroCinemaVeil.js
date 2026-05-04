@@ -46,10 +46,16 @@ export function useHeroCinemaVeil({ videoPlaying, peekItem, loadItem, hasTrailer
   let fallbackTimer = null
 
   function clearPending() {
-    if (pendingLoadTimer) { clearTimeout(pendingLoadTimer); pendingLoadTimer = null }
+    if (pendingLoadTimer) {
+      clearTimeout(pendingLoadTimer)
+      pendingLoadTimer = null
+    }
   }
   function clearFallback() {
-    if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = null }
+    if (fallbackTimer) {
+      clearTimeout(fallbackTimer)
+      fallbackTimer = null
+    }
   }
 
   function onItemChange(item) {
@@ -67,7 +73,9 @@ export function useHeroCinemaVeil({ videoPlaying, peekItem, loadItem, hasTrailer
       pendingLoadTimer = null
       try {
         await loadItem(item)
-      } catch { /* swallow — release the veil below */ }
+      } catch {
+        /* swallow — release the veil below */
+      }
       // Uncached miss (prefetch race / API fail) — release veil so the
       // user sees the backdrop instead of waiting for the safety timer.
       if (!hasTrailer()) transitioning.value = false
@@ -77,20 +85,24 @@ export function useHeroCinemaVeil({ videoPlaying, peekItem, loadItem, hasTrailer
   async function startInitial(item) {
     try {
       await loadItem(item)
-    } catch { /* swallow — release the veil below */ }
+    } catch {
+      /* swallow — release the veil below */
+    }
     if (!hasTrailer()) transitioning.value = false
   }
 
   // Drop the veil as soon as the new trailer starts rendering frames.
-  watch(videoPlaying, (v) => {
+  watch(videoPlaying, v => {
     if (v && transitioning.value) transitioning.value = false
   })
 
   // Safety net: never hold the user on full black longer than FALLBACK_MS.
-  watch(transitioning, (v) => {
+  watch(transitioning, v => {
     if (v) {
       clearFallback()
-      fallbackTimer = setTimeout(() => { transitioning.value = false }, FALLBACK_MS)
+      fallbackTimer = setTimeout(() => {
+        transitioning.value = false
+      }, FALLBACK_MS)
     } else {
       clearFallback()
     }

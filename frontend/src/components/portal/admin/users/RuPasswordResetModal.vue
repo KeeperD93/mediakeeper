@@ -12,7 +12,9 @@
         <div class="atl-panel mk-modal-sheet-panel ru-create-panel">
           <div class="atl-header">
             <h2 class="atl-title">{{ $t('requestsAdmin.users.drawer.security.passwordReset') }}</h2>
-            <button class="atl-close" type="button" :aria-label="$t('common.close')" @click="close"><X :size="14" /></button>
+            <button class="atl-close" type="button" :aria-label="$t('common.close')" @click="close">
+              <X :size="14" />
+            </button>
           </div>
           <div class="ru-form atl-body">
             <p class="ru-help">{{ $t('requestsAdmin.users.drawer.security.passwordResetHelp') }}</p>
@@ -25,7 +27,9 @@
             <p v-if="copied" class="ru-help">{{ $t('common.copied') }}</p>
           </div>
           <footer class="ru-import-footer">
-            <button type="button" class="ru-btn ru-btn--primary" @click="close">{{ $t('common.close') }}</button>
+            <button type="button" class="ru-btn ru-btn--primary" @click="close">
+              {{ $t('common.close') }}
+            </button>
           </footer>
         </div>
       </div>
@@ -50,11 +54,15 @@ async function copy() {
   try {
     await navigator.clipboard.writeText(props.password)
     copied.value = true
-    setTimeout(() => { copied.value = false }, 2000)
+    setTimeout(() => {
+      copied.value = false
+    }, 2000)
   } catch {
     /* Clipboard API unavailable — admin can still select manually. */
   }
 }
 
-function close() { emit('close') }
+function close() {
+  emit('close')
+}
 </script>

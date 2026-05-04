@@ -12,8 +12,14 @@
       <section class="ab-section" data-test="ab-stack">
         <h2 class="ab-h2">{{ t('attribution.about.stackTitle') }}</h2>
         <ul class="ab-list">
-          <li><strong>{{ t('attribution.about.backendLabel') }} :</strong> {{ stack.backend }}</li>
-          <li><strong>{{ t('attribution.about.frontendLabel') }} :</strong> {{ stack.frontend }}</li>
+          <li>
+            <strong>{{ t('attribution.about.backendLabel') }} :</strong>
+            {{ stack.backend }}
+          </li>
+          <li>
+            <strong>{{ t('attribution.about.frontendLabel') }} :</strong>
+            {{ stack.frontend }}
+          </li>
         </ul>
       </section>
 
@@ -21,11 +27,15 @@
         <h2 class="ab-h2">{{ t('attribution.about.licensesTitle') }}</h2>
         <p data-test="ab-ffmpeg">
           {{ t('attribution.about.ffmpegText') }}
-          <a :href="links.ffmpegLegal" target="_blank" rel="noopener noreferrer">ffmpeg.org/legal.html</a>.
+          <a :href="links.ffmpegLegal" target="_blank" rel="noopener noreferrer">
+            ffmpeg.org/legal.html
+          </a>
+          .
         </p>
         <p>
           {{ t('attribution.about.dependenciesText') }}
-          <a :href="repoUrl" target="_blank" rel="noopener noreferrer">GitHub</a>.
+          <a :href="repoUrl" target="_blank" rel="noopener noreferrer">GitHub</a>
+          .
         </p>
       </section>
 
@@ -35,7 +45,8 @@
           {{ t('attribution.about.thirdPartyText') }}
           <router-link :to="{ name: 'portal-credits' }" target="_blank">
             /portal/credits
-          </router-link>.
+          </router-link>
+          .
         </p>
       </section>
     </div>

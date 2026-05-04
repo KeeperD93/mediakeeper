@@ -41,13 +41,13 @@ function onClick() {
 <style scoped>
 .ql-link {
   display: flex; align-items: center; gap: 14px; height: 100%;
-  background: var(--card-bg, rgba(255,255,255,0.03)); border-radius:var(--radius-card); padding: 14px 18px;
-  border: 0.5px solid var(--card-border, rgba(255,255,255,0.05)); cursor: pointer;
+  background: var(--card-bg, rgb(255,255,255,0.03)); border-radius:var(--radius-card); padding: 14px 18px;
+  border: 0.5px solid var(--card-border, rgb(255,255,255,0.05)); cursor: pointer;
   transition: border-color var(--duration-base), box-shadow var(--duration-slow);
 }
 .ql-link:hover {
-  border-color: var(--card-border-hover, rgba(99,102,241,0.2));
-  box-shadow: 0 0 20px rgba(99,102,241,0.06);
+  border-color: var(--card-border-hover, rgb(99,102,241,0.2));
+  box-shadow: 0 0 20px rgb(99,102,241,0.06);
 }
 .ql-no-click { cursor: move; }
 .ql-icon { width: 40px; height: 40px; border-radius:var(--radius-card); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -59,7 +59,7 @@ function onClick() {
 /* Skeleton shimmer */
 .ql-skel {
   border-radius: 5px;
-  background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.07) 50%, rgba(255,255,255,0.03) 75%);
+  background: linear-gradient(90deg, rgb(255,255,255,0.03) 25%, rgb(255,255,255,0.07) 50%, rgb(255,255,255,0.03) 75%);
   background-size: 200% 100%;
   animation: ql-shimmer var(--duration-animation) ease-in-out infinite;
 }

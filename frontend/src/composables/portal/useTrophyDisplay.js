@@ -55,14 +55,15 @@ export function useTrophyDisplay(trophies, profileData) {
     }
 
     const all = [...stacked, ...secrets]
-    const statusOrder = (a) => {
+    const statusOrder = a => {
       if (a.status === TROPHY_STATUS.UNLOCKED) return 0
       if (a.status === TROPHY_STATUS.PROGRESS) return 1
       if (a.status === TROPHY_STATUS.LOCKED) return 2
       return 3
     }
     all.sort((a, b) => {
-      const sa = statusOrder(a), sb = statusOrder(b)
+      const sa = statusOrder(a),
+        sb = statusOrder(b)
       if (sa !== sb) return sa - sb
       if (a.status === TROPHY_STATUS.UNLOCKED && b.status === TROPHY_STATUS.UNLOCKED) {
         return (a.rarity_pct ?? 100) - (b.rarity_pct ?? 100)
@@ -103,7 +104,7 @@ export function useTrophyDisplay(trophies, profileData) {
   const globalProgressPct = computed(() => {
     const total = displayTrophies.value.length
     if (!total) return 0
-    return Math.round(100 * displayTrophiesUnlocked.value / total)
+    return Math.round((100 * displayTrophiesUnlocked.value) / total)
   })
 
   function trophyDesc(ach) {
@@ -123,22 +124,29 @@ export function useTrophyDisplay(trophies, profileData) {
       const res = await apiPost(endpoint, { achievement_id: ach.id })
       if (res?.ok === false) return
       // profileData is exposed as readonly() by usePortalAuth; rebuild a
-    // fresh profile object and push it through setPortalAuth so reactivity
+      // fresh profile object and push it through setPortalAuth so reactivity
       // propagates (sidebar pinned row, leaderboard, etc.).
       const badges = profileData.value?.selected_badges || []
-      const next = pinned
-        ? badges.filter(b => b !== ach.id)
-        : [...badges, ach.id]
+      const next = pinned ? badges.filter(b => b !== ach.id) : [...badges, ach.id]
       const nextProfile = { ...(profileData.value || {}), selected_badges: next }
-    setPortalAuth(nextProfile, unreadNewsCount.value, ui.value)
+      setPortalAuth(nextProfile, unreadNewsCount.value, ui.value)
     } catch (e) {
       console.error('[togglePin] failed', e)
     }
   }
 
   return {
-    showAllTrophies, selectedCategory, selectedTrophy, unlockToast,
-    displayTrophies, displayTrophiesUnlocked, categoriesWithStats, filteredTrophies,
-    globalProgressPct, trophyDesc, isPinned, togglePin,
+    showAllTrophies,
+    selectedCategory,
+    selectedTrophy,
+    unlockToast,
+    displayTrophies,
+    displayTrophiesUnlocked,
+    categoriesWithStats,
+    filteredTrophies,
+    globalProgressPct,
+    trophyDesc,
+    isPinned,
+    togglePin,
   }
 }

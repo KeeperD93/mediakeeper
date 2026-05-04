@@ -120,7 +120,10 @@ onMounted(() => {
 })
 onUnmounted(() => resizeObs?.disconnect())
 
-watch(() => props.items, () => {
-  nextTick(onScroll)
-})
+watch(
+  () => props.items,
+  () => {
+    nextTick(onScroll)
+  },
+)
 </script>

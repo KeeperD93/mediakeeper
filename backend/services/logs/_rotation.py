@@ -68,7 +68,7 @@ def rotate_logs_if_needed():
                 if line_count >= MAX_LOG_LINES:
                     needs_rotate = True
                     logger.info(f"Rotation {active_name} : {line_count} lines (max {MAX_LOG_LINES})")
-            except Exception:
+            except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
                 pass
 
         if needs_rotate:

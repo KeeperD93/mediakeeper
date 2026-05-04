@@ -31,16 +31,29 @@
     background var(--portal-dur-fast) var(--portal-ease-default);
   z-index: 6;
 }
-.pt-carousel-arrow--visible { opacity: 1; pointer-events: auto; }
-.pt-carousel-arrow--left  { left: 0.75rem; }
-.pt-carousel-arrow--right { right: 0.75rem; }
-@media (hover: hover) {
-  .pt-carousel-arrow:hover { transform: translateY(-50%) scale(1.06); }
+.pt-carousel-arrow--visible {
+  opacity: 1;
+  pointer-events: auto;
 }
-.pt-carousel-arrow:active { transform: translateY(-50%) scale(0.96); }
+.pt-carousel-arrow--left {
+  left: 0.75rem;
+}
+.pt-carousel-arrow--right {
+  right: 0.75rem;
+}
+@media (hover: hover) {
+  .pt-carousel-arrow:hover {
+    transform: translateY(-50%) scale(1.06);
+  }
+}
+.pt-carousel-arrow:active {
+  transform: translateY(-50%) scale(0.96);
+}
 /* Sur tactile, le swipe natif suffit — pas de flèches. */
 @media (hover: none) {
-  .pt-carousel-arrow { display: none; }
+  .pt-carousel-arrow {
+    display: none;
+  }
 }
 
 /* ========================================================================
@@ -58,7 +71,9 @@
   transition: opacity var(--portal-dur-base) var(--portal-ease-default);
   z-index: 5;
 }
-.pt-edge-fade--visible { opacity: 1; }
+.pt-edge-fade--visible {
+  opacity: 1;
+}
 .pt-edge-fade--left {
   left: 0;
   background: linear-gradient(to right, var(--bg-primary), transparent);

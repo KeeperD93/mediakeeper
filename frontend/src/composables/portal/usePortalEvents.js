@@ -37,9 +37,16 @@ export function usePortalEvents() {
   }
 
   return {
-    events, parties,
-    fetchActiveEvents, getEventProgress, createEvent,
-    fetchParties, createParty, joinParty, leaveParty,
-    loading, error,
+    events,
+    parties,
+    fetchActiveEvents,
+    getEventProgress,
+    createEvent,
+    fetchParties,
+    createParty,
+    joinParty,
+    leaveParty,
+    loading,
+    error,
   }
 }

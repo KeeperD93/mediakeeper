@@ -56,7 +56,11 @@
             </nav>
 
             <div v-if="isAdmin" class="pt-help-admin-side">
-              <button type="button" class="pt-help-admin-btn pt-help-admin-btn--add" @click="onCreate">
+              <button
+                type="button"
+                class="pt-help-admin-btn pt-help-admin-btn--add"
+                @click="onCreate"
+              >
                 <Plus :size="14" />
                 {{ $t('portal.help.admin.add') }}
               </button>
@@ -81,7 +85,7 @@
             <HelpEditView
               v-else-if="mode === 'edit' && editingArticle"
               :article="editingArticle"
-            :lang="helpLang || 'fr'"
+              :lang="helpLang || 'fr'"
               @back="leaveEdit"
               @updated="onArticleUpdated"
               @deleted="onArticleDeleted"
@@ -90,7 +94,7 @@
             <!-- Admin: Trash mode ────────────────────────── -->
             <HelpTrashView
               v-else-if="mode === 'trash'"
-            :lang="helpLang || 'fr'"
+              :lang="helpLang || 'fr'"
               @back="mode = 'view'"
               @restored="reloadArticles"
               @purged="reloadArticles"
@@ -119,10 +123,15 @@
             <div v-else class="pt-help-results">
               <header class="pt-help-results-head">
                 <component :is="HELP_CATEGORY_ICON[activeCategory]" :size="20" />
-                <h3 class="pt-help-results-title">{{ $t('portal.help.categories.' + activeCategory) }}</h3>
+                <h3 class="pt-help-results-title">
+                  {{ $t('portal.help.categories.' + activeCategory) }}
+                </h3>
                 <span class="pt-help-results-count">{{ articlesInActiveCategory.length }}</span>
               </header>
-              <div v-if="!articlesInActiveCategory.length" class="pt-help-state pt-help-state--empty">
+              <div
+                v-if="!articlesInActiveCategory.length"
+                class="pt-help-state pt-help-state--empty"
+              >
                 {{ $t('portal.help.categoryEmpty') }}
               </div>
               <HelpCardList
@@ -143,9 +152,7 @@
 
 <script setup>
 import { computed, nextTick, ref, watch } from 'vue'
-import {
-  BookOpen, Plus, Search, Trash2, X,
-} from 'lucide-vue-next'
+import { BookOpen, Plus, Search, Trash2, X } from 'lucide-vue-next'
 
 import MkSpinner from '@/components/common/MkSpinner.vue'
 import HelpCardList from './help/HelpCardList.vue'
@@ -177,10 +184,16 @@ const isAdmin = computed(() => profile.value?.role === 'admin')
 
 const {
   HELP_CATEGORIES,
-  loading, error, lang: helpLang,
-  search, activeCategory, categoryCounts,
-  filteredArticles, articlesInActiveCategory,
-  load, selectCategory,
+  loading,
+  error,
+  lang: helpLang,
+  search,
+  activeCategory,
+  categoryCounts,
+  filteredArticles,
+  articlesInActiveCategory,
+  load,
+  selectCategory,
 } = usePortalHelp()
 
 function onToggle(id) {
@@ -243,15 +256,9 @@ function close() {
   setTimeout(() => emit('close'), 180)
 }
 
-function excerpt(html) {
-  if (!html) return ''
-  const text = String(html).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
-  return text.length > 140 ? text.slice(0, 140) + '…' : text
-}
-
 watch(
   () => props.open,
-  async (open) => {
+  async open => {
     if (open) {
       visible.value = true
       mode.value = 'view'

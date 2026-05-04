@@ -38,7 +38,9 @@ function playBeep() {
     osc.connect(gain).connect(ctx.destination)
     osc.start()
     osc.stop(ctx.currentTime + 0.2)
-  } catch { /* audio denied — silently ignore */ }
+  } catch {
+    /* audio denied — silently ignore */
+  }
 }
 
 export function usePortalChat() {
@@ -84,7 +86,7 @@ export function usePortalChat() {
   async function deleteMessage(messageId) {
     const res = await apiDelete(`/api/portal/chat/messages/${messageId}`)
     if (res?.success) {
-      const idx = messages.value.findIndex((m) => m.id === messageId)
+      const idx = messages.value.findIndex(m => m.id === messageId)
       if (idx >= 0) messages.value[idx].deleted = true
     }
     return res
@@ -97,13 +99,17 @@ export function usePortalChat() {
   function _connectWs(roomId) {
     intentionalClose = false
     if (ws && ws.readyState !== WebSocket.CLOSED) {
-      try { ws.close() } catch { /* ignore */ }
+      try {
+        ws.close()
+      } catch {
+        /* ignore */
+      }
     }
     currentRoomId.value = roomId
     const proto = location.protocol === 'https:' ? 'wss' : 'ws'
     ws = new WebSocket(`${proto}://${location.host}/api/portal/chat/ws/${roomId}`)
 
-    ws.onmessage = (event) => {
+    ws.onmessage = event => {
       try {
         const data = JSON.parse(event.data)
         if (data.type !== 'message') return
@@ -115,14 +121,16 @@ export function usePortalChat() {
         // Drop accidental duplicates (e.g. reconnect race) — a chat
         // message id is monotonic so a known id means we already have
         // it.
-        if (msg?.id != null && messages.value.some((m) => m.id === msg.id)) return
+        if (msg?.id != null && messages.value.some(m => m.id === msg.id)) return
         messages.value.push(msg)
         if (panelOpen.value) {
           playBeep()
         } else {
           unreadCount.value += 1
         }
-      } catch { /* ignore parse errors */ }
+      } catch {
+        /* ignore parse errors */
+      }
     }
 
     ws.onclose = () => {
@@ -141,9 +149,16 @@ export function usePortalChat() {
 
   function disconnectWs() {
     intentionalClose = true
-    if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null }
+    if (reconnectTimer) {
+      clearTimeout(reconnectTimer)
+      reconnectTimer = null
+    }
     if (ws) {
-      try { ws.close() } catch { /* ignore */ }
+      try {
+        ws.close()
+      } catch {
+        /* ignore */
+      }
       ws = null
     }
   }
@@ -158,7 +173,9 @@ export function usePortalChat() {
     try {
       const res = await apiGet('/api/portal/chat/unread')
       unreadCount.value = res?.unread || 0
-    } catch { /* silent */ }
+    } catch {
+      /* silent */
+    }
   }
 
   async function markRead() {
@@ -166,7 +183,9 @@ export function usePortalChat() {
     unreadCount.value = 0
     try {
       await apiPost('/api/portal/chat/mark-read', {})
-    } catch { /* silent: re-syncs on next loadUnread */ }
+    } catch {
+      /* silent: re-syncs on next loadUnread */
+    }
   }
 
   function setPanelOpen(open) {
@@ -209,13 +228,26 @@ export function usePortalChat() {
 
   return {
     // state
-    rooms, messages, hasMore, nextCursor, unreadCount, currentRoomId, panelOpen,
+    rooms,
+    messages,
+    hasMore,
+    nextCursor,
+    unreadCount,
+    currentRoomId,
+    panelOpen,
     // api
-    fetchRooms, fetchMessages, fetchAllMessages,
-    sendMessage, deleteMessage, reportMessage,
-    sendWsMessage, loadUnread, markRead,
+    fetchRooms,
+    fetchMessages,
+    fetchAllMessages,
+    sendMessage,
+    deleteMessage,
+    reportMessage,
+    sendWsMessage,
+    loadUnread,
+    markRead,
     setPanelOpen,
     // lifecycle
-    initGlobalChat, shutdownGlobalChat,
+    initGlobalChat,
+    shutdownGlobalChat,
   }
 }

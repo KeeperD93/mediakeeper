@@ -9,44 +9,44 @@
 
 :root {
   /* Bronze --------------------------------------------------- */
-  --portal-tier-bronze-c1:      #cd7f32;
-  --portal-tier-bronze-c2:      #a0622a;
-  --portal-tier-bronze-c3:      #8b5e3c;
-  --portal-tier-bronze-glow:    rgba(205, 127, 50, 0.4);
+  --portal-tier-bronze-c1: #cd7f32;
+  --portal-tier-bronze-c2: #a0622a;
+  --portal-tier-bronze-c3: #8b5e3c;
+  --portal-tier-bronze-glow: rgb(205, 127, 50, 0.4);
 
   /* Silver --------------------------------------------------- */
-  --portal-tier-silver-c1:      #e8e8e8;
-  --portal-tier-silver-c2:      #c0c0c0;
-  --portal-tier-silver-c3:      #808080;
-  --portal-tier-silver-glow:    rgba(200, 200, 200, 0.4);
+  --portal-tier-silver-c1: #e8e8e8;
+  --portal-tier-silver-c2: #c0c0c0;
+  --portal-tier-silver-c3: #808080;
+  --portal-tier-silver-glow: rgb(200, 200, 200, 0.4);
 
   /* Gold ----------------------------------------------------- */
-  --portal-tier-gold-c1:        #fde68a;
-  --portal-tier-gold-c2:        #fbbf24;
-  --portal-tier-gold-c3:        #b8860b;
-  --portal-tier-gold-glow:      rgba(251, 191, 36, 0.45);
+  --portal-tier-gold-c1: #fde68a;
+  --portal-tier-gold-c2: #fbbf24;
+  --portal-tier-gold-c3: #b8860b;
+  --portal-tier-gold-glow: rgb(251, 191, 36, 0.45);
 
   /* Platinum ------------------------------------------------- */
-  --portal-tier-platinum-c1:    #e0f2fe;
-  --portal-tier-platinum-c2:    #7dd3fc;
-  --portal-tier-platinum-c3:    #0284c7;
-  --portal-tier-platinum-glow:  rgba(56, 189, 248, 0.4);
+  --portal-tier-platinum-c1: #e0f2fe;
+  --portal-tier-platinum-c2: #7dd3fc;
+  --portal-tier-platinum-c3: #0284c7;
+  --portal-tier-platinum-glow: rgb(56, 189, 248, 0.4);
 
   /* Diamond -------------------------------------------------- */
-  --portal-tier-diamond-c1:     #d8b4fe;
-  --portal-tier-diamond-c2:     #a78bfa;
-  --portal-tier-diamond-c3:     #7c3aed;
-  --portal-tier-diamond-glow:   rgba(168, 85, 247, 0.45);
+  --portal-tier-diamond-c1: #d8b4fe;
+  --portal-tier-diamond-c2: #a78bfa;
+  --portal-tier-diamond-c3: #7c3aed;
+  --portal-tier-diamond-glow: rgb(168, 85, 247, 0.45);
 
   /* Master --------------------------------------------------- */
-  --portal-tier-master-c1:      #fca5a5;
-  --portal-tier-master-c2:      #ef4444;
-  --portal-tier-master-c3:      #7f1d1d;
-  --portal-tier-master-glow:    rgba(239, 68, 68, 0.5);
+  --portal-tier-master-c1: #fca5a5;
+  --portal-tier-master-c2: #ef4444;
+  --portal-tier-master-c3: #7f1d1d;
+  --portal-tier-master-glow: rgb(239, 68, 68, 0.5);
 
   /* Legendary ------------------------------------------------ */
-  --portal-tier-legendary-c1:   #fde68a;
-  --portal-tier-legendary-c2:   #f97316;
-  --portal-tier-legendary-c3:   #b45309;
-  --portal-tier-legendary-glow: rgba(249, 115, 22, 0.55);
+  --portal-tier-legendary-c1: #fde68a;
+  --portal-tier-legendary-c2: #f97316;
+  --portal-tier-legendary-c3: #b45309;
+  --portal-tier-legendary-glow: rgb(249, 115, 22, 0.55);
 }

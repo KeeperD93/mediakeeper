@@ -101,7 +101,7 @@ async def get_oscar_winners(db: AsyncSession, page: int = 1) -> list[dict]:
             unique.append(it)
 
     seed = date.today().isoformat()
-    rnd = random.Random(seed)
+    rnd = random.Random(seed)  # noqa: S311 -- deterministic daily shuffle for discovery cards, no security purpose
     rnd.shuffle(unique)
     return unique[:20]
 

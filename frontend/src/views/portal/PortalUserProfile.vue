@@ -56,11 +56,7 @@
               <Settings :size="14" />
               {{ $t('portal.profile.editProfile') }}
             </button>
-            <button
-              type="button"
-              class="pt-settings-btn"
-              @click="copyLink"
-            >
+            <button type="button" class="pt-settings-btn" @click="copyLink">
               <Link2 :size="14" />
               {{ copied ? $t('portal.settings.share.copied') : $t('portal.settings.share.copy') }}
             </button>
@@ -77,7 +73,10 @@
             </div>
             <div class="pt-up-stat">
               <dt>{{ $t('portal.profile.ranking') }}</dt>
-              <dd>#{{ data.ranking?.position || '—' }} <small>· top {{ data.ranking?.percentile || '—' }}%</small></dd>
+              <dd>
+                #{{ data.ranking?.position || '—' }}
+                <small>· top {{ data.ranking?.percentile || '—' }}%</small>
+              </dd>
             </div>
             <div class="pt-up-stat">
               <dt>{{ $t('portal.profile.trophies') }}</dt>
@@ -135,24 +134,24 @@ import '@/assets/styles/portal/settings-premium.css'
 import '@/assets/styles/portal/user-profile.css'
 
 const GENRE_LOOKUP = [
-  { label: 'action',          ids: [28, 10759],  emoji: '💥' },
-  { label: 'aventure',        ids: [12],         emoji: '⚔️' },
-  { label: 'animation',       ids: [16],         emoji: '✏️' },
-  { label: 'comedie',         ids: [35],         emoji: '😂' },
-  { label: 'crime',           ids: [80],         emoji: '🔫' },
-  { label: 'documentaire',    ids: [99],         emoji: '🎥' },
-  { label: 'drame',           ids: [18],         emoji: '🎭' },
-  { label: 'familial',        ids: [10751],      emoji: '👨‍👩‍👧' },
-  { label: 'fantastique',     ids: [14],         emoji: '🧙' },
-  { label: 'guerre',          ids: [10752, 10768], emoji: '⚔️' },
-  { label: 'histoire',        ids: [36],         emoji: '🏛️' },
-  { label: 'horreur',         ids: [27],         emoji: '😱' },
-  { label: 'mystere',         ids: [9648],       emoji: '🔍' },
-  { label: 'musique',         ids: [10402],      emoji: '🎵' },
-  { label: 'romance',         ids: [10749],      emoji: '❤️' },
-  { label: 'scienceFiction',  ids: [878, 10765], emoji: '🚀' },
-  { label: 'thriller',        ids: [53],         emoji: '😰' },
-  { label: 'western',         ids: [37],         emoji: '🤠' },
+  { label: 'action', ids: [28, 10759], emoji: '💥' },
+  { label: 'aventure', ids: [12], emoji: '⚔️' },
+  { label: 'animation', ids: [16], emoji: '✏️' },
+  { label: 'comedie', ids: [35], emoji: '😂' },
+  { label: 'crime', ids: [80], emoji: '🔫' },
+  { label: 'documentaire', ids: [99], emoji: '🎥' },
+  { label: 'drame', ids: [18], emoji: '🎭' },
+  { label: 'familial', ids: [10751], emoji: '👨‍👩‍👧' },
+  { label: 'fantastique', ids: [14], emoji: '🧙' },
+  { label: 'guerre', ids: [10752, 10768], emoji: '⚔️' },
+  { label: 'histoire', ids: [36], emoji: '🏛️' },
+  { label: 'horreur', ids: [27], emoji: '😱' },
+  { label: 'mystere', ids: [9648], emoji: '🔍' },
+  { label: 'musique', ids: [10402], emoji: '🎵' },
+  { label: 'romance', ids: [10749], emoji: '❤️' },
+  { label: 'scienceFiction', ids: [878, 10765], emoji: '🚀' },
+  { label: 'thriller', ids: [53], emoji: '😰' },
+  { label: 'western', ids: [37], emoji: '🤠' },
 ]
 
 const route = useRoute()
@@ -168,9 +167,9 @@ const copied = ref(false)
 
 const userId = computed(() => Number(route.params.id))
 
-const cardProfile = computed(() => data.value
-  ? { ...data.value, avatar_url: data.value.avatar_url }
-  : null)
+const cardProfile = computed(() =>
+  data.value ? { ...data.value, avatar_url: data.value.avatar_url } : null,
+)
 
 // Mirrors backend services/portal/profile_stats_ranking.py::tier_for_level
 // so the rank tier (bronze → legendary) drives the same gradient/halo/ring
@@ -226,7 +225,7 @@ const xpPercent = computed(() => {
 const favoriteGenresLabels = computed(() => {
   const ids = data.value?.favorite_genres || []
   if (!ids.length) return []
-  return GENRE_LOOKUP.filter((g) => g.ids.some((id) => ids.includes(id)))
+  return GENRE_LOOKUP.filter(g => g.ids.some(id => ids.includes(id)))
 })
 
 async function load() {
@@ -256,7 +255,9 @@ async function copyLink() {
     const url = `${window.location.origin}/portal/u/${userId.value}`
     await navigator.clipboard.writeText(url)
     copied.value = true
-    setTimeout(() => { copied.value = false }, 2000)
+    setTimeout(() => {
+      copied.value = false
+    }, 2000)
   } catch {
     // Clipboard refused; fail silently — the user can copy from URL bar.
   }

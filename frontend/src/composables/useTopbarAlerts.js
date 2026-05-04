@@ -18,7 +18,7 @@ export function useTopbarAlerts() {
       if (!alerts || !seen) return
       seenIds.value = new Set((seen.seen || []).map(String))
 
-      const embyItems = (Array.isArray(alerts) ? alerts : []).slice(0, 10).map((a) => ({
+      const embyItems = (Array.isArray(alerts) ? alerts : []).slice(0, 10).map(a => ({
         kind: 'emby',
         id: a.id || a.date,
         name: a.name,
@@ -26,7 +26,7 @@ export function useTopbarAlerts() {
         raw: a,
       }))
 
-      const chatItems = ((chatData && chatData.items) || []).map((r) => ({
+      const chatItems = ((chatData && chatData.items) || []).map(r => ({
         kind: 'chat_report',
         id: `chat_report_${r.id}`,
         name: `Reported message: ${(r.message_content || '').slice(0, 80)}`,
@@ -41,21 +41,29 @@ export function useTopbarAlerts() {
         .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
         .slice(0, 10)
       recentAlerts.value = merged
-      alertCount.value = merged.filter((a) => !seenIds.value.has(String(a.id))).length
-    } catch { /* silent: topbar alerts poll, retries on next tick */ }
+      alertCount.value = merged.filter(a => !seenIds.value.has(String(a.id))).length
+    } catch {
+      /* silent: topbar alerts poll, retries on next tick */
+    }
   }
 
   async function dismissChatReport(alert) {
-    await apiPost(`/api/portal/admin/requests/chat/reports/${alert.report_id}/dismiss`, {}).catch(() => null)
+    await apiPost(`/api/portal/admin/requests/chat/reports/${alert.report_id}/dismiss`, {}).catch(
+      () => null,
+    )
     await loadAlertCount()
   }
 
   async function deleteChatMessage(alert) {
-    await apiDelete(`/api/portal/admin/requests/chat/messages/${alert.message_id}`).catch(() => null)
+    await apiDelete(`/api/portal/admin/requests/chat/messages/${alert.message_id}`).catch(
+      () => null,
+    )
     await loadAlertCount()
   }
 
-  function isAlertSeen(alert) { return seenIds.value.has(String(alert.id || alert.date)) }
+  function isAlertSeen(alert) {
+    return seenIds.value.has(String(alert.id || alert.date))
+  }
 
   async function markAllRead() {
     for (const a of recentAlerts.value) {
@@ -72,7 +80,10 @@ export function useTopbarAlerts() {
   function formatDate(dateStr) {
     if (!dateStr) return ''
     return new Date(dateStr).toLocaleString(undefined, {
-      day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
+      day: '2-digit',
+      month: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
     })
   }
 
@@ -85,8 +96,14 @@ export function useTopbarAlerts() {
   })
 
   return {
-    alertCount, recentAlerts, seenIds,
-    loadAlertCount, dismissChatReport, deleteChatMessage,
-    isAlertSeen, markAllRead, formatDate,
+    alertCount,
+    recentAlerts,
+    seenIds,
+    loadAlertCount,
+    dismissChatReport,
+    deleteChatMessage,
+    isAlertSeen,
+    markAllRead,
+    formatDate,
   }
 }

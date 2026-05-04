@@ -59,13 +59,22 @@ export function useSubLibrary(emit) {
         if (!groups.has(key)) {
           const hasMissing = !Object.values(item.subtitle_status).every(v => v)
           const group = {
-            _isGroup: true, _groupKey: 'group_' + key, _episodes: [item],
-            item_id: item.item_id, poster_id: item.poster_id, name: item.series_name,
-            series_name: null, type: 'Series', year: item.year,
+            _isGroup: true,
+            _groupKey: 'group_' + key,
+            _episodes: [item],
+            item_id: item.item_id,
+            poster_id: item.poster_id,
+            name: item.series_name,
+            series_name: null,
+            type: 'Series',
+            year: item.year,
             subtitle_status: { ...item.subtitle_status },
-            imdb_id: item.series_imdb_id || item.imdb_id, tmdb_id: item.tmdb_id,
-            file_path: item.file_path, existing_count: item.existing_count,
-            _episodeCount: 1, _hasMissing: hasMissing,
+            imdb_id: item.series_imdb_id || item.imdb_id,
+            tmdb_id: item.tmdb_id,
+            file_path: item.file_path,
+            existing_count: item.existing_count,
+            _episodeCount: 1,
+            _hasMissing: hasMissing,
           }
           groups.set(key, group)
           result.push(group)
@@ -85,10 +94,10 @@ export function useSubLibrary(emit) {
     return result
   })
 
-  const missingCount = computed(() =>
-    libraryItems.value.filter(i => !Object.values(i.subtitle_status).every(v => v)).length
+  const missingCount = computed(
+    () => libraryItems.value.filter(i => !Object.values(i.subtitle_status).every(v => v)).length,
   )
-  watch(missingCount, (v) => emit && emit('update-missing', v))
+  watch(missingCount, v => emit && emit('update-missing', v))
 
   const totalPages = computed(() => Math.max(1, Math.ceil(libraryTotal.value / PAGE_SIZE.value)))
   const visiblePages = computed(() => {
@@ -128,23 +137,45 @@ export function useSubLibrary(emit) {
         libraryTotal.value = d.total
         scheduleCountLoad()
       }
-    } catch { /* silent: library page fetch */ }
+    } catch {
+      /* silent: library page fetch */
+    }
     libLoading.value = false
   }
 
-  function resetLibrary() { currentPage.value = 1; expandedId.value = null; loadPage() }
-  function debounceLibrary() { clearTimeout(_debounceTimer); _debounceTimer = setTimeout(resetLibrary, 400) }
+  function resetLibrary() {
+    currentPage.value = 1
+    expandedId.value = null
+    loadPage()
+  }
+  function debounceLibrary() {
+    clearTimeout(_debounceTimer)
+    _debounceTimer = setTimeout(resetLibrary, 400)
+  }
 
   const itemActions = useSubLibraryItem({
-    expandedId, itemSubs, itemAudio, itemFilePath, itemResults, itemSearching,
-    downloading, lastDownloadResult,
+    expandedId,
+    itemSubs,
+    itemAudio,
+    itemFilePath,
+    itemResults,
+    itemSearching,
+    downloading,
+    lastDownloadResult,
   })
 
   function onItemClick(item) {
-    if (selectMode.value) { toggleItemSelect(item); return }
+    if (selectMode.value) {
+      toggleItemSelect(item)
+      return
+    }
     if (item._isGroup) {
       expandedId.value = null
-      seriesOverlay.value = { seriesName: item.name, posterId: item.poster_id, episodes: item._episodes }
+      seriesOverlay.value = {
+        seriesName: item.name,
+        posterId: item.poster_id,
+        episodes: item._episodes,
+      }
     } else {
       itemOverlay.value = item
     }
@@ -156,32 +187,60 @@ export function useSubLibrary(emit) {
     if (!selectMode.value) selectedItems.value = []
   }
   function toggleItemSelect(item) {
-    if (item._isGroup) { for (const ep of (item._episodes || [])) toggleItemSelect(ep); return }
+    if (item._isGroup) {
+      for (const ep of item._episodes || []) toggleItemSelect(ep)
+      return
+    }
     const idx = selectedItems.value.findIndex(s => s.emby_item_id === item.item_id)
-    if (idx >= 0) { selectedItems.value.splice(idx, 1); return }
+    if (idx >= 0) {
+      selectedItems.value.splice(idx, 1)
+      return
+    }
     selectedItems.value.push({
-      emby_item_id: item.item_id, file_path: item.file_path,
+      emby_item_id: item.item_id,
+      file_path: item.file_path,
       media_name: item.series_name ? `${item.series_name} — ${item.name}` : item.name,
-      type: item.type, imdb_id: item.imdb_id || '', tmdb_id: item.tmdb_id || '',
-      series_name: item.series_name || '', season: item.season || 0,
-      episode: item.episode || 0, series_imdb_id: item.series_imdb_id || '',
+      type: item.type,
+      imdb_id: item.imdb_id || '',
+      tmdb_id: item.tmdb_id || '',
+      series_name: item.series_name || '',
+      season: item.season || 0,
+      episode: item.episode || 0,
+      series_imdb_id: item.series_imdb_id || '',
     })
   }
   async function startBatch() {
     if (!selectedItems.value.length) return
     batchRunning.value = true
-    try { await apiPost('/api/subtitles/batch-download', { items: selectedItems.value }) } catch (e) { console.error('[useSubLibrary.startBatch] failed to start batch download', e) }
+    try {
+      await apiPost('/api/subtitles/batch-download', { items: selectedItems.value })
+    } catch (e) {
+      console.error('[useSubLibrary.startBatch] failed to start batch download', e)
+    }
   }
   async function cancelBatch() {
-    try { await apiPost('/api/subtitles/batch-cancel') } catch (e) { console.warn('[useSubLibrary.cancelBatch] failed to cancel batch', e) }
+    try {
+      await apiPost('/api/subtitles/batch-cancel')
+    } catch (e) {
+      console.warn('[useSubLibrary.cancelBatch] failed to cancel batch', e)
+    }
     batchRunning.value = false
   }
 
-  function openComparator(selection) { compareFiles.value = selection; showComparator.value = true }
+  function openComparator(selection) {
+    compareFiles.value = selection
+    showComparator.value = true
+  }
 
   async function showMatrix(item) {
     matrixLoading.value = true
-    matrixData.value = { series_name: item.series_name || item.name, seasons: {}, languages: [], total_episodes: 0, coverage: {} }
+    matrixData.value = {
+      series_name: item.series_name || item.name,
+      seasons: {},
+      languages: [],
+      total_episodes: 0,
+      coverage: {},
+    }
     matrixData.value = await loadSeriesMatrix(item.poster_id || item.item_id)
     matrixLoading.value = false
   }
@@ -195,9 +254,14 @@ export function useSubLibrary(emit) {
   function scheduleCountLoad() {
     clearTimeout(_countTimer)
     _countTimer = setTimeout(() => {
-      const items = libraryItems.value.slice(0, 50).map(i => ({
-        imdb_id: i.imdb_id || '', tmdb_id: i.tmdb_id || '', type: i.type,
-      })).filter(i => i.imdb_id || i.tmdb_id)
+      const items = libraryItems.value
+        .slice(0, 50)
+        .map(i => ({
+          imdb_id: i.imdb_id || '',
+          tmdb_id: i.tmdb_id || '',
+          type: i.type,
+        }))
+        .filter(i => i.imdb_id || i.tmdb_id)
       if (items.length) {
         for (let i = 0; i < items.length; i += 10) loadAvailableCounts(items.slice(i, i + 10))
       }
@@ -208,27 +272,67 @@ export function useSubLibrary(emit) {
     clearTimeout(_resizeTimer)
     _resizeTimer = setTimeout(() => {
       const newSize = computePageSize()
-      if (newSize !== PAGE_SIZE.value) { PAGE_SIZE.value = newSize; loadPage() }
+      if (newSize !== PAGE_SIZE.value) {
+        PAGE_SIZE.value = newSize
+        loadPage()
+      }
     }, 300)
   }
 
-  onMounted(() => { loadPage(); window.addEventListener('resize', onResize) })
+  onMounted(() => {
+    loadPage()
+    window.addEventListener('resize', onResize)
+  })
   onUnmounted(() => {
-    clearTimeout(_debounceTimer); clearTimeout(_countTimer); clearTimeout(_resizeTimer)
+    clearTimeout(_debounceTimer)
+    clearTimeout(_countTimer)
+    clearTimeout(_resizeTimer)
     window.removeEventListener('resize', onResize)
   })
 
   return {
-    PAGE_SIZE, libraryItems, libraryTotal, libLoading,
-    libSearch, libType, libLibrary, libStatus, viewMode, currentPage,
-    expandedId, itemSubs, itemAudio, itemResults, itemSearching, downloading, lastDownloadResult,
-    matrixData, matrixLoading, compareFiles, showComparator,
-    selectMode, selectedItems, batchRunning, seriesOverlay, itemOverlay,
-    displayItems, totalPages, visiblePages,
-    goToPage, loadPage, resetLibrary, debounceLibrary,
-    onItemClick, onOverlayEpisodeSelect,
-    toggleSelectMode, toggleItemSelect, startBatch, cancelBatch,
-    openComparator, showMatrix, onMatrixEpisodeClick,
+    PAGE_SIZE,
+    libraryItems,
+    libraryTotal,
+    libLoading,
+    libSearch,
+    libType,
+    libLibrary,
+    libStatus,
+    viewMode,
+    currentPage,
+    expandedId,
+    itemSubs,
+    itemAudio,
+    itemResults,
+    itemSearching,
+    downloading,
+    lastDownloadResult,
+    matrixData,
+    matrixLoading,
+    compareFiles,
+    showComparator,
+    selectMode,
+    selectedItems,
+    batchRunning,
+    seriesOverlay,
+    itemOverlay,
+    displayItems,
+    totalPages,
+    visiblePages,
+    goToPage,
+    loadPage,
+    resetLibrary,
+    debounceLibrary,
+    onItemClick,
+    onOverlayEpisodeSelect,
+    toggleSelectMode,
+    toggleItemSelect,
+    startBatch,
+    cancelBatch,
+    openComparator,
+    showMatrix,
+    onMatrixEpisodeClick,
     ...itemActions,
   }
 }

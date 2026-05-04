@@ -23,7 +23,8 @@
   background: #141414;
 }
 .pt-eh-hero-bg {
-  position: absolute; inset: 0;
+  position: absolute;
+  inset: 0;
   background-size: cover;
   background-position: center 20%;
   background-color: #0a0a0a;
@@ -31,7 +32,9 @@
      cinematic transition between two trailers, mirrors HeroBanner. */
   transition: opacity 1s ease;
 }
-.pt-eh-hero-bg--hidden { opacity: 0; }
+.pt-eh-hero-bg--hidden {
+  opacity: 0;
+}
 
 .pt-eh-hero-video {
   position: absolute;
@@ -51,16 +54,21 @@
      panel readable — no mask needed. The desktop horizontal mask is
      reapplied in the min-width: 1024px override below. */
 }
-.pt-eh-hero-video--playing { opacity: 1; }
+.pt-eh-hero-video--playing {
+  opacity: 1;
+}
 .pt-eh-emby-video {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   pointer-events: none;
 }
 .pt-eh-player-wrap {
   position: absolute;
-  top: 50%; left: 50%;
+  top: 50%;
+  left: 50%;
   width: max(100%, calc(60vh * 16 / 9));
   height: max(100%, calc(65vw * 9 / 16));
   transform: translate(-50%, -50%) scale(1.6);
@@ -72,34 +80,45 @@
   pointer-events: none;
 }
 .pt-eh-video-block {
-  position: absolute; inset: 0; z-index: 2; cursor: default;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  cursor: default;
 }
 
 .pt-eh-gradient-top {
-  position: absolute; left: 0; right: 0; top: 0;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
   /* Top-anchored fade — starts at the exact topbar colour
      (var(--bg-primary)) so the seam with the (now opaque) topbar
      disappears, then fades to transparent. */
-  height: 50%; z-index: 3;
+  height: 50%;
+  z-index: 3;
   background: linear-gradient(
     to bottom,
     var(--bg-primary) 0%,
-    rgba(var(--bg-primary-rgb), 0.7) 30%,
-    rgba(var(--bg-primary-rgb), 0.3) 65%,
+    rgb(var(--bg-primary-rgb), 0.7) 30%,
+    rgb(var(--bg-primary-rgb), 0.3) 65%,
     transparent 100%
   );
 }
 .pt-eh-gradient-bottom {
-  position: absolute; left: 0; right: 0; bottom: 0;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
   /* Bottom-anchored fade — same trick as the top one: ends at
      var(--bg-primary) so the seam with the carousel row below (which
      sits on the page background = var(--bg-primary)) disappears. */
-  height: 45%; z-index: 3;
+  height: 45%;
+  z-index: 3;
   background: linear-gradient(
     to top,
     var(--bg-primary) 0%,
-    rgba(var(--bg-primary-rgb), 0.7) 30%,
-    rgba(var(--bg-primary-rgb), 0.3) 65%,
+    rgb(var(--bg-primary-rgb), 0.7) 30%,
+    rgb(var(--bg-primary-rgb), 0.3) 65%,
     transparent 100%
   );
 }
@@ -117,7 +136,9 @@
   transition-property: opacity;
   transition-timing-function: ease;
 }
-.pt-eh-fade--active { opacity: 1; }
+.pt-eh-fade--active {
+  opacity: 1;
+}
 
 .pt-eh-content {
   position: absolute;
@@ -130,7 +151,9 @@
   color: #fff;
 }
 @media (min-aspect-ratio: 21/9) {
-  .pt-eh-content { max-width: min(900px, 50%); }
+  .pt-eh-content {
+    max-width: min(900px, 50%);
+  }
 }
 
 .pt-eh-row-title {
@@ -140,7 +163,7 @@
   color: #fff;
   margin-bottom: 0.5rem;
   font-weight: var(--portal-font-black);
-  text-shadow: 0 2px 12px rgba(0,0,0,0.8);
+  text-shadow: 0 2px 12px rgb(0, 0, 0, 0.8);
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
@@ -159,15 +182,19 @@
   line-height: var(--portal-lh-display);
   margin-bottom: 0.4rem;
   color: #fff;
-  text-shadow: 0 2px 16px rgba(0,0,0,0.7);
+  text-shadow: 0 2px 16px rgb(0, 0, 0, 0.7);
 }
 .pt-eh-meta {
-  display: flex; gap: 0.75rem;
+  display: flex;
+  gap: 0.75rem;
   font-size: var(--portal-text-sm);
   color: var(--portal-text-body-muted);
   margin-bottom: 0.6rem;
 }
-.pt-eh-vote { color: var(--portal-color-warning); font-weight: var(--portal-font-bold); }
+.pt-eh-vote {
+  color: var(--portal-color-warning);
+  font-weight: var(--portal-font-bold);
+}
 .pt-eh-overview {
   font-size: var(--portal-text-sm);
   line-height: var(--portal-lh-normal);
@@ -177,23 +204,43 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   margin-bottom: 0.85rem;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+  text-shadow: 0 1px 4px rgb(0, 0, 0, 0.5);
 }
-.pt-eh-actions { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+.pt-eh-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
 .pt-eh-btn {
-  display: flex; align-items: center; gap: 0.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
   padding: 0.6rem 1rem;
   min-height: 44px;
-  border: none; border-radius: var(--portal-radius-xs);
-  font-size: var(--portal-text-sm); font-weight: var(--portal-font-bold);
+  border: none;
+  border-radius: var(--portal-radius-xs);
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-bold);
   cursor: pointer;
   text-decoration: none;
   transition: opacity var(--portal-dur-base);
 }
-.pt-eh-btn:hover { opacity: 0.85; }
-.pt-eh-btn--play { background: #fff; color: #141414; }
-.pt-eh-btn--trailer { background: rgba(109,109,109,0.7); color: #fff; }
-.pt-eh-btn--info { background: rgba(109,109,110,0.7); color: #fff; }
+.pt-eh-btn:hover {
+  opacity: 0.85;
+}
+.pt-eh-btn--play {
+  background: #fff;
+  color: #141414;
+}
+.pt-eh-btn--trailer {
+  background: rgb(109, 109, 109, 0.7);
+  color: #fff;
+}
+.pt-eh-btn--info {
+  background: rgb(109, 109, 110, 0.7);
+  color: #fff;
+}
 /* Same shape strategy as HeroBanner: padding-driven sizing + aspect-ratio
    so the icon's intrinsic size dictates the button bounds and centers
    cleanly. Earlier "width/height: 44px + padding: 0" combo collided with
@@ -205,29 +252,37 @@
   justify-content: center;
   border-radius: var(--portal-radius-circle);
 }
-.pt-eh-btn-emby { width: 20px; height: 20px; }
+.pt-eh-btn-emby {
+  width: 20px;
+  height: 20px;
+}
 
 .pt-eh-mute {
   position: absolute;
   right: 1rem;
   top: 1rem;
   z-index: 5;
-  width: 40px; height: 40px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--portal-radius-circle);
-  border: 1px solid rgba(255,255,255,0.4);
-  background: rgba(0,0,0,0.55);
+  border: 1px solid rgb(255, 255, 255, 0.4);
+  background: rgb(0, 0, 0, 0.55);
   color: #fff;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.pt-eh-mute:hover { background: rgba(0,0,0,0.8); }
+.pt-eh-mute:hover {
+  background: rgb(0, 0, 0, 0.8);
+}
 /* Mobile: dedicated mute button is hidden — sound is toggled by tapping
    the hero background (see EmbyRecentHero.onHeroTap). Same pattern as
    HeroBanner. */
 @media (max-width: 639px) {
-  .pt-eh-mute { display: none; }
+  .pt-eh-mute {
+    display: none;
+  }
   /* The 3 s opacity fade-in of the video chains with the 3 s fade-out of
      the black veil above it: at mid-transition, both layers are
      semi-transparent. Without a mask to hide the gap on mobile, the
@@ -254,14 +309,14 @@
   }
   .pt-eh-hero-video {
     -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 50%, #000 100%);
-            mask-image: linear-gradient(to right, transparent 0%, #000 50%, #000 100%);
+    mask-image: linear-gradient(to right, transparent 0%, #000 50%, #000 100%);
   }
   .pt-eh-gradient-top {
     height: 35%;
     background: linear-gradient(
       to bottom,
       var(--bg-primary) 0%,
-      rgba(var(--bg-primary-rgb), 0.6) 35%,
+      rgb(var(--bg-primary-rgb), 0.6) 35%,
       transparent 100%
     );
   }
@@ -270,7 +325,7 @@
     background: linear-gradient(
       to top,
       var(--bg-primary) 0%,
-      rgba(var(--bg-primary-rgb), 0.6) 35%,
+      rgb(var(--bg-primary-rgb), 0.6) 35%,
       transparent 100%
     );
   }
@@ -279,18 +334,40 @@
     max-width: min(760px, 60%);
     padding: 0 4% 2rem;
   }
-  .pt-eh-row-title { font-size: var(--portal-text-xl); margin-bottom: 0.75rem; }
-  .pt-eh-row-title::before { height: 1.4rem; }
-  .pt-eh-overview { font-size: var(--portal-text-base); -webkit-line-clamp: 3; margin-bottom: 1rem; }
-  .pt-eh-actions { gap: 0.6rem; flex-wrap: nowrap; }
-  .pt-eh-btn { padding: 0.55rem 1.4rem; min-height: 0; font-size: var(--portal-text-base); }
-  .pt-eh-btn--icon { padding: 0.5rem; }
-  .pt-eh-btn-emby { width: 22px; height: 22px; }
+  .pt-eh-row-title {
+    font-size: var(--portal-text-xl);
+    margin-bottom: 0.75rem;
+  }
+  .pt-eh-row-title::before {
+    height: 1.4rem;
+  }
+  .pt-eh-overview {
+    font-size: var(--portal-text-base);
+    -webkit-line-clamp: 3;
+    margin-bottom: 1rem;
+  }
+  .pt-eh-actions {
+    gap: 0.6rem;
+    flex-wrap: nowrap;
+  }
+  .pt-eh-btn {
+    padding: 0.55rem 1.4rem;
+    min-height: 0;
+    font-size: var(--portal-text-base);
+  }
+  .pt-eh-btn--icon {
+    padding: 0.5rem;
+  }
+  .pt-eh-btn-emby {
+    width: 22px;
+    height: 22px;
+  }
   .pt-eh-mute {
     top: auto;
     right: 4%;
     bottom: 1.5rem;
-    width: 38px; height: 38px;
-    background: rgba(0,0,0,0.5);
+    width: 38px;
+    height: 38px;
+    background: rgb(0, 0, 0, 0.5);
   }
 }

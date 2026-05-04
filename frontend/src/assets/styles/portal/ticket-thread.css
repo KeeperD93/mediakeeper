@@ -3,7 +3,8 @@
    selector is prefixed `.tth*` so the externalised file does not leak. */
 
 .tth {
-  display: flex; flex-direction: column;
+  display: flex;
+  flex-direction: column;
   background: var(--bg-secondary);
   border: 1px solid var(--portal-border-default);
   border-radius: var(--radius-card);
@@ -20,34 +21,53 @@
 /* Empty state -------------------------------------------------------- */
 
 .tth-empty {
-  display: flex; flex-direction: column; align-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: 10px;
   padding: 28px 16px;
   color: var(--text-muted);
   text-align: center;
 }
-.tth-empty p { font-size: var(--portal-text-sm); margin: 0; }
+.tth-empty p {
+  font-size: var(--portal-text-sm);
+  margin: 0;
+}
 
 /* Conversation list -------------------------------------------------- */
 
 .tth-list {
-  list-style: none; margin: 0; padding: 0;
-  display: flex; flex-direction: column; gap: 12px;
-  max-height: 60vh; overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 60vh;
+  overflow-y: auto;
 }
 
 .tth-row {
-  display: flex; gap: 10px; align-items: flex-start;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
 }
-.tth-row--mine { flex-direction: row-reverse; }
+.tth-row--mine {
+  flex-direction: row-reverse;
+}
 
 .tth-avatar {
-  width: 32px; height: 32px; flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
   border-radius: 999px;
   object-fit: cover;
   background: var(--bg-tertiary);
-  display: inline-flex; align-items: center; justify-content: center;
-  font-size: var(--portal-text-sm); font-weight: var(--portal-font-bold);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-bold);
   color: var(--text-muted);
 }
 .tth-avatar--fallback {
@@ -56,7 +76,8 @@
 }
 
 .tth-bubble {
-  flex: 1; min-width: 0;
+  flex: 1;
+  min-width: 0;
   background: var(--bg-tertiary);
   border: 1px solid var(--portal-border-default);
   border-radius: var(--radius-card);
@@ -64,12 +85,12 @@
   max-width: 86%;
 }
 .tth-row--mine .tth-bubble {
-  background: rgba(var(--portal-color-info-rgb), 0.10);
-  border-color: rgba(var(--portal-color-info-rgb), 0.28);
+  background: rgb(var(--portal-color-info-rgb), 0.1);
+  border-color: rgb(var(--portal-color-info-rgb), 0.28);
 }
 .tth-row--admin .tth-bubble {
-  background: rgba(var(--portal-color-premium-rgb), 0.12);
-  border-color: rgba(var(--portal-color-premium-rgb), 0.32);
+  background: rgb(var(--portal-color-premium-rgb), 0.12);
+  border-color: rgb(var(--portal-color-premium-rgb), 0.32);
 }
 
 /* Anonymised author (GDPR purge) — bubble dimmed + italic name. */
@@ -88,7 +109,10 @@
 }
 
 .tth-meta {
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
   margin-bottom: 4px;
 }
 .tth-name {
@@ -97,14 +121,15 @@
   color: var(--text-primary);
 }
 .tth-role-pill {
-  display: inline-flex; align-items: center;
+  display: inline-flex;
+  align-items: center;
   padding: 1px 8px;
   border-radius: 999px;
   font-size: var(--portal-text-2xs);
   font-weight: var(--portal-font-bold);
   text-transform: uppercase;
   letter-spacing: var(--portal-tracking-wide);
-  background: rgba(var(--portal-color-premium-rgb), 0.20);
+  background: rgb(var(--portal-color-premium-rgb), 0.2);
   color: var(--portal-color-premium-soft);
 }
 .tth-time {
@@ -113,14 +138,17 @@
   margin-left: auto;
   cursor: help;
 }
-.tth-row--mine .tth-time { margin-left: 0; margin-right: auto; }
+.tth-row--mine .tth-time {
+  margin-left: 0;
+  margin-right: auto;
+}
 
 .tth-content {
   font-size: var(--portal-text-sm);
   color: var(--text-primary);
   line-height: var(--portal-lh-relaxed);
   white-space: pre-wrap;
-  word-wrap: break-word;
+  overflow-wrap: break-word;
   margin: 0;
 }
 
@@ -137,22 +165,25 @@
   letter-spacing: var(--portal-tracking-wide);
 }
 .tth-status-footer--resolved {
-  background: rgba(var(--portal-color-success-rgb), 0.14);
+  background: rgb(var(--portal-color-success-rgb), 0.14);
   color: var(--portal-color-success-light);
 }
 .tth-status-footer--closed {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgb(255, 255, 255, 0.08);
   color: var(--portal-text-secondary);
 }
 
 /* Reply form --------------------------------------------------------- */
 
 .tth-form {
-  display: flex; flex-direction: column; gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   margin-top: 14px;
 }
 .tth-input {
-  width: 100%; min-height: 44px;
+  width: 100%;
+  min-height: 44px;
   background: var(--bg-tertiary);
   border: 1px solid var(--portal-border-default);
   border-radius: var(--radius-input);
@@ -164,7 +195,8 @@
 }
 .tth-btn {
   align-self: flex-end;
-  padding: 10px 18px; min-height: 44px;
+  padding: 10px 18px;
+  min-height: 44px;
   border: none;
   background: var(--portal-gradient-accent);
   color: #fff;
@@ -184,12 +216,27 @@
     box-shadow: var(--mk-pill-shadow);
   }
 }
-.tth-btn:active:not(:disabled) { transform: scale(0.97); }
-.tth-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.tth-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.tth-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 @media (min-width: 768px) {
-  .tth { padding: 16px 18px; }
-  .tth-list { max-height: 540px; }
-  .tth-bubble { max-width: min(78%, 640px); padding: 10px 14px; }
-  .tth-avatar { width: 36px; height: 36px; }
+  .tth {
+    padding: 16px 18px;
+  }
+  .tth-list {
+    max-height: 540px;
+  }
+  .tth-bubble {
+    max-width: min(78%, 640px);
+    padding: 10px 14px;
+  }
+  .tth-avatar {
+    width: 36px;
+    height: 36px;
+  }
 }

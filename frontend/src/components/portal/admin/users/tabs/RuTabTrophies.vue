@@ -14,17 +14,25 @@
         <article class="ru-act-card ru-act-card--success">
           <div class="ru-act-icon"><Trophy :size="22" /></div>
           <div class="ru-act-body">
-            <span class="ru-act-label">{{ $t('requestsAdmin.users.drawer.trophies.unlocked') }}</span>
+            <span class="ru-act-label">
+              {{ $t('requestsAdmin.users.drawer.trophies.unlocked') }}
+            </span>
             <span class="ru-act-val">{{ trophies?.unlocked_count ?? 0 }}</span>
-            <span class="ru-act-foot">{{ $t('requestsAdmin.users.drawer.trophies.unlockedFoot') }}</span>
+            <span class="ru-act-foot">
+              {{ $t('requestsAdmin.users.drawer.trophies.unlockedFoot') }}
+            </span>
           </div>
         </article>
         <article class="ru-act-card ru-act-card--warn">
           <div class="ru-act-icon"><Target :size="22" /></div>
           <div class="ru-act-body">
-            <span class="ru-act-label">{{ $t('requestsAdmin.users.drawer.trophies.inProgress') }}</span>
+            <span class="ru-act-label">
+              {{ $t('requestsAdmin.users.drawer.trophies.inProgress') }}
+            </span>
             <span class="ru-act-val">{{ trophies?.in_progress_count ?? 0 }}</span>
-            <span class="ru-act-foot">{{ $t('requestsAdmin.users.drawer.trophies.inProgressFoot') }}</span>
+            <span class="ru-act-foot">
+              {{ $t('requestsAdmin.users.drawer.trophies.inProgressFoot') }}
+            </span>
           </div>
         </article>
       </div>
@@ -33,16 +41,22 @@
     <section v-if="trophies?.unlocked?.length" class="ru-tab-section">
       <h3>{{ $t('requestsAdmin.users.drawer.trophies.unlocked') }}</h3>
       <ul class="ru-trophy-grid">
-        <li v-for="t in trophies.unlocked" :key="t.id" class="ru-trophy ru-trophy--unlocked">
-          <RuTrophyIcon :icon="t.icon" />
-          <span class="ru-trophy-name">{{ trophyName(t) }}</span>
+        <li
+          v-for="trophy in trophies.unlocked"
+          :key="trophy.id"
+          class="ru-trophy ru-trophy--unlocked"
+        >
+          <RuTrophyIcon :icon="trophy.icon" />
+          <span class="ru-trophy-name">{{ trophyName(trophy) }}</span>
           <div class="ru-trophy-meta">
             <span
-              v-if="t.rarity"
+              v-if="trophy.rarity"
               class="ru-trophy-rarity"
-              :class="`ru-trophy-rarity--${t.rarity}`"
-            >{{ $t(`portal.profile.rarity.${t.rarity}`) }}</span>
-            <span v-if="t.xp_reward" class="ru-trophy-xp">+{{ t.xp_reward }} XP</span>
+              :class="`ru-trophy-rarity--${trophy.rarity}`"
+            >
+              {{ $t(`portal.profile.rarity.${trophy.rarity}`) }}
+            </span>
+            <span v-if="trophy.xp_reward" class="ru-trophy-xp">+{{ trophy.xp_reward }} XP</span>
           </div>
         </li>
       </ul>
@@ -51,10 +65,14 @@
     <section v-if="trophies?.in_progress?.length" class="ru-tab-section">
       <h3>{{ $t('requestsAdmin.users.drawer.trophies.inProgress') }}</h3>
       <ul class="ru-trophy-grid">
-        <li v-for="t in trophies.in_progress" :key="t.id" class="ru-trophy ru-trophy--progress">
-          <RuTrophyIcon :icon="t.icon" :muted="true" />
-          <span class="ru-trophy-name">{{ trophyName(t) }}</span>
-          <span class="ru-trophy-progress">{{ t.progress }} / {{ t.threshold }}</span>
+        <li
+          v-for="trophy in trophies.in_progress"
+          :key="trophy.id"
+          class="ru-trophy ru-trophy--progress"
+        >
+          <RuTrophyIcon :icon="trophy.icon" :muted="true" />
+          <span class="ru-trophy-name">{{ trophyName(trophy) }}</span>
+          <span class="ru-trophy-progress">{{ trophy.progress }} / {{ trophy.threshold }}</span>
         </li>
       </ul>
     </section>
@@ -62,11 +80,15 @@
     <section class="ru-tab-section">
       <h3>{{ $t('requestsAdmin.users.drawer.trophies.xpHistory') }}</h3>
       <div v-if="loadingXp" class="ru-loading">{{ $t('common.loading') }}</div>
-      <p v-else-if="!xp.length" class="ru-help">{{ $t('requestsAdmin.users.drawer.trophies.xpHistoryEmpty') }}</p>
+      <p v-else-if="!xp.length" class="ru-help">
+        {{ $t('requestsAdmin.users.drawer.trophies.xpHistoryEmpty') }}
+      </p>
       <ol v-else class="ru-feed-list">
         <li v-for="entry in xp" :key="entry.id" class="ru-feed-row">
           <span class="ru-feed-date">{{ fmt(entry.created_at) }}</span>
-          <span class="ru-feed-main">{{ $t(`requestsAdmin.users.drawer.xpAction.${entry.action}`, entry.action) }}</span>
+          <span class="ru-feed-main">
+            {{ $t(`requestsAdmin.users.drawer.xpAction.${entry.action}`, entry.action) }}
+          </span>
           <span class="ru-feed-tail">+{{ entry.xp }} XP</span>
         </li>
       </ol>
@@ -120,6 +142,10 @@ function trophyName(tr) {
 
 function fmt(value) {
   if (!value) return '—'
-  try { return new Date(value).toLocaleString() } catch { return value }
+  try {
+    return new Date(value).toLocaleString()
+  } catch {
+    return value
+  }
 }
 </script>

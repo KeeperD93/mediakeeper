@@ -5,11 +5,14 @@
     </div>
 
     <div v-if="loading" class="wg-evt-empty">{{ $t('common.loading') }}</div>
-    <div v-else-if="!items.length" class="wg-evt-empty">{{ $t('dashboard.portalEvents.empty') }}</div>
+    <div v-else-if="!items.length" class="wg-evt-empty">
+      {{ $t('dashboard.portalEvents.empty') }}
+    </div>
 
     <div v-else class="wg-evt-list">
       <button
-        v-for="ev in items" :key="ev.id"
+        v-for="ev in items"
+        :key="ev.id"
         class="wg-evt-item"
         :disabled="editing"
         @click="openEvent(ev)"
@@ -33,7 +36,8 @@
               {{ ev.creator_deleted ? $t('portal.common.deletedUser') : ev.creator_label }}
             </span>
             <span v-if="acceptedCount(ev) > 0" class="wg-evt-count">
-              <Users :size="11" /> {{ acceptedCount(ev) }}
+              <Users :size="11" />
+              {{ acceptedCount(ev) }}
             </span>
           </div>
         </div>
@@ -73,7 +77,7 @@ function formatTime(iso) {
 }
 
 function acceptedCount(ev) {
-  return (ev.invitations || []).filter((i) => i.status === INVITATION_STATUS.ACCEPTED).length
+  return (ev.invitations || []).filter(i => i.status === INVITATION_STATUS.ACCEPTED).length
 }
 
 async function load() {
@@ -87,7 +91,9 @@ async function load() {
       const d = await res.json().catch(() => null)
       if (d?.items) items.value = d.items
     }
-  } catch { /* silent: widget fetch, card stays blank */ }
+  } catch {
+    /* silent: widget fetch, card stays blank */
+  }
   loading.value = false
 }
 
@@ -143,32 +149,44 @@ onMounted(load)
   min-height: 0;
   overflow-y: auto;
 }
-.wg-evt-list::-webkit-scrollbar { width: 3px; }
-.wg-evt-list::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 2px; }
+.wg-evt-list::-webkit-scrollbar {
+  width: 3px;
+}
+.wg-evt-list::-webkit-scrollbar-thumb {
+  background: var(--surface-3);
+  border-radius: 2px;
+}
 
 .wg-evt-item {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 8px 10px;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.05);
+  background: rgb(255, 255, 255, 0.02);
+  border: 1px solid rgb(255, 255, 255, 0.05);
   border-radius: var(--radius-card);
   color: inherit;
   cursor: pointer;
   text-align: left;
   min-width: 0;
-  transition: border-color var(--duration-base), background var(--duration-base), transform var(--duration-fast);
+  transition:
+    border-color var(--duration-base),
+    background var(--duration-base),
+    transform var(--duration-fast);
   -webkit-tap-highlight-color: transparent;
 }
-.wg-evt-item:disabled { cursor: move; }
+.wg-evt-item:disabled {
+  cursor: move;
+}
 @media (hover: hover) {
   .wg-evt-item:not(:disabled):hover {
     border-color: color-mix(in srgb, var(--accent-500) 35%, transparent);
-    background: rgba(var(--accent-rgb), 0.05);
+    background: rgb(var(--accent-rgb), 0.05);
   }
 }
-.wg-evt-item:not(:disabled):active { transform: scale(0.99); }
+.wg-evt-item:not(:disabled):active {
+  transform: scale(0.99);
+}
 
 .wg-evt-date {
   flex-shrink: 0;
@@ -230,8 +248,14 @@ onMounted(load)
   letter-spacing: var(--tracking-widest);
   font-size: 9px;
 }
-.wg-evt-kind--private { background: rgba(59, 130, 246, 0.2); color: #93c5fd; }
-.wg-evt-kind--public { background: rgba(34, 197, 94, 0.2); color: #86efac; }
+.wg-evt-kind--private {
+  background: rgb(59, 130, 246, 0.2);
+  color: #93c5fd;
+}
+.wg-evt-kind--public {
+  background: rgb(34, 197, 94, 0.2);
+  color: #86efac;
+}
 .wg-evt-creator {
   color: var(--text-muted);
   white-space: nowrap;

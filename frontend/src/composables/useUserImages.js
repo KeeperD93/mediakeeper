@@ -15,7 +15,7 @@ export function useUserImages() {
     if (!userId) return null
 
     const cached = cache[userId]
-    if (cached && (Date.now() - cached.ts) < CACHE_TTL) return cached.url
+    if (cached && Date.now() - cached.ts < CACHE_TTL) return cached.url
     if (inflight[userId]) return inflight[userId]
 
     inflight[userId] = (async () => {
@@ -31,7 +31,9 @@ export function useUserImages() {
           cache[userId] = { url, ts: Date.now() }
           return url
         }
-      } catch { /* silencieux */ }
+      } catch {
+        /* silencieux */
+      }
 
       cache[userId] = { url: null, ts: Date.now() }
       return null

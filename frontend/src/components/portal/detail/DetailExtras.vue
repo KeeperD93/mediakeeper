@@ -4,10 +4,12 @@
       <h2>{{ $t('portal.detail.videos') }}</h2>
       <div class="vmd2-scroller">
         <a
-          v-for="v in media.videos" :key="v.key"
+          v-for="v in media.videos"
+          :key="v.key"
           class="vmd2-video-card"
           :href="`https://www.youtube.com/watch?v=${v.key}`"
-          target="_blank" rel="noopener"
+          target="_blank"
+          rel="noopener"
         >
           <div class="vmd2-video-thumb-wrap">
             <img
@@ -30,11 +32,7 @@
     <template v-if="media.reviews?.length">
       <h2 class="vmd2-section-break">{{ $t('portal.detail.recentReviews') }}</h2>
       <div class="vmd2-reviews">
-        <article
-          v-for="r in media.reviews"
-          :key="r.author + (r.date || '')"
-          class="vmd2-review"
-        >
+        <article v-for="r in media.reviews" :key="r.author + (r.date || '')" class="vmd2-review">
           <header>
             <div class="vmd2-review-avatar">{{ (r.author || '?')[0].toUpperCase() }}</div>
             <div class="vmd2-review-meta">
@@ -71,6 +69,10 @@ function translateType(type) {
 
 function formatDate(iso) {
   if (!iso) return ''
-  try { return new Date(iso).toLocaleDateString() } catch { return iso }
+  try {
+    return new Date(iso).toLocaleDateString()
+  } catch {
+    return iso
+  }
 }
 </script>

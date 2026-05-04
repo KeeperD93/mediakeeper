@@ -42,7 +42,10 @@
   border-radius: var(--portal-radius-sm);
   color: var(--portal-text-secondary);
   cursor: pointer;
-  transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
+  transition:
+    background 140ms ease,
+    color 140ms ease,
+    border-color 140ms ease;
 }
 @media (hover: hover) {
   .pt-help-tb-btn:hover {
@@ -51,8 +54,8 @@
   }
 }
 .pt-help-tb-btn.active {
-  background: rgba(var(--pt-help-rgb1), 0.20);
-  border-color: rgba(var(--pt-help-rgb1), 0.45);
+  background: rgb(var(--pt-help-rgb1), 0.2);
+  border-color: rgb(var(--pt-help-rgb1), 0.45);
   color: var(--pt-help-c1);
 }
 
@@ -80,7 +83,9 @@
 
 /* ─────────────────────────── Colour palettes ─────────────────────────── */
 
-.pt-help-tb-pop { position: relative; }
+.pt-help-tb-pop {
+  position: relative;
+}
 .pt-help-tb-palette {
   position: absolute;
   top: calc(100% + 4px);
@@ -103,7 +108,7 @@
 .pt-help-tb-swatch {
   width: 22px;
   height: 22px;
-  border: 1px solid rgba(0, 0, 0, 0.30);
+  border: 1px solid rgb(0, 0, 0, 0.3);
   border-radius: var(--portal-radius-sm);
   cursor: pointer;
   padding: 0;
@@ -132,20 +137,34 @@
   line-height: var(--portal-lh-relaxed);
   outline: none;
 }
-.pt-help-editor-prose:focus { outline: none; }
+.pt-help-editor-prose:focus {
+  outline: none;
+}
 
-.pt-help-editor-prose :is(p, ul, ol, table, blockquote, pre) { margin: 0 0 0.85rem; }
+.pt-help-editor-prose :is(p, ul, ol, table, blockquote, pre) {
+  margin: 0 0 0.85rem;
+}
 .pt-help-editor-prose :is(h1, h2, h3, h4) {
   margin: 1.2rem 0 0.4rem;
   color: var(--portal-text-primary);
   font-weight: var(--portal-font-bold);
   line-height: var(--portal-lh-tight);
 }
-.pt-help-editor-prose h2 { font-size: var(--portal-text-xl); }
-.pt-help-editor-prose h3 { font-size: var(--portal-text-lg); }
-.pt-help-editor-prose strong { color: var(--portal-text-primary); }
-.pt-help-editor-prose :is(ul, ol) { padding-left: 1.4rem; }
-.pt-help-editor-prose li { margin-bottom: 0.3rem; }
+.pt-help-editor-prose h2 {
+  font-size: var(--portal-text-xl);
+}
+.pt-help-editor-prose h3 {
+  font-size: var(--portal-text-lg);
+}
+.pt-help-editor-prose strong {
+  color: var(--portal-text-primary);
+}
+.pt-help-editor-prose :is(ul, ol) {
+  padding-left: 1.4rem;
+}
+.pt-help-editor-prose li {
+  margin-bottom: 0.3rem;
+}
 .pt-help-editor-prose code {
   padding: 0.05rem 0.35rem;
   background: var(--portal-surface-3);

@@ -1,6 +1,10 @@
 <template>
   <aside class="pt-erc" :class="{ 'pt-erc--collapsed': collapsed }">
-    <button class="pt-erc-toggle" :aria-label="$t(collapsed ? 'common.open' : 'common.close')" @click="collapsed = !collapsed">
+    <button
+      class="pt-erc-toggle"
+      :aria-label="$t(collapsed ? 'common.open' : 'common.close')"
+      @click="collapsed = !collapsed"
+    >
       <ChevronLeft v-if="collapsed" :size="16" :stroke-width="2.5" />
       <ChevronRight v-else :size="16" :stroke-width="2.5" />
     </button>
@@ -12,7 +16,9 @@
 
       <div ref="listRef" class="pt-erc-list">
         <div v-if="loading" class="pt-erc-empty">{{ $t('common.loading') }}</div>
-        <div v-else-if="!messages.length" class="pt-erc-empty">{{ $t('portal.cinema.chatEmpty') }}</div>
+        <div v-else-if="!messages.length" class="pt-erc-empty">
+          {{ $t('portal.cinema.chatEmpty') }}
+        </div>
         <div
           v-for="msg in messages"
           :key="msg.id"
@@ -36,7 +42,12 @@
           class="pt-erc-input"
           @keydown.enter.prevent="send"
         />
-        <button class="pt-erc-send" :aria-label="$t('portal.tickets.thread.reply.send')" :disabled="!draft.trim() || sending" @click="send">
+        <button
+          class="pt-erc-send"
+          :aria-label="$t('portal.tickets.thread.reply.send')"
+          :disabled="!draft.trim() || sending"
+          @click="send"
+        >
           <Send :size="16" :stroke-width="2.5" />
         </button>
       </div>
@@ -129,8 +140,8 @@ onBeforeUnmount(() => {
   right: 0;
   bottom: 0;
   width: clamp(280px, 28vw, 380px);
-  background: rgba(15, 15, 22, 0.92);
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgb(15, 15, 22, 0.92);
+  border-left: 1px solid rgb(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
   z-index: 11;
@@ -148,9 +159,9 @@ onBeforeUnmount(() => {
   transform: translateY(-50%);
   width: 30px;
   height: 60px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgb(255, 255, 255, 0.15);
   border-right: none;
-  background: rgba(15, 15, 22, 0.92);
+  background: rgb(15, 15, 22, 0.92);
   color: #fff;
   border-radius: 8px 0 0 8px;
   cursor: pointer;
@@ -197,8 +208,8 @@ onBeforeUnmount(() => {
   padding: 0.5rem 0.7rem;
 }
 .pt-erc-msg--mine {
-  background: rgba(67, 56, 202, 0.18);
-  border-color: rgba(67, 56, 202, 0.4);
+  background: rgb(67, 56, 202, 0.18);
+  border-color: rgb(67, 56, 202, 0.4);
 }
 .pt-erc-msg-head {
   display: flex;
@@ -217,6 +228,7 @@ onBeforeUnmount(() => {
 .pt-erc-body {
   font-size: var(--portal-text-sm);
   color: var(--portal-text-primary);
+  /* stylelint-disable-next-line declaration-property-value-keyword-no-deprecated -- non-standard but widely supported; behaviour differs from overflow-wrap: break-word on CJK */
   word-break: break-word;
   white-space: pre-wrap;
 }
@@ -229,7 +241,7 @@ onBeforeUnmount(() => {
 }
 .pt-erc-input {
   flex: 1;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(255, 255, 255, 0.05);
   border: 1px solid var(--portal-border-strong);
   color: #fff !important;
   -webkit-text-fill-color: #fff !important;
@@ -240,7 +252,9 @@ onBeforeUnmount(() => {
   outline: none;
   font-family: inherit;
 }
-.pt-erc-input:focus { border-color: rgba(67, 56, 202, 0.7); }
+.pt-erc-input:focus {
+  border-color: rgb(67, 56, 202, 0.7);
+}
 .pt-erc-send {
   width: 36px;
   height: 36px;
@@ -253,5 +267,8 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
 }
-.pt-erc-send:disabled { opacity: 0.5; cursor: not-allowed; }
+.pt-erc-send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 </style>

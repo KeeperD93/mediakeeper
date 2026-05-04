@@ -14,7 +14,9 @@
   margin-bottom: 0.5rem;
 }
 @media (min-width: 640px) {
-  .pt-carousel-header { padding: 0 4%; }
+  .pt-carousel-header {
+    padding: 0 4%;
+  }
 }
 .pt-carousel-title {
   font-size: clamp(1rem, 2vw + 0.3rem, 1.3rem);
@@ -42,7 +44,9 @@
 }
 .pt-carousel-title-chevron {
   opacity: 0.6;
-  transition: transform var(--portal-dur-base) ease, opacity var(--portal-dur-base) ease;
+  transition:
+    transform var(--portal-dur-base) ease,
+    opacity var(--portal-dur-base) ease;
 }
 
 /* --- Scrollable track with scroll-snap --- */
@@ -53,8 +57,7 @@
      letting children spill above/below the track (box-shadows of the
      hover zoom). `overflow-x: auto` would force overflow-y: auto and
      clip the glow at the top/bottom edges. */
-  overflow-x: auto;
-  overflow-y: clip;
+  overflow: auto clip;
   scroll-behavior: smooth;
   /* scroll-snap guarantees that any scroll operation — click on the
      arrows, drag, wheel, swipe — lands cleanly on a card edge instead
@@ -76,7 +79,9 @@
     scroll-padding-left: 4%;
   }
 }
-.pt-carousel-track::-webkit-scrollbar { display: none; }
+.pt-carousel-track::-webkit-scrollbar {
+  display: none;
+}
 .pt-carousel-track > .pt-card {
   scroll-snap-align: start;
 }

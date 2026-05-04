@@ -182,7 +182,7 @@ async def get_season_episodes(tmdb_id: int, season: int, db: AsyncSession | None
                     name = (e.get("name") or "").strip()
                     if name and not _is_generic_episode_name(name, num):
                         en_by_num[num] = name
-            except Exception:
+            except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
                 pass  # Fallback best-effort only.
 
         out = []

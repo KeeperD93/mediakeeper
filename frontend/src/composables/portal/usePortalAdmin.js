@@ -15,7 +15,8 @@ export function usePortalAdmin() {
 
   async function muteUser(userId, mutedUntil, reason = '') {
     return await apiPost(`/api/portal/admin/users/${userId}/mute`, {
-      muted_until: mutedUntil, reason,
+      muted_until: mutedUntil,
+      reason,
     })
   }
 
@@ -26,7 +27,10 @@ export function usePortalAdmin() {
   return {
     stats,
     fetchStats,
-    setQuota, muteUser, unmuteUser,
-    loading, error,
+    setQuota,
+    muteUser,
+    unmuteUser,
+    loading,
+    error,
   }
 }

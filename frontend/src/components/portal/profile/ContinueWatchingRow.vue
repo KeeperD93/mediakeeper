@@ -1,11 +1,7 @@
 <template>
   <section v-if="items.length" class="dp-section dp-cw-section">
     <h3 class="dp-section-title">{{ $t('portal.sections.continueWatching') }}</h3>
-    <div
-      ref="cwTrackRef"
-      class="dp-cw-track"
-      @scroll="cwOnScroll"
-    >
+    <div ref="cwTrackRef" class="dp-cw-track" @scroll="cwOnScroll">
       <a
         v-for="item in items"
         :key="item.emby_item_id || item.id"
@@ -13,8 +9,15 @@
         target="_blank"
         class="dp-cw-card"
       >
-        <img :src="item.poster_url || item.backdrop" :alt="item.title" class="dp-cw-img" loading="lazy" />
-        <div class="dp-cw-info"><span class="dp-cw-title">{{ item.title }}</span></div>
+        <img
+          :src="item.poster_url || item.backdrop"
+          :alt="item.title"
+          class="dp-cw-img"
+          loading="lazy"
+        />
+        <div class="dp-cw-info">
+          <span class="dp-cw-title">{{ item.title }}</span>
+        </div>
       </a>
     </div>
     <button

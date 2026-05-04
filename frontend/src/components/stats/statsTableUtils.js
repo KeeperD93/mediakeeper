@@ -13,8 +13,10 @@ export function formatDate(iso) {
   if (!iso) return '—'
   const d = new Date(iso)
   return new Intl.DateTimeFormat(undefined, {
-    day: '2-digit', month: '2-digit',
-    hour: '2-digit', minute: '2-digit',
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
   }).format(d)
 }
 

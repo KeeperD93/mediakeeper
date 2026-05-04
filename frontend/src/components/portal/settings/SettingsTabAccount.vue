@@ -4,13 +4,7 @@
     <p class="pt-settings-section-sub">{{ $t('portal.settings.account.passwordHint') }}</p>
 
     <div>
-      <a
-        v-if="embyUrl"
-        :href="embyUrl"
-        target="_blank"
-        rel="noopener"
-        class="pt-settings-btn"
-      >
+      <a v-if="embyUrl" :href="embyUrl" target="_blank" rel="noopener" class="pt-settings-btn">
         <ExternalLink :size="14" />
         {{ $t('portal.settings.account.passwordEmbyCta') }}
       </a>
@@ -57,7 +51,9 @@ function formatDate(iso) {
   if (!iso) return ''
   try {
     return new Date(iso).toLocaleDateString(locale.value, {
-      year: 'numeric', month: 'long', day: 'numeric',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
     })
   } catch {
     return ''
@@ -95,6 +91,13 @@ const accessExpiresLabel = computed(() => {
   font-size: var(--portal-text-sm);
 }
 
-.pt-settings-info-row dt { color: var(--portal-text-secondary); margin: 0; }
-.pt-settings-info-row dd { color: var(--portal-text-primary); font-weight: var(--portal-font-medium); margin: 0; }
+.pt-settings-info-row dt {
+  color: var(--portal-text-secondary);
+  margin: 0;
+}
+.pt-settings-info-row dd {
+  color: var(--portal-text-primary);
+  font-weight: var(--portal-font-medium);
+  margin: 0;
+}
 </style>

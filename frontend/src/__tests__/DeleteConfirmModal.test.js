@@ -12,7 +12,7 @@ vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     // Return a deterministic magic word so the test compares against
     // a known string without coupling to fr.json's actual text.
-    t: (key) => (key === 'portal.privacy.deleteModal.magicWord' ? 'SUPPRIMER' : key),
+    t: key => (key === 'portal.privacy.deleteModal.magicWord' ? 'SUPPRIMER' : key),
   }),
 }))
 
@@ -21,7 +21,6 @@ vi.mock('lucide-vue-next', () => ({
 }))
 
 import DeleteConfirmModal from '@/components/portal/settings/DeleteConfirmModal.vue'
-
 
 function buildModal(props = {}) {
   return mount(DeleteConfirmModal, {
@@ -33,7 +32,6 @@ function buildModal(props = {}) {
     },
   })
 }
-
 
 describe('DeleteConfirmModal', () => {
   it('does not render when closed', () => {

@@ -88,10 +88,12 @@
             {{ launchLabel }}
           </a>
           <div v-if="event.tmdb_ids.length > 1" class="pt-cr-launch-marathon">
-            {{ $t('portal.cinema.marathonStep', {
-              current: marathonStep + 1,
-              total: event.tmdb_ids.length,
-            }) }}
+            {{
+              $t('portal.cinema.marathonStep', {
+                current: marathonStep + 1,
+                total: event.tmdb_ids.length,
+              })
+            }}
           </div>
         </div>
       </transition>
@@ -108,7 +110,11 @@
           </span>
           <span class="pt-cr-countdown-value">{{ countdownDisplay }}</span>
         </div>
-        <button class="pt-cr-mute" :title="muted ? $t('portal.cinema.unmute') : $t('portal.cinema.mute')" @click="toggleMute">
+        <button
+          class="pt-cr-mute"
+          :title="muted ? $t('portal.cinema.unmute') : $t('portal.cinema.mute')"
+          @click="toggleMute"
+        >
           <VolumeX v-if="muted" :size="16" :stroke-width="2.5" />
           <Volume2 v-else :size="16" :stroke-width="2.5" />
           {{ muted ? $t('portal.cinema.unmute') : $t('portal.cinema.mute') }}
@@ -194,7 +200,7 @@ function toggleMute() {
   trailerIframeKey.value += 1
 }
 
-watch(canLaunch, (v) => {
+watch(canLaunch, v => {
   if (v && !academyActive.value && !academyDone.value) startAcademy()
 })
 
@@ -236,7 +242,9 @@ async function loadRandomTrailer() {
       const pick = res.items[Math.floor(Math.random() * res.items.length)]
       trailerKey.value = pick.key || null
     }
-  } catch { /* silent */ }
+  } catch {
+    /* silent */
+  }
 }
 
 function leave() {
@@ -258,7 +266,9 @@ function onLaunchClick() {
 
 onMounted(() => {
   load()
-  tickTimer = setInterval(() => { now.value = Date.now() }, 1000)
+  tickTimer = setInterval(() => {
+    now.value = Date.now()
+  }, 1000)
   randomTrailerTimer = setInterval(loadRandomTrailer, 3 * 60 * 1000)
 })
 

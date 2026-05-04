@@ -8,22 +8,34 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 40%, transparent 65%);
+  background: linear-gradient(to top, rgb(0, 0, 0, 0.9) 0%, rgb(0, 0, 0, 0.3) 40%, transparent 65%);
   opacity: 0;
   pointer-events: none;
   transition: none;
 }
-.pt-card-hover.visible { opacity: 1; pointer-events: auto; }
+.pt-card-hover.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
 
-.pt-card-hover-info { padding: 0 0.6rem; }
+.pt-card-hover-info {
+  padding: 0 0.6rem;
+}
 .pt-card-hover-top {
   display: flex;
   gap: 0.4rem;
   align-items: center;
   margin-bottom: 0.2rem;
 }
-.pt-card-vote { font-size: var(--portal-text-2xs); font-weight: var(--portal-font-bold); color: var(--portal-color-warning); }
-.pt-card-year { font-size: var(--portal-text-2xs); color: rgba(255,255,255,0.6); }
+.pt-card-vote {
+  font-size: var(--portal-text-2xs);
+  font-weight: var(--portal-font-bold);
+  color: var(--portal-color-warning);
+}
+.pt-card-year {
+  font-size: var(--portal-text-2xs);
+  color: rgb(255, 255, 255, 0.6);
+}
 .pt-card-hover-title {
   font-size: var(--portal-text-sm);
   font-weight: var(--portal-font-bold);
@@ -44,7 +56,7 @@
   width: 100%;
   padding: 0.5rem 0.75rem;
   border: none;
-  border-top: 1px solid rgba(255,255,255,0.1);
+  border-top: 1px solid rgb(255, 255, 255, 0.1);
   background: var(--portal-surface-3);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -58,7 +70,7 @@
   text-align: center;
 }
 .pt-card-request-btn:hover:not(.pt-card-request-btn--disabled) {
-  background: rgba(var(--accent-rgb, 99,102,241), 0.35);
+  background: rgb(var(--accent-rgb, 99, 102, 241), 0.35);
 }
 .pt-card-request-btn--disabled {
   cursor: not-allowed;
@@ -66,25 +78,27 @@
   background: var(--portal-surface-2);
 }
 .pt-card-request-btn--disabled .pt-card-request-icon {
-  background: rgba(120, 120, 130, 0.45);
+  background: rgb(120, 120, 130, 0.45);
 }
-.pt-card-request-btn--disabled .pt-card-request-shine { display: none; }
+.pt-card-request-btn--disabled .pt-card-request-shine {
+  display: none;
+}
 
 /* Resubmit variant — distinct amber hue so the user notices the CTA
    changed meaning ("re-demander" instead of "demander"). */
 .pt-card-request-btn--resubmit {
-  background: rgba(245, 158, 11, 0.18);
-  border-top-color: rgba(245, 158, 11, 0.28);
+  background: rgb(245, 158, 11, 0.18);
+  border-top-color: rgb(245, 158, 11, 0.28);
 }
 .pt-card-request-btn--resubmit .pt-card-request-icon {
-  background: rgba(245, 158, 11, 0.65);
+  background: rgb(245, 158, 11, 0.65);
 }
 @media (hover: hover) {
   .pt-card-request-btn--resubmit:hover {
-    background: rgba(245, 158, 11, 0.42);
+    background: rgb(245, 158, 11, 0.42);
   }
   .pt-card-request-btn--resubmit:hover .pt-card-request-icon {
-    background: rgba(245, 158, 11, 0.95);
+    background: rgb(245, 158, 11, 0.95);
     transform: rotate(-360deg);
   }
 }
@@ -96,12 +110,14 @@
   width: 20px;
   height: 20px;
   border-radius: var(--portal-radius-circle);
-  background: rgba(var(--accent-rgb, 99,102,241), 0.5);
-  transition: background var(--portal-dur-slow), transform var(--portal-dur-slow);
+  background: rgb(var(--accent-rgb, 99, 102, 241), 0.5);
+  transition:
+    background var(--portal-dur-slow),
+    transform var(--portal-dur-slow);
   flex-shrink: 0;
 }
 .pt-card-request-btn:hover:not(.pt-card-request-btn--disabled) .pt-card-request-icon {
-  background: rgba(var(--accent-rgb, 99,102,241), 0.9);
+  background: rgb(var(--accent-rgb, 99, 102, 241), 0.9);
   transform: rotate(90deg);
 }
 .pt-card-request-text {
@@ -111,7 +127,7 @@
 
 /* Watch button variant (green, no circle, no rotation on the logo) */
 .pt-card-watch-btn:hover {
-  background: rgba(var(--portal-color-success-rgb),0.35);
+  background: rgb(var(--portal-color-success-rgb), 0.35);
 }
 .pt-card-watch-btn .pt-card-watch-icon {
   background: transparent !important;
@@ -136,15 +152,19 @@
   left: -100%;
   width: 60%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  background: linear-gradient(90deg, transparent, rgb(255, 255, 255, 0.08), transparent);
   transition: none;
 }
 .pt-card-request-btn:hover .pt-card-request-shine {
   animation: pt-shine-sweep 0.6s ease forwards;
 }
 @keyframes pt-shine-sweep {
-  from { left: -60%; }
-  to   { left: 120%; }
+  from {
+    left: -60%;
+  }
+  to {
+    left: 120%;
+  }
 }
 
 /* ---------- Add-to-list button — flush to poster right edge ----------
@@ -160,27 +180,34 @@
   place-items: center;
   width: 32px;
   height: 34px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  border: 1px solid rgb(255, 255, 255, 0.22);
   border-right: none;
   border-radius: var(--portal-radius-pill) 0 0 var(--portal-radius-pill);
-  background: rgba(0, 0, 0, 0.6);
+  background: rgb(0, 0, 0, 0.6);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   color: #fff;
   cursor: pointer;
-  box-shadow: -3px 3px 10px rgba(0, 0, 0, 0.45);
+  box-shadow: -3px 3px 10px rgb(0, 0, 0, 0.45);
   transform-origin: right center;
-  transition: background 180ms ease, transform 180ms ease, border-color 180ms ease;
+  transition:
+    background 180ms ease,
+    transform 180ms ease,
+    border-color 180ms ease;
   -webkit-tap-highlight-color: transparent;
 }
 @media (hover: hover) {
   .pt-card-list-btn:hover {
-    background: rgba(var(--accent-rgb, 99, 102, 241), 0.9);
-    border-color: rgba(255, 255, 255, 0.45);
+    background: rgb(var(--accent-rgb, 99, 102, 241), 0.9);
+    border-color: rgb(255, 255, 255, 0.45);
     transform: scale(1.1);
   }
 }
-.pt-card-list-btn svg { width: 16px; height: 16px; display: block; }
+.pt-card-list-btn svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
 
 /* On touch devices the overlay is always visible — taps replace hover,
    so the action buttons (request / launch / re-request / add-to-list)
@@ -196,15 +223,22 @@
     pointer-events: auto;
     background: none;
   }
-  .pt-card-hover-info { display: none; }
+  .pt-card-hover-info {
+    display: none;
+  }
 
   /* Touch targets ≥ 44px (Rules §2.6) — desktop chrome is too small
      for finger taps. */
-  .pt-card-request-btn { min-height: 44px; }
+  .pt-card-request-btn {
+    min-height: 44px;
+  }
   .pt-card-list-btn {
     width: 44px;
     height: 44px;
     bottom: 50px;
   }
-  .pt-card-list-btn svg { width: 18px; height: 18px; }
+  .pt-card-list-btn svg {
+    width: 18px;
+    height: 18px;
+  }
 }

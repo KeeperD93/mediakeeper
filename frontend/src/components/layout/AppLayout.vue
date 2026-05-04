@@ -1,23 +1,21 @@
 <template>
   <div class="mk-app-shell flex h-screen overflow-hidden">
-
     <!-- Sidebar -->
     <AppSidebar
       :collapsed="sidebarCollapsed"
       :mobile-open="mobileMenuOpen"
       @toggle="sidebarCollapsed = !sidebarCollapsed"
-      @closeMobile="mobileMenuOpen = false"
-      @openSearch="showSearch = true"
+      @close-mobile="mobileMenuOpen = false"
+      @open-search="showSearch = true"
     />
 
     <!-- Zone principale -->
     <main class="mk-app-main flex-1 flex flex-col overflow-hidden min-w-0">
-
       <!-- Persistent deployment-misconfiguration banner -->
       <DeploymentBanner />
 
       <!-- Topbar -->
-      <AppTopbar @toggleMobile="mobileMenuOpen = !mobileMenuOpen" />
+      <AppTopbar @toggle-mobile="mobileMenuOpen = !mobileMenuOpen" />
 
       <!-- Contenu page -->
       <div class="mk-app-content flex-1 overflow-y-scroll">
@@ -30,9 +28,7 @@
         </router-view>
         <AttributionFooter class="mk-app-attribution" />
       </div>
-
     </main>
-
   </div>
 
   <!-- Search modal (Cmd+K) -->
@@ -64,7 +60,9 @@ import { useTheme } from '@/composables/useTheme'
 
 const { mustChangePassword, startTokenRefresh } = useAuth()
 const onboardingRef = ref(null)
-function onOnboardingDone() { /* dashboard already accessible */ }
+function onOnboardingDone() {
+  /* dashboard already accessible */
+}
 const { syncFromServer } = useTheme()
 
 // Konami code ↑↑↓↓←→←→BA
@@ -79,7 +77,7 @@ const savedCollapsed = localStorage.getItem('mk_sidebar_collapsed')
 if (savedCollapsed === 'true') sidebarCollapsed.value = true
 
 // Persister
-watch(sidebarCollapsed, (v) => {
+watch(sidebarCollapsed, v => {
   localStorage.setItem('mk_sidebar_collapsed', v ? 'true' : 'false')
 })
 
@@ -93,7 +91,7 @@ function onGlobalKeydown(e) {
 
 onMounted(() => {
   startTokenRefresh()
-  syncFromServer()  // Load theme/accent from the user DB
+  syncFromServer() // Load theme/accent from the user DB
   document.addEventListener('keydown', onGlobalKeydown)
 })
 
@@ -126,7 +124,7 @@ onUnmounted(() => {
 }
 @media (max-width: 767px) {
   .mk-app-content {
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0);
   }
 }
 </style>

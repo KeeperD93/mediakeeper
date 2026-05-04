@@ -1,12 +1,14 @@
-@import './breakpoints.css';
-@import './mobile-helpers.css';
-@import './design-tokens.css';
-@import './portal/portal-tokens.css';
-@import '../assets/styles/portal/portal-utilities.css';
+@import url('./breakpoints.css');
+@import url('./mobile-helpers.css');
+@import url('./design-tokens.css');
+@import url('./portal/portal-tokens.css');
+@import url('../assets/styles/portal/portal-utilities.css');
 
+/* stylelint-disable at-rule-no-unknown -- @tailwind directives are processed by tailwindcss postcss plugin */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+/* stylelint-enable at-rule-no-unknown */
 
 /* ============================================
    GLOBAL STATE — Portal video playing
@@ -23,7 +25,7 @@
   body.mk-portal-video-playing .pt-nav:not(.pt-nav--solid) {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 100%) !important;
+    background: linear-gradient(to bottom, rgb(0, 0, 0, 0.55) 0%, transparent 100%) !important;
   }
 }
 
@@ -33,62 +35,70 @@
    rebuilt on top of the design tokens.
    ============================================ */
 :root {
-  --bg-primary:    #030712;
-  --bg-primary-rgb: 3, 7, 18;     /* Companion RGB triplet for rgba() composition */
-  --bg-secondary:  #111827;
-  --bg-tertiary:   #1f2937;
-  --bg-panel:      var(--bg-secondary); /* Alias — modal / panel surface */
-  --border:        #1f2937;
-  --border-hover:  #374151;
-  --text-primary:  #ffffff;
-  --text-secondary:#9ca3af;
-  --text-muted:    #4b5563;
-  --accent:        #4338ca;
-  --accent-light:  #312e81;
+  --bg-primary: #030712;
+  --bg-primary-rgb: 3, 7, 18; /* Companion RGB triplet for rgba() composition */
+  --bg-secondary: #111827;
+  --bg-tertiary: #1f2937;
+  --bg-panel: var(--bg-secondary); /* Alias — modal / panel surface */
+  --border: #1f2937;
+  --border-hover: #374151;
+  --text-primary: #fff;
+  --text-secondary: #9ca3af;
+  --text-muted: #4b5563;
+  --accent: #4338ca;
+  --accent-light: #312e81;
   /* Accent color system — overridden by useTheme */
-  --accent-500:    #6366f1;
-  --accent-400:    #818cf8;
-  --accent-300:    #a5b4fc;
-  --accent-600:    #4f46e5;
-  --accent-700:    #4338ca;
-  --accent-rgb:    99,102,241;
+  --accent-500: #6366f1;
+  --accent-400: #818cf8;
+  --accent-300: #a5b4fc;
+  --accent-600: #4f46e5;
+  --accent-700: #4338ca;
+  --accent-rgb: 99, 102, 241;
 
   /* Pill "neon" glow — controlled by the Appearance slider via --mk-glow (0..2, default 1).
    * Two sizes: regular (3px ring + 18px blur) and compact (2px ring + 12px blur).
    * Alpha values scale with --mk-glow so users can dim or boost the effect app-wide. */
   --mk-glow: 1;
   --mk-pill-shadow:
-    0 0 0 3px rgba(var(--accent-rgb), calc(0.12 * var(--mk-glow))),
-    0 0 18px rgba(var(--accent-rgb), calc(0.25 * var(--mk-glow)));
+    0 0 0 3px rgb(var(--accent-rgb), calc(0.12 * var(--mk-glow))),
+    0 0 18px rgb(var(--accent-rgb), calc(0.25 * var(--mk-glow)));
   --mk-pill-shadow-sm:
-    0 0 0 2px rgba(var(--accent-rgb), calc(0.12 * var(--mk-glow))),
-    0 0 12px rgba(var(--accent-rgb), calc(0.2 * var(--mk-glow)));
+    0 0 0 2px rgb(var(--accent-rgb), calc(0.12 * var(--mk-glow))),
+    0 0 12px rgb(var(--accent-rgb), calc(0.2 * var(--mk-glow)));
 }
 
 /* ── Global radius — applied automatically via --radius-* ── */
-.mk-card, .params-section, .stats-tab, .mm-modal, .mm-overlay .mm-modal,
-[class*="-card"], [class*="-modal"], [class*="glass-card"],
-[class*="glass-"], [class*="-kpi"], [class*="-tabs"],
-[class*="-toast"]:not(.mk-toast-container) {
+.mk-card,
+.params-section,
+.stats-tab,
+.mm-modal,
+.mm-overlay .mm-modal,
+[class*='-card'],
+[class*='-modal'],
+[class*='glass-card'],
+[class*='glass-'],
+[class*='-kpi'],
+[class*='-tabs'],
+[class*='-toast']:not(.mk-toast-container) {
   border-radius: var(--radius-card) !important;
 }
-[class*="-btn"]:not(.tb-action-btn):not(.mm-row-btn):not(.mm-drag-handle),
-[class*="Btn"]:not([class*="row"]),
-[class*="-tab"]:not([class*="-tabs"]):not([class*="table"]) {
+[class*='-btn']:not(.tb-action-btn, .mm-row-btn, .mm-drag-handle),
+[class*='Btn']:not([class*='row']),
+[class*='-tab']:not([class*='-tabs'], [class*='table']) {
   border-radius: var(--radius-btn) !important;
 }
-input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
-select, textarea {
+input:not([type='range'], [type='checkbox'], [type='radio']),
+select,
+textarea {
   border-radius: var(--radius-input) !important;
 }
-
 
 /* ============================================================
    CSS VARIABLES GLOBALES — Radius & Custom BG
    ============================================================ */
 :root {
-  --radius-card:  12px;
-  --radius-btn:   8px;
+  --radius-card: 12px;
+  --radius-btn: 8px;
   --radius-input: 10px;
   --custom-bg-url: none;
   --custom-bg-opacity: 0.15;
@@ -110,8 +120,9 @@ select, textarea {
   pointer-events: none;
   transition: opacity 0.4s ease;
 }
-body.has-custom-bg { isolation: auto; }
-
+body.has-custom-bg {
+  isolation: auto;
+}
 
 /* Application des variables */
 body {
@@ -131,7 +142,7 @@ body {
 .mk-card {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius:var(--radius-card);
+  border-radius: var(--radius-card);
   padding: 20px;
   transition: border-color var(--duration-base);
 }
@@ -144,7 +155,7 @@ body {
 .mk-stat-card {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius:var(--radius-card);
+  border-radius: var(--radius-card);
   padding: 20px;
   transition: border-color var(--duration-base);
 }
@@ -183,13 +194,14 @@ body {
   opacity: 0;
 }
 
-
 /* ============================================
    TRANSITIONS ROUTES — slide directionnel
    ============================================ */
 .route-slide-enter-active,
 .route-slide-leave-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
 }
 
 .route-slide-enter-from {
@@ -206,14 +218,32 @@ body {
    KONAMI EASTER EGG
    ============================================ */
 @keyframes mk-konami-rainbow {
-  0%   { filter: hue-rotate(0deg); }
-  100% { filter: hue-rotate(360deg); }
+  0% {
+    filter: hue-rotate(0deg);
+  }
+  100% {
+    filter: hue-rotate(360deg);
+  }
 }
 
 @keyframes mk-konami-shake {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
-  20%, 40%, 60%, 80% { transform: translateX(4px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-4px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(4px);
+  }
 }
 
 body.mk-konami-active {
@@ -237,11 +267,24 @@ body.mk-konami-active .mk-sidebar {
 }
 
 @keyframes mk-konami-pop {
-  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
-  20%  { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
-  40%  { transform: translate(-50%, -50%) scale(0.95); }
-  60%  { transform: translate(-50%, -50%) scale(1); }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(1) translateY(-30px); }
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+  40% {
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+  60% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1) translateY(-30px);
+  }
 }
 
 /* Pages with a mobile-bottom TabStrip (Watchlist, Settings, Stats, Logs,

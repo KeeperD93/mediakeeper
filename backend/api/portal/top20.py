@@ -52,7 +52,7 @@ async def _find_series_id(series_name: str, url: str, api_key: str) -> str | Non
                 sid = items[0].get("Id", "")
                 _series_id_cache[series_name] = sid
                 return sid
-    except Exception:
+    except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
         pass
     return None
 

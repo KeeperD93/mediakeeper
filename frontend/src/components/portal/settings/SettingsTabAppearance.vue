@@ -30,9 +30,11 @@
       class="pt-settings-btn"
       @click="howtoOpen = !howtoOpen"
     >
-      {{ howtoOpen
+      {{
+        howtoOpen
           ? $t('portal.settings.appearance.hideHowToUnlock')
-          : $t('portal.settings.appearance.showHowToUnlock') }}
+          : $t('portal.settings.appearance.showHowToUnlock')
+      }}
     </button>
 
     <div v-if="howtoOpen" class="pt-settings-howto">
@@ -53,7 +55,7 @@
             </template>
             <template v-else>
               {{ $t(item.achievement_name_key) }}
-              <em> · {{ $t(item.achievement_description_key) }}</em>
+              <em>· {{ $t(item.achievement_description_key) }}</em>
             </template>
           </span>
         </li>

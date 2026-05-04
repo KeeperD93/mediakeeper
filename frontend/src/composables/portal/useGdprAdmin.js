@@ -56,23 +56,22 @@ export function useGdprAdmin() {
 
   async function fetchPendingDeletions() {
     return run(async () => {
-      const res = await apiGet(
-        '/api/portal/admin/users?pending_deletion=true&limit=200',
-      )
+      const res = await apiGet('/api/portal/admin/users?pending_deletion=true&limit=200')
       return Array.isArray(res?.items) ? res.items : []
     })
   }
 
   async function cancelDeletionRequest(profileId) {
-    return run(() => apiDelete(
-      `/api/portal/admin/users/${profileId}/deletion-request`,
-    ))
+    return run(() => apiDelete(`/api/portal/admin/users/${profileId}/deletion-request`))
   }
 
   return {
-    saving, error,
-    fetchSettings, saveSettings,
-    fetchPendingDeletions, cancelDeletionRequest,
+    saving,
+    error,
+    fetchSettings,
+    saveSettings,
+    fetchPendingDeletions,
+    cancelDeletionRequest,
   }
 }
 

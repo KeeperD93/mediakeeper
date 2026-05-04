@@ -66,11 +66,15 @@ const myEvents = computed(() => {
   if (!uid) return []
   const now = Date.now()
   return events.value
-    .filter((e) => e.status === EVENT_STATUS.SCHEDULED)
-    .filter((e) => new Date(e.scheduled_at).getTime() > now)
-    .filter((e) => e.invitations?.some(
-      (i) => i.user_id === uid && (i.status === INVITATION_STATUS.ACCEPTED || e.creator_user_id === uid),
-    ))
+    .filter(e => e.status === EVENT_STATUS.SCHEDULED)
+    .filter(e => new Date(e.scheduled_at).getTime() > now)
+    .filter(e =>
+      e.invitations?.some(
+        i =>
+          i.user_id === uid &&
+          (i.status === INVITATION_STATUS.ACCEPTED || e.creator_user_id === uid),
+      ),
+    )
     .sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at))
 })
 
@@ -82,8 +86,8 @@ const currentEvent = computed(() => {
 const participantList = computed(() => {
   const ev = currentEvent.value
   if (!ev) return ''
-  const accepted = ev.invitations?.filter((i) => i.status === INVITATION_STATUS.ACCEPTED) || []
-  const names = accepted.slice(0, 4).map((i) => i.username)
+  const accepted = ev.invitations?.filter(i => i.status === INVITATION_STATUS.ACCEPTED) || []
+  const names = accepted.slice(0, 4).map(i => i.username)
   if (accepted.length > 4) names.push(`+${accepted.length - 4}`)
   return names.join(', ')
 })
@@ -98,9 +102,12 @@ function showOnce() {
   }, SHOW_MS)
 }
 
-watch(() => myEvents.value.length, (n) => {
-  if (n > 0 && !visible.value && !cycleTimer) showOnce()
-})
+watch(
+  () => myEvents.value.length,
+  n => {
+    if (n > 0 && !visible.value && !cycleTimer) showOnce()
+  },
+)
 
 let navObserver = null
 let dpbObserver = null
@@ -150,10 +157,14 @@ function formatFull(iso) {
   if (!iso) return ''
   try {
     return new Date(iso).toLocaleString(undefined, {
-      day: '2-digit', month: 'short',
-      hour: '2-digit', minute: '2-digit',
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
     })
-  } catch { return iso }
+  } catch {
+    return iso
+  }
 }
 </script>
 
@@ -172,7 +183,9 @@ function formatFull(iso) {
   pointer-events: none;
   border-top: 1px solid var(--portal-border-subtle);
   border-bottom: 1px solid var(--portal-border-subtle);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75), 0 0 10px rgba(0, 0, 0, 0.4);
+  text-shadow:
+    0 1px 3px rgb(0, 0, 0, 0.75),
+    0 0 10px rgb(0, 0, 0, 0.4);
 }
 .pt-evb-marquee {
   position: relative;
@@ -201,22 +214,33 @@ function formatFull(iso) {
   letter-spacing: var(--portal-tracking-eyebrow);
   font-size: var(--portal-text-2xs);
   font-weight: var(--portal-font-bold);
-  color: rgba(255, 255, 255, 0.65);
+  color: rgb(255, 255, 255, 0.65);
 }
 .pt-evb-sep {
   color: var(--portal-text-muted);
   font-weight: 400;
 }
-.pt-evb-title { font-weight: var(--portal-font-bold); color: #fff; }
+.pt-evb-title {
+  font-weight: var(--portal-font-bold);
+  color: #fff;
+}
 @keyframes pt-evb-scroll {
-  from { transform: translate(0, -50%); }
-  to { transform: translate(calc(-100vw - 100%), -50%); }
+  from {
+    transform: translate(0, -50%);
+  }
+  to {
+    transform: translate(calc(-100vw - 100%), -50%);
+  }
 }
 
-.pt-evb-enter-active, .pt-evb-leave-active {
-  transition: transform 0.4s ease, opacity var(--portal-dur-slow) ease;
+.pt-evb-enter-active,
+.pt-evb-leave-active {
+  transition:
+    transform 0.4s ease,
+    opacity var(--portal-dur-slow) ease;
 }
-.pt-evb-enter-from, .pt-evb-leave-to {
+.pt-evb-enter-from,
+.pt-evb-leave-to {
   transform: translateY(-100%);
   opacity: 0;
 }

@@ -12,7 +12,9 @@
         <div class="atl-panel mk-modal-sheet-panel ru-import-panel" tabindex="-1">
           <div class="atl-header">
             <h2 class="atl-title">{{ $t('requestsAdmin.users.drawerEmby.title') }}</h2>
-            <button class="atl-close" type="button" :aria-label="$t('common.close')" @click="close"><X :size="14" /></button>
+            <button class="atl-close" type="button" :aria-label="$t('common.close')" @click="close">
+              <X :size="14" />
+            </button>
           </div>
           <p class="ru-import-sub">{{ $t('requestsAdmin.users.drawerEmby.subtitle') }}</p>
 
@@ -24,16 +26,29 @@
             <template v-else>
               <div class="ru-import-toolbar">
                 <button type="button" class="ru-pill" @click="toggleAll">
-                  {{ allChecked ? $t('common.unselectAll') : $t('requestsAdmin.users.drawerEmby.selectAll') }}
+                  {{
+                    allChecked
+                      ? $t('common.unselectAll')
+                      : $t('requestsAdmin.users.drawerEmby.selectAll')
+                  }}
                 </button>
                 <span class="ru-import-counter">
-                  {{ $t('requestsAdmin.users.drawerEmby.selected', { count: selected.length, total: candidates.length }) }}
+                  {{
+                    $t('requestsAdmin.users.drawerEmby.selected', {
+                      count: selected.length,
+                      total: candidates.length,
+                    })
+                  }}
                 </span>
               </div>
               <ul class="ru-import-list">
                 <li v-for="u in candidates" :key="u.emby_user_id" class="ru-import-row">
                   <label>
-                    <input type="checkbox" :checked="selected.includes(u.emby_user_id)" @change="toggle(u.emby_user_id)" />
+                    <input
+                      type="checkbox"
+                      :checked="selected.includes(u.emby_user_id)"
+                      @change="toggle(u.emby_user_id)"
+                    />
                     <MkAvatar :src="u.avatar_url" :name="u.username" :size="32" />
                     <div class="ru-import-info">
                       <span class="ru-import-name">{{ u.username }}</span>
@@ -44,7 +59,10 @@
                         <RuUserBadge v-if="u.is_disabled" variant="muted">
                           {{ $t('requestsAdmin.users.drawerEmby.disabledBadge') }}
                         </RuUserBadge>
-                        <span v-if="u.last_login_date">{{ $t('requestsAdmin.users.labels.lastLogin') }}: {{ fmt(u.last_login_date) }}</span>
+                        <span v-if="u.last_login_date">
+                          {{ $t('requestsAdmin.users.labels.lastLogin') }}:
+                          {{ fmt(u.last_login_date) }}
+                        </span>
                       </span>
                     </div>
                   </label>
@@ -54,9 +72,12 @@
           </div>
 
           <footer class="ru-import-footer">
-            <button type="button" class="ru-btn ru-btn--ghost" @click="close">{{ $t('common.cancel') }}</button>
+            <button type="button" class="ru-btn ru-btn--ghost" @click="close">
+              {{ $t('common.cancel') }}
+            </button>
             <button
-              type="button" class="ru-btn ru-btn--primary"
+              type="button"
+              class="ru-btn ru-btn--primary"
               :disabled="busy || !selected.length"
               @click="submit"
             >
@@ -92,19 +113,24 @@ const loading = ref(false)
 const busy = ref(false)
 const selected = ref([])
 
-const allChecked = computed(() =>
-  candidates.value.length > 0 && selected.value.length === candidates.value.length,
+const allChecked = computed(
+  () => candidates.value.length > 0 && selected.value.length === candidates.value.length,
 )
 
-watch(() => props.open, async (v) => {
-  if (!v) return
-  loading.value = true
-  selected.value = []
-  try {
-    const res = await api.fetchEmbyUnimported()
-    candidates.value = res?.items || []
-  } finally { loading.value = false }
-})
+watch(
+  () => props.open,
+  async v => {
+    if (!v) return
+    loading.value = true
+    selected.value = []
+    try {
+      const res = await api.fetchEmbyUnimported()
+      candidates.value = res?.items || []
+    } finally {
+      loading.value = false
+    }
+  },
+)
 
 function toggle(id) {
   const idx = selected.value.indexOf(id)
@@ -114,7 +140,7 @@ function toggle(id) {
 
 function toggleAll() {
   if (allChecked.value) selected.value = []
-  else selected.value = candidates.value.map((u) => u.emby_user_id)
+  else selected.value = candidates.value.map(u => u.emby_user_id)
 }
 
 async function submit() {
@@ -127,7 +153,9 @@ async function submit() {
       return
     }
     emit('imported', res)
-  } finally { busy.value = false }
+  } finally {
+    busy.value = false
+  }
 }
 
 function close() {
@@ -137,6 +165,10 @@ function close() {
 
 function fmt(value) {
   if (!value) return '—'
-  try { return new Date(value).toLocaleDateString() } catch { return value }
+  try {
+    return new Date(value).toLocaleDateString()
+  } catch {
+    return value
+  }
 }
 </script>

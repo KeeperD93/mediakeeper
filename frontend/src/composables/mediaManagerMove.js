@@ -1,30 +1,58 @@
 import {
-  apiGet, apiFetch, showToast, _t,
-  activeCat, filtered, checked,
-  dragFileIdx, dragIsGrouped, dragOverCat,
-  moveConflicts, showMoveConflictModal, pendingMoveFiles, pendingMoveDest,
-  moveHistory, _saveMoveHistory,
-  setProgress, endProgress,
+  apiGet,
+  apiFetch,
+  showToast,
+  _t,
+  activeCat,
+  filtered,
+  checked,
+  dragFileIdx,
+  dragIsGrouped,
+  dragOverCat,
+  moveConflicts,
+  showMoveConflictModal,
+  pendingMoveFiles,
+  pendingMoveDest,
+  moveHistory,
+  _saveMoveHistory,
+  setProgress,
+  endProgress,
 } from './mediaManagerState'
 import { loadFiles } from './mediaManagerNavigation'
 import { TOAST_TYPE } from '@/constants/toast'
 import { FILE_TYPE } from '@/constants/mediaManager'
 
-export function fileDragStart(idx) { dragIsGrouped.value = checked.value.has(idx) && checked.value.size > 1; dragFileIdx.value = idx }
-export function fileDragEnd() { dragFileIdx.value = null; dragOverCat.value = null }
+export function fileDragStart(idx) {
+  dragIsGrouped.value = checked.value.has(idx) && checked.value.size > 1
+  dragFileIdx.value = idx
+}
+export function fileDragEnd() {
+  dragFileIdx.value = null
+  dragOverCat.value = null
+}
 
 export async function dropOnCat(destCat) {
-  if (dragFileIdx.value === null && !dragIsGrouped.value) { dragOverCat.value = null; return }
-  if (destCat === activeCat.value) { dragOverCat.value = null; return }
+  if (dragFileIdx.value === null && !dragIsGrouped.value) {
+    dragOverCat.value = null
+    return
+  }
+  if (destCat === activeCat.value) {
+    dragOverCat.value = null
+    return
+  }
   const filesToMove = []
   if (dragIsGrouped.value && checked.value.size > 0) {
-    [...checked.value].forEach(i => { const f = filtered.value[i]; if (f?.type === FILE_TYPE.FILE) filesToMove.push(f) })
+    ;[...checked.value].forEach(i => {
+      const f = filtered.value[i]
+      if (f?.type === FILE_TYPE.FILE) filesToMove.push(f)
+    })
     dragIsGrouped.value = false
   } else if (dragFileIdx.value !== null) {
     const f = filtered.value[dragFileIdx.value]
     if (f) filesToMove.push(f)
   }
-  dragFileIdx.value = null; dragOverCat.value = null
+  dragFileIdx.value = null
+  dragOverCat.value = null
   if (!filesToMove.length) return
   try {
     const rootData = await apiGet(`/api/media/rootpath/${destCat}`)
@@ -34,7 +62,9 @@ export async function dropOnCat(destCat) {
       return
     }
     await _checkAndMove(filesToMove, rootData.path)
-  } catch { showToast(_t('common.networkError'), TOAST_TYPE.ERR) }
+  } catch {
+    showToast(_t('common.networkError'), TOAST_TYPE.ERR)
+  }
 }
 
 export async function dropOnFolder(folderIdx) {
@@ -43,12 +73,16 @@ export async function dropOnFolder(folderIdx) {
   if (!dest || dest.type !== FILE_TYPE.FOLDER) return
   const filesToMove = []
   if (dragIsGrouped.value && checked.value.has(dragFileIdx.value)) {
-    [...checked.value].forEach(i => { const f = filtered.value[i]; if (f?.type === FILE_TYPE.FILE) filesToMove.push(f) })
+    ;[...checked.value].forEach(i => {
+      const f = filtered.value[i]
+      if (f?.type === FILE_TYPE.FILE) filesToMove.push(f)
+    })
   } else {
     const f = filtered.value[dragFileIdx.value]
     if (f) filesToMove.push(f)
   }
-  dragFileIdx.value = null; dragIsGrouped.value = false
+  dragFileIdx.value = null
+  dragIsGrouped.value = false
   if (!filesToMove.length) return
   await _checkAndMove(filesToMove, dest.path)
 }
@@ -56,7 +90,10 @@ export async function dropOnFolder(folderIdx) {
 // ─── CONFLICT CHECK BEFORE MOVE ───
 export async function _checkAndMove(filesToMove, destPath) {
   try {
-    const res = await apiFetch('/api/media/check-move-conflicts', { method: 'POST', body: JSON.stringify({ file_names: filesToMove.map(f => f.name), dest_folder: destPath }) })
+    const res = await apiFetch('/api/media/check-move-conflicts', {
+      method: 'POST',
+      body: JSON.stringify({ file_names: filesToMove.map(f => f.name), dest_folder: destPath }),
+    })
     const data = await res.json()
     if (data.conflicts?.length > 0) {
       moveConflicts.value = data.conflicts
@@ -65,7 +102,9 @@ export async function _checkAndMove(filesToMove, destPath) {
       showMoveConflictModal.value = true
       return
     }
-  } catch { /* silent: conflict pre-check skipped, backend will still validate */ }
+  } catch {
+    /* silent: conflict pre-check skipped, backend will still validate */
+  }
   await _execMoveFiles(filesToMove, destPath, false)
 }
 
@@ -73,12 +112,16 @@ export async function execMoveWithOverwrite(overwrite) {
   showMoveConflictModal.value = false
   const filesToMove = [...pendingMoveFiles.value]
   const dest = pendingMoveDest.value
-  pendingMoveFiles.value = []; pendingMoveDest.value = ''
+  pendingMoveFiles.value = []
+  pendingMoveDest.value = ''
   if (!overwrite) {
     const conflictNames = new Set(moveConflicts.value.map(c => c.name))
     const safeFiles = filesToMove.filter(f => !conflictNames.has(f.name))
     moveConflicts.value = []
-    if (!safeFiles.length) { showToast(_t('mediaManager.moveCancelled'), TOAST_TYPE.WARN); return }
+    if (!safeFiles.length) {
+      showToast(_t('mediaManager.moveCancelled'), TOAST_TYPE.WARN)
+      return
+    }
     await _execMoveFiles(safeFiles, dest, false)
   } else {
     moveConflicts.value = []
@@ -97,7 +140,12 @@ export async function _execMoveFiles(filesToMove, dest, overwrite) {
   setProgress(5)
   const endpoint = overwrite ? '/api/media/move-overwrite' : '/api/media/move'
   const results = await Promise.allSettled(
-    filesToMove.map(f => apiFetch(endpoint, { method: 'POST', body: JSON.stringify({ src_path: f.path, dest_folder: dest }) }).then(r => r.json())),
+    filesToMove.map(f =>
+      apiFetch(endpoint, {
+        method: 'POST',
+        body: JSON.stringify({ src_path: f.path, dest_folder: dest }),
+      }).then(r => r.json()),
+    ),
   )
   setProgress(95)
   let ok = 0
@@ -112,10 +160,15 @@ export async function _execMoveFiles(filesToMove, dest, overwrite) {
   if (ok > 0) _recordMoveHistory(filesToMove, dest, results)
   endProgress()
   if (errors.length === 0) {
-    showToast(_t('mediaManager.filesMoved', { count: ok }) + (overwrite ? ' ' + _t('mediaManager.overwritten') : ''), TOAST_TYPE.OK)
+    showToast(
+      _t('mediaManager.filesMoved', { count: ok }) +
+        (overwrite ? ' ' + _t('mediaManager.overwritten') : ''),
+      TOAST_TYPE.OK,
+    )
   } else {
     errors.forEach(msg => showToast(msg, TOAST_TYPE.ERR, 8000))
-    if (ok > 0) showToast(_t('mediaManager.partialResult', { ok, errors: errors.length }), TOAST_TYPE.WARN)
+    if (ok > 0)
+      showToast(_t('mediaManager.partialResult', { ok, errors: errors.length }), TOAST_TYPE.WARN)
   }
   checked.value = new Set()
   loadFiles()

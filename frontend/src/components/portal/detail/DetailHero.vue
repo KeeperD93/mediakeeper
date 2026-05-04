@@ -13,13 +13,16 @@
           v-if="statusTag"
           class="vmd2-poster-status"
           :class="`vmd2-poster-status--${statusTag.variant}`"
-        >{{ statusTag.label }}</span>
+        >
+          {{ statusTag.label }}
+        </span>
       </div>
 
       <div class="vmd2-hero-info">
         <div v-if="topStudios.length" class="vmd2-studios">
           <img
-            v-for="s in topStudios" :key="s.name"
+            v-for="s in topStudios"
+            :key="s.name"
             :src="s.logo"
             :alt="s.name"
             class="vmd2-studio-logo"
@@ -86,11 +89,7 @@
             {{ requestBtnLabel }}
           </button>
 
-          <button
-            v-if="trailerKey"
-            class="vmd2-btn vmd2-btn--ghost"
-            @click="$emit('open-trailer')"
-          >
+          <button v-if="trailerKey" class="vmd2-btn vmd2-btn--ghost" @click="$emit('open-trailer')">
             <Video :size="16" />
             {{ $t('portal.detail.watchTrailer') }}
           </button>
@@ -130,9 +129,7 @@ defineEmits(['request', 'open-trailer', 'add-to-list'])
 
 const { t } = useI18n()
 
-const topStudios = computed(() =>
-  (props.media.studios || []).filter(s => s.logo).slice(0, 3),
-)
+const topStudios = computed(() => (props.media.studios || []).filter(s => s.logo).slice(0, 3))
 
 const tmdbPct = computed(() => {
   const v = props.media.vote
@@ -147,8 +144,8 @@ const runtimeLabel = computed(() => {
   return h > 0 ? `${h}h${m > 0 ? m : ''}` : `${m}min`
 })
 
-const languageLabel = computed(() =>
-  props.media.languages?.[0] || props.media.original_language?.toUpperCase() || '',
+const languageLabel = computed(
+  () => props.media.languages?.[0] || props.media.original_language?.toUpperCase() || '',
 )
 const countryLabel = computed(() => props.media.countries?.[0] || '')
 
@@ -164,8 +161,10 @@ const requestBtnClass = computed(() =>
 const statusTag = computed(() => {
   const s = props.reqStatus
   if (!s) return null
-  if (s === REQUEST_STATUS.REJECTED)  return { variant: 'rejected',  label: t('portal.detail.rejectedBtn') }
-  if (s === REQUEST_STATUS.APPROVED)  return { variant: 'approved',  label: t('portal.detail.approvedBtn') }
+  if (s === REQUEST_STATUS.REJECTED)
+    return { variant: 'rejected', label: t('portal.detail.rejectedBtn') }
+  if (s === REQUEST_STATUS.APPROVED)
+    return { variant: 'approved', label: t('portal.detail.approvedBtn') }
   if (s === 'available') return { variant: 'available', label: t('portal.detail.availableBtn') }
   return { variant: 'requested', label: t('portal.card.requestedBtn') }
 })

@@ -29,8 +29,8 @@ const emit = defineEmits(['navigate'])
 const route = useRoute()
 const router = useRouter()
 
-const onParentRoute = computed(() =>
-  route.path === props.parentPath || route.path.startsWith(props.parentPath + '/'),
+const onParentRoute = computed(
+  () => route.path === props.parentPath || route.path.startsWith(props.parentPath + '/'),
 )
 
 const isActive = computed(() => {
@@ -64,7 +64,7 @@ function onClick() {
   margin: 1px 0;
   border: none;
   background: transparent;
-  color: rgba(255, 255, 255, 0.42);
+  color: rgb(255, 255, 255, 0.42);
   border-radius: var(--radius-btn);
   font-size: var(--text-xs);
   font-weight: 450;
@@ -72,19 +72,21 @@ function onClick() {
   cursor: pointer;
   text-align: left;
   letter-spacing: -0.1px;
-  transition: color var(--duration-base) ease, background var(--duration-base) ease;
+  transition:
+    color var(--duration-base) ease,
+    background var(--duration-base) ease;
 }
 
 @media (hover: hover) {
   .sb-sublink:hover {
-    color: rgba(255, 255, 255, 0.78);
-    background: rgba(255, 255, 255, 0.04);
+    color: rgb(255, 255, 255, 0.78);
+    background: rgb(255, 255, 255, 0.04);
   }
 }
 
 .sb-sublink.active {
   color: #fff;
-  background: rgba(var(--accent-rgb), 0.14);
+  background: rgb(var(--accent-rgb), 0.14);
 }
 
 .sb-sublink::before {
@@ -96,13 +98,15 @@ function onClick() {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.18);
-  transition: background var(--duration-base) ease, box-shadow var(--duration-base) ease;
+  background: rgb(255, 255, 255, 0.18);
+  transition:
+    background var(--duration-base) ease,
+    box-shadow var(--duration-base) ease;
 }
 
 .sb-sublink.active::before {
   background: var(--accent-400);
-  box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.6);
+  box-shadow: 0 0 8px rgb(var(--accent-rgb), 0.6);
 }
 
 .sb-sublink-icon {
@@ -115,7 +119,10 @@ function onClick() {
   opacity: 0.85;
 }
 
-.sb-sublink.active .sb-sublink-icon { opacity: 1; color: var(--accent-300); }
+.sb-sublink.active .sb-sublink-icon {
+  opacity: 1;
+  color: var(--accent-300);
+}
 
 .sb-sublink-label {
   flex: 1;

@@ -281,7 +281,7 @@ async def tv_available_episodes(
             s_part, e_part = body.split("_e", 1)
             s_num = int(s_part)
             e_num = int(e_part)
-        except Exception:
+        except Exception:  # noqa: S112 -- intentional best-effort iteration, skip individual failure
             continue
         ignored_by_season.setdefault(s_num, []).append(e_num)
 

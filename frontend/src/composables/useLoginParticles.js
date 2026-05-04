@@ -2,8 +2,8 @@ export function initLoginParticles(canvas, page) {
   if (!canvas || !page) return null
 
   const ctx = canvas.getContext('2d')
-  let W = canvas.width = page.offsetWidth
-  let H = canvas.height = page.offsetHeight
+  let W = (canvas.width = page.offsetWidth)
+  let H = (canvas.height = page.offsetHeight)
   let animFrame = null
 
   const PARTICLE_COUNT = 50

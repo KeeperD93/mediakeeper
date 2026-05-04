@@ -65,7 +65,9 @@ let hideTimer = null
 function showCloseTransient() {
   closeVisible.value = true
   if (hideTimer) clearTimeout(hideTimer)
-  hideTimer = setTimeout(() => { closeVisible.value = false }, 2500)
+  hideTimer = setTimeout(() => {
+    closeVisible.value = false
+  }, 2500)
 }
 
 function close() {
@@ -120,8 +122,8 @@ onBeforeUnmount(() => {
   width: 48px;
   height: 48px;
   border-radius: var(--portal-radius-circle);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgb(255, 255, 255, 0.4);
+  background: rgb(0, 0, 0, 0.55);
   backdrop-filter: var(--portal-blur-xs);
   -webkit-backdrop-filter: var(--portal-blur-xs);
   color: #fff;
@@ -129,10 +131,12 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: opacity var(--portal-dur-base) ease, transform var(--portal-dur-base) ease;
+  transition:
+    opacity var(--portal-dur-base) ease,
+    transform var(--portal-dur-base) ease;
 }
 .pt-tlb-close:hover {
-  background: rgba(0, 0, 0, 0.8);
+  background: rgb(0, 0, 0, 0.8);
   transform: translateX(-50%) scale(1.08);
 }
 </style>

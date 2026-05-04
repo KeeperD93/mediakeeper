@@ -35,7 +35,11 @@
           {{ $t('requestsAdmin.users.drawer.security.forceLogoutMk') }}
         </button>
         <span v-if="user.tokens_invalidated_at" class="ru-help">
-          {{ $t('requestsAdmin.users.drawer.security.lastForceLogout', { at: fmt(user.tokens_invalidated_at) }) }}
+          {{
+            $t('requestsAdmin.users.drawer.security.lastForceLogout', {
+              at: fmt(user.tokens_invalidated_at),
+            })
+          }}
         </span>
       </div>
       <p class="ru-help">{{ $t('requestsAdmin.users.drawer.security.forceLogoutScope') }}</p>
@@ -85,7 +89,11 @@
           <span class="ru-feed-date">{{ fmt(h.created_at) }}</span>
           <span class="ru-feed-main">
             <RuUserBadge :variant="h.success ? 'success' : 'danger'">
-              {{ h.success ? $t('requestsAdmin.users.drawer.security.loginOk') : $t('requestsAdmin.users.drawer.security.loginFail') }}
+              {{
+                h.success
+                  ? $t('requestsAdmin.users.drawer.security.loginOk')
+                  : $t('requestsAdmin.users.drawer.security.loginFail')
+              }}
             </RuUserBadge>
             <span v-if="h.ip" class="ru-mono">{{ h.ip }}</span>
           </span>
@@ -95,7 +103,11 @@
     </section>
 
     <RuNotifyModal :open="notifyOpen" :user="user" @close="notifyOpen = false" @sent="onSent" />
-    <RuPasswordResetModal :open="!!resetPassword" :password="resetPassword || ''" @close="resetPassword = null" />
+    <RuPasswordResetModal
+      :open="!!resetPassword"
+      :password="resetPassword || ''"
+      @close="resetPassword = null"
+    />
   </div>
 </template>
 
@@ -146,13 +158,17 @@ async function exportJson() {
     const data = await api.exportUser(props.user.id)
     downloadJsonFile(data, `mk-user-${props.user.id}.json`)
     showToast(t('requestsAdmin.users.toasts.exported'), TOAST_TYPE.OK)
-  } finally { busy.value = false }
+  } finally {
+    busy.value = false
+  }
 }
 
 async function onForceLogout() {
   const ok = await confirm({
     title: t('requestsAdmin.users.drawer.security.forceLogoutConfirmTitle'),
-    message: t('requestsAdmin.users.drawer.security.forceLogoutConfirm', { name: props.user.display_name }),
+    message: t('requestsAdmin.users.drawer.security.forceLogoutConfirm', {
+      name: props.user.display_name,
+    }),
     variant: 'danger',
     confirmLabel: t('requestsAdmin.users.drawer.security.forceLogoutMk'),
   })
@@ -167,13 +183,17 @@ async function onForceLogout() {
     showToast(t('requestsAdmin.users.toasts.forceLogoutDone'), TOAST_TYPE.OK)
     emit('changed')
     await loadHistory()
-  } finally { busy.value = false }
+  } finally {
+    busy.value = false
+  }
 }
 
 async function onResetPassword() {
   const ok = await confirm({
     title: t('requestsAdmin.users.drawer.security.passwordResetConfirmTitle'),
-    message: t('requestsAdmin.users.drawer.security.passwordResetConfirm', { name: props.user.display_name }),
+    message: t('requestsAdmin.users.drawer.security.passwordResetConfirm', {
+      name: props.user.display_name,
+    }),
     variant: 'danger',
     confirmLabel: t('requestsAdmin.users.drawer.security.passwordResetAction'),
   })
@@ -187,12 +207,18 @@ async function onResetPassword() {
     }
     resetPassword.value = res.password
     emit('changed')
-  } finally { busy.value = false }
+  } finally {
+    busy.value = false
+  }
 }
 
 function fmt(value) {
   if (!value) return ''
-  try { return new Date(value).toLocaleString() } catch { return value }
+  try {
+    return new Date(value).toLocaleString()
+  } catch {
+    return value
+  }
 }
 
 function shortUa(ua) {

@@ -27,7 +27,7 @@
  *     ocean.css      body.theme-ocean { --surface-1: ...; ... }
  *     forest.css     body.theme-forest { ... }
  */
-@import './tokens/_colors.css';
-@import './tokens/_typography.css';
-@import './tokens/_layout.css';
-@import './tokens/_motion.css';
+@import url('./tokens/_colors.css');
+@import url('./tokens/_typography.css');
+@import url('./tokens/_layout.css');
+@import url('./tokens/_motion.css');

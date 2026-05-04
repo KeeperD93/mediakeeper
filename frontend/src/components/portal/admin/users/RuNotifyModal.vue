@@ -12,7 +12,9 @@
         <form class="atl-panel mk-modal-sheet-panel ru-create-panel" @submit.prevent="submit">
           <div class="atl-header">
             <h2 class="atl-title">{{ $t('requestsAdmin.users.actions.notify') }}</h2>
-            <button class="atl-close" type="button" :aria-label="$t('common.close')" @click="close"><X :size="14" /></button>
+            <button class="atl-close" type="button" :aria-label="$t('common.close')" @click="close">
+              <X :size="14" />
+            </button>
           </div>
 
           <div class="ru-form atl-body">
@@ -30,8 +32,14 @@
           </div>
 
           <footer class="ru-import-footer">
-            <button type="button" class="ru-btn ru-btn--ghost" @click="close">{{ $t('common.cancel') }}</button>
-            <button type="submit" class="ru-btn ru-btn--primary" :disabled="busy || !title || !body">
+            <button type="button" class="ru-btn ru-btn--ghost" @click="close">
+              {{ $t('common.cancel') }}
+            </button>
+            <button
+              type="submit"
+              class="ru-btn ru-btn--primary"
+              :disabled="busy || !title || !body"
+            >
               {{ $t('requestsAdmin.users.drawer.notify.send') }}
             </button>
           </footer>
@@ -63,9 +71,15 @@ const title = ref('')
 const body = ref('')
 const busy = ref(false)
 
-watch(() => props.open, (v) => {
-  if (v) { title.value = ''; body.value = '' }
-})
+watch(
+  () => props.open,
+  v => {
+    if (v) {
+      title.value = ''
+      body.value = ''
+    }
+  },
+)
 
 async function submit() {
   if (!props.user) return
@@ -77,8 +91,12 @@ async function submit() {
     } else if (res?.error) {
       showToast(t(`requestsAdmin.users.errors.${res.error}`, t('common.error')), TOAST_TYPE.ERR)
     }
-  } finally { busy.value = false }
+  } finally {
+    busy.value = false
+  }
 }
 
-function close() { if (!busy.value) emit('close') }
+function close() {
+  if (!busy.value) emit('close')
+}
 </script>

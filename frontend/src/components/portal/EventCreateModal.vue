@@ -14,10 +14,24 @@
           <div class="pt-evc-field">
             <label class="pt-evc-label">{{ $t('portal.mkEvents.create.kind') }}</label>
             <div class="pt-evc-toggle">
-              <button type="button" :class="['pt-evc-toggle-btn', { 'pt-evc-toggle-btn--active': kind === EVENT_KIND.PRIVATE }]" @click="kind = EVENT_KIND.PRIVATE">
+              <button
+                type="button"
+                :class="[
+                  'pt-evc-toggle-btn',
+                  { 'pt-evc-toggle-btn--active': kind === EVENT_KIND.PRIVATE },
+                ]"
+                @click="kind = EVENT_KIND.PRIVATE"
+              >
                 🔒 {{ $t('portal.mkEvents.create.private') }}
               </button>
-              <button type="button" :class="['pt-evc-toggle-btn', { 'pt-evc-toggle-btn--active': kind === EVENT_KIND.PUBLIC }]" @click="kind = EVENT_KIND.PUBLIC">
+              <button
+                type="button"
+                :class="[
+                  'pt-evc-toggle-btn',
+                  { 'pt-evc-toggle-btn--active': kind === EVENT_KIND.PUBLIC },
+                ]"
+                @click="kind = EVENT_KIND.PUBLIC"
+              >
                 🌍 {{ $t('portal.mkEvents.create.public') }}
               </button>
             </div>
@@ -25,8 +39,13 @@
 
           <div class="pt-evc-field">
             <label class="pt-evc-label">{{ $t('portal.mkEvents.create.titleField') }}</label>
-            <input v-model="title" type="text" maxlength="200" class="pt-evc-input"
-              :placeholder="$t('portal.mkEvents.create.titlePlaceholder')" />
+            <input
+              v-model="title"
+              type="text"
+              maxlength="200"
+              class="pt-evc-input"
+              :placeholder="$t('portal.mkEvents.create.titlePlaceholder')"
+            />
           </div>
 
           <!-- Media search + selected list -->
@@ -53,7 +72,12 @@
                   class="pt-evc-result"
                   @click="addMedia(r)"
                 >
-                  <img v-if="r.poster_url" :src="r.poster_url" :alt="r.title" class="pt-evc-result-poster" />
+                  <img
+                    v-if="r.poster_url"
+                    :src="r.poster_url"
+                    :alt="r.title"
+                    class="pt-evc-result-poster"
+                  />
                   <div class="pt-evc-result-info">
                     <div class="pt-evc-result-title">{{ r.title }}</div>
                     <div class="pt-evc-result-meta">
@@ -143,8 +167,14 @@
         </div>
 
         <footer class="pt-evc-footer">
-          <button class="pt-evc-btn pt-evc-btn--ghost" @click="$emit('close')">{{ $t('common.cancel') }}</button>
-          <button class="pt-evc-btn pt-evc-btn--primary" :disabled="!canSubmit || submitting" @click="submit">
+          <button class="pt-evc-btn pt-evc-btn--ghost" @click="$emit('close')">
+            {{ $t('common.cancel') }}
+          </button>
+          <button
+            class="pt-evc-btn pt-evc-btn--primary"
+            :disabled="!canSubmit || submitting"
+            @click="submit"
+          >
             {{ submitting ? $t('common.loading') : $t('portal.mkEvents.create.submit') }}
           </button>
         </footer>
@@ -165,13 +195,29 @@ import '@/assets/styles/portal/event-create-modal.css'
 const emit = defineEmits(['close', 'created'])
 
 const {
-  kind, title, date, time, comment,
-  mediaQuery, mediaResults, selectedMedia,
-  userQuery, userResults, selectedUsers,
-  error, submitting, todayISO, canSubmit,
-  onMediaInput, addMedia, removeMedia,
-  onDragStart, onDrop,
-  onUserInput, addUser, removeUser,
+  kind,
+  title,
+  date,
+  time,
+  comment,
+  mediaQuery,
+  mediaResults,
+  selectedMedia,
+  userQuery,
+  userResults,
+  selectedUsers,
+  error,
+  submitting,
+  todayISO,
+  canSubmit,
+  onMediaInput,
+  addMedia,
+  removeMedia,
+  onDragStart,
+  onDrop,
+  onUserInput,
+  addUser,
+  removeUser,
   submit,
 } = useEventCreateModal(emit)
 </script>

@@ -13,32 +13,43 @@
         <span class="pt-help-card-body">
           <span v-if="showCategory" class="pt-help-card-cat">
             {{ $t('portal.help.categories.' + a.category) }}
-            <em v-if="a.is_draft" class="pt-help-card-draft">{{ $t('portal.help.admin.draft') }}</em>
+            <em v-if="a.is_draft" class="pt-help-card-draft">
+              {{ $t('portal.help.admin.draft') }}
+            </em>
           </span>
           <span class="pt-help-card-title">
             {{ a.title }}
-            <em v-if="!showCategory && a.is_draft" class="pt-help-card-draft">{{ $t('portal.help.admin.draft') }}</em>
+            <em v-if="!showCategory && a.is_draft" class="pt-help-card-draft">
+              {{ $t('portal.help.admin.draft') }}
+            </em>
           </span>
-          <span v-if="expandedId !== a.id" class="pt-help-card-excerpt">{{ excerpt(a.body_html) }}</span>
+          <span v-if="expandedId !== a.id" class="pt-help-card-excerpt">
+            {{ excerpt(a.body_html) }}
+          </span>
         </span>
         <ChevronDown :size="18" class="pt-help-card-chev" />
       </button>
 
-      <button v-if="canEdit" type="button" class="pt-help-card-edit"
-              :title="$t('portal.help.admin.edit')"
-              @click.stop="$emit('edit', a)">
+      <button
+        v-if="canEdit"
+        type="button"
+        class="pt-help-card-edit"
+        :title="$t('portal.help.admin.edit')"
+        @click.stop="$emit('edit', a)"
+      >
         <Pencil :size="14" />
       </button>
 
       <transition name="pt-help-accordion">
         <!-- Body is server-side sanitised HTML (bleach whitelist) and
              passed through DOMPurify here as defence in depth. -->
-        <!-- eslint-disable-next-line vue/no-v-html -->
+        <!-- eslint-disable vue/no-v-html -->
         <div
           v-if="expandedId === a.id"
           class="pt-help-card-content pt-help-article-body"
           v-html="purify(a.body_html)"
         />
+        <!-- eslint-enable vue/no-v-html -->
       </transition>
     </li>
   </ul>
@@ -68,7 +79,10 @@ function purify(html) {
 
 function excerpt(html) {
   if (!html) return ''
-  const text = String(html).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+  const text = String(html)
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
   return text.length > 140 ? text.slice(0, 140) + '…' : text
 }
 </script>

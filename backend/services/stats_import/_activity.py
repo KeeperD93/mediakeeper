@@ -35,7 +35,7 @@ def _parse_date(date_str: str, fallback: datetime) -> datetime:
         for fmt in ("%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d"):
             try:
                 return datetime.strptime(date_str, fmt).replace(tzinfo=timezone.utc)
-            except Exception:
+            except Exception:  # noqa: S112 -- intentional best-effort iteration, skip individual failure
                 continue
     return fallback
 

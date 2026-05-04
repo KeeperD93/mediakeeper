@@ -13,7 +13,6 @@ let refreshInterval = null
  * State global shared entre all les components.
  */
 export function useAuth() {
-
   /**
    * Check le cookie JWT via /api/auth/me
    */
@@ -80,11 +79,7 @@ export function useAuth() {
       mustChangePassword.value = false
       stopTokenRefresh()
       const { usePortalAuth } = await import('@/composables/portal/usePortalAuth')
-      usePortalAuth().setPortalAuth(
-        data.profile,
-        data.unread_news_count || 0,
-        data.ui,
-      )
+      usePortalAuth().setPortalAuth(data.profile, data.unread_news_count || 0, data.ui)
     }
 
     return data
@@ -100,20 +95,26 @@ export function useAuth() {
         retryOn401: false,
         redirectOn401: false,
       })
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     try {
       sessionStorage.setItem('mk_just_logged_out', '1')
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     user.value = null
     isAuthenticated.value = false
     stopTokenRefresh()
-      // Also wipe the in-memory Portal state — the backend logout
+    // Also wipe the in-memory Portal state — the backend logout
     // already clears rq_token server-side, but the composable keeps
     // a module-scoped ref that survives page transitions.
     try {
       const { usePortalAuth } = await import('@/composables/portal/usePortalAuth')
       usePortalAuth().clearPortalAuth()
-    } catch { /* composable may not be loaded yet */ }
+    } catch {
+      /* composable may not be loaded yet */
+    }
   }
 
   /**
@@ -130,13 +131,16 @@ export function useAuth() {
     }).catch(() => {})
 
     // Refresh all les 25 min
-    refreshInterval = setInterval(() => {
-      fetchApiResponse('/api/auth/refresh', {
-        method: 'POST',
-        retryOn401: false,
-        redirectOn401: false,
-      }).catch(() => {})
-    }, 25 * 60 * 1000)
+    refreshInterval = setInterval(
+      () => {
+        fetchApiResponse('/api/auth/refresh', {
+          method: 'POST',
+          retryOn401: false,
+          redirectOn401: false,
+        }).catch(() => {})
+      },
+      25 * 60 * 1000,
+    )
 
     // Refresh au retour sur l'tab
     document.addEventListener('visibilitychange', onVisibilityChange)

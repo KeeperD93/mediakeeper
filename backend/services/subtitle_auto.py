@@ -195,7 +195,7 @@ async def check_and_download_new(db: AsyncSession) -> None:
                             f"{url}/Items/{item.get('Id')}/Refresh",
                             headers=headers, timeout=10.0,
                         )
-                    except Exception:
+                    except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
                         pass
 
                     if dl.get("remaining", 1) <= 0:

@@ -30,7 +30,8 @@ export function usePortalSocial() {
 
   async function addReminder(tmdbId, mediaType) {
     return await apiPost('/api/portal/social/reminders', {
-      tmdb_id: tmdbId, media_type: mediaType,
+      tmdb_id: tmdbId,
+      media_type: mediaType,
     })
   }
 
@@ -39,9 +40,15 @@ export function usePortalSocial() {
   }
 
   return {
-    ratings, reminders,
-    rateMedia, fetchRatings, toggleLike,
-    fetchReminders, addReminder, removeReminder,
-    loading, error,
+    ratings,
+    reminders,
+    rateMedia,
+    fetchRatings,
+    toggleLike,
+    fetchReminders,
+    addReminder,
+    removeReminder,
+    loading,
+    error,
   }
 }

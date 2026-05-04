@@ -8,11 +8,7 @@
     </div>
     <div class="gc-kpi gc-kpi--warm">
       <div class="gc-kpi-val">
-        <CountUp
-          :value="stats.total_minutes || 0"
-          :delay="60"
-          :formatter="minutesFormatter"
-        />
+        <CountUp :value="stats.total_minutes || 0" :delay="60" :formatter="minutesFormatter" />
       </div>
       <div class="gc-kpi-lbl">{{ $t('portal.profile.totalTime') }}</div>
       <div v-if="stats.total_minutes > 60" class="gc-kpi-fun">{{ funTimeComparison }}</div>
@@ -63,5 +59,5 @@ function xFormatter(n) {
 </script>
 
 <style>
-@import '@/assets/styles/portal/kpis.css';
+@import url('@/assets/styles/portal/kpis.css');
 </style>

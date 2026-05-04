@@ -14,12 +14,21 @@ export function useSubLibraryItem(state) {
   const mkConfirm = useConfirm()
 
   const {
-    expandedId, itemSubs, itemAudio, itemFilePath, itemResults, itemSearching,
-    downloading, lastDownloadResult,
+    expandedId,
+    itemSubs,
+    itemAudio,
+    itemFilePath,
+    itemResults,
+    itemSearching,
+    downloading,
+    lastDownloadResult,
   } = state
 
   async function toggleExpand(item) {
-    if (expandedId.value === item.item_id) { expandedId.value = null; return }
+    if (expandedId.value === item.item_id) {
+      expandedId.value = null
+      return
+    }
     expandedId.value = item.item_id
     itemSubs.value = null
     itemAudio.value = []
@@ -33,7 +42,9 @@ export function useSubLibraryItem(state) {
         itemAudio.value = d.audio_streams || []
         itemFilePath.value = d.file_path || item.file_path || ''
       }
-    } catch { itemSubs.value = [] }
+    } catch {
+      itemSubs.value = []
+    }
   }
 
   async function searchForItem(item) {
@@ -54,7 +65,9 @@ export function useSubLibraryItem(state) {
       const d = await apiPost('/api/subtitles/search', body)
       if (d && d.results) itemResults.value = d.results
       if (!itemResults.value.length) showToast(t('common.noResults'), TOAST_TYPE.INFO)
-    } catch { showToast(t('common.error'), TOAST_TYPE.ERR) }
+    } catch {
+      showToast(t('common.error'), TOAST_TYPE.ERR)
+    }
     itemSearching.value = false
   }
 
@@ -65,21 +78,31 @@ export function useSubLibraryItem(state) {
     const map = { fr: 'fr', en: 'en', es: 'es', de: 'de', it: 'it', pt: 'pt' }
     const lc = map[lang] || lang
     const dot = filePath.lastIndexOf('.')
-    const dest = dot > 0 ? filePath.substring(0, dot) + '.' + lc + '.srt' : filePath + '.' + lc + '.srt'
+    const dest =
+      dot > 0 ? filePath.substring(0, dot) + '.' + lc + '.srt' : filePath + '.' + lc + '.srt'
 
     downloading.value = result.file_id
     lastDownloadResult.value = null
     try {
       const d = await apiPost('/api/subtitles/download', {
-        file_id: result.file_id, destination: dest, item_id: item.item_id,
+        file_id: result.file_id,
+        destination: dest,
+        item_id: item.item_id,
         media_name: item.series_name ? `${item.series_name} — ${item.name}` : item.name,
-        media_type: item.type, series_name: item.series_name || '',
-        season: item.season || 0, episode: item.episode || 0,
-        subtitle_id: result.subtitle_id || '', file_name: result.file_name || '',
-        language: result.language || '', quality_score: result.quality_score || 0,
-        hash_match: result.hash_match || false, hearing_impaired: result.hearing_impaired || false,
-        foreign_parts_only: result.foreign_parts_only || false, from_trusted: result.from_trusted || false,
-        ai_translated: result.ai_translated || false, media_duration_sec: item.runtime_sec || 0,
+        media_type: item.type,
+        series_name: item.series_name || '',
+        season: item.season || 0,
+        episode: item.episode || 0,
+        subtitle_id: result.subtitle_id || '',
+        file_name: result.file_name || '',
+        language: result.language || '',
+        quality_score: result.quality_score || 0,
+        hash_match: result.hash_match || false,
+        hearing_impaired: result.hearing_impaired || false,
+        foreign_parts_only: result.foreign_parts_only || false,
+        from_trusted: result.from_trusted || false,
+        ai_translated: result.ai_translated || false,
+        media_duration_sec: item.runtime_sec || 0,
       })
       if (d && d.success) {
         showToast(t('subtitles.downloaded'), TOAST_TYPE.OK)
@@ -87,8 +110,12 @@ export function useSubLibraryItem(state) {
         loadQuota()
         const existing = await apiGet(`/api/subtitles/existing/${item.item_id}`)
         if (existing) itemSubs.value = existing.streams || []
-      } else if (d && d.error) { showToast(translateError(d.error), TOAST_TYPE.ERR) }
-    } catch { showToast(t('common.error'), TOAST_TYPE.ERR) }
+      } else if (d && d.error) {
+        showToast(translateError(d.error), TOAST_TYPE.ERR)
+      }
+    } catch {
+      showToast(t('common.error'), TOAST_TYPE.ERR)
+    }
     downloading.value = null
   }
 
@@ -99,7 +126,9 @@ export function useSubLibraryItem(state) {
         showToast(t('common.success'), TOAST_TYPE.OK)
         itemSubs.value = itemSubs.value.filter(s => s.index !== sub.index)
       }
-    } catch (e) { console.warn('[useSubLibraryItem.deleteSubtitle] delete failed', e) }
+    } catch (e) {
+      console.warn('[useSubLibraryItem.deleteSubtitle] delete failed', e)
+    }
   }
 
   async function removeStream({ item_id, stream_index, type, language }) {
@@ -123,7 +152,9 @@ export function useSubLibraryItem(state) {
       } else if (d && d.error) {
         showToast(translateError(d.error), TOAST_TYPE.ERR)
       }
-    } catch { showToast(t('common.error'), TOAST_TYPE.ERR) }
+    } catch {
+      showToast(t('common.error'), TOAST_TYPE.ERR)
+    }
   }
 
   return { toggleExpand, searchForItem, downloadForItem, deleteSubtitle, removeStream }

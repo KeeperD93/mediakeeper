@@ -12,25 +12,39 @@
     </div>
 
     <div class="ru-toolbar-filters">
-      <select :value="source" class="ru-toolbar-select" @change="$emit('update:source', $event.target.value)">
+      <select
+        :value="source"
+        class="ru-toolbar-select"
+        @change="$emit('update:source', $event.target.value)"
+      >
         <option value="">{{ $t('requestsAdmin.users.filters.source.all') }}</option>
         <option value="emby">{{ $t('requestsAdmin.users.filters.source.emby') }}</option>
         <option value="local">{{ $t('requestsAdmin.users.filters.source.local') }}</option>
       </select>
 
-      <select :value="role" class="ru-toolbar-select" @change="$emit('update:role', $event.target.value)">
+      <select
+        :value="role"
+        class="ru-toolbar-select"
+        @change="$emit('update:role', $event.target.value)"
+      >
         <option value="">{{ $t('requestsAdmin.users.filters.role.all') }}</option>
         <option value="viewer">{{ $t('requestsAdmin.users.filters.role.viewer') }}</option>
         <option value="moderator">{{ $t('requestsAdmin.users.filters.role.moderator') }}</option>
         <option value="admin">{{ $t('requestsAdmin.users.filters.role.admin') }}</option>
       </select>
 
-      <select :value="status" class="ru-toolbar-select" @change="$emit('update:status', $event.target.value)">
+      <select
+        :value="status"
+        class="ru-toolbar-select"
+        @change="$emit('update:status', $event.target.value)"
+      >
         <option value="">{{ $t('requestsAdmin.users.filters.status.all') }}</option>
         <option value="active">{{ $t('requestsAdmin.users.filters.status.active') }}</option>
         <option value="inactive">{{ $t('requestsAdmin.users.filters.status.inactive') }}</option>
         <option value="expired">{{ $t('requestsAdmin.users.filters.status.expired') }}</option>
-        <option value="never_logged_in">{{ $t('requestsAdmin.users.filters.status.never_logged_in') }}</option>
+        <option value="never_logged_in">
+          {{ $t('requestsAdmin.users.filters.status.never_logged_in') }}
+        </option>
       </select>
 
       <select
@@ -47,7 +61,9 @@
         <Clock :size="14" />
         <span>{{ $t('requestsAdmin.users.filters.expires_within_days') }}</span>
         <input
-          type="number" min="1" max="365"
+          type="number"
+          min="1"
+          max="365"
           :value="expiresWithin || ''"
           @input="onCustomExpire($event.target.value)"
         />
@@ -65,10 +81,13 @@
     </div>
 
     <div class="ru-toolbar-right">
-      <span class="ru-toolbar-count">{{ $t('requestsAdmin.users.totalCount', { count: total }) }}</span>
+      <span class="ru-toolbar-count">
+        {{ $t('requestsAdmin.users.totalCount', { count: total }) }}
+      </span>
       <div class="ru-toolbar-view" role="tablist">
         <button
-          type="button" role="tab"
+          type="button"
+          role="tab"
           class="ru-toolbar-view-btn"
           :class="{ 'is-active': viewMode === 'table' }"
           :aria-selected="viewMode === 'table'"
@@ -78,7 +97,8 @@
           <List :size="16" />
         </button>
         <button
-          type="button" role="tab"
+          type="button"
+          role="tab"
           class="ru-toolbar-view-btn"
           :class="{ 'is-active': viewMode === 'cards' }"
           :aria-selected="viewMode === 'cards'"
@@ -102,15 +122,21 @@ defineProps({
   status: { type: String, default: '' },
   tag: { type: String, default: '' },
   tagOptions: { type: Array, default: () => [] },
-  expiresWithin: { default: null, validator: (v) => v === null || typeof v === 'number' },
+  expiresWithin: { default: null, validator: v => v === null || typeof v === 'number' },
   includeDeleted: { type: Boolean, default: false },
   viewMode: { type: String, default: 'table' },
   total: { type: Number, default: 0 },
 })
 
 const emit = defineEmits([
-  'update:search', 'update:source', 'update:role', 'update:status',
-  'update:tag', 'update:expiresWithin', 'update:includeDeleted', 'update:viewMode',
+  'update:search',
+  'update:source',
+  'update:role',
+  'update:status',
+  'update:tag',
+  'update:expiresWithin',
+  'update:includeDeleted',
+  'update:viewMode',
 ])
 
 function onCustomExpire(raw) {
