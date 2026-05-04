@@ -82,6 +82,9 @@
             <a href="https://discord.gg/mediakeeper" target="_blank" rel="noopener" title="Discord">
               <IconDiscord :size="18" />
             </a>
+            <a :href="repoUrl" target="_blank" rel="noopener noreferrer" title="GitHub" data-test="login-github-link">
+              <Github :size="18" />
+            </a>
             <a href="https://wiki.mediakeeper.app" target="_blank" rel="noopener" title="Wiki">
               <BookOpen :size="18" :stroke-width="1.8" />
             </a>
@@ -90,12 +93,7 @@
             </a>
           </div>
 
-          <p v-if="appVersion" class="login-version" data-test="login-version">
-            MediaKeeper v{{ appVersion }} —
-            <a :href="repoUrl" target="_blank" rel="noopener noreferrer" data-test="login-github-link">
-              {{ t('attribution.githubLink') }}
-            </a>
-          </p>
+          <span v-if="appVersion" class="login-version" data-test="login-version">v{{ appVersion }}</span>
         </div>
       </div>
     </transition>
@@ -110,7 +108,7 @@ import { useAuth } from '@/composables/useAuth'
 import { fetchApiResponse, resolveApiError } from '@/composables/useApi'
 import { useTheme } from '@/composables/useTheme'
 import { initLoginParticles } from '@/composables/useLoginParticles'
-import { BookOpen, Globe, LockKeyhole, LogIn, TriangleAlert, User } from 'lucide-vue-next'
+import { BookOpen, Github, Globe, LockKeyhole, LogIn, TriangleAlert, User } from 'lucide-vue-next'
 import IconDiscord from '@/components/icons/IconDiscord.vue'
 import MkSpinner from '@/components/common/MkSpinner.vue'
 import '@/assets/styles/login-view.css'
