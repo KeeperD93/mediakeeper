@@ -22,7 +22,9 @@
             </div>
             <div class="pt-evd-meta-item">
               <span class="pt-evd-meta-label">{{ $t('portal.mkEvents.detail.creator') }}</span>
-              <span>{{ event.creator_label }}</span>
+              <span :class="{ 'pt-evd-creator--anon': event.creator_deleted }">
+                {{ event.creator_deleted ? $t('portal.common.deletedUser') : event.creator_label }}
+              </span>
             </div>
           </div>
 

@@ -25,7 +25,13 @@
             <span class="wg-evt-kind" :class="`wg-evt-kind--${ev.kind}`">
               {{ $t(`portal.mkCalendar.kind.${ev.kind}`) }}
             </span>
-            <span v-if="ev.creator_label" class="wg-evt-creator">{{ ev.creator_label }}</span>
+            <span
+              v-if="ev.creator_deleted || ev.creator_label"
+              class="wg-evt-creator"
+              :class="{ 'wg-evt-creator--anon': ev.creator_deleted }"
+            >
+              {{ ev.creator_deleted ? $t('portal.common.deletedUser') : ev.creator_label }}
+            </span>
             <span v-if="acceptedCount(ev) > 0" class="wg-evt-count">
               <Users :size="11" /> {{ acceptedCount(ev) }}
             </span>

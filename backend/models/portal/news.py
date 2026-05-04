@@ -10,8 +10,13 @@ class News(Base):
     __tablename__ = "news"
 
     id              = Column(Integer, primary_key=True, index=True)
-    author_id       = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"),
-                             nullable=False)
+    # ``author_id`` becomes nullable + ``ON DELETE SET NULL`` from
+    # migration 041 onwards. News articles are admin-authored
+    # announcements visible to every user — their value is fully
+    # detached from the author identity, so a purge anonymises but
+    # never erases the post.
+    author_id       = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"),
+                             nullable=True)
     title           = Column(String(300), nullable=False)
     content         = Column(Text, nullable=False)
     image_url       = Column(String(500), nullable=True)

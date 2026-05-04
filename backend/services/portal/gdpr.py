@@ -191,9 +191,16 @@ async def purge_pending_deletions(db: AsyncSession) -> int:
     """Daily job: hard-delete every user whose grace period has lapsed.
 
     Early-returns when ``gdpr.enabled`` is false. Reads the delay from
-    DB live (no cache). Relies on migration 040 FK rules:
-    ``chat_messages.user_id`` → SET NULL (so messages survive
-    anonymised), every other user-bound table → CASCADE.
+    DB live (no cache). Relies on migration 040 / 041 FK rules:
+    community-relevant tables (``chat_messages``, ``tickets``, ``news``,
+    ``mk_events`` & friends) flip the FK to ``SET NULL`` so the rows
+    survive anonymised; everything else stays ``CASCADE``.
+
+    Before the FK ``SET NULL`` strips the link, every still-``scheduled``
+    ``mk_event`` of the leaving user is moved to ``cancelled`` so it
+    doesn't become a zombie nobody can edit. Failures of that side
+    effect are logged and **must not** abort the purge — GDPR
+    compliance prevails.
     """
     if not await is_gdpr_enabled(db):
         return 0
@@ -206,6 +213,7 @@ async def purge_pending_deletions(db: AsyncSession) -> int:
 
     purged = 0
     for user in rows:
+        await _cancel_scheduled_mk_events(db, user.id)
         logger.info(
             "[GDPR] purging user_id=%s username=%s scheduled_at=%s",
             user.id, user.username,
@@ -218,3 +226,47 @@ async def purge_pending_deletions(db: AsyncSession) -> int:
         await db.commit()
         logger.info("[GDPR] purge run complete: %s user(s) deleted", purged)
     return purged
+
+
+async def _cancel_scheduled_mk_events(db: AsyncSession, user_id: int) -> None:
+    """Cancel every ``scheduled`` ``mk_event`` created by ``user_id``
+    so the FK ``SET NULL`` doesn't leave them un-actionable. Failures
+    here are logged and swallowed — they must not block the upstream
+    purge."""
+    # Local imports to avoid a circular dependency: ``mk_events_crud``
+    # transitively imports ``services.portal.notifications`` which can
+    # touch this module during startup wiring.
+    try:
+        from models.portal.event import MKEvent
+        from services.portal import mk_events_crud
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "[GDPR] mk_events imports unavailable for user_id=%s: %s",
+            user_id, exc,
+        )
+        return
+
+    try:
+        scheduled = (await db.execute(
+            select(MKEvent.id).where(
+                MKEvent.creator_user_id == user_id,
+                MKEvent.status == "scheduled",
+            )
+        )).scalars().all()
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "[GDPR] scheduled mk_events lookup failed for user_id=%s: %s",
+            user_id, exc,
+        )
+        return
+
+    for event_id in scheduled:
+        try:
+            await mk_events_crud.cancel_event(
+                db, event_id=event_id, creator_user_id=user_id,
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "[GDPR] auto-cancel of mk_event id=%s failed for user_id=%s: %s",
+                event_id, user_id, exc,
+            )

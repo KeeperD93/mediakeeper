@@ -2021,6 +2021,9 @@
   },
   "portal": {
     "title": "Requests",
+    "common": {
+      "deletedUser": "Deleted user"
+    },
     "routeTitles": {
       "home": "Requests portal",
       "requests": "Requests",

@@ -18,8 +18,13 @@ class MKEvent(Base):
     __tablename__ = "mk_events"
 
     id              = Column(Integer, primary_key=True, index=True)
-    creator_user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"),
-                             nullable=False, index=True)
+    # ``creator_user_id`` becomes nullable + ``ON DELETE SET NULL`` from
+    # migration 041. The GDPR purge auto-cancels every still-scheduled
+    # event of the leaving user before the FK kicks in, so SET NULL only
+    # applies to ``done`` / ``cancelled`` events that retain historical
+    # value (achievements, statistics).
+    creator_user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"),
+                             nullable=True, index=True)
     title           = Column(String(200), nullable=False)
     # 'private' or 'public'
     kind            = Column(String(20), nullable=False, server_default="private")
@@ -70,8 +75,11 @@ class MKEventMessage(Base):
                        primary_key=True, index=True)
     event_id  = Column(Integer, ForeignKey("mk_events.id", ondelete="CASCADE"),
                        nullable=False, index=True)
-    user_id   = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"),
-                       nullable=False)
+    # Mirrors ``chat_messages.user_id`` — anonymised on author purge so
+    # the surrounding event-room conversation remains coherent for the
+    # other participants. Migration 041.
+    user_id   = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"),
+                       nullable=True)
     content   = Column(String(2000), nullable=False)
     sent_at   = Column(DateTime(timezone=True),
                        default=lambda: datetime.now(timezone.utc), index=True)
@@ -135,8 +143,11 @@ class WatchParty(Base):
     __tablename__ = "watch_parties"
 
     id                = Column(Integer, primary_key=True, index=True)
-    host_user_id      = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"),
-                               nullable=False, index=True)
+    # Legacy parallel to ``MKEvent``. ``host_user_id`` becomes nullable
+    # + ``ON DELETE SET NULL`` from migration 041 — kept consistent with
+    # the rest of the consumer-side FK policy.
+    host_user_id      = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"),
+                               nullable=True, index=True)
     title             = Column(String(300), nullable=False)
     tmdb_id           = Column(Integer, nullable=True)
     media_type        = Column(String(20), nullable=True)

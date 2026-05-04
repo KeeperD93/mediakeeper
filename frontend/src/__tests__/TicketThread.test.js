@@ -99,4 +99,39 @@ describe('TicketThread', () => {
     expect(w.find('.tth-avatar--fallback').exists()).toBe(true)
     expect(w.find('.tth-avatar--fallback').text()).toBe('X')
   })
+
+  it('renders the deleted-user placeholder for a purged requester', () => {
+    const ticket = {
+      ...BASE_TICKET,
+      requester: null,
+      requester_deleted: true,
+    }
+    const w = mount(TicketThread, { props: { ticket } })
+    const row = w.find('.tth-row--anon')
+    expect(row.exists()).toBe(true)
+    expect(row.text()).toContain('portal.common.deletedUser')
+    // Avatar falls back to the generic ``?`` marker, not a stale initial.
+    expect(w.find('.tth-avatar--fallback').text()).toBe('?')
+    // The role pill is suppressed for an anonymised author.
+    expect(row.find('.tth-role-pill').exists()).toBe(false)
+  })
+
+  it('renders the deleted-user placeholder for a purged reply author', () => {
+    const ticket = {
+      ...BASE_TICKET,
+      replies: [{
+        id: 1,
+        content: 'thanks',
+        created_at: new Date().toISOString(),
+        author: null,
+        author_deleted: true,
+      }],
+    }
+    const w = mount(TicketThread, { props: { ticket } })
+    const anonRows = w.findAll('.tth-row--anon')
+    // One anon row from the reply (the requester is still alive here).
+    expect(anonRows.length).toBe(1)
+    expect(anonRows[0].text()).toContain('portal.common.deletedUser')
+    expect(anonRows[0].text()).toContain('thanks')
+  })
 })

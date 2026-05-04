@@ -16,8 +16,17 @@ MAX_PARTICIPANTS = 50
 ROOM_OPEN_BEFORE_MIN = 15
 
 
-async def _user_label(db: AsyncSession, user_id: int) -> str:
-    """Resolve a user_id to a display name (pseudo) for notif payloads."""
+async def _user_label(db: AsyncSession, user_id: int | None) -> str | None:
+    """Resolve a user_id to a display name (pseudo) for notif payloads.
+
+    Returns ``None`` for a purged user (``user_id IS NULL``, FK
+    ``SET NULL`` since migration 041) so callers can render a localised
+    "Deleted user" placeholder instead of a fabricated ``user#None``
+    string. A live user with no profile still falls back to the raw
+    ``user#<id>`` marker — same semantics as before.
+    """
+    if user_id is None:
+        return None
     res = await db.execute(
         select(UserProfile.display_name, User.username)
         .select_from(User)
@@ -56,6 +65,10 @@ async def _serialize_event(db: AsyncSession, event: MKEvent) -> dict:
         "id": event.id,
         "creator_user_id": event.creator_user_id,
         "creator_label": creator_label,
+        # ``True`` once the creator has been GDPR-purged. Lets the UI
+        # swap the label for the "Deleted user" placeholder without
+        # extra round-trips.
+        "creator_deleted": event.creator_user_id is None,
         "title": event.title,
         "kind": event.kind,
         "tmdb_ids": event.tmdb_ids or [],
