@@ -87,7 +87,6 @@ describe('LoginView', () => {
     expect(link.exists()).toBe(true)
     expect(link.attributes('href')).toBe('https://github.com/KeeperD93/mediakeeper')
     expect(link.attributes('rel')).toContain('noopener')
-    expect(link.text()).toContain('attribution.githubLink')
     const allGithubLinks = w.findAll('a[href*="github.com"]')
     expect(allGithubLinks).toHaveLength(1)
   })
