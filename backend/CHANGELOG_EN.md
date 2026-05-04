@@ -43,6 +43,8 @@ This section intentionally has no date so it is not shown to users.
 - Startup — warn when the public origin is unset in reverse-proxy mode
 - Persistent banner alert when the at-rest encryption key is ephemeral
 - Tests — automatic detection of third-party hosts missing from the security policy
+- Backups — ZIP signature check and entry whitelist (zip-bomb guard)
+- API — configuration payloads reject unknown fields (security hardening)
 
 ### Fixed
 - Login — GitHub icon restored with the correct link, text version line dropped

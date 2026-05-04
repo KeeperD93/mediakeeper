@@ -1,7 +1,7 @@
 """Portal admin endpoints: user management, stats, index sync."""
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -165,9 +165,14 @@ async def sync_index(
 # ---------------------------------------------------------------------------
 
 class PortalSettingsUpdate(BaseModel):
-    # Pydantic v2: use model_config if you need extra='forbid'. Here we keep
-    # it permissive so a future flag added on the backend does not 422 an
-    # older frontend that only knows about the current ones.
+    # Strict mode: any unknown key (e.g. a frontend typo or a stale field
+    # left over after a backend rename) surfaces as 422 instead of being
+    # silently dropped. Forward-compatibility for older frontends is
+    # already covered by every flag being Optional with a None default,
+    # so a backend-side addition does not require a synchronous frontend
+    # update.
+    model_config = ConfigDict(extra="forbid")
+
     anonymize_requests: Optional[bool] = None
     hero_trend_count: Optional[int] = None
 

@@ -6,7 +6,7 @@ import asyncio
 import logging
 from fastapi import APIRouter, Depends, Query
 from fastapi import HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db, engine as async_engine
@@ -33,6 +33,8 @@ _scan_task: asyncio.Task | None = None
 
 
 class HealthCheckConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     obsolete_codecs_enabled: bool = True
     obsolete_containers_enabled: bool = True
     low_resolution_enabled: bool = True

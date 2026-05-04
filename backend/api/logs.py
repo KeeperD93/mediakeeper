@@ -6,7 +6,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from core.database import get_db
 from api.auth import get_current_user
@@ -25,6 +25,8 @@ router = APIRouter(prefix="/api/logs", tags=["logs"])
 # ============================================
 
 class DebugModeRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     enabled: bool
 
 

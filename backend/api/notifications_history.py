@@ -8,7 +8,7 @@ import json
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select, func, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -23,6 +23,8 @@ router = APIRouter(tags=["notifications"])
 
 
 class LogEntry(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     event_type: str
     channel: str = "discord"
     webhook_name: Optional[str] = None
@@ -33,6 +35,8 @@ class LogEntry(BaseModel):
 
 
 class LogRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     entries: List[LogEntry]
 
 
@@ -105,6 +109,8 @@ async def clear_history(db: AsyncSession = Depends(get_db), _: User = Depends(ge
 # ---- Rules & DND config (stored in notification_channels as JSON) ----
 
 class NotifRulesConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     dnd_enabled: bool = False
     dnd_start: str = "23:00"  # HH:MM
     dnd_end: str = "07:00"
