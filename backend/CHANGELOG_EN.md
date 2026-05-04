@@ -58,6 +58,12 @@ This section intentionally has no date so it is not shown to users.
 - Users — "pending deletion" filter and admin-side cancel
 - Scheduler — daily purge of pending accounts (opt-in, off by default)
 - Privacy — admin section (toggle, FR/EN editors, pending accounts list)
+- Privacy — preset settings shipped (disabled by default)
+- Privacy — ZIP export, delayed deletion and cancel (opt-in mode)
+- Users — "pending deletion" filter and admin-side cancel
+- Scheduler — daily purge of pending accounts (opt-in, off by default)
+- Privacy — admin section (toggle, FR/EN editors, pending accounts list)
+- Privacy — user tab (policy, export, delayed deletion) and grace-period banner
 
 ### Fixed
 - Database — missing foreign-key constraints on `seen_alerts` and `xp_ledger`

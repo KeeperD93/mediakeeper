@@ -8,6 +8,7 @@ infer that the GDPR plumbing exists at all.
 Mounted under ``/api/portal``:
 
 * ``GET    /me/export``           — ZIP archive of every user-bound row
+* ``GET    /me/privacy-text``     — privacy policy HTML for the user's locale
 * ``POST   /me/deletion-request`` — schedule grace-period deletion
 * ``DELETE /me/deletion-request`` — cancel an active request
 """
@@ -15,7 +16,7 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -25,12 +26,16 @@ from core.rate_limit import limiter, portal_user_or_ip_key
 from models.portal.profile import UserProfile
 from models.user import User
 from services.portal.gdpr import (
+    GDPR_DPO_KEY,
+    GDPR_PRIVACY_EN_KEY,
+    GDPR_PRIVACY_FR_KEY,
     build_export_zip,
     cancel_deletion_request,
     get_purge_delay_days,
     is_gdpr_enabled,
     submit_deletion_request,
 )
+from services.settings import get_settings_map
 
 
 router = APIRouter(prefix="/me", tags=["portal-gdpr"])
@@ -150,3 +155,55 @@ async def delete_deletion_request(
             detail="no_pending_request",
         )
     return {"status": "cancelled"}
+
+
+# ─────────────────────────── Privacy text ───────────────────────────
+
+
+_VALID_LANGS = ("fr", "en")
+
+
+def _resolve_locale(lang_param: str | None, profile: UserProfile) -> str:
+    """Pick the locale for the privacy text response.
+
+    Priority: explicit ``?lang=`` query param → profile.language →
+    ``"fr"``. Anything outside the allow-list collapses to French so a
+    malformed header can never produce an empty body.
+    """
+    if lang_param:
+        candidate = lang_param.strip().lower()[:2]
+        if candidate in _VALID_LANGS:
+            return candidate
+    profile_lang = (getattr(profile, "language", "") or "").lower()[:2]
+    if profile_lang in _VALID_LANGS:
+        return profile_lang
+    return "fr"
+
+
+@router.get("/privacy-text")
+async def get_privacy_text(
+    request: Request,
+    lang: str | None = Query(default=None, max_length=10),
+    up: tuple[User, UserProfile] = Depends(get_current_profile),
+    db: AsyncSession = Depends(get_db),
+):
+    """Return the sanitised privacy HTML + DPO contact for the active locale.
+
+    The text is already sanitised on the admin write path (Tiptap →
+    bleach). The frontend still passes it through DOMPurify as defence
+    in depth, mirroring the Help Center pattern.
+    """
+    if not await is_gdpr_enabled(db):
+        raise _not_found()
+
+    _, profile = up
+    locale = _resolve_locale(lang, profile)
+    raw = await get_settings_map(db, [
+        GDPR_PRIVACY_FR_KEY, GDPR_PRIVACY_EN_KEY, GDPR_DPO_KEY,
+    ])
+    text_key = GDPR_PRIVACY_EN_KEY if locale == "en" else GDPR_PRIVACY_FR_KEY
+    return {
+        "lang": locale,
+        "text_html": raw.get(text_key) or "",
+        "dpo_contact": (raw.get(GDPR_DPO_KEY) or "").strip(),
+    }

@@ -3033,7 +3033,8 @@
         "appearance": "Apparence",
         "preferences": "Préférences",
         "visibility": "Visibilité",
-        "account": "Compte"
+        "account": "Compte",
+        "privacy": "Confidentialité"
       },
       "save": {
         "saveBtn": "Enregistrer",
@@ -3130,6 +3131,44 @@
       "share": {
         "copy": "Copier le lien",
         "copied": "Lien copié"
+      }
+    },
+    "privacy": {
+      "banner": {
+        "message": "Votre compte sera supprimé le {date}.",
+        "cancel": "Annuler la suppression",
+        "cancelling": "Annulation…",
+        "cancelled": "Demande de suppression annulée.",
+        "cancelFailed": "Impossible d'annuler la demande. Réessayez."
+      },
+      "policy": {
+        "title": "Politique de confidentialité",
+        "notConfigured": "La politique de confidentialité n'est pas encore configurée. Contactez l'administrateur."
+      },
+      "dpo": "Pour toute question : {contact}",
+      "data": {
+        "title": "Vos données",
+        "subtitle": "Téléchargez une copie de vos données ou demandez la suppression de votre compte.",
+        "exportBtn": "Exporter mes données",
+        "exporting": "Préparation…",
+        "exportStarted": "Téléchargement lancé.",
+        "exportLimited": "Export disponible 1 fois par heure, réessayez plus tard.",
+        "exportLimitedAt": "Export disponible 1 fois par heure, réessayez à {when}.",
+        "exportTooLarge": "Vos données dépassent la taille maximale d'export, contactez l'administrateur.",
+        "exportFailed": "Export indisponible pour le moment.",
+        "deleteBtn": "Supprimer mon compte"
+      },
+      "embyNotice": "Votre compte MediaKeeper est lié à Emby. La suppression ici n'affecte pas votre compte Emby.",
+      "deleteModal": {
+        "title": "Supprimer mon compte ?",
+        "warning": "Cette action programme la suppression définitive de votre compte MediaKeeper et de toutes vos données associées. Vous pourrez annuler la demande pendant le délai de grâce affiché en haut du portail.",
+        "magicWord": "SUPPRIMER",
+        "confirmLabel": "Pour confirmer, tapez {word} ci-dessous.",
+        "confirm": "Confirmer la suppression",
+        "submitting": "Envoi…",
+        "abort": "Annuler",
+        "scheduled": "Suppression programmée. Vous pouvez encore l'annuler depuis le bandeau du portail.",
+        "failed": "Impossible d'envoyer la demande. Réessayez."
       }
     },
     "admin": {

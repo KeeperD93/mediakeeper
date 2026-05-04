@@ -46,10 +46,16 @@ let refreshTimer = null
 
 // The banner sits flush against the portal nav's bottom edge. The nav
 // has a fixed position but a responsive height (tabs collapse, solid
-// mode adds a border) — measure it instead of hard-coding.
+// mode adds a border) — measure it instead of hard-coding. When the
+// GDPR deletion banner is also mounted, this banner stacks underneath
+// it: take the lowest bottom edge between nav and the deletion banner
+// so neither overlaps.
 function measureNav() {
   const nav = document.querySelector('.pt-nav')
-  navOffset.value = nav ? Math.round(nav.getBoundingClientRect().bottom) : 0
+  const navBottom = nav ? Math.round(nav.getBoundingClientRect().bottom) : 0
+  const dpb = document.querySelector('.pt-dpb')
+  const dpbBottom = dpb ? Math.round(dpb.getBoundingClientRect().bottom) : 0
+  navOffset.value = Math.max(navBottom, dpbBottom)
 }
 
 const SHOW_MS = 30000
@@ -97,6 +103,8 @@ watch(() => myEvents.value.length, (n) => {
 })
 
 let navObserver = null
+let dpbObserver = null
+let bodyObserver = null
 onMounted(async () => {
   measureNav()
   window.addEventListener('resize', measureNav)
@@ -105,6 +113,21 @@ onMounted(async () => {
   if (nav && typeof ResizeObserver !== 'undefined') {
     navObserver = new ResizeObserver(measureNav)
     navObserver.observe(nav)
+  }
+  // The deletion banner is teleported to <body> and only mounts when
+  // the user has a pending deletion — wait for it to appear before
+  // observing it. A MutationObserver on <body> picks up the late mount
+  // (and unmount) and re-runs measureNav.
+  if (typeof MutationObserver !== 'undefined') {
+    bodyObserver = new MutationObserver(() => {
+      measureNav()
+      const dpb = document.querySelector('.pt-dpb')
+      if (dpb && !dpbObserver && typeof ResizeObserver !== 'undefined') {
+        dpbObserver = new ResizeObserver(measureNav)
+        dpbObserver.observe(dpb)
+      }
+    })
+    bodyObserver.observe(document.body, { childList: true, subtree: true })
   }
   await fetchAll()
   if (myEvents.value.length) showOnce()
@@ -119,6 +142,8 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', measureNav)
   window.removeEventListener('scroll', measureNav)
   if (navObserver) navObserver.disconnect()
+  if (dpbObserver) dpbObserver.disconnect()
+  if (bodyObserver) bodyObserver.disconnect()
 })
 
 function formatFull(iso) {

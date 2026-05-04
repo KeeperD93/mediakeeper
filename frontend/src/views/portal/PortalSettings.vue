@@ -73,6 +73,7 @@
           :profile-data="profileData"
           :emby-url="embyUrl"
         />
+        <PrivacyTab v-else-if="activeTab === 'privacy'" />
       </div>
 
       <footer
@@ -121,21 +122,29 @@ import SettingsTabAppearance from '@/components/portal/settings/SettingsTabAppea
 import SettingsTabPreferences from '@/components/portal/settings/SettingsTabPreferences.vue'
 import SettingsTabVisibility from '@/components/portal/settings/SettingsTabVisibility.vue'
 import SettingsTabAccount from '@/components/portal/settings/SettingsTabAccount.vue'
+import PrivacyTab from '@/components/portal/settings/PrivacyTab.vue'
 
 import '@/assets/styles/portal/settings-premium.css'
 
-const TABS = [
+const ALL_TABS = [
   { id: 'identity',    labelKey: 'portal.settings.tabs.identity' },
   { id: 'appearance',  labelKey: 'portal.settings.tabs.appearance' },
   { id: 'preferences', labelKey: 'portal.settings.tabs.preferences' },
   { id: 'visibility',  labelKey: 'portal.settings.tabs.visibility' },
   { id: 'account',     labelKey: 'portal.settings.tabs.account' },
+  // Privacy is opt-in: only surfaces when the admin has enabled the
+  // GDPR mode. Filtered out of TABS below otherwise.
+  { id: 'privacy',     labelKey: 'portal.settings.tabs.privacy', gdprOnly: true },
 ]
 
 const { t } = useI18n()
 const { showToast } = useToast()
 const { apiGet } = useApi()
-const { profile: profileData, setPortalAuth } = usePortalAuth()
+const { profile: profileData, gdpr, setPortalAuth } = usePortalAuth()
+
+const TABS = computed(() => ALL_TABS.filter(
+  (tab) => !tab.gdprOnly || gdpr.value?.enabled,
+))
 const {
   form, dirty, saving, lastSaveError,
   usernameState, usernameCheck,
@@ -226,6 +235,15 @@ watch(
     if (next !== prev) checkUsername(next)
   },
 )
+
+// If the admin disables the GDPR mode while the user is sitting on
+// the Privacy tab, the tab vanishes from TABS — bounce the selection
+// back to Identity so the body does not render an empty card.
+watch(TABS, (next) => {
+  if (!next.find((t) => t.id === activeTab.value)) {
+    activeTab.value = next[0]?.id || 'identity'
+  }
+})
 
 onMounted(async () => {
   await Promise.all([
