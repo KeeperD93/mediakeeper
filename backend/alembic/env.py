@@ -40,13 +40,24 @@ from models.portal import (                                 # noqa: F401
 
 config = context.config
 if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+    # ``disable_existing_loggers=False`` keeps the application's loggers
+    # alive when Alembic is driven from inside the test suite or from a
+    # long-running process. Without this flag, ``fileConfig`` resets
+    # every logger created prior to its call (including
+    # ``mediakeeper.monitoring`` and friends), which silently swallows
+    # records the rest of the test run wants to assert on.
+    fileConfig(config.config_file_name, disable_existing_loggers=False)
 
 target_metadata = Base.metadata
 
 
 def _get_database_url() -> str:
-    """Resolve the connection URL (same logic as core/database.py)."""
+    """Resolve the connection URL (same logic as core/database.py).
+
+    SQLite URLs pass through with the ``aiosqlite`` driver so a test
+    suite can drive Alembic against a temporary file without spinning
+    up Postgres. Production stays on ``postgresql+asyncpg``.
+    """
     raw = os.getenv("DATABASE_URL", "")
     if not raw:
         pg_pwd_file = Path("/data/.pg_password")
@@ -57,6 +68,14 @@ def _get_database_url() -> str:
             raise RuntimeError("DATABASE_URL not set and /data/.pg_password not found.")
 
     parsed = urlparse(raw)
+
+    if parsed.scheme.startswith("sqlite"):
+        if parsed.scheme == "sqlite":
+            # Upgrade plain ``sqlite://`` to the async driver so the
+            # ``run_migrations_online`` path works unchanged.
+            return raw.replace("sqlite://", "sqlite+aiosqlite://", 1)
+        return raw
+
     user = parsed.username or ""
     pwd = parsed.password or ""
     host = parsed.hostname or "127.0.0.1"

@@ -51,8 +51,12 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Logs — filtre global de rédaction (mots de passe, tokens, JWT, webhooks)
 - Connexion — succès journalisés avec user_id (échec garde l'identifiant pour audit)
 - API — handler global d'erreur masque la query string (jamais de secret en log)
+- Base de données — chat anonymisé (et non effacé) à la suppression du compte
+- Base de données — colonnes utilisateur préparées pour la suppression différée
+- Confidentialité — paramètres préchargés (désactivés par défaut)
 
 ### Fixed
+- Base de données — contraintes manquantes sur `seen_alerts` et `xp_ledger`
 - Connexion — icône GitHub restaurée avec le bon lien, ligne version texte retirée
 - Force fin de ligne LF sur scripts et auto-fix CRLF au build Docker
 - UX : padding crédits, lien GitHub login dédupliqué, retrait mention container

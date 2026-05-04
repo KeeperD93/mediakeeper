@@ -51,8 +51,12 @@ This section intentionally has no date so it is not shown to users.
 - Logs — global redaction filter (passwords, tokens, JWTs, webhook URLs)
 - Login — success entries log user_id (failure keeps the username for audit)
 - API — global error handler strips query strings (no secrets in logs)
+- Database — chat anonymised (not erased) when an account is removed
+- Database — user columns prepared for delayed account deletion
+- Privacy — preset settings shipped (disabled by default)
 
 ### Fixed
+- Database — missing foreign-key constraints on `seen_alerts` and `xp_ledger`
 - Login — GitHub icon restored with the correct link, text version line dropped
 - Enforce LF line endings on scripts and auto-fix CRLF during Docker build
 - UX: credits padding, deduplicated login GitHub link, dropped container mention
