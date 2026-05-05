@@ -144,8 +144,6 @@ EXCLUSIVE_FROM_META: set[str] = {
 # global progression percentage exposed to the UI reflects what is actually
 # attainable.
 PLACEHOLDER_IDS: frozenset[str] = frozenset({
-    # `lucky_*` — surprise-button usage tracked via XpLedger (not implemented).
-    "lucky_1", "lucky_2", "lucky_3", "lucky_4",
     # `time_traveler_*` — needs decade extracted from TMDB production year.
     "time_traveler_1", "time_traveler_2", "time_traveler_3",
     # Secrets pending data wiring.

@@ -17,6 +17,7 @@ utilisateurs.
 ## [Unreleased]
 
 ### Added
+- Trophées « Coup de chance » — débloquables via l'utilisation du bouton Surprends-moi (4 paliers)
 - Crédits — nouvelle page (TMDB, OpenSubtitles, Emby, Imgur, YouTube) accessible depuis le pied de page
 - Paramètres — onglet Compte affiche la date d'expiration du compte (ou « Aucune limite »)
 - Notifications — admins et modérateurs voient les messages de chat signalés dans la cloche

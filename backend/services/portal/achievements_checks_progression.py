@@ -206,10 +206,17 @@ async def check_progression(
         )).scalar() or 0
         await _apply("events_created", val)
 
-    # --- surprise_used: placeholder, needs XpLedger tracking ---
-    # TODO: track 'surprise_used' action in XpLedger when user clicks surprise
+    # --- surprise_used: count Surprise overlay openings recorded in
+    # the ledger by the /api/portal/library/surprise endpoint.
     if "surprise_used" in by_type:
-        await _apply("surprise_used", 0)
+        val = (await db.execute(
+            select(func.count(XpLedger.id))
+            .where(
+                XpLedger.user_id == user_id,
+                XpLedger.action == "surprise_used",
+            )
+        )).scalar() or 0
+        await _apply("surprise_used", val)
 
     # --- series_completed: series with episodes from 3+ different seasons ---
     if "series_completed" in by_type:
