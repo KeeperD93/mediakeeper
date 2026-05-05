@@ -137,20 +137,18 @@ EXCLUSIVE_FROM_META: set[str] = {
 }
 
 # Achievements whose check is intentionally a stub — the underlying signal
-# (TMDB production year, version-original audio flag, real-time concurrent
-# session count, etc.) is not wired yet. They stay declared so the catalogue
-# remains stable across releases, but the runner skips their condition_type
-# and the profile payload excludes them from `total_count` / `items` so the
-# global progression percentage exposed to the UI reflects what is actually
-# attainable.
+# (Emby "date added" metadata, pause/resume events, leaderboard history,
+# etc.) is not wired yet. They stay declared so the catalogue remains
+# stable across releases, but the runner skips their condition_type and
+# the profile payload excludes them from `total_count` / `items` so the
+# global progression percentage exposed to the UI reflects what is
+# actually attainable.
 PLACEHOLDER_IDS: frozenset[str] = frozenset({
     # Secrets pending data wiring.
     "secret_allnight",     # session continuity 22h → 06h
     "secret_no_life",      # 24h cumulative in 48h window
     "secret_king",         # leaderboard #1 for 12 consecutive months
     "secret_pilot",        # first viewer on freshly added content
-    "secret_lonely",       # single concurrent session at NYE
     "secret_late",         # Emby "date added" metadata
     "secret_pipi",         # pause/resume event tracking
-    "secret_sync",         # concurrent session overlap
 })
