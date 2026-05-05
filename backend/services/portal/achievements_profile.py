@@ -25,11 +25,22 @@ async def get_achievements_for_profile(
     all_achs_raw = (await db.execute(
         select(Achievement).order_by(Achievement.sort_order)
     )).scalars().all()
-    # Hide placeholders from the profile payload so the global progression
-    # percentage exposed to the UI reflects only attainable achievements.
-    all_achs = [a for a in all_achs_raw if a.id not in PLACEHOLDER_IDS]
 
     ua_map = await _load_user_achievement_map(db, user_id)
+
+    # Hide placeholders from the profile payload so the global progression
+    # percentage exposed to the UI reflects only attainable achievements.
+    # Exception: keep a placeholder visible if it is already unlocked for
+    # this user — admin debug unlock or any future implementation should
+    # surface in the UI immediately rather than vanishing into the seal.
+    unlocked_placeholder_ids = {
+        ach_id for ach_id, ua in ua_map.items()
+        if ua.unlocked and ach_id in PLACEHOLDER_IDS
+    }
+    all_achs = [
+        a for a in all_achs_raw
+        if a.id not in PLACEHOLDER_IDS or a.id in unlocked_placeholder_ids
+    ]
 
     # Rarity: % of active users who unlocked each achievement
     total_users = (await db.execute(

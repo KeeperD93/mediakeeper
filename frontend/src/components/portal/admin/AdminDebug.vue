@@ -39,7 +39,7 @@
         <select v-model="resetAchievementId" class="pt-debug-select">
           <option value="" disabled>—</option>
           <option v-for="ach in achievements" :key="ach.id" :value="ach.id">
-            {{ ach.secret ? '???' : t(ach.name_key) }} · {{ ach.id }}
+            {{ t(ach.name_key) }} · {{ ach.id }}
           </option>
         </select>
         <button
@@ -162,7 +162,7 @@
         <div v-for="ach in filteredAchievements" :key="ach.id" class="pt-debug-ach-row">
           <div class="pt-debug-ach-meta">
             <span class="pt-debug-ach-name">
-              {{ ach.secret ? '???' : $t(ach.name_key) }}
+              {{ $t(ach.name_key) }}
             </span>
             <span class="pt-debug-ach-tag">{{ ach.category }} · T{{ ach.tier }}</span>
           </div>
