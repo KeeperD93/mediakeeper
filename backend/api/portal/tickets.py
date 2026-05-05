@@ -1,5 +1,5 @@
 """Portal ticket endpoints."""
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, Field, model_validator
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,6 +9,7 @@ from models.user import User
 from models.portal.profile import UserProfile
 from api.portal.deps import require_admin, require_permission
 from services.portal import tickets as ticket_svc
+from services.portal.achievements import safe_check_all_achievements_in_new_session
 from services.emby import search as emby_search
 
 router = APIRouter(prefix="/tickets", tags=["portal-tickets"])
@@ -96,13 +97,21 @@ def _split_csv(value: Optional[str], allowed: set[str]) -> Optional[list[str]]:
 @router.post("")
 async def create_ticket(
     data: CreateTicket,
+    background_tasks: BackgroundTasks,
     up: tuple[User, UserProfile] = Depends(require_permission("can_problems")),
     db: AsyncSession = Depends(get_db),
 ):
     if data.issue_type not in VALID_ISSUE_TYPES:
         raise HTTPException(status_code=400, detail="invalid_issue_type")
     user, _ = up
-    return await ticket_svc.create_ticket(db, user.id, data.model_dump())
+    result = await ticket_svc.create_ticket(db, user.id, data.model_dump())
+    background_tasks.add_task(
+        safe_check_all_achievements_in_new_session,
+        user.id,
+        user.username,
+        "ticket_created",
+    )
+    return result
 
 
 @router.get("/emby/search")

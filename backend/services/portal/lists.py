@@ -156,6 +156,10 @@ async def create_list(db: AsyncSession, user_id: int, data: dict) -> dict:
                extra={"privacy": lst.privacy, "content_type": lst.content_type})
     await db.commit()
     await db.refresh(lst)
+    # Curator family is gated on the count of public lists; trigger so the
+    # Bronze tier unlocks immediately on the first eligible list.
+    from services.portal.achievements import safe_check_all_achievements
+    await safe_check_all_achievements(db, user_id, None, source="list_created")
     return {"success": True, "id": lst.id}
 
 
@@ -198,6 +202,14 @@ async def update_list(
     if changes:
         await _log(db, lst.id, user_id, "updated", extra=changes)
         await db.commit()
+        # A privacy flip can promote a private list into the curator count
+        # (or demote it back). Re-run the check so the count stays in sync
+        # with what the family actually rewards.
+        if "privacy" in changes:
+            from services.portal.achievements import safe_check_all_achievements
+            await safe_check_all_achievements(
+                db, user_id, None, source="list_privacy_changed",
+            )
     return {"success": True, "id": lst.id, "changes": list(changes.keys())}
 
 

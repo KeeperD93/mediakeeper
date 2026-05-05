@@ -39,6 +39,7 @@ utilisateurs.
 - Chat — compteur de messages non lus persistant (badge sur le bouton + replié et sur l'icône chat déplié), historique complet chargé à l'ouverture, connexion temps réel maintenue tant que le portail est ouvert
 - Notifications — un administrateur peut envoyer un message ciblé qui apparaît dans la cloche
 - Mention légale ajoutée en pied de page
+- Trophées listes — deux nouvelles familles (Curateur, Bibliothécaire) avec 5 paliers chacune
 
 ### Changed
 - Quoi de neuf aujourd'hui — Top 3 du mois aligné sur le widget Classement du dashboard (visuel identique, votre position ajoutée en 4ᵉ ligne quand vous êtes hors podium)
@@ -58,6 +59,8 @@ utilisateurs.
 - Trophées : XP de récompense réduit pour lisser la progression (XP déjà cumulé ajusté en conséquence)
 
 ### Fixed
+- Trophées — déblocage immédiat sur chat, demandes, tickets, avatar, événements (plus d'attente de la prochaine connexion)
+- Trophées — pourcentage global de progression aligné sur les seuls trophées atteignables
 - Tableau de bord — raccourci masqué pour les modérateurs sans accès backoffice (plus de clic qui rebondit aussitôt)
 - Pastille de disponibilité — séries complètes ne s'affichent plus en « partiellement disponibles » après un ré-import Emby (fusion des doublons d'index, purge auto des orphelins au prochain scan)
 - Quoi de neuf aujourd'hui — barre de défilement stylisée (gradient accent + piste discrète, plus de slab blanc)

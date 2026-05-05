@@ -107,7 +107,9 @@ async def check_achievements(
 ):
     """Force-check all achievements for current user. Returns newly unlocked."""
     user, profile = up
-    unlocks = await ach_svc.check_all_achievements(db, user.id, user.username)
+    unlocks = await ach_svc.safe_check_all_achievements(
+        db, user.id, user.username, source="manual_check", silent=False,
+    )
     return {"unlocked": unlocks}
 
 

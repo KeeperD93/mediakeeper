@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,6 +21,7 @@ from models.portal.profile import UserProfile
 from models.user import User
 from api.portal.deps import get_current_profile
 from services.portal.achievement_defs import ACHIEVEMENT_DEFS
+from services.portal.achievements import safe_check_all_achievements_in_new_session
 from services.portal.avatars import (
     avatar_path_for, avatar_public_url, delete_avatar, save_avatar,
 )
@@ -128,6 +129,7 @@ async def username_state(
 
 @router.post("/me/avatar")
 async def upload_avatar(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
@@ -141,6 +143,12 @@ async def upload_avatar(
     db.add(profile)
     await db.commit()
     await db.refresh(profile)
+    background_tasks.add_task(
+        safe_check_all_achievements_in_new_session,
+        user.id,
+        user.username,
+        "avatar_changed",
+    )
     return {
         "avatar_custom_path": stored,
         "avatar_url": avatar_public_url(stored),

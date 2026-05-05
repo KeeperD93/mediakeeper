@@ -456,7 +456,7 @@ async def test_update_request_status_skips_notif_when_requester_purged(db_sessio
             db_session, req_id, "approved", admin.id,
         )
 
-    assert result == {"success": True}
+    assert result["success"] is True
     mock_create.assert_not_awaited()
 
 

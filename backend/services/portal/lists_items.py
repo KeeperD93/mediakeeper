@@ -99,6 +99,16 @@ async def add_items(
 
     lst.updated_at = datetime.now(timezone.utc)
     await db.commit()
+
+    # Librarian rewards the *owner* of the list, not the contributor who
+    # added the rows — only the owner's collection grew. ``lists_max_items``
+    # tracks the peak count across the owner's lists, so re-running the
+    # check is enough to catch any tier crossing.
+    if added > 0:
+        from services.portal.achievements import safe_check_all_achievements
+        await safe_check_all_achievements(
+            db, lst.user_id, None, source="list_items_added",
+        )
     return {"success": True, "added": added, "duplicates": duplicates}
 
 

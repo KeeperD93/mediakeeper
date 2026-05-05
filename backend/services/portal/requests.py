@@ -257,7 +257,9 @@ async def update_request_status(
         await maybe_blacklist_media(db, req, admin_id)
 
     await db.commit()
-    return {"success": True}
+    # Surface the requester so the API layer can trigger the achievement
+    # runner for the original user (e.g. ambassador on `approved`).
+    return {"success": True, "user_id": req.user_id}
 
 
 def _serialize_request(

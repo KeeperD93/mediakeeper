@@ -8,6 +8,7 @@ from services.portal.achievement_defs import (
     TIER_NAMES, SECRET_THEMES, TITLE_REWARDS, SECONDARY_CATEGORIES,
     META_TARGET_CATEGORY,
 )
+from services.portal.achievement_defs_constants import PLACEHOLDER_IDS
 from services.portal.achievements_utils import _load_user_achievement_map
 from services.portal.achievements_seasonal import _compute_seasonal_years
 
@@ -21,9 +22,12 @@ async def get_achievements_for_profile(
     - Unlocked count / total
     - Next closest achievement (urgency bar)
     """
-    all_achs = (await db.execute(
+    all_achs_raw = (await db.execute(
         select(Achievement).order_by(Achievement.sort_order)
     )).scalars().all()
+    # Hide placeholders from the profile payload so the global progression
+    # percentage exposed to the UI reflects only attainable achievements.
+    all_achs = [a for a in all_achs_raw if a.id not in PLACEHOLDER_IDS]
 
     ua_map = await _load_user_achievement_map(db, user_id)
 

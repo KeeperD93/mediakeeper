@@ -16,12 +16,14 @@ The implementation is split across specialized modules to keep each file under 3
 Consumers import from this file, not the split files, to keep the public API stable.
 """
 import logging
+import time
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.achievement import Achievement
 from models.playback_stats import PlaybackSession
 from services.portal.exclusions import get_exclusion_filters
+from services.portal.achievement_defs_constants import PLACEHOLDER_IDS
 from services.portal.achievements_utils import (
     MAX_PINNED_BADGES,
     update_progress,
@@ -43,6 +45,8 @@ __all__ = [
     "seed_achievements",
     "get_achievements_for_profile",
     "check_all_achievements",
+    "safe_check_all_achievements",
+    "safe_check_all_achievements_in_new_session",
     "update_progress",
     "pin_badge",
     "unpin_badge",
@@ -56,6 +60,15 @@ _BULK_PLAYBACK_CONDITIONS = (
     "total_watch_hours", "secret_indecisive", "secret_sunday",
     "secret_bgNoise", "secret_ultramarathon", "secret_butterfly",
 )
+
+
+async def _safe_pass(label: str, coro) -> list[dict]:
+    """Run one check pass and swallow exceptions so the others keep running."""
+    try:
+        return await coro
+    except Exception:
+        logger.exception("achievements check pass failed", extra={"pass": label})
+        return []
 
 
 async def check_all_achievements(
@@ -75,6 +88,11 @@ async def check_all_achievements(
     all_achs = (await db.execute(select(Achievement))).scalars().all()
     by_type: dict[str, list[Achievement]] = {}
     for a in all_achs:
+        # Skip placeholders: the DB still holds them (so legacy rows survive
+        # and the catalogue stays stable) but the runner does not waste
+        # a query on a check that always returns 0.
+        if a.id in PLACEHOLDER_IDS:
+            continue
         by_type.setdefault(a.condition_type, []).append(a)
 
     ua_map = await _load_user_achievement_map(db, user_id)
@@ -101,16 +119,82 @@ async def check_all_achievements(
         playback_rows=playback_rows,
     )
 
-    unlocks.extend(await check_standard(db, **common_kwargs))
-    unlocks.extend(await check_progression(db, **common_kwargs))
-    unlocks.extend(await check_secrets_a(db, **common_kwargs))
-    unlocks.extend(await check_secrets_b(db, all_achs=all_achs, **common_kwargs))
+    unlocks.extend(await _safe_pass("standard", check_standard(db, **common_kwargs)))
+    unlocks.extend(await _safe_pass("progression", check_progression(db, **common_kwargs)))
+    unlocks.extend(await _safe_pass("secrets_a", check_secrets_a(db, **common_kwargs)))
+    unlocks.extend(await _safe_pass(
+        "secrets_b", check_secrets_b(db, all_achs=all_achs, **common_kwargs)
+    ))
 
     # Refresh unlocked_ids so meta-achievements see freshly unlocked tiers
     # from the standard/secret passes above.
     unlocked_ids = {ach_id for ach_id, ua in ua_map.items() if ua.unlocked}
     common_kwargs["unlocked_ids"] = unlocked_ids
-    unlocks.extend(await check_meta(db, **common_kwargs))
+    unlocks.extend(await _safe_pass("meta", check_meta(db, **common_kwargs)))
 
     await db.commit()
     return unlocks
+
+
+async def safe_check_all_achievements(
+    db: AsyncSession,
+    user_id: int,
+    user_name: str | None,
+    source: str,
+    *,
+    silent: bool = True,
+) -> list[dict]:
+    """Best-effort wrapper around ``check_all_achievements``.
+
+    Logs a structured ``achievements run`` event with the call ``source``
+    and the duration in milliseconds, regardless of outcome. Failures are
+    swallowed when ``silent=True`` (the default for background triggers
+    fired from request handlers) so a regression in one check pass cannot
+    break the originating endpoint.
+
+    ``source`` is a free-form label; conventional values include
+    ``"login"``, ``"playback_close"``, ``"chat_message"``,
+    ``"request_created"``, ``"request_status_change"``, ``"ticket_created"``,
+    ``"avatar_changed"``, ``"event_created"``, ``"list_created"``,
+    ``"list_privacy_changed"``, ``"list_items_added"``,
+    ``"manual_check"``, ``"admin_recheck"``.
+    """
+    started = time.perf_counter()
+    unlocks: list[dict] = []
+    try:
+        unlocks = await check_all_achievements(db, user_id=user_id, user_name=user_name)
+    except Exception:
+        logger.exception(
+            "achievements run failed",
+            extra={"user_id": user_id, "source": source},
+        )
+        if not silent:
+            raise
+    finally:
+        duration_ms = round((time.perf_counter() - started) * 1000, 1)
+        logger.info(
+            "achievements run",
+            extra={
+                "user_id": user_id,
+                "source": source,
+                "duration_ms": duration_ms,
+                "unlocks": len(unlocks),
+            },
+        )
+    return unlocks
+
+
+async def safe_check_all_achievements_in_new_session(
+    user_id: int,
+    user_name: str | None,
+    source: str,
+) -> list[dict]:
+    """Convenience wrapper for FastAPI ``BackgroundTasks``: opens a fresh
+    DB session so the background work does not depend on the request-scoped
+    session, which may already be closed by the time the task runs.
+    Always silent (failures are logged, never raised)."""
+    from core.database import AsyncSessionLocal
+    async with AsyncSessionLocal() as db:
+        return await safe_check_all_achievements(
+            db, user_id=user_id, user_name=user_name, source=source, silent=True,
+        )

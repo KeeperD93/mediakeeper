@@ -1,5 +1,5 @@
 """Portal media request endpoints."""
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,6 +9,7 @@ from models.user import User
 from models.portal.profile import UserProfile
 from api.portal.deps import require_admin, require_permission
 from services.portal import requests as req_svc
+from services.portal.achievements import safe_check_all_achievements_in_new_session
 from services.portal.admin import get_portal_flag
 
 router = APIRouter(prefix="/requests", tags=["portal-requests"])
@@ -113,6 +114,7 @@ async def batch_status(
 @router.post("")
 async def create_request(
     data: CreateRequest,
+    background_tasks: BackgroundTasks,
     up: tuple[User, UserProfile] = Depends(require_permission("can_portal")),
     db: AsyncSession = Depends(get_db),
 ):
@@ -139,6 +141,12 @@ async def create_request(
     except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
         pass  # XP is best-effort, never blocks the request
 
+    background_tasks.add_task(
+        safe_check_all_achievements_in_new_session,
+        target_user_id,
+        None,
+        "request_created",
+    )
     return result
 
 
@@ -161,6 +169,7 @@ async def vote_request(
 async def update_status(
     request_id: int,
     data: StatusUpdate,
+    background_tasks: BackgroundTasks,
     admin: tuple[User, UserProfile] = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
@@ -170,6 +179,18 @@ async def update_status(
     )
     if "error" in result:
         raise HTTPException(status_code=404, detail=result["error"])
+
+    # Status flips can unlock community trophies for the original requester
+    # (e.g. ambassador on `approved`). Run in the background — the admin
+    # response should not wait on it. Skip if the requester was GDPR-purged.
+    requester_id = result.get("user_id")
+    if requester_id is not None:
+        background_tasks.add_task(
+            safe_check_all_achievements_in_new_session,
+            requester_id,
+            None,
+            "request_status_change",
+        )
     return result
 
 
