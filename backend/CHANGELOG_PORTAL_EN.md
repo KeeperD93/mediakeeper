@@ -15,6 +15,7 @@ This section intentionally has no date so it is not shown to users.
 ## [Unreleased]
 
 ### Added
+- "Lucky" achievements — unlock by using the Surprise Me button (4 tiers)
 - Credits — new page (TMDB, OpenSubtitles, Emby, Imgur, YouTube) reachable from the footer
 - Settings — Account tab shows the account expiry date (or "No limit")
 - Notifications — admins and moderators see flagged chat messages in the bell
