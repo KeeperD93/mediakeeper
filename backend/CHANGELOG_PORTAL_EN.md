@@ -15,6 +15,7 @@ This section intentionally has no date so it is not shown to users.
 ## [Unreleased]
 
 ### Added
+- "The Loner" and "In Sync" achievements — unlockable
 - "Time Traveler", "The Classic" and "The Purist" achievements — unlockable
 - "Lucky" achievements — unlock by using the Surprise Me button (4 tiers)
 - Credits — new page (TMDB, OpenSubtitles, Emby, Imgur, YouTube) reachable from the footer

@@ -13,6 +13,11 @@ from services.portal.achievements_utils import (
     _session_duration_seconds,
 )
 from services.portal.iso_lang_map import audio_matches_original
+from services.portal.playback_overlap import (
+    find_concurrent_other_user_session,
+    has_distinct_user_universe,
+    has_same_item_other_user_overlap,
+)
 
 
 async def check_secrets_b(
@@ -226,13 +231,65 @@ async def check_secrets_b(
         val = sum(1 for r in rows if audio_matches_original(r[0], r[1]))
         await _apply("secret_purist", val)
 
+    # --- secret_sync: same item watched concurrently with another user ---
+    # Anti-trivial guard: a single-user instance can never satisfy the
+    # "another user" clause; bail out early so a self-join across the
+    # same MK user's multi-device sessions cannot accidentally fire it.
+    if "secret_sync" in by_type:
+        if not await has_distinct_user_universe(db):
+            await _apply("secret_sync", 0)
+        else:
+            emby_uids = (await db.execute(
+                select(distinct(PlaybackSession.user_id)).where(user_filter)
+            )).scalars().all()
+            if not emby_uids:
+                await _apply("secret_sync", 0)
+            else:
+                hit = await has_same_item_other_user_overlap(db, list(emby_uids))
+                await _apply("secret_sync", 1 if hit else 0)
+
+    # --- secret_lonely: a NYE session (Dec 31 / Jan 1 UTC) with no
+    # overlapping session from any other user. Same anti-trivial guard
+    # as secret_sync — single-user instances skip the check entirely.
+    if "secret_lonely" in by_type:
+        if not await has_distinct_user_universe(db):
+            await _apply("secret_lonely", 0)
+        else:
+            candidate_rows = (await db.execute(
+                select(PlaybackSession).where(
+                    user_filter,
+                    or_(
+                        and_(
+                            func.extract("month", PlaybackSession.started_at) == 12,
+                            func.extract("day", PlaybackSession.started_at) == 31,
+                        ),
+                        and_(
+                            func.extract("month", PlaybackSession.started_at) == 1,
+                            func.extract("day", PlaybackSession.started_at) == 1,
+                        ),
+                    ),
+                    *excl_filters,
+                )
+            )).scalars().all()
+
+            unlocked = False
+            for row in candidate_rows:
+                if await find_concurrent_other_user_session(
+                    db,
+                    user_id=row.user_id,
+                    started_at=row.started_at,
+                    ended_at=row.ended_at,
+                ):
+                    continue
+                unlocked = True
+                break
+            await _apply("secret_lonely", 1 if unlocked else 0)
+
     # --- Placeholders (need real-time data or external APIs) ---
     for placeholder_type in (
         "secret_pilot",      # TODO: needs Emby "recently added" timestamp
-        "secret_lonely",     # TODO: needs real-time active session count
         "secret_late",       # TODO: needs Emby "date added" metadata
         "secret_pipi",       # TODO: needs pause/resume event tracking
-        "secret_sync",       # TODO: needs real-time session overlap detection
         "secret_king",       # TODO: needs monthly leaderboard history tracking
     ):
         await _apply(placeholder_type, 0)

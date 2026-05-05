@@ -17,6 +17,7 @@ utilisateurs.
 ## [Unreleased]
 
 ### Added
+- Trophées « Le Solitaire » et « Le Synchronisé » — débloquables
 - Trophées « Voyageur temporel », « Le Classique », « Le Puriste » — débloquables
 - Trophées « Coup de chance » — débloquables via l'utilisation du bouton Surprends-moi (4 paliers)
 - Crédits — nouvelle page (TMDB, OpenSubtitles, Emby, Imgur, YouTube) accessible depuis le pied de page
