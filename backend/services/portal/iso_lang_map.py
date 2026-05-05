@@ -28,7 +28,7 @@ ISO_639_1_TO_2: dict[str, str] = {
     "zh": "chi",
     "ar": "ara",
     "hi": "hin",
-    "nl": "dul",
+    "nl": "dut",
     "sv": "swe",
     "tr": "tur",
     "pl": "pol",
