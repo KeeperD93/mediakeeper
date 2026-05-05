@@ -21,7 +21,7 @@ def _read_manifest(zip_path: Path) -> dict:
         with zipfile.ZipFile(zip_path) as zf:
             if "manifest.json" in zf.namelist():
                 return json.loads(zf.read("manifest.json"))
-    except Exception:
+    except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
         pass
     return {}
 

@@ -46,20 +46,26 @@
     <div class="arr-toolbar">
       <div class="arr-pills">
         <button
-          v-for="st in filters" :key="st.value"
+          v-for="st in filters"
+          :key="st.value"
           type="button"
           class="arr-pill"
           :class="{ 'arr-pill--active': filter === st.value }"
           @click="setFilter(st.value)"
-        >{{ $t(st.label) }}</button>
+        >
+          {{ $t(st.label) }}
+        </button>
         <span class="arr-pills-sep" aria-hidden="true" />
         <button
-          v-for="tp in typeFilters" :key="tp.value || 'all'"
+          v-for="tp in typeFilters"
+          :key="tp.value || 'all'"
           type="button"
           class="arr-pill"
           :class="{ 'arr-pill--active': typeFilter === tp.value }"
           @click="typeFilter = tp.value"
-        >{{ $t(tp.label) }}</button>
+        >
+          {{ $t(tp.label) }}
+        </button>
       </div>
       <select v-model="sortKey" class="arr-sort">
         <option value="recent">{{ $t('portal.admin.req.sortRecent') }}</option>
@@ -158,10 +164,7 @@ async function setFilter(value) {
 async function load() {
   loading.value = true
   try {
-    await Promise.all([
-      fetchAdminRequests(filter.value || null),
-      fetchStats(),
-    ])
+    await Promise.all([fetchAdminRequests(filter.value || null), fetchStats()])
   } finally {
     loading.value = false
   }

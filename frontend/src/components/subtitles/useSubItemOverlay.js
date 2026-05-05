@@ -38,7 +38,10 @@ export function useSubItemOverlay(props, emit) {
   }
 
   async function loadDetails() {
-    if (!props.item?.item_id) { subs.value = []; return }
+    if (!props.item?.item_id) {
+      subs.value = []
+      return
+    }
     subs.value = null
     audio.value = []
     results.value = []
@@ -64,7 +67,10 @@ export function useSubItemOverlay(props, emit) {
     searching.value = true
     results.value = []
     try {
-      const body = { query: props.item.series_name || props.item.name, languages: defaultLanguagesParam.value }
+      const body = {
+        query: props.item.series_name || props.item.name,
+        languages: defaultLanguagesParam.value,
+      }
       if (props.item.type === 'Movie') {
         if (props.item.tmdb_id) body.tmdb_id = String(props.item.tmdb_id)
         if (props.item.imdb_id) body.imdb_id = props.item.imdb_id
@@ -78,7 +84,9 @@ export function useSubItemOverlay(props, emit) {
       const d = await apiPost('/api/subtitles/search', body)
       if (d && d.results) results.value = d.results
       if (!results.value.length) showToast(t('common.noResults'), TOAST_TYPE.INFO)
-    } catch { showToast(t('common.error'), TOAST_TYPE.ERR) }
+    } catch {
+      showToast(t('common.error'), TOAST_TYPE.ERR)
+    }
     searching.value = false
   }
 
@@ -95,15 +103,26 @@ export function useSubItemOverlay(props, emit) {
     lastDlResult.value = null
     try {
       const d = await apiPost('/api/subtitles/download', {
-        file_id: result.file_id, destination: dest, item_id: props.item.item_id,
-        media_name: props.item.series_name ? `${props.item.series_name} — ${props.item.name}` : props.item.name,
-        media_type: props.item.type, series_name: props.item.series_name || '',
-        season: props.item.season || 0, episode: props.item.episode || 0,
-        subtitle_id: result.subtitle_id || '', file_name: result.file_name || '',
-        language: result.language || '', quality_score: result.quality_score || 0,
-        hash_match: result.hash_match || false, hearing_impaired: result.hearing_impaired || false,
-        foreign_parts_only: result.foreign_parts_only || false, from_trusted: result.from_trusted || false,
-        ai_translated: result.ai_translated || false, media_duration_sec: mediaDuration.value,
+        file_id: result.file_id,
+        destination: dest,
+        item_id: props.item.item_id,
+        media_name: props.item.series_name
+          ? `${props.item.series_name} — ${props.item.name}`
+          : props.item.name,
+        media_type: props.item.type,
+        series_name: props.item.series_name || '',
+        season: props.item.season || 0,
+        episode: props.item.episode || 0,
+        subtitle_id: result.subtitle_id || '',
+        file_name: result.file_name || '',
+        language: result.language || '',
+        quality_score: result.quality_score || 0,
+        hash_match: result.hash_match || false,
+        hearing_impaired: result.hearing_impaired || false,
+        foreign_parts_only: result.foreign_parts_only || false,
+        from_trusted: result.from_trusted || false,
+        ai_translated: result.ai_translated || false,
+        media_duration_sec: mediaDuration.value,
       })
       if (d && d.success) {
         showToast(t('subtitles.downloaded'), TOAST_TYPE.OK)
@@ -111,8 +130,12 @@ export function useSubItemOverlay(props, emit) {
         loadQuota()
         emit('downloaded')
         await loadDetails()
-      } else if (d && d.error) { showToast(translateError(d.error), TOAST_TYPE.ERR) }
-    } catch { showToast(t('common.error'), TOAST_TYPE.ERR) }
+      } else if (d && d.error) {
+        showToast(translateError(d.error), TOAST_TYPE.ERR)
+      }
+    } catch {
+      showToast(t('common.error'), TOAST_TYPE.ERR)
+    }
     downloading.value = null
   }
 
@@ -125,7 +148,9 @@ export function useSubItemOverlay(props, emit) {
         showToast(t('common.success'), TOAST_TYPE.OK)
         subs.value = subs.value.filter(s => s.index !== sub.index)
       }
-    } catch (e) { console.warn('[useSubItemOverlay.deleteSub] delete failed', e) }
+    } catch (e) {
+      console.warn('[useSubItemOverlay.deleteSub] delete failed', e)
+    }
     removing.value = false
   }
 
@@ -155,8 +180,12 @@ export function useSubItemOverlay(props, emit) {
         showToast(t('subtitles.streamsRemoved', { count: d.removed_count }), TOAST_TYPE.OK)
         removeSelection.value = []
         await loadDetails()
-      } else if (d && d.error) { showToast(translateError(d.error), TOAST_TYPE.ERR) }
-    } catch { showToast(t('common.error'), TOAST_TYPE.ERR) }
+      } else if (d && d.error) {
+        showToast(translateError(d.error), TOAST_TYPE.ERR)
+      }
+    } catch {
+      showToast(t('common.error'), TOAST_TYPE.ERR)
+    }
     removing.value = false
   }
 
@@ -171,7 +200,9 @@ export function useSubItemOverlay(props, emit) {
         showToast(t('subtitles.shiftDone', { ms: shiftMs.value }), TOAST_TYPE.OK)
         shiftMs.value = 0
       } else if (d && d.error) showToast(translateError(d.error), TOAST_TYPE.ERR)
-    } catch { showToast(t('common.error'), TOAST_TYPE.ERR) }
+    } catch {
+      showToast(t('common.error'), TOAST_TYPE.ERR)
+    }
   }
 
   function formatChannels(ch) {
@@ -187,9 +218,24 @@ export function useSubItemOverlay(props, emit) {
   })
 
   return {
-    subs, audio, results, searching, downloading, lastDlResult, shiftMs,
-    removing, removeSelection, compareSelection, showComparator,
-    toggleCompareSelect, searchItem, downloadItem, deleteSub,
-    toggleRemove, batchRemove, doShift, formatChannels,
+    subs,
+    audio,
+    results,
+    searching,
+    downloading,
+    lastDlResult,
+    shiftMs,
+    removing,
+    removeSelection,
+    compareSelection,
+    showComparator,
+    toggleCompareSelect,
+    searchItem,
+    downloadItem,
+    deleteSub,
+    toggleRemove,
+    batchRemove,
+    doShift,
+    formatChannels,
   }
 }

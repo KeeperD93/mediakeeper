@@ -25,7 +25,7 @@ async def get_calendar(db: AsyncSession, year: int, month: int) -> list[dict]:
             items = json.loads(raw)
             _calendar_cache[cache_key] = items
             return items
-        except Exception:
+        except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
             pass
 
     items = await _build_calendar(db, year, month)

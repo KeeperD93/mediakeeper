@@ -1,12 +1,7 @@
 <template>
   <Teleport to="body">
     <transition name="pt-force-fade">
-      <div
-        v-if="open"
-        class="pt-force-uname-overlay"
-        role="dialog"
-        aria-modal="true"
-      >
+      <div v-if="open" class="pt-force-uname-overlay" role="dialog" aria-modal="true">
         <div class="pt-force-uname-panel" tabindex="-1">
           <h2 class="pt-force-uname-title">{{ $t('portal.settings.forceUsername.title') }}</h2>
           <p class="pt-force-uname-sub">{{ $t('portal.settings.forceUsername.subtitle') }}</p>
@@ -35,17 +30,16 @@
             {{ $t(errorKey) }}
           </p>
 
-          <div
-            v-if="usernameCheck.suggestions.length"
-            class="pt-settings-uname-suggestions"
-          >
+          <div v-if="usernameCheck.suggestions.length" class="pt-settings-uname-suggestions">
             <button
               v-for="s in usernameCheck.suggestions"
               :key="s"
               type="button"
               class="pt-settings-uname-chip"
               @click="pickSuggestion(s)"
-            >{{ s }}</button>
+            >
+              {{ s }}
+            </button>
           </div>
 
           <div class="pt-settings-savebar-actions pt-settings-uname-actions">
@@ -55,7 +49,11 @@
               :disabled="!canSave"
               @click="confirm"
             >
-              {{ saving ? $t('portal.settings.forceUsername.saving') : $t('portal.settings.forceUsername.save') }}
+              {{
+                saving
+                  ? $t('portal.settings.forceUsername.saving')
+                  : $t('portal.settings.forceUsername.save')
+              }}
             </button>
           </div>
         </div>
@@ -88,37 +86,52 @@ const inputRef = ref(null)
 const saving = ref(false)
 const errorKey = ref(null)
 const usernameCheck = reactive({
-  pending: false, available: null, reason: null, suggestions: [],
+  pending: false,
+  available: null,
+  reason: null,
+  suggestions: [],
 })
 
 let timer = null
 
-watch(() => props.open, async (open) => {
-  if (!open) return
-  candidate.value = profile.value?.display_name || ''
-  errorKey.value = null
-  usernameCheck.available = null
-  usernameCheck.reason = null
-  usernameCheck.suggestions = []
-  await nextTick()
-  inputRef.value?.focus()
-  inputRef.value?.select()
-})
+watch(
+  () => props.open,
+  async open => {
+    if (!open) return
+    candidate.value = profile.value?.display_name || ''
+    errorKey.value = null
+    usernameCheck.available = null
+    usernameCheck.reason = null
+    usernameCheck.suggestions = []
+    await nextTick()
+    inputRef.value?.focus()
+    inputRef.value?.select()
+  },
+)
 
 const state = computed(() => {
   const trimmed = candidate.value.trim()
   if (!trimmed) return { flag: false }
   if (usernameCheck.pending) {
-    return { flag: true, flagClass: 'pt-settings-uname-flag--warn',
-      flagText: t('portal.settings.forceUsername.checking') }
+    return {
+      flag: true,
+      flagClass: 'pt-settings-uname-flag--warn',
+      flagText: t('portal.settings.forceUsername.checking'),
+    }
   }
   if (usernameCheck.reason === 'taken') {
-    return { flag: true, flagClass: 'pt-settings-uname-flag--err',
-      flagText: t('portal.settings.forceUsername.taken') }
+    return {
+      flag: true,
+      flagClass: 'pt-settings-uname-flag--err',
+      flagText: t('portal.settings.forceUsername.taken'),
+    }
   }
   if (usernameCheck.available) {
-    return { flag: true, flagClass: 'pt-settings-uname-flag--ok',
-      flagText: t('portal.settings.forceUsername.available') }
+    return {
+      flag: true,
+      flagClass: 'pt-settings-uname-flag--ok',
+      flagText: t('portal.settings.forceUsername.available'),
+    }
   }
   return { flag: false }
 })
@@ -208,5 +221,7 @@ async function confirm() {
   transition: opacity var(--portal-dur-base) var(--portal-ease-default);
 }
 .pt-force-fade-enter-from,
-.pt-force-fade-leave-to { opacity: 0; }
+.pt-force-fade-leave-to {
+  opacity: 0;
+}
 </style>

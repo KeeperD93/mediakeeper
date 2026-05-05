@@ -9,7 +9,13 @@
         :aria-label="t('search.placeholder')"
         @click.self="close"
       >
-        <div ref="modalRef" class="sm-modal" tabindex="-1" @click.stop @keydown="handleModalKeydown">
+        <div
+          ref="modalRef"
+          class="sm-modal"
+          tabindex="-1"
+          @click.stop
+          @keydown="handleModalKeydown"
+        >
           <!-- Search input -->
           <div class="sm-input-wrap">
             <Search class="sm-input-icon" :size="18" />
@@ -24,12 +30,7 @@
               @keydown.enter.prevent="selectCurrent"
               @keydown.escape="close"
             />
-            <button
-              type="button"
-              class="sm-close"
-              :aria-label="t('common.close')"
-              @click="close"
-            >
+            <button type="button" class="sm-close" :aria-label="t('common.close')" @click="close">
               <X :size="16" />
             </button>
             <kbd class="sm-esc">Esc</kbd>
@@ -63,9 +64,18 @@
 
           <!-- Hints -->
           <div class="sm-footer">
-            <span class="sm-hint"><kbd>↑↓</kbd> {{ t('search.navigate') }}</span>
-            <span class="sm-hint"><kbd>↵</kbd> {{ t('search.open') }}</span>
-            <span class="sm-hint"><kbd>esc</kbd> {{ t('search.closeHint') }}</span>
+            <span class="sm-hint">
+              <kbd>↑↓</kbd>
+              {{ t('search.navigate') }}
+            </span>
+            <span class="sm-hint">
+              <kbd>↵</kbd>
+              {{ t('search.open') }}
+            </span>
+            <span class="sm-hint">
+              <kbd>esc</kbd>
+              {{ t('search.closeHint') }}
+            </span>
           </div>
         </div>
       </div>
@@ -124,41 +134,98 @@ const PAGE_ICONS = {
 }
 
 const PAGES = computed(() => [
-  { path: '/', title: t('sidebar.dashboard'), subtitle: t('dashboard.subtitle'), icon: PAGE_ICONS['/'] },
-  { path: '/stats', title: t('sidebar.statistics'), subtitle: t('stats.title'), icon: PAGE_ICONS['/stats'] },
-  { path: '/watchlist', title: t('sidebar.watchlist'), subtitle: t('watchlist.title'), icon: PAGE_ICONS['/watchlist'] },
-  { path: '/media-manager', title: t('sidebar.mediaManager'), subtitle: t('mediaManager.title'), icon: PAGE_ICONS['/media-manager'] },
-  { path: '/duplicates', title: t('sidebar.duplicates'), subtitle: t('duplicates.title'), icon: PAGE_ICONS['/duplicates'] },
-  { path: '/notifications', title: t('sidebar.notifications'), subtitle: t('notifications.title'), icon: PAGE_ICONS['/notifications'] },
-  { path: '/tracker', title: t('sidebar.tracker'), subtitle: t('sidebar.tracker'), icon: PAGE_ICONS['/tracker'] },
-  { path: '/portal', title: t('sidebar.requests'), subtitle: t('sidebar.requests'), icon: PAGE_ICONS['/portal'] },
-  { path: '/settings', title: t('sidebar.settings'), subtitle: t('settings.title'), icon: PAGE_ICONS['/settings'] },
+  {
+    path: '/',
+    title: t('sidebar.dashboard'),
+    subtitle: t('dashboard.subtitle'),
+    icon: PAGE_ICONS['/'],
+  },
+  {
+    path: '/stats',
+    title: t('sidebar.statistics'),
+    subtitle: t('stats.title'),
+    icon: PAGE_ICONS['/stats'],
+  },
+  {
+    path: '/watchlist',
+    title: t('sidebar.watchlist'),
+    subtitle: t('watchlist.title'),
+    icon: PAGE_ICONS['/watchlist'],
+  },
+  {
+    path: '/media-manager',
+    title: t('sidebar.mediaManager'),
+    subtitle: t('mediaManager.title'),
+    icon: PAGE_ICONS['/media-manager'],
+  },
+  {
+    path: '/duplicates',
+    title: t('sidebar.duplicates'),
+    subtitle: t('duplicates.title'),
+    icon: PAGE_ICONS['/duplicates'],
+  },
+  {
+    path: '/notifications',
+    title: t('sidebar.notifications'),
+    subtitle: t('notifications.title'),
+    icon: PAGE_ICONS['/notifications'],
+  },
+  {
+    path: '/tracker',
+    title: t('sidebar.tracker'),
+    subtitle: t('sidebar.tracker'),
+    icon: PAGE_ICONS['/tracker'],
+  },
+  {
+    path: '/portal',
+    title: t('sidebar.requests'),
+    subtitle: t('sidebar.requests'),
+    icon: PAGE_ICONS['/portal'],
+  },
+  {
+    path: '/settings',
+    title: t('sidebar.settings'),
+    subtitle: t('settings.title'),
+    icon: PAGE_ICONS['/settings'],
+  },
   { path: '/logs', title: t('sidebar.logs'), subtitle: t('logs.title'), icon: PAGE_ICONS['/logs'] },
 ])
 
 const filtered = computed(() => {
   if (!query.value) return PAGES.value
-  const q = query.value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  const q = query.value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
   return PAGES.value.filter(p => {
-    const t = (p.title + ' ' + p.subtitle).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    const t = (p.title + ' ' + p.subtitle)
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
     return t.includes(q)
   })
 })
 
-watch(query, () => { activeIndex.value = 0 })
-
-watch(() => props.visible, async (v) => {
-  if (v) {
-    lastFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null
-    query.value = ''
-    activeIndex.value = 0
-    await nextTick()
-    inputRef.value?.focus()
-  } else if (lastFocusedElement) {
-    lastFocusedElement.focus?.()
-    lastFocusedElement = null
-  }
+watch(query, () => {
+  activeIndex.value = 0
 })
+
+watch(
+  () => props.visible,
+  async v => {
+    if (v) {
+      lastFocusedElement =
+        document.activeElement instanceof HTMLElement ? document.activeElement : null
+      query.value = ''
+      activeIndex.value = 0
+      await nextTick()
+      inputRef.value?.focus()
+    } else if (lastFocusedElement) {
+      lastFocusedElement.focus?.()
+      lastFocusedElement = null
+    }
+  },
+)
 
 onBeforeUnmount(() => {
   if (lastFocusedElement) lastFocusedElement.focus?.()
@@ -197,7 +264,7 @@ function handleModalKeydown(event) {
   const focusable = modalRef.value?.querySelectorAll(
     'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
   )
-  const elements = Array.from(focusable || []).filter((el) => el.offsetParent !== null)
+  const elements = Array.from(focusable || []).filter(el => el.offsetParent !== null)
   if (elements.length === 0) {
     event.preventDefault()
     modalRef.value?.focus?.()

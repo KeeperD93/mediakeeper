@@ -133,7 +133,7 @@ def _parse_fields(tmpl: str) -> tuple[str, list]:
     if match:
         try:
             fields = json.loads(match.group(1))
-        except Exception:
+        except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
             pass
         tmpl = tmpl[:match.start()] + tmpl[match.end():]
     return tmpl.strip(), fields

@@ -20,8 +20,11 @@ const playbackRef = ref(null)
 
 onMounted(async () => {
   await Promise.all([
-    loadTotals(), loadSparklines(), loadRecords(),
-    loadLibraries(), loadMinimap24h(),
+    loadTotals(),
+    loadSparklines(),
+    loadRecords(),
+    loadLibraries(),
+    loadMinimap24h(),
   ])
   playbackRef.value?.loadPlaybackAndResolve(365)
 })

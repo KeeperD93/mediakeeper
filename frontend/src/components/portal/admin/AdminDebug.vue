@@ -13,17 +13,21 @@
           :disabled="recheckLoading"
           @click="recheckAllAchievements"
         >
-          {{ recheckLoading
-            ? $t('portal.admin.debug.recheckRunning')
-            : $t('portal.admin.debug.recheckApply') }}
+          {{
+            recheckLoading
+              ? $t('portal.admin.debug.recheckRunning')
+              : $t('portal.admin.debug.recheckApply')
+          }}
         </button>
       </div>
       <p v-if="recheckResult" class="pt-debug-recheck-summary">
-        {{ $t('portal.admin.debug.recheckResult', {
-          users: recheckResult.users_processed,
-          updated: recheckResult.users_with_new_unlocks,
-          unlocks: recheckResult.total_new_unlocks,
-        }) }}
+        {{
+          $t('portal.admin.debug.recheckResult', {
+            users: recheckResult.users_processed,
+            updated: recheckResult.users_with_new_unlocks,
+            unlocks: recheckResult.total_new_unlocks,
+          })
+        }}
       </p>
     </section>
 
@@ -44,18 +48,22 @@
           :disabled="!resetAchievementId || resetLoading"
           @click="resetAchievementForAll"
         >
-          {{ resetLoading
-            ? $t('portal.admin.debug.resetForAllRunning')
-            : $t('portal.admin.debug.resetForAllApply') }}
+          {{
+            resetLoading
+              ? $t('portal.admin.debug.resetForAllRunning')
+              : $t('portal.admin.debug.resetForAllApply')
+          }}
         </button>
       </div>
       <p v-if="resetResult" class="pt-debug-recheck-summary">
-        {{ $t('portal.admin.debug.resetForAllResult', {
-          ach: resetResult.achievement_id,
-          ua: resetResult.user_achievements_removed,
-          xp: resetResult.xp_ledger_removed,
-          profiles: resetResult.profiles_rebuilt,
-        }) }}
+        {{
+          $t('portal.admin.debug.resetForAllResult', {
+            ach: resetResult.achievement_id,
+            ua: resetResult.user_achievements_removed,
+            xp: resetResult.xp_ledger_removed,
+            profiles: resetResult.profiles_rebuilt,
+          })
+        }}
       </p>
     </section>
 
@@ -66,7 +74,8 @@
       <select v-model.number="selectedUserId" class="pt-debug-select">
         <option :value="null" disabled>—</option>
         <option v-for="u in users" :key="u.user_id" :value="u.user_id">
-          {{ u.display_name }}<span v-if="u.role === 'admin'"> · admin</span>
+          {{ u.display_name }}
+          <span v-if="u.role === 'admin'">· admin</span>
           · L{{ u.level }} · {{ u.xp.toLocaleString() }} XP
         </option>
       </select>
@@ -100,7 +109,9 @@
           class="pt-debug-btn pt-debug-btn--primary"
           :disabled="!selectedUserId || !xpAmount"
           @click="applyXp"
-        >{{ $t('portal.admin.debug.xpApply') }}</button>
+        >
+          {{ $t('portal.admin.debug.xpApply') }}
+        </button>
       </div>
     </section>
 
@@ -123,7 +134,9 @@
           class="pt-debug-btn pt-debug-btn--primary"
           :disabled="!selectedUserId || levelTarget == null"
           @click="applyLevel"
-        >{{ $t('portal.admin.debug.levelApply') }}</button>
+        >
+          {{ $t('portal.admin.debug.levelApply') }}
+        </button>
       </div>
     </section>
 
@@ -146,11 +159,7 @@
       </div>
 
       <div class="pt-debug-ach-list">
-        <div
-          v-for="ach in filteredAchievements"
-          :key="ach.id"
-          class="pt-debug-ach-row"
-        >
+        <div v-for="ach in filteredAchievements" :key="ach.id" class="pt-debug-ach-row">
           <div class="pt-debug-ach-meta">
             <span class="pt-debug-ach-name">
               {{ ach.secret ? '???' : $t(ach.name_key) }}
@@ -163,13 +172,17 @@
               class="pt-debug-btn pt-debug-btn--small"
               :disabled="!selectedUserId"
               @click="unlockAch(ach)"
-            >{{ $t('portal.admin.debug.achievementUnlock') }}</button>
+            >
+              {{ $t('portal.admin.debug.achievementUnlock') }}
+            </button>
             <button
               type="button"
               class="pt-debug-btn pt-debug-btn--small pt-debug-btn--danger"
               :disabled="!selectedUserId"
               @click="lockAch(ach)"
-            >{{ $t('portal.admin.debug.achievementLock') }}</button>
+            >
+              {{ $t('portal.admin.debug.achievementLock') }}
+            </button>
           </div>
         </div>
       </div>
@@ -208,13 +221,13 @@ const resetLoading = ref(false)
 const resetResult = ref(null)
 
 const categories = computed(() => {
-  const set = new Set(achievements.value.map((a) => a.category).filter(Boolean))
+  const set = new Set(achievements.value.map(a => a.category).filter(Boolean))
   return Array.from(set).sort()
 })
 
 const filteredAchievements = computed(() => {
   const q = achQuery.value.trim().toLowerCase()
-  return achievements.value.filter((a) => {
+  return achievements.value.filter(a => {
     if (achCategory.value && a.category !== achCategory.value) return false
     if (!q) return true
     const name = a.secret ? '???' : t(a.name_key).toLowerCase()
@@ -233,7 +246,7 @@ async function loadAchievements() {
 }
 
 function syncSelectedFromResponse(body) {
-  const user = users.value.find((u) => u.user_id === selectedUserId.value)
+  const user = users.value.find(u => u.user_id === selectedUserId.value)
   if (user && body?.xp != null) {
     user.xp = body.xp
     user.level = body.level

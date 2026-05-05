@@ -1,6 +1,10 @@
 /* RequestsUsersView — admin table for the portal user pool. */
 
-.ru { padding: 1.5rem 2rem; max-width: 1200px; margin: 0 auto; }
+.ru {
+  padding: 1.5rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
 .ru-header {
   display: flex;
   align-items: flex-start;
@@ -8,8 +12,16 @@
   margin-bottom: 1.5rem;
   gap: 1rem;
 }
-.ru-header h1 { font-size: var(--text-lg); font-weight: var(--font-extrabold); color: var(--text-primary); }
-.ru-sub { color: var(--text-secondary); font-size: var(--text-sm); margin-top: 0.2rem; }
+.ru-header h1 {
+  font-size: var(--text-lg);
+  font-weight: var(--font-extrabold);
+  color: var(--text-primary);
+}
+.ru-sub {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  margin-top: 0.2rem;
+}
 
 .ru-btn {
   display: inline-flex;
@@ -23,13 +35,21 @@
   cursor: pointer;
   transition: opacity var(--duration-fast);
 }
-.ru-btn:hover:not(:disabled) { opacity: 0.88; }
-.ru-btn:disabled { opacity: 0.5; cursor: default; }
-.ru-btn--primary { background: var(--accent); color: #fff; }
+.ru-btn:hover:not(:disabled) {
+  opacity: 0.88;
+}
+.ru-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.ru-btn--primary {
+  background: var(--accent);
+  color: #fff;
+}
 
 .ru-import-result {
-  background: rgba(34, 197, 94, 0.1);
-  border: 1px solid rgba(34, 197, 94, 0.3);
+  background: rgb(34, 197, 94, 0.1);
+  border: 1px solid rgb(34, 197, 94, 0.3);
   color: #22c55e;
   border-radius: var(--radius-sm);
   padding: 0.6rem 1rem;
@@ -37,12 +57,21 @@
   font-size: var(--text-sm);
 }
 
-.ru-loading { padding: 2rem; text-align: center; color: var(--text-muted); }
+.ru-loading {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-muted);
+}
 
 /* Mobile: horizontal scroll for dense admin data — a 7-column user
    table can't meaningfully become a card layout. */
 @media (max-width: 767px) {
-  .ru-table { min-width: 720px; display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .ru-table {
+    min-width: 720px;
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 .ru-table {
@@ -68,11 +97,21 @@
   font-size: var(--text-2xs);
   letter-spacing: var(--tracking-widest);
 }
-.ru-table tbody tr:last-child td { border-bottom: none; }
-.ru-col-actions { width: 1%; }
+.ru-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.ru-col-actions {
+  width: 1%;
+}
 
-.ru-name { font-weight: var(--font-medium); color: var(--text-primary); }
-.ru-username { font-size: var(--text-2xs); color: var(--text-muted); }
+.ru-name {
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+}
+.ru-username {
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
+}
 
 .ru-select {
   background: var(--bg-tertiary);
@@ -89,7 +128,11 @@
   width: 36px;
   height: 20px;
 }
-.ru-switch input { opacity: 0; width: 0; height: 0; }
+.ru-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
 .ru-switch span {
   position: absolute;
   cursor: pointer;
@@ -101,14 +144,20 @@
 .ru-switch span::before {
   content: '';
   position: absolute;
-  height: 14px; width: 14px;
-  left: 3px; top: 3px;
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  top: 3px;
   background: #fff;
   border-radius: 50%;
   transition: transform var(--duration-base);
 }
-.ru-switch input:checked + span { background: var(--accent); }
-.ru-switch input:checked + span::before { transform: translateX(16px); }
+.ru-switch input:checked + span {
+  background: var(--accent);
+}
+.ru-switch input:checked + span::before {
+  transform: translateX(16px);
+}
 
 .ru-icon-btn {
   background: transparent;
@@ -122,7 +171,17 @@
   justify-content: center;
   cursor: pointer;
 }
-.ru-icon-btn:hover { background: var(--bg-tertiary); }
-.ru-icon-btn--danger:hover { background: rgba(239, 68, 68, 0.15); color: #ef4444; border-color: rgba(239, 68, 68, 0.4); }
+.ru-icon-btn:hover {
+  background: var(--bg-tertiary);
+}
+.ru-icon-btn--danger:hover {
+  background: rgb(239, 68, 68, 0.15);
+  color: #ef4444;
+  border-color: rgb(239, 68, 68, 0.4);
+}
 
-.ru-empty { text-align: center; color: var(--text-muted); padding: 2rem; }
+.ru-empty {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 2rem;
+}

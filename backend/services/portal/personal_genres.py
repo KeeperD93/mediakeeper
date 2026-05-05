@@ -112,7 +112,7 @@ async def _fetch_genres_per_play(
                     fallback[gid] += weight
                 else:
                     primary[gid] += weight
-        except Exception:
+        except Exception:  # noqa: S112 -- intentional best-effort iteration, skip individual failure
             continue
     return primary, fallback
 

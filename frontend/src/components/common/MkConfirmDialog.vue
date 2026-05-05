@@ -54,23 +54,33 @@ const cancelLabel = computed(() => state.value.cancelLabel || t('common.cancel')
 
 function onKey(e) {
   if (!state.value.open) return
-  if (e.key === 'Escape') { e.preventDefault(); cancel() }
-  else if (e.key === 'Enter') { e.preventDefault(); accept() }
+  if (e.key === 'Escape') {
+    e.preventDefault()
+    cancel()
+  } else if (e.key === 'Enter') {
+    e.preventDefault()
+    accept()
+  }
 }
 
-watch(() => state.value.open, async (v) => {
-  if (v) {
-    window.addEventListener('keydown', onKey)
-    await nextTick()
-    cancelBtn.value?.focus()
-  } else {
-    window.removeEventListener('keydown', onKey)
-  }
-})
+watch(
+  () => state.value.open,
+  async v => {
+    if (v) {
+      window.addEventListener('keydown', onKey)
+      await nextTick()
+      cancelBtn.value?.focus()
+    } else {
+      window.removeEventListener('keydown', onKey)
+    }
+  },
+)
 </script>
 
 <style scoped>
-.mk-confirm-overlay { z-index: 10000; }
+.mk-confirm-overlay {
+  z-index: 10000;
+}
 
 .mk-confirm-panel {
   background: var(--bg-secondary);
@@ -112,7 +122,10 @@ watch(() => state.value.open, async (v) => {
   border: 1px solid transparent;
   cursor: pointer;
   font-family: inherit;
-  transition: background var(--duration-base), color var(--duration-base), border-color var(--duration-base);
+  transition:
+    background var(--duration-base),
+    color var(--duration-base),
+    border-color var(--duration-base);
   min-width: 96px;
 }
 
@@ -122,37 +135,48 @@ watch(() => state.value.open, async (v) => {
   border-color: var(--border-default);
 }
 @media (hover: hover) {
-  .mk-confirm-btn-cancel:hover { color: var(--text-primary); border-color: var(--border-strong); }
+  .mk-confirm-btn-cancel:hover {
+    color: var(--text-primary);
+    border-color: var(--border-strong);
+  }
 }
 
 .mk-confirm-btn-info {
-  background: rgba(var(--accent-rgb), 0.15);
+  background: rgb(var(--accent-rgb), 0.15);
   color: var(--accent-300);
-  border-color: rgba(var(--accent-rgb), 0.25);
+  border-color: rgb(var(--accent-rgb), 0.25);
 }
 @media (hover: hover) {
-  .mk-confirm-btn-info:hover { background: rgba(var(--accent-rgb), 0.25); }
+  .mk-confirm-btn-info:hover {
+    background: rgb(var(--accent-rgb), 0.25);
+  }
 }
 
 .mk-confirm-btn-warn {
-  background: rgba(var(--color-warning-rgb), 0.15);
+  background: rgb(var(--color-warning-rgb), 0.15);
   color: var(--color-warning);
-  border-color: rgba(var(--color-warning-rgb), 0.3);
+  border-color: rgb(var(--color-warning-rgb), 0.3);
 }
 @media (hover: hover) {
-  .mk-confirm-btn-warn:hover { background: rgba(var(--color-warning-rgb), 0.25); }
+  .mk-confirm-btn-warn:hover {
+    background: rgb(var(--color-warning-rgb), 0.25);
+  }
 }
 
 .mk-confirm-btn-danger {
-  background: rgba(var(--color-error-rgb), 0.15);
+  background: rgb(var(--color-error-rgb), 0.15);
   color: var(--color-error);
-  border-color: rgba(var(--color-error-rgb), 0.3);
+  border-color: rgb(var(--color-error-rgb), 0.3);
 }
 @media (hover: hover) {
-  .mk-confirm-btn-danger:hover { background: rgba(var(--color-error-rgb), 0.25); }
+  .mk-confirm-btn-danger:hover {
+    background: rgb(var(--color-error-rgb), 0.25);
+  }
 }
 
 @media (min-width: 768px) {
-  .mk-confirm-panel { padding: 24px; }
+  .mk-confirm-panel {
+    padding: 24px;
+  }
 }
 </style>

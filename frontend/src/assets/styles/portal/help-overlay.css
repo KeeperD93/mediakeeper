@@ -39,10 +39,13 @@
   padding: 24px;
   background: var(--portal-overlay-modal);
   -webkit-backdrop-filter: var(--portal-blur-md);
-          backdrop-filter: var(--portal-blur-md);
+  backdrop-filter: var(--portal-blur-md);
 }
 @media (max-width: 767px) {
-  .pt-help-overlay { padding: 0; align-items: stretch; }
+  .pt-help-overlay {
+    padding: 0;
+    align-items: stretch;
+  }
 }
 
 /* Layered mesh gradient backdrop — same idea as ddd-backdrop-fx but
@@ -50,13 +53,11 @@
    help-specific accent (premium / info) without affecting other surfaces. */
 .pt-help-backdrop-fx {
   position: absolute;
-  inset: -20% -20% -20% -20%;
+  inset: -20%;
   pointer-events: none;
   background:
-    radial-gradient(circle at 18% 22%,
-      rgba(var(--pt-help-rgb1), 0.26), transparent 50%),
-    radial-gradient(circle at 82% 78%,
-      rgba(var(--pt-help-rgb2), 0.22), transparent 55%);
+    radial-gradient(circle at 18% 22%, rgb(var(--pt-help-rgb1), 0.26), transparent 50%),
+    radial-gradient(circle at 82% 78%, rgb(var(--pt-help-rgb2), 0.22), transparent 55%);
   filter: blur(40px);
 }
 
@@ -79,8 +80,14 @@
   animation: pt-help-panel-in 0.5s var(--portal-ease-emphasis);
 }
 @keyframes pt-help-panel-in {
-  from { opacity: 0; transform: translateY(24px) scale(0.98); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .pt-help-close {
@@ -155,14 +162,18 @@
   border-radius: var(--portal-radius-pill);
   color: var(--portal-text-primary);
   font-size: var(--portal-text-sm);
-  transition: border-color 160ms ease, box-shadow 160ms ease;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
 }
 .pt-help-search-input:focus {
   outline: none;
-  border-color: rgba(var(--pt-help-rgb1), 0.55);
-  box-shadow: 0 0 0 3px rgba(var(--pt-help-rgb1), 0.18);
+  border-color: rgb(var(--pt-help-rgb1), 0.55);
+  box-shadow: 0 0 0 3px rgb(var(--pt-help-rgb1), 0.18);
 }
-.pt-help-search-input::-webkit-search-cancel-button { filter: invert(0.6); }
+.pt-help-search-input::-webkit-search-cancel-button {
+  filter: invert(0.6);
+}
 
 .pt-help-cats {
   display: flex;
@@ -182,9 +193,15 @@
   font-size: var(--portal-text-sm);
   cursor: pointer;
   text-align: left;
-  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease;
 }
-.pt-help-cat[disabled] { opacity: 0.4; cursor: not-allowed; }
+.pt-help-cat[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
 @media (hover: hover) {
   .pt-help-cat:not([disabled]):hover {
     background: var(--portal-surface-3);
@@ -193,12 +210,14 @@
 }
 .pt-help-cat--active {
   background: var(--portal-surface-3);
-  border-color: rgba(var(--pt-help-rgb1), 0.45);
+  border-color: rgb(var(--pt-help-rgb1), 0.45);
   color: var(--portal-text-primary);
   box-shadow: inset 3px 0 0 var(--pt-help-c1);
 }
 
-.pt-help-cat-label { flex: 1; }
+.pt-help-cat-label {
+  flex: 1;
+}
 .pt-help-cat-count {
   min-width: 1.6em;
   padding: 0.05rem 0.45rem;
@@ -229,15 +248,24 @@
   color: var(--portal-text-secondary);
   font-size: var(--portal-text-sm);
 }
-.pt-help-state--error { color: var(--portal-color-error); }
-.pt-help-state--empty { color: var(--portal-text-muted); font-style: italic; }
+.pt-help-state--error {
+  color: var(--portal-color-error);
+}
+.pt-help-state--empty {
+  color: var(--portal-text-muted);
+  font-style: italic;
+}
 
 /* ─────────────────────────── Transitions ─────────────────────────── */
 
 .pt-help-fade-enter-active,
-.pt-help-fade-leave-active { transition: opacity 200ms ease; }
+.pt-help-fade-leave-active {
+  transition: opacity 200ms ease;
+}
 .pt-help-fade-enter-from,
-.pt-help-fade-leave-to     { opacity: 0; }
+.pt-help-fade-leave-to {
+  opacity: 0;
+}
 
 /* ─────────────────────────── Responsive ─────────────────────────── */
 
@@ -250,7 +278,7 @@
     min-height: 100vh;
     border-radius: 0;
     border: none;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0);
   }
   .pt-help-side {
     border-right: none;

@@ -1,8 +1,5 @@
 <template>
-  <aside
-    class="mk-sidebar"
-    :class="{ collapsed, 'mobile-open': mobileOpen }"
-  >
+  <aside class="mk-sidebar" :class="{ collapsed, 'mobile-open': mobileOpen }">
     <div class="sb-logo" @click="$router.push('/')">
       <img
         src="/assets/icons/mediakeeper.png"
@@ -29,13 +26,26 @@
       <span class="sb-search-text">{{ $t('common.search') }}</span>
       <kbd class="sb-search-kbd">⌘K</kbd>
     </div>
-    <div v-else class="sb-search-icon" :title="$t('search.placeholder') + ' (⌘K)'" @click="emit('openSearch')">
+    <div
+      v-else
+      class="sb-search-icon"
+      :title="$t('search.placeholder') + ' (⌘K)'"
+      @click="emit('openSearch')"
+    >
       <Search :size="16" />
     </div>
 
     <nav class="sb-nav">
       <SidebarSection :label="t('sidebar.dashboard')" :collapsed="collapsed" />
-      <SidebarLink to="/" icon="home" :label="t('sidebar.dashboard')" :collapsed="collapsed" :badge="counters.activeSessions" :equalizer="true" @navigate="closeMobile" />
+      <SidebarLink
+        to="/"
+        icon="home"
+        :label="t('sidebar.dashboard')"
+        :collapsed="collapsed"
+        :badge="counters.activeSessions"
+        :equalizer="true"
+        @navigate="closeMobile"
+      />
 
       <SidebarSection :label="t('sidebar.modules')" :collapsed="collapsed" />
       <template v-for="m in moduleEntries" :key="m.to">
@@ -51,10 +61,7 @@
           @navigate="closeMobile"
         />
         <transition name="sb-subtabs">
-          <div
-            v-if="!collapsed && isExpanded(m.to)"
-            class="sb-subtabs"
-          >
+          <div v-if="!collapsed && isExpanded(m.to)" class="sb-subtabs">
             <SidebarSubLink
               v-for="sub in getSubs(m.to)"
               :key="sub.id"
@@ -87,7 +94,13 @@
           </span>
         </transition>
       </button>
-      <SidebarLink to="/admin/portal/users" icon="users"        :label="t('sidebar.requestsUsers')"  :collapsed="collapsed" @navigate="closeMobile" />
+      <SidebarLink
+        to="/admin/portal/users"
+        icon="users"
+        :label="t('sidebar.requestsUsers')"
+        :collapsed="collapsed"
+        @navigate="closeMobile"
+      />
       <SidebarLink
         to="/admin/portal"
         icon="settings"
@@ -99,10 +112,7 @@
         @navigate="closeMobile"
       />
       <transition name="sb-subtabs">
-        <div
-          v-if="!collapsed && isExpanded('/admin/portal')"
-          class="sb-subtabs"
-        >
+        <div v-if="!collapsed && isExpanded('/admin/portal')" class="sb-subtabs">
           <SidebarSubLink
             v-for="sub in getSubs('/admin/portal')"
             :key="sub.id"
@@ -127,10 +137,7 @@
         @navigate="closeMobile"
       />
       <transition name="sb-subtabs">
-        <div
-          v-if="!collapsed && isExpanded('/settings')"
-          class="sb-subtabs"
-        >
+        <div v-if="!collapsed && isExpanded('/settings')" class="sb-subtabs">
           <SidebarSubLink
             v-for="sub in getSubs('/settings')"
             :key="sub.id"
@@ -153,10 +160,7 @@
         @navigate="closeMobile"
       />
       <transition name="sb-subtabs">
-        <div
-          v-if="!collapsed && isExpanded('/logs')"
-          class="sb-subtabs"
-        >
+        <div v-if="!collapsed && isExpanded('/logs')" class="sb-subtabs">
           <SidebarSubLink
             v-for="sub in getSubs('/logs')"
             :key="sub.id"
@@ -173,7 +177,9 @@
 
     <div class="sb-footer">
       <router-link to="/changelog" class="sb-version-link" :title="$t('changelog.title')">
-        <span class="sb-version">{{ collapsed ? ('v' + appVersion) : ('MediaKeeper v' + appVersion) }}</span>
+        <span class="sb-version">
+          {{ collapsed ? 'v' + appVersion : 'MediaKeeper v' + appVersion }}
+        </span>
         <span v-if="hasNewChangelog" class="sb-version-dot" />
       </router-link>
       <router-link
@@ -215,14 +221,26 @@ const route = useRoute()
 const { apiPost } = useApi()
 
 const moduleEntries = computed(() => [
-  { to: '/stats',          icon: 'stats',         labelKey: 'sidebar.statistics' },
-  { to: '/watchlist',      icon: 'watchlist',     labelKey: 'sidebar.watchlist',     badge: counters.watchlistMissing, badgeColor: 'red' },
-  { to: '/media-manager',  icon: 'media',         labelKey: 'sidebar.mediaManager' },
-  { to: '/duplicates',     icon: 'duplicates',    labelKey: 'sidebar.duplicates',    badge: counters.duplicates, badgeColor: 'red' },
-  { to: '/health',         icon: 'healthcheck',   labelKey: 'sidebar.healthCheck' },
-  { to: '/subtitles',      icon: 'subtitles',     labelKey: 'sidebar.subtitles' },
-  { to: '/notifications',  icon: 'notifications', labelKey: 'sidebar.notifications' },
-  { to: '/tracker',        icon: 'tracker',       labelKey: 'sidebar.tracker' },
+  { to: '/stats', icon: 'stats', labelKey: 'sidebar.statistics' },
+  {
+    to: '/watchlist',
+    icon: 'watchlist',
+    labelKey: 'sidebar.watchlist',
+    badge: counters.watchlistMissing,
+    badgeColor: 'red',
+  },
+  { to: '/media-manager', icon: 'media', labelKey: 'sidebar.mediaManager' },
+  {
+    to: '/duplicates',
+    icon: 'duplicates',
+    labelKey: 'sidebar.duplicates',
+    badge: counters.duplicates,
+    badgeColor: 'red',
+  },
+  { to: '/health', icon: 'healthcheck', labelKey: 'sidebar.healthCheck' },
+  { to: '/subtitles', icon: 'subtitles', labelKey: 'sidebar.subtitles' },
+  { to: '/notifications', icon: 'notifications', labelKey: 'sidebar.notifications' },
+  { to: '/tracker', icon: 'tracker', labelKey: 'sidebar.tracker' },
 ])
 
 function hasSubTabs(path) {
@@ -287,7 +305,9 @@ onMounted(async () => {
         const data = await res.json()
         appVersion.value = data.version || '0.0.0'
       }
-    } catch { /* silent: version display is cosmetic */ }
+    } catch {
+      /* silent: version display is cosmetic */
+    }
   }
 })
 </script>

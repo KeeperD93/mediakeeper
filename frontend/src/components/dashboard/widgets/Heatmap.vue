@@ -4,7 +4,8 @@
     <div class="hm-wrap">
       <div class="hm-grid">
         <div
-          v-for="(day, i) in heatmapDays" :key="i"
+          v-for="(day, i) in heatmapDays"
+          :key="i"
           class="hm-cell"
           :style="{ background: heatColor(day.count) }"
           @mouseenter="e => showTip(e, day)"
@@ -13,7 +14,12 @@
       </div>
       <div class="hm-legend">
         <span class="hm-legend-text">{{ $t('dashboard.less') }}</span>
-        <div v-for="n in 5" :key="n" class="hm-cell hm-legend-cell" :style="{ background: heatColor(n - 1) }" />
+        <div
+          v-for="n in 5"
+          :key="n"
+          class="hm-cell hm-legend-cell"
+          :style="{ background: heatColor(n - 1) }"
+        />
         <span class="hm-legend-text">{{ $t('dashboard.more') }}</span>
       </div>
     </div>
@@ -36,9 +42,17 @@ const tip = ref({ visible: false, x: 0, y: 0, label: '', count: 0 })
 
 function showTip(e, day) {
   const rect = e.target.getBoundingClientRect()
-  tip.value = { visible: true, x: rect.left + rect.width / 2, y: rect.top - 6, label: day.label, count: day.count }
+  tip.value = {
+    visible: true,
+    x: rect.left + rect.width / 2,
+    y: rect.top - 6,
+    label: day.label,
+    count: day.count,
+  }
 }
-function hideTip() { tip.value.visible = false }
+function hideTip() {
+  tip.value.visible = false
+}
 
 function heatColor(count) {
   if (count <= 0) return 'var(--heat-0, rgba(255,255,255,0.04))'
@@ -89,33 +103,84 @@ onMounted(async () => {
 
 <style scoped>
 .hm {
-  background: var(--card-bg, rgba(255,255,255,0.03)); border-radius:var(--radius-card); padding: 14px;
-  border: 0.5px solid var(--card-border, rgba(255,255,255,0.05));
-  height: 100%; display: flex; flex-direction: column; overflow: hidden;
+  background: var(--card-bg, rgb(255, 255, 255, 0.03));
+  border-radius: var(--radius-card);
+  padding: 14px;
+  border: 0.5px solid var(--card-border, rgb(255, 255, 255, 0.05));
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 .hm-title {
-  display: block; font-size: var(--text-2xs); color: var(--text-muted);
-  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; flex-shrink: 0;
+  display: block;
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
 }
-.hm-wrap { display: flex; flex-direction: column; gap: 6px; flex: 1; min-height: 0; }
+.hm-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-height: 0;
+}
 .hm-grid {
   display: grid;
   grid-template-rows: repeat(7, 1fr);
   grid-template-columns: repeat(12, 1fr);
   grid-auto-flow: column;
-  gap: 2px; flex: 1; min-height: 0;
+  gap: 2px;
+  flex: 1;
+  min-height: 0;
 }
-.hm-cell { border-radius: 2px; min-width: 0; min-height: 0; cursor: default; }
-.hm-legend { display: flex; align-items: center; gap: 3px; justify-content: flex-end; flex-shrink: 0; }
-.hm-legend-text { font-size: 9px; color: var(--text-muted); margin: 0 2px; }
-.hm-legend-cell { width: 10px; height: 10px; min-width: 10px; border-radius: 2px; }
+.hm-cell {
+  border-radius: 2px;
+  min-width: 0;
+  min-height: 0;
+  cursor: default;
+}
+.hm-legend {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+.hm-legend-text {
+  font-size: 9px;
+  color: var(--text-muted);
+  margin: 0 2px;
+}
+.hm-legend-cell {
+  width: 10px;
+  height: 10px;
+  min-width: 10px;
+  border-radius: 2px;
+}
 .hm-tip {
-  position: fixed; z-index: 9999; pointer-events: none;
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
   transform: translate(-50%, -100%) translateY(-6px);
-  background: rgba(10,14,26,0.96); border: 1px solid rgba(99,102,241,0.35);
-  border-radius:var(--radius-sm); padding: 5px 10px; white-space: nowrap;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  background: rgb(10, 14, 26, 0.96);
+  border: 1px solid rgb(99, 102, 241, 0.35);
+  border-radius: var(--radius-sm);
+  padding: 5px 10px;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgb(0, 0, 0, 0.4);
 }
-.hm-tip-date { font-size: var(--text-2xs); color: rgba(255,255,255,0.5); margin-bottom: 2px; }
-.hm-tip-count { font-size: var(--text-2xs); font-weight: var(--font-medium); color: rgba(99,102,241,1); }
+.hm-tip-date {
+  font-size: var(--text-2xs);
+  color: rgb(255, 255, 255, 0.5);
+  margin-bottom: 2px;
+}
+.hm-tip-count {
+  font-size: var(--text-2xs);
+  font-weight: var(--font-medium);
+  color: rgb(99, 102, 241, 1);
+}
 </style>

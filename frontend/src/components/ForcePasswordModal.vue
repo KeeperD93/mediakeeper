@@ -1,10 +1,11 @@
 <template>
   <div class="mk-modal-sheet fpm-overlay">
     <div class="mk-modal-sheet-panel fpm-panel">
-
       <!-- Header -->
       <div class="text-center mb-7">
-        <div class="w-14 h-14 bg-indigo-700/20 border border-indigo-700/40 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div
+          class="w-14 h-14 bg-indigo-700/20 border border-indigo-700/40 rounded-full flex items-center justify-center mx-auto mb-4"
+        >
           <Lock class="w-6 h-6 text-indigo-400" :stroke-width="2" />
         </div>
         <h2 class="text-lg font-bold mb-2 fpm-title">{{ $t('forcePassword.title') }}</h2>
@@ -22,7 +23,9 @@
       <!-- Formulaire -->
       <div class="flex flex-col gap-3.5">
         <div>
-          <label class="block text-[0.78rem] mb-1.5 fpm-label">{{ $t('forcePassword.current') }}</label>
+          <label class="block text-[0.78rem] mb-1.5 fpm-label">
+            {{ $t('forcePassword.current') }}
+          </label>
           <input
             v-model="currentPwd"
             type="password"
@@ -40,7 +43,9 @@
             class="fpm-input w-full rounded-lg px-3 py-2 text-[0.85rem] outline-none transition-colors box-border"
           />
           <div class="mt-2 px-3 py-2.5 bg-indigo-700/10 border border-indigo-700/30 rounded-md">
-            <p class="text-indigo-400 text-xs font-semibold mb-1.5">{{ $t('forcePassword.rules') }}</p>
+            <p class="text-indigo-400 text-xs font-semibold mb-1.5">
+              {{ $t('forcePassword.rules') }}
+            </p>
             <ul class="text-xs list-none p-0 m-0 flex flex-col gap-1 fpm-label">
               <li>&#10003; {{ $t('forcePassword.rule12Chars') }}</li>
               <li>&#10003; {{ $t('forcePassword.rule12Unique') }}</li>
@@ -52,7 +57,9 @@
         </div>
 
         <div>
-          <label class="block text-[0.78rem] mb-1.5 fpm-label">{{ $t('forcePassword.confirm') }}</label>
+          <label class="block text-[0.78rem] mb-1.5 fpm-label">
+            {{ $t('forcePassword.confirm') }}
+          </label>
           <input
             v-model="confirmPwd"
             type="password"
@@ -120,12 +127,35 @@ async function submit() {
 </script>
 
 <style scoped>
-.fpm-overlay { z-index: 1000; }
-.fpm-panel { padding: 2rem 1.25rem; max-width: 440px; background: var(--bg-secondary); border: 1px solid var(--border); }
-.fpm-title { color: var(--text-primary); }
-.fpm-muted { color: var(--text-muted); }
-.fpm-label { color: var(--text-secondary); }
-.fpm-input { background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); }
-.fpm-input:focus { border-color: var(--accent-600, #4f46e5); }
-@media (min-width: 768px) { .fpm-panel { padding: 2.5rem; } }
+.fpm-overlay {
+  z-index: 1000;
+}
+.fpm-panel {
+  padding: 2rem 1.25rem;
+  max-width: 440px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+}
+.fpm-title {
+  color: var(--text-primary);
+}
+.fpm-muted {
+  color: var(--text-muted);
+}
+.fpm-label {
+  color: var(--text-secondary);
+}
+.fpm-input {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+.fpm-input:focus {
+  border-color: var(--accent-600, #4f46e5);
+}
+@media (min-width: 768px) {
+  .fpm-panel {
+    padding: 2.5rem;
+  }
+}
 </style>

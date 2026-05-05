@@ -81,7 +81,7 @@ async def download(
                     f"{url}/Items/{req.item_id}/Refresh",
                     headers={"X-Emby-Token": api_key}, timeout=10.0,
                 )
-        except Exception:
+        except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
             pass
 
         try:

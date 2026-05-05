@@ -14,7 +14,12 @@
       </button>
     </header>
 
-    <TabStrip v-model="activeTab" :tabs="listsTabs" placement="top" @update:modelValue="switchTab" />
+    <TabStrip
+      v-model="activeTab"
+      :tabs="listsTabs"
+      placement="top"
+      @update:model-value="switchTab"
+    />
 
     <div v-if="loading" class="arr-loading"><MkSpinner size="md" /></div>
 
@@ -91,7 +96,7 @@ const mkConfirm = useConfirm()
 const activeTab = ref('mine')
 
 const listsTabs = computed(() => [
-  { id: 'mine',   label: t('portal.lists.tabMine') },
+  { id: 'mine', label: t('portal.lists.tabMine') },
   { id: 'public', label: t('portal.lists.tabPublic') },
 ])
 const expandedId = ref(null)
@@ -109,7 +114,9 @@ async function loadTab(tab) {
   try {
     if (tab === 'mine') await svc.fetchMyLists()
     else await svc.fetchPublicLists()
-  } finally { loading.value = false }
+  } finally {
+    loading.value = false
+  }
 }
 
 async function switchTab(tab) {
@@ -143,9 +150,10 @@ function openEdit(lst) {
 }
 
 async function onSubmitForm(data) {
-  const res = formMode.value === 'create'
-    ? await svc.createList(data)
-    : await svc.updateList(formInitial.value.id, data)
+  const res =
+    formMode.value === 'create'
+      ? await svc.createList(data)
+      : await svc.updateList(formInitial.value.id, data)
   if (res?.success) {
     formOpen.value = false
     showToast(t('common.success'), TOAST_TYPE.OK)
@@ -197,32 +205,60 @@ onMounted(() => loadTab('mine'))
 
 <style scoped>
 .arr-create-btn {
-  padding: 10px 18px; min-height: 44px;
-  border-radius: var(--radius-btn); border: none;
+  padding: 10px 18px;
+  min-height: 44px;
+  border-radius: var(--radius-btn);
+  border: none;
   background: var(--portal-gradient-accent);
-  color: #fff; font-weight: var(--portal-font-extrabold); cursor: pointer;
-  font-size: var(--portal-text-sm); letter-spacing: var(--portal-tracking-wide);
-  display: inline-flex; align-items: center; gap: 8px;
+  color: #fff;
+  font-weight: var(--portal-font-extrabold);
+  cursor: pointer;
+  font-size: var(--portal-text-sm);
+  letter-spacing: var(--portal-tracking-wide);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   box-shadow: var(--portal-shadow-accent);
   -webkit-tap-highlight-color: transparent;
-  transition: transform .18s, box-shadow .18s;
+  transition:
+    transform 0.18s,
+    box-shadow 0.18s;
 }
-.arr-create-btn:hover { transform: translateY(-2px); box-shadow: var(--portal-shadow-accent-strong); }
+.arr-create-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--portal-shadow-accent-strong);
+}
 
-.arr-empty-text { margin: 0 0 1.25rem; }
+.arr-empty-text {
+  margin: 0 0 1.25rem;
+}
 .arr-empty-cta {
-  padding: 10px 18px; min-height: 44px;
-  border-radius: var(--radius-btn); border: none;
+  padding: 10px 18px;
+  min-height: 44px;
+  border-radius: var(--radius-btn);
+  border: none;
   background: var(--portal-gradient-accent);
-  color: #fff; font-weight: var(--portal-font-extrabold); cursor: pointer;
-  font-size: var(--portal-text-sm); letter-spacing: var(--portal-tracking-wide);
-  display: inline-flex; align-items: center; gap: 8px;
+  color: #fff;
+  font-weight: var(--portal-font-extrabold);
+  cursor: pointer;
+  font-size: var(--portal-text-sm);
+  letter-spacing: var(--portal-tracking-wide);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   box-shadow: var(--portal-shadow-accent);
   -webkit-tap-highlight-color: transparent;
-  transition: transform .18s, box-shadow .18s;
+  transition:
+    transform 0.18s,
+    box-shadow 0.18s;
 }
 @media (hover: hover) {
-  .arr-empty-cta:hover { transform: translateY(-2px); box-shadow: var(--portal-shadow-accent-strong); }
+  .arr-empty-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--portal-shadow-accent-strong);
+  }
 }
-.arr-empty-cta:active { transform: scale(0.97); }
+.arr-empty-cta:active {
+  transform: scale(0.97);
+}
 </style>

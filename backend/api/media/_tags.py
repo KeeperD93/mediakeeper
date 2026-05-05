@@ -44,7 +44,7 @@ async def save_tags(
     if raw:
         try:
             existing = json.loads(raw)
-        except Exception:
+        except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
             pass
     existing.update(req.tags)
     await set_setting(db, "media.tags", json.dumps(existing))

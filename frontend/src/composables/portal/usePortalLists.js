@@ -103,20 +103,34 @@ export function usePortalLists() {
   }
 
   async function adminMuteContributor(listId, userId, muted) {
-    return await apiPost(
-      `/api/portal/admin/lists/${listId}/contributors/${userId}/mute`,
-      { muted },
-    )
+    return await apiPost(`/api/portal/admin/lists/${listId}/contributors/${userId}/mute`, { muted })
   }
 
   return {
-    lists, publicLists, currentList, history,
-    fetchMyLists, fetchPublicLists, fetchList,
-    createList, updateList, deleteList,
-    addItems, removeItems, moveItems, copyItems, copyList,
-    fetchHistory, addContributor, removeContributor,
+    lists,
+    publicLists,
+    currentList,
+    history,
+    fetchMyLists,
+    fetchPublicLists,
+    fetchList,
+    createList,
+    updateList,
+    deleteList,
+    addItems,
+    removeItems,
+    moveItems,
+    copyItems,
+    copyList,
+    fetchHistory,
+    addContributor,
+    removeContributor,
     exportUrl,
-    adminUndelete, adminHardDelete, adminMuteOwner, adminMuteContributor,
-    loading, error,
+    adminUndelete,
+    adminHardDelete,
+    adminMuteOwner,
+    adminMuteContributor,
+    loading,
+    error,
   }
 }

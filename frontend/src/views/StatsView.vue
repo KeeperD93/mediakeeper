@@ -20,7 +20,9 @@ import { useStats } from '@/composables/useStats'
 import { useStatsUI } from '@/composables/useStatsUI'
 const StatsGeneralTab = defineAsyncComponent(() => import('@/components/stats/StatsGeneralTab.vue'))
 const StatsUsersTab = defineAsyncComponent(() => import('@/components/stats/StatsUsersTab.vue'))
-const StatsActivityTab = defineAsyncComponent(() => import('@/components/stats/StatsActivityTab.vue'))
+const StatsActivityTab = defineAsyncComponent(
+  () => import('@/components/stats/StatsActivityTab.vue'),
+)
 const StatsChartsTab = defineAsyncComponent(() => import('@/components/stats/StatsChartsTab.vue'))
 const StatsToolsTab = defineAsyncComponent(() => import('@/components/stats/StatsToolsTab.vue'))
 import StatsUserProfilePopover from '@/components/stats/StatsUserProfilePopover.vue'
@@ -43,7 +45,9 @@ const TAB_COMPONENTS = {
   charts: StatsChartsTab,
   tools: StatsToolsTab,
 }
-const currentTabComponent = computed(() => TAB_COMPONENTS[activeTab.value] || TAB_COMPONENTS[DEFAULT_TAB])
+const currentTabComponent = computed(
+  () => TAB_COMPONENTS[activeTab.value] || TAB_COMPONENTS[DEFAULT_TAB],
+)
 
 // URL → activeTab (handles deep-links and sidebar sub-link clicks)
 watch(
@@ -62,6 +66,10 @@ watch(activeTab, tab => {
   router.replace({ path: '/stats', query: { ...route.query, tab } })
 })
 
-onMounted(() => { startSessionPolling() })
-onUnmounted(() => { stopSessionPolling() })
+onMounted(() => {
+  startSessionPolling()
+})
+onUnmounted(() => {
+  stopSessionPolling()
+})
 </script>

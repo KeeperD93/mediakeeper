@@ -76,7 +76,7 @@ async def get_continue_watching(
             if s_res.status_code == 200:
                 for item in s_res.json().get("Items", []):
                     series_meta[item.get("Id", "")] = item
-        except Exception:
+        except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
             pass
 
     out: list[dict] = []

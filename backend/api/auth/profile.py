@@ -25,7 +25,7 @@ router = APIRouter()
 # Scope name surfaced in the security dashboard alongside ``admin`` /
 # ``portal``. Kept distinct so a series of failed change-password attempts
 # does not auto-block the legitimate login flow on the same identity.
-PASSWORD_CHANGE_SCOPE = "admin_password"
+PASSWORD_CHANGE_SCOPE = "admin_password"  # noqa: S105 -- scope identifier, not a credential value
 
 
 @router.get("/me")

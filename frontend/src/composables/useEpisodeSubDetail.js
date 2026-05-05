@@ -49,7 +49,7 @@ export function useEpisodeSubDetail({ seriesNameRef, onDownloaded }) {
     }
   }
 
-  watch(selectedEp, async (ep) => {
+  watch(selectedEp, async ep => {
     if (!ep) return
     epSubs.value = null
     epAudio.value = []
@@ -83,7 +83,9 @@ export function useEpisodeSubDetail({ seriesNameRef, onDownloaded }) {
       const d = await apiPost('/api/subtitles/search', body)
       if (d && d.results) epResults.value = d.results
       if (!epResults.value.length) showToast(t('common.noResults'), TOAST_TYPE.INFO)
-    } catch { showToast(t('common.error'), TOAST_TYPE.ERR) }
+    } catch {
+      showToast(t('common.error'), TOAST_TYPE.ERR)
+    }
     epSearching.value = false
   }
 
@@ -95,19 +97,29 @@ export function useEpisodeSubDetail({ seriesNameRef, onDownloaded }) {
     const map = { fr: 'fr', en: 'en', es: 'es', de: 'de', it: 'it', pt: 'pt' }
     const lc = map[lang] || lang
     const dot = filePath.lastIndexOf('.')
-    const dest = dot > 0 ? filePath.substring(0, dot) + '.' + lc + '.srt' : filePath + '.' + lc + '.srt'
+    const dest =
+      dot > 0 ? filePath.substring(0, dot) + '.' + lc + '.srt' : filePath + '.' + lc + '.srt'
 
     downloading.value = result.file_id
     lastDlResult.value = null
     try {
       const d = await apiPost('/api/subtitles/download', {
-        file_id: result.file_id, destination: dest, item_id: ep.item_id,
-        media_name: `${seriesNameRef.value} — ${ep.name}`, media_type: 'Episode',
-        series_name: seriesNameRef.value, season: ep.season || 0, episode: ep.episode || 0,
-        subtitle_id: result.subtitle_id || '', file_name: result.file_name || '',
-        language: result.language || '', quality_score: result.quality_score || 0,
-        hash_match: result.hash_match || false, hearing_impaired: result.hearing_impaired || false,
-        foreign_parts_only: result.foreign_parts_only || false, from_trusted: result.from_trusted || false,
+        file_id: result.file_id,
+        destination: dest,
+        item_id: ep.item_id,
+        media_name: `${seriesNameRef.value} — ${ep.name}`,
+        media_type: 'Episode',
+        series_name: seriesNameRef.value,
+        season: ep.season || 0,
+        episode: ep.episode || 0,
+        subtitle_id: result.subtitle_id || '',
+        file_name: result.file_name || '',
+        language: result.language || '',
+        quality_score: result.quality_score || 0,
+        hash_match: result.hash_match || false,
+        hearing_impaired: result.hearing_impaired || false,
+        foreign_parts_only: result.foreign_parts_only || false,
+        from_trusted: result.from_trusted || false,
         ai_translated: result.ai_translated || false,
       })
       if (d && d.success) {
@@ -117,8 +129,12 @@ export function useEpisodeSubDetail({ seriesNameRef, onDownloaded }) {
         onDownloaded?.()
         const existing = await apiGet(`/api/subtitles/existing/${ep.item_id}`)
         if (existing) epSubs.value = existing.streams || []
-      } else if (d && d.error) { showToast(translateError(d.error), TOAST_TYPE.ERR) }
-    } catch { showToast(t('common.error'), TOAST_TYPE.ERR) }
+      } else if (d && d.error) {
+        showToast(translateError(d.error), TOAST_TYPE.ERR)
+      }
+    } catch {
+      showToast(t('common.error'), TOAST_TYPE.ERR)
+    }
     downloading.value = null
   }
 
@@ -131,7 +147,9 @@ export function useEpisodeSubDetail({ seriesNameRef, onDownloaded }) {
         showToast(t('common.success'), TOAST_TYPE.OK)
         epSubs.value = epSubs.value.filter(s => s.index !== sub.index)
       }
-    } catch (e) { console.warn('[useEpisodeSubDetail.deleteSub] delete failed', e) }
+    } catch (e) {
+      console.warn('[useEpisodeSubDetail.deleteSub] delete failed', e)
+    }
     removing.value = false
   }
 
@@ -175,10 +193,24 @@ export function useEpisodeSubDetail({ seriesNameRef, onDownloaded }) {
   }
 
   return {
-    selectedEp, epSubs, epAudio, epFilePath, epResults, epSearching,
-    downloading, lastDlResult, removing, removeSelection,
-    compareSelection, showComparator,
-    resetEpisode, toggleCompareSelect,
-    searchEp, downloadEp, deleteSub, toggleRemove, batchRemove,
+    selectedEp,
+    epSubs,
+    epAudio,
+    epFilePath,
+    epResults,
+    epSearching,
+    downloading,
+    lastDlResult,
+    removing,
+    removeSelection,
+    compareSelection,
+    showComparator,
+    resetEpisode,
+    toggleCompareSelect,
+    searchEp,
+    downloadEp,
+    deleteSub,
+    toggleRemove,
+    batchRemove,
   }
 }

@@ -11,62 +11,57 @@
  */
 :root {
   /* ─── Spacing — 8px grid ─── */
-  --space-1:    4px;    /* hairline gaps, compact rows */
-  --space-2:    8px;    /* tight gaps, button padding */
-  --space-3:    12px;   /* default gap, card padding */
-  --space-4:    16px;   /* section spacing, modal padding */
-  --space-5:    20px;   /* card padding generous */
-  --space-6:    24px;   /* page padding */
-  --space-8:    32px;   /* large separation */
+  --space-1: 4px; /* hairline gaps, compact rows */
+  --space-2: 8px; /* tight gaps, button padding */
+  --space-3: 12px; /* default gap, card padding */
+  --space-4: 16px; /* section spacing, modal padding */
+  --space-5: 20px; /* card padding generous */
+  --space-6: 24px; /* page padding */
+  --space-8: 32px; /* large separation */
 
   /* Accessibility — minimum tap target (WCAG 2.5.5, Rules §2.6). */
   --touch-target: 44px;
 
   /* ─── Border widths ─── */
-  --border-width-thin:   0.5px;   /* cards, sub-dividers — the app default */
-  --border-width:        1px;     /* modals, inputs, standard strokes */
+  --border-width-thin: 0.5px; /* cards, sub-dividers — the app default */
+  --border-width: 1px; /* modals, inputs, standard strokes */
 
   /* ─── Radius — pill + circle complement the slider-driven trio
    * (--radius-card/btn/input/sm live in main.css). ─── */
-  --radius-pill:    999px;   /* pills, badges D-shape */
-  --radius-circle:  50%;     /* avatars, status dots */
+  --radius-pill: 999px; /* pills, badges D-shape */
+  --radius-circle: 50%; /* avatars, status dots */
 
   /* ─── Shadows — depth hierarchy ─── */
-  --shadow-sm:  0 4px 16px rgba(0, 0, 0, 0.3);     /* cards on hover */
-  --shadow-md:  0 8px 24px rgba(0, 0, 0, 0.4);     /* elevated cards */
-  --shadow-lg:  0 16px 48px rgba(0, 0, 0, 0.5);    /* dropdowns, popovers */
-  --shadow-xl:  0 24px 60px rgba(0, 0, 0, 0.5);    /* modals */
+  --shadow-sm: 0 4px 16px rgb(0, 0, 0, 0.3); /* cards on hover */
+  --shadow-md: 0 8px 24px rgb(0, 0, 0, 0.4); /* elevated cards */
+  --shadow-lg: 0 16px 48px rgb(0, 0, 0, 0.5); /* dropdowns, popovers */
+  --shadow-xl: 0 24px 60px rgb(0, 0, 0, 0.5); /* modals */
 
   /* Pill accent halo — already lives in main.css (--mk-pill-shadow,
    * --mk-pill-shadow-sm) and is piloted by the user's glow slider.
    * Don't redeclare here. */
 
   /* ─── Backdrop-filter blur — combined with saturate for glass ─── */
-  --blur-xs:  blur(6px);                   /* small surfaces, pills */
-  --blur-sm:  blur(12px);                  /* secondary cards */
-  --blur-md:  blur(16px) saturate(1.2);    /* standard glass cards */
-  --blur-lg:  blur(20px) saturate(1.3);    /* topbar, sidebar, modals */
+  --blur-xs: blur(6px); /* small surfaces, pills */
+  --blur-sm: blur(12px); /* secondary cards */
+  --blur-md: blur(16px) saturate(1.2); /* standard glass cards */
+  --blur-lg: blur(20px) saturate(1.3); /* topbar, sidebar, modals */
 
   /* ─── Z-index scale — geometric, leaves room between layers ─── */
-  --z-base:        1;        /* relative stacking inside a card */
-  --z-dropdown:    100;      /* context menus, popovers */
-  --z-sticky:      200;      /* sticky tabs, topbar */
-  --z-drawer:      300;      /* sidebar drawer on mobile */
-  --z-modal:       1000;     /* standard modals */
-  --z-overlay:     9000;     /* full-screen overlays */
-  --z-toast:       9999;     /* toast stack */
-  --z-reconnect:   99999;    /* backend-down overlay — above everything */
+  --z-base: 1; /* relative stacking inside a card */
+  --z-dropdown: 100; /* context menus, popovers */
+  --z-sticky: 200; /* sticky tabs, topbar */
+  --z-drawer: 300; /* sidebar drawer on mobile */
+  --z-modal: 1000; /* standard modals */
+  --z-overlay: 9000; /* full-screen overlays */
+  --z-toast: 9999; /* toast stack */
+  --z-reconnect: 99999; /* backend-down overlay — above everything */
 
   /* ─── Gradients — recurring patterns extracted as tokens ─── */
   --gradient-pill-active: linear-gradient(
     135deg,
-    rgba(var(--accent-rgb), 0.22),
-    rgba(var(--accent-rgb), 0.1)
+    rgb(var(--accent-rgb), 0.22),
+    rgb(var(--accent-rgb), 0.1)
   );
-  --gradient-shine: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.08),
-    transparent
-  );
+  --gradient-shine: linear-gradient(90deg, transparent, rgb(255, 255, 255, 0.08), transparent);
 }

@@ -75,7 +75,11 @@ export function useMediaCardState(props) {
     if (!r) return ''
     let when = ''
     if (r.requested_at) {
-      try { when = new Date(r.requested_at).toLocaleDateString() } catch { /**/ }
+      try {
+        when = new Date(r.requested_at).toLocaleDateString()
+      } catch {
+        /**/
+      }
     }
     // When the admin has enabled "anonymize_requests", the backend
     // strips `requested_by` from the response for non-admin users — in

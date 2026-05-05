@@ -19,32 +19,32 @@
  */
 :root {
   /* ─── Surfaces — glass hierarchy ─── */
-  --surface-1: rgba(255, 255, 255, 0.025);   /* base glass — cards, panels */
-  --surface-2: rgba(255, 255, 255, 0.04);    /* hover, secondary layer */
-  --surface-3: rgba(255, 255, 255, 0.06);    /* active / pressed / tertiary */
+  --surface-1: rgb(255, 255, 255, 0.025); /* base glass — cards, panels */
+  --surface-2: rgb(255, 255, 255, 0.04); /* hover, secondary layer */
+  --surface-3: rgb(255, 255, 255, 0.06); /* active / pressed / tertiary */
 
   /* ─── Overlays — modals, dropdowns, backdrops ─── */
-  --overlay-bg:        rgba(12, 16, 30, 0.96);   /* modal / dropdown body */
-  --overlay-backdrop:  rgba(0, 0, 0, 0.6);       /* veil behind modals */
+  --overlay-bg: rgb(12, 16, 30, 0.96); /* modal / dropdown body */
+  --overlay-backdrop: rgb(0, 0, 0, 0.6); /* veil behind modals */
 
   /* ─── Borders — stroke color strength ─── */
-  --border-subtle:   rgba(255, 255, 255, 0.04);  /* on surface-1 */
-  --border-default:  rgba(255, 255, 255, 0.06);  /* standard cards */
-  --border-strong:   rgba(255, 255, 255, 0.08);  /* modals, dropdowns */
+  --border-subtle: rgb(255, 255, 255, 0.04); /* on surface-1 */
+  --border-default: rgb(255, 255, 255, 0.06); /* standard cards */
+  --border-strong: rgb(255, 255, 255, 0.08); /* modals, dropdowns */
 
   /* ─── Text extensions — covers raw rgba(255,255,255,x) patterns
    * that don't fit the primary/secondary/muted trio. ─── */
-  --text-faint:       rgba(255, 255, 255, 0.4);    /* disabled labels, hints */
-  --text-very-faint:  rgba(255, 255, 255, 0.25);   /* placeholders, sub-hints */
+  --text-faint: rgb(255, 255, 255, 0.4); /* disabled labels, hints */
+  --text-very-faint: rgb(255, 255, 255, 0.25); /* placeholders, sub-hints */
 
   /* ─── Semantic statuses — one canonical hex per family.
    * RGB companions let components compose rgba(var(--color-*-rgb), a). ─── */
-  --color-success:      #4ade80;
-  --color-success-rgb:  74, 222, 128;
-  --color-warning:      #fbbf24;
-  --color-warning-rgb:  251, 191, 36;
-  --color-error:        #f87171;
-  --color-error-rgb:    248, 113, 113;
-  --color-info:         #60a5fa;
-  --color-info-rgb:     96, 165, 250;
+  --color-success: #4ade80;
+  --color-success-rgb: 74, 222, 128;
+  --color-warning: #fbbf24;
+  --color-warning-rgb: 251, 191, 36;
+  --color-error: #f87171;
+  --color-error-rgb: 248, 113, 113;
+  --color-info: #60a5fa;
+  --color-info-rgb: 96, 165, 250;
 }

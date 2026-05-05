@@ -207,7 +207,7 @@ async def enter_room(
         free = [i for i in range(MAX_PARTICIPANTS) if i not in set(taken)]
         if not free:
             return {"error": "room_full"}
-        inv.seat_index = random.choice(free)
+        inv.seat_index = random.choice(free)  # noqa: S311 -- random seat assignment in a virtual cinema room, no security purpose
         db.add(inv)
 
     if event.room_opened_at is None:

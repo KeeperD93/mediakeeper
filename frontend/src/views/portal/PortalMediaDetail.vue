@@ -40,26 +40,25 @@
         />
       </section>
 
-      <div
-        v-if="collection?.collection"
-        class="vmd2-collection"
-      >
+      <div v-if="collection?.collection" class="vmd2-collection">
         <div
           class="vmd2-collection-bg"
-          :style="collection.collection.backdrop
-            ? { backgroundImage: `url(${collection.collection.backdrop})` }
-            : null"
+          :style="
+            collection.collection.backdrop
+              ? { backgroundImage: `url(${collection.collection.backdrop})` }
+              : null
+          "
         />
         <div class="vmd2-collection-body">
           <div class="vmd2-collection-kicker">{{ $t('portal.detail.sagaLabel') }}</div>
           <h2 class="vmd2-collection-title">{{ collection.collection.name }}</h2>
-          <p
-            v-if="collection.collection.overview"
-            class="vmd2-overview vmd2-collection-overview"
-          >{{ collection.collection.overview }}</p>
+          <p v-if="collection.collection.overview" class="vmd2-overview vmd2-collection-overview">
+            {{ collection.collection.overview }}
+          </p>
           <div class="vmd2-scroller">
             <MediaCard
-              v-for="m in collection.items" :key="m.tmdb_id || m.id"
+              v-for="m in collection.items"
+              :key="m.tmdb_id || m.id"
               :item="m"
               width="160px"
               @select="goToDetail"
@@ -88,11 +87,7 @@
       @close="trailerOpen = false"
     />
 
-    <AddToListOverlay
-      :open="addToListOpen"
-      :media="media"
-      @close="addToListOpen = false"
-    />
+    <AddToListOverlay :open="addToListOpen" :media="media" @close="addToListOpen = false" />
   </div>
 </template>
 
@@ -135,7 +130,13 @@ const { trailer, resolve: resolveTrailer, clear: clearTrailer } = useTrailer()
 const { checkAvailability, getAvailability } = useAvailability()
 const { checkStatus: checkRequestStatus, getStatus, markRequested } = useRequestStatus()
 const { profile } = usePortalAuth()
-const { directorFilmo, actorFilmo, collection, load: loadExtras, reset: resetExtras } = useDetailExtras()
+const {
+  directorFilmo,
+  actorFilmo,
+  collection,
+  load: loadExtras,
+  reset: resetExtras,
+} = useDetailExtras()
 
 const media = ref(null)
 const trailerOpen = ref(false)
@@ -145,15 +146,13 @@ const activeTab = ref('overview')
 
 const tabStripItems = computed(() => [
   { id: 'overview', label: t('portal.detail.tabs.overview') },
-  { id: 'cast',     label: t('portal.detail.tabs.cast') },
-  { id: 'extras',   label: t('portal.detail.tabs.extras') },
-  { id: 'similar',  label: t('portal.detail.tabs.similar') },
+  { id: 'cast', label: t('portal.detail.tabs.cast') },
+  { id: 'extras', label: t('portal.detail.tabs.extras') },
+  { id: 'similar', label: t('portal.detail.tabs.similar') },
 ])
 
 const leadActor = computed(() => media.value?.cast?.[0] || null)
-const trailerKey = computed(() =>
-  trailer.value?.key || media.value?.videos?.[0]?.key || null,
-)
+const trailerKey = computed(() => trailer.value?.key || media.value?.videos?.[0]?.key || null)
 
 // Descriptor consumed by TrailerLightbox. Prefer the Emby-cascade
 // resolver's descriptor (includes source=emby when a LocalTrailer was
@@ -273,10 +272,7 @@ async function loadMedia() {
     ...(collection.value?.items || []),
   ]
   if (extraItems.length) {
-    await Promise.all([
-      checkAvailability(extraItems),
-      checkRequestStatus(extraItems),
-    ])
+    await Promise.all([checkAvailability(extraItems), checkRequestStatus(extraItems)])
   }
 }
 

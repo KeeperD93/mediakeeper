@@ -19,7 +19,14 @@ export function useMMFileListUI({ fileListRef, filtered, checked }) {
   const { t } = useI18n()
   const { apiFetch } = useApi()
   const { showToast } = useToast()
-  const { loadFiles, applyRenameInPlace, computeQualityScore, openFileMeta, openMoveModal, deleteFile } = useMediaManager()
+  const {
+    loadFiles,
+    applyRenameInPlace,
+    computeQualityScore,
+    openFileMeta,
+    openMoveModal,
+    deleteFile,
+  } = useMediaManager()
 
   // ── Lasso rectangle ──
   const lasso = ref({ active: false, startX: 0, startY: 0, curX: 0, curY: 0, scrollStart: 0 })
@@ -28,13 +35,16 @@ export function useMMFileListUI({ fileListRef, filtered, checked }) {
   const lassoStyle = computed(() => {
     if (!lasso.value.active) return { display: 'none' }
     const l = lasso.value
-    const x1 = Math.min(l.startX, l.curX), x2 = Math.max(l.startX, l.curX)
-    const y1 = Math.min(l.startY, l.curY), y2 = Math.max(l.startY, l.curY)
-    return { left: x1 + 'px', top: y1 + 'px', width: (x2 - x1) + 'px', height: (y2 - y1) + 'px' }
+    const x1 = Math.min(l.startX, l.curX),
+      x2 = Math.max(l.startX, l.curX)
+    const y1 = Math.min(l.startY, l.curY),
+      y2 = Math.max(l.startY, l.curY)
+    return { left: x1 + 'px', top: y1 + 'px', width: x2 - x1 + 'px', height: y2 - y1 + 'px' }
   })
 
   function onLassoStart(e) {
-    if (e.target.closest('.mm-file-row') || e.target.closest('button') || e.target.closest('input')) return
+    if (e.target.closest('.mm-file-row') || e.target.closest('button') || e.target.closest('input'))
+      return
     if (e.button !== 0) return
     const rect = fileListRef.value.getBoundingClientRect()
     lasso.value = {
@@ -94,14 +104,24 @@ export function useMMFileListUI({ fileListRef, filtered, checked }) {
   const renameInputRef = ref(null)
   let _ctxCloseHandler = null
 
-  watch(() => inlineRename.value.show, (v) => {
-    if (v) nextTick(() => { renameInputRef.value?.focus(); renameInputRef.value?.select() })
-  })
+  watch(
+    () => inlineRename.value.show,
+    v => {
+      if (v)
+        nextTick(() => {
+          renameInputRef.value?.focus()
+          renameInputRef.value?.select()
+        })
+    },
+  )
 
   function openCtxMenu(e, idx, f) {
-    if (_ctxCloseHandler) { document.removeEventListener('mousedown', _ctxCloseHandler); _ctxCloseHandler = null }
+    if (_ctxCloseHandler) {
+      document.removeEventListener('mousedown', _ctxCloseHandler)
+      _ctxCloseHandler = null
+    }
     ctxMenu.value = { show: true, x: e.clientX, y: e.clientY, idx, file: f }
-    _ctxCloseHandler = (ev) => {
+    _ctxCloseHandler = ev => {
       if (!ev.target.closest('.mm-ctx-menu')) {
         ctxMenu.value.show = false
         document.removeEventListener('mousedown', _ctxCloseHandler)
@@ -121,7 +141,10 @@ export function useMMFileListUI({ fileListRef, filtered, checked }) {
   async function submitInlineRename() {
     const { file, value } = inlineRename.value
     const newName = value.trim()
-    if (!newName || newName === file.name) { inlineRename.value.show = false; return }
+    if (!newName || newName === file.name) {
+      inlineRename.value.show = false
+      return
+    }
     inlineRename.value.show = false
     try {
       const res = await apiFetch('/api/media/rename', {
@@ -132,20 +155,30 @@ export function useMMFileListUI({ fileListRef, filtered, checked }) {
       if (data.error) {
         console.error('[useMMFileListUI.submitInlineRename] backend error', data.error)
         showToast(t('common.apiError.unknown', { status: '' }), TOAST_TYPE.ERR)
-      }
-      else {
+      } else {
         showToast(t('mediaManager.renamed', { name: newName }), TOAST_TYPE.OK)
         applyRenameInPlace(file.path, newName, data.new_path)
         // Resync from disk so a subsequent move/drag picks up the new path
         // even if the in-place update missed an edge case.
         loadFiles()
       }
-    } catch { showToast(t('common.networkError'), TOAST_TYPE.ERR) }
+    } catch {
+      showToast(t('common.networkError'), TOAST_TYPE.ERR)
+    }
   }
 
-  function ctxMove() { ctxMenu.value.show = false; openMoveModal(ctxMenu.value.idx) }
-  function ctxInfo() { ctxMenu.value.show = false; if (ctxMenu.value.file) openFileMeta(ctxMenu.value.file) }
-  function ctxDelete() { ctxMenu.value.show = false; deleteFile(ctxMenu.value.idx) }
+  function ctxMove() {
+    ctxMenu.value.show = false
+    openMoveModal(ctxMenu.value.idx)
+  }
+  function ctxInfo() {
+    ctxMenu.value.show = false
+    if (ctxMenu.value.file) openFileMeta(ctxMenu.value.file)
+  }
+  function ctxDelete() {
+    ctxMenu.value.show = false
+    deleteFile(ctxMenu.value.idx)
+  }
 
   // ── Quality score popup with penalty breakdown ──
   const qualityPopup = ref({ visible: false, score: 0, penalties: [], x: 0, y: 0 })
@@ -154,27 +187,49 @@ export function useMMFileListUI({ fileListRef, filtered, checked }) {
     const score = computeQualityScore(f.name)
     const n = f.name.replace(/\.[^.]+$/, '')
     const penalties = []
-    if (!/\b(480p|720p|1080p|2160p|4K|UHD)\b/i.test(f.name)) penalties.push({ points: 20, label: 'Missing resolution' })
-    if (!/\b(19|20)\d{2}\b/.test(f.name) && !/[Ss]\d{1,2}[Ee]\d{1,2}|\d{1,2}x\d{2}/.test(n)) penalties.push({ points: 15, label: 'Missing year/episode' })
+    if (!/\b(480p|720p|1080p|2160p|4K|UHD)\b/i.test(f.name))
+      penalties.push({ points: 20, label: 'Missing resolution' })
+    if (!/\b(19|20)\d{2}\b/.test(f.name) && !/[Ss]\d{1,2}[Ee]\d{1,2}|\d{1,2}x\d{2}/.test(n))
+      penalties.push({ points: 15, label: 'Missing year/episode' })
     if (/[-_.]{3,}/.test(n)) penalties.push({ points: 10, label: 'Triple separators' })
     if (/\s{2,}/.test(n)) penalties.push({ points: 10, label: 'Espaces doubles' })
     if (/_{2,}/.test(n)) penalties.push({ points: 10, label: 'Underscores doubles' })
     if ((n.match(/\./g) || []).length > 3) penalties.push({ points: 15, label: 'Trop de points' })
     if (f.name.length > 180) penalties.push({ points: 10, label: 'Nom trop long' })
-    if (!/\b(x264|x265|H\.?264|H\.?265|HEVC|AVC|VP9|AV1)\b/i.test(f.name)) penalties.push({ points: 5, label: 'Missing video codec' })
-    if (!/\b(DTS|Atmos|TrueHD|EAC3|AC3|AAC|FLAC|MP3)\b/i.test(f.name)) penalties.push({ points: 5, label: 'Codec audio manquant' })
-    let x = e.clientX - 120, y = e.clientY + 16
+    if (!/\b(x264|x265|H\.?264|H\.?265|HEVC|AVC|VP9|AV1)\b/i.test(f.name))
+      penalties.push({ points: 5, label: 'Missing video codec' })
+    if (!/\b(DTS|Atmos|TrueHD|EAC3|AC3|AAC|FLAC|MP3)\b/i.test(f.name))
+      penalties.push({ points: 5, label: 'Codec audio manquant' })
+    let x = e.clientX - 120,
+      y = e.clientY + 16
     if (x < 10) x = 10
     if (y + 180 > window.innerHeight) y = e.clientY - 180
     qualityPopup.value = { visible: true, score, penalties, x, y }
   }
-  function hideQualityPopup() { qualityPopup.value = { ...qualityPopup.value, visible: false } }
+  function hideQualityPopup() {
+    qualityPopup.value = { ...qualityPopup.value, visible: false }
+  }
 
   return {
-    lasso, lassoStyle, onLassoStart, onLassoMove, onLassoEnd,
-    hoverThumbnail, onFileHover, onFileHoverEnd,
-    ctxMenu, openCtxMenu, ctxRename, ctxMove, ctxInfo, ctxDelete,
-    inlineRename, renameInputRef, submitInlineRename,
-    qualityPopup, showQualityPopup, hideQualityPopup,
+    lasso,
+    lassoStyle,
+    onLassoStart,
+    onLassoMove,
+    onLassoEnd,
+    hoverThumbnail,
+    onFileHover,
+    onFileHoverEnd,
+    ctxMenu,
+    openCtxMenu,
+    ctxRename,
+    ctxMove,
+    ctxInfo,
+    ctxDelete,
+    inlineRename,
+    renameInputRef,
+    submitInlineRename,
+    qualityPopup,
+    showQualityPopup,
+    hideQualityPopup,
   }
 }

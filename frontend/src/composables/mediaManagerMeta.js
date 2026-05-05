@@ -30,7 +30,9 @@ export async function openFileMeta(f) {
     fileMetaModal.value = { ...fileMetaModal.value, loading: false, data: null }
   }
 }
-export function closeFileMeta() { fileMetaModal.value = { show: false, file: null, loading: false, data: null, parsed: null } }
+export function closeFileMeta() {
+  fileMetaModal.value = { show: false, file: null, loading: false, data: null, parsed: null }
+}
 
 // ─── THUMBNAIL EMBY ───
 export async function loadThumbnail(filePath) {
@@ -44,7 +46,9 @@ export async function loadThumbnail(filePath) {
       thumbnailCache.value = { ...thumbnailCache.value, [filePath]: url }
       return url
     }
-  } catch { /* silent: thumbnail fallback handled below */ }
+  } catch {
+    /* silent: thumbnail fallback handled below */
+  }
   thumbnailCache.value = { ...thumbnailCache.value, [filePath]: null }
   return null
 }

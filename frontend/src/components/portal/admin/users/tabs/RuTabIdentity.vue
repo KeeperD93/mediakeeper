@@ -37,7 +37,9 @@
       <dl class="ru-kv">
         <div>
           <dt>{{ $t('requestsAdmin.users.drawer.identity.source') }}</dt>
-          <dd>{{ user.source === 'emby' ? 'Emby' : $t('requestsAdmin.users.filters.source.local') }}</dd>
+          <dd>
+            {{ user.source === 'emby' ? 'Emby' : $t('requestsAdmin.users.filters.source.local') }}
+          </dd>
         </div>
         <div v-if="user.emby_user_id">
           <dt>{{ $t('requestsAdmin.users.drawer.identity.embyId') }}</dt>
@@ -84,12 +86,15 @@ const form = reactive({
 })
 const saving = ref(false)
 
-watch(() => props.user, (u) => {
-  form.display_name = u.display_name || ''
-  form.first_name = u.first_name || ''
-  form.last_name = u.last_name || ''
-  form.email = u.email || ''
-})
+watch(
+  () => props.user,
+  u => {
+    form.display_name = u.display_name || ''
+    form.first_name = u.first_name || ''
+    form.last_name = u.last_name || ''
+    form.email = u.email || ''
+  },
+)
 
 async function save() {
   saving.value = true
@@ -113,6 +118,10 @@ async function save() {
 
 function fmt(value) {
   if (!value) return '—'
-  try { return new Date(value).toLocaleString() } catch { return value }
+  try {
+    return new Date(value).toLocaleString()
+  } catch {
+    return value
+  }
 }
 </script>

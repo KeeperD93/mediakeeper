@@ -157,14 +157,14 @@ async def portal_login(
     try:
         from services.portal.xp import grant_daily_login_xp
         await grant_daily_login_xp(db, user_id)
-    except Exception:
+    except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
         pass
 
     # Check achievements on login (best-effort)
     try:
         from services.portal.achievements import check_all_achievements
         await check_all_achievements(db, user_id, username)
-    except Exception:
+    except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
         pass
 
     return {

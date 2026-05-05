@@ -24,7 +24,9 @@ const sharedData = reactive({
 try {
   const cached = sessionStorage.getItem('mk_sidebar_counters')
   if (cached) Object.assign(counters, JSON.parse(cached))
-} catch { /* silent: corrupted sessionStorage cache → keep defaults */ }
+} catch {
+  /* silent: corrupted sessionStorage cache → keep defaults */
+}
 
 let refCount = 0
 let timer = null
@@ -43,9 +45,9 @@ async function fetchCounters(api) {
     ])
 
     if (Array.isArray(duplicates)) {
-      const ignoredKeys = new Set((Array.isArray(ignored) ? ignored : []).map((i) => i.key))
+      const ignoredKeys = new Set((Array.isArray(ignored) ? ignored : []).map(i => i.key))
       counters.duplicates = duplicates.filter(
-        (item) => !ignoredKeys.has(`${item.id}_${item.sources.length}`),
+        item => !ignoredKeys.has(`${item.id}_${item.sources.length}`),
       ).length
     }
     if (watchlist) {
@@ -53,17 +55,25 @@ async function fetchCounters(api) {
     }
     if (Array.isArray(sessions)) {
       sharedData.sessions = sessions
-      counters.activeSessions = sessions.filter((x) => x.is_playing || x.is_paused).length
+      counters.activeSessions = sessions.filter(x => x.is_playing || x.is_paused).length
     }
 
-    try { sessionStorage.setItem('mk_sidebar_counters', JSON.stringify(counters)) } catch { /* silent: sessionStorage quota/privacy mode */ }
-  } catch { /* silent: counter poll, retries on next interval */ }
+    try {
+      sessionStorage.setItem('mk_sidebar_counters', JSON.stringify(counters))
+    } catch {
+      /* silent: sessionStorage quota/privacy mode */
+    }
+  } catch {
+    /* silent: counter poll, retries on next interval */
+  }
 }
 
 export function useSidebarCounters() {
   const api = useApi()
 
-  function refresh() { return fetchCounters(api) }
+  function refresh() {
+    return fetchCounters(api)
+  }
 
   onMounted(() => {
     refCount++
@@ -77,17 +87,25 @@ export function useSidebarCounters() {
     refCount--
     if (refCount <= 0) {
       refCount = 0
-      if (timer) { clearInterval(timer); timer = null }
+      if (timer) {
+        clearInterval(timer)
+        timer = null
+      }
     }
   })
 
   // Refresh counters on every route change
   try {
     const router = useRouter()
-    watch(() => router.currentRoute.value.path, () => {
-      refresh()
-    })
-  } catch { /* silent: router not available in test/SSR context */ }
+    watch(
+      () => router.currentRoute.value.path,
+      () => {
+        refresh()
+      },
+    )
+  } catch {
+    /* silent: router not available in test/SSR context */
+  }
 
   return { counters, sharedData, fetchCounters: refresh }
 }

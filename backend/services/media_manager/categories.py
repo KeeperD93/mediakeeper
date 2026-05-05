@@ -120,7 +120,7 @@ async def load_categories(db) -> list[dict]:
                 _categories_cache.clear()
                 _categories_cache.extend(cats)
                 return cats
-        except Exception:
+        except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
             pass
     defaults = _get_default_categories()
     _categories_cache.clear()

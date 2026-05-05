@@ -35,9 +35,9 @@ defineProps({
   font-weight: var(--font-bold);
   text-transform: uppercase;
   letter-spacing: 1.6px;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgb(255, 255, 255, 0.55);
   flex-shrink: 0;
-  text-shadow: 0 0 12px rgba(var(--accent-rgb), 0.25);
+  text-shadow: 0 0 12px rgb(var(--accent-rgb), 0.25);
 }
 
 .sb-section-line {
@@ -46,16 +46,16 @@ defineProps({
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(var(--accent-rgb), 0.35) 50%,
-    rgba(255, 255, 255, 0.04) 100%
+    rgb(var(--accent-rgb), 0.35) 50%,
+    rgb(255, 255, 255, 0.04) 100%
   );
 }
 
 .sb-section-line-left {
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.04) 0%,
-    rgba(var(--accent-rgb), 0.35) 100%
+    rgb(255, 255, 255, 0.04) 0%,
+    rgb(var(--accent-rgb), 0.35) 100%
   );
   max-width: 12px;
 }
@@ -63,8 +63,8 @@ defineProps({
 .sb-section-line-right {
   background: linear-gradient(
     90deg,
-    rgba(var(--accent-rgb), 0.35) 0%,
-    rgba(255, 255, 255, 0.04) 100%
+    rgb(var(--accent-rgb), 0.35) 0%,
+    rgb(255, 255, 255, 0.04) 100%
   );
 }
 
@@ -75,7 +75,7 @@ defineProps({
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(var(--accent-rgb), 0.5) 50%,
+    rgb(var(--accent-rgb), 0.5) 50%,
     transparent 100%
   );
   margin: 0 auto;

@@ -28,10 +28,13 @@ export function useTabSync(tabIds, defaultTab) {
   const activeTab = ref(initialFromQuery)
 
   // URL → state
-  watch(() => route.query.tab, q => {
-    const next = allowed.includes(q) ? q : defaultTab
-    if (next !== activeTab.value) activeTab.value = next
-  })
+  watch(
+    () => route.query.tab,
+    q => {
+      const next = allowed.includes(q) ? q : defaultTab
+      if (next !== activeTab.value) activeTab.value = next
+    },
+  )
 
   // state → URL
   watch(activeTab, tab => {

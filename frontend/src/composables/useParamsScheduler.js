@@ -18,8 +18,12 @@ function bestUnit(sec) {
   if (sec % 60 === 0) return 'm'
   return 's'
 }
-function intervalToAmount(sec, unit) { return Math.round(sec / UNITS[unit]) }
-function toSeconds(amount, unit) { return amount * UNITS[unit] }
+function intervalToAmount(sec, unit) {
+  return Math.round(sec / UNITS[unit])
+}
+function toSeconds(amount, unit) {
+  return amount * UNITS[unit]
+}
 function formatSeconds(sec) {
   if (sec >= 86400 && sec % 86400 === 0) return `${sec / 86400}j`
   if (sec >= 3600 && sec % 3600 === 0) return `${sec / 3600}h`
@@ -28,7 +32,12 @@ function formatSeconds(sec) {
 }
 function formatRunDate(iso) {
   if (!iso) return '—'
-  return new Date(iso).toLocaleString(undefined, { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+  return new Date(iso).toLocaleString(undefined, {
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }
 function schedStatusDot(task) {
   if (!task.enabled) return 'dot-off'
@@ -53,16 +62,28 @@ export function useParamsScheduler() {
     try {
       const data = await apiGet('/api/scheduler/tasks')
       if (Array.isArray(data)) {
-        schedTasks.value = data.map(task => ({ ...task, _running: task.last_status === TASK_STATUS.RUNNING }))
+        schedTasks.value = data.map(task => ({
+          ...task,
+          _running: task.last_status === TASK_STATUS.RUNNING,
+        }))
         schedTasks.value.forEach(task => {
           if (!schedEditValues[task.key]) {
             const unit = bestUnit(task.interval_sec)
-            schedEditValues[task.key] = { unit, amount: intervalToAmount(task.interval_sec, unit), savedSec: task.interval_sec }
+            schedEditValues[task.key] = {
+              unit,
+              amount: intervalToAmount(task.interval_sec, unit),
+              savedSec: task.interval_sec,
+            }
           }
         })
-        if (schedTasks.value.some(task => task.last_status === TASK_STATUS.RUNNING || task.progress)) startPolling()
+        if (
+          schedTasks.value.some(task => task.last_status === TASK_STATUS.RUNNING || task.progress)
+        )
+          startPolling()
       }
-    } catch { /* silent: scheduler poll, retries on next tick */ }
+    } catch {
+      /* silent: scheduler poll, retries on next tick */
+    }
     schedLoading.value = false
     loadedOnce = true
   }
@@ -71,15 +92,25 @@ export function useParamsScheduler() {
     if (pollTimer) return
     pollTimer = setInterval(async () => {
       await loadSched()
-      const anyRunning = schedTasks.value.some(task => task.last_status === TASK_STATUS.RUNNING || task.progress)
+      const anyRunning = schedTasks.value.some(
+        task => task.last_status === TASK_STATUS.RUNNING || task.progress,
+      )
       if (!anyRunning) stopPolling()
     }, 2000)
   }
-  function stopPolling() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null } }
+  function stopPolling() {
+    if (pollTimer) {
+      clearInterval(pollTimer)
+      pollTimer = null
+    }
+  }
 
   async function schedToggle(task) {
     const newVal = !task.enabled
-    const res = await apiFetch(`/api/scheduler/tasks/${task.key}`, { method: 'PATCH', body: JSON.stringify({ enabled: newVal }) })
+    const res = await apiFetch(`/api/scheduler/tasks/${task.key}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ enabled: newVal }),
+    })
     const data = await res.json()
     if (data.success) {
       task.enabled = newVal
@@ -91,8 +122,14 @@ export function useParamsScheduler() {
     const ev = schedEditValues[task.key]
     if (!ev) return
     const sec = toSeconds(ev.amount, ev.unit)
-    if (sec < 10) { showToast(t('scheduler.minInterval'), TOAST_TYPE.ERR); return }
-    const res = await apiFetch(`/api/scheduler/tasks/${task.key}`, { method: 'PATCH', body: JSON.stringify({ interval_sec: sec }) })
+    if (sec < 10) {
+      showToast(t('scheduler.minInterval'), TOAST_TYPE.ERR)
+      return
+    }
+    const res = await apiFetch(`/api/scheduler/tasks/${task.key}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ interval_sec: sec }),
+    })
     const data = await res.json()
     if (data.success) {
       task.interval_sec = sec
@@ -107,7 +144,11 @@ export function useParamsScheduler() {
     if (data.success) {
       task.interval_sec = data.interval_sec
       const unit = bestUnit(data.interval_sec)
-      schedEditValues[task.key] = { unit, amount: intervalToAmount(data.interval_sec, unit), savedSec: data.interval_sec }
+      schedEditValues[task.key] = {
+        unit,
+        amount: intervalToAmount(data.interval_sec, unit),
+        savedSec: data.interval_sec,
+      }
       showToast(t('scheduler.resetDone'), TOAST_TYPE.OK)
     }
   }
@@ -119,16 +160,23 @@ export function useParamsScheduler() {
       const data = await res.json()
       if (data.success) {
         showToast(t('scheduler.launched', { label: task.label }), TOAST_TYPE.OK)
-        setTimeout(() => { loadSched(); startPolling() }, 1500)
+        setTimeout(() => {
+          loadSched()
+          startPolling()
+        }, 1500)
       }
     } catch (e) {
       console.error('[useParamsScheduler.schedRunNow] failed to trigger task', e)
       showToast(t('common.apiError.submitFailed'), TOAST_TYPE.ERR)
     }
-    setTimeout(() => { task._running = false }, 4000)
+    setTimeout(() => {
+      task._running = false
+    }, 4000)
   }
 
-  function schedOnAmountChange(key, val) { if (schedEditValues[key]) schedEditValues[key].amount = +val }
+  function schedOnAmountChange(key, val) {
+    if (schedEditValues[key]) schedEditValues[key].amount = +val
+  }
   function schedOnUnitChange(key, unit) {
     const ev = schedEditValues[key]
     if (!ev) return
@@ -137,14 +185,28 @@ export function useParamsScheduler() {
     ev.amount = intervalToAmount(oldSec, unit) || 1
   }
 
-  function ensureLoaded() { if (!loadedOnce) loadSched() }
+  function ensureLoaded() {
+    if (!loadedOnce) loadSched()
+  }
 
   return {
-    schedTasks, schedLoading, schedEditValues,
-    intervalToAmount, formatSeconds, formatRunDate,
-    schedStatusDot, schedIsDirty,
-    loadSched, ensureLoaded, startPolling, stopPolling,
-    schedToggle, schedSaveInterval, schedReset, schedRunNow,
-    schedOnAmountChange, schedOnUnitChange,
+    schedTasks,
+    schedLoading,
+    schedEditValues,
+    intervalToAmount,
+    formatSeconds,
+    formatRunDate,
+    schedStatusDot,
+    schedIsDirty,
+    loadSched,
+    ensureLoaded,
+    startPolling,
+    stopPolling,
+    schedToggle,
+    schedSaveInterval,
+    schedReset,
+    schedRunNow,
+    schedOnAmountChange,
+    schedOnUnitChange,
   }
 }

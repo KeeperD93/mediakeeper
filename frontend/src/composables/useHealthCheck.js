@@ -31,7 +31,7 @@ export function useHealthCheck() {
   const scoreCircum = 2 * Math.PI * 52
   const scoreOffset = computed(() => {
     const s = summary.value?.score ?? 0
-    return scoreCircum - (scoreCircum * s / 100)
+    return scoreCircum - (scoreCircum * s) / 100
   })
   const progressPct = computed(() => {
     if (!scanStatus.value.total) return 0
@@ -41,7 +41,9 @@ export function useHealthCheck() {
     Object.keys(summary.value?.by_library || {}).filter(n => n && n !== '?' && n.trim()),
   )
   const maxLibCount = computed(() => Math.max(1, ...Object.values(summary.value?.by_library || {})))
-  function libPct(count) { return Math.round((count / maxLibCount.value) * 100) }
+  function libPct(count) {
+    return Math.round((count / maxLibCount.value) * 100)
+  }
   const filteredLibraries = computed(() => {
     const bl = summary.value?.by_library || {}
     return Object.entries(bl).filter(([name]) => name && name !== '?' && name.trim() !== '')
@@ -60,7 +62,9 @@ export function useHealthCheck() {
     try {
       const d = await apiGet('/api/healthcheck/summary')
       if (d && d.score !== undefined) summary.value = d
-    } catch { /* silent: healthcheck summary poll */ }
+    } catch {
+      /* silent: healthcheck summary poll */
+    }
   }
 
   async function loadGroupedPosters() {
@@ -68,7 +72,9 @@ export function useHealthCheck() {
     try {
       const d = await apiGet(`/api/healthcheck/grouped${qs ? '?' + qs : ''}`)
       if (d && d.items) groupedPosters.value = d.items
-    } catch { /* silent: grouped posters load */ }
+    } catch {
+      /* silent: grouped posters load */
+    }
   }
 
   async function reloadIssues() {
@@ -77,7 +83,9 @@ export function useHealthCheck() {
     try {
       const d = await apiGet(`/api/healthcheck/issues?${params}`)
       if (d) issues.value = d
-    } catch { /* silent: issues reload */ }
+    } catch {
+      /* silent: issues reload */
+    }
   }
 
   async function loadMore() {
@@ -91,7 +99,9 @@ export function useHealthCheck() {
       if (d && d.items) {
         issues.value = { ...d, items: [...issues.value.items, ...d.items] }
       }
-    } catch { /* silent: pagination load */ }
+    } catch {
+      /* silent: pagination load */
+    }
     loadingMore.value = false
   }
 
@@ -116,17 +126,46 @@ export function useHealthCheck() {
         await reloadIssues()
         await loadGroupedPosters()
       }
-    } catch { /* silent: status poll retries */ }
+    } catch {
+      /* silent: status poll retries */
+    }
   }
 
-  function startPolling() { stopPolling(); pollTimer = setInterval(pollStatus, 2000); pollStatus() }
-  function stopPolling() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null } }
+  function startPolling() {
+    stopPolling()
+    pollTimer = setInterval(pollStatus, 2000)
+    pollStatus()
+  }
+  function stopPolling() {
+    if (pollTimer) {
+      clearInterval(pollTimer)
+      pollTimer = null
+    }
+  }
 
-  function reloadAll() { reloadIssues(); loadGroupedPosters() }
-  function toggleSeverity(sev) { filterSev.value = filterSev.value === sev ? '' : sev; filterTyp.value = ''; reloadAll() }
-  function toggleLibrary(lib) { filterLib.value = filterLib.value === lib ? '' : lib; filterTyp.value = ''; reloadAll() }
-  function toggleType(typ) { filterTyp.value = filterTyp.value === typ ? '' : typ; filterSev.value = ''; reloadAll() }
-  function toggleExt(ext) { filterExt.value = filterExt.value === ext ? '' : ext; reloadAll() }
+  function reloadAll() {
+    reloadIssues()
+    loadGroupedPosters()
+  }
+  function toggleSeverity(sev) {
+    filterSev.value = filterSev.value === sev ? '' : sev
+    filterTyp.value = ''
+    reloadAll()
+  }
+  function toggleLibrary(lib) {
+    filterLib.value = filterLib.value === lib ? '' : lib
+    filterTyp.value = ''
+    reloadAll()
+  }
+  function toggleType(typ) {
+    filterTyp.value = filterTyp.value === typ ? '' : typ
+    filterSev.value = ''
+    reloadAll()
+  }
+  function toggleExt(ext) {
+    filterExt.value = filterExt.value === ext ? '' : ext
+    reloadAll()
+  }
 
   function formatAgo(iso) {
     if (!iso) return ''
@@ -140,13 +179,36 @@ export function useHealthCheck() {
   }
 
   return {
-    summary, issues, groupedPosters, scanStatus, loading, loadingMore,
-    filterSev, filterLib, filterTyp, filterExt,
-    scoreColor, scoreCircum, scoreOffset, progressPct,
-    libOptions, filteredLibraries, libPct,
-    loadSummary, loadGroupedPosters, reloadIssues, loadMore,
-    startScan, pollStatus, startPolling, stopPolling,
-    reloadAll, toggleSeverity, toggleLibrary, toggleType, toggleExt,
+    summary,
+    issues,
+    groupedPosters,
+    scanStatus,
+    loading,
+    loadingMore,
+    filterSev,
+    filterLib,
+    filterTyp,
+    filterExt,
+    scoreColor,
+    scoreCircum,
+    scoreOffset,
+    progressPct,
+    libOptions,
+    filteredLibraries,
+    libPct,
+    loadSummary,
+    loadGroupedPosters,
+    reloadIssues,
+    loadMore,
+    startScan,
+    pollStatus,
+    startPolling,
+    stopPolling,
+    reloadAll,
+    toggleSeverity,
+    toggleLibrary,
+    toggleType,
+    toggleExt,
     formatAgo,
   }
 }

@@ -4,7 +4,18 @@ import { onMounted, onUnmounted } from 'vue'
  * Konami Code Easter Egg : ↑↑↓↓←→←→BA
  * Triggers: rainbow hue-rotate 3s + shake sidebar + emoji pop
  */
-const KONAMI = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a']
+const KONAMI = [
+  'ArrowUp',
+  'ArrowUp',
+  'ArrowDown',
+  'ArrowDown',
+  'ArrowLeft',
+  'ArrowRight',
+  'ArrowLeft',
+  'ArrowRight',
+  'b',
+  'a',
+]
 
 export function useKonamiCode() {
   let pos = 0
@@ -23,7 +34,9 @@ export function useKonamiCode() {
 
     // Auto-reset if too slow (5s)
     clearTimeout(timeout)
-    timeout = setTimeout(() => { pos = 0 }, 5000)
+    timeout = setTimeout(() => {
+      pos = 0
+    }, 5000)
   }
 
   function activate() {
@@ -34,7 +47,10 @@ export function useKonamiCode() {
     const emojis = ['🎬', '🍿', '🎥', '🎮', '🏆', '⭐', '🚀', '🎉']
     const toast = document.createElement('div')
     toast.className = 'mk-konami-toast'
-    toast.textContent = emojis[Math.floor(Math.random() * emojis.length)] + ' KONAMI! ' + emojis[Math.floor(Math.random() * emojis.length)]
+    toast.textContent =
+      emojis[Math.floor(Math.random() * emojis.length)] +
+      ' KONAMI! ' +
+      emojis[Math.floor(Math.random() * emojis.length)]
     document.body.appendChild(toast)
 
     // Spawn floating emojis

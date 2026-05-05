@@ -30,7 +30,13 @@ function formatSize(bytes) {
   return (bytes / 1024 / 1024).toFixed(2) + ' MB'
 }
 function formatBackupDate(iso) {
-  return new Date(iso).toLocaleString(undefined, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+  return new Date(iso).toLocaleString(undefined, {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }
 
 export function useParamsBackup() {
@@ -64,7 +70,9 @@ export function useParamsBackup() {
           retentionDays.value = data.retention_days
         }
       }
-    } catch { /* silent: backup info load, UI stays empty */ }
+    } catch {
+      /* silent: backup info load, UI stays empty */
+    }
     backupLoading.value = false
   }
 
@@ -72,10 +80,14 @@ export function useParamsBackup() {
     try {
       const data = await apiGet('/api/backup/directories')
       if (Array.isArray(data)) backupDirs.value = data
-    } catch { /* silent: backup dirs load */ }
+    } catch {
+      /* silent: backup dirs load */
+    }
   }
 
-  function onRetentionModeChange(mode) { retentionMode.value = mode }
+  function onRetentionModeChange(mode) {
+    retentionMode.value = mode
+  }
 
   async function saveRetention() {
     let days = 0
@@ -84,15 +96,22 @@ export function useParamsBackup() {
     try {
       await apiFetch('/api/backup/retention', { method: 'POST', body: JSON.stringify({ days }) })
       showToast(t('backup.retentionSaved'), TOAST_TYPE.OK)
-    } catch { showToast(t('common.networkError'), TOAST_TYPE.ERR) }
+    } catch {
+      showToast(t('common.networkError'), TOAST_TYPE.ERR)
+    }
   }
 
   async function changeBackupDir(dir) {
     try {
-      const res = await apiFetch('/api/backup/set-directory', { method: 'POST', body: JSON.stringify({ path: dir }) })
+      const res = await apiFetch('/api/backup/set-directory', {
+        method: 'POST',
+        body: JSON.stringify({ path: dir }),
+      })
       const data = await res.json()
-      if (data.success) { showToast(t('backup.dirChanged'), TOAST_TYPE.OK); await loadBackupInfo() }
-      else showToast(data.detail || t('common.networkError'), TOAST_TYPE.ERR)
+      if (data.success) {
+        showToast(t('backup.dirChanged'), TOAST_TYPE.OK)
+        await loadBackupInfo()
+      } else showToast(data.detail || t('common.networkError'), TOAST_TYPE.ERR)
     } catch (e) {
       console.error('[useParamsBackup.changeBackupDir] failed to change backup directory', e)
       showToast(t('common.networkError'), TOAST_TYPE.ERR)
@@ -107,12 +126,19 @@ export function useParamsBackup() {
         body: JSON.stringify({ components: selectedComponents.value, label: '' }),
       })
       const data = await res.json()
-      if (data.success) { showToast(t('backup.created'), TOAST_TYPE.OK); await loadBackupInfo() }
-    } catch { showToast(t('common.networkError'), TOAST_TYPE.ERR) }
+      if (data.success) {
+        showToast(t('backup.created'), TOAST_TYPE.OK)
+        await loadBackupInfo()
+      }
+    } catch {
+      showToast(t('common.networkError'), TOAST_TYPE.ERR)
+    }
     backupCreating.value = false
   }
 
-  function downloadBackup(filename) { window.open('/api/backup/download/' + filename, '_blank') }
+  function downloadBackup(filename) {
+    window.open('/api/backup/download/' + filename, '_blank')
+  }
 
   async function deleteBackup(filename) {
     const ok = await mkConfirm({
@@ -124,7 +150,10 @@ export function useParamsBackup() {
     if (!ok) return
     const res = await apiFetch('/api/backup/' + filename, { method: 'DELETE' })
     const data = await res.json()
-    if (data.success) { showToast(t('backup.deleted'), TOAST_TYPE.OK); await loadBackupInfo() }
+    if (data.success) {
+      showToast(t('backup.deleted'), TOAST_TYPE.OK)
+      await loadBackupInfo()
+    }
   }
 
   async function restoreBackup(filename) {
@@ -143,7 +172,9 @@ export function useParamsBackup() {
       const data = await res.json()
       if (data.success) showToast(t('backup.restored'), TOAST_TYPE.OK)
       else showToast(t('common.networkError'), TOAST_TYPE.ERR)
-    } catch { showToast(t('common.networkError'), TOAST_TYPE.ERR) }
+    } catch {
+      showToast(t('common.networkError'), TOAST_TYPE.ERR)
+    }
     backupRestoring.value = null
   }
 
@@ -158,9 +189,13 @@ export function useParamsBackup() {
       const endpoint = isJson ? '/api/backup/upload-restore-json' : '/api/backup/upload-restore'
       const res = await apiFetch(endpoint, { method: 'POST', body: fd })
       const data = res ? await res.json() : null
-      if (data?.success) { showToast(t('backup.restored'), TOAST_TYPE.OK); await loadBackupInfo() }
-      else showToast(data?.detail || t('common.networkError'), TOAST_TYPE.ERR)
-    } catch { showToast(t('common.networkError'), TOAST_TYPE.ERR) }
+      if (data?.success) {
+        showToast(t('backup.restored'), TOAST_TYPE.OK)
+        await loadBackupInfo()
+      } else showToast(data?.detail || t('common.networkError'), TOAST_TYPE.ERR)
+    } catch {
+      showToast(t('common.networkError'), TOAST_TYPE.ERR)
+    }
     e.target.value = ''
   }
 
@@ -171,13 +206,29 @@ export function useParamsBackup() {
   }
 
   return {
-    backupInfo, backupLoading, backupCreating, backupRestoring,
-    backupDirs, backupDirInput,
-    retentionMode, retentionDays, retentionCount,
-    selectedComponents, COMPONENT_LABELS,
-    formatSize, formatBackupDate,
-    ensureLoaded, loadBackupInfo, loadBackupDirs,
-    onRetentionModeChange, saveRetention, changeBackupDir,
-    createBackup, downloadBackup, deleteBackup, restoreBackup, uploadRestore,
+    backupInfo,
+    backupLoading,
+    backupCreating,
+    backupRestoring,
+    backupDirs,
+    backupDirInput,
+    retentionMode,
+    retentionDays,
+    retentionCount,
+    selectedComponents,
+    COMPONENT_LABELS,
+    formatSize,
+    formatBackupDate,
+    ensureLoaded,
+    loadBackupInfo,
+    loadBackupDirs,
+    onRetentionModeChange,
+    saveRetention,
+    changeBackupDir,
+    createBackup,
+    downloadBackup,
+    deleteBackup,
+    restoreBackup,
+    uploadRestore,
   }
 }

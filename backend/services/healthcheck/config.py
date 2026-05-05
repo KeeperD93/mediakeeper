@@ -31,6 +31,6 @@ async def _load_config(db: AsyncSession) -> dict:
     if raw:
         try:
             return {**DEFAULT_CONFIG, **json.loads(raw)}
-        except Exception:
+        except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
             pass
     return {**DEFAULT_CONFIG}

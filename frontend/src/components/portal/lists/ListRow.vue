@@ -17,7 +17,8 @@
     >
       <div v-if="posterSlots.some(Boolean)" class="arr-row-poster-mosaic">
         <span
-          v-for="(src, i) in posterSlots" :key="i"
+          v-for="(src, i) in posterSlots"
+          :key="i"
           class="arr-row-poster-tile"
           :class="{ 'arr-row-poster-tile--empty': !src }"
         >
@@ -45,9 +46,7 @@
         <span v-if="!lst.is_owner">
           <span class="arr-who">{{ $t('portal.lists.ownedBy', { name: ownerLabel }) }}</span>
         </span>
-        <span v-if="lst.copy_count > 0" class="arr-row-list-copies">
-          ↩ {{ lst.copy_count }}
-        </span>
+        <span v-if="lst.copy_count > 0" class="arr-row-list-copies">↩ {{ lst.copy_count }}</span>
         <span v-if="lst.updated_at">
           <strong>{{ formatAgo(lst.updated_at) }}</strong>
         </span>
@@ -126,7 +125,11 @@ defineEmits(['toggle', 'edit', 'delete', 'copy-list'])
 
 const { t } = useI18n()
 
-const PRIVACY_TO_BAR = { private: 'rejected', public_readonly: 'available', collaborative: 'pending' }
+const PRIVACY_TO_BAR = {
+  private: 'rejected',
+  public_readonly: 'available',
+  collaborative: 'pending',
+}
 const barStatus = computed(() => PRIVACY_TO_BAR[props.lst.privacy] || 'pending')
 
 // Pad to exactly 4 slots for the 2×2 mosaic. Empty slots render
@@ -146,9 +149,7 @@ const backdropStyle = computed(() => {
   return { background: `radial-gradient(ellipse 50% 50% at 15% 50%, ${c}, transparent 70%)` }
 })
 
-const ownerLabel = computed(() =>
-  props.lst.contributors?.[0]?.username || `#${props.lst.owner_id}`,
-)
+const ownerLabel = computed(() => props.lst.contributors?.[0]?.username || `#${props.lst.owner_id}`)
 
 function formatAgo(iso) {
   if (!iso) return ''
@@ -167,36 +168,61 @@ function formatAgo(iso) {
 
 <style scoped>
 .arr-row-poster--list {
-  border: none; cursor: pointer;
+  border: none;
+  cursor: pointer;
   background: var(--portal-gradient-glass-soft);
   color: var(--portal-text-body-muted);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 6px;
   padding: 0;
 }
 .arr-row-list-count {
-  font-size: var(--portal-text-md); font-weight: var(--portal-font-black);
+  font-size: var(--portal-text-md);
+  font-weight: var(--portal-font-black);
   color: #fff;
   font-family: var(--portal-font-display);
   letter-spacing: var(--portal-tracking-tight);
-  text-shadow: 0 0 10px rgba(0,0,0,0.4);
+  text-shadow: 0 0 10px rgb(0, 0, 0, 0.4);
 }
-.arr-row-list-copies { color: rgba(255,255,255,.6); font-weight: var(--portal-font-bold); }
+.arr-row-list-copies {
+  color: rgb(255, 255, 255, 0.6);
+  font-weight: var(--portal-font-bold);
+}
 
 .arr-row-poster-mosaic {
-  position: absolute; inset: 0;
-  display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
   gap: 2px;
 }
 .arr-row-poster-tile {
-  display: block; overflow: hidden; background: var(--portal-surface-2);
+  display: block;
+  overflow: hidden;
+  background: var(--portal-surface-2);
 }
-.arr-row-poster-tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.arr-row-poster-tile--empty { background: rgba(255,255,255,0.025); }
+.arr-row-poster-tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.arr-row-poster-tile--empty {
+  background: rgb(255, 255, 255, 0.025);
+}
 .arr-row-poster--list:has(.arr-row-poster-mosaic) .arr-row-list-count {
-  position: absolute; right: 4px; bottom: 4px;
-  padding: 2px 7px; border-radius: var(--portal-radius-pill);
-  background: rgba(0,0,0,0.72); backdrop-filter: var(--portal-blur-xs);
-  font-size: var(--portal-text-xs); text-shadow: none;
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  padding: 2px 7px;
+  border-radius: var(--portal-radius-pill);
+  background: rgb(0, 0, 0, 0.72);
+  backdrop-filter: var(--portal-blur-xs);
+  font-size: var(--portal-text-xs);
+  text-shadow: none;
 }
 </style>

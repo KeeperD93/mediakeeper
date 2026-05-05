@@ -4,14 +4,28 @@
       <div class="pt-rmodal">
         <div class="pt-rmodal-header">
           <h2>{{ $t('portal.request.title') }}</h2>
-          <button class="pt-rmodal-close" type="button" :aria-label="$t('common.close')" @click="$emit('close')"><X :size="14" /></button>
+          <button
+            class="pt-rmodal-close"
+            type="button"
+            :aria-label="$t('common.close')"
+            @click="$emit('close')"
+          >
+            <X :size="14" />
+          </button>
         </div>
 
         <div class="pt-rmodal-media">
-          <img v-if="item.poster_url || item.poster" :src="item.poster_url || item.poster" class="pt-rmodal-poster" />
+          <img
+            v-if="item.poster_url || item.poster"
+            :src="item.poster_url || item.poster"
+            class="pt-rmodal-poster"
+          />
           <div class="pt-rmodal-media-info">
             <h3>{{ item.title }}</h3>
-            <span class="pt-rmodal-year">{{ item.year }} · {{ isTv(item) ? $t('portal.card.series') : $t('portal.card.movie') }}</span>
+            <span class="pt-rmodal-year">
+              {{ item.year }} ·
+              {{ isTv(item) ? $t('portal.card.series') : $t('portal.card.movie') }}
+            </span>
           </div>
           <span
             v-if="partialAvailability"
@@ -72,7 +86,8 @@
                     v-else-if="seasonLockedCount(s.number) > 0"
                     class="pt-rmodal-tag pt-rmodal-tag--partial"
                   >
-                    {{ seasonLockedCount(s.number) }}/{{ s.episodes }} {{ $t('portal.request.availableShort') }}
+                    {{ seasonLockedCount(s.number) }}/{{ s.episodes }}
+                    {{ $t('portal.request.availableShort') }}
                   </span>
                   <span class="pt-rmodal-ep-count">
                     {{ s.episodes }} {{ $t('portal.request.episodes') }}
@@ -96,7 +111,10 @@
                     <span
                       class="pt-rmodal-episode-label"
                       :title="ep.name ? `E${ep.number} — ${ep.name}` : `E${ep.number}`"
-                    >E{{ ep.number }}<template v-if="ep.name"> — {{ ep.name }}</template></span>
+                    >
+                      E{{ ep.number }}
+                      <template v-if="ep.name">— {{ ep.name }}</template>
+                    </span>
                     <span class="pt-rmodal-episode-status">
                       <span
                         v-if="isEpisodeAvailable(s.number, ep.number)"
@@ -164,19 +182,32 @@ const selectedUserId = ref(null)
 const submitting = ref(false)
 
 const {
-  seasons, episodesMap, selectedSeasons, expanded,
-  getEpisodes, isEpisodeAvailable, isEpisodeIgnored, isEpisodeLocked,
-  seasonAvailableCount, seasonLockedCount,
-  isSeasonFullyAvailable, partialAvailability,
-  isSeasonSelected, isEpisodeSelected,
-  toggleSeason, toggleEpisode, toggleExpand,
-  hasAnySelection, hasAnyRequestable, allRequestableSelected, toggleSelectAll,
+  seasons,
+  episodesMap,
+  selectedSeasons,
+  expanded,
+  getEpisodes,
+  isEpisodeAvailable,
+  isEpisodeIgnored,
+  isEpisodeLocked,
+  seasonLockedCount,
+  isSeasonFullyAvailable,
+  partialAvailability,
+  isSeasonSelected,
+  isEpisodeSelected,
+  toggleSeason,
+  toggleEpisode,
+  toggleExpand,
+  hasAnySelection,
+  hasAnyRequestable,
+  allRequestableSelected,
+  toggleSelectAll,
   setAvailability,
 } = useRequestSelection()
 
 const canSubmit = computed(() => {
   if (!isTv(props.item)) return true
-  if (!seasons.value.length) return true  // metadata still loading — let backend validate
+  if (!seasons.value.length) return true // metadata still loading — let backend validate
   return hasAnySelection()
 })
 
@@ -197,13 +228,17 @@ async function loadSeasons() {
   // Fetch episode details in parallel — the season list above is
   // authoritative for counts, so these calls only enrich the expanded
   // episode view. Failing individually is harmless.
-  await Promise.all(seasons.value.map(async s => {
-    const epRes = await apiGet(`/api/portal/catalog/tv/${id}/season/${s.number}`).catch(() => null)
-    if (epRes && Array.isArray(epRes)) {
-      episodesMap.value[s.number] = epRes
-      if (!s.episodes) s.episodes = epRes.length
-    }
-  }))
+  await Promise.all(
+    seasons.value.map(async s => {
+      const epRes = await apiGet(`/api/portal/catalog/tv/${id}/season/${s.number}`).catch(
+        () => null,
+      )
+      if (epRes && Array.isArray(epRes)) {
+        episodesMap.value[s.number] = epRes
+        if (!s.episodes) s.episodes = epRes.length
+      }
+    }),
+  )
 }
 
 async function loadAvailability() {
@@ -262,9 +297,10 @@ async function submit() {
         showToast(t('portal.request.quotaInfo', { used, max }), TOAST_TYPE.OK, 4000)
       }
     } else {
-      const successKey = res.retry_count && res.retry_count >= 1
-        ? 'portal.request.resubmitSuccess'
-        : 'common.success'
+      const successKey =
+        res.retry_count && res.retry_count >= 1
+          ? 'portal.request.resubmitSuccess'
+          : 'common.success'
       showToast(t(successKey), TOAST_TYPE.OK)
     }
     emit('done', { retry_count: res.retry_count || 0, id: res.id })
@@ -273,9 +309,7 @@ async function submit() {
     // Map backend error codes → human-readable messages.
     const code = res?.detail || res?.error
     const i18nKey = code ? `portal.request.errors.${code}` : null
-    const msg = i18nKey && t(i18nKey) !== i18nKey
-      ? t(i18nKey)
-      : (code || t('common.error'))
+    const msg = i18nKey && t(i18nKey) !== i18nKey ? t(i18nKey) : code || t('common.error')
     showToast(msg, TOAST_TYPE.ERR)
   }
 }

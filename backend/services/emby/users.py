@@ -155,5 +155,5 @@ async def _kill_sessions_for_user(url: str, api_key: str, emby_user_id: str) -> 
                 f"{url}/Sessions/{session_id}/Logout",
                 headers=headers,
             )
-        except Exception:
+        except Exception:  # noqa: S112 -- intentional best-effort iteration, skip individual failure
             continue

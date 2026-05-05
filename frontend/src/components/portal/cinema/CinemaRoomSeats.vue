@@ -3,12 +3,7 @@
        Backend seat_index ∈ [0..49] mapped to the 50 best central positions. -->
   <div class="pt-cr-seats-wrap">
     <div class="pt-cr-seats">
-      <div
-        v-for="row in 4"
-        :key="`row${row}`"
-        class="pt-cr-row"
-        :style="{ '--rowDepth': row }"
-      >
+      <div v-for="row in 4" :key="`row${row}`" class="pt-cr-row" :style="{ '--rowDepth': row }">
         <div class="pt-cr-block">
           <div
             v-for="col in 8"
@@ -22,14 +17,20 @@
             <div class="pt-cr-seat-cushion" />
             <div class="pt-cr-seat-base" />
             <div v-if="seatOccupant(row - 1, col - 1, 'L')" class="pt-cr-seat-avatar">
-              {{ seatOccupant(row - 1, col - 1, 'L').username?.charAt(0)?.toUpperCase() }}
+              {{
+                seatOccupant(row - 1, col - 1, 'L')
+                  .username?.charAt(0)
+                  ?.toUpperCase()
+              }}
             </div>
             <div
               v-for="(b, bi) in seatBubbles(row - 1, col - 1, 'L')"
               :key="b.id"
               class="pt-cr-bubble"
               :style="{ '--bi': bi }"
-            >{{ b.text }}</div>
+            >
+              {{ b.text }}
+            </div>
           </div>
         </div>
         <div class="pt-cr-stair" />
@@ -46,14 +47,20 @@
             <div class="pt-cr-seat-cushion" />
             <div class="pt-cr-seat-base" />
             <div v-if="seatOccupant(row - 1, col - 1, 'C')" class="pt-cr-seat-avatar">
-              {{ seatOccupant(row - 1, col - 1, 'C').username?.charAt(0)?.toUpperCase() }}
+              {{
+                seatOccupant(row - 1, col - 1, 'C')
+                  .username?.charAt(0)
+                  ?.toUpperCase()
+              }}
             </div>
             <div
               v-for="(b, bi) in seatBubbles(row - 1, col - 1, 'C')"
               :key="b.id"
               class="pt-cr-bubble"
               :style="{ '--bi': bi }"
-            >{{ b.text }}</div>
+            >
+              {{ b.text }}
+            </div>
           </div>
         </div>
         <div class="pt-cr-stair" />
@@ -70,14 +77,20 @@
             <div class="pt-cr-seat-cushion" />
             <div class="pt-cr-seat-base" />
             <div v-if="seatOccupant(row - 1, col - 1, 'R')" class="pt-cr-seat-avatar">
-              {{ seatOccupant(row - 1, col - 1, 'R').username?.charAt(0)?.toUpperCase() }}
+              {{
+                seatOccupant(row - 1, col - 1, 'R')
+                  .username?.charAt(0)
+                  ?.toUpperCase()
+              }}
             </div>
             <div
               v-for="(b, bi) in seatBubbles(row - 1, col - 1, 'R')"
               :key="b.id"
               class="pt-cr-bubble"
               :style="{ '--bi': bi }"
-            >{{ b.text }}</div>
+            >
+              {{ b.text }}
+            </div>
           </div>
         </div>
       </div>
@@ -110,7 +123,7 @@ const PREMIUM_SEATS = (() => {
     }
   }
   cells.sort((a, b) => a.dist - b.dist)
-  return cells.slice(0, 50).map((x) => x.pos)
+  return cells.slice(0, 50).map(x => x.pos)
 })()
 
 function flatPos(row, colInBlock, block) {
@@ -126,9 +139,11 @@ function seatOccupant(row, colInBlock, block) {
   const flat = flatPos(row, colInBlock, block)
   const seatIdx = PREMIUM_SEATS.indexOf(flat)
   if (seatIdx < 0) return null
-  return props.event.invitations?.find(
-    (i) => i.status === INVITATION_STATUS.ACCEPTED && i.seat_index === seatIdx,
-  ) || null
+  return (
+    props.event.invitations?.find(
+      i => i.status === INVITATION_STATUS.ACCEPTED && i.seat_index === seatIdx,
+    ) || null
+  )
 }
 
 function seatClass(row, colInBlock, block) {
@@ -173,7 +188,9 @@ async function pollBubbles() {
       next[m.user_id] = arr.slice(-3)
     }
     bubblesByUser.value = next
-  } catch { /* silent */ }
+  } catch {
+    /* silent */
+  }
 }
 
 function sweepBubbles() {
@@ -181,7 +198,7 @@ function sweepBubbles() {
   const next = {}
   let changed = false
   for (const [uid, arr] of Object.entries(bubblesByUser.value)) {
-    const kept = arr.filter((b) => b.ts >= cutoff)
+    const kept = arr.filter(b => b.ts >= cutoff)
     if (kept.length !== arr.length) changed = true
     if (kept.length) next[uid] = kept
   }

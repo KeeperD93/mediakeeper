@@ -136,7 +136,7 @@ async def create_request(
         from services.portal.xp import grant_xp
         req_id = result.get("id") or result.get("request_id") or "unknown"
         await grant_xp(db, target_user_id, "request_created", str(req_id))
-    except Exception:
+    except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
         pass  # XP is best-effort, never blocks the request
 
     return result

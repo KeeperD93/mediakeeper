@@ -12,7 +12,9 @@
         <form class="atl-panel mk-modal-sheet-panel ru-create-panel" @submit.prevent="submit">
           <div class="atl-header">
             <h2 class="atl-title">{{ $t('requestsAdmin.users.bulkPerms.title') }}</h2>
-            <button class="atl-close" type="button" :aria-label="$t('common.close')" @click="close"><X :size="14" /></button>
+            <button class="atl-close" type="button" :aria-label="$t('common.close')" @click="close">
+              <X :size="14" />
+            </button>
           </div>
           <div class="ru-form atl-body">
             <p class="ru-help">{{ $t('requestsAdmin.users.bulkPerms.help', { count }) }}</p>
@@ -28,7 +30,9 @@
             </ul>
           </div>
           <footer class="ru-import-footer">
-            <button type="button" class="ru-btn ru-btn--ghost" @click="close">{{ $t('common.cancel') }}</button>
+            <button type="button" class="ru-btn ru-btn--ghost" @click="close">
+              {{ $t('common.cancel') }}
+            </button>
             <button type="submit" class="ru-btn ru-btn--primary" :disabled="!hasChanges">
               {{ $t('requestsAdmin.users.bulkPerms.apply') }}
             </button>
@@ -51,12 +55,17 @@ const props = defineProps({
 })
 const emit = defineEmits(['close', 'apply'])
 
-const empty = () => Object.fromEntries(PERMISSION_KEYS.map((k) => [k, '']))
+const empty = () => Object.fromEntries(PERMISSION_KEYS.map(k => [k, '']))
 const state = reactive(empty())
 
-watch(() => props.open, (v) => { if (v) Object.assign(state, empty()) })
+watch(
+  () => props.open,
+  v => {
+    if (v) Object.assign(state, empty())
+  },
+)
 
-const hasChanges = computed(() => Object.values(state).some((v) => v))
+const hasChanges = computed(() => Object.values(state).some(v => v))
 
 function submit() {
   const permissions = {}
@@ -67,12 +76,32 @@ function submit() {
   emit('apply', permissions)
 }
 
-function close() { emit('close') }
+function close() {
+  emit('close')
+}
 </script>
 
 <style scoped>
-.ru-bulk-perm-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .55rem; }
-.ru-bulk-perm-list li { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-.ru-bulk-perm-list span { font-weight: var(--font-medium); color: var(--text-primary); font-size: var(--text-sm); }
-.ru-bulk-perm-list select { min-width: 160px; }
+.ru-bulk-perm-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.ru-bulk-perm-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.ru-bulk-perm-list span {
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+}
+.ru-bulk-perm-list select {
+  min-width: 160px;
+}
 </style>

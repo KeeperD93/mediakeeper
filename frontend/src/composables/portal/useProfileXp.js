@@ -9,7 +9,14 @@ import { useI18n } from 'vue-i18n'
 
 const DAY_LABELS = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
 const DAY_NAMES = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
-const TITLE_TIER_MAP = { 1: 'common', 2: 'uncommon', 3: 'rare', 4: 'epic', 5: 'legendary', 6: 'mythic' }
+const TITLE_TIER_MAP = {
+  1: 'common',
+  2: 'uncommon',
+  3: 'rare',
+  4: 'epic',
+  5: 'legendary',
+  6: 'mythic',
+}
 
 export function xpForLevel(n) {
   return 50 * n * (n + 1)
@@ -27,9 +34,7 @@ export function formatTime(minutes) {
 export function useProfileXp(profileData, stats) {
   const { t } = useI18n()
 
-  const titleTierName = computed(
-    () => TITLE_TIER_MAP[profileData.value?.title_tier] || 'common',
-  )
+  const titleTierName = computed(() => TITLE_TIER_MAP[profileData.value?.title_tier] || 'common')
 
   const memberSince = computed(() => {
     const created = profileData.value?.created_at
@@ -63,7 +68,8 @@ export function useProfileXp(profileData, stats) {
     if (ds && Array.isArray(ds) && ds.length === 7) {
       const maxVal = Math.max(...ds.map(d => d.count || 0), 1)
       const topIdx = ds.reduce(
-        (best, d, i) => (d.count || 0) > (ds[best].count || 0) ? i : best, 0,
+        (best, d, i) => ((d.count || 0) > (ds[best].count || 0) ? i : best),
+        0,
       )
       return ds.map((d, i) => ({
         label: DAY_LABELS[i],
@@ -78,7 +84,8 @@ export function useProfileXp(profileData, stats) {
     const ds = stats.value?.day_stats
     if (ds && Array.isArray(ds) && ds.length === 7) {
       const topIdx = ds.reduce(
-        (best, d, i) => (d.count || 0) > (ds[best].count || 0) ? i : best, 0,
+        (best, d, i) => ((d.count || 0) > (ds[best].count || 0) ? i : best),
+        0,
       )
       if (ds[topIdx].count > 0) return DAY_NAMES[topIdx]
     }
@@ -97,7 +104,13 @@ export function useProfileXp(profileData, stats) {
   })
 
   return {
-    titleTierName, memberSince, xpPercent, nextLevelXp,
-    weekData, topDay, funTimeComparison, formatTime,
+    titleTierName,
+    memberSince,
+    xpPercent,
+    nextLevelXp,
+    weekData,
+    topDay,
+    funTimeComparison,
+    formatTime,
   }
 }

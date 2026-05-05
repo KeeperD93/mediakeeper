@@ -147,7 +147,7 @@ async def get_watch_history_paginated(
             if res.status_code == 200:
                 for item in res.json().get("Items", []):
                     movie_played[item.get("Id", "")] = bool((item.get("UserData") or {}).get("Played"))
-        except Exception:
+        except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
             pass
 
     cleaned: list[dict] = []

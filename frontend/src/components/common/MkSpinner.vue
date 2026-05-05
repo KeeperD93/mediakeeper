@@ -1,10 +1,7 @@
 <template>
   <div
     class="mk-spinner"
-    :class="[
-      'mk-spinner-' + size,
-      { 'mk-spinner-inline': inline },
-    ]"
+    :class="['mk-spinner-' + size, { 'mk-spinner-inline': inline }]"
     role="status"
     aria-live="polite"
   />
@@ -57,10 +54,14 @@ defineProps({
 }
 
 @keyframes mk-spinner-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mk-spinner { animation-duration: 2s; }
+  .mk-spinner {
+    animation-duration: 2s;
+  }
 }
 </style>

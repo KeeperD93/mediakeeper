@@ -16,16 +16,18 @@
      box-shadow) because the child <img> with object-fit:cover paints
      ON TOP of an inset shadow, making it invisible. Top20Carousel
      ranks 1–3 override this with medal-coloured borders. */
-  outline: 1.5px solid rgba(255, 255, 255, 0.30);
+  outline: 1.5px solid rgb(255, 255, 255, 0.3);
   outline-offset: -1.5px;
-  transition: transform var(--portal-dur-med) ease, box-shadow var(--portal-dur-med) ease;
+  transition:
+    transform var(--portal-dur-med) ease,
+    box-shadow var(--portal-dur-med) ease;
 }
 /* Hover effects only on devices that actually have hover (desktop).
    Touch devices skip them entirely so taps don't trigger half-states. */
 @media (hover: hover) and (pointer: fine) {
   .pt-card:hover .pt-card-poster {
     transform: scale(1.08);
-    box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+    box-shadow: 0 8px 30px rgb(0, 0, 0, 0.6);
     z-index: 5;
   }
 }
@@ -52,24 +54,30 @@
   width: 16px;
   height: 16px;
   border-radius: var(--portal-radius-circle);
-  border: 2px solid rgba(0, 0, 0, 0.55);
+  border: 2px solid rgb(0, 0, 0, 0.55);
   pointer-events: auto;
   cursor: help;
-  transition: transform var(--portal-dur-base) ease, box-shadow var(--portal-dur-base) ease;
+  transition:
+    transform var(--portal-dur-base) ease,
+    box-shadow var(--portal-dur-base) ease;
 }
-.pt-status-dot:hover { transform: scale(1.15); }
+.pt-status-dot:hover {
+  transform: scale(1.15);
+}
 
 .pt-status-dot--available {
   background: var(--portal-color-success);
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.4),
-              0 0 14px rgba(var(--portal-color-success-rgb), 0.85),
-              0 0 4px rgba(var(--portal-color-success-rgb), 1);
+  box-shadow:
+    0 0 0 2px rgb(0, 0, 0, 0.4),
+    0 0 14px rgb(var(--portal-color-success-rgb), 0.85),
+    0 0 4px rgb(var(--portal-color-success-rgb), 1);
 }
 .pt-status-dot--partial {
   background: var(--portal-color-warning-dark);
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.4),
-              0 0 14px rgba(245, 158, 11, 0.85),
-              0 0 4px rgba(245, 158, 11, 1);
+  box-shadow:
+    0 0 0 2px rgb(0, 0, 0, 0.4),
+    0 0 14px rgb(245, 158, 11, 0.85),
+    0 0 4px rgb(245, 158, 11, 1);
 }
 
 /* ---------- Diagonal corner tags (top-left, rotated -35°) ----------
@@ -98,8 +106,8 @@
   font-weight: var(--portal-font-extrabold);
   letter-spacing: var(--portal-tracking-caps);
   text-transform: uppercase;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  text-shadow: 0 1px 2px rgb(0, 0, 0, 0.55);
+  box-shadow: 0 2px 8px rgb(0, 0, 0, 0.45);
   pointer-events: auto;
   cursor: help;
 }
@@ -110,8 +118,13 @@
   animation: pt-new-pulse 2.4s ease-in-out infinite;
 }
 @keyframes pt-new-pulse {
-  0%, 100% { filter: drop-shadow(0 0 6px rgba(var(--portal-color-success-rgb), 0.55)); }
-  50%      { filter: drop-shadow(0 0 14px rgba(var(--portal-color-success-rgb), 0.95)); }
+  0%,
+  100% {
+    filter: drop-shadow(0 0 6px rgb(var(--portal-color-success-rgb), 0.55));
+  }
+  50% {
+    filter: drop-shadow(0 0 14px rgb(var(--portal-color-success-rgb), 0.95));
+  }
 }
 
 /* ---------- "Requested" bronze sash (mutually exclusive with New) ---------- */
@@ -121,19 +134,33 @@
 
 /* ---------- Watched-status sash (profile "Last plays") ----------
    Slate for "already watched", indigo for "in progress". */
-.pt-watched-tag--watched     { background: linear-gradient(135deg, #64748b 0%, #475569 100%); }
-.pt-watched-tag--in-progress { background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); }
+.pt-watched-tag--watched {
+  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+}
+.pt-watched-tag--in-progress {
+  background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+}
 
 /* ---------- Request status sashes (profile "Mes demandes" carousel) ---------- */
-.pt-req-status-tag--pending   { background: linear-gradient(135deg, #d97706 0%, #92400e 100%); }
-.pt-req-status-tag--approved  { background: linear-gradient(135deg, var(--portal-color-info) 0%, #2563eb 100%); }
-.pt-req-status-tag--available { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
-.pt-req-status-tag--rejected  { background: linear-gradient(135deg, var(--portal-color-error) 0%, #dc2626 100%); }
+.pt-req-status-tag--pending {
+  background: linear-gradient(135deg, #d97706 0%, #92400e 100%);
+}
+.pt-req-status-tag--approved {
+  background: linear-gradient(135deg, var(--portal-color-info) 0%, #2563eb 100%);
+}
+.pt-req-status-tag--available {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+.pt-req-status-tag--rejected {
+  background: linear-gradient(135deg, var(--portal-color-error) 0%, #dc2626 100%);
+}
 
 /* When the retry badge is present, nudge the flex-centered content a few
    pixels to the right so the label stays visually balanced in the sash
    (without the badge, the label remains perfectly centered). */
-.pt-req-status-tag:has(.pt-req-retry-badge) { padding-left: 22px; }
+.pt-req-status-tag:has(.pt-req-retry-badge) {
+  padding-left: 22px;
+}
 
 /* Retry counter — pill appended to the status tag when the user has
    resubmitted at least once (x2, x3, …). Sits inside a flex parent so
@@ -142,10 +169,10 @@
   flex-shrink: 0;
   padding: 0 4px;
   border-radius: var(--portal-radius-pill);
-  background: rgba(0, 0, 0, 0.32);
+  background: rgb(0, 0, 0, 0.32);
   color: #fff;
   font-size: 0.52rem;
   font-weight: var(--portal-font-extrabold);
   letter-spacing: var(--portal-tracking-wide);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  box-shadow: inset 0 0 0 1px rgb(255, 255, 255, 0.18);
 }

@@ -26,10 +26,15 @@ export function useProfileData() {
   const loadingLists = ref(true)
   const hero = ref(null)
   const stats = ref({
-    total_plays: 0, total_minutes: 0, streak: 0,
+    total_plays: 0,
+    total_minutes: 0,
+    streak: 0,
     record_day: { date: null, count: 0 },
-    most_rewatched: null, most_rewatched_movie: null, most_rewatched_series: null,
-    top_genres: [], day_stats: null,
+    most_rewatched: null,
+    most_rewatched_movie: null,
+    most_rewatched_series: null,
+    top_genres: [],
+    day_stats: null,
   })
   const recoItems = ref([])
   const genreIds = ref([])
@@ -63,16 +68,22 @@ export function useProfileData() {
       titleKey.value = profileRes.title_key || 'spectator'
       rankTier.value = profileRes.rank_tier || 'bronze'
       recentWatches.value = (profileRes.recent_watches || []).map(w => ({
-        ...w, id: w.emby_item_id, poster: w.poster_url,
+        ...w,
+        id: w.emby_item_id,
+        poster: w.poster_url,
       }))
       myRequests.value = (profileRes.my_requests || []).map(r => ({
-        ...r, id: r.tmdb_id, poster: r.poster_url,
+        ...r,
+        id: r.tmdb_id,
+        poster: r.poster_url,
         _request_status: r.status,
         _retry_count: r.retry_count || 0,
         _reject_reason: r.reject_reason || null,
       }))
       nextToFinish.value = (profileRes.next_to_finish || []).map(n => ({
-        ...n, id: n.emby_item_id, poster: n.poster_url,
+        ...n,
+        id: n.emby_item_id,
+        poster: n.poster_url,
       }))
     }
     if (trophyRes) {
@@ -83,18 +94,18 @@ export function useProfileData() {
         next_achievement: trophyRes.next_achievement || null,
       }
       const now = Date.now()
-      recentUnlock.value = (trophyRes.items || []).find(a =>
-        a.status === TROPHY_STATUS.UNLOCKED && a.unlocked_at &&
-        (now - new Date(a.unlocked_at).getTime()) < 300000
-      ) || null
+      recentUnlock.value =
+        (trophyRes.items || []).find(
+          a =>
+            a.status === TROPHY_STATUS.UNLOCKED &&
+            a.unlocked_at &&
+            now - new Date(a.unlocked_at).getTime() < 300000,
+        ) || null
     }
   }
 
   async function _loadLists() {
-    const [
-      recoRes, continueRes,
-      homeRecoRes, bywTvRes, bywMovieRes, prefRes,
-    ] = await Promise.all([
+    const [recoRes, continueRes, homeRecoRes, bywTvRes, bywMovieRes, prefRes] = await Promise.all([
       apiGet('/api/portal/catalog/recommendations-full').catch(() => null),
       apiGet('/api/portal/library/continue?limit=10').catch(() => null),
       apiGet('/api/portal/catalog/recommended-for-me').catch(() => null),
@@ -136,10 +147,7 @@ export function useProfileData() {
       ...myRequests.value,
     ]
     if (enrich.length) {
-      await Promise.all([
-        checkAvailability(enrich),
-        checkRequestStatus(enrich),
-      ])
+      await Promise.all([checkAvailability(enrich), checkRequestStatus(enrich)])
     }
   }
 
@@ -154,16 +162,31 @@ export function useProfileData() {
     // Fire the secondary wave in the background — don't await it so
     // the caller can already render the profile card + KPIs. The
     // `loadingLists` flag lets sections show a skeleton in the meantime.
-    _loadLists().finally(() => { loadingLists.value = false })
+    _loadLists().finally(() => {
+      loadingLists.value = false
+    })
   }
 
   return {
     loading,
     loadingLists,
-    hero, stats, recoItems, genreIds,
-    recentWatches, myRequests, nextToFinish, continueWatching,
-    ranking, titleKey, rankTier, trophies, recentUnlock,
-    recommended, becauseYouWatchedTv, becauseYouWatchedMovie, preferencesBased,
+    hero,
+    stats,
+    recoItems,
+    genreIds,
+    recentWatches,
+    myRequests,
+    nextToFinish,
+    continueWatching,
+    ranking,
+    titleKey,
+    rankTier,
+    trophies,
+    recentUnlock,
+    recommended,
+    becauseYouWatchedTv,
+    becauseYouWatchedMovie,
+    preferencesBased,
     load,
   }
 }

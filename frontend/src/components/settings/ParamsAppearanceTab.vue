@@ -6,11 +6,14 @@
     <section class="params-section params-section-full">
       <h3 class="params-section-title">{{ $t('topbar.accent') }}</h3>
       <div class="params-accent-grid">
-        <button v-for="preset in accentPresets" :key="preset.name"
+        <button
+          v-for="preset in accentPresets"
+          :key="preset.name"
           class="params-accent-btn"
           :class="{ active: preset.name === accentName }"
           :style="{ '--dot-color': preset.color }"
-          @click="setAccent(preset.name)">
+          @click="setAccent(preset.name)"
+        >
           <span class="accent-dot" :style="{ background: preset.color }" />
           <span class="accent-name">{{ preset.name }}</span>
           <Check v-if="preset.name === accentName" :size="11" :stroke-width="3" />
@@ -23,19 +26,30 @@
       <p class="params-section-desc">{{ $t('settings.radiusDesc') }}</p>
       <div class="params-slider-row">
         <span class="params-slider-icon">▢</span>
-        <input type="range" min="0" max="24" step="2"
+        <input
+          type="range"
+          min="0"
+          max="24"
+          step="2"
           :value="borderRadius"
           class="params-slider"
-          @input="setRadius(+$event.target.value)" />
+          @input="setRadius(+$event.target.value)"
+        />
         <span class="params-slider-icon">⬜</span>
         <span class="params-slider-val">{{ borderRadius }}px</span>
       </div>
       <div class="params-radius-preview">
         <div class="radius-demo-card" :style="{ borderRadius: borderRadius + 'px' }">
-          <div class="radius-demo-bar" :style="{ borderRadius: Math.max(0, borderRadius - 2) + 'px' }" />
+          <div
+            class="radius-demo-bar"
+            :style="{ borderRadius: Math.max(0, borderRadius - 2) + 'px' }"
+          />
           <div class="radius-demo-line" />
         </div>
-        <div class="radius-demo-btn" :style="{ borderRadius: Math.max(4, borderRadius - 4) + 'px' }">
+        <div
+          class="radius-demo-btn"
+          :style="{ borderRadius: Math.max(4, borderRadius - 4) + 'px' }"
+        >
           {{ $t('settings.buttonPreview') }}
         </div>
       </div>
@@ -44,9 +58,12 @@
     <section class="params-section">
       <h3 class="params-section-title">{{ $t('settings.bgLabel') }}</h3>
       <p class="params-section-desc">{{ $t('settings.bgDesc') }}</p>
-      <div class="params-bg-upload"
+      <div
+        class="params-bg-upload"
         :class="{ 'has-bg': customBg }"
-        @dragover.prevent @drop.prevent="onBgDrop($event)">
+        @dragover.prevent
+        @drop.prevent="onBgDrop($event)"
+      >
         <div v-if="customBg" class="params-bg-preview">
           <img :src="customBg" class="params-bg-thumb" />
           <button class="params-bg-clear" @click="clearCustomBg">
@@ -62,18 +79,32 @@
 
       <div v-if="customBg" class="params-bg-controls">
         <div class="params-bg-ctrl">
-          <label class="params-bg-ctrl-label">{{ $t('settings.bgOpacity') }} — {{ Math.round(customBgOpacity * 100) }}%</label>
-          <input type="range" min="0.05" max="0.5" step="0.05"
+          <label class="params-bg-ctrl-label">
+            {{ $t('settings.bgOpacity') }} — {{ Math.round(customBgOpacity * 100) }}%
+          </label>
+          <input
+            type="range"
+            min="0.05"
+            max="0.5"
+            step="0.05"
             :value="customBgOpacity"
             class="params-slider"
-            @input="setCustomBg(customBg, +$event.target.value, customBgBlur)" />
+            @input="setCustomBg(customBg, +$event.target.value, customBgBlur)"
+          />
         </div>
         <div class="params-bg-ctrl">
-          <label class="params-bg-ctrl-label">{{ $t('settings.bgBlur') }} — {{ customBgBlur }}px</label>
-          <input type="range" min="0" max="40" step="2"
+          <label class="params-bg-ctrl-label">
+            {{ $t('settings.bgBlur') }} — {{ customBgBlur }}px
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="40"
+            step="2"
             :value="customBgBlur"
             class="params-slider"
-            @input="setCustomBg(customBg, customBgOpacity, +$event.target.value)" />
+            @input="setCustomBg(customBg, customBgOpacity, +$event.target.value)"
+          />
         </div>
       </div>
     </section>
@@ -83,10 +114,15 @@
       <p class="params-section-desc">{{ $t('settings.glowDesc') }}</p>
       <div class="params-slider-row">
         <span class="params-slider-icon">◌</span>
-        <input type="range" min="0" max="2" step="0.05"
+        <input
+          type="range"
+          min="0"
+          max="2"
+          step="0.05"
           :value="glowIntensity"
           class="params-slider"
-          @input="setGlowIntensity(+$event.target.value)" />
+          @input="setGlowIntensity(+$event.target.value)"
+        />
         <span class="params-slider-icon">◉</span>
         <span class="params-slider-val">{{ Math.round(glowIntensity * 100) }}%</span>
       </div>
@@ -98,11 +134,17 @@
     <section class="params-section">
       <div class="params-toggle-row">
         <div>
-          <h3 class="params-section-title params-section-title-tight">{{ $t('settings.particlesLabel') }}</h3>
+          <h3 class="params-section-title params-section-title-tight">
+            {{ $t('settings.particlesLabel') }}
+          </h3>
           <p class="params-section-desc">{{ $t('settings.particlesDesc') }}</p>
         </div>
         <label class="params-switch">
-          <input type="checkbox" :checked="particlesEnabled" @change="setParticles($event.target.checked)" />
+          <input
+            type="checkbox"
+            :checked="particlesEnabled"
+            @change="setParticles($event.target.checked)"
+          />
           <span class="params-switch-slider" />
         </label>
       </div>
@@ -127,11 +169,20 @@ import MkSpinner from '@/components/common/MkSpinner.vue'
 import '@/assets/styles/params-appearance.css'
 
 const {
-  accentName, accentPresets, setAccent,
-  borderRadius, setRadius,
-  customBg, customBgOpacity, customBgBlur, setCustomBg, clearCustomBg,
-  particlesEnabled, setParticles,
-  glowIntensity, setGlowIntensity,
+  accentName,
+  accentPresets,
+  setAccent,
+  borderRadius,
+  setRadius,
+  customBg,
+  customBgOpacity,
+  customBgBlur,
+  setCustomBg,
+  clearCustomBg,
+  particlesEnabled,
+  setParticles,
+  glowIntensity,
+  setGlowIntensity,
   saveAll,
 } = useTheme()
 
@@ -144,22 +195,26 @@ async function handleSave() {
   await new Promise(r => setTimeout(r, 600))
   saving.value = false
   saved.value = true
-  setTimeout(() => { saved.value = false }, 2500)
+  setTimeout(() => {
+    saved.value = false
+  }, 2500)
 }
 
 function resizeImageForBg(dataUrl) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const img = new Image()
     img.onload = () => {
       const MAX = 800
-      let w = img.width, h = img.height
+      let w = img.width,
+        h = img.height
       if (w > MAX || h > MAX) {
         const ratio = Math.min(MAX / w, MAX / h)
         w = Math.round(w * ratio)
         h = Math.round(h * ratio)
       }
       const cvs = document.createElement('canvas')
-      cvs.width = w; cvs.height = h
+      cvs.width = w
+      cvs.height = h
       cvs.getContext('2d').drawImage(img, 0, 0, w, h)
       resolve(cvs.toDataURL('image/jpeg', 0.7))
     }
@@ -172,7 +227,7 @@ function onBgFile(e) {
   const file = e.target.files[0]
   if (!file) return
   const reader = new FileReader()
-  reader.onload = async (ev) => {
+  reader.onload = async ev => {
     const resized = await resizeImageForBg(ev.target.result)
     setCustomBg(resized, customBgOpacity.value, customBgBlur.value)
   }
@@ -183,7 +238,7 @@ function onBgDrop(e) {
   const file = e.dataTransfer.files[0]
   if (!file || !file.type.startsWith('image/')) return
   const reader = new FileReader()
-  reader.onload = async (ev) => {
+  reader.onload = async ev => {
     const resized = await resizeImageForBg(ev.target.result)
     setCustomBg(resized, customBgOpacity.value, customBgBlur.value)
   }

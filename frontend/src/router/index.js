@@ -18,7 +18,7 @@ const routes = [
   },
   {
     path: '/portal/login',
-    redirect: (to) => ({
+    redirect: to => ({
       name: 'login',
       query: {
         redirect: typeof to.query.redirect === 'string' ? to.query.redirect : '/portal',
@@ -47,7 +47,7 @@ const router = createRouter({
 // - Portal routes accept either an rq_token session or, for a logged-in
 //   backoffice admin, an auto-provisioned Portal session.
 // - MediaKeeper routes still require the regular mk_token session.
-router.beforeEach(async (to) => {
+router.beforeEach(async to => {
   // Fully public (login pages, etc.) — let them through.
   if (to.meta.public) return true
 
@@ -61,7 +61,7 @@ router.beforeEach(async (to) => {
     if (ok) return true
 
     const { checkAuth, isAuthenticated } = useAuth()
-    const isAdmin = isAuthenticated.value || await checkAuth()
+    const isAdmin = isAuthenticated.value || (await checkAuth())
     if (isAdmin) {
       try {
         const res = await fetchApiResponse('/api/portal/admin/requests/enter', {

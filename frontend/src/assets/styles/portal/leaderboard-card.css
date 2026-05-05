@@ -2,14 +2,19 @@
  * Used by LeaderboardCard.vue. Global styles.
  * Depends on @keyframes gc-ring-shift from rank-card.css. */
 
-.gc-lb-box { padding: 0.85rem; background: var(--portal-surface-1); border: 1px solid rgba(255,255,255,0.05); border-radius: var(--radius-card); }
+.gc-lb-box {
+  padding: 0.85rem;
+  background: var(--portal-surface-1);
+  border: 1px solid rgb(255, 255, 255, 0.05);
+  border-radius: var(--radius-card);
+}
 
 /* Widget variant — used on the main dashboard. Always renders (fixed size),
    matches the adjacent Heatmap widget's uppercase-muted title aesthetic,
    and adds breathing room between the card top and the title. */
 .gc-lb-box--widget {
-  background: var(--card-bg, rgba(255,255,255,0.03));
-  border: 0.5px solid var(--card-border, rgba(255,255,255,0.05));
+  background: var(--card-bg, rgb(255, 255, 255, 0.03));
+  border: 0.5px solid var(--card-border, rgb(255, 255, 255, 0.05));
   border-radius: var(--radius-card);
   padding: 14px;
   height: 100%;
@@ -26,19 +31,26 @@
   margin: 6px 0 14px;
   flex-shrink: 0;
 }
-.gc-lb-box--widget .gc-lb-rows { flex: 1; min-height: 0; }
+.gc-lb-box--widget .gc-lb-rows {
+  flex: 1;
+  min-height: 0;
+}
 .gc-lb-rows {
-  display: flex; flex-direction: column; gap: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 /* When the list is full (top 15 + the trailing "me" row), reserve
    enough vertical room so a constrained parent flex/grid can't clip
    the 16th line. Tight per-row budget (~36px) keeps the card from
    ballooning. Activated by the SFC via data-full="true" so a short
    list on a small instance doesn't sit in an empty box. */
-.gc-lb-rows[data-full="true"] {
+.gc-lb-rows[data-full='true'] {
   min-height: calc(16 * 36px + 15 * 0.35rem + 0.45rem);
 }
-.gc-lb-box--widget .gc-lb-rows { min-height: 0; }
+.gc-lb-box--widget .gc-lb-rows {
+  min-height: 0;
+}
 
 /* Separator above the "you" row when the current user is listed after
    the visible top N — makes it obvious that the leader list ends
@@ -53,87 +65,224 @@
   top: -0.3rem;
   left: 8%;
   right: 8%;
-  border-top: 1px dashed rgba(255, 255, 255, 0.15);
+  border-top: 1px dashed rgb(255, 255, 255, 0.15);
 }
 
-.gc-lb-row { display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0.5rem; border-radius: var(--radius-btn); }
-.gc-lb-row--me { background: rgba(var(--accent-rgb, 99,102,241), 0.1); border: 1px solid rgba(var(--accent-rgb), 0.15); }
+.gc-lb-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: var(--radius-btn);
+}
+.gc-lb-row--me {
+  background: rgb(var(--accent-rgb, 99, 102, 241), 0.1);
+  border: 1px solid rgb(var(--accent-rgb), 0.15);
+}
 
 /* Movement arrow + delta (green up / red down, grey dash when flat). */
 .gc-lb-move {
-  display: inline-flex; align-items: center; gap: 2px;
-  font-size: var(--portal-text-3xs); font-weight: var(--portal-font-extrabold);
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: var(--portal-text-3xs);
+  font-weight: var(--portal-font-extrabold);
   min-width: 30px;
   justify-content: flex-end;
   font-family: var(--portal-font-display);
 }
-.gc-lb-move--up   { color: var(--portal-color-success-light); }
-.gc-lb-move--down { color: var(--portal-color-error-light); }
-.gc-lb-move--flat { color: rgba(255,255,255,0.3); }
-.gc-lb-pos {
-  font-size: var(--portal-text-sm); font-weight: var(--portal-font-black); min-width: 22px;
-  font-family: var(--portal-font-display);
-  color: var(--portal-text-muted); text-align: center;
+.gc-lb-move--up {
+  color: var(--portal-color-success-light);
 }
-.gc-lb-row--1 .gc-lb-pos { color: var(--portal-color-warning); text-shadow: 0 0 8px rgba(var(--portal-color-warning-rgb),0.5); font-size: var(--portal-text-md); }
-.gc-lb-row--2 .gc-lb-pos { color: #c0c0c0; text-shadow: 0 0 6px rgba(192,192,192,0.4); }
-.gc-lb-row--3 .gc-lb-pos { color: #cd7f32; text-shadow: 0 0 6px rgba(205,127,50,0.4); }
-.gc-lb-row--1 { background: linear-gradient(90deg, rgba(var(--portal-color-warning-rgb),0.08) 0%, transparent 100%); }
-.gc-lb-row--2 { background: linear-gradient(90deg, rgba(192,192,192,0.06) 0%, transparent 100%); }
-.gc-lb-row--3 { background: linear-gradient(90deg, rgba(205,127,50,0.06) 0%, transparent 100%); }
-.gc-lb-info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-.gc-lb-tier { font-size: var(--portal-text-4xs); color: rgba(255,255,255,0.35); font-weight: var(--portal-font-medium); text-transform: uppercase; letter-spacing: var(--portal-tracking-caps); }
-.gc-lb-custom-title { color: #c084fc; font-style: italic; font-weight: var(--portal-font-bold); }
-.gc-lb-custom-title--rarity-common    { color: #d1d5db; }
-.gc-lb-custom-title--rarity-uncommon  { color: var(--portal-color-success-soft); }
-.gc-lb-custom-title--rarity-rare      { color: var(--portal-color-info-soft); }
-.gc-lb-custom-title--rarity-epic      { color: #d8b4fe; }
-.gc-lb-custom-title--rarity-legendary { color: #fdba74; text-shadow: 0 0 6px rgba(255,140,0,0.4); }
-.gc-lb-custom-title--rarity-mythic    { color: var(--portal-color-error-soft); text-shadow: 0 0 6px rgba(153,27,27,0.5); }
+.gc-lb-move--down {
+  color: var(--portal-color-error-light);
+}
+.gc-lb-move--flat {
+  color: rgb(255, 255, 255, 0.3);
+}
+.gc-lb-pos {
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-black);
+  min-width: 22px;
+  font-family: var(--portal-font-display);
+  color: var(--portal-text-muted);
+  text-align: center;
+}
+.gc-lb-row--1 .gc-lb-pos {
+  color: var(--portal-color-warning);
+  text-shadow: 0 0 8px rgb(var(--portal-color-warning-rgb), 0.5);
+  font-size: var(--portal-text-md);
+}
+.gc-lb-row--2 .gc-lb-pos {
+  color: #c0c0c0;
+  text-shadow: 0 0 6px rgb(192, 192, 192, 0.4);
+}
+.gc-lb-row--3 .gc-lb-pos {
+  color: #cd7f32;
+  text-shadow: 0 0 6px rgb(205, 127, 50, 0.4);
+}
+.gc-lb-row--1 {
+  background: linear-gradient(
+    90deg,
+    rgb(var(--portal-color-warning-rgb), 0.08) 0%,
+    transparent 100%
+  );
+}
+.gc-lb-row--2 {
+  background: linear-gradient(90deg, rgb(192, 192, 192, 0.06) 0%, transparent 100%);
+}
+.gc-lb-row--3 {
+  background: linear-gradient(90deg, rgb(205, 127, 50, 0.06) 0%, transparent 100%);
+}
+.gc-lb-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.gc-lb-tier {
+  font-size: var(--portal-text-4xs);
+  color: rgb(255, 255, 255, 0.35);
+  font-weight: var(--portal-font-medium);
+  text-transform: uppercase;
+  letter-spacing: var(--portal-tracking-caps);
+}
+.gc-lb-custom-title {
+  color: #c084fc;
+  font-style: italic;
+  font-weight: var(--portal-font-bold);
+}
+.gc-lb-custom-title--rarity-common {
+  color: #d1d5db;
+}
+.gc-lb-custom-title--rarity-uncommon {
+  color: var(--portal-color-success-soft);
+}
+.gc-lb-custom-title--rarity-rare {
+  color: var(--portal-color-info-soft);
+}
+.gc-lb-custom-title--rarity-epic {
+  color: #d8b4fe;
+}
+.gc-lb-custom-title--rarity-legendary {
+  color: #fdba74;
+  text-shadow: 0 0 6px rgb(255, 140, 0, 0.4);
+}
+.gc-lb-custom-title--rarity-mythic {
+  color: var(--portal-color-error-soft);
+  text-shadow: 0 0 6px rgb(153, 27, 27, 0.5);
+}
 .gc-lb-av {
-  width: 28px; height: 28px; border-radius: var(--portal-radius-circle);
-  padding: 2px; flex-shrink: 0;
-  background: rgba(255,255,255,0.1);
+  width: 28px;
+  height: 28px;
+  border-radius: var(--portal-radius-circle);
+  padding: 2px;
+  flex-shrink: 0;
+  background: rgb(255, 255, 255, 0.1);
   overflow: hidden;
 }
 .gc-lb-av span {
-  width: 100%; height: 100%; border-radius: var(--portal-radius-circle);
-  display: flex; align-items: center; justify-content: center;
-  background: rgba(10,12,25,0.95);
-  font-size: var(--portal-text-2xs); font-weight: var(--portal-font-extrabold); color: var(--portal-text-body-muted);
+  width: 100%;
+  height: 100%;
+  border-radius: var(--portal-radius-circle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(10, 12, 25, 0.95);
+  font-size: var(--portal-text-2xs);
+  font-weight: var(--portal-font-extrabold);
+  color: var(--portal-text-body-muted);
   font-family: var(--portal-font-display);
 }
-.gc-lb-av-img { width: 100%; height: 100%; border-radius: var(--portal-radius-circle); object-fit: cover; }
-.gc-lb-av--bronze { background: linear-gradient(135deg, #cd7f32, #8b5e3c); }
-.gc-lb-av--silver { background: linear-gradient(135deg, #c0c0c0, #808080); }
-.gc-lb-av--gold { background: linear-gradient(135deg, var(--portal-color-warning), #b8860b); box-shadow: 0 0 6px rgba(var(--portal-color-warning-rgb),0.3); }
-.gc-lb-av--platinum { background: linear-gradient(135deg, var(--portal-color-cinema), #0284c7); box-shadow: 0 0 6px rgba(var(--portal-color-cinema-rgb),0.3); }
+.gc-lb-av-img {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--portal-radius-circle);
+  object-fit: cover;
+}
+.gc-lb-av--bronze {
+  background: linear-gradient(135deg, #cd7f32, #8b5e3c);
+}
+.gc-lb-av--silver {
+  background: linear-gradient(135deg, #c0c0c0, #808080);
+}
+.gc-lb-av--gold {
+  background: linear-gradient(135deg, var(--portal-color-warning), #b8860b);
+  box-shadow: 0 0 6px rgb(var(--portal-color-warning-rgb), 0.3);
+}
+.gc-lb-av--platinum {
+  background: linear-gradient(135deg, var(--portal-color-cinema), #0284c7);
+  box-shadow: 0 0 6px rgb(var(--portal-color-cinema-rgb), 0.3);
+}
 .gc-lb-av--diamond {
   background: linear-gradient(135deg, #a78bfa, #7c3aed, #c084fc);
-  background-size: 200% 200%; animation: gc-ring-shift 3s ease infinite;
-  box-shadow: 0 0 8px rgba(var(--portal-color-premium-rgb),0.4);
+  background-size: 200% 200%;
+  animation: gc-ring-shift 3s ease infinite;
+  box-shadow: 0 0 8px rgb(var(--portal-color-premium-rgb), 0.4);
 }
 .gc-lb-av--master {
-  background: linear-gradient(135deg, var(--portal-color-error), #dc2626, var(--portal-color-highlight));
-  background-size: 200% 200%; animation: gc-ring-shift 2s ease infinite;
-  box-shadow: 0 0 8px rgba(var(--portal-color-error-rgb),0.4);
+  background: linear-gradient(
+    135deg,
+    var(--portal-color-error),
+    #dc2626,
+    var(--portal-color-highlight)
+  );
+  background-size: 200% 200%;
+  animation: gc-ring-shift 2s ease infinite;
+  box-shadow: 0 0 8px rgb(var(--portal-color-error-rgb), 0.4);
 }
 .gc-lb-av--legendary {
-  background: linear-gradient(135deg, var(--portal-color-warning), var(--portal-color-error), #a78bfa, var(--portal-color-warning));
-  background-size: 300% 300%; animation: gc-ring-shift 1.5s ease infinite;
-  box-shadow: 0 0 10px rgba(var(--portal-color-warning-rgb),0.4), 0 0 20px rgba(var(--portal-color-error-rgb),0.15);
+  background: linear-gradient(
+    135deg,
+    var(--portal-color-warning),
+    var(--portal-color-error),
+    #a78bfa,
+    var(--portal-color-warning)
+  );
+  background-size: 300% 300%;
+  animation: gc-ring-shift 1.5s ease infinite;
+  box-shadow:
+    0 0 10px rgb(var(--portal-color-warning-rgb), 0.4),
+    0 0 20px rgb(var(--portal-color-error-rgb), 0.15);
 }
-.gc-lb-n { flex: 1; font-size: var(--portal-text-xs); font-weight: var(--portal-font-medium); color: var(--portal-text-body); }
-.gc-lb-v { font-size: var(--portal-text-xs); font-weight: var(--portal-font-bold); color: var(--accent, #818cf8); font-family: var(--portal-font-display); }
+.gc-lb-n {
+  flex: 1;
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-medium);
+  color: var(--portal-text-body);
+}
+.gc-lb-v {
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-bold);
+  color: var(--accent, #818cf8);
+  font-family: var(--portal-font-display);
+}
 
 /* Self-suffhereent: duplicated from rank-card.css so LeaderboardCard can
    be mounted outside the portal profile page (e.g. dashboard widget)
    without the avatar tiers losing their animated gradient. */
-@keyframes gc-ring-shift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+@keyframes gc-ring-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
 
 /* Rows that link to a public profile (router-link) get the right cursor
    and a subtle hover background on devices with a real pointer. */
-.gc-lb-row--linkable { cursor: pointer; text-decoration: none; color: inherit; transition: background-color var(--portal-dur-fast) var(--portal-ease-default); }
+.gc-lb-row--linkable {
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  transition: background-color var(--portal-dur-fast) var(--portal-ease-default);
+}
 @media (hover: hover) {
-  .gc-lb-row--linkable:hover { background: var(--portal-surface-3); }
+  .gc-lb-row--linkable:hover {
+    background: var(--portal-surface-3);
+  }
 }

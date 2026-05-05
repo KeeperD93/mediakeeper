@@ -16,7 +16,9 @@ export function useNotifications() {
     try {
       const res = await apiGet('/api/portal/notifications/count')
       unread.value = res?.unread || 0
-    } catch { /* silent */ }
+    } catch {
+      /* silent */
+    }
   }
 
   async function fetchList(unreadOnly = false) {
@@ -32,18 +34,24 @@ export function useNotifications() {
   async function markRead(id) {
     try {
       await apiPost(`/api/portal/notifications/${id}/read`)
-      const it = items.value.find((n) => n.id === id)
+      const it = items.value.find(n => n.id === id)
       if (it) it.read = true
       if (unread.value > 0) unread.value -= 1
-    } catch { /* silent */ }
+    } catch {
+      /* silent */
+    }
   }
 
   async function markAllRead() {
     try {
       await apiPost('/api/portal/notifications/read-all')
-      items.value.forEach((n) => { n.read = true })
+      items.value.forEach(n => {
+        n.read = true
+      })
       unread.value = 0
-    } catch { /* silent */ }
+    } catch {
+      /* silent */
+    }
   }
 
   function startPolling(intervalMs = 30000) {
@@ -52,7 +60,10 @@ export function useNotifications() {
     pollTimer = setInterval(fetchCount, intervalMs)
   }
   function stopPolling() {
-    if (pollTimer) { clearInterval(pollTimer); pollTimer = null }
+    if (pollTimer) {
+      clearInterval(pollTimer)
+      pollTimer = null
+    }
   }
 
   return {

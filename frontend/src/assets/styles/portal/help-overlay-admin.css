@@ -30,8 +30,11 @@
   color: var(--portal-text-body);
   font-size: var(--portal-text-sm);
   cursor: pointer;
-  transition: background 160ms ease, border-color 160ms ease,
-              color 160ms ease, transform 160ms ease;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
 }
 @media (hover: hover) {
   .pt-help-admin-btn:hover {
@@ -40,13 +43,13 @@
   }
 }
 .pt-help-admin-btn--add {
-  background: rgba(var(--pt-help-rgb1), 0.18);
-  border-color: rgba(var(--pt-help-rgb1), 0.45);
+  background: rgb(var(--pt-help-rgb1), 0.18);
+  border-color: rgb(var(--pt-help-rgb1), 0.45);
   color: var(--portal-text-primary);
 }
 @media (hover: hover) {
   .pt-help-admin-btn--add:hover {
-    background: rgba(var(--pt-help-rgb1), 0.30);
+    background: rgb(var(--pt-help-rgb1), 0.3);
     transform: translateY(-1px);
   }
 }
@@ -71,11 +74,13 @@
   border-radius: var(--portal-radius-pill);
   color: var(--portal-text-secondary);
   cursor: pointer;
-  transition: background 160ms ease, color 160ms ease;
+  transition:
+    background 160ms ease,
+    color 160ms ease;
 }
 @media (hover: hover) {
   .pt-help-card-edit:hover {
-    background: rgba(var(--pt-help-rgb1), 0.20);
+    background: rgb(var(--pt-help-rgb1), 0.2);
     color: var(--pt-help-c1);
   }
 }
@@ -116,12 +121,14 @@
   color: var(--portal-text-primary);
   font-size: var(--portal-text-lg);
   font-weight: var(--portal-font-bold);
-  transition: border-color 160ms ease, box-shadow 160ms ease;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
 }
 .pt-help-edit-title:focus {
   outline: none;
-  border-color: rgba(var(--pt-help-rgb1), 0.55);
-  box-shadow: 0 0 0 3px rgba(var(--pt-help-rgb1), 0.18);
+  border-color: rgb(var(--pt-help-rgb1), 0.55);
+  box-shadow: 0 0 0 3px rgb(var(--pt-help-rgb1), 0.18);
 }
 
 .pt-help-edit-status {
@@ -137,16 +144,16 @@
 }
 .pt-help-edit-status--saving {
   color: var(--portal-color-info);
-  border-color: rgba(var(--portal-color-info-rgb, 96, 165, 250), 0.45);
+  border-color: rgb(var(--portal-color-info-rgb, 96, 165, 250), 0.45);
 }
 .pt-help-edit-status--saved {
   color: var(--portal-color-success);
-  border-color: rgba(var(--portal-color-success-rgb, 34, 197, 94), 0.45);
+  border-color: rgb(var(--portal-color-success-rgb, 34, 197, 94), 0.45);
 }
 .pt-help-edit-status--dirty,
 .pt-help-edit-status--error {
   color: var(--portal-color-warning);
-  border-color: rgba(var(--portal-color-warning-rgb, 251, 191, 36), 0.45);
+  border-color: rgb(var(--portal-color-warning-rgb, 251, 191, 36), 0.45);
 }
 
 .pt-help-edit-meta {
@@ -202,29 +209,37 @@
   color: var(--portal-text-body);
   font-size: var(--portal-text-sm);
   cursor: pointer;
-  transition: background 160ms ease, color 160ms ease;
+  transition:
+    background 160ms ease,
+    color 160ms ease;
 }
 @media (hover: hover) {
   .pt-help-edit-action:hover {
-    background: rgba(var(--pt-help-rgb1), 0.20);
+    background: rgb(var(--pt-help-rgb1), 0.2);
     color: var(--portal-text-primary);
   }
 }
-.pt-help-edit-action--ghost { background: transparent; }
+.pt-help-edit-action--ghost {
+  background: transparent;
+}
 .pt-help-edit-action--danger {
-  background: rgba(var(--portal-color-error-rgb, 239, 68, 68), 0.16);
-  border-color: rgba(var(--portal-color-error-rgb, 239, 68, 68), 0.45);
+  background: rgb(var(--portal-color-error-rgb, 239, 68, 68), 0.16);
+  border-color: rgb(var(--portal-color-error-rgb, 239, 68, 68), 0.45);
   color: var(--portal-color-error);
 }
 @media (hover: hover) {
   .pt-help-edit-action--danger:hover {
-    background: rgba(var(--portal-color-error-rgb, 239, 68, 68), 0.28);
+    background: rgb(var(--portal-color-error-rgb, 239, 68, 68), 0.28);
   }
 }
 
 /* ─────────────────────────── Trash view ─────────────────────────── */
 
-.pt-help-trash { display: flex; flex-direction: column; gap: 0.85rem; }
+.pt-help-trash {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
 .pt-help-trash-head {
   display: flex;
   align-items: center;
@@ -245,7 +260,13 @@
   color: var(--portal-text-muted);
 }
 
-.pt-help-trash-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.5rem; }
+.pt-help-trash-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.5rem;
+}
 .pt-help-trash-row {
   display: flex;
   align-items: center;
@@ -255,7 +276,10 @@
   border: 1px solid var(--portal-border-default);
   border-radius: var(--portal-radius-md);
 }
-.pt-help-trash-row-body { flex: 1; min-width: 0; }
+.pt-help-trash-row-body {
+  flex: 1;
+  min-width: 0;
+}
 .pt-help-trash-row-title {
   margin: 0;
   font-size: var(--portal-text-sm);

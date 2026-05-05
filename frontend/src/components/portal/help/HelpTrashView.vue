@@ -1,7 +1,11 @@
 <template>
   <div class="pt-help-trash">
     <header class="pt-help-trash-head">
-      <button type="button" class="pt-help-edit-action pt-help-edit-action--ghost" @click="$emit('back')">
+      <button
+        type="button"
+        class="pt-help-edit-action pt-help-edit-action--ghost"
+        @click="$emit('back')"
+      >
         <ArrowLeft :size="14" />
         {{ $t('portal.help.backToList') }}
       </button>
@@ -36,11 +40,7 @@
           </p>
         </div>
         <div class="pt-help-trash-row-actions">
-          <button
-            type="button"
-            class="pt-help-edit-action"
-            @click="onRestore(a.id)"
-          >
+          <button type="button" class="pt-help-edit-action" @click="onRestore(a.id)">
             <RotateCcw :size="14" />
             {{ $t('portal.help.admin.restore') }}
           </button>
@@ -91,7 +91,7 @@ async function load() {
 
 async function onRestore(id) {
   await restore(id)
-  items.value = items.value.filter((a) => a.id !== id)
+  items.value = items.value.filter(a => a.id !== id)
   emit('restored', id)
 }
 
@@ -99,13 +99,17 @@ async function onHardDelete(id) {
   // eslint-disable-next-line no-alert
   if (!window.confirm(t('portal.help.admin.confirmHardDelete'))) return
   await hardDelete(id)
-  items.value = items.value.filter((a) => a.id !== id)
+  items.value = items.value.filter(a => a.id !== id)
   emit('purged', id)
 }
 
 function formatDate(iso) {
   if (!iso) return '—'
-  try { return new Date(iso).toLocaleDateString() } catch { return iso }
+  try {
+    return new Date(iso).toLocaleDateString()
+  } catch {
+    return iso
+  }
 }
 
 function remainingLabel(iso) {

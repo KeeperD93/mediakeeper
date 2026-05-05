@@ -2,15 +2,37 @@
   <div class="m-dash">
     <!-- Row of quick stats — compact 2x2 grid on phones. -->
     <div class="m-dash-stats">
-      <StatCard v-if="!hidden.includes('statPlays')"
-        :label="$t('dashboard.totalPlays')" :value="mediaStats.plays" route="/stats" :icon="Play" accent="#6366f1" />
-      <StatCard v-if="!hidden.includes('statDuration')"
-        :label="$t('dashboard.totalDuration')" :value="mediaStats.duration" :icon="Clock" accent="#10b981" />
-      <StatCard v-if="!hidden.includes('statDuplicates')"
-        :label="$t('dashboard.duplicates')" :value="duplicatesCount" route="/duplicates" :icon="Copy" accent="#f43f5e"
-        :color="duplicatesCount !== '0' && duplicatesCount !== '—' ? '#f43f5e' : ''" />
-      <StatCard v-if="!hidden.includes('statStorage')"
-        :label="$t('dashboard.storage')" :value="mediaStats.storage" :icon="HardDrive" accent="#f59e0b" />
+      <StatCard
+        v-if="!hidden.includes('statPlays')"
+        :label="$t('dashboard.totalPlays')"
+        :value="mediaStats.plays"
+        route="/stats"
+        :icon="Play"
+        accent="#6366f1"
+      />
+      <StatCard
+        v-if="!hidden.includes('statDuration')"
+        :label="$t('dashboard.totalDuration')"
+        :value="mediaStats.duration"
+        :icon="Clock"
+        accent="#10b981"
+      />
+      <StatCard
+        v-if="!hidden.includes('statDuplicates')"
+        :label="$t('dashboard.duplicates')"
+        :value="duplicatesCount"
+        route="/duplicates"
+        :icon="Copy"
+        accent="#f43f5e"
+        :color="duplicatesCount !== '0' && duplicatesCount !== '—' ? '#f43f5e' : ''"
+      />
+      <StatCard
+        v-if="!hidden.includes('statStorage')"
+        :label="$t('dashboard.storage')"
+        :value="mediaStats.storage"
+        :icon="HardDrive"
+        accent="#f59e0b"
+      />
     </div>
 
     <HealthScore v-if="!hidden.includes('healthScore')" class="m-dash-card" />
@@ -19,19 +41,39 @@
     <PortalEngagementCard v-if="!hidden.includes('portalEngagement')" class="m-dash-card" />
     <PortalUpcomingEventsCard v-if="!hidden.includes('portalEvents')" class="m-dash-card" />
 
-    <ActivityTimeline v-if="!hidden.includes('activity')" class="m-dash-card"
-      :logs="logs" :alerts="alerts" :sessions="sessions" :seen-alert-ids="seenAlertIds" :emby-base-url="embyBaseUrl" />
+    <ActivityTimeline
+      v-if="!hidden.includes('activity')"
+      class="m-dash-card"
+      :logs="logs"
+      :alerts="alerts"
+      :sessions="sessions"
+      :seen-alert-ids="seenAlertIds"
+      :emby-base-url="embyBaseUrl"
+    />
 
     <UpcomingEpisodes v-if="!hidden.includes('upcoming')" class="m-dash-card" />
 
-    <LeaderboardCard v-if="!hidden.includes('topUsers')" class="m-dash-card" :entries="leaderboardEntries.slice(0, 3)" widget />
+    <LeaderboardCard
+      v-if="!hidden.includes('topUsers')"
+      class="m-dash-card"
+      :entries="leaderboardEntries.slice(0, 3)"
+      widget
+    />
 
     <Heatmap v-if="!hidden.includes('heatmap')" class="m-dash-card" />
 
-    <QuickLink v-if="!hidden.includes('linkWatchlist')" class="m-dash-card"
+    <QuickLink
+      v-if="!hidden.includes('linkWatchlist')"
+      class="m-dash-card"
       :title="watchlistLabel"
-      :subtitle="watchlistScanAgo ? $t('dashboard.lastScan') + ' ' + watchlistScanAgo : $t('sidebar.watchlist')"
-      route="/watchlist" icon-bg="rgba(139,92,246,0.12)">
+      :subtitle="
+        watchlistScanAgo
+          ? $t('dashboard.lastScan') + ' ' + watchlistScanAgo
+          : $t('sidebar.watchlist')
+      "
+      route="/watchlist"
+      icon-bg="rgba(139,92,246,0.12)"
+    >
       <template #icon><ClipboardCheck class="m-dash-ql-icon" :size="18" /></template>
     </QuickLink>
   </div>
@@ -97,6 +139,10 @@ defineProps({
 .m-dash :deep(.hm) {
   min-height: 220px;
 }
-.m-dash :deep(.tl-root) { min-height: 340px; }
-.m-dash-ql-icon { color: #8b5cf6; }
+.m-dash :deep(.tl-root) {
+  min-height: 340px;
+}
+.m-dash-ql-icon {
+  color: #8b5cf6;
+}
 </style>

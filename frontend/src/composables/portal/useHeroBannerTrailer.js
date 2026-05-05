@@ -36,7 +36,11 @@ export function useHeroBannerTrailer({ onEnded } = {}) {
 
   function destroyPlayer() {
     if (player) {
-      try { player.destroy() } catch { /* ignore */ }
+      try {
+        player.destroy()
+      } catch {
+        /* ignore */
+      }
       player = null
     }
   }
@@ -66,11 +70,11 @@ export function useHeroBannerTrailer({ onEnded } = {}) {
           playsinline: 1,
         },
         events: {
-          onReady: (e) => {
+          onReady: e => {
             if (muted.value) e.target.mute()
             else e.target.unMute()
           },
-          onStateChange: (e) => {
+          onStateChange: e => {
             // 1 = playing, 0 = ended, 2 = paused
             setVideoPlaying(e.data === 1)
             if (e.data === 0) onEnded?.()
@@ -108,11 +112,17 @@ export function useHeroBannerTrailer({ onEnded } = {}) {
 
   // Lazy-load the YouTube IFrame API once.
   function ensureYTApi() {
-    return new Promise((resolve) => {
-      if (window.YT?.Player) { resolve(); return }
+    return new Promise(resolve => {
+      if (window.YT?.Player) {
+        resolve()
+        return
+      }
       if (document.getElementById('yt-api-script')) {
         const check = setInterval(() => {
-          if (window.YT?.Player) { clearInterval(check); resolve() }
+          if (window.YT?.Player) {
+            clearInterval(check)
+            resolve()
+          }
         }, 100)
         return
       }
@@ -145,7 +155,9 @@ export function useHeroBannerTrailer({ onEnded } = {}) {
     const v = embyVideoRef.value
     // Block manual pause from keyboard / picture-in-picture.
     if (v && !v.ended) {
-      v.play().catch(() => { /* autoplay policy may reject; harmless */ })
+      v.play().catch(() => {
+        /* autoplay policy may reject; harmless */
+      })
     }
   }
   function onEmbyEnded() {

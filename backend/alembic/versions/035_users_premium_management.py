@@ -125,7 +125,7 @@ def downgrade() -> None:
         ):
             try:
                 op.drop_index(index_name, table_name="admin_audit_log")
-            except Exception:
+            except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
                 pass
         op.drop_table("admin_audit_log")
 

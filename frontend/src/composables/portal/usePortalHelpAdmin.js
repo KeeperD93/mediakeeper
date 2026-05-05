@@ -56,10 +56,12 @@ export function usePortalHelpAdmin() {
   }
 
   async function putTranslation(articleId, lang, { title, bodyHtml }) {
-    return run(() => apiPut(
-      `/api/portal/admin/help/articles/${articleId}/translations/${lang}`,
-      { title, body_html: bodyHtml },
-    ))
+    return run(() =>
+      apiPut(`/api/portal/admin/help/articles/${articleId}/translations/${lang}`, {
+        title,
+        body_html: bodyHtml,
+      }),
+    )
   }
 
   async function softDelete(articleId) {
@@ -79,9 +81,16 @@ export function usePortalHelpAdmin() {
   }
 
   return {
-    saving, error,
-    listAdmin, listTrash,
-    createArticle, patchMetadata, putTranslation,
-    softDelete, restore, hardDelete, purge,
+    saving,
+    error,
+    listAdmin,
+    listTrash,
+    createArticle,
+    patchMetadata,
+    putTranslation,
+    softDelete,
+    restore,
+    hardDelete,
+    purge,
   }
 }

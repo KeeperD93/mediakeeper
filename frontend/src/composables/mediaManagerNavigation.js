@@ -1,10 +1,28 @@
 import { computed } from 'vue'
 import {
-  apiGet, apiFetch, showToast, _t,
-  CATS, catsLoaded, activeCat, subPath, files, filtered, checked, loading,
-  filterQuery, sortMode, expandedMode, tags,
-  selectedTmdb, tmdbResults, showSeasonPanel,
-  newNames, multiCatMode, namingIssues, analysisActive,
+  apiGet,
+  apiFetch,
+  showToast,
+  _t,
+  CATS,
+  catsLoaded,
+  activeCat,
+  subPath,
+  files,
+  filtered,
+  checked,
+  loading,
+  filterQuery,
+  sortMode,
+  expandedMode,
+  tags,
+  selectedTmdb,
+  tmdbResults,
+  showSeasonPanel,
+  newNames,
+  multiCatMode,
+  namingIssues,
+  analysisActive,
   newFileThresholdMs,
   _autoSearchState,
 } from './mediaManagerState'
@@ -23,11 +41,16 @@ export async function loadCategories() {
       catsLoaded.value = true
       if (!data.some(c => c.key === activeCat.value)) activeCat.value = data[0].key
     }
-  } catch { /* silent: categories fallback to existing state */ }
+  } catch {
+    /* silent: categories fallback to existing state */
+  }
 }
 export async function addCategory(label, path) {
   try {
-    const res = await apiFetch('/api/media/categories', { method: 'POST', body: JSON.stringify({ label, path }) })
+    const res = await apiFetch('/api/media/categories', {
+      method: 'POST',
+      body: JSON.stringify({ label, path }),
+    })
     const data = await res.json()
     if (data.error) {
       console.error('[mediaManagerNavigation.addCategory] backend error', data.error)
@@ -36,7 +59,10 @@ export async function addCategory(label, path) {
     }
     if (data.categories) CATS.value = data.categories
     return true
-  } catch { showToast(_t('common.networkError'), TOAST_TYPE.ERR); return false }
+  } catch {
+    showToast(_t('common.networkError'), TOAST_TYPE.ERR)
+    return false
+  }
 }
 export async function removeCategory(key) {
   try {
@@ -50,50 +76,77 @@ export async function removeCategory(key) {
     if (data.categories) CATS.value = data.categories
     if (activeCat.value === key && CATS.value.length) setCat(CATS.value[0].key)
     return true
-  } catch { showToast(_t('common.networkError'), TOAST_TYPE.ERR); return false }
+  } catch {
+    showToast(_t('common.networkError'), TOAST_TYPE.ERR)
+    return false
+  }
 }
 
 // ─── COMPUTED ───
-export const breadcrumbs = computed(() => subPath.value ? subPath.value.split('/').filter(Boolean) : [])
+export const breadcrumbs = computed(() =>
+  subPath.value ? subPath.value.split('/').filter(Boolean) : [],
+)
 export const fileCount = computed(() => ({
   dirs: filtered.value.filter(f => f.type === FILE_TYPE.FOLDER).length,
   vids: filtered.value.filter(f => f.type === FILE_TYPE.FILE).length,
 }))
-export const checkedFiles = computed(() => [...checked.value].map(i => filtered.value[i]).filter(f => f?.type === FILE_TYPE.FILE))
-export const checkedDirs = computed(() => [...checked.value].map(i => filtered.value[i]).filter(f => f?.type === FILE_TYPE.FOLDER))
+export const checkedFiles = computed(() =>
+  [...checked.value].map(i => filtered.value[i]).filter(f => f?.type === FILE_TYPE.FILE),
+)
+export const checkedDirs = computed(() =>
+  [...checked.value].map(i => filtered.value[i]).filter(f => f?.type === FILE_TYPE.FOLDER),
+)
 export const hasChecked = computed(() => checked.value.size > 0)
 export const newFilesCount = computed(() => {
   const now = Date.now()
-  return filtered.value.filter(f => f.type === FILE_TYPE.FILE && f.mtime && (now - f.mtime * 1000) < newFileThresholdMs).length
+  return filtered.value.filter(
+    f => f.type === FILE_TYPE.FILE && f.mtime && now - f.mtime * 1000 < newFileThresholdMs,
+  ).length
 })
 
 // ─── NAVIGATION ───
 export function setCat(key) {
-  activeCat.value = key; subPath.value = ''
-  checked.value = new Set(); newNames.value = []
-  selectedTmdb.value = null; tmdbResults.value = []
-  showSeasonPanel.value = false; expandedMode.value = false
-  multiCatMode.value = false; namingIssues.value = {}; analysisActive.value = false
+  activeCat.value = key
+  subPath.value = ''
+  checked.value = new Set()
+  newNames.value = []
+  selectedTmdb.value = null
+  tmdbResults.value = []
+  showSeasonPanel.value = false
+  expandedMode.value = false
+  multiCatMode.value = false
+  namingIssues.value = {}
+  analysisActive.value = false
   loadFiles()
 }
 export function enterDir(name) {
   subPath.value = subPath.value ? `${subPath.value}/${name}` : name
-  checked.value = new Set(); expandedMode.value = false
-  selectedTmdb.value = null; tmdbResults.value = []; showSeasonPanel.value = false
+  checked.value = new Set()
+  expandedMode.value = false
+  selectedTmdb.value = null
+  tmdbResults.value = []
+  showSeasonPanel.value = false
   _autoSearchState.dirChangePending = true
   loadFiles()
 }
 export function navRoot() {
-  subPath.value = ''; checked.value = new Set()
-  newNames.value = []; expandedMode.value = false
-  selectedTmdb.value = null; tmdbResults.value = []; showSeasonPanel.value = false
+  subPath.value = ''
+  checked.value = new Set()
+  newNames.value = []
+  expandedMode.value = false
+  selectedTmdb.value = null
+  tmdbResults.value = []
+  showSeasonPanel.value = false
   _autoSearchState.dirChangePending = true
   loadFiles()
 }
 export function navTo(idx) {
   subPath.value = breadcrumbs.value.slice(0, idx + 1).join('/')
-  checked.value = new Set(); expandedMode.value = false
-  selectedTmdb.value = null; tmdbResults.value = []; showSeasonPanel.value = false
+  checked.value = new Set()
+  expandedMode.value = false
+  selectedTmdb.value = null
+  tmdbResults.value = []
+  showSeasonPanel.value = false
   _autoSearchState.dirChangePending = true
   loadFiles()
 }
@@ -102,8 +155,11 @@ export function navBack() {
   const parts = subPath.value.split('/').filter(Boolean)
   parts.pop()
   subPath.value = parts.join('/')
-  checked.value = new Set(); expandedMode.value = false
-  selectedTmdb.value = null; tmdbResults.value = []; showSeasonPanel.value = false
+  checked.value = new Set()
+  expandedMode.value = false
+  selectedTmdb.value = null
+  tmdbResults.value = []
+  showSeasonPanel.value = false
   _autoSearchState.dirChangePending = true
   loadFiles()
 }
@@ -111,12 +167,16 @@ export function navBack() {
 // ─── CHARGEMENT FICHIERS ───
 // Lazy registration for autoSearch to avoid circular deps with tmdb module.
 let _autoSearchFn = null
-export function _registerAutoSearch(fn) { _autoSearchFn = fn }
+export function _registerAutoSearch(fn) {
+  _autoSearchFn = fn
+}
 
 export async function loadFiles() {
   loading.value = true
   try {
-    const url = `/api/media/files/${activeCat.value}` + (subPath.value ? `?subpath=${encodeURIComponent(subPath.value)}` : '')
+    const url =
+      `/api/media/files/${activeCat.value}` +
+      (subPath.value ? `?subpath=${encodeURIComponent(subPath.value)}` : '')
     const data = await apiGet(url)
     if (data && !data.error) {
       files.value = data
@@ -125,13 +185,26 @@ export async function loadFiles() {
       applyFilter()
       _autoSearchState.dirChangePending = false
       _autoSearchFn?.()
-    } else { files.value = []; filtered.value = []; _autoSearchState.dirChangePending = false }
-  } catch { files.value = []; filtered.value = []; _autoSearchState.dirChangePending = false }
+    } else {
+      files.value = []
+      filtered.value = []
+      _autoSearchState.dirChangePending = false
+    }
+  } catch {
+    files.value = []
+    filtered.value = []
+    _autoSearchState.dirChangePending = false
+  }
   loading.value = false
 }
 
 export async function loadTags() {
-  try { const data = await apiGet('/api/media/tags'); tags.value = data || {} } catch { tags.value = {} }
+  try {
+    const data = await apiGet('/api/media/tags')
+    tags.value = data || {}
+  } catch {
+    tags.value = {}
+  }
 }
 
 // Updates a renamed file in place so it keeps its current row.
@@ -142,9 +215,11 @@ export function applyRenameInPlace(oldPath, newName, newPath) {
   const now = Date.now() / 1000
   const target = newPath || oldPath.replace(/[^/]+$/, newName)
   const fIdx = files.value.findIndex(f => f.path === oldPath)
-  if (fIdx !== -1) files.value[fIdx] = { ...files.value[fIdx], name: newName, path: target, mtime: now }
+  if (fIdx !== -1)
+    files.value[fIdx] = { ...files.value[fIdx], name: newName, path: target, mtime: now }
   const ftIdx = filtered.value.findIndex(f => f.path === oldPath)
-  if (ftIdx !== -1) filtered.value[ftIdx] = { ...filtered.value[ftIdx], name: newName, path: target, mtime: now }
+  if (ftIdx !== -1)
+    filtered.value[ftIdx] = { ...filtered.value[ftIdx], name: newName, path: target, mtime: now }
   if (namingIssues.value[oldPath]) {
     const next = { ...namingIssues.value }
     delete next[oldPath]
@@ -154,24 +229,42 @@ export function applyRenameInPlace(oldPath, newName, newPath) {
 
 export async function saveTags(newTagsObj) {
   try {
-    await apiFetch('/api/media/tags', { method: 'POST', body: JSON.stringify({ tags: newTagsObj }) })
+    await apiFetch('/api/media/tags', {
+      method: 'POST',
+      body: JSON.stringify({ tags: newTagsObj }),
+    })
     Object.assign(tags.value, newTagsObj)
-  } catch (e) { console.error('[mediaManagerNavigation.saveTags] failed to save tags', e) }
+  } catch (e) {
+    console.error('[mediaManagerNavigation.saveTags] failed to save tags', e)
+  }
 }
 
 export async function toggleMultiCat() {
-  if (multiCatMode.value) { multiCatMode.value = false; loadFiles(); return }
-  multiCatMode.value = true; loading.value = true
+  if (multiCatMode.value) {
+    multiCatMode.value = false
+    loadFiles()
+    return
+  }
+  multiCatMode.value = true
+  loading.value = true
   try {
     const allFiles = []
     for (const cat of CATS.value) {
       try {
         const data = await apiGet(`/api/media/files/${cat.key}`)
-        if (Array.isArray(data)) data.forEach(f => allFiles.push({ ...f, _cat: cat.key, _catLabel: cat.label }))
-      } catch { /* silent: per-category fetch error skipped, others still load */ }
+        if (Array.isArray(data))
+          data.forEach(f => allFiles.push({ ...f, _cat: cat.key, _catLabel: cat.label }))
+      } catch {
+        /* silent: per-category fetch error skipped, others still load */
+      }
     }
-    files.value = allFiles; filterQuery.value = ''; applyFilter()
-  } catch { files.value = []; filtered.value = [] }
+    files.value = allFiles
+    filterQuery.value = ''
+    applyFilter()
+  } catch {
+    files.value = []
+    filtered.value = []
+  }
   loading.value = false
 }
 
@@ -196,18 +289,25 @@ export function applyFilter() {
     if (sortMode.value === 'size-desc') return (b.size || 0) - (a.size || 0)
     return 0
   }
-  dirs.sort(cmp); fls.sort(cmp)
+  dirs.sort(cmp)
+  fls.sort(cmp)
   filtered.value = [...dirs, ...fls]
   checked.value = new Set()
 }
-export function sortLeft(mode) { sortMode.value = mode; applyFilter() }
+export function sortLeft(mode) {
+  sortMode.value = mode
+  applyFilter()
+}
 
 // ─── SELECTION ───
 export function toggleCheck(idx) {
   const s = new Set(checked.value)
-  if (s.has(idx)) s.delete(idx); else s.add(idx)
+  if (s.has(idx)) s.delete(idx)
+  else s.add(idx)
   checked.value = s
-  selectedTmdb.value = null; tmdbResults.value = []; showSeasonPanel.value = false
+  selectedTmdb.value = null
+  tmdbResults.value = []
+  showSeasonPanel.value = false
   _autoSearchFn?.()
 }
 export function toggleAll(val) {
@@ -227,14 +327,21 @@ export async function deleteFile(idx) {
   })
   if (!ok) return
   try {
-    const res = await apiFetch('/api/media/delete', { method: 'POST', body: JSON.stringify({ path: f.path }) })
+    const res = await apiFetch('/api/media/delete', {
+      method: 'POST',
+      body: JSON.stringify({ path: f.path }),
+    })
     const data = await res.json()
     if (data.error) {
       console.error('[mediaManagerNavigation.deleteFile] backend error', data.error)
       showToast(_t('common.apiError.unknown', { status: '' }), TOAST_TYPE.ERR)
+    } else {
+      showToast(_t('mediaManager.deleted'), TOAST_TYPE.OK)
+      loadFiles()
     }
-    else { showToast(_t('mediaManager.deleted'), TOAST_TYPE.OK); loadFiles() }
-  } catch { showToast(_t('common.networkError'), TOAST_TYPE.ERR) }
+  } catch {
+    showToast(_t('common.networkError'), TOAST_TYPE.ERR)
+  }
 }
 export async function deleteSelected() {
   const sel = [...checked.value]
@@ -249,16 +356,28 @@ export async function deleteSelected() {
   if (!ok) return
   const paths = sel.map(i => filtered.value[i]?.path).filter(Boolean)
   try {
-    const res = await apiFetch('/api/media/delete-batch', { method: 'POST', body: JSON.stringify({ paths }) })
+    const res = await apiFetch('/api/media/delete-batch', {
+      method: 'POST',
+      body: JSON.stringify({ paths }),
+    })
     const data = await res.json()
-    if (data.errors > 0) showToast(_t('mediaManager.deletedPartial', { ok: data.deleted, errors: data.errors }), TOAST_TYPE.WARN)
+    if (data.errors > 0)
+      showToast(
+        _t('mediaManager.deletedPartial', { ok: data.deleted, errors: data.errors }),
+        TOAST_TYPE.WARN,
+      )
     else showToast(_t('mediaManager.deleted'), TOAST_TYPE.OK)
     checked.value = new Set()
     loadFiles()
-  } catch { showToast(_t('common.networkError'), TOAST_TYPE.ERR) }
+  } catch {
+    showToast(_t('common.networkError'), TOAST_TYPE.ERR)
+  }
 }
 
-export function getFileCat(f) { if (f.type === FILE_TYPE.FOLDER) return null; return f._category || tags.value[f.name] || null }
+export function getFileCat(f) {
+  if (f.type === FILE_TYPE.FOLDER) return null
+  return f._category || tags.value[f.name] || null
+}
 
 // ─── EMBY ───
 export async function refreshEmby() {
@@ -268,7 +387,8 @@ export async function refreshEmby() {
     if (data.error) {
       console.error('[mediaManagerNavigation.refreshEmby] backend error', data.error)
       showToast(_t('common.apiError.unknown', { status: '' }), TOAST_TYPE.ERR)
-    }
-    else showToast(_t('mediaManager.embyScanStarted'), TOAST_TYPE.OK)
-  } catch { showToast(_t('common.networkError'), TOAST_TYPE.ERR) }
+    } else showToast(_t('mediaManager.embyScanStarted'), TOAST_TYPE.OK)
+  } catch {
+    showToast(_t('common.networkError'), TOAST_TYPE.ERR)
+  }
 }

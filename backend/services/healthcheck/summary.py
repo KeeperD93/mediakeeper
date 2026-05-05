@@ -40,7 +40,7 @@ async def get_healthcheck_summary(db: AsyncSession) -> dict:
                 if t == "no_subtitles":
                     continue  # handled by subtitles module
                 type_counts[t] = type_counts.get(t, 0) + 1
-        except Exception:
+        except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
             pass
 
     ext_paths_res = await db.execute(

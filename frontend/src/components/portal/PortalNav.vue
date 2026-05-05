@@ -2,7 +2,11 @@
   <nav ref="navRef" class="pt-nav" :class="{ 'pt-nav--solid': scrolled }">
     <div class="pt-nav-inner">
       <button class="pt-nav-brand" type="button" @click="navigateTo(PORTAL_TAB.HOME)">
-        <img src="/assets/icons/mediakeeper.png" :alt="$t('portal.nav.brand')" class="pt-brand-img" />
+        <img
+          src="/assets/icons/mediakeeper.png"
+          :alt="$t('portal.nav.brand')"
+          class="pt-brand-img"
+        />
         <span class="pt-brand-text">{{ $t('portal.nav.brand') }}</span>
       </button>
 
@@ -96,7 +100,9 @@
           <transition name="pt-avatar-pop">
             <div v-if="menuOpen" class="pt-avatar-pop">
               <div class="pt-avatar-pop-head">
-                <span class="pt-avatar-pop-name">{{ profile?.display_name || $t('portal.avatar.account') }}</span>
+                <span class="pt-avatar-pop-name">
+                  {{ profile?.display_name || $t('portal.avatar.account') }}
+                </span>
                 <span class="pt-avatar-pop-role">{{ roleLabel }}</span>
               </div>
 
@@ -148,7 +154,11 @@
                 {{ $t('portal.avatar.whatsNew') }}
               </button>
 
-              <button class="pt-avatar-pop-item pt-avatar-pop-item--danger" type="button" @click="doLogout">
+              <button
+                class="pt-avatar-pop-item pt-avatar-pop-item--danger"
+                type="button"
+                @click="doLogout"
+              >
                 {{ $t('portal.avatar.logout') }}
               </button>
             </div>
@@ -161,7 +171,11 @@
          Rendered only in the compact breakpoint via CSS; the prop on
          the nav toggles its `open` class so the CSS transition runs. -->
     <transition name="pt-search-drawer">
-      <div v-if="searchDrawerOpen" class="pt-nav-search-drawer" @click.self="searchDrawerOpen = false">
+      <div
+        v-if="searchDrawerOpen"
+        class="pt-nav-search-drawer"
+        @click.self="searchDrawerOpen = false"
+      >
         <PortalSearchBox class="pt-nav-search-drawer-box" />
       </div>
     </transition>
@@ -192,11 +206,28 @@ const props = defineProps({
 const emit = defineEmits(['navigate', 'open-whats-new', 'open-daily-digest', 'open-help'])
 
 const {
-  navRef, menuRef, menuOpen, scrolled, searchDrawerOpen,
-  tabs, avatarInitial, roleLabel, supportTitle,
-  toggleSearchDrawer, isTabActive, navigateTo,
-  goToDashboard, goToSettings, goToMyTickets,
-  toggleMenu, openSupport, doLogout, openWhatsNew, openDailyDigest, openHelp, goToLists,
+  navRef,
+  menuRef,
+  menuOpen,
+  scrolled,
+  searchDrawerOpen,
+  tabs,
+  avatarInitial,
+  roleLabel,
+  supportTitle,
+  toggleSearchDrawer,
+  isTabActive,
+  navigateTo,
+  goToDashboard,
+  goToSettings,
+  goToMyTickets,
+  toggleMenu,
+  openSupport,
+  doLogout,
+  openWhatsNew,
+  openDailyDigest,
+  openHelp,
+  goToLists,
 } = usePortalNav(props, emit)
 
 const calendarRef = ref(null)

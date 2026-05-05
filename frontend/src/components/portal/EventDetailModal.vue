@@ -29,7 +29,11 @@
           </div>
 
           <h3 class="pt-evd-section-title">
-            {{ event.tmdb_ids.length > 1 ? $t('portal.mkEvents.detail.marathonList') : $t('portal.mkEvents.detail.media') }}
+            {{
+              event.tmdb_ids.length > 1
+                ? $t('portal.mkEvents.detail.marathonList')
+                : $t('portal.mkEvents.detail.media')
+            }}
           </h3>
           <div class="pt-evd-medias">
             <div v-for="(m, i) in event.tmdb_ids" :key="i" class="pt-evd-media">
@@ -54,13 +58,21 @@
               :class="`pt-evd-invitee--${inv.status}`"
             >
               <span class="pt-evd-invitee-name">{{ inv.username }}</span>
-              <span class="pt-evd-invitee-status">{{ $t(`portal.mkEvents.detail.status.${inv.status}`) }}</span>
+              <span class="pt-evd-invitee-status">
+                {{ $t(`portal.mkEvents.detail.status.${inv.status}`) }}
+              </span>
               <button
-                v-if="canManage && inv.user_id !== event.creator_user_id && inv.status === INVITATION_STATUS.ACCEPTED"
+                v-if="
+                  canManage &&
+                  inv.user_id !== event.creator_user_id &&
+                  inv.status === INVITATION_STATUS.ACCEPTED
+                "
                 class="pt-evd-invitee-x"
                 :title="$t('portal.mkEvents.detail.removeMember')"
                 @click="removeMember(inv.user_id)"
-              >×</button>
+              >
+                ×
+              </button>
             </div>
           </div>
 
@@ -70,7 +82,9 @@
         </div>
 
         <footer class="pt-evd-footer">
-          <button class="pt-evd-btn pt-evd-btn--ghost" @click="$emit('close')">{{ $t('common.close') }}</button>
+          <button class="pt-evd-btn pt-evd-btn--ghost" @click="$emit('close')">
+            {{ $t('common.close') }}
+          </button>
 
           <!-- Enter the cinema room: shown to accepted members from
                T-15 minutes onward, regardless of creator/invitee role. -->
@@ -143,15 +157,21 @@ const conflictWarning = ref(false)
 const myUserId = computed(() => profile.value?.user_id || profile.value?.id || 0)
 const canManage = computed(() => event.value?.creator_user_id === myUserId.value)
 const myStatus = computed(() => {
-  const inv = event.value?.invitations?.find((i) => i.user_id === myUserId.value)
+  const inv = event.value?.invitations?.find(i => i.user_id === myUserId.value)
   return inv?.status || null
 })
 
 // Tick every second so the room button appears the moment T-15 hits.
 const nowTs = ref(Date.now())
 let tickTimer = null
-onMounted(() => { tickTimer = setInterval(() => { nowTs.value = Date.now() }, 1000) })
-onBeforeUnmount(() => { if (tickTimer) clearInterval(tickTimer) })
+onMounted(() => {
+  tickTimer = setInterval(() => {
+    nowTs.value = Date.now()
+  }, 1000)
+})
+onBeforeUnmount(() => {
+  if (tickTimer) clearInterval(tickTimer)
+})
 
 // Room is open from 15 minutes BEFORE scheduled time (matches the
 // backend ROOM_OPEN_BEFORE_MIN constant in mk_events.py).
@@ -201,10 +221,16 @@ function formatFull(iso) {
   if (!iso) return ''
   try {
     return new Date(iso).toLocaleString(undefined, {
-      weekday: 'long', day: '2-digit', month: 'long', year: 'numeric',
-      hour: '2-digit', minute: '2-digit',
+      weekday: 'long',
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     })
-  } catch { return iso }
+  } catch {
+    return iso
+  }
 }
 
 onMounted(load)

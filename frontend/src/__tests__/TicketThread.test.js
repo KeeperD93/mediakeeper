@@ -51,12 +51,14 @@ describe('TicketThread', () => {
   it('renders an admin role badge for admin authors', () => {
     const ticket = {
       ...BASE_TICKET,
-      replies: [{
-        id: 1,
-        content: 'Pris en charge.',
-        created_at: new Date().toISOString(),
-        author: { user_id: 1, display_name: 'Admin', role: 'admin', avatar_url: null },
-      }],
+      replies: [
+        {
+          id: 1,
+          content: 'Pris en charge.',
+          created_at: new Date().toISOString(),
+          author: { user_id: 1, display_name: 'Admin', role: 'admin', avatar_url: null },
+        },
+      ],
     }
     const w = mount(TicketThread, { props: { ticket } })
     expect(w.find('.tth-role-pill').exists()).toBe(true)
@@ -119,13 +121,15 @@ describe('TicketThread', () => {
   it('renders the deleted-user placeholder for a purged reply author', () => {
     const ticket = {
       ...BASE_TICKET,
-      replies: [{
-        id: 1,
-        content: 'thanks',
-        created_at: new Date().toISOString(),
-        author: null,
-        author_deleted: true,
-      }],
+      replies: [
+        {
+          id: 1,
+          content: 'thanks',
+          created_at: new Date().toISOString(),
+          author: null,
+          author_deleted: true,
+        },
+      ],
     }
     const w = mount(TicketThread, { props: { ticket } })
     const anonRows = w.findAll('.tth-row--anon')

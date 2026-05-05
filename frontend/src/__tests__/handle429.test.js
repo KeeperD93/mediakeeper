@@ -59,9 +59,7 @@ describe('parseRetryAfter', () => {
 
 describe('buildRateLimitMessage', () => {
   it('uses the retry key with the seconds named arg when known', () => {
-    expect(buildRateLimitMessage(45)).toBe(
-      'common.apiError.rate_limited_retry:{"seconds":45}',
-    )
+    expect(buildRateLimitMessage(45)).toBe('common.apiError.rate_limited_retry:{"seconds":45}')
   })
 
   it('falls back to the generic key when retry-after is missing', () => {

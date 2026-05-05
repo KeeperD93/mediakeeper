@@ -14,12 +14,28 @@
         <span v-if="idx < 3" class="pt-top20-laurel" aria-hidden="true">
           <svg viewBox="0 0 64 64" fill="none">
             <!-- Medal disc, centered, fills the badge -->
-            <circle cx="32" cy="32" r="22" fill="currentColor" stroke="rgba(0,0,0,0.5)" stroke-width="1.5"/>
+            <circle
+              cx="32"
+              cy="32"
+              r="22"
+              fill="currentColor"
+              stroke="rgba(0,0,0,0.5)"
+              stroke-width="1.5"
+            />
             <!-- Inner bevel ring -->
-            <circle cx="32" cy="32" r="17" fill="none" stroke="rgba(0,0,0,0.35)" stroke-width="1.2"/>
+            <circle
+              cx="32"
+              cy="32"
+              r="17"
+              fill="none"
+              stroke="rgba(0,0,0,0.35)"
+              stroke-width="1.2"
+            />
             <!-- Engraved star -->
-            <path d="M32 21 L35 29 L43 29 L36.5 34 L39 42 L32 37 L25 42 L27.5 34 L21 29 L29 29 Z"
-                  fill="rgba(0,0,0,0.55)"/>
+            <path
+              d="M32 21 L35 29 L43 29 L36.5 34 L39 42 L32 37 L25 42 L27.5 34 L21 29 L29 29 Z"
+              fill="rgba(0,0,0,0.55)"
+            />
           </svg>
         </span>
         <!-- Reuse the regular MediaCard so the hover state, "Demander" /
@@ -144,7 +160,10 @@ onUnmounted(() => resizeObs?.disconnect())
 // after mount because the /top20 endpoint is fetched in parallel with
 // the rest of the home). Without this the arrows would stay stuck on
 // their initial ref values.
-watch(() => props.items, () => {
-  nextTick(onScroll)
-})
+watch(
+  () => props.items,
+  () => {
+    nextTick(onScroll)
+  },
+)
 </script>

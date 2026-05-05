@@ -7,7 +7,12 @@
     <div class="mm-toolbar mm-toolbar--between">
       <span class="mm-hint">{{ $t('mediaManager.dragToReorder') }}</span>
       <div class="mm-row-flex-tight">
-        <button class="mm-btn-sm" :class="{'mm-btn-accent': diffMode}" :title="$t('mediaManager.compareMode')" @click="diffMode = !diffMode">
+        <button
+          class="mm-btn-sm"
+          :class="{ 'mm-btn-accent': diffMode }"
+          :title="$t('mediaManager.compareMode')"
+          @click="diffMode = !diffMode"
+        >
           <ArrowLeftRight :size="11" />
           {{ $t('mediaManager.diff') }}
         </button>
@@ -26,7 +31,7 @@
         <div
           class="mm-new-row"
           :class="{
-            'warn':        liveEpCheck[i]?.epMismatch || n.mismatch,
+            warn: liveEpCheck[i]?.epMismatch || n.mismatch,
             'warn-strong': liveEpCheck[i]?.seasonMismatch || n.mismatchStrong,
             'drag-over-r': dragOverRight === i,
           }"
@@ -34,31 +39,67 @@
           @dragstart="dStart(i)"
           @dragover.prevent="dragOverRight = i"
           @dragleave="dragOverRight = null"
-          @drop.prevent="dDrop(i); dragOverRight = null"
+          @drop.prevent="(dDrop(i), (dragOverRight = null))"
           @contextmenu.prevent="openRenameCtx($event, i)"
         >
           <span class="mm-drag-handle">⠿</span>
-          <span v-if="fileRenameStatus[n.path]" class="mm-rename-status" :class="'st-' + fileRenameStatus[n.path]">
+          <span
+            v-if="fileRenameStatus[n.path]"
+            class="mm-rename-status"
+            :class="'st-' + fileRenameStatus[n.path]"
+          >
             <MkSpinner v-if="fileRenameStatus[n.path] === 'renaming'" size="sm" inline />
             <Check v-else-if="fileRenameStatus[n.path] === 'done'" :size="10" :stroke-width="3" />
             <X v-else-if="fileRenameStatus[n.path] === 'error'" :size="10" :stroke-width="3" />
           </span>
-          <span class="mm-new-idx">{{ String(i+1).padStart(2,'0') }}</span>
-          <span class="mm-new-name" :title="n.name">{{ n.ext ? n.name.slice(0, -(n.ext.length+1)) : n.name }}</span>
+          <span class="mm-new-idx">{{ String(i + 1).padStart(2, '0') }}</span>
+          <span class="mm-new-name" :title="n.name">
+            {{ n.ext ? n.name.slice(0, -(n.ext.length + 1)) : n.name }}
+          </span>
           <span v-if="n.ext" class="mm-fext">{{ n.ext }}</span>
-          <span v-if="n.category" class="mm-cat-badge" :style="{background: n.category.color}">{{ n.category.label }}</span>
-          <span v-if="liveEpCheck[i]?.seasonMismatch"
-            class="mm-warn-badge mm-warn-ep"
-            :title="$t('mediaManager.seasonMismatchTitle', { src: String(liveEpCheck[i].srcSeason).padStart(2,'0'), prop: String(liveEpCheck[i].propSeason).padStart(2,'0') })">
-            ⚠ S{{ String(liveEpCheck[i].srcSeason).padStart(2,'0') }}≠S{{ String(liveEpCheck[i].propSeason).padStart(2,'0') }}
+          <span v-if="n.category" class="mm-cat-badge" :style="{ background: n.category.color }">
+            {{ n.category.label }}
           </span>
-          <span v-else-if="liveEpCheck[i]?.epMismatch"
+          <span
+            v-if="liveEpCheck[i]?.seasonMismatch"
             class="mm-warn-badge mm-warn-ep"
-            :title="$t('mediaManager.epMismatchTitle', { src: String(liveEpCheck[i].srcEp).padStart(2,'0'), prop: String(liveEpCheck[i].propEp).padStart(2,'0') })">
-            ⚠ E{{ String(liveEpCheck[i].srcEp).padStart(2,'0') }}→E{{ String(liveEpCheck[i].propEp).padStart(2,'0') }}
+            :title="
+              $t('mediaManager.seasonMismatchTitle', {
+                src: String(liveEpCheck[i].srcSeason).padStart(2, '0'),
+                prop: String(liveEpCheck[i].propSeason).padStart(2, '0'),
+              })
+            "
+          >
+            ⚠ S{{ String(liveEpCheck[i].srcSeason).padStart(2, '0') }}≠S{{
+              String(liveEpCheck[i].propSeason).padStart(2, '0')
+            }}
           </span>
-          <span v-else-if="n.mismatch" class="mm-warn-badge" :title="$t('mediaManager.uncertainMatch')">?</span>
-          <button class="mm-del-btn mm-copy-btn" :title="$t('mediaManager.copyName')" @click="copyName(n.name)">
+          <span
+            v-else-if="liveEpCheck[i]?.epMismatch"
+            class="mm-warn-badge mm-warn-ep"
+            :title="
+              $t('mediaManager.epMismatchTitle', {
+                src: String(liveEpCheck[i].srcEp).padStart(2, '0'),
+                prop: String(liveEpCheck[i].propEp).padStart(2, '0'),
+              })
+            "
+          >
+            ⚠ E{{ String(liveEpCheck[i].srcEp).padStart(2, '0') }}→E{{
+              String(liveEpCheck[i].propEp).padStart(2, '0')
+            }}
+          </span>
+          <span
+            v-else-if="n.mismatch"
+            class="mm-warn-badge"
+            :title="$t('mediaManager.uncertainMatch')"
+          >
+            ?
+          </span>
+          <button
+            class="mm-del-btn mm-copy-btn"
+            :title="$t('mediaManager.copyName')"
+            @click="copyName(n.name)"
+          >
             <Copy />
           </button>
           <button class="mm-del-btn" @click="removeRight(i)">
@@ -73,7 +114,17 @@
           <div class="mm-diff-new">
             <span class="mm-diff-label">{{ $t('mediaManager.diffAfter') }}</span>
             <template v-for="(chunk, ci) in computeDiff(n.oldName, n.name)" :key="ci">
-              <span :class="chunk.type === DIFF_TYPE.ADD ? 'mm-diff-add' : chunk.type === DIFF_TYPE.DEL ? 'mm-diff-del' : ''">{{ chunk.text }}</span>
+              <span
+                :class="
+                  chunk.type === DIFF_TYPE.ADD
+                    ? 'mm-diff-add'
+                    : chunk.type === DIFF_TYPE.DEL
+                      ? 'mm-diff-del'
+                      : ''
+                "
+              >
+                {{ chunk.text }}
+              </span>
             </template>
           </div>
         </div>
@@ -81,12 +132,16 @@
     </div>
     <!-- Menu contextuel nom generated -->
     <Teleport to="body">
-    <div v-if="renameCtx.show" class="mm-ctx-menu" :style="{ top: renameCtx.y + 'px', left: renameCtx.x + 'px' }">
-      <button class="mm-ctx-item mm-ctx-danger" @click="renameCtxDelete">
-        <Trash2 :size="13" />
-        {{ $t('mediaManager.ctxDelete') }}
-      </button>
-    </div>
+      <div
+        v-if="renameCtx.show"
+        class="mm-ctx-menu"
+        :style="{ top: renameCtx.y + 'px', left: renameCtx.x + 'px' }"
+      >
+        <button class="mm-ctx-item mm-ctx-danger" @click="renameCtxDelete">
+          <Trash2 :size="13" />
+          {{ $t('mediaManager.ctxDelete') }}
+        </button>
+      </div>
     </Teleport>
   </div>
 </template>
@@ -105,8 +160,14 @@ const { t } = useI18n()
 const { showToast } = useToast()
 
 const {
-  newNames, fileRenameStatus, filtered,
-  dStart, dDrop, removeRight, clearRight, computeDiff,
+  newNames,
+  fileRenameStatus,
+  filtered,
+  dStart,
+  dDrop,
+  removeRight,
+  clearRight,
+  computeDiff,
 } = useMediaManager()
 
 async function copyName(name) {
@@ -127,9 +188,12 @@ const renameCtx = ref({ show: false, x: 0, y: 0, idx: null })
 let _renameCtxClose = null
 
 function openRenameCtx(e, i) {
-  if (_renameCtxClose) { document.removeEventListener('mousedown', _renameCtxClose); _renameCtxClose = null }
+  if (_renameCtxClose) {
+    document.removeEventListener('mousedown', _renameCtxClose)
+    _renameCtxClose = null
+  }
   renameCtx.value = { show: true, x: e.clientX, y: e.clientY, idx: i }
-  _renameCtxClose = (ev) => {
+  _renameCtxClose = ev => {
     if (!ev.target.closest('.mm-ctx-menu')) {
       renameCtx.value.show = false
       document.removeEventListener('mousedown', _renameCtxClose)
@@ -183,7 +247,10 @@ const liveEpCheck = computed(() => {
     return {
       epMismatch: srcEp !== propEp,
       seasonMismatch: srcSeason !== null && propSeason !== null && srcSeason !== propSeason,
-      srcEp, propEp, srcSeason, propSeason
+      srcEp,
+      propEp,
+      srcSeason,
+      propSeason,
     }
   })
 })

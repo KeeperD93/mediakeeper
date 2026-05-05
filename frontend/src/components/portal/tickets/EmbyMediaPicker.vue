@@ -7,7 +7,7 @@
         class="emp-selected-poster"
         :alt="modelValue.title"
         loading="lazy"
-        @error="$event.target.style.display='none'"
+        @error="$event.target.style.display = 'none'"
       />
       <div class="emp-selected-meta">
         <div class="emp-selected-title">{{ modelValue.title }}</div>
@@ -23,7 +23,9 @@
         class="emp-clear"
         :aria-label="$t('portal.tickets.picker.clear')"
         @click="onClear"
-      >✕</button>
+      >
+        ✕
+      </button>
     </div>
 
     <!-- Search input + dropdown when no selection -->
@@ -48,12 +50,7 @@
       />
       <div v-if="searching" class="emp-spinner" aria-hidden="true" />
 
-      <div
-        v-if="dropdownOpen"
-        id="emp-listbox"
-        class="emp-dropdown"
-        role="listbox"
-      >
+      <div v-if="dropdownOpen" id="emp-listbox" class="emp-dropdown" role="listbox">
         <p v-if="query.length < MIN_QUERY_LENGTH" class="emp-hint">
           {{ $t('portal.tickets.picker.minChars', { n: MIN_QUERY_LENGTH }) }}
         </p>
@@ -78,7 +75,7 @@
               class="emp-hit-poster"
               :alt="hit.title"
               loading="lazy"
-              @error="$event.target.style.display='none'"
+              @error="$event.target.style.display = 'none'"
             />
             <div class="emp-hit-meta">
               <div class="emp-hit-title">{{ hit.title }}</div>
@@ -100,20 +97,23 @@
 import { ref, watch, nextTick } from 'vue'
 import { usePortalTicketEmby } from '@/composables/portal/usePortalTicketEmby'
 
-const props = defineProps({
+defineProps({
   /** Currently selected hit, or null. Shape matches the Emby search response. */
   modelValue: { type: Object, default: null },
 })
 const emit = defineEmits(['update:modelValue'])
 
-const { results, searching, searchDebounced, clearResults, MIN_QUERY_LENGTH } = usePortalTicketEmby()
+const { results, searching, searchDebounced, clearResults, MIN_QUERY_LENGTH } =
+  usePortalTicketEmby()
 
 const query = ref('')
 const inputEl = ref(null)
 const dropdownOpen = ref(false)
 const cursor = ref(0)
 
-watch(results, () => { cursor.value = 0 })
+watch(results, () => {
+  cursor.value = 0
+})
 
 function onInput() {
   dropdownOpen.value = true
@@ -161,35 +161,56 @@ function onClear() {
 </script>
 
 <style scoped>
-.emp { position: relative; width: 100%; }
+.emp {
+  position: relative;
+  width: 100%;
+}
 
 .emp-selected {
-  display: flex; align-items: center; gap: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   padding: 10px;
   background: var(--bg-tertiary);
   border: 1px solid var(--portal-border-default);
   border-radius: var(--radius-card);
 }
 .emp-selected-poster {
-  width: 48px; height: 72px; flex-shrink: 0;
+  width: 48px;
+  height: 72px;
+  flex-shrink: 0;
   object-fit: cover;
   border-radius: var(--radius-input);
   background: var(--bg-secondary);
 }
-.emp-selected-meta { flex: 1; min-width: 0; }
-.emp-selected-title {
-  font-size: var(--portal-text-sm); font-weight: var(--portal-font-bold);
-  color: var(--text-primary);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+.emp-selected-meta {
+  flex: 1;
+  min-width: 0;
 }
-.emp-selected-sub { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
+.emp-selected-title {
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-bold);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.emp-selected-sub {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 4px;
+}
 
 .emp-clear {
   flex-shrink: 0;
-  width: 44px; height: 44px;
+  width: 44px;
+  height: 44px;
   border-radius: 999px;
-  background: transparent; border: 1px solid var(--portal-border-default);
-  color: var(--text-muted); font-size: var(--portal-text-sm);
+  background: transparent;
+  border: 1px solid var(--portal-border-default);
+  color: var(--text-muted);
+  font-size: var(--portal-text-sm);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition:
@@ -205,34 +226,51 @@ function onClear() {
   }
 }
 
-.emp-search { position: relative; }
+.emp-search {
+  position: relative;
+}
 .emp-input {
-  width: 100%; min-height: 44px;
-  background: var(--bg-tertiary); border: 1px solid var(--portal-border-default);
+  width: 100%;
+  min-height: 44px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--portal-border-default);
   border-radius: var(--radius-input);
   color: var(--text-primary);
   padding: 10px 36px 10px 12px;
   font-size: var(--portal-text-sm);
 }
 .emp-input:focus {
-  outline: none; border-color: var(--accent);
+  outline: none;
+  border-color: var(--accent);
   box-shadow: var(--mk-pill-shadow-sm);
 }
 
 .emp-spinner {
-  position: absolute; right: 12px; top: 50%;
-  width: 14px; height: 14px;
-  border: 2px solid var(--portal-border-default); border-top-color: var(--accent);
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--portal-border-default);
+  border-top-color: var(--accent);
   border-radius: 999px;
   transform: translateY(-50%);
   animation: emp-spin 0.8s linear infinite;
 }
-@keyframes emp-spin { to { transform: translateY(-50%) rotate(360deg); } }
+@keyframes emp-spin {
+  to {
+    transform: translateY(-50%) rotate(360deg);
+  }
+}
 
 .emp-dropdown {
-  position: absolute; left: 0; right: 0; top: calc(100% + 6px);
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 6px);
   z-index: 30;
-  max-height: 280px; overflow-y: auto;
+  max-height: 280px;
+  overflow-y: auto;
   background: var(--bg-secondary);
   border: 1px solid var(--portal-border-default);
   border-radius: var(--radius-card);
@@ -241,14 +279,21 @@ function onClear() {
 
 .emp-hint {
   padding: 14px 16px;
-  font-size: var(--portal-text-xs); color: var(--text-muted);
+  font-size: var(--portal-text-xs);
+  color: var(--text-muted);
   text-align: center;
 }
 
-.emp-list { list-style: none; margin: 0; padding: 4px; }
+.emp-list {
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+}
 
 .emp-hit {
-  display: flex; gap: 10px; align-items: center;
+  display: flex;
+  gap: 10px;
+  align-items: center;
   padding: 8px;
   min-height: 44px;
   border-radius: var(--radius-input);
@@ -256,42 +301,74 @@ function onClear() {
   -webkit-tap-highlight-color: transparent;
   transition: background var(--portal-dur-fast) var(--portal-ease-emphasis);
 }
-.emp-hit--active { background: var(--bg-tertiary); }
+.emp-hit--active {
+  background: var(--bg-tertiary);
+}
 .emp-hit-poster {
-  width: 38px; height: 57px; flex-shrink: 0;
+  width: 38px;
+  height: 57px;
+  flex-shrink: 0;
   object-fit: cover;
   border-radius: var(--radius-input);
   background: var(--bg-tertiary);
 }
-.emp-hit-meta { flex: 1; min-width: 0; }
-.emp-hit-title {
-  font-size: var(--portal-text-sm); font-weight: var(--portal-font-medium);
-  color: var(--text-primary);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+.emp-hit-meta {
+  flex: 1;
+  min-width: 0;
 }
-.emp-hit-sub { display: flex; gap: 6px; align-items: center; margin-top: 2px; }
+.emp-hit-title {
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-medium);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.emp-hit-sub {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 2px;
+}
 
 .emp-kind-pill {
-  display: inline-flex; align-items: center;
+  display: inline-flex;
+  align-items: center;
   padding: 2px 10px;
   border-radius: 999px;
-  font-size: var(--portal-text-2xs); font-weight: var(--portal-font-bold);
-  text-transform: uppercase; letter-spacing: var(--portal-tracking-wide);
+  font-size: var(--portal-text-2xs);
+  font-weight: var(--portal-font-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--portal-tracking-wide);
 }
 .emp-kind--movie {
-  background: rgba(var(--portal-color-info-rgb), 0.15);
+  background: rgb(var(--portal-color-info-rgb), 0.15);
   color: var(--portal-color-info-light);
 }
 .emp-kind--series {
-  background: rgba(var(--portal-color-premium-rgb), 0.15);
+  background: rgb(var(--portal-color-premium-rgb), 0.15);
   color: var(--portal-color-premium-soft);
 }
-.emp-year { font-size: var(--portal-text-xs); color: var(--text-muted); }
+.emp-year {
+  font-size: var(--portal-text-xs);
+  color: var(--text-muted);
+}
 
 @media (min-width: 768px) {
-  .emp-selected-poster { width: 56px; height: 84px; }
-  .emp-clear { width: 32px; height: 32px; }
-  .emp-hit-poster { width: 44px; height: 66px; }
-  .emp-dropdown { max-height: 360px; }
+  .emp-selected-poster {
+    width: 56px;
+    height: 84px;
+  }
+  .emp-clear {
+    width: 32px;
+    height: 32px;
+  }
+  .emp-hit-poster {
+    width: 44px;
+    height: 66px;
+  }
+  .emp-dropdown {
+    max-height: 360px;
+  }
 }
 </style>

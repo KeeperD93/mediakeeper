@@ -34,7 +34,11 @@
         <span class="pt-featured-name">{{ f.title }}</span>
         <span class="pt-featured-type">{{ f.media_type }}</span>
         <label class="pt-toggle-label">
-          <input type="checkbox" :checked="f.active" @change="toggleActive(f.id, $event.target.checked)" />
+          <input
+            type="checkbox"
+            :checked="f.active"
+            @change="toggleActive(f.id, $event.target.checked)"
+          />
           {{ f.active ? $t('common.active') : $t('common.inactive') }}
         </label>
         <button class="pt-icon-btn" @click="remove(f.id)">
@@ -69,7 +73,9 @@ async function loadFeatured() {
 
 async function searchTmdb() {
   if (!searchQuery.value.trim()) return
-  const res = await apiGet(`/api/portal/catalog/search?q=${encodeURIComponent(searchQuery.value)}`).catch(() => null)
+  const res = await apiGet(
+    `/api/portal/catalog/search?q=${encodeURIComponent(searchQuery.value)}`,
+  ).catch(() => null)
   if (res) searchResults.value = res.items
 }
 
@@ -106,23 +112,111 @@ onMounted(loadFeatured)
 </script>
 
 <style scoped>
-.pt-admin-toolbar { display: flex; gap: 0.75rem; margin-bottom: 1rem; }
-.pt-input { flex: 1; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--radius-input); color: var(--text-primary); padding: 0.5rem 0.75rem; font-size: var(--portal-text-sm); }
-.pt-btn { padding: 0.45rem 1rem; border-radius: var(--radius-btn); border: none; font-weight: var(--portal-font-medium); cursor: pointer; font-size: var(--portal-text-sm); }
-.pt-btn--primary { background: var(--accent); color: #fff; }
-.pt-featured-results { margin-bottom: 1.5rem; }
-.pt-featured-result { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; border-bottom: 1px solid var(--border); }
-.pt-featured-thumb { width: 40px; height: 60px; border-radius: 3px; object-fit: cover; }
-.pt-featured-result-info { flex: 1; }
-.pt-featured-result-title { display: block; font-weight: var(--portal-font-medium); color: var(--text-primary); font-size: var(--portal-text-base); }
-.pt-featured-result-meta { font-size: var(--portal-text-xs); color: var(--text-muted); }
-.pt-section-subtitle { font-size: var(--portal-text-base); font-weight: var(--portal-font-bold); color: var(--text-primary); margin: 1rem 0 0.5rem; }
-.pt-admin-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.55rem 0.5rem; border-bottom: 1px solid var(--border); }
-.pt-featured-order { font-weight: var(--portal-font-bold); color: var(--text-muted); width: 2rem; font-size: var(--portal-text-sm); }
-.pt-featured-name { flex: 1; font-weight: var(--portal-font-medium); color: var(--text-primary); font-size: var(--portal-text-base); }
-.pt-featured-type { font-size: var(--portal-text-2xs); color: var(--text-muted); text-transform: uppercase; }
-.pt-toggle-label { display: flex; align-items: center; gap: 0.3rem; font-size: var(--portal-text-xs); color: var(--text-secondary); cursor: pointer; }
-.pt-icon-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; }
-.pt-icon-btn:hover { color: var(--portal-color-error); }
-.pt-empty { color: var(--text-muted); text-align: center; padding: 1.5rem 0; }
+.pt-admin-toolbar {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.pt-input {
+  flex: 1;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  color: var(--text-primary);
+  padding: 0.5rem 0.75rem;
+  font-size: var(--portal-text-sm);
+}
+.pt-btn {
+  padding: 0.45rem 1rem;
+  border-radius: var(--radius-btn);
+  border: none;
+  font-weight: var(--portal-font-medium);
+  cursor: pointer;
+  font-size: var(--portal-text-sm);
+}
+.pt-btn--primary {
+  background: var(--accent);
+  color: #fff;
+}
+.pt-featured-results {
+  margin-bottom: 1.5rem;
+}
+.pt-featured-result {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.pt-featured-thumb {
+  width: 40px;
+  height: 60px;
+  border-radius: 3px;
+  object-fit: cover;
+}
+.pt-featured-result-info {
+  flex: 1;
+}
+.pt-featured-result-title {
+  display: block;
+  font-weight: var(--portal-font-medium);
+  color: var(--text-primary);
+  font-size: var(--portal-text-base);
+}
+.pt-featured-result-meta {
+  font-size: var(--portal-text-xs);
+  color: var(--text-muted);
+}
+.pt-section-subtitle {
+  font-size: var(--portal-text-base);
+  font-weight: var(--portal-font-bold);
+  color: var(--text-primary);
+  margin: 1rem 0 0.5rem;
+}
+.pt-admin-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.pt-featured-order {
+  font-weight: var(--portal-font-bold);
+  color: var(--text-muted);
+  width: 2rem;
+  font-size: var(--portal-text-sm);
+}
+.pt-featured-name {
+  flex: 1;
+  font-weight: var(--portal-font-medium);
+  color: var(--text-primary);
+  font-size: var(--portal-text-base);
+}
+.pt-featured-type {
+  font-size: var(--portal-text-2xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+.pt-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: var(--portal-text-xs);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.pt-icon-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.pt-icon-btn:hover {
+  color: var(--portal-color-error);
+}
+.pt-empty {
+  color: var(--text-muted);
+  text-align: center;
+  padding: 1.5rem 0;
+}
 </style>

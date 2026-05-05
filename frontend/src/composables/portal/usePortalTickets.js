@@ -52,8 +52,16 @@ export function usePortalTickets() {
   }
 
   return {
-    tickets, currentTicket, hasMore, nextCursor,
-    fetchTickets, fetchTicket, createTicket, replyTicket, updateStatus,
-    loading, error,
+    tickets,
+    currentTicket,
+    hasMore,
+    nextCursor,
+    fetchTickets,
+    fetchTicket,
+    createTicket,
+    replyTicket,
+    updateStatus,
+    loading,
+    error,
   }
 }

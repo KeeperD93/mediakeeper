@@ -9,7 +9,7 @@
   max-height: min(560px, calc(100vh - 130px));
   display: flex;
   flex-direction: column;
-  background: rgba(20, 20, 30, 0.85);
+  background: rgb(20, 20, 30, 0.85);
   backdrop-filter: var(--portal-blur-lg);
   -webkit-backdrop-filter: var(--portal-blur-lg);
   border: 1px solid var(--portal-border-default);
@@ -20,7 +20,10 @@
   color: #fff;
 }
 @media (min-width: 640px) {
-  .pt-chat { right: 100px; bottom: 32px; }
+  .pt-chat {
+    right: 100px;
+    bottom: 32px;
+  }
 }
 
 .pt-chat-head {
@@ -37,8 +40,8 @@
   margin: 0;
 }
 .pt-chat-room {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgb(255, 255, 255, 0.05);
+  border: 1px solid rgb(255, 255, 255, 0.1);
   color: #fff;
   border-radius: var(--portal-radius-xs);
   padding: 0.2rem 0.4rem;
@@ -47,12 +50,15 @@
 .pt-chat-x {
   background: transparent;
   border: none;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgb(255, 255, 255, 0.6);
   cursor: pointer;
   padding: 4px;
   border-radius: var(--portal-radius-xs);
 }
-.pt-chat-x:hover { background: var(--portal-surface-4); color: #fff; }
+.pt-chat-x:hover {
+  background: var(--portal-surface-4);
+  color: #fff;
+}
 
 .pt-chat-list {
   flex: 1;
@@ -62,39 +68,52 @@
   flex-direction: column;
   gap: 0.5rem;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+  scrollbar-color: rgb(255, 255, 255, 0.15) transparent;
 }
-.pt-chat-list::-webkit-scrollbar { width: 6px; }
-.pt-chat-list::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 3px; }
+.pt-chat-list::-webkit-scrollbar {
+  width: 6px;
+}
+.pt-chat-list::-webkit-scrollbar-thumb {
+  background: rgb(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
 
 .pt-chat-row {
   padding: 0.45rem 0.6rem;
   border-radius: var(--radius-btn);
-  background: rgba(255, 255, 255, 0.03);
+  background: rgb(255, 255, 255, 0.03);
   border: 1px solid var(--portal-border-faint);
   position: relative;
   transition: background var(--portal-dur-fast);
 }
-.pt-chat-row:hover { background: var(--portal-surface-3); }
-.pt-chat-row--mine {
-  background: rgba(67, 56, 202, 0.15);
-  border-color: rgba(67, 56, 202, 0.3);
+.pt-chat-row:hover {
+  background: var(--portal-surface-3);
 }
-.pt-chat-row--deleted { opacity: 0.4; }
+.pt-chat-row--mine {
+  background: rgb(67, 56, 202, 0.15);
+  border-color: rgb(67, 56, 202, 0.3);
+}
+.pt-chat-row--deleted {
+  opacity: 0.4;
+}
 
 .pt-chat-meta {
   display: flex;
   gap: 0.5rem;
   font-size: var(--portal-text-2xs);
-  color: rgba(255, 255, 255, 0.45);
+  color: rgb(255, 255, 255, 0.45);
   margin-bottom: 0.2rem;
 }
-.pt-chat-pseudo { color: var(--portal-text-body); font-weight: var(--portal-font-medium); }
+.pt-chat-pseudo {
+  color: var(--portal-text-body);
+  font-weight: var(--portal-font-medium);
+}
 .pt-chat-body {
   font-size: var(--portal-text-sm);
   line-height: 1.35;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgb(255, 255, 255, 0.9);
   white-space: pre-wrap;
+  /* stylelint-disable-next-line declaration-property-value-keyword-no-deprecated -- non-standard but widely supported; behaviour differs from overflow-wrap: break-word on CJK */
   word-break: break-word;
 }
 .pt-chat-body--deleted {
@@ -109,13 +128,15 @@
   display: none;
   gap: 0.25rem;
 }
-.pt-chat-row:hover .pt-chat-actions { display: flex; }
+.pt-chat-row:hover .pt-chat-actions {
+  display: flex;
+}
 .pt-chat-act {
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  background: rgba(0, 0, 0, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgb(0, 0, 0, 0.45);
+  border: 1px solid rgb(255, 255, 255, 0.1);
   border-radius: var(--portal-radius-xs);
   color: var(--portal-text-body-muted);
   cursor: pointer;
@@ -123,26 +144,50 @@
   font-size: var(--portal-text-3xs);
   line-height: var(--portal-lh-tight);
 }
-.pt-chat-act:hover { color: #fff; border-color: rgba(255, 255, 255, 0.3); }
-.pt-chat-act--warn:hover { color: var(--portal-color-error-soft); border-color: rgba(var(--portal-color-error-rgb), 0.5); }
-.pt-chat-act:disabled { cursor: default; opacity: 0.7; }
+.pt-chat-act:hover {
+  color: #fff;
+  border-color: rgb(255, 255, 255, 0.3);
+}
+.pt-chat-act--warn:hover {
+  color: var(--portal-color-error-soft);
+  border-color: rgb(var(--portal-color-error-rgb), 0.5);
+}
+.pt-chat-act:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
 /* Pulse loop while the report request is in flight. */
-.pt-chat-act--reporting { animation: pt-chat-report-pulse 0.8s ease-in-out infinite; }
+.pt-chat-act--reporting {
+  animation: pt-chat-report-pulse 0.8s ease-in-out infinite;
+}
 @keyframes pt-chat-report-pulse {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(var(--portal-color-error-rgb), 0.4); }
-  50% { transform: scale(1.08); box-shadow: 0 0 0 6px rgba(var(--portal-color-error-rgb), 0); }
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgb(var(--portal-color-error-rgb), 0.4);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 6px rgb(var(--portal-color-error-rgb), 0);
+  }
 }
 /* Locked state once the message was reported by the current user. */
 .pt-chat-act--reported {
   cursor: default;
-  background: rgba(var(--portal-color-error-rgb), 0.18);
-  border-color: rgba(var(--portal-color-error-rgb), 0.45);
+  background: rgb(var(--portal-color-error-rgb), 0.18);
+  border-color: rgb(var(--portal-color-error-rgb), 0.45);
   color: var(--portal-color-error-soft);
   animation: pt-chat-report-settle 0.55s var(--portal-ease-emphasis);
 }
 @keyframes pt-chat-report-settle {
-  from { opacity: 0; transform: scale(0.6); }
-  to   { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 /* One-shot success flash overlayed on the freshly-locked badge —
    declared after .pt-chat-act--reported so its colours win the
@@ -151,13 +196,22 @@
 .pt-chat-act--reported-flash {
   animation: pt-chat-report-flash 0.65s ease-out;
   color: var(--portal-color-success-light);
-  border-color: rgba(74, 222, 128, 0.6);
-  background: rgba(74, 222, 128, 0.18);
+  border-color: rgb(74, 222, 128, 0.6);
+  background: rgb(74, 222, 128, 0.18);
 }
 @keyframes pt-chat-report-flash {
-  0% { transform: scale(0.85); box-shadow: 0 0 0 rgba(74, 222, 128, 0); }
-  35% { transform: scale(1.25); box-shadow: 0 0 14px rgba(74, 222, 128, 0.55); }
-  100% { transform: scale(1); box-shadow: 0 0 0 rgba(74, 222, 128, 0); }
+  0% {
+    transform: scale(0.85);
+    box-shadow: 0 0 0 rgb(74, 222, 128, 0);
+  }
+  35% {
+    transform: scale(1.25);
+    box-shadow: 0 0 14px rgb(74, 222, 128, 0.55);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgb(74, 222, 128, 0);
+  }
 }
 
 .pt-chat-empty {
@@ -187,16 +241,29 @@
   justify-content: center;
   flex-shrink: 0;
 }
-.pt-chat-icon:hover { color: #fff; background: var(--portal-surface-3); }
-.pt-chat-icon--disabled { opacity: 0.3; cursor: not-allowed; }
-.pt-chat-icon--disabled:hover { background: transparent; color: var(--portal-text-secondary); }
-.pt-chat-gif { font-size: var(--portal-text-2xs); font-weight: var(--portal-font-bold); letter-spacing: var(--portal-tracking-caps); }
+.pt-chat-icon:hover {
+  color: #fff;
+  background: var(--portal-surface-3);
+}
+.pt-chat-icon--disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+.pt-chat-icon--disabled:hover {
+  background: transparent;
+  color: var(--portal-text-secondary);
+}
+.pt-chat-gif {
+  font-size: var(--portal-text-2xs);
+  font-weight: var(--portal-font-bold);
+  letter-spacing: var(--portal-tracking-caps);
+}
 
 .pt-chat-field {
   flex: 1;
   min-width: 0;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgb(255, 255, 255, 0.05);
+  border: 1px solid rgb(255, 255, 255, 0.1);
   /* Force-set every flavour of text colour because Tailwind preflight
      resets `color: inherit` on inputs (picks the parent's potentially
      undefined value) and Chrome/Edge autofill overrides `color` with
@@ -210,14 +277,18 @@
   font-family: inherit;
   outline: none;
 }
-.pt-chat-field::placeholder { color: var(--portal-text-muted); }
-.pt-chat-field:focus { border-color: rgba(67, 56, 202, 0.6); }
+.pt-chat-field::placeholder {
+  color: var(--portal-text-muted);
+}
+.pt-chat-field:focus {
+  border-color: rgb(67, 56, 202, 0.6);
+}
 /* Kill the yellow autofill background that would otherwise mask the white text. */
 .pt-chat-field:-webkit-autofill,
 .pt-chat-field:-webkit-autofill:hover,
 .pt-chat-field:-webkit-autofill:focus {
   -webkit-text-fill-color: #fff !important;
-  -webkit-box-shadow: 0 0 0 1000px rgba(20, 20, 30, 0.95) inset !important;
+  -webkit-box-shadow: 0 0 0 1000px rgb(20, 20, 30, 0.95) inset !important;
   caret-color: #fff;
 }
 
@@ -234,7 +305,10 @@
   justify-content: center;
   flex-shrink: 0;
 }
-.pt-chat-send:disabled { opacity: 0.4; cursor: default; }
+.pt-chat-send:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
 
 .pt-chat-emoji {
   position: absolute;
@@ -247,8 +321,8 @@
   grid-template-columns: repeat(10, 1fr);
   gap: 2px;
   padding: 8px;
-  background: rgba(30, 30, 40, 0.96);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgb(30, 30, 40, 0.96);
+  border: 1px solid rgb(255, 255, 255, 0.1);
   border-radius: var(--radius-btn);
 }
 .pt-chat-emoji-btn {
@@ -261,4 +335,6 @@
   border-radius: var(--portal-radius-xs);
   line-height: var(--portal-lh-tight);
 }
-.pt-chat-emoji-btn:hover { background: rgba(255, 255, 255, 0.1); }
+.pt-chat-emoji-btn:hover {
+  background: rgb(255, 255, 255, 0.1);
+}

@@ -4,9 +4,12 @@
       <SubHeader @edit-profiles="showProfileModal = true" />
     </div>
 
-    <SubLibraryTab v-show="tab === 'library'" ref="libraryRef"
+    <SubLibraryTab
+      v-show="tab === 'library'"
+      ref="libraryRef"
       @update-missing="missingCount = $event"
-      @audit="showAuditPanel = true" />
+      @audit="showAuditPanel = true"
+    />
     <SubSearchTab v-show="tab === 'search'" ref="searchRef" :initial-query="initialSearch" />
     <SubHistoryTab v-show="tab === 'history'" />
     <SubStatisticsTab v-show="tab === 'statistics'" ref="statsRef" />
@@ -43,7 +46,7 @@ const libraryRef = ref(null)
 const searchRef = ref(null)
 const statsRef = ref(null)
 
-watch(tab, (v) => {
+watch(tab, v => {
   if (v === 'statistics' && statsRef.value) {
     statsRef.value.loadStats()
   }
@@ -59,10 +62,20 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.cinema-subs { padding: 12px 24px 24px; position: relative; min-height: 100%; overflow: hidden; }
+.cinema-subs {
+  padding: 12px 24px 24px;
+  position: relative;
+  min-height: 100%;
+  overflow: hidden;
+}
 
 .sub-tabs-header {
-  display: flex; align-items: center; gap: 16px; margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
 }
-.sub-tabs-header > :first-child { flex: 1; }
+.sub-tabs-header > :first-child {
+  flex: 1;
+}
 </style>

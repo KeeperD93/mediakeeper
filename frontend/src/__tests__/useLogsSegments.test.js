@@ -19,6 +19,7 @@ const { useLogs } = await import('@/composables/useLogs')
 
 // The composable owns the ``search`` ref, so we mount a tiny harness
 // component to expose ``lineSegments`` and the search input together.
+// eslint-disable-next-line vue/one-component-per-file -- test harness collocated with its specs
 const Harness = defineComponent({
   setup(_, { expose }) {
     const api = useLogs()
@@ -68,27 +69,27 @@ describe('useLogs.lineSegments', () => {
   it('returns a single segment when the search term is missing from the line', () => {
     const w = mount(Harness)
     w.vm.search = 'absent'
-    expect(w.vm.lineSegments('present only')).toEqual([
-      { text: 'present only', highlight: false },
-    ])
+    expect(w.vm.lineSegments('present only')).toEqual([{ text: 'present only', highlight: false }])
   })
 })
 
 describe('LogsView segment rendering', () => {
   it('renders hostile html-looking content as plain text, never as a tag', () => {
+    // eslint-disable-next-line vue/one-component-per-file -- test harness collocated with its specs
     const RenderHarness = defineComponent({
       setup() {
         const api = useLogs()
         api.search.value = 'alert'
-        return () => h(
-          'div',
-          {},
-          api.lineSegments('<script>alert(1)</script>').map((seg) =>
-            seg.highlight
-              ? h('mark', { class: 'log-highlight' }, seg.text)
-              : seg.text,
-          ),
-        )
+        return () =>
+          h(
+            'div',
+            {},
+            api
+              .lineSegments('<script>alert(1)</script>')
+              .map(seg =>
+                seg.highlight ? h('mark', { class: 'log-highlight' }, seg.text) : seg.text,
+              ),
+          )
       },
     })
     const w = mount(RenderHarness)

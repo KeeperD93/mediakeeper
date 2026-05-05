@@ -26,7 +26,7 @@
           class="tth-avatar"
           :alt="entry.author.display_name"
           loading="lazy"
-          @error="$event.target.style.visibility='hidden'"
+          @error="$event.target.style.visibility = 'hidden'"
         />
         <span v-else class="tth-avatar tth-avatar--fallback">
           {{ entry.deleted ? '?' : (entry.author?.display_name || '?').charAt(0).toUpperCase() }}
@@ -38,7 +38,7 @@
               {{
                 entry.deleted
                   ? $t('portal.common.deletedUser')
-                  : (entry.author?.display_name || $t('portal.tickets.user'))
+                  : entry.author?.display_name || $t('portal.tickets.user')
               }}
             </span>
             <span v-if="!entry.deleted && entry.isAdmin" class="tth-role-pill">
@@ -63,11 +63,7 @@
     </div>
 
     <!-- Reply form -->
-    <form
-      v-if="ticket.status !== 'closed'"
-      class="tth-form"
-      @submit.prevent="onSubmit"
-    >
+    <form v-if="ticket.status !== 'closed'" class="tth-form" @submit.prevent="onSubmit">
       <textarea
         v-model="text"
         class="tth-input"
@@ -138,11 +134,14 @@ const entries = computed(() => {
   return list
 })
 
-watch(() => props.ticket?.replies?.length, async () => {
-  // Auto-scroll to the newest bubble whenever the reply count grows.
-  await nextTick()
-  if (listEl.value) listEl.value.scrollTop = listEl.value.scrollHeight
-})
+watch(
+  () => props.ticket?.replies?.length,
+  async () => {
+    // Auto-scroll to the newest bubble whenever the reply count grows.
+    await nextTick()
+    if (listEl.value) listEl.value.scrollTop = listEl.value.scrollHeight
+  },
+)
 
 function formatRelative(iso) {
   if (!iso) return ''

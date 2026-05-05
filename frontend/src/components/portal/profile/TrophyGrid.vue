@@ -2,7 +2,10 @@
   <div class="gc-trophy-box">
     <div class="gc-trophy-header">
       <h4 class="gc-box-title">{{ $t('portal.profile.trophies') }}</h4>
-      <span class="gc-trophy-count">{{ unlockedCount }} <span>/ {{ displayTrophies.length }}</span></span>
+      <span class="gc-trophy-count">
+        {{ unlockedCount }}
+        <span>/ {{ displayTrophies.length }}</span>
+      </span>
     </div>
 
     <!-- Prochain success imminent -->
@@ -13,70 +16,116 @@
       <div class="gc-trophy-next-info">
         <div class="gc-trophy-next-name">
           {{ $t(nextAchievement.name_key) }}
-          <span class="gc-trophy-tier" :class="`gc-trophy-tier--${nextAchievement.tier_name}`">{{ nextAchievement.tier_name }}</span>
+          <span class="gc-trophy-tier" :class="`gc-trophy-tier--${nextAchievement.tier_name}`">
+            {{ nextAchievement.tier_name }}
+          </span>
         </div>
         <div class="gc-trophy-next-bar">
-          <div class="gc-trophy-next-fill" :style="{ width: Math.round(100 * nextAchievement.progress / nextAchievement.threshold) + '%' }" />
+          <div
+            class="gc-trophy-next-fill"
+            :style="{
+              width: Math.round((100 * nextAchievement.progress) / nextAchievement.threshold) + '%',
+            }"
+          />
         </div>
         <div class="gc-trophy-next-text">
           {{ nextAchievement.progress }}/{{ nextAchievement.threshold }} —
-          <em>{{ $t('portal.profile.onlyLeft', { count: nextAchievement.threshold - nextAchievement.progress }) }}</em>
+          <em>
+            {{
+              $t('portal.profile.onlyLeft', {
+                count: nextAchievement.threshold - nextAchievement.progress,
+              })
+            }}
+          </em>
         </div>
       </div>
     </div>
 
     <!-- Trophy grid (paginated) -->
     <div ref="trophyGridRef" class="gc-trophy-grid">
-      <div v-for="ach in visibleTrophies" :key="ach.id"
+      <div
+        v-for="ach in visibleTrophies"
+        :key="ach.id"
         class="gc-trophy"
         :class="[
           `gc-trophy--${ach.status}`,
-          ach.status !== TROPHY_STATUS.SECRET && !ach.secret ? `gc-trophy--rarity-${ach.rarity}` : '',
+          ach.status !== TROPHY_STATUS.SECRET && !ach.secret
+            ? `gc-trophy--rarity-${ach.rarity}`
+            : '',
           ach.status === TROPHY_STATUS.UNLOCKED ? `gc-fx gc-fx--${ach.tier_name}` : '',
-          ach.secret && ach.status === TROPHY_STATUS.UNLOCKED ? `gc-trophy--secret-unlocked gc-secret-fx gc-secret-fx--${ach.secret_theme}` : ''
+          ach.secret && ach.status === TROPHY_STATUS.UNLOCKED
+            ? `gc-trophy--secret-unlocked gc-secret-fx gc-secret-fx--${ach.secret_theme}`
+            : '',
         ]"
         @click="$emit('select-trophy', ach)"
       >
-        <span v-if="ach.status !== TROPHY_STATUS.SECRET || ach.status === TROPHY_STATUS.UNLOCKED" class="gc-trophy-tier-bar"
-          :class="ach.secret && ach.secret_theme ? `gc-trophy-tier-bar--secret-${ach.secret_theme}` : `gc-trophy-tier-bar--${ach.tier_name}`" />
+        <span
+          v-if="ach.status !== TROPHY_STATUS.SECRET || ach.status === TROPHY_STATUS.UNLOCKED"
+          class="gc-trophy-tier-bar"
+          :class="
+            ach.secret && ach.secret_theme
+              ? `gc-trophy-tier-bar--secret-${ach.secret_theme}`
+              : `gc-trophy-tier-bar--${ach.tier_name}`
+          "
+        />
 
-        <div v-if="ach.title_reward"
+        <div
+          v-if="ach.title_reward"
           class="gc-trophy-gift"
           :class="[
             `gc-trophy-gift--rarity-${ach.rarity}`,
-            ach.status !== TROPHY_STATUS.UNLOCKED ? 'gc-trophy-gift--locked' : ''
+            ach.status !== TROPHY_STATUS.UNLOCKED ? 'gc-trophy-gift--locked' : '',
           ]"
-          :title="giftTooltip(ach)">
+          :title="giftTooltip(ach)"
+        >
           <Gift :size="11" />
         </div>
 
         <TrophyFx :ach="ach" />
 
-        <div class="gc-trophy-icon-wrap"
+        <div
+          class="gc-trophy-icon-wrap"
           :class="[
-            (ach.status === TROPHY_STATUS.LOCKED || ach.status === TROPHY_STATUS.PROGRESS) ? 'gc-trophy-icon--dim' : '',
+            ach.status === TROPHY_STATUS.LOCKED || ach.status === TROPHY_STATUS.PROGRESS
+              ? 'gc-trophy-icon--dim'
+              : '',
             ach.status === TROPHY_STATUS.UNLOCKED
-              ? (ach.secret
-                  ? `gc-icon-glow gc-icon-glow--${ach.secret_theme || ach.tier_name}`
-                  : `gc-icon-glow gc-icon-glow--rarity-${ach.rarity}`)
-              : ''
-          ]">
+              ? ach.secret
+                ? `gc-icon-glow gc-icon-glow--${ach.secret_theme || ach.tier_name}`
+                : `gc-icon-glow gc-icon-glow--rarity-${ach.rarity}`
+              : '',
+          ]"
+        >
           <HelpCircle v-if="ach.status === TROPHY_STATUS.SECRET" :size="24" />
           <component :is="iconMap[ach.icon] || HelpCircle" v-else :size="24" />
         </div>
 
-        <div class="gc-trophy-label">{{ ach.status === TROPHY_STATUS.SECRET ? '???' : $t(ach.name_key) }}</div>
+        <div class="gc-trophy-label">
+          {{ ach.status === TROPHY_STATUS.SECRET ? '???' : $t(ach.name_key) }}
+        </div>
 
         <template v-if="ach.status === TROPHY_STATUS.UNLOCKED">
-          <div class="gc-trophy-rarity" :class="`gc-trophy-rarity--${ach.rarity}`">{{ $t(`portal.profile.rarity.${ach.rarity}`) }}</div>
-          <div class="gc-trophy-stars">{{ '⭐'.repeat(Math.min(6, ach.stars)) }}{{ '☆'.repeat(Math.max(0, 6 - ach.stars)) }}</div>
+          <div class="gc-trophy-rarity" :class="`gc-trophy-rarity--${ach.rarity}`">
+            {{ $t(`portal.profile.rarity.${ach.rarity}`) }}
+          </div>
+          <div class="gc-trophy-stars">
+            {{ '⭐'.repeat(Math.min(6, ach.stars)) }}{{ '☆'.repeat(Math.max(0, 6 - ach.stars)) }}
+          </div>
         </template>
         <template v-else-if="ach.status === TROPHY_STATUS.PROGRESS">
-          <div class="gc-trophy-pbar"><div class="gc-trophy-pfill" :class="`gc-trophy-pfill--${ach.tier_name}`" :style="{ width: Math.round(100 * ach.progress / ach.threshold) + '%' }" /></div>
+          <div class="gc-trophy-pbar">
+            <div
+              class="gc-trophy-pfill"
+              :class="`gc-trophy-pfill--${ach.tier_name}`"
+              :style="{ width: Math.round((100 * ach.progress) / ach.threshold) + '%' }"
+            />
+          </div>
           <div class="gc-trophy-ptxt">{{ ach.progress }}/{{ ach.threshold }}</div>
         </template>
         <template v-else-if="ach.status === TROPHY_STATUS.SECRET">
-          <div class="gc-trophy-rarity gc-trophy-rarity--epic">{{ $t('portal.profile.secretLabel') }}</div>
+          <div class="gc-trophy-rarity gc-trophy-rarity--epic">
+            {{ $t('portal.profile.secretLabel') }}
+          </div>
         </template>
         <template v-else>
           <div class="gc-trophy-ptxt">{{ ach.progress }}/{{ ach.threshold }}</div>
@@ -85,14 +134,29 @@
     </div>
 
     <div v-if="trophyTotalPages > 1" class="gc-trophy-pagination">
-      <button class="gc-trophy-page-btn" :disabled="trophyPage === 0" @click="trophyPage = Math.max(0, trophyPage - 1)">←</button>
+      <button
+        class="gc-trophy-page-btn"
+        :disabled="trophyPage === 0"
+        @click="trophyPage = Math.max(0, trophyPage - 1)"
+      >
+        ←
+      </button>
       <span class="gc-trophy-page-dots">
-        <span v-for="p in trophyTotalPages" :key="p"
+        <span
+          v-for="p in trophyTotalPages"
+          :key="p"
           class="gc-trophy-page-dot"
           :class="{ 'gc-trophy-page-dot--active': trophyPage === p - 1 }"
-          @click="trophyPage = p - 1" />
+          @click="trophyPage = p - 1"
+        />
       </span>
-      <button class="gc-trophy-page-btn" :disabled="trophyPage >= trophyTotalPages - 1" @click="trophyPage = Math.min(trophyTotalPages - 1, trophyPage + 1)">→</button>
+      <button
+        class="gc-trophy-page-btn"
+        :disabled="trophyPage >= trophyTotalPages - 1"
+        @click="trophyPage = Math.min(trophyTotalPages - 1, trophyPage + 1)"
+      >
+        →
+      </button>
     </div>
 
     <button class="gc-trophy-see-all" @click="$emit('show-all')">
@@ -144,16 +208,20 @@ const isDesktop = ref(true)
 // Sur mobile (< 768px) on réduit drastiquement le nombre de lignes pour limiter
 // le nombre d'effets CSS animés rendus simultanément (sparkles, particules, halos)
 // qui saturent le GPU des téléphones quand beaucoup de trophées sont débloqués.
-const effectiveTargetRows = computed(() => isDesktop.value ? props.targetRows : props.mobileTargetRows)
+const effectiveTargetRows = computed(() =>
+  isDesktop.value ? props.targetRows : props.mobileTargetRows,
+)
 
 const trophyPageSize = computed(() => (trophyCols.value || 6) * effectiveTargetRows.value)
-const trophyTotalPages = computed(() => Math.max(1, Math.ceil(props.displayTrophies.length / trophyPageSize.value)))
+const trophyTotalPages = computed(() =>
+  Math.max(1, Math.ceil(props.displayTrophies.length / trophyPageSize.value)),
+)
 const visibleTrophies = computed(() => {
   const start = trophyPage.value * trophyPageSize.value
   return props.displayTrophies.slice(start, start + trophyPageSize.value)
 })
 
-watch(trophyTotalPages, (total) => {
+watch(trophyTotalPages, total => {
   if (trophyPage.value > total - 1) trophyPage.value = Math.max(0, total - 1)
 })
 
@@ -167,7 +235,9 @@ function updateTrophyCols() {
 
 let trophyResizeObserver = null
 let desktopMql = null
-function syncIsDesktop(e) { isDesktop.value = e.matches }
+function syncIsDesktop(e) {
+  isDesktop.value = e.matches
+}
 
 onMounted(() => {
   if (typeof window !== 'undefined' && window.matchMedia) {
@@ -195,5 +265,5 @@ onBeforeUnmount(() => {
 </script>
 
 <style>
-@import '@/assets/styles/portal/trophy-grid.css';
+@import url('@/assets/styles/portal/trophy-grid.css');
 </style>

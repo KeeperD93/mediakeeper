@@ -4,7 +4,11 @@
  * Vue's scoped attribute.
  */
 
-.pt-debug { display: flex; flex-direction: column; gap: 1rem; }
+.pt-debug {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
 
 .pt-debug .pt-debug-hint {
   margin: 0;
@@ -21,7 +25,9 @@
   border: 1px solid var(--portal-border-default);
   border-radius: var(--portal-radius-lg);
 }
-.pt-debug .pt-debug-card--disabled { opacity: 0.55; }
+.pt-debug .pt-debug-card--disabled {
+  opacity: 0.55;
+}
 
 .pt-debug .pt-debug-title {
   margin: 0;
@@ -68,7 +74,9 @@
   outline: none;
   border-color: var(--portal-color-info);
 }
-.pt-debug .pt-debug-select--inline { max-width: 220px; }
+.pt-debug .pt-debug-select--inline {
+  max-width: 220px;
+}
 
 /* The dropdown menu is rendered by the browser, not by us — without
    an explicit option style, options inherit the system's white
@@ -84,7 +92,9 @@
   gap: 0.5rem;
   align-items: center;
 }
-.pt-debug .pt-debug-row .pt-debug-input { flex: 1 1 160px; }
+.pt-debug .pt-debug-row .pt-debug-input {
+  flex: 1 1 160px;
+}
 
 .pt-debug .pt-debug-btn {
   min-height: 40px;
@@ -109,8 +119,13 @@
   font-size: var(--portal-text-xs);
   min-height: 32px;
 }
-.pt-debug .pt-debug-btn--danger { color: var(--portal-color-error); }
-.pt-debug .pt-debug-btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+.pt-debug .pt-debug-btn--danger {
+  color: var(--portal-color-error);
+}
+.pt-debug .pt-debug-btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 @media (hover: hover) {
   .pt-debug .pt-debug-btn:not([disabled]):hover {
     background: var(--portal-surface-4);
@@ -122,7 +137,9 @@
   flex-wrap: wrap;
   gap: 0.5rem;
 }
-.pt-debug .pt-debug-ach-filter .pt-debug-input { flex: 1 1 220px; }
+.pt-debug .pt-debug-ach-filter .pt-debug-input {
+  flex: 1 1 220px;
+}
 
 .pt-debug .pt-debug-ach-list {
   display: flex;

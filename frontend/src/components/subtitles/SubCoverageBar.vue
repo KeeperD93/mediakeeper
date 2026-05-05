@@ -24,9 +24,33 @@ const color = computed(() => {
 </script>
 
 <style scoped>
-.sub-cov-row { display: flex; align-items: center; gap: 8px; }
-.sub-cov-label { font-size: var(--text-2xs); font-weight: var(--font-bold); color: var(--text-muted); min-width: 30px; }
-.sub-cov-bar { flex: 1; height: 6px; border-radius: 3px; background: var(--surface-3); overflow: hidden; }
-.sub-cov-fill { height: 100%; border-radius: 3px; transition: width var(--duration-slower); }
-.sub-cov-pct { font-size: var(--text-3xs); color: var(--text-muted); min-width: 36px; text-align: right; }
+.sub-cov-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sub-cov-label {
+  font-size: var(--text-2xs);
+  font-weight: var(--font-bold);
+  color: var(--text-muted);
+  min-width: 30px;
+}
+.sub-cov-bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--surface-3);
+  overflow: hidden;
+}
+.sub-cov-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width var(--duration-slower);
+}
+.sub-cov-pct {
+  font-size: var(--text-3xs);
+  color: var(--text-muted);
+  min-width: 36px;
+  text-align: right;
+}
 </style>

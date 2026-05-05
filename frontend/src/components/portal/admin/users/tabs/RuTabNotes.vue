@@ -24,9 +24,18 @@
       <div class="ru-tag-row">
         <span v-for="tag in tags" :key="tag" class="ru-tag">
           {{ tag }}
-          <button type="button" class="ru-tag-remove" :aria-label="$t('common.delete')" @click="removeTag(tag)">×</button>
+          <button
+            type="button"
+            class="ru-tag-remove"
+            :aria-label="$t('common.delete')"
+            @click="removeTag(tag)"
+          >
+            ×
+          </button>
         </span>
-        <span v-if="!tags.length" class="ru-help">{{ $t('requestsAdmin.users.drawer.notes.noTags') }}</span>
+        <span v-if="!tags.length" class="ru-help">
+          {{ $t('requestsAdmin.users.drawer.notes.noTags') }}
+        </span>
       </div>
 
       <div class="ru-form-actions ru-form-actions--inline">
@@ -38,7 +47,12 @@
           :placeholder="$t('requestsAdmin.users.drawer.notes.tagPlaceholder')"
           @keydown.enter.prevent="addTag"
         />
-        <button type="button" class="ru-btn ru-btn--ghost" :disabled="busy || !newTag" @click="addTag">
+        <button
+          type="button"
+          class="ru-btn ru-btn--ghost"
+          :disabled="busy || !newTag"
+          @click="addTag"
+        >
           + {{ $t('requestsAdmin.users.drawer.notes.addTag') }}
         </button>
       </div>
@@ -65,10 +79,13 @@ const notes = ref(props.user.admin_notes || '')
 const tags = ref([...(props.user.tags || [])])
 const newTag = ref('')
 
-watch(() => props.user, (u) => {
-  notes.value = u.admin_notes || ''
-  tags.value = [...(u.tags || [])]
-})
+watch(
+  () => props.user,
+  u => {
+    notes.value = u.admin_notes || ''
+    tags.value = [...(u.tags || [])]
+  },
+)
 
 async function saveNotes() {
   busy.value = true
@@ -76,7 +93,9 @@ async function saveNotes() {
     await api.patchNotes(props.user.id, notes.value)
     showToast(t('requestsAdmin.users.toasts.saved'), TOAST_TYPE.OK)
     emit('changed')
-  } finally { busy.value = false }
+  } finally {
+    busy.value = false
+  }
 }
 
 async function syncTags() {
@@ -85,7 +104,9 @@ async function syncTags() {
     const res = await api.patchTags(props.user.id, tags.value)
     if (res?.tags) tags.value = res.tags
     emit('changed')
-  } finally { busy.value = false }
+  } finally {
+    busy.value = false
+  }
 }
 
 async function addTag() {
@@ -100,7 +121,7 @@ async function addTag() {
 }
 
 async function removeTag(tag) {
-  tags.value = tags.value.filter((t) => t !== tag)
+  tags.value = tags.value.filter(t => t !== tag)
   await syncTags()
 }
 </script>

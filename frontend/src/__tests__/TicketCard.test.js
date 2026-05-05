@@ -34,7 +34,12 @@ describe('TicketCard', () => {
   it('renders an issue icon visual for "other" tickets (no Emby anchor)', () => {
     const w = mount(TicketCard, {
       props: {
-        ticket: { ...MOVIE_TICKET, media_type: 'other', emby_item_id: null, issue_type: 'metadata' },
+        ticket: {
+          ...MOVIE_TICKET,
+          media_type: 'other',
+          emby_item_id: null,
+          issue_type: 'metadata',
+        },
       },
     })
     expect(w.find('.tcd-poster').exists()).toBe(false)

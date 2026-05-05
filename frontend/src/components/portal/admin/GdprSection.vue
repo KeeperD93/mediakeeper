@@ -70,12 +70,7 @@
                 {{ $t('portal.admin.settings.gdpr.dpo.desc') }}
               </span>
             </label>
-            <input
-              v-model="form.dpo_contact"
-              type="text"
-              class="pt-gdpr-input"
-              maxlength="300"
-            />
+            <input v-model="form.dpo_contact" type="text" class="pt-gdpr-input" maxlength="300" />
           </div>
 
           <div class="pt-gdpr-field pt-gdpr-field--narrow">
@@ -93,7 +88,9 @@
               :max="DELAY_MAX"
             />
             <span v-if="delayInvalid" class="pt-gdpr-error">
-              {{ $t('portal.admin.settings.gdpr.delay.invalid', { min: DELAY_MIN, max: DELAY_MAX }) }}
+              {{
+                $t('portal.admin.settings.gdpr.delay.invalid', { min: DELAY_MIN, max: DELAY_MAX })
+              }}
             </span>
           </div>
         </div>
@@ -138,13 +135,8 @@ const DELAY_MAX = 90
 const SAVED_MESSAGE_TIMEOUT_MS = 2000
 
 const { t } = useI18n()
-const {
-  saving,
-  fetchSettings,
-  saveSettings,
-  fetchPendingDeletions,
-  cancelDeletionRequest,
-} = useGdprAdmin()
+const { saving, fetchSettings, saveSettings, fetchPendingDeletions, cancelDeletionRequest } =
+  useGdprAdmin()
 
 const form = reactive({ ...DEFAULT_SETTINGS })
 const loading = ref(false)
@@ -185,7 +177,9 @@ async function loadPending() {
 function flashSaved() {
   savedMessage.value = t('common.saved')
   if (savedTimer) clearTimeout(savedTimer)
-  savedTimer = setTimeout(() => { savedMessage.value = '' }, SAVED_MESSAGE_TIMEOUT_MS)
+  savedTimer = setTimeout(() => {
+    savedMessage.value = ''
+  }, SAVED_MESSAGE_TIMEOUT_MS)
 }
 
 async function onToggle(next) {

@@ -39,7 +39,7 @@ const trimmedQuery = computed(() => query.value.trim())
 
 watch(
   () => route.query.q,
-  (value) => {
+  value => {
     query.value = typeof value === 'string' ? value : ''
   },
   { immediate: true },
@@ -82,21 +82,24 @@ async function submitSearch() {
   height: 44px;
   padding: 0 0.4rem 0 0.85rem;
   border-radius: var(--portal-radius-pill);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.07);
-  color: rgba(255, 255, 255, 0.72);
-  transition: border-color var(--portal-dur-base) ease, background var(--portal-dur-base) ease, box-shadow var(--portal-dur-base) ease;
+  border: 1px solid rgb(255, 255, 255, 0.1);
+  background: rgb(255, 255, 255, 0.07);
+  color: rgb(255, 255, 255, 0.72);
+  transition:
+    border-color var(--portal-dur-base) ease,
+    background var(--portal-dur-base) ease,
+    box-shadow var(--portal-dur-base) ease;
 }
 
 .pt-search-shell:focus-within {
-  border-color: rgba(var(--accent-rgb, 99, 102, 241), 0.42);
-  background: rgba(255, 255, 255, 0.09);
-  box-shadow: 0 0 0 4px rgba(var(--accent-rgb, 99, 102, 241), 0.12);
+  border-color: rgb(var(--accent-rgb, 99, 102, 241), 0.42);
+  background: rgb(255, 255, 255, 0.09);
+  box-shadow: 0 0 0 4px rgb(var(--accent-rgb, 99, 102, 241), 0.12);
 }
 
 .pt-search-icon {
   flex-shrink: 0;
-  color: rgba(255, 255, 255, 0.56);
+  color: rgb(255, 255, 255, 0.56);
 }
 
 .pt-search-input {
@@ -110,7 +113,7 @@ async function submitSearch() {
 }
 
 .pt-search-input::placeholder {
-  color: rgba(255, 255, 255, 0.42);
+  color: rgb(255, 255, 255, 0.42);
 }
 
 .pt-search-submit {
@@ -121,10 +124,17 @@ async function submitSearch() {
   height: 34px;
   border: none;
   border-radius: var(--portal-radius-pill);
-  background: linear-gradient(135deg, rgba(var(--accent-rgb, 99, 102, 241), 0.9), rgba(var(--accent-rgb, 99, 102, 241), 0.68));
+  background: linear-gradient(
+    135deg,
+    rgb(var(--accent-rgb, 99, 102, 241), 0.9),
+    rgb(var(--accent-rgb, 99, 102, 241), 0.68)
+  );
   color: #fff;
   cursor: pointer;
-  transition: transform 0.18s ease, filter 0.18s ease, opacity 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    filter 0.18s ease,
+    opacity 0.18s ease;
 }
 
 .pt-search-submit:hover:not(:disabled) {

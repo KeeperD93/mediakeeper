@@ -4,7 +4,7 @@
   min-height: 100vh;
   padding: 7rem 1rem 5.5rem;
   background:
-    radial-gradient(circle at top, rgba(var(--accent-rgb, 99, 102, 241), 0.12), transparent 34%),
+    radial-gradient(circle at top, rgb(var(--accent-rgb, 99, 102, 241), 0.12), transparent 34%),
     var(--bg-primary);
   color: #fff;
 }
@@ -50,7 +50,7 @@
 .pt-search-kicker {
   display: inline-block;
   margin-bottom: 0.45rem;
-  color: rgba(255, 255, 255, 0.52);
+  color: rgb(255, 255, 255, 0.52);
   font-size: var(--portal-text-xs);
   font-weight: var(--portal-font-bold);
   letter-spacing: var(--portal-tracking-eyebrow);
@@ -67,7 +67,7 @@
 .pt-search-subtitle {
   margin: 0.6rem 0 0;
   max-width: 760px;
-  color: rgba(255, 255, 255, 0.62);
+  color: rgb(255, 255, 255, 0.62);
   font-size: var(--portal-text-md);
   line-height: var(--portal-lh-normal);
 }
@@ -90,7 +90,7 @@
   justify-content: center;
   gap: 0.65rem;
   min-height: 120px;
-  color: rgba(255, 255, 255, 0.54);
+  color: rgb(255, 255, 255, 0.54);
   font-size: var(--portal-text-base);
   text-align: center;
 }

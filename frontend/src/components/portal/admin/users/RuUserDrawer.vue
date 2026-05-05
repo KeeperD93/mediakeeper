@@ -20,7 +20,12 @@
                 <ChevronLeft :size="18" />
               </button>
               <span v-if="orderedIds.length" class="ru-drawer-nav-pos">
-                {{ $t('requestsAdmin.users.drawer.nav.position', { current: currentIndex + 1, total: orderedIds.length }) }}
+                {{
+                  $t('requestsAdmin.users.drawer.nav.position', {
+                    current: currentIndex + 1,
+                    total: orderedIds.length,
+                  })
+                }}
               </span>
               <button
                 class="ru-drawer-nav-btn"
@@ -32,7 +37,11 @@
                 <ChevronRight :size="18" />
               </button>
             </div>
-            <button class="ru-drawer-close" @click="$emit('close')" :aria-label="$t('common.close')">
+            <button
+              class="ru-drawer-close"
+              :aria-label="$t('common.close')"
+              @click="$emit('close')"
+            >
               <X :size="18" />
             </button>
             <div v-if="user" class="ru-drawer-identity">
@@ -42,14 +51,23 @@
                 <div class="ru-drawer-sub">
                   @{{ user.username }}
                   <RuUserBadge :variant="user.source === 'emby' ? 'info' : 'success'">
-                    {{ user.source === 'emby' ? 'Emby' : $t('requestsAdmin.users.filters.source.local') }}
+                    {{
+                      user.source === 'emby'
+                        ? 'Emby'
+                        : $t('requestsAdmin.users.filters.source.local')
+                    }}
                   </RuUserBadge>
                   <RuUserBadge :variant="user.account_active ? 'success' : 'muted'">
-                    {{ user.account_active
-                      ? $t('requestsAdmin.users.labels.active')
-                      : $t('requestsAdmin.users.labels.inactive') }}
+                    {{
+                      user.account_active
+                        ? $t('requestsAdmin.users.labels.active')
+                        : $t('requestsAdmin.users.labels.inactive')
+                    }}
                   </RuUserBadge>
-                  <RuUserBadge v-if="user.source === 'emby' && user.emby_is_disabled" variant="danger">
+                  <RuUserBadge
+                    v-if="user.source === 'emby' && user.emby_is_disabled"
+                    variant="danger"
+                  >
                     {{ $t('requestsAdmin.users.labels.embyDisabled') }}
                   </RuUserBadge>
                   <RuUserBadge v-if="user.deleted_at" variant="danger">
@@ -92,10 +110,27 @@
             </div>
             <template v-else>
               <RuTabIdentity v-if="activeTab === 'identity'" :user="user" @changed="onChanged" />
-              <RuTabAccess v-else-if="activeTab === 'access'" :user="user" :presets="presets" @changed="onChanged" />
-              <RuTabSecurity v-else-if="activeTab === 'security'" :user="user" @changed="onChanged" />
-              <RuTabActivity v-else-if="activeTab === 'activity'" :user="user" :activity="activity" />
-              <RuTabTrophies v-else-if="activeTab === 'trophies'" :user="user" :activity="activity" />
+              <RuTabAccess
+                v-else-if="activeTab === 'access'"
+                :user="user"
+                :presets="presets"
+                @changed="onChanged"
+              />
+              <RuTabSecurity
+                v-else-if="activeTab === 'security'"
+                :user="user"
+                @changed="onChanged"
+              />
+              <RuTabActivity
+                v-else-if="activeTab === 'activity'"
+                :user="user"
+                :activity="activity"
+              />
+              <RuTabTrophies
+                v-else-if="activeTab === 'trophies'"
+                :user="user"
+                :activity="activity"
+              />
               <RuTabNotes v-else-if="activeTab === 'notes'" :user="user" @changed="onChanged" />
               <RuTabAudit v-else-if="activeTab === 'audit'" :user="user" />
             </template>
@@ -134,8 +169,8 @@ const emit = defineEmits(['close', 'changed', 'navigate'])
 
 const currentIndex = computed(() => props.orderedIds.indexOf(props.profileId))
 const hasPrev = computed(() => currentIndex.value > 0)
-const hasNext = computed(() =>
-  currentIndex.value >= 0 && currentIndex.value < props.orderedIds.length - 1,
+const hasNext = computed(
+  () => currentIndex.value >= 0 && currentIndex.value < props.orderedIds.length - 1,
 )
 
 const tabs = DRAWER_TABS
@@ -174,10 +209,13 @@ async function onChanged() {
 }
 
 watch(() => props.profileId, load, { immediate: false })
-watch(() => props.open, (v) => {
-  if (v) {
-    activeTab.value = 'identity'
-    load()
-  }
-})
+watch(
+  () => props.open,
+  v => {
+    if (v) {
+      activeTab.value = 'identity'
+      load()
+    }
+  },
+)
 </script>

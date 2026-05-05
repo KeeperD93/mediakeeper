@@ -13,16 +13,19 @@
           </th>
           <th></th>
           <th class="ru-col--sort" @click="toggleSort('display_name')">
-            {{ $t('requestsAdmin.users.col.name') }} <span class="ru-sort-arrow">{{ arrow('display_name') }}</span>
+            {{ $t('requestsAdmin.users.col.name') }}
+            <span class="ru-sort-arrow">{{ arrow('display_name') }}</span>
           </th>
           <th>{{ $t('requestsAdmin.users.col.source') }}</th>
           <th>{{ $t('requestsAdmin.users.col.role') }}</th>
           <th>{{ $t('requestsAdmin.users.col.status') }}</th>
           <th class="ru-col--sort" @click="toggleSort('access_end_date')">
-            {{ $t('requestsAdmin.users.col.access_end') }} <span class="ru-sort-arrow">{{ arrow('access_end_date') }}</span>
+            {{ $t('requestsAdmin.users.col.access_end') }}
+            <span class="ru-sort-arrow">{{ arrow('access_end_date') }}</span>
           </th>
           <th class="ru-col--sort" @click="toggleSort('xp')">
-            {{ $t('requestsAdmin.users.col.level') }} <span class="ru-sort-arrow">{{ arrow('xp') }}</span>
+            {{ $t('requestsAdmin.users.col.level') }}
+            <span class="ru-sort-arrow">{{ arrow('xp') }}</span>
           </th>
         </tr>
       </thead>
@@ -39,7 +42,11 @@
           @click="$emit('open', u.id)"
         >
           <td class="ru-col-check" @click.stop>
-            <input type="checkbox" :checked="selectedIds.includes(u.id)" @change="$emit('toggle', u.id)" />
+            <input
+              type="checkbox"
+              :checked="selectedIds.includes(u.id)"
+              @change="$emit('toggle', u.id)"
+            />
           </td>
           <td class="ru-col-avatar">
             <MkAvatar :src="u.avatar_url" :name="u.display_name || u.username" :size="32" />
@@ -51,7 +58,10 @@
                 {{ $t('requestsAdmin.users.labels.deletedShort') }}
               </RuUserBadge>
             </div>
-            <div class="ru-username" :title="$t('requestsAdmin.users.labels.usernameHint')">@{{ u.username }}<span v-if="u.email"> · {{ u.email }}</span></div>
+            <div class="ru-username" :title="$t('requestsAdmin.users.labels.usernameHint')">
+              @{{ u.username }}
+              <span v-if="u.email">· {{ u.email }}</span>
+            </div>
           </td>
           <td>
             <div class="ru-source-cell">
@@ -105,11 +115,9 @@ function arrow(key) {
 }
 
 const allSelected = computed(
-  () => props.items.length > 0 && props.items.every((u) => props.selectedIds.includes(u.id)),
+  () => props.items.length > 0 && props.items.every(u => props.selectedIds.includes(u.id)),
 )
-const someSelected = computed(
-  () => props.items.some((u) => props.selectedIds.includes(u.id)),
-)
+const someSelected = computed(() => props.items.some(u => props.selectedIds.includes(u.id)))
 
 function roleVariant(role) {
   if (role === 'admin') return 'premium'

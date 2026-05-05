@@ -1,9 +1,5 @@
 <template>
-  <PortalDiscoverPage
-    :key="$route.params.slug"
-    :title="title"
-    :endpoint="endpoint"
-  />
+  <PortalDiscoverPage :key="$route.params.slug" :title="title" :endpoint="endpoint" />
 </template>
 
 <script setup>
@@ -21,22 +17,22 @@ import PortalDiscoverPage from './PortalDiscoverPage.vue'
 //   GET /api/portal/catalog/watch-providers?region=FR&media_type=movie
 const PROVIDERS = {
   // International majors
-  netflix:     { id: 8,    name: 'Netflix' },
-  prime:       { id: 119,  name: 'Prime Video' },  // FR: Amazon Prime Video
-  disney:      { id: 337,  name: 'Disney+' },
-  max:         { id: 1899, name: 'Max' },          // FR: HBO Max (rebranded "Max")
-  apple:       { id: 350,  name: 'Apple TV+' },
-  paramount:   { id: 531,  name: 'Paramount+' },
+  netflix: { id: 8, name: 'Netflix' },
+  prime: { id: 119, name: 'Prime Video' }, // FR: Amazon Prime Video
+  disney: { id: 337, name: 'Disney+' },
+  max: { id: 1899, name: 'Max' }, // FR: HBO Max (rebranded "Max")
+  apple: { id: 350, name: 'Apple TV+' },
+  paramount: { id: 531, name: 'Paramount+' },
   // French & specialised
-  crunchyroll: { id: 283,  name: 'Crunchyroll' },
-  adn:         { id: 415,  name: 'ADN' },          // FR: Animation Digital Network
-  canal:       { id: 381,  name: 'Canal+' },
-  arte:        { id: 234,  name: 'Arte' },
-  mubi:        { id: 11,   name: 'MUBI' },
-  tf1plus:     { id: 1754, name: 'TF1+' },
+  crunchyroll: { id: 283, name: 'Crunchyroll' },
+  adn: { id: 415, name: 'ADN' }, // FR: Animation Digital Network
+  canal: { id: 381, name: 'Canal+' },
+  arte: { id: 234, name: 'Arte' },
+  mubi: { id: 11, name: 'MUBI' },
+  tf1plus: { id: 1754, name: 'TF1+' },
   // US-only — Hulu has no FR watch_region in TMDB. Without the
   // override, the page would always be empty for French users.
-  hulu:        { id: 15,   name: 'Hulu', region: 'US' },
+  hulu: { id: 15, name: 'Hulu', region: 'US' },
 }
 
 const route = useRoute()

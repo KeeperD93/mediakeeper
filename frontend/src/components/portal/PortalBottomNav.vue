@@ -35,9 +35,7 @@ const props = defineProps({
 defineEmits(['navigate'])
 
 const tabs = computed(() => {
-  const base = [
-    { name: PORTAL_TAB.HOME, label: 'portal.tabs.home', icon: Home },
-  ]
+  const base = [{ name: PORTAL_TAB.HOME, label: 'portal.tabs.home', icon: Home }]
   if (props.showRequestsTab) {
     base.push({ name: PORTAL_TAB.REQUESTS, label: 'portal.tabs.discover', icon: Compass })
   }

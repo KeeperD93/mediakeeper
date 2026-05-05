@@ -34,9 +34,9 @@
         <div class="pt-chat-meta">
           <span class="pt-chat-date">{{ formatMeta(msg.created_at) }}</span>
           <span class="pt-chat-pseudo">
-            {{ msg.user_deleted
-              ? $t('portal.chatDeletedUser')
-              : (msg.user_name || ('#' + msg.user_id)) }}
+            {{
+              msg.user_deleted ? $t('portal.chatDeletedUser') : msg.user_name || '#' + msg.user_id
+            }}
           </span>
         </div>
         <div v-if="msg.deleted" class="pt-chat-body pt-chat-body--deleted">
@@ -81,7 +81,11 @@
       <button class="pt-chat-icon" :title="$t('portal.chatEmoji')" @click="toggleEmoji">
         <Smile :size="18" />
       </button>
-      <button class="pt-chat-icon pt-chat-icon--disabled" :title="$t('portal.chatGifDisabled')" disabled>
+      <button
+        class="pt-chat-icon pt-chat-icon--disabled"
+        :title="$t('portal.chatGifDisabled')"
+        disabled
+      >
         <span class="pt-chat-gif">GIF</span>
       </button>
       <input
@@ -98,12 +102,9 @@
 
     <!-- Emoji popover -->
     <div v-if="emojiOpen" class="pt-chat-emoji" @click.stop>
-      <button
-        v-for="e in EMOJIS"
-        :key="e"
-        class="pt-chat-emoji-btn"
-        @click="insertEmoji(e)"
-      >{{ e }}</button>
+      <button v-for="e in EMOJIS" :key="e" class="pt-chat-emoji-btn" @click="insertEmoji(e)">
+        {{ e }}
+      </button>
     </div>
   </div>
 </template>
@@ -116,12 +117,17 @@ import { Flag, FlagOff, Send, Smile, Trash2, X } from 'lucide-vue-next'
 
 import '@/assets/styles/portal/chat-panel.css'
 
-const emit = defineEmits(['close'])
+defineEmits(['close'])
 
 const {
-  rooms, messages, currentRoomId,
-  fetchAllMessages, sendMessage,
-  deleteMessage, reportMessage, setPanelOpen,
+  rooms,
+  messages,
+  currentRoomId,
+  fetchAllMessages,
+  sendMessage,
+  deleteMessage,
+  reportMessage,
+  setPanelOpen,
 } = usePortalChat()
 const { profile } = usePortalAuth()
 
@@ -142,12 +148,66 @@ const flashId = ref(null)
 
 // Hardcoded 60 emoji grid — good enough for a first pass.
 const EMOJIS = [
-  '😀','😁','😂','🤣','😃','😄','😅','😆','😉','😊',
-  '😍','😘','😗','😎','🤩','🤔','😐','😑','🙄','😬',
-  '😪','😴','😷','🤒','🤕','🤢','🤮','🥳','🥺','😢',
-  '😭','😱','😡','🤬','🤯','😳','🥵','🥶','😈','👻',
-  '👍','👎','👏','🙌','🙏','💪','🤝','❤️','💔','💯',
-  '🔥','⭐','✨','🎉','🎬','🍿','📺','🎮','🎵','🎤',
+  '😀',
+  '😁',
+  '😂',
+  '🤣',
+  '😃',
+  '😄',
+  '😅',
+  '😆',
+  '😉',
+  '😊',
+  '😍',
+  '😘',
+  '😗',
+  '😎',
+  '🤩',
+  '🤔',
+  '😐',
+  '😑',
+  '🙄',
+  '😬',
+  '😪',
+  '😴',
+  '😷',
+  '🤒',
+  '🤕',
+  '🤢',
+  '🤮',
+  '🥳',
+  '🥺',
+  '😢',
+  '😭',
+  '😱',
+  '😡',
+  '🤬',
+  '🤯',
+  '😳',
+  '🥵',
+  '🥶',
+  '😈',
+  '👻',
+  '👍',
+  '👎',
+  '👏',
+  '🙌',
+  '🙏',
+  '💪',
+  '🤝',
+  '❤️',
+  '💔',
+  '💯',
+  '🔥',
+  '⭐',
+  '✨',
+  '🎉',
+  '🎬',
+  '🍿',
+  '📺',
+  '🎮',
+  '🎵',
+  '🎤',
 ]
 
 // Tick ref used to re-compute the 60s countdown without setting up a
@@ -250,7 +310,9 @@ onMounted(async () => {
   roomSel.value = currentRoomId.value || (rooms.value[0]?.id ?? null)
   if (roomSel.value) await switchRoom()
   // Refresh the countdown every second while the panel is open.
-  tickTimer = setInterval(() => { nowTick.value = Date.now() }, 1000)
+  tickTimer = setInterval(() => {
+    nowTick.value = Date.now()
+  }, 1000)
 })
 
 onBeforeUnmount(() => {

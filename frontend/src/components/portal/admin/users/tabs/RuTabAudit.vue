@@ -10,7 +10,9 @@
         <li v-for="entry in entries" :key="entry.id" class="ru-audit-item">
           <span class="ru-audit-date">{{ fmt(entry.created_at) }}</span>
           <div class="ru-audit-body">
-            <span class="ru-audit-action">{{ $t(`requestsAdmin.users.audit.${entry.action}`, entry.action) }}</span>
+            <span class="ru-audit-action">
+              {{ $t(`requestsAdmin.users.audit.${entry.action}`, entry.action) }}
+            </span>
             <span v-if="describe(entry)" class="ru-audit-detail">{{ describe(entry) }}</span>
           </div>
         </li>
@@ -46,7 +48,11 @@ onMounted(load)
 
 function fmt(value) {
   if (!value) return '—'
-  try { return new Date(value).toLocaleString() } catch { return value }
+  try {
+    return new Date(value).toLocaleString()
+  } catch {
+    return value
+  }
 }
 
 function tRole(role) {
@@ -66,20 +72,32 @@ function tPerm(key) {
 
 function fmtDate(value) {
   if (!value) return t('requestsAdmin.users.drawer.audit.noLimit')
-  try { return new Date(value).toLocaleDateString() } catch { return value }
+  try {
+    return new Date(value).toLocaleDateString()
+  } catch {
+    return value
+  }
 }
 
 function describe(entry) {
   const a = entry.action
   const p = entry.payload || {}
   if (a === 'user.role_changed' && p.from && p.to) {
-    return t('requestsAdmin.users.drawer.audit.roleChange', { from: tRole(p.from), to: tRole(p.to) })
+    return t('requestsAdmin.users.drawer.audit.roleChange', {
+      from: tRole(p.from),
+      to: tRole(p.to),
+    })
   }
   if (a === 'user.identity_updated' && Array.isArray(p.changed) && p.changed.length) {
-    return t('requestsAdmin.users.drawer.audit.identityChange', { fields: p.changed.map(tField).join(', ') })
+    return t('requestsAdmin.users.drawer.audit.identityChange', {
+      fields: p.changed.map(tField).join(', '),
+    })
   }
   if (a === 'user.access_window_set') {
-    return t('requestsAdmin.users.drawer.audit.accessWindow', { from: fmtDate(p.start), to: fmtDate(p.end) })
+    return t('requestsAdmin.users.drawer.audit.accessWindow', {
+      from: fmtDate(p.start),
+      to: fmtDate(p.end),
+    })
   }
   if (a === 'user.access_extended' && p.months) {
     return t('requestsAdmin.users.drawer.audit.accessExtended', { months: p.months })
@@ -87,7 +105,7 @@ function describe(entry) {
   if (a === 'user.permissions_changed' && p.changed) {
     const parts = []
     for (const [key, val] of Object.entries(p.changed)) {
-      const to = (val && typeof val === 'object' && 'to' in val) ? val.to : val
+      const to = val && typeof val === 'object' && 'to' in val ? val.to : val
       const verb = to
         ? t('requestsAdmin.users.drawer.audit.permEnabled')
         : t('requestsAdmin.users.drawer.audit.permDisabled')

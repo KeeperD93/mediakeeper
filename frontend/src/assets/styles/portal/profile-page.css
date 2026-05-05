@@ -4,14 +4,23 @@
  * TrophyUnlockToast) can reference shared classes like .gc-icon-glow--*, .gc-trophy-*.
  * The .gc-*, .ta-*, .dp-* prefixes are specific enough to avoid collisions.
  */
-@import '@/assets/styles/portal/trophy-secret-fx-base.css';
-@import '@/assets/styles/portal/trophy-secret-fx-extra-a.css';
-@import '@/assets/styles/portal/trophy-secret-fx-extra-b.css';
-@import '@/assets/styles/portal/trophy-mastery-fx.css';
+@import url('@/assets/styles/portal/trophy-secret-fx-base.css');
+@import url('@/assets/styles/portal/trophy-secret-fx-extra-a.css');
+@import url('@/assets/styles/portal/trophy-secret-fx-extra-b.css');
+@import url('@/assets/styles/portal/trophy-mastery-fx.css');
 
-@property --border-angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+@property --border-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
 
-.dp { min-height: 100vh; background: var(--bg-primary); color: #fff; overflow-x: clip; }
+.dp {
+  min-height: 100vh;
+  background: var(--bg-primary);
+  color: #fff;
+  overflow-x: clip;
+}
 
 /* ---------- Premium reveal animation for the core profile section ----------
    Each block tagged `.dp-reveal-item` fades in + slides up with the delay
@@ -19,8 +28,14 @@
    staggered "unfurl" effect when the page mounts.
 */
 @keyframes dp-reveal-in {
-  from { opacity: 0; transform: translateY(14px) scale(0.985); }
-  to   { opacity: 1; transform: translateY(0)    scale(1);     }
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 .dp-reveal-item {
   opacity: 0;
@@ -30,18 +45,31 @@
 /* Fixed stagger steps — used by PortalMe for the rank/kpi/stats/
    trophies/leaderboard reveal cascade. Keeps the template free of
    inline `style="--dp-reveal-delay: Xms"` declarations. */
-.dp-reveal-item--d0 { --dp-reveal-delay: 0ms; }
-.dp-reveal-item--d1 { --dp-reveal-delay: 60ms; }
-.dp-reveal-item--d2 { --dp-reveal-delay: 140ms; }
-.dp-reveal-item--d3 { --dp-reveal-delay: 220ms; }
-.dp-reveal-item--d4 { --dp-reveal-delay: 300ms; }
+.dp-reveal-item--d0 {
+  --dp-reveal-delay: 0ms;
+}
+.dp-reveal-item--d1 {
+  --dp-reveal-delay: 60ms;
+}
+.dp-reveal-item--d2 {
+  --dp-reveal-delay: 140ms;
+}
+.dp-reveal-item--d3 {
+  --dp-reveal-delay: 220ms;
+}
+.dp-reveal-item--d4 {
+  --dp-reveal-delay: 300ms;
+}
 /* Stretch cards inside .gc-bottom so Vos genres / Trophées / Leaderboard
    share the same height in the 3-col layout. */
 .gc-bottom > .dp-reveal-item {
-  display: flex; flex-direction: column; min-height: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 .gc-bottom > .dp-reveal-item > * {
-  flex: 1; min-height: 0;
+  flex: 1;
+  min-height: 0;
 }
 /* Sidebar column: align top with KpiRow top via matching .gc-main's
    inner padding, and don't stretch — the main column may become very
@@ -53,64 +81,171 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .dp-reveal-item { animation: none; opacity: 1; }
+  .dp-reveal-item {
+    animation: none;
+    opacity: 1;
+  }
 }
 
 .dp-loading {
-  display: flex; align-items: center; justify-content: center;
-  gap: 0.6rem; padding: 8rem 2rem; color: rgba(255,255,255,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 8rem 2rem;
+  color: rgb(255, 255, 255, 0.5);
 }
 /* ═══ MAIN GRID ═══ */
 /* minmax(0, 1fr) is critical on mobile: a plain `1fr` cell grows to fit
    its intrinsic content, which lets long KPI labels / tall avatar effects
    push the whole grid wider than the viewport. 0-min forces the cell to
    respect the container width and lets flex/text children shrink. */
-.gc { display: grid; grid-template-columns: minmax(0, 1fr); border-radius: var(--portal-radius-xl); overflow: visible; border: none; gap: 1.5rem; padding: 1rem 3% 2rem; }
-@media (min-width: 1024px) { .gc { grid-template-columns: 320px minmax(0, 1fr); } }
+.gc {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  border-radius: var(--portal-radius-xl);
+  overflow: visible;
+  border: none;
+  gap: 1.5rem;
+  padding: 1rem 3% 2rem;
+}
+@media (min-width: 1024px) {
+  .gc {
+    grid-template-columns: 320px minmax(0, 1fr);
+  }
+}
 
 /* ═══ TIER VARIABLES ═══ */
-.gc--bronze   { --rk-c1: #cd7f32; --rk-c2: #a0622a; --rk-c3: #8b5e3c; }
-.gc--silver   { --rk-c1: #e8e8e8; --rk-c2: #9ca3af; --rk-c3: #c0c0c0; }
-.gc--gold     { --rk-c1: var(--portal-color-warning); --rk-c2: var(--portal-color-warning-dark); --rk-c3: #d97706; }
-.gc--platinum { --rk-c1: var(--portal-color-cinema); --rk-c2: #0ea5e9; --rk-c3: #06b6d4; }
-.gc--diamond  { --rk-c1: #a78bfa; --rk-c2: #7c3aed; --rk-c3: #c084fc; }
-.gc--master   { --rk-c1: var(--portal-color-error); --rk-c2: var(--portal-color-highlight); --rk-c3: #dc2626; }
-.gc--legendary { --rk-c1: var(--portal-color-warning); --rk-c2: var(--portal-color-error); --rk-c3: #a78bfa; }
+.gc--bronze {
+  --rk-c1: #cd7f32;
+  --rk-c2: #a0622a;
+  --rk-c3: #8b5e3c;
+}
+.gc--silver {
+  --rk-c1: #e8e8e8;
+  --rk-c2: #9ca3af;
+  --rk-c3: #c0c0c0;
+}
+.gc--gold {
+  --rk-c1: var(--portal-color-warning);
+  --rk-c2: var(--portal-color-warning-dark);
+  --rk-c3: #d97706;
+}
+.gc--platinum {
+  --rk-c1: var(--portal-color-cinema);
+  --rk-c2: #0ea5e9;
+  --rk-c3: #06b6d4;
+}
+.gc--diamond {
+  --rk-c1: #a78bfa;
+  --rk-c2: #7c3aed;
+  --rk-c3: #c084fc;
+}
+.gc--master {
+  --rk-c1: var(--portal-color-error);
+  --rk-c2: var(--portal-color-highlight);
+  --rk-c3: #dc2626;
+}
+.gc--legendary {
+  --rk-c1: var(--portal-color-warning);
+  --rk-c2: var(--portal-color-error);
+  --rk-c3: #a78bfa;
+}
 
 /* ═══ MAIN CONTENT LAYOUT ═══ */
-.gc-main { padding: 1.25rem; background: rgba(3,7,18,0.6); }
-.gc-bottom { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.85rem; }
-@media (min-width: 1280px) { .gc-bottom { grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr) minmax(0, 0.7fr); } }
-.gc-box-title { font-size: var(--portal-text-xs); font-weight: var(--portal-font-bold); color: var(--portal-text-body-muted); margin-bottom: 0.6rem; }
-.gc-box-count { font-size: var(--portal-text-2xs); color: rgba(255,255,255,0.35); margin-left: 0.3rem; }
+.gc-main {
+  padding: 1.25rem;
+  background: rgb(3, 7, 18, 0.6);
+}
+.gc-bottom {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.85rem;
+}
+@media (min-width: 1280px) {
+  .gc-bottom {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr) minmax(0, 0.7fr);
+  }
+}
+.gc-box-title {
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-bold);
+  color: var(--portal-text-body-muted);
+  margin-bottom: 0.6rem;
+}
+.gc-box-count {
+  font-size: var(--portal-text-2xs);
+  color: rgb(255, 255, 255, 0.35);
+  margin-left: 0.3rem;
+}
 
 /* ═══ CONTINUE WATCHING ═══ */
 /* The section is positioned so the shared .pt-carousel-arrow buttons
    can be absolutely placed over the track, matching the home-page
    chevrons on the regular MediaCarousel sections. */
-.dp-cw-section { position: relative; }
+.dp-cw-section {
+  position: relative;
+}
 .dp-cw-track {
-  display: flex; gap: 14px; overflow-x: auto; overflow-y: clip;
-  padding: 0.5rem 4% 1rem; scrollbar-width: none; scroll-snap-type: x mandatory;
+  display: flex;
+  gap: 14px;
+  overflow: auto clip;
+  padding: 0.5rem 4% 1rem;
+  scrollbar-width: none;
+  scroll-snap-type: x mandatory;
 }
-.dp-cw-track::-webkit-scrollbar { display: none; }
+.dp-cw-track::-webkit-scrollbar {
+  display: none;
+}
 .dp-cw-card {
-  flex-shrink: 0; width: clamp(260px, 28vw, 360px); aspect-ratio: 16/9;
-  border-radius: var(--radius-btn); overflow: hidden; position: relative;
-  text-decoration: none; color: #fff; scroll-snap-align: start;
-  transition: transform var(--portal-dur-med), box-shadow var(--portal-dur-med);
+  flex-shrink: 0;
+  width: clamp(260px, 28vw, 360px);
+  aspect-ratio: 16/9;
+  border-radius: var(--radius-btn);
+  overflow: hidden;
+  position: relative;
+  text-decoration: none;
+  color: #fff;
+  scroll-snap-align: start;
+  transition:
+    transform var(--portal-dur-med),
+    box-shadow var(--portal-dur-med);
 }
-.dp-cw-card:hover { transform: scale(1.04); box-shadow: 0 8px 28px rgba(0,0,0,0.5); }
-.dp-cw-img { width: 100%; height: 100%; object-fit: cover; }
+.dp-cw-card:hover {
+  transform: scale(1.04);
+  box-shadow: 0 8px 28px rgb(0, 0, 0, 0.5);
+}
+.dp-cw-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 .dp-cw-info {
-  position: absolute; bottom: 0; left: 0; right: 0;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
   padding: 0.5rem 0.75rem;
-  background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%);
+  background: linear-gradient(to top, rgb(0, 0, 0, 0.85) 0%, transparent 100%);
 }
-.dp-cw-title { font-size: var(--portal-text-sm); font-weight: var(--portal-font-bold); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dp-cw-title {
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-bold);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /* ═══ SECTIONS ═══
    Each MediaCarousel already has margin-bottom: 2.5rem (see media-carousel.css),
    so sections stack cleanly with the same rhythm as the home page. */
-.dp-section { margin-top: 0; }
-.dp-section-title { font-size: var(--portal-text-xl); font-weight: var(--portal-font-extrabold); color: #fff; padding: 0 4%; margin-bottom: 0.5rem; }
+.dp-section {
+  margin-top: 0;
+}
+.dp-section-title {
+  font-size: var(--portal-text-xl);
+  font-weight: var(--portal-font-extrabold);
+  color: #fff;
+  padding: 0 4%;
+  margin-bottom: 0.5rem;
+}

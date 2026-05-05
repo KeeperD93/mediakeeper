@@ -3,7 +3,9 @@
     <section class="sec-block">
       <header class="sec-hd">
         <h3>{{ t('settings.security.blocksTitle') }}</h3>
-        <button class="sec-btn" @click="openBlockModal">{{ t('settings.security.addBlock') }}</button>
+        <button class="sec-btn" @click="openBlockModal">
+          {{ t('settings.security.addBlock') }}
+        </button>
       </header>
       <div v-if="loadingBlocks" class="sec-loading">{{ t('common.loading') }}</div>
       <div v-else-if="blocks.length" class="mk-table-wrap">
@@ -25,8 +27,14 @@
                 <div v-if="b.username" class="sec-target">@{{ b.username }}</div>
               </td>
               <td :data-label="t('settings.security.scope')">{{ b.scope }}</td>
-              <td :data-label="t('settings.security.kind')">{{ b.permanent ? t('settings.security.permanent') : t('settings.security.temporary') }}</td>
-              <td :data-label="t('settings.security.until')">{{ b.blocked_until ? formatDate(b.blocked_until) : '—' }}</td>
+              <td :data-label="t('settings.security.kind')">
+                {{
+                  b.permanent ? t('settings.security.permanent') : t('settings.security.temporary')
+                }}
+              </td>
+              <td :data-label="t('settings.security.until')">
+                {{ b.blocked_until ? formatDate(b.blocked_until) : '—' }}
+              </td>
               <td :data-label="t('settings.security.reason')">{{ b.reason || '—' }}</td>
               <td>
                 <button class="sec-btn-danger" @click="removeBlock(b.id)">
@@ -85,7 +93,11 @@
     </section>
 
     <div v-if="modalOpen" class="sec-modal-backdrop mk-modal-sheet" @click.self="modalOpen = false">
-      <div class="sec-modal mk-modal-sheet-panel" role="dialog" :aria-label="t('settings.security.addBlock')">
+      <div
+        class="sec-modal mk-modal-sheet-panel"
+        role="dialog"
+        :aria-label="t('settings.security.addBlock')"
+      >
         <h4>{{ t('settings.security.addBlock') }}</h4>
         <label>
           {{ t('settings.security.ip') }}
@@ -206,28 +218,137 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.params-security { display: flex; flex-direction: column; gap: 1.5rem; }
-.sec-block { background: rgba(var(--accent-rgb), 0.04); border-radius: var(--radius-card); padding: 1rem; }
-.sec-hd { display: flex; justify-content: space-between; align-items: center; margin-bottom: .75rem; gap: 1rem; flex-wrap: wrap; }
-.sec-hd h3 { margin: 0; font-size: clamp(0.95rem, 1.5vw, 1.15rem); }
-.sec-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
-.sec-table th, .sec-table td { text-align: left; padding: .5rem .75rem; border-bottom: 1px solid rgba(var(--accent-rgb), 0.1); }
-.sec-table th { font-weight: var(--font-medium); color: var(--accent-400); }
-.sec-table tr.is-fail td { color: inherit; }
-.sec-target { font-family: monospace; font-size: var(--text-sm); }
-.sec-pill { display: inline-block; padding: 2px 8px; border-radius: var(--radius-btn); font-size: var(--text-xs); }
-.sec-pill.is-ok { background: rgba(34, 197, 94, 0.15); color: rgb(34, 197, 94); }
-.sec-pill.is-fail { background: rgba(239, 68, 68, 0.15); color: rgb(239, 68, 68); }
-.sec-btn, .sec-btn-primary, .sec-btn-danger { cursor: pointer; border: 0; border-radius: var(--radius-btn); padding: .35rem .75rem; font-size: var(--text-sm); }
-.sec-btn { background: rgba(var(--accent-rgb), 0.12); color: var(--accent-400); }
-.sec-btn-primary { background: var(--accent-500); color: white; }
-.sec-btn-danger { background: rgba(239, 68, 68, 0.15); color: rgb(239, 68, 68); }
-.sec-loading, .sec-empty { padding: 1rem; color: rgba(var(--accent-rgb), 0.6); font-style: italic; }
-.sec-check { display: inline-flex; gap: .5rem; align-items: center; font-size: var(--text-sm); }
-.sec-modal-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.sec-modal { background: var(--bg-panel); border-radius: var(--radius-card); padding: 1.5rem; max-width: 420px; width: 90%; display: flex; flex-direction: column; gap: .75rem; }
-.sec-modal h4 { margin: 0 0 .5rem; }
-.sec-modal label { display: flex; flex-direction: column; gap: .25rem; font-size: var(--text-sm); }
-.sec-modal input, .sec-modal select { padding: .5rem; border-radius: var(--radius-input); border: 1px solid rgba(var(--accent-rgb), 0.2); background: rgba(0, 0, 0, 0.2); color: inherit; }
-.sec-modal-actions { display: flex; justify-content: flex-end; gap: .5rem; margin-top: .5rem; }
+.params-security {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.sec-block {
+  background: rgb(var(--accent-rgb), 0.04);
+  border-radius: var(--radius-card);
+  padding: 1rem;
+}
+.sec-hd {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.sec-hd h3 {
+  margin: 0;
+  font-size: clamp(0.95rem, 1.5vw, 1.15rem);
+}
+.sec-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+.sec-table th,
+.sec-table td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid rgb(var(--accent-rgb), 0.1);
+}
+.sec-table th {
+  font-weight: var(--font-medium);
+  color: var(--accent-400);
+}
+.sec-table tr.is-fail td {
+  color: inherit;
+}
+.sec-target {
+  font-family: monospace;
+  font-size: var(--text-sm);
+}
+.sec-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius-btn);
+  font-size: var(--text-xs);
+}
+.sec-pill.is-ok {
+  background: rgb(34, 197, 94, 0.15);
+  color: rgb(34, 197, 94);
+}
+.sec-pill.is-fail {
+  background: rgb(239, 68, 68, 0.15);
+  color: rgb(239, 68, 68);
+}
+.sec-btn,
+.sec-btn-primary,
+.sec-btn-danger {
+  cursor: pointer;
+  border: 0;
+  border-radius: var(--radius-btn);
+  padding: 0.35rem 0.75rem;
+  font-size: var(--text-sm);
+}
+.sec-btn {
+  background: rgb(var(--accent-rgb), 0.12);
+  color: var(--accent-400);
+}
+.sec-btn-primary {
+  background: var(--accent-500);
+  color: white;
+}
+.sec-btn-danger {
+  background: rgb(239, 68, 68, 0.15);
+  color: rgb(239, 68, 68);
+}
+.sec-loading,
+.sec-empty {
+  padding: 1rem;
+  color: rgb(var(--accent-rgb), 0.6);
+  font-style: italic;
+}
+.sec-check {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: var(--text-sm);
+}
+.sec-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgb(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.sec-modal {
+  background: var(--bg-panel);
+  border-radius: var(--radius-card);
+  padding: 1.5rem;
+  max-width: 420px;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.sec-modal h4 {
+  margin: 0 0 0.5rem;
+}
+.sec-modal label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: var(--text-sm);
+}
+.sec-modal input,
+.sec-modal select {
+  padding: 0.5rem;
+  border-radius: var(--radius-input);
+  border: 1px solid rgb(var(--accent-rgb), 0.2);
+  background: rgb(0, 0, 0, 0.2);
+  color: inherit;
+}
+.sec-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
 </style>

@@ -19,17 +19,17 @@ const borderRadius = ref(parseInt(localStorage.getItem('mediakeeper_radius') || 
 
 function applyRadius(r) {
   const root = document.documentElement
-  root.style.setProperty('--radius-card',  r + 'px')
-  root.style.setProperty('--radius-btn',   Math.max(4, r - 4) + 'px')
+  root.style.setProperty('--radius-card', r + 'px')
+  root.style.setProperty('--radius-btn', Math.max(4, r - 4) + 'px')
   root.style.setProperty('--radius-input', Math.max(6, r - 2) + 'px')
-  root.style.setProperty('--radius-sm',    Math.max(4, r - 6) + 'px')
+  root.style.setProperty('--radius-sm', Math.max(4, r - 6) + 'px')
 }
 applyRadius(borderRadius.value)
 
 // ---- Custom background ----
-const customBg      = ref(localStorage.getItem('mediakeeper_bg') || '')
+const customBg = ref(localStorage.getItem('mediakeeper_bg') || '')
 const customBgOpacity = ref(parseFloat(localStorage.getItem('mediakeeper_bg_opacity') || '0.15'))
-const customBgBlur  = ref(parseInt(localStorage.getItem('mediakeeper_bg_blur') || '20'))
+const customBgBlur = ref(parseInt(localStorage.getItem('mediakeeper_bg_blur') || '20'))
 
 function applyCustomBg(url, opacity, blur) {
   const root = document.documentElement
@@ -40,9 +40,9 @@ function applyCustomBg(url, opacity, blur) {
       el.id = 'mk-custom-bg'
       document.body.insertBefore(el, document.body.firstChild)
     }
-    root.style.setProperty('--custom-bg-url',     `url("${url}")`)
-    root.style.setProperty('--custom-bg-opacity',  String(opacity))
-    root.style.setProperty('--custom-bg-blur',     blur + 'px')
+    root.style.setProperty('--custom-bg-url', `url("${url}")`)
+    root.style.setProperty('--custom-bg-opacity', String(opacity))
+    root.style.setProperty('--custom-bg-blur', blur + 'px')
     document.body.classList.add('has-custom-bg')
   } else {
     if (el) el.remove()
@@ -57,7 +57,8 @@ const particlesEnabled = ref(localStorage.getItem('mediakeeper_particles') !== '
 
 // ---- Pill glow intensity (0 = off, 1 = default, 2 = max) ----
 const glowIntensity = ref(parseFloat(localStorage.getItem('mediakeeper_glow') ?? '1'))
-if (!Number.isFinite(glowIntensity.value) || glowIntensity.value < 0 || glowIntensity.value > 2) glowIntensity.value = 1
+if (!Number.isFinite(glowIntensity.value) || glowIntensity.value < 0 || glowIntensity.value > 2)
+  glowIntensity.value = 1
 function applyGlow(v) {
   const root = document.documentElement
   const s = Math.max(0, Math.min(2, Number(v) || 0))
@@ -67,13 +68,62 @@ applyGlow(glowIntensity.value)
 
 // ---- Accent ----
 const ACCENT_PRESETS = {
-  indigo:  { 500: '#6366f1', 400: '#818cf8', 300: '#a5b4fc', 600: '#4f46e5', 700: '#4338ca', rgb: '99,102,241' },
-  blue:    { 500: '#3b82f6', 400: '#60a5fa', 300: '#93c5fd', 600: '#2563eb', 700: '#1d4ed8', rgb: '59,130,246' },
-  violet:  { 500: '#8b5cf6', 400: '#a78bfa', 300: '#c4b5fd', 600: '#7c3aed', 700: '#6d28d9', rgb: '139,92,246' },
-  emerald: { 500: '#10b981', 400: '#34d399', 300: '#6ee7b7', 600: '#059669', 700: '#047857', rgb: '16,185,129' },
-  rose:    { 500: '#f43f5e', 400: '#fb7185', 300: '#fda4af', 600: '#e11d48', 700: '#be123c', rgb: '244,63,94' },
-  amber:   { 500: '#f59e0b', 400: '#fbbf24', 300: '#fcd34d', 600: '#d97706', 700: '#b45309', rgb: '245,158,11' },
-  cyan:    { 500: '#06b6d4', 400: '#22d3ee', 300: '#67e8f9', 600: '#0891b2', 700: '#0e7490', rgb: '6,182,212' },
+  indigo: {
+    500: '#6366f1',
+    400: '#818cf8',
+    300: '#a5b4fc',
+    600: '#4f46e5',
+    700: '#4338ca',
+    rgb: '99,102,241',
+  },
+  blue: {
+    500: '#3b82f6',
+    400: '#60a5fa',
+    300: '#93c5fd',
+    600: '#2563eb',
+    700: '#1d4ed8',
+    rgb: '59,130,246',
+  },
+  violet: {
+    500: '#8b5cf6',
+    400: '#a78bfa',
+    300: '#c4b5fd',
+    600: '#7c3aed',
+    700: '#6d28d9',
+    rgb: '139,92,246',
+  },
+  emerald: {
+    500: '#10b981',
+    400: '#34d399',
+    300: '#6ee7b7',
+    600: '#059669',
+    700: '#047857',
+    rgb: '16,185,129',
+  },
+  rose: {
+    500: '#f43f5e',
+    400: '#fb7185',
+    300: '#fda4af',
+    600: '#e11d48',
+    700: '#be123c',
+    rgb: '244,63,94',
+  },
+  amber: {
+    500: '#f59e0b',
+    400: '#fbbf24',
+    300: '#fcd34d',
+    600: '#d97706',
+    700: '#b45309',
+    rgb: '245,158,11',
+  },
+  cyan: {
+    500: '#06b6d4',
+    400: '#22d3ee',
+    300: '#67e8f9',
+    600: '#0891b2',
+    700: '#0e7490',
+    rgb: '6,182,212',
+  },
 }
 
 const accentName = ref(localStorage.getItem('mediakeeper_accent') || 'indigo')
@@ -91,7 +141,9 @@ function applyAccent(name) {
   root.style.setProperty('--accent-light', preset[700] + '33')
 }
 applyAccent(accentName.value)
-watchEffect(() => { applyAccent(accentName.value) })
+watchEffect(() => {
+  applyAccent(accentName.value)
+})
 
 // ---- Sync BDD — never overwrite localStorage with an invalid server value ----
 let _syncDone = false
@@ -132,17 +184,19 @@ async function syncFromServer() {
       localStorage.setItem('mediakeeper_locale', prefs.locale)
     }
     _syncDone = true
-  } catch { /* silent: preferences sync, UI keeps local values */ }
+  } catch {
+    /* silent: preferences sync, UI keeps local values */
+  }
 }
 
 async function _savePrefsToServer() {
   const body = JSON.stringify({
-    theme:             'dark',
+    theme: 'dark',
     sidebar_collapsed: localStorage.getItem('mk_sidebar_collapsed') === 'true',
-    accent:            accentName.value,
-    radius:            borderRadius.value,
-    particles:         particlesEnabled.value,
-    glow:              glowIntensity.value,
+    accent: accentName.value,
+    radius: borderRadius.value,
+    particles: particlesEnabled.value,
+    glow: glowIntensity.value,
   })
   try {
     await fetchApiResponse('/api/auth/preferences', {
@@ -150,7 +204,9 @@ async function _savePrefsToServer() {
       body,
       redirectOn401: false,
     })
-  } catch { /* silent: preferences save is best-effort, retried on next change */ }
+  } catch {
+    /* silent: preferences save is best-effort, retried on next change */
+  }
 }
 
 export function useTheme() {
@@ -175,15 +231,17 @@ export function useTheme() {
   }
 
   function setCustomBg(url, opacity, blur) {
-    customBg.value      = url
+    customBg.value = url
     customBgOpacity.value = opacity
-    customBgBlur.value  = blur
+    customBgBlur.value = blur
     try {
-      localStorage.setItem('mediakeeper_bg',         url)
+      localStorage.setItem('mediakeeper_bg', url)
       localStorage.setItem('mediakeeper_bg_opacity', opacity)
-      localStorage.setItem('mediakeeper_bg_blur',    blur)
+      localStorage.setItem('mediakeeper_bg_blur', blur)
     } catch {
-      console.warn('[useTheme.setCustomBg] failed to persist custom background (localStorage quota)')
+      console.warn(
+        '[useTheme.setCustomBg] failed to persist custom background (localStorage quota)',
+      )
     }
     applyCustomBg(url, opacity, blur)
   }
@@ -211,13 +269,15 @@ export function useTheme() {
   }
 
   const accentPresets = computed(() =>
-    Object.entries(ACCENT_PRESETS).map(([name, colors]) => ({ name, color: colors[500] }))
+    Object.entries(ACCENT_PRESETS).map(([name, colors]) => ({ name, color: colors[500] })),
   )
 
   const themeList = computed(() =>
     Object.entries(THEMES).map(([name, def]) => ({
-      name, label: def.label, isDark: def.isDark,
-    }))
+      name,
+      label: def.label,
+      isDark: def.isDark,
+    })),
   )
 
   return {

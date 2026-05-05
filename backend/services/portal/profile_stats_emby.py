@@ -34,7 +34,7 @@ async def resolve_emby_user_id(
         )).first()
         if row and row.user_id:
             return row.user_id
-    except Exception:
+    except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
         pass
     return None
 
@@ -97,6 +97,6 @@ async def _find_series_emby_id(
             items = (res.json() or {}).get("Items", [])
             if items:
                 return items[0].get("Id", "")
-    except Exception:
+    except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
         pass
     return None

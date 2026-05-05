@@ -4,7 +4,14 @@
       <div class="pt-popup">
         <div class="pt-popup-header">
           <h2>{{ $t('portal.news.whatsNew') }}</h2>
-          <button class="pt-popup-close" type="button" :aria-label="$t('common.close')" @click="$emit('dismiss')"><X :size="14" /></button>
+          <button
+            class="pt-popup-close"
+            type="button"
+            :aria-label="$t('common.close')"
+            @click="$emit('dismiss')"
+          >
+            <X :size="14" />
+          </button>
         </div>
         <div class="pt-popup-body">
           <div v-for="item in items" :key="item.id" class="pt-news-item">
@@ -45,7 +52,7 @@ defineEmits(['dismiss'])
   position: fixed;
   inset: 0;
   z-index: 9000;
-  background: rgba(0,0,0,0.7);
+  background: rgb(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -89,7 +96,9 @@ defineEmits(['dismiss'])
   padding: 0.75rem 0;
   border-bottom: 1px solid var(--border);
 }
-.pt-news-item:last-child { border-bottom: none; }
+.pt-news-item:last-child {
+  border-bottom: none;
+}
 .pt-news-badge {
   display: inline-block;
   font-size: var(--portal-text-2xs);
@@ -99,20 +108,46 @@ defineEmits(['dismiss'])
   border-radius: var(--radius-sm);
   margin-bottom: 0.4rem;
 }
-.pt-news-badge--announcement { background: rgba(var(--accent-rgb),0.2); color: var(--accent); }
-.pt-news-badge--additions { background: rgba(var(--portal-color-success-rgb),0.2); color: var(--portal-color-success); }
-.pt-news-badge--maintenance { background: rgba(234,179,8,0.2); color: #eab308; }
-.pt-news-badge--event { background: rgba(var(--portal-color-premium-rgb),0.2); color: var(--portal-color-premium); }
-.pt-news-badge--other { background: var(--bg-tertiary); color: var(--text-muted); }
-.pt-news-title { font-size: var(--portal-text-base); font-weight: var(--portal-font-medium); color: var(--text-primary); }
+.pt-news-badge--announcement {
+  background: rgb(var(--accent-rgb), 0.2);
+  color: var(--accent);
+}
+.pt-news-badge--additions {
+  background: rgb(var(--portal-color-success-rgb), 0.2);
+  color: var(--portal-color-success);
+}
+.pt-news-badge--maintenance {
+  background: rgb(234, 179, 8, 0.2);
+  color: #eab308;
+}
+.pt-news-badge--event {
+  background: rgb(var(--portal-color-premium-rgb), 0.2);
+  color: var(--portal-color-premium);
+}
+.pt-news-badge--other {
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+}
+.pt-news-title {
+  font-size: var(--portal-text-base);
+  font-weight: var(--portal-font-medium);
+  color: var(--text-primary);
+}
 .pt-news-content {
   font-size: var(--portal-text-sm);
   color: var(--text-secondary);
   margin-top: 0.25rem;
   line-height: var(--portal-lh-normal);
 }
-.pt-news-date { font-size: var(--portal-text-2xs); color: var(--text-muted); }
-.pt-news-empty { text-align: center; color: var(--text-muted); padding: 2rem 0; }
+.pt-news-date {
+  font-size: var(--portal-text-2xs);
+  color: var(--text-muted);
+}
+.pt-news-empty {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 2rem 0;
+}
 .pt-popup-footer {
   padding: 1rem 1.5rem;
   border-top: 1px solid var(--border);

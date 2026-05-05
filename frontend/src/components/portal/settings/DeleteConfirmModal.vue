@@ -43,12 +43,7 @@
           />
 
           <div class="pt-dcm-actions">
-            <button
-              type="button"
-              class="pt-dcm-btn"
-              :disabled="submitting"
-              @click="onCancel"
-            >
+            <button type="button" class="pt-dcm-btn" :disabled="submitting" @click="onCancel">
               {{ $t('portal.privacy.deleteModal.abort') }}
             </button>
             <button
@@ -57,9 +52,11 @@
               :disabled="!canConfirm || submitting"
               @click="onConfirm"
             >
-              {{ submitting
-                ? $t('portal.privacy.deleteModal.submitting')
-                : $t('portal.privacy.deleteModal.confirm') }}
+              {{
+                submitting
+                  ? $t('portal.privacy.deleteModal.submitting')
+                  : $t('portal.privacy.deleteModal.confirm')
+              }}
             </button>
           </div>
         </div>
@@ -96,12 +93,15 @@ const magicWord = computed(() => t('portal.privacy.deleteModal.magicWord'))
 
 const canConfirm = computed(() => typed.value.trim() === magicWord.value)
 
-watch(() => props.open, async (open) => {
-  if (!open) return
-  typed.value = ''
-  await nextTick()
-  inputRef.value?.focus()
-})
+watch(
+  () => props.open,
+  async open => {
+    if (!open) return
+    typed.value = ''
+    await nextTick()
+    inputRef.value?.focus()
+  },
+)
 
 function onConfirm() {
   if (!canConfirm.value || props.submitting) return
@@ -119,7 +119,7 @@ function onCancel() {
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgb(0, 0, 0, 0.7);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -131,10 +131,10 @@ function onCancel() {
   max-width: 480px;
   background: var(--portal-surface-elevated, #1f1f24);
   color: var(--portal-text-primary, #fff);
-  border: 1px solid var(--portal-border-default, rgba(255, 255, 255, 0.12));
+  border: 1px solid var(--portal-border-default, rgb(255, 255, 255, 0.12));
   border-radius: 12px;
   padding: 1.4rem 1.5rem 1.25rem;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 16px 48px rgb(0, 0, 0, 0.55);
 }
 .pt-dcm-head {
   display: flex;
@@ -142,7 +142,10 @@ function onCancel() {
   gap: 0.65rem;
   margin-bottom: 0.5rem;
 }
-.pt-dcm-icon { color: #f59e0b; flex: 0 0 auto; }
+.pt-dcm-icon {
+  color: #f59e0b;
+  flex: 0 0 auto;
+}
 .pt-dcm-title {
   margin: 0;
   font-size: var(--portal-text-lg);
@@ -151,14 +154,14 @@ function onCancel() {
 .pt-dcm-warning {
   margin: 0 0 0.5rem;
   font-size: var(--portal-text-sm);
-  color: var(--portal-text-secondary, rgba(255, 255, 255, 0.78));
+  color: var(--portal-text-secondary, rgb(255, 255, 255, 0.78));
   line-height: 1.5;
 }
 .pt-dcm-emby {
   margin: 0 0 0.85rem;
   padding: 0.55rem 0.75rem;
-  background: rgba(245, 158, 11, 0.12);
-  border: 1px solid rgba(245, 158, 11, 0.35);
+  background: rgb(245, 158, 11, 0.12);
+  border: 1px solid rgb(245, 158, 11, 0.35);
   border-radius: 8px;
   font-size: var(--portal-text-xs);
   color: #fcd34d;
@@ -177,7 +180,7 @@ function onCancel() {
 .pt-dcm-input {
   width: 100%;
   padding: 0.55rem 0.75rem;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgb(0, 0, 0, 0.35);
   color: var(--portal-text-primary);
   border: 1px solid var(--portal-border-default);
   border-radius: 8px;
@@ -187,7 +190,7 @@ function onCancel() {
 .pt-dcm-input:focus {
   outline: none;
   border-color: #f59e0b;
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25);
+  box-shadow: 0 0 0 3px rgb(245, 158, 11, 0.25);
 }
 .pt-dcm-actions {
   display: flex;
@@ -207,19 +210,30 @@ function onCancel() {
   transition: background 0.18s ease;
 }
 .pt-dcm-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgb(255, 255, 255, 0.08);
 }
-.pt-dcm-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.pt-dcm-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
 .pt-dcm-btn--danger {
   background: #b91c1c;
   border-color: #b91c1c;
   color: #fff;
 }
-.pt-dcm-btn--danger:hover:not(:disabled) { background: #dc2626; }
-.pt-dcm-btn--danger:disabled { background: rgba(185, 28, 28, 0.45); }
+.pt-dcm-btn--danger:hover:not(:disabled) {
+  background: #dc2626;
+}
+.pt-dcm-btn--danger:disabled {
+  background: rgb(185, 28, 28, 0.45);
+}
 
-.pt-dcm-fade-enter-active, .pt-dcm-fade-leave-active {
+.pt-dcm-fade-enter-active,
+.pt-dcm-fade-leave-active {
   transition: opacity 0.2s ease;
 }
-.pt-dcm-fade-enter-from, .pt-dcm-fade-leave-to { opacity: 0; }
+.pt-dcm-fade-enter-from,
+.pt-dcm-fade-leave-to {
+  opacity: 0;
+}
 </style>

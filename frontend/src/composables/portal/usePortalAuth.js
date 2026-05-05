@@ -20,12 +20,7 @@ const DEFAULT_GDPR = {
 export function usePortalAuth() {
   const { apiPut, loading, error } = useApi()
 
-  function setPortalAuth(
-    nextProfile,
-    unreadCount = 0,
-    nextUi = null,
-    nextGdpr = null,
-  ) {
+  function setPortalAuth(nextProfile, unreadCount = 0, nextUi = null, nextGdpr = null) {
     profile.value = nextProfile
     isPortalAuth.value = !!nextProfile
     unreadNewsCount.value = unreadCount
@@ -71,11 +66,7 @@ export function usePortalAuth() {
       body: JSON.stringify({ username, password }),
     })
     if (res.ok && res.data?.success) {
-      setPortalAuth(
-        res.data.profile,
-        res.data.unread_news?.length || 0,
-        res.data.ui,
-      )
+      setPortalAuth(res.data.profile, res.data.unread_news?.length || 0, res.data.ui)
       return res.data
     }
     return null
@@ -85,12 +76,7 @@ export function usePortalAuth() {
     try {
       const res = await portalAuthFetch('/api/portal/auth/me')
       if (res.ok && res.data?.profile) {
-        setPortalAuth(
-          res.data.profile,
-          res.data.unread_news_count || 0,
-          res.data.ui,
-          res.data.gdpr,
-        )
+        setPortalAuth(res.data.profile, res.data.unread_news_count || 0, res.data.ui, res.data.gdpr)
         return true
       }
     } catch {
@@ -107,12 +93,7 @@ export function usePortalAuth() {
     try {
       const res = await portalAuthFetch('/api/portal/auth/me')
       if (res.ok && res.data?.profile) {
-        setPortalAuth(
-          res.data.profile,
-          res.data.unread_news_count || 0,
-          res.data.ui,
-          res.data.gdpr,
-        )
+        setPortalAuth(res.data.profile, res.data.unread_news_count || 0, res.data.ui, res.data.gdpr)
         return true
       }
     } catch {

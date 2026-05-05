@@ -16,8 +16,8 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.5rem 0.85rem;
-  background: rgba(0, 0, 0, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgb(0, 0, 0, 0.65);
+  border: 1px solid rgb(255, 255, 255, 0.2);
   border-radius: var(--radius-sm);
   color: #fff;
   font-size: var(--portal-text-xs);
@@ -26,11 +26,13 @@
   backdrop-filter: var(--portal-blur-sm);
 }
 .pt-cr-leave:hover,
-.pt-cr-mute:hover { background: rgba(0, 0, 0, 0.85); }
+.pt-cr-mute:hover {
+  background: rgb(0, 0, 0, 0.85);
+}
 
 .pt-cr-countdown {
-  background: rgba(0, 0, 0, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgb(0, 0, 0, 0.7);
+  border: 1px solid rgb(255, 255, 255, 0.2);
   border-radius: var(--radius-btn);
   padding: 0.6rem 1rem;
   text-align: left;
@@ -50,7 +52,9 @@
   font-weight: var(--portal-font-black);
   font-variant-numeric: tabular-nums;
 }
-.pt-cr-countdown--late .pt-cr-countdown-value { color: var(--portal-color-warning); }
+.pt-cr-countdown--late .pt-cr-countdown-value {
+  color: var(--portal-color-warning);
+}
 
 /* ---------- Launch CTA ---------- */
 .pt-cr-launch {
@@ -78,46 +82,73 @@
   cursor: pointer;
   text-decoration: none;
   box-shadow:
-    0 12px 36px rgba(var(--portal-color-warning-rgb), 0.45),
-    0 0 60px rgba(var(--portal-color-warning-rgb), 0.25);
+    0 12px 36px rgb(var(--portal-color-warning-rgb), 0.45),
+    0 0 60px rgb(var(--portal-color-warning-rgb), 0.25);
   animation: pt-cr-pulse 1.6s ease-in-out infinite;
 }
 @keyframes pt-cr-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
 }
 .pt-cr-launch-marathon {
   font-size: var(--portal-text-sm);
-  color: rgba(255, 255, 255, 0.8);
+  color: rgb(255, 255, 255, 0.8);
   font-weight: var(--portal-font-bold);
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+  text-shadow: 0 2px 6px rgb(0, 0, 0, 0.7);
 }
-.pt-cr-cta-enter-active, .pt-cr-cta-leave-active {
-  transition: opacity 0.4s ease, transform 0.4s ease;
+.pt-cr-cta-enter-active,
+.pt-cr-cta-leave-active {
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s ease;
 }
-.pt-cr-cta-enter-from, .pt-cr-cta-leave-to {
+.pt-cr-cta-enter-from,
+.pt-cr-cta-leave-to {
   opacity: 0;
   transform: translateX(-50%) translateY(-12px);
 }
 
 /* ---------- Mobile base (applied by default; desktop is an override) ---------- */
-.pt-cr-screen-frame { width: 92vw; }
+.pt-cr-screen-frame {
+  width: 92vw;
+}
 .pt-cr-seats {
   transform: perspective(1100px) rotateX(24deg);
   gap: 1.1rem;
 }
-.pt-cr-stair { width: 1rem; }
-.pt-cr-curtain { width: 11vw; }
-.pt-cr-pelmet { left: 2vw; right: 2vw; }
+.pt-cr-stair {
+  width: 1rem;
+}
+.pt-cr-curtain {
+  width: 11vw;
+}
+.pt-cr-pelmet {
+  left: 2vw;
+  right: 2vw;
+}
 
 /* ---------- Desktop — restore the wide-viewport cinema layout ---------- */
 @media (min-width: 1024px) {
-  .pt-cr-screen-frame { width: min(74vw, 1280px); }
+  .pt-cr-screen-frame {
+    width: min(74vw, 1280px);
+  }
   .pt-cr-seats {
     transform: perspective(1400px) rotateX(20deg);
     gap: 1.4rem;
   }
-  .pt-cr-stair { width: 2.6rem; }
-  .pt-cr-curtain { width: 16vw; }
-  .pt-cr-pelmet { left: 4vw; right: 4vw; }
+  .pt-cr-stair {
+    width: 2.6rem;
+  }
+  .pt-cr-curtain {
+    width: 16vw;
+  }
+  .pt-cr-pelmet {
+    left: 4vw;
+    right: 4vw;
+  }
 }

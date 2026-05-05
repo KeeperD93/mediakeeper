@@ -33,7 +33,9 @@
           class="pt-settings-tab"
           :class="{ 'pt-settings-tab--active': activeTab === tab.id }"
           @click="activeTab = tab.id"
-        >{{ $t(tab.labelKey) }}</button>
+        >
+          {{ $t(tab.labelKey) }}
+        </button>
       </nav>
 
       <div :key="activeTab" class="dp-reveal-item dp-reveal-item--d3">
@@ -89,13 +91,17 @@
             class="pt-settings-btn"
             :disabled="!dirty || saving"
             @click="discard"
-          >{{ $t('portal.settings.save.discardBtn') }}</button>
+          >
+            {{ $t('portal.settings.save.discardBtn') }}
+          </button>
           <button
             type="button"
             class="pt-settings-btn pt-settings-btn--primary"
             :disabled="!dirty || saving"
             @click="onSave"
-          >{{ saving ? $t('portal.settings.save.saving') : $t('portal.settings.save.saveBtn') }}</button>
+          >
+            {{ saving ? $t('portal.settings.save.saving') : $t('portal.settings.save.saveBtn') }}
+          </button>
         </div>
       </footer>
     </section>
@@ -127,14 +133,14 @@ import PrivacyTab from '@/components/portal/settings/PrivacyTab.vue'
 import '@/assets/styles/portal/settings-premium.css'
 
 const ALL_TABS = [
-  { id: 'identity',    labelKey: 'portal.settings.tabs.identity' },
-  { id: 'appearance',  labelKey: 'portal.settings.tabs.appearance' },
+  { id: 'identity', labelKey: 'portal.settings.tabs.identity' },
+  { id: 'appearance', labelKey: 'portal.settings.tabs.appearance' },
   { id: 'preferences', labelKey: 'portal.settings.tabs.preferences' },
-  { id: 'visibility',  labelKey: 'portal.settings.tabs.visibility' },
-  { id: 'account',     labelKey: 'portal.settings.tabs.account' },
+  { id: 'visibility', labelKey: 'portal.settings.tabs.visibility' },
+  { id: 'account', labelKey: 'portal.settings.tabs.account' },
   // Privacy is opt-in: only surfaces when the admin has enabled the
   // GDPR mode. Filtered out of TABS below otherwise.
-  { id: 'privacy',     labelKey: 'portal.settings.tabs.privacy', gdprOnly: true },
+  { id: 'privacy', labelKey: 'portal.settings.tabs.privacy', gdprOnly: true },
 ]
 
 const { t } = useI18n()
@@ -142,21 +148,24 @@ const { showToast } = useToast()
 const { apiGet } = useApi()
 const { profile: profileData, gdpr, setPortalAuth } = usePortalAuth()
 
-const TABS = computed(() => ALL_TABS.filter(
-  (tab) => !tab.gdprOnly || gdpr.value?.enabled,
-))
+const TABS = computed(() => ALL_TABS.filter(tab => !tab.gdprOnly || gdpr.value?.enabled))
 const {
-  form, dirty, saving, lastSaveError,
-  usernameState, usernameCheck,
-  fetchUsernameState, checkUsername, save, discard,
-  uploadAvatar, deleteCustomAvatar,
+  form,
+  dirty,
+  saving,
+  lastSaveError,
+  usernameState,
+  usernameCheck,
+  fetchUsernameState,
+  checkUsername,
+  save,
+  discard,
+  uploadAvatar,
+  deleteCustomAvatar,
 } = usePortalSettings()
 
-const {
-  stats, ranking, titleKey, rankTier, trophies, load,
-} = useProfileData()
-const { titleTierName, memberSince, xpPercent, nextLevelXp } =
-  useProfileXp(profileData, stats)
+const { stats, ranking, titleKey, rankTier, trophies, load } = useProfileData()
+const { titleTierName, memberSince, xpPercent, nextLevelXp } = useProfileXp(profileData, stats)
 const { displayTrophies } = useTrophyDisplay(trophies, profileData)
 
 const activeTab = ref('identity')
@@ -222,7 +231,7 @@ function onAvatarChanged(payload) {
     avatar_custom_path: payload.avatar_custom_path ?? null,
     avatar_is_custom: !!payload.avatar_custom_path,
   }
-      setPortalAuth(merged)
+  setPortalAuth(merged)
 }
 
 function updateField(key, value) {
@@ -239,8 +248,8 @@ watch(
 // If the admin disables the GDPR mode while the user is sitting on
 // the Privacy tab, the tab vanishes from TABS — bounce the selection
 // back to Identity so the body does not render an empty card.
-watch(TABS, (next) => {
-  if (!next.find((t) => t.id === activeTab.value)) {
+watch(TABS, next => {
+  if (!next.find(t => t.id === activeTab.value)) {
     activeTab.value = next[0]?.id || 'identity'
   }
 })
@@ -249,19 +258,27 @@ onMounted(async () => {
   await Promise.all([
     fetchUsernameState(),
     load(),
-    apiGet('/api/portal/profiles/me/titles').then((res) => {
-      if (res?.titles) availableTitles.value = res.titles
-      if (res?.catalogue) titleCatalogue.value = res.catalogue
-    }).catch(() => {}),
-    apiGet('/api/portal/profiles/me/avatar-effects').then((res) => {
-      if (res?.effects) availableAvatarEffects.value = res.effects
-    }).catch(() => {}),
+    apiGet('/api/portal/profiles/me/titles')
+      .then(res => {
+        if (res?.titles) availableTitles.value = res.titles
+        if (res?.catalogue) titleCatalogue.value = res.catalogue
+      })
+      .catch(() => {}),
+    apiGet('/api/portal/profiles/me/avatar-effects')
+      .then(res => {
+        if (res?.effects) availableAvatarEffects.value = res.effects
+      })
+      .catch(() => {}),
   ])
 })
 </script>
 
 <style scoped>
-.pt-settings-header { display: flex; flex-direction: column; gap: 0.25rem; }
+.pt-settings-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
 
 .pt-settings-h1 {
   margin: 0;

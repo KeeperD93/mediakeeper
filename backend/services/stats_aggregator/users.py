@@ -29,7 +29,7 @@ async def get_users_stats(db: AsyncSession, page: int = 1, per_page: int = 30,
                 if res.status_code == 200:
                     for u in res.json():
                         emby_users_map[u.get("Id", "")] = u
-            except Exception:
+            except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
                 pass
 
     hidden_users = await _get_hidden_users(db)

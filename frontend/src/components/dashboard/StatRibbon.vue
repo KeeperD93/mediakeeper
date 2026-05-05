@@ -3,7 +3,12 @@
     <div class="ribbon-item">
       <span class="ribbon-label">{{ $t('dashboard.cpu') }}</span>
       <span class="ribbon-value" :style="{ color: colorByPct(sys.cpuPct) }">{{ sys.cpu }}</span>
-      <svg v-if="cpuHistory.length > 2" class="spark" viewBox="0 0 100 28" preserveAspectRatio="none">
+      <svg
+        v-if="cpuHistory.length > 2"
+        class="spark"
+        viewBox="0 0 100 28"
+        preserveAspectRatio="none"
+      >
         <defs>
           <linearGradient :id="'cpuGrad'" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" :style="{ stopColor: colorByPct(sys.cpuPct) }" stop-opacity="0.25" />
@@ -11,13 +16,25 @@
           </linearGradient>
         </defs>
         <polygon :points="areaPoints(cpuHistory)" :fill="'url(#cpuGrad)'" />
-        <polyline :points="sparkPoints(cpuHistory)" fill="none" :style="{ stroke: colorByPct(sys.cpuPct) }" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+        <polyline
+          :points="sparkPoints(cpuHistory)"
+          fill="none"
+          :style="{ stroke: colorByPct(sys.cpuPct) }"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
       </svg>
     </div>
     <div class="ribbon-item">
       <span class="ribbon-label">{{ $t('dashboard.ram') }}</span>
       <span class="ribbon-value" :style="{ color: colorByPct(sys.ramPct) }">{{ sys.ram }}</span>
-      <svg v-if="ramHistory.length > 2" class="spark" viewBox="0 0 100 28" preserveAspectRatio="none">
+      <svg
+        v-if="ramHistory.length > 2"
+        class="spark"
+        viewBox="0 0 100 28"
+        preserveAspectRatio="none"
+      >
         <defs>
           <linearGradient :id="'ramGrad'" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" :style="{ stopColor: colorByPct(sys.ramPct) }" stop-opacity="0.25" />
@@ -25,12 +42,21 @@
           </linearGradient>
         </defs>
         <polygon :points="areaPoints(ramHistory)" :fill="'url(#ramGrad)'" />
-        <polyline :points="sparkPoints(ramHistory)" fill="none" :style="{ stroke: colorByPct(sys.ramPct) }" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+        <polyline
+          :points="sparkPoints(ramHistory)"
+          fill="none"
+          :style="{ stroke: colorByPct(sys.ramPct) }"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
       </svg>
     </div>
     <div class="ribbon-item">
       <span class="ribbon-label">{{ $t('dashboard.storageLabel') }}</span>
-      <span class="ribbon-value" :style="{ color: colorByPct(sys.storagePct) }">{{ sys.storage }}</span>
+      <span class="ribbon-value" :style="{ color: colorByPct(sys.storagePct) }">
+        {{ sys.storage }}
+      </span>
     </div>
     <div class="ribbon-item">
       <span class="ribbon-label">{{ $t('dashboard.streams') }}</span>
@@ -41,19 +67,42 @@
       <span class="ribbon-label">Services</span>
       <div class="svc-list">
         <div v-for="svc in services" :key="svc.key" class="svc-row">
-          <img v-if="svc.key === 'emby'" class="svc-logo" :class="{ 'svc-offline': !svc.online }" src="/assets/icons/emby.svg" alt="Emby" />
-          <svg v-else-if="svc.key === 'plex'" class="svc-logo" :class="{ 'svc-offline': !svc.online }" viewBox="0 0 24 24" fill="none">
-            <path d="M3.5 3h6l8 9-8 9h-6l8-9-8-9z" fill="#E5A00D"/>
+          <img
+            v-if="svc.key === 'emby'"
+            class="svc-logo"
+            :class="{ 'svc-offline': !svc.online }"
+            src="/assets/icons/emby.svg"
+            alt="Emby"
+          />
+          <svg
+            v-else-if="svc.key === 'plex'"
+            class="svc-logo"
+            :class="{ 'svc-offline': !svc.online }"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <path d="M3.5 3h6l8 9-8 9h-6l8-9-8-9z" fill="#E5A00D" />
           </svg>
-          <svg v-else-if="svc.key === 'jellyfin'" class="svc-logo" :class="{ 'svc-offline': !svc.online }" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2C8.5 5.5 5.5 8 4 12c1.5 4 4.5 6.5 8 10 3.5-3.5 6.5-6 8-10-1.5-4-4.5-6.5-8-10z" fill="#00A4DC"/>
-            <ellipse cx="12" cy="12" rx="3" ry="4.5" fill="#fff" opacity="0.25"/>
+          <svg
+            v-else-if="svc.key === 'jellyfin'"
+            class="svc-logo"
+            :class="{ 'svc-offline': !svc.online }"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <path
+              d="M12 2C8.5 5.5 5.5 8 4 12c1.5 4 4.5 6.5 8 10 3.5-3.5 6.5-6 8-10-1.5-4-4.5-6.5-8-10z"
+              fill="#00A4DC"
+            />
+            <ellipse cx="12" cy="12" rx="3" ry="4.5" fill="#fff" opacity="0.25" />
           </svg>
           <span v-else class="svc-dot" :class="svc.online ? 'on' : 'off'" />
           <span class="svc-name">{{ svc.label }}</span>
           <span class="svc-status-wrap">
             <span class="svc-pulse" :class="svc.online ? 'pulse-on' : 'pulse-off'" />
-            <span class="svc-status-text" :class="svc.online ? 'st-on' : 'st-off'">{{ svc.online ? 'En ligne' : 'Hors ligne' }}</span>
+            <span class="svc-status-text" :class="svc.online ? 'st-on' : 'st-off'">
+              {{ svc.online ? 'En ligne' : 'Hors ligne' }}
+            </span>
           </span>
         </div>
         <div v-if="services.length === 0" class="svc-row">
@@ -66,9 +115,7 @@
 </template>
 
 <script setup>
-import { useI18n } from 'vue-i18n'
-const { t } = useI18n()
-const props = defineProps({
+defineProps({
   sys: { type: Object, default: () => ({}) },
   sessionsCount: { type: Number, default: 0 },
   cpuHistory: { type: Array, default: () => [] },
@@ -76,7 +123,9 @@ const props = defineProps({
   services: { type: Array, default: () => [] },
 })
 
-function colorByPct(p) { return p < 60 ? 'var(--color-success)' : p < 80 ? 'var(--color-warning)' : 'var(--color-error)' }
+function colorByPct(p) {
+  return p < 60 ? 'var(--color-success)' : p < 80 ? 'var(--color-warning)' : 'var(--color-error)'
+}
 
 function sparkPoints(data) {
   if (data.length < 2) return ''

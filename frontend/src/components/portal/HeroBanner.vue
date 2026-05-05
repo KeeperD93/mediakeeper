@@ -91,7 +91,11 @@
           <Video :size="22" />
           {{ $t('portal.detail.watchTrailer') }}
         </button>
-        <button class="pt-hero-btn pt-hero-btn--info pt-hero-btn--icon" :aria-label="$t('portal.moreInfo')" @click="$emit('detail', item)">
+        <button
+          class="pt-hero-btn pt-hero-btn--info pt-hero-btn--icon"
+          :aria-label="$t('portal.moreInfo')"
+          @click="$emit('detail', item)"
+        >
           <Info :size="24" />
         </button>
       </div>
@@ -102,11 +106,7 @@
       <Volume2 v-else :size="20" />
     </button>
 
-    <TrailerLightbox
-      v-if="lightboxOpen && trailer"
-      :trailer="trailer"
-      @close="closeLightbox"
-    />
+    <TrailerLightbox v-if="lightboxOpen && trailer" :trailer="trailer" @close="closeLightbox" />
 
     <div v-if="totalItems > 1" class="pt-hero-dots">
       <span
@@ -140,13 +140,31 @@ const props = defineProps({
   isFeatured: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['play', 'detail', 'goto', 'sound-on', 'sound-off', 'video-ended', 'request'])
+const emit = defineEmits([
+  'play',
+  'detail',
+  'goto',
+  'sound-on',
+  'sound-off',
+  'video-ended',
+  'request',
+])
 
 const {
-  trailer, muted, videoPlaying, embyVideoRef, playerId,
-  loadTrailer, prefetchTrailer, peekTrailer, ensureYTApi,
-  toggleMute, setMuted, setVideoPlaying,
-  onEmbyPause, onEmbyEnded,
+  trailer,
+  muted,
+  videoPlaying,
+  embyVideoRef,
+  playerId,
+  loadTrailer,
+  prefetchTrailer,
+  peekTrailer,
+  ensureYTApi,
+  toggleMute,
+  setMuted,
+  setVideoPlaying,
+  onEmbyPause,
+  onEmbyEnded,
 } = useHeroBannerTrailer({ onEnded: () => emit('video-ended') })
 
 const heroRef = ref(null)
@@ -155,19 +173,20 @@ const lightboxOpen = ref(false)
 // Cinematic black veil between two trailers — asymmetric fade + safety net.
 function peekItemTrailer(item) {
   if (!item) return undefined
-  return peekTrailer(
-    item.media_type || 'movie',
-    item.tmdb_id || item.id,
-    item.emby_item_id || null,
-  )
+  return peekTrailer(item.media_type || 'movie', item.tmdb_id || item.id, item.emby_item_id || null)
 }
-const { transitioning, fadeStyle, onItemChange, startInitial, dispose: disposeVeil } =
-  useHeroCinemaVeil({
-    videoPlaying,
-    peekItem: peekItemTrailer,
-    loadItem: (it) => loadTrailer(it),
-    hasTrailer: () => !!trailer.value,
-  })
+const {
+  transitioning,
+  fadeStyle,
+  onItemChange,
+  startInitial,
+  dispose: disposeVeil,
+} = useHeroCinemaVeil({
+  videoPlaying,
+  peekItem: peekItemTrailer,
+  loadItem: it => loadTrailer(it),
+  hasTrailer: () => !!trailer.value,
+})
 
 const bgStyle = computed(() => {
   const bg = props.item.backdrop || props.item.poster_url || ''
@@ -212,7 +231,12 @@ function closeLightbox() {
   }
 }
 
-watch(() => props.item?.id, () => { onItemChange(props.item) })
+watch(
+  () => props.item?.id,
+  () => {
+    onItemChange(props.item)
+  },
+)
 
 // Warm up the trailer URL cache for the next item so the rotation
 // resolves instantly — the loading gap under the black veil becomes
@@ -257,13 +281,18 @@ function setupVisibilityObserver() {
 onMounted(async () => {
   try {
     await ensureYTApi()
-  } catch { /* swallow */ }
+  } catch {
+    /* swallow */
+  }
   await startInitial(props.item)
   setupVisibilityObserver()
 })
 
 onUnmounted(() => {
-  if (visObserver) { visObserver.disconnect(); visObserver = null }
+  if (visObserver) {
+    visObserver.disconnect()
+    visObserver = null
+  }
   disposeVeil()
 })
 </script>

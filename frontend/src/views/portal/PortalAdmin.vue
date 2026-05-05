@@ -46,19 +46,45 @@ import AdminSettings from '@/components/portal/admin/AdminSettings.vue'
 import AdminDebug from '@/components/portal/admin/AdminDebug.vue'
 
 const { stats, fetchStats } = usePortalAdmin()
-const TAB_IDS = ['blacklist', 'tickets', 'news', 'featured', 'xpEvents', 'lists', 'settings', 'debug']
+const TAB_IDS = [
+  'blacklist',
+  'tickets',
+  'news',
+  'featured',
+  'xpEvents',
+  'lists',
+  'settings',
+  'debug',
+]
 const activeTab = useTabSync(TAB_IDS, 'blacklist')
 
 onMounted(() => fetchStats())
 </script>
 
 <style scoped>
-.pt-admin { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
-.pt-admin-header { margin-bottom: 1.25rem; }
-.pt-admin-header h2 { font-size: var(--portal-text-xl); font-weight: var(--portal-font-bold); color: var(--text-primary); }
-.pt-admin-stats { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem; }
+.pt-admin {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+.pt-admin-header {
+  margin-bottom: 1.25rem;
+}
+.pt-admin-header h2 {
+  font-size: var(--portal-text-xl);
+  font-weight: var(--portal-font-bold);
+  color: var(--text-primary);
+}
+.pt-admin-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
 @media (min-width: 640px) {
-  .pt-admin-stats { flex-direction: row; }
+  .pt-admin-stats {
+    flex-direction: row;
+  }
 }
 .pt-stat-card {
   flex: 1;
@@ -68,6 +94,14 @@ onMounted(() => fetchStats())
   border: 1px solid var(--border);
   text-align: center;
 }
-.pt-stat-val { display: block; font-size: var(--portal-text-2xl); font-weight: var(--portal-font-extrabold); color: var(--accent); }
-.pt-stat-label { font-size: var(--portal-text-xs); color: var(--text-muted); }
+.pt-stat-val {
+  display: block;
+  font-size: var(--portal-text-2xl);
+  font-weight: var(--portal-font-extrabold);
+  color: var(--accent);
+}
+.pt-stat-label {
+  font-size: var(--portal-text-xs);
+  color: var(--text-muted);
+}
 </style>

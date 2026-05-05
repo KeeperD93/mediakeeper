@@ -102,7 +102,7 @@ async def search_tmdb_multi(db: AsyncSession, query: str) -> list[dict]:
                         d = dr.json()
                         item["total_seasons"] = d.get("number_of_seasons", 0)
                         item["total_episodes"] = d.get("number_of_episodes", 0)
-                except Exception:
+                except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
                     pass
         return results
     except Exception as e:

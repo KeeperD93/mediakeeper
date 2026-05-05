@@ -54,7 +54,6 @@ vi.mock('lucide-vue-next', () => ({
 
 import DeletionPendingBanner from '@/components/portal/DeletionPendingBanner.vue'
 
-
 function buildComponent() {
   return mount(DeletionPendingBanner, {
     global: {
@@ -68,7 +67,6 @@ function buildComponent() {
   })
 }
 
-
 beforeEach(() => {
   mocks.refreshAuth.mockReset()
   mocks.cancelDeletion.mockReset()
@@ -79,7 +77,6 @@ beforeEach(() => {
   mocks.gdprState = ref(null)
   document.body.innerHTML = ''
 })
-
 
 describe('DeletionPendingBanner', () => {
   it('does not render when no deletion is pending', async () => {
@@ -116,9 +113,7 @@ describe('DeletionPendingBanner', () => {
 
     expect(mocks.cancelDeletion).toHaveBeenCalledOnce()
     expect(mocks.refreshAuth).toHaveBeenCalledOnce()
-    expect(mocks.showToast).toHaveBeenCalledWith(
-      'portal.privacy.banner.cancelled', 'ok',
-    )
+    expect(mocks.showToast).toHaveBeenCalledWith('portal.privacy.banner.cancelled', 'ok')
   })
 
   it('shows an error toast when cancel fails', async () => {
@@ -133,9 +128,7 @@ describe('DeletionPendingBanner', () => {
     await w.find('.pt-dpb-cancel').trigger('click')
     await flushPromises()
 
-    expect(mocks.showToast).toHaveBeenCalledWith(
-      'portal.privacy.banner.cancelFailed', 'err',
-    )
+    expect(mocks.showToast).toHaveBeenCalledWith('portal.privacy.banner.cancelFailed', 'err')
     // refreshAuth is skipped on failure — keep the banner visible.
     expect(mocks.refreshAuth).not.toHaveBeenCalled()
   })

@@ -22,7 +22,7 @@ if len(SECRET_KEY.encode("utf-8")) < 32:
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "60"))
-EXTERNAL_AUTH_PASSWORD_SENTINEL = "__emby_auth__"
+EXTERNAL_AUTH_PASSWORD_SENTINEL = "__emby_auth__"  # noqa: S105 -- sentinel marker for delegated auth, never used as a credential
 
 
 # ============================================

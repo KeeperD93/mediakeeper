@@ -23,20 +23,24 @@ export function useLogs() {
     const jm = line.match(/"level"\s*:\s*"(\w+)"/)
     if (jm) return jm[1]
     if (line.includes('[CRITICAL]')) return 'CRITICAL'
-    if (line.includes('[ERROR]'))    return 'ERROR'
-    if (line.includes('[WARNING]'))  return 'WARNING'
-    if (line.includes('[DEBUG]'))    return 'DEBUG'
+    if (line.includes('[ERROR]')) return 'ERROR'
+    if (line.includes('[WARNING]')) return 'WARNING'
+    if (line.includes('[DEBUG]')) return 'DEBUG'
     return 'INFO'
   }
   function getModule(line) {
-    const m = line.match(/\[mediakeeper\.([a-z_.]+)\]/) || line.match(/"logger"\s*:\s*"mediakeeper\.([a-z_.]+)"/)
+    const m =
+      line.match(/\[mediakeeper\.([a-z_.]+)\]/) ||
+      line.match(/"logger"\s*:\s*"mediakeeper\.([a-z_.]+)"/)
     return m ? m[1] : ''
   }
 
   const detectedModules = computed(() => {
     const mods = new Set()
     for (const line of rawLines.value) {
-      const m = line.match(/\[mediakeeper\.([a-z_.]+)\]/) || line.match(/"logger"\s*:\s*"mediakeeper\.([a-z_.]+)"/)
+      const m =
+        line.match(/\[mediakeeper\.([a-z_.]+)\]/) ||
+        line.match(/"logger"\s*:\s*"mediakeeper\.([a-z_.]+)"/)
       if (m) mods.add(m[1])
     }
     return [...mods].sort()
@@ -59,11 +63,14 @@ export function useLogs() {
     return `${total} ${t('logs.lines')} • ${mode}`
   })
   const countText = computed(() => {
-    if (search.value.trim()) return `${filteredLines.value.length} ${t('logs.results', filteredLines.value.length)}`
+    if (search.value.trim())
+      return `${filteredLines.value.length} ${t('logs.results', filteredLines.value.length)}`
     return `${filteredLines.value.length} / ${rawLines.value.length} ${t('logs.lines')}`
   })
 
-  function lineClass(line) { return `log-${getLevel(line).toLowerCase()}` }
+  function lineClass(line) {
+    return `log-${getLevel(line).toLowerCase()}`
+  }
 
   // Returns an array of ``{ text, highlight }`` segments so the template
   // can render the line as plain text (Vue auto-escaped) with ``<mark>``
@@ -90,19 +97,41 @@ export function useLogs() {
 
   async function fetchFiles() {
     loadingFiles.value = true
-    try { const data = await apiGet('/api/logs/files'); if (data?.files) files.value = data.files } catch { /* silent: logs list fetch */ }
+    try {
+      const data = await apiGet('/api/logs/files')
+      if (data?.files) files.value = data.files
+    } catch {
+      /* silent: logs list fetch */
+    }
     loadingFiles.value = false
   }
   async function loadDebugMode() {
-    try { const data = await apiGet('/api/logs/debug'); if (data) debugEnabled.value = data.enabled } catch { /* silent: debug flag fetch */ }
+    try {
+      const data = await apiGet('/api/logs/debug')
+      if (data) debugEnabled.value = data.enabled
+    } catch {
+      /* silent: debug flag fetch */
+    }
   }
   async function toggleDebug() {
     const next = !debugEnabled.value
-    try { await apiFetch('/api/logs/debug', { method: 'POST', body: JSON.stringify({ enabled: next }) }); debugEnabled.value = next } catch (e) { console.warn('[useLogs.toggleDebug] failed to toggle debug flag', e) }
+    try {
+      await apiFetch('/api/logs/debug', { method: 'POST', body: JSON.stringify({ enabled: next }) })
+      debugEnabled.value = next
+    } catch (e) {
+      console.warn('[useLogs.toggleDebug] failed to toggle debug flag', e)
+    }
   }
   async function refreshContent() {
     if (!currentFile.value) return
-    try { const data = await apiGet(`/api/logs/read/${encodeURIComponent(currentFile.value)}?lines=2000`); rawLines.value = data?.lines || [] } catch { /* silent: content refresh, auto-retry on next tick */ }
+    try {
+      const data = await apiGet(
+        `/api/logs/read/${encodeURIComponent(currentFile.value)}?lines=2000`,
+      )
+      rawLines.value = data?.lines || []
+    } catch {
+      /* silent: content refresh, auto-retry on next tick */
+    }
   }
   async function viewFile(filename) {
     currentFile.value = filename
@@ -125,14 +154,25 @@ export function useLogs() {
       const a = document.createElement('a')
       a.href = url
       a.download = filename
-      document.body.appendChild(a); a.click(); a.remove()
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
       URL.revokeObjectURL(url)
-    } catch (e) { console.warn('[useLogs.downloadFile] download failed', e) }
+    } catch (e) {
+      console.warn('[useLogs.downloadFile] download failed', e)
+    }
   }
-  function toggleAutoRefresh() { autoRefresh.value = !autoRefresh.value }
-  function stopTimer() { if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null } }
+  function toggleAutoRefresh() {
+    autoRefresh.value = !autoRefresh.value
+  }
+  function stopTimer() {
+    if (refreshTimer) {
+      clearInterval(refreshTimer)
+      refreshTimer = null
+    }
+  }
 
-  watch(autoRefresh, (v) => {
+  watch(autoRefresh, v => {
     stopTimer()
     if (v && currentFile.value) refreshTimer = setInterval(() => refreshContent(), 5000)
   })
@@ -140,11 +180,28 @@ export function useLogs() {
   onUnmounted(() => stopTimer())
 
   return {
-    files, loadingFiles, debugEnabled,
-    currentFile, rawLines, search, autoRefresh,
-    filters, filterModule, detectedModules,
-    filteredLines, displayLines, statusText, countText,
-    lineClass, lineSegments,
-    fetchFiles, loadDebugMode, toggleDebug, viewFile, backToFiles, downloadFile, toggleAutoRefresh,
+    files,
+    loadingFiles,
+    debugEnabled,
+    currentFile,
+    rawLines,
+    search,
+    autoRefresh,
+    filters,
+    filterModule,
+    detectedModules,
+    filteredLines,
+    displayLines,
+    statusText,
+    countText,
+    lineClass,
+    lineSegments,
+    fetchFiles,
+    loadDebugMode,
+    toggleDebug,
+    viewFile,
+    backToFiles,
+    downloadFile,
+    toggleAutoRefresh,
   }
 }

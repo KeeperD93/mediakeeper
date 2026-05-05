@@ -62,7 +62,7 @@ async def get_global_totals(db: AsyncSession):
                     emby_users = res.json()
                     total_users = sum(1 for u in emby_users if not u.get("Policy", {}).get("IsDisabled", False))
                     disabled_users = sum(1 for u in emby_users if u.get("Policy", {}).get("IsDisabled", False))
-    except Exception:
+    except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
         pass
 
     return {

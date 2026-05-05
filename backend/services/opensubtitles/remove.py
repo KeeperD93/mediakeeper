@@ -100,7 +100,7 @@ async def remove_stream(
         if proc.returncode != 0:
             try:
                 Path(tmp_path).unlink(missing_ok=True)
-            except Exception:
+            except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
                 pass
             err_msg = stderr.decode(errors="replace")[-300:] if stderr else "unknown"
             logger.error(f"[opensubtitles] ffmpeg failed: {err_msg}")
@@ -114,7 +114,7 @@ async def remove_stream(
                 f"{url}/Items/{item_id}/Refresh",
                 headers=headers, timeout=10.0,
             )
-        except Exception:
+        except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
             pass
 
         return {
@@ -130,7 +130,7 @@ async def remove_stream(
     except Exception as e:
         try:
             Path(tmp_path).unlink(missing_ok=True)
-        except Exception:
+        except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
             pass
         logger.error(f"[opensubtitles] Remove stream error: {e}")
         return {"error": str(e)[:200]}
@@ -216,7 +216,7 @@ async def remove_streams_batch(
 
         try:
             await client.post(f"{url}/Items/{item_id}/Refresh", headers=headers, timeout=10.0)
-        except Exception:
+        except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
             pass
 
         return {"success": True, "removed_count": len(to_remove), "removed_streams": to_remove}

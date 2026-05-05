@@ -1,14 +1,24 @@
 <template>
   <div class="mm-tabs-wrapper">
-    <button v-show="canScrollLeft" class="mm-tabs-arrow mm-tabs-arrow-left" @click="scrollTabs('left')" @mouseenter="startAutoScroll('left')" @mouseleave="stopAutoScroll" @dragover.prevent="startAutoScroll('left')" @dragleave="stopAutoScroll" @drop.prevent="stopAutoScroll">
+    <button
+      v-show="canScrollLeft"
+      class="mm-tabs-arrow mm-tabs-arrow-left"
+      @click="scrollTabs('left')"
+      @mouseenter="startAutoScroll('left')"
+      @mouseleave="stopAutoScroll"
+      @dragover.prevent="startAutoScroll('left')"
+      @dragleave="stopAutoScroll"
+      @drop.prevent="stopAutoScroll"
+    >
       <ChevronLeft :size="14" />
     </button>
     <div ref="tabsRef" class="mm-tabs" @scroll="updateScrollState">
       <button
-        v-for="c in CATS" :key="c.key"
+        v-for="c in CATS"
+        :key="c.key"
         class="mm-tab"
         :class="{
-          active:    activeCat === c.key,
+          active: activeCat === c.key,
           'drop-hl': dragOverCat === c.key && draggedActive && activeCat !== c.key,
         }"
         @click="setCat(c.key)"
@@ -30,11 +40,24 @@
         {{ $t('mediaManager.allCategories') }}
       </button>
     </div>
-    <button v-show="canScrollRight" class="mm-tabs-arrow mm-tabs-arrow-right" @click="scrollTabs('right')" @mouseenter="startAutoScroll('right')" @mouseleave="stopAutoScroll" @dragover.prevent="startAutoScroll('right')" @dragleave="stopAutoScroll" @drop.prevent="stopAutoScroll">
+    <button
+      v-show="canScrollRight"
+      class="mm-tabs-arrow mm-tabs-arrow-right"
+      @click="scrollTabs('right')"
+      @mouseenter="startAutoScroll('right')"
+      @mouseleave="stopAutoScroll"
+      @dragover.prevent="startAutoScroll('right')"
+      @dragleave="stopAutoScroll"
+      @drop.prevent="stopAutoScroll"
+    >
       <ChevronRight :size="14" />
     </button>
     <!-- Bouton + ajouter category -->
-    <button class="mm-tabs-add" :title="$t('mediaManager.addCategoryTitle')" @click="showAddModal = true">
+    <button
+      class="mm-tabs-add"
+      :title="$t('mediaManager.addCategoryTitle')"
+      @click="showAddModal = true"
+    >
       <Plus :size="14" />
     </button>
 
@@ -50,7 +73,11 @@
         <div class="mm-cat-modal-body">
           <div class="mm-cat-field">
             <label class="mm-cat-label">{{ $t('mediaManager.categoryName') }}</label>
-            <input v-model="newCatLabel" class="mm-cat-input" :placeholder="$t('mediaManager.categoryNamePlaceholder')" />
+            <input
+              v-model="newCatLabel"
+              class="mm-cat-input"
+              :placeholder="$t('mediaManager.categoryNamePlaceholder')"
+            />
           </div>
           <div class="mm-cat-field">
             <label class="mm-cat-label">{{ $t('mediaManager.categoryPath') }}</label>
@@ -62,7 +89,12 @@
               </span>
               <template v-for="(seg, i) in browseCrumbs" :key="i">
                 <span class="mm-browse-sep">/</span>
-                <span class="mm-browse-crumb" @click="browseTo(browseCrumbs.slice(0, i + 1).join('/'))">{{ seg }}</span>
+                <span
+                  class="mm-browse-crumb"
+                  @click="browseTo(browseCrumbs.slice(0, i + 1).join('/'))"
+                >
+                  {{ seg }}
+                </span>
               </template>
             </div>
             <!-- Liste des folders -->
@@ -70,9 +102,19 @@
               <div v-if="browseLoading" class="mm-browse-empty">
                 <span class="mk-spin mk-spin--14" />
               </div>
-              <div v-else-if="browseError" class="mm-browse-empty mm-browse-empty--error">{{ browseError }}</div>
-              <div v-else-if="!browseDirs.length" class="mm-browse-empty">{{ $t('mediaManager.noSubfolders') }}</div>
-              <div v-for="d in browseDirs" :key="d.path" class="mm-browse-item" :class="{ selected: newCatPath === d.path }" @click="selectDir(d)">
+              <div v-else-if="browseError" class="mm-browse-empty mm-browse-empty--error">
+                {{ browseError }}
+              </div>
+              <div v-else-if="!browseDirs.length" class="mm-browse-empty">
+                {{ $t('mediaManager.noSubfolders') }}
+              </div>
+              <div
+                v-for="d in browseDirs"
+                :key="d.path"
+                class="mm-browse-item"
+                :class="{ selected: newCatPath === d.path }"
+                @click="selectDir(d)"
+              >
                 <Folder :size="13" :stroke-width="1.8" />
                 <span class="mm-browse-name">{{ d.name }}</span>
                 <ChevronRight class="mm-browse-chevron" :size="10" />
@@ -87,7 +129,11 @@
         </div>
         <div class="mm-cat-modal-footer">
           <button class="mm-btn-sm" @click="showAddModal = false">{{ $t('common.cancel') }}</button>
-          <button class="mm-btn-sm mm-btn-accent" :disabled="!newCatLabel.trim() || !newCatPath.trim()" @click="submitAdd">
+          <button
+            class="mm-btn-sm mm-btn-accent"
+            :disabled="!newCatLabel.trim() || !newCatPath.trim()"
+            @click="submitAdd"
+          >
             <Check :size="12" />
             {{ $t('common.add') }}
           </button>
@@ -96,7 +142,12 @@
     </div>
 
     <!-- Menu contextuel deletion -->
-    <div v-if="deleteMenu.show" class="mm-cat-ctx" :style="{ top: deleteMenu.y + 'px', left: deleteMenu.x + 'px' }" @click.self="deleteMenu.show = false">
+    <div
+      v-if="deleteMenu.show"
+      class="mm-cat-ctx"
+      :style="{ top: deleteMenu.y + 'px', left: deleteMenu.x + 'px' }"
+      @click.self="deleteMenu.show = false"
+    >
       <button class="mm-cat-ctx-btn" @click="confirmDelete">
         <Trash2 :size="12" />
         {{ $t('mediaManager.deleteCategory') }}
@@ -110,19 +161,45 @@ import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useMediaManager, CATS } from '@/composables/useMediaManager'
 import { useApi } from '@/composables/useApi'
-import { Check, ChevronLeft, ChevronRight, Folder, Home, List, Plus, Trash2, X } from 'lucide-vue-next'
+import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Folder,
+  Home,
+  List,
+  Plus,
+  Trash2,
+  X,
+} from 'lucide-vue-next'
 import { useConfirm } from '@/composables/useConfirm'
 
 const mkConfirm = useConfirm()
 
 const { t } = useI18n()
 const { apiGet } = useApi()
-const { activeCat, dragOverCat, multiCatMode, setCat, dropOnCat, toggleMultiCat, addCategory, removeCategory } = useMediaManager()
+const {
+  activeCat,
+  dragOverCat,
+  multiCatMode,
+  setCat,
+  dropOnCat,
+  toggleMultiCat,
+  addCategory,
+  removeCategory,
+} = useMediaManager()
 const draggedActive = computed(() => dragOverCat.value !== null)
 
-function onDragOverTab(key) { dragOverCat.value = key }
-function onDragLeaveTab() { dragOverCat.value = null }
-function onDropTab(key) { dragOverCat.value = null; dropOnCat(key) }
+function onDragOverTab(key) {
+  dragOverCat.value = key
+}
+function onDragLeaveTab() {
+  dragOverCat.value = null
+}
+function onDropTab(key) {
+  dragOverCat.value = null
+  dropOnCat(key)
+}
 
 // ── Ajout category ──
 const showAddModal = ref(false)
@@ -145,9 +222,15 @@ async function loadBrowseDirs(path) {
   browseError.value = ''
   try {
     const data = await apiGet(`/api/media/browse-dirs?path=${encodeURIComponent(path)}`)
-    if (data?.error) { browseError.value = data.error; browseDirs.value = [] }
-    else { browseDirs.value = data?.dirs || [] }
-  } catch { browseError.value = t('common.networkError') }
+    if (data?.error) {
+      browseError.value = data.error
+      browseDirs.value = []
+    } else {
+      browseDirs.value = data?.dirs || []
+    }
+  } catch {
+    browseError.value = t('common.networkError')
+  }
   browseLoading.value = false
 }
 
@@ -168,7 +251,7 @@ function selectDir(d) {
 }
 
 // Load the root folders when the modal opens
-watch(showAddModal, (v) => {
+watch(showAddModal, v => {
   if (v) {
     browsePath.value = '/'
     newCatLabel.value = ''
@@ -193,7 +276,10 @@ const deleteMenu = ref({ show: false, x: 0, y: 0, key: '' })
 
 function openDeleteMenu(e, key) {
   deleteMenu.value = { show: true, x: e.clientX, y: e.clientY, key }
-  const close = () => { deleteMenu.value.show = false; document.removeEventListener('click', close) }
+  const close = () => {
+    deleteMenu.value.show = false
+    document.removeEventListener('click', close)
+  }
   setTimeout(() => document.addEventListener('click', close), 10)
 }
 
@@ -241,7 +327,10 @@ function startAutoScroll(dir) {
 }
 
 function stopAutoScroll() {
-  if (_autoScrollTimer) { clearInterval(_autoScrollTimer); _autoScrollTimer = null }
+  if (_autoScrollTimer) {
+    clearInterval(_autoScrollTimer)
+    _autoScrollTimer = null
+  }
 }
 
 let _resizeObs = null

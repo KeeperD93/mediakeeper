@@ -30,11 +30,7 @@
 
     <SurpriseOverlay v-if="surpriseOpen" @close="surpriseOpen = false" />
 
-    <NewsPopup
-      v-if="showNewsPopup"
-      :items="unreadNews"
-      @dismiss="dismissNews"
-    />
+    <NewsPopup v-if="showNewsPopup" :items="unreadNews" @dismiss="dismissNews" />
 
     <!-- GDPR opt-in: persistent grace-period banner shown on every page
          while a deletion request is pending. EventBanner stacks below
@@ -61,7 +57,6 @@
          a real username on first portal login. ``display_name_must_set``
          flips to false the moment they save. -->
     <ForceUsernameModal :open="forceUsernameOpen" @done="forceUsernameOpen = false" />
-
   </div>
 </template>
 
@@ -89,7 +84,7 @@ import { PORTAL_TAB } from '@/constants/portal'
 
 const route = useRoute()
 const router = useRouter()
-const { profile, ui, checkPortalAuth } = usePortalAuth()
+const { profile, checkPortalAuth } = usePortalAuth()
 const { unreadNews, fetchUnread, markRead } = usePortalNews()
 const { applyPortalLocale, restoreGlobalLocale } = usePortalLocale()
 const { initGlobalChat, shutdownGlobalChat } = usePortalChat()
@@ -98,7 +93,9 @@ const { initGlobalChat, shutdownGlobalChat } = usePortalChat()
 // and react to live changes from profile/settings updates.
 watch(
   () => profile.value?.language,
-  (lang) => { if (lang) applyPortalLocale(lang) },
+  lang => {
+    if (lang) applyPortalLocale(lang)
+  },
   { immediate: true },
 )
 
@@ -114,7 +111,7 @@ onBeforeUnmount(() => {
 // the profile is replaced (account switch).
 watch(
   () => profile.value?.user_id || profile.value?.id || null,
-  (uid) => {
+  uid => {
     if (uid) initGlobalChat(profile.value)
   },
   { immediate: true },
@@ -275,5 +272,4 @@ onMounted(async () => {
     padding-top: 0;
   }
 }
-
 </style>

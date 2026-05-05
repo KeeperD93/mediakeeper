@@ -163,7 +163,7 @@ async def fetch_recent_watches(
                 if res.status_code == 200:
                     for item in res.json().get("Items", []):
                         movie_played[item.get("Id", "")] = bool((item.get("UserData") or {}).get("Played"))
-            except Exception:
+            except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
                 pass
 
         # Aggregate max progress per item_id so movies with multiple

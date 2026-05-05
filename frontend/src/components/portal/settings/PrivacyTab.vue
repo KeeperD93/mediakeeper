@@ -16,12 +16,13 @@
     </div>
     <!-- Server already runs the text through bleach on admin write;
          DOMPurify here is defence in depth (HelpCardList pattern). -->
-    <!-- eslint-disable-next-line vue/no-v-html -->
+    <!-- eslint-disable vue/no-v-html -->
     <div
       v-else-if="purifiedHtml"
       class="pt-privacy-text pt-help-article-body"
       v-html="purifiedHtml"
     />
+    <!-- eslint-enable vue/no-v-html -->
     <p v-else class="pt-privacy-empty">
       {{ $t('portal.privacy.policy.notConfigured') }}
     </p>
@@ -36,16 +37,9 @@
     </p>
 
     <div class="pt-privacy-actions">
-      <button
-        type="button"
-        class="pt-settings-btn"
-        :disabled="exporting"
-        @click="onExport"
-      >
+      <button type="button" class="pt-settings-btn" :disabled="exporting" @click="onExport">
         <Download :size="14" />
-        {{ exporting
-          ? $t('portal.privacy.data.exporting')
-          : $t('portal.privacy.data.exportBtn') }}
+        {{ exporting ? $t('portal.privacy.data.exporting') : $t('portal.privacy.data.exportBtn') }}
       </button>
 
       <button
@@ -79,9 +73,7 @@ import { useI18n } from 'vue-i18n'
 import DOMPurify from 'dompurify'
 import { Download, Trash2 } from 'lucide-vue-next'
 
-import {
-  EXPORT_LIMIT, EXPORT_TOO_LARGE, useGdprUser,
-} from '@/composables/portal/useGdprUser'
+import { EXPORT_LIMIT, EXPORT_TOO_LARGE, useGdprUser } from '@/composables/portal/useGdprUser'
 import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
@@ -135,7 +127,8 @@ function formatRetryAfter(retryAfter) {
   if (Number.isFinite(seconds) && seconds > 0) {
     const at = new Date(Date.now() + seconds * 1000)
     return at.toLocaleTimeString(locale.value, {
-      hour: '2-digit', minute: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
     })
   }
   // HTTP-date form — pass through as-is.
@@ -202,7 +195,7 @@ async function onConfirmDeletion() {
 .pt-privacy-text {
   margin-top: 0.25rem;
   padding: 0.85rem 1rem;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgb(255, 255, 255, 0.03);
   border: 1px solid var(--portal-border-faint);
   border-radius: 10px;
   font-size: var(--portal-text-sm);
@@ -210,15 +203,21 @@ async function onConfirmDeletion() {
   max-height: 360px;
   overflow-y: auto;
 }
-.pt-privacy-text :deep(p) { margin: 0 0 0.6em; }
-.pt-privacy-text :deep(p:last-child) { margin-bottom: 0; }
+.pt-privacy-text :deep(p) {
+  margin: 0 0 0.6em;
+}
+.pt-privacy-text :deep(p:last-child) {
+  margin-bottom: 0;
+}
 .pt-privacy-text :deep(h2),
 .pt-privacy-text :deep(h3) {
   margin: 0.85em 0 0.4em;
   font-size: var(--portal-text-base);
 }
 .pt-privacy-text :deep(ul),
-.pt-privacy-text :deep(ol) { padding-left: 1.2em; }
+.pt-privacy-text :deep(ol) {
+  padding-left: 1.2em;
+}
 
 .pt-privacy-dpo {
   margin-bottom: 0.5rem;
@@ -237,18 +236,18 @@ async function onConfirmDeletion() {
   margin-top: 0.75rem;
 }
 .pt-privacy-delete {
-  border-color: rgba(248, 113, 113, 0.45);
+  border-color: rgb(248, 113, 113, 0.45);
   color: #fecaca;
 }
 .pt-privacy-delete:hover:not(:disabled) {
-  background: rgba(248, 113, 113, 0.12);
+  background: rgb(248, 113, 113, 0.12);
 }
 
 .pt-privacy-emby-final {
   margin-top: 1rem;
   padding: 0.6rem 0.85rem;
   border-left: 3px solid var(--portal-color-info, #60a5fa);
-  background: rgba(96, 165, 250, 0.08);
+  background: rgb(96, 165, 250, 0.08);
   border-radius: 6px;
   font-size: var(--portal-text-xs);
   color: var(--portal-text-secondary);

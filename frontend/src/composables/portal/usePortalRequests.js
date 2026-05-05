@@ -30,7 +30,7 @@ export function usePortalRequests() {
       }
       nextCursor.value = res.next_cursor
       hasMore.value = res.has_more
-    } catch (e) {
+    } catch {
       // Backend may not be migrated yet — fail silently
       if (reset) requests.value = []
     }
@@ -75,8 +75,17 @@ export function usePortalRequests() {
   }
 
   return {
-    requests, quota, hasMore, nextCursor,
-    fetchRequests, fetchAdminRequests, createRequest, updateRequestStatus,
-    deleteRequest, fetchQuota, loading, error,
+    requests,
+    quota,
+    hasMore,
+    nextCursor,
+    fetchRequests,
+    fetchAdminRequests,
+    createRequest,
+    updateRequestStatus,
+    deleteRequest,
+    fetchQuota,
+    loading,
+    error,
   }
 }

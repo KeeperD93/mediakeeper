@@ -9,7 +9,6 @@ import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import GdprPendingTable from '@/components/portal/admin/GdprPendingTable.vue'
 
-
 describe('GdprPendingTable', () => {
   it('renders the empty state when no rows are provided', () => {
     const w = mount(GdprPendingTable, { props: { rows: [], loading: false } })
@@ -27,12 +26,14 @@ describe('GdprPendingTable', () => {
       props: {
         rows: [
           {
-            id: 1, username: 'alice',
+            id: 1,
+            username: 'alice',
             deletion_requested_at: '2026-05-01T12:00:00+00:00',
             pending_deletion_at: '2026-05-31T12:00:00+00:00',
           },
           {
-            id: 2, username: 'bob',
+            id: 2,
+            username: 'bob',
             deletion_requested_at: '2026-05-02T12:00:00+00:00',
             pending_deletion_at: '2026-06-01T12:00:00+00:00',
           },
@@ -47,7 +48,8 @@ describe('GdprPendingTable', () => {
 
   it('emits "cancel" with the full row when the per-row button is clicked', async () => {
     const row = {
-      id: 42, username: 'carol',
+      id: 42,
+      username: 'carol',
       deletion_requested_at: '2026-05-03T08:00:00+00:00',
       pending_deletion_at: '2026-06-02T08:00:00+00:00',
     }
@@ -61,11 +63,14 @@ describe('GdprPendingTable', () => {
   it('disables the cancel button while a cancel is in-flight for that row', () => {
     const w = mount(GdprPendingTable, {
       props: {
-        rows: [{
-          id: 7, username: 'dave',
-          deletion_requested_at: '2026-05-03T08:00:00+00:00',
-          pending_deletion_at: '2026-06-02T08:00:00+00:00',
-        }],
+        rows: [
+          {
+            id: 7,
+            username: 'dave',
+            deletion_requested_at: '2026-05-03T08:00:00+00:00',
+            pending_deletion_at: '2026-06-02T08:00:00+00:00',
+          },
+        ],
         cancellingId: 7,
       },
     })

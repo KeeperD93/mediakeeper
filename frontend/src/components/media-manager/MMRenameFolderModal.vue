@@ -1,5 +1,5 @@
 <template>
-  <div class="mr-overlay" :class="{show: modalRenameFolderShow}" @click.self="close">
+  <div class="mr-overlay" :class="{ show: modalRenameFolderShow }" @click.self="close">
     <div class="mr-modal" role="dialog" aria-modal="true">
       <header class="mr-header">
         <div class="mr-header-title">
@@ -31,7 +31,9 @@
           <div class="mr-section-label">{{ $t('mediaManager.currentFolder') }}</div>
           <div class="mr-current-card">
             <span class="mr-current-icon"><Folder :size="16" /></span>
-            <span class="mr-current-name" :title="renameFolderCurrent">{{ renameFolderCurrent }}</span>
+            <span class="mr-current-name" :title="renameFolderCurrent">
+              {{ renameFolderCurrent }}
+            </span>
           </div>
         </div>
 
@@ -39,10 +41,12 @@
           <div class="mr-section-label">{{ $t('mediaManager.newFolderName') }}</div>
           <div class="mr-input-wrap">
             <Pencil :size="12" />
-            <input ref="inputRef"
+            <input
+              ref="inputRef"
               v-model="renameFolderValue"
               :placeholder="$t('mediaManager.newNamePlaceholder')"
-              @keydown.enter="onEnter" />
+              @keydown.enter="onEnter"
+            />
           </div>
         </div>
       </div>
@@ -50,8 +54,10 @@
       <footer class="mr-footer">
         <div class="mr-preview">
           <span class="mr-preview-label">{{ $t('mediaManager.newPath') }}</span>
-          <span class="mr-preview-path"
-            :class="{empty: !trimmedValue, unchanged: !hasChange && trimmedValue}">
+          <span
+            class="mr-preview-path"
+            :class="{ empty: !trimmedValue, unchanged: !hasChange && trimmedValue }"
+          >
             {{ previewText }}
           </span>
         </div>
@@ -74,8 +80,12 @@ import { Check, ChevronRight, Folder, Pencil, X } from 'lucide-vue-next'
 import '@/assets/styles/rename-folder-modal.css'
 
 const {
-  modalRenameFolderShow, renameFolderCurrent, renameFolderValue,
-  activeCat, subPath, execRenameFolder,
+  modalRenameFolderShow,
+  renameFolderCurrent,
+  renameFolderValue,
+  activeCat,
+  subPath,
+  execRenameFolder,
 } = useMediaManager()
 
 const inputRef = ref(null)
@@ -88,7 +98,9 @@ const parentSegments = computed(() => {
 })
 
 const trimmedValue = computed(() => (renameFolderValue.value || '').trim())
-const hasChange = computed(() => trimmedValue.value && trimmedValue.value !== renameFolderCurrent.value)
+const hasChange = computed(
+  () => trimmedValue.value && trimmedValue.value !== renameFolderCurrent.value,
+)
 
 const previewText = computed(() => {
   if (!trimmedValue.value) return '—'
@@ -96,10 +108,14 @@ const previewText = computed(() => {
   return parent ? `${parent}/${trimmedValue.value}` : trimmedValue.value
 })
 
-function close() { modalRenameFolderShow.value = false }
-function onEnter() { if (hasChange.value) execRenameFolder() }
+function close() {
+  modalRenameFolderShow.value = false
+}
+function onEnter() {
+  if (hasChange.value) execRenameFolder()
+}
 
-watch(modalRenameFolderShow, async (v) => {
+watch(modalRenameFolderShow, async v => {
   if (!v) return
   await nextTick()
   inputRef.value?.focus()

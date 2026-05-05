@@ -30,7 +30,7 @@
           class="pt-fab-btn"
           :title="$t('portal.mkEvents.create.title')"
           :style="{ transitionDelay: '0.04s' }"
-          @click="eventModalOpen = true; open = false"
+          @click="((eventModalOpen = true), (open = false))"
         >
           <CalendarPlus :size="20" />
         </button>
@@ -42,7 +42,7 @@
           class="pt-fab-btn"
           :title="$t('portal.surprise.title')"
           :style="{ transitionDelay: '0.02s' }"
-          @click="$emit('open-surprise'); open = false"
+          @click="($emit('open-surprise'), (open = false))"
         >
           <Dices :size="20" />
         </button>
@@ -64,11 +64,7 @@
       </transition-group>
 
       <!-- Main toggle button -->
-      <button
-        class="pt-fab-main"
-        :class="{ 'pt-fab-main--open': open }"
-        @click.stop="open = !open"
-      >
+      <button class="pt-fab-main" :class="{ 'pt-fab-main--open': open }" @click.stop="open = !open">
         <Plus :size="24" :stroke-width="2.5" />
         <!-- Unread chat badge — shown on the collapsed FAB only; the
              expanded sub-button below carries its own badge. -->
@@ -111,7 +107,9 @@ function onChat() {
   if (chatOpen.value) markRead()
   open.value = false
 }
-function closeChat() { chatOpen.value = false }
+function closeChat() {
+  chatOpen.value = false
+}
 
 // Close the FAB menu when clicking anywhere outside the cluster.
 function onClickOutside(e) {
@@ -135,7 +133,10 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside, true
   gap: 10px;
 }
 @media (min-width: 768px) {
-  .pt-fab { right: 24px; bottom: 24px; }
+  .pt-fab {
+    right: 24px;
+    bottom: 24px;
+  }
 }
 
 /* Sub-buttons column (above the main button) */
@@ -152,7 +153,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside, true
   height: 52px;
   border-radius: var(--portal-radius-circle);
   border: 1px solid var(--portal-border-intense);
-  background: rgba(67, 56, 202, 0.9);
+  background: rgb(67, 56, 202, 0.9);
   backdrop-filter: var(--portal-blur-md);
   -webkit-backdrop-filter: var(--portal-blur-md);
   color: #fff;
@@ -160,9 +161,13 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside, true
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 8px 28px rgba(67, 56, 202, 0.45),
-              0 4px 12px rgba(0, 0, 0, 0.3);
-  transition: transform var(--portal-dur-med) ease, background var(--portal-dur-med) ease, box-shadow var(--portal-dur-med) ease;
+  box-shadow:
+    0 8px 28px rgb(67, 56, 202, 0.45),
+    0 4px 12px rgb(0, 0, 0, 0.3);
+  transition:
+    transform var(--portal-dur-med) ease,
+    background var(--portal-dur-med) ease,
+    box-shadow var(--portal-dur-med) ease;
   flex-shrink: 0;
 }
 .pt-fab-main svg {
@@ -172,11 +177,14 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside, true
   transform: rotate(45deg);
 }
 .pt-fab-main:hover {
-  background: rgba(79, 70, 229, 0.95);
+  background: rgb(79, 70, 229, 0.95);
   transform: scale(1.06);
 }
 @media (min-width: 640px) {
-  .pt-fab-main { width: 56px; height: 56px; }
+  .pt-fab-main {
+    width: 56px;
+    height: 56px;
+  }
 }
 
 /* ─── Sub-buttons ─── */
@@ -185,7 +193,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside, true
   height: 44px;
   border-radius: var(--portal-radius-circle);
   border: 1px solid var(--portal-border-strong);
-  background: rgba(20, 20, 30, 0.82);
+  background: rgb(20, 20, 30, 0.82);
   backdrop-filter: var(--portal-blur-md);
   -webkit-backdrop-filter: var(--portal-blur-md);
   color: #fff;
@@ -193,25 +201,33 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside, true
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
-  transition: transform var(--portal-dur-fast), background var(--portal-dur-fast), opacity var(--portal-dur-base);
+  box-shadow: 0 6px 20px rgb(0, 0, 0, 0.45);
+  transition:
+    transform var(--portal-dur-fast),
+    background var(--portal-dur-fast),
+    opacity var(--portal-dur-base);
   position: relative;
 }
 .pt-fab-btn:hover:not(:disabled) {
-  background: rgba(67, 56, 202, 0.85);
+  background: rgb(67, 56, 202, 0.85);
   transform: translateY(-2px);
 }
 .pt-fab-btn--disabled {
   opacity: 0.35;
   cursor: not-allowed;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgb(255, 255, 255, 0.45);
 }
 @media (min-width: 640px) {
-  .pt-fab-btn { width: 48px; height: 48px; }
+  .pt-fab-btn {
+    width: 48px;
+    height: 48px;
+  }
 }
 
 /* Badge (unread chat count) */
-.pt-fab-main { position: relative; }
+.pt-fab-main {
+  position: relative;
+}
 .pt-fab-badge {
   position: absolute;
   top: -4px;
@@ -227,23 +243,27 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside, true
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid rgba(20, 20, 30, 0.9);
-  box-shadow: 0 0 10px rgba(var(--portal-color-error-rgb), 0.5);
+  border: 2px solid rgb(20, 20, 30, 0.9);
+  box-shadow: 0 0 10px rgb(var(--portal-color-error-rgb), 0.5);
 }
 /* Slightly bigger ring on the main "+" so the badge stays legible
    against the indigo background. */
 .pt-fab-badge--main {
   top: -6px;
   right: -6px;
-  border-color: var(--bg-primary, rgba(20, 20, 30, 0.9));
+  border-color: var(--bg-primary, rgb(20, 20, 30, 0.9));
 }
 
 /* ─── Pop transition: sub-buttons scale + fade in from below ─── */
 .pt-fab-pop-enter-active {
-  transition: opacity var(--portal-dur-base) ease, transform var(--portal-dur-med) cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition:
+    opacity var(--portal-dur-base) ease,
+    transform var(--portal-dur-med) cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .pt-fab-pop-leave-active {
-  transition: opacity var(--portal-dur-fast) ease, transform var(--portal-dur-fast) ease;
+  transition:
+    opacity var(--portal-dur-fast) ease,
+    transform var(--portal-dur-fast) ease;
 }
 .pt-fab-pop-enter-from {
   opacity: 0;

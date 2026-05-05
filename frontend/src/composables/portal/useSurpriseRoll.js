@@ -44,7 +44,9 @@ export function useSurpriseRoll({ getPool, onReveal }) {
       osc.start()
       osc.stop(ctx.currentTime + 0.09)
       tickCount++
-    } catch { /* audio blocked — silently ignore */ }
+    } catch {
+      /* audio blocked — silently ignore */
+    }
   }
 
   function playFinal() {
@@ -61,7 +63,9 @@ export function useSurpriseRoll({ getPool, onReveal }) {
       osc.connect(gain).connect(ctx.destination)
       osc.start()
       osc.stop(ctx.currentTime + 0.55)
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   function clearRollTimers() {
@@ -85,7 +89,7 @@ export function useSurpriseRoll({ getPool, onReveal }) {
     let elapsed = 0
     let lastIdx = -1
 
-    const ease = (t) => 1 - Math.pow(1 - t, 3)
+    const ease = t => 1 - Math.pow(1 - t, 3)
 
     const step = () => {
       const t = elapsed / TOTAL_MS
@@ -93,10 +97,12 @@ export function useSurpriseRoll({ getPool, onReveal }) {
         const finalIdx = Math.floor(Math.random() * total)
         activeIdx.value = finalIdx
         playFinal()
-        rollTimeouts.push(setTimeout(() => {
-          rolling.value = false
-          onReveal?.(finalIdx)
-        }, 400))
+        rollTimeouts.push(
+          setTimeout(() => {
+            rolling.value = false
+            onReveal?.(finalIdx)
+          }, 400),
+        )
         return
       }
       let idx = Math.floor(Math.random() * total)

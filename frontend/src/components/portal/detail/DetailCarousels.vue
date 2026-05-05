@@ -6,9 +6,11 @@
       :title="$t('portal.detail.byDirector', { name: director?.name || '' })"
       :items="directorFilmo.items.slice(0, 20)"
       card-width="160px"
-      :title-route="director?.id
-        ? { name: 'portal-person', params: { id: director.id }, query: { role: 'director' } }
-        : null"
+      :title-route="
+        director?.id
+          ? { name: 'portal-person', params: { id: director.id }, query: { role: 'director' } }
+          : null
+      "
       @select="$emit('select', $event)"
       @request="$emit('request', $event)"
     />
@@ -19,9 +21,11 @@
       :title="$t('portal.detail.withActor', { name: leadActor?.name || '' })"
       :items="actorFilmo.items.slice(0, 20)"
       card-width="160px"
-      :title-route="leadActor?.id
-        ? { name: 'portal-person', params: { id: leadActor.id }, query: { role: 'acting' } }
-        : null"
+      :title-route="
+        leadActor?.id
+          ? { name: 'portal-person', params: { id: leadActor.id }, query: { role: 'acting' } }
+          : null
+      "
       @select="$emit('select', $event)"
       @request="$emit('request', $event)"
     />
@@ -32,9 +36,11 @@
       :title="$t('portal.detail.inFranchise', { name: collection.collection?.name || '' })"
       :items="collection.items"
       card-width="160px"
-      :title-route="collection.collection?.id
-        ? { name: 'portal-collection', params: { id: collection.collection.id } }
-        : null"
+      :title-route="
+        collection.collection?.id
+          ? { name: 'portal-collection', params: { id: collection.collection.id } }
+          : null
+      "
       @select="$emit('select', $event)"
       @request="$emit('request', $event)"
     />
@@ -55,5 +61,10 @@ defineEmits(['select', 'request'])
 </script>
 
 <style scoped>
-.vmd-detail-carousels { display: flex; flex-direction: column; gap: 1rem; margin-top: 2rem; }
+.vmd-detail-carousels {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 2rem;
+}
 </style>

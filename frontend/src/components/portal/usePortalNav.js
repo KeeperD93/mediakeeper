@@ -23,7 +23,9 @@ export function usePortalNav(props, emit) {
   // Close the search drawer whenever the route changes.
   watch(
     () => router.currentRoute.value.fullPath,
-    () => { searchDrawerOpen.value = false },
+    () => {
+      searchDrawerOpen.value = false
+    },
   )
 
   const tabs = computed(() => {
@@ -38,18 +40,15 @@ export function usePortalNav(props, emit) {
     return base
   })
 
-  const avatarInitial = computed(() =>
-    props.profile?.display_name?.charAt(0)?.toUpperCase() || '?',
-  )
+  const avatarInitial = computed(() => props.profile?.display_name?.charAt(0)?.toUpperCase() || '?')
   const roleLabel = computed(() =>
     props.isAdmin ? t('portal.avatar.admin') : t('portal.avatar.user'),
   )
   const supportTitle = computed(() =>
     props.supportUrl ? t('portal.nav.support') : t('portal.nav.supportSoon'),
   )
-  const hasHero = computed(() =>
-    props.activeTab === PORTAL_TAB.HOME ||
-    props.activeTab === PORTAL_TAB.ME
+  const hasHero = computed(
+    () => props.activeTab === PORTAL_TAB.HOME || props.activeTab === PORTAL_TAB.ME,
   )
 
   function isTabActive(name) {
@@ -136,10 +135,13 @@ export function usePortalNav(props, emit) {
     }
 
     const navHeight = navRef.value?.offsetHeight || 72
-    scrolled.value = hero.getBoundingClientRect().bottom <= (navHeight - 8)
+    scrolled.value = hero.getBoundingClientRect().bottom <= navHeight - 8
   }
 
-  watch(() => props.activeTab, () => nextTick(onScroll))
+  watch(
+    () => props.activeTab,
+    () => nextTick(onScroll),
+  )
 
   let heroWatchTimer = null
 
@@ -166,10 +168,27 @@ export function usePortalNav(props, emit) {
   })
 
   return {
-    navRef, menuRef, menuOpen, scrolled, searchDrawerOpen,
-    tabs, avatarInitial, roleLabel, supportTitle,
-    toggleSearchDrawer, isTabActive, navigateTo,
-    goToDashboard, goToSettings, goToMyTickets,
-    toggleMenu, openSupport, doLogout, openWhatsNew, openDailyDigest, openHelp, goToLists,
+    navRef,
+    menuRef,
+    menuOpen,
+    scrolled,
+    searchDrawerOpen,
+    tabs,
+    avatarInitial,
+    roleLabel,
+    supportTitle,
+    toggleSearchDrawer,
+    isTabActive,
+    navigateTo,
+    goToDashboard,
+    goToSettings,
+    goToMyTickets,
+    toggleMenu,
+    openSupport,
+    doLogout,
+    openWhatsNew,
+    openDailyDigest,
+    openHelp,
+    goToLists,
   }
 }

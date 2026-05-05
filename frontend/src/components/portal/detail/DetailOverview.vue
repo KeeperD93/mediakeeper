@@ -8,18 +8,16 @@
         <template v-if="media.keywords?.length">
           <h3>{{ $t('portal.detail.keywords') }}</h3>
           <div class="vmd2-keyword-list">
-            <span v-for="k in media.keywords.slice(0, 20)" :key="k" class="vmd2-keyword">{{ k }}</span>
+            <span v-for="k in media.keywords.slice(0, 20)" :key="k" class="vmd2-keyword">
+              {{ k }}
+            </span>
           </div>
         </template>
 
         <template v-if="allProviders.length">
           <h3>{{ $t('portal.detail.whereToWatch') }}</h3>
           <div class="vmd2-provider-list">
-            <div
-              v-for="p in allProviders" :key="p.name"
-              class="vmd2-provider"
-              :title="p.name"
-            >
+            <div v-for="p in allProviders" :key="p.name" class="vmd2-provider" :title="p.name">
               <img v-if="p.logo" :src="p.logo" :alt="p.name" />
               <span v-else>{{ p.name.slice(0, 2) }}</span>
             </div>
@@ -31,7 +29,8 @@
         <h3>{{ $t('portal.detail.details') }}</h3>
         <dl class="vmd2-facts-list">
           <template v-if="media.status">
-            <dt>{{ $t('portal.detail.status') }}</dt><dd>{{ translatedStatus }}</dd>
+            <dt>{{ $t('portal.detail.status') }}</dt>
+            <dd>{{ translatedStatus }}</dd>
           </template>
           <template v-if="media.release_date">
             <dt>{{ $t('portal.detail.releaseDate') }}</dt>
@@ -70,7 +69,9 @@
         <template v-if="media.studios?.length">
           <h3>{{ $t('portal.detail.production') }}</h3>
           <div class="vmd2-keyword-list">
-            <span v-for="s in media.studios.slice(0, 6)" :key="s.name" class="vmd2-keyword">{{ s.name }}</span>
+            <span v-for="s in media.studios.slice(0, 6)" :key="s.name" class="vmd2-keyword">
+              {{ s.name }}
+            </span>
           </div>
         </template>
 
@@ -78,18 +79,22 @@
         <div class="vmd2-external-links">
           <a
             :href="`https://www.themoviedb.org/${media.media_type}/${media.tmdb_id}`"
-            target="_blank" rel="noopener"
-          >TMDB</a>
+            target="_blank"
+            rel="noopener"
+          >
+            TMDB
+          </a>
           <a
             v-if="media.imdb_id"
             :href="`https://www.imdb.com/title/${media.imdb_id}`"
-            target="_blank" rel="noopener"
-          >IMDb</a>
-          <a
-            v-if="homepageHref"
-            :href="homepageHref"
-            target="_blank" rel="noopener"
-          >{{ $t('portal.detail.officialSite') }}</a>
+            target="_blank"
+            rel="noopener"
+          >
+            IMDb
+          </a>
+          <a v-if="homepageHref" :href="homepageHref" target="_blank" rel="noopener">
+            {{ $t('portal.detail.officialSite') }}
+          </a>
         </div>
       </aside>
     </div>
@@ -125,11 +130,13 @@ const allProviders = computed(() => {
   const w = props.media.watch_providers || {}
   const merged = [...(w.flatrate || []), ...(w.rent || []), ...(w.buy || [])]
   const seen = new Set()
-  return merged.filter(p => {
-    if (!p.name || seen.has(p.name)) return false
-    seen.add(p.name)
-    return true
-  }).slice(0, 12)
+  return merged
+    .filter(p => {
+      if (!p.name || seen.has(p.name)) return false
+      seen.add(p.name)
+      return true
+    })
+    .slice(0, 12)
 })
 
 function formatMoney(n) {
@@ -141,6 +148,10 @@ function formatMoney(n) {
 
 function formatDate(iso) {
   if (!iso) return ''
-  try { return new Date(iso).toLocaleDateString() } catch { return iso }
+  try {
+    return new Date(iso).toLocaleDateString()
+  } catch {
+    return iso
+  }
 }
 </script>

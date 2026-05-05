@@ -59,7 +59,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import MediaCard from '@/components/portal/MediaCard.vue'
 import RequestModal from '@/components/portal/RequestModal.vue'
@@ -75,7 +75,7 @@ const props = defineProps({
   endpoint: { type: String, required: true },
   /**
    * Hide the sort toggle pill. Defaults to true: the browse pages
- * accessible from the Portal home always sort by popularity
+   * accessible from the Portal home always sort by popularity
    * desc and offer no user-facing sort options. Set to false only
    * if a future page explicitly needs sort controls.
    */
@@ -89,14 +89,12 @@ const { markRequested } = useRequestStatus()
 
 const SORT_OPTIONS = [
   { key: 'popularity', label: 'portal.discover.sort.popularity' },
-  { key: 'release',    label: 'portal.discover.sort.release' },
-  { key: 'rating',     label: 'portal.discover.sort.rating' },
+  { key: 'release', label: 'portal.discover.sort.release' },
+  { key: 'rating', label: 'portal.discover.sort.rating' },
 ]
 
-const {
-  items, loading, hasMore, sort, setSort, loadMore, observe,
-  reset, isEmpty,
-} = useInfiniteDiscover(props.endpoint)
+const { items, loading, hasMore, sort, setSort, loadMore, observe, reset, isEmpty } =
+  useInfiniteDiscover(props.endpoint)
 
 function onSelect(item) {
   const type = item.media_type || 'movie'
@@ -126,16 +124,19 @@ onMounted(async () => {
 
 // Re-wire the observer if the sentinel is re-rendered after a sort change
 // (because hasMore briefly toggled false).
-watch(sentinelRef, (el) => {
+watch(sentinelRef, el => {
   if (el) observe(el)
 })
 
 // Reset & reload entirely when the parent route changes the endpoint
 // (going from one category page to another without unmount).
-watch(() => props.endpoint, () => {
-  reset()
-  loadMore()
-})
+watch(
+  () => props.endpoint,
+  () => {
+    reset()
+    loadMore()
+  },
+)
 </script>
 
 <style scoped>
@@ -164,7 +165,9 @@ watch(() => props.endpoint, () => {
   align-items: center;
   justify-content: center;
 }
-.dmd-back:hover { background: rgba(255,255,255,0.14); }
+.dmd-back:hover {
+  background: rgb(255, 255, 255, 0.14);
+}
 
 .dmd-title {
   font-size: clamp(1.4rem, 2.5vw + 0.5rem, 2.2rem);
@@ -175,8 +178,8 @@ watch(() => props.endpoint, () => {
 .dmd-sort {
   display: inline-flex;
   gap: 0.4rem;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgb(255, 255, 255, 0.05);
+  border: 1px solid rgb(255, 255, 255, 0.1);
   border-radius: var(--portal-radius-pill);
   padding: 4px;
 }
@@ -184,14 +187,18 @@ watch(() => props.endpoint, () => {
   padding: 0.4rem 0.9rem;
   background: transparent;
   border: none;
-  color: rgba(255,255,255,0.65);
+  color: rgb(255, 255, 255, 0.65);
   cursor: pointer;
   font-size: var(--portal-text-xs);
   font-weight: var(--portal-font-medium);
   border-radius: var(--portal-radius-pill);
-  transition: background var(--portal-dur-fast), color var(--portal-dur-fast);
+  transition:
+    background var(--portal-dur-fast),
+    color var(--portal-dur-fast);
 }
-.dmd-sort-btn:hover { color: #fff; }
+.dmd-sort-btn:hover {
+  color: #fff;
+}
 .dmd-sort-btn--active {
   background: var(--accent, #4338ca);
   color: #fff;
@@ -204,7 +211,9 @@ watch(() => props.endpoint, () => {
   margin-bottom: 1.5rem;
 }
 @media (min-width: 1024px) {
-  .dmd-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+  .dmd-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
 }
 
 .dmd-loading,
@@ -215,7 +224,7 @@ watch(() => props.endpoint, () => {
   justify-content: center;
   gap: 0.6rem;
   padding: 2rem 1rem;
-  color: rgba(255,255,255,0.5);
+  color: rgb(255, 255, 255, 0.5);
   font-size: var(--portal-text-sm);
 }
 

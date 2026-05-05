@@ -12,7 +12,7 @@ export const AVAILABLE_LOCALES = [
   { code: 'en', label: 'English', flag: '🇬🇧' },
 ]
 
-const SUPPORTED_CODES = AVAILABLE_LOCALES.map((l) => l.code)
+const SUPPORTED_CODES = AVAILABLE_LOCALES.map(l => l.code)
 const LOCALE_LOADERS = {}
 const loadedLocales = new Set(['fr', 'en'])
 const initialLocale = detectLocale()
@@ -74,7 +74,9 @@ async function syncLocaleToServer(locale) {
       retryOn401: false,
       redirectOn401: false,
     })
-  } catch { /* silent: locale sync is best-effort, UI already switched */ }
+  } catch {
+    /* silent: locale sync is best-effort, UI already switched */
+  }
 }
 
 export async function initializeLocale() {

@@ -21,9 +21,9 @@
      tokens/_rarity.css     — trophy rarity palette (common → mythic)
    ============================================ */
 
-@import './tokens/_motion.css';
-@import './tokens/_layout.css';
-@import './tokens/_typography.css';
-@import './tokens/_colors.css';
-@import './tokens/_tiers.css';
-@import './tokens/_rarity.css';
+@import url('./tokens/_motion.css');
+@import url('./tokens/_layout.css');
+@import url('./tokens/_typography.css');
+@import url('./tokens/_colors.css');
+@import url('./tokens/_tiers.css');
+@import url('./tokens/_rarity.css');

@@ -27,7 +27,11 @@
         <!-- ═══ MAIN CONTENT ═══ -->
         <div class="gc-main">
           <div class="dp-reveal-item dp-reveal-item--d1">
-            <KpiRow :stats="stats" :fun-time-comparison="funTimeComparison" :format-time="formatTime" />
+            <KpiRow
+              :stats="stats"
+              :fun-time-comparison="funTimeComparison"
+              :format-time="formatTime"
+            />
           </div>
 
           <div class="gc-bottom">
@@ -104,7 +108,11 @@
         class="dp-section"
       >
         <MediaCarousel
-          :title="$t('portal.sections.becauseYouWatched', { title: becauseYouWatchedTv.pivot.title || '' })"
+          :title="
+            $t('portal.sections.becauseYouWatched', {
+              title: becauseYouWatchedTv.pivot.title || '',
+            })
+          "
           :items="becauseYouWatchedTv.items.slice(0, 20)"
           card-width="185px"
           @select="showDetail"
@@ -118,7 +126,11 @@
         class="dp-section"
       >
         <MediaCarousel
-          :title="$t('portal.sections.becauseYouWatched', { title: becauseYouWatchedMovie.pivot.title || '' })"
+          :title="
+            $t('portal.sections.becauseYouWatched', {
+              title: becauseYouWatchedMovie.pivot.title || '',
+            })
+          "
           :items="becauseYouWatchedMovie.items.slice(0, 20)"
           card-width="185px"
           @select="showDetail"
@@ -149,7 +161,6 @@
           @select="showDetail"
         />
       </section>
-
     </template>
 
     <RequestModal
@@ -175,11 +186,7 @@
       @toggle-pin="togglePin"
     />
 
-    <TrophyUnlockToast
-      :unlock="unlockToast"
-      :icon-map="ICON_MAP"
-      @dismiss="unlockToast = null"
-    />
+    <TrophyUnlockToast :unlock="unlockToast" :icon-map="ICON_MAP" @dismiss="unlockToast = null" />
   </div>
 </template>
 
@@ -211,10 +218,23 @@ const router = useRouter()
 const { profile: profileData } = usePortalAuth()
 
 const {
-  loading, stats, recoItems, genreIds,
-  recentWatches, myRequests, nextToFinish, continueWatching,
-  ranking, titleKey, rankTier, trophies, recentUnlock,
-  recommended, becauseYouWatchedTv, becauseYouWatchedMovie, preferencesBased,
+  loading,
+  stats,
+  recoItems,
+  genreIds,
+  recentWatches,
+  myRequests,
+  nextToFinish,
+  continueWatching,
+  ranking,
+  titleKey,
+  rankTier,
+  trophies,
+  recentUnlock,
+  recommended,
+  becauseYouWatchedTv,
+  becauseYouWatchedMovie,
+  preferencesBased,
   load,
 } = useProfileData()
 
@@ -240,20 +260,37 @@ function onRequestDone(payload) {
 // now that the "Because you like {genre}" strip has been retired
 // in favour of the user-driven "Based on your preferences" carousel.
 const { genreName, GENRE_COLOR, GENRE_EMOJI, GENRE_ICON } = useGenreData(recoItems, genreIds)
-const { titleTierName, memberSince, xpPercent, nextLevelXp, weekData, topDay, funTimeComparison, formatTime } = useProfileXp(profileData, stats)
 const {
-  showAllTrophies, selectedCategory, unlockToast,
-  displayTrophies, displayTrophiesUnlocked, categoriesWithStats, filteredTrophies,
-  globalProgressPct, togglePin,
+  titleTierName,
+  memberSince,
+  xpPercent,
+  nextLevelXp,
+  weekData,
+  topDay,
+  funTimeComparison,
+  formatTime,
+} = useProfileXp(profileData, stats)
+const {
+  showAllTrophies,
+  selectedCategory,
+  unlockToast,
+  displayTrophies,
+  displayTrophiesUnlocked,
+  categoriesWithStats,
+  filteredTrophies,
+  globalProgressPct,
+  togglePin,
 } = useTrophyDisplay(trophies, profileData)
 
 // Forward the most recently unlocked trophy (if any) into the toast
 // state owned by useTrophyDisplay. Auto-hide 5s later, matching the
 // previous inline behaviour.
-watch(recentUnlock, (unlocked) => {
+watch(recentUnlock, unlocked => {
   if (!unlocked) return
   unlockToast.value = unlocked
-  setTimeout(() => { unlockToast.value = null }, 5000)
+  setTimeout(() => {
+    unlockToast.value = null
+  }, 5000)
 })
 
 const leaderboardDisplay = computed(() => ranking.value.leaderboard || [])

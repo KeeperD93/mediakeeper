@@ -51,7 +51,7 @@ async def get_emby_server_id(source: dict | None) -> str:
             if sid:
                 _emby_server_id_cache[internal_url] = sid
                 return sid
-    except Exception:
+    except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
         pass
     return ""
 

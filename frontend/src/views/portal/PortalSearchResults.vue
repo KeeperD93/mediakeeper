@@ -130,7 +130,7 @@ async function loadMore() {
     if (token !== activeToken) return
 
     const batch = Array.isArray(res?.items) ? res.items : []
-    const fresh = batch.filter((item) => {
+    const fresh = batch.filter(item => {
       const key = `${item.media_type || 'movie'}:${item.tmdb_id || item.id}`
       if (seen.has(key)) return false
       seen.add(key)
@@ -142,10 +142,7 @@ async function loadMore() {
     hasMore.value = batch.length >= 20 && nextPage < 5
 
     if (fresh.length) {
-      await Promise.all([
-        checkAvailability(fresh),
-        checkStatus(fresh),
-      ])
+      await Promise.all([checkAvailability(fresh), checkStatus(fresh)])
     }
   } catch {
     if (token === activeToken) {
@@ -165,7 +162,7 @@ function observe(el) {
   if (!el) return
   if (observer) observer.disconnect()
   observer = new IntersectionObserver(
-    (entries) => {
+    entries => {
       for (const entry of entries) {
         if (entry.isIntersecting) {
           loadMore()
@@ -197,7 +194,7 @@ function onRequestDone(payload) {
   requestItem.value = null
 }
 
-watch(sentinelRef, (el) => {
+watch(sentinelRef, el => {
   if (el) observe(el)
 })
 

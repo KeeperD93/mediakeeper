@@ -1,13 +1,27 @@
 import { computed } from 'vue'
 import {
-  apiGet, apiPut, apiPost, showToast, _t,
-  CATS, activeCat, filtered,
-  anomalyRules, showAnomalyConfigModal,
-  namingIssues, analysisActive,
-  renameProfiles, DEFAULT_PROFILES, _saveProfiles,
-  customRules, _saveCustomRules,
-  releaseTags, releaseTagsDefaults, releaseTagsLoaded,
-  newNames, crossCatDuplicates, checkingDuplicates,
+  apiGet,
+  apiPut,
+  apiPost,
+  showToast,
+  _t,
+  CATS,
+  activeCat,
+  filtered,
+  anomalyRules,
+  namingIssues,
+  analysisActive,
+  renameProfiles,
+  DEFAULT_PROFILES,
+  _saveProfiles,
+  customRules,
+  _saveCustomRules,
+  releaseTags,
+  releaseTagsDefaults,
+  releaseTagsLoaded,
+  newNames,
+  crossCatDuplicates,
+  checkingDuplicates,
 } from './mediaManagerState'
 import { NAMING_PATTERNS } from './mediaManagerState'
 import { applyFilter } from './mediaManagerNavigation'
@@ -17,7 +31,11 @@ import { FILE_TYPE, RULE_TYPE } from '@/constants/mediaManager'
 // ─── ANOMALIES ───
 export function saveAnomalyRules(rules) {
   anomalyRules.value = { ...rules }
-  try { localStorage.setItem('mk_anomaly_rules', JSON.stringify(rules)) } catch { /* silent: localStorage quota/privacy mode */ }
+  try {
+    localStorage.setItem('mk_anomaly_rules', JSON.stringify(rules))
+  } catch {
+    /* silent: localStorage quota/privacy mode */
+  }
 }
 export const issuesCount = computed(() => Object.keys(namingIssues.value).length)
 
@@ -27,12 +45,22 @@ export function analyzeNames() {
   for (const f of filtered.value.filter(f => f.type === FILE_TYPE.FILE)) {
     const fi = []
     const nameNoExt = f.name.replace(/\.[^.]+$/, '')
-    if (rules.checkResolution && !NAMING_PATTERNS.resolution.test(f.name)) fi.push({ type: 'resolution', message: 'Missing resolution', severity: 'warn' })
-    if (rules.checkYear && !NAMING_PATTERNS.year.test(f.name) && !NAMING_PATTERNS.episode.test(f.name)) fi.push({ type: 'year', message: 'Missing year', severity: 'info' })
-    if (rules.checkDoubleSpaces && /\s{2,}/.test(nameNoExt)) fi.push({ type: 'spacing', message: 'Double spaces', severity: 'warn' })
-    if (rules.checkMultipleUnderscores && /_{2,}/.test(nameNoExt)) fi.push({ type: 'underscores', message: 'Multiple underscores', severity: 'warn' })
-    if (rules.checkNameLength && f.name.length > rules.maxNameLength) fi.push({ type: 'length', message: `Name too long (${f.name.length})`, severity: 'err' })
-    if (rules.checkDotsCount && (nameNoExt.match(/\./g) || []).length > rules.maxDots) fi.push({ type: 'dots', message: 'Too many dots', severity: 'warn' })
+    if (rules.checkResolution && !NAMING_PATTERNS.resolution.test(f.name))
+      fi.push({ type: 'resolution', message: 'Missing resolution', severity: 'warn' })
+    if (
+      rules.checkYear &&
+      !NAMING_PATTERNS.year.test(f.name) &&
+      !NAMING_PATTERNS.episode.test(f.name)
+    )
+      fi.push({ type: 'year', message: 'Missing year', severity: 'info' })
+    if (rules.checkDoubleSpaces && /\s{2,}/.test(nameNoExt))
+      fi.push({ type: 'spacing', message: 'Double spaces', severity: 'warn' })
+    if (rules.checkMultipleUnderscores && /_{2,}/.test(nameNoExt))
+      fi.push({ type: 'underscores', message: 'Multiple underscores', severity: 'warn' })
+    if (rules.checkNameLength && f.name.length > rules.maxNameLength)
+      fi.push({ type: 'length', message: `Name too long (${f.name.length})`, severity: 'err' })
+    if (rules.checkDotsCount && (nameNoExt.match(/\./g) || []).length > rules.maxDots)
+      fi.push({ type: 'dots', message: 'Too many dots', severity: 'warn' })
     if (fi.length > 0) issues[f.path] = fi
   }
   namingIssues.value = issues
@@ -40,7 +68,12 @@ export function analyzeNames() {
   // Re-trigger filter/sort so anomalies bubble up.
   applyFilter()
   const total = Object.keys(issues).length
-  showToast(total > 0 ? _t('mediaManager.filesWithAnomalies', { count: total }) : _t('mediaManager.noAnomalies'), total > 0 ? TOAST_TYPE.WARN : TOAST_TYPE.OK)
+  showToast(
+    total > 0
+      ? _t('mediaManager.filesWithAnomalies', { count: total })
+      : _t('mediaManager.noAnomalies'),
+    total > 0 ? TOAST_TYPE.WARN : TOAST_TYPE.OK,
+  )
 }
 export function clearAnalysis() {
   namingIssues.value = {}
@@ -49,27 +82,43 @@ export function clearAnalysis() {
 }
 
 // ─── PROFILES ───
-export function getAllProfiles() { return [...DEFAULT_PROFILES, ...renameProfiles.value] }
+export function getAllProfiles() {
+  return [...DEFAULT_PROFILES, ...renameProfiles.value]
+}
 export function saveProfile(name, config) {
   const id = 'profile-' + Date.now()
   renameProfiles.value.push({ id, name, builtin: false, config })
   _saveProfiles()
   showToast(_t('mediaManager.profileSaved', { name }), TOAST_TYPE.OK)
 }
-export function deleteProfile(id) { renameProfiles.value = renameProfiles.value.filter(p => p.id !== id); _saveProfiles() }
-export function applyProfile(profile) { return profile.config }
+export function deleteProfile(id) {
+  renameProfiles.value = renameProfiles.value.filter(p => p.id !== id)
+  _saveProfiles()
+}
+export function applyProfile(profile) {
+  return profile.config
+}
 
 // ─── CUSTOM RULES ───
-export function addCustomRule(rule) { customRules.value.push({ id: Date.now(), ...rule }); _saveCustomRules() }
-export function deleteCustomRule(id) { customRules.value = customRules.value.filter(r => r.id !== id); _saveCustomRules() }
+export function addCustomRule(rule) {
+  customRules.value.push({ id: Date.now(), ...rule })
+  _saveCustomRules()
+}
+export function deleteCustomRule(id) {
+  customRules.value = customRules.value.filter(r => r.id !== id)
+  _saveCustomRules()
+}
 export function applyCustomRules(name) {
   let result = name
   for (const rule of customRules.value) {
     if (!rule.enabled) continue
     try {
       if (rule.type === RULE_TYPE.REPLACE) result = result.split(rule.from).join(rule.to)
-      else if (rule.type === RULE_TYPE.REGEX) result = result.replace(new RegExp(rule.from, rule.flags || 'gi'), rule.to)
-    } catch { /* silent: invalid user regex → skip this rule */ }
+      else if (rule.type === RULE_TYPE.REGEX)
+        result = result.replace(new RegExp(rule.from, rule.flags || 'gi'), rule.to)
+    } catch {
+      /* silent: invalid user regex → skip this rule */
+    }
   }
   return result
 }
@@ -81,7 +130,10 @@ export async function loadReleaseTags(force = false) {
     const data = await apiGet('/api/media/release-tags')
     releaseTags.value = Array.isArray(data?.tags) ? data.tags : []
     releaseTagsDefaults.value = Array.isArray(data?.defaults) ? data.defaults : []
-  } catch { releaseTags.value = []; releaseTagsDefaults.value = [] }
+  } catch {
+    releaseTags.value = []
+    releaseTagsDefaults.value = []
+  }
   releaseTagsLoaded.value = true
 }
 export async function saveReleaseTags(tags) {
@@ -122,7 +174,9 @@ export async function findCrossCatDuplicates(targetNames) {
           }
         }
       }
-    } catch { /* silent: per-category fetch error skipped, others still scan */ }
+    } catch {
+      /* silent: per-category fetch error skipped, others still scan */
+    }
   }
   return conflicts
 }
@@ -132,7 +186,11 @@ export async function checkCrossCatDuplicates() {
   const names = newNames.value.map(n => n.name)
   crossCatDuplicates.value = await findCrossCatDuplicates(names)
   checkingDuplicates.value = false
-  if (crossCatDuplicates.value.length) showToast(_t('mediaManager.duplicatesDetected', { count: crossCatDuplicates.value.length }), TOAST_TYPE.WARN)
+  if (crossCatDuplicates.value.length)
+    showToast(
+      _t('mediaManager.duplicatesDetected', { count: crossCatDuplicates.value.length }),
+      TOAST_TYPE.WARN,
+    )
   else showToast(_t('mediaManager.noDuplicates'), TOAST_TYPE.OK)
 }
 
@@ -148,9 +206,11 @@ export function exportRenameCsv(names) {
   }
   const blob = new Blob(['\ufeff' + rows.join('\n')], { type: 'text/csv;charset=utf-8' })
   const url = URL.createObjectURL(blob)
-  const a = document.createElement('a'); a.href = url
+  const a = document.createElement('a')
+  a.href = url
   a.download = `renommage_${new Date().toISOString().slice(0, 10)}.csv`
-  a.click(); URL.revokeObjectURL(url)
+  a.click()
+  URL.revokeObjectURL(url)
 }
 
 export async function importRenameCsv(file) {
@@ -158,15 +218,24 @@ export async function importRenameCsv(file) {
     const reader = new FileReader()
     reader.onload = e => {
       try {
-        const lines = e.target.result.replace(/^\uFEFF/, '').split('\n').filter(Boolean)
+        const lines = e.target.result
+          .replace(/^\uFEFF/, '')
+          .split('\n')
+          .filter(Boolean)
         lines.shift()
         const pairs = []
         for (const line of lines) {
-          const cols = line.match(/("(?:[^"]|"")*"|[^,]*)/g)?.map(c => c.replace(/^"|"$/g, '').replace(/""/g, '"')) || []
-          if (cols[0] && cols[1]) pairs.push({ oldName: cols[0], newName: cols[1], ext: cols[2] || '' })
+          const cols =
+            line
+              .match(/("(?:[^"]|"")*"|[^,]*)/g)
+              ?.map(c => c.replace(/^"|"$/g, '').replace(/""/g, '"')) || []
+          if (cols[0] && cols[1])
+            pairs.push({ oldName: cols[0], newName: cols[1], ext: cols[2] || '' })
         }
         resolve(pairs)
-      } catch (e) { reject(e) }
+      } catch (e) {
+        reject(e)
+      }
     }
     reader.onerror = reject
     reader.readAsText(file, 'utf-8')

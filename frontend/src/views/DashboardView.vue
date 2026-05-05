@@ -2,8 +2,19 @@
   <div ref="dashRef" class="cinema-dash mk-page-root">
     <canvas ref="particleCanvas" class="dash-particles" aria-hidden="true" />
 
-    <HeroCarousel :sessions="sessions" :all-sessions="allSessions" :emby-base-url="embyBaseUrl" @open-fullscreen="openFullscreen" />
-    <StatRibbon :sys="sys" :sessions-count="sessions.length" :cpu-history="cpuHistory" :ram-history="ramHistory" :services="servicesList" />
+    <HeroCarousel
+      :sessions="sessions"
+      :all-sessions="allSessions"
+      :emby-base-url="embyBaseUrl"
+      @open-fullscreen="openFullscreen"
+    />
+    <StatRibbon
+      :sys="sys"
+      :sessions-count="sessions.length"
+      :cpu-history="cpuHistory"
+      :ram-history="ramHistory"
+      :services="servicesList"
+    />
 
     <!-- Mobile: vertical stack of widgets. No drag-resize — customization
          stays a desktop-only feature. -->
@@ -30,7 +41,13 @@
       </div>
       <div class="editbar-actions">
         <div class="editbar-toggles">
-          <button v-for="(def, id) in WIDGET_REGISTRY" :key="id" class="editbar-chip" :class="{ 'chip-hidden': hidden.includes(id) }" @click="toggleWidget(id)">
+          <button
+            v-for="(def, id) in WIDGET_REGISTRY"
+            :key="id"
+            class="editbar-chip"
+            :class="{ 'chip-hidden': hidden.includes(id) }"
+            @click="toggleWidget(id)"
+          >
             <component :is="WIDGET_ICONS[id]" class="chip-icon" :size="13" :stroke-width="2" />
             <span class="chip-label">{{ def.label }}</span>
             <span class="chip-toggle">
@@ -63,7 +80,10 @@
         <div class="skel-block skel-timeline" />
         <div class="skel-col">
           <div class="skel-row"><div v-for="n in 4" :key="n" class="skel-block skel-card" /></div>
-          <div class="skel-row"><div class="skel-block skel-wide" /><div class="skel-block skel-wide" /></div>
+          <div class="skel-row">
+            <div class="skel-block skel-wide" />
+            <div class="skel-block skel-wide" />
+          </div>
           <div class="skel-block skel-tall" />
         </div>
       </div>
@@ -72,29 +92,103 @@
     <!-- Grid (desktop only) -->
     <div v-if="loaded && !isMobile" class="dash-grid-wrap">
       <GridLayout
-        v-model:layout="layout" :col-num="36" :row-height="10" :margin="[14, 14]"
-        :is-draggable="editing" :is-resizable="editing"
-        :vertical-compact="false" :responsive="false" :use-css-transforms="true"
+        v-model:layout="layout"
+        :col-num="36"
+        :row-height="10"
+        :margin="[14, 14]"
+        :is-draggable="editing"
+        :is-resizable="editing"
+        :vertical-compact="false"
+        :responsive="false"
+        :use-css-transforms="true"
         @layout-updated="onLayoutUpdated"
       >
         <GridItem
-          v-for="(item, idx) in layout" :key="item.i"
-          :i="item.i" :x="item.x" :y="item.y" :w="item.w" :h="item.h"
-          :min-w="item.minW ?? 2" :min-h="item.minH ?? 2" :max-h="item.maxH ?? Infinity"
-          class="dash-widget" :class="{ 'widget-editing': editing }"
-          @move="onDragStart(item.i)" @moved="onDragEnd(item.i)"
+          v-for="(item, idx) in layout"
+          :key="item.i"
+          :i="item.i"
+          :x="item.x"
+          :y="item.y"
+          :w="item.w"
+          :h="item.h"
+          :min-w="item.minW ?? 2"
+          :min-h="item.minH ?? 2"
+          :max-h="item.maxH ?? Infinity"
+          class="dash-widget"
+          :class="{ 'widget-editing': editing }"
+          @move="onDragStart(item.i)"
+          @moved="onDragEnd(item.i)"
         >
-          <div class="widget-inner" :style="{ animationDelay: (idx * 60) + 'ms' }">
-            <component :is="WIDGET_ICONS[item.i]" v-if="WIDGET_ICONS[item.i] && !STAT_CARDS_WITH_ICON.has(item.i)" class="widget-badge-icon" :size="14" :stroke-width="2" />
+          <div class="widget-inner" :style="{ animationDelay: idx * 60 + 'ms' }">
+            <component
+              :is="WIDGET_ICONS[item.i]"
+              v-if="WIDGET_ICONS[item.i] && !STAT_CARDS_WITH_ICON.has(item.i)"
+              class="widget-badge-icon"
+              :size="14"
+              :stroke-width="2"
+            />
 
-            <ActivityTimeline v-if="item.i === 'activity'" :logs="logs" :alerts="alerts" :sessions="sessions" :seen-alert-ids="seenAlertIds" :emby-base-url="embyBaseUrl" />
-            <StatCard v-if="item.i === 'statPlays'" :label="$t('dashboard.totalPlays')" :value="mediaStats.plays" route="/stats" :icon="Play" accent="#6366f1" :editing="editing" />
-            <StatCard v-if="item.i === 'statDuration'" :label="$t('dashboard.totalDuration')" :value="mediaStats.duration" :icon="Clock" accent="#10b981" :editing="editing" />
-            <StatCard v-if="item.i === 'statDuplicates'" :label="$t('dashboard.duplicates')" :value="duplicatesCount" route="/duplicates" :icon="Copy" accent="#f43f5e" :color="duplicatesCount !== '0' && duplicatesCount !== '—' ? '#f43f5e' : ''" :editing="editing" />
-            <StatCard v-if="item.i === 'statStorage'" :label="$t('dashboard.storage')" :value="mediaStats.storage" :icon="HardDrive" accent="#f59e0b" :editing="editing" />
+            <ActivityTimeline
+              v-if="item.i === 'activity'"
+              :logs="logs"
+              :alerts="alerts"
+              :sessions="sessions"
+              :seen-alert-ids="seenAlertIds"
+              :emby-base-url="embyBaseUrl"
+            />
+            <StatCard
+              v-if="item.i === 'statPlays'"
+              :label="$t('dashboard.totalPlays')"
+              :value="mediaStats.plays"
+              route="/stats"
+              :icon="Play"
+              accent="#6366f1"
+              :editing="editing"
+            />
+            <StatCard
+              v-if="item.i === 'statDuration'"
+              :label="$t('dashboard.totalDuration')"
+              :value="mediaStats.duration"
+              :icon="Clock"
+              accent="#10b981"
+              :editing="editing"
+            />
+            <StatCard
+              v-if="item.i === 'statDuplicates'"
+              :label="$t('dashboard.duplicates')"
+              :value="duplicatesCount"
+              route="/duplicates"
+              :icon="Copy"
+              accent="#f43f5e"
+              :color="duplicatesCount !== '0' && duplicatesCount !== '—' ? '#f43f5e' : ''"
+              :editing="editing"
+            />
+            <StatCard
+              v-if="item.i === 'statStorage'"
+              :label="$t('dashboard.storage')"
+              :value="mediaStats.storage"
+              :icon="HardDrive"
+              accent="#f59e0b"
+              :editing="editing"
+            />
             <Heatmap v-if="item.i === 'heatmap'" />
-            <LeaderboardCard v-if="item.i === 'topUsers'" :entries="leaderboardEntries.slice(0, 3)" widget />
-            <QuickLink v-if="item.i === 'linkWatchlist'" :title="watchlistLabel" :subtitle="watchlistScanAgo ? $t('dashboard.lastScan') + ' ' + watchlistScanAgo : $t('sidebar.watchlist')" route="/watchlist" icon-bg="rgba(139,92,246,0.12)" :editing="editing">
+            <LeaderboardCard
+              v-if="item.i === 'topUsers'"
+              :entries="leaderboardEntries.slice(0, 3)"
+              widget
+            />
+            <QuickLink
+              v-if="item.i === 'linkWatchlist'"
+              :title="watchlistLabel"
+              :subtitle="
+                watchlistScanAgo
+                  ? $t('dashboard.lastScan') + ' ' + watchlistScanAgo
+                  : $t('sidebar.watchlist')
+              "
+              route="/watchlist"
+              icon-bg="rgba(139,92,246,0.12)"
+              :editing="editing"
+            >
               <template #icon><ClipboardCheck class="dash-wl-icon" :size="18" /></template>
             </QuickLink>
             <RequestsActionCard v-if="item.i === 'portalAction'" :editing="editing" />
@@ -113,9 +207,20 @@
 
 <script setup>
 defineOptions({ name: 'DashboardView' })
-import { ref, computed, onMounted, onUnmounted, onActivated, onDeactivated, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, onActivated, onDeactivated, nextTick } from 'vue'
 import { GridLayout, GridItem } from 'grid-layout-plus'
-import { Check, ClipboardCheck, Clock, Copy, HardDrive, LayoutGrid, Play, Plus, RotateCcw, X } from 'lucide-vue-next'
+import {
+  Check,
+  ClipboardCheck,
+  Clock,
+  Copy,
+  HardDrive,
+  LayoutGrid,
+  Play,
+  Plus,
+  RotateCcw,
+  X,
+} from 'lucide-vue-next'
 import { useTheme } from '@/composables/useTheme'
 import { useDashboardLayout, WIDGET_REGISTRY, WIDGET_ICONS } from '@/composables/useDashboardLayout'
 import { useDashboardData } from '@/composables/useDashboardData'
@@ -142,18 +247,35 @@ const STAT_CARDS_WITH_ICON = new Set(['statPlays', 'statDuration', 'statDuplicat
 
 const { particlesEnabled } = useTheme()
 const { isMobile } = useMobile()
-const { editing, hidden, layout, loaded, loadLayout, toggleWidget, resetLayout, onLayoutUpdated } = useDashboardLayout()
+const { editing, hidden, layout, loaded, loadLayout, toggleWidget, resetLayout, onLayoutUpdated } =
+  useDashboardLayout()
 
 const {
-  sys, servicesList, embyBaseUrl,
-  sessions, allSessions,
-  logs, alerts, seenAlertIds,
-  duplicatesCount, watchlistLabel, watchlistScanAgo,
-  mediaStats, leaderboardEntries,
-  cpuHistory, ramHistory,
-  loadSystemStats, loadServices, loadSessions,
-  loadLogs, loadSeenAlerts, loadAlerts,
-  loadDuplicates, loadWatchlist, loadMediaStats, loadLeaderboard,
+  sys,
+  servicesList,
+  embyBaseUrl,
+  sessions,
+  allSessions,
+  logs,
+  alerts,
+  seenAlertIds,
+  duplicatesCount,
+  watchlistLabel,
+  watchlistScanAgo,
+  mediaStats,
+  leaderboardEntries,
+  cpuHistory,
+  ramHistory,
+  loadSystemStats,
+  loadServices,
+  loadSessions,
+  loadLogs,
+  loadSeenAlerts,
+  loadAlerts,
+  loadDuplicates,
+  loadWatchlist,
+  loadMediaStats,
+  loadLeaderboard,
 } = useDashboardData()
 
 // ---- Drag snapshot: prevent other tiles from being displaced ----
@@ -176,7 +298,10 @@ function onDragEnd(id) {
     for (const item of layout.value) {
       if (item.i !== id && dragSnapshot[item.i]) {
         const snap = dragSnapshot[item.i]
-        item.x = snap.x; item.y = snap.y; item.w = snap.w; item.h = snap.h
+        item.x = snap.x
+        item.y = snap.y
+        item.w = snap.w
+        item.h = snap.h
       }
     }
   }
@@ -189,23 +314,66 @@ const dashRef = ref(null)
 const particleCanvas = ref(null)
 let particleRaf = null
 function initParticles() {
-  const canvas = particleCanvas.value; const container = dashRef.value
+  const canvas = particleCanvas.value
+  const container = dashRef.value
   if (!canvas || !container) return
-  const ctx = canvas.getContext('2d'); const COUNT = 50; const particles = []
-  let prevW = 0, prevH = 0
+  const ctx = canvas.getContext('2d')
+  const COUNT = 50
+  const particles = []
+  let prevW = 0,
+    prevH = 0
   function resize() {
-    const newW = container.clientWidth, newH = container.scrollHeight
-    canvas.width = newW; canvas.height = newH
+    const newW = container.clientWidth,
+      newH = container.scrollHeight
+    canvas.width = newW
+    canvas.height = newH
     if (prevW > 0 && prevH > 0) {
-      const sx = newW / prevW, sy = newH / prevH
-      for (const p of particles) { p.x *= sx; p.y *= sy }
+      const sx = newW / prevW,
+        sy = newH / prevH
+      for (const p of particles) {
+        p.x *= sx
+        p.y *= sy
+      }
     }
-    prevW = newW; prevH = newH
+    prevW = newW
+    prevH = newH
   }
-  resize(); const ro = new ResizeObserver(resize); ro.observe(container)
-  for (let i = 0; i < COUNT; i++) { const a=Math.random()*Math.PI*2; const s=0.1+Math.random()*0.25; particles.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: 1+Math.random()*2, dx: Math.cos(a)*s, dy: Math.sin(a)*s, o: 0.15+Math.random()*0.3 }) }
-  function draw() { ctx.clearRect(0,0,canvas.width,canvas.height); for(const p of particles){p.x+=p.dx;p.y+=p.dy;if(p.x<-10)p.x=canvas.width+10;if(p.x>canvas.width+10)p.x=-10;if(p.y<-10)p.y=canvas.height+10;if(p.y>canvas.height+10)p.y=-10;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=`rgba(139,132,255,${p.o})`;ctx.fill()}; particleRaf=requestAnimationFrame(draw) }
-  draw(); return () => { ro.disconnect(); if(particleRaf) cancelAnimationFrame(particleRaf) }
+  resize()
+  const ro = new ResizeObserver(resize)
+  ro.observe(container)
+  for (let i = 0; i < COUNT; i++) {
+    const a = Math.random() * Math.PI * 2
+    const s = 0.1 + Math.random() * 0.25
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: 1 + Math.random() * 2,
+      dx: Math.cos(a) * s,
+      dy: Math.sin(a) * s,
+      o: 0.15 + Math.random() * 0.3,
+    })
+  }
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    for (const p of particles) {
+      p.x += p.dx
+      p.y += p.dy
+      if (p.x < -10) p.x = canvas.width + 10
+      if (p.x > canvas.width + 10) p.x = -10
+      if (p.y < -10) p.y = canvas.height + 10
+      if (p.y > canvas.height + 10) p.y = -10
+      ctx.beginPath()
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
+      ctx.fillStyle = `rgba(139,132,255,${p.o})`
+      ctx.fill()
+    }
+    particleRaf = requestAnimationFrame(draw)
+  }
+  draw()
+  return () => {
+    ro.disconnect()
+    if (particleRaf) cancelAnimationFrame(particleRaf)
+  }
 }
 let cleanupParticles = null
 
@@ -215,14 +383,24 @@ const npSession = ref({})
 const timers = []
 let secondaryLoadStarted = false
 
-function openFullscreen(session) { npSession.value = session; npVisible.value = true }
+function openFullscreen(session) {
+  npSession.value = session
+  npVisible.value = true
+}
 
 function queueDeferredLoad(task) {
   if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
-    window.requestIdleCallback(() => { void task() }, { timeout: 1500 })
+    window.requestIdleCallback(
+      () => {
+        void task()
+      },
+      { timeout: 1500 },
+    )
     return
   }
-  window.setTimeout(() => { void task() }, 0)
+  window.setTimeout(() => {
+    void task()
+  }, 0)
 }
 
 function startPrimaryPolling() {
@@ -246,19 +424,37 @@ function scheduleSecondaryLoad() {
   if (secondaryLoadStarted) return
   secondaryLoadStarted = true
   queueDeferredLoad(async () => {
-    await Promise.all([loadLogs(), loadAlerts(), loadDuplicates(), loadWatchlist(), loadMediaStats(), loadLeaderboard()])
+    await Promise.all([
+      loadLogs(),
+      loadAlerts(),
+      loadDuplicates(),
+      loadWatchlist(),
+      loadMediaStats(),
+      loadLeaderboard(),
+    ])
     startSecondaryPolling()
   })
 }
 
 onMounted(async () => {
-  await nextTick(); if (particlesEnabled.value) cleanupParticles = initParticles()
+  await nextTick()
+  if (particlesEnabled.value) cleanupParticles = initParticles()
   await loadLayout()
   await Promise.all([loadSeenAlerts(), loadSystemStats(), loadServices(), loadSessions()])
   startPrimaryPolling()
   scheduleSecondaryLoad()
 })
-onActivated(() => { if (!cleanupParticles && particlesEnabled.value) cleanupParticles = initParticles() })
-onDeactivated(() => { if (cleanupParticles) { cleanupParticles(); cleanupParticles = null } })
-onUnmounted(() => { timers.forEach(clearInterval); if (cleanupParticles) cleanupParticles() })
+onActivated(() => {
+  if (!cleanupParticles && particlesEnabled.value) cleanupParticles = initParticles()
+})
+onDeactivated(() => {
+  if (cleanupParticles) {
+    cleanupParticles()
+    cleanupParticles = null
+  }
+})
+onUnmounted(() => {
+  timers.forEach(clearInterval)
+  if (cleanupParticles) cleanupParticles()
+})
 </script>

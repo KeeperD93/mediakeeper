@@ -33,12 +33,16 @@ export function useStatsUI() {
     if (preview.y + 220 > window.innerHeight) preview.y = e.clientY - 220
     preview.show = true
   }
-  function hidePreview() { preview.show = false }
+  function hidePreview() {
+    preview.show = false
+  }
 
   async function fetchUserProfile(userId) {
     userProfile.value = null
     try {
-      const res = await apiGet(`/api/stats/user_profile?user_id=${encodeURIComponent(String(userId))}&_t=${Date.now()}`)
+      const res = await apiGet(
+        `/api/stats/user_profile?user_id=${encodeURIComponent(String(userId))}&_t=${Date.now()}`,
+      )
       userProfile.value = res || { _error: true }
     } catch {
       userProfile.value = { _error: true }
@@ -51,8 +55,10 @@ export function useStatsUI() {
     const el = event?.target
     if (el) {
       const rect = el.getBoundingClientRect()
-      const popW = 640, popH = 450
-      const vw = window.innerWidth, vh = window.innerHeight
+      const popW = 640,
+        popH = 450
+      const vw = window.innerWidth,
+        vh = window.innerHeight
       const spaceBelow = vh - rect.bottom
       const above = spaceBelow < popH + 12 && rect.top > spaceBelow
       const top = above ? Math.max(8, rect.top - popH - 6) : rect.bottom + 6
@@ -73,26 +79,36 @@ export function useStatsUI() {
     try {
       const d = await apiGet('/api/stats/users?per_page=500&show_hidden=true')
       mergeModal.allUsers = d?.users || []
-    } catch { mergeModal.allUsers = [] }
+    } catch {
+      mergeModal.allUsers = []
+    }
   }
 
   const mergeTargets = computed(() =>
-    mergeModal.allUsers.filter(u =>
-      u.user_id !== mergeModal.source?.user_id
-      && (!mergeModal.search || u.name.toLowerCase().includes(mergeModal.search.toLowerCase())),
+    mergeModal.allUsers.filter(
+      u =>
+        u.user_id !== mergeModal.source?.user_id &&
+        (!mergeModal.search || u.name.toLowerCase().includes(mergeModal.search.toLowerCase())),
     ),
   )
 
   async function handleMerge() {
     if (!mergeModal.targetId || !mergeModal.source) return
     const target = mergeModal.allUsers.find(u => u.user_id === mergeModal.targetId)
-    await apiPost(`/api/stats/users/${encodeURIComponent(mergeModal.source.user_id)}/merge`, { target_user_id: mergeModal.targetId })
-    showToast(t('stats.userMerged', { source: mergeModal.source.name, target: target?.name || '?' }), TOAST_TYPE.OK)
+    await apiPost(`/api/stats/users/${encodeURIComponent(mergeModal.source.user_id)}/merge`, {
+      target_user_id: mergeModal.targetId,
+    })
+    showToast(
+      t('stats.userMerged', { source: mergeModal.source.name, target: target?.name || '?' }),
+      TOAST_TYPE.OK,
+    )
     mergeModal.open = false
     if (refreshUsersList) refreshUsersList()
   }
 
-  function registerUsersRefresh(fn) { refreshUsersList = fn }
+  function registerUsersRefresh(fn) {
+    refreshUsersList = fn
+  }
 
   function goToActivitySearch(name) {
     activeTab.value = 'activity'
@@ -100,10 +116,22 @@ export function useStatsUI() {
   }
 
   return {
-    activeTab, preview, profileOpen, profileName, profileStyle, userProfile,
-    mergeModal, mergeTargets, activitySearchSeed, avatarColors,
-    showPreview, hidePreview,
-    openUserProfile, openMergeModal, handleMerge,
-    registerUsersRefresh, goToActivitySearch,
+    activeTab,
+    preview,
+    profileOpen,
+    profileName,
+    profileStyle,
+    userProfile,
+    mergeModal,
+    mergeTargets,
+    activitySearchSeed,
+    avatarColors,
+    showPreview,
+    hidePreview,
+    openUserProfile,
+    openMergeModal,
+    handleMerge,
+    registerUsersRefresh,
+    goToActivitySearch,
   }
 }

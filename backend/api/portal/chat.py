@@ -410,7 +410,7 @@ async def prune_revoked_ws_sessions(db: AsyncSession) -> int:
             continue
         try:
             await ws.close(code=WS_CLOSE_AUTH_FAILED)
-        except Exception:
+        except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
             pass
         _ws_rooms.get(room_id, {}).pop(user_id, None)
         if room_id in _ws_rooms and not _ws_rooms[room_id]:

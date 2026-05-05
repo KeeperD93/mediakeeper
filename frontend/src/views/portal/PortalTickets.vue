@@ -16,12 +16,15 @@
         <span class="ptl-filter-label">{{ $t(g.label) }}</span>
         <div class="arr-pills ptl-filter-pills">
           <button
-            v-for="o in g.options" :key="`${g.key}-${o.value}`"
+            v-for="o in g.options"
+            :key="`${g.key}-${o.value}`"
             type="button"
             class="arr-pill"
             :class="{ 'arr-pill--active': g.current === o.value }"
             @click="g.set(o.value)"
-          >{{ $t(o.label) }}</button>
+          >
+            {{ $t(o.label) }}
+          </button>
         </div>
       </div>
     </div>
@@ -39,12 +42,7 @@
     </div>
 
     <div v-else class="ptl-list">
-      <TicketCard
-        v-for="t in tickets"
-        :key="t.id"
-        :ticket="t"
-        @open="openTicket"
-      />
+      <TicketCard v-for="ticket in tickets" :key="ticket.id" :ticket="ticket" @open="openTicket" />
     </div>
 
     <Teleport v-if="showForm" to="body">
@@ -57,12 +55,15 @@
           <div class="pt-popup-body">
             <div class="pt-mode-pills">
               <button
-                v-for="m in modes" :key="m.value"
+                v-for="m in modes"
+                :key="m.value"
                 type="button"
                 class="pt-mode-pill"
                 :class="{ 'pt-mode-pill--active': mode === m.value }"
                 @click="setMode(m.value)"
-              >{{ $t(m.label) }}</button>
+              >
+                {{ $t(m.label) }}
+              </button>
             </div>
 
             <template v-if="mode === 'library'">
@@ -161,12 +162,27 @@ const ISSUE_OPTIONS = [
 ]
 
 const filterGroups = computed(() => [
-  { key: 'status', label: 'portal.tickets.list.filterStatus',
-    options: STATUS_OPTIONS, current: statusFilter.value, set: setStatus },
-  { key: 'scope', label: 'portal.tickets.list.filterScope',
-    options: SCOPE_OPTIONS, current: scopeFilter.value, set: setScope },
-  { key: 'issue', label: 'portal.tickets.list.filterIssue',
-    options: ISSUE_OPTIONS, current: issueFilter.value, set: setIssue },
+  {
+    key: 'status',
+    label: 'portal.tickets.list.filterStatus',
+    options: STATUS_OPTIONS,
+    current: statusFilter.value,
+    set: setStatus,
+  },
+  {
+    key: 'scope',
+    label: 'portal.tickets.list.filterScope',
+    options: SCOPE_OPTIONS,
+    current: scopeFilter.value,
+    set: setScope,
+  },
+  {
+    key: 'issue',
+    label: 'portal.tickets.list.filterIssue',
+    options: ISSUE_OPTIONS,
+    current: issueFilter.value,
+    set: setIssue,
+  },
 ])
 
 // Map the user-facing scope choice to the backend ``media_type`` filter list.
@@ -192,7 +208,9 @@ const selectedHit = ref(null)
 // Defaults to "whole series" until the user touches the season tree.
 const seriesSelection = ref({ media_type: 'series', selected_seasons: null })
 const form = reactive({
-  media_title: '', issue_type: 'video', description: '',
+  media_title: '',
+  issue_type: 'video',
+  description: '',
 })
 
 const canSubmit = computed(() => {

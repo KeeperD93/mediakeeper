@@ -4,17 +4,12 @@
       <h2>{{ $t('portal.detail.cast') }}</h2>
       <div class="vmd2-cast-grid">
         <router-link
-          v-for="c in media.cast" :key="c.id || c.name"
+          v-for="c in media.cast"
+          :key="c.id || c.name"
           :to="{ name: 'portal-person', params: { id: c.id }, query: { role: 'acting' } }"
           class="vmd2-cast-card"
         >
-          <img
-            v-if="c.photo"
-            :src="c.photo"
-            :alt="c.name"
-            class="vmd2-cast-photo"
-            loading="lazy"
-          />
+          <img v-if="c.photo" :src="c.photo" :alt="c.name" class="vmd2-cast-photo" loading="lazy" />
           <div v-else class="vmd2-cast-photo vmd2-cast-photo--empty">
             <User :size="28" :stroke-width="1.5" :opacity="0.3" />
           </div>
@@ -27,10 +22,7 @@
     <template v-if="keyCrewGroups.length">
       <h2 class="vmd2-section-break">{{ $t('portal.detail.keyCrew') }}</h2>
       <div class="vmd2-crew-grid">
-        <div
-          v-for="entry in keyCrewGroups" :key="entry.job + entry.names"
-          class="vmd2-crew-card"
-        >
+        <div v-for="entry in keyCrewGroups" :key="entry.job + entry.names" class="vmd2-crew-card">
           <span class="vmd2-crew-role">{{ translateJob(entry.job) }}</span>
           <span class="vmd2-crew-name">{{ entry.names }}</span>
         </div>

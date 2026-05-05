@@ -9,7 +9,7 @@ const props = defineProps({
   value: { type: Number, default: 0 },
   duration: { type: Number, default: 800 },
   // Optional: custom formatter (toLocaleString by default).
-  formatter: { type: Function, default: (n) => Math.round(n).toLocaleString() },
+  formatter: { type: Function, default: n => Math.round(n).toLocaleString() },
   // Optional: delay (ms) before the animation actually starts — lets
   // siblings stagger their count-up so the screen reveals progressively.
   delay: { type: Number, default: 0 },
@@ -22,9 +22,11 @@ let timeoutId = null
 let observer = null
 
 function prefersReduced() {
-  return typeof window !== 'undefined'
-    && window.matchMedia
-    && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  return (
+    typeof window !== 'undefined' &&
+    window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  )
 }
 
 function animate(target) {
@@ -36,7 +38,7 @@ function animate(target) {
     return
   }
   const startTime = performance.now()
-  const step = (now) => {
+  const step = now => {
     const elapsed = now - startTime
     const progress = Math.min(elapsed / props.duration, 1)
     const eased = 1 - Math.pow(1 - progress, 3)
@@ -60,7 +62,10 @@ function scheduleAnimate(target) {
   }
 }
 
-watch(() => props.value, (val) => scheduleAnimate(val))
+watch(
+  () => props.value,
+  val => scheduleAnimate(val),
+)
 
 onMounted(() => {
   display.value = props.formatter(0)

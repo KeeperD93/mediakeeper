@@ -1,8 +1,19 @@
-import { NAMING_PATTERNS, GENRE_CAT_MAP, newFileThresholdMs, releaseTags } from './mediaManagerState'
+import {
+  NAMING_PATTERNS,
+  GENRE_CAT_MAP,
+  newFileThresholdMs,
+  releaseTags,
+} from './mediaManagerState'
 import { DIFF_TYPE } from '@/constants/mediaManager'
 
 export function sanitize(n) {
-  return n.replace(/\s*:\s*/g, ' - ').replace(/,/g, '').replace(/[/\\]/g, ' ').replace(/[<>"|?*]/g, '').replace(/\s{2,}/g, ' ').trim()
+  return n
+    .replace(/\s*:\s*/g, ' - ')
+    .replace(/,/g, '')
+    .replace(/[/\\]/g, ' ')
+    .replace(/[<>"|?*]/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
 }
 
 let _tagsRe = null
@@ -12,13 +23,20 @@ function _buildTagsRegex() {
   const key = tags.join('\u0001').toLowerCase()
   if (key === _tagsKey) return _tagsRe
   _tagsKey = key
-  if (!tags.length) { _tagsRe = null; return null }
+  if (!tags.length) {
+    _tagsRe = null
+    return null
+  }
   // Tags may be plain words OR small regex fragments (e.g. "Customs?",
   // "AAC\d?(?:\.\d)?"). Trust the backend default list and admin input —
   // an invalid regex fragment falls back to a literal-escape compile.
   let body
-  try { new RegExp(`\\b(?:${tags.join('|')})\\b`, 'gi'); body = tags.join('|') }
-  catch { body = tags.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') }
+  try {
+    new RegExp(`\\b(?:${tags.join('|')})\\b`, 'gi')
+    body = tags.join('|')
+  } catch {
+    body = tags.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')
+  }
   _tagsRe = new RegExp(`\\b(?:${body})\\b`, 'gi')
   return _tagsRe
 }
@@ -82,15 +100,21 @@ export function detectSeasonNum(name) {
 
 export function isFileNew(f) {
   if (!f?.mtime) return false
-  return (Date.now() - f.mtime * 1000) < newFileThresholdMs
+  return Date.now() - f.mtime * 1000 < newFileThresholdMs
 }
 
 export function _levenshtein(a, b) {
-  const m = a.length, n = b.length
-  const dp = Array.from({ length: m + 1 }, (_, i) => Array.from({ length: n + 1 }, (_, j) => i === 0 ? j : j === 0 ? i : 0))
+  const m = a.length,
+    n = b.length
+  const dp = Array.from({ length: m + 1 }, (_, i) =>
+    Array.from({ length: n + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0)),
+  )
   for (let i = 1; i <= m; i++)
     for (let j = 1; j <= n; j++)
-      dp[i][j] = a[i - 1] === b[j - 1] ? dp[i - 1][j - 1] : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1])
+      dp[i][j] =
+        a[i - 1] === b[j - 1]
+          ? dp[i - 1][j - 1]
+          : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1])
   return dp[m][n]
 }
 
@@ -101,14 +125,19 @@ export function computeDiff(oldName, newName) {
   const oTokens = o.split(/(?=[\s\-_.])|(?<=[\s\-_.])/g)
   const nTokens = n.split(/(?=[\s\-_.])|(?<=[\s\-_.])/g)
   const result = []
-  let oi = 0, ni = 0
+  let oi = 0,
+    ni = 0
   while (oi < oTokens.length || ni < nTokens.length) {
     if (oi < oTokens.length && ni < nTokens.length && oTokens[oi] === nTokens[ni]) {
-      result.push({ type: 'same', text: oTokens[oi] }); oi++; ni++
+      result.push({ type: 'same', text: oTokens[oi] })
+      oi++
+      ni++
     } else if (ni < nTokens.length) {
-      result.push({ type: DIFF_TYPE.ADD, text: nTokens[ni] }); ni++
+      result.push({ type: DIFF_TYPE.ADD, text: nTokens[ni] })
+      ni++
     } else {
-      result.push({ type: DIFF_TYPE.DEL, text: oTokens[oi] }); oi++
+      result.push({ type: DIFF_TYPE.DEL, text: oTokens[oi] })
+      oi++
     }
   }
   return result
@@ -121,13 +150,18 @@ export function _parseFileName(name) {
   const resM = n.match(/\b(480p|576p|720p|1080p|1080i|2160p|4K|UHD|2K|4k)\b/i)
   if (resM) result.resolution = resM[1].toUpperCase()
 
-  const srcM = n.match(/\b(BluRay|BDRip|BRRip|WEBRip|WEB-DL|WEBDL|WEB|HDTV|DVDRip|DVD|HDDVD|AMZN|NF|DSNP|ATVP|HMAX|PCOK|SHO|iT)\b/i)
+  const srcM = n.match(
+    /\b(BluRay|BDRip|BRRip|WEBRip|WEB-DL|WEBDL|WEB|HDTV|DVDRip|DVD|HDDVD|AMZN|NF|DSNP|ATVP|HMAX|PCOK|SHO|iT)\b/i,
+  )
   if (srcM) result.source = srcM[1]
 
   const vcodM = n.match(/\b(x264|x265|H\.?264|H\.?265|HEVC|AVC|VP9|AV1|XVID|MPEG2|VC-1|MPEG-2)\b/i)
-  if (vcodM) result.codec_video = vcodM[1].toUpperCase().replace('H264', 'H.264').replace('H265', 'H.265')
+  if (vcodM)
+    result.codec_video = vcodM[1].toUpperCase().replace('H264', 'H.264').replace('H265', 'H.265')
 
-  const acodM = n.match(/\b(DTS(?:-HD|-X|-MA)?|Atmos|TrueHD|EAC3|AC3|AAC|MP3|FLAC|DDP|DD\+?5\.1|DDP\d|PCM|OPUS)\b/i)
+  const acodM = n.match(
+    /\b(DTS(?:-HD|-X|-MA)?|Atmos|TrueHD|EAC3|AC3|AAC|MP3|FLAC|DDP|DD\+?5\.1|DDP\d|PCM|OPUS)\b/i,
+  )
   if (acodM) result.codec_audio = acodM[1].toUpperCase()
 
   const hdrM = n.match(/\b(HDR10\+?|HDR|DV|Dolby\.?Vision|HLG|SDR)\b/i)
@@ -150,7 +184,9 @@ export function _parseFileName(name) {
     { re: /\bDUAL\.?AUDIO\b/i, v: 'Dual Audio' },
     { re: /\bTRiLiNGUAL\b/i, v: 'Trilingual' },
   ]
-  for (const { re, v } of langPatterns) { if (re.test(n)) langTags.push(v) }
+  for (const { re, v } of langPatterns) {
+    if (re.test(n)) langTags.push(v)
+  }
   if (langTags.length) result.langues = langTags.join(', ')
 
   const subTags = []
@@ -166,7 +202,9 @@ export function _parseFileName(name) {
   const seM = n.match(/[Ss](\d{1,2})[Ee](\d{1,2})/)
   if (seM) result.episode = `Season ${seM[1]} · Episode ${seM[2]}`
 
-  const edM = n.match(/\b(Extended|Director'?s\.?Cut|Unrated|Theatrical|Remastered|Anniversary|Ultimate|Redux|Special\.Edition)\b/i)
+  const edM = n.match(
+    /\b(Extended|Director'?s\.?Cut|Unrated|Theatrical|Remastered|Anniversary|Ultimate|Redux|Special\.Edition)\b/i,
+  )
   if (edM) result.edition = edM[1].replace(/\./g, ' ')
 
   const qualM = n.match(/\b(PROPER|REPACK|REAL\.PROPER|INTERNAL|READNFO)\b/i)

@@ -3,7 +3,8 @@
     <div class="wg-req-head">
       <span class="wg-req-title">{{ $t('dashboard.portalAction.title') }}</span>
       <button v-if="!editing" class="wg-req-head-link" @click="goTo('/admin/portal')">
-        {{ $t('dashboard.portalAction.manage') }} <ChevronRight :size="12" />
+        {{ $t('dashboard.portalAction.manage') }}
+        <ChevronRight :size="12" />
       </button>
     </div>
     <div class="wg-req-grid">
@@ -12,7 +13,11 @@
         <span class="wg-req-label">{{ $t('dashboard.portalAction.pending') }}</span>
         <span class="wg-req-val">{{ loading ? '—' : stats.pending_requests }}</span>
       </button>
-      <button class="wg-req-tile" :disabled="editing" @click="goTo('/admin/portal', { tab: 'tickets' })">
+      <button
+        class="wg-req-tile"
+        :disabled="editing"
+        @click="goTo('/admin/portal', { tab: 'tickets' })"
+      >
         <LifeBuoy :size="18" class="wg-req-ic wg-req-ic-tickets" />
         <span class="wg-req-label">{{ $t('dashboard.portalAction.tickets') }}</span>
         <span class="wg-req-val">{{ loading ? '—' : stats.open_tickets }}</span>
@@ -63,7 +68,9 @@ onMounted(async () => {
       const d = await res.json().catch(() => null)
       if (d) stats.value = { ...stats.value, ...d }
     }
-  } catch { /* silent: widget stats fetch, card stays blank */ }
+  } catch {
+    /* silent: widget stats fetch, card stays blank */
+  }
   loading.value = false
 })
 </script>
@@ -108,23 +115,30 @@ onMounted(async () => {
   /* Push left of the absolute `.widget-badge-icon` (14px icon at right:10px) */
   margin-right: 22px;
   border-radius: var(--radius-pill);
-  background: rgba(255,255,255,0.03);
+  background: rgb(255, 255, 255, 0.03);
   border: 1px solid var(--border-strong);
-  color: rgba(255,255,255,.6);
+  color: rgb(255, 255, 255, 0.6);
   font-size: var(--text-3xs);
   font-weight: var(--font-extrabold);
   letter-spacing: var(--tracking-wide);
   cursor: pointer;
-  transition: all .18s;
+  transition: all 0.18s;
   backdrop-filter: var(--blur-xs);
   -webkit-tap-highlight-color: transparent;
   flex-shrink: 0;
 }
 @media (hover: hover) {
-  .wg-req-head-link:hover { border-color: rgba(255,255,255,0.18); color: rgba(255,255,255,.85); transform: translateY(-1px); }
+  .wg-req-head-link:hover {
+    border-color: rgb(255, 255, 255, 0.18);
+    color: rgb(255, 255, 255, 0.85);
+    transform: translateY(-1px);
+  }
 }
 @media (max-width: 767px) {
-  .wg-req-head-link { min-height: 32px; padding: 5px 14px; }
+  .wg-req-head-link {
+    min-height: 32px;
+    padding: 5px 14px;
+  }
 }
 
 .wg-req-grid {
@@ -139,39 +153,53 @@ onMounted(async () => {
   display: grid;
   grid-template-columns: auto 1fr;
   grid-template-rows: auto auto;
-  column-gap: 10px;
-  row-gap: 2px;
+  gap: 2px 10px;
   align-items: center;
   padding: 10px 12px;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.05);
+  background: rgb(255, 255, 255, 0.02);
+  border: 1px solid rgb(255, 255, 255, 0.05);
   border-radius: var(--radius-card);
   color: inherit;
   cursor: pointer;
   text-align: left;
   min-width: 0;
   min-height: 44px;
-  transition: border-color var(--duration-base), background var(--duration-base), transform var(--duration-fast);
+  transition:
+    border-color var(--duration-base),
+    background var(--duration-base),
+    transform var(--duration-fast);
   -webkit-tap-highlight-color: transparent;
 }
-.wg-req-tile:disabled { cursor: move; }
+.wg-req-tile:disabled {
+  cursor: move;
+}
 @media (hover: hover) {
   .wg-req-tile:not(:disabled):hover {
     border-color: color-mix(in srgb, var(--accent-500) 35%, transparent);
-    background: rgba(var(--accent-rgb), 0.05);
+    background: rgb(var(--accent-rgb), 0.05);
   }
 }
-.wg-req-tile:not(:disabled):active { transform: scale(0.98); }
+.wg-req-tile:not(:disabled):active {
+  transform: scale(0.98);
+}
 
 .wg-req-ic {
   grid-row: 1 / span 2;
   align-self: center;
   flex-shrink: 0;
 }
-.wg-req-ic-pending { color: var(--accent-500); }
-.wg-req-ic-tickets { color: var(--color-info); }
-.wg-req-ic-ok      { color: var(--color-success); }
-.wg-req-ic-ko      { color: #f43f5e; }
+.wg-req-ic-pending {
+  color: var(--accent-500);
+}
+.wg-req-ic-tickets {
+  color: var(--color-info);
+}
+.wg-req-ic-ok {
+  color: var(--color-success);
+}
+.wg-req-ic-ko {
+  color: #f43f5e;
+}
 
 .wg-req-label {
   font-size: var(--text-3xs);

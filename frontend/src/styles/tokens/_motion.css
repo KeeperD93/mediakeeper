@@ -14,18 +14,18 @@
  */
 :root {
   /* ─── Durations — interaction feedback ─── */
-  --duration-fast:    0.15s;   /* hover, focus — snappy (67 occ in audit) */
-  --duration-base:    0.2s;    /* standard state transitions (42 occ) */
-  --duration-slow:    0.3s;    /* enter / leave, expand / collapse (18 occ) */
-  --duration-slower:  0.5s;    /* ceremonial reveals, route transitions */
+  --duration-fast: 0.15s; /* hover, focus — snappy (67 occ in audit) */
+  --duration-base: 0.2s; /* standard state transitions (42 occ) */
+  --duration-slow: 0.3s; /* enter / leave, expand / collapse (18 occ) */
+  --duration-slower: 0.5s; /* ceremonial reveals, route transitions */
 
   /* ─── Durations — continuous animations ─── */
-  --duration-animation:  1.5s;   /* skeleton shimmer, progress stripes */
-  --duration-pulse:      2s;     /* pulsating dots, status indicators */
+  --duration-animation: 1.5s; /* skeleton shimmer, progress stripes */
+  --duration-pulse: 2s; /* pulsating dots, status indicators */
 
   /* ─── Easings ─── */
-  --ease-default:     ease;                            /* generic */
-  --ease-out:         cubic-bezier(0.22, 1, 0.36, 1);  /* spring-out — modals, bottom sheets */
-  --ease-in-out:      cubic-bezier(0.4, 0, 0.2, 1);    /* Material — drawers, sidebar */
-  --ease-linear:      linear;                          /* spinners, progress bars */
+  --ease-default: ease; /* generic */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1); /* spring-out — modals, bottom sheets */
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1); /* Material — drawers, sidebar */
+  --ease-linear: linear; /* spinners, progress bars */
 }

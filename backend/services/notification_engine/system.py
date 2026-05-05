@@ -39,7 +39,7 @@ async def send_system_notification(
         if raw_rules:
             try:
                 rules = json.loads(raw_rules)
-            except Exception:
+            except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
                 pass
         if _is_dnd(rules):
             logger.info(f"[NOTIFICATIONS] DND — notification {event_key} blocked")

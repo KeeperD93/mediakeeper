@@ -55,16 +55,12 @@ export function usePortalHomeData() {
   const heroItems = computed(() => {
     const cap = heroTrendCount.value
     if (cap <= 0) return []
-    const manual = featured.value.filter((f) => f.active !== false)
-    const auto = trending.value.filter(
-      (tr) => !manual.some((m) => m.tmdb_id === (tr.tmdb_id || tr.id)),
-    )
+    const manual = featured.value.filter(f => f.active !== false)
+    const auto = trending.value.filter(tr => !manual.some(m => m.tmdb_id === (tr.tmdb_id || tr.id)))
     return [...manual, ...auto].slice(0, cap)
   })
 
-  const featuredCount = computed(
-    () => featured.value.filter((f) => f.active !== false).length,
-  )
+  const featuredCount = computed(() => featured.value.filter(f => f.active !== false).length)
 
   function startHeroRotation() {
     stopHeroRotation()
@@ -75,7 +71,10 @@ export function usePortalHomeData() {
     }, HERO_ROTATE_MS)
   }
   function stopHeroRotation() {
-    if (heroTimer) { clearInterval(heroTimer); heroTimer = null }
+    if (heroTimer) {
+      clearInterval(heroTimer)
+      heroTimer = null
+    }
   }
   function nextHero() {
     if (heroItems.value.length > 1) {
@@ -87,7 +86,7 @@ export function usePortalHomeData() {
   // check has resolved. Hero strips read these fields directly instead
   // of going through `getAvailability(id)` on every render.
   function stampAvailability(list) {
-    list.forEach((it) => {
+    list.forEach(it => {
       const id = it.tmdb_id || it.id
       if (!id) return
       const av = getAvailability(id)
@@ -115,10 +114,7 @@ export function usePortalHomeData() {
       target.value = items
       if (extraApply) extraApply(data)
       if (items.length) {
-        await Promise.all([
-          checkAvailability(items),
-          checkRequestStatus(items),
-        ])
+        await Promise.all([checkAvailability(items), checkRequestStatus(items)])
         // Hero strips (featured / trending / recentEmby) embed the
         // emby_url + availability on each item so the banner can render
         // the "Regarder" CTA without going through the availability
@@ -130,7 +126,7 @@ export function usePortalHomeData() {
     const tasks = [
       runRow('/api/portal/featured', featured, {
         isHeroList: true,
-        extraApply: (d) => {
+        extraApply: d => {
           if (d?.hero_trend_count != null) heroTrendCount.value = d.hero_trend_count
         },
       }),
@@ -151,10 +147,7 @@ export function usePortalHomeData() {
         becauseYouWatched.value = data || { pivot: null, items: [] }
         const items = becauseYouWatched.value.items || []
         if (items.length) {
-          await Promise.all([
-            checkAvailability(items),
-            checkRequestStatus(items),
-          ])
+          await Promise.all([checkAvailability(items), checkRequestStatus(items)])
         }
       })(),
     ]
@@ -164,7 +157,9 @@ export function usePortalHomeData() {
     Promise.race([
       tasks[0], // featured
       tasks[1], // trending
-    ]).then(() => { startHeroRotation() })
+    ]).then(() => {
+      startHeroRotation()
+    })
 
     try {
       await Promise.all(tasks)
@@ -177,14 +172,28 @@ export function usePortalHomeData() {
 
   return {
     // Carousels
-    trending, featured, top20,
-    popularMovies, popularTv, recentEmby,
-    upcoming, topRatedYear, recommended,
-    oscars, family, animation, becauseYouWatched,
+    trending,
+    featured,
+    top20,
+    popularMovies,
+    popularTv,
+    recentEmby,
+    upcoming,
+    topRatedYear,
+    recommended,
+    oscars,
+    family,
+    animation,
+    becauseYouWatched,
     loadingAll,
     // Hero
-    heroItems, heroIndex, heroPaused, featuredCount,
-    nextHero, startHeroRotation, stopHeroRotation,
+    heroItems,
+    heroIndex,
+    heroPaused,
+    featuredCount,
+    nextHero,
+    startHeroRotation,
+    stopHeroRotation,
     // Loader
     loadAllData,
   }

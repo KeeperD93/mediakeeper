@@ -1,7 +1,7 @@
 /* CalendarButton — trigger, teleported popup, event list items.
  *
  * Popup-content classes (.pt-cal-item, .pt-cal-empty, .pt-cal-head, …)
- * collide with PortalCalendar.vue which still uses `<style scoped>` —
+ * collide with PortalCalendar.vue which still uses `\3c style scoped>` —
  * Vue's scoping would protect PortalCalendar's elements from our
  * selectors' specifherety, but unrelated properties (padding, border,
  * background, …) would still bleed in and break its month grid. We
@@ -9,7 +9,10 @@
  * reach PortalCalendar's DOM subtree.
  */
 
-.pt-cal-wrap { position: relative; display: inline-block; }
+.pt-cal-wrap {
+  position: relative;
+  display: inline-block;
+}
 
 /* The button uses class="pt-nav-icon pt-cal-trigger" so the shell (size,
    radius, border, background, hover) all inherits from .pt-nav-icon —
@@ -19,7 +22,11 @@
    14px alignment with neighbouring nav icons. .pt-cal-trigger stays
    reserved for calendar-specific overrides only if ever needed. */
 
-.pt-cal-shade { position: fixed; inset: 0; z-index: 8800; }
+.pt-cal-shade {
+  position: fixed;
+  inset: 0;
+  z-index: 8800;
+}
 
 .pt-cal-popup {
   position: fixed;
@@ -27,10 +34,10 @@
   right: clamp(0.5rem, 4%, 2rem);
   width: clamp(300px, 92vw, 420px);
   max-height: 75vh;
-  background: rgba(20, 20, 30, 0.97);
+  background: rgb(20, 20, 30, 0.97);
   border: 1px solid var(--portal-border-strong);
   border-radius: var(--radius-card);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 24px 60px rgb(0, 0, 0, 0.6);
   color: #fff;
   z-index: 8900;
   display: flex;
@@ -47,16 +54,22 @@
   padding: 0.85rem 1rem;
   border-bottom: 1px solid var(--portal-border-default);
 }
-.pt-cal-popup .pt-cal-head h3 { font-size: var(--portal-text-base); font-weight: var(--portal-font-extrabold); }
+.pt-cal-popup .pt-cal-head h3 {
+  font-size: var(--portal-text-base);
+  font-weight: var(--portal-font-extrabold);
+}
 .pt-cal-popup .pt-cal-x {
   background: transparent;
   border: none;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgb(255, 255, 255, 0.5);
   cursor: pointer;
   padding: 4px;
   border-radius: var(--portal-radius-xs);
 }
-.pt-cal-popup .pt-cal-x:hover { background: var(--portal-surface-4); color: #fff; }
+.pt-cal-popup .pt-cal-x:hover {
+  background: var(--portal-surface-4);
+  color: #fff;
+}
 
 .pt-cal-popup .pt-cal-list {
   flex: 1;
@@ -67,7 +80,7 @@
 .pt-cal-popup .pt-cal-empty {
   padding: 1.5rem 1rem;
   text-align: center;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgb(255, 255, 255, 0.45);
   font-size: var(--portal-text-sm);
 }
 
@@ -85,7 +98,10 @@
   cursor: pointer;
   margin-bottom: 0.45rem;
   position: relative;
-  transition: background var(--portal-dur-fast), border-color var(--portal-dur-fast), transform var(--portal-dur-fast);
+  transition:
+    background var(--portal-dur-fast),
+    border-color var(--portal-dur-fast),
+    transform var(--portal-dur-fast);
 }
 .pt-cal-popup .pt-cal-item:hover {
   background: var(--portal-surface-4);
@@ -93,19 +109,42 @@
 }
 
 /* Calendar status palette — see ROADMAP §16 */
-.pt-cal-popup .pt-cal-item--accepted-private { border-color: rgba(var(--portal-color-info-rgb), 0.5); }
-.pt-cal-popup .pt-cal-item--accepted-private .pt-cal-status-pill { background: var(--portal-color-info); }
-.pt-cal-popup .pt-cal-item--accepted-public { border-color: rgba(var(--portal-color-success-rgb), 0.5); }
-.pt-cal-popup .pt-cal-item--accepted-public .pt-cal-status-pill { background: var(--portal-color-success); }
-.pt-cal-popup .pt-cal-item--pending-public {
-  border-color: rgba(160, 160, 170, 0.4);
-  background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.04) 0 6px, transparent 6px 12px);
+.pt-cal-popup .pt-cal-item--accepted-private {
+  border-color: rgb(var(--portal-color-info-rgb), 0.5);
 }
-.pt-cal-popup .pt-cal-item--pending-public .pt-cal-status-pill { background: #94a3b8; }
-.pt-cal-popup .pt-cal-item--pending { border-color: rgba(255, 255, 255, 0.15); }
-.pt-cal-popup .pt-cal-item--pending .pt-cal-status-pill { background: #94a3b8; }
-.pt-cal-popup .pt-cal-item--declined { opacity: 0.55; filter: grayscale(0.6); }
-.pt-cal-popup .pt-cal-item--declined .pt-cal-status-pill { background: #6b7280; }
+.pt-cal-popup .pt-cal-item--accepted-private .pt-cal-status-pill {
+  background: var(--portal-color-info);
+}
+.pt-cal-popup .pt-cal-item--accepted-public {
+  border-color: rgb(var(--portal-color-success-rgb), 0.5);
+}
+.pt-cal-popup .pt-cal-item--accepted-public .pt-cal-status-pill {
+  background: var(--portal-color-success);
+}
+.pt-cal-popup .pt-cal-item--pending-public {
+  border-color: rgb(160, 160, 170, 0.4);
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgb(255, 255, 255, 0.04) 0 6px,
+    transparent 6px 12px
+  );
+}
+.pt-cal-popup .pt-cal-item--pending-public .pt-cal-status-pill {
+  background: #94a3b8;
+}
+.pt-cal-popup .pt-cal-item--pending {
+  border-color: rgb(255, 255, 255, 0.15);
+}
+.pt-cal-popup .pt-cal-item--pending .pt-cal-status-pill {
+  background: #94a3b8;
+}
+.pt-cal-popup .pt-cal-item--declined {
+  opacity: 0.55;
+  filter: grayscale(0.6);
+}
+.pt-cal-popup .pt-cal-item--declined .pt-cal-status-pill {
+  background: #6b7280;
+}
 
 .pt-cal-popup .pt-cal-status-pill {
   position: absolute;
@@ -124,21 +163,32 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  border-right: 1px solid rgb(255, 255, 255, 0.1);
   padding-right: 0.6rem;
 }
-.pt-cal-popup .pt-cal-day { font-size: var(--portal-text-xl); font-weight: var(--portal-font-black); line-height: var(--portal-lh-tight); }
+.pt-cal-popup .pt-cal-day {
+  font-size: var(--portal-text-xl);
+  font-weight: var(--portal-font-black);
+  line-height: var(--portal-lh-tight);
+}
 .pt-cal-popup .pt-cal-month {
   font-size: var(--portal-text-2xs);
   font-weight: var(--portal-font-bold);
   text-transform: uppercase;
   letter-spacing: var(--portal-tracking-caps);
-  color: rgba(255, 255, 255, 0.6);
+  color: rgb(255, 255, 255, 0.6);
   margin-top: 2px;
 }
-.pt-cal-popup .pt-cal-time { font-size: var(--portal-text-2xs); color: var(--portal-text-secondary); margin-top: 4px; }
+.pt-cal-popup .pt-cal-time {
+  font-size: var(--portal-text-2xs);
+  color: var(--portal-text-secondary);
+  margin-top: 4px;
+}
 
-.pt-cal-popup .pt-cal-body { flex: 1; min-width: 0; }
+.pt-cal-popup .pt-cal-body {
+  flex: 1;
+  min-width: 0;
+}
 .pt-cal-popup .pt-cal-title {
   font-size: var(--portal-text-base);
   font-weight: var(--portal-font-bold);
@@ -161,17 +211,27 @@
   letter-spacing: var(--portal-tracking-caps);
   font-size: var(--portal-text-3xs);
 }
-.pt-cal-popup .pt-cal-kind--private { background: rgba(var(--portal-color-info-rgb), 0.2); color: var(--portal-color-info-soft); }
-.pt-cal-popup .pt-cal-kind--public { background: rgba(var(--portal-color-success-rgb), 0.2); color: var(--portal-color-success-soft); }
+.pt-cal-popup .pt-cal-kind--private {
+  background: rgb(var(--portal-color-info-rgb), 0.2);
+  color: var(--portal-color-info-soft);
+}
+.pt-cal-popup .pt-cal-kind--public {
+  background: rgb(var(--portal-color-success-rgb), 0.2);
+  color: var(--portal-color-success-soft);
+}
 .pt-cal-popup .pt-cal-marathon {
-  color: rgba(var(--portal-color-warning-rgb), 0.85);
+  color: rgb(var(--portal-color-warning-rgb), 0.85);
   font-size: var(--portal-text-2xs);
 }
 
-.pt-cal-pop-enter-active, .pt-cal-pop-leave-active {
-  transition: opacity 0.18s ease, transform 0.18s ease;
+.pt-cal-pop-enter-active,
+.pt-cal-pop-leave-active {
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
 }
-.pt-cal-pop-enter-from, .pt-cal-pop-leave-to {
+.pt-cal-pop-enter-from,
+.pt-cal-pop-leave-to {
   opacity: 0;
   transform: translateY(-6px);
 }

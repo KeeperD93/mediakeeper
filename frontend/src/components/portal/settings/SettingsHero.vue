@@ -28,7 +28,11 @@
       </span>
       <router-link
         v-if="profileData?.user_id"
-        :to="{ name: 'portal-user-profile', params: { id: profileData.user_id }, query: { preview: 1 } }"
+        :to="{
+          name: 'portal-user-profile',
+          params: { id: profileData.user_id },
+          query: { preview: 1 },
+        }"
         class="pt-settings-btn"
       >
         <Eye :size="14" />

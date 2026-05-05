@@ -85,7 +85,7 @@ def _load_channel_json(raw: str, default: dict) -> dict:
             parsed = json.loads(raw)
             if isinstance(parsed, dict):
                 return parsed
-        except Exception:
+        except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
             pass
     return deepcopy(default)
 

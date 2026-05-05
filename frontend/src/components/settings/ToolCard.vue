@@ -3,7 +3,12 @@
     <!-- Header -->
     <div class="tc-header" @click="open = !open">
       <div class="tc-header-left">
-        <img v-if="def.icon" :src="'/assets/icons/' + def.icon" class="tc-icon" @error="e => e.target.style.display='none'" />
+        <img
+          v-if="def.icon"
+          :src="'/assets/icons/' + def.icon"
+          class="tc-icon"
+          @error="e => (e.target.style.display = 'none')"
+        />
         <KeyRound v-else class="tc-icon-fallback" :size="28" />
         <span class="tc-label">{{ def.label }}</span>
       </div>
@@ -12,7 +17,11 @@
           {{ cfg.enabled ? $t('common.active') : $t('common.inactive') }}
         </span>
         <label class="tc-switch">
-          <input type="checkbox" :checked="cfg.enabled" @change="$emit('toggle', $event.target.checked)" />
+          <input
+            type="checkbox"
+            :checked="cfg.enabled"
+            @change="$emit('toggle', $event.target.checked)"
+          />
           <div class="tc-switch-track" />
         </label>
       </div>
@@ -37,7 +46,7 @@
           {{ saving ? $t('common.saving') : $t('common.save') }}
         </button>
         <button class="tc-ping-btn" :disabled="pinging" @click="ping">
-          {{ pinging ? $t('common.test')+'...' : pingResult || $t('settings.testConnection') }}
+          {{ pinging ? $t('common.test') + '...' : pingResult || $t('settings.testConnection') }}
         </button>
       </div>
       <p v-if="hasAttributionNote" class="tc-attribution-note">
@@ -77,7 +86,7 @@ const hasAttributionNote = computed(() => ATTRIBUTION_TOOLS.includes(props.toolK
 const attributionNoteText = computed(() =>
   props.toolKey === 'tmdb'
     ? t('attribution.settings.tmdb')
-    : t('attribution.settings.opensubtitles')
+    : t('attribution.settings.opensubtitles'),
 )
 
 const fieldValues = reactive({})
@@ -100,7 +109,8 @@ function fieldPlaceholder(field) {
 
 function displayValue(field) {
   if (!isSecretField(field)) return fieldValues[field.key] || ''
-  if (secretEditing[field.key] || !props.cfg?.[`${field.key}_configured`]) return fieldValues[field.key] || ''
+  if (secretEditing[field.key] || !props.cfg?.[`${field.key}_configured`])
+    return fieldValues[field.key] || ''
   return secretMask(field)
 }
 
@@ -124,7 +134,7 @@ function onFieldInput(field, value) {
 
 // Init field values from config
 function syncFields() {
-  for (const f of (props.def.fields || [])) {
+  for (const f of props.def.fields || []) {
     fieldValues[f.key] = props.cfg[f.key] || ''
     if (isSecretField(f)) secretEditing[f.key] = false
   }
@@ -135,13 +145,17 @@ watch(() => props.cfg, syncFields, { deep: true })
 function save() {
   saving.value = true
   const payload = {}
-  for (const f of (props.def.fields || [])) {
+  for (const f of props.def.fields || []) {
     const value = (fieldValues[f.key] || '').trim()
-    if (isSecretField(f) && props.cfg?.[`${f.key}_configured`] && (!secretEditing[f.key] || !value)) continue
+    if (isSecretField(f) && props.cfg?.[`${f.key}_configured`] && (!secretEditing[f.key] || !value))
+      continue
     payload[f.key] = value
   }
   emit('save', payload)
-  setTimeout(() => { saving.value = false; open.value = false }, 600)
+  setTimeout(() => {
+    saving.value = false
+    open.value = false
+  }, 600)
 }
 
 async function ping() {
@@ -155,18 +169,22 @@ async function ping() {
     pingResult.value = '✗ ' + t('common.error')
   }
   pinging.value = false
-  setTimeout(() => { pingResult.value = null }, 4000)
+  setTimeout(() => {
+    pingResult.value = null
+  }, 4000)
 }
 </script>
 
 <style scoped>
 .tc {
-  border-radius:var(--radius-btn);
+  border-radius: var(--radius-btn);
   border: 1px solid var(--border);
   overflow: hidden;
   transition: border-color var(--duration-base);
 }
-.tc.active { border-color: var(--accent-500); }
+.tc.active {
+  border-color: var(--accent-500);
+}
 
 .tc-header {
   display: flex;
@@ -177,42 +195,180 @@ async function ping() {
   cursor: pointer;
   transition: background var(--duration-fast);
 }
-.tc.active .tc-header { background: rgba(var(--accent-rgb), 0.08); }
-.tc-header:hover { background: var(--bg-secondary); }
-.tc.active .tc-header:hover { background: rgba(var(--accent-rgb), 0.12); }
+.tc.active .tc-header {
+  background: rgb(var(--accent-rgb), 0.08);
+}
+.tc-header:hover {
+  background: var(--bg-secondary);
+}
+.tc.active .tc-header:hover {
+  background: rgb(var(--accent-rgb), 0.12);
+}
 
-.tc-header-left { display: flex; align-items: center; gap: 10px; }
-.tc-icon { width: 28px; height: 28px; object-fit: contain; flex-shrink: 0; }
-.tc-icon-fallback { width: 28px; height: 28px; flex-shrink: 0; color: var(--text-muted); }
-.tc-label { font-size: var(--text-base); font-weight: var(--font-medium); color: var(--text-primary); }
+.tc-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.tc-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.tc-icon-fallback {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+.tc-label {
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+}
 
-.tc-header-right { display: flex; align-items: center; gap: 8px; }
-.tc-status { font-size: var(--text-2xs); color: var(--text-muted); }
-.tc-status.on { color: var(--color-success); }
-.tc-status.off { color: var(--text-muted); }
+.tc-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tc-status {
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
+}
+.tc-status.on {
+  color: var(--color-success);
+}
+.tc-status.off {
+  color: var(--text-muted);
+}
 
-.tc-switch { position: relative; cursor: pointer; }
-.tc-switch input { position: absolute; opacity: 0; width: 0; height: 0; }
-.tc-switch-track { width: 38px; height: 20px; border-radius:var(--radius-btn); background: var(--bg-primary); border: 1px solid var(--border); position: relative; transition: all var(--duration-base); }
-.tc-switch-track::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: all var(--duration-base); }
-.tc-switch input:checked + .tc-switch-track { background: var(--accent-600); border-color: var(--accent-600); }
-.tc-switch input:checked + .tc-switch-track::after { left: 21px; }
+.tc-switch {
+  position: relative;
+  cursor: pointer;
+}
+.tc-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.tc-switch-track {
+  width: 38px;
+  height: 20px;
+  border-radius: var(--radius-btn);
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  position: relative;
+  transition: all var(--duration-base);
+}
+.tc-switch-track::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  transition: all var(--duration-base);
+}
+.tc-switch input:checked + .tc-switch-track {
+  background: var(--accent-600);
+  border-color: var(--accent-600);
+}
+.tc-switch input:checked + .tc-switch-track::after {
+  left: 21px;
+}
 
-.tc-body { padding: 16px; background: var(--bg-secondary); display: flex; flex-direction: column; gap: 12px; }
-.tc-field {}
-.tc-field-label { display: block; font-size: var(--text-xs); color: var(--text-secondary); margin-bottom: 5px; }
-.tc-field-help { font-size: var(--text-2xs); color: var(--text-muted); margin-top: 4px; line-height: 1.4; }
-.tc-input { width: 100%; padding: 8px 12px; border-radius:var(--radius-btn); border: 1px solid var(--border); background: var(--bg-tertiary); color: var(--text-primary); font-size: var(--text-sm); outline: none; transition: border-color var(--duration-fast); box-sizing: border-box; }
-.tc-input:focus { border-color: var(--accent-500); }
+.tc-body {
+  padding: 16px;
+  background: var(--bg-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.tc-field-label {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  margin-bottom: 5px;
+}
+.tc-field-help {
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+.tc-input {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: var(--radius-btn);
+  border: 1px solid var(--border);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  outline: none;
+  transition: border-color var(--duration-fast);
+  box-sizing: border-box;
+}
+.tc-input:focus {
+  border-color: var(--accent-500);
+}
 
-.tc-actions { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
-.tc-save-btn { padding: 8px 18px; border-radius:var(--radius-btn); background: var(--accent-600); color: #fff; border: none; font-size: var(--text-sm); font-weight: var(--font-medium); cursor: pointer; transition: background var(--duration-fast); }
-.tc-save-btn:hover { background: var(--accent-700); }
-.tc-save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.tc-ping-btn { padding: 8px 14px; border-radius:var(--radius-btn); background: var(--bg-tertiary); color: var(--text-secondary); border: 1px solid var(--border); font-size: var(--text-sm); cursor: pointer; transition: all var(--duration-fast); }
-.tc-ping-btn:hover { border-color: var(--accent-500); color: var(--text-primary); }
-.tc-ping-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.tc-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+.tc-save-btn {
+  padding: 8px 18px;
+  border-radius: var(--radius-btn);
+  background: var(--accent-600);
+  color: #fff;
+  border: none;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: background var(--duration-fast);
+}
+.tc-save-btn:hover {
+  background: var(--accent-700);
+}
+.tc-save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.tc-ping-btn {
+  padding: 8px 14px;
+  border-radius: var(--radius-btn);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+.tc-ping-btn:hover {
+  border-color: var(--accent-500);
+  color: var(--text-primary);
+}
+.tc-ping-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
-.tc-attribution-note { margin: 8px 0 0; font-size: var(--text-2xs); color: var(--text-muted); line-height: 1.45; }
-.tc-attribution-note a { color: var(--accent-500); text-decoration: underline; text-underline-offset: 2px; }
+.tc-attribution-note {
+  margin: 8px 0 0;
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+.tc-attribution-note a {
+  color: var(--accent-500);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
 </style>

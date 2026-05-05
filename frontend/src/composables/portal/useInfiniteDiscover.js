@@ -51,7 +51,7 @@ export function useInfiniteDiscover(endpoint, { sort: initialSort = 'popularity'
       const sep = endpoint.includes('?') ? '&' : '?'
       const url = `${endpoint}${sep}page=${next}&sort=${sort.value}`
       const res = await apiGet(url)
-      const fresh = (res?.items || []).filter((it) => {
+      const fresh = (res?.items || []).filter(it => {
         const key = `${it.media_type || 'movie'}:${it.tmdb_id || it.id}`
         if (seen.has(key)) return false
         seen.add(key)
@@ -62,10 +62,7 @@ export function useInfiniteDiscover(endpoint, { sort: initialSort = 'popularity'
       hasMore.value = !!res?.has_more && fresh.length > 0
       // Best-effort enrichment so cards render with the right state.
       if (fresh.length) {
-        await Promise.all([
-          checkAvailability(fresh),
-          checkRequestStatus(fresh),
-        ])
+        await Promise.all([checkAvailability(fresh), checkRequestStatus(fresh)])
       }
     } catch (e) {
       error.value = e
@@ -104,7 +101,7 @@ export function useInfiniteDiscover(endpoint, { sort: initialSort = 'popularity'
     _sentinel = el
     if (observer) observer.disconnect()
     observer = new IntersectionObserver(
-      (entries) => {
+      entries => {
         for (const entry of entries) {
           if (entry.isIntersecting) {
             loadMore()

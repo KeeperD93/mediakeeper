@@ -1,26 +1,49 @@
 /* Form controls + permission list + tags + audit list shared by every
    tab inside the user drawer. Imported by the drawer wrapper. */
 
-.ru-form { display: flex; flex-direction: column; gap: 1rem; }
+.ru-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
 .ru-form-row label,
 .ru-form-grid label {
-  display: flex; flex-direction: column; gap: .35rem;
-  font-size: var(--text-xs); color: var(--text-muted); min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  min-width: 0;
 }
-.ru-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-@media (max-width: 700px) { .ru-form-grid { grid-template-columns: 1fr; } }
+.ru-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+@media (max-width: 700px) {
+  .ru-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
 
-.ru-form input[type="text"],
-.ru-form input[type="email"],
-.ru-form input[type="password"],
-.ru-form input[type="datetime-local"],
-.ru-tab-access input[type="datetime-local"],
-.ru-form select, .ru-input, .ru-textarea {
-  width: 100%; min-width: 0; box-sizing: border-box;
-  background: var(--bg-primary); color: var(--text-primary);
-  border: 1px solid var(--border); border-radius: var(--radius-btn);
-  padding: .55rem .75rem;
-  font: inherit; font-size: var(--text-sm);
+.ru-form input[type='text'],
+.ru-form input[type='email'],
+.ru-form input[type='password'],
+.ru-form input[type='datetime-local'],
+.ru-tab-access input[type='datetime-local'],
+.ru-form select,
+.ru-input,
+.ru-textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-btn);
+  padding: 0.55rem 0.75rem;
+  font: inherit;
+  font-size: var(--text-sm);
   /* Tells the browser to draw native pickers in dark mode so the
      calendar icon stays visible on a dark input. */
   color-scheme: dark;
@@ -28,8 +51,8 @@
 /* Replace the native (often invisible on dark backgrounds) calendar icon
    with an inline white SVG so it stays visible regardless of how the
    browser interprets color-scheme. */
-.ru-form input[type="datetime-local"]::-webkit-calendar-picker-indicator,
-.ru-tab-access input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+.ru-form input[type='datetime-local']::-webkit-calendar-picker-indicator,
+.ru-tab-access input[type='datetime-local']::-webkit-calendar-picker-indicator {
   filter: none;
   opacity: 1;
   cursor: pointer;
@@ -40,80 +63,188 @@
   background-position: center;
   background-size: 18px 18px;
 }
-.ru-form input:disabled { opacity: .6; }
-.ru-form-row--inline { flex-direction: row; align-items: center; gap: .5rem; }
-.ru-form-actions { display: flex; gap: .5rem; justify-content: flex-end; }
-.ru-form-actions--inline { justify-content: flex-start; align-items: center; flex-wrap: wrap; }
-.ru-form-divider { width: 1px; height: 22px; background: var(--border); margin: 0 .35rem; }
-.ru-form-error { color: #ef4444; font-size: var(--text-xs); margin: 0; }
-.ru-textarea { width: 100%; min-height: 120px; resize: vertical; box-sizing: border-box; }
+.ru-form input:disabled {
+  opacity: 0.6;
+}
+.ru-form-row--inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+.ru-form-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+.ru-form-actions--inline {
+  justify-content: flex-start;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.ru-form-divider {
+  width: 1px;
+  height: 22px;
+  background: var(--border);
+  margin: 0 0.35rem;
+}
+.ru-form-error {
+  color: #ef4444;
+  font-size: var(--text-xs);
+  margin: 0;
+}
+.ru-textarea {
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+  box-sizing: border-box;
+}
 
 .ru-danger-list {
-  margin: .5rem 0 .75rem; padding-left: 1.25rem;
+  margin: 0.5rem 0 0.75rem;
+  padding-left: 1.25rem;
   color: var(--text-secondary);
-  font-size: var(--text-xs); line-height: 1.55;
+  font-size: var(--text-xs);
+  line-height: 1.55;
 }
-.ru-danger-list li { margin-bottom: .15rem; }
-.ru-source-cell { display: inline-flex; flex-wrap: wrap; gap: .25rem; align-items: center; }
+.ru-danger-list li {
+  margin-bottom: 0.15rem;
+}
+.ru-source-cell {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
+}
 
-.ru-pill-row { display: flex; gap: .5rem; flex-wrap: wrap; }
+.ru-pill-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
 
 /* Permissions list */
-.ru-perm-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .65rem; }
+.ru-perm-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
 .ru-perm-row {
-  display: flex; flex-direction: column; gap: .25rem;
-  padding: .55rem .75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.55rem 0.75rem;
   background: var(--bg-tertiary);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
 }
-.ru-perm-head { display: inline-flex; align-items: center; gap: .65rem; }
+.ru-perm-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+}
 .ru-perm-label {
-  font-weight: var(--font-bold); color: var(--text-primary);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
   font-size: var(--text-sm);
 }
-.ru-perm-row p.ru-help { padding-left: calc(36px + .65rem); margin: 0; }
+.ru-perm-row p.ru-help {
+  padding-left: calc(36px + 0.65rem);
+  margin: 0;
+}
 
 /* Switch */
-.ru-toggle-row { display: flex; align-items: center; gap: 1rem; }
-.ru-toggle-row--column { flex-direction: column; align-items: flex-start; gap: .35rem; }
-.ru-switch { position: relative; display: inline-block; width: 36px; height: 20px; flex-shrink: 0; }
-.ru-switch input { opacity: 0; width: 0; height: 0; }
+.ru-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.ru-toggle-row--column {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+.ru-switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.ru-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
 .ru-switch span {
-  position: absolute; cursor: pointer; inset: 0;
-  background: #555; border-radius: 20px;
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: #555;
+  border-radius: 20px;
   transition: background var(--duration-base);
 }
 .ru-switch span::before {
-  content: ''; position: absolute;
-  height: 14px; width: 14px; left: 3px; top: 3px;
-  background: #fff; border-radius: 50%;
+  content: '';
+  position: absolute;
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  top: 3px;
+  background: #fff;
+  border-radius: 50%;
   transition: transform var(--duration-base);
 }
-.ru-switch input:checked + span { background: var(--accent); }
-.ru-switch input:checked + span::before { transform: translateX(16px); }
+.ru-switch input:checked + span {
+  background: var(--accent);
+}
+.ru-switch input:checked + span::before {
+  transform: translateX(16px);
+}
 
 /* Tags */
-.ru-tag-row { display: flex; flex-wrap: wrap; gap: .35rem; }
+.ru-tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
 .ru-tag {
-  display: inline-flex; align-items: center; gap: .35rem;
-  background: rgba(var(--accent-rgb), .15); color: var(--accent);
-  border-radius: 999px; padding: .15rem .65rem;
-  font-size: var(--text-2xs); font-weight: var(--font-bold);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgb(var(--accent-rgb), 0.15);
+  color: var(--accent);
+  border-radius: 999px;
+  padding: 0.15rem 0.65rem;
+  font-size: var(--text-2xs);
+  font-weight: var(--font-bold);
 }
 .ru-tag-remove {
-  background: transparent; border: none; color: inherit; cursor: pointer;
-  font-size: var(--text-sm); line-height: 1;
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: var(--text-sm);
+  line-height: 1;
 }
 
 /* Audit list */
-.ru-audit-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .35rem; }
+.ru-audit-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
 .ru-audit-item {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: .75rem;
+  gap: 0.75rem;
   align-items: baseline;
-  padding: .55rem .75rem;
+  padding: 0.55rem 0.75rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--bg-tertiary);
@@ -125,6 +256,19 @@
   font-size: var(--text-2xs);
   white-space: nowrap;
 }
-.ru-audit-body { display: flex; flex-direction: column; gap: .15rem; min-width: 0; }
-.ru-audit-action { color: var(--text-primary); font-weight: var(--font-bold); }
-.ru-audit-detail { color: var(--text-secondary); font-size: var(--text-2xs); word-break: break-word; }
+.ru-audit-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+.ru-audit-action {
+  color: var(--text-primary);
+  font-weight: var(--font-bold);
+}
+.ru-audit-detail {
+  color: var(--text-secondary);
+  font-size: var(--text-2xs);
+  /* stylelint-disable-next-line declaration-property-value-keyword-no-deprecated -- non-standard but widely supported; behaviour differs from overflow-wrap: break-word on CJK */
+  word-break: break-word;
+}

@@ -7,9 +7,9 @@ import { useSurpriseRoll } from '@/composables/portal/useSurpriseRoll'
 // part of the "movie" pool (the backend filter is broadened accordingly),
 // so users get a single "Films" tab covering all flavours.
 export const KINDS = [
-  { key: 'movie',       label: 'portal.surprise.kinds.movie' },
-  { key: 'tv',          label: 'portal.surprise.kinds.tv' },
-  { key: 'manga',       label: 'portal.surprise.kinds.manga' },
+  { key: 'movie', label: 'portal.surprise.kinds.movie' },
+  { key: 'tv', label: 'portal.surprise.kinds.tv' },
+  { key: 'manga', label: 'portal.surprise.kinds.manga' },
   { key: 'documentary', label: 'portal.surprise.kinds.documentary' },
 ]
 
@@ -44,26 +44,30 @@ export function useSurpriseOverlay(emit) {
     for (let cols = 1; cols <= n; cols++) {
       if (n % cols !== 0) continue
       const rows = n / cols
-      const w = Math.floor(Math.min(
-        (W - (cols - 1) * g) / cols,
-        (H - (rows - 1) * g) / rows / 1.5,
-        140,
-      ))
-      if (w > bestW) { bestW = w; bestCols = cols }
+      const w = Math.floor(
+        Math.min((W - (cols - 1) * g) / cols, (H - (rows - 1) * g) / rows / 1.5, 140),
+      )
+      if (w > bestW) {
+        bestW = w
+        bestCols = cols
+      }
     }
     cellSize.value = Math.max(32, bestW)
     colCount.value = bestCols
   }
 
   let resizeObs = null
-  watch(() => pool.value.length, () => nextTick(recalcCellSize))
-  watch(revealed, (v) => { if (!v) nextTick(recalcCellSize) })
+  watch(
+    () => pool.value.length,
+    () => nextTick(recalcCellSize),
+  )
+  watch(revealed, v => {
+    if (!v) nextTick(recalcCellSize)
+  })
 
-  const {
-    rolling, activeIdx, soundOn, toggleSound, startRoll, resetRoll,
-  } = useSurpriseRoll({
+  const { rolling, activeIdx, soundOn, toggleSound, startRoll, resetRoll } = useSurpriseRoll({
     getPool: () => pool.value,
-    onReveal: (idx) => reveal(idx),
+    onReveal: idx => reveal(idx),
   })
 
   async function loadPool() {
@@ -152,10 +156,26 @@ export function useSurpriseOverlay(emit) {
 
   return {
     KINDS,
-    kind, pool, loading, winner, revealed, lightboxOpen,
-    gridWrapRef, cellSize, gap, colCount,
-    rolling, activeIdx, soundOn, trailer,
-    toggleSound, selectKind, launchRoll, retry, openTrailer,
-    formatRuntime, close,
+    kind,
+    pool,
+    loading,
+    winner,
+    revealed,
+    lightboxOpen,
+    gridWrapRef,
+    cellSize,
+    gap,
+    colCount,
+    rolling,
+    activeIdx,
+    soundOn,
+    trailer,
+    toggleSound,
+    selectKind,
+    launchRoll,
+    retry,
+    openTrailer,
+    formatRuntime,
+    close,
   }
 }
