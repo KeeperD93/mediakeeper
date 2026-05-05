@@ -68,9 +68,8 @@ async def seed_achievements(db: AsyncSession):
     await db.commit()
 
     # Pass 3: prune every achievement whose ID is no longer declared in
-    # ACHIEVEMENT_DEFS. Covers meta, standard, and secret rows — needed
-    # for the pre-v1.0 FR→EN slug rename (e.g. old `cinephile_1` row is
-    # removed once the code only ships `movie_buff_1`). Post-v1.0 any
+    # ACHIEVEMENT_DEFS. Covers meta, standard, and secret rows — keeps
+    # dev DBs aligned when a slug is renamed or retired. Post-v1.0 any
     # typo in ACHIEVEMENT_DEFS would still nuke the wrong row on boot,
     # so revisit this policy once the DB is frozen.
     current_ids = {d["id"] for d in ACHIEVEMENT_DEFS}
