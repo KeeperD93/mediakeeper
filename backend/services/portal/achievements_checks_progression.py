@@ -10,6 +10,12 @@ from models.playback_stats import PlaybackSession
 from models.portal.request import MediaRequest
 from models.portal.ticket import Ticket
 from models.portal.event import MKEvent
+from models.portal.social import (
+    UserList,
+    UserListItem,
+    PRIVACY_PUBLIC_READONLY,
+    PRIVACY_COLLABORATIVE,
+)
 from models.portal.xp_ledger import XpLedger
 from services.portal.achievements_utils import (
     update_progress,
@@ -227,5 +233,36 @@ async def check_progression(
     # --- decades_watched: needs content metadata (TMDB year); placeholder ---
     if "decades_watched" in by_type:
         await _apply("decades_watched", 0)
+
+    # --- lists_public_created: count of non-deleted public/collaborative
+    # lists owned by the user.
+    if "lists_public_created" in by_type:
+        val = (await db.execute(
+            select(func.count(UserList.id)).where(
+                UserList.user_id == user_id,
+                UserList.is_deleted.is_(False),
+                UserList.privacy.in_((PRIVACY_PUBLIC_READONLY, PRIVACY_COLLABORATIVE)),
+            )
+        )).scalar() or 0
+        await _apply("lists_public_created", val)
+
+    # --- lists_max_items: peak item count across the user's non-deleted
+    # lists, regardless of privacy. Curation effort, not the sharing aspect.
+    if "lists_max_items" in by_type:
+        per_list_count = (
+            select(func.count(UserListItem.id).label("cnt"))
+            .select_from(UserList)
+            .join(UserListItem, UserListItem.list_id == UserList.id)
+            .where(
+                UserList.user_id == user_id,
+                UserList.is_deleted.is_(False),
+            )
+            .group_by(UserList.id)
+            .subquery()
+        )
+        val = (await db.execute(
+            select(func.coalesce(func.max(per_list_count.c.cnt), 0))
+        )).scalar() or 0
+        await _apply("lists_max_items", val)
 
     return unlocks

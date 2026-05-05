@@ -1,5 +1,6 @@
 """Seed achievement definitions into the database on startup."""
 import logging
+import os
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,8 +11,38 @@ from services.portal.achievement_defs import (
     achievements_for_category,
 )
 from services.portal.achievements_utils import _enforce_user_achievement_uniqueness
+from services.portal.achievements_validation import collect_violations
 
 logger = logging.getLogger("mediakeeper.portal.achievements")
+
+
+def _is_strict_environment() -> bool:
+    """Catalogue drift fails the boot in dev/test, but only logs in prod.
+
+    Reasoning: a production instance should not refuse to start because of
+    a typo in a future migration — the runtime can keep serving with the
+    other definitions. Dev and CI catch the typo loudly so it never ships.
+    """
+    env = (os.environ.get("ENV") or os.environ.get("ENVIRONMENT") or "").lower()
+    if env in ("prod", "production"):
+        return False
+    return True
+
+
+def _validate_definitions() -> None:
+    """Inspect the catalogue and either raise (strict) or log (lax)."""
+    violations = collect_violations()
+    if not violations:
+        return
+    bullets = "\n  - ".join(violations)
+    if _is_strict_environment():
+        raise ValueError(
+            f"achievement catalogue drift detected:\n  - {bullets}"
+        )
+    logger.error(
+        "[ACHIEVEMENTS] catalogue drift (continuing in lax mode):\n  - %s",
+        bullets,
+    )
 _ACHIEVEMENT_DB_FIELDS = frozenset(Achievement.__table__.columns.keys())
 _ACHIEVEMENT_MUTABLE_FIELDS = tuple(
     field for field in _ACHIEVEMENT_DB_FIELDS if field not in {"id", "next_tier_id"}
@@ -20,6 +51,11 @@ _ACHIEVEMENT_MUTABLE_FIELDS = tuple(
 
 async def seed_achievements(db: AsyncSession):
     """Insert or update achievement definitions. Safe to call on every startup."""
+    # Refuse to seed a drifted catalogue in dev/test — the same diagnostics
+    # the pytest meta-test uses, so CI and runtime agree on what "consistent"
+    # means. Production stays lax to avoid bricking a deploy on a typo.
+    _validate_definitions()
+
     # Resolve meta thresholds from the current category contents so the
     # unlock condition always matches reality (regardless of added/removed
     # trophies). Overrides the placeholder threshold declared in META_DEFS.

@@ -184,7 +184,7 @@ async def debug_recheck_all_achievements(
     idempotent — already-unlocked achievements are skipped via the
     ``unlocked_ids`` guard, and grant_xp dedup blocks XP double-counting.
     """
-    from services.portal.achievements import check_all_achievements
+    from services.portal.achievements import safe_check_all_achievements
 
     profiles = (await db.execute(
         select(UserProfile, User.username)
@@ -195,15 +195,9 @@ async def debug_recheck_all_achievements(
     summary = []
     total_unlocks = 0
     for profile, username in profiles:
-        try:
-            unlocks = await check_all_achievements(db, profile.user_id, username)
-        except Exception as exc:
-            summary.append({
-                "user_id": profile.user_id,
-                "username": username,
-                "error": str(exc),
-            })
-            continue
+        unlocks = await safe_check_all_achievements(
+            db, profile.user_id, username, source="admin_recheck", silent=True,
+        )
         if unlocks:
             total_unlocks += len(unlocks)
             summary.append({

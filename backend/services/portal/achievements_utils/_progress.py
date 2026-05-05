@@ -35,10 +35,17 @@ async def update_progress(
         ua = await _get_user_achievement_row(db, user_id, achievement_id)
 
     if not ua:
+        # Explicit ``unlocked=False`` here, even though the column has a
+        # ``server_default="false"``: under SQLite the default is stored
+        # as the TEXT 'false' which SQLAlchemy's Boolean type can read
+        # back as Python truthy on subsequent loads. Setting the Python
+        # attribute up front pins the value and avoids that drift.
         ua = UserAchievement(
             user_id=user_id,
             achievement_id=achievement_id,
             progress=0,
+            unlocked=False,
+            notified=False,
         )
         db.add(ua)
         if ua_map is not None:

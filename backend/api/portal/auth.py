@@ -2,7 +2,7 @@
 import logging
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response, status
 from sqlalchemy import select, update
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -95,6 +95,7 @@ async def portal_login(
     req: PortalLoginRequest,
     request: Request,
     response: Response,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
 ):
     """Authenticate via Emby and issue JWT cookie."""
@@ -160,12 +161,17 @@ async def portal_login(
     except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
         pass
 
-    # Check achievements on login (best-effort)
-    try:
-        from services.portal.achievements import check_all_achievements
-        await check_all_achievements(db, user_id, username)
-    except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
-        pass
+    # Check achievements on login — fire-and-forget so the response is not
+    # blocked by an inherently slow scan (5 passes + playback queries). The
+    # background task opens its own DB session, which is critical because
+    # the request-scoped one is closed once login returns.
+    from services.portal.achievements import safe_check_all_achievements_in_new_session
+    background_tasks.add_task(
+        safe_check_all_achievements_in_new_session,
+        user_id,
+        username,
+        "login",
+    )
 
     return {
         "success": True,

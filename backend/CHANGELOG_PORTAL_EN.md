@@ -37,6 +37,7 @@ This section intentionally has no date so it is not shown to users.
 - Chat — unread counter persists across sessions (badge on the collapsed + button and on the expanded chat icon), full history loaded on open, realtime connection kept alive for the whole portal session
 - Notifications — admins can now push a targeted message that lands in the bell
 - Legal attribution notice added to the footer
+- List achievements — two new tiered families (Curator, Librarian) with 5 tiers each
 
 ### Changed
 - What's new today — monthly Top 3 aligned on the dashboard's Ranking widget (identical look, your own position appended as a 4th row when off the podium)
@@ -56,6 +57,8 @@ This section intentionally has no date so it is not shown to users.
 - Trophies: reward XP lowered to smooth progression (already-earned XP adjusted accordingly)
 
 ### Fixed
+- Achievements — instant unlock on chat, requests, tickets, avatar, events (no more wait for the next login)
+- Achievements — global progression percentage now reflects only attainable trophies
 - Dashboard — shortcut hidden for moderators without backoffice access (no more click that bounces back)
 - Availability pill — fully-stocked series no longer flagged "partially available" after an Emby re-import (index duplicates merged, orphans auto-purged on next scan)
 - What's new today — overlay scrollbar restyled (accent gradient + subtle track, no more white slab)

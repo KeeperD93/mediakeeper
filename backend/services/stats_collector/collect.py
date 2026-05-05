@@ -238,14 +238,9 @@ async def _grant_post_session_xp(db: AsyncSession, closed_sessions: list):
                 runtime_ticks=sess.duration_ticks,
             )
 
-            try:
-                from services.portal.achievements import check_all_achievements
-                await check_all_achievements(db, user.id, sess.user_name)
-            except Exception as ach_err:
-                logger.warning(
-                    f"[ACHIEVEMENT] check error user={user.id} "
-                    f"emby={sess.user_name}: {ach_err}",
-                    exc_info=True,
-                )
+            from services.portal.achievements import safe_check_all_achievements
+            await safe_check_all_achievements(
+                db, user.id, sess.user_name, source="playback_close", silent=True,
+            )
     except Exception as e:
         logger.warning(f"[XP] post-session XP grant error: {e}", exc_info=True)

@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from typing import Optional
 from urllib.parse import urlsplit
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import select
@@ -22,6 +22,7 @@ from models.portal.profile import UserProfile
 from api.auth import PORTAL_COOKIE_NAME
 from api.portal.deps import require_permission
 from services.portal import chat as chat_svc
+from services.portal.achievements import safe_check_all_achievements_in_new_session
 from services.portal.profiles import get_or_create_profile
 
 router = APIRouter(prefix="/chat", tags=["portal-chat"])
@@ -175,6 +176,7 @@ async def send_message(
     room_id: int,
     data: SendMessage,
     request: Request,
+    background_tasks: BackgroundTasks,
     up: tuple[User, UserProfile] = Depends(require_permission("can_chat")),
     db: AsyncSession = Depends(get_db),
 ):
@@ -185,6 +187,12 @@ async def send_message(
     if "error" in result:
         raise HTTPException(status_code=403, detail=result["error"])
     await _broadcast(room_id, result["message"])
+    background_tasks.add_task(
+        safe_check_all_achievements_in_new_session,
+        user.id,
+        user.username,
+        "chat_message",
+    )
     return result
 
 

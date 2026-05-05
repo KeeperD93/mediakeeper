@@ -2,7 +2,7 @@
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,6 +11,7 @@ from core.database import get_db
 from models.portal.profile import UserProfile
 from models.user import User
 from services.portal import mk_events as mk_svc
+from services.portal.achievements import safe_check_all_achievements_in_new_session
 
 router = APIRouter()
 
@@ -83,6 +84,7 @@ def _err(result: dict) -> None:
 @router.post("/rooms")
 async def create_mk_event(
     data: CreateMKEvent,
+    background_tasks: BackgroundTasks,
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):
@@ -97,6 +99,12 @@ async def create_mk_event(
         invitees=data.invitees,
     )
     _err(result)
+    background_tasks.add_task(
+        safe_check_all_achievements_in_new_session,
+        user.id,
+        user.username,
+        "event_created",
+    )
     return result
 
 
