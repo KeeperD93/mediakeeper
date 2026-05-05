@@ -31,7 +31,7 @@ async def check_secrets_b(
     playback_rows: list | None,
     all_achs: list,
 ) -> list[dict]:
-    """Run second half of secret checks + ultimate_collector + placeholders. Returns newly unlocked list."""
+    """Run second half of secret checks + ultimate_collector. Returns newly unlocked list."""
     unlocks: list[dict] = []
 
     async def _apply(cond_type: str, value: int):
@@ -284,14 +284,5 @@ async def check_secrets_b(
                 unlocked = True
                 break
             await _apply("secret_lonely", 1 if unlocked else 0)
-
-    # --- Placeholders (need real-time data or external APIs) ---
-    for placeholder_type in (
-        "secret_pilot",      # TODO: needs Emby "recently added" timestamp
-        "secret_late",       # TODO: needs Emby "date added" metadata
-        "secret_pipi",       # TODO: needs pause/resume event tracking
-        "secret_king",       # TODO: needs monthly leaderboard history tracking
-    ):
-        await _apply(placeholder_type, 0)
 
     return unlocks
