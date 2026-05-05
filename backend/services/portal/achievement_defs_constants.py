@@ -144,11 +144,7 @@ EXCLUSIVE_FROM_META: set[str] = {
 # global progression percentage exposed to the UI reflects what is actually
 # attainable.
 PLACEHOLDER_IDS: frozenset[str] = frozenset({
-    # `time_traveler_*` — needs decade extracted from TMDB production year.
-    "time_traveler_1", "time_traveler_2", "time_traveler_3",
     # Secrets pending data wiring.
-    "secret_classic",      # production year < 1970
-    "secret_purist",       # original-language audio flag
     "secret_allnight",     # session continuity 22h → 06h
     "secret_no_life",      # 24h cumulative in 48h window
     "secret_king",         # leaderboard #1 for 12 consecutive months

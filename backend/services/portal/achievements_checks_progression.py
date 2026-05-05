@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.portal.achievement import Achievement
 from models.portal.profile import UserProfile
 from models.playback_stats import PlaybackSession
+from models.portal.emby_tmdb_index import EmbyTmdbIndex
 from models.portal.request import MediaRequest
 from models.portal.ticket import Ticket
 from models.portal.event import MKEvent
@@ -237,9 +238,26 @@ async def check_progression(
         )).scalar() or 0
         await _apply("series_completed", val)
 
-    # --- decades_watched: needs content metadata (TMDB year); placeholder ---
+    # --- decades_watched: distinct decades extracted from cached
+    # production_year on emby_tmdb_index. Sessions whose item is not in
+    # the index, or whose row has no production_year yet, are skipped.
     if "decades_watched" in by_type:
-        await _apply("decades_watched", 0)
+        val = (await db.execute(
+            select(func.count(distinct(
+                (EmbyTmdbIndex.production_year / 10) * 10
+            )))
+            .select_from(PlaybackSession)
+            .join(
+                EmbyTmdbIndex,
+                PlaybackSession.item_id == EmbyTmdbIndex.emby_item_id,
+            )
+            .where(
+                user_filter,
+                EmbyTmdbIndex.production_year.isnot(None),
+                *excl_filters,
+            )
+        )).scalar() or 0
+        await _apply("decades_watched", val)
 
     # --- lists_public_created: count of non-deleted public/collaborative
     # lists owned by the user.

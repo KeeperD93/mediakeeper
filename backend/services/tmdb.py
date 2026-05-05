@@ -240,3 +240,46 @@ async def get_media_detail(media_type: str, tmdb_id: int, db: AsyncSession | Non
     except Exception as e:
         logger.error(f"Error get_media_detail({media_type}, {tmdb_id}): {e}")
         return {"error": str(e)}
+
+
+# ============================================
+# LIGHTWEIGHT METADATA FETCH (achievements pipeline)
+# ============================================
+
+async def get_media_details(
+    db: AsyncSession,
+    tmdb_id: int,
+    media_type: str,
+) -> dict | None:
+    """Fetch the TMDB-canonical metadata used by the achievements runner.
+
+    Distinct from :func:`get_media_detail` (singular) which is the
+    UI-facing detail page — this variant skips the ``language`` param
+    so the response carries the neutral ``original_language`` field.
+
+    Returns ``{"original_language": str | None}`` on success, or ``None``
+    on any failure (no key, network error, unknown ``media_type``). The
+    short timeout keeps a slow TMDB instance from stalling the sync.
+    """
+    if media_type not in ("movie", "tv"):
+        return None
+    api_key = await _get_tmdb_key(db)
+    if not api_key:
+        return None
+    try:
+        client = get_external_client()
+        res = await client.get(
+            f"{TMDB_BASE}/{media_type}/{tmdb_id}",
+            headers=_tmdb_headers_sync(api_key),
+            timeout=5.0,
+        )
+        if res.status_code != 200:
+            logger.warning(
+                f"get_media_details: HTTP {res.status_code} for {media_type}/{tmdb_id}"
+            )
+            return None
+        data = res.json()
+        return {"original_language": data.get("original_language") or None}
+    except Exception as e:
+        logger.warning(f"get_media_details({media_type}/{tmdb_id}) failed: {e}")
+        return None
