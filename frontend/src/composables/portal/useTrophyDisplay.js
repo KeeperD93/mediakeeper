@@ -1,7 +1,7 @@
 /**
  * Trophy display logic for the profile page.
  *
- * Stacks tiered families (cinephile_1..5 → only show next active tier),
+ * Stacks tiered families (movie_buff_1..5 → only show next active tier),
  * sorts by status + rarity, computes overlay categories, handles pinning.
  */
 import { ref, computed } from 'vue'
