@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.achievement import Achievement
 from models.playback_stats import PlaybackSession
+from models.portal.emby_tmdb_index import EmbyTmdbIndex
 from services.portal.achievements_utils import (
     update_progress,
     _coerce_utc,
@@ -70,9 +71,24 @@ async def check_secrets_a(
         )).scalar() or 0
         await _apply("secret_newyear", 1 if val > 0 else 0)
 
-    # --- secret_classic: needs TMDB production year; placeholder ---
+    # --- secret_classic: any session on a title released before 1970 ---
+    # Lifetime, threshold = 1; cap to 1 so an ever-growing classics run
+    # doesn't push update_progress past the unlock semantics.
     if "secret_classic" in by_type:
-        await _apply("secret_classic", 0)
+        val = (await db.execute(
+            select(func.count(PlaybackSession.id))
+            .select_from(PlaybackSession)
+            .join(
+                EmbyTmdbIndex,
+                PlaybackSession.item_id == EmbyTmdbIndex.emby_item_id,
+            )
+            .where(
+                user_filter,
+                EmbyTmdbIndex.production_year < 1970,
+                *excl_filters,
+            )
+        )).scalar() or 0
+        await _apply("secret_classic", min(val, 1))
 
     # --- secret_friday13: horror content on Friday the 13th ---
     if "secret_friday13" in by_type:

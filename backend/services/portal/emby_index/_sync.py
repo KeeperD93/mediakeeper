@@ -7,13 +7,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.http_client import get_internal_client
 from models.portal.emby_tmdb_index import EmbyTmdbIndex
 from services.settings import get_active_media_source
-from services.tmdb import _get_tmdb_key
+from services.tmdb import _get_tmdb_key, get_media_details
 from services.portal.search_index import refresh_search_availability
 
 from ._index_ops import _upsert_index
 from ._match import _coerce_int, _resolve_by_imdb, _resolve_by_search
 
 logger = logging.getLogger("mediakeeper.portal.emby_index")
+
+# Cap TMDB language fetches per sync run. The enrichment is best-effort
+# — anything the cap defers will be picked up next time the sync is
+# triggered. Keeps a fresh install from blasting hundreds of requests
+# at TMDB on the first crawl.
+MAX_TMDB_LANG_FETCHES_PER_SYNC = 250
 
 
 async def sync_emby_tmdb_index(db: AsyncSession) -> dict:
@@ -41,7 +47,7 @@ async def sync_emby_tmdb_index(db: AsyncSession) -> dict:
 
     client = get_internal_client()
     headers = {"X-Emby-Token": api_key}
-    counters = {"tmdb": 0, "imdb": 0, "search": 0, "skipped": 0}
+    counters = {"tmdb": 0, "imdb": 0, "search": 0, "skipped": 0, "lang_enriched": 0}
     # Track seen ids per media_type so a category that returns zero items
     # (Emby quirk, permission issue) can never trigger a wipe of the
     # other category's index rows.
@@ -111,7 +117,10 @@ async def sync_emby_tmdb_index(db: AsyncSession) -> dict:
                     logger.debug(f"[EMBY_INDEX] skipped {media_type} '{name}' ({year}) — no match")
                     continue
 
-                await _upsert_index(db, emby_id, tmdb_id_int, media_type, name)
+                await _upsert_index(
+                    db, emby_id, tmdb_id_int, media_type, name,
+                    production_year=year if isinstance(year, int) else None,
+                )
                 counters[matched_via] += 1
 
             # Enable purge only AFTER the whole listing has been walked
@@ -145,12 +154,51 @@ async def sync_emby_tmdb_index(db: AsyncSession) -> dict:
             res = await db.execute(delete(EmbyTmdbIndex).where(EmbyTmdbIndex.id.in_(chunk)))
             purged += res.rowcount or 0
 
+    # ── Lazy enrichment: original_language from TMDB ────────────────────
+    # Only rows with a resolved tmdb_id but no cached language yet.
+    # Capped per-run to keep the sync bounded; remaining rows resume next time.
+    if tmdb_key:
+        missing = (await db.execute(
+            select(EmbyTmdbIndex.id, EmbyTmdbIndex.tmdb_id, EmbyTmdbIndex.media_type)
+            .where(EmbyTmdbIndex.original_language.is_(None))
+            .limit(MAX_TMDB_LANG_FETCHES_PER_SYNC + 1)
+        )).all()
+        cap_hit = len(missing) > MAX_TMDB_LANG_FETCHES_PER_SYNC
+        for row in missing[:MAX_TMDB_LANG_FETCHES_PER_SYNC]:
+            try:
+                details = await get_media_details(db, row.tmdb_id, row.media_type)
+            except Exception as e:  # noqa: S110 -- best-effort; never block sync on TMDB
+                logger.debug(
+                    f"[EMBY_INDEX] lang fetch failed for {row.media_type}/{row.tmdb_id}: {e}"
+                )
+                continue
+            if not details:
+                continue
+            lang = details.get("original_language")
+            if not lang:
+                continue
+            await db.execute(
+                EmbyTmdbIndex.__table__.update()
+                .where(
+                    EmbyTmdbIndex.id == row.id,
+                    EmbyTmdbIndex.original_language.is_(None),
+                )
+                .values(original_language=lang[:2].lower())
+            )
+            counters["lang_enriched"] += 1
+        if cap_hit:
+            logger.warning(
+                f"[EMBY_INDEX] TMDB lang enrichment hit cap "
+                f"({MAX_TMDB_LANG_FETCHES_PER_SYNC}); remaining rows resume next sync"
+            )
+
     await refresh_search_availability(db)
     await db.commit()
     synced = counters["tmdb"] + counters["imdb"] + counters["search"]
     logger.info(
         f"[EMBY_INDEX] Sync done: {synced} synced "
         f"(tmdb={counters['tmdb']}, imdb={counters['imdb']}, search={counters['search']}), "
-        f"{counters['skipped']} skipped, {purged} purged"
+        f"{counters['skipped']} skipped, {purged} purged, "
+        f"lang_enriched={counters['lang_enriched']}"
     )
     return {"synced": synced, "skipped": counters["skipped"], "purged": purged, **counters}

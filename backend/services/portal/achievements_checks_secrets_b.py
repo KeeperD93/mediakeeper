@@ -6,11 +6,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.achievement import Achievement
 from models.playback_stats import PlaybackSession
+from models.portal.emby_tmdb_index import EmbyTmdbIndex
 from services.portal.achievements_utils import (
     update_progress,
     _coerce_utc,
     _session_duration_seconds,
 )
+from services.portal.iso_lang_map import audio_matches_original
 
 
 async def check_secrets_b(
@@ -198,6 +200,31 @@ async def check_secrets_b(
         unlocked_others = len(unlocked_ids - {"secret_ultimate_collector"})
         val = 1 if unlocked_others >= total_others and total_others > 0 else 0
         await _apply("secret_ultimate_collector", val)
+
+    # --- secret_purist: sessions whose audio track equals the TMDB
+    # original_language. Counted in Python via the ISO 639-1↔639-2 map
+    # rather than a CASE in SQL — cleaner and the row volume is bounded
+    # to a single user's history.
+    if "secret_purist" in by_type:
+        rows = (await db.execute(
+            select(
+                PlaybackSession.audio_language,
+                EmbyTmdbIndex.original_language,
+            )
+            .select_from(PlaybackSession)
+            .join(
+                EmbyTmdbIndex,
+                PlaybackSession.item_id == EmbyTmdbIndex.emby_item_id,
+            )
+            .where(
+                user_filter,
+                PlaybackSession.audio_language.isnot(None),
+                EmbyTmdbIndex.original_language.isnot(None),
+                *excl_filters,
+            )
+        )).all()
+        val = sum(1 for r in rows if audio_matches_original(r[0], r[1]))
+        await _apply("secret_purist", val)
 
     # --- Placeholders (need real-time data or external APIs) ---
     for placeholder_type in (
