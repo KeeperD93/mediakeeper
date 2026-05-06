@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "check": "node scripts/check-integrity.mjs && vite build",
+    "i18n:check": "node scripts/check-i18n.mjs",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",

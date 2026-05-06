@@ -9,7 +9,7 @@
       </div>
       <div class="gc-unlock-info">
         <div class="gc-unlock-title">
-          {{ $t('portal.profile.trophyUnlocked') || 'Achievement unlocked!' }}
+          {{ $t('portal.profile.trophyUnlocked') || 'Trophy unlocked!' }}
         </div>
         <div class="gc-unlock-name">{{ $t(unlock.name_key) }}</div>
         <div class="gc-unlock-xp">+{{ unlock.xp_reward }} XP</div>

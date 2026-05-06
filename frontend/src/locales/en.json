@@ -1905,9 +1905,9 @@
         },
         "trophies": {
           "unlocked": "Unlocked",
-          "unlockedFoot": "Earned achievements",
+          "unlockedFoot": "Earned trophies",
           "inProgress": "In progress",
-          "inProgressFoot": "Achievements being earned",
+          "inProgressFoot": "Trophies being earned",
           "xpHistory": "XP gain history",
           "xpHistoryEmpty": "No XP gain recorded yet."
         },
@@ -2310,7 +2310,7 @@
       "sections": {
         "recentAdds": "New in the library",
         "events": "Upcoming events",
-        "nextAchievement": "Next achievement",
+        "nextAchievement": "Next trophy",
         "top3": "Top 3 this month"
       },
       "top3": {
@@ -2760,7 +2760,7 @@
       "chatty": "Chatty",
       "chatty_desc": "Send messages in the chat",
       "secret": "???",
-      "secret_desc": "Secret achievement — keep watching to discover it",
+      "secret_desc": "Secret trophy — keep watching to discover it",
       "secretFirstPlay": "First Blood",
       "secretFirstPlay_desc": "Start your very first playback",
       "secretEarlyBird": "Early Bird",
@@ -3009,14 +3009,14 @@
       "rewardFilterHint": "Show only trophies that grant a title",
       "masterCrown": "{count} mastery unlocked",
       "titleHowToUnlock": "How to unlock each title",
-      "secretTrophy": "Secret achievement — find it yourself",
+      "secretTrophy": "Secret trophy — find it yourself",
       "noTrophiesInCategory": "No trophies in this category",
       "ofPlayers": "of players",
       "unlockedOn": "Unlocked on",
       "pinBadge": "Pin to profile",
       "unpinBadge": "Unpin from profile",
       "pinnedBadges": "Pinned trophies",
-      "trophyUnlocked": "Achievement unlocked!",
+      "trophyUnlocked": "Trophy unlocked!",
       "places": "places",
       "defaultUserName": "User",
       "viewedCount": "views",
