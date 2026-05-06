@@ -19,6 +19,7 @@ utilisateurs.
 ### Added
 - Accessibilité — lien « Aller au contenu principal » au focus clavier
 - Page introuvable — vraie page 404 accessible avec retour au portail (plus de redirection silencieuse)
+- Connexion — page d'identification dédiée au Portal (titre et sous-titre adaptés)
 - Trophée « Pause Pipi » — débloquable (5 pauses de 2 à 5 minutes)
 - Trophées « Pilote » et « Le Retardataire » — débloquables
 - Trophées « Nuit Blanche Ultime », « No Life », « Le Roi » — débloquables
