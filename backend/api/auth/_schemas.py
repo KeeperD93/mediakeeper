@@ -3,6 +3,8 @@ import re
 
 from pydantic import BaseModel, Field, field_validator
 
+from core.security import MAX_BCRYPT_PASSWORD_BYTES, password_byte_length
+
 
 class LoginRequest(BaseModel):
     username: str = Field(..., min_length=1, max_length=100)
@@ -19,6 +21,10 @@ class ChangePasswordRequest(BaseModel):
     def password_strength(cls, v):
         if len(v) < 12:
             raise ValueError("Le mot de passe doit contenir au moins 12 caracteres")
+        if password_byte_length(v) > MAX_BCRYPT_PASSWORD_BYTES:
+            raise ValueError(
+                f"Le mot de passe ne doit pas depasser {MAX_BCRYPT_PASSWORD_BYTES} octets UTF-8"
+            )
         if not re.search(r'[A-Z]', v):
             raise ValueError("Le mot de passe doit contenir au moins une majuscule")
         if not re.search(r'[0-9]', v):
