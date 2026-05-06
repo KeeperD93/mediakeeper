@@ -49,7 +49,6 @@ The list is built from `frontend/package.json` and `backend/requirements.txt`. T
 | `depcheck` | MIT | Unused-dependency scanner. |
 | `openapi-typescript` | MIT | Generates TypeScript types from OpenAPI. |
 | `lighthouse` | Apache-2.0 | Performance audits. |
-| `@lhci/cli` | Apache-2.0 | Lighthouse CI runner. |
 | `@playwright/test` | Apache-2.0 | End-to-end test runner. |
 | `@axe-core/playwright` | MPL-2.0 | Accessibility testing engine, Playwright integration. |
 | `autocannon` | MIT | HTTP benchmarking tool. |
