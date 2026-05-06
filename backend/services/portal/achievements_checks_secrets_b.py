@@ -22,6 +22,7 @@ from services.portal.playback_algorithms import (
     has_24h_in_48h_window,
     has_12_consecutive_top1_months,
     has_all_night_chain,
+    is_first_viewer_of_fresh_content,
 )
 
 
@@ -326,5 +327,48 @@ async def check_secrets_b(
             else:
                 hit = await has_12_consecutive_top1_months(db, list(emby_uids))
                 await _apply("secret_king", 12 if hit else 0)
+
+    # --- secret_pilot: first viewer on freshly-added content. Anti-trivial
+    # guard mirrors secret_sync / secret_lonely / secret_king: a single-user
+    # instance can never satisfy the "before anyone else" clause.
+    if "secret_pilot" in by_type:
+        if not await has_distinct_user_universe(db):
+            await _apply("secret_pilot", 0)
+        else:
+            emby_uids = list((await db.execute(
+                select(distinct(PlaybackSession.user_id)).where(user_filter)
+            )).scalars().all())
+            hit = (
+                await is_first_viewer_of_fresh_content(db, emby_uids)
+                if emby_uids else False
+            )
+            await _apply("secret_pilot", 1 if hit else 0)
+
+    # --- secret_late: any session started >= 1 year after the item was
+    # added to the library. Pure metadata check on the observed user, no
+    # cross-user guard needed.
+    if "secret_late" in by_type:
+        rows = (await db.execute(
+            select(PlaybackSession.started_at, EmbyTmdbIndex.date_created)
+            .select_from(PlaybackSession)
+            .join(
+                EmbyTmdbIndex,
+                PlaybackSession.item_id == EmbyTmdbIndex.emby_item_id,
+            )
+            .where(
+                user_filter,
+                EmbyTmdbIndex.date_created.isnot(None),
+                *excl_filters,
+            )
+        )).all()
+        late_threshold = timedelta(days=365)
+        hit = False
+        for started, created in rows:
+            s = _coerce_utc(started)
+            c = _coerce_utc(created)
+            if s and c and (s - c) >= late_threshold:
+                hit = True
+                break
+        await _apply("secret_late", 1 if hit else 0)
 
     return unlocks

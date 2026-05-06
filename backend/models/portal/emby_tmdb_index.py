@@ -17,6 +17,9 @@ class EmbyTmdbIndex(Base):
     # ISO 639-1 from TMDB. Filled lazily by the sync; compared against the
     # PlaybackSession audio track (ISO 639-2) via iso_lang_map helpers.
     original_language  = Column(String(2), nullable=True)
+    # Cached from Emby ``/Items?Fields=DateCreated`` — drives secret_pilot
+    # (freshness window) and secret_late (>= 1 year).
+    date_created       = Column(DateTime(timezone=True), nullable=True)
     updated_at         = Column(DateTime(timezone=True),
                                 default=lambda: datetime.now(timezone.utc),
                                 onupdate=lambda: datetime.now(timezone.utc))

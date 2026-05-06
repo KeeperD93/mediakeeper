@@ -1,5 +1,6 @@
 """Orchestration: iterate over Emby items and apply the TMDB -> IMDB -> search cascade."""
 import logging
+from datetime import datetime, timezone
 
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,6 +15,49 @@ from ._index_ops import _upsert_index
 from ._match import _coerce_int, _resolve_by_imdb, _resolve_by_search
 
 logger = logging.getLogger("mediakeeper.portal.emby_index")
+
+
+def _parse_emby_date_created(value: object) -> datetime | None:
+    """Best-effort parse of Emby's ``DateCreated`` payload.
+
+    Emby commonly emits ``2023-04-12T18:30:00.0000000Z`` but a handful of
+    builds drop the trailing ``Z`` or replace it with ``+00:00``; some
+    older installs even return naive timestamps. We accept all three
+    flavours and always return a tz-aware UTC ``datetime`` (or ``None``
+    when the input is unusable). The raw value is surfaced in DEBUG
+    logs only so a misformatted payload never blocks a sync run.
+    """
+    if not isinstance(value, str) or not value:
+        return None
+    text = value.strip()
+    if not text:
+        return None
+    if text.endswith("Z"):
+        text = text[:-1] + "+00:00"
+    # Python's ISO parser tolerates fractional seconds up to 6 digits;
+    # Emby occasionally pads to 7 ("ticks"). Trim the excess so .NET's
+    # extra precision doesn't trip the parse.
+    if "." in text:
+        head, _, tail = text.partition(".")
+        frac = tail
+        offset = ""
+        for sep in ("+", "-"):
+            idx = tail.find(sep, 1)
+            if idx >= 0:
+                frac = tail[:idx]
+                offset = tail[idx:]
+                break
+        if len(frac) > 6:
+            frac = frac[:6]
+        text = f"{head}.{frac}{offset}"
+    try:
+        parsed = datetime.fromisoformat(text)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
 
 # Cap TMDB language fetches per sync run. The enrichment is best-effort
 # — anything the cap defers will be picked up next time the sync is
@@ -62,7 +106,7 @@ async def sync_emby_tmdb_index(db: AsyncSession) -> dict:
                 params={
                     "IncludeItemTypes": item_type,
                     "Recursive": "true",
-                    "Fields": "ProviderIds,ProductionYear",
+                    "Fields": "ProviderIds,ProductionYear,DateCreated",
                     "Limit": str(PAGE_LIMIT),
                 },
                 headers=headers,
@@ -117,9 +161,11 @@ async def sync_emby_tmdb_index(db: AsyncSession) -> dict:
                     logger.debug(f"[EMBY_INDEX] skipped {media_type} '{name}' ({year}) — no match")
                     continue
 
+                date_created = _parse_emby_date_created(item.get("DateCreated"))
                 await _upsert_index(
                     db, emby_id, tmdb_id_int, media_type, name,
                     production_year=year if isinstance(year, int) else None,
+                    date_created=date_created,
                 )
                 counters[matched_via] += 1
 

@@ -144,8 +144,7 @@ EXCLUSIVE_FROM_META: set[str] = {
 # global progression percentage exposed to the UI reflects what is
 # actually attainable.
 PLACEHOLDER_IDS: frozenset[str] = frozenset({
-    # Secrets pending data wiring (Emby metadata or pause/resume events).
-    "secret_pilot",        # first viewer on freshly added content
-    "secret_late",         # Emby "date added" metadata
-    "secret_pipi",         # pause/resume event tracking
+    # Only ``secret_pipi`` remains sealed: it is gated on pause/resume
+    # event tracking, which the playback collector does not emit yet.
+    "secret_pipi",
 })

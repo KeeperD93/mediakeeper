@@ -17,6 +17,7 @@ utilisateurs.
 ## [Unreleased]
 
 ### Added
+- Trophées « Pilote » et « Le Retardataire » — débloquables
 - Trophées « Nuit Blanche Ultime », « No Life », « Le Roi » — débloquables
 - Trophées « Le Solitaire » et « Le Synchronisé » — débloquables
 - Trophées « Voyageur temporel », « Le Classique », « Le Puriste » — débloquables
