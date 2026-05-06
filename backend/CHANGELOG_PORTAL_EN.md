@@ -15,6 +15,7 @@ This section intentionally has no date so it is not shown to users.
 ## [Unreleased]
 
 ### Added
+- "Pilot" and "The Latecomer" achievements — unlockable
 - "Ultimate All-Nighter", "No Life" and "The King" achievements — unlockable
 - "The Loner" and "In Sync" achievements — unlockable
 - "Time Traveler", "The Classic" and "The Purist" achievements — unlockable

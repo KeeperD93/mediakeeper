@@ -16,13 +16,14 @@ async def _upsert_index(
     title: str,
     production_year: int | None = None,
     original_language: str | None = None,
+    date_created: datetime | None = None,
 ):
     """Insert or update an index entry.
 
-    ``production_year`` and ``original_language`` are filled lazily:
-    on update we only set them when the DB row still has ``NULL`` so a
-    manual refresh (or a TMDB correction) cached on disk is never
-    overwritten by a less-informed sync pass.
+    ``production_year``, ``original_language`` and ``date_created`` are
+    filled lazily: on update we only set them when the DB row still has
+    ``NULL`` so a manual refresh (or a TMDB correction) cached on disk
+    is never overwritten by a less-informed sync pass.
     """
     result = await db.execute(
         select(EmbyTmdbIndex).where(EmbyTmdbIndex.emby_item_id == emby_item_id)
@@ -36,6 +37,8 @@ async def _upsert_index(
             entry.production_year = production_year
         if original_language is not None and entry.original_language is None:
             entry.original_language = original_language
+        if date_created is not None and entry.date_created is None:
+            entry.date_created = date_created
         entry.updated_at = datetime.now(timezone.utc)
     else:
         entry = EmbyTmdbIndex(
@@ -45,6 +48,7 @@ async def _upsert_index(
             title=title,
             production_year=production_year,
             original_language=original_language,
+            date_created=date_created,
         )
     db.add(entry)
     await upsert_search_document(
