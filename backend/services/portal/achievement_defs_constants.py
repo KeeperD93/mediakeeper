@@ -144,10 +144,7 @@ EXCLUSIVE_FROM_META: set[str] = {
 # global progression percentage exposed to the UI reflects what is
 # actually attainable.
 PLACEHOLDER_IDS: frozenset[str] = frozenset({
-    # Secrets pending data wiring.
-    "secret_allnight",     # session continuity 22h → 06h
-    "secret_no_life",      # 24h cumulative in 48h window
-    "secret_king",         # leaderboard #1 for 12 consecutive months
+    # Secrets pending data wiring (Emby metadata or pause/resume events).
     "secret_pilot",        # first viewer on freshly added content
     "secret_late",         # Emby "date added" metadata
     "secret_pipi",         # pause/resume event tracking

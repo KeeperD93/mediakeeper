@@ -15,6 +15,7 @@ This section intentionally has no date so it is not shown to users.
 ## [Unreleased]
 
 ### Added
+- "Ultimate All-Nighter", "No Life" and "The King" achievements — unlockable
 - "The Loner" and "In Sync" achievements — unlockable
 - "Time Traveler", "The Classic" and "The Purist" achievements — unlockable
 - "Lucky" achievements — unlock by using the Surprise Me button (4 tiers)

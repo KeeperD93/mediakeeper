@@ -17,6 +17,7 @@ utilisateurs.
 ## [Unreleased]
 
 ### Added
+- Trophées « Nuit Blanche Ultime », « No Life », « Le Roi » — débloquables
 - Trophées « Le Solitaire » et « Le Synchronisé » — débloquables
 - Trophées « Voyageur temporel », « Le Classique », « Le Puriste » — débloquables
 - Trophées « Coup de chance » — débloquables via l'utilisation du bouton Surprends-moi (4 paliers)

@@ -18,6 +18,11 @@ from services.portal.playback_overlap import (
     has_distinct_user_universe,
     has_same_item_other_user_overlap,
 )
+from services.portal.playback_algorithms import (
+    has_24h_in_48h_window,
+    has_12_consecutive_top1_months,
+    has_all_night_chain,
+)
 
 
 async def check_secrets_b(
@@ -284,5 +289,42 @@ async def check_secrets_b(
                 unlocked = True
                 break
             await _apply("secret_lonely", 1 if unlocked else 0)
+
+    # --- secret_allnight: chain of sessions covers 22:00 → 06:00 UTC ---
+    if "secret_allnight" in by_type:
+        emby_uids = (await db.execute(
+            select(distinct(PlaybackSession.user_id)).where(user_filter)
+        )).scalars().all()
+        if not emby_uids:
+            await _apply("secret_allnight", 0)
+        else:
+            hit = await has_all_night_chain(db, list(emby_uids))
+            await _apply("secret_allnight", 1 if hit else 0)
+
+    # --- secret_no_life: 24h cumulative within a 48h sliding window ---
+    if "secret_no_life" in by_type:
+        emby_uids = (await db.execute(
+            select(distinct(PlaybackSession.user_id)).where(user_filter)
+        )).scalars().all()
+        if not emby_uids:
+            await _apply("secret_no_life", 0)
+        else:
+            hit = await has_24h_in_48h_window(db, list(emby_uids))
+            await _apply("secret_no_life", 1 if hit else 0)
+
+    # --- secret_king: 12 consecutive months as the strict #1, with the
+    # anti-trivial guard (>= 2 distinct active users per qualifying month).
+    if "secret_king" in by_type:
+        if not await has_distinct_user_universe(db):
+            await _apply("secret_king", 0)
+        else:
+            emby_uids = (await db.execute(
+                select(distinct(PlaybackSession.user_id)).where(user_filter)
+            )).scalars().all()
+            if not emby_uids:
+                await _apply("secret_king", 0)
+            else:
+                hit = await has_12_consecutive_top1_months(db, list(emby_uids))
+                await _apply("secret_king", 12 if hit else 0)
 
     return unlocks
