@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, BigInteger, String, DateTime, Boolean, Index
+from sqlalchemy import Column, Integer, BigInteger, String, DateTime, Boolean, Index, UniqueConstraint
 from datetime import datetime, timezone
 from models.base import Base
 
@@ -73,4 +73,37 @@ class PlaybackSession(Base):
         Index("ix_playback_user_started", "user_id", "started_at"),
         Index("ix_playback_item_started", "item_type", "started_at"),
         Index("ix_playback_library", "library_name", "started_at"),
+    )
+
+
+class PlaybackPauseEvent(Base):
+    """One pause/resume cycle observed by the collector.
+
+    A row is created when a session transitions ``playing -> paused`` and
+    closed when it transitions back to ``playing`` (the resume tick fills
+    ``resumed_at`` and ``duration_seconds``). Open rows (``resumed_at``
+    NULL) represent pauses that have not resumed yet — sessions that
+    disappear without an explicit resume stay open and never count toward
+    the bathroom-break trophy.
+    """
+    __tablename__ = "playback_pause_events"
+
+    id                = Column(Integer, primary_key=True, index=True)
+    session_key       = Column(String(200), nullable=False, index=True)
+    emby_session_id   = Column(String(200), nullable=True)
+    user_id           = Column(String(100), nullable=False, index=True)
+    user_name         = Column(String(200), nullable=False)
+    item_id           = Column(String(100), nullable=False, index=True)
+    item_name         = Column(String(500), nullable=False)
+    item_type         = Column(String(50), nullable=False)
+
+    pause_started_at  = Column(DateTime(timezone=True), nullable=False)
+    resumed_at        = Column(DateTime(timezone=True), nullable=True)
+    duration_seconds  = Column(Integer, nullable=True)
+
+    created_at        = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+    __table_args__ = (
+        UniqueConstraint("session_key", "pause_started_at", name="uq_pause_session_started"),
+        Index("ix_pause_user_started", "user_id", "pause_started_at"),
     )

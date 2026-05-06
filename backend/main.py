@@ -21,7 +21,7 @@ from models.healthcheck import HealthCheckResult  # noqa: F401
 from models.ignored_duplicate import IgnoredDoublon  # noqa: F401
 from models.notification_channels import NotificationChannel  # noqa: F401
 from models.notification_log import NotificationLog  # noqa: F401
-from models.playback_stats import PlaybackSession  # noqa: F401
+from models.playback_stats import PlaybackSession, PlaybackPauseEvent  # noqa: F401
 from models.scheduler_task import SchedulerTask  # noqa: F401
 from models.security import SecurityAttempt, SecurityBlock  # noqa: F401
 from models.seen_alert import SeenAlert  # noqa: F401

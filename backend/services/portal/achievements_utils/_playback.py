@@ -6,12 +6,18 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.profile import UserProfile
-from models.playback_stats import PlaybackSession
+from models.playback_stats import PlaybackSession, PlaybackPauseEvent
 
 
-async def _build_playback_user_filter(
+async def _resolve_playback_user_names(
     db: AsyncSession, user_id: int, user_name: str | None
-):
+) -> list[str]:
+    """Resolve the candidate user_name strings used to match Emby rows.
+
+    Returns the deduplicated list of non-empty names that may identify
+    the user across the Emby integration: explicit override, MK
+    ``users.username``, and ``user_profiles.display_name``.
+    """
     from models.user import User
 
     profile = (await db.execute(
@@ -19,7 +25,7 @@ async def _build_playback_user_filter(
     )).scalar_one_or_none()
     user_obj = await db.get(User, user_id)
 
-    names = []
+    names: list[str] = []
     for candidate in (
         user_name,
         user_obj.username if user_obj else None,
@@ -28,11 +34,25 @@ async def _build_playback_user_filter(
         candidate = (candidate or "").strip()
         if candidate and candidate not in names:
             names.append(candidate)
+    return names
 
+
+async def _build_playback_user_filter(
+    db: AsyncSession, user_id: int, user_name: str | None
+):
+    names = await _resolve_playback_user_names(db, user_id, user_name)
     if not names:
         return None
-
     return PlaybackSession.user_name.in_(names)
+
+
+async def _build_pause_user_filter(
+    db: AsyncSession, user_id: int, user_name: str | None
+):
+    names = await _resolve_playback_user_names(db, user_id, user_name)
+    if not names:
+        return None
+    return PlaybackPauseEvent.user_name.in_(names)
 
 
 def _coerce_utc(value: datetime | None) -> datetime | None:
