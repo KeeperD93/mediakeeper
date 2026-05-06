@@ -19,7 +19,9 @@
     "stylelint": "stylelint \"src/**/*.{css,vue}\"",
     "stylelint:fix": "stylelint \"src/**/*.{css,vue}\" --fix",
     "typecheck": "vue-tsc --noEmit",
-    "types:api": "node scripts/generate-api-types.mjs"
+    "types:api": "node scripts/generate-api-types.mjs",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed"
   },
   "lint-staged": {
     "*.{js,vue}": [
