@@ -273,4 +273,22 @@ onMounted(async () => {
     padding-top: 0;
   }
 }
+
+/* Roomy desktop: the single-row top bar measures ~71px. 96px padding-top
+   keeps a 25px breathing strip while reclaiming above-the-fold space the
+   default 112px wasted on common laptop viewports such as 1366×768. */
+@media (min-width: 1024px) {
+  .pt-main > :deep(*) {
+    padding-top: 96px;
+  }
+
+  .pt-main > :deep(.pt-home),
+  .pt-main > :deep(.vmd2-root) {
+    padding-top: 0;
+  }
+
+  .pt-main > .pt-attribution {
+    padding-top: 0;
+  }
+}
 </style>

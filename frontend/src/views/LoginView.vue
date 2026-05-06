@@ -59,6 +59,11 @@
         </div>
 
         <div class="login-form-wrap">
+          <div v-if="loggedOutMsg" class="login-info" data-test="login-logged-out" role="status">
+            <CircleCheck :size="14" />
+            {{ loggedOutMsg }}
+          </div>
+
           <div v-if="errorMsg" class="login-error">
             <TriangleAlert :size="14" />
             {{ errorMsg }}
@@ -155,7 +160,16 @@ import { useAuth } from '@/composables/useAuth'
 import { fetchApiResponse, resolveApiError } from '@/composables/useApi'
 import { useTheme } from '@/composables/useTheme'
 import { initLoginParticles } from '@/composables/useLoginParticles'
-import { BookOpen, Github, Globe, LockKeyhole, LogIn, TriangleAlert, User } from 'lucide-vue-next'
+import {
+  BookOpen,
+  CircleCheck,
+  Github,
+  Globe,
+  LockKeyhole,
+  LogIn,
+  TriangleAlert,
+  User,
+} from 'lucide-vue-next'
 import IconDiscord from '@/components/icons/IconDiscord.vue'
 import MkSpinner from '@/components/common/MkSpinner.vue'
 import '@/assets/styles/login-view.css'
@@ -170,12 +184,14 @@ const username = ref('')
 const password = ref('')
 const remember = ref(false)
 const errorMsg = ref('')
+const loggedOutMsg = ref('')
 const submitting = ref(false)
 const backendReady = ref(false)
 const appVersion = ref('')
 const pageRef = ref(null)
 const canvasRef = ref(null)
 let cleanupParticles = null
+let loggedOutTimer = null
 
 const repoUrl = 'https://github.com/KeeperD93/mediakeeper'
 const logoUrl = '/assets/icons/mediakeeper.png'
@@ -239,6 +255,11 @@ onMounted(async () => {
     } catch {
       /* ignore */
     }
+    loggedOutMsg.value = t('login.justLoggedOut')
+    loggedOutTimer = setTimeout(() => {
+      loggedOutMsg.value = ''
+      loggedOutTimer = null
+    }, 4000)
     fetchVersion()
     const saved = localStorage.getItem('mediakeeper_saved_username')
     if (saved) {
@@ -274,6 +295,10 @@ onMounted(async () => {
 
 onUnmounted(() => {
   if (cleanupParticles) cleanupParticles()
+  if (loggedOutTimer) {
+    clearTimeout(loggedOutTimer)
+    loggedOutTimer = null
+  }
 })
 
 async function doLogin() {

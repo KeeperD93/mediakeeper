@@ -260,6 +260,18 @@
   font-size: var(--text-sm);
 }
 
+.login-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--radius-input);
+  background: rgb(99, 102, 241, 0.08);
+  border: 0.5px solid rgb(99, 102, 241, 0.2);
+  color: #c7d2fe;
+  font-size: var(--text-sm);
+}
+
 .login-fields {
   display: flex;
   flex-direction: column;
