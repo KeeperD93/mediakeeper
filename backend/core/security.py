@@ -24,22 +24,54 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "60"))
 EXTERNAL_AUTH_PASSWORD_SENTINEL = "__emby_auth__"  # noqa: S105 -- sentinel marker for delegated auth, never used as a credential
 
+# bcrypt 5 raises ``ValueError`` instead of silently truncating once the
+# UTF-8 encoded password exceeds 72 bytes (algorithm limit). The constant
+# is exposed so schema validators and callers stay in sync with the hash
+# layer rather than duplicating the magic number.
+MAX_BCRYPT_PASSWORD_BYTES = 72
+
+
+class PasswordTooLongError(ValueError):
+    """Raised by :func:`hash_password` when input exceeds the bcrypt limit."""
+
+
+def password_byte_length(plain: str) -> int:
+    """Return the UTF-8 byte length of a plaintext password."""
+    return len(plain.encode("utf-8"))
+
 
 # ============================================
 # PASSWORD
 # ============================================
 
 def hash_password(plain: str) -> str:
-    """Hash and salt the password with bcrypt (cost factor 12)."""
+    """Hash and salt the password with bcrypt (cost factor 12).
+
+    Raises :class:`PasswordTooLongError` if ``plain`` exceeds
+    :data:`MAX_BCRYPT_PASSWORD_BYTES` once UTF-8 encoded — bcrypt 5 would
+    raise ``ValueError`` itself, but exposing a typed error keeps the API
+    layer's mapping to a controlled HTTP response unambiguous.
+    """
+    encoded = plain.encode("utf-8")
+    if len(encoded) > MAX_BCRYPT_PASSWORD_BYTES:
+        raise PasswordTooLongError("password_too_long")
     salt = bcrypt.gensalt(rounds=12)
-    hashed = bcrypt.hashpw(plain.encode("utf-8"), salt)
+    hashed = bcrypt.hashpw(encoded, salt)
     return hashed.decode("utf-8")
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    """Verify a plaintext password against its bcrypt hash."""
+    """Verify a plaintext password against its bcrypt hash.
+
+    Returns ``False`` instead of raising for inputs bcrypt cannot accept
+    (oversized password, malformed hash) so login routes can never produce
+    a 500 from user-controlled credential material.
+    """
+    encoded = plain.encode("utf-8")
+    if len(encoded) > MAX_BCRYPT_PASSWORD_BYTES:
+        return False
     try:
-        return bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("utf-8"))
+        return bcrypt.checkpw(encoded, hashed.encode("utf-8"))
     except ValueError:
         return False
 

@@ -9,11 +9,12 @@ Routes mounted at ``/api/portal/admin/users``:
 import logging
 
 from fastapi import APIRouter, Depends, Request
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
+from core.security import MAX_BCRYPT_PASSWORD_BYTES, password_byte_length
 from models.user import User
 from api.auth import get_current_user, require_csrf
 
@@ -72,13 +73,22 @@ async def post_emby_import(
 
 class LocalUserCreate(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
-    password: str = Field(..., min_length=8, max_length=128)
+    password: str = Field(..., min_length=8, max_length=MAX_BCRYPT_PASSWORD_BYTES)
     display_name: Optional[str] = Field(None, max_length=50)
     email: Optional[str] = Field(None, max_length=255)
     first_name: Optional[str] = Field(None, max_length=100)
     last_name: Optional[str] = Field(None, max_length=100)
     role: str = Field("viewer", pattern="^(viewer|moderator|admin)$")
     account_active: bool = True
+
+    @field_validator("password")
+    @classmethod
+    def _password_within_bcrypt_limit(cls, v: str) -> str:
+        if password_byte_length(v) > MAX_BCRYPT_PASSWORD_BYTES:
+            raise ValueError(
+                f"password must not exceed {MAX_BCRYPT_PASSWORD_BYTES} UTF-8 bytes"
+            )
+        return v
 
 
 @router.post("/local")
