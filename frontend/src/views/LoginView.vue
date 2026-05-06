@@ -1,6 +1,7 @@
 <template>
-  <div ref="pageRef" class="login-page">
-    <canvas ref="canvasRef" class="login-particles" />
+  <a href="#main-content" class="mk-skip-link">{{ t('common.skipToMain') }}</a>
+  <main id="main-content" ref="pageRef" tabindex="-1" class="login-page">
+    <canvas ref="canvasRef" class="login-particles" aria-hidden="true" />
     <div class="login-grain" aria-hidden="true" />
     <div class="login-scanlines" aria-hidden="true" />
     <div class="login-orbs" aria-hidden="true">
@@ -143,7 +144,7 @@
         </div>
       </div>
     </transition>
-  </div>
+  </main>
 </template>
 
 <script setup>

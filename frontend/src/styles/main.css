@@ -11,6 +11,41 @@
 /* stylelint-enable at-rule-no-unknown */
 
 /* ============================================
+   SKIP LINK — keyboard-only "skip to main content"
+   ============================================
+   Hidden off-screen by default; becomes a real, visible button when it
+   takes focus via Tab. The href targets the closest landmark with
+   `id="main-content"` (LoginView, AppLayout, PortalLayout). */
+.mk-skip-link {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 10000;
+  padding: 0.625rem 1rem;
+  background: var(--accent-600, #4f46e5);
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 0 0 0.5rem;
+  transform: translateY(-150%);
+  transition: transform 120ms ease-out;
+}
+.mk-skip-link:focus,
+.mk-skip-link:focus-visible {
+  transform: translateY(0);
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+/* The skip-link target is a non-interactive landmark made focusable
+   only so keyboard users can jump into it. Drop the default outline
+   so the page doesn't get a giant ring around the whole content area
+   after a successful skip. */
+main#main-content:focus,
+main#main-content:focus-visible {
+  outline: none;
+}
+
+/* ============================================
    GLOBAL STATE — Portal video playing
    ============================================
    When a hero / mini-hero trailer is actively playing AND the user is

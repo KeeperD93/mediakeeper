@@ -42,6 +42,7 @@
     "restoreAll": "Restore all",
     "scan": "Scan",
     "refresh": "Refresh",
+    "skipToMain": "Skip to main content",
     "networkError": "Network error",
     "unknownError": "Unknown error",
     "apiError": {
