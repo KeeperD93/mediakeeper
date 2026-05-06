@@ -28,6 +28,7 @@ from services.portal.achievements_utils import (
     MAX_PINNED_BADGES,
     update_progress,
     _load_user_achievement_map,
+    _build_pause_user_filter,
     _build_playback_user_filter,
 )
 from services.portal.achievements_seed import seed_achievements
@@ -84,6 +85,7 @@ async def check_all_achievements(
     user_filter = await _build_playback_user_filter(db, user_id, user_name)
     if user_filter is None:
         return []
+    pause_user_filter = await _build_pause_user_filter(db, user_id, user_name)
 
     all_achs = (await db.execute(select(Achievement))).scalars().all()
     by_type: dict[str, list[Achievement]] = {}
@@ -123,7 +125,13 @@ async def check_all_achievements(
     unlocks.extend(await _safe_pass("progression", check_progression(db, **common_kwargs)))
     unlocks.extend(await _safe_pass("secrets_a", check_secrets_a(db, **common_kwargs)))
     unlocks.extend(await _safe_pass(
-        "secrets_b", check_secrets_b(db, all_achs=all_achs, **common_kwargs)
+        "secrets_b",
+        check_secrets_b(
+            db,
+            all_achs=all_achs,
+            pause_user_filter=pause_user_filter,
+            **common_kwargs,
+        ),
     ))
 
     # Refresh unlocked_ids so meta-achievements see freshly unlocked tiers

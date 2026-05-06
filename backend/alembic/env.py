@@ -18,7 +18,7 @@ from models.base import Base
 from models.user import User                    # noqa: F401
 from models.settings import Setting             # noqa: F401
 from models.seen_alert import SeenAlert         # noqa: F401
-from models.playback_stats import PlaybackSession, LibraryCache  # noqa: F401
+from models.playback_stats import PlaybackSession, LibraryCache, PlaybackPauseEvent  # noqa: F401
 from models.user_preferences import UserPreference   # noqa: F401
 from models.watchlist_scans import WatchlistScan     # noqa: F401
 from models.notification_channels import NotificationChannel  # noqa: F401

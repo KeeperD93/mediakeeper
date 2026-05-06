@@ -15,6 +15,7 @@ This section intentionally has no date so it is not shown to users.
 ## [Unreleased]
 
 ### Added
+- "Bathroom Break" achievement — unlockable (5 pauses of 2 to 5 minutes)
 - "Pilot" and "The Latecomer" achievements — unlockable
 - "Ultimate All-Nighter", "No Life" and "The King" achievements — unlockable
 - "The Loner" and "In Sync" achievements — unlockable

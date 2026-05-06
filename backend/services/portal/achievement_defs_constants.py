@@ -143,8 +143,4 @@ EXCLUSIVE_FROM_META: set[str] = {
 # the profile payload excludes them from `total_count` / `items` so the
 # global progression percentage exposed to the UI reflects what is
 # actually attainable.
-PLACEHOLDER_IDS: frozenset[str] = frozenset({
-    # Only ``secret_pipi`` remains sealed: it is gated on pause/resume
-    # event tracking, which the playback collector does not emit yet.
-    "secret_pipi",
-})
+PLACEHOLDER_IDS: frozenset[str] = frozenset()

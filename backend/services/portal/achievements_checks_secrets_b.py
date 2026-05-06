@@ -5,7 +5,7 @@ from sqlalchemy import select, func, distinct, and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.achievement import Achievement
-from models.playback_stats import PlaybackSession
+from models.playback_stats import PlaybackPauseEvent, PlaybackSession
 from models.portal.emby_tmdb_index import EmbyTmdbIndex
 from services.portal.achievements_utils import (
     update_progress,
@@ -36,6 +36,7 @@ async def check_secrets_b(
     excl_filters: list,
     playback_rows: list | None,
     all_achs: list,
+    pause_user_filter=None,
 ) -> list[dict]:
     """Run second half of secret checks + ultimate_collector. Returns newly unlocked list."""
     unlocks: list[dict] = []
@@ -343,6 +344,22 @@ async def check_secrets_b(
                 if emby_uids else False
             )
             await _apply("secret_pilot", 1 if hit else 0)
+
+    # --- secret_pipi: 5+ closed pause events whose duration sits in the
+    # 2..5 minute bracket. Open events (no resume tick yet) and pauses
+    # outside the window do not count. Driven by the dedicated
+    # ``playback_pause_events`` table populated by the collector.
+    if "secret_pipi" in by_type and pause_user_filter is not None:
+        val = (await db.execute(
+            select(func.count(PlaybackPauseEvent.id))
+            .where(
+                pause_user_filter,
+                PlaybackPauseEvent.resumed_at.isnot(None),
+                PlaybackPauseEvent.duration_seconds >= 120,
+                PlaybackPauseEvent.duration_seconds <= 300,
+            )
+        )).scalar() or 0
+        await _apply("secret_pipi", val)
 
     # --- secret_late: any session started >= 1 year after the item was
     # added to the library. Pure metadata check on the observed user, no
