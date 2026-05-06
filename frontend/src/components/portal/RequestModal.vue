@@ -1,14 +1,22 @@
 <template>
   <Teleport to="body">
-    <div class="pt-rmodal-overlay" @click.self="$emit('close')">
-      <div class="pt-rmodal">
+    <div class="pt-rmodal-overlay" @click.self="requestClose">
+      <div
+        ref="panelRef"
+        class="pt-rmodal"
+        role="dialog"
+        aria-modal="true"
+        :aria-labelledby="titleId"
+        tabindex="-1"
+      >
         <div class="pt-rmodal-header">
-          <h2>{{ $t('portal.request.title') }}</h2>
+          <h2 :id="titleId">{{ $t('portal.request.title') }}</h2>
           <button
+            ref="closeBtnRef"
             class="pt-rmodal-close"
             type="button"
             :aria-label="$t('common.close')"
-            @click="$emit('close')"
+            @click="requestClose"
           >
             <X :size="14" />
           </button>
@@ -156,7 +164,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick, useId } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
@@ -180,6 +188,25 @@ const { t } = useI18n()
 const users = ref([])
 const selectedUserId = ref(null)
 const submitting = ref(false)
+
+const titleId = `pt-rmodal-title-${useId()}`
+const panelRef = ref(null)
+const closeBtnRef = ref(null)
+
+// Keep close logic in one place so both Escape and click.self honour
+// the in-flight submit guard (no half-submitted requests on accidental
+// Esc press).
+function requestClose() {
+  if (submitting.value) return
+  emit('close')
+}
+
+function onKeydown(e) {
+  if (e.key === 'Escape') {
+    e.stopPropagation()
+    requestClose()
+  }
+}
 
 const {
   seasons,
@@ -315,6 +342,14 @@ async function submit() {
 }
 
 onMounted(async () => {
+  document.addEventListener('keydown', onKeydown)
+  // Move focus into the modal predictably so screen readers announce
+  // the dialog and Tab key navigation starts inside it. Prefer the
+  // close button when present; fall back to the panel itself.
+  await nextTick()
+  const target = closeBtnRef.value || panelRef.value
+  target?.focus?.()
+
   if (props.isAdmin) {
     const res = await apiGet('/api/portal/admin/users?limit=200').catch(() => null)
     if (res) {
@@ -323,5 +358,9 @@ onMounted(async () => {
     }
   }
   await Promise.all([loadSeasons(), loadAvailability()])
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('keydown', onKeydown)
 })
 </script>
