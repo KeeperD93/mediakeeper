@@ -1,6 +1,6 @@
 """Periodic collection of Emby sessions (every ~15s)."""
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -184,6 +184,9 @@ async def collect_active_sessions(db: AsyncSession):
         await _grant_post_session_xp(db, closed_sessions)
 
 
+_PAUSE_OPEN_PROOF_WINDOW = timedelta(seconds=90)
+
+
 async def _process_pause_events(db: AsyncSession, sessions: list, now: datetime):
     """Detect pause/resume transitions on Emby ``/Sessions`` and persist
     them to ``playback_pause_events``.
@@ -195,6 +198,16 @@ async def _process_pause_events(db: AsyncSession, sessions: list, now: datetime)
     no-ops, so the table cannot accumulate duplicates from a sticky
     Emby session. Sessions that disappear without a resume tick stay
     open and never become qualifying events.
+
+    Cold-start guard: opening a new event requires recent proof that the
+    session was actively playing — there must be a ``PlaybackSession``
+    row with ``is_active=True`` and a ``last_seen_at`` no older than
+    ``_PAUSE_OPEN_PROOF_WINDOW``. Without this guard a session that was
+    *already paused* when the collector restarted would have its pause
+    clock reset to ``now`` and could close inside the 2-5 minute
+    qualifying window even though the user never produced a fresh
+    pause/resume cycle. We prefer dropping that pause silently over
+    awarding a false positive.
 
     ``now`` is taken from the caller so tests can drive the function
     deterministically.
@@ -224,8 +237,26 @@ async def _process_pause_events(db: AsyncSession, sessions: list, now: datetime)
     )).scalars().all()
     open_by_key: dict[str, PlaybackPauseEvent] = {ev.session_key: ev for ev in open_rows}
 
+    paused_keys = [k for k, _ in paused_pairs]
+    playing_proof: dict[str, PlaybackSession] = {}
+    if paused_keys:
+        proof_rows = (await db.execute(
+            select(PlaybackSession).where(PlaybackSession.session_key.in_(paused_keys))
+        )).scalars().all()
+        playing_proof = {row.session_key: row for row in proof_rows}
+
     for session_key, s in paused_pairs:
         if session_key in open_by_key:
+            continue
+        # Cold-start guard: only open an event when a recent playing
+        # tick has been observed for this session_key.
+        proof = playing_proof.get(session_key)
+        if proof is None or not proof.is_active or proof.last_seen_at is None:
+            continue
+        last_seen = proof.last_seen_at
+        if last_seen.tzinfo is None:
+            last_seen = last_seen.replace(tzinfo=timezone.utc)
+        if (now - last_seen) > _PAUSE_OPEN_PROOF_WINDOW:
             continue
         np = s.get("NowPlayingItem") or {}
         ev = PlaybackPauseEvent(

@@ -22,7 +22,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.achievement import Achievement
 from models.playback_stats import PlaybackSession
-from services.portal.exclusions import get_exclusion_filters
+from services.portal.exclusions import (
+    get_exclusion_filters,
+    get_pause_event_exclusion_filters,
+)
 from services.portal.achievement_defs_constants import PLACEHOLDER_IDS
 from services.portal.achievements_utils import (
     MAX_PINNED_BADGES,
@@ -81,6 +84,7 @@ async def check_all_achievements(
     Called after watch session closes, on login, on request creation, etc.
     """
     excl_filters = await get_exclusion_filters(db)
+    pause_excl_filters = await get_pause_event_exclusion_filters(db)
 
     user_filter = await _build_playback_user_filter(db, user_id, user_name)
     if user_filter is None:
@@ -130,6 +134,7 @@ async def check_all_achievements(
             db,
             all_achs=all_achs,
             pause_user_filter=pause_user_filter,
+            pause_excl_filters=pause_excl_filters,
             **common_kwargs,
         ),
     ))

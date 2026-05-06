@@ -37,6 +37,7 @@ async def check_secrets_b(
     playback_rows: list | None,
     all_achs: list,
     pause_user_filter=None,
+    pause_excl_filters: list | None = None,
 ) -> list[dict]:
     """Run second half of secret checks + ultimate_collector. Returns newly unlocked list."""
     unlocks: list[dict] = []
@@ -348,12 +349,15 @@ async def check_secrets_b(
     # --- secret_pipi: 5+ closed pause events whose duration sits in the
     # 2..5 minute bracket. Open events (no resume tick yet) and pauses
     # outside the window do not count. Driven by the dedicated
-    # ``playback_pause_events`` table populated by the collector.
+    # ``playback_pause_events`` table populated by the collector. The
+    # stats exclusion list is enforced via ``pause_excl_filters`` so a
+    # pause on a blacklisted item (intros, theme songs…) cannot count.
     if "secret_pipi" in by_type and pause_user_filter is not None:
         val = (await db.execute(
             select(func.count(PlaybackPauseEvent.id))
             .where(
                 pause_user_filter,
+                *(pause_excl_filters or []),
                 PlaybackPauseEvent.resumed_at.isnot(None),
                 PlaybackPauseEvent.duration_seconds >= 120,
                 PlaybackPauseEvent.duration_seconds <= 300,
