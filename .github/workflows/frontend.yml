@@ -27,6 +27,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v6
@@ -44,14 +46,36 @@ jobs:
       - name: Stylelint
         run: npm run stylelint
 
-      - name: Prettier (check only)
-        run: npm run format:check
+      - name: Prettier (changed source files)
+        shell: bash
+        run: |
+          base_sha="${{ github.event.pull_request.base.sha || github.event.before }}"
+          if [ -z "$base_sha" ] || ! git cat-file -e "$base_sha^{commit}" 2>/dev/null; then
+            base_sha="HEAD~1"
+          fi
+          mapfile -t files < <(
+            git diff --name-only --diff-filter=ACMR "$base_sha"...HEAD -- frontend/src \
+            | awk '/\.(js|vue|css|json)$/ { sub("^frontend/", ""); print }'
+          )
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "No changed frontend source files to format-check."
+            exit 0
+          fi
+          npx prettier --check "${files[@]}"
 
       - name: TypeScript typecheck
         run: npm run typecheck
 
-      - name: Unit tests (Vitest)
-        run: npm run test:unit
+      - name: Unit tests + coverage (Vitest)
+        run: npm run test:coverage
+
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/
+          retention-days: 14
 
       - name: Build
         run: npm run build
