@@ -1,4 +1,5 @@
 <template>
+  <a href="#main-content" class="mk-skip-link">{{ $t('common.skipToMain') }}</a>
   <div class="mk-app-shell flex h-screen overflow-hidden">
     <!-- Sidebar -->
     <AppSidebar
@@ -10,7 +11,7 @@
     />
 
     <!-- Zone principale -->
-    <main class="mk-app-main flex-1 flex flex-col overflow-hidden min-w-0">
+    <main id="main-content" tabindex="-1" class="mk-app-main flex-1 flex flex-col overflow-hidden min-w-0">
       <!-- Persistent deployment-misconfiguration banner -->
       <DeploymentBanner />
 

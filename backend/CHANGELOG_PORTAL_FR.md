@@ -17,6 +17,7 @@ utilisateurs.
 ## [Unreleased]
 
 ### Added
+- Accessibilité — lien « Aller au contenu principal » au focus clavier
 - Trophée « Pause Pipi » — débloquable (5 pauses de 2 à 5 minutes)
 - Trophées « Pilote » et « Le Retardataire » — débloquables
 - Trophées « Nuit Blanche Ultime », « No Life », « Le Roi » — débloquables

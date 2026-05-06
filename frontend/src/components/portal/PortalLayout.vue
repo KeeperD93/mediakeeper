@@ -1,4 +1,5 @@
 <template>
+  <a href="#main-content" class="mk-skip-link">{{ $t('common.skipToMain') }}</a>
   <div class="pt-layout">
     <PortalNav
       :active-tab="activeTab"
@@ -12,7 +13,7 @@
       @open-help="onOpenHelp"
     />
 
-    <main class="pt-main">
+    <main id="main-content" tabindex="-1" class="pt-main">
       <router-view />
       <AttributionFooter class="pt-attribution" />
     </main>
