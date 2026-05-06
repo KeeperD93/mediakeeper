@@ -34,16 +34,18 @@ vi.mock('vue-router', () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
 }))
 
+const checkAuthMock = vi.fn().mockResolvedValue(false)
+const checkPortalAuthMock = vi.fn().mockResolvedValue(false)
 vi.mock('@/composables/useAuth', () => ({
   useAuth: () => ({
     login: vi.fn(),
-    checkAuth: vi.fn().mockResolvedValue(false),
+    checkAuth: checkAuthMock,
   }),
 }))
 
 vi.mock('@/composables/portal/usePortalAuth', () => ({
   usePortalAuth: () => ({
-    checkPortalAuth: vi.fn().mockResolvedValue(false),
+    checkPortalAuth: checkPortalAuthMock,
   }),
 }))
 
@@ -137,5 +139,53 @@ describe('LoginView', () => {
     })
     for (let i = 0; i < 10; i++) await flushPromises()
     expect(w2.find('h1.sr-only').text()).toBe('login.title')
+  })
+
+  it('shows the logged-out banner when arriving with ?logged_out=1 and keeps the form', async () => {
+    routeQuery.value = { logged_out: '1' }
+    checkAuthMock.mockClear()
+    checkPortalAuthMock.mockClear()
+    const w = mount(LoginView, {
+      global: { stubs: { img: ImgStub } },
+    })
+    for (let i = 0; i < 10; i++) await flushPromises()
+
+    const banner = w.find('[data-test="login-logged-out"]')
+    expect(banner.exists()).toBe(true)
+    expect(banner.text()).toBe('login.justLoggedOut')
+    expect(banner.attributes('role')).toBe('status')
+
+    expect(w.find('.login-error').exists()).toBe(false)
+    expect(w.find('button.login-submit').exists()).toBe(true)
+    expect(w.find('input[type="password"]').exists()).toBe(true)
+
+    expect(checkAuthMock).not.toHaveBeenCalled()
+    expect(checkPortalAuthMock).not.toHaveBeenCalled()
+  })
+
+  it('shows the logged-out banner from the mk_just_logged_out session flag', async () => {
+    routeQuery.value = {}
+    sessionStorage.setItem('mk_just_logged_out', '1')
+    try {
+      const w = mount(LoginView, {
+        global: { stubs: { img: ImgStub } },
+      })
+      for (let i = 0; i < 10; i++) await flushPromises()
+
+      expect(w.find('[data-test="login-logged-out"]').exists()).toBe(true)
+      expect(sessionStorage.getItem('mk_just_logged_out')).toBeNull()
+    } finally {
+      sessionStorage.removeItem('mk_just_logged_out')
+    }
+  })
+
+  it('does not show the logged-out banner on a normal visit to /login', async () => {
+    routeQuery.value = {}
+    const w = mount(LoginView, {
+      global: { stubs: { img: ImgStub } },
+    })
+    for (let i = 0; i < 10; i++) await flushPromises()
+
+    expect(w.find('[data-test="login-logged-out"]').exists()).toBe(false)
   })
 })

@@ -291,7 +291,8 @@
     "allRequired": "Please fill in all fields.",
     "starting": "Starting up…",
     "reconnecting": "Reconnecting to server…",
-    "officialSite": "Official website"
+    "officialSite": "Official website",
+    "justLoggedOut": "You have been signed out."
   },
   "forcePassword": {
     "title": "Password change required",

@@ -291,7 +291,8 @@
     "allRequired": "Veuillez remplir tous les champs.",
     "starting": "Démarrage en cours…",
     "reconnecting": "Reconnexion au serveur…",
-    "officialSite": "Site officiel"
+    "officialSite": "Site officiel",
+    "justLoggedOut": "Vous avez été déconnecté."
   },
   "forcePassword": {
     "title": "Changement de mot de passe requis",
