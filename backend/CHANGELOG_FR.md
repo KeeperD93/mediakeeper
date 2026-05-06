@@ -11,6 +11,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ### Added
 - Accessibilité — lien « Aller au contenu principal » au focus clavier (connexion + admin)
+- Page introuvable — vraie page 404 accessible avec retour au tableau de bord (plus de redirection silencieuse)
 - UX page crédits resserrée et lien GitHub sur la page de connexion
 - À propos — page admin (stack, licences, FFmpeg LGPL) et mentions sous TMDB / OpenSubtitles dans Paramètres
 - Demandes — cartes statistiques affichent désormais le total cumulé sous chaque compteur (en attente, approuvées, refusées, disponibles)

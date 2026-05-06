@@ -232,6 +232,12 @@
       "linkText": "Voir l'attribution complète"
     }
   },
+  "errors": {
+    "notFoundTitle": "Page introuvable",
+    "notFoundDescription": "La page que vous cherchez n'existe pas ou n'est plus disponible.",
+    "notFoundCtaHome": "Retour au tableau de bord",
+    "notFoundCtaPortal": "Retour au portail utilisateur"
+  },
   "sidebar": {
     "dashboard": "Tableau de bord",
     "statistics": "Statistiques",

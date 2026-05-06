@@ -11,6 +11,7 @@ This section intentionally has no date so it is not shown to users.
 
 ### Added
 - Accessibility — keyboard "Skip to main content" link on login and admin
+- Page not found — proper accessible 404 page with back-to-dashboard link (no more silent redirect)
 - Tightened credits page UX and added GitHub link on the login page
 - About — admin page (stack, licenses, FFmpeg LGPL) and notes under TMDB / OpenSubtitles in Settings
 - Requests — top-bar stat cards now show the all-time total under each counter (pending, approved, rejected, available)

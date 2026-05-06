@@ -34,7 +34,9 @@ const routes = [
   },
   {
     path: '/:pathMatch(.*)*',
-    redirect: '/',
+    name: 'not-found',
+    component: () => import('@/views/NotFoundView.vue'),
+    meta: { public: true, titleKey: 'errors.notFoundTitle' },
   },
 ]
 
