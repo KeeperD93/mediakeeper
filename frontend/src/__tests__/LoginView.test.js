@@ -24,8 +24,13 @@ vi.mock('vue-i18n', () => ({
   }),
 }))
 
+const routeQuery = { value: {} }
 vi.mock('vue-router', () => ({
-  useRoute: () => ({ query: {} }),
+  useRoute: () => ({
+    get query() {
+      return routeQuery.value
+    },
+  }),
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
 }))
 
@@ -83,6 +88,7 @@ const ImgStub = {
 
 describe('LoginView', () => {
   it('renders exactly one github link, pointing to the canonical KeeperD93/mediakeeper repo', async () => {
+    routeQuery.value = {}
     const w = mount(LoginView, {
       global: { stubs: { img: ImgStub } },
     })
@@ -93,5 +99,43 @@ describe('LoginView', () => {
     expect(link.attributes('rel')).toContain('noopener')
     const allGithubLinks = w.findAll('a[href*="github.com"]')
     expect(allGithubLinks).toHaveLength(1)
+  })
+
+  it('uses generic login.* keys without a portal redirect', async () => {
+    routeQuery.value = {}
+    const w = mount(LoginView, {
+      global: { stubs: { img: ImgStub } },
+    })
+    for (let i = 0; i < 10; i++) await flushPromises()
+    expect(w.find('h1.sr-only').text()).toBe('login.title')
+    expect(w.find('.login-hero-sub').text()).toBe('login.title')
+    expect(w.find('.login-submit').text()).toContain('login.submit')
+  })
+
+  it('switches to portalLogin.* keys when redirect targets /portal', async () => {
+    routeQuery.value = { redirect: '/portal' }
+    const w = mount(LoginView, {
+      global: { stubs: { img: ImgStub } },
+    })
+    for (let i = 0; i < 10; i++) await flushPromises()
+    expect(w.find('h1.sr-only').text()).toBe('portalLogin.title')
+    expect(w.find('.login-hero-sub').text()).toBe('portalLogin.subtitle')
+    expect(w.find('.login-submit').text()).toContain('portalLogin.submit')
+  })
+
+  it('treats non-string or unrelated redirects as generic login', async () => {
+    routeQuery.value = { redirect: ['/portal'] }
+    const w1 = mount(LoginView, {
+      global: { stubs: { img: ImgStub } },
+    })
+    for (let i = 0; i < 10; i++) await flushPromises()
+    expect(w1.find('h1.sr-only').text()).toBe('login.title')
+
+    routeQuery.value = { redirect: '/dashboard' }
+    const w2 = mount(LoginView, {
+      global: { stubs: { img: ImgStub } },
+    })
+    for (let i = 0; i < 10; i++) await flushPromises()
+    expect(w2.find('h1.sr-only').text()).toBe('login.title')
   })
 })

@@ -52,8 +52,8 @@
           <div class="login-hero-glow" aria-hidden="true" />
           <div class="login-hero-content">
             <img :src="bannerUrl" alt="MediaKeeper" class="login-hero-banner" />
-            <h1 class="sr-only">{{ t('login.title') }}</h1>
-            <p class="login-hero-sub">{{ t('login.title') }}</p>
+            <h1 class="sr-only">{{ t(headingKey) }}</h1>
+            <p class="login-hero-sub">{{ t(subtitleKey) }}</p>
           </div>
           <div class="login-hero-line" />
         </div>
@@ -66,13 +66,13 @@
 
           <div class="login-fields">
             <div class="login-field">
-              <label class="login-label">{{ t('login.username') }}</label>
+              <label class="login-label">{{ t(usernameKey) }}</label>
               <div class="login-input-wrap">
                 <User class="login-input-icon" :size="15" :stroke-width="1.8" />
                 <input
                   v-model="username"
                   type="text"
-                  :placeholder="t('login.username')"
+                  :placeholder="t(usernameKey)"
                   autocomplete="off"
                   autocorrect="off"
                   autocapitalize="off"
@@ -84,13 +84,13 @@
             </div>
 
             <div class="login-field">
-              <label class="login-label">{{ t('login.password') }}</label>
+              <label class="login-label">{{ t(passwordKey) }}</label>
               <div class="login-input-wrap">
                 <LockKeyhole class="login-input-icon" :size="15" :stroke-width="1.8" />
                 <input
                   v-model="password"
                   type="password"
-                  :placeholder="t('login.password')"
+                  :placeholder="t(passwordKey)"
                   autocomplete="new-password"
                   class="login-input"
                   @keydown.enter="doLogin"
@@ -108,7 +108,7 @@
               <template v-else>
                 <LogIn :size="15" />
               </template>
-              {{ submitting ? t('common.loading') : t('login.submit') }}
+              {{ submitting ? t('common.loading') : t(submitKey) }}
             </button>
           </div>
 
@@ -148,7 +148,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/composables/useAuth'
@@ -184,6 +184,13 @@ const bannerUrl = '/assets/icons/mediakeeper_banner.png'
 function getRedirectTarget() {
   return typeof route.query.redirect === 'string' ? route.query.redirect : ''
 }
+
+const isPortalLogin = computed(() => getRedirectTarget().startsWith('/portal'))
+const headingKey = computed(() => (isPortalLogin.value ? 'portalLogin.title' : 'login.title'))
+const subtitleKey = computed(() => (isPortalLogin.value ? 'portalLogin.subtitle' : 'login.title'))
+const usernameKey = computed(() => (isPortalLogin.value ? 'portalLogin.username' : 'login.username'))
+const passwordKey = computed(() => (isPortalLogin.value ? 'portalLogin.password' : 'login.password'))
+const submitKey = computed(() => (isPortalLogin.value ? 'portalLogin.submit' : 'login.submit'))
 
 async function waitForAuth() {
   while (true) {

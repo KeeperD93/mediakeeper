@@ -1614,7 +1614,7 @@
     "shiftDone": "Sous-titre décalé de {ms}ms"
   },
   "portalLogin": {
-    "title": "Demandes",
+    "title": "Portal",
     "subtitle": "Connectez-vous avec vos identifiants Emby",
     "username": "Identifiant Emby",
     "password": "Mot de passe",

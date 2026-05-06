@@ -80,7 +80,12 @@ let healthInterval = null
 let failCount = 0
 
 function syncDocumentTitle() {
-  const routeTitle = route.meta?.titleKey ? t(route.meta.titleKey) : route.meta?.title || ''
+  let titleKey = route.meta?.titleKey
+  if (route.name === 'login') {
+    const redirect = typeof route.query?.redirect === 'string' ? route.query.redirect : ''
+    if (redirect.startsWith('/portal')) titleKey = 'portalLogin.title'
+  }
+  const routeTitle = titleKey ? t(titleKey) : route.meta?.title || ''
   document.title = routeTitle ? `MediaKeeper · ${routeTitle}` : 'MediaKeeper'
 }
 

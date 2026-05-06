@@ -1614,7 +1614,7 @@
     "shiftDone": "Subtitle shifted by {ms}ms"
   },
   "portalLogin": {
-    "title": "Requests",
+    "title": "Portal",
     "subtitle": "Sign in with your Emby credentials",
     "username": "Emby username",
     "password": "Password",
