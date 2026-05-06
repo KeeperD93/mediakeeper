@@ -60,7 +60,7 @@
     "primevue": "^4.5.5",
     "vue": "^3.5.33",
     "vue-i18n": "^9.14.0",
-    "vue-router": "^4.5.0"
+    "vue-router": "^5.0.6"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",
