@@ -62,6 +62,7 @@ utilisateurs.
 - Notifications : ouvrir la cloche marque automatiquement toutes les notifications comme lues (bouton « Tout marquer lu » supprimé)
 - Onglets des pages internes (fiche média, personne, listes, admin) harmonisés sur le même style glass que le reste de l'app
 - Barre de navigation mobile : l'onglet actif encadre désormais icône + libellé (plus de surlignage limité à l'icône)
+- Barre de navigation mobile : onglet « Listes » ajouté (accès direct, à côté de l'accueil)
 - Barre du haut mobile allégée : Tableau de bord, Listes, Calendrier et Administration regroupés dans le menu avatar — ne restent dans la barre que recherche, notifications et avatar
 - Profil mobile : carte d'identité compactée (largeur, paddings et avatar réduits) pour gagner en place
 - Profil : halos tournants et pulsation brumeuse autour de la carte retirés (visuel allégé, sur tous les écrans)

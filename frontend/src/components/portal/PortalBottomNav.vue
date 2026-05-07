@@ -22,7 +22,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { Home, User, Compass, LifeBuoy } from 'lucide-vue-next'
+import { Home, User, Compass, LifeBuoy, Library } from 'lucide-vue-next'
 import { PORTAL_TAB } from '@/constants/portal'
 
 import '@/assets/styles/portal/nav-bottom.css'
@@ -35,7 +35,10 @@ const props = defineProps({
 defineEmits(['navigate'])
 
 const tabs = computed(() => {
-  const base = [{ name: PORTAL_TAB.HOME, label: 'portal.tabs.home', icon: Home }]
+  const base = [
+    { name: PORTAL_TAB.HOME, label: 'portal.tabs.home', icon: Home },
+    { name: PORTAL_TAB.LISTS, label: 'portal.lists.navLabel', icon: Library },
+  ]
   if (props.showRequestsTab) {
     base.push({ name: PORTAL_TAB.REQUESTS, label: 'portal.tabs.discover', icon: Compass })
   }
