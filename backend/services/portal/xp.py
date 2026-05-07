@@ -113,17 +113,20 @@ async def grant_xp(
             return None
 
     # --- Insert (dedup via unique constraint) ---
-    entry = XpLedger(
-        user_id=user_id,
-        action=action,
-        reference=reference,
-        xp=xp_amount,
-    )
-    db.add(entry)
+    # The INSERT runs inside a SAVEPOINT so a duplicate (user_id, action,
+    # reference) trips the unique constraint without invalidating the
+    # outer transaction — callers (e.g. ``update_request_status``) keep
+    # the work they had pending in the same session.
     try:
-        await db.flush()
+        async with db.begin_nested():
+            db.add(XpLedger(
+                user_id=user_id,
+                action=action,
+                reference=reference,
+                xp=xp_amount,
+            ))
+            await db.flush()
     except IntegrityError:
-        await db.rollback()
         logger.debug(f"[XP] duplicate blocked: user={user_id} action={action} ref={reference}")
         return None
 
@@ -134,6 +137,7 @@ async def grant_xp(
         .with_for_update()
     )).scalar_one_or_none()
 
+    leveled_up = False
     if profile:
         profile.xp = (profile.xp or 0) + xp_amount
         new_level = level_from_xp(profile.xp)
@@ -148,7 +152,7 @@ async def grant_xp(
         "xp": xp_amount,
         "total_xp": profile.xp if profile else xp_amount,
         "level": profile.level if profile else 1,
-        "leveled_up": leveled_up if profile else False,
+        "leveled_up": leveled_up,
     }
     logger.info(f"[XP] granted {xp_amount} XP to user={user_id} for {action} ref={reference}")
     return result
