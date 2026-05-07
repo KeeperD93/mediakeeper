@@ -3,7 +3,8 @@
 User-lists logic has been moved to ``services.portal.lists``.
 """
 import logging
-from sqlalchemy import select
+from sqlalchemy import delete, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.social import (
@@ -16,32 +17,72 @@ logger = logging.getLogger("mediakeeper.portal.social")
 
 # ── Ratings ──
 
-async def rate_media(
-    db: AsyncSession, user_id: int, data: dict
-) -> dict:
+async def _load_existing_rating(
+    db: AsyncSession, user_id: int, tmdb_id: int, media_type: str,
+) -> UserRating | None:
+    """Lookup helper isolated so concurrency tests can monkeypatch it to
+    force the real INSERT path through the unique constraint."""
     result = await db.execute(
         select(UserRating).where(
             UserRating.user_id == user_id,
-            UserRating.tmdb_id == data["tmdb_id"],
-            UserRating.media_type == data["media_type"],
+            UserRating.tmdb_id == tmdb_id,
+            UserRating.media_type == media_type,
         )
     )
-    rating = result.scalar_one_or_none()
-    if rating:
+    return result.scalar_one_or_none()
+
+
+async def rate_media(
+    db: AsyncSession, user_id: int, data: dict
+) -> dict:
+    review_clean = (
+        strip_tags_and_trim(data.get("review", ""), 5000)
+        if data.get("review") else None
+    )
+
+    rating = await _load_existing_rating(
+        db, user_id, data["tmdb_id"], data["media_type"],
+    )
+    if rating is not None:
         rating.rating = data["rating"]
-        rating.review = strip_tags_and_trim(data.get("review", ""), 5000) if data.get("review") else None
-    else:
-        rating = UserRating(
-            user_id=user_id,
-            tmdb_id=data["tmdb_id"],
-            media_type=data["media_type"],
-            rating=data["rating"],
-            review=strip_tags_and_trim(data.get("review", ""), 5000) if data.get("review") else None,
+        rating.review = review_clean
+        await db.commit()
+        await db.refresh(rating)
+        return {"success": True, "id": rating.id}
+
+    new_rating = UserRating(
+        user_id=user_id,
+        tmdb_id=data["tmdb_id"],
+        media_type=data["media_type"],
+        rating=data["rating"],
+        review=review_clean,
+    )
+    # The INSERT runs inside a SAVEPOINT so a parallel peer that beat us
+    # to ``uq_user_rating`` only invalidates the inner savepoint — the
+    # outer transaction stays usable and we can transparently fall back
+    # to updating the existing row.
+    try:
+        async with db.begin_nested():
+            db.add(new_rating)
+            await db.flush()
+    except IntegrityError:
+        result = await db.execute(
+            select(UserRating).where(
+                UserRating.user_id == user_id,
+                UserRating.tmdb_id == data["tmdb_id"],
+                UserRating.media_type == data["media_type"],
+            )
         )
-    db.add(rating)
+        rating = result.scalar_one()
+        rating.rating = data["rating"]
+        rating.review = review_clean
+        await db.commit()
+        await db.refresh(rating)
+        return {"success": True, "id": rating.id}
+
     await db.commit()
-    await db.refresh(rating)
-    return {"success": True, "id": rating.id}
+    await db.refresh(new_rating)
+    return {"success": True, "id": new_rating.id}
 
 
 async def get_media_ratings(
@@ -56,24 +97,50 @@ async def get_media_ratings(
     return [_serialize_rating(r) for r in result.scalars().all()]
 
 
-async def toggle_rating_like(
-    db: AsyncSession, rating_id: int, user_id: int
-) -> dict:
-    existing = await db.execute(
+async def _load_existing_like(
+    db: AsyncSession, rating_id: int, user_id: int,
+) -> UserRatingLike | None:
+    """Lookup helper isolated so concurrency tests can monkeypatch it to
+    drive the real INSERT path through ``uq_rating_like``."""
+    result = await db.execute(
         select(UserRatingLike).where(
             UserRatingLike.rating_id == rating_id,
             UserRatingLike.user_id == user_id,
         )
     )
-    like = existing.scalar_one_or_none()
-    if like:
-        await db.delete(like)
-        action = "removed"
-    else:
-        db.add(UserRatingLike(rating_id=rating_id, user_id=user_id))
-        action = "added"
+    return result.scalar_one_or_none()
+
+
+async def toggle_rating_like(
+    db: AsyncSession, rating_id: int, user_id: int
+) -> dict:
+    like = await _load_existing_like(db, rating_id, user_id)
+    if like is not None:
+        # A keyed DELETE statement is naturally idempotent: if the row
+        # vanished concurrently between the load and here, the statement
+        # affects 0 rows without raising — unlike ``session.delete()``,
+        # which can surface ``StaleDataError`` on flush.
+        await db.execute(
+            delete(UserRatingLike).where(UserRatingLike.id == like.id)
+        )
+        await db.commit()
+        return {"success": True, "action": "removed"}
+
+    # Two concurrent toggles starting from "no like" both want to add the
+    # same row; the unique constraint makes one of them fail. We treat
+    # the loser as a successful add — the user's intent (be in the
+    # "liked" state) is satisfied, and the row count stays at 1.
+    try:
+        async with db.begin_nested():
+            db.add(UserRatingLike(rating_id=rating_id, user_id=user_id))
+            await db.flush()
+    except IntegrityError:
+        logger.debug(
+            f"[LIKE] race avoided rating_id={rating_id} user_id={user_id} "
+            f"— concurrent insert won, idempotent add"
+        )
     await db.commit()
-    return {"success": True, "action": action}
+    return {"success": True, "action": "added"}
 
 
 # ── Release reminders ──

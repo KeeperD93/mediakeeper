@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime, timezone
 
-from sqlalchemy import select, func
+from sqlalchemy import select, func, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -278,7 +278,14 @@ async def copy_list(
                extra={"copied_from": source_id})
     await _log(db, source_id, user_id, "copied",
                extra={"copy_list_id": new_list.id})
-    src.copy_count = (src.copy_count or 0) + 1
+    # Atomic SQL increment — ``src`` may be a stale identity-map snapshot
+    # if a concurrent peer already bumped the counter, so reading it,
+    # adding 1, and writing it back would silently drop the peer's update.
+    await db.execute(
+        update(UserList)
+        .where(UserList.id == source_id)
+        .values(copy_count=func.coalesce(UserList.copy_count, 0) + 1)
+    )
     await db.commit()
     await db.refresh(new_list)
     return {
