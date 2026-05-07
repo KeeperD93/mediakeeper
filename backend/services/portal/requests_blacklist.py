@@ -80,13 +80,10 @@ async def maybe_blacklist_media(
     if count < BLACKLIST_REJECT_THRESHOLD:
         return
 
-    existing = await db.execute(
-        select(RequestBlacklist.id).where(
-            RequestBlacklist.tmdb_id == req.tmdb_id,
-            RequestBlacklist.media_type == req.media_type,
-        )
-    )
-    if existing.scalar_one_or_none():
+    # Fast path: skip the requester snapshot work when the row is already
+    # there. This pre-check is intentionally racy — the SAVEPOINT below
+    # handles the window where a parallel call beats us to the INSERT.
+    if await is_media_blacklisted(db, req.tmdb_id, req.media_type):
         return
 
     rows = await db.execute(

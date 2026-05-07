@@ -383,26 +383,33 @@ async def test_maybe_blacklist_second_call_is_idempotent(db_session):
 
 @pytest.mark.asyncio
 async def test_maybe_blacklist_savepoint_swallows_concurrent_insert(
-    db_session,
+    db_session, monkeypatch,
 ):
-    """Simulates a racing peer that already wrote the blacklist row in the
-    window between our pre-check and INSERT. Pre-creating the row before
-    the call exercises the IntegrityError → SAVEPOINT-rollback path
-    deterministically (no real concurrency needed)."""
+    """Force-exercise the IntegrityError → SAVEPOINT-rollback path.
+
+    A real race would be: peer A and peer B both pass the
+    ``is_media_blacklisted`` pre-check, both build the requester
+    snapshot, both attempt the INSERT — one wins, the other trips
+    ``uq_blacklist_media``. To reproduce that single-process, we:
+
+    1. Pre-insert the conflicting row (the "winning peer").
+    2. Monkeypatch ``is_media_blacklisted`` to return ``False`` so our
+       call walks past the fast-path pre-check.
+    3. Call ``maybe_blacklist_media`` — the INSERT must trip the unique
+       constraint, the SAVEPOINT must roll back cleanly, and the call
+       must return without raising.
+    4. Verify the session is still usable, only one row exists, and the
+       pre-existing snapshot was NOT overwritten.
+
+    Without the SAVEPOINT this test would surface a ``PendingRollback
+    Error`` on the sentinel write below, or leave the duplicate
+    ``IntegrityError`` propagating out.
+    """
+    from services.portal import requests_blacklist as bl_mod
+
     _, req = await _seed_three_rejections(db_session, tmdb_id=4244)
     admin, _ = await _make_profile(db_session, username="bl-admin-3", role="admin")
 
-    # Bypass the pre-check by mocking it: insert the conflicting row
-    # *after* the pre-check has already passed. We do that by patching
-    # ``select_one_or_none`` indirectly — simpler approach: write the
-    # row inside a sibling session right before the second call. Since
-    # the pre-check uses the same session, we instead pre-insert and
-    # also clear the session cache so the pre-check still sees nothing.
-    # In practice, the SAVEPOINT path is exercised by calling the
-    # function twice on a session that has been refreshed in between,
-    # which is what ``test_maybe_blacklist_second_call_is_idempotent``
-    # already does. This test is the symmetric belt-and-suspenders
-    # check: an existing row, called once.
     db_session.add(RequestBlacklist(
         tmdb_id=req.tmdb_id,
         media_type=req.media_type,
@@ -414,7 +421,27 @@ async def test_maybe_blacklist_savepoint_swallows_concurrent_insert(
     ))
     await db_session.commit()
 
+    async def _pretend_not_blacklisted(_db, _tmdb_id, _media_type):
+        return False
+
+    monkeypatch.setattr(
+        bl_mod, "is_media_blacklisted", _pretend_not_blacklisted,
+    )
+
+    # Must not raise — the IntegrityError is swallowed in the savepoint.
     await maybe_blacklist_media(db_session, req, admin.id)
+
+    # Sentinel write proves the outer transaction stayed alive after the
+    # savepoint rollback. Without the SAVEPOINT, the failed INSERT would
+    # poison the session and this commit would explode.
+    sentinel = MediaRequest(
+        user_id=admin.id,
+        tmdb_id=88888,
+        media_type="movie",
+        title="Sentinel after race",
+        status="pending",
+    )
+    db_session.add(sentinel)
     await db_session.commit()
 
     rows = (await db_session.execute(
@@ -426,3 +453,4 @@ async def test_maybe_blacklist_savepoint_swallows_concurrent_insert(
     assert len(rows) == 1
     # The pre-existing snapshot must NOT have been overwritten.
     assert rows[0].requesters == [{"user_id": 999, "display_name": "ghost"}]
+    assert rows[0].title == "Pre-existing"
