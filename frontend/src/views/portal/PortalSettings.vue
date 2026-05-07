@@ -111,9 +111,11 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
 
 import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 import { usePortalSettings } from '@/composables/portal/usePortalSettings'
+import { useSettingsTabHash } from '@/composables/portal/useSettingsTabHash'
 import { useApi } from '@/composables/useApi'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
@@ -147,8 +149,11 @@ const { t } = useI18n()
 const { showToast } = useToast()
 const { apiGet } = useApi()
 const { profile: profileData, gdpr, setPortalAuth } = usePortalAuth()
+const route = useRoute()
+const router = useRouter()
 
 const TABS = computed(() => ALL_TABS.filter(tab => !tab.gdprOnly || gdpr.value?.enabled))
+const visibleTabIds = computed(() => TABS.value.map(tab => tab.id))
 const {
   form,
   dirty,
@@ -168,7 +173,7 @@ const { stats, ranking, titleKey, rankTier, trophies, load } = useProfileData()
 const { titleTierName, memberSince, xpPercent, nextLevelXp } = useProfileXp(profileData, stats)
 const { displayTrophies } = useTrophyDisplay(trophies, profileData)
 
-const activeTab = ref('identity')
+const { activeTab } = useSettingsTabHash(route, router, visibleTabIds)
 const availableTitles = ref([])
 const availableAvatarEffects = ref([])
 const titleCatalogue = ref([])
@@ -244,15 +249,6 @@ watch(
     if (next !== prev) checkUsername(next)
   },
 )
-
-// If the admin disables the GDPR mode while the user is sitting on
-// the Privacy tab, the tab vanishes from TABS — bounce the selection
-// back to Identity so the body does not render an empty card.
-watch(TABS, next => {
-  if (!next.find(t => t.id === activeTab.value)) {
-    activeTab.value = next[0]?.id || 'identity'
-  }
-})
 
 onMounted(async () => {
   await Promise.all([

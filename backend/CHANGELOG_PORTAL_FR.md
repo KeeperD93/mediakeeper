@@ -52,6 +52,7 @@ utilisateurs.
 - Trophées listes — deux nouvelles familles (Curateur, Bibliothécaire) avec 5 paliers chacune
 
 ### Changed
+- Paramètres — onglet actif synchronisé avec l'URL (lien direct et refresh)
 - Quoi de neuf aujourd'hui — Top 3 du mois aligné sur le widget Classement du dashboard (visuel identique, votre position ajoutée en 4ᵉ ligne quand vous êtes hors podium)
 - Tickets — filtres restructurés en groupes labellisés (statut, source, problème) au style pill du module Demandes
 - URLs standardisées (anciens bookmarks à refaire)
