@@ -149,7 +149,7 @@ async def move_file_overwrite(src_path: str, dest_folder: str) -> dict:
         if target.exists():
             logger.info(f"[MOVE-OW] Deletion target existante : {target!r} (is_dir={target.is_dir()})")
             await _force_delete(target)
-            logger.info(f"[MOVE-OW] Target deleted OK")
+            logger.info("[MOVE-OW] Target deleted OK")
         same_dev = _same_device(src, dest)
         logger.info(f"[MOVE-OW] same_device={same_dev} | target={target!r}")
         await _fast_move(str(src), str(target))

@@ -48,6 +48,61 @@ def get_existing_path_roots() -> list[Path]:
     return [root for root in get_configured_path_roots() if root.exists() and root.is_dir()]
 
 
+def _safe_resolve_backup_dir() -> Path | None:
+    """Resolve the backup directory or ``None`` if it cannot be determined.
+
+    ``get_backup_dir`` may raise (production refuses to fall back to a default
+    when ``BACKUP_PATH`` is missing). For helpers that only need to *exclude*
+    backup zones from media surfaces, that exception is benign — we simply
+    cannot enforce the exclusion and return ``None``.
+    """
+    try:
+        return get_backup_dir().resolve(strict=False)
+    except (OSError, RuntimeError):
+        return None
+
+
+def is_path_within_backup_dir(path: str | Path) -> bool:
+    """Return True if *path* is the backup directory itself or lives inside it.
+
+    Used to make sure media surfaces (categories, file resolution) never expose
+    or traverse the backup zone, even when an operator configured both as the
+    same or nested filesystem locations.
+    """
+    backup_dir = _safe_resolve_backup_dir()
+    if backup_dir is None:
+        return False
+    try:
+        resolved = _resolve_path(path)
+    except (OSError, RuntimeError):
+        return False
+    return resolved == backup_dir or backup_dir in resolved.parents
+
+
+def get_existing_media_path_roots() -> list[Path]:
+    """Configured roots that are safe to expose as media surfaces.
+
+    A configured root is excluded when it is the backup directory itself or a
+    descendant of it. This is intentionally narrower than
+    :func:`get_existing_path_roots`: ``set_backup_directory`` legitimately
+    needs to validate a candidate backup path against the full root list, so
+    we must not break that flow by filtering globally.
+    """
+    backup_dir = _safe_resolve_backup_dir()
+    media_roots: list[Path] = []
+    for root in get_existing_path_roots():
+        try:
+            resolved = root.resolve(strict=False)
+        except (OSError, RuntimeError):
+            continue
+        if backup_dir is not None and (
+            resolved == backup_dir or backup_dir in resolved.parents
+        ):
+            continue
+        media_roots.append(resolved)
+    return media_roots
+
+
 def is_path_within_roots(path: str | Path, roots: Iterable[Path] | None = None) -> bool:
     try:
         resolved = _resolve_path(path)

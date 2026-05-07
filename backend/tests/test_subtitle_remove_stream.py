@@ -5,11 +5,15 @@ ffprobe fails. FFmpeg and ffprobe are mocked — no real binaries are spawned.
 """
 import asyncio
 import shutil
+import time
+from pathlib import Path
 
 import pytest
 
 from services import opensubtitles
+from services.opensubtitles import _remux as remux_mod
 from services.opensubtitles import remove as remove_mod
+from services.opensubtitles import rollback_retention
 
 from _subtitle_fakes import _FakeProc, _FakeResponse, _make_workspace_tmp
 
@@ -464,3 +468,406 @@ async def test_remove_stream_short_error_response_full_stderr_in_logs(monkeypatc
         assert movie_file.read_bytes() == b"original-bytes"
     finally:
         shutil.rmtree(root, ignore_errors=True)
+
+
+@pytest.mark.asyncio
+async def test_remove_stream_aborts_on_insufficient_disk_space(monkeypatch):
+    """Disk-space guard refuses the remux before copying or invoking FFmpeg.
+
+    The source must stay byte-for-byte identical, no rollback artifact is
+    created, no subprocess is spawned, and the API response must use the
+    short ``insufficient_disk_space`` code without leaking any filesystem
+    path.
+    """
+    root = _make_workspace_tmp()
+    try:
+        state = _RemuxState()
+        media_streams = [
+            {"Index": 0, "Type": "Video"},
+            {"Index": 1, "Type": "Audio", "Language": "eng", "IsExternal": False},
+        ]
+        movie_file, movie_dir, payload = _setup_env(monkeypatch, root, media_streams)
+
+        client = _make_fake_client(state, payload)
+        monkeypatch.setattr(remove_mod, "get_internal_client", lambda: client)
+        _install_subprocess_fakes(monkeypatch, state)
+
+        copy_calls: list[tuple] = []
+        real_copy2 = shutil.copy2
+
+        def _track_copy(src, dst, *args, **kwargs):
+            copy_calls.append((src, dst))
+            return real_copy2(src, dst, *args, **kwargs)
+
+        monkeypatch.setattr(shutil, "copy2", _track_copy)
+
+        class _Usage:
+            def __init__(self, free: int):
+                self.total = free + 1
+                self.used = 1
+                self.free = free
+
+        # Free space far below required (source bytes * 2 + margin).
+        monkeypatch.setattr(remux_mod.shutil, "disk_usage", lambda _path: _Usage(free=128))
+
+        result = await opensubtitles.remove_stream(object(), "item-1", 1)
+
+        assert result == {"error": "insufficient_disk_space"}
+        # Response must not contain any filesystem path.
+        for value in result.values():
+            if isinstance(value, str):
+                assert str(movie_dir) not in value
+                assert "/" not in value or value == "insufficient_disk_space"
+        # No subprocess, no rollback copy: the guard fires before any I/O.
+        assert state.commands == []
+        assert copy_calls == []
+        assert movie_file.read_bytes() == b"original-bytes"
+        assert _list_tmp_leftovers(movie_dir, "movie") == []
+        assert _list_rollback_artifacts(movie_dir, "movie") == []
+        assert state.refresh_calls == []
+    finally:
+        shutil.rmtree(root, ignore_errors=True)
+
+
+@pytest.mark.asyncio
+async def test_remove_stream_proceeds_when_disk_space_is_sufficient(monkeypatch):
+    """The disk-space guard is non-blocking when free space exceeds the
+    estimated requirement (source size * 2 + margin)."""
+    root = _make_workspace_tmp()
+    try:
+        state = _RemuxState()
+        media_streams = [
+            {"Index": 0, "Type": "Video"},
+            {"Index": 1, "Type": "Audio", "Language": "eng", "IsExternal": False},
+        ]
+        movie_file, _movie_dir, payload = _setup_env(monkeypatch, root, media_streams)
+
+        client = _make_fake_client(state, payload)
+        monkeypatch.setattr(remove_mod, "get_internal_client", lambda: client)
+        _install_subprocess_fakes(monkeypatch, state)
+
+        class _Usage:
+            def __init__(self, free: int):
+                self.total = free + 1
+                self.used = 1
+                self.free = free
+
+        # Plenty of free space (1 GiB) — guard must pass through.
+        monkeypatch.setattr(remux_mod.shutil, "disk_usage", lambda _path: _Usage(free=1 << 30))
+
+        result = await opensubtitles.remove_stream(object(), "item-1", 1)
+
+        assert result["success"] is True
+        assert result["rollback_kept"] is True
+        assert movie_file.read_bytes() == b"fake-remuxed-bytes"
+    finally:
+        shutil.rmtree(root, ignore_errors=True)
+
+
+@pytest.mark.asyncio
+async def test_remove_stream_purges_old_rollbacks_after_success(monkeypatch):
+    """Successful remux opportunistically purges aged rollback siblings.
+
+    A 60-day-old rollback in the same directory must be removed; a fresh
+    rollback (the one just produced by the current remux) must be kept; an
+    unrelated dotfile that happens to look similar must never be touched.
+    """
+    root = _make_workspace_tmp()
+    try:
+        state = _RemuxState()
+        media_streams = [
+            {"Index": 0, "Type": "Video"},
+            {"Index": 1, "Type": "Audio", "Language": "eng", "IsExternal": False},
+        ]
+        movie_file, movie_dir, payload = _setup_env(monkeypatch, root, media_streams)
+
+        # Stale rollback artifact, older than the default 30-day retention.
+        stale = movie_dir / ".other.rollback-aaaaaaaaaaaa.mkv"
+        stale.write_bytes(b"stale-rollback")
+        old_mtime = time.time() - 60 * 24 * 3600
+        import os as _os
+        _os.utime(str(stale), (old_mtime, old_mtime))
+
+        # Lookalike but not a strict rollback artifact (token too short).
+        lookalike = movie_dir / ".note.rollback-short.txt"
+        lookalike.write_bytes(b"unrelated")
+
+        # Sibling media file — must never be considered.
+        sibling = movie_dir / "other.mkv"
+        sibling.write_bytes(b"other-media")
+
+        client = _make_fake_client(state, payload)
+        monkeypatch.setattr(remove_mod, "get_internal_client", lambda: client)
+        _install_subprocess_fakes(monkeypatch, state)
+
+        result = await opensubtitles.remove_stream(object(), "item-1", 1)
+
+        assert result["success"] is True
+        # Stale rollback removed, lookalike + sibling untouched.
+        assert not stale.exists()
+        assert lookalike.exists()
+        assert sibling.exists() and sibling.read_bytes() == b"other-media"
+        # The freshly-created rollback for the current operation is kept.
+        rollbacks = _list_rollback_artifacts(movie_dir, "movie")
+        assert len(rollbacks) == 1
+        assert rollbacks[0].read_bytes() == b"original-bytes"
+    finally:
+        shutil.rmtree(root, ignore_errors=True)
+
+
+def test_purge_rollback_artifacts_removes_only_aged_strict_matches(tmp_path: Path):
+    """Direct unit test of the retention helper — no remux flow involved."""
+    fresh = tmp_path / ".movie.rollback-1234567890ab.mkv"
+    fresh.write_bytes(b"fresh")
+    aged = tmp_path / ".movie.rollback-cafebabecafe.mkv"
+    aged.write_bytes(b"aged")
+    aged_mtime = time.time() - 90 * 24 * 3600
+    import os as _os
+    _os.utime(str(aged), (aged_mtime, aged_mtime))
+
+    # Files that must NEVER be deleted by the helper:
+    media = tmp_path / "movie.mkv"
+    media.write_bytes(b"media")
+    bad_token = tmp_path / ".movie.rollback-not-hex-here.mkv"
+    bad_token.write_bytes(b"bad")
+    backup_zip = tmp_path / "mediakeeper_backup_20260101_010101.zip"
+    backup_zip.write_bytes(b"app-backup")
+
+    removed = rollback_retention.purge_rollback_artifacts(tmp_path)
+
+    assert removed == 1
+    assert not aged.exists()
+    assert fresh.exists()
+    assert media.exists()
+    assert bad_token.exists()
+    assert backup_zip.exists()
+
+
+def test_purge_rollback_artifacts_swallows_oserror(monkeypatch, tmp_path: Path):
+    """Helper must never raise: an iterdir / unlink failure stays internal."""
+    target = tmp_path / ".movie.rollback-aaaaaaaaaaaa.mkv"
+    target.write_bytes(b"x")
+    aged_mtime = time.time() - 90 * 24 * 3600
+    import os as _os
+    _os.utime(str(target), (aged_mtime, aged_mtime))
+
+    real_unlink = Path.unlink
+
+    def _boom(self, *args, **kwargs):
+        if self == target:
+            raise OSError("simulated permission denied")
+        return real_unlink(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "unlink", _boom)
+
+    # No exception bubbles up; the file remains because unlink failed.
+    removed = rollback_retention.purge_rollback_artifacts(tmp_path)
+    assert removed == 0
+    assert target.exists()
+
+
+@pytest.mark.asyncio
+async def test_remux_rollback_mtime_anchored_to_creation_not_source(monkeypatch):
+    """A successful remux of a media file whose mtime is 90 days old must NOT
+    produce a rollback that the opportunistic retention sweep then deletes.
+
+    ``shutil.copy2`` preserves the source mtime, so without an explicit touch
+    the freshly-created rollback inherits a 90-day-old mtime and gets purged
+    immediately by the post-success retention call. The fix refreshes the
+    rollback's atime/mtime to "now" right after the copy.
+
+    The same flow must still purge an unrelated rollback that was genuinely
+    aged (preexisting in the same directory, mtime older than retention).
+    """
+    root = _make_workspace_tmp()
+    try:
+        state = _RemuxState()
+        media_streams = [
+            {"Index": 0, "Type": "Video"},
+            {"Index": 1, "Type": "Audio", "Language": "eng", "IsExternal": False},
+        ]
+        movie_file, movie_dir, payload = _setup_env(monkeypatch, root, media_streams)
+
+        # Backdate the source mtime: simulates a media file that has not been
+        # touched for three months. ``shutil.copy2`` will copy this mtime to
+        # the rollback unless the production code refreshes it.
+        ninety_days_ago = time.time() - 90 * 24 * 3600
+        import os as _os
+        _os.utime(str(movie_file), (ninety_days_ago, ninety_days_ago))
+
+        # A *separate*, genuinely aged rollback already in the same directory:
+        # this one must still be purged by the post-success retention sweep.
+        preexisting_old = movie_dir / ".vintage.rollback-deadbeefdead.mkv"
+        preexisting_old.write_bytes(b"vintage-rollback")
+        _os.utime(str(preexisting_old), (ninety_days_ago, ninety_days_ago))
+
+        client = _make_fake_client(state, payload)
+        monkeypatch.setattr(remove_mod, "get_internal_client", lambda: client)
+        _install_subprocess_fakes(monkeypatch, state)
+
+        result = await opensubtitles.remove_stream(object(), "item-1", 1)
+
+        assert result["success"] is True
+        assert result["rollback_kept"] is True
+        # API response must NOT leak any filesystem path for the rollback.
+        for value in result.values():
+            if isinstance(value, str):
+                assert "rollback-" not in value
+                assert str(movie_dir) not in value
+
+        # The genuinely-old preexisting rollback was purged by the
+        # opportunistic post-success sweep.
+        assert not preexisting_old.exists()
+
+        # The freshly-produced rollback is still on disk: the mtime refresh
+        # made it look "born now" to the retention helper.
+        rollbacks = _list_rollback_artifacts(movie_dir, "movie")
+        assert len(rollbacks) == 1
+        rollback = rollbacks[0]
+        assert rollback.read_bytes() == b"original-bytes"
+        # Sanity: the rollback's mtime is anchored to "now", not to the
+        # 90-day-old source mtime. Allow a generous 5-minute window for
+        # CI clock skew / slow runners.
+        now = time.time()
+        rollback_mtime = rollback.stat().st_mtime
+        assert rollback_mtime > ninety_days_ago + 24 * 3600, (
+            f"rollback mtime {rollback_mtime} is suspiciously close to the "
+            f"backdated source mtime {ninety_days_ago}; the production code "
+            "likely forgot to refresh it after shutil.copy2."
+        )
+        assert abs(now - rollback_mtime) < 300
+
+        # Source has been replaced atomically with the remuxed bytes.
+        assert movie_file.read_bytes() == b"fake-remuxed-bytes"
+    finally:
+        shutil.rmtree(root, ignore_errors=True)
+
+
+@pytest.mark.asyncio
+async def test_remux_rollback_survives_purge_when_utime_fails(monkeypatch):
+    """The current remux's rollback must survive the post-success retention
+    sweep even when the ``os.utime`` mtime refresh fails.
+
+    Without the explicit ``exclude_paths`` contract, a 90-day-old source would
+    yield a rollback whose mtime ``shutil.copy2`` copied as-is, and the very
+    next ``purge_rollback_artifacts`` call (made by the same remux flow)
+    would delete it before any operator could use it. The fix makes the
+    purge accept an exclusion set, and the remux flow always passes the
+    rollback it just produced — so the safety net does not depend on
+    ``os.utime`` succeeding.
+    """
+    root = _make_workspace_tmp()
+    try:
+        state = _RemuxState()
+        media_streams = [
+            {"Index": 0, "Type": "Video"},
+            {"Index": 1, "Type": "Audio", "Language": "eng", "IsExternal": False},
+        ]
+        movie_file, movie_dir, payload = _setup_env(monkeypatch, root, media_streams)
+
+        # Backdate the source mtime so that ``shutil.copy2`` produces a
+        # rollback with a 90-day-old mtime when the mtime refresh fails.
+        ninety_days_ago = time.time() - 90 * 24 * 3600
+        import os as _os
+        _os.utime(str(movie_file), (ninety_days_ago, ninety_days_ago))
+
+        # Genuinely-aged rollback already in the directory: must still be
+        # purged by the post-success sweep (regression anchor).
+        preexisting_old = movie_dir / ".vintage.rollback-deadbeefdead.mkv"
+        preexisting_old.write_bytes(b"vintage-rollback")
+        _os.utime(str(preexisting_old), (ninety_days_ago, ninety_days_ago))
+
+        client = _make_fake_client(state, payload)
+        monkeypatch.setattr(remove_mod, "get_internal_client", lambda: client)
+        _install_subprocess_fakes(monkeypatch, state)
+
+        # Force the explicit rollback mtime refresh to fail ONLY for the
+        # current rollback path. Do this at the ``asyncio.to_thread`` boundary
+        # instead of monkeypatching ``os.utime`` globally: ``shutil.copy2``
+        # internally calls ``os.utime`` on Linux/Python 3.12, and that copy
+        # step must remain real for this test to exercise the intended fallback.
+        real_to_thread = remux_mod.asyncio.to_thread
+
+        async def _to_thread_with_utime_failure(func, *args, **kwargs):
+            if func is remux_mod.os.utime and args:
+                path = args[0]
+            else:
+                return await real_to_thread(func, *args, **kwargs)
+            try:
+                name = Path(path).name
+            except Exception:  # noqa: BLE001 -- defensive
+                name = ""
+            # The current rollback file lives under movie_dir and matches
+            # the strict rollback naming for our stem.
+            if (
+                name.startswith(".movie.rollback-")
+                and Path(path).parent.resolve(strict=False)
+                == movie_dir.resolve(strict=False)
+            ):
+                raise OSError("simulated utime failure")
+            return await real_to_thread(func, *args, **kwargs)
+
+        monkeypatch.setattr(remux_mod.asyncio, "to_thread", _to_thread_with_utime_failure)
+
+        result = await opensubtitles.remove_stream(object(), "item-1", 1)
+
+        assert result["success"] is True
+        assert result["rollback_kept"] is True
+        # API must not leak any filesystem path for the rollback.
+        for value in result.values():
+            if isinstance(value, str):
+                assert "rollback-" not in value
+                assert str(movie_dir) not in value
+
+        # The freshly-produced rollback survived the opportunistic purge
+        # despite ``os.utime`` failing — proof that the exclusion contract
+        # is what protects it, not the mtime refresh.
+        rollbacks = _list_rollback_artifacts(movie_dir, "movie")
+        assert len(rollbacks) == 1
+        rollback = rollbacks[0]
+        assert rollback.read_bytes() == b"original-bytes"
+        # Sanity: because the touch failed, the rollback's mtime is still
+        # the 90-day-old source mtime (not refreshed). The exclusion is
+        # what kept it on disk.
+        rollback_mtime = rollback.stat().st_mtime
+        assert abs(rollback_mtime - ninety_days_ago) < 5
+
+        # The genuinely-aged preexisting rollback was still purged: the
+        # exclusion only protects the rollback we just produced, not the
+        # entire directory.
+        assert not preexisting_old.exists()
+
+        # Source replaced atomically with the remuxed bytes.
+        assert movie_file.read_bytes() == b"fake-remuxed-bytes"
+    finally:
+        shutil.rmtree(root, ignore_errors=True)
+
+
+def test_purge_rollback_artifacts_honours_exclude_paths(tmp_path: Path):
+    """Direct unit test of the new ``exclude_paths`` contract: an aged
+    rollback that would normally be purged stays on disk when its path is
+    listed in the exclusion set, while peer aged rollbacks are still cleaned
+    up. Comparison must be done on resolved paths so callers can pass any
+    equivalent form (relative, with ``.`` segments, etc.)."""
+    aged = tmp_path / ".movie.rollback-1234567890ab.mkv"
+    aged.write_bytes(b"aged")
+    aged_excluded = tmp_path / ".movie.rollback-cafebabecafe.mkv"
+    aged_excluded.write_bytes(b"protected")
+    aged_mtime = time.time() - 90 * 24 * 3600
+    import os as _os
+    _os.utime(str(aged), (aged_mtime, aged_mtime))
+    _os.utime(str(aged_excluded), (aged_mtime, aged_mtime))
+
+    # Pass the exclusion in a non-canonical form (extra ``.`` segment) to
+    # verify the helper compares resolved paths, not raw strings.
+    weird_form = tmp_path / "." / aged_excluded.name
+
+    removed = rollback_retention.purge_rollback_artifacts(
+        tmp_path,
+        exclude_paths={weird_form},
+    )
+
+    assert removed == 1
+    assert not aged.exists()
+    assert aged_excluded.exists()
+    assert aged_excluded.read_bytes() == b"protected"

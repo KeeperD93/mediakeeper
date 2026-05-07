@@ -4,6 +4,7 @@ from pathlib import Path
 from ._paths import VIDEO_EXTENSIONS, _validate_path
 from .categories import MEDIA_FOLDERS
 from .naming import format_size
+from services.path_config import is_path_within_backup_dir
 
 
 async def list_files(folder_key: str, subpath: str = ""):
@@ -34,6 +35,16 @@ async def list_files(folder_key: str, subpath: str = ""):
         for entry in sorted(target.iterdir(), key=lambda e: e.name.lower()):
             name = entry.name
             if name.startswith('.') or name == '@eaDir' or name.startswith('@'):
+                continue
+
+            # Hide entries that fall into the backup zone, even when the
+            # backup directory legitimately lives inside a media root: the
+            # backup ZIPs must never be browsable through media-manager.
+            try:
+                entry_resolved = entry.resolve(strict=False)
+            except (OSError, RuntimeError):
+                continue
+            if is_path_within_backup_dir(entry_resolved):
                 continue
 
             if entry.is_dir():
