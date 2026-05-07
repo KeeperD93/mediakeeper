@@ -1,15 +1,31 @@
-"""Event membership — invite, accept/decline, remove, enter the cinema room."""
-import random
-from datetime import datetime, timezone, timedelta
-from sqlalchemy import select
+"""Event membership — invite, accept/decline, remove a user."""
+import logging
+from datetime import datetime, timezone
+from sqlalchemy import select, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.event import MKEvent, MKEventInvitation
 from services.portal import notifications as notifs
 from services.portal.mk_events_utils import (
-    MAX_INVITE_RETRIES, MAX_PARTICIPANTS, ROOM_OPEN_BEFORE_MIN,
-    _user_label, _serialize_event, _has_conflict,
+    MAX_INVITE_RETRIES, _user_label, _has_conflict,
 )
+
+logger = logging.getLogger("mediakeeper.portal.mk_events_members")
+
+
+async def _load_invitation(
+    db: AsyncSession, event_id: int, user_id: int,
+) -> MKEventInvitation | None:
+    """Lookup helper isolated so concurrency tests can monkeypatch it to
+    drive the real INSERT path through ``uq_mk_event_invitation``."""
+    result = await db.execute(
+        select(MKEventInvitation).where(
+            MKEventInvitation.event_id == event_id,
+            MKEventInvitation.user_id == user_id,
+        )
+    )
+    return result.scalar_one_or_none()
 
 
 async def invite_user(
@@ -30,32 +46,93 @@ async def invite_user(
     if event.creator_user_id != creator_user_id:
         return {"error": "forbidden"}
 
-    inv = (await db.execute(
-        select(MKEventInvitation).where(
-            MKEventInvitation.event_id == event_id,
-            MKEventInvitation.user_id == invitee_user_id,
-        )
-    )).scalar_one_or_none()
+    inv = await _load_invitation(db, event_id, invitee_user_id)
 
     if inv is None:
-        inv = MKEventInvitation(
-            event_id=event_id,
-            user_id=invitee_user_id,
-            status="pending",
-            invite_count=1,
+        # First-time invitation. SAVEPOINT keeps the outer transaction
+        # usable when a concurrent peer wins the race on
+        # ``uq_mk_event_invitation`` — we reload the winning row instead
+        # of leaking the IntegrityError on the session.
+        try:
+            async with db.begin_nested():
+                inv = MKEventInvitation(
+                    event_id=event_id,
+                    user_id=invitee_user_id,
+                    status="pending",
+                    invite_count=1,
+                )
+                db.add(inv)
+                await db.flush()
+        except IntegrityError:
+            logger.debug(
+                f"[MKEVENT] invite race avoided event_id={event_id} "
+                f"invitee_user_id={invitee_user_id} — concurrent insert won"
+            )
+            existing = await _load_invitation(db, event_id, invitee_user_id)
+            if existing is None:
+                # Should not happen — the unique constraint just fired.
+                await db.rollback()
+                return {"error": "conflict"}
+            if existing.status == "accepted":
+                await db.rollback()
+                return {"error": "already_accepted"}
+            if existing.status == "removed":
+                await db.rollback()
+                return {"error": "removed_user"}
+            # Concurrent peer already inserted + notified the invitee.
+            # Skip the notification to avoid the duplicate, finalise the
+            # outer transaction, and return success.
+            await db.commit()
+            return {"ok": True}
+
+        creator_label = await _user_label(db, creator_user_id)
+        await notifs.create(db, invitee_user_id, "event_invitation", {
+            "event_id": event.id,
+            "title": event.title,
+            "kind": event.kind,
+            "scheduled_at": event.scheduled_at.isoformat(),
+            "from": creator_label,
+        })
+        await db.commit()
+        return {"ok": True}
+
+    # Re-invitation path — existing row.
+    if inv.status == "accepted":
+        return {"error": "already_accepted"}
+    if inv.status == "removed":
+        return {"error": "removed_user"}
+    if inv.invite_count >= MAX_INVITE_RETRIES:
+        return {"error": "max_retries_reached"}
+
+    # Atomic SQL increment guarded by the cap. Two parallel re-invites
+    # cannot drop an increment: the keyed UPDATE reads the live DB value
+    # (``invite_count + 1``) and the ``WHERE invite_count < cap`` clause
+    # serialises the cap check at the SQL level. If the row was meanwhile
+    # accepted/removed or hit the cap, ``rowcount`` is 0 and we surface
+    # the up-to-date error after a fresh reload.
+    upd = await db.execute(
+        update(MKEventInvitation)
+        .where(
+            MKEventInvitation.id == inv.id,
+            MKEventInvitation.invite_count < MAX_INVITE_RETRIES,
+            MKEventInvitation.status.notin_(("accepted", "removed")),
         )
-        db.add(inv)
-    else:
-        if inv.status == "accepted":
-            return {"error": "already_accepted"}
-        if inv.status == "removed":
-            return {"error": "removed_user"}
-        if inv.invite_count >= MAX_INVITE_RETRIES:
-            return {"error": "max_retries_reached"}
-        inv.status = "pending"
-        inv.invite_count += 1
-        inv.responded_at = None
-        db.add(inv)
+        .values(
+            status="pending",
+            invite_count=MKEventInvitation.invite_count + 1,
+            responded_at=None,
+        )
+        .execution_options(synchronize_session=False)
+    )
+    if (upd.rowcount or 0) == 0:
+        await db.rollback()
+        fresh = await _load_invitation(db, event_id, invitee_user_id)
+        if fresh is not None:
+            if fresh.status == "accepted":
+                return {"error": "already_accepted"}
+            if fresh.status == "removed":
+                return {"error": "removed_user"}
+        return {"error": "max_retries_reached"}
 
     creator_label = await _user_label(db, creator_user_id)
     await notifs.create(db, invitee_user_id, "event_invitation", {
@@ -85,26 +162,36 @@ async def respond(
     if not event:
         return {"error": "not_found"}
 
-    inv = (await db.execute(
-        select(MKEventInvitation).where(
-            MKEventInvitation.event_id == event_id,
-            MKEventInvitation.user_id == user_id,
-        )
-    )).scalar_one_or_none()
+    inv = await _load_invitation(db, event_id, user_id)
 
     # Public event auto-creates an invitation row when the user accepts
-    # for the first time (they were notified but not pre-listed).
+    # for the first time (they were notified but not pre-listed). The
+    # SAVEPOINT keeps the outer session usable when a concurrent peer
+    # wins the race on ``uq_mk_event_invitation``.
     if inv is None:
         if event.kind != "public":
             return {"error": "not_invited"}
-        inv = MKEventInvitation(
-            event_id=event_id,
-            user_id=user_id,
-            status="pending",
-            invite_count=1,
-        )
-        db.add(inv)
-        await db.flush()
+        try:
+            async with db.begin_nested():
+                inv = MKEventInvitation(
+                    event_id=event_id,
+                    user_id=user_id,
+                    status="pending",
+                    invite_count=1,
+                )
+                db.add(inv)
+                await db.flush()
+        except IntegrityError:
+            logger.debug(
+                f"[MKEVENT] respond race avoided event_id={event_id} "
+                f"user_id={user_id} — concurrent insert won"
+            )
+            inv = await _load_invitation(db, event_id, user_id)
+            if inv is None:
+                await db.rollback()
+                return {"error": "conflict"}
+            # Fall through with the winning row — apply the user's
+            # decision on top of it (typically pending → accepted).
 
     if inv.status == "removed":
         return {"error": "removed_user"}
@@ -162,61 +249,3 @@ async def remove_member(
     })
     await db.commit()
     return {"ok": True}
-
-
-async def enter_room(
-    db: AsyncSession,
-    event_id: int,
-    user_id: int,
-) -> dict:
-    """
-    User signals they entered the cinema room. Returns their seat
-    index (allocated on first entry, persisted afterwards) and the
-    event's full state. Reachable only ROOM_OPEN_BEFORE_MIN minutes
-    before scheduled_at and beyond.
-    """
-    event = (await db.execute(
-        select(MKEvent).where(MKEvent.id == event_id)
-    )).scalar_one_or_none()
-    if not event:
-        return {"error": "not_found"}
-
-    now = datetime.now(timezone.utc)
-    open_at = event.scheduled_at - timedelta(minutes=ROOM_OPEN_BEFORE_MIN)
-    if now < open_at:
-        return {"error": "room_not_open", "open_at": open_at.isoformat()}
-
-    inv = (await db.execute(
-        select(MKEventInvitation).where(
-            MKEventInvitation.event_id == event_id,
-            MKEventInvitation.user_id == user_id,
-            MKEventInvitation.status == "accepted",
-        )
-    )).scalar_one_or_none()
-    if not inv:
-        return {"error": "not_member"}
-
-    if inv.seat_index is None:
-        # Assign a free seat at random.
-        taken = (await db.execute(
-            select(MKEventInvitation.seat_index).where(
-                MKEventInvitation.event_id == event_id,
-                MKEventInvitation.seat_index.isnot(None),
-            )
-        )).scalars().all()
-        free = [i for i in range(MAX_PARTICIPANTS) if i not in set(taken)]
-        if not free:
-            return {"error": "room_full"}
-        inv.seat_index = random.choice(free)  # noqa: S311 -- random seat assignment in a virtual cinema room, no security purpose
-        db.add(inv)
-
-    if event.room_opened_at is None:
-        event.room_opened_at = now
-        db.add(event)
-
-    await db.commit()
-    return {
-        "ok": True,
-        "seat_index": inv.seat_index,
-        "event": await _serialize_event(db, event),
-    }
