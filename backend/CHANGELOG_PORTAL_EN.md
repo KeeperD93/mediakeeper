@@ -50,6 +50,7 @@ This section intentionally has no date so it is not shown to users.
 - List achievements — two new tiered families (Curator, Librarian) with 5 tiers each
 
 ### Changed
+- Settings — active tab synced with the URL (deep links and refresh)
 - What's new today — monthly Top 3 aligned on the dashboard's Ranking widget (identical look, your own position appended as a 4th row when off the podium)
 - Tickets — filters reorganised into labelled groups (status, source, issue) using the Demandes pill style
 - URLs standardized (old bookmarks must be re-created)
