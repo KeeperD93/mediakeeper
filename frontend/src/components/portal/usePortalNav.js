@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 import { PORTAL_TAB } from '@/constants/portal'
 import { safeHref } from '@/utils/safeUrl'
+import { useSearchHotkey } from '@/composables/portal/useSearchHotkey'
 
 export function usePortalNav(props, emit) {
   const { t } = useI18n()
@@ -19,6 +20,35 @@ export function usePortalNav(props, emit) {
   function toggleSearchDrawer() {
     searchDrawerOpen.value = !searchDrawerOpen.value
   }
+
+  function focusVisibleSearchInput() {
+    if (typeof document === 'undefined') return false
+    const inputs = document.querySelectorAll('.pt-search-input')
+    for (const input of inputs) {
+      if (!(input instanceof HTMLElement)) continue
+      // offsetParent is null for elements with display:none ancestors,
+      // so this skips the topbar input when the compact-mode CSS hides it.
+      if (input.offsetParent === null) continue
+      input.focus()
+      if (typeof input.select === 'function') input.select()
+      return true
+    }
+    return false
+  }
+
+  function focusPortalSearch() {
+    if (focusVisibleSearchInput()) return
+    searchDrawerOpen.value = true
+    nextTick(() => {
+      const drawerInput = document.querySelector('.pt-nav-search-drawer .pt-search-input')
+      if (drawerInput instanceof HTMLElement) {
+        drawerInput.focus()
+        if (typeof drawerInput.select === 'function') drawerInput.select()
+      }
+    })
+  }
+
+  useSearchHotkey(focusPortalSearch)
 
   // Close the search drawer whenever the route changes.
   watch(
@@ -178,6 +208,7 @@ export function usePortalNav(props, emit) {
     roleLabel,
     supportTitle,
     toggleSearchDrawer,
+    focusPortalSearch,
     isTabActive,
     navigateTo,
     goToDashboard,

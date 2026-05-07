@@ -17,6 +17,7 @@ utilisateurs.
 ## [Unreleased]
 
 ### Added
+- Recherche — suggestions instantanées, recherches récentes, navigation clavier et raccourci Ctrl/Cmd+K
 - Accessibilité — lien « Aller au contenu principal » au focus clavier
 - Page introuvable — vraie page 404 accessible avec retour au portail (plus de redirection silencieuse)
 - Connexion — page d'identification dédiée au Portal (titre et sous-titre adaptés)
