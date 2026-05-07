@@ -2264,7 +2264,13 @@
       "resultsSubtitle": "Parcourez les résultats et faites votre demande depuis la fiche du média.",
       "emptyTitle": "Lancez une recherche",
       "emptyPrompt": "Saisissez un titre dans la barre de recherche pour afficher les jaquettes correspondantes.",
-      "emptyResults": "Aucun résultat pour « {query} »"
+      "emptyResults": "Aucun résultat pour « {query} »",
+      "suggestionsLabel": "Suggestions de recherche",
+      "suggestionsTitle": "Suggestions",
+      "recentTitle": "Recherches récentes",
+      "clearRecent": "Effacer",
+      "searching": "Recherche en cours…",
+      "noSuggestions": "Aucune suggestion"
     },
     "nav": {
       "brand": "MediaKeeper",

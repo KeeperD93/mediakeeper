@@ -15,6 +15,7 @@ This section intentionally has no date so it is not shown to users.
 ## [Unreleased]
 
 ### Added
+- Search — instant suggestions, recent searches, keyboard navigation and Ctrl/Cmd+K shortcut
 - Accessibility — keyboard "Skip to main content" link
 - Page not found — proper accessible 404 page with back-to-portal link (no more silent redirect)
 - Login — dedicated Portal sign-in page (adapted title and subtitle)

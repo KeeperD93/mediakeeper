@@ -2264,7 +2264,13 @@
       "resultsSubtitle": "Browse the matches and place your request from the media page.",
       "emptyTitle": "Start a search",
       "emptyPrompt": "Type a title in the search bar to display matching posters.",
-      "emptyResults": "No results for \"{query}\""
+      "emptyResults": "No results for \"{query}\"",
+      "suggestionsLabel": "Search suggestions",
+      "suggestionsTitle": "Suggestions",
+      "recentTitle": "Recent searches",
+      "clearRecent": "Clear",
+      "searching": "Searching…",
+      "noSuggestions": "No suggestions"
     },
     "nav": {
       "brand": "MediaKeeper",
