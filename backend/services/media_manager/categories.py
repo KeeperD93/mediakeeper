@@ -4,7 +4,7 @@ import re
 import json
 import logging
 
-from services.path_config import get_backup_dir, get_existing_path_roots
+from services.path_config import get_existing_path_roots, is_path_within_backup_dir
 
 logger = logging.getLogger("mediakeeper.media_manager")
 
@@ -46,18 +46,19 @@ def _get_root_categories() -> list[dict]:
     categories = []
     seen_keys: set[str] = set()
 
-    try:
-        backup_dir = get_backup_dir().resolve(strict=False)
-    except (OSError, RuntimeError):
-        backup_dir = None
-
     for root in get_existing_path_roots():
         try:
             resolved = root.resolve(strict=False)
         except (OSError, RuntimeError):
             continue
 
-        if backup_dir is not None and resolved == backup_dir:
+        # Any root that *is* the backup directory or lives inside it must not
+        # be exposed as a media category. Descendant exclusion matters when an
+        # operator configured a nested layout like
+        # ``MEDIAKEEPER_PATH_ROOTS=/mnt/store;/mnt/store/backups``: surfacing
+        # ``/mnt/store/backups`` as a media folder would let users browse and
+        # rename backup ZIPs as if they were media.
+        if is_path_within_backup_dir(resolved):
             continue
 
         label = resolved.name or str(resolved)

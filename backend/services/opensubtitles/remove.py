@@ -1,178 +1,19 @@
-"""Deletion de pistes (audio/sous-titres embedded) via remux ffmpeg."""
-import asyncio
-import os
-import shutil
-import uuid
+"""Public API: delete embedded audio/subtitle streams via a safe FFmpeg remux.
+
+The low-level remux flow (subprocess plumbing, disk-space guard, atomic
+replacement, rollback creation) lives in :mod:`._remux`. This module owns the
+orchestration: resolving the local file from Emby metadata, calling the safe
+remux, and refreshing Emby on success.
+"""
 from pathlib import Path
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.http_client import get_internal_client
 from ._constants import logger
+from ._remux import _safe_remux
 from .paths import _resolve_local_path
 from .streams import _extract_first_emby_item
-
-_FFMPEG_TIMEOUT_S = 300
-_FFPROBE_TIMEOUT_S = 30
-
-
-async def _run_subprocess(cmd: list[str], timeout: int) -> tuple[int, bytes]:
-    proc = await asyncio.create_subprocess_exec(
-        *cmd,
-        stdout=asyncio.subprocess.DEVNULL,
-        stderr=asyncio.subprocess.PIPE,
-    )
-    try:
-        _, stderr = await asyncio.wait_for(proc.communicate(), timeout=timeout)
-    except asyncio.TimeoutError:
-        # Always reap the child: a timed-out FFmpeg/ffprobe must not survive
-        # the call. We kill, then wait (best-effort guarded) before re-raising.
-        try:
-            proc.kill()
-        except ProcessLookupError:
-            pass
-        except Exception as exc:  # noqa: BLE001 -- best-effort, never mask the timeout
-            logger.debug(f"[opensubtitles] proc.kill() failed for {cmd[0]}: {exc}")
-        try:
-            await asyncio.wait_for(proc.wait(), timeout=5)
-        except (asyncio.TimeoutError, Exception) as exc:  # noqa: BLE001
-            logger.debug(f"[opensubtitles] proc.wait() after kill failed for {cmd[0]}: {exc}")
-        raise
-
-    rc = proc.returncode
-    if rc is None:
-        # communicate() returned without setting returncode: treat as failure
-        # rather than a silent success.
-        return 1, stderr or b""
-    return rc, stderr or b""
-
-
-def _cleanup_path(path: Path) -> None:
-    try:
-        path.unlink(missing_ok=True)
-    except Exception as exc:  # noqa: BLE001 -- best-effort cleanup, never block the caller
-        logger.debug(f"[opensubtitles] Cleanup failed for {path}: {exc}")
-
-
-def _short_stderr_tail(stderr: bytes, length: int = 100) -> str:
-    return stderr.decode(errors="replace")[-length:].replace("\n", " ").strip()
-
-
-async def _safe_remux(
-    source: Path,
-    drop_indices: list[int],
-) -> tuple[str | None, Path | None]:
-    """Remux *source* dropping *drop_indices*, validating with ffprobe before atomic replace.
-
-    Steps:
-      1. Pre-create a sibling rollback copy of *source* before invoking FFmpeg.
-      2. Run FFmpeg into a sibling tmp file (same dir → same filesystem).
-      3. Validate the tmp file with ffprobe.
-      4. Atomically replace *source* via os.replace only after validation.
-      5. Always clean up the tmp file. On failure, also clean up the rollback
-         copy (source was never touched, so it would only waste disk). On
-         success the rollback copy is kept on disk so the original bytes can
-         still be recovered after the destructive remux.
-
-    Returns a ``(error, rollback_path)`` tuple. On success ``error`` is ``None``
-    and ``rollback_path`` points at the kept rollback artifact. On failure
-    ``error`` is a short technical code and ``rollback_path`` is ``None``.
-
-    The rollback path is intentionally returned for internal/log use only and
-    must not be exposed in API responses (it is a server-side filesystem path).
-    """
-    if not source.is_file():
-        return "local_file_not_found", None
-    if not drop_indices:
-        return "no_streams_specified", None
-
-    parent = source.parent
-    stem = source.stem
-    suffix = source.suffix
-    token = uuid.uuid4().hex[:12]
-    tmp_path = parent / f".{stem}.remux-{token}{suffix}"
-    rollback_path = parent / f".{stem}.rollback-{token}{suffix}"
-
-    # 1) Rollback copy created BEFORE FFmpeg. Refuse the operation if it fails:
-    #    we must not run FFmpeg without a recoverable copy of the source.
-    try:
-        await asyncio.to_thread(shutil.copy2, str(source), str(rollback_path))
-    except Exception as exc:  # noqa: BLE001 -- log and refuse, source untouched
-        logger.error(f"[opensubtitles] Rollback copy failed for {source}: {exc}")
-        _cleanup_path(rollback_path)
-        return "backup_failed", None
-
-    cmd: list[str] = ["ffmpeg", "-i", str(source), "-map", "0"]
-    for idx in drop_indices:
-        cmd.extend(["-map", f"-0:{idx}"])
-    cmd.extend(["-c", "copy", "-y", str(tmp_path)])
-
-    error: str | None = None
-    replaced = False
-    try:
-        # 2) FFmpeg → tmp
-        try:
-            rc, stderr = await _run_subprocess(cmd, _FFMPEG_TIMEOUT_S)
-        except asyncio.TimeoutError:
-            logger.error(
-                f"[opensubtitles] FFmpeg timeout (>{_FFMPEG_TIMEOUT_S}s) "
-                f"removing {drop_indices} from {source}"
-            )
-            error = "ffmpeg_timeout"
-        else:
-            if rc != 0:
-                full_err = stderr.decode(errors="replace")
-                logger.error(
-                    f"[opensubtitles] FFmpeg failed (rc={rc}) for {source}\nstderr:\n{full_err}"
-                )
-                error = f"ffmpeg_failed: {_short_stderr_tail(stderr)}"
-            elif not tmp_path.is_file():
-                logger.error(f"[opensubtitles] FFmpeg returned 0 but tmp missing: {tmp_path}")
-                error = "ffmpeg_no_output"
-            else:
-                # 3) ffprobe validation on tmp before touching source
-                probe_cmd = [
-                    "ffprobe", "-v", "error",
-                    "-show_entries", "format=duration",
-                    "-of", "default=noprint_wrappers=1:nokey=1",
-                    str(tmp_path),
-                ]
-                try:
-                    probe_rc, probe_err = await _run_subprocess(probe_cmd, _FFPROBE_TIMEOUT_S)
-                except asyncio.TimeoutError:
-                    logger.error(f"[opensubtitles] ffprobe timeout for {tmp_path}")
-                    error = "ffprobe_timeout"
-                else:
-                    if probe_rc != 0:
-                        full_err = probe_err.decode(errors="replace")
-                        logger.error(
-                            f"[opensubtitles] ffprobe rejected remux for {source}\nstderr:\n{full_err}"
-                        )
-                        error = "ffprobe_failed"
-                    else:
-                        # 4) Atomic replacement only after successful validation.
-                        try:
-                            os.replace(str(tmp_path), str(source))
-                            replaced = True
-                        except OSError as exc:
-                            logger.error(f"[opensubtitles] os.replace failed for {source}: {exc}")
-                            error = "replace_failed"
-
-    except Exception as exc:  # noqa: BLE001 -- catch-all so cleanup runs
-        logger.error(f"[opensubtitles] Remux unexpected error for {source}: {exc}")
-        error = f"remux_error: {str(exc)[:80]}"
-    finally:
-        # tmp may have been consumed by os.replace; missing_ok handles that.
-        _cleanup_path(tmp_path)
-        # On failure, the source was never touched so the rollback copy
-        # would only waste disk. On success it is kept as the rollback artifact.
-        if not replaced:
-            _cleanup_path(rollback_path)
-
-    if replaced:
-        logger.info(f"[opensubtitles] Rollback artifact kept for {source} at {rollback_path}")
-        return None, rollback_path
-    return error or "remux_error: unknown", None
 
 
 async def _resolve_remove_target(

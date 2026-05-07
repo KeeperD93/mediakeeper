@@ -3,7 +3,11 @@ from pathlib import Path
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from services.path_config import get_existing_path_roots, validate_path_in_roots
+from services.path_config import (
+    get_existing_media_path_roots,
+    is_path_within_backup_dir,
+    validate_path_in_roots,
+)
 from ._constants import logger, _SUBTITLE_FILE_EXTENSIONS
 
 
@@ -20,13 +24,19 @@ async def _get_local_path_roots(db: AsyncSession | None) -> list[Path]:
             return
         if not resolved.exists() or not resolved.is_dir():
             return
+        # Refuse to resolve media files through the backup zone: a backup root
+        # configured as a media path root, or a category accidentally pointing
+        # at a backup directory, must not become a search base for media
+        # resolution.
+        if is_path_within_backup_dir(resolved):
+            return
         key = str(resolved)
         if key in seen:
             return
         seen.add(key)
         roots.append(resolved)
 
-    for root in get_existing_path_roots():
+    for root in get_existing_media_path_roots():
         _add_root(root)
 
     if db is not None:
@@ -63,8 +73,13 @@ async def _resolve_local_path(db: AsyncSession | None, emby_path: str) -> str:
         for i in range(1, len(parts)):
             sub_path = Path(*parts[i:])
             candidate = (root / sub_path).resolve(strict=False)
-            if candidate.exists():
-                return str(candidate)
+            if not candidate.exists():
+                continue
+            # Defence in depth: even if the root passed the filter, refuse to
+            # return a candidate that ended up inside the backup zone.
+            if is_path_within_backup_dir(candidate):
+                continue
+            return str(candidate)
 
     logger.warning(f"[opensubtitles] Path not resolved locally: {emby_path}")
     return str(resolved_input)

@@ -8,6 +8,8 @@ from services import path_config
 from services.path_config import (
     get_backup_dir,
     get_configured_path_roots,
+    get_existing_media_path_roots,
+    is_path_within_backup_dir,
     is_path_within_roots,
     validate_path_in_roots,
 )
@@ -172,5 +174,85 @@ def test_get_backup_dir_dev_fallback_when_no_data_root(monkeypatch):
         monkeypatch.setattr(path_config, "DATA_ROOT", absent_data_root)
 
         assert get_backup_dir() == (path_config.PROJECT_ROOT / "backups").resolve()
+    finally:
+        shutil.rmtree(root, ignore_errors=True)
+
+
+def test_is_path_within_backup_dir_recognises_dir_and_descendants(monkeypatch):
+    """Backup-zone detection is the building block used by media-resolution
+    helpers to refuse to traverse anything that lives in or under the backup
+    directory."""
+    root = _make_workspace_tmp()
+    try:
+        backup_dir = root / "backups"
+        backup_dir.mkdir()
+        (backup_dir / "nested").mkdir()
+        media_dir = root / "medias"
+        media_dir.mkdir()
+
+        monkeypatch.setenv("BACKUP_PATH", str(backup_dir))
+
+        assert is_path_within_backup_dir(backup_dir) is True
+        assert is_path_within_backup_dir(backup_dir / "nested") is True
+        assert is_path_within_backup_dir(backup_dir / "nested" / "file.zip") is True
+        assert is_path_within_backup_dir(media_dir) is False
+        assert is_path_within_backup_dir(media_dir / "movie.mkv") is False
+    finally:
+        shutil.rmtree(root, ignore_errors=True)
+
+
+def test_get_existing_media_path_roots_excludes_backup_zone(monkeypatch):
+    """When ``MEDIAKEEPER_PATH_ROOTS`` mixes media and backup roots (or a
+    descendant of the backup directory), only the genuine media surfaces are
+    exposed for media-resolution helpers."""
+    root = _make_workspace_tmp()
+    try:
+        media_root = root / "media"
+        media_root.mkdir()
+        backup_root = root / "backups"
+        backup_root.mkdir()
+        nested_in_backup = backup_root / "shard-a"
+        nested_in_backup.mkdir()
+
+        monkeypatch.setenv(
+            "MEDIAKEEPER_PATH_ROOTS",
+            f"{media_root};{backup_root};{nested_in_backup}",
+        )
+        monkeypatch.setenv("BACKUP_PATH", str(backup_root))
+
+        media_roots = get_existing_media_path_roots()
+
+        # Both the backup root itself and a child of the backup root are
+        # filtered out; the media root is preserved.
+        assert media_roots == [media_root.resolve()]
+        # Sanity: ``set_backup_directory`` and other backup flows still see
+        # the unfiltered list — we did not change that helper.
+        from services.path_config import get_existing_path_roots
+
+        unfiltered = set(get_existing_path_roots())
+        assert backup_root.resolve() in unfiltered
+        assert nested_in_backup.resolve() in unfiltered
+    finally:
+        shutil.rmtree(root, ignore_errors=True)
+
+
+def test_get_existing_media_path_roots_falls_back_when_backup_dir_unknown(monkeypatch):
+    """If ``get_backup_dir`` cannot resolve (production refuses without
+    ``BACKUP_PATH``), the helper degrades gracefully: we cannot enforce
+    exclusion, so we expose the configured media roots as-is rather than
+    erroring out and breaking media surfaces."""
+    root = _make_workspace_tmp()
+    try:
+        media_root = root / "media"
+        media_root.mkdir()
+
+        monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
+        monkeypatch.delenv("BACKUP_PATH", raising=False)
+        # Simulate a mounted ``DATA_ROOT`` so ``get_backup_dir`` raises.
+        data_root = root / "data"
+        data_root.mkdir()
+        monkeypatch.setattr(path_config, "DATA_ROOT", data_root)
+
+        assert get_existing_media_path_roots() == [media_root.resolve()]
     finally:
         shutil.rmtree(root, ignore_errors=True)
