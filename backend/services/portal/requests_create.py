@@ -88,6 +88,9 @@ async def create_request(
         )
     )
     if existing_active.scalar_one_or_none():
+        # Release the advisory locks acquired above so Postgres doesn't
+        # hold them for the rest of the request handler.
+        await db.rollback()
         return {"error": "already_requested"}
 
     # Resubmission path: the *same user* has a previously-rejected request
@@ -112,6 +115,9 @@ async def create_request(
         quota.used = 0
 
     if not is_admin and not quota.unlimited and quota.used >= quota.max_allowed:
+        # Release the quota row lock + advisory locks so concurrent
+        # users aren't serialised behind this caller.
+        await db.rollback()
         return {"error": "quota_exceeded"}
 
     auto = quota.auto_approve
