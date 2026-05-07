@@ -1,7 +1,8 @@
 """Seasonal events and watch parties."""
 import logging
 from datetime import datetime, timezone
-from sqlalchemy import select, func
+from sqlalchemy import case, delete, select, func, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.event import (
@@ -60,6 +61,20 @@ async def get_event_progress(
     return {"progress": sp.progress, "completed": sp.completed}
 
 
+async def _load_seasonal_progress(
+    db: AsyncSession, event_id: int, user_id: int,
+) -> SeasonalProgress | None:
+    """Lookup helper isolated so concurrency tests can monkeypatch it to
+    drive the real INSERT path through ``uq_seasonal_progress``."""
+    result = await db.execute(
+        select(SeasonalProgress).where(
+            SeasonalProgress.event_id == event_id,
+            SeasonalProgress.user_id == user_id,
+        )
+    )
+    return result.scalar_one_or_none()
+
+
 async def update_event_progress(
     db: AsyncSession, event_id: int, user_id: int, increment: int = 1
 ) -> dict:
@@ -67,24 +82,72 @@ async def update_event_progress(
     if not event:
         return {"error": "not_found"}
 
-    result = await db.execute(
-        select(SeasonalProgress).where(
+    target_count = event.target_count
+    sp = await _load_seasonal_progress(db, event_id, user_id)
+
+    if sp is None:
+        # First-time progression for this (event, user) — wrap the INSERT in
+        # a SAVEPOINT so a parallel peer that beat us to the unique row only
+        # invalidates the inner savepoint. The outer transaction stays
+        # usable and we fall through to the atomic-increment path below.
+        completed_now = increment >= target_count
+        try:
+            async with db.begin_nested():
+                db.add(SeasonalProgress(
+                    event_id=event_id,
+                    user_id=user_id,
+                    progress=increment,
+                    completed=completed_now,
+                ))
+                await db.flush()
+            await db.commit()
+            if completed_now:
+                logger.info(
+                    f"[EVENT] user_id={user_id} completed event #{event_id}"
+                )
+            return {"progress": increment, "completed": completed_now}
+        except IntegrityError:
+            logger.debug(
+                f"[EVENT] race avoided event_id={event_id} user_id={user_id} "
+                f"— concurrent insert won, falling back to atomic update"
+            )
+
+    # Atomic SQL increment — reading the ORM ``progress`` and writing it
+    # back would silently drop a concurrent peer's bump. The keyed UPDATE
+    # uses the live DB value, and the ``completed`` flag flips to True
+    # the first time the post-increment count reaches ``target_count``,
+    # then sticks True forever (else_ preserves the current value).
+    new_progress_expr = SeasonalProgress.progress + increment
+    await db.execute(
+        update(SeasonalProgress)
+        .where(
             SeasonalProgress.event_id == event_id,
             SeasonalProgress.user_id == user_id,
         )
+        .values(
+            progress=new_progress_expr,
+            completed=case(
+                (new_progress_expr >= target_count, True),
+                else_=SeasonalProgress.completed,
+            ),
+        )
+        .execution_options(synchronize_session=False)
     )
-    sp = result.scalar_one_or_none()
-    if not sp:
-        sp = SeasonalProgress(event_id=event_id, user_id=user_id)
+    await db.commit()
 
-    sp.progress += increment
-    if sp.progress >= event.target_count and not sp.completed:
-        sp.completed = True
+    fresh = (await db.execute(
+        select(SeasonalProgress.progress, SeasonalProgress.completed).where(
+            SeasonalProgress.event_id == event_id,
+            SeasonalProgress.user_id == user_id,
+        )
+    )).one()
+    progress = int(fresh.progress)
+    completed = bool(fresh.completed)
+
+    if completed and (progress - increment) < target_count:
         logger.info(f"[EVENT] user_id={user_id} completed event #{event_id}")
 
-    db.add(sp)
-    await db.commit()
-    return {"progress": sp.progress, "completed": sp.completed}
+    return {"progress": progress, "completed": completed}
 
 
 # ── Watch parties ──
@@ -141,11 +204,38 @@ async def list_upcoming_parties(db: AsyncSession) -> list[dict]:
     return out
 
 
+async def _load_existing_participant(
+    db: AsyncSession, party_id: int, user_id: int,
+) -> WatchPartyParticipant | None:
+    """Lookup helper isolated so concurrency tests can monkeypatch it to
+    drive the real INSERT path through ``uq_party_participant``."""
+    result = await db.execute(
+        select(WatchPartyParticipant).where(
+            WatchPartyParticipant.party_id == party_id,
+            WatchPartyParticipant.user_id == user_id,
+        )
+    )
+    return result.scalar_one_or_none()
+
+
 async def join_party(
     db: AsyncSession, party_id: int, user_id: int
 ) -> dict:
-    party = await db.get(WatchParty, party_id)
+    # Locking the ``WatchParty`` row serialises concurrent joins on the
+    # same party so the count → cap check → INSERT trio cannot interleave
+    # and let the participant table overshoot ``max_participants``. SQLite
+    # accepts ``FOR UPDATE`` as a no-op; PostgreSQL actually blocks. Every
+    # non-success exit below ends with an explicit ``rollback`` so the
+    # ``FOR UPDATE`` row lock is released before the function returns —
+    # otherwise the lock would survive on the session until its next
+    # commit/close, which under load can stall every parallel join.
+    party = (await db.execute(
+        select(WatchParty)
+        .where(WatchParty.id == party_id)
+        .with_for_update()
+    )).scalar_one_or_none()
     if not party:
+        await db.rollback()
         return {"error": "not_found"}
 
     count = (await db.execute(
@@ -154,18 +244,31 @@ async def join_party(
     )).scalar() or 0
 
     if count >= party.max_participants:
+        await db.rollback()
         return {"error": "full"}
 
-    existing = await db.execute(
-        select(WatchPartyParticipant).where(
-            WatchPartyParticipant.party_id == party_id,
-            WatchPartyParticipant.user_id == user_id,
-        )
-    )
-    if existing.scalar_one_or_none():
+    if await _load_existing_participant(db, party_id, user_id):
+        await db.rollback()
         return {"error": "already_joined"}
 
-    db.add(WatchPartyParticipant(party_id=party_id, user_id=user_id))
+    # SAVEPOINT belt-and-braces: even with the row lock, a parallel peer
+    # racing inside a different transaction window can still trip
+    # ``uq_party_participant``. The savepoint converts that into a clean
+    # ``already_joined`` return without poisoning the outer session.
+    try:
+        async with db.begin_nested():
+            db.add(WatchPartyParticipant(party_id=party_id, user_id=user_id))
+            await db.flush()
+    except IntegrityError:
+        logger.debug(
+            f"[PARTY] race avoided party_id={party_id} user_id={user_id} "
+            f"— concurrent insert won"
+        )
+        # Savepoint is already rolled back, but the outer transaction
+        # still owns the FOR UPDATE row lock — drop it before returning.
+        await db.rollback()
+        return {"error": "already_joined"}
+
     await db.commit()
     return {"success": True}
 
@@ -173,16 +276,17 @@ async def join_party(
 async def leave_party(
     db: AsyncSession, party_id: int, user_id: int
 ) -> dict:
-    result = await db.execute(
-        select(WatchPartyParticipant).where(
+    # Keyed DELETE is naturally idempotent: if the row vanished between a
+    # caller's load and here, the statement affects 0 rows without
+    # raising — unlike ``session.delete()`` on a stale instance, which can
+    # surface ``StaleDataError`` on flush.
+    await db.execute(
+        delete(WatchPartyParticipant).where(
             WatchPartyParticipant.party_id == party_id,
             WatchPartyParticipant.user_id == user_id,
         )
     )
-    participant = result.scalar_one_or_none()
-    if participant:
-        await db.delete(participant)
-        await db.commit()
+    await db.commit()
     return {"success": True}
 
 
