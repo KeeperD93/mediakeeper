@@ -781,13 +781,18 @@ async def test_remux_rollback_survives_purge_when_utime_fails(monkeypatch):
         monkeypatch.setattr(remove_mod, "get_internal_client", lambda: client)
         _install_subprocess_fakes(monkeypatch, state)
 
-        # Force ``os.utime`` to fail ONLY for the current rollback path.
-        # Any other ``os.utime`` call (test setup above, retention helpers
-        # touching atime…) must keep working so the test stays focused on
-        # the rollback's mtime refresh failure.
-        real_utime = _os.utime
+        # Force the explicit rollback mtime refresh to fail ONLY for the
+        # current rollback path. Do this at the ``asyncio.to_thread`` boundary
+        # instead of monkeypatching ``os.utime`` globally: ``shutil.copy2``
+        # internally calls ``os.utime`` on Linux/Python 3.12, and that copy
+        # step must remain real for this test to exercise the intended fallback.
+        real_to_thread = remux_mod.asyncio.to_thread
 
-        def _utime_failing_on_current_rollback(path, *args, **kwargs):
+        async def _to_thread_with_utime_failure(func, *args, **kwargs):
+            if func is remux_mod.os.utime and args:
+                path = args[0]
+            else:
+                return await real_to_thread(func, *args, **kwargs)
             try:
                 name = Path(path).name
             except Exception:  # noqa: BLE001 -- defensive
@@ -800,9 +805,9 @@ async def test_remux_rollback_survives_purge_when_utime_fails(monkeypatch):
                 == movie_dir.resolve(strict=False)
             ):
                 raise OSError("simulated utime failure")
-            return real_utime(path, *args, **kwargs)
+            return await real_to_thread(func, *args, **kwargs)
 
-        monkeypatch.setattr(remux_mod.os, "utime", _utime_failing_on_current_rollback)
+        monkeypatch.setattr(remux_mod.asyncio, "to_thread", _to_thread_with_utime_failure)
 
         result = await opensubtitles.remove_stream(object(), "item-1", 1)
 
