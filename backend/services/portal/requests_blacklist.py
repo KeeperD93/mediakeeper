@@ -5,6 +5,7 @@ from ``update_request_status`` in requests.py and delegates here.
 """
 import logging
 from sqlalchemy import select, func
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.user import User
@@ -79,13 +80,10 @@ async def maybe_blacklist_media(
     if count < BLACKLIST_REJECT_THRESHOLD:
         return
 
-    existing = await db.execute(
-        select(RequestBlacklist.id).where(
-            RequestBlacklist.tmdb_id == req.tmdb_id,
-            RequestBlacklist.media_type == req.media_type,
-        )
-    )
-    if existing.scalar_one_or_none():
+    # Fast path: skip the requester snapshot work when the row is already
+    # there. This pre-check is intentionally racy — the SAVEPOINT below
+    # handles the window where a parallel call beats us to the INSERT.
+    if await is_media_blacklisted(db, req.tmdb_id, req.media_type):
         return
 
     rows = await db.execute(
@@ -109,16 +107,32 @@ async def maybe_blacklist_media(
             "display_name": display_name or username or f"user#{user_id}",
         })
 
-    db.add(RequestBlacklist(
-        tmdb_id=req.tmdb_id,
-        media_type=req.media_type,
-        title=req.title,
-        year=req.year,
-        poster_url=req.poster_url,
-        requesters=requesters,
-        reject_count=count,
-        blocked_by=admin_id,
-    ))
+    # Idempotent insert under concurrency: the pre-check above is racy,
+    # so a parallel rejection-triggered call may have just inserted the
+    # same (tmdb_id, media_type). Wrapping the INSERT in a SAVEPOINT
+    # turns the unique-constraint violation into a silent no-op without
+    # rolling back the caller's pending state (status flip, notification,
+    # etc.).
+    try:
+        async with db.begin_nested():
+            db.add(RequestBlacklist(
+                tmdb_id=req.tmdb_id,
+                media_type=req.media_type,
+                title=req.title,
+                year=req.year,
+                poster_url=req.poster_url,
+                requesters=requesters,
+                reject_count=count,
+                blocked_by=admin_id,
+            ))
+            await db.flush()
+    except IntegrityError:
+        logger.debug(
+            f"[BLACKLIST] race avoided for {req.media_type}:{req.tmdb_id} "
+            f"— concurrent insert won, snapshot dropped"
+        )
+        return
+
     logger.info(
         f"[BLACKLIST] {req.media_type}:{req.tmdb_id} auto-blocked after "
         f"{count} rejections ({len(requesters)} unique requester(s))"
