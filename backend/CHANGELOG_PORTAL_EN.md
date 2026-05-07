@@ -60,6 +60,7 @@ This section intentionally has no date so it is not shown to users.
 - Notifications: opening the bell now marks every notification as read automatically ("Mark all read" button removed)
 - Sub-page tabs (media detail, person, lists, admin) aligned to the same glass style used across the app
 - Mobile bottom nav: active tab highlight now wraps both icon and label (no longer limited to the icon)
+- Mobile bottom nav: "Lists" tab added (direct access, next to Home)
 - Mobile top bar streamlined: Dashboard, Lists, Calendar and Admin moved into the avatar menu — only search, notifications and avatar stay in the bar
 - Mobile profile: identity card tightened (narrower width, slimmer padding and avatar) to free up space
 - Profile: rotating halos and breathing glow around the card removed (cleaner look across all screens)
