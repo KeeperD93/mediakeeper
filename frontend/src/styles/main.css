@@ -1,13 +1,45 @@
-@import url('./breakpoints.css');
-@import url('./mobile-helpers.css');
-@import url('./design-tokens.css');
-@import url('./portal/portal-tokens.css');
-@import url('../assets/styles/portal/portal-utilities.css');
+@import url('./breakpoints.css') layer(base);
+@import url('./mobile-helpers.css') layer(base);
+@import url('./design-tokens.css') layer(base);
+@import url('./portal/portal-tokens.css') layer(base);
+@import url('../assets/styles/portal/portal-utilities.css') layer(base);
 
-/* stylelint-disable at-rule-no-unknown -- @tailwind directives are processed by tailwindcss postcss plugin */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* stylelint-disable at-rule-no-unknown -- @custom-variant / @theme / @layer are processed by the tailwindcss postcss plugin */
+@import url('tailwindcss');
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-mk-primary: #4f46e5;
+  --color-mk-hover: #4338ca;
+  --color-mk-accent: #818cf8;
+  --color-mk-bg-primary: var(--bg-primary);
+  --color-mk-bg-secondary: var(--bg-secondary);
+  --color-mk-bg-tertiary: var(--bg-tertiary);
+  --color-mk-text-primary: var(--text-primary);
+  --color-mk-text-secondary: var(--text-secondary);
+  --color-mk-text-muted: var(--text-muted);
+  --color-mk-border: var(--border);
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
 /* stylelint-enable at-rule-no-unknown */
 
 /* ============================================

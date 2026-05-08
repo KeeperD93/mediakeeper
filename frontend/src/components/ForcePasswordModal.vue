@@ -30,7 +30,7 @@
             v-model="currentPwd"
             type="password"
             placeholder="••••••••"
-            class="fpm-input w-full rounded-lg px-3 py-2 text-[0.85rem] outline-none transition-colors box-border"
+            class="fpm-input w-full rounded-lg px-3 py-2 text-[0.85rem] outline-hidden transition-colors box-border"
           />
         </div>
 
@@ -40,7 +40,7 @@
             v-model="newPwd"
             type="password"
             :placeholder="$t('forcePassword.rule12Chars')"
-            class="fpm-input w-full rounded-lg px-3 py-2 text-[0.85rem] outline-none transition-colors box-border"
+            class="fpm-input w-full rounded-lg px-3 py-2 text-[0.85rem] outline-hidden transition-colors box-border"
           />
           <div class="mt-2 px-3 py-2.5 bg-indigo-700/10 border border-indigo-700/30 rounded-md">
             <p class="text-indigo-400 text-xs font-semibold mb-1.5">
@@ -64,7 +64,7 @@
             v-model="confirmPwd"
             type="password"
             placeholder="••••••••"
-            class="fpm-input w-full rounded-lg px-3 py-2 text-[0.85rem] outline-none transition-colors box-border"
+            class="fpm-input w-full rounded-lg px-3 py-2 text-[0.85rem] outline-hidden transition-colors box-border"
           />
         </div>
 
