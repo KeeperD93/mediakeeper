@@ -32,7 +32,7 @@
               </div>
               <div class="file-info">
                 <span class="file-name">{{ f.filename }}</span>
-                <span class="file-date">{{ f.modified_label }}</span>
+                <span class="file-date">{{ formatFileDate(f.modified) }}</span>
               </div>
               <span class="file-size">{{ f.size_label }}</span>
               <button class="file-dl-btn" @click.stop="downloadFile(f.filename)">
@@ -149,6 +149,7 @@ import { ref, onMounted } from 'vue'
 import { useLogs } from '@/composables/useLogs'
 import { useTabSync } from '@/composables/useTabSync'
 import { ChevronLeft, Download, FileText, Film, RefreshCw } from 'lucide-vue-next'
+import { formatFileDate } from '@/utils/logsTime'
 import '@/assets/styles/logs-view.css'
 
 const activeTab = useTabSync(['logs', 'config'], 'logs')

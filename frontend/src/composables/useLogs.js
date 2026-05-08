@@ -1,6 +1,7 @@
 import { ref, computed, watch, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useApi } from '@/composables/useApi'
+import { formatLogLine } from '@/utils/logsTime'
 
 export function useLogs() {
   const { t } = useI18n()
@@ -51,11 +52,16 @@ export function useLogs() {
     if (filterModule.value) lines = lines.filter(l => getModule(l) === filterModule.value)
     if (search.value.trim()) {
       const q = search.value.trim().toLowerCase()
-      lines = lines.filter(l => l.toLowerCase().includes(q))
+      // Match either the raw line or its locally-formatted display so
+      // searching for "14:41" finds entries whose UTC stamp converted
+      // to that local time.
+      lines = lines.filter(
+        l => l.toLowerCase().includes(q) || formatLogLine(l).toLowerCase().includes(q),
+      )
     }
     return lines
   })
-  const displayLines = computed(() => filteredLines.value.slice(0, 1500))
+  const displayLines = computed(() => filteredLines.value.slice(0, 1500).map(l => formatLogLine(l)))
 
   const statusText = computed(() => {
     const total = rawLines.value.length
