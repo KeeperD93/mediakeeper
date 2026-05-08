@@ -5,7 +5,6 @@ Uses an async in-memory SQLite DB for tests (no PostgreSQL required).
 
 import os
 import sys
-import asyncio
 import shutil
 import tempfile
 import pytest
@@ -71,14 +70,6 @@ _TestSession = sessionmaker(
 )
 
 
-@pytest.fixture(scope="session")
-def event_loop():
-    """Use une seule loop asyncio for toute la session de tests."""
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
-
-
 @pytest.fixture
 def workspace_tmp_path():
     """Temporary directory inside the workspace to avoid system Temp issues under sandbox."""
@@ -110,6 +101,35 @@ def _reset_rate_limiter():
     limiter.reset()
     yield
     limiter.reset()
+
+
+@pytest.fixture(autouse=True)
+def _reset_media_categories_cache():
+    """Drop the module-level media-categories cache between tests.
+    Without this, a test that triggers load_categories/save_categories
+    leaks the populated list into unrelated tests that assume a fresh
+    DB (and therefore zero configured folders)."""
+    from services.media_manager import categories as _cat
+    _cat._categories_cache.clear()
+    yield
+    _cat._categories_cache.clear()
+
+
+@pytest.fixture(autouse=True)
+def _reset_diagnostic_log_sentinels():
+    """Restore the WARN-once cooldown sentinels to their module-init
+    value (-inf) between tests. The CSRF middleware and the WS
+    upgrade fallback mutate them on the first hostile request, and
+    the regression guard test_diagnostic_log_sentinels_pass_cooldown_at_boot
+    asserts the module-init state — without this reset it depends on
+    the order in which any other test fires those code paths."""
+    import api.portal.chat as _chat
+    import core.csrf_middleware as _mw
+    _mw._last_origin_mismatch_log = float("-inf")
+    _chat._last_ws_upgrade_log = float("-inf")
+    yield
+    _mw._last_origin_mismatch_log = float("-inf")
+    _chat._last_ws_upgrade_log = float("-inf")
 
 
 @pytest_asyncio.fixture

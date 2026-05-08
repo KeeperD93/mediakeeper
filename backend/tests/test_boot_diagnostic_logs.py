@@ -67,9 +67,9 @@ def test_log_deployment_mode_reports_mode_a_when_no_proxy(monkeypatch, caplog):
 
 
 @pytest.mark.asyncio
-async def test_csrf_origin_mismatch_writes_diagnostic_warn_once(client, admin_user, caplog):
+async def test_csrf_origin_mismatch_writes_diagnostic_warn_once(client, admin_user, caplog, monkeypatch):
     import core.csrf_middleware as mw
-    mw._last_origin_mismatch_log = float("-inf")  # cooldown reset (matches module init)
+    monkeypatch.setattr(mw, "_last_origin_mismatch_log", float("-inf"))  # cooldown reset (matches module init)
 
     # Open the backoffice session.
     r = await client.post("/api/auth/login", json={
@@ -97,12 +97,12 @@ async def test_csrf_origin_mismatch_writes_diagnostic_warn_once(client, admin_us
 
 
 @pytest.mark.asyncio
-async def test_chat_ws_path_returns_426_on_http_get(raw_client, caplog):
+async def test_chat_ws_path_returns_426_on_http_get(raw_client, caplog, monkeypatch):
     """A reverse proxy that drops the Upgrade header turns the WS
     handshake into a plain GET. The fallback handler answers with 426
     and writes one operator hint."""
     import api.portal.chat as chat_module
-    chat_module._last_ws_upgrade_log = float("-inf")  # cooldown reset (matches module init)
+    monkeypatch.setattr(chat_module, "_last_ws_upgrade_log", float("-inf"))  # cooldown reset (matches module init)
 
     with caplog.at_level("WARNING", logger="mediakeeper.portal.chat"):
         resp = await raw_client.get("/api/portal/chat/ws/1")
