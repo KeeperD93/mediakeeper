@@ -12,6 +12,7 @@ from urllib.parse import quote
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.csv_safe import safe_csv_row
 from models.user import User
 from models.portal.profile import UserProfile
 from models.portal.social import (
@@ -180,11 +181,11 @@ async def export_list(
         writer = csv.writer(buf)
         writer.writerow(["title", "year", "added_at"])
         for row in items:
-            writer.writerow([
+            writer.writerow(safe_csv_row([
                 row.title or "",
                 row.year if row.year else "",
                 row.added_at.isoformat() if row.added_at else "",
-            ])
+            ]))
         return {
             "content": buf.getvalue(),
             "mime": "text/csv; charset=utf-8",

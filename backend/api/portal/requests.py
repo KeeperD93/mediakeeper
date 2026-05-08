@@ -65,8 +65,27 @@ async def list_requests_admin(
     )
 
 
+BATCH_STATUS_MAX_IDS = 100
+# Outer raw-payload guard: a multiplier of the unique cap leaves room
+# for legitimate clients that submit duplicates without letting an
+# absurd payload reach the dedup loop.
+BATCH_STATUS_MAX_RAW_IDS = BATCH_STATUS_MAX_IDS * 10
+
+
 class BatchStatusQuery(BaseModel):
-    tmdb_ids: list[int]
+    tmdb_ids: list[int] = Field(..., max_length=BATCH_STATUS_MAX_RAW_IDS)
+
+
+def _dedupe_keep_order(ids: list[int]) -> list[int]:
+    """Drop duplicate ids while preserving the original submission order."""
+    seen: set[int] = set()
+    out: list[int] = []
+    for tid in ids:
+        if tid in seen:
+            continue
+        seen.add(tid)
+        out.append(tid)
+    return out
 
 
 @router.post("/batch-status")
@@ -82,6 +101,10 @@ async def batch_status(
     badge + greyed-out request button) regardless of which user filed
     the request — the rule is global, no double-requesting.
 
+    The unique-id cap is applied **after** dedup so a client that
+    legitimately repeats ids in the same payload still works as long as
+    the deduplicated count stays under ``BATCH_STATUS_MAX_IDS``.
+
     When the admin has enabled ``anonymize_requests`` in the Portal
     settings, the ``requested_by`` field is stripped from the response
     for non-admin users so nobody can tell who filed a given request.
@@ -94,6 +117,10 @@ async def batch_status(
     if not data.tmdb_ids:
         return {"results": {}}
 
+    unique_ids = _dedupe_keep_order(data.tmdb_ids)
+    if len(unique_ids) > BATCH_STATUS_MAX_IDS:
+        raise HTTPException(status_code=422, detail="too_many_tmdb_ids")
+
     user, profile = up
     is_admin = profile.role == "admin"
     anonymize = False
@@ -103,11 +130,11 @@ async def batch_status(
     import logging
     logging.getLogger("mediakeeper.portal.requests").info(
         f"[BATCH_STATUS] user={user.username!r} role={profile.role!r} "
-        f"is_admin={is_admin} anonymize={anonymize} tmdb_ids={len(data.tmdb_ids)}"
+        f"is_admin={is_admin} anonymize={anonymize} tmdb_ids={len(unique_ids)}"
     )
 
     return {"results": await req_svc.get_batch_status(
-        db, data.tmdb_ids, anonymize=anonymize,
+        db, unique_ids, anonymize=anonymize,
     )}
 
 

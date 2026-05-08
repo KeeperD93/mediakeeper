@@ -41,12 +41,11 @@ async def get_batch_status(
     sash and swap the CTA to "Re-request" — but any fresher active
     status for the same item wins via the priority table.
 
-    When ``anonymize`` is True, the ``requested_by`` field is omitted
-    from every entry so the caller can't tell who filed which request.
-    The date stays visible. This is used when the admin has enabled
-    the Portal-wide ``anonymize_requests`` setting and the caller is
-    a non-admin user — admins always see the real username so they can
-    moderate.
+    When ``anonymize`` is True, ``requested_by``, ``requested_by_deleted``
+    and ``reject_reason`` are stripped so the caller can't tell who filed
+    or moderated each request — only status and date stay visible. Used
+    for non-admins when the Portal-wide ``anonymize_requests`` flag is
+    on; admins always see the full payload to moderate.
     """
     if not tmdb_ids:
         return {}
@@ -75,13 +74,14 @@ async def get_batch_status(
             "requested_at": req.created_at.isoformat() if req.created_at else None,
             "request_id": req.id,
             "retry_count": req.retry_count or 0,
-            "reject_reason": req.reject_reason if req.status == "rejected" else None,
         }
         if not anonymize:
-            # ``user_id IS NULL`` once the requester has been GDPR-purged
-            # (FK ``SET NULL`` since migration 041). Surface a flag so
-            # the frontend can render an i18n placeholder instead of
-            # an obviously broken ``user#None`` label.
+            entry["reject_reason"] = (
+                req.reject_reason if req.status == "rejected" else None
+            )
+            # ``user_id IS NULL`` after GDPR-purge (FK ``SET NULL`` since
+            # migration 041). Flag it so the frontend renders an i18n
+            # placeholder instead of ``user#None``.
             if req.user_id is None:
                 entry["requested_by"] = None
                 entry["requested_by_deleted"] = True
