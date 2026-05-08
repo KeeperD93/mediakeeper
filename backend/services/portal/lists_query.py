@@ -4,6 +4,7 @@ from __future__ import annotations
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from models.portal.profile import UserProfile
 from models.portal.social import (
     UserList, UserListItem, UserListContributor,
     PRIVACY_PUBLIC_READONLY, PRIVACY_COLLABORATIVE,
@@ -80,11 +81,20 @@ async def get_user_lists(
 async def get_public_lists(
     db: AsyncSession, user_id: int, *, limit: int = 50,
 ) -> list[dict]:
+    # Exclude lists whose owner has been soft-deleted or deactivated:
+    # the owner row survives but their identifying surfaces (pseudo,
+    # avatar, profile) are gated everywhere else. Public list browsing
+    # must honour that boundary instead of leaking ``owner_username``.
     q = (
         select(UserList)
+        .join(User, User.id == UserList.user_id)
+        .join(UserProfile, UserProfile.user_id == UserList.user_id)
         .where(
             UserList.privacy.in_((PRIVACY_PUBLIC_READONLY, PRIVACY_COLLABORATIVE)),
             UserList.is_deleted.is_(False),
+            User.is_active.is_(True),
+            UserProfile.account_active.is_(True),
+            UserProfile.deleted_at.is_(None),
         )
         .order_by(UserList.updated_at.desc())
         .limit(limit)

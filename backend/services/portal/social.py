@@ -7,9 +7,11 @@ from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from models.portal.profile import UserProfile
 from models.portal.social import (
     UserRating, UserRatingLike, ReleaseReminder,
 )
+from models.user import User
 from services.portal import strip_tags_and_trim
 
 logger = logging.getLogger("mediakeeper.portal.social")
@@ -88,9 +90,22 @@ async def rate_media(
 async def get_media_ratings(
     db: AsyncSession, tmdb_id: int, media_type: str
 ) -> list[dict]:
+    # Inner-join the author so reviews from soft-deleted or deactivated
+    # accounts disappear from the public media page. The rating row
+    # survives in ``user_ratings`` (CASCADE on hard purge), it is only
+    # hidden — restoring or re-activating the account brings the review
+    # back automatically.
     result = await db.execute(
         select(UserRating)
-        .where(UserRating.tmdb_id == tmdb_id, UserRating.media_type == media_type)
+        .join(User, User.id == UserRating.user_id)
+        .join(UserProfile, UserProfile.user_id == UserRating.user_id)
+        .where(
+            UserRating.tmdb_id == tmdb_id,
+            UserRating.media_type == media_type,
+            User.is_active.is_(True),
+            UserProfile.account_active.is_(True),
+            UserProfile.deleted_at.is_(None),
+        )
         .order_by(UserRating.id.desc())
         .limit(50)
     )

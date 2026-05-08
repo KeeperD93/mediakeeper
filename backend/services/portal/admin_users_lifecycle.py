@@ -102,6 +102,7 @@ async def soft_delete_user(
     profile.deleted_by_user_id = admin_user_id
     profile.account_active = False
     user.is_active = False
+    profile.tokens_invalidated_at = user.tokens_invalidated_at = profile.deleted_at  # revoke any JWT minted before the disable on both auth scopes
     db.add(profile)
     db.add(user)
     await record_audit(

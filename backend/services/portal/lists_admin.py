@@ -13,6 +13,7 @@ from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.user import User
+from models.portal.profile import UserProfile
 from models.portal.social import (
     UserList, UserListItem, UserListContributor, UserListHistory,
     PRIVACY_COLLABORATIVE,
@@ -71,10 +72,20 @@ async def remove_contributor(
 
 
 async def get_contributors(db: AsyncSession, list_id: int) -> list[dict]:
+    # Inner-join UserProfile and gate on account_active / deleted_at so a
+    # soft-deleted contributor disappears from the panel. The contributor
+    # row stays in DB (un-mute, history audit) and re-appears as soon as
+    # the account is restored — only the surfaced pseudo is hidden.
     rows = (await db.execute(
         select(UserListContributor, User)
         .join(User, User.id == UserListContributor.user_id)
-        .where(UserListContributor.list_id == list_id)
+        .join(UserProfile, UserProfile.user_id == UserListContributor.user_id)
+        .where(
+            UserListContributor.list_id == list_id,
+            User.is_active.is_(True),
+            UserProfile.account_active.is_(True),
+            UserProfile.deleted_at.is_(None),
+        )
         .order_by(UserListContributor.added_at)
     )).all()
     return [
