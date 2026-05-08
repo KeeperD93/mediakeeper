@@ -186,7 +186,7 @@ async function reloadChart() {
 
 async function renderChart() {
   if (!dailyChart.value || !chartCanvas.value) return
-  let Chart = null
+  let Chart
   try {
     Chart = await ensureChartJs()
   } catch {

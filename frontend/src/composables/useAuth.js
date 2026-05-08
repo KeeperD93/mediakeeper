@@ -47,7 +47,7 @@ export function useAuth() {
       redirectOn401: false,
     })
 
-    let data = {}
+    let data
     try {
       const text = await res.text()
       data = text ? JSON.parse(text) : {}
