@@ -3,12 +3,9 @@ Routes mounted at ``/api/portal/admin/users`` (same prefix as the main
 router). Covers: notes, tags, extend-access, Emby toggle, soft-delete,
 restore, RGPD export, bulk runner, targeted notification, reset
 password, force-logout, login history."""
-import csv
-import io
 import logging
 
 from fastapi import APIRouter, Depends, Query, Request
-from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,7 +15,9 @@ from core.rate_limit import ip_key, limiter
 from models.user import User
 from api.auth import get_current_user, require_csrf
 
-from api._portal_admin_users_helpers import client_ip, client_ua, resolve_profile
+from api._portal_admin_users_helpers import (
+    client_ip, client_ua, resolve_profile, rgpd_export_to_csv,
+)
 from services.portal.admin_users_activity import get_user_activity_summary
 from services.portal.admin_users_actions import (
     extend_access as svc_extend_access,
@@ -178,34 +177,7 @@ async def get_export(
     )
     if format == "json":
         return payload
-    # CSV: flatten the nested dict into a single key/value table so the
-    # admin can open it in any spreadsheet tool. Heavy nested keys (lists,
-    # dicts) are JSON-serialised inline.
-    import json as _json
-    flat: list[tuple[str, str]] = []
-
-    def _walk(prefix: str, value):
-        if isinstance(value, dict):
-            for k, v in value.items():
-                _walk(f"{prefix}.{k}" if prefix else k, v)
-        elif isinstance(value, list):
-            flat.append((prefix, _json.dumps(value, ensure_ascii=False)))
-        else:
-            flat.append((prefix, "" if value is None else str(value)))
-
-    _walk("", payload)
-    buf = io.StringIO()
-    writer = csv.writer(buf, quoting=csv.QUOTE_MINIMAL)
-    writer.writerow(["field", "value"])
-    for k, v in flat:
-        writer.writerow([k, v])
-    buf.seek(0)
-    filename = f"mk-user-{profile_id}.csv"
-    return StreamingResponse(
-        iter([buf.getvalue()]),
-        media_type="text/csv; charset=utf-8",
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
-    )
+    return rgpd_export_to_csv(payload, profile_id)
 
 
 class BulkAction(BaseModel):
