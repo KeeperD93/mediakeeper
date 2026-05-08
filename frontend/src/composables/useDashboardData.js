@@ -84,7 +84,7 @@ export function useDashboardData() {
       const list = await Promise.all(
         Object.entries(d).map(async ([k, tool]) => {
           if (!tool.enabled || !MEDIA_SOURCES.includes(k)) return null
-          let online = false
+          let online
           try {
             const p = await apiGet(`/api/settings/tools/${k}/ping`)
             online = p?.online ?? false

@@ -182,7 +182,7 @@ export async function doMatch(addMode = false) {
   if (addMode) {
     await _doMatchFromTMDB(item, fr)
   } else {
-    let matchFiles = null
+    let matchFiles
     if (checkedDirs.value.length > 0) {
       matchFiles = await expandCheckedFolders()
       if (!matchFiles?.length) {
