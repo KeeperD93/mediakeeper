@@ -189,6 +189,15 @@ async def set_account_active(
         return {"error": "self_action_forbidden"}
     profile.account_active = active
     user.is_active = active
+    if not active:
+        # Stamp the revocation pivot on both scopes so any JWT minted
+        # before the deactivation is rejected by the auth deps even if
+        # the ``is_active`` / ``account_active`` checks were bypassed.
+        # Re-activation deliberately keeps the pivot in place — a fresh
+        # login mints a JWT with a newer ``iat`` that beats the stamp.
+        revoked_at = now_utc()
+        profile.tokens_invalidated_at = revoked_at
+        user.tokens_invalidated_at = revoked_at
     db.add(profile)
     db.add(user)
     await record_audit(

@@ -193,12 +193,17 @@ async def search_users(
     from sqlalchemy import select, or_
     me, _ = up
     needle = (q or "").strip().lower()
+    # Inner-join on UserProfile so soft-deleted accounts can never leak
+    # via a NULL-profile drift. The picker must mirror the visibility
+    # rules of the public profile endpoint and the leaderboard.
     stmt = (
         select(User.id, User.username, UserProfile.display_name, UserProfile.avatar_url)
         .select_from(User)
-        .join(UserProfile, UserProfile.user_id == User.id, isouter=True)
+        .join(UserProfile, UserProfile.user_id == User.id)
         .where(User.id != me.id)
         .where(User.is_active.is_(True))
+        .where(UserProfile.account_active.is_(True))
+        .where(UserProfile.deleted_at.is_(None))
     )
     if needle:
         like = f"%{needle}%"

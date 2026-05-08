@@ -1,7 +1,7 @@
 """Round-trip tests for Alembic migration 040 (GDPR groundwork).
 
 The full pre-040 migration chain contains SQLite-incompatible
-``op.alter_column`` calls that pre-date this batch. To stay focused on
+``op.alter_column`` calls that pre-date this migration. To stay focused on
 040 itself we bootstrap a fresh on-disk SQLite database from the
 current SQLAlchemy metadata (post-040 shape), stamp it at revision
 039, and then exercise the 040 upgrade / downgrade pair against it.
@@ -140,3 +140,91 @@ def test_upgrade_chat_fk_is_set_null(alembic_db):
 
     cols = {c["name"]: c for c in inspector.get_columns("chat_messages")}
     assert cols["user_id"]["nullable"] is True
+
+
+def _user_fk_ondelete(inspector, table: str, column: str) -> str:
+    fks = inspector.get_foreign_keys(table)
+    target = next(
+        (fk for fk in fks if column in fk["constrained_columns"]),
+        None,
+    )
+    assert target is not None, f"missing FK on {table}.{column}"
+    return (target.get("options") or {}).get("ondelete", "").upper()
+
+
+def test_upgrade_seen_alerts_fk_is_cascade(alembic_db):
+    """Migration 040 also re-installs seen_alerts.user_id with
+    ``ON DELETE CASCADE``. Without it, hard-deleting a ``users`` row
+    raises an integrity error."""
+    cfg, engine = alembic_db
+    command.upgrade(cfg, "040_gdpr_pending_deletion")
+
+    inspector = sa.inspect(engine)
+    assert _user_fk_ondelete(inspector, "seen_alerts", "user_id") == "CASCADE"
+
+
+def test_upgrade_xp_ledger_fk_is_cascade(alembic_db):
+    """Migration 040 also re-installs xp_ledger.user_id with
+    ``ON DELETE CASCADE``. The ledger is account-bound: a purged user
+    must not leave orphan grants behind."""
+    cfg, engine = alembic_db
+    command.upgrade(cfg, "040_gdpr_pending_deletion")
+
+    inspector = sa.inspect(engine)
+    assert _user_fk_ondelete(inspector, "xp_ledger", "user_id") == "CASCADE"
+
+
+# ─────────────────────────── migration 041 ─────────────────────────
+
+
+_FK_041_TARGETS: tuple[tuple[str, str], ...] = (
+    ("news",              "author_id"),
+    ("mk_event_messages", "user_id"),
+    ("watch_parties",     "host_user_id"),
+    ("chat_reports",      "reporter_id"),
+    ("ticket_replies",    "user_id"),
+    ("tickets",           "user_id"),
+    ("media_requests",    "user_id"),
+    ("mk_events",         "creator_user_id"),
+)
+
+
+def test_upgrade_041_sets_consumer_fks_to_set_null(alembic_db):
+    """Migration 041 flips eight consumer-side FKs to SET NULL so the
+    rows survive a GDPR purge anonymised. End-state behaviour is also
+    covered via Base.metadata in the consumer-side FK regression tests;
+    this asserts the migration code itself produces the expected FK
+    options on top of a stamped 040."""
+    cfg, engine = alembic_db
+    command.upgrade(cfg, "041_fk_consumer_set_null")
+
+    inspector = sa.inspect(engine)
+    for table, column in _FK_041_TARGETS:
+        ondelete = _user_fk_ondelete(inspector, table, column)
+        assert ondelete == "SET NULL", (
+            f"{table}.{column}: expected SET NULL, got {ondelete!r}"
+        )
+        cols = {c["name"]: c for c in inspector.get_columns(table)}
+        assert cols[column]["nullable"] is True, (
+            f"{table}.{column}: SET NULL requires the column to be nullable"
+        )
+
+
+def test_downgrade_041_restores_cascade(alembic_db):
+    """The 041 downgrade re-installs CASCADE + NOT NULL on the eight
+    targets, matching the pre-041 contract."""
+    cfg, engine = alembic_db
+    command.upgrade(cfg, "041_fk_consumer_set_null")
+    command.downgrade(cfg, "040_gdpr_pending_deletion")
+
+    inspector = sa.inspect(engine)
+    for table, column in _FK_041_TARGETS:
+        ondelete = _user_fk_ondelete(inspector, table, column)
+        assert ondelete == "CASCADE", (
+            f"{table}.{column}: expected CASCADE after downgrade, "
+            f"got {ondelete!r}"
+        )
+        cols = {c["name"]: c for c in inspector.get_columns(table)}
+        assert cols[column]["nullable"] is False, (
+            f"{table}.{column}: CASCADE expected NOT NULL after downgrade"
+        )
