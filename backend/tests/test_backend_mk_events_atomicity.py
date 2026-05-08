@@ -136,9 +136,7 @@ def _in_outer_transaction(db) -> bool:
     return db.sync_session.in_transaction()
 
 
-# =========================================================================
-# 1. enter_room — seat allocation, idempotent re-entry, no double seats
-# =========================================================================
+# 1. enter_room — seat allocation, idempotent re-entry, no double seats.
 
 
 @pytest.mark.asyncio
@@ -332,9 +330,7 @@ async def test_enter_room_not_found_releases_transaction(
     assert sentinel.id is not None
 
 
-# =========================================================================
-# 2. respond — public auto-create races against uq_mk_event_invitation
-# =========================================================================
+# 2. respond — public auto-create races against uq_mk_event_invitation.
 
 
 @pytest.mark.asyncio
@@ -404,9 +400,7 @@ async def test_respond_public_savepoint_swallows_concurrent_insert(
     assert sentinel.id is not None
 
 
-# =========================================================================
-# 3. invite_user — first-time INSERT race + atomic re-invite increment
-# =========================================================================
+# 3. invite_user — first-time INSERT race + atomic re-invite increment.
 
 
 @pytest.mark.asyncio
@@ -572,9 +566,7 @@ async def test_invite_user_reinvite_caps_at_max_retries(db_session):
     assert capped == {"error": "max_retries_reached"}
 
 
-# =========================================================================
-# 4. Private-doc reference scrubbed from public modules
-# =========================================================================
+# 4. Private-doc reference scrubbed from public modules.
 
 
 @pytest.mark.asyncio

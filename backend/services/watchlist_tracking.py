@@ -14,8 +14,6 @@ from services.watchlist_scanner import _h
 logger = logging.getLogger("mediakeeper.watchlist.tracking")
 TMDB_BASE = "https://api.themoviedb.org/3"
 
-# IGNORED
-# ============================================
 
 async def get_ignored(db: AsyncSession) -> list[str]:
     raw = await get_watchlist_data(db, "ignored")
@@ -35,10 +33,6 @@ async def remove_ignored(db: AsyncSession, keys: list[str]):
         c.discard(k)
     await set_watchlist_data(db, "ignored", json.dumps(list(c)))
 
-
-# ============================================
-# SUIVI (TRACKED)
-# ============================================
 
 async def get_tracked(db: AsyncSession) -> list[dict]:
     raw = await get_watchlist_data(db, "tracked")
@@ -61,10 +55,6 @@ async def remove_tracked(db: AsyncSession, tmdb_id: int, media_type: str):
     await set_watchlist_data(db, "tracked", json.dumps(current))
     return current
 
-
-# ============================================
-# RECHERCHE TMDB
-# ============================================
 
 async def search_tmdb_multi(db: AsyncSession, query: str) -> list[dict]:
     ak = await _get_tmdb_key(db)

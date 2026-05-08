@@ -6,9 +6,7 @@ from datetime import datetime, timezone
 from models.base import Base
 
 
-# ============================================================
 # MediaKeeper Events module — virtual cinema room + invitations.
-# ============================================================
 # Distinct from the legacy SeasonalEvent / WatchParty above. The
 # MK* tables back the full event system: private / public events,
 # multi-film marathons, invitations with retry limits, virtual

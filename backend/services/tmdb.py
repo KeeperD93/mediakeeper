@@ -47,10 +47,6 @@ def _tmdb_headers_sync(api_key: str) -> dict:
     }
 
 
-# ============================================
-# GENERIC SEARCH
-# ============================================
-
 async def _search_tmdb(media_type: str, query: str, db: AsyncSession | None = None, language: str | None = None) -> list | dict:
     """
     Generic TMDB search.
@@ -99,10 +95,6 @@ async def search_tv(query: str, db: AsyncSession | None = None, language: str | 
     """Search for a series on TMDB."""
     return await _search_tmdb("tv", query, db, language=language)
 
-
-# ============================================
-# SERIES DETAILS
-# ============================================
 
 async def get_tv_seasons(tmdb_id: int, db: AsyncSession | None = None, language: str | None = None):
     """Fetch the seasons of a series."""
@@ -199,10 +191,6 @@ async def get_season_episodes(tmdb_id: int, season: int, db: AsyncSession | None
         return {"error": str(e)}
 
 
-# ============================================
-# MEDIA DETAIL (movie or series)
-# ============================================
-
 async def get_media_detail(media_type: str, tmdb_id: int, db: AsyncSession | None = None):
     """
     Fetch the full details of a movie or series.
@@ -241,10 +229,6 @@ async def get_media_detail(media_type: str, tmdb_id: int, db: AsyncSession | Non
         logger.error(f"Error get_media_detail({media_type}, {tmdb_id}): {e}")
         return {"error": str(e)}
 
-
-# ============================================
-# LIGHTWEIGHT METADATA FETCH (achievements pipeline)
-# ============================================
 
 async def get_media_details(
     db: AsyncSession,

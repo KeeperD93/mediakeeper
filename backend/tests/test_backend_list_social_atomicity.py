@@ -68,9 +68,7 @@ async def _make_profile(
     return user, profile
 
 
-# =========================================================================
-# 1. copy_list: copy_count must increment atomically
-# =========================================================================
+# 1. copy_list: copy_count must increment atomically.
 
 
 @pytest.mark.asyncio
@@ -178,9 +176,7 @@ async def test_copy_list_increment_does_not_depend_on_stale_src(db_session):
     )
 
 
-# =========================================================================
-# 2. rate_media: SAVEPOINT swallows uq_user_rating race
-# =========================================================================
+# 2. rate_media: SAVEPOINT swallows uq_user_rating race.
 
 
 @pytest.mark.asyncio
@@ -292,9 +288,7 @@ async def test_rate_media_savepoint_swallows_concurrent_insert(
     assert rows[0].review == "loser updates"
 
 
-# =========================================================================
-# 3. toggle_rating_like: SAVEPOINT on like, idempotent unlike
-# =========================================================================
+# 3. toggle_rating_like: SAVEPOINT on like, idempotent unlike.
 
 
 async def _make_rating(db, user_id: int, tmdb_id: int) -> UserRating:

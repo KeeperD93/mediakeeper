@@ -77,9 +77,7 @@ async def _make_profile(
     return user, profile
 
 
-# =========================================================================
-# 1. grant_xp: duplicate-insert path must NOT poison the caller's session
-# =========================================================================
+# 1. grant_xp: duplicate-insert path must NOT poison the caller's session.
 
 
 @pytest.mark.asyncio
@@ -164,9 +162,7 @@ async def test_grant_xp_request_created_daily_cap_still_enforced(db_session):
     assert profile.xp == DAILY_REQUEST_XP_CAP
 
 
-# =========================================================================
-# 2. pin_badge / unpin_badge: locked vs unlocked, cap, idempotency
-# =========================================================================
+# 2. pin_badge / unpin_badge: locked vs unlocked, cap, idempotency.
 
 
 async def _seed_unlocked_badges(
@@ -298,9 +294,7 @@ async def test_unpin_badge_idempotent(db_session):
     assert profile.selected_badges == [b]
 
 
-# =========================================================================
-# 3. maybe_blacklist_media: idempotency, snapshot preserved on first insert
-# =========================================================================
+# 3. maybe_blacklist_media: idempotency, snapshot preserved on first insert.
 
 
 async def _seed_three_rejections(

@@ -31,10 +31,7 @@ def _encode(key: str, value: str) -> str:
     return value
 
 
-# ============================================
 # settings (light config)
-# ============================================
-
 async def get_setting(db: AsyncSession, key: str) -> str:
     result = await db.execute(select(Setting).where(Setting.key == key))
     row = result.scalar_one_or_none()
@@ -135,10 +132,7 @@ async def encrypt_legacy_sensitive_values(
     return {"settings": settings_count, "notification_channels": channels_count}
 
 
-# ============================================
 # user_preferences
-# ============================================
-
 async def get_user_preferences(db: AsyncSession, user_id: int) -> UserPreference | None:
     result = await db.execute(select(UserPreference).where(UserPreference.user_id == user_id))
     return result.scalar_one_or_none()
@@ -193,10 +187,7 @@ async def upsert_user_preferences(
     return row
 
 
-# ============================================
 # watchlist_scans
-# ============================================
-
 async def get_watchlist_data(db: AsyncSession, scan_key: str) -> str:
     result = await db.execute(select(WatchlistScan).where(WatchlistScan.scan_key == scan_key))
     row = result.scalar_one_or_none()
@@ -217,10 +208,7 @@ async def set_watchlist_data(db: AsyncSession, scan_key: str, data: str, *, comm
         await db.flush()
 
 
-# ============================================
 # notification_channels
-# ============================================
-
 async def get_notification_channel(db: AsyncSession, channel_key: str) -> str:
     result = await db.execute(select(NotificationChannel).where(NotificationChannel.channel_key == channel_key))
     row = result.scalar_one_or_none()

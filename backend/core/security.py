@@ -40,10 +40,6 @@ def password_byte_length(plain: str) -> int:
     return len(plain.encode("utf-8"))
 
 
-# ============================================
-# PASSWORD
-# ============================================
-
 def hash_password(plain: str) -> str:
     """Hash and salt the password with bcrypt (cost factor 12).
 
@@ -157,10 +153,6 @@ def get_cookie_samesite(request) -> str:
         return "none"
     return "lax"
 
-
-# ============================================
-# JWT (PyJWT)
-# ============================================
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     """Create a signed JWT with expiration and issue date (iat)."""
