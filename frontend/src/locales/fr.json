@@ -1,4 +1,7 @@
 {
+  "a11y": {
+    "notifications": "Notifications"
+  },
   "common": {
     "actions": "Actions",
     "save": "Enregistrer",
