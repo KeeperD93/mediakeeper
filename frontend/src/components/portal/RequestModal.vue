@@ -164,11 +164,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, nextTick, useId } from 'vue'
+import { ref, computed, onMounted, useId } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import { useRequestSelection } from '@/composables/portal/useRequestSelection'
+import { useFocusTrap } from '@/composables/useFocusTrap'
 import { useI18n } from 'vue-i18n'
 import { MEDIA_TYPE, isTv } from '@/constants/media'
 import { X } from 'lucide-vue-next'
@@ -201,12 +202,12 @@ function requestClose() {
   emit('close')
 }
 
-function onKeydown(e) {
-  if (e.key === 'Escape') {
-    e.stopPropagation()
-    requestClose()
-  }
-}
+useFocusTrap({
+  active: ref(true),
+  containerRef: panelRef,
+  initialFocusRef: closeBtnRef,
+  onEscape: requestClose,
+})
 
 const {
   seasons,
@@ -342,14 +343,6 @@ async function submit() {
 }
 
 onMounted(async () => {
-  document.addEventListener('keydown', onKeydown)
-  // Move focus into the modal predictably so screen readers announce
-  // the dialog and Tab key navigation starts inside it. Prefer the
-  // close button when present; fall back to the panel itself.
-  await nextTick()
-  const target = closeBtnRef.value || panelRef.value
-  target?.focus?.()
-
   if (props.isAdmin) {
     const res = await apiGet('/api/portal/admin/users?limit=200').catch(() => null)
     if (res) {
@@ -358,9 +351,5 @@ onMounted(async () => {
     }
   }
   await Promise.all([loadSeasons(), loadAvailability()])
-})
-
-onBeforeUnmount(() => {
-  document.removeEventListener('keydown', onKeydown)
 })
 </script>
