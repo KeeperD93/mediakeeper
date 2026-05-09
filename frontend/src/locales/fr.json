@@ -401,7 +401,13 @@
     "tabPlayback": "Lectures",
     "tabAlerts": "Alertes",
     "nameNotFound": "Nom introuvable",
-    "movieRelease": "Sortie film"
+    "movieRelease": "Sortie film",
+    "a11y": {
+      "movingWidget": "Widget en cours de déplacement. Flèches pour positionner, Espace pour valider, Échap pour annuler.",
+      "movedTo": "Déplacé en colonne {x}, ligne {y}.",
+      "moveConfirmed": "Position confirmée.",
+      "moveCancelled": "Déplacement annulé, position d'origine restaurée."
+    }
   },
   "stats": {
     "title": "Statistiques",

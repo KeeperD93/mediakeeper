@@ -266,6 +266,11 @@
 .dash-widget.widget-editing:hover {
   outline-color: rgb(99, 102, 241, 0.5);
 }
+.dash-widget[data-kb-moving='true'] {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  z-index: 10;
+}
 
 /* Widget internals — :deep() dropped since all children have unscoped styles. */
 .cinema-dash .widget-inner {
