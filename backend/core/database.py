@@ -4,13 +4,10 @@ from urllib.parse import urlparse, quote
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 
-# ============================================
-# Connection URL construction
-# ============================================
+# Connection URL construction.
 # Priority:
 #   1. DATABASE_URL defined (3 containers OR single entrypoint)
 #   2. Single-container fallback: read /data/.pg_password
-# ============================================
 
 _raw = os.getenv("DATABASE_URL", "")
 

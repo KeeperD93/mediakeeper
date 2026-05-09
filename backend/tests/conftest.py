@@ -37,10 +37,7 @@ from models.user import User
 from core.security import hash_password
 
 
-# ============================================
-# Engine SQLite async for tests
-# ============================================
-
+# Engine SQLite async for tests.
 _test_engine = create_async_engine(
     "sqlite+aiosqlite:///:memory:",
     echo=False,

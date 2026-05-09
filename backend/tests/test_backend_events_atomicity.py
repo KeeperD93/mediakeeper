@@ -90,9 +90,7 @@ async def _make_event(
     return event
 
 
-# =========================================================================
-# 1. update_event_progress: zero → first increment → repeated increments
-# =========================================================================
+# 1. update_event_progress: zero → first increment → repeated increments.
 
 
 @pytest.mark.asyncio
@@ -308,9 +306,7 @@ async def test_update_event_progress_completed_in_one_shot(db_session):
     assert fresh.completed is True
 
 
-# =========================================================================
-# 2. join_party: cap enforcement, duplicate-race protection
-# =========================================================================
+# 2. join_party: cap enforcement, duplicate-race protection.
 
 
 async def _make_party(db, host: User, *, max_participants: int = 5):
@@ -492,9 +488,7 @@ async def test_join_party_savepoint_swallows_duplicate_race(
     assert len(rows) == 1, "uq_party_participant must keep exactly one row"
 
 
-# =========================================================================
-# 3. leave_party: idempotent when the row already vanished
-# =========================================================================
+# 3. leave_party: idempotent when the row already vanished.
 
 
 @pytest.mark.asyncio

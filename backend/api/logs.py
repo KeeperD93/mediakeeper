@@ -20,19 +20,11 @@ logger = logging.getLogger("mediakeeper.api.logs")
 router = APIRouter(prefix="/api/logs", tags=["logs"])
 
 
-# ============================================
-# SCHEMAS
-# ============================================
-
 class DebugModeRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     enabled: bool
 
-
-# ============================================
-# ROUTES
-# ============================================
 
 @router.get("/files")
 async def list_log_files(_: User = Depends(get_current_user)):
