@@ -8,7 +8,6 @@
         aria-modal="true"
         :aria-label="$t('portal.changelog.whatsNew')"
         @click.self="dismiss"
-        @keydown.esc="dismiss"
       >
         <div ref="panelRef" class="dwn-modal mk-modal-sheet-panel" tabindex="-1">
           <div class="dwn-header">
@@ -20,6 +19,7 @@
               <span class="dwn-version">v{{ latestVersion?.version }}</span>
             </div>
             <button
+              ref="closeBtnRef"
               class="dwn-close"
               type="button"
               :aria-label="$t('common.close')"
@@ -63,6 +63,7 @@ import { ref, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useApi } from '@/composables/useApi'
+import { useFocusTrap } from '@/composables/useFocusTrap'
 import { Lightbulb, X } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -78,6 +79,7 @@ const { locale } = useI18n()
 const visible = ref(false)
 const latestVersion = ref(null)
 const panelRef = ref(null)
+const closeBtnRef = ref(null)
 
 async function load({ bypassCheck = false } = {}) {
   try {
@@ -124,6 +126,13 @@ watch(
   },
   { immediate: false },
 )
+
+useFocusTrap({
+  active: visible,
+  containerRef: panelRef,
+  initialFocusRef: closeBtnRef,
+  onEscape: dismiss,
+})
 
 if (props.auto) {
   load()

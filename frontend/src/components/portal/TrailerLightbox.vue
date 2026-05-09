@@ -11,9 +11,11 @@
   -->
   <Teleport to="body">
     <div
+      ref="panelRef"
       class="pt-tlb"
       role="dialog"
       aria-modal="true"
+      tabindex="-1"
       @click.self="close"
       @mousemove="showCloseTransient"
     >
@@ -36,6 +38,7 @@
 
       <button
         v-show="closeVisible"
+        ref="closeBtnRef"
         class="pt-tlb-close"
         :aria-label="$t('common.close')"
         @click="close"
@@ -48,6 +51,7 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { useFocusTrap } from '@/composables/useFocusTrap'
 import { TRAILER_SOURCE } from '@/constants/trailers'
 import { X } from 'lucide-vue-next'
 
@@ -57,9 +61,12 @@ defineProps({
 
 const emit = defineEmits(['close'])
 
-// The close button is hidden by default and reappears for a few seconds
-// every time the user moves the mouse — exactly like a fullscreen player.
-const closeVisible = ref(false)
+// The close button is visible at mount (a 2.5s hide timer is armed in
+// onMounted) and reappears for a few seconds every time the user moves
+// the mouse — exactly like a fullscreen player.
+const closeVisible = ref(true)
+const panelRef = ref(null)
+const closeBtnRef = ref(null)
 let hideTimer = null
 
 function showCloseTransient() {
@@ -74,21 +81,22 @@ function close() {
   emit('close')
 }
 
-function onKey(e) {
-  if (e.key === 'Escape') close()
-}
-
 onMounted(() => {
-  document.addEventListener('keydown', onKey)
   // Lock body scroll while the lightbox is open.
   document.body.style.overflow = 'hidden'
   showCloseTransient()
 })
 
 onBeforeUnmount(() => {
-  document.removeEventListener('keydown', onKey)
   document.body.style.overflow = ''
   if (hideTimer) clearTimeout(hideTimer)
+})
+
+useFocusTrap({
+  active: ref(true),
+  containerRef: panelRef,
+  initialFocusRef: closeBtnRef,
+  onEscape: close,
 })
 </script>
 
