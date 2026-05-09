@@ -19,12 +19,22 @@
 
   <!-- Toast global -->
   <Teleport to="body">
-    <TransitionGroup name="toast" tag="div" class="mk-toast-container">
+    <TransitionGroup
+      name="toast"
+      tag="div"
+      class="mk-toast-container"
+      role="region"
+      aria-live="polite"
+      aria-atomic="false"
+      :aria-label="$t('a11y.notifications')"
+    >
       <div
         v-for="toast in toasts"
         :key="toast.id"
         class="mk-toast"
         :class="[toast.type]"
+        :role="toast.type === 'err' ? 'alert' : 'status'"
+        :aria-live="toast.type === 'err' ? 'assertive' : null"
         @click="removeToast(toast.id)"
       >
         <!-- Header: module name -->
