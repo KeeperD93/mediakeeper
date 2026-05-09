@@ -1,71 +1,20 @@
 <template>
   <div>
-    <div class="wls-kpis">
-      <div class="wls-kpi glass-kpi">
-        <span class="wls-kpi-val wls-kpi-val-missing">{{ missingCount }}</span>
-        <span class="wls-kpi-label">{{ $t('watchlist.missingEpisodes') }}</span>
-        <span class="wls-kpi-sub">
-          {{ $t('watchlist.outOfSeries', { count: filteredSeries.length }) }}
-        </span>
-      </div>
-      <div class="wls-kpi glass-kpi">
-        <span class="wls-kpi-val wls-kpi-val-upcoming">{{ upcomingCount }}</span>
-        <span class="wls-kpi-label">{{ $t('watchlist.upcoming') }}</span>
-        <span class="wls-kpi-sub">{{ $t('watchlist.upcomingEpisodes') }}</span>
-      </div>
-      <div class="wls-kpi glass-kpi">
-        <span class="wls-kpi-val wls-kpi-val-tracked">{{ tracked.length }}</span>
-        <span class="wls-kpi-label">{{ $t('watchlist.trackedContent') }}</span>
-        <span class="wls-kpi-sub">{{ $t('watchlist.active') }}</span>
-      </div>
-      <div class="wls-kpi glass-kpi">
-        <span class="wls-kpi-val wls-kpi-val-ignored">{{ ignoredCount }}</span>
-        <span class="wls-kpi-label">{{ $t('watchlist.ignoredEpisodes') }}</span>
-        <span class="wls-kpi-sub">{{ $t('watchlist.hidden') }}</span>
-      </div>
-    </div>
+    <WlsKpis
+      :missing-count="missingCount"
+      :upcoming-count="upcomingCount"
+      :tracked-count="tracked.length"
+      :ignored-count="ignoredCount"
+      :filtered-series-count="filteredSeries.length"
+    />
 
-    <!-- Barre outils : recherche + tri + groupement + export -->
-    <div class="wls-toolbar">
-      <div class="wls-search-wrap">
-        <Search class="wls-search-icon" :size="14" />
-        <input
-          v-model="searchQuery"
-          class="wls-search"
-          type="text"
-          :placeholder="$t('watchlist.searchSeries')"
-        />
-        <button v-if="searchQuery" class="wls-search-clear" @click="searchQuery = ''">
-          <X :size="12" />
-        </button>
-      </div>
-
-      <div class="wls-filters">
-        <select v-model="sortBy" class="wls-select">
-          <option value="missing">{{ $t('watchlist.sortMissing') }}</option>
-          <option value="name">{{ $t('watchlist.sortName') }}</option>
-          <option value="progress">{{ $t('watchlist.sortCompletion') }}</option>
-          <option value="year">{{ $t('watchlist.sortYear') }}</option>
-        </select>
-
-        <select v-model="groupBy" class="wls-select">
-          <option value="none">{{ $t('watchlist.groupNone') }}</option>
-          <option value="status">{{ $t('watchlist.groupStatus') }}</option>
-          <option value="year">{{ $t('watchlist.groupYear') }}</option>
-        </select>
-
-        <div class="wls-export-group">
-          <button class="wls-export-btn" :title="$t('watchlist.exportCsv')" @click="exportCSV">
-            <Download :size="15" />
-            CSV
-          </button>
-          <button class="wls-export-btn" :title="$t('watchlist.exportJson')" @click="exportJSON">
-            <Download :size="15" />
-            JSON
-          </button>
-        </div>
-      </div>
-    </div>
+    <WlsToolbar
+      v-model:search-query="searchQuery"
+      v-model:sort-by="sortBy"
+      v-model:group-by="groupBy"
+      @export-csv="exportCSV"
+      @export-json="exportJSON"
+    />
 
     <div class="wls-header">
       <p class="wls-count">
@@ -126,7 +75,10 @@
 import { ref, computed } from 'vue'
 import { useWatchlist } from '@/composables/useWatchlist'
 import WlSeriesCard from './WlSeriesCard.vue'
-import { CircleCheck, Download, RefreshCw, Search, X } from 'lucide-vue-next'
+import WlsKpis from './WlSeriesView/WlsKpis.vue'
+import WlsToolbar from './WlSeriesView/WlsToolbar.vue'
+import { useWlsExport } from './WlSeriesView/useWlsExport'
+import { CircleCheck, RefreshCw } from 'lucide-vue-next'
 import { EPISODE_STATUS, SERIES_STATUS } from '@/constants/watchlist'
 
 defineProps({ type: String })
@@ -214,210 +166,10 @@ const groupedSeries = computed(() => {
   return groups
 })
 
-// --- Export ---
-function buildExportData() {
-  const rows = []
-  for (const s of displayedSeries.value) {
-    for (const sn of s.seasons || []) {
-      for (const ep of sn.episodes) {
-        if (ep.status !== EPISODE_STATUS.MISSING) continue
-        if (ignoredSet.value.has(`${s.tmdb_id}_s${sn.season}_e${ep.episode}`)) continue
-        rows.push({
-          serie: s.name,
-          tmdb_id: s.tmdb_id,
-          annee: s.year || '',
-          saison: sn.season,
-          episode: ep.episode,
-          nom_episode: ep.name || '',
-          date_diffusion: ep.air_date || '',
-        })
-      }
-    }
-  }
-  return rows
-}
-
-function downloadFile(content, filename, mime) {
-  const blob = new Blob([content], { type: mime })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  a.click()
-  URL.revokeObjectURL(url)
-}
-
-function exportCSV() {
-  const rows = buildExportData()
-  if (!rows.length) return
-  const headers = Object.keys(rows[0])
-  const lines = [headers.join(';')]
-  for (const r of rows)
-    lines.push(headers.map(h => `"${String(r[h]).replace(/"/g, '""')}"`).join(';'))
-  downloadFile(
-    '\ufeff' + lines.join('\n'),
-    `watchlist_manquants_${new Date().toISOString().slice(0, 10)}.csv`,
-    'text/csv;charset=utf-8',
-  )
-}
-
-function exportJSON() {
-  const rows = buildExportData()
-  if (!rows.length) return
-  downloadFile(
-    JSON.stringify(rows, null, 2),
-    `watchlist_manquants_${new Date().toISOString().slice(0, 10)}.json`,
-    'application/json',
-  )
-}
+const { exportCSV, exportJSON } = useWlsExport(displayedSeries, ignoredSet)
 </script>
 
 <style scoped>
-.wls-kpis {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  margin-bottom: 20px;
-}
-.glass-kpi {
-  background: var(--surface-1);
-  backdrop-filter: var(--blur-sm);
-  border: 0.5px solid var(--border-default);
-  border-radius: var(--radius-card);
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  transition: border-color var(--duration-base);
-}
-.glass-kpi:hover {
-  border-color: rgb(99, 102, 241, 0.2);
-}
-.wls-kpi-val {
-  font-size: 1.5rem;
-  font-weight: var(--font-bold);
-  font-family: 'SF Mono', 'Cascadia Mono', monospace;
-  line-height: var(--lh-tight);
-}
-.wls-kpi-val-missing {
-  color: var(--color-error);
-}
-.wls-kpi-val-upcoming {
-  color: var(--color-info);
-}
-.wls-kpi-val-tracked {
-  color: #a78bfa;
-}
-.wls-kpi-val-ignored {
-  color: var(--color-warning);
-}
-.wls-kpi-label {
-  font-size: var(--text-2xs);
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.wls-kpi-sub {
-  font-size: var(--text-2xs);
-  color: var(--text-secondary);
-}
-
-/* Toolbar */
-.wls-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-  margin-bottom: 14px;
-}
-.wls-search-wrap {
-  position: relative;
-  flex: 1;
-  min-width: 180px;
-}
-.wls-search-icon {
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-muted);
-  pointer-events: none;
-}
-.wls-search {
-  width: 100%;
-  padding: 7px 30px 7px 32px;
-  border-radius: var(--radius-btn);
-  border: 0.5px solid var(--border-strong);
-  background: rgb(255, 255, 255, 0.03);
-  color: var(--text-primary);
-  font-size: var(--text-sm);
-  font-family: inherit;
-  outline: none;
-  transition: border-color var(--duration-fast);
-}
-.wls-search:focus {
-  border-color: rgb(99, 102, 241, 0.4);
-}
-.wls-search::placeholder {
-  color: var(--text-muted);
-}
-.wls-search-clear {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-size: var(--text-2xs);
-  padding: 2px 4px;
-}
-.wls-filters {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-.wls-select {
-  padding: 6px 10px;
-  border-radius: var(--radius-btn);
-  border: 0.5px solid var(--border-strong);
-  background: rgb(255, 255, 255, 0.03);
-  color: var(--text-secondary);
-  font-size: var(--text-2xs);
-  font-family: inherit;
-  cursor: pointer;
-  outline: none;
-}
-.wls-select:focus {
-  border-color: rgb(99, 102, 241, 0.4);
-}
-.wls-export-group {
-  display: flex;
-  gap: 4px;
-}
-.wls-export-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border-radius: var(--radius-btn);
-  border: 0.5px solid var(--border-strong);
-  background: rgb(255, 255, 255, 0.03);
-  color: var(--text-muted);
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  font-family: inherit;
-  cursor: pointer;
-  transition: all var(--duration-fast);
-}
-.wls-export-btn:hover {
-  background: rgb(99, 102, 241, 0.1);
-  color: var(--accent-400);
-  border-color: rgb(99, 102, 241, 0.25);
-}
-
 /* Group */
 .wls-group {
   margin-bottom: 20px;
@@ -506,15 +258,6 @@ function exportJSON() {
 @media (max-width: 1024px) {
   .wls-grid {
     columns: 1;
-  }
-  .wls-kpis {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .wls-toolbar {
-    flex-direction: column;
-  }
-  .wls-search-wrap {
-    min-width: 100%;
   }
 }
 </style>
