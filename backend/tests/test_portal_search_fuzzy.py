@@ -261,12 +261,12 @@ def test_search_languages_fallback_to_default_and_english():
 @pytest.mark.asyncio
 async def test_search_merges_variants_and_ranks_best_title_first(monkeypatch, db_session):
     client = _FakeTmdbClient()
-    monkeypatch.setattr(discover_details, "get_external_client", lambda: client)
+    monkeypatch.setattr(discover_details._search, "get_external_client", lambda: client)
 
     async def fake_tmdb_key(_db):
         return "test-key"
 
-    monkeypatch.setattr(discover_details, "_get_tmdb_key", fake_tmdb_key)
+    monkeypatch.setattr(discover_details._search, "_get_tmdb_key", fake_tmdb_key)
 
     items = await discover_details.search_tmdb_multi(
         db_session,
@@ -281,12 +281,12 @@ async def test_search_merges_variants_and_ranks_best_title_first(monkeypatch, db
 @pytest.mark.asyncio
 async def test_search_corrects_typos_before_ranking(monkeypatch, db_session):
     client = _FakeTmdbClient()
-    monkeypatch.setattr(discover_details, "get_external_client", lambda: client)
+    monkeypatch.setattr(discover_details._search, "get_external_client", lambda: client)
 
     async def fake_tmdb_key(_db):
         return "test-key"
 
-    monkeypatch.setattr(discover_details, "_get_tmdb_key", fake_tmdb_key)
+    monkeypatch.setattr(discover_details._search, "_get_tmdb_key", fake_tmdb_key)
 
     items = await discover_details.search_tmdb_multi(
         db_session,
@@ -300,12 +300,12 @@ async def test_search_corrects_typos_before_ranking(monkeypatch, db_session):
 @pytest.mark.asyncio
 async def test_search_corrects_gender_suffix_before_ranking(monkeypatch, db_session):
     client = _FakeTmdbClient()
-    monkeypatch.setattr(discover_details, "get_external_client", lambda: client)
+    monkeypatch.setattr(discover_details._search, "get_external_client", lambda: client)
 
     async def fake_tmdb_key(_db):
         return "test-key"
 
-    monkeypatch.setattr(discover_details, "_get_tmdb_key", fake_tmdb_key)
+    monkeypatch.setattr(discover_details._search, "_get_tmdb_key", fake_tmdb_key)
 
     items = await discover_details.search_tmdb_multi(
         db_session,
@@ -319,12 +319,12 @@ async def test_search_corrects_gender_suffix_before_ranking(monkeypatch, db_sess
 @pytest.mark.asyncio
 async def test_search_splits_missing_hyphen_before_ranking(monkeypatch, db_session):
     client = _FakeTmdbClient()
-    monkeypatch.setattr(discover_details, "get_external_client", lambda: client)
+    monkeypatch.setattr(discover_details._search, "get_external_client", lambda: client)
 
     async def fake_tmdb_key(_db):
         return "test-key"
 
-    monkeypatch.setattr(discover_details, "_get_tmdb_key", fake_tmdb_key)
+    monkeypatch.setattr(discover_details._search, "_get_tmdb_key", fake_tmdb_key)
 
     items = await discover_details.search_tmdb_multi(db_session, "spiderman")
 
@@ -335,12 +335,12 @@ async def test_search_splits_missing_hyphen_before_ranking(monkeypatch, db_sessi
 @pytest.mark.asyncio
 async def test_search_splits_missing_word_separator_before_ranking(monkeypatch, db_session):
     client = _FakeTmdbClient()
-    monkeypatch.setattr(discover_details, "get_external_client", lambda: client)
+    monkeypatch.setattr(discover_details._search, "get_external_client", lambda: client)
 
     async def fake_tmdb_key(_db):
         return "test-key"
 
-    monkeypatch.setattr(discover_details, "_get_tmdb_key", fake_tmdb_key)
+    monkeypatch.setattr(discover_details._search, "_get_tmdb_key", fake_tmdb_key)
 
     items = await discover_details.search_tmdb_multi(db_session, "missionimpossible")
 
@@ -351,12 +351,12 @@ async def test_search_splits_missing_word_separator_before_ranking(monkeypatch, 
 @pytest.mark.asyncio
 async def test_search_splits_missing_plural_separator_before_ranking(monkeypatch, db_session):
     client = _FakeTmdbClient()
-    monkeypatch.setattr(discover_details, "get_external_client", lambda: client)
+    monkeypatch.setattr(discover_details._search, "get_external_client", lambda: client)
 
     async def fake_tmdb_key(_db):
         return "test-key"
 
-    monkeypatch.setattr(discover_details, "_get_tmdb_key", fake_tmdb_key)
+    monkeypatch.setattr(discover_details._search, "_get_tmdb_key", fake_tmdb_key)
 
     items = await discover_details.search_tmdb_multi(db_session, "enquetescriminelles")
 
@@ -367,12 +367,12 @@ async def test_search_splits_missing_plural_separator_before_ranking(monkeypatch
 @pytest.mark.asyncio
 async def test_search_corrects_english_typo_and_uses_profile_language(monkeypatch, db_session):
     client = _FakeTmdbClient()
-    monkeypatch.setattr(discover_details, "get_external_client", lambda: client)
+    monkeypatch.setattr(discover_details._search, "get_external_client", lambda: client)
 
     async def fake_tmdb_key(_db):
         return "test-key"
 
-    monkeypatch.setattr(discover_details, "_get_tmdb_key", fake_tmdb_key)
+    monkeypatch.setattr(discover_details._search, "_get_tmdb_key", fake_tmdb_key)
 
     items = await discover_details.search_tmdb_multi(
         db_session,
