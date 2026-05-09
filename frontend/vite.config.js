@@ -1,11 +1,22 @@
 import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
 import { resolve } from 'path'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, __dirname, '')
   return {
-    plugins: [vue()],
+    plugins: [
+      vue(),
+      VueI18nPlugin({
+        runtimeOnly: true,
+        compositionOnly: true,
+        fullInstall: false,
+        jitCompilation: false,
+        strictMessage: false,
+        include: [resolve(__dirname, 'src/locales/**')],
+      }),
+    ],
     resolve: {
       alias: {
         '@': resolve(__dirname, 'src'),

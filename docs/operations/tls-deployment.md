@@ -174,7 +174,7 @@ Expected response headers (order may vary):
 ```
 HTTP/2 200
 content-type: application/json
-content-security-policy: default-src 'self'; script-src 'self' 'unsafe-eval'; ...
+content-security-policy: default-src 'self'; script-src 'self' https://www.youtube.com; ...
 strict-transport-security: max-age=31536000; includeSubDomains
 x-frame-options: DENY
 x-content-type-options: nosniff
@@ -208,23 +208,12 @@ that override always wins.
 
 **Browser blocks scripts/styles/images with a Content-Security-Policy
 violation.**
-The shipped policy allows: `'self'` plus `'unsafe-eval'` for scripts,
-`'self'` plus Google Fonts for styles and `'self'` plus TMDB/Imgur for
-images. If you deploy a customisation that loads other origins, switch
-to `MK_CSP_MODE=report-only` for a transition window, observe the
-violations in the browser console, and add the missing origins to a
-custom policy before going back to enforce mode.
-
-**Why does the policy include `'unsafe-eval'`?**
-The frontend uses vue-i18n to render translations. Its runtime template
-compiler calls `new Function()`, which a strict `script-src 'self'`
-rejects with `EvalError`. Until the build pipeline switches to
-pre-compiled vue-i18n messages
-(`@intlify/unplugin-vue-i18n`), `'unsafe-eval'` stays in the policy.
-The eval surface is bounded to the translation strings shipped in our
-own bundle — no user-controlled string is ever passed through the
-compiler. A future batch will remove `'unsafe-eval'` once the
-pre-compiled pipeline is in place.
+The shipped policy allows: `'self'` plus the YouTube IFrame API for
+scripts, `'self'` plus Google Fonts for styles and `'self'` plus
+TMDB/Imgur for images. If you deploy a customisation that loads other
+origins, switch to `MK_CSP_MODE=report-only` for a transition window,
+observe the violations in the browser console, and add the missing
+origins to a custom policy before going back to enforce mode.
 
 **HSTS header is missing.**
 HSTS is emitted only when MediaKeeper sees the request as HTTPS.
