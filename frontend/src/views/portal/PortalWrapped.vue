@@ -208,4 +208,12 @@ onMounted(async () => {
     transform: translate(-1px, 1px);
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .pt-slide-enter-active,
+  .pt-slide-leave-active,
+  .pt-wrapped-glitch {
+    animation: none;
+  }
+}
 </style>

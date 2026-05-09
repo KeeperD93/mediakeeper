@@ -102,4 +102,12 @@ onMounted(() => {
     gap: 14px;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-wrap {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+}
 </style>

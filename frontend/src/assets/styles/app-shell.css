@@ -178,6 +178,24 @@
   }
 }
 
+/* Reduced motion — toast slides become instant fades, progress bar
+ * collapses immediately. Spinners are functional (loading feedback) so
+ * they keep spinning, only their duration is softened in MkSpinner. */
+@media (prefers-reduced-motion: reduce) {
+  .toast-enter-active,
+  .toast-leave-active {
+    animation: none;
+    transition: none;
+  }
+  .toast-leave-to {
+    transform: none;
+  }
+  .mk-toast-progress {
+    animation: none;
+    width: 0;
+  }
+}
+
 /* ── Global spinner ── */
 .mk-spin {
   display: inline-block;
@@ -277,4 +295,11 @@
 .reconnect-fade-enter-from,
 .reconnect-fade-leave-to {
   opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reconnect-fade-enter-active,
+  .reconnect-fade-leave-active {
+    transition: none;
+  }
 }

@@ -167,4 +167,12 @@ watch(
     margin-left: auto;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-slide-up {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
 </style>
