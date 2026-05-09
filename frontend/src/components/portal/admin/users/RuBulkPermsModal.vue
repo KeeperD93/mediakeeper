@@ -9,10 +9,20 @@
         :aria-label="$t('requestsAdmin.users.bulkPerms.title')"
         @click.self="close"
       >
-        <form class="atl-panel mk-modal-sheet-panel ru-create-panel" @submit.prevent="submit">
+        <form
+          ref="panelRef"
+          class="atl-panel mk-modal-sheet-panel ru-create-panel"
+          @submit.prevent="submit"
+        >
           <div class="atl-header">
             <h2 class="atl-title">{{ $t('requestsAdmin.users.bulkPerms.title') }}</h2>
-            <button class="atl-close" type="button" :aria-label="$t('common.close')" @click="close">
+            <button
+              ref="closeBtnRef"
+              class="atl-close"
+              type="button"
+              :aria-label="$t('common.close')"
+              @click="close"
+            >
               <X :size="14" />
             </button>
           </div>
@@ -44,9 +54,11 @@
 </template>
 
 <script setup>
-import { reactive, computed, watch } from 'vue'
+import { reactive, ref, computed, toRef, watch } from 'vue'
 import { X } from 'lucide-vue-next'
 import { PERMISSION_KEYS } from '@/constants/portalAdminUsers'
+
+import { useFocusTrap } from '@/composables/useFocusTrap'
 import '@/assets/styles/portal/admin-users-modals.css'
 
 const props = defineProps({
@@ -57,6 +69,8 @@ const emit = defineEmits(['close', 'apply'])
 
 const empty = () => Object.fromEntries(PERMISSION_KEYS.map(k => [k, '']))
 const state = reactive(empty())
+const panelRef = ref(null)
+const closeBtnRef = ref(null)
 
 watch(
   () => props.open,
@@ -79,6 +93,13 @@ function submit() {
 function close() {
   emit('close')
 }
+
+useFocusTrap({
+  active: toRef(props, 'open'),
+  containerRef: panelRef,
+  initialFocusRef: closeBtnRef,
+  onEscape: close,
+})
 </script>
 
 <style scoped>

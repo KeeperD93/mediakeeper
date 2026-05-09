@@ -9,10 +9,16 @@
         :aria-label="$t('requestsAdmin.users.drawer.security.passwordReset')"
         @click.self="close"
       >
-        <div class="atl-panel mk-modal-sheet-panel ru-create-panel">
+        <div ref="panelRef" class="atl-panel mk-modal-sheet-panel ru-create-panel">
           <div class="atl-header">
             <h2 class="atl-title">{{ $t('requestsAdmin.users.drawer.security.passwordReset') }}</h2>
-            <button class="atl-close" type="button" :aria-label="$t('common.close')" @click="close">
+            <button
+              ref="closeBtnRef"
+              class="atl-close"
+              type="button"
+              :aria-label="$t('common.close')"
+              @click="close"
+            >
               <X :size="14" />
             </button>
           </div>
@@ -38,8 +44,10 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, toRef } from 'vue'
 import { Check, Copy, X } from 'lucide-vue-next'
+
+import { useFocusTrap } from '@/composables/useFocusTrap'
 import '@/assets/styles/portal/admin-users-modals.css'
 
 const props = defineProps({
@@ -49,6 +57,8 @@ const props = defineProps({
 const emit = defineEmits(['close'])
 
 const copied = ref(false)
+const panelRef = ref(null)
+const closeBtnRef = ref(null)
 
 async function copy() {
   try {
@@ -65,4 +75,11 @@ async function copy() {
 function close() {
   emit('close')
 }
+
+useFocusTrap({
+  active: toRef(props, 'open'),
+  containerRef: panelRef,
+  initialFocusRef: closeBtnRef,
+  onEscape: close,
+})
 </script>

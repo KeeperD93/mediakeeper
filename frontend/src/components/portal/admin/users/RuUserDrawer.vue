@@ -3,10 +3,12 @@
     <transition name="ru-drawer">
       <div v-if="open" class="ru-drawer-backdrop">
         <aside
+          ref="panelRef"
           class="ru-drawer"
           role="dialog"
           aria-modal="true"
           :aria-label="user?.display_name || ''"
+          tabindex="-1"
         >
           <header class="ru-drawer-header">
             <div class="ru-drawer-nav">
@@ -38,6 +40,7 @@
               </button>
             </div>
             <button
+              ref="closeBtnRef"
               class="ru-drawer-close"
               :aria-label="$t('common.close')"
               @click="$emit('close')"
@@ -142,7 +145,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, ref, toRef, watch } from 'vue'
 import { ChevronLeft, ChevronRight, X } from 'lucide-vue-next'
 import MkAvatar from '@/components/common/MkAvatar.vue'
 import RuUserBadge from './RuUserBadge.vue'
@@ -156,6 +159,7 @@ import RuTabAudit from './tabs/RuTabAudit.vue'
 
 import { DRAWER_TABS } from '@/constants/portalAdminUsers'
 import { usePortalAdminUsers } from '@/composables/portal/usePortalAdminUsers'
+import { useFocusTrap } from '@/composables/useFocusTrap'
 
 import '@/assets/styles/portal/admin-users-drawer.css'
 import '@/assets/styles/portal/admin-users-forms.css'
@@ -179,6 +183,8 @@ const user = ref(null)
 const activity = ref(null)
 const presets = ref(null)
 const loading = ref(false)
+const panelRef = ref(null)
+const closeBtnRef = ref(null)
 
 const api = usePortalAdminUsers()
 
@@ -218,4 +224,11 @@ watch(
     }
   },
 )
+
+useFocusTrap({
+  active: toRef(props, 'open'),
+  containerRef: panelRef,
+  initialFocusRef: closeBtnRef,
+  onEscape: () => emit('close'),
+})
 </script>
