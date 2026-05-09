@@ -1,0 +1,51 @@
+export const TMDB_LANGS = [
+  {
+    code: 'fr-FR',
+    flag: '🇫🇷',
+    label: 'French',
+    hint: 'Titles and episodes in French',
+    tags: ['MULTI', 'VOSTFR', 'VFF', 'VFI', 'VO', 'VOSTA'],
+  },
+  {
+    code: 'en-US',
+    flag: '🇺🇸',
+    label: 'English',
+    hint: 'Titles and episodes in English',
+    tags: ['MULTI', 'DUBBED', 'SUB', 'VO'],
+  },
+  {
+    code: 'de-DE',
+    flag: '🇩🇪',
+    label: 'German',
+    hint: 'Titles and episodes in German',
+    tags: ['MULTI', 'DUBBED', 'SUB', 'OV'],
+  },
+  {
+    code: 'es-ES',
+    flag: '🇪🇸',
+    label: 'Spanish',
+    hint: 'Titles and episodes in Spanish',
+    tags: ['MULTI', 'VOSE', 'CAST', 'VO'],
+  },
+  {
+    code: 'it-IT',
+    flag: '🇮🇹',
+    label: 'Italian',
+    hint: 'Titles and episodes in Italian',
+    tags: ['MULTI', 'DUBBED', 'SUB', 'OV'],
+  },
+  {
+    code: 'pt-BR',
+    flag: '🇧🇷',
+    label: 'Portuguese',
+    hint: 'Titles and episodes in Portuguese',
+    tags: ['MULTI', 'DUBLADO', 'LEG', 'VO'],
+  },
+  {
+    code: 'ja-JP',
+    flag: '🇯🇵',
+    label: 'Japanese',
+    hint: 'Titles and episodes in Japanese',
+    tags: ['MULTI', 'VOSTFR', 'VOSTA', 'RAW'],
+  },
+]
