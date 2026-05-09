@@ -1,6 +1,6 @@
 <template>
   <div class="mr-overlay" :class="{ show: modalRenameFolderShow }" @click.self="close">
-    <div class="mr-modal" role="dialog" aria-modal="true">
+    <div ref="panelRef" class="mr-modal" role="dialog" aria-modal="true">
       <header class="mr-header">
         <div class="mr-header-title">
           <Pencil :size="16" />
@@ -10,7 +10,7 @@
             {{ categoryLabel }}
           </span>
         </div>
-        <button class="mr-close" :title="$t('common.close')" @click="close">
+        <button ref="closeBtnRef" class="mr-close" :title="$t('common.close')" @click="close">
           <X :size="14" />
         </button>
       </header>
@@ -76,6 +76,7 @@
 <script setup>
 import { computed, nextTick, ref, watch } from 'vue'
 import { useMediaManager, CATS } from '@/composables/useMediaManager'
+import { useFocusTrap } from '@/composables/useFocusTrap'
 import { Check, ChevronRight, Folder, Pencil, X } from 'lucide-vue-next'
 import '@/assets/styles/rename-folder-modal.css'
 
@@ -89,6 +90,8 @@ const {
 } = useMediaManager()
 
 const inputRef = ref(null)
+const panelRef = ref(null)
+const closeBtnRef = ref(null)
 
 const categoryLabel = computed(() => CATS.value.find(c => c.key === activeCat.value)?.label || '')
 
@@ -114,6 +117,13 @@ function close() {
 function onEnter() {
   if (hasChange.value) execRenameFolder()
 }
+
+useFocusTrap({
+  active: modalRenameFolderShow,
+  containerRef: panelRef,
+  initialFocusRef: closeBtnRef,
+  onEscape: close,
+})
 
 watch(modalRenameFolderShow, async v => {
   if (!v) return
