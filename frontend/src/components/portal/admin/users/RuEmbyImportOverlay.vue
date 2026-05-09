@@ -9,10 +9,16 @@
         :aria-label="$t('requestsAdmin.users.drawerEmby.title')"
         @click.self="close"
       >
-        <div class="atl-panel mk-modal-sheet-panel ru-import-panel" tabindex="-1">
+        <div ref="panelRef" class="atl-panel mk-modal-sheet-panel ru-import-panel" tabindex="-1">
           <div class="atl-header">
             <h2 class="atl-title">{{ $t('requestsAdmin.users.drawerEmby.title') }}</h2>
-            <button class="atl-close" type="button" :aria-label="$t('common.close')" @click="close">
+            <button
+              ref="closeBtnRef"
+              class="atl-close"
+              type="button"
+              :aria-label="$t('common.close')"
+              @click="close"
+            >
               <X :size="14" />
             </button>
           </div>
@@ -91,9 +97,10 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { X } from 'lucide-vue-next'
+import { useFocusTrap } from '@/composables/useFocusTrap'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import { usePortalAdminUsers } from '@/composables/portal/usePortalAdminUsers'
@@ -112,6 +119,8 @@ const candidates = ref([])
 const loading = ref(false)
 const busy = ref(false)
 const selected = ref([])
+const panelRef = ref(null)
+const closeBtnRef = ref(null)
 
 const allChecked = computed(
   () => candidates.value.length > 0 && selected.value.length === candidates.value.length,
@@ -171,4 +180,11 @@ function fmt(value) {
     return value
   }
 }
+
+useFocusTrap({
+  active: toRef(props, 'open'),
+  containerRef: panelRef,
+  initialFocusRef: closeBtnRef,
+  onEscape: close,
+})
 </script>

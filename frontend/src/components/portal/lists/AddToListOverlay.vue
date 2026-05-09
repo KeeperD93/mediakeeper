@@ -8,12 +8,17 @@
         aria-modal="true"
         :aria-label="$t('portal.lists.addTo.title')"
         @click.self="close"
-        @keydown.esc="close"
       >
-        <div class="atl-panel mk-modal-sheet-panel" tabindex="-1">
+        <div ref="panelRef" class="atl-panel mk-modal-sheet-panel" tabindex="-1">
           <div class="atl-header">
             <h2 class="atl-title">{{ $t('portal.lists.addTo.title') }}</h2>
-            <button class="atl-close" type="button" :aria-label="$t('common.close')" @click="close">
+            <button
+              ref="closeBtnRef"
+              class="atl-close"
+              type="button"
+              :aria-label="$t('common.close')"
+              @click="close"
+            >
               <X :size="14" />
             </button>
           </div>
@@ -88,10 +93,11 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { X } from 'lucide-vue-next'
 import { usePortalLists } from '@/composables/portal/usePortalLists'
+import { useFocusTrap } from '@/composables/useFocusTrap'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import ListFormModal from './ListFormModal.vue'
@@ -113,6 +119,8 @@ const busy = ref(false)
 const showCreate = ref(false)
 const picked = ref([])
 const tab = ref('private')
+const panelRef = ref(null)
+const closeBtnRef = ref(null)
 
 const TABS = [
   { id: 'private', label: 'portal.lists.privacy.private' },
@@ -204,6 +212,13 @@ async function onCreate(data) {
     busy.value = false
   }
 }
+
+useFocusTrap({
+  active: toRef(props, 'open'),
+  containerRef: panelRef,
+  initialFocusRef: closeBtnRef,
+  onEscape: close,
+})
 </script>
 
 <style scoped>

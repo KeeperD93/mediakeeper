@@ -9,10 +9,20 @@
         :aria-label="$t('requestsAdmin.users.actions.notify')"
         @click.self="close"
       >
-        <form class="atl-panel mk-modal-sheet-panel ru-create-panel" @submit.prevent="submit">
+        <form
+          ref="panelRef"
+          class="atl-panel mk-modal-sheet-panel ru-create-panel"
+          @submit.prevent="submit"
+        >
           <div class="atl-header">
             <h2 class="atl-title">{{ $t('requestsAdmin.users.actions.notify') }}</h2>
-            <button class="atl-close" type="button" :aria-label="$t('common.close')" @click="close">
+            <button
+              ref="closeBtnRef"
+              class="atl-close"
+              type="button"
+              :aria-label="$t('common.close')"
+              @click="close"
+            >
               <X :size="14" />
             </button>
           </div>
@@ -50,9 +60,10 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { X } from 'lucide-vue-next'
+import { useFocusTrap } from '@/composables/useFocusTrap'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import { usePortalAdminUsers } from '@/composables/portal/usePortalAdminUsers'
@@ -70,6 +81,8 @@ const api = usePortalAdminUsers()
 const title = ref('')
 const body = ref('')
 const busy = ref(false)
+const panelRef = ref(null)
+const closeBtnRef = ref(null)
 
 watch(
   () => props.open,
@@ -99,4 +112,11 @@ async function submit() {
 function close() {
   if (!busy.value) emit('close')
 }
+
+useFocusTrap({
+  active: toRef(props, 'open'),
+  containerRef: panelRef,
+  initialFocusRef: closeBtnRef,
+  onEscape: close,
+})
 </script>

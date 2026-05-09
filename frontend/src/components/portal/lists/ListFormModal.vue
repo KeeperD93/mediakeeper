@@ -8,12 +8,17 @@
         aria-modal="true"
         :aria-label="title"
         @click.self="close"
-        @keydown.esc="close"
       >
-        <div class="lfm-panel mk-modal-sheet-panel" tabindex="-1">
+        <div ref="panelRef" class="lfm-panel mk-modal-sheet-panel" tabindex="-1">
           <div class="lfm-header">
             <h2 class="lfm-title">{{ title }}</h2>
-            <button class="lfm-close" type="button" :aria-label="$t('common.close')" @click="close">
+            <button
+              ref="closeBtnRef"
+              class="lfm-close"
+              type="button"
+              :aria-label="$t('common.close')"
+              @click="close"
+            >
               <X :size="14" />
             </button>
           </div>
@@ -85,9 +90,11 @@
 </template>
 
 <script setup>
-import { reactive, computed, watch } from 'vue'
+import { reactive, ref, computed, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { X } from 'lucide-vue-next'
+
+import { useFocusTrap } from '@/composables/useFocusTrap'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -100,6 +107,9 @@ const { t } = useI18n()
 
 const privacyOptions = ['private', 'public_readonly', 'collaborative']
 const contentTypeOptions = ['mixed', 'movies', 'series', 'documentaries']
+
+const panelRef = ref(null)
+const closeBtnRef = ref(null)
 
 const local = reactive({
   name: '',
@@ -135,6 +145,13 @@ function submit() {
   if (!canSubmit.value) return
   emit('submit', { ...local })
 }
+
+useFocusTrap({
+  active: toRef(props, 'open'),
+  containerRef: panelRef,
+  initialFocusRef: closeBtnRef,
+  onEscape: close,
+})
 </script>
 
 <style scoped>

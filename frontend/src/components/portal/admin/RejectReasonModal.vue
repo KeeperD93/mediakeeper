@@ -8,9 +8,8 @@
         aria-modal="true"
         :aria-label="$t('portal.admin.req.rejectReasonTitle')"
         @click.self="cancel"
-        @keydown.esc="cancel"
       >
-        <div class="rrm-panel" tabindex="-1">
+        <div ref="panelRef" class="rrm-panel" tabindex="-1">
           <header class="rrm-header">
             <h2 class="rrm-title">{{ $t('portal.admin.req.rejectReasonTitle') }}</h2>
             <button
@@ -55,8 +54,10 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick } from 'vue'
+import { ref, toRef, watch, nextTick } from 'vue'
 import { X } from 'lucide-vue-next'
+
+import { useFocusTrap } from '@/composables/useFocusTrap'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -66,6 +67,7 @@ const emit = defineEmits(['confirm', 'cancel'])
 
 const reason = ref('')
 const taRef = ref(null)
+const panelRef = ref(null)
 
 watch(
   () => props.open,
@@ -84,6 +86,13 @@ function cancel() {
 function confirm() {
   emit('confirm', reason.value.trim() || null)
 }
+
+useFocusTrap({
+  active: toRef(props, 'open'),
+  containerRef: panelRef,
+  initialFocusRef: taRef,
+  onEscape: cancel,
+})
 </script>
 
 <style scoped>

@@ -8,7 +8,7 @@
         aria-modal="true"
         @click.self="onCancel"
       >
-        <div class="pt-dcm-panel" tabindex="-1">
+        <div ref="panelRef" class="pt-dcm-panel" tabindex="-1">
           <header class="pt-dcm-head">
             <AlertTriangle :size="22" class="pt-dcm-icon" />
             <h2 class="pt-dcm-title">
@@ -66,9 +66,11 @@
 </template>
 
 <script setup>
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { AlertTriangle } from 'lucide-vue-next'
+
+import { useFocusTrap } from '@/composables/useFocusTrap'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -83,6 +85,7 @@ const { t } = useI18n()
 
 const typed = ref('')
 const inputRef = ref(null)
+const panelRef = ref(null)
 
 // The magic word is part of the immutable contract: once typed, the
 // confirmation button activates. We translate it so French users type
@@ -112,6 +115,13 @@ function onCancel() {
   if (props.submitting) return
   emit('cancel')
 }
+
+useFocusTrap({
+  active: toRef(props, 'open'),
+  containerRef: panelRef,
+  initialFocusRef: inputRef,
+  onEscape: onCancel,
+})
 </script>
 
 <style scoped>

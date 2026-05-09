@@ -2,7 +2,7 @@
   <Teleport to="body">
     <transition name="pt-force-fade">
       <div v-if="open" class="pt-force-uname-overlay" role="dialog" aria-modal="true">
-        <div class="pt-force-uname-panel" tabindex="-1">
+        <div ref="panelRef" class="pt-force-uname-panel" tabindex="-1">
           <h2 class="pt-force-uname-title">{{ $t('portal.settings.forceUsername.title') }}</h2>
           <p class="pt-force-uname-sub">{{ $t('portal.settings.forceUsername.subtitle') }}</p>
 
@@ -18,7 +18,6 @@
               class="pt-settings-input"
               maxlength="50"
               autocomplete="off"
-              autofocus
               @input="onInput"
             />
             <span v-if="state.flag" class="pt-settings-uname-flag" :class="state.flagClass">
@@ -63,11 +62,12 @@
 </template>
 
 <script setup>
-import { computed, nextTick, reactive, ref, watch } from 'vue'
+import { computed, nextTick, reactive, ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 import { useApi } from '@/composables/useApi'
+import { useFocusTrap } from '@/composables/useFocusTrap'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 
@@ -83,6 +83,7 @@ const { showToast } = useToast()
 
 const candidate = ref('')
 const inputRef = ref(null)
+const panelRef = ref(null)
 const saving = ref(false)
 const errorKey = ref(null)
 const usernameCheck = reactive({
@@ -205,6 +206,12 @@ async function confirm() {
     saving.value = false
   }
 }
+
+useFocusTrap({
+  active: toRef(props, 'open'),
+  containerRef: panelRef,
+  initialFocusRef: inputRef,
+})
 </script>
 
 <style scoped>
