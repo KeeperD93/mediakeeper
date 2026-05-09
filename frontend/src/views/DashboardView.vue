@@ -116,8 +116,12 @@
           :max-h="item.maxH ?? Infinity"
           class="dash-widget"
           :class="{ 'widget-editing': editing }"
+          :tabindex="editing ? 0 : -1"
+          :data-kb-moving="movingItemId === item.i"
+          :aria-grabbed="movingItemId === item.i ? 'true' : null"
           @move="onDragStart(item.i)"
           @moved="onDragEnd(item.i)"
+          @keydown="(e) => handleKeydown(e, item.i)"
         >
           <div class="widget-inner" :style="{ animationDelay: idx * 60 + 'ms' }">
             <component
@@ -199,6 +203,15 @@
           </div>
         </GridItem>
       </GridLayout>
+      <div
+        class="sr-only"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        data-testid="dashboard-kb-live"
+      >
+        {{ liveAnnouncement }}
+      </div>
     </div>
 
     <NowPlayingFullscreen :visible="npVisible" :session="npSession" @close="npVisible = false" />
@@ -221,9 +234,11 @@ import {
   RotateCcw,
   X,
 } from 'lucide-vue-next'
+import { useI18n } from 'vue-i18n'
 import { useTheme } from '@/composables/useTheme'
 import { useDashboardLayout, WIDGET_REGISTRY, WIDGET_ICONS } from '@/composables/useDashboardLayout'
 import { useDashboardData } from '@/composables/useDashboardData'
+import { useDashboardKeyboardMove } from '@/composables/useDashboardKeyboardMove'
 import { useMobile } from '@/composables/useMobile'
 
 import HeroCarousel from '@/components/dashboard/HeroCarousel.vue'
@@ -245,10 +260,19 @@ import '@/assets/styles/dashboard-view.css'
 
 const STAT_CARDS_WITH_ICON = new Set(['statPlays', 'statDuration', 'statDuplicates', 'statStorage'])
 
+const { t } = useI18n()
 const { particlesEnabled } = useTheme()
 const { isMobile } = useMobile()
 const { editing, hidden, layout, loaded, loadLayout, toggleWidget, resetLayout, onLayoutUpdated } =
   useDashboardLayout()
+
+const { movingItemId, liveAnnouncement, handleKeydown } = useDashboardKeyboardMove({
+  layout,
+  editing,
+  colNum: 36,
+  onLayoutUpdated,
+  t,
+})
 
 const {
   sys,

@@ -401,7 +401,13 @@
     "tabPlayback": "Playback",
     "tabAlerts": "Alerts",
     "nameNotFound": "Name not found",
-    "movieRelease": "Movie release"
+    "movieRelease": "Movie release",
+    "a11y": {
+      "movingWidget": "Moving widget. Use arrows to position, Space to confirm, Escape to cancel.",
+      "movedTo": "Moved to column {x}, row {y}.",
+      "moveConfirmed": "Position confirmed.",
+      "moveCancelled": "Move cancelled, original position restored."
+    }
   },
   "stats": {
     "title": "Statistics",
