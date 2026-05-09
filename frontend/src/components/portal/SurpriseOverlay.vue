@@ -13,8 +13,8 @@
       5. "Je retente ma chance" flips the card back and restarts.
   -->
   <Teleport to="body">
-    <div class="so" role="dialog" aria-modal="true" @click.self="close">
-      <button class="so-close" :aria-label="$t('common.close')" @click="close">
+    <div ref="panelRef" class="so" role="dialog" aria-modal="true" tabindex="-1" @click.self="close">
+      <button ref="closeBtnRef" class="so-close" :aria-label="$t('common.close')" @click="close">
         <X :size="22" :stroke-width="2.5" />
       </button>
 
@@ -125,13 +125,18 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import TrailerLightbox from './TrailerLightbox.vue'
 import { useSurpriseOverlay } from './useSurpriseOverlay.js'
+import { useFocusTrap } from '@/composables/useFocusTrap'
 import { Dice1, Dices, Video, Volume2, VolumeX, X } from 'lucide-vue-next'
 
 import '@/assets/styles/portal/surprise-overlay.css'
 
 const emit = defineEmits(['close'])
+
+const panelRef = ref(null)
+const closeBtnRef = ref(null)
 
 const {
   KINDS,
@@ -157,4 +162,11 @@ const {
   formatRuntime,
   close,
 } = useSurpriseOverlay(emit)
+
+useFocusTrap({
+  active: ref(true),
+  containerRef: panelRef,
+  initialFocusRef: closeBtnRef,
+  onEscape: close,
+})
 </script>

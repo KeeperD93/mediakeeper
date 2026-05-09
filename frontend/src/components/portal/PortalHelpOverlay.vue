@@ -8,12 +8,12 @@
         aria-modal="true"
         :aria-label="$t('portal.help.title')"
         @click.self="close"
-        @keydown.esc.prevent="close"
       >
         <div class="pt-help-backdrop-fx" aria-hidden="true" />
 
         <div ref="panelRef" class="pt-help-panel" tabindex="-1">
           <button
+            ref="closeBtnRef"
             class="pt-help-close"
             type="button"
             :aria-label="$t('common.close')"
@@ -158,6 +158,7 @@ import MkSpinner from '@/components/common/MkSpinner.vue'
 import HelpCardList from './help/HelpCardList.vue'
 import HelpEditView from './help/HelpEditView.vue'
 import HelpTrashView from './help/HelpTrashView.vue'
+import { useFocusTrap } from '@/composables/useFocusTrap'
 import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 import { usePortalHelp } from '@/composables/portal/usePortalHelp'
 import { usePortalHelpAdmin } from '@/composables/portal/usePortalHelpAdmin'
@@ -175,6 +176,7 @@ const emit = defineEmits(['close'])
 
 const visible = ref(false)
 const panelRef = ref(null)
+const closeBtnRef = ref(null)
 const mode = ref('view') // 'view' | 'edit' | 'trash'
 const editingArticle = ref(null)
 const expandedId = ref(null)
@@ -273,6 +275,13 @@ watch(
   },
   { immediate: true },
 )
+
+useFocusTrap({
+  active: visible,
+  containerRef: panelRef,
+  initialFocusRef: closeBtnRef,
+  onEscape: close,
+})
 </script>
 
 <!-- Styles externalised to assets/styles/portal/help-overlay*.css; the

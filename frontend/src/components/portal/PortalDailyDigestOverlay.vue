@@ -8,11 +8,16 @@
         aria-modal="true"
         :aria-label="$t('portal.dailyDigest.title')"
         @click.self="close"
-        @keydown.esc.prevent="close"
       >
         <div class="ddd-backdrop-fx" aria-hidden="true" />
         <div ref="panelRef" class="ddd-panel" tabindex="-1">
-          <button class="ddd-close" type="button" :aria-label="$t('common.close')" @click="close">
+          <button
+            ref="closeBtnRef"
+            class="ddd-close"
+            type="button"
+            :aria-label="$t('common.close')"
+            @click="close"
+          >
             <X :size="18" />
           </button>
 
@@ -216,6 +221,7 @@
 import { ref, nextTick, watch, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useApi } from '@/composables/useApi'
+import { useFocusTrap } from '@/composables/useFocusTrap'
 import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 import { useDailyDigestPresenters } from '@/composables/portal/useDailyDigestPresenters'
 import { X, Trophy, ChevronLeft, ChevronRight } from 'lucide-vue-next'
@@ -235,6 +241,7 @@ const router = useRouter()
 
 const visible = ref(false)
 const panelRef = ref(null)
+const closeBtnRef = ref(null)
 const postersRef = ref(null)
 const canScrollLeft = ref(false)
 const canScrollRight = ref(false)
@@ -351,6 +358,13 @@ watch(
     if (v) load({ force: true, bypassDismissed: true })
   },
 )
+
+useFocusTrap({
+  active: visible,
+  containerRef: panelRef,
+  initialFocusRef: closeBtnRef,
+  onEscape: close,
+})
 
 if (props.auto) {
   load()
