@@ -1,6 +1,6 @@
 <template>
   <div class="mv-overlay" :class="{ show: modalMoveShow }" @click.self="closeMoveModal">
-    <div class="mv-modal" role="dialog" aria-modal="true">
+    <div ref="panelRef" class="mv-modal" role="dialog" aria-modal="true">
       <header class="mv-header">
         <div class="mv-header-title">
           <ArrowLeftRight :size="16" />
@@ -10,7 +10,7 @@
             {{ $t('mediaManager.movingNFiles', { count: moveSourcesCount }, moveSourcesCount) }}
           </span>
         </div>
-        <button class="mv-close" :title="$t('common.close')" @click="closeMoveModal">
+        <button ref="closeBtnRef" class="mv-close" :title="$t('common.close')" @click="closeMoveModal">
           <X :size="14" />
         </button>
       </header>
@@ -230,6 +230,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useMediaManager, CATS } from '@/composables/useMediaManager'
+import { useFocusTrap } from '@/composables/useFocusTrap'
 import {
   ArrowLeftRight,
   ArrowRight,
@@ -279,6 +280,8 @@ const {
 const recentExpanded = ref(false)
 const newFolderName = ref('')
 const creatingFolder = ref(false)
+const panelRef = ref(null)
+const closeBtnRef = ref(null)
 
 async function onConfirmCreateFolder() {
   if (!newFolderName.value.trim() || creatingFolder.value) return
@@ -303,4 +306,11 @@ const suggestedAbsPath = computed(() => {
 function folderAbsPath(f) {
   return movePath.value ? `${movePath.value}/${f.name}` : f.name
 }
+
+useFocusTrap({
+  active: modalMoveShow,
+  containerRef: panelRef,
+  initialFocusRef: closeBtnRef,
+  onEscape: closeMoveModal,
+})
 </script>

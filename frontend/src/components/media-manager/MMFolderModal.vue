@@ -1,6 +1,6 @@
 <template>
   <div class="mf-overlay" :class="{ show: modalFolders.show }" @click.self="close">
-    <div class="mf-modal" role="dialog" aria-modal="true">
+    <div ref="panelRef" class="mf-modal" role="dialog" aria-modal="true">
       <header class="mf-header">
         <div class="mf-header-title">
           <Folder :size="16" />
@@ -16,7 +16,7 @@
             }}
           </span>
         </div>
-        <button class="mf-close" :title="$t('common.close')" @click="close">
+        <button ref="closeBtnRef" class="mf-close" :title="$t('common.close')" @click="close">
           <X :size="14" />
         </button>
       </header>
@@ -135,8 +135,9 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useMediaManager } from '@/composables/useMediaManager'
+import { useFocusTrap } from '@/composables/useFocusTrap'
 import { ArrowRight, Check, Files, Folder, Pencil, RefreshCw, X } from 'lucide-vue-next'
 import '@/assets/styles/folder-modal.css'
 
@@ -180,4 +181,15 @@ const hasFolderChanges = computed(() =>
 function close() {
   modalFolders.value.show = false
 }
+
+const panelRef = ref(null)
+const closeBtnRef = ref(null)
+const folderModalActive = computed(() => modalFolders.value.show)
+
+useFocusTrap({
+  active: folderModalActive,
+  containerRef: panelRef,
+  initialFocusRef: closeBtnRef,
+  onEscape: close,
+})
 </script>
