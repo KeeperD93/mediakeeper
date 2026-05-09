@@ -785,7 +785,7 @@
       "imageStyleThumb": "Miniature (à droite du texte)",
       "imageStyleNone": "Aucune image",
       "tplSettings": "Paramètres de l'embed",
-      "fieldsHint": "Insérez des champs Discord avec <fields>[{\"name\":\"Titre\",\"value\":\"Valeur\",\"inline\":true}]</fields>",
+      "fieldsHint": "Insérez des champs Discord avec la balise <fields>...</fields> (tableau JSON d'objets : name, value, inline).",
       "testFull": "Tester sur Discord",
       "varClickHint": "Cliquez sur une variable pour l'insérer",
       "varsLabel": "Variables :",

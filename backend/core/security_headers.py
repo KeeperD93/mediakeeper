@@ -6,14 +6,6 @@ Emits the standard defensive headers on every HTTP response:
     bundle by ``core.app_spa``). Allows Google Fonts (preconnect already
     declared in ``frontend/index.html``), TMDB poster CDN, Imgur uploads.
 
-    ``script-src`` includes ``'unsafe-eval'``: vue-i18n compiles its
-    message templates at runtime via ``new Function()``, which a strict
-    ``script-src 'self'`` rejects with ``EvalError``. The eval surface is
-    bounded to translation strings shipped in our own bundle, not to
-    arbitrary user input. Tracked as tech debt — switch vue-i18n to
-    pre-compiled messages (``@intlify/unplugin-vue-i18n``) and drop
-    ``'unsafe-eval'`` in a follow-up batch.
-
     ``frame-src`` whitelists the YouTube and Vimeo embed origins so the
     portal trailer player keeps working under enforce mode; ``object-src``
     is locked to ``'none'`` because MediaKeeper never embeds plugins.
@@ -44,12 +36,9 @@ CSP_REPORT_PATH = "/api/csp-violation-report"
 # AND a grep on the codebase confirms no remaining reference.
 CSP_DIRECTIVES = "; ".join([
     "default-src 'self'",
-    # ``'unsafe-eval'`` is required by vue-i18n's runtime template
-    # compiler (``new Function()``). See module docstring for removal
-    # plan.
     # https://www.youtube.com — IFrame API loader (/iframe_api); embed
     # iframes themselves target youtube-nocookie.com on frame-src.
-    "script-src 'self' 'unsafe-eval' https://www.youtube.com",
+    "script-src 'self' https://www.youtube.com",
     # https://fonts.googleapis.com — Google Fonts CSS preconnect from
     # frontend/index.html.
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",

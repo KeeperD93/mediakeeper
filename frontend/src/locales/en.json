@@ -785,7 +785,7 @@
       "imageStyleThumb": "Thumbnail (right of text)",
       "imageStyleNone": "No image",
       "tplSettings": "Embed settings",
-      "fieldsHint": "Insert Discord fields with <fields>[{\"name\":\"Title\",\"value\":\"Value\",\"inline\":true}]</fields>",
+      "fieldsHint": "Insert Discord fields with the <fields>...</fields> tag (JSON array of objects with name, value, inline).",
       "testFull": "Test on Discord",
       "varClickHint": "Click a variable to insert it",
       "varsLabel": "Variables:",
