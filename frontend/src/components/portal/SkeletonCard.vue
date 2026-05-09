@@ -68,4 +68,10 @@ defineProps({
     transform: translateX(100%);
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .pt-shimmer::after {
+    animation: none;
+  }
+}
 </style>

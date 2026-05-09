@@ -157,6 +157,13 @@
   }
 }
 
+/* Reduced motion — modal sheet/pop animations become instant reveals. */
+@media (prefers-reduced-motion: reduce) {
+  .mk-modal-sheet-panel {
+    animation: none;
+  }
+}
+
 /* ═══════════ Grid helpers ═══════════ */
 /* Auto-fit grid where cells shrink instead of overflowing. The
    ``--mk-grid-min`` variable lets callers tweak the minimum cell

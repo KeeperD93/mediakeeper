@@ -273,4 +273,20 @@ const currentEmbyUrl = computed(() => {
     min-width: 0;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-green::after,
+  .pulse-yellow::after,
+  .pulse-purple::after {
+    animation: none;
+  }
+  .anim-slide-up {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .hero-progress-fill {
+    transition: none;
+  }
+}
 </style>

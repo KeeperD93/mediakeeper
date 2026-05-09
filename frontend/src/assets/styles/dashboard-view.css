@@ -285,6 +285,18 @@
   }
 }
 
+/* Reduced motion — skeleton shimmer and widget cascade reveal become
+ * static. Skeletons remain visible (loading affordance) but stop pulsing. */
+@media (prefers-reduced-motion: reduce) {
+  .skel-block {
+    animation: none;
+  }
+  .cinema-dash .widget-inner {
+    animation: none;
+    opacity: 1;
+  }
+}
+
 .widget-badge-icon {
   position: absolute;
   top: 8px;

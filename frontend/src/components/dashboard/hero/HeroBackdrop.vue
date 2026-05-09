@@ -180,4 +180,22 @@ const ambianceStyle = computed(() => {
     opacity: 0.6;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-backdrop-layer,
+  .hero-backdrop-layer.kb-a,
+  .hero-backdrop-layer.kb-b,
+  .hero-backdrop-layer.idle {
+    animation: none;
+    transition: none;
+  }
+  .hero-ambiance {
+    transition: none;
+  }
+  .hero-audio-wave {
+    animation: none;
+    height: 40px;
+    opacity: 0.45;
+  }
+}
 </style>

@@ -354,6 +354,30 @@ body.mk-konami-active .mk-sidebar {
   }
 }
 
+/* Reduced motion — neutralize decorative animations:
+ * Konami easter egg (rainbow / shake / toast pop), Vue Router fade /
+ * directional slide. Functional fades remain readable but instant. */
+@media (prefers-reduced-motion: reduce) {
+  body.mk-konami-active,
+  body.mk-konami-active .mk-sidebar,
+  .mk-konami-toast {
+    animation: none;
+  }
+  .mk-konami-toast {
+    opacity: 1;
+  }
+  .fade-enter-active,
+  .fade-leave-active,
+  .route-slide-enter-active,
+  .route-slide-leave-active {
+    transition: none;
+  }
+  .route-slide-enter-from,
+  .route-slide-leave-to {
+    transform: none;
+  }
+}
+
 /* Pages with a mobile-bottom TabStrip (Watchlist, Settings, Stats, Logs,
  * Notifications, Duplicates, Subtitles, Media health): add a matching
  * padding-bottom on the scroll container so content above the fixed tab
