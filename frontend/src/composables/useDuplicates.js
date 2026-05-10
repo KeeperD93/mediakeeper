@@ -226,6 +226,17 @@ export function useDuplicates() {
       showToast(t('common.networkError'), TOAST_TYPE.ERR)
     }
   }
+  async function restoreDuplicates(keys) {
+    if (!keys?.length) return
+    try {
+      await apiPost('/api/duplicates/ignored/remove', { keys })
+      const set = new Set(keys)
+      ignoredItems.value = ignoredItems.value.filter(i => !set.has(i.key))
+      showToast(t('duplicates.restored'), TOAST_TYPE.OK, 2000)
+    } catch {
+      showToast(t('common.networkError'), TOAST_TYPE.ERR)
+    }
+  }
   async function deleteSource(item, src, skipConfirm = false) {
     if (!skipConfirm) {
       const ok = await mkConfirm({
@@ -334,6 +345,7 @@ export function useDuplicates() {
     loadHistoryStats,
     ignoreDuplicate,
     restoreDuplicate,
+    restoreDuplicates,
     deleteSource,
     keepSource,
     scanEmby,

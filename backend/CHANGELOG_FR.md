@@ -112,6 +112,11 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Utilisateurs — onglet Trophées : badge rareté (Commun → Mythique) + XP gagné affichés sous chaque trophée débloqué
 - Profil — classement du mois affiche les 15 lignes sans scroll interne (la carte s'allonge selon le contenu)
 - Migrations — chaînage 029 → 030 corrigé (deux heads Alembic résolus)
+- Doublons — onglet Ignorés en lignes compactes groupées par série, header avec bouton « Tout restaurer »
+- Portail — pastille de disponibilité unifiée (cache canonique prioritaire, plus de divergence entre Top 20 et autres listes)
+- Portail — bouton « Lecture » retiré des bannières héros (héros redevient informatif, demande conservée)
+- Portail — vidéo héros collée sous la topbar à toutes les largeurs (fin du masque qui découvrait le fond)
+- Notifications admin — messages longs s'affichent sur plusieurs lignes au lieu d'être tronqués
 
 ## [0.9.8] - 2026-04-28
 

@@ -602,6 +602,8 @@
     "keepBest": "Keep the best version",
     "noIgnored": "No ignored duplicates",
     "ignoredHint": "Ignored duplicates will appear here",
+    "ignoredCount": "{count} ignored duplicate(s)",
+    "restoreAllConfirm": "Restore the {n} ignored duplicates?",
     "noHistory": "No cleanup performed",
     "historyHint": "Deletion history will appear here",
     "addRule": "+ Add a rule",

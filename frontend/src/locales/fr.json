@@ -602,6 +602,8 @@
     "keepBest": "Garder la meilleure version",
     "noIgnored": "Aucun doublon ignoré",
     "ignoredHint": "Les doublons ignorés apparaîtront ici",
+    "ignoredCount": "{count} doublon(s) ignoré(s)",
+    "restoreAllConfirm": "Restaurer les {n} doublons ignorés ?",
     "noHistory": "Aucun nettoyage effectué",
     "historyHint": "L'historique des suppressions apparaîtra ici",
     "addRule": "+ Ajouter une règle",

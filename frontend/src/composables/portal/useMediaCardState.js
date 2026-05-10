@@ -18,17 +18,24 @@ export function useMediaCardState(props) {
   const { getStatus } = useRequestStatus()
 
   const availData = computed(() => {
-    // Items that already carry their own emby_url + availability (e.g. Top20
-    // items, which come straight from Emby playback data) bypass the
-    // tmdb_id-based lookup and use what the backend handed us directly.
+    // Single source of truth: always consult the canonical availability
+    // cache when a tmdb_id is known. The backend `/availability` endpoint
+    // computes partial-vs-full for series properly, so a series that's
+    // missing episodes correctly resolves to 'partial' even when the row
+    // payload (e.g. /top20) pre-stamped 'full' as a hint.
+    const id = props.item?.tmdb_id || props.item?.id
+    const cached = id ? getAvailability(id) : null
+    if (cached) return cached
+    // Fallback: items that carry an inline `emby_url` / `availability`
+    // (Top20, hero strips) render their pre-stamped value until the
+    // availability cache is primed.
     if (props.item?.emby_url || props.item?.availability) {
       return {
         emby_url: props.item.emby_url || '',
         availability: props.item.availability || 'full',
       }
     }
-    const id = props.item?.tmdb_id || props.item?.id
-    return id ? getAvailability(id) : null
+    return null
   })
 
   const avail = computed(() => availData.value?.availability || null)
