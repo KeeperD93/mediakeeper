@@ -69,6 +69,10 @@ This section intentionally has no date so it is not shown to users.
 - Watchlist — audio language tags (FR, EN, JP…) on available episodes, with tooltip
 - Media Manager — rectangle lasso selection in the file list (Escape cancels)
 - Media Manager — wider clickable gutters around lists so the lasso starts without aiming off-row
+- Accessibility — focus traps on 20 modals/overlays (Escape restores focus)
+- Accessibility — keyboard alternative for rearranging dashboard widgets
+- Accessibility — toasts announced to screen readers (aria-live region)
+- Accessibility — decorative animations respect prefers-reduced-motion
 
 ### Fixed
 - Discord notifications — context-aware "series" / "full season" / "episodes" detection, configured template and synopsis now applied
@@ -122,6 +126,9 @@ This section intentionally has no date so it is not shown to users.
 - Portal — "Play" CTA removed from hero banners (hero is informational, request still surfaces)
 - Portal — hero video sticks to the topbar at every width (mask no longer reveals the dark background)
 - Admin notifications — long messages wrap onto multiple lines instead of being truncated
+- Security — dropped `unsafe-eval` from CSP (vue-i18n locales precompiled)
+- Stats — Top 20 and genre stats now count sessions with the same rules (Watchlist parity)
+- Privacy — clean error message when the export exceeds the size cap (no more server error)
 
 ## [0.9.8] - 2026-04-28
 

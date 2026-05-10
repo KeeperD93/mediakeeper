@@ -69,6 +69,10 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Suivi — pastilles de langues audio (FR, EN, JP…) sur les épisodes disponibles, avec tooltip
 - Gestionnaire — sélection au lasso rectangulaire dans la liste de fichiers (annulable par Échap)
 - Gestionnaire — marges cliquables élargies autour des listes pour amorcer un lasso sans viser une ligne
+- Accessibilité — pièges au clavier sur 20 modales/overlays (Échap restaure le focus)
+- Accessibilité — alternative clavier à la réorganisation des widgets du tableau de bord
+- Accessibilité — toasts annoncés aux lecteurs d'écran (région aria-live)
+- Accessibilité — animations décoratives respectent prefers-reduced-motion
 
 
 ### Fixed
@@ -123,6 +127,9 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Portail — bouton « Lecture » retiré des bannières héros (héros redevient informatif, demande conservée)
 - Portail — vidéo héros collée sous la topbar à toutes les largeurs (fin du masque qui découvrait le fond)
 - Notifications admin — messages longs s'affichent sur plusieurs lignes au lieu d'être tronqués
+- Sécurité — suppression de `unsafe-eval` dans la CSP (locales vue-i18n précompilées)
+- Statistiques — Top 20 et stats par genre comptent selon les mêmes règles (cohérence Watchlist)
+- Confidentialité — message d'erreur propre quand l'export dépasse la limite (plus d'erreur serveur)
 
 ## [0.9.8] - 2026-04-28
 
