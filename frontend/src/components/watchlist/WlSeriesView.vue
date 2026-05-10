@@ -78,6 +78,7 @@ import WlSeriesCard from './WlSeriesCard.vue'
 import WlsKpis from './WlSeriesView/WlsKpis.vue'
 import WlsToolbar from './WlSeriesView/WlsToolbar.vue'
 import { useWlsExport } from './WlSeriesView/useWlsExport'
+import { dedupeByTmdb } from './WlSeriesView/dedupeByTmdb'
 import { CircleCheck, RefreshCw } from 'lucide-vue-next'
 import { EPISODE_STATUS, SERIES_STATUS } from '@/constants/watchlist'
 
@@ -104,7 +105,7 @@ const groupBy = ref('none')
 const filteredSeries = computed(() => {
   if (!data.value?.series) return []
   const ign = ignoredSet.value
-  return data.value.series
+  return dedupeByTmdb(data.value.series)
     .map(s => {
       const mc = (s.seasons || []).reduce(
         (a, sn) =>

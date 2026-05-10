@@ -15,6 +15,30 @@ from ._emby import _get_all_emby_series, _get_emby_episodes
 logger = logging.getLogger("mediakeeper.watchlist.scanner")
 
 
+def dedupe_by_tmdb(series: list[dict]) -> list[dict]:
+    """Collapse entries sharing the same `tmdb_id`, keeping the best Emby copy.
+
+    Emby may expose the same TV series several times (split versions, multiple
+    libraries) — each item produces a distinct analysis with an identical
+    `tmdb_id`. The frontend keys its list by `tmdb_id`, so we keep the copy
+    with the lowest `missing_count` (most episodes locally available).
+    """
+    best: dict[int, dict] = {}
+    out: list[dict] = []
+    for entry in series:
+        tid = entry.get("tmdb_id")
+        if tid is None:
+            out.append(entry)
+            continue
+        current = best.get(tid)
+        if current is None:
+            best[tid] = entry
+        elif entry.get("missing_count", 0) < current.get("missing_count", 0):
+            best[tid] = entry
+    out.extend(best.values())
+    return out
+
+
 async def full_scan(db: AsyncSession, library_id: str = "", progress_cb=None) -> dict:
     """Full scan — stores the results in the DB."""
     if not await _state.try_start_scan("full"):
@@ -24,6 +48,7 @@ async def full_scan(db: AsyncSession, library_id: str = "", progress_cb=None) ->
     try:
         series_list = await _get_all_emby_series(db, library_id)
         results = await _analyze_series_batch(db, series_list, progress_cb=progress_cb)
+        results = dedupe_by_tmdb(results)
         total_m = sum(a["missing_count"] for a in results)
         total_u = sum(a["upcoming_count"] for a in results)
 
@@ -126,6 +151,7 @@ async def incremental_scan(db: AsyncSession) -> dict:
             except Exception as e:
                 logger.error(f"Error analyzing new series TMDB#{tid}: {e}")
 
+        updated_series = dedupe_by_tmdb(updated_series)
         updated_series.sort(key=lambda x: x["missing_count"], reverse=True)
         total_m = sum(s["missing_count"] for s in updated_series)
         total_u = sum(s["upcoming_count"] for s in updated_series)
