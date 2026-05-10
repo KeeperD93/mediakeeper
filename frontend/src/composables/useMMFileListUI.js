@@ -1,16 +1,17 @@
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useApi } from '@/composables/useApi'
 import { useToast } from '@/composables/useToast'
+import { useRectLasso } from '@/composables/useRectLasso'
 import { TOAST_TYPE } from '@/constants/toast'
 import { FILE_TYPE } from '@/constants/mediaManager'
 import { useMediaManager } from '@/composables/useMediaManager'
 
 /**
  * Groups all UI-only state/behaviour that would otherwise bloat
- * MMFileList: lasso-selection rectangle, context menu, inline rename
- * modal, quality-score popup with penalty detection, and hover
- * thumbnail preview.
+ * MMFileList: lasso-selection rectangle (delegated to ``useRectLasso``),
+ * context menu, inline rename modal, quality-score popup with penalty
+ * detection, and hover thumbnail preview.
  *
  * The caller passes the scroll container ref + the visible filtered
  * items ref so the lasso can resolve indices against the current view.
@@ -29,57 +30,49 @@ export function useMMFileListUI({ fileListRef, filtered, checked }) {
   } = useMediaManager()
 
   // ── Lasso rectangle ──
-  const lasso = ref({ active: false, startX: 0, startY: 0, curX: 0, curY: 0, scrollStart: 0 })
+  // Rows are uniform-height, so the lasso resolves selection through
+  // ROW_H math instead of querying individual row rects — that keeps
+  // virtualized (off-screen) rows reachable too.
   const ROW_H = 36
+  const _selectionBeforeLasso = ref(null)
 
-  const lassoStyle = computed(() => {
-    if (!lasso.value.active) return { display: 'none' }
-    const l = lasso.value
-    const x1 = Math.min(l.startX, l.curX),
-      x2 = Math.max(l.startX, l.curX)
-    const y1 = Math.min(l.startY, l.curY),
-      y2 = Math.max(l.startY, l.curY)
-    return { left: x1 + 'px', top: y1 + 'px', width: x2 - x1 + 'px', height: y2 - y1 + 'px' }
+  const { isDragging: lassoDragging, rectStyle: lassoStyle } = useRectLasso({
+    container: fileListRef,
+    excludeSelector: '.mm-file-row, button, input',
+    hitTest: ({ y1, y2 }) => {
+      if (_selectionBeforeLasso.value === null) {
+        _selectionBeforeLasso.value = new Set(checked.value)
+      }
+      const total = filtered.value.length
+      if (!total) return []
+      // Container has gutter padding (Rules §3 tokens) that offsets the
+      // first row's top by ``paddingTop`` — subtract it before mapping
+      // y → row index, otherwise the lasso is one row off near the
+      // bottom of every drag.
+      const el = fileListRef.value
+      const padTop = el ? parseFloat(getComputedStyle(el).paddingTop) || 0 : 0
+      const adjY1 = Math.max(0, y1 - padTop)
+      const adjY2 = Math.max(0, y2 - padTop)
+      const firstIdx = Math.max(0, Math.floor(adjY1 / ROW_H))
+      const lastIdx = Math.min(total - 1, Math.floor(adjY2 / ROW_H))
+      const ids = []
+      for (let i = firstIdx; i <= lastIdx; i++) ids.push(i)
+      return ids
+    },
+    onSelect: ids => {
+      checked.value = new Set(ids)
+    },
+    onCancel: () => {
+      // ESC → restore the selection that was active before the drag.
+      if (_selectionBeforeLasso.value) checked.value = new Set(_selectionBeforeLasso.value)
+      _selectionBeforeLasso.value = null
+    },
   })
 
-  function onLassoStart(e) {
-    if (e.target.closest('.mm-file-row') || e.target.closest('button') || e.target.closest('input'))
-      return
-    if (e.button !== 0) return
-    const rect = fileListRef.value.getBoundingClientRect()
-    lasso.value = {
-      active: true,
-      startX: e.clientX - rect.left + fileListRef.value.scrollLeft,
-      startY: e.clientY - rect.top + fileListRef.value.scrollTop,
-      curX: e.clientX - rect.left + fileListRef.value.scrollLeft,
-      curY: e.clientY - rect.top + fileListRef.value.scrollTop,
-      scrollStart: fileListRef.value.scrollTop,
-    }
-  }
-
-  function onLassoMove(e) {
-    if (!lasso.value.active) return
-    const rect = fileListRef.value.getBoundingClientRect()
-    lasso.value.curX = e.clientX - rect.left + fileListRef.value.scrollLeft
-    lasso.value.curY = e.clientY - rect.top + fileListRef.value.scrollTop
-    const l = lasso.value
-    const y1 = Math.min(l.startY, l.curY)
-    const y2 = Math.max(l.startY, l.curY)
-    const firstIdx = Math.max(0, Math.floor(y1 / ROW_H))
-    const lastIdx = Math.min(filtered.value.length - 1, Math.floor(y2 / ROW_H))
-    if (firstIdx <= lastIdx) {
-      const s = new Set()
-      for (let i = firstIdx; i <= lastIdx; i++) {
-        if (i >= 0 && i < filtered.value.length) s.add(i)
-      }
-      checked.value = s
-    }
-  }
-
-  function onLassoEnd() {
-    if (!lasso.value.active) return
-    lasso.value.active = false
-  }
+  // Reset the pre-lasso snapshot once the drag finishes normally.
+  watch(lassoDragging, dragging => {
+    if (!dragging) _selectionBeforeLasso.value = null
+  })
 
   // ── Hover thumbnail ──
   const hoverThumbnail = ref({ visible: false, url: null, x: 0, y: 0 })
@@ -211,11 +204,8 @@ export function useMMFileListUI({ fileListRef, filtered, checked }) {
   }
 
   return {
-    lasso,
+    lassoDragging,
     lassoStyle,
-    onLassoStart,
-    onLassoMove,
-    onLassoEnd,
     hoverThumbnail,
     onFileHover,
     onFileHoverEnd,

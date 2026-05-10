@@ -109,26 +109,33 @@ async def incremental_scan(db: AsyncSession) -> dict:
                 continue
 
             series_id = emby_item.get("Id", "")
-            emby_set = await _get_emby_episodes(db, series_id)
+            emby_episodes = await _get_emby_episodes(db, series_id)
             m_count, u_count = 0, 0
 
             for season in cached.get("seasons", []):
                 all_present = True
                 for ep in season.get("episodes", []):
                     sn, en = season["season"], ep["episode"]
-                    present = (sn, en) in emby_set
+                    present = (sn, en) in emby_episodes
                     air = ep.get("air_date", "")
 
                     if present:
                         ep["status"] = "present"
-                    elif air and air > today:
-                        ep["status"] = "upcoming"
-                        u_count += 1
-                        all_present = False
+                        langs = emby_episodes.get((sn, en)) or []
+                        if langs:
+                            ep["audio_languages"] = langs
+                        else:
+                            ep.pop("audio_languages", None)
                     else:
-                        ep["status"] = "missing"
-                        m_count += 1
-                        all_present = False
+                        ep.pop("audio_languages", None)
+                        if air and air > today:
+                            ep["status"] = "upcoming"
+                            u_count += 1
+                            all_present = False
+                        else:
+                            ep["status"] = "missing"
+                            m_count += 1
+                            all_present = False
 
                 season["all_present"] = all_present
                 season["episode_count_emby"] = sum(1 for e in season["episodes"] if e["status"] == "present")

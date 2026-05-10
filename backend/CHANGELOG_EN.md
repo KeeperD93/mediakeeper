@@ -66,6 +66,9 @@ This section intentionally has no date so it is not shown to users.
 - Scheduler — daily purge of pending accounts (opt-in, off by default)
 - Privacy — admin section (toggle, FR/EN editors, pending accounts list)
 - Privacy — user tab (policy, export, delayed deletion) and grace-period banner
+- Watchlist — audio language tags (FR, EN, JP…) on available episodes, with tooltip
+- Media Manager — rectangle lasso selection in the file list (Escape cancels)
+- Media Manager — wider clickable gutters around lists so the lasso starts without aiming off-row
 
 ### Fixed
 - Discord notifications — context-aware "series" / "full season" / "episodes" detection, configured template and synopsis now applied

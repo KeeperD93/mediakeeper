@@ -81,6 +81,19 @@
             <span class="wlsc-ep-num">E{{ pad(ep.episode) }}</span>
             <span class="wlsc-ep-name">{{ ep.name || $t('watchlist.noTitle') }}</span>
             <span class="wlsc-ep-date">{{ formatDate(ep.air_date) }}</span>
+            <span
+              v-if="ep.status === EPISODE_STATUS.PRESENT && ep.audio_languages?.length"
+              class="wlsc-ep-langs"
+            >
+              <span
+                v-for="lang in ep.audio_languages"
+                :key="lang"
+                class="wlsc-ep-lang"
+                :title="$t('watchlist.language_available')"
+              >
+                {{ lang }}
+              </span>
+            </span>
             <span v-if="ep.status === EPISODE_STATUS.PRESENT" class="wlsc-ep-check">✓</span>
             <span v-else-if="isIgnored(sn.season, ep.episode)" class="wlsc-ep-ignored">
               {{ $t('watchlist.ignoredLabel') }}
@@ -428,6 +441,23 @@ function emitIgnoreSeason(sn) {
   justify-content: center;
   font-size: 0.58rem;
   flex-shrink: 0;
+}
+.wlsc-ep-langs {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+.wlsc-ep-lang {
+  font-size: 0.58rem;
+  font-weight: var(--font-bold);
+  letter-spacing: 0.3px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font-family: 'SF Mono', monospace;
+  cursor: help;
 }
 .wlsc-ep-ignored {
   font-size: 0.58rem;

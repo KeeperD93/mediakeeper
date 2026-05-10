@@ -54,16 +54,8 @@
       @update:filter-query="applyFilter"
     />
 
-    <div
-      ref="fileListRef"
-      class="mm-file-list"
-      @scroll="onScroll"
-      @mousedown="onLassoStart"
-      @mousemove="onLassoMove"
-      @mouseup="onLassoEnd"
-      @mouseleave="onLassoEnd"
-    >
-      <div v-if="lasso.active" class="mm-lasso" :style="lassoStyle" />
+    <div ref="fileListRef" class="mm-file-list" @scroll="onScroll">
+      <div v-if="lassoDragging" class="mm-lasso" :style="lassoStyle" />
       <div v-if="loading" class="mm-state">
         <MkSpinner size="sm" />
         <span>{{ $t('mediaManager.loading') }}</span>
@@ -212,11 +204,8 @@ const vsTop = computed(() => vsStart.value * ROW_H)
 const vsBottom = computed(() => Math.max(0, (filtered.value.length - vsEnd.value) * ROW_H))
 
 const {
-  lasso,
+  lassoDragging,
   lassoStyle,
-  onLassoStart,
-  onLassoMove,
-  onLassoEnd,
   hoverThumbnail,
   onFileHover,
   onFileHoverEnd,

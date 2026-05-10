@@ -717,7 +717,8 @@
     "ignoredEpisodesCount": "{count} ignored episode(s)",
     "outOfSeries": "out of {count} series",
     "active": "active",
-    "hidden": "hidden"
+    "hidden": "hidden",
+    "language_available": "Language available"
   },
   "notifications": {
     "title": "Notifications",

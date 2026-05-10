@@ -25,7 +25,7 @@ async def _analyze_one(db: AsyncSession, emby_item: dict) -> dict | None:
     if not td:
         return None
 
-    emby_set = await _get_emby_episodes(db, series_id)
+    emby_episodes = await _get_emby_episodes(db, series_id)
     today = date.today().isoformat()
     pp = td.get("poster_path", "")
 
@@ -46,7 +46,7 @@ async def _analyze_one(db: AsyncSession, emby_item: dict) -> dict | None:
         for ep in sd.get("episodes", []):
             en = ep.get("episode_number")
             air = ep.get("air_date", "")
-            present = (sn, en) in emby_set
+            present = (sn, en) in emby_episodes
             if not present:
                 season_all_present = False
 
@@ -59,10 +59,15 @@ async def _analyze_one(db: AsyncSession, emby_item: dict) -> dict | None:
                     status = "missing"
                     total_missing += 1
 
-            eps.append({
+            entry: dict = {
                 "episode": en, "name": ep.get("name", ""),
                 "air_date": air, "status": status,
-            })
+            }
+            if present:
+                langs = emby_episodes.get((sn, en)) or []
+                if langs:
+                    entry["audio_languages"] = langs
+            eps.append(entry)
 
         seasons_detail.append({
             "season": sn,
