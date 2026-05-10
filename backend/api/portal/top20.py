@@ -8,7 +8,7 @@ the logger scope were renamed to reflect the real rank depth (20).
 import logging
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends
-from sqlalchemy import select, func, desc
+from sqlalchemy import select, func, desc, distinct
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
@@ -17,6 +17,7 @@ from models.user import User
 from models.portal.profile import UserProfile
 from models.playback_stats import PlaybackSession
 from api.portal.deps import get_current_profile
+from services.portal._watch_threshold import watched_session_filter
 from services.settings import (
     get_active_media_source,
     get_emby_public_url,
@@ -89,16 +90,20 @@ async def get_top20(
     def _watch_link(item_id: str | None) -> str:
         return build_emby_deep_link(public_url, item_id, server_id)
 
-    # Top movies
+    # Top movies — count = distinct viewers (1 user re-watching the
+    # same film stays at 1). Sub-85% sessions are dropped so a movie
+    # someone sampled for 5 minutes doesn't crowd the chart.
+    watched = watched_session_filter()
     movies_q = await db.execute(
         select(
             PlaybackSession.item_name,
             PlaybackSession.item_id,
-            func.count(PlaybackSession.id).label("play_count"),
+            func.count(distinct(PlaybackSession.user_id)).label("play_count"),
         )
         .where(
             PlaybackSession.item_type == "Movie",
             PlaybackSession.started_at >= month_start,
+            watched,
         )
         .group_by(PlaybackSession.item_name, PlaybackSession.item_id)
         .order_by(desc("play_count"))
@@ -121,16 +126,21 @@ async def get_top20(
             "availability": "full",
         })
 
-    # Top series — find the Series ID for proper poster
+    # Top series — count = distinct viewers per series. Without the
+    # DISTINCT, a single user binging 100 episodes would push the show
+    # past every movie in the chart (which always count 1 per user).
+    # Episodes are filtered to the watch threshold first so a quick
+    # peek at the first 5 minutes doesn't qualify the series.
     series_q = await db.execute(
         select(
             PlaybackSession.series_name,
-            func.count(PlaybackSession.id).label("play_count"),
+            func.count(distinct(PlaybackSession.user_id)).label("play_count"),
         )
         .where(
             PlaybackSession.item_type == "Episode",
             PlaybackSession.series_name.isnot(None),
             PlaybackSession.started_at >= month_start,
+            watched,
         )
         .group_by(PlaybackSession.series_name)
         .order_by(desc("play_count"))

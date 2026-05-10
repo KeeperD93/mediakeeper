@@ -39,13 +39,13 @@ from sqlalchemy.exc import IntegrityError
 
 from models.portal.xp_ledger import XpLedger
 from models.portal.profile import UserProfile
+from services.portal._watch_threshold import WATCHED_THRESHOLD
 
 logger = logging.getLogger("mediakeeper.portal.xp")
 
 MAX_LEVEL = 50
 DAILY_REQUEST_XP_CAP = 25
-MIN_WATCH_PERCENT = 0.85   # 85% of the item runtime watched — single rule
-                           # applied to every eligible media type
+MIN_WATCH_PERCENT = WATCHED_THRESHOLD
 WATCH_XP_ITEM_TYPES = {"Movie", "Episode"}  # Trailers, MusicVideo, LiveTV…
                                             # are deliberately excluded.
 

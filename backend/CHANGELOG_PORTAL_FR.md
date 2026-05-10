@@ -71,6 +71,9 @@ utilisateurs.
 - Trophées : XP de récompense réduit pour lisser la progression (XP déjà cumulé ajusté en conséquence)
 
 ### Fixed
+- Top du mois — séries comptées 1 fois par utilisateur (plus de séries gonflées par leurs épisodes)
+- Top genres — chaque série compte une fois par genre (plus de surévaluation par épisode)
+- Top du mois et genres — visionnages comptés seulement à partir de 85 % de la durée
 - Trophées — déblocage immédiat sur chat, demandes, tickets, avatar, événements (plus d'attente de la prochaine connexion)
 - Trophées — pourcentage global de progression aligné sur les seuls trophées atteignables
 - Tableau de bord — raccourci masqué pour les modérateurs sans accès backoffice (plus de clic qui rebondit aussitôt)
