@@ -69,6 +69,8 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 
 ### Fixed
+- Tableau de bord — widget Activité : labels sur plusieurs lignes en fenêtre étroite (plus de troncature)
+- Tableau de bord — boutons Reset/Terminé compacts en desktop (taille tactile préservée sur mobile)
 - Tableau de bord — widget Activité portail : chiffres centrés, plus de débordement en fenêtre étroite
 - Tableau de bord — barre Personnaliser : boutons à droite, Reset rouge, sans icônes, lecture sur une ligne
 - Classement — flèche d'évolution séparée du pseudo (troncature propre sur les noms longs)
