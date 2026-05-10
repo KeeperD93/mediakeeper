@@ -73,6 +73,7 @@ This section intentionally has no date so it is not shown to users.
 - Accessibility — keyboard alternative for rearranging dashboard widgets
 - Accessibility — toasts announced to screen readers (aria-live region)
 - Accessibility — decorative animations respect prefers-reduced-motion
+- Media Manager — TMDB search: optional "Year" field to disambiguate remakes (auto-filled from filename)
 
 ### Fixed
 - Discord notifications — context-aware "series" / "full season" / "episodes" detection, configured template and synopsis now applied

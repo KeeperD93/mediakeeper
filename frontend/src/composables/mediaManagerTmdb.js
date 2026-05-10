@@ -6,6 +6,7 @@ import {
   checked,
   selectedTmdb,
   tmdbResults,
+  tmdbYearQuery,
   currentSeason,
   seasons,
   showSeasonPanel,
@@ -15,8 +16,15 @@ import {
   anomalyRules,
   _autoSearchState,
 } from './mediaManagerState'
-import { cleanName, _levenshtein } from './mediaManagerHelpers'
+import { cleanName, extractYear, _levenshtein } from './mediaManagerHelpers'
 import { checkedFiles, checkedDirs, _registerAutoSearch } from './mediaManagerNavigation'
+
+function _validYear(y) {
+  if (y === null || y === undefined || y === '') return null
+  const n = typeof y === 'number' ? y : parseInt(String(y).trim(), 10)
+  if (!Number.isInteger(n) || n < 1900 || n > 2099) return null
+  return n
+}
 
 export const canGenerate = computed(
   () => selectedTmdb.value && (checked.value.size > 0 || searchType.value === 'tv'),
@@ -30,10 +38,10 @@ export function setType(t) {
   tmdbResults.value = []
   showSeasonPanel.value = false
   const q = document.getElementById('tmdb-q-vue')?.value?.trim()
-  if (q) doSearch(false, q)
+  if (q) doSearch(false, q, _validYear(tmdbYearQuery.value))
 }
 
-export async function doSearch(autoSelect = false, query = '') {
+export async function doSearch(autoSelect = false, query = '', year = null) {
   if (!query?.trim()) return
   tmdbResults.value = []
   selectedTmdb.value = null
@@ -41,8 +49,10 @@ export async function doSearch(autoSelect = false, query = '') {
   try {
     const ep = searchType.value === 'movie' ? 'movie' : 'tv'
     const lang = anomalyRules.value._tmdbLang || 'fr-FR'
+    const validYear = _validYear(year)
+    const yearParam = validYear ? `&year=${validYear}` : ''
     const data = await apiGet(
-      `/api/media/tmdb/search/${ep}?q=${encodeURIComponent(query)}&language=${encodeURIComponent(lang)}`,
+      `/api/media/tmdb/search/${ep}?q=${encodeURIComponent(query)}&language=${encodeURIComponent(lang)}${yearParam}`,
     )
     if (!data?.length) return
     tmdbResults.value = data.slice(0, 10)
@@ -119,6 +129,7 @@ export function autoSearch(tmdbQueryEl) {
     const cFiles = checkedFiles.value,
       cDirs = checkedDirs.value
     let detected = ''
+    let rawSourceName = ''
     // Multi-selection: every checked item must share the same cleaned name —
     // otherwise it's a mixed batch and we'd guess the wrong title.
     const pickConsensus = items => {
@@ -127,21 +138,28 @@ export function autoSearch(tmdbQueryEl) {
       const first = names[0]
       return names.every(n => n === first) ? first : ''
     }
-    if (cDirs.length > 0) detected = pickConsensus(cDirs)
-    else if (cFiles.length > 0) detected = pickConsensus(cFiles)
-    else if (subPath.value) {
+    if (cDirs.length > 0) {
+      detected = pickConsensus(cDirs)
+      if (detected) rawSourceName = cDirs[0]?.name || ''
+    } else if (cFiles.length > 0) {
+      detected = pickConsensus(cFiles)
+      if (detected) rawSourceName = cFiles[0]?.name || ''
+    } else if (subPath.value) {
       const segments = subPath.value.split('/').filter(Boolean)
       for (let i = segments.length - 1; i >= 0; i--) {
         const candidate = cleanName(segments[i])
         if (candidate) {
           detected = candidate
+          rawSourceName = segments[i]
           break
         }
       }
     }
     if (!detected || !el) return
     el.value = detected
-    await doSearch(true, detected)
+    const detectedYear = extractYear(rawSourceName)
+    tmdbYearQuery.value = detectedYear || ''
+    await doSearch(true, detected, detectedYear)
   }, 600)
 }
 _registerAutoSearch(autoSearch)

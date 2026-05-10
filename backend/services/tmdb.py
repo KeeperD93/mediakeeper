@@ -47,7 +47,7 @@ def _tmdb_headers_sync(api_key: str) -> dict:
     }
 
 
-async def _search_tmdb(media_type: str, query: str, db: AsyncSession | None = None, language: str | None = None) -> list | dict:
+async def _search_tmdb(media_type: str, query: str, db: AsyncSession | None = None, language: str | None = None, year: int | None = None) -> list | dict:
     """
     Generic TMDB search.
     media_type: "movie" or "tv"
@@ -59,11 +59,18 @@ async def _search_tmdb(media_type: str, query: str, db: AsyncSession | None = No
     url_segment = "movie" if media_type == "movie" else "tv"
     lang = language or LANGUAGE
 
+    params: dict[str, str | int] = {"query": query, "language": lang, "page": 1}
+    if year:
+        # Empty/zero values would be rejected by TMDB and silently filter out
+        # every result — only include the param when it's a real filter.
+        year_key = "primary_release_year" if media_type == "movie" else "first_air_date_year"
+        params[year_key] = year
+
     try:
         client = get_external_client()
         res = await client.get(
             f"{TMDB_BASE}/{endpoint}",
-            params={"query": query, "language": lang, "page": 1},
+            params=params,
             headers=_tmdb_headers_sync(api_key),
         )
         data    = res.json()
@@ -86,14 +93,14 @@ async def _search_tmdb(media_type: str, query: str, db: AsyncSession | None = No
         return {"error": str(e)}
 
 
-async def search_movie(query: str, db: AsyncSession | None = None, language: str | None = None):
+async def search_movie(query: str, db: AsyncSession | None = None, language: str | None = None, year: int | None = None):
     """Search for a movie on TMDB."""
-    return await _search_tmdb("movie", query, db, language=language)
+    return await _search_tmdb("movie", query, db, language=language, year=year)
 
 
-async def search_tv(query: str, db: AsyncSession | None = None, language: str | None = None):
+async def search_tv(query: str, db: AsyncSession | None = None, language: str | None = None, year: int | None = None):
     """Search for a series on TMDB."""
-    return await _search_tmdb("tv", query, db, language=language)
+    return await _search_tmdb("tv", query, db, language=language, year=year)
 
 
 async def get_tv_seasons(tmdb_id: int, db: AsyncSession | None = None, language: str | None = None):

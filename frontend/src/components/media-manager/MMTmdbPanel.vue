@@ -30,11 +30,27 @@
           autocomplete="off"
           class="mm-search-in"
           :placeholder="$t('mediaManager.tmdbSearch')"
-          @keydown.enter="doSearch(false, $event.target.value)"
+          @keydown.enter="runSearch"
         />
-        <button class="mm-search-btn" @click="doSearch(false, tmdbQRef?.value)">
+        <button class="mm-search-btn" @click="runSearch">
           <Search />
         </button>
+      </div>
+      <div class="mm-label mm-label--year">{{ $t('mediaManager.tmdbYearLabel') }}</div>
+      <div class="mm-search-row">
+        <input
+          id="tmdb-y-vue"
+          ref="tmdbYRef"
+          v-model="tmdbYearQuery"
+          name="tmdb-search-year"
+          autocomplete="off"
+          inputmode="numeric"
+          maxlength="4"
+          pattern="\d{4}"
+          class="mm-search-in"
+          :placeholder="$t('mediaManager.tmdbYearPh')"
+          @keydown.enter="runSearch"
+        />
       </div>
     </div>
 
@@ -179,6 +195,7 @@ const emit = defineEmits(['openConfig'])
 const {
   searchType,
   tmdbResults,
+  tmdbYearQuery,
   selectedTmdb,
   currentSeason,
   seasons,
@@ -203,6 +220,24 @@ const {
 } = useMediaManager()
 
 const tmdbQRef = ref(null)
+const tmdbYRef = ref(null)
 
-defineExpose({ tmdbQRef })
+function parseYearInputOrNull(raw) {
+  const s = String(raw ?? '').trim()
+  if (!/^\d{4}$/.test(s)) return null
+  const n = parseInt(s, 10)
+  return n >= 1900 && n <= 2099 ? n : null
+}
+
+function runSearch() {
+  doSearch(false, tmdbQRef.value?.value || '', parseYearInputOrNull(tmdbYRef.value?.value))
+}
+
+defineExpose({ tmdbQRef, tmdbYRef })
 </script>
+
+<style scoped>
+.mm-label--year {
+  margin-top: 0.5rem;
+}
+</style>
