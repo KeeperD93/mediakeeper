@@ -62,8 +62,13 @@
 }
 @media (min-width: 640px) {
   .pt-hero-video {
-    mask-image: radial-gradient(ellipse 90% 85% at 50% 45%, #000 60%, transparent 100%);
-    -webkit-mask-image: radial-gradient(ellipse 90% 85% at 50% 45%, #000 60%, transparent 100%);
+    /* Anchor the mask so the top of the hero is fully opaque under
+       the topbar at every viewport width. The previous gradient
+       (center at 45%) faded the top ~18 % of the video to transparent,
+       which on narrow desktop / tablet revealed the dark hero
+       background between the topbar and the visible video. */
+    mask-image: radial-gradient(ellipse 110% 130% at 50% 30%, #000 70%, transparent 100%);
+    -webkit-mask-image: radial-gradient(ellipse 110% 130% at 50% 30%, #000 70%, transparent 100%);
   }
 }
 .pt-hero-video-block {

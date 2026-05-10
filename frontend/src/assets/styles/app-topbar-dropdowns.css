@@ -69,9 +69,11 @@
   font-size: var(--text-sm);
   color: rgb(255, 255, 255, 0.7);
   margin: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* Long messages wrap to multiple lines instead of being truncated
+     with an ellipsis so the user can read the full notification.
+     `overflow-wrap: anywhere` handles unbreakable strings (URLs,
+     slugs) that would otherwise blow out the dropdown width. */
+  overflow-wrap: anywhere;
 }
 .tb-notif-item.unread .tb-notif-text {
   color: rgb(255, 255, 255, 0.9);

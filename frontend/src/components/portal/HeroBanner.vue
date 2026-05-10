@@ -71,19 +71,15 @@
       <p class="pt-hero-overview">{{ item.overview }}</p>
 
       <div class="pt-hero-actions">
-        <!-- When the media is available on Emby we show a "Play" button
-             branded with the Emby logo. Otherwise it becomes a "Request"
-             button that the parent converts into a modal / API call. -->
-        <a
-          v-if="item?.emby_url"
-          :href="item.emby_url"
-          target="_blank"
+        <!-- The hero is informational, not a launch CTA: only the
+             "Request" button surfaces when the title is missing from
+             Emby. Items already on Emby get no action button — the
+             "Info" / trailer affordances cover the rest. -->
+        <button
+          v-if="!item?.emby_url"
           class="pt-hero-btn pt-hero-btn--play"
+          @click="$emit('request', item)"
         >
-          <img src="/assets/icons/emby.svg" alt="" class="pt-hero-btn-emby" />
-          {{ $t('portal.hero.play') }}
-        </a>
-        <button v-else class="pt-hero-btn pt-hero-btn--play" @click="$emit('request', item)">
           <Plus :size="22" :stroke-width="2.5" />
           {{ $t('portal.card.requestBtn') }}
         </button>

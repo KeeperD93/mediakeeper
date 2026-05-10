@@ -190,29 +190,7 @@
 
       <!-- ══════ TAB: Ignored ══════ -->
       <div v-show="activeTab === 'ignored'" class="tab-panel">
-        <MkEmptyState
-          v-if="!ignoredItems.length"
-          :title="$t('duplicates.noIgnored')"
-          :sub="$t('duplicates.ignoredHint')"
-        />
-        <div v-else class="doub-grid">
-          <div v-for="ig in ignoredItems" :key="ig.key" class="doub-card doub-card-ignored">
-            <div class="doub-info doub-info-flex">
-              <div class="doub-info-header">
-                <div>
-                  <h3 class="doub-title">{{ ig.title || ig.key }}</h3>
-                  <p v-if="ig.ignored_at" class="doub-versions">
-                    {{ $t('duplicates.ignoredOn', { date: fmtDate(ig.ignored_at) }) }}
-                  </p>
-                </div>
-                <button class="doub-restore-btn" @click="restoreDuplicate(ig.key)">
-                  <RefreshCw class="ic-sm" />
-                  {{ $t('common.restore') }}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <DupIgnoredView :items="ignoredItems" @restore="onRestoreKeys" />
       </div>
 
       <!-- ══════ TAB: History ══════ -->
@@ -294,6 +272,7 @@ import {
   Zap,
 } from 'lucide-vue-next'
 import MkEmptyState from '@/components/common/MkEmptyState.vue'
+import DupIgnoredView from '@/components/duplicates/DupIgnoredView.vue'
 import '@/assets/styles/duplicates-view.css'
 
 const {
@@ -323,6 +302,7 @@ const {
   loadHistoryStats,
   ignoreDuplicate,
   restoreDuplicate,
+  restoreDuplicates,
   deleteSource,
   keepSource,
   scanEmby,
@@ -333,6 +313,12 @@ const activeTab = useTabSync(['duplicates', 'ignored', 'history', 'rules'], 'dup
 const compareOpen = ref(null)
 function toggleCompare(id) {
   compareOpen.value = compareOpen.value === id ? null : id
+}
+
+function onRestoreKeys(keys) {
+  if (!keys?.length) return
+  if (keys.length === 1) restoreDuplicate(keys[0])
+  else restoreDuplicates(keys)
 }
 
 onMounted(async () => {

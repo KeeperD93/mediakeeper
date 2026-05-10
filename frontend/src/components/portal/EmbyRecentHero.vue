@@ -48,15 +48,9 @@
         </div>
         <p v-if="currentItem?.overview" class="pt-eh-overview">{{ currentItem.overview }}</p>
         <div class="pt-eh-actions">
-          <a
-            v-if="currentItem?.emby_url"
-            :href="currentItem.emby_url"
-            target="_blank"
-            class="pt-eh-btn pt-eh-btn--play"
-          >
-            <img src="/assets/icons/emby.svg" alt="" class="pt-eh-btn-emby" />
-            {{ $t('portal.hero.play') }}
-          </a>
+          <!-- The hero is informational, not a launch CTA: posters in
+               the row below cover both "Lancer" (available) and
+               "Demander" (missing). Hero keeps trailer + info. -->
           <button v-if="trailer" class="pt-eh-btn pt-eh-btn--trailer" @click="openLightbox">
             <Video :size="20" />
             {{ $t('portal.detail.watchTrailer') }}

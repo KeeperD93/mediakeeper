@@ -113,6 +113,11 @@ This section intentionally has no date so it is not shown to users.
 - Users — Trophies tab: rarity badge (Common → Mythic) + earned XP shown under each unlocked trophy
 - Profile — monthly ranking shows the 15 rows without inner scroll (card grows to fit)
 - Migrations — fixed 029 → 030 chaining (two Alembic heads resolved)
+- Duplicates — Ignored tab now compact rows grouped by series with a single "Restore all" header button
+- Portal — availability dot unified (canonical cache wins, no Top 20 vs. other-list divergence)
+- Portal — "Play" CTA removed from hero banners (hero is informational, request still surfaces)
+- Portal — hero video sticks to the topbar at every width (mask no longer reveals the dark background)
+- Admin notifications — long messages wrap onto multiple lines instead of being truncated
 
 ## [0.9.8] - 2026-04-28
 
