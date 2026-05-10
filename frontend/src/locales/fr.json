@@ -1122,6 +1122,7 @@
     "renamed": "Renommé : {name}",
     "copyName": "Copier le nom complet",
     "nameCopied": "Nom copié dans le presse-papier",
+    "deleteSelected": "Supprimer ({n})",
     "suggestedMatch": "Suggéré",
     "suggestedMatchApprox": "~Suggéré",
     "confirmDeleteTab": "Supprimer l'onglet ?",

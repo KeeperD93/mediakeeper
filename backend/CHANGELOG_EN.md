@@ -74,6 +74,7 @@ This section intentionally has no date so it is not shown to users.
 - Accessibility — toasts announced to screen readers (aria-live region)
 - Accessibility — decorative animations respect prefers-reduced-motion
 - Media Manager — TMDB search: optional "Year" field to disambiguate remakes (auto-filled from filename)
+- Media Manager — lasso on the generated names list (batch delete)
 
 ### Fixed
 - Discord notifications — context-aware "series" / "full season" / "episodes" detection, configured template and synopsis now applied
