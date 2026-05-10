@@ -69,6 +69,7 @@ This section intentionally has no date so it is not shown to users.
 - Trophies: reward XP lowered to smooth progression (already-earned XP adjusted accordingly)
 
 ### Fixed
+- Requests — auto-switch to "Available" and bell notification as soon as the media lands on Emby
 - Top of the month — series count once per viewer (no longer inflated by episode count)
 - Top genres — each series counts once per genre (no longer overweighted by episode count)
 - Top of the month and genres — plays only counted from 85 % of the runtime

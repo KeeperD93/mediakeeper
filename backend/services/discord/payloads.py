@@ -123,16 +123,23 @@ async def build_discord_payload(
         safe_series = escape_discord_markdown(series)
         title_linked = f"[{safe_series}]({tmdb_base})" if tmdb_base else safe_series
         image_id = item.get("SeriesId", item.get("Id", ""))
+        # Admins frequently customise the grouped template to mirror
+        # ``added_season`` (with ``<synopsis>`` included). The synthetic
+        # Grouped item carries an English placeholder Overview by default,
+        # but post-promotion enrichment may have replaced it with the
+        # series-level synopsis — surface whatever we have.
         vars_dict = {
             "titre_serie": title_linked,
             "saison":      f"Saison {s_num}" if s_num else "",
             "nb_episodes": str(nb_ep) if nb_ep else "",
             "annee":       year,
+            "synopsis":    overview,
             "tmdb":        tmdb_lnk,
             # EN aliases
             "series_title": title_linked,
             "season":       f"Season {s_num}" if s_num else "",
             "episodes":     str(nb_ep) if nb_ep else "",
+            "overview":     overview,
         }
 
     elif item_type == "Season":

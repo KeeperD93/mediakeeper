@@ -69,6 +69,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 
 ### Fixed
+- Notifications Discord — détection contextuelle « série » / « saison complète » / « épisodes ajoutés », template configuré et synopsis correctement appliqués
 - Tableau de bord — widget Activité : labels sur plusieurs lignes en fenêtre étroite (plus de troncature)
 - Tableau de bord — boutons Reset/Terminé compacts en desktop (taille tactile préservée sur mobile)
 - Tableau de bord — widget Activité portail : chiffres centrés, plus de débordement en fenêtre étroite

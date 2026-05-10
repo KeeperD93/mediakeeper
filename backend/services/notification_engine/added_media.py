@@ -16,8 +16,10 @@ from services.settings import (
     set_setting,
 )
 
+from ._classify import promote_grouped_items
 from ._common import _is_dnd, _parse_date
 from ._log_writer import log_failed, log_sent
+from ._request_fulfill import try_auto_fulfill
 
 logger = logging.getLogger("mediakeeper.notifications")
 
@@ -268,6 +270,15 @@ async def _process_notifications(db: AsyncSession):
             remaining_queue.append({**q, "item": item, "retries": retries + 1})
 
     final_notifications = _group_episodes(ready_items)
+    await promote_grouped_items(final_notifications, db)
+
+    for item in final_notifications:
+        try:
+            await try_auto_fulfill(item, db)
+        except Exception as exc:
+            # Auto-fulfill is a side-effect of the notif scan — a failure
+            # here must never abort the Discord delivery loop.
+            logger.error(f"[NOTIFICATIONS] auto-fulfill error: {exc}")
 
     if _is_dnd(rules):
         logger.info("[NOTIFICATIONS] DND active — media additions not sent")
@@ -276,4 +287,5 @@ async def _process_notifications(db: AsyncSession):
         for item in final_notifications:
             await _send_item(db, item, webhooks, emby_url, emby_api_key, imgur_id, imgur_secret)
 
+    await db.commit()
     await set_notification_channel(db, "queue", json.dumps(remaining_queue))
