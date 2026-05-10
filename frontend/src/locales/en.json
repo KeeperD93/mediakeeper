@@ -2,6 +2,9 @@
   "a11y": {
     "notifications": "Notifications"
   },
+  "app": {
+    "rebuilt_logout": "App was updated, please sign in again."
+  },
   "common": {
     "actions": "Actions",
     "save": "Save",

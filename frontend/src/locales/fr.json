@@ -2,6 +2,9 @@
   "a11y": {
     "notifications": "Notifications"
   },
+  "app": {
+    "rebuilt_logout": "Mise à jour de l'application, reconnecte-toi."
+  },
   "common": {
     "actions": "Actions",
     "save": "Enregistrer",

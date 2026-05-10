@@ -1,5 +1,6 @@
 """System routes: health, config, Emby proxy (sessions, logs, images, ...)."""
 import logging
+import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from fastapi.responses import JSONResponse
@@ -28,6 +29,11 @@ from services.system import get_system_stats
 logger = logging.getLogger("mediakeeper")
 router = APIRouter()
 
+# Process-scoped identifier so a frontend that survives a backend restart can
+# detect the rebuild and force a fresh login (the JWT may be invalidated by
+# session rotation or a Fernet key rotation at boot).
+BOOT_ID = uuid.uuid4().hex
+
 
 def register_health_route(app, version: str, is_db_ready_fn) -> None:
     """Register /api/health with the dynamic DB-state check."""
@@ -37,9 +43,19 @@ def register_health_route(app, version: str, is_db_ready_fn) -> None:
         if not is_db_ready_fn():
             return JSONResponse(
                 status_code=503,
-                content={"status": "starting", "version": version, "database": "initializing"},
+                content={
+                    "status": "starting",
+                    "version": version,
+                    "database": "initializing",
+                    "boot_id": BOOT_ID,
+                },
             )
-        status = {"status": "ok", "version": version, "database": "ok"}
+        status = {
+            "status": "ok",
+            "version": version,
+            "database": "ok",
+            "boot_id": BOOT_ID,
+        }
         try:
             async with AsyncSession(engine) as session:
                 await session.execute(select(Setting).limit(1))
