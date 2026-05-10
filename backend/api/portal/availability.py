@@ -192,13 +192,13 @@ async def _check_series_completeness(
 
     emby_set: set[tuple[int, int]] = set()
     if emby_series_ids:
-        ep_sets = await asyncio.gather(
+        ep_maps = await asyncio.gather(
             *[_get_emby_episodes(db, sid) for sid in emby_series_ids],
             return_exceptions=True,
         )
-        for s in ep_sets:
-            if isinstance(s, set):
-                emby_set |= s
+        for m in ep_maps:
+            if isinstance(m, dict):
+                emby_set |= m.keys()
     ignored_set = ignored_set or set()
     today = date.today().isoformat()
     status = (td.get("status") or "").lower()

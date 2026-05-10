@@ -66,6 +66,9 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Planificateur — purge quotidienne des comptes en attente (opt-in, désactivé par défaut)
 - Confidentialité — section admin (interrupteur, éditeurs FR/EN, liste comptes en attente)
 - Confidentialité — onglet utilisateur (politique, export, suppression différée) et bandeau de grâce
+- Suivi — pastilles de langues audio (FR, EN, JP…) sur les épisodes disponibles, avec tooltip
+- Gestionnaire — sélection au lasso rectangulaire dans la liste de fichiers (annulable par Échap)
+- Gestionnaire — marges cliquables élargies autour des listes pour amorcer un lasso sans viser une ligne
 
 
 ### Fixed

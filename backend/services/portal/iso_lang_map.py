@@ -34,6 +34,17 @@ ISO_639_1_TO_2: dict[str, str] = {
     "pl": "pol",
 }
 
+# Reverse lookup, including the alternative ISO 639-2/T forms Emby may
+# emit for languages where 639-2/B and 639-2/T diverge (e.g. ``"fra"`` vs
+# ``"fre"``, ``"deu"`` vs ``"ger"``). Built once at import-time.
+_ISO_639_2_TO_1: dict[str, str] = {v: k for k, v in ISO_639_1_TO_2.items()}
+_ISO_639_2_TO_1.update({
+    "fra": "fr",
+    "deu": "de",
+    "zho": "zh",
+    "nld": "nl",
+})
+
 
 def to_iso639_2(code_1: str | None) -> str | None:
     """Map a 2-letter language code to its 3-letter equivalent.
@@ -62,3 +73,22 @@ def audio_matches_original(
         return False
     audio_prefix = audio_lang.strip().lower().split("-", 1)[0]
     return audio_prefix == expected
+
+
+def to_display_code(audio_lang: str | None) -> str | None:
+    """Map an Emby audio language code to a 2-letter uppercase display code.
+
+    Tolerant of region suffixes (``"fre-FR"`` → ``"FR"``) and of either
+    639-2/B (``"fre"``) or 639-2/T (``"fra"``) variants. Returns ``None``
+    for unknown or empty input — never raises. Used by the watchlist
+    scanner to surface available audio languages on episodes.
+    """
+    if not audio_lang:
+        return None
+    code = audio_lang.strip().lower().split("-", 1)[0]
+    if not code:
+        return None
+    if len(code) == 2 and code in ISO_639_1_TO_2:
+        return code.upper()
+    mapped = _ISO_639_2_TO_1.get(code)
+    return mapped.upper() if mapped else None
