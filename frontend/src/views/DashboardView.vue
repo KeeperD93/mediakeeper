@@ -57,11 +57,9 @@
           </button>
         </div>
         <button class="editbar-btn editbar-reset" @click="resetLayout">
-          <RotateCcw :size="14" />
           {{ $t('dashboard.resetLayout') }}
         </button>
         <button class="editbar-btn editbar-done" @click="editing = false">
-          <Check :size="14" />
           {{ $t('dashboard.done') }}
         </button>
       </div>
@@ -223,7 +221,6 @@ defineOptions({ name: 'DashboardView' })
 import { ref, onMounted, onUnmounted, onActivated, onDeactivated, nextTick } from 'vue'
 import { GridLayout, GridItem } from 'grid-layout-plus'
 import {
-  Check,
   ClipboardCheck,
   Clock,
   Copy,
@@ -231,7 +228,6 @@ import {
   LayoutGrid,
   Play,
   Plus,
-  RotateCcw,
   X,
 } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'

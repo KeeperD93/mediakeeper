@@ -69,6 +69,10 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 
 ### Fixed
+- Tableau de bord — widget Activité portail : chiffres centrés, plus de débordement en fenêtre étroite
+- Tableau de bord — barre Personnaliser : boutons à droite, Reset rouge, sans icônes, lecture sur une ligne
+- Classement — flèche d'évolution séparée du pseudo (troncature propre sur les noms longs)
+- Portail — jaquettes plus compactes en mobile, tap sur la carte ouvre la fiche (boutons d'action retirés sur tactile)
 - Reconnexion — logo de l'overlay toujours affiché pendant un redéploiement, déconnexion automatique si l'application a été mise à jour pendant la coupure
 - Planificateur — bouton « Lancer maintenant » sur tâches obsolètes ne renvoie plus d'erreur (nettoyage automatique au démarrage)
 - Suivi / Manquants — séries dupliquées affichées une seule fois (dédoublonnage par identifiant TMDB)

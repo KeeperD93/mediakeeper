@@ -88,6 +88,7 @@
   font-size: var(--portal-text-3xs);
   font-weight: var(--portal-font-extrabold);
   min-width: 30px;
+  flex-shrink: 0;
   justify-content: flex-end;
   font-family: var(--portal-font-display);
 }
@@ -139,6 +140,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 .gc-lb-tier {
   font-size: var(--portal-text-4xs);
@@ -146,6 +148,9 @@
   font-weight: var(--portal-font-medium);
   text-transform: uppercase;
   letter-spacing: var(--portal-tracking-caps);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .gc-lb-custom-title {
   color: #c084fc;
@@ -250,12 +255,17 @@
   font-size: var(--portal-text-xs);
   font-weight: var(--portal-font-medium);
   color: var(--portal-text-body);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 .gc-lb-v {
   font-size: var(--portal-text-xs);
   font-weight: var(--portal-font-bold);
   color: var(--accent, #818cf8);
   font-family: var(--portal-font-display);
+  flex-shrink: 0;
 }
 
 /* Self-suffhereent: duplicated from rank-card.css so LeaderboardCard can
