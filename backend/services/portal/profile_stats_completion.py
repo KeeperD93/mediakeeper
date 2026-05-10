@@ -33,13 +33,14 @@ from collections import defaultdict
 from typing import Iterable
 
 from core.http_client import get_internal_client
+from services.portal._watch_threshold import WATCHED_THRESHOLD
 
 
 # Don't try to compute views on items shorter than this — many "Audio"
 # rows that slip through the type filter would otherwise count as
 # infinite views (runtime ~0 ticks).
 _MIN_RUNTIME_TICKS = 60 * 10_000_000  # 60 seconds
-_COMPLETE_RATIO = 0.85
+_COMPLETE_RATIO = WATCHED_THRESHOLD
 
 
 def aggregate_play_signal(

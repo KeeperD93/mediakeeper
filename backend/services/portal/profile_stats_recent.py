@@ -18,6 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.http_client import get_internal_client
 from models.playback_stats import PlaybackSession
 from services.settings import get_active_media_source
+from services.portal._watch_threshold import WATCHED_THRESHOLD
 from services.portal.profile_stats_emby import (
     _bulk_fetch_emby_info,
     _find_series_emby_id,  # noqa: F401 — re-exported for profile_stats_next
@@ -31,10 +32,7 @@ from services.portal.profile_stats_recent_helpers import (
 
 logger = logging.getLogger("mediakeeper.portal.profile_stats")
 
-# A media counts as "watched" once the user has played ≥ this fraction
-# of its runtime. Matches the threshold used by the Stats / Watchlist
-# reports so "Already watched" is coherent across the app.
-WATCHED_PROGRESS_THRESHOLD = 0.85
+WATCHED_PROGRESS_THRESHOLD = WATCHED_THRESHOLD
 
 # Ignore items barely started — below 10 % the user was just sampling
 # the title. Prevents titles previewed then reset to 0 from clogging

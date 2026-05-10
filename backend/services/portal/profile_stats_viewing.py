@@ -9,6 +9,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.playback_stats import PlaybackSession
+from services.portal._watch_threshold import session_meets_threshold
 from services.portal.personal import _infer_genres_from_history_full
 from services.portal.personal_utils import TMDB_GENRE_NAME_TO_ID
 
@@ -33,17 +34,42 @@ async def compute_genre_stats(
         from services.portal.personal import _playback_user_filter
         uf = user_filter if user_filter is not None else _playback_user_filter(user, profile)
         excl = excl_filters or []
+        # Walk individual rows so we can dedupe by media before
+        # crediting genres. Counting raw sessions would let a series
+        # with 100 episodes outweigh a film 100×; the rule is +1 per
+        # unique (user × media) once the watch threshold is crossed.
         rows = await db.execute(
-            select(PlaybackSession.genres, func.count(PlaybackSession.id).label("c"))
-            .where(uf, PlaybackSession.genres.isnot(None), PlaybackSession.genres != "", *excl)
-            .group_by(PlaybackSession.genres)
+            select(
+                PlaybackSession.item_id,
+                PlaybackSession.item_type,
+                PlaybackSession.series_name,
+                PlaybackSession.genres,
+                PlaybackSession.position_ticks,
+                PlaybackSession.duration_ticks,
+            )
+            .where(
+                uf,
+                PlaybackSession.genres.isnot(None),
+                PlaybackSession.genres != "",
+                *excl,
+            )
         )
+        seen_keys: set[tuple[str, str]] = set()
         counter: Counter[int] = Counter()
         for row in rows.all():
-            for raw in (row[0] or "").split(","):
+            if not session_meets_threshold(row.position_ticks, row.duration_ticks):
+                continue
+            if row.item_type == "Episode" and row.series_name:
+                key = ("series", row.series_name)
+            else:
+                key = ("item", row.item_id or "")
+            if not key[1] or key in seen_keys:
+                continue
+            seen_keys.add(key)
+            for raw in (row.genres or "").split(","):
                 gid = name_to_id_ci.get(raw.strip().lower())
                 if gid:
-                    counter[gid] += row[1]
+                    counter[gid] += 1
         if counter:
             total = sum(counter.values()) or 1
             return [

@@ -69,6 +69,9 @@ This section intentionally has no date so it is not shown to users.
 - Trophies: reward XP lowered to smooth progression (already-earned XP adjusted accordingly)
 
 ### Fixed
+- Top of the month — series count once per viewer (no longer inflated by episode count)
+- Top genres — each series counts once per genre (no longer overweighted by episode count)
+- Top of the month and genres — plays only counted from 85 % of the runtime
 - Achievements — instant unlock on chat, requests, tickets, avatar, events (no more wait for the next login)
 - Achievements — global progression percentage now reflects only attainable trophies
 - Dashboard — shortcut hidden for moderators without backoffice access (no more click that bounces back)
