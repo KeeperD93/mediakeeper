@@ -1,4 +1,5 @@
 """Helpers BDD for le scheduler : creation, loading, statut d'execution."""
+import logging
 from datetime import datetime, timezone
 
 from sqlalchemy import select
@@ -8,12 +9,27 @@ from models.scheduler_task import SchedulerTask
 
 from ._tasks import TASK_DEFINITIONS
 
+logger = logging.getLogger("mediakeeper.scheduler")
+
 
 async def _ensure_tasks_exist(db: AsyncSession) -> None:
-    """Insert missing tasks into the DB with default values."""
+    """Insert missing tasks and purge rows whose key was removed from
+    ``TASK_DEFINITIONS`` (e.g. renamed without an Alembic migration).
+    Without the purge the orphan row keeps surfacing in the admin UI
+    and any ``/run`` call returns 404 because the handler is gone."""
+    existing = (await db.execute(select(SchedulerTask))).scalars().all()
+    existing_by_key = {row.key: row for row in existing}
+
+    for key in list(existing_by_key):
+        if key not in TASK_DEFINITIONS:
+            logger.info(
+                "[scheduler] Removing orphan task row: %s (orphan, no longer in TASK_DEFINITIONS)",
+                key,
+            )
+            await db.delete(existing_by_key[key])
+
     for key, defn in TASK_DEFINITIONS.items():
-        result = await db.execute(select(SchedulerTask).where(SchedulerTask.key == key))
-        if result.scalar_one_or_none() is None:
+        if key not in existing_by_key:
             db.add(SchedulerTask(
                 key          = key,
                 label        = defn["label"],

@@ -68,6 +68,7 @@ This section intentionally has no date so it is not shown to users.
 - Privacy — user tab (policy, export, delayed deletion) and grace-period banner
 
 ### Fixed
+- Scheduler — "Run now" on obsolete tasks no longer errors (orphan rows purged at startup)
 - Follow-up / Missing — duplicate series now appear only once (deduplicated by TMDB id)
 - User deletion — community content anonymised instead of cascade-deleted
 - PWA — portal URLs aligned, system name unified, maskable icon fixed
