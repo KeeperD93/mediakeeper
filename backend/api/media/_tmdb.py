@@ -17,13 +17,13 @@ router = APIRouter()
 
 
 @router.get("/tmdb/search/movie")
-async def tmdb_search_movie(q: str, language: str = None, db: AsyncSession = Depends(get_db), _: User = Depends(get_current_user)):
-    return await search_movie(q, db, language=language)
+async def tmdb_search_movie(q: str, language: str = None, year: int | None = None, db: AsyncSession = Depends(get_db), _: User = Depends(get_current_user)):
+    return await search_movie(q, db, language=language, year=year)
 
 
 @router.get("/tmdb/search/tv")
-async def tmdb_search_tv(q: str, language: str = None, db: AsyncSession = Depends(get_db), _: User = Depends(get_current_user)):
-    return await search_tv(q, db, language=language)
+async def tmdb_search_tv(q: str, language: str = None, year: int | None = None, db: AsyncSession = Depends(get_db), _: User = Depends(get_current_user)):
+    return await search_tv(q, db, language=language, year=year)
 
 
 @router.get("/tmdb/tv/{tmdb_id}/seasons")

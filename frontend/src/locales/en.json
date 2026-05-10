@@ -891,6 +891,8 @@
     "noSynopsis": "No synopsis.",
     "searchFolder": "Search folder...",
     "tmdbSearch": "Search on TMDB...",
+    "tmdbYearLabel": "Year",
+    "tmdbYearPh": "Year (optional)",
     "preview": "Preview",
     "apply": "Apply",
     "applyAll": "Apply all",

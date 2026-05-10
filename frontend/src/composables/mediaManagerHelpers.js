@@ -56,6 +56,12 @@ export function cleanName(name) {
   return n
 }
 
+export function extractYear(name) {
+  if (!name) return null
+  const m = String(name).match(/\b((?:19|20)\d{2})\b/)
+  return m ? m[1] : null
+}
+
 export function getGenreCategory(genreIds) {
   if (!genreIds?.length) return null
   for (const gid of [16, 99, 10402]) {

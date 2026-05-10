@@ -49,6 +49,7 @@ export const tags = ref({})
 // TMDB
 export const searchType = ref('movie')
 export const tmdbResults = ref([])
+export const tmdbYearQuery = ref('')
 export const selectedTmdb = ref(null)
 export const currentSeason = ref(null)
 export const seasons = ref([])
