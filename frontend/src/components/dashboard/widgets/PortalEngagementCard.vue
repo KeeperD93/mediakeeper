@@ -150,12 +150,14 @@ onMounted(load)
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .wg-eng-toggle {
   display: inline-flex;
   gap: 4px;
-  margin-right: 16px;
+  flex-shrink: 0;
 }
 .wg-eng-toggle-btn {
   min-height: 26px;
@@ -248,9 +250,7 @@ onMounted(load)
   text-transform: uppercase;
   letter-spacing: 0.3px;
   color: var(--text-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
 }
 </style>

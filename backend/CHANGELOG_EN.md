@@ -68,6 +68,8 @@ This section intentionally has no date so it is not shown to users.
 - Privacy — user tab (policy, export, delayed deletion) and grace-period banner
 
 ### Fixed
+- Dashboard — Activity widget: labels wrap on narrow widths (no more truncation)
+- Dashboard — Reset/Done buttons compact on desktop (touch target preserved on mobile)
 - Dashboard — Portal Activity widget: numbers centered, no more overflow at narrow widths
 - Dashboard — Customize toolbar: buttons aligned right, Reset turned red, icons removed, single-line label
 - Leaderboard — rank movement arrow no longer overlaps the username (clean truncation on long names)
