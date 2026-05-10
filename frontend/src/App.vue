@@ -1,10 +1,10 @@
 <template>
-  <!-- Overlay de reconnection when le backend tombe -->
+  <!-- Reconnect overlay shown when the backend goes down. -->
   <Teleport to="body">
     <transition name="reconnect-fade">
-      <div v-if="backendDown" class="reconnect-overlay">
+      <div v-if="backendDown" class="reconnect-overlay" role="status" aria-live="polite">
         <div class="reconnect-card">
-          <img src="/assets/icons/mediakeeper.png" alt="" class="reconnect-logo" />
+          <img :src="reconnectLogo" alt="" class="reconnect-logo" />
           <span class="reconnect-spinner" />
           <p class="reconnect-text">{{ $t('login.reconnecting') }}</p>
         </div>
@@ -71,23 +71,35 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { fetchApiResponse } from '@/composables/useApi'
 import { useToast } from '@/composables/useToast'
+import { useAuth } from '@/composables/useAuth'
+import { useBackendHealth } from '@/composables/useBackendHealth'
 import MkConfirmDialog from '@/components/common/MkConfirmDialog.vue'
 import { Check, CirclePlay, TriangleAlert, X } from 'lucide-vue-next'
+// `?inline` forces Vite to embed the asset as a base64 data URL inside
+// the JS bundle so the overlay keeps rendering even when the backend
+// (which serves /assets/*) is being rebuilt.
+import reconnectLogo from '@/assets/icons/mediakeeper-overlay.png?inline'
 
 import '@/assets/styles/app-shell.css'
 
-const { toasts, removeToast } = useToast()
+const { toasts, removeToast, showToast } = useToast()
 const router = useRouter()
 const route = useRoute()
 const { t, locale } = useI18n()
-const backendDown = ref(false)
-let healthInterval = null
-let failCount = 0
+const { logout } = useAuth()
+
+const { backendDown, start, stop } = useBackendHealth({
+  fetchApiResponse,
+  router,
+  logout,
+  showToast,
+  t,
+})
 
 function syncDocumentTitle() {
   let titleKey = route.meta?.titleKey
@@ -99,40 +111,12 @@ function syncDocumentTitle() {
   document.title = routeTitle ? `MediaKeeper · ${routeTitle}` : 'MediaKeeper'
 }
 
-async function checkHealth() {
-  // Ne pas checkr sur la page login (elle manages son propre screen de loading)
-  if (router.currentRoute.value?.name === 'login') {
-    failCount = 0
-    backendDown.value = false
-    return
-  }
-  try {
-    const res = await fetchApiResponse('/api/health', {
-      retryOn401: false,
-      redirectOn401: false,
-    })
-    if (res.ok) {
-      if (backendDown.value) {
-        backendDown.value = false
-        window.location.reload()
-      }
-      failCount = 0
-    } else {
-      failCount++
-    }
-  } catch {
-    failCount++
-  }
-  // Show the overlay after 3 consecutive failures (~15s)
-  if (failCount >= 3) backendDown.value = true
-}
-
 onMounted(() => {
-  healthInterval = setInterval(checkHealth, 5000)
+  start()
 })
 
 onUnmounted(() => {
-  if (healthInterval) clearInterval(healthInterval)
+  stop()
 })
 
 watch(

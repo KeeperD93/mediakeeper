@@ -12,7 +12,11 @@ vi.mock('vue-router', () => ({
 }))
 
 vi.mock('@/composables/useApi', () => ({
-  fetchApiResponse: vi.fn().mockResolvedValue({ ok: true }),
+  fetchApiResponse: vi.fn().mockResolvedValue({ ok: true, json: async () => ({ status: 'ok' }) }),
+}))
+
+vi.mock('@/composables/useAuth', () => ({
+  useAuth: () => ({ logout: vi.fn().mockResolvedValue(undefined) }),
 }))
 
 const toasts = ref([])
@@ -22,6 +26,7 @@ vi.mock('@/composables/useToast', () => ({
     removeToast: vi.fn(id => {
       toasts.value = toasts.value.filter(t => t.id !== id)
     }),
+    showToast: vi.fn(),
   }),
 }))
 

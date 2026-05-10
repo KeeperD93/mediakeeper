@@ -69,6 +69,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 
 ### Fixed
+- Reconnexion — logo de l'overlay toujours affiché pendant un redéploiement, déconnexion automatique si l'application a été mise à jour pendant la coupure
 - Planificateur — bouton « Lancer maintenant » sur tâches obsolètes ne renvoie plus d'erreur (nettoyage automatique au démarrage)
 - Suivi / Manquants — séries dupliquées affichées une seule fois (dédoublonnage par identifiant TMDB)
 - Suppression d'utilisateur — contenus communautaires anonymisés au lieu d'être effacés
