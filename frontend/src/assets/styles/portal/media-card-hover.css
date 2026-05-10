@@ -209,36 +209,13 @@
   display: block;
 }
 
-/* On touch devices the overlay is always visible — taps replace hover,
-   so the action buttons (request / launch / re-request / add-to-list)
-   need to be reachable without an unreachable hover state.
-   The dark gradient is dropped so it doesn't smear over the poster
-   art; the buttons each carry their own backdrop-blur surface and
-   stay legible on top of any image. The title/year/vote info strip
-   is hidden because it only duplicates information already on the
-   detail page and would obscure the poster. */
+/* On touch devices the entire poster is the tap target — it routes to
+   the detail page directly, where Watch / Request / Add-to-list are
+   reachable. The hover overlay (and its action buttons) is hidden so
+   nothing competes with the tap and the smaller mobile thumbnails
+   stay clean. */
 @media (hover: none) {
   .pt-card-hover {
-    opacity: 1;
-    pointer-events: auto;
-    background: none;
-  }
-  .pt-card-hover-info {
     display: none;
-  }
-
-  /* Touch targets ≥ 44px (Rules §2.6) — desktop chrome is too small
-     for finger taps. */
-  .pt-card-request-btn {
-    min-height: 44px;
-  }
-  .pt-card-list-btn {
-    width: 44px;
-    height: 44px;
-    bottom: 50px;
-  }
-  .pt-card-list-btn svg {
-    width: 18px;
-    height: 18px;
   }
 }

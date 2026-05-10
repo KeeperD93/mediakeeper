@@ -226,31 +226,37 @@
   margin-left: 2px;
 }
 .editbar-btn {
+  min-height: 44px;
+  padding: 5px 14px;
+  border-radius: var(--radius-btn);
+  border: none;
   font-size: var(--text-2xs);
   font-weight: var(--font-regular);
-  padding: 5px 12px;
-  border-radius: var(--radius-btn);
+  white-space: nowrap;
   cursor: pointer;
   transition: all var(--duration-fast);
-  border: none;
+  -webkit-tap-highlight-color: transparent;
 }
 .editbar-reset {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--surface-2);
-  color: var(--text-muted);
+  margin-left: auto;
+  background: rgb(var(--color-error-rgb), 0.16);
+  color: var(--color-error);
+  border: 1px solid rgb(var(--color-error-rgb), 0.4);
 }
-.editbar-reset:hover {
-  background: rgb(255, 255, 255, 0.08);
-  color: var(--text-secondary);
+@media (hover: hover) {
+  .editbar-reset:hover {
+    background: rgb(var(--color-error-rgb), 0.28);
+    border-color: var(--color-error);
+  }
 }
 .editbar-done {
   background: var(--accent-500);
   color: #fff;
 }
-.editbar-done:hover {
-  background: #5558e6;
+@media (hover: hover) {
+  .editbar-done:hover {
+    background: var(--accent-600);
+  }
 }
 
 .dash-widget {

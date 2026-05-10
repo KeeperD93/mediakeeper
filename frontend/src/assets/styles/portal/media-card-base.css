@@ -4,6 +4,12 @@
 .pt-card {
   flex-shrink: 0;
   cursor: pointer;
+  width: var(--pt-card-w, 185px);
+}
+@media (max-width: 767px) {
+  .pt-card {
+    width: clamp(108px, 30vw, calc(var(--pt-card-w, 185px) * 0.65));
+  }
 }
 .pt-card-poster {
   position: relative;

@@ -1,7 +1,7 @@
 <template>
   <div
     class="pt-card"
-    :style="{ width }"
+    :style="{ '--pt-card-w': width }"
     @click="$emit('select', item)"
     @mouseenter="hovered = true"
     @mouseleave="hovered = false"

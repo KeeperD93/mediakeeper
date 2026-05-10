@@ -68,6 +68,10 @@ This section intentionally has no date so it is not shown to users.
 - Privacy — user tab (policy, export, delayed deletion) and grace-period banner
 
 ### Fixed
+- Dashboard — Portal Activity widget: numbers centered, no more overflow at narrow widths
+- Dashboard — Customize toolbar: buttons aligned right, Reset turned red, icons removed, single-line label
+- Leaderboard — rank movement arrow no longer overlaps the username (clean truncation on long names)
+- Portal — smaller poster thumbnails on mobile, tap anywhere opens details (action buttons hidden on touch)
 - Reconnect overlay — logo always visible during a redeploy, automatic sign-out when the app was updated mid-outage
 - Scheduler — "Run now" on obsolete tasks no longer errors (orphan rows purged at startup)
 - Follow-up / Missing — duplicate series now appear only once (deduplicated by TMDB id)

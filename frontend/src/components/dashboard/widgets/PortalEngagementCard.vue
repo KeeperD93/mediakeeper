@@ -189,6 +189,8 @@ onMounted(load)
 .wg-eng-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  grid-auto-rows: min-content;
+  align-content: center;
   gap: 8px;
   flex: 1;
   min-height: 0;
@@ -197,17 +199,19 @@ onMounted(load)
 .wg-eng-tile {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   padding: 10px 12px;
   background: rgb(255, 255, 255, 0.02);
   border: 1px solid rgb(255, 255, 255, 0.05);
   border-radius: var(--radius-card);
   color: inherit;
   cursor: pointer;
-  text-align: left;
+  text-align: center;
   min-width: 0;
   min-height: 44px;
+  overflow: hidden;
   transition:
     border-color var(--duration-base),
     background var(--duration-base),
@@ -234,11 +238,10 @@ onMounted(load)
   flex-shrink: 0;
 }
 .wg-eng-val {
-  font-size: 20px;
+  font-size: var(--text-lg);
   font-weight: var(--font-medium);
   line-height: 1.1;
   color: var(--text-primary);
-  margin-top: 2px;
 }
 .wg-eng-label {
   font-size: var(--text-3xs);
