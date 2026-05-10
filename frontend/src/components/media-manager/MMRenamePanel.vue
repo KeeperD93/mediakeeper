@@ -8,6 +8,14 @@
       <span class="mm-hint">{{ $t('mediaManager.dragToReorder') }}</span>
       <div class="mm-row-flex-tight">
         <button
+          v-if="selectedNew.size > 0"
+          class="mm-btn-sm mm-btn-danger"
+          @click="deleteSelected"
+        >
+          <Trash2 :size="11" />
+          {{ $t('mediaManager.deleteSelected', { n: selectedNew.size }) }}
+        </button>
+        <button
           class="mm-btn-sm"
           :class="{ 'mm-btn-accent': diffMode }"
           :title="$t('mediaManager.compareMode')"
@@ -22,7 +30,16 @@
         </button>
       </div>
     </div>
-    <div ref="rightListRef" class="mm-file-list" @scroll="onScroll">
+    <div
+      ref="rightListRef"
+      class="mm-file-list"
+      tabindex="0"
+      @scroll="onScroll"
+      @keydown.delete.prevent="deleteSelected"
+      @keydown.backspace.prevent="deleteSelected"
+      @keydown.esc.prevent="clearSelection"
+    >
+      <div v-if="lassoDragging" class="mm-lasso" :style="lassoStyle" />
       <div v-if="!newNames.length" class="mm-state">
         <ChevronRight :size="24" />
         <span>{{ $t('mediaManager.waitingGeneration') }}</span>
@@ -34,6 +51,7 @@
             warn: liveEpCheck[i]?.epMismatch || n.mismatch,
             'warn-strong': liveEpCheck[i]?.seasonMismatch || n.mismatchStrong,
             'drag-over-r': dragOverRight === i,
+            selected: selectedNew.has(i),
           }"
           draggable="true"
           @dragstart="dStart(i)"
@@ -150,6 +168,7 @@
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useMediaManager } from '@/composables/useMediaManager'
+import { useMMRenamePanelUI } from '@/composables/useMMRenamePanelUI'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import { ArrowLeftRight, Check, ChevronRight, Copy, Trash2, X } from 'lucide-vue-next'
@@ -182,6 +201,18 @@ async function copyName(name) {
 const diffMode = ref(false)
 const dragOverRight = ref(null)
 const rightListRef = ref(null)
+
+const {
+  lassoDragging,
+  lassoStyle,
+  selectedNew,
+  deleteSelected: _deleteSelected,
+  clearSelection,
+} = useMMRenamePanelUI({ rightListRef, newNames })
+
+function deleteSelected() {
+  _deleteSelected(removeRight)
+}
 
 // ── Menu contextuel ──
 const renameCtx = ref({ show: false, x: 0, y: 0, idx: null })
@@ -255,3 +286,14 @@ const liveEpCheck = computed(() => {
   })
 })
 </script>
+
+<style scoped>
+.mm-new-row.selected {
+  background: rgb(var(--accent-rgb), 0.12);
+  outline: 1px solid var(--accent-500);
+  outline-offset: -1px;
+}
+.mm-file-list:focus {
+  outline: none;
+}
+</style>

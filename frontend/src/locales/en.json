@@ -1122,6 +1122,7 @@
     "renamed": "Renamed: {name}",
     "copyName": "Copy full name",
     "nameCopied": "Name copied to clipboard",
+    "deleteSelected": "Delete ({n})",
     "suggestedMatch": "Suggested",
     "suggestedMatchApprox": "~Suggested",
     "confirmDeleteTab": "Delete this tab?",
