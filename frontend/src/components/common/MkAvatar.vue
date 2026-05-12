@@ -5,17 +5,17 @@
     :style="{
       width: size + 'px',
       height: size + 'px',
-      fontSize: fontSize + 'px',
     }"
     :aria-label="name"
   >
     <img v-if="showImage" :src="src" :alt="name" class="mk-avatar-img" @error="onError" />
-    <span v-else class="mk-avatar-letter">{{ letter }}</span>
+    <UserRound v-else :size="iconSize" :stroke-width="1.5" class="mk-avatar-icon" />
   </div>
 </template>
 
 <script setup>
 import { computed, ref, watch } from 'vue'
+import { UserRound } from 'lucide-vue-next'
 
 const props = defineProps({
   src: { type: String, default: null },
@@ -39,12 +39,9 @@ watch(
 
 const showImage = computed(() => !!props.src && !failed.value)
 
-const letter = computed(() => {
-  const n = (props.name || '').trim()
-  return n ? n.charAt(0).toUpperCase() : '?'
-})
-
-const fontSize = computed(() => Math.round(props.size * 0.4))
+// 70% keeps the silhouette readable at the smallest sizes (18-24 px chips)
+// while leaving the headroom needed for the rarity ring around bigger avatars.
+const iconSize = computed(() => Math.round(props.size * 0.7))
 
 function onError() {
   failed.value = true
@@ -54,7 +51,7 @@ function onError() {
 <style scoped>
 .mk-avatar {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   overflow: hidden;
   flex-shrink: 0;
@@ -78,13 +75,13 @@ function onError() {
 
 .mk-avatar-fallback {
   background: linear-gradient(135deg, var(--accent-500), var(--accent-600));
+  /* Pure white silhouette on the accent gradient — semantic, no token. */
   color: #fff;
-  font-weight: var(--font-bold);
-  text-transform: uppercase;
 }
 
-.mk-avatar-letter {
-  display: inline-block;
-  line-height: 1;
+.mk-avatar-icon {
+  /* Anchor the silhouette to the bottom of the circle so it reads as a
+     framed head-and-shoulders portrait rather than a floating glyph. */
+  margin-top: 8%;
 }
 </style>

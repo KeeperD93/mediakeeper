@@ -20,7 +20,7 @@ from core.security import decode_access_token, is_token_valid_for_revocation_piv
 from models.user import User
 from models.portal.profile import UserProfile
 from api.auth import PORTAL_COOKIE_NAME
-from api.portal.deps import require_permission
+from api.portal.deps import get_request_lang, require_permission
 from services.portal import chat as chat_svc
 from services.portal.achievements import safe_check_all_achievements_in_new_session
 from services.portal.profiles import get_or_create_profile
@@ -162,9 +162,10 @@ async def get_messages(
     limit: int = Query(50, ge=1, le=100),
     up: tuple[User, UserProfile] = Depends(require_permission("can_chat")),
     db: AsyncSession = Depends(get_db),
+    lang: str = Depends(get_request_lang),
 ):
     user, _ = up
-    result = await chat_svc.get_messages(db, room_id, user.id, cursor, limit)
+    result = await chat_svc.get_messages(db, room_id, user.id, cursor, limit, lang=lang)
     if isinstance(result, dict) and result.get("error") == "forbidden":
         raise HTTPException(status_code=403, detail="forbidden")
     return result
@@ -179,11 +180,12 @@ async def send_message(
     background_tasks: BackgroundTasks,
     up: tuple[User, UserProfile] = Depends(require_permission("can_chat")),
     db: AsyncSession = Depends(get_db),
+    lang: str = Depends(get_request_lang),
 ):
     user, profile = up
     if not profile.chat_enabled:
         raise HTTPException(status_code=403, detail="chat_disabled")
-    result = await chat_svc.send_message(db, room_id, user.id, data.content)
+    result = await chat_svc.send_message(db, room_id, user.id, data.content, lang=lang)
     if "error" in result:
         raise HTTPException(status_code=403, detail=result["error"])
     await _broadcast(room_id, result["message"])

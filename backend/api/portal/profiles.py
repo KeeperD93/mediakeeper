@@ -9,7 +9,8 @@ from core.database import get_db
 from models.user import User
 from models.portal.achievement import UserAchievement
 from models.portal.profile import UserProfile
-from api.portal.deps import get_current_profile
+from api.portal.deps import get_current_profile, get_request_lang
+from services.portal._display_name import resolve_display_name
 from services.portal.achievement_defs import TITLE_REWARDS
 from services.portal.achievement_defs_meta import META_TARGET_CATEGORY
 from services.portal.profiles import (
@@ -183,12 +184,18 @@ async def search_users(
     limit: int = Query(20, ge=1, le=50),
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
+    lang: str = Depends(get_request_lang),
 ):
     """
     Lightweight user picker used by the event creation modal. Returns
     every active user matching `q` against username/display_name. We
     exclude the requesting user themselves so they can't invite their
     own account.
+
+    The raw Emby ``User.username`` is used internally for matching but
+    is never returned to the caller — accounts that haven't picked a
+    portal pseudo render as the localized anonymous alias instead
+    (Rules §22).
     """
     from sqlalchemy import select, or_
     me, _ = up
@@ -197,7 +204,13 @@ async def search_users(
     # via a NULL-profile drift. The picker must mirror the visibility
     # rules of the public profile endpoint and the leaderboard.
     stmt = (
-        select(User.id, User.username, UserProfile.display_name, UserProfile.avatar_url)
+        select(
+            User.id,
+            User.username,
+            UserProfile.display_name,
+            UserProfile.display_name_must_set,
+            UserProfile.avatar_url,
+        )
         .select_from(User)
         .join(UserProfile, UserProfile.user_id == User.id)
         .where(User.id != me.id)
@@ -217,9 +230,10 @@ async def search_users(
         "items": [
             {
                 "id": r[0],
-                "username": r[1],
-                "display_name": r[2] or r[1],
-                "avatar_url": r[3],
+                "display_name": resolve_display_name(
+                    None if r[3] else r[2], r[0], lang
+                ),
+                "avatar_url": r[4],
             }
             for r in rows
         ]
@@ -231,6 +245,7 @@ async def get_profile(
     profile_id: int,
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
+    lang: str = Depends(get_request_lang),
 ):
     from services.portal.profiles import _serialize_public
     row = (await db.execute(
@@ -244,4 +259,4 @@ async def get_profile(
     if not row:
         raise HTTPException(status_code=404, detail="profile_not_found")
     row = await _prune_stale_decorations(db, row, row.user_id)
-    return _serialize_public(row)
+    return _serialize_public(row, lang=lang)

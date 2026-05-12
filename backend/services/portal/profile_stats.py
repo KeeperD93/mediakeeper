@@ -51,7 +51,7 @@ logger = logging.getLogger("mediakeeper.portal.profile_stats")
 
 
 async def get_profile_full(
-    db: AsyncSession, user: User, profile: UserProfile,
+    db: AsyncSession, user: User, profile: UserProfile, *, lang: str = "fr",
 ) -> dict:
     """
     Aggregate all data needed by the profile page in a single call:
@@ -94,7 +94,7 @@ async def get_profile_full(
         fetch_recent_watches(db, user_filter, excl_filters),
         fetch_my_requests(db, user),
         fetch_next_to_finish(db, user_filter, excl_filters),
-        compute_ranking(db, user),
+        compute_ranking(db, user, lang=lang),
     )
     total_plays, total_minutes = totals
     most_rewatched, most_rewatched_movie, most_rewatched_series = rewatched

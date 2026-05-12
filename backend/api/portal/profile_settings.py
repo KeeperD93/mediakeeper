@@ -19,7 +19,7 @@ from core.database import get_db
 from models.portal.achievement import UserAchievement
 from models.portal.profile import UserProfile
 from models.user import User
-from api.portal.deps import get_current_profile
+from api.portal.deps import get_current_profile, get_request_lang
 from services.portal.achievement_defs import ACHIEVEMENT_DEFS
 from services.portal.achievements import safe_check_all_achievements_in_new_session
 from services.portal.avatars import (
@@ -212,6 +212,7 @@ async def public_profile_by_user(
     user_id: int,
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
+    lang: str = Depends(get_request_lang),
 ):
     """Public profile keyed by ``user_id`` (matches the URL the leaderboard
     builds). Augments the bare public payload with the achievement ratio
@@ -243,7 +244,7 @@ async def public_profile_by_user(
         # outside.
         raise HTTPException(status_code=404, detail="profile_not_found")
 
-    base = _serialize_public(row)
+    base = _serialize_public(row, lang=lang)
 
     unlocked_ids = (await db.execute(
         select(UserAchievement.achievement_id)
@@ -258,7 +259,7 @@ async def public_profile_by_user(
     target_user = (await db.execute(
         select(User).where(User.id == user_id)
     )).scalar_one_or_none()
-    monthly = await compute_ranking(db, target_user) if target_user else {}
+    monthly = await compute_ranking(db, target_user, lang=lang) if target_user else {}
     rank_position = monthly.get("position") or 0
     rank_total = monthly.get("total") or 0
     rank_percentile = monthly.get("percentile") or 0

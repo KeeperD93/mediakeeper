@@ -5,9 +5,12 @@
     </div>
     <ul v-if="contributors.length" class="ale-contributors">
       <li v-for="c in contributors" :key="c.user_id" class="ale-contrib">
-        <span class="ale-contrib-avatar">
-          {{ (c.username || '?').charAt(0).toUpperCase() }}
-        </span>
+        <MkAvatar
+          :name="c.username || ''"
+          :src="c.avatar_url || null"
+          :size="26"
+          class="ale-contrib-avatar"
+        />
         <span class="ale-contrib-name">{{ c.username || `#${c.user_id}` }}</span>
         <span v-if="c.is_owner_row" class="ale-contrib-owner">
           {{ $t('portal.lists.ownerBadge') }}
@@ -35,6 +38,8 @@
 </template>
 
 <script setup>
+import MkAvatar from '@/components/common/MkAvatar.vue'
+
 defineProps({
   contributors: { type: Array, required: true },
   isOwner: { type: Boolean, default: false },
@@ -84,16 +89,7 @@ defineEmits(['remove'])
   font-size: var(--portal-text-sm);
 }
 .ale-contrib-avatar {
-  width: 26px;
-  height: 26px;
-  border-radius: var(--portal-radius-circle);
-  background: var(--portal-gradient-accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--portal-text-2xs);
-  font-weight: var(--portal-font-extrabold);
-  color: #fff;
+  flex-shrink: 0;
 }
 .ale-contrib-name {
   flex: 1;

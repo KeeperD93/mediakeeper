@@ -74,6 +74,10 @@ async def _make_user_with_profile(
         role=role,
         account_active=account_active,
         deleted_at=deleted_at,
+        # These fixtures model accounts that have completed their first-time
+        # onboarding (pseudo picked), so user-facing endpoints return the
+        # ``display_name`` verbatim rather than the anonymous alias.
+        display_name_must_set=False,
     )
     db_session.add(profile)
     await db_session.commit()
@@ -219,7 +223,7 @@ async def test_search_users_excludes_soft_deleted(client, db_session):
     _set_portal_cookie(client, me)
     resp = await client.get("/api/portal/profiles/search/users")
     assert resp.status_code == 200
-    usernames = {item["username"] for item in resp.json()["items"]}
+    usernames = {item["display_name"] for item in resp.json()["items"]}
     assert "search-soft-deleted" not in usernames
 
 
@@ -238,7 +242,7 @@ async def test_search_users_excludes_account_inactive(client, db_session):
     _set_portal_cookie(client, me)
     resp = await client.get("/api/portal/profiles/search/users")
     assert resp.status_code == 200
-    usernames = {item["username"] for item in resp.json()["items"]}
+    usernames = {item["display_name"] for item in resp.json()["items"]}
     assert "search-deactivated" not in usernames
 
 
@@ -250,7 +254,7 @@ async def test_search_users_includes_active_user(client, db_session):
     _set_portal_cookie(client, me)
     resp = await client.get("/api/portal/profiles/search/users")
     assert resp.status_code == 200
-    usernames = {item["username"] for item in resp.json()["items"]}
+    usernames = {item["display_name"] for item in resp.json()["items"]}
     assert "search-friend" in usernames
 
 

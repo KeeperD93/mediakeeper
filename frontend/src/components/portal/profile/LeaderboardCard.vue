@@ -20,13 +20,12 @@
       >
         <span class="gc-lb-pos">{{ entry.rank }}</span>
         <div class="gc-lb-av" :class="`gc-lb-av--${entry.tier || 'bronze'}`">
-          <img
-            v-if="entry.avatar_url && !brokenAvatars[entry.user_id]"
-            :src="entry.avatar_url"
-            class="gc-lb-av-img"
-            @error="brokenAvatars[entry.user_id] = true"
+          <MkAvatar
+            :name="entry.display_name || ''"
+            :src="entry.avatar_url || null"
+            :size="24"
+            class="gc-lb-av-mk"
           />
-          <span v-else>{{ entry.display_name?.charAt(0)?.toUpperCase() }}</span>
         </div>
         <div class="gc-lb-info">
           <span class="gc-lb-n">{{ entry.display_name }}</span>
@@ -62,16 +61,14 @@
 </template>
 
 <script setup>
-import { reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ChevronDown, ChevronUp } from 'lucide-vue-next'
+import MkAvatar from '@/components/common/MkAvatar.vue'
 
 defineProps({
   entries: { type: Array, default: () => [] },
   widget: { type: Boolean, default: false },
 })
-
-const brokenAvatars = reactive({})
 
 const { t } = useI18n()
 

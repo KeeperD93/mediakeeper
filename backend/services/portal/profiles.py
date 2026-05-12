@@ -69,7 +69,7 @@ async def get_profile_by_user_id(
 
 
 async def get_public_profile(
-    db: AsyncSession, profile_id: int
+    db: AsyncSession, profile_id: int, *, lang: str = "fr",
 ) -> dict | None:
     """Get a public profile by its ID (for other users to view)."""
     result = await db.execute(
@@ -82,7 +82,7 @@ async def get_public_profile(
     profile = result.scalar_one_or_none()
     if not profile:
         return None
-    return _serialize_public(profile)
+    return _serialize_public(profile, lang=lang)
 
 
 async def is_display_name_taken(
@@ -213,7 +213,9 @@ async def suggest_display_names(
     return out
 
 
-async def get_leaderboard(db: AsyncSession, limit: int = 20) -> list[dict]:
+async def get_leaderboard(
+    db: AsyncSession, limit: int = 20, *, lang: str = "fr",
+) -> list[dict]:
     """Top users by XP. Admin accounts are excluded by design."""
     result = await db.execute(
         select(UserProfile)
@@ -226,7 +228,7 @@ async def get_leaderboard(db: AsyncSession, limit: int = 20) -> list[dict]:
         .limit(limit)
     )
     profiles = result.scalars().all()
-    return [_serialize_public(p) for p in profiles]
+    return [_serialize_public(p, lang=lang) for p in profiles]
 
 
 async def add_xp(

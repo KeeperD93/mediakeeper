@@ -9,7 +9,8 @@ from models.portal.profile import UserProfile
 from core.pagination import decode_cursor, build_cursor_response
 from services.portal import strip_tags_and_trim
 from services.portal.chat_mutes import is_muted
-from services.portal.chat_presenters import resolve_display_name, serialize_message
+from services.portal._display_name import resolve_display_name
+from services.portal.chat_presenters import chat_user_display_name, serialize_message
 
 logger = logging.getLogger("mediakeeper.portal.chat")
 
@@ -162,6 +163,7 @@ async def send_message(
     room_id: int,
     user_id: int,
     content: str,
+    lang: str = "fr",
 ) -> dict:
     """Send a message to a room."""
     if not await user_can_access_room(db, room_id, user_id):
@@ -180,7 +182,7 @@ async def send_message(
     # Eagerly resolve the author's display name so the websocket
     # broadcast already carries it — clients don't have to do a second
     # lookup per message.
-    name = await resolve_display_name(db, user_id)
+    name = await chat_user_display_name(db, user_id, lang)
     return {
         "success": True,
         "message": serialize_message(msg, user_name=name),
@@ -193,6 +195,7 @@ async def get_messages(
     user_id: int,
     cursor: str | None = None,
     limit: int = 50,
+    lang: str = "fr",
 ) -> dict:
     """Get messages for a room with cursor pagination."""
     if not await user_can_access_room(db, room_id, user_id):
@@ -223,11 +226,28 @@ async def get_messages(
     if user_ids:
         prof_rows = (
             await db.execute(
-                select(UserProfile.user_id, UserProfile.display_name)
+                select(
+                    UserProfile.user_id,
+                    UserProfile.display_name,
+                    UserProfile.display_name_must_set,
+                )
                 .where(UserProfile.user_id.in_(user_ids))
             )
         ).all()
-        name_map = {uid: name for uid, name in prof_rows}
+        # Apply the privacy boundary in the batch path too: accounts
+        # that have never picked a pseudo render as the anonymous alias
+        # rather than leaking the auto-populated Emby username.
+        resolved: dict[int, str] = {
+            uid: resolve_display_name(
+                None if must_set else name, uid, lang
+            )
+            for uid, name, must_set in prof_rows
+        }
+        # Backfill users without a profile row (rare — migration drift).
+        for uid in user_ids:
+            if uid not in resolved:
+                resolved[uid] = resolve_display_name(None, uid, lang)
+        name_map = resolved
 
     items = [serialize_message(m, user_name=name_map.get(m.user_id)) for m in raw]
     return build_cursor_response(items, total, limit)

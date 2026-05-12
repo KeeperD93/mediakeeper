@@ -1,7 +1,13 @@
 <template>
   <Teleport to="body">
     <transition name="pt-force-fade">
-      <div v-if="open" class="pt-force-uname-overlay" role="dialog" aria-modal="true">
+      <div
+        v-if="open"
+        class="pt-force-uname-overlay"
+        :class="{ 'pt-force-uname-overlay--mounted': mounted }"
+        role="dialog"
+        aria-modal="true"
+      >
         <div ref="panelRef" class="pt-force-uname-panel" tabindex="-1">
           <h2 class="pt-force-uname-title">{{ $t('portal.settings.forceUsername.title') }}</h2>
           <p class="pt-force-uname-sub">{{ $t('portal.settings.forceUsername.subtitle') }}</p>
@@ -86,6 +92,11 @@ const inputRef = ref(null)
 const panelRef = ref(null)
 const saving = ref(false)
 const errorKey = ref(null)
+// Guards the first paint: until the teleported overlay finishes mounting
+// to <body>, the panel stays visually hidden so a navigation that fires
+// during the enter transition cannot show the still-inline content at
+// its parent's position (observed bottom-left leak).
+const mounted = ref(false)
 const usernameCheck = reactive({
   pending: false,
   available: null,
@@ -98,13 +109,17 @@ let timer = null
 watch(
   () => props.open,
   async open => {
-    if (!open) return
+    if (!open) {
+      mounted.value = false
+      return
+    }
     candidate.value = profile.value?.display_name || ''
     errorKey.value = null
     usernameCheck.available = null
     usernameCheck.reason = null
     usernameCheck.suggestions = []
     await nextTick()
+    mounted.value = true
     inputRef.value?.focus()
     inputRef.value?.select()
   },

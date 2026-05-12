@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.database import get_db
 from models.user import User
 from models.portal.profile import UserProfile
-from api.portal.deps import get_current_profile
+from api.portal.deps import get_current_profile, get_request_lang
 from services.portal import achievements as ach_svc
 
 router = APIRouter(prefix="/achievements", tags=["portal-achievements"])
@@ -118,6 +118,7 @@ async def leaderboard(
     limit: int = Query(20, ge=1, le=100),
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
+    lang: str = Depends(get_request_lang),
 ):
     """Top users by XP with achievement count."""
-    return {"items": await ach_svc.get_leaderboard(db, limit)}
+    return {"items": await ach_svc.get_leaderboard(db, limit, lang=lang)}
