@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.database import get_db
 from models.user import User
 from models.portal.profile import UserProfile
-from api.portal.deps import require_permission
+from api.portal.deps import get_request_lang, require_permission
 from services.portal import lists as svc
 from services.portal import lists_items as svc_items
 from services.portal import lists_admin as svc_admin
@@ -106,11 +106,12 @@ async def get_single(
     page_size: int = Query(svc.DEFAULT_PAGE_SIZE, ge=1, le=svc.MAX_PAGE_SIZE),
     up: tuple[User, UserProfile] = Depends(require_permission("can_lists")),
     db: AsyncSession = Depends(get_db),
+    lang: str = Depends(get_request_lang),
 ):
     user, _ = up
     result = await svc_query.get_list(
         db, list_id, user.id,
-        sort=sort, page=page, page_size=page_size,
+        sort=sort, page=page, page_size=page_size, lang=lang,
     )
     _http_error(result)
     return result

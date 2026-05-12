@@ -52,6 +52,7 @@ This section intentionally has no date so it is not shown to users.
 
 ### Changed
 - Portal — avatars: silhouette icon replaces the letter
+- Lists — anonymized pseudos on the owner and contributors of a list detail
 - Settings — active tab synced with the URL (deep links and refresh)
 - What's new today — monthly Top 3 aligned on the dashboard's Ranking widget (identical look, your own position appended as a 4th row when off the podium)
 - Tickets — filters reorganised into labelled groups (status, source, issue) using the Demandes pill style

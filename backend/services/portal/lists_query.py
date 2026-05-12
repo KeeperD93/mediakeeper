@@ -10,6 +10,7 @@ from models.portal.social import (
     PRIVACY_PUBLIC_READONLY, PRIVACY_COLLABORATIVE,
 )
 from models.user import User
+from services.portal._display_name import resolve_display_name
 from services.portal.lists import (
     DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, can_view,
 )
@@ -28,12 +29,13 @@ async def get_list(
     *, include_items: bool = True,
     sort: str = "added_desc",
     page: int = 1, page_size: int = DEFAULT_PAGE_SIZE,
+    lang: str = "fr",
 ) -> dict:
     lst = await db.get(UserList, list_id)
     if not lst or not await can_view(db, lst, user_id):
         return {"error": "not_found"}
 
-    serialized = await _serialize_list(db, lst, user_id)
+    serialized = await _serialize_list(db, lst, user_id, lang=lang)
     if include_items:
         items, total = await _paginated_items(
             db, list_id, sort=sort, page=page, page_size=page_size,
@@ -105,14 +107,24 @@ async def get_public_lists(
 
 async def _serialize_list(
     db: AsyncSession, lst: UserList, user_id: int,
-    *, lightweight: bool = False,
+    *, lightweight: bool = False, lang: str = "fr",
 ) -> dict:
     count = (await db.execute(
         select(func.count(UserListItem.id)).where(UserListItem.list_id == lst.id)
     )).scalar() or 0
-    owner_username = (await db.execute(
-        select(User.username).where(User.id == lst.user_id)
-    )).scalar()
+    # Privacy boundary (Rules §22): expose the owner's chosen portal
+    # pseudo or the localized anonymous alias — never the raw Emby
+    # ``User.username``. The User row stays joined so a deleted owner
+    # surfaces a NULL ``display_name`` that the helper folds into the
+    # alias fallback.
+    owner_row = (await db.execute(
+        select(UserProfile.display_name, UserProfile.display_name_must_set)
+        .where(UserProfile.user_id == lst.user_id)
+    )).first()
+    if owner_row is None:
+        owner_display_name, owner_must_set = None, True
+    else:
+        owner_display_name, owner_must_set = owner_row
     preview_posters = (await db.execute(
         select(UserListItem.poster_url)
         .where(UserListItem.list_id == lst.id, UserListItem.poster_url.isnot(None))
@@ -122,7 +134,11 @@ async def _serialize_list(
     base = {
         "id": lst.id,
         "owner_id": lst.user_id,
-        "owner_username": owner_username,
+        "owner_username": resolve_display_name(
+            None if owner_must_set else owner_display_name,
+            lst.user_id,
+            lang,
+        ),
         "is_owner": lst.user_id == user_id,
         "name": lst.name,
         "description": lst.description,
@@ -140,7 +156,7 @@ async def _serialize_list(
     if not lightweight:
         # Late import to avoid circular dependency with lists_admin.
         from services.portal.lists_admin import get_contributors
-        base["contributors"] = await get_contributors(db, lst.id)
+        base["contributors"] = await get_contributors(db, lst.id, lang=lang)
     return base
 
 

@@ -19,6 +19,7 @@ from models.portal.social import (
     UserList, UserListItem, UserListContributor, UserListHistory,
     PRIVACY_COLLABORATIVE,
 )
+from services.portal._display_name import resolve_display_name
 from services.portal.lists import (
     _log, _contributor_row, can_view, can_manage,
 )
@@ -72,13 +73,26 @@ async def remove_contributor(
     return {"success": True}
 
 
-async def get_contributors(db: AsyncSession, list_id: int) -> list[dict]:
+async def get_contributors(
+    db: AsyncSession, list_id: int, *, lang: str = "fr",
+) -> list[dict]:
     # Inner-join UserProfile and gate on account_active / deleted_at so a
     # soft-deleted contributor disappears from the panel. The contributor
     # row stays in DB (un-mute, history audit) and re-appears as soon as
     # the account is restored — only the surfaced pseudo is hidden.
+    #
+    # Privacy boundary (Rules §22): expose the contributor's chosen
+    # portal pseudo or the localized anonymous alias — never the raw
+    # Emby ``User.username``. The User row is still joined so the gate
+    # on ``is_active`` survives. No admin caller reuses this function
+    # today (audited 2026-05-12); admin moderation paths must keep
+    # raw fields by querying directly.
     rows = (await db.execute(
-        select(UserListContributor, User)
+        select(
+            UserListContributor,
+            UserProfile.display_name,
+            UserProfile.display_name_must_set,
+        )
         .join(User, User.id == UserListContributor.user_id)
         .join(UserProfile, UserProfile.user_id == UserListContributor.user_id)
         .where(
@@ -92,11 +106,13 @@ async def get_contributors(db: AsyncSession, list_id: int) -> list[dict]:
     return [
         {
             "user_id": c.user_id,
-            "username": u.username,
+            "username": resolve_display_name(
+                None if must_set else display_name, c.user_id, lang,
+            ),
             "muted": c.muted,
             "added_at": c.added_at.isoformat() if c.added_at else None,
         }
-        for c, u in rows
+        for c, display_name, must_set in rows
     ]
 
 
