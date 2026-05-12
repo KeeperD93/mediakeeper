@@ -15,6 +15,7 @@ This section intentionally has no date so it is not shown to users.
 ## [Unreleased]
 
 ### Added
+- Portal — anonymous "User 1234" alias until a pseudo is picked
 - Search — instant suggestions, recent searches, keyboard navigation and Ctrl/Cmd+K shortcut
 - Accessibility — keyboard "Skip to main content" link
 - Page not found — proper accessible 404 page with back-to-portal link (no more silent redirect)
@@ -50,6 +51,7 @@ This section intentionally has no date so it is not shown to users.
 - List achievements — two new tiered families (Curator, Librarian) with 5 tiers each
 
 ### Changed
+- Portal — avatars: silhouette icon replaces the letter
 - Settings — active tab synced with the URL (deep links and refresh)
 - What's new today — monthly Top 3 aligned on the dashboard's Ranking widget (identical look, your own position appended as a 4th row when off the podium)
 - Tickets — filters reorganised into labelled groups (status, source, issue) using the Demandes pill style
@@ -69,6 +71,7 @@ This section intentionally has no date so it is not shown to users.
 - Trophies: reward XP lowered to smooth progression (already-earned XP adjusted accordingly)
 
 ### Fixed
+- Portal — username-choice modal: no more bottom-left text leak during the enter transition
 - Requests — auto-switch to "Available" and bell notification as soon as the media lands on Emby
 - Top of the month — series count once per viewer (no longer inflated by episode count)
 - Top genres — each series counts once per genre (no longer overweighted by episode count)

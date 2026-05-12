@@ -90,7 +90,7 @@ async def mark_dismissed(db: AsyncSession, user_id: int) -> str:
 
 
 async def build_digest(
-    db: AsyncSession, user: User, *, use_cache: bool = True,
+    db: AsyncSession, user: User, *, use_cache: bool = True, lang: str = "fr",
 ) -> dict[str, Any]:
     """Aggregate every digest block into a single payload.
 
@@ -107,7 +107,7 @@ async def build_digest(
 
     recent_adds = await sources.recent_adds(db)
     events = await sources.upcoming_events(db, user.id)
-    ranking = await sources.ranking_snapshot(db, user)
+    ranking = await sources.ranking_snapshot(db, user, lang=lang)
     quota = await sources.quota_snapshot(db, user.id)
     tickets_open = await sources.open_tickets_count(db, user.id)
     streak = await sources.current_streak(db, user, profile)

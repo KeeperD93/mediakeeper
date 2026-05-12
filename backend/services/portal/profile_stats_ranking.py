@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.user import User
 from models.portal.profile import UserProfile
 from models.portal.xp_ledger import XpLedger
+from services.portal._display_name import resolve_display_name
 from services.portal.profile_serializers import _resolve_avatar_url
 
 logger = logging.getLogger("mediakeeper.portal.profile_stats")
@@ -84,7 +85,9 @@ async def _excluded_from_leaderboard(db: AsyncSession) -> list[int]:
     return list(rows)
 
 
-async def compute_leaderboard_only(db: AsyncSession) -> list[dict]:
+async def compute_leaderboard_only(
+    db: AsyncSession, *, lang: str = "fr"
+) -> list[dict]:
     """Return the top ``LEADERBOARD_VISIBLE`` users for the current month.
 
     Unlike :func:`compute_ranking`, this variant requires no viewer user
@@ -154,10 +157,15 @@ async def compute_leaderboard_only(db: AsyncSession) -> list[dict]:
             p_level = prof.level if prof else 1
             prev_r = prev_rank_by_user.get(row.user_id, 0)
             movement = (prev_r - (idx + 1)) if prev_r > 0 else 0
+            effective = (
+                None
+                if prof is None or prof.display_name_must_set
+                else prof.display_name
+            )
             out.append({
                 "rank": idx + 1,
                 "user_id": row.user_id,
-                "display_name": prof.display_name if prof else f"User {row.user_id}",
+                "display_name": resolve_display_name(effective, row.user_id, lang),
                 "avatar_url": _resolve_avatar_url(prof) if prof else None,
                 "level": p_level,
                 "tier": tier_for_level(p_level),
@@ -174,7 +182,9 @@ async def compute_leaderboard_only(db: AsyncSession) -> list[dict]:
         return []
 
 
-async def compute_ranking(db: AsyncSession, user: User) -> dict:
+async def compute_ranking(
+    db: AsyncSession, user: User, *, lang: str = "fr"
+) -> dict:
     """
     Compute the user's monthly XP ranking + percentile + movement vs
     last month + a mini-leaderboard of the top ``LEADERBOARD_VISIBLE``
@@ -270,10 +280,15 @@ async def compute_ranking(db: AsyncSession, user: User) -> dict:
             p_level = prof.level if prof else 1
             prev_r = prev_rank_by_user.get(row.user_id, 0)
             movement = (prev_r - (rank_idx + 1)) if prev_r > 0 else 0
+            effective = (
+                None
+                if prof is None or prof.display_name_must_set
+                else prof.display_name
+            )
             return {
                 "rank": rank_idx + 1,
                 "user_id": row.user_id,
-                "display_name": prof.display_name if prof else f"User {row.user_id}",
+                "display_name": resolve_display_name(effective, row.user_id, lang),
                 "avatar_url": _resolve_avatar_url(prof) if prof else None,
                 "level": p_level,
                 "tier": tier_for_level(p_level),

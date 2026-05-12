@@ -144,10 +144,12 @@ async def current_streak(db: AsyncSession, user: User, profile: UserProfile) -> 
         return 0
 
 
-async def ranking_snapshot(db: AsyncSession, user: User) -> dict:
+async def ranking_snapshot(
+    db: AsyncSession, user: User, *, lang: str = "fr"
+) -> dict:
     """Rank + slimmed top-3 slice for the digest's mini-leaderboard widget."""
     try:
-        r = await compute_ranking(db, user)
+        r = await compute_ranking(db, user, lang=lang)
     except Exception as e:  # noqa: BLE001
         logger.debug(f"[DIGEST] ranking failed: {e}")
         return {"position": 0, "total": 0, "movement": 0, "top3": []}

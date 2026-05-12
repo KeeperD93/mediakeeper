@@ -186,25 +186,10 @@
   background: rgb(255, 255, 255, 0.1);
   overflow: hidden;
 }
-.gc-lb-av span {
-  width: 100%;
-  height: 100%;
-  border-radius: var(--portal-radius-circle);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgb(10, 12, 25, 0.95);
-  font-size: var(--portal-text-2xs);
-  font-weight: var(--portal-font-extrabold);
-  color: var(--portal-text-body-muted);
-  font-family: var(--portal-font-display);
-}
-.gc-lb-av-img {
-  width: 100%;
-  height: 100%;
-  border-radius: var(--portal-radius-circle);
-  object-fit: cover;
-}
+/* The MkAvatar root fills the padded inner area via its own inline
+   width/height bound to ``:size="24"`` — wrapper is 28 px, padding 2 px,
+   inner content area = 24 px (border-box). The tier gradient defined
+   on the wrapper background only shows through the 2 px ring. */
 .gc-lb-av--bronze {
   background: linear-gradient(135deg, #cd7f32, #8b5e3c);
 }

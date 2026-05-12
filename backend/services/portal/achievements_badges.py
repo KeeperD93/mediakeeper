@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.achievement import UserAchievement
 from models.portal.profile import UserProfile
+from services.portal._display_name import resolve_display_name
 from services.portal.achievements_utils import (
     MAX_PINNED_BADGES,
     _load_user_achievement_map,
@@ -66,7 +67,7 @@ async def unpin_badge(db: AsyncSession, user_id: int, achievement_id: str) -> bo
 
 
 async def get_leaderboard(
-    db: AsyncSession, limit: int = 20
+    db: AsyncSession, limit: int = 20, *, lang: str = "fr",
 ) -> list[dict]:
     """Top users by XP with achievement count."""
     result = await db.execute(
@@ -88,9 +89,10 @@ async def get_leaderboard(
                 UserAchievement.unlocked == True,  # noqa: E712
             )
         )).scalar() or 0
+        effective = None if p.display_name_must_set else p.display_name
         leaderboard.append({
             "user_id": p.user_id,
-            "display_name": p.display_name,
+            "display_name": resolve_display_name(effective, p.user_id, lang),
             "avatar_url": _resolve_avatar_url(p),
             "level": p.level,
             "xp": p.xp,

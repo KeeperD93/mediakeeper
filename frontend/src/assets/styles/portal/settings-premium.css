@@ -913,6 +913,14 @@
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   padding: 1rem;
+  /* Stay invisible until the post-mount tick flips the
+     ``--mounted`` modifier. Prevents a one-frame paint at the parent's
+     pre-teleport position when a navigation event fires during the
+     enter transition. */
+  visibility: hidden;
+}
+.pt-force-uname-overlay--mounted {
+  visibility: visible;
 }
 
 .pt-force-uname-panel {

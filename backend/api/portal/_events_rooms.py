@@ -6,7 +6,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.portal.deps import get_current_profile
+from api.portal.deps import get_current_profile, get_request_lang
 from core.database import get_db
 from models.portal.profile import UserProfile
 from models.user import User
@@ -216,9 +216,10 @@ async def list_mk_messages(
     event_id: int,
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
+    lang: str = Depends(get_request_lang),
 ):
     user, _ = up
-    result = await mk_svc.list_messages(db, event_id, user.id)
+    result = await mk_svc.list_messages(db, event_id, user.id, lang=lang)
     _err(result)
     return result
 

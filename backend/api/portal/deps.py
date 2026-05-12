@@ -1,5 +1,5 @@
 """Portal auth dependencies: profile loading and role checks."""
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, Header, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -8,6 +8,18 @@ from core.security import decode_access_token, is_token_valid_for_revocation_piv
 from api.auth import PORTAL_COOKIE_NAME
 from models.user import User
 from models.portal.profile import UserProfile
+from services.portal._display_name import parse_accept_language
+
+
+async def get_request_lang(
+    accept_language: str | None = Header(default=None, alias="accept-language"),
+) -> str:
+    """Resolve the viewer's display locale from the Accept-Language header.
+
+    Returns ``"fr"`` or ``"en"`` — the only two locales the portal
+    surfaces today. Drives the anonymous-pseudo alias localization.
+    """
+    return parse_accept_language(accept_language)
 
 
 async def get_portal_user(

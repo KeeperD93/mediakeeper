@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.user import User
 from models.portal.event import MKEvent, MKEventInvitation, MKEventMessage
 from models.portal.profile import UserProfile
+from services.portal._display_name import resolve_display_name
 
 
 async def list_messages(
@@ -12,6 +13,8 @@ async def list_messages(
     event_id: int,
     user_id: int | None = None,
     limit: int = 200,
+    *,
+    lang: str = "fr",
 ) -> dict:
     if user_id is not None:
         event = (await db.execute(
@@ -31,7 +34,11 @@ async def list_messages(
             return {"error": "not_member"}
 
     rows = (await db.execute(
-        select(MKEventMessage, User.username, UserProfile.display_name)
+        select(
+            MKEventMessage,
+            UserProfile.display_name,
+            UserProfile.display_name_must_set,
+        )
         .join(User, User.id == MKEventMessage.user_id, isouter=True)
         .join(UserProfile, UserProfile.user_id == User.id, isouter=True)
         .where(MKEventMessage.event_id == event_id)
@@ -41,6 +48,8 @@ async def list_messages(
     # ``user_id`` is nullable since migration 041 (``ON DELETE SET NULL``):
     # surface a ``user_deleted`` flag so the frontend can render the
     # "Deleted user" placeholder, mirroring ``chat_presenters.serialize_message``.
+    # The raw Emby ``User.username`` is intentionally NOT selected — accounts
+    # that have not picked a portal pseudo render as the anonymous alias.
     return {"items": [
         {
             "id": m.id,
@@ -48,13 +57,17 @@ async def list_messages(
             "username": (
                 None
                 if m.user_id is None
-                else (display or username or f"user#{m.user_id}")
+                else resolve_display_name(
+                    None if (must_set or display is None) else display,
+                    m.user_id,
+                    lang,
+                )
             ),
             "user_deleted": m.user_id is None,
             "content": m.content,
             "sent_at": m.sent_at.isoformat() if m.sent_at else None,
         }
-        for m, username, display in rows
+        for m, display, must_set in rows
     ]}
 
 

@@ -5,7 +5,7 @@ import traceback
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.portal.deps import get_current_profile
+from api.portal.deps import get_current_profile, get_request_lang
 from core.database import get_db
 from models.portal.profile import UserProfile
 from models.user import User
@@ -63,6 +63,7 @@ async def my_requests(
 async def profile_full(
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
+    lang: str = Depends(get_request_lang),
 ):
     """
     Aggregated profile page data: playback stats, genre radar, recent
@@ -71,7 +72,7 @@ async def profile_full(
     from services.portal.profile_stats import get_profile_full
     user, profile = up
     try:
-        return await get_profile_full(db, user, profile)
+        return await get_profile_full(db, user, profile, lang=lang)
     except Exception as e:
         logger.error(f"[PROFILE-FULL] failed for user={user.username}: {e}\n{traceback.format_exc()}")
         return {

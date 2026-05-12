@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from core.security import has_backoffice_access
 from models.portal.profile import UserProfile
 from models.user import User
+from services.portal._display_name import resolve_display_name
 from services.portal.avatars import avatar_public_url
 
 DISPLAY_NAME_LOCK_DAYS = 30 * 6  # 6 months
@@ -73,12 +74,18 @@ def serialize_profile(profile: UserProfile, *, user: User | None = None) -> dict
     }
 
 
-def serialize_public_profile(profile: UserProfile) -> dict:
-    """Public profile (limited info)."""
+def serialize_public_profile(profile: UserProfile, *, lang: str = "fr") -> dict:
+    """Public profile (limited info).
+
+    Privacy boundary (Rules §22): when the owner has not picked a portal
+    pseudo yet, render the localized anonymous alias instead of the
+    auto-populated Emby username so other viewers can never derive it.
+    """
+    effective = None if profile.display_name_must_set else profile.display_name
     return {
         "id": profile.id,
         "user_id": profile.user_id,
-        "display_name": profile.display_name,
+        "display_name": resolve_display_name(effective, profile.user_id, lang),
         "avatar_url": _resolve_avatar_url(profile),
         "bio": profile.bio,
         "level": profile.level,

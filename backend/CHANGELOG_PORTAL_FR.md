@@ -17,6 +17,7 @@ utilisateurs.
 ## [Unreleased]
 
 ### Added
+- Portail — alias anonyme « Utilisateur 1234 » tant qu'aucun pseudo n'est défini
 - Recherche — suggestions instantanées, recherches récentes, navigation clavier et raccourci Ctrl/Cmd+K
 - Accessibilité — lien « Aller au contenu principal » au focus clavier
 - Page introuvable — vraie page 404 accessible avec retour au portail (plus de redirection silencieuse)
@@ -52,6 +53,7 @@ utilisateurs.
 - Trophées listes — deux nouvelles familles (Curateur, Bibliothécaire) avec 5 paliers chacune
 
 ### Changed
+- Portail — avatars : icône silhouette en remplacement de la lettre
 - Paramètres — onglet actif synchronisé avec l'URL (lien direct et refresh)
 - Quoi de neuf aujourd'hui — Top 3 du mois aligné sur le widget Classement du dashboard (visuel identique, votre position ajoutée en 4ᵉ ligne quand vous êtes hors podium)
 - Tickets — filtres restructurés en groupes labellisés (statut, source, problème) au style pill du module Demandes
@@ -71,6 +73,7 @@ utilisateurs.
 - Trophées : XP de récompense réduit pour lisser la progression (XP déjà cumulé ajusté en conséquence)
 
 ### Fixed
+- Portail — modale de choix du pseudo : plus de texte qui fuit en bas à gauche pendant la transition
 - Demandes — passage automatique à « Disponible » et notification dans la cloche dès que le média arrive sur Emby
 - Top du mois — séries comptées 1 fois par utilisateur (plus de séries gonflées par leurs épisodes)
 - Top genres — chaque série compte une fois par genre (plus de surévaluation par épisode)

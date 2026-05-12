@@ -8,12 +8,13 @@ from models.portal.request import MediaRequest
 from models.portal.achievement import UserAchievement
 from models.portal.social import UserRating
 from models.portal.profile import UserProfile
+from services.portal._display_name import resolve_display_name
 
 logger = logging.getLogger("mediakeeper.portal.activity")
 
 
 async def get_activity_feed(
-    db: AsyncSession, limit: int = 30
+    db: AsyncSession, limit: int = 30, *, lang: str = "fr",
 ) -> list[dict]:
     """Build a mixed activity feed from recent events. Never raises."""
     cutoff = datetime.now(timezone.utc) - timedelta(days=7)
@@ -27,7 +28,7 @@ async def get_activity_feed(
             .limit(10)
         )
         for r in req_result.scalars().all():
-            profile = await _get_display_name(db, r.user_id)
+            profile = await _get_display_name(db, r.user_id, lang)
             feed.append({
                 "type": "request",
                 "subtype": r.status,
@@ -52,7 +53,7 @@ async def get_activity_feed(
             .limit(10)
         )
         for ua in ach_result.scalars().all():
-            profile = await _get_display_name(db, ua.user_id)
+            profile = await _get_display_name(db, ua.user_id, lang)
             feed.append({
                 "type": "achievement",
                 "user_id": ua.user_id,
@@ -71,7 +72,7 @@ async def get_activity_feed(
             .limit(10)
         )
         for r in rating_result.scalars().all():
-            profile = await _get_display_name(db, r.user_id)
+            profile = await _get_display_name(db, r.user_id, lang)
             feed.append({
                 "type": "rating",
                 "user_id": r.user_id,
@@ -88,16 +89,27 @@ async def get_activity_feed(
     return feed[:limit]
 
 
-# Simple cache to avoid N+1
-_name_cache: dict[int, str] = {}
+# Per-(user_id, lang) cache to avoid N+1 lookups across the three feed
+# queries above. Keyed by the locale too so an EN viewer never inherits
+# the FR alias resolved earlier in the same process.
+_name_cache: dict[tuple[int, str], str] = {}
 
 
-async def _get_display_name(db: AsyncSession, user_id: int) -> str:
-    if user_id in _name_cache:
-        return _name_cache[user_id]
-    result = await db.execute(
-        select(UserProfile.display_name).where(UserProfile.user_id == user_id)
-    )
-    name = result.scalar_one_or_none() or f"User #{user_id}"
-    _name_cache[user_id] = name
+async def _get_display_name(
+    db: AsyncSession, user_id: int, lang: str = "fr"
+) -> str:
+    cache_key = (user_id, lang)
+    if cache_key in _name_cache:
+        return _name_cache[cache_key]
+    row = (await db.execute(
+        select(UserProfile.display_name, UserProfile.display_name_must_set)
+        .where(UserProfile.user_id == user_id)
+    )).first()
+    if row is None:
+        name = resolve_display_name(None, user_id, lang)
+    else:
+        display_name, must_set = row
+        effective = None if must_set else display_name
+        name = resolve_display_name(effective, user_id, lang)
+    _name_cache[cache_key] = name
     return name
