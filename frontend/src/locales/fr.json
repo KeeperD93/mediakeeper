@@ -3334,6 +3334,10 @@
           "title": "Tendances dans le héro",
           "desc": "Nombre total d'éléments affichés dans la bannière héro de l'accueil (tendances TMDB + mises en avant). Si vous mettez en avant un film manuellement, il prend la place d'une tendance. 0 masque le héro complètement."
         },
+        "requestsCleanup": {
+          "title": "Auto-nettoyage des demandes disponibles",
+          "desc": "Supprime automatiquement les demandes en statut « Disponible » après ce nombre de jours. 0 = désactivé."
+        },
         "maintenance": {
           "title": "Mode maintenance",
           "desc": "Quand activé, toute la navigation portail redirige vers une page d'attente personnalisable. Les administrateurs gardent leur accès.",

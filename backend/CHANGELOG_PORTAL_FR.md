@@ -53,6 +53,7 @@ utilisateurs.
 - Trophées listes — deux nouvelles familles (Curateur, Bibliothécaire) avec 5 paliers chacune
 
 ### Changed
+- Demandes — les demandes disponibles peuvent être nettoyées automatiquement après un délai (réglé par l'admin)
 - Portail — avatars : icône silhouette en remplacement de la lettre
 - Listes — pseudos anonymisés côté propriétaire et contributeurs (fiche liste)
 - Paramètres — onglet actif synchronisé avec l'URL (lien direct et refresh)

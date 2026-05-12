@@ -44,6 +44,18 @@
         />
       </label>
 
+      <label class="pt-setting-row">
+        <div class="pt-setting-info">
+          <span class="pt-setting-title">{{ $t('portal.admin.settings.requestsCleanup.title') }}</span>
+          <span class="pt-setting-desc">{{ $t('portal.admin.settings.requestsCleanup.desc') }}</span>
+        </div>
+        <input
+          type="number" class="pt-setting-number" min="0" max="365"
+          :value="settings['requests.auto_cleanup_days']" :disabled="saving"
+          @change="update('requests.auto_cleanup_days', parseInt($event.target.value) || 0)"
+        />
+      </label>
+
       <!-- Maintenance mode toggle -->
       <div class="pt-setting-row">
         <div class="pt-setting-info">
@@ -110,7 +122,7 @@ import MkToggle from '@/components/common/MkToggle.vue'
 const { t, locale } = useI18n()
 const { apiGet, apiPatch } = useApi()
 
-const settings = ref({ anonymize_requests: false, hero_trend_count: 10 })
+const settings = ref({ anonymize_requests: false, hero_trend_count: 10, 'requests.auto_cleanup_days': 0 })
 const maintenance = reactive({ enabled: false, text_fr: '', text_en: '' })
 const loading = ref(false)
 const loaded = ref(false)

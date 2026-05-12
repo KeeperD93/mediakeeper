@@ -39,6 +39,10 @@ class MediaRequest(Base):
     updated_at      = Column(DateTime(timezone=True),
                              default=lambda: datetime.now(timezone.utc),
                              onupdate=lambda: datetime.now(timezone.utc))
+    # Stamped when the row flips to ``available`` so the auto-cleanup
+    # job can window deletions on that moment exclusively (``updated_at``
+    # is bumped on every status change).
+    available_at    = Column(DateTime(timezone=True), nullable=True)
 
 
 class RequestVote(Base):

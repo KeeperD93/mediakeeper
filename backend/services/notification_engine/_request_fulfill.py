@@ -8,6 +8,7 @@ bell. The flip is idempotent (a re-scan never re-notifies) and atomic
 transient failure cannot leave the request in a half-fulfilled state).
 """
 import logging
+from datetime import datetime, timezone
 
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -101,7 +102,10 @@ async def try_auto_fulfill(item: dict, db: AsyncSession) -> int | None:
                 MediaRequest.id == request_id,
                 MediaRequest.status.in_(ACTIONABLE_STATUSES),
             )
-            .values(status=REQUEST_AVAILABLE_STATUS)
+            .values(
+                status=REQUEST_AVAILABLE_STATUS,
+                available_at=datetime.now(timezone.utc),
+            )
         )
         if result.rowcount == 0:
             return None

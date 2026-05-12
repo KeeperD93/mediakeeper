@@ -171,10 +171,20 @@ class PortalSettingsUpdate(BaseModel):
     # already covered by every flag being Optional with a None default,
     # so a backend-side addition does not require a synchronous frontend
     # update.
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
     anonymize_requests: Optional[bool] = None
     hero_trend_count: Optional[int] = None
+    # Dotted JSON key (``requests.auto_cleanup_days``) preserved via
+    # alias so the frontend can address the setting under its real
+    # ``requests.`` namespace instead of being lifted into the
+    # ``portal.`` one.
+    requests_auto_cleanup_days: Optional[int] = Field(
+        default=None,
+        ge=0,
+        le=365,
+        alias="requests.auto_cleanup_days",
+    )
 
 
 @router.get("/settings")
@@ -185,7 +195,8 @@ async def get_settings(
     """
     Return all Portal-wide admin flags (anonymize_requests, ...).
     Keys come back without the ``portal.`` prefix so the frontend form
-    can bind directly.
+    can bind directly. Keys from other namespaces (e.g.
+    ``requests.auto_cleanup_days``) are passed through unchanged.
     """
     raw = await admin_svc.get_portal_settings(db)
     return {k.replace("portal.", ""): v for k, v in raw.items()}
@@ -203,5 +214,7 @@ async def patch_settings(
         updates["portal.anonymize_requests"] = payload.anonymize_requests
     if payload.hero_trend_count is not None:
         updates["portal.hero_trend_count"] = payload.hero_trend_count
+    if payload.requests_auto_cleanup_days is not None:
+        updates["requests.auto_cleanup_days"] = payload.requests_auto_cleanup_days
     raw = await admin_svc.update_portal_settings(db, updates)
     return {k.replace("portal.", ""): v for k, v in raw.items()}
