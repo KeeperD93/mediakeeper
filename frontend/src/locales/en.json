@@ -3281,6 +3281,9 @@
       "searchTmdb": "Search a movie or series on TMDB...",
       "addToHero": "Feature on hero",
       "currentFeatured": "Currently featured",
+      "featured": {
+        "desc": "Showcase a title from your Emby library on the portal's home banner. When several entries are set, one is picked at random."
+      },
       "noFeatured": "No featured media",
       "approve": "Approve",
       "reject": "Reject",
@@ -3323,6 +3326,7 @@
         "gdpr": {
           "title": "Privacy mode",
           "intro": "Enable the user-facing data-protection surfaces. Off by default: nothing changes until you flip the switch.",
+          "privacyLangHint": "The editor shows the locale currently selected. Switch the interface language top-right to edit the other version.",
           "toggle": {
             "title": "Enable privacy mode",
             "desc": "When on, users see a Privacy tab with export and account deletion. When off, no user-facing surface is exposed."

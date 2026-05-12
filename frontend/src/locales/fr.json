@@ -3281,6 +3281,9 @@
       "searchTmdb": "Rechercher un film ou série sur TMDB...",
       "addToHero": "Mettre en avant",
       "currentFeatured": "Actuellement en avant",
+      "featured": {
+        "desc": "Mettez en avant un titre du catalogue Emby sur la bannière d'accueil du portail. La sélection est aléatoire si plusieurs entrées sont définies."
+      },
       "noFeatured": "Aucun média mis en avant",
       "approve": "Approuver",
       "reject": "Rejeter",
@@ -3323,6 +3326,7 @@
         "gdpr": {
           "title": "Mode Confidentialité",
           "intro": "Active les surfaces utilisateur dédiées à la protection des données. Désactivé par défaut : aucun impact tant que vous ne basculez pas l'interrupteur.",
+          "privacyLangHint": "L'éditeur affiche la langue actuellement sélectionnée. Changez la langue de l'interface en haut à droite pour modifier l'autre version.",
           "toggle": {
             "title": "Activer le mode Confidentialité",
             "desc": "Lorsqu'il est actif, les utilisateurs voient un onglet Confidentialité avec export et demande de suppression. Désactivé : aucune surface utilisateur exposée."

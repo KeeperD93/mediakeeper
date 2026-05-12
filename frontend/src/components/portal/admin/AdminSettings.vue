@@ -6,7 +6,7 @@
 
     <div v-else class="pt-settings-list">
       <!-- Anonymisation des demandes -->
-      <label class="pt-setting-row">
+      <div class="pt-setting-row">
         <div class="pt-setting-info">
           <span class="pt-setting-title">
             {{ $t('portal.admin.settings.anonymizeRequests.title') }}
@@ -15,14 +15,13 @@
             {{ $t('portal.admin.settings.anonymizeRequests.desc') }}
           </span>
         </div>
-        <input
-          type="checkbox"
-          class="pt-setting-toggle"
-          :checked="settings.anonymize_requests"
+        <MkToggle
+          :model-value="settings.anonymize_requests"
           :disabled="saving"
-          @change="update('anonymize_requests', $event.target.checked)"
+          :aria-label="$t('portal.admin.settings.anonymizeRequests.title')"
+          @update:model-value="v => update('anonymize_requests', v)"
         />
-      </label>
+      </div>
 
       <!-- Number of trends in the hero -->
       <label class="pt-setting-row">
@@ -57,6 +56,7 @@ import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useApi } from '@/composables/useApi'
 import GdprSection from '@/components/portal/admin/GdprSection.vue'
+import MkToggle from '@/components/common/MkToggle.vue'
 
 const { t } = useI18n()
 const { apiGet, apiPatch } = useApi()
@@ -148,13 +148,6 @@ onMounted(fetchSettings)
   font-size: var(--portal-text-xs);
   color: var(--text-muted);
   line-height: 1.35;
-}
-.pt-setting-toggle {
-  flex-shrink: 0;
-  width: 18px;
-  height: 18px;
-  accent-color: var(--accent);
-  cursor: pointer;
 }
 .pt-setting-number {
   flex-shrink: 0;

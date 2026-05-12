@@ -28,6 +28,9 @@
 
     <!-- Current featured list -->
     <h4 class="pt-section-subtitle">{{ $t('portal.admin.currentFeatured') }}</h4>
+    <p class="pt-section-desc">
+      {{ $t('portal.admin.featured.desc') }}
+    </p>
     <div class="pt-admin-table">
       <div v-for="f in featured" :key="f.id" class="pt-admin-row">
         <span class="pt-featured-order">#{{ f.sort_order }}</span>
@@ -172,6 +175,11 @@ onMounted(loadFeatured)
   font-weight: var(--portal-font-bold);
   color: var(--text-primary);
   margin: 1rem 0 0.5rem;
+}
+.pt-section-desc {
+  font-size: var(--portal-text-sm);
+  color: var(--text-muted);
+  margin: 0.25rem 0 1rem;
 }
 .pt-admin-row {
   display: flex;

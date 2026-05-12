@@ -13,6 +13,7 @@ import { mount, flushPromises } from '@vue/test-utils'
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key, params) => (params ? `${key}:${JSON.stringify(params)}` : key),
+    locale: ref('fr'),
   }),
 }))
 
@@ -91,8 +92,8 @@ describe('GdprSection', () => {
 
     expect(w.find('.pt-gdpr-config').exists()).toBe(true)
     expect(fetchPendingDeletions).toHaveBeenCalledOnce()
-    // Two TipTap stubs, one per language.
-    expect(w.findAll('.help-editor-stub')).toHaveLength(2)
+    // Locale-scoped: only the editor matching the current i18n locale (FR) is rendered.
+    expect(w.findAll('.help-editor-stub')).toHaveLength(1)
   })
 
   it('persists the toggle change immediately (PUT enabled=true)', async () => {
@@ -114,9 +115,7 @@ describe('GdprSection', () => {
     const w = mount(GdprSection)
     await flushPromises()
 
-    const cb = w.find('.pt-gdpr-toggle-input')
-    cb.element.checked = true
-    await cb.trigger('change')
+    await w.find('.mk-toggle').trigger('click')
     await flushPromises()
 
     expect(saveSettings).toHaveBeenCalledWith({ enabled: true })
@@ -221,9 +220,7 @@ describe('GdprSection', () => {
 
     expect(w.find('.pt-gdpr-config').exists()).toBe(true)
 
-    const cb = w.find('.pt-gdpr-toggle-input')
-    cb.element.checked = false
-    await cb.trigger('change')
+    await w.find('.mk-toggle').trigger('click')
     await flushPromises()
 
     expect(saveSettings).toHaveBeenCalledWith({ enabled: false })
