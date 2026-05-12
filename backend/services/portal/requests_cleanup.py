@@ -2,7 +2,7 @@
 
 Gated by the ``requests.auto_cleanup_days`` setting (0 = disabled).
 The scheduler invokes :func:`cleanup_old_available_requests` once per
-day; deletions cascade through ``request_votes`` via the existing FK.
+day.
 """
 import logging
 from datetime import datetime, timedelta, timezone

@@ -54,7 +54,6 @@ async def test_collect_returns_every_table_promised_in_kickoff(db_session):
         "release_reminders",
         "chat_messages",
         "media_requests",
-        "request_votes",
         "watch_party_participants",
         "user_login_history",
     }

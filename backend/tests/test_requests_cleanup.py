@@ -1,8 +1,7 @@
 """Auto-cleanup of fulfilled media requests.
 
-Covers the gating, the time-window predicate, the ``available_at IS
-NOT NULL`` guard against legacy rows, and the FK CASCADE behaviour on
-attached ``RequestVote`` rows.
+Covers the gating, the time-window predicate, and the
+``available_at IS NOT NULL`` guard against legacy rows.
 """
 from datetime import datetime, timedelta, timezone
 
@@ -11,7 +10,7 @@ from sqlalchemy import select
 
 from core.security import hash_password
 from models.portal.profile import UserProfile
-from models.portal.request import MediaRequest, RequestVote
+from models.portal.request import MediaRequest
 from models.user import User
 from services.portal.requests_cleanup import cleanup_old_available_requests
 
@@ -145,33 +144,3 @@ async def test_cleanup_skips_rows_with_null_available_at(db_session):
         select(MediaRequest).where(MediaRequest.id == row_id)
     )).scalar_one_or_none()
     assert survivor is not None
-
-
-@pytest.mark.asyncio
-async def test_cleanup_cascades_request_votes(db_session):
-    user = await _bootstrap_user(db_session, "owner_cascade")
-    voter = await _bootstrap_user(db_session, "voter_cascade")
-
-    request = MediaRequest(
-        user_id=user.id,
-        tmdb_id=30,
-        media_type="movie",
-        title="Cascade target",
-        status="available",
-        available_at=_now() - timedelta(days=30),
-    )
-    db_session.add(request)
-    await db_session.commit()
-    request_id = request.id
-
-    vote = RequestVote(request_id=request_id, user_id=voter.id)
-    db_session.add(vote)
-    await db_session.commit()
-
-    deleted = await cleanup_old_available_requests(db_session, days=7)
-    assert deleted == 1
-
-    surviving_votes = (await db_session.execute(
-        select(RequestVote).where(RequestVote.request_id == request_id)
-    )).scalars().all()
-    assert surviving_votes == []

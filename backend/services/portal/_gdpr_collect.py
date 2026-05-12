@@ -18,7 +18,7 @@ from models.portal.chat import ChatMessage
 from models.portal.event import WatchPartyParticipant
 from models.portal.login_history import UserLoginHistory
 from models.portal.profile import UserProfile
-from models.portal.request import MediaRequest, RequestVote
+from models.portal.request import MediaRequest
 from models.portal.social import (
     ReleaseReminder,
     UserList,
@@ -228,24 +228,11 @@ async def collect_full_user_data(
             "status": r.status,
             "reject_reason": r.reject_reason,
             "auto_approved": bool(r.auto_approved),
-            "vote_count": r.vote_count,
             "requested_seasons": r.requested_seasons,
             "created_at": _iso(r.created_at),
             "updated_at": _iso(r.updated_at),
         }
         for r in requests
-    ]
-
-    votes = (await db.execute(
-        select(RequestVote).where(RequestVote.user_id == uid)
-    )).scalars().all()
-    out["request_votes"] = [
-        {
-            "id": v.id,
-            "request_id": v.request_id,
-            "created_at": _iso(v.created_at),
-        }
-        for v in votes
     ]
 
     participations = (await db.execute(

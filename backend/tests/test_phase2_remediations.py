@@ -60,7 +60,6 @@ async def test_portal_request_contracts_split_admin_and_user(client, admin_user,
         media_type="movie",
         title="Safe Request",
         status="pending",
-        vote_count=3,
     )
     second = MediaRequest(
         user_id=other.id,
@@ -68,7 +67,6 @@ async def test_portal_request_contracts_split_admin_and_user(client, admin_user,
         media_type="movie",
         title="Rejected Request",
         status="rejected",
-        vote_count=1,
         reject_reason="Already blocked",
         requested_by_admin=admin_user.id,
     )

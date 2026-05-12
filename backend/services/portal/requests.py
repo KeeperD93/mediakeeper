@@ -188,13 +188,6 @@ async def _load_requester_profiles(
     return out
 
 
-async def vote_request(
-    db: AsyncSession, request_id: int, user_id: int
-) -> dict:
-    """Votes are intentionally disabled: a media request is globally unique."""
-    return {"error": "votes_disabled"}
-
-
 async def delete_request(db: AsyncSession, request_id: int) -> dict:
     """Admin: hard-delete a request entirely (no trace).
 
@@ -278,7 +271,6 @@ def _serialize_request(
         "backdrop_url": r.backdrop_url,
         "status": r.status,
         "auto_approved": r.auto_approved,
-        "vote_count": r.vote_count,
         "retry_count": r.retry_count or 0,
         "requested_seasons": r.requested_seasons,
         "created_at": r.created_at.isoformat() if r.created_at else None,
