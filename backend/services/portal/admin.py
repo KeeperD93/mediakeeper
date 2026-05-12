@@ -34,6 +34,10 @@ PORTAL_SETTING_INTS: dict[str, tuple[int, int, int]] = {
     # the Portal home (featured + trending combined). 0 hides the hero
     # entirely.
     "portal.hero_trend_count": (10, 0, 20),
+    # Auto-cleanup window for fulfilled (``available``) requests, in
+    # days. 0 disables the hygiene job. The scheduler handler reads the
+    # same key directly via ``requests_cleanup.get_cleanup_days``.
+    "requests.auto_cleanup_days": (0, 0, 365),
 }
 
 

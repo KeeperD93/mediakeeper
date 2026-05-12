@@ -75,3 +75,18 @@ async def _handler_gdpr_purge(db: AsyncSession) -> None:
     """
     from services.portal.gdpr import purge_pending_deletions
     await purge_pending_deletions(db)
+
+
+async def _handler_cleanup_available_requests(db: AsyncSession) -> dict:
+    """Drop ``available`` media requests older than the configured window.
+
+    Early-returns when ``requests.auto_cleanup_days`` is 0 (or unset) so
+    the task is harmless to leave on by default — flipping the setting
+    to a positive value is the only way for rows to actually be removed.
+    """
+    from services.portal import requests_cleanup
+    days = await requests_cleanup.get_cleanup_days(db)
+    if days <= 0:
+        return {"deleted": 0, "skipped": "disabled"}
+    deleted = await requests_cleanup.cleanup_old_available_requests(db, days=days)
+    return {"deleted": deleted, "days": days}

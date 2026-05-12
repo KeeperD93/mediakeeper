@@ -2,14 +2,18 @@
 
 Plugged into the added-media notification pipeline by
 ``services.notification_engine._request_fulfill``. These tests verify
-the four contract guarantees:
+the contract guarantees:
   * Movies flip to ``available`` on first Emby presence.
   * TV series flip on the first episode (asymmetric with the Discord
     season-completion logic — that one is about template selection).
   * The flip is idempotent under repeated scans.
   * The status update + bell insertion are atomic (either both land or
     nothing changes).
+  * The flip stamps ``available_at`` so the auto-cleanup hygiene job
+    can window deletions from that moment.
 """
+from datetime import datetime, timezone
+
 import pytest
 from sqlalchemy import select
 from unittest.mock import patch
@@ -222,6 +226,37 @@ async def test_auto_fulfill_atomic_on_notif_failure(db_session):
         )
     ).scalars().all()
     assert notifs == []
+
+
+@pytest.mark.asyncio
+async def test_auto_fulfill_stamps_available_at(db_session):
+    """The flip must stamp ``available_at`` within a tight window of
+    ``now`` so the cleanup job can window deletions from that moment."""
+    user = await _bootstrap_user(db_session, "watcher_stamp")
+    req = MediaRequest(
+        user_id=user.id, tmdb_id=5050, media_type="movie",
+        title="Stamped Movie", status="pending",
+    )
+    db_session.add(req)
+    await db_session.commit()
+
+    before = datetime.now(timezone.utc)
+    item = {"Type": "Movie", "Name": "Stamped Movie", "ProviderIds": {"Tmdb": "5050"}}
+    await try_auto_fulfill(item, db_session)
+    await db_session.commit()
+    after = datetime.now(timezone.utc)
+
+    refreshed = (await db_session.execute(
+        select(MediaRequest).where(MediaRequest.id == req.id)
+        .execution_options(populate_existing=True)
+    )).scalar_one()
+    assert refreshed.status == "available"
+    assert refreshed.available_at is not None
+    # SQLite returns the DateTime(timezone=True) value naïve; compare
+    # against the UTC-naïve bounds in that case.
+    stamp = refreshed.available_at
+    lo, hi = (before, after) if stamp.tzinfo else (before.replace(tzinfo=None), after.replace(tzinfo=None))
+    assert lo <= stamp <= hi
 
 
 @pytest.mark.asyncio

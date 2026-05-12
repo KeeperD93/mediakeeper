@@ -1,6 +1,7 @@
 """Task definitions — label, default interval, handler."""
 from ._handlers import (
     _handler_backup,
+    _handler_cleanup_available_requests,
     _handler_duplicates,
     _handler_emby_refresh,
     _handler_expire_users,
@@ -56,6 +57,14 @@ TASK_DEFINITIONS: dict[str, dict] = {
         "default_on":  False,
         "handler":     _handler_backup,
         "description": "scheduler.backup",
+    },
+    "cleanup_available_requests": {
+        "label":       "Auto-cleanup available requests",
+        "default_sec": 86400,   # 24h
+        "default_on":  True,    # Gated by ``requests.auto_cleanup_days``:
+                                # harmless when 0 (early return, no query).
+        "handler":     _handler_cleanup_available_requests,
+        "description": "scheduler.cleanup_available_requests",
     },
     "healthcheck_scan": {
         "label":       "Library health scan",

@@ -51,6 +51,7 @@ This section intentionally has no date so it is not shown to users.
 - List achievements — two new tiered families (Curator, Librarian) with 5 tiers each
 
 ### Changed
+- Requests — available requests can be automatically cleaned up after a delay (admin-configurable)
 - Portal — avatars: silhouette icon replaces the letter
 - Lists — anonymized pseudos on the owner and contributors of a list detail
 - Settings — active tab synced with the URL (deep links and refresh)
