@@ -82,6 +82,7 @@ export function portalLayoutHandlers({
       digest: null,
     }),
     pathHandler('portal-events-rooms', '/api/portal/events/rooms', { items: [] }),
+    pathHandler('portal-maintenance', '/api/portal/maintenance', { enabled: false, text: '' }),
     pathHandler('portal-notifications-count', '/api/portal/notifications/count', { unread: 0 }),
   ]
 }

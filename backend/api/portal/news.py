@@ -1,8 +1,9 @@
 """Portal news endpoints."""
+from datetime import datetime
 from urllib.parse import urlsplit
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -28,12 +29,16 @@ def _clean_image_url(value: str | None) -> str | None:
 
 
 class CreateNews(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     title: str = Field(..., min_length=1, max_length=300)
     content: str = Field(..., min_length=1, max_length=10000)
     image_url: Optional[str] = Field(None, max_length=500)
     type: str = Field("announcement", pattern="^(announcement|additions|maintenance|event|other)$")
     pinned: bool = False
     notify_discord: bool = False
+    start_at: Optional[datetime] = None
+    end_at: Optional[datetime] = None
 
     @field_validator("image_url")
     @classmethod
@@ -42,11 +47,15 @@ class CreateNews(BaseModel):
 
 
 class UpdateNews(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     title: Optional[str] = Field(None, min_length=1, max_length=300)
     content: Optional[str] = Field(None, min_length=1, max_length=10000)
     image_url: Optional[str] = Field(None, max_length=500)
     type: Optional[str] = Field(None, pattern="^(announcement|additions|maintenance|event|other)$")
     pinned: Optional[bool] = None
+    start_at: Optional[datetime] = None
+    end_at: Optional[datetime] = None
 
     @field_validator("image_url")
     @classmethod
@@ -61,7 +70,18 @@ async def list_news(
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):
-    return await news_svc.list_news(db, cursor, limit)
+    return await news_svc.list_news(db, cursor, limit, respect_schedule=True)
+
+
+@router.get("/admin")
+async def list_news_admin(
+    cursor: Optional[str] = None,
+    limit: int = Query(20, ge=1, le=50),
+    admin: tuple[User, UserProfile] = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Admin list — bypasses the schedule filter so future/expired posts stay visible."""
+    return await news_svc.list_news(db, cursor, limit, respect_schedule=False)
 
 
 @router.get("/unread")
@@ -92,7 +112,10 @@ async def create_news(
     db: AsyncSession = Depends(get_db),
 ):
     user, _ = admin
-    return await news_svc.create_news(db, user.id, data.model_dump())
+    try:
+        return await news_svc.create_news(db, user.id, data.model_dump())
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
 
 @router.put("/{news_id}")
@@ -102,7 +125,10 @@ async def update_news(
     admin: tuple[User, UserProfile] = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    result = await news_svc.update_news(db, news_id, data.model_dump(exclude_none=True))
+    try:
+        result = await news_svc.update_news(db, news_id, data.model_dump(exclude_unset=True))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
     if "error" in result:
         raise HTTPException(status_code=404, detail=result["error"])
     return result

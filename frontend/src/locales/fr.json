@@ -2043,12 +2043,17 @@
     "logs": "Journaux système et Emby",
     "settings": "Configuration de MediaKeeper",
     "changelog": "Historique des changements",
-    "about": "Stack, licences et attributions tierces"
+    "about": "Stack, licences et attributions tierces",
+    "maintenanceTitle": "Maintenance"
   },
   "portal": {
     "title": "Demandes",
     "common": {
       "deletedUser": "Utilisateur supprimé"
+    },
+    "maintenance": {
+      "title": "Maintenance en cours",
+      "defaultText": "Le site est actuellement en maintenance, merci de votre compréhension."
     },
     "routeTitles": {
       "home": "Portail demandes",
@@ -3289,6 +3294,12 @@
       "reject": "Rejeter",
       "delete": "Supprimer",
       "createNews": "Nouvelle actualité",
+      "news": {
+        "startAtLabel": "Date de début (optionnelle)",
+        "endAtLabel": "Date de fin (optionnelle)",
+        "scheduledBadge": "Planifiée",
+        "expiredBadge": "Expirée"
+      },
       "req": {
         "title": "Demandes",
         "subtitle": "Valide, refuse et surveille les demandes des membres",
@@ -3322,6 +3333,11 @@
         "heroTrendCount": {
           "title": "Tendances dans le héro",
           "desc": "Nombre total d'éléments affichés dans la bannière héro de l'accueil (tendances TMDB + mises en avant). Si vous mettez en avant un film manuellement, il prend la place d'une tendance. 0 masque le héro complètement."
+        },
+        "maintenance": {
+          "title": "Mode maintenance",
+          "desc": "Quand activé, toute la navigation portail redirige vers une page d'attente personnalisable. Les administrateurs gardent leur accès.",
+          "textLabel": "Message affiché (langue actuelle)"
         },
         "gdpr": {
           "title": "Mode Confidentialité",

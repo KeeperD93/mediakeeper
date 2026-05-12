@@ -44,6 +44,55 @@
         />
       </label>
 
+      <!-- Maintenance mode toggle -->
+      <div class="pt-setting-row">
+        <div class="pt-setting-info">
+          <span class="pt-setting-title">
+            {{ $t('portal.admin.settings.maintenance.title') }}
+          </span>
+          <span class="pt-setting-desc">
+            {{ $t('portal.admin.settings.maintenance.desc') }}
+          </span>
+        </div>
+        <MkToggle
+          :model-value="maintenance.enabled"
+          :disabled="maintSaving"
+          :aria-label="$t('portal.admin.settings.maintenance.title')"
+          @update:model-value="toggleMaintenance"
+        />
+      </div>
+
+      <!-- Maintenance text editor — locale-scoped, only when ON -->
+      <div v-if="maintenance.enabled" class="pt-maint-editor">
+        <label class="pt-maint-label">
+          {{ $t('portal.admin.settings.maintenance.textLabel') }}
+        </label>
+        <textarea
+          v-if="currentLocale === 'fr'"
+          v-model="maintenance.text_fr"
+          class="pt-maint-textarea"
+          rows="3"
+          maxlength="2000"
+        />
+        <textarea
+          v-else
+          v-model="maintenance.text_en"
+          class="pt-maint-textarea"
+          rows="3"
+          maxlength="2000"
+        />
+        <div class="pt-maint-actions">
+          <button
+            type="button"
+            class="pt-btn pt-btn--primary"
+            :disabled="maintSaving"
+            @click="saveMaintenanceText"
+          >
+            {{ $t('common.save') }}
+          </button>
+        </div>
+      </div>
+
       <p v-if="savedMessage" class="pt-settings-saved">{{ savedMessage }}</p>
 
       <GdprSection />
@@ -52,49 +101,91 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useApi } from '@/composables/useApi'
 import GdprSection from '@/components/portal/admin/GdprSection.vue'
 import MkToggle from '@/components/common/MkToggle.vue'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const { apiGet, apiPatch } = useApi()
 
 const settings = ref({ anonymize_requests: false, hero_trend_count: 10 })
+const maintenance = reactive({ enabled: false, text_fr: '', text_en: '' })
 const loading = ref(false)
 const loaded = ref(false)
 const saving = ref(false)
+const maintSaving = ref(false)
 const savedMessage = ref('')
+
+const currentLocale = computed(() =>
+  (locale.value || 'fr').toLowerCase().startsWith('en') ? 'en' : 'fr',
+)
 
 async function fetchSettings() {
   loading.value = true
   try {
-    const res = await apiGet('/api/portal/admin/settings')
-    if (res) {
-      settings.value = { ...settings.value, ...res }
-      loaded.value = true
-    }
+    const [res, maint] = await Promise.all([
+      apiGet('/api/portal/admin/settings'),
+      apiGet('/api/portal/admin/maintenance'),
+    ])
+    if (res) settings.value = { ...settings.value, ...res }
+    if (maint) Object.assign(maintenance, maint)
+    loaded.value = true
   } finally {
     loading.value = false
   }
 }
 
 let savedTimer = null
+function flashSaved() {
+  savedMessage.value = t('common.saved')
+  if (savedTimer) clearTimeout(savedTimer)
+  savedTimer = setTimeout(() => {
+    savedMessage.value = ''
+  }, 2000)
+}
+
 async function update(key, value) {
   saving.value = true
   try {
     const res = await apiPatch('/api/portal/admin/settings', { [key]: value })
     if (res) {
       settings.value = { ...settings.value, ...res }
-      savedMessage.value = t('common.saved')
-      if (savedTimer) clearTimeout(savedTimer)
-      savedTimer = setTimeout(() => {
-        savedMessage.value = ''
-      }, 2000)
+      flashSaved()
     }
   } finally {
     saving.value = false
+  }
+}
+
+async function toggleMaintenance(next) {
+  maintSaving.value = true
+  try {
+    const res = await apiPatch('/api/portal/admin/maintenance', { enabled: next })
+    if (res) {
+      Object.assign(maintenance, res)
+      flashSaved()
+    }
+  } finally {
+    maintSaving.value = false
+  }
+}
+
+async function saveMaintenanceText() {
+  maintSaving.value = true
+  try {
+    const payload =
+      currentLocale.value === 'fr'
+        ? { text_fr: maintenance.text_fr }
+        : { text_en: maintenance.text_en }
+    const res = await apiPatch('/api/portal/admin/maintenance', payload)
+    if (res) {
+      Object.assign(maintenance, res)
+      flashSaved()
+    }
+  } finally {
+    maintSaving.value = false
   }
 }
 
@@ -172,4 +263,37 @@ onMounted(fetchSettings)
   margin-top: 0.5rem;
   padding-left: 0.25rem;
 }
+.pt-maint-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+.pt-maint-label { font-size: var(--portal-text-xs); color: var(--text-muted); }
+.pt-maint-textarea {
+  width: 100%;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  color: var(--text-primary);
+  padding: 0.5rem 0.75rem;
+  font-size: var(--portal-text-sm);
+  font-family: inherit;
+  resize: vertical;
+}
+.pt-maint-textarea:focus { border-color: var(--accent); outline: none; }
+.pt-maint-actions { display: flex; justify-content: flex-end; }
+.pt-btn {
+  padding: 0.45rem 1rem;
+  border-radius: var(--radius-btn);
+  border: none;
+  font-weight: var(--portal-font-medium);
+  cursor: pointer;
+  font-size: var(--portal-text-sm);
+}
+.pt-btn--primary { background: var(--accent); color: #fff; }
+.pt-btn--primary:disabled { opacity: 0.6; cursor: not-allowed; }
 </style>

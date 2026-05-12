@@ -141,4 +141,10 @@ export const portalRoutes = [
     component: () => import('@/views/portal/PortalWrapped.vue'),
     meta: { titleKey: 'portal.routeTitles.wrapped', portal: true },
   },
+  {
+    path: 'maintenance',
+    name: 'portal-maintenance',
+    component: () => import('@/views/portal/PortalMaintenance.vue'),
+    meta: { titleKey: 'pageMeta.maintenanceTitle', portal: true, public: true },
+  },
 ]

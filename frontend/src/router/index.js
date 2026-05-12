@@ -49,7 +49,29 @@ const router = createRouter({
 // - Portal routes accept either an rq_token session or, for a logged-in
 //   backoffice admin, an auto-provisioned Portal session.
 // - MediaKeeper routes still require the regular mk_token session.
+// - When ``maintenance.enabled`` is on, every non-admin portal navigation
+//   is redirected to /portal/maintenance. Admins keep full access.
 router.beforeEach(async to => {
+  // Portal maintenance gate — runs before auth so anonymous visitors
+  // land on the holding page instead of the login screen. The target
+  // page itself (``portal-maintenance``) is whitelisted to avoid loops.
+  if (to.meta.portal && to.name !== 'portal-maintenance') {
+    const { useMaintenance } = await import('@/composables/portal/useMaintenance')
+    const { fetchMaintenanceState } = useMaintenance()
+    const state = await fetchMaintenanceState()
+    if (state?.enabled) {
+      const { usePortalAuth } = await import('@/composables/portal/usePortalAuth')
+      const portalAuth = usePortalAuth()
+      if (!portalAuth.isPortalAuth.value) {
+        await portalAuth.checkPortalAuth()
+      }
+      const role = portalAuth.profile.value?.role
+      if (role !== 'admin') {
+        return { name: 'portal-maintenance' }
+      }
+    }
+  }
+
   // Fully public (login pages, etc.) — let them through.
   if (to.meta.public) return true
 
