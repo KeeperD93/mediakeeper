@@ -34,7 +34,6 @@
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
-  cursor: pointer;
   transition:
     border-color var(--portal-dur-fast),
     background var(--portal-dur-fast);
@@ -59,14 +58,6 @@
   color: var(--text-muted);
   line-height: 1.35;
 }
-.pt-gdpr-toggle-input {
-  flex-shrink: 0;
-  width: 18px;
-  height: 18px;
-  accent-color: var(--accent);
-  cursor: pointer;
-}
-
 .pt-gdpr-loading {
   padding: 1rem;
   color: var(--text-muted);
@@ -83,9 +74,6 @@
   gap: 1rem;
 }
 @media (min-width: 960px) {
-  .pt-gdpr-grid {
-    grid-template-columns: 1fr 1fr;
-  }
   .pt-gdpr-grid--inline {
     grid-template-columns: 2fr 1fr;
   }

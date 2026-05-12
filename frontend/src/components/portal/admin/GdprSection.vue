@@ -18,7 +18,7 @@
            component because the AdminSettings.vue ``pt-setting-*`` rules
            live in a parent ``<style scoped>`` block and would not bleed
            through Vue's data-v hashing. -->
-      <label class="pt-gdpr-toggle-row">
+      <div class="pt-gdpr-toggle-row">
         <div class="pt-gdpr-toggle-info">
           <span class="pt-gdpr-toggle-title">
             {{ $t('portal.admin.settings.gdpr.toggle.title') }}
@@ -27,35 +27,40 @@
             {{ $t('portal.admin.settings.gdpr.toggle.desc') }}
           </span>
         </div>
-        <input
-          type="checkbox"
-          class="pt-gdpr-toggle-input"
-          :checked="form.enabled"
+        <MkToggle
+          :model-value="form.enabled"
           :disabled="saving"
-          @change="onToggle($event.target.checked)"
+          :aria-label="$t('portal.admin.settings.gdpr.toggle.title')"
+          @update:model-value="onToggle"
         />
-      </label>
+      </div>
 
       <!-- Config zone: visible only when the mode is on. The text
            editors / DPO / delay are still bound to ``form`` so toggling
            ON later picks up any preset edits. -->
       <div v-if="form.enabled" class="pt-gdpr-config">
         <div class="pt-gdpr-grid">
-          <div class="pt-gdpr-field">
+          <div v-if="currentLocale === 'fr'" class="pt-gdpr-field">
             <label class="pt-gdpr-label">
               {{ $t('portal.admin.settings.gdpr.privacyFr.title') }}
               <span class="pt-gdpr-hint">
                 {{ $t('portal.admin.settings.gdpr.privacyFr.desc') }}
               </span>
+              <span class="pt-gdpr-hint">
+                {{ $t('portal.admin.settings.gdpr.privacyLangHint') }}
+              </span>
             </label>
             <HelpEditor v-model="form.privacy_text_fr" />
           </div>
 
-          <div class="pt-gdpr-field">
+          <div v-if="currentLocale === 'en'" class="pt-gdpr-field">
             <label class="pt-gdpr-label">
               {{ $t('portal.admin.settings.gdpr.privacyEn.title') }}
               <span class="pt-gdpr-hint">
                 {{ $t('portal.admin.settings.gdpr.privacyEn.desc') }}
+              </span>
+              <span class="pt-gdpr-hint">
+                {{ $t('portal.admin.settings.gdpr.privacyLangHint') }}
               </span>
             </label>
             <HelpEditor v-model="form.privacy_text_en" />
@@ -126,6 +131,7 @@ import { useI18n } from 'vue-i18n'
 import { Save } from 'lucide-vue-next'
 import HelpEditor from '@/components/portal/help/HelpEditor.vue'
 import GdprPendingTable from '@/components/portal/admin/GdprPendingTable.vue'
+import MkToggle from '@/components/common/MkToggle.vue'
 import { DEFAULT_SETTINGS, useGdprAdmin } from '@/composables/portal/useGdprAdmin'
 
 import '@/assets/styles/portal/admin-gdpr.css'
@@ -134,9 +140,13 @@ const DELAY_MIN = 7
 const DELAY_MAX = 90
 const SAVED_MESSAGE_TIMEOUT_MS = 2000
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const { saving, fetchSettings, saveSettings, fetchPendingDeletions, cancelDeletionRequest } =
   useGdprAdmin()
+
+const currentLocale = computed(() =>
+  (locale.value || 'fr').toLowerCase().startsWith('en') ? 'en' : 'fr',
+)
 
 const form = reactive({ ...DEFAULT_SETTINGS })
 const loading = ref(false)

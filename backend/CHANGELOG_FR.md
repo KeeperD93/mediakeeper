@@ -76,6 +76,8 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Gestionnaire — recherche TMDB : champ « Année » optionnel pour départager les remakes (auto-rempli depuis le fichier)
 - Gestionnaire — lasso aussi sur la liste des nouveaux noms (suppression groupée)
 
+### Changed
+- Demandes (admin) — en-tête épuré, interrupteurs glissants, éditeur de confidentialité mono-langue
 
 ### Fixed
 - Notifications Discord — détection contextuelle « série » / « saison complète » / « épisodes ajoutés », template configuré et synopsis correctement appliqués

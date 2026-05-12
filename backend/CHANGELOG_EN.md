@@ -76,6 +76,9 @@ This section intentionally has no date so it is not shown to users.
 - Media Manager — TMDB search: optional "Year" field to disambiguate remakes (auto-filled from filename)
 - Media Manager — lasso on the generated names list (batch delete)
 
+### Changed
+- Requests (admin) — cleaner header, slide toggles, single-locale privacy editor
+
 ### Fixed
 - Discord notifications — context-aware "series" / "full season" / "episodes" detection, configured template and synopsis now applied
 - Dashboard — Activity widget: labels wrap on narrow widths (no more truncation)
