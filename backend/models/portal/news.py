@@ -24,6 +24,11 @@ class News(Base):
                              nullable=False, index=True)
     pinned          = Column(Boolean, server_default="false", nullable=False)
     notify_discord  = Column(Boolean, server_default="false", nullable=False)
+    # Optional scheduling window. ``start_at`` NULL = live immediately,
+    # ``end_at`` NULL = never expires. The user-facing list endpoint
+    # filters rows that fall outside the window; admins see everything.
+    start_at        = Column(DateTime(timezone=True), nullable=True)
+    end_at          = Column(DateTime(timezone=True), nullable=True)
     created_at      = Column(DateTime(timezone=True),
                              default=lambda: datetime.now(timezone.utc))
     updated_at      = Column(DateTime(timezone=True),

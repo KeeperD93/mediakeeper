@@ -2043,12 +2043,17 @@
     "logs": "System and Emby logs",
     "settings": "MediaKeeper configuration",
     "changelog": "Change history",
-    "about": "Stack, licenses and third-party attributions"
+    "about": "Stack, licenses and third-party attributions",
+    "maintenanceTitle": "Maintenance"
   },
   "portal": {
     "title": "Requests",
     "common": {
       "deletedUser": "Deleted user"
+    },
+    "maintenance": {
+      "title": "Maintenance in progress",
+      "defaultText": "The site is currently under maintenance, thanks for your understanding."
     },
     "routeTitles": {
       "home": "Requests portal",
@@ -3289,6 +3294,12 @@
       "reject": "Reject",
       "delete": "Delete",
       "createNews": "New article",
+      "news": {
+        "startAtLabel": "Start date (optional)",
+        "endAtLabel": "End date (optional)",
+        "scheduledBadge": "Scheduled",
+        "expiredBadge": "Expired"
+      },
       "req": {
         "title": "Requests",
         "subtitle": "Approve, reject and monitor member requests",
@@ -3322,6 +3333,11 @@
         "heroTrendCount": {
           "title": "Hero trend count",
           "desc": "Total number of items shown in the home hero banner (TMDB trending + manually featured). Featuring a movie takes one trending slot. Set to 0 to hide the hero entirely."
+        },
+        "maintenance": {
+          "title": "Maintenance mode",
+          "desc": "When on, the entire portal navigation redirects to a customizable holding page. Admins keep full access.",
+          "textLabel": "Displayed message (current locale)"
         },
         "gdpr": {
           "title": "Privacy mode",

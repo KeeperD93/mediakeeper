@@ -29,6 +29,8 @@
             </button>
           </div>
 
+          <WhatsNewNewsSection v-if="unreadNews.length" :news="unreadNews" />
+
           <div class="dwn-body">
             <div v-for="(items, cat) in latestVersion?.categories" :key="cat" class="dwn-category">
               <div class="dwn-cat-label" :class="'dwn-cat-' + cat.toLowerCase()">
@@ -65,6 +67,7 @@ import { useI18n } from 'vue-i18n'
 import { useApi } from '@/composables/useApi'
 import { useFocusTrap } from '@/composables/useFocusTrap'
 import { Lightbulb, X } from 'lucide-vue-next'
+import WhatsNewNewsSection from '@/components/portal/whats-new/WhatsNewNewsSection.vue'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -78,6 +81,7 @@ const { locale } = useI18n()
 
 const visible = ref(false)
 const latestVersion = ref(null)
+const unreadNews = ref([])
 const panelRef = ref(null)
 const closeBtnRef = ref(null)
 
@@ -89,7 +93,11 @@ async function load({ bypassCheck = false } = {}) {
       const localSeen = localStorage.getItem('mk_portal_changelog_seen')
       if (localSeen === check.current_version) return false
     }
-    const data = await apiGet(`/api/portal/changelog/?limit=1&lang=${locale.value}`)
+    const [data, newsRes] = await Promise.all([
+      apiGet(`/api/portal/changelog/?limit=1&lang=${locale.value}`),
+      apiGet('/api/portal/news/unread').catch(() => null),
+    ])
+    unreadNews.value = Array.isArray(newsRes?.items) ? newsRes.items : []
     if (data?.versions?.length) {
       latestVersion.value = data.versions[0]
       visible.value = true
@@ -112,6 +120,15 @@ async function dismiss() {
   } catch {
     /* silent: seen-marker is best-effort */
   }
+  // Mark every news shown in this overlay as read (best-effort).
+  for (const item of unreadNews.value) {
+    try {
+      await apiPost(`/api/portal/news/read/${item.id}?dismissed=true`, {})
+    } catch {
+      /* silent: news mark-read is best-effort */
+    }
+  }
+  unreadNews.value = []
 }
 
 function goToChangelog() {

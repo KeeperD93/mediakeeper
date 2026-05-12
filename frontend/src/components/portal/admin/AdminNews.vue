@@ -1,6 +1,6 @@
 <template>
   <div>
-    <button class="pt-btn pt-btn--primary pt-btn--toolbar" @click="showForm = true">
+    <button class="pt-btn pt-btn--primary pt-btn--toolbar" @click="openCreate">
       <i class="icon-plus" />
       {{ $t('portal.admin.createNews') }}
     </button>
@@ -9,6 +9,18 @@
       <div v-for="n in news" :key="n.id" class="pt-news-row">
         <span class="pt-news-badge-mini" :class="`pt-badge--${n.type}`">{{ n.type }}</span>
         <span class="pt-news-title">{{ n.title }}</span>
+        <span
+          v-if="scheduleState(n) === 'scheduled'"
+          class="pt-news-schedule pt-news-schedule--scheduled"
+        >
+          {{ $t('portal.admin.news.scheduledBadge') }}
+        </span>
+        <span
+          v-else-if="scheduleState(n) === 'expired'"
+          class="pt-news-schedule pt-news-schedule--expired"
+        >
+          {{ $t('portal.admin.news.expiredBadge') }}
+        </span>
         <span class="pt-news-date">{{ new Date(n.created_at).toLocaleDateString() }}</span>
         <button class="pt-icon-btn" @click="remove(n.id)"><i class="icon-trash" /></button>
       </div>
@@ -16,7 +28,7 @@
     </div>
 
     <Teleport v-if="showForm" to="body">
-      <div class="pt-popup-overlay" @click.self="showForm = false">
+      <div class="pt-popup-overlay" @click.self="closeForm">
         <div class="pt-popup pt-popup--md">
           <div class="pt-popup-header">
             <h2>{{ $t('portal.admin.createNews') }}</h2>
@@ -24,7 +36,7 @@
               class="pt-popup-close"
               type="button"
               :aria-label="$t('common.close')"
-              @click="showForm = false"
+              @click="closeForm"
             >
               <X :size="14" />
             </button>
@@ -40,6 +52,10 @@
                 {{ $t(`portal.news.types.${type}`) }}
               </option>
             </select>
+            <label>{{ $t('portal.admin.news.startAtLabel') }}</label>
+            <input v-model="form.start_at" type="datetime-local" class="pt-input" />
+            <label>{{ $t('portal.admin.news.endAtLabel') }}</label>
+            <input v-model="form.end_at" type="datetime-local" class="pt-input" />
           </div>
           <div class="pt-popup-footer">
             <button class="pt-btn pt-btn--primary" :disabled="!form.title.trim()" @click="submit">
@@ -66,24 +82,57 @@ const { t } = useI18n()
 
 const showForm = ref(false)
 const types = ['announcement', 'additions', 'maintenance', 'event', 'other']
-const form = reactive({ title: '', content: '', type: 'announcement' })
+const form = reactive({ title: '', content: '', type: 'announcement', start_at: '', end_at: '' })
 
-async function submit() {
-  await createNews(form)
-  showForm.value = false
+function openCreate() {
   form.title = ''
   form.content = ''
+  form.type = 'announcement'
+  form.start_at = ''
+  form.end_at = ''
+  showForm.value = true
+}
+
+function closeForm() {
+  showForm.value = false
+}
+
+function toIso(value) {
+  if (!value) return null
+  const d = new Date(value)
+  return Number.isNaN(d.getTime()) ? null : d.toISOString()
+}
+
+function scheduleState(n) {
+  const now = Date.now()
+  const start = n.start_at ? Date.parse(n.start_at) : null
+  const end = n.end_at ? Date.parse(n.end_at) : null
+  if (start && start > now) return 'scheduled'
+  if (end && end < now) return 'expired'
+  return null
+}
+
+async function submit() {
+  const payload = {
+    title: form.title,
+    content: form.content,
+    type: form.type,
+    start_at: toIso(form.start_at),
+    end_at: toIso(form.end_at),
+  }
+  await createNews(payload)
+  closeForm()
   showToast(t('common.saved'), TOAST_TYPE.OK)
-  await fetchNews()
+  await fetchNews(true, { admin: true })
 }
 
 async function remove(id) {
   await deleteNews(id)
   showToast(t('common.success'), TOAST_TYPE.OK)
-  await fetchNews()
+  await fetchNews(true, { admin: true })
 }
 
-onMounted(() => fetchNews())
+onMounted(() => fetchNews(true, { admin: true }))
 </script>
 
 <style scoped>
@@ -144,6 +193,22 @@ onMounted(() => fetchNews())
   font-weight: var(--portal-font-medium);
   color: var(--text-primary);
   font-size: var(--portal-text-base);
+}
+.pt-news-schedule {
+  font-size: var(--portal-text-2xs);
+  font-weight: var(--portal-font-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--portal-tracking-caps);
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--portal-radius-xs);
+}
+.pt-news-schedule--scheduled {
+  background: rgb(var(--accent-rgb), 0.15);
+  color: var(--accent-300);
+}
+.pt-news-schedule--expired {
+  background: var(--bg-tertiary);
+  color: var(--text-faint);
 }
 .pt-news-date {
   font-size: var(--portal-text-xs);

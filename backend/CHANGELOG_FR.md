@@ -75,6 +75,8 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Accessibilité — animations décoratives respectent prefers-reduced-motion
 - Gestionnaire — recherche TMDB : champ « Année » optionnel pour départager les remakes (auto-rempli depuis le fichier)
 - Gestionnaire — lasso aussi sur la liste des nouveaux noms (suppression groupée)
+- Demandes (admin) — mode maintenance personnalisable et actualités planifiables (dates de début/fin)
+- Portail — actualités actives affichées en tête de l'overlay « Quoi de neuf »
 
 ### Changed
 - Demandes (admin) — en-tête épuré, interrupteurs glissants, éditeur de confidentialité mono-langue

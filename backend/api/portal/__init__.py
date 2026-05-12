@@ -29,6 +29,7 @@ from api.portal.notifications import router as notifications_router
 from api.portal.xp_events import router as xp_events_router
 from api.portal.daily_digest import router as daily_digest_router
 from api.portal.gdpr import router as gdpr_router
+from api.portal.maintenance import router as maintenance_router
 from api.portal.help import (
     router as help_router,
     admin_router as help_admin_router,
@@ -62,5 +63,6 @@ router.include_router(notifications_router)
 router.include_router(xp_events_router)
 router.include_router(daily_digest_router)
 router.include_router(gdpr_router)
+router.include_router(maintenance_router)
 router.include_router(help_router)
 router.include_router(help_admin_router)

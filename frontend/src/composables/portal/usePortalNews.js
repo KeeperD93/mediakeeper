@@ -8,12 +8,13 @@ export function usePortalNews() {
   const hasMore = ref(false)
   const nextCursor = ref(null)
 
-  async function fetchNews(reset = true) {
+  async function fetchNews(reset = true, { admin = false } = {}) {
     if (reset) {
       news.value = []
       nextCursor.value = null
     }
-    let url = '/api/portal/news?limit=20'
+    const base = admin ? '/api/portal/news/admin' : '/api/portal/news'
+    let url = `${base}?limit=20`
     if (nextCursor.value) url += `&cursor=${nextCursor.value}`
     try {
       const res = await apiGet(url)

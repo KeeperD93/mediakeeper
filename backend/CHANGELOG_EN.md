@@ -75,6 +75,8 @@ This section intentionally has no date so it is not shown to users.
 - Accessibility — decorative animations respect prefers-reduced-motion
 - Media Manager — TMDB search: optional "Year" field to disambiguate remakes (auto-filled from filename)
 - Media Manager — lasso on the generated names list (batch delete)
+- Requests (admin) — customizable maintenance mode and scheduled news (start/end dates)
+- Portal — active news now displayed at the top of the "What's New" overlay
 
 ### Changed
 - Requests (admin) — cleaner header, slide toggles, single-locale privacy editor
