@@ -151,10 +151,11 @@ async def patch_identity(
     admin: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    profile, _user = await resolve_profile(profile_id, db)
+    profile, user = await resolve_profile(profile_id, db)
     return await svc_update_identity(
         db,
         profile,
+        user,
         display_name=data.display_name,
         first_name=data.first_name,
         last_name=data.last_name,

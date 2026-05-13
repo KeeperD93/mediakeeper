@@ -53,6 +53,9 @@ utilisateurs.
 - Trophées listes — deux nouvelles familles (Curateur, Bibliothécaire) avec 5 paliers chacune
 
 ### Changed
+- Notifications — icônes Lucide en lieu et place des emojis
+- Crédit TMDB — bandeau compact sur une ligne
+- Accueil et profil — espacement réduit sur mobile
 - Salle de cinéma — enchaînement de bandes-annonces avec transition noire, bouton Infos sur le trailer en cours
 - Salle de cinéma — jaquette affichée dans l'écran après le compte à rebours (au lieu du titre)
 - Demandes — les demandes disponibles peuvent être nettoyées automatiquement après un délai (réglé par l'admin)
@@ -79,6 +82,7 @@ utilisateurs.
 - Classement — refonte premium, top 100, podium top 3 enrichi, titre cliquable depuis le profil
 
 ### Fixed
+- Page détails média — page ouverte en haut systématiquement
 - Profil privé — page dédiée au lieu d'une erreur générique au clic depuis le classement
 - Portail — modale de choix du pseudo : plus de texte qui fuit en bas à gauche pendant la transition
 - Demandes — passage automatique à « Disponible » et notification dans la cloche dès que le média arrive sur Emby

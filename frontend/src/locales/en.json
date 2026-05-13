@@ -1947,7 +1947,8 @@
           "event_created": "Event created",
           "event_joined": "Event joined",
           "streak_7": "7-day streak",
-          "streak_30": "30-day streak"
+          "streak_30": "30-day streak",
+          "achievementNamed": "Trophy « {name} » unlocked"
         },
         "notes": {
           "notesTitle": "Admin notes (private)",
@@ -2104,9 +2105,6 @@
         "animation": "Animated movie",
         "documentary": "Documentary"
       }
-    },
-    "promotion": {
-      "soon": "Promotions — coming soon"
     },
     "backToDashboard": "Back to dashboard",
     "card": {

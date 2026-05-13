@@ -1,18 +1,19 @@
+import { Bell, Film, Flag, MessageSquare, Target, TicketCheck } from 'lucide-vue-next'
 import { NOTIF_TYPE } from '@/constants/notifications'
 
 /**
- * Emoji icon used to prefix a notification row in the bell popup.
- * Falls back to the generic bell when the type is unknown so the UI
- * never renders an empty slot.
+ * Lucide component used to prefix a notification row in the bell popup.
+ * Falls back to the generic Bell glyph when the type is unknown so the
+ * UI never renders an empty slot.
  */
-export function iconForNotification(type) {
-  if (!type) return '🔔'
-  if (type === NOTIF_TYPE.CHAT_MESSAGE_REPORTED) return '🚩'
-  if (type.startsWith('event_')) return '🎬'
-  if (type.startsWith('request_')) return '🎯'
-  if (type.startsWith('ticket_')) return '🎫'
-  if (type.startsWith('chat_')) return '💬'
-  return '🔔'
+export function iconComponentForNotification(type) {
+  if (!type) return Bell
+  if (type === NOTIF_TYPE.CHAT_MESSAGE_REPORTED) return Flag
+  if (type.startsWith('event_')) return Film
+  if (type.startsWith('request_')) return Target
+  if (type.startsWith('ticket_')) return TicketCheck
+  if (type.startsWith('chat_')) return MessageSquare
+  return Bell
 }
 
 /**
