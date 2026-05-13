@@ -83,6 +83,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Demandes (admin) — en-tête épuré, interrupteurs glissants, éditeur de confidentialité mono-langue
 - Portail admin — sous-onglets Tickets et Listes retirés (les actions vivent côté portail premium)
 - Listes admin — actions de modération migrées sur la page Listes du portail (onglet Admin)
+- Dépendances frontend — vue-i18n 9→11 + unplugin 4→11 (alignement compile/runtime, retrait legacy-peer-deps)
 
 ### Fixed
 - Déploiement Postgres — colonne `alembic_version` élargie automatiquement (auto-fix migrations longues)

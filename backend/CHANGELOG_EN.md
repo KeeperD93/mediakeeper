@@ -83,6 +83,7 @@ This section intentionally has no date so it is not shown to users.
 - Requests (admin) — cleaner header, slide toggles, single-locale privacy editor
 - Portal admin — Tickets and Lists sub-tabs retired (actions now live on the premium portal)
 - Admin lists — moderation actions moved to the portal Lists page (Admin tab)
+- Frontend deps — vue-i18n 9→11 + unplugin 4→11 (compile/runtime alignment, legacy-peer-deps retired)
 
 ### Fixed
 - Postgres deploy — `alembic_version` column auto-widened (long-slug migrations now apply)
