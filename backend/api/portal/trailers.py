@@ -65,7 +65,15 @@ async def random_trailers(
         if len(out) >= limit:
             break
         if tr and tr.get("key"):
-            out.append({"key": tr["key"], "title": it.get("title"), "source": tr.get("source")})
+            out.append({
+                "key": tr["key"],
+                "title": it.get("title"),
+                "source": tr.get("source"),
+                "emby_item_id": it.get("emby_item_id") or None,
+                "tmdb_id": int(it["tmdb_id"]) if it.get("tmdb_id") else None,
+                "media_type": it.get("media_type", "movie"),
+                "emby_url": it.get("emby_url") or None,
+            })
     return {"items": out}
 
 

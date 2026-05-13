@@ -53,6 +53,8 @@ utilisateurs.
 - Trophées listes — deux nouvelles familles (Curateur, Bibliothécaire) avec 5 paliers chacune
 
 ### Changed
+- Salle de cinéma — enchaînement de bandes-annonces avec transition noire, bouton Infos sur le trailer en cours
+- Salle de cinéma — jaquette affichée dans l'écran après le compte à rebours (au lieu du titre)
 - Demandes — les demandes disponibles peuvent être nettoyées automatiquement après un délai (réglé par l'admin)
 - Portail — avatars : icône silhouette en remplacement de la lettre
 - Listes — pseudos anonymisés côté propriétaire et contributeurs (fiche liste)

@@ -2524,7 +2524,9 @@
       "chatEmpty": "Soyez le premier à écrire !",
       "chatPlaceholder": "Votre message...",
       "mute": "Couper le son",
-      "unmute": "Activer le son"
+      "unmute": "Activer le son",
+      "trailerInfo": "Infos",
+      "trailerInfoAria": "Plus d'infos sur {title}"
     },
     "mkEvents": {
       "create": {
