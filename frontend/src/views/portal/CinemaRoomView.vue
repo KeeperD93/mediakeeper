@@ -10,13 +10,13 @@
         <div class="pt-cr-screen-frame">
           <div class="pt-cr-screen">
             <div
-              v-show="!canLaunch && carousel.hasTrailer.value"
+              v-show="!flow.canLaunch.value && carousel.hasTrailer.value"
               ref="playerEl"
               class="pt-cr-screen-video"
             />
 
             <div
-              v-if="!canLaunch && carousel.hasTrailer.value"
+              v-if="!flow.canLaunch.value && carousel.hasTrailer.value"
               class="pt-cr-screen-fade"
               :class="{ 'pt-cr-screen-fade--active': carousel.transitioning.value }"
               :style="carousel.fadeStyle.value"
@@ -24,7 +24,7 @@
             />
 
             <button
-              v-if="!canLaunch && currentTrailer"
+              v-if="!flow.canLaunch.value && currentTrailer"
               type="button"
               class="pt-cr-info"
               :aria-label="
@@ -37,13 +37,13 @@
               {{ $t('portal.cinema.trailerInfo') }}
             </button>
 
-            <div v-if="academyActive" class="pt-cr-academy">
+            <div v-if="flow.academyActive.value" class="pt-cr-academy">
               <div class="pt-cr-academy-circle">
-                <span :key="academyValue" class="pt-cr-academy-num">{{ academyValue }}</span>
+                <span :key="flow.academyValue.value" class="pt-cr-academy-num">{{ flow.academyValue.value }}</span>
               </div>
             </div>
 
-            <div v-else-if="academyDone" class="pt-cr-screen-ready">
+            <div v-else-if="flow.academyDone.value" class="pt-cr-screen-ready">
               <img
                 v-if="currentMedia?.poster_url"
                 :src="currentMedia.poster_url"
@@ -54,7 +54,7 @@
             </div>
 
             <div
-              v-else-if="!canLaunch && !carousel.hasTrailer.value"
+              v-else-if="!flow.canLaunch.value && !carousel.hasTrailer.value"
               class="pt-cr-screen-placeholder"
             >
               <span class="pt-cr-screen-title">{{ event.title }}</span>
@@ -70,14 +70,16 @@
         </div>
 
         <CinemaRoomSeats :event="event" />
+        <MarathonProgressPanel :progress="marathonProgress.progress.value" />
       </div>
 
       <!-- Launch CTA: appears ABOVE the screen after the academy countdown -->
       <transition name="pt-cr-cta">
-        <div v-if="academyDone" class="pt-cr-launch">
+        <div v-if="flow.academyDone.value" class="pt-cr-launch">
           <button
             type="button"
             class="pt-cr-launch-btn"
+            :disabled="event.tmdb_ids.length > 1 && !marathonProgress.ready.value"
             @click="onLaunchClick"
           >
             <Play :size="22" :stroke-width="2.5" />
@@ -100,11 +102,11 @@
           <LogOut :size="18" :stroke-width="2.5" />
           {{ $t('portal.cinema.leave') }}
         </button>
-        <div class="pt-cr-countdown" :class="{ 'pt-cr-countdown--late': countdownNegative }">
+        <div class="pt-cr-countdown" :class="{ 'pt-cr-countdown--late': flow.countdownNegative.value }">
           <span class="pt-cr-countdown-label">
-            {{ countdownNegative ? $t('portal.cinema.elapsed') : $t('portal.cinema.startsIn') }}
+            {{ flow.countdownNegative.value ? $t('portal.cinema.elapsed') : $t('portal.cinema.startsIn') }}
           </span>
-          <span class="pt-cr-countdown-value">{{ countdownDisplay }}</span>
+          <span class="pt-cr-countdown-value">{{ flow.countdownDisplay.value }}</span>
         </div>
         <button
           class="pt-cr-mute"
@@ -123,15 +125,22 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useRooms } from '@/composables/portal/useRooms'
 import { useCinemaTrailerCarousel } from '@/composables/portal/useCinemaTrailerCarousel'
+import { useCinemaRoomFlow } from '@/composables/portal/useCinemaRoomFlow'
+import { useMarathonProgress } from '@/composables/portal/useMarathonProgress'
+import { useToast } from '@/composables/useToast'
+import { fetchApiResponse } from '@/composables/apiClient'
 import EventRoomChat from '@/components/portal/EventRoomChat.vue'
 import CinemaRoomSeats from '@/components/portal/cinema/CinemaRoomSeats.vue'
 import CinemaRoomStage from '@/components/portal/cinema/CinemaRoomStage.vue'
+import MarathonProgressPanel from '@/components/portal/cinema/MarathonProgressPanel.vue'
 import { isTv as isTvMedia } from '@/constants/media'
 import { PORTAL_TAB } from '@/constants/portal'
+import { TOAST_TYPE } from '@/constants/toast'
 import { Info, LogOut, Play, Volume2, VolumeX } from 'lucide-vue-next'
 
 import '@/assets/styles/portal/cinema-room-stage.css'
@@ -141,41 +150,25 @@ import '@/assets/styles/portal/cinema-room-hud.css'
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 const { enterRoom, getOne } = useRooms()
+const { showToast } = useToast()
 
 const event = ref(null)
 const loading = ref(true)
-const now = ref(Date.now())
 const marathonStep = ref(0)
 const muted = ref(true)
-
-const academyActive = ref(false)
-const academyValue = ref(10)
-const academyDone = ref(false)
-
-const playerEl = ref(null)
-const carousel = useCinemaTrailerCarousel({ playerElRef: playerEl, initialMuted: muted.value })
-const currentTrailer = computed(() => carousel.currentTrailer.value)
-
-let tickTimer = null
-let academyTimer = null
+const eventIdParam = parseInt(route.params.id, 10)
+const marathonProgress = useMarathonProgress(eventIdParam)
 
 const scheduledTime = computed(() =>
   event.value ? new Date(event.value.scheduled_at).getTime() : 0,
 )
-const remainingMs = computed(() => scheduledTime.value - now.value)
-const countdownNegative = computed(() => remainingMs.value < 0)
-const canLaunch = computed(() => remainingMs.value <= 0)
+const flow = useCinemaRoomFlow(scheduledTime)
 
-const countdownDisplay = computed(() => {
-  const ms = Math.abs(remainingMs.value)
-  const total = Math.floor(ms / 1000)
-  const h = Math.floor(total / 3600)
-  const m = Math.floor((total % 3600) / 60)
-  const s = total % 60
-  if (h > 0) return `${h}h ${String(m).padStart(2, '0')}m`
-  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
-})
+const playerEl = ref(null)
+const carousel = useCinemaTrailerCarousel({ playerElRef: playerEl, initialMuted: muted.value })
+const currentTrailer = computed(() => carousel.currentTrailer.value)
 
 const currentMedia = computed(() => event.value?.tmdb_ids?.[marathonStep.value] || null)
 const launchLabel = computed(() => {
@@ -194,26 +187,12 @@ function openTrailerInfo() {
   window.open(url, '_blank', 'noopener')
 }
 
-watch(canLaunch, v => {
-  if (v && !academyActive.value && !academyDone.value) {
+watch(flow.canLaunch, v => {
+  if (v && !flow.academyActive.value && !flow.academyDone.value) {
     carousel.destroy()
-    startAcademy()
+    flow.startAcademy()
   }
 })
-
-function startAcademy() {
-  academyActive.value = true
-  academyValue.value = 10
-  academyTimer = setInterval(() => {
-    academyValue.value -= 1
-    if (academyValue.value <= 0) {
-      clearInterval(academyTimer)
-      academyTimer = null
-      academyActive.value = false
-      academyDone.value = true
-    }
-  }, 1000)
-}
 
 async function load() {
   loading.value = true
@@ -228,39 +207,65 @@ async function load() {
   } finally {
     loading.value = false
   }
-  if (canLaunch.value) {
-    if (!academyDone.value && !academyActive.value) startAcademy()
+  if (event.value && (event.value.tmdb_ids?.length || 0) > 1) {
+    marathonStep.value = event.value.current_step || 0
+    marathonProgress.start()
+  }
+  if (flow.canLaunch.value) {
+    if (!flow.academyDone.value && !flow.academyActive.value) flow.startAcademy()
   } else {
     carousel.start().catch(() => {})
   }
 }
+
+watch(
+  () => marathonProgress.progress.value?.current_step,
+  step => {
+    if (typeof step === 'number' && step !== marathonStep.value) {
+      marathonStep.value = step
+    }
+  },
+)
 
 function leave() {
   if (window.opener) window.close()
   else router.push({ name: PORTAL_TAB.HOME })
 }
 
-function onLaunchClick() {
+async function onLaunchClick() {
   if (!event.value) return
-  if (marathonStep.value < event.value.tmdb_ids.length - 1) {
-    setTimeout(() => {
-      marathonStep.value += 1
-      academyDone.value = false
-      academyActive.value = false
-      startAcademy()
-    }, 500)
+  const total = event.value.tmdb_ids?.length || 0
+  // Single-film event: no server-side advance to do. Playback starts
+  // in Emby — the button here is decorative.
+  if (total <= 1) return
+  const res = await fetchApiResponse(
+    `/api/portal/events/rooms/${event.value.id}/advance`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ expected_step: marathonStep.value }),
+    },
+  )
+  if (!res) return
+  if (res.ok) {
+    const data = await res.json().catch(() => null)
+    if (data?.ok && data.event) {
+      event.value = data.event
+      marathonStep.value = data.current_step
+      flow.resetAcademy()
+    }
+    return
+  }
+  if (res.status === 412) {
+    showToast(t('portal.cinema.marathon.notReady'), TOAST_TYPE.WARN)
+  } else if (res.status === 409) {
+    showToast(t('portal.cinema.marathon.staleStep'), TOAST_TYPE.WARN)
+  } else {
+    showToast(t('common.error'), TOAST_TYPE.ERR)
   }
 }
 
 onMounted(() => {
   load()
-  tickTimer = setInterval(() => {
-    now.value = Date.now()
-  }, 1000)
-})
-
-onBeforeUnmount(() => {
-  if (tickTimer) clearInterval(tickTimer)
-  if (academyTimer) clearInterval(academyTimer)
+  flow.startTicker()
 })
 </script>

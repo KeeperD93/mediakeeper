@@ -2524,7 +2524,14 @@
       "mute": "Mute",
       "unmute": "Unmute",
       "trailerInfo": "Info",
-      "trailerInfoAria": "More info about {title}"
+      "trailerInfoAria": "More info about {title}",
+      "marathon": {
+        "title": "Marathon · film {current} of {total}",
+        "ineligible": "{count} participant without Emby tracking | {count} participants without Emby tracking",
+        "notReady": "Some participants haven't reached 85% of the film yet",
+        "staleStep": "Another participant already advanced the marathon",
+        "barAria": "{name} watched {percent}%"
+      }
     },
     "mkEvents": {
       "create": {

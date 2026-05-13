@@ -30,6 +30,44 @@ vi.mock('@/composables/portal/useRooms', () => ({
   }),
 }))
 
+const marathonProgressState = {
+  progress: ref({ is_marathon: false, current_step: 0, ready: false, participants: [] }),
+  loading: ref(false),
+  error: ref(null),
+  enabled: ref(false),
+  ready: ref(false),
+  start: vi.fn(),
+  stop: vi.fn(),
+}
+vi.mock('@/composables/portal/useMarathonProgress', () => ({
+  useMarathonProgress: () => marathonProgressState,
+}))
+
+const flowState = {
+  now: ref(Date.now()),
+  remainingMs: ref(60_000),
+  countdownNegative: ref(false),
+  canLaunch: ref(false),
+  countdownDisplay: ref('01:00'),
+  academyActive: ref(false),
+  academyValue: ref(10),
+  academyDone: ref(false),
+  startTicker: vi.fn(),
+  startAcademy: vi.fn(),
+  resetAcademy: vi.fn(),
+}
+vi.mock('@/composables/portal/useCinemaRoomFlow', () => ({
+  useCinemaRoomFlow: () => flowState,
+}))
+
+vi.mock('@/composables/useToast', () => ({
+  useToast: () => ({ showToast: vi.fn() }),
+}))
+
+vi.mock('@/composables/apiClient', () => ({
+  fetchApiResponse: vi.fn(),
+}))
+
 const carouselState = {
   queue: ref([]),
   currentIndex: ref(0),
@@ -58,7 +96,12 @@ vi.mock('@/components/portal/cinema/CinemaRoomSeats.vue', () => ({
 vi.mock('@/components/portal/cinema/CinemaRoomStage.vue', () => ({
   default: { template: '<div class="cinema-stage-stub" />' },
 }))
+vi.mock('@/components/portal/cinema/MarathonProgressPanel.vue', () => ({
+  default: { template: '<div class="marathon-panel-stub" />' },
+}))
 vi.mock('lucide-vue-next', () => ({
+  Check: { template: '<svg class="lucide-check" />' },
+  Film: { template: '<svg class="lucide-film" />' },
   Info: { template: '<svg class="lucide-info" />' },
   LogOut: { template: '<svg class="lucide-logout" />' },
   Play: { template: '<svg class="lucide-play" />' },
@@ -105,6 +148,19 @@ describe('CinemaRoomView.vue', () => {
     carouselState.start.mockClear()
     carouselState.applyMute.mockClear()
     carouselState.destroy.mockClear()
+    flowState.canLaunch.value = false
+    flowState.academyActive.value = false
+    flowState.academyDone.value = false
+    flowState.countdownNegative.value = false
+    marathonProgressState.progress.value = {
+      is_marathon: false,
+      current_step: 0,
+      ready: false,
+      participants: [],
+    }
+    marathonProgressState.ready.value = false
+    marathonProgressState.start.mockClear()
+    marathonProgressState.stop.mockClear()
   })
 
   it('renders the Info button while a trailer is playing', async () => {
@@ -132,12 +188,13 @@ describe('CinemaRoomView.vue', () => {
 
   it('renders the launch CTA as a <button>, not an <a> (retarget guard)', async () => {
     mockEnterRoom.mockResolvedValue({ event: setEvent({ scheduledOffsetMs: -1000 }) })
+    flowState.canLaunch.value = true
     const wrapper = await mountView()
     await flushPromises()
 
     // Walk past the academy countdown synchronously.
-    wrapper.vm.academyActive = false
-    wrapper.vm.academyDone = true
+    flowState.academyActive.value = false
+    flowState.academyDone.value = true
     await flushPromises()
 
     const cta = wrapper.find('.pt-cr-launch-btn')
@@ -150,11 +207,12 @@ describe('CinemaRoomView.vue', () => {
     mockEnterRoom.mockResolvedValue({
       event: setEvent({ scheduledOffsetMs: -1000, posterUrl: '/api/emby/image/emby-1?type=Primary' }),
     })
+    flowState.canLaunch.value = true
     const wrapper = await mountView()
     await flushPromises()
 
-    wrapper.vm.academyActive = false
-    wrapper.vm.academyDone = true
+    flowState.academyActive.value = false
+    flowState.academyDone.value = true
     await flushPromises()
 
     const poster = wrapper.find('img.pt-cr-screen-poster')
@@ -163,15 +221,62 @@ describe('CinemaRoomView.vue', () => {
     expect(wrapper.find('.pt-cr-screen-ready-text').exists()).toBe(false)
   })
 
+  it('disables the launch button when the marathon is not ready', async () => {
+    const marathon = setEvent({ scheduledOffsetMs: -1000 })
+    marathon.tmdb_ids = [
+      { tmdb_id: 1, media_type: 'movie', title: 'A' },
+      { tmdb_id: 2, media_type: 'movie', title: 'B' },
+    ]
+    mockEnterRoom.mockResolvedValue({ event: marathon })
+    flowState.canLaunch.value = true
+    marathonProgressState.progress.value = {
+      is_marathon: true, current_step: 0, total_steps: 2, ready: false,
+      participants: [], ineligible_count: 0,
+    }
+    marathonProgressState.ready.value = false
+
+    const wrapper = await mountView()
+    await flushPromises()
+    flowState.academyDone.value = true
+    await flushPromises()
+
+    const cta = wrapper.find('.pt-cr-launch-btn')
+    expect(cta.attributes('disabled')).toBeDefined()
+  })
+
+  it('enables the launch button when the marathon is ready', async () => {
+    const marathon = setEvent({ scheduledOffsetMs: -1000 })
+    marathon.tmdb_ids = [
+      { tmdb_id: 1, media_type: 'movie', title: 'A' },
+      { tmdb_id: 2, media_type: 'movie', title: 'B' },
+    ]
+    mockEnterRoom.mockResolvedValue({ event: marathon })
+    flowState.canLaunch.value = true
+    marathonProgressState.progress.value = {
+      is_marathon: true, current_step: 0, total_steps: 2, ready: true,
+      participants: [], ineligible_count: 0,
+    }
+    marathonProgressState.ready.value = true
+
+    const wrapper = await mountView()
+    await flushPromises()
+    flowState.academyDone.value = true
+    await flushPromises()
+
+    const cta = wrapper.find('.pt-cr-launch-btn')
+    expect(cta.attributes('disabled')).toBeUndefined()
+  })
+
   it('falls back to the title when academyDone but no poster is set', async () => {
     mockEnterRoom.mockResolvedValue({
       event: setEvent({ scheduledOffsetMs: -1000, posterUrl: '' }),
     })
+    flowState.canLaunch.value = true
     const wrapper = await mountView()
     await flushPromises()
 
-    wrapper.vm.academyActive = false
-    wrapper.vm.academyDone = true
+    flowState.academyActive.value = false
+    flowState.academyDone.value = true
     await flushPromises()
 
     expect(wrapper.find('img.pt-cr-screen-poster').exists()).toBe(false)

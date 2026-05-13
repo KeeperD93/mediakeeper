@@ -17,6 +17,7 @@ utilisateurs.
 ## [Unreleased]
 
 ### Added
+- Salle de cinéma — marathon : avancement temps réel, film suivant verrouillé tant que tous les invités n'ont pas atteint 85 %
 - Portail — alias anonyme « Utilisateur 1234 » tant qu'aucun pseudo n'est défini
 - Recherche — suggestions instantanées, recherches récentes, navigation clavier et raccourci Ctrl/Cmd+K
 - Accessibilité — lien « Aller au contenu principal » au focus clavier
