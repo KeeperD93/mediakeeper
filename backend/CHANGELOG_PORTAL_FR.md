@@ -58,7 +58,8 @@ utilisateurs.
 - Listes — pseudos anonymisés côté propriétaire et contributeurs (fiche liste)
 - Paramètres — onglet actif synchronisé avec l'URL (lien direct et refresh)
 - Quoi de neuf aujourd'hui — Top 3 du mois aligné sur le widget Classement du dashboard (visuel identique, votre position ajoutée en 4ᵉ ligne quand vous êtes hors podium)
-- Tickets — filtres restructurés en groupes labellisés (statut, source, problème) au style pill du module Demandes
+- Tickets — filtres allégés (pills de statut, type, tri) ; filtre Source retiré
+- Tickets — raccourci « Mes tickets » retiré du menu avatar (doublon de l'onglet Problèmes)
 - URLs standardisées (anciens bookmarks à refaire)
 - Barre du haut : roue crantée retirée — la configuration se gère désormais depuis MediaKeeper
 - Barre du haut : bouton « Tableau de bord » devient une icône maison sans texte, repositionnée à droite des notifications

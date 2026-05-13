@@ -106,11 +106,6 @@ export function usePortalNav(props, emit) {
     router.push({ name: 'portal-settings' })
   }
 
-  function goToMyTickets() {
-    menuOpen.value = false
-    router.push({ name: PORTAL_TAB.TICKETS })
-  }
-
   function openWhatsNew() {
     menuOpen.value = false
     emit('open-whats-new')
@@ -213,7 +208,6 @@ export function usePortalNav(props, emit) {
     navigateTo,
     goToDashboard,
     goToSettings,
-    goToMyTickets,
     toggleMenu,
     openSupport,
     doLogout,

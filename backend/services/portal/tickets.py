@@ -79,12 +79,16 @@ async def list_tickets(
     user_id: int | None = None,
     *,
     status_filter: str | None = None,
-    media_types: list[str] | None = None,
     issue_types: list[str] | None = None,
+    sort: str = "newest",
     cursor: str | None = None,
     limit: int = 25,
 ) -> dict:
-    query = select(Ticket).order_by(Ticket.id.desc())
+    # Ticket.id is monotonically allocated alongside created_at, so ordering
+    # by id keeps the cursor pagination cheap while honouring the requested
+    # creation-time direction.
+    order_clause = Ticket.id.asc() if sort == "oldest" else Ticket.id.desc()
+    query = select(Ticket).order_by(order_clause)
     count_q = select(func.count(Ticket.id))
 
     if user_id:
@@ -93,16 +97,14 @@ async def list_tickets(
     if status_filter:
         query = query.where(Ticket.status == status_filter)
         count_q = count_q.where(Ticket.status == status_filter)
-    if media_types:
-        query = query.where(Ticket.media_type.in_(media_types))
-        count_q = count_q.where(Ticket.media_type.in_(media_types))
     if issue_types:
         query = query.where(Ticket.issue_type.in_(issue_types))
         count_q = count_q.where(Ticket.issue_type.in_(issue_types))
 
     cursor_data = decode_cursor(cursor)
     if cursor_data and cursor_data.get("id"):
-        query = query.where(Ticket.id < cursor_data["id"])
+        cursor_id = cursor_data["id"]
+        query = query.where(Ticket.id > cursor_id if sort == "oldest" else Ticket.id < cursor_id)
 
     total = (await db.execute(count_q)).scalar() or 0
     items = [_serialize(t) for t in (await db.execute(query.limit(limit))).scalars().all()]

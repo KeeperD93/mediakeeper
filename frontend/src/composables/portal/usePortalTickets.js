@@ -15,8 +15,8 @@ export function usePortalTickets() {
     }
     const qs = new URLSearchParams({ limit: '25' })
     if (filters.status) qs.set('status', filters.status)
-    if (filters.media_type?.length) qs.set('media_type', filters.media_type.join(','))
     if (filters.issue_type?.length) qs.set('issue_type', filters.issue_type.join(','))
+    if (filters.sort) qs.set('sort', filters.sort)
     if (nextCursor.value) qs.set('cursor', nextCursor.value)
 
     try {

@@ -11,21 +11,40 @@
       </button>
     </header>
 
-    <div class="ptl-filter-groups">
-      <div v-for="g in filterGroups" :key="g.key" class="ptl-filter-group">
-        <span class="ptl-filter-label">{{ $t(g.label) }}</span>
-        <div class="arr-pills ptl-filter-pills">
-          <button
-            v-for="o in g.options"
-            :key="`${g.key}-${o.value}`"
-            type="button"
-            class="arr-pill"
-            :class="{ 'arr-pill--active': g.current === o.value }"
-            @click="g.set(o.value)"
-          >
-            {{ $t(o.label) }}
-          </button>
-        </div>
+    <div class="ptl-toolbar">
+      <div class="arr-pills ptl-toolbar-pills">
+        <button
+          v-for="st in STATUS_OPTIONS"
+          :key="`status-${st.value || 'all'}`"
+          type="button"
+          class="arr-pill"
+          :class="{ 'arr-pill--active': statusFilter === st.value }"
+          @click="setStatus(st.value)"
+        >
+          {{ $t(st.label) }}
+        </button>
+      </div>
+      <div class="ptl-toolbar-selects">
+        <select
+          v-model="issueFilter"
+          class="arr-sort ptl-toolbar-select"
+          :aria-label="$t('portal.tickets.issueType')"
+          @change="onIssueChange"
+        >
+          <option value="">{{ $t('portal.tickets.list.filterTypeAll') }}</option>
+          <option v-for="it in ISSUE_TYPES" :key="it" :value="it">
+            {{ $t(`portal.tickets.types.${it}`) }}
+          </option>
+        </select>
+        <select
+          v-model="sortOrder"
+          class="arr-sort ptl-toolbar-select"
+          :aria-label="$t('portal.tickets.list.sortLabel')"
+          @change="onSortChange"
+        >
+          <option value="newest">{{ $t('portal.tickets.list.sortNewest') }}</option>
+          <option value="oldest">{{ $t('portal.tickets.list.sortOldest') }}</option>
+        </select>
       </div>
     </div>
 
@@ -91,7 +110,7 @@
 
             <label>{{ $t('portal.tickets.issueType') }}</label>
             <select v-model="form.issue_type" class="pt-input">
-              <option v-for="it in issueTypes" :key="it" :value="it">
+              <option v-for="it in ISSUE_TYPES" :key="it" :value="it">
                 {{ $t(`portal.tickets.types.${it}`) }}
               </option>
             </select>
@@ -134,8 +153,8 @@ const router = useRouter()
 
 const showForm = ref(false)
 const statusFilter = ref('')
-const scopeFilter = ref('')
 const issueFilter = ref('')
+const sortOrder = ref('newest')
 const ISSUE_TYPES = ['audio', 'subtitles', 'video', 'metadata', 'playback', 'file', 'other']
 const modes = [
   { value: 'library', label: 'portal.tickets.picker.modeLibrary' },
@@ -143,63 +162,18 @@ const modes = [
 ]
 
 const STATUS_OPTIONS = [
-  { value: '', label: 'portal.tickets.list.allStatus' },
+  { value: '', label: 'portal.tickets.status.all' },
   { value: 'open', label: 'portal.tickets.status.open' },
   { value: 'in_progress', label: 'portal.tickets.status.in_progress' },
   { value: 'resolved', label: 'portal.tickets.status.resolved' },
   { value: 'closed', label: 'portal.tickets.status.closed' },
 ]
-const SCOPE_OPTIONS = [
-  { value: '', label: 'portal.tickets.list.allScopes' },
-  { value: 'library', label: 'portal.tickets.list.scopeLibrary' },
-  { value: 'movie', label: 'portal.tickets.list.scopeMovies' },
-  { value: 'series', label: 'portal.tickets.list.scopeSeries' },
-  { value: 'other', label: 'portal.tickets.list.scopeOther' },
-]
-const ISSUE_OPTIONS = [
-  { value: '', label: 'portal.tickets.list.allTypes' },
-  ...ISSUE_TYPES.map(it => ({ value: it, label: `portal.tickets.types.${it}` })),
-]
-
-const filterGroups = computed(() => [
-  {
-    key: 'status',
-    label: 'portal.tickets.list.filterStatus',
-    options: STATUS_OPTIONS,
-    current: statusFilter.value,
-    set: setStatus,
-  },
-  {
-    key: 'scope',
-    label: 'portal.tickets.list.filterScope',
-    options: SCOPE_OPTIONS,
-    current: scopeFilter.value,
-    set: setScope,
-  },
-  {
-    key: 'issue',
-    label: 'portal.tickets.list.filterIssue',
-    options: ISSUE_OPTIONS,
-    current: issueFilter.value,
-    set: setIssue,
-  },
-])
-
-// Map the user-facing scope choice to the backend ``media_type`` filter list.
-function _scopeToMediaTypes(scope) {
-  if (!scope) return []
-  if (scope === 'library') return ['movie', 'series', 'season', 'episode']
-  if (scope === 'series') return ['series', 'season', 'episode']
-  if (scope === 'movie') return ['movie']
-  if (scope === 'other') return ['other']
-  return []
-}
 
 function buildFilters() {
   return {
     status: statusFilter.value || null,
-    media_type: _scopeToMediaTypes(scopeFilter.value),
     issue_type: issueFilter.value ? [issueFilter.value] : [],
+    sort: sortOrder.value,
   }
 }
 
@@ -251,12 +225,10 @@ async function setStatus(value) {
   statusFilter.value = value
   await fetchTickets(buildFilters())
 }
-async function setScope(value) {
-  scopeFilter.value = value
+async function onIssueChange() {
   await fetchTickets(buildFilters())
 }
-async function setIssue(value) {
-  issueFilter.value = value
+async function onSortChange() {
   await fetchTickets(buildFilters())
 }
 
@@ -305,5 +277,5 @@ async function submit() {
   }
 }
 
-onMounted(() => fetchTickets())
+onMounted(() => fetchTickets(buildFilters()))
 </script>

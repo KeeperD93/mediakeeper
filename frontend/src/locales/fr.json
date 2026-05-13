@@ -2310,7 +2310,6 @@
       "menu": "Menu du compte",
       "account": "Mon compte",
       "settings": "Paramètres",
-      "myTickets": "Mes tickets",
       "dailyDigest": "Quoi de neuf aujourd'hui ?",
       "help": "Aide",
       "whatsNew": "Changelog",
@@ -2581,7 +2580,7 @@
     },
     "tickets": {
       "title": "Problèmes",
-      "subtitle": "Signalez un bug, suivez votre ticket, obtenez une réponse de l'admin",
+      "subtitle": "Signalez un bug concernant Emby ou Mediakeeper",
       "create": "Signaler un problème",
       "mediaTitle": "Titre du média",
       "mediaType": "Type de média",
@@ -2671,16 +2670,10 @@
         "replyCount": "{n} réponse | {n} réponses",
         "emptyTitle": "Aucun ticket pour le moment",
         "emptySub": "Quand un problème survient, signale-le pour qu'un admin puisse y répondre.",
-        "filterStatus": "Statut",
-        "filterScope": "Source",
-        "filterIssue": "Problème",
-        "allStatus": "Tous",
-        "allScopes": "Toutes",
-        "allTypes": "Tous",
-        "scopeLibrary": "Bibliothèque",
-        "scopeMovies": "Films",
-        "scopeSeries": "Séries",
-        "scopeOther": "Hors bibliothèque"
+        "filterTypeAll": "Tous les types",
+        "sortLabel": "Trier",
+        "sortNewest": "Plus récents",
+        "sortOldest": "Plus anciens"
       }
     },
     "help": {

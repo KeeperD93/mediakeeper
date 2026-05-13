@@ -138,10 +138,6 @@
                 {{ $t('portal.avatar.settings') }}
               </button>
 
-              <button class="pt-avatar-pop-item" type="button" @click="goToMyTickets">
-                {{ $t('portal.avatar.myTickets') }}
-              </button>
-
               <button class="pt-avatar-pop-item" type="button" @click="openDailyDigest">
                 {{ $t('portal.avatar.dailyDigest') }}
               </button>
@@ -220,7 +216,6 @@ const {
   navigateTo,
   goToDashboard,
   goToSettings,
-  goToMyTickets,
   toggleMenu,
   openSupport,
   doLogout,
