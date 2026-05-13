@@ -62,7 +62,6 @@ _EXPECTED: dict[tuple[str, str], str] = {
     ("seasonal_progress",        "user_id"): "CASCADE",
     ("watch_party_participants", "user_id"): "CASCADE",
     ("request_quotas",           "user_id"): "CASCADE",
-    ("request_votes",            "user_id"): "CASCADE",
     ("release_reminders",        "user_id"): "CASCADE",
     ("news_reads",               "user_id"): "CASCADE",
 }

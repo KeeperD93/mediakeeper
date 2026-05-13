@@ -30,7 +30,6 @@ class MediaRequest(Base):
     approved_by     = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"),
                              nullable=True)
     auto_approved   = Column(Boolean, server_default="false", nullable=False)
-    vote_count      = Column(Integer, server_default="0", nullable=False)
     requested_seasons = Column(JSON, nullable=True)
     requested_by_admin = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"),
                                 nullable=True)
@@ -43,21 +42,6 @@ class MediaRequest(Base):
     # job can window deletions on that moment exclusively (``updated_at``
     # is bumped on every status change).
     available_at    = Column(DateTime(timezone=True), nullable=True)
-
-
-class RequestVote(Base):
-    __tablename__ = "request_votes"
-    __table_args__ = (
-        UniqueConstraint("user_id", "request_id", name="uq_request_vote"),
-    )
-
-    id          = Column(Integer, primary_key=True, index=True)
-    request_id  = Column(Integer, ForeignKey("media_requests.id", ondelete="CASCADE"),
-                         nullable=False, index=True)
-    user_id     = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"),
-                         nullable=False)
-    created_at  = Column(DateTime(timezone=True),
-                         default=lambda: datetime.now(timezone.utc))
 
 
 class RequestBlacklist(Base):

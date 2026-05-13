@@ -145,7 +145,6 @@ async def create_request(
             backdrop_url=data.get("backdrop_url"),
             status="approved" if auto else "pending",
             auto_approved=auto,
-            vote_count=0,
             requested_seasons=data.get("requested_seasons"),
             requested_by_admin=data.get("requested_by_admin"),
         )

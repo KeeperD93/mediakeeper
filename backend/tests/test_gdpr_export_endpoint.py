@@ -90,7 +90,6 @@ async def test_export_returns_zip_with_readme_and_json_tables(client, db_session
             "release_reminders",
             "chat_messages",
             "media_requests",
-            "request_votes",
             "watch_party_participants",
             "user_login_history",
         ):

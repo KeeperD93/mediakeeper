@@ -177,21 +177,6 @@ async def create_request(
     return result
 
 
-@router.post("/{request_id}/vote")
-async def vote_request(
-    request_id: int,
-    up: tuple[User, UserProfile] = Depends(require_permission("can_portal")),
-    db: AsyncSession = Depends(get_db),
-):
-    user, _ = up
-    result = await req_svc.vote_request(db, request_id, user.id)
-    if "error" in result:
-        if result["error"] == "votes_disabled":
-            raise HTTPException(status_code=410, detail=result["error"])
-        raise HTTPException(status_code=404, detail=result["error"])
-    return result
-
-
 @router.put("/{request_id}/status")
 async def update_status(
     request_id: int,

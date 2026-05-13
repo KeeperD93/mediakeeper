@@ -30,7 +30,7 @@ from models.healthcheck import HealthCheckResult     # noqa: F401
 from models.subtitle_history import SubtitleDownload  # noqa: F401
 from models.subtitle_profile import SubtitleProfile  # noqa: F401
 from models.portal import (                                 # noqa: F401
-    UserProfile, EmbyTmdbIndex, MediaRequest, RequestVote, RequestQuota,
+    UserProfile, EmbyTmdbIndex, MediaRequest, RequestQuota,
     Ticket, TicketReply, News, NewsRead, Achievement, UserAchievement,
     ChatRoom, ChatMessage, ChatMute, UserList, UserListItem,
     UserRating, UserRatingLike, ReleaseReminder,
