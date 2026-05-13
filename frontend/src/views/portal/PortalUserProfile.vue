@@ -5,11 +5,21 @@
       {{ $t('common.loading') }}
     </div>
 
-    <div v-else-if="error === 'profile_private'" class="pt-up-empty">
-      <Lock :size="32" />
-      <h2>{{ $t('portal.settings.visibility.private') }}</h2>
-      <p>{{ $t('portal.settings.visibility.privateHint') }}</p>
-    </div>
+    <section v-else-if="isPrivate" class="pt-up-private">
+      <MkAvatar
+        :name="data.display_name || ''"
+        :src="data.avatar_url || null"
+        :size="96"
+        class="pt-up-private-avatar"
+      />
+      <Lock :size="48" :stroke-width="1.5" class="pt-up-private-icon" />
+      <h1>{{ $t('portal.profile.privateProfile.title') }}</h1>
+      <p>
+        {{
+          $t('portal.profile.privateProfile.desc', { name: data.display_name || '—' })
+        }}
+      </p>
+    </section>
 
     <div v-else-if="error === 'profile_not_found'" class="pt-up-empty">
       <UserX :size="32" />
@@ -123,8 +133,10 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Link2, Lock, Settings, UserX, HelpCircle } from 'lucide-vue-next'
 
+import MkAvatar from '@/components/common/MkAvatar.vue'
 import MkSpinner from '@/components/common/MkSpinner.vue'
 import RankSidebarCard from '@/components/portal/profile/RankSidebarCard.vue'
+import { GENRE_LOOKUP } from '@/utils/portal/genreLookup'
 import { ICON_MAP } from '@/utils/portal/iconMap'
 import { useApi } from '@/composables/useApi'
 import { usePortalAchievements } from '@/composables/portal/usePortalAchievements'
@@ -132,27 +144,6 @@ import { xpForLevel } from '@/composables/portal/useProfileXp'
 
 import '@/assets/styles/portal/settings-premium.css'
 import '@/assets/styles/portal/user-profile.css'
-
-const GENRE_LOOKUP = [
-  { label: 'action', ids: [28, 10759], emoji: '💥' },
-  { label: 'aventure', ids: [12], emoji: '⚔️' },
-  { label: 'animation', ids: [16], emoji: '✏️' },
-  { label: 'comedie', ids: [35], emoji: '😂' },
-  { label: 'crime', ids: [80], emoji: '🔫' },
-  { label: 'documentaire', ids: [99], emoji: '🎥' },
-  { label: 'drame', ids: [18], emoji: '🎭' },
-  { label: 'familial', ids: [10751], emoji: '👨‍👩‍👧' },
-  { label: 'fantastique', ids: [14], emoji: '🧙' },
-  { label: 'guerre', ids: [10752, 10768], emoji: '⚔️' },
-  { label: 'histoire', ids: [36], emoji: '🏛️' },
-  { label: 'horreur', ids: [27], emoji: '😱' },
-  { label: 'mystere', ids: [9648], emoji: '🔍' },
-  { label: 'musique', ids: [10402], emoji: '🎵' },
-  { label: 'romance', ids: [10749], emoji: '❤️' },
-  { label: 'scienceFiction', ids: [878, 10765], emoji: '🚀' },
-  { label: 'thriller', ids: [53], emoji: '😰' },
-  { label: 'western', ids: [37], emoji: '🤠' },
-]
 
 const route = useRoute()
 const router = useRouter()
@@ -166,6 +157,12 @@ const achievementsList = ref([])
 const copied = ref(false)
 
 const userId = computed(() => Number(route.params.id))
+
+// Backend returns a minimal ``{is_private, user_id, display_name,
+// avatar_url}`` payload (status 200) when a non-owner reaches a
+// private account — the user_id is already exposed by the leaderboard
+// so the SPA surfaces a dedicated landing instead of a generic 404.
+const isPrivate = computed(() => !!data.value?.is_private)
 
 const cardProfile = computed(() =>
   data.value ? { ...data.value, avatar_url: data.value.avatar_url } : null,
@@ -267,5 +264,33 @@ watch(userId, load, { immediate: false })
 onMounted(load)
 </script>
 
-<!-- Styles externalised to assets/styles/portal/user-profile.css; the
-     extracted CSS keeps a unique class prefix to simulate Vue scoped CSS. -->
+<style scoped>
+.pt-up-private {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+.pt-up-private h1 {
+  margin: 0;
+  font-size: var(--portal-text-xl);
+  font-weight: var(--portal-font-extrabold);
+  color: var(--text-primary);
+}
+.pt-up-private p {
+  margin: 0;
+  font-size: var(--portal-text-sm);
+  color: var(--text-muted);
+  max-width: 32rem;
+}
+.pt-up-private-icon {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+</style>
+
+<!-- The rest of the page styling is externalised to
+     assets/styles/portal/user-profile.css; the extracted CSS keeps a
+     unique class prefix to simulate Vue scoped CSS. -->

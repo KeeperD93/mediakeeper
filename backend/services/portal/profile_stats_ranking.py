@@ -13,51 +13,18 @@ from models.user import User
 from models.portal.profile import UserProfile
 from models.portal.xp_ledger import XpLedger
 from services.portal._display_name import resolve_display_name
+from services.portal._rank_tiers import (
+    tier_for_level as tier_for_level,
+    tier_for_title as tier_for_title,
+    title_for_level as title_for_level,
+)
 from services.portal.profile_serializers import _resolve_avatar_url
 
 logger = logging.getLogger("mediakeeper.portal.profile_stats")
 
 
-def title_for_level(level: int) -> str:
-    """Map user level → i18n title key."""
-    if level >= 50: return "legend"
-    if level >= 30: return "master"
-    if level >= 20: return "expert"
-    if level >= 12: return "passionate"
-    if level >= 6:  return "regular"
-    if level >= 3:  return "amateur"
-    return "spectator"
-
-
-def tier_for_title(title_key: str | None) -> int | None:
-    """Resolve the rarity tier (1-6) of an unlocked-via-trophy title key."""
-    if not title_key:
-        return None
-    try:
-        from services.portal.achievement_defs import TITLE_REWARDS, ACHIEVEMENT_DEFS
-        for ach_id, t_key in TITLE_REWARDS.items():
-            if t_key == title_key:
-                ach_def = next((d for d in ACHIEVEMENT_DEFS if d["id"] == ach_id), None)
-                if ach_def:
-                    return ach_def.get("tier", 1)
-                break
-    except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
-        pass
-    return None
-
-
-def tier_for_level(level: int) -> str:
-    """Map current level → visual rank tier."""
-    if level >= 50: return "legendary"
-    if level >= 40: return "master"
-    if level >= 30: return "diamond"
-    if level >= 20: return "platinum"
-    if level >= 11: return "gold"
-    if level >= 6:  return "silver"
-    return "bronze"
-
-
-LEADERBOARD_VISIBLE = 15  # Top 15 always shown (B6).
+LEADERBOARD_VISIBLE = 15  # Top 15 always shown in the profile mini-leaderboard.
+LEADERBOARD_FULL_DEFAULT = 100  # Default cap for the dedicated /portal/leaderboard page.
 
 
 async def _excluded_from_leaderboard(db: AsyncSession) -> list[int]:
@@ -86,15 +53,21 @@ async def _excluded_from_leaderboard(db: AsyncSession) -> list[int]:
 
 
 async def compute_leaderboard_only(
-    db: AsyncSession, *, lang: str = "fr"
+    db: AsyncSession,
+    *,
+    limit: int = LEADERBOARD_FULL_DEFAULT,
+    lang: str = "fr",
 ) -> list[dict]:
-    """Return the top ``LEADERBOARD_VISIBLE`` users for the current month.
+    """Return the top ``limit`` users for the current month.
 
     Unlike :func:`compute_ranking`, this variant requires no viewer user
     — useful for surfaces where the caller is authenticated with the
     MediaKeeper admin cookie (``mk_token``) but doesn't necessarily have
-    a Portal session. The backoffice dashboard widget uses it so it
-    can render without forcing a Portal login first.
+    a Portal session. The backoffice dashboard widget and the dedicated
+    portal leaderboard page both consume this function — the former
+    keeps the profile-style ``LEADERBOARD_VISIBLE`` (15) cap while the
+    latter unlocks the full ``LEADERBOARD_FULL_DEFAULT`` (100) by
+    overriding ``limit``.
     """
     try:
         now = datetime.now(timezone.utc)
@@ -116,7 +89,7 @@ async def compute_leaderboard_only(
             current_stmt
             .group_by(XpLedger.user_id)
             .order_by(desc("month_xp"))
-            .limit(LEADERBOARD_VISIBLE)
+            .limit(limit)
         )
         leaders = current_q.all()
         if not leaders:

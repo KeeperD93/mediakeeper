@@ -133,9 +133,12 @@ async def portal_monthly_leaderboard(
     first load). The payload is intentionally aggregate-only — no
     per-viewer ranking, no personal stats.
     """
-    from services.portal.profile_stats_ranking import compute_leaderboard_only
+    from services.portal.profile_stats_ranking import (
+        LEADERBOARD_VISIBLE,
+        compute_leaderboard_only,
+    )
     try:
-        return {"leaderboard": await compute_leaderboard_only(db)}
+        return {"leaderboard": await compute_leaderboard_only(db, limit=LEADERBOARD_VISIBLE)}
     except Exception as e:
         logger.debug(f"[PORTAL-LEADERBOARD] error: {e}")
         return {"leaderboard": []}

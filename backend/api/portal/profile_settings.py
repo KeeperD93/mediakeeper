@@ -25,6 +25,7 @@ from services.portal.achievements import safe_check_all_achievements_in_new_sess
 from services.portal.avatars import (
     avatar_path_for, avatar_public_url, delete_avatar, save_avatar,
 )
+from services.portal.profile_serializers import build_private_placeholder
 from services.portal.profile_stats_ranking import compute_ranking
 from services.portal import strip_tags_and_trim
 from services.portal.profiles import (
@@ -238,11 +239,15 @@ async def public_profile_by_user(
         raise HTTPException(status_code=404, detail="profile_not_found")
 
     if not is_self and not row.is_public:
-        # Return 404 instead of 403 so a caller cannot tell apart
-        # "this account exists but is private" from "this account does
-        # not exist" — both are equally non-discoverable from the
-        # outside.
-        raise HTTPException(status_code=404, detail="profile_not_found")
+        # Private-profile UX: the leaderboard already exposes the
+        # ``user_id`` of every ranked player (both public and private),
+        # so masking a private account as 404 here gains nothing
+        # privacy-wise — the caller already knows the id exists. Surface
+        # a minimal placeholder instead so the SPA can render a polite
+        # "this profile is private" landing rather than a dead 404. The
+        # admin branch above keeps its 404 because admin accounts are a
+        # true privacy boundary (never enumerated anywhere).
+        return build_private_placeholder(row, lang=lang)
 
     base = _serialize_public(row, lang=lang)
 

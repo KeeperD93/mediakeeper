@@ -1,14 +1,19 @@
 """Portal achievement and leaderboard endpoints."""
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
+from core.rate_limit import limiter, portal_user_or_ip_key
 from models.user import User
 from models.portal.profile import UserProfile
 from api.portal.deps import get_current_profile, get_request_lang
 from services.portal import achievements as ach_svc
+from services.portal.profile_stats_ranking import (
+    LEADERBOARD_FULL_DEFAULT,
+    compute_leaderboard_only,
+)
 
 router = APIRouter(prefix="/achievements", tags=["portal-achievements"])
 
@@ -122,3 +127,25 @@ async def leaderboard(
 ):
     """Top users by XP with achievement count."""
     return {"items": await ach_svc.get_leaderboard(db, limit, lang=lang)}
+
+
+@router.get("/leaderboard/monthly")
+@limiter.limit("60/minute", key_func=portal_user_or_ip_key)
+async def monthly_leaderboard(
+    request: Request,
+    limit: int = Query(LEADERBOARD_FULL_DEFAULT, ge=1, le=LEADERBOARD_FULL_DEFAULT),
+    up: tuple[User, UserProfile] = Depends(get_current_profile),
+    db: AsyncSession = Depends(get_db),
+    lang: str = Depends(get_request_lang),
+):
+    """Top players by *monthly* XP — feeds the dedicated /portal/leaderboard page.
+
+    Shares its trust boundary with the profile mini-leaderboard: any
+    authenticated portal user can view the full ranking, the excluded
+    users (admin, soft-deleted, deactivated) are filtered out by
+    :func:`compute_leaderboard_only` itself, and the payload schema
+    matches the embedded ``compute_ranking().leaderboard`` entries
+    (rank, user_id, display_name, avatar_url, level, tier, title_key,
+    month_xp, selected_title, title_tier, is_current_user, movement).
+    """
+    return {"items": await compute_leaderboard_only(db, limit=limit, lang=lang)}

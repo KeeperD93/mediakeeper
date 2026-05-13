@@ -2051,6 +2051,11 @@
     "common": {
       "deletedUser": "Utilisateur supprimé"
     },
+    "leaderboard": {
+      "title": "Classement du mois",
+      "subtitle": "Top {n} joueurs · mis à jour en continu",
+      "emptyState": "Aucun joueur classé ce mois."
+    },
     "maintenance": {
       "title": "Maintenance en cours",
       "defaultText": "Le site est actuellement en maintenance, merci de votre compréhension."
@@ -2993,6 +2998,11 @@
       "unfinishedSeries": "Les séries non terminées",
       "yourGenres": "Vos genres",
       "ranking": "Classement ce mois",
+      "viewFullLeaderboard": "Voir le classement complet",
+      "privateProfile": {
+        "title": "Profil privé",
+        "desc": "{name} n'a pas activé son profil public. Sa progression reste confidentielle."
+      },
       "rankUp": "+{n} place(s) depuis le mois dernier",
       "rankDown": "-{n} place(s) depuis le mois dernier",
       "rankStable": "Même rang que le mois dernier",

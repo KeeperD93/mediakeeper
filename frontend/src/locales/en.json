@@ -2051,6 +2051,11 @@
     "common": {
       "deletedUser": "Deleted user"
     },
+    "leaderboard": {
+      "title": "Monthly leaderboard",
+      "subtitle": "Top {n} players · live updates",
+      "emptyState": "No ranked players this month."
+    },
     "maintenance": {
       "title": "Maintenance in progress",
       "defaultText": "The site is currently under maintenance, thanks for your understanding."
@@ -2993,6 +2998,11 @@
       "unfinishedSeries": "Unfinished series",
       "yourGenres": "Your genres",
       "ranking": "This month's ranking",
+      "viewFullLeaderboard": "See the full leaderboard",
+      "privateProfile": {
+        "title": "Private profile",
+        "desc": "{name} hasn't enabled their public profile. Their progress stays private."
+      },
       "rankUp": "+{n} rank(s) since last month",
       "rankDown": "-{n} rank(s) since last month",
       "rankStable": "Same rank as last month",

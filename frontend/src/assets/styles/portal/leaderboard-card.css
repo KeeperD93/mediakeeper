@@ -268,6 +268,36 @@
   }
 }
 
+/* Title of the leaderboard card is a link to the dedicated /portal/leaderboard
+   page. Chevron is suppressed in the widget variant (compact dashboard tile)
+   where space is too tight for the icon to read cleanly. */
+.gc-box-title--link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: color var(--portal-dur-fast) var(--portal-ease-emphasis);
+}
+.gc-box-title--link:hover,
+.gc-box-title--link:focus-visible {
+  color: var(--accent-500);
+}
+.gc-box-title-chevron {
+  opacity: 0.6;
+  transition:
+    opacity var(--portal-dur-fast),
+    transform var(--portal-dur-fast);
+}
+.gc-box-title--link:hover .gc-box-title-chevron,
+.gc-box-title--link:focus-visible .gc-box-title-chevron {
+  opacity: 1;
+  transform: translateX(2px);
+}
+.gc-lb-box--widget .gc-box-title-chevron {
+  display: none;
+}
+
 /* Rows that link to a public profile (router-link) get the right cursor
    and a subtle hover background on devices with a real pointer. */
 .gc-lb-row--linkable {
