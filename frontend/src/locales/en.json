@@ -2524,7 +2524,9 @@
       "chatEmpty": "Be the first to chat!",
       "chatPlaceholder": "Your message...",
       "mute": "Mute",
-      "unmute": "Unmute"
+      "unmute": "Unmute",
+      "trailerInfo": "Info",
+      "trailerInfoAria": "More info about {title}"
     },
     "mkEvents": {
       "create": {
