@@ -21,44 +21,48 @@
       @update:model-value="switchTab"
     />
 
-    <div v-if="loading" class="arr-loading"><MkSpinner size="md" /></div>
+    <AdminListsTab v-if="activeTab === 'admin' && isAdmin" />
 
-    <div v-else-if="!currentTabLists.length" class="arr-empty">
-      <p class="arr-empty-text">
-        {{ activeTab === 'mine' ? $t('portal.lists.emptyOwn') : $t('portal.lists.emptyPublic') }}
-      </p>
-      <button
-        v-if="activeTab === 'mine'"
-        class="arr-empty-cta"
-        type="button"
-        data-action="create-list"
-        @click="openCreate"
-      >
-        <Plus :size="16" :stroke-width="2.5" />
-        {{ $t('portal.lists.createFirst') }}
-      </button>
-    </div>
+    <template v-else>
+      <div v-if="loading" class="arr-loading"><MkSpinner size="md" /></div>
 
-    <div v-else class="arr-list">
-      <template v-for="(lst, idx) in currentTabLists" :key="lst.id">
-        <ListRow
-          :lst="lst"
-          :index="idx + 1"
-          :expanded="expandedId === lst.id"
-          :export-url="svc.exportUrl"
-          @toggle="toggleExpand"
-          @edit="openEdit"
-          @delete="remove"
-          @copy-list="copy"
-        />
-        <ListExpansion
-          v-if="expandedId === lst.id"
-          :lst="lst"
-          @remove-item="onRemoveItem(lst, $event)"
-          @remove-contributor="onRemoveContributor(lst, $event)"
-        />
-      </template>
-    </div>
+      <div v-else-if="!currentTabLists.length" class="arr-empty">
+        <p class="arr-empty-text">
+          {{ activeTab === 'mine' ? $t('portal.lists.emptyOwn') : $t('portal.lists.emptyPublic') }}
+        </p>
+        <button
+          v-if="activeTab === 'mine'"
+          class="arr-empty-cta"
+          type="button"
+          data-action="create-list"
+          @click="openCreate"
+        >
+          <Plus :size="16" :stroke-width="2.5" />
+          {{ $t('portal.lists.createFirst') }}
+        </button>
+      </div>
+
+      <div v-else class="arr-list">
+        <template v-for="(lst, idx) in currentTabLists" :key="lst.id">
+          <ListRow
+            :lst="lst"
+            :index="idx + 1"
+            :expanded="expandedId === lst.id"
+            :export-url="svc.exportUrl"
+            @toggle="toggleExpand"
+            @edit="openEdit"
+            @delete="remove"
+            @copy-list="copy"
+          />
+          <ListExpansion
+            v-if="expandedId === lst.id"
+            :lst="lst"
+            @remove-item="onRemoveItem(lst, $event)"
+            @remove-contributor="onRemoveContributor(lst, $event)"
+          />
+        </template>
+      </div>
+    </template>
 
     <ListFormModal
       :open="formOpen"
@@ -79,9 +83,12 @@ import { TOAST_TYPE } from '@/constants/toast'
 import ListFormModal from '@/components/portal/lists/ListFormModal.vue'
 import ListRow from '@/components/portal/lists/ListRow.vue'
 import ListExpansion from '@/components/portal/lists/ListExpansion.vue'
+import AdminListsTab from '@/components/portal/lists/AdminListsTab.vue'
 import TabStrip from '@/components/common/TabStrip.vue'
 import MkSpinner from '@/components/common/MkSpinner.vue'
 import { useConfirm } from '@/composables/useConfirm'
+import { usePortalAuth } from '@/composables/portal/usePortalAuth'
+import { USER_ROLE } from '@/constants/auth'
 import { Plus } from 'lucide-vue-next'
 
 import '@/assets/styles/portal/admin-rich-row-header.css'
@@ -92,13 +99,21 @@ const { t } = useI18n()
 const { showToast } = useToast()
 const svc = usePortalLists()
 const mkConfirm = useConfirm()
+const { profile } = usePortalAuth()
 
+const isAdmin = computed(() => profile.value?.role === USER_ROLE.ADMIN)
 const activeTab = ref('mine')
 
-const listsTabs = computed(() => [
-  { id: 'mine', label: t('portal.lists.tabMine') },
-  { id: 'public', label: t('portal.lists.tabPublic') },
-])
+const listsTabs = computed(() => {
+  const tabs = [
+    { id: 'mine', label: t('portal.lists.tabMine') },
+    { id: 'public', label: t('portal.lists.tabPublic') },
+  ]
+  if (isAdmin.value) {
+    tabs.push({ id: 'admin', label: t('portal.lists.tabAdmin') })
+  }
+  return tabs
+})
 const expandedId = ref(null)
 const formOpen = ref(false)
 const formMode = ref('create')
@@ -123,6 +138,7 @@ async function switchTab(tab) {
   if (activeTab.value === tab) return
   activeTab.value = tab
   expandedId.value = null
+  if (tab === 'admin') return
   await loadTab(tab)
 }
 

@@ -2390,6 +2390,7 @@
       "emptyPublic": "Aucune liste publique partagée.",
       "tabMine": "Mes listes",
       "tabPublic": "Publiques",
+      "tabAdmin": "Admin",
       "itemCount": "{count} titre | {count} titres",
       "ownedBy": "par {name}",
       "privacy": {

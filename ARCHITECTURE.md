@@ -73,7 +73,7 @@ mediakeeper/
 │     │  ├─ portal/            # PortalLayout, PortalNav, MediaCard, HeroBanner,
 │     │  │                     # ChatPanel, EventBanner, EventCreateModal, …
 │     │  │   ├─ admin/         # AdminRequests, AdminTickets, AdminNews,
-│     │  │   │                 # AdminFeatured, AdminLists, AdminBlacklist,
+│     │  │   │                 # AdminFeatured, AdminBlacklist,
 │     │  │   │                 # AdminXpEvents, AdminSettings, AdminDebug, users/
 │     │  │   ├─ cinema/        # 3D-style room components
 │     │  │   ├─ detail/, help/, lists/, profile/, settings/, tickets/
