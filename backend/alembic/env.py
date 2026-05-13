@@ -9,7 +9,7 @@ from pathlib import Path
 from logging.config import fileConfig
 from urllib.parse import urlparse, quote
 
-from sqlalchemy import pool
+from sqlalchemy import pool, text
 from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 
@@ -128,6 +128,35 @@ def _install_offline_inspector() -> None:
 
 
 def do_run_migrations(connection):
+    # ──────────────────────────────────────────────────────────────
+    # Self-healing ``alembic_version.version_num`` on Postgres.
+    #
+    # Alembic defaults ``version_num`` to ``VARCHAR(32)``, which trips
+    # slug-style revision ids that exceed 32 chars (e.g.
+    # ``045_news_scheduling_and_maintenance`` is 35). Both deploy
+    # paths are handled idempotently here:
+    #   * fresh install — ``CREATE TABLE IF NOT EXISTS`` races ahead
+    #     of Alembic's own DDL so the table is born wide enough for
+    #     every slug we ship now and in the future.
+    #   * existing install on legacy ``VARCHAR(32)`` — ``ALTER COLUMN``
+    #     widens to ``VARCHAR(64)``. On PostgreSQL ≥ 9.2 this DDL is
+    #     metadata-only (no table rewrite). Already-64 columns no-op.
+    #
+    # SQLite is skipped: it ignores ``VARCHAR`` length, so local tests
+    # and dev DBs are unaffected.
+    # ──────────────────────────────────────────────────────────────
+    if connection.dialect.name == "postgresql":
+        connection.execute(text(
+            "CREATE TABLE IF NOT EXISTS alembic_version ("
+            "  version_num VARCHAR(64) NOT NULL, "
+            "  CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num)"
+            ")"
+        ))
+        connection.execute(text(
+            "ALTER TABLE alembic_version "
+            "ALTER COLUMN version_num TYPE VARCHAR(64)"
+        ))
+
     context.configure(connection=connection, target_metadata=target_metadata)
     with context.begin_transaction():
         context.run_migrations()

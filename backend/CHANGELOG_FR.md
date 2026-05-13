@@ -85,6 +85,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Listes admin — actions de modération migrées sur la page Listes du portail (onglet Admin)
 
 ### Fixed
+- Déploiement Postgres — colonne `alembic_version` élargie automatiquement (auto-fix migrations longues)
 - Modification utilisateur — formulaire reste à jour après sauvegarde
 - Trophées — historique XP affiche le nom du trophée débloqué
 - Notifications Discord — détection contextuelle « série » / « saison complète » / « épisodes ajoutés », template configuré et synopsis correctement appliqués
