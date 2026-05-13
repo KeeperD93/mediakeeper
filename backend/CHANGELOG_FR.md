@@ -82,6 +82,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 ### Changed
 - Demandes (admin) — en-tête épuré, interrupteurs glissants, éditeur de confidentialité mono-langue
 - Portail admin — sous-onglets Tickets et Listes retirés (les actions vivent côté portail premium)
+- Listes admin — actions de modération migrées sur la page Listes du portail (onglet Admin)
 
 ### Fixed
 - Notifications Discord — détection contextuelle « série » / « saison complète » / « épisodes ajoutés », template configuré et synopsis correctement appliqués

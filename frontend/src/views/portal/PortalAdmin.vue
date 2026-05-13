@@ -6,7 +6,6 @@
       <AdminNews v-else-if="activeTab === 'news'" />
       <AdminFeatured v-else-if="activeTab === 'featured'" />
       <AdminXpEvents v-else-if="activeTab === 'xpEvents'" />
-      <AdminLists v-else-if="activeTab === 'lists'" />
       <AdminSettings v-else-if="activeTab === 'settings'" />
       <AdminDebug v-else-if="activeTab === 'debug'" />
     </div>
@@ -20,7 +19,6 @@ import AdminTickets from '@/components/portal/admin/AdminTickets.vue'
 import AdminNews from '@/components/portal/admin/AdminNews.vue'
 import AdminFeatured from '@/components/portal/admin/AdminFeatured.vue'
 import AdminXpEvents from '@/components/portal/admin/AdminXpEvents.vue'
-import AdminLists from '@/components/portal/admin/AdminLists.vue'
 import AdminSettings from '@/components/portal/admin/AdminSettings.vue'
 import AdminDebug from '@/components/portal/admin/AdminDebug.vue'
 
@@ -30,7 +28,6 @@ const TAB_IDS = [
   'news',
   'featured',
   'xpEvents',
-  'lists',
   'settings',
   'debug',
 ]
