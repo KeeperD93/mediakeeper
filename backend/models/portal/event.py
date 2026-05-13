@@ -36,6 +36,10 @@ class MKEvent(Base):
     status          = Column(String(20), nullable=False,
                              server_default="scheduled", index=True)
     room_opened_at  = Column(DateTime(timezone=True), nullable=True)
+    # Server-authoritative marathon index. Bumped via the /advance
+    # endpoint once every accepted participant in the room has crossed
+    # the 85% threshold for ``tmdb_ids[current_step]``.
+    current_step    = Column(Integer, nullable=False, server_default="0")
     created_at      = Column(DateTime(timezone=True),
                              default=lambda: datetime.now(timezone.utc))
     updated_at      = Column(DateTime(timezone=True),

@@ -76,6 +76,7 @@ async def _serialize_event(db: AsyncSession, event: MKEvent) -> dict:
         "comment": event.comment,
         "status": event.status,
         "room_opened_at": event.room_opened_at.isoformat() if event.room_opened_at else None,
+        "current_step": event.current_step,
         "invitations": invitations,
         "created_at": event.created_at.isoformat() if event.created_at else None,
         "updated_at": event.updated_at.isoformat() if event.updated_at else None,

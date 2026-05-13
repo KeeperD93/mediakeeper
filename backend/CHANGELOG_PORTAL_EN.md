@@ -15,6 +15,7 @@ This section intentionally has no date so it is not shown to users.
 ## [Unreleased]
 
 ### Added
+- Cinema room — marathon: live progress, next film gated until everyone reaches 85%
 - Portal — anonymous "User 1234" alias until a pseudo is picked
 - Search — instant suggestions, recent searches, keyboard navigation and Ctrl/Cmd+K shortcut
 - Accessibility — keyboard "Skip to main content" link

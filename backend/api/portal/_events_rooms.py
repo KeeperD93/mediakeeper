@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.portal.deps import get_current_profile, get_request_lang
@@ -12,6 +12,11 @@ from models.portal.profile import UserProfile
 from models.user import User
 from services.portal import mk_events as mk_svc
 from services.portal.achievements import safe_check_all_achievements_in_new_session
+from services.portal.mk_events_marathon import (
+    MarathonError,
+    advance_marathon_step,
+    compute_marathon_progress,
+)
 
 router = APIRouter()
 
@@ -209,6 +214,52 @@ async def enter_mk_room(
     result = await mk_svc.enter_room(db, event_id, user.id)
     _err(result)
     return result
+
+
+class AdvanceRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    # Client tells the server which step it believes is in flight. The
+    # server rejects with 409 if its locked row says otherwise (another
+    # client has already advanced the marathon).
+    expected_step: int
+
+
+def _raise_marathon(err: MarathonError) -> None:
+    detail: dict[str, object] = {"error": err.detail}
+    if err.payload:
+        detail.update(err.payload)
+    raise HTTPException(status_code=err.status_code, detail=detail)
+
+
+@router.get("/rooms/{event_id}/marathon-progress")
+async def get_marathon_progress(
+    event_id: int,
+    up: tuple[User, UserProfile] = Depends(get_current_profile),
+    db: AsyncSession = Depends(get_db),
+    lang: str = Depends(get_request_lang),
+):
+    user, _ = up
+    try:
+        return await compute_marathon_progress(db, event_id, user.id, lang)
+    except MarathonError as err:
+        _raise_marathon(err)
+
+
+@router.post("/rooms/{event_id}/advance")
+async def advance_marathon(
+    event_id: int,
+    data: AdvanceRequest,
+    up: tuple[User, UserProfile] = Depends(get_current_profile),
+    db: AsyncSession = Depends(get_db),
+    lang: str = Depends(get_request_lang),
+):
+    user, _ = up
+    try:
+        return await advance_marathon_step(
+            db, event_id, user.id, data.expected_step, lang,
+        )
+    except MarathonError as err:
+        _raise_marathon(err)
 
 
 @router.get("/rooms/{event_id}/messages")
