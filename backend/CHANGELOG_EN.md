@@ -86,6 +86,7 @@ This section intentionally has no date so it is not shown to users.
 - Frontend deps — vue-i18n 9→11 + unplugin 4→11 (compile/runtime alignment, legacy-peer-deps retired)
 
 ### Fixed
+- Backend startup — achievement validation: unreachable locale files no longer fail the seed (Docker false-positives)
 - Postgres deploy — `alembic_version` column auto-widened (long-slug migrations now apply)
 - Edit user — form stays in sync with the persisted values after save
 - Trophies — XP history shows the unlocked trophy name

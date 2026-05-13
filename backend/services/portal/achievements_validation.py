@@ -185,17 +185,35 @@ _LOCALE_FR = _REPO_ROOT / "frontend" / "src" / "locales" / "fr.json"
 _LOCALE_EN = _REPO_ROOT / "frontend" / "src" / "locales" / "en.json"
 
 
-def _load_portal_achievements_keys(path: Path) -> set[str]:
+def _load_portal_achievements_keys(path: Path) -> set[str] | None:
+    """Return the catalogue keys declared in the locale file, or
+    ``None`` when the source JSON is unreachable.
+
+    The runtime Docker image only ships the compiled frontend bundle
+    (``/app/frontend-dist/``), not the source ``frontend/src/locales``
+    tree. Returning ``None`` lets the consumer distinguish « file
+    unreachable, skip the check » from « file present but the key is
+    absent, real drift ».
+    """
     if not path.exists():
-        return set()
+        return None
     data = json.loads(path.read_text(encoding="utf-8"))
     return set((data.get("portal", {}).get("achievements", {}) or {}).keys())
 
 
 def find_missing_i18n_keys() -> list[str]:
-    """Defs whose name_key/description_key has no entry in FR or EN."""
+    """Defs whose name_key/description_key has no entry in FR or EN.
+
+    Each locale file is checked independently: when the source JSON
+    is unreachable (typical Docker runtime that ships only the
+    compiled bundle), the corresponding side of the check is silently
+    skipped rather than reporting every key as missing. The other
+    locale, if reachable, is still validated.
+    """
     fr_keys = _load_portal_achievements_keys(_LOCALE_FR)
     en_keys = _load_portal_achievements_keys(_LOCALE_EN)
+    if fr_keys is None and en_keys is None:
+        return []
     issues: list[str] = []
     suffix_re = re.compile(r"^portal\.achievements\.")
     for d in ACHIEVEMENT_DEFS:
@@ -204,9 +222,9 @@ def find_missing_i18n_keys() -> list[str]:
             if not full.startswith("portal.achievements."):
                 continue
             short = suffix_re.sub("", full)
-            if short not in fr_keys:
+            if fr_keys is not None and short not in fr_keys:
                 issues.append(f"{d['id']} {field}={full} missing in fr.json")
-            if short not in en_keys:
+            if en_keys is not None and short not in en_keys:
                 issues.append(f"{d['id']} {field}={full} missing in en.json")
     return issues
 
