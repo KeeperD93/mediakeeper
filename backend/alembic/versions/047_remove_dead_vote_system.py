@@ -8,8 +8,11 @@ voting). This revision finishes the cleanup by removing the schema —
 the serialiser, the route, the GDPR export, and the model class all
 land in the same PR.
 
-Idempotent upgrade: column / table drops are guarded with an inspector
-check so a partial run (or a hand-patched DB) replays cleanly.
+DDL pattern: native ``DROP COLUMN / TABLE IF EXISTS`` on Postgres
+(``op.batch_alter_table`` was a silent no-op on asyncpg in some
+deployments). SQLite falls back to the inspector-guarded
+``drop_column`` / ``drop_table`` pair. A post-condition raises if the
+expected drops did not happen.
 """
 from alembic import op
 import sqlalchemy as sa
@@ -23,15 +26,36 @@ depends_on = None
 
 def upgrade() -> None:
     bind = op.get_bind()
-    inspector = sa.inspect(bind)
+    dialect = bind.dialect.name
 
-    request_cols = {c["name"] for c in inspector.get_columns("media_requests")}
-    if "vote_count" in request_cols:
-        with op.batch_alter_table("media_requests") as batch_op:
-            batch_op.drop_column("vote_count")
+    if dialect == "postgresql":
+        op.execute(
+            'ALTER TABLE "media_requests" DROP COLUMN IF EXISTS "vote_count"'
+        )
+        op.execute('DROP TABLE IF EXISTS "request_votes"')
+    else:
+        inspector = sa.inspect(bind)
+        request_cols = {c["name"] for c in inspector.get_columns("media_requests")}
+        if "vote_count" in request_cols:
+            op.drop_column("media_requests", "vote_count")
+        if "request_votes" in inspector.get_table_names():
+            op.drop_table("request_votes")
 
-    if "request_votes" in inspector.get_table_names():
-        op.drop_table("request_votes")
+    inspector_after = sa.inspect(bind)
+    cols_after = {
+        c["name"] for c in inspector_after.get_columns("media_requests")
+    }
+    tables_after = set(inspector_after.get_table_names())
+    leftovers = []
+    if "vote_count" in cols_after:
+        leftovers.append("media_requests.vote_count")
+    if "request_votes" in tables_after:
+        leftovers.append("request_votes")
+    if leftovers:
+        raise RuntimeError(
+            f"Migration 047 ran but dead vote artefacts remain: {leftovers}. "
+            "Underlying DDL did not apply."
+        )
 
 
 def downgrade() -> None:
@@ -40,15 +64,15 @@ def downgrade() -> None:
 
     request_cols = {c["name"] for c in inspector.get_columns("media_requests")}
     if "vote_count" not in request_cols:
-        with op.batch_alter_table("media_requests") as batch_op:
-            batch_op.add_column(
-                sa.Column(
-                    "vote_count",
-                    sa.Integer,
-                    server_default=sa.text("0"),
-                    nullable=False,
-                )
-            )
+        op.add_column(
+            "media_requests",
+            sa.Column(
+                "vote_count",
+                sa.Integer,
+                server_default=sa.text("0"),
+                nullable=False,
+            ),
+        )
 
     if "request_votes" not in inspector.get_table_names():
         op.create_table(

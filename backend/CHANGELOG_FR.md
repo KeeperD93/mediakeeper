@@ -86,6 +86,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Dépendances frontend — vue-i18n 9→11 + unplugin 4→11 (alignement compile/runtime, retrait legacy-peer-deps)
 
 ### Fixed
+- Migrations 045-048 — bascule en SQL natif Postgres (correction du no-op silencieux de batch_alter_table sur asyncpg)
 - Démarrage backend — validation trophées : fichiers locales inaccessibles n'invalident plus le seed (faux positifs en mode Docker)
 - Déploiement Postgres — colonne `alembic_version` élargie automatiquement (auto-fix migrations longues)
 - Modification utilisateur — formulaire reste à jour après sauvegarde

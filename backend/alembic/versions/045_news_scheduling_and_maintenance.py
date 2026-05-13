@@ -14,6 +14,13 @@ Two unrelated portal features land in the same revision:
   dedicated holding page reading those texts.
 
 The downgrade drops the columns and deletes the three settings rows.
+
+DDL pattern: native ``ADD/DROP COLUMN IF [NOT] EXISTS`` on Postgres
+(``op.batch_alter_table`` was a silent no-op on asyncpg in some
+deployments — alembic_version stamped, ALTER never applied). SQLite
+falls back to the inspector-guarded ``add_column`` / ``drop_column``
+pair. A post-condition raises if the expected columns are still
+missing.
 """
 from alembic import op
 import sqlalchemy as sa
@@ -39,21 +46,28 @@ _MAINTENANCE_SETTINGS = (
     ),
 )
 
+_NEWS_COLUMNS = ("start_at", "end_at")
+
 
 def upgrade() -> None:
     bind = op.get_bind()
-    inspector = sa.inspect(bind)
+    dialect = bind.dialect.name
 
-    news_cols = {c["name"] for c in inspector.get_columns("news")}
-    with op.batch_alter_table("news") as batch_op:
-        if "start_at" not in news_cols:
-            batch_op.add_column(
-                sa.Column("start_at", sa.DateTime(timezone=True), nullable=True)
+    if dialect == "postgresql":
+        for col in _NEWS_COLUMNS:
+            op.execute(
+                f'ALTER TABLE "news" '
+                f'ADD COLUMN IF NOT EXISTS "{col}" TIMESTAMP WITH TIME ZONE'
             )
-        if "end_at" not in news_cols:
-            batch_op.add_column(
-                sa.Column("end_at", sa.DateTime(timezone=True), nullable=True)
-            )
+    else:
+        inspector = sa.inspect(bind)
+        news_cols = {c["name"] for c in inspector.get_columns("news")}
+        for col in _NEWS_COLUMNS:
+            if col not in news_cols:
+                op.add_column(
+                    "news",
+                    sa.Column(col, sa.DateTime(timezone=True), nullable=True),
+                )
 
     settings = sa.table(
         "settings",
@@ -74,10 +88,20 @@ def upgrade() -> None:
     if rows:
         op.bulk_insert(settings, rows)
 
+    news_cols_after = {
+        c["name"] for c in sa.inspect(bind).get_columns("news")
+    }
+    missing = [c for c in _NEWS_COLUMNS if c not in news_cols_after]
+    if missing:
+        raise RuntimeError(
+            f"Migration 045 ran but news columns are still missing: {missing}. "
+            "Underlying DDL did not apply."
+        )
+
 
 def downgrade() -> None:
     bind = op.get_bind()
-    inspector = sa.inspect(bind)
+    dialect = bind.dialect.name
 
     settings = sa.table(
         "settings",
@@ -87,9 +111,14 @@ def downgrade() -> None:
         sa.delete(settings).where(settings.c.key.like("maintenance.%"))
     )
 
-    news_cols = {c["name"] for c in inspector.get_columns("news")}
-    with op.batch_alter_table("news") as batch_op:
-        if "end_at" in news_cols:
-            batch_op.drop_column("end_at")
-        if "start_at" in news_cols:
-            batch_op.drop_column("start_at")
+    if dialect == "postgresql":
+        for col in reversed(_NEWS_COLUMNS):
+            op.execute(
+                f'ALTER TABLE "news" DROP COLUMN IF EXISTS "{col}"'
+            )
+    else:
+        inspector = sa.inspect(bind)
+        news_cols = {c["name"] for c in inspector.get_columns("news")}
+        for col in reversed(_NEWS_COLUMNS):
+            if col in news_cols:
+                op.drop_column("news", col)
