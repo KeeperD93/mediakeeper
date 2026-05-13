@@ -174,6 +174,62 @@ async def test_bulk_set_role(client, admin_user, db_session):
 
 
 @pytest.mark.asyncio
+async def test_patch_identity_returns_persisted_detail(client, admin_user, db_session):
+    """PATCH must persist the new identity AND return a payload whose
+    `user` mirror matches the value that the subsequent GET serves.
+
+    Regression for the admin "Edit user" form reverting to the previous
+    value right after a successful save — root cause was the response
+    lacking the persisted detail so the frontend had to race a refetch.
+    """
+    db_session.add(UserProfile(
+        user_id=admin_user.id,
+        display_name="Admin",
+        role="admin",
+        source="local",
+        account_active=True,
+    ))
+    await db_session.commit()
+
+    _auth(client, admin_user)
+
+    resp = await client.post("/api/portal/admin/users/local", json={
+        "username": "ellie",
+        "password": "supersecret",
+        "display_name": "Ellie",
+        "email": "ellie@example.com",
+    })
+    assert resp.status_code == 200, resp.text
+    profile_id = resp.json()["profile_id"]
+
+    resp = await client.patch(
+        f"/api/portal/admin/users/{profile_id}",
+        json={
+            "display_name": "Ellie Updated",
+            "first_name": "Ellie",
+            "last_name": "Smith",
+            "email": "ellie.new@example.com",
+        },
+    )
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["ok"] is True
+    assert set(body["changed"]) == {"display_name", "first_name", "last_name", "email"}
+    assert body["user"]["display_name"] == "Ellie Updated"
+    assert body["user"]["first_name"] == "Ellie"
+    assert body["user"]["last_name"] == "Smith"
+    assert body["user"]["email"] == "ellie.new@example.com"
+
+    resp = await client.get(f"/api/portal/admin/users/{profile_id}")
+    assert resp.status_code == 200
+    detail = resp.json()
+    assert detail["display_name"] == "Ellie Updated"
+    assert detail["first_name"] == "Ellie"
+    assert detail["last_name"] == "Smith"
+    assert detail["email"] == "ellie.new@example.com"
+
+
+@pytest.mark.asyncio
 async def test_unauthenticated_request_is_rejected(raw_client):
     """No mk_token cookie → 401, no leak of the route surface."""
     resp = await raw_client.get("/api/portal/admin/users")

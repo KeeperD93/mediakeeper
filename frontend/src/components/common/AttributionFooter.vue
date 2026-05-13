@@ -38,32 +38,34 @@ const tmdbLogoUrl = '/assets/icons/tmdb.svg'
 <style scoped>
 .mk-attribution {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: center;
-  gap: 8px 12px;
-  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  gap: 8px;
+  padding: 8px 14px calc(8px + env(safe-area-inset-bottom, 0px));
   text-align: center;
   font-size: 12px;
-  line-height: 1.4;
-  color: var(--text-muted, var(--text-secondary));
+  line-height: 1.3;
+  color: var(--text-secondary);
   background: transparent;
+  min-width: 0;
 }
 
 .mk-attribution-logo-link {
   display: inline-flex;
   align-items: center;
   border-radius: 2px;
+  flex-shrink: 0;
 }
 
 .mk-attribution-logo-link:focus-visible {
-  outline: 2px solid var(--accent-500, currentColor);
+  outline: 2px solid var(--accent-500);
   outline-offset: 2px;
 }
 
 .mk-attribution-logo {
   display: block;
-  height: 16px;
+  height: 13px;
   width: auto;
   opacity: 0.85;
   transition: opacity 150ms ease;
@@ -77,18 +79,25 @@ const tmdbLogoUrl = '/assets/icons/tmdb.svg'
 
 .mk-attribution-text {
   margin: 0;
-  max-width: 60ch;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .mk-attribution-sep {
-  margin: 0 4px;
+  margin: 0 6px;
   opacity: 0.6;
+  display: inline-block;
+  flex-shrink: 0;
 }
 
 .mk-attribution-credits {
   color: inherit;
   text-decoration: underline;
   text-underline-offset: 2px;
+  padding: 8px 2px;
+  display: inline-block;
 }
 
 .mk-attribution-credits:hover,

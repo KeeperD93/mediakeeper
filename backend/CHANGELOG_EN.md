@@ -85,6 +85,8 @@ This section intentionally has no date so it is not shown to users.
 - Admin lists — moderation actions moved to the portal Lists page (Admin tab)
 
 ### Fixed
+- Edit user — form stays in sync with the persisted values after save
+- Trophies — XP history shows the unlocked trophy name
 - Discord notifications — context-aware "series" / "full season" / "episodes" detection, configured template and synopsis now applied
 - Dashboard — Activity widget: labels wrap on narrow widths (no more truncation)
 - Dashboard — Reset/Done buttons compact on desktop (touch target preserved on mobile)

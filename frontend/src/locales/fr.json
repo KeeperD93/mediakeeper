@@ -1947,7 +1947,8 @@
           "event_created": "Événement créé",
           "event_joined": "Événement rejoint",
           "streak_7": "Série de 7 jours",
-          "streak_30": "Série de 30 jours"
+          "streak_30": "Série de 30 jours",
+          "achievementNamed": "Trophée « {name} » débloqué"
         },
         "notes": {
           "notesTitle": "Notes admin (privées)",
@@ -2104,9 +2105,6 @@
         "animation": "Film d'animation",
         "documentary": "Documentaire"
       }
-    },
-    "promotion": {
-      "soon": "Promotions — bientôt disponible"
     },
     "backToDashboard": "Retour au tableau de bord",
     "card": {

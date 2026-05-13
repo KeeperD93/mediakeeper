@@ -51,6 +51,9 @@ This section intentionally has no date so it is not shown to users.
 - List achievements — two new tiered families (Curator, Librarian) with 5 tiers each
 
 ### Changed
+- Notifications — Lucide icons replace the previous emojis
+- TMDB credit — compact single-line footer
+- Home and profile — tighter spacing on mobile
 - Cinema room — back-to-back trailers with black fade, Info button on the active trailer
 - Cinema room — poster shown on the screen after the countdown (instead of the title)
 - Requests — available requests can be automatically cleaned up after a delay (admin-configurable)
@@ -77,6 +80,7 @@ This section intentionally has no date so it is not shown to users.
 - Leaderboard — premium revamp, top 100, enriched top-3 podium, clickable title from the profile
 
 ### Fixed
+- Media detail page — always scrolls to the top on open
 - Private profile — dedicated landing instead of a generic error when reached from the leaderboard
 - Portal — username-choice modal: no more bottom-left text leak during the enter transition
 - Requests — auto-switch to "Available" and bell notification as soon as the media lands on Emby

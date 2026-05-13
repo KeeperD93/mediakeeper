@@ -28,7 +28,13 @@
               :class="{ 'pt-bell-item--unread': !n.read }"
               @click="onClick(n)"
             >
-              <span class="pt-bell-icon">{{ iconForNotification(n.type) }}</span>
+              <component
+                :is="iconComponentForNotification(n.type)"
+                :size="16"
+                :stroke-width="2"
+                class="pt-bell-icon"
+                aria-hidden="true"
+              />
               <div class="pt-bell-body">
                 <div class="pt-bell-text">{{ labelForNotification(n, t) }}</div>
                 <div class="pt-bell-time">{{ timeAgoForNotification(n.created_at, t) }}</div>
@@ -58,7 +64,7 @@ import EventDetailModal from './EventDetailModal.vue'
 import { NOTIF_TYPE } from '@/constants/notifications'
 import { PORTAL_TAB } from '@/constants/portal'
 import {
-  iconForNotification,
+  iconComponentForNotification,
   labelForNotification,
   timeAgoForNotification,
 } from '@/utils/portal/notificationLabel'
@@ -261,8 +267,9 @@ onBeforeUnmount(() => {
   background: rgb(67, 56, 202, 0.2);
 }
 .pt-bell-icon {
-  font-size: var(--portal-text-lg);
   flex-shrink: 0;
+  color: var(--portal-text-secondary);
+  margin-top: 2px;
 }
 .pt-bell-body {
   flex: 1;

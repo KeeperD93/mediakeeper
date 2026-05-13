@@ -79,22 +79,24 @@ const { showToast } = useToast()
 const api = usePortalAdminUsers()
 
 const form = reactive({
-  display_name: props.user.display_name || '',
-  first_name: props.user.first_name || '',
-  last_name: props.user.last_name || '',
-  email: props.user.email || '',
+  display_name: '',
+  first_name: '',
+  last_name: '',
+  email: '',
 })
 const saving = ref(false)
 
-watch(
-  () => props.user,
-  u => {
-    form.display_name = u.display_name || ''
-    form.first_name = u.first_name || ''
-    form.last_name = u.last_name || ''
-    form.email = u.email || ''
-  },
-)
+function hydrate(source) {
+  if (!source) return
+  form.display_name = source.display_name || ''
+  form.first_name = source.first_name || ''
+  form.last_name = source.last_name || ''
+  form.email = source.email || ''
+}
+
+hydrate(props.user)
+
+watch(() => props.user, hydrate, { immediate: true })
 
 async function save() {
   saving.value = true
@@ -109,6 +111,7 @@ async function save() {
       showToast(t(`requestsAdmin.users.errors.${res.error}`, t('common.error')), TOAST_TYPE.ERR)
       return
     }
+    if (res?.user) hydrate(res.user)
     showToast(t('requestsAdmin.users.toasts.saved'), TOAST_TYPE.OK)
     emit('changed')
   } finally {

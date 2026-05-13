@@ -11,18 +11,6 @@
     <div ref="fabRef" class="pt-fab">
       <!-- Sub-buttons (expand upward when open) -->
       <transition-group name="pt-fab-pop" tag="div" class="pt-fab-sub">
-        <!-- Promotion (disabled placeholder) -->
-        <button
-          v-if="open"
-          key="promo"
-          class="pt-fab-btn pt-fab-btn--disabled"
-          disabled
-          :title="$t('portal.promotion.soon')"
-          :style="{ transitionDelay: '0.06s' }"
-        >
-          <Star :size="20" />
-        </button>
-
         <!-- Event creation -->
         <button
           v-if="open"
@@ -88,7 +76,7 @@ import ChatPanel from './ChatPanel.vue'
 import EventCreateModal from './EventCreateModal.vue'
 import { usePortalChat } from '@/composables/portal/usePortalChat'
 import { usePortalAuth } from '@/composables/portal/usePortalAuth'
-import { CalendarPlus, Dices, MessageSquare, Plus, Star } from 'lucide-vue-next'
+import { CalendarPlus, Dices, MessageSquare, Plus } from 'lucide-vue-next'
 
 defineEmits(['open-surprise'])
 

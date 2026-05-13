@@ -85,6 +85,8 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Listes admin — actions de modération migrées sur la page Listes du portail (onglet Admin)
 
 ### Fixed
+- Modification utilisateur — formulaire reste à jour après sauvegarde
+- Trophées — historique XP affiche le nom du trophée débloqué
 - Notifications Discord — détection contextuelle « série » / « saison complète » / « épisodes ajoutés », template configuré et synopsis correctement appliqués
 - Tableau de bord — widget Activité : labels sur plusieurs lignes en fenêtre étroite (plus de troncature)
 - Tableau de bord — boutons Reset/Terminé compacts en desktop (taille tactile préservée sur mobile)

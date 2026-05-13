@@ -86,9 +86,7 @@
       <ol v-else class="ru-feed-list">
         <li v-for="entry in xp" :key="entry.id" class="ru-feed-row">
           <span class="ru-feed-date">{{ fmt(entry.created_at) }}</span>
-          <span class="ru-feed-main">
-            {{ $t(`requestsAdmin.users.drawer.xpAction.${entry.action}`, entry.action) }}
-          </span>
+          <span class="ru-feed-main">{{ formatXpAction(entry) }}</span>
           <span class="ru-feed-tail">+{{ entry.xp }} XP</span>
         </li>
       </ol>
@@ -97,7 +95,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { computed, ref, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Award, Target, Trophy } from 'lucide-vue-next'
 import { usePortalAdminUsers } from '@/composables/portal/usePortalAdminUsers'
@@ -138,6 +136,31 @@ function trophyName(tr) {
   const key = tr.name_key
   if (!key) return ''
   return te(key) ? t(key) : key
+}
+
+const ACH_REF_RE = /^ach:(.+)$/
+
+const achievementById = computed(() => {
+  const map = new Map()
+  const list = trophies.value
+  if (!list) return map
+  for (const t of [...(list.unlocked || []), ...(list.in_progress || [])]) {
+    if (t?.id) map.set(t.id, t)
+  }
+  return map
+})
+
+function formatXpAction(entry) {
+  if (entry?.action === 'achievement_unlocked') {
+    const m = ACH_REF_RE.exec(entry.reference || '')
+    const trophy = m ? achievementById.value.get(m[1]) : null
+    if (trophy) {
+      return t('requestsAdmin.users.drawer.xpAction.achievementNamed', {
+        name: trophyName(trophy),
+      })
+    }
+  }
+  return t(`requestsAdmin.users.drawer.xpAction.${entry.action}`, entry.action)
 }
 
 function fmt(value) {

@@ -220,6 +220,7 @@ async def get_admin_user_detail(
 async def update_user_identity(
     db: AsyncSession,
     profile: UserProfile,
+    user: User,
     *,
     display_name: str | None = None,
     first_name: str | None = None,
@@ -233,12 +234,12 @@ async def update_user_identity(
 
     Display name skips the 6-month rename cooldown enforced on the
     user-facing endpoint — admins can rename anyone at any time.
+
+    Returns the freshly persisted user detail so the caller can rehydrate
+    its local state without waiting for a follow-up GET round-trip.
     """
     changed: dict[str, str | None] = {}
     if display_name is not None:
-        # Empty/whitespace-only inputs would clear the pseudo. The
-        # column is NOT NULL so we'd hit an IntegrityError anyway —
-        # surface a clean error code instead.
         new_name = display_name.strip()[:50]
         if not new_name:
             return {"error": "display_name_empty"}
@@ -262,22 +263,25 @@ async def update_user_identity(
         if new_value != profile.email:
             profile.email = new_value
             changed["email"] = new_value
-    if not changed:
-        return {"ok": True, "changed": {}}
-    db.add(profile)
-    await record_audit(
-        db,
-        admin_user_id=admin_user_id,
-        target_user_id=profile.user_id,
-        action=ACTION_USER_UPDATED_IDENTITY,
-        payload={"changed": list(changed.keys())},
-        ip=ip,
-        user_agent=user_agent,
-        commit=False,
-    )
-    await db.commit()
-    await db.refresh(profile)
-    return {"ok": True, "changed": changed}
+    if changed:
+        db.add(profile)
+        await record_audit(
+            db,
+            admin_user_id=admin_user_id,
+            target_user_id=profile.user_id,
+            action=ACTION_USER_UPDATED_IDENTITY,
+            payload={"changed": list(changed.keys())},
+            ip=ip,
+            user_agent=user_agent,
+            commit=False,
+        )
+        await db.commit()
+        await db.refresh(profile)
+    return {
+        "ok": True,
+        "changed": changed,
+        "user": serialize_admin_user_detail(profile, user),
+    }
 
 
 async def touch_last_seen(db: AsyncSession, user_id: int) -> None:
