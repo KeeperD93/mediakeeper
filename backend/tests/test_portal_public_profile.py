@@ -44,7 +44,11 @@ async def test_public_profile_includes_achievements_ratio(client, db_session):
 
 
 @pytest.mark.asyncio
-async def test_public_profile_private_blocks_strangers(client, db_session):
+async def test_public_profile_private_returns_placeholder(client, db_session):
+    """Private profile fetched by a stranger now returns 200 with a
+    minimal placeholder (``is_private=True`` + name + avatar). The
+    leaderboard already exposes the user_id so masking as 404 here
+    would only break the SPA's UX without gaining privacy."""
     me, _ = await make_portal_user(db_session, username="alice")
     target, _ = await make_portal_user(
         db_session, username="bob", display_name="Bob", is_public=False,
@@ -52,10 +56,16 @@ async def test_public_profile_private_blocks_strangers(client, db_session):
     client.cookies.set(PORTAL_COOKIE, portal_token(me.username))
 
     resp = await client.get(f"/api/portal/profiles/by-user-id/{target.id}/public")
-    # Private profiles return 404 (same shape as missing/admin) so the
-    # caller cannot distinguish the underlying reason.
-    assert resp.status_code == 404
-    assert resp.json()["detail"] == "profile_not_found"
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["is_private"] is True
+    assert body["user_id"] == target.id
+    assert body["display_name"] == "Bob"
+    # Sensitive bits never leak in the placeholder shape.
+    assert "bio" not in body
+    assert "level" not in body
+    assert "ranking" not in body
+    assert "achievements" not in body
 
 
 @pytest.mark.asyncio
@@ -93,7 +103,10 @@ async def test_public_profile_self_visible_when_private(client, db_session):
 
     resp = await client.get(f"/api/portal/profiles/by-user-id/{me.id}/public")
     assert resp.status_code == 200
-    assert resp.json()["is_self"] is True
+    body = resp.json()
+    assert body["is_self"] is True
+    # The owner still receives the full payload, NOT the private placeholder.
+    assert body.get("is_private") is not True
 
 
 @pytest.mark.asyncio

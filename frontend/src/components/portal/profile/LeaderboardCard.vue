@@ -1,8 +1,14 @@
 <template>
   <div v-if="entries.length || widget" class="gc-lb-box" :class="{ 'gc-lb-box--widget': widget }">
-    <h4 class="gc-box-title" :class="{ 'gc-lb-widget-title': widget }">
+    <router-link
+      :to="{ name: 'portal-leaderboard' }"
+      class="gc-box-title gc-box-title--link"
+      :class="{ 'gc-lb-widget-title': widget }"
+      :title="$t('portal.profile.viewFullLeaderboard')"
+    >
       {{ $t('portal.profile.ranking') }}
-    </h4>
+      <ChevronRight :size="14" :stroke-width="2.5" class="gc-box-title-chevron" />
+    </router-link>
     <div class="gc-lb-rows" :data-full="entries.length >= 16 || null">
       <component
         :is="entry.user_id ? 'router-link' : 'div'"
@@ -62,7 +68,7 @@
 
 <script setup>
 import { useI18n } from 'vue-i18n'
-import { ChevronDown, ChevronUp } from 'lucide-vue-next'
+import { ChevronDown, ChevronRight, ChevronUp } from 'lucide-vue-next'
 import MkAvatar from '@/components/common/MkAvatar.vue'
 
 defineProps({

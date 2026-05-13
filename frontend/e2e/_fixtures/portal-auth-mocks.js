@@ -148,6 +148,17 @@ export function portalTicketsHandlers() {
   ]
 }
 
+/** Handlers for the dedicated /portal/leaderboard page. */
+export function portalLeaderboardHandlers() {
+  return [
+    pathHandler(
+      'portal-leaderboard-monthly',
+      '/api/portal/achievements/leaderboard/monthly',
+      { items: [] },
+    ),
+  ]
+}
+
 /**
  * Install the authenticated-Portal mock layer on a Playwright page.
  *

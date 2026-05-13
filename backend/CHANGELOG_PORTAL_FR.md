@@ -73,8 +73,10 @@ utilisateurs.
 - Trophées : pulsation brumeuse retirée des cartes (halo coloré conservé en statique)
 - Voir tous les trophées : animations résiduelles retirées des lignes (progress shine, couronne master, badge xmas)
 - Trophées : XP de récompense réduit pour lisser la progression (XP déjà cumulé ajusté en conséquence)
+- Classement — refonte premium, top 100, podium top 3 enrichi, titre cliquable depuis le profil
 
 ### Fixed
+- Profil privé — page dédiée au lieu d'une erreur générique au clic depuis le classement
 - Portail — modale de choix du pseudo : plus de texte qui fuit en bas à gauche pendant la transition
 - Demandes — passage automatique à « Disponible » et notification dans la cloche dès que le média arrive sur Emby
 - Top du mois — séries comptées 1 fois par utilisateur (plus de séries gonflées par leurs épisodes)

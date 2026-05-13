@@ -71,8 +71,10 @@ This section intentionally has no date so it is not shown to users.
 - Trophies: breathing glow removed from cards (coloured halo kept static)
 - All trophies overlay: leftover animations stripped from rows (progress shine, master crown bob, xmas badge twinkle)
 - Trophies: reward XP lowered to smooth progression (already-earned XP adjusted accordingly)
+- Leaderboard — premium revamp, top 100, enriched top-3 podium, clickable title from the profile
 
 ### Fixed
+- Private profile — dedicated landing instead of a generic error when reached from the leaderboard
 - Portal — username-choice modal: no more bottom-left text leak during the enter transition
 - Requests — auto-switch to "Available" and bell notification as soon as the media lands on Emby
 - Top of the month — series count once per viewer (no longer inflated by episode count)
