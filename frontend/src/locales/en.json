@@ -2310,7 +2310,6 @@
       "menu": "Account menu",
       "account": "My account",
       "settings": "Settings",
-      "myTickets": "My tickets",
       "dailyDigest": "Today's digest",
       "help": "Help",
       "whatsNew": "Changelog",
@@ -2581,7 +2580,7 @@
     },
     "tickets": {
       "title": "Issues",
-      "subtitle": "Report a bug, track your ticket, get an admin reply",
+      "subtitle": "Report a bug related to Emby or Mediakeeper",
       "create": "Report an issue",
       "mediaTitle": "Media title",
       "mediaType": "Media type",
@@ -2671,16 +2670,10 @@
         "replyCount": "{n} reply | {n} replies",
         "emptyTitle": "No tickets yet",
         "emptySub": "If anything goes wrong, report it so an admin can step in.",
-        "filterStatus": "Status",
-        "filterScope": "Source",
-        "filterIssue": "Issue",
-        "allStatus": "All",
-        "allScopes": "All",
-        "allTypes": "All",
-        "scopeLibrary": "Library",
-        "scopeMovies": "Movies",
-        "scopeSeries": "Series",
-        "scopeOther": "Off-library"
+        "filterTypeAll": "All types",
+        "sortLabel": "Sort",
+        "sortNewest": "Newest first",
+        "sortOldest": "Oldest first"
       }
     },
     "help": {

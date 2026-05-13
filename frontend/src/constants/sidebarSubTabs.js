@@ -38,9 +38,7 @@ import {
   Newspaper,
   Star,
   Sparkles,
-  ListChecks,
   Slash,
-  Ticket,
   Bug,
 } from 'lucide-vue-next'
 
@@ -97,11 +95,9 @@ export const SIDEBAR_SUB_TABS = {
   ],
   '/admin/portal': [
     { id: 'blacklist', labelKey: 'portal.admin.tabs.blacklist', icon: markRaw(Slash) },
-    { id: 'tickets', labelKey: 'portal.admin.tabs.tickets', icon: markRaw(Ticket) },
     { id: 'news', labelKey: 'portal.admin.tabs.news', icon: markRaw(Newspaper) },
     { id: 'featured', labelKey: 'portal.admin.tabs.featured', icon: markRaw(Star) },
     { id: 'xpEvents', labelKey: 'portal.admin.tabs.xpEvents', icon: markRaw(Sparkles) },
-    { id: 'lists', labelKey: 'portal.admin.tabs.lists', icon: markRaw(ListChecks) },
     { id: 'settings', labelKey: 'portal.admin.tabs.settings', icon: markRaw(Settings) },
     { id: 'debug', labelKey: 'portal.admin.tabs.debug', icon: markRaw(Bug) },
   ],

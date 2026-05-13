@@ -1,7 +1,7 @@
 """Portal ticket endpoints."""
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, Field, model_validator
-from typing import Optional
+from typing import Literal, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
@@ -15,7 +15,6 @@ from services.emby import search as emby_search
 router = APIRouter(prefix="/tickets", tags=["portal-tickets"])
 
 VALID_ISSUE_TYPES = {"audio", "subtitles", "video", "metadata", "playback", "file", "other"}
-VALID_MEDIA_TYPES = {"movie", "series", "season", "episode", "other"}
 
 
 class CreateTicket(BaseModel):
@@ -55,14 +54,11 @@ class TicketStatusUpdate(BaseModel):
 @router.get("")
 async def list_tickets(
     status_filter: Optional[str] = Query(None, alias="status"),
-    media_type: Optional[str] = Query(
-        None,
-        description="Comma-separated subset of movie,series,season,episode,other",
-    ),
     issue_type: Optional[str] = Query(
         None,
         description="Comma-separated subset of audio,subtitles,video,metadata,playback,file,other",
     ),
+    sort: Literal["newest", "oldest"] = "newest",
     cursor: Optional[str] = None,
     limit: int = Query(25, ge=1, le=100),
     up: tuple[User, UserProfile] = Depends(require_permission("can_problems")),
@@ -70,13 +66,12 @@ async def list_tickets(
 ):
     user, profile = up
     user_id = None if profile.role == "admin" else user.id
-    media_types = _split_csv(media_type, VALID_MEDIA_TYPES)
     issue_types = _split_csv(issue_type, VALID_ISSUE_TYPES)
     return await ticket_svc.list_tickets(
         db, user_id,
         status_filter=status_filter,
-        media_types=media_types,
         issue_types=issue_types,
+        sort=sort,
         cursor=cursor,
         limit=limit,
     )

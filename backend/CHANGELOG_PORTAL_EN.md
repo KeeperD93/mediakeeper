@@ -56,7 +56,8 @@ This section intentionally has no date so it is not shown to users.
 - Lists — anonymized pseudos on the owner and contributors of a list detail
 - Settings — active tab synced with the URL (deep links and refresh)
 - What's new today — monthly Top 3 aligned on the dashboard's Ranking widget (identical look, your own position appended as a 4th row when off the podium)
-- Tickets — filters reorganised into labelled groups (status, source, issue) using the Demandes pill style
+- Tickets — slimmer filter row (status pills, type + sort selects); Source filter retired
+- Tickets — "My tickets" shortcut removed from the avatar menu (duplicate of the Issues tab)
 - URLs standardized (old bookmarks must be re-created)
 - Top bar: settings cog removed — configuration is now handled from MediaKeeper
 - Top bar: "Dashboard" button now an icon-only home button repositioned to the right of notifications

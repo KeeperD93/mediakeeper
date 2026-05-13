@@ -128,8 +128,8 @@ async def test_auto_close_promotes_resolved_tickets_after_seven_days(client, db_
 
 
 @pytest.mark.asyncio
-async def test_list_tickets_filters_by_media_and_issue_type(client, db_session):
-    """media_type + issue_type query params narrow the list (CSV multi-values)."""
+async def test_list_tickets_filters_by_issue_type(client, db_session):
+    """issue_type query param narrows the list (CSV multi-values)."""
     await _seed(client, db_session, username="ticketer-filters")
 
     payloads = [
@@ -145,24 +145,65 @@ async def test_list_tickets_filters_by_media_and_issue_type(client, db_session):
         resp = await client.post("/api/portal/tickets", json={**p, "description": "t"})
         assert resp.status_code == 200, resp.text
 
-    # Movies + series only (no "other")
-    resp = await client.get("/api/portal/tickets?media_type=movie,series")
-    titles = {t["media_title"] for t in resp.json()["items"]}
-    assert titles == {"Mov audio", "Mov subs", "Ser subs"}
-
     # Subtitle issues only — across any media type
     resp = await client.get("/api/portal/tickets?issue_type=subtitles")
     titles = {t["media_title"] for t in resp.json()["items"]}
     assert titles == {"Mov subs", "Ser subs"}
 
-    # Combined: only movies with subtitle issue
-    resp = await client.get("/api/portal/tickets?media_type=movie&issue_type=subtitles")
+    # Multi-value CSV
+    resp = await client.get("/api/portal/tickets?issue_type=audio,subtitles")
     titles = {t["media_title"] for t in resp.json()["items"]}
-    assert titles == {"Mov subs"}
+    assert titles == {"Mov audio", "Mov subs", "Ser subs"}
 
     # Invalid value falls back to "no filter" (silent drop)
-    resp = await client.get("/api/portal/tickets?media_type=bogus")
+    resp = await client.get("/api/portal/tickets?issue_type=bogus")
     assert len(resp.json()["items"]) == 4
+
+
+@pytest.mark.asyncio
+async def test_list_tickets_ignores_obsolete_media_type_filter(client, db_session):
+    """The legacy ``media_type`` query param was retired with the toolbar
+    refonte. The route signature no longer declares it, so FastAPI now
+    silently drops the value — every ticket flows through regardless of
+    the (otherwise valid) movie/series/etc. tag the caller still sends.
+    """
+    await _seed(client, db_session, username="ticketer-mediatype")
+
+    for payload in (
+        {"media_type": "other", "media_title": "Off", "issue_type": "other"},
+        {"media_type": "movie", "emby_item_id": "emby-mov-x",
+         "media_title": "Mov", "issue_type": "audio"},
+    ):
+        resp = await client.post("/api/portal/tickets",
+                                 json={**payload, "description": "x"})
+        assert resp.status_code == 200, resp.text
+
+    # ``media_type`` is silently ignored — both tickets surface.
+    resp = await client.get("/api/portal/tickets?media_type=movie")
+    assert resp.status_code == 200
+    assert len(resp.json()["items"]) == 2
+
+
+@pytest.mark.asyncio
+async def test_list_tickets_sort_oldest_orders_by_creation_ascending(client, db_session):
+    """``sort=oldest`` flips the default newest-first ordering."""
+    await _seed(client, db_session, username="ticketer-sort")
+
+    titles = ["first", "second", "third"]
+    for title in titles:
+        resp = await client.post("/api/portal/tickets", json={
+            "media_title": title,
+            "media_type": "other",
+            "issue_type": "other",
+            "description": title,
+        })
+        assert resp.status_code == 200, resp.text
+
+    resp = await client.get("/api/portal/tickets?sort=newest")
+    assert [t["media_title"] for t in resp.json()["items"]] == ["third", "second", "first"]
+
+    resp = await client.get("/api/portal/tickets?sort=oldest")
+    assert [t["media_title"] for t in resp.json()["items"]] == ["first", "second", "third"]
 
 
 @pytest.mark.asyncio

@@ -81,6 +81,7 @@ This section intentionally has no date so it is not shown to users.
 
 ### Changed
 - Requests (admin) — cleaner header, slide toggles, single-locale privacy editor
+- Portal admin — Tickets and Lists sub-tabs retired (actions now live on the premium portal)
 
 ### Fixed
 - Discord notifications — context-aware "series" / "full season" / "episodes" detection, configured template and synopsis now applied
