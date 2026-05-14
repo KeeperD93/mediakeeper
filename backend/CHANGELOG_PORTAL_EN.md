@@ -52,6 +52,7 @@ This section intentionally has no date so it is not shown to users.
 - List achievements — two new tiered families (Curator, Librarian) with 5 tiers each
 
 ### Changed
+- Leaderboard — premium showcase revamp: monthly champion hero, live stats bar, your-rank highlight
 - Media cards — diagonal "Available" ribbon removed (the green dot is enough)
 - Avatars — silhouette icon enlarged to better fill the circle
 - Notifications — Lucide icons replace the previous emojis

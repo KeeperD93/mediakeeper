@@ -143,9 +143,11 @@ async def monthly_leaderboard(
     Shares its trust boundary with the profile mini-leaderboard: any
     authenticated portal user can view the full ranking, the excluded
     users (admin, soft-deleted, deactivated) are filtered out by
-    :func:`compute_leaderboard_only` itself, and the payload schema
-    matches the embedded ``compute_ranking().leaderboard`` entries
-    (rank, user_id, display_name, avatar_url, level, tier, title_key,
-    month_xp, selected_title, title_tier, is_current_user, movement).
+    :func:`compute_leaderboard_only` itself. The payload bundles
+    ``items`` (gc-lb-* rows), ``viewer_rank`` / ``viewer_entry`` when
+    the caller is out of top-N, and ``stats`` for the live bar.
     """
-    return {"items": await compute_leaderboard_only(db, limit=limit, lang=lang)}
+    user, _ = up
+    return await compute_leaderboard_only(
+        db, limit=limit, viewer_user_id=user.id, lang=lang,
+    )

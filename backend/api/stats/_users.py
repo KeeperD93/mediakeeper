@@ -138,7 +138,8 @@ async def portal_monthly_leaderboard(
         compute_leaderboard_only,
     )
     try:
-        return {"leaderboard": await compute_leaderboard_only(db, limit=LEADERBOARD_VISIBLE)}
+        result = await compute_leaderboard_only(db, limit=LEADERBOARD_VISIBLE)
+        return {"leaderboard": result["items"]}
     except Exception as e:
         logger.debug(f"[PORTAL-LEADERBOARD] error: {e}")
         return {"leaderboard": []}
