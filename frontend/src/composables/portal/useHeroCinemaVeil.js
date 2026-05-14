@@ -97,6 +97,11 @@ export function useHeroCinemaVeil({ videoPlaying, peekItem, loadItem, hasTrailer
   })
 
   // Safety net: never hold the user on full black longer than FALLBACK_MS.
+  // ``immediate: true`` is critical: the ref starts at ``true`` so without
+  // it the watcher never fires on mount and the fallback timer is never
+  // armed. When YT silently fails (rate-limit, ad-blocker, network) the
+  // PLAYING state event then never comes, the veil stays opaque forever
+  // and the backdrop image underneath never shows.
   watch(transitioning, v => {
     if (v) {
       clearFallback()
@@ -106,7 +111,7 @@ export function useHeroCinemaVeil({ videoPlaying, peekItem, loadItem, hasTrailer
     } else {
       clearFallback()
     }
-  })
+  }, { immediate: true })
 
   function dispose() {
     clearPending()

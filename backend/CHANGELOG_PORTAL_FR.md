@@ -88,6 +88,7 @@ utilisateurs.
 - Classement — refonte premium, top 100, podium top 3 enrichi, titre cliquable depuis le profil
 
 ### Fixed
+- Accueil — image de fond visible quand le trailer ne peut pas démarrer (réseau, bloqueur, etc.) au lieu d'un écran noir
 - Mobile — espace réduit accueil, dropdown cloche non tronqué, crédit TMDB wrap propre, bouton « ne plus afficher » accessible
 - Quoi de neuf aujourd'hui — avatars et images remplissent leur cercle sur mobile
 - Modale Signaler un problème — dropdown média se ferme au clic ailleurs

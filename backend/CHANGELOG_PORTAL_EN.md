@@ -86,6 +86,7 @@ This section intentionally has no date so it is not shown to users.
 - Leaderboard — premium revamp, top 100, enriched top-3 podium, clickable title from the profile
 
 ### Fixed
+- Home — backdrop image is shown when the trailer can't start (network, blocker, etc.) instead of a pure black hero
 - Mobile — tighter home gap, bell dropdown no longer clipped, TMDB credit wraps cleanly, "don't show again" button reachable
 - What's new today — avatars and posters fill their circle on mobile
 - Report-a-problem modal — media dropdown closes when clicking elsewhere
