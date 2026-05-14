@@ -35,15 +35,12 @@
 
         <div class="gc-avatar-ring">
           <div class="gc-avatar-inner">
-            <img
-              v-if="avatarPreviewUrl"
-              :src="avatarPreviewUrl"
-              :alt="form.display_name"
-              class="gc-avatar-img"
+            <MkAvatar
+              :name="form.display_name || ''"
+              :src="avatarPreviewUrl || null"
+              :size="88"
+              class="gc-avatar-mk"
             />
-            <span v-else class="gc-avatar-letter">
-              {{ (form.display_name || '?').charAt(0).toUpperCase() }}
-            </span>
           </div>
         </div>
 
@@ -164,6 +161,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Trash2, Upload } from 'lucide-vue-next'
 
+import MkAvatar from '@/components/common/MkAvatar.vue'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 

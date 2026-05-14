@@ -49,7 +49,12 @@
       </h3>
       <div class="arr-row-foot">
         <span v-if="req.requester_deleted" class="arr-row-by arr-row-by--anon">
-          <MkAvatar :src="null" :name="'?'" :size="22" class="arr-row-by-avatar" />
+          <MkAvatar
+            :src="null"
+            :name="'?'"
+            :size="22"
+            class="arr-row-by-avatar mk-avatar--ring-subtle"
+          />
           <span class="arr-who arr-who--deleted">{{ $t('portal.common.deletedUser') }}</span>
           ·
           <strong>{{ formatAgo(req.created_at) }}</strong>
@@ -59,7 +64,7 @@
             :src="req.requester.avatar_url"
             :name="req.requester.display_name || req.requester.username || ''"
             :size="22"
-            class="arr-row-by-avatar"
+            class="arr-row-by-avatar mk-avatar--ring-subtle"
           />
           <span class="arr-who">{{ req.requester.display_name }}</span>
           ·

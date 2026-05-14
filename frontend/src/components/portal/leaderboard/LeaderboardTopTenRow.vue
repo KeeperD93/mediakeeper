@@ -9,7 +9,7 @@
       {{ entry.rank }}
     </span>
     <div class="gc-lb-av lb-top-row-av" :class="`gc-lb-av--${entry.tier || 'bronze'}`">
-      <MkAvatar :name="entry.display_name || ''" :src="entry.avatar_url || null" :size="36" />
+      <MkAvatar :name="entry.display_name || ''" :src="entry.avatar_url || null" :size="40" />
     </div>
     <div class="lb-top-row-info">
       <span class="lb-top-row-pseudo">
@@ -117,7 +117,6 @@ function moveTooltip(movement) {
 .lb-top-row-av {
   width: 40px;
   height: 40px;
-  padding: 2px;
 }
 .lb-top-row-info {
   display: flex;

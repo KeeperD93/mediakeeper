@@ -51,12 +51,12 @@
     />
 
     <div class="pt-hero-content">
-      <div v-if="isTv(item)" class="pt-hero-badge">
+      <div v-if="isTv(viewItem)" class="pt-hero-badge">
         {{ $t('portal.hero.series') }}
       </div>
 
-      <h1 class="pt-hero-title" :class="{ 'pt-hero-title--available': item?.emby_url }">
-        <span class="pt-hero-title-text">{{ item.title }}</span>
+      <h1 class="pt-hero-title" :class="{ 'pt-hero-title--available': viewItem?.emby_url }">
+        <span class="pt-hero-title-text">{{ viewItem?.title }}</span>
       </h1>
 
       <div v-if="isFeatured" class="pt-hero-rank">
@@ -68,7 +68,7 @@
         {{ $t('portal.hero.topRank', { rank }) }}
       </div>
 
-      <p class="pt-hero-overview">{{ item.overview }}</p>
+      <p class="pt-hero-overview">{{ viewItem?.overview }}</p>
 
       <div class="pt-hero-actions">
         <!-- The hero is informational, not a launch CTA: only the
@@ -76,9 +76,9 @@
              Emby. Items already on Emby get no action button — the
              "Info" / trailer affordances cover the rest. -->
         <button
-          v-if="!item?.emby_url"
+          v-if="!viewItem?.emby_url"
           class="pt-hero-btn pt-hero-btn--play"
-          @click="$emit('request', item)"
+          @click="$emit('request', viewItem)"
         >
           <Plus :size="22" :stroke-width="2.5" />
           {{ $t('portal.card.requestBtn') }}
@@ -90,7 +90,7 @@
         <button
           class="pt-hero-btn pt-hero-btn--info pt-hero-btn--icon"
           :aria-label="$t('portal.moreInfo')"
-          @click="$emit('detail', item)"
+          @click="$emit('detail', viewItem)"
         >
           <Info :size="24" />
         </button>
@@ -173,6 +173,7 @@ function peekItemTrailer(item) {
 }
 const {
   transitioning,
+  displayedItem,
   fadeStyle,
   onItemChange,
   startInitial,
@@ -184,8 +185,18 @@ const {
   hasTrailer: () => !!trailer.value,
 })
 
+// Visual surface lags ``props.item`` so the backdrop / title / metadata
+// only swap when the veil is fully opaque. Seed it synchronously here
+// (not in startInitial) because ensureYTApi() can hang forever when the
+// YouTube IFrame API script is blocked (ad-blocker, network issue) —
+// without this seed, viewItem would fall back to props.item directly
+// and every rotation would flash the new backdrop instantly.
+displayedItem.value = props.item
+const viewItem = computed(() => displayedItem.value || props.item)
+
 const bgStyle = computed(() => {
-  const bg = props.item.backdrop || props.item.poster_url || ''
+  const it = viewItem.value
+  const bg = it?.backdrop || it?.poster_url || ''
   return bg ? { backgroundImage: `url(${bg})` } : {}
 })
 

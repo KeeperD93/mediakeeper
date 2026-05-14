@@ -29,7 +29,7 @@
           <MkAvatar
             :name="entry.display_name || ''"
             :src="entry.avatar_url || null"
-            :size="24"
+            :size="28"
             class="gc-lb-av-mk"
           />
         </div>

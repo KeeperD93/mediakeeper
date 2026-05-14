@@ -106,12 +106,12 @@
               :class="{ 'user-hidden-row': u.is_hidden, 'user-historical-row': u.is_historical }"
             >
               <td>
-                <div
-                  class="dt-avatar"
-                  :style="{ background: u.is_historical ? 'var(--text-muted)' : avatarColors[0] }"
-                >
-                  {{ (u.name || '?')[0].toUpperCase() }}
-                </div>
+                <MkAvatar
+                  :src="null"
+                  :name="u.name || '?'"
+                  :size="32"
+                  class="dt-avatar mk-avatar--ring-subtle"
+                />
               </td>
               <td class="dt-name dt-clickable" @click="openUserProfile(u.user_id, u.name, $event)">
                 {{ u.name }}
@@ -212,6 +212,7 @@ import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useStats } from '@/composables/useStats'
 import { useApi } from '@/composables/useApi'
+import MkAvatar from '@/components/common/MkAvatar.vue'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import { useStatsUI } from '@/composables/useStatsUI'
@@ -235,7 +236,7 @@ const { t } = useI18n()
 const { users, loadingUsers, loadUsers, ticksToDuration, timeAgo } = useStats()
 const { apiPost, apiDelete } = useApi()
 const { showToast } = useToast()
-const { openUserProfile, openMergeModal, avatarColors, registerUsersRefresh } = useStatsUI()
+const { openUserProfile, openMergeModal, registerUsersRefresh } = useStatsUI()
 
 const usersPage = ref(1)
 const usersPerPage = ref(30)

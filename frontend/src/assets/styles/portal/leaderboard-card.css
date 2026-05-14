@@ -181,56 +181,42 @@
   width: 28px;
   height: 28px;
   border-radius: var(--portal-radius-circle);
-  padding: 2px;
   flex-shrink: 0;
-  background: rgb(255, 255, 255, 0.1);
-  overflow: hidden;
+  /* The tier ring is drawn by MkAvatar's own CSS border, fed via these
+     custom properties. Wrapper is just a layout + sizing container —
+     transparent so the row/card background shows through the center. */
+  --mk-avatar-ring-width: 2px;
+  --mk-avatar-ring-color: rgb(255, 255, 255, 0.18);
+  /* Centre MkAvatar even when the wrapper override (podium) is larger
+     than the inline ``:size`` prop. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-/* The MkAvatar root fills the padded inner area via its own inline
-   width/height bound to ``:size="24"`` — wrapper is 28 px, padding 2 px,
-   inner content area = 24 px (border-box). The tier gradient defined
-   on the wrapper background only shows through the 2 px ring. */
 .gc-lb-av--bronze {
-  background: linear-gradient(135deg, #cd7f32, #8b5e3c);
+  --mk-avatar-ring-color: #cd7f32;
 }
 .gc-lb-av--silver {
-  background: linear-gradient(135deg, #c0c0c0, #808080);
+  --mk-avatar-ring-color: #c0c0c0;
 }
 .gc-lb-av--gold {
-  background: linear-gradient(135deg, var(--portal-color-warning), #b8860b);
+  --mk-avatar-ring-color: var(--portal-color-warning);
   box-shadow: 0 0 6px rgb(var(--portal-color-warning-rgb), 0.3);
 }
 .gc-lb-av--platinum {
-  background: linear-gradient(135deg, var(--portal-color-cinema), #0284c7);
+  --mk-avatar-ring-color: var(--portal-color-cinema);
   box-shadow: 0 0 6px rgb(var(--portal-color-cinema-rgb), 0.3);
 }
 .gc-lb-av--diamond {
-  background: linear-gradient(135deg, #a78bfa, #7c3aed, #c084fc);
-  background-size: 200% 200%;
-  animation: gc-ring-shift 3s ease infinite;
+  --mk-avatar-ring-color: #7c3aed;
   box-shadow: 0 0 8px rgb(var(--portal-color-premium-rgb), 0.4);
 }
 .gc-lb-av--master {
-  background: linear-gradient(
-    135deg,
-    var(--portal-color-error),
-    #dc2626,
-    var(--portal-color-highlight)
-  );
-  background-size: 200% 200%;
-  animation: gc-ring-shift 2s ease infinite;
+  --mk-avatar-ring-color: var(--portal-color-error);
   box-shadow: 0 0 8px rgb(var(--portal-color-error-rgb), 0.4);
 }
 .gc-lb-av--legendary {
-  background: linear-gradient(
-    135deg,
-    var(--portal-color-warning),
-    var(--portal-color-error),
-    #a78bfa,
-    var(--portal-color-warning)
-  );
-  background-size: 300% 300%;
-  animation: gc-ring-shift 1.5s ease infinite;
+  --mk-avatar-ring-color: var(--portal-color-warning);
   box-shadow:
     0 0 10px rgb(var(--portal-color-warning-rgb), 0.4),
     0 0 20px rgb(var(--portal-color-error-rgb), 0.15);

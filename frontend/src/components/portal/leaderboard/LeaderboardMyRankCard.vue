@@ -12,7 +12,7 @@
       <MkAvatar
         :name="effectiveEntry.display_name || ''"
         :src="effectiveEntry.avatar_url || null"
-        :size="36"
+        :size="44"
       />
     </div>
     <div class="lb-my-rank-pseudo">{{ effectiveEntry.display_name }}</div>

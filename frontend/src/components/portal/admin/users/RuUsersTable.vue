@@ -49,7 +49,12 @@
             />
           </td>
           <td class="ru-col-avatar">
-            <MkAvatar :src="u.avatar_url" :name="u.display_name || u.username" :size="32" />
+            <MkAvatar
+              :src="u.avatar_url"
+              :name="u.display_name || u.username"
+              :size="32"
+              class="ru-admin-avatar"
+            />
           </td>
           <td>
             <div class="ru-name">

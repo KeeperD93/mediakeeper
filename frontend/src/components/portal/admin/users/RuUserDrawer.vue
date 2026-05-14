@@ -48,7 +48,12 @@
               <X :size="18" />
             </button>
             <div v-if="user" class="ru-drawer-identity">
-              <MkAvatar :src="user.avatar_url" :name="user.display_name" :size="56" />
+              <MkAvatar
+                :src="user.avatar_url"
+                :name="user.display_name"
+                :size="56"
+                class="ru-admin-avatar"
+              />
               <div class="ru-drawer-id-text">
                 <h2>{{ user.display_name }}</h2>
                 <div class="ru-drawer-sub">

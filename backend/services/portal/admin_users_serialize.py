@@ -10,6 +10,7 @@ from typing import Any
 
 from models.user import User
 from models.portal.profile import UserProfile
+from services.portal._display_name import resolve_display_name
 
 from .admin_users_constants import (
     ONLINE_WINDOW_SECONDS,
@@ -62,13 +63,20 @@ def is_expired(profile: UserProfile, *, ref: datetime | None = None) -> bool:
 
 
 def serialize_admin_user_row(profile: UserProfile, user: User) -> dict[str, Any]:
-    """Compact payload used by the list view (no heavy detail fields)."""
+    """Compact payload used by the list view (no heavy detail fields).
+
+    ``display_name`` falls back to the same stable ``Utilisateur 1234``
+    alias the user-facing surfaces (leaderboard, chat, lists) show when
+    the operator hasn't picked their own portal pseudo yet — keeps the
+    same identity across every admin and user view. The Emby
+    ``username`` stays available in the dedicated field for operators
+    who need the raw identifier."""
     ref = now_utc()
     return {
         "id": profile.id,
         "user_id": user.id,
         "username": user.username,
-        "display_name": profile.display_name,
+        "display_name": resolve_display_name(profile.display_name, user.id),
         "avatar_url": profile.avatar_url,
         "avatar_custom_path": profile.avatar_custom_path,
         "email": profile.email,

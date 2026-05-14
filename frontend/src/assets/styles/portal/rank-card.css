@@ -182,8 +182,12 @@
   width: 64px;
   height: 64px;
   border-radius: var(--portal-radius-circle);
-  padding: 3px;
-  background: linear-gradient(135deg, var(--rk-c1), var(--rk-c3));
+  /* Ring drawn by MkAvatar's CSS border via these custom properties.
+     Tier colour comes from --rk-c1 which the parent .gc--{tier} sets
+     (see profile-page.css). 3 px ring stays visually present at both
+     the 64 px mobile and 88 px desktop sizes. */
+  --mk-avatar-ring-width: 3px;
+  --mk-avatar-ring-color: var(--rk-c1);
   transition: box-shadow var(--portal-dur-slow);
 }
 @media (min-width: 768px) {
@@ -199,46 +203,15 @@
   box-shadow: 0 0 22px rgb(var(--portal-color-cinema-rgb), 0.35);
 }
 .gc--diamond .gc-avatar-ring {
-  background: linear-gradient(135deg, #a78bfa, #7c3aed, #c084fc);
-  background-size: 200% 200%;
-  animation: gc-ring-shift 3s ease infinite;
   box-shadow: 0 0 28px rgb(var(--portal-color-premium-rgb), 0.4);
 }
 .gc--master .gc-avatar-ring {
-  background: linear-gradient(
-    135deg,
-    var(--portal-color-error),
-    #dc2626,
-    var(--portal-color-highlight)
-  );
-  background-size: 200% 200%;
-  animation: gc-ring-shift 2s ease infinite;
   box-shadow: 0 0 30px rgb(var(--portal-color-error-rgb), 0.4);
 }
 .gc--legendary .gc-avatar-ring {
-  background: linear-gradient(
-    135deg,
-    var(--portal-color-warning),
-    var(--portal-color-error),
-    #a78bfa,
-    var(--portal-color-warning)
-  );
-  background-size: 300% 300%;
-  animation: gc-ring-shift 1.5s ease infinite;
   box-shadow:
     0 0 35px rgb(var(--portal-color-warning-rgb), 0.5),
     0 0 70px rgb(var(--portal-color-error-rgb), 0.2);
-}
-@keyframes gc-ring-shift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
 }
 .gc-avatar-inner {
   width: 100%;

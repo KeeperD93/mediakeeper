@@ -6,13 +6,19 @@ import { ref, computed, watch } from 'vue'
  * Drives an asymmetric fade:
  *   1. Fade to black over FADE_IN_MS while the current trailer is still
  *      playing underneath.
- *   2. At full black, the caller swaps the underlying item and loads the
- *      next trailer.
+ *   2. At full black, the caller swaps the underlying item (backdrop +
+ *      metadata) via the ``displayedItem`` ref AND loads the next trailer.
  *   3. When the new trailer actually begins playing (`videoPlaying` ref
  *      flips to true), fade the veil out over FADE_OUT_MS.
  *
  * A safety timer drops the veil after FALLBACK_MS in case the trailer
  * never starts, so the user is never stuck on a black screen.
+ *
+ * The ``displayedItem`` indirection matters: without it, the parent's
+ * ``props.item`` reactively swaps the backdrop image the very moment the
+ * caller calls ``onItemChange``, so the new backdrop is briefly visible
+ * before the veil rises and covers it. Routing the visual through this
+ * lagged ref keeps the OLD backdrop showing during the fade-in.
  *
  * Inputs
  * - videoPlaying : Ref<boolean> — true once the new trailer is rendering frames.
@@ -25,6 +31,10 @@ import { ref, computed, watch } from 'vue'
  *
  * Output
  * - transitioning : Ref<boolean>     — bind to `.pt-hero-fade--active`.
+ * - displayedItem : Ref<Object|null> — the item currently visible behind
+ *                                       the veil. Use for backdrop / title /
+ *                                       metadata. Lags ``props.item`` by
+ *                                       FADE_IN_MS during transitions.
  * - fadeStyle     : ComputedRef<obj> — CSS `transition-duration` override.
  * - onItemChange  : (item) => void   — call inside a watcher on the active item.
  * - startInitial  : async (item) => void — call on mount after YT API is ready.
@@ -37,6 +47,10 @@ export function useHeroCinemaVeil({ videoPlaying, peekItem, loadItem, hasTrailer
 
   // Start ON so the backdrop never flashes before the first trailer plays.
   const transitioning = ref(true)
+  // Lagged mirror of the parent's active item. Bound to the visual
+  // surfaces (backdrop, title, metadata) so the swap to the new item's
+  // visuals only happens when the veil is fully opaque.
+  const displayedItem = ref(null)
 
   const fadeStyle = computed(() => ({
     transitionDuration: transitioning.value ? `${FADE_IN_MS}ms` : `${FADE_OUT_MS}ms`,
@@ -64,6 +78,7 @@ export function useHeroCinemaVeil({ videoPlaying, peekItem, loadItem, hasTrailer
     const cached = peekItem(item)
     if (cached === null) {
       transitioning.value = false
+      displayedItem.value = item
       loadItem(item)
       return
     }
@@ -71,6 +86,9 @@ export function useHeroCinemaVeil({ videoPlaying, peekItem, loadItem, hasTrailer
     clearPending()
     pendingLoadTimer = setTimeout(async () => {
       pendingLoadTimer = null
+      // Veil is now fully opaque — safe to swap the visible backdrop
+      // and metadata to the incoming item.
+      displayedItem.value = item
       try {
         await loadItem(item)
       } catch {
@@ -83,6 +101,7 @@ export function useHeroCinemaVeil({ videoPlaying, peekItem, loadItem, hasTrailer
   }
 
   async function startInitial(item) {
+    displayedItem.value = item
     try {
       await loadItem(item)
     } catch {
@@ -118,5 +137,5 @@ export function useHeroCinemaVeil({ videoPlaying, peekItem, loadItem, hasTrailer
     clearFallback()
   }
 
-  return { transitioning, fadeStyle, onItemChange, startInitial, dispose }
+  return { transitioning, displayedItem, fadeStyle, onItemChange, startInitial, dispose }
 }

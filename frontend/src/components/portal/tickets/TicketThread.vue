@@ -20,17 +20,12 @@
           entry.deleted ? 'tth-row--anon' : null,
         ]"
       >
-        <img
-          v-if="!entry.deleted && entry.author?.avatar_url"
-          :src="entry.author.avatar_url"
-          class="tth-avatar"
-          :alt="entry.author.display_name"
-          loading="lazy"
-          @error="$event.target.style.visibility = 'hidden'"
+        <MkAvatar
+          :src="!entry.deleted ? entry.author?.avatar_url || null : null"
+          :name="entry.deleted ? '?' : entry.author?.display_name || '?'"
+          :size="32"
+          class="tth-avatar mk-avatar--ring-subtle"
         />
-        <span v-else class="tth-avatar tth-avatar--fallback">
-          {{ entry.deleted ? '?' : (entry.author?.display_name || '?').charAt(0).toUpperCase() }}
-        </span>
 
         <div class="tth-bubble">
           <div class="tth-meta">
@@ -83,6 +78,7 @@ import { ref, computed, nextTick, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 import { MessageSquare } from 'lucide-vue-next'
+import MkAvatar from '@/components/common/MkAvatar.vue'
 
 import '@/assets/styles/portal/ticket-thread.css'
 

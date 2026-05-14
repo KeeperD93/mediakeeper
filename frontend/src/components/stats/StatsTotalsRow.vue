@@ -35,14 +35,14 @@
           :class="{ 'tot-avatars--compact': uniqueSessionUsers.length > 10 }"
           :title="uniqueSessionUsers.map(u => u.id).join(', ')"
         >
-          <div
-            v-for="(u, i) in uniqueSessionUsers.slice(0, 30)"
+          <MkAvatar
+            v-for="u in uniqueSessionUsers.slice(0, 30)"
             :key="u.id"
-            class="tot-avatar"
-            :style="{ background: avatarColors[i % avatarColors.length] }"
-          >
-            {{ u.initial }}
-          </div>
+            :src="null"
+            :name="u.id || ''"
+            :size="24"
+            class="tot-avatar mk-avatar--ring-thin"
+          />
           <div v-if="uniqueSessionUsers.length > 30" class="tot-avatar tot-avatar-more">
             +{{ uniqueSessionUsers.length - 30 }}
           </div>
@@ -119,13 +119,12 @@
 import { ref, computed, watch, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useStats } from '@/composables/useStats'
-import { useStatsUI } from '@/composables/useStatsUI'
 import { Clock, Flame, User, Zap } from 'lucide-vue-next'
+import MkAvatar from '@/components/common/MkAvatar.vue'
 
 const { t } = useI18n()
 const { totals, sparklinePlays, sparklineDuration, records, minimap24h, ticksToDuration } =
   useStats()
-const { avatarColors } = useStatsUI()
 
 const uniqueSessionUsers = computed(() => {
   const seen = new Set()

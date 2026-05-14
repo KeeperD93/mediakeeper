@@ -137,14 +137,24 @@
                   class="pt-evc-result"
                   @click="addUser(u)"
                 >
-                  <MkAvatar :src="u.avatar_url" :name="u.display_name || ''" :size="24" />
+                  <MkAvatar
+                    :src="u.avatar_url"
+                    :name="u.display_name || ''"
+                    :size="24"
+                    class="mk-avatar--ring-subtle"
+                  />
                   <span>{{ u.display_name }}</span>
                 </button>
               </div>
             </div>
             <div v-if="selectedUsers.length" class="pt-evc-users">
               <div v-for="u in selectedUsers" :key="u.id" class="pt-evc-user-chip">
-                <MkAvatar :src="u.avatar_url" :name="u.display_name || ''" :size="18" />
+                <MkAvatar
+                  :src="u.avatar_url"
+                  :name="u.display_name || ''"
+                  :size="18"
+                  class="mk-avatar--ring-subtle"
+                />
                 {{ u.display_name }}
                 <button type="button" class="pt-evc-chip-x" @click="removeUser(u.id)">×</button>
               </div>

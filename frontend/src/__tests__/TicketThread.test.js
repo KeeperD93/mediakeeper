@@ -92,14 +92,16 @@ describe('TicketThread', () => {
     expect(ta.element.value).toBe('')
   })
 
-  it('falls back to the first letter when no avatar_url is provided', () => {
+  it('falls back to the silhouette avatar when no avatar_url is provided', () => {
     const ticket = {
       ...BASE_TICKET,
       requester: { ...BASE_TICKET.requester, avatar_url: null },
     }
     const w = mount(TicketThread, { props: { ticket } })
-    expect(w.find('.tth-avatar--fallback').exists()).toBe(true)
-    expect(w.find('.tth-avatar--fallback').text()).toBe('X')
+    // MkAvatar replaces the legacy first-letter span; the silhouette
+    // icon is rendered inside ``.tth-avatar``.
+    expect(w.find('.tth-avatar').exists()).toBe(true)
+    expect(w.find('.tth-avatar--fallback').exists()).toBe(false)
   })
 
   it('renders the deleted-user placeholder for a purged requester', () => {
@@ -112,8 +114,8 @@ describe('TicketThread', () => {
     const row = w.find('.tth-row--anon')
     expect(row.exists()).toBe(true)
     expect(row.text()).toContain('portal.common.deletedUser')
-    // Avatar falls back to the generic ``?`` marker, not a stale initial.
-    expect(w.find('.tth-avatar--fallback').text()).toBe('?')
+    // Avatar renders the silhouette icon instead of the previous ``?`` letter.
+    expect(w.find('.tth-avatar').exists()).toBe(true)
     // The role pill is suppressed for an anonymised author.
     expect(row.find('.tth-role-pill').exists()).toBe(false)
   })
