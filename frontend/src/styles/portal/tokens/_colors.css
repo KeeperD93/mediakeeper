@@ -58,4 +58,9 @@
   --portal-color-accent-hot-rgb: 236, 72, 153;
   --portal-color-highlight: #f97316; /* orange — ticket audio, highlights */
   --portal-color-highlight-rgb: 249, 115, 22;
+
+  /* Solid neutrals (poster surfaces, blacklist ribbon) ---- */
+  --portal-poster-bg: #0e1320; /* dark backdrop behind poster artwork */
+  --portal-color-neutral-dark: #374151; /* slate — distinct from error red */
+  --portal-color-neutral-dark-rgb: 55, 65, 81;
 }

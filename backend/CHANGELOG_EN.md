@@ -9,6 +9,9 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Added
+- Portal: new "PosterCard" cover component, i18n/tokens compliant (integration prep).
+
 ### Fixed
 - Portal: /availability rate limit raised to 120/min, frontend coalescing, 429 toast dedupe
 

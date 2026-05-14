@@ -2159,6 +2159,23 @@
         "tooltipAnonymous": "Déjà demandé le {date}"
       }
     },
+    "posterCard": {
+      "statusPending": "Demandé",
+      "statusApproved": "Approuvé",
+      "statusRejected": "Rejeté",
+      "statusBlacklisted": "Blacklisté",
+      "statusWatched": "Déjà vu",
+      "statusInProgress": "En cours",
+      "badgeNew": "NOUVEAU",
+      "availFull": "DISPO",
+      "availPartial": "PARTIEL",
+      "actionPlay": "LECTURE",
+      "actionRequest": "DEMANDÉ",
+      "actionReRequest": "RE-DEMANDÉ",
+      "actionPending": "EN ATTENTE",
+      "btnBookmark": "Marque-page",
+      "btnBlacklist": "Blacklister"
+    },
     "seeMore": "Voir plus",
     "seeAll": "Voir tout",
     "loadMore": "Charger plus",
