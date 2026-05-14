@@ -1,0 +1,171 @@
+/*
+ * Premium /portal/leaderboard page styles — ambient backdrop, particle
+ * layer, section headings, "rest" rows treatment.
+ *
+ * Lives outside Vue scoped CSS because (1) the backdrop must paint a
+ * fixed layer behind every component, (2) the particle nodes are
+ * generated inline by the page orchestrator, (3) the gc-lb-row "VOUS"
+ * highlight is an override of the global leaderboard-card.css rules
+ * scoped to ``.pt-leaderboard .lb-rest``.
+ *
+ * Every selector lives under ``.pt-leaderboard`` (page root) to avoid
+ * leaks into other modules.
+ */
+
+.pt-leaderboard {
+  position: relative;
+  isolation: isolate;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 24px 20px;
+}
+
+.pt-leaderboard::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(
+      ellipse 80% 60% at 50% 20%,
+      rgb(var(--portal-color-warning-rgb), 0.05),
+      transparent
+    ),
+    radial-gradient(
+      ellipse 60% 40% at 50% 80%,
+      rgb(var(--accent-rgb), 0.04),
+      transparent
+    );
+  pointer-events: none;
+}
+
+.pt-leaderboard::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(ellipse at center, transparent 60%, rgb(0, 0, 0, 0.4));
+  pointer-events: none;
+}
+
+.pt-leaderboard .lb-particles {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.pt-leaderboard .lb-particle {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: rgb(255, 255, 255, 0.1);
+  border-radius: var(--portal-radius-circle);
+  animation: lb-float 20s linear infinite;
+}
+
+@keyframes lb-float {
+  from { transform: translateY(100vh); }
+  to   { transform: translateY(-10vh); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pt-leaderboard .lb-particle {
+    animation: none;
+    opacity: 0.05;
+  }
+}
+
+.pt-leaderboard .lb-section-title {
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--portal-tracking-widest);
+  color: var(--portal-text-body-muted);
+  margin: 0 0 12px;
+}
+
+.pt-leaderboard .lb-top-ten {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.pt-leaderboard .lb-rest {
+  background: var(--portal-surface-1);
+  border: 1px solid rgb(255, 255, 255, 0.05);
+  border-radius: var(--portal-radius-lg);
+  padding: 12px;
+}
+
+.pt-leaderboard .lb-rest .gc-lb-row--me {
+  border-left: 3px solid var(--accent-500);
+  background: rgb(var(--accent-rgb), 0.1);
+  font-weight: var(--portal-font-medium);
+  position: relative;
+}
+
+.pt-leaderboard .lb-rest .gc-lb-row--me::after {
+  content: 'VOUS';
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: var(--portal-text-3xs);
+  font-weight: var(--portal-font-bold);
+  letter-spacing: var(--portal-tracking-widest);
+  padding: 2px 6px;
+  border-radius: var(--portal-radius-pill);
+  background: var(--accent-500);
+  color: var(--portal-text-primary);
+}
+
+.pt-leaderboard .lb-fade-enter-active {
+  transition:
+    opacity 400ms ease,
+    transform 400ms ease;
+  transition-delay: var(--lb-delay, 0ms);
+}
+.pt-leaderboard .lb-fade-enter-from {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pt-leaderboard .lb-fade-enter-active {
+    transition: none;
+  }
+  .pt-leaderboard .lb-fade-enter-from {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.pt-leaderboard .pt-lb-header {
+  margin-bottom: 16px;
+}
+.pt-leaderboard .pt-lb-header h1 {
+  font-size: var(--portal-text-xl);
+  font-weight: var(--portal-font-extrabold);
+  color: var(--portal-text-primary);
+  margin: 0;
+}
+.pt-leaderboard .pt-lb-subtitle {
+  margin-top: 4px;
+  font-size: var(--portal-text-xs);
+  color: var(--portal-text-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--portal-tracking-caps);
+}
+.pt-leaderboard .pt-lb-state {
+  text-align: center;
+  color: var(--portal-text-muted);
+  padding: 2.5rem 1rem;
+}
+
+@media (max-width: 640px) {
+  .pt-leaderboard {
+    padding: 16px 12px;
+  }
+}

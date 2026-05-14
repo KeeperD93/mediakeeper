@@ -2055,7 +2055,26 @@
     "leaderboard": {
       "title": "Classement du mois",
       "subtitle": "Top {n} joueurs · mis à jour en continu",
-      "emptyState": "Aucun joueur classé ce mois."
+      "emptyState": "Aucun joueur classé ce mois.",
+      "topTen": "Top 10",
+      "rest": "Place 14 et suivantes",
+      "hero": {
+        "rankBadge": "Joueur du mois",
+        "levelTitle": "Niveau {level} · {title}",
+        "leadOverSecond": "+{n} XP devant le #2"
+      },
+      "stats": {
+        "playersRanked": "{n} joueurs classés",
+        "xpDistributed": "{n} XP distribués",
+        "daysRemaining": "{n} jours restants"
+      },
+      "myRank": {
+        "label": "VOUS",
+        "xpThisMonth": "XP ce mois",
+        "deltaWeek": "+{n} XP cette semaine",
+        "projectedEnd": "Projection fin de mois",
+        "onPodium": "Vous êtes sur le podium !"
+      }
     },
     "maintenance": {
       "title": "Maintenance en cours",

@@ -1,15 +1,22 @@
 <template>
-  <div v-if="entries.length >= 3" class="pt-lb-podium">
+  <div v-if="entries.length" class="pt-lb-podium" :data-count="entries.length">
     <router-link
       v-for="(entry, idx) in entries"
       :key="entry.user_id"
       :to="{ name: 'portal-user-profile', params: { id: entry.user_id } }"
       class="pt-lb-podium-card"
-      :class="`pt-lb-podium-card--${idx + 1}`"
+      :class="`pt-lb-podium-card--${rankFor(idx)}`"
     >
-      <div class="pt-lb-podium-rank">#{{ idx + 1 }}</div>
+      <div class="pt-lb-podium-rank">#{{ rankFor(idx) }}</div>
+      <component
+        :is="medalFor(idx)"
+        :size="22"
+        :stroke-width="2.5"
+        class="pt-lb-podium-medal"
+        aria-hidden="true"
+      />
       <div class="gc-lb-av" :class="`gc-lb-av--${entry.tier || 'bronze'}`">
-        <MkAvatar :name="entry.display_name || ''" :src="entry.avatar_url || null" :size="64" />
+        <MkAvatar :name="entry.display_name || ''" :src="entry.avatar_url || null" :size="72" />
       </div>
       <div class="pt-lb-podium-name">{{ entry.display_name }}</div>
       <div class="pt-lb-podium-meta">
@@ -35,7 +42,7 @@
 
 <script setup>
 import { useI18n } from 'vue-i18n'
-import { ChevronDown, ChevronUp } from 'lucide-vue-next'
+import { Award, ChevronDown, ChevronUp, Medal } from 'lucide-vue-next'
 import MkAvatar from '@/components/common/MkAvatar.vue'
 
 defineProps({
@@ -43,6 +50,14 @@ defineProps({
 })
 
 const { t } = useI18n()
+
+// Parent slices ``items.slice(1, 3)``: idx 0 → rank 2, idx 1 → rank 3.
+function rankFor(idx) {
+  return idx + 2
+}
+function medalFor(idx) {
+  return idx === 0 ? Award : Medal
+}
 function moveClass(movement) {
   if (!movement) return 'gc-lb-move--flat'
   return movement > 0 ? 'gc-lb-move--up' : 'gc-lb-move--down'
@@ -57,69 +72,82 @@ function moveTooltip(movement) {
 <style scoped>
 .pt-lb-podium {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  margin-bottom: 2rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.pt-lb-podium[data-count='1'] {
+  grid-template-columns: minmax(0, 480px);
+  justify-content: center;
 }
 .pt-lb-podium-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.45rem;
-  padding: 1.25rem 0.85rem 1.1rem;
-  border-radius: var(--radius-card);
-  background:
-    linear-gradient(180deg, rgb(var(--accent-rgb), 0.05) 0%, transparent 70%),
-    var(--portal-surface-1);
-  border: 1px solid rgb(255, 255, 255, 0.06);
-  color: var(--text-primary);
+  gap: 8px;
+  padding: 24px 16px 18px;
+  min-height: 280px;
+  border-radius: var(--portal-radius-lg);
   text-decoration: none;
+  color: var(--portal-text-primary);
   transition:
-    transform var(--portal-dur-fast) var(--portal-ease-emphasis),
-    box-shadow var(--portal-dur-fast) var(--portal-ease-emphasis),
-    border-color var(--portal-dur-fast) var(--portal-ease-emphasis);
-}
-.pt-lb-podium-card--1 {
-  order: 2;
-  border-color: rgb(var(--portal-color-warning-rgb), 0.45);
-  box-shadow: 0 6px 20px rgb(var(--portal-color-warning-rgb), 0.12);
+    transform var(--portal-dur-med) var(--portal-ease-emphasis),
+    box-shadow var(--portal-dur-med) var(--portal-ease-emphasis),
+    border-color var(--portal-dur-med) var(--portal-ease-emphasis);
 }
 .pt-lb-podium-card--2 {
-  order: 1;
-  border-color: rgb(192, 192, 192, 0.4);
+  background:
+    linear-gradient(135deg, rgb(192, 192, 192, 0.08), transparent 70%),
+    var(--portal-surface-1);
+  border: 1px solid rgb(192, 192, 192, 0.3);
+  box-shadow: 0 4px 24px rgb(192, 192, 192, 0.1);
 }
 .pt-lb-podium-card--3 {
-  order: 3;
-  border-color: rgb(205, 127, 50, 0.45);
+  background:
+    linear-gradient(135deg, rgb(205, 127, 50, 0.08), transparent 70%),
+    var(--portal-surface-1);
+  border: 1px solid rgb(205, 127, 50, 0.3);
+  box-shadow: 0 4px 24px rgb(205, 127, 50, 0.1);
 }
 @media (hover: hover) {
   .pt-lb-podium-card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-4px);
     box-shadow: var(--portal-shadow-popup);
   }
+  .pt-lb-podium-card--2:hover {
+    box-shadow:
+      0 10px 30px rgb(192, 192, 192, 0.22),
+      var(--portal-shadow-popup);
+  }
+  .pt-lb-podium-card--3:hover {
+    box-shadow:
+      0 10px 30px rgb(205, 127, 50, 0.22),
+      var(--portal-shadow-popup);
+  }
 }
+.pt-lb-podium-medal {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+}
+.pt-lb-podium-card--2 .pt-lb-podium-medal { color: #c0c0c0; }
+.pt-lb-podium-card--3 .pt-lb-podium-medal { color: #cd7f32; }
 .pt-lb-podium-rank {
   font-size: var(--portal-text-2xl);
   font-weight: var(--portal-font-black);
   font-family: var(--portal-font-display);
-  color: var(--accent);
+  line-height: 1;
 }
-.pt-lb-podium-card--1 .pt-lb-podium-rank {
-  color: var(--portal-color-warning);
-}
-.pt-lb-podium-card--2 .pt-lb-podium-rank {
-  color: #c0c0c0;
-}
-.pt-lb-podium-card--3 .pt-lb-podium-rank {
-  color: #cd7f32;
-}
+.pt-lb-podium-card--2 .pt-lb-podium-rank { color: #c0c0c0; }
+.pt-lb-podium-card--3 .pt-lb-podium-rank { color: #cd7f32; }
 .pt-lb-podium-card :deep(.gc-lb-av) {
-  width: 72px;
-  height: 72px;
-  padding: 3px;
+  width: 84px;
+  height: 84px;
+  padding: 4px;
 }
 .pt-lb-podium-name {
-  font-size: var(--portal-text-base);
+  font-size: var(--portal-text-lg);
   font-weight: var(--portal-font-bold);
   text-align: center;
   max-width: 100%;
@@ -131,29 +159,29 @@ function moveTooltip(movement) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.1rem;
+  gap: 2px;
   font-size: var(--portal-text-3xs);
-  color: var(--text-muted);
+  color: var(--portal-text-muted);
   text-transform: uppercase;
   letter-spacing: var(--portal-tracking-caps);
 }
 .pt-lb-podium-xp {
-  font-size: var(--portal-text-md);
-  font-weight: var(--portal-font-bold);
-  color: var(--accent);
+  font-size: var(--portal-text-xl);
+  font-weight: var(--portal-font-extrabold);
   font-family: var(--portal-font-display);
 }
+.pt-lb-podium-card--2 .pt-lb-podium-xp { color: #c0c0c0; }
+.pt-lb-podium-card--3 .pt-lb-podium-xp { color: #cd7f32; }
 .pt-lb-podium-move {
   min-width: 36px;
 }
 @media (max-width: 640px) {
   .pt-lb-podium {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
-  .pt-lb-podium-card--1,
-  .pt-lb-podium-card--2,
-  .pt-lb-podium-card--3 {
-    order: unset;
+  .pt-lb-podium-card {
+    min-height: 200px;
+    padding: 18px 14px;
   }
 }
 </style>

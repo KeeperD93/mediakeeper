@@ -2055,7 +2055,26 @@
     "leaderboard": {
       "title": "Monthly leaderboard",
       "subtitle": "Top {n} players · live updates",
-      "emptyState": "No ranked players this month."
+      "emptyState": "No ranked players this month.",
+      "topTen": "Top 10",
+      "rest": "Rank 14 and beyond",
+      "hero": {
+        "rankBadge": "Player of the month",
+        "levelTitle": "Level {level} · {title}",
+        "leadOverSecond": "+{n} XP ahead of #2"
+      },
+      "stats": {
+        "playersRanked": "{n} ranked players",
+        "xpDistributed": "{n} XP awarded",
+        "daysRemaining": "{n} days remaining"
+      },
+      "myRank": {
+        "label": "YOU",
+        "xpThisMonth": "XP this month",
+        "deltaWeek": "+{n} XP this week",
+        "projectedEnd": "End-of-month projection",
+        "onPodium": "You're on the podium!"
+      }
     },
     "maintenance": {
       "title": "Maintenance in progress",

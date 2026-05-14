@@ -54,6 +54,7 @@ utilisateurs.
 - Trophées listes — deux nouvelles familles (Curateur, Bibliothécaire) avec 5 paliers chacune
 
 ### Changed
+- Classement — refonte premium showcase : hero du joueur du mois, bandeau stats temps réel, mise en avant de votre rang
 - Cartes média — ruban diagonal « Disponible » retiré (le point vert suffit)
 - Avatars — icône silhouette agrandie pour mieux remplir le cercle
 - Notifications — icônes Lucide en lieu et place des emojis
