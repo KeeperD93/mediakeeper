@@ -40,6 +40,22 @@ const routes = [
   },
 ]
 
+// Dev-only visual matrix for the PosterCard component. Gated behind
+// import.meta.env.DEV so the route never reaches a production bundle
+// (Vite strips both the import and the entry under `npm run build`).
+// Inserted before the catch-all, otherwise the wildcard would swallow it.
+if (import.meta.env.DEV) {
+  const catchAllIdx = routes.findIndex(r => r.name === 'not-found')
+  const devRoute = {
+    path: '/portal/_dev/posters',
+    name: 'portal-dev-posters',
+    component: () => import('@/views/portal/PosterCardPreview.vue'),
+    meta: { public: true },
+  }
+  if (catchAllIdx >= 0) routes.splice(catchAllIdx, 0, devRoute)
+  else routes.push(devRoute)
+}
+
 const router = createRouter({
   history: createWebHistory(),
   routes,

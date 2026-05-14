@@ -190,7 +190,7 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
-  word-break: break-word;
+  overflow-wrap: anywhere;
   text-wrap: balance;
   min-height: 17px;
   max-height: 36px;
