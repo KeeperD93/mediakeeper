@@ -87,15 +87,19 @@
       <Pause v-else :size="7" fill="#facc15" />
       <span class="sc-ft-title">{{ s.series || s.media }}</span>
       <span class="sc-ft-user">{{ s.user }}</span>
-      <div class="sc-ft-avatar" :style="{ background: avatarColors[0] }">
-        {{ (s.user || '?')[0].toUpperCase() }}
-      </div>
+      <MkAvatar
+        :src="null"
+        :name="s.user || '?'"
+        :size="18"
+        class="sc-ft-avatar mk-avatar--ring-thin"
+      />
     </div>
   </div>
 </template>
 
 <script setup>
 import { CirclePlay, Pause, Play } from 'lucide-vue-next'
+import MkAvatar from '@/components/common/MkAvatar.vue'
 
 defineProps({
   s: { type: Object, required: true },

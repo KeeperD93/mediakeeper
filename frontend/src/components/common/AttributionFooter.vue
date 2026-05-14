@@ -42,7 +42,7 @@ const tmdbLogoUrl = '/assets/icons/tmdb.svg'
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 8px 14px calc(8px + env(safe-area-inset-bottom, 0px));
+  padding: 4px 14px calc(4px + env(safe-area-inset-bottom, 0px));
   text-align: center;
   font-size: 12px;
   line-height: 1.3;
@@ -109,7 +109,7 @@ const tmdbLogoUrl = '/assets/icons/tmdb.svg'
   color: inherit;
   text-decoration: underline;
   text-underline-offset: 2px;
-  padding: 8px 2px;
+  padding: 2px;
   display: inline-block;
 }
 

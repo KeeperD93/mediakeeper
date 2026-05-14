@@ -19,7 +19,12 @@
         @change="$emit('toggle', u.id)"
       />
       <div class="ru-card-head">
-        <MkAvatar :src="u.avatar_url" :name="u.display_name || u.username" :size="56" />
+        <MkAvatar
+          :src="u.avatar_url"
+          :name="u.display_name || u.username"
+          :size="56"
+          class="ru-admin-avatar"
+        />
         <div>
           <div class="ru-card-name">{{ u.display_name }}</div>
           <div class="ru-card-username">@{{ u.username }}</div>

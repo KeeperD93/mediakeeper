@@ -123,11 +123,21 @@ export function useHeroBannerTrailer({ onEnded } = {}) {
         resolve()
         return
       }
+      // Safety net: if the IFrame API script is blocked (ad-blocker,
+      // network, rate-limit), resolve anyway after 5 s so the caller
+      // proceeds. ``createPlayer`` silently bails out without YT, the
+      // rest of the hero (backdrop, title, rotation, fallback veil)
+      // keeps working.
+      const giveUp = setTimeout(resolve, 5000)
+      const finish = () => {
+        clearTimeout(giveUp)
+        resolve()
+      }
       if (document.getElementById('yt-api-script')) {
         const check = setInterval(() => {
           if (window.YT?.Player) {
             clearInterval(check)
-            resolve()
+            finish()
           }
         }, 100)
         return
@@ -136,7 +146,7 @@ export function useHeroBannerTrailer({ onEnded } = {}) {
       tag.id = 'yt-api-script'
       tag.src = 'https://www.youtube.com/iframe_api'
       document.head.appendChild(tag)
-      window.onYouTubeIframeAPIReady = () => resolve()
+      window.onYouTubeIframeAPIReady = () => finish()
     })
   }
 

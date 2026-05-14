@@ -10,7 +10,7 @@
         <MkAvatar
           :name="entry.display_name || ''"
           :src="entry.avatar_url || null"
-          :size="132"
+          :size="140"
         />
       </div>
     </div>
@@ -108,34 +108,50 @@ const { displayed: displayedXp } = useCountUp(targetXp.value, { duration: 1400 }
   pointer-events: none;
 }
 .lb-hero-avatar {
-  --lb-hero-ring-from: var(--portal-color-warning);
   width: 140px;
   height: 140px;
   flex-shrink: 0;
-  padding: 4px;
   border-radius: var(--portal-radius-circle);
-  background: conic-gradient(
-    from 0deg,
-    var(--lb-hero-ring-from),
-    transparent 25%,
-    var(--lb-hero-ring-from)
-  );
-  animation: lb-hero-ring 8s linear infinite;
+  /* Ring drawn by MkAvatar's CSS border — pure layout container here.
+     Default ring colour is rank-1 gold; tier variants override below
+     so a top-rank user in a different tier (e.g. legendary) still gets
+     their own tier colour rather than a hard-coded gold ring. */
+  --mk-avatar-ring-width: 5px;
+  --mk-avatar-ring-color: var(--portal-color-warning);
   position: relative;
   z-index: 1;
+}
+.lb-hero-avatar--bronze {
+  --mk-avatar-ring-color: #cd7f32;
+}
+.lb-hero-avatar--silver {
+  --mk-avatar-ring-color: #c0c0c0;
+}
+.lb-hero-avatar--gold {
+  --mk-avatar-ring-color: var(--portal-color-warning);
+}
+.lb-hero-avatar--platinum {
+  --mk-avatar-ring-color: var(--portal-color-cinema);
+}
+.lb-hero-avatar--diamond {
+  --mk-avatar-ring-color: #7c3aed;
+}
+.lb-hero-avatar--master {
+  --mk-avatar-ring-color: var(--portal-color-error);
+}
+.lb-hero-avatar--legendary {
+  --mk-avatar-ring-color: var(--portal-color-warning);
 }
 .lb-hero-avatar-inner {
   width: 100%;
   height: 100%;
   border-radius: var(--portal-radius-circle);
-  background: var(--portal-surface-3);
+  /* Transparent so the page bg shows through the hollow ring above. */
+  background: transparent;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-@keyframes lb-hero-ring {
-  to { transform: rotate(360deg); }
 }
 .lb-hero-body {
   flex: 1;
@@ -226,11 +242,6 @@ const { displayed: displayedXp } = useCountUp(targetXp.value, { duration: 1400 }
   .lb-hero-avatar {
     width: 96px;
     height: 96px;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .lb-hero-avatar {
-    animation: none;
   }
 }
 .lb-hero-custom-title--rarity-common { color: var(--portal-text-body); }

@@ -26,6 +26,10 @@ vi.mock('vue-i18n', () => ({
     t: (key, params) => (params ? `${key}:${JSON.stringify(params)}` : key),
     locale: { value: 'fr' },
   }),
+  // Translation is the runtime component we now import explicitly because
+  // the vite plugin's ``fullInstall: false`` prevents the global ``<i18n-t>``
+  // registration. Tests stub it as a transparent slot wrapper.
+  Translation: { name: 'TranslationStub', template: '<span><slot name="date"/></span>' },
 }))
 
 vi.mock('@/composables/portal/usePortalAuth', () => ({
