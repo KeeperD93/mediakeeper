@@ -284,6 +284,17 @@
   }
 }
 
+/* Play — success tint on hover, mirrors the request button language. */
+@media (hover: hover) {
+  .mk-btn--play:hover {
+    background: rgb(var(--portal-color-success-rgb), 0.18);
+    border-color: rgb(var(--portal-color-success-rgb), 0.45);
+    box-shadow:
+      0 8px 24px rgb(0, 0, 0, 0.35),
+      0 0 18px rgb(var(--portal-color-success-rgb), 0.2);
+  }
+}
+
 /* Pending — always-on warning tint, not clickable. */
 .mk-btn--muted {
   background: rgb(var(--portal-color-warning-rgb), 0.16);
