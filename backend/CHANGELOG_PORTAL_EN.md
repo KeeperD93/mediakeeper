@@ -53,8 +53,10 @@ This section intentionally has no date so it is not shown to users.
 
 ### Changed
 - Leaderboard — premium showcase revamp: monthly champion hero, live stats bar, your-rank highlight
+- Leaderboard — #1 avatar no longer rotates, static gold ring
 - Media cards — diagonal "Available" ribbon removed (the green dot is enough)
-- Avatars — silhouette icon enlarged to better fill the circle
+- Avatars — inner fill matches the page background (no more purple disc), silhouette more prominent
+- TMDB credit — slimmer footer (reduced padding)
 - Notifications — Lucide icons replace the previous emojis
 - TMDB credit — compact single-line footer
 - Home and profile — tighter spacing on mobile
@@ -92,7 +94,6 @@ This section intentionally has no date so it is not shown to users.
 - Surprise — intermittent 500 on rapid successive clicks fixed (ORM session state preserved after rollback)
 - Search — result posters now display correctly
 - Carousels — "See more" card now shares the same rounded corners as adjacent posters
-- Home hero — guaranteed muted autoplay so the YouTube pause indicator no longer freezes mid-screen
 - Media detail page — always scrolls to the top on open
 - Private profile — dedicated landing instead of a generic error when reached from the leaderboard
 - Portal — username-choice modal: no more bottom-left text leak during the enter transition

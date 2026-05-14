@@ -266,15 +266,11 @@
 }
 /* MkAvatar drives the avatar render here. Override the inline width/
    height bound to its ``size`` prop so the disc tracks the responsive
-   ring (64 px mobile, 88 px desktop). The silhouette SVG is sized in
-   percent so it stays roughly 85% of the visible disc. */
+   ring (64 px mobile, 88 px desktop). The silhouette scale is handled
+   by MkAvatar itself (95% on regular sizes). */
 .gc-avatar-mk {
   width: 100% !important;
   height: 100% !important;
-}
-.gc-avatar-mk .mk-avatar-icon {
-  width: 85%;
-  height: 85%;
 }
 .gc--master .gc-avatar-inner,
 .gc--legendary .gc-avatar-inner {

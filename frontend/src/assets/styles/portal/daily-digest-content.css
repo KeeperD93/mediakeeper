@@ -41,10 +41,16 @@
   /* On mobile the inline width/height bound to MkAvatar's ``size`` prop
      leaves a wide empty ring around a tiny silhouette. Override it so the
      avatar fills the tier disc and the row reads as a single coherent
-     element rather than a centered chip. */
+     element rather than a centered chip. The icon inside is grown
+     proportionally — without this, MkAvatar's iconSize remains keyed
+     to the ``size`` prop (24 px) rather than the rendered diameter. */
   .ddd-section--leaderboard .gc-lb-av-mk {
     width: 100% !important;
     height: 100% !important;
+  }
+  .ddd-section--leaderboard .gc-lb-av-mk .mk-avatar-icon {
+    width: 85%;
+    height: 85%;
   }
 }
 .ddd-section--leaderboard .gc-lb-n {

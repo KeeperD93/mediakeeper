@@ -114,13 +114,10 @@ const { displayed: displayedXp } = useCountUp(targetXp.value, { duration: 1400 }
   flex-shrink: 0;
   padding: 4px;
   border-radius: var(--portal-radius-circle);
-  background: conic-gradient(
-    from 0deg,
-    var(--lb-hero-ring-from),
-    transparent 25%,
-    var(--lb-hero-ring-from)
-  );
-  animation: lb-hero-ring 8s linear infinite;
+  /* Solid gold ring instead of the previous rotating conic-gradient.
+     The animation spun the entire wrapper (including the avatar image
+     inside), which made the #1 portrait visibly turn at 8 s / loop. */
+  background: var(--lb-hero-ring-from);
   position: relative;
   z-index: 1;
 }
@@ -133,9 +130,6 @@ const { displayed: displayedXp } = useCountUp(targetXp.value, { duration: 1400 }
   display: flex;
   align-items: center;
   justify-content: center;
-}
-@keyframes lb-hero-ring {
-  to { transform: rotate(360deg); }
 }
 .lb-hero-body {
   flex: 1;
@@ -226,11 +220,6 @@ const { displayed: displayedXp } = useCountUp(targetXp.value, { duration: 1400 }
   .lb-hero-avatar {
     width: 96px;
     height: 96px;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .lb-hero-avatar {
-    animation: none;
   }
 }
 .lb-hero-custom-title--rarity-common { color: var(--portal-text-body); }

@@ -111,6 +111,11 @@ export function useStatsUI() {
   }
 
   function goToActivitySearch(name) {
+    // Dismiss the hover-preview popup before navigating away. Without
+    // this, the preview that opened on mouseenter stays pinned to its
+    // last coordinates after the click switches tabs — the tab change
+    // bypasses the mouseleave event that would normally hide it.
+    hidePreview()
     activeTab.value = 'activity'
     activitySearchSeed.value = name
   }

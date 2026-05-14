@@ -5,11 +5,11 @@
         <div class="pt-dpb-inner">
           <AlertTriangle :size="18" class="pt-dpb-icon" />
           <span class="pt-dpb-text">
-            <i18n-t keypath="portal.privacy.banner.message" tag="span">
+            <Translation keypath="portal.privacy.banner.message" tag="span">
               <template #date>
                 <strong class="pt-dpb-date">{{ formattedDate }}</strong>
               </template>
-            </i18n-t>
+            </Translation>
           </span>
           <button type="button" class="pt-dpb-cancel" :disabled="cancelling" @click="onCancel">
             {{
@@ -26,7 +26,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { useI18n, Translation } from 'vue-i18n'
 import { AlertTriangle } from 'lucide-vue-next'
 import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 import { useGdprUser } from '@/composables/portal/useGdprUser'

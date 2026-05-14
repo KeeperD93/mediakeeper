@@ -87,6 +87,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Dépendances frontend — vue-i18n 9→11 + unplugin 4→11 (alignement compile/runtime, retrait legacy-peer-deps)
 
 ### Fixed
+- Statistiques — popup jaquette se ferme bien après clic vers l'historique d'activité
 - Modification utilisateur — vider un champ (prénom/nom/email) persiste désormais comme suppression
 - Démarrage Alembic — env.py utilise désormais `connectable.begin()` (commit atomique de toute la run migration ; corrige le rollback silencieux asyncpg)
 - Migrations 045-048 — bascule en SQL natif Postgres (correction du no-op silencieux de batch_alter_table sur asyncpg)

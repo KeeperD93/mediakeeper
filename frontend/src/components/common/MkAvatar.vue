@@ -39,12 +39,12 @@ watch(
 
 const showImage = computed(() => !!props.src && !failed.value)
 
-// Bigger silhouette (85%) on regular avatars (>= 32 px) so the icon
-// actually fills the disc rather than floating tiny at the bottom. The
-// chip range (< 32 px — leaderboard rows) stays at 80% to keep the
-// glyph readable inside a tight tier ring.
-const ICON_SCALE_CHIP = 0.8
-const ICON_SCALE_FULL = 0.85
+// Silhouette fills more of the visible disc now — 0.85 / 0.95 instead
+// of 0.80 / 0.85. Combined with the dark interior fill, the icon reads
+// as a properly framed portrait at every size from chip (24 px) to
+// hero billboard (132 px).
+const ICON_SCALE_CHIP = 0.85
+const ICON_SCALE_FULL = 0.95
 const iconSize = computed(() =>
   Math.round(props.size * (props.size < 32 ? ICON_SCALE_CHIP : ICON_SCALE_FULL)),
 )
@@ -57,7 +57,7 @@ function onError() {
 <style scoped>
 .mk-avatar {
   display: inline-flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
   overflow: hidden;
   flex-shrink: 0;
@@ -80,14 +80,11 @@ function onError() {
 }
 
 .mk-avatar-fallback {
-  background: linear-gradient(135deg, var(--accent-500), var(--accent-600));
-  /* Pure white silhouette on the accent gradient — semantic, no token. */
+  /* Match the dark page background so the tier ring drawn by the
+     parent wrapper (gc-lb-av, lb-hero-avatar, etc.) is the only
+     coloured framing around the silhouette — previously the accent
+     gradient painted an unwanted purple disc inside every ring. */
+  background: var(--bg-primary);
   color: #fff;
-}
-
-.mk-avatar-icon {
-  /* Anchor the silhouette to the bottom of the circle so it reads as a
-     framed head-and-shoulders portrait rather than a floating glyph. */
-  margin-top: 8%;
 }
 </style>
