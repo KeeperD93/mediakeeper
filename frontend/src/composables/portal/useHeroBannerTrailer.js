@@ -59,7 +59,13 @@ export function useHeroBannerTrailer({ onEnded } = {}) {
         videoId,
         playerVars: {
           autoplay: 1,
-          mute: muted.value ? 1 : 0,
+          // Always boot the player muted so the browser autoplay policy
+          // can never refuse the playback request. If we let an unmuted
+          // first frame through, YouTube freezes on its own centred
+          // pause indicator and the iframe never recovers because the
+          // overlay sits under ``pointer-events: none``. The real
+          // ``muted`` state is applied immediately in ``onReady`` below.
+          mute: 1,
           controls: 0,
           showinfo: 0,
           rel: 0,

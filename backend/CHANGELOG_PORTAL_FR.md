@@ -93,6 +93,7 @@ utilisateurs.
 - Surprise — erreurs intermittentes 500 sur clics rapides successifs corrigées (état de session ORM préservé après rollback)
 - Recherche — les jaquettes des résultats s'affichent désormais correctement
 - Carrousels — card « Voir plus » a les mêmes coins arrondis que les jaquettes adjacentes
+- Hero d'accueil — autoplay garanti muet pour éviter l'indicateur pause YouTube figé
 - Page détails média — page ouverte en haut systématiquement
 - Profil privé — page dédiée au lieu d'une erreur générique au clic depuis le classement
 - Portail — modale de choix du pseudo : plus de texte qui fuit en bas à gauche pendant la transition
