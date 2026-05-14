@@ -2159,6 +2159,23 @@
         "tooltipAnonymous": "Already requested on {date}"
       }
     },
+    "posterCard": {
+      "statusPending": "Requested",
+      "statusApproved": "Approved",
+      "statusRejected": "Rejected",
+      "statusBlacklisted": "Blacklisted",
+      "statusWatched": "Watched",
+      "statusInProgress": "In progress",
+      "badgeNew": "NEW",
+      "availFull": "AVAILABLE",
+      "availPartial": "PARTIAL",
+      "actionPlay": "PLAY",
+      "actionRequest": "REQUEST",
+      "actionReRequest": "RE-REQUEST",
+      "actionPending": "PENDING",
+      "btnBookmark": "Bookmark",
+      "btnBlacklist": "Blacklist"
+    },
     "seeMore": "See more",
     "seeAll": "See all",
     "loadMore": "Load more",
