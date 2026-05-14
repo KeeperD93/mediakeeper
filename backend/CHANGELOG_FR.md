@@ -9,6 +9,9 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+### Fixed
+- Portal : limite débit /availability portée à 120/min, coalescing front, dédupe toasts 429
+
 ## [0.9.9] - 2026-05-14
 
 ### Added

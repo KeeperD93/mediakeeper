@@ -9,6 +9,9 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Fixed
+- Portal: /availability rate limit raised to 120/min, frontend coalescing, 429 toast dedupe
+
 ## [0.9.9] - 2026-05-14
 
 ### Added

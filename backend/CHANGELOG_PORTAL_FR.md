@@ -16,6 +16,9 @@ utilisateurs.
 
 ## [Unreleased]
 
+### Fixed
+- Accueil : suppression de la rafale de notifications « Trop de tentatives » au chargement
+
 ## [0.3.0] - 2026-05-14
 
 ### Added

@@ -16,13 +16,75 @@ function _isFresh(entry) {
   return typeof ts === 'number' && Date.now() - ts < CACHE_TTL_MS
 }
 
-export function useAvailability() {
-  const { apiPost } = useApi()
+// Module-scoped coalescing queue. The Portal home fires ~13 carousel
+// loaders in parallel; each one used to POST /availability independently
+// the moment its data arrived, swamping the endpoint and stacking 429
+// toasts. We now batch every checkAvailability() call landing inside the
+// same microtask tick into a single POST with the deduped union of items.
+let pendingItems = []
+let pendingResolvers = []
+let flushScheduled = false
 
+// useApi() returns plain refs + a closure around fetchApiResponse — safe
+// to invoke at module scope, but we lazy-init so unit tests that mock
+// the module can intercept it cleanly.
+let _apiPost = null
+function _getApiPost() {
+  if (!_apiPost) _apiPost = useApi().apiPost
+  return _apiPost
+}
+
+async function _flushQueue() {
+  const items = pendingItems
+  const resolvers = pendingResolvers
+  pendingItems = []
+  pendingResolvers = []
+  flushScheduled = false
+
+  // Dedupe across all coalesced callers — two carousels both asking
+  // for the same tmdb_id only count once in the POST payload.
+  const seen = new Set()
+  const unique = []
+  for (const it of items) {
+    const k = String(it.tmdb_id)
+    if (seen.has(k)) continue
+    seen.add(k)
+    unique.push(it)
+  }
+  if (!unique.length) {
+    resolvers.forEach(r => r())
+    return
+  }
+
+  try {
+    const apiPost = _getApiPost()
+    const res = await apiPost('/api/portal/availability', { items: unique })
+    const now = Date.now()
+    if (res?.results) {
+      for (const [key, val] of Object.entries(res.results)) {
+        cache[key] = val ? { ...val, _ts: now } : { _ts: now, _empty: true }
+      }
+    }
+    // Stamp missing ids so the TTL applies to "not available" too.
+    for (const item of unique) {
+      const key = String(item.tmdb_id)
+      if (!(key in cache)) {
+        cache[key] = { _ts: now, _empty: true }
+      }
+    }
+  } catch {
+    // Silently fail — cards just won't show dots
+  } finally {
+    resolvers.forEach(r => r())
+  }
+}
+
+export function useAvailability() {
   /**
    * Check availability for a list of items.
    * Each item must have tmdb_id (or id) and media_type.
-   * Fresh cache hits are skipped; stale / missing entries are re-fetched.
+   * Fresh cache hits are skipped; stale / missing entries are queued
+   * for the next microtask flush so concurrent callers share one POST.
    */
   async function checkAvailability(items) {
     if (!items?.length) return
@@ -40,24 +102,14 @@ export function useAvailability() {
 
     if (!toCheck.length) return
 
-    try {
-      const res = await apiPost('/api/portal/availability', { items: toCheck })
-      const now = Date.now()
-      if (res?.results) {
-        for (const [key, val] of Object.entries(res.results)) {
-          cache[key] = val ? { ...val, _ts: now } : { _ts: now, _empty: true }
-        }
+    return new Promise(resolve => {
+      pendingItems.push(...toCheck)
+      pendingResolvers.push(resolve)
+      if (!flushScheduled) {
+        flushScheduled = true
+        queueMicrotask(_flushQueue)
       }
-      // Stamp missing ids so the TTL applies to "not available" too.
-      for (const item of toCheck) {
-        const key = String(item.tmdb_id)
-        if (!(key in cache)) {
-          cache[key] = { _ts: now, _empty: true }
-        }
-      }
-    } catch {
-      // Silently fail — cards just won't show dots
-    }
+    })
   }
 
   /**

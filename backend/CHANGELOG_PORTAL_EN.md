@@ -14,6 +14,9 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Fixed
+- Home: removed the burst of "Too many attempts" notifications on load
+
 ## [0.3.0] - 2026-05-14
 
 ### Added

@@ -10,7 +10,7 @@
  *      on whether ``Retry-After`` was parseable. Pinning the key
  *      names here catches a typo on either side of the locale file.
  */
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 vi.mock('@/i18n', () => ({
   default: {
@@ -25,7 +25,17 @@ vi.mock('@/i18n', () => ({
   },
 }))
 
-import { parseRetryAfter, buildRateLimitMessage } from '@/composables/handle429'
+const showToast = vi.fn()
+vi.mock('@/composables/useToast', () => ({
+  useToast: () => ({ showToast }),
+}))
+
+import {
+  parseRetryAfter,
+  buildRateLimitMessage,
+  showRateLimitToast,
+  _resetRateLimitToastDedupe,
+} from '@/composables/handle429'
 
 describe('parseRetryAfter', () => {
   it('parses a positive integer of seconds', () => {
@@ -69,5 +79,48 @@ describe('buildRateLimitMessage', () => {
   it('falls back to the generic key when retry-after is zero or negative', () => {
     expect(buildRateLimitMessage(0)).toBe('common.apiError.rate_limited')
     expect(buildRateLimitMessage(-1)).toBe('common.apiError.rate_limited')
+  })
+})
+
+describe('showRateLimitToast — 10 s dedupe window', () => {
+  beforeEach(() => {
+    showToast.mockReset()
+    _resetRateLimitToastDedupe()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  function buildResponse(retryAfter) {
+    const headers = new Headers()
+    if (retryAfter !== undefined) headers.set('Retry-After', String(retryAfter))
+    return new Response(null, { status: 429, headers })
+  }
+
+  it('collapses identical bursts into a single toast', () => {
+    const res = buildResponse()
+    for (let i = 0; i < 5; i += 1) showRateLimitToast(res)
+    expect(showToast).toHaveBeenCalledTimes(1)
+  })
+
+  it('re-arms once the cooldown window elapses', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-05-15T10:00:00Z'))
+
+    const res = buildResponse()
+    showRateLimitToast(res)
+    expect(showToast).toHaveBeenCalledTimes(1)
+
+    // 10 s + 1 ms later — past the cooldown threshold.
+    vi.setSystemTime(new Date('2026-05-15T10:00:10.001Z'))
+    showRateLimitToast(res)
+    expect(showToast).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not dedupe when the message differs (Retry-After changes)', () => {
+    showRateLimitToast(buildResponse(30))
+    showRateLimitToast(buildResponse(60))
+    expect(showToast).toHaveBeenCalledTimes(2)
   })
 })

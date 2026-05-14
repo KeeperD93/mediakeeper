@@ -71,10 +71,33 @@ export function buildRateLimitMessage(retryAfterSeconds: number | null): string 
  * module-scoped store; ``GlobalToasts.vue`` flushes the backlog the
  * moment it mounts.
  */
+// Module-scoped dedupe — the Portal home can fire several 429s back-to-back
+// when a burst of parallel requests crosses the rate limit. Surfacing a
+// fresh toast each time stacks identical warnings on the user; we collapse
+// repeats of the *same* message inside a short cooldown window instead.
+const TOAST_COOLDOWN_MS = 10_000
+let lastToastTs = 0
+let lastToastMessage: string | null = null
+
+/** Test-only escape hatch — resets the module-scoped dedupe state so a
+ *  test that asserts the cooldown does not bleed into the next one. */
+export function _resetRateLimitToastDedupe(): void {
+  lastToastTs = 0
+  lastToastMessage = null
+}
+
 export function showRateLimitToast(res: Response): void {
   const retry = parseRetryAfter(res.headers.get('Retry-After'))
   const seconds = retry ?? null
   const message = buildRateLimitMessage(seconds)
+
+  const now = Date.now()
+  if (lastToastMessage === message && now - lastToastTs < TOAST_COOLDOWN_MS) {
+    return
+  }
+  lastToastTs = now
+  lastToastMessage = message
+
   const { showToast } = useToast()
   // Slightly longer than the default 5 s — the operator usually waits
   // and retries; a too-fast dismiss steals the hint.
