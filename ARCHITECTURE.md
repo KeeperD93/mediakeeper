@@ -3,7 +3,7 @@
 > Carte du code. Lecture avant première PR.
 > Convention : tout nouveau mécanisme ajouté au projet est documenté ici. Pour le workflow contributeur et la check-list publique des règles de codage (mobile-first, tokens, i18n, error handling…), voir `CONTRIBUTING.md` à la racine du dépôt.
 >
-> Versions courantes (2026-04-29) : `APP_VERSION = 0.9.8` (admin) · `PORTAL_VERSION = 0.2.0` · `frontend/package.json = 0.9.8` · 35 migrations Alembic livrées (001→037, sauts 006 et 029).
+> Versions courantes (2026-05-14) : `APP_VERSION = 0.9.9` (admin) · `PORTAL_VERSION = 0.3.0` · `frontend/package.json = 0.9.9` · migrations Alembic livrées en continu.
 
 ---
 

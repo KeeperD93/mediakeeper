@@ -17,7 +17,7 @@ logger = logging.getLogger("mediakeeper.changelog")
 router = APIRouter(prefix="/api/changelog", tags=["changelog"])
 
 # ── Current version (single source of truth) ──
-APP_VERSION = "0.9.8"
+APP_VERSION = "0.9.9"
 
 # ── Path des files CHANGELOG ──
 _BASE_DIR = Path(__file__).resolve().parent.parent

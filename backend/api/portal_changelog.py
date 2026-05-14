@@ -22,7 +22,7 @@ logger = logging.getLogger("mediakeeper.portal_changelog")
 router = APIRouter(prefix="/api/portal/changelog", tags=["portal-changelog"])
 
 # Current Portal viewer version. Bumped independently of APP_VERSION.
-PORTAL_VERSION = "0.2.0"
+PORTAL_VERSION = "0.3.0"
 
 _BASE_DIR = Path(__file__).resolve().parent.parent
 _ALT_DIRS = [Path("/app/backend"), Path("/app"), _BASE_DIR.parent]
