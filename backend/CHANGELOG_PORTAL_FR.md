@@ -16,127 +16,112 @@ utilisateurs.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-05-14
+
 ### Added
-- Salle de cinéma — marathon : avancement temps réel, film suivant verrouillé tant que tous les invités n'ont pas atteint 85 %
-- Portail — alias anonyme « Utilisateur 1234 » tant qu'aucun pseudo n'est défini
-- Recherche — suggestions instantanées, recherches récentes, navigation clavier et raccourci Ctrl/Cmd+K
-- Accessibilité — lien « Aller au contenu principal » au focus clavier
-- Page introuvable — vraie page 404 accessible avec retour au portail (plus de redirection silencieuse)
-- Connexion — page d'identification dédiée au Portal (titre et sous-titre adaptés)
-- Trophée « Pause Pipi » — débloquable (5 pauses de 2 à 5 minutes)
-- Trophées « Pilote » et « Le Retardataire » — débloquables
-- Trophées « Nuit Blanche Ultime », « No Life », « Le Roi » — débloquables
-- Trophées « Le Solitaire » et « Le Synchronisé » — débloquables
-- Trophées « Voyageur temporel », « Le Classique », « Le Puriste » — débloquables
-- Trophées « Coup de chance » — débloquables via l'utilisation du bouton Surprends-moi (4 paliers)
-- Crédits — nouvelle page (TMDB, OpenSubtitles, Emby, Imgur, YouTube) accessible depuis le pied de page
-- Paramètres — onglet Compte affiche la date d'expiration du compte (ou « Aucune limite »)
-- Notifications — admins et modérateurs voient les messages de chat signalés dans la cloche
-- Chat — bouton signalement animé puis verrouillé après envoi (impossible de re-signaler)
-- Tickets — choix précis du film, de la série, d'une saison ou d'un épisode au moment de signaler un problème (ou d'un sujet hors médias), avec recherche directe dans la bibliothèque
-- Tickets — page de détail et conversation entièrement repensées : aperçu visuel du média, avatars, badge admin, statut clair, expérience mobile soignée
-- Tickets — fermeture automatique au bout de 7 jours sans activité, alerte aux admins dès l'ouverture d'un nouveau ticket, filtres par statut, source et type de problème
-- Page Paramètres premium repensée en 5 onglets : identité, apparence, préférences, visibilité, compte
-- Avatar personnalisé : importez votre propre image, elle remplace celle d'Emby (5 Mo max, retour à Emby possible à tout moment)
-- Pseudo MediaKeeper : choix obligatoire à la première connexion, vérification en direct de la disponibilité, suggestions auto si déjà pris, modifiable une fois tous les 6 mois
-- Profil public consultable : cliquez sur un nom dans le classement pour voir sa carte, bio, genres et trophées débloqués
-- Bouton « Voir mon profil public » pour visualiser exactement ce que les autres voient
+- Pages publiques de profil — carte, bio, genres et trophées accessibles depuis le classement
+- Bouton « Voir mon profil public » pour prévisualiser exactement ce que voient les autres
+- Profil — alias anonyme « Utilisateur 1234 » tant qu'aucun pseudo n'est défini
+- Pseudo personnalisé — choix obligatoire à la première connexion, contrôle de disponibilité, modifiable tous les 6 mois
+- Pseudos réservés (« admin », « administrateur », « administrator », « root »)
+- Avatar personnalisé — importez votre image (5 Mo max), retour à l'avatar par défaut possible
 - Aperçu en direct des titres et cosmétiques d'avatar avant validation
-- Indicateur de série de connexions et lien direct vers Emby pour le mot de passe
-- XP et trophées cumulés dès l'activation du compte par un administrateur, sans avoir besoin d'ouvrir le portail au préalable
-- Pseudos « admin », « administrateur », « administrator » et « root » réservés
-- Classement mensuel — tous les utilisateurs Emby visibles (admins et modérateurs inclus), comptes locaux et désactivés exclus
-- Centre d'aide intégré au menu avatar : 15 articles classés par catégories, barre de recherche, ouverture en plein écran
-- Aide modifiable par les administrateurs : éditeur de texte riche, sauvegarde automatique, brouillons, corbeille avec restauration sous 30 jours
-- Chat — compteur de messages non lus persistant (badge sur le bouton + replié et sur l'icône chat déplié), historique complet chargé à l'ouverture, connexion temps réel maintenue tant que le portail est ouvert
+- Page Paramètres premium en 5 onglets (identité, apparence, préférences, visibilité, compte)
+- Paramètres — onglet Compte affiche la date d'expiration (ou « Aucune limite »)
+- Connexion — page d'identification dédiée au portail
+- Connexion — indicateur de série de connexions et lien direct pour le mot de passe
+- Salle de cinéma — marathon : avancement temps réel, film suivant verrouillé à 85 %
+- Recherche — suggestions instantanées, recherches récentes, navigation clavier, raccourci Ctrl/Cmd+K
+- Tickets — choix précis du film, série, saison ou épisode au signalement (ou hors médias)
+- Tickets — page de détail repensée : aperçu visuel, avatars, badge admin, statut clair
+- Tickets — fermeture auto après 7 jours d'inactivité, alerte admin à l'ouverture, filtres statut/source/type
+- Centre d'aide intégré au menu avatar — 15 articles classés, recherche, lecteur plein écran
+- Aide modifiable par les administrateurs — éditeur riche, sauvegarde auto, brouillons, corbeille 30 jours
+- Chat — compteur de messages non lus persistant, historique chargé à l'ouverture, connexion temps réel maintenue
+- Chat — bouton signalement animé puis verrouillé après envoi
+- Notifications — admins et modérateurs voient les messages de chat signalés
 - Notifications — un administrateur peut envoyer un message ciblé qui apparaît dans la cloche
+- Classement mensuel — tous les utilisateurs visibles, comptes locaux et désactivés exclus
+- XP et trophées cumulés dès l'activation du compte par un administrateur
+- Trophées — 14 nouveaux trophées débloquables (sociaux, marathons, classiques, surprises)
+- Trophées listes — deux familles Curateur et Bibliothécaire (5 paliers chacune)
+- Crédits — nouvelle page partenaires accessible depuis le pied de page
 - Mention légale ajoutée en pied de page
-- Trophées listes — deux nouvelles familles (Curateur, Bibliothécaire) avec 5 paliers chacune
+- Page introuvable — vraie 404 accessible avec retour au portail
+- Accessibilité — lien « Aller au contenu principal » au focus clavier
 
 ### Changed
-- Classement — refonte premium showcase : hero du joueur du mois, bandeau stats temps réel, mise en avant de votre rang
+- Classement — refonte premium showcase : hero champion du mois, bandeau stats, top 100, podium enrichi
 - Classement — avatar du 1er ne tourne plus, anneau or statique
 - Cartes média — ruban diagonal « Disponible » retiré (le point vert suffit)
-- Avatars — fond intérieur aligné au fond de page (plus de pastille violette), silhouette plus présente
-- Crédit TMDB — bandeau plus fin (padding réduit)
-- Notifications — icônes Lucide en lieu et place des emojis
-- Crédit TMDB — bandeau compact sur une ligne
+- Avatars — fond intérieur aligné au fond de page, silhouette plus présente, icône en remplacement de la lettre
+- Crédit TMDB — bandeau compact sur une ligne, padding réduit
+- Notifications — icônes harmonisées en lieu et place des emojis
 - Accueil et profil — espacement réduit sur mobile
 - Salle de cinéma — enchaînement de bandes-annonces avec transition noire, bouton Infos sur le trailer en cours
-- Salle de cinéma — jaquette affichée dans l'écran après le compte à rebours (au lieu du titre)
-- Demandes — les demandes disponibles peuvent être nettoyées automatiquement après un délai (réglé par l'admin)
-- Portail — avatars : icône silhouette en remplacement de la lettre
-- Listes — pseudos anonymisés côté propriétaire et contributeurs (fiche liste)
+- Salle de cinéma — jaquette affichée à l'écran après le compte à rebours
+- Demandes — auto-nettoyage des demandes disponibles après un délai (réglé par l'admin)
+- Listes — pseudos anonymisés côté propriétaire et contributeurs
 - Paramètres — onglet actif synchronisé avec l'URL (lien direct et refresh)
-- Quoi de neuf aujourd'hui — Top 3 du mois aligné sur le widget Classement du dashboard (visuel identique, votre position ajoutée en 4ᵉ ligne quand vous êtes hors podium)
-- Tickets — filtres allégés (pills de statut, type, tri) ; filtre Source retiré
+- Quoi de neuf aujourd'hui — Top 3 du mois aligné sur le widget Classement, votre position en 4ᵉ ligne hors podium
+- Tickets — filtres allégés (pills statut, type, tri), filtre Source retiré
 - Tickets — raccourci « Mes tickets » retiré du menu avatar (doublon de l'onglet Problèmes)
-- URLs standardisées (anciens bookmarks à refaire)
-- Barre du haut : roue crantée retirée — la configuration se gère désormais depuis MediaKeeper
-- Barre du haut : bouton « Tableau de bord » devient une icône maison sans texte, repositionnée à droite des notifications
-- Barre du haut : onglets légèrement décalés du logo MediaKeeper
-- Notifications : ouvrir la cloche marque automatiquement toutes les notifications comme lues (bouton « Tout marquer lu » supprimé)
-- Onglets des pages internes (fiche média, personne, listes, admin) harmonisés sur le même style glass que le reste de l'app
-- Barre de navigation mobile : l'onglet actif encadre désormais icône + libellé (plus de surlignage limité à l'icône)
-- Barre de navigation mobile : onglet « Listes » ajouté (accès direct, à côté de l'accueil)
-- Barre du haut mobile allégée : Tableau de bord, Listes, Calendrier et Administration regroupés dans le menu avatar — ne restent dans la barre que recherche, notifications et avatar
-- Profil mobile : carte d'identité compactée (largeur, paddings et avatar réduits) pour gagner en place
-- Profil : halos tournants et pulsation brumeuse autour de la carte retirés (visuel allégé, sur tous les écrans)
-- Trophées : pulsation brumeuse retirée des cartes (halo coloré conservé en statique)
-- Voir tous les trophées : animations résiduelles retirées des lignes (progress shine, couronne master, badge xmas)
-- Trophées : XP de récompense réduit pour lisser la progression (XP déjà cumulé ajusté en conséquence)
-- Classement — refonte premium, top 100, podium top 3 enrichi, titre cliquable depuis le profil
+- URLs standardisées (anciens favoris à recréer)
+- Barre du haut — roue crantée retirée (configuration côté admin)
+- Barre du haut — bouton Tableau de bord devient une icône maison à droite des notifications
+- Barre du haut — onglets décalés du logo
+- Notifications — ouvrir la cloche marque tout comme lu (bouton « Tout marquer » retiré)
+- Onglets internes harmonisés sur le style glass du reste de l'app
+- Barre de navigation mobile — onglet actif encadre icône + libellé, onglet « Listes » ajouté
+- Barre du haut mobile allégée — Tableau de bord, Listes, Calendrier, Administration regroupés dans le menu avatar
+- Profil mobile — carte d'identité compactée (largeur, paddings, avatar réduits)
+- Profil — halos tournants et pulsation brumeuse retirés (visuel allégé)
+- Trophées — pulsation brumeuse retirée des cartes (halo coloré statique conservé)
+- Voir tous les trophées — animations résiduelles retirées des lignes
+- Trophées — XP de récompense réduit pour lisser la progression (XP déjà cumulé ajusté)
 
 ### Fixed
-- Accueil — image de fond visible quand le trailer ne peut pas démarrer (réseau, bloqueur, etc.) au lieu d'un écran noir
-- Mobile — espace réduit accueil, dropdown cloche non tronqué, crédit TMDB wrap propre, bouton « ne plus afficher » accessible
-- Quoi de neuf aujourd'hui — avatars et images remplissent leur cercle sur mobile
+- Accueil — image de fond visible quand la bande-annonce ne démarre pas (au lieu d'un écran noir)
+- Accueil — bandes-annonces : fondu noir cinématique entre deux trailers, prochain pré-chargé
+- Accueil — taper la bande-annonce active/coupe le son (bouton son retiré)
+- Hero « Récemment ajouté » — bande-annonce opaque en plein cadre, transitions alignées sur le hero principal, dégradés fondus avec la barre du haut
+- Hero « Récemment ajouté » — bouton « Plus d'infos » désormais visible (rendu cassé corrigé)
+- Hero « Récemment ajouté » — fin de bande-annonce passe au film suivant au lieu de boucler
+- Mobile — barre du haut toujours opaque, nom « MediaKeeper » désormais affiché à côté du logo
+- Mobile — espace réduit accueil, dropdown cloche non tronqué, crédit TMDB wrap propre
+- Mobile — boutons demander, lecture, re-demander et ajout liste toujours visibles sur les jaquettes
+- Mobile — voir tous les trophées en cartes compactes, tap pour déplier les détails
+- Mobile — grille des trophées du profil limitée à 2 lignes par page (fluidité préservée)
+- Mobile — effet d'avatar « couronne divine » et profil légendaire optimisés
+- Quoi de neuf aujourd'hui — avatars et images remplissent leur cercle sur mobile, taille réduite sur grands écrans
+- Quoi de neuf aujourd'hui — barre de défilement stylisée (gradient accent, fin du slab blanc)
 - Modale Signaler un problème — dropdown média se ferme au clic ailleurs
-- Profil public — avatar sans photo affiche désormais l'icône silhouette (au lieu de la lettre)
-- Toast trophée — ne se ré-affiche plus à chaque refresh (chaque déblocage célébré une seule fois)
-- Surprise — erreurs intermittentes 500 sur clics rapides successifs corrigées (état de session ORM préservé après rollback)
-- Recherche — les jaquettes des résultats s'affichent désormais correctement
+- Profil public — avatar sans photo affiche l'icône silhouette
+- Profil public — barre XP affiche le seuil du niveau suivant (au lieu du courant)
+- Profil privé — page dédiée au lieu d'une erreur générique depuis le classement
+- Toast trophée — ne se ré-affiche plus à chaque refresh
+- Surprends-moi — erreurs intermittentes 500 sur clics rapides successifs corrigées
+- Recherche — jaquettes des résultats s'affichent désormais correctement
 - Carrousels — card « Voir plus » a les mêmes coins arrondis que les jaquettes adjacentes
 - Page détails média — page ouverte en haut systématiquement
-- Profil privé — page dédiée au lieu d'une erreur générique au clic depuis le classement
-- Portail — modale de choix du pseudo : plus de texte qui fuit en bas à gauche pendant la transition
-- Demandes — passage automatique à « Disponible » et notification dans la cloche dès que le média arrive sur Emby
-- Top du mois — séries comptées 1 fois par utilisateur (plus de séries gonflées par leurs épisodes)
-- Top genres — chaque série compte une fois par genre (plus de surévaluation par épisode)
-- Top du mois et genres — visionnages comptés seulement à partir de 85 % de la durée
-- Trophées — déblocage immédiat sur chat, demandes, tickets, avatar, événements (plus d'attente de la prochaine connexion)
-- Trophées — pourcentage global de progression aligné sur les seuls trophées atteignables
-- Tableau de bord — raccourci masqué pour les modérateurs sans accès backoffice (plus de clic qui rebondit aussitôt)
-- Pastille de disponibilité — séries complètes ne s'affichent plus en « partiellement disponibles » après un ré-import Emby (fusion des doublons d'index, purge auto des orphelins au prochain scan)
-- Quoi de neuf aujourd'hui — barre de défilement stylisée (gradient accent + piste discrète, plus de slab blanc)
-- Profil public : barre XP affichait le seuil du niveau actuel au lieu du suivant (ex. « 1500/1500 » alors qu'il fallait « 1574/2100 »)
-- Articles d'aide — modifications conservées pendant la frappe (plus de retour à la version précédente)
-- Chat — salon par défaut créé automatiquement, fil de discussion fonctionnel dès la première ouverture
-- Quoi de neuf aujourd'hui — taille de l'overlay réduite sur grands écrans (panel plus compact, hero allégé)
-- Voir tous les trophées (mobile) : cartes compactes par défaut (icône, nom, rareté, description, progression), tap pour déplier et révéler les détails (étoiles, XP, date, récompenses, bouton épingler)
-- Profil mobile : grille des trophées limitée à 2 lignes par page pour rester fluide quand beaucoup d'effets sont débloqués
-- Profil : effet d'avatar « couronne divine » optimisé pour rester fluide sur téléphone
-- Profil legendary (niveau 50) : carte allégée sur mobile (étoiles et embers réduits) pour rester fluide
-- Titres d'onglet du navigateur corrigés sur les pages du module Demandes
-- Page Changelog : fond aligné sur le reste du module Demandes (plus de bande sombre sans teinte)
-- Popups cloche et calendrier : repositionnés juste sous l'icône sur les grands écrans
-- Barre du haut : rayon des coins du bouton calendrier et du bouton recherche (mobile) aligné sur les autres icônes
-- Liste des demandes admin : une action sur une ligne ne renvoie plus en haut de la liste
-- Création d'événement : un clic à côté de la fenêtre ne la ferme plus (fermeture uniquement via la croix ou Annuler)
-- Création d'événement : la recherche de film/série ne propose plus que les titres effectivement présents dans la bibliothèque
-- Bandeau d'événement à venir : fond transparent, texte plus discret, collé sous la barre du haut
-- Bande-annonce d'accueil : fondu noir cinématique entre deux bandes-annonces, sans passage par l'image de fond et avec pré-chargement de la suivante
-- Mobile : boutons demander, lecture, re-demander et ajout liste désormais toujours visibles sur les jaquettes (plus besoin de survol)
-- Mobile : hero « Récemment ajouté sur Emby » désormais affiché, bande-annonce opaque en plein cadre avec dégradé sombre sous les infos et boutons
-- Mobile : hero « Récemment ajouté sur Emby » — taper la bande-annonce active/coupe le son, bouton son retiré (même comportement que la hero principale)
-- Hero « Récemment ajouté sur Emby » : image de fond conservée pendant les transitions entre bandes-annonces (plus de flash transparent)
-- Hero « Récemment ajouté sur Emby » : transitions entre bandes-annonces alignées sur la hero principale (fondu noir avant, chargement caché, fondu noir vers la suivante, filet de sécurité 4 s)
-- Hero « Récemment ajouté sur Emby » : dégradés haut et bas alignés sur la couleur du fond de la page pour fondre les jonctions avec la barre du haut et la rangée de jaquettes en dessous, hauteur du bloc augmentée pour compenser la zone assombrie
-- Hero « Récemment ajouté sur Emby » : icône du bouton « Plus d'infos » désormais visible (rendu cassé corrigé)
-- Hero « Récemment ajouté sur Emby » : avec le son activé, la fin d'une bande-annonce bascule désormais sur le film suivant au lieu de relancer la même en boucle
-- Mobile : bande-annonce d'accueil opaque pendant les transitions (plus de flash de transparence laissant voir le fond de la page entre deux trailers)
-- Mobile : barre du haut toujours opaque (plus de transparence variable selon le scroll, et plus de transparence quand une bande-annonce joue)
-- Mobile : nom « MediaKeeper » désormais affiché à côté du logo dans la barre du haut
+- Modale pseudo — plus de texte qui fuit en bas à gauche pendant la transition
+- Demandes — passage automatique à « Disponible » et notification dès l'arrivée du média
+- Top du mois — séries comptées 1 fois par utilisateur (plus de gonflage par épisodes)
+- Top genres — chaque série compte une fois par genre
+- Top du mois et genres — visionnages comptés à partir de 85 % de la durée
+- Trophées — déblocage immédiat sur chat, demandes, tickets, avatar, événements
+- Trophées — pourcentage global aligné sur les seuls trophées atteignables
+- Tableau de bord — raccourci masqué pour les modérateurs sans accès backoffice
+- Pastille de disponibilité — séries complètes ne s'affichent plus en « partiellement disponibles » après ré-import
+- Articles d'aide — modifications conservées pendant la frappe
+- Chat — salon par défaut créé automatiquement, fil fonctionnel dès la première ouverture
+- Titres d'onglet du navigateur corrigés sur les pages Demandes
+- Page Changelog — fond aligné sur le reste du module
+- Popups cloche et calendrier — repositionnés juste sous l'icône sur grands écrans
+- Barre du haut — rayon des coins du bouton calendrier et recherche aligné sur les autres icônes
+- Liste des demandes admin — action sur une ligne ne renvoie plus en haut
+- Création d'événement — clic à côté ne ferme plus la fenêtre, recherche limitée aux titres en bibliothèque
+- Bandeau d'événement à venir — fond transparent, texte plus discret, collé sous la barre du haut
 - Marque renommée « MediaKeeper » (K majuscule) partout dans l'interface
 
 ## [0.2.0] - 2026-04-20

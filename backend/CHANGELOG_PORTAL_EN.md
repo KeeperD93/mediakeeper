@@ -14,127 +14,112 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-05-14
+
 ### Added
-- Cinema room — marathon: live progress, next film gated until everyone reaches 85%
-- Portal — anonymous "User 1234" alias until a pseudo is picked
-- Search — instant suggestions, recent searches, keyboard navigation and Ctrl/Cmd+K shortcut
-- Accessibility — keyboard "Skip to main content" link
-- Page not found — proper accessible 404 page with back-to-portal link (no more silent redirect)
-- Login — dedicated Portal sign-in page (adapted title and subtitle)
-- "Bathroom Break" achievement — unlockable (5 pauses of 2 to 5 minutes)
-- "Pilot" and "The Latecomer" achievements — unlockable
-- "Ultimate All-Nighter", "No Life" and "The King" achievements — unlockable
-- "The Loner" and "In Sync" achievements — unlockable
-- "Time Traveler", "The Classic" and "The Purist" achievements — unlockable
-- "Lucky" achievements — unlock by using the Surprise Me button (4 tiers)
-- Credits — new page (TMDB, OpenSubtitles, Emby, Imgur, YouTube) reachable from the footer
-- Settings — Account tab shows the account expiry date (or "No limit")
-- Notifications — admins and moderators see flagged chat messages in the bell
-- Chat — report button animates then locks after submission (cannot re-report)
-- Tickets — pinpoint the exact movie, series, season or episode when reporting an issue (or an off-library topic), with direct library search
-- Tickets — detail page and conversation fully redesigned: visual media preview, avatars, admin badge, clear status, polished mobile experience
-- Tickets — automatic close after 7 days of inactivity, admin alert on every new ticket, filters by status, source and issue type
-- Settings page redesigned as a premium 5-tab layout: identity, appearance, preferences, visibility, account
-- Custom avatar upload: bring your own image, it overrides the Emby one (5 MB max, fall back to Emby at any time)
-- MediaKeeper username: mandatory pick on first sign-in, live availability check, auto-suggestions when taken, editable once every 6 months
-- Public profile pages: click a name in the leaderboard to see their card, bio, genres and unlocked trophies
+- Public profile pages — card, bio, genres and trophies reachable from the leaderboard
 - "View my public profile" button to preview exactly what others see
+- Profile — anonymous "User 1234" alias until a pseudo is picked
+- Custom username — mandatory pick on first sign-in, live availability check, editable every 6 months
+- Reserved usernames ("admin", "administrator", "root")
+- Custom avatar upload — bring your own image (5 MB max), fall back to the default at any time
 - Live preview of equipped titles and avatar cosmetics before saving
-- Login streak indicator and direct link to Emby for password changes
-- XP and trophies start accumulating as soon as an administrator activates the account, even before the user has signed in to the portal
-- Reserved usernames: "admin", "administrator" and "root" cannot be used
-- Monthly leaderboard — every Emby user listed (admins and moderators included), local and deactivated accounts excluded
-- Help Center wired into the avatar menu: 15 articles grouped by categories, live search, full-screen reader
-- Admins can edit the help inline: rich-text editor, auto-save, drafts, and a trash with 30-day restore window
-- Chat — unread counter persists across sessions (badge on the collapsed + button and on the expanded chat icon), full history loaded on open, realtime connection kept alive for the whole portal session
-- Notifications — admins can now push a targeted message that lands in the bell
-- Legal attribution notice added to the footer
+- Premium Settings page redesigned as a 5-tab layout (identity, appearance, preferences, visibility, account)
+- Settings — Account tab shows the account expiry date (or "No limit")
+- Login — dedicated Portal sign-in page
+- Login — streak indicator and direct link for the password
+- Cinema room — marathon: live progress, next film gated until everyone reaches 85 %
+- Search — instant suggestions, recent searches, keyboard navigation and Ctrl/Cmd+K shortcut
+- Tickets — pinpoint the exact movie, series, season or episode when reporting (or off-library topic)
+- Tickets — detail page redesigned: visual preview, avatars, admin badge, clear status
+- Tickets — automatic close after 7 days of inactivity, admin alert on creation, filters by status/source/type
+- Help Center wired into the avatar menu — 15 articles grouped by categories, search, full-screen reader
+- Admins can edit the help inline — rich-text editor, auto-save, drafts, 30-day restore trash
+- Chat — unread counter persists across sessions, history loaded on open, realtime connection kept alive
+- Chat — report button animates then locks after submission
+- Notifications — admins and moderators see flagged chat messages
+- Notifications — admins can now push a targeted message into the bell
+- Monthly leaderboard — every user listed, local and deactivated accounts excluded
+- XP and trophies start accumulating as soon as an administrator activates the account
+- Achievements — 14 new unlockable trophies (social plays, marathons, classics, surprises)
 - List achievements — two new tiered families (Curator, Librarian) with 5 tiers each
+- Credits — new partners page reachable from the footer
+- Legal attribution notice added to the footer
+- Page not found — proper accessible 404 with back-to-portal link
+- Accessibility — keyboard "Skip to main content" link
 
 ### Changed
-- Leaderboard — premium showcase revamp: monthly champion hero, live stats bar, your-rank highlight
+- Leaderboard — premium showcase revamp: monthly champion hero, live stats bar, top 100, enriched podium
 - Leaderboard — #1 avatar no longer rotates, static gold ring
 - Media cards — diagonal "Available" ribbon removed (the green dot is enough)
-- Avatars — inner fill matches the page background (no more purple disc), silhouette more prominent
-- TMDB credit — slimmer footer (reduced padding)
-- Notifications — Lucide icons replace the previous emojis
-- TMDB credit — compact single-line footer
+- Avatars — inner fill matches the page background, silhouette more prominent, icon replaces the letter
+- TMDB credit — compact single-line footer, reduced padding
+- Notifications — icons aligned with the rest of the UI in lieu of emojis
 - Home and profile — tighter spacing on mobile
 - Cinema room — back-to-back trailers with black fade, Info button on the active trailer
-- Cinema room — poster shown on the screen after the countdown (instead of the title)
+- Cinema room — poster shown on the screen after the countdown
 - Requests — available requests can be automatically cleaned up after a delay (admin-configurable)
-- Portal — avatars: silhouette icon replaces the letter
-- Lists — anonymized pseudos on the owner and contributors of a list detail
+- Lists — anonymized pseudos on owner and contributors of a list detail
 - Settings — active tab synced with the URL (deep links and refresh)
-- What's new today — monthly Top 3 aligned on the dashboard's Ranking widget (identical look, your own position appended as a 4th row when off the podium)
+- What's new today — monthly Top 3 aligned on the dashboard's Ranking widget, your position appended as a 4th row off the podium
 - Tickets — slimmer filter row (status pills, type + sort selects); Source filter retired
 - Tickets — "My tickets" shortcut removed from the avatar menu (duplicate of the Issues tab)
 - URLs standardized (old bookmarks must be re-created)
-- Top bar: settings cog removed — configuration is now handled from MediaKeeper
-- Top bar: "Dashboard" button now an icon-only home button repositioned to the right of notifications
-- Top bar: tabs slightly offset from the MediaKeeper logo
-- Notifications: opening the bell now marks every notification as read automatically ("Mark all read" button removed)
-- Sub-page tabs (media detail, person, lists, admin) aligned to the same glass style used across the app
-- Mobile bottom nav: active tab highlight now wraps both icon and label (no longer limited to the icon)
-- Mobile bottom nav: "Lists" tab added (direct access, next to Home)
-- Mobile top bar streamlined: Dashboard, Lists, Calendar and Admin moved into the avatar menu — only search, notifications and avatar stay in the bar
-- Mobile profile: identity card tightened (narrower width, slimmer padding and avatar) to free up space
-- Profile: rotating halos and breathing glow around the card removed (cleaner look across all screens)
-- Trophies: breathing glow removed from cards (coloured halo kept static)
-- All trophies overlay: leftover animations stripped from rows (progress shine, master crown bob, xmas badge twinkle)
-- Trophies: reward XP lowered to smooth progression (already-earned XP adjusted accordingly)
-- Leaderboard — premium revamp, top 100, enriched top-3 podium, clickable title from the profile
+- Top bar — settings cog removed (configuration handled from the admin)
+- Top bar — Dashboard button now an icon-only home button to the right of notifications
+- Top bar — tabs slightly offset from the logo
+- Notifications — opening the bell marks every notification as read ("Mark all read" button removed)
+- Sub-page tabs aligned to the same glass style as the rest of the app
+- Mobile bottom nav — active tab highlight wraps both icon and label, "Lists" tab added
+- Mobile top bar streamlined — Dashboard, Lists, Calendar and Admin moved into the avatar menu
+- Mobile profile — identity card tightened (narrower width, slimmer padding and avatar)
+- Profile — rotating halos and breathing glow around the card removed
+- Trophies — breathing glow removed from cards (coloured halo kept static)
+- All trophies overlay — leftover row animations stripped
+- Trophies — reward XP lowered to smooth progression (already-earned XP adjusted accordingly)
 
 ### Fixed
-- Home — backdrop image is shown when the trailer can't start (network, blocker, etc.) instead of a pure black hero
-- Mobile — tighter home gap, bell dropdown no longer clipped, TMDB credit wraps cleanly, "don't show again" button reachable
-- What's new today — avatars and posters fill their circle on mobile
+- Home — backdrop image is shown when the trailer can't start (instead of a black hero)
+- Home — trailers: cinematic fade-to-black between two clips, next trailer prefetched
+- Home — tap the trailer to toggle sound (mute button removed)
+- "Recently added" hero — opaque full-bleed trailer, transitions aligned with the main hero, gradients blended with the topbar
+- "Recently added" hero — "More info" button icon now visible (broken render fixed)
+- "Recently added" hero — end of a trailer now rotates to the next item instead of looping
+- Mobile — top bar always opaque, "MediaKeeper" name now shown next to the logo
+- Mobile — tighter home gap, bell dropdown no longer clipped, TMDB credit wraps cleanly
+- Mobile — request, launch, re-request and add-to-list buttons always visible on poster cards
+- Mobile — All trophies overlay: compact cards by default, tap to expand details
+- Mobile — profile trophy grid capped at 2 rows per page to stay smooth
+- Mobile — "divine crown" avatar effect and legendary profile optimized
+- What's new today — avatars and posters fill their circle on mobile, overlay size reduced on large screens
+- What's new today — overlay scrollbar restyled (accent gradient, no more white slab)
 - Report-a-problem modal — media dropdown closes when clicking elsewhere
-- Public profile — photoless avatar now shows the silhouette icon (instead of the letter)
-- Trophy toast — no longer re-fires on every refresh (each unlock celebrated once)
-- Surprise — intermittent 500 on rapid successive clicks fixed (ORM session state preserved after rollback)
+- Public profile — photoless avatar now shows the silhouette icon
+- Public profile — XP bar shows the next-level threshold (instead of the current one)
+- Private profile — dedicated landing instead of a generic error from the leaderboard
+- Trophy toast — no longer re-fires on every refresh
+- Surprise Me — intermittent 500 on rapid successive clicks fixed
 - Search — result posters now display correctly
-- Carousels — "See more" card now shares the same rounded corners as adjacent posters
+- Carousels — "See more" card shares the same rounded corners as adjacent posters
 - Media detail page — always scrolls to the top on open
-- Private profile — dedicated landing instead of a generic error when reached from the leaderboard
-- Portal — username-choice modal: no more bottom-left text leak during the enter transition
-- Requests — auto-switch to "Available" and bell notification as soon as the media lands on Emby
+- Username-choice modal — no more bottom-left text leak during the enter transition
+- Requests — auto-switch to "Available" and bell notification as soon as the media is on the library
 - Top of the month — series count once per viewer (no longer inflated by episode count)
-- Top genres — each series counts once per genre (no longer overweighted by episode count)
+- Top genres — each series counts once per genre
 - Top of the month and genres — plays only counted from 85 % of the runtime
-- Achievements — instant unlock on chat, requests, tickets, avatar, events (no more wait for the next login)
-- Achievements — global progression percentage now reflects only attainable trophies
-- Dashboard — shortcut hidden for moderators without backoffice access (no more click that bounces back)
-- Availability pill — fully-stocked series no longer flagged "partially available" after an Emby re-import (index duplicates merged, orphans auto-purged on next scan)
-- What's new today — overlay scrollbar restyled (accent gradient + subtle track, no more white slab)
-- Public profile: XP bar showed the current-level threshold instead of the next (e.g. "1500/1500" instead of "1574/2100")
+- Achievements — instant unlock on chat, requests, tickets, avatar, events
+- Achievements — global progression percentage reflects only attainable trophies
+- Dashboard — shortcut hidden for moderators without backoffice access
+- Availability pill — fully-stocked series no longer flagged "partially available" after a re-import
 - Help articles — edits no longer revert mid-typing
 - Chat — default room auto-created, conversation usable from first open
-- What's new today — overlay size reduced on large screens (more compact panel, lighter hero)
-- All trophies overlay (mobile): cards compact by default (icon, name, rarity, description, progress), tap to expand for details (stars, XP, date, rewards, pin button)
-- Mobile profile: trophy grid capped at 2 rows per page to stay smooth when many effects are unlocked
-- Profile: "divine crown" avatar effect optimized to stay smooth on phones
-- Legendary profile (level 50): card lightened on mobile (fewer stars and embers) to stay smooth
-- Browser tab titles fixed across the Demandes module pages
-- Changelog page: background now matches the rest of the Demandes module (no more untinted strip)
-- Bell and calendar popups: repositioned right under the icon on wide screens
-- Top bar: calendar button and compact (mobile) search button now share the same corner radius as the other icons
-- Admin requests list: acting on a row no longer jumps back to the top
-- Event creation: clicking outside the window no longer closes it (only the X and Cancel close)
-- Event creation: media search now only suggests titles actually present in the library
-- Upcoming-event ticker: transparent background, lighter text, sits flush below the top bar
-- Home hero trailer: cinematic fade-to-black between trailers — no backdrop flash in between, next trailer is prefetched while the current one plays
-- Mobile: request, launch, re-request and add-to-list buttons now always visible on poster cards (no hover needed)
-- Mobile: "Recently added on Emby" hero now displayed, opaque full-bleed trailer with a dark gradient under the info and buttons
-- Mobile: "Recently added on Emby" hero — tap the trailer to toggle sound, mute button removed (matches the main hero behaviour)
-- "Recently added on Emby" hero: backdrop image kept during trailer swaps (no more transparent flash)
-- "Recently added on Emby" hero: trailer transitions aligned with the main hero (black fade in before swap, hidden buffering, black fade out into next trailer, 4 s safety net)
-- "Recently added on Emby" hero: top and bottom gradients aligned on the page background colour to blend the seams with the topbar and the poster row below, hero block taller to compensate for the dimmed area
-- "Recently added on Emby" hero: "More info" button icon now visible (broken render fixed)
-- "Recently added on Emby" hero: with sound on, the end of a trailer now rotates to the next item instead of looping the same one
-- Mobile: home hero trailer stays opaque during transitions (no more transparency flash exposing the page background between two trailers)
-- Mobile: top bar always opaque (no more variable transparency on scroll, and no more transparency while a trailer is playing)
-- Mobile: "MediaKeeper" name now shown next to the logo in the top bar
+- Browser tab titles fixed across the Requests module pages
+- Changelog page — background matches the rest of the module
+- Bell and calendar popups — repositioned right under the icon on wide screens
+- Top bar — calendar button and mobile search button share the same corner radius as the other icons
+- Admin requests list — acting on a row no longer jumps back to the top
+- Event creation — clicking outside no longer closes the window, search limited to library titles
+- Upcoming-event ticker — transparent background, lighter text, flush below the top bar
 - Brand renamed "MediaKeeper" (capital K) across the UI
 
 ## [0.2.0] - 2026-04-20

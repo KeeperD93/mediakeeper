@@ -9,146 +9,134 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+## [0.9.9] - 2026-05-14
+
 ### Added
-- Actualités admin — modification et suppression d'une actualité existante
-- Demandes — auto-nettoyage configurable des demandes disponibles après N jours (0 = désactivé)
-- Accessibilité — lien « Aller au contenu principal » au focus clavier (connexion + admin)
-- Page introuvable — vraie page 404 accessible avec retour au tableau de bord (plus de redirection silencieuse)
-- UX page crédits resserrée et lien GitHub sur la page de connexion
-- À propos — page admin (stack, licences, FFmpeg LGPL) et mentions sous TMDB / OpenSubtitles dans Paramètres
-- Demandes — cartes statistiques affichent désormais le total cumulé sous chaque compteur (en attente, approuvées, refusées, disponibles)
-- Demandes / Utilisateurs — refonte premium pleine largeur (recherche, filtres, vue tableau/cartes, actions groupées)
-- Utilisateurs — drawer fiche utilisateur 7 onglets (identité, accès, sécurité, activité, trophées, notes, audit)
-- Utilisateurs — refonte cartes Activité (icônes contextuelles, jauges colorées) et permissions en interrupteurs bleus
-- Utilisateurs — rôles + permissions granulaires (chat, demandes, problèmes, listes, XP hors-ligne)
+- Actualités admin — création, édition, suppression et planification (dates de début/fin)
+- Mode maintenance Demandes personnalisable
+- Demandes — auto-nettoyage configurable des demandes disponibles après N jours
+- Demandes — total cumulé sous chaque compteur (attente, approuvées, refusées, disponibles)
+- Demandes / Utilisateurs — refonte premium pleine largeur (recherche, filtres, table/cartes, actions groupées)
+- Utilisateurs — drawer fiche 7 onglets (identité, accès, sécurité, activité, trophées, notes, audit)
+- Utilisateurs — rôles et permissions granulaires (chat, demandes, problèmes, listes, XP hors-ligne)
 - Utilisateurs — période d'accès (début/fin) avec prolongation rapide 1/3/6/12 mois
-- Utilisateurs — désactivation du compte streaming depuis MK (sessions actives coupées)
+- Utilisateurs — désactivation du compte streaming depuis l'admin (sessions coupées)
 - Utilisateurs — import sélectif via overlay et création manuelle de comptes locaux
-- Utilisateurs — soft-delete réversible, journal d'audit complet, notes admin privées, tags
+- Utilisateurs — soft-delete réversible, journal d'audit, notes admin privées, tags
 - Utilisateurs — export RGPD individuel (JSON) et notification ciblée admin → utilisateur
 - Utilisateurs — indicateur en ligne, badge expiration < 7 j, filtre « jamais connectés »
-- Utilisateurs — désactivation automatique à l'expiration (Emby + MediaKeeper, sessions coupées, audit dédié)
-- Documentation projet (README, SECURITY, ARCHITECTURE, CONTRIBUTING, attributions)
-- Sauvegardes — dump SQL et clé de chiffrement embarqués par défaut
-- Sauvegardes — refus de démarrage si BACKUP_PATH absent en production (sécurité)
-- Sauvegardes — guide opérateur de restauration + avertissement explicite côté API
-- Runbook incidents avec procédures de récupération documentées
-- Alertes webhook automatiques sur incidents critiques (santé, base, planificateur, dump)
-- Mises à jour sécurité (JWT, chiffrement, multipart, build frontend)
-- Confiance proxy stricte, en-têtes sécurité (CSP/HSTS) et cookies sécurisés
-- Sessions révocables, scopes tokens stricts et WebSocket sécurisé
-- Renforcement XSS — schémas d'URL filtrés, sanitization HTML resserrée
-- CSP — autorise le loader YouTube et conserve l'iframe sans cookies
-- Renforcement API — limites de débit, contrôle d'origine, vérification d'autorisation
-- CSP — endpoint dédié de remontée de violations + journalisation rythmée
-- Déploiement — guides par stack reverse-proxy (LAN, DSM, NPM, Caddy, Traefik)
-- UX — message clair quand le serveur limite les tentatives
-- Paramètres notifications — confirmation explicite obligatoire avant d'effacer toutes les destinations
-- Démarrage — alerte si l'origine publique manque en mode reverse-proxy
-- Bandeau d'alerte persistant si la clé de chiffrement est éphémère
-- Tests — détection automatique des domaines tiers absents de la politique de sécurité
-- Sauvegardes — vérification de signature ZIP et liste blanche d'entrées (anti zip-bomb)
-- API — paramètres de configuration : rejet des champs inconnus (sécurité)
-- Notifications — signature HMAC sur les webhooks sortants (forward-compat intégrateurs)
-- Notifications — retry unique sur Discord 429 (Retry-After cap 5 s)
-- Notifications — log structuré sur échec Imgur (statut + extrait, pas de secret)
-- Logs — filtre global de rédaction (mots de passe, tokens, JWT, webhooks)
-- Connexion — succès journalisés avec user_id (échec garde l'identifiant pour audit)
-- API — handler global d'erreur masque la query string (jamais de secret en log)
-- Base de données — chat anonymisé (et non effacé) à la suppression du compte
-- Base de données — colonnes utilisateur préparées pour la suppression différée
-- Confidentialité — paramètres préchargés (désactivés par défaut)
-- Confidentialité — export ZIP, suppression différée et annulation (mode opt-in)
-- Utilisateurs — filtre « en attente de suppression » et annulation côté admin
-- Planificateur — purge quotidienne des comptes en attente (opt-in, désactivé par défaut)
-- Confidentialité — section admin (interrupteur, éditeurs FR/EN, liste comptes en attente)
-- Confidentialité — paramètres préchargés (désactivés par défaut)
-- Confidentialité — export ZIP, suppression différée et annulation (mode opt-in)
-- Utilisateurs — filtre « en attente de suppression » et annulation côté admin
-- Planificateur — purge quotidienne des comptes en attente (opt-in, désactivé par défaut)
-- Confidentialité — section admin (interrupteur, éditeurs FR/EN, liste comptes en attente)
-- Confidentialité — onglet utilisateur (politique, export, suppression différée) et bandeau de grâce
-- Suivi — pastilles de langues audio (FR, EN, JP…) sur les épisodes disponibles, avec tooltip
-- Gestionnaire — sélection au lasso rectangulaire dans la liste de fichiers (annulable par Échap)
-- Gestionnaire — marges cliquables élargies autour des listes pour amorcer un lasso sans viser une ligne
+- Utilisateurs — désactivation automatique à l'expiration (sessions coupées, audit dédié)
+- Page À propos (stack, licences) et mentions partenaires sous Paramètres
+- Page introuvable — vraie 404 accessible avec retour au tableau de bord
+- Accessibilité — lien « Aller au contenu principal » au focus clavier
 - Accessibilité — pièges au clavier sur 20 modales/overlays (Échap restaure le focus)
 - Accessibilité — alternative clavier à la réorganisation des widgets du tableau de bord
 - Accessibilité — toasts annoncés aux lecteurs d'écran (région aria-live)
 - Accessibilité — animations décoratives respectent prefers-reduced-motion
-- Gestionnaire — recherche TMDB : champ « Année » optionnel pour départager les remakes (auto-rempli depuis le fichier)
-- Gestionnaire — lasso aussi sur la liste des nouveaux noms (suppression groupée)
-- Demandes (admin) — mode maintenance personnalisable et actualités planifiables (dates de début/fin)
-- Portail — actualités actives affichées en tête de l'overlay « Quoi de neuf »
+- Gestionnaire — sélection au lasso dans les listes (Échap annule)
+- Gestionnaire — marges cliquables élargies pour amorcer le lasso hors-ligne
+- Gestionnaire — recherche TMDB : champ « Année » optionnel pour départager les remakes
+- Suivi — pastilles de langues audio (FR, EN, JP…) sur les épisodes disponibles
+- Sauvegardes — dump SQL et clé de chiffrement embarqués par défaut
+- Sauvegardes — refus de démarrage si chemin absent en production
+- Sauvegardes — guide opérateur de restauration et avertissement côté API
+- Sauvegardes — vérification de signature ZIP et liste blanche d'entrées (anti zip-bomb)
+- Runbook incidents avec procédures de récupération documentées
+- Alertes webhook sur incidents critiques (santé, base, planificateur, dump)
+- Confiance proxy stricte, en-têtes de sécurité (CSP/HSTS) et cookies sécurisés
+- Sessions révocables, scopes de jetons stricts et WebSocket sécurisé
+- Renforcement XSS — schémas d'URL filtrés, sanitisation HTML resserrée
+- Renforcement API — limites de débit, contrôle d'origine, vérification d'autorisation
+- CSP — endpoint dédié de remontée de violations avec journalisation rythmée
+- API — paramètres de configuration : rejet des champs inconnus
+- Notifications — signature HMAC sur les webhooks sortants
+- Notifications — retry unique sur erreurs de débit (cap 5 s)
+- Notifications — log structuré sur échec d'hébergement d'image (statut + extrait, pas de secret)
+- Logs — filtre global de rédaction (mots de passe, jetons, JWT, webhooks)
+- Connexion — succès journalisés avec identifiant utilisateur
+- API — handler global d'erreur masque les paramètres de requête
+- Confidentialité (RGPD) — section admin avec interrupteur, éditeurs FR/EN, comptes en attente
+- Confidentialité (RGPD) — onglet utilisateur (politique, export ZIP, suppression différée, bandeau de grâce)
+- Confidentialité (RGPD) — paramètres préchargés (désactivés par défaut), suppression différée annulable
+- Utilisateurs — filtre « en attente de suppression »
+- Planificateur — purge quotidienne des comptes en attente (opt-in)
+- Base de données — chat anonymisé à la suppression d'un compte (au lieu d'être effacé)
+- Démarrage — alerte si l'origine publique manque en mode reverse-proxy
+- Bandeau persistant si la clé de chiffrement est éphémère
+- Tests — détection automatique des domaines tiers absents de la politique de sécurité
+- Déploiement — guides par stack reverse-proxy
+- Documentation projet refondue (README, sécurité, architecture, contribution, attributions)
+- UX — message clair quand le serveur limite les tentatives
+- Paramètres notifications — confirmation obligatoire avant d'effacer toutes les destinations
+- CSP — autorise le loader vidéo embarqué tout en conservant la lecture sans cookies
 
 ### Changed
 - Demandes (admin) — en-tête épuré, interrupteurs glissants, éditeur de confidentialité mono-langue
-- Portail admin — sous-onglets Tickets et Listes retirés (les actions vivent côté portail premium)
-- Listes admin — actions de modération migrées sur la page Listes du portail (onglet Admin)
-- Dépendances frontend — vue-i18n 9→11 + unplugin 4→11 (alignement compile/runtime, retrait legacy-peer-deps)
+- Portail admin — sous-onglets Tickets et Listes retirés (actions migrées vers la surface portail)
+- Listes admin — modération depuis la page Listes du portail (onglet Admin)
+- Dépendances frontend — alignement compile/runtime des locales
 
 ### Fixed
-- Statistiques — popup jaquette se ferme bien après clic vers l'historique d'activité
-- Modification utilisateur — vider un champ (prénom/nom/email) persiste désormais comme suppression
-- Démarrage Alembic — env.py utilise désormais `connectable.begin()` (commit atomique de toute la run migration ; corrige le rollback silencieux asyncpg)
-- Migrations 045-048 — bascule en SQL natif Postgres (correction du no-op silencieux de batch_alter_table sur asyncpg)
-- Démarrage backend — validation trophées : fichiers locales inaccessibles n'invalident plus le seed (faux positifs en mode Docker)
-- Déploiement Postgres — colonne `alembic_version` élargie automatiquement (auto-fix migrations longues)
+- Migrations — commit atomique de la séquence au démarrage (plus de rollback silencieux)
+- Migrations — bascule en SQL natif sur les schémas concernés (corrige un no-op silencieux côté async)
+- Migrations — colonne version élargie automatiquement pour les longues migrations
+- Migrations — chaînage des têtes Alembic résolu
+- Démarrage — validation trophées : fichiers locales inaccessibles n'invalident plus le seed
+- Statistiques — popup jaquette se ferme après clic vers l'historique d'activité
+- Modification utilisateur — vider un champ (prénom, nom, email) persiste comme suppression
 - Modification utilisateur — formulaire reste à jour après sauvegarde
 - Trophées — historique XP affiche le nom du trophée débloqué
-- Notifications Discord — détection contextuelle « série » / « saison complète » / « épisodes ajoutés », template configuré et synopsis correctement appliqués
-- Tableau de bord — widget Activité : labels sur plusieurs lignes en fenêtre étroite (plus de troncature)
-- Tableau de bord — boutons Reset/Terminé compacts en desktop (taille tactile préservée sur mobile)
-- Tableau de bord — widget Activité portail : chiffres centrés, plus de débordement en fenêtre étroite
-- Tableau de bord — barre Personnaliser : boutons à droite, Reset rouge, sans icônes, lecture sur une ligne
+- Trophées — Marathonien Ultime relevé à 24 h en une session (au lieu de 12 h)
+- Notifications — détection contextuelle « série / saison complète / épisodes », template et synopsis appliqués
+- Notifications — titres affichés en liens cliquables (au lieu de texte brut)
+- Notifications admin — messages longs s'affichent sur plusieurs lignes
+- Reconnexion — logo de l'overlay toujours affiché pendant un redéploiement, déconnexion auto si l'app a été mise à jour
+- Tableau de bord — widget Activité : labels sur plusieurs lignes en fenêtre étroite
+- Tableau de bord — boutons Reset/Terminé compacts en desktop, taille tactile préservée mobile
+- Tableau de bord — widget Activité portail : chiffres centrés, plus de débordement
+- Tableau de bord — barre Personnaliser : boutons à droite, Reset rouge, lecture sur une ligne
 - Classement — flèche d'évolution séparée du pseudo (troncature propre sur les noms longs)
-- Portail — jaquettes plus compactes en mobile, tap sur la carte ouvre la fiche (boutons d'action retirés sur tactile)
-- Reconnexion — logo de l'overlay toujours affiché pendant un redéploiement, déconnexion automatique si l'application a été mise à jour pendant la coupure
-- Planificateur — bouton « Lancer maintenant » sur tâches obsolètes ne renvoie plus d'erreur (nettoyage automatique au démarrage)
-- Suivi / Manquants — séries dupliquées affichées une seule fois (dédoublonnage par identifiant TMDB)
+- Classement — avatar custom respecté dans toutes les listes, fallback initiale si l'image ne charge pas
+- Portail — jaquettes plus compactes en mobile, tap ouvre la fiche (boutons retirés sur tactile)
+- Portail — pastille de disponibilité unifiée (cache canonique prioritaire)
+- Portail — bouton Lecture retiré des bannières héros (héros redevient informatif)
+- Portail — vidéo héros collée sous la barre du haut à toutes les largeurs
+- Portail — corrige une erreur 500 quand un identifiant TMDB est envoyé en texte
+- Planificateur — bouton « Lancer maintenant » sur tâches obsolètes ne renvoie plus d'erreur
+- Suivi / Manquants — séries dupliquées affichées une seule fois
 - Suppression d'utilisateur — contenus communautaires anonymisés au lieu d'être effacés
 - PWA — URLs portail alignées, nom système unifié, icône maskable corrigée
-- PWA — icônes Android avec fond opaque sur toutes les variantes (plus de carré blanc)
-- Confidentialité — onglet anglais affichait la clé brute (traduction manquante restaurée)
-- Base de données — contraintes manquantes sur `seen_alerts` et `xp_ledger`
+- PWA — icônes Android opaques sur toutes les variantes
+- Confidentialité — onglet anglais affichait la clé brute (traduction restaurée)
+- Confidentialité — message d'erreur propre quand l'export dépasse la limite
+- Base de données — contraintes manquantes ajoutées sur les tables d'événements et d'XP
 - Connexion — icône GitHub restaurée avec le bon lien, ligne version texte retirée
-- Force fin de ligne LF sur scripts et auto-fix CRLF au build Docker
-- UX : padding crédits, lien GitHub login dédupliqué, retrait mention container
-- Corrige les titres Discord affichés en texte brut au lieu de liens
-- Portail — corrige le 500 quand le portail envoie un tmdb_id texte
-- Utilisateurs — compte admin local marqué « Local » et plus comme source Emby
-- Utilisateurs — date de dernière connexion admin renseignée à chaque login MK
-- Utilisateurs — bandeau de stats actualisé immédiatement après désactivation/changement
-- Utilisateurs — drawer ne se ferme plus au clic en dehors (uniquement par la croix)
-- Utilisateurs — fin d'accès affichée en heures/minutes quand il reste moins de 24h
+- Build — fin de ligne LF forcée sur scripts, auto-fix CRLF au build conteneur
+- UX — padding crédits resserré, lien GitHub login dédupliqué, mention conteneur retirée
+- Utilisateurs — compte admin local marqué « Local » au lieu d'une source externe
+- Utilisateurs — date de dernière connexion admin renseignée à chaque login
+- Utilisateurs — bandeau de stats actualisé immédiatement après désactivation
+- Utilisateurs — drawer ne se ferme plus au clic en dehors (croix uniquement)
+- Utilisateurs — fin d'accès affichée en heures/minutes quand il reste moins de 24 h
 - Utilisateurs — colonne Statut en vert/rouge selon l'état du compte
-- Utilisateurs — date de début d'accès pré-remplie avec la date de création du compte
-- Utilisateurs — onglet Audit traduit et résumé en clair (rôle, identité, période, permissions)
-- Utilisateurs — onglet Trophées : icônes Lucide réelles sans effets d'animation
-- Utilisateurs — picto calendrier visible sur les champs date (icône blanche)
-- Utilisateurs — bouton « Forcer la déconnexion » précise qu'il ne touche pas Emby
-- XP — un compte inactif peut maintenant cumuler XP si l'admin coche « XP hors-ligne »
-- Utilisateurs — onglet Trophées affiche les noms traduits (Cinéphile, Globe-Trotter…) au lieu des clés brutes
-- XP — attribution post-session ne crashait plus en MissingGreenlet (sessions ORM expire_on_commit côté collector + scheduler)
-- XP — durée de visionnage clampée au runtime (une longue pause ne fait plus dépasser les 85% artificiellement)
-- XP — bandes-annonces, MusicVideo, LiveTV et autres types non Movie/Episode ne donnent plus d'XP
-- XP — table d'actions nettoyée des entrées fantômes (complete_series, request_approved, event_*, streak_*) couvertes en réalité par les trophées
-- Debug admin — bouton « Re-vérifier tous les trophées » : rattrape les trophées d'historique pour les utilisateurs qui n'ont pas joué depuis le fix
-- Trophées — Marathonien Ultime relevé à 24h en une session (au lieu de 12h)
-- Classement — avatar custom respecté dans les listes (leaderboard, ranking, daily digest, demandes), fallback initiale si l'image ne charge pas
-- Sessions Emby — durée réelle utilisée (clamp wall/position/runtime), plus de fausses sessions de 24h+ après un redémarrage du collecteur
-- Sessions Emby — fin de session marquée à la dernière apparition Emby (`last_seen_at`), pas au moment où le collecteur la détecte stale
-- Debug admin — bouton « Réinitialiser un trophée pour tous » (suppression + remboursement XP) pour nettoyer un trophée mal attribué
-- Utilisateurs — onglet Trophées : badge rareté (Commun → Mythique) + XP gagné affichés sous chaque trophée débloqué
-- Profil — classement du mois affiche les 15 lignes sans scroll interne (la carte s'allonge selon le contenu)
-- Migrations — chaînage 029 → 030 corrigé (deux heads Alembic résolus)
-- Doublons — onglet Ignorés en lignes compactes groupées par série, header avec bouton « Tout restaurer »
-- Portail — pastille de disponibilité unifiée (cache canonique prioritaire, plus de divergence entre Top 20 et autres listes)
-- Portail — bouton « Lecture » retiré des bannières héros (héros redevient informatif, demande conservée)
-- Portail — vidéo héros collée sous la topbar à toutes les largeurs (fin du masque qui découvrait le fond)
-- Notifications admin — messages longs s'affichent sur plusieurs lignes au lieu d'être tronqués
-- Sécurité — suppression de `unsafe-eval` dans la CSP (locales vue-i18n précompilées)
-- Statistiques — Top 20 et stats par genre comptent selon les mêmes règles (cohérence Watchlist)
-- Confidentialité — message d'erreur propre quand l'export dépasse la limite (plus d'erreur serveur)
+- Utilisateurs — date de début d'accès pré-remplie avec la création du compte
+- Utilisateurs — onglet Audit traduit et résumé en clair
+- Utilisateurs — onglet Trophées : noms traduits, icônes alignées sans animation, badge rareté + XP
+- Utilisateurs — picto calendrier visible sur les champs date
+- Utilisateurs — bouton « Forcer la déconnexion » précise qu'il ne touche pas le compte streaming
+- XP — comptes inactifs cumulent désormais l'XP si l'admin coche « XP hors-ligne »
+- XP — attribution post-session ne crashe plus en cas de session ORM expirée
+- XP — durée de visionnage clampée au runtime (longue pause ne dépasse plus 85 % artificiellement)
+- XP — bandes-annonces et types non Movie/Episode ne donnent plus d'XP
+- XP — table d'actions nettoyée des entrées fantômes (couvertes par les trophées)
+- Sessions — durée réelle utilisée (clamp), plus de fausses sessions de 24 h+ après redémarrage
+- Sessions — fin marquée à la dernière apparition (au lieu du moment de détection)
+- Debug admin — bouton « Re-vérifier tous les trophées » pour rattraper l'historique
+- Debug admin — bouton « Réinitialiser un trophée pour tous » (suppression + remboursement XP)
+- Profil — classement du mois affiche les 15 lignes sans scroll interne
+- Doublons — onglet Ignorés en lignes compactes groupées par série, bouton « Tout restaurer »
+- Sécurité — suppression d'`unsafe-eval` dans la CSP (locales précompilées)
+- Statistiques — Top 20 et stats par genre comptent selon les mêmes règles
 
 ## [0.9.8] - 2026-04-28
 

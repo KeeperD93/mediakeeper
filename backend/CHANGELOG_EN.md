@@ -9,146 +9,134 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+## [0.9.9] - 2026-05-14
+
 ### Added
-- Admin news — edit and delete an existing news entry
-- Requests — configurable auto-cleanup of available requests after N days (0 = disabled)
-- Accessibility — keyboard "Skip to main content" link on login and admin
-- Page not found — proper accessible 404 page with back-to-dashboard link (no more silent redirect)
-- Tightened credits page UX and added GitHub link on the login page
-- About — admin page (stack, licenses, FFmpeg LGPL) and notes under TMDB / OpenSubtitles in Settings
-- Requests — top-bar stat cards now show the all-time total under each counter (pending, approved, rejected, available)
+- Admin news — create, edit, delete and schedule entries (start/end dates)
+- Customizable Requests maintenance mode
+- Requests — configurable auto-cleanup of available requests after N days
+- Requests — all-time total under each counter (pending, approved, rejected, available)
 - Requests / Users — premium full-width revamp (search, filters, table/card view, bulk actions)
 - Users — 7-tab drawer (identity, access, security, activity, trophies, notes, audit)
-- Users — Activity cards revamp (contextual icons, tinted gauges) and permissions as blue toggles
-- Users — roles + granular permissions (chat, requests, problems, lists, offline XP)
+- Users — roles and granular permissions (chat, requests, problems, lists, offline XP)
 - Users — access window (start/end) with 1/3/6/12-month extend shortcuts
-- Users — disable the streaming account from MK (active sessions logged out)
+- Users — disable the streaming account from the admin (active sessions logged out)
 - Users — selective import overlay and manual creation of local-only accounts
-- Users — reversible soft-delete, full audit log, private admin notes, tags
+- Users — reversible soft-delete, audit log, private admin notes, tags
 - Users — per-user GDPR export (JSON) and targeted admin → user notification
 - Users — online indicator, < 7 d expiry badge, "never logged in" filter
-- Users — automatic deactivation on expiry (Emby + MediaKeeper, sessions killed, dedicated audit)
-- Project documentation (README, SECURITY, ARCHITECTURE, CONTRIBUTING, attributions)
-- Backups — SQL dump and encryption key embedded by default
-- Backups — refuse to start when BACKUP_PATH is missing in production (safety)
-- Backups — operator restore runbook + explicit API restore warning
-- Incident runbook with documented recovery procedures
-- Automatic webhook alerts on critical incidents (health, DB, scheduler, dump)
-- Security updates (JWT, cryptography, multipart, frontend build)
-- Strict proxy trust, security headers (CSP/HSTS) and secure cookies
-- Revocable sessions, strict token scopes and secured WebSocket
-- XSS hardening — URL scheme filtering, tighter HTML sanitization
-- CSP — allow YouTube loader and keep iframe in privacy mode
-- API hardening — rate limiting, origin checks, authorization enforcement
-- CSP — dedicated violation report endpoint with rate-limited logging
-- Deployment — per-stack reverse-proxy guides (LAN, DSM, NPM, Caddy, Traefik)
-- UX — clear message when the server throttles requests
-- Notification settings — explicit confirmation required before clearing every destination
-- Startup — warn when the public origin is unset in reverse-proxy mode
-- Persistent banner alert when the at-rest encryption key is ephemeral
-- Tests — automatic detection of third-party hosts missing from the security policy
-- Backups — ZIP signature check and entry whitelist (zip-bomb guard)
-- API — configuration payloads reject unknown fields (security hardening)
-- Notifications — HMAC signature header on outbound webhooks (forward-compat)
-- Notifications — single retry on Discord 429 (Retry-After capped at 5 s)
-- Notifications — structured log on Imgur failure (status + snippet, no secrets)
-- Logs — global redaction filter (passwords, tokens, JWTs, webhook URLs)
-- Login — success entries log user_id (failure keeps the username for audit)
-- API — global error handler strips query strings (no secrets in logs)
-- Database — chat anonymised (not erased) when an account is removed
-- Database — user columns prepared for delayed account deletion
-- Privacy — preset settings shipped (disabled by default)
-- Privacy — ZIP export, delayed deletion and cancel (opt-in mode)
-- Users — "pending deletion" filter and admin-side cancel
-- Scheduler — daily purge of pending accounts (opt-in, off by default)
-- Privacy — admin section (toggle, FR/EN editors, pending accounts list)
-- Privacy — preset settings shipped (disabled by default)
-- Privacy — ZIP export, delayed deletion and cancel (opt-in mode)
-- Users — "pending deletion" filter and admin-side cancel
-- Scheduler — daily purge of pending accounts (opt-in, off by default)
-- Privacy — admin section (toggle, FR/EN editors, pending accounts list)
-- Privacy — user tab (policy, export, delayed deletion) and grace-period banner
-- Watchlist — audio language tags (FR, EN, JP…) on available episodes, with tooltip
-- Media Manager — rectangle lasso selection in the file list (Escape cancels)
-- Media Manager — wider clickable gutters around lists so the lasso starts without aiming off-row
+- Users — automatic deactivation on expiry (sessions killed, dedicated audit)
+- About page (stack, licenses) and partner credits under Settings
+- Page not found — proper accessible 404 with back-to-dashboard link
+- Accessibility — keyboard "Skip to main content" link
 - Accessibility — focus traps on 20 modals/overlays (Escape restores focus)
 - Accessibility — keyboard alternative for rearranging dashboard widgets
 - Accessibility — toasts announced to screen readers (aria-live region)
 - Accessibility — decorative animations respect prefers-reduced-motion
-- Media Manager — TMDB search: optional "Year" field to disambiguate remakes (auto-filled from filename)
-- Media Manager — lasso on the generated names list (batch delete)
-- Requests (admin) — customizable maintenance mode and scheduled news (start/end dates)
-- Portal — active news now displayed at the top of the "What's New" overlay
+- Media Manager — lasso selection in lists (Escape cancels)
+- Media Manager — wider clickable gutters so the lasso starts off-row
+- Media Manager — TMDB search: optional "Year" field to disambiguate remakes
+- Watchlist — audio language tags (FR, EN, JP…) on available episodes
+- Backups — SQL dump and encryption key embedded by default
+- Backups — refuse to start when the path is missing in production
+- Backups — operator restore runbook and API-side warning
+- Backups — ZIP signature check and entry whitelist (zip-bomb guard)
+- Incident runbook with documented recovery procedures
+- Automatic webhook alerts on critical incidents (health, DB, scheduler, dump)
+- Strict proxy trust, security headers (CSP/HSTS) and secure cookies
+- Revocable sessions, strict token scopes and secured WebSocket
+- XSS hardening — URL scheme filtering, tighter HTML sanitization
+- API hardening — rate limiting, origin checks, authorization enforcement
+- CSP — dedicated violation report endpoint with rate-limited logging
+- API — configuration payloads reject unknown fields
+- Notifications — HMAC signature header on outbound webhooks
+- Notifications — single retry on rate-limit errors (capped at 5 s)
+- Notifications — structured log on image-host failure (status + snippet, no secrets)
+- Logs — global redaction filter (passwords, tokens, JWTs, webhooks)
+- Login — success entries log the user identifier
+- API — global error handler strips query strings
+- Privacy (GDPR) — admin section (toggle, FR/EN editors, pending accounts list)
+- Privacy (GDPR) — user tab (policy, ZIP export, delayed deletion, grace-period banner)
+- Privacy (GDPR) — preset settings shipped (off by default), delayed deletion cancellable
+- Users — "pending deletion" filter
+- Scheduler — daily purge of pending accounts (opt-in)
+- Database — chat anonymised when an account is removed (instead of erased)
+- Startup — warn when the public origin is unset in reverse-proxy mode
+- Persistent banner when the at-rest encryption key is ephemeral
+- Tests — automatic detection of third-party hosts missing from the security policy
+- Deployment — per-stack reverse-proxy guides
+- Project documentation refreshed (README, security, architecture, contributing, attributions)
+- UX — clear message when the server throttles requests
+- Notification settings — explicit confirmation required before clearing every destination
+- CSP — allow embedded video loader while keeping cookie-less playback
 
 ### Changed
 - Requests (admin) — cleaner header, slide toggles, single-locale privacy editor
-- Portal admin — Tickets and Lists sub-tabs retired (actions now live on the premium portal)
-- Admin lists — moderation actions moved to the portal Lists page (Admin tab)
-- Frontend deps — vue-i18n 9→11 + unplugin 4→11 (compile/runtime alignment, legacy-peer-deps retired)
+- Portal admin — Tickets and Lists sub-tabs retired (actions moved to the portal surface)
+- Admin lists — moderation moved to the portal Lists page (Admin tab)
+- Frontend deps — compile/runtime alignment of locales
 
 ### Fixed
-- Statistics — poster hover popup now closes after clicking through to activity history
+- Migrations — atomic commit of the startup sequence (no more silent rollback)
+- Migrations — switched the affected schemas to native SQL (fixes a silent async no-op)
+- Migrations — version column auto-widened for long migrations
+- Migrations — Alembic head chaining resolved
+- Startup — achievement validation: unreachable locale files no longer fail the seed
+- Statistics — poster hover popup closes after clicking through to activity history
 - Edit user — clearing a field (first/last name, email) now persists as a removal
-- Alembic startup — env.py now uses `connectable.begin()` (atomic commit of the whole migration run; fixes the asyncpg silent rollback)
-- Migrations 045-048 — switched to native Postgres SQL (fixes silent no-op of batch_alter_table on asyncpg)
-- Backend startup — achievement validation: unreachable locale files no longer fail the seed (Docker false-positives)
-- Postgres deploy — `alembic_version` column auto-widened (long-slug migrations now apply)
-- Edit user — form stays in sync with the persisted values after save
+- Edit user — form stays in sync after save
 - Trophies — XP history shows the unlocked trophy name
-- Discord notifications — context-aware "series" / "full season" / "episodes" detection, configured template and synopsis now applied
-- Dashboard — Activity widget: labels wrap on narrow widths (no more truncation)
-- Dashboard — Reset/Done buttons compact on desktop (touch target preserved on mobile)
-- Dashboard — Portal Activity widget: numbers centered, no more overflow at narrow widths
-- Dashboard — Customize toolbar: buttons aligned right, Reset turned red, icons removed, single-line label
+- Trophies — Ultimate Marathoner threshold raised to 24 h in one session (was 12 h)
+- Notifications — context-aware "series / full season / episodes" detection, template and synopsis applied
+- Notifications — titles rendered as clickable links (instead of raw text)
+- Admin notifications — long messages wrap onto multiple lines
+- Reconnect overlay — logo always visible during a redeploy, automatic sign-out if the app was updated
+- Dashboard — Activity widget: labels wrap on narrow widths
+- Dashboard — Reset/Done buttons compact on desktop, touch target preserved on mobile
+- Dashboard — Portal Activity widget: numbers centered, no more overflow
+- Dashboard — Customize toolbar: buttons aligned right, Reset turned red, single-line label
 - Leaderboard — rank movement arrow no longer overlaps the username (clean truncation on long names)
+- Leaderboard — custom avatars honoured across all lists, initial fallback if the image fails to load
 - Portal — smaller poster thumbnails on mobile, tap anywhere opens details (action buttons hidden on touch)
-- Reconnect overlay — logo always visible during a redeploy, automatic sign-out when the app was updated mid-outage
-- Scheduler — "Run now" on obsolete tasks no longer errors (orphan rows purged at startup)
-- Follow-up / Missing — duplicate series now appear only once (deduplicated by TMDB id)
+- Portal — availability dot unified (canonical cache wins)
+- Portal — "Play" CTA removed from hero banners (hero stays informational)
+- Portal — hero video sticks to the topbar at every width
+- Portal — fix 500 when the portal sends a TMDB id as text
+- Scheduler — "Run now" on obsolete tasks no longer errors
+- Follow-up / Missing — duplicate series appear only once
 - User deletion — community content anonymised instead of cascade-deleted
 - PWA — portal URLs aligned, system name unified, maskable icon fixed
-- PWA — Android icons now opaque on every variant (no more white square)
-- Privacy — English tab label rendered as raw key (missing translation restored)
-- Database — missing foreign-key constraints on `seen_alerts` and `xp_ledger`
+- PWA — Android icons opaque on every variant
+- Privacy — English tab label was rendered as a raw key (translation restored)
+- Privacy — clean error message when the export exceeds the size cap
+- Database — missing foreign-key constraints added on event and XP tables
 - Login — GitHub icon restored with the correct link, text version line dropped
-- Enforce LF line endings on scripts and auto-fix CRLF during Docker build
-- UX: credits padding, deduplicated login GitHub link, dropped container mention
-- Fix Discord notification titles rendered as raw text instead of links
-- Portal — fix 500 when the portal sends a tmdb_id as text
-- Users — local admin account flagged as "Local" instead of an Emby source
-- Users — admin last-login stamped on every MK sign-in
-- Users — stats banner refreshed immediately after deactivation/changes
+- Build — LF line endings enforced on scripts, CRLF auto-fixed at container build
+- UX — credits padding tightened, deduplicated login GitHub link, container mention dropped
+- Users — local admin account flagged as "Local" instead of an external source
+- Users — admin last-login stamped on every sign-in
+- Users — stats banner refreshed immediately after deactivation
 - Users — drawer no longer closes on outside click (close button only)
-- Users — access end shown in hours/minutes when less than 24h remain
-- Users — Status column now coloured green/red depending on account state
+- Users — access end shown in hours/minutes when less than 24 h remain
+- Users — Status column coloured green/red depending on account state
 - Users — access start defaults to the account creation date
-- Users — Audit tab translated and summarised in plain text (role, identity, window, permissions)
-- Users — Trophies tab: real Lucide icons without the animation effects
-- Users — calendar picker icon visible on date fields (white)
-- Users — "Force logout" button clarified as MediaKeeper-only (Emby untouched)
-- XP — inactive accounts now earn XP when the admin enables "offline XP"
-- Users — Trophies tab now shows translated names (Cinephile, Globe-Trotter…) instead of raw keys
-- XP — post-session grant no longer crashes with MissingGreenlet (ORM sessions need expire_on_commit=False on collector + scheduler)
-- XP — watched duration clamped to item runtime (long pauses can no longer push past the 85% threshold artificially)
-- XP — trailers, MusicVideo, LiveTV and other non-Movie/Episode types no longer grant XP
-- XP — action table cleaned of zombie entries (complete_series, request_approved, event_*, streak_*) actually covered by the achievement system
-- Admin debug — "Recheck all achievements" endpoint: backfills trophies for users who haven't played since the fix
-- Achievements — Ultimate Marathoner threshold raised to 24h in one session (was 12h)
-- Leaderboard — custom avatars now honoured in user lists (leaderboard, ranking, daily digest, requests), initial fallback if the image fails to load
-- Emby sessions — real watched duration used (clamped to wall/position/runtime), no more fake 24h+ sessions after a collector restart
-- Emby sessions — session end stamped at the last Emby ping (``last_seen_at``), not at the moment the collector spots it as stale
-- Admin debug — "Reset a trophy for everyone" button (drops UA + refunds XP) to scrub a wrongly-awarded trophy
-- Users — Trophies tab: rarity badge (Common → Mythic) + earned XP shown under each unlocked trophy
-- Profile — monthly ranking shows the 15 rows without inner scroll (card grows to fit)
-- Migrations — fixed 029 → 030 chaining (two Alembic heads resolved)
-- Duplicates — Ignored tab now compact rows grouped by series with a single "Restore all" header button
-- Portal — availability dot unified (canonical cache wins, no Top 20 vs. other-list divergence)
-- Portal — "Play" CTA removed from hero banners (hero is informational, request still surfaces)
-- Portal — hero video sticks to the topbar at every width (mask no longer reveals the dark background)
-- Admin notifications — long messages wrap onto multiple lines instead of being truncated
-- Security — dropped `unsafe-eval` from CSP (vue-i18n locales precompiled)
-- Stats — Top 20 and genre stats now count sessions with the same rules (Watchlist parity)
-- Privacy — clean error message when the export exceeds the size cap (no more server error)
+- Users — Audit tab translated and summarised in plain text
+- Users — Trophies tab: translated names, aligned icons without animation, rarity badge + XP
+- Users — calendar picker icon visible on date fields
+- Users — "Force logout" button clarified as not affecting the streaming account
+- XP — inactive accounts earn XP when the admin enables "offline XP"
+- XP — post-session grant no longer crashes when an ORM session expires
+- XP — watched duration clamped to item runtime (long pauses no longer push past 85 %)
+- XP — trailers and non-Movie/Episode types no longer grant XP
+- XP — action table cleaned of zombie entries (covered by the achievement system)
+- Sessions — real watched duration used (clamped), no more fake 24 h+ sessions after a restart
+- Sessions — end stamped at the last sighting (not at the moment of detection)
+- Admin debug — "Recheck all achievements" button to backfill history
+- Admin debug — "Reset a trophy for everyone" button (drops UA + refunds XP)
+- Profile — monthly ranking shows the 15 rows without inner scroll
+- Duplicates — Ignored tab now compact rows grouped by series with a "Restore all" header button
+- Security — dropped `unsafe-eval` from CSP (precompiled locales)
+- Stats — Top 20 and genre stats count sessions with the same rules
 
 ## [0.9.8] - 2026-04-28
 
