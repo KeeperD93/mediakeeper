@@ -73,6 +73,65 @@ async def test_catalog_search_caches_tmdb_fallback(monkeypatch, db_session):
 
 
 @pytest.mark.asyncio
+async def test_upsert_preserves_poster_url_when_not_supplied(db_session):
+    """An Emby-side availability sync must not erase a TMDB poster URL
+    that was cached earlier. Regression for the blank-poster bug on
+    /portal/search where Emby-indexed entries overwrote poster_url
+    with ``""`` on every sync."""
+    await search_index.upsert_search_document(
+        db_session,
+        tmdb_id=500,
+        media_type="movie",
+        title="With Poster",
+        poster_url="https://image.tmdb.org/t/p/w300/abc.jpg",
+    )
+    await db_session.commit()
+
+    # Re-upsert without supplying poster_url (Emby-index path).
+    await search_index.upsert_search_document(
+        db_session,
+        tmdb_id=500,
+        media_type="movie",
+        title="With Poster",
+        available_on_emby=True,
+        source="emby",
+    )
+    await db_session.commit()
+
+    items = await search_index.search_local_index(db_session, "withposter")
+    assert len(items) == 1
+    assert items[0]["poster_url"] == "https://image.tmdb.org/t/p/w300/abc.jpg"
+    assert items[0]["poster"] == "https://image.tmdb.org/t/p/w300/abc.jpg"
+
+
+@pytest.mark.asyncio
+async def test_upsert_clears_poster_when_explicit_empty(db_session):
+    """An empty string is treated as an explicit clear (TMDB returns
+    no poster_path). Only ``None`` skips the field."""
+    await search_index.upsert_search_document(
+        db_session,
+        tmdb_id=501,
+        media_type="movie",
+        title="Lose Poster",
+        poster_url="https://image.tmdb.org/t/p/w300/foo.jpg",
+    )
+    await db_session.commit()
+
+    await search_index.upsert_search_document(
+        db_session,
+        tmdb_id=501,
+        media_type="movie",
+        title="Lose Poster",
+        poster_url="",
+    )
+    await db_session.commit()
+
+    items = await search_index.search_local_index(db_session, "loseposter")
+    assert len(items) == 1
+    assert items[0]["poster_url"] == ""
+
+
+@pytest.mark.asyncio
 async def test_refresh_search_availability_follows_emby_index(db_session):
     await search_index.upsert_search_document(
         db_session,

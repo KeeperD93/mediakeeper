@@ -154,9 +154,6 @@
 .pt-req-status-tag--approved {
   background: linear-gradient(135deg, var(--portal-color-info) 0%, #2563eb 100%);
 }
-.pt-req-status-tag--available {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-}
 .pt-req-status-tag--rejected {
   background: linear-gradient(135deg, var(--portal-color-error) 0%, #dc2626 100%);
 }

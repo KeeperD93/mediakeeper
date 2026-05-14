@@ -1,5 +1,5 @@
 <template>
-  <div class="emp" :class="{ 'emp--has-selection': !!modelValue }">
+  <div ref="pickerRoot" class="emp" :class="{ 'emp--has-selection': !!modelValue }">
     <!-- Selected hit summary: poster + title + reset button -->
     <div v-if="modelValue" class="emp-selected">
       <img
@@ -94,7 +94,7 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { usePortalTicketEmby } from '@/composables/portal/usePortalTicketEmby'
 
 defineProps({
@@ -108,8 +108,27 @@ const { results, searching, searchDebounced, clearResults, MIN_QUERY_LENGTH } =
 
 const query = ref('')
 const inputEl = ref(null)
+const pickerRoot = ref(null)
 const dropdownOpen = ref(false)
 const cursor = ref(0)
+
+function closeIfOutside(event) {
+  if (!pickerRoot.value || !dropdownOpen.value) return
+  if (!pickerRoot.value.contains(event.target)) {
+    dropdownOpen.value = false
+  }
+}
+
+// mousedown (not click) so a suggestion's mousedown.prevent select()
+// runs BEFORE the outside-close handler fires.
+onMounted(() => {
+  document.addEventListener('mousedown', closeIfOutside)
+  document.addEventListener('touchstart', closeIfOutside, { passive: true })
+})
+onBeforeUnmount(() => {
+  document.removeEventListener('mousedown', closeIfOutside)
+  document.removeEventListener('touchstart', closeIfOutside)
+})
 
 watch(results, () => {
   cursor.value = 0

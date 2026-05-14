@@ -2,7 +2,12 @@
 
 .pt-eh {
   position: relative;
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.25rem;
+}
+@media (min-width: 640px) {
+  .pt-eh {
+    margin-bottom: 2.5rem;
+  }
 }
 
 /* Hero strip — always rendered at full size, no open/close animation.

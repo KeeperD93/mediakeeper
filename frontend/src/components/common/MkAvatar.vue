@@ -39,9 +39,15 @@ watch(
 
 const showImage = computed(() => !!props.src && !failed.value)
 
-// 70% keeps the silhouette readable at the smallest sizes (18-24 px chips)
-// while leaving the headroom needed for the rarity ring around bigger avatars.
-const iconSize = computed(() => Math.round(props.size * 0.7))
+// Bigger silhouette (85%) on regular avatars (>= 32 px) so the icon
+// actually fills the disc rather than floating tiny at the bottom. The
+// chip range (< 32 px — leaderboard rows) stays at 80% to keep the
+// glyph readable inside a tight tier ring.
+const ICON_SCALE_CHIP = 0.8
+const ICON_SCALE_FULL = 0.85
+const iconSize = computed(() =>
+  Math.round(props.size * (props.size < 32 ? ICON_SCALE_CHIP : ICON_SCALE_FULL)),
+)
 
 function onError() {
   failed.value = true

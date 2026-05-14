@@ -33,7 +33,12 @@
   flex-shrink: 0;
   width: 185px;
   aspect-ratio: 2/3;
-  border-radius: var(--portal-radius-xs);
+  /* Poster cards next to it use the same token, but the see-more
+     card has a visible 1 px border + inset shadow that trace the
+     barely-rounded ``xs`` curve precisely — the result reads as more
+     angular than the photo-filled neighbours. Bumping to ``md`` lines
+     up the perceived roundness with the rest of the row. */
+  border-radius: var(--portal-radius-md);
   display: flex;
   flex-direction: column;
   align-items: center;

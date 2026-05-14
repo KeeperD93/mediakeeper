@@ -231,6 +231,7 @@ const {
   rankTier,
   trophies,
   recentUnlock,
+  markTrophyShown,
   recommended,
   becauseYouWatchedTv,
   becauseYouWatchedMovie,
@@ -288,6 +289,9 @@ const {
 watch(recentUnlock, unlocked => {
   if (!unlocked) return
   unlockToast.value = unlocked
+  // Mark the trophy as already-celebrated so refreshing the profile
+  // within the 5-min unlock window doesn't pop the toast a second time.
+  markTrophyShown(unlocked.id)
   setTimeout(() => {
     unlockToast.value = null
   }, 5000)

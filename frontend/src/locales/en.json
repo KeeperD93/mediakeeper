@@ -3309,7 +3309,12 @@
         "startAtLabel": "Start date (optional)",
         "endAtLabel": "End date (optional)",
         "scheduledBadge": "Scheduled",
-        "expiredBadge": "Expired"
+        "expiredBadge": "Expired",
+        "editButton": "Edit",
+        "deleteButton": "Delete",
+        "confirmDelete": "Permanently delete this news entry?",
+        "editMode": "Edit news entry",
+        "editSave": "Save"
       },
       "req": {
         "title": "Requests",

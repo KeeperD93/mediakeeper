@@ -218,6 +218,15 @@ onMounted(async () => {
 }
 .pt-main {
   min-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+}
+/* The routed page fills the available height so AttributionFooter stays
+   pinned to the viewport bottom on short pages (Tickets list with few
+   rows used to float in the middle of the viewport). On tall pages the
+   page grows naturally and the footer follows at content end. */
+.pt-main > :deep(*:not(.pt-attribution)) {
+  flex: 1 1 auto;
 }
 /* All portal pages get nav clearance. The home hero handles it
    by being tall enough (90vh) to extend behind the nav. */

@@ -3309,7 +3309,12 @@
         "startAtLabel": "Date de début (optionnelle)",
         "endAtLabel": "Date de fin (optionnelle)",
         "scheduledBadge": "Planifiée",
-        "expiredBadge": "Expirée"
+        "expiredBadge": "Expirée",
+        "editButton": "Modifier",
+        "deleteButton": "Supprimer",
+        "confirmDelete": "Supprimer définitivement cette actualité ?",
+        "editMode": "Modifier l'actualité",
+        "editSave": "Enregistrer"
       },
       "req": {
         "title": "Demandes",

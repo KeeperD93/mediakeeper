@@ -84,9 +84,16 @@ const popupStyle = ref({})
 // Anchor the popup to the trigger button's rect. The nav has a
 // max-width so on wide viewports the bell sits far from the viewport's
 // right edge — a static `right: 2rem` drifts the popup away from it.
+// On mobile we drop the inline anchoring and let the stylesheet pin
+// the panel to both edges — otherwise the computed ``right`` offset
+// can push a 90vw panel past the left margin and clip its content.
 function computePopupStyle() {
   const el = btnRef.value
   if (!el) return
+  if (window.innerWidth <= 640) {
+    popupStyle.value = {}
+    return
+  }
   const rect = el.getBoundingClientRect()
   const rightOffset = Math.max(8, window.innerWidth - rect.right)
   popupStyle.value = {
@@ -219,6 +226,19 @@ onBeforeUnmount(() => {
   overflow: hidden;
   backdrop-filter: var(--portal-blur-lg);
   -webkit-backdrop-filter: var(--portal-blur-lg);
+}
+@media (max-width: 640px) {
+  /* Lock the panel to both viewport edges so it never gets clipped by
+     a button-anchored ``right`` offset. The JS positioner skips its
+     inline style at this breakpoint, leaving these rules in charge. */
+  .pt-bell-popup {
+    top: var(--portal-topbar-height, 64px);
+    right: 12px;
+    left: 12px;
+    width: auto;
+    max-width: calc(100vw - 24px);
+    max-height: calc(100vh - var(--portal-topbar-height, 64px) - 24px);
+  }
 }
 .pt-bell-head {
   display: flex;

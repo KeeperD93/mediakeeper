@@ -54,6 +54,8 @@ utilisateurs.
 - Trophées listes — deux nouvelles familles (Curateur, Bibliothécaire) avec 5 paliers chacune
 
 ### Changed
+- Cartes média — ruban diagonal « Disponible » retiré (le point vert suffit)
+- Avatars — icône silhouette agrandie pour mieux remplir le cercle
 - Notifications — icônes Lucide en lieu et place des emojis
 - Crédit TMDB — bandeau compact sur une ligne
 - Accueil et profil — espacement réduit sur mobile
@@ -83,6 +85,15 @@ utilisateurs.
 - Classement — refonte premium, top 100, podium top 3 enrichi, titre cliquable depuis le profil
 
 ### Fixed
+- Mobile — espace réduit accueil, dropdown cloche non tronqué, crédit TMDB wrap propre, bouton « ne plus afficher » accessible
+- Quoi de neuf aujourd'hui — avatars et images remplissent leur cercle sur mobile
+- Modale Signaler un problème — dropdown média se ferme au clic ailleurs
+- Profil public — avatar sans photo affiche désormais l'icône silhouette (au lieu de la lettre)
+- Toast trophée — ne se ré-affiche plus à chaque refresh (chaque déblocage célébré une seule fois)
+- Surprise — erreurs intermittentes 500 sur clics rapides successifs corrigées (état de session ORM préservé après rollback)
+- Recherche — les jaquettes des résultats s'affichent désormais correctement
+- Carrousels — card « Voir plus » a les mêmes coins arrondis que les jaquettes adjacentes
+- Hero d'accueil — autoplay garanti muet pour éviter l'indicateur pause YouTube figé
 - Page détails média — page ouverte en haut systématiquement
 - Profil privé — page dédiée au lieu d'une erreur générique au clic depuis le classement
 - Portail — modale de choix du pseudo : plus de texte qui fuit en bas à gauche pendant la transition
