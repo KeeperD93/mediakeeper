@@ -142,3 +142,35 @@ def test_sqlite_integration_smoke(env_module, patched_context, tmp_path):
             "owns that DDL on the SQLite path."
         )
     engine.dispose()
+
+
+def test_run_async_migrations_uses_begin_not_connect(env_module):
+    """Regression guard for the silent-rollback incident (2026-05-14).
+
+    Prior version used ``connectable.connect()`` which opens a
+    connection WITHOUT a transaction. The early DDL widen calls in
+    ``do_run_migrations`` then triggered an implicit asyncpg
+    transaction that was never explicitly committed — when the outer
+    ``async with`` exited, asyncpg silently rolled the whole thing back,
+    including every Alembic migration ``run_migrations()`` had just
+    applied. ``alembic_version`` was reverted to its pre-run value and
+    columns added by 045-048 were never persisted. Symptom in prod was
+    a healthy boot followed by 500s on every endpoint referencing the
+    expected new columns.
+
+    Switching to ``connectable.begin()`` makes the async-with block
+    itself a transaction that asyncpg commits on success — the widen
+    and the migrations land atomically. This test pins the fix so a
+    later refactor cannot accidentally swap it back.
+    """
+    import inspect
+    source = inspect.getsource(env_module.run_async_migrations)
+    assert "connectable.begin()" in source, (
+        "run_async_migrations must use connectable.begin() — using "
+        ".connect() causes silent asyncpg rollback of all migrations"
+    )
+    assert "connectable.connect()" not in source, (
+        "run_async_migrations must NOT use connectable.connect() — "
+        "that pattern caused the 2026-05-14 incident where migrations "
+        "045-048 silently rolled back on the production NAS"
+    )
