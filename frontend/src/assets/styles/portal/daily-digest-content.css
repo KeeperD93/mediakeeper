@@ -37,6 +37,16 @@
   height: 40px;
   padding: 3px;
 }
+@media (max-width: 640px) {
+  /* On mobile the inline width/height bound to MkAvatar's ``size`` prop
+     leaves a wide empty ring around a tiny silhouette. Override it so the
+     avatar fills the tier disc and the row reads as a single coherent
+     element rather than a centered chip. */
+  .ddd-section--leaderboard .gc-lb-av-mk {
+    width: 100% !important;
+    height: 100% !important;
+  }
+}
 .ddd-section--leaderboard .gc-lb-n {
   font-size: var(--portal-text-base);
 }

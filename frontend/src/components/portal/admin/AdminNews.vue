@@ -22,85 +22,73 @@
           {{ $t('portal.admin.news.expiredBadge') }}
         </span>
         <span class="pt-news-date">{{ new Date(n.created_at).toLocaleDateString() }}</span>
-        <button class="pt-icon-btn" @click="remove(n.id)"><i class="icon-trash" /></button>
+        <button
+          class="pt-icon-btn pt-icon-btn--edit"
+          type="button"
+          :title="$t('portal.admin.news.editButton')"
+          :aria-label="$t('portal.admin.news.editButton')"
+          @click="openEdit(n)"
+        >
+          <Pencil :size="16" :stroke-width="2.5" />
+        </button>
+        <button
+          class="pt-icon-btn pt-icon-btn--danger"
+          type="button"
+          :title="$t('portal.admin.news.deleteButton')"
+          :aria-label="$t('portal.admin.news.deleteButton')"
+          @click="remove(n.id)"
+        >
+          <Trash2 :size="16" :stroke-width="2.5" />
+        </button>
       </div>
       <div v-if="!news.length" class="pt-empty">{{ $t('common.noResults') }}</div>
     </div>
 
-    <Teleport v-if="showForm" to="body">
-      <div class="pt-popup-overlay" @click.self="closeForm">
-        <div class="pt-popup pt-popup--md">
-          <div class="pt-popup-header">
-            <h2>{{ $t('portal.admin.createNews') }}</h2>
-            <button
-              class="pt-popup-close"
-              type="button"
-              :aria-label="$t('common.close')"
-              @click="closeForm"
-            >
-              <X :size="14" />
-            </button>
-          </div>
-          <div class="pt-popup-body">
-            <label>{{ $t('portal.news.titleLabel') }}</label>
-            <input v-model="form.title" class="pt-input" maxlength="300" />
-            <label>{{ $t('portal.news.content') }}</label>
-            <textarea v-model="form.content" class="pt-input" rows="5" maxlength="10000" />
-            <label>{{ $t('portal.news.typeLabel') }}</label>
-            <select v-model="form.type" class="pt-input">
-              <option v-for="type in types" :key="type" :value="type">
-                {{ $t(`portal.news.types.${type}`) }}
-              </option>
-            </select>
-            <label>{{ $t('portal.admin.news.startAtLabel') }}</label>
-            <input v-model="form.start_at" type="datetime-local" class="pt-input" />
-            <label>{{ $t('portal.admin.news.endAtLabel') }}</label>
-            <input v-model="form.end_at" type="datetime-local" class="pt-input" />
-          </div>
-          <div class="pt-popup-footer">
-            <button class="pt-btn pt-btn--primary" :disabled="!form.title.trim()" @click="submit">
-              {{ $t('common.save') }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </Teleport>
+    <AdminNewsForm
+      v-if="showForm"
+      :initial="editing"
+      :editing-id="editingId"
+      @close="closeForm"
+      @submit="onSubmit"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { usePortalNews } from '@/composables/portal/usePortalNews'
 import { useToast } from '@/composables/useToast'
+import { useConfirm } from '@/composables/useConfirm'
 import { TOAST_TYPE } from '@/constants/toast'
 import { useI18n } from 'vue-i18n'
-import { X } from 'lucide-vue-next'
+import { Pencil, Trash2 } from 'lucide-vue-next'
+import AdminNewsForm from './AdminNewsForm.vue'
 
-const { news, fetchNews, createNews, deleteNews } = usePortalNews()
+const { news, fetchNews, createNews, updateNews, deleteNews } = usePortalNews()
 const { showToast } = useToast()
+const confirm = useConfirm()
 const { t } = useI18n()
 
 const showForm = ref(false)
-const types = ['announcement', 'additions', 'maintenance', 'event', 'other']
-const form = reactive({ title: '', content: '', type: 'announcement', start_at: '', end_at: '' })
+const editingId = ref(null)
+const editing = ref(null)
 
 function openCreate() {
-  form.title = ''
-  form.content = ''
-  form.type = 'announcement'
-  form.start_at = ''
-  form.end_at = ''
+  editingId.value = null
+  editing.value = null
+  showForm.value = true
+}
+
+function openEdit(n) {
+  editingId.value = n.id
+  editing.value = n
   showForm.value = true
 }
 
 function closeForm() {
   showForm.value = false
-}
-
-function toIso(value) {
-  if (!value) return null
-  const d = new Date(value)
-  return Number.isNaN(d.getTime()) ? null : d.toISOString()
+  editingId.value = null
+  editing.value = null
 }
 
 function scheduleState(n) {
@@ -112,21 +100,24 @@ function scheduleState(n) {
   return null
 }
 
-async function submit() {
-  const payload = {
-    title: form.title,
-    content: form.content,
-    type: form.type,
-    start_at: toIso(form.start_at),
-    end_at: toIso(form.end_at),
+async function onSubmit(payload) {
+  if (editingId.value) {
+    await updateNews(editingId.value, payload)
+  } else {
+    await createNews(payload)
   }
-  await createNews(payload)
   closeForm()
   showToast(t('common.saved'), TOAST_TYPE.OK)
   await fetchNews(true, { admin: true })
 }
 
 async function remove(id) {
+  const ok = await confirm({
+    variant: 'danger',
+    confirmLabel: t('common.delete'),
+    message: t('portal.admin.news.confirmDelete'),
+  })
+  if (!ok) return
   await deleteNews(id)
   showToast(t('common.success'), TOAST_TYPE.OK)
   await fetchNews(true, { admin: true })
@@ -215,80 +206,30 @@ onMounted(() => fetchNews(true, { admin: true }))
   color: var(--text-muted);
 }
 .pt-icon-btn {
-  background: none;
-  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--portal-radius-pill);
   color: var(--text-muted);
   cursor: pointer;
+  box-shadow: var(--mk-pill-shadow-sm);
+  transition: color var(--portal-dur-fast) ease, background var(--portal-dur-fast) ease;
 }
-.pt-icon-btn:hover {
-  color: var(--portal-color-error);
+@media (hover: hover) {
+  .pt-icon-btn--edit:hover {
+    color: var(--accent);
+  }
+  .pt-icon-btn--danger:hover {
+    color: var(--portal-color-error);
+  }
 }
 .pt-empty {
   color: var(--text-muted);
   text-align: center;
   padding: 1.5rem 0;
-}
-.pt-popup-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9000;
-  background: rgb(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-}
-.pt-popup {
-  background: var(--bg-secondary);
-  border-radius: var(--radius-card);
-  border: 1px solid var(--border);
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-}
-.pt-popup--md {
-  max-width: 500px;
-}
-.pt-popup-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--border);
-}
-.pt-popup-header h2 {
-  font-size: var(--portal-text-md);
-  font-weight: var(--portal-font-bold);
-  color: var(--text-primary);
-}
-.pt-popup-close {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: var(--portal-text-md);
-  cursor: pointer;
-}
-.pt-popup-body {
-  padding: 1rem 1.5rem;
-}
-.pt-popup-body label {
-  display: block;
-  font-size: var(--portal-text-sm);
-  color: var(--text-muted);
-  margin: 0.75rem 0 0.25rem;
-}
-.pt-input {
-  width: 100%;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-input);
-  color: var(--text-primary);
-  padding: 0.5rem 0.75rem;
-  font-size: var(--portal-text-sm);
-}
-.pt-popup-footer {
-  padding: 1rem 1.5rem;
-  border-top: 1px solid var(--border);
-  text-align: right;
 }
 </style>

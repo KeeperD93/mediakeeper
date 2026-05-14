@@ -143,20 +143,30 @@ async def upsert_search_document(
         "search_text": search_text,
         "year": year_int,
         "overview": overview or "",
-        "poster_url": poster_url or "",
-        "backdrop_url": backdrop_url or "",
         "vote_average": _coerce_float(vote_average),
         "popularity": _coerce_float(popularity),
         "genres": genres_text,
         "source": source,
         "updated_at": now,
     }
+    # Only refresh visual assets when the caller actually supplied
+    # them. The Emby-index sync (``_index_ops._upsert_index``) calls
+    # this function without ``poster_url`` / ``backdrop_url`` to mark a
+    # title as available — without this guard it overwrote the TMDB
+    # URLs previously cached, leaving search results with a blank
+    # placeholder where the poster used to be.
+    if poster_url is not None:
+        values["poster_url"] = poster_url
+    if backdrop_url is not None:
+        values["backdrop_url"] = backdrop_url
     if doc is None:
         doc = PortalSearchDocument(
             tmdb_id=int(tmdb_id),
             media_type=media_type,
             available_on_emby=available_on_emby,
-            **values,
+            poster_url=poster_url or "",
+            backdrop_url=backdrop_url or "",
+            **{k: v for k, v in values.items() if k not in ("poster_url", "backdrop_url")},
         )
     else:
         for key, value in values.items():

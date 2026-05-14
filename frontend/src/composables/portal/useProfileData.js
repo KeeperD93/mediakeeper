@@ -4,6 +4,24 @@ import { useAvailability } from '@/composables/portal/useAvailability'
 import { useRequestStatus } from '@/composables/portal/useRequestStatus'
 import { TROPHY_STATUS } from '@/constants/achievements'
 
+const SHOWN_TROPHY_TOAST_KEY = 'portal_shown_trophy_unlocks_v1'
+
+function getShownTrophyIds() {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(SHOWN_TROPHY_TOAST_KEY) || '[]'))
+  } catch {
+    return new Set()
+  }
+}
+
+export function markTrophyShown(id) {
+  if (id == null) return
+  const ids = getShownTrophyIds()
+  ids.add(id)
+  // Cap at 50 IDs so the storage entry never grows unbounded across years.
+  localStorage.setItem(SHOWN_TROPHY_TOAST_KEY, JSON.stringify([...ids].slice(-50)))
+}
+
 /**
  * Profile-page data loader — owns every ref the Portal profile page
  * mounts in parallel (stats, ranking, trophies, recommendation
@@ -94,11 +112,13 @@ export function useProfileData() {
         next_achievement: trophyRes.next_achievement || null,
       }
       const now = Date.now()
+      const shownIds = getShownTrophyIds()
       recentUnlock.value =
         (trophyRes.items || []).find(
           a =>
             a.status === TROPHY_STATUS.UNLOCKED &&
             a.unlocked_at &&
+            !shownIds.has(a.id) &&
             now - new Date(a.unlocked_at).getTime() < 300000,
         ) || null
     }
@@ -183,6 +203,7 @@ export function useProfileData() {
     rankTier,
     trophies,
     recentUnlock,
+    markTrophyShown,
     recommended,
     becauseYouWatchedTv,
     becauseYouWatchedMovie,

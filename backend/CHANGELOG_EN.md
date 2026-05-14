@@ -10,6 +10,7 @@ This section intentionally has no date so it is not shown to users.
 ## [Unreleased]
 
 ### Added
+- Admin news — edit and delete an existing news entry
 - Requests — configurable auto-cleanup of available requests after N days (0 = disabled)
 - Accessibility — keyboard "Skip to main content" link on login and admin
 - Page not found — proper accessible 404 page with back-to-dashboard link (no more silent redirect)
@@ -86,6 +87,7 @@ This section intentionally has no date so it is not shown to users.
 - Frontend deps — vue-i18n 9→11 + unplugin 4→11 (compile/runtime alignment, legacy-peer-deps retired)
 
 ### Fixed
+- Edit user — clearing a field (first/last name, email) now persists as a removal
 - Alembic startup — env.py now uses `connectable.begin()` (atomic commit of the whole migration run; fixes the asyncpg silent rollback)
 - Migrations 045-048 — switched to native Postgres SQL (fixes silent no-op of batch_alter_table on asyncpg)
 - Backend startup — achievement validation: unreachable locale files no longer fail the seed (Docker false-positives)

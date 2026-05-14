@@ -152,7 +152,7 @@ async def patch_identity(
     db: AsyncSession = Depends(get_db),
 ):
     profile, user = await resolve_profile(profile_id, db)
-    return await svc_update_identity(
+    result = await svc_update_identity(
         db,
         profile,
         user,
@@ -164,6 +164,11 @@ async def patch_identity(
         ip=client_ip(request),
         user_agent=client_ua(request),
     )
+    # Surface the anti-empty guard as a real HTTP 400 — the form needs a
+    # hard failure to trigger the error toast and keep the cleared field.
+    if isinstance(result, dict) and result.get("error") == "display_name_empty":
+        raise HTTPException(status_code=400, detail="display_name_empty")
+    return result
 
 
 class RoleUpdate(BaseModel):

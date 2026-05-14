@@ -230,6 +230,87 @@ async def test_patch_identity_returns_persisted_detail(client, admin_user, db_se
 
 
 @pytest.mark.asyncio
+async def test_patch_identity_clears_field_when_empty_string(client, admin_user, db_session):
+    """Empty string in first_name/last_name/email must persist as NULL
+    (clear) — regression for the admin form where the previous value
+    came back after Save because the frontend sent ``null`` and the
+    service treated null as "no change". The fix sends ``""`` from the
+    UI; the service interprets the stripped empty string as a clear."""
+    db_session.add(UserProfile(
+        user_id=admin_user.id,
+        display_name="Admin",
+        role="admin",
+        source="local",
+        account_active=True,
+    ))
+    await db_session.commit()
+
+    _auth(client, admin_user)
+
+    resp = await client.post("/api/portal/admin/users/local", json={
+        "username": "frank",
+        "password": "supersecret",
+        "first_name": "Jean",
+        "last_name": "Dupont",
+        "email": "frank@example.com",
+    })
+    assert resp.status_code == 200, resp.text
+    profile_id = resp.json()["profile_id"]
+
+    resp = await client.patch(
+        f"/api/portal/admin/users/{profile_id}",
+        json={"first_name": "", "last_name": "", "email": ""},
+    )
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["user"]["first_name"] is None
+    assert body["user"]["last_name"] is None
+    assert body["user"]["email"] is None
+    assert set(body["changed"]) == {"first_name", "last_name", "email"}
+
+    resp = await client.get(f"/api/portal/admin/users/{profile_id}")
+    assert resp.status_code == 200
+    detail = resp.json()
+    assert detail["first_name"] is None
+    assert detail["last_name"] is None
+    assert detail["email"] is None
+
+
+@pytest.mark.asyncio
+async def test_patch_identity_rejects_empty_display_name(client, admin_user, db_session):
+    """display_name="" stays forbidden so an admin cannot strip a user's
+    public handle. The endpoint surfaces it as a real HTTP 400."""
+    db_session.add(UserProfile(
+        user_id=admin_user.id,
+        display_name="Admin",
+        role="admin",
+        source="local",
+        account_active=True,
+    ))
+    await db_session.commit()
+
+    _auth(client, admin_user)
+
+    resp = await client.post("/api/portal/admin/users/local", json={
+        "username": "grace",
+        "password": "supersecret",
+        "display_name": "Grace",
+    })
+    profile_id = resp.json()["profile_id"]
+
+    resp = await client.patch(
+        f"/api/portal/admin/users/{profile_id}",
+        json={"display_name": "   "},
+    )
+    assert resp.status_code == 400
+    assert resp.json().get("detail") == "display_name_empty"
+
+    # Display name unchanged in DB.
+    resp = await client.get(f"/api/portal/admin/users/{profile_id}")
+    assert resp.json()["display_name"] == "Grace"
+
+
+@pytest.mark.asyncio
 async def test_unauthenticated_request_is_rejected(raw_client):
     """No mk_token cookie → 401, no leak of the route surface."""
     resp = await raw_client.get("/api/portal/admin/users")

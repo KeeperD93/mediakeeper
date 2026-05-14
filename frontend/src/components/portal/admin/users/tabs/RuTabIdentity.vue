@@ -101,11 +101,14 @@ watch(() => props.user, hydrate, { immediate: true })
 async function save() {
   saving.value = true
   try {
+    // Send empty string (not null) when the user has cleared a field so
+    // the backend can distinguish a clear from "no change". display_name
+    // keeps its anti-empty guard server-side.
     const res = await api.patchIdentity(props.user.id, {
       display_name: form.display_name?.trim() || null,
-      first_name: form.first_name?.trim() || null,
-      last_name: form.last_name?.trim() || null,
-      email: form.email?.trim() || null,
+      first_name: form.first_name ?? '',
+      last_name: form.last_name ?? '',
+      email: form.email ?? '',
     })
     if (res?.error) {
       showToast(t(`requestsAdmin.users.errors.${res.error}`, t('common.error')), TOAST_TYPE.ERR)
@@ -114,6 +117,9 @@ async function save() {
     if (res?.user) hydrate(res.user)
     showToast(t('requestsAdmin.users.toasts.saved'), TOAST_TYPE.OK)
     emit('changed')
+  } catch (e) {
+    const detail = e instanceof Error ? e.message : ''
+    showToast(t(`requestsAdmin.users.errors.${detail}`, t('common.error')), TOAST_TYPE.ERR)
   } finally {
     saving.value = false
   }

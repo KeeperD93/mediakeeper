@@ -100,4 +100,44 @@ describe('EmbyMediaPicker', () => {
     await flushPromises()
     expect(apiGet).not.toHaveBeenCalled()
   })
+
+  it('closes the dropdown on outside mousedown', async () => {
+    const w = mount(EmbyMediaPicker, {
+      props: { modelValue: null },
+      attachTo: document.body,
+    })
+    await w.find('.emp-input').trigger('focus')
+    expect(w.find('.emp-dropdown').exists()).toBe(true)
+
+    // Click somewhere outside the picker root.
+    const outside = document.createElement('div')
+    document.body.appendChild(outside)
+    outside.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))
+    await flushPromises()
+
+    expect(w.find('.emp-dropdown').exists()).toBe(false)
+    outside.remove()
+    w.unmount()
+  })
+
+  it('still selects the hit when mousedown lands on a suggestion', async () => {
+    apiGet.mockResolvedValueOnce({
+      items: [{ id: 'mov-1', type: 'movie', title: 'Inception', poster_id: 'mov-1', year: '2010' }],
+    })
+    const w = mount(EmbyMediaPicker, {
+      props: { modelValue: null },
+      attachTo: document.body,
+    })
+    await w.find('.emp-input').setValue('inc')
+    vi.advanceTimersByTime(260)
+    await flushPromises()
+
+    await w.find('.emp-hit').trigger('mousedown')
+    await flushPromises()
+
+    const emitted = w.emitted('update:modelValue')
+    expect(emitted).toBeTruthy()
+    expect(emitted[0][0].id).toBe('mov-1')
+    w.unmount()
+  })
 })

@@ -85,6 +85,19 @@ const tmdbLogoUrl = '/assets/icons/tmdb.svg'
   text-overflow: ellipsis;
 }
 
+@media (max-width: 640px) {
+  .mk-attribution {
+    flex-wrap: wrap;
+    gap: 6px 10px;
+  }
+  .mk-attribution-text {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    line-height: 1.4;
+  }
+}
+
 .mk-attribution-sep {
   margin: 0 6px;
   opacity: 0.6;

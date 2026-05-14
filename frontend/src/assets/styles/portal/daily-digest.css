@@ -129,13 +129,18 @@
   .ddd-panel {
     max-width: none;
     max-height: none;
-    min-height: 100vh;
+    /* 100dvh tracks the dynamic viewport so the panel never extends
+       behind the mobile browser chrome — without this the footer with
+       "Don't show again" used to fall under the address bar / home
+       indicator and stayed out of reach. */
+    min-height: 100dvh;
     border-radius: 0;
     border: none;
   }
   .ddd-panel-scroll {
-    padding: 48px 20px 32px;
-    padding-bottom: max(32px, env(safe-area-inset-bottom, 0px));
+    /* Add extra bottom breathing room so the footer is visible above
+       any sticky browser UI plus the iPhone home indicator safe area. */
+    padding: 48px 20px calc(80px + env(safe-area-inset-bottom, 0px));
   }
 }
 

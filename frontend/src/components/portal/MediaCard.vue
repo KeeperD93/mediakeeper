@@ -68,7 +68,13 @@
            cache carries a status for this tmdb_id (so the home grid
            also flags rejected / approved / available titles). -->
       <span
-        v-if="displayedReqStatus && !showRequestedTag && !isNewOnEmby && !item.watched_at"
+        v-if="
+          displayedReqStatus &&
+          displayedReqStatus !== 'available' &&
+          !showRequestedTag &&
+          !isNewOnEmby &&
+          !item.watched_at
+        "
         class="pt-req-status-tag"
         :class="`pt-req-status-tag--${displayedReqStatus}`"
         :title="reqStatusTooltip"

@@ -38,15 +38,12 @@
 
         <div class="gc-avatar-ring">
           <div class="gc-avatar-inner">
-            <img
-              v-if="profileData?.avatar_url"
-              :src="profileData.avatar_url"
-              :alt="profileData.display_name"
-              class="gc-avatar-img"
+            <MkAvatar
+              :name="profileData?.display_name || ''"
+              :src="profileData?.avatar_url || null"
+              :size="88"
+              class="gc-avatar-mk"
             />
-            <span v-else class="gc-avatar-letter">
-              {{ profileData?.display_name?.charAt(0)?.toUpperCase() || '?' }}
-            </span>
           </div>
         </div>
 
@@ -133,6 +130,7 @@
 <script setup>
 import { computed } from 'vue'
 import { HelpCircle } from 'lucide-vue-next'
+import MkAvatar from '@/components/common/MkAvatar.vue'
 
 const props = defineProps({
   profileData: { type: Object, default: null },
