@@ -61,7 +61,11 @@ class AvailabilityQuery(BaseModel):
 
 
 @router.post("")
-@limiter.limit("30/minute", key_func=portal_user_or_ip_key)
+# 120/minute (vs 30 historique) — l'endpoint est cheap (lookup index +
+# completeness TV en parallèle), batched côté frontend, et appelé en
+# burst sur la Home (13 carrousels). Le rate-limit pré-existant
+# saturait sur usage normal et déclenchait un stack de toasts user.
+@limiter.limit("120/minute", key_func=portal_user_or_ip_key)
 async def check_availability(
     query: AvailabilityQuery,
     request: Request,
