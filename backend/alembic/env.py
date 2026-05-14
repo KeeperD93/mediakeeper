@@ -163,7 +163,18 @@ def do_run_migrations(connection):
 
 
 async def run_async_migrations() -> None:
-    """Online mode: async connection."""
+    """Online mode: async connection.
+
+    Uses ``connectable.begin()`` (not ``.connect()``) so the whole
+    ``run_sync(do_run_migrations)`` block runs inside a transaction that
+    asyncpg commits on success. With ``.connect()``, the implicit tx
+    triggered by the early DDL widen calls in ``do_run_migrations``
+    (the ``alembic_version`` ``VARCHAR(64)`` self-heal) never got an
+    explicit ``COMMIT``, and the outer asyncpg transaction silently
+    rolled back on connection release — taking every Alembic migration
+    from this run down with it. ``.begin()`` commits the whole scope
+    atomically, so the widen and the migrations land together.
+    """
     configuration = config.get_section(config.config_ini_section, {})
     configuration["sqlalchemy.url"] = _get_database_url()
 
@@ -173,7 +184,7 @@ async def run_async_migrations() -> None:
         poolclass=pool.NullPool,
     )
 
-    async with connectable.connect() as connection:
+    async with connectable.begin() as connection:
         await connection.run_sync(do_run_migrations)
     await connectable.dispose()
 
