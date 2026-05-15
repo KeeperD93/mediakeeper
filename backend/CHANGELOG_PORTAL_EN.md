@@ -25,6 +25,7 @@ This section intentionally has no date so it is not shown to users.
 - Posters: fixed stuck panel after clicking "Requested" status.
 - Posters: "New" pulse animation now smooth (GPU-friendly).
 - Detail page: status ribbon and availability chip aligned with portal.
+- Posters: bookmark button tooltip renamed to "Add to a list".
 
 ## [0.3.0] - 2026-05-14
 

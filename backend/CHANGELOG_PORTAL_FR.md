@@ -27,6 +27,7 @@ utilisateurs.
 - Jaquettes : correction panel coincé après clic sur statut « Demandé ».
 - Jaquettes : animation pulse « Nouveau » rendue fluide (GPU).
 - Page détails : ruban de statut et chip disponibilité alignés sur le portail.
+- Jaquettes : tooltip du bouton signet renommé en « Ajouter à une liste ».
 
 ## [0.3.0] - 2026-05-14
 
