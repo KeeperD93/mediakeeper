@@ -244,13 +244,16 @@ function updateArrows() {
 function scrollTrack(dir) {
   const el = trackRef.value
   if (!el) return
-  const firstCard = el.querySelector('.pt-card, .pt-eh-seemore')
+  // MediaCard now renders its root as `.mk-mediacard` (PR #159 wrapper).
+  // The selector keeps `.pt-card` for backward-compat in case a custom
+  // call site still uses the legacy class.
+  const firstCard = el.querySelector('.mk-mediacard, .pt-card, .pt-eh-seemore')
   if (!firstCard) return
   const cardRect = firstCard.getBoundingClientRect()
   const trackRect = el.getBoundingClientRect()
 
   let gap = 12
-  const cards = el.querySelectorAll('.pt-card, .pt-eh-seemore')
+  const cards = el.querySelectorAll('.mk-mediacard, .pt-card, .pt-eh-seemore')
   if (cards.length >= 2) {
     const a = cards[0].getBoundingClientRect()
     const b = cards[1].getBoundingClientRect()

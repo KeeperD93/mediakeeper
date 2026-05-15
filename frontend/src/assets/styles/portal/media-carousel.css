@@ -87,6 +87,7 @@
 .pt-carousel-track::-webkit-scrollbar {
   display: none;
 }
+.pt-carousel-track > .mk-mediacard,
 .pt-carousel-track > .pt-card {
   scroll-snap-align: start;
 }

@@ -129,6 +129,9 @@ const props = defineProps({
   media: { type: Object, required: true },
   availInfo: { type: Object, default: null },
   reqStatus: { type: String, default: null },
+  // Precomputed date hint surfaced as the native `title` tooltip on the
+  // hero status ribbon. Empty string keeps the attribute off the DOM.
+  reqStatusTooltip: { type: String, default: '' },
   showRequestBtn: { type: Boolean, default: false },
   trailerKey: { type: String, default: null },
 })
@@ -182,13 +185,13 @@ const statusRibbon = computed(() => {
   const s = props.reqStatus
   if (!s) return null
   if (s === REQUEST_STATUS.PENDING)
-    return { label: t(STATUS_LABEL_KEY.pending).toUpperCase(), color: STATUS_COLOR.pending, tooltip: '' }
+    return { label: t(STATUS_LABEL_KEY.pending).toUpperCase(), color: STATUS_COLOR.pending, tooltip: props.reqStatusTooltip }
   if (s === REQUEST_STATUS.APPROVED)
-    return { label: t(STATUS_LABEL_KEY.approved).toUpperCase(), color: STATUS_COLOR.approved, tooltip: '' }
+    return { label: t(STATUS_LABEL_KEY.approved).toUpperCase(), color: STATUS_COLOR.approved, tooltip: props.reqStatusTooltip }
   if (s === REQUEST_STATUS.REJECTED)
-    return { label: t(STATUS_LABEL_KEY.rejected).toUpperCase(), color: STATUS_COLOR.rejected, tooltip: '' }
+    return { label: t(STATUS_LABEL_KEY.rejected).toUpperCase(), color: STATUS_COLOR.rejected, tooltip: props.reqStatusTooltip }
   if (s === 'blacklisted')
-    return { label: t(STATUS_LABEL_KEY.blacklisted).toUpperCase(), color: STATUS_COLOR.blacklisted, tooltip: '' }
+    return { label: t(STATUS_LABEL_KEY.blacklisted).toUpperCase(), color: STATUS_COLOR.blacklisted, tooltip: props.reqStatusTooltip }
   return null
 })
 

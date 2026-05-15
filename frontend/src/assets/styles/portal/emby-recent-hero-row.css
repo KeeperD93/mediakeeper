@@ -22,6 +22,7 @@
   flex-shrink: 0;
   width: 4%;
 }
+.pt-eh-track > .mk-mediacard,
 .pt-eh-track > .pt-card,
 .pt-eh-seemore {
   scroll-snap-align: start;
