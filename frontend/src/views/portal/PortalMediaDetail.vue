@@ -5,6 +5,7 @@
         :media="media"
         :avail-info="availInfo"
         :req-status="reqStatus"
+        :req-status-tooltip="reqStatusTooltip"
         :show-request-btn="showRequestBtn"
         :trailer-key="trailerKey"
         @request="onRequestClick"
@@ -118,10 +119,11 @@ import { MEDIA_TYPE, isTv } from '@/constants/media'
 import { REQUEST_STATUS } from '@/constants/requests'
 import { TRAILER_SOURCE } from '@/constants/trailers'
 import { USER_ROLE } from '@/constants/auth'
+import { formatDate } from '@/utils/format'
 
 import '@/assets/styles/portal/media-detail-premium.css'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const route = useRoute()
 const router = useRouter()
@@ -178,6 +180,28 @@ const reqStatus = computed(() => {
   const id = media.value?.tmdb_id || media.value?.id
   const status = id ? getStatus(id) : null
   return status?.status || null
+})
+
+// Tooltip for the hero status ribbon — mirrors the formatting used by
+// `useMediaCardState` so the detail page and the grids surface the same
+// date hint on hover. Falls back to '' when the request payload is
+// missing the relevant date (the ribbon just shows no tooltip then).
+const reqStatusTooltip = computed(() => {
+  const id = media.value?.tmdb_id || media.value?.id
+  const r = id ? getStatus(id) : null
+  if (!r?.status) return ''
+  const when = r.updated_at || r.requested_at
+  if (!when) return ''
+  const date = formatDate(when, locale.value)
+  if (!date) return ''
+  if (r.status === REQUEST_STATUS.APPROVED) return t('portal.card.tooltipApprovedOn', { date })
+  if (r.status === REQUEST_STATUS.REJECTED) return t('portal.card.tooltipRejectedOn', { date })
+  if (r.status === REQUEST_STATUS.PENDING) {
+    const user = r.requester_username || r.requester || r.requested_by || ''
+    return t('portal.card.tooltipRequestedBy', { user, date })
+  }
+  if (r.status === 'blacklisted') return t('portal.card.tooltipBlacklistedOn', { date })
+  return ''
 })
 
 const showRequestBtn = computed(() => {

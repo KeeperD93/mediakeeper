@@ -2157,7 +2157,14 @@
         "available": "Coming soon",
         "tooltip": "Requested by {by} on {date}",
         "tooltipAnonymous": "Already requested on {date}"
-      }
+      },
+      "tooltipRequestedBy": "Requested by {user} on {date}",
+      "tooltipApprovedOn": "Approved on {date}",
+      "tooltipRejectedOn": "Rejected on {date}",
+      "tooltipWatchedOn": "Watched on {date}",
+      "tooltipInProgressSince": "In progress since {date}",
+      "tooltipBlacklistedOn": "Blacklisted on {date}",
+      "tooltipAddedOnEmby": "Added to Emby on {date}"
     },
     "posterCard": {
       "statusPending": "Requested",
@@ -2173,7 +2180,7 @@
       "actionRequest": "REQUEST",
       "actionReRequest": "RE-REQUEST",
       "actionPending": "PENDING",
-      "btnBookmark": "Bookmark",
+      "btnBookmark": "Add to a list",
       "btnBlacklist": "Blacklist"
     },
     "seeMore": "See more",

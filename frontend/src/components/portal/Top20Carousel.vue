@@ -44,6 +44,7 @@
         <MediaCard
           :item="item"
           :width="`${posterWidth}px`"
+          :rank="idx + 1 <= 3 ? idx + 1 : null"
           @select="$emit('select', item)"
           @request="$emit('request', item)"
         />

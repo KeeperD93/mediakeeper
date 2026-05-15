@@ -15,8 +15,9 @@ import PosterCard from '@/components/portal/PosterCard.vue'
 const stubs = {
   PremiumRibbon: {
     name: 'PremiumRibbon',
-    props: ['label', 'bg', 'count', 'pulse'],
-    template: '<div class="stub-ribbon" :data-label="label" :data-bg="bg" />',
+    props: ['label', 'bg', 'count', 'pulse', 'title'],
+    template:
+      '<div class="stub-ribbon" :data-label="label" :data-bg="bg" :data-title="title || \'\'" />',
   },
   Bookmark: { template: '<span />' },
   EyeOff: { template: '<span />' },
@@ -44,11 +45,15 @@ describe('PosterCard — primary action', () => {
     expect(w.emitted('request')).toBeUndefined()
   })
 
-  it('renders a disabled PENDING button when status is pending and emits nothing', async () => {
+  it('renders an aria-disabled PENDING button when status is pending and emits nothing', async () => {
     const w = mountCard({ status: 'pending' })
     const btn = w.find('button.mk-btn')
     expect(btn.classes()).toContain('mk-btn--muted')
-    expect(btn.attributes('disabled')).toBeDefined()
+    // Spec R5: the muted CTA exposes aria-disabled (not the HTML disabled
+    // attribute) so the click handler can still strip focus and release
+    // the sticky :hover state on desktop.
+    expect(btn.attributes('aria-disabled')).toBe('true')
+    expect(btn.attributes('disabled')).toBeUndefined()
     expect(btn.text()).toContain('portal.posterCard.actionPending')
     await btn.trigger('click')
     expect(w.emitted('play')).toBeUndefined()
@@ -106,15 +111,23 @@ describe('PosterCard — status ribbon + tokens', () => {
 describe('PosterCard — bookmark + blacklist emits', () => {
   it('emits toggle-bookmark when the bookmark icon is clicked', async () => {
     const w = mountCard({})
-    const buttons = w.findAll('button.mk-iconbtn')
-    await buttons[0].trigger('click')
+    const bookmarkBtn = w.findAll('button.mk-iconbtn')[0]
+    await bookmarkBtn.trigger('click')
     expect(w.emitted('toggle-bookmark')).toHaveLength(1)
   })
 
-  it('emits toggle-blacklist when the blacklist icon is clicked', async () => {
+  it('hides the blacklist button by default (showBlacklist=false)', () => {
     const w = mountCard({})
-    const buttons = w.findAll('button.mk-iconbtn')
-    await buttons[1].trigger('click')
+    const iconBtns = w.findAll('button.mk-iconbtn')
+    // Bookmark stays, blacklist is gated behind showBlacklist.
+    expect(iconBtns).toHaveLength(1)
+  })
+
+  it('renders the blacklist button when showBlacklist is true', async () => {
+    const w = mountCard({ showBlacklist: true })
+    const iconBtns = w.findAll('button.mk-iconbtn')
+    expect(iconBtns).toHaveLength(2)
+    await iconBtns[1].trigger('click')
     expect(w.emitted('toggle-blacklist')).toHaveLength(1)
   })
 
@@ -124,8 +137,8 @@ describe('PosterCard — bookmark + blacklist emits', () => {
     expect(buttons[0].classes()).toContain('mk-iconbtn--gold')
   })
 
-  it('applies the red modifier on the blacklist button when blacklisted is true', () => {
-    const w = mountCard({ blacklisted: true })
+  it('applies the red modifier on the blacklist button when blacklisted+showBlacklist', () => {
+    const w = mountCard({ blacklisted: true, showBlacklist: true })
     const buttons = w.findAll('button.mk-iconbtn')
     expect(buttons[1].classes()).toContain('mk-iconbtn--red')
   })
@@ -145,5 +158,50 @@ describe('PosterCard — availability chip', () => {
     const chip = w.find('.mk-poster__avail')
     expect(chip.classes()).toContain('mk-poster__avail--partial')
     expect(chip.text()).toContain('portal.posterCard.availPartial')
+  })
+})
+
+describe('PosterCard — rank medals', () => {
+  it('adds no rank class when rank is null', () => {
+    const w = mountCard({})
+    expect(w.classes()).not.toContain('mk-poster--rank-1')
+    expect(w.classes()).not.toContain('mk-poster--rank-2')
+    expect(w.classes()).not.toContain('mk-poster--rank-3')
+  })
+
+  it('applies the gold medal class when rank is 1', () => {
+    const w = mountCard({ rank: 1 })
+    expect(w.classes()).toContain('mk-poster--rank-1')
+  })
+
+  it('applies the silver medal class when rank is 2', () => {
+    const w = mountCard({ rank: 2 })
+    expect(w.classes()).toContain('mk-poster--rank-2')
+  })
+
+  it('applies the bronze medal class when rank is 3', () => {
+    const w = mountCard({ rank: 3 })
+    expect(w.classes()).toContain('mk-poster--rank-3')
+  })
+})
+
+describe('PosterCard — ribbon tooltip', () => {
+  it('forwards the tooltip prop to the PremiumRibbon title prop on a status ribbon', () => {
+    const w = mountCard({ status: 'rejected', tooltip: 'Rejected on May 10, 2026' })
+    const ribbon = w.find('.stub-ribbon')
+    expect(ribbon.exists()).toBe(true)
+    expect(ribbon.attributes('data-title')).toBe('Rejected on May 10, 2026')
+  })
+
+  it('forwards the tooltip prop to the NEW ribbon as well', () => {
+    const w = mountCard({ isNew: true, tooltip: 'Added on May 14, 2026' })
+    const ribbon = w.find('.stub-ribbon')
+    expect(ribbon.attributes('data-title')).toBe('Added on May 14, 2026')
+  })
+
+  it('leaves the data-title empty when no tooltip is provided', () => {
+    const w = mountCard({ status: 'approved' })
+    const ribbon = w.find('.stub-ribbon')
+    expect(ribbon.attributes('data-title')).toBe('')
   })
 })

@@ -14,8 +14,18 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Changed
+- Unified poster visuals across all surfaces (PEGI removed from detail hero)
+
 ### Fixed
 - Home: removed the burst of "Too many attempts" notifications on load
+- Posters: restored white outline and Top 3 medals (gold/silver/bronze).
+- Posters: duration shown on hover (TMDB cache for Top 20).
+- Posters: tooltip dates restored on all diagonal ribbons.
+- Posters: fixed stuck panel after clicking "Requested" status.
+- Posters: "New" pulse animation now smooth (GPU-friendly).
+- Detail page: status ribbon and availability chip aligned with portal.
+- Posters: bookmark button tooltip renamed to "Add to a list".
 
 ## [0.3.0] - 2026-05-14
 
