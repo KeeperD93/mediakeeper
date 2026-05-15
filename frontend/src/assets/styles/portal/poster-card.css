@@ -110,6 +110,11 @@
   font-weight: var(--portal-font-extrabold);
   letter-spacing: var(--portal-tracking-eyebrow);
   white-space: nowrap;
+  /* Re-enable pointer events on the ribbon strip itself so the native
+     `title` tooltip surfaces on hover. The parent .mk-ribbon-wrap keeps
+     `pointer-events: none` for its 160×160 corner box so clicks outside
+     the ribbon diagonal still hit the poster underneath. */
+  pointer-events: auto;
   background: linear-gradient(
     180deg,
     var(--mk-ribbon-c) 0%,
