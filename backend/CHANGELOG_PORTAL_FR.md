@@ -16,6 +16,9 @@ utilisateurs.
 
 ## [Unreleased]
 
+### Changed
+- Unification visuelle des jaquettes (toutes surfaces) avec retrait PEGI sur fiche détail
+
 ### Fixed
 - Accueil : suppression de la rafale de notifications « Trop de tentatives » au chargement
 

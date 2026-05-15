@@ -8,7 +8,6 @@
     <div class="vmd2-hero-content">
       <div v-if="media.poster" class="vmd2-poster-wrap">
         <img class="vmd2-poster" :src="media.poster" :alt="media.title" />
-        <span v-if="media.certification" class="vmd2-poster-cert">{{ media.certification }}</span>
         <span
           v-if="statusTag"
           class="vmd2-poster-status"

@@ -67,6 +67,7 @@
           </button>
 
           <button
+            v-if="showBlacklist"
             type="button"
             class="mk-iconbtn"
             :class="{ 'mk-iconbtn--red': blacklisted || status === 'blacklisted' }"
@@ -113,6 +114,9 @@ const props = defineProps({
   isNew: { type: Boolean, default: false },
   bookmarked: { type: Boolean, default: false },
   blacklisted: { type: Boolean, default: false },
+  // Admin-only blacklist toggle. Hidden for regular viewers so the
+  // overlay stays focused on play / request / bookmark.
+  showBlacklist: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['play', 'request', 'toggle-bookmark', 'toggle-blacklist'])

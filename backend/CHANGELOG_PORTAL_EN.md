@@ -14,6 +14,9 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Changed
+- Unified poster visuals across all surfaces (PEGI removed from detail hero)
+
 ### Fixed
 - Home: removed the burst of "Too many attempts" notifications on load
 

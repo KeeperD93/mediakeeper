@@ -158,23 +158,9 @@
     0 0 0 1px rgb(255, 255, 255, 0.06);
   object-fit: cover;
 }
-.vmd2-poster-cert {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  padding: 0.25rem 0.5rem;
-  background: rgb(0, 0, 0, 0.7);
-  backdrop-filter: var(--portal-blur-sm);
-  border: 1px solid rgb(255, 255, 255, 0.25);
-  border-radius: var(--radius-sm);
-  font-size: var(--portal-text-2xs);
-  font-weight: var(--portal-font-extrabold);
-  letter-spacing: var(--portal-tracking-caps);
-}
-
-/* Request-status tag stacked under ``.vmd2-poster-cert``. Matches the
-   flag shape + gradients used by ``.pt-req-status-tag`` on the home
-   cards so both surfaces share the exact same visual vocabulary. */
+/* Request-status tag pinned to the poster top. Matches the flag shape +
+   gradients used by ``.pt-req-status-tag`` on the home cards so both
+   surfaces share the exact same visual vocabulary. */
 .vmd2-poster-status {
   position: absolute;
   top: 44px;

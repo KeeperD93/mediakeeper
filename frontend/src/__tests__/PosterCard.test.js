@@ -106,15 +106,23 @@ describe('PosterCard — status ribbon + tokens', () => {
 describe('PosterCard — bookmark + blacklist emits', () => {
   it('emits toggle-bookmark when the bookmark icon is clicked', async () => {
     const w = mountCard({})
-    const buttons = w.findAll('button.mk-iconbtn')
-    await buttons[0].trigger('click')
+    const bookmarkBtn = w.findAll('button.mk-iconbtn')[0]
+    await bookmarkBtn.trigger('click')
     expect(w.emitted('toggle-bookmark')).toHaveLength(1)
   })
 
-  it('emits toggle-blacklist when the blacklist icon is clicked', async () => {
+  it('hides the blacklist button by default (showBlacklist=false)', () => {
     const w = mountCard({})
-    const buttons = w.findAll('button.mk-iconbtn')
-    await buttons[1].trigger('click')
+    const iconBtns = w.findAll('button.mk-iconbtn')
+    // Bookmark stays, blacklist is gated behind showBlacklist.
+    expect(iconBtns).toHaveLength(1)
+  })
+
+  it('renders the blacklist button when showBlacklist is true', async () => {
+    const w = mountCard({ showBlacklist: true })
+    const iconBtns = w.findAll('button.mk-iconbtn')
+    expect(iconBtns).toHaveLength(2)
+    await iconBtns[1].trigger('click')
     expect(w.emitted('toggle-blacklist')).toHaveLength(1)
   })
 
@@ -124,8 +132,8 @@ describe('PosterCard — bookmark + blacklist emits', () => {
     expect(buttons[0].classes()).toContain('mk-iconbtn--gold')
   })
 
-  it('applies the red modifier on the blacklist button when blacklisted is true', () => {
-    const w = mountCard({ blacklisted: true })
+  it('applies the red modifier on the blacklist button when blacklisted+showBlacklist', () => {
+    const w = mountCard({ blacklisted: true, showBlacklist: true })
     const buttons = w.findAll('button.mk-iconbtn')
     expect(buttons[1].classes()).toContain('mk-iconbtn--red')
   })
