@@ -21,6 +21,12 @@ utilisateurs.
 
 ### Fixed
 - Accueil : suppression de la rafale de notifications « Trop de tentatives » au chargement
+- Jaquettes : restauration contour blanc + médailles Top 3 (or/argent/bronze).
+- Jaquettes : durée affichée au survol (cache TMDB pour le Top 20).
+- Jaquettes : tooltips dates restaurés sur tous les rubans diagonaux.
+- Jaquettes : correction panel coincé après clic sur statut « Demandé ».
+- Jaquettes : animation pulse « Nouveau » rendue fluide (GPU).
+- Page détails : ruban de statut et chip disponibilité alignés sur le portail.
 
 ## [0.3.0] - 2026-05-14
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="mk-poster">
+  <div class="mk-poster" :class="rank ? `mk-poster--rank-${rank}` : null">
     <div class="mk-poster__art">
       <slot name="poster">
         <img v-if="image" :src="image" :alt="title" />
@@ -11,12 +11,14 @@
         :label="$t('portal.posterCard.badgeNew')"
         bg="var(--portal-color-success)"
         pulse
+        :title="tooltip"
       />
       <PremiumRibbon
         v-else-if="statusColor"
         :label="statusLabel"
         :count="count"
         :bg="statusColor"
+        :title="tooltip"
       />
 
       <div
@@ -30,14 +32,18 @@
 
       <div class="mk-poster__panel">
         <div class="mk-poster__title" :title="title">{{ title }}</div>
-        <div class="mk-poster__meta">{{ year }} · {{ duration }}</div>
+        <div class="mk-poster__meta">
+          <span v-if="year">{{ year }}</span>
+          <template v-if="year && duration"> · </template>
+          <span v-if="duration">{{ duration }}</span>
+        </div>
 
         <div class="mk-poster__actions">
           <button
             type="button"
             class="mk-btn"
             :class="`mk-btn--${action.tone}`"
-            :disabled="action.tone === 'muted'"
+            :aria-disabled="action.tone === 'muted' ? 'true' : null"
             @click="handlePrimaryAction"
           >
             <img
@@ -117,6 +123,17 @@ const props = defineProps({
   // Admin-only blacklist toggle. Hidden for regular viewers so the
   // overlay stays focused on play / request / bookmark.
   showBlacklist: { type: Boolean, default: false },
+  // Top 3 podium marker — 1 gold, 2 silver, 3 bronze frame around the
+  // poster artwork. Only honoured for the values 1-3.
+  rank: {
+    type: Number,
+    default: null,
+    validator: v => v == null || v === 1 || v === 2 || v === 3,
+  },
+  // Native tooltip surfaced on the diagonal ribbon (NEW / status). The
+  // wrapping component is in charge of choosing what to display (date,
+  // requester, etc.) since the formatting depends on locale + data.
+  tooltip: { type: String, default: '' },
 })
 
 const emit = defineEmits(['play', 'request', 'toggle-bookmark', 'toggle-blacklist'])
@@ -159,8 +176,15 @@ const action = computed(() => {
   return { label: t('portal.posterCard.actionRequest'), tone: 'request', icon: 'plus' }
 })
 
-function handlePrimaryAction() {
-  if (action.value.tone === 'muted') return
+function handlePrimaryAction(e) {
+  if (action.value.tone === 'muted') {
+    // The muted CTA stays focusable / clickable so screen-reader users
+    // still discover its aria-disabled state, but we drop focus on
+    // click to release the sticky :hover styles that the desktop
+    // browser keeps after a mouse interaction.
+    e?.currentTarget?.blur?.()
+    return
+  }
   if (action.value.tone === 'play') emit('play')
   else emit('request')
 }

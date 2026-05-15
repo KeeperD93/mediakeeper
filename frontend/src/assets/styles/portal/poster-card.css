@@ -19,9 +19,40 @@
   overflow: hidden;
   background: var(--portal-poster-bg);
   box-shadow: var(--portal-shadow-md);
+  /* 1.5px outline shared by every poster (matched the legacy MediaCard
+     frame). Using `outline` rather than an inset shadow because the
+     <img> below paints over inset shadows when `object-fit: cover` is
+     set. */
+  outline: 1.5px solid rgb(255, 255, 255, 0.3);
+  outline-offset: -1.5px;
   transition: transform var(--portal-dur-med) var(--portal-ease-swift);
   /* clip-path so backdrop-filter children stay inside rounded corners (Chrome). */
   clip-path: inset(0 round var(--portal-radius-lg));
+}
+
+/* ─── Top 3 medal frames (gold / silver / bronze) ──────────────── */
+.mk-poster--rank-1 .mk-poster__art {
+  outline: none;
+  border: 3px solid #fbbf24;
+  box-shadow:
+    0 0 14px rgb(251, 191, 36, 0.35),
+    0 0 32px rgb(251, 191, 36, 0.15);
+}
+
+.mk-poster--rank-2 .mk-poster__art {
+  outline: none;
+  border: 3px solid #cbd5e1;
+  box-shadow:
+    0 0 14px rgb(203, 213, 225, 0.35),
+    0 0 32px rgb(203, 213, 225, 0.15);
+}
+
+.mk-poster--rank-3 .mk-poster__art {
+  outline: none;
+  border: 3px solid #cd7f32;
+  box-shadow:
+    0 0 14px rgb(205, 127, 50, 0.35),
+    0 0 32px rgb(205, 127, 50, 0.15);
 }
 
 @media (hover: hover) {
@@ -90,18 +121,40 @@
   text-shadow: 0 1px 0 rgb(0, 0, 0, 0.15);
 }
 
-.mk-ribbon--pulse {
+/* Pulse halo painted by a sibling pseudo so the animation only touches
+   `opacity`, which the compositor handles on the GPU. The previous
+   filter / drop-shadow keyframes thrashed the CPU and produced a jerky
+   pulse on weaker devices. */
+.mk-ribbon::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--mk-ribbon-c);
+  filter: blur(8px);
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+  will-change: opacity;
+}
+
+.mk-ribbon--pulse::after {
   animation: mk-ribbon-pulse var(--portal-anim-pulse) ease-in-out infinite;
 }
 
 @keyframes mk-ribbon-pulse {
   0%,
   100% {
-    filter: brightness(1) drop-shadow(0 0 0 transparent);
+    opacity: 0;
   }
   50% {
-    filter: brightness(1.12)
-      drop-shadow(0 0 8px color-mix(in srgb, var(--mk-ribbon-c) 65%, transparent));
+    opacity: 0.65;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mk-ribbon--pulse::after {
+    animation: none;
+    opacity: 0;
   }
 }
 
@@ -295,10 +348,17 @@
   }
 }
 
-/* Pending — always-on warning tint, not clickable. */
+/* Pending — always-on warning tint, not clickable (aria-disabled, not
+   the HTML `disabled` attribute, so the click handler can still strip
+   focus and release the sticky `:hover` styles). */
 .mk-btn--muted {
   background: rgb(var(--portal-color-warning-rgb), 0.16);
   border-color: rgb(var(--portal-color-warning-rgb), 0.38);
+  cursor: not-allowed;
+  pointer-events: auto;
+}
+
+.mk-btn[aria-disabled='true'] {
   cursor: not-allowed;
 }
 

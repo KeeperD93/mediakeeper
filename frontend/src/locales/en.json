@@ -2157,7 +2157,13 @@
         "available": "Coming soon",
         "tooltip": "Requested by {by} on {date}",
         "tooltipAnonymous": "Already requested on {date}"
-      }
+      },
+      "tooltipRequestedBy": "Requested by {user} on {date}",
+      "tooltipApprovedOn": "Approved on {date}",
+      "tooltipRejectedOn": "Rejected on {date}",
+      "tooltipWatchedOn": "Watched on {date}",
+      "tooltipInProgressSince": "In progress since {date}",
+      "tooltipBlacklistedOn": "Blacklisted on {date}"
     },
     "posterCard": {
       "statusPending": "Requested",

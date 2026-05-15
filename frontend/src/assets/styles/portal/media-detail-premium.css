@@ -158,37 +158,15 @@
     0 0 0 1px rgb(255, 255, 255, 0.06);
   object-fit: cover;
 }
-/* Request-status tag pinned to the poster top. Matches the flag shape +
-   gradients used by ``.pt-req-status-tag`` on the home cards so both
-   surfaces share the exact same visual vocabulary. */
-.vmd2-poster-status {
-  position: absolute;
-  top: 44px;
-  left: 0;
+/* Status ribbon + availability chip on the hero poster are now rendered
+   by `<PremiumRibbon>` and `.mk-poster__avail` (shared with PosterCard),
+   so the legacy `.vmd2-poster-status*` rules and the dot pastille are
+   gone. The poster wrapper just needs to host them. */
+.vmd2-poster-wrap > .mk-ribbon-wrap {
   z-index: 4;
-  padding: 3px 14px 3px 10px;
-  color: #fff;
-  font-size: var(--portal-text-2xs);
-  font-weight: var(--portal-font-black);
-  letter-spacing: var(--portal-tracking-eyebrow);
-  text-transform: uppercase;
-  clip-path: polygon(0 0, 100% 0, calc(100% - 6px) 50%, 100% 100%, 0 100%);
-  text-shadow: 0 1px 2px rgb(0, 0, 0, 0.5);
-  box-shadow:
-    0 2px 8px rgb(0, 0, 0, 0.3),
-    inset 0 1px 0 rgb(255, 255, 255, 0.25);
 }
-.vmd2-poster-status--requested {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-}
-.vmd2-poster-status--approved {
-  background: linear-gradient(135deg, var(--portal-color-info) 0%, #2563eb 100%);
-}
-.vmd2-poster-status--available {
-  background: linear-gradient(135deg, var(--portal-color-success) 0%, #16a34a 100%);
-}
-.vmd2-poster-status--rejected {
-  background: linear-gradient(135deg, var(--portal-color-error) 0%, #dc2626 100%);
+.vmd2-poster-wrap > .mk-poster__avail {
+  z-index: 4;
 }
 
 .vmd2-studios {
@@ -364,25 +342,6 @@
   font-size: var(--portal-text-sm);
   color: var(--portal-text-body-muted);
 }
-.vmd2-avail-badge {
-  padding: 0.2rem 0.55rem;
-  background: linear-gradient(135deg, #22d3ee 0%, #0891b2 100%);
-  color: #fff;
-  border-radius: var(--radius-sm);
-  font-size: var(--portal-text-2xs);
-  font-weight: var(--portal-font-extrabold);
-  letter-spacing: var(--portal-tracking-caps);
-}
-.vmd2-avail-badge--hdr {
-  background: linear-gradient(135deg, var(--portal-color-warning-dark) 0%, #dc2626 100%);
-}
-.vmd2-avail-badge--dv {
-  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
-}
-.vmd2-avail-badge--atmos {
-  background: linear-gradient(135deg, var(--portal-color-success) 0%, #15803d 100%);
-}
-
 /* ---------- Tab bar wrapper ---------- */
 .vmd2-tabs-wrap {
   position: relative;

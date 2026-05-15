@@ -8,13 +8,20 @@
     <div class="vmd2-hero-content">
       <div v-if="media.poster" class="vmd2-poster-wrap">
         <img class="vmd2-poster" :src="media.poster" :alt="media.title" />
-        <span
-          v-if="statusTag"
-          class="vmd2-poster-status"
-          :class="`vmd2-poster-status--${statusTag.variant}`"
+        <PremiumRibbon
+          v-if="statusRibbon"
+          :label="statusRibbon.label"
+          :bg="statusRibbon.color"
+          :title="statusRibbon.tooltip"
+        />
+        <div
+          v-if="availability"
+          class="mk-poster__avail"
+          :class="`mk-poster__avail--${availability}`"
         >
-          {{ statusTag.label }}
-        </span>
+          <span class="mk-poster__avail-dot" />
+          {{ availability === 'full' ? $t('portal.posterCard.availFull') : $t('portal.posterCard.availPartial') }}
+        </div>
       </div>
 
       <div class="vmd2-hero-info">
@@ -115,6 +122,8 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { REQUEST_STATUS } from '@/constants/requests'
 import { Bookmark, Plus, Video } from 'lucide-vue-next'
+import PremiumRibbon from '@/components/portal/PremiumRibbon.vue'
+import '@/assets/styles/portal/poster-card.css'
 
 const props = defineProps({
   media: { type: Object, required: true },
@@ -154,17 +163,40 @@ const requestBtnClass = computed(() =>
   props.availInfo?.emby_url ? 'vmd2-btn--ghost' : 'vmd2-btn--secondary',
 )
 
-// Status tag stacked under the certification badge on the poster. Replaces
-// the disabled "Approved / Rejected / Requested / Available" buttons so the
-// action bar stays clean and the state reads as a visual badge.
-const statusTag = computed(() => {
+// Single status descriptor that drives the PremiumRibbon on the hero
+// poster. Reuses the same colour tokens and i18n keys as PosterCard so
+// the detail page and the grid speak the same visual language.
+const STATUS_COLOR = {
+  pending: 'var(--portal-color-warning)',
+  approved: 'var(--portal-color-success)',
+  rejected: 'var(--portal-color-error)',
+  blacklisted: 'var(--portal-color-neutral-dark)',
+}
+const STATUS_LABEL_KEY = {
+  pending: 'portal.posterCard.statusPending',
+  approved: 'portal.posterCard.statusApproved',
+  rejected: 'portal.posterCard.statusRejected',
+  blacklisted: 'portal.posterCard.statusBlacklisted',
+}
+const statusRibbon = computed(() => {
   const s = props.reqStatus
   if (!s) return null
-  if (s === REQUEST_STATUS.REJECTED)
-    return { variant: 'rejected', label: t('portal.detail.rejectedBtn') }
+  if (s === REQUEST_STATUS.PENDING)
+    return { label: t(STATUS_LABEL_KEY.pending).toUpperCase(), color: STATUS_COLOR.pending, tooltip: '' }
   if (s === REQUEST_STATUS.APPROVED)
-    return { variant: 'approved', label: t('portal.detail.approvedBtn') }
-  if (s === 'available') return { variant: 'available', label: t('portal.detail.availableBtn') }
-  return { variant: 'requested', label: t('portal.card.requestedBtn') }
+    return { label: t(STATUS_LABEL_KEY.approved).toUpperCase(), color: STATUS_COLOR.approved, tooltip: '' }
+  if (s === REQUEST_STATUS.REJECTED)
+    return { label: t(STATUS_LABEL_KEY.rejected).toUpperCase(), color: STATUS_COLOR.rejected, tooltip: '' }
+  if (s === 'blacklisted')
+    return { label: t(STATUS_LABEL_KEY.blacklisted).toUpperCase(), color: STATUS_COLOR.blacklisted, tooltip: '' }
+  return null
+})
+
+// Availability chip for the hero poster — reuses the same markup +
+// classes as PosterCard so styling stays consistent.
+const availability = computed(() => {
+  if (!props.availInfo?.emby_url) return null
+  const a = props.availInfo.availability
+  return a === 'partial' ? 'partial' : 'full'
 })
 </script>

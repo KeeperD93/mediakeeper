@@ -1,18 +1,21 @@
 /**
  * State derived from a single portal media item, consumed by MediaCard
- * (now a thin wrapper around PosterCard). Returns only the bits the
- * wrapper still needs to drive PosterCard props — the old visual tags
- * (statusDot, requestedTag, requestStatusLabel) are now handled inside
- * PosterCard via the unified status ribbon.
+ * (a thin wrapper around PosterCard). Returns the bits the wrapper still
+ * needs to drive PosterCard props — availability cache, request status,
+ * NEW-on-Emby flag, blacklist marker, and the three tooltips that the
+ * legacy MediaCard surfaced on its diagonal ribbons.
  */
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useAvailability } from '@/composables/portal/useAvailability'
 import { useRequestStatus } from '@/composables/portal/useRequestStatus'
 import { REQUEST_STATUS } from '@/constants/requests'
+import { formatDate } from '@/utils/format'
 
 const NEW_THRESHOLD_DAYS = 7
 
 export function useMediaCardState(props) {
+  const { t, locale } = useI18n()
   const { getAvailability } = useAvailability()
   const { getStatus } = useRequestStatus()
 
@@ -88,6 +91,46 @@ export function useMediaCardState(props) {
     () => props.item?._request_status || reqStatus.value?.status || null,
   )
 
+  // ── Tooltips for the diagonal ribbon ────────────────────────────
+  // Each computed targets one ribbon flavour. MediaCard picks the
+  // matching one based on which status the card is currently showing.
+
+  // Pending / approved — surfaces who requested it and when.
+  const postitTooltip = computed(() => {
+    const r = reqStatus.value
+    if (!r) return ''
+    const who = r.requester_username || r.requester || r.requested_by || ''
+    const date = r.requested_at ? formatDate(r.requested_at, locale.value) : ''
+    if (!who && !date) return ''
+    return t('portal.card.tooltipRequestedBy', { user: who, date })
+  })
+
+  // Watched / in_progress — surfaces the playback date.
+  const watchedTooltip = computed(() => {
+    if (!props.item?.watched_at) return ''
+    const date = formatDate(props.item.watched_at, locale.value)
+    if (!date) return ''
+    return props.item.watch_status === 'in_progress'
+      ? t('portal.card.tooltipInProgressSince', { date })
+      : t('portal.card.tooltipWatchedOn', { date })
+  })
+
+  // Approved / rejected / blacklisted — surfaces the admin transition
+  // date, falling back to the original request date if `updated_at` is
+  // missing (older payloads only carry `requested_at`).
+  const reqStatusTooltip = computed(() => {
+    const status = displayedReqStatus.value
+    const r = reqStatus.value
+    const when = r?.updated_at || r?.requested_at
+    if (!status || !when) return ''
+    const date = formatDate(when, locale.value)
+    if (!date) return ''
+    if (status === REQUEST_STATUS.APPROVED) return t('portal.card.tooltipApprovedOn', { date })
+    if (status === REQUEST_STATUS.REJECTED) return t('portal.card.tooltipRejectedOn', { date })
+    if (status === 'blacklisted') return t('portal.card.tooltipBlacklistedOn', { date })
+    return ''
+  })
+
   return {
     availData,
     reqStatus,
@@ -96,5 +139,8 @@ export function useMediaCardState(props) {
     retryCount,
     isNewOnEmby,
     displayedReqStatus,
+    postitTooltip,
+    watchedTooltip,
+    reqStatusTooltip,
   }
 }

@@ -1,4 +1,5 @@
 import os
+import time
 import logging
 from core.http_client import get_external_client
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,6 +11,12 @@ LANGUAGE     = os.getenv("TMDB_LANGUAGE", "fr-FR")
 
 # In-memory key cache (avoids a DB call on every request)
 _cached_key: str = ""
+
+# Per-item runtime + year cache for the Top 20 enrichment (≤ 40 entries).
+# Runtime + year are immutable post-release, so a 24h TTL is safe; a
+# container restart naturally invalidates the cache on top of it.
+_meta_cache: dict[tuple[int, str], tuple[dict, float]] = {}
+_META_TTL_SEC = 86400  # 24h — runtime/year immutable, restart-invalidated.
 
 
 def invalidate_tmdb_key_cache():
@@ -274,3 +281,51 @@ async def get_media_details(
     except Exception as e:
         logger.warning(f"get_media_details({media_type}/{tmdb_id}) failed: {e}")
         return None
+
+
+async def get_meta_cached(
+    tmdb_id: int,
+    media_type: str,
+    db: AsyncSession | None = None,
+) -> dict:
+    """Return cached {"runtime": int, "year": str} for a TMDB item.
+
+    Used by the Top 20 enrichment to backfill rows the Emby payload does
+    not carry. Misses fall through to a minimal TMDB call and are cached
+    in-process; failures degrade to an empty dict so the caller can
+    render the row without runtime / year.
+    """
+    if media_type not in ("movie", "tv"):
+        return {}
+    key = (int(tmdb_id), media_type)
+    now = time.time()
+    cached = _meta_cache.get(key)
+    if cached and now - cached[1] < _META_TTL_SEC:
+        return cached[0]
+    try:
+        api_key = await _get_tmdb_key(db)
+        if not api_key:
+            return {}
+        client = get_external_client()
+        res = await client.get(
+            f"{TMDB_BASE}/{media_type}/{tmdb_id}",
+            params={"language": LANGUAGE},
+            headers=_tmdb_headers_sync(api_key),
+            timeout=5.0,
+        )
+        if res.status_code != 200:
+            return {}
+        d = res.json()
+        if media_type == "movie":
+            runtime = int(d.get("runtime") or 0)
+            date = d.get("release_date") or ""
+        else:
+            eps = d.get("episode_run_time") or []
+            runtime = int(eps[0]) if eps else 0
+            date = d.get("first_air_date") or ""
+        meta = {"runtime": runtime, "year": date[:4] if date else ""}
+        _meta_cache[key] = (meta, now)
+        return meta
+    except Exception as e:
+        logger.warning(f"get_meta_cached({media_type}/{tmdb_id}) failed: {e}")
+        return {}
