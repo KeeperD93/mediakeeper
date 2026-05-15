@@ -32,6 +32,30 @@ logger = logging.getLogger("mediakeeper.portal.top20")
 _series_id_cache: dict[str, str] = {}
 
 
+async def _enrich_top20_meta(items: list[dict], db: AsyncSession) -> None:
+    """Stamp runtime + year on Top 20 items in-place.
+
+    The lookup is cheap thanks to the TMDB meta cache (24h TTL). Items
+    without a tmdb_id stay untouched, and per-item TMDB failures are
+    logged but never propagated — a single hiccup must not kill the
+    whole payload.
+    """
+    for it in items:
+        tid = it.get("tmdb_id")
+        mtype = it.get("media_type")
+        if not tid or not mtype:
+            continue
+        try:
+            meta = await get_meta_cached(int(tid), mtype, db)
+        except Exception as e:
+            logger.warning(f"[TOP20] meta enrich failed for {mtype}/{tid}: {e}")
+            continue
+        if meta.get("runtime"):
+            it["runtime"] = meta["runtime"]
+        if meta.get("year"):
+            it["year"] = meta["year"]
+
+
 async def _find_series_id(series_name: str, url: str, api_key: str) -> str | None:
     """Find the Emby Series item ID by name for poster lookup."""
     if series_name in _series_id_cache:
@@ -208,24 +232,10 @@ async def get_top20(
             except Exception as e:
                 logger.warning(f"[TOP20] tmdb resolve failed: {e}")
 
-    # Enrich each item with runtime + year from TMDB. The cache keeps the
-    # extra calls cheap (immutable metadata, 24h TTL) so MediaCard can
-    # render the poster meta line without a second round-trip on the
-    # client. Missing values stay absent so the frontend elides the
-    # separator instead of showing an empty " · ".
-    for it in items:
-        tid = it.get("tmdb_id")
-        mtype = it.get("media_type")
-        if not tid or not mtype:
-            continue
-        try:
-            meta = await get_meta_cached(int(tid), mtype, db)
-        except Exception as e:
-            logger.warning(f"[TOP20] meta enrich failed for {mtype}/{tid}: {e}")
-            continue
-        if meta.get("runtime"):
-            it["runtime"] = meta["runtime"]
-        if meta.get("year"):
-            it["year"] = meta["year"]
+    # Backfill runtime + year so MediaCard can render the poster meta
+    # line without a second round-trip on the client. Missing values
+    # stay absent and the frontend elides the separator instead of
+    # showing an empty " · ".
+    await _enrich_top20_meta(items, db)
 
     return {"items": items}
