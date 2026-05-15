@@ -2163,7 +2163,8 @@
       "tooltipRejectedOn": "Rejected on {date}",
       "tooltipWatchedOn": "Watched on {date}",
       "tooltipInProgressSince": "In progress since {date}",
-      "tooltipBlacklistedOn": "Blacklisted on {date}"
+      "tooltipBlacklistedOn": "Blacklisted on {date}",
+      "tooltipAddedOnEmby": "Added to Emby on {date}"
     },
     "posterCard": {
       "statusPending": "Requested",

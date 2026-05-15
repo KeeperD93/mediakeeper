@@ -59,6 +59,7 @@ const {
   postitTooltip,
   watchedTooltip,
   reqStatusTooltip,
+  newRibbonTooltip,
 } = useMediaCardState(props)
 
 const title = computed(() => props.item?.title || '')
@@ -110,10 +111,13 @@ const count = computed(() => {
   return 1
 })
 
-// Pick the tooltip flavour that matches the active ribbon. Pending uses
-// the postit (requester + date), watch states use the playback date,
-// admin transitions use the updated/requested date.
+// Pick the tooltip flavour that matches the active ribbon. The NEW
+// ribbon wins over status (PosterCard renders it with `v-if="isNew"`),
+// then watch states fall back on the playback date, pending uses the
+// postit (requester + date), and admin transitions use the updated /
+// requested date.
 const tooltip = computed(() => {
+  if (isNewOnEmby.value) return newRibbonTooltip.value
   const s = status.value
   if (s === 'watched' || s === 'in_progress') return watchedTooltip.value
   if (s === 'pending') return postitTooltip.value

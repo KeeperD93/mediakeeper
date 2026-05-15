@@ -84,6 +84,15 @@ export function useMediaCardState(props) {
     return ageDays >= 0 && ageDays < NEW_THRESHOLD_DAYS
   })
 
+  // Tooltip for the NEW ribbon — surfaces the add-to-Emby date so the
+  // pulsing green flag stops being a mystery flag once the user hovers.
+  const newRibbonTooltip = computed(() => {
+    if (!isNewOnEmby.value) return ''
+    const date = formatDate(props.item.date_created, locale.value)
+    if (!date) return ''
+    return t('portal.card.tooltipAddedOnEmby', { date })
+  })
+
   // Effective request status — prefers the explicit `_request_status`
   // stamped by the profile carousel, falls back to the global cache.
   // Used by the wrapper to detect a blacklist marker.
@@ -142,5 +151,6 @@ export function useMediaCardState(props) {
     postitTooltip,
     watchedTooltip,
     reqStatusTooltip,
+    newRibbonTooltip,
   }
 }
