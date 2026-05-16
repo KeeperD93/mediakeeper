@@ -425,7 +425,7 @@ def _parse_genres(value: str | None) -> list[int]:
 async def enrich_missing_search_posters(
     db: AsyncSession,
     *,
-    limit: int = 100,
+    limit: int = 500,
     sleep_between_calls: float = 0.3,
 ) -> dict:
     """Hydrate poster_url + backdrop_url for search documents stamped
@@ -436,10 +436,16 @@ async def enrich_missing_search_posters(
     background keeps the sync itself fast (no TMDB I/O cascade) while
     restoring missing posters in the search grid over time.
 
+    Ordering puts ``available_on_emby`` rows first because they are the
+    only ones surfaced through normal browsing — TMDB-only fallback
+    documents (search cache) are far less user-visible and many of them
+    have no poster_path on TMDB either, so they would otherwise hog
+    the limited per-run budget without payoff.
+
     The ``sleep_between_calls`` throttle keeps the run well under the
-    TMDB v3 standard rate limit (40 req / 10 s). Failures (None
-    result, no poster_path) are skipped silently — the doc stays
-    empty and the next run will retry it.
+    TMDB v3 standard rate limit (40 req / 10 s). Failures (None result,
+    no poster_path) are skipped silently — the doc stays empty and the
+    next run will retry it.
 
     Returns ``{"scanned": N, "enriched": M, "skipped": K}``.
     """
@@ -452,11 +458,16 @@ async def enrich_missing_search_posters(
     stmt = (
         select(PortalSearchDocument)
         .where(PortalSearchDocument.poster_url == "")
-        .order_by(PortalSearchDocument.popularity.desc())
+        .order_by(
+            PortalSearchDocument.available_on_emby.desc(),
+            PortalSearchDocument.popularity.desc(),
+            PortalSearchDocument.id.asc(),
+        )
         .limit(limit)
     )
     docs = (await db.execute(stmt)).scalars().all()
     if not docs:
+        enrich_log.info("enrich_missing_search_posters: nothing to do")
         return {"scanned": 0, "enriched": 0, "skipped": 0}
 
     enriched = 0
@@ -494,4 +505,8 @@ async def enrich_missing_search_posters(
     # the changes pending in the in-memory session and they disappear
     # when the block closes.
     await db.commit()
+    enrich_log.info(
+        f"enrich_missing_search_posters done: scanned={len(docs)} "
+        f"enriched={enriched} skipped={skipped}"
+    )
     return {"scanned": len(docs), "enriched": enriched, "skipped": skipped}

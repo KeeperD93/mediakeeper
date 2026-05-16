@@ -100,4 +100,4 @@ async def _handler_enrich_missing_search_posters(db: AsyncSession) -> dict:
     scheduler — the next run resumes where this one stopped.
     """
     from services.portal.search_index import enrich_missing_search_posters
-    return await enrich_missing_search_posters(db, limit=100)
+    return await enrich_missing_search_posters(db)
