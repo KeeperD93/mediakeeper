@@ -1277,6 +1277,8 @@
     "healthcheck": "Analyzes media file health (codecs, resolution, subtitles…).",
     "subtitle_auto": "Automatically downloads subtitles for new media based on the default profile.",
     "expire_users": "Automatically disables accounts (Emby + MediaKeeper) whose access window has expired.",
+    "cleanup_available_requests": "Automatically clears available requests after the configured grace period.",
+    "gdpr_purge": "Permanently removes user accounts marked for GDPR purge.",
     "starting": "Starting…"
   },
   "onboarding": {

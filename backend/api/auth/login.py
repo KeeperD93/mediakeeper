@@ -3,7 +3,7 @@ import logging
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
@@ -80,7 +80,10 @@ async def login(req: LoginRequest, request: Request, response: Response, db: Asy
     user_agent = request.headers.get("user-agent")
     await ensure_not_blocked(db, client_ip, req.username, "admin")
 
-    result = await db.execute(select(User).where(User.username == req.username))
+    normalized = (req.username or "").strip()
+    result = await db.execute(
+        select(User).where(func.lower(User.username) == normalized.lower())
+    )
     user   = result.scalar_one_or_none()
 
     if not user or not verify_password(req.password, user.hashed_password):
@@ -147,11 +150,17 @@ async def portal_login(
     # collaterally lock the admin login from the same IP.
     await ensure_not_blocked(db, client_ip, req.username, "admin")
 
-    username = req.username.strip()
-    result = await db.execute(select(User).where(User.username == username))
+    username = (req.username or "").strip()
+    result = await db.execute(
+        select(User).where(func.lower(User.username) == username.lower())
+    )
     user = result.scalar_one_or_none()
 
-    if is_backoffice_admin(username):
+    # Use canonical username (DB) when the lookup matched so the
+    # backoffice gate honours MK_ADMIN_USERS regardless of the casing
+    # the user typed. Falls back to the raw input when no DB row
+    # matched — keeps the existing Emby cascade behaviour.
+    if is_backoffice_admin(user.username if user else username):
         local_admin_ok = bool(
             user
             and verify_password(req.password, user.hashed_password)

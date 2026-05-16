@@ -42,6 +42,8 @@ This section intentionally has no date so it is not shown to users.
 - Duplicates — "Restore" button realigned on movie rows of the Ignored tab
 - Health — config save restored (confirmation toast)
 - Expired admin session: silent re-login on Requests module, otherwise clear notice on the login screen
+- Login — username accepted regardless of letter case
+- Settings — Cleanup requests and GDPR purge task labels restored (scheduler)
 
 ## [0.9.9] - 2026-05-14
 
