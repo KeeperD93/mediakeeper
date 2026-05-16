@@ -40,6 +40,7 @@ This section intentionally has no date so it is not shown to users.
 - Requests — clear error message when a request fails (quota, duplicate, blacklist)
 - Mobile posters: availability badge repositioned to avoid overlap
 - Person page — request status badge visible again on filmography
+- Search — missing posters restored (background TMDB enrichment)
 
 ## [0.3.0] - 2026-05-14
 

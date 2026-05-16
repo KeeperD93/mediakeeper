@@ -90,3 +90,14 @@ async def _handler_cleanup_available_requests(db: AsyncSession) -> dict:
         return {"deleted": 0, "skipped": "disabled"}
     deleted = await requests_cleanup.cleanup_old_available_requests(db, days=days)
     return {"deleted": deleted, "days": days}
+
+
+async def _handler_enrich_missing_search_posters(db: AsyncSession) -> dict:
+    """Re-hydrate poster_url for search documents stamped empty by Emby-sync.
+
+    Best-effort: failures are logged but never raise. The batch limit
+    keeps a single run bounded so a backlog doesn't monopolise the
+    scheduler — the next run resumes where this one stopped.
+    """
+    from services.portal.search_index import enrich_missing_search_posters
+    return await enrich_missing_search_posters(db, limit=100)

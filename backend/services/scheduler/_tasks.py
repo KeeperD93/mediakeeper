@@ -4,6 +4,7 @@ from ._handlers import (
     _handler_cleanup_available_requests,
     _handler_duplicates,
     _handler_emby_refresh,
+    _handler_enrich_missing_search_posters,
     _handler_expire_users,
     _handler_gdpr_purge,
     _handler_healthcheck,
@@ -95,5 +96,13 @@ TASK_DEFINITIONS: dict[str, dict] = {
                                 # when off (early return, no query).
         "handler":     _handler_gdpr_purge,
         "description": "scheduler.gdpr_purge",
+    },
+    "enrich_missing_search_posters": {
+        "label":       "Enrich missing search posters",
+        "default_sec": 21600,   # 6 h
+        "default_on":  True,    # Best-effort, harmless when no doc has
+                                # an empty poster_url (early return).
+        "handler":     _handler_enrich_missing_search_posters,
+        "description": "scheduler.enrich_missing_search_posters",
     },
 }

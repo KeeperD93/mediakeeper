@@ -420,3 +420,73 @@ def _parse_genres(value: str | None) -> list[int]:
         if part.isdigit():
             genres.append(int(part))
     return genres
+
+
+async def enrich_missing_search_posters(
+    db: AsyncSession,
+    *,
+    limit: int = 100,
+    sleep_between_calls: float = 0.3,
+) -> dict:
+    """Hydrate poster_url + backdrop_url for search documents stamped
+    with an empty string.
+
+    Created by ``_upsert_index`` when Emby-sync indexes a title before
+    TMDB visual assets are known. Running this lazily in the
+    background keeps the sync itself fast (no TMDB I/O cascade) while
+    restoring missing posters in the search grid over time.
+
+    The ``sleep_between_calls`` throttle keeps the run well under the
+    TMDB v3 standard rate limit (40 req / 10 s). Failures (None
+    result, no poster_path) are skipped silently — the doc stays
+    empty and the next run will retry it.
+
+    Returns ``{"scanned": N, "enriched": M, "skipped": K}``.
+    """
+    from services.tmdb import get_media_detail
+    import asyncio
+    import logging
+
+    enrich_log = logging.getLogger("mediakeeper.portal.search_index")
+
+    stmt = (
+        select(PortalSearchDocument)
+        .where(PortalSearchDocument.poster_url == "")
+        .order_by(PortalSearchDocument.popularity.desc())
+        .limit(limit)
+    )
+    docs = (await db.execute(stmt)).scalars().all()
+    if not docs:
+        return {"scanned": 0, "enriched": 0, "skipped": 0}
+
+    enriched = 0
+    skipped = 0
+    for idx, doc in enumerate(docs):
+        if idx > 0:
+            await asyncio.sleep(sleep_between_calls)
+        try:
+            detail = await get_media_detail(doc.media_type, doc.tmdb_id, db)
+        except Exception as e:  # noqa: BLE001 -- best-effort, log + skip
+            enrich_log.warning(
+                f"enrich_missing_search_posters: get_media_detail "
+                f"failed for {doc.media_type}/{doc.tmdb_id}: {e}"
+            )
+            skipped += 1
+            continue
+        if not detail or detail.get("error"):
+            skipped += 1
+            continue
+        poster = detail.get("poster") or ""
+        backdrop = detail.get("backdrop") or ""
+        if not poster and not backdrop:
+            # TMDB itself has no visual for this title — leave empty.
+            skipped += 1
+            continue
+        if poster:
+            doc.poster_url = poster
+        if backdrop and not doc.backdrop_url:
+            doc.backdrop_url = backdrop
+        enriched += 1
+
+    await db.flush()
+    return {"scanned": len(docs), "enriched": enriched, "skipped": skipped}
