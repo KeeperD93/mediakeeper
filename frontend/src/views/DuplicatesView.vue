@@ -28,10 +28,9 @@
         <!-- Actions -->
         <div class="doub-header">
           <div class="doub-actions">
-            <button class="doub-btn doub-btn-secondary" :disabled="scanning" @click="scanEmby">
-              <RefreshCw class="ic" />
-              {{ $t('duplicates.scanEmby') }}
-            </button>
+            <span v-if="lastDetection" class="doub-last-detection">
+              {{ $t('duplicates.lastDetection') }} {{ formatAgo(lastDetection) }}
+            </span>
             <button class="doub-btn doub-btn-primary" :disabled="refreshing" @click="refresh">
               <span v-if="refreshing" class="mk-spin mk-spin-14" />
               <Search v-else class="ic" />
@@ -223,7 +222,7 @@
         <p class="rules-desc">{{ $t('duplicates.rulesDescription') }}</p>
         <div class="rules-list">
           <div v-for="(rule, ri) in rules" :key="ri" class="rule-row">
-            <select v-model="rule.field" class="rule-sel">
+            <select v-model="rule.field" class="rule-sel mk-select-chevron">
               <option value="resolution">{{ $t('duplicates.ruleResolution') }}</option>
               <option value="codec">{{ $t('duplicates.ruleCodec') }}</option>
               <option value="keep_largest">{{ $t('duplicates.ruleKeepLargest') }}</option>
@@ -257,33 +256,29 @@
 </template>
 
 <script setup>
+defineOptions({ name: 'DuplicatesView' })
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useDuplicates } from '@/composables/useDuplicates'
 import { useTabSync } from '@/composables/useTabSync'
-import {
-  CircleCheck,
-  Check,
-  EyeOff,
-  Film,
-  Files,
-  RefreshCw,
-  Search,
-  Trash2,
-  Zap,
-} from 'lucide-vue-next'
+import { CircleCheck, Check, EyeOff, Film, Files, Search, Trash2, Zap } from 'lucide-vue-next'
 import MkEmptyState from '@/components/common/MkEmptyState.vue'
 import DupIgnoredView from '@/components/duplicates/DupIgnoredView.vue'
+import { formatAgo as formatAgoUtil } from '@/utils/formatAgo'
 import '@/assets/styles/duplicates-view.css'
+
+const { t } = useI18n()
+const formatAgo = (input) => formatAgoUtil(input, t)
 
 const {
   duplicates,
   loading,
   refreshing,
-  scanning,
   ignoredItems,
   history,
   historyStats,
   rules,
+  lastDetection,
   activeDuplicates,
   totalReclaimable,
   rulesMatchCount,
@@ -305,7 +300,6 @@ const {
   restoreDuplicates,
   deleteSource,
   keepSource,
-  scanEmby,
   refresh,
 } = useDuplicates()
 

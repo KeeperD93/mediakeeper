@@ -21,7 +21,7 @@
     <div class="wls-filters">
       <select
         :value="sortBy"
-        class="wls-select"
+        class="wls-select mk-select-chevron"
         @change="$emit('update:sortBy', $event.target.value)"
       >
         <option value="missing">{{ $t('watchlist.sortMissing') }}</option>
@@ -32,7 +32,7 @@
 
       <select
         :value="groupBy"
-        class="wls-select"
+        class="wls-select mk-select-chevron"
         @change="$emit('update:groupBy', $event.target.value)"
       >
         <option value="none">{{ $t('watchlist.groupNone') }}</option>
@@ -107,7 +107,7 @@ defineEmits(['update:searchQuery', 'update:sortBy', 'update:groupBy', 'export-cs
   transition: border-color var(--duration-fast);
 }
 .wls-search:focus {
-  border-color: rgb(99, 102, 241, 0.4);
+  border-color: rgb(var(--accent-rgb), 0.4);
 }
 .wls-search::placeholder {
   color: var(--text-muted);
@@ -131,18 +131,24 @@ defineEmits(['update:searchQuery', 'update:sortBy', 'update:groupBy', 'export-cs
   flex-wrap: wrap;
 }
 .wls-select {
-  padding: 6px 10px;
+  height: 36px;
+  padding: 0 30px 0 10px;
   border-radius: var(--radius-btn);
   border: 0.5px solid var(--border-strong);
-  background: rgb(255, 255, 255, 0.03);
+  background-color: rgb(255, 255, 255, 0.03);
   color: var(--text-secondary);
   font-size: var(--text-2xs);
   font-family: inherit;
   cursor: pointer;
   outline: none;
+  box-sizing: border-box;
 }
 .wls-select:focus {
-  border-color: rgb(99, 102, 241, 0.4);
+  border-color: rgb(var(--accent-rgb), 0.4);
+}
+.wls-select option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 .wls-export-group {
   display: flex;
@@ -164,9 +170,9 @@ defineEmits(['update:searchQuery', 'update:sortBy', 'update:groupBy', 'export-cs
   transition: all var(--duration-fast);
 }
 .wls-export-btn:hover {
-  background: rgb(99, 102, 241, 0.1);
+  background: rgb(var(--accent-rgb), 0.1);
   color: var(--accent-400);
-  border-color: rgb(99, 102, 241, 0.25);
+  border-color: rgb(var(--accent-rgb), 0.25);
 }
 
 @media (max-width: 1024px) {
@@ -175,6 +181,14 @@ defineEmits(['update:searchQuery', 'update:sortBy', 'update:groupBy', 'export-cs
   }
   .wls-search-wrap {
     min-width: 100%;
+  }
+}
+
+@media (max-width: 767px) {
+  .wls-search,
+  .wls-select,
+  .wls-export-btn {
+    min-height: 44px;
   }
 }
 </style>

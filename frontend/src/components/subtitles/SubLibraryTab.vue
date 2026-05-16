@@ -175,9 +175,15 @@ defineExpose({ resetLibrary })
 <style scoped>
 .sg-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(clamp(108px, 30vw, 120px), 1fr));
+  gap: 6px;
   padding-bottom: 8px;
+}
+@media (min-width: 768px) {
+  .sg-grid {
+    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+    gap: 12px;
+  }
 }
 .sl-list {
   display: flex;

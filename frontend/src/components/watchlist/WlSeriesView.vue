@@ -20,11 +20,16 @@
       <p class="wls-count">
         {{ displayedSeries.length }} {{ $t('common.series', displayedSeries.length).toLowerCase() }}
       </p>
-      <button class="wls-scan-btn" :disabled="loading" @click="$emit('scan')">
-        <span v-if="loading" class="mk-spin wls-scan-spin" />
-        <RefreshCw v-else :size="13" />
-        {{ $t('common.scan') }}
-      </button>
+      <div class="wls-actions">
+        <span v-if="data?.scan_time" class="wls-last-scan">
+          {{ $t('watchlist.lastScan') }} {{ formatAgo(data.scan_time) }}
+        </span>
+        <button class="wls-scan-btn" :disabled="loading" @click="$emit('scan')">
+          <span v-if="loading" class="mk-spin wls-scan-spin" />
+          <RefreshCw v-else :size="13" />
+          {{ $t('common.scan') }}
+        </button>
+      </div>
     </div>
 
     <div v-if="!displayedSeries.length" class="wls-empty">
@@ -73,6 +78,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useWatchlist } from '@/composables/useWatchlist'
 import WlSeriesCard from './WlSeriesCard.vue'
 import WlsKpis from './WlSeriesView/WlsKpis.vue'
@@ -81,9 +87,13 @@ import { useWlsExport } from './WlSeriesView/useWlsExport'
 import { dedupeByTmdb } from './WlSeriesView/dedupeByTmdb'
 import { CircleCheck, RefreshCw } from 'lucide-vue-next'
 import { EPISODE_STATUS, SERIES_STATUS } from '@/constants/watchlist'
+import { formatAgo as formatAgoUtil } from '@/utils/formatAgo'
 
 defineProps({ type: String })
 defineEmits(['scan'])
+
+const { t } = useI18n()
+const formatAgo = (input) => formatAgoUtil(input, t)
 
 const {
   data,
@@ -202,10 +212,21 @@ const { exportCSV, exportJSON } = useWlsExport(displayedSeries, ignoredSet)
   align-items: center;
   justify-content: space-between;
   margin-bottom: 14px;
+  gap: 12px;
 }
 .wls-count {
   font-size: var(--text-sm);
   color: var(--text-muted);
+}
+.wls-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.wls-last-scan {
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
+  white-space: nowrap;
 }
 .wls-scan-btn {
   display: inline-flex;

@@ -102,7 +102,7 @@ async function restoreAll() {
   gap: 6px;
   min-height: 32px;
   padding: 5px 14px;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-btn);
   background: rgb(255, 255, 255, 0.03);
   border: 1px solid var(--border-strong);
   color: rgb(255, 255, 255, 0.6);
@@ -190,7 +190,7 @@ async function restoreAll() {
   gap: 6px;
   min-height: 28px;
   padding: 4px 12px;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-btn);
   background: rgb(255, 255, 255, 0.03);
   border: 1px solid var(--border-strong);
   color: rgb(255, 255, 255, 0.6);

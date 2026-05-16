@@ -226,7 +226,7 @@ onUnmounted(stopPolling)
   display: inline-block;
   width: 34px;
   height: 18px;
-  border-radius: var(--radius-btn);
+  border-radius: var(--radius-pill);
   background: var(--border-hover);
   transition: background var(--duration-base);
   position: relative;

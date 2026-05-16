@@ -52,7 +52,7 @@
       </div>
       <p class="tool-desc">{{ $t('stats.exclusionsDesc') }}</p>
       <div class="excl-add">
-        <select v-model="exclMode" class="excl-sel">
+        <select v-model="exclMode" class="excl-sel mk-select-chevron">
           <option value="exact">{{ $t('stats.exact') }}</option>
           <option value="contains">{{ $t('stats.contains') }}</option>
         </select>
@@ -279,14 +279,22 @@ onMounted(() => {
   margin-bottom: 12px;
 }
 .excl-sel {
-  background: var(--surface-2);
+  height: 32px;
+  width: 90px;
+  padding: 0 28px 0 10px;
   border: 0.5px solid var(--border-strong);
-  border-radius: var(--radius-sm);
-  padding: 5px 8px;
+  border-radius: var(--radius-btn);
+  background-color: var(--surface-2);
   font-size: var(--text-2xs);
+  font-family: inherit;
   color: var(--text-primary);
+  cursor: pointer;
   outline: none;
-  width: 80px;
+  box-sizing: border-box;
+}
+.excl-sel option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 .excl-input {
   flex: 1;

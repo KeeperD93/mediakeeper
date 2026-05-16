@@ -22,7 +22,7 @@
       <div class="mk-app-content flex-1 overflow-y-scroll">
         <router-view v-slot="{ Component, route }">
           <transition name="route-slide" mode="out-in">
-            <keep-alive :include="['DashboardView', 'StatsView', 'WatchlistView']">
+            <keep-alive :include="['DashboardView', 'StatsView', 'WatchlistView', 'DuplicatesView']">
               <component :is="Component" :key="route.name" />
             </keep-alive>
           </transition>

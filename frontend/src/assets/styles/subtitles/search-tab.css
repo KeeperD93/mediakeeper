@@ -66,7 +66,8 @@
 }
 .sub-panel--search .sub-search-input {
   flex: 1;
-  padding: 9px 12px;
+  height: 36px;
+  padding: 0 12px;
   border-radius: var(--radius-input);
   font-size: var(--text-sm);
   background: var(--surface-2);
@@ -74,27 +75,31 @@
   color: var(--text-primary);
   outline: none;
   font-family: inherit;
+  box-sizing: border-box;
 }
 .sub-panel--search .sub-search-input:focus {
   border-color: rgb(var(--accent-rgb), 0.3);
 }
 .sub-panel--search .sub-filter-sel {
-  padding: 8px 10px;
+  height: 36px;
+  padding: 0 30px 0 12px;
   border-radius: var(--radius-input);
   font-size: var(--text-2xs);
-  background: var(--surface-2);
+  background-color: var(--surface-2);
   border: 1px solid var(--border-default);
   color: var(--text-primary);
   outline: none;
   font-family: inherit;
   cursor: pointer;
+  box-sizing: border-box;
 }
 .sub-panel--search .sub-filter-sel option {
   background: var(--bg-secondary);
   color: var(--text-primary);
 }
 .sub-panel--search .sub-search-go {
-  padding: 8px 14px;
+  height: 36px;
+  padding: 0 14px;
   border-radius: var(--radius-input);
   background: var(--accent-500);
   color: #fff;
@@ -102,6 +107,8 @@
   cursor: pointer;
   display: flex;
   align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
 }
 .sub-panel--search .sub-search-go:disabled {
   opacity: 0.4;

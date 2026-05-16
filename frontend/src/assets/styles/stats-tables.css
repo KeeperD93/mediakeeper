@@ -46,13 +46,17 @@
   color: var(--text-muted);
 }
 .cinema-stats .ctrl-sel {
-  background: var(--surface-2);
+  height: 32px;
+  padding: 0 30px 0 10px;
   border: 0.5px solid var(--border-strong);
-  border-radius: var(--radius-sm);
-  padding: 4px 8px;
+  border-radius: var(--radius-btn);
+  background-color: var(--surface-2);
   font-size: var(--text-xs);
+  font-family: inherit;
   color: var(--text-primary);
+  cursor: pointer;
   outline: none;
+  box-sizing: border-box;
 }
 .cinema-stats .ctrl-sel option {
   background: var(--bg-secondary);
@@ -101,7 +105,20 @@
   }
   .cinema-stats .dt {
     table-layout: auto;
-    min-width: 640px;
+    min-width: 1100px;
+  }
+  /* Mobile : pas de tronquage. L'utilisateur scrolle horizontalement et voit le
+     contenu complet de chaque cellule. Retire ellipsis en parallèle sur th ET
+     td pour garder header et body alignés (largeur calculée identique). */
+  .cinema-stats .dt th,
+  .cinema-stats .dt td {
+    overflow: visible;
+    text-overflow: clip;
+  }
+  /* §2.6 — touch targets mobile ≥ 44×44px sur les boutons d'action des rows. */
+  .cinema-stats .dt-act-btn {
+    min-width: 44px;
+    min-height: 44px;
   }
 }
 .cinema-stats .tbl-loading {
@@ -210,10 +227,15 @@
   color: #fff;
 }
 .cinema-stats .dt-actions {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  justify-content: flex-end;
+  /* Garde le comportement table-cell standard pour conserver la hauteur
+     de row uniforme (display: flex sur un <td> casse l'alignement vertical).
+     L'alignement des boutons à droite passe par text-align + inline-flex sur les buttons. */
+  text-align: right;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.cinema-stats .dt-act-btn + .dt-act-btn {
+  margin-left: 4px;
 }
 .cinema-stats .dt-act-btn {
   background: none;
@@ -222,9 +244,15 @@
   padding: 4px;
   border-radius: var(--radius-sm);
   color: var(--text-muted);
-  transition: all var(--duration-fast);
-  display: flex;
+  transition:
+    background var(--duration-fast),
+    color var(--duration-fast);
+  /* inline-flex (et non flex) pour que les boutons d'actions restent côte à
+     côte dans un <td> standard (sans parent flex). Le align-items: center
+     garde l'icône centrée à l'intérieur du bouton. */
+  display: inline-flex;
   align-items: center;
+  vertical-align: middle;
 }
 .cinema-stats .dt-act-btn:hover {
   background: var(--surface-3);
@@ -249,7 +277,7 @@
   gap: 6px;
   min-height: 32px;
   padding: 5px 14px;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-btn);
   background: rgb(255, 255, 255, 0.03);
   border: 1px solid var(--border-strong);
   color: rgb(255, 255, 255, 0.6);

@@ -158,12 +158,60 @@ function select(tab) {
   display: none;
 }
 
-/* Placement: top (default) — sticky top of the page scroll container */
+/* Placement: top (default) — sticky top of the page scroll container.
+   Mobile-first: tabs use equal flex distribution with tight padding and
+   small font so all labels fit on a 360–414px viewport. Labels that
+   exceed their cell get ellipsified rather than escaping the cell. */
 .mk-tabs-placement-top {
   position: sticky;
   top: 0;
   z-index: 10;
   margin-bottom: 24px;
+  padding: 4px;
+}
+.mk-tabs-placement-top .mk-tabs {
+  gap: 4px;
+  overflow-y: visible;
+  padding-bottom: 2px;
+  -webkit-overflow-scrolling: touch;
+}
+.mk-tabs-placement-top .mk-tab {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 44px;
+  padding: 6px 6px 10px;
+  font-size: var(--text-xs);
+  line-height: 1.6;
+  gap: 3px;
+}
+.mk-tabs-placement-top .mk-tab-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.6;
+  padding-bottom: 1px;
+}
+@media (min-width: 768px) {
+  .mk-tabs-placement-top {
+    padding: 3px;
+  }
+  .mk-tabs-placement-top .mk-tabs {
+    gap: 2px;
+    overflow-y: auto;
+    padding-bottom: 0;
+  }
+  .mk-tabs-placement-top .mk-tab {
+    min-height: 0;
+    padding: 9px 10px;
+    font-size: var(--text-sm);
+    line-height: normal;
+    gap: 6px;
+  }
+  .mk-tabs-placement-top .mk-tab-label {
+    line-height: normal;
+    padding-bottom: 0;
+  }
 }
 
 /* Placement: bottom-mobile — sticky top on desktop, fixed bottom on mobile (Portal-style).

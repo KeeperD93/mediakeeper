@@ -14,7 +14,7 @@
     <div class="ru-toolbar-filters">
       <select
         :value="source"
-        class="ru-toolbar-select"
+        class="ru-toolbar-select mk-select-chevron"
         @change="$emit('update:source', $event.target.value)"
       >
         <option value="">{{ $t('requestsAdmin.users.filters.source.all') }}</option>
@@ -24,7 +24,7 @@
 
       <select
         :value="role"
-        class="ru-toolbar-select"
+        class="ru-toolbar-select mk-select-chevron"
         @change="$emit('update:role', $event.target.value)"
       >
         <option value="">{{ $t('requestsAdmin.users.filters.role.all') }}</option>
@@ -35,7 +35,7 @@
 
       <select
         :value="status"
-        class="ru-toolbar-select"
+        class="ru-toolbar-select mk-select-chevron"
         @change="$emit('update:status', $event.target.value)"
       >
         <option value="">{{ $t('requestsAdmin.users.filters.status.all') }}</option>
@@ -50,7 +50,7 @@
       <select
         v-if="tagOptions.length"
         :value="tag"
-        class="ru-toolbar-select"
+        class="ru-toolbar-select mk-select-chevron"
         @change="$emit('update:tag', $event.target.value)"
       >
         <option value="">{{ $t('requestsAdmin.users.filters.tag.all') }}</option>

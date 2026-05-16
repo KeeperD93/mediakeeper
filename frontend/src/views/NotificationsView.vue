@@ -180,13 +180,14 @@
         <div class="nf-rules-grid">
           <div class="nf-section">
             <h3 class="nf-section-title">
-              <Moon :size="14" />
+              <Moon :size="18" />
               {{ $t('notifications.discord.dndTitle') }}
             </h3>
             <p class="nf-desc">{{ $t('notifications.discord.dndDesc') }}</p>
-            <label class="nf-toggle nf-toggle-spaced">
+            <label class="nf-switch nf-switch-row nf-toggle-spaced">
               <input v-model="rules.dnd_enabled" type="checkbox" />
-              <span>{{ $t('notifications.discord.dndEnable') }}</span>
+              <div class="sw-track" />
+              <span class="nf-switch-label">{{ $t('notifications.discord.dndEnable') }}</span>
             </label>
             <div v-if="rules.dnd_enabled" class="nf-dnd-times">
               <div class="nf-field">
@@ -202,13 +203,13 @@
           </div>
           <div class="nf-section">
             <h3 class="nf-section-title">
-              <Filter :size="14" />
+              <Filter :size="18" />
               {{ $t('notifications.discord.filtersTitle') }}
             </h3>
             <p class="nf-desc">{{ $t('notifications.discord.filtersDesc') }}</p>
             <div class="nf-field">
               <label class="nf-label">{{ $t('notifications.discord.minResolution') }}</label>
-              <select v-model="rules.min_resolution" class="nf-select nf-select-w150">
+              <select v-model="rules.min_resolution" class="nf-select mk-select-chevron nf-select-w150">
                 <option value="">{{ $t('notifications.discord.historyAll') }}</option>
                 <option value="720p">720p+</option>
                 <option value="1080p">1080p+</option>
@@ -243,7 +244,7 @@
       <!-- ═══ TAB: History ═══ -->
       <div v-show="activeTab === 'history'" class="tab-panel">
         <div class="nf-hist-bar">
-          <select v-model="histFilter" class="nf-select nf-select-w140">
+          <select v-model="histFilter" class="nf-select mk-select-chevron nf-select-w140">
             <option value="">{{ $t('notifications.discord.historyAll') }}</option>
             <option value="sent">{{ $t('notifications.discord.historySent') }}</option>
             <option value="failed">{{ $t('notifications.discord.historyFailed') }}</option>
@@ -284,7 +285,7 @@
           <h3 class="nf-section-title">{{ $t('notifications.discord.imageHostLabel') }}</h3>
           <div class="nf-field">
             <label class="nf-label">{{ $t('notifications.discord.imageHostLabel') }}</label>
-            <select v-model="discord.image_host" class="nf-select nf-select-w200">
+            <select v-model="discord.image_host" class="nf-select mk-select-chevron nf-select-w200">
               <option value="imgur">Imgur</option>
             </select>
           </div>

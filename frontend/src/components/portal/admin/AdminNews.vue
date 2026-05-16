@@ -1,9 +1,11 @@
 <template>
   <div>
-    <button class="pt-btn pt-btn--primary pt-btn--toolbar" @click="openCreate">
-      <i class="icon-plus" />
-      {{ $t('portal.admin.createNews') }}
-    </button>
+    <div class="pt-news-header">
+      <button class="pt-btn pt-btn--primary" @click="openCreate">
+        <i class="icon-plus" />
+        {{ $t('portal.admin.createNews') }}
+      </button>
+    </div>
 
     <div class="pt-admin-table">
       <div v-for="n in news" :key="n.id" class="pt-news-row">
@@ -142,7 +144,9 @@ onMounted(() => fetchNews(true, { admin: true }))
   background: var(--accent);
   color: #fff;
 }
-.pt-btn--toolbar {
+.pt-news-header {
+  display: flex;
+  justify-content: flex-end;
   margin-bottom: 1rem;
 }
 .pt-news-row {

@@ -163,16 +163,22 @@
   }
 }
 
-/* ─── Top-right availability chip ──────────────────────────────── */
+/* ─── Availability chip ────────────────────────────────────────── */
+/* Mobile-first : positionné bas-droite par défaut pour ne pas chevaucher
+   le ruban diagonal (statut / NEW) qui couvre tout le coin haut sur les
+   posters mobiles (108-120px). La zone bas est libre côté mobile puisque
+   le panel hover est masqué (cf. règle hover: none plus bas). Desktop
+   restaure la position top-droite + dimensions plus généreuses via la
+   media query ≥ --bp-lg. */
 .mk-poster__avail {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  padding: 3px 8px 3px 6px;
+  bottom: 6px;
+  right: 6px;
+  padding: 2px 6px 2px 4px;
   border-radius: var(--portal-radius-pill);
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 3px;
   background: var(--portal-veil-page);
   backdrop-filter: var(--portal-blur-sm);
   -webkit-backdrop-filter: var(--portal-blur-sm);
@@ -194,11 +200,27 @@
 }
 
 .mk-poster__avail-dot {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
   border-radius: var(--portal-radius-pill);
   background: currentcolor;
-  box-shadow: 0 0 6px currentcolor;
+  box-shadow: 0 0 4px currentcolor;
+}
+
+@media (min-width: 768px) {
+  .mk-poster__avail {
+    top: 10px;
+    bottom: auto;
+    right: 10px;
+    padding: 3px 8px 3px 6px;
+    gap: 5px;
+  }
+
+  .mk-poster__avail-dot {
+    width: 6px;
+    height: 6px;
+    box-shadow: 0 0 6px currentcolor;
+  }
 }
 
 /* ─── Frosted bottom panel ─────────────────────────────────────── */
@@ -231,11 +253,14 @@
   }
 }
 
-/* Touch devices: panel stays visible since hover is not reliable. */
+/* Touch devices: drop the panel entirely. Tapping the poster opens the
+   detail page, where every action (play / request / bookmark / blacklist)
+   is reachable — duplicating them on the artwork only added visual noise
+   and ate into the poster real estate. Ribbons and the availability chip
+   sit outside the panel and stay visible. */
 @media (hover: none) {
   .mk-poster__panel {
-    transform: translateY(0);
-    opacity: 1;
+    display: none;
   }
 }
 
@@ -275,13 +300,6 @@
 
 @media (hover: hover) {
   .mk-poster:hover .mk-poster__actions {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@media (hover: none) {
-  .mk-poster__actions {
     opacity: 1;
     transform: translateY(0);
   }

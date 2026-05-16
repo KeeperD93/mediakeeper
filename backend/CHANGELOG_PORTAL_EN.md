@@ -16,6 +16,14 @@ This section intentionally has no date so it is not shown to users.
 
 ### Changed
 - Unified poster visuals across all surfaces (PEGI removed from detail hero)
+- Home: unified list rhythm (airier titles, tighter posters).
+- Subtitles — library: 3 covers per row on mobile
+- Detail page — mobile densification (more info on small screens)
+- Detail page — "Available on Emby" banner removed (redundant info)
+- Discover — grid tightened on mobile (auto-fit + clamp)
+- Person page — responsive hero (photo + title adapted to mobile)
+- Mobile posters: actions removed, tap opens the detail page
+- Mobile home: hero descriptions hidden to declutter
 
 ### Fixed
 - Home: removed the burst of "Too many attempts" notifications on load
@@ -26,6 +34,11 @@ This section intentionally has no date so it is not shown to users.
 - Posters: "New" pulse animation now smooth (GPU-friendly).
 - Detail page: status ribbon and availability chip aligned with portal.
 - Posters: bookmark button tooltip renamed to "Add to a list".
+- Emby hero: smaller title on mobile to free the trailer view.
+- Emby hero: mobile posters at natural height (no more dead space below).
+- Mobile nav: "My profile" moved up to second position.
+- Requests — clear error message when a request fails (quota, duplicate, blacklist)
+- Mobile posters: availability badge repositioned to avoid overlap
 
 ## [0.3.0] - 2026-05-14
 

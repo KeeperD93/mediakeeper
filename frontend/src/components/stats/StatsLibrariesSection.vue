@@ -317,8 +317,15 @@ async function deleteLibrary(id, nm) {
   opacity: 0;
   transition: all var(--duration-fast);
 }
-.lib-card:hover .lib-del {
-  opacity: 1;
+@media (hover: hover) {
+  .lib-card:hover .lib-del {
+    opacity: 1;
+  }
+}
+@media (hover: none) {
+  .lib-del {
+    opacity: 1;
+  }
 }
 .lib-del:hover {
   background: #ef4444;

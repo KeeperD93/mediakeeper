@@ -142,9 +142,14 @@ watch(
 <style scoped>
 .vd {
   min-height: 100vh;
-  padding: 5rem 4% 4rem;
+  padding: 5rem 8px 4rem;
   background: var(--bg-primary);
   color: #fff;
+}
+@media (min-width: 768px) {
+  .vd {
+    padding: 5rem 4% 4rem;
+  }
 }
 .dmd-header {
   display: flex;
@@ -206,9 +211,15 @@ watch(
 
 .dmd-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(clamp(108px, 30vw, 120px), 1fr));
+  gap: 6px;
   margin-bottom: 1.5rem;
+}
+@media (min-width: 768px) {
+  .dmd-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+  }
 }
 @media (min-width: 1024px) {
   .dmd-grid {

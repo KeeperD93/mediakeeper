@@ -159,8 +159,15 @@ onMounted(load)
   gap: 4px;
   flex-shrink: 0;
 }
+@media (min-width: 768px) {
+  /* Desktop only: clear the absolute `.widget-badge-icon` (14px @ right:10px)
+     sitting outside the card padding, and align with `.wg-req-head-link`. */
+  .wg-eng-toggle {
+    margin-right: 22px;
+  }
+}
 .wg-eng-toggle-btn {
-  min-height: 26px;
+  min-height: 44px;
   padding: 3px 10px;
   border-radius: var(--radius-pill);
   background: rgb(255, 255, 255, 0.03);
@@ -171,8 +178,18 @@ onMounted(load)
   letter-spacing: var(--tracking-wide);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: all 0.18s;
+  transition:
+    background var(--duration-base) var(--ease-out),
+    border-color var(--duration-base) var(--ease-out),
+    color var(--duration-base) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out),
+    transform var(--duration-base) var(--ease-out);
   backdrop-filter: var(--blur-xs);
+}
+@media (min-width: 768px) {
+  .wg-eng-toggle-btn {
+    min-height: 26px;
+  }
 }
 .wg-eng-toggle-btn.is-active {
   background: var(--gradient-pill-active);
@@ -190,7 +207,9 @@ onMounted(load)
 
 .wg-eng-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  /* Fixed 2×2 keeps tiles balanced at every card width (auto-fit produced
+     a 3+1 orphan layout at narrow grid widths). */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-auto-rows: min-content;
   align-content: center;
   gap: 8px;

@@ -8,7 +8,7 @@
         :placeholder="$t('subtitles.searchLibrary')"
         @input="debounceLoad"
       />
-      <select v-model="filterLang" class="sub-filter-sel" @change="reload">
+      <select v-model="filterLang" class="sub-filter-sel mk-select-chevron" @change="reload">
         <option value="">{{ $t('subtitles.typeAll') }}</option>
         <option value="fr">FR</option>
         <option value="en">EN</option>
@@ -126,7 +126,8 @@ onMounted(reload)
 .sub-filter-input {
   flex: 1;
   min-width: 160px;
-  padding: 8px 12px;
+  height: 36px;
+  padding: 0 12px;
   border-radius: var(--radius-btn);
   font-size: var(--text-sm);
   background: var(--surface-2);
@@ -134,20 +135,23 @@ onMounted(reload)
   color: var(--text-primary);
   outline: none;
   font-family: inherit;
+  box-sizing: border-box;
 }
 .sub-filter-input:focus {
   border-color: rgb(var(--accent-rgb), 0.4);
 }
 .sub-filter-sel {
-  padding: 8px 10px;
+  height: 36px;
+  padding: 0 30px 0 12px;
   border-radius: var(--radius-btn);
   font-size: var(--text-2xs);
-  background: var(--surface-2);
+  background-color: var(--surface-2);
   border: 0.5px solid var(--border-strong);
   color: var(--text-primary);
   outline: none;
   font-family: inherit;
   cursor: pointer;
+  box-sizing: border-box;
 }
 .sub-filter-sel option {
   background: var(--bg-secondary);
@@ -286,5 +290,12 @@ onMounted(reload)
   backdrop-filter: blur(16px);
   border: 0.5px solid var(--border-default);
   border-radius: var(--radius-card);
+}
+
+@media (max-width: 767px) {
+  .sub-filter-input,
+  .sub-filter-sel {
+    min-height: 44px;
+  }
 }
 </style>

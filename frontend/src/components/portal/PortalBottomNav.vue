@@ -37,12 +37,12 @@ defineEmits(['navigate'])
 const tabs = computed(() => {
   const base = [
     { name: PORTAL_TAB.HOME, label: 'portal.tabs.home', icon: Home },
+    { name: PORTAL_TAB.ME, label: 'portal.tabs.profile', icon: User },
     { name: PORTAL_TAB.LISTS, label: 'portal.lists.navLabel', icon: Library },
   ]
   if (props.showRequestsTab) {
     base.push({ name: PORTAL_TAB.REQUESTS, label: 'portal.tabs.discover', icon: Compass })
   }
-  base.push({ name: PORTAL_TAB.ME, label: 'portal.tabs.profile', icon: User })
   base.push({ name: PORTAL_TAB.TICKETS, label: 'portal.tabs.problems', icon: LifeBuoy })
   return base
 })

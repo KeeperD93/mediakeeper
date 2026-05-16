@@ -15,6 +15,10 @@
  *    into the URL via `router.replace`.
  *  - Same-value writes are skipped to avoid feedback loops and noisy
  *    history entries.
+ *  - URL-driven updates flip an internal flag so the state→URL watcher
+ *    doesn't re-emit a `router.replace` for the same value (this avoids
+ *    a race where consecutive sub-link clicks could be eaten by an
+ *    overlapping navigation).
  */
 import { ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -24,23 +28,45 @@ export function useTabSync(tabIds, defaultTab) {
   const router = useRouter()
 
   const allowed = Array.isArray(tabIds) ? tabIds : []
-  const initialFromQuery = allowed.includes(route.query.tab) ? route.query.tab : defaultTab
-  const activeTab = ref(initialFromQuery)
+  const resolve = q => (allowed.includes(q) ? q : defaultTab)
+  const activeTab = ref(resolve(route.query.tab))
 
-  // URL → state
+  // Capture the parent path at setup so the state→URL watcher cannot
+  // mirror a stale activeTab back onto a route the view has already left
+  // (the writer would otherwise race against the next view's own sync).
+  const parentPath = route.path
+
+  // Suppress the state→URL watcher while we're applying a URL-driven
+  // update. Without this, navigating between sub-links can produce a
+  // brief inconsistency where the state→URL watcher reads a stale
+  // `route.query.tab` and re-issues `router.replace` with the previous
+  // value, snapping the view back to the previous tab.
+  let applyingFromUrl = false
+
   watch(
     () => route.query.tab,
     q => {
-      const next = allowed.includes(q) ? q : defaultTab
-      if (next !== activeTab.value) activeTab.value = next
+      const next = resolve(q)
+      if (next === activeTab.value) return
+      applyingFromUrl = true
+      activeTab.value = next
     },
+    { flush: 'sync' },
   )
 
-  // state → URL
-  watch(activeTab, tab => {
-    if (route.query.tab === tab) return
-    router.replace({ query: { ...route.query, tab } })
-  })
+  watch(
+    activeTab,
+    tab => {
+      if (applyingFromUrl) {
+        applyingFromUrl = false
+        return
+      }
+      if (route.path !== parentPath) return
+      if (route.query.tab === tab) return
+      router.replace({ path: parentPath, query: { ...route.query, tab } })
+    },
+    { flush: 'sync' },
+  )
 
   return activeTab
 }

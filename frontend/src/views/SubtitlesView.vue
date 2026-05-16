@@ -63,7 +63,7 @@ onMounted(() => {
 
 <style scoped>
 .cinema-subs {
-  padding: 12px 24px 24px;
+  padding: 12px 12px 24px;
   position: relative;
   min-height: 100%;
   overflow: hidden;
@@ -77,5 +77,11 @@ onMounted(() => {
 }
 .sub-tabs-header > :first-child {
   flex: 1;
+}
+
+@media (min-width: 768px) {
+  .cinema-subs {
+    padding: 12px 24px 24px;
+  }
 }
 </style>

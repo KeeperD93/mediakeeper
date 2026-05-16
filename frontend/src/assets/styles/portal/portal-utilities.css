@@ -49,8 +49,11 @@
 .pt-carousel-arrow:active {
   transform: translateY(-50%) scale(0.96);
 }
-/* Sur tactile, le swipe natif suffit — pas de flèches. */
-@media (hover: none) {
+/* Sur tactile, le swipe natif suffit — pas de flèches.
+   Double-gate avec `max-width` car certains modes Responsive du DevTools
+   (et quelques navigateurs hybrides) ne reportent pas `hover: none` même
+   sur un viewport mobile, ce qui laissait les flèches apparaître. */
+@media (hover: none), (max-width: 639px) {
   .pt-carousel-arrow {
     display: none;
   }

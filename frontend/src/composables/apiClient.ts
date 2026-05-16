@@ -1,5 +1,11 @@
 const SAFE_METHODS = new Set<string>(['GET', 'HEAD', 'OPTIONS'])
 
+const AUTH_REFRESH_URL = '/api/auth/refresh'
+const PORTAL_ADMIN_ENTER_URL = '/api/portal/admin/requests/enter'
+const CSRF_COOKIE = 'mk_csrf'
+
+export const SESSION_EXPIRED_FLAG = 'mk_session_expired'
+
 export interface ApiFetchOptions extends RequestInit {
   retryOn401?: boolean
   redirectOn401?: boolean
@@ -16,7 +22,7 @@ function readCookie(name: string): string {
 }
 
 export function getCsrfToken(): string {
-  return readCookie('mk_csrf')
+  return readCookie(CSRF_COOKIE)
 }
 
 export function buildApiHeaders(options: ApiFetchOptions = {}): Headers {
@@ -36,6 +42,20 @@ export function buildApiHeaders(options: ApiFetchOptions = {}): Headers {
   return headers
 }
 
+function redirectToLogin(): null {
+  try {
+    sessionStorage.setItem(SESSION_EXPIRED_FLAG, '1')
+  } catch {
+    /* sessionStorage may be unavailable (private mode, SSR) — degrade silently */
+  }
+  const { pathname, search } = window.location
+  const current = `${pathname}${search}`
+  const skip = current === '/login' || current.startsWith('/login?')
+  const target = skip ? '/login' : `/login?redirect=${encodeURIComponent(current)}`
+  window.location.href = target
+  return null
+}
+
 export async function fetchApiResponse(
   url: string,
   options: ApiFetchOptions = {},
@@ -50,29 +70,49 @@ export async function fetchApiResponse(
     })
 
   const res = await runFetch(url)
-  const canRetry = retryOn401 && url !== '/api/auth/refresh'
+  const isSelfRefresh = url === AUTH_REFRESH_URL || url === PORTAL_ADMIN_ENTER_URL
+  const canRetry = retryOn401 && !isSelfRefresh
 
   if (res.status !== 401 || !canRetry) {
     if (res.status === 401 && redirectOn401) {
-      window.location.href = '/login'
-      return null
+      return redirectToLogin()
     }
     return res
   }
 
-  const refreshRes = await runFetch('/api/auth/refresh', { method: 'POST' })
+  const refreshRes = await runFetch(AUTH_REFRESH_URL, { method: 'POST' })
   if (!refreshRes.ok) {
     if (redirectOn401) {
-      window.location.href = '/login'
-      return null
+      return redirectToLogin()
     }
     return res
   }
 
   const retryRes = await runFetch(url)
+
+  // Portal admin routes use a separate ``rq_token`` cookie that
+  // ``/api/auth/refresh`` does NOT renew. When the admin's portal
+  // session has lapsed independently of mk_token, the retry still
+  // 401s — re-issue rq_token via the existing admin bypass and try
+  // once more before giving up. Skip if the call IS /enter to avoid
+  // infinite loops.
+  if (
+    retryRes.status === 401
+    && url.startsWith('/api/portal/')
+    && url !== PORTAL_ADMIN_ENTER_URL
+  ) {
+    const enterRes = await runFetch(PORTAL_ADMIN_ENTER_URL, { method: 'POST' })
+    if (enterRes.ok) {
+      const finalRes = await runFetch(url)
+      if (finalRes.status === 401 && redirectOn401) {
+        return redirectToLogin()
+      }
+      return finalRes
+    }
+  }
+
   if (retryRes.status === 401 && redirectOn401) {
-    window.location.href = '/login'
-    return null
+    return redirectToLogin()
   }
 
   return retryRes

@@ -61,10 +61,12 @@ defineEmits(['select', 'request'])
 </script>
 
 <style scoped>
+/* Plain flex column — vertical rhythm between the nested MediaCarousels
+   is entirely driven by .pt-carousel-header's margin-top/bottom tokens,
+   so the spacing reads identically to the portal home (no extra gap, no
+   wrapper-level margin-top that would stack on top of the header's). */
 .vmd-detail-carousels {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin-top: 2rem;
 }
 </style>

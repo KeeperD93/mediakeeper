@@ -12,8 +12,36 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 ### Added
 - Portal : nouveau composant jaquette « PosterCard » conforme i18n/tokens (préparation à l'intégration).
 
+### Changed
+- Doublons — barre d'actions épurée : onglet « Détections » et horodatage « Dernière détection »
+- Santé — jaquettes 3 par ligne sur mobile, croix d'overlay repositionnée
+- Santé — bouton « Remonter » masqué dans Configuration, icône bouton Analyser unifiée
+- Demandes — admin : onglet « Paramètres » placé en premier (défaut à l'ouverture).
+- Tableau de bord — agencement des cartes par défaut revu (8 widgets).
+- Tableau de bord — carte « Lectures » retirée (info maintenue dans le bandeau).
+- Tableau de bord — bandeau condensé sur mobile (3 stats + Services pleine ligne).
+- Tableau de bord — compteurs lectures/alertes retirés du fil d'activité.
+- Notifications — menu déroulant pleine largeur sur mobile.
+- Santé — toggles refondus (commutateur slide accent ON, design pill harmonisé).
+- Statistiques — pills filtres unifiées (style accent).
+- Statistiques — tableaux Utilisateurs et Activité lisibles sur mobile (scroll horizontal).
+- Suivi séries — barre d'outils refondue (recherche, filtres, export).
+- Notifications — case « Activer » remplacée par toggle slide.
+- Notifications — selects et inputs harmonisés (chevron custom).
+- Onglets — interface compactée sur mobile.
+- Pied de page — crédits TMDB compactés.
+- Suivi — bouton « Restaurer » réaligné (radius unifié).
+- Statistiques — records empilés en colonne sur mobile.
+- Watchlist Manquants : nouveau label « Dernier scan », bouton renommé « Analyser ».
+- Watchlist : bande TMDB allégée, jaquettes Suivi alignées sur le portail (mobile).
+
 ### Fixed
 - Portal : limite débit /availability portée à 120/min, coalescing front, dédupe toasts 429
+- Doublons — navigation entre onglets stabilisée (Ignorés → Historique/Règles)
+- Doublons — premier accès accéléré, vue gardée en cache
+- Doublons — bouton « Restaurer » réaligné sur les films de l'onglet Ignorés
+- Santé — sauvegarde de la configuration restaurée (toast de confirmation)
+- Session admin expirée : reconnexion silencieuse sur module Demandes, sinon message clair à la reconnexion.
 
 ## [0.9.9] - 2026-05-14
 

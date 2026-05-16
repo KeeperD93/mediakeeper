@@ -36,7 +36,7 @@
       <h3 class="pt-debug-title">{{ $t('portal.admin.debug.resetForAllSection') }}</h3>
       <p class="pt-debug-sub">{{ $t('portal.admin.debug.resetForAllHint') }}</p>
       <div class="pt-debug-row">
-        <select v-model="resetAchievementId" class="pt-debug-select">
+        <select v-model="resetAchievementId" class="pt-debug-select mk-select-chevron">
           <option value="" disabled>—</option>
           <option v-for="ach in achievements" :key="ach.id" :value="ach.id">
             {{ t(ach.name_key) }} · {{ ach.id }}
@@ -71,7 +71,7 @@
     <section class="pt-debug-card">
       <h3 class="pt-debug-title">{{ $t('portal.admin.debug.userPicker') }}</h3>
       <p class="pt-debug-sub">{{ $t('portal.admin.debug.userPickerHint') }}</p>
-      <select v-model.number="selectedUserId" class="pt-debug-select">
+      <select v-model.number="selectedUserId" class="pt-debug-select mk-select-chevron">
         <option :value="null" disabled>—</option>
         <option v-for="u in users" :key="u.user_id" :value="u.user_id">
           {{ u.display_name }}
@@ -152,7 +152,7 @@
           class="pt-debug-input"
           :placeholder="$t('portal.admin.debug.achievementSearch')"
         />
-        <select v-model="achCategory" class="pt-debug-select pt-debug-select--inline">
+        <select v-model="achCategory" class="pt-debug-select mk-select-chevron pt-debug-select--inline">
           <option value="">{{ $t('portal.admin.debug.categoryAll') }}</option>
           <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
         </select>

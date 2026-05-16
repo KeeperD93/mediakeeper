@@ -314,7 +314,13 @@ async function submit() {
     reqData.on_behalf_of = selectedUserId.value
   }
 
-  const res = await apiPost('/api/portal/requests', reqData).catch(() => null)
+  let res = null
+  let errorCode = null
+  try {
+    res = await apiPost('/api/portal/requests', reqData)
+  } catch (e) {
+    errorCode = e?.message || null
+  }
   submitting.value = false
   if (res?.success) {
     if (res.quota) {
@@ -334,8 +340,8 @@ async function submit() {
     emit('done', { retry_count: res.retry_count || 0, id: res.id })
     emit('close')
   } else {
-    // Map backend error codes → human-readable messages.
-    const code = res?.detail || res?.error
+    // errorCode (depuis exception apiFetch) prioritaire sur res.detail/error.
+    const code = errorCode || res?.detail || res?.error
     const i18nKey = code ? `portal.request.errors.${code}` : null
     const msg = i18nKey && t(i18nKey) !== i18nKey ? t(i18nKey) : code || t('common.error')
     showToast(msg, TOAST_TYPE.ERR)

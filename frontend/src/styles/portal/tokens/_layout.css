@@ -72,4 +72,12 @@
   --portal-z-trailer: 9997;
   --portal-z-toast: 9998;
   --portal-z-top: 9999;
+
+  /* Carousel rhythm (aligned on Seerr's slider rhythm) ------
+     Used by every section header (MediaCarousel, Top20, CategoryCards)
+     and every track padding on the portal home, so the vertical
+     cadence between sections stays consistent. */
+  --portal-section-rhythm-top: 1.5rem; /* 24px — space above title */
+  --portal-section-rhythm-bottom: 1rem; /* 16px — space below title */
+  --portal-section-rhythm-track: 0.5rem; /* 8px — tight track padding */
 }

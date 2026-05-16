@@ -13,7 +13,7 @@
         <button class="ru-btn ru-btn--ghost" @click="$emit('action', { action: 'deactivate' })">
           {{ $t('requestsAdmin.users.actions.deactivate') }}
         </button>
-        <select class="ru-toolbar-select" @change="onSetRole">
+        <select class="ru-toolbar-select mk-select-chevron" @change="onSetRole">
           <option value="">{{ $t('requestsAdmin.users.actions.set_role') }}…</option>
           <option value="viewer">{{ $t('requestsAdmin.users.filters.role.viewer') }}</option>
           <option value="moderator">{{ $t('requestsAdmin.users.filters.role.moderator') }}</option>

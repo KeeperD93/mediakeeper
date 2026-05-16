@@ -114,6 +114,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Clipboard, Download, FileSpreadsheet, FolderOpen, Pencil, Trash2 } from 'lucide-vue-next'
+import { formatAgo as formatAgoUtil } from '@/utils/formatAgo'
 
 const props = defineProps({
   lst: { type: Object, required: true },
@@ -124,6 +125,7 @@ const props = defineProps({
 defineEmits(['toggle', 'edit', 'delete', 'copy-list'])
 
 const { t } = useI18n()
+const formatAgo = (input) => formatAgoUtil(input, t)
 
 const PRIVACY_TO_BAR = {
   private: 'rejected',
@@ -151,19 +153,6 @@ const backdropStyle = computed(() => {
 
 const ownerLabel = computed(() => props.lst.contributors?.[0]?.username || `#${props.lst.owner_id}`)
 
-function formatAgo(iso) {
-  if (!iso) return ''
-  const diff = Math.max(0, Date.now() - new Date(iso).getTime())
-  const mins = Math.round(diff / 60_000)
-  if (mins < 1) return t('dashboard.justNow') || '< 1 min'
-  if (mins < 60) return `${mins} min`
-  const h = Math.round(mins / 60)
-  if (h < 48) return `${h} h`
-  const d = Math.round(h / 24)
-  if (d < 30) return `${d} j`
-  const mo = Math.round(d / 30)
-  return `${mo} mo`
-}
 </script>
 
 <style scoped>

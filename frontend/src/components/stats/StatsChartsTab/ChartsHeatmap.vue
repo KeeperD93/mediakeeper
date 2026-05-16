@@ -233,4 +233,33 @@ const { hmMonthGrid, hmCellColor, hmMonthPeak, hmTip, hmTooltipShow, hmTooltipHi
 .skel-line-mt8 {
   margin-top: 8px;
 }
+
+@media (max-width: 767px) {
+  /* Narrow screens can't fit 31 day numbers without overflow. Keep only
+     a handful of markers (1, 7, 14, 21, 28) so the timeline still gives
+     a visual anchor while the empty slots reserve the grid layout. */
+  .hm-month-header,
+  .hm-month-row {
+    grid-template-columns: 32px repeat(31, 1fr);
+    gap: 1px;
+  }
+  .hm-month-row-label {
+    font-size: 0.55rem;
+    padding-right: 4px;
+  }
+  .hm-month-day-num {
+    visibility: hidden;
+    font-size: 0.45rem;
+  }
+  .hm-month-header > :nth-child(2),
+  .hm-month-header > :nth-child(8),
+  .hm-month-header > :nth-child(15),
+  .hm-month-header > :nth-child(22),
+  .hm-month-header > :nth-child(29) {
+    visibility: visible;
+  }
+  .chart-card {
+    padding: 14px 12px;
+  }
+}
 </style>

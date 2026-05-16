@@ -32,7 +32,7 @@
         <div class="skel-line w40" />
       </div>
     </div>
-    <div v-show="playback" class="top-grid" :class="{ 'flip-anim': playbackFlip }">
+    <div v-show="playback" class="top-grid">
       <div
         v-for="(card, ci) in orderedCards"
         :key="card.id"
@@ -83,15 +83,10 @@ const { avatarColors, showPreview, hidePreview, openUserProfile, goToActivitySea
 
 const periodOptions = [7, 30, 90, 180, 365]
 const playbackDays = ref(365)
-const playbackFlip = ref(false)
 
 function changePlaybackDays(d) {
-  playbackFlip.value = true
   playbackDays.value = d
   loadPlaybackAndResolve(d)
-  setTimeout(() => {
-    playbackFlip.value = false
-  }, 400)
 }
 async function loadPlaybackAndResolve(days) {
   await loadPlayback(days)
@@ -134,28 +129,6 @@ const {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
-}
-.top-grid.flip-anim {
-  animation: pc-flip-grid 0.4s ease;
-  transform-style: preserve-3d;
-}
-@keyframes pc-flip-grid {
-  0% {
-    transform: none;
-    filter: none;
-  }
-  30% {
-    transform: perspective(800px) rotateX(4deg);
-    filter: blur(2px) brightness(0.7);
-  }
-  60% {
-    transform: perspective(800px) rotateX(-3deg);
-    filter: blur(1px) brightness(0.9);
-  }
-  100% {
-    transform: none;
-    filter: none;
-  }
 }
 .glass-card {
   background: var(--surface-1);

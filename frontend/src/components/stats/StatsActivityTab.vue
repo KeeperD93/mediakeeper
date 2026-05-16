@@ -54,7 +54,7 @@
             <span class="ctrl-lbl">{{ $t('common.showPerPage') }}</span>
             <select
               v-model="activityPerPage"
-              class="ctrl-sel"
+              class="ctrl-sel mk-select-chevron"
               @change="((activityCursorHistory = []), fetchActivityData(''))"
             >
               <option :value="25">25</option>

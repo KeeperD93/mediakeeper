@@ -54,7 +54,7 @@
           :icon="m.icon"
           :label="t(m.labelKey)"
           :collapsed="collapsed"
-          :badge="m.badge || 0"
+          :badge="m.badgeKey ? counters[m.badgeKey] || 0 : 0"
           :badge-color="m.badgeColor"
           :expandable="!collapsed && hasSubTabs(m.to)"
           :expanded="!collapsed && isExpanded(m.to)"
@@ -209,8 +209,10 @@ import SidebarSubLink from './SidebarSubLink.vue'
 import SidebarSection from './SidebarSection.vue'
 import { useSidebarCounters } from '@/composables/useSidebarCounters'
 import { fetchApiResponse, useApi } from '@/composables/useApi'
+import { useMobile } from '@/composables/useMobile'
 import { ChevronLeft, MessageSquare, Search } from 'lucide-vue-next'
 import { SIDEBAR_SUB_TABS } from '@/constants/sidebarSubTabs'
+import { SIDEBAR_MODULES } from '@/constants/sidebarModules'
 
 import '@/assets/styles/app-sidebar.css'
 
@@ -219,29 +221,11 @@ const { counters } = useSidebarCounters()
 const router = useRouter()
 const route = useRoute()
 const { apiPost } = useApi()
+const { isMobile } = useMobile()
 
-const moduleEntries = computed(() => [
-  { to: '/stats', icon: 'stats', labelKey: 'sidebar.statistics' },
-  {
-    to: '/watchlist',
-    icon: 'watchlist',
-    labelKey: 'sidebar.watchlist',
-    badge: counters.watchlistMissing,
-    badgeColor: 'red',
-  },
-  { to: '/media-manager', icon: 'media', labelKey: 'sidebar.mediaManager' },
-  {
-    to: '/duplicates',
-    icon: 'duplicates',
-    labelKey: 'sidebar.duplicates',
-    badge: counters.duplicates,
-    badgeColor: 'red',
-  },
-  { to: '/health', icon: 'healthcheck', labelKey: 'sidebar.healthCheck' },
-  { to: '/subtitles', icon: 'subtitles', labelKey: 'sidebar.subtitles' },
-  { to: '/notifications', icon: 'notifications', labelKey: 'sidebar.notifications' },
-  { to: '/tracker', icon: 'tracker', labelKey: 'sidebar.tracker' },
-])
+const moduleEntries = computed(() =>
+  SIDEBAR_MODULES.filter(m => !m.desktopOnly || !isMobile.value),
+)
 
 function hasSubTabs(path) {
   return Array.isArray(SIDEBAR_SUB_TABS[path]) && SIDEBAR_SUB_TABS[path].length > 0

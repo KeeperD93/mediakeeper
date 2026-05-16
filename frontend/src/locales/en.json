@@ -46,7 +46,7 @@
     "ignore": "Ignore",
     "restore": "Restore",
     "restoreAll": "Restore all",
-    "scan": "Scan",
+    "scan": "Analyze",
     "refresh": "Refresh",
     "skipToMain": "Skip to main content",
     "networkError": "Network error",
@@ -298,7 +298,8 @@
     "starting": "Starting up…",
     "reconnecting": "Reconnecting to server…",
     "officialSite": "Official website",
-    "justLoggedOut": "You have been signed out."
+    "justLoggedOut": "You have been signed out.",
+    "sessionExpired": "Session expired, please log in again."
   },
   "forcePassword": {
     "title": "Password change required",
@@ -345,7 +346,6 @@
     "cpu": "CPU",
     "ram": "RAM",
     "storageLabel": "Storage",
-    "streams": "Streams",
     "thisWeek": "this week",
     "stable": "Stable",
     "editMode": "Edit mode — drag and resize widgets",
@@ -577,7 +577,7 @@
     "detected": "duplicate detected | duplicates detected",
     "detect": "Detect",
     "detecting": "Detecting...",
-    "scanEmby": "Scan Emby library",
+    "lastDetection": "Last detection",
     "noduplicates": "No duplicates",
     "libraryClean": "Library is clean.",
     "versions": "versions",
@@ -589,11 +589,11 @@
     "cleaned": "{n} version(s) deleted",
     "ignored": "Duplicate hidden",
     "detectionDone": "Detection complete",
-    "embyScanning": "Emby scan started",
     "errorDetection": "Error detecting duplicates",
     "filesDeletedByRules": "{count} file(s) deleted by rules",
     "restored": "Restored",
     "ignoredOn": "Ignored on {date}",
+    "detectionsTab": "Detections",
     "ignoredTab": "Ignored",
     "historyTab": "History",
     "rulesTab": "Rules",
@@ -655,6 +655,7 @@
     "timeline": "Timeline",
     "calendar": "Calendar",
     "ignored": "Ignored",
+    "lastScan": "Last scan",
     "noScan": "No scan available.",
     "startScan": "Start scan",
     "scanning": "Scanning...",
@@ -760,7 +761,7 @@
       "imgurDesc": "Configure the Imgur API to host notification images (posters, thumbnails).",
       "imgurClientId": "Client ID",
       "imgurClientSecret": "Client Secret",
-      "saveImgur": "Save Imgur",
+      "saveImgur": "Save",
       "previewLabel": "Discord Preview",
       "saveTemplates": "Save templates",
       "deleteWebhook": "Delete",
@@ -825,7 +826,7 @@
       "clientId": "Client ID",
       "clientSecret": "Client Secret",
       "saved": "Imgur saved",
-      "save": "Save Imgur"
+      "save": "Save"
     },
     "events": {
       "added": "New additions",
@@ -3514,8 +3515,8 @@
       "tabs": {
         "overview": "Overview",
         "cast": "Cast",
-        "extras": "Extras & reviews",
-        "similar": "More like this"
+        "extras": "Extras",
+        "similar": "See also"
       },
       "synopsis": "Synopsis",
       "noOverview": "No synopsis available for this title.",
@@ -3548,7 +3549,6 @@
       "sagaLabel": "Saga",
       "votes": "votes",
       "popularity": "Popularity",
-      "availableOnEmby": "Available on Emby",
       "videoType": {
         "Trailer": "Trailer",
         "Teaser": "Teaser",

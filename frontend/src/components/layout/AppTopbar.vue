@@ -175,9 +175,21 @@ const pageSubtitle = computed(() => {
   return route.meta?.subtitle || ''
 })
 
-function positionDropdown(refEl, posRef) {
+function positionDropdown(refEl, posRef, { fullWidthOnMobile = false } = {}) {
   if (!refEl.value) return
   const rect = refEl.value.getBoundingClientRect()
+  const isDesktopVp = window.innerWidth >= 768
+  if (fullWidthOnMobile && !isDesktopVp) {
+    posRef.value = {
+      position: 'fixed',
+      top: rect.bottom + 8 + 'px',
+      left: '8px',
+      right: '8px',
+      maxWidth: 'calc(100vw - 16px)',
+      zIndex: 9999,
+    }
+    return
+  }
   posRef.value = {
     position: 'fixed',
     top: rect.bottom + 8 + 'px',
@@ -207,7 +219,7 @@ function onKeydown(e) {
 }
 
 watch(showNotifPanel, v => {
-  if (v) positionDropdown(notifRef, notifDdPos)
+  if (v) positionDropdown(notifRef, notifDdPos, { fullWidthOnMobile: true })
 })
 watch(showUserMenu, v => {
   if (v) positionDropdown(userRef, userDdPos)

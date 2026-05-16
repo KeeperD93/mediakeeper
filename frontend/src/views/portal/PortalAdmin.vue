@@ -23,21 +23,19 @@ import AdminSettings from '@/components/portal/admin/AdminSettings.vue'
 import AdminDebug from '@/components/portal/admin/AdminDebug.vue'
 
 const TAB_IDS = [
+  'settings',
   'blacklist',
   'tickets',
   'news',
   'featured',
   'xpEvents',
-  'settings',
   'debug',
 ]
-const activeTab = useTabSync(TAB_IDS, 'blacklist')
+const activeTab = useTabSync(TAB_IDS, 'settings')
 </script>
 
 <style scoped>
 .pt-admin {
-  max-width: 1100px;
-  margin: 0 auto;
   padding: 1.5rem;
 }
 </style>

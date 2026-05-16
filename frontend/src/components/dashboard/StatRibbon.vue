@@ -58,10 +58,6 @@
         {{ sys.storage }}
       </span>
     </div>
-    <div class="ribbon-item">
-      <span class="ribbon-label">{{ $t('dashboard.streams') }}</span>
-      <span class="ribbon-value ribbon-value-primary">{{ sessionsCount }}</span>
-    </div>
     <!-- Services -->
     <div class="ribbon-item ribbon-svc">
       <span class="ribbon-label">Services</span>
@@ -117,7 +113,6 @@
 <script setup>
 defineProps({
   sys: { type: Object, default: () => ({}) },
-  sessionsCount: { type: Number, default: 0 },
   cpuHistory: { type: Array, default: () => [] },
   ramHistory: { type: Array, default: () => [] },
   services: { type: Array, default: () => [] },
@@ -145,17 +140,33 @@ function areaPoints(data) {
 </script>
 
 <style scoped>
-.ribbon { display: flex; gap: 1px; background: var(--ribbon-gap, var(--surface-2)); position: relative; z-index: 3; }
-.ribbon-item {
-  flex: 1; padding: 14px 20px 10px;
-  background: var(--ribbon-bg, #0b1020);
-  display: flex; flex-direction: column; gap: 2px; position: relative; min-height: 72px;
+.ribbon {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1px;
+  background: var(--ribbon-gap, var(--surface-2));
+  position: relative;
+  z-index: 3;
 }
-.ribbon-label { font-size: var(--text-2xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-.ribbon-value { font-size: 22px; font-weight: var(--font-regular); }
-.spark { width: 100%; height: 28px; margin-top: 2px; }
+.ribbon-item {
+  flex: 1 1 33%;
+  min-width: 0;
+  padding: 10px 10px 8px;
+  background: var(--ribbon-bg, #0b1020);
+  display: flex; flex-direction: column; gap: 2px; position: relative; min-height: 60px;
+}
+.ribbon-label { font-size: var(--text-3xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.ribbon-value {
+  font-size: var(--text-sm);
+  font-weight: var(--font-regular);
+  line-height: var(--lh-tight);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.spark { width: 100%; height: 18px; margin-top: 2px; }
 
-.ribbon-svc { padding-bottom: 12px; }
+.ribbon-svc { flex: 1 1 100%; padding-bottom: 12px; }
 .svc-list { display: flex; flex-direction: column; gap: 5px; margin-top: 6px; }
 .svc-row { display: flex; align-items: center; gap: 8px; }
 .svc-logo { width: 18px; height: 18px; flex-shrink: 0; transition: filter var(--duration-base); }
@@ -163,7 +174,7 @@ function areaPoints(data) {
 .svc-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 .on { background: #22c55e; }
 .off { background: var(--color-error); }
-.svc-name { font-size: var(--text-sm); color: var(--text-secondary)); font-weight: var(--font-regular); }
+.svc-name { font-size: var(--text-sm); color: var(--text-secondary); font-weight: var(--font-regular); }
 
 /* Status with pulse */
 .svc-status-wrap { display: flex; align-items: center; gap: 6px; margin-left: auto; }
@@ -189,6 +200,25 @@ function areaPoints(data) {
 .svc-status-text { font-size: var(--text-2xs); }
 .st-on { color: #22c55e; }
 .st-off { color: var(--color-error); }
-.ribbon-value-primary { color: var(--text-primary); }
 .svc-name-empty { opacity: 0.4; }
+
+/* Desktop: 4 cells in a single row, taller items, larger value text. */
+@media (min-width: 768px) {
+  .ribbon { flex-wrap: nowrap; }
+  .ribbon-item {
+    flex: 1;
+    padding: 14px 20px 10px;
+    min-height: 72px;
+  }
+  .ribbon-label { font-size: var(--text-2xs); }
+  .ribbon-value {
+    font-size: 22px;
+    line-height: normal;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+  .spark { height: 28px; }
+  .ribbon-svc { flex: initial; }
+}
 </style>

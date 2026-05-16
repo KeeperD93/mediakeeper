@@ -2,27 +2,33 @@
 
 .pt-top20 {
   position: relative;
-  margin-bottom: 2.5rem;
+  /* Rhythm driven by .pt-top20-title (margin: 24px 0 16px, Seerr-aligned). */
+  margin-bottom: 0;
   /* `overflow: visible` so the edge fades + arrows can extend slightly
      outside the section box. `hidden` would clip the medal glow on
      podium cards and the arrow shadow. */
   overflow: visible;
 }
 .pt-top20-title {
-  font-size: var(--portal-text-xl);
+  font-size: var(--portal-text-section-title);
   font-weight: var(--portal-font-extrabold);
   color: #fff;
   padding: 0 4%;
-  margin-bottom: 0.75rem;
+  /* Aligned on Seerr's slider-header rhythm so all section titles
+     share the same vertical air on the portal home. */
+  margin: var(--portal-section-rhythm-top) 0 var(--portal-section-rhythm-bottom);
 }
 .pt-top20-track {
   display: flex;
   align-items: flex-end;
   gap: 1rem;
   overflow: auto clip;
-  /* `clip` lets the medal + hover glow spill above/below the track box
-     without being cropped (which `hidden` would do). */
-  padding: 2rem 0;
+  /* `clip` lets the hover glow spill above/below the track box
+     without being cropped (which `hidden` would do). Bottom uses the
+     Seerr-aligned tight gap; top needs extra room because podium
+     laurels (top:-10px) on rank 1/2/3 cards sit above the poster and
+     would otherwise be clipped against the track's upper edge. */
+  padding: 1rem 0 var(--portal-section-rhythm-track);
   scrollbar-width: none;
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;

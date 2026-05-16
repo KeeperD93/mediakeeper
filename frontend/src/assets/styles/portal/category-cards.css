@@ -1,23 +1,24 @@
 .pt-catcards {
   position: relative;
-  margin-bottom: 2.5rem;
+  /* Rhythm driven by .pt-catcards-title (margin: 24px 0 16px, Seerr-aligned). */
+  margin-bottom: 0;
   overflow: visible;
 }
 .pt-catcards-title {
-  font-size: var(--portal-text-xl);
+  font-size: var(--portal-text-section-title);
   font-weight: var(--portal-font-extrabold);
   color: #fff;
   padding: 0 4%;
-  /* Match MediaCarousel's header spacing so title-to-cards gap is
-   identical across every row on the Portal home. */
-  margin-bottom: 0.5rem;
+  /* Aligned on Seerr's slider-header rhythm so all section titles
+     share the same vertical air on the portal home. */
+  margin: var(--portal-section-rhythm-top) 0 var(--portal-section-rhythm-bottom);
 }
 .pt-catcards-grid {
   display: flex;
   gap: 0.75rem;
-  /* 2rem vertical padding matches `.pt-carousel-track` and leaves
-     room for the hover scale (1.05) without clipping drop shadow. */
-  padding: 2rem 4%;
+  /* Vertical padding matches Seerr's slider track — tight against the
+     title above. Hover scale (1.05) is small enough to fit. */
+  padding: var(--portal-section-rhythm-track) 4%;
   overflow: auto visible;
   scroll-behavior: smooth;
   /* scroll-snap → cards land cleanly on the left edge after any scroll */

@@ -17,8 +17,8 @@ import {
 import { useApi } from './useApi'
 
 /**
- * Dashboard layout — tout in un seul grid pleine largeur.
- * 36 colonnes, rowHeight 10px.
+ * Dashboard layout: a single full-width grid.
+ * 36 columns, rowHeight 10px.
  */
 
 // Widget badge icons — Lucide components, rendered via <component :is="...">.
@@ -39,7 +39,7 @@ export const WIDGET_ICONS = {
 }
 
 export const WIDGET_REGISTRY = {
-  activity: { label: 'Activity', defaultLayout: { x: 0, y: 0, w: 11, h: 44 }, minW: 6, minH: 12 },
+  activity: { label: 'Activity', defaultLayout: { x: 0, y: 0, w: 11, h: 30 }, minW: 6, minH: 12 },
   statPlays: { label: 'Total plays', defaultLayout: { x: 21, y: 0, w: 4, h: 5 }, minW: 3, minH: 4 },
   statDuration: {
     label: 'Total duration',
@@ -61,56 +61,57 @@ export const WIDGET_REGISTRY = {
   },
   topUsers: {
     label: 'Top users',
-    defaultLayout: { x: 21, y: 5, w: 8, h: 10 },
+    defaultLayout: { x: 11, y: 0, w: 10, h: 10 },
     minW: 6,
     minH: 9,
     maxH: 12,
   },
   heatmap: {
     label: 'Activity heatmap',
-    defaultLayout: { x: 29, y: 5, w: 7, h: 10 },
+    defaultLayout: { x: 28, y: 20, w: 8, h: 10 },
     minW: 6,
     minH: 6,
   },
   upcoming: {
     label: 'Upcoming releases',
-    defaultLayout: { x: 11, y: 30, w: 25, h: 15 },
+    defaultLayout: { x: 0, y: 30, w: 36, h: 15 },
     minW: 6,
     minH: 6,
   },
   portalAction: {
     label: 'Requests — action',
-    defaultLayout: { x: 11, y: 0, w: 10, h: 7 },
+    defaultLayout: { x: 11, y: 10, w: 10, h: 8 },
     minW: 10,
     minH: 7,
   },
   portalEngagement: {
     label: 'Requests — activity',
-    defaultLayout: { x: 11, y: 7, w: 10, h: 8 },
+    defaultLayout: { x: 11, y: 18, w: 10, h: 12 },
     minW: 10,
     minH: 7,
   },
   portalEvents: {
     label: 'Portal — upcoming events',
-    defaultLayout: { x: 28, y: 15, w: 8, h: 15 },
+    defaultLayout: { x: 28, y: 5, w: 8, h: 15 },
     minW: 4,
     minH: 7,
   },
   linkWatchlist: {
     label: 'Tracking',
-    defaultLayout: { x: 11, y: 15, w: 7, h: 4 },
+    defaultLayout: { x: 21, y: 9, w: 7, h: 4 },
     minW: 6,
     minH: 4,
   },
   healthScore: {
     label: 'Media health',
-    defaultLayout: { x: 18, y: 15, w: 7, h: 4 },
+    defaultLayout: { x: 21, y: 5, w: 7, h: 4 },
     minW: 6,
     minH: 4,
   },
 }
 
-const LAYOUT_VERSION = 21
+// Bump when WIDGET_REGISTRY.defaultLayout changes — forces user reset.
+const LAYOUT_VERSION = 22
 
 export function useDashboardLayout() {
   const { apiGet, apiPost } = useApi()

@@ -18,6 +18,14 @@ utilisateurs.
 
 ### Changed
 - Unification visuelle des jaquettes (toutes surfaces) avec retrait PEGI sur fiche détail
+- Accueil : rythme des listes uniformisé (titres aérés, jaquettes serrées).
+- Sous-titres — bibliothèque : 3 jaquettes par ligne sur mobile.
+- Page détail — densification mobile (plus d'info sur petit écran).
+- Page détail — retrait du bandeau « Disponible sur Emby » (info redondante).
+- Découvrir — grille resserrée sur mobile (auto-fit + clamp).
+- Page personne — hero responsive (photo + titre adaptés au mobile).
+- Jaquettes mobile : actions retirées, clic direct sur la fiche.
+- Accueil mobile : synopsis des héros masqués pour aérer.
 
 ### Fixed
 - Accueil : suppression de la rafale de notifications « Trop de tentatives » au chargement
@@ -28,6 +36,11 @@ utilisateurs.
 - Jaquettes : animation pulse « Nouveau » rendue fluide (GPU).
 - Page détails : ruban de statut et chip disponibilité alignés sur le portail.
 - Jaquettes : tooltip du bouton signet renommé en « Ajouter à une liste ».
+- Hero Emby : titre réduit sur mobile pour libérer la zone vidéo.
+- Hero Emby : jaquettes mobile à hauteur normale (plus d'espace mort en bas).
+- Navigation mobile : « Mon profil » remonté en 2ème position.
+- Demandes — message d'erreur clair quand la demande échoue (quota, doublon, blacklist).
+- Jaquettes mobile : pastille disponibilité repositionnée (plus de chevauchement).
 
 ## [0.3.0] - 2026-05-14
 

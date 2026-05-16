@@ -46,7 +46,7 @@
     "ignore": "Ignorer",
     "restore": "Restaurer",
     "restoreAll": "Tout restaurer",
-    "scan": "Scanner",
+    "scan": "Analyser",
     "refresh": "Actualiser",
     "skipToMain": "Aller au contenu principal",
     "networkError": "Erreur réseau",
@@ -298,7 +298,8 @@
     "starting": "Démarrage en cours…",
     "reconnecting": "Reconnexion au serveur…",
     "officialSite": "Site officiel",
-    "justLoggedOut": "Vous avez été déconnecté."
+    "justLoggedOut": "Vous avez été déconnecté.",
+    "sessionExpired": "Session expirée, veuillez vous reconnecter."
   },
   "forcePassword": {
     "title": "Changement de mot de passe requis",
@@ -345,7 +346,6 @@
     "cpu": "CPU",
     "ram": "RAM",
     "storageLabel": "Stockage",
-    "streams": "Lectures",
     "thisWeek": "cette semaine",
     "stable": "Stable",
     "editMode": "Mode édition — glissez et redimensionnez les widgets",
@@ -577,7 +577,7 @@
     "detected": "doublon détecté | doublons détectés",
     "detect": "Détecter",
     "detecting": "Détection...",
-    "scanEmby": "Scanner médiathèque Emby",
+    "lastDetection": "Dernière détection",
     "noduplicates": "Aucun doublon",
     "libraryClean": "La médiathèque est propre.",
     "versions": "versions",
@@ -589,11 +589,11 @@
     "cleaned": "{n} version(s) supprimée(s)",
     "ignored": "Doublon masqué",
     "detectionDone": "Détection terminée",
-    "embyScanning": "Scan Emby lancé",
     "errorDetection": "Erreur lors de la détection des doublons",
     "filesDeletedByRules": "{count} fichier(s) supprimé(s) par les règles",
     "restored": "Restauré",
     "ignoredOn": "Ignoré le {date}",
+    "detectionsTab": "Détections",
     "ignoredTab": "Ignorés",
     "historyTab": "Historique",
     "rulesTab": "Règles",
@@ -655,6 +655,7 @@
     "timeline": "Timeline",
     "calendar": "Calendrier",
     "ignored": "Ignorés",
+    "lastScan": "Dernier scan",
     "noScan": "Aucun scan disponible.",
     "startScan": "Lancer le scan",
     "scanning": "Scan en cours...",
@@ -760,7 +761,7 @@
       "imgurDesc": "Configurez l'API Imgur pour héberger les images des notifications (jaquettes, posters).",
       "imgurClientId": "Client ID",
       "imgurClientSecret": "Client Secret",
-      "saveImgur": "Enregistrer Imgur",
+      "saveImgur": "Enregistrer",
       "previewLabel": "Aperçu Discord",
       "saveTemplates": "Enregistrer les modèles",
       "deleteWebhook": "Supprimer",
@@ -825,7 +826,7 @@
       "clientId": "Client ID",
       "clientSecret": "Client Secret",
       "saved": "Imgur enregistré",
-      "save": "Enregistrer Imgur"
+      "save": "Enregistrer"
     },
     "events": {
       "added": "Ajouts récents",
@@ -3512,10 +3513,10 @@
       "roleDirector": "Réalisation",
       "roleActing": "Interprétation",
       "tabs": {
-        "overview": "Vue d'ensemble",
-        "cast": "Distribution",
-        "extras": "Extras & avis",
-        "similar": "À voir aussi"
+        "overview": "Aperçu",
+        "cast": "Casting",
+        "extras": "Extras",
+        "similar": "Voir aussi"
       },
       "synopsis": "Synopsis",
       "noOverview": "Aucun synopsis disponible pour ce titre.",
@@ -3548,7 +3549,6 @@
       "sagaLabel": "Saga",
       "votes": "votes",
       "popularity": "Popularité",
-      "availableOnEmby": "Disponible sur Emby",
       "videoType": {
         "Trailer": "Bande-annonce",
         "Teaser": "Teaser",
