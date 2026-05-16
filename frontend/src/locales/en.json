@@ -1279,7 +1279,21 @@
     "expire_users": "Automatically disables accounts (Emby + MediaKeeper) whose access window has expired.",
     "cleanup_available_requests": "Automatically clears available requests after the configured grace period.",
     "gdpr_purge": "Permanently removes user accounts marked for GDPR purge.",
-    "starting": "Starting…"
+    "starting": "Starting…",
+    "cache": {
+      "title": "Cache",
+      "desc": "MediaKeeper caches external API requests to reduce calls and speed up the UI.",
+      "empty": "No active cache.",
+      "colName": "Cache name",
+      "colHits": "Hits",
+      "colMisses": "Misses",
+      "colKeys": "Total keys",
+      "colSize": "Size",
+      "ttlValue": "TTL {sec} s",
+      "clear": "Clear",
+      "clearAria": "Clear {name} cache"
+    },
+    "cacheCleared": "{name} cache cleared"
   },
   "onboarding": {
     "subtitle": "Set up your personal media space",

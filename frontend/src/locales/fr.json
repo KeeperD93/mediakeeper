@@ -1279,7 +1279,21 @@
     "expire_users": "Désactive automatiquement les comptes (Emby + MediaKeeper) dont la période d'accès a expiré.",
     "cleanup_available_requests": "Nettoie automatiquement les demandes marquées disponibles après le délai configuré.",
     "gdpr_purge": "Supprime définitivement les comptes utilisateurs marqués pour purge RGPD.",
-    "starting": "Démarrage…"
+    "starting": "Démarrage…",
+    "cache": {
+      "title": "Cache",
+      "desc": "MediaKeeper met en cache les requêtes vers les API externes pour réduire les appels et accélérer l'affichage.",
+      "empty": "Aucun cache actif.",
+      "colName": "Nom du cache",
+      "colHits": "Abouties",
+      "colMisses": "Manquées",
+      "colKeys": "Total des clés",
+      "colSize": "Taille",
+      "ttlValue": "TTL {sec} s",
+      "clear": "Vider",
+      "clearAria": "Vider le cache {name}"
+    },
+    "cacheCleared": "Cache {name} vidé"
   },
   "onboarding": {
     "subtitle": "Configurer votre espace média personnel",
