@@ -8,7 +8,7 @@ from models.portal.profile import UserProfile
 from models.user import User
 from services.portal import discover as disc_svc
 from services.portal.discover_details import get_person_filmography, get_collection
-from services.portal.search_index import search_catalog
+from services.portal.tmdb_search import search_with_cache
 from services.tmdb import get_season_episodes, get_tv_seasons
 
 router = APIRouter()
@@ -54,7 +54,7 @@ async def search(
     _, profile = up
     user_lang = (profile.language or "").split("-")[0].lower() or None
     return {
-        "items": await search_catalog(
+        "items": await search_with_cache(
             db, q, page, available_only=available_only, language=user_lang,
         ),
     }
