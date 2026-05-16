@@ -488,5 +488,10 @@ async def enrich_missing_search_posters(
             doc.backdrop_url = backdrop
         enriched += 1
 
-    await db.flush()
+    # Commit (not just flush) — the scheduler invokes this handler inside
+    # an ``async with AsyncSession(...) as db`` block that auto-rolls
+    # back on exit unless we commit explicitly. ``flush`` alone keeps
+    # the changes pending in the in-memory session and they disappear
+    # when the block closes.
+    await db.commit()
     return {"scanned": len(docs), "enriched": enriched, "skipped": skipped}
