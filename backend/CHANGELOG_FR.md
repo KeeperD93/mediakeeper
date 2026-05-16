@@ -42,6 +42,8 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Doublons — bouton « Restaurer » réaligné sur les films de l'onglet Ignorés
 - Santé — sauvegarde de la configuration restaurée (toast de confirmation)
 - Session admin expirée : reconnexion silencieuse sur module Demandes, sinon message clair à la reconnexion.
+- Connexion — identifiant accepté quelle que soit la casse (majuscules/minuscules).
+- Paramètres — libellés tâches Nettoyage demandes et Purge RGPD restaurés (planificateur).
 
 ## [0.9.9] - 2026-05-14
 

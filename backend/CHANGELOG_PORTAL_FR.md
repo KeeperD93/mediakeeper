@@ -41,6 +41,7 @@ utilisateurs.
 - Navigation mobile : « Mon profil » remonté en 2ème position.
 - Demandes — message d'erreur clair quand la demande échoue (quota, doublon, blacklist).
 - Jaquettes mobile : pastille disponibilité repositionnée (plus de chevauchement).
+- Fiche personne — badge statut des demandes à nouveau visible sur la filmographie.
 
 ## [0.3.0] - 2026-05-14
 
