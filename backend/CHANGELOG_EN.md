@@ -12,8 +12,36 @@ This section intentionally has no date so it is not shown to users.
 ### Added
 - Portal: new "PosterCard" cover component, i18n/tokens compliant (integration prep).
 
+### Changed
+- Duplicates — streamlined action bar: "Detections" tab and "Last detection" timestamp
+- Health — issue posters 3 per row on mobile, overlay close button repositioned
+- Health — back-to-top hidden on Config tab, Analyze button icon unified
+- Requests — admin: "Settings" tab moved to first position (default on open)
+- Dashboard — default widget layout revised (8 widgets)
+- Dashboard — "Streams" card removed (info kept in the top ribbon)
+- Dashboard — top ribbon condensed on mobile (3 stats + Services full-width)
+- Dashboard — plays/alerts counters removed from activity feed
+- Notifications — dropdown full-width on mobile
+- Health — toggles redesigned (accent ON slide, harmonized pill)
+- Statistics — filter pills unified (accent style)
+- Stats: Users and Activity tables readable on mobile (horizontal scroll)
+- Series tracking — toolbar redesigned (search, filters, export)
+- Notifications — "Enable" checkbox replaced with slide toggle
+- Notifications — selects and inputs harmonized (custom chevron)
+- Tabs — compacted interface on mobile
+- Footer — TMDB credits compacted
+- Watchlist — "Restore" button realigned (unified radius)
+- Statistics — records stacked vertically on mobile
+- Watchlist Missing tab: new "Last scan" label, button renamed "Analyze"
+- Watchlist: lighter TMDB attribution, Suivi posters aligned with portal (mobile)
+
 ### Fixed
 - Portal: /availability rate limit raised to 120/min, frontend coalescing, 429 toast dedupe
+- Duplicates — tab navigation stabilized (Ignored → History/Rules)
+- Duplicates — faster first access, view kept in cache
+- Duplicates — "Restore" button realigned on movie rows of the Ignored tab
+- Health — config save restored (confirmation toast)
+- Expired admin session: silent re-login on Requests module, otherwise clear notice on the login screen
 
 ## [0.9.9] - 2026-05-14
 

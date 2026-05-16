@@ -8,7 +8,9 @@
   align-items: stretch;
   gap: 14px;
   overflow: auto clip;
-  padding: 1.75rem 0;
+  /* Vertical padding aligned on Seerr's slider track for tight,
+     uniform rhythm across every carousel on the home. */
+  padding: var(--portal-section-rhythm-track) 0;
   scrollbar-width: none;
   scroll-behavior: smooth;
   /* scroll-snap guarantees posters never end up half-cut */
@@ -29,16 +31,21 @@
 }
 
 /* "See more" glassmorphism card — same poster aspect ratio as the
-   real MediaCards so the row stays visually alined. */
+   real MediaCards so the row stays visually alined. Width tracks the
+   MediaCard mobile clamp (see MediaCard.vue scoped @media block) so the
+   see-more's height matches the posters' actual rendered height — without
+   this, flex align-items: stretch made every poster in the row tall enough
+   to match a 185×277 see-more card, leaving ~100px of dead space under
+   each mobile poster (and a huge gap before the next section's title).
+   Poster cards next to it use the same token, but the see-more card has
+   a visible 1 px border + inset shadow that trace the barely-rounded
+   `xs` curve precisely — the result reads as more angular than the
+   photo-filled neighbours. Bumping to `md` lines up the perceived
+   roundness with the rest of the row. */
 .pt-eh-seemore {
   flex-shrink: 0;
-  width: 185px;
+  width: clamp(108px, 30vw, calc(185px * 0.65));
   aspect-ratio: 2/3;
-  /* Poster cards next to it use the same token, but the see-more
-     card has a visible 1 px border + inset shadow that trace the
-     barely-rounded ``xs`` curve precisely — the result reads as more
-     angular than the photo-filled neighbours. Bumping to ``md`` lines
-     up the perceived roundness with the rest of the row. */
   border-radius: var(--portal-radius-md);
   display: flex;
   flex-direction: column;
@@ -58,6 +65,11 @@
     transform var(--portal-dur-med) ease,
     box-shadow var(--portal-dur-med) ease,
     border-color var(--portal-dur-med) ease;
+}
+@media (min-width: 768px) {
+  .pt-eh-seemore {
+    width: 185px;
+  }
 }
 .pt-eh-seemore:hover {
   transform: scale(1.06);

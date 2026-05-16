@@ -133,6 +133,7 @@ import { Check, CircleCheck, Copy, Film, Trash2, X } from 'lucide-vue-next'
 import { isTv } from '@/constants/media'
 import { REQUEST_STATUS } from '@/constants/requests'
 import MkAvatar from '@/components/common/MkAvatar.vue'
+import { formatAgo as formatAgoUtil } from '@/utils/formatAgo'
 
 const props = defineProps({
   req: { type: Object, required: true },
@@ -141,6 +142,7 @@ const props = defineProps({
 defineEmits(['action', 'delete'])
 
 const { t } = useI18n()
+const formatAgo = (input) => formatAgoUtil(input, t)
 
 const copied = ref(false)
 const copyTitleLabel = computed(() =>
@@ -187,17 +189,4 @@ const isFresh = computed(() => {
   return ageMs < 3600_000 && props.req.status !== REQUEST_STATUS.PENDING
 })
 
-function formatAgo(iso) {
-  if (!iso) return ''
-  const diff = Math.max(0, Date.now() - new Date(iso).getTime())
-  const mins = Math.round(diff / 60_000)
-  if (mins < 1) return t('dashboard.justNow') || t('portal.profile.now') || '< 1 min'
-  if (mins < 60) return `${mins} min`
-  const h = Math.round(mins / 60)
-  if (h < 48) return `${h} h`
-  const d = Math.round(h / 24)
-  if (d < 30) return `${d} d`
-  const mo = Math.round(d / 30)
-  return `${mo} mo`
-}
 </script>

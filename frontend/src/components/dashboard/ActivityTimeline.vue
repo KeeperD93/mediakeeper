@@ -11,18 +11,6 @@
           @click="switchTab(tab.id)"
         >
           {{ tab.label }}
-          <span
-            v-if="tab.id === 'lectures' && sessionsCount > 0 && !lecturesTabSeen"
-            class="tl-tab-count"
-          >
-            {{ sessionsCount }}
-          </span>
-          <span
-            v-else-if="tab.id === 'alertes' && unreadAlerts > 0 && !alertesTabSeen"
-            class="tl-tab-count tl-tab-count-alert"
-          >
-            {{ unreadAlerts }}
-          </span>
         </button>
       </div>
     </div>
@@ -128,10 +116,6 @@ const {
   activeTab,
   rootRef,
   popoverRef,
-  lecturesTabSeen,
-  alertesTabSeen,
-  sessionsCount,
-  unreadAlerts,
   tabs,
   filteredItems,
   popover,
@@ -173,7 +157,7 @@ const {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 28px;
+  min-height: 44px;
   padding: 4px 12px;
   border-radius: var(--radius-pill);
   background: rgb(255, 255, 255, 0.03);
@@ -183,10 +167,20 @@ const {
   font-weight: var(--font-extrabold);
   letter-spacing: var(--tracking-wide);
   cursor: pointer;
-  transition: all 0.18s;
+  transition:
+    background var(--duration-base) var(--ease-out),
+    border-color var(--duration-base) var(--ease-out),
+    color var(--duration-base) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out),
+    transform var(--duration-base) var(--ease-out);
   backdrop-filter: var(--blur-xs);
   -webkit-tap-highlight-color: transparent;
   white-space: nowrap;
+}
+@media (min-width: 768px) {
+  .tl-tab {
+    min-height: 32px;
+  }
 }
 @media (hover: hover) {
   .tl-tab:hover:not(.active) {
@@ -201,29 +195,6 @@ const {
   color: #fff;
   box-shadow: var(--mk-pill-shadow-sm);
 }
-.tl-tab-count {
-  font-size: 9px;
-  background: rgb(99, 102, 241, 0.3);
-  color: var(--accent-400);
-  padding: 1px 6px;
-  border-radius: var(--radius-pill);
-  font-weight: var(--font-bold);
-  min-width: 14px;
-  text-align: center;
-}
-.tl-tab.active .tl-tab-count {
-  background: rgb(255, 255, 255, 0.2);
-  color: #fff;
-}
-.tl-tab-count-alert {
-  background: rgb(var(--color-error-rgb), 0.2) !important;
-  color: var(--color-error) !important;
-}
-.tl-tab.active .tl-tab-count-alert {
-  background: rgb(255, 255, 255, 0.2) !important;
-  color: #fff !important;
-}
-
 .tl-track {
   border-left: 1px solid var(--card-border, var(--border-default));
   margin-left: 6px;
@@ -266,7 +237,7 @@ const {
   border: 2px solid var(--dash-bg, #0a0e1a);
 }
 .dot-active {
-  background: #22c55e;
+  background: var(--color-success);
 }
 .dot-error {
   background: var(--color-error);

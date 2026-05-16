@@ -132,7 +132,7 @@
                           :value="
                             getTplSetting(webhooks[activeTplWh], tf.key, 'image_style') || 'image'
                           "
-                          class="nf-select nf-select-sm"
+                          class="nf-select mk-select-chevron nf-select-sm"
                           @change="
                             setTplSetting(
                               webhooks[activeTplWh],

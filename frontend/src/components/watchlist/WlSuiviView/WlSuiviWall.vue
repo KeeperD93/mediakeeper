@@ -59,8 +59,14 @@ function typeLabel(item) {
 <style scoped>
 .wlsu-wall {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(clamp(108px, 30vw, 120px), 1fr));
+  gap: 6px;
+}
+@media (min-width: 768px) {
+  .wlsu-wall {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 8px;
+  }
 }
 .wlsu-card {
   position: relative;

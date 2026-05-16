@@ -21,12 +21,12 @@ function tabNames(wrapper) {
 }
 
 describe('PortalBottomNav', () => {
-  it('renders Home, Lists, Profile, Tickets for a viewer without admin requests', () => {
+  it('renders Home, Profile, Lists, Tickets for a viewer without admin requests', () => {
     const w = render({ showRequestsTab: false })
     expect(tabNames(w)).toEqual([
       'portal.tabs.home',
-      'portal.lists.navLabel',
       'portal.tabs.profile',
+      'portal.lists.navLabel',
       'portal.tabs.problems',
     ])
   })
@@ -35,9 +35,9 @@ describe('PortalBottomNav', () => {
     const w = render({ showRequestsTab: true })
     expect(tabNames(w)).toEqual([
       'portal.tabs.home',
+      'portal.tabs.profile',
       'portal.lists.navLabel',
       'portal.tabs.discover',
-      'portal.tabs.profile',
       'portal.tabs.problems',
     ])
   })

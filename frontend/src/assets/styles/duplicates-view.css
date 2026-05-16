@@ -28,7 +28,7 @@
 /* KPIs */
 .cinema-duplicates .doub-kpis {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 10px;
   margin-bottom: 20px;
 }
@@ -88,8 +88,14 @@
 }
 .cinema-duplicates .doub-actions {
   display: flex;
-  gap: 8px;
+  align-items: center;
+  gap: 12px;
   flex-wrap: wrap;
+}
+.cinema-duplicates .doub-last-detection {
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
+  white-space: nowrap;
 }
 .cinema-duplicates .ic {
   width: 16px;
@@ -532,15 +538,17 @@
   border: 0.5px solid rgb(255, 255, 255, 0.05);
 }
 .cinema-duplicates .rule-sel {
-  padding: 5px 8px;
-  border-radius: var(--radius-sm);
+  height: 32px;
+  padding: 0 30px 0 10px;
+  border-radius: var(--radius-btn);
   border: 0.5px solid var(--border-strong);
-  background: rgb(255, 255, 255, 0.03);
+  background-color: rgb(255, 255, 255, 0.03);
   color: var(--text-secondary);
   font-size: var(--text-2xs);
   font-family: inherit;
   cursor: pointer;
   outline: none;
+  box-sizing: border-box;
 }
 .cinema-duplicates .rule-sel option {
   background: var(--bg-secondary);
@@ -635,9 +643,6 @@
 @media (max-width: 640px) {
   .cinema-duplicates {
     padding: 12px 16px 16px;
-  }
-  .cinema-duplicates .doub-kpis {
-    grid-template-columns: repeat(2, 1fr);
   }
   .cinema-duplicates .doub-card {
     flex-direction: column;

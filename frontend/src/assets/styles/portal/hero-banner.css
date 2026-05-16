@@ -205,7 +205,7 @@
   margin-bottom: 0.5rem;
 }
 .pt-hero-title {
-  font-size: clamp(2rem, 5vw, 4rem);
+  font-size: var(--portal-text-hero-title);
   font-weight: var(--portal-font-black);
   line-height: 1.05;
   margin-bottom: 0.75rem;
@@ -249,15 +249,22 @@
 }
 
 .pt-hero-overview {
+  display: none;
   font-size: clamp(0.85rem, 1vw + 0.3rem, 1rem);
   color: var(--portal-text-body);
   line-height: var(--portal-lh-normal);
-  display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   margin-bottom: 1.25rem;
   text-shadow: 0 1px 4px rgb(0, 0, 0, 0.5);
+}
+/* Visible from --bp-md (640px) up: trailer + title + meta + CTAs are
+   enough on a phone screen, dropping the overview frees vertical room. */
+@media (min-width: 640px) {
+  .pt-hero-overview {
+    display: -webkit-box;
+  }
 }
 @media (min-width: 1024px) {
   .pt-hero-overview {
@@ -352,17 +359,18 @@
   border: 1px solid rgb(255, 255, 255, 0.5);
   background: rgb(0, 0, 0, 0.4);
   color: #fff;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   cursor: pointer;
 }
-/* Mobile: the dedicated mute button is hidden. The trailer's sound is
-   toggled by tapping the hero background (see HeroBanner.vue
-   ``onHeroTap``), which leaves the action row uncluttered. */
-@media (max-width: 639px) {
+/* Hidden on mobile: trailer sound is toggled by tapping the hero
+   background (see HeroBanner.vue ``onHeroTap``), which leaves the
+   action row uncluttered. The dedicated button appears from --bp-md
+   (640px) up where there is room for it. */
+@media (min-width: 640px) {
   .pt-hero-mute {
-    display: none;
+    display: flex;
   }
 }
 

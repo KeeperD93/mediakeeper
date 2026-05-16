@@ -109,9 +109,6 @@
           </button>
         </div>
 
-        <div v-if="availInfo?.emby_url" class="vmd2-availability">
-          <span class="vmd2-avail-note">{{ $t('portal.detail.availableOnEmby') }}</span>
-        </div>
       </div>
     </div>
   </section>

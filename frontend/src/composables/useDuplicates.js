@@ -14,19 +14,26 @@ export function useDuplicates() {
   const duplicates = ref([])
   const loading = ref(true)
   const refreshing = ref(false)
-  const scanning = ref(false)
   const ignoredItems = ref([])
   const history = ref([])
   const historyStats = ref({ total_deleted: 0, total_bytes_freed: 0 })
   const rules = ref([])
 
+  // Stored client-side until the backend exposes a server-tracked timestamp.
+  // TODO: replace with `data.last_detection` from `/api/duplicates` once the
+  //       backend persists the last successful detection run.
+  const LAST_DETECTION_KEY = 'mk_doublon_last_detection'
+  const RULES_STORAGE_KEY = 'mk_doublon_rules'
+  const initialDetection = Number(localStorage.getItem(LAST_DETECTION_KEY))
+  const lastDetection = ref(Number.isFinite(initialDetection) && initialDetection > 0 ? initialDetection : null)
+
   try {
-    rules.value = JSON.parse(localStorage.getItem('mk_doublon_rules') || '[]')
+    rules.value = JSON.parse(localStorage.getItem(RULES_STORAGE_KEY) || '[]')
   } catch {
     rules.value = []
   }
   function saveRules() {
-    localStorage.setItem('mk_doublon_rules', JSON.stringify(rules.value))
+    localStorage.setItem(RULES_STORAGE_KEY, JSON.stringify(rules.value))
   }
 
   const ignoredKeys = computed(() => new Set(ignoredItems.value.map(i => i.key)))
@@ -170,6 +177,13 @@ export function useDuplicates() {
       if (d) {
         duplicates.value = d
         _duplicatesLastLoad = Date.now()
+        // Persist the timestamp on every successful fetch (initial mount
+        // included) so the label has something to show before the user
+        // has clicked « Détecter ». Imprecise by ±backend-cache-TTL until
+        // `data.last_detection` is exposed server-side.
+        const now = Date.now()
+        lastDetection.value = now
+        localStorage.setItem(LAST_DETECTION_KEY, String(now))
       }
     } catch {
       showToast(t('duplicates.errorDetection'), TOAST_TYPE.ERR)
@@ -299,21 +313,6 @@ export function useDuplicates() {
     }
     if (deletedCount) showToast(t('duplicates.cleaned', { n: deletedCount }), TOAST_TYPE.OK)
   }
-  async function scanEmby() {
-    scanning.value = true
-    try {
-      const res = await apiFetch('/api/emby/refresh', { method: 'POST' })
-      const d = await res.json()
-      if (d.error) {
-        console.error('[useDuplicates.scanEmby] backend error', d.error)
-        showToast(t('common.apiError.unknown', { status: '' }), TOAST_TYPE.ERR)
-      } else showToast(t('duplicates.embyScanning'), TOAST_TYPE.OK)
-    } catch {
-      showToast(t('common.networkError'), TOAST_TYPE.ERR)
-    } finally {
-      scanning.value = false
-    }
-  }
   function refresh() {
     loadDuplicates(true)
   }
@@ -322,11 +321,11 @@ export function useDuplicates() {
     duplicates,
     loading,
     refreshing,
-    scanning,
     ignoredItems,
     history,
     historyStats,
     rules,
+    lastDetection,
     activeDuplicates,
     totalReclaimable,
     rulesMatchCount,
@@ -348,7 +347,6 @@ export function useDuplicates() {
     restoreDuplicates,
     deleteSource,
     keepSource,
-    scanEmby,
     refresh,
   }
 }

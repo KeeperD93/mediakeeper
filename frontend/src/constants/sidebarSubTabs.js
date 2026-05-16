@@ -58,7 +58,7 @@ export const SIDEBAR_SUB_TABS = {
     { id: 'ignored', labelKey: 'watchlist.ignored', icon: markRaw(Ban) },
   ],
   '/duplicates': [
-    { id: 'duplicates', labelKey: 'duplicates.title', icon: markRaw(Copy) },
+    { id: 'duplicates', labelKey: 'duplicates.detectionsTab', icon: markRaw(Copy) },
     { id: 'ignored', labelKey: 'duplicates.ignoredTab', icon: markRaw(Ban) },
     { id: 'history', labelKey: 'duplicates.historyTab', icon: markRaw(Clock) },
     { id: 'rules', labelKey: 'duplicates.rulesTab', icon: markRaw(Settings) },
@@ -94,11 +94,11 @@ export const SIDEBAR_SUB_TABS = {
     { id: 'security', labelKey: 'settings.tabSecurity', icon: markRaw(Shield) },
   ],
   '/admin/portal': [
+    { id: 'settings', labelKey: 'portal.admin.tabs.settings', icon: markRaw(Settings) },
     { id: 'blacklist', labelKey: 'portal.admin.tabs.blacklist', icon: markRaw(Slash) },
     { id: 'news', labelKey: 'portal.admin.tabs.news', icon: markRaw(Newspaper) },
     { id: 'featured', labelKey: 'portal.admin.tabs.featured', icon: markRaw(Star) },
     { id: 'xpEvents', labelKey: 'portal.admin.tabs.xpEvents', icon: markRaw(Sparkles) },
-    { id: 'settings', labelKey: 'portal.admin.tabs.settings', icon: markRaw(Settings) },
     { id: 'debug', labelKey: 'portal.admin.tabs.debug', icon: markRaw(Bug) },
   ],
 }

@@ -102,10 +102,16 @@ function isLeft(i) {
 .tl-scroll {
   flex: 1;
   min-width: 0;
-  max-height: 80vh;
+  /* Mobile (défaut) : pas de max-height pour laisser le scroll de la page
+     être le scroll principal. Évite un scroll imbriqué inutilisable au tactile. */
   overflow: hidden auto;
-  padding: 20px 0 60px;
+  padding: 20px 0 12px;
   scrollbar-width: thin;
   scrollbar-color: rgb(99, 102, 241, 0.2) transparent;
+}
+@media (min-width: 768px) {
+  .tl-scroll {
+    max-height: 80vh;
+  }
 }
 </style>

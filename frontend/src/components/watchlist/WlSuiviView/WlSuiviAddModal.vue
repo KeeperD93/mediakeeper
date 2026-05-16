@@ -51,7 +51,7 @@ import { Search, X } from 'lucide-vue-next'
 const props = defineProps({
   open: { type: Boolean, required: true },
   isTracked: { type: Function, required: true },
-  searchTMDB: { type: Function, required: true },
+  searchTmdb: { type: Function, required: true },
 })
 defineEmits(['close', 'toggle-track'])
 
@@ -85,7 +85,7 @@ function onAddSearch() {
   }
   addSearching.value = true
   addTimer = setTimeout(async () => {
-    addResults.value = await props.searchTMDB(q)
+    addResults.value = await props.searchTmdb(q)
     addSearching.value = false
   }, 300)
 }

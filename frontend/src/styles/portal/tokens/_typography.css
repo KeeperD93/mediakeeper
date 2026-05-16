@@ -19,6 +19,22 @@
   --portal-text-2xl: 1.5rem; /* page titles, login */
   --portal-text-3xl: 2rem; /* stat values, hero */
 
+  /* Responsive section title — used by every list/carousel header on
+     the portal home (MediaCarousel, Top20, CategoryCards) and on the
+     profile page (.dp-section-title). Mobile reads at --portal-text-md
+     (1rem), desktop ramps up to --portal-text-xl (1.3rem). */
+  --portal-text-section-title: clamp(
+    var(--portal-text-md),
+    2vw + 0.3rem,
+    var(--portal-text-xl)
+  );
+
+  /* Responsive hero title — shared by the main HeroBanner and the
+     EmbyRecentHero so the two heroes on the home page read at the same
+     visual weight (previously 32px vs 19.2px on mobile, jarring). 24px
+     mobile floor, ramps up to 40px on wide screens. */
+  --portal-text-hero-title: clamp(1.5rem, 4vw, 2.5rem);
+
   /* Font weights ------------------------------------------- */
   --portal-font-regular: 500;
   --portal-font-medium: 600;

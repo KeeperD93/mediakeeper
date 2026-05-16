@@ -177,11 +177,21 @@ onMounted(async () => {
     gap: 8px;
     margin-bottom: 12px;
   }
+  /* Stack the two toggle groups so each pair (library/user, plays/duration)
+     spans the full row and the two buttons inside split the width evenly. */
+  .chart-toggles {
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
   .toggle-group {
     gap: 6px;
+    width: 100%;
+    flex-wrap: nowrap;
   }
-  .toggle-btn {
-    padding: 5px 10px;
+  .toggle-group .toggle-btn {
+    flex: 1 1 0;
+    padding: 6px 8px;
     font-size: var(--text-2xs);
     min-width: 0;
   }

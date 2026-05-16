@@ -3,6 +3,7 @@ import { useApi } from '@/composables/useApi'
 import { useI18n } from 'vue-i18n'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
+import { formatAgo as formatAgoUtil } from '@/utils/formatAgo'
 
 export function useHealthCheck() {
   const { apiGet, apiPost } = useApi()
@@ -167,16 +168,7 @@ export function useHealthCheck() {
     reloadAll()
   }
 
-  function formatAgo(iso) {
-    if (!iso) return ''
-    const ms = Date.now() - new Date(iso).getTime()
-    const m = Math.floor(ms / 60000)
-    if (m < 1) return t('healthCheck.justNow')
-    if (m < 60) return `${m}min`
-    const h = Math.floor(m / 60)
-    if (h < 24) return `${h}h`
-    return `${Math.floor(h / 24)}${t('stats.daysShort')}`
-  }
+  const formatAgo = (input) => formatAgoUtil(input, t)
 
   return {
     summary,

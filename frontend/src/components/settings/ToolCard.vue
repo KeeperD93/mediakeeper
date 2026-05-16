@@ -257,7 +257,7 @@ async function ping() {
 .tc-switch-track {
   width: 38px;
   height: 20px;
-  border-radius: var(--radius-btn);
+  border-radius: var(--radius-pill);
   background: var(--bg-primary);
   border: 1px solid var(--border);
   position: relative;
@@ -275,8 +275,8 @@ async function ping() {
   transition: all var(--duration-base);
 }
 .tc-switch input:checked + .tc-switch-track {
-  background: var(--accent-600);
-  border-color: var(--accent-600);
+  background: var(--accent-500);
+  border-color: var(--accent-500);
 }
 .tc-switch input:checked + .tc-switch-track::after {
   left: 21px;

@@ -30,11 +30,11 @@
             :placeholder="$t('subtitles.searchPlaceholder')"
             @keydown.enter="doTmdbSearch"
           />
-          <select v-model="searchType" class="sub-filter-sel">
+          <select v-model="searchType" class="sub-filter-sel mk-select-chevron">
             <option value="movie">{{ $t('subtitles.typeMovie') }}</option>
             <option value="tv">{{ $t('subtitles.typeSeries') }}</option>
           </select>
-          <select v-model="searchLangs" class="sub-filter-sel">
+          <select v-model="searchLangs" class="sub-filter-sel mk-select-chevron">
             <option :value="defaultLanguagesParam">
               {{ defaultLanguages.map(l => langShort(l)).join(' + ') }}
             </option>
@@ -133,7 +133,7 @@
             :placeholder="$t('subtitles.streamSearchPlaceholder')"
             @keydown.enter="doStreamSearch"
           />
-          <select v-model="streamTypeFilter" class="sub-filter-sel">
+          <select v-model="streamTypeFilter" class="sub-filter-sel mk-select-chevron">
             <option value="all">{{ $t('subtitles.typeAll') }}</option>
             <option value="audio">Audio</option>
             <option value="subtitle">{{ $t('subtitles.existingSubs') }}</option>

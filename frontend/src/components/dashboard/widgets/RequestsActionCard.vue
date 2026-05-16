@@ -110,11 +110,9 @@ onMounted(async () => {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  min-height: 28px;
-  padding: 4px 12px;
-  /* Push left of the absolute `.widget-badge-icon` (14px icon at right:10px) */
-  margin-right: 22px;
-  border-radius: var(--radius-pill);
+  min-height: 44px;
+  padding: 5px 14px;
+  border-radius: var(--radius-btn);
   background: rgb(255, 255, 255, 0.03);
   border: 1px solid var(--border-strong);
   color: rgb(255, 255, 255, 0.6);
@@ -122,22 +120,29 @@ onMounted(async () => {
   font-weight: var(--font-extrabold);
   letter-spacing: var(--tracking-wide);
   cursor: pointer;
-  transition: all 0.18s;
+  transition:
+    background var(--duration-base) var(--ease-out),
+    border-color var(--duration-base) var(--ease-out),
+    color var(--duration-base) var(--ease-out),
+    transform var(--duration-base) var(--ease-out);
   backdrop-filter: var(--blur-xs);
   -webkit-tap-highlight-color: transparent;
   flex-shrink: 0;
+}
+@media (min-width: 768px) {
+  /* Desktop: smaller pill height (mouse precision) + clear the absolute
+     `.widget-badge-icon` (14px @ right:10px) outside the card padding. */
+  .wg-req-head-link {
+    min-height: 28px;
+    padding: 4px 12px;
+    margin-right: 22px;
+  }
 }
 @media (hover: hover) {
   .wg-req-head-link:hover {
     border-color: rgb(255, 255, 255, 0.18);
     color: rgb(255, 255, 255, 0.85);
     transform: translateY(-1px);
-  }
-}
-@media (max-width: 767px) {
-  .wg-req-head-link {
-    min-height: 32px;
-    padding: 5px 14px;
   }
 }
 

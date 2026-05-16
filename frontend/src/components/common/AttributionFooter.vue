@@ -41,11 +41,11 @@ const tmdbLogoUrl = '/assets/icons/tmdb.svg'
   flex-wrap: nowrap;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 4px 14px calc(4px + env(safe-area-inset-bottom, 0px));
+  gap: 6px;
+  padding: 2px 14px calc(2px + env(safe-area-inset-bottom, 0px));
   text-align: center;
-  font-size: 12px;
-  line-height: 1.3;
+  font-size: var(--text-2xs);
+  line-height: 1.2;
   color: var(--text-secondary);
   background: transparent;
   min-width: 0;
@@ -65,7 +65,7 @@ const tmdbLogoUrl = '/assets/icons/tmdb.svg'
 
 .mk-attribution-logo {
   display: block;
-  height: 13px;
+  height: 10px;
   width: auto;
   opacity: 0.85;
   transition: opacity 150ms ease;

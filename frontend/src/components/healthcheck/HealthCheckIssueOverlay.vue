@@ -1,8 +1,15 @@
 <template>
   <Teleport to="body">
     <transition name="sub-fade">
-      <div v-if="detail" class="so-overlay hc-issue-overlay" @click.self="$emit('close')">
-        <div class="so-modal so-solid">
+      <div v-if="detail" class="so-overlay hc-issue-overlay" @click.self="close">
+        <div
+          ref="panelRef"
+          class="so-modal so-solid"
+          role="dialog"
+          aria-modal="true"
+          :aria-labelledby="titleId"
+          tabindex="-1"
+        >
           <div class="so-header">
             <img
               :src="`/api/emby/image/${detail.item_id}?type=Primary`"
@@ -11,7 +18,7 @@
               @error="$event.target.style.display = 'none'"
             />
             <div class="so-header-info">
-              <h2 class="so-title">{{ detail.title }}</h2>
+              <h2 :id="titleId" class="so-title">{{ detail.title }}</h2>
               <span class="so-count">
                 {{ detail.issueCount }} {{ $t('healthCheck.issues_count') }}
               </span>
@@ -19,7 +26,7 @@
                 · {{ detail.library }}
               </span>
             </div>
-            <button class="so-close" @click="$emit('close')">
+            <button ref="closeBtnRef" class="so-close" @click="close">
               <X :size="16" />
             </button>
           </div>
@@ -89,19 +96,35 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, computed, watch, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useApi } from '@/composables/useApi'
+import { useFocusTrap } from '@/composables/useFocusTrap'
 import { ChevronDown, X } from 'lucide-vue-next'
 
 const props = defineProps({ item: { type: Object, default: null } })
-defineEmits(['close'])
+const emit = defineEmits(['close'])
 
 const { t } = useI18n()
 const { apiGet } = useApi()
 
 const SEV_RANK = { critical: 3, warning: 2, info: 1, ok: 0 }
 const detail = ref(null)
+const panelRef = ref(null)
+const closeBtnRef = ref(null)
+const titleId = useId()
+const isOpen = computed(() => detail.value != null)
+
+function close() {
+  emit('close')
+}
+
+useFocusTrap({
+  active: isOpen,
+  containerRef: panelRef,
+  initialFocusRef: closeBtnRef,
+  onEscape: close,
+})
 
 function tagText(iss) {
   return iss.detail || t('healthCheck.issues.' + iss.type)
@@ -169,6 +192,7 @@ watch(() => props.item, build, { immediate: true })
   justify-content: center;
 }
 .so-modal {
+  position: relative;
   width: 680px;
   max-width: 95vw;
   max-height: 85vh;
@@ -213,8 +237,8 @@ watch(() => props.item, build, { immediate: true })
   margin-left: 8px;
 }
 .so-close {
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   border-radius: var(--radius-btn);
   display: flex;
   align-items: center;
@@ -223,6 +247,12 @@ watch(() => props.item, build, { immediate: true })
   border: none;
   color: var(--text-muted);
   cursor: pointer;
+}
+@media (min-width: 768px) {
+  .so-close {
+    width: 32px;
+    height: 32px;
+  }
 }
 .so-close:hover {
   background: rgb(244, 63, 94, 0.1);
@@ -374,5 +404,26 @@ watch(() => props.item, build, { immediate: true })
   background: rgb(var(--color-info-rgb), 0.12);
   color: var(--color-info);
   border: 1px solid rgb(var(--color-info-rgb), 0.15);
+}
+
+.so-header {
+  padding-right: 56px;
+}
+.so-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+}
+@media (min-width: 768px) {
+  .so-header {
+    padding-right: 20px;
+  }
+  .so-close {
+    position: static;
+    top: auto;
+    right: auto;
+    z-index: auto;
+  }
 }
 </style>

@@ -13,7 +13,7 @@
       </div>
       <select
         :value="libType"
-        class="sf-select"
+        class="sf-select mk-select-chevron"
         @change="emit('update:libType', $event.target.value); emit('reset-library')"
       >
         <option value="Movie,Episode">{{ $t('subtitles.typeAll') }}</option>
@@ -22,7 +22,7 @@
       </select>
       <select
         :value="libLibrary"
-        class="sf-select"
+        class="sf-select mk-select-chevron"
         @change="emit('update:libLibrary', $event.target.value); emit('reset-library')"
       >
         <option value="">{{ $t('subtitles.allLibraries') }}</option>
@@ -185,9 +185,10 @@ function onStatus(value) {
 }
 .sf-search {
   width: 100%;
-  padding: 11px 14px 11px 38px;
+  height: 36px;
+  padding: 0 14px 0 38px;
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-card);
+  border-radius: var(--radius-input);
   font-size: var(--text-sm);
   font-family: inherit;
   box-sizing: border-box;
@@ -202,42 +203,56 @@ function onStatus(value) {
   color: rgb(255, 255, 255, 0.2);
 }
 .sf-select {
-  padding: 10px 12px;
+  height: 36px;
+  padding: 0 30px 0 12px;
   border-radius: var(--radius-input);
   font-size: var(--text-2xs);
   font-family: inherit;
   cursor: pointer;
-  background: rgb(255, 255, 255, 0.02);
+  background-color: rgb(255, 255, 255, 0.02);
   border: 1px solid var(--border-default);
   color: var(--text-primary);
   outline: none;
+  box-sizing: border-box;
 }
 .sf-select option {
   background: var(--bg-secondary);
   color: var(--text-primary);
 }
 .sf-status-btns {
-  gap: 2px;
+  gap: 6px;
 }
 .sf-status-btn {
-  padding: 9px 16px;
-  border-radius: var(--radius-input);
-  font-size: var(--text-2xs);
-  font-weight: var(--font-regular);
-  font-family: inherit;
-  cursor: pointer;
-  transition: all var(--duration-base);
-  border: 1px solid var(--border-default);
-  background: rgb(255, 255, 255, 0.02);
-  color: var(--text-faint);
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 5px 14px;
+  border-radius: var(--radius-btn);
+  background: rgb(255, 255, 255, 0.03);
+  border: 1px solid var(--border-strong);
+  font-size: var(--text-2xs);
+  font-weight: var(--font-extrabold);
+  letter-spacing: var(--tracking-wide);
+  font-family: inherit;
+  color: rgb(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.18s;
+  backdrop-filter: var(--blur-xs);
+  -webkit-tap-highlight-color: transparent;
+}
+@media (hover: hover) {
+  .sf-status-btn:hover:not(.active) {
+    border-color: rgb(255, 255, 255, 0.18);
+    transform: translateY(-1px);
+  }
 }
 .sf-status-btn.active {
-  border-color: rgb(var(--accent-rgb), 0.3);
-  background: rgb(var(--accent-rgb), 0.1);
-  color: var(--accent-300);
+  background: var(--gradient-pill-active);
+  border-color: var(--accent-500);
+  color: #fff;
+  box-shadow: var(--mk-pill-shadow);
 }
 .sf-tool-btn {
   width: 38px;

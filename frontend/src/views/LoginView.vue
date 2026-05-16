@@ -64,7 +64,7 @@
             {{ loggedOutMsg }}
           </div>
 
-          <div v-if="errorMsg" class="login-error">
+          <div v-if="errorMsg" class="login-error" role="alert">
             <TriangleAlert :size="14" />
             {{ errorMsg }}
           </div>
@@ -158,6 +158,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/composables/useAuth'
 import { fetchApiResponse, resolveApiError } from '@/composables/useApi'
+import { SESSION_EXPIRED_FLAG } from '@/composables/apiClient'
 import { useTheme } from '@/composables/useTheme'
 import { initLoginParticles } from '@/composables/useLoginParticles'
 import {
@@ -246,12 +247,15 @@ onMounted(async () => {
   await waitForAuth()
   const justLoggedOut =
     route.query.logged_out === '1' || sessionStorage.getItem('mk_just_logged_out') === '1'
+  const sessionExpired = sessionStorage.getItem(SESSION_EXPIRED_FLAG) === '1'
   const redirect = getRedirectTarget()
   const isPortalRedirect = redirect.startsWith('/portal')
+  const isPortalAdminRedirect = redirect.startsWith('/admin/portal') || isPortalRedirect
 
   if (justLoggedOut) {
     try {
       sessionStorage.removeItem('mk_just_logged_out')
+      sessionStorage.removeItem(SESSION_EXPIRED_FLAG)
     } catch {
       /* ignore */
     }
@@ -269,7 +273,30 @@ onMounted(async () => {
     return
   }
 
+  if (sessionExpired) {
+    try {
+      sessionStorage.removeItem(SESSION_EXPIRED_FLAG)
+    } catch {
+      /* ignore */
+    }
+    errorMsg.value = t('login.sessionExpired')
+  }
+
   if (await checkAuth()) {
+    if (redirect && isPortalAdminRedirect) {
+      // Admin's mk_token survived but rq_token did not — re-issue the
+      // portal session before honouring the deep-link so the destination
+      // page doesn't immediately bounce back here.
+      try {
+        await fetchApiResponse('/api/portal/admin/requests/enter', {
+          method: 'POST',
+          retryOn401: false,
+          redirectOn401: false,
+        })
+      } catch {
+        /* best-effort — page-level guard will still surface a fresh 401 */
+      }
+    }
     router.replace(redirect || '/')
     return
   }

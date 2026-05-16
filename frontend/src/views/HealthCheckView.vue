@@ -17,7 +17,7 @@
           {{ $t('healthCheck.lastScan') }} {{ formatAgo(summary.last_scan) }}
         </span>
         <button class="hc-scan-btn" :disabled="scanStatus.running" @click="startScan">
-          <ShieldCheck v-if="!scanStatus.running" :size="14" />
+          <RefreshCw v-if="!scanStatus.running" :size="13" />
           <span v-else class="mk-spin mk-spin-14" />
           {{ scanStatus.running ? $t('healthCheck.scanning') : $t('healthCheck.scanNow') }}
         </button>
@@ -164,7 +164,7 @@
             <span class="hc-issues-total">({{ issues.total }})</span>
           </h3>
           <div class="hc-filters">
-            <select v-model="filterSev" class="hc-select" @change="reloadAll()">
+            <select v-model="filterSev" class="hc-select mk-select-chevron" @change="reloadAll()">
               <option value="">{{ $t('common.all') }} — {{ $t('healthCheck.severity') }}</option>
               <option value="critical">{{ $t('healthCheck.critical') }}</option>
               <option value="warning">{{ $t('healthCheck.warning') }}</option>
@@ -173,7 +173,7 @@
             <select
               v-if="libOptions.length"
               v-model="filterLib"
-              class="hc-select"
+              class="hc-select mk-select-chevron"
               @change="reloadAll()"
             >
               <option value="">{{ $t('healthCheck.allLibraries') }}</option>
@@ -230,7 +230,11 @@
 
     <!-- ═══ Scroll to top ═══ -->
     <Transition name="hc-scroll-up">
-      <button v-if="showScrollTop" class="hc-scroll-top" @click="scrollToTop">
+      <button
+        v-if="showScrollTop && tab === 'health'"
+        class="hc-scroll-top"
+        @click="scrollToTop"
+      >
         <ChevronUp :size="14" :stroke-width="2.5" />
         {{ $t('healthCheck.backToTop') }}
       </button>
@@ -244,7 +248,7 @@ import { useHealthCheck } from '@/composables/useHealthCheck'
 import { useTabSync } from '@/composables/useTabSync'
 import HealthCheckConfig from '@/components/healthcheck/HealthCheckConfig.vue'
 import HealthCheckIssueOverlay from '@/components/healthcheck/HealthCheckIssueOverlay.vue'
-import { ChevronUp, Search, ShieldCheck } from 'lucide-vue-next'
+import { ChevronUp, RefreshCw, Search, ShieldCheck } from 'lucide-vue-next'
 import MkEmptyState from '@/components/common/MkEmptyState.vue'
 import '@/assets/styles/healthcheck-view.css'
 

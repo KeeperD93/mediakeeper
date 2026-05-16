@@ -41,7 +41,7 @@
           <select
             v-else
             v-model.number="config[rule.threshold.key]"
-            class="hc-select hc-select-sm"
+            class="hc-select mk-select-chevron hc-select-sm"
             @change="configDirty = true"
           >
             <option v-for="opt in rule.threshold.options" :key="opt.value" :value="opt.value">
@@ -54,21 +54,23 @@
 
     <div class="hc-config-actions">
       <button class="hc-save-btn" :disabled="!configDirty || configSaving" @click="saveConfig">
-        <Check v-if="!configSaving" :size="14" />
-        <span v-else class="mk-spin hc-save-spin" />
+        <span v-if="configSaving" class="mk-spin hc-save-spin" />
         {{ $t('common.save') }}
       </button>
-      <span v-if="configSaved" class="hc-saved-msg">{{ $t('healthCheck.config.saved') }}</span>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useApi } from '@/composables/useApi'
-import { Check } from 'lucide-vue-next'
+import { useToast } from '@/composables/useToast'
+import { TOAST_TYPE } from '@/constants/toast'
 
+const { t } = useI18n()
 const { apiGet, apiPut } = useApi()
+const { showToast } = useToast()
 
 const config = reactive({
   obsolete_codecs_enabled: true,
@@ -84,7 +86,6 @@ const config = reactive({
 })
 const configDirty = ref(false)
 const configSaving = ref(false)
-const configSaved = ref(false)
 
 const configRules = [
   { key: 'no_audio', issueType: 'no_audio', severity: 'critical', threshold: null },
@@ -154,15 +155,28 @@ async function loadConfig() {
 
 async function saveConfig() {
   configSaving.value = true
+  // Send only the schema-known keys to satisfy `extra="forbid"` (a legacy DB
+  // row could surface unknown keys via `Object.assign(config, d)` in loadConfig),
+  // and coerce numerics so a cleared free-input doesn't ship NaN/null.
+  const payload = {
+    obsolete_codecs_enabled: !!config.obsolete_codecs_enabled,
+    obsolete_containers_enabled: !!config.obsolete_containers_enabled,
+    low_resolution_enabled: !!config.low_resolution_enabled,
+    min_resolution_height: Number(config.min_resolution_height) || 720,
+    low_bitrate_enabled: !!config.low_bitrate_enabled,
+    min_video_bitrate_kbps: Number(config.min_video_bitrate_kbps) || 1000,
+    no_audio_enabled: !!config.no_audio_enabled,
+    large_file_enabled: !!config.large_file_enabled,
+    max_file_size_gb: Number(config.max_file_size_gb) || 50,
+    hdr_no_sdr_enabled: !!config.hdr_no_sdr_enabled,
+  }
   try {
-    await apiPut('/api/healthcheck/config', { ...config })
+    await apiPut('/api/healthcheck/config', payload)
     configDirty.value = false
-    configSaved.value = true
-    setTimeout(() => {
-      configSaved.value = false
-    }, 3000)
+    showToast(t('healthCheck.config.saved'), TOAST_TYPE.OK)
   } catch (e) {
     console.error('[HealthCheckConfig.saveConfig] failed to save config', e)
+    showToast(t('common.apiError.saveFailed'), TOAST_TYPE.ERR)
   }
   configSaving.value = false
 }
@@ -209,7 +223,7 @@ onMounted(loadConfig)
 .hc-toggle-track {
   width: 36px;
   height: 20px;
-  border-radius: var(--radius-btn);
+  border-radius: var(--radius-pill);
   background: rgb(255, 255, 255, 0.08);
   transition: background var(--duration-base);
   position: relative;
@@ -225,11 +239,11 @@ onMounted(loadConfig)
   transition: all var(--duration-base);
 }
 .hc-rule-toggle input:checked + .hc-toggle-track {
-  background: rgb(var(--accent-rgb), 0.3);
+  background: var(--accent-500);
 }
 .hc-rule-toggle input:checked + .hc-toggle-track .hc-toggle-thumb {
   transform: translateX(16px);
-  background: var(--accent-400);
+  background: #fff;
 }
 
 .hc-rule-title-wrap {
@@ -292,11 +306,6 @@ onMounted(loadConfig)
   outline: none;
   font-family: inherit;
   cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 8px center;
   transition: border-color var(--duration-fast);
 }
 .hc-select:hover {
@@ -365,21 +374,6 @@ onMounted(loadConfig)
 .hc-save-btn:disabled {
   opacity: 0.45;
   cursor: default;
-}
-.hc-saved-msg {
-  font-size: var(--text-2xs);
-  color: var(--color-success);
-  animation: hc-fade-in var(--duration-slow);
-}
-@keyframes hc-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
 }
 
 .glass-card {

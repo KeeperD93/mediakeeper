@@ -35,7 +35,7 @@
       />
     </div>
 
-    <HealthScore v-if="!hidden.includes('healthScore')" class="m-dash-card" />
+    <HealthScore v-if="!hidden.includes('healthScore')" class="m-dash-card m-dash-card--health" />
 
     <RequestsActionCard v-if="!hidden.includes('portalAction')" class="m-dash-card" />
     <PortalEngagementCard v-if="!hidden.includes('portalEngagement')" class="m-dash-card" />
@@ -127,6 +127,9 @@ defineProps({
 .m-dash-card {
   min-height: 120px;
 }
+.m-dash-card.m-dash-card--health {
+  min-height: 0;
+}
 
 /* Dashboard widgets expect a grid parent with height: 100%. On mobile
    there's no grid cell — we give each widget a usable min-height so
@@ -134,10 +137,12 @@ defineProps({
 .m-dash :deep(.wg-req),
 .m-dash :deep(.wg-eng),
 .m-dash :deep(.wg-evt),
-.m-dash :deep(.wg-health),
 .m-dash :deep(.uc),
 .m-dash :deep(.hm) {
   min-height: 220px;
+}
+.m-dash :deep(.wg-health) {
+  min-height: 0;
 }
 .m-dash :deep(.tl-root) {
   min-height: 340px;

@@ -200,3 +200,20 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+/* Custom chevron for native <select> elements.
+   The chevron stroke colour is fixed inside the data: URL because
+   data: URLs cannot consume CSS variables; #9ca3af (gray-400) reads
+   well on both light and dark surfaces. Apply on top of any existing
+   select class — surface, border, height and padding-left stay on the
+   caller's class; this utility only takes over the chevron + padding-right. */
+.mk-select-chevron {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 12px;
+  padding-right: 28px;
+}

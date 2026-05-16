@@ -68,11 +68,16 @@
   color: var(--portal-text-primary);
   font-size: var(--portal-text-sm);
   font-family: inherit;
+  box-sizing: border-box;
 }
 .pt-debug .pt-debug-input:focus,
 .pt-debug .pt-debug-select:focus {
   outline: none;
   border-color: var(--portal-color-info);
+}
+.pt-debug .pt-debug-select {
+  background-color: var(--portal-surface-1);
+  cursor: pointer;
 }
 .pt-debug .pt-debug-select--inline {
   max-width: 220px;
@@ -107,6 +112,7 @@
   font-weight: var(--portal-font-medium);
   cursor: pointer;
   transition: background var(--portal-dur-fast) var(--portal-ease-default);
+  box-sizing: border-box;
 }
 .pt-debug .pt-debug-btn--primary {
   background: linear-gradient(135deg, var(--portal-color-premium), var(--portal-color-info));

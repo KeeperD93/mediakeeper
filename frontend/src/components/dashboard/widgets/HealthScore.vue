@@ -18,8 +18,8 @@
             cy="40"
             r="34"
             fill="none"
-            stroke="rgba(255,255,255,0.04)"
             stroke-width="6"
+            class="wg-h-ring-track"
           />
           <circle
             cx="40"
@@ -131,6 +131,9 @@ onMounted(async () => {
 .wg-h-ring {
   width: 100%;
   height: 100%;
+}
+.wg-h-ring-track {
+  stroke: var(--border-subtle);
 }
 .wg-h-arc {
   transition:

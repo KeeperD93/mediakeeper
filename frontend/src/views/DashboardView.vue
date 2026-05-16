@@ -10,7 +10,6 @@
     />
     <StatRibbon
       :sys="sys"
-      :sessions-count="sessions.length"
       :cpu-history="cpuHistory"
       :ram-history="ramHistory"
       :services="servicesList"

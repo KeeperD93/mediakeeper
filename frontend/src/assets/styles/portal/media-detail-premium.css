@@ -334,14 +334,6 @@
   justify-content: center;
 }
 
-.vmd2-availability {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  font-size: var(--portal-text-sm);
-  color: var(--portal-text-body-muted);
-}
 /* ---------- Tab bar wrapper ---------- */
 .vmd2-tabs-wrap {
   position: relative;
@@ -479,8 +471,10 @@
 /* Shared section-break heading used when a second <h2> follows another
    block inside the same vmd2-section (key crew, recent reviews,
    recommended-for-you…). Keeps the vertical rhythm consistent and
-   removes the old inline `style="margin-top: 2.5rem"`. */
-.vmd2-section-break {
+   removes the old inline `style="margin-top: 2.5rem"`.
+   Selector includes `h2` to beat the `.vmd2-section h2 { margin: 0 ... }`
+   shorthand which would otherwise reset margin-top to 0. */
+.vmd2-section h2.vmd2-section-break {
   margin-top: 2.5rem;
 }
 
@@ -666,8 +660,9 @@
   overflow: auto clip;
   /* ``clip`` instead of default so hover-scaled MediaCards (1.08) and
      their drop-shadows don't clip at the top/bottom edges when this
-     scroller hosts them (saga block). */
-  padding: 1rem 0 1.25rem;
+     scroller hosts them (saga block). Vertical padding aligned on the
+     Seerr-like track rhythm shared with the portal home carousels. */
+  padding: var(--portal-section-rhythm-track) 0;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
 }
@@ -835,4 +830,206 @@
 }
 .vmd2-demo-banner strong {
   color: var(--accent-300);
+}
+
+/* ---------- Mobile (≤ 767px) — densify the hero ---------- */
+@media (max-width: 767px) {
+  .vmd2-title {
+    font-size: clamp(1.4rem, 6vw, 1.9rem);
+  }
+  .vmd2-tagline {
+    font-size: var(--portal-text-sm);
+    margin-bottom: 0.75rem;
+  }
+  .vmd2-facts {
+    font-size: var(--portal-text-sm);
+    gap: 0.35rem;
+    margin-bottom: 0.75rem;
+  }
+  .vmd2-cert {
+    font-size: var(--portal-text-2xs);
+  }
+  .vmd2-scores {
+    gap: 0.85rem;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.85rem;
+  }
+  .vmd2-score {
+    font-size: var(--portal-text-xs);
+    gap: 0.3rem;
+  }
+  .vmd2-score-value {
+    font-size: var(--portal-text-base);
+  }
+  .vmd2-score-label {
+    font-size: var(--portal-text-3xs);
+  }
+  .vmd2-genres {
+    gap: 0.3rem;
+    margin-bottom: 0.85rem;
+  }
+  .vmd2-genre {
+    padding: 0.2rem 0.55rem;
+    font-size: var(--portal-text-2xs);
+  }
+  .vmd2-actions {
+    gap: 0.4rem;
+  }
+  .vmd2-btn {
+    min-height: 44px;
+    padding: 0.55rem 0.85rem;
+    font-size: var(--portal-text-sm);
+    gap: 0.35rem;
+  }
+  .vmd2-btn--icon {
+    padding: 0.55rem;
+    min-width: 44px;
+  }
+  .vmd2-btn-emby {
+    width: 15px;
+    height: 15px;
+  }
+  .vmd2-studio-logo {
+    height: 18px;
+    max-width: 90px;
+  }
+
+  /* ---------- Sections & content ---------- */
+  .vmd2-section {
+    padding: 1.25rem 5%;
+  }
+  .vmd2-section h2 {
+    font-size: clamp(1rem, 4vw, 1.2rem);
+    margin-bottom: 0.75rem;
+  }
+  .vmd2-section h2::before {
+    height: 18px;
+  }
+  .vmd2-section h3 {
+    font-size: var(--portal-text-xs);
+    margin: 0.85rem 0 0.35rem;
+  }
+  .vmd2-section h2.vmd2-section-break {
+    margin-top: 3.5rem;
+  }
+
+  /* ---------- Synopsis / keywords / providers ---------- */
+  .vmd2-overview {
+    font-size: var(--portal-text-sm);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+  .vmd2-keyword {
+    padding: 0.2rem 0.55rem;
+    font-size: var(--portal-text-2xs);
+  }
+  .vmd2-provider {
+    width: 40px;
+    height: 40px;
+  }
+
+  /* ---------- Sidebar facts ---------- */
+  .vmd2-sidebar {
+    padding: 0.85rem;
+  }
+  .vmd2-facts-list {
+    gap: 0.4rem 0.75rem;
+  }
+  .vmd2-facts-list dt {
+    font-size: var(--portal-text-3xs);
+  }
+  .vmd2-facts-list dd {
+    font-size: var(--portal-text-sm);
+  }
+  .vmd2-external-links a {
+    padding: 0.3rem 0.55rem;
+    font-size: var(--portal-text-xs);
+  }
+
+  /* ---------- Cast & crew ---------- */
+  .vmd2-cast-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 0.6rem;
+  }
+  .vmd2-cast-name {
+    font-size: var(--portal-text-sm);
+    margin-top: 0.35rem;
+  }
+  .vmd2-cast-role {
+    font-size: var(--portal-text-2xs);
+  }
+  .vmd2-crew-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  .vmd2-crew-card {
+    padding: 0.6rem 0.75rem;
+  }
+  .vmd2-crew-role {
+    font-size: var(--portal-text-3xs);
+  }
+  .vmd2-crew-name {
+    font-size: var(--portal-text-sm);
+  }
+
+  /* ---------- Reviews ---------- */
+  .vmd2-review {
+    padding: 0.85rem;
+  }
+  .vmd2-review-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: var(--portal-text-sm);
+  }
+  .vmd2-review-author {
+    font-size: var(--portal-text-sm);
+  }
+  .vmd2-review-date {
+    font-size: var(--portal-text-2xs);
+  }
+  .vmd2-review-score {
+    padding: 0.2rem 0.45rem;
+    font-size: var(--portal-text-xs);
+  }
+  .vmd2-review-content {
+    font-size: var(--portal-text-sm);
+    line-height: 1.55;
+  }
+
+  /* ---------- Scrollers (recs / extras) ---------- */
+  .vmd2-rec-card {
+    width: clamp(110px, 30vw, 140px);
+  }
+  .vmd2-rec-title {
+    font-size: var(--portal-text-xs);
+  }
+  .vmd2-rec-year {
+    font-size: var(--portal-text-2xs);
+  }
+  .vmd2-rec-score {
+    padding: 0.15rem 0.35rem;
+    font-size: var(--portal-text-3xs);
+  }
+  .vmd2-video-card {
+    width: clamp(180px, 50vw, 220px);
+  }
+  .vmd2-video-title {
+    font-size: var(--portal-text-xs);
+  }
+  .vmd2-video-type {
+    font-size: var(--portal-text-3xs);
+  }
+
+  /* ---------- Collection banner ---------- */
+  .vmd2-collection {
+    padding: 1.5rem 5%;
+    margin: 1rem 5%;
+  }
+  .vmd2-collection-kicker {
+    font-size: var(--portal-text-3xs);
+  }
+  .vmd2-collection-overview {
+    font-size: var(--portal-text-sm);
+    margin-bottom: 1rem;
+  }
 }

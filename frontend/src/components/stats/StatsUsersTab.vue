@@ -26,7 +26,7 @@
             <span class="ctrl-lbl">{{ $t('common.showPerPage') }}</span>
             <select
               v-model="usersPerPage"
-              class="ctrl-sel"
+              class="ctrl-sel mk-select-chevron"
               @change="((usersPage = 1), fetchUsers())"
             >
               <option :value="10">10</option>
@@ -62,7 +62,7 @@
             <col class="ucol-w9p" />
             <col class="ucol-w10p" />
             <col class="ucol-w9p" />
-            <col class="ucol-w50" />
+            <col class="ucol-actions" />
           </colgroup>
           <thead>
             <tr>
@@ -310,8 +310,11 @@ onMounted(() => {
 .ucol-w44 {
   width: 44px;
 }
-.ucol-w50 {
-  width: 50px;
+/* Actions column: must fit 3 buttons (~22px each + 4px gap = ~74px actual)
+   without flex-end pushing them onto the previous column, which caused a
+   visual mismatch between header (empty th) and body (td flex). */
+.ucol-actions {
+  width: 100px;
 }
 .ucol-w9p {
   width: 9%;

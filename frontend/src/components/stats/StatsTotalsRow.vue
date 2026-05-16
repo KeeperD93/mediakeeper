@@ -435,5 +435,29 @@ onUnmounted(() => {
   .totals-row {
     grid-template-columns: 1fr;
   }
+  /* Mobile: stack record items vertically so the icon, label, value
+     and sub-text never overlap on narrow screens. */
+  .records-ribbon {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 10px 14px;
+    gap: 0;
+  }
+  .rec-item {
+    flex: 1 1 auto;
+    width: 100%;
+    flex-wrap: wrap;
+    padding: 8px 0;
+  }
+  .rec-item:not(:last-child) {
+    border-bottom: 0.5px solid var(--border-subtle);
+  }
+  .rec-value {
+    margin-left: auto;
+  }
+  .rec-sub {
+    flex-basis: 100%;
+    padding-left: 22px;
+  }
 }
 </style>
