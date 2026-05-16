@@ -1279,7 +1279,6 @@
     "expire_users": "Désactive automatiquement les comptes (Emby + MediaKeeper) dont la période d'accès a expiré.",
     "cleanup_available_requests": "Nettoie automatiquement les demandes marquées disponibles après le délai configuré.",
     "gdpr_purge": "Supprime définitivement les comptes utilisateurs marqués pour purge RGPD.",
-    "enrich_missing_search_posters": "Restaure les jaquettes manquantes des résultats de recherche en interrogeant TMDB par lots.",
     "starting": "Démarrage…"
   },
   "onboarding": {

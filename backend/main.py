@@ -13,7 +13,6 @@ from starlette.responses import JSONResponse as _JSONResponse
 
 # Models — required for Base.metadata.create_all
 from models.portal.achievement import Achievement, UserAchievement  # noqa: F401
-from models.portal.search_document import PortalSearchDocument  # noqa: F401
 from models.portal.xp_boost import XpBoostEvent  # noqa: F401
 from models.portal.xp_ledger import XpLedger  # noqa: F401
 from models.duplicate_cleanup import DoublonCleanup  # noqa: F401

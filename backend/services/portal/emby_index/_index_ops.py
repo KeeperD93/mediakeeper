@@ -5,7 +5,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.emby_tmdb_index import EmbyTmdbIndex
-from services.portal.search_index import upsert_search_document
 
 
 async def _upsert_index(
@@ -51,14 +50,6 @@ async def _upsert_index(
             date_created=date_created,
         )
     db.add(entry)
-    await upsert_search_document(
-        db,
-        tmdb_id=tmdb_id,
-        media_type=media_type,
-        title=title,
-        available_on_emby=True,
-        source="emby",
-    )
 
 
 async def is_available_on_emby(

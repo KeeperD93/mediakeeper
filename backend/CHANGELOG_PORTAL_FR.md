@@ -42,7 +42,7 @@ utilisateurs.
 - Demandes — message d'erreur clair quand la demande échoue (quota, doublon, blacklist).
 - Jaquettes mobile : pastille disponibilité repositionnée (plus de chevauchement).
 - Fiche personne — badge statut des demandes à nouveau visible sur la filmographie.
-- Recherche — jaquettes manquantes restaurées (enrichissement TMDB automatique en arrière-plan).
+- Recherche — refonte live TMDB avec cache 5 min (jaquettes toujours fraîches).
 
 ## [0.3.0] - 2026-05-14
 

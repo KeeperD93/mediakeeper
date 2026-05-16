@@ -1279,7 +1279,6 @@
     "expire_users": "Automatically disables accounts (Emby + MediaKeeper) whose access window has expired.",
     "cleanup_available_requests": "Automatically clears available requests after the configured grace period.",
     "gdpr_purge": "Permanently removes user accounts marked for GDPR purge.",
-    "enrich_missing_search_posters": "Restores missing search-result posters by querying TMDB in batches.",
     "starting": "Starting…"
   },
   "onboarding": {
