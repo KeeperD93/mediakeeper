@@ -6,7 +6,6 @@ import pytest
 
 import api.healthcheck as healthcheck_api
 from core.security import create_access_token
-from services.scheduler import TASK_DEFINITIONS
 
 
 def _csrf_headers(client):
@@ -59,22 +58,11 @@ async def test_admin_enter_rejects_cross_origin_even_with_valid_token(raw_client
     assert resp.json()["detail"] == "csrf_origin_mismatch"
 
 
-@pytest.mark.asyncio
-async def test_scheduler_run_returns_conflict_when_task_already_running(raw_client, admin_user):
-    client = raw_client
-    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
-    await client.get("/api/auth/me")
-    task_key = next(iter(TASK_DEFINITIONS.keys()))
-
-    class FakeScheduler:
-        def is_task_running(self, key):
-            return True
-
-    with patch("api.scheduler.get_scheduler", return_value=FakeScheduler()):
-        resp = await client.post(f"/api/scheduler/tasks/{task_key}/run", headers=_csrf_headers(client))
-
-    assert resp.status_code == 409
-    assert resp.json()["detail"] == "task_already_running"
+# Note: the equivalent 409 / 404 / stamping tests for the scheduler
+# "Run Now" endpoint have moved to ``test_scheduler_force_run.py``
+# since the API no longer dispatches through ``get_scheduler()`` —
+# it stamps the ``force_run_requested_at`` column instead so the
+# worker process picks the trigger up via DB polling.
 
 
 @pytest.mark.asyncio

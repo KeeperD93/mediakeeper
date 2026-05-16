@@ -110,15 +110,35 @@ async def run_task_now(
     csrf_protected: None = Depends(require_csrf),
     _:   User         = Depends(get_current_user),
 ):
+    """Request a manual run via inter-process flag.
+
+    In production deployments the API and the scheduler tick in
+    different processes (``MK_SEPARATE_BACKGROUND_WORKER=true``), so
+    calling ``scheduler._run_task`` from here would no-op — the
+    ``_scheduler_instance`` global is ``None`` on the web side. We
+    stamp ``force_run_requested_at`` on the row instead; the
+    scheduler loop in the worker process polls it every 10 s and
+    triggers the run on the next tick.
+
+    When the API and worker share a process (DEBUG mode or
+    single-process default), the same mechanism still works — the
+    scheduler loop poll picks it up immediately.
+    """
+    from datetime import datetime, timezone
+
     if key not in TASK_DEFINITIONS:
         raise HTTPException(status_code=404, detail="task_unknown")
 
-    scheduler = get_scheduler()
-    if not scheduler:
+    row = (
+        await db.execute(select(SchedulerTask).where(SchedulerTask.key == key))
+    ).scalar_one_or_none()
+    if row is None:
+        # Task definition exists but the row is not seeded yet — the
+        # scheduler's ``_ensure_tasks_exist`` startup pass hasn't run.
         raise HTTPException(status_code=503, detail="scheduler_not_initialized")
-    if scheduler.is_task_running(key):
+    if row.last_status == "running":
         raise HTTPException(status_code=409, detail="task_already_running")
 
-    import asyncio
-    asyncio.create_task(scheduler._run_task(key))
-    return {"success": True, "message": f"Task {key} started"}
+    row.force_run_requested_at = datetime.now(timezone.utc)
+    await db.commit()
+    return {"success": True, "message": f"Task {key} run requested"}
