@@ -142,3 +142,58 @@ async def run_task_now(
     row.force_run_requested_at = datetime.now(timezone.utc)
     await db.commit()
     return {"success": True, "message": f"Task {key} run requested"}
+
+
+# ── Cache inspection / management ─────────────────────────────────────
+#
+# Surfaces the in-memory caches the app maintains so the admin panel
+# can render a Seerr-style "Cache" section under the same Settings →
+# Scheduler tab. Phase B exposes the TMDB search cache; Phase C will
+# add the image and DNS caches by registering them in the same
+# ``_CACHES`` registry.
+
+
+def _list_caches() -> list[dict]:
+    """Return one stat snapshot per registered cache.
+
+    The registry is local to this module and intentionally simple —
+    new caches expose ``get_cache_stats`` + ``clear_cache`` helpers
+    and get listed here. Keeps the API contract stable as caches
+    are added in later phases.
+    """
+    from services.portal import tmdb_search
+
+    out: list[dict] = []
+    out.append({"id": "tmdb", **tmdb_search.get_cache_stats()})
+    return out
+
+
+@router.get("/caches")
+async def list_caches(
+    _: User = Depends(get_current_user),
+):
+    """Snapshot of every cache for the admin readout."""
+    return {"items": _list_caches()}
+
+
+@router.post("/caches/{cache_id}/clear")
+async def clear_cache_endpoint(
+    cache_id: str,
+    csrf_protected: None = Depends(require_csrf),
+    _: User = Depends(get_current_user),
+):
+    """Drop every entry from the named cache + reset its counters.
+
+    Behaves like Seerr's "Vider le cache" button: the cache rebuilds
+    organically on the next user query, no warmup needed.
+    """
+    from services.portal import tmdb_search
+
+    handlers = {
+        "tmdb": tmdb_search.clear_cache,
+    }
+    handler = handlers.get(cache_id)
+    if handler is None:
+        raise HTTPException(status_code=404, detail="cache_unknown")
+    cleared = handler()
+    return {"success": True, "cleared": cleared}
