@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from typing import Any, Iterable
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.exc import IntegrityError
@@ -317,8 +317,10 @@ async def create_local_user(
     if not password or len(password) < 8:
         return {"error": "invalid_password"}
 
+    # Case-insensitive uniqueness: prevent two rows like "Xyrel" and
+    # "xyrel" that would later cause silent lookup failures during login.
     existing = (await db.execute(
-        select(User).where(User.username == cleaned_username)
+        select(User).where(func.lower(User.username) == cleaned_username.lower())
     )).scalar_one_or_none()
     if existing:
         return {"error": "username_taken"}

@@ -12,7 +12,7 @@ Imported profiles default to:
 - avatar mirrored from Emby    — for the admin UI
 """
 import logging
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.http_client import get_internal_client
@@ -57,7 +57,7 @@ async def ensure_user_for_emby_session(
             return existing_by_emby_id
 
     existing = (await db.execute(
-        select(User).where(User.username == emby_username)
+        select(User).where(func.lower(User.username) == emby_username.lower())
     )).scalar_one_or_none()
     if existing:
         if emby_user_id:
