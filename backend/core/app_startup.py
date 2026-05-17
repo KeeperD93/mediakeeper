@@ -380,6 +380,17 @@ async def lifespan(app: FastAPI):
     except Exception:
         logger.error("[STARTUP] Image cache flag prime FAILED", exc_info=True)
 
+    # Apply the DNS cache toggle right at startup so every outbound
+    # call (TMDB, OpenSubtitles, Emby, …) inherits the resolver wrap
+    # from the first request onwards.
+    try:
+        from core.database import AsyncSessionLocal
+        from services.portal.dns_cache import refresh_from_settings as dns_refresh
+        async with AsyncSessionLocal() as seed_db:
+            await dns_refresh(seed_db)
+    except Exception:
+        logger.error("[STARTUP] DNS cache toggle apply FAILED", exc_info=True)
+
     if _PROCESS_ROLE in {"combined", "worker"}:
         background_manager = BackgroundTaskManager(engine)
         await background_manager.start()

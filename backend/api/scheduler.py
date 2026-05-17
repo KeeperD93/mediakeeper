@@ -161,11 +161,12 @@ def _list_caches() -> list[dict]:
     and get listed here. Keeps the API contract stable as caches
     are added in later phases.
     """
-    from services.portal import image_cache, tmdb_search
+    from services.portal import dns_cache, image_cache, tmdb_search
 
     return [
         {"id": "tmdb", **tmdb_search.get_cache_stats()},
         {"id": "images", **image_cache.get_cache_stats()},
+        {"id": "dns", **dns_cache.get_cache_stats()},
     ]
 
 
@@ -188,11 +189,12 @@ async def clear_cache_endpoint(
     Behaves like Seerr's "Vider le cache" button: the cache rebuilds
     organically on the next user query, no warmup needed.
     """
-    from services.portal import image_cache, tmdb_search
+    from services.portal import dns_cache, image_cache, tmdb_search
 
     handlers = {
         "tmdb": tmdb_search.clear_cache,
         "images": image_cache.clear_cache,
+        "dns": dns_cache.clear_cache,
     }
     handler = handlers.get(cache_id)
     if handler is None:
