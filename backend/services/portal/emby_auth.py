@@ -1,6 +1,6 @@
 """Authenticate portal users via Emby API."""
 import logging
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.http_client import get_internal_client
@@ -61,7 +61,12 @@ async def authenticate_emby_user(
     # that was the old Jellyseerr-style "just-in-time" flow and it let
     # any Emby user self-provision a Portal account, which is not what
     # we want. Import first, activate, then login.
-    result = await db.execute(select(User).where(User.username == username))
+    # Lookup case-insensitive so a user typing any casing matches the
+    # canonical username stored in the DB (Emby itself is case-insensitive
+    # on login, so the lookup here must follow suit).
+    result = await db.execute(
+        select(User).where(func.lower(User.username) == username.lower())
+    )
     user = result.scalar_one_or_none()
     if not user:
         logger.warning(f"[EMBY_AUTH] Login refused: {username} not imported")
@@ -128,7 +133,7 @@ async def _find_or_create_user(
 ) -> User:
     """Find existing user or create a portal user account."""
     result = await db.execute(
-        select(User).where(User.username == username)
+        select(User).where(func.lower(User.username) == username.lower())
     )
     user = result.scalar_one_or_none()
     if user:

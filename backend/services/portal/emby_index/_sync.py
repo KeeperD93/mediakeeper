@@ -9,7 +9,6 @@ from core.http_client import get_internal_client
 from models.portal.emby_tmdb_index import EmbyTmdbIndex
 from services.settings import get_active_media_source
 from services.tmdb import _get_tmdb_key, get_media_details
-from services.portal.search_index import refresh_search_availability
 
 from ._index_ops import _upsert_index
 from ._match import _coerce_int, _resolve_by_imdb, _resolve_by_search
@@ -238,7 +237,6 @@ async def sync_emby_tmdb_index(db: AsyncSession) -> dict:
                 f"({MAX_TMDB_LANG_FETCHES_PER_SYNC}); remaining rows resume next sync"
             )
 
-    await refresh_search_availability(db)
     await db.commit()
     synced = counters["tmdb"] + counters["imdb"] + counters["search"]
     logger.info(

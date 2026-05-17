@@ -24,6 +24,9 @@ This section intentionally has no date so it is not shown to users.
 - Person page — responsive hero (photo + title adapted to mobile)
 - Mobile posters: actions removed, tap opens the detail page
 - Mobile home: hero descriptions hidden to declutter
+- Home — hero banner: rotates to the next video after at least 45 seconds
+- What's new — overlay shown once per day (Close button is enough)
+- Lists (Discover, Search, Person, Collection) — 3 posters per row on mobile, tighter spacing
 
 ### Fixed
 - Home: removed the burst of "Too many attempts" notifications on load
@@ -39,6 +42,8 @@ This section intentionally has no date so it is not shown to users.
 - Mobile nav: "My profile" moved up to second position.
 - Requests — clear error message when a request fails (quota, duplicate, blacklist)
 - Mobile posters: availability badge repositioned to avoid overlap
+- Person page — request status badge visible again on filmography
+- Search — live TMDB rework with 5-minute cache (posters always fresh)
 
 ## [0.3.0] - 2026-05-14
 

@@ -150,6 +150,12 @@ class Scheduler:
                 await self._reload_config()
                 last_reload = now
 
+            # Inter-process "Run Now" trigger — the API stamps
+            # ``force_run_requested_at`` and we pick it up here. Done
+            # before the interval-based pass so a manual click never
+            # waits behind a regular tick.
+            await self._consume_force_run_requests()
+
             for key, cfg in self._config.items():
                 if not cfg.get("enabled"):
                     continue
@@ -158,6 +164,53 @@ class Scheduler:
                 if now >= next_run:
                     self._timers[key] = now + interval
                     asyncio.create_task(self._run_task(key))
+
+    async def _consume_force_run_requests(self) -> None:
+        """Poll ``force_run_requested_at`` and launch any flagged tasks.
+
+        Reads the column in one shot, clears it in the same
+        transaction, then schedules ``_run_task`` for each key
+        outside the transaction so a long-running handler doesn't
+        block the next tick. ``is_task_running`` guards against
+        double-launches when the user double-clicks the button.
+        """
+        try:
+            async with AsyncSession(
+                self._engine, expire_on_commit=False
+            ) as db:
+                rows = (
+                    await db.execute(
+                        select(SchedulerTask).where(
+                            SchedulerTask.force_run_requested_at.isnot(None)
+                        )
+                    )
+                ).scalars().all()
+                if not rows:
+                    return
+                keys = []
+                for row in rows:
+                    row.force_run_requested_at = None
+                    keys.append(row.key)
+                await db.commit()
+        except Exception as e:  # noqa: BLE001 -- best-effort, log + skip
+            logger.error(
+                f"[scheduler] force-run poll failed: {e}", exc_info=True
+            )
+            return
+
+        for key in keys:
+            if key not in TASK_DEFINITIONS:
+                logger.warning(
+                    f"[scheduler] force-run requested for unknown key: {key}"
+                )
+                continue
+            if self.is_task_running(key):
+                logger.info(
+                    f"[scheduler] force-run skipped (already running): {key}"
+                )
+                continue
+            logger.info(f"[scheduler] force-run launching: {key}")
+            asyncio.create_task(self._run_task(key))
 
 
 # Global instance — initialized in main.py

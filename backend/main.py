@@ -13,7 +13,6 @@ from starlette.responses import JSONResponse as _JSONResponse
 
 # Models — required for Base.metadata.create_all
 from models.portal.achievement import Achievement, UserAchievement  # noqa: F401
-from models.portal.search_document import PortalSearchDocument  # noqa: F401
 from models.portal.xp_boost import XpBoostEvent  # noqa: F401
 from models.portal.xp_ledger import XpLedger  # noqa: F401
 from models.duplicate_cleanup import DoublonCleanup  # noqa: F401
@@ -51,6 +50,7 @@ from api.portal_admin_gdpr import router as portal_admin_gdpr_router
 from api.portal_admin_users_emby import router as portal_admin_users_emby_router
 from api.portal_admin_users_feed import router as portal_admin_users_feed_router
 from api.portal_admin_users_gdpr import router as portal_admin_users_gdpr_router
+from api.image_proxy import router as image_proxy_router
 from api.scheduler import router as scheduler_router
 from api.security import router as security_router
 from api.settings import router as settings_router
@@ -128,6 +128,7 @@ app.include_router(notifications_router)
 app.include_router(watchlist_router)
 app.include_router(stats_router)
 app.include_router(scheduler_router)
+app.include_router(image_proxy_router)
 app.include_router(onboarding_router)
 app.include_router(backup_router)
 app.include_router(changelog_router)

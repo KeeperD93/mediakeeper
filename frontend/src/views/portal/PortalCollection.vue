@@ -30,6 +30,7 @@
             v-for="it in data.items"
             :key="`${it.media_type}-${it.tmdb_id || it.id}`"
             :item="it"
+            fill
             width="180px"
             @select="goToDetail(it)"
           />
@@ -177,8 +178,20 @@ onMounted(load)
 }
 .dmc-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+@media (min-width: 641px) {
+  .dmc-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+  }
+}
+@media (min-width: 1024px) {
+  .dmc-grid {
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 16px;
+  }
 }
 
 @media (max-width: 767px) {

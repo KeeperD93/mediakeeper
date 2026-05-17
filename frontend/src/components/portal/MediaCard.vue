@@ -1,5 +1,10 @@
 <template>
-  <div class="mk-mediacard" :style="{ '--mk-poster-base-w': width }" @click="onCardClick">
+  <div
+    class="mk-mediacard"
+    :class="{ 'mk-mediacard--fill': fill }"
+    :style="{ '--mk-poster-base-w': width }"
+    @click="onCardClick"
+  >
     <PosterCard
       :title="title"
       :image="image"
@@ -40,6 +45,10 @@ const props = defineProps({
   width: { type: String, default: '185px' },
   // Forwarded to PosterCard. Only Top20 cards pass a rank today (1-3).
   rank: { type: Number, default: null },
+  // Tells the card to stretch to its grid cell instead of honouring
+  // ``width``. Used by the Discover-style pages that drive the column
+  // count themselves and need each poster to fill its 1fr track.
+  fill: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['select', 'request', 'addToList'])
@@ -170,12 +179,45 @@ function onBlacklist() {}
   --mk-poster-w: var(--mk-poster-base-w, 185px);
 }
 
+/* ``fill`` callers (Discover, Search, Person filmography, Collection)
+   manage the column count themselves and want each card to occupy
+   100 % of its grid track. Bypass the ``--mk-poster-base-w`` cascade
+   on both desktop AND the mobile override below so the poster
+   genuinely matches its cell — no centred 108 px island inside a
+   wider 1fr track on phones. */
+.mk-mediacard--fill {
+  display: block;
+  width: 100%;
+  /* Anchor the 2:3 ratio on the card wrapper itself so each grid track
+     resolves to the same height regardless of the inner cascade. Both
+     ``.mk-poster`` and ``.mk-poster__art`` then consume 100% of that
+     box, which keeps `<img>` height: 100% / object-fit: cover stable
+     across browsers (the previous attempt put aspect-ratio on the
+     inner art element, where ``height: 100%`` on the <img> resolved
+     against an aspect-ratio-defined parent — Chromium handles it but
+     mobile Safari/Firefox occasionally fell back to the natural image
+     aspect, producing the ragged-row effect). */
+  aspect-ratio: 2 / 3;
+}
+.mk-mediacard--fill :deep(.mk-poster) {
+  --mk-poster-w: 100%;
+  width: 100%;
+  height: 100%;
+}
+.mk-mediacard--fill :deep(.mk-poster__art) {
+  width: 100%;
+  height: 100%;
+}
+
 @media (max-width: 767px) {
   /* Match the prior MediaCard mobile clamp so callsite-provided widths
      scale down gracefully on phones (≈65% of the desktop width, with a
      108px floor to keep posters readable). */
   .mk-mediacard :deep(.mk-poster) {
     --mk-poster-w: clamp(108px, 30vw, calc(var(--mk-poster-base-w, 185px) * 0.65));
+  }
+  .mk-mediacard--fill :deep(.mk-poster) {
+    --mk-poster-w: 100%;
   }
 }
 </style>

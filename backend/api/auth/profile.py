@@ -32,12 +32,22 @@ PASSWORD_CHANGE_SCOPE = "admin_password"  # noqa: S105 -- scope identifier, not 
 async def get_me(
     request: Request,
     response: Response,
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     ensure_csrf_cookie(response, request)
+    # Surface the linked portal avatar (when present) so the admin
+    # topbar can render the same MkAvatar shown on /portal/users.
+    # ``UserProfile`` is 1:1 with ``User`` via user_id; the lookup
+    # returns ``None`` for admins who never visited the portal side.
+    from models.portal.profile import UserProfile
+    avatar_row = (await db.execute(
+        select(UserProfile.avatar_url).where(UserProfile.user_id == current_user.id)
+    )).first()
     return {
         "username":             current_user.username,
         "must_change_password": current_user.must_change_password,
+        "avatar_url":           avatar_row[0] if avatar_row else None,
     }
 
 

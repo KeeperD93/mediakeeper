@@ -229,6 +229,8 @@ async def _fetch_list_params(
 
 
 def _normalize(r: dict) -> dict:
+    from services.portal.image_cache import is_enabled, proxied_url
+
     media_type = r.get("media_type", "movie")
     if "title" in r:
         media_type = "movie"
@@ -239,15 +241,28 @@ def _normalize(r: dict) -> dict:
     date_key = "release_date" if media_type == "movie" else "first_air_date"
     year = r.get(date_key, "")[:4] if r.get(date_key) else ""
 
+    poster_raw = f"{_IMG_BASE}/w300{r['poster_path']}" if r.get("poster_path") else ""
+    backdrop_raw = f"{_IMG_BASE}/w1280{r['backdrop_path']}" if r.get("backdrop_path") else ""
+    # Route the TMDB CDN URLs through the local proxy when the admin
+    # opts into the image cache. Done at the normalisation layer so
+    # every downstream caller (search, discover, hero, etc.) inherits
+    # the rewrite without changing its own contract.
+    if is_enabled():
+        poster_url = proxied_url(poster_raw)
+        backdrop = proxied_url(backdrop_raw)
+    else:
+        poster_url = poster_raw
+        backdrop = backdrop_raw
+
     return {
         "id": r.get("id"),
         "tmdb_id": r.get("id"),
         "title": title,
         "year": year,
         "overview": r.get("overview", ""),
-        "poster": f"{_IMG_BASE}/w300{r['poster_path']}" if r.get("poster_path") else "",
-        "poster_url": f"{_IMG_BASE}/w300{r['poster_path']}" if r.get("poster_path") else "",
-        "backdrop": f"{_IMG_BASE}/w1280{r['backdrop_path']}" if r.get("backdrop_path") else "",
+        "poster": poster_url,
+        "poster_url": poster_url,
+        "backdrop": backdrop,
         "vote": round(r.get("vote_average", 0), 1),
         "popularity": r.get("popularity", 0),
         "genres": r.get("genre_ids", []),

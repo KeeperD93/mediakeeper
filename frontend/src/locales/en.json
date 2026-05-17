@@ -350,6 +350,20 @@
     "stable": "Stable",
     "editMode": "Edit mode — drag and resize widgets",
     "done": "Done",
+    "mobileReorderTitle": "Customize",
+    "mobileReorderCancel": "Cancel",
+    "mobileReorderDone": "Done",
+    "widgetTitles": {
+      "activity": "Activity",
+      "healthScore": "Media health",
+      "portalAction": "Requests — action",
+      "portalEngagement": "Requests — activity",
+      "portalEvents": "Portal — events",
+      "upcoming": "Upcoming releases",
+      "topUsers": "Top users",
+      "heatmap": "Activity heatmap",
+      "linkWatchlist": "Tracking"
+    },
     "requests": "Requests",
     "requestsSoon": "Coming soon",
     "portalAction": {
@@ -1199,6 +1213,22 @@
     "resetOnboardingDone": "Wizard reset",
     "previewOnboarding": "Preview wizard",
     "tabBackup": "Backups",
+    "tabNetwork": "Network",
+    "network": {
+      "title": "Network settings",
+      "desc": "Enable optional caches to cut bandwidth and speed up page loads.",
+      "saved": "Settings saved",
+      "imageCache": {
+        "label": "Image cache",
+        "desc": "Downloads and stores TMDB posters on the local disk. Subsequent requests are served without contacting TMDB."
+      },
+      "dnsCache": {
+        "label": "DNS cache",
+        "desc": "Keeps DNS resolutions in memory for a configurable time. Useful for bare-metal deployments without a system DNS cache.",
+        "ttlLabel": "Cached for",
+        "ttlUnit": "seconds"
+      }
+    },
     "tabGeneral": "General",
     "generalDesc": "MediaKeeper general settings.",
     "languageLabel": "Language",
@@ -1277,7 +1307,24 @@
     "healthcheck": "Analyzes media file health (codecs, resolution, subtitles…).",
     "subtitle_auto": "Automatically downloads subtitles for new media based on the default profile.",
     "expire_users": "Automatically disables accounts (Emby + MediaKeeper) whose access window has expired.",
-    "starting": "Starting…"
+    "cleanup_available_requests": "Automatically clears available requests after the configured grace period.",
+    "gdpr_purge": "Permanently removes user accounts marked for GDPR purge.",
+    "clear_image_cache": "Automatically clears the on-disk image cache (manual purge also available from the cache row).",
+    "starting": "Starting…",
+    "cache": {
+      "title": "Cache",
+      "desc": "MediaKeeper caches external API requests to reduce calls and speed up the UI.",
+      "empty": "No active cache.",
+      "colName": "Cache name",
+      "colHits": "Hits",
+      "colMisses": "Misses",
+      "colKeys": "Total keys",
+      "colSize": "Size",
+      "ttlValue": "TTL {sec} s",
+      "clear": "Clear",
+      "clearAria": "Clear {name} cache"
+    },
+    "cacheCleared": "{name} cache cleared"
   },
   "onboarding": {
     "subtitle": "Set up your personal media space",
@@ -2373,7 +2420,6 @@
       "subtitle": "Your daily recap on Demandes — what's new, how you're doing, what's coming up.",
       "empty": "Nothing new today — check back tomorrow!",
       "errorLoad": "Couldn't load today's digest.",
-      "dismissToday": "Don't show again today",
       "greeting": {
         "morning": "Good morning",
         "afternoon": "Good afternoon",

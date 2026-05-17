@@ -11,6 +11,9 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ### Added
 - Portal : nouveau composant jaquette « PosterCard » conforme i18n/tokens (préparation à l'intégration).
+- Paramètres — nouvelle section Réseau avec cache d'images et cache DNS (toggles).
+- Paramètres → Planificateur — section Cache (stats hits/manques + bouton Vider).
+- Tableau de bord — réorganisation des cartes sur mobile via une liste de lignes (bouton « Personnaliser », glisser-déposer).
 
 ### Changed
 - Doublons — barre d'actions épurée : onglet « Détections » et horodatage « Dernière détection »
@@ -34,6 +37,11 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Statistiques — records empilés en colonne sur mobile.
 - Watchlist Manquants : nouveau label « Dernier scan », bouton renommé « Analyser ».
 - Watchlist : bande TMDB allégée, jaquettes Suivi alignées sur le portail (mobile).
+- Tableau de bord — avatars « En direct » alignés sur Utilisateurs (silhouette unifiée, pseudo en bulle).
+- Tableau de bord — stats mobile compactées (icônes 34 px, libellés 3xs, valeurs lg).
+- Tableau de bord — bouton « Personnaliser » mobile déplacé dans le bandeau (icône à gauche de la cloche).
+- Barre du haut — sous-titre masqué sur mobile, titre centré dans le bandeau.
+- Avatar de la barre du haut (admin + portail) — aligné sur celui des fiches utilisateurs (photo réelle + silhouette de secours).
 
 ### Fixed
 - Portal : limite débit /availability portée à 120/min, coalescing front, dédupe toasts 429
@@ -42,6 +50,10 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Doublons — bouton « Restaurer » réaligné sur les films de l'onglet Ignorés
 - Santé — sauvegarde de la configuration restaurée (toast de confirmation)
 - Session admin expirée : reconnexion silencieuse sur module Demandes, sinon message clair à la reconnexion.
+- Connexion — identifiant accepté quelle que soit la casse (majuscules/minuscules).
+- Paramètres — libellés tâches Nettoyage demandes et Purge RGPD restaurés (planificateur).
+- Portal — jaquettes mobile uniformisées sur Recherche / Discover / Personne / Collection (3 colonnes, ratio 2/3).
+- Tableau de bord — bouton « Lecture Emby » de la hero ouvre désormais sur la fiche Emby (URL HTTPS publique + serverId).
 
 ## [0.9.9] - 2026-05-14
 

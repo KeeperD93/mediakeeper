@@ -555,7 +555,6 @@
     width: 100%;
   }
 }
-.ddd-btn-ghost,
 .ddd-btn-primary {
   padding: 12px 22px;
   min-height: 46px;
@@ -567,25 +566,12 @@
   cursor: pointer;
   transition: all var(--portal-dur-fast) ease;
   -webkit-tap-highlight-color: transparent;
-}
-.ddd-btn-ghost {
-  background: transparent;
-  border: 1px solid var(--portal-border-strong);
-  color: var(--text-secondary);
-  font-weight: var(--portal-font-regular);
-}
-.ddd-btn-primary {
   background: linear-gradient(135deg, var(--accent-500), var(--accent-700));
   border: none;
   color: #fff;
   box-shadow: 0 6px 18px rgb(var(--accent-rgb), 0.3);
 }
 @media (hover: hover) {
-  .ddd-btn-ghost:hover {
-    border-color: rgb(255, 255, 255, 0.22);
-    color: var(--text-primary);
-    background: var(--portal-surface-2);
-  }
   .ddd-btn-primary:hover {
     transform: translateY(-1px);
     box-shadow: 0 10px 24px rgb(var(--accent-rgb), 0.42);

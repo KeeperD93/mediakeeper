@@ -20,9 +20,7 @@
     >
       <span
         class="hero-pulse-dot"
-        :class="
-          current.is_playing ? (isAudio ? 'pulse-purple' : 'pulse-green') : 'pulse-yellow'
-        "
+        :class="current.is_playing ? (isAudio ? 'pulse-purple' : 'pulse-green') : 'pulse-yellow'"
       />
       {{
         isAudio
@@ -75,18 +73,27 @@ const props = defineProps({
   current: { type: Object, default: () => ({}) },
   isAudio: { type: Boolean, default: false },
   embyBaseUrl: { type: String, default: '' },
+  embyServerId: { type: String, default: '' },
 })
 const emit = defineEmits(['open-fullscreen'])
 
 const posterError = ref(false)
-watch(() => props.current, () => {
-  posterError.value = false
-})
+watch(
+  () => props.current,
+  () => {
+    posterError.value = false
+  },
+)
 
+// Emby Web 4.9+ resolves the item route only when ``serverId`` is
+// present in the query — without it the SPA shell loads but the page
+// stays blank. Mirrors the portal helper ``build_emby_deep_link``.
 const currentEmbyUrl = computed(() => {
   const s = props.current
   if (!props.embyBaseUrl || !s.item_id) return ''
-  return `${props.embyBaseUrl}/web/index.html#!/item?id=${s.item_id}`
+  let url = `${props.embyBaseUrl}/web/index.html#!/item?id=${s.item_id}`
+  if (props.embyServerId) url += `&serverId=${props.embyServerId}`
+  return url
 })
 </script>
 

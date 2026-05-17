@@ -1,99 +1,48 @@
 <template>
-  <div class="m-dash">
-    <!-- Row of quick stats — compact 2x2 grid on phones. -->
-    <div class="m-dash-stats">
-      <StatCard
-        v-if="!hidden.includes('statPlays')"
-        :label="$t('dashboard.totalPlays')"
-        :value="mediaStats.plays"
-        route="/stats"
-        :icon="Play"
-        accent="#6366f1"
-      />
-      <StatCard
-        v-if="!hidden.includes('statDuration')"
-        :label="$t('dashboard.totalDuration')"
-        :value="mediaStats.duration"
-        :icon="Clock"
-        accent="#10b981"
-      />
-      <StatCard
-        v-if="!hidden.includes('statDuplicates')"
-        :label="$t('dashboard.duplicates')"
-        :value="duplicatesCount"
-        route="/duplicates"
-        :icon="Copy"
-        accent="#f43f5e"
-        :color="duplicatesCount !== '0' && duplicatesCount !== '—' ? '#f43f5e' : ''"
-      />
-      <StatCard
-        v-if="!hidden.includes('statStorage')"
-        :label="$t('dashboard.storage')"
-        :value="mediaStats.storage"
-        :icon="HardDrive"
-        accent="#f59e0b"
+  <div class="m-dash" :class="{ 'm-dash--editing': editMode }">
+    <MobileDashboardStats
+      :hidden="hidden"
+      :duplicates-count="duplicatesCount"
+      :media-stats="mediaStats"
+    />
+
+    <!-- Edit mode → titles only, drag-reorder. -->
+    <MobileDashboardReorderList v-if="editMode" :draft-order="draftOrder" @reorder="onReorder" />
+
+    <!-- Normal mode → full widgets in order. The "Customize" entry
+         point lives in the global topbar (icon-only on /dashboard
+         mobile) and dispatches MOBILE_EDIT_EVENT on the window. -->
+    <div v-else class="m-dash-stack">
+      <MobileDashboardWidget
+        v-for="id in effectiveOrder"
+        :id="id"
+        :key="id"
+        :logs="logs"
+        :alerts="alerts"
+        :sessions="sessions"
+        :seen-alert-ids="seenAlertIds"
+        :emby-base-url="embyBaseUrl"
+        :watchlist-label="watchlistLabel"
+        :watchlist-scan-ago="watchlistScanAgo"
+        :leaderboard-entries="leaderboardEntries"
       />
     </div>
 
-    <HealthScore v-if="!hidden.includes('healthScore')" class="m-dash-card m-dash-card--health" />
-
-    <RequestsActionCard v-if="!hidden.includes('portalAction')" class="m-dash-card" />
-    <PortalEngagementCard v-if="!hidden.includes('portalEngagement')" class="m-dash-card" />
-    <PortalUpcomingEventsCard v-if="!hidden.includes('portalEvents')" class="m-dash-card" />
-
-    <ActivityTimeline
-      v-if="!hidden.includes('activity')"
-      class="m-dash-card"
-      :logs="logs"
-      :alerts="alerts"
-      :sessions="sessions"
-      :seen-alert-ids="seenAlertIds"
-      :emby-base-url="embyBaseUrl"
-    />
-
-    <UpcomingEpisodes v-if="!hidden.includes('upcoming')" class="m-dash-card" />
-
-    <LeaderboardCard
-      v-if="!hidden.includes('topUsers')"
-      class="m-dash-card"
-      :entries="leaderboardEntries.slice(0, 3)"
-      widget
-    />
-
-    <Heatmap v-if="!hidden.includes('heatmap')" class="m-dash-card" />
-
-    <QuickLink
-      v-if="!hidden.includes('linkWatchlist')"
-      class="m-dash-card"
-      :title="watchlistLabel"
-      :subtitle="
-        watchlistScanAgo
-          ? $t('dashboard.lastScan') + ' ' + watchlistScanAgo
-          : $t('sidebar.watchlist')
-      "
-      route="/watchlist"
-      icon-bg="rgba(139,92,246,0.12)"
-    >
-      <template #icon><ClipboardCheck class="m-dash-ql-icon" :size="18" /></template>
-    </QuickLink>
+    <MobileDashboardEditToolbar v-if="editMode" @cancel="cancelEdit" @confirm="confirmEdit" />
   </div>
 </template>
 
 <script setup>
-import { ClipboardCheck, Play, Clock, Copy, HardDrive } from 'lucide-vue-next'
-import StatCard from '@/components/dashboard/widgets/StatCard.vue'
-import Heatmap from '@/components/dashboard/widgets/Heatmap.vue'
-import HealthScore from '@/components/dashboard/widgets/HealthScore.vue'
-import LeaderboardCard from '@/components/portal/profile/LeaderboardCard.vue'
-import QuickLink from '@/components/dashboard/widgets/QuickLink.vue'
-import RequestsActionCard from '@/components/dashboard/widgets/RequestsActionCard.vue'
-import PortalEngagementCard from '@/components/dashboard/widgets/PortalEngagementCard.vue'
-import PortalUpcomingEventsCard from '@/components/dashboard/widgets/PortalUpcomingEventsCard.vue'
-import ActivityTimeline from '@/components/dashboard/ActivityTimeline.vue'
-import UpcomingEpisodes from '@/components/dashboard/UpcomingEpisodes.vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import MobileDashboardStats from '@/components/dashboard/MobileDashboardStats.vue'
+import MobileDashboardWidget from '@/components/dashboard/MobileDashboardWidget.vue'
+import MobileDashboardReorderList from '@/components/dashboard/MobileDashboardReorderList.vue'
+import MobileDashboardEditToolbar from '@/components/dashboard/MobileDashboardEditToolbar.vue'
+import { MOBILE_EDIT_EVENT } from '@/constants/dashboardEvents'
 
-defineProps({
+const props = defineProps({
   hidden: { type: Array, default: () => [] },
+  order: { type: Array, default: () => [] },
   logs: { type: Array, default: () => [] },
   alerts: { type: Array, default: () => [] },
   sessions: { type: Array, default: () => [] },
@@ -108,46 +57,122 @@ defineProps({
   },
   leaderboardEntries: { type: Array, default: () => [] },
 })
+
+const emit = defineEmits(['update:order'])
+
+// Out of edit mode, the displayed stack mirrors the parent's effective
+// order verbatim. In edit mode we work on a local draft so a cancel
+// can restore the snapshot without touching the persisted layout.
+const editMode = ref(false)
+const draftOrder = ref(props.order.slice())
+let snapshot = []
+
+const effectiveOrder = computed(() => props.order)
+
+watch(
+  () => props.order,
+  next => {
+    if (!editMode.value) draftOrder.value = next.slice()
+  },
+  { deep: true },
+)
+
+function enterEditMode() {
+  if (editMode.value) return
+  snapshot = props.order.slice()
+  draftOrder.value = props.order.slice()
+  editMode.value = true
+}
+
+function cancelEdit() {
+  draftOrder.value = snapshot.slice()
+  editMode.value = false
+}
+
+function confirmEdit() {
+  if (draftOrder.value.join('|') !== snapshot.join('|')) {
+    emit('update:order', draftOrder.value.slice())
+  }
+  editMode.value = false
+}
+
+function onReorder({ fromIdx, toIdx }) {
+  const next = draftOrder.value.slice()
+  const [moved] = next.splice(fromIdx, 1)
+  next.splice(toIdx, 0, moved)
+  draftOrder.value = next
+}
+
+// The topbar "Customize" button on mobile fires this window-level
+// event because the two components live in separate router subtrees.
+onMounted(() => {
+  window.addEventListener(MOBILE_EDIT_EVENT, enterEditMode)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener(MOBILE_EDIT_EVENT, enterEditMode)
+})
 </script>
 
 <style scoped>
 .m-dash {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 12px 14px calc(60px + env(safe-area-inset-bottom, 0px));
-}
-
-.m-dash-stats {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+  padding: 10px 14px calc(60px + env(safe-area-inset-bottom, 0px));
 }
 
-.m-dash-card {
-  min-height: 120px;
-}
-.m-dash-card.m-dash-card--health {
-  min-height: 0;
+/* Leave room at the bottom for the sticky toolbar so the last row
+   stays reachable while reordering. */
+.m-dash--editing {
+  padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
 }
 
-/* Dashboard widgets expect a grid parent with height: 100%. On mobile
-   there's no grid cell — we give each widget a usable min-height so
-   their content actually shows. */
-.m-dash :deep(.wg-req),
-.m-dash :deep(.wg-eng),
-.m-dash :deep(.wg-evt),
-.m-dash :deep(.uc),
+.m-dash-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Upcoming Episodes — mobile compactage. The default 140 px posters
+   shipped in the desktop widget eat the viewport; shrink to ~108 px
+   so the user sees roughly 3.3 cards instead of 2.2, and tighten the
+   surrounding paddings + gaps so the card itself is shorter. */
+.m-dash :deep(.uc-header) {
+  padding: 10px 12px 0;
+}
+.m-dash :deep(.uc-viewport) {
+  padding: 8px 0 10px;
+}
+.m-dash :deep(.uc-track) {
+  gap: 10px;
+  padding: 0 12px;
+}
+.m-dash :deep(.uc-card) {
+  width: 108px;
+  gap: 6px;
+}
+.m-dash :deep(.uc-meta) {
+  font-size: var(--text-3xs);
+}
+
+/* Heatmap — the widget's inner grid uses flex:1 + min-height:0 to
+   stretch inside the desktop GridLayout cell. The mobile stack has
+   no enforced parent height, so the grid collapses to 0 and the
+   12-week pattern goes invisible. 200 px is enough to show every
+   day cell at a glance. */
 .m-dash :deep(.hm) {
-  min-height: 220px;
+  min-height: 200px;
 }
-.m-dash :deep(.wg-health) {
-  min-height: 0;
-}
-.m-dash :deep(.tl-root) {
-  min-height: 340px;
-}
-.m-dash-ql-icon {
-  color: #8b5cf6;
+
+/* Compact pill / link buttons on mobile dashboard widgets. Documented
+   exception to Rules.md §2.6 — the dashboard is data-dense, these
+   are non-destructive filters (Tout/Lectures/Alertes, 24h/7j) and a
+   navigation link (Gérer ›). The 44 px floor designed for primary
+   CTAs blows the viewport here; 36 px is still comfortable on touch
+   and matches the row height of the reorder list grip. */
+.m-dash :deep(.tl-tab),
+.m-dash :deep(.wg-eng-toggle-btn),
+.m-dash :deep(.wg-req-head-link) {
+  min-height: 36px;
 }
 </style>

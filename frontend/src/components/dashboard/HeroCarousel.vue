@@ -15,14 +15,10 @@
         :current="current"
         :is-audio="isAudio"
         :emby-base-url="embyBaseUrl"
+        :emby-server-id="embyServerId"
         @open-fullscreen="emit('open-fullscreen', $event)"
       />
-      <HeroSessionStrip
-        v-if="sessions.length > 1"
-        :sessions="sessions"
-        :idx="idx"
-        @go-to="goTo"
-      />
+      <HeroSessionStrip v-if="sessions.length > 1" :sessions="sessions" :idx="idx" @go-to="goTo" />
     </div>
   </div>
 </template>
@@ -40,6 +36,7 @@ const props = defineProps({
   sessions: { type: Array, default: () => [] },
   allSessions: { type: Array, default: () => [] },
   embyBaseUrl: { type: String, default: '' },
+  embyServerId: { type: String, default: '' },
 })
 const emit = defineEmits(['open-fullscreen'])
 

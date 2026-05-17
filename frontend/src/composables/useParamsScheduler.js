@@ -6,10 +6,19 @@ import { TASK_STATUS } from '@/constants/scheduler'
 import { useI18n } from 'vue-i18n'
 
 const schedTasks = ref([])
+const schedCaches = ref([])
 const schedLoading = ref(false)
+const schedCachesLoading = ref(false)
 const schedEditValues = reactive({})
 let pollTimer = null
+let cachesPollTimer = null
 let loadedOnce = false
+let cachesLoadedOnce = false
+
+// Cache stats refresh cadence. Short enough that the admin sees
+// counters move as searches happen on the portal, long enough not
+// to spam the API for a panel that's mostly observational.
+const CACHES_POLL_MS = 5000
 
 const UNITS = { s: 1, m: 60, h: 3600, d: 86400 }
 function bestUnit(sec) {
@@ -103,6 +112,15 @@ export function useParamsScheduler() {
       clearInterval(pollTimer)
       pollTimer = null
     }
+    if (cachesPollTimer) {
+      clearInterval(cachesPollTimer)
+      cachesPollTimer = null
+    }
+  }
+
+  function startCachesPolling() {
+    if (cachesPollTimer) return
+    cachesPollTimer = setInterval(loadCaches, CACHES_POLL_MS)
   }
 
   async function schedToggle(task) {
@@ -187,11 +205,52 @@ export function useParamsScheduler() {
 
   function ensureLoaded() {
     if (!loadedOnce) loadSched()
+    if (!cachesLoadedOnce) loadCaches()
+    // Keep the cache readout fresh while the tab is mounted — the
+    // setInterval is cleared on unmount/deactivate via stopPolling().
+    startCachesPolling()
+  }
+
+  // ── Caches ────────────────────────────────────────────────────────
+  //
+  // The admin panel renders one row per in-memory cache the backend
+  // exposes via /api/scheduler/caches. Phase B = TMDB only. Phase C
+  // will add image + DNS without changing the contract.
+
+  async function loadCaches() {
+    schedCachesLoading.value = true
+    try {
+      const data = await apiGet('/api/scheduler/caches')
+      if (Array.isArray(data?.items)) schedCaches.value = data.items
+    } catch {
+      /* silent — admin readout, no toast spam */
+    }
+    schedCachesLoading.value = false
+    cachesLoadedOnce = true
+  }
+
+  async function schedClearCache(cache) {
+    try {
+      const res = await apiFetch(
+        `/api/scheduler/caches/${cache.id}/clear`,
+        { method: 'POST' },
+      )
+      const data = await res.json()
+      if (data.success) {
+        showToast(t('scheduler.cacheCleared', { name: cache.name }), TOAST_TYPE.OK)
+        await loadCaches()
+      }
+    } catch (e) {
+      console.error('[useParamsScheduler.schedClearCache] failed', e)
+      showToast(t('common.apiError.submitFailed'), TOAST_TYPE.ERR)
+    }
   }
 
   return {
     schedTasks,
+    schedCaches,
     schedLoading,
+    schedCachesLoading,
     schedEditValues,
     intervalToAmount,
     formatSeconds,
@@ -199,6 +258,7 @@ export function useParamsScheduler() {
     schedStatusDot,
     schedIsDirty,
     loadSched,
+    loadCaches,
     ensureLoaded,
     startPolling,
     stopPolling,
@@ -206,6 +266,7 @@ export function useParamsScheduler() {
     schedSaveInterval,
     schedReset,
     schedRunNow,
+    schedClearCache,
     schedOnAmountChange,
     schedOnUnitChange,
   }

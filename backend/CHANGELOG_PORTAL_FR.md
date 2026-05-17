@@ -26,6 +26,9 @@ utilisateurs.
 - Page personne — hero responsive (photo + titre adaptés au mobile).
 - Jaquettes mobile : actions retirées, clic direct sur la fiche.
 - Accueil mobile : synopsis des héros masqués pour aérer.
+- Accueil — bannière vidéo : passage à la suivante toutes les 45 secondes minimum.
+- Quoi de neuf — overlay affiché une seule fois par jour (bouton Fermer suffit).
+- Listes (Découvrir, Recherche, Personne, Collection) — 3 jaquettes par ligne sur mobile, espace resserré.
 
 ### Fixed
 - Accueil : suppression de la rafale de notifications « Trop de tentatives » au chargement
@@ -41,6 +44,8 @@ utilisateurs.
 - Navigation mobile : « Mon profil » remonté en 2ème position.
 - Demandes — message d'erreur clair quand la demande échoue (quota, doublon, blacklist).
 - Jaquettes mobile : pastille disponibilité repositionnée (plus de chevauchement).
+- Fiche personne — badge statut des demandes à nouveau visible sur la filmographie.
+- Recherche — refonte live TMDB avec cache 5 min (jaquettes toujours fraîches).
 
 ## [0.3.0] - 2026-05-14
 

@@ -85,15 +85,12 @@
             :aria-label="$t('portal.avatar.menu')"
             @click="toggleMenu"
           >
-            <img
-              v-if="profile?.avatar_url"
-              :src="profile.avatar_url"
-              :alt="profile.display_name"
-              class="pt-avatar-img"
+            <MkAvatar
+              :src="profile?.avatar_url"
+              :name="profile?.display_name || avatarInitial"
+              :size="32"
+              class="mk-avatar--ring-subtle pt-avatar-mk"
             />
-            <span v-else class="pt-avatar-placeholder">
-              {{ avatarInitial }}
-            </span>
             <ChevronDown class="pt-avatar-chevron" :size="14" :stroke-width="2.2" />
           </button>
 
@@ -183,6 +180,7 @@ import { ref, nextTick } from 'vue'
 import NotificationBell from './NotificationBell.vue'
 import CalendarButton from './CalendarButton.vue'
 import PortalSearchBox from './PortalSearchBox.vue'
+import MkAvatar from '@/components/common/MkAvatar.vue'
 import { ChevronDown, Heart, Home, Library, Search } from 'lucide-vue-next'
 import { usePortalNav } from './usePortalNav.js'
 import { PORTAL_TAB } from '@/constants/portal'

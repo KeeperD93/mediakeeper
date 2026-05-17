@@ -350,6 +350,20 @@
     "stable": "Stable",
     "editMode": "Mode édition — glissez et redimensionnez les widgets",
     "done": "Terminé",
+    "mobileReorderTitle": "Personnaliser",
+    "mobileReorderCancel": "Annuler",
+    "mobileReorderDone": "Terminer",
+    "widgetTitles": {
+      "activity": "Activité",
+      "healthScore": "Santé médias",
+      "portalAction": "Demandes — à traiter",
+      "portalEngagement": "Demandes — activité",
+      "portalEvents": "Portal — événements",
+      "upcoming": "Sorties à venir",
+      "topUsers": "Top utilisateurs",
+      "heatmap": "Activité (heatmap)",
+      "linkWatchlist": "Suivi"
+    },
     "requests": "Demandes",
     "requestsSoon": "Bientôt disponible",
     "portalAction": {
@@ -1199,6 +1213,22 @@
     "resetOnboardingDone": "Wizard réinitialisé",
     "previewOnboarding": "Prévisualiser le wizard",
     "tabBackup": "Sauvegardes",
+    "tabNetwork": "Réseau",
+    "network": {
+      "title": "Paramètres réseau",
+      "desc": "Activez les caches optionnels pour réduire la bande passante et accélérer le chargement.",
+      "saved": "Paramètres enregistrés",
+      "imageCache": {
+        "label": "Cache d'images",
+        "desc": "Télécharge et stocke les jaquettes TMDB sur le disque local. Les requêtes suivantes sont servies sans appel TMDB."
+      },
+      "dnsCache": {
+        "label": "Cache DNS",
+        "desc": "Garde en mémoire les résolutions DNS pendant un certain temps. Utile sur les déploiements bare-metal sans cache DNS système.",
+        "ttlLabel": "Durée de conservation",
+        "ttlUnit": "secondes"
+      }
+    },
     "tabGeneral": "Général",
     "generalDesc": "Paramètres généraux de MediaKeeper.",
     "languageLabel": "Langue",
@@ -1277,7 +1307,24 @@
     "healthcheck": "Analyse la santé des fichiers médias (codecs, résolution, sous-titres…).",
     "subtitle_auto": "Télécharge automatiquement les sous-titres pour les nouveaux médias selon le profil par défaut.",
     "expire_users": "Désactive automatiquement les comptes (Emby + MediaKeeper) dont la période d'accès a expiré.",
-    "starting": "Démarrage…"
+    "cleanup_available_requests": "Nettoie automatiquement les demandes marquées disponibles après le délai configuré.",
+    "gdpr_purge": "Supprime définitivement les comptes utilisateurs marqués pour purge RGPD.",
+    "clear_image_cache": "Vide automatiquement le cache d'images sur disque (purge manuelle disponible côté cache).",
+    "starting": "Démarrage…",
+    "cache": {
+      "title": "Cache",
+      "desc": "MediaKeeper met en cache les requêtes vers les API externes pour réduire les appels et accélérer l'affichage.",
+      "empty": "Aucun cache actif.",
+      "colName": "Nom du cache",
+      "colHits": "Abouties",
+      "colMisses": "Manquées",
+      "colKeys": "Total des clés",
+      "colSize": "Taille",
+      "ttlValue": "TTL {sec} s",
+      "clear": "Vider",
+      "clearAria": "Vider le cache {name}"
+    },
+    "cacheCleared": "Cache {name} vidé"
   },
   "onboarding": {
     "subtitle": "Configurer votre espace média personnel",
@@ -2373,7 +2420,6 @@
       "subtitle": "Votre résumé quotidien sur Demandes — les nouveautés, votre progression et ce qui vous attend.",
       "empty": "Rien de neuf pour aujourd'hui — revenez demain !",
       "errorLoad": "Impossible de charger le résumé du jour.",
-      "dismissToday": "Ne plus afficher aujourd'hui",
       "greeting": {
         "morning": "Bonjour",
         "afternoon": "Bon après-midi",

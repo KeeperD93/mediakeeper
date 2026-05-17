@@ -5,10 +5,10 @@ cap. Mounted as a sub-router of the main settings router so the URLs
 stay ``/api/settings/dashboard``.
 """
 import json
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
@@ -18,15 +18,26 @@ from models.user import User
 router = APIRouter(tags=["settings"])
 
 DEFAULT_DASHBOARD_LAYOUT = {
-    "hidden":    [],
-    "positions": {},
+    "hidden":       [],
+    "positions":    {},
+    "mobile_order": None,
 }
 
 
 class DashboardLayoutRequest(BaseModel):
-    hidden:    List[str] = []
-    positions: dict      = {}
-    v:         int       = 0
+    # ``extra="forbid"`` per Rules.md §22.6 — settings is a sensitive
+    # mutation surface, unknown keys must 422 rather than silently
+    # round-trip into the stored JSON.
+    model_config = ConfigDict(extra="forbid")
+
+    hidden:       List[str]            = []
+    positions:    dict                 = {}
+    v:            int                  = 0
+    # Mobile-specific ordering. ``None`` falls back to the WIDGET_REGISTRY
+    # default order on the client; an explicit array means the user has
+    # customised it on a phone. Stored alongside the desktop ``positions``
+    # so editing on mobile never disturbs the desktop grid coordinates.
+    mobile_order: Optional[List[str]]  = None
 
 
 @router.get("/dashboard")

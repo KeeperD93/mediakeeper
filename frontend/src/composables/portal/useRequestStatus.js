@@ -41,8 +41,13 @@ export function useRequestStatus() {
     const toCheck = []
     const seen = new Set()
     for (const it of items) {
-      const id = it.tmdb_id || it.id
-      if (!id || seen.has(id)) continue
+      const raw = it.tmdb_id ?? it.id
+      if (raw == null) continue
+      // Coerce at boundary: backend expects strict list[int]. A stray string
+      // id (e.g. from a TMDB credits payload) used to trigger a silent 422
+      // that wiped the entire batch — now we drop only the malformed entry.
+      const id = Number(raw)
+      if (!Number.isInteger(id) || seen.has(id)) continue
       const key = String(id)
       // Only skip IDs whose cache entry is still fresh. Stale or
       // missing entries get re-queried so the admin's latest

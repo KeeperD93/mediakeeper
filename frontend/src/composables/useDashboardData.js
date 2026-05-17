@@ -25,6 +25,10 @@ export function useDashboardData() {
   const sys = reactive({ cpu: '—', cpuPct: 0, ram: '—', ramPct: 0, storage: '—', storagePct: 0 })
   const servicesList = ref([])
   const embyBaseUrl = ref('')
+  // Emby Web 4.9+ deep-links require a ``&serverId=...`` query — kept
+  // separately here so the hero card can compose the same link the
+  // portal builds via ``build_emby_deep_link``.
+  const embyServerId = ref('')
   const sessions = ref([])
   const allSessions = ref([])
   const logs = ref([])
@@ -91,7 +95,17 @@ export function useDashboardData() {
           } catch {
             online = false
           }
-          if (k === 'emby' && tool.url) embyBaseUrl.value = tool.url.replace(/\/$/, '')
+          if (k === 'emby') {
+            // Prefer the optional HTTPS ``public_url`` over the internal
+            // ``url`` so the dashboard "Watch on Emby" deep-link mirrors
+            // what the portal builds via ``get_emby_public_url``. Falls
+            // back to the internal URL when no public URL is configured.
+            const pub = (tool.public_url || '').trim()
+            const internal = (tool.url || '').trim()
+            const chosen = pub || internal
+            if (chosen) embyBaseUrl.value = chosen.replace(/\/$/, '')
+            embyServerId.value = (tool.server_id || '').trim()
+          }
           return { key: k, label: tool.label || k.charAt(0).toUpperCase() + k.slice(1), online }
         }),
       )
@@ -249,6 +263,7 @@ export function useDashboardData() {
     sys,
     servicesList,
     embyBaseUrl,
+    embyServerId,
     sessions,
     allSessions,
     logs,

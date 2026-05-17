@@ -12,9 +12,13 @@ import { useApi } from '@/composables/useApi'
 import { useAvailability } from '@/composables/portal/useAvailability'
 import { useRequestStatus } from '@/composables/portal/useRequestStatus'
 
-// 35 s of visible trailer playback + ~5 s of cinematic cross-fade
-// overhead (2 s fade to black, 3 s fade back from black).
-const HERO_ROTATE_MS = 40000
+// Minimum dwell time between two hero items — covers the background
+// rotation interval AND the throttle applied to early ``video-ended``
+// events. Tuned at 45 s so the YouTube IFrame backend doesn't see a
+// barrage of ``player.loadVideoById`` calls when short trailers chain
+// together, which used to trip YouTube's anti-abuse cooldown on this
+// domain.
+const HERO_MIN_INTERVAL_MS = 45000
 
 export function usePortalHomeData() {
   const { apiGet } = useApi()
@@ -47,6 +51,10 @@ export function usePortalHomeData() {
   const heroIndex = ref(0)
   const heroPaused = ref(false)
   let heroTimer = null
+  // Tracks the last actual ``heroIndex`` switch so ``nextHero`` can
+  // delay an early ``video-ended`` to honour HERO_MIN_INTERVAL_MS.
+  let lastHeroSwitchTs = Date.now()
+  let pendingNextHeroTimer = null
 
   // Hero: manual featured first, then trending. `heroTrendCount` caps
   // the total items. Featured items take priority and eat into the
@@ -62,23 +70,40 @@ export function usePortalHomeData() {
 
   const featuredCount = computed(() => featured.value.filter(f => f.active !== false).length)
 
+  function advanceHero() {
+    if (heroItems.value.length <= 1) return
+    heroIndex.value = (heroIndex.value + 1) % heroItems.value.length
+    lastHeroSwitchTs = Date.now()
+    pendingNextHeroTimer = null
+  }
+
   function startHeroRotation() {
     stopHeroRotation()
     heroTimer = setInterval(() => {
       if (heroItems.value.length > 1 && !heroPaused.value) {
-        heroIndex.value = (heroIndex.value + 1) % heroItems.value.length
+        nextHero()
       }
-    }, HERO_ROTATE_MS)
+    }, HERO_MIN_INTERVAL_MS)
   }
   function stopHeroRotation() {
     if (heroTimer) {
       clearInterval(heroTimer)
       heroTimer = null
     }
+    if (pendingNextHeroTimer) {
+      clearTimeout(pendingNextHeroTimer)
+      pendingNextHeroTimer = null
+    }
   }
   function nextHero() {
-    if (heroItems.value.length > 1) {
-      heroIndex.value = (heroIndex.value + 1) % heroItems.value.length
+    if (heroItems.value.length <= 1) return
+    if (pendingNextHeroTimer) return
+    const elapsed = Date.now() - lastHeroSwitchTs
+    const delay = Math.max(0, HERO_MIN_INTERVAL_MS - elapsed)
+    if (delay === 0) {
+      advanceHero()
+    } else {
+      pendingNextHeroTimer = setTimeout(advanceHero, delay)
     }
   }
 

@@ -6,6 +6,7 @@
       :sessions="sessions"
       :all-sessions="allSessions"
       :emby-base-url="embyBaseUrl"
+      :emby-server-id="embyServerId"
       @open-fullscreen="openFullscreen"
     />
     <StatRibbon
@@ -15,11 +16,12 @@
       :services="servicesList"
     />
 
-    <!-- Mobile: vertical stack of widgets. No drag-resize — customization
-         stays a desktop-only feature. -->
+    <!-- Mobile: vertical stack of widgets. Long-press → drag-reorder
+         lives inside the component; the desktop grid is untouched. -->
     <MobileDashboard
       v-if="isMobile"
       :hidden="hidden"
+      :order="effectiveMobileOrder"
       :logs="logs"
       :alerts="alerts"
       :sessions="sessions"
@@ -30,6 +32,7 @@
       :watchlist-scan-ago="watchlistScanAgo"
       :media-stats="mediaStats"
       :leaderboard-entries="leaderboardEntries"
+      @update:order="setMobileOrder"
     />
 
     <!-- Edit bar -->
@@ -118,7 +121,7 @@
           :aria-grabbed="movingItemId === item.i ? 'true' : null"
           @move="onDragStart(item.i)"
           @moved="onDragEnd(item.i)"
-          @keydown="(e) => handleKeydown(e, item.i)"
+          @keydown="e => handleKeydown(e, item.i)"
         >
           <div class="widget-inner" :style="{ animationDelay: idx * 60 + 'ms' }">
             <component
@@ -219,16 +222,7 @@
 defineOptions({ name: 'DashboardView' })
 import { ref, onMounted, onUnmounted, onActivated, onDeactivated, nextTick } from 'vue'
 import { GridLayout, GridItem } from 'grid-layout-plus'
-import {
-  ClipboardCheck,
-  Clock,
-  Copy,
-  HardDrive,
-  LayoutGrid,
-  Play,
-  Plus,
-  X,
-} from 'lucide-vue-next'
+import { ClipboardCheck, Clock, Copy, HardDrive, LayoutGrid, Play, Plus, X } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
 import { useTheme } from '@/composables/useTheme'
 import { useDashboardLayout, WIDGET_REGISTRY, WIDGET_ICONS } from '@/composables/useDashboardLayout'
@@ -258,8 +252,18 @@ const STAT_CARDS_WITH_ICON = new Set(['statPlays', 'statDuration', 'statDuplicat
 const { t } = useI18n()
 const { particlesEnabled } = useTheme()
 const { isMobile } = useMobile()
-const { editing, hidden, layout, loaded, loadLayout, toggleWidget, resetLayout, onLayoutUpdated } =
-  useDashboardLayout()
+const {
+  editing,
+  hidden,
+  layout,
+  loaded,
+  loadLayout,
+  toggleWidget,
+  resetLayout,
+  onLayoutUpdated,
+  effectiveMobileOrder,
+  setMobileOrder,
+} = useDashboardLayout()
 
 const { movingItemId, liveAnnouncement, handleKeydown } = useDashboardKeyboardMove({
   layout,
@@ -273,6 +277,7 @@ const {
   sys,
   servicesList,
   embyBaseUrl,
+  embyServerId,
   sessions,
   allSessions,
   logs,

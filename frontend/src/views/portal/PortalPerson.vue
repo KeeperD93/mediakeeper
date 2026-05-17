@@ -34,6 +34,7 @@
             v-for="it in filteredItems"
             :key="`${it.media_type}-${it.tmdb_id || it.id}`"
             :item="it"
+            fill
             width="160px"
             @select="goToDetail(it)"
           />
@@ -250,10 +251,16 @@ onMounted(load)
 }
 .dmp-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(clamp(108px, 30vw, 120px), 1fr));
-  gap: 6px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
 }
-@media (min-width: 768px) {
+@media (min-width: 641px) {
+  .dmp-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+  }
+}
+@media (min-width: 1024px) {
   .dmp-grid {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 14px;
