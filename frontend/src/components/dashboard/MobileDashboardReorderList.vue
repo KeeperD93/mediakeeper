@@ -34,6 +34,13 @@ const emit = defineEmits(['reorder'])
 
 const { t } = useI18n()
 const draggedId = ref(null)
+// Cooldown gate: after a swap we ignore touchmoves for this many ms
+// to let the FLIP transition settle. ``getBoundingClientRect`` in
+// Chromium includes the CSS transform mid-animation, so without this
+// guard the midpoint check below would see neighbours hover-flick
+// over the finger and oscillate.
+const SWAP_COOLDOWN_MS = 100
+let lastSwapAt = 0
 
 function titleFor(id) {
   const key = WIDGET_TITLE_KEY[id]
@@ -68,6 +75,8 @@ function onDocTouchMove(e) {
   // Block the page's native scroll so the finger stays glued to the
   // dragged row while reorder hit-testing happens.
   e.preventDefault()
+  // Cooldown gate (see SWAP_COOLDOWN_MS) — bail out fast, no DOM work.
+  if (performance.now() - lastSwapAt < SWAP_COOLDOWN_MS) return
   const t0 = e.touches && e.touches[0]
   if (!t0) return
   const el = document.elementFromPoint(t0.clientX, t0.clientY)
@@ -80,12 +89,9 @@ function onDocTouchMove(e) {
   const toIdx = props.draftOrder.indexOf(overId)
   if (fromIdx < 0 || toIdx < 0) return
 
-  // Midpoint threshold prevents oscillation: when the dragged row
-  // swaps into a neighbour's slot, the finger is still over that
-  // neighbour — without this guard, the next touchmove triggers the
-  // reverse swap and the list jitters. We only commit the swap once
-  // the finger has crossed the target row's vertical midpoint in the
-  // direction of travel.
+  // Midpoint threshold also prevents oscillation: we only commit the
+  // swap once the finger has crossed the target row's vertical
+  // midpoint in the direction of travel.
   const rect = row.getBoundingClientRect()
   const midY = rect.top + rect.height / 2
   const isDraggingDown = fromIdx < toIdx
@@ -93,6 +99,7 @@ function onDocTouchMove(e) {
   if (!isDraggingDown && t0.clientY > midY) return
 
   emit('reorder', { fromIdx, toIdx })
+  lastSwapAt = performance.now()
 }
 
 onBeforeUnmount(endDrag)
@@ -173,8 +180,10 @@ onBeforeUnmount(endDrag)
   cursor: grabbing;
 }
 
-/* FLIP animation between siblings on swap. */
+/* FLIP animation between siblings on swap. Kept short (--duration-fast)
+   so the cooldown gate in onDocTouchMove (100 ms) lets the next swap
+   fire just as the previous one finishes — feels snappy, no lag. */
 .m-dash-row-move {
-  transition: transform var(--duration-slow) var(--ease-out);
+  transition: transform var(--duration-fast) var(--ease-out);
 }
 </style>
