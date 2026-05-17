@@ -79,6 +79,19 @@ function onDocTouchMove(e) {
   const fromIdx = props.draftOrder.indexOf(draggedId.value)
   const toIdx = props.draftOrder.indexOf(overId)
   if (fromIdx < 0 || toIdx < 0) return
+
+  // Midpoint threshold prevents oscillation: when the dragged row
+  // swaps into a neighbour's slot, the finger is still over that
+  // neighbour — without this guard, the next touchmove triggers the
+  // reverse swap and the list jitters. We only commit the swap once
+  // the finger has crossed the target row's vertical midpoint in the
+  // direction of travel.
+  const rect = row.getBoundingClientRect()
+  const midY = rect.top + rect.height / 2
+  const isDraggingDown = fromIdx < toIdx
+  if (isDraggingDown && t0.clientY < midY) return
+  if (!isDraggingDown && t0.clientY > midY) return
+
   emit('reorder', { fromIdx, toIdx })
 }
 
@@ -97,14 +110,14 @@ onBeforeUnmount(endDrag)
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 4px 12px;
+  padding: 0 12px;
   background: var(--surface-2);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-input);
   color: var(--text-primary);
   font-size: var(--text-xs);
   font-weight: var(--font-medium);
-  min-height: 40px;
+  min-height: 36px;
   /* The row itself does not receive touch — the handle does. Keep
      pan-y so the user can still scroll the list with a finger off the
      handle. */
@@ -136,8 +149,14 @@ onBeforeUnmount(endDrag)
 
 .m-dash-row__handle {
   flex-shrink: 0;
-  width: 44px;
-  height: 44px;
+  /* Documented exception to Rules.md §2.6 (touch targets ≥ 44 px):
+     the reorder handle sits inside a list where a mis-tap is
+     trivially undone via Cancel — the cost of an oversized handle
+     (rows balloon to 52 px each, 9 of them blow past the mobile
+     viewport) outweighs the benefit. 36 px remains comfortable on
+     touch and matches the common pattern for in-list reorder grips. */
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
