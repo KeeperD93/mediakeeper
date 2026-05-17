@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { formatCountry, formatLanguage } from '@/utils/formatIntlLabel'
 
 describe('formatLanguage', () => {
-  it('localises an ISO 639-1 code in French', () => {
-    expect(formatLanguage('en', 'fr')).toBe('anglais')
-    expect(formatLanguage('fr', 'fr')).toBe('français')
-    expect(formatLanguage('ja', 'fr')).toBe('japonais')
+  it('localises an ISO 639-1 code in French (capitalised)', () => {
+    expect(formatLanguage('en', 'fr')).toBe('Anglais')
+    expect(formatLanguage('fr', 'fr')).toBe('Français')
+    expect(formatLanguage('ja', 'fr')).toBe('Japonais')
   })
 
   it('localises an ISO 639-1 code in English', () => {

@@ -24,10 +24,15 @@ function getRegionNames(locale) {
   return REGION_NAMES_CACHE.get(locale)
 }
 
+function capitalize(value) {
+  if (!value) return value
+  return value.charAt(0).toLocaleUpperCase() + value.slice(1)
+}
+
 export function formatLanguage(code, locale) {
   if (!code) return ''
   try {
-    return getLanguageNames(locale).of(String(code).toLowerCase()) || ''
+    return capitalize(getLanguageNames(locale).of(String(code).toLowerCase()) || '')
   } catch {
     return String(code).toUpperCase()
   }

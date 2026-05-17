@@ -490,6 +490,7 @@
 .vmd2-facts-list {
   display: grid;
   grid-template-columns: auto 1fr;
+  align-items: baseline;
   gap: 0.6rem 1rem;
   margin: 0;
 }
@@ -499,7 +500,6 @@
   letter-spacing: var(--portal-tracking-caps);
   color: rgb(255, 255, 255, 0.45);
   font-weight: var(--portal-font-bold);
-  align-self: center;
 }
 .vmd2-facts-list dd {
   margin: 0;
