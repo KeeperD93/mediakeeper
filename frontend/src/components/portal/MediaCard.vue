@@ -192,6 +192,19 @@ function onBlacklist() {}
 .mk-mediacard--fill :deep(.mk-poster) {
   --mk-poster-w: 100%;
 }
+/* The poster artwork's intrinsic height computation relies on
+   ``calc(var(--mk-poster-w) * 1.503)`` — fine when the width is a
+   px value but ambiguous when it's a percentage (height % refers to
+   the parent height, which is auto inside a grid cell). Forcing the
+   2:3 aspect ratio here keeps every poster card identically tall
+   regardless of the source image's natural aspect (e.g. a landscape
+   16:9 backdrop that TMDB sometimes returns instead of a portrait
+   poster) and prevents the ragged-row / phantom-gap effect on the
+   search and discover grids. */
+.mk-mediacard--fill :deep(.mk-poster__art) {
+  height: auto;
+  aspect-ratio: 2 / 3;
+}
 
 @media (max-width: 767px) {
   /* Match the prior MediaCard mobile clamp so callsite-provided widths
