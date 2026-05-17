@@ -53,6 +53,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Connexion — identifiant accepté quelle que soit la casse (majuscules/minuscules).
 - Paramètres — libellés tâches Nettoyage demandes et Purge RGPD restaurés (planificateur).
 - Portal — jaquettes mobile uniformisées sur Recherche / Discover / Personne / Collection (3 colonnes, ratio 2/3).
+- Tableau de bord — bouton « Lecture Emby » de la hero ouvre désormais sur la fiche Emby (URL HTTPS publique + serverId).
 
 ## [0.9.9] - 2026-05-14
 

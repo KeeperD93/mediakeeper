@@ -53,6 +53,7 @@ This section intentionally has no date so it is not shown to users.
 - Login — username accepted regardless of letter case
 - Settings — Cleanup requests and GDPR purge task labels restored (scheduler)
 - Portal — mobile poster grids unified on Search / Discover / Person / Collection (3 cols, 2:3 ratio)
+- Dashboard — hero "Play on Emby" button now lands on the item page (HTTPS public URL + serverId)
 
 ## [0.9.9] - 2026-05-14
 

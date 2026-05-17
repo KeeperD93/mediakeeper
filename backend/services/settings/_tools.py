@@ -1,6 +1,7 @@
 """Aggregate the tool config + detect the active media source."""
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ._emby_urls import get_emby_server_id
 from ._kv import get_all_settings
 from ._tools_def import TOOLS_DEFINITION
 
@@ -17,7 +18,7 @@ async def get_tools_config(
     """
     Return the full config of every tool:
     {
-      "emby": { "enabled": True, "url": "...", "api_key": "..." },
+      "emby": { "enabled": True, "url": "...", "api_key": "...", "server_id": "..." },
       "plex": { "enabled": False, ... },
       ...
     }
@@ -41,6 +42,21 @@ async def get_tools_config(
                 tool_config[f"{fk}_length"] = len(raw_value)
             else:
                 tool_config[fk] = raw_value
+
+        # Emby deep-links opened in the user's browser need the
+        # ``serverId`` query param — without it Emby Web 4.9+ loads
+        # the SPA shell but resolves the route to a blank page.
+        # Surface the cached server_id here so the admin dashboard
+        # (which builds its hero "Watch on Emby" link client-side)
+        # can append it the same way ``build_emby_deep_link`` does
+        # on the portal. Uses the raw url/api_key in this scope so
+        # the /System/Info call still works when ``mask_secrets`` is
+        # True for the caller.
+        if tool_key == "emby" and tool_config["enabled"]:
+            tool_config["server_id"] = await get_emby_server_id({
+                "url":     all_settings.get(f"{tool_key}.url", ""),
+                "api_key": all_settings.get(f"{tool_key}.api_key", ""),
+            })
 
         config[tool_key] = tool_config
 

@@ -6,6 +6,7 @@
       :sessions="sessions"
       :all-sessions="allSessions"
       :emby-base-url="embyBaseUrl"
+      :emby-server-id="embyServerId"
       @open-fullscreen="openFullscreen"
     />
     <StatRibbon
@@ -120,7 +121,7 @@
           :aria-grabbed="movingItemId === item.i ? 'true' : null"
           @move="onDragStart(item.i)"
           @moved="onDragEnd(item.i)"
-          @keydown="(e) => handleKeydown(e, item.i)"
+          @keydown="e => handleKeydown(e, item.i)"
         >
           <div class="widget-inner" :style="{ animationDelay: idx * 60 + 'ms' }">
             <component
@@ -221,16 +222,7 @@
 defineOptions({ name: 'DashboardView' })
 import { ref, onMounted, onUnmounted, onActivated, onDeactivated, nextTick } from 'vue'
 import { GridLayout, GridItem } from 'grid-layout-plus'
-import {
-  ClipboardCheck,
-  Clock,
-  Copy,
-  HardDrive,
-  LayoutGrid,
-  Play,
-  Plus,
-  X,
-} from 'lucide-vue-next'
+import { ClipboardCheck, Clock, Copy, HardDrive, LayoutGrid, Play, Plus, X } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
 import { useTheme } from '@/composables/useTheme'
 import { useDashboardLayout, WIDGET_REGISTRY, WIDGET_ICONS } from '@/composables/useDashboardLayout'
@@ -285,6 +277,7 @@ const {
   sys,
   servicesList,
   embyBaseUrl,
+  embyServerId,
   sessions,
   allSessions,
   logs,
