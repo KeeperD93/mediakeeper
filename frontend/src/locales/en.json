@@ -353,6 +353,17 @@
     "mobileReorderTitle": "Customize",
     "mobileReorderCancel": "Cancel",
     "mobileReorderDone": "Done",
+    "widgetTitles": {
+      "activity": "Activity",
+      "healthScore": "Media health",
+      "portalAction": "Requests — action",
+      "portalEngagement": "Requests — activity",
+      "portalEvents": "Portal — events",
+      "upcoming": "Upcoming releases",
+      "topUsers": "Top users",
+      "heatmap": "Activity heatmap",
+      "linkWatchlist": "Tracking"
+    },
     "requests": "Requests",
     "requestsSoon": "Coming soon",
     "portalAction": {

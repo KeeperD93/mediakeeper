@@ -53,6 +53,34 @@ defineProps({
 .m-dash-stats {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
+}
+
+/* Compact StatCard on mobile — the default sizing was tuned for the
+   desktop 36-column grid where each card is much wider. We shrink the
+   icon, the value font, and the label to keep the stats strip light
+   above the reorderable stack. */
+.m-dash-stats :deep(.wg-stat) {
+  padding: 8px 10px;
+}
+.m-dash-stats :deep(.wg-stat-body) {
+  gap: 8px;
+}
+.m-dash-stats :deep(.wg-stat-icon) {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-input);
+}
+.m-dash-stats :deep(.wg-stat-icon svg) {
+  width: 16px;
+  height: 16px;
+}
+.m-dash-stats :deep(.wg-stat-label) {
+  font-size: var(--text-3xs);
+  letter-spacing: 0.2px;
+}
+.m-dash-stats :deep(.wg-stat-val) {
+  font-size: var(--text-lg);
+  margin-top: 2px;
 }
 </style>

@@ -13,7 +13,7 @@ This section intentionally has no date so it is not shown to users.
 - Portal: new "PosterCard" cover component, i18n/tokens compliant (integration prep).
 - Settings — new Network section with image cache and DNS cache toggles
 - Settings → Scheduler — Cache section (hit/miss stats + Clear button)
-- Dashboard — reorder cards on mobile (grip handle, 2 s long-press, edge auto-scroll)
+- Dashboard — reorder cards on mobile via a title list ("Customize" button, drag rows)
 
 ### Changed
 - Duplicates — streamlined action bar: "Detections" tab and "Last detection" timestamp
@@ -38,6 +38,7 @@ This section intentionally has no date so it is not shown to users.
 - Watchlist Missing tab: new "Last scan" label, button renamed "Analyze"
 - Watchlist: lighter TMDB attribution, Suivi posters aligned with portal (mobile)
 - Dashboard — "Live now" avatars aligned with Users (unified silhouette, hover tooltip)
+- Dashboard — mobile stats compacted (34 px icons, 3xs labels, lg values)
 
 ### Fixed
 - Portal: /availability rate limit raised to 120/min, frontend coalescing, 429 toast dedupe

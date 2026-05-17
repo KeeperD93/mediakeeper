@@ -13,7 +13,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Portal : nouveau composant jaquette « PosterCard » conforme i18n/tokens (préparation à l'intégration).
 - Paramètres — nouvelle section Réseau avec cache d'images et cache DNS (toggles).
 - Paramètres → Planificateur — section Cache (stats hits/manques + bouton Vider).
-- Tableau de bord — réorganisation des cartes au doigt sur mobile (poignée, appui long 2 s, auto-scroll bord d'écran).
+- Tableau de bord — réorganisation des cartes sur mobile via une liste de lignes (bouton « Personnaliser », glisser-déposer).
 
 ### Changed
 - Doublons — barre d'actions épurée : onglet « Détections » et horodatage « Dernière détection »
@@ -38,6 +38,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Watchlist Manquants : nouveau label « Dernier scan », bouton renommé « Analyser ».
 - Watchlist : bande TMDB allégée, jaquettes Suivi alignées sur le portail (mobile).
 - Tableau de bord — avatars « En direct » alignés sur Utilisateurs (silhouette unifiée, pseudo en bulle).
+- Tableau de bord — stats mobile compactées (icônes 34 px, libellés 3xs, valeurs lg).
 
 ### Fixed
 - Portal : limite débit /availability portée à 120/min, coalescing front, dédupe toasts 429

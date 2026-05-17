@@ -353,6 +353,17 @@
     "mobileReorderTitle": "Personnaliser",
     "mobileReorderCancel": "Annuler",
     "mobileReorderDone": "Terminer",
+    "widgetTitles": {
+      "activity": "Activité",
+      "healthScore": "Santé médias",
+      "portalAction": "Demandes — à traiter",
+      "portalEngagement": "Demandes — activité",
+      "portalEvents": "Portal — événements",
+      "upcoming": "Sorties à venir",
+      "topUsers": "Top utilisateurs",
+      "heatmap": "Activité (heatmap)",
+      "linkWatchlist": "Suivi"
+    },
     "requests": "Demandes",
     "requestsSoon": "Bientôt disponible",
     "portalAction": {
