@@ -13,6 +13,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Portal : nouveau composant jaquette « PosterCard » conforme i18n/tokens (préparation à l'intégration).
 - Paramètres — nouvelle section Réseau avec cache d'images et cache DNS (toggles).
 - Paramètres → Planificateur — section Cache (stats hits/manques + bouton Vider).
+- Tableau de bord — réorganisation des cartes au doigt sur mobile (appui long, bouton Terminer).
 
 ### Changed
 - Doublons — barre d'actions épurée : onglet « Détections » et horodatage « Dernière détection »

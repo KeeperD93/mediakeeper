@@ -350,6 +350,9 @@
     "stable": "Stable",
     "editMode": "Mode édition — glissez et redimensionnez les widgets",
     "done": "Terminé",
+    "mobileReorderTitle": "Personnaliser",
+    "mobileReorderCancel": "Annuler",
+    "mobileReorderDone": "Terminer",
     "requests": "Demandes",
     "requestsSoon": "Bientôt disponible",
     "portalAction": {

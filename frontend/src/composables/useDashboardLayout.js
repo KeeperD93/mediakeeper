@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import {
   Calendar,
   CalendarClock,
@@ -113,6 +113,28 @@ export const WIDGET_REGISTRY = {
 // Bump when WIDGET_REGISTRY.defaultLayout changes — forces user reset.
 const LAYOUT_VERSION = 22
 
+// IDs of the four compact "stat" cards. They render in a fixed 2×2
+// grid above the reorderable stack — reordering tiny stat tiles
+// individually adds noise without value, and a uniform stack of mixed
+// card sizes is harder to scan than the current top-strip baseline.
+export const MOBILE_STAT_IDS = ['statPlays', 'statDuration', 'statDuplicates', 'statStorage']
+
+// Mobile stack default ordering — the vertical sequence below the
+// stats grid, before any user customisation. Mirrors the previously
+// hardcoded markup of MobileDashboard.vue so an existing user who has
+// never reordered keeps the exact same visual order.
+export const MOBILE_DEFAULT_ORDER = [
+  'healthScore',
+  'portalAction',
+  'portalEngagement',
+  'portalEvents',
+  'activity',
+  'upcoming',
+  'topUsers',
+  'heatmap',
+  'linkWatchlist',
+]
+
 export function useDashboardLayout() {
   const { apiGet, apiPost } = useApi()
 
@@ -120,6 +142,11 @@ export function useDashboardLayout() {
   const hidden = ref([])
   const layout = ref([])
   const loaded = ref(false)
+  // ``null`` = user has never customised the mobile order; the
+  // ``effectiveMobileOrder`` computed below falls back to the baseline.
+  // An array (even empty) means the user has explicitly set an order on
+  // a phone, and we honour it.
+  const mobileOrder = ref(null)
   let saveTimeout = null
 
   function buildLayout(savedPositions = {}, savedHidden = []) {
@@ -156,8 +183,10 @@ export function useDashboardLayout() {
         layout.value = buildLayout()
         saveLayoutNow()
       }
+      mobileOrder.value = Array.isArray(data?.mobile_order) ? data.mobile_order : null
     } catch {
       layout.value = buildLayout()
+      mobileOrder.value = null
     }
     loaded.value = true
   }
@@ -169,9 +198,10 @@ export function useDashboardLayout() {
     }
     try {
       await apiPost('/api/settings/dashboard', {
-        hidden: hidden.value,
+        hidden:       hidden.value,
         positions,
-        v: LAYOUT_VERSION,
+        v:            LAYOUT_VERSION,
+        mobile_order: mobileOrder.value,
       })
     } catch (e) {
       console.warn('[useDashboardLayout.saveLayoutNow] failed to save layout', e)
@@ -213,6 +243,37 @@ export function useDashboardLayout() {
     saveLayout()
   }
 
+  // Visible stack IDs in their effective mobile order — applies the
+  // user's saved sequence when present, otherwise the baseline. The
+  // four stat cards (MOBILE_STAT_IDS) are excluded from this list
+  // because they live in a fixed 2×2 grid above the stack. Hidden
+  // widgets are filtered out, and any widget added to the registry
+  // after the user last reordered gets appended in registry order so
+  // it doesn't silently disappear from the phone view.
+  const effectiveMobileOrder = computed(() => {
+    const base = mobileOrder.value ?? MOBILE_DEFAULT_ORDER
+    const hide = new Set(hidden.value)
+    const stats = new Set(MOBILE_STAT_IDS)
+    const allIds = Object.keys(WIDGET_REGISTRY).filter(id => !stats.has(id))
+    const seen = new Set()
+    const out = []
+    for (const id of base) {
+      if (allIds.includes(id) && !hide.has(id) && !seen.has(id)) {
+        out.push(id)
+        seen.add(id)
+      }
+    }
+    for (const id of allIds) {
+      if (!hide.has(id) && !seen.has(id)) out.push(id)
+    }
+    return out
+  })
+
+  function setMobileOrder(newOrder) {
+    mobileOrder.value = Array.isArray(newOrder) ? newOrder.slice() : null
+    saveLayout()
+  }
+
   function onLayoutUpdated(newLayout) {
     if (editing.value) {
       for (const item of newLayout) {
@@ -238,6 +299,9 @@ export function useDashboardLayout() {
     toggleWidget,
     resetLayout,
     onLayoutUpdated,
+    mobileOrder,
+    effectiveMobileOrder,
+    setMobileOrder,
     WIDGET_REGISTRY,
     WIDGET_ICONS,
   }

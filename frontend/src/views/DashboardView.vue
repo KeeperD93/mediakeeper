@@ -15,11 +15,12 @@
       :services="servicesList"
     />
 
-    <!-- Mobile: vertical stack of widgets. No drag-resize — customization
-         stays a desktop-only feature. -->
+    <!-- Mobile: vertical stack of widgets. Long-press → drag-reorder
+         lives inside the component; the desktop grid is untouched. -->
     <MobileDashboard
       v-if="isMobile"
       :hidden="hidden"
+      :order="effectiveMobileOrder"
       :logs="logs"
       :alerts="alerts"
       :sessions="sessions"
@@ -30,6 +31,7 @@
       :watchlist-scan-ago="watchlistScanAgo"
       :media-stats="mediaStats"
       :leaderboard-entries="leaderboardEntries"
+      @update:order="setMobileOrder"
     />
 
     <!-- Edit bar -->
@@ -258,8 +260,18 @@ const STAT_CARDS_WITH_ICON = new Set(['statPlays', 'statDuration', 'statDuplicat
 const { t } = useI18n()
 const { particlesEnabled } = useTheme()
 const { isMobile } = useMobile()
-const { editing, hidden, layout, loaded, loadLayout, toggleWidget, resetLayout, onLayoutUpdated } =
-  useDashboardLayout()
+const {
+  editing,
+  hidden,
+  layout,
+  loaded,
+  loadLayout,
+  toggleWidget,
+  resetLayout,
+  onLayoutUpdated,
+  effectiveMobileOrder,
+  setMobileOrder,
+} = useDashboardLayout()
 
 const { movingItemId, liveAnnouncement, handleKeydown } = useDashboardKeyboardMove({
   layout,
