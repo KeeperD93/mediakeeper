@@ -1279,6 +1279,7 @@
     "expire_users": "Désactive automatiquement les comptes (Emby + MediaKeeper) dont la période d'accès a expiré.",
     "cleanup_available_requests": "Nettoie automatiquement les demandes marquées disponibles après le délai configuré.",
     "gdpr_purge": "Supprime définitivement les comptes utilisateurs marqués pour purge RGPD.",
+    "clear_image_cache": "Vide automatiquement le cache d'images sur disque (purge manuelle disponible côté cache).",
     "starting": "Démarrage…",
     "cache": {
       "title": "Cache",

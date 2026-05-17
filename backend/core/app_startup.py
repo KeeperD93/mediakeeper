@@ -369,6 +369,17 @@ async def lifespan(app: FastAPI):
     except Exception:
         logger.error("[STARTUP] Help seed FAILED", exc_info=True)
 
+    # Prime the image-cache enable flag so ``_normalize`` doesn't
+    # silently default to OFF for the first 30 s while the cached
+    # snapshot is still empty.
+    try:
+        from core.database import AsyncSessionLocal
+        from services.portal.image_cache import refresh_enabled_flag
+        async with AsyncSessionLocal() as seed_db:
+            await refresh_enabled_flag(seed_db, force=True)
+    except Exception:
+        logger.error("[STARTUP] Image cache flag prime FAILED", exc_info=True)
+
     if _PROCESS_ROLE in {"combined", "worker"}:
         background_manager = BackgroundTaskManager(engine)
         await background_manager.start()

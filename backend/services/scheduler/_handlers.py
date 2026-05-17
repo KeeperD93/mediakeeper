@@ -77,6 +77,18 @@ async def _handler_gdpr_purge(db: AsyncSession) -> None:
     await purge_pending_deletions(db)
 
 
+async def _handler_clear_image_cache(_db: AsyncSession) -> dict:
+    """Wipe the on-disk image proxy cache.
+
+    OFF by default — the admin opts in explicitly via the scheduler
+    UI (or clicks "Vider" on the cache row, which calls the same
+    helper). Returns the count for the observability surface.
+    """
+    from services.portal.image_cache import clear_cache
+    removed = clear_cache()
+    return {"removed": removed}
+
+
 async def _handler_cleanup_available_requests(db: AsyncSession) -> dict:
     """Drop ``available`` media requests older than the configured window.
 

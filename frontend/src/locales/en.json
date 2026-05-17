@@ -1279,6 +1279,7 @@
     "expire_users": "Automatically disables accounts (Emby + MediaKeeper) whose access window has expired.",
     "cleanup_available_requests": "Automatically clears available requests after the configured grace period.",
     "gdpr_purge": "Permanently removes user accounts marked for GDPR purge.",
+    "clear_image_cache": "Automatically clears the on-disk image cache (manual purge also available from the cache row).",
     "starting": "Starting…",
     "cache": {
       "title": "Cache",

@@ -1,6 +1,7 @@
 """Task definitions — label, default interval, handler."""
 from ._handlers import (
     _handler_backup,
+    _handler_clear_image_cache,
     _handler_cleanup_available_requests,
     _handler_duplicates,
     _handler_emby_refresh,
@@ -95,5 +96,14 @@ TASK_DEFINITIONS: dict[str, dict] = {
                                 # when off (early return, no query).
         "handler":     _handler_gdpr_purge,
         "description": "scheduler.gdpr_purge",
+    },
+    "clear_image_cache": {
+        "label":       "Clear image cache",
+        "default_sec": 604800,  # 7 days
+        "default_on":  False,   # Opt-in: no automatic purge until the
+                                # admin sets a schedule, the disk has
+                                # no size cap by design.
+        "handler":     _handler_clear_image_cache,
+        "description": "scheduler.clear_image_cache",
     },
 }

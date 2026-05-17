@@ -1,0 +1,212 @@
+"""On-disk image proxy + cache for TMDB posters / backdrops.
+
+Mirrors Seerr's "Cache d'images" feature: when the admin enables
+``network.image_cache_enabled``, every poster URL the API hands to
+the frontend is rewritten to flow through this service. The first
+request for a given URL downloads the bytes from the TMDB CDN and
+saves them under ``/data/cache/images/<sha256>.<ext>``; subsequent
+requests stream the file straight from disk.
+
+Why this matters:
+- Reduces outbound bandwidth from the NAS (TMDB only pays once per
+  unique image instead of once per page load).
+- Keeps the portal responsive when TMDB rate-limits or has a slow
+  CDN edge.
+- The user explicitly opted out of a size cap — purge is manual via
+  a scheduler task (and a "Vider" button in the admin UI later).
+
+Flag freshness:
+- ``_enabled`` is a module-level snapshot, refreshed at startup and
+  at the start of any endpoint that hands TMDB items to the frontend
+  (via :func:`refresh_enabled_flag`). The TTL means an admin toggle
+  propagates within ~30 s without any cross-process IPC.
+- ``_normalize`` reads the snapshot synchronously (no ``await``
+  available where TMDB results are reshaped).
+"""
+from __future__ import annotations
+
+import hashlib
+import logging
+import os
+import time
+import urllib.parse
+from pathlib import Path
+
+import httpx
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.http_client import get_external_client
+from services.settings import get_setting
+
+logger = logging.getLogger("mediakeeper.portal.image_cache")
+
+CACHE_DIR = Path(os.environ.get("MK_IMAGE_CACHE_DIR", "/data/cache/images"))
+SETTING_KEY = "network.image_cache_enabled"
+PROXY_PATH = "/api/img"
+
+# How long a cached ``_enabled`` snapshot stays trusted before we
+# re-read the DB. 30 s feels right for admin toggles: long enough
+# that high-traffic endpoints don't query the settings table on
+# every call, short enough that the admin notices the change.
+_ENABLED_TTL_SECONDS = 30.0
+
+_enabled = False
+_enabled_last_refresh = 0.0
+
+_stats: dict[str, int] = {"hits": 0, "misses": 0}
+
+
+async def refresh_enabled_flag(db: AsyncSession, *, force: bool = False) -> bool:
+    """Re-read the toggle from settings if the cached snapshot is stale.
+
+    Returns the current value. Callers that hand TMDB items to the
+    frontend should invoke this near the top of their request handler
+    so a freshly-toggled admin preference propagates quickly.
+    """
+    global _enabled, _enabled_last_refresh
+    now = time.time()
+    if not force and (now - _enabled_last_refresh) < _ENABLED_TTL_SECONDS:
+        return _enabled
+    try:
+        raw = await get_setting(db, SETTING_KEY)
+    except Exception as e:  # noqa: BLE001 -- best-effort, log + keep
+        logger.warning(f"image_cache: failed to read {SETTING_KEY}: {e}")
+        return _enabled
+    _enabled = (raw or "").strip().lower() == "true"
+    _enabled_last_refresh = now
+    return _enabled
+
+
+def is_enabled() -> bool:
+    """Synchronous flag accessor for code paths that can't ``await``.
+
+    Reads the snapshot updated by :func:`refresh_enabled_flag` — when
+    the snapshot has never been initialised the function returns
+    ``False`` (the conservative default).
+    """
+    return _enabled
+
+
+def proxied_url(original_url: str) -> str:
+    """Replace a TMDB CDN URL with the local proxy URL.
+
+    Encodes the original URL so the proxy can fetch from the right
+    upstream. Non-TMDB URLs are returned unchanged — this keeps
+    avatars and other inline images out of the cache scope.
+    """
+    if not original_url or not original_url.startswith("https://image.tmdb.org/"):
+        return original_url
+    encoded = urllib.parse.quote(original_url, safe="")
+    return f"{PROXY_PATH}?u={encoded}"
+
+
+def _hash_for(url: str) -> str:
+    return hashlib.sha256(url.encode("utf-8")).hexdigest()
+
+
+def _path_for(url: str) -> Path:
+    digest = _hash_for(url)
+    # Suffix preservation lets the browser DevTools show .jpg / .webp
+    # next to the request — purely cosmetic but useful when debugging.
+    suffix = Path(urllib.parse.urlparse(url).path).suffix or ".bin"
+    return CACHE_DIR / f"{digest}{suffix}"
+
+
+def _ensure_cache_dir() -> None:
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+
+async def fetch_or_serve(original_url: str) -> tuple[bytes, str]:
+    """Return ``(bytes, content_type)`` for the requested URL.
+
+    Hits the disk first; on miss, downloads from upstream and saves
+    a copy. Errors fall back to a one-shot fetch without persistence
+    so the user never sees a broken image just because the disk
+    write failed.
+    """
+    _ensure_cache_dir()
+    path = _path_for(original_url)
+    if path.exists():
+        _stats["hits"] += 1
+        return path.read_bytes(), _guess_content_type(path)
+
+    _stats["misses"] += 1
+    try:
+        client = get_external_client()
+        resp = await client.get(original_url, timeout=10.0)
+        if resp.status_code != 200:
+            logger.warning(
+                f"image_cache: upstream HTTP {resp.status_code} for {original_url}"
+            )
+            return resp.content, resp.headers.get("content-type", "image/jpeg")
+        content = resp.content
+        try:
+            path.write_bytes(content)
+        except OSError as e:
+            # Disk full / permissions / read-only mount — return the
+            # bytes anyway so the user sees the image; the next request
+            # will try the write again.
+            logger.warning(f"image_cache: write failed for {path}: {e}")
+        return content, resp.headers.get("content-type", "image/jpeg")
+    except httpx.HTTPError as e:
+        logger.warning(f"image_cache: upstream fetch failed for {original_url}: {e}")
+        raise
+
+
+def _guess_content_type(path: Path) -> str:
+    """Crude suffix-to-MIME mapping; good enough for TMDB CDN content."""
+    suffix = path.suffix.lower()
+    return {
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".png": "image/png",
+        ".webp": "image/webp",
+        ".gif": "image/gif",
+    }.get(suffix, "application/octet-stream")
+
+
+def get_cache_stats() -> dict:
+    """Snapshot for the admin readout — same shape as the TMDB cache."""
+    keys = 0
+    value_bytes = 0
+    if CACHE_DIR.exists():
+        try:
+            for entry in CACHE_DIR.iterdir():
+                if entry.is_file():
+                    keys += 1
+                    try:
+                        value_bytes += entry.stat().st_size
+                    except OSError:
+                        pass
+        except OSError as e:
+            logger.warning(f"image_cache: stat failed on {CACHE_DIR}: {e}")
+    return {
+        "name": "Image cache (TMDB)",
+        "hits": _stats["hits"],
+        "misses": _stats["misses"],
+        "keys": keys,
+        "max_keys": None,
+        "ttl_seconds": None,
+        "value_bytes": value_bytes,
+    }
+
+
+def clear_cache() -> int:
+    """Drop every cached file + reset the counters.
+
+    Returns the number of files removed. Errors on individual files
+    are logged but never raised — partial purge is better than no
+    purge when the disk is in trouble.
+    """
+    removed = 0
+    if CACHE_DIR.exists():
+        for entry in CACHE_DIR.iterdir():
+            if entry.is_file():
+                try:
+                    entry.unlink()
+                    removed += 1
+                except OSError as e:
+                    logger.warning(f"image_cache: unlink failed for {entry}: {e}")
+    _stats["hits"] = 0
+    _stats["misses"] = 0
+    return removed
