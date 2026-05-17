@@ -36,9 +36,9 @@
             <dt>{{ $t('portal.detail.releaseDate') }}</dt>
             <dd>{{ formatDate(media.release_date) }}</dd>
           </template>
-          <template v-if="media.languages?.length">
+          <template v-if="media.original_language_label">
             <dt>{{ $t('portal.detail.originalLanguage') }}</dt>
-            <dd>{{ media.languages[0] }}</dd>
+            <dd>{{ media.original_language_label }}</dd>
           </template>
           <template v-if="media.countries?.length">
             <dt>{{ $t('portal.detail.country') }}</dt>

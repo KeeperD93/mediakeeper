@@ -152,9 +152,7 @@ const runtimeLabel = computed(() => {
   return h > 0 ? `${h}h${m > 0 ? m : ''}` : `${m}min`
 })
 
-const languageLabel = computed(
-  () => props.media.languages?.[0] || props.media.original_language?.toUpperCase() || '',
-)
+const languageLabel = computed(() => props.media.original_language_label || '')
 const countryLabel = computed(() => props.media.countries?.[0] || '')
 
 const requestBtnLabel = computed(() => t('portal.detail.request'))

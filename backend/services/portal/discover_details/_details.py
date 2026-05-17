@@ -102,10 +102,18 @@ async def get_full_details(
         reviews = extract_reviews(d.get("reviews", {}))
         studios = extract_studios(d.get("production_companies", []))
         countries = [c.get("name", "") for c in d.get("production_countries", [])]
-        languages = [
-            lang.get("english_name") or lang.get("name") or ""
-            for lang in d.get("spoken_languages", [])
-        ]
+        # Resolve the original-language label by matching ``original_language``
+        # (ISO 639-1 code) against ``spoken_languages``. TMDB localises
+        # ``name`` according to the request's ``language`` parameter, so we
+        # prefer it over ``english_name``. Falls back to the upper-cased
+        # code when the spoken-languages list omits the original.
+        original_language_label = ""
+        for sl in d.get("spoken_languages") or []:
+            if (sl.get("iso_639_1") or "").lower() == original_lang.lower():
+                original_language_label = sl.get("name") or sl.get("english_name") or ""
+                break
+        if not original_language_label and original_lang:
+            original_language_label = original_lang.upper()
 
         external = d.get("external_ids", {}) or {}
 
@@ -134,8 +142,8 @@ async def get_full_details(
             "watch_providers": pick_watch_providers(d),
             "studios": studios,
             "countries": countries,
-            "languages": languages,
             "original_language": d.get("original_language", ""),
+            "original_language_label": original_language_label,
             "homepage": d.get("homepage", ""),
             "imdb_id": external.get("imdb_id", ""),
             "certification": pick_certification(d, media_type),
