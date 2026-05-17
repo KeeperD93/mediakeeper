@@ -91,7 +91,16 @@ export function useDashboardData() {
           } catch {
             online = false
           }
-          if (k === 'emby' && tool.url) embyBaseUrl.value = tool.url.replace(/\/$/, '')
+          if (k === 'emby') {
+            // Prefer the optional HTTPS ``public_url`` over the internal
+            // ``url`` so the dashboard "Watch on Emby" deep-link mirrors
+            // what the portal builds via ``get_emby_public_url``. Falls
+            // back to the internal URL when no public URL is configured.
+            const pub = (tool.public_url || '').trim()
+            const internal = (tool.url || '').trim()
+            const chosen = pub || internal
+            if (chosen) embyBaseUrl.value = chosen.replace(/\/$/, '')
+          }
           return { key: k, label: tool.label || k.charAt(0).toUpperCase() + k.slice(1), online }
         }),
       )

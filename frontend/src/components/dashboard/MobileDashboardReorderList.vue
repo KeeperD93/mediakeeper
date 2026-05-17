@@ -1,5 +1,10 @@
 <template>
-  <TransitionGroup tag="div" name="m-dash-row" class="m-dash-reorder">
+  <TransitionGroup
+    tag="div"
+    name="m-dash-row"
+    class="m-dash-reorder"
+    :class="{ 'm-dash-reorder--active': draggedId !== null }"
+  >
     <div
       v-for="id in draftOrder"
       :key="id"
@@ -34,13 +39,6 @@ const emit = defineEmits(['reorder'])
 
 const { t } = useI18n()
 const draggedId = ref(null)
-// Cooldown gate: after a swap we ignore touchmoves for this many ms
-// to let the FLIP transition settle. ``getBoundingClientRect`` in
-// Chromium includes the CSS transform mid-animation, so without this
-// guard the midpoint check below would see neighbours hover-flick
-// over the finger and oscillate.
-const SWAP_COOLDOWN_MS = 100
-let lastSwapAt = 0
 
 function titleFor(id) {
   const key = WIDGET_TITLE_KEY[id]
@@ -75,8 +73,6 @@ function onDocTouchMove(e) {
   // Block the page's native scroll so the finger stays glued to the
   // dragged row while reorder hit-testing happens.
   e.preventDefault()
-  // Cooldown gate (see SWAP_COOLDOWN_MS) — bail out fast, no DOM work.
-  if (performance.now() - lastSwapAt < SWAP_COOLDOWN_MS) return
   const t0 = e.touches && e.touches[0]
   if (!t0) return
   const el = document.elementFromPoint(t0.clientX, t0.clientY)
@@ -88,18 +84,14 @@ function onDocTouchMove(e) {
   const fromIdx = props.draftOrder.indexOf(draggedId.value)
   const toIdx = props.draftOrder.indexOf(overId)
   if (fromIdx < 0 || toIdx < 0) return
-
-  // Midpoint threshold also prevents oscillation: we only commit the
-  // swap once the finger has crossed the target row's vertical
-  // midpoint in the direction of travel.
-  const rect = row.getBoundingClientRect()
-  const midY = rect.top + rect.height / 2
-  const isDraggingDown = fromIdx < toIdx
-  if (isDraggingDown && t0.clientY < midY) return
-  if (!isDraggingDown && t0.clientY > midY) return
-
+  // Oscillation is prevented by the CSS — ``.m-dash-reorder--active``
+  // disables the FLIP transition while a drag is in progress, so the
+  // DOM positions are stable and ``elementFromPoint`` always names
+  // the row that actually sits under the finger. After the swap the
+  // dragged row instantly occupies the neighbour's slot, so the next
+  // touchmove returns the same id and the early ``overId === draggedId``
+  // exit fires — single swap per crossing, no ping-pong.
   emit('reorder', { fromIdx, toIdx })
-  lastSwapAt = performance.now()
 }
 
 onBeforeUnmount(endDrag)
@@ -180,10 +172,16 @@ onBeforeUnmount(endDrag)
   cursor: grabbing;
 }
 
-/* FLIP animation between siblings on swap. Kept short (--duration-fast)
-   so the cooldown gate in onDocTouchMove (100 ms) lets the next swap
-   fire just as the previous one finishes — feels snappy, no lag. */
+/* FLIP animation between siblings on swap — only active when no drag
+   is in progress, so a finished reorder slides cleanly into place.
+   During an active drag we kill the transition (see below) because
+   getBoundingClientRect would otherwise return the transformed rect
+   mid-animation and elementFromPoint would name the wrong row,
+   causing the ping-pong the user reported. */
 .m-dash-row-move {
   transition: transform var(--duration-fast) var(--ease-out);
+}
+.m-dash-reorder--active .m-dash-row-move {
+  transition: none;
 }
 </style>
