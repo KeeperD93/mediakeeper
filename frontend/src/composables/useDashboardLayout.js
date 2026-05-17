@@ -198,9 +198,9 @@ export function useDashboardLayout() {
     }
     try {
       await apiPost('/api/settings/dashboard', {
-        hidden:       hidden.value,
+        hidden: hidden.value,
         positions,
-        v:            LAYOUT_VERSION,
+        v: LAYOUT_VERSION,
         mobile_order: mobileOrder.value,
       })
     } catch (e) {

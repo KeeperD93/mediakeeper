@@ -13,7 +13,7 @@ This section intentionally has no date so it is not shown to users.
 - Portal: new "PosterCard" cover component, i18n/tokens compliant (integration prep).
 - Settings — new Network section with image cache and DNS cache toggles
 - Settings → Scheduler — Cache section (hit/miss stats + Clear button)
-- Dashboard — reorder cards on mobile by long-pressing (drag + Done button)
+- Dashboard — reorder cards on mobile (grip handle, 2 s long-press, edge auto-scroll)
 
 ### Changed
 - Duplicates — streamlined action bar: "Detections" tab and "Last detection" timestamp
@@ -48,6 +48,7 @@ This section intentionally has no date so it is not shown to users.
 - Expired admin session: silent re-login on Requests module, otherwise clear notice on the login screen
 - Login — username accepted regardless of letter case
 - Settings — Cleanup requests and GDPR purge task labels restored (scheduler)
+- Portal — mobile poster grids unified on Search / Discover / Person / Collection (3 cols, 2:3 ratio)
 
 ## [0.9.9] - 2026-05-14
 

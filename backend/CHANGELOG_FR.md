@@ -13,7 +13,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Portal : nouveau composant jaquette « PosterCard » conforme i18n/tokens (préparation à l'intégration).
 - Paramètres — nouvelle section Réseau avec cache d'images et cache DNS (toggles).
 - Paramètres → Planificateur — section Cache (stats hits/manques + bouton Vider).
-- Tableau de bord — réorganisation des cartes au doigt sur mobile (appui long, bouton Terminer).
+- Tableau de bord — réorganisation des cartes au doigt sur mobile (poignée, appui long 2 s, auto-scroll bord d'écran).
 
 ### Changed
 - Doublons — barre d'actions épurée : onglet « Détections » et horodatage « Dernière détection »
@@ -48,6 +48,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Session admin expirée : reconnexion silencieuse sur module Demandes, sinon message clair à la reconnexion.
 - Connexion — identifiant accepté quelle que soit la casse (majuscules/minuscules).
 - Paramètres — libellés tâches Nettoyage demandes et Purge RGPD restaurés (planificateur).
+- Portal — jaquettes mobile uniformisées sur Recherche / Discover / Personne / Collection (3 colonnes, ratio 2/3).
 
 ## [0.9.9] - 2026-05-14
 
