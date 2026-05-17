@@ -26,48 +26,55 @@
       </div>
 
       <aside class="vmd2-sidebar">
-        <h3>{{ $t('portal.detail.details') }}</h3>
+        <h3 class="vmd2-sidebar-heading">{{ $t('portal.detail.details') }}</h3>
         <dl class="vmd2-facts-list">
           <template v-if="media.status">
-            <dt>{{ $t('portal.detail.status') }}</dt>
-            <dd>{{ translatedStatus }}</dd>
+            <dt><CircleDot class="vmd2-fact-icon" aria-hidden="true" />{{ $t('portal.detail.status') }}</dt>
+            <dd>
+              <span
+                class="vmd2-status-dot"
+                :class="`vmd2-status-dot--${statusVariant}`"
+                aria-hidden="true"
+              />
+              {{ translatedStatus }}
+            </dd>
           </template>
           <template v-if="media.release_date">
-            <dt>{{ $t('portal.detail.releaseDate') }}</dt>
+            <dt><CalendarDays class="vmd2-fact-icon" aria-hidden="true" />{{ $t('portal.detail.releaseDate') }}</dt>
             <dd>{{ formatDate(media.release_date) }}</dd>
           </template>
           <template v-if="originalLanguageLabel">
-            <dt>{{ $t('portal.detail.originalLanguage') }}</dt>
+            <dt><Globe class="vmd2-fact-icon" aria-hidden="true" />{{ $t('portal.detail.originalLanguage') }}</dt>
             <dd>{{ originalLanguageLabel }}</dd>
           </template>
           <template v-if="countriesLabel">
-            <dt>{{ $t('portal.detail.country') }}</dt>
+            <dt><MapPin class="vmd2-fact-icon" aria-hidden="true" />{{ $t('portal.detail.country') }}</dt>
             <dd>{{ countriesLabel }}</dd>
           </template>
           <template v-if="media.budget">
-            <dt>{{ $t('portal.detail.budget') }}</dt>
+            <dt><Banknote class="vmd2-fact-icon" aria-hidden="true" />{{ $t('portal.detail.budget') }}</dt>
             <dd>${{ formatMoney(media.budget) }}</dd>
           </template>
           <template v-if="media.revenue">
-            <dt>{{ $t('portal.detail.revenue') }}</dt>
+            <dt><TrendingUp class="vmd2-fact-icon" aria-hidden="true" />{{ $t('portal.detail.revenue') }}</dt>
             <dd>${{ formatMoney(media.revenue) }}</dd>
           </template>
           <template v-if="media.seasons_count">
-            <dt>{{ $t('portal.detail.seasons') }}</dt>
+            <dt><Layers class="vmd2-fact-icon" aria-hidden="true" />{{ $t('portal.detail.seasons') }}</dt>
             <dd>{{ media.seasons_count }}</dd>
           </template>
           <template v-if="media.episodes_count">
-            <dt>{{ $t('portal.detail.episodes') }}</dt>
+            <dt><Tv class="vmd2-fact-icon" aria-hidden="true" />{{ $t('portal.detail.episodes') }}</dt>
             <dd>{{ media.episodes_count }}</dd>
           </template>
           <template v-if="media.networks?.length">
-            <dt>{{ $t('portal.detail.network') }}</dt>
+            <dt><Radio class="vmd2-fact-icon" aria-hidden="true" />{{ $t('portal.detail.network') }}</dt>
             <dd>{{ media.networks.join(', ') }}</dd>
           </template>
         </dl>
 
         <template v-if="media.studios?.length">
-          <h3>{{ $t('portal.detail.production') }}</h3>
+          <h3 class="vmd2-sidebar-heading">{{ $t('portal.detail.production') }}</h3>
           <div class="vmd2-keyword-list">
             <span v-for="s in media.studios.slice(0, 6)" :key="s.name" class="vmd2-keyword">
               {{ s.name }}
@@ -75,14 +82,14 @@
           </div>
         </template>
 
-        <h3>{{ $t('portal.detail.externalLinks') }}</h3>
+        <h3 class="vmd2-sidebar-heading">{{ $t('portal.detail.externalLinks') }}</h3>
         <div class="vmd2-external-links">
           <a
             :href="`https://www.themoviedb.org/${media.media_type}/${media.tmdb_id}`"
             target="_blank"
             rel="noopener"
           >
-            TMDB
+            TMDB<ExternalLink class="vmd2-link-icon" aria-hidden="true" />
           </a>
           <a
             v-if="media.imdb_id"
@@ -90,10 +97,10 @@
             target="_blank"
             rel="noopener"
           >
-            IMDb
+            IMDb<ExternalLink class="vmd2-link-icon" aria-hidden="true" />
           </a>
           <a v-if="homepageHref" :href="homepageHref" target="_blank" rel="noopener">
-            {{ $t('portal.detail.officialSite') }}
+            {{ $t('portal.detail.officialSite') }}<ExternalLink class="vmd2-link-icon" aria-hidden="true" />
           </a>
         </div>
       </aside>
@@ -104,6 +111,18 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import {
+  Banknote,
+  CalendarDays,
+  CircleDot,
+  ExternalLink,
+  Globe,
+  Layers,
+  MapPin,
+  Radio,
+  TrendingUp,
+  Tv,
+} from 'lucide-vue-next'
 import { formatCountry, formatLanguage } from '@/utils/formatIntlLabel'
 import { safeHref } from '@/utils/safeUrl'
 
@@ -112,6 +131,24 @@ const props = defineProps({
 })
 
 const { te, t, locale } = useI18n()
+
+// Maps TMDB ``status`` strings to a portal severity token. Keeps the
+// dot in the sidebar coherent with the status ribbon on the hero.
+const STATUS_DOT_VARIANT = Object.freeze({
+  Released: 'success',
+  'Returning Series': 'success',
+  'In Production': 'warning',
+  'Post Production': 'warning',
+  Planned: 'warning',
+  Pilot: 'warning',
+  Ended: 'neutral',
+  Rumored: 'neutral',
+  Canceled: 'error',
+})
+
+const statusVariant = computed(
+  () => STATUS_DOT_VARIANT[props.media.status] || 'neutral',
+)
 
 const originalLanguageLabel = computed(() =>
   formatLanguage(props.media.original_language, locale.value),
