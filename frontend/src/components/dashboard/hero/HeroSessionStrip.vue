@@ -23,7 +23,7 @@
       <MkAvatar
         :src="userImages[s.user_id] || null"
         :name="s.user || '?'"
-        :size="36"
+        :size="avatarSize"
         class="mk-avatar--ring-subtle"
       />
     </div>
@@ -38,8 +38,9 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useUserImages } from '@/composables/useUserImages'
+import { useMobile } from '@/composables/useMobile'
 import MkAvatar from '@/components/common/MkAvatar.vue'
 
 const props = defineProps({
@@ -49,7 +50,13 @@ const props = defineProps({
 const emit = defineEmits(['go-to'])
 
 const { getUserImageUrl } = useUserImages()
+const { isMobile } = useMobile()
 const userImages = ref({})
+
+// 28 px on phones keeps four avatars + the "+N" badge inside the
+// dashboard hero's compact right column without forcing the rest of
+// the layout to wrap. Desktop stays at the original 36 px.
+const avatarSize = computed(() => (isMobile.value ? 28 : 36))
 
 watch(
   () => props.sessions,
@@ -165,6 +172,22 @@ watch(
     order: 3;
     padding-bottom: 0;
     margin-left: auto;
+  }
+  /* Shrink the avatar stack to match the smaller phone hero so the
+     row fits without wrapping and avatars no longer visually overlap
+     into one blob — the ``avatarSize`` prop and the ring shadow are
+     scaled together. */
+  .hero-av-slot,
+  .hero-av-more {
+    width: 28px;
+    height: 28px;
+    box-shadow: 0 0 0 1.5px var(--hero-bg, #0a0e1a);
+  }
+  .hero-av-offset {
+    margin-left: -6px;
+  }
+  .hero-av-more {
+    font-size: var(--text-3xs);
   }
 }
 
