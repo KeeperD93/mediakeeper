@@ -188,22 +188,25 @@ function onBlacklist() {}
 .mk-mediacard--fill {
   display: block;
   width: 100%;
+  /* Anchor the 2:3 ratio on the card wrapper itself so each grid track
+     resolves to the same height regardless of the inner cascade. Both
+     ``.mk-poster`` and ``.mk-poster__art`` then consume 100% of that
+     box, which keeps `<img>` height: 100% / object-fit: cover stable
+     across browsers (the previous attempt put aspect-ratio on the
+     inner art element, where ``height: 100%`` on the <img> resolved
+     against an aspect-ratio-defined parent — Chromium handles it but
+     mobile Safari/Firefox occasionally fell back to the natural image
+     aspect, producing the ragged-row effect). */
+  aspect-ratio: 2 / 3;
 }
 .mk-mediacard--fill :deep(.mk-poster) {
   --mk-poster-w: 100%;
+  width: 100%;
+  height: 100%;
 }
-/* The poster artwork's intrinsic height computation relies on
-   ``calc(var(--mk-poster-w) * 1.503)`` — fine when the width is a
-   px value but ambiguous when it's a percentage (height % refers to
-   the parent height, which is auto inside a grid cell). Forcing the
-   2:3 aspect ratio here keeps every poster card identically tall
-   regardless of the source image's natural aspect (e.g. a landscape
-   16:9 backdrop that TMDB sometimes returns instead of a portrait
-   poster) and prevents the ragged-row / phantom-gap effect on the
-   search and discover grids. */
 .mk-mediacard--fill :deep(.mk-poster__art) {
-  height: auto;
-  aspect-ratio: 2 / 3;
+  width: 100%;
+  height: 100%;
 }
 
 @media (max-width: 767px) {
