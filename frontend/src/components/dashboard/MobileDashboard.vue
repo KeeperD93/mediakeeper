@@ -57,6 +57,15 @@
           :class="{ 'm-dash-item__inner--floating': draggedId === id }"
           :style="draggedId === id ? floatStyle : null"
         >
+          <button
+            v-if="editMode"
+            type="button"
+            class="m-dash-item__handle"
+            :aria-label="$t('dashboard.mobileReorderTitle')"
+            @touchstart.stop="onHandleTouchStart($event, id)"
+          >
+            <GripVertical :size="22" :stroke-width="2.4" aria-hidden="true" />
+          </button>
           <HealthScore v-if="id === 'healthScore'" />
           <RequestsActionCard v-else-if="id === 'portalAction'" />
           <PortalEngagementCard v-else-if="id === 'portalEngagement'" />
@@ -116,7 +125,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import { ClipboardCheck, Play, Clock, Copy, HardDrive } from 'lucide-vue-next'
+import { ClipboardCheck, GripVertical, Play, Clock, Copy, HardDrive } from 'lucide-vue-next'
 import StatCard from '@/components/dashboard/widgets/StatCard.vue'
 import Heatmap from '@/components/dashboard/widgets/Heatmap.vue'
 import HealthScore from '@/components/dashboard/widgets/HealthScore.vue'
@@ -236,8 +245,22 @@ const dragLongPress = useLongPress(
     if (!id || !card) return
     startDrag(id, card, e)
   },
-  { delay: DRAG_LONG_PRESS_MS, moveThreshold: 12 },
+  // 30 px tolerates the natural finger jitter of a 2 s static hold —
+  // 12 px was strict enough that a slight tremor cancelled the timer
+  // before the user could feel the drag engage.
+  { delay: DRAG_LONG_PRESS_MS, moveThreshold: 30 },
 )
+
+// Tapping the grip handle bypasses both long-press timers entirely.
+// Native scroll stays usable elsewhere on the card, and the handle is
+// only rendered in edit mode so no accidental drag is possible while
+// browsing the dashboard normally.
+function onHandleTouchStart(e, id) {
+  if (!editMode.value) return
+  const card = e.currentTarget?.closest?.('[data-mobile-card-id]')
+  if (!card) return
+  startDrag(id, card, e)
+}
 
 function onItemTouchStart(e, _id) {
   if (editMode.value) {
@@ -402,7 +425,38 @@ onBeforeUnmount(() => {
 }
 
 .m-dash-item__inner {
+  position: relative;
   transition: transform 220ms ease, box-shadow 220ms ease, opacity 200ms ease;
+}
+
+/* Edit-mode drag handle — explicit grip the user can grab to lift a
+   card instantly without waiting for the 2 s long-press to register.
+   Sized 44×44 to meet the Rules.md §2.6 minimum touch target. */
+.m-dash-item__handle {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 5;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(99, 102, 241, 0.55);
+  background: rgb(15, 18, 32, 0.85);
+  color: var(--accent-300, #a5b4fc);
+  border-radius: 999px;
+  cursor: grab;
+  box-shadow: 0 6px 14px rgb(0, 0, 0, 0.35);
+  /* Ensure the handle wins the gesture even when the user starts on
+     its visible bounds — pan-y on the card surface is irrelevant
+     here because we bind touchstart directly with .stop. */
+  touch-action: none;
+}
+
+.m-dash-item__handle:active {
+  cursor: grabbing;
+  transform: scale(0.94);
 }
 
 .m-dash-item--editing .m-dash-item__inner {
