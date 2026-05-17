@@ -431,32 +431,33 @@ onBeforeUnmount(() => {
 
 /* Edit-mode drag handle — explicit grip the user can grab to lift a
    card instantly without waiting for the 2 s long-press to register.
-   Sized 44×44 to meet the Rules.md §2.6 minimum touch target. */
+   Top-centre placement so the gesture origin is unambiguous on every
+   card width. The 44×44 hit box keeps Rules.md §2.6 happy while the
+   visible glyph stays minimal (no chip, no halo). */
 .m-dash-item__handle {
   position: absolute;
-  top: 6px;
-  right: 6px;
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 5;
   width: 44px;
   height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgb(99, 102, 241, 0.55);
-  background: rgb(15, 18, 32, 0.85);
+  border: 0;
+  background: transparent;
   color: var(--accent-300, #a5b4fc);
-  border-radius: 999px;
   cursor: grab;
-  box-shadow: 0 6px 14px rgb(0, 0, 0, 0.35);
-  /* Ensure the handle wins the gesture even when the user starts on
-     its visible bounds — pan-y on the card surface is irrelevant
-     here because we bind touchstart directly with .stop. */
+  padding: 0;
+  /* Lock the gesture even when the user lands on the visible glyph —
+     pan-y on the card body is irrelevant once .stop fires on touch. */
   touch-action: none;
 }
 
 .m-dash-item__handle:active {
   cursor: grabbing;
-  transform: scale(0.94);
+  transform: translateX(-50%) scale(0.92);
 }
 
 .m-dash-item--editing .m-dash-item__inner {
