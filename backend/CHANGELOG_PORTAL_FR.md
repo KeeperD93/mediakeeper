@@ -47,6 +47,8 @@ utilisateurs.
 - Fiche personne — badge statut des demandes à nouveau visible sur la filmographie.
 - Recherche — refonte live TMDB avec cache 5 min (jaquettes toujours fraîches).
 - Fiche détail — langue et pays traduits dans la langue de l'interface.
+- Accueil — bandes-annonces héros : priorité aux versions officielles récentes (meilleure VF).
+- Accueil — changement manuel de slide héros : compteur 45 s réinitialisé.
 
 ## [0.3.0] - 2026-05-14
 

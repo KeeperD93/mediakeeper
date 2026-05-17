@@ -77,6 +77,21 @@ export function usePortalHomeData() {
     pendingNextHeroTimer = null
   }
 
+  // Manual jump from the dot strip — refresh the anti-skip sentinel and
+  // cancel any pending early rotation so the user always sees the full
+  // HERO_MIN_INTERVAL_MS window on the slide they picked.
+  function gotoHero(index) {
+    const items = heroItems.value
+    if (items.length <= 1) return
+    if (!Number.isInteger(index) || index < 0 || index >= items.length) return
+    if (pendingNextHeroTimer) {
+      clearTimeout(pendingNextHeroTimer)
+      pendingNextHeroTimer = null
+    }
+    heroIndex.value = index
+    lastHeroSwitchTs = Date.now()
+  }
+
   function startHeroRotation() {
     stopHeroRotation()
     heroTimer = setInterval(() => {
@@ -217,6 +232,7 @@ export function usePortalHomeData() {
     heroPaused,
     featuredCount,
     nextHero,
+    gotoHero,
     startHeroRotation,
     stopHeroRotation,
     // Loader

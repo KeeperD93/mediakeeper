@@ -45,6 +45,8 @@ This section intentionally has no date so it is not shown to users.
 - Person page — request status badge visible again on filmography
 - Search — live TMDB rework with 5-minute cache (posters always fresh)
 - Detail page — language and country localised in the UI language.
+- Home — hero trailers: official and most recent versions prioritised (better French dub).
+- Home — manual hero slide jump now resets the 45 s timer.
 
 ## [0.3.0] - 2026-05-14
 

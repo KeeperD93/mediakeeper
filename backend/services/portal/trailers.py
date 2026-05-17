@@ -222,8 +222,14 @@ def _pick_video(videos: list[dict], language: Optional[str]) -> Optional[dict]:
     Pick the best video matching ``language``.
 
     - ``language=None`` matches *any* video and is the final fallback step.
-    - We prefer ``Trailer`` over ``Teaser`` and earlier results over later.
     - We only consider YouTube and Vimeo (the two TMDB-supported providers).
+    - Ranking (most important first):
+        1. ``Trailer`` before ``Teaser``;
+        2. ``official=True`` before ``official=False`` — surfaces the
+           publisher's own French dub over fan-uploaded VOSTFR teasers;
+        3. most recent ``published_at`` first — newer trailers usually
+           ship with the full localised dub instead of an early subtitled
+           promo cut.
     """
     candidates = []
     for v in videos:
@@ -238,8 +244,14 @@ def _pick_video(videos: list[dict], language: Optional[str]) -> Optional[dict]:
     if not candidates:
         return None
 
-    # Trailers before teasers, then keep TMDB's own ordering.
-    candidates.sort(key=lambda v: 0 if v.get("type") == "Trailer" else 1)
+    # Python sort is stable: tie-break by published_at desc first, then
+    # re-sort by primary criteria so equal Trailer/official rows keep the
+    # newest-first order.
+    candidates.sort(key=lambda v: v.get("published_at") or "", reverse=True)
+    candidates.sort(key=lambda v: (
+        0 if v.get("type") == "Trailer" else 1,
+        0 if v.get("official") else 1,
+    ))
     best = candidates[0]
     site = best.get("site", "YouTube").lower()
     return {
