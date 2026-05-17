@@ -26,6 +26,7 @@
           v-for="item in items"
           :key="`${item.media_type || 'movie'}-${item.tmdb_id || item.id}`"
           :item="item"
+          fill
           @select="openDetail(item)"
           @request="requestItem = item"
         />

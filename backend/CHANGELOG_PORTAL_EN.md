@@ -26,6 +26,7 @@ This section intentionally has no date so it is not shown to users.
 - Mobile home: hero descriptions hidden to declutter
 - Home — hero banner: rotates to the next video after at least 45 seconds
 - What's new — overlay shown once per day (Close button is enough)
+- Lists (Discover, Search, Person, Collection) — 3 posters per row on mobile, tighter spacing
 
 ### Fixed
 - Home: removed the burst of "Too many attempts" notifications on load

@@ -28,6 +28,7 @@ utilisateurs.
 - Accueil mobile : synopsis des héros masqués pour aérer.
 - Accueil — bannière vidéo : passage à la suivante toutes les 45 secondes minimum.
 - Quoi de neuf — overlay affiché une seule fois par jour (bouton Fermer suffit).
+- Listes (Découvrir, Recherche, Personne, Collection) — 3 jaquettes par ligne sur mobile, espace resserré.
 
 ### Fixed
 - Accueil : suppression de la rafale de notifications « Trop de tentatives » au chargement

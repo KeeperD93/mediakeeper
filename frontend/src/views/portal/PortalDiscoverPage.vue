@@ -32,6 +32,7 @@
         v-for="item in items"
         :key="`${item.media_type}-${item.tmdb_id || item.id}`"
         :item="item"
+        fill
         @select="onSelect(item)"
         @request="onRequest(item)"
       />
@@ -209,21 +210,27 @@ watch(
   color: #fff;
 }
 
+/* Mobile: lock to 3 columns so every viewport ≤ 640 px gets a tight
+   row of three posters that always fills the available width — no
+   stray "almost-fits-four" gap, no 108 px island centred inside a
+   wider 1fr track. The MediaCard ``fill`` modifier stretches each
+   poster to its 1fr cell. */
 .dmd-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(clamp(108px, 30vw, 120px), 1fr));
-  gap: 6px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
   margin-bottom: 1.5rem;
 }
-@media (min-width: 768px) {
+@media (min-width: 641px) {
   .dmd-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
   }
 }
 @media (min-width: 1024px) {
   .dmd-grid {
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
   }
 }
 
