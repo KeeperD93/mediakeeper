@@ -36,6 +36,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Statistiques — records empilés en colonne sur mobile.
 - Watchlist Manquants : nouveau label « Dernier scan », bouton renommé « Analyser ».
 - Watchlist : bande TMDB allégée, jaquettes Suivi alignées sur le portail (mobile).
+- Tableau de bord — avatars « En direct » alignés sur Utilisateurs (silhouette unifiée, pseudo en bulle).
 
 ### Fixed
 - Portal : limite débit /availability portée à 120/min, coalescing front, dédupe toasts 429

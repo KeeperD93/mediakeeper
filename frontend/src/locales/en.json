@@ -2406,7 +2406,6 @@
       "subtitle": "Your daily recap on Demandes — what's new, how you're doing, what's coming up.",
       "empty": "Nothing new today — check back tomorrow!",
       "errorLoad": "Couldn't load today's digest.",
-      "dismissToday": "Don't show again today",
       "greeting": {
         "morning": "Good morning",
         "afternoon": "Good afternoon",

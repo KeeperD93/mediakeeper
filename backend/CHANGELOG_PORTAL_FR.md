@@ -26,6 +26,8 @@ utilisateurs.
 - Page personne — hero responsive (photo + titre adaptés au mobile).
 - Jaquettes mobile : actions retirées, clic direct sur la fiche.
 - Accueil mobile : synopsis des héros masqués pour aérer.
+- Accueil — bannière vidéo : passage à la suivante toutes les 45 secondes minimum.
+- Quoi de neuf — overlay affiché une seule fois par jour (bouton Fermer suffit).
 
 ### Fixed
 - Accueil : suppression de la rafale de notifications « Trop de tentatives » au chargement

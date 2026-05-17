@@ -15,19 +15,23 @@
     <div
       v-for="(s, i) in sessions.slice(0, 4)"
       :key="i"
-      class="hero-av"
+      class="hero-av-slot"
       :class="{ 'hero-av-offset': i > 0 }"
-      :style="{ background: avColors[i % avColors.length], zIndex: 10 - i }"
+      :title="s.user || '?'"
+      :style="{ zIndex: 10 - i }"
     >
-      <img
-        v-if="userImages[s.user_id]"
-        :src="userImages[s.user_id]"
-        class="hero-av-img"
-        @error="$event => $event.target.remove()"
+      <MkAvatar
+        :src="userImages[s.user_id] || null"
+        :name="s.user || '?'"
+        :size="36"
+        class="mk-avatar--ring-subtle"
       />
-      <span>{{ (s.user || '?')[0].toUpperCase() }}</span>
     </div>
-    <div v-if="sessions.length > 4" class="hero-av hero-av-more hero-av-offset">
+    <div
+      v-if="sessions.length > 4"
+      class="hero-av-more hero-av-offset"
+      :title="$t('dashboard.activeCount', { count: sessions.length })"
+    >
       +{{ sessions.length - 4 }}
     </div>
   </div>
@@ -36,6 +40,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { useUserImages } from '@/composables/useUserImages'
+import MkAvatar from '@/components/common/MkAvatar.vue'
 
 const props = defineProps({
   sessions: { type: Array, default: () => [] },
@@ -45,7 +50,6 @@ const emit = defineEmits(['go-to'])
 
 const { getUserImageUrl } = useUserImages()
 const userImages = ref({})
-const avColors = ['#6366f1', '#0ea5e9', '#f59e0b', '#ec4899', '#22c55e']
 
 watch(
   () => props.sessions,
@@ -103,32 +107,28 @@ watch(
   flex-shrink: 0;
   padding-bottom: 8px;
 }
-.hero-av {
+.hero-av-slot {
+  position: relative;
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 2px solid var(--hero-bg, #0a0e1a);
+  /* Draws the separation between overlapping avatars without
+     enlarging the box — keeps MkAvatar's internal sizing intact. */
+  box-shadow: 0 0 0 2px var(--hero-bg, #0a0e1a);
+}
+.hero-av-more {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--text-xs);
-  font-weight: var(--font-medium);
-  color: #fff;
-  position: relative;
-  overflow: hidden;
-}
-.hero-av-img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
-}
-.hero-av-more {
   background: rgb(255, 255, 255, 0.1);
   font-size: var(--text-2xs);
+  font-weight: var(--font-medium);
   color: var(--text-faint);
+  box-shadow: 0 0 0 2px var(--hero-bg, #0a0e1a);
 }
 .hero-av-offset {
   margin-left: -8px;

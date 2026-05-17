@@ -2406,7 +2406,6 @@
       "subtitle": "Votre résumé quotidien sur Demandes — les nouveautés, votre progression et ce qui vous attend.",
       "empty": "Rien de neuf pour aujourd'hui — revenez demain !",
       "errorLoad": "Impossible de charger le résumé du jour.",
-      "dismissToday": "Ne plus afficher aujourd'hui",
       "greeting": {
         "morning": "Bonjour",
         "afternoon": "Bon après-midi",

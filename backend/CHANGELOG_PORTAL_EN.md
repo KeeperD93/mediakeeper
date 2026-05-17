@@ -24,6 +24,8 @@ This section intentionally has no date so it is not shown to users.
 - Person page — responsive hero (photo + title adapted to mobile)
 - Mobile posters: actions removed, tap opens the detail page
 - Mobile home: hero descriptions hidden to declutter
+- Home — hero banner: rotates to the next video after at least 45 seconds
+- What's new — overlay shown once per day (Close button is enough)
 
 ### Fixed
 - Home: removed the burst of "Too many attempts" notifications on load

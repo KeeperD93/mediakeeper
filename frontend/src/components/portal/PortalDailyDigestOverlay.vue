@@ -7,7 +7,7 @@
         role="dialog"
         aria-modal="true"
         :aria-label="$t('portal.dailyDigest.title')"
-        @click.self="close"
+        @click.self="dismissToday"
       >
         <div class="ddd-backdrop-fx" aria-hidden="true" />
         <div ref="panelRef" class="ddd-panel" tabindex="-1">
@@ -16,7 +16,7 @@
             class="ddd-close"
             type="button"
             :aria-label="$t('common.close')"
-            @click="close"
+            @click="dismissToday"
           >
             <X :size="18" />
           </button>
@@ -203,10 +203,7 @@
             </div>
 
             <footer class="ddd-footer">
-              <button type="button" class="ddd-btn-ghost" @click="dismissToday">
-                {{ $t('portal.dailyDigest.dismissToday') }}
-              </button>
-              <button type="button" class="ddd-btn-primary" @click="close">
+              <button type="button" class="ddd-btn-primary" @click="dismissToday">
                 {{ $t('common.close') }}
               </button>
             </footer>
@@ -299,7 +296,10 @@ function close() {
 
 function openMedia(item) {
   if (!item.tmdb_id) return
-  close()
+  // Treat opening a media as a dismissal too — the user has seen
+  // the digest and engaged with it; coming back the same day would
+  // be redundant.
+  dismissToday()
   router.push({
     name: 'portal-media-detail',
     params: { type: item.media_type || 'movie', id: item.tmdb_id },
@@ -363,7 +363,7 @@ useFocusTrap({
   active: visible,
   containerRef: panelRef,
   initialFocusRef: closeBtnRef,
-  onEscape: close,
+  onEscape: dismissToday,
 })
 
 if (props.auto) {

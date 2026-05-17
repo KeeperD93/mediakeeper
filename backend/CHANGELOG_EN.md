@@ -36,6 +36,7 @@ This section intentionally has no date so it is not shown to users.
 - Statistics — records stacked vertically on mobile
 - Watchlist Missing tab: new "Last scan" label, button renamed "Analyze"
 - Watchlist: lighter TMDB attribution, Suivi posters aligned with portal (mobile)
+- Dashboard — "Live now" avatars aligned with Users (unified silhouette, hover tooltip)
 
 ### Fixed
 - Portal: /availability rate limit raised to 120/min, frontend coalescing, 429 toast dedupe
