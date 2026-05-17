@@ -9,7 +9,9 @@
     <!-- Edit mode → titles only, drag-reorder. -->
     <MobileDashboardReorderList v-if="editMode" :draft-order="draftOrder" @reorder="onReorder" />
 
-    <!-- Normal mode → full widgets in order. -->
+    <!-- Normal mode → full widgets in order. The "Customize" entry
+         point lives in the global topbar (icon-only on /dashboard
+         mobile) and dispatches MOBILE_EDIT_EVENT on the window. -->
     <div v-else class="m-dash-stack">
       <MobileDashboardWidget
         v-for="id in effectiveOrder"
@@ -24,15 +26,6 @@
         :watchlist-scan-ago="watchlistScanAgo"
         :leaderboard-entries="leaderboardEntries"
       />
-      <button
-        type="button"
-        class="m-dash-customize"
-        :aria-label="$t('dashboard.customize')"
-        @click="enterEditMode"
-      >
-        <LayoutGrid :size="14" :stroke-width="2.2" aria-hidden="true" />
-        {{ $t('dashboard.customize') }}
-      </button>
     </div>
 
     <MobileDashboardEditToolbar v-if="editMode" @cancel="cancelEdit" @confirm="confirmEdit" />
@@ -40,12 +33,12 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
-import { LayoutGrid } from 'lucide-vue-next'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import MobileDashboardStats from '@/components/dashboard/MobileDashboardStats.vue'
 import MobileDashboardWidget from '@/components/dashboard/MobileDashboardWidget.vue'
 import MobileDashboardReorderList from '@/components/dashboard/MobileDashboardReorderList.vue'
 import MobileDashboardEditToolbar from '@/components/dashboard/MobileDashboardEditToolbar.vue'
+import { MOBILE_EDIT_EVENT } from '@/constants/dashboardEvents'
 
 const props = defineProps({
   hidden: { type: Array, default: () => [] },
@@ -109,6 +102,15 @@ function onReorder({ fromIdx, toIdx }) {
   next.splice(toIdx, 0, moved)
   draftOrder.value = next
 }
+
+// The topbar "Customize" button on mobile fires this window-level
+// event because the two components live in separate router subtrees.
+onMounted(() => {
+  window.addEventListener(MOBILE_EDIT_EVENT, enterEditMode)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener(MOBILE_EDIT_EVENT, enterEditMode)
+})
 </script>
 
 <style scoped>
@@ -129,26 +131,6 @@ function onReorder({ fromIdx, toIdx }) {
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
-
-/* Inline "Customize" trigger sits at the end of the stack so it does
-   not crowd the data above. Style matches the desktop ghost CTA. */
-.m-dash-customize {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  align-self: center;
-  margin-top: 4px;
-  padding: 8px 14px;
-  min-height: 36px;
-  border: 1px solid var(--border-default);
-  background: var(--surface-2);
-  color: var(--text-primary);
-  border-radius: var(--radius-input);
-  font-size: var(--text-xs);
-  font-weight: var(--font-medium);
-  cursor: pointer;
 }
 
 /* Upcoming Episodes — mobile compactage. The default 140 px posters

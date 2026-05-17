@@ -73,6 +73,26 @@
   color: var(--text-muted);
 }
 
+/* Mobile drops the subtitle entirely — the parent ``.mk-topbar`` flex
+   keeps the remaining title row vertically centred in the band. */
+@media (max-width: 767px) {
+  .tb-page-sub {
+    display: none;
+  }
+}
+
+/* Mobile-only "Customize" trigger on /dashboard pages — sits next to
+   the bell. Hidden on tablet + desktop where the existing in-page
+   ghost CTA is the entry point. */
+.tb-customize-btn {
+  display: none;
+}
+@media (max-width: 767px) {
+  .tb-customize-btn {
+    display: inline-flex;
+  }
+}
+
 /* Right */
 .tb-right {
   display: flex;
@@ -170,25 +190,6 @@
   }
 }
 
-.tb-avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: var(--radius-btn);
-  background: linear-gradient(135deg, var(--accent-500), #8b5cf6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--text-xs);
-  font-weight: var(--font-medium);
-  color: #fff;
-  flex-shrink: 0;
-}
-.tb-avatar-lg {
-  width: 36px;
-  height: 36px;
-  font-size: var(--text-base);
-  border-radius: var(--radius-btn);
-}
 .tb-username {
   font-size: var(--text-xs);
   font-weight: var(--font-regular);

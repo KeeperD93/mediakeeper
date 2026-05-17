@@ -39,6 +39,9 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Watchlist : bande TMDB allégée, jaquettes Suivi alignées sur le portail (mobile).
 - Tableau de bord — avatars « En direct » alignés sur Utilisateurs (silhouette unifiée, pseudo en bulle).
 - Tableau de bord — stats mobile compactées (icônes 34 px, libellés 3xs, valeurs lg).
+- Tableau de bord — bouton « Personnaliser » mobile déplacé dans le bandeau (icône à gauche de la cloche).
+- Barre du haut — sous-titre masqué sur mobile, titre centré dans le bandeau.
+- Avatar de la barre du haut (admin + portail) — aligné sur celui des fiches utilisateurs (photo réelle + silhouette de secours).
 
 ### Fixed
 - Portal : limite débit /availability portée à 120/min, coalescing front, dédupe toasts 429

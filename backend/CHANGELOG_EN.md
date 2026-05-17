@@ -39,6 +39,9 @@ This section intentionally has no date so it is not shown to users.
 - Watchlist: lighter TMDB attribution, Suivi posters aligned with portal (mobile)
 - Dashboard — "Live now" avatars aligned with Users (unified silhouette, hover tooltip)
 - Dashboard — mobile stats compacted (34 px icons, 3xs labels, lg values)
+- Dashboard — mobile "Customize" trigger moved into the topbar (icon next to the bell)
+- Topbar — subtitle hidden on mobile, title vertically centred in the band
+- Topbar avatar (admin + portal) — aligned with user list cards (real photo + silhouette fallback)
 
 ### Fixed
 - Portal: /availability rate limit raised to 120/min, frontend coalescing, 429 toast dedupe

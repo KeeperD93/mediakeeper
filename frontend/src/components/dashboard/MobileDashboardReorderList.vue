@@ -96,14 +96,15 @@ onBeforeUnmount(endDrag)
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 10px 12px;
+  gap: 10px;
+  padding: 4px 12px;
   background: var(--surface-2);
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-card);
+  border-radius: var(--radius-input);
   color: var(--text-primary);
-  font-size: var(--text-base);
+  font-size: var(--text-xs);
   font-weight: var(--font-medium);
+  min-height: 40px;
   /* The row itself does not receive touch — the handle does. Keep
      pan-y so the user can still scroll the list with a finger off the
      handle. */

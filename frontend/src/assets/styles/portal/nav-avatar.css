@@ -31,26 +31,11 @@
   }
 }
 
-.pt-avatar-img,
-.pt-avatar-placeholder {
-  width: 34px;
-  height: 34px;
-  border-radius: var(--radius-card);
+/* Avatar in the portal nav trigger — now rendered by <MkAvatar>. The
+   shared component owns its size, shape and fallback silhouette;
+   ``pt-avatar-mk`` exists only to anchor flex-shrink on the wrapper. */
+.pt-avatar-mk {
   flex-shrink: 0;
-}
-
-.pt-avatar-img {
-  object-fit: cover;
-}
-
-.pt-avatar-placeholder {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--accent, #6366f1);
-  color: #fff;
-  font-size: var(--portal-text-base);
-  font-weight: var(--portal-font-extrabold);
 }
 
 .pt-avatar-chevron {

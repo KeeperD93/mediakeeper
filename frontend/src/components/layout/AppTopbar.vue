@@ -14,6 +14,19 @@
 
     <!-- Right: actions -->
     <div class="tb-right">
+      <!-- Mobile-only "Customize" trigger on /dashboard. Dispatches a
+           window-level event the mobile dashboard listens for; the
+           two components live in separate router subtrees. -->
+      <button
+        v-if="isOnDashboard"
+        class="tb-action-btn tb-customize-btn"
+        :title="$t('dashboard.customize')"
+        :aria-label="$t('dashboard.customize')"
+        @click="dispatchMobileEdit"
+      >
+        <LayoutGrid :size="18" :stroke-width="1.8" />
+      </button>
+
       <!-- Notifications bell -->
       <div ref="notifRef" class="tb-action-wrap">
         <button
@@ -80,7 +93,12 @@
       <!-- User avatar dropdown -->
       <div ref="userRef" class="tb-action-wrap">
         <button class="tb-user-btn" @click="showUserMenu = !showUserMenu">
-          <span class="tb-avatar">{{ userInitial }}</span>
+          <MkAvatar
+            :src="avatarUrl"
+            :name="username || userInitial"
+            :size="28"
+            class="mk-avatar--ring-subtle tb-avatar-mk"
+          />
           <span class="tb-username">{{ username }}</span>
           <ChevronDown
             class="tb-chevron"
@@ -94,7 +112,12 @@
           <transition name="tb-dd">
             <div v-if="showUserMenu" class="tb-user-dropdown" :style="userDdPos" @click.stop>
               <div class="tb-user-header">
-                <span class="tb-avatar tb-avatar-lg">{{ userInitial }}</span>
+                <MkAvatar
+                  :src="avatarUrl"
+                  :name="username || userInitial"
+                  :size="40"
+                  class="mk-avatar--ring-subtle"
+                />
                 <div>
                   <p class="tb-user-name">{{ username }}</p>
                   <p class="tb-user-role">{{ $t('common.administrator') }}</p>
@@ -135,7 +158,9 @@ import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/composables/useAuth'
 import { useTheme } from '@/composables/useTheme'
 import { useTopbarAlerts } from '@/composables/useTopbarAlerts'
-import { Bell, ChevronDown, LogOut, Menu } from 'lucide-vue-next'
+import { Bell, ChevronDown, LayoutGrid, LogOut, Menu } from 'lucide-vue-next'
+import MkAvatar from '@/components/common/MkAvatar.vue'
+import { MOBILE_EDIT_EVENT } from '@/constants/dashboardEvents'
 import '@/assets/styles/app-topbar.css'
 import '@/assets/styles/app-topbar-dropdowns.css'
 
@@ -166,6 +191,13 @@ const userDdPos = ref({})
 
 const username = computed(() => user.value?.username || '')
 const userInitial = computed(() => (username.value || '?')[0].toUpperCase())
+const avatarUrl = computed(() => user.value?.avatar_url || null)
+const isOnDashboard = computed(() => route.name === 'dashboard')
+
+function dispatchMobileEdit() {
+  window.dispatchEvent(new Event(MOBILE_EDIT_EVENT))
+}
+
 const pageTitle = computed(() => {
   if (route.meta?.titleKey) return t(route.meta.titleKey)
   return route.meta?.title || t('sidebar.dashboard')
