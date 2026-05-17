@@ -21,7 +21,7 @@
         :aria-label="handleLabel"
         @touchstart.stop="$emit('handle-touchstart', $event)"
       >
-        <GripVertical :size="22" :stroke-width="2.4" aria-hidden="true" />
+        <GripHorizontal :size="22" :stroke-width="2.4" aria-hidden="true" />
       </button>
       <slot />
     </div>
@@ -29,7 +29,7 @@
 </template>
 
 <script setup>
-import { GripVertical } from 'lucide-vue-next'
+import { GripHorizontal } from 'lucide-vue-next'
 
 defineProps({
   id: { type: String, required: true },
