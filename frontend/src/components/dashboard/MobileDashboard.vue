@@ -154,4 +154,25 @@ onBeforeUnmount(() => {
 .m-dash :deep(.uc-meta) {
   font-size: var(--text-3xs);
 }
+
+/* Heatmap — the widget's inner grid uses flex:1 + min-height:0 to
+   stretch inside the desktop GridLayout cell. The mobile stack has
+   no enforced parent height, so the grid collapses to 0 and the
+   12-week pattern goes invisible. 200 px is enough to show every
+   day cell at a glance. */
+.m-dash :deep(.hm) {
+  min-height: 200px;
+}
+
+/* Compact pill / link buttons on mobile dashboard widgets. Documented
+   exception to Rules.md §2.6 — the dashboard is data-dense, these
+   are non-destructive filters (Tout/Lectures/Alertes, 24h/7j) and a
+   navigation link (Gérer ›). The 44 px floor designed for primary
+   CTAs blows the viewport here; 36 px is still comfortable on touch
+   and matches the row height of the reorder list grip. */
+.m-dash :deep(.tl-tab),
+.m-dash :deep(.wg-eng-toggle-btn),
+.m-dash :deep(.wg-req-head-link) {
+  min-height: 36px;
+}
 </style>
