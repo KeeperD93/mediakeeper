@@ -391,6 +391,13 @@ onBeforeUnmount(() => {
      a card until the 2 s long-press confirms they actually want to
      drag. */
   touch-action: pan-y;
+  /* iOS/Android long-press would otherwise fire the text-selection
+     callout before our 500 ms / 2 s timer elapses, hijacking the
+     gesture. Disable selection + callout on the card surface so the
+     gesture stays clean. */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
   transition: opacity 200ms ease;
 }
 
