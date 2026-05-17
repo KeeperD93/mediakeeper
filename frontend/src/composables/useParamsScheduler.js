@@ -11,8 +11,14 @@ const schedLoading = ref(false)
 const schedCachesLoading = ref(false)
 const schedEditValues = reactive({})
 let pollTimer = null
+let cachesPollTimer = null
 let loadedOnce = false
 let cachesLoadedOnce = false
+
+// Cache stats refresh cadence. Short enough that the admin sees
+// counters move as searches happen on the portal, long enough not
+// to spam the API for a panel that's mostly observational.
+const CACHES_POLL_MS = 5000
 
 const UNITS = { s: 1, m: 60, h: 3600, d: 86400 }
 function bestUnit(sec) {
@@ -106,6 +112,15 @@ export function useParamsScheduler() {
       clearInterval(pollTimer)
       pollTimer = null
     }
+    if (cachesPollTimer) {
+      clearInterval(cachesPollTimer)
+      cachesPollTimer = null
+    }
+  }
+
+  function startCachesPolling() {
+    if (cachesPollTimer) return
+    cachesPollTimer = setInterval(loadCaches, CACHES_POLL_MS)
   }
 
   async function schedToggle(task) {
@@ -191,6 +206,9 @@ export function useParamsScheduler() {
   function ensureLoaded() {
     if (!loadedOnce) loadSched()
     if (!cachesLoadedOnce) loadCaches()
+    // Keep the cache readout fresh while the tab is mounted — the
+    // setInterval is cleared on unmount/deactivate via stopPolling().
+    startCachesPolling()
   }
 
   // ── Caches ────────────────────────────────────────────────────────
