@@ -11,6 +11,8 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ### Added
 - Portal : nouveau composant jaquette « PosterCard » conforme i18n/tokens (préparation à l'intégration).
+- Paramètres — nouvelle section Réseau avec cache d'images et cache DNS (toggles).
+- Paramètres → Planificateur — section Cache (stats hits/manques + bouton Vider).
 
 ### Changed
 - Doublons — barre d'actions épurée : onglet « Détections » et horodatage « Dernière détection »

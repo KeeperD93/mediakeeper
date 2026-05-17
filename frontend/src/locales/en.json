@@ -1199,6 +1199,22 @@
     "resetOnboardingDone": "Wizard reset",
     "previewOnboarding": "Preview wizard",
     "tabBackup": "Backups",
+    "tabNetwork": "Network",
+    "network": {
+      "title": "Network settings",
+      "desc": "Enable optional caches to cut bandwidth and speed up page loads.",
+      "saved": "Settings saved",
+      "imageCache": {
+        "label": "Image cache",
+        "desc": "Downloads and stores TMDB posters on the local disk. Subsequent requests are served without contacting TMDB."
+      },
+      "dnsCache": {
+        "label": "DNS cache",
+        "desc": "Keeps DNS resolutions in memory for a configurable time. Useful for bare-metal deployments without a system DNS cache.",
+        "ttlLabel": "Cached for",
+        "ttlUnit": "seconds"
+      }
+    },
     "tabGeneral": "General",
     "generalDesc": "MediaKeeper general settings.",
     "languageLabel": "Language",

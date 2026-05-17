@@ -1199,6 +1199,22 @@
     "resetOnboardingDone": "Wizard réinitialisé",
     "previewOnboarding": "Prévisualiser le wizard",
     "tabBackup": "Sauvegardes",
+    "tabNetwork": "Réseau",
+    "network": {
+      "title": "Paramètres réseau",
+      "desc": "Activez les caches optionnels pour réduire la bande passante et accélérer le chargement.",
+      "saved": "Paramètres enregistrés",
+      "imageCache": {
+        "label": "Cache d'images",
+        "desc": "Télécharge et stocke les jaquettes TMDB sur le disque local. Les requêtes suivantes sont servies sans appel TMDB."
+      },
+      "dnsCache": {
+        "label": "Cache DNS",
+        "desc": "Garde en mémoire les résolutions DNS pendant un certain temps. Utile sur les déploiements bare-metal sans cache DNS système.",
+        "ttlLabel": "Durée de conservation",
+        "ttlUnit": "secondes"
+      }
+    },
     "tabGeneral": "Général",
     "generalDesc": "Paramètres généraux de MediaKeeper.",
     "languageLabel": "Langue",

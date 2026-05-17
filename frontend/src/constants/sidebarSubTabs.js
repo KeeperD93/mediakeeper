@@ -40,6 +40,7 @@ import {
   Sparkles,
   Slash,
   Bug,
+  Network,
 } from 'lucide-vue-next'
 
 export const SIDEBAR_SUB_TABS = {
@@ -89,6 +90,7 @@ export const SIDEBAR_SUB_TABS = {
     { id: 'appearance', labelKey: 'settings.tabAppearance', icon: markRaw(Palette) },
     { id: 'config', labelKey: 'settings.tabConfig', icon: markRaw(Settings) },
     { id: 'scheduler', labelKey: 'settings.tabScheduler', icon: markRaw(Clock) },
+    { id: 'network', labelKey: 'settings.tabNetwork', icon: markRaw(Network) },
     { id: 'backup', labelKey: 'settings.tabBackup', icon: markRaw(Archive) },
     { id: 'test', labelKey: 'settings.tabTest', icon: markRaw(TestTube) },
     { id: 'security', labelKey: 'settings.tabSecurity', icon: markRaw(Shield) },

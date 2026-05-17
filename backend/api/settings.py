@@ -13,6 +13,7 @@ from api.auth import get_current_user
 from models.user import User
 from services.settings import (
     TOOLS_DEFINITION,
+    get_settings_map,
     get_tools_config,
     get_active_media_source,
     set_settings_map,
@@ -293,6 +294,84 @@ async def ping_tool(
         return {"online": resp.status_code < 500, "ok": resp.status_code < 500, "status": resp.status_code}
     except Exception as e:
         return {"online": False, "reason": str(e)[:100]}
+
+
+# ── Network settings (image cache, DNS cache) ────────────────────────
+
+
+class NetworkSettingsRequest(BaseModel):
+    image_cache_enabled: bool | None = None
+    dns_cache_enabled: bool | None = None
+    dns_cache_ttl_seconds: int | None = None
+
+
+def _bool_str(value: bool) -> str:
+    return "true" if value else "false"
+
+
+@router.get("/network")
+async def get_network_settings(
+    db: AsyncSession = Depends(get_db),
+    _:  User         = Depends(get_current_user),
+):
+    """Read the three toggles + TTL backing the Network panel."""
+    keys = [
+        "network.image_cache_enabled",
+        "network.dns_cache_enabled",
+        "network.dns_cache_ttl_seconds",
+    ]
+    values = await get_settings_map(db, keys)
+    ttl_raw = values.get("network.dns_cache_ttl_seconds") or ""
+    try:
+        ttl = int(ttl_raw) if ttl_raw else 300
+    except ValueError:
+        ttl = 300
+    return {
+        "image_cache_enabled":
+            (values.get("network.image_cache_enabled") or "").lower() == "true",
+        "dns_cache_enabled":
+            (values.get("network.dns_cache_enabled") or "").lower() == "true",
+        "dns_cache_ttl_seconds": ttl,
+    }
+
+
+@router.put("/network")
+async def update_network_settings(
+    req: NetworkSettingsRequest,
+    db:  AsyncSession = Depends(get_db),
+    _:   User         = Depends(get_current_user),
+):
+    """Persist the toggles + propagate the change to the runtime caches.
+
+    ``model_fields_set`` lets the frontend send only the keys it
+    actually changed (e.g. flip just one toggle), and the matching
+    cache service is refreshed in place so the change takes effect
+    on the very next request instead of waiting for the next
+    settings poll.
+    """
+    sent = req.model_fields_set
+    updates: dict[str, str] = {}
+    if "image_cache_enabled" in sent and req.image_cache_enabled is not None:
+        updates["network.image_cache_enabled"] = _bool_str(req.image_cache_enabled)
+    if "dns_cache_enabled" in sent and req.dns_cache_enabled is not None:
+        updates["network.dns_cache_enabled"] = _bool_str(req.dns_cache_enabled)
+    if "dns_cache_ttl_seconds" in sent and req.dns_cache_ttl_seconds is not None:
+        ttl = max(1, int(req.dns_cache_ttl_seconds))
+        updates["network.dns_cache_ttl_seconds"] = str(ttl)
+
+    if updates:
+        await set_settings_map(db, updates)
+
+    # Propagate the change to the live caches so the admin doesn't
+    # need to bounce the container.
+    if "image_cache_enabled" in sent:
+        from services.portal.image_cache import refresh_enabled_flag
+        await refresh_enabled_flag(db, force=True)
+    if "dns_cache_enabled" in sent or "dns_cache_ttl_seconds" in sent:
+        from services.portal.dns_cache import refresh_from_settings as dns_refresh
+        await dns_refresh(db)
+
+    return {"success": True}
 
 
 router.include_router(dashboard_router)

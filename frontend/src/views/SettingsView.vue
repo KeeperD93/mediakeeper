@@ -25,6 +25,9 @@ const ParamsConfigTab = defineAsyncComponent(
 const ParamsSchedulerTab = defineAsyncComponent(
   () => import('@/components/settings/ParamsSchedulerTab.vue'),
 )
+const ParamsNetworkTab = defineAsyncComponent(
+  () => import('@/components/settings/ParamsNetworkTab.vue'),
+)
 const ParamsTestTab = defineAsyncComponent(() => import('@/components/settings/ParamsTestTab.vue'))
 const ParamsBackupTab = defineAsyncComponent(
   () => import('@/components/settings/ParamsBackupTab.vue'),
@@ -34,7 +37,16 @@ const ParamsSecurityTab = defineAsyncComponent(
 )
 import '@/assets/styles/params-view.css'
 
-const TAB_IDS = ['general', 'appearance', 'config', 'scheduler', 'backup', 'test', 'security']
+const TAB_IDS = [
+  'general',
+  'appearance',
+  'config',
+  'scheduler',
+  'network',
+  'backup',
+  'test',
+  'security',
+]
 const activeTab = useTabSync(TAB_IDS, 'general')
 
 const TAB_COMPONENTS = {
@@ -42,6 +54,7 @@ const TAB_COMPONENTS = {
   appearance: ParamsAppearanceTab,
   config: ParamsConfigTab,
   scheduler: ParamsSchedulerTab,
+  network: ParamsNetworkTab,
   test: ParamsTestTab,
   backup: ParamsBackupTab,
   security: ParamsSecurityTab,

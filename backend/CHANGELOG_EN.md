@@ -11,6 +11,8 @@ This section intentionally has no date so it is not shown to users.
 
 ### Added
 - Portal: new "PosterCard" cover component, i18n/tokens compliant (integration prep).
+- Settings — new Network section with image cache and DNS cache toggles
+- Settings → Scheduler — Cache section (hit/miss stats + Clear button)
 
 ### Changed
 - Duplicates — streamlined action bar: "Detections" tab and "Last detection" timestamp
