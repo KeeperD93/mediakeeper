@@ -1,7 +1,7 @@
 <template>
   <div class="m-dash-stats">
     <StatCard
-      v-if="!hidden.includes('statPlays')"
+      v-if="!hidden.includes(WIDGET_ID.STAT_PLAYS)"
       :label="$t('dashboard.totalPlays')"
       :value="mediaStats.plays"
       route="/stats"
@@ -9,14 +9,14 @@
       accent="#6366f1"
     />
     <StatCard
-      v-if="!hidden.includes('statDuration')"
+      v-if="!hidden.includes(WIDGET_ID.STAT_DURATION)"
       :label="$t('dashboard.totalDuration')"
       :value="mediaStats.duration"
       :icon="Clock"
       accent="#10b981"
     />
     <StatCard
-      v-if="!hidden.includes('statDuplicates')"
+      v-if="!hidden.includes(WIDGET_ID.STAT_DUPLICATES)"
       :label="$t('dashboard.duplicates')"
       :value="duplicatesCount"
       route="/duplicates"
@@ -25,7 +25,7 @@
       :color="duplicatesCount !== '0' && duplicatesCount !== '—' ? '#f43f5e' : ''"
     />
     <StatCard
-      v-if="!hidden.includes('statStorage')"
+      v-if="!hidden.includes(WIDGET_ID.STAT_STORAGE)"
       :label="$t('dashboard.storage')"
       :value="mediaStats.storage"
       :icon="HardDrive"
@@ -37,6 +37,7 @@
 <script setup>
 import { Play, Clock, Copy, HardDrive } from 'lucide-vue-next'
 import StatCard from '@/components/dashboard/widgets/StatCard.vue'
+import { WIDGET_ID } from '@/composables/useDashboardLayout'
 
 defineProps({
   hidden: { type: Array, default: () => [] },

@@ -113,26 +113,51 @@ export const WIDGET_REGISTRY = {
 // Bump when WIDGET_REGISTRY.defaultLayout changes — forces user reset.
 const LAYOUT_VERSION = 22
 
+// Canonical widget IDs — single source of truth per Rules.md §6. Any
+// new widget added to WIDGET_REGISTRY above must also appear here so
+// consumers (MobileDashboardWidget dispatch, MOBILE_DEFAULT_ORDER…)
+// reference the constant instead of duplicating string literals.
+export const WIDGET_ID = Object.freeze({
+  ACTIVITY: 'activity',
+  STAT_PLAYS: 'statPlays',
+  STAT_DURATION: 'statDuration',
+  STAT_DUPLICATES: 'statDuplicates',
+  STAT_STORAGE: 'statStorage',
+  TOP_USERS: 'topUsers',
+  HEATMAP: 'heatmap',
+  UPCOMING: 'upcoming',
+  PORTAL_ACTION: 'portalAction',
+  PORTAL_ENGAGEMENT: 'portalEngagement',
+  PORTAL_EVENTS: 'portalEvents',
+  LINK_WATCHLIST: 'linkWatchlist',
+  HEALTH_SCORE: 'healthScore',
+})
+
 // IDs of the four compact "stat" cards. They render in a fixed 2×2
 // grid above the reorderable stack — reordering tiny stat tiles
 // individually adds noise without value, and a uniform stack of mixed
 // card sizes is harder to scan than the current top-strip baseline.
-export const MOBILE_STAT_IDS = ['statPlays', 'statDuration', 'statDuplicates', 'statStorage']
+export const MOBILE_STAT_IDS = [
+  WIDGET_ID.STAT_PLAYS,
+  WIDGET_ID.STAT_DURATION,
+  WIDGET_ID.STAT_DUPLICATES,
+  WIDGET_ID.STAT_STORAGE,
+]
 
 // Mobile stack default ordering — the vertical sequence below the
 // stats grid, before any user customisation. Mirrors the previously
 // hardcoded markup of MobileDashboard.vue so an existing user who has
 // never reordered keeps the exact same visual order.
 export const MOBILE_DEFAULT_ORDER = [
-  'healthScore',
-  'portalAction',
-  'portalEngagement',
-  'portalEvents',
-  'activity',
-  'upcoming',
-  'topUsers',
-  'heatmap',
-  'linkWatchlist',
+  WIDGET_ID.HEALTH_SCORE,
+  WIDGET_ID.PORTAL_ACTION,
+  WIDGET_ID.PORTAL_ENGAGEMENT,
+  WIDGET_ID.PORTAL_EVENTS,
+  WIDGET_ID.ACTIVITY,
+  WIDGET_ID.UPCOMING,
+  WIDGET_ID.TOP_USERS,
+  WIDGET_ID.HEATMAP,
+  WIDGET_ID.LINK_WATCHLIST,
 ]
 
 export function useDashboardLayout() {

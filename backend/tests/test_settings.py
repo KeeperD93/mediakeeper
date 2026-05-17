@@ -2,8 +2,10 @@
 
 import json
 import pytest
+from pydantic import ValidationError
 from sqlalchemy import select
 
+from api.settings_dashboard import DashboardLayoutRequest
 from core.encryption import ENCRYPTED_PREFIX
 from models.notification_channels import NotificationChannel
 from services.settings import (
@@ -75,6 +77,38 @@ async def test_watchlist_data(db_session):
     await set_watchlist_data(db_session, "scan_results", '{"series":[]}')
     val = await get_watchlist_data(db_session, "scan_results")
     assert json.loads(val)["series"] == []
+
+
+@pytest.mark.asyncio
+async def test_dashboard_layout_mobile_order_round_trip(db_session, admin_user):
+    """``mobile_order`` survives the schema → JSON → DB → fetch cycle."""
+    req = DashboardLayoutRequest(
+        hidden=["statPlays"],
+        positions={"activity": {"x": 0, "y": 0, "w": 11, "h": 30}},
+        v=22,
+        mobile_order=["healthScore", "activity", "heatmap"],
+    )
+
+    await upsert_user_preferences(
+        db_session, admin_user.id, dashboard_layout=json.dumps(req.model_dump())
+    )
+    row = await get_user_preferences(db_session, admin_user.id)
+
+    payload = json.loads(row.dashboard_layout)
+    assert payload["mobile_order"] == ["healthScore", "activity", "heatmap"]
+    assert payload["hidden"] == ["statPlays"]
+
+
+def test_dashboard_layout_request_rejects_unknown_field():
+    """Per Rules.md §22.6 ``extra="forbid"`` rejects rogue keys with 422."""
+    with pytest.raises(ValidationError):
+        DashboardLayoutRequest(
+            hidden=[],
+            positions={},
+            v=22,
+            mobile_order=None,
+            unknown_field="oops",
+        )
 
 
 @pytest.mark.asyncio

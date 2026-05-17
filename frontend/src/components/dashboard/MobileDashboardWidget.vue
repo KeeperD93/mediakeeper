@@ -1,21 +1,25 @@
 <template>
-  <HealthScore v-if="id === 'healthScore'" />
-  <RequestsActionCard v-else-if="id === 'portalAction'" />
-  <PortalEngagementCard v-else-if="id === 'portalEngagement'" />
-  <PortalUpcomingEventsCard v-else-if="id === 'portalEvents'" />
+  <HealthScore v-if="id === WIDGET_ID.HEALTH_SCORE" />
+  <RequestsActionCard v-else-if="id === WIDGET_ID.PORTAL_ACTION" />
+  <PortalEngagementCard v-else-if="id === WIDGET_ID.PORTAL_ENGAGEMENT" />
+  <PortalUpcomingEventsCard v-else-if="id === WIDGET_ID.PORTAL_EVENTS" />
   <ActivityTimeline
-    v-else-if="id === 'activity'"
+    v-else-if="id === WIDGET_ID.ACTIVITY"
     :logs="logs"
     :alerts="alerts"
     :sessions="sessions"
     :seen-alert-ids="seenAlertIds"
     :emby-base-url="embyBaseUrl"
   />
-  <UpcomingEpisodes v-else-if="id === 'upcoming'" />
-  <LeaderboardCard v-else-if="id === 'topUsers'" :entries="leaderboardEntries.slice(0, 3)" widget />
-  <Heatmap v-else-if="id === 'heatmap'" />
+  <UpcomingEpisodes v-else-if="id === WIDGET_ID.UPCOMING" />
+  <LeaderboardCard
+    v-else-if="id === WIDGET_ID.TOP_USERS"
+    :entries="leaderboardEntries.slice(0, 3)"
+    widget
+  />
+  <Heatmap v-else-if="id === WIDGET_ID.HEATMAP" />
   <QuickLink
-    v-else-if="id === 'linkWatchlist'"
+    v-else-if="id === WIDGET_ID.LINK_WATCHLIST"
     :title="watchlistLabel"
     :subtitle="
       watchlistScanAgo ? $t('dashboard.lastScan') + ' ' + watchlistScanAgo : $t('sidebar.watchlist')
@@ -38,6 +42,7 @@ import PortalEngagementCard from '@/components/dashboard/widgets/PortalEngagemen
 import PortalUpcomingEventsCard from '@/components/dashboard/widgets/PortalUpcomingEventsCard.vue'
 import ActivityTimeline from '@/components/dashboard/ActivityTimeline.vue'
 import UpcomingEpisodes from '@/components/dashboard/UpcomingEpisodes.vue'
+import { WIDGET_ID } from '@/composables/useDashboardLayout'
 
 defineProps({
   id: { type: String, required: true },
