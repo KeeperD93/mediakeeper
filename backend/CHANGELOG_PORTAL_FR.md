@@ -46,7 +46,7 @@ utilisateurs.
 - Jaquettes mobile : pastille disponibilité repositionnée (plus de chevauchement).
 - Fiche personne — badge statut des demandes à nouveau visible sur la filmographie.
 - Recherche — refonte live TMDB avec cache 5 min (jaquettes toujours fraîches).
-- Fiche détail — langue originale corrigée (valeur TMDB, plus la première parlée).
+- Fiche détail — langue et pays traduits dans la langue de l'interface.
 
 ## [0.3.0] - 2026-05-14
 

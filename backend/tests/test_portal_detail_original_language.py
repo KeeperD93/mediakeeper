@@ -1,11 +1,9 @@
-"""Original-language label resolution on the portal detail payload (bug #95).
+"""Detail payload exposes ISO codes so the frontend can localise labels (bug #95).
 
-TMDB exposes ``original_language`` as an ISO 639-1 code (``"fr"``), while
-``spoken_languages`` is an arbitrarily ordered list whose entries carry a
-localised ``name`` and an ``english_name``. The portal detail page must
-display the label that matches ``original_language`` — not the first
-spoken language, which could be a secondary track (e.g. German dialogue
-in an otherwise French production).
+TMDB does not consistently translate language and country names, so the
+backend now ships ``original_language`` (ISO 639-1) and ``country_codes``
+(ISO 3166-1 alpha-2). The portal formats them client-side through
+``Intl.DisplayNames`` according to the active i18n locale.
 """
 from __future__ import annotations
 
@@ -36,7 +34,7 @@ async def _fake_tmdb_key(_db):
     return "test-key"
 
 
-def _movie_payload(*, original_language, spoken_languages, production_countries=None):
+def _movie_payload(*, original_language="fr", production_countries=None):
     return {
         "id": 4242,
         "title": "Les rayons et les ombres",
@@ -46,8 +44,10 @@ def _movie_payload(*, original_language, spoken_languages, production_countries=
         "vote_average": 7.0,
         "popularity": 1.0,
         "original_language": original_language,
-        "spoken_languages": spoken_languages,
-        "production_countries": production_countries or [{"name": "France"}],
+        "spoken_languages": [],
+        "production_countries": (
+            production_countries if production_countries is not None else [{"iso_3166_1": "FR"}]
+        ),
         "genres": [],
         "credits": {"cast": [], "crew": []},
         "videos": {"results": []},
@@ -60,15 +60,10 @@ def _movie_payload(*, original_language, spoken_languages, production_countries=
 
 
 @pytest.mark.asyncio
-async def test_original_language_label_uses_matching_spoken_language(
-    monkeypatch, db_session,
-):
+async def test_detail_payload_exposes_iso_codes(monkeypatch, db_session):
     payload = _movie_payload(
-        original_language="fr",
-        spoken_languages=[
-            {"iso_639_1": "de", "name": "Allemand", "english_name": "German"},
-            {"iso_639_1": "fr", "name": "Français", "english_name": "French"},
-        ],
+        original_language="en",
+        production_countries=[{"iso_3166_1": "US"}, {"iso_3166_1": "GB"}],
     )
     monkeypatch.setattr(_details, "get_external_client", lambda: _FakeClient(payload))
     monkeypatch.setattr(_details, "_get_tmdb_key", _fake_tmdb_key)
@@ -81,21 +76,39 @@ async def test_original_language_label_uses_matching_spoken_language(
     result = await discover_details.get_full_details(db_session, "movie", 4242)
 
     assert result is not None
-    assert result["original_language"] == "fr"
-    assert result["original_language_label"] == "Français"
-    assert result["countries"] == ["France"]
-    assert "languages" not in result
+    assert result["original_language"] == "en"
+    assert result["country_codes"] == ["US", "GB"]
+    # The detail payload must no longer ship the localised label fields:
+    # the frontend resolves them client-side via Intl.DisplayNames.
+    assert "original_language_label" not in result
+    assert "countries" not in result
 
 
 @pytest.mark.asyncio
-async def test_original_language_label_falls_back_to_upper_code(
-    monkeypatch, db_session,
-):
+async def test_detail_payload_uppercases_iso_codes(monkeypatch, db_session):
+    payload = _movie_payload(
+        original_language="fr",
+        production_countries=[{"iso_3166_1": "fr"}],
+    )
+    monkeypatch.setattr(_details, "get_external_client", lambda: _FakeClient(payload))
+    monkeypatch.setattr(_details, "_get_tmdb_key", _fake_tmdb_key)
+
+    async def _no_merge(*_args, **_kwargs):
+        return None
+
+    monkeypatch.setattr(_details, "merge_original_language_videos", _no_merge)
+
+    result = await discover_details.get_full_details(db_session, "movie", 4242)
+
+    assert result is not None
+    assert result["country_codes"] == ["FR"]
+
+
+@pytest.mark.asyncio
+async def test_detail_payload_handles_missing_countries(monkeypatch, db_session):
     payload = _movie_payload(
         original_language="ja",
-        spoken_languages=[
-            {"iso_639_1": "en", "name": "Anglais", "english_name": "English"},
-        ],
+        production_countries=[],
     )
     monkeypatch.setattr(_details, "get_external_client", lambda: _FakeClient(payload))
     monkeypatch.setattr(_details, "_get_tmdb_key", _fake_tmdb_key)
@@ -109,27 +122,4 @@ async def test_original_language_label_falls_back_to_upper_code(
 
     assert result is not None
     assert result["original_language"] == "ja"
-    assert result["original_language_label"] == "JA"
-
-
-@pytest.mark.asyncio
-async def test_original_language_label_is_empty_when_code_missing(
-    monkeypatch, db_session,
-):
-    payload = _movie_payload(
-        original_language="",
-        spoken_languages=[],
-    )
-    monkeypatch.setattr(_details, "get_external_client", lambda: _FakeClient(payload))
-    monkeypatch.setattr(_details, "_get_tmdb_key", _fake_tmdb_key)
-
-    async def _no_merge(*_args, **_kwargs):
-        return None
-
-    monkeypatch.setattr(_details, "merge_original_language_videos", _no_merge)
-
-    result = await discover_details.get_full_details(db_session, "movie", 4242)
-
-    assert result is not None
-    assert result["original_language"] == ""
-    assert result["original_language_label"] == ""
+    assert result["country_codes"] == []

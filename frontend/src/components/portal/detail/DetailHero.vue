@@ -120,6 +120,7 @@ import { useI18n } from 'vue-i18n'
 import { REQUEST_STATUS } from '@/constants/requests'
 import { Bookmark, Plus, Video } from 'lucide-vue-next'
 import PremiumRibbon from '@/components/portal/PremiumRibbon.vue'
+import { formatCountry, formatLanguage } from '@/utils/formatIntlLabel'
 import '@/assets/styles/portal/poster-card.css'
 
 const props = defineProps({
@@ -135,7 +136,7 @@ const props = defineProps({
 
 defineEmits(['request', 'open-trailer', 'add-to-list'])
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const topStudios = computed(() => (props.media.studios || []).filter(s => s.logo).slice(0, 3))
 
@@ -152,8 +153,10 @@ const runtimeLabel = computed(() => {
   return h > 0 ? `${h}h${m > 0 ? m : ''}` : `${m}min`
 })
 
-const languageLabel = computed(() => props.media.original_language_label || '')
-const countryLabel = computed(() => props.media.countries?.[0] || '')
+const languageLabel = computed(() =>
+  formatLanguage(props.media.original_language, locale.value),
+)
+const countryLabel = computed(() => formatCountry(props.media.country_codes?.[0], locale.value))
 
 const requestBtnLabel = computed(() => t('portal.detail.request'))
 const requestBtnIcon = computed(() => Plus)

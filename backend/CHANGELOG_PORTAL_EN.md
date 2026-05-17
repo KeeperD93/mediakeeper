@@ -44,7 +44,7 @@ This section intentionally has no date so it is not shown to users.
 - Mobile posters: availability badge repositioned to avoid overlap
 - Person page — request status badge visible again on filmography
 - Search — live TMDB rework with 5-minute cache (posters always fresh)
-- Detail page — original language fixed (TMDB value, no longer first spoken track)
+- Detail page — language and country localised in the UI language.
 
 ## [0.3.0] - 2026-05-14
 

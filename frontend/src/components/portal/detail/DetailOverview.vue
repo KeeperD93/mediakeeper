@@ -36,13 +36,13 @@
             <dt>{{ $t('portal.detail.releaseDate') }}</dt>
             <dd>{{ formatDate(media.release_date) }}</dd>
           </template>
-          <template v-if="media.original_language_label">
+          <template v-if="originalLanguageLabel">
             <dt>{{ $t('portal.detail.originalLanguage') }}</dt>
-            <dd>{{ media.original_language_label }}</dd>
+            <dd>{{ originalLanguageLabel }}</dd>
           </template>
-          <template v-if="media.countries?.length">
+          <template v-if="countriesLabel">
             <dt>{{ $t('portal.detail.country') }}</dt>
-            <dd>{{ media.countries.slice(0, 2).join(', ') }}</dd>
+            <dd>{{ countriesLabel }}</dd>
           </template>
           <template v-if="media.budget">
             <dt>{{ $t('portal.detail.budget') }}</dt>
@@ -104,13 +104,25 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { formatCountry, formatLanguage } from '@/utils/formatIntlLabel'
 import { safeHref } from '@/utils/safeUrl'
 
 const props = defineProps({
   media: { type: Object, required: true },
 })
 
-const { te, t } = useI18n()
+const { te, t, locale } = useI18n()
+
+const originalLanguageLabel = computed(() =>
+  formatLanguage(props.media.original_language, locale.value),
+)
+const countriesLabel = computed(() =>
+  (props.media.country_codes || [])
+    .slice(0, 2)
+    .map(c => formatCountry(c, locale.value))
+    .filter(Boolean)
+    .join(', '),
+)
 
 // TMDB ``homepage`` is a free-form URL field; refuse anything that is
 // not http(s)/mailto so a poisoned entry cannot smuggle ``javascript:``.
