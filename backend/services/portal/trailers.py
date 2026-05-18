@@ -147,6 +147,28 @@ async def stream_emby_trailer(
 
 _VALID_TYPES = ("Trailer", "Teaser")
 
+# Name-quality heuristics: TMDB occasionally ships several videos in the
+# same ``iso_639_1`` bucket — a real publisher dub (``"Bande-annonce
+# officielle"``) and a fan-uploaded subtitled version (``"VOSTFR"``)
+# both tagged ``fr``. The static metadata flags (Trailer, official,
+# published_at) don't always split them, so the picker also looks at the
+# video's name to surface the studio-grade dub.
+_NAME_BOOST_KEYWORDS = (
+    "officiel", "officielle", "official",
+    "version française", "version francaise",
+)
+_NAME_PENALTY_KEYWORDS = ("vost", "vostfr", "sous-titr", "subtitled")
+
+
+def _name_score(name: str) -> int:
+    """Return ``+1`` for studio markers, ``-1`` for subtitled markers, else ``0``."""
+    n = (name or "").lower()
+    if any(k in n for k in _NAME_PENALTY_KEYWORDS):
+        return -1
+    if any(k in n for k in _NAME_BOOST_KEYWORDS):
+        return 1
+    return 0
+
 
 async def _resolve_tmdb_trailer(
     db: AsyncSession, media_type: str, tmdb_id: int, user_language: str
@@ -227,7 +249,11 @@ def _pick_video(videos: list[dict], language: Optional[str]) -> Optional[dict]:
         1. ``Trailer`` before ``Teaser``;
         2. ``official=True`` before ``official=False`` — surfaces the
            publisher's own French dub over fan-uploaded VOSTFR teasers;
-        3. most recent ``published_at`` first — newer trailers usually
+        3. name heuristic (``+1`` for "officielle" / "official", ``-1``
+           for "VOST" / "sous-titré") — TMDB occasionally tags a fan
+           subtitled cut with ``iso_639_1=fr`` alongside the real dub,
+           and the name is the only thing that separates them;
+        4. most recent ``published_at`` first — newer trailers usually
            ship with the full localised dub instead of an early subtitled
            promo cut.
     """
@@ -245,12 +271,13 @@ def _pick_video(videos: list[dict], language: Optional[str]) -> Optional[dict]:
         return None
 
     # Python sort is stable: tie-break by published_at desc first, then
-    # re-sort by primary criteria so equal Trailer/official rows keep the
-    # newest-first order.
+    # re-sort by primary criteria so equal Trailer/official/name rows
+    # keep the newest-first order.
     candidates.sort(key=lambda v: v.get("published_at") or "", reverse=True)
     candidates.sort(key=lambda v: (
         0 if v.get("type") == "Trailer" else 1,
         0 if v.get("official") else 1,
+        -_name_score(v.get("name", "")),
     ))
     best = candidates[0]
     site = best.get("site", "YouTube").lower()

@@ -111,3 +111,42 @@ def test_pick_video_accepts_any_language_with_none():
 def test_pick_video_returns_none_when_empty():
     assert _pick_video([], "fr") is None
     assert _pick_video([_video(key="X", site="Facebook")], "fr") is None
+
+
+def test_pick_video_boosts_officielle_over_other_fr_trailer():
+    """Two same-rank Trailer official fr videos: the one whose name
+    contains ``officielle`` wins over a neutral-named one."""
+    neutral = _video(
+        key="NEUTRAL-VF",
+        published_at="2024-01-01T00:00:00.000Z",
+    )
+    neutral["name"] = "Trailer"
+    officielle = _video(
+        key="OFFICIELLE-VF",
+        published_at="2024-01-01T00:00:00.000Z",
+    )
+    officielle["name"] = "Bande-annonce officielle"
+
+    picked = _pick_video([neutral, officielle], "fr")
+
+    assert picked["key"] == "OFFICIELLE-VF"
+
+
+def test_pick_video_penalises_vostfr_against_dubbed_french():
+    """A VOSTFR fan-uploaded fr-tagged trailer must lose to a real dub
+    even when its publication date is newer."""
+    vostfr = _video(
+        key="FAN-VOSTFR",
+        official=False,
+        published_at="2024-12-01T00:00:00.000Z",
+    )
+    vostfr["name"] = "Trailer VOSTFR"
+    real_vf = _video(
+        key="OFFICIAL-VF",
+        published_at="2024-01-01T00:00:00.000Z",
+    )
+    real_vf["name"] = "Bande-annonce officielle"
+
+    picked = _pick_video([vostfr, real_vf], "fr")
+
+    assert picked["key"] == "OFFICIAL-VF"
