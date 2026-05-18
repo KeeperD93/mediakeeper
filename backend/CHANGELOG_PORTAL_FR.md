@@ -32,6 +32,7 @@ utilisateurs.
 - Listes (Découvrir, Recherche, Personne, Collection) — 3 jaquettes par ligne sur mobile, espace resserré.
 
 ### Fixed
+- Soirées ciné : événements passés verrouillés (salle fermée, accept bloqué, pastille « Terminé »).
 - Choix du pseudo : modal bloquant ré-armé à chaque connexion, overlays masqués tant qu'aucun pseudo n'est saisi.
 - Accueil : suppression de la rafale de notifications « Trop de tentatives » au chargement
 - Jaquettes : restauration contour blanc + médailles Top 3 (or/argent/bronze).

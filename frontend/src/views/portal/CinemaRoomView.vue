@@ -201,6 +201,13 @@ async function load() {
     const enterRes = await enterRoom(id).catch(() => null)
     if (enterRes && !enterRes.error) {
       event.value = enterRes.event
+    } else if (enterRes?.error === 'event_ended') {
+      // Stale notification or a refresh on a long-finished event:
+      // bounce back to the portal home with a clear toast instead of
+      // stranding the user on an empty (or worse, ghosted) cinema room.
+      showToast(t('portal.cinema.errors.event_ended'), TOAST_TYPE.WARN)
+      router.replace({ name: PORTAL_TAB.HOME })
+      return
     } else {
       event.value = await getOne(id)
     }

@@ -52,6 +52,11 @@
   background: rgb(var(--portal-color-success-rgb), 0.25);
   color: var(--portal-color-success-soft);
 }
+.pt-evd-kind--ended {
+  margin-left: 6px;
+  background: rgb(var(--portal-color-error-rgb), 0.18);
+  color: var(--portal-color-error-soft);
+}
 .pt-evd-title {
   font-size: var(--portal-text-lg);
   font-weight: var(--portal-font-extrabold);

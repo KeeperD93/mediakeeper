@@ -7,6 +7,9 @@
             <span class="pt-evd-kind" :class="`pt-evd-kind--${event.kind}`">
               {{ $t(`portal.mkCalendar.kind.${event.kind}`) }}
             </span>
+            <span v-if="event.is_terminated" class="pt-evd-kind pt-evd-kind--ended">
+              {{ $t('portal.mkEvents.detail.terminated') }}
+            </span>
             <h2 class="pt-evd-title">{{ event.title }}</h2>
           </div>
           <button class="pt-evd-x" :aria-label="$t('common.close')" @click="$emit('close')">
@@ -106,7 +109,14 @@
               <button class="pt-evd-btn pt-evd-btn--ghost" @click="respond('decline')">
                 {{ $t('portal.mkEvents.detail.decline') }}
               </button>
-              <button class="pt-evd-btn pt-evd-btn--primary" @click="respond('accept')">
+              <!-- Accept is hidden once the event is past its cutoff: the
+                   backend rejects ``accept`` with ``event_ended`` anyway,
+                   the decline path stays open so the user can tidy up. -->
+              <button
+                v-if="!event.is_terminated"
+                class="pt-evd-btn pt-evd-btn--primary"
+                @click="respond('accept')"
+              >
                 {{ $t('portal.mkEvents.detail.accept') }}
               </button>
             </template>
@@ -174,9 +184,13 @@ onBeforeUnmount(() => {
 })
 
 // Room is open from 15 minutes BEFORE scheduled time (matches the
-// backend ROOM_OPEN_BEFORE_MIN constant in mk_events.py).
+// backend ROOM_OPEN_BEFORE_MIN constant in mk_events.py). Past the
+// backend's ``ROOM_CLOSE_AFTER_HOURS`` cutoff the door slams shut even
+// if the status row is still "scheduled" — the serializer surfaces the
+// composite flag so we don't have to duplicate the date math here.
 const roomOpen = computed(() => {
   if (!event.value || event.value.status !== EVENT_STATUS.SCHEDULED) return false
+  if (event.value.is_terminated) return false
   const start = new Date(event.value.scheduled_at).getTime()
   const open = start - 15 * 60 * 1000
   return nowTs.value >= open

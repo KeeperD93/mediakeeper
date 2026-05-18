@@ -36,7 +36,11 @@ from services.portal import mk_events_members as members_mod
 from services.portal import mk_events_room as room_mod
 from services.portal.mk_events_members import invite_user, respond
 from services.portal.mk_events_room import enter_room
-from services.portal.mk_events_utils import MAX_INVITE_RETRIES, MAX_PARTICIPANTS
+from services.portal.mk_events_utils import (
+    MAX_INVITE_RETRIES,
+    MAX_PARTICIPANTS,
+    ROOM_CLOSE_AFTER_HOURS,
+)
 
 
 # SQLite's ``DateTime(timezone=True)`` strips ``tzinfo`` on the way back out,
@@ -566,7 +570,79 @@ async def test_invite_user_reinvite_caps_at_max_retries(db_session):
     assert capped == {"error": "max_retries_reached"}
 
 
-# 4. Private-doc reference scrubbed from public modules.
+# 4. event_ended cutoff — enter_room and respond(accept) reject stale events.
+
+
+@pytest.mark.asyncio
+async def test_enter_room_rejects_event_past_close_cutoff(
+    db_session, patch_naive_now,
+):
+    """An event scheduled long enough ago to be past ``ROOM_CLOSE_AFTER_HOURS``
+    must return ``event_ended`` even if its ``status`` row is still
+    ``scheduled`` (no autonomous closer job runs yet)."""
+    creator = await _make_user(db_session, username="ended-creator")
+    member = await _make_user(db_session, username="ended-member")
+    scheduled_at = datetime.now(timezone.utc) - timedelta(
+        hours=ROOM_CLOSE_AFTER_HOURS + 2,
+    )
+    event = MKEvent(
+        creator_user_id=creator.id,
+        title="Past Movie Night",
+        kind="private",
+        tmdb_ids=[{"tmdb_id": 1, "media_type": "movie", "title": "Old"}],
+        scheduled_at=scheduled_at,
+        status="scheduled",
+    )
+    db_session.add(event)
+    await db_session.commit()
+    await db_session.refresh(event)
+    await _accept_member(db_session, event.id, member.id)
+
+    result = await enter_room(db_session, event.id, member.id)
+    assert result == {"error": "event_ended"}
+
+
+@pytest.mark.asyncio
+async def test_respond_accept_rejects_event_past_close_cutoff(db_session):
+    """``respond('accept')`` on a stale event must short-circuit before the
+    invitation row is mutated so the user can't drag themselves into a dead
+    cinema room from a leftover notification. Decline stays open so they
+    can tidy the notification anyway."""
+    creator = await _make_user(db_session, username="ended-respond-creator")
+    member = await _make_user(db_session, username="ended-respond-member")
+    scheduled_at = datetime.now(timezone.utc) - timedelta(
+        hours=ROOM_CLOSE_AFTER_HOURS + 2,
+    )
+    event = MKEvent(
+        creator_user_id=creator.id,
+        title="Past Movie Night",
+        kind="private",
+        tmdb_ids=[{"tmdb_id": 1, "media_type": "movie", "title": "Old"}],
+        scheduled_at=scheduled_at,
+        status="scheduled",
+    )
+    db_session.add(event)
+    await db_session.commit()
+    await db_session.refresh(event)
+
+    pending = MKEventInvitation(
+        event_id=event.id,
+        user_id=member.id,
+        status="pending",
+        invite_count=1,
+    )
+    db_session.add(pending)
+    await db_session.commit()
+
+    result = await respond(db_session, event.id, member.id, "accept")
+    assert result == {"error": "event_ended"}
+
+    # Decline is still possible — viewers can tidy stale notifications.
+    decline_result = await respond(db_session, event.id, member.id, "decline")
+    assert decline_result.get("ok") is True
+
+
+# 5. Private-doc reference scrubbed from public modules.
 
 
 @pytest.mark.asyncio

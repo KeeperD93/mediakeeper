@@ -2614,6 +2614,9 @@
       "unmute": "Unmute",
       "trailerInfo": "Info",
       "trailerInfoAria": "More info about {title}",
+      "errors": {
+        "event_ended": "Event ended — the cinema room is closed."
+      },
       "marathon": {
         "title": "Marathon · film {current} of {total}",
         "ineligible": "{count} participant without Emby tracking | {count} participants without Emby tracking",
@@ -2668,7 +2671,8 @@
         "cancelConfirm": "Cancel this event?",
         "removeMember": "Remove this participant",
         "conflictWarning": "You already have another event at this time",
-        "enterRoom": "Enter the room"
+        "enterRoom": "Enter the room",
+        "terminated": "Ended"
       },
       "banner": {
         "label": "Upcoming event",

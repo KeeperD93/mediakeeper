@@ -1,7 +1,7 @@
 """Shared helpers for the MediaKeeper Events layer: constants, user label
 resolver, event serializer, scheduling-conflict check."""
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,6 +14,41 @@ logger = logging.getLogger("mediakeeper.portal.mk_events")
 MAX_INVITE_RETRIES = 3
 MAX_PARTICIPANTS = 50
 ROOM_OPEN_BEFORE_MIN = 15
+# Hard time-based cutoff so an event that nobody marked ``done`` can't
+# stay "live" forever — the cinema room closes that many hours past
+# ``scheduled_at``, even for marathons. Covers a single movie or a short
+# back-to-back screening; longer events can still be re-opened by an
+# admin via the explicit ``done`` status reset (out of scope here).
+ROOM_CLOSE_AFTER_HOURS = 6
+
+
+def is_event_terminated(event: MKEvent, now: datetime | None = None) -> bool:
+    """True when the event no longer accepts room entries or accepts.
+
+    The function is purely time / status driven so it stays cheap to
+    evaluate on every list serialisation. Three terminal signals:
+
+    - ``status == "cancelled"`` — explicit creator cancellation.
+    - ``status == "done"`` — explicit marker (unset in production today,
+      but reserved for the future "everyone left" cleanup job).
+    - ``now > scheduled_at + ROOM_CLOSE_AFTER_HOURS`` — soft cutoff so
+      stale events drop out of the live UI without manual housekeeping.
+    """
+    if event.status in ("cancelled", "done"):
+        return True
+    if not event.scheduled_at:
+        return False
+    reference = now or datetime.now(timezone.utc)
+    scheduled = event.scheduled_at
+    # Normalise tzinfo on both sides: SQLite (test engine) strips it
+    # whereas PostgreSQL preserves it, and the surrounding callers may
+    # pass either a tz-aware or a tz-naive ``now`` (the atomicity tests
+    # monkey-patch ``datetime.now`` to return naive UTC values).
+    if scheduled.tzinfo is None and reference.tzinfo is not None:
+        scheduled = scheduled.replace(tzinfo=timezone.utc)
+    elif scheduled.tzinfo is not None and reference.tzinfo is None:
+        reference = reference.replace(tzinfo=timezone.utc)
+    return reference > scheduled + timedelta(hours=ROOM_CLOSE_AFTER_HOURS)
 
 
 async def _user_label(db: AsyncSession, user_id: int | None) -> str | None:
@@ -75,6 +110,10 @@ async def _serialize_event(db: AsyncSession, event: MKEvent) -> dict:
         "scheduled_at": event.scheduled_at.isoformat() if event.scheduled_at else None,
         "comment": event.comment,
         "status": event.status,
+        # Composite flag the front-end uses to gray out the join / accept
+        # buttons and surface a "Terminated" pill so users don't dive into
+        # a dead cinema room. Mirrors ``is_event_terminated``.
+        "is_terminated": is_event_terminated(event),
         "room_opened_at": event.room_opened_at.isoformat() if event.room_opened_at else None,
         "current_step": event.current_step,
         "invitations": invitations,

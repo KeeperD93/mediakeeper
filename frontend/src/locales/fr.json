@@ -2614,6 +2614,9 @@
       "unmute": "Activer le son",
       "trailerInfo": "Infos",
       "trailerInfoAria": "Plus d'infos sur {title}",
+      "errors": {
+        "event_ended": "Événement terminé — la salle est fermée."
+      },
       "marathon": {
         "title": "Marathon · film {current}/{total}",
         "ineligible": "{count} participant sans suivi Emby | {count} participants sans suivi Emby",
@@ -2668,7 +2671,8 @@
         "cancelConfirm": "Annuler cet événement ?",
         "removeMember": "Retirer ce participant",
         "conflictWarning": "Vous avez déjà un autre événement à cette heure",
-        "enterRoom": "Entrer dans la salle"
+        "enterRoom": "Entrer dans la salle",
+        "terminated": "Terminé"
       },
       "banner": {
         "label": "Événement à venir",

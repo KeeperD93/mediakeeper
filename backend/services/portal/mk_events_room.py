@@ -6,7 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.event import MKEvent, MKEventInvitation
 from services.portal.mk_events_utils import (
-    MAX_PARTICIPANTS, ROOM_OPEN_BEFORE_MIN, _serialize_event,
+    MAX_PARTICIPANTS, ROOM_OPEN_BEFORE_MIN,
+    _serialize_event, is_event_terminated,
 )
 
 
@@ -44,6 +45,14 @@ async def enter_room(
     if now < open_at:
         await db.rollback()
         return {"error": "room_not_open", "open_at": open_at.isoformat()}
+    # Hard time-based cutoff: an event nobody marked ``done`` (no
+    # autonomous closer job exists today) used to stay reachable
+    # forever. After ``ROOM_CLOSE_AFTER_HOURS`` past ``scheduled_at``,
+    # the room is closed for new entries even if the status row is
+    # still ``scheduled``.
+    if is_event_terminated(event, now):
+        await db.rollback()
+        return {"error": "event_ended"}
 
     inv = (await db.execute(
         select(MKEventInvitation)

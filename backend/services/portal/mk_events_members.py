@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.portal.event import MKEvent, MKEventInvitation
 from services.portal import notifications as notifs
 from services.portal.mk_events_utils import (
-    MAX_INVITE_RETRIES, _user_label, _has_conflict,
+    MAX_INVITE_RETRIES, _user_label, _has_conflict, is_event_terminated,
 )
 
 logger = logging.getLogger("mediakeeper.portal.mk_events_members")
@@ -161,6 +161,13 @@ async def respond(
     )).scalar_one_or_none()
     if not event:
         return {"error": "not_found"}
+
+    # Accepts on a stale / cancelled / past-cutoff event are pointless
+    # and used to drag the user straight into a dead cinema room. The
+    # decline path stays open so a viewer can still tidy up a stale
+    # notification.
+    if decision == "accept" and is_event_terminated(event):
+        return {"error": "event_ended"}
 
     inv = await _load_invitation(db, event_id, user_id)
 

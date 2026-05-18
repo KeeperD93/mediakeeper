@@ -30,6 +30,7 @@ This section intentionally has no date so it is not shown to users.
 - Lists (Discover, Search, Person, Collection) — 3 posters per row on mobile, tighter spacing
 
 ### Fixed
+- Movie nights: past events locked (room closed, accept blocked, "Ended" pill).
 - Display name picker: blocking modal re-arms on every login, overlays hidden until a pseudo is saved.
 - Home: removed the burst of "Too many attempts" notifications on load
 - Posters: restored white outline and Top 3 medals (gold/silver/bronze).
