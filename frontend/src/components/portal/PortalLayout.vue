@@ -72,10 +72,12 @@
          overlay is first opened. -->
     <PortalHelpOverlay :open="helpOpen" @close="helpOpen = false" />
 
-    <!-- Blocking modal that fires once per account: forces the user to pick
-         a real username on first portal login. ``display_name_must_set``
-         flips to false the moment they save. -->
-    <ForceUsernameModal :open="forceUsernameOpen" @done="forceUsernameOpen = false" />
+    <!-- Blocking modal driven directly by ``mustPickUsername`` so it stays
+         armed across deco/reco and refreshes: the backend ``must_set`` flag
+         is the single source of truth and only flips to false on a saved
+         display name (admin reset re-arms it). No latch, no escape — every
+         Emby account is required to pick a pseudo before using the app. -->
+    <ForceUsernameModal :open="mustPickUsername" />
   </div>
 </template>
 
@@ -140,25 +142,6 @@ const surpriseOpen = ref(false)
 const whatsNewOpen = ref(false)
 const dailyDigestOpen = ref(false)
 const helpOpen = ref(false)
-const forceUsernameOpen = ref(false)
-// Latches the first time we open the modal so subsequent profile saves
-// (e.g. saving favorite genres while ``must_set`` is still true on the
-// backend until the username is actually picked) don't re-pop it. The
-// user has explicit access via /portal/settings → Identity if they
-// want to set their username later in the session.
-let forceUsernameShownOnce = false
-
-watch(
-  () => [profile.value?.display_name_must_set, profile.value?.role],
-  ([must, role]) => {
-    if (role === USER_ROLE.ADMIN) return
-    if (must && !forceUsernameShownOnce) {
-      forceUsernameOpen.value = true
-      forceUsernameShownOnce = true
-    }
-  },
-  { immediate: true },
-)
 
 function onOpenWhatsNew() {
   whatsNewOpen.value = true
@@ -176,7 +159,8 @@ const activeTab = computed(() => route.name || PORTAL_TAB.HOME)
 const isAdmin = computed(() => profile.value?.role === USER_ROLE.ADMIN)
 // Pre-pseudo gate: viewers whose ``display_name_must_set`` flag is on
 // (first login or admin-triggered reset) must clear the picker before
-// any auto-popup can mount on top of it.
+// they can use anything else. Drives both the blocking ForceUsernameModal
+// and the v-if guards on the auto-popping overlays / FAB.
 const mustPickUsername = computed(
   () => !isAdmin.value && !!profile.value?.display_name_must_set,
 )
