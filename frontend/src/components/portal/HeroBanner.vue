@@ -1,54 +1,12 @@
 <template>
-  <div ref="heroRef" class="pt-hero" @click="onHeroTap">
-    <!-- Background image — hidden while a trailer is playing AND during
-         the cinematic fade-to-black between two trailers, so the new
-         item's backdrop never briefly appears behind the black veil. -->
-    <div
-      class="pt-hero-bg"
-      :class="{ 'pt-hero-bg--hidden': (trailer && videoPlaying) || transitioning }"
-      :style="bgStyle"
-    />
-
-    <!-- Trailer slot — switches between native <video> (Emby local trailer
-         streamed via the backend proxy) and the YouTube IFrame API. The
-         layer stays transparent until `videoPlaying` is true so the YT
-         buffering chrome (loading spinner, Play overlay) never shows;
-         the backdrop image underneath covers the gap between two
-         trailers. -->
-    <div v-if="trailer" class="pt-hero-video" :class="{ 'pt-hero-video--playing': videoPlaying }">
-      <video
-        v-if="trailer.source === TRAILER_SOURCE.EMBY"
-        ref="embyVideoRef"
-        :src="trailer.url"
-        autoplay
-        :muted="muted"
-        playsinline
-        class="pt-hero-emby-video"
-        @playing="setVideoPlaying(true)"
-        @pause="onEmbyPause"
-        @ended="onEmbyEnded"
-      />
-      <template v-else>
-        <div class="pt-hero-player-wrap">
-          <div :id="playerId" />
-        </div>
-        <div class="pt-hero-video-block" />
-      </template>
-    </div>
+  <div ref="heroRef" class="pt-hero">
+    <Transition name="pt-hero-bg-fade">
+      <div :key="viewItem?.id" class="pt-hero-bg" :style="bgStyle" />
+    </Transition>
 
     <div class="pt-hero-vignette" />
     <div class="pt-hero-gradient-bottom" />
     <div class="pt-hero-gradient-left" />
-
-    <!-- Black veil during item changes. Covers the video + backdrop so
-         the user sees a clean fade-to-black between two trailers while
-         the next one buffers. The transition duration is asymmetric
-         (short fade-in at the end of A, longer fade-out onto B). -->
-    <div
-      class="pt-hero-fade"
-      :class="{ 'pt-hero-fade--active': transitioning }"
-      :style="fadeStyle"
-    />
 
     <div class="pt-hero-content">
       <div v-if="isTv(viewItem)" class="pt-hero-badge">
@@ -97,11 +55,6 @@
       </div>
     </div>
 
-    <button v-if="trailer" class="pt-hero-mute" @click="onMuteToggle">
-      <VolumeX v-if="muted" :size="20" />
-      <Volume2 v-else :size="20" />
-    </button>
-
     <TrailerLightbox v-if="lightboxOpen && trailer" :trailer="trailer" @close="closeLightbox" />
 
     <div v-if="totalItems > 1" class="pt-hero-dots">
@@ -117,13 +70,11 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { useHeroBannerTrailer } from '@/composables/portal/useHeroBannerTrailer'
-import { useHeroCinemaVeil } from '@/composables/portal/useHeroCinemaVeil'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useTrailer } from '@/composables/portal/useTrailer'
 import TrailerLightbox from './TrailerLightbox.vue'
 import { isTv } from '@/constants/media'
-import { TRAILER_SOURCE } from '@/constants/trailers'
-import { Info, Plus, Video, Volume2, VolumeX } from 'lucide-vue-next'
+import { Info, Plus, Video } from 'lucide-vue-next'
 
 import '@/assets/styles/portal/hero-banner.css'
 
@@ -136,62 +87,19 @@ const props = defineProps({
   isFeatured: { type: Boolean, default: false },
 })
 
-const emit = defineEmits([
-  'play',
-  'detail',
-  'goto',
-  'sound-on',
-  'sound-off',
-  'video-ended',
-  'request',
-])
+defineEmits(['play', 'detail', 'goto', 'video-ended', 'request'])
 
-const {
-  trailer,
-  muted,
-  videoPlaying,
-  embyVideoRef,
-  playerId,
-  loadTrailer,
-  prefetchTrailer,
-  peekTrailer,
-  ensureYTApi,
-  toggleMute,
-  setMuted,
-  setVideoPlaying,
-  onEmbyPause,
-  onEmbyEnded,
-} = useHeroBannerTrailer({ onEnded: () => emit('video-ended') })
+// Trailer-URL resolution only — never mounts a YouTube IFrame in the
+// hero itself. Resolving populates ``trailer`` so the "Bande-annonce"
+// button can show / hide based on availability; clicking the button
+// opens the fullscreen lightbox where the actual <iframe> lives,
+// then tears it down on close. Eliminates every chance of the
+// YouTube centre play/pause overlay being painted over the hero.
+const { trailer, resolve: resolveTrailer, prefetch: prefetchTrailer } = useTrailer()
 
 const heroRef = ref(null)
 const lightboxOpen = ref(false)
-
-// Cinematic black veil between two trailers — asymmetric fade + safety net.
-function peekItemTrailer(item) {
-  if (!item) return undefined
-  return peekTrailer(item.media_type || 'movie', item.tmdb_id || item.id, item.emby_item_id || null)
-}
-const {
-  transitioning,
-  displayedItem,
-  fadeStyle,
-  onItemChange,
-  startInitial,
-  dispose: disposeVeil,
-} = useHeroCinemaVeil({
-  videoPlaying,
-  peekItem: peekItemTrailer,
-  loadItem: it => loadTrailer(it),
-  hasTrailer: () => !!trailer.value,
-})
-
-// Visual surface lags ``props.item`` so the backdrop / title / metadata
-// only swap when the veil is fully opaque. Seed it synchronously here
-// (not in startInitial) because ensureYTApi() can hang forever when the
-// YouTube IFrame API script is blocked (ad-blocker, network issue) —
-// without this seed, viewItem would fall back to props.item directly
-// and every rotation would flash the new backdrop instantly.
-displayedItem.value = props.item
+const displayedItem = ref(props.item)
 const viewItem = computed(() => displayedItem.value || props.item)
 
 const bgStyle = computed(() => {
@@ -200,54 +108,34 @@ const bgStyle = computed(() => {
   return bg ? { backgroundImage: `url(${bg})` } : {}
 })
 
-function onMuteToggle() {
-  toggleMute()
-  emit(muted.value ? 'sound-off' : 'sound-on')
+async function ensureTrailerResolved() {
+  const it = viewItem.value
+  if (!it) return
+  await resolveTrailer(
+    it.media_type || 'movie',
+    it.tmdb_id || it.id,
+    it.emby_item_id || null,
+  )
 }
 
-// Mobile: tapping the hero background (anywhere outside buttons / links)
-// toggles the trailer's sound. The dedicated mute button is hidden on
-// phones to free up space in the action row. On desktop this handler is a
-// no-op because the mute button stays visible and ``window.innerWidth``
-// is above the mobile breakpoint.
-function onHeroTap(e) {
-  if (!trailer.value) return
-  if (window.innerWidth >= 640) return
-  // Let any actual interactive descendant handle its own click.
-  if (e.target.closest('button, a, input, select, textarea')) return
-  onMuteToggle()
-}
-
-// Opening the fullscreen lightbox must freeze the parent's auto-rotation
-// (via the sound-on channel) so the hero doesn't switch under the user
-// while they're watching. The previous mute state is restored on close.
-let mutedBeforeLightbox = true
 function openLightbox() {
-  mutedBeforeLightbox = muted.value
-  if (!muted.value) setMuted(true)
+  if (!trailer.value) return
   lightboxOpen.value = true
-  emit('sound-on')
 }
 function closeLightbox() {
   lightboxOpen.value = false
-  if (!mutedBeforeLightbox) {
-    setMuted(false)
-    // Leave rotation paused — user still has sound on.
-  } else {
-    emit('sound-off')
-  }
 }
 
 watch(
   () => props.item?.id,
   () => {
-    onItemChange(props.item)
+    displayedItem.value = props.item
+    ensureTrailerResolved()
   },
 )
 
-// Warm up the trailer URL cache for the next item so the rotation
-// resolves instantly — the loading gap under the black veil becomes
-// just the YT player's own buffering time.
+// Warm up the next item's trailer URL so the rotation has it ready
+// when the user lands on the next slide.
 watch(
   () => props.nextItem?.tmdb_id || props.nextItem?.id,
   () => {
@@ -258,48 +146,7 @@ watch(
   { immediate: true },
 )
 
-// Mute the hero trailer when it scrolls out of view, restore prior state
-// on scroll-back. Prevents audio from continuing to play "blind" when
-// the user scrolls down with sound enabled.
-let visObserver = null
-let mutedBeforeHide = true
-function setupVisibilityObserver() {
-  if (!heroRef.value || visObserver) return
-  visObserver = new IntersectionObserver(
-    ([entry]) => {
-      if (entry.isIntersecting && entry.intersectionRatio > 0.1) {
-        if (!mutedBeforeHide) {
-          setMuted(false)
-          emit('sound-on')
-        }
-      } else {
-        mutedBeforeHide = muted.value
-        if (!muted.value) {
-          setMuted(true)
-          emit('sound-off')
-        }
-      }
-    },
-    { threshold: [0, 0.1, 0.5] },
-  )
-  visObserver.observe(heroRef.value)
-}
-
-onMounted(async () => {
-  try {
-    await ensureYTApi()
-  } catch {
-    /* swallow */
-  }
-  await startInitial(props.item)
-  setupVisibilityObserver()
-})
-
-onUnmounted(() => {
-  if (visObserver) {
-    visObserver.disconnect()
-    visObserver = null
-  }
-  disposeVeil()
+onMounted(() => {
+  ensureTrailerResolved()
 })
 </script>

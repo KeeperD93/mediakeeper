@@ -3,7 +3,9 @@
     <TrailerLightbox v-if="lightboxOpen && trailer" :trailer="trailer" @close="closeLightbox" />
 
     <div class="pt-eh-hero">
-      <div class="pt-eh-hero-bg" :style="bgStyle" />
+      <Transition name="pt-eh-bg-fade">
+        <div :key="currentItem?.id" class="pt-eh-hero-bg" :style="bgStyle" />
+      </Transition>
 
       <div class="pt-eh-gradient-top" />
       <div class="pt-eh-gradient-bottom" />
@@ -103,10 +105,10 @@ const props = defineProps({
 })
 const emit = defineEmits(['request', 'detail', 'add-watchlist', 'select'])
 
-// Faster rotation than the main hero (45 s) — without a background
-// trailer auto-playing, 15 s per backdrop keeps the row feeling alive
-// without outpacing the user's reading speed.
-const ROTATE_MS = 15000
+// Aligned with the main hero (10 s) — both heroes now ship as a
+// backdrop slideshow with on-demand trailer popups, so the cadence
+// stays consistent across the page.
+const ROTATE_MS = 10000
 const MAX_VISIBLE = 20
 
 const sectionRef = ref(null)

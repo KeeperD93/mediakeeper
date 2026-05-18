@@ -18,7 +18,7 @@ import { useRequestStatus } from '@/composables/portal/useRequestStatus'
 // barrage of ``player.loadVideoById`` calls when short trailers chain
 // together, which used to trip YouTube's anti-abuse cooldown on this
 // domain.
-const HERO_MIN_INTERVAL_MS = 45000
+const HERO_MIN_INTERVAL_MS = 10000
 
 export function usePortalHomeData() {
   const { apiGet } = useApi()

@@ -31,11 +31,16 @@
   background-size: cover;
   background-position: center 20%;
   background-color: #0a0a0a;
-  /* Backdrop fades out when a trailer starts playing or during the
-     cinematic transition between two trailers, mirrors HeroBanner. */
-  transition: opacity 1s ease;
 }
-.pt-eh-hero-bg--hidden {
+/* Crossfade between two consecutive items — Vue Transition keeps
+   both the entering and leaving backdrop divs in the DOM during the
+   transition, so the absolute positioning stacks them naturally. */
+.pt-eh-bg-fade-enter-active,
+.pt-eh-bg-fade-leave-active {
+  transition: opacity 1.2s ease;
+}
+.pt-eh-bg-fade-enter-from,
+.pt-eh-bg-fade-leave-to {
   opacity: 0;
 }
 
