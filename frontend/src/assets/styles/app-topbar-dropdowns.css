@@ -195,42 +195,6 @@
   color: rgb(255, 255, 255, 0.8);
 }
 
-/* Accent color picker */
-.tb-accent-section {
-  padding: 10px 16px;
-}
-.tb-accent-label {
-  font-size: var(--text-3xs);
-  font-weight: var(--font-medium);
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  color: rgb(255, 255, 255, 0.2);
-  display: block;
-  margin-bottom: 8px;
-}
-.tb-accent-row {
-  display: flex;
-  gap: 6px;
-}
-.tb-accent-dot {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  border: 2px solid transparent;
-  cursor: pointer;
-  transition: all var(--duration-base);
-  position: relative;
-  padding: 0;
-}
-.tb-accent-dot:hover {
-  transform: scale(1.15);
-  box-shadow: 0 0 10px currentColor;
-}
-.tb-accent-dot.active {
-  border-color: rgb(255, 255, 255, 0.8);
-  box-shadow: 0 0 12px currentColor;
-}
-
 /* Dropdown transition */
 .tb-dd-enter-active {
   transition:

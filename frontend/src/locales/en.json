@@ -1166,7 +1166,6 @@
   },
   "settings": {
     "title": "Settings",
-    "accentColor": "Accent color",
     "sourceMedia": "Media source",
     "sourceMediaDesc": "Only one active source at a time. Powers the dashboard and statistics.",
     "externalApis": "External APIs",

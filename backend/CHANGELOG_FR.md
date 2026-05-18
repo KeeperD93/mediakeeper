@@ -34,6 +34,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Onglets — interface compactée sur mobile.
 - Pied de page — crédits TMDB compactés.
 - Pied de page — bandeau d'attribution retiré (crédits conservés dans À propos).
+- Avatar (haut à droite) — sélecteur de couleur d'accent retiré (déjà dans Paramètres → Apparence).
 - Suivi — bouton « Restaurer » réaligné (radius unifié).
 - Statistiques — records empilés en colonne sur mobile.
 - Watchlist Manquants : nouveau label « Dernier scan », bouton renommé « Analyser ».
