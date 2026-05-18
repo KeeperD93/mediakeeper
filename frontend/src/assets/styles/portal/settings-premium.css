@@ -844,6 +844,11 @@
   gap: 0.85rem;
   padding: 0.85rem 1.1rem;
   margin-top: 0.5rem;
+  /* Stay visible even when .pt-settings-savebar--dirty's pulse animation
+     replaces the .dp-reveal-item entrance animation, since the pulse
+     keyframe doesn't animate opacity and the static .dp-reveal-item
+     declaration would otherwise leave the bar at opacity:0. */
+  opacity: 1;
   background: linear-gradient(180deg, rgb(20, 20, 30, 0.55), rgb(20, 20, 30, 0.85));
   backdrop-filter: var(--portal-blur-lg);
   -webkit-backdrop-filter: var(--portal-blur-lg);

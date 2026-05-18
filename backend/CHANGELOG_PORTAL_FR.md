@@ -49,6 +49,8 @@ utilisateurs.
 - Fiche détail — langue et pays traduits dans la langue de l'interface.
 - Accueil — bandes-annonces héros : priorité aux versions officielles récentes (meilleure VF).
 - Accueil — changement manuel de slide héros : compteur 45 s réinitialisé.
+- Préférences — barre Enregistrer reste visible après changement de langue ou genre.
+- Préférences — synopsis, recommandations et bandes-annonces rechargés à la nouvelle langue.
 
 ## [0.3.0] - 2026-05-14
 

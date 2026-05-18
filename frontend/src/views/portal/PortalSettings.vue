@@ -202,8 +202,21 @@ const statusLabel = computed(() => {
 })
 
 async function onSave() {
+  const languageBefore = profileData.value?.language || null
   const res = await save()
   if (res.ok) {
+    if (
+      profileData.value?.language
+      && profileData.value.language !== languageBefore
+    ) {
+      // Portal hero overviews, trending descriptions and discover lists
+      // are fetched from TMDB using profile.language. Pages that have
+      // already loaded those rows still hold the previous-language
+      // strings — reload so every cached row comes back in the new
+      // locale at once.
+      window.location.reload()
+      return
+    }
     showToast(t('portal.settings.save.saved'), TOAST_TYPE.OK)
   } else if (res.error === 'display_name_taken') {
     checkUsername(form.display_name)

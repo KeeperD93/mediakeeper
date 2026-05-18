@@ -47,6 +47,8 @@ This section intentionally has no date so it is not shown to users.
 - Detail page — language and country localised in the UI language.
 - Home — hero trailers: official and most recent versions prioritised (better French dub).
 - Home — manual hero slide jump now resets the 45 s timer.
+- Preferences — save bar stays visible after changing language or genres.
+- Preferences — overviews, recommendations and trailers reload in the new language.
 
 ## [0.3.0] - 2026-05-14
 
