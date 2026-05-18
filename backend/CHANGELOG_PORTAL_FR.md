@@ -26,7 +26,7 @@ utilisateurs.
 - Page personne — hero responsive (photo + titre adaptés au mobile).
 - Jaquettes mobile : actions retirées, clic direct sur la fiche.
 - Accueil mobile : synopsis des héros masqués pour aérer.
-- Accueil — bannière vidéo : passage à la suivante toutes les 45 secondes minimum.
+- Accueil — héros : diaporama d'images (10 s, fondu enchaîné).
 - Quoi de neuf — overlay affiché une seule fois par jour (bouton Fermer suffit).
 - Listes (Découvrir, Recherche, Personne, Collection) — 3 jaquettes par ligne sur mobile, espace resserré.
 
@@ -48,7 +48,8 @@ utilisateurs.
 - Recherche — refonte live TMDB avec cache 5 min (jaquettes toujours fraîches).
 - Fiche détail — langue et pays traduits dans la langue de l'interface.
 - Accueil — bandes-annonces héros : priorité aux versions officielles récentes (meilleure VF).
-- Accueil — changement manuel de slide héros : compteur 45 s réinitialisé.
+- Accueil — changement manuel de slide héros : compteur 10 s réinitialisé.
+- Accueil — bandes-annonces héros : lecture à la demande, plus d'auto-play en fond.
 - Préférences — barre Enregistrer reste visible après changement de langue ou genre.
 - Préférences — synopsis, recommandations et bandes-annonces rechargés à la nouvelle langue.
 

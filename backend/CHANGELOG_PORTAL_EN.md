@@ -24,7 +24,7 @@ This section intentionally has no date so it is not shown to users.
 - Person page — responsive hero (photo + title adapted to mobile)
 - Mobile posters: actions removed, tap opens the detail page
 - Mobile home: hero descriptions hidden to declutter
-- Home — hero banner: rotates to the next video after at least 45 seconds
+- Home — hero strip: image slideshow (10 s, crossfade between items).
 - What's new — overlay shown once per day (Close button is enough)
 - Lists (Discover, Search, Person, Collection) — 3 posters per row on mobile, tighter spacing
 
@@ -46,7 +46,8 @@ This section intentionally has no date so it is not shown to users.
 - Search — live TMDB rework with 5-minute cache (posters always fresh)
 - Detail page — language and country localised in the UI language.
 - Home — hero trailers: official and most recent versions prioritised (better French dub).
-- Home — manual hero slide jump now resets the 45 s timer.
+- Home — manual hero slide jump now resets the 10 s timer.
+- Home — hero trailers: on-demand playback only, no background auto-play.
 - Preferences — save bar stays visible after changing language or genres.
 - Preferences — overviews, recommendations and trailers reload in the new language.
 

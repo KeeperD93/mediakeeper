@@ -1,16 +1,16 @@
-/* HeroBanner — full-bleed hero strip with trailer, gradients, title, CTA, dots. */
+/* HeroBanner — full-bleed hero strip with backdrop slideshow,
+   gradients, title, CTA buttons (incl. on-demand trailer popup), and
+   the manual rotation dots. */
 
 .pt-hero {
   position: relative;
-  /* Contain every child z-index (dots, gradients, fades…) inside this
+  /* Contain every child z-index (dots, gradients…) inside this
      element's stacking context. Without this, .pt-hero-dots (z-index: 5)
      would outrank the next section's .pt-home-body (z-index: 2) where
      the body overlaps the hero's bottom and paint over its title. */
   isolation: isolate;
   /* Solid fallback so the hero never reveals the page wallpaper through
-     it during trailer swaps. Backdrop / video / fade-veil all sit on top
-     with their own fade animations; if any of them is mid-fade, this
-     opaque base catches the gap. */
+     it while the backdrop transitions are mid-fade. */
   background: var(--bg-primary);
   /* Mobile: 52vh keeps the hero impactful but leaves ~half the screen
      for the first carousels, instead of 62vh which felt like dead dark
@@ -52,62 +52,6 @@
   opacity: 0;
 }
 
-.pt-hero-video {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  overflow: hidden;
-  opacity: 0;
-  transition: opacity 3s ease;
-  /* Mobile mask: wider window so the trailer takes more visible space
-     on small screens. Desktop tightens the ellipse below. */
-  mask-image: radial-gradient(ellipse 110% 95% at 50% 40%, #000 50%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 110% 95% at 50% 40%, #000 50%, transparent 100%);
-}
-.pt-hero-video--playing {
-  opacity: 1;
-}
-@media (min-width: 640px) {
-  .pt-hero-video {
-    /* Anchor the mask so the top of the hero is fully opaque under
-       the topbar at every viewport width. The previous gradient
-       (center at 45%) faded the top ~18 % of the video to transparent,
-       which on narrow desktop / tablet revealed the dark hero
-       background between the topbar and the visible video. */
-    mask-image: radial-gradient(ellipse 110% 130% at 50% 30%, #000 70%, transparent 100%);
-    -webkit-mask-image: radial-gradient(ellipse 110% 130% at 50% 30%, #000 70%, transparent 100%);
-  }
-}
-.pt-hero-video-block {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  cursor: default;
-}
-.pt-hero-player-wrap {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  /* 16:9 box scaled to fully cover the hero on any aspect ratio. */
-  width: max(100%, calc(100vh * 16 / 9));
-  height: max(100%, calc(100vw * 9 / 16));
-  transform: translate(-50%, -50%) scale(1);
-}
-.pt-hero-player-wrap iframe {
-  width: 100% !important;
-  height: 100% !important;
-  border: none;
-  pointer-events: none;
-}
-.pt-hero-emby-video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  pointer-events: none;
-}
-
 .pt-hero-vignette {
   position: absolute;
   inset: 0;
@@ -142,28 +86,6 @@
      appears at the boundary with the carousels below. */
   mask-image: linear-gradient(to top, transparent 0%, #000 45%);
   -webkit-mask-image: linear-gradient(to top, transparent 0%, #000 45%);
-}
-
-.pt-hero-fade {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  background: #000;
-  opacity: 0;
-  pointer-events: none;
-  /* Duration is driven from JS via inline style (asymmetric fade: short
-     in at the end of trailer A, longer out onto trailer B). */
-  transition-property: opacity;
-  transition-timing-function: ease;
-  /* No bottom mask here: during the switch between two trailers the
-     veil must hide the NEW item's backdrop as well, otherwise the lower
-     portion (text + action zone) briefly shows the new image through
-     the fade. The bottom of the hero lands on --bg-primary which
-     already matches the page body, so a uniformly black veil doesn't
-     create a visible seam with the carousels below. */
-}
-.pt-hero-fade--active {
-  opacity: 1;
 }
 
 .pt-hero-content {
@@ -317,10 +239,7 @@
 }
 
 /* Mobile: shrink the action buttons so they stay readable on a 400 px
-   wide hero without wrapping. The mask on .pt-hero-video is also
-   dropped so the video fills the hero edge-to-edge (no visible oval
-   demarcation, and the top touches the nav instead of revealing the
-   backdrop behind). */
+   wide hero without wrapping. */
 @media (max-width: 639px) {
   .pt-hero-actions {
     gap: 0.5rem;
@@ -340,44 +259,6 @@
   .pt-hero-btn svg {
     width: 18px;
     height: 18px;
-  }
-  .pt-hero-video {
-    mask-image: none;
-    -webkit-mask-image: none;
-    /* The 3s opacity fade-in of the video chains with the 3s fade-out
-       of the black veil above it: at mid-transition, both layers are
-       semi-transparent and the page wallpaper bleeds through. On mobile
-       the video has no mask to hide that gap, so we make the video
-       fully opaque from the start — the veil on top still fades out
-       cleanly and reveals the already-rendered video underneath. */
-    opacity: 1;
-    transition: none;
-  }
-}
-
-.pt-hero-mute {
-  position: absolute;
-  right: 4%;
-  bottom: 15%;
-  z-index: 5;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--portal-radius-circle);
-  border: 1px solid rgb(255, 255, 255, 0.5);
-  background: rgb(0, 0, 0, 0.4);
-  color: #fff;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-/* Hidden on mobile: trailer sound is toggled by tapping the hero
-   background (see HeroBanner.vue ``onHeroTap``), which leaves the
-   action row uncluttered. The dedicated button appears from --bp-md
-   (640px) up where there is room for it. */
-@media (min-width: 640px) {
-  .pt-hero-mute {
-    display: flex;
   }
 }
 
