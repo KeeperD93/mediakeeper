@@ -16,9 +16,11 @@ vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: (k, named) => (named ? `${k}:${JSON.stringify(named)}` : k) }),
 }))
 
+const mockRouterPush = vi.fn()
+const mockRouterReplace = vi.fn()
 vi.mock('vue-router', () => ({
   useRoute: () => ({ params: { id: '42' } }),
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: mockRouterPush, replace: mockRouterReplace }),
 }))
 
 const mockEnterRoom = vi.fn()
@@ -60,8 +62,9 @@ vi.mock('@/composables/portal/useCinemaRoomFlow', () => ({
   useCinemaRoomFlow: () => flowState,
 }))
 
+const mockShowToast = vi.fn()
 vi.mock('@/composables/useToast', () => ({
-  useToast: () => ({ showToast: vi.fn() }),
+  useToast: () => ({ showToast: mockShowToast }),
 }))
 
 vi.mock('@/composables/apiClient', () => ({
@@ -140,6 +143,9 @@ describe('CinemaRoomView.vue', () => {
   beforeEach(() => {
     mockEnterRoom.mockReset()
     mockGetOne.mockReset()
+    mockRouterPush.mockReset()
+    mockRouterReplace.mockReset()
+    mockShowToast.mockReset()
     carouselState.queue.value = []
     carouselState.currentIndex.value = 0
     carouselState.currentTrailer.value = null
@@ -265,6 +271,30 @@ describe('CinemaRoomView.vue', () => {
 
     const cta = wrapper.find('.pt-cr-launch-btn')
     expect(cta.attributes('disabled')).toBeUndefined()
+  })
+
+  it('bounces home with a toast when the getOne fallback returns a terminated event', async () => {
+    // ``enter_room`` declines for a non-cutoff reason (forbidden, network
+    // glitch, room full, ...) so the view falls back to ``getOne``. The
+    // fallback resolves with ``is_terminated: true`` — the defence-in-depth
+    // guard must redirect to the portal home and surface the same toast as
+    // the explicit ``event_ended`` branch instead of rendering zombie seats.
+    mockEnterRoom.mockResolvedValue({ error: 'forbidden' })
+    const stale = setEvent({ scheduledOffsetMs: -25 * 60 * 60 * 1000 })
+    stale.is_terminated = true
+    stale.status = 'scheduled'
+    mockGetOne.mockResolvedValue(stale)
+
+    await mountView()
+    await flushPromises()
+
+    expect(mockShowToast).toHaveBeenCalledWith(
+      'portal.cinema.errors.event_ended',
+      expect.anything(),
+    )
+    expect(mockRouterReplace).toHaveBeenCalledWith(
+      expect.objectContaining({ name: expect.any(String) }),
+    )
   })
 
   it('falls back to the title when academyDone but no poster is set', async () => {

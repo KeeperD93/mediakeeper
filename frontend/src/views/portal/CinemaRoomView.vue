@@ -214,6 +214,16 @@ async function load() {
   } finally {
     loading.value = false
   }
+  // Defence in depth: the ``enter_room`` path already bounces on
+  // ``event_ended``, but the ``getOne`` fallback (room full, forbidden,
+  // network glitch) — or a cutoff crossed between the two requests —
+  // can still surface a terminated event. Keep the cinema view from
+  // rendering zombie seats and bubbles in that case.
+  if (event.value?.is_terminated) {
+    showToast(t('portal.cinema.errors.event_ended'), TOAST_TYPE.WARN)
+    router.replace({ name: PORTAL_TAB.HOME })
+    return
+  }
   if (event.value && (event.value.tmdb_ids?.length || 0) > 1) {
     marathonStep.value = event.value.current_step || 0
     marathonProgress.start()

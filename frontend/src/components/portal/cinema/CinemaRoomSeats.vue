@@ -134,8 +134,14 @@ function flatPos(row, colInBlock, block) {
   return row * 25 + col
 }
 
+// Terminated events keep their invitations rows for history but must not
+// surface seated avatars or live bubbles — the cinema view itself bounces
+// the user back home when this is true, this is just defence in depth so
+// any future entry point still renders an empty (clean) room.
+const terminated = computed(() => Boolean(props.event?.is_terminated))
+
 function seatOccupant(row, colInBlock, block) {
-  if (!props.event) return null
+  if (!props.event || terminated.value) return null
   const flat = flatPos(row, colInBlock, block)
   const seatIdx = PREMIUM_SEATS.indexOf(flat)
   if (seatIdx < 0) return null
@@ -173,7 +179,7 @@ function seatBubbles(row, colInBlock, block) {
 }
 
 async function pollBubbles() {
-  if (!props.event) return
+  if (!props.event || terminated.value) return
   try {
     const res = await listMessages(props.event.id, { since: lastSeenMsgId })
     const msgs = res?.messages || res || []
