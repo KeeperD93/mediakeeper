@@ -3,17 +3,23 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { nextTick } from 'vue'
 
 const patchIdentity = vi.fn()
+const resetDisplayName = vi.fn()
+const confirmMock = vi.fn()
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: (k, p) => (p ? `${k}:${JSON.stringify(p)}` : k), te: () => false }),
 }))
 
 vi.mock('@/composables/portal/usePortalAdminUsers', () => ({
-  usePortalAdminUsers: () => ({ patchIdentity }),
+  usePortalAdminUsers: () => ({ patchIdentity, resetDisplayName }),
 }))
 
 vi.mock('@/composables/useToast', () => ({
   useToast: () => ({ showToast: vi.fn() }),
+}))
+
+vi.mock('@/composables/useConfirm', () => ({
+  useConfirm: () => confirmMock,
 }))
 
 import RuTabIdentity from '@/components/portal/admin/users/tabs/RuTabIdentity.vue'
@@ -73,5 +79,47 @@ describe('RuTabIdentity', () => {
     )
     expect(displayInput.element.value).toBe('Janet')
     expect(w.emitted('changed')).toBeTruthy()
+  })
+
+  it('arms the display-name reset and emits changed when the admin confirms', async () => {
+    confirmMock.mockResolvedValueOnce(true)
+    resetDisplayName.mockResolvedValueOnce({ ok: true })
+    const w = mount(RuTabIdentity, { props: { user: mkUser() } })
+
+    const resetBtn = w
+      .findAll('button[type="button"]')
+      .find(b => b.text().includes('displayNameResetAction'))
+    expect(resetBtn?.exists()).toBe(true)
+    await resetBtn.trigger('click')
+    await flushPromises()
+
+    expect(confirmMock).toHaveBeenCalled()
+    expect(resetDisplayName).toHaveBeenCalledWith(42)
+    expect(w.emitted('changed')).toBeTruthy()
+  })
+
+  it('does not call the API when the admin cancels the confirm dialog', async () => {
+    confirmMock.mockResolvedValueOnce(false)
+    resetDisplayName.mockClear()
+    const w = mount(RuTabIdentity, { props: { user: mkUser() } })
+
+    const resetBtn = w
+      .findAll('button[type="button"]')
+      .find(b => b.text().includes('displayNameResetAction'))
+    await resetBtn.trigger('click')
+    await flushPromises()
+
+    expect(confirmMock).toHaveBeenCalled()
+    expect(resetDisplayName).not.toHaveBeenCalled()
+  })
+
+  it('disables the reset button when the flag is already set', () => {
+    const w = mount(RuTabIdentity, {
+      props: { user: mkUser({ display_name_must_set: true }) },
+    })
+    const resetBtn = w
+      .findAll('button[type="button"]')
+      .find(b => b.text().includes('displayNameResetAction'))
+    expect(resetBtn.attributes('disabled')).toBeDefined()
   })
 })

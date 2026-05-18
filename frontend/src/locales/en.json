@@ -1820,7 +1820,8 @@
         "created": "User created",
         "bulkDone": "{count} action(s) applied",
         "embyIdsSynced": "{updated} account(s) linked to Emby, {already} already up-to-date, {unmatched} unmatched",
-        "forceLogoutDone": "Sessions invalidated"
+        "forceLogoutDone": "Sessions invalidated",
+        "displayNameResetDone": "Display name reset scheduled"
       },
       "errors": {
         "username_taken": "This username is already taken.",
@@ -1890,7 +1891,13 @@
           "source": "Source",
           "embyId": "Emby id",
           "created": "Created",
-          "renamedAt": "Display name changed"
+          "renamedAt": "Display name changed",
+          "displayNameResetTitle": "Display name reset",
+          "displayNameResetHelp": "On their next portal visit, the user will be forced to pick a new display name via the first-login overlay.",
+          "displayNameResetAction": "Reset display name",
+          "displayNameResetConfirmTitle": "Reset display name",
+          "displayNameResetConfirm": "Force {name} to pick a new display name on their next portal visit?",
+          "displayNameResetPending": "Reset pending — overlay will trigger on next login."
         },
         "access": {
           "role": "Role",

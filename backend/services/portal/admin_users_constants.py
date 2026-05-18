@@ -59,6 +59,7 @@ SOURCES = (SOURCE_EMBY, SOURCE_LOCAL)
 ACTION_USER_CREATED = "user.created"
 ACTION_USER_IMPORTED = "user.imported"
 ACTION_USER_UPDATED_IDENTITY = "user.identity_updated"
+ACTION_USER_DISPLAY_NAME_RESET = "user.display_name_reset"
 ACTION_USER_ROLE_CHANGED = "user.role_changed"
 ACTION_USER_PERMISSIONS_CHANGED = "user.permissions_changed"
 ACTION_USER_ACCESS_WINDOW = "user.access_window_set"

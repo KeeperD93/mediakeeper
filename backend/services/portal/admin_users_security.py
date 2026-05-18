@@ -26,6 +26,7 @@ from models.portal.login_history import UserLoginHistory
 
 from .admin_users_audit import record_audit
 from .admin_users_constants import (
+    ACTION_USER_DISPLAY_NAME_RESET,
     ACTION_USER_FORCE_LOGOUT,
     ACTION_USER_PASSWORD_RESET,
     SOURCE_LOCAL,
@@ -93,6 +94,35 @@ async def force_logout(
     )
     await db.commit()
     return {"ok": True, "invalidated_at": profile.tokens_invalidated_at.isoformat()}
+
+
+async def reset_display_name(
+    db: AsyncSession,
+    profile: UserProfile,
+    *,
+    admin_user_id: int | None,
+    ip: str | None = None,
+    user_agent: str | None = None,
+) -> dict[str, Any]:
+    """Flag the user so the "pick a username" overlay re-arms on next visit.
+
+    The bypass for the 6-month rename cooldown is already wired into the
+    user-facing patch path: when ``display_name_must_set`` is true, the
+    lock check is skipped (see ``services.portal.profiles``).
+    """
+    profile.display_name_must_set = True
+    db.add(profile)
+    await record_audit(
+        db,
+        admin_user_id=admin_user_id,
+        target_user_id=profile.user_id,
+        action=ACTION_USER_DISPLAY_NAME_RESET,
+        ip=ip,
+        user_agent=user_agent,
+        commit=False,
+    )
+    await db.commit()
+    return {"ok": True}
 
 
 async def list_user_login_history(

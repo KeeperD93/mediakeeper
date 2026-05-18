@@ -46,6 +46,10 @@ export function usePortalAdminUsers() {
     return await apiPost(`${BASE}/${id}/force-logout`, {})
   }
 
+  async function resetDisplayName(id) {
+    return await apiPost(`${BASE}/${id}/reset-display-name`, {})
+  }
+
   async function fetchLoginHistory(id, { limit = 100 } = {}) {
     return await apiGet(`${BASE}/${id}/login-history?limit=${limit}`)
   }
@@ -164,6 +168,7 @@ export function usePortalAdminUsers() {
     fetchTags,
     resetPassword,
     forceLogout,
+    resetDisplayName,
     fetchLoginHistory,
     fetchUsers,
     fetchUser,

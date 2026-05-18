@@ -35,6 +35,7 @@ from services.portal.admin_users_notify import send_admin_notification
 from services.portal.admin_users_security import (
     force_logout as svc_force_logout,
     list_user_login_history,
+    reset_display_name as svc_reset_display_name,
     reset_local_password,
 )
 
@@ -257,6 +258,21 @@ async def post_force_logout(
 ):
     profile, _user = await resolve_profile(profile_id, db)
     return await svc_force_logout(
+        db, profile, admin_user_id=admin.id,
+        ip=client_ip(request), user_agent=client_ua(request),
+    )
+
+
+@router.post("/{profile_id}/reset-display-name")
+async def post_reset_display_name(
+    profile_id: int,
+    request: Request,
+    _csrf: None = Depends(require_csrf),
+    admin: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    profile, _user = await resolve_profile(profile_id, db)
+    return await svc_reset_display_name(
         db, profile, admin_user_id=admin.id,
         ip=client_ip(request), user_agent=client_ua(request),
     )

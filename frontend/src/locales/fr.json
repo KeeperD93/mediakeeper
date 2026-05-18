@@ -1820,7 +1820,8 @@
         "created": "Utilisateur créé",
         "bulkDone": "{count} action(s) appliquée(s)",
         "embyIdsSynced": "{updated} compte(s) liés à Emby, {already} déjà à jour, {unmatched} non trouvés",
-        "forceLogoutDone": "Sessions invalidées"
+        "forceLogoutDone": "Sessions invalidées",
+        "displayNameResetDone": "Reset du pseudo programmé"
       },
       "errors": {
         "username_taken": "Cet identifiant existe déjà.",
@@ -1890,7 +1891,13 @@
           "source": "Source",
           "embyId": "Identifiant Emby",
           "created": "Créé le",
-          "renamedAt": "Pseudo modifié le"
+          "renamedAt": "Pseudo modifié le",
+          "displayNameResetTitle": "Reset du pseudo",
+          "displayNameResetHelp": "À la prochaine ouverture du portail, l'utilisateur devra à nouveau choisir un pseudo via l'overlay de première connexion.",
+          "displayNameResetAction": "Reset pseudo",
+          "displayNameResetConfirmTitle": "Reset du pseudo",
+          "displayNameResetConfirm": "Forcer {name} à choisir un nouveau pseudo à sa prochaine ouverture du portail ?",
+          "displayNameResetPending": "Reset en attente — overlay actif à la prochaine connexion."
         },
         "access": {
           "role": "Rôle",

@@ -10,6 +10,7 @@ This section intentionally has no date so it is not shown to users.
 ## [Unreleased]
 
 ### Added
+- Portal admin — "Reset display name" button on the user drawer (re-arms the picker overlay).
 - Portal: new "PosterCard" cover component, i18n/tokens compliant (integration prep).
 - Settings — new Network section with image cache and DNS cache toggles
 - Settings → Scheduler — Cache section (hit/miss stats + Clear button)
