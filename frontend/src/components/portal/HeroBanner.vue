@@ -161,13 +161,10 @@ const {
   setVideoPlaying,
   onEmbyPause,
   onEmbyEnded,
-  destroyPlayer,
-  clearTrailer,
 } = useHeroBannerTrailer({ onEnded: () => emit('video-ended') })
 
 const heroRef = ref(null)
 const lightboxOpen = ref(false)
-const isVisible = ref(false)
 
 // Cinematic black veil between two trailers — asymmetric fade + safety net.
 function peekItemTrailer(item) {
@@ -244,9 +241,7 @@ function closeLightbox() {
 watch(
   () => props.item?.id,
   () => {
-    // Skip while the hero is off-screen: the player slot is empty and
-    // we'd be mounting a YouTube IFrame the user can't see.
-    if (isVisible.value && trailer.value) onItemChange(props.item)
+    onItemChange(props.item)
   },
 )
 
@@ -263,70 +258,41 @@ watch(
   { immediate: true },
 )
 
-// Lazy lifecycle: the YouTube IFrame + the trailer resolve only run
-// while the hero is actually on screen. Leaving the viewport tears
-// down the player so no audio/video keeps churning behind the user's
-// scroll, and the YouTube quota / network is freed for the rest of
-// the page. Coming back rebuilds the player from the cached resolve.
+// Mute the hero trailer when it scrolls out of view, restore prior state
+// on scroll-back. Prevents audio from continuing to play "blind" when
+// the user scrolls down with sound enabled.
 let visObserver = null
 let mutedBeforeHide = true
-async function activateHero() {
-  // Already running — nothing to do (covers the duplicate fires the
-  // IntersectionObserver emits when the user scrolls past several
-  // thresholds in quick succession).
-  if (trailer.value) {
-    if (!mutedBeforeHide && muted.value) {
-      setMuted(false)
-      emit('sound-on')
-    }
-    return
-  }
-  try {
-    await ensureYTApi()
-  } catch {
-    /* swallow — startInitial handles the no-YT fallback */
-  }
-  await startInitial(props.item)
-}
-
-function suspendHero() {
-  mutedBeforeHide = muted.value
-  if (!muted.value) {
-    setMuted(true)
-    emit('sound-off')
-  }
-  destroyPlayer()
-  setVideoPlaying(false)
-  clearTrailer()
-}
-
 function setupVisibilityObserver() {
   if (!heroRef.value || visObserver) return
   visObserver = new IntersectionObserver(
     ([entry]) => {
-      const visible = entry.isIntersecting && entry.intersectionRatio > 0.1
-      if (visible === isVisible.value) return
-      isVisible.value = visible
-      if (visible) activateHero()
-      else suspendHero()
+      if (entry.isIntersecting && entry.intersectionRatio > 0.1) {
+        if (!mutedBeforeHide) {
+          setMuted(false)
+          emit('sound-on')
+        }
+      } else {
+        mutedBeforeHide = muted.value
+        if (!muted.value) {
+          setMuted(true)
+          emit('sound-off')
+        }
+      }
     },
     { threshold: [0, 0.1, 0.5] },
   )
   visObserver.observe(heroRef.value)
 }
 
-onMounted(() => {
-  // Drop the cinematic veil immediately — without an active load it
-  // would sit opaque for FALLBACK_MS while we wait for the observer
-  // to fire, even though the hero is already in view on most loads.
-  transitioning.value = false
-  if (typeof IntersectionObserver === 'function') {
-    setupVisibilityObserver()
-  } else {
-    // Browsers without IntersectionObserver — fall back to eager init.
-    isVisible.value = true
-    activateHero()
+onMounted(async () => {
+  try {
+    await ensureYTApi()
+  } catch {
+    /* swallow */
   }
+  await startInitial(props.item)
+  setupVisibilityObserver()
 })
 
 onUnmounted(() => {

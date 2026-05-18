@@ -190,19 +190,19 @@ const {
   toggleMute,
   onEmbyPause,
   onEmbyEnded,
-  destroyPlayer,
-  clearTrailer,
 } = useEmbyHeroTrailer({ onTrailerEnded: nextItem })
 
-// Lazy lifecycle: the section sits well below the fold, so we don't
-// mount its YouTube player nor start the 45 s rotation until the user
-// scrolls it into view. When the section leaves the viewport again,
-// the player + timer are torn down so no YouTube IFrame keeps running
-// off-screen. The trailerCache module retains the resolved URL, so a
-// re-entry rebuilds the player without an extra backend hit.
+// Lazy lifecycle: the section sits well below the fold, so the
+// YouTube player + the 45 s rotation only kick in once the user
+// scrolls it into view. Leaving the viewport stops the rotation and
+// mutes the trailer so it doesn't keep playing audio behind the
+// user's scroll — but we keep the player mounted so coming back
+// doesn't trigger a destroy → recreate cycle (which made YouTube
+// flash its centre pause / loading overlays during normal playback).
 const sectionRef = ref(null)
 const isVisible = ref(false)
 let visibilityObs = null
+let mutedBeforeHide = true
 
 function peekItemTrailer(item) {
   if (!item) return undefined
@@ -284,16 +284,26 @@ function scrollTrack(dir) {
 
 function activateHero() {
   if (!currentItem.value) return
-  if (trailer.value) return // already mounted, nothing to do
+  if (trailer.value) {
+    // Player still mounted from a previous visit — restart the
+    // rotation and restore the pre-hide mute state.
+    if (!mutedBeforeHide && muted.value) {
+      toggleMute()
+    }
+    if (muted.value && !lightboxOpen.value) startTimer()
+    return
+  }
   startInitial(currentItem.value)
   startTimer()
 }
 
 function suspendHero() {
+  // Stop the rotation + mute the trailer, but keep the YouTube player
+  // mounted. Tearing it down on scroll-out caused noticeable destroy/
+  // recreate cycles during normal playback.
   stopTimer()
-  destroyPlayer()
-  setVideoPlaying(false)
-  clearTrailer()
+  mutedBeforeHide = muted.value
+  if (!muted.value) toggleMute()
 }
 
 watch(currentItem, it => {
