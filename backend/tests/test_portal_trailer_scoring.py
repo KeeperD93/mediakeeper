@@ -132,6 +132,75 @@ def test_pick_video_boosts_officielle_over_other_fr_trailer():
     assert picked["key"] == "OFFICIELLE-VF"
 
 
+def test_pick_video_fr_prefers_bande_annonce_over_trailer_word():
+    """At the fr step, a video named ``Bande annonce`` outranks a
+    same-rank video named ``Trailer`` (English label) — the French
+    audience expects the French-labelled cut."""
+    en_word = _video(key="EN-WORD", published_at="2024-01-01T00:00:00.000Z")
+    en_word["name"] = "Trailer"
+    fr_word = _video(key="FR-WORD", published_at="2024-01-01T00:00:00.000Z")
+    fr_word["name"] = "Bande annonce"
+
+    picked = _pick_video([en_word, fr_word], "fr")
+
+    assert picked["key"] == "FR-WORD"
+
+
+def test_pick_video_en_prefers_trailer_word_over_bande_annonce():
+    """Symmetric: at the en step, ``Trailer`` outranks ``Bande annonce``
+    even if both videos are tagged en (TMDB occasionally mistags)."""
+    fr_word = _video(key="FR-WORD", lang="en", published_at="2024-01-01T00:00:00.000Z")
+    fr_word["name"] = "Bande annonce"
+    en_word = _video(key="EN-WORD", lang="en", published_at="2024-01-01T00:00:00.000Z")
+    en_word["name"] = "Trailer"
+
+    picked = _pick_video([fr_word, en_word], "en")
+
+    assert picked["key"] == "EN-WORD"
+
+
+def test_pick_video_penalises_vo_abbreviation():
+    """A bare ``VO`` / ``V.O.`` (Version Originale) in the title acts as
+    a penalty — signals undubbed content even on iso_639_1=fr."""
+    dub = _video(key="DUB-VF", published_at="2024-01-01T00:00:00.000Z")
+    dub["name"] = "Bande annonce officielle"
+    vo = _video(key="VO-FR", published_at="2024-01-01T00:00:00.000Z")
+    vo["name"] = "Bande annonce VO"
+
+    picked = _pick_video([vo, dub], "fr")
+
+    assert picked["key"] == "DUB-VF"
+
+
+def test_pick_video_vo_regex_ignores_video_voice_over():
+    """The VO penalty must not fire on substrings like ``video`` or
+    ``voice over``: both contain ``v`` next to ``o`` somewhere but
+    neither is the abbreviation itself."""
+    safe_video = _video(key="SAFE", published_at="2024-01-01T00:00:00.000Z")
+    safe_video["name"] = "video diary, voice over"
+
+    # Confidence check: same name with a bare "VO" must lose.
+    flagged = _video(key="FLAGGED", published_at="2024-02-01T00:00:00.000Z")
+    flagged["name"] = "voice over and VO too"
+
+    picked = _pick_video([safe_video, flagged], "fr")
+
+    assert picked["key"] == "SAFE"
+
+
+def test_pick_video_penalises_version_originale():
+    """``Version originale`` in the title is a penalty regardless of the
+    iso_639_1 bucket."""
+    vo = _video(key="VO-VERSION", published_at="2024-12-01T00:00:00.000Z")
+    vo["name"] = "Trailer Version originale sous-titrée"
+    dub = _video(key="DUB", published_at="2023-01-01T00:00:00.000Z")
+    dub["name"] = "Bande annonce officielle"
+
+    picked = _pick_video([vo, dub], "fr")
+
+    assert picked["key"] == "DUB"
+
+
 def test_pick_video_penalises_vostfr_against_dubbed_french():
     """A VOSTFR fan-uploaded fr-tagged trailer must lose to a real dub
     even when its publication date is newer."""

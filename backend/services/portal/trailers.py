@@ -24,6 +24,7 @@ The function returns a small dict the frontend can render uniformly:
 from __future__ import annotations
 
 import logging
+import re
 from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -153,19 +154,43 @@ _VALID_TYPES = ("Trailer", "Teaser")
 # both tagged ``fr``. The static metadata flags (Trailer, official,
 # published_at) don't always split them, so the picker also looks at the
 # video's name to surface the studio-grade dub.
-_NAME_BOOST_KEYWORDS = (
-    "officiel", "officielle", "official",
-    "version française", "version francaise",
+#
+# The boost dictionary is keyed on ``iso_639_1``: a French title ranks
+# ``"Bande annonce"`` ahead of ``"Trailer"`` whereas the English step
+# does the opposite. ``official`` / ``officiel(le)`` lifts both.
+_LANGUAGE_BOOST_KEYWORDS: dict[str, tuple[str, ...]] = {
+    "fr": (
+        "bande-annonce", "bande annonce",
+        "officiel", "officielle", "official",
+        "version française", "version francaise",
+    ),
+    "en": ("trailer", "official"),
+}
+_NAME_PENALTY_KEYWORDS = (
+    "vost", "vostfr",
+    "sous-titr", "subtitled",
+    "version originale",
 )
-_NAME_PENALTY_KEYWORDS = ("vost", "vostfr", "sous-titr", "subtitled")
+# Matches the standalone ``VO`` / ``V.O.`` abbreviation (Version
+# Originale) without colliding with "video", "voice over", etc. — both
+# halves are word-boundary anchored so only the standalone token loses.
+_VO_ABBREVIATION_RE = re.compile(r"\bv\.?o\.?\b", re.IGNORECASE)
 
 
-def _name_score(name: str) -> int:
-    """Return ``+1`` for studio markers, ``-1`` for subtitled markers, else ``0``."""
+def _name_score(name: str, language: Optional[str]) -> int:
+    """Return ``+1`` for studio markers, ``-1`` for subtitled markers, else ``0``.
+
+    ``language`` (``"fr"`` / ``"en"`` / ``None``) selects which boost list
+    applies. Anything outside the table falls back to no boost, so an
+    obscure original language never accidentally penalises a candidate.
+    """
     n = (name or "").lower()
     if any(k in n for k in _NAME_PENALTY_KEYWORDS):
         return -1
-    if any(k in n for k in _NAME_BOOST_KEYWORDS):
+    if _VO_ABBREVIATION_RE.search(n):
+        return -1
+    boost = _LANGUAGE_BOOST_KEYWORDS.get(language or "", ())
+    if any(k in n for k in boost):
         return 1
     return 0
 
@@ -277,7 +302,7 @@ def _pick_video(videos: list[dict], language: Optional[str]) -> Optional[dict]:
     candidates.sort(key=lambda v: (
         0 if v.get("type") == "Trailer" else 1,
         0 if v.get("official") else 1,
-        -_name_score(v.get("name", "")),
+        -_name_score(v.get("name", ""), language),
     ))
     best = candidates[0]
     site = best.get("site", "YouTube").lower()

@@ -140,7 +140,8 @@ const props = defineProps({
 })
 const emit = defineEmits(['request', 'detail', 'add-watchlist', 'select'])
 
-const ROTATE_MS = 25000
+// Aligned with the main hero banner so both rotations feel identical.
+const ROTATE_MS = 45000
 const MAX_VISIBLE = 20
 
 const currentIndex = ref(0)
@@ -232,6 +233,9 @@ function closeLightbox() {
 
 function onPosterClick(item, idx) {
   currentIndex.value = idx
+  // Manual jump from the poster row: restart the 45 s interval so the
+  // user always gets the full window on the slide they picked.
+  if (!lightboxOpen.value && muted.value) startTimer()
 }
 
 function updateArrows() {
