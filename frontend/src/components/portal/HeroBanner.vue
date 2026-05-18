@@ -99,8 +99,7 @@ const { trailer, resolve: resolveTrailer, prefetch: prefetchTrailer } = useTrail
 
 const heroRef = ref(null)
 const lightboxOpen = ref(false)
-const displayedItem = ref(props.item)
-const viewItem = computed(() => displayedItem.value || props.item)
+const viewItem = computed(() => props.item)
 
 const bgStyle = computed(() => {
   const it = viewItem.value
@@ -129,7 +128,6 @@ function closeLightbox() {
 watch(
   () => props.item?.id,
   () => {
-    displayedItem.value = props.item
     ensureTrailerResolved()
   },
 )
