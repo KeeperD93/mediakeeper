@@ -201,6 +201,49 @@ def test_pick_video_penalises_version_originale():
     assert picked["key"] == "DUB"
 
 
+def test_pick_video_fr_boosts_bare_vf_abbreviation():
+    """The ``VF`` abbreviation (Version Française) acts as a boost at the
+    fr step — common on TMDB ('Trailer VF', 'Bande-annonce VF'). The
+    word-boundary regex must not collide with ``VFX``."""
+    plain = _video(key="PLAIN", published_at="2024-01-01T00:00:00.000Z")
+    plain["name"] = "Trailer"
+    vf = _video(key="VF-CUT", published_at="2024-01-01T00:00:00.000Z")
+    vf["name"] = "Trailer VF"
+    vfx = _video(key="VFX-REEL", published_at="2024-02-01T00:00:00.000Z")
+    vfx["name"] = "VFX breakdown"
+
+    picked = _pick_video([plain, vf, vfx], "fr")
+
+    assert picked["key"] == "VF-CUT"
+
+
+def test_pick_video_penalises_subbed_and_original_version():
+    """English-language penalty markers must fire too."""
+    subbed = _video(key="SUB", lang="en", published_at="2024-12-01T00:00:00.000Z")
+    subbed["name"] = "Trailer (subbed)"
+    original = _video(key="ORIG", lang="en", published_at="2024-12-01T00:00:00.000Z")
+    original["name"] = "Trailer (original version)"
+    clean = _video(key="CLEAN", lang="en", published_at="2024-01-01T00:00:00.000Z")
+    clean["name"] = "Official Trailer"
+
+    picked = _pick_video([subbed, original, clean], "en")
+
+    assert picked["key"] == "CLEAN"
+
+
+def test_pick_video_japanese_locale_has_no_boost_but_keeps_penalties():
+    """A user on ``ja`` gets no name boost — the unknown language falls
+    back to Trailer/official/date — but VOSTFR / sous-titré still lose."""
+    sub = _video(key="JA-SUB", lang="ja", published_at="2024-12-01T00:00:00.000Z")
+    sub["name"] = "Trailer (VOSTFR)"
+    clean = _video(key="JA-CLEAN", lang="ja", published_at="2023-01-01T00:00:00.000Z")
+    clean["name"] = "予告編"
+
+    picked = _pick_video([sub, clean], "ja")
+
+    assert picked["key"] == "JA-CLEAN"
+
+
 def test_pick_video_penalises_vostfr_against_dubbed_french():
     """A VOSTFR fan-uploaded fr-tagged trailer must lose to a real dub
     even when its publication date is newer."""

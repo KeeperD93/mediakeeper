@@ -166,10 +166,16 @@ _LANGUAGE_BOOST_KEYWORDS: dict[str, tuple[str, ...]] = {
     ),
     "en": ("trailer", "official"),
 }
+# Standalone ``VF`` / ``V.F.`` abbreviation (Version Française) — boosted
+# at the fr step only. Word-boundary anchored so ``VFX`` (visual effects)
+# doesn't accidentally lift a video into the studio bucket.
+_LANGUAGE_BOOST_REGEX: dict[str, re.Pattern[str]] = {
+    "fr": re.compile(r"\bv\.?f\.?\b", re.IGNORECASE),
+}
 _NAME_PENALTY_KEYWORDS = (
     "vost", "vostfr",
-    "sous-titr", "subtitled",
-    "version originale",
+    "sous-titr", "subtitled", "subbed",
+    "version originale", "original version",
 )
 # Matches the standalone ``VO`` / ``V.O.`` abbreviation (Version
 # Originale) without colliding with "video", "voice over", etc. — both
@@ -180,17 +186,23 @@ _VO_ABBREVIATION_RE = re.compile(r"\bv\.?o\.?\b", re.IGNORECASE)
 def _name_score(name: str, language: Optional[str]) -> int:
     """Return ``+1`` for studio markers, ``-1`` for subtitled markers, else ``0``.
 
-    ``language`` (``"fr"`` / ``"en"`` / ``None``) selects which boost list
-    applies. Anything outside the table falls back to no boost, so an
-    obscure original language never accidentally penalises a candidate.
+    ``language`` (``"fr"`` / ``"en"`` / ``None`` / any ISO 639-1 code)
+    selects which boost list applies. Languages with no entry in the
+    boost tables — Japanese, Spanish, German, … — only see the universal
+    penalty list, so the scoring degrades to Trailer/official/date for
+    them rather than producing surprising boosts. Extend the boost
+    tables to add localisation.
     """
     n = (name or "").lower()
     if any(k in n for k in _NAME_PENALTY_KEYWORDS):
         return -1
     if _VO_ABBREVIATION_RE.search(n):
         return -1
-    boost = _LANGUAGE_BOOST_KEYWORDS.get(language or "", ())
-    if any(k in n for k in boost):
+    boost_words = _LANGUAGE_BOOST_KEYWORDS.get(language or "", ())
+    if any(k in n for k in boost_words):
+        return 1
+    boost_re = _LANGUAGE_BOOST_REGEX.get(language or "")
+    if boost_re and boost_re.search(n):
         return 1
     return 0
 
