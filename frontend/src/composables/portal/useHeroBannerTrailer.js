@@ -87,12 +87,21 @@ export function useHeroBannerTrailer({ onEnded } = {}) {
             else e.target.unMute()
           },
           onStateChange: e => {
-            // 1 = playing, 0 = ended, 2 = paused
+            // 1 = playing, 0 = ended, 2 = paused, 3 = buffering
             setVideoPlaying(e.data === 1)
             if (e.data === 0) onEnded?.()
-            // Force resume if paused by any means — the hero trailer
-            // is a background decoration, not a manual playback.
-            if (e.data === 2) e.target.playVideo()
+            // On pause, tear the player down rather than fighting YouTube
+            // with playVideo(). The old force-resume worked while the
+            // pause was a one-off (mouse hover / network blip), but on
+            // a persistent pause (autoplay policy, region lock, mid-roll
+            // ad cue) it cycled state 2 ↔ state 1 endlessly and the
+            // centre play/pause glyph + buffering spinner stayed visible
+            // over the hero. Letting the player die instead keeps the
+            // backdrop clean until the next rotation mounts a fresh one.
+            if (e.data === 2) {
+              clearTrailer()
+              destroyPlayer()
+            }
           },
           onError: () => {
             // Video unavailable / removed / blocked — keep backdrop.
