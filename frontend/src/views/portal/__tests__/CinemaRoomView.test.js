@@ -50,6 +50,7 @@ const flowState = {
   remainingMs: ref(60_000),
   countdownNegative: ref(false),
   canLaunch: ref(false),
+  canStartAcademy: ref(false),
   countdownDisplay: ref('01:00'),
   academyActive: ref(false),
   academyValue: ref(10),
@@ -155,6 +156,7 @@ describe('CinemaRoomView.vue', () => {
     carouselState.applyMute.mockClear()
     carouselState.destroy.mockClear()
     flowState.canLaunch.value = false
+    flowState.canStartAcademy.value = false
     flowState.academyActive.value = false
     flowState.academyDone.value = false
     flowState.countdownNegative.value = false
@@ -271,6 +273,26 @@ describe('CinemaRoomView.vue', () => {
 
     const cta = wrapper.find('.pt-cr-launch-btn')
     expect(cta.attributes('disabled')).toBeUndefined()
+  })
+
+  it('bounces home when enter_room rejects with not_member (no read-only fallback)', async () => {
+    // Anyone with the room URL but no accepted invitation must NOT be
+    // allowed to wander into the cinema, even read-only — the backend
+    // already refuses (``not_member``) and the front-end used to fall
+    // back to ``getOne`` which leaked the room layout to non-invitees.
+    mockEnterRoom.mockResolvedValue({ error: 'not_member' })
+
+    await mountView()
+    await flushPromises()
+
+    expect(mockGetOne).not.toHaveBeenCalled()
+    expect(mockShowToast).toHaveBeenCalledWith(
+      'portal.cinema.errors.not_member',
+      expect.anything(),
+    )
+    expect(mockRouterReplace).toHaveBeenCalledWith(
+      expect.objectContaining({ name: expect.any(String) }),
+    )
   })
 
   it('bounces home with a toast when the getOne fallback returns a terminated event', async () => {

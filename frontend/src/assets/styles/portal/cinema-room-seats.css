@@ -288,6 +288,39 @@
     0 4px 14px rgb(0, 0, 0, 0.8),
     0 0 18px rgb(99, 102, 241, 0.5);
   z-index: 5;
+  overflow: hidden;
+}
+.pt-cr-seat-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--portal-radius-circle);
+  display: block;
+}
+.pt-cr-seat-label {
+  position: absolute;
+  /* Hugs the avatar's bottom edge: the avatar covers ~58% of the seat
+     height (top 8% + height = 62% of seat width × 0.8 height-to-width
+     ratio), so this lands flush against it with a 1% breathing gap. */
+  top: 59%;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 120%;
+  padding: 0 2px;
+  color: #fff;
+  font-size: clamp(0.55rem, 0.85vw, 0.75rem);
+  font-weight: var(--portal-font-bold);
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+  text-align: center;
+  text-shadow:
+    0 2px 4px rgb(0, 0, 0, 0.9),
+    0 0 2px rgb(0, 0, 0, 0.8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  z-index: 6;
 }
 .pt-cr-seat--occupied .pt-cr-seat-back {
   background: radial-gradient(ellipse at 50% 25%, #a02828 0%, #842828 50%, #4a1010 100%);

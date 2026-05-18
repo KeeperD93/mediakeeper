@@ -80,9 +80,13 @@ defineExpose({ pct, formatRemaining })
 <style scoped>
 .pt-cr-marathon {
   position: absolute;
-  top: 80px;
+  bottom: 80px;
   left: 12px;
-  z-index: 4;
+  /* Sits above the seats (z-index 5) and the seat bubbles aren't an
+     issue (bubbles are 30 and we never overlap them — they bloom from
+     a seat going up, marathon panel is bottom-left). Still below the
+     HUD (12) and the launch CTA (15). */
+  z-index: 10;
   width: 260px;
   max-width: 92vw;
   padding: 10px 12px 12px;
@@ -169,7 +173,7 @@ defineExpose({ pct, formatRemaining })
 
 @media (max-width: 640px) {
   .pt-cr-marathon {
-    top: 64px;
+    bottom: 64px;
     left: 8px;
     width: calc(100vw - 16px);
   }

@@ -2614,8 +2614,11 @@
       "unmute": "Unmute",
       "trailerInfo": "Info",
       "trailerInfoAria": "More info about {title}",
+      "launchMovie": "Start the movie",
+      "launchSeries": "Start the series",
       "errors": {
-        "event_ended": "Event ended — the cinema room is closed."
+        "event_ended": "Event ended — the cinema room is closed.",
+        "not_member": "You haven't accepted this room's invitation."
       },
       "marathon": {
         "title": "Marathon · film {current} of {total}",

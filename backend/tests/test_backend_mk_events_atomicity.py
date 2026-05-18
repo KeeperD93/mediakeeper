@@ -642,7 +642,56 @@ async def test_respond_accept_rejects_event_past_close_cutoff(db_session):
     assert decline_result.get("ok") is True
 
 
-# 5. Private-doc reference scrubbed from public modules.
+# 5. _serialize_event — surfaces a per-invitation avatar_url so the
+#    cinema seats UI can render the same avatar as the Users panel.
+
+
+@pytest.mark.asyncio
+async def test_serialize_event_exposes_per_invitation_avatar_url(db_session):
+    """Each accepted invitation must carry its resolver-correct avatar:
+    a custom upload becomes ``/api/portal/avatars/<file>`` (the Emby URL
+    is bypassed), while a user with only an Emby-proxied URL keeps it
+    untouched. A user with no avatar at all surfaces ``None`` so the
+    front-end can fall back to the username initial."""
+    from services.portal.mk_events_utils import _serialize_event
+
+    creator = await _make_user(db_session, username="srlz-creator")
+    custom_user = await _make_user(db_session, username="srlz-custom")
+    emby_user = await _make_user(db_session, username="srlz-emby")
+    blank_user = await _make_user(db_session, username="srlz-blank")
+    event = await _make_event(db_session, creator=creator)
+
+    # Stamp distinct avatar sources on each profile.
+    custom_profile = (await db_session.execute(
+        select(UserProfile).where(UserProfile.user_id == custom_user.id)
+    )).scalar_one()
+    custom_profile.avatar_custom_path = "abc123.png"
+    custom_profile.avatar_url = "https://emby.example/avatar/should-be-ignored"
+    emby_profile = (await db_session.execute(
+        select(UserProfile).where(UserProfile.user_id == emby_user.id)
+    )).scalar_one()
+    emby_profile.avatar_url = "https://emby.example/avatar/emby-only.png"
+    await db_session.commit()
+
+    await _accept_member(db_session, event.id, custom_user.id)
+    await _accept_member(db_session, event.id, emby_user.id)
+    await _accept_member(db_session, event.id, blank_user.id)
+
+    payload = await _serialize_event(db_session, event)
+    by_user = {inv["user_id"]: inv for inv in payload["invitations"]}
+
+    assert by_user[custom_user.id]["avatar_url"] == "/api/portal/avatars/abc123.png", (
+        "a custom upload must win over the Emby URL"
+    )
+    assert by_user[emby_user.id]["avatar_url"] == "https://emby.example/avatar/emby-only.png", (
+        "with no custom upload the Emby-proxied URL is forwarded as-is"
+    )
+    assert by_user[blank_user.id]["avatar_url"] is None, (
+        "no avatar source → None so the UI can fall back to the initial"
+    )
+
+
+# 6. Private-doc reference scrubbed from public modules.
 
 
 @pytest.mark.asyncio

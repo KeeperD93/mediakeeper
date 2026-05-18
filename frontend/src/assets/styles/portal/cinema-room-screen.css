@@ -35,6 +35,14 @@
   height: 100%;
   border: 0;
 }
+/* Lock the YouTube iframe so the player chrome (title, "Watch on
+   YouTube" overlay, paused controls) cannot surface on hover or tap.
+   The cinema room exposes its own Mute toggle in the HUD and a custom
+   Info button above the screen — the player itself stays untouchable
+   to preserve the projection illusion. */
+.pt-cr-screen-video iframe {
+  pointer-events: none;
+}
 .pt-cr-screen-placeholder,
 .pt-cr-screen-ready {
   position: absolute;

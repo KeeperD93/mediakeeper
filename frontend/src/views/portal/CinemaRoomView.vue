@@ -173,7 +173,9 @@ const currentTrailer = computed(() => carousel.currentTrailer.value)
 const currentMedia = computed(() => event.value?.tmdb_ids?.[marathonStep.value] || null)
 const launchLabel = computed(() => {
   if (!currentMedia.value) return ''
-  return isTvMedia(currentMedia.value) ? 'Start the series' : 'Start the movie'
+  return isTvMedia(currentMedia.value)
+    ? t('portal.cinema.launchSeries')
+    : t('portal.cinema.launchMovie')
 })
 
 function toggleMute() {
@@ -187,7 +189,10 @@ function openTrailerInfo() {
   window.open(url, '_blank', 'noopener')
 }
 
-watch(flow.canLaunch, v => {
+watch(flow.canStartAcademy, v => {
+  // Fire the 10-second academy intro 10 s before the deadline so its
+  // final ``0`` lines up with the main countdown hitting zero — the
+  // viewer reaches T-0 with the screen ready, not 10 s late.
   if (v && !flow.academyActive.value && !flow.academyDone.value) {
     carousel.destroy()
     flow.startAcademy()
@@ -206,6 +211,14 @@ async function load() {
       // bounce back to the portal home with a clear toast instead of
       // stranding the user on an empty (or worse, ghosted) cinema room.
       showToast(t('portal.cinema.errors.event_ended'), TOAST_TYPE.WARN)
+      router.replace({ name: PORTAL_TAB.HOME })
+      return
+    } else if (enterRes?.error === 'not_member') {
+      // A user clicking the room URL without an accepted invitation
+      // must not be allowed to wander into the cinema, even read-only
+      // (their avatar wouldn't render, the chat would refuse posts,
+      // and the seat allocation is membership-gated server-side).
+      showToast(t('portal.cinema.errors.not_member'), TOAST_TYPE.WARN)
       router.replace({ name: PORTAL_TAB.HOME })
       return
     } else {
@@ -228,7 +241,7 @@ async function load() {
     marathonStep.value = event.value.current_step || 0
     marathonProgress.start()
   }
-  if (flow.canLaunch.value) {
+  if (flow.canStartAcademy.value) {
     if (!flow.academyDone.value && !flow.academyActive.value) flow.startAcademy()
   } else {
     carousel.start().catch(() => {})
@@ -252,9 +265,14 @@ function leave() {
 async function onLaunchClick() {
   if (!event.value) return
   const total = event.value.tmdb_ids?.length || 0
-  // Single-film event: no server-side advance to do. Playback starts
-  // in Emby — the button here is decorative.
-  if (total <= 1) return
+  // Single-film event: there is no server-side advance to issue, so
+  // route the click straight to the Emby player. Without this the
+  // button looked active but did nothing — clear UX regression.
+  if (total <= 1) {
+    const url = currentMedia.value?.emby_url
+    if (url) window.open(url, '_blank', 'noopener')
+    return
+  }
   const res = await fetchApiResponse(
     `/api/portal/events/rooms/${event.value.id}/advance`,
     {

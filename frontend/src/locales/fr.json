@@ -2614,8 +2614,11 @@
       "unmute": "Activer le son",
       "trailerInfo": "Infos",
       "trailerInfoAria": "Plus d'infos sur {title}",
+      "launchMovie": "Lancer le film",
+      "launchSeries": "Lancer la série",
       "errors": {
-        "event_ended": "Événement terminé — la salle est fermée."
+        "event_ended": "Événement terminé — la salle est fermée.",
+        "not_member": "Vous n'avez pas accepté l'invitation à cette salle."
       },
       "marathon": {
         "title": "Marathon · film {current}/{total}",

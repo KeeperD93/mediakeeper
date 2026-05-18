@@ -2,12 +2,13 @@
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.portal.deps import get_current_profile, get_request_lang
 from core.database import get_db
+from core.rate_limit import limiter, portal_user_or_ip_key
 from models.portal.profile import UserProfile
 from models.user import User
 from services.portal import mk_events as mk_svc
@@ -232,12 +233,20 @@ def _raise_marathon(err: MarathonError) -> None:
 
 
 @router.get("/rooms/{event_id}/marathon-progress")
+@limiter.limit("60/minute", key_func=portal_user_or_ip_key)
 async def get_marathon_progress(
+    request: Request,
     event_id: int,
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
     lang: str = Depends(get_request_lang),
 ):
+    # The cinema room polls this endpoint every 5 s while a marathon is
+    # live, plus per-user (chat / bubbles / enter_room / availability
+    # …) — the global 120/min IP bucket drowns under that aggregate and
+    # spits 429s after a refresh. A dedicated 60/min per-user limit
+    # gives the poller 12× more headroom than it actually needs while
+    # still capping a runaway client.
     user, _ = up
     try:
         return await compute_marathon_progress(db, event_id, user.id, lang)

@@ -17,11 +17,22 @@
             <div class="pt-cr-seat-cushion" />
             <div class="pt-cr-seat-base" />
             <div v-if="seatOccupant(row - 1, col - 1, 'L')" class="pt-cr-seat-avatar">
-              {{
-                seatOccupant(row - 1, col - 1, 'L')
-                  .username?.charAt(0)
-                  ?.toUpperCase()
-              }}
+              <img
+                v-if="seatOccupant(row - 1, col - 1, 'L').avatar_url"
+                :src="seatOccupant(row - 1, col - 1, 'L').avatar_url"
+                :alt="seatOccupant(row - 1, col - 1, 'L').username || ''"
+                class="pt-cr-seat-avatar-img"
+              />
+              <span v-else>
+                {{
+                  seatOccupant(row - 1, col - 1, 'L')
+                    .username?.charAt(0)
+                    ?.toUpperCase()
+                }}
+              </span>
+            </div>
+            <div v-if="seatOccupant(row - 1, col - 1, 'L')" class="pt-cr-seat-label">
+              {{ seatOccupant(row - 1, col - 1, 'L').username }}
             </div>
             <div
               v-for="(b, bi) in seatBubbles(row - 1, col - 1, 'L')"
@@ -47,11 +58,22 @@
             <div class="pt-cr-seat-cushion" />
             <div class="pt-cr-seat-base" />
             <div v-if="seatOccupant(row - 1, col - 1, 'C')" class="pt-cr-seat-avatar">
-              {{
-                seatOccupant(row - 1, col - 1, 'C')
-                  .username?.charAt(0)
-                  ?.toUpperCase()
-              }}
+              <img
+                v-if="seatOccupant(row - 1, col - 1, 'C').avatar_url"
+                :src="seatOccupant(row - 1, col - 1, 'C').avatar_url"
+                :alt="seatOccupant(row - 1, col - 1, 'C').username || ''"
+                class="pt-cr-seat-avatar-img"
+              />
+              <span v-else>
+                {{
+                  seatOccupant(row - 1, col - 1, 'C')
+                    .username?.charAt(0)
+                    ?.toUpperCase()
+                }}
+              </span>
+            </div>
+            <div v-if="seatOccupant(row - 1, col - 1, 'C')" class="pt-cr-seat-label">
+              {{ seatOccupant(row - 1, col - 1, 'C').username }}
             </div>
             <div
               v-for="(b, bi) in seatBubbles(row - 1, col - 1, 'C')"
@@ -77,11 +99,22 @@
             <div class="pt-cr-seat-cushion" />
             <div class="pt-cr-seat-base" />
             <div v-if="seatOccupant(row - 1, col - 1, 'R')" class="pt-cr-seat-avatar">
-              {{
-                seatOccupant(row - 1, col - 1, 'R')
-                  .username?.charAt(0)
-                  ?.toUpperCase()
-              }}
+              <img
+                v-if="seatOccupant(row - 1, col - 1, 'R').avatar_url"
+                :src="seatOccupant(row - 1, col - 1, 'R').avatar_url"
+                :alt="seatOccupant(row - 1, col - 1, 'R').username || ''"
+                class="pt-cr-seat-avatar-img"
+              />
+              <span v-else>
+                {{
+                  seatOccupant(row - 1, col - 1, 'R')
+                    .username?.charAt(0)
+                    ?.toUpperCase()
+                }}
+              </span>
+            </div>
+            <div v-if="seatOccupant(row - 1, col - 1, 'R')" class="pt-cr-seat-label">
+              {{ seatOccupant(row - 1, col - 1, 'R').username }}
             </div>
             <div
               v-for="(b, bi) in seatBubbles(row - 1, col - 1, 'R')"

@@ -35,6 +35,11 @@ export function useCinemaRoomFlow(scheduledTime) {
   const remainingMs = computed(() => scheduledTime.value - now.value)
   const countdownNegative = computed(() => remainingMs.value < 0)
   const canLaunch = computed(() => remainingMs.value <= 0)
+  // The 10-second academy intro should land flush against ``scheduled_at``
+  // so its final ``0`` lines up with the main countdown hitting zero.
+  // Trigger it 10 s before the deadline rather than at deadline — see the
+  // ``CinemaRoomView`` watcher below.
+  const canStartAcademy = computed(() => remainingMs.value <= 10_000)
 
   const countdownDisplay = computed(() => {
     const ms = Math.abs(remainingMs.value)
@@ -82,6 +87,7 @@ export function useCinemaRoomFlow(scheduledTime) {
     remainingMs,
     countdownNegative,
     canLaunch,
+    canStartAcademy,
     countdownDisplay,
     academyActive,
     academyValue,
