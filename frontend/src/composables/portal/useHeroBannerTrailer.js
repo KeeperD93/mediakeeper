@@ -34,6 +34,23 @@ export function useHeroBannerTrailer({ onEnded } = {}) {
   // race to createPlayer and the user sees two trailers chain-loading.
   let loadGeneration = 0
 
+  // YouTube paints its centre play/pause overlay for ~3-4 s after the
+  // player enters the playing state (autoplay handshake). Revealing
+  // the iframe during that window — even through a slow opacity fade
+  // — surfaces the glyph through the transition. Defer the reveal so
+  // the iframe stays invisible until YouTube's own overlay is gone.
+  // 3500 ms covers the long end observed in real traffic; the cost
+  // is that the backdrop stays visible a bit longer before the
+  // trailer fades in.
+  const REVEAL_DELAY_MS = 3500
+  let revealTimer = null
+  function clearRevealTimer() {
+    if (revealTimer) {
+      clearTimeout(revealTimer)
+      revealTimer = null
+    }
+  }
+
   const { setPlaying: setVideoFlag, release: releaseVideoFlag } = useVideoPlayingFlag()
   function setVideoPlaying(v) {
     videoPlaying.value = v
@@ -49,6 +66,7 @@ export function useHeroBannerTrailer({ onEnded } = {}) {
       }
       player = null
     }
+    clearRevealTimer()
   }
 
   function createPlayer(videoId) {
@@ -88,7 +106,21 @@ export function useHeroBannerTrailer({ onEnded } = {}) {
           },
           onStateChange: e => {
             // 1 = playing, 0 = ended, 2 = paused
-            setVideoPlaying(e.data === 1)
+            if (e.data === 1) {
+              // Defer the iframe reveal — YouTube paints its centre
+              // play/pause overlay for ~2-3 s after entering the
+              // playing state. Without this delay, the slow opacity
+              // fade-in below shows the overlay rising through the
+              // transition.
+              if (revealTimer || videoPlaying.value) return
+              revealTimer = setTimeout(() => {
+                revealTimer = null
+                setVideoPlaying(true)
+              }, REVEAL_DELAY_MS)
+              return
+            }
+            setVideoPlaying(false)
+            clearRevealTimer()
             if (e.data === 0) onEnded?.()
             // Force resume if paused by any means — the hero trailer
             // is a background decoration, not a manual playback.
