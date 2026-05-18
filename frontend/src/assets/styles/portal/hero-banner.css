@@ -51,11 +51,7 @@
   z-index: 1;
   overflow: hidden;
   opacity: 0;
-  /* Fast fade-out (default rule): when --playing is dropped because
-     YouTube briefly stalled, the iframe must disappear before the
-     centre play/pause glyph can render even for a single frame. The
-     slow fade-in below is only applied to the --playing side. */
-  transition: opacity 0s linear;
+  transition: opacity 3s ease;
   /* Mobile mask: wider window so the trailer takes more visible space
      on small screens. Desktop tightens the ellipse below. */
   mask-image: radial-gradient(ellipse 110% 95% at 50% 40%, #000 50%, transparent 100%);
@@ -63,8 +59,6 @@
 }
 .pt-hero-video--playing {
   opacity: 1;
-  /* Cinematic fade-in once the trailer actually starts playing. */
-  transition: opacity 3s ease;
 }
 @media (min-width: 640px) {
   .pt-hero-video {
