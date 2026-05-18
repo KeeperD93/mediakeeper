@@ -98,6 +98,11 @@
 /* Edge fades + scroll arrows now come from portal-utilities.css
    (`.pt-edge-fade` / `.pt-carousel-arrow`). */
 
+/* Highlight the poster that matches the trailer currently playing in
+   the hero above. MediaCard now renders its art layer as `.mk-poster__art`
+   (PR #159 wrapper); the legacy `.pt-card-poster` selector is kept so a
+   non-migrated call site still gets the outline. */
+.pt-eh-card--active .mk-poster__art,
 .pt-eh-card--active .pt-card-poster {
   outline: 2px solid #fff;
   outline-offset: 2px;
