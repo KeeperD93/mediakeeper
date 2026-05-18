@@ -16,6 +16,10 @@ export function useEmbyHeroTrailer({ onTrailerEnded } = {}) {
   const videoPlaying = ref(false)
   const playerId = `eh-player-${Date.now()}`
   let player = null
+  // Generation counter — see useHeroBannerTrailer for the rationale.
+  // Cancels stale loadTrailer resolutions when props.item flips
+  // mid-resolve, so two players never chain-load on top of each other.
+  let loadGeneration = 0
 
   // Reference-counted body flag (shared with HeroBanner) — drops the
   // topbar's backdrop-filter while a trailer is playing.
@@ -27,6 +31,7 @@ export function useEmbyHeroTrailer({ onTrailerEnded } = {}) {
   }
 
   async function loadTrailer(item) {
+    const token = ++loadGeneration
     destroyPlayer()
     setVideoPlaying(false)
     clearTrailer()
@@ -35,6 +40,8 @@ export function useEmbyHeroTrailer({ onTrailerEnded } = {}) {
     const id = item.tmdb_id || item.id
     if (!id) return
     await resolveTrailer(type, id, item.emby_item_id || null)
+    // Drop the result if a newer load took over while we were awaiting.
+    if (token !== loadGeneration) return
     if (trailer.value?.source === TRAILER_SOURCE.YOUTUBE && trailer.value?.key) {
       // Wait for Vue to render the <div :id="playerId" /> that the
       // YouTube IFrame API targets. Without this, the DOM element
@@ -42,6 +49,7 @@ export function useEmbyHeroTrailer({ onTrailerEnded } = {}) {
       // — the player creation fails silently and the user sees the
       // red YouTube play button instead of an autoplaying trailer.
       await nextTick()
+      if (token !== loadGeneration) return
       mountYouTubePlayer(trailer.value.key)
     }
   }

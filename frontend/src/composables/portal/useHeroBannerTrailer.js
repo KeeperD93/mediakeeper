@@ -27,6 +27,12 @@ export function useHeroBannerTrailer({ onEnded } = {}) {
   const embyVideoRef = ref(null)
   const playerId = `yt-hero-${Date.now()}`
   let player = null
+  // Generation counter so a stale resolution that finishes AFTER a
+  // newer loadTrailer was issued doesn't mount its own player on top
+  // of the fresh one. Without it, two concurrent loads (parent
+  // changing props.item while the first await is still in flight)
+  // race to createPlayer and the user sees two trailers chain-loading.
+  let loadGeneration = 0
 
   const { setPlaying: setVideoFlag, release: releaseVideoFlag } = useVideoPlayingFlag()
   function setVideoPlaying(v) {
@@ -100,6 +106,7 @@ export function useHeroBannerTrailer({ onEnded } = {}) {
   }
 
   async function loadTrailer(item) {
+    const token = ++loadGeneration
     clearTrailer()
     setVideoPlaying(false)
     destroyPlayer()
@@ -107,10 +114,14 @@ export function useHeroBannerTrailer({ onEnded } = {}) {
     const id = item.tmdb_id || item.id
     const type = item.media_type || 'movie'
     await resolveTrailer(type, id, item.emby_item_id || null)
+    // Bail out silently if a newer load was issued while we were
+    // awaiting the resolve — its own token now owns the player slot.
+    if (token !== loadGeneration) return
     if (!trailer.value) return
     if (trailer.value.source === TRAILER_SOURCE.YOUTUBE && trailer.value.key) {
       if (!/^[a-zA-Z0-9_-]{11}$/.test(trailer.value.key)) return
       await nextTick()
+      if (token !== loadGeneration) return
       createPlayer(trailer.value.key)
     }
     // Emby and Vimeo render via the template — nothing to do here.
