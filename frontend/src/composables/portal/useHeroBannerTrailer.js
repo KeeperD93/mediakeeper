@@ -4,10 +4,10 @@
  * and the "trailer ended → rotate" signal. Extracted from HeroBanner.vue
  * to keep the component under 300 lines.
  *
- * Differs from useEmbyHeroTrailer in three specifics:
- *   - pausing the trailer is NOT allowed (auto-resumes),
- *   - an onEnded callback is surfaced so the parent can rotate hero items,
- *   - the YouTube id is validated before handing it to YT.Player.
+ * The EmbyRecentHero on the home page used to share a sibling composable
+ * (useEmbyHeroTrailer); that hero now ships without any trailer player
+ * — backdrop slideshow only — so this is currently the only trailer
+ * orchestrator in the portal.
  */
 import { ref, onUnmounted, nextTick } from 'vue'
 import { useTrailer } from '@/composables/portal/useTrailer'
