@@ -25,12 +25,23 @@
 
     <!-- Floating action cluster (chat / surprise / promotion). The chat
          panel is mounted from inside the FAB so we only instantiate it
-         once per layout and keep the singleton websocket happy. -->
-    <HomeFab @open-surprise="surpriseOpen = true" />
+         once per layout and keep the singleton websocket happy.
+         Hidden while the user owes us a display name so they can't drop
+         into chat under their pre-reset alias. -->
+    <HomeFab v-if="!mustPickUsername" @open-surprise="surpriseOpen = true" />
 
     <SurpriseOverlay v-if="surpriseOpen" @close="surpriseOpen = false" />
 
-    <NewsPopup v-if="showNewsPopup" :items="unreadNews" @dismiss="dismissNews" />
+    <!-- Auto-opening overlays are gated behind ``mustPickUsername``: when
+         the admin reset a viewer's display name, ForceUsernameModal must
+         stay the topmost layer until they pick a new one, otherwise the
+         What's-new and Daily-digest popups (whose z-index is higher than
+         the portal overlay token) paint over the picker and trap them. -->
+    <NewsPopup
+      v-if="showNewsPopup && !mustPickUsername"
+      :items="unreadNews"
+      @dismiss="dismissNews"
+    />
 
     <!-- GDPR opt-in: persistent grace-period banner shown on every page
          while a deletion request is pending. EventBanner stacks below
@@ -42,11 +53,19 @@
 
     <!-- "What's new" popup for the Portal viewer (auto-shows once per version,
          can also be manually re-opened from the avatar menu). -->
-    <PortalWhatsNewModal :open="whatsNewOpen" @close="whatsNewOpen = false" />
+    <PortalWhatsNewModal
+      v-if="!mustPickUsername"
+      :open="whatsNewOpen"
+      @close="whatsNewOpen = false"
+    />
 
     <!-- Daily digest overlay: auto-opens once per calendar day when there is
          content to show, can also be re-opened manually from the avatar menu. -->
-    <PortalDailyDigestOverlay :open="dailyDigestOpen" @close="dailyDigestOpen = false" />
+    <PortalDailyDigestOverlay
+      v-if="!mustPickUsername"
+      :open="dailyDigestOpen"
+      @close="dailyDigestOpen = false"
+    />
 
     <!-- Help center overlay — opened from the avatar menu. Lazy-rendered:
          the heavy article body / sanitised HTML is only fetched when the
@@ -155,6 +174,12 @@ function onOpenHelp() {
 
 const activeTab = computed(() => route.name || PORTAL_TAB.HOME)
 const isAdmin = computed(() => profile.value?.role === USER_ROLE.ADMIN)
+// Pre-pseudo gate: viewers whose ``display_name_must_set`` flag is on
+// (first login or admin-triggered reset) must clear the picker before
+// any auto-popup can mount on top of it.
+const mustPickUsername = computed(
+  () => !isAdmin.value && !!profile.value?.display_name_must_set,
+)
 // Backoffice access is its own gate: a Portal moderator (role=admin)
 // is not necessarily a backoffice operator. Imported Emby accounts
 // always fail the backoffice login because their stored hash is the
@@ -189,7 +214,7 @@ async function dismissNews() {
 onMounted(async () => {
   await checkPortalAuth()
   await fetchUnread()
-  if (unreadNews.value.length > 0) {
+  if (unreadNews.value.length > 0 && !mustPickUsername.value) {
     showNewsPopup.value = true
   }
 })

@@ -30,6 +30,7 @@ This section intentionally has no date so it is not shown to users.
 - Lists (Discover, Search, Person, Collection) — 3 posters per row on mobile, tighter spacing
 
 ### Fixed
+- Display name picker: What's-new and Digest overlays hidden until the pseudo is set.
 - Home: removed the burst of "Too many attempts" notifications on load
 - Posters: restored white outline and Top 3 medals (gold/silver/bronze).
 - Posters: duration shown on hover (TMDB cache for Top 20).
