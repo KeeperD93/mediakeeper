@@ -4,7 +4,6 @@
       <div
         v-if="open"
         class="pt-force-uname-overlay"
-        :class="{ 'pt-force-uname-overlay--mounted': mounted }"
         role="dialog"
         aria-modal="true"
       >
@@ -99,11 +98,6 @@ const inputRef = ref(null)
 const panelRef = ref(null)
 const saving = ref(false)
 const errorKey = ref(null)
-// Guards the first paint: until the teleported overlay finishes mounting
-// to <body>, the panel stays visually hidden so a navigation that fires
-// during the enter transition cannot show the still-inline content at
-// its parent's position (observed bottom-left leak).
-const mounted = ref(false)
 const usernameCheck = reactive({
   pending: false,
   available: null,
@@ -113,36 +107,31 @@ const usernameCheck = reactive({
 
 let timer = null
 
-async function arm() {
+// Seed the input with the current display name on every (re-)open so the
+// user lands on a deterministic state. ``v-if`` on the parent guarantees
+// this component only mounts when the picker MUST be visible, so we no
+// longer need a visibility latch — the previous ``mounted`` flag was a
+// teleport-flicker guard that could itself get stuck and hide the overlay.
+function arm() {
   candidate.value = profile.value?.display_name || ''
   errorKey.value = null
   usernameCheck.available = null
   usernameCheck.reason = null
   usernameCheck.suggestions = []
-  await nextTick()
-  mounted.value = true
-  inputRef.value?.focus()
-  inputRef.value?.select()
 }
 
 watch(
   () => props.open,
-  async open => {
-    if (!open) {
-      mounted.value = false
-      return
-    }
-    await arm()
+  open => {
+    if (open) arm()
   },
 )
 
-// Cover the "already open at mount" case (e.g. ``mustPickUsername``
-// resolved synchronously from a cached profile after deco/reco): the
-// watcher above only fires on transitions, so the visibility latch
-// would otherwise stay closed forever and the overlay would render
-// hidden until the next route change.
-onMounted(() => {
+onMounted(async () => {
   if (props.open) arm()
+  await nextTick()
+  inputRef.value?.focus()
+  inputRef.value?.select()
 })
 
 const state = computed(() => {
