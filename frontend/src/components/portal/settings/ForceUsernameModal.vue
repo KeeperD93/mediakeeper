@@ -68,7 +68,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, reactive, ref, toRef, watch } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { usePortalAuth } from '@/composables/portal/usePortalAuth'
@@ -106,6 +106,18 @@ const usernameCheck = reactive({
 
 let timer = null
 
+async function arm() {
+  candidate.value = profile.value?.display_name || ''
+  errorKey.value = null
+  usernameCheck.available = null
+  usernameCheck.reason = null
+  usernameCheck.suggestions = []
+  await nextTick()
+  mounted.value = true
+  inputRef.value?.focus()
+  inputRef.value?.select()
+}
+
 watch(
   () => props.open,
   async open => {
@@ -113,23 +125,18 @@ watch(
       mounted.value = false
       return
     }
-    candidate.value = profile.value?.display_name || ''
-    errorKey.value = null
-    usernameCheck.available = null
-    usernameCheck.reason = null
-    usernameCheck.suggestions = []
-    await nextTick()
-    mounted.value = true
-    inputRef.value?.focus()
-    inputRef.value?.select()
+    await arm()
   },
-  // ``immediate`` so the modal still flips to ``mounted`` (visibility:
-  // visible) when the parent binds ``:open`` to a reactive value that
-  // is already ``true`` on first render — e.g. ``mustPickUsername``
-  // resolved synchronously from a cached profile after deco/reco.
-  // Without it, the visibility latch would stay closed.
-  { immediate: true },
 )
+
+// Cover the "already open at mount" case (e.g. ``mustPickUsername``
+// resolved synchronously from a cached profile after deco/reco): the
+// watcher above only fires on transitions, so the visibility latch
+// would otherwise stay closed forever and the overlay would render
+// hidden until the next route change.
+onMounted(() => {
+  if (props.open) arm()
+})
 
 const state = computed(() => {
   const trimmed = candidate.value.trim()
