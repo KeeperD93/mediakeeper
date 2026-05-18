@@ -15,7 +15,6 @@
 
     <main id="main-content" tabindex="-1" class="pt-main">
       <router-view />
-      <AttributionFooter class="pt-attribution" />
     </main>
 
     <PortalBottomNav
@@ -68,7 +67,6 @@ import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 import { usePortalNews } from '@/composables/portal/usePortalNews'
 import { usePortalLocale } from '@/composables/portal/usePortalLocale'
 import { usePortalChat } from '@/composables/portal/usePortalChat'
-import AttributionFooter from '@/components/common/AttributionFooter.vue'
 import PortalNav from './PortalNav.vue'
 import PortalBottomNav from './PortalBottomNav.vue'
 import HomeFab from './HomeFab.vue'
@@ -221,26 +219,15 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
 }
-/* The routed page fills the available height so AttributionFooter stays
-   pinned to the viewport bottom on short pages (Tickets list with few
-   rows used to float in the middle of the viewport). On tall pages the
-   page grows naturally and the footer follows at content end. */
-.pt-main > :deep(*:not(.pt-attribution)) {
-  flex: 1 1 auto;
-}
 /* All portal pages get nav clearance. The home hero handles it
    by being tall enough (90vh) to extend behind the nav. */
 .pt-main > :deep(*) {
+  flex: 1 1 auto;
   padding-top: 112px;
 }
 /* Home page hero already fills the space, override */
 .pt-main > :deep(.pt-home),
 .pt-main > :deep(.vmd2-root) {
-  padding-top: 0;
-}
-/* The attribution sits at the bottom of the column: it must not
-   inherit the top clearance meant for routed page content. */
-.pt-main > .pt-attribution {
   padding-top: 0;
 }
 
@@ -259,12 +246,6 @@ onMounted(async () => {
     padding-top: 0;
     padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
   }
-
-  /* Keep the bottom-nav clearance, drop the unwanted top clearance. */
-  .pt-main > .pt-attribution {
-    padding-top: 0;
-    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
-  }
 }
 
 /* Legacy narrow-desktop layout (tabs wrap to 2nd row in top bar) */
@@ -275,10 +256,6 @@ onMounted(async () => {
 
   .pt-main > :deep(.pt-home),
   .pt-main > :deep(.vmd2-root) {
-    padding-top: 0;
-  }
-
-  .pt-main > .pt-attribution {
     padding-top: 0;
   }
 }
@@ -293,10 +270,6 @@ onMounted(async () => {
 
   .pt-main > :deep(.pt-home),
   .pt-main > :deep(.vmd2-root) {
-    padding-top: 0;
-  }
-
-  .pt-main > .pt-attribution {
     padding-top: 0;
   }
 }

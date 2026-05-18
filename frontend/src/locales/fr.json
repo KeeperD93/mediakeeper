@@ -190,16 +190,9 @@
       "hMin": "{h}h {m}min",
       "dH": "{d}j {h}h",
       "moD": "{mo} mois {d}j"
-    },
-    "attribution": {
-      "text": "Ce produit utilise l'API TMDB mais n'est ni soutenu ni certifié par TMDB.",
-      "logoAlt": "TMDB"
     }
   },
   "attribution": {
-    "footer": {
-      "fullCredits": "Crédits complets"
-    },
     "githubLink": "code source sur GitHub",
     "credits": {
       "title": "Crédits et attributions",

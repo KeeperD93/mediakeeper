@@ -33,6 +33,7 @@ This section intentionally has no date so it is not shown to users.
 - Notifications — selects and inputs harmonized (custom chevron)
 - Tabs — compacted interface on mobile
 - Footer — TMDB credits compacted
+- Footer — attribution banner removed (credits kept on About page).
 - Watchlist — "Restore" button realigned (unified radius)
 - Statistics — records stacked vertically on mobile
 - Watchlist Missing tab: new "Last scan" label, button renamed "Analyze"

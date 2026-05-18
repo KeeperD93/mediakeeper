@@ -17,6 +17,7 @@ utilisateurs.
 ## [Unreleased]
 
 ### Changed
+- Pied de page — bandeau d'attribution retiré (crédits conservés sur la page Crédits).
 - Unification visuelle des jaquettes (toutes surfaces) avec retrait PEGI sur fiche détail
 - Accueil : rythme des listes uniformisé (titres aérés, jaquettes serrées).
 - Sous-titres — bibliothèque : 3 jaquettes par ligne sur mobile.

@@ -33,6 +33,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Notifications — selects et inputs harmonisés (chevron custom).
 - Onglets — interface compactée sur mobile.
 - Pied de page — crédits TMDB compactés.
+- Pied de page — bandeau d'attribution retiré (crédits conservés dans À propos).
 - Suivi — bouton « Restaurer » réaligné (radius unifié).
 - Statistiques — records empilés en colonne sur mobile.
 - Watchlist Manquants : nouveau label « Dernier scan », bouton renommé « Analyser ».

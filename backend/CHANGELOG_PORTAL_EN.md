@@ -15,6 +15,7 @@ This section intentionally has no date so it is not shown to users.
 ## [Unreleased]
 
 ### Changed
+- Footer — attribution banner removed (credits kept on the Credits page).
 - Unified poster visuals across all surfaces (PEGI removed from detail hero)
 - Home: unified list rhythm (airier titles, tighter posters).
 - Subtitles — library: 3 covers per row on mobile
