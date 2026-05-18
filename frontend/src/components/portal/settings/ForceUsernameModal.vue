@@ -76,6 +76,13 @@ import { useApi } from '@/composables/useApi'
 import { useFocusTrap } from '@/composables/useFocusTrap'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
+// The modal's heavy styles (overlay backdrop, premium panel, input,
+// suggestion chips, action bar) live in settings-premium.css alongside
+// the full Settings page. Without this explicit import the picker would
+// render as plain text whenever the user lands on /portal without ever
+// visiting /portal/settings (e.g. F5 on the home page right after an
+// admin-triggered reset).
+import '@/assets/styles/portal/settings-premium.css'
 
 const props = defineProps({
   open: { type: Boolean, default: false },

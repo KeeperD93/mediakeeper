@@ -914,9 +914,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgb(0, 0, 0, 0.78);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  /* Opaque so the picker fully masks the portal behind it — admin reset
+     forces the user to pick a new pseudo with zero visual distraction. */
+  background: var(--bg-primary);
   padding: 1rem;
   /* Stay invisible until the post-mount tick flips the
      ``--mounted`` modifier. Prevents a one-frame paint at the parent's

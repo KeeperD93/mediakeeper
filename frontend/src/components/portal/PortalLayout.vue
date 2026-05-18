@@ -72,12 +72,14 @@
          overlay is first opened. -->
     <PortalHelpOverlay :open="helpOpen" @close="helpOpen = false" />
 
-    <!-- Blocking modal driven directly by ``mustPickUsername`` so it stays
-         armed across deco/reco and refreshes: the backend ``must_set`` flag
-         is the single source of truth and only flips to false on a saved
-         display name (admin reset re-arms it). No latch, no escape — every
-         Emby account is required to pick a pseudo before using the app. -->
-    <ForceUsernameModal :open="mustPickUsername" />
+    <!-- Blocking modal mounted via v-if so the picker is GUARANTEED to be
+         visible whenever ``mustPickUsername`` is true: the modal arms in
+         its onMounted hook with ``props.open=true``, no transition watcher
+         needed and no chance of a stuck visibility latch (the previous
+         :open binding could race with profile arrival on a fresh F5). The
+         backend ``display_name_must_set`` flag is the single source of
+         truth and only flips back to false on a saved display name. -->
+    <ForceUsernameModal v-if="mustPickUsername" :open="true" />
   </div>
 </template>
 
