@@ -57,6 +57,7 @@ const flowState = {
   academyDone: ref(false),
   startTicker: vi.fn(),
   startAcademy: vi.fn(),
+  skipToReady: vi.fn(),
   resetAcademy: vi.fn(),
 }
 vi.mock('@/composables/portal/useCinemaRoomFlow', () => ({

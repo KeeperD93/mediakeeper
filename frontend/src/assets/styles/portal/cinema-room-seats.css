@@ -299,15 +299,15 @@
 }
 .pt-cr-seat-label {
   position: absolute;
-  /* Hugs the avatar's bottom edge: the avatar covers ~58% of the seat
-     height (top 8% + height = 62% of seat width × 0.8 height-to-width
-     ratio), so this lands flush against it with a 1% breathing gap. */
-  top: 59%;
+  /* Floats just above the avatar: the avatar's top edge sits at 8% of
+     the seat height, so anchoring the label's bottom at 92% (+ a 4 px
+     gap) places it flush against the avatar without overlapping it. */
+  bottom: calc(92% + 4px);
   left: 50%;
   transform: translateX(-50%);
   max-width: 120%;
   padding: 0 2px;
-  color: #fff;
+  color: var(--portal-text-primary);
   font-size: clamp(0.55rem, 0.85vw, 0.75rem);
   font-weight: var(--portal-font-bold);
   letter-spacing: 0.01em;

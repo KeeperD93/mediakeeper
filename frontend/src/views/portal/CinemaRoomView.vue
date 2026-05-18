@@ -195,9 +195,20 @@ watch(flow.canStartAcademy, v => {
   // viewer reaches T-0 with the screen ready, not 10 s late.
   if (v && !flow.academyActive.value && !flow.academyDone.value) {
     carousel.destroy()
-    flow.startAcademy()
+    flow.startAcademy(flow.remainingMs.value / 1000)
   }
 })
+
+// Safety net: once the poster screen is up (academy finished or the
+// latecomer fast-path fired), tear down any leftover YouTube iframe so
+// the trailer cannot keep playing in the background — a refresh past
+// T0 used to reach this state with the iframe still spinning.
+watch(
+  () => flow.academyDone.value,
+  done => {
+    if (done) carousel.destroy()
+  },
+)
 
 async function load() {
   loading.value = true
@@ -241,8 +252,16 @@ async function load() {
     marathonStep.value = event.value.current_step || 0
     marathonProgress.start()
   }
-  if (flow.canStartAcademy.value) {
-    if (!flow.academyDone.value && !flow.academyActive.value) flow.startAcademy()
+  if (flow.canLaunch.value) {
+    // Latecomer joining after T0: skip the academy intro and land
+    // straight on the launch CTA. The above watcher will also fire
+    // ``carousel.destroy()`` once academyDone flips, but we never
+    // started the carousel in this branch anyway.
+    flow.skipToReady()
+  } else if (flow.canStartAcademy.value) {
+    if (!flow.academyDone.value && !flow.academyActive.value) {
+      flow.startAcademy(flow.remainingMs.value / 1000)
+    }
   } else {
     carousel.start().catch(() => {})
   }

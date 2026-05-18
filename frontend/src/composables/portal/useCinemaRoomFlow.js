@@ -37,9 +37,14 @@ export function useCinemaRoomFlow(scheduledTime) {
   const canLaunch = computed(() => remainingMs.value <= 0)
   // The 10-second academy intro should land flush against ``scheduled_at``
   // so its final ``0`` lines up with the main countdown hitting zero.
-  // Trigger it 10 s before the deadline rather than at deadline — see the
-  // ``CinemaRoomView`` watcher below.
-  const canStartAcademy = computed(() => remainingMs.value <= 10_000)
+  // Trigger it 10 s before the deadline rather than at deadline, AND skip
+  // it entirely once we are past T0 — a latecomer joining the room after
+  // the screening started doesn't need to sit through a 10-second intro,
+  // they should land straight on the launch CTA. The ``CinemaRoomView``
+  // ``load()`` flow handles the post-T0 case via ``skipToReady()``.
+  const canStartAcademy = computed(
+    () => remainingMs.value <= 10_000 && remainingMs.value > 0,
+  )
 
   const countdownDisplay = computed(() => {
     const ms = Math.abs(remainingMs.value)
@@ -57,9 +62,12 @@ export function useCinemaRoomFlow(scheduledTime) {
     }, 1000)
   }
 
-  function startAcademy() {
+  function startAcademy(initialValue = 10) {
     academyActive.value = true
-    academyValue.value = 10
+    // Latecomers landing between T-10s and T0 get a shorter intro that
+    // still hits zero in sync with the main countdown — pass the actual
+    // remaining seconds in.
+    academyValue.value = Math.max(1, Math.min(10, Math.ceil(initialValue)))
     academyTimer = setInterval(() => {
       academyValue.value -= 1
       if (academyValue.value <= 0) {
@@ -69,6 +77,17 @@ export function useCinemaRoomFlow(scheduledTime) {
         academyDone.value = true
       }
     }, 1000)
+  }
+
+  function skipToReady() {
+    // Latecomer joining after T0: there is nothing useful to count
+    // down to — surface the launch CTA immediately.
+    if (academyTimer) {
+      clearInterval(academyTimer)
+      academyTimer = null
+    }
+    academyActive.value = false
+    academyDone.value = true
   }
 
   function resetAcademy() {
@@ -94,6 +113,7 @@ export function useCinemaRoomFlow(scheduledTime) {
     academyDone,
     startTicker,
     startAcademy,
+    skipToReady,
     resetAcademy,
   }
 }

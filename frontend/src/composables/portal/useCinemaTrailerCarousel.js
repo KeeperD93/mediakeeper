@@ -63,6 +63,13 @@ export function useCinemaTrailerCarousel({ playerElRef, initialMuted = true } = 
       try { player.destroy() } catch { /* ignore */ }
       player = null
     }
+    // ``YT.Player.destroy()`` releases the internal player state but
+    // can leave the actual ``<iframe>`` element behind in the host
+    // div, which on some Chromium builds keeps streaming the trailer
+    // (audio in particular) in the background. Clear the host so the
+    // browser drops the embed entirely.
+    const el = playerElRef?.value
+    if (el) el.innerHTML = ''
   }
 
   function createPlayerForCurrent() {
