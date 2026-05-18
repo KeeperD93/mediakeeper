@@ -45,6 +45,21 @@ export function useHeroBannerTrailer({ onEnded } = {}) {
   // (state 3 before state 1) while tearing the iframe down for any
   // mid-playback regression. Reset by destroyPlayer.
   let everPlayed = false
+  // Watchdog that defers ``setVideoPlaying(true)`` until the trailer
+  // has genuinely advanced past frame 0. YouTube fires state-1 (playing)
+  // before the autoplay request has actually started rendering frames
+  // — during that gap the centre play/pause glyph is still painted on
+  // top, and revealing the iframe at full opacity makes it visible to
+  // the user for a few seconds. Polling currentTime gives us a reliable
+  // "really playing" signal. Capped at 2 s so we never sit on an
+  // invisible iframe forever if YouTube silently fails.
+  let playWatchdog = null
+  function clearPlayWatchdog() {
+    if (playWatchdog) {
+      clearInterval(playWatchdog)
+      playWatchdog = null
+    }
+  }
 
   function destroyPlayer() {
     if (player) {
@@ -55,6 +70,7 @@ export function useHeroBannerTrailer({ onEnded } = {}) {
       }
       player = null
     }
+    clearPlayWatchdog()
     everPlayed = false
   }
 
@@ -97,8 +113,43 @@ export function useHeroBannerTrailer({ onEnded } = {}) {
             // 1 = playing, 0 = ended, 2 = paused, 3 = buffering,
             // 5 = cued, -1 = unstarted.
             if (e.data === 1) {
-              setVideoPlaying(true)
-              everPlayed = true
+              // YouTube announces "playing" before the very first
+              // frame of OUR trailer is on screen. Two warm-up cases
+              // routinely surface the centre play/pause glyph during
+              // that window: the autoplay handshake (state 1 fires
+              // before paint) and a pre-roll ad (state 1 fires
+              // against the ad's own video_id, not ours).
+              // Defer setVideoPlaying(true) until both:
+              //   1. currentTime is past frame 0
+              //   2. the video_id reported by the player matches our
+              //      requested trailer key (= the real trailer, not
+              //      a pre-roll ad).
+              // Falls back after 8 s so we never sit on an invisible
+              // iframe forever if YouTube silently fails.
+              if (playWatchdog || videoPlaying.value) return
+              const expectedKey = trailer.value?.key || ''
+              let attempts = 0
+              playWatchdog = setInterval(() => {
+                attempts += 1
+                let t = 0
+                let vid = ''
+                try {
+                  t = player?.getCurrentTime?.() || 0
+                  vid = player?.getVideoData?.()?.video_id || ''
+                } catch {
+                  /* keep defaults */
+                }
+                const realPlaying = t > 0.1 && (!expectedKey || vid === expectedKey)
+                if (realPlaying) {
+                  clearPlayWatchdog()
+                  setVideoPlaying(true)
+                  everPlayed = true
+                } else if (attempts > 80) {
+                  clearPlayWatchdog()
+                  setVideoPlaying(true)
+                  everPlayed = true
+                }
+              }, 100)
               return
             }
             setVideoPlaying(false)
