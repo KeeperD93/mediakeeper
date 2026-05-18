@@ -123,6 +123,12 @@ watch(
     inputRef.value?.focus()
     inputRef.value?.select()
   },
+  // ``immediate`` so the modal still flips to ``mounted`` (visibility:
+  // visible) when the parent binds ``:open`` to a reactive value that
+  // is already ``true`` on first render — e.g. ``mustPickUsername``
+  // resolved synchronously from a cached profile after deco/reco.
+  // Without it, the visibility latch would stay closed.
+  { immediate: true },
 )
 
 const state = computed(() => {
