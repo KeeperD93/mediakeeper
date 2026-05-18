@@ -61,7 +61,16 @@ const router = createRouter({
   routes,
   scrollBehavior(to, _from, savedPosition) {
     if (savedPosition) return savedPosition
-    if (to.hash) return { el: to.hash, behavior: 'smooth' }
+    if (to.hash) {
+      // Some pages (PortalSettings tabs) use ``#identity`` / ``#appearance``
+      // / ... as state markers — they don't map to a DOM anchor. Skip the
+      // scroll silently when nothing matches so Vue Router doesn't log a
+      // "couldn't find element" warning on every tab switch.
+      if (typeof document !== 'undefined' && document.querySelector(to.hash)) {
+        return { el: to.hash, behavior: 'smooth' }
+      }
+      return false
+    }
     return { top: 0, behavior: 'instant' }
   },
 })

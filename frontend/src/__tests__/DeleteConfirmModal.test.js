@@ -14,6 +14,12 @@ vi.mock('vue-i18n', () => ({
     // a known string without coupling to fr.json's actual text.
     t: key => (key === 'portal.privacy.deleteModal.magicWord' ? 'SUPPRIMER' : key),
   }),
+  // ``I18nT`` is imported by the modal — stub it as a render-slots span so
+  // the named slot (``word``) still renders the typed magic word.
+  I18nT: {
+    name: 'I18nT',
+    template: '<span><slot name="word" /><slot /></span>',
+  },
 }))
 
 vi.mock('lucide-vue-next', () => ({
