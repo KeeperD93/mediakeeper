@@ -25,11 +25,29 @@ vi.mock('vue-router', () => ({
 
 const mockEnterRoom = vi.fn()
 const mockGetOne = vi.fn()
+const mockAdvanceSelf = vi.fn().mockResolvedValue({ ok: true })
+const mockHeartbeat = vi.fn().mockResolvedValue({ ok: true })
+const mockLeaveRoom = vi.fn().mockResolvedValue({ ok: true })
 vi.mock('@/composables/portal/useRooms', () => ({
   useRooms: () => ({
     enterRoom: mockEnterRoom,
     getOne: mockGetOne,
+    advanceSelf: mockAdvanceSelf,
+    heartbeat: mockHeartbeat,
+    leaveRoom: mockLeaveRoom,
   }),
+}))
+
+vi.mock('@/composables/portal/usePresenceHeartbeat', () => ({
+  // The presence composable starts a setInterval + window listener on
+  // mount; stub it so the test suite stays deterministic and doesn't
+  // need to flush real timers.
+  usePresenceHeartbeat: () => {},
+}))
+
+const mockPortalProfile = ref({ user_id: 99, id: 99 })
+vi.mock('@/composables/portal/usePortalAuth', () => ({
+  usePortalAuth: () => ({ profile: mockPortalProfile }),
 }))
 
 const marathonProgressState = {
@@ -40,6 +58,7 @@ const marathonProgressState = {
   ready: ref(false),
   start: vi.fn(),
   stop: vi.fn(),
+  bump: vi.fn(),
 }
 vi.mock('@/composables/portal/useMarathonProgress', () => ({
   useMarathonProgress: () => marathonProgressState,

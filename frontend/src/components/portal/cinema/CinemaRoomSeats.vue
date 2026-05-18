@@ -178,11 +178,18 @@ function seatOccupant(row, colInBlock, block) {
   const flat = flatPos(row, colInBlock, block)
   const seatIdx = PREMIUM_SEATS.indexOf(flat)
   if (seatIdx < 0) return null
-  return (
-    props.event.invitations?.find(
-      i => i.status === INVITATION_STATUS.ACCEPTED && i.seat_index === seatIdx,
-    ) || null
+  const inv = props.event.invitations?.find(
+    i => i.status === INVITATION_STATUS.ACCEPTED && i.seat_index === seatIdx,
   )
+  if (!inv) return null
+  // Presence gate: the seat row stays put (returning viewer reclaims
+  // the same seat) but the live avatar is only painted when the
+  // back-end's last-seen heartbeat is still within the presence
+  // window. ``is_currently_in_room`` is computed server-side
+  // (mk_events_utils.is_currently_in_room) and refreshed on every
+  // ``getOne`` / ``enter_room`` / marathon-progress merge.
+  if (!inv.is_currently_in_room) return null
+  return inv
 }
 
 function seatClass(row, colInBlock, block) {

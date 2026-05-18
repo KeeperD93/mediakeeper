@@ -2616,6 +2616,7 @@
       "trailerInfoAria": "Plus d'infos sur {title}",
       "launchMovie": "Lancer le film",
       "launchSeries": "Lancer la série",
+      "nextFilm": "Film suivant",
       "errors": {
         "event_ended": "Événement terminé — la salle est fermée.",
         "not_member": "Vous n'avez pas accepté l'invitation à cette salle."
@@ -2625,7 +2626,11 @@
         "ineligible": "{count} participant sans suivi Emby | {count} participants sans suivi Emby",
         "notReady": "Tous les participants n'ont pas encore atteint 85 % du film",
         "staleStep": "Un autre participant a déjà avancé le marathon",
-        "barAria": "{name} a regardé {percent}%"
+        "barAria": "{name} a regardé {percent}%",
+        "late": "En retard"
+      },
+      "playback": {
+        "title": "Lecture en cours"
       }
     },
     "mkEvents": {

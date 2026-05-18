@@ -18,6 +18,12 @@ from services.portal.mk_events_marathon import (
     advance_marathon_step,
     compute_marathon_progress,
 )
+from services.portal.mk_events_presence import (
+    PresenceError,
+    advance_self_step,
+    heartbeat as presence_heartbeat,
+    leave_room as presence_leave_room,
+)
 
 router = APIRouter()
 
@@ -269,6 +275,55 @@ async def advance_marathon(
         )
     except MarathonError as err:
         _raise_marathon(err)
+
+
+def _raise_presence(err: PresenceError) -> None:
+    raise HTTPException(
+        status_code=err.status_code, detail={"error": err.detail},
+    )
+
+
+@router.post("/rooms/{event_id}/heartbeat")
+# Heartbeat is called every 5 s per open cinema tab; 60/min per-user
+# leaves room for one missed tick + a quick reconnect without 429s.
+@limiter.limit("60/minute", key_func=portal_user_or_ip_key)
+async def heartbeat_mk_room(
+    request: Request,
+    event_id: int,
+    up: tuple[User, UserProfile] = Depends(get_current_profile),
+    db: AsyncSession = Depends(get_db),
+):
+    user, _ = up
+    try:
+        return await presence_heartbeat(db, event_id, user.id)
+    except PresenceError as err:
+        _raise_presence(err)
+
+
+@router.post("/rooms/{event_id}/leave")
+async def leave_mk_room(
+    event_id: int,
+    up: tuple[User, UserProfile] = Depends(get_current_profile),
+    db: AsyncSession = Depends(get_db),
+):
+    user, _ = up
+    try:
+        return await presence_leave_room(db, event_id, user.id)
+    except PresenceError as err:
+        _raise_presence(err)
+
+
+@router.post("/rooms/{event_id}/advance-self")
+async def advance_self_mk_room(
+    event_id: int,
+    up: tuple[User, UserProfile] = Depends(get_current_profile),
+    db: AsyncSession = Depends(get_db),
+):
+    user, _ = up
+    try:
+        return await advance_self_step(db, event_id, user.id)
+    except PresenceError as err:
+        _raise_presence(err)
 
 
 @router.get("/rooms/{event_id}/messages")

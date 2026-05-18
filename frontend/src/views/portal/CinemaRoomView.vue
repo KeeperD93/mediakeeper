@@ -87,11 +87,19 @@
           <div v-if="event.tmdb_ids.length > 1" class="pt-cr-launch-marathon">
             {{
               $t('portal.cinema.marathonStep', {
-                current: marathonStep + 1,
+                current: myUserStep + 1,
                 total: event.tmdb_ids.length,
               })
             }}
           </div>
+          <button
+            v-if="canAdvanceSelf"
+            type="button"
+            class="pt-cr-launch-next"
+            @click="onAdvanceSelfClick"
+          >
+            {{ $t('portal.cinema.nextFilm') }}
+          </button>
         </div>
       </transition>
 
@@ -132,6 +140,8 @@ import { useAvailability } from '@/composables/portal/useAvailability'
 import { useCinemaTrailerCarousel } from '@/composables/portal/useCinemaTrailerCarousel'
 import { useCinemaRoomFlow } from '@/composables/portal/useCinemaRoomFlow'
 import { useMarathonProgress } from '@/composables/portal/useMarathonProgress'
+import { usePresenceHeartbeat } from '@/composables/portal/usePresenceHeartbeat'
+import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 import { useToast } from '@/composables/useToast'
 import EventRoomChat from '@/components/portal/EventRoomChat.vue'
 import CinemaRoomSeats from '@/components/portal/cinema/CinemaRoomSeats.vue'
@@ -150,15 +160,32 @@ import '@/assets/styles/portal/cinema-room-hud.css'
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
-const { enterRoom, getOne } = useRooms()
+const { enterRoom, getOne, advanceSelf } = useRooms()
+const { profile } = usePortalAuth()
 const { showToast } = useToast()
 
 const event = ref(null)
 const loading = ref(true)
-const marathonStep = ref(0)
 const muted = ref(true)
 const eventIdParam = parseInt(route.params.id, 10)
 const marathonProgress = useMarathonProgress(eventIdParam)
+
+const myUserId = computed(() => profile.value?.user_id || profile.value?.id || 0)
+
+// Per-user marathon step lives on ``MKEventInvitation`` so latecomers
+// and viewers who fall behind keep watching their own film while peers
+// advance. Look it up on each event payload — falls back to 0 if the
+// current viewer has not yet been seated (room not entered).
+const myUserStep = computed(() => {
+  const me = event.value?.invitations?.find(i => i.user_id === myUserId.value)
+  return typeof me?.user_step === 'number' ? me.user_step : 0
+})
+
+// Heartbeat composable handles its own lifecycle (interval mount,
+// beforeunload + unmount leave). Wire it as soon as the event id is
+// known so peers see the avatar appear right after enter_room.
+const eventIdRef = computed(() => (eventIdParam || null))
+usePresenceHeartbeat(eventIdRef)
 // The MKEventMedia payload stored on tmdb_ids does not carry an
 // ``emby_url`` (the create-event schema only persists tmdb_id, type,
 // title, poster, runtime). Resolve the launch URL on demand via the
@@ -176,7 +203,12 @@ const playerEl = ref(null)
 const carousel = useCinemaTrailerCarousel({ playerElRef: playerEl, initialMuted: muted.value })
 const currentTrailer = computed(() => carousel.currentTrailer.value)
 
-const currentMedia = computed(() => event.value?.tmdb_ids?.[marathonStep.value] || null)
+const currentMedia = computed(() => event.value?.tmdb_ids?.[myUserStep.value] || null)
+const canAdvanceSelf = computed(() => {
+  if (!event.value) return false
+  const total = event.value.tmdb_ids?.length || 0
+  return total > 1 && myUserStep.value < total - 1
+})
 const launchLabel = computed(() => {
   if (!currentMedia.value) return ''
   return isTvMedia(currentMedia.value)
@@ -259,8 +291,12 @@ async function load() {
     // launch CTA can resolve its emby_url synchronously when clicked.
     checkAvailability(event.value.tmdb_ids).catch(() => {})
   }
-  if (event.value && (event.value.tmdb_ids?.length || 0) > 1) {
-    marathonStep.value = event.value.current_step || 0
+  // Marathon step is now tracked per-user via ``invitations[i].user_step``
+  // — no shared marker to mirror locally. Single-film events still get
+  // the poll wired up so the playback timeline (``MarathonProgressPanel``)
+  // can surface a viewer's session as soon as it appears in the next
+  // tick — used to require a manual refresh otherwise.
+  if (event.value) {
     marathonProgress.start()
   }
   if (flow.canLaunch.value) {
@@ -278,16 +314,40 @@ async function load() {
   }
 }
 
+// Merge fresh per-user marathon steps + presence flags from the
+// progress poll back into ``event.value.invitations`` so the seats
+// (filtered on ``is_currently_in_room``) and the per-user CTA stay in
+// sync with peers without a full ``getOne`` round trip every 3 s.
 watch(
-  () => marathonProgress.progress.value?.current_step,
-  step => {
-    if (typeof step === 'number' && step !== marathonStep.value) {
-      marathonStep.value = step
-    }
+  () => marathonProgress.progress.value,
+  payload => {
+    if (!payload || !event.value?.invitations) return
+    const stepByUser = new Map(
+      (payload.participants || [])
+        .filter(p => typeof p.user_id === 'number')
+        .map(p => [p.user_id, p.user_step]),
+    )
+    const presenceByUser = new Map(
+      (payload.presence || [])
+        .filter(p => typeof p.user_id === 'number')
+        .map(p => [p.user_id, Boolean(p.is_currently_in_room)]),
+    )
+    event.value.invitations = event.value.invitations.map(inv => {
+      const next = { ...inv }
+      const step = stepByUser.get(inv.user_id)
+      if (typeof step === 'number') next.user_step = step
+      const presence = presenceByUser.get(inv.user_id)
+      if (presence != null) next.is_currently_in_room = presence
+      return next
+    })
   },
+  { deep: true },
 )
 
 function leave() {
+  // The presence composable's ``onBeforeUnmount`` will fire ``leaveRoom``
+  // automatically as we navigate away, so peers see the avatar
+  // disappear without waiting for the 15 s presence window.
   if (window.opener) window.close()
   else router.push({ name: PORTAL_TAB.HOME })
 }
@@ -298,20 +358,24 @@ function resolveLaunchUrl(media) {
   return info?.emby_url || null
 }
 
+// 2 s leaves Emby long enough to register a PlaybackSession before we
+// re-poll, so the launching viewer sees their own bar grow without
+// waiting for the next 3 s tick.
+const LAUNCH_POLL_KICK_MS = 2_000
+
 function onLaunchClick() {
-  // The launch button does one thing only: open the *current* film in
-  // Emby. Marathon step advancement was previously bolted onto the same
-  // click + gated behind ``marathonProgress.ready``, which left the
-  // very first launch (step 0, nobody has watched anything yet)
-  // permanently disabled and made the button look dead. Advance now
-  // belongs to a separate concern (auto-advance once every viewer
-  // crosses the 85 % threshold, or a dedicated "Next" CTA — to be
-  // designed). Until then, the room stays usable: viewers can always
-  // open the film they currently see on screen.
+  // The launch button opens the *viewer's* current film (per-user
+  // marathon step). The marathon-wide ``/advance`` POST is gone from
+  // this path; ``/advance-self`` now bumps just our own step so peers
+  // can stay where they are while we move forward.
   if (!event.value || !currentMedia.value) return
   const url = resolveLaunchUrl(currentMedia.value)
   if (url) {
     window.open(url, '_blank', 'noopener')
+    // Force a fresh progress fetch so the playback panel surfaces the
+    // viewer's session as soon as Emby reports it instead of waiting
+    // for the next regular tick.
+    setTimeout(() => marathonProgress.bump(), LAUNCH_POLL_KICK_MS)
     return
   }
   // Availability cache miss (cold start, Emby index out of sync). Land
@@ -327,6 +391,25 @@ function onLaunchClick() {
       },
     })
   }
+}
+
+async function onAdvanceSelfClick() {
+  // Per-user advance: bumps ``user_step`` on the viewer's invitation
+  // and re-syncs the event-wide ``current_step`` to ``max(user_step)``.
+  // The seat row's "En retard" tag flips off for this viewer; peers
+  // unaffected. Used for the next-film CTA that follows the launch.
+  if (!event.value) return
+  const res = await advanceSelf(event.value.id).catch(() => null)
+  if (!res || res.error) return
+  if (event.value?.invitations) {
+    event.value.invitations = event.value.invitations.map(inv =>
+      inv.user_id === myUserId.value
+        ? { ...inv, user_step: res.user_step }
+        : inv,
+    )
+    event.value = { ...event.value, current_step: res.current_step }
+  }
+  flow.resetAcademy()
 }
 
 onMounted(() => {

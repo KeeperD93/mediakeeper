@@ -65,6 +65,18 @@ class MKEventInvitation(Base):
     invite_count  = Column(Integer, nullable=False, server_default="1")
     # Seat assigned at room entry (0..19), null until then.
     seat_index    = Column(Integer, nullable=True)
+    # Per-user marathon step: each participant can be on a different
+    # film. Latecomers and viewers who fall behind keep watching their
+    # current step while peers advance. The legacy ``MKEvent.current_step``
+    # is kept as the "max step reached by the group" for the readiness
+    # gate / event-wide signals (see migration 051).
+    user_step     = Column(Integer, nullable=False, server_default="0")
+    # Heartbeat from the open cinema-room tab. ``None`` means the user
+    # has never entered (or left and let the heartbeat lapse): seats
+    # still resolve via ``seat_index`` so a returning viewer takes back
+    # the same seat, but the live UI hides their avatar until the
+    # heartbeat reports them online again (see migration 051).
+    last_seen_at  = Column(DateTime(timezone=True), nullable=True)
     invited_at    = Column(DateTime(timezone=True),
                            default=lambda: datetime.now(timezone.utc))
     responded_at  = Column(DateTime(timezone=True), nullable=True)

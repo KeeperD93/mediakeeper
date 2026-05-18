@@ -2616,6 +2616,7 @@
       "trailerInfoAria": "More info about {title}",
       "launchMovie": "Start the movie",
       "launchSeries": "Start the series",
+      "nextFilm": "Next film",
       "errors": {
         "event_ended": "Event ended — the cinema room is closed.",
         "not_member": "You haven't accepted this room's invitation."
@@ -2625,7 +2626,11 @@
         "ineligible": "{count} participant without Emby tracking | {count} participants without Emby tracking",
         "notReady": "Some participants haven't reached 85% of the film yet",
         "staleStep": "Another participant already advanced the marathon",
-        "barAria": "{name} watched {percent}%"
+        "barAria": "{name} watched {percent}%",
+        "late": "Behind"
+      },
+      "playback": {
+        "title": "Now playing"
       }
     },
     "mkEvents": {

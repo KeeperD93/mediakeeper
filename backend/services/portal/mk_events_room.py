@@ -67,7 +67,8 @@ async def enter_room(
         await db.rollback()
         return {"error": "not_member"}
 
-    if inv.seat_index is None:
+    first_entry = inv.seat_index is None
+    if first_entry:
         # Assign a free seat at random under the row lock so two concurrent
         # callers cannot pick the same seat.
         taken = (await db.execute(
@@ -81,7 +82,16 @@ async def enter_room(
             await db.rollback()
             return {"error": "room_full"}
         inv.seat_index = random.choice(free)  # noqa: S311 -- random seat assignment in a virtual cinema room, no security purpose
-        db.add(inv)
+        # Latecomer seed: a first-time entrant inherits the group-wide
+        # ``current_step`` so the launch CTA points at the film the
+        # group is currently watching. Per-user advance from there.
+        inv.user_step = event.current_step or 0
+
+    # Heartbeat stamp — peers see the avatar appear right away (or
+    # re-appear, on a return visit) without waiting for the next
+    # explicit heartbeat tick from the front-end.
+    inv.last_seen_at = now
+    db.add(inv)
 
     if event.room_opened_at is None:
         event.room_opened_at = now

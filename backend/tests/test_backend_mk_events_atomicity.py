@@ -691,7 +691,196 @@ async def test_serialize_event_exposes_per_invitation_avatar_url(db_session):
     )
 
 
-# 6. Private-doc reference scrubbed from public modules.
+
+
+# 6. Presence + per-user marathon advance.
+
+
+@pytest.mark.asyncio
+async def test_enter_room_stamps_last_seen_at_and_seeds_user_step(
+    db_session, patch_naive_now,
+):
+    """A first entry must stamp ``last_seen_at`` so peers see the avatar
+    immediately, and seed ``user_step`` to the event's current step so
+    a latecomer drops in on the film the group is currently watching."""
+    creator = await _make_user(db_session, username="presence-seed-creator")
+    member = await _make_user(db_session, username="presence-seed-member")
+    event = await _make_event(db_session, creator=creator)
+    # Group has already advanced once before the latecomer joins.
+    event.current_step = 1
+    db_session.add(event)
+    await db_session.commit()
+    await _accept_member(db_session, event.id, member.id)
+
+    result = await enter_room(db_session, event.id, member.id)
+    assert result["ok"] is True
+
+    fresh_inv = (await db_session.execute(
+        select(MKEventInvitation)
+        .where(
+            MKEventInvitation.event_id == event.id,
+            MKEventInvitation.user_id == member.id,
+        )
+        .execution_options(populate_existing=True)
+    )).scalar_one()
+    assert fresh_inv.last_seen_at is not None
+    assert fresh_inv.user_step == 1, (
+        "first-time entrant must inherit the group-wide current_step"
+    )
+
+
+@pytest.mark.asyncio
+async def test_heartbeat_bumps_last_seen_at(db_session, patch_naive_now):
+    """Calling ``heartbeat`` advances ``last_seen_at`` past the prior stamp."""
+    from services.portal.mk_events_presence import heartbeat as do_heartbeat
+
+    creator = await _make_user(db_session, username="hb-creator")
+    member = await _make_user(db_session, username="hb-member")
+    event = await _make_event(db_session, creator=creator)
+    await _accept_member(db_session, event.id, member.id)
+    await enter_room(db_session, event.id, member.id)
+
+    fresh = (await db_session.execute(
+        select(MKEventInvitation).where(
+            MKEventInvitation.event_id == event.id,
+            MKEventInvitation.user_id == member.id,
+        ).execution_options(populate_existing=True)
+    )).scalar_one()
+    initial_stamp = fresh.last_seen_at
+    assert initial_stamp is not None
+
+    # Roll the clock forward so the next heartbeat lands on a later stamp
+    # even on systems with low-resolution monotonic clocks.
+    fresh.last_seen_at = initial_stamp - _dt.timedelta(seconds=2)
+    db_session.add(fresh)
+    await db_session.commit()
+
+    result = await do_heartbeat(db_session, event.id, member.id)
+    assert result == {"ok": True}
+
+    fresh = (await db_session.execute(
+        select(MKEventInvitation).where(
+            MKEventInvitation.event_id == event.id,
+            MKEventInvitation.user_id == member.id,
+        ).execution_options(populate_existing=True)
+    )).scalar_one()
+    assert fresh.last_seen_at > initial_stamp - _dt.timedelta(seconds=2)
+
+
+@pytest.mark.asyncio
+async def test_leave_clears_last_seen_at_but_preserves_seat(
+    db_session, patch_naive_now,
+):
+    """``leave_room`` drops the live presence flag (avatar hidden for
+    peers) but keeps ``seat_index`` so a returning viewer reclaims the
+    same seat instead of being shuffled to a new one."""
+    from services.portal.mk_events_presence import leave_room as do_leave
+
+    creator = await _make_user(db_session, username="leave-creator")
+    member = await _make_user(db_session, username="leave-member")
+    event = await _make_event(db_session, creator=creator)
+    await _accept_member(db_session, event.id, member.id)
+    entry = await enter_room(db_session, event.id, member.id)
+    seat_at_entry = entry["seat_index"]
+
+    result = await do_leave(db_session, event.id, member.id)
+    assert result == {"ok": True}
+
+    fresh = (await db_session.execute(
+        select(MKEventInvitation).where(
+            MKEventInvitation.event_id == event.id,
+            MKEventInvitation.user_id == member.id,
+        ).execution_options(populate_existing=True)
+    )).scalar_one()
+    assert fresh.last_seen_at is None
+    assert fresh.seat_index == seat_at_entry, (
+        "leaving the room preserves the seat so re-entry hits the same one"
+    )
+
+
+@pytest.mark.asyncio
+async def test_advance_self_bumps_user_step_and_resyncs_event_max(
+    db_session, patch_naive_now,
+):
+    """``advance_self_step`` increments only the caller's ``user_step``
+    and resyncs ``MKEvent.current_step`` to ``max(user_step)`` across
+    every accepted, seated invitation — peers stay on their own film."""
+    from services.portal.mk_events_presence import advance_self_step
+
+    creator = await _make_user(db_session, username="adv-creator")
+    fast = await _make_user(db_session, username="adv-fast")
+    slow = await _make_user(db_session, username="adv-slow")
+    event = await _make_event(db_session, creator=creator)
+    # Marathon: 3 films.
+    event.tmdb_ids = [
+        {"tmdb_id": 1, "media_type": "movie", "title": "A"},
+        {"tmdb_id": 2, "media_type": "movie", "title": "B"},
+        {"tmdb_id": 3, "media_type": "movie", "title": "C"},
+    ]
+    db_session.add(event)
+    await db_session.commit()
+    await _accept_member(db_session, event.id, fast.id)
+    await _accept_member(db_session, event.id, slow.id)
+    await enter_room(db_session, event.id, fast.id)
+    await enter_room(db_session, event.id, slow.id)
+
+    result = await advance_self_step(db_session, event.id, fast.id)
+    assert result["ok"] is True
+    assert result["user_step"] == 1
+    assert result["current_step"] == 1, (
+        "event-wide current_step must follow the furthest viewer"
+    )
+
+    slow_inv = (await db_session.execute(
+        select(MKEventInvitation).where(
+            MKEventInvitation.event_id == event.id,
+            MKEventInvitation.user_id == slow.id,
+        )
+    )).scalar_one()
+    assert slow_inv.user_step == 0, (
+        "advancing one viewer must NOT bump their peers"
+    )
+
+
+@pytest.mark.asyncio
+async def test_advance_self_refuses_past_last_step(
+    db_session, patch_naive_now,
+):
+    """A viewer who has already reached the last film gets a clean 400
+    instead of overflowing ``user_step``."""
+    from services.portal.mk_events_presence import (
+        PresenceError, advance_self_step,
+    )
+
+    creator = await _make_user(db_session, username="last-creator")
+    member = await _make_user(db_session, username="last-member")
+    event = await _make_event(db_session, creator=creator)
+    event.tmdb_ids = [
+        {"tmdb_id": 1, "media_type": "movie", "title": "A"},
+        {"tmdb_id": 2, "media_type": "movie", "title": "B"},
+    ]
+    db_session.add(event)
+    await db_session.commit()
+    await _accept_member(db_session, event.id, member.id)
+    await enter_room(db_session, event.id, member.id)
+    # Bump to the last film manually.
+    inv = (await db_session.execute(
+        select(MKEventInvitation).where(
+            MKEventInvitation.event_id == event.id,
+            MKEventInvitation.user_id == member.id,
+        )
+    )).scalar_one()
+    inv.user_step = 1
+    db_session.add(inv)
+    await db_session.commit()
+
+    with pytest.raises(PresenceError) as excinfo:
+        await advance_self_step(db_session, event.id, member.id)
+    assert excinfo.value.status_code == 400
+    assert excinfo.value.detail == "already_last"
+
+
+# 7. Private-doc reference scrubbed from public modules.
 
 
 @pytest.mark.asyncio

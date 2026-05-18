@@ -21,6 +21,33 @@ ROOM_OPEN_BEFORE_MIN = 15
 # back-to-back screening; longer events can still be re-opened by an
 # admin via the explicit ``done`` status reset (out of scope here).
 ROOM_CLOSE_AFTER_HOURS = 6
+# Live presence in the cinema room: a viewer is considered ``online``
+# when the front-end has heart-beat them within this window. Past it,
+# the seat avatar disappears from peers' view even though the seat
+# stays reserved (see ``MKEventInvitation.last_seen_at``). The poller
+# runs every 3 s and the heartbeat every 5 s, so a 15 s grace window
+# tolerates one missed beat without flapping.
+PRESENCE_WINDOW_SECONDS = 15
+
+
+def is_currently_in_room(
+    last_seen_at: datetime | None, now: datetime | None = None,
+) -> bool:
+    """True when the viewer has heart-beat within the presence window.
+
+    Mirrors ``is_event_terminated`` tzinfo handling so the same payload
+    works against PostgreSQL (tz-aware) and SQLite (the test engine
+    strips ``tzinfo``).
+    """
+    if last_seen_at is None:
+        return False
+    reference = now or datetime.now(timezone.utc)
+    stamped = last_seen_at
+    if stamped.tzinfo is None and reference.tzinfo is not None:
+        stamped = stamped.replace(tzinfo=timezone.utc)
+    elif stamped.tzinfo is not None and reference.tzinfo is None:
+        reference = reference.replace(tzinfo=timezone.utc)
+    return (reference - stamped) <= timedelta(seconds=PRESENCE_WINDOW_SECONDS)
 
 
 def is_event_terminated(event: MKEvent, now: datetime | None = None) -> bool:
@@ -90,6 +117,7 @@ async def _serialize_event(db: AsyncSession, event: MKEvent) -> dict:
         .where(MKEventInvitation.event_id == event.id)
     )).all()
     invitations = []
+    now = datetime.now(timezone.utc)
     for inv, username, display, emby_avatar, custom_avatar_path in inv_rows:
         # Custom uploads take precedence over the Emby-proxied URL — same
         # rule the profile serializer applies. The seats UI falls back to
@@ -104,6 +132,15 @@ async def _serialize_event(db: AsyncSession, event: MKEvent) -> dict:
             "status": inv.status,
             "invite_count": inv.invite_count,
             "seat_index": inv.seat_index,
+            # Per-user marathon step (see migration 051). Drives the
+            # launch CTA + the "X/Y" cell in the marathon panel so
+            # latecomers can stay on their film while peers advance.
+            "user_step": inv.user_step,
+            # Live presence flag for the seats UI — the seat row is
+            # kept (returning viewer takes back the same seat) but
+            # the avatar fades out once the heartbeat lapses.
+            "last_seen_at": inv.last_seen_at.isoformat() if inv.last_seen_at else None,
+            "is_currently_in_room": is_currently_in_room(inv.last_seen_at, now),
             "responded_at": inv.responded_at.isoformat() if inv.responded_at else None,
         })
 
