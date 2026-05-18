@@ -40,6 +40,12 @@ export function useHeroBannerTrailer({ onEnded } = {}) {
     setVideoFlag(v)
   }
 
+  // Tracks whether the current player has reached the playing state
+  // at least once. Used to ignore the legitimate initial buffering
+  // (state 3 before state 1) while tearing the iframe down for any
+  // mid-playback regression. Reset by destroyPlayer.
+  let everPlayed = false
+
   function destroyPlayer() {
     if (player) {
       try {
@@ -49,6 +55,7 @@ export function useHeroBannerTrailer({ onEnded } = {}) {
       }
       player = null
     }
+    everPlayed = false
   }
 
   function createPlayer(videoId) {
@@ -87,18 +94,25 @@ export function useHeroBannerTrailer({ onEnded } = {}) {
             else e.target.unMute()
           },
           onStateChange: e => {
-            // 1 = playing, 0 = ended, 2 = paused, 3 = buffering
-            setVideoPlaying(e.data === 1)
-            if (e.data === 0) onEnded?.()
-            // On pause, tear the player down rather than fighting YouTube
-            // with playVideo(). The old force-resume worked while the
-            // pause was a one-off (mouse hover / network blip), but on
-            // a persistent pause (autoplay policy, region lock, mid-roll
-            // ad cue) it cycled state 2 ↔ state 1 endlessly and the
-            // centre play/pause glyph + buffering spinner stayed visible
-            // over the hero. Letting the player die instead keeps the
-            // backdrop clean until the next rotation mounts a fresh one.
-            if (e.data === 2) {
+            // 1 = playing, 0 = ended, 2 = paused, 3 = buffering,
+            // 5 = cued, -1 = unstarted.
+            if (e.data === 1) {
+              setVideoPlaying(true)
+              everPlayed = true
+              return
+            }
+            setVideoPlaying(false)
+            if (e.data === 0) {
+              onEnded?.()
+              return
+            }
+            // Initial buffering / cued states are normal before the
+            // first playback — let them play out. After the first
+            // successful play, any non-playing state would surface
+            // YouTube's centre play/pause glyph or spinner, so tear
+            // the iframe down to keep the backdrop clean. The next
+            // rotation mounts a fresh player for the next item.
+            if (everPlayed) {
               clearTrailer()
               destroyPlayer()
             }
