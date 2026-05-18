@@ -213,5 +213,6 @@ export function useHeroBannerTrailer({ onEnded } = {}) {
     onEmbyEnded,
     clearTrailer,
     setVideoPlaying,
+    destroyPlayer,
   }
 }

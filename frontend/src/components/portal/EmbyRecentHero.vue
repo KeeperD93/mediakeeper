@@ -1,5 +1,5 @@
 <template>
-  <section class="pt-eh">
+  <section ref="sectionRef" class="pt-eh">
     <TrailerLightbox v-if="lightboxOpen && trailer" :trailer="trailer" @close="closeLightbox" />
 
     <div class="pt-eh-hero" @click="onHeroTap">
@@ -190,7 +190,19 @@ const {
   toggleMute,
   onEmbyPause,
   onEmbyEnded,
+  destroyPlayer,
+  clearTrailer,
 } = useEmbyHeroTrailer({ onTrailerEnded: nextItem })
+
+// Lazy lifecycle: the section sits well below the fold, so we don't
+// mount its YouTube player nor start the 45 s rotation until the user
+// scrolls it into view. When the section leaves the viewport again,
+// the player + timer are torn down so no YouTube IFrame keeps running
+// off-screen. The trailerCache module retains the resolved URL, so a
+// re-entry rebuilds the player without an extra backend hit.
+const sectionRef = ref(null)
+const isVisible = ref(false)
+let visibilityObs = null
 
 function peekItemTrailer(item) {
   if (!item) return undefined
@@ -270,29 +282,69 @@ function scrollTrack(dir) {
   el.scrollBy({ left: dir * visible * step, behavior: 'smooth' })
 }
 
-watch(currentItem, it => onItemChange(it))
+function activateHero() {
+  if (!currentItem.value) return
+  if (trailer.value) return // already mounted, nothing to do
+  startInitial(currentItem.value)
+  startTimer()
+}
+
+function suspendHero() {
+  stopTimer()
+  destroyPlayer()
+  setVideoPlaying(false)
+  clearTrailer()
+}
+
+watch(currentItem, it => {
+  // Only react to rotations / manual clicks once the hero is on
+  // screen — otherwise the change would mount a player off-viewport.
+  if (isVisible.value && trailer.value) onItemChange(it)
+})
 watch(
   () => props.items.length,
   () => {
-    if (props.items.length && !trailer.value) startInitial(currentItem.value)
+    if (isVisible.value && props.items.length && !trailer.value) {
+      startInitial(currentItem.value)
+    }
     nextTick(updateArrows)
   },
 )
 
 let resizeObs = null
 onMounted(() => {
-  startInitial(currentItem.value)
-  startTimer()
   if (trackRef.value) {
     resizeObs = new ResizeObserver(updateArrows)
     resizeObs.observe(trackRef.value)
     nextTick(updateArrows)
+  }
+  // No load pending → drop the cinematic veil so the hero never sits
+  // behind an opaque overlay while waiting for scroll-into-view.
+  transitioning.value = false
+  if (sectionRef.value && typeof IntersectionObserver === 'function') {
+    visibilityObs = new IntersectionObserver(
+      ([entry]) => {
+        const next = !!entry?.isIntersecting
+        if (next === isVisible.value) return
+        isVisible.value = next
+        if (next) activateHero()
+        else suspendHero()
+      },
+      { threshold: 0.2 },
+    )
+    visibilityObs.observe(sectionRef.value)
+  } else {
+    // Browsers without IntersectionObserver (or jsdom): fall back to
+    // the previous eager behaviour so nothing breaks.
+    isVisible.value = true
+    activateHero()
   }
 })
 
 onBeforeUnmount(() => {
   stopTimer()
   resizeObs?.disconnect()
+  visibilityObs?.disconnect()
   disposeVeil()
 })
 </script>
