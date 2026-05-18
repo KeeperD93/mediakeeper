@@ -73,6 +73,15 @@ vi.mock('@/composables/apiClient', () => ({
   fetchApiResponse: vi.fn(),
 }))
 
+const mockCheckAvailability = vi.fn().mockResolvedValue()
+const mockGetAvailability = vi.fn().mockReturnValue(null)
+vi.mock('@/composables/portal/useAvailability', () => ({
+  useAvailability: () => ({
+    checkAvailability: mockCheckAvailability,
+    getAvailability: mockGetAvailability,
+  }),
+}))
+
 const carouselState = {
   queue: ref([]),
   currentIndex: ref(0),
@@ -230,7 +239,13 @@ describe('CinemaRoomView.vue', () => {
     expect(wrapper.find('.pt-cr-screen-ready-text').exists()).toBe(false)
   })
 
-  it('disables the launch button when the marathon is not ready', async () => {
+  it('keeps the launch button enabled on the first step of a marathon (no advance gating)', async () => {
+    // Previously the button gated on ``marathonProgress.ready`` which
+    // is always ``false`` on step 0 (nobody has watched anything yet),
+    // so the very first launch of every marathon was unclickable. The
+    // button now opens the current film unconditionally — advance to
+    // the next step is a separate concern (auto-advance / future
+    // dedicated CTA), see the launch handler comment.
     const marathon = setEvent({ scheduledOffsetMs: -1000 })
     marathon.tmdb_ids = [
       { tmdb_id: 1, media_type: 'movie', title: 'A' },
@@ -250,29 +265,7 @@ describe('CinemaRoomView.vue', () => {
     await flushPromises()
 
     const cta = wrapper.find('.pt-cr-launch-btn')
-    expect(cta.attributes('disabled')).toBeDefined()
-  })
-
-  it('enables the launch button when the marathon is ready', async () => {
-    const marathon = setEvent({ scheduledOffsetMs: -1000 })
-    marathon.tmdb_ids = [
-      { tmdb_id: 1, media_type: 'movie', title: 'A' },
-      { tmdb_id: 2, media_type: 'movie', title: 'B' },
-    ]
-    mockEnterRoom.mockResolvedValue({ event: marathon })
-    flowState.canLaunch.value = true
-    marathonProgressState.progress.value = {
-      is_marathon: true, current_step: 0, total_steps: 2, ready: true,
-      participants: [], ineligible_count: 0,
-    }
-    marathonProgressState.ready.value = true
-
-    const wrapper = await mountView()
-    await flushPromises()
-    flowState.academyDone.value = true
-    await flushPromises()
-
-    const cta = wrapper.find('.pt-cr-launch-btn')
+    expect(cta.exists()).toBe(true)
     expect(cta.attributes('disabled')).toBeUndefined()
   })
 

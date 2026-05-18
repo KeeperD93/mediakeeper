@@ -79,7 +79,6 @@
           <button
             type="button"
             class="pt-cr-launch-btn"
-            :disabled="event.tmdb_ids.length > 1 && !marathonProgress.ready.value"
             @click="onLaunchClick"
           >
             <Play :size="22" :stroke-width="2.5" />
@@ -129,11 +128,11 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useRooms } from '@/composables/portal/useRooms'
+import { useAvailability } from '@/composables/portal/useAvailability'
 import { useCinemaTrailerCarousel } from '@/composables/portal/useCinemaTrailerCarousel'
 import { useCinemaRoomFlow } from '@/composables/portal/useCinemaRoomFlow'
 import { useMarathonProgress } from '@/composables/portal/useMarathonProgress'
 import { useToast } from '@/composables/useToast'
-import { fetchApiResponse } from '@/composables/apiClient'
 import EventRoomChat from '@/components/portal/EventRoomChat.vue'
 import CinemaRoomSeats from '@/components/portal/cinema/CinemaRoomSeats.vue'
 import CinemaRoomStage from '@/components/portal/cinema/CinemaRoomStage.vue'
@@ -160,6 +159,13 @@ const marathonStep = ref(0)
 const muted = ref(true)
 const eventIdParam = parseInt(route.params.id, 10)
 const marathonProgress = useMarathonProgress(eventIdParam)
+// The MKEventMedia payload stored on tmdb_ids does not carry an
+// ``emby_url`` (the create-event schema only persists tmdb_id, type,
+// title, poster, runtime). Resolve the launch URL on demand via the
+// shared availability composable — same lookup the home carousels and
+// PortalMediaDetail already use, with its 60 s cache + microtask
+// coalescing so we don't burn extra Emby index calls.
+const { checkAvailability, getAvailability } = useAvailability()
 
 const scheduledTime = computed(() =>
   event.value ? new Date(event.value.scheduled_at).getTime() : 0,
@@ -248,6 +254,11 @@ async function load() {
     router.replace({ name: PORTAL_TAB.HOME })
     return
   }
+  if (event.value?.tmdb_ids?.length) {
+    // Warm the availability cache for every media of the event so the
+    // launch CTA can resolve its emby_url synchronously when clicked.
+    checkAvailability(event.value.tmdb_ids).catch(() => {})
+  }
   if (event.value && (event.value.tmdb_ids?.length || 0) > 1) {
     marathonStep.value = event.value.current_step || 0
     marathonProgress.start()
@@ -281,40 +292,40 @@ function leave() {
   else router.push({ name: PORTAL_TAB.HOME })
 }
 
-async function onLaunchClick() {
-  if (!event.value) return
-  const total = event.value.tmdb_ids?.length || 0
-  // Single-film event: there is no server-side advance to issue, so
-  // route the click straight to the Emby player. Without this the
-  // button looked active but did nothing — clear UX regression.
-  if (total <= 1) {
-    const url = currentMedia.value?.emby_url
-    if (url) window.open(url, '_blank', 'noopener')
+function resolveLaunchUrl(media) {
+  if (!media?.tmdb_id) return null
+  const info = getAvailability(media.tmdb_id)
+  return info?.emby_url || null
+}
+
+function onLaunchClick() {
+  // The launch button does one thing only: open the *current* film in
+  // Emby. Marathon step advancement was previously bolted onto the same
+  // click + gated behind ``marathonProgress.ready``, which left the
+  // very first launch (step 0, nobody has watched anything yet)
+  // permanently disabled and made the button look dead. Advance now
+  // belongs to a separate concern (auto-advance once every viewer
+  // crosses the 85 % threshold, or a dedicated "Next" CTA — to be
+  // designed). Until then, the room stays usable: viewers can always
+  // open the film they currently see on screen.
+  if (!event.value || !currentMedia.value) return
+  const url = resolveLaunchUrl(currentMedia.value)
+  if (url) {
+    window.open(url, '_blank', 'noopener')
     return
   }
-  const res = await fetchApiResponse(
-    `/api/portal/events/rooms/${event.value.id}/advance`,
-    {
-      method: 'POST',
-      body: JSON.stringify({ expected_step: marathonStep.value }),
-    },
-  )
-  if (!res) return
-  if (res.ok) {
-    const data = await res.json().catch(() => null)
-    if (data?.ok && data.event) {
-      event.value = data.event
-      marathonStep.value = data.current_step
-      flow.resetAcademy()
-    }
-    return
-  }
-  if (res.status === 412) {
-    showToast(t('portal.cinema.marathon.notReady'), TOAST_TYPE.WARN)
-  } else if (res.status === 409) {
-    showToast(t('portal.cinema.marathon.staleStep'), TOAST_TYPE.WARN)
-  } else {
-    showToast(t('common.error'), TOAST_TYPE.ERR)
+  // Availability cache miss (cold start, Emby index out of sync). Land
+  // on the portal media detail page so the user reaches the canonical
+  // "Open in Emby" button instead of clicking a dead-end.
+  const id = currentMedia.value.tmdb_id
+  if (id) {
+    router.push({
+      name: 'portal-media-detail',
+      params: {
+        type: currentMedia.value.media_type === 'tv' ? 'tv' : 'movie',
+        id,
+      },
+    })
   }
 }
 
