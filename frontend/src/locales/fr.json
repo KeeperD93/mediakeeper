@@ -2650,6 +2650,8 @@
         "inviteesPlaceholder": "Rechercher un utilisateur...",
         "comment": "Commentaire",
         "commentPlaceholder": "Apportez vos pop-corn !",
+        "capacity": "Nombre de places",
+        "capacityHint": "Choisissez la capacité de la salle (paliers de 5).",
         "submit": "Créer",
         "errPast": "La date doit être dans le futur"
       },
@@ -2657,12 +2659,18 @@
         "title_required": "Titre obligatoire",
         "no_media": "Sélectionnez au moins un média",
         "scheduled_in_past": "La date doit être dans le futur",
-        "too_many_invitees": "Trop d'invités (max 19)",
-        "invalid_kind": "Type invalide"
+        "too_many_invitees": "Trop d'invités pour la capacité choisie",
+        "invalid_kind": "Type invalide",
+        "max_participants_required": "Sélectionnez une capacité",
+        "max_participants_step_violation": "La capacité doit être un multiple de 5",
+        "max_participants_out_of_range": "Capacité hors des limites autorisées"
       },
       "detail": {
         "scheduled": "Programmé pour",
         "creator": "Organisateur",
+        "capacity": "Places",
+        "remaining": "1 place restante sur {total} | {remaining} places restantes sur {total}",
+        "full": "Complet",
         "media": "Média",
         "marathonList": "Marathon",
         "invitees": "Participants",

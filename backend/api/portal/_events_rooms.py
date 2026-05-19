@@ -106,6 +106,27 @@ def _err(result: dict) -> None:
     raise HTTPException(status_code=code, detail=result["error"])
 
 
+@router.get("/rooms/capacity-bounds")
+async def get_room_capacity_bounds(
+    up: tuple[User, UserProfile] = Depends(get_current_profile),
+    db: AsyncSession = Depends(get_db),
+):
+    """Surface the admin-tunable per-event capacity bounds (min/max +
+    step) so the create-event form can render its radio chips without
+    needing admin access to ``/admin/settings``."""
+    from services.portal.admin import (
+        PORTAL_EVENT_CAPACITY_STEP,
+        get_event_capacity_bounds,
+    )
+
+    min_cap, max_cap = await get_event_capacity_bounds(db)
+    return {
+        "min": min_cap,
+        "max": max_cap,
+        "step": PORTAL_EVENT_CAPACITY_STEP,
+    }
+
+
 @router.post("/rooms")
 async def create_mk_event(
     data: CreateMKEvent,

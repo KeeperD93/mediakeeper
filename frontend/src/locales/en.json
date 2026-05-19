@@ -2650,6 +2650,8 @@
         "inviteesPlaceholder": "Search a user...",
         "comment": "Comment",
         "commentPlaceholder": "Bring your popcorn!",
+        "capacity": "Seats",
+        "capacityHint": "Pick the room capacity (steps of 5).",
         "submit": "Create",
         "errPast": "Date must be in the future"
       },
@@ -2657,12 +2659,18 @@
         "title_required": "Title required",
         "no_media": "Select at least one media",
         "scheduled_in_past": "Date must be in the future",
-        "too_many_invitees": "Too many invitees (max 19)",
-        "invalid_kind": "Invalid type"
+        "too_many_invitees": "Too many invitees for the chosen capacity",
+        "invalid_kind": "Invalid type",
+        "max_participants_required": "Pick a capacity",
+        "max_participants_step_violation": "Capacity must be a multiple of 5",
+        "max_participants_out_of_range": "Capacity outside the allowed bounds"
       },
       "detail": {
         "scheduled": "Scheduled for",
         "creator": "Organizer",
+        "capacity": "Seats",
+        "remaining": "1 seat left of {total} | {remaining} seats left of {total}",
+        "full": "Full",
         "media": "Media",
         "marathonList": "Marathon",
         "invitees": "Participants",

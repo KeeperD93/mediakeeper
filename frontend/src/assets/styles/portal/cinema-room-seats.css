@@ -147,7 +147,7 @@
   }
 }
 
-/* ---------- Seats (4 rows × 25 cols, 3D tilt) ---------- */
+/* ---------- Seats (5 occupable cols × ceil(N/5) rows, 3D tilt) ---------- */
 .pt-cr-seats-wrap {
   position: relative;
   z-index: 5;
@@ -330,6 +330,49 @@
 .pt-cr-seat--occupied .pt-cr-seat-back {
   background: radial-gradient(ellipse at 50% 25%, #a02828 0%, #842828 50%, #4a1010 100%);
 }
+
+/* Decorative seats — empty fillers that give the room a "filled"
+   silhouette without belonging to ``max_participants``. They never
+   carry an avatar / bubble and dim slightly so the eye still picks
+   the occupable centre first. Each ``--dec-N`` class collapses on
+   tighter breakpoints below to avoid truncating the 5 occupable
+   seats. */
+.pt-cr-seat--decorative {
+  opacity: 0.55;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+.pt-cr-seat--decorative .pt-cr-seat-back {
+  background: radial-gradient(ellipse at 50% 25%, #4a1010 0%, #2a0808 70%, #150404 100%);
+}
+
+/* Out-of-capacity guard: a seat slot rendered beyond ``max_participants``
+   (only triggers if the admin step ever stops being a multiple of 5).
+   Hidden so the layout stays clean — the slot still consumes layout
+   space, which keeps the occupable seats horizontally centred. */
+.pt-cr-seat--out-of-capacity {
+  visibility: hidden;
+}
+
+/* Mobile portrait → drop the outermost decorative pair. Tablet
+   landscape → drop the two outermost columns. Above ~1280 px we keep
+   all three pairs so the wide-screen cinema feels properly populated. */
+@media (max-width: 1279px) {
+  .pt-cr-seat--dec-3 {
+    display: none;
+  }
+}
+@media (max-width: 1023px) {
+  .pt-cr-seat--dec-2 {
+    display: none;
+  }
+}
+@media (max-width: 639px) {
+  .pt-cr-seat--decorative {
+    display: none;
+  }
+}
+
 .pt-cr-seat--mine .pt-cr-seat-avatar {
   background: linear-gradient(135deg, var(--portal-color-warning) 0%, #d97706 100%);
   border-color: var(--portal-color-warning-soft);

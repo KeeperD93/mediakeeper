@@ -276,3 +276,11 @@
     box-shadow: 0 6px 22px rgb(var(--portal-color-warning-rgb), 0.6);
   }
 }
+
+/* Capacity strip — flips to the error tint once ``is_full`` so the
+   viewer reads the "Complet" badge as the reason the accept button
+   went away. */
+.pt-evd-capacity--full {
+  color: var(--portal-color-error);
+  font-weight: var(--portal-font-bold);
+}

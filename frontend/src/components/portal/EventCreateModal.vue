@@ -161,6 +161,30 @@
             </div>
           </div>
 
+          <!-- Capacity -->
+          <div class="pt-evc-field">
+            <label class="pt-evc-label">
+              {{ $t('portal.mkEvents.create.capacity') }}
+            </label>
+            <div class="pt-evc-capacity-row">
+              <button
+                v-for="opt in capacityOptions"
+                :key="`cap-${opt}`"
+                type="button"
+                :class="[
+                  'pt-evc-capacity-chip',
+                  { 'pt-evc-capacity-chip--active': maxParticipants === opt },
+                ]"
+                @click="maxParticipants = opt"
+              >
+                {{ opt }}
+              </button>
+            </div>
+            <p class="pt-evc-hint">
+              {{ $t('portal.mkEvents.create.capacityHint') }}
+            </p>
+          </div>
+
           <!-- Comment -->
           <div class="pt-evc-field">
             <label class="pt-evc-label">{{ $t('portal.mkEvents.create.comment') }}</label>
@@ -229,5 +253,7 @@ const {
   addUser,
   removeUser,
   submit,
+  maxParticipants,
+  capacityOptions,
 } = useEventCreateModal(emit)
 </script>

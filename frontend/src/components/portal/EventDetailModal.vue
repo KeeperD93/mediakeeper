@@ -29,6 +29,12 @@
                 {{ event.creator_deleted ? $t('portal.common.deletedUser') : event.creator_label }}
               </span>
             </div>
+            <div v-if="capacityLabel" class="pt-evd-meta-item">
+              <span class="pt-evd-meta-label">{{ $t('portal.mkEvents.detail.capacity') }}</span>
+              <span :class="{ 'pt-evd-capacity--full': event.is_full }">
+                {{ capacityLabel }}
+              </span>
+            </div>
           </div>
 
           <h3 class="pt-evd-section-title">
@@ -111,13 +117,21 @@
               </button>
               <!-- Accept is hidden once the event is past its cutoff: the
                    backend rejects ``accept`` with ``event_ended`` anyway,
-                   the decline path stays open so the user can tidy up. -->
+                   the decline path stays open so the user can tidy up.
+                   Also disabled when the event has hit its capacity — we
+                   swap the label for "Complet" so the viewer understands
+                   why the action is gone. -->
               <button
                 v-if="!event.is_terminated"
                 class="pt-evd-btn pt-evd-btn--primary"
+                :disabled="event.is_full"
                 @click="respond('accept')"
               >
-                {{ $t('portal.mkEvents.detail.accept') }}
+                {{
+                  event.is_full
+                    ? $t('portal.mkEvents.detail.full')
+                    : $t('portal.mkEvents.detail.accept')
+                }}
               </button>
             </template>
             <template v-else>
@@ -169,6 +183,22 @@ const canManage = computed(() => event.value?.creator_user_id === myUserId.value
 const myStatus = computed(() => {
   const inv = event.value?.invitations?.find(i => i.user_id === myUserId.value)
   return inv?.status || null
+})
+
+// Header capacity strip: "Complet" once the event is full, "X places
+// restantes / Y" otherwise. The strip is hidden when the serializer
+// hasn't populated ``max_participants`` (legacy event) so we never
+// show "0 / 0".
+const capacityLabel = computed(() => {
+  const max = Number(event.value?.max_participants)
+  if (!Number.isFinite(max) || max <= 0) return ''
+  const accepted = Number(event.value?.accepted_count ?? 0)
+  const remaining = Math.max(0, max - accepted)
+  if (event.value?.is_full) return t('portal.mkEvents.detail.full')
+  return t('portal.mkEvents.detail.remaining', remaining, {
+    remaining,
+    total: max,
+  })
 })
 
 // Tick every second so the room button appears the moment T-15 hits.
