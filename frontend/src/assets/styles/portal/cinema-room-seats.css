@@ -151,7 +151,10 @@
 .pt-cr-seats-wrap {
   position: relative;
   z-index: 5;
-  margin-top: 6vh;
+  /* Tightened from 6vh so the stage doesn't overflow the viewport on
+     1080p screens — see ``cinema-room-stage.css`` for the no-scroll
+     contract. */
+  margin-top: 2vh;
   width: 100%;
   display: flex;
   justify-content: center;
@@ -160,7 +163,9 @@
   display: flex;
   flex-direction: column;
   gap: 1.4rem;
-  padding: 0 2vw 4vh;
+  /* Bottom padding shrunk from 4vh to 1vh — the row was eating ~40 px
+     under the perspective-tilted seats for no visual gain. */
+  padding: 0 2vw 1vh;
   max-width: 100vw;
   transform: perspective(1400px) rotateX(20deg);
   transform-origin: 50% 100%;

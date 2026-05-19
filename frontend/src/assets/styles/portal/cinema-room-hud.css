@@ -135,7 +135,10 @@
 
 /* ---------- Mobile base (applied by default; desktop is an override) ---------- */
 .pt-cr-screen-frame {
-  width: 92vw;
+  /* Same three-way ``min`` discipline as the desktop override below:
+     keep the screen narrow enough to leave seat-room within the
+     viewport height (50vh × 16/9), capped at 92vw on small screens. */
+  width: min(92vw, calc(50vh * 16 / 9));
 }
 .pt-cr-seats {
   transform: perspective(1100px) rotateX(24deg);
@@ -155,7 +158,7 @@
 /* ---------- Desktop — restore the wide-viewport cinema layout ---------- */
 @media (min-width: 1024px) {
   .pt-cr-screen-frame {
-    width: min(74vw, 1280px);
+    width: min(74vw, calc(50vh * 16 / 9), 1280px);
   }
   .pt-cr-seats {
     transform: perspective(1400px) rotateX(20deg);
