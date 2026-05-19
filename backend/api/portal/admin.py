@@ -185,6 +185,22 @@ class PortalSettingsUpdate(BaseModel):
         le=365,
         alias="requests.auto_cleanup_days",
     )
+    # Cinema-room capacity bounds. The service-layer ``update_portal_
+    # settings`` snaps both to a step-5 multiple and re-orders them if
+    # the admin pushes ``min > max`` in a single PATCH, so the Pydantic
+    # bounds here only catch the obvious out-of-range values.
+    events_max_participants_min: Optional[int] = Field(
+        default=None,
+        ge=5,
+        le=20,
+        alias="events.max_participants_min",
+    )
+    events_max_participants_max: Optional[int] = Field(
+        default=None,
+        ge=5,
+        le=20,
+        alias="events.max_participants_max",
+    )
 
 
 @router.get("/settings")
@@ -216,5 +232,9 @@ async def patch_settings(
         updates["portal.hero_trend_count"] = payload.hero_trend_count
     if payload.requests_auto_cleanup_days is not None:
         updates["requests.auto_cleanup_days"] = payload.requests_auto_cleanup_days
+    if payload.events_max_participants_min is not None:
+        updates["portal.events.max_participants_min"] = payload.events_max_participants_min
+    if payload.events_max_participants_max is not None:
+        updates["portal.events.max_participants_max"] = payload.events_max_participants_max
     raw = await admin_svc.update_portal_settings(db, updates)
     return {k.replace("portal.", ""): v for k, v in raw.items()}

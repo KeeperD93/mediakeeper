@@ -6,8 +6,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.user import User
 from models.portal.event import MKEvent, MKEventInvitation
 from services.portal import notifications as notifs
+from services.portal.admin import (
+    PORTAL_EVENT_CAPACITY_STEP,
+    get_event_capacity_bounds,
+)
 from services.portal.mk_events_utils import (
-    MAX_PARTICIPANTS, _user_label, _serialize_event,
+    _user_label, _serialize_event,
 )
 
 
@@ -21,11 +25,18 @@ async def create_event(
     scheduled_at: datetime,
     comment: str | None,
     invitees: list[int] | None = None,
+    max_participants: int | None = None,
 ) -> dict:
     """
     Create a new event. For private events, `invitees` is the list of
     user_ids to invite. For public events, `invitees` is ignored and
     we broadcast a notification to every Portal user.
+
+    ``max_participants`` must be a step-5 multiple within the
+    admin-tunable bounds. ``None`` is rejected to keep the create-form
+    contract explicit — the Pydantic layer already enforces this for
+    the public API, the kwarg fallback here covers callers that pass
+    the field through ``**kwargs``.
     """
     if kind not in ("private", "public"):
         return {"error": "invalid_kind"}
@@ -36,8 +47,16 @@ async def create_event(
     if scheduled_at <= datetime.now(timezone.utc):
         return {"error": "scheduled_in_past"}
 
+    min_cap, max_cap = await get_event_capacity_bounds(db)
+    if max_participants is None:
+        return {"error": "max_participants_required"}
+    if max_participants % PORTAL_EVENT_CAPACITY_STEP != 0:
+        return {"error": "max_participants_step_violation"}
+    if not (min_cap <= max_participants <= max_cap):
+        return {"error": "max_participants_out_of_range"}
+
     invitees = invitees or []
-    if kind == "private" and len(invitees) >= MAX_PARTICIPANTS:
+    if kind == "private" and len(invitees) >= max_participants:
         return {"error": "too_many_invitees"}
 
     event = MKEvent(
@@ -48,6 +67,7 @@ async def create_event(
         scheduled_at=scheduled_at,
         comment=(comment or "").strip() or None,
         status="scheduled",
+        max_participants=max_participants,
     )
     db.add(event)
     await db.flush()

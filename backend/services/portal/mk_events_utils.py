@@ -13,7 +13,12 @@ from services.portal.avatars import avatar_public_url
 logger = logging.getLogger("mediakeeper.portal.mk_events")
 
 MAX_INVITE_RETRIES = 3
-MAX_PARTICIPANTS = 50
+# Hard ceiling for per-event capacity. Picks the upper bound of the
+# admin-tunable range (``portal.events.max_participants_max``) so the
+# legacy seat-allocation tests keep working without an admin row.
+# Used as a clamp when ``event.max_participants`` is out of bounds —
+# never as a default for the cinema layout.
+MAX_PARTICIPANTS = 20
 ROOM_OPEN_BEFORE_MIN = 15
 # Hard time-based cutoff so an event that nobody marked ``done`` can't
 # stay "live" forever — the cinema room closes that many hours past
@@ -146,6 +151,8 @@ async def _serialize_event(db: AsyncSession, event: MKEvent) -> dict:
 
     creator_label = await _user_label(db, event.creator_user_id)
 
+    accepted_count = sum(1 for i in invitations if i["status"] == "accepted")
+    max_p = int(event.max_participants or 0)
     return {
         "id": event.id,
         "creator_user_id": event.creator_user_id,
@@ -166,10 +173,54 @@ async def _serialize_event(db: AsyncSession, event: MKEvent) -> dict:
         "is_terminated": is_event_terminated(event),
         "room_opened_at": event.room_opened_at.isoformat() if event.room_opened_at else None,
         "current_step": event.current_step,
+        # Per-event capacity surface so the front-end can render the
+        # right grid (5/10/15/20 seats) and a "Complet" pill on public
+        # event cards once ``accepted_count >= max_participants``.
+        "max_participants": max_p,
+        "accepted_count": accepted_count,
+        "is_full": max_p > 0 and accepted_count >= max_p,
         "invitations": invitations,
         "created_at": event.created_at.isoformat() if event.created_at else None,
         "updated_at": event.updated_at.isoformat() if event.updated_at else None,
     }
+
+
+async def _count_seated(db: AsyncSession, event_id: int) -> int:
+    """Return how many accepted invitations currently hold a seat.
+
+    Used by ``enter_room`` to assign the next sequential ``seat_index``
+    (0..N-1) so the cinema layout never has gaps — the front-end picks
+    a centred grid position from that index.
+    """
+    return int((await db.execute(
+        select(func.count(MKEventInvitation.id)).where(
+            MKEventInvitation.event_id == event_id,
+            MKEventInvitation.status == "accepted",
+            MKEventInvitation.seat_index.isnot(None),
+        )
+    )).scalar() or 0)
+
+
+async def _compact_seats(db: AsyncSession, event_id: int) -> None:
+    """Reassign ``seat_index`` 0..N-1 to the seated invitations,
+    ordered by ``responded_at``.
+
+    Called after a viewer declines or is removed so the remaining
+    avatars compact back to the centre of the cinema layout (option B
+    rebalance). The locked rows in the surrounding atomic step keep
+    this from racing with a concurrent ``enter_room``.
+    """
+    rows = (await db.execute(
+        select(MKEventInvitation).where(
+            MKEventInvitation.event_id == event_id,
+            MKEventInvitation.status == "accepted",
+            MKEventInvitation.seat_index.isnot(None),
+        ).order_by(MKEventInvitation.responded_at, MKEventInvitation.id)
+    )).scalars().all()
+    for idx, inv in enumerate(rows):
+        if inv.seat_index != idx:
+            inv.seat_index = idx
+            db.add(inv)
 
 
 async def _has_conflict(db: AsyncSession, user_id: int, scheduled_at: datetime) -> bool:

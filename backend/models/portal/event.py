@@ -40,6 +40,11 @@ class MKEvent(Base):
     # endpoint once every accepted participant in the room has crossed
     # the 85% threshold for ``tmdb_ids[current_step]``.
     current_step    = Column(Integer, nullable=False, server_default="0")
+    # Per-event seating capacity (multiple of 5, default 10 — see
+    # migration 052). The creator picks a value within the admin
+    # min/max bounds; ``enter_room`` enforces it and the serializer
+    # surfaces ``is_full`` so public event cards can disable signup.
+    max_participants = Column(Integer, nullable=False, server_default="10")
     created_at      = Column(DateTime(timezone=True),
                              default=lambda: datetime.now(timezone.utc))
     updated_at      = Column(DateTime(timezone=True),

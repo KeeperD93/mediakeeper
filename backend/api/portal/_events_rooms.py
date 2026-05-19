@@ -45,17 +45,30 @@ class MKEventMedia(BaseModel):
 
 
 class CreateMKEvent(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     title: str = Field(..., min_length=1, max_length=200)
     kind: str = Field(..., pattern="^(private|public)$")
     tmdb_ids: list[MKEventMedia] = Field(..., min_length=1, max_length=20)
     scheduled_at: datetime
     comment: Optional[str] = Field(None, max_length=2000)
     invitees: Optional[list[int]] = None
+    # Per-event capacity (5/10/15/20 — radio chips on the create form).
+    # The actual [min, max] window is admin-tunable and re-checked
+    # server-side in ``create_event`` against the current bounds.
+    max_participants: int = Field(..., ge=5, le=20)
 
     @field_validator("scheduled_at")
     @classmethod
     def _scheduled_at_must_be_aware(cls, value: datetime) -> datetime:
         return _aware_utc(value)
+
+    @field_validator("max_participants")
+    @classmethod
+    def _max_participants_step_5(cls, value: int) -> int:
+        if value % 5 != 0:
+            raise ValueError("max_participants_must_be_multiple_of_5")
+        return value
 
 
 class UpdateMKEvent(BaseModel):
@@ -109,6 +122,7 @@ async def create_mk_event(
         scheduled_at=data.scheduled_at,
         comment=data.comment,
         invitees=data.invitees,
+        max_participants=data.max_participants,
     )
     _err(result)
     background_tasks.add_task(

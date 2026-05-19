@@ -72,6 +72,7 @@ async def _make_event(
         scheduled_at=datetime.now(timezone.utc) + timedelta(minutes=5),
         status="scheduled",
         current_step=current_step,
+        max_participants=20,
     )
     db.add(event)
     await db.commit()

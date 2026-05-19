@@ -1,13 +1,15 @@
 """Cinema-room entry — seat allocation under a row lock."""
-import random
 from datetime import datetime, timezone, timedelta
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.event import MKEvent, MKEventInvitation
 from services.portal.mk_events_utils import (
-    MAX_PARTICIPANTS, ROOM_OPEN_BEFORE_MIN,
-    _serialize_event, is_event_terminated,
+    MAX_PARTICIPANTS,
+    ROOM_OPEN_BEFORE_MIN,
+    _count_seated,
+    _serialize_event,
+    is_event_terminated,
 )
 
 
@@ -67,21 +69,34 @@ async def enter_room(
         await db.rollback()
         return {"error": "not_member"}
 
+    # Per-event capacity replaces the legacy 50-seat pool. The
+    # admin-tunable bounds are enforced at create time; this clamp is
+    # a defensive guard against rows imported from a legacy schema
+    # without ``max_participants`` populated.
+    capacity = int(event.max_participants or 0)
+    if capacity <= 0:
+        capacity = MAX_PARTICIPANTS
+    capacity = min(capacity, MAX_PARTICIPANTS)
+
     first_entry = inv.seat_index is None
+    if not first_entry and inv.seat_index >= capacity:
+        # Soft remap: an earlier entry was allocated a seat past the
+        # current capacity (admin lowered the cap, or legacy 50-seat
+        # row). Reassign as if it were a fresh entry so the layout
+        # stays inside the new bounds.
+        inv.seat_index = None
+        first_entry = True
+
     if first_entry:
-        # Assign a free seat at random under the row lock so two concurrent
-        # callers cannot pick the same seat.
-        taken = (await db.execute(
-            select(MKEventInvitation.seat_index).where(
-                MKEventInvitation.event_id == event_id,
-                MKEventInvitation.seat_index.isnot(None),
-            )
-        )).scalars().all()
-        free = [i for i in range(MAX_PARTICIPANTS) if i not in set(taken)]
-        if not free:
+        seated = await _count_seated(db, event_id)
+        if seated >= capacity:
             await db.rollback()
             return {"error": "room_full"}
-        inv.seat_index = random.choice(free)  # noqa: S311 -- random seat assignment in a virtual cinema room, no security purpose
+        # Sequential allocation: the next entrant gets the next free
+        # index (0..capacity-1). Combined with ``_compact_seats`` on
+        # decline / remove, this keeps the seated avatars at the
+        # centre of the layout — see ``mk_events_utils``.
+        inv.seat_index = seated
         # Latecomer seed: a first-time entrant inherits the group-wide
         # ``current_step`` so the launch CTA points at the film the
         # group is currently watching. Per-user advance from there.
