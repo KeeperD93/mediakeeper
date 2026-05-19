@@ -10,6 +10,9 @@
         <div ref="panelRef" class="pt-force-uname-panel" tabindex="-1">
           <h2 class="pt-force-uname-title">{{ $t('portal.settings.forceUsername.title') }}</h2>
           <p class="pt-force-uname-sub">{{ $t('portal.settings.forceUsername.subtitle') }}</p>
+          <p class="pt-force-uname-notice" role="note">
+            {{ $t('portal.settings.forceUsername.publicNotice') }}
+          </p>
 
           <label class="pt-settings-label" for="pt-force-uname-input">
             {{ $t('portal.settings.forceUsername.fieldLabel') }}
@@ -89,7 +92,7 @@ const props = defineProps({
 const emit = defineEmits(['done'])
 
 const { t } = useI18n()
-const { profile, updateProfile } = usePortalAuth()
+const { updateProfile } = usePortalAuth()
 const { apiGet } = useApi()
 const { showToast } = useToast()
 
@@ -107,13 +110,14 @@ const usernameCheck = reactive({
 
 let timer = null
 
-// Seed the input with the current display name on every (re-)open so the
-// user lands on a deterministic state. ``v-if`` on the parent guarantees
-// this component only mounts when the picker MUST be visible, so we no
-// longer need a visibility latch — the previous ``mounted`` flag was a
-// teleport-flicker guard that could itself get stuck and hide the overlay.
+// Always opens on an empty input so the viewer is nudged into typing a
+// fresh pseudo rather than tacitly confirming their imported Emby
+// username / admin-set placeholder. The check-username debounce + the
+// 3-char ``canSave`` floor still keep an empty / too-short save from
+// landing accidentally. ``v-if`` on the parent guarantees this
+// component only mounts when the picker MUST be visible.
 function arm() {
-  candidate.value = profile.value?.display_name || ''
+  candidate.value = ''
   errorKey.value = null
   usernameCheck.available = null
   usernameCheck.reason = null
@@ -241,6 +245,22 @@ useFocusTrap({
 <style scoped>
 .pt-force-uname-error {
   color: var(--portal-color-error);
+}
+
+/* Public-visibility notice — uses the portal warning token so it
+   reads as friendly emphasis (not an error) while standing apart from
+   the regular subtitle. Soft tint matches other ``--portal-color-
+   warning`` banners around the portal. */
+.pt-force-uname-notice {
+  margin-top: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--portal-radius-md);
+  background: rgb(var(--portal-color-warning-rgb), 0.12);
+  border: 1px solid rgb(var(--portal-color-warning-rgb), 0.32);
+  color: var(--portal-color-warning);
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-medium);
+  line-height: 1.4;
 }
 
 .pt-settings-uname-actions {

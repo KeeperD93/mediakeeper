@@ -3275,6 +3275,7 @@
       "forceUsername": {
         "title": "Choisissez votre pseudo",
         "subtitle": "Bienvenue ! Choisissez le pseudo qui vous représentera. Vous pourrez en changer dans 6 mois.",
+        "publicNotice": "Choisissez-le avec soin : ce pseudo apparaîtra publiquement auprès de tous les membres (classement général, salle ciné, commentaires).",
         "fieldLabel": "Pseudo",
         "save": "Confirmer",
         "saving": "Enregistrement…",

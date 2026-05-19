@@ -3275,6 +3275,7 @@
       "forceUsername": {
         "title": "Choose your username",
         "subtitle": "Welcome! Pick the username that will represent you. You can change it again in 6 months.",
+        "publicNotice": "Choose carefully — this username is shown publicly to every other member (global leaderboard, cinema room, comments).",
         "fieldLabel": "Username",
         "save": "Confirm",
         "saving": "Saving…",
