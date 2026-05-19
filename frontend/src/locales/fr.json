@@ -2631,6 +2631,9 @@
       },
       "playback": {
         "title": "Lecture en cours"
+      },
+      "mobile": {
+        "participants": "Participants — {count} / {total}"
       }
     },
     "mkEvents": {
@@ -3463,6 +3466,14 @@
         "requestsCleanup": {
           "title": "Auto-nettoyage des demandes disponibles",
           "desc": "Supprime automatiquement les demandes en statut « Disponible » après ce nombre de jours. 0 = désactivé."
+        },
+        "eventCapacityMin": {
+          "title": "Capacité minimale d'un événement",
+          "desc": "Plus petite valeur que les créateurs peuvent choisir lors de la création d'un événement (paliers de 5)."
+        },
+        "eventCapacityMax": {
+          "title": "Capacité maximale d'un événement",
+          "desc": "Plus grande valeur que les créateurs peuvent choisir lors de la création d'un événement (paliers de 5)."
         },
         "maintenance": {
           "title": "Mode maintenance",

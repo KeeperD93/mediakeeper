@@ -2631,6 +2631,9 @@
       },
       "playback": {
         "title": "Now playing"
+      },
+      "mobile": {
+        "participants": "Participants — {count} / {total}"
       }
     },
     "mkEvents": {
@@ -3463,6 +3466,14 @@
         "requestsCleanup": {
           "title": "Auto-cleanup of available requests",
           "desc": "Automatically deletes requests in the \"Available\" status after this many days. 0 = disabled."
+        },
+        "eventCapacityMin": {
+          "title": "Minimum event capacity",
+          "desc": "Smallest value event creators can pick when starting a new event (steps of 5)."
+        },
+        "eventCapacityMax": {
+          "title": "Maximum event capacity",
+          "desc": "Largest value event creators can pick when starting a new event (steps of 5)."
         },
         "maintenance": {
           "title": "Maintenance mode",

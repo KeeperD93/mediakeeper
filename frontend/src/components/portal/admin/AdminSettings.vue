@@ -56,6 +56,51 @@
         />
       </label>
 
+      <!-- Event capacity bounds — step-5 select pair. The service-layer
+           snaps any out-of-step value and re-orders ``min > max`` so the
+           selects below stay in sync with whatever the backend accepts. -->
+      <label class="pt-setting-row">
+        <div class="pt-setting-info">
+          <span class="pt-setting-title">
+            {{ $t('portal.admin.settings.eventCapacityMin.title') }}
+          </span>
+          <span class="pt-setting-desc">
+            {{ $t('portal.admin.settings.eventCapacityMin.desc') }}
+          </span>
+        </div>
+        <select
+          class="pt-setting-select"
+          :value="settings['events.max_participants_min']"
+          :disabled="saving"
+          @change="update('events.max_participants_min', parseInt($event.target.value))"
+        >
+          <option v-for="v in CAPACITY_OPTIONS" :key="`min-${v}`" :value="v">
+            {{ v }}
+          </option>
+        </select>
+      </label>
+
+      <label class="pt-setting-row">
+        <div class="pt-setting-info">
+          <span class="pt-setting-title">
+            {{ $t('portal.admin.settings.eventCapacityMax.title') }}
+          </span>
+          <span class="pt-setting-desc">
+            {{ $t('portal.admin.settings.eventCapacityMax.desc') }}
+          </span>
+        </div>
+        <select
+          class="pt-setting-select"
+          :value="settings['events.max_participants_max']"
+          :disabled="saving"
+          @change="update('events.max_participants_max', parseInt($event.target.value))"
+        >
+          <option v-for="v in CAPACITY_OPTIONS" :key="`max-${v}`" :value="v">
+            {{ v }}
+          </option>
+        </select>
+      </label>
+
       <!-- Maintenance mode toggle -->
       <div class="pt-setting-row">
         <div class="pt-setting-info">
@@ -122,7 +167,19 @@ import MkToggle from '@/components/common/MkToggle.vue'
 const { t, locale } = useI18n()
 const { apiGet, apiPatch } = useApi()
 
-const settings = ref({ anonymize_requests: false, hero_trend_count: 10, 'requests.auto_cleanup_days': 0 })
+// Step-5 options for the per-event capacity selects (matches the
+// backend ``PORTAL_EVENT_CAPACITY_STEP``). The select pair shows
+// the same options for both min and max — the service layer snaps
+// and re-orders if the admin picks ``min > max``.
+const CAPACITY_OPTIONS = [5, 10, 15, 20]
+
+const settings = ref({
+  anonymize_requests: false,
+  hero_trend_count: 10,
+  'requests.auto_cleanup_days': 0,
+  'events.max_participants_min': 5,
+  'events.max_participants_max': 20,
+})
 const maintenance = reactive({ enabled: false, text_fr: '', text_en: '' })
 const loading = ref(false)
 const loaded = ref(false)
@@ -266,6 +323,22 @@ onMounted(fetchSettings)
   cursor: pointer;
 }
 .pt-setting-number:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+.pt-setting-select {
+  flex-shrink: 0;
+  min-width: 96px;
+  padding: 0.4rem 0.7rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  color: var(--text-primary);
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-medium);
+  cursor: pointer;
+}
+.pt-setting-select:focus {
   border-color: var(--accent);
   outline: none;
 }

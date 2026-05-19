@@ -69,7 +69,8 @@
           <span v-for="i in 22" :key="`p${i}`" class="pt-cr-particle" />
         </div>
 
-        <CinemaRoomSeats :event="event" />
+        <CinemaRoomMobile v-if="isMobile" :event="event" />
+        <CinemaRoomSeats v-else :event="event" />
         <MarathonProgressPanel :progress="marathonProgress.progress.value" />
       </div>
 
@@ -145,8 +146,10 @@ import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 import { useToast } from '@/composables/useToast'
 import EventRoomChat from '@/components/portal/EventRoomChat.vue'
 import CinemaRoomSeats from '@/components/portal/cinema/CinemaRoomSeats.vue'
+import CinemaRoomMobile from '@/components/portal/cinema/CinemaRoomMobile.vue'
 import CinemaRoomStage from '@/components/portal/cinema/CinemaRoomStage.vue'
 import MarathonProgressPanel from '@/components/portal/cinema/MarathonProgressPanel.vue'
+import { useMobile } from '@/composables/useMobile'
 import { isTv as isTvMedia } from '@/constants/media'
 import { PORTAL_TAB } from '@/constants/portal'
 import { TOAST_TYPE } from '@/constants/toast'
@@ -163,6 +166,10 @@ const { t } = useI18n()
 const { enterRoom, getOne, advanceSelf } = useRooms()
 const { profile } = usePortalAuth()
 const { showToast } = useToast()
+// Mobile breakpoint — viewports ≤ 767 px swap the desktop 3D cinema
+// seats for ``CinemaRoomMobile`` (flat avatar grid). The full screen
+// + HUD + launch + chat keep working, only the seats layout changes.
+const { isMobile } = useMobile()
 
 const event = ref(null)
 const loading = ref(true)

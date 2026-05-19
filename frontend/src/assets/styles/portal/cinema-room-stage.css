@@ -289,3 +289,22 @@
   z-index: 3;
   pointer-events: none;
 }
+
+/* Mobile — drop the cinema decor (ceiling spots, walls, curtains,
+   pelmet, floor, podium, particles, projector beam) so the flat
+   ``CinemaRoomMobile`` grid + screen + HUD can breathe on a phone.
+   Keeps the surrounding ``.pt-cr-stage`` background gradient as a
+   subtle "cinema feel" without forcing 3D scenery into a 375 px
+   viewport. */
+@media (max-width: 767px) {
+  .pt-cr-ceiling,
+  .pt-cr-projector,
+  .pt-cr-wall,
+  .pt-cr-curtain,
+  .pt-cr-pelmet,
+  .pt-cr-floor,
+  .pt-cr-podium,
+  .pt-cr-particles {
+    display: none;
+  }
+}
