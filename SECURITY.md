@@ -13,15 +13,13 @@ The first stable release will be `1.0.0`. Until then, only the latest `0.9.x` mi
 
 ## Reporting a vulnerability
 
-Please **do not open a public issue** for security problems. Use one of the channels below.
+Please **do not open a public issue** for security problems.
 
-### Preferred channel
+### How to report
 
-If GitHub *Private vulnerability reporting* is enabled on the repository (Security tab → "Report a vulnerability"), please use it. Reports stay private until coordinated disclosure.
+Use **GitHub *Private vulnerability reporting*** (Security tab → "Report a vulnerability"). Reports stay private until coordinated disclosure.
 
-### Backup channel
-
-Email **[keeperdfr@proton.me](mailto:keeperdfr@proton.me)** with:
+Include in your report:
 
 - a clear description of the issue,
 - the affected version (commit hash if possible),
@@ -29,7 +27,9 @@ Email **[keeperdfr@proton.me](mailto:keeperdfr@proton.me)** with:
 - the expected impact and any proof-of-concept,
 - whether you would like to be credited in the eventual advisory.
 
-> A dedicated security alias (e.g. `security@…`) may be set up later and will be advertised here when available. In the meantime, the address above is the canonical contact.
+### Fallback
+
+If for any reason you cannot reach the GitHub Private vulnerability reporting form, open a brief, non-revealing public issue asking for a private channel and a maintainer will reply with one. **Do not include exploit details in that initial issue.**
 
 ### What to expect
 
