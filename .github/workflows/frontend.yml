@@ -11,6 +11,9 @@ on:
       - 'frontend/**'
       - '.github/workflows/frontend.yml'
 
+permissions:
+  contents: read
+
 # Cancel outdated runs on the same branch (save CI minutes).
 concurrency:
   group: frontend-${{ github.ref }}
