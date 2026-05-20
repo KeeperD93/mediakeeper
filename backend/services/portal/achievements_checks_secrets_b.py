@@ -25,6 +25,10 @@ from services.portal.playback_algorithms import (
     is_first_viewer_of_fresh_content,
 )
 
+_SIX_HOURS_SECONDS = 6 * 3600
+_EIGHT_HOURS_SECONDS = 8 * 3600
+_TWENTY_FOUR_HOURS_SECONDS = 24 * 3600
+
 
 async def check_secrets_b(
     db: AsyncSession,
@@ -86,7 +90,7 @@ async def check_secrets_b(
                 continue
             if started.weekday() == 6:
                 sunday_hours[started.date()] += _session_duration_seconds(row)
-        val = 1 if any(secs >= 6 * 3600 for secs in sunday_hours.values()) else 0
+        val = 1 if any(secs >= _SIX_HOURS_SECONDS for secs in sunday_hours.values()) else 0
         await _apply("secret_sunday", val)
 
     # --- secret_bilingual: same item with 2+ distinct audio languages ---
@@ -113,7 +117,7 @@ async def check_secrets_b(
             )
         ).scalars().all()
         val = 1 if any(
-            _session_duration_seconds(r) >= 8 * 3600 for r in rows_for_bg
+            _session_duration_seconds(r) >= _EIGHT_HOURS_SECONDS for r in rows_for_bg
         ) else 0
         await _apply("secret_bgNoise", val)
 
@@ -125,7 +129,7 @@ async def check_secrets_b(
             )
         ).scalars().all()
         val = 1 if any(
-            _session_duration_seconds(r) >= 24 * 3600 for r in rows_for_ultra
+            _session_duration_seconds(r) >= _TWENTY_FOUR_HOURS_SECONDS for r in rows_for_ultra
         ) else 0
         await _apply("secret_ultramarathon", val)
 

@@ -5,19 +5,21 @@ import shutil
 
 logger = logging.getLogger("mediakeeper.system")
 
+_BYTES_PER_GIB = 1024 ** 3
+
 
 def _collect_stats() -> dict:
     """Collect system stats (blocking — called from a thread)."""
     cpu_percent = psutil.cpu_percent(interval=1)
 
     ram = psutil.virtual_memory()
-    ram_used_gb  = round(ram.used / (1024 ** 3), 1)
-    ram_total_gb = round(ram.total / (1024 ** 3), 1)
+    ram_used_gb  = round(ram.used / _BYTES_PER_GIB, 1)
+    ram_total_gb = round(ram.total / _BYTES_PER_GIB, 1)
 
     disk = shutil.disk_usage("/")
-    disk_used_gb  = round(disk.used / (1024 ** 3), 1)
-    disk_total_gb = round(disk.total / (1024 ** 3), 1)
-    disk_free_gb  = round(disk.free / (1024 ** 3), 1)
+    disk_used_gb  = round(disk.used / _BYTES_PER_GIB, 1)
+    disk_total_gb = round(disk.total / _BYTES_PER_GIB, 1)
+    disk_free_gb  = round(disk.free / _BYTES_PER_GIB, 1)
     disk_percent  = round((disk.used / disk.total) * 100, 1)
 
     return {
