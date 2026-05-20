@@ -1,5 +1,5 @@
 # ============================================
-# STAGE 1 : Build frontend Vue 3
+# STAGE 1: Build the Vue 3 frontend
 # ============================================
 FROM node:20-alpine AS frontend-build
 
@@ -10,12 +10,12 @@ COPY frontend/ ./
 RUN npm run build
 
 # ============================================
-# STAGE 2 : Application Python + frontend built
+# STAGE 2: Python application + built frontend
 # ============================================
 FROM python:3.12-slim
 
 # ============================================
-# Dépendances système : PostgreSQL 16 + curl (healthcheck)
+# System dependencies: PostgreSQL 16 + curl (healthcheck)
 # ============================================
 RUN apt-get update && apt-get install -y --no-install-recommends \
         gnupg2 curl ca-certificates lsb-release tzdata \
@@ -27,19 +27,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # ============================================
-# ffmpeg (layer séparé pour cache indépendant)
+# ffmpeg (separate layer for independent caching)
 # ============================================
 RUN apt-get update && apt-get install -y --no-install-recommends \
         ffmpeg \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # ============================================
-# Utilisateur applicatif
+# Application user
 # ============================================
 RUN adduser --system --ingroup users --shell /bin/bash --home /home/mkuser mkuser
 
 # ============================================
-# Application Python
+# Python application
 # ============================================
 WORKDIR /app
 
@@ -48,11 +48,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY backend/ ./backend/
 
-# Frontend Vue 3 (build output depuis stage 1)
+# Vue 3 frontend (build output from stage 1)
 COPY --from=frontend-build /build/dist/ ./frontend-dist/
 
 # ============================================
-# Répertoires persistants
+# Persistent directories
 # ============================================
 RUN mkdir -p /data/pg /data/logs /data/backups \
     && chown -R mkuser:users /data \

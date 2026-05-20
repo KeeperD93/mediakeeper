@@ -9,8 +9,8 @@ services:
       - "8888:8888"
     volumes:
       - mk_data:/data
-      # ── Médias / backups : montez ici les chemins que Mediakeeper doit voir ──
-      # Conseil : gardez le même chemin dans l'hôte et dans le container.
+      # ── Media / backups: mount here every path MediaKeeper must see ──
+      # Tip: keep the same path on the host and inside the container.
       #   Synology  : /volume1/medias:/volume1/medias
       #   Linux/NAS : /mnt/medias:/mnt/medias
       #   Backups   : /volume1/docker/mediakeeper/backups:/volume1/docker/mediakeeper/backups
@@ -18,17 +18,17 @@ services:
       # - /volume1/docker/mediakeeper/backups:/volume1/docker/mediakeeper/backups
       #
     environment:
-      # ── Fuseau horaire : adaptez selon votre localisation ──
+      # ── Timezone: adjust to your location ──
       #   Europe/Paris, America/New_York, Asia/Tokyo, etc.
       - TZ=Europe/Paris
       - PUID=1024
       - PGID=100
       - MK_SEPARATE_BACKGROUND_WORKER=true
-      # ── Mode d'initialisation du schéma DB ──
-      # validate   : refuse de démarrer si le schéma attendu n'est pas présent.
-      # create_all : uniquement pour bootstrap/dev ponctuel, pas pour une release stable.
+      # ── DB schema bootstrap mode ──
+      # validate   : refuses to start if the expected schema is not present.
+      # create_all : only for one-off bootstrap/dev, never for a stable release.
       - MK_DB_SCHEMA_MODE=validate
-      # ── Variables sensibles / réseau (à renseigner via un fichier .env) ──
+      # ── Sensitive / network variables (load via an .env file) ──
       # - JWT_SECRET_KEY=change-me-with-at-least-32-random-bytes
       # - MK_ADMIN_USERS=admin
       # - FRONTEND_ORIGIN=https://mediakeeper.example.com
@@ -41,11 +41,11 @@ services:
       # - TRUSTED_PROXIES=127.0.0.1,172.18.0.0/16
       # - VERIFY_SSL=true
       # - TMDB_API_KEY=tmdb-api-key
-      # ── Racines visibles par l'application (browser, media manager, sous-titres) ──
-      # Séparez plusieurs chemins par ';' ou ','.
+      # ── Roots visible to the application (browser, media manager, subtitles) ──
+      # Separate multiple paths with ';' or ','.
       # - MEDIAKEEPER_PATH_ROOTS=/volume1/medias;/volume1/docker/mediakeeper/backups
       #
-      # ── Répertoire de sauvegarde ──
+      # ── Backup directory ──
       # - BACKUP_PATH=/volume1/docker/mediakeeper/backups
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8888/api/health"]
