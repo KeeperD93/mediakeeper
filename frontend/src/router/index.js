@@ -26,7 +26,7 @@ const routes = [
     }),
   },
   {
-    // Requests module root.
+    // Portal root.
     path: '/portal',
     component: () => import('@/components/portal/PortalLayout.vue'),
     meta: { requiresPortalAuth: true },

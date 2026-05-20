@@ -140,7 +140,7 @@ post-recovery logs.
    MediaKeeper.
 3. **Check whether an off-site backup target was configured.**
 
-> ⚠️ **R4 — Off-site is not operational at this stage.** Until v1.0,
+> ⚠️ **Off-site is not operational at this stage.** Until v1.0,
 > the database is intentionally treated as disposable and no off-site
 > replication target is in place. See
 > [`backup-restore.md` §8](backup-restore.md). If the host is gone and

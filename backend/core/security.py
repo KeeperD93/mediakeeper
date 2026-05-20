@@ -142,7 +142,7 @@ def should_use_secure_cookies(request) -> bool:
 def get_cookie_samesite(request) -> str:
     """
     Determine which SameSite policy to apply.
-    - Explheret override via COOKIE_SAMESITE=lax|strict|none
+    - Explicit override via COOKIE_SAMESITE=lax|strict|none
     - Default: ``lax`` (repo-native same-origin deployment)
     - ``none`` is only allowed if the cookie is ``Secure``
     """

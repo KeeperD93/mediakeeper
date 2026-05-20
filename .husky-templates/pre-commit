@@ -5,7 +5,7 @@
 # files that are actually about to be committed. Fast and scoped.
 #
 # To activate once git is initialized at repo root:
-#   cd c:/Projets/mediakeeper
+#   cd <repo-root>
 #   mkdir -p .husky
 #   cp .husky-templates/pre-commit .husky/pre-commit
 #   cp .husky-templates/commit-msg .husky/commit-msg

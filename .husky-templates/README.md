@@ -6,7 +6,7 @@ repository (`git init` then push to GitHub).
 ## Activation — 3 commands
 
 ```sh
-cd c:/Projets/mediakeeper
+cd <repo-root>
 mkdir -p .husky
 cp .husky-templates/pre-commit .husky/pre-commit
 cp .husky-templates/commit-msg .husky/commit-msg

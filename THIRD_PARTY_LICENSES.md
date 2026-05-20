@@ -41,7 +41,7 @@ The list is built from `frontend/package.json` and `backend/requirements.txt`. T
 | `stylelint` and `stylelint-config-recommended-vue`, `stylelint-config-standard` | MIT | Stylesheet linter and shared configs. |
 | `postcss`, `postcss-html` | MIT | CSS post-processor and HTML adapter. |
 | `autoprefixer` | MIT | Vendor-prefixing plugin. |
-| `tailwindcss` | MIT | Utility-first CSS framework (in the process of being phased out — see roadmap). |
+| `tailwindcss` | MIT | Utility-first CSS framework (planned to be phased out in a post-1.0 frontend modernisation; see [`.github/dependabot.yml`](.github/dependabot.yml) for the deferred majors). |
 | `globals` | MIT | Globals reference data for ESLint. |
 | `husky` | MIT | Git hooks runner. |
 | `lint-staged` | MIT | Run linters on staged files. |

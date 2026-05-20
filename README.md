@@ -26,7 +26,7 @@ Self-hosted companion for a small Emby instance: an admin back-office, a Portal 
 
 | Layer | Tech |
 |---|---|
-| Frontend | Vue 3 (`<script setup>`), Vue Router 4, vue-i18n 9, Vite, PrimeVue 4, Chart.js, lucide-vue-next, TipTap |
+| Frontend | Vue 3 (`<script setup>`), Vue Router 5, vue-i18n 11, Vite, PrimeVue 4, Chart.js, lucide-vue-next, TipTap |
 | Backend | FastAPI, SQLAlchemy 2 (async), Alembic, PyJWT, bcrypt, httpx, slowapi, cryptography (Fernet), bleach |
 | Database | PostgreSQL 16 (production, embedded in the Docker image), SQLite (tests) |
 | Deployment | Single Docker container, port 8888, healthcheck `/api/health?full=1` |
