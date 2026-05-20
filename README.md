@@ -1,8 +1,14 @@
 # MediaKeeper
 
-Self-hosted companion for a small Emby instance: an admin back-office, a Portal viewer for friends and family, achievements and XP, a Media Manager, daily digests, request handling and more.
+> [!WARNING]
+> **Under active development — not yet stable.**
+>
+> MediaKeeper is on its `0.9.x` line, ahead of the first stable `1.0.0` release.
+> Expect schema changes, breaking refactors, missing pieces and rough edges.
+> Do not point it at production data you cannot afford to lose, and pin a
+> specific image tag rather than `latest` when deploying.
 
-> **Status: pre-1.0.** The project is in active development on the `0.9.x` line. Expect schema changes, breaking refactors and rough edges. The first stable release will be `1.0.0`.
+Self-hosted companion for a small Emby instance: an admin back-office, a Portal viewer for friends and family, achievements and XP, a Media Manager, daily digests, request handling and more.
 
 ## Highlights
 
