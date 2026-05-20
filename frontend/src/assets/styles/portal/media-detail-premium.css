@@ -490,21 +490,87 @@
 .vmd2-facts-list {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 0.6rem 1rem;
+  align-items: baseline;
+  gap: 0;
   margin: 0;
 }
+.vmd2-facts-list dt,
+.vmd2-facts-list dd {
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--portal-border-subtle);
+}
+.vmd2-facts-list > dt:nth-last-of-type(1),
+.vmd2-facts-list > dd:nth-last-of-type(1) {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
 .vmd2-facts-list dt {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-right: 1rem;
   font-size: var(--portal-text-2xs);
   text-transform: uppercase;
   letter-spacing: var(--portal-tracking-caps);
   color: rgb(255, 255, 255, 0.45);
   font-weight: var(--portal-font-bold);
-  align-self: center;
+}
+.vmd2-fact-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--portal-text-body-muted);
 }
 .vmd2-facts-list dd {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
   margin: 0;
   font-size: var(--portal-text-base);
   font-weight: var(--portal-font-medium);
+}
+.vmd2-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--portal-color-neutral-dark);
+}
+.vmd2-status-dot--success {
+  background: var(--portal-color-success);
+}
+.vmd2-status-dot--warning {
+  background: var(--portal-color-warning);
+}
+.vmd2-status-dot--error {
+  background: var(--portal-color-error);
+}
+.vmd2-status-dot--neutral {
+  background: var(--portal-color-neutral-dark);
+}
+.vmd2-sidebar-heading {
+  position: relative;
+  padding-left: 0.7rem;
+  margin: 1.5rem 0 0.75rem;
+}
+.vmd2-sidebar-heading::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.15em;
+  bottom: 0.15em;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--portal-color-info);
+}
+.vmd2-sidebar > .vmd2-sidebar-heading:first-child {
+  margin-top: 0;
+}
+.vmd2-link-icon {
+  width: 12px;
+  height: 12px;
+  margin-left: 0.35rem;
+  flex-shrink: 0;
 }
 .vmd2-external-links {
   display: flex;
@@ -512,6 +578,8 @@
   flex-wrap: wrap;
 }
 .vmd2-external-links a {
+  display: inline-flex;
+  align-items: center;
   padding: 0.4rem 0.7rem;
   background: rgb(255, 255, 255, 0.05);
   border: 1px solid var(--portal-border-default);
@@ -522,8 +590,10 @@
   text-decoration: none;
   transition: background var(--portal-dur-fast);
 }
-.vmd2-external-links a:hover {
-  background: rgb(var(--accent-rgb), 0.15);
+@media (hover: hover) {
+  .vmd2-external-links a:hover {
+    background: rgb(var(--accent-rgb), 0.15);
+  }
 }
 
 /* --- Cast grid --- */
@@ -932,14 +1002,19 @@
   .vmd2-sidebar {
     padding: 0.85rem;
   }
-  .vmd2-facts-list {
-    gap: 0.4rem 0.75rem;
+  .vmd2-facts-list dt,
+  .vmd2-facts-list dd {
+    padding: 0.4rem 0;
   }
   .vmd2-facts-list dt {
     font-size: var(--portal-text-3xs);
   }
   .vmd2-facts-list dd {
     font-size: var(--portal-text-sm);
+  }
+  .vmd2-fact-icon {
+    width: 12px;
+    height: 12px;
   }
   .vmd2-external-links a {
     padding: 0.3rem 0.55rem;

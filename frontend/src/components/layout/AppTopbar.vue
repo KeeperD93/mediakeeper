@@ -124,21 +124,6 @@
                 </div>
               </div>
               <div class="tb-user-sep" />
-              <div class="tb-accent-section">
-                <span class="tb-accent-label">{{ $t('settings.accentColor') }}</span>
-                <div class="tb-accent-row">
-                  <button
-                    v-for="preset in accentPresets"
-                    :key="preset.name"
-                    class="tb-accent-dot"
-                    :class="{ active: preset.name === accentName }"
-                    :style="{ background: preset.color }"
-                    :title="preset.name"
-                    @click="setAccent(preset.name)"
-                  />
-                </div>
-              </div>
-              <div class="tb-user-sep" />
               <button class="tb-user-item" @click="handleLogout">
                 <LogOut :size="16" :stroke-width="1.8" />
                 <span>{{ t('topbar.logout') }}</span>
@@ -156,7 +141,6 @@ import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/composables/useAuth'
-import { useTheme } from '@/composables/useTheme'
 import { useTopbarAlerts } from '@/composables/useTopbarAlerts'
 import { Bell, ChevronDown, LayoutGrid, LogOut, Menu } from 'lucide-vue-next'
 import MkAvatar from '@/components/common/MkAvatar.vue'
@@ -170,7 +154,6 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const { user, logout } = useAuth()
-const { accentName, accentPresets, setAccent } = useTheme()
 
 const {
   alertCount,

@@ -27,8 +27,15 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 5vh 0 3vh;
-  overflow-y: auto;
+  /* Cinema layout must fit the viewport without scrolling — screen
+     and seats are capped (see ``cinema-room-screen.css`` width:
+     ``calc(50vh * 16 / 9)``) so the column never overflows. Center
+     vertically + ``overflow: hidden`` so the room reads as a single
+     "screening" composition on every resolution we target (mobile
+     portrait through 4K desktop). */
+  justify-content: center;
+  padding: 2vh 0;
+  overflow: hidden;
   background:
     radial-gradient(ellipse at 50% 18%, rgb(60, 24, 90, 0.65) 0%, transparent 55%),
     radial-gradient(ellipse at 50% 90%, rgb(120, 30, 30, 0.55) 0%, transparent 70%), #050208;
@@ -281,4 +288,23 @@
     0 6px 18px rgb(0, 0, 0, 0.5);
   z-index: 3;
   pointer-events: none;
+}
+
+/* Mobile — drop the cinema decor (ceiling spots, walls, curtains,
+   pelmet, floor, podium, particles, projector beam) so the flat
+   ``CinemaRoomMobile`` grid + screen + HUD can breathe on a phone.
+   Keeps the surrounding ``.pt-cr-stage`` background gradient as a
+   subtle "cinema feel" without forcing 3D scenery into a 375 px
+   viewport. */
+@media (max-width: 767px) {
+  .pt-cr-ceiling,
+  .pt-cr-projector,
+  .pt-cr-wall,
+  .pt-cr-curtain,
+  .pt-cr-pelmet,
+  .pt-cr-floor,
+  .pt-cr-podium,
+  .pt-cr-particles {
+    display: none;
+  }
 }

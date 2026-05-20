@@ -24,6 +24,7 @@ The function returns a small dict the frontend can render uniformly:
 from __future__ import annotations
 
 import logging
+import re
 from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -147,6 +148,64 @@ async def stream_emby_trailer(
 
 _VALID_TYPES = ("Trailer", "Teaser")
 
+# Name-quality heuristics: TMDB occasionally ships several videos in the
+# same ``iso_639_1`` bucket — a real publisher dub (``"Bande-annonce
+# officielle"``) and a fan-uploaded subtitled version (``"VOSTFR"``)
+# both tagged ``fr``. The static metadata flags (Trailer, official,
+# published_at) don't always split them, so the picker also looks at the
+# video's name to surface the studio-grade dub.
+#
+# The boost dictionary is keyed on ``iso_639_1``: a French title ranks
+# ``"Bande annonce"`` ahead of ``"Trailer"`` whereas the English step
+# does the opposite. ``official`` / ``officiel(le)`` lifts both.
+_LANGUAGE_BOOST_KEYWORDS: dict[str, tuple[str, ...]] = {
+    "fr": (
+        "bande-annonce", "bande annonce",
+        "officiel", "officielle", "official",
+        "version française", "version francaise",
+    ),
+    "en": ("trailer", "official"),
+}
+# Standalone ``VF`` / ``V.F.`` abbreviation (Version Française) — boosted
+# at the fr step only. Word-boundary anchored so ``VFX`` (visual effects)
+# doesn't accidentally lift a video into the studio bucket.
+_LANGUAGE_BOOST_REGEX: dict[str, re.Pattern[str]] = {
+    "fr": re.compile(r"\bv\.?f\.?\b", re.IGNORECASE),
+}
+_NAME_PENALTY_KEYWORDS = (
+    "vost", "vostfr",
+    "sous-titr", "subtitled", "subbed",
+    "version originale", "original version",
+)
+# Matches the standalone ``VO`` / ``V.O.`` abbreviation (Version
+# Originale) without colliding with "video", "voice over", etc. — both
+# halves are word-boundary anchored so only the standalone token loses.
+_VO_ABBREVIATION_RE = re.compile(r"\bv\.?o\.?\b", re.IGNORECASE)
+
+
+def _name_score(name: str, language: Optional[str]) -> int:
+    """Return ``+1`` for studio markers, ``-1`` for subtitled markers, else ``0``.
+
+    ``language`` (``"fr"`` / ``"en"`` / ``None`` / any ISO 639-1 code)
+    selects which boost list applies. Languages with no entry in the
+    boost tables — Japanese, Spanish, German, … — only see the universal
+    penalty list, so the scoring degrades to Trailer/official/date for
+    them rather than producing surprising boosts. Extend the boost
+    tables to add localisation.
+    """
+    n = (name or "").lower()
+    if any(k in n for k in _NAME_PENALTY_KEYWORDS):
+        return -1
+    if _VO_ABBREVIATION_RE.search(n):
+        return -1
+    boost_words = _LANGUAGE_BOOST_KEYWORDS.get(language or "", ())
+    if any(k in n for k in boost_words):
+        return 1
+    boost_re = _LANGUAGE_BOOST_REGEX.get(language or "")
+    if boost_re and boost_re.search(n):
+        return 1
+    return 0
+
 
 async def _resolve_tmdb_trailer(
     db: AsyncSession, media_type: str, tmdb_id: int, user_language: str
@@ -222,8 +281,18 @@ def _pick_video(videos: list[dict], language: Optional[str]) -> Optional[dict]:
     Pick the best video matching ``language``.
 
     - ``language=None`` matches *any* video and is the final fallback step.
-    - We prefer ``Trailer`` over ``Teaser`` and earlier results over later.
     - We only consider YouTube and Vimeo (the two TMDB-supported providers).
+    - Ranking (most important first):
+        1. ``Trailer`` before ``Teaser``;
+        2. ``official=True`` before ``official=False`` — surfaces the
+           publisher's own French dub over fan-uploaded VOSTFR teasers;
+        3. name heuristic (``+1`` for "officielle" / "official", ``-1``
+           for "VOST" / "sous-titré") — TMDB occasionally tags a fan
+           subtitled cut with ``iso_639_1=fr`` alongside the real dub,
+           and the name is the only thing that separates them;
+        4. most recent ``published_at`` first — newer trailers usually
+           ship with the full localised dub instead of an early subtitled
+           promo cut.
     """
     candidates = []
     for v in videos:
@@ -238,8 +307,15 @@ def _pick_video(videos: list[dict], language: Optional[str]) -> Optional[dict]:
     if not candidates:
         return None
 
-    # Trailers before teasers, then keep TMDB's own ordering.
-    candidates.sort(key=lambda v: 0 if v.get("type") == "Trailer" else 1)
+    # Python sort is stable: tie-break by published_at desc first, then
+    # re-sort by primary criteria so equal Trailer/official/name rows
+    # keep the newest-first order.
+    candidates.sort(key=lambda v: v.get("published_at") or "", reverse=True)
+    candidates.sort(key=lambda v: (
+        0 if v.get("type") == "Trailer" else 1,
+        0 if v.get("official") else 1,
+        -_name_score(v.get("name", ""), language),
+    ))
     best = candidates[0]
     site = best.get("site", "YouTube").lower()
     return {

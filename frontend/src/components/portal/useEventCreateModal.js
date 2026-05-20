@@ -1,9 +1,17 @@
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useApi } from '@/composables/useApi'
 import { useRooms } from '@/composables/portal/useRooms'
 import { EVENT_KIND } from '@/constants/events'
 import { MEDIA_TYPE } from '@/constants/media'
+
+// Capacity picker fallbacks — used until the admin-tunable bounds
+// come back from /api/portal/events/rooms/capacity-bounds. They match
+// the server-side defaults so the form picks a valid value even on
+// a cold open with no network.
+const DEFAULT_CAPACITY_MIN = 5
+const DEFAULT_CAPACITY_MAX = 20
+const CAPACITY_STEP = 5
 
 export function useEventCreateModal(emit) {
   const { t } = useI18n()
@@ -15,6 +23,41 @@ export function useEventCreateModal(emit) {
   const date = ref('')
   const time = ref('')
   const comment = ref('')
+
+  const capacityMin = ref(DEFAULT_CAPACITY_MIN)
+  const capacityMax = ref(DEFAULT_CAPACITY_MAX)
+  const capacityStep = ref(CAPACITY_STEP)
+  // Default picked capacity = lowest allowed in the admin range so the
+  // creator has to actively bump it if they want a bigger room.
+  const maxParticipants = ref(DEFAULT_CAPACITY_MIN)
+
+  const capacityOptions = computed(() => {
+    const opts = []
+    for (let v = capacityMin.value; v <= capacityMax.value; v += capacityStep.value) {
+      opts.push(v)
+    }
+    return opts
+  })
+
+  onMounted(async () => {
+    try {
+      const res = await apiGet('/api/portal/events/rooms/capacity-bounds')
+      if (res && typeof res.min === 'number' && typeof res.max === 'number') {
+        capacityMin.value = res.min
+        capacityMax.value = res.max
+        if (typeof res.step === 'number' && res.step > 0) capacityStep.value = res.step
+        // Snap the current selection into the new range so the radio
+        // chips never start on a value the backend will reject.
+        if (maxParticipants.value < capacityMin.value) {
+          maxParticipants.value = capacityMin.value
+        } else if (maxParticipants.value > capacityMax.value) {
+          maxParticipants.value = capacityMax.value
+        }
+      }
+    } catch {
+      /* fall back to the defaults — backend will still validate */
+    }
+  })
 
   const mediaQuery = ref('')
   const mediaResults = ref([])
@@ -129,6 +172,7 @@ export function useEventCreateModal(emit) {
       scheduled_at: scheduled.toISOString(),
       comment: comment.value.trim() || null,
       invitees: kind.value === EVENT_KIND.PRIVATE ? selectedUsers.value.map(u => u.id) : null,
+      max_participants: maxParticipants.value,
     }
     try {
       const res = await create(payload)
@@ -171,5 +215,7 @@ export function useEventCreateModal(emit) {
     addUser,
     removeUser,
     submit,
+    maxParticipants,
+    capacityOptions,
   }
 }

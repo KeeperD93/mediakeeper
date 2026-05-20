@@ -3,8 +3,15 @@
  *
  * Stubs lucide icons so we don't pull SVG noise into the assertions.
  */
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (k, named) => (named ? `${k}:${JSON.stringify(named)}` : k),
+  }),
+}))
+
 import MarathonProgressPanel from '@/components/portal/cinema/MarathonProgressPanel.vue'
 
 const STUBS = {

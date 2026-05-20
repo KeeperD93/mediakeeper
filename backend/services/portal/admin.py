@@ -38,7 +38,20 @@ PORTAL_SETTING_INTS: dict[str, tuple[int, int, int]] = {
     # days. 0 disables the hygiene job. The scheduler handler reads the
     # same key directly via ``requests_cleanup.get_cleanup_days``.
     "requests.auto_cleanup_days": (0, 0, 365),
+    # Cinema-room capacity bounds for the event creator. The creator
+    # picks ``MKEvent.max_participants`` from {5, 10, 15, 20} ∩ [min,
+    # max]. Step is 5 (see ``PORTAL_EVENT_CAPACITY_STEP``). Defaults
+    # keep the historical 50-seat pool out of reach and align with the
+    # mobile-friendly layout (max 20 seats on a 4×5 grid).
+    "portal.events.max_participants_min": (5, 5, 20),
+    "portal.events.max_participants_max": (20, 5, 20),
 }
+
+# Capacity values are always multiples of this step (radio chips
+# 5/10/15/20 in the create-event picker). Exported for the admin
+# patch endpoint to clamp client input and for the create-event
+# schema validator on the way in.
+PORTAL_EVENT_CAPACITY_STEP = 5
 
 
 def _parse_bool(raw: str | None, default: bool) -> bool:
@@ -92,6 +105,21 @@ async def get_portal_int(db: AsyncSession, key: str) -> int:
     return _parse_int(row.value if row else None, default, lo, hi)
 
 
+_EVENT_CAPACITY_KEYS = {
+    "portal.events.max_participants_min",
+    "portal.events.max_participants_max",
+}
+
+
+def _snap_to_step(value: int, step: int, lo: int, hi: int) -> int:
+    """Clamp ``value`` to [lo, hi] then snap to the nearest ``step``
+    multiple within that range so admin inputs from a stale frontend
+    cannot land between two radio-chip values."""
+    clamped = max(lo, min(hi, value))
+    snapped = round(clamped / step) * step
+    return max(lo, min(hi, snapped))
+
+
 async def update_portal_settings(
     db: AsyncSession, updates: dict
 ) -> dict:
@@ -100,9 +128,40 @@ async def update_portal_settings(
     Unknown keys are silently ignored so a stale frontend can't poison
     the settings table. Returns the full refreshed settings dict.
     """
+    # Capacity bounds have to land on a step-5 multiple AND keep
+    # min ≤ max, even when the admin pushes a single slider. Resolve
+    # them together with the current stored values so a partial PATCH
+    # cannot leave the table in a min > max state.
+    pending_capacity: dict[str, int] = {}
+    for key in _EVENT_CAPACITY_KEYS:
+        if key in updates:
+            _, lo, hi = PORTAL_SETTING_INTS[key]
+            pending_capacity[key] = _snap_to_step(
+                int(updates[key]),
+                PORTAL_EVENT_CAPACITY_STEP,
+                lo,
+                hi,
+            )
+    if pending_capacity:
+        current = await get_portal_settings(db)
+        proposed_min = pending_capacity.get(
+            "portal.events.max_participants_min",
+            current["portal.events.max_participants_min"],
+        )
+        proposed_max = pending_capacity.get(
+            "portal.events.max_participants_max",
+            current["portal.events.max_participants_max"],
+        )
+        if proposed_max < proposed_min:
+            proposed_max = proposed_min
+        pending_capacity["portal.events.max_participants_min"] = proposed_min
+        pending_capacity["portal.events.max_participants_max"] = proposed_max
+
     for key, val in updates.items():
         if key in PORTAL_SETTING_FLAGS:
             value_str = "true" if val else "false"
+        elif key in pending_capacity:
+            value_str = str(pending_capacity[key])
         elif key in PORTAL_SETTING_INTS:
             _, lo, hi = PORTAL_SETTING_INTS[key]
             value_str = str(max(lo, min(hi, int(val))))
@@ -118,6 +177,16 @@ async def update_portal_settings(
             db.add(Setting(key=key, value=value_str))
     await db.commit()
     return await get_portal_settings(db)
+
+
+async def get_event_capacity_bounds(db: AsyncSession) -> tuple[int, int]:
+    """Return ``(min, max)`` capacity for new events. Used by the
+    create-event endpoint to validate the user-picked value."""
+    settings = await get_portal_settings(db)
+    return (
+        settings["portal.events.max_participants_min"],
+        settings["portal.events.max_participants_max"],
+    )
 
 
 async def list_portal_users(

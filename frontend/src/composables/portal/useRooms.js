@@ -63,6 +63,18 @@ export function useRooms() {
     return apiPost(`/api/portal/events/rooms/${id}/enter`)
   }
 
+  async function heartbeat(id) {
+    return apiPost(`/api/portal/events/rooms/${id}/heartbeat`)
+  }
+
+  async function leaveRoom(id) {
+    return apiPost(`/api/portal/events/rooms/${id}/leave`)
+  }
+
+  async function advanceSelf(id) {
+    return apiPost(`/api/portal/events/rooms/${id}/advance-self`)
+  }
+
   async function listMessages(id) {
     const res = await apiGet(`/api/portal/events/rooms/${id}/messages`)
     return res?.items || []
@@ -89,6 +101,9 @@ export function useRooms() {
     inviteUser,
     removeMember,
     enterRoom,
+    heartbeat,
+    leaveRoom,
+    advanceSelf,
     listMessages,
     postMessage,
     searchUsers,

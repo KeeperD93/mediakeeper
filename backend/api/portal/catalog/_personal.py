@@ -123,6 +123,7 @@ async def recommendations_full(
 
             if merged_genres:
                 include_adult = not bool(profile.hide_adult)
+                user_lang = (profile.language or "").split("-")[0].lower() or None
                 extra_params = {
                     "with_genres": ",".join(str(g) for g in merged_genres),
                     "sort_by": "popularity.desc",
@@ -136,7 +137,7 @@ async def recommendations_full(
                     for mt, idx in [("/discover/movie", idx_m), ("/discover/tv", idx_t)]:
                         extra = await _fetch_list_params(
                             db, mt, page, extra_params,
-                            include_adult=include_adult,
+                            include_adult=include_adult, language=user_lang,
                         )
                         for it in extra:
                             tid = it.get("tmdb_id")
@@ -214,6 +215,7 @@ async def recommended_full_paginated(
         if not merged_genres:
             merged_genres = (base[0].get("genres") or [])[:3]
         include_adult = not bool(profile.hide_adult)
+        user_lang = (profile.language or "").split("-")[0].lower() or None
         seen = {it.get("tmdb_id") for it in base if it.get("tmdb_id")}
         pool = list(base)
         # Full browse page: we want the whole catalogue of matches so
@@ -233,7 +235,8 @@ async def recommended_full_paginated(
             for tp in (2, 3, 4, 5, 6, 7, 8):
                 for mt in ("/discover/movie", "/discover/tv"):
                     extra = await _fetch_list_params(
-                        db, mt, tp, extra_params, include_adult=include_adult,
+                        db, mt, tp, extra_params,
+                        include_adult=include_adult, language=user_lang,
                     )
                     for it in extra:
                         tid = it.get("tmdb_id")

@@ -7,6 +7,9 @@
             <span class="pt-evd-kind" :class="`pt-evd-kind--${event.kind}`">
               {{ $t(`portal.mkCalendar.kind.${event.kind}`) }}
             </span>
+            <span v-if="event.is_terminated" class="pt-evd-kind pt-evd-kind--ended">
+              {{ $t('portal.mkEvents.detail.terminated') }}
+            </span>
             <h2 class="pt-evd-title">{{ event.title }}</h2>
           </div>
           <button class="pt-evd-x" :aria-label="$t('common.close')" @click="$emit('close')">
@@ -24,6 +27,12 @@
               <span class="pt-evd-meta-label">{{ $t('portal.mkEvents.detail.creator') }}</span>
               <span :class="{ 'pt-evd-creator--anon': event.creator_deleted }">
                 {{ event.creator_deleted ? $t('portal.common.deletedUser') : event.creator_label }}
+              </span>
+            </div>
+            <div v-if="capacityLabel" class="pt-evd-meta-item">
+              <span class="pt-evd-meta-label">{{ $t('portal.mkEvents.detail.capacity') }}</span>
+              <span :class="{ 'pt-evd-capacity--full': event.is_full }">
+                {{ capacityLabel }}
               </span>
             </div>
           </div>
@@ -106,8 +115,23 @@
               <button class="pt-evd-btn pt-evd-btn--ghost" @click="respond('decline')">
                 {{ $t('portal.mkEvents.detail.decline') }}
               </button>
-              <button class="pt-evd-btn pt-evd-btn--primary" @click="respond('accept')">
-                {{ $t('portal.mkEvents.detail.accept') }}
+              <!-- Accept is hidden once the event is past its cutoff: the
+                   backend rejects ``accept`` with ``event_ended`` anyway,
+                   the decline path stays open so the user can tidy up.
+                   Also disabled when the event has hit its capacity — we
+                   swap the label for "Complet" so the viewer understands
+                   why the action is gone. -->
+              <button
+                v-if="!event.is_terminated"
+                class="pt-evd-btn pt-evd-btn--primary"
+                :disabled="event.is_full"
+                @click="respond('accept')"
+              >
+                {{
+                  event.is_full
+                    ? $t('portal.mkEvents.detail.full')
+                    : $t('portal.mkEvents.detail.accept')
+                }}
               </button>
             </template>
             <template v-else>
@@ -161,6 +185,22 @@ const myStatus = computed(() => {
   return inv?.status || null
 })
 
+// Header capacity strip: "Complet" once the event is full, "X places
+// restantes / Y" otherwise. The strip is hidden when the serializer
+// hasn't populated ``max_participants`` (legacy event) so we never
+// show "0 / 0".
+const capacityLabel = computed(() => {
+  const max = Number(event.value?.max_participants)
+  if (!Number.isFinite(max) || max <= 0) return ''
+  const accepted = Number(event.value?.accepted_count ?? 0)
+  const remaining = Math.max(0, max - accepted)
+  if (event.value?.is_full) return t('portal.mkEvents.detail.full')
+  return t('portal.mkEvents.detail.remaining', remaining, {
+    remaining,
+    total: max,
+  })
+})
+
 // Tick every second so the room button appears the moment T-15 hits.
 const nowTs = ref(Date.now())
 let tickTimer = null
@@ -174,9 +214,13 @@ onBeforeUnmount(() => {
 })
 
 // Room is open from 15 minutes BEFORE scheduled time (matches the
-// backend ROOM_OPEN_BEFORE_MIN constant in mk_events.py).
+// backend ROOM_OPEN_BEFORE_MIN constant in mk_events.py). Past the
+// backend's ``ROOM_CLOSE_AFTER_HOURS`` cutoff the door slams shut even
+// if the status row is still "scheduled" — the serializer surfaces the
+// composite flag so we don't have to duplicate the date math here.
 const roomOpen = computed(() => {
   if (!event.value || event.value.status !== EVENT_STATUS.SCHEDULED) return false
+  if (event.value.is_terminated) return false
   const start = new Date(event.value.scheduled_at).getTime()
   const open = start - 15 * 60 * 1000
   return nowTs.value >= open

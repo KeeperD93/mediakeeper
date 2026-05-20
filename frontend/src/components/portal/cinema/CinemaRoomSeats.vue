@@ -1,97 +1,83 @@
 <template>
-  <!-- Seats: 4 rows × 25 cols arranged 8 + 9 + 8 with stair gaps.
-       Backend seat_index ∈ [0..49] mapped to the 50 best central positions. -->
+  <!-- Cinema seats: dynamic layout driven by ``event.max_participants``.
+       The N seats (5/10/15/20) lay out as ceil(N/5) rows × 5 occupable
+       columns centred via flex. Decorative seats on each side give the
+       room a "filled" feel — they're rendered through the same DOM but
+       carry no avatar and disappear via media queries on narrow screens
+       so we never truncate occupable seats. -->
   <div class="pt-cr-seats-wrap">
     <div class="pt-cr-seats">
-      <div v-for="row in 4" :key="`row${row}`" class="pt-cr-row" :style="{ '--rowDepth': row }">
-        <div class="pt-cr-block">
-          <div
-            v-for="col in 8"
-            :key="`s-${row}-l-${col}`"
-            class="pt-cr-seat"
-            :class="seatClass(row - 1, col - 1, 'L')"
-            :title="seatTitle(row - 1, col - 1, 'L')"
-            :style="{ '--col': col - 1 }"
-          >
-            <div class="pt-cr-seat-back" />
-            <div class="pt-cr-seat-cushion" />
-            <div class="pt-cr-seat-base" />
-            <div v-if="seatOccupant(row - 1, col - 1, 'L')" class="pt-cr-seat-avatar">
-              {{
-                seatOccupant(row - 1, col - 1, 'L')
-                  .username?.charAt(0)
-                  ?.toUpperCase()
-              }}
-            </div>
-            <div
-              v-for="(b, bi) in seatBubbles(row - 1, col - 1, 'L')"
-              :key="b.id"
-              class="pt-cr-bubble"
-              :style="{ '--bi': bi }"
-            >
-              {{ b.text }}
-            </div>
-          </div>
+      <div
+        v-for="row in rows"
+        :key="`row-${row}`"
+        class="pt-cr-row"
+        :style="{ '--rowDepth': row }"
+      >
+        <!-- Decorative seats — left side. -->
+        <div
+          v-for="i in DECORATIVE_PER_SIDE"
+          :key="`dec-l-${row}-${i}`"
+          class="pt-cr-seat pt-cr-seat--decorative"
+          :class="`pt-cr-seat--dec-${i}`"
+          aria-hidden="true"
+        >
+          <div class="pt-cr-seat-back" />
+          <div class="pt-cr-seat-cushion" />
+          <div class="pt-cr-seat-base" />
         </div>
-        <div class="pt-cr-stair" />
-        <div class="pt-cr-block pt-cr-block--center">
-          <div
-            v-for="col in 9"
-            :key="`s-${row}-c-${col}`"
-            class="pt-cr-seat"
-            :class="seatClass(row - 1, col - 1, 'C')"
-            :title="seatTitle(row - 1, col - 1, 'C')"
-            :style="{ '--col': col + 7 }"
-          >
-            <div class="pt-cr-seat-back" />
-            <div class="pt-cr-seat-cushion" />
-            <div class="pt-cr-seat-base" />
-            <div v-if="seatOccupant(row - 1, col - 1, 'C')" class="pt-cr-seat-avatar">
-              {{
-                seatOccupant(row - 1, col - 1, 'C')
-                  .username?.charAt(0)
-                  ?.toUpperCase()
-              }}
+
+        <!-- Occupable seats — 5 per row, indexed by ``seat_index``. -->
+        <div
+          v-for="col in OCCUPABLE_PER_ROW"
+          :key="`s-${row}-${col}`"
+          class="pt-cr-seat"
+          :class="seatClass(seatIndexOf(row - 1, col - 1))"
+          :title="seatTitle(seatIndexOf(row - 1, col - 1))"
+        >
+          <div class="pt-cr-seat-back" />
+          <div class="pt-cr-seat-cushion" />
+          <div class="pt-cr-seat-base" />
+          <template v-if="seatOccupant(seatIndexOf(row - 1, col - 1))">
+            <div class="pt-cr-seat-avatar">
+              <img
+                v-if="seatOccupant(seatIndexOf(row - 1, col - 1)).avatar_url"
+                :src="seatOccupant(seatIndexOf(row - 1, col - 1)).avatar_url"
+                :alt="seatOccupant(seatIndexOf(row - 1, col - 1)).username || ''"
+                class="pt-cr-seat-avatar-img"
+              />
+              <span v-else>
+                {{
+                  seatOccupant(seatIndexOf(row - 1, col - 1))
+                    .username?.charAt(0)
+                    ?.toUpperCase()
+                }}
+              </span>
+            </div>
+            <div class="pt-cr-seat-label">
+              {{ seatOccupant(seatIndexOf(row - 1, col - 1)).username }}
             </div>
             <div
-              v-for="(b, bi) in seatBubbles(row - 1, col - 1, 'C')"
+              v-for="(b, bi) in seatBubbles(seatIndexOf(row - 1, col - 1))"
               :key="b.id"
               class="pt-cr-bubble"
               :style="{ '--bi': bi }"
             >
               {{ b.text }}
             </div>
-          </div>
+          </template>
         </div>
-        <div class="pt-cr-stair" />
-        <div class="pt-cr-block">
-          <div
-            v-for="col in 8"
-            :key="`s-${row}-r-${col}`"
-            class="pt-cr-seat"
-            :class="seatClass(row - 1, col - 1, 'R')"
-            :title="seatTitle(row - 1, col - 1, 'R')"
-            :style="{ '--col': col + 16 }"
-          >
-            <div class="pt-cr-seat-back" />
-            <div class="pt-cr-seat-cushion" />
-            <div class="pt-cr-seat-base" />
-            <div v-if="seatOccupant(row - 1, col - 1, 'R')" class="pt-cr-seat-avatar">
-              {{
-                seatOccupant(row - 1, col - 1, 'R')
-                  .username?.charAt(0)
-                  ?.toUpperCase()
-              }}
-            </div>
-            <div
-              v-for="(b, bi) in seatBubbles(row - 1, col - 1, 'R')"
-              :key="b.id"
-              class="pt-cr-bubble"
-              :style="{ '--bi': bi }"
-            >
-              {{ b.text }}
-            </div>
-          </div>
+
+        <!-- Decorative seats — right side. -->
+        <div
+          v-for="i in DECORATIVE_PER_SIDE"
+          :key="`dec-r-${row}-${i}`"
+          class="pt-cr-seat pt-cr-seat--decorative"
+          :class="`pt-cr-seat--dec-${i}`"
+          aria-hidden="true"
+        >
+          <div class="pt-cr-seat-back" />
+          <div class="pt-cr-seat-cushion" />
+          <div class="pt-cr-seat-base" />
         </div>
       </div>
     </div>
@@ -104,6 +90,15 @@ import { useRooms } from '@/composables/portal/useRooms'
 import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 import { INVITATION_STATUS } from '@/constants/events'
 
+// Seat layout constants — kept here so the template stays declarative.
+// ``OCCUPABLE_PER_ROW`` matches the admin step (5) so every row neatly
+// represents one capacity bucket. ``DECORATIVE_PER_SIDE`` is rendered
+// in the DOM but the matching CSS class drops the outermost columns
+// (``--dec-3``, ``--dec-2``) under tighter breakpoints to avoid
+// truncating the occupable centre.
+const OCCUPABLE_PER_ROW = 5
+const DECORATIVE_PER_SIDE = 3
+
 const props = defineProps({
   event: { type: Object, default: null },
 })
@@ -113,49 +108,48 @@ const { profile } = usePortalAuth()
 
 const myUserId = computed(() => profile.value?.user_id || profile.value?.id || 0)
 
-// 100 seats laid out as 4 rows × 25 cols (blocks 8 + 9 + 8).
-// Backend seat_index ∈ [0..49] maps to the 50 best central positions.
-const PREMIUM_SEATS = (() => {
-  const cells = []
-  for (let r = 0; r < 4; r++) {
-    for (let c = 0; c < 25; c++) {
-      cells.push({ pos: r * 25 + c, dist: Math.abs(r - 1.5) * 2.2 + Math.abs(c - 12) })
-    }
-  }
-  cells.sort((a, b) => a.dist - b.dist)
-  return cells.slice(0, 50).map(x => x.pos)
-})()
+// Terminated events keep their invitations for history but must not
+// surface seated avatars or live bubbles — the cinema view bounces the
+// user home when this is true, this is just defence in depth.
+const terminated = computed(() => Boolean(props.event?.is_terminated))
 
-function flatPos(row, colInBlock, block) {
-  let col
-  if (block === 'L') col = colInBlock
-  else if (block === 'C') col = 8 + colInBlock
-  else col = 17 + colInBlock
-  return row * 25 + col
+const capacity = computed(() => {
+  const raw = Number(props.event?.max_participants)
+  if (Number.isFinite(raw) && raw > 0) return raw
+  // Defensive default — should never hit in practice because the
+  // backend serializer always populates max_participants.
+  return OCCUPABLE_PER_ROW
+})
+
+const rows = computed(() => Math.max(1, Math.ceil(capacity.value / OCCUPABLE_PER_ROW)))
+
+function seatIndexOf(row, col) {
+  return row * OCCUPABLE_PER_ROW + col
 }
 
-function seatOccupant(row, colInBlock, block) {
-  if (!props.event) return null
-  const flat = flatPos(row, colInBlock, block)
-  const seatIdx = PREMIUM_SEATS.indexOf(flat)
-  if (seatIdx < 0) return null
-  return (
-    props.event.invitations?.find(
-      i => i.status === INVITATION_STATUS.ACCEPTED && i.seat_index === seatIdx,
-    ) || null
+function seatOccupant(seatIdx) {
+  if (!props.event || terminated.value) return null
+  if (seatIdx < 0 || seatIdx >= capacity.value) return null
+  const inv = props.event.invitations?.find(
+    i => i.status === INVITATION_STATUS.ACCEPTED && i.seat_index === seatIdx,
   )
+  if (!inv) return null
+  // Presence gate: only paint the avatar while the heartbeat is fresh.
+  if (!inv.is_currently_in_room) return null
+  return inv
 }
 
-function seatClass(row, colInBlock, block) {
-  const occ = seatOccupant(row, colInBlock, block)
+function seatClass(seatIdx) {
+  if (seatIdx >= capacity.value) return 'pt-cr-seat--out-of-capacity'
+  const occ = seatOccupant(seatIdx)
   if (!occ) return ''
   return occ.user_id === myUserId.value
     ? 'pt-cr-seat--occupied pt-cr-seat--mine'
     : 'pt-cr-seat--occupied'
 }
 
-function seatTitle(row, colInBlock, block) {
-  return seatOccupant(row, colInBlock, block)?.username || ''
+function seatTitle(seatIdx) {
+  return seatOccupant(seatIdx)?.username || ''
 }
 
 // ---------- Chat bubbles above seats ----------
@@ -166,14 +160,14 @@ let lastSeenMsgId = 0
 let bubblePollTimer = null
 let bubbleSweepTimer = null
 
-function seatBubbles(row, colInBlock, block) {
-  const occ = seatOccupant(row, colInBlock, block)
+function seatBubbles(seatIdx) {
+  const occ = seatOccupant(seatIdx)
   if (!occ) return []
   return bubblesByUser.value[occ.user_id] || []
 }
 
 async function pollBubbles() {
-  if (!props.event) return
+  if (!props.event || terminated.value) return
   try {
     const res = await listMessages(props.event.id, { since: lastSeenMsgId })
     const msgs = res?.messages || res || []
@@ -184,7 +178,6 @@ async function pollBubbles() {
       lastSeenMsgId = m.id
       const arr = next[m.user_id] ? [...next[m.user_id]] : []
       arr.push({ id: m.id, text: m.content || m.text || '', ts: Date.now() })
-      // Keep only the 3 most recent so the stack doesn't explode.
       next[m.user_id] = arr.slice(-3)
     }
     bubblesByUser.value = next

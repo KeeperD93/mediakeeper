@@ -147,11 +147,14 @@
   }
 }
 
-/* ---------- Seats (4 rows × 25 cols, 3D tilt) ---------- */
+/* ---------- Seats (5 occupable cols × ceil(N/5) rows, 3D tilt) ---------- */
 .pt-cr-seats-wrap {
   position: relative;
   z-index: 5;
-  margin-top: 6vh;
+  /* Tightened from 6vh so the stage doesn't overflow the viewport on
+     1080p screens — see ``cinema-room-stage.css`` for the no-scroll
+     contract. */
+  margin-top: 2vh;
   width: 100%;
   display: flex;
   justify-content: center;
@@ -160,7 +163,9 @@
   display: flex;
   flex-direction: column;
   gap: 1.4rem;
-  padding: 0 2vw 4vh;
+  /* Bottom padding shrunk from 4vh to 1vh — the row was eating ~40 px
+     under the perspective-tilted seats for no visual gain. */
+  padding: 0 2vw 1vh;
   max-width: 100vw;
   transform: perspective(1400px) rotateX(20deg);
   transform-origin: 50% 100%;
@@ -288,10 +293,86 @@
     0 4px 14px rgb(0, 0, 0, 0.8),
     0 0 18px rgb(99, 102, 241, 0.5);
   z-index: 5;
+  overflow: hidden;
+}
+.pt-cr-seat-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--portal-radius-circle);
+  display: block;
+}
+.pt-cr-seat-label {
+  position: absolute;
+  /* Floats just above the avatar: the avatar's top edge sits at 8% of
+     the seat height, so anchoring the label's bottom at 92% (+ a 4 px
+     gap) places it flush against the avatar without overlapping it. */
+  bottom: calc(92% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 120%;
+  padding: 0 2px;
+  color: var(--portal-text-primary);
+  font-size: clamp(0.55rem, 0.85vw, 0.75rem);
+  font-weight: var(--portal-font-bold);
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+  text-align: center;
+  text-shadow:
+    0 2px 4px rgb(0, 0, 0, 0.9),
+    0 0 2px rgb(0, 0, 0, 0.8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  z-index: 6;
 }
 .pt-cr-seat--occupied .pt-cr-seat-back {
   background: radial-gradient(ellipse at 50% 25%, #a02828 0%, #842828 50%, #4a1010 100%);
 }
+
+/* Decorative seats — empty fillers that give the room a "filled"
+   silhouette without belonging to ``max_participants``. They never
+   carry an avatar / bubble and dim slightly so the eye still picks
+   the occupable centre first. Each ``--dec-N`` class collapses on
+   tighter breakpoints below to avoid truncating the 5 occupable
+   seats. */
+.pt-cr-seat--decorative {
+  opacity: 0.55;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+.pt-cr-seat--decorative .pt-cr-seat-back {
+  background: radial-gradient(ellipse at 50% 25%, #4a1010 0%, #2a0808 70%, #150404 100%);
+}
+
+/* Out-of-capacity guard: a seat slot rendered beyond ``max_participants``
+   (only triggers if the admin step ever stops being a multiple of 5).
+   Hidden so the layout stays clean — the slot still consumes layout
+   space, which keeps the occupable seats horizontally centred. */
+.pt-cr-seat--out-of-capacity {
+  visibility: hidden;
+}
+
+/* Mobile portrait → drop the outermost decorative pair. Tablet
+   landscape → drop the two outermost columns. Above ~1280 px we keep
+   all three pairs so the wide-screen cinema feels properly populated. */
+@media (max-width: 1279px) {
+  .pt-cr-seat--dec-3 {
+    display: none;
+  }
+}
+@media (max-width: 1023px) {
+  .pt-cr-seat--dec-2 {
+    display: none;
+  }
+}
+@media (max-width: 639px) {
+  .pt-cr-seat--decorative {
+    display: none;
+  }
+}
+
 .pt-cr-seat--mine .pt-cr-seat-avatar {
   background: linear-gradient(135deg, var(--portal-color-warning) 0%, #d97706 100%);
   border-color: var(--portal-color-warning-soft);

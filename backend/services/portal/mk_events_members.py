@@ -8,7 +8,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.portal.event import MKEvent, MKEventInvitation
 from services.portal import notifications as notifs
 from services.portal.mk_events_utils import (
-    MAX_INVITE_RETRIES, _user_label, _has_conflict,
+    MAX_INVITE_RETRIES,
+    _compact_seats,
+    _has_conflict,
+    _user_label,
+    is_event_terminated,
 )
 
 logger = logging.getLogger("mediakeeper.portal.mk_events_members")
@@ -162,6 +166,13 @@ async def respond(
     if not event:
         return {"error": "not_found"}
 
+    # Accepts on a stale / cancelled / past-cutoff event are pointless
+    # and used to drag the user straight into a dead cinema room. The
+    # decline path stays open so a viewer can still tidy up a stale
+    # notification.
+    if decision == "accept" and is_event_terminated(event):
+        return {"error": "event_ended"}
+
     inv = await _load_invitation(db, event_id, user_id)
 
     # Public event auto-creates an invitation row when the user accepts
@@ -198,7 +209,15 @@ async def respond(
 
     inv.status = "accepted" if decision == "accept" else "declined"
     inv.responded_at = datetime.now(timezone.utc)
+    if decision == "decline":
+        # Free the seat (if any) and compact the layout so the remaining
+        # avatars keep their centered grid placement — see option B
+        # rebalance contract in ``mk_events_utils._compact_seats``.
+        inv.seat_index = None
+        inv.last_seen_at = None
     db.add(inv)
+    if decision == "decline":
+        await _compact_seats(db, event_id)
 
     # Conflict warning when accepting (we don't block, just inform).
     conflict_warning = False
@@ -242,7 +261,13 @@ async def remove_member(
         return {"error": "not_invited"}
 
     inv.status = "removed"
+    # Same housekeeping as a self-decline: release the seat + clear
+    # presence so the centred layout stays contiguous after the
+    # creator boots a member.
+    inv.seat_index = None
+    inv.last_seen_at = None
     db.add(inv)
+    await _compact_seats(db, event_id)
     await notifs.create(db, member_user_id, "event_removed", {
         "event_id": event.id,
         "title": event.title,

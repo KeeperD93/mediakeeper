@@ -1,43 +1,14 @@
 <template>
-  <section class="pt-eh">
+  <section ref="sectionRef" class="pt-eh">
     <TrailerLightbox v-if="lightboxOpen && trailer" :trailer="trailer" @close="closeLightbox" />
 
-    <div class="pt-eh-hero" @click="onHeroTap">
-      <div
-        class="pt-eh-hero-bg"
-        :class="{ 'pt-eh-hero-bg--hidden': (trailer && videoPlaying) || transitioning }"
-        :style="bgStyle"
-      />
-
-      <div
-        v-if="trailer"
-        class="pt-eh-hero-video"
-        :class="{ 'pt-eh-hero-video--playing': videoPlaying }"
-      >
-        <video
-          v-if="trailer.source === TRAILER_SOURCE.EMBY"
-          ref="embyVideoRef"
-          :src="trailer.url"
-          autoplay
-          :muted="muted"
-          playsinline
-          class="pt-eh-emby-video"
-          @playing="setVideoPlaying(true)"
-          @pause="onEmbyPause"
-          @ended="onEmbyEnded"
-        />
-        <template v-else>
-          <div class="pt-eh-player-wrap">
-            <div :id="playerId" />
-          </div>
-          <div class="pt-eh-video-block" />
-        </template>
-      </div>
+    <div class="pt-eh-hero">
+      <Transition name="pt-eh-bg-fade">
+        <div :key="currentItem?.id" class="pt-eh-hero-bg" :style="bgStyle" />
+      </Transition>
 
       <div class="pt-eh-gradient-top" />
       <div class="pt-eh-gradient-bottom" />
-
-      <div class="pt-eh-fade" :class="{ 'pt-eh-fade--active': transitioning }" :style="fadeStyle" />
 
       <div class="pt-eh-content">
         <h3 class="pt-eh-row-title">{{ $t('portal.sections.recentlyAdded') }}</h3>
@@ -50,7 +21,8 @@
         <div class="pt-eh-actions">
           <!-- The hero is informational, not a launch CTA: posters in
                the row below cover both "Lancer" (available) and
-               "Demander" (missing). Hero keeps trailer + info. -->
+               "Demander" (missing). Hero keeps the trailer popup +
+               info button. -->
           <button v-if="trailer" class="pt-eh-btn pt-eh-btn--trailer" @click="openLightbox">
             <Video :size="20" />
             {{ $t('portal.detail.watchTrailer') }}
@@ -64,11 +36,6 @@
           </button>
         </div>
       </div>
-
-      <button v-if="trailer" class="pt-eh-mute" @click="onMuteToggle">
-        <VolumeX v-if="muted" :size="18" />
-        <Volume2 v-else :size="18" />
-      </button>
     </div>
 
     <div class="pt-eh-row">
@@ -127,10 +94,8 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import MediaCard from './MediaCard.vue'
 import TrailerLightbox from './TrailerLightbox.vue'
-import { useEmbyHeroTrailer } from '@/composables/portal/useEmbyHeroTrailer'
-import { useHeroCinemaVeil } from '@/composables/portal/useHeroCinemaVeil'
-import { ChevronLeft, ChevronRight, Info, Video, Volume2, VolumeX } from 'lucide-vue-next'
-import { TRAILER_SOURCE } from '@/constants/trailers'
+import { useTrailer } from '@/composables/portal/useTrailer'
+import { ChevronLeft, ChevronRight, Info, Video } from 'lucide-vue-next'
 
 import '@/assets/styles/portal/emby-recent-hero-hero.css'
 import '@/assets/styles/portal/emby-recent-hero-row.css'
@@ -140,14 +105,26 @@ const props = defineProps({
 })
 const emit = defineEmits(['request', 'detail', 'add-watchlist', 'select'])
 
-const ROTATE_MS = 25000
+// Aligned with the main hero (10 s) — both heroes now ship as a
+// backdrop slideshow with on-demand trailer popups, so the cadence
+// stays consistent across the page.
+const ROTATE_MS = 10000
 const MAX_VISIBLE = 20
 
+const sectionRef = ref(null)
+const trackRef = ref(null)
 const currentIndex = ref(0)
-const lightboxOpen = ref(false)
 const canScrollLeft = ref(false)
 const canScrollRight = ref(false)
-const trackRef = ref(null)
+const isVisible = ref(false)
+const lightboxOpen = ref(false)
+
+// Trailer-URL resolution only — never mounts a YouTube IFrame in the
+// hero itself. ``resolve`` populates ``trailer`` so the "Bande-annonce"
+// button can show / hide based on availability; clicking the button
+// opens the fullscreen lightbox where the actual <iframe> finally
+// lives. Module-level cache keeps the per-item resolve to one request.
+const { trailer, resolve: resolveTrailer } = useTrailer()
 
 const visibleItems = computed(() => props.items.slice(0, MAX_VISIBLE))
 const showSeeMoreCard = computed(() => props.items.length > 0)
@@ -177,61 +154,31 @@ function stopTimer() {
   }
 }
 
-const {
-  trailer,
-  muted,
-  embyVideoRef,
-  videoPlaying,
-  playerId,
-  loadTrailer,
-  peekTrailer,
-  setVideoPlaying,
-  toggleMute,
-  onEmbyPause,
-  onEmbyEnded,
-} = useEmbyHeroTrailer({ onTrailerEnded: nextItem })
-
-function peekItemTrailer(item) {
-  if (!item) return undefined
-  return peekTrailer(item.media_type || 'movie', item.tmdb_id || item.id, item.emby_item_id || null)
-}
-const {
-  transitioning,
-  fadeStyle,
-  onItemChange,
-  startInitial,
-  dispose: disposeVeil,
-} = useHeroCinemaVeil({
-  videoPlaying,
-  peekItem: peekItemTrailer,
-  loadItem: it => loadTrailer(it),
-  hasTrailer: () => !!trailer.value,
-})
-
-function onMuteToggle() {
-  toggleMute()
-  if (muted.value) startTimer()
-  else stopTimer()
-}
-
-function onHeroTap(e) {
-  if (!trailer.value) return
-  if (window.innerWidth >= 640) return
-  if (e.target.closest('button, a, input, select, textarea')) return
-  onMuteToggle()
+async function ensureTrailerResolved() {
+  const it = currentItem.value
+  if (!it) return
+  await resolveTrailer(
+    it.media_type || 'movie',
+    it.tmdb_id || it.id,
+    it.emby_item_id || null,
+  )
 }
 
 function openLightbox() {
+  if (!trailer.value) return
   lightboxOpen.value = true
   stopTimer()
 }
 function closeLightbox() {
   lightboxOpen.value = false
-  startTimer()
+  if (isVisible.value) startTimer()
 }
 
 function onPosterClick(item, idx) {
   currentIndex.value = idx
+  // Manual jump: restart the rotation so the user always gets the
+  // full ROTATE_MS window on the slide they picked.
+  if (isVisible.value && !lightboxOpen.value) startTimer()
 }
 
 function updateArrows() {
@@ -266,29 +213,59 @@ function scrollTrack(dir) {
   el.scrollBy({ left: dir * visible * step, behavior: 'smooth' })
 }
 
-watch(currentItem, it => onItemChange(it))
+watch(
+  () => currentItem.value?.id,
+  () => {
+    if (isVisible.value) ensureTrailerResolved()
+  },
+)
 watch(
   () => props.items.length,
   () => {
-    if (props.items.length && !trailer.value) startInitial(currentItem.value)
     nextTick(updateArrows)
   },
 )
 
 let resizeObs = null
+let visibilityObs = null
 onMounted(() => {
-  startInitial(currentItem.value)
-  startTimer()
   if (trackRef.value) {
     resizeObs = new ResizeObserver(updateArrows)
     resizeObs.observe(trackRef.value)
     nextTick(updateArrows)
+  }
+  // Lazy lifecycle: the rotation + the trailer-URL resolve only run
+  // while the section is on screen. The trailer subsystem stays
+  // limited to a URL lookup — no YouTube IFrame is mounted until the
+  // user explicitly clicks the "Bande-annonce" button.
+  if (sectionRef.value && typeof IntersectionObserver === 'function') {
+    visibilityObs = new IntersectionObserver(
+      ([entry]) => {
+        const next = !!entry?.isIntersecting
+        if (next === isVisible.value) return
+        isVisible.value = next
+        if (next) {
+          startTimer()
+          ensureTrailerResolved()
+        } else {
+          stopTimer()
+        }
+      },
+      { threshold: 0.2 },
+    )
+    visibilityObs.observe(sectionRef.value)
+  } else {
+    // Browsers without IntersectionObserver (or jsdom): fall back to
+    // the previous eager behaviour so nothing breaks.
+    isVisible.value = true
+    startTimer()
+    ensureTrailerResolved()
   }
 })
 
 onBeforeUnmount(() => {
   stopTimer()
   resizeObs?.disconnect()
-  disposeVeil()
+  visibilityObs?.disconnect()
 })
 </script>

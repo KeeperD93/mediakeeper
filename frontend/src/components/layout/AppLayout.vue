@@ -27,7 +27,6 @@
             </keep-alive>
           </transition>
         </router-view>
-        <AttributionFooter class="mk-app-attribution" />
       </div>
     </main>
   </div>
@@ -50,7 +49,6 @@ import { ref, onMounted, onUnmounted, watch } from 'vue'
 import AppSidebar from './AppSidebar.vue'
 import AppTopbar from './AppTopbar.vue'
 import DeploymentBanner from './DeploymentBanner.vue'
-import AttributionFooter from '@/components/common/AttributionFooter.vue'
 import SearchModal from '@/components/SearchModal.vue'
 import ForcePasswordModal from '@/components/ForcePasswordModal.vue'
 import OnboardingWizard from '@/components/OnboardingWizard.vue'

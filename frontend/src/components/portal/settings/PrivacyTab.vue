@@ -69,7 +69,11 @@
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
+// ``I18nT`` is the component form of ``$t()`` with slot interpolation —
+// ``<i18n-t keypath="x" tag="span">`` resolves to this binding via Vue's
+// kebab/PascalCase auto-mapping. Without the explicit local import the
+// runtime logs a "Failed to resolve component: i18n-t" warning.
+import { useI18n, I18nT } from 'vue-i18n'
 import DOMPurify from 'dompurify'
 import { Download, Trash2 } from 'lucide-vue-next'
 

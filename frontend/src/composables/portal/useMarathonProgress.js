@@ -1,11 +1,13 @@
 import { computed, ref } from 'vue'
 import { useApi } from '@/composables/useApi'
 
-const POLL_INTERVAL_MS = 5000
+const POLL_INTERVAL_MS = 3000
 
 /**
- * Cinema room — marathon progress poller. Polls the backend snapshot
- * every 5 s while ``enabled`` is true. The composable exposes:
+ * Cinema room — playback progress poller. Polls the backend snapshot
+ * every 3 s while ``enabled`` is true so the launch panel can refresh
+ * the per-participant timer without forcing a page reload. The
+ * composable exposes:
  *
  *   - ``progress``  : last payload from the server (null until the
  *     first fetch resolves).
@@ -13,11 +15,13 @@ const POLL_INTERVAL_MS = 5000
  *   - ``error``     : last error message, cleared on every successful tick.
  *   - ``enabled``   : whether the poller is currently armed.
  *   - ``ready``     : convenience computed mirroring ``progress.ready``.
- *   - ``start()`` / ``stop()``.
+ *   - ``start()`` / ``stop()`` / ``bump()``.
  *
- * Auto-stop guard: when the server says ``is_marathon=false`` the
- * poller flips ``enabled=false`` and returns — the cinema room only
- * needs marathon updates for multi-film events.
+ * Single-film events: the payload still arrives with ``is_marathon=
+ * false`` but now carries ``participants``, ``current_tmdb`` and
+ * ``total_steps=1`` so the cinema room can render the same playback
+ * panel as a marathon. We no longer auto-stop the poller on that
+ * flag — the room polls until the view is torn down.
  */
 export function useMarathonProgress(eventId) {
   const { apiGet } = useApi()
@@ -38,9 +42,6 @@ export function useMarathonProgress(eventId) {
       )
       progress.value = payload
       error.value = null
-      if (payload && payload.is_marathon === false) {
-        stop()
-      }
     } catch (err) {
       error.value = err instanceof Error ? err.message : String(err)
     } finally {
@@ -63,7 +64,16 @@ export function useMarathonProgress(eventId) {
     }
   }
 
+  // Public alias for ``fetchOnce`` so callers can force a refresh
+  // outside the regular 3 s tick — e.g. just after a viewer presses
+  // ``Lancer le film`` we want the panel to surface their session
+  // sooner than the next scheduled tick.
+  function bump() {
+    if (!enabled.value) start()
+    else fetchOnce()
+  }
+
   const ready = computed(() => Boolean(progress.value?.ready))
 
-  return { progress, loading, error, enabled, ready, start, stop }
+  return { progress, loading, error, enabled, ready, start, stop, bump }
 }

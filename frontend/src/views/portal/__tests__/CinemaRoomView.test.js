@@ -16,18 +16,38 @@ vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: (k, named) => (named ? `${k}:${JSON.stringify(named)}` : k) }),
 }))
 
+const mockRouterPush = vi.fn()
+const mockRouterReplace = vi.fn()
 vi.mock('vue-router', () => ({
   useRoute: () => ({ params: { id: '42' } }),
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: mockRouterPush, replace: mockRouterReplace }),
 }))
 
 const mockEnterRoom = vi.fn()
 const mockGetOne = vi.fn()
+const mockAdvanceSelf = vi.fn().mockResolvedValue({ ok: true })
+const mockHeartbeat = vi.fn().mockResolvedValue({ ok: true })
+const mockLeaveRoom = vi.fn().mockResolvedValue({ ok: true })
 vi.mock('@/composables/portal/useRooms', () => ({
   useRooms: () => ({
     enterRoom: mockEnterRoom,
     getOne: mockGetOne,
+    advanceSelf: mockAdvanceSelf,
+    heartbeat: mockHeartbeat,
+    leaveRoom: mockLeaveRoom,
   }),
+}))
+
+vi.mock('@/composables/portal/usePresenceHeartbeat', () => ({
+  // The presence composable starts a setInterval + window listener on
+  // mount; stub it so the test suite stays deterministic and doesn't
+  // need to flush real timers.
+  usePresenceHeartbeat: () => {},
+}))
+
+const mockPortalProfile = ref({ user_id: 99, id: 99 })
+vi.mock('@/composables/portal/usePortalAuth', () => ({
+  usePortalAuth: () => ({ profile: mockPortalProfile }),
 }))
 
 const marathonProgressState = {
@@ -38,6 +58,7 @@ const marathonProgressState = {
   ready: ref(false),
   start: vi.fn(),
   stop: vi.fn(),
+  bump: vi.fn(),
 }
 vi.mock('@/composables/portal/useMarathonProgress', () => ({
   useMarathonProgress: () => marathonProgressState,
@@ -48,24 +69,36 @@ const flowState = {
   remainingMs: ref(60_000),
   countdownNegative: ref(false),
   canLaunch: ref(false),
+  canStartAcademy: ref(false),
   countdownDisplay: ref('01:00'),
   academyActive: ref(false),
   academyValue: ref(10),
   academyDone: ref(false),
   startTicker: vi.fn(),
   startAcademy: vi.fn(),
+  skipToReady: vi.fn(),
   resetAcademy: vi.fn(),
 }
 vi.mock('@/composables/portal/useCinemaRoomFlow', () => ({
   useCinemaRoomFlow: () => flowState,
 }))
 
+const mockShowToast = vi.fn()
 vi.mock('@/composables/useToast', () => ({
-  useToast: () => ({ showToast: vi.fn() }),
+  useToast: () => ({ showToast: mockShowToast }),
 }))
 
 vi.mock('@/composables/apiClient', () => ({
   fetchApiResponse: vi.fn(),
+}))
+
+const mockCheckAvailability = vi.fn().mockResolvedValue()
+const mockGetAvailability = vi.fn().mockReturnValue(null)
+vi.mock('@/composables/portal/useAvailability', () => ({
+  useAvailability: () => ({
+    checkAvailability: mockCheckAvailability,
+    getAvailability: mockGetAvailability,
+  }),
 }))
 
 const carouselState = {
@@ -140,6 +173,9 @@ describe('CinemaRoomView.vue', () => {
   beforeEach(() => {
     mockEnterRoom.mockReset()
     mockGetOne.mockReset()
+    mockRouterPush.mockReset()
+    mockRouterReplace.mockReset()
+    mockShowToast.mockReset()
     carouselState.queue.value = []
     carouselState.currentIndex.value = 0
     carouselState.currentTrailer.value = null
@@ -149,6 +185,7 @@ describe('CinemaRoomView.vue', () => {
     carouselState.applyMute.mockClear()
     carouselState.destroy.mockClear()
     flowState.canLaunch.value = false
+    flowState.canStartAcademy.value = false
     flowState.academyActive.value = false
     flowState.academyDone.value = false
     flowState.countdownNegative.value = false
@@ -221,7 +258,13 @@ describe('CinemaRoomView.vue', () => {
     expect(wrapper.find('.pt-cr-screen-ready-text').exists()).toBe(false)
   })
 
-  it('disables the launch button when the marathon is not ready', async () => {
+  it('keeps the launch button enabled on the first step of a marathon (no advance gating)', async () => {
+    // Previously the button gated on ``marathonProgress.ready`` which
+    // is always ``false`` on step 0 (nobody has watched anything yet),
+    // so the very first launch of every marathon was unclickable. The
+    // button now opens the current film unconditionally — advance to
+    // the next step is a separate concern (auto-advance / future
+    // dedicated CTA), see the launch handler comment.
     const marathon = setEvent({ scheduledOffsetMs: -1000 })
     marathon.tmdb_ids = [
       { tmdb_id: 1, media_type: 'movie', title: 'A' },
@@ -241,30 +284,52 @@ describe('CinemaRoomView.vue', () => {
     await flushPromises()
 
     const cta = wrapper.find('.pt-cr-launch-btn')
-    expect(cta.attributes('disabled')).toBeDefined()
+    expect(cta.exists()).toBe(true)
+    expect(cta.attributes('disabled')).toBeUndefined()
   })
 
-  it('enables the launch button when the marathon is ready', async () => {
-    const marathon = setEvent({ scheduledOffsetMs: -1000 })
-    marathon.tmdb_ids = [
-      { tmdb_id: 1, media_type: 'movie', title: 'A' },
-      { tmdb_id: 2, media_type: 'movie', title: 'B' },
-    ]
-    mockEnterRoom.mockResolvedValue({ event: marathon })
-    flowState.canLaunch.value = true
-    marathonProgressState.progress.value = {
-      is_marathon: true, current_step: 0, total_steps: 2, ready: true,
-      participants: [], ineligible_count: 0,
-    }
-    marathonProgressState.ready.value = true
+  it('bounces home when enter_room rejects with not_member (no read-only fallback)', async () => {
+    // Anyone with the room URL but no accepted invitation must NOT be
+    // allowed to wander into the cinema, even read-only — the backend
+    // already refuses (``not_member``) and the front-end used to fall
+    // back to ``getOne`` which leaked the room layout to non-invitees.
+    mockEnterRoom.mockResolvedValue({ error: 'not_member' })
 
-    const wrapper = await mountView()
-    await flushPromises()
-    flowState.academyDone.value = true
+    await mountView()
     await flushPromises()
 
-    const cta = wrapper.find('.pt-cr-launch-btn')
-    expect(cta.attributes('disabled')).toBeUndefined()
+    expect(mockGetOne).not.toHaveBeenCalled()
+    expect(mockShowToast).toHaveBeenCalledWith(
+      'portal.cinema.errors.not_member',
+      expect.anything(),
+    )
+    expect(mockRouterReplace).toHaveBeenCalledWith(
+      expect.objectContaining({ name: expect.any(String) }),
+    )
+  })
+
+  it('bounces home with a toast when the getOne fallback returns a terminated event', async () => {
+    // ``enter_room`` declines for a non-cutoff reason (forbidden, network
+    // glitch, room full, ...) so the view falls back to ``getOne``. The
+    // fallback resolves with ``is_terminated: true`` — the defence-in-depth
+    // guard must redirect to the portal home and surface the same toast as
+    // the explicit ``event_ended`` branch instead of rendering zombie seats.
+    mockEnterRoom.mockResolvedValue({ error: 'forbidden' })
+    const stale = setEvent({ scheduledOffsetMs: -25 * 60 * 60 * 1000 })
+    stale.is_terminated = true
+    stale.status = 'scheduled'
+    mockGetOne.mockResolvedValue(stale)
+
+    await mountView()
+    await flushPromises()
+
+    expect(mockShowToast).toHaveBeenCalledWith(
+      'portal.cinema.errors.event_ended',
+      expect.anything(),
+    )
+    expect(mockRouterReplace).toHaveBeenCalledWith(
+      expect.objectContaining({ name: expect.any(String) }),
+    )
   })
 
   it('falls back to the title when academyDone but no poster is set', async () => {

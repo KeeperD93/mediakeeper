@@ -1,4 +1,4 @@
-/* EmbyRecentHero — hero strip (background/video/content/mute button). */
+/* EmbyRecentHero — hero strip (backdrop slideshow + content panel). */
 
 .pt-eh {
   position: relative;
@@ -9,15 +9,13 @@
 }
 
 /* Hero strip — always rendered at full size, no open/close animation.
-   Mobile-first defaults; the wide-screen split layout (text-left,
-   trailer-right with horizontal mask) is gated on min-width: 1024px
-   below. */
+   Mobile-first defaults; the wide-screen layout (text panel anchored
+   to the left half) is gated on min-width: 1024px below. */
 .pt-eh-hero {
   position: relative;
   /* Taller than the original 56vh / 320–480 to compensate for both the
      top- and bottom-anchored gradients eating into the upper third and
-     lower third of the trailer. Keeps roughly the same "useful" trailer
-     area visible after the dimming on both ends. */
+     lower third of the artwork. */
   height: 72vh;
   min-height: 440px;
   max-height: 600px;
@@ -31,62 +29,17 @@
   background-size: cover;
   background-position: center 20%;
   background-color: #0a0a0a;
-  /* Backdrop fades out when a trailer starts playing or during the
-     cinematic transition between two trailers, mirrors HeroBanner. */
-  transition: opacity 1s ease;
 }
-.pt-eh-hero-bg--hidden {
+/* Crossfade between two consecutive items — Vue Transition keeps
+   both the entering and leaving backdrop divs in the DOM during the
+   transition, so the absolute positioning stacks them naturally. */
+.pt-eh-bg-fade-enter-active,
+.pt-eh-bg-fade-leave-active {
+  transition: opacity 1.2s ease;
+}
+.pt-eh-bg-fade-enter-from,
+.pt-eh-bg-fade-leave-to {
   opacity: 0;
-}
-
-.pt-eh-hero-video {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  overflow: hidden;
-  background: #141414;
-  /* Stay invisible until the trailer is actually rendering frames — same
-     mechanism as HeroBanner. The black veil above (.pt-eh-fade) covers
-     the swap, so users never see a buffering / blank YT player frame.
-     The 3 s fade-in is timed to the veil's 3 s fade-out so the new
-     trailer materializes smoothly as the veil dissolves. */
-  opacity: 0;
-  transition: opacity 3s ease;
-  /* Mobile: trailer fills the entire hero opaquely. The bottom gradient
-     (.pt-eh-gradient-bottom at 65% height) sits on top to keep the text
-     panel readable — no mask needed. The desktop horizontal mask is
-     reapplied in the min-width: 1024px override below. */
-}
-.pt-eh-hero-video--playing {
-  opacity: 1;
-}
-.pt-eh-emby-video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  pointer-events: none;
-}
-.pt-eh-player-wrap {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: max(100%, calc(60vh * 16 / 9));
-  height: max(100%, calc(65vw * 9 / 16));
-  transform: translate(-50%, -50%) scale(1.6);
-}
-.pt-eh-player-wrap iframe {
-  width: 100% !important;
-  height: 100% !important;
-  border: none;
-  pointer-events: none;
-}
-.pt-eh-video-block {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  cursor: default;
 }
 
 .pt-eh-gradient-top {
@@ -125,24 +78,6 @@
     transparent 100%
   );
 }
-/* Black veil during item changes — duration is driven from JS via inline
-   style (asymmetric fade: 2 s in at the end of trailer A, 3 s out onto
-   trailer B). Sits at the same z-index as the gradients so the content
-   panel (z-index 4) stays readable on top of it during the transition. */
-.pt-eh-fade {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  background: #000;
-  opacity: 0;
-  pointer-events: none;
-  transition-property: opacity;
-  transition-timing-function: ease;
-}
-.pt-eh-fade--active {
-  opacity: 1;
-}
-
 .pt-eh-content {
   position: absolute;
   left: 0;
@@ -267,59 +202,15 @@
   height: 20px;
 }
 
-.pt-eh-mute {
-  position: absolute;
-  right: 1rem;
-  top: 1rem;
-  z-index: 5;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--portal-radius-circle);
-  border: 1px solid rgb(255, 255, 255, 0.4);
-  background: rgb(0, 0, 0, 0.55);
-  color: #fff;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.pt-eh-mute:hover {
-  background: rgb(0, 0, 0, 0.8);
-}
-/* Mobile: dedicated mute button is hidden — sound is toggled by tapping
-   the hero background (see EmbyRecentHero.onHeroTap). Same pattern as
-   HeroBanner. */
-@media (max-width: 639px) {
-  .pt-eh-mute {
-    display: none;
-  }
-  /* The 3 s opacity fade-in of the video chains with the 3 s fade-out of
-     the black veil above it: at mid-transition, both layers are
-     semi-transparent. Without a mask to hide the gap on mobile, the
-     overlap reads as a flash through the page. We keep the video fully
-     opaque from the start — the veil on top still fades out cleanly and
-     reveals the already-rendered video underneath. Same fix as
-     HeroBanner mobile. */
-  .pt-eh-hero-video {
-    opacity: 1;
-    transition: none;
-  }
-}
-
 /* ───────── Desktop overrides (≥ 1024px) ─────────
-   Wide screens get the original split layout: trailer occupies the
-   right half via a horizontal mask, text panel sits in the left
-   third over a left-side gradient, mute button anchors bottom-right.
-   Mobile uses a stacked layout (trailer top, text bottom). */
+   Wide screens push the text panel onto the left half so the
+   backdrop artwork keeps its presence on the right. Mobile uses a
+   stacked layout (backdrop top, text bottom). */
 @media (min-width: 1024px) {
   .pt-eh-hero {
     height: 74vh;
     min-height: 480px;
     max-height: 700px;
-  }
-  .pt-eh-hero-video {
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 50%, #000 100%);
-    mask-image: linear-gradient(to right, transparent 0%, #000 50%, #000 100%);
   }
   .pt-eh-gradient-top {
     height: 35%;
@@ -371,13 +262,5 @@
   .pt-eh-btn-emby {
     width: 22px;
     height: 22px;
-  }
-  .pt-eh-mute {
-    top: auto;
-    right: 4%;
-    bottom: 1.5rem;
-    width: 38px;
-    height: 38px;
-    background: rgb(0, 0, 0, 0.5);
   }
 }

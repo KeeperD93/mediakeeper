@@ -71,6 +71,7 @@ async def get_recommendations_for_user(
         return []
 
     include_adult = not bool(profile.hide_adult)
+    user_lang = (profile.language or "").split("-")[0].lower() or None
     # OR semantics — TMDB ``,`` is AND (must contain ALL genres), which
     # collapses to nothing as soon as the merged top-3 spans
     # incompatible categories (e.g. War + Politics + Western for a user
@@ -83,8 +84,14 @@ async def get_recommendations_for_user(
     }
 
     movies, tv, indexed_movies, indexed_tv = await asyncio.gather(
-        _fetch_list_params(db, "/discover/movie", 1, discover_params, include_adult=include_adult),
-        _fetch_list_params(db, "/discover/tv", 1, discover_params, include_adult=include_adult),
+        _fetch_list_params(
+            db, "/discover/movie", 1, discover_params,
+            include_adult=include_adult, language=user_lang,
+        ),
+        _fetch_list_params(
+            db, "/discover/tv", 1, discover_params,
+            include_adult=include_adult, language=user_lang,
+        ),
         _get_indexed_tmdb_ids(db, "movie"),
         _get_indexed_tmdb_ids(db, "tv"),
     )
@@ -135,6 +142,7 @@ async def get_recommendations_premium(
         }
 
     include_adult = not bool(profile.hide_adult)
+    user_lang = (profile.language or "").split("-")[0].lower() or None
     discover_params = {
         "with_genres": ",".join(str(g) for g in merged),
         "sort_by": "popularity.desc",
@@ -144,8 +152,14 @@ async def get_recommendations_premium(
     # Page 1: same pattern as get_recommendations_for_user — 4 tasks
     # sharing the DB session, proven to work.
     movies, tv, idx_m, idx_t = await asyncio.gather(
-        _fetch_list_params(db, "/discover/movie", 1, discover_params, include_adult=include_adult),
-        _fetch_list_params(db, "/discover/tv", 1, discover_params, include_adult=include_adult),
+        _fetch_list_params(
+            db, "/discover/movie", 1, discover_params,
+            include_adult=include_adult, language=user_lang,
+        ),
+        _fetch_list_params(
+            db, "/discover/tv", 1, discover_params,
+            include_adult=include_adult, language=user_lang,
+        ),
         _get_indexed_tmdb_ids(db, "movie"),
         _get_indexed_tmdb_ids(db, "tv"),
     )
@@ -160,10 +174,12 @@ async def get_recommendations_premium(
         if len(movies) + len(tv) >= 60:
             break
         m2 = await _fetch_list_params(
-            db, "/discover/movie", page, discover_params, include_adult=include_adult,
+            db, "/discover/movie", page, discover_params,
+            include_adult=include_adult, language=user_lang,
         )
         t2 = await _fetch_list_params(
-            db, "/discover/tv", page, discover_params, include_adult=include_adult,
+            db, "/discover/tv", page, discover_params,
+            include_adult=include_adult, language=user_lang,
         )
         movies.extend(m for m in m2 if m.get("tmdb_id") not in idx_m)
         tv.extend(t for t in t2 if t.get("tmdb_id") not in idx_t)

@@ -190,16 +190,9 @@
       "hMin": "{h}h {m}min",
       "dH": "{d}j {h}h",
       "moD": "{mo} mois {d}j"
-    },
-    "attribution": {
-      "text": "Ce produit utilise l'API TMDB mais n'est ni soutenu ni certifié par TMDB.",
-      "logoAlt": "TMDB"
     }
   },
   "attribution": {
-    "footer": {
-      "fullCredits": "Crédits complets"
-    },
     "githubLink": "code source sur GitHub",
     "credits": {
       "title": "Crédits et attributions",
@@ -1173,7 +1166,6 @@
   },
   "settings": {
     "title": "Paramètres",
-    "accentColor": "Couleur d'accent",
     "sourceMedia": "Source média",
     "sourceMediaDesc": "Une seule source active à la fois. Elle alimente le dashboard et les statistiques.",
     "externalApis": "APIs externes",
@@ -1828,7 +1820,8 @@
         "created": "Utilisateur créé",
         "bulkDone": "{count} action(s) appliquée(s)",
         "embyIdsSynced": "{updated} compte(s) liés à Emby, {already} déjà à jour, {unmatched} non trouvés",
-        "forceLogoutDone": "Sessions invalidées"
+        "forceLogoutDone": "Sessions invalidées",
+        "displayNameResetDone": "Reset du pseudo programmé"
       },
       "errors": {
         "username_taken": "Cet identifiant existe déjà.",
@@ -1898,7 +1891,13 @@
           "source": "Source",
           "embyId": "Identifiant Emby",
           "created": "Créé le",
-          "renamedAt": "Pseudo modifié le"
+          "renamedAt": "Pseudo modifié le",
+          "displayNameResetTitle": "Reset du pseudo",
+          "displayNameResetHelp": "À la prochaine ouverture du portail, l'utilisateur devra à nouveau choisir un pseudo via l'overlay de première connexion.",
+          "displayNameResetAction": "Reset pseudo",
+          "displayNameResetConfirmTitle": "Reset du pseudo",
+          "displayNameResetConfirm": "Forcer {name} à choisir un nouveau pseudo à sa prochaine ouverture du portail ?",
+          "displayNameResetPending": "Reset en attente — overlay actif à la prochaine connexion."
         },
         "access": {
           "role": "Rôle",
@@ -2615,12 +2614,26 @@
       "unmute": "Activer le son",
       "trailerInfo": "Infos",
       "trailerInfoAria": "Plus d'infos sur {title}",
+      "launchMovie": "Lancer le film",
+      "launchSeries": "Lancer la série",
+      "nextFilm": "Film suivant",
+      "errors": {
+        "event_ended": "Événement terminé — la salle est fermée.",
+        "not_member": "Vous n'avez pas accepté l'invitation à cette salle."
+      },
       "marathon": {
         "title": "Marathon · film {current}/{total}",
         "ineligible": "{count} participant sans suivi Emby | {count} participants sans suivi Emby",
         "notReady": "Tous les participants n'ont pas encore atteint 85 % du film",
         "staleStep": "Un autre participant a déjà avancé le marathon",
-        "barAria": "{name} a regardé {percent}%"
+        "barAria": "{name} a regardé {percent}%",
+        "late": "En retard"
+      },
+      "playback": {
+        "title": "Lecture en cours"
+      },
+      "mobile": {
+        "participants": "Participants — {count} / {total}"
       }
     },
     "mkEvents": {
@@ -2640,6 +2653,8 @@
         "inviteesPlaceholder": "Rechercher un utilisateur...",
         "comment": "Commentaire",
         "commentPlaceholder": "Apportez vos pop-corn !",
+        "capacity": "Nombre de places",
+        "capacityHint": "Choisissez la capacité de la salle (paliers de 5).",
         "submit": "Créer",
         "errPast": "La date doit être dans le futur"
       },
@@ -2647,12 +2662,18 @@
         "title_required": "Titre obligatoire",
         "no_media": "Sélectionnez au moins un média",
         "scheduled_in_past": "La date doit être dans le futur",
-        "too_many_invitees": "Trop d'invités (max 19)",
-        "invalid_kind": "Type invalide"
+        "too_many_invitees": "Trop d'invités pour la capacité choisie",
+        "invalid_kind": "Type invalide",
+        "max_participants_required": "Sélectionnez une capacité",
+        "max_participants_step_violation": "La capacité doit être un multiple de 5",
+        "max_participants_out_of_range": "Capacité hors des limites autorisées"
       },
       "detail": {
         "scheduled": "Programmé pour",
         "creator": "Organisateur",
+        "capacity": "Places",
+        "remaining": "1 place restante sur {total} | {remaining} places restantes sur {total}",
+        "full": "Complet",
         "media": "Média",
         "marathonList": "Marathon",
         "invitees": "Participants",
@@ -2669,7 +2690,8 @@
         "cancelConfirm": "Annuler cet événement ?",
         "removeMember": "Retirer ce participant",
         "conflictWarning": "Vous avez déjà un autre événement à cette heure",
-        "enterRoom": "Entrer dans la salle"
+        "enterRoom": "Entrer dans la salle",
+        "terminated": "Terminé"
       },
       "banner": {
         "label": "Événement à venir",
@@ -3264,6 +3286,7 @@
       "forceUsername": {
         "title": "Choisissez votre pseudo",
         "subtitle": "Bienvenue ! Choisissez le pseudo qui vous représentera. Vous pourrez en changer dans 6 mois.",
+        "publicNotice": "Choisissez-le avec soin : ce pseudo apparaîtra publiquement auprès de tous les membres (classement général, salle ciné, commentaires).",
         "fieldLabel": "Pseudo",
         "save": "Confirmer",
         "saving": "Enregistrement…",
@@ -3443,6 +3466,14 @@
         "requestsCleanup": {
           "title": "Auto-nettoyage des demandes disponibles",
           "desc": "Supprime automatiquement les demandes en statut « Disponible » après ce nombre de jours. 0 = désactivé."
+        },
+        "eventCapacityMin": {
+          "title": "Capacité minimale d'un événement",
+          "desc": "Plus petite valeur que les créateurs peuvent choisir lors de la création d'un événement (paliers de 5)."
+        },
+        "eventCapacityMax": {
+          "title": "Capacité maximale d'un événement",
+          "desc": "Plus grande valeur que les créateurs peuvent choisir lors de la création d'un événement (paliers de 5)."
         },
         "maintenance": {
           "title": "Mode maintenance",

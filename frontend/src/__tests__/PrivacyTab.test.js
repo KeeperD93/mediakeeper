@@ -30,6 +30,13 @@ vi.mock('vue-i18n', () => ({
     },
     locale: { value: 'fr' },
   }),
+  // ``I18nT`` is imported by PrivacyTab + DeleteConfirmModal — stub it as
+  // a render-slots span so named slots (``contact``, ``word``) still emit
+  // their content for the assertions below.
+  I18nT: {
+    name: 'I18nT',
+    template: '<span><slot name="contact" /><slot name="word" /><slot /></span>',
+  },
 }))
 
 vi.mock('@/composables/portal/useGdprUser', () => ({

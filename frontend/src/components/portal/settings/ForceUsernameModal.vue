@@ -4,13 +4,15 @@
       <div
         v-if="open"
         class="pt-force-uname-overlay"
-        :class="{ 'pt-force-uname-overlay--mounted': mounted }"
         role="dialog"
         aria-modal="true"
       >
         <div ref="panelRef" class="pt-force-uname-panel" tabindex="-1">
           <h2 class="pt-force-uname-title">{{ $t('portal.settings.forceUsername.title') }}</h2>
           <p class="pt-force-uname-sub">{{ $t('portal.settings.forceUsername.subtitle') }}</p>
+          <p class="pt-force-uname-notice" role="note">
+            {{ $t('portal.settings.forceUsername.publicNotice') }}
+          </p>
 
           <label class="pt-settings-label" for="pt-force-uname-input">
             {{ $t('portal.settings.forceUsername.fieldLabel') }}
@@ -68,7 +70,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, reactive, ref, toRef, watch } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { usePortalAuth } from '@/composables/portal/usePortalAuth'
@@ -76,6 +78,13 @@ import { useApi } from '@/composables/useApi'
 import { useFocusTrap } from '@/composables/useFocusTrap'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
+// The modal's heavy styles (overlay backdrop, premium panel, input,
+// suggestion chips, action bar) live in settings-premium.css alongside
+// the full Settings page. Without this explicit import the picker would
+// render as plain text whenever the user lands on /portal without ever
+// visiting /portal/settings (e.g. F5 on the home page right after an
+// admin-triggered reset).
+import '@/assets/styles/portal/settings-premium.css'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -83,7 +92,7 @@ const props = defineProps({
 const emit = defineEmits(['done'])
 
 const { t } = useI18n()
-const { profile, updateProfile } = usePortalAuth()
+const { updateProfile } = usePortalAuth()
 const { apiGet } = useApi()
 const { showToast } = useToast()
 
@@ -92,11 +101,6 @@ const inputRef = ref(null)
 const panelRef = ref(null)
 const saving = ref(false)
 const errorKey = ref(null)
-// Guards the first paint: until the teleported overlay finishes mounting
-// to <body>, the panel stays visually hidden so a navigation that fires
-// during the enter transition cannot show the still-inline content at
-// its parent's position (observed bottom-left leak).
-const mounted = ref(false)
 const usernameCheck = reactive({
   pending: false,
   available: null,
@@ -106,24 +110,33 @@ const usernameCheck = reactive({
 
 let timer = null
 
+// Always opens on an empty input so the viewer is nudged into typing a
+// fresh pseudo rather than tacitly confirming their imported Emby
+// username / admin-set placeholder. The check-username debounce + the
+// 3-char ``canSave`` floor still keep an empty / too-short save from
+// landing accidentally. ``v-if`` on the parent guarantees this
+// component only mounts when the picker MUST be visible.
+function arm() {
+  candidate.value = ''
+  errorKey.value = null
+  usernameCheck.available = null
+  usernameCheck.reason = null
+  usernameCheck.suggestions = []
+}
+
 watch(
   () => props.open,
-  async open => {
-    if (!open) {
-      mounted.value = false
-      return
-    }
-    candidate.value = profile.value?.display_name || ''
-    errorKey.value = null
-    usernameCheck.available = null
-    usernameCheck.reason = null
-    usernameCheck.suggestions = []
-    await nextTick()
-    mounted.value = true
-    inputRef.value?.focus()
-    inputRef.value?.select()
+  open => {
+    if (open) arm()
   },
 )
+
+onMounted(async () => {
+  if (props.open) arm()
+  await nextTick()
+  inputRef.value?.focus()
+  inputRef.value?.select()
+})
 
 const state = computed(() => {
   const trimmed = candidate.value.trim()
@@ -232,6 +245,22 @@ useFocusTrap({
 <style scoped>
 .pt-force-uname-error {
   color: var(--portal-color-error);
+}
+
+/* Public-visibility notice — uses the portal warning token so it
+   reads as friendly emphasis (not an error) while standing apart from
+   the regular subtitle. Soft tint matches other ``--portal-color-
+   warning`` banners around the portal. */
+.pt-force-uname-notice {
+  margin-top: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--portal-radius-md);
+  background: rgb(var(--portal-color-warning-rgb), 0.12);
+  border: 1px solid rgb(var(--portal-color-warning-rgb), 0.32);
+  color: var(--portal-color-warning);
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-medium);
+  line-height: 1.4;
 }
 
 .pt-settings-uname-actions {

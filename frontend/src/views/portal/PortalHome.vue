@@ -11,7 +11,7 @@
       @play="showDetail(heroItems[heroIndex])"
       @request="handleRequest(heroItems[heroIndex])"
       @detail="showDetail(heroItems[heroIndex])"
-      @goto="heroIndex = $event"
+      @goto="gotoHero"
       @sound-on="heroPaused = true"
       @sound-off="heroPaused = false"
       @video-ended="nextHero"
@@ -217,6 +217,7 @@ const {
   heroPaused,
   featuredCount,
   nextHero,
+  gotoHero,
   loadAllData,
 } = usePortalHomeData()
 

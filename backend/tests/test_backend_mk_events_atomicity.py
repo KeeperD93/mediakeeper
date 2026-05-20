@@ -36,7 +36,11 @@ from services.portal import mk_events_members as members_mod
 from services.portal import mk_events_room as room_mod
 from services.portal.mk_events_members import invite_user, respond
 from services.portal.mk_events_room import enter_room
-from services.portal.mk_events_utils import MAX_INVITE_RETRIES, MAX_PARTICIPANTS
+from services.portal.mk_events_utils import (
+    MAX_INVITE_RETRIES,
+    MAX_PARTICIPANTS,
+    ROOM_CLOSE_AFTER_HOURS,
+)
 
 
 # SQLite's ``DateTime(timezone=True)`` strips ``tzinfo`` on the way back out,
@@ -103,6 +107,7 @@ async def _make_event(
         tmdb_ids=[{"tmdb_id": 1, "media_type": "movie", "title": "Solo"}],
         scheduled_at=scheduled_at,
         status="scheduled",
+        max_participants=MAX_PARTICIPANTS,
     )
     db.add(event)
     await db.commit()
@@ -206,19 +211,20 @@ async def test_enter_room_twice_same_user_returns_same_seat(
 
 
 @pytest.mark.asyncio
-async def test_enter_room_never_picks_a_taken_seat(
+async def test_enter_room_assigns_next_sequential_seat(
     db_session, patch_naive_now,
 ):
-    """Pre-fill all seats but one; the new entrant must land in the gap."""
+    """Allocation is sequential by ``responded_at``: the next entrant
+    lands on ``seat_index = count_seated``. After ``_compact_seats``
+    (run on every decline / remove) the layout never has gaps, so we
+    pre-seed a contiguous block here and assert the new entrant gets
+    the next free slot at the trailing edge."""
     creator = await _make_user(db_session, username="enter-no-clash-creator")
     member = await _make_user(db_session, username="enter-no-clash-member")
     event = await _make_event(db_session, creator=creator)
 
-    # Pre-seed all seats except one (seat 7) with peer accepted invitations.
-    free_seat = 7
-    for idx in range(MAX_PARTICIPANTS):
-        if idx == free_seat:
-            continue
+    pre_seeded = MAX_PARTICIPANTS - 1
+    for idx in range(pre_seeded):
         peer = await _make_user(db_session, username=f"peer-seat-{idx}")
         db_session.add(MKEventInvitation(
             event_id=event.id,
@@ -226,14 +232,16 @@ async def test_enter_room_never_picks_a_taken_seat(
             status="accepted",
             invite_count=1,
             seat_index=idx,
+            responded_at=datetime.now(timezone.utc),
         ))
     await _accept_member(db_session, event.id, member.id)
     await db_session.commit()
 
     result = await enter_room(db_session, event.id, member.id)
     assert result["ok"] is True
-    assert result["seat_index"] == free_seat, (
-        "seat allocator must pick the only free index, never reuse a taken one"
+    assert result["seat_index"] == pre_seeded, (
+        "sequential allocator must place the new entrant at count_seated, "
+        "never reuse a taken index"
     )
 
 
@@ -566,7 +574,440 @@ async def test_invite_user_reinvite_caps_at_max_retries(db_session):
     assert capped == {"error": "max_retries_reached"}
 
 
-# 4. Private-doc reference scrubbed from public modules.
+# 4. event_ended cutoff — enter_room and respond(accept) reject stale events.
+
+
+@pytest.mark.asyncio
+async def test_enter_room_rejects_event_past_close_cutoff(
+    db_session, patch_naive_now,
+):
+    """An event scheduled long enough ago to be past ``ROOM_CLOSE_AFTER_HOURS``
+    must return ``event_ended`` even if its ``status`` row is still
+    ``scheduled`` (no autonomous closer job runs yet)."""
+    creator = await _make_user(db_session, username="ended-creator")
+    member = await _make_user(db_session, username="ended-member")
+    scheduled_at = datetime.now(timezone.utc) - timedelta(
+        hours=ROOM_CLOSE_AFTER_HOURS + 2,
+    )
+    event = MKEvent(
+        creator_user_id=creator.id,
+        title="Past Movie Night",
+        kind="private",
+        tmdb_ids=[{"tmdb_id": 1, "media_type": "movie", "title": "Old"}],
+        scheduled_at=scheduled_at,
+        status="scheduled",
+    )
+    db_session.add(event)
+    await db_session.commit()
+    await db_session.refresh(event)
+    await _accept_member(db_session, event.id, member.id)
+
+    result = await enter_room(db_session, event.id, member.id)
+    assert result == {"error": "event_ended"}
+
+
+@pytest.mark.asyncio
+async def test_respond_accept_rejects_event_past_close_cutoff(db_session):
+    """``respond('accept')`` on a stale event must short-circuit before the
+    invitation row is mutated so the user can't drag themselves into a dead
+    cinema room from a leftover notification. Decline stays open so they
+    can tidy the notification anyway."""
+    creator = await _make_user(db_session, username="ended-respond-creator")
+    member = await _make_user(db_session, username="ended-respond-member")
+    scheduled_at = datetime.now(timezone.utc) - timedelta(
+        hours=ROOM_CLOSE_AFTER_HOURS + 2,
+    )
+    event = MKEvent(
+        creator_user_id=creator.id,
+        title="Past Movie Night",
+        kind="private",
+        tmdb_ids=[{"tmdb_id": 1, "media_type": "movie", "title": "Old"}],
+        scheduled_at=scheduled_at,
+        status="scheduled",
+    )
+    db_session.add(event)
+    await db_session.commit()
+    await db_session.refresh(event)
+
+    pending = MKEventInvitation(
+        event_id=event.id,
+        user_id=member.id,
+        status="pending",
+        invite_count=1,
+    )
+    db_session.add(pending)
+    await db_session.commit()
+
+    result = await respond(db_session, event.id, member.id, "accept")
+    assert result == {"error": "event_ended"}
+
+    # Decline is still possible — viewers can tidy stale notifications.
+    decline_result = await respond(db_session, event.id, member.id, "decline")
+    assert decline_result.get("ok") is True
+
+
+# 5. _serialize_event — surfaces a per-invitation avatar_url so the
+#    cinema seats UI can render the same avatar as the Users panel.
+
+
+@pytest.mark.asyncio
+async def test_serialize_event_exposes_per_invitation_avatar_url(db_session):
+    """Each accepted invitation must carry its resolver-correct avatar:
+    a custom upload becomes ``/api/portal/avatars/<file>`` (the Emby URL
+    is bypassed), while a user with only an Emby-proxied URL keeps it
+    untouched. A user with no avatar at all surfaces ``None`` so the
+    front-end can fall back to the username initial."""
+    from services.portal.mk_events_utils import _serialize_event
+
+    creator = await _make_user(db_session, username="srlz-creator")
+    custom_user = await _make_user(db_session, username="srlz-custom")
+    emby_user = await _make_user(db_session, username="srlz-emby")
+    blank_user = await _make_user(db_session, username="srlz-blank")
+    event = await _make_event(db_session, creator=creator)
+
+    # Stamp distinct avatar sources on each profile.
+    custom_profile = (await db_session.execute(
+        select(UserProfile).where(UserProfile.user_id == custom_user.id)
+    )).scalar_one()
+    custom_profile.avatar_custom_path = "abc123.png"
+    custom_profile.avatar_url = "https://emby.example/avatar/should-be-ignored"
+    emby_profile = (await db_session.execute(
+        select(UserProfile).where(UserProfile.user_id == emby_user.id)
+    )).scalar_one()
+    emby_profile.avatar_url = "https://emby.example/avatar/emby-only.png"
+    await db_session.commit()
+
+    await _accept_member(db_session, event.id, custom_user.id)
+    await _accept_member(db_session, event.id, emby_user.id)
+    await _accept_member(db_session, event.id, blank_user.id)
+
+    payload = await _serialize_event(db_session, event)
+    by_user = {inv["user_id"]: inv for inv in payload["invitations"]}
+
+    assert by_user[custom_user.id]["avatar_url"] == "/api/portal/avatars/abc123.png", (
+        "a custom upload must win over the Emby URL"
+    )
+    assert by_user[emby_user.id]["avatar_url"] == "https://emby.example/avatar/emby-only.png", (
+        "with no custom upload the Emby-proxied URL is forwarded as-is"
+    )
+    assert by_user[blank_user.id]["avatar_url"] is None, (
+        "no avatar source → None so the UI can fall back to the initial"
+    )
+
+
+
+
+# 6. Presence + per-user marathon advance.
+
+
+@pytest.mark.asyncio
+async def test_enter_room_stamps_last_seen_at_and_seeds_user_step(
+    db_session, patch_naive_now,
+):
+    """A first entry must stamp ``last_seen_at`` so peers see the avatar
+    immediately, and seed ``user_step`` to the event's current step so
+    a latecomer drops in on the film the group is currently watching."""
+    creator = await _make_user(db_session, username="presence-seed-creator")
+    member = await _make_user(db_session, username="presence-seed-member")
+    event = await _make_event(db_session, creator=creator)
+    # Group has already advanced once before the latecomer joins.
+    event.current_step = 1
+    db_session.add(event)
+    await db_session.commit()
+    await _accept_member(db_session, event.id, member.id)
+
+    result = await enter_room(db_session, event.id, member.id)
+    assert result["ok"] is True
+
+    fresh_inv = (await db_session.execute(
+        select(MKEventInvitation)
+        .where(
+            MKEventInvitation.event_id == event.id,
+            MKEventInvitation.user_id == member.id,
+        )
+        .execution_options(populate_existing=True)
+    )).scalar_one()
+    assert fresh_inv.last_seen_at is not None
+    assert fresh_inv.user_step == 1, (
+        "first-time entrant must inherit the group-wide current_step"
+    )
+
+
+@pytest.mark.asyncio
+async def test_heartbeat_bumps_last_seen_at(db_session, patch_naive_now):
+    """Calling ``heartbeat`` advances ``last_seen_at`` past the prior stamp."""
+    from services.portal.mk_events_presence import heartbeat as do_heartbeat
+
+    creator = await _make_user(db_session, username="hb-creator")
+    member = await _make_user(db_session, username="hb-member")
+    event = await _make_event(db_session, creator=creator)
+    await _accept_member(db_session, event.id, member.id)
+    await enter_room(db_session, event.id, member.id)
+
+    fresh = (await db_session.execute(
+        select(MKEventInvitation).where(
+            MKEventInvitation.event_id == event.id,
+            MKEventInvitation.user_id == member.id,
+        ).execution_options(populate_existing=True)
+    )).scalar_one()
+    initial_stamp = fresh.last_seen_at
+    assert initial_stamp is not None
+
+    # Roll the clock forward so the next heartbeat lands on a later stamp
+    # even on systems with low-resolution monotonic clocks.
+    fresh.last_seen_at = initial_stamp - _dt.timedelta(seconds=2)
+    db_session.add(fresh)
+    await db_session.commit()
+
+    result = await do_heartbeat(db_session, event.id, member.id)
+    assert result == {"ok": True}
+
+    fresh = (await db_session.execute(
+        select(MKEventInvitation).where(
+            MKEventInvitation.event_id == event.id,
+            MKEventInvitation.user_id == member.id,
+        ).execution_options(populate_existing=True)
+    )).scalar_one()
+    assert fresh.last_seen_at > initial_stamp - _dt.timedelta(seconds=2)
+
+
+@pytest.mark.asyncio
+async def test_leave_clears_last_seen_at_but_preserves_seat(
+    db_session, patch_naive_now,
+):
+    """``leave_room`` drops the live presence flag (avatar hidden for
+    peers) but keeps ``seat_index`` so a returning viewer reclaims the
+    same seat instead of being shuffled to a new one."""
+    from services.portal.mk_events_presence import leave_room as do_leave
+
+    creator = await _make_user(db_session, username="leave-creator")
+    member = await _make_user(db_session, username="leave-member")
+    event = await _make_event(db_session, creator=creator)
+    await _accept_member(db_session, event.id, member.id)
+    entry = await enter_room(db_session, event.id, member.id)
+    seat_at_entry = entry["seat_index"]
+
+    result = await do_leave(db_session, event.id, member.id)
+    assert result == {"ok": True}
+
+    fresh = (await db_session.execute(
+        select(MKEventInvitation).where(
+            MKEventInvitation.event_id == event.id,
+            MKEventInvitation.user_id == member.id,
+        ).execution_options(populate_existing=True)
+    )).scalar_one()
+    assert fresh.last_seen_at is None
+    assert fresh.seat_index == seat_at_entry, (
+        "leaving the room preserves the seat so re-entry hits the same one"
+    )
+
+
+@pytest.mark.asyncio
+async def test_advance_self_bumps_user_step_and_resyncs_event_max(
+    db_session, patch_naive_now,
+):
+    """``advance_self_step`` increments only the caller's ``user_step``
+    and resyncs ``MKEvent.current_step`` to ``max(user_step)`` across
+    every accepted, seated invitation — peers stay on their own film."""
+    from services.portal.mk_events_presence import advance_self_step
+
+    creator = await _make_user(db_session, username="adv-creator")
+    fast = await _make_user(db_session, username="adv-fast")
+    slow = await _make_user(db_session, username="adv-slow")
+    event = await _make_event(db_session, creator=creator)
+    # Marathon: 3 films.
+    event.tmdb_ids = [
+        {"tmdb_id": 1, "media_type": "movie", "title": "A"},
+        {"tmdb_id": 2, "media_type": "movie", "title": "B"},
+        {"tmdb_id": 3, "media_type": "movie", "title": "C"},
+    ]
+    db_session.add(event)
+    await db_session.commit()
+    await _accept_member(db_session, event.id, fast.id)
+    await _accept_member(db_session, event.id, slow.id)
+    await enter_room(db_session, event.id, fast.id)
+    await enter_room(db_session, event.id, slow.id)
+
+    result = await advance_self_step(db_session, event.id, fast.id)
+    assert result["ok"] is True
+    assert result["user_step"] == 1
+    assert result["current_step"] == 1, (
+        "event-wide current_step must follow the furthest viewer"
+    )
+
+    slow_inv = (await db_session.execute(
+        select(MKEventInvitation).where(
+            MKEventInvitation.event_id == event.id,
+            MKEventInvitation.user_id == slow.id,
+        )
+    )).scalar_one()
+    assert slow_inv.user_step == 0, (
+        "advancing one viewer must NOT bump their peers"
+    )
+
+
+@pytest.mark.asyncio
+async def test_advance_self_refuses_past_last_step(
+    db_session, patch_naive_now,
+):
+    """A viewer who has already reached the last film gets a clean 400
+    instead of overflowing ``user_step``."""
+    from services.portal.mk_events_presence import (
+        PresenceError, advance_self_step,
+    )
+
+    creator = await _make_user(db_session, username="last-creator")
+    member = await _make_user(db_session, username="last-member")
+    event = await _make_event(db_session, creator=creator)
+    event.tmdb_ids = [
+        {"tmdb_id": 1, "media_type": "movie", "title": "A"},
+        {"tmdb_id": 2, "media_type": "movie", "title": "B"},
+    ]
+    db_session.add(event)
+    await db_session.commit()
+    await _accept_member(db_session, event.id, member.id)
+    await enter_room(db_session, event.id, member.id)
+    # Bump to the last film manually.
+    inv = (await db_session.execute(
+        select(MKEventInvitation).where(
+            MKEventInvitation.event_id == event.id,
+            MKEventInvitation.user_id == member.id,
+        )
+    )).scalar_one()
+    inv.user_step = 1
+    db_session.add(inv)
+    await db_session.commit()
+
+    with pytest.raises(PresenceError) as excinfo:
+        await advance_self_step(db_session, event.id, member.id)
+    assert excinfo.value.status_code == 400
+    assert excinfo.value.detail == "already_last"
+
+
+# 7. Per-event capacity + centered allocation + compact-on-decline.
+
+
+@pytest.mark.asyncio
+async def test_enter_room_allocates_sequential_seats(
+    db_session, patch_naive_now,
+):
+    """Three viewers entering in a row land on seat_index 1, 2, 3 — the
+    creator already holds seat 0 from ``_make_event``. Combined with
+    ``_compact_seats`` on decline this keeps the cinema layout centred."""
+    creator = await _make_user(db_session, username="seq-creator")
+    alice = await _make_user(db_session, username="seq-alice")
+    bob = await _make_user(db_session, username="seq-bob")
+    carol = await _make_user(db_session, username="seq-carol")
+    event = await _make_event(db_session, creator=creator)
+    await _accept_member(db_session, event.id, creator.id)
+    await _accept_member(db_session, event.id, alice.id)
+    await _accept_member(db_session, event.id, bob.id)
+    await _accept_member(db_session, event.id, carol.id)
+
+    a = await enter_room(db_session, event.id, creator.id)
+    b = await enter_room(db_session, event.id, alice.id)
+    c = await enter_room(db_session, event.id, bob.id)
+    d = await enter_room(db_session, event.id, carol.id)
+
+    assert a["seat_index"] == 0
+    assert b["seat_index"] == 1
+    assert c["seat_index"] == 2
+    assert d["seat_index"] == 3
+
+
+@pytest.mark.asyncio
+async def test_decline_compacts_remaining_seats(
+    db_session, patch_naive_now,
+):
+    """When a seated viewer declines, the remaining seats are compacted
+    to 0..N-1 (option B rebalance). Used by the cinema layout to keep
+    avatars at the centre regardless of who leaves."""
+    from services.portal.mk_events_members import respond
+
+    creator = await _make_user(db_session, username="cmp-creator")
+    alice = await _make_user(db_session, username="cmp-alice")
+    bob = await _make_user(db_session, username="cmp-bob")
+    event = await _make_event(db_session, creator=creator)
+    await _accept_member(db_session, event.id, creator.id)
+    await _accept_member(db_session, event.id, alice.id)
+    await _accept_member(db_session, event.id, bob.id)
+    await enter_room(db_session, event.id, creator.id)  # seat 0
+    await enter_room(db_session, event.id, alice.id)    # seat 1
+    await enter_room(db_session, event.id, bob.id)      # seat 2
+
+    # Alice declines → her seat 1 should be freed and bob's seat 2
+    # should collapse to 1 so the block stays contiguous.
+    res = await respond(db_session, event.id, alice.id, "decline")
+    assert res.get("ok") is True
+
+    bob_inv = (await db_session.execute(
+        select(MKEventInvitation).where(
+            MKEventInvitation.event_id == event.id,
+            MKEventInvitation.user_id == bob.id,
+        ).execution_options(populate_existing=True)
+    )).scalar_one()
+    assert bob_inv.seat_index == 1, (
+        "Bob's seat must compact from 2 → 1 after Alice declines"
+    )
+
+
+@pytest.mark.asyncio
+async def test_serialize_event_exposes_is_full_when_capacity_reached(
+    db_session, patch_naive_now,
+):
+    """``is_full`` flips true once ``accepted_count >= max_participants``.
+    Public event cards rely on this to swap the signup CTA for the
+    'Complet' badge."""
+    from services.portal.mk_events_utils import _serialize_event
+
+    creator = await _make_user(db_session, username="full-creator")
+    event = await _make_event(db_session, creator=creator)
+    event.max_participants = 5
+    db_session.add(event)
+    await db_session.commit()
+    await _accept_member(db_session, event.id, creator.id)
+    for i in range(4):
+        peer = await _make_user(db_session, username=f"full-peer-{i}")
+        await _accept_member(db_session, event.id, peer.id)
+
+    payload = await _serialize_event(db_session, event)
+    assert payload["max_participants"] == 5
+    assert payload["accepted_count"] == 5
+    assert payload["is_full"] is True
+
+
+@pytest.mark.asyncio
+async def test_admin_settings_capacity_bounds_snap_to_step_5(db_session):
+    """Capacity bounds always land on a step-5 multiple, even if the
+    admin pushes 7 in a PATCH. ``update_portal_settings`` snaps the
+    value and re-orders ``min > max`` if needed."""
+    from services.portal.admin import (
+        get_event_capacity_bounds,
+        update_portal_settings,
+    )
+
+    # Default bounds before any admin write.
+    lo, hi = await get_event_capacity_bounds(db_session)
+    assert lo == 5 and hi == 20
+
+    await update_portal_settings(db_session, {
+        "portal.events.max_participants_min": 7,
+        "portal.events.max_participants_max": 18,
+    })
+    lo, hi = await get_event_capacity_bounds(db_session)
+    assert lo == 5, "7 snaps down to the nearest step-5 multiple (5)"
+    assert hi == 20, "18 snaps up to the nearest step-5 multiple (20)"
+
+    # min pushed above max in a single PATCH → max bumps to match min.
+    await update_portal_settings(db_session, {
+        "portal.events.max_participants_min": 15,
+        "portal.events.max_participants_max": 10,
+    })
+    lo, hi = await get_event_capacity_bounds(db_session)
+    assert lo == 15 and hi == 15
+
+
+# 8. Private-doc reference scrubbed from public modules.
 
 
 @pytest.mark.asyncio

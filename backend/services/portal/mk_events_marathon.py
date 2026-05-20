@@ -28,7 +28,7 @@ from services.portal._watch_threshold import (
     WATCHED_THRESHOLD,
     session_meets_threshold,
 )
-from services.portal.mk_events_utils import _serialize_event
+from services.portal.mk_events_utils import _serialize_event, is_currently_in_room
 
 logger = logging.getLogger("mediakeeper.portal.mk_events.marathon")
 
@@ -87,9 +87,20 @@ def _current_media(event: MKEvent) -> dict | None:
 
 
 async def _gather_participant_progress(
-    db: AsyncSession, event_id: int, current_tmdb_id: int, lang: str,
+    db: AsyncSession,
+    event_id: int,
+    media_items: list[dict],
+    lang: str,
 ) -> tuple[list[dict], int]:
-    """Return ``(participants, ineligible_count)`` for the current film.
+    """Return ``(participants, ineligible_count)`` for the per-user films.
+
+    Each participant scans the ``PlaybackSession`` matching the TMDB id
+    of *their* current ``user_step`` rather than a shared step — that
+    way a viewer who finished film 1 can have their bar fill up on film
+    2 even while a latecomer's row still shows film 1. ``media_items``
+    is the event's full ``tmdb_ids`` list; the lookup falls back to
+    item 0 if a participant's ``user_step`` ever lands out of range
+    (defensive guard against stale rows).
 
     Participants without an Emby identifier cannot be tracked, so they
     are excluded from the readiness gate and counted separately in
@@ -99,6 +110,7 @@ async def _gather_participant_progress(
     rows = (await db.execute(
         select(
             MKEventInvitation.user_id,
+            MKEventInvitation.user_step,
             User.username,
             UserProfile.display_name,
             UserProfile.display_name_must_set,
@@ -115,8 +127,20 @@ async def _gather_participant_progress(
 
     participants: list[dict] = []
     ineligible = 0
-    for user_id, username, display, must_set, emby_user_id in rows:
+    for user_id, user_step, username, display, must_set, emby_user_id in rows:
         if not emby_user_id:
+            ineligible += 1
+            continue
+        # Defensive bounds check — a stale ``user_step`` past the last
+        # entry shouldn't crash the snapshot, so we clamp it to the
+        # first item rather than raising.
+        idx = user_step if 0 <= user_step < len(media_items) else 0
+        media = media_items[idx] if media_items else None
+        tmdb_id = (
+            media.get("tmdb_id")
+            if isinstance(media, dict) else None
+        )
+        if not tmdb_id:
             ineligible += 1
             continue
         latest = (await db.execute(
@@ -128,7 +152,7 @@ async def _gather_participant_progress(
             )
             .where(
                 PlaybackSession.user_id == emby_user_id,
-                EmbyTmdbIndex.tmdb_id == current_tmdb_id,
+                EmbyTmdbIndex.tmdb_id == tmdb_id,
             )
             .order_by(PlaybackSession.id.desc())
             .limit(1)
@@ -160,6 +184,10 @@ async def _gather_participant_progress(
             "display_name": resolve_display_name(
                 username_for_display, user_id, lang,
             ),
+            # Per-user marathon step (see migration 051). Surfaced to
+            # the panel so each row shows its own ``X/Y`` cell and the
+            # "En retard" tag fires when ``user_step < current_step``.
+            "user_step": user_step,
             "ratio": round(ratio, 4),
             "seconds_remaining": seconds_remaining,
             "meets_threshold": meets,
@@ -170,7 +198,19 @@ async def _gather_participant_progress(
 async def compute_marathon_progress(
     db: AsyncSession, event_id: int, viewer_user_id: int, lang: str = "fr",
 ) -> dict:
-    """Snapshot of marathon progress for the cinema-room poller."""
+    """Snapshot of playback progress for the cinema-room poller.
+
+    The payload covers both shapes the cinema room cares about:
+
+    * **Marathon** (``len(tmdb_ids) > 1``): per-participant ratio on the
+      *current* film, used by the readiness gate and the per-row time
+      remaining. ``is_marathon`` is ``True``.
+    * **Single-film** (``len(tmdb_ids) == 1``): same payload, just with
+      ``is_marathon=False`` and ``total_steps=1`` so the front-end can
+      still render a "Lecture en cours" panel with the live timer.
+      Without this branch the panel stayed hidden and the timer only
+      appeared after a hard refresh — see the cinema-room polish cycle.
+    """
     event = (await db.execute(
         select(MKEvent).where(MKEvent.id == event_id)
     )).scalar_one_or_none()
@@ -179,38 +219,58 @@ async def compute_marathon_progress(
     await _participation_gate(db, event, viewer_user_id)
 
     items = event.tmdb_ids or []
-    if len(items) <= 1:
-        return {
-            "is_marathon": False,
-            "current_step": event.current_step or 0,
-            "ready": False,
-            "participants": [],
+    is_marathon = len(items) > 1
+    current_step = event.current_step or 0
+
+    # Presence map (user_id -> is_currently_in_room) so the front-end
+    # can refresh seat avatars on every progress tick instead of full
+    # ``getOne`` round-trips. Returned alongside ``participants`` (which
+    # only covers Emby-trackable viewers) so even non-Emby viewers get
+    # their avatar painted / hidden in sync.
+    presence_rows = (await db.execute(
+        select(
+            MKEventInvitation.user_id,
+            MKEventInvitation.last_seen_at,
+        ).where(
+            MKEventInvitation.event_id == event_id,
+            MKEventInvitation.status == "accepted",
+            MKEventInvitation.seat_index.isnot(None),
+        )
+    )).all()
+    presence = [
+        {
+            "user_id": uid,
+            "is_currently_in_room": is_currently_in_room(last_seen),
         }
+        for uid, last_seen in presence_rows
+    ]
 
     current_media = _current_media(event)
     if not current_media or current_media["tmdb_id"] is None:
-        # Marathon already past the last entry (shouldn't happen but
-        # surfacing a no-op snapshot beats a 500).
+        # No playable media (empty tmdb_ids or step past the end).
+        # Surface a benign snapshot rather than 500-ing the poller.
         return {
-            "is_marathon": True,
-            "current_step": event.current_step,
+            "is_marathon": is_marathon,
+            "current_step": current_step,
             "total_steps": len(items),
             "current_tmdb": None,
             "participants": [],
+            "presence": presence,
             "ready": False,
             "ineligible_count": 0,
         }
 
     participants, ineligible = await _gather_participant_progress(
-        db, event_id, int(current_media["tmdb_id"]), lang,
+        db, event_id, items, lang,
     )
     ready = bool(participants) and all(p["meets_threshold"] for p in participants)
     return {
-        "is_marathon": True,
-        "current_step": event.current_step,
+        "is_marathon": is_marathon,
+        "current_step": current_step,
         "total_steps": len(items),
         "current_tmdb": current_media,
         "participants": participants,
+        "presence": presence,
         "ready": ready,
         "ineligible_count": ineligible,
     }
@@ -266,7 +326,7 @@ async def advance_marathon_step(
         await db.rollback()
         raise MarathonError(400, "invalid_current_media")
     participants, ineligible = await _gather_participant_progress(
-        db, event_id, int(current_media["tmdb_id"]), lang,
+        db, event_id, items, lang,
     )
     if not participants or not all(p["meets_threshold"] for p in participants):
         payload = {

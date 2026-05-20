@@ -190,16 +190,9 @@
       "hMin": "{h}h {m}min",
       "dH": "{d}d {h}h",
       "moD": "{mo} mo {d}d"
-    },
-    "attribution": {
-      "text": "This product uses the TMDB API but is not endorsed or certified by TMDB.",
-      "logoAlt": "TMDB"
     }
   },
   "attribution": {
-    "footer": {
-      "fullCredits": "Full credits"
-    },
     "githubLink": "source code on GitHub",
     "credits": {
       "title": "Credits & attributions",
@@ -1173,7 +1166,6 @@
   },
   "settings": {
     "title": "Settings",
-    "accentColor": "Accent color",
     "sourceMedia": "Media source",
     "sourceMediaDesc": "Only one active source at a time. Powers the dashboard and statistics.",
     "externalApis": "External APIs",
@@ -1828,7 +1820,8 @@
         "created": "User created",
         "bulkDone": "{count} action(s) applied",
         "embyIdsSynced": "{updated} account(s) linked to Emby, {already} already up-to-date, {unmatched} unmatched",
-        "forceLogoutDone": "Sessions invalidated"
+        "forceLogoutDone": "Sessions invalidated",
+        "displayNameResetDone": "Display name reset scheduled"
       },
       "errors": {
         "username_taken": "This username is already taken.",
@@ -1898,7 +1891,13 @@
           "source": "Source",
           "embyId": "Emby id",
           "created": "Created",
-          "renamedAt": "Display name changed"
+          "renamedAt": "Display name changed",
+          "displayNameResetTitle": "Display name reset",
+          "displayNameResetHelp": "On their next portal visit, the user will be forced to pick a new display name via the first-login overlay.",
+          "displayNameResetAction": "Reset display name",
+          "displayNameResetConfirmTitle": "Reset display name",
+          "displayNameResetConfirm": "Force {name} to pick a new display name on their next portal visit?",
+          "displayNameResetPending": "Reset pending — overlay will trigger on next login."
         },
         "access": {
           "role": "Role",
@@ -2615,12 +2614,26 @@
       "unmute": "Unmute",
       "trailerInfo": "Info",
       "trailerInfoAria": "More info about {title}",
+      "launchMovie": "Start the movie",
+      "launchSeries": "Start the series",
+      "nextFilm": "Next film",
+      "errors": {
+        "event_ended": "Event ended — the cinema room is closed.",
+        "not_member": "You haven't accepted this room's invitation."
+      },
       "marathon": {
         "title": "Marathon · film {current} of {total}",
         "ineligible": "{count} participant without Emby tracking | {count} participants without Emby tracking",
         "notReady": "Some participants haven't reached 85% of the film yet",
         "staleStep": "Another participant already advanced the marathon",
-        "barAria": "{name} watched {percent}%"
+        "barAria": "{name} watched {percent}%",
+        "late": "Behind"
+      },
+      "playback": {
+        "title": "Now playing"
+      },
+      "mobile": {
+        "participants": "Participants — {count} / {total}"
       }
     },
     "mkEvents": {
@@ -2640,6 +2653,8 @@
         "inviteesPlaceholder": "Search a user...",
         "comment": "Comment",
         "commentPlaceholder": "Bring your popcorn!",
+        "capacity": "Seats",
+        "capacityHint": "Pick the room capacity (steps of 5).",
         "submit": "Create",
         "errPast": "Date must be in the future"
       },
@@ -2647,12 +2662,18 @@
         "title_required": "Title required",
         "no_media": "Select at least one media",
         "scheduled_in_past": "Date must be in the future",
-        "too_many_invitees": "Too many invitees (max 19)",
-        "invalid_kind": "Invalid type"
+        "too_many_invitees": "Too many invitees for the chosen capacity",
+        "invalid_kind": "Invalid type",
+        "max_participants_required": "Pick a capacity",
+        "max_participants_step_violation": "Capacity must be a multiple of 5",
+        "max_participants_out_of_range": "Capacity outside the allowed bounds"
       },
       "detail": {
         "scheduled": "Scheduled for",
         "creator": "Organizer",
+        "capacity": "Seats",
+        "remaining": "1 seat left of {total} | {remaining} seats left of {total}",
+        "full": "Full",
         "media": "Media",
         "marathonList": "Marathon",
         "invitees": "Participants",
@@ -2669,7 +2690,8 @@
         "cancelConfirm": "Cancel this event?",
         "removeMember": "Remove this participant",
         "conflictWarning": "You already have another event at this time",
-        "enterRoom": "Enter the room"
+        "enterRoom": "Enter the room",
+        "terminated": "Ended"
       },
       "banner": {
         "label": "Upcoming event",
@@ -3264,6 +3286,7 @@
       "forceUsername": {
         "title": "Choose your username",
         "subtitle": "Welcome! Pick the username that will represent you. You can change it again in 6 months.",
+        "publicNotice": "Choose carefully — this username is shown publicly to every other member (global leaderboard, cinema room, comments).",
         "fieldLabel": "Username",
         "save": "Confirm",
         "saving": "Saving…",
@@ -3443,6 +3466,14 @@
         "requestsCleanup": {
           "title": "Auto-cleanup of available requests",
           "desc": "Automatically deletes requests in the \"Available\" status after this many days. 0 = disabled."
+        },
+        "eventCapacityMin": {
+          "title": "Minimum event capacity",
+          "desc": "Smallest value event creators can pick when starting a new event (steps of 5)."
+        },
+        "eventCapacityMax": {
+          "title": "Maximum event capacity",
+          "desc": "Largest value event creators can pick when starting a new event (steps of 5)."
         },
         "maintenance": {
           "title": "Maintenance mode",

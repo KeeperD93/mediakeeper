@@ -101,10 +101,14 @@ async def get_full_details(
 
         reviews = extract_reviews(d.get("reviews", {}))
         studios = extract_studios(d.get("production_companies", []))
-        countries = [c.get("name", "") for c in d.get("production_countries", [])]
-        languages = [
-            lang.get("english_name") or lang.get("name") or ""
-            for lang in d.get("spoken_languages", [])
+        # Expose ISO codes (3166-1 alpha-2) so the frontend can localise the
+        # label via ``Intl.DisplayNames``. TMDB only translates a subset of
+        # country names — most stay English regardless of the ``language``
+        # query parameter.
+        country_codes = [
+            (c.get("iso_3166_1") or "").upper()
+            for c in d.get("production_countries") or []
+            if c.get("iso_3166_1")
         ]
 
         external = d.get("external_ids", {}) or {}
@@ -133,8 +137,7 @@ async def get_full_details(
             "reviews": reviews,
             "watch_providers": pick_watch_providers(d),
             "studios": studios,
-            "countries": countries,
-            "languages": languages,
+            "country_codes": country_codes,
             "original_language": d.get("original_language", ""),
             "homepage": d.get("homepage", ""),
             "imdb_id": external.get("imdb_id", ""),

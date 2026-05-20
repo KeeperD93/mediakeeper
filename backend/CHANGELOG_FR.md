@@ -10,10 +10,12 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 ## [Unreleased]
 
 ### Added
+- Admin Portail — bouton « Reset pseudo » sur la fiche utilisateur (relance l'overlay de choix).
 - Portal : nouveau composant jaquette « PosterCard » conforme i18n/tokens (préparation à l'intégration).
 - Paramètres — nouvelle section Réseau avec cache d'images et cache DNS (toggles).
 - Paramètres → Planificateur — section Cache (stats hits/manques + bouton Vider).
 - Tableau de bord — réorganisation des cartes sur mobile via une liste de lignes (bouton « Personnaliser », glisser-déposer).
+- Paramètres → Portail — bornes capacité événements (min/max par tranche de 5).
 
 ### Changed
 - Doublons — barre d'actions épurée : onglet « Détections » et horodatage « Dernière détection »
@@ -33,6 +35,8 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Notifications — selects et inputs harmonisés (chevron custom).
 - Onglets — interface compactée sur mobile.
 - Pied de page — crédits TMDB compactés.
+- Pied de page — bandeau d'attribution retiré (crédits conservés dans À propos).
+- Avatar (haut à droite) — sélecteur de couleur d'accent retiré (déjà dans Paramètres → Apparence).
 - Suivi — bouton « Restaurer » réaligné (radius unifié).
 - Statistiques — records empilés en colonne sur mobile.
 - Watchlist Manquants : nouveau label « Dernier scan », bouton renommé « Analyser ».

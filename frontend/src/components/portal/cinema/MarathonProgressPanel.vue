@@ -6,11 +6,19 @@
   >
     <header class="pt-cr-marathon-head">
       <Film :size="14" :stroke-width="2.5" />
-      <span>{{ $t('portal.cinema.marathon.title', { current: currentStep + 1, total: totalSteps }) }}</span>
+      <span>{{ headerLabel }}</span>
     </header>
     <ul class="pt-cr-marathon-list">
       <li v-for="p in participants" :key="p.user_id" class="pt-cr-marathon-row">
-        <span class="pt-cr-marathon-name">{{ p.display_name }}</span>
+        <span class="pt-cr-marathon-name">
+          {{ p.display_name }}
+          <span
+            v-if="isMarathon && p.user_step != null && p.user_step < currentStep"
+            class="pt-cr-marathon-late"
+          >
+            {{ $t('portal.cinema.marathon.late') }}
+          </span>
+        </span>
         <div
           class="pt-cr-marathon-bar"
           :aria-label="$t('portal.cinema.marathon.barAria', {
@@ -30,7 +38,12 @@
             <Check :size="10" :stroke-width="3" />
           </div>
         </div>
-        <span class="pt-cr-marathon-time">{{ formatRemaining(p.seconds_remaining) }}</span>
+        <span class="pt-cr-marathon-time">
+          <template v-if="isMarathon && p.user_step != null">
+            {{ p.user_step + 1 }}/{{ totalSteps }}
+          </template>
+          <template v-else>{{ formatRemaining(p.seconds_remaining) }}</template>
+        </span>
       </li>
     </ul>
     <p
@@ -44,18 +57,43 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Check, Film } from 'lucide-vue-next'
 
 const props = defineProps({
   progress: { type: Object, default: null },
 })
 
-const visible = computed(() => Boolean(props.progress?.is_marathon))
+const { t } = useI18n()
+
+const isMarathon = computed(() => Boolean(props.progress?.is_marathon))
 const currentStep = computed(() => props.progress?.current_step ?? 0)
 const totalSteps = computed(() => props.progress?.total_steps ?? 0)
 const participants = computed(() => props.progress?.participants ?? [])
 const ineligibleCount = computed(() => props.progress?.ineligible_count ?? 0)
 const ready = computed(() => Boolean(props.progress?.ready))
+
+// The panel surfaces in two shapes:
+//   * Marathon — always visible (even pre-launch) so the X/Y header,
+//     ineligible-count notice and per-user "En retard" tags can warn
+//     viewers about state they need to know about.
+//   * Single-film — visible only once at least one participant has a
+//     live playback session, so the room stays clean while everyone is
+//     waiting for the countdown.
+const visible = computed(() => {
+  if (!props.progress) return false
+  return isMarathon.value || participants.value.length > 0
+})
+
+const headerLabel = computed(() => {
+  if (isMarathon.value) {
+    return t('portal.cinema.marathon.title', {
+      current: currentStep.value + 1,
+      total: totalSteps.value,
+    })
+  }
+  return t('portal.cinema.playback.title')
+})
 
 function pct(ratio) {
   const r = Number.isFinite(ratio) ? ratio : 0
@@ -80,9 +118,13 @@ defineExpose({ pct, formatRemaining })
 <style scoped>
 .pt-cr-marathon {
   position: absolute;
-  top: 80px;
+  bottom: 80px;
   left: 12px;
-  z-index: 4;
+  /* Sits above the seats (z-index 5) and the seat bubbles aren't an
+     issue (bubbles are 30 and we never overlap them — they bloom from
+     a seat going up, marathon panel is bottom-left). Still below the
+     HUD (12) and the launch CTA (15). */
+  z-index: 10;
   width: 260px;
   max-width: 92vw;
   padding: 10px 12px 12px;
@@ -125,6 +167,20 @@ defineExpose({ pct, formatRemaining })
   text-overflow: ellipsis;
   white-space: nowrap;
   color: rgb(255, 255, 255, 0.88);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.pt-cr-marathon-late {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: var(--portal-font-bold);
+  padding: 1px 6px;
+  border-radius: var(--portal-radius-pill);
+  background: rgb(var(--portal-color-warning-rgb), 0.22);
+  color: var(--portal-color-warning);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .pt-cr-marathon-bar {
@@ -169,7 +225,7 @@ defineExpose({ pct, formatRemaining })
 
 @media (max-width: 640px) {
   .pt-cr-marathon {
-    top: 64px;
+    bottom: 64px;
     left: 8px;
     width: calc(100vw - 16px);
   }

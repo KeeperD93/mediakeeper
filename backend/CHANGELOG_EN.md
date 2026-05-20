@@ -10,10 +10,12 @@ This section intentionally has no date so it is not shown to users.
 ## [Unreleased]
 
 ### Added
+- Portal admin — "Reset display name" button on the user drawer (re-arms the picker overlay).
 - Portal: new "PosterCard" cover component, i18n/tokens compliant (integration prep).
 - Settings — new Network section with image cache and DNS cache toggles
 - Settings → Scheduler — Cache section (hit/miss stats + Clear button)
 - Dashboard — reorder cards on mobile via a title list ("Customize" button, drag rows)
+- Settings → Portal — event capacity bounds (admin min/max, step of 5).
 
 ### Changed
 - Duplicates — streamlined action bar: "Detections" tab and "Last detection" timestamp
@@ -33,6 +35,8 @@ This section intentionally has no date so it is not shown to users.
 - Notifications — selects and inputs harmonized (custom chevron)
 - Tabs — compacted interface on mobile
 - Footer — TMDB credits compacted
+- Footer — attribution banner removed (credits kept on About page).
+- Avatar menu (top right) — accent color picker removed (already in Settings → Appearance).
 - Watchlist — "Restore" button realigned (unified radius)
 - Statistics — records stacked vertically on mobile
 - Watchlist Missing tab: new "Last scan" label, button renamed "Analyze"

@@ -372,6 +372,52 @@ async def test_self_deactivate_is_blocked(client, admin_user, db_session):
 
 
 @pytest.mark.asyncio
+async def test_reset_display_name_flags_profile_and_audits(client, admin_user, db_session):
+    """POST /reset-display-name must flip the must-set flag and log the action."""
+    db_session.add(UserProfile(
+        user_id=admin_user.id,
+        display_name="Admin",
+        role="admin",
+        source="local",
+        account_active=True,
+    ))
+    await db_session.commit()
+
+    _auth(client, admin_user)
+    resp = await client.post("/api/portal/admin/users/local", json={
+        "username": "frank",
+        "password": "supersecret",
+        "display_name": "Frank",
+    })
+    assert resp.status_code == 200, resp.text
+    profile_id = resp.json()["profile_id"]
+
+    # Sanity: the freshly created user starts with the flag cleared
+    # (admin-side identity update sets ``display_name_must_set=False``).
+    resp = await client.get(f"/api/portal/admin/users/{profile_id}")
+    assert resp.status_code == 200
+    assert resp.json()["display_name_must_set"] is False
+
+    # Reset
+    resp = await client.post(
+        f"/api/portal/admin/users/{profile_id}/reset-display-name"
+    )
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["ok"] is True
+
+    # Flag now armed — the first-login overlay will reappear for the user
+    resp = await client.get(f"/api/portal/admin/users/{profile_id}")
+    assert resp.status_code == 200
+    assert resp.json()["display_name_must_set"] is True
+
+    # Audit log entry present
+    resp = await client.get(f"/api/portal/admin/users/{profile_id}/audit")
+    assert resp.status_code == 200
+    actions = [item["action"] for item in resp.json()["items"]]
+    assert "user.display_name_reset" in actions
+
+
+@pytest.mark.asyncio
 async def test_extend_access_sets_end_date(client, admin_user, db_session):
     db_session.add(UserProfile(
         user_id=admin_user.id,

@@ -42,10 +42,17 @@ jobs:
         run: python -m pip install --upgrade pip pip-audit
 
       - name: Run pip-audit (OSV vulnerability service)
+        # PYSEC-2025-183 (CVE-2025-45768): disputed PyJWT advisory about
+        # "weak encryption". The PyJWT maintainers reject the claim — key
+        # strength is the caller's responsibility, not the library's. This
+        # project already enforces a >= 32-byte JWT_SECRET_KEY for HS256 at
+        # startup (see backend/core/security.py), so the report does not
+        # apply. No fix version is published.
         run: |
           pip-audit \
             --vulnerability-service osv \
             --requirement backend/requirements.txt \
+            --ignore-vuln PYSEC-2025-183 \
             --strict
 
   npm-audit:

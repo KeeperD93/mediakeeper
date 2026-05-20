@@ -42,6 +42,7 @@ async def get_preferences_based(
     tv_genres = [g for g in genre_ids if g not in _MOVIE_ONLY_GENRES]
 
     include_adult = not bool(profile.hide_adult)
+    user_lang = (profile.language or "").split("-")[0].lower() or None
     # Pull two TMDB pages per media type so the merged pool is dense
     # enough to paginate server-side without another round-trip.
     tmdb_page_start = (page - 1) * 2 + 1
@@ -62,7 +63,7 @@ async def get_preferences_based(
         for tp in (tmdb_page_start, tmdb_page_start + 1):
             part = await _fetch_list_params(
                 db, f"/discover/{mt}", tp, params,
-                include_adult=include_adult,
+                include_adult=include_adult, language=user_lang,
             )
             out.extend(part)
         return out

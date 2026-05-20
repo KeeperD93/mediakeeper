@@ -14,21 +14,35 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Added
+- Cinema room — dedicated mobile view (3-column avatar grid).
+- Cinema room — per-participant progress, "Late" tag.
+- Cinema room — realtime presence (seats freed on disconnect).
+- Cinema room — live playback timer for every event.
+- Movie nights — per-event capacity picked at creation (5/10/15/20).
+
 ### Changed
+- Footer — attribution banner removed (credits kept on the Credits page).
 - Unified poster visuals across all surfaces (PEGI removed from detail hero)
 - Home: unified list rhythm (airier titles, tighter posters).
 - Subtitles — library: 3 covers per row on mobile
 - Detail page — mobile densification (more info on small screens)
 - Detail page — "Available on Emby" banner removed (redundant info)
+- Detail page — premium sidebar (icons, status dot, capitalised labels).
 - Discover — grid tightened on mobile (auto-fit + clamp)
 - Person page — responsive hero (photo + title adapted to mobile)
 - Mobile posters: actions removed, tap opens the detail page
 - Mobile home: hero descriptions hidden to declutter
-- Home — hero banner: rotates to the next video after at least 45 seconds
+- Home — hero strip: image slideshow (10 s, crossfade between items).
 - What's new — overlay shown once per day (Close button is enough)
 - Lists (Discover, Search, Person, Collection) — 3 posters per row on mobile, tighter spacing
+- Cinema room — dynamic seats centred, "Full" badge.
+- Cinema room — seats show avatar + pseudo, marathon panel relocated.
+- Cinema room — "Launch" button always clickable, intro synchronised.
 
 ### Fixed
+- Movie nights: past events locked (room closed, accept blocked, "Ended" pill).
+- Display name picker: blocking modal re-arms on every login, overlays hidden until a pseudo is saved.
 - Home: removed the burst of "Too many attempts" notifications on load
 - Posters: restored white outline and Top 3 medals (gold/silver/bronze).
 - Posters: duration shown on hover (TMDB cache for Top 20).
@@ -44,6 +58,16 @@ This section intentionally has no date so it is not shown to users.
 - Mobile posters: availability badge repositioned to avoid overlap
 - Person page — request status badge visible again on filmography
 - Search — live TMDB rework with 5-minute cache (posters always fresh)
+- Detail page — language and country localised in the UI language.
+- Detail page — original language now read from TMDB (was first audio track).
+- Home — hero trailers: official and most recent versions prioritised (better French dub).
+- Home — manual hero slide jump now resets the 10 s timer.
+- Home — hero trailers: on-demand playback only, no background auto-play.
+- Preferences — save bar stays visible after changing language or genres.
+- Preferences — overviews, recommendations and trailers reload in the new language.
+- Settings — sticky tabs: blur removed where it bled over cards.
+- Cinema room — fits any screen size with no vertical scroll.
+- Cinema room — URL blocked for non-invitees, audio cut after intro.
 
 ## [0.3.0] - 2026-05-14
 
