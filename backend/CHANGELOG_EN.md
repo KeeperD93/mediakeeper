@@ -15,6 +15,7 @@ This section intentionally has no date so it is not shown to users.
 - Settings — new Network section with image cache and DNS cache toggles
 - Settings → Scheduler — Cache section (hit/miss stats + Clear button)
 - Dashboard — reorder cards on mobile via a title list ("Customize" button, drag rows)
+- Settings → Portal — event capacity bounds (admin min/max, step of 5).
 
 ### Changed
 - Duplicates — streamlined action bar: "Detections" tab and "Last detection" timestamp

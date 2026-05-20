@@ -16,6 +16,13 @@ utilisateurs.
 
 ## [Unreleased]
 
+### Added
+- Salle de cinéma — vue mobile dédiée (grille avatars 3 colonnes).
+- Salle de cinéma — progression par participant, tag « En retard ».
+- Salle de cinéma — présence temps réel (sièges libérés à la déconnexion).
+- Salle de cinéma — timer de lecture en direct pour tout événement.
+- Soirées ciné — capacité par événement choisie à la création (5/10/15/20).
+
 ### Changed
 - Pied de page — bandeau d'attribution retiré (crédits conservés sur la page Crédits).
 - Unification visuelle des jaquettes (toutes surfaces) avec retrait PEGI sur fiche détail
@@ -23,6 +30,7 @@ utilisateurs.
 - Sous-titres — bibliothèque : 3 jaquettes par ligne sur mobile.
 - Page détail — densification mobile (plus d'info sur petit écran).
 - Page détail — retrait du bandeau « Disponible sur Emby » (info redondante).
+- Page détail — sidebar premium (icônes, pastille statut, libellés capitalisés).
 - Découvrir — grille resserrée sur mobile (auto-fit + clamp).
 - Page personne — hero responsive (photo + titre adaptés au mobile).
 - Jaquettes mobile : actions retirées, clic direct sur la fiche.
@@ -30,6 +38,9 @@ utilisateurs.
 - Accueil — héros : diaporama d'images (10 s, fondu enchaîné).
 - Quoi de neuf — overlay affiché une seule fois par jour (bouton Fermer suffit).
 - Listes (Découvrir, Recherche, Personne, Collection) — 3 jaquettes par ligne sur mobile, espace resserré.
+- Salle de cinéma — sièges dynamiques centrés, badge « Complet ».
+- Salle de cinéma — sièges affichent avatar + pseudo, panneau marathon repositionné.
+- Salle de cinéma — bouton « Lancer » toujours cliquable, intro synchronisée.
 
 ### Fixed
 - Soirées ciné : événements passés verrouillés (salle fermée, accept bloqué, pastille « Terminé »).
@@ -50,11 +61,15 @@ utilisateurs.
 - Fiche personne — badge statut des demandes à nouveau visible sur la filmographie.
 - Recherche — refonte live TMDB avec cache 5 min (jaquettes toujours fraîches).
 - Fiche détail — langue et pays traduits dans la langue de l'interface.
+- Fiche détail — langue originale lue depuis TMDB (corrige première piste audio).
 - Accueil — bandes-annonces héros : priorité aux versions officielles récentes (meilleure VF).
 - Accueil — changement manuel de slide héros : compteur 10 s réinitialisé.
 - Accueil — bandes-annonces héros : lecture à la demande, plus d'auto-play en fond.
 - Préférences — barre Enregistrer reste visible après changement de langue ou genre.
 - Préférences — synopsis, recommandations et bandes-annonces rechargés à la nouvelle langue.
+- Préférences — onglets sticky : retrait du flou qui parasitait les cartes.
+- Salle de cinéma — s'adapte à toute taille d'écran sans scroll vertical.
+- Salle de cinéma — URL bloquée aux non-invités, audio coupé après l'intro.
 
 ## [0.3.0] - 2026-05-14
 

@@ -15,6 +15,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Paramètres — nouvelle section Réseau avec cache d'images et cache DNS (toggles).
 - Paramètres → Planificateur — section Cache (stats hits/manques + bouton Vider).
 - Tableau de bord — réorganisation des cartes sur mobile via une liste de lignes (bouton « Personnaliser », glisser-déposer).
+- Paramètres → Portail — bornes capacité événements (min/max par tranche de 5).
 
 ### Changed
 - Doublons — barre d'actions épurée : onglet « Détections » et horodatage « Dernière détection »
