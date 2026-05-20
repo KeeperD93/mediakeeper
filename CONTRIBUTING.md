@@ -246,7 +246,7 @@ The project currently ships **2 locales**: `fr.json` (source) and `en.json` (mir
 4. Make sure `frontend/scripts/check-integrity.mjs` reports no missing keys.
 5. Open a PR titled `feat(i18n): add <language> locale`.
 
-Translation contributions are welcome. If you used an AI tool to help with the translation, please mention it in the PR.
+Translation contributions are welcome.
 
 ---
 
