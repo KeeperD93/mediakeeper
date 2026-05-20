@@ -40,37 +40,95 @@ Everything runs from a **single Docker container** with an embedded PostgreSQL 1
 
 ## ✨ Key features
 
+MediaKeeper extends Emby with a back-office to run the instance and a Portal that brings your viewers a real product experience. Here is what stands out.
+
+### Highlights
+
+- **Cinematic shared movie nights** — schedule events, a virtual cinema room launches at start, marathon mode chains films and gates the next one until 85 % completion, realtime presence shows who is in.
+- **Built-in request system** — viewers ask for films, shows or seasons; quotas, blacklist, auto-cleanup and admin moderation are wired in.
+- **Achievements & XP** — 160+ trophies across families (community, watching, marathons, secrets, milestones, lists), levels up to 50, monthly leaderboard with premium showcase.
+- **Public viewer profiles** — every viewer can customise a username, avatar, equip cosmetic titles, and other viewers can browse the public version of the profile.
+- **Daily digest** — a once-per-day "what's new today" overlay highlights the monthly Top 3 and the viewer's own ranking.
+
 ### Admin back-office
 
-- **Dashboard** — live stats, services health, activity feed, customizable widget layout
-- **Statistics** — users, activity, libraries, charts
-- **Health check** — automatic library scan, severity grouping, issue posters
-- **Duplicates** — detection rules, history, ignored list, restore
-- **Media Manager** (desktop) — browse, move, rename, tag, dedupe directly on disk
-- **Scheduler** — recurring tasks with cache, manual triggers
-- **Backups** — manual ZIPs + scheduled jobs + drill-tested restore procedure
-- **Watchlist** — series tracking (missing seasons), monitoring rules
+Built for the operator who keeps the Emby instance alive.
 
-### Portal viewer (the experience for your users)
+**Library health**
 
-- **Browse** — catalogue, hero strip with auto-rotating slideshow, recent releases
-- **Search** — instant TMDB suggestions with 5-min cache, history, ⌘K shortcut
-- **Requests** — submit movies, shows or seasons; quota tracking and status feedback
-- **Achievements & XP** — 160+ trophies (community, watching, marathons, secrets, milestones); levels up to 50
-- **Movie nights** — scheduled events with a virtual cinema room, marathon mode, realtime presence, per-event capacity
-- **Lists** — public, private or collaborative lists, with curator and librarian achievements
-- **Profile** — custom avatar, public profile page, leaderboard ranking, ticket history
-- **Chat** — realtime room with moderation and unread persistence
-- **Help center** — 15+ articles editable by admins, full-screen reader
+- **Dashboard** — live stats, services health, activity feed, customizable widget layout (drag-and-drop, mobile reorder via title list)
+- **Statistics** — users, libraries, plays, charts with mobile-readable tables
+- **Health check** — automatic library scan, severity grouping, issue posters, runnable on demand
+- **Duplicates** — detection rules, history, ignored list, restore, fast cached access
+- **Watchlist** — series tracking (missing seasons), audio language tags on episodes, monitoring rules, configurable scan
+
+**File management**
+
+- **Media Manager** (desktop) — browse, move, rename, tag, dedupe directly on disk, lasso selection, TMDB year field for remake disambiguation
+- **Subtitles** — OpenSubtitles batch download and library audit, profile management
+
+**User & request operations**
+
+- **Users premium** — 7-tab drawer (identity, access, security, activity, trophies, notes, audit), granular roles & permissions (chat, requests, problems, lists, offline XP), access window with extension shortcuts, reversible soft-delete, audit log, admin notes, tags, per-user GDPR export
+- **Requests premium** — search, filters, table/card view, bulk actions, auto-cleanup configurable, all-time totals per counter
+- **News admin** — create, edit, delete and schedule entries (start/end dates)
+- **Maintenance mode** — toggle a customizable maintenance message for the Portal
+- **GDPR admin** — opt-in toggle, privacy text editable inline, lifecycle deletion in two steps
+
+**Background work**
+
+- **Scheduler** — recurring tasks with cache stats, manual triggers, hit/miss insights
+- **Backups** — manual ZIPs + scheduled jobs + drill-tested restore procedure, SQL dump + Fernet encryption key embedded by default
+- **Onboarding wizard** — guided first-boot configuration
+- **Image / DNS cache** — performance toggles for the portal image proxy
+
+### Portal viewer
+
+Built for the people you share Emby with — gamified, social and friendly.
+
+**Browse & discover**
+
+- **Catalog Discover** — Trending, Popular, Top-rated, Oscars, Family, Upcoming, by Provider, personalised recommendations
+- **Hero strip** — auto-rotating image slideshow (10 s crossfade)
+- **Search** — instant TMDB suggestions with 5-min cache, recent history, ⌘K shortcut
+- **Detail pages** — premium sidebar (Lucide icons, status dot, language & country localised, original language read from TMDB)
+- **Mobile-first** — 3-column poster grids on mobile, tap-to-open, dense layouts, dedicated mobile views where needed
+
+**Engagement**
+
+- **Requests** — submit movies, shows or seasons; quota tracking, status feedback, blacklist handling, clear error messages
+- **Movie nights** — schedule shared cinema events, virtual room with marathon mode and per-event capacity (5/10/15/20), realtime presence, mobile-dedicated view, past events automatically locked after 6 h
+- **Lists** — public, private or collaborative lists with anonymised pseudos, tied to the Curator and Librarian achievement families
+- **Daily digest** — a once-per-day overlay summarising the day, with the monthly Top 3 and the viewer's ranking appended off-podium
+- **News & announcements** — admin-scheduled posts surface in the bell
+
+**Identity & community**
+
+- **Custom username** — mandatory pick on first sign-in, live availability check, editable every 6 months, reserved usernames protected
+- **Custom avatar upload** (up to 5 MB) + cosmetic titles preview before saving
+- **Premium Settings** in five tabs — identity, appearance, preferences, visibility, account
+- **Public profile pages** — card, bio, genres, trophies; reachable from the leaderboard
+- **Login streak** indicator on the dedicated portal sign-in page
+
+**Achievements & social**
+
+- **160+ achievements** across families: community, watching, marathons, secrets, milestones, lists (Curator + Librarian, 5 tiers each)
+- **XP system & levels** — progression up to 50, premium grade ladder
+- **Monthly leaderboard** — premium showcase: monthly champion hero, live stats bar, top 100, enriched podium
+- **Realtime chat** — moderation, unread counter persistent across sessions, report button locked after send, flagged messages visible to admins and moderators
+- **Tickets** — pinpoint the exact movie, series, season or episode when reporting; filters by status / source / type; auto-close after 7 days of inactivity
+- **Help center** — 15+ articles editable by admins with a rich-text editor, auto-save, drafts, 30-day restore trash
 
 ### Cross-cutting
 
-- **Bilingual UI** (French + English) with strict locale parity
-- **Single Docker container**, multi-arch ready (planned: `amd64` + `arm64`)
-- **Defensive auth** — JWT scope separation (admin / portal), CSRF double-submit, rate-limited login, Fernet-encrypted secrets at rest
-- **Accessibility** — focus traps on modals, ARIA labels, `prefers-reduced-motion` aware
-- **Notifications** — in-app bell + Discord webhooks
-- **GDPR opt-in** — user export, privacy text, lifecycle deletion
+- **Bilingual UI** (French + English) with strict locale parity; TMDB cascade `user → English → original → language-agnostic`
+- **Single Docker container** with embedded PostgreSQL 16; production worker split available via `MK_SEPARATE_BACKGROUND_WORKER`; multi-arch ready (`amd64` + `arm64`)
+- **Defensive security** — JWT scope separation admin / portal, CSRF double-submit, rate-limited login, Fernet-encrypted secrets at rest, log redaction, security CI workflow (`pip-audit`, `npm audit`, `bandit`, `ruff S`, `semgrep`)
+- **Full accessibility** — focus traps on 20+ modals, ARIA labels, keyboard navigation, `prefers-reduced-motion`, toasts via `aria-live`, skip-to-main link
+- **Notifications** — in-app bell with admin-pushed targeted messages + Discord webhooks
+- **GDPR opt-in** — per-user export (JSON), privacy text editable by admin, lifecycle deletion in two steps
+
+For the full feature catalogue and version history, see the [Wiki](https://github.com/KeeperD93/mediakeeper/wiki) and the changelogs ([admin EN](backend/CHANGELOG_EN.md) · [portal EN](backend/CHANGELOG_PORTAL_EN.md)).
 
 ---
 
