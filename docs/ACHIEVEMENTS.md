@@ -1,36 +1,36 @@
-# MediaKeeper Achievements — workflow d'ajout
+# MediaKeeper Achievements — how to add a trophy
 
-Ce document est le mode d'emploi à suivre pour ajouter, retirer ou modifier
-un trophée. Il ne décrit pas l'implémentation existante en détail (le code
-est court et lisible) — il existe pour qu'un contributeur puisse étendre le
-catalogue **sans** introduire de drift entre les définitions, les checks,
-les triggers, l'i18n et le frontend.
+This document is the step-by-step guide for adding, removing or modifying a
+trophy. It does not describe the existing implementation in detail (the code
+is short and readable) — it exists so a contributor can extend the catalogue
+**without** introducing drift between definitions, checks, triggers, i18n
+and the frontend.
 
-> Toute évolution du catalogue passe par les garde-fous décrits plus bas
-> (méta-test pytest + validation au boot). Si le test d'intégrité tombe en
-> rouge en CI, le catalogue est cassé — corrige avant de pousser.
+> Every change to the catalogue must pass the guardrails described below
+> (pytest meta-tests + boot-time validation). If the integrity test turns
+> red in CI, the catalogue is broken — fix it before pushing.
 
 ---
 
-## 1. Vue d'ensemble du système
+## 1. System overview
 
 ```
 ┌─────────────────────────┐    ┌────────────────────────────┐
 │ achievement_defs_*.py   │    │  achievements_seed.py      │
-│  (déclaratif, statique) │ ─► │  upsert + prune en DB      │
+│  (declarative, static)  │ ─► │  upsert + prune in DB      │
 └──────────┬──────────────┘    └────────────┬───────────────┘
            │                                │
            ▼                                ▼
 ┌─────────────────────────┐    ┌────────────────────────────┐
 │ achievements_checks_*.py│ ◄─►│ check_all_achievements     │
-│  (logique conditionnelle│    │ orchestrateur, 5 passes    │
-│  par condition_type)    │    │ try/except par passe       │
+│  (conditional logic per │    │ orchestrator, 5 passes,    │
+│  condition_type)        │    │ try/except per pass        │
 └─────────────────────────┘    └────────────┬───────────────┘
                                             │
                                             ▼
 ┌─────────────────────────┐    ┌────────────────────────────┐
-│ Service métier          │    │ safe_check_all_achievements│
-│ (chat, lists, requests, │ ─► │ wrapper logué + silent     │
+│ Business service        │    │ safe_check_all_achievements│
+│ (chat, lists, requests, │ ─► │ logged + silent wrapper    │
 │  tickets, events, …)    │    │ source: "chat_message" …   │
 └─────────────────────────┘    └────────────┬───────────────┘
                                             │
@@ -41,28 +41,27 @@ les triggers, l'i18n et le frontend.
                                 └────────────────────────────┘
 ```
 
-- **Définitions** (`achievement_defs_*.py`) : données pures, aucun import
-  croisé avec les checks. Un trophée = un `id` unique + un `condition_type` +
-  des paliers.
-- **Checks** (`achievements_checks_*.py`) : la logique qui transforme une
-  donnée brute (sessions Emby, listes utilisateur, requêtes pendantes, …)
-  en `progress`. Une fonction de check par grand domaine.
-- **Orchestrateur** (`check_all_achievements`) : exécute les 5 passes de
-  check séquentiellement. Chaque passe est isolée par try/except — une
-  régression dans une passe ne casse pas les autres ni le commit final.
-- **Wrapper** (`safe_check_all_achievements`) : un seul point d'entrée pour
-  tous les services métier. Logue `{user_id, source, duration_ms, unlocks}`
-  par appel. Variante `safe_check_all_achievements_in_new_session` pour
-  les `BackgroundTasks` qui s'exécutent hors de la session HTTP.
+- **Definitions** (`achievement_defs_*.py`): pure data, no cross-imports with
+  the checks. A trophy = a unique `id` + a `condition_type` + tiers.
+- **Checks** (`achievements_checks_*.py`): the logic that turns raw data
+  (Emby sessions, user lists, pending requests, …) into `progress`. One
+  check function per major domain.
+- **Orchestrator** (`check_all_achievements`): runs the 5 check passes
+  sequentially. Each pass is isolated with try/except — a regression in one
+  pass does not break the others nor the final commit.
+- **Wrapper** (`safe_check_all_achievements`): the single entry point for
+  every business service. Logs `{user_id, source, duration_ms, unlocks}`
+  per call. The variant `safe_check_all_achievements_in_new_session` is for
+  `BackgroundTasks` that run outside of the HTTP session.
 
 ---
 
-## 2. Ajouter un trophée standard (tiéré ou standalone)
+## 2. Add a standard trophy (tiered or standalone)
 
-### 2.1 Définir
+### 2.1 Define
 
-Ajouter une (ou plusieurs) entrée(s) à `STANDARD_DEFS` dans
-`backend/services/portal/achievement_defs_standard.py` :
+Add one (or more) entries to `STANDARD_DEFS` in
+`backend/services/portal/achievement_defs_standard.py`:
 
 ```python
 {"id": "curator_1", "category": "community",
@@ -75,33 +74,33 @@ Ajouter une (ou plusieurs) entrée(s) à `STANDARD_DEFS` dans
  "secret": False, "sort_order": 300},
 ```
 
-Conventions :
+Conventions:
 
-| Champ            | Règle                                                     |
-|------------------|-----------------------------------------------------------|
-| `id`             | snake_case anglais (`curator_1`, `librarian_3`).          |
-| `name_key`       | `portal.achievements.<camelCase>` (un par famille).       |
-| `description_key`| `portal.achievements.<camelCase>_desc`.                   |
-| `icon`           | nom Lucide (`Bookmark`, `Library`, `Star`, …).            |
-| `tier`           | 1 (Bronze) → 6 (Mythique). Réservé tier 6 aux familles « finale ». |
-| `xp_reward`      | barème standard `20 / 50 / 110 / 220 / 500 / 1200`.       |
-| `threshold`      | strictement croissant le long de la chaîne (sauf exception whitelistée — `competitor`). |
-| `condition_type` | un identifiant logique partagé par tous les tiers d'une famille. |
-| `next_tier_id`   | `id` du tier suivant, ou `None` pour le dernier.          |
-| `sort_order`     | bloc de 10 par famille (300, 310, …) pour laisser de la place. |
+| Field            | Rule                                                     |
+|------------------|----------------------------------------------------------|
+| `id`             | English snake_case (`curator_1`, `librarian_3`).         |
+| `name_key`       | `portal.achievements.<camelCase>` (one per family).      |
+| `description_key`| `portal.achievements.<camelCase>_desc`.                  |
+| `icon`           | Lucide name (`Bookmark`, `Library`, `Star`, …).          |
+| `tier`           | 1 (Bronze) → 6 (Mythic). Tier 6 is reserved for "finale" families. |
+| `xp_reward`      | Standard scale `20 / 50 / 110 / 220 / 500 / 1200`.       |
+| `threshold`      | Strictly increasing along the chain (except whitelisted exception — `competitor`). |
+| `condition_type` | A logical identifier shared by every tier of a family.   |
+| `next_tier_id`   | The `id` of the next tier, or `None` for the last.       |
+| `sort_order`     | Block of 10 per family (300, 310, …) to leave room.      |
 
-### 2.2 Implémenter le `condition_type`
+### 2.2 Implement the `condition_type`
 
-Choisir le bon module check en fonction du domaine :
+Pick the right check module depending on the domain:
 
-| Module                                  | Domaine                                             |
-|-----------------------------------------|------------------------------------------------------|
-| `achievements_checks_standard.py`       | sessions Emby (films, séries, langues, marathons).  |
-| `achievements_checks_progression.py`    | leaderboard, niveau, profil, communauté, listes.    |
-| `achievements_checks_secrets_a/b.py`    | secrets liés à des conditions précises.             |
-| `achievements_checks_meta.py`           | cas spécial `condition_type="meta"` uniquement.     |
+| Module                                  | Domain                                              |
+|-----------------------------------------|-----------------------------------------------------|
+| `achievements_checks_standard.py`       | Emby sessions (movies, series, languages, marathons). |
+| `achievements_checks_progression.py`    | Leaderboard, level, profile, community, lists.      |
+| `achievements_checks_secrets_a/b.py`    | Secrets tied to specific conditions.                |
+| `achievements_checks_meta.py`           | Special case `condition_type="meta"` only.          |
 
-Ajouter une branche du type :
+Add a branch like:
 
 ```python
 if "lists_public_created" in by_type:
@@ -115,21 +114,22 @@ if "lists_public_created" in by_type:
     await _apply("lists_public_created", val)
 ```
 
-`_apply` (déjà fourni dans le module) gère l'idempotence et le grant XP.
+`_apply` (already provided in the module) handles idempotency and the XP
+grant.
 
-### 2.3 Inscrire le `condition_type` à la liste connue
+### 2.3 Register the `condition_type` in the known list
 
-Éditer `backend/services/portal/achievements_validation.py` pour ajouter
-le nouveau `condition_type` dans `KNOWN_CONDITION_TYPES`. Sans cette étape,
-le méta-test `find_orphan_condition_types` tombe rouge.
+Edit `backend/services/portal/achievements_validation.py` to add the new
+`condition_type` to `KNOWN_CONDITION_TYPES`. Without this step, the
+meta-test `find_orphan_condition_types` turns red.
 
-### 2.4 Câbler le trigger
+### 2.4 Wire the trigger
 
-Identifier le service qui modifie la donnée (créer une liste, envoyer un
-message, …) et appeler le wrapper **après le commit** :
+Identify the service that mutates the data (create a list, send a message,
+…) and call the wrapper **after the commit**:
 
-- Depuis un **endpoint API** : préférer `BackgroundTasks` pour ne pas
-  ralentir la réponse :
+- From an **API endpoint**: prefer `BackgroundTasks` to avoid slowing the
+  response:
 
   ```python
   background_tasks.add_task(
@@ -138,34 +138,34 @@ message, …) et appeler le wrapper **après le commit** :
   )
   ```
 
-- Depuis un **service** côté serveur (par ex. `lists.create_list`) : appel
-  direct, le wrapper est silent par défaut :
+- From a **server-side service** (e.g. `lists.create_list`): direct call,
+  the wrapper is silent by default:
 
   ```python
   await safe_check_all_achievements(db, user_id, None, source="list_created")
   ```
 
-Pas de duplication : un seul trigger par opération. Si plusieurs trophées
-dépendent de la même opération, le runner les balaie tous en un appel.
+No duplication: one trigger per operation. If several trophies depend on
+the same operation, the runner sweeps them all in a single call.
 
 ### 2.5 i18n FR + EN
 
-Dans `frontend/src/locales/fr.json` **et** `frontend/src/locales/en.json`,
-sous `portal.achievements` :
+In `frontend/src/locales/fr.json` **and** `frontend/src/locales/en.json`,
+under `portal.achievements`:
 
 ```jsonc
 "curator": "Curateur",
 "curator_desc": "Listes publiques partagées avec la communauté",
 ```
 
-(EN équivalent.) Le méta-test `test_every_definition_has_fr_and_en_translations`
-vérifie que chaque `name_key` / `description_key` est résolvable dans les
-deux langues.
+(EN equivalent.) The meta-test
+`test_every_definition_has_fr_and_en_translations` verifies that every
+`name_key` / `description_key` resolves in both languages.
 
-### 2.6 Test pytest
+### 2.6 pytest test
 
-Ajouter un test dans `backend/tests/test_achievements_phase1.py` (ou un
-fichier dédié si la famille a plusieurs cas spéciaux) :
+Add a test in `backend/tests/test_achievements_phase1.py` (or a dedicated
+file if the family has several special cases):
 
 ```python
 @pytest.mark.asyncio
@@ -181,147 +181,148 @@ async def test_first_public_list_unlocks_curator_bronze(db_session):
     assert await _ach_unlocked(db_session, user.id, "curator_1")
 ```
 
-### 2.7 Changelog Portal (FR + EN)
+### 2.7 Portal changelog (FR + EN)
 
-Sous `[Unreleased] > Added` dans `backend/CHANGELOG_PORTAL_FR.md` **et**
-`backend/CHANGELOG_PORTAL_EN.md`, en respectant la règle Emby
-(≤ 12 mots, langage utilisateur, pas de jargon technique).
-
----
-
-## 3. Ajouter un trophée secret
-
-Mêmes étapes que §2, plus :
-
-1. Définir dans `SECRET_DEFS` (pas `STANDARD_DEFS`) avec `secret: True`.
-2. Ajouter une entrée dans `SECRET_THEMES` (mappe l'`id` à un nom de thème
-   CSS — `xmas`, `halloween`, etc.).
-3. Si la catégorie thématique n'est pas `secret`, renseigner
-   `SECONDARY_CATEGORIES` pour que le secret apparaisse aussi dans la
-   catégorie cible (special / dedication / watching / …).
-4. Ajouter le rendu visuel dans
-   `frontend/src/components/portal/profile/TrophyFx.vue` : un bloc CSS
-   thématique (particules, halo, …) pour la nouvelle clé. Sans ce bloc,
-   le déblocage rendra une icône glow générique mais sans signature.
-5. (Optionnel) Si le secret débloque un titre, l'ajouter à `TITLE_REWARDS`.
-
-Le méta-test `test_every_secret_has_a_theme_mapping` impose qu'aucun secret
-ne traîne sans thème CSS.
+Under `[Unreleased] > Added` in `backend/CHANGELOG_PORTAL_FR.md` **and**
+`backend/CHANGELOG_PORTAL_EN.md`, following the brevity rule (≤ 12 words,
+user-facing language, no technical jargon).
 
 ---
 
-## 4. Modifier un trophée existant
+## 3. Add a secret trophy
 
-- **Threshold** ou **xp_reward** : changement transparent au seed. Les
-  utilisateurs déjà débloqués restent débloqués (le seed ne remet jamais
-  `unlocked` à `false`). Les nouveaux doivent atteindre le nouveau seuil.
-- **`condition_type`** : à éviter — invalide la progression existante.
-  Préférer la création d'une nouvelle famille.
-- **`next_tier_id`** : changement supporté ; le seed met à jour la chaîne
-  en passe 2 sans toucher aux progressions individuelles.
-- **`category`** : impact sur le méta-master de la catégorie (recalcul
-  automatique du `threshold` du méta correspondant au seed suivant).
+Same steps as §2, plus:
+
+1. Define in `SECRET_DEFS` (not `STANDARD_DEFS`) with `secret: True`.
+2. Add an entry to `SECRET_THEMES` (maps the `id` to a CSS theme name —
+   `xmas`, `halloween`, etc.).
+3. If the thematic category is not `secret`, fill in
+   `SECONDARY_CATEGORIES` so the secret also shows up in the target
+   category (special / dedication / watching / …).
+4. Add the visual rendering in
+   `frontend/src/components/portal/profile/TrophyFx.vue`: a thematic CSS
+   block (particles, halo, …) for the new key. Without that block, the
+   unlock will render as a generic glowing icon but without signature.
+5. (Optional) If the secret unlocks a title, add it to `TITLE_REWARDS`.
+
+The meta-test `test_every_secret_has_a_theme_mapping` enforces that no
+secret is left without a CSS theme.
 
 ---
 
-## 5. Retirer un trophée
+## 4. Modify an existing trophy
 
-Supprimer l'entrée correspondante des `*_DEFS`. Au prochain boot :
+- **`threshold`** or **`xp_reward`**: transparent change at seed time.
+  Users already unlocked stay unlocked (the seed never resets `unlocked`
+  to `false`). New users must reach the new threshold.
+- **`condition_type`**: avoid — invalidates existing progress. Prefer
+  creating a new family.
+- **`next_tier_id`**: change supported; the seed updates the chain in pass
+  2 without touching individual progress.
+- **`category`**: impacts the category's meta-master (automatic
+  recomputation of the matching meta's `threshold` at the next seed).
 
-1. `seed_achievements` (passe 3) supprime la ligne `Achievement` ainsi que
-   toutes les `UserAchievement` associées (cascade `ON DELETE CASCADE`).
-2. Le frontend ne voit plus le trophée dans le payload `/me`.
-3. La validation au boot passe (l'`id` n'existe plus, donc pas de
-   référence orpheline).
+---
 
-> Avant la sortie v1.0, la DB est jetable (cf. policy projet) — pas
-> besoin de migration Alembic pour un retrait. Post-v1.0, les retraits
-> doivent passer par une migration explicite si l'historique compte.
+## 5. Remove a trophy
+
+Delete the corresponding entry from `*_DEFS`. At the next boot:
+
+1. `seed_achievements` (pass 3) deletes the `Achievement` row plus every
+   associated `UserAchievement` (cascade `ON DELETE CASCADE`).
+2. The frontend no longer sees the trophy in the `/me` payload.
+3. Boot-time validation passes (the `id` no longer exists, so no orphan
+   reference).
+
+> Before the v1.0 release, the DB is disposable (cf. project policy) — no
+> Alembic migration is needed for a removal. Post-v1.0, removals must go
+> through an explicit migration if history matters.
 
 ---
 
 ## 6. Conventions
 
 | Aspect                     | Convention                                                |
-|----------------------------|------------------------------------------------------------|
-| Slugs                      | `snake_case` anglais (`movie_buff_3`, `secret_christmas`). |
-| i18n                       | `portal.achievements.<camelCase>` + `_desc` jumelé.        |
-| XP barème standard         | `20 / 50 / 110 / 220 / 500 / 1200`.                        |
-| `sort_order`               | bloc de 10 par famille pour laisser de la marge.           |
-| Tier max                   | 6 (Mythique) — réservé aux familles « finales ».           |
-| Threshold croissant        | strictement, sauf whitelist `_NON_MONOTONIC_FAMILIES`.     |
-| Trigger source label       | court, en `snake_case` (`chat_message`, `list_created`).   |
+|----------------------------|-----------------------------------------------------------|
+| Slugs                      | English `snake_case` (`movie_buff_3`, `secret_christmas`).|
+| i18n                       | `portal.achievements.<camelCase>` + `_desc` twin.         |
+| Standard XP scale          | `20 / 50 / 110 / 220 / 500 / 1200`.                       |
+| `sort_order`               | Block of 10 per family for headroom.                      |
+| Max tier                   | 6 (Mythic) — reserved for "finale" families.              |
+| Increasing thresholds      | Strict, except whitelist `_NON_MONOTONIC_FAMILIES`.       |
+| Trigger source label       | Short, `snake_case` (`chat_message`, `list_created`).     |
 
 ---
 
-## 7. Garde-fous
+## 7. Guardrails
 
-| Mécanisme                                                        | Quand                  | Effet                  |
-|------------------------------------------------------------------|------------------------|-------------------------|
-| `backend/tests/test_achievements_integrity.py`                   | CI / `pytest`          | Fail-loud sur drift.    |
-| `_validate_definitions()` dans `achievements_seed.py`            | Boot dev / test        | Refuse de seed.         |
-| `_validate_definitions()` en prod (`ENV=production`)             | Boot prod              | Log + continue.         |
-| `_safe_pass` dans `check_all_achievements`                       | Runtime                | Une passe en échec ne casse pas les autres. |
-| `safe_check_all_achievements` (silent par défaut)                | Triggers métier        | Une régression du runner ne casse pas l'endpoint d'origine. |
+| Mechanism                                                       | When                  | Effect                  |
+|-----------------------------------------------------------------|-----------------------|-------------------------|
+| `backend/tests/test_achievements_integrity.py`                  | CI / `pytest`         | Fail-loud on drift.     |
+| `_validate_definitions()` in `achievements_seed.py`             | Dev / test boot       | Refuses to seed.        |
+| `_validate_definitions()` in prod (`ENV=production`)            | Prod boot             | Log + continue.         |
+| `_safe_pass` in `check_all_achievements`                        | Runtime               | One failed pass does not break the others. |
+| `safe_check_all_achievements` (silent by default)               | Business triggers     | A runner regression does not break the origin endpoint. |
 
-Le méta-test couvre :
+The meta-test covers:
 
-- pas d'`id` dupliqué entre les trois `*_DEFS` ;
-- chaque `condition_type` déclaré est implémenté ;
-- chaque `next_tier_id` pointe vers un `id` existant ;
-- thresholds strictement croissants par chaîne (sauf whitelist) ;
-- chaque secret a son entrée `SECRET_THEMES` ;
-- chaque méta cible une catégorie non vide ;
-- chaque `name_key` / `description_key` a une traduction FR + EN ;
-- `EXCLUSIVE_FROM_META` et `PLACEHOLDER_IDS` ne référencent que des `id`
-  existants.
+- no duplicated `id` across the three `*_DEFS`;
+- every declared `condition_type` is implemented;
+- every `next_tier_id` points to an existing `id`;
+- strictly increasing thresholds per chain (except whitelist);
+- every secret has its `SECRET_THEMES` entry;
+- every meta targets a non-empty category;
+- every `name_key` / `description_key` has FR + EN translations;
+- `EXCLUSIVE_FROM_META` and `PLACEHOLDER_IDS` only reference existing
+  `id`s.
 
-Si la suite passe et le boot ne se plaint pas, le catalogue est cohérent.
+If the suite passes and boot does not complain, the catalogue is
+consistent.
 
 ---
 
 ## 8. Placeholders
 
-Certains trophées ont une branche check qui retourne toujours `0` parce
-que la donnée nécessaire n'est pas encore disponible (par ex. année de
-production TMDB, sessions concurrentes en temps réel, agrégat sur
-`XpLedger` non encore branché). Ils sont listés dans
-`PLACEHOLDER_IDS` (`achievement_defs_constants.py`).
+Some trophies have a check branch that always returns `0` because the
+required data is not yet available (e.g. TMDB production year, real-time
+concurrent sessions, `XpLedger` aggregate not yet wired). They are listed
+in `PLACEHOLDER_IDS` (`achievement_defs_constants.py`).
 
-Conséquences :
+Consequences:
 
-- Le runner les **ignore** (économise les requêtes).
-- `get_achievements_for_profile` les **exclut** du `total_count` exposé
-  au frontend, donc le pourcentage de progression global reflète
-  uniquement ce qui est réellement atteignable.
-- La ligne `Achievement` reste dans la DB pour préserver les
-  `UserAchievement` historiques éventuels.
+- The runner **ignores** them (saves queries).
+- `get_achievements_for_profile` **excludes** them from the `total_count`
+  exposed to the frontend, so the global progress percentage reflects only
+  what is actually reachable.
+- The `Achievement` row stays in the DB to preserve any historical
+  `UserAchievement` rows.
 
-Quand un placeholder est implémenté pour de vrai :
+When a placeholder is implemented for real:
 
-1. Retirer son `id` de `PLACEHOLDER_IDS`.
-2. Remplacer la branche `await _apply(..., 0)` par la logique réelle.
-3. Mettre à jour ce document (cette section).
-4. Le méta-test passe automatiquement (il ne réclame pas de changement
-   spécifique pour cet `id`).
+1. Remove its `id` from `PLACEHOLDER_IDS`.
+2. Replace the `await _apply(..., 0)` branch with the real logic.
+3. Update this document (this section).
+4. The meta-test passes automatically (no specific change required for
+   this `id`).
 
 ---
 
-## 9. Antipattern à éviter
+## 9. Antipatterns to avoid
 
-- **Trigger côté frontend** : le frontend détecte les unlocks via
-  `unlocked_at < 5 minutes` au moment du chargement profil. Pas de
-  WebSocket, pas de polling. Si un usage temps réel devient nécessaire,
-  c'est un chantier dédié (voir audit Phase 0).
-- **EventBus interne** : envisagé puis différé. Pour ~10 callsites de
-  trigger, l'indirection coûte plus que les bénéfices. À réévaluer
-  post-v1.0 si le nombre de subscribers (notifications Discord par
-  événement métier, audit log dédié, …) dépasse 2.
-- **Dupliquer un `condition_type`** entre deux familles : l'audit a
-  identifié `audio_languages` partagé par `globe_trotter_*` et
-  `world_palette_*`. C'est volontaire — deux familles, deux barèmes,
-  même signal. Mais ne pas multiplier ce pattern : si possible, distinguer
-  par un nouveau `condition_type` dédié.
-- **Modifier un seed appliqué** : `seed_achievements` est ré-entrant ;
-  on modifie les définitions, on relance, c'est tout. Pas de migration
-  Alembic dédiée tant que la DB est jetable (avant v1.0).
+- **Frontend-side trigger**: the frontend detects unlocks via
+  `unlocked_at < 5 minutes` at profile load time. No WebSocket, no
+  polling. If a real-time use case becomes necessary, it is a dedicated
+  effort to be decided as a future architecture change.
+- **Internal EventBus**: considered then deferred. For ~10 trigger
+  callsites, the indirection costs more than the benefits. Reassess
+  post-v1.0 if the number of subscribers (Discord notifications per
+  business event, dedicated audit log, …) exceeds 2.
+- **Duplicating a `condition_type`** across two families: `audio_languages`
+  is shared between `globe_trotter_*` and `world_palette_*`. This is
+  intentional — two families, two scales, same signal. But do not
+  multiply the pattern: when possible, distinguish via a new dedicated
+  `condition_type`.
+- **Modifying a seed already applied**: `seed_achievements` is
+  re-entrant; you change the definitions, you re-run, that is all. No
+  dedicated Alembic migration as long as the DB is disposable
+  (pre-v1.0).
