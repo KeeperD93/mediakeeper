@@ -11,11 +11,11 @@
 
 | Couche | Tech |
 |---|---|
-| Frontend | Vue 3 `<script setup>`, Vue Router 4, vue-i18n 9, Vite 6, PrimeVue 4, Chart.js 4, lucide-vue-next, TipTap, grid-layout-plus |
-| Backend | FastAPI 0.111 (Python 3.12), SQLAlchemy 2 (async), Alembic, PyJWT, bcrypt, httpx, slowapi, cryptography (Fernet), bleach, pytest |
+| Frontend | Vue 3 `<script setup>`, Vue Router 5, vue-i18n 11, Vite 6, PrimeVue 4, Chart.js 4, lucide-vue-next, TipTap, grid-layout-plus |
+| Backend | FastAPI (Python 3.12), SQLAlchemy 2 (async), Alembic, PyJWT, bcrypt, httpx, slowapi, cryptography (Fernet), bleach, pytest |
 | DB | PostgreSQL 16 embarqué (prod, single container) / SQLite aiosqlite (tests) |
 | Déploiement | Docker single container (PG embarqué + Uvicorn + `entrypoint.sh` qui run `alembic upgrade head` au boot, port 8888, healthcheck `/api/health?full=1`). Worker séparable via `MK_SEPARATE_BACKGROUND_WORKER=true`. |
-| Qualité | ESLint 9 flat config, Prettier, stylelint, Vitest (front), pytest + pytest-cov (back), husky + commitlint (templates dans `.husky-templates/`, à activer post-git-init), CI 3 workflows (`backend.yml`, `frontend.yml`, `commitlint.yml`) |
+| Qualité | ESLint 9 flat config, Prettier, stylelint, Vitest (front), pytest + pytest-cov (back), husky + commitlint (templates dans `.husky-templates/`, voir son README), CI 5 workflows (`backend.yml`, `frontend.yml`, `frontend-e2e.yml`, `commitlint.yml`, `security.yml`) |
 
 ---
 
@@ -57,7 +57,7 @@ mediakeeper/
 │  │  └─ <domain>.py           # user, user_preferences, scheduler_task, …
 │  ├─ core/                    # cross-cutting (config, auth, pagination, encryption,
 │  │                           # csrf_middleware, app_startup, logging)
-│  ├─ alembic/versions/        # 35 migrations (applied at container boot)
+│  ├─ alembic/versions/        # 52 migrations (applied at container boot)
 │  ├─ CHANGELOG_FR.md / CHANGELOG_EN.md             # admin changelogs
 │  ├─ CHANGELOG_PORTAL_FR.md / CHANGELOG_PORTAL_EN.md  # portal changelogs
 │  └─ tests/                   # 47 pytest files (Tier 1 + Tier 2 + portal + phases)
@@ -84,7 +84,7 @@ mediakeeper/
 │     │                        # useProfileData, useTrophyDisplay, useMediaCardState,
 │     │                        # usePortalHomeData, useTrailer, usePortalAuth, …)
 │     ├─ constants/            # magic-string centralisations (toast, media, requests…)
-│     ├─ locales/              # fr.json + en.json (mirrored, ~3200 lines each)
+│     ├─ locales/              # fr.json + en.json (mirrored, ~3700 lines each)
 │     ├─ styles/               # design tokens + main.css entry
 │     │  ├─ design-tokens.css  # imports tokens/_colors, _typography, _layout, _motion
 │     │  └─ portal/            # portal namespace (--portal-*) — independent tokens
@@ -92,11 +92,11 @@ mediakeeper/
 │     │  └─ styles/            # domain CSS files (stats, media-manager, portal/…)
 │     └─ __tests__/            # 11 Vitest files (UI components + hooks + tickets)
 ├─ .github/                    # CI workflows + Issue/PR templates + dependabot
-│  ├─ workflows/               # backend.yml, frontend.yml, commitlint.yml
+│  ├─ workflows/               # backend.yml, frontend.yml, frontend-e2e.yml, commitlint.yml, security.yml
 │  ├─ ISSUE_TEMPLATE/          # bug_report.md, feature_request.md
 │  ├─ PULL_REQUEST_TEMPLATE.md
 │  └─ dependabot.yml
-├─ .husky-templates/           # hooks to activate post-git-init (pre-commit, commit-msg)
+├─ .husky-templates/           # hooks to activate locally (pre-commit, commit-msg — see its README)
 ├─ README.md                   # project overview (install, deploy, links)
 ├─ ARCHITECTURE.md             # this file
 ├─ CONTRIBUTING.md             # dev setup + PR workflow + contributor checklist
@@ -222,7 +222,7 @@ Les tests Vitest + pytest ne s'exécutent **pas** en pre-commit (trop lents) —
 - `.github/workflows/commitlint.yml` — valide le format Conventional Commits sur PRs.
 - `.github/dependabot.yml` — bumps weekly (npm + pip + github-actions, Lundi 06h00 Paris, groupes patch/minor).
 
-**À ajouter avant la première release publique** : `release.yml` pour push image Docker `ghcr.io` + tag GitHub Release auto.
+**Planned for the first public release**: `release.yml` to publish multi-arch (amd64 + arm64) Docker images on `ghcr.io` and auto-create a GitHub Release from a `vX.Y.Z` tag.
 
 ---
 
