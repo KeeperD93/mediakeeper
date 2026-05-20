@@ -362,8 +362,7 @@ they each have their own home.
   and §4 of this runbook.
 - [`SECURITY.md`](../../SECURITY.md) — vulnerability disclosure
   policy, supported versions, scope and safe-harbour.
-- [`ARCHITECTURE.md`](../../ARCHITECTURE.md) — code map, boot
-  pipeline, encryption-at-rest layer, schema validation mode
-  (`MK_DB_SCHEMA_MODE`).
+- [`CONTRIBUTING.md`](../../CONTRIBUTING.md) — project structure
+  overview, coding conventions and contributor workflow.
 - [`README.md`](../../README.md) — quick start for provisioning a
   fresh deployment after §3.3.
