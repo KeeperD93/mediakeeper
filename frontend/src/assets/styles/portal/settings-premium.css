@@ -186,9 +186,14 @@
   flex-wrap: wrap;
   gap: 0.4rem;
   padding: 0.5rem;
-  background: linear-gradient(180deg, rgb(255, 255, 255, 0.06), rgb(255, 255, 255, 0.02));
-  backdrop-filter: var(--portal-blur-md);
-  -webkit-backdrop-filter: var(--portal-blur-md);
+  /* Solid background instead of glass: the previous ``backdrop-filter``
+     blurred whatever sat behind the sticky bar — and on the Identity
+     card that meant a frosted band appeared on top of the avatar /
+     pseudo block as soon as you scrolled or hovered the tabs. Keep
+     the gradient tint for the premium look, drop the blur. */
+  background:
+    linear-gradient(180deg, rgb(255, 255, 255, 0.06), rgb(255, 255, 255, 0.02)),
+    var(--portal-surface-2);
   border: 1px solid var(--portal-border-default);
   border-radius: var(--portal-radius-lg);
   box-shadow:
