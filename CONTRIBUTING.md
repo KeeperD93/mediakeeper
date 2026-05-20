@@ -75,7 +75,7 @@ These are the rules every PR must follow. They apply equally to features, fixes 
 
 ### Cross-cutting
 
-- **File size** — every applicative file (Vue, JS/TS, Python, CSS) stays at or under **300 lines**. Split before adding features when you reach the limit.
+- **File size** — every applicative file (Vue, JS/TS, Python, CSS, tests included) targets **300 lines or less** as the soft limit. A file may legitimately reach **up to 400 lines** when it covers a tightly coupled widget or test scenario that cannot be split cleanly — flag the exception explicitly in the PR description. **500 lines is the hard ceiling**: beyond that, the file must be split before adding any new feature.
 - **Code language** — comments, docstrings, log messages, identifiers are written in English. The `*.fr.json` locales and the `CHANGELOG_FR.md` files are the only French-by-design surfaces.
 - **Dates / timezones** — store UTC with timezone, transmit ISO 8601, format on the frontend with `Intl.DateTimeFormat` and the user locale. Never hardcode a timezone or `'fr-FR'`.
 - **No third-party brand in changelogs** — write user-facing changelog entries without naming external products, frameworks or "inspired by X" phrasing. Describe the change in product terms.

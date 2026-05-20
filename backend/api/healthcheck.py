@@ -9,6 +9,7 @@ from fastapi import HTTPException
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.async_utils import safe_create_task
 from core.database import get_db, engine as async_engine
 from api.auth import get_current_user, require_csrf
 from models.user import User
@@ -159,7 +160,7 @@ async def scan(
         if status["running"] or (_scan_task and not _scan_task.done()):
             raise HTTPException(status_code=409, detail="scan_already_running")
 
-        _scan_task = asyncio.create_task(_run_scan_background())
+        _scan_task = safe_create_task(_run_scan_background(), name="healthcheck.scan")
     return {"success": True, "message": "scan_started"}
 
 

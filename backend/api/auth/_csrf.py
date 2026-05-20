@@ -4,11 +4,20 @@ import secrets
 from fastapi import HTTPException, Request, Response, status
 
 from core.csrf_helpers import request_origin, same_origin
-from core.security import get_cookie_samesite, should_use_secure_cookies
+from core.security import (
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    get_cookie_samesite,
+    should_use_secure_cookies,
+)
 
 from ._cookies import COOKIE_NAME
 
 CSRF_COOKIE_NAME = "mk_csrf"
+
+# Mirror the JWT cookie lifetime so a valid session always has a matching
+# CSRF cookie (otherwise the CSRF cookie expires first and every state-
+# changing call returns 403 until the user refreshes).
+_CSRF_COOKIE_MAX_AGE_SECONDS = ACCESS_TOKEN_EXPIRE_MINUTES * 60
 
 
 def _set_csrf_cookie(response: Response, token: str, request: Request) -> None:
@@ -20,7 +29,7 @@ def _set_csrf_cookie(response: Response, token: str, request: Request) -> None:
         secure=secure_cookie,
         samesite=get_cookie_samesite(request),
         path="/",
-        max_age=3600,
+        max_age=_CSRF_COOKIE_MAX_AGE_SECONDS,
     )
 
 

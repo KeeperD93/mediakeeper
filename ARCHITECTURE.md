@@ -148,13 +148,23 @@ models/
   <domain>.py          # SQLAlchemy models, 1 fichier par table principale
   portal/              # tous les models du Portal regroupés
 core/
-  config.py            # Pydantic settings (env vars)
-  auth.py              # JWT encode/decode, dépendances FastAPI
+  security.py          # JWT encode/decode, bcrypt, cookie helpers
   csrf_middleware.py   # CSRF middleware (double-submit cookie)
+  csrf_helpers.py      # Origin/Referer comparison utilities
+  security_headers.py  # CSP + defensive response headers
+  file_validation.py   # upload validation (magic bytes, ZIP namelist, ratio)
   encryption.py        # Fernet symmetric encryption pour secrets en BDD
   pagination.py        # cursor-based helpers
-  logging.py           # structured JSON logging
+  logging_config.py    # structured JSON logging configuration
+  log_redaction.py     # log field redaction (secrets, JWT, password)
   app_startup.py       # tasks au boot (notamment encrypt_legacy_sensitive_values)
+  database.py          # async SQLAlchemy engine + pool
+  http_client.py       # shared httpx clients (internal + external timeouts)
+  rate_limit.py        # slowapi configuration shared by routers
+  proxy.py             # TRUSTED_PROXIES parsing (CIDR/IP whitelist)
+  webhooks.py          # outbound webhook signing + retry helpers
+  ttl_cache.py         # generic TTL cache primitive
+  url_safety.py        # URL whitelist / hostname normalisation
 ```
 
 **`main.py`** inclut tous les routers via `app.include_router(...)`. Pas de logique métier dedans.
@@ -165,7 +175,7 @@ core/
 - Cookie `mk_token` (admin, scope par défaut) — accès au backoffice complet.
 - Cookie `rq_token` (Portal, scope `"portal"`) — accès à `/portal/*`. `get_portal_user()` (`api/portal/deps.py`) refuse explicitement le cookie admin.
 - Permissions granulaires Portal (migration 035) : `can_chat`, `can_portal`, `can_problems`, `can_lists`, `can_earn_xp_offline` — gating via `require_permission(key)`.
-- Rate limiting login : 3 couches superposées — slowapi global (120/min), legacy `_rate_limit.py` deprecated (à nettoyer), DB-backed `services/security.ensure_not_blocked` (vrai mécanisme actif).
+- Rate limiting login : 2 couches superposées — slowapi global (120/min) en première barrière, DB-backed `services/security.ensure_not_blocked` (mécanisme actif principal qui persiste les compteurs entre redémarrages).
 
 ---
 
