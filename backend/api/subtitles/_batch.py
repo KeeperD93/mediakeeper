@@ -1,10 +1,9 @@
 """Batch download + library audit."""
-import asyncio
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.auth import get_current_user
+from core.async_utils import safe_create_task
 from core.database import AsyncSessionLocal, get_db
 from models.user import User
 
@@ -41,7 +40,7 @@ async def start_batch(
         async with AsyncSessionLocal() as bg_db:
             await batch_download(bg_db, req.items, profile)
 
-    asyncio.create_task(_run_batch())
+    safe_create_task(_run_batch(), name="subtitles.batch_download")
     return {"started": True, "total": len(req.items)}
 
 
@@ -79,7 +78,7 @@ async def start_audit(
             result = await run_audit(bg_db, languages=req.languages, library=req.library, checks=req.checks)
         _audit_results["data"] = result
 
-    asyncio.create_task(_run())
+    safe_create_task(_run(), name="subtitles.audit")
     return {"started": True}
 
 
