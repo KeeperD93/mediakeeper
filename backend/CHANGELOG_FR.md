@@ -9,16 +9,18 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+## [1.0.0-rc.1] - 2026-05-21
+
 ### Added
-- Admin Portail — bouton « Reset pseudo » sur la fiche utilisateur (relance l'overlay de choix).
+- Admin Portail — bouton « Reset pseudo » (relance l'overlay de choix).
 - Portal : nouveau composant jaquette « PosterCard » conforme i18n/tokens (préparation à l'intégration).
 - Paramètres — nouvelle section Réseau avec cache d'images et cache DNS (toggles).
 - Paramètres → Planificateur — section Cache (stats hits/manques + bouton Vider).
-- Tableau de bord — réorganisation des cartes sur mobile via une liste de lignes (bouton « Personnaliser », glisser-déposer).
+- Tableau de bord — réorganisation des cartes mobile via liste « Personnaliser ».
 - Paramètres → Portail — bornes capacité événements (min/max par tranche de 5).
 
 ### Changed
-- Doublons — barre d'actions épurée : onglet « Détections » et horodatage « Dernière détection »
+- Doublons — barre d'actions épurée (Détections, Dernière détection)
 - Santé — jaquettes 3 par ligne sur mobile, croix d'overlay repositionnée
 - Santé — bouton « Remonter » masqué dans Configuration, icône bouton Analyser unifiée
 - Demandes — admin : onglet « Paramètres » placé en premier (défaut à l'ouverture).
@@ -36,28 +38,28 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Onglets — interface compactée sur mobile.
 - Pied de page — crédits TMDB compactés.
 - Pied de page — bandeau d'attribution retiré (crédits conservés dans À propos).
-- Avatar (haut à droite) — sélecteur de couleur d'accent retiré (déjà dans Paramètres → Apparence).
+- Avatar — sélecteur de couleur d'accent retiré (déplacé dans Paramètres → Apparence).
 - Suivi — bouton « Restaurer » réaligné (radius unifié).
 - Statistiques — records empilés en colonne sur mobile.
 - Watchlist Manquants : nouveau label « Dernier scan », bouton renommé « Analyser ».
 - Watchlist : bande TMDB allégée, jaquettes Suivi alignées sur le portail (mobile).
-- Tableau de bord — avatars « En direct » alignés sur Utilisateurs (silhouette unifiée, pseudo en bulle).
+- Tableau de bord — avatars « En direct » alignés sur Utilisateurs (silhouette + tooltip).
 - Tableau de bord — stats mobile compactées (icônes 34 px, libellés 3xs, valeurs lg).
-- Tableau de bord — bouton « Personnaliser » mobile déplacé dans le bandeau (icône à gauche de la cloche).
+- Tableau de bord — bouton « Personnaliser » déplacé dans le bandeau mobile.
 - Barre du haut — sous-titre masqué sur mobile, titre centré dans le bandeau.
-- Avatar de la barre du haut (admin + portail) — aligné sur celui des fiches utilisateurs (photo réelle + silhouette de secours).
+- Avatar barre du haut — aligné sur les fiches utilisateurs (photo + silhouette).
 
 ### Fixed
 - Portal : limite débit /availability portée à 120/min, coalescing front, dédupe toasts 429
 - Doublons — navigation entre onglets stabilisée (Ignorés → Historique/Règles)
 - Doublons — premier accès accéléré, vue gardée en cache
-- Doublons — bouton « Restaurer » réaligné sur les films de l'onglet Ignorés
+- Doublons — bouton « Restaurer » réaligné sur les films (onglet Ignorés)
 - Santé — sauvegarde de la configuration restaurée (toast de confirmation)
-- Session admin expirée : reconnexion silencieuse sur module Demandes, sinon message clair à la reconnexion.
+- Session admin expirée : reconnexion silencieuse sur Demandes, message clair ailleurs.
 - Connexion — identifiant accepté quelle que soit la casse (majuscules/minuscules).
 - Paramètres — libellés tâches Nettoyage demandes et Purge RGPD restaurés (planificateur).
-- Portal — jaquettes mobile uniformisées sur Recherche / Discover / Personne / Collection (3 colonnes, ratio 2/3).
-- Tableau de bord — bouton « Lecture Emby » de la hero ouvre désormais sur la fiche Emby (URL HTTPS publique + serverId).
+- Portal — jaquettes mobile uniformisées sur les listes (3 colonnes, ratio 2/3).
+- Tableau de bord — deep-link « Lecture Emby » hero corrigé (HTTPS + serverId).
 
 ## [0.9.9] - 2026-05-14
 
