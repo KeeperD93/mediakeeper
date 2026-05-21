@@ -3,6 +3,10 @@
 </p>
 
 <p align="center">
+  <b>English</b> · <a href="README-fr.md">Français</a>
+</p>
+
+<p align="center">
   <i>Open-source self-hosted media library companion: dashboard, request portal, achievements, backups and more.</i>
 </p>
 
@@ -31,10 +35,10 @@
 
 MediaKeeper is a **single-container, self-hosted companion** for a small Emby instance. It complements Emby with two surfaces in one app:
 
-- A polished **admin back-office** for managing your library, scanning duplicates, watching activity, scheduling jobs and running backups.
+- A polished **admin back-office** for managing your library scanning duplicates, watching activity, scheduling jobs and running backups.
 - A friendly **Portal viewer** designed for the people you share Emby with — catalogue browsing, requests, achievements, lists, daily digests, news, tickets and shared movie nights.
 
-Everything runs from a **single Docker container** with an embedded PostgreSQL 16; no external paid SaaS, no extra services to wire up, no cloud lock-in.
+Everything runs from a **single Docker container** with an embedded PostgreSQL 16.
 
 ---
 
