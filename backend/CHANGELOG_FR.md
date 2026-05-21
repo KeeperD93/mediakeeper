@@ -9,6 +9,8 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+## [1.0.0-rc.3] - 2026-05-22
+
 ### Fixed
 - Connexion — l'assistant ne masque plus l'écran obligatoire de changement de mot de passe.
 - Onboarding — l'étape Dossiers démarre vide (plus de noms anglais en dur).

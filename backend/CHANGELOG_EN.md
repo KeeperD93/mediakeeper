@@ -9,6 +9,8 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+## [1.0.0-rc.3] - 2026-05-22
+
 ### Fixed
 - Login flow — onboarding wizard no longer hides the forced password change.
 - Onboarding — folders step starts empty (no hard-coded English labels).
