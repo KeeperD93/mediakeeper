@@ -1,5 +1,9 @@
 # Contributing to MediaKeeper
 
+<p align="center">
+  <b>English</b> · <a href="CONTRIBUTING-fr.md">Français</a>
+</p>
+
 Thanks for considering a contribution. This file describes the **workflow** (dev setup, project structure, lint, tests, commits, PRs) and the **coding conventions** every contributor follows.
 
 Before anything else, please read the [Code of Conduct](CODE_OF_CONDUCT.md) and the [Security policy](SECURITY.md).
