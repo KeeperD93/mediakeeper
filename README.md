@@ -197,10 +197,13 @@ This uses `docker-compose.yml` (with `build: .`) and compiles a fresh image from
 Read the initial admin password from the logs as soon as the container is up:
 
 ```sh
-docker compose logs mediakeeper | grep -A 4 "ADMIN ACCOUNT CREATED"
+docker compose logs mediakeeper | grep -A 6 "ADMIN ACCOUNT CREATED"
 ```
 
 (Use `docker compose -f docker-compose.prod.yml logs mediakeeper` instead if you started from the GHCR quickstart.)
+
+> [!IMPORTANT]
+> Capture this password immediately. It is **not** persisted to `/data/`. If you miss it (terminal closed, logs rotated), recover with the CLI helper — see [`docs/operations/admin-recovery.md`](docs/operations/admin-recovery.md).
 
 Then open `http://<host>:8888`, sign in as `admin` with that password — a password change is forced on first connection.
 

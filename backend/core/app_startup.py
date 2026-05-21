@@ -115,6 +115,10 @@ def _emit_bootstrap_admin_credentials(username: str, password: str) -> None:
         f"  Username: {username}",
         f"  Password: {password}",
         "  You MUST change this password on first login.",
+        "  CAPTURE THIS NOW — it is not written to /data and",
+        "  cannot be recovered from disk later.",
+        "  Lost it? See docs/operations/admin-recovery.md",
+        "  (run scripts/reset_admin from a host docker exec).",
         "=" * 60,
     ]
     emitted = False
@@ -133,6 +137,7 @@ def _emit_bootstrap_admin_credentials(username: str, password: str) -> None:
         logger.warning("  ADMIN ACCOUNT CREATED")
         logger.warning(f"  Username: {username}")
         logger.warning("  Initial password is only available on first startup.")
+        logger.warning("  Lost it? See docs/operations/admin-recovery.md")
         logger.warning("=" * 60)
 
 
