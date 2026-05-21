@@ -9,6 +9,11 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+### Fixed
+- Connexion — l'assistant ne masque plus l'écran obligatoire de changement de mot de passe.
+- Onboarding — l'étape Dossiers démarre vide (plus de noms anglais en dur).
+- Onboarding — les dossiers médias sont optionnels (configurables après via Paramètres).
+
 ## [1.0.0-rc.2] - 2026-05-22
 
 ### Added

@@ -9,6 +9,11 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Fixed
+- Login flow — onboarding wizard no longer hides the forced password change.
+- Onboarding — folders step starts empty (no hard-coded English labels).
+- Onboarding — media folders are now optional (configurable later via Settings).
+
 ## [1.0.0-rc.2] - 2026-05-22
 
 ### Added
