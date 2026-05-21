@@ -24,10 +24,11 @@
 > [!WARNING]
 > **Under active development — not yet stable.**
 >
-> MediaKeeper is on its `0.9.x` line, ahead of the first stable `1.0.0` release.
+> MediaKeeper is on its `v1.0.0-rc.x` line, ahead of the first stable `v1.0.0` release.
 > Expect schema changes, breaking refactors, missing pieces and rough edges.
-> Do not point it at production data you cannot afford to lose, and pin a
-> specific image tag rather than `latest` when deploying.
+> Do not point it at production data you cannot afford to lose, and pin an
+> immutable image tag (e.g. `ghcr.io/keeperd93/mediakeeper:v1.0.0-rc.1`) rather
+> than `:latest` if you need reproducible behaviour.
 
 ---
 
@@ -151,7 +152,30 @@ For the full feature catalogue and version history, see the [Wiki](https://githu
 
 ## 🚀 Getting started
 
-The recommended way to run MediaKeeper is through Docker Compose.
+### Quickstart — pull the published image
+
+The fastest way is to pull the pre-built image from GitHub Container Registry. No clone, no build:
+
+```sh
+mkdir mediakeeper && cd mediakeeper
+curl -O https://raw.githubusercontent.com/KeeperD93/mediakeeper/main/docker-compose.prod.yml
+docker compose -f docker-compose.prod.yml up -d
+```
+
+The image is multi-arch (`linux/amd64` + `linux/arm64`) so it runs natively on Synology DSM, Raspberry Pi, traditional x86 servers, etc.
+
+**Available image tags:**
+
+| Tag       | Pointer                                       | Recommended for                      |
+| --------- | --------------------------------------------- | ------------------------------------ |
+| `:latest` | most recent stable release                    | everyday self-hosters                |
+| `:beta`   | most recent pre-release / release-candidate   | early adopters, testing              |
+| `:vX.Y.Z` | exact release (immutable)                     | reproducible deployments, CI pinning |
+| `:X.Y`    | floats on the X.Y patch series (e.g. `:0.10`) | following a single minor line        |
+
+### Alternative — clone and build from source
+
+For contributors or anyone wanting bleeding-edge `main`:
 
 ```sh
 git clone https://github.com/KeeperD93/mediakeeper.git
@@ -159,7 +183,11 @@ cd mediakeeper
 docker compose up -d
 ```
 
-That's it — **no `.env` required for a first boot**. MediaKeeper auto-generates everything sensitive on first startup and persists it under `/data/`:
+This uses `docker-compose.yml` (with `build: .`) and compiles a fresh image from the local source.
+
+### First boot
+
+**No `.env` required for a first boot**. MediaKeeper auto-generates everything sensitive on first startup and persists it under `/data/`:
 
 - the PostgreSQL password,
 - the JWT secret (≥ 32 bytes),
@@ -172,11 +200,15 @@ Read the initial admin password from the logs as soon as the container is up:
 docker compose logs mediakeeper | grep -A 4 "ADMIN ACCOUNT CREATED"
 ```
 
+(Use `docker compose -f docker-compose.prod.yml logs mediakeeper` instead if you started from the GHCR quickstart.)
+
 Then open `http://<host>:8888`, sign in as `admin` with that password — a password change is forced on first connection.
 
 **Need to customise?** Copy `.env.example` to `.env` and adjust the variables you need (e.g. `TMDB_API_KEY`, `FRONTEND_ORIGIN`, `MEDIAKEEPER_PATH_ROOTS`) before running `docker compose up -d`. Auto-generated values are respected on subsequent boots.
 
 The application runs `alembic upgrade head` at boot, so database migrations are applied automatically.
+
+Updating an existing install? See [`docs/operations/updating.md`](docs/operations/updating.md).
 
 For Synology DSM, reverse-proxy setups, TLS deployment and advanced configuration, see the [Wiki](https://github.com/KeeperD93/mediakeeper/wiki) and the operations runbooks in [`docs/operations/`](docs/operations/).
 
@@ -184,22 +216,22 @@ For Synology DSM, reverse-proxy setups, TLS deployment and advanced configuratio
 
 ## 📖 Documentation
 
-| Surface | Where |
-|---|---|
-| User wiki | https://github.com/KeeperD93/mediakeeper/wiki |
-| Operations runbooks (admin / sysadmin) | [`docs/operations/`](docs/operations/) |
-| Deployment guides (Caddy, Traefik, Nginx Proxy Manager, LAN, Synology DSM) | [`docs/deployment/`](docs/deployment/) |
-| Contributing | [`CONTRIBUTING.md`](CONTRIBUTING.md) |
-| Security policy | [`SECURITY.md`](SECURITY.md) |
-| Code of conduct | [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) |
-| Third-party licences | [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md) |
-| Changelog | Admin: [`CHANGELOG_FR`](backend/CHANGELOG_FR.md) · [`CHANGELOG_EN`](backend/CHANGELOG_EN.md) · Portal: [`CHANGELOG_PORTAL_FR`](backend/CHANGELOG_PORTAL_FR.md) · [`CHANGELOG_PORTAL_EN`](backend/CHANGELOG_PORTAL_EN.md) |
+| Surface                                                                    | Where                                                                                                                                                                                                                    |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| User wiki                                                                  | https://github.com/KeeperD93/mediakeeper/wiki                                                                                                                                                                            |
+| Operations runbooks (admin / sysadmin)                                     | [`docs/operations/`](docs/operations/)                                                                                                                                                                                   |
+| Deployment guides (Caddy, Traefik, Nginx Proxy Manager, LAN, Synology DSM) | [`docs/deployment/`](docs/deployment/)                                                                                                                                                                                   |
+| Contributing                                                               | [`CONTRIBUTING.md`](CONTRIBUTING.md)                                                                                                                                                                                     |
+| Security policy                                                            | [`SECURITY.md`](SECURITY.md)                                                                                                                                                                                             |
+| Code of conduct                                                            | [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)                                                                                                                                                                               |
+| Third-party licences                                                       | [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md)                                                                                                                                                                     |
+| Changelog                                                                  | Admin: [`CHANGELOG_FR`](backend/CHANGELOG_FR.md) · [`CHANGELOG_EN`](backend/CHANGELOG_EN.md) · Portal: [`CHANGELOG_PORTAL_FR`](backend/CHANGELOG_PORTAL_FR.md) · [`CHANGELOG_PORTAL_EN`](backend/CHANGELOG_PORTAL_EN.md) |
 
 ---
 
 ## 💬 Community & support
 
-- **Discord** — `<DISCORD_INVITE>` *(coming soon)*
+- **Discord** — `<DISCORD_INVITE>` _(coming soon)_
 - **GitHub Discussions** — https://github.com/KeeperD93/mediakeeper/discussions
 - **Bug reports & feature requests** — https://github.com/KeeperD93/mediakeeper/issues
 - **Security disclosures** — see [`SECURITY.md`](SECURITY.md); please do **not** open a public issue
@@ -228,12 +260,12 @@ MediaKeeper is developed with AI assistance. Every change is reviewed, tested an
 
 ## 📦 Tech stack
 
-| Layer | Tech |
-|---|---|
-| **Frontend** | Vue 3 (`<script setup>`), Vue Router 5, vue-i18n 11, Vite 6, PrimeVue 4, Chart.js 4, lucide-vue-next, TipTap |
-| **Backend** | FastAPI (Python 3.12), SQLAlchemy 2 (async), Alembic, PyJWT, bcrypt, httpx, slowapi, cryptography (Fernet), bleach |
-| **Database** | PostgreSQL 16 (production, embedded in the Docker image), SQLite (tests) |
-| **Quality** | ESLint, Prettier, Stylelint, Vitest, pytest + pytest-cov, Husky + commitlint, ruff, bandit, semgrep, pip-audit, npm audit |
+| Layer        | Tech                                                                                                                      |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| **Frontend** | Vue 3 (`<script setup>`), Vue Router 5, vue-i18n 11, Vite 6, PrimeVue 4, Chart.js 4, lucide-vue-next, TipTap              |
+| **Backend**  | FastAPI (Python 3.12), SQLAlchemy 2 (async), Alembic, PyJWT, bcrypt, httpx, slowapi, cryptography (Fernet), bleach        |
+| **Database** | PostgreSQL 16 (production, embedded in the Docker image), SQLite (tests)                                                  |
+| **Quality**  | ESLint, Prettier, Stylelint, Vitest, pytest + pytest-cov, Husky + commitlint, ruff, bandit, semgrep, pip-audit, npm audit |
 
 ---
 
