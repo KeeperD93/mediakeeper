@@ -9,6 +9,9 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Added
+- Admin password recovery — `scripts/reset_admin` CLI helper + operations doc.
+
 ### Fixed
 - Login crash on fresh installs — missing `user_profiles.selected_title` migration.
 - Login — readable error on validation failure (no more `[object Object]`).

@@ -199,10 +199,13 @@ Cette voie utilise `docker-compose.yml` (avec `build: .`) qui compile une image 
 Pour récupérer le mot de passe admin initial dès que le container est démarré :
 
 ```sh
-docker compose logs mediakeeper | grep -A 4 "ADMIN ACCOUNT CREATED"
+docker compose logs mediakeeper | grep -A 6 "ADMIN ACCOUNT CREATED"
 ```
 
 (Utilisez `docker compose -f docker-compose.prod.yml logs mediakeeper` à la place si vous avez démarré depuis le démarrage express GHCR.)
+
+> [!IMPORTANT]
+> Notez ce mot de passe immédiatement. Il n'est **pas** persisté sous `/data/`. En cas de raté (terminal fermé, logs rotatés), utilisez l'outil CLI de récupération — voir [`docs/operations/admin-recovery.md`](docs/operations/admin-recovery.md).
 
 Puis ouvrez `http://<hôte>:8888`, connectez-vous avec `admin` et ce mot de passe — un changement de mot de passe est forcé à la première connexion.
 
