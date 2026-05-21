@@ -1,6 +1,6 @@
 {
   "name": "mediakeeper-frontend",
-  "version": "0.9.9",
+  "version": "1.0.0-rc.1",
   "private": true,
   "type": "module",
   "scripts": {

@@ -14,6 +14,8 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+## [1.0.0-rc.1] - 2026-05-21
+
 ### Added
 - Cinema room — dedicated mobile view (3-column avatar grid).
 - Cinema room — per-participant progress, "Late" tag.
@@ -35,14 +37,14 @@ This section intentionally has no date so it is not shown to users.
 - Mobile home: hero descriptions hidden to declutter
 - Home — hero strip: image slideshow (10 s, crossfade between items).
 - What's new — overlay shown once per day (Close button is enough)
-- Lists (Discover, Search, Person, Collection) — 3 posters per row on mobile, tighter spacing
+- Lists — 3 posters per row on mobile, tighter spacing
 - Cinema room — dynamic seats centred, "Full" badge.
 - Cinema room — seats show avatar + pseudo, marathon panel relocated.
 - Cinema room — "Launch" button always clickable, intro synchronised.
 
 ### Fixed
 - Movie nights: past events locked (room closed, accept blocked, "Ended" pill).
-- Display name picker: blocking modal re-arms on every login, overlays hidden until a pseudo is saved.
+- Display name picker: modal re-arms each login, overlays hidden until saved.
 - Home: removed the burst of "Too many attempts" notifications on load
 - Posters: restored white outline and Top 3 medals (gold/silver/bronze).
 - Posters: duration shown on hover (TMDB cache for Top 20).
@@ -52,15 +54,15 @@ This section intentionally has no date so it is not shown to users.
 - Detail page: status ribbon and availability chip aligned with portal.
 - Posters: bookmark button tooltip renamed to "Add to a list".
 - Emby hero: smaller title on mobile to free the trailer view.
-- Emby hero: mobile posters at natural height (no more dead space below).
+- Emby hero: mobile posters at natural height (no dead space below).
 - Mobile nav: "My profile" moved up to second position.
 - Requests — clear error message when a request fails (quota, duplicate, blacklist)
 - Mobile posters: availability badge repositioned to avoid overlap
 - Person page — request status badge visible again on filmography
 - Search — live TMDB rework with 5-minute cache (posters always fresh)
 - Detail page — language and country localised in the UI language.
-- Detail page — original language now read from TMDB (was first audio track).
-- Home — hero trailers: official and most recent versions prioritised (better French dub).
+- Detail page — original language now read from TMDB (not first audio).
+- Home — hero trailers: official + recent prioritised (better French dub).
 - Home — manual hero slide jump now resets the 10 s timer.
 - Home — hero trailers: on-demand playback only, no background auto-play.
 - Preferences — save bar stays visible after changing language or genres.

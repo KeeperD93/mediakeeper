@@ -16,6 +16,8 @@ utilisateurs.
 
 ## [Unreleased]
 
+## [1.0.0-rc.1] - 2026-05-21
+
 ### Added
 - Salle de cinéma — vue mobile dédiée (grille avatars 3 colonnes).
 - Salle de cinéma — progression par participant, tag « En retard ».
@@ -37,15 +39,15 @@ utilisateurs.
 - Accueil mobile : synopsis des héros masqués pour aérer.
 - Accueil — héros : diaporama d'images (10 s, fondu enchaîné).
 - Quoi de neuf — overlay affiché une seule fois par jour (bouton Fermer suffit).
-- Listes (Découvrir, Recherche, Personne, Collection) — 3 jaquettes par ligne sur mobile, espace resserré.
+- Listes — 3 jaquettes par ligne sur mobile, espace resserré.
 - Salle de cinéma — sièges dynamiques centrés, badge « Complet ».
 - Salle de cinéma — sièges affichent avatar + pseudo, panneau marathon repositionné.
 - Salle de cinéma — bouton « Lancer » toujours cliquable, intro synchronisée.
 
 ### Fixed
 - Soirées ciné : événements passés verrouillés (salle fermée, accept bloqué, pastille « Terminé »).
-- Choix du pseudo : modal bloquant ré-armé à chaque connexion, overlays masqués tant qu'aucun pseudo n'est saisi.
-- Accueil : suppression de la rafale de notifications « Trop de tentatives » au chargement
+- Choix du pseudo : modal ré-armé à chaque connexion, overlays masqués jusqu'à validation.
+- Accueil : rafale de toasts « Trop de tentatives » supprimée au chargement
 - Jaquettes : restauration contour blanc + médailles Top 3 (or/argent/bronze).
 - Jaquettes : durée affichée au survol (cache TMDB pour le Top 20).
 - Jaquettes : tooltips dates restaurés sur tous les rubans diagonaux.
@@ -54,15 +56,15 @@ utilisateurs.
 - Page détails : ruban de statut et chip disponibilité alignés sur le portail.
 - Jaquettes : tooltip du bouton signet renommé en « Ajouter à une liste ».
 - Hero Emby : titre réduit sur mobile pour libérer la zone vidéo.
-- Hero Emby : jaquettes mobile à hauteur normale (plus d'espace mort en bas).
+- Hero Emby : jaquettes mobile à hauteur normale (plus d'espace mort).
 - Navigation mobile : « Mon profil » remonté en 2ème position.
 - Demandes — message d'erreur clair quand la demande échoue (quota, doublon, blacklist).
 - Jaquettes mobile : pastille disponibilité repositionnée (plus de chevauchement).
 - Fiche personne — badge statut des demandes à nouveau visible sur la filmographie.
 - Recherche — refonte live TMDB avec cache 5 min (jaquettes toujours fraîches).
 - Fiche détail — langue et pays traduits dans la langue de l'interface.
-- Fiche détail — langue originale lue depuis TMDB (corrige première piste audio).
-- Accueil — bandes-annonces héros : priorité aux versions officielles récentes (meilleure VF).
+- Fiche détail — langue originale lue depuis TMDB (au lieu première piste).
+- Accueil — bandes-annonces héros : officielles + récentes prioritaires (meilleure VF).
 - Accueil — changement manuel de slide héros : compteur 10 s réinitialisé.
 - Accueil — bandes-annonces héros : lecture à la demande, plus d'auto-play en fond.
 - Préférences — barre Enregistrer reste visible après changement de langue ou genre.

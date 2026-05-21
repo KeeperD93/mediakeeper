@@ -9,17 +9,19 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+## [1.0.0-rc.1] - 2026-05-21
+
 ### Added
-- Portal admin — "Reset display name" button on the user drawer (re-arms the picker overlay).
+- Portal admin — "Reset display name" button (re-arms picker overlay).
 - Portal: new "PosterCard" cover component, i18n/tokens compliant (integration prep).
 - Settings — new Network section with image cache and DNS cache toggles
 - Settings → Scheduler — Cache section (hit/miss stats + Clear button)
-- Dashboard — reorder cards on mobile via a title list ("Customize" button, drag rows)
+- Dashboard — reorder cards on mobile via "Customize" title list
 - Settings → Portal — event capacity bounds (admin min/max, step of 5).
 
 ### Changed
-- Duplicates — streamlined action bar: "Detections" tab and "Last detection" timestamp
-- Health — issue posters 3 per row on mobile, overlay close button repositioned
+- Duplicates — streamlined action bar (Detections, Last detection)
+- Health — 3 posters per row on mobile, close button repositioned
 - Health — back-to-top hidden on Config tab, Analyze button icon unified
 - Requests — admin: "Settings" tab moved to first position (default on open)
 - Dashboard — default widget layout revised (8 widgets)
@@ -36,28 +38,28 @@ This section intentionally has no date so it is not shown to users.
 - Tabs — compacted interface on mobile
 - Footer — TMDB credits compacted
 - Footer — attribution banner removed (credits kept on About page).
-- Avatar menu (top right) — accent color picker removed (already in Settings → Appearance).
+- Avatar menu — accent color picker removed (moved to Settings → Appearance).
 - Watchlist — "Restore" button realigned (unified radius)
 - Statistics — records stacked vertically on mobile
 - Watchlist Missing tab: new "Last scan" label, button renamed "Analyze"
 - Watchlist: lighter TMDB attribution, Suivi posters aligned with portal (mobile)
 - Dashboard — "Live now" avatars aligned with Users (unified silhouette, hover tooltip)
 - Dashboard — mobile stats compacted (34 px icons, 3xs labels, lg values)
-- Dashboard — mobile "Customize" trigger moved into the topbar (icon next to the bell)
+- Dashboard — mobile "Customize" trigger moved to the topbar (near bell)
 - Topbar — subtitle hidden on mobile, title vertically centred in the band
-- Topbar avatar (admin + portal) — aligned with user list cards (real photo + silhouette fallback)
+- Topbar avatar — aligned with user-list cards (photo + silhouette fallback)
 
 ### Fixed
 - Portal: /availability rate limit raised to 120/min, frontend coalescing, 429 toast dedupe
 - Duplicates — tab navigation stabilized (Ignored → History/Rules)
 - Duplicates — faster first access, view kept in cache
-- Duplicates — "Restore" button realigned on movie rows of the Ignored tab
+- Duplicates — "Restore" button realigned on movie rows (Ignored tab)
 - Health — config save restored (confirmation toast)
-- Expired admin session: silent re-login on Requests module, otherwise clear notice on the login screen
+- Expired admin session: silent re-login on Requests, clear notice elsewhere
 - Login — username accepted regardless of letter case
 - Settings — Cleanup requests and GDPR purge task labels restored (scheduler)
-- Portal — mobile poster grids unified on Search / Discover / Person / Collection (3 cols, 2:3 ratio)
-- Dashboard — hero "Play on Emby" button now lands on the item page (HTTPS public URL + serverId)
+- Portal — mobile poster grids unified across lists (3 cols, 2:3 ratio)
+- Dashboard — hero "Play on Emby" deep-link fixed (HTTPS + serverId)
 
 ## [0.9.9] - 2026-05-14
 
