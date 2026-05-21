@@ -96,6 +96,7 @@
       "starting": "Service en cours de démarrage, veuillez patienter…",
       "unexpected": "Réponse inattendue du serveur.",
       "unknown": "Erreur {status}",
+      "validation_failed": "Données de requête invalides.",
       "backup_not_found": "Sauvegarde introuvable.",
       "file_must_be_zip": "Le fichier doit être un .zip.",
       "file_must_be_json": "Le fichier doit être un .json.",

@@ -11,6 +11,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ### Fixed
 - Crash de connexion sur installation neuve — migration `user_profiles.selected_title` manquante.
+- Connexion — erreur lisible en cas d'échec de validation (plus de `[object Object]`).
 
 ## [1.0.0-rc.1] - 2026-05-21
 

@@ -9,6 +9,24 @@ const mustChangePassword = ref(false)
 let refreshInterval = null
 
 /**
+ * Normalise the FastAPI `detail` payload into a stable code that
+ * resolveApiError() can map to an i18n string.
+ *
+ * - Pydantic 422 returns `detail` as an array of validation entries
+ *   ({ type, loc, msg, input }). `new Error([{...}])` would stringify
+ *   the array to "[object Object]" and surface that to the user — see
+ *   common.apiError.validation_failed for the i18n target instead.
+ * - 4xx/5xx with a string `detail` keep the existing contract
+ *   (account_disabled, current_password_invalid, ...).
+ */
+export function extractDetailCode(data, fallback) {
+  const detail = data?.detail
+  if (typeof detail === 'string' && detail) return detail
+  if (Array.isArray(detail) && detail.length > 0) return 'validation_failed'
+  return fallback
+}
+
+/**
  * Composable d'authentification.
  * State global shared entre all les components.
  */
@@ -57,7 +75,7 @@ export function useAuth() {
     }
 
     if (res.status === 503) {
-      throw new Error(data.detail || 'starting')
+      throw new Error(extractDetailCode(data, 'starting'))
     }
 
     if (res.status === 429) {
@@ -65,7 +83,7 @@ export function useAuth() {
     }
 
     if (!res.ok) {
-      throw new Error(data.detail || 'invalid_credentials')
+      throw new Error(extractDetailCode(data, 'invalid_credentials'))
     }
 
     if (data.scope === 'admin') {
@@ -184,7 +202,7 @@ export function useAuth() {
     }
 
     const data = await res.json()
-    if (!res.ok) throw new Error(data.detail || 'unknown')
+    if (!res.ok) throw new Error(extractDetailCode(data, 'unknown'))
 
     mustChangePassword.value = false
     return data
