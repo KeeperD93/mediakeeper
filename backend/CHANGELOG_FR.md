@@ -9,6 +9,9 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+### Fixed
+- Crash de connexion sur installation neuve — migration `user_profiles.selected_title` manquante.
+
 ## [1.0.0-rc.1] - 2026-05-21
 
 ### Added
