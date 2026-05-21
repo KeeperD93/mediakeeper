@@ -264,15 +264,13 @@ export function useOnboarding(props, emit) {
   const testOpenSubs = () => _testTool(openSubs, 'opensubtitles', buildToolPayload(openSubs.value))
 
   let _folderId = 0
-  const DEFAULT_FOLDERS = [
-    { key: 'MEDIA_TELECHARGEMENT', label: 'Downloads', default: '/media/telechargement' },
-    { key: 'MEDIA_FILMS', label: 'Movies', default: '/media/films' },
-    { key: 'MEDIA_SERIES', label: 'Series', default: '/media/series' },
-    { key: 'MEDIA_DOCUMENTAIRES', label: 'Documentaries', default: '/media/documentaires' },
-    { key: 'MEDIA_FILMS_ANIMATION', label: 'Animation', default: '/media/filmsdanimation' },
-    { key: 'MEDIA_MANGAS', label: 'Manga & Anime', default: '/media/mangasetanimes' },
-  ]
-  const folders = ref(DEFAULT_FOLDERS.map(f => ({ ...f, path: '', _id: ++_folderId })))
+  // Folders start empty: every deployment mounts a different set of host
+  // paths into the container (see docker-compose.prod.yml), so a hard-coded
+  // list of English labels (Downloads, Movies, …) would either pollute the
+  // payload with bogus entries on a fresh install or surface labels that
+  // do not match the operator's actual layout. The wizard exposes an
+  // "Add folder" button to declare exactly the paths the operator mounted.
+  const folders = ref([])
   const hasFolders = computed(() => folders.value.some(f => f.path.trim()))
   const browsePath = ref('/')
   const browseDirs = ref([])
