@@ -204,9 +204,7 @@ In short:
 
 ## 🤖 AI-assisted development
 
-MediaKeeper is built with significant AI assistance — primarily **Claude** (Anthropic) used through **Claude Code**. Every change is reviewed, tested and committed by the maintainer; the AI accelerates iteration and helps with research, refactoring and documentation, but it does not replace human judgement, review or accountability.
-
-This note exists for transparency: contributors and users should know how the project is built. The historical record (commits, PR bodies, changelogs) stays human-authored — there is no AI co-author signature on commits.
+MediaKeeper is developed with AI assistance. Every change is reviewed, tested and committed by the maintainer, who remains responsible for the code that ships.
 
 ---
 
