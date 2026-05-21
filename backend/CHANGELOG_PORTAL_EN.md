@@ -14,6 +14,8 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+## [1.0.0-rc.3] - 2026-05-22
+
 ## [1.0.0-rc.2] - 2026-05-22
 
 ## [1.0.0-rc.1] - 2026-05-21
