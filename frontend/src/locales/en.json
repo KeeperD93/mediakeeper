@@ -1463,6 +1463,10 @@
       "fixed": "Fixed",
       "changed": "Changed",
       "removed": "Removed"
+    },
+    "surface": {
+      "admin": "Admin app",
+      "portal": "Portal"
     }
   },
   "healthCheck": {

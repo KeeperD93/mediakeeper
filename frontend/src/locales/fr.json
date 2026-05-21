@@ -1463,6 +1463,10 @@
       "fixed": "Correction",
       "changed": "Modification",
       "removed": "Suppression"
+    },
+    "surface": {
+      "admin": "Application admin",
+      "portal": "Portail"
     }
   },
   "healthCheck": {
