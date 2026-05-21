@@ -18,7 +18,7 @@ docker run -d \
   -v /srv/mediakeeper/data:/data \
   -v /srv/mediakeeper/media:/media \
   --env-file /etc/mediakeeper.env \
-  ghcr.io/<your-org>/mediakeeper:latest
+  ghcr.io/keeperd93/mediakeeper:0.9
 ```
 
 `/etc/mediakeeper.env` carries the secrets (`JWT_SECRET_KEY` is
