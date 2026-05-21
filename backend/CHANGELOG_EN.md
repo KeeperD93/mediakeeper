@@ -9,6 +9,8 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+## [1.0.0-rc.2] - 2026-05-22
+
 ### Added
 - Admin password recovery — `scripts/reset_admin` CLI helper + operations doc.
 

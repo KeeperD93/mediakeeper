@@ -9,6 +9,8 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+## [1.0.0-rc.2] - 2026-05-22
+
 ### Added
 - Récupération mot de passe admin — outil CLI `scripts/reset_admin` + doc opérations.
 
