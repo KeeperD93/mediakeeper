@@ -11,6 +11,7 @@ This section intentionally has no date so it is not shown to users.
 
 ### Fixed
 - Login crash on fresh installs — missing `user_profiles.selected_title` migration.
+- Login — readable error on validation failure (no more `[object Object]`).
 
 ## [1.0.0-rc.1] - 2026-05-21
 

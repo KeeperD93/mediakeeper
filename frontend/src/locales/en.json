@@ -96,6 +96,7 @@
       "starting": "Service starting, please wait…",
       "unexpected": "Unexpected server response.",
       "unknown": "Error {status}",
+      "validation_failed": "Invalid request data.",
       "backup_not_found": "Backup not found.",
       "file_must_be_zip": "File must be a .zip.",
       "file_must_be_json": "File must be a .json.",
