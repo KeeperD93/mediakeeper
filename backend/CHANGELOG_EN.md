@@ -12,6 +12,9 @@ This section intentionally has no date so it is not shown to users.
 ### Added
 - Admin password recovery — `scripts/reset_admin` CLI helper + operations doc.
 
+### Changed
+- Startup — cookie security warning now points at the `COOKIE_SECURE=false` LAN escape hatch.
+
 ### Fixed
 - Login crash on fresh installs — missing `user_profiles.selected_title` migration.
 - Login — readable error on validation failure (no more `[object Object]`).

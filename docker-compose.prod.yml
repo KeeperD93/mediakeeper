@@ -43,6 +43,10 @@ services:
       # - JWT_SECRET_KEY=change-me-with-at-least-32-random-bytes
       # - MK_ADMIN_USERS=admin
       # - FRONTEND_ORIGIN=https://mediakeeper.example.com
+      # COOKIE_SECURE: set to "true" once you front the container with
+      # HTTPS, or to "false" to acknowledge an intentional HTTP-only LAN
+      # deployment and silence the startup warning. See
+      # docs/operations/tls-deployment.md for the trade-off.
       # - COOKIE_SECURE=true
       # - COOKIE_SAMESITE=lax
       # ── Reverse-proxy whitelist (CSV of CIDR/IPs) ──

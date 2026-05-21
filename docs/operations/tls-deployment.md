@@ -206,6 +206,16 @@ production-like mode`.
 You can short-circuit detection by setting `COOKIE_SECURE=true` —
 that override always wins.
 
+**HTTP-only on a trusted LAN — silencing the warning.**
+If you intentionally run MediaKeeper over plain HTTP on a LAN you
+trust (no public exposure, no reverse proxy, no Internet route),
+the startup warning above is informational and expected. Setting
+`COOKIE_SECURE=false` in your `.env` acknowledges the trade-off
+and silences the warning at every subsequent boot — the cookies
+remain non-Secure, which is the only behaviour HTTP-only can
+support. Do **not** use this on any host reachable from outside
+the LAN: an HTTP MITM there can replay session cookies.
+
 **Browser blocks scripts/styles/images with a Content-Security-Policy
 violation.**
 The shipped policy allows: `'self'` plus the YouTube IFrame API for
