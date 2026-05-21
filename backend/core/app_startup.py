@@ -259,6 +259,8 @@ def _warn_if_secure_cookies_unavailable() -> None:
         "[startup] COOKIE_SECURE is unset and TRUSTED_PROXIES is empty in "
         "production-like mode. Session cookies will not carry the Secure flag "
         "until the app is reached over HTTPS or a reverse proxy is whitelisted. "
+        "If you intend HTTP-only on a trusted LAN, set COOKIE_SECURE=false in "
+        "your .env to acknowledge and silence this warning. "
         "See docs/operations/tls-deployment.md."
     )
 

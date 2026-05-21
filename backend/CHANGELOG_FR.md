@@ -12,6 +12,9 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 ### Added
 - Récupération mot de passe admin — outil CLI `scripts/reset_admin` + doc opérations.
 
+### Changed
+- Démarrage — l'avertissement cookies cite désormais l'option `COOKIE_SECURE=false` pour LAN HTTP.
+
 ### Fixed
 - Crash de connexion sur installation neuve — migration `user_profiles.selected_title` manquante.
 - Connexion — erreur lisible en cas d'échec de validation (plus de `[object Object]`).

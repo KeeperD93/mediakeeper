@@ -43,3 +43,31 @@ def test_warning_silenced_in_debug_mode(caplog, monkeypatch):
     with caplog.at_level(logging.WARNING, logger="mediakeeper"):
         _warn_if_secure_cookies_unavailable()
     assert not [r for r in caplog.records if "COOKIE_SECURE is unset" in r.message]
+
+
+def test_warning_silenced_when_cookie_secure_explicitly_false(caplog, monkeypatch):
+    """An operator running HTTP-only on a trusted LAN can set
+    COOKIE_SECURE=false to acknowledge the trade-off and silence
+    the boot warning — the warning message now points at this
+    escape hatch explicitly."""
+    monkeypatch.delenv("MK_DEBUG", raising=False)
+    monkeypatch.setenv("COOKIE_SECURE", "false")
+    monkeypatch.delenv("TRUSTED_PROXIES", raising=False)
+    with caplog.at_level(logging.WARNING, logger="mediakeeper"):
+        _warn_if_secure_cookies_unavailable()
+    assert not [r for r in caplog.records if "COOKIE_SECURE is unset" in r.message]
+
+
+def test_warning_text_mentions_the_escape_hatch(caplog, monkeypatch):
+    """Regression guard: the message must keep telling the operator
+    they can set COOKIE_SECURE=false to silence the warning on a
+    deliberate HTTP-only LAN deployment, otherwise the docs and the
+    runtime hint drift apart."""
+    monkeypatch.delenv("MK_DEBUG", raising=False)
+    monkeypatch.delenv("COOKIE_SECURE", raising=False)
+    monkeypatch.delenv("TRUSTED_PROXIES", raising=False)
+    with caplog.at_level(logging.WARNING, logger="mediakeeper"):
+        _warn_if_secure_cookies_unavailable()
+    full_text = " ".join(r.message for r in caplog.records)
+    assert "COOKIE_SECURE=false" in full_text
+    assert "trusted LAN" in full_text
