@@ -73,9 +73,16 @@ def test_decode_rejects_tampered_signature():
     token."""
     valid = create_access_token({"sub": "alice"})
     header, payload, signature = valid.split(".")
-    last = signature[-1]
-    swapped = "B" if last != "B" else "C"
-    tampered = f"{header}.{payload}.{signature[:-1]}{swapped}"
+    # Flip a character in the middle of the signature. Flipping the LAST
+    # character is unreliable because base64url packs 32 bytes into 43 chars,
+    # where the trailing char carries only 4 data bits + 2 padding bits, so a
+    # naive swap can yield identical decoded bytes (the library discards the
+    # padding bits).
+    middle = len(signature) // 2
+    pivot = signature[middle]
+    swapped = "B" if pivot != "B" else "C"
+    tampered_sig = f"{signature[:middle]}{swapped}{signature[middle + 1:]}"
+    tampered = f"{header}.{payload}.{tampered_sig}"
     assert decode_access_token(tampered) is None
 
 
