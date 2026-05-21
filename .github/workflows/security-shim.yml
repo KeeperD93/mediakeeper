@@ -1,0 +1,28 @@
+name: Security — required checks shim
+
+# Reports the required pip-audit / npm audit checks as SUCCESS when a
+# PR does not touch security-relevant files. See backend-shim.yml.
+
+on:
+  pull_request:
+    paths-ignore:
+      - 'backend/**/*.py'
+      - 'backend/requirements.txt'
+      - 'frontend/package-lock.json'
+      - '.github/workflows/security.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  pip-audit:
+    name: pip-audit (OSV)
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "No security-relevant changes — required check satisfied by no-op shim."
+
+  npm-audit:
+    name: npm audit (high+)
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "No security-relevant changes — required check satisfied by no-op shim."

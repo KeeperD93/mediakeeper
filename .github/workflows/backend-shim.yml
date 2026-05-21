@@ -1,0 +1,23 @@
+name: Backend — required check shim
+
+# Reports the required `pytest + coverage` check as SUCCESS when a PR
+# does not touch backend code. The real workflow (backend.yml) is gated
+# by path filters and skips on non-backend PRs, which would otherwise
+# leave the required check "expected" indefinitely and block merge.
+
+on:
+  pull_request:
+    paths-ignore:
+      - 'backend/**'
+      - 'pytest.ini'
+      - '.github/workflows/backend.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: pytest + coverage
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "No backend changes — required check satisfied by no-op shim."

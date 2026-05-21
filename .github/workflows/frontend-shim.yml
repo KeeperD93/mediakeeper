@@ -1,0 +1,27 @@
+name: Frontend — required checks shim
+
+# Reports the required frontend checks as SUCCESS when a PR does not
+# touch frontend code. See backend-shim.yml for the rationale.
+
+on:
+  pull_request:
+    paths-ignore:
+      - 'frontend/**'
+      - '.github/workflows/frontend.yml'
+      - '.github/workflows/frontend-e2e.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Lint + typecheck + tests + build
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "No frontend changes — required check satisfied by no-op shim."
+
+  e2e:
+    name: Playwright (Chromium desktop + mobile)
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "No frontend changes — required check satisfied by no-op shim."
