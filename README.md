@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <i>Open-source self-hosted media library companion: dashboard, request portal, achievements, backups and more.</i>
+  <i>Open-source self-hosted media library companion: dashboard, request portal, achievements, duplicates, missing-content tracking, statistics, subtitles and more.</i>
 </p>
 
 <p align="center">
@@ -33,9 +33,9 @@
 
 ## 🎯 What is MediaKeeper?
 
-MediaKeeper is a **single-container, self-hosted companion** for a small Emby instance. It complements Emby with two surfaces in one app:
+MediaKeeper is a **single-container, self-hosted companion** for an Emby instance. It complements Emby with two surfaces in one app:
 
-- A polished **admin back-office** for managing your library scanning duplicates, watching activity, scheduling jobs and running backups.
+- A polished **admin back-office** for managing your library, spotting duplicates, watching activity, handling subtitles and more.
 - A friendly **Portal viewer** designed for the people you share Emby with — catalogue browsing, requests, achievements, lists, daily digests, news, tickets and shared movie nights.
 
 Everything runs from a **single Docker container** with an embedded PostgreSQL 16.
@@ -48,11 +48,12 @@ MediaKeeper extends Emby with a back-office to run the instance and a Portal tha
 
 ### Highlights
 
-- **Cinematic shared movie nights** — schedule events, a virtual cinema room launches at start, marathon mode chains films and gates the next one until 85 % completion, realtime presence shows who is in.
+- **Immersive shared movie nights** — schedule events with a virtual cinema room.
 - **Built-in request system** — viewers ask for films, shows or seasons; quotas, blacklist, auto-cleanup and admin moderation are wired in.
-- **Achievements & XP** — 160+ trophies across families (community, watching, marathons, secrets, milestones, lists), levels up to 50, monthly leaderboard with premium showcase.
+- **Achievements & XP** — 160+ trophies across families (community, watching, marathons, secrets, milestones, lists), levels up to 50, monthly leaderboard.
 - **Public viewer profiles** — every viewer can customise a username, avatar, equip cosmetic titles, and other viewers can browse the public version of the profile.
-- **Daily digest** — a once-per-day "what's new today" overlay highlights the monthly Top 3 and the viewer's own ranking.
+- **User management** — manage your users, adjust their Emby access window, fill in profile information, track their statistics…
+- **Daily digest** — a once-per-day "what's new today" overlay surfaces the monthly Top 3, the viewer's ranking, the latest additions and admin-curated news…
 
 ### Admin back-office
 
@@ -68,12 +69,12 @@ Built for the operator who keeps the Emby instance alive.
 
 **File management**
 
-- **Media Manager** (desktop) — browse, move, rename, tag, dedupe directly on disk, lasso selection, TMDB year field for remake disambiguation
-- **Subtitles** — OpenSubtitles batch download and library audit, profile management
+- **Media Manager** (desktop) — browse, move, rename with the help of TMDB (API), tag, dedupe directly on disk, lasso selection…
+- **Subtitles** — OpenSubtitles batch download, removal of language tracks and subtitle streams already on disk…
 
 **User & request operations**
 
-- **Users premium** — 7-tab drawer (identity, access, security, activity, trophies, notes, audit), granular roles & permissions (chat, requests, problems, lists, offline XP), access window with extension shortcuts, reversible soft-delete, audit log, admin notes, tags, per-user GDPR export
+- **Users** — 7-tab drawer (identity, access, security, activity, trophies, notes, audit), granular roles & permissions (chat, requests, problems, lists, offline XP), access window with extension shortcuts, reversible soft-delete, audit log, admin notes, tags, per-user GDPR export
 - **Requests premium** — search, filters, table/card view, bulk actions, auto-cleanup configurable, all-time totals per counter
 - **News admin** — create, edit, delete and schedule entries (start/end dates)
 - **Maintenance mode** — toggle a customizable maintenance message for the Portal
@@ -94,7 +95,7 @@ Built for the people you share Emby with — gamified, social and friendly.
 
 - **Catalog Discover** — Trending, Popular, Top-rated, Oscars, Family, Upcoming, by Provider, personalised recommendations
 - **Hero strip** — auto-rotating image slideshow (10 s crossfade)
-- **Search** — instant TMDB suggestions with 5-min cache, recent history, ⌘K shortcut
+- **Search** — instant TMDB suggestions with 5-min cache, recent history…
 - **Detail pages** — premium sidebar (Lucide icons, status dot, language & country localised, original language read from TMDB)
 - **Mobile-first** — 3-column poster grids on mobile, tap-to-open, dense layouts, dedicated mobile views where needed
 
@@ -109,7 +110,7 @@ Built for the people you share Emby with — gamified, social and friendly.
 **Identity & community**
 
 - **Custom username** — mandatory pick on first sign-in, live availability check, editable every 6 months, reserved usernames protected
-- **Custom avatar upload** (up to 5 MB) + cosmetic titles preview before saving
+- **Custom avatar** — inherit your Emby avatar or upload your own directly on MediaKeeper (up to 5 MB) + cosmetic titles preview before saving
 - **Premium Settings** in five tabs — identity, appearance, preferences, visibility, account
 - **Public profile pages** — card, bio, genres, trophies; reachable from the leaderboard
 - **Login streak** indicator on the dedicated portal sign-in page

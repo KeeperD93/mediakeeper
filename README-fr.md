@@ -50,12 +50,12 @@ MediaKeeper étend Emby avec un back-office pour piloter l'instance et un portai
 
 ### Points forts
 
-- **Soirées ciné partagées immersives** — planifiez des événements, avec un cinéma virtuel.
+- **Soirées ciné partagées immersives** — planifiez des événements avec un cinéma virtuel.
 - **Système de demandes intégré** — les utilisateurs demandent des films, séries ou saisons ; quotas, blacklist, auto-nettoyage et modération admin sont livrés clé en main.
 - **Trophées & XP** — 160+ trophées répartis en familles (communauté, visionnage, marathons, secrets, jalons, listes), niveaux jusqu'à 50, classement mensuel.
 - **Profils publics utilisateurs** — chaque utilisateur peut personnaliser un pseudo, un avatar, équiper des titres cosmétiques, et les autres peuvent consulter la version publique du profil.
-- **Suivi utilisateurs** - gérés vos utilisateurs, ajustez les dates d'accès au serveur emby, rentrez des informations de profils, suivez leurs statistiques...
-- **Quoi de neuf aujourd'hui** — un overlay une fois par jour met en avant le Top 3 du mois et la position de l'utilisateur, les dernier ajouts, les actualités défini par l'admin...
+- **Suivi utilisateurs** — gérez vos utilisateurs, ajustez les dates d'accès au serveur Emby, renseignez les informations de profil, suivez leurs statistiques…
+- **Quoi de neuf aujourd'hui** — un overlay une fois par jour met en avant le Top 3 du mois et la position de l'utilisateur, les derniers ajouts, les actualités définies par l'admin…
 
 ### Back-office admin
 
@@ -72,7 +72,7 @@ Pensé pour l'opérateur qui maintient l'instance Emby vivante.
 **Gestion de fichiers**
 
 - **Gestionnaire de médias** (desktop) — parcourir, déplacer, renommer avec l'aide de l'agent TMDB (API), taguer, dédupliquer directement sur le disque, sélection au lasso...
-- **Sous-titres** — téléchargement des sous-titres par OpenSubtitles, suppression des langues et sous-titres déjà disponible sur les fichiers...
+- **Sous-titres** — téléchargement des sous-titres par OpenSubtitles, suppression des langues et sous-titres déjà disponibles sur les fichiers…
 
 **Utilisateurs & demandes**
 
@@ -112,7 +112,7 @@ Pensé pour les personnes avec qui vous partagez Emby — gamifié, social et co
 **Identité & communauté**
 
 - **Pseudo personnalisé** — choix obligatoire à la première connexion, contrôle de disponibilité en direct, modifiable tous les 6 mois, pseudos réservés protégés
-- **Avatar personnalisé** récupere celui d'emby ou ajoutez en un directement sur MediaKeeper (jusqu'à 5 Mo) + titres cosmétiques avec prévisualisation avant validation
+- **Avatar personnalisé** — récupère celui d'Emby ou ajoutez-en un directement sur MediaKeeper (jusqu'à 5 Mo) + titres cosmétiques avec prévisualisation avant validation
 - **Paramètres premium** en cinq onglets — identité, apparence, préférences, visibilité, compte
 - **Pages de profil public** — carte, bio, genres, trophées ; accessible depuis le classement
 - **Série de connexions** affichée sur la page de connexion dédiée au portail
