@@ -1,5 +1,9 @@
 # Security policy
 
+<p align="center">
+  <b>English</b> · <a href="SECURITY-fr.md">Français</a>
+</p>
+
 ## Reporting a vulnerability
 
 **Please do not open a public issue for security problems.**

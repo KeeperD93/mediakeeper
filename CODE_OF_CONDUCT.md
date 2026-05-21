@@ -1,5 +1,9 @@
 # Code of Conduct
 
+<p align="center">
+  <b>English</b> · <a href="CODE_OF_CONDUCT-fr.md">Français</a>
+</p>
+
 MediaKeeper adopts the **Contributor Covenant, version 2.1** as its code of conduct for all interactions in this project's spaces (issues, pull requests, discussions, code reviews, Discord, any other contribution channel).
 
 The full text is the canonical reference:
