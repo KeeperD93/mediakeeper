@@ -8,7 +8,7 @@ file once the routing is captured on the container itself.
 ```yaml
 services:
   mediakeeper:
-    image: ghcr.io/keeperd93/mediakeeper:0.9
+    image: ghcr.io/keeperd93/mediakeeper:latest
     env_file: /etc/mediakeeper.env
     networks: [public]
     volumes:

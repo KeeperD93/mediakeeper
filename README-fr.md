@@ -29,7 +29,7 @@
 > des éléments manquants et quelques aspérités.
 > Ne le pointez pas sur des données de production que vous ne pouvez pas vous
 > permettre de perdre, et figez un tag d'image immuable (par ex.
-> `ghcr.io/keeperd93/mediakeeper:v1.0.0-rc.1`) plutôt que `:latest` si vous
+> `ghcr.io/keeperd93/mediakeeper:v1.0.0-rc.3`) plutôt que `:latest` si vous
 > voulez un comportement reproductible.
 
 ---
