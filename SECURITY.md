@@ -24,23 +24,28 @@ When reporting, please include:
 
 ## Supported versions
 
-| Version | Supported |
-|---|---|
-| `0.9.x` (current) | ✅ Latest minor only |
-| `< 0.9` | ❌ Please upgrade before reporting |
+| Channel            | Image tag                                               | Supported                          |
+| ------------------ | ------------------------------------------------------- | ---------------------------------- |
+| Latest stable      | `:latest` (= the most recent `vX.Y.Z` without a hyphen) | ✅ Security fixes land here        |
+| Pre-release        | `:beta` (= the most recent `vX.Y.Z-rc.N` / `-beta.N`)   | 🟡 Best-effort, no guarantees      |
+| Older stable lines | any `:vA.B.Z` once a newer `vC.D.0` ships               | ❌ Please upgrade before reporting |
 
-Until `1.0.0` ships, **only the latest `0.9.x` minor receives security fixes**. After `1.0.0`, the same policy applies: the latest stable line is the only supported one.
+**Policy: latest stable only.** As a solo-maintainer project, MediaKeeper does not back-port security fixes to older minor lines. When a new stable release ships, only it (and the rolling `:latest` tag) receives further fixes.
+
+While the project is still on the `v1.0.0-rc.x` line ahead of the first stable `v1.0.0`, the pre-release channel (`:beta`) is the most up-to-date code path and receives fixes first.
+
+See [`docs/operations/updating.md`](docs/operations/updating.md) for how to update or switch between channels.
 
 ---
 
 ## What to expect
 
-| Stage | Target |
-|---|---|
-| Acknowledgement of receipt | within 72 hours |
-| Initial triage / severity assessment | within 7 days |
-| Fix or mitigation plan communicated | within 30 days for confirmed issues |
-| Coordinated public disclosure | after a fix ships, ideally within 90 days |
+| Stage                                | Target                                    |
+| ------------------------------------ | ----------------------------------------- |
+| Acknowledgement of receipt           | within 72 hours                           |
+| Initial triage / severity assessment | within 7 days                             |
+| Fix or mitigation plan communicated  | within 30 days for confirmed issues       |
+| Coordinated public disclosure        | after a fix ships, ideally within 90 days |
 
 These targets are best-effort: this is a small project run by a maintainer in their spare time.
 

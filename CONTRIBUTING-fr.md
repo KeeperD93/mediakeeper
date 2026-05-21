@@ -152,7 +152,7 @@ npm run format            # Prettier
 npm run typecheck         # vue-tsc
 ```
 
-Une fois les hooks Husky actifs (voir *Configuration initiale*), `git commit` déclenche automatiquement `lint-staged` sur les fichiers stagés.
+Une fois les hooks Husky actifs (voir _Configuration initiale_), `git commit` déclenche automatiquement `lint-staged` sur les fichiers stagés.
 
 ### 4. Tests
 
@@ -259,6 +259,36 @@ Avant d'ajouter une dépendance :
 2. Vérifiez l'impact sur le bundle frontend (`npm run build`) pour les deps frontend.
 3. Vérifiez la compatibilité de licence (MIT / Apache 2 / BSD OK — GPL / AGPL nécessite justification, voir [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md)).
 4. Vérifiez la santé upstream (releases récentes, statut de maintenance, issues ouvertes).
+
+---
+
+## Processus de release
+
+Les releases sont taggées depuis `main` en CLI ; seul le mainteneur les déclenche. Les contributeurs ont juste à savoir que leurs PRs mergées s'accumulent dans les sections `[Unreleased]` des quatre changelogs (`backend/CHANGELOG_{EN,FR}.md`, `backend/CHANGELOG_PORTAL_{EN,FR}.md`) et seront livrées dans la prochaine release taggée.
+
+### Comment une release est sortie
+
+1. Une PR `chore(release): prepare vX.Y.Z` fige les sections `[Unreleased]` dans un bloc daté `[X.Y.Z]` dans les quatre changelogs, et bumpe les trois marqueurs de version :
+   - `APP_VERSION` dans [`backend/api/changelog.py`](backend/api/changelog.py)
+   - `PORTAL_VERSION` dans [`backend/api/portal_changelog.py`](backend/api/portal_changelog.py)
+   - `version` dans [`frontend/package.json`](frontend/package.json)
+2. Une fois cette PR mergée, le mainteneur pousse un tag `v*` en local (`git tag vX.Y.Z && git push --tags`).
+3. Le workflow [`.github/workflows/release.yml`](.github/workflows/release.yml) build une image multi-arch (`linux/amd64` + `linux/arm64`), la pousse sur GHCR, et crée la GitHub Release correspondante avec un body extrait des changelogs EN.
+
+### Canaux et tags GHCR
+
+| Tag poussé                              | Tags GHCR produits                                             |
+| --------------------------------------- | -------------------------------------------------------------- |
+| `vX.Y.Z` (stable)                       | `:vX.Y.Z` + `:X.Y` (mineure flottante) + `:latest`             |
+| `vX.Y.Z-rc.N` / `-beta.N` (pré-release) | `:vX.Y.Z-…` + `:beta` (la pré-release ne touche pas `:latest`) |
+
+Seule la dernière ligne stable reçoit les correctifs de sécurité back-portés (voir [`SECURITY.md`](SECURITY.md)).
+
+### Conventional commits
+
+Les sujets de commit suivent [Conventional Commits](https://www.conventionalcommits.org/) et sont validés par `commitlint` en CI. Types autorisés : `feat`, `fix`, `refactor`, `perf`, `docs`, `style`, `test`, `build`, `ci`, `chore`, `revert`.
+
+Les changements visibles côté utilisateur final nécessitent aussi une entrée dans la section `[Unreleased]` pertinente, en miroir FR ↔ EN. Gardez les entrées courtes (~12 mots) et orientées utilisateur — les détails d'implémentation vont dans le body du commit, pas le changelog.
 
 ---
 

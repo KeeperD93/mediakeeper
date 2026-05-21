@@ -152,7 +152,7 @@ npm run format            # Prettier
 npm run typecheck         # vue-tsc
 ```
 
-Once Husky hooks are active (see *Initial setup*), `git commit` triggers `lint-staged` automatically on staged files.
+Once Husky hooks are active (see _Initial setup_), `git commit` triggers `lint-staged` automatically on staged files.
 
 ### 4. Tests
 
@@ -259,6 +259,36 @@ Before adding any dependency:
 2. Check the frontend bundle impact (`npm run build`) for frontend dependencies.
 3. Check the licence is compatible (MIT / Apache 2 / BSD OK — GPL / AGPL needs justification, see [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md)).
 4. Check upstream health (recent releases, maintenance status, open issues).
+
+---
+
+## Release process
+
+Releases are tagged from `main` via the CLI; the maintainer is the only person who triggers them. Contributors only need to know that their merged PRs accumulate in the `[Unreleased]` sections of the four changelogs (`backend/CHANGELOG_{EN,FR}.md`, `backend/CHANGELOG_PORTAL_{EN,FR}.md`) and will ship in the next tagged release.
+
+### How a release is cut
+
+1. A `chore(release): prepare vX.Y.Z` PR freezes the `[Unreleased]` sections into a dated `[X.Y.Z]` block in the four changelogs, and bumps the three version markers:
+   - `APP_VERSION` in [`backend/api/changelog.py`](backend/api/changelog.py)
+   - `PORTAL_VERSION` in [`backend/api/portal_changelog.py`](backend/api/portal_changelog.py)
+   - `version` in [`frontend/package.json`](frontend/package.json)
+2. Once that PR is merged, the maintainer pushes a `v*` tag locally (`git tag vX.Y.Z && git push --tags`).
+3. The [`.github/workflows/release.yml`](.github/workflows/release.yml) workflow builds a multi-arch image (`linux/amd64` + `linux/arm64`), pushes it to GHCR, and creates the matching GitHub Release with a body extracted from the EN changelogs.
+
+### Channels and GHCR tags
+
+| Tag pushed                              | GHCR tags produced                                         |
+| --------------------------------------- | ---------------------------------------------------------- |
+| `vX.Y.Z` (stable)                       | `:vX.Y.Z` + `:X.Y` (floating minor) + `:latest`            |
+| `vX.Y.Z-rc.N` / `-beta.N` (pre-release) | `:vX.Y.Z-…` + `:beta` (pre-release stays out of `:latest`) |
+
+Only the latest stable line receives security back-ports (see [`SECURITY.md`](SECURITY.md)).
+
+### Conventional commits
+
+Commit subjects follow [Conventional Commits](https://www.conventionalcommits.org/) and are validated by `commitlint` in CI. Allowed types: `feat`, `fix`, `refactor`, `perf`, `docs`, `style`, `test`, `build`, `ci`, `chore`, `revert`.
+
+End-user-visible changes also need an entry under the relevant `[Unreleased]` section, mirrored FR ↔ EN. Keep entries short (~12 words) and user-facing — implementation detail belongs in the commit body, not the changelog.
 
 ---
 
