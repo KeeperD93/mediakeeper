@@ -27,16 +27,25 @@
               <span v-if="idx === 0" class="cl-badge-latest">{{ $t('changelog.latest') }}</span>
               <span class="cl-version-date">{{ formatDate(v.date) }}</span>
             </div>
-            <div v-for="(items, cat) in v.categories" :key="cat" class="cl-category">
-              <div class="cl-cat-header">
-                <span class="cl-cat-icon">{{ categoryIcon(cat) }}</span>
-                <span class="cl-cat-label" :class="'cat-' + categoryClass(cat)">
-                  {{ $t('changelog.cat.' + categoryClass(cat)) }}
-                </span>
-              </div>
-              <ul class="cl-items">
-                <li v-for="(item, i) in items" :key="i" class="cl-item">{{ item }}</li>
-              </ul>
+            <div v-for="surface in ['admin', 'portal']" :key="surface">
+              <template v-if="v[surface]">
+                <div class="cl-surface-label">{{ $t('changelog.surface.' + surface) }}</div>
+                <div
+                  v-for="(items, cat) in v[surface]"
+                  :key="surface + '-' + cat"
+                  class="cl-category"
+                >
+                  <div class="cl-cat-header">
+                    <span class="cl-cat-icon">{{ categoryIcon(cat) }}</span>
+                    <span class="cl-cat-label" :class="'cat-' + categoryClass(cat)">
+                      {{ $t('changelog.cat.' + categoryClass(cat)) }}
+                    </span>
+                  </div>
+                  <ul class="cl-items">
+                    <li v-for="(item, i) in items" :key="i" class="cl-item">{{ item }}</li>
+                  </ul>
+                </div>
+              </template>
             </div>
           </div>
         </div>
@@ -60,19 +69,20 @@ const loading = ref(true)
 
 onMounted(async () => {
   try {
-    const data = await apiGet(`/api/changelog/?lang=${locale.value}`)
+    const data = await apiGet(`/api/changelog/combined?lang=${locale.value}`)
     if (data) {
       versions.value = data.versions || []
-      currentVersion.value = data.current_version || ''
+      currentVersion.value = data.app_version || ''
     }
   } catch (e) {
     console.error('[Changelog] fetch error:', e)
   }
   loading.value = false
 
-  // Marquer comme vu
+  // Mark both surfaces as seen — the admin viewing this page has now read
+  // the merged timeline, so they should not be re-prompted by the modal.
   try {
-    await apiPost('/api/changelog/seen', { version: currentVersion.value })
+    await apiPost('/api/changelog/combined/seen', {})
   } catch {
     /* silent: seen-marker is best-effort, no user-visible impact */
   }
@@ -226,6 +236,20 @@ function categoryClass(cat) {
   font-size: var(--text-2xs);
   color: var(--text-muted);
   margin-left: auto;
+}
+
+.cl-surface-label {
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-widest);
+  margin: 14px 0 8px;
+  padding-bottom: 4px;
+  border-bottom: 0.5px solid var(--border-subtle);
+}
+.cl-surface-label:first-child {
+  margin-top: 0;
 }
 
 .cl-category {

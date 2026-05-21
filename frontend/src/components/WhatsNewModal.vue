@@ -34,18 +34,27 @@
           </div>
 
           <div class="wn-body">
-            <div v-for="(items, cat) in latestVersion?.categories" :key="cat" class="wn-category">
-              <div class="wn-cat-label" :class="'wn-cat-' + cat.toLowerCase()">
-                <span class="wn-cat-dot" />
-                {{ $t('changelog.cat.' + cat.toLowerCase()) }}
+            <template v-for="surface in ['admin', 'portal']" :key="surface">
+              <div v-if="latestVersion?.[surface]" class="wn-surface">
+                <div class="wn-surface-label">{{ $t('changelog.surface.' + surface) }}</div>
+                <div
+                  v-for="(items, cat) in latestVersion[surface]"
+                  :key="surface + '-' + cat"
+                  class="wn-category"
+                >
+                  <div class="wn-cat-label" :class="'wn-cat-' + cat.toLowerCase()">
+                    <span class="wn-cat-dot" />
+                    {{ $t('changelog.cat.' + cat.toLowerCase()) }}
+                  </div>
+                  <ul class="wn-items">
+                    <li v-for="(item, i) in items.slice(0, 5)" :key="i">{{ item }}</li>
+                    <li v-if="items.length > 5" class="wn-more">
+                      {{ $t('changelog.andMore', { count: items.length - 5 }) }}
+                    </li>
+                  </ul>
+                </div>
               </div>
-              <ul class="wn-items">
-                <li v-for="(item, i) in items.slice(0, 5)" :key="i">{{ item }}</li>
-                <li v-if="items.length > 5" class="wn-more">
-                  {{ $t('changelog.andMore', { count: items.length - 5 }) }}
-                </li>
-              </ul>
-            </div>
+            </template>
           </div>
 
           <div class="wn-footer">
@@ -81,11 +90,13 @@ let lastFocusedElement = null
 
 onMounted(async () => {
   try {
-    const check = await apiGet('/api/changelog/check')
-    if (!check?.has_new) return
-    const localSeen = localStorage.getItem('mk_changelog_seen')
-    if (localSeen === check.current_version) return
-    const data = await apiGet(`/api/changelog/?limit=1&lang=${locale.value}`)
+    const check = await apiGet('/api/changelog/combined/check')
+    if (!check?.has_any_new) return
+    // Local cache key combines both versions so the modal re-arms when
+    // either surface bumps, even if the other was already dismissed.
+    const localKey = `${check.app_version}::${check.portal_version}`
+    if (localStorage.getItem('mk_changelog_combined_seen') === localKey) return
+    const data = await apiGet(`/api/changelog/combined?limit=1&lang=${locale.value}`)
     if (data?.versions?.length) {
       latestVersion.value = data.versions[0]
       visible.value = true
@@ -117,8 +128,13 @@ onBeforeUnmount(() => {
 async function dismiss() {
   visible.value = false
   try {
-    const res = await apiPost('/api/changelog/seen', {})
-    if (res?.version) localStorage.setItem('mk_changelog_seen', res.version)
+    const res = await apiPost('/api/changelog/combined/seen', {})
+    if (res?.app_version && res?.portal_version) {
+      localStorage.setItem(
+        'mk_changelog_combined_seen',
+        `${res.app_version}::${res.portal_version}`,
+      )
+    }
   } catch {
     /* silent: seen-marker is best-effort */
   }
@@ -235,6 +251,22 @@ function handleModalKeydown(event) {
   flex: 1;
   overflow-y: auto;
   padding: 0 20px 16px;
+}
+.wn-surface {
+  margin-bottom: 18px;
+}
+.wn-surface:last-child {
+  margin-bottom: 0;
+}
+.wn-surface-label {
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-widest);
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 0.5px solid var(--border-subtle);
 }
 .wn-category {
   margin-bottom: 14px;
