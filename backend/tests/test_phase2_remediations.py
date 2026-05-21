@@ -95,16 +95,23 @@ async def test_portal_request_contracts_split_admin_and_user(client, admin_user,
 
 
 @pytest.mark.asyncio
-async def test_onboarding_folders_use_db_source_of_truth_and_gate_completion(client, admin_user, db_session):
+async def test_onboarding_folders_are_optional_and_status_reflects_db(client, admin_user, db_session):
+    """Folders are declared via the DB-backed settings (media_folders), and
+    the ``steps.folders`` flag in ``/onboarding/status`` reflects that source
+    of truth. ``/onboarding/complete`` does not require folders anymore:
+    fresh installs pulled from GHCR ship with the media volumes commented
+    out in ``docker-compose.prod.yml`` and would otherwise dead-end at the
+    end of the wizard. Operators can declare folders later via Settings.
+    """
     client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
 
     status_before = await client.get("/api/onboarding/status")
     assert status_before.status_code == 200
     assert status_before.json()["steps"]["folders"] is False
 
-    blocked = await client.post("/api/onboarding/complete")
-    assert blocked.status_code == 400
-    assert blocked.json()["detail"] == "folders_not_configured"
+    complete_without_folders = await client.post("/api/onboarding/complete")
+    assert complete_without_folders.status_code == 200
+    assert complete_without_folders.json()["success"] is True
 
     save_resp = await client.put("/api/settings/media-folders", json={
         "folders": [
@@ -121,10 +128,6 @@ async def test_onboarding_folders_use_db_source_of_truth_and_gate_completion(cli
     status_after = await client.get("/api/onboarding/status")
     assert status_after.status_code == 200
     assert status_after.json()["steps"]["folders"] is True
-
-    complete = await client.post("/api/onboarding/complete")
-    assert complete.status_code == 200
-    assert complete.json()["success"] is True
 
 
 @pytest.mark.asyncio

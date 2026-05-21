@@ -3,7 +3,7 @@ Onboarding API — first-run configuration wizard.
 """
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
@@ -79,9 +79,16 @@ async def complete_onboarding(
     db: AsyncSession = Depends(get_db),
     _:  User         = Depends(get_current_user),
 ):
-    """Mark onboarding as completed."""
-    if not await _check_folders_configured(db):
-        raise HTTPException(status_code=400, detail="folders_not_configured")
+    """Mark onboarding as completed.
+
+    Folders are optional at this stage: the operator can declare them
+    later via Settings → Folders. The previous strict guard locked
+    fresh installs that pulled the GHCR image without bind-mounting a
+    host media directory yet — ``docker-compose.prod.yml`` ships with
+    every media volume commented out by default, and forcing folders
+    here turned an expected post-pull configuration step into a hard
+    dead-end at the end of the wizard.
+    """
     await set_setting(db, ONBOARDING_KEY, "true")
     logger.info("[ONBOARDING] Onboarding marked as completed")
     return {"success": True}
