@@ -1,0 +1,68 @@
+# Production / end-user compose file. Pulls a pre-built multi-arch image
+# from GHCR (linux/amd64 + linux/arm64) instead of building from source.
+#
+# Quickstart:
+#   docker compose -f docker-compose.prod.yml pull
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# Image tags available:
+#   :latest         — always the latest stable release (recommended)
+#   :beta           — always the latest beta release (early adopters)
+#   :vX.Y.Z         — pin to an exact release (immutable)
+#   :X.Y            — float on the X.Y patch series (e.g. 0.10)
+
+services:
+  mediakeeper:
+    image: ghcr.io/keeperd93/mediakeeper:latest
+    container_name: mediakeeper
+    restart: unless-stopped
+    ports:
+      - "8888:8888"
+    volumes:
+      - mk_data:/data
+      # ── Media / backups: mount here every path MediaKeeper must see ──
+      # Tip: keep the same path on the host and inside the container.
+      #   Synology  : /volume1/medias:/volume1/medias
+      #   Linux/NAS : /mnt/medias:/mnt/medias
+      #   Backups   : /volume1/docker/mediakeeper/backups:/volume1/docker/mediakeeper/backups
+      # - /volume1/medias:/volume1/medias
+      # - /volume1/docker/mediakeeper/backups:/volume1/docker/mediakeeper/backups
+      #
+    environment:
+      # ── Timezone: adjust to your location ──
+      #   Europe/Paris, America/New_York, Asia/Tokyo, etc.
+      - TZ=Europe/Paris
+      - PUID=1024
+      - PGID=100
+      - MK_SEPARATE_BACKGROUND_WORKER=true
+      # ── DB schema bootstrap mode ──
+      # validate   : refuses to start if the expected schema is not present.
+      # create_all : only for one-off bootstrap/dev, never for a stable release.
+      - MK_DB_SCHEMA_MODE=validate
+      # ── Sensitive / network variables (load via an .env file) ──
+      # - JWT_SECRET_KEY=change-me-with-at-least-32-random-bytes
+      # - MK_ADMIN_USERS=admin
+      # - FRONTEND_ORIGIN=https://mediakeeper.example.com
+      # - COOKIE_SECURE=true
+      # - COOKIE_SAMESITE=lax
+      # ── Reverse-proxy whitelist (CSV of CIDR/IPs) ──
+      # Empty by default = X-Forwarded-* headers ignored. Set to the
+      # CIDR of your reverse proxy to enable HTTPS detection and real
+      # client IP recovery. See docs/operations/tls-deployment.md.
+      # - TRUSTED_PROXIES=127.0.0.1,172.18.0.0/16
+      # - VERIFY_SSL=true
+      # - TMDB_API_KEY=tmdb-api-key
+      # ── Roots visible to the application (browser, media manager, subtitles) ──
+      # Separate multiple paths with ';' or ','.
+      # - MEDIAKEEPER_PATH_ROOTS=/volume1/medias;/volume1/docker/mediakeeper/backups
+      #
+      # ── Backup directory ──
+      # - BACKUP_PATH=/volume1/docker/mediakeeper/backups
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  mk_data:

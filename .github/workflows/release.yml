@@ -1,0 +1,156 @@
+name: Release — build multi-arch image + publish GitHub Release
+
+# Triggered by pushing a semantic version tag (e.g. v0.10.0 or v0.10.0-beta.1).
+# Stable tags push :vX.Y.Z, :X.Y (floating minor) and :latest.
+# Pre-release tags (any tag containing a hyphen) push :vX.Y.Z-... and :beta.
+#
+# The release body is extracted from the matching `## [X.Y.Z]` section of
+# backend/CHANGELOG_EN.md and backend/CHANGELOG_PORTAL_EN.md. The workflow
+# fails if neither file has a section for the version being released, which
+# forces the maintainer to rename `[Unreleased]` before tagging.
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  release:
+    name: Build, push and release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Parse release metadata from tag
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF#refs/tags/}"
+          version="${tag#v}"
+          is_prerelease=false
+          if [[ "$version" == *-* ]]; then
+            is_prerelease=true
+          fi
+          minor="$(echo "$version" | awk -F. '{print $1"."$2}')"
+          {
+            echo "tag=$tag"
+            echo "version=$version"
+            echo "minor=$minor"
+            echo "is_prerelease=$is_prerelease"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Compute Docker image tags
+        id: docker_tags
+        shell: bash
+        run: |
+          set -euo pipefail
+          image="${REGISTRY}/${GITHUB_REPOSITORY,,}"
+          tags="${image}:${{ steps.meta.outputs.tag }}"
+          if [[ "${{ steps.meta.outputs.is_prerelease }}" == "true" ]]; then
+            tags="${tags},${image}:beta"
+          else
+            tags="${tags},${image}:${{ steps.meta.outputs.minor }}"
+            tags="${tags},${image}:latest"
+          fi
+          echo "tags=$tags" >> "$GITHUB_OUTPUT"
+          echo "Image tags to push:"
+          tr ',' '\n' <<< "$tags"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push multi-arch image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.docker_tags.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+
+      - name: Extract changelog sections for this version
+        id: changelog
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${{ steps.meta.outputs.version }}"
+          body_file="$(mktemp)"
+
+          printf '## %s\n\n' "$version" >> "$body_file"
+
+          # Extract the section that matches the released version, flatten the
+          # `### Added / Changed / Fixed` sub-headers, keep only the bullets,
+          # and prefix each surface (Admin app, Portal) with a single H3 so
+          # the reader knows which app is concerned.
+          extract_section() {
+            local file="$1"
+            local title="$2"
+            [[ -f "$file" ]] || return 0
+            local section
+            section="$(awk -v v="$version" '
+              $0 ~ "^## \\[" v "\\]" {capture=1; next}
+              capture && /^## \[/ {exit}
+              capture && /^### / {next}
+              capture {print}
+            ' "$file" | awk 'NF || prev_nonblank {print; prev_nonblank=NF}')"
+            if [[ -n "$(printf '%s' "$section" | tr -d '[:space:]')" ]]; then
+              {
+                printf '### %s\n\n' "$title"
+                printf '%s\n\n' "$section"
+              } >> "$body_file"
+            fi
+          }
+
+          extract_section backend/CHANGELOG_EN.md "Admin app"
+          extract_section backend/CHANGELOG_PORTAL_EN.md "Portal"
+
+          # Strip the version header if no surface section followed (means
+          # neither changelog has an entry for this version — fail loud).
+          if [[ "$(wc -l < "$body_file")" -le 2 ]]; then
+            echo "::error::No changelog section [$version] found in backend/CHANGELOG_EN.md or backend/CHANGELOG_PORTAL_EN.md. Rename [Unreleased] to [$version] - YYYY-MM-DD before tagging."
+            exit 1
+          fi
+
+          echo "body_file=$body_file" >> "$GITHUB_OUTPUT"
+          echo "----- Release body preview -----"
+          cat "$body_file"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          flags=()
+          if [[ "${{ steps.meta.outputs.is_prerelease }}" == "true" ]]; then
+            flags+=(--prerelease)
+          fi
+          gh release create "${{ steps.meta.outputs.tag }}" \
+            --title "${{ steps.meta.outputs.tag }}" \
+            --notes-file "${{ steps.changelog.outputs.body_file }}" \
+            --target "$GITHUB_SHA" \
+            "${flags[@]}"
