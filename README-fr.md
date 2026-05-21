@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <i>Compagnon open-source auto-hébergé pour votre médiathèque : tableau de bord, portail de demandes, trophées, sauvegardes et plus encore.</i>
+  <i>Compagnon open-source auto-hébergé pour votre médiathèque : tableau de bord, portail de demandes, trophées, doublons, manquants, statistiques, sous-titres et plus encore.</i>
 </p>
 
 <p align="center">
@@ -35,9 +35,9 @@
 
 ## 🎯 Qu'est-ce que MediaKeeper ?
 
-MediaKeeper est un **compagnon auto-hébergé en un seul container** pour une petite instance Emby. Il complète Emby avec deux surfaces dans une seule application :
+MediaKeeper est un **compagnon auto-hébergé en un seul container** pour une instance Emby. Il complète Emby avec deux surfaces dans une seule application :
 
-- Un **back-office admin** soigné pour gérer votre bibliothèque, repérer les doublons, suivre l'activité, planifier les tâches et lancer les sauvegardes.
+- Un **back-office admin** soigné pour gérer votre bibliothèque, repérer les doublons, suivre l'activité, gérer les sous-titres, et bien plus encore.
 - Un **portail utilisateur** convivial conçu pour les personnes avec qui vous partagez Emby — navigation dans le catalogue, demandes, trophées, listes, récap quotidien, actualités, tickets et soirées ciné partagées.
 
 Tout tourne depuis un **seul container Docker** avec PostgreSQL 16 embarqué.
@@ -50,11 +50,12 @@ MediaKeeper étend Emby avec un back-office pour piloter l'instance et un portai
 
 ### Points forts
 
-- **Soirées ciné partagées immersives** — planifiez des événements, une salle de cinéma virtuelle s'ouvre au démarrage, le mode marathon enchaîne les films et débloque le suivant à 85 % de progression, la présence en temps réel montre qui est là.
+- **Soirées ciné partagées immersives** — planifiez des événements, avec un cinéma virtuel.
 - **Système de demandes intégré** — les utilisateurs demandent des films, séries ou saisons ; quotas, blacklist, auto-nettoyage et modération admin sont livrés clé en main.
-- **Trophées & XP** — 160+ trophées répartis en familles (communauté, visionnage, marathons, secrets, jalons, listes), niveaux jusqu'à 50, classement mensuel premium.
+- **Trophées & XP** — 160+ trophées répartis en familles (communauté, visionnage, marathons, secrets, jalons, listes), niveaux jusqu'à 50, classement mensuel.
 - **Profils publics utilisateurs** — chaque utilisateur peut personnaliser un pseudo, un avatar, équiper des titres cosmétiques, et les autres peuvent consulter la version publique du profil.
-- **Quoi de neuf aujourd'hui** — un overlay une fois par jour met en avant le Top 3 du mois et la position de l'utilisateur.
+- **Suivi utilisateurs** - gérés vos utilisateurs, ajustez les dates d'accès au serveur emby, rentrez des informations de profils, suivez leurs statistiques...
+- **Quoi de neuf aujourd'hui** — un overlay une fois par jour met en avant le Top 3 du mois et la position de l'utilisateur, les dernier ajouts, les actualités défini par l'admin...
 
 ### Back-office admin
 
@@ -70,12 +71,12 @@ Pensé pour l'opérateur qui maintient l'instance Emby vivante.
 
 **Gestion de fichiers**
 
-- **Gestionnaire de médias** (desktop) — parcourir, déplacer, renommer, taguer, dédupliquer directement sur le disque, sélection au lasso, champ TMDB « Année » pour différencier les remakes
-- **Sous-titres** — téléchargement par lot OpenSubtitles et audit de la bibliothèque, gestion de profils
+- **Gestionnaire de médias** (desktop) — parcourir, déplacer, renommer avec l'aide de l'agent TMDB (API), taguer, dédupliquer directement sur le disque, sélection au lasso...
+- **Sous-titres** — téléchargement des sous-titres par OpenSubtitles, suppression des langues et sous-titres déjà disponible sur les fichiers...
 
 **Utilisateurs & demandes**
 
-- **Utilisateurs premium** — drawer 7 onglets (identité, accès, sécurité, activité, trophées, notes, audit), rôles & permissions granulaires (chat, demandes, problèmes, listes, XP hors-ligne), période d'accès avec prolongations rapides, suppression réversible, journal d'audit, notes admin, tags, export RGPD par utilisateur
+- **Utilisateurs** — drawer 7 onglets (identité, accès, sécurité, activité, trophées, notes, audit), rôles & permissions granulaires (chat, demandes, problèmes, listes, XP hors-ligne), période d'accès avec prolongations rapides, suppression réversible, journal d'audit, notes admin, tags, export RGPD par utilisateur
 - **Demandes premium** — recherche, filtres, vue table/cartes, actions groupées, auto-nettoyage configurable, totaux cumulés par compteur
 - **Actualités admin** — création, édition, suppression et planification (dates début/fin)
 - **Mode maintenance** — activer un message de maintenance personnalisable pour le portail
@@ -96,7 +97,7 @@ Pensé pour les personnes avec qui vous partagez Emby — gamifié, social et co
 
 - **Catalogue Découvrir** — Tendances, Populaires, Top, Oscars, Famille, À venir, par plateforme, recommandations personnalisées
 - **Bandeau héro** — diaporama d'images en rotation automatique (fondu enchaîné 10 s)
-- **Recherche** — suggestions TMDB instantanées avec cache 5 min, historique récent, raccourci ⌘K
+- **Recherche** — suggestions TMDB instantanées avec cache 5 min, historique récent...
 - **Pages détail** — sidebar premium (icônes Lucide, pastille de statut, langue & pays localisés, langue originale lue depuis TMDB)
 - **Mobile-first** — grilles de jaquettes 3 colonnes sur mobile, tap-pour-ouvrir, mises en page denses, vues mobiles dédiées au besoin
 
@@ -111,7 +112,7 @@ Pensé pour les personnes avec qui vous partagez Emby — gamifié, social et co
 **Identité & communauté**
 
 - **Pseudo personnalisé** — choix obligatoire à la première connexion, contrôle de disponibilité en direct, modifiable tous les 6 mois, pseudos réservés protégés
-- **Avatar personnalisé** (jusqu'à 5 Mo) + titres cosmétiques avec prévisualisation avant validation
+- **Avatar personnalisé** récupere celui d'emby ou ajoutez en un directement sur MediaKeeper (jusqu'à 5 Mo) + titres cosmétiques avec prévisualisation avant validation
 - **Paramètres premium** en cinq onglets — identité, apparence, préférences, visibilité, compte
 - **Pages de profil public** — carte, bio, genres, trophées ; accessible depuis le classement
 - **Série de connexions** affichée sur la page de connexion dédiée au portail
@@ -157,12 +158,25 @@ La méthode recommandée pour lancer MediaKeeper est via Docker Compose.
 ```sh
 git clone https://github.com/KeeperD93/mediakeeper.git
 cd mediakeeper
-cp .env.example .env
-# Éditez .env — au minimum renseignez JWT_SECRET_KEY (≥ 32 octets aléatoires).
 docker compose up -d
 ```
 
-Puis ouvrez `http://<hôte>:8888` dans votre navigateur. La première connexion admin utilise les identifiants bootstrap du `.env` ; un changement de mot de passe sera demandé à la première connexion.
+C'est tout — **aucun `.env` requis au premier démarrage**. MediaKeeper génère automatiquement tout ce qui est sensible au boot et le persiste dans `/data/` :
+
+- le mot de passe PostgreSQL,
+- la clé JWT (≥ 32 octets),
+- la clé de chiffrement Fernet pour les secrets stockés en base,
+- un compte **admin** initial avec un mot de passe aléatoire imprimé une seule fois dans les logs du container.
+
+Pour récupérer le mot de passe admin initial dès que le container est démarré :
+
+```sh
+docker compose logs mediakeeper | grep -A 4 "ADMIN ACCOUNT CREATED"
+```
+
+Puis ouvrez `http://<hôte>:8888`, connectez-vous avec `admin` et ce mot de passe — un changement de mot de passe est forcé à la première connexion.
+
+**Besoin de personnaliser ?** Copiez `.env.example` en `.env` et ajustez les variables nécessaires (par ex. `TMDB_API_KEY`, `FRONTEND_ORIGIN`, `MEDIAKEEPER_PATH_ROOTS`) avant de lancer `docker compose up -d`. Les valeurs auto-générées sont conservées aux démarrages suivants.
 
 L'application lance `alembic upgrade head` au démarrage, donc les migrations de base de données sont appliquées automatiquement.
 

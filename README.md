@@ -155,12 +155,25 @@ The recommended way to run MediaKeeper is through Docker Compose.
 ```sh
 git clone https://github.com/KeeperD93/mediakeeper.git
 cd mediakeeper
-cp .env.example .env
-# Edit .env — at minimum set JWT_SECRET_KEY (≥ 32 random bytes).
 docker compose up -d
 ```
 
-Then open `http://<host>:8888` in your browser. The first admin login uses the bootstrap credentials from `.env`; you will be asked to change the password on first connection.
+That's it — **no `.env` required for a first boot**. MediaKeeper auto-generates everything sensitive on first startup and persists it under `/data/`:
+
+- the PostgreSQL password,
+- the JWT secret (≥ 32 bytes),
+- the Fernet encryption key for secrets stored in the database,
+- an initial **admin** account with a random password printed once in the container logs.
+
+Read the initial admin password from the logs as soon as the container is up:
+
+```sh
+docker compose logs mediakeeper | grep -A 4 "ADMIN ACCOUNT CREATED"
+```
+
+Then open `http://<host>:8888`, sign in as `admin` with that password — a password change is forced on first connection.
+
+**Need to customise?** Copy `.env.example` to `.env` and adjust the variables you need (e.g. `TMDB_API_KEY`, `FRONTEND_ORIGIN`, `MEDIAKEEPER_PATH_ROOTS`) before running `docker compose up -d`. Auto-generated values are respected on subsequent boots.
 
 The application runs `alembic upgrade head` at boot, so database migrations are applied automatically.
 
