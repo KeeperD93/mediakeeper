@@ -11,7 +11,11 @@
     />
 
     <!-- Zone principale -->
-    <main id="main-content" tabindex="-1" class="mk-app-main flex-1 flex flex-col overflow-hidden min-w-0">
+    <main
+      id="main-content"
+      tabindex="-1"
+      class="mk-app-main flex-1 flex flex-col overflow-hidden min-w-0"
+    >
       <!-- Persistent deployment-misconfiguration banner -->
       <DeploymentBanner />
 
@@ -22,7 +26,9 @@
       <div class="mk-app-content flex-1 overflow-y-scroll">
         <router-view v-slot="{ Component, route }">
           <transition name="route-slide" mode="out-in">
-            <keep-alive :include="['DashboardView', 'StatsView', 'WatchlistView', 'DuplicatesView']">
+            <keep-alive
+              :include="['DashboardView', 'StatsView', 'WatchlistView', 'DuplicatesView']"
+            >
               <component :is="Component" :key="route.name" />
             </keep-alive>
           </transition>
@@ -37,8 +43,11 @@
   <!-- Forced password change modal -->
   <ForcePasswordModal v-if="mustChangePassword" />
 
-  <!-- Onboarding wizard -->
-  <OnboardingWizard ref="onboardingRef" @done="onOnboardingDone" />
+  <!-- Onboarding wizard — gated behind the forced password change so the
+       wizard's finalise POST cannot 403 against the must_change_password
+       guard. The wizard mounts (and runs its visibility check) only after
+       the operator has cleared the password rotation. -->
+  <OnboardingWizard v-if="!mustChangePassword" ref="onboardingRef" @done="onOnboardingDone" />
 
   <!-- What's new popup (after update) -->
   <WhatsNewModal />
