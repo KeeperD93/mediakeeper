@@ -52,6 +52,7 @@ RETRY_AFTER_CAP_SECONDS = 5.0
 #: Default short backoff when ``Retry-After`` is missing or unparseable.
 RETRY_AFTER_DEFAULT_SECONDS = 1.0
 
+
 @lru_cache(maxsize=1)
 def _master_key_bytes() -> bytes:
     """Return the bytes used as the HMAC master key.
@@ -111,7 +112,7 @@ def webhook_log_id(url: str) -> str:
     truncated SHA-256 prefix so log files never carry the live URL.
 
     The Discord branch piggybacks on :func:`is_discord_webhook_url` so
-    bypass-style inputs (``https://discord.com@evil.com/api/webhooks/…``)
+    bypass-style inputs (``https://discord.com@evil.com/api/webhooks/...``)
     are hashed like any other external URL rather than mislabelled
     ``discord:<id>`` in the logs.
     """
