@@ -12,6 +12,9 @@ This section intentionally has no date so it is not shown to users.
 ### Added
 - Onboarding wizard — Portal module added to welcome and tour steps.
 
+### Changed
+- Scheduler — UI reorganised by category with compact single-line rows.
+
 ### Fixed
 - Login — brute-force tracking now ignores username casing variants.
 - Auth schemas now reject unknown JSON keys (defence in depth).

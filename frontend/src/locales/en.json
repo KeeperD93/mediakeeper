@@ -1287,9 +1287,27 @@
     "lastRun": "Last run:",
     "neverRun": "Never run",
     "runCount": "{n} run(s)",
+    "lastError": "Last error",
+    "moreActions": "More actions",
+    "description": "Description",
+    "intervalAmountAria": "Interval value",
+    "intervalUnitAria": "Interval unit",
+    "statusAria": {
+      "ok": "Status: OK",
+      "error": "Status: error",
+      "running": "Status: running",
+      "idle": "Status: idle",
+      "off": "Status: disabled"
+    },
     "launched": "{label} launched",
     "intervalSaved": "Interval saved",
     "minInterval": "Minimum interval: 10 seconds",
+    "categories": {
+      "media": "Media library",
+      "portal": "Portal & requests",
+      "users": "Users",
+      "system": "System"
+    },
     "tasks": {
       "watchlist_scan": "Watchlist scan",
       "log_cleanup": "Log cleanup & collection",

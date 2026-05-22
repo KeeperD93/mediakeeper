@@ -37,6 +37,12 @@
   --text-faint: rgb(255, 255, 255, 0.4); /* disabled labels, hints */
   --text-very-faint: rgb(255, 255, 255, 0.25); /* placeholders, sub-hints */
 
+  /* ─── On-accent — pure white for content placed on accent backgrounds.
+   * Used by primary button labels, toggle slider dots, and any element
+   * whose background is var(--accent-*). Stable across themes because
+   * accent backgrounds are always saturated enough to keep white legible. ─── */
+  --color-on-accent: #fff;
+
   /* ─── Semantic statuses — one canonical hex per family.
    * RGB companions let components compose rgba(var(--color-*-rgb), a). ─── */
   --color-success: #4ade80;

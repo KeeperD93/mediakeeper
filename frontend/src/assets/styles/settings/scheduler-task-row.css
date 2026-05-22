@@ -1,0 +1,314 @@
+/* SchedulerTaskRow — mobile-first, tokens-only, a11y-aware.
+   Classes namespaced under .str-* so this file safely lives outside
+   <style scoped> while preserving its scoping intent (§15).             */
+
+/* ── Container ────────────────────────────────────────────────────── */
+.str-row {
+  position: relative;
+  background: var(--bg-secondary);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 10px 14px;
+  transition: border-color var(--duration-fast);
+}
+.str-row.disabled {
+  opacity: 0.6;
+}
+.str-row-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* ── Toggle (mobile-first 44px touch target) ──────────────────────── */
+.str-toggle {
+  position: relative;
+  display: inline-flex;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.str-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+.str-toggle-track {
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  background: var(--border-hover);
+  transition: background var(--duration-base);
+  position: relative;
+}
+.str-toggle-track::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-on-accent);
+  transition: transform var(--duration-base);
+}
+.str-toggle input:checked ~ .str-toggle-track {
+  background: var(--accent-500);
+}
+.str-toggle input:checked ~ .str-toggle-track::after {
+  transform: translateX(20px);
+}
+.str-toggle input:focus-visible ~ .str-toggle-track {
+  outline: 2px solid var(--accent-500);
+  outline-offset: 2px;
+}
+
+/* ── Status dot ───────────────────────────────────────────────────── */
+.str-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.str-dot.dot-ok {
+  background: var(--color-success);
+}
+.str-dot.dot-error {
+  background: var(--color-error);
+}
+.str-dot.dot-running {
+  background: var(--color-warning);
+  animation: str-pulse-dot var(--duration-pulse) ease-in-out infinite alternate;
+}
+.str-dot.dot-idle {
+  background: var(--border-hover);
+}
+.str-dot.dot-off {
+  background: var(--border);
+}
+@keyframes str-pulse-dot {
+  from {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ── Title + meta ─────────────────────────────────────────────────── */
+.str-row-title {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+.str-label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+}
+.str-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+.str-meta-sep {
+  opacity: 0.5;
+}
+.str-meta-error {
+  color: var(--color-error);
+  background: rgb(var(--color-error-rgb), 0.08);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  cursor: help;
+}
+
+/* ── Controls cluster ─────────────────────────────────────────────── */
+.str-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.str-interval-label {
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.str-interval-amount {
+  width: 50px;
+  min-height: 44px;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  border: 0.5px solid var(--border);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: var(--text-2xs);
+  font-family: inherit;
+  text-align: center;
+}
+.str-interval-amount:focus-visible {
+  outline: none;
+  border-color: var(--accent-500);
+}
+.str-interval-unit {
+  min-height: 44px;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  border: 0.5px solid var(--border);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: var(--text-2xs);
+  font-family: inherit;
+  cursor: pointer;
+}
+.str-save-btn {
+  min-height: 44px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-600);
+  color: var(--color-on-accent);
+  font-size: var(--text-2xs);
+  font-weight: var(--font-medium);
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background var(--duration-fast);
+}
+.str-run-btn {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  background: rgb(var(--accent-rgb), 0.1);
+  border: 0.5px solid rgb(var(--accent-rgb), 0.2);
+  color: var(--accent-400);
+  font-size: var(--text-2xs);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  font-family: inherit;
+  transition:
+    background var(--duration-fast),
+    border-color var(--duration-fast),
+    color var(--duration-fast);
+}
+.str-run-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.str-menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: 0.5px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    background var(--duration-fast),
+    border-color var(--duration-fast),
+    color var(--duration-fast);
+}
+.str-save-btn:focus-visible,
+.str-run-btn:focus-visible,
+.str-menu-btn:focus-visible,
+.str-interval-unit:focus-visible {
+  outline: 2px solid var(--accent-500);
+  outline-offset: 1px;
+}
+
+/* ── Progress ─────────────────────────────────────────────────────── */
+.str-progress {
+  margin-top: 8px;
+}
+.str-progress-bar {
+  height: 6px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 0.5px solid var(--border);
+}
+.str-progress-fill {
+  height: 100%;
+  background: var(--accent-500);
+  border-radius: var(--radius-sm);
+  transition: width var(--duration-slower) ease;
+  min-width: 2px;
+}
+.str-progress-text {
+  display: block;
+  margin-top: 4px;
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Hover gating (Rules §2.7) ────────────────────────────────────── */
+@media (hover: hover) {
+  .str-row:hover {
+    border-color: var(--border-hover);
+  }
+  .str-save-btn:hover {
+    background: var(--accent-500);
+  }
+  .str-run-btn:hover:not(:disabled) {
+    background: rgb(var(--accent-rgb), 0.2);
+  }
+  .str-menu-btn:hover {
+    border-color: var(--border-hover);
+    color: var(--text-secondary);
+  }
+}
+
+/* ── Desktop overrides (Rules §2.1 mobile-first) ──────────────────── */
+@media (min-width: 768px) {
+  .str-toggle-track {
+    width: 34px;
+    height: 18px;
+  }
+  .str-toggle-track::after {
+    width: 14px;
+    height: 14px;
+  }
+  .str-toggle input:checked ~ .str-toggle-track::after {
+    transform: translateX(16px);
+  }
+  .str-interval-amount,
+  .str-interval-unit,
+  .str-save-btn,
+  .str-run-btn {
+    min-height: 0;
+  }
+  .str-menu-btn {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* ── Reduced motion (Rules §23) ───────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .str-row,
+  .str-toggle-track,
+  .str-toggle-track::after,
+  .str-save-btn,
+  .str-run-btn,
+  .str-menu-btn,
+  .str-progress-fill {
+    transition: none;
+  }
+  .str-dot.dot-running {
+    animation: none;
+  }
+}

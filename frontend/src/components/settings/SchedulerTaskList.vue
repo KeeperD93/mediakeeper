@@ -4,105 +4,41 @@
   </div>
 
   <div v-else class="stl-list">
-    <div
-      v-for="task in visibleTasks"
-      :key="task.key"
-      class="stl-card"
-      :class="{ disabled: !task.enabled }"
-    >
-      <div class="stl-card-header">
-        <div class="stl-card-left">
-          <span class="stl-dot" :class="schedStatusDot(task)" />
-          <div>
-            <div class="stl-card-label">
-              {{ task.label_key ? $t(task.label_key, task.label) : task.label }}
-            </div>
-            <div class="stl-card-desc">{{ $t(task.description, task.description) }}</div>
-          </div>
-        </div>
-        <div class="stl-card-right">
-          <label class="stl-toggle">
-            <input type="checkbox" :checked="task.enabled" @change="schedToggle(task)" />
-            <span class="stl-toggle-track" />
-          </label>
-          <button class="stl-run-btn" :disabled="task._running" @click="schedRunNow(task)">
-            <span v-if="task._running" class="mk-spin mk-spin-13" />
-            <CirclePlay v-else :size="13" />
-            {{ $t('scheduler.runNow') }}
-          </button>
-        </div>
-      </div>
-
-      <div class="stl-interval-row">
-        <Clock :size="13" class="stl-clock-icon" />
-        <span class="stl-interval-label">{{ $t('scheduler.every') }}</span>
-        <input
-          type="number"
-          min="1"
-          class="stl-interval-input"
-          :value="
-            schedEditValues[task.key]?.amount ??
-            intervalToAmount(task.interval_sec, schedEditValues[task.key]?.unit ?? 'h')
-          "
-          @input="schedOnAmountChange(task.key, $event.target.value)"
+    <section v-for="group in groupedTasks" :key="group.category" class="stl-category">
+      <h3 class="stl-category-title">
+        {{ $t(SCHEDULER_CATEGORIES[group.category].labelKey) }}
+      </h3>
+      <div class="stl-category-rows">
+        <SchedulerTaskRow
+          v-for="task in group.tasks"
+          :key="task.key"
+          :task="task"
+          :sched-edit-values="schedEditValues"
+          :interval-to-amount="intervalToAmount"
+          :format-seconds="formatSeconds"
+          :format-run-date="formatRunDate"
+          :sched-status-dot="schedStatusDot"
+          :sched-is-dirty="schedIsDirty"
+          :sched-toggle="schedToggle"
+          :sched-save-interval="schedSaveInterval"
+          :sched-reset="schedReset"
+          :sched-run-now="schedRunNow"
+          :sched-on-amount-change="schedOnAmountChange"
+          :sched-on-unit-change="schedOnUnitChange"
         />
-        <select
-          class="stl-interval-select"
-          :value="schedEditValues[task.key]?.unit ?? 'h'"
-          @change="schedOnUnitChange(task.key, $event.target.value)"
-        >
-          <option value="s">{{ $t('scheduler.seconds') }}</option>
-          <option value="m">{{ $t('scheduler.minutes') }}</option>
-          <option value="h">{{ $t('scheduler.hours') }}</option>
-          <option value="d">{{ $t('scheduler.days') }}</option>
-        </select>
-        <button v-if="schedIsDirty(task)" class="stl-save-btn" @click="schedSaveInterval(task)">
-          {{ $t('common.save') }}
-        </button>
-        <button
-          class="stl-reset-btn"
-          :title="$t('scheduler.resetDefault', { v: formatSeconds(task.default_sec) })"
-          @click="schedReset(task)"
-        >
-          {{ $t('scheduler.reset') }}
-        </button>
       </div>
-
-      <div v-if="task.progress && task.progress.total > 0" class="stl-progress">
-        <div class="stl-progress-bar">
-          <div
-            class="stl-progress-fill"
-            :style="{
-              width: Math.round((task.progress.current / task.progress.total) * 100) + '%',
-            }"
-          />
-        </div>
-        <span class="stl-progress-text">
-          {{ task.progress.current }}/{{ task.progress.total
-          }}{{ task.progress.label ? ' — ' + task.progress.label : '' }}
-        </span>
-      </div>
-
-      <div class="stl-meta">
-        <span class="stl-last-run" :class="{ muted: !task.last_run }">
-          {{
-            task.last_run
-              ? $t('scheduler.lastRun') + ' ' + formatRunDate(task.last_run)
-              : $t('scheduler.neverRun')
-          }}
-        </span>
-        <span class="stl-run-count">{{ $t('scheduler.runCount', { n: task.run_count }) }}</span>
-        <span v-if="task.last_error" class="stl-last-error" :title="task.last_error">
-          ⚠ {{ task.last_error.slice(0, 80) }}{{ task.last_error.length > 80 ? '…' : '' }}
-        </span>
-      </div>
-    </div>
+    </section>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
-import { CirclePlay, Clock } from 'lucide-vue-next'
+import SchedulerTaskRow from './SchedulerTaskRow.vue'
+import {
+  SCHEDULER_CATEGORIES,
+  groupTasksByCategory,
+  HIDDEN_TASK_KEYS,
+} from '@/constants/schedulerCategories'
 import '@/assets/styles/settings/scheduler-task-list.css'
 
 const props = defineProps({
@@ -122,11 +58,7 @@ const props = defineProps({
   schedOnUnitChange: { type: Function, required: true },
 })
 
-// The "notifications" task is housekeeping for the in-app
-// notification queue — it runs every minute and admins have no
-// reason to surface it next to the other tasks.
-const visibleTasks = computed(() =>
-  props.schedTasks.filter(t => t.key !== 'notifications'),
-)
-</script>
+const visibleTasks = computed(() => props.schedTasks.filter(t => !HIDDEN_TASK_KEYS.includes(t.key)))
 
+const groupedTasks = computed(() => groupTasksByCategory(visibleTasks.value))
+</script>
