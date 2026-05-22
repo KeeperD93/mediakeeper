@@ -1,17 +1,26 @@
 """Pydantic schemas for the authentication endpoints."""
 import re
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from core.security import MAX_BCRYPT_PASSWORD_BYTES, password_byte_length
 
 
 class LoginRequest(BaseModel):
+    """Rejects unknown keys so a hostile client can't probe for hidden
+    fields and a buggy client that mistypes a key (e.g. ``passwd``
+    instead of ``password``) fails loudly with 422 instead of being
+    silently authenticated against the wrong field."""
+
+    model_config = ConfigDict(extra="forbid")
+
     username: str = Field(..., min_length=1, max_length=100)
     password: str = Field(..., min_length=1, max_length=500)
 
 
 class ChangePasswordRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     current_password: str
     new_password:     str
     confirm_password: str
@@ -37,6 +46,8 @@ class ChangePasswordRequest(BaseModel):
 
 
 class PreferencesRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     theme:             str = "dark"  # dark|light|amoled|slate|nord|mocha|aurora|cinema|cassette|obsidian|sakura
     sidebar_collapsed: bool = False
     accent:            str = "indigo"
@@ -47,4 +58,6 @@ class PreferencesRequest(BaseModel):
 
 
 class LocaleRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     locale: str = Field(..., min_length=2, max_length=8)
