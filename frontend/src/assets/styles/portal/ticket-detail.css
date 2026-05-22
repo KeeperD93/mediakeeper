@@ -1,8 +1,8 @@
 /* PortalTicketDetail — premium layout with backdrop hero, status pills,
    scope summary and replies card. Mobile-first. CSS lives outside the
-   SFC because the styles + template + script would otherwise blow §14's
-   300L cap. Every selector is prefixed `.ptd*` so externalising stays
-   leak-free. */
+   SFC because the styles + template + script would otherwise blow the
+   file size budget. Every selector is prefixed `.ptd*` so externalising
+   stays leak-free. */
 
 .ptd {
   width: 100%;

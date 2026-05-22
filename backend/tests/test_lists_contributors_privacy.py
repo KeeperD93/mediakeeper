@@ -1,4 +1,4 @@
-"""Privacy boundary on the list contributors panel (Rules §22).
+"""Privacy boundary on the list contributors panel.
 
 When the ``GET /api/portal/lists/{list_id}`` route returns the
 collaborative-list contributors panel, the per-row ``username`` field

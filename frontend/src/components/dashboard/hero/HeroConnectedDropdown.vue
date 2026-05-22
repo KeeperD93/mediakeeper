@@ -127,7 +127,7 @@ onUnmounted(() => {
 </style>
 <!-- Non-scoped block intentional: dropdown content uses <Teleport to="body">,
      so scoped-CSS data-v attributes never reach it. All selectors are prefixed
-     with .hero-dropdown* to keep the namespace unique (rule §10). -->
+     with .hero-dropdown* to keep the namespace unique. -->
 <style>
 .hero-dropdown {
   position: fixed;

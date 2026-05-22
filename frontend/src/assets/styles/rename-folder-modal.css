@@ -1,7 +1,7 @@
-/* MMRenameFolderModal — styles externalisés (§14, §15).
- * Préfixe `.mr-*` dédié à ce composant — pas de risque de fuite vers
- * d'autres composants partageant les mêmes noms (cf. §15 « Exceptions »).
- * Visuellement aligné sur MMMoveModal (`.mv-*`) pour cohérence. */
+/* MMRenameFolderModal — externalised styles.
+ * `.mr-*` prefix scoped to this component — no risk of bleeding into
+ * other components that may share class names.
+ * Visually aligned with MMMoveModal (`.mv-*`) for consistency. */
 
 /* ── Overlay ── */
 .mr-overlay {

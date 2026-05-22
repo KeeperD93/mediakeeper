@@ -1,6 +1,7 @@
 /* Daily Digest overlay — list sections (top 3, recent adds, events).
- * Class prefix: .ddd-* — split from daily-digest.css per Rule §14
- * (the frame/personal-stats sections live in the original file). */
+ * Class prefix: .ddd-* — split from daily-digest.css to keep files
+ * manageable (the frame/personal-stats sections live in the
+ * original file). */
 
 /* ---- TOP 3 LEADERBOARD ----
  * Top-3 monthly ranking reuses the shared LeaderboardCard component

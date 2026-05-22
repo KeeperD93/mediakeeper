@@ -100,7 +100,7 @@ async def test_dashboard_layout_mobile_order_round_trip(db_session, admin_user):
 
 
 def test_dashboard_layout_request_rejects_unknown_field():
-    """Per Rules.md §22.6 ``extra="forbid"`` rejects rogue keys with 422."""
+    """``extra="forbid"`` rejects rogue keys with 422."""
     with pytest.raises(ValidationError):
         DashboardLayoutRequest(
             hidden=[],

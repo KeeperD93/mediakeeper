@@ -1,7 +1,7 @@
 /* Daily Digest overlay — Portal viewer (frame + personal stats).
  * Class prefix: .ddd-*  (unique; verified via grep before extraction).
  * List sections (top 3, posters, events) live in `daily-digest-content.css`
- * to keep each file under the §14 line cap.
+ * to keep each file size manageable.
  * Streaming-platform-grade landing experience: fullscreen takeover with
  * layered mesh gradient backdrop, wide editorial panel, staggered
  * section entrance, oversized typography on the hero. */

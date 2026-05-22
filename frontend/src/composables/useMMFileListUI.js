@@ -45,7 +45,7 @@ export function useMMFileListUI({ fileListRef, filtered, checked }) {
       }
       const total = filtered.value.length
       if (!total) return []
-      // Container has gutter padding (Rules §3 tokens) that offsets the
+      // Container has gutter padding (design tokens) that offsets the
       // first row's top by ``paddingTop`` — subtract it before mapping
       // y → row index, otherwise the lasso is one row off near the
       // bottom of every drag.

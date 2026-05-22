@@ -62,7 +62,7 @@ async def try_auto_fulfill(item: dict, db: AsyncSession) -> int | None:
 
     The status flip + notification insertion are wrapped in a SAVEPOINT
     so a flush-time integrity error cannot leave the request flipped
-    without the bell — see Rules §24.
+    without the bell.
     """
     match = _emby_to_tmdb_match(item)
     if match is None:

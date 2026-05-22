@@ -1,5 +1,5 @@
-"""Coverage for the Batch 7 auth hardening: revocation pivots, scope
-claims, WebSocket origin enforcement, and idempotent Emby import."""
+"""Coverage for the auth hardening: revocation pivots, scope claims,
+WebSocket origin enforcement, and idempotent Emby import."""
 from __future__ import annotations
 
 import asyncio

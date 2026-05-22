@@ -1,7 +1,7 @@
 """Unit tests for the FRONTEND_ORIGIN startup warning in proxy mode.
 
 CSRF tolerates an empty ``FRONTEND_ORIGIN`` by auto-deriving the
-expected Origin from a trusted ``X-Forwarded-Host`` (Batch 9), but
+expected Origin from a trusted ``X-Forwarded-Host``, but
 CORSMiddleware does not — so a Mode B deployment that forgets to set
 ``FRONTEND_ORIGIN`` will silently break browser preflights from the
 public hostname. Surface that misconfiguration once at boot rather than

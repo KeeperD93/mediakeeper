@@ -13,7 +13,7 @@ async def chat_user_display_name(
     """Resolve a portal-safe display name for ``user_id``.
 
     Returns the user's chosen pseudo when one has been picked, otherwise
-    the localized anonymous alias (Rules §22 — the raw Emby ``username``
+    the localized anonymous alias (the raw Emby ``username``
     must never reach a third-party portal viewer).
     """
     row = (

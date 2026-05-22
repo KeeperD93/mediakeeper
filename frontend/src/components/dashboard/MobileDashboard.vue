@@ -165,11 +165,11 @@ onBeforeUnmount(() => {
 }
 
 /* Compact pill / link buttons on mobile dashboard widgets. Documented
-   exception to Rules.md §2.6 — the dashboard is data-dense, these
-   are non-destructive filters (Tout/Lectures/Alertes, 24h/7j) and a
-   navigation link (Gérer ›). The 44 px floor designed for primary
-   CTAs blows the viewport here; 36 px is still comfortable on touch
-   and matches the row height of the reorder list grip. */
+   exception to the 44 px touch-target floor — the dashboard is
+   data-dense, these are non-destructive filters (Tout/Lectures/Alertes,
+   24h/7j) and a navigation link (Gérer ›). The 44 px floor designed
+   for primary CTAs blows the viewport here; 36 px is still comfortable
+   on touch and matches the row height of the reorder list grip. */
 .m-dash :deep(.tl-tab),
 .m-dash :deep(.wg-eng-toggle-btn),
 .m-dash :deep(.wg-req-head-link) {

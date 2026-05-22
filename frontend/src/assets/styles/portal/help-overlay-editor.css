@@ -1,7 +1,7 @@
 /**
  * Help Center Tiptap editor — toolbar buttons, palette popovers, font
  * size select, and the contenteditable prose surface. Split out of
- * help-overlay-admin.css to stay under the §14 cap.
+ * help-overlay-admin.css to keep file sizes manageable.
  *
  * The contenteditable area mirrors the read-only ``.pt-help-article-body``
  * prose so admins see exactly what users will see.

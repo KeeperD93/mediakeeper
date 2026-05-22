@@ -1,11 +1,11 @@
 """Generic HTML sanitiser shared by every WYSIWYG-edited surface.
 
 Originally lived inside ``help_sanitize.py`` for the Help Center. The
-GDPR opt-in mode (Batch 11B) needs the exact same pipeline for the
-admin-edited privacy texts, so the sanitiser was lifted into its own
-module. Help Center continues to import ``sanitize_html`` from
-``help_sanitize`` for backward compatibility, but new callers should
-import from this module directly.
+GDPR opt-in mode needs the exact same pipeline for the admin-edited
+privacy texts, so the sanitiser was lifted into its own module. Help
+Center continues to import ``sanitize_html`` from ``help_sanitize``
+for backward compatibility, but new callers should import from this
+module directly.
 
 The sanitiser is the canonical safety boundary between the Tiptap
 editor on the frontend and ``v-html`` rendering: every admin-edited

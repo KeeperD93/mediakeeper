@@ -1,6 +1,6 @@
-/* MMMoveModal — styles externalisés (§14, §15).
- * Préfixe `.mv-*` dédié à ce composant — pas de risque de fuite vers
- * d'autres composants partageant les mêmes noms (cf. §15 "Exceptions"). */
+/* MMMoveModal — externalised styles.
+ * `.mv-*` prefix scoped to this component — no risk of bleeding into
+ * other components that may share class names. */
 
 /* ── Overlay ── */
 .mv-overlay {

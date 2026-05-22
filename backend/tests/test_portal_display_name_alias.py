@@ -1,6 +1,6 @@
 """Anonymous display-name alias on user-facing portal endpoints.
 
-Privacy boundary (Rules §22): when a viewer hits a user-to-user surface
+Privacy boundary: when a viewer hits a user-to-user surface
 (leaderboard, public profile, user picker) for an account that has not
 picked its portal pseudo yet, the response must surface the localized
 anonymous alias instead of the auto-populated Emby username.

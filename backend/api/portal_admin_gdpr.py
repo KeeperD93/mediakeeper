@@ -1,4 +1,4 @@
-"""Admin endpoints for the GDPR opt-in settings (Batch 11B Phase 2).
+"""Admin endpoints for the GDPR opt-in settings.
 
 Two surfaces:
 

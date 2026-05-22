@@ -81,7 +81,7 @@ async def get_contributors(
     # row stays in DB (un-mute, history audit) and re-appears as soon as
     # the account is restored — only the surfaced pseudo is hidden.
     #
-    # Privacy boundary (Rules §22): expose the contributor's chosen
+    # Privacy boundary: expose the contributor's chosen
     # portal pseudo or the localized anonymous alias — never the raw
     # Emby ``User.username``. The User row is still joined so the gate
     # on ``is_active`` survives. No admin caller reuses this function

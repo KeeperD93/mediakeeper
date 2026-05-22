@@ -61,7 +61,7 @@ async def has_distinct_user_universe(db: AsyncSession) -> bool:
     Anti-trivial guard for ``secret_lonely`` and ``secret_sync``: on a
     single-user instance both conditions would fire on every NYE
     session / every replay, which is not the intent of either trophy.
-    Mirrors the arbitration applied to ``secret_king`` in Batch 13.
+    Mirrors the arbitration applied to ``secret_king``.
     """
     count = (await db.execute(
         select(func.count(func.distinct(PlaybackSession.user_id)))

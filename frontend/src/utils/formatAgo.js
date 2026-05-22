@@ -13,7 +13,7 @@
  * and trivially unit-testable. Callers pass their composable's `t` from
  * `useI18n()`.
  *
- * Note: the current pattern `${m}min` / `${h}h` is a known §1 dette technique
+ * Note: the current pattern `${m}min` / `${h}h` is a known i18n debt
  * (should use proper i18n pluralisation). Preserved as-is here to keep
  * behaviour identical across the three migrated consumers; tracked for a
  * dedicated i18n-time-formatting refactor.

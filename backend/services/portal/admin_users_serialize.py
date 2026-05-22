@@ -96,7 +96,7 @@ def serialize_admin_user_row(profile: UserProfile, user: User) -> dict[str, Any]
         "last_login_at": iso(profile.last_login_at),
         "online": is_online(profile, ref=ref),
         "deleted_at": iso(profile.deleted_at),
-        # GDPR opt-in (Batch 11B): timestamps live on ``users``, not
+        # GDPR opt-in: timestamps live on ``users``, not
         # ``user_profiles``. Surfaced here so the admin list can power
         # the "Pending deletion" DataTable + Cancel button.
         "deletion_requested_at": iso(getattr(user, "deletion_requested_at", None)),

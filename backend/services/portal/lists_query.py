@@ -112,7 +112,7 @@ async def _serialize_list(
     count = (await db.execute(
         select(func.count(UserListItem.id)).where(UserListItem.list_id == lst.id)
     )).scalar() or 0
-    # Privacy boundary (Rules §22): expose the owner's chosen portal
+    # Privacy boundary: expose the owner's chosen portal
     # pseudo or the localized anonymous alias — never the raw Emby
     # ``User.username``. The User row stays joined so a deleted owner
     # surfaces a NULL ``display_name`` that the helper folds into the

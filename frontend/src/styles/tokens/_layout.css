@@ -19,7 +19,7 @@
   --space-6: 24px; /* page padding */
   --space-8: 32px; /* large separation */
 
-  /* Accessibility — minimum tap target (WCAG 2.5.5, Rules §2.6). */
+  /* Accessibility — minimum tap target (WCAG 2.5.5). */
   --touch-target: 44px;
 
   /* ─── Border widths ─── */

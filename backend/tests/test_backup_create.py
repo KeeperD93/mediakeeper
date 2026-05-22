@@ -64,7 +64,7 @@ async def test_create_backup_keeps_sensitive_settings_encrypted(
 
 
 def test_pg_dump_enabled_by_default():
-    """Batch 2 flips pg_dump to ON so scheduled backups capture the DB
+    """pg_dump defaults to ON so scheduled backups capture the DB
     instead of shipping JSON metadata only."""
     assert DEFAULT_COMPONENTS["pg_dump"] is True
 

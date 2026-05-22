@@ -1,5 +1,5 @@
 /* PortalTickets create modal — bottom-sheet on mobile, centered popup ≥768px.
-   Extracted from the SFC to keep it under §14's 300L cap.
+   Extracted from the SFC to keep the file size manageable.
    Every selector is prefixed `.pt-popup` / `.pt-mode-pill` / `.pt-input` /
    `.pt-btn` so leakage is impossible. */
 

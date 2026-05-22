@@ -12,7 +12,7 @@ import {
 
 // Re-export the constants so existing consumers (DashboardView,
 // MobileDashboardWidget, MobileDashboardStats, tests) keep their
-// imports working after the §14 split.
+// imports working after the size-driven split.
 export {
   MOBILE_DEFAULT_ORDER,
   MOBILE_STAT_IDS,

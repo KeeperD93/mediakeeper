@@ -1,7 +1,7 @@
 """GDPR groundwork: ``users`` deletion timestamps, chat FK SET NULL,
 broken FKs fixed, opt-in privacy settings inserted.
 
-This migration prepares the schema for the Batch 11B opt-in GDPR
+This migration prepares the schema for the opt-in GDPR opt-in GDPR
 mode without exposing any user-facing surface yet:
 
 * Adds ``users.deletion_requested_at`` and ``users.pending_deletion_at``
@@ -21,7 +21,7 @@ mode without exposing any user-facing surface yet:
 * Inserts five ``gdpr.*`` rows in the ``settings`` table with
   disabling defaults: ``gdpr.enabled=false``, two preset HTML privacy
   texts (FR/EN), an empty ``gdpr.dpo_contact``, and a 30-day default
-  for ``gdpr.account_purge_delay_days``. The Batch 11B UI reads these
+  for ``gdpr.account_purge_delay_days``. The opt-in GDPR UI reads these
   rows; until the toggle is flipped they have no runtime effect.
 
 The downgrade is symmetric. SQLite-friendly via ``op.batch_alter_table``.
@@ -37,7 +37,7 @@ depends_on = None
 
 
 # ---------------------------------------------------------------------------
-# Preset privacy texts (admin overrides via the Batch 11B settings UI).
+# Preset privacy texts (admin overrides via the opt-in GDPR settings UI).
 # Kept here so the migration is self-contained and a fresh DB starts with a
 # usable opt-in default.
 # ---------------------------------------------------------------------------

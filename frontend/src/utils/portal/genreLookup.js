@@ -1,6 +1,6 @@
 // Genre id → display label + emoji used by the public profile genre
 // chips. Extracted from PortalUserProfile.vue so the page file stays
-// under the §14 size cap; the values mirror the TMDB id list curated
+// within its size budget; the values mirror the TMDB id list curated
 // in the portal preferences flow.
 export const GENRE_LOOKUP = Object.freeze([
   { label: 'action', ids: [28, 10759], emoji: '💥' },

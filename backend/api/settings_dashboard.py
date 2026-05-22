@@ -25,9 +25,9 @@ DEFAULT_DASHBOARD_LAYOUT = {
 
 
 class DashboardLayoutRequest(BaseModel):
-    # ``extra="forbid"`` per Rules.md §22.6 — settings is a sensitive
-    # mutation surface, unknown keys must 422 rather than silently
-    # round-trip into the stored JSON.
+    # ``extra="forbid"`` — settings is a sensitive mutation surface,
+    # unknown keys must 422 rather than silently round-trip into the
+    # stored JSON.
     model_config = ConfigDict(extra="forbid")
 
     hidden:       List[str]            = []
