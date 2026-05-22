@@ -119,13 +119,16 @@ def test_validate_rejects_double_dot_inside_resolved_path(monkeypatch):
         shutil.rmtree(workspace, ignore_errors=True)
 
 
-def test_validate_rejects_path_landing_in_backup_zone(monkeypatch):
+def test_is_path_within_backup_dir_flags_archive(monkeypatch):
+    """Building block: the helper that powers the backup-zone refusal
+    in ``_validate_path``. End-to-end refusal is covered by
+    :func:`test_media_validate_rejects_backup_zone`."""
     workspace = _make_workspace_tmp("_attack_validate")
     try:
         media_root = workspace / "media"
         backup_dir = media_root / "backups"
         backup_dir.mkdir(parents=True)
-        archive = backup_dir / "mediakeeper_backup_20260522.zip"
+        archive = backup_dir / "mediakeeper_backup_20260523.zip"
         archive.write_text("zip", encoding="utf-8")
         monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
         monkeypatch.setenv("BACKUP_PATH", str(backup_dir))
@@ -273,7 +276,7 @@ def test_safe_log_path_accepts_simple_txt(workspace_tmp_path):
         "",
         ".hidden.png",
         ".",
-        ".png",  # empty basename after the leading dot
+        ".png",  # leading-dot basename (rejected by the .-prefix guard)
     ],
 )
 def test_safe_filename_rejects_attack(attack):
