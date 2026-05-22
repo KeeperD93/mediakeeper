@@ -9,6 +9,9 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Fixed
+- Login — brute-force tracking now ignores username casing variants.
+
 ## [1.0.0-rc.3] - 2026-05-22
 
 ### Fixed
