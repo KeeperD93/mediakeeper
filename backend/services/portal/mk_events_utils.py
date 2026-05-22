@@ -223,16 +223,29 @@ async def _compact_seats(db: AsyncSession, event_id: int) -> None:
             db.add(inv)
 
 
-async def _has_conflict(db: AsyncSession, user_id: int, scheduled_at: datetime) -> bool:
+async def _has_conflict(
+    db: AsyncSession,
+    user_id: int,
+    scheduled_at: datetime,
+    *,
+    exclude_event_id: int | None = None,
+) -> bool:
     """
     Approximate overlap check: returns True if the user is already
     accepted on another event whose start time is within ±2h of the
     new one. We don't store durations yet so a fixed window is the
     safest pragmatic approach.
+
+    ``exclude_event_id`` skips a specific row from the count. The
+    accept flow uses it to exclude the event being accepted right
+    now — the invitation row is flipped to ``accepted`` in the same
+    session before the check runs, so the read-your-writes view of
+    that session would otherwise treat the event as colliding with
+    itself.
     """
     window_start = scheduled_at - timedelta(hours=2)
     window_end = scheduled_at + timedelta(hours=2)
-    res = await db.execute(
+    stmt = (
         select(func.count(MKEvent.id))
         .join(MKEventInvitation, MKEventInvitation.event_id == MKEvent.id)
         .where(
@@ -243,4 +256,7 @@ async def _has_conflict(db: AsyncSession, user_id: int, scheduled_at: datetime) 
             MKEvent.scheduled_at <= window_end,
         )
     )
+    if exclude_event_id is not None:
+        stmt = stmt.where(MKEvent.id != exclude_event_id)
+    res = await db.execute(stmt)
     return int(res.scalar() or 0) > 0
