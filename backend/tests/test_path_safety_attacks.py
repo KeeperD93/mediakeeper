@@ -318,6 +318,11 @@ def test_avatar_path_for_keeps_target_inside_avatar_dir(workspace_tmp_path):
         "subdir/../../etc/passwd",
         "/etc/passwd",
         "/absolute/asset.txt",
+        ".env",
+        ".htaccess",
+        "subdir/.git/HEAD",
+        "asset with space.txt",
+        "asset;name.txt",
     ],
 )
 def test_resolve_spa_file_rejects_traversal(attack, workspace_tmp_path):
@@ -327,6 +332,28 @@ def test_resolve_spa_file_rejects_traversal(attack, workspace_tmp_path):
     (workspace_tmp_path / "outside.txt").write_text("nope", encoding="utf-8")
 
     assert _resolve_spa_file(root, attack) is None
+
+
+@pytest.mark.parametrize(
+    "asset_path",
+    [
+        "asset.txt",
+        "index-DXyZ_abc.js",
+        "favicon.ico",
+        "logo-x123.png",
+        "subdir/nested-asset.css",
+    ],
+)
+def test_resolve_spa_file_accepts_legit_vite_asset(asset_path, workspace_tmp_path):
+    """The strict per-segment whitelist must not reject the conventional
+    Vite-built asset names (hash suffix, dotted extension)."""
+    root = workspace_tmp_path / "frontend-dist"
+    root.mkdir()
+    target = root / asset_path
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text("ok", encoding="utf-8")
+
+    assert _resolve_spa_file(root, asset_path) == target.resolve()
 
 
 def test_resolve_spa_file_rejects_empty_path(workspace_tmp_path):
