@@ -15,6 +15,7 @@ This section intentionally has no date so it is not shown to users.
 ### Fixed
 - Login — brute-force tracking now ignores username casing variants.
 - Auth schemas now reject unknown JSON keys (defence in depth).
+- Events — accepting an invitation no longer triggers a self-collision conflict warning.
 
 ## [1.0.0-rc.3] - 2026-05-22
 

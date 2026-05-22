@@ -220,9 +220,14 @@ async def respond(
         await _compact_seats(db, event_id)
 
     # Conflict warning when accepting (we don't block, just inform).
+    # Exclude the event being accepted from the count — its invitation
+    # row was just flipped to ``accepted`` above and would otherwise
+    # show up as a self-collision in the read-your-writes view.
     conflict_warning = False
     if decision == "accept":
-        conflict_warning = await _has_conflict(db, user_id, event.scheduled_at)
+        conflict_warning = await _has_conflict(
+            db, user_id, event.scheduled_at, exclude_event_id=event.id,
+        )
 
     user_label = await _user_label(db, user_id)
     notif_type = "event_accepted" if decision == "accept" else "event_declined"
