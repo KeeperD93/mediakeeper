@@ -27,7 +27,7 @@
 > MediaKeeper is on its `v1.0.0-rc.x` line, ahead of the first stable `v1.0.0` release.
 > Expect schema changes, breaking refactors, missing pieces and rough edges.
 > Do not point it at production data you cannot afford to lose, and pin an
-> immutable image tag (e.g. `ghcr.io/keeperd93/mediakeeper:v1.0.0-rc.1`) rather
+> immutable image tag (e.g. `ghcr.io/keeperd93/mediakeeper:v1.0.0-rc.3`) rather
 > than `:latest` if you need reproducible behaviour.
 
 ---
