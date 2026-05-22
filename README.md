@@ -32,7 +32,7 @@
 
 ---
 
-## 🎯 What is MediaKeeper?
+## What is MediaKeeper?
 
 MediaKeeper is a **single-container, self-hosted companion** for an Emby instance. It complements Emby with two surfaces in one app:
 
@@ -43,7 +43,7 @@ Everything runs from a **single Docker container** with an embedded PostgreSQL 1
 
 ---
 
-## ✨ Key features
+## Key features
 
 MediaKeeper extends Emby with a back-office to run the instance and a Portal that brings your viewers a real product experience. Here is what stands out.
 
@@ -138,7 +138,7 @@ For the full feature catalogue and version history, see the [Wiki](https://githu
 
 ---
 
-## 📸 Preview
+## Preview
 
 ### Admin dashboard
 
@@ -150,7 +150,7 @@ For the full feature catalogue and version history, see the [Wiki](https://githu
 
 ---
 
-## 🚀 Getting started
+## Getting started
 
 ### Quickstart — pull the published image
 
@@ -232,7 +232,7 @@ For Synology DSM, reverse-proxy setups, TLS deployment and advanced configuratio
 
 ---
 
-## 💬 Community & support
+## Community & support
 
 - **Discord** — `<DISCORD_INVITE>` _(coming soon)_
 - **GitHub Discussions** — https://github.com/KeeperD93/mediakeeper/discussions
@@ -241,7 +241,7 @@ For Synology DSM, reverse-proxy setups, TLS deployment and advanced configuratio
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Pull requests are welcome. Before you start, please read [`CONTRIBUTING.md`](CONTRIBUTING.md) and the [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md).
 
@@ -255,13 +255,13 @@ In short:
 
 ---
 
-## 🤖 AI-assisted development
+## AI-assisted development
 
 MediaKeeper is developed with AI assistance. Every change is reviewed, tested and committed by the maintainer, who remains responsible for the code that ships.
 
 ---
 
-## 📦 Tech stack
+## Tech stack
 
 | Layer        | Tech                                                                                                                      |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------- |
@@ -272,7 +272,7 @@ MediaKeeper is developed with AI assistance. Every change is reviewed, tested an
 
 ---
 
-## 🔌 Attribution
+## Attribution
 
 This product uses the **TMDB API** but is not endorsed or certified by TMDB. See https://www.themoviedb.org for the data source.
 
@@ -280,6 +280,6 @@ MediaKeeper integrates with **Emby**, **OpenSubtitles**, **Discord** webhooks an
 
 ---
 
-## 📝 License
+## License
 
 MediaKeeper is published under the **GNU General Public License v3.0 or later** — see [`LICENSE`](LICENSE).
