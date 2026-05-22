@@ -11,8 +11,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.auth import get_current_user, require_csrf
 from core.database import get_db
 from models.user import User
-from models.scheduler_task import SchedulerTask
-from services.scheduler import TASK_DEFINITIONS, get_scheduler, get_progress
+from models.scheduler_task import SchedulerTask, TaskStatus
+from services.scheduler import TASK_DEFINITIONS, get_progress
 
 logger = logging.getLogger("mediakeeper.scheduler_api")
 router = APIRouter(prefix="/api/scheduler", tags=["scheduler"])
@@ -136,7 +136,7 @@ async def run_task_now(
         # Task definition exists but the row is not seeded yet — the
         # scheduler's ``_ensure_tasks_exist`` startup pass hasn't run.
         raise HTTPException(status_code=503, detail="scheduler_not_initialized")
-    if row.last_status == "running":
+    if row.last_status == TaskStatus.RUNNING.value:
         raise HTTPException(status_code=409, detail="task_already_running")
 
     row.force_run_requested_at = datetime.now(timezone.utc)
