@@ -32,7 +32,7 @@ def get_configured_path_roots() -> list[Path]:
     for raw in _split_env_paths(os.getenv(PATH_ROOTS_ENV, "")):
         try:
             resolved = _resolve_path(raw)
-        except (OSError, RuntimeError):
+        except (ValueError, OSError, RuntimeError):
             continue
 
         key = str(resolved)
@@ -58,7 +58,7 @@ def _safe_resolve_backup_dir() -> Path | None:
     """
     try:
         return get_backup_dir().resolve(strict=False)
-    except (OSError, RuntimeError):
+    except (ValueError, OSError, RuntimeError):
         return None
 
 
@@ -74,7 +74,7 @@ def is_path_within_backup_dir(path: str | Path) -> bool:
         return False
     try:
         resolved = _resolve_path(path)
-    except (OSError, RuntimeError):
+    except (ValueError, OSError, RuntimeError):
         return False
     return resolved == backup_dir or backup_dir in resolved.parents
 
@@ -93,7 +93,7 @@ def get_existing_media_path_roots() -> list[Path]:
     for root in get_existing_path_roots():
         try:
             resolved = root.resolve(strict=False)
-        except (OSError, RuntimeError):
+        except (ValueError, OSError, RuntimeError):
             continue
         if backup_dir is not None and (
             resolved == backup_dir or backup_dir in resolved.parents
@@ -106,7 +106,7 @@ def get_existing_media_path_roots() -> list[Path]:
 def is_path_within_roots(path: str | Path, roots: Iterable[Path] | None = None) -> bool:
     try:
         resolved = _resolve_path(path)
-    except (OSError, RuntimeError):
+    except (ValueError, OSError, RuntimeError):
         return False
 
     actual_roots = list(roots if roots is not None else get_configured_path_roots())
@@ -134,7 +134,7 @@ def validate_path_in_roots(
 
     try:
         resolved = _resolve_path(raw)
-    except (OSError, RuntimeError):
+    except (ValueError, OSError, RuntimeError):
         return None, "invalid_path"
 
     actual_roots = list(roots if roots is not None else get_configured_path_roots())
