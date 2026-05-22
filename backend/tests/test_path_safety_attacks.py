@@ -128,12 +128,14 @@ def test_is_path_within_backup_dir_flags_archive(monkeypatch):
         media_root = workspace / "media"
         backup_dir = media_root / "backups"
         backup_dir.mkdir(parents=True)
-        archive = backup_dir / "mediakeeper_backup_20260523.zip"
+        archive = backup_dir / "mediakeeper_backup_20260523_010203.zip"
         archive.write_text("zip", encoding="utf-8")
-        monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
+        outside = media_root / "movie.mkv"
+        outside.write_bytes(b"\x00")
         monkeypatch.setenv("BACKUP_PATH", str(backup_dir))
 
         assert is_path_within_backup_dir(archive) is True
+        assert is_path_within_backup_dir(outside) is False
     finally:
         shutil.rmtree(workspace, ignore_errors=True)
 
