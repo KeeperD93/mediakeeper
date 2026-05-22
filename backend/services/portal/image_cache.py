@@ -36,6 +36,7 @@ import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.http_client import get_external_client
+from core.url_safety import UnsafeOutboundURL, is_allowed_image_url
 from services.settings import get_setting
 
 logger = logging.getLogger("mediakeeper.portal.image_cache")
@@ -93,8 +94,13 @@ def proxied_url(original_url: str) -> str:
     Encodes the original URL so the proxy can fetch from the right
     upstream. Non-TMDB URLs are returned unchanged — this keeps
     avatars and other inline images out of the cache scope.
+
+    Uses the same strict hostname check as the proxy endpoint so the
+    rewrite decision and the validation stay in lockstep: an URL that
+    fails :func:`is_allowed_image_url` is left as-is (and the browser
+    will hit the upstream directly, where CORS/CSP still apply).
     """
-    if not original_url or not original_url.startswith("https://image.tmdb.org/"):
+    if not is_allowed_image_url(original_url):
         return original_url
     encoded = urllib.parse.quote(original_url, safe="")
     return f"{PROXY_PATH}?u={encoded}"
@@ -123,7 +129,14 @@ async def fetch_or_serve(original_url: str) -> tuple[bytes, str]:
     a copy. Errors fall back to a one-shot fetch without persistence
     so the user never sees a broken image just because the disk
     write failed.
+
+    Defence in depth: the public endpoint (:mod:`api.image_proxy`)
+    already validates the URL via :func:`is_allowed_image_url`, but
+    re-checking here means any future internal caller cannot bypass
+    the host whitelist by skipping the proxy layer.
     """
+    if not is_allowed_image_url(original_url):
+        raise UnsafeOutboundURL("image_url_rejected")
     _ensure_cache_dir()
     path = _path_for(original_url)
     if path.exists():

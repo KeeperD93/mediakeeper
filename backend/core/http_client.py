@@ -2,10 +2,15 @@
 Shared HTTP client (httpx).
 - A single connection pool for the whole application.
 - SSL configurable via VERIFY_SSL in .env.
+- The external client routes through a DNS-pinned transport
+  (:mod:`core.safe_http`) so server-side notifiers can never be
+  redirected to private addresses via DNS rebinding (SSRF).
 - Must be initialized on startup and closed on shutdown (lifespan).
 """
 import os
 import httpx
+
+from core.safe_http import make_safe_external_transport
 
 VERIFY_SSL = os.getenv("VERIFY_SSL", "true").lower() not in ("false", "0", "no")
 
@@ -17,15 +22,20 @@ _external_client: httpx.AsyncClient | None = None
 async def init_clients():
     """Initialize the httpx clients (call in the lifespan startup)."""
     global _internal_client, _external_client
-    # Internal client (NAS, Emby, local tools) — SSL configurable
+    # Internal client (NAS, Emby, local tools) — SSL configurable.
+    # Stays on the default backend because internal calls MUST be
+    # able to reach private LAN addresses (RFC 1918: 10/8, 172.16/12,
+    # 192.168/16 — plus IPv6 link-local fe80::/10 if applicable).
     _internal_client = httpx.AsyncClient(
         verify=VERIFY_SSL,
         timeout=httpx.Timeout(15.0, connect=5.0),
         limits=httpx.Limits(max_connections=20, max_keepalive_connections=10),
     )
-    # External client (TMDB, OpenSubtitles, etc.) — SSL always on, redirects followed
+    # External client (TMDB, OpenSubtitles, Discord webhooks, etc.) —
+    # SSL always on, redirects followed, DNS-pinned + private-IP-blocked
+    # at the transport layer.
     _external_client = httpx.AsyncClient(
-        verify=True,
+        transport=make_safe_external_transport(verify=True),
         timeout=httpx.Timeout(10.0, connect=5.0),
         follow_redirects=True,
     )

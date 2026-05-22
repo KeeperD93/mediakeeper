@@ -101,4 +101,5 @@ A few defensive choices already documented in the code base:
 - Sensitive settings stored in the database (API keys, webhooks, OAuth tokens) are encrypted at rest with Fernet.
 - CSRF protection uses a double-submit cookie pattern on every state-changing route.
 - Login attempts are rate-limited and tracked in a dedicated table.
-- A dedicated `Security` workflow runs `pip-audit`, `npm audit`, `bandit`, `ruff S` and `semgrep` on every push and weekly.
+- A dedicated `Security` workflow runs `pip-audit`, `npm audit`, `bandit`, `ruff S`, `semgrep` and `CodeQL` (Python + JavaScript) on every push and weekly.
+- Server-side outbound HTTP (TMDB, OpenSubtitles, Discord webhooks) routes through a DNS-pinned transport that resolves and validates the host inside the connect path: private/loopback/link-local addresses are refused, and the connect targets a validated IP literal so DNS rebinding cannot redirect the request between validation and TCP open. The original hostname is preserved for TLS SNI / certificate verification.

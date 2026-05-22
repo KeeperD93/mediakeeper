@@ -5,12 +5,23 @@ import hmac
 import pytest
 
 from core import webhooks
+from core.url_safety import UnsafeOutboundURL
 
 
 @pytest.fixture(autouse=True)
-def _isolate_signing_cache():
-    """Each test gets a fresh derived key — no leakage across cases."""
+def _isolate_signing_cache(monkeypatch):
+    """Each test gets a fresh derived key — no leakage across cases.
+
+    Also bypasses URL safety + DNS resolution by default so signature
+    tests do not depend on real network access. Tests that exercise the
+    validation explicitly override the patch.
+    """
     webhooks.reset_signing_key_cache()
+
+    async def _allow_all(_url):
+        return ["8.8.8.8"]
+
+    monkeypatch.setattr(webhooks, "validate_outbound_url", _allow_all)
     yield
     webhooks.reset_signing_key_cache()
 
@@ -194,6 +205,26 @@ async def test_post_signed_with_retry_caps_retry_after(monkeypatch):
         timeout=10.0,
     )
     assert sleeps == [webhooks.RETRY_AFTER_CAP_SECONDS]
+
+
+@pytest.mark.asyncio
+async def test_post_signed_with_retry_refuses_unsafe_url(monkeypatch):
+    """Validation must run before the HTTP call — no request leaks out."""
+
+    async def _reject(_url):
+        raise UnsafeOutboundURL("dns_resolves_private")
+
+    monkeypatch.setattr(webhooks, "validate_outbound_url", _reject)
+    client = _FakeClient([_FakeResponse(204)])
+    with pytest.raises(UnsafeOutboundURL):
+        await webhooks.post_signed_with_retry(
+            client,
+            "https://rebinder.example/api/webhooks/1/x",
+            {"content": "ok"},
+            timeout=10.0,
+        )
+    # The request must never have been issued.
+    assert client.calls == []
 
 
 async def _async_noop_sleep(_delay):
