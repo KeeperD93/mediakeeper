@@ -77,7 +77,7 @@ def serialize_profile(profile: UserProfile, *, user: User | None = None) -> dict
 def serialize_public_profile(profile: UserProfile, *, lang: str = "fr") -> dict:
     """Public profile (limited info).
 
-    Privacy boundary (Rules §22): when the owner has not picked a portal
+    Privacy boundary: when the owner has not picked a portal
     pseudo yet, render the localized anonymous alias instead of the
     auto-populated Emby username so other viewers can never derive it.
     """

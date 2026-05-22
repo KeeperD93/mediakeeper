@@ -1,9 +1,9 @@
 """Slug helpers for the Help Center.
 
 The HTML sanitiser used to live here too. It moved to
-``_html_sanitize.py`` (Batch 11B) so the GDPR opt-in surface can share
-the exact same Tiptap → bleach pipeline. ``sanitize_html`` is still
-re-exported from this module so older imports keep working.
+``_html_sanitize.py`` so the GDPR opt-in surface can share the exact
+same Tiptap → bleach pipeline. ``sanitize_html`` is still re-exported
+from this module so older imports keep working.
 """
 from __future__ import annotations
 

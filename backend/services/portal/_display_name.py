@@ -1,6 +1,6 @@
 """Anonymous display-name resolution for user-facing portal surfaces.
 
-Privacy boundary (Rules §22): user-facing endpoints must NEVER expose the
+Privacy boundary: user-facing endpoints must NEVER expose the
 raw Emby username when an account has not picked its own portal pseudo.
 Admin endpoints stay raw on purpose (operators need to see who hasn't
 set a name yet).

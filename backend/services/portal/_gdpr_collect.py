@@ -80,7 +80,7 @@ async def collect_full_user_data(
 
     Excluded on purpose: ``user_profiles.admin_notes`` and
     ``user_profiles.tags`` (admin curation, not user-generated). The
-    ``watchlists`` label from the Batch 11B kickoff resolves to
+    ``watchlists`` label from the kickoff spec resolves to
     ``user_lists`` (already included) — MediaKeeper has no separate
     watchlist table; the ``WatchlistScan`` cache is keyed by scan-key
     and not user-bound.

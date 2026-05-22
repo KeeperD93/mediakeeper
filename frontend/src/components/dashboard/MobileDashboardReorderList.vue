@@ -132,7 +132,7 @@ onBeforeUnmount(endDrag)
   background: rgb(var(--accent-rgb), 0.18);
   border-color: var(--accent-500);
   transform: scale(1.02);
-  /* Composite shadow — multi-layer specific (§3.7 tolerance). */
+  /* Composite shadow — multi-layer specific. */
   box-shadow:
     0 12px 28px rgb(0, 0, 0, 0.45),
     0 0 0 1px rgb(var(--accent-rgb), 0.4);
@@ -148,11 +148,11 @@ onBeforeUnmount(endDrag)
 
 .m-dash-row__handle {
   flex-shrink: 0;
-  /* Documented exception to Rules.md §2.6 (touch targets ≥ 44 px):
-     the reorder handle sits inside a list where a mis-tap is
-     trivially undone via Cancel — the cost of an oversized handle
-     (rows balloon to 52 px each, 9 of them blow past the mobile
-     viewport) outweighs the benefit. 36 px remains comfortable on
+  /* Documented exception to the 44 px touch-target floor: the reorder
+     handle sits inside a list where a mis-tap is trivially undone via
+     Cancel — the cost of an oversized handle (rows balloon to 52 px
+     each, 9 of them blow past the mobile viewport) outweighs the
+     benefit. 36 px remains comfortable on
      touch and matches the common pattern for in-list reorder grips. */
   width: 36px;
   height: 36px;

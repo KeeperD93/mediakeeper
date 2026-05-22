@@ -1,7 +1,7 @@
 /**
  * Dashboard widget catalogue — pure data, no Vue runtime hooks.
  *
- * Split out of useDashboardLayout.js per Rules.md §14 (file size) so
+ * Split out of useDashboardLayout.js to keep file sizes manageable so
  * the composable stays focused on layout state + persistence. Anything
  * exported here is a constant: widget IDs, default grid coordinates,
  * mobile baselines, i18n keys, the layout-version bump counter.
@@ -114,8 +114,9 @@ export const WIDGET_REGISTRY = {
   },
 }
 
-// Canonical widget IDs — single source of truth per Rules.md §6. Any
-// new widget added to WIDGET_REGISTRY above must also appear here so
+// Canonical widget IDs — single source of truth so consumers never
+// duplicate string literals. Any new widget added to WIDGET_REGISTRY
+// above must also appear here so
 // consumers (MobileDashboardWidget dispatch, MOBILE_DEFAULT_ORDER…)
 // reference the constant instead of duplicating string literals.
 export const WIDGET_ID = Object.freeze({
@@ -146,7 +147,7 @@ export const MOBILE_STAT_IDS = [
 
 // i18n key per widget for the mobile reorder list (lines display only
 // the title, not the full widget). Consumers pass these keys through
-// $t(). Keeps Rules.md §1 — no literal label in templates.
+// $t(). Keeps the i18n contract — no literal label in templates.
 export const WIDGET_TITLE_KEY = Object.freeze({
   [WIDGET_ID.ACTIVITY]: 'dashboard.widgetTitles.activity',
   [WIDGET_ID.HEALTH_SCORE]: 'dashboard.widgetTitles.healthScore',

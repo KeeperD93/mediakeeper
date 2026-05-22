@@ -4,7 +4,7 @@
  * stay in the component because they are reactive runtime values.
  *
  * `badgeKey` resolves against `useSidebarCounters().counters` at render
- * time; `desktopOnly` hides the item on mobile viewports (cf. §2 Rules).
+ * time; `desktopOnly` hides the item on mobile viewports.
  */
 export const SIDEBAR_MODULES = Object.freeze([
   Object.freeze({ to: '/stats', icon: 'stats', labelKey: 'sidebar.statistics' }),

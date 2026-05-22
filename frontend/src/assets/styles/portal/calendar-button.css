@@ -108,7 +108,7 @@
   transform: translateX(2px);
 }
 
-/* Calendar status palette — see ROADMAP §16 */
+/* Calendar status palette. */
 .pt-cal-popup .pt-cal-item--accepted-private {
   border-color: rgb(var(--portal-color-info-rgb), 0.5);
 }

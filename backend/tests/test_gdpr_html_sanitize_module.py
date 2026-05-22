@@ -1,4 +1,4 @@
-"""Verify the Batch 11B refactor of ``sanitize_html``.
+"""Verify the GDPR-driven refactor of ``sanitize_html``.
 
 The sanitiser moved from ``services.portal.help_sanitize`` to
 ``services.portal._html_sanitize`` so the GDPR opt-in surface can

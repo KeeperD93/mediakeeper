@@ -115,7 +115,7 @@
     overflow: visible;
     text-overflow: clip;
   }
-  /* §2.6 — touch targets mobile ≥ 44×44px sur les boutons d'action des rows. */
+  /* Touch targets ≥ 44×44px on mobile for row action buttons. */
   .cinema-stats .dt-act-btn {
     min-width: 44px;
     min-height: 44px;

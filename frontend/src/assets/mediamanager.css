@@ -1301,9 +1301,9 @@
   justify-content: flex-end;
 }
 
-/* Modal move v3 — styles déplacés en `\3c style scoped>` dans MMMoveModal.vue (§15).
- * Compat: ces classes héritées sont encore référencées par d'autres composants
- * du module (drag & drop cross-cat, etc.) — à conserver ici. */
+/* Modal move v3 — styles moved into `<style scoped>` inside MMMoveModal.vue.
+ * Compat: these legacy classes are still referenced by other components
+ * of the module (cross-category drag & drop, etc.) — kept here. */
 .mm-move-item {
   display: flex;
   align-items: center;

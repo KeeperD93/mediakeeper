@@ -1,4 +1,4 @@
-"""Smoke test — Batch 2C drill (V-2C-6=B, opt-in only).
+"""Smoke test — restore drill (opt-in only).
 
 Skipped by default. Activate locally with ``MK_DRILL_ENABLED=1`` to run.
 
@@ -6,9 +6,9 @@ Validates the ``create_backup → ZIP → restore_backup`` round-trip on the
 applicative KV layer (settings/preferences/scheduler/watchlist). The
 ``pg_dump`` branch is mocked because this smoke test does not spin up a
 PostgreSQL container by design — that drill is documented manually in
-``docs/operations/backup-restore.md`` (cf. Batch 2C §15 of the audit
-report). The point of the smoke test is to keep the application-side
-chain green in pytest without dragging ``testcontainers`` into CI.
+``docs/operations/backup-restore.md``. The point of the smoke test is
+to keep the application-side chain green in pytest without dragging
+``testcontainers`` into CI.
 """
 import json
 import os
@@ -57,7 +57,7 @@ async def test_restore_round_trip_keeps_kv_layer(
 
     with zipfile.ZipFile(backup_path) as zf:
         names = zf.namelist()
-        assert "pg_dump.sql" in names, "Batch 2A regression: pg_dump.sql missing"
+        assert "pg_dump.sql" in names, "regression: pg_dump.sql missing"
         manifest = json.loads(zf.read("manifest.json"))
         assert manifest["version"] == "1.1"
 

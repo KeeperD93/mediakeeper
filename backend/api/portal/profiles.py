@@ -194,8 +194,7 @@ async def search_users(
 
     The raw Emby ``User.username`` is used internally for matching but
     is never returned to the caller — accounts that haven't picked a
-    portal pseudo render as the localized anonymous alias instead
-    (Rules §22).
+    portal pseudo render as the localized anonymous alias instead.
     """
     from sqlalchemy import select, or_
     me, _ = up

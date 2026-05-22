@@ -1,4 +1,4 @@
-"""``GET /api/portal/auth/me`` exposes a ``gdpr`` block (Batch 11B).
+"""``GET /api/portal/auth/me`` exposes a ``gdpr`` block.
 
 The frontend uses the block to:
 

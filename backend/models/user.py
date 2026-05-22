@@ -12,7 +12,7 @@ class User(Base):
     is_active            = Column(Boolean, default=True, nullable=False)
     must_change_password = Column(Boolean, default=True, nullable=False)
     tokens_invalidated_at = Column(DateTime(timezone=True), nullable=True)
-    # GDPR self-service deletion (Batch 11B). ``deletion_requested_at``
+    # GDPR self-service deletion. ``deletion_requested_at``
     # records when the user submitted the request; ``pending_deletion_at``
     # is the wall-clock at which the purge job is allowed to hard-delete
     # the row. Both stay NULL on a normal account.

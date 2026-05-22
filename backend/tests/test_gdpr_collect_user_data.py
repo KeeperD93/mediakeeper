@@ -1,19 +1,22 @@
 """Snapshot tests for ``_collect_full_user_data``.
 
 The helper is the source of truth for what we call "the user's data"
-in MediaKeeper. The kickoff for Batch 11B mandates 14 logical tables
+in MediaKeeper. The GDPR opt-in kickoff mandates 14 logical tables
 (two of which collapse to existing ones) and explicitly excludes admin
 curation fields (``admin_notes``, ``tags``).
 
 These tests:
 
-* Fail loudly if a table the kickoff promised disappears from the
+* Fail loudly if a table the spec promised disappears from the
   output dict (so a future refactor can't silently shrink the export).
 * Verify the curation exclusions stay enforced.
 * Verify own-only scoping for chat messages and list items so a user
   never sees another user's content in their own export.
+
+The original kickoff used "watchlists" as a label; in MediaKeeper that
+collapses to ``user_lists`` (already covered).
 """
-from datetime import datetime, timezone
+from datetime import datetime
 
 import pytest
 

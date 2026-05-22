@@ -77,9 +77,9 @@ onMounted(async () => {
   position: relative;
   min-height: 100%;
   padding: 12px 24px 24px;
-  /* §2.9 : `clip` au lieu de `hidden` — `hidden` aurait promu la racine en
-     scroll container et bloqué le scroll vertical du document. `clip`
-     empêche le débordement horizontal sans créer de contexte de scroll. */
+  /* `clip` instead of `hidden`: `hidden` would have turned the root into a
+     scroll container and blocked vertical document scroll. `clip` clips
+     horizontal overflow without creating a scroll context. */
   overflow-x: clip;
 }
 .wl-inner {

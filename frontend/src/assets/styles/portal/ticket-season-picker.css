@@ -1,5 +1,5 @@
-/* TicketSeasonPicker — extracted from the SFC to keep it under §14's
-   300L cap. Mobile-first. Every selector is prefixed `.tsp*` so
+/* TicketSeasonPicker — extracted from the SFC to keep the file size
+   manageable. Mobile-first. Every selector is prefixed `.tsp*` so
    externalising the file does not leak into other Vue components. */
 
 .tsp {
