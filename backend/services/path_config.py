@@ -165,7 +165,12 @@ def validate_path_in_roots(
 def get_backup_dir() -> Path:
     raw = os.getenv(BACKUP_PATH_ENV, "").strip()
     if raw:
-        return _resolve_path(raw)
+        try:
+            return _resolve_path(raw)
+        except ValueError as exc:
+            raise RuntimeError(
+                f"{BACKUP_PATH_ENV} contains an invalid value"
+            ) from exc
     if DATA_ROOT.is_dir():
         # Production container detected (DATA_ROOT mounted) but BACKUP_PATH
         # is unset. Refuse to fall back to /data/backups: that would store

@@ -162,6 +162,28 @@ def test_get_backup_dir_raises_in_prod_without_env(monkeypatch):
         shutil.rmtree(root, ignore_errors=True)
 
 
+def test_get_backup_dir_normalises_resolve_value_error_to_runtime_error(monkeypatch):
+    """``BACKUP_PATH`` is admin-configured but still goes through
+    pathlib.resolve(), which on POSIX raises ``ValueError`` for an
+    embedded NUL byte (Windows silently strips). The helper must
+    normalise that into ``RuntimeError`` so callers that catch the
+    latter (``_safe_resolve_backup_dir``) keep behaving consistently
+    across platforms.
+
+    The test mocks ``_resolve_path`` to force the failure mode so it
+    runs on every platform regardless of pathlib quirks.
+    """
+    monkeypatch.setenv("BACKUP_PATH", "/tmp/somewhere.zip")
+
+    def _raise(path):
+        raise ValueError("embedded null character")
+
+    monkeypatch.setattr(path_config, "_resolve_path", _raise)
+
+    with pytest.raises(RuntimeError, match=r"BACKUP_PATH"):
+        get_backup_dir()
+
+
 def test_get_backup_dir_dev_fallback_when_no_data_root(monkeypatch):
     """Development fallback (no /data, no BACKUP_PATH) keeps using a backups
     directory under the project root — required for local pytest runs and
