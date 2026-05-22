@@ -129,6 +129,35 @@ async def test_resolve_local_path_does_not_traverse_into_backup_zone(monkeypatch
         shutil.rmtree(root, ignore_errors=True)
 
 
+@pytest.mark.asyncio
+async def test_resolve_local_path_refuses_existing_file_outside_roots(monkeypatch):
+    """Defence in depth: when Emby reports a path that exists at the same
+    absolute location inside the container but sits outside the configured
+    media roots, the resolver must not return it verbatim. A compromised
+    Emby (or a shared mount tree) could otherwise feed arbitrary readable
+    host files (``/etc/passwd``, ``/proc/*``, secrets in ``/data``) to
+    downstream consumers (ffprobe, unlink…).
+    """
+    from services.opensubtitles.paths import _resolve_local_path
+
+    root = _make_workspace_tmp()
+    try:
+        media_root = root / "media"
+        media_root.mkdir()
+        outside = root / "outside.txt"
+        outside.write_text("not_a_media_file", encoding="utf-8")
+
+        monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
+
+        resolved = await _resolve_local_path(None, str(outside))
+
+        # Refusal contract: empty string when no root matches. Callers
+        # (search / existing / remove) must treat this as a rejection.
+        assert resolved == ""
+    finally:
+        shutil.rmtree(root, ignore_errors=True)
+
+
 def _setup_nested_backup_layout(monkeypatch):
     """Build a media root containing a nested ``backups/`` zone.
 

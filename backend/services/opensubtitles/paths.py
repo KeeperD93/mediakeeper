@@ -55,21 +55,41 @@ async def _get_local_path_roots(db: AsyncSession | None) -> list[Path]:
 
 
 async def _resolve_local_path(db: AsyncSession | None, emby_path: str) -> str:
-    """Translate an Emby path to the local path accessible inside the container."""
+    """Translate an Emby path to the local path accessible inside the container.
+
+    Returns an empty string when no candidate inside the configured media
+    roots matches the Emby path. Callers must treat ``""`` as a refusal
+    and not feed it to downstream consumers (ffprobe, unlink…).
+    """
     raw_path = (emby_path or "").strip()
     if not raw_path:
         return ""
 
     try:
         resolved_input = Path(raw_path).expanduser().resolve(strict=False)
-    except (OSError, RuntimeError):
+    except (ValueError, OSError, RuntimeError):
         resolved_input = Path(raw_path)
 
-    if resolved_input.exists():
+    roots = await _get_local_path_roots(db)
+
+    def _within_roots(candidate: Path) -> bool:
+        return any(candidate == r or r in candidate.parents for r in roots)
+
+    # Defence in depth: an Emby path that already exists at the same
+    # absolute location inside this container is only trustworthy when
+    # it sits under one of the configured media roots. Otherwise a
+    # compromised Emby (or a shared mount tree) could feed arbitrary
+    # readable files (``/etc/passwd``, ``/proc/*``, secrets in
+    # ``/data``) to downstream consumers.
+    if (
+        resolved_input.exists()
+        and not is_path_within_backup_dir(resolved_input)
+        and _within_roots(resolved_input)
+    ):
         return str(resolved_input)
 
     parts = Path(raw_path).parts
-    for root in await _get_local_path_roots(db):
+    for root in roots:
         for i in range(1, len(parts)):
             sub_path = Path(*parts[i:])
             candidate = (root / sub_path).resolve(strict=False)
@@ -82,7 +102,7 @@ async def _resolve_local_path(db: AsyncSession | None, emby_path: str) -> str:
             return str(candidate)
 
     logger.warning(f"[opensubtitles] Path not resolved locally: {emby_path}")
-    return str(resolved_input)
+    return ""
 
 
 def _empty_existing_payload(file_path: str = "", analysis_source: str = "none") -> dict:
