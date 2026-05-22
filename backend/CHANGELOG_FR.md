@@ -9,6 +9,9 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+### Fixed
+- Connexion — la détection brute-force ignore désormais les variations de casse du nom d'utilisateur.
+
 ## [1.0.0-rc.3] - 2026-05-22
 
 ### Fixed
