@@ -20,7 +20,7 @@ async def _get_local_path_roots(db: AsyncSession | None) -> list[Path]:
             return
         try:
             resolved = Path(raw_path).expanduser().resolve(strict=False)
-        except (OSError, RuntimeError):
+        except (ValueError, OSError, RuntimeError):
             return
         if not resolved.exists() or not resolved.is_dir():
             return
@@ -88,11 +88,18 @@ async def _resolve_local_path(db: AsyncSession | None, emby_path: str) -> str:
     ):
         return str(resolved_input)
 
-    parts = Path(raw_path).parts
+    try:
+        parts = Path(raw_path).parts
+    except ValueError:
+        logger.warning(f"[opensubtitles] Invalid path components: {emby_path!r}")
+        return ""
     for root in roots:
         for i in range(1, len(parts)):
-            sub_path = Path(*parts[i:])
-            candidate = (root / sub_path).resolve(strict=False)
+            try:
+                sub_path = Path(*parts[i:])
+                candidate = (root / sub_path).resolve(strict=False)
+            except (ValueError, OSError, RuntimeError):
+                continue
             if not candidate.exists():
                 continue
             # Defence in depth: even if the root passed the filter, refuse to
