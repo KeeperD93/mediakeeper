@@ -12,7 +12,7 @@ RUN npm run build
 # ============================================
 # STAGE 2: Python application + built frontend
 # ============================================
-FROM python:3.12-slim
+FROM python:3.14-slim
 
 # ============================================
 # System dependencies: PostgreSQL 16 + curl (healthcheck)
