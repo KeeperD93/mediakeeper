@@ -1,7 +1,7 @@
 # ============================================
 # STAGE 1: Build the Vue 3 frontend
 # ============================================
-FROM node:20-alpine AS frontend-build
+FROM node:24-alpine AS frontend-build
 
 WORKDIR /build
 COPY frontend/package.json frontend/package-lock.json* ./
