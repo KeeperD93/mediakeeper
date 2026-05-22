@@ -52,6 +52,12 @@ _DISCORD_WEBHOOK_PATH_PREFIX = "/api/webhooks/"
 #: ``http``, ``file``, ``gopher``, ``ftp``.
 _ALLOWED_OUTBOUND_SCHEMES = frozenset({"https"})
 
+# Tabs and newlines hidden inside a URL would let ``\tjavascript:`` slip
+# past a naive ``startswith("http")`` check. ``urlparse`` itself ignores
+# whitespace, but we strip first so we can also reject bare control
+# characters defensively.
+_WHITESPACE_RE = re.compile(r"\s+")
+
 
 class UnsafeOutboundURL(ValueError):
     """Raised when an outbound URL fails safety validation.
@@ -63,12 +69,6 @@ class UnsafeOutboundURL(ValueError):
     def __init__(self, reason: str) -> None:
         super().__init__(reason)
         self.reason = reason
-
-# Tabs and newlines hidden inside a URL would let ``\tjavascript:`` slip
-# past a naive ``startswith("http")`` check. ``urlparse`` itself ignores
-# whitespace, but we strip first so we can also reject bare control
-# characters defensively.
-_WHITESPACE_RE = re.compile(r"\s+")
 
 
 def safe_url(

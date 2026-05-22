@@ -36,8 +36,6 @@ from core.url_safety import UnsafeOutboundURL, is_private_address, resolve_host
 
 logger = logging.getLogger("mediakeeper.safe_http")
 
-_SOCKET_OPTION = tuple[int, int, int | bytes]
-
 
 class _SNIPreservingStream(httpcore.AsyncNetworkStream):
     """Force TLS SNI/cert hostname to the originally requested name.
@@ -108,7 +106,7 @@ class SafeOutboundBackend(httpcore.AsyncNetworkBackend):
         port: int,
         timeout: float | None = None,
         local_address: str | None = None,
-        socket_options: Iterable[_SOCKET_OPTION] | None = None,
+        socket_options: Iterable[tuple[int, int, int | bytes]] | None = None,
     ) -> httpcore.AsyncNetworkStream:
         normalized_host = (host or "").lower().rstrip(".")
         # IP literal path — accept public IPs, reject private outright.
@@ -149,7 +147,7 @@ class SafeOutboundBackend(httpcore.AsyncNetworkBackend):
             return _SNIPreservingStream(stream, original_host=normalized_host)
         raise last_err if last_err is not None else OSError("connect_failed")
 
-    async def connect_unix_socket(self, *args, **kwargs):  # pragma: no cover
+    async def connect_unix_socket(self, *args, **kwargs):
         # No outbound caller hits a Unix socket. Refuse explicitly so a
         # future regression does not silently fall through to the base.
         raise UnsafeOutboundURL("unix_socket_not_allowed")

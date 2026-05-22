@@ -29,10 +29,11 @@ import json
 import logging
 import os
 from functools import lru_cache
+from urllib.parse import urlparse
 
 import httpx
 
-from core.url_safety import validate_outbound_url
+from core.url_safety import is_discord_webhook_url, validate_outbound_url
 
 logger = logging.getLogger("mediakeeper.webhooks")
 
@@ -50,9 +51,6 @@ RETRY_AFTER_CAP_SECONDS = 5.0
 
 #: Default short backoff when ``Retry-After`` is missing or unparseable.
 RETRY_AFTER_DEFAULT_SECONDS = 1.0
-
-_DISCORD_PREFIX = "https://discord.com/api/webhooks/"
-
 
 @lru_cache(maxsize=1)
 def _master_key_bytes() -> bytes:
@@ -111,14 +109,19 @@ def webhook_log_id(url: str) -> str:
     For Discord URLs the public numeric id is preserved (operators can
     correlate it with the webhook config). For anything else we emit a
     truncated SHA-256 prefix so log files never carry the live URL.
+
+    The Discord branch piggybacks on :func:`is_discord_webhook_url` so
+    bypass-style inputs (``https://discord.com@evil.com/api/webhooks/…``)
+    are hashed like any other external URL rather than mislabelled
+    ``discord:<id>`` in the logs.
     """
     if not url:
         return "external:unset"
-    if url.startswith(_DISCORD_PREFIX):
-        rest = url[len(_DISCORD_PREFIX) :]
-        wid = rest.split("/", 1)[0] if "/" in rest else rest
-        if wid.isdigit():
-            return f"discord:{wid}"
+    if is_discord_webhook_url(url):
+        # path is ``/api/webhooks/<id>/<token>`` — index 3 is the id.
+        parts = urlparse(url).path.split("/")
+        if len(parts) >= 4 and parts[3].isdigit():
+            return f"discord:{parts[3]}"
     return f"external:{hashlib.sha256(url.encode('utf-8')).hexdigest()[:8]}"
 
 
@@ -172,6 +175,13 @@ async def post_signed_with_retry(
     :func:`core.http_client.get_external_client`. Together they refuse
     private/loopback/link-local targets and close the DNS-rebinding
     window between validation and connect (SSRF).
+
+    Note: the up-front validation duplicates the DNS lookup the safe
+    transport will perform on connect (~10 ms overhead per webhook).
+    Kept on purpose so unsupported schemes (``http://``, ``file://``)
+    are rejected before httpx tries to open the connection — they
+    would otherwise reach the transport with the scheme already
+    stripped.
     """
     await validate_outbound_url(url)
     body = _serialize_payload(payload)

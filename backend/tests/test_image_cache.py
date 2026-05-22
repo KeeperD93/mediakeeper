@@ -210,5 +210,8 @@ async def test_proxy_endpoint_rejects_http_scheme(client):
 @pytest.mark.asyncio
 async def test_fetch_or_serve_raises_on_non_tmdb_url():
     """Defence in depth: the internal helper refuses non-TMDB URLs too."""
-    with pytest.raises(ValueError):
+    from core.url_safety import UnsafeOutboundURL
+
+    with pytest.raises(UnsafeOutboundURL) as exc:
         await image_cache.fetch_or_serve("https://evil.example.com/x.jpg")
+    assert exc.value.reason == "image_url_rejected"

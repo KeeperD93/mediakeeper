@@ -36,7 +36,7 @@ import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.http_client import get_external_client
-from core.url_safety import is_allowed_image_url
+from core.url_safety import UnsafeOutboundURL, is_allowed_image_url
 from services.settings import get_setting
 
 logger = logging.getLogger("mediakeeper.portal.image_cache")
@@ -131,7 +131,7 @@ async def fetch_or_serve(original_url: str) -> tuple[bytes, str]:
     the host whitelist by skipping the proxy layer.
     """
     if not is_allowed_image_url(original_url):
-        raise ValueError("image_cache: URL rejected by safety check")
+        raise UnsafeOutboundURL("image_url_rejected")
     _ensure_cache_dir()
     path = _path_for(original_url)
     if path.exists():
