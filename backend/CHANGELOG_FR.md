@@ -9,6 +9,9 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+### Added
+- Onboarding — module Portail ajouté au welcome et au tour.
+
 ### Fixed
 - Connexion — la détection brute-force ignore désormais les variations de casse du nom d'utilisateur.
 - Les schémas d'authentification rejettent désormais les clés JSON inconnues (défense en profondeur).

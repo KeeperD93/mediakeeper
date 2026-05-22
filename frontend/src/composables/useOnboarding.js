@@ -12,6 +12,7 @@ import {
   Film,
   Home,
   ShieldCheck,
+  Users,
 } from 'lucide-vue-next'
 
 const ICONS = {
@@ -23,6 +24,7 @@ const ICONS = {
   health: markRaw(ShieldCheck),
   subtitles: markRaw(Captions),
   notifications: markRaw(Bell),
+  portal: markRaw(Users),
 }
 
 export function useOnboarding(props, emit) {
@@ -101,6 +103,13 @@ export function useOnboarding(props, emit) {
       name: t('sidebar.notifications'),
       desc: t('onboarding.modNotifs'),
       icon: ICONS.notifications,
+    },
+    {
+      id: 'portal',
+      bg: 'rgba(59,130,246,.12)',
+      name: t('sidebar.requests'),
+      desc: t('onboarding.modPortal'),
+      icon: ICONS.portal,
     },
   ])
 
@@ -207,6 +216,19 @@ export function useOnboarding(props, emit) {
         t('onboarding.featDnd'),
         t('onboarding.featTemplates'),
         t('onboarding.featFilters'),
+      ],
+    },
+    {
+      id: 'portal',
+      name: t('sidebar.requests'),
+      bg: 'rgba(59,130,246,.12)',
+      desc: t('onboarding.modPortal'),
+      icon: ICONS.portal,
+      features: [
+        t('onboarding.featPortalRequests'),
+        t('onboarding.featPortalTickets'),
+        t('onboarding.featPortalProfile'),
+        t('onboarding.featPortalAchievements'),
       ],
     },
   ])
