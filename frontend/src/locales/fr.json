@@ -1466,8 +1466,8 @@
       "removed": "Suppression"
     },
     "surface": {
-      "admin": "Application admin",
-      "portal": "Portail"
+      "admin": "Interface admin",
+      "portal": "Portail utilisateurs"
     }
   },
   "healthCheck": {

@@ -27,25 +27,23 @@
               <span v-if="idx === 0" class="cl-badge-latest">{{ $t('changelog.latest') }}</span>
               <span class="cl-version-date">{{ formatDate(v.date) }}</span>
             </div>
-            <div v-for="surface in ['admin', 'portal']" :key="surface">
-              <template v-if="v[surface]">
-                <div class="cl-surface-label">{{ $t('changelog.surface.' + surface) }}</div>
-                <div
-                  v-for="(items, cat) in v[surface]"
-                  :key="surface + '-' + cat"
-                  class="cl-category"
-                >
-                  <div class="cl-cat-header">
-                    <span class="cl-cat-icon">{{ categoryIcon(cat) }}</span>
-                    <span class="cl-cat-label" :class="'cat-' + categoryClass(cat)">
-                      {{ $t('changelog.cat.' + categoryClass(cat)) }}
-                    </span>
-                  </div>
-                  <ul class="cl-items">
-                    <li v-for="(item, i) in items" :key="i" class="cl-item">{{ item }}</li>
-                  </ul>
+            <div v-for="surface in nonEmptySurfaces(v)" :key="surface" class="cl-surface">
+              <div class="cl-surface-label">{{ $t('changelog.surface.' + surface) }}</div>
+              <div
+                v-for="(items, cat) in v[surface]"
+                :key="surface + '-' + cat"
+                class="cl-category"
+              >
+                <div class="cl-cat-header">
+                  <span class="cl-cat-icon">{{ categoryIcon(cat) }}</span>
+                  <span class="cl-cat-label" :class="'cat-' + categoryClass(cat)">
+                    {{ $t('changelog.cat.' + categoryClass(cat)) }}
+                  </span>
                 </div>
-              </template>
+                <ul class="cl-items">
+                  <li v-for="(item, i) in items" :key="i" class="cl-item">{{ item }}</li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
@@ -101,6 +99,16 @@ function categoryIcon(cat) {
 
 function categoryClass(cat) {
   return (cat || '').toLowerCase()
+}
+
+// Filter out surfaces with no category entries so the section header
+// (e.g. "User portal") is not rendered above an empty body when the
+// release ships nothing on that surface.
+function nonEmptySurfaces(version) {
+  return ['admin', 'portal'].filter(surface => {
+    const bucket = version?.[surface]
+    return bucket && typeof bucket === 'object' && Object.keys(bucket).length > 0
+  })
 }
 </script>
 
@@ -238,18 +246,28 @@ function categoryClass(cat) {
   margin-left: auto;
 }
 
+.cl-surface {
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 0.5px solid var(--border-subtle);
+}
+.cl-surface:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
 .cl-surface-label {
+  display: inline-flex;
+  align-items: center;
   font-size: var(--text-xs);
   font-weight: var(--font-bold);
-  color: var(--text-primary);
+  color: var(--accent-400);
   text-transform: uppercase;
   letter-spacing: var(--tracking-widest);
-  margin: 14px 0 8px;
-  padding-bottom: 4px;
-  border-bottom: 0.5px solid var(--border-subtle);
-}
-.cl-surface-label:first-child {
-  margin-top: 0;
+  margin: 0 0 12px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  background: rgb(var(--accent-rgb), 0.08);
 }
 
 .cl-category {

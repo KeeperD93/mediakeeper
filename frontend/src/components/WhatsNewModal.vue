@@ -34,8 +34,8 @@
           </div>
 
           <div class="wn-body">
-            <template v-for="surface in ['admin', 'portal']" :key="surface">
-              <div v-if="latestVersion?.[surface]" class="wn-surface">
+            <template v-for="surface in nonEmptySurfaces(latestVersion)" :key="surface">
+              <div class="wn-surface">
                 <div class="wn-surface-label">{{ $t('changelog.surface.' + surface) }}</div>
                 <div
                   v-for="(items, cat) in latestVersion[surface]"
@@ -143,6 +143,17 @@ async function dismiss() {
 function goToChangelog() {
   dismiss()
   router.push('/changelog')
+}
+
+// Filter out surfaces with no category entries so the section header
+// (e.g. "User portal") is not rendered above an empty body when the
+// release ships nothing on that surface.
+function nonEmptySurfaces(version) {
+  if (!version) return []
+  return ['admin', 'portal'].filter(surface => {
+    const bucket = version[surface]
+    return bucket && typeof bucket === 'object' && Object.keys(bucket).length > 0
+  })
 }
 
 function handleModalKeydown(event) {
@@ -253,20 +264,27 @@ function handleModalKeydown(event) {
   padding: 0 20px 16px;
 }
 .wn-surface {
-  margin-bottom: 18px;
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 0.5px solid var(--border-subtle);
 }
-.wn-surface:last-child {
-  margin-bottom: 0;
+.wn-surface:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
 }
 .wn-surface-label {
+  display: inline-flex;
+  align-items: center;
   font-size: var(--text-xs);
   font-weight: var(--font-bold);
-  color: var(--text-primary);
+  color: var(--accent-400);
   text-transform: uppercase;
   letter-spacing: var(--tracking-widest);
-  margin-bottom: 8px;
-  padding-bottom: 4px;
-  border-bottom: 0.5px solid var(--border-subtle);
+  margin: 0 0 12px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  background: rgb(var(--accent-rgb), 0.08);
 }
 .wn-category {
   margin-bottom: 14px;
