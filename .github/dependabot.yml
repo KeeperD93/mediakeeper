@@ -63,6 +63,24 @@ updates:
       - dependency-name: "chardet"
         update-types: ["version-update:semver-major"]
 
+  # Docker base images (multi-stage: node:20-alpine + python:3.12-slim)
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Paris"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      docker-patch:
+        update-types: ["patch"]
+      docker-minor:
+        update-types: ["minor"]
+
   # GitHub Actions themselves
   - package-ecosystem: "github-actions"
     directory: "/"
