@@ -177,7 +177,14 @@ def is_private_address(host: str) -> bool:
     (``::ffff:192.168.x.x``) is unwrapped before the check so an
     attacker cannot bypass the IPv4 rule by encoding the same address
     in IPv6.
+
+    Bracketed IPv6 literals (``[::1]``) are accepted: the brackets
+    are stripped before parsing so the helper is safe to call with
+    either form. ``ipaddress.ip_address`` itself rejects the bracketed
+    spelling, which would otherwise produce a false-negative.
     """
+    if host and host.startswith("[") and host.endswith("]"):
+        host = host[1:-1]
     try:
         addr = ipaddress.ip_address(host)
     except ValueError:

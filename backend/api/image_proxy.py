@@ -31,7 +31,7 @@ async def proxy_image(u: str = Query(..., description="Original TMDB image URL."
         raise HTTPException(status_code=400, detail="invalid_image_url")
     try:
         content, content_type = await image_cache.fetch_or_serve(u)
-    except Exception as e:  # noqa: BLE001 -- upstream failures
+    except Exception as e:  # noqa: BLE001 -- upstream + defence-in-depth failures
         logger.warning(f"image_proxy: fetch failed for {u}: {e}")
         raise HTTPException(status_code=502, detail="upstream_unavailable")
     # 7-day immutable cache hint — image bytes are content-addressed

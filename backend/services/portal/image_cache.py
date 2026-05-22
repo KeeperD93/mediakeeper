@@ -94,8 +94,13 @@ def proxied_url(original_url: str) -> str:
     Encodes the original URL so the proxy can fetch from the right
     upstream. Non-TMDB URLs are returned unchanged — this keeps
     avatars and other inline images out of the cache scope.
+
+    Uses the same strict hostname check as the proxy endpoint so the
+    rewrite decision and the validation stay in lockstep: an URL that
+    fails :func:`is_allowed_image_url` is left as-is (and the browser
+    will hit the upstream directly, where CORS/CSP still apply).
     """
-    if not original_url or not original_url.startswith("https://image.tmdb.org/"):
+    if not is_allowed_image_url(original_url):
         return original_url
     encoded = urllib.parse.quote(original_url, safe="")
     return f"{PROXY_PATH}?u={encoded}"

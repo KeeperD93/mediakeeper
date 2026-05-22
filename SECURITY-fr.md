@@ -101,5 +101,5 @@ Quelques choix défensifs déjà documentés dans le code :
 - Les paramètres sensibles stockés en base (clés API, webhooks, tokens OAuth) sont chiffrés au repos avec Fernet.
 - La protection CSRF utilise un pattern double-submit cookie sur toute route mutante.
 - Les tentatives de connexion sont rate-limitées et suivies dans une table dédiée.
-- Un workflow `Security` dédié lance `pip-audit`, `npm audit`, `bandit`, `ruff S` et `semgrep` à chaque push et chaque semaine.
+- Un workflow `Security` dédié lance `pip-audit`, `npm audit`, `bandit`, `ruff S`, `semgrep` et `CodeQL` (Python + JavaScript) à chaque push et chaque semaine.
 - Le trafic HTTP sortant côté serveur (TMDB, OpenSubtitles, webhooks Discord) passe par un transport à DNS épinglé qui résout et valide l'hôte dans le chemin du connect : les adresses privées/loopback/link-local sont refusées, et le connect cible une IP littérale validée pour qu'un DNS rebinding ne puisse pas rediriger la requête entre la validation et l'ouverture TCP. Le hostname d'origine est conservé pour la vérification TLS SNI / certificat.

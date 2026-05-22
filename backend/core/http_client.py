@@ -24,7 +24,8 @@ async def init_clients():
     global _internal_client, _external_client
     # Internal client (NAS, Emby, local tools) — SSL configurable.
     # Stays on the default backend because internal calls MUST be
-    # able to reach private LAN addresses (192.168.x.x, 10.x).
+    # able to reach private LAN addresses (RFC 1918: 10/8, 172.16/12,
+    # 192.168/16 — plus IPv6 link-local fe80::/10 if applicable).
     _internal_client = httpx.AsyncClient(
         verify=VERIFY_SSL,
         timeout=httpx.Timeout(15.0, connect=5.0),

@@ -257,6 +257,9 @@ def test_discord_url_rejects_empty_and_non_string():
         "fd00::1",  # unique-local v6
         "::ffff:192.168.1.1",  # IPv4-mapped — must be unwrapped
         "::ffff:127.0.0.1",
+        "[::1]",  # bracketed IPv6 — brackets must be stripped
+        "[fe80::1]",
+        "[::ffff:192.168.1.1]",
     ],
 )
 def test_private_address_flags_lan_and_loopback(host):
