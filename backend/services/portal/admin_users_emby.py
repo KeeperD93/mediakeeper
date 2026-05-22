@@ -317,8 +317,8 @@ async def create_local_user(
     if not password or len(password) < 8:
         return {"error": "invalid_password"}
 
-    # Case-insensitive uniqueness: prevent two rows like "Xyrel" and
-    # "xyrel" that would later cause silent lookup failures during login.
+    # Case-insensitive uniqueness: prevent two rows like "Alice" and
+    # "alice" that would later cause silent lookup failures during login.
     existing = (await db.execute(
         select(User).where(func.lower(User.username) == cleaned_username.lower())
     )).scalar_one_or_none()

@@ -23,7 +23,7 @@ const BASE_TICKET = {
   created_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
   requester: {
     user_id: 17,
-    display_name: 'Xyrel',
+    display_name: 'Alice',
     avatar_url: 'https://x.test/a.jpg',
     role: 'viewer',
   },
@@ -40,7 +40,7 @@ describe('TicketThread', () => {
     const rows = w.findAll('.tth-row')
     expect(rows).toHaveLength(1)
     expect(rows[0].text()).toContain('Audio désynchronisé')
-    expect(rows[0].text()).toContain('Xyrel')
+    expect(rows[0].text()).toContain('Alice')
   })
 
   it('marks the requester bubble as "mine" when their user_id matches the viewer', () => {

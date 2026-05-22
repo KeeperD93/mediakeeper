@@ -106,7 +106,7 @@ async def test_emby_auth_lookup_is_case_insensitive(db_session):
     """
     # Imported Emby user — sentinel password, canonical mixed case.
     user = User(
-        username="Xyrel",
+        username="Alice",
         hashed_password=hash_password(EXTERNAL_AUTH_PASSWORD_SENTINEL),
         is_active=True,
         must_change_password=False,
@@ -117,7 +117,7 @@ async def test_emby_auth_lookup_is_case_insensitive(db_session):
 
     profile = UserProfile(
         user_id=user.id,
-        display_name="Xyrel",
+        display_name="Alice",
         role="viewer",
         account_active=True,
     )
@@ -145,9 +145,9 @@ async def test_emby_auth_lookup_is_case_insensitive(db_session):
     ):
         from services.portal.emby_auth import authenticate_emby_user
 
-        # Lowercase input must still match the canonical "Xyrel".
-        result = await authenticate_emby_user(db_session, "xyrel", "any-password")
+        # Lowercase input must still match the canonical "Alice".
+        result = await authenticate_emby_user(db_session, "alice", "any-password")
 
     assert result is not None, "Lower-case input should match canonical user"
-    assert result["user"].username == "Xyrel"
+    assert result["user"].username == "Alice"
     assert result["user"].id == user.id
