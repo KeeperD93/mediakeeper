@@ -14,6 +14,7 @@ import logging
 
 from fastapi import APIRouter, HTTPException, Query, Response
 
+from core.url_safety import is_allowed_image_url
 from services.portal import image_cache
 
 logger = logging.getLogger("mediakeeper.api.image_proxy")
@@ -23,10 +24,10 @@ router = APIRouter()
 @router.get("/api/img")
 async def proxy_image(u: str = Query(..., description="Original TMDB image URL.")):
     """Serve the requested image from disk, falling back to TMDB."""
-    # Only TMDB CDN URLs are allowed through — anything else is a
-    # potential SSRF vector or a request for an unrelated asset that
-    # the cache wasn't designed for.
-    if not u.startswith("https://image.tmdb.org/"):
+    # Strict hostname check (urlparse-based) so userinfo bypasses
+    # ``https://image.tmdb.org@evil.com/x`` and trailing-dot subdomain
+    # tricks cannot reach the upstream client.
+    if not is_allowed_image_url(u):
         raise HTTPException(status_code=400, detail="invalid_image_url")
     try:
         content, content_type = await image_cache.fetch_or_serve(u)

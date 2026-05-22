@@ -2,6 +2,7 @@
 import logging
 
 from core.http_client import get_external_client
+from core.url_safety import is_discord_webhook_url
 from core.webhooks import post_signed_with_retry, webhook_log_id
 
 from ._defaults import DEFAULT_COLORS, get_default_templates
@@ -17,7 +18,9 @@ async def send_discord_test(
     test_type: str = "movie",
 ) -> dict:
     """Send a test message with sample data."""
-    if not webhook_url or not webhook_url.startswith("https://discord.com/api/webhooks/"):
+    # Strict hostname check defeats ``https://discord.com@evil.com/...``
+    # userinfo bypasses and trailing-dot subdomain tricks.
+    if not is_discord_webhook_url(webhook_url):
         return {"error": "Invalid Discord webhook URL."}
 
     wh_config = wh_config or {}
@@ -79,7 +82,7 @@ async def send_discord_test(
 
 
 async def send_discord_webhook(webhook_url: str, payload: dict) -> bool:
-    if not webhook_url:
+    if not is_discord_webhook_url(webhook_url):
         return False
     log_id = webhook_log_id(webhook_url)
     try:

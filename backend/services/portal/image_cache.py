@@ -36,6 +36,7 @@ import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.http_client import get_external_client
+from core.url_safety import is_allowed_image_url
 from services.settings import get_setting
 
 logger = logging.getLogger("mediakeeper.portal.image_cache")
@@ -123,7 +124,14 @@ async def fetch_or_serve(original_url: str) -> tuple[bytes, str]:
     a copy. Errors fall back to a one-shot fetch without persistence
     so the user never sees a broken image just because the disk
     write failed.
+
+    Defence in depth: the public endpoint (:mod:`api.image_proxy`)
+    already validates the URL via :func:`is_allowed_image_url`, but
+    re-checking here means any future internal caller cannot bypass
+    the host whitelist by skipping the proxy layer.
     """
+    if not is_allowed_image_url(original_url):
+        raise ValueError("image_cache: URL rejected by safety check")
     _ensure_cache_dir()
     path = _path_for(original_url)
     if path.exists():

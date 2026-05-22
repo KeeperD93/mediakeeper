@@ -10,7 +10,6 @@ Pins:
 """
 from __future__ import annotations
 
-import os
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -180,3 +179,36 @@ async def test_proxy_endpoint_rejects_non_tmdb_urls(client):
     )
     assert resp.status_code == 400
     assert resp.json()["detail"] == "invalid_image_url"
+
+
+@pytest.mark.asyncio
+async def test_proxy_endpoint_rejects_userinfo_bypass(client):
+    """``https://image.tmdb.org@evil.com/x`` parses with hostname ``evil.com``."""
+    bypass = "https%3A%2F%2Fimage.tmdb.org%40evil.com%2Fposter.jpg"
+    resp = await client.get(f"/api/img?u={bypass}")
+    assert resp.status_code == 400
+    assert resp.json()["detail"] == "invalid_image_url"
+
+
+@pytest.mark.asyncio
+async def test_proxy_endpoint_rejects_trailing_dot_subdomain(client):
+    """``image.tmdb.org.evil.com`` must not pass the strict host check."""
+    bypass = "https%3A%2F%2Fimage.tmdb.org.evil.com%2Fposter.jpg"
+    resp = await client.get(f"/api/img?u={bypass}")
+    assert resp.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_proxy_endpoint_rejects_http_scheme(client):
+    """``http://`` is below the bar even for the otherwise-allowed host."""
+    resp = await client.get(
+        "/api/img?u=http%3A%2F%2Fimage.tmdb.org%2Fposter.jpg"
+    )
+    assert resp.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_fetch_or_serve_raises_on_non_tmdb_url():
+    """Defence in depth: the internal helper refuses non-TMDB URLs too."""
+    with pytest.raises(ValueError):
+        await image_cache.fetch_or_serve("https://evil.example.com/x.jpg")

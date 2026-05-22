@@ -32,6 +32,8 @@ from functools import lru_cache
 
 import httpx
 
+from core.url_safety import validate_outbound_url
+
 logger = logging.getLogger("mediakeeper.webhooks")
 
 #: Header name used on every outbound webhook POST.
@@ -80,9 +82,16 @@ def _signing_key() -> bytes:
 
 
 def reset_signing_key_cache() -> None:
-    """Tests only — drop the cached master and derived signing key."""
-    _master_key_bytes.cache_clear()
-    _signing_key.cache_clear()
+    """Tests only — drop the cached master and derived signing key.
+
+    Defensive against tests that monkeypatch ``_master_key_bytes`` with
+    a non-cached callable: the ``cache_clear`` attribute may be absent,
+    and a missing cache to clear is a successful no-op.
+    """
+    for fn in (_master_key_bytes, _signing_key):
+        cache_clear = getattr(fn, "cache_clear", None)
+        if cache_clear is not None:
+            cache_clear()
 
 
 def sign_webhook_payload(body: bytes) -> str:
@@ -157,7 +166,14 @@ async def post_signed_with_retry(
     signed. On HTTP 429 the ``Retry-After`` header is honoured up to
     :data:`RETRY_AFTER_CAP_SECONDS`, then the request is replayed once.
     The caller decides what to do with the final response.
+
+    Outbound URLs are validated up front (:func:`validate_outbound_url`)
+    and the connect is DNS-pinned by the safe transport plumbed into
+    :func:`core.http_client.get_external_client`. Together they refuse
+    private/loopback/link-local targets and close the DNS-rebinding
+    window between validation and connect (SSRF).
     """
+    await validate_outbound_url(url)
     body = _serialize_payload(payload)
     headers = {
         "Content-Type": "application/json",

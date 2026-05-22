@@ -20,6 +20,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Les schémas d'authentification rejettent désormais les clés JSON inconnues (défense en profondeur).
 - Soirées ciné — accepter une invitation ne déclenche plus de faux avertissement de conflit horaire.
 - Planificateur — les noms de tâches sont désormais traduits en français.
+- Proxy d'images et webhooks — durcis contre les bypass SSRF et le DNS rebinding.
 
 ## [1.0.0-rc.3] - 2026-05-22
 
