@@ -1,5 +1,21 @@
+from enum import Enum
+
 from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text, func
 from models.base import Base
+
+
+class TaskStatus(str, Enum):
+    """Canonical values for ``SchedulerTask.last_status``.
+
+    Centralised here so the API, the worker loop and the test harness
+    don't repeat the same string literals. ``str`` mixin keeps
+    SQLAlchemy serialisation transparent — comparisons against plain
+    strings still work.
+    """
+
+    RUNNING = "running"
+    OK = "ok"
+    ERROR = "error"
 
 
 class SchedulerTask(Base):
@@ -11,7 +27,7 @@ class SchedulerTask(Base):
     enabled      = Column(Boolean,      default=True)
     interval_sec = Column(Integer,      nullable=False)
     last_run     = Column(DateTime(timezone=True), nullable=True)
-    last_status  = Column(String(20),   nullable=True)   # ok | error | running
+    last_status  = Column(String(20),   nullable=True)   # values from TaskStatus
     last_error   = Column(Text,         nullable=True)
     run_count    = Column(Integer,      default=0)
     # Inter-process "Run Now" trigger. The API web process stamps this

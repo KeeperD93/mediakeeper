@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models.scheduler_task import SchedulerTask
+from models.scheduler_task import SchedulerTask, TaskStatus
 
 from ._tasks import TASK_DEFINITIONS
 
@@ -49,7 +49,7 @@ async def _load_tasks(db: AsyncSession) -> dict[str, dict]:
 async def _mark_running(db: AsyncSession, key: str) -> None:
     row = (await db.execute(select(SchedulerTask).where(SchedulerTask.key == key))).scalar_one_or_none()
     if row:
-        row.last_status = "running"
+        row.last_status = TaskStatus.RUNNING.value
         row.last_run    = datetime.now(timezone.utc)
         await db.commit()
 
@@ -57,7 +57,7 @@ async def _mark_running(db: AsyncSession, key: str) -> None:
 async def _mark_done(db: AsyncSession, key: str, error: str | None = None) -> None:
     row = (await db.execute(select(SchedulerTask).where(SchedulerTask.key == key))).scalar_one_or_none()
     if row:
-        row.last_status = "error" if error else "ok"
+        row.last_status = TaskStatus.ERROR.value if error else TaskStatus.OK.value
         row.last_error  = error
         row.run_count   = (row.run_count or 0) + 1
         await db.commit()
