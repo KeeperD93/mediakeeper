@@ -16,6 +16,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Connexion — la détection brute-force ignore désormais les variations de casse du nom d'utilisateur.
 - Les schémas d'authentification rejettent désormais les clés JSON inconnues (défense en profondeur).
 - Soirées ciné — accepter une invitation ne déclenche plus de faux avertissement de conflit horaire.
+- Planificateur — les noms de tâches sont désormais traduits en français.
 
 ## [1.0.0-rc.3] - 2026-05-22
 

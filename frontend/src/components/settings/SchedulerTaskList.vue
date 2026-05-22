@@ -14,7 +14,9 @@
         <div class="stl-card-left">
           <span class="stl-dot" :class="schedStatusDot(task)" />
           <div>
-            <div class="stl-card-label">{{ task.label }}</div>
+            <div class="stl-card-label">
+              {{ task.label_key ? $t(task.label_key, task.label) : task.label }}
+            </div>
             <div class="stl-card-desc">{{ $t(task.description, task.description) }}</div>
           </div>
         </div>

@@ -19,6 +19,7 @@ from ._handlers import (
 TASK_DEFINITIONS: dict[str, dict] = {
     "watchlist_scan": {
         "label":       "Scan Watchlist",
+        "label_key":   "scheduler.tasks.watchlist_scan",
         "default_sec": 86400,   # 24h
         "default_on":  True,
         "handler":     _handler_watchlist,
@@ -26,6 +27,7 @@ TASK_DEFINITIONS: dict[str, dict] = {
     },
     "log_cleanup": {
         "label":       "Log cleanup & collection",
+        "label_key":   "scheduler.tasks.log_cleanup",
         "default_sec": 3600,    # 1h
         "default_on":  True,
         "handler":     _handler_log_cleanup,
@@ -33,6 +35,7 @@ TASK_DEFINITIONS: dict[str, dict] = {
     },
     "notifications": {
         "label":       "Send notifications",
+        "label_key":   "scheduler.tasks.notifications",
         "default_sec": 60,      # 1 min
         "default_on":  True,
         "handler":     _handler_notifications,
@@ -40,6 +43,7 @@ TASK_DEFINITIONS: dict[str, dict] = {
     },
     "duplicates_scan": {
         "label":       "Duplicate detection",
+        "label_key":   "scheduler.tasks.duplicates_scan",
         "default_sec": 86400,
         "default_on":  False,
         "handler":     _handler_duplicates,
@@ -47,6 +51,7 @@ TASK_DEFINITIONS: dict[str, dict] = {
     },
     "emby_refresh": {
         "label":       "Refresh Emby library",
+        "label_key":   "scheduler.tasks.emby_refresh",
         "default_sec": 3600,
         "default_on":  False,
         "handler":     _handler_emby_refresh,
@@ -54,6 +59,7 @@ TASK_DEFINITIONS: dict[str, dict] = {
     },
     "backup_auto": {
         "label":       "Automatic backup",
+        "label_key":   "scheduler.tasks.backup_auto",
         "default_sec": 86400,
         "default_on":  False,
         "handler":     _handler_backup,
@@ -61,6 +67,7 @@ TASK_DEFINITIONS: dict[str, dict] = {
     },
     "cleanup_available_requests": {
         "label":       "Auto-cleanup available requests",
+        "label_key":   "scheduler.tasks.cleanup_available_requests",
         "default_sec": 86400,   # 24h
         "default_on":  True,    # Gated by ``requests.auto_cleanup_days``:
                                 # harmless when 0 (early return, no query).
@@ -69,6 +76,7 @@ TASK_DEFINITIONS: dict[str, dict] = {
     },
     "healthcheck_scan": {
         "label":       "Library health scan",
+        "label_key":   "scheduler.tasks.healthcheck_scan",
         "default_sec": 86400,
         "default_on":  False,
         "handler":     _handler_healthcheck,
@@ -76,6 +84,7 @@ TASK_DEFINITIONS: dict[str, dict] = {
     },
     "subtitle_auto": {
         "label":       "Auto-download subtitles",
+        "label_key":   "scheduler.tasks.subtitle_auto",
         "default_sec": 300,     # 5 min
         "default_on":  False,
         "handler":     _handler_subtitle_auto,
@@ -83,6 +92,7 @@ TASK_DEFINITIONS: dict[str, dict] = {
     },
     "expire_users": {
         "label":       "Expire user accounts",
+        "label_key":   "scheduler.tasks.expire_users",
         "default_sec": 900,     # 15 min — short enough to feel automatic
                                 # without flooding Emby with policy PATCHs.
         "default_on":  True,    # Security-critical: ON by default.
@@ -91,6 +101,7 @@ TASK_DEFINITIONS: dict[str, dict] = {
     },
     "gdpr_purge": {
         "label":       "GDPR purge of pending deletions",
+        "label_key":   "scheduler.tasks.gdpr_purge",
         "default_sec": 86400,   # 24h
         "default_on":  True,    # Gated by ``gdpr.enabled``: harmless
                                 # when off (early return, no query).
@@ -99,6 +110,7 @@ TASK_DEFINITIONS: dict[str, dict] = {
     },
     "clear_image_cache": {
         "label":       "Clear image cache",
+        "label_key":   "scheduler.tasks.clear_image_cache",
         "default_sec": 604800,  # 7 days
         "default_on":  False,   # Opt-in: no automatic purge until the
                                 # admin sets a schedule, the disk has
