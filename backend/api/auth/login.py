@@ -78,16 +78,19 @@ async def login(req: LoginRequest, request: Request, response: Response, db: Asy
     """Authenticate and place the admin JWT in an httpOnly cookie."""
     client_ip = get_client_ip(request) or "unknown"
     user_agent = request.headers.get("user-agent")
-    await ensure_not_blocked(db, client_ip, req.username, "admin")
+    # Normalize input for brute-force tracking so casing variants resolve to a
+    # single rate-limit bucket. Raw req.username is kept for failure logs to
+    # preserve the enumeration signal an operator can grep.
+    tracking_username = (req.username or "").strip().lower()
+    await ensure_not_blocked(db, client_ip, tracking_username, "admin")
 
-    normalized = (req.username or "").strip()
     result = await db.execute(
-        select(User).where(func.lower(User.username) == normalized.lower())
+        select(User).where(func.lower(User.username) == tracking_username)
     )
     user   = result.scalar_one_or_none()
 
     if not user or not verify_password(req.password, user.hashed_password):
-        await record_failure(db, client_ip, req.username, "admin", user_agent)
+        await record_failure(db, client_ip, tracking_username, "admin", user_agent)
         logger.warning(f"[LOGIN] Failure for user={req.username!r} from {client_ip}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -101,7 +104,7 @@ async def login(req: LoginRequest, request: Request, response: Response, db: Asy
             detail="account_disabled",
         )
     if not is_backoffice_admin(user.username) or is_external_auth_only_password(user.hashed_password):
-        await record_failure(db, client_ip, req.username, "admin", user_agent)
+        await record_failure(db, client_ip, tracking_username, "admin", user_agent)
         logger.warning(f"[LOGIN] Backoffice refused for user={req.username!r} from {client_ip}")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -111,7 +114,7 @@ async def login(req: LoginRequest, request: Request, response: Response, db: Asy
     token = create_access_token({"sub": user.username, "scope": "admin"})
     _set_jwt_cookie(response, token, request)
     ensure_csrf_cookie(response, request)
-    await record_attempt(db, client_ip, user.username, "admin", success=True, user_agent=user_agent)
+    await record_attempt(db, client_ip, tracking_username, "admin", success=True, user_agent=user_agent)
     await _stamp_admin_login(db, user, client_ip=client_ip, user_agent=user_agent)
     # Once authenticated, identify the actor by numeric id rather than
     # username: a successful login no longer needs the PII handle in
@@ -145,14 +148,18 @@ async def portal_login(
     """
     client_ip = get_client_ip(request) or "unknown"
     user_agent = request.headers.get("user-agent")
+    # Same normalization as /login: lower() for brute-force tracking, raw
+    # input preserved for logs and for downstream Emby auth which keeps
+    # its own casing semantics.
+    tracking_username = (req.username or "").strip().lower()
     # Only gate on the admin scope here. The portal scope is gated later,
     # in the cascade branch, so a brute-force attempt on the portal doesn't
     # collaterally lock the admin login from the same IP.
-    await ensure_not_blocked(db, client_ip, req.username, "admin")
+    await ensure_not_blocked(db, client_ip, tracking_username, "admin")
 
     username = (req.username or "").strip()
     result = await db.execute(
-        select(User).where(func.lower(User.username) == username.lower())
+        select(User).where(func.lower(User.username) == tracking_username)
     )
     user = result.scalar_one_or_none()
 
@@ -178,7 +185,7 @@ async def portal_login(
             _set_jwt_cookie(response, token, request)
             ensure_csrf_cookie(response, request)
             await grant_portal_admin_session(request, response, user, db)
-            await record_attempt(db, client_ip, user.username, "admin", success=True, user_agent=user_agent)
+            await record_attempt(db, client_ip, tracking_username, "admin", success=True, user_agent=user_agent)
             await _stamp_admin_login(db, user, client_ip=client_ip, user_agent=user_agent)
             logger.info(f"[PORTAL_LOGIN] Admin success for user_id={user.id}")
             return {
@@ -201,17 +208,17 @@ async def portal_login(
 
     # Gate the portal scope here — only callers actually falling into
     # the Emby cascade are subject to portal brute-force blocks.
-    await ensure_not_blocked(db, client_ip, req.username, "portal")
+    await ensure_not_blocked(db, client_ip, tracking_username, "portal")
 
     # Shadow-skip the Emby call once the caller already has one recent
     # failure on this IP/username pair. Emby maintains its own lockout
     # counter on the target account — forwarding every failed attempt
     # would trigger it before our own block kicks in.
     recent_portal_fails = await count_recent_failures(
-        db, client_ip, username, "portal",
+        db, client_ip, tracking_username, "portal",
     )
     if recent_portal_fails > EMBY_SHADOW_SKIP_THRESHOLD:
-        await record_failure(db, client_ip, username, "portal", user_agent)
+        await record_failure(db, client_ip, tracking_username, "portal", user_agent)
         logger.warning(
             "[PORTAL_LOGIN] Shadow-skip Emby call for user=%s ip=%s (fails=%s)",
             username, client_ip, recent_portal_fails,
@@ -223,7 +230,7 @@ async def portal_login(
 
     portal_session = await authenticate_emby_user(db, username, req.password)
     if not portal_session:
-        await record_failure(db, client_ip, username, "portal", user_agent)
+        await record_failure(db, client_ip, tracking_username, "portal", user_agent)
         logger.warning(f"[PORTAL_LOGIN] Requests failure for user={username!r} from {client_ip}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -232,7 +239,7 @@ async def portal_login(
 
     _set_portal_jwt_cookie(response, portal_session["token"], request)
     ensure_csrf_cookie(response, request)
-    await record_attempt(db, client_ip, username, "portal", success=True, user_agent=user_agent)
+    await record_attempt(db, client_ip, tracking_username, "portal", success=True, user_agent=user_agent)
 
     portal_user = portal_session["user"]
     portal_profile = portal_session["profile"]
