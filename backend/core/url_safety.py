@@ -27,12 +27,9 @@ from __future__ import annotations
 
 import asyncio
 import ipaddress
-import logging
 import re
 from typing import Iterable, Optional
 from urllib.parse import urlparse
-
-logger = logging.getLogger("mediakeeper.url_safety")
 
 _BLOCKED_SCHEMES = frozenset({"javascript", "data", "vbscript", "file", "about"})
 _DEFAULT_SCHEMES = frozenset({"https"})

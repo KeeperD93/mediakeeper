@@ -24,7 +24,6 @@ default backend so they can still reach the NAS at ``192.168.x.x``.
 """
 from __future__ import annotations
 
-import logging
 import socket
 from typing import Iterable
 
@@ -33,8 +32,6 @@ import httpx
 from httpcore._backends.auto import AutoBackend
 
 from core.url_safety import UnsafeOutboundURL, is_private_address, resolve_host
-
-logger = logging.getLogger("mediakeeper.safe_http")
 
 
 class _SNIPreservingStream(httpcore.AsyncNetworkStream):
