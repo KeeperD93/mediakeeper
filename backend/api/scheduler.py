@@ -40,6 +40,7 @@ async def list_tasks(
         tasks.append({
             "key":          row.key,
             "label":        row.label,
+            "label_key":    defn.get("label_key", ""),
             "description":  defn.get("description", ""),
             "enabled":      row.enabled,
             "interval_sec": row.interval_sec,

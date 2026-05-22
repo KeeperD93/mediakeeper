@@ -177,7 +177,8 @@ export function useParamsScheduler() {
       const res = await apiFetch(`/api/scheduler/tasks/${task.key}/run`, { method: 'POST' })
       const data = await res.json()
       if (data.success) {
-        showToast(t('scheduler.launched', { label: task.label }), TOAST_TYPE.OK)
+        const label = task.label_key ? t(task.label_key, task.label) : task.label
+        showToast(t('scheduler.launched', { label }), TOAST_TYPE.OK)
         setTimeout(() => {
           loadSched()
           startPolling()

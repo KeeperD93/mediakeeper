@@ -170,9 +170,9 @@ describe('useRectLasso', () => {
     const el = makeContainer({ width: 200, height: 100 })
     const container = ref(el)
     let lastRect = null
-    let api
+    let _api
     scope.run(() => {
-      api = useRectLasso({
+      _api = useRectLasso({
         container,
         hitTest: rect => {
           lastRect = rect
