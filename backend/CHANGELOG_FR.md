@@ -11,6 +11,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ### Fixed
 - Connexion — la détection brute-force ignore désormais les variations de casse du nom d'utilisateur.
+- Les schémas d'authentification rejettent désormais les clés JSON inconnues (défense en profondeur).
 
 ## [1.0.0-rc.3] - 2026-05-22
 
