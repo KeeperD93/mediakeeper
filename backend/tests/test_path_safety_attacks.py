@@ -26,6 +26,7 @@ from unittest.mock import patch
 
 import pytest
 
+from api.media._helpers import _is_allowed_browse_path
 from core.app_spa import _resolve_spa_file
 from services import backup as backup_service
 from services.logs import _files
@@ -329,6 +330,29 @@ def test_resolve_spa_file_rejects_empty_path(workspace_tmp_path):
     root = workspace_tmp_path / "frontend-dist"
     root.mkdir()
     assert _resolve_spa_file(root, "") is None
+
+
+def test_resolve_spa_file_rejects_nul_byte(workspace_tmp_path):
+    """``\\x00`` is famously used to truncate filenames in C-level libs;
+    pathlib raises ``ValueError`` on resolve, which the helper must catch."""
+    root = workspace_tmp_path / "frontend-dist"
+    root.mkdir()
+    assert _resolve_spa_file(root, "asset\x00.txt") is None
+
+
+# _is_allowed_browse_path — root containment (api/media/_helpers)
+
+
+def test_is_allowed_browse_path_rejects_nul_byte(monkeypatch):
+    workspace = _make_workspace_tmp("_attack_browse")
+    try:
+        media_root = workspace / "media"
+        media_root.mkdir()
+        monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
+
+        assert _is_allowed_browse_path(Path("movie.mkv\x00.txt")) is False
+    finally:
+        shutil.rmtree(workspace, ignore_errors=True)
 
 
 # get_backup_path — regex filename + containment

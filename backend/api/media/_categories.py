@@ -46,7 +46,7 @@ async def add_category(
     target = Path(path)
     try:
         target = target.resolve()
-    except (OSError, RuntimeError):
+    except (ValueError, OSError, RuntimeError):
         return {"error": "invalid_path"}
     if not target.exists() or not target.is_dir():
         return {"error": "path_must_be_existing_directory"}

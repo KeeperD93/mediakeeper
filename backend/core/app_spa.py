@@ -13,8 +13,11 @@ def _resolve_spa_file(frontend_dir: Path, full_path: str) -> Path | None:
     """Return a file inside frontend_dir, or None for fallback/index."""
     if not full_path:
         return None
-    root = frontend_dir.resolve()
-    candidate = (root / full_path).resolve()
+    try:
+        root = frontend_dir.resolve()
+        candidate = (root / full_path).resolve()
+    except (ValueError, OSError, RuntimeError):
+        return None
     try:
         candidate.relative_to(root)
     except ValueError:
