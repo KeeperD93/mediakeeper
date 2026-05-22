@@ -159,6 +159,28 @@ async def test_resolve_local_path_returns_existing_path_inside_roots(monkeypatch
 
 
 @pytest.mark.asyncio
+async def test_resolve_local_path_handles_nul_byte_without_crashing(monkeypatch):
+    """When Emby reports a path containing ``\\x00``, pathlib raises
+    ``ValueError`` on POSIX (Windows silently strips). The resolver must
+    treat it as a refusal and return ``""``, not bubble the exception
+    up to FastAPI as a 500.
+    """
+    from services.opensubtitles.paths import _resolve_local_path
+
+    root = _make_workspace_tmp()
+    try:
+        media_root = root / "media"
+        media_root.mkdir()
+        monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
+
+        resolved = await _resolve_local_path(None, "/emby/Films/movie\x00.mkv")
+
+        assert resolved == ""
+    finally:
+        shutil.rmtree(root, ignore_errors=True)
+
+
+@pytest.mark.asyncio
 async def test_resolve_local_path_refuses_existing_file_outside_roots(monkeypatch):
     """Defence in depth: when Emby reports a path that exists at the same
     absolute location inside the container but sits outside the configured

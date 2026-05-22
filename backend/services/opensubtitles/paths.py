@@ -65,10 +65,13 @@ async def _resolve_local_path(db: AsyncSession | None, emby_path: str) -> str:
     if not raw_path:
         return ""
 
+    resolved_input: Path | None
     try:
         resolved_input = Path(raw_path).expanduser().resolve(strict=False)
     except (ValueError, OSError, RuntimeError):
-        resolved_input = Path(raw_path)
+        # ``Path(raw_path)`` keeps the NUL byte; ``.exists()`` below would
+        # re-raise on POSIX, so we skip the fast-path entirely.
+        resolved_input = None
 
     roots = await _get_local_path_roots(db)
 
@@ -82,7 +85,8 @@ async def _resolve_local_path(db: AsyncSession | None, emby_path: str) -> str:
     # readable files (``/etc/passwd``, ``/proc/*``, secrets in
     # ``/data``) to downstream consumers.
     if (
-        resolved_input.exists()
+        resolved_input is not None
+        and resolved_input.exists()
         and not is_path_within_backup_dir(resolved_input)
         and _within_roots(resolved_input)
     ):

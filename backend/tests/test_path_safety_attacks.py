@@ -9,6 +9,7 @@ it cannot trace validation through helper functions. The audit
 * :func:`services.logs._files._safe_log_path`
 * :func:`services.portal.avatars._safe_filename` / :func:`avatar_path_for`
 * :func:`core.app_spa._resolve_spa_file`
+* :func:`api.media._helpers._is_allowed_browse_path`
 * :func:`services.backup.get_backup_path`
 
 This module is the explicit evidence that those validators reject the
