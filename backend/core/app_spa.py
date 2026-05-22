@@ -13,9 +13,19 @@ def _resolve_spa_file(frontend_dir: Path, full_path: str) -> Path | None:
     """Return a file inside frontend_dir, or None for fallback/index."""
     if not full_path:
         return None
+    # Upfront rejection: refuse anything that cannot be a relative asset
+    # path inside frontend_dir. CodeQL flags Path.resolve() on tainted
+    # input as ``py/path-injection`` because it cannot trace the
+    # post-resolve ``relative_to(root)`` containment guard below; this
+    # explicit filter also closes the static analysis alert.
+    rel = Path(full_path.replace("\\", "/"))
+    if rel.is_absolute():
+        return None
+    if any(part in {"", ".", ".."} for part in rel.parts):
+        return None
     try:
         root = frontend_dir.resolve()
-        candidate = (root / full_path).resolve()
+        candidate = (root / rel).resolve()
     except (ValueError, OSError, RuntimeError):
         return None
     try:

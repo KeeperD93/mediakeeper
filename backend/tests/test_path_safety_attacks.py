@@ -316,6 +316,8 @@ def test_avatar_path_for_keeps_target_inside_avatar_dir(workspace_tmp_path):
         "../outside.txt",
         "../../etc/passwd",
         "subdir/../../etc/passwd",
+        "/etc/passwd",
+        "/absolute/asset.txt",
     ],
 )
 def test_resolve_spa_file_rejects_traversal(attack, workspace_tmp_path):
