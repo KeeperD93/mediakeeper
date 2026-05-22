@@ -5,7 +5,7 @@ from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models.portal.event import MKEvent, MKEventInvitation
+from models.portal.event import InvitationStatus, MKEvent, MKEventInvitation
 from services.portal import notifications as notifs
 from services.portal.mk_events_utils import (
     MAX_INVITE_RETRIES,
@@ -62,7 +62,7 @@ async def invite_user(
                 inv = MKEventInvitation(
                     event_id=event_id,
                     user_id=invitee_user_id,
-                    status="pending",
+                    status=InvitationStatus.PENDING.value,
                     invite_count=1,
                 )
                 db.add(inv)
@@ -77,10 +77,10 @@ async def invite_user(
                 # Should not happen — the unique constraint just fired.
                 await db.rollback()
                 return {"error": "conflict"}
-            if existing.status == "accepted":
+            if existing.status == InvitationStatus.ACCEPTED.value:
                 await db.rollback()
                 return {"error": "already_accepted"}
-            if existing.status == "removed":
+            if existing.status == InvitationStatus.REMOVED.value:
                 await db.rollback()
                 return {"error": "removed_user"}
             # Concurrent peer already inserted + notified the invitee.
@@ -101,9 +101,9 @@ async def invite_user(
         return {"ok": True}
 
     # Re-invitation path — existing row.
-    if inv.status == "accepted":
+    if inv.status == InvitationStatus.ACCEPTED.value:
         return {"error": "already_accepted"}
-    if inv.status == "removed":
+    if inv.status == InvitationStatus.REMOVED.value:
         return {"error": "removed_user"}
     if inv.invite_count >= MAX_INVITE_RETRIES:
         return {"error": "max_retries_reached"}
@@ -119,10 +119,12 @@ async def invite_user(
         .where(
             MKEventInvitation.id == inv.id,
             MKEventInvitation.invite_count < MAX_INVITE_RETRIES,
-            MKEventInvitation.status.notin_(("accepted", "removed")),
+            MKEventInvitation.status.notin_(
+                (InvitationStatus.ACCEPTED.value, InvitationStatus.REMOVED.value)
+            ),
         )
         .values(
-            status="pending",
+            status=InvitationStatus.PENDING.value,
             invite_count=MKEventInvitation.invite_count + 1,
             responded_at=None,
         )
@@ -132,9 +134,9 @@ async def invite_user(
         await db.rollback()
         fresh = await _load_invitation(db, event_id, invitee_user_id)
         if fresh is not None:
-            if fresh.status == "accepted":
+            if fresh.status == InvitationStatus.ACCEPTED.value:
                 return {"error": "already_accepted"}
-            if fresh.status == "removed":
+            if fresh.status == InvitationStatus.REMOVED.value:
                 return {"error": "removed_user"}
         return {"error": "max_retries_reached"}
 
@@ -187,7 +189,7 @@ async def respond(
                 inv = MKEventInvitation(
                     event_id=event_id,
                     user_id=user_id,
-                    status="pending",
+                    status=InvitationStatus.PENDING.value,
                     invite_count=1,
                 )
                 db.add(inv)
@@ -204,10 +206,13 @@ async def respond(
             # Fall through with the winning row — apply the user's
             # decision on top of it (typically pending → accepted).
 
-    if inv.status == "removed":
+    if inv.status == InvitationStatus.REMOVED.value:
         return {"error": "removed_user"}
 
-    inv.status = "accepted" if decision == "accept" else "declined"
+    inv.status = (
+        InvitationStatus.ACCEPTED.value if decision == "accept"
+        else InvitationStatus.DECLINED.value
+    )
     inv.responded_at = datetime.now(timezone.utc)
     if decision == "decline":
         # Free the seat (if any) and compact the layout so the remaining
@@ -265,7 +270,7 @@ async def remove_member(
     if not inv:
         return {"error": "not_invited"}
 
-    inv.status = "removed"
+    inv.status = InvitationStatus.REMOVED.value
     # Same housekeeping as a self-decline: release the seat + clear
     # presence so the centred layout stays contiguous after the
     # creator boots a member.

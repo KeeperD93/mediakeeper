@@ -1,3 +1,5 @@
+from enum import Enum
+
 from sqlalchemy import (
     Column, Integer, BigInteger, String, Text, Boolean, DateTime, ForeignKey, JSON,
     UniqueConstraint,
@@ -11,6 +13,35 @@ from models.base import Base
 # MK* tables back the full event system: private / public events,
 # multi-film marathons, invitations with retry limits, virtual
 # cinema room, and the universal notification bell.
+
+
+class InvitationStatus(str, Enum):
+    """Canonical values for ``MKEventInvitation.status``.
+
+    Centralised here so the service layer, the query helpers and the
+    test harness never repeat the same string literal. The ``str``
+    mixin keeps SQLAlchemy serialisation transparent — comparisons
+    against plain strings still work.
+    """
+
+    PENDING = "pending"
+    ACCEPTED = "accepted"
+    DECLINED = "declined"
+    REMOVED = "removed"
+
+
+class EventStatus(str, Enum):
+    """Canonical values for ``MKEvent.status``.
+
+    ``scheduled`` is the live state, ``cancelled`` is the creator's
+    explicit kill, ``done`` is reserved for the future end-of-room
+    cleanup job. Same ``str`` mixin contract as ``InvitationStatus``.
+    """
+
+    SCHEDULED = "scheduled"
+    CANCELLED = "cancelled"
+    DONE = "done"
+
 
 class MKEvent(Base):
     __tablename__ = "mk_events"

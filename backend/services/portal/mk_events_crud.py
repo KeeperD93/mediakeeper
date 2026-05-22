@@ -4,7 +4,12 @@ from sqlalchemy import select, and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.user import User
-from models.portal.event import MKEvent, MKEventInvitation
+from models.portal.event import (
+    EventStatus,
+    InvitationStatus,
+    MKEvent,
+    MKEventInvitation,
+)
 from services.portal import notifications as notifs
 from services.portal.admin import (
     PORTAL_EVENT_CAPACITY_STEP,
@@ -66,7 +71,7 @@ async def create_event(
         tmdb_ids=tmdb_ids,
         scheduled_at=scheduled_at,
         comment=(comment or "").strip() or None,
-        status="scheduled",
+        status=EventStatus.SCHEDULED.value,
         max_participants=max_participants,
     )
     db.add(event)
@@ -76,7 +81,7 @@ async def create_event(
     creator_inv = MKEventInvitation(
         event_id=event.id,
         user_id=creator_user_id,
-        status="accepted",
+        status=InvitationStatus.ACCEPTED.value,
         invite_count=1,
         responded_at=datetime.now(timezone.utc),
     )
@@ -97,7 +102,7 @@ async def create_event(
             db.add(MKEventInvitation(
                 event_id=event.id,
                 user_id=uid,
-                status="pending",
+                status=InvitationStatus.PENDING.value,
                 invite_count=1,
             ))
             await notifs.create(db, uid, "event_invitation", payload_base)
@@ -134,7 +139,7 @@ async def update_event(
         return {"error": "not_found"}
     if event.creator_user_id != creator_user_id:
         return {"error": "forbidden"}
-    if event.status != "scheduled":
+    if event.status != EventStatus.SCHEDULED.value:
         return {"error": "not_editable"}
 
     if title is not None:
@@ -154,7 +159,7 @@ async def update_event(
     accepted = (await db.execute(
         select(MKEventInvitation.user_id).where(
             MKEventInvitation.event_id == event_id,
-            MKEventInvitation.status == "accepted",
+            MKEventInvitation.status == InvitationStatus.ACCEPTED.value,
             MKEventInvitation.user_id != creator_user_id,
         )
     )).scalars().all()
@@ -182,16 +187,16 @@ async def cancel_event(
         return {"error": "not_found"}
     if event.creator_user_id != creator_user_id:
         return {"error": "forbidden"}
-    if event.status != "scheduled":
+    if event.status != EventStatus.SCHEDULED.value:
         return {"error": "not_cancellable"}
 
-    event.status = "cancelled"
+    event.status = EventStatus.CANCELLED.value
     db.add(event)
 
     accepted = (await db.execute(
         select(MKEventInvitation.user_id).where(
             MKEventInvitation.event_id == event_id,
-            MKEventInvitation.status == "accepted",
+            MKEventInvitation.status == InvitationStatus.ACCEPTED.value,
             MKEventInvitation.user_id != creator_user_id,
         )
     )).scalars().all()
@@ -218,7 +223,7 @@ async def list_for_user(db: AsyncSession, user_id: int) -> list[dict]:
         or_(
             MKEvent.id.in_(list(invited_ids) or [-1]),
             and_(MKEvent.kind == "public", MKEvent.scheduled_at >= now,
-                 MKEvent.status == "scheduled"),
+                 MKEvent.status == EventStatus.SCHEDULED.value),
         )
     ).order_by(MKEvent.scheduled_at.asc())
     rows = (await db.execute(q)).scalars().all()
@@ -233,7 +238,7 @@ async def list_upcoming_admin(db: AsyncSession, limit: int = 5) -> list[dict]:
     now = datetime.now(timezone.utc)
     q = (
         select(MKEvent)
-        .where(MKEvent.status == "scheduled", MKEvent.scheduled_at >= now)
+        .where(MKEvent.status == EventStatus.SCHEDULED.value, MKEvent.scheduled_at >= now)
         .order_by(MKEvent.scheduled_at.asc())
         .limit(limit)
     )
@@ -252,7 +257,7 @@ async def get_one(db: AsyncSession, event_id: int, user_id: int | None = None) -
             select(MKEventInvitation).where(
                 MKEventInvitation.event_id == event_id,
                 MKEventInvitation.user_id == user_id,
-                MKEventInvitation.status != "removed",
+                MKEventInvitation.status != InvitationStatus.REMOVED.value,
             )
         )).scalar_one_or_none()
         if not inv:

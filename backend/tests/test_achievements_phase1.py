@@ -15,7 +15,7 @@ import pytest
 from core.security import hash_password
 from models.portal.achievement import Achievement, UserAchievement
 from models.portal.chat import ChatMessage, ChatRoom
-from models.portal.event import MKEvent
+from models.portal.event import EventStatus, MKEvent
 from models.portal.profile import UserProfile
 from models.portal.request import MediaRequest
 from models.portal.social import (
@@ -230,7 +230,7 @@ async def test_event_created_unlocks_organizer_bronze(db_session):
         kind="public",
         tmdb_ids=[{"tmdb_id": 1, "media_type": "movie", "title": "Solo"}],
         scheduled_at=datetime(2026, 6, 1, 20, 0, tzinfo=timezone.utc),
-        status="scheduled",
+        status=EventStatus.SCHEDULED.value,
     ))
     await db_session.commit()
 

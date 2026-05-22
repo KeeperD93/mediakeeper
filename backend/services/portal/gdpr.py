@@ -237,7 +237,7 @@ async def _cancel_scheduled_mk_events(db: AsyncSession, user_id: int) -> None:
     # transitively imports ``services.portal.notifications`` which can
     # touch this module during startup wiring.
     try:
-        from models.portal.event import MKEvent
+        from models.portal.event import EventStatus, MKEvent
         from services.portal import mk_events_crud
     except Exception as exc:  # noqa: BLE001
         logger.warning(
@@ -250,7 +250,7 @@ async def _cancel_scheduled_mk_events(db: AsyncSession, user_id: int) -> None:
         scheduled = (await db.execute(
             select(MKEvent.id).where(
                 MKEvent.creator_user_id == user_id,
-                MKEvent.status == "scheduled",
+                MKEvent.status == EventStatus.SCHEDULED.value,
             )
         )).scalars().all()
     except Exception as exc:  # noqa: BLE001
