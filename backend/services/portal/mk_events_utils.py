@@ -6,7 +6,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.user import User
-from models.portal.event import MKEvent, MKEventInvitation
+from models.portal.event import EventStatus, InvitationStatus, MKEvent, MKEventInvitation
 from models.portal.profile import UserProfile
 from services.portal.avatars import avatar_public_url
 
@@ -67,7 +67,7 @@ def is_event_terminated(event: MKEvent, now: datetime | None = None) -> bool:
     - ``now > scheduled_at + ROOM_CLOSE_AFTER_HOURS`` — soft cutoff so
       stale events drop out of the live UI without manual housekeeping.
     """
-    if event.status in ("cancelled", "done"):
+    if event.status in (EventStatus.CANCELLED.value, EventStatus.DONE.value):
         return True
     if not event.scheduled_at:
         return False
@@ -151,7 +151,7 @@ async def _serialize_event(db: AsyncSession, event: MKEvent) -> dict:
 
     creator_label = await _user_label(db, event.creator_user_id)
 
-    accepted_count = sum(1 for i in invitations if i["status"] == "accepted")
+    accepted_count = sum(1 for i in invitations if i["status"] == InvitationStatus.ACCEPTED.value)
     max_p = int(event.max_participants or 0)
     return {
         "id": event.id,
@@ -195,7 +195,7 @@ async def _count_seated(db: AsyncSession, event_id: int) -> int:
     return int((await db.execute(
         select(func.count(MKEventInvitation.id)).where(
             MKEventInvitation.event_id == event_id,
-            MKEventInvitation.status == "accepted",
+            MKEventInvitation.status == InvitationStatus.ACCEPTED.value,
             MKEventInvitation.seat_index.isnot(None),
         )
     )).scalar() or 0)
@@ -213,7 +213,7 @@ async def _compact_seats(db: AsyncSession, event_id: int) -> None:
     rows = (await db.execute(
         select(MKEventInvitation).where(
             MKEventInvitation.event_id == event_id,
-            MKEventInvitation.status == "accepted",
+            MKEventInvitation.status == InvitationStatus.ACCEPTED.value,
             MKEventInvitation.seat_index.isnot(None),
         ).order_by(MKEventInvitation.responded_at, MKEventInvitation.id)
     )).scalars().all()
@@ -250,8 +250,8 @@ async def _has_conflict(
         .join(MKEventInvitation, MKEventInvitation.event_id == MKEvent.id)
         .where(
             MKEventInvitation.user_id == user_id,
-            MKEventInvitation.status == "accepted",
-            MKEvent.status == "scheduled",
+            MKEventInvitation.status == InvitationStatus.ACCEPTED.value,
+            MKEvent.status == EventStatus.SCHEDULED.value,
             MKEvent.scheduled_at >= window_start,
             MKEvent.scheduled_at <= window_end,
         )

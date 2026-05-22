@@ -3,7 +3,12 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.user import User
-from models.portal.event import MKEvent, MKEventInvitation, MKEventMessage
+from models.portal.event import (
+    InvitationStatus,
+    MKEvent,
+    MKEventInvitation,
+    MKEventMessage,
+)
 from models.portal.profile import UserProfile
 from services.portal._display_name import resolve_display_name
 
@@ -27,7 +32,7 @@ async def list_messages(
             select(MKEventInvitation).where(
                 MKEventInvitation.event_id == event_id,
                 MKEventInvitation.user_id == user_id,
-                MKEventInvitation.status == "accepted",
+                MKEventInvitation.status == InvitationStatus.ACCEPTED.value,
             )
         )).scalar_one_or_none()
         if not inv:
@@ -82,7 +87,7 @@ async def post_message(
         select(MKEventInvitation).where(
             MKEventInvitation.event_id == event_id,
             MKEventInvitation.user_id == user_id,
-            MKEventInvitation.status == "accepted",
+            MKEventInvitation.status == InvitationStatus.ACCEPTED.value,
         )
     )).scalar_one_or_none()
     if not inv:

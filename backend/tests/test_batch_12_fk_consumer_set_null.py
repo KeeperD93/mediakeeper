@@ -34,7 +34,7 @@ from sqlalchemy import select
 
 from models.portal.chat import ChatMessage, ChatReport, ChatRoom
 from models.portal.event import (
-    MKEvent, MKEventInvitation, MKEventMessage, MKNotification,
+    EventStatus, MKEvent, MKEventMessage, MKNotification,
     WatchParty,
 )
 from models.portal.news import News
@@ -111,7 +111,7 @@ async def test_mk_event_messages_user_id_set_null_on_user_delete(db_session):
         kind="private",
         tmdb_ids=[{"tmdb_id": 1, "media_type": "movie", "title": "T"}],
         scheduled_at=datetime.now(timezone.utc) - timedelta(hours=1),
-        status="done",
+        status=EventStatus.DONE.value,
     )
     db_session.add(event)
     await db_session.commit()
@@ -276,7 +276,7 @@ async def test_mk_events_creator_user_id_set_null_on_user_delete(db_session):
         kind="private",
         tmdb_ids=[{"tmdb_id": 7, "media_type": "movie", "title": "Old"}],
         scheduled_at=datetime.now(timezone.utc) - timedelta(days=2),
-        status="done",
+        status=EventStatus.DONE.value,
     )
     db_session.add(event)
     await db_session.commit()
@@ -313,7 +313,7 @@ async def test_purge_auto_cancels_scheduled_mk_events_of_purged_user(db_session)
         kind="private",
         tmdb_ids=[{"tmdb_id": 9, "media_type": "movie", "title": "F"}],
         scheduled_at=datetime.now(timezone.utc) + timedelta(days=2),
-        status="scheduled",
+        status=EventStatus.SCHEDULED.value,
     )
     db_session.add(event)
     await db_session.commit()
@@ -327,7 +327,7 @@ async def test_purge_auto_cancels_scheduled_mk_events_of_purged_user(db_session)
     assert survivor is not None
     # The auto-cancel ran before the user delete, so the row carries
     # ``cancelled`` *and* the FK has been cleared by SET NULL.
-    assert survivor.status == "cancelled"
+    assert survivor.status == EventStatus.CANCELLED.value
     assert survivor.creator_user_id is None
     # The owning ``users`` row is gone for good.
     assert (await db_session.execute(
@@ -352,7 +352,7 @@ async def test_purge_does_not_touch_done_or_cancelled_mk_events(db_session):
         kind="private",
         tmdb_ids=[{"tmdb_id": 1, "media_type": "movie", "title": "D"}],
         scheduled_at=datetime.now(timezone.utc) - timedelta(days=1),
-        status="done",
+        status=EventStatus.DONE.value,
     )
     cancelled = MKEvent(
         creator_user_id=creator.id,
@@ -360,7 +360,7 @@ async def test_purge_does_not_touch_done_or_cancelled_mk_events(db_session):
         kind="private",
         tmdb_ids=[{"tmdb_id": 2, "media_type": "movie", "title": "C"}],
         scheduled_at=datetime.now(timezone.utc) - timedelta(days=1),
-        status="cancelled",
+        status=EventStatus.CANCELLED.value,
     )
     db_session.add_all([done, cancelled])
     await db_session.commit()
@@ -372,9 +372,9 @@ async def test_purge_does_not_touch_done_or_cancelled_mk_events(db_session):
 
     survivor_done = await _expire_and_get(db_session, MKEvent, done_id)
     survivor_cancelled = await _expire_and_get(db_session, MKEvent, cancelled_id)
-    assert survivor_done.status == "done"
+    assert survivor_done.status == EventStatus.DONE.value
     assert survivor_done.creator_user_id is None
-    assert survivor_cancelled.status == "cancelled"
+    assert survivor_cancelled.status == EventStatus.CANCELLED.value
     assert survivor_cancelled.creator_user_id is None
 
 

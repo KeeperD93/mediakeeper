@@ -22,7 +22,12 @@ from datetime import datetime, timedelta, timezone
 import pytest
 
 from core.security import hash_password
-from models.portal.event import MKEvent, MKEventInvitation
+from models.portal.event import (
+    EventStatus,
+    InvitationStatus,
+    MKEvent,
+    MKEventInvitation,
+)
 from models.portal.profile import UserProfile
 from models.user import User
 from services.portal.mk_events_members import invite_user, respond
@@ -65,7 +70,7 @@ async def _make_event(
         kind="private",
         tmdb_ids=[{"tmdb_id": 1, "media_type": "movie", "title": title}],
         scheduled_at=scheduled_at,
-        status="scheduled",
+        status=EventStatus.SCHEDULED.value,
         max_participants=MAX_PARTICIPANTS,
     )
     db.add(event)
@@ -111,7 +116,7 @@ async def test_accepting_second_overlapping_event_does_collide(db_session):
         MKEventInvitation(
             event_id=first.id,
             user_id=invitee.id,
-            status="accepted",
+            status=InvitationStatus.ACCEPTED.value,
             invite_count=1,
         )
     )

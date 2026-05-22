@@ -3,7 +3,7 @@ from datetime import datetime, timezone, timedelta
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models.portal.event import MKEvent, MKEventInvitation
+from models.portal.event import InvitationStatus, MKEvent, MKEventInvitation
 from services.portal.mk_events_utils import (
     MAX_PARTICIPANTS,
     ROOM_OPEN_BEFORE_MIN,
@@ -61,7 +61,7 @@ async def enter_room(
         .where(
             MKEventInvitation.event_id == event_id,
             MKEventInvitation.user_id == user_id,
-            MKEventInvitation.status == "accepted",
+            MKEventInvitation.status == InvitationStatus.ACCEPTED.value,
         )
         .with_for_update()
     )).scalar_one_or_none()

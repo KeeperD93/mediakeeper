@@ -29,7 +29,12 @@ import pytest
 from sqlalchemy import select
 
 from core.security import hash_password
-from models.portal.event import MKEvent, MKEventInvitation
+from models.portal.event import (
+    EventStatus,
+    InvitationStatus,
+    MKEvent,
+    MKEventInvitation,
+)
 from models.portal.profile import UserProfile
 from models.user import User
 from services.portal import mk_events_members as members_mod
@@ -106,7 +111,7 @@ async def _make_event(
         kind=kind,
         tmdb_ids=[{"tmdb_id": 1, "media_type": "movie", "title": "Solo"}],
         scheduled_at=scheduled_at,
-        status="scheduled",
+        status=EventStatus.SCHEDULED.value,
         max_participants=MAX_PARTICIPANTS,
     )
     db.add(event)
@@ -120,7 +125,7 @@ async def _accept_member(db, event_id: int, user_id: int) -> MKEventInvitation:
     inv = MKEventInvitation(
         event_id=event_id,
         user_id=user_id,
-        status="accepted",
+        status=InvitationStatus.ACCEPTED.value,
         invite_count=1,
     )
     db.add(inv)
@@ -229,7 +234,7 @@ async def test_enter_room_assigns_next_sequential_seat(
         db_session.add(MKEventInvitation(
             event_id=event.id,
             user_id=peer.id,
-            status="accepted",
+            status=InvitationStatus.ACCEPTED.value,
             invite_count=1,
             seat_index=idx,
             responded_at=datetime.now(timezone.utc),
@@ -260,7 +265,7 @@ async def test_enter_room_full_releases_transaction(
         db_session.add(MKEventInvitation(
             event_id=event.id,
             user_id=peer.id,
-            status="accepted",
+            status=InvitationStatus.ACCEPTED.value,
             invite_count=1,
             seat_index=idx,
         ))
@@ -375,7 +380,7 @@ async def test_respond_public_savepoint_swallows_concurrent_insert(
     db_session.add(MKEventInvitation(
         event_id=event_id,
         user_id=user_id,
-        status="pending",
+        status=InvitationStatus.PENDING.value,
         invite_count=1,
     ))
     await db_session.commit()
@@ -401,7 +406,7 @@ async def test_respond_public_savepoint_swallows_concurrent_insert(
         )
     )).scalars().all()
     assert len(rows) == 1, "uq_mk_event_invitation must keep exactly one row"
-    assert rows[0].status == "accepted"
+    assert rows[0].status == InvitationStatus.ACCEPTED.value
 
     # Sentinel write proves the outer session survived the savepoint dance.
     sentinel = await _make_user(db_session, username="respond-race-sentinel")
@@ -441,7 +446,7 @@ async def test_invite_user_savepoint_swallows_concurrent_insert(
     db_session.add(MKEventInvitation(
         event_id=event.id,
         user_id=invitee.id,
-        status="pending",
+        status=InvitationStatus.PENDING.value,
         invite_count=1,
     ))
     await db_session.commit()
@@ -511,7 +516,7 @@ async def test_invite_user_reinvite_uses_atomic_increment(
     inv = MKEventInvitation(
         event_id=event.id,
         user_id=invitee.id,
-        status="pending",
+        status=InvitationStatus.PENDING.value,
         invite_count=2,
     )
     db_session.add(inv)
@@ -527,7 +532,7 @@ async def test_invite_user_reinvite_uses_atomic_increment(
             id=inv_id,
             event_id=eid,
             user_id=uid,
-            status="pending",
+            status=InvitationStatus.PENDING.value,
             invite_count=1,
         )
 
@@ -595,7 +600,7 @@ async def test_enter_room_rejects_event_past_close_cutoff(
         kind="private",
         tmdb_ids=[{"tmdb_id": 1, "media_type": "movie", "title": "Old"}],
         scheduled_at=scheduled_at,
-        status="scheduled",
+        status=EventStatus.SCHEDULED.value,
     )
     db_session.add(event)
     await db_session.commit()
@@ -623,7 +628,7 @@ async def test_respond_accept_rejects_event_past_close_cutoff(db_session):
         kind="private",
         tmdb_ids=[{"tmdb_id": 1, "media_type": "movie", "title": "Old"}],
         scheduled_at=scheduled_at,
-        status="scheduled",
+        status=EventStatus.SCHEDULED.value,
     )
     db_session.add(event)
     await db_session.commit()
@@ -632,7 +637,7 @@ async def test_respond_accept_rejects_event_past_close_cutoff(db_session):
     pending = MKEventInvitation(
         event_id=event.id,
         user_id=member.id,
-        status="pending",
+        status=InvitationStatus.PENDING.value,
         invite_count=1,
     )
     db_session.add(pending)

@@ -22,7 +22,12 @@ from sqlalchemy import select
 from core.security import hash_password
 from models.playback_stats import PlaybackSession
 from models.portal.emby_tmdb_index import EmbyTmdbIndex
-from models.portal.event import MKEvent, MKEventInvitation
+from models.portal.event import (
+    EventStatus,
+    InvitationStatus,
+    MKEvent,
+    MKEventInvitation,
+)
 from models.portal.profile import UserProfile
 from models.user import User
 from services.portal.mk_events_marathon import (
@@ -70,7 +75,7 @@ async def _make_event(
         kind="private",
         tmdb_ids=tmdb_items,
         scheduled_at=datetime.now(timezone.utc) + timedelta(minutes=5),
-        status="scheduled",
+        status=EventStatus.SCHEDULED.value,
         current_step=current_step,
         max_participants=20,
     )
@@ -86,7 +91,7 @@ async def _accept_and_seat(
     inv = MKEventInvitation(
         event_id=event.id,
         user_id=user.id,
-        status="accepted",
+        status=InvitationStatus.ACCEPTED.value,
         invite_count=1,
         seat_index=seat,
     )

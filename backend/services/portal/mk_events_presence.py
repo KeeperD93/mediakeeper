@@ -20,7 +20,7 @@ from datetime import datetime, timezone
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models.portal.event import MKEvent, MKEventInvitation
+from models.portal.event import InvitationStatus, MKEvent, MKEventInvitation
 from services.portal.mk_events_utils import is_event_terminated
 
 
@@ -55,7 +55,7 @@ async def _locked_membership(
         .where(
             MKEventInvitation.event_id == event_id,
             MKEventInvitation.user_id == user_id,
-            MKEventInvitation.status == "accepted",
+            MKEventInvitation.status == InvitationStatus.ACCEPTED.value,
         )
         .with_for_update()
     )).scalar_one_or_none()
@@ -117,7 +117,7 @@ async def advance_self_step(
     max_step = (await db.execute(
         select(func.max(MKEventInvitation.user_step)).where(
             MKEventInvitation.event_id == event_id,
-            MKEventInvitation.status == "accepted",
+            MKEventInvitation.status == InvitationStatus.ACCEPTED.value,
             MKEventInvitation.seat_index.isnot(None),
         )
     )).scalar() or 0

@@ -19,7 +19,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.emby_tmdb_index import EmbyTmdbIndex
-from models.portal.event import MKEvent, MKEventInvitation
+from models.portal.event import InvitationStatus, MKEvent, MKEventInvitation
 from models.portal.profile import UserProfile
 from models.playback_stats import PlaybackSession
 from models.user import User
@@ -61,7 +61,7 @@ async def _participation_gate(
         select(MKEventInvitation).where(
             MKEventInvitation.event_id == event.id,
             MKEventInvitation.user_id == viewer_user_id,
-            MKEventInvitation.status == "accepted",
+            MKEventInvitation.status == InvitationStatus.ACCEPTED.value,
         )
     )).scalar_one_or_none()
     if not inv:
@@ -120,7 +120,7 @@ async def _gather_participant_progress(
         .join(UserProfile, UserProfile.user_id == User.id, isouter=True)
         .where(
             MKEventInvitation.event_id == event_id,
-            MKEventInvitation.status == "accepted",
+            MKEventInvitation.status == InvitationStatus.ACCEPTED.value,
             MKEventInvitation.seat_index.isnot(None),
         )
     )).all()
@@ -233,7 +233,7 @@ async def compute_marathon_progress(
             MKEventInvitation.last_seen_at,
         ).where(
             MKEventInvitation.event_id == event_id,
-            MKEventInvitation.status == "accepted",
+            MKEventInvitation.status == InvitationStatus.ACCEPTED.value,
             MKEventInvitation.seat_index.isnot(None),
         )
     )).all()
