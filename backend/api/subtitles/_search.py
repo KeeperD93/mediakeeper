@@ -42,6 +42,10 @@ async def search(
     moviehash = ""
     if req.file_path and req.file_path.strip():
         local_path = await _resolve_local_path(db, req.file_path)
+        if not local_path:
+            raise HTTPException(
+                status_code=400, detail="path_outside_configured_zones"
+            )
         roots = await _get_local_path_roots(db)
         resolved, error = validate_path_in_roots(
             local_path,

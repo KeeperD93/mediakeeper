@@ -1,5 +1,6 @@
 """Serve the Vue 3 frontend (single-container) + SPA fallback."""
 import logging
+import re
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -8,13 +9,38 @@ from fastapi.staticfiles import StaticFiles
 
 logger = logging.getLogger("mediakeeper")
 
+# Vite produces hash-suffixed asset names: ``index-DXyZ_abc.js``,
+# ``logo-x123.png``, etc. The first character cannot be ``.`` so we
+# reject dotfiles (``.env``, ``.htaccess``, …) outright; subsequent
+# characters allow the conventional hash + extension separators.
+_SAFE_SEGMENT = re.compile(r"^[A-Za-z0-9_-][A-Za-z0-9._-]*$")
+
 
 def _resolve_spa_file(frontend_dir: Path, full_path: str) -> Path | None:
     """Return a file inside frontend_dir, or None for fallback/index."""
     if not full_path:
         return None
-    root = frontend_dir.resolve()
-    candidate = (root / full_path).resolve()
+    # Strict per-segment whitelist. Anything that does not match the
+    # ``Vite-built asset`` shape (alphanumerics + ``._-``, no dot
+    # prefix) is refused before it reaches ``Path.resolve()``. This
+    # closes the ``py/path-injection`` sink CodeQL flags here (it
+    # cannot trace our ``relative_to(root)`` containment guard below)
+    # and adds genuine defence in depth — an attacker cannot reach
+    # the syscall layer with ``..``, absolute paths, NUL bytes,
+    # spaces or dotfiles.
+    raw_parts = full_path.replace("\\", "/").split("/")
+    safe_parts: list[str] = []
+    for part in raw_parts:
+        if not _SAFE_SEGMENT.fullmatch(part):
+            return None
+        safe_parts.append(part)
+    if not safe_parts:
+        return None
+    try:
+        root = frontend_dir.resolve()
+        candidate = root.joinpath(*safe_parts).resolve()
+    except (ValueError, OSError, RuntimeError):
+        return None
     try:
         candidate.relative_to(root)
     except ValueError:

@@ -108,7 +108,7 @@ def _validate_media_folder_paths(folders: list[dict]) -> list[dict]:
         else:
             try:
                 resolved = Path(folder["path"]).expanduser().resolve(strict=False)
-            except (OSError, RuntimeError):
+            except (ValueError, OSError, RuntimeError):
                 raise HTTPException(status_code=400, detail="invalid_path") from None
         validated.append({**folder, "path": str(resolved)})
     return validated

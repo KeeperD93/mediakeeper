@@ -9,6 +9,7 @@ it cannot trace validation through helper functions. The audit
 * :func:`services.logs._files._safe_log_path`
 * :func:`services.portal.avatars._safe_filename` / :func:`avatar_path_for`
 * :func:`core.app_spa._resolve_spa_file`
+* :func:`api.media._helpers._is_allowed_browse_path`
 * :func:`services.backup.get_backup_path`
 
 This module is the explicit evidence that those validators reject the
@@ -26,6 +27,7 @@ from unittest.mock import patch
 
 import pytest
 
+from api.media._helpers import _is_allowed_browse_path
 from core.app_spa import _resolve_spa_file
 from services import backup as backup_service
 from services.logs import _files
@@ -314,6 +316,13 @@ def test_avatar_path_for_keeps_target_inside_avatar_dir(workspace_tmp_path):
         "../outside.txt",
         "../../etc/passwd",
         "subdir/../../etc/passwd",
+        "/etc/passwd",
+        "/absolute/asset.txt",
+        ".env",
+        ".htaccess",
+        "subdir/.git/HEAD",
+        "asset with space.txt",
+        "asset;name.txt",
     ],
 )
 def test_resolve_spa_file_rejects_traversal(attack, workspace_tmp_path):
@@ -325,10 +334,55 @@ def test_resolve_spa_file_rejects_traversal(attack, workspace_tmp_path):
     assert _resolve_spa_file(root, attack) is None
 
 
+@pytest.mark.parametrize(
+    "asset_path",
+    [
+        "asset.txt",
+        "index-DXyZ_abc.js",
+        "favicon.ico",
+        "logo-x123.png",
+        "subdir/nested-asset.css",
+    ],
+)
+def test_resolve_spa_file_accepts_legit_vite_asset(asset_path, workspace_tmp_path):
+    """The strict per-segment whitelist must not reject the conventional
+    Vite-built asset names (hash suffix, dotted extension)."""
+    root = workspace_tmp_path / "frontend-dist"
+    root.mkdir()
+    target = root / asset_path
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text("ok", encoding="utf-8")
+
+    assert _resolve_spa_file(root, asset_path) == target.resolve()
+
+
 def test_resolve_spa_file_rejects_empty_path(workspace_tmp_path):
     root = workspace_tmp_path / "frontend-dist"
     root.mkdir()
     assert _resolve_spa_file(root, "") is None
+
+
+def test_resolve_spa_file_rejects_nul_byte(workspace_tmp_path):
+    """``\\x00`` is famously used to truncate filenames in C-level libs;
+    pathlib raises ``ValueError`` on resolve, which the helper must catch."""
+    root = workspace_tmp_path / "frontend-dist"
+    root.mkdir()
+    assert _resolve_spa_file(root, "asset\x00.txt") is None
+
+
+# _is_allowed_browse_path — root containment (api/media/_helpers)
+
+
+def test_is_allowed_browse_path_rejects_nul_byte(monkeypatch):
+    workspace = _make_workspace_tmp("_attack_browse")
+    try:
+        media_root = workspace / "media"
+        media_root.mkdir()
+        monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
+
+        assert _is_allowed_browse_path(Path("movie.mkv\x00.txt")) is False
+    finally:
+        shutil.rmtree(workspace, ignore_errors=True)
 
 
 # get_backup_path — regex filename + containment

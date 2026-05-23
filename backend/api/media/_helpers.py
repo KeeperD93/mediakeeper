@@ -14,7 +14,7 @@ def _get_browse_roots() -> list[dict]:
             return
         try:
             resolved = path.resolve()
-        except (OSError, RuntimeError):
+        except (ValueError, OSError, RuntimeError):
             return
         if not resolved.exists() or not resolved.is_dir():
             return
@@ -43,11 +43,14 @@ def _get_browse_roots() -> list[dict]:
 def _is_allowed_browse_path(target: Path) -> bool:
     try:
         resolved = target.resolve()
-    except (OSError, RuntimeError):
+    except (ValueError, OSError, RuntimeError):
         return False
 
     for root in _get_browse_roots():
-        root_path = Path(root["path"]).resolve()
+        try:
+            root_path = Path(root["path"]).resolve()
+        except (ValueError, OSError, RuntimeError):
+            continue
         if resolved == root_path or root_path in resolved.parents:
             return True
     return False

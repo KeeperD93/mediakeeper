@@ -67,6 +67,21 @@ async def get_existing_subtitles(db: AsyncSession, item_id: str) -> dict:
     local_path = await _resolve_local_path(db, file_path)
     logger.info(f"[opensubtitles] existing: emby={file_path} local={local_path}")
 
+    if not local_path:
+        # The resolver refused the Emby-reported path (outside configured
+        # media roots, inside backup zone, or unresolvable). Falling back
+        # to ffprobe on "" would launch the subprocess with an empty
+        # argument, and _scan_external_subtitles("") would iterate the
+        # process CWD for .srt files — neither is acceptable. Use the
+        # Emby-reported MediaStreams as the sole source instead.
+        fallback_streams, fallback_audio = _parse_emby_media_streams(media_streams)
+        return {
+            "streams": fallback_streams,
+            "audio_streams": fallback_audio,
+            "file_path": "",
+            "analysis_source": "emby",
+        }
+
     streams = []
     audio_streams = []
     analysis_source = "ffprobe"

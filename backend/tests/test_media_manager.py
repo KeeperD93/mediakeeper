@@ -129,6 +129,86 @@ async def test_resolve_local_path_does_not_traverse_into_backup_zone(monkeypatch
         shutil.rmtree(root, ignore_errors=True)
 
 
+@pytest.mark.asyncio
+async def test_resolve_local_path_returns_existing_path_inside_roots(monkeypatch):
+    """Positive case for the fast-path: when Emby reports a path that
+    exists at the same location inside the container AND sits under a
+    configured media root, the resolver must return it verbatim. This
+    guards against an over-aggressive future tightening that would
+    accidentally break legitimate same-mount-tree deployments.
+    """
+    from services.opensubtitles.paths import _resolve_local_path
+
+    root = _make_workspace_tmp()
+    try:
+        media_root = root / "media"
+        media_root.mkdir()
+        legit = media_root / "Films" / "movie.mkv"
+        legit.parent.mkdir(parents=True)
+        legit.write_bytes(b"video")
+
+        monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
+
+        # Emby reports the same absolute path that exists inside our
+        # container (shared mount tree, the most common case).
+        resolved = await _resolve_local_path(None, str(legit))
+
+        assert resolved == str(legit.resolve())
+    finally:
+        shutil.rmtree(root, ignore_errors=True)
+
+
+@pytest.mark.asyncio
+async def test_resolve_local_path_handles_nul_byte_without_crashing(monkeypatch):
+    """When Emby reports a path containing ``\\x00``, pathlib raises
+    ``ValueError`` on POSIX (Windows silently strips). The resolver must
+    treat it as a refusal and return ``""``, not bubble the exception
+    up to FastAPI as a 500.
+    """
+    from services.opensubtitles.paths import _resolve_local_path
+
+    root = _make_workspace_tmp()
+    try:
+        media_root = root / "media"
+        media_root.mkdir()
+        monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
+
+        resolved = await _resolve_local_path(None, "/emby/Films/movie\x00.mkv")
+
+        assert resolved == ""
+    finally:
+        shutil.rmtree(root, ignore_errors=True)
+
+
+@pytest.mark.asyncio
+async def test_resolve_local_path_refuses_existing_file_outside_roots(monkeypatch):
+    """Defence in depth: when Emby reports a path that exists at the same
+    absolute location inside the container but sits outside the configured
+    media roots, the resolver must not return it verbatim. A compromised
+    Emby (or a shared mount tree) could otherwise feed arbitrary readable
+    host files (``/etc/passwd``, ``/proc/*``, secrets in ``/data``) to
+    downstream consumers (ffprobe, unlink…).
+    """
+    from services.opensubtitles.paths import _resolve_local_path
+
+    root = _make_workspace_tmp()
+    try:
+        media_root = root / "media"
+        media_root.mkdir()
+        outside = root / "outside.txt"
+        outside.write_text("not_a_media_file", encoding="utf-8")
+
+        monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
+
+        resolved = await _resolve_local_path(None, str(outside))
+
+        # Refusal contract: empty string when no root matches. Callers
+        # (search / existing / remove) must treat this as a rejection.
+        assert resolved == ""
+    finally:
+        shutil.rmtree(root, ignore_errors=True)
+
+
 def _setup_nested_backup_layout(monkeypatch):
     """Build a media root containing a nested ``backups/`` zone.
 
