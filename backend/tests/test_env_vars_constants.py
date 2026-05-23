@@ -17,9 +17,7 @@ introduce:
 These tests stay cheap (run in milliseconds) and become more valuable
 as the module grows beyond the initial 6 constants.
 """
-from __future__ import annotations
-
-import constants.env_vars as env_vars
+from constants import env_vars
 
 
 def test_each_constant_equals_its_own_name():
