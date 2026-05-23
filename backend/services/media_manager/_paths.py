@@ -81,13 +81,22 @@ def _validate_path(path: str) -> str | None:
 
 
 def _sanitize_name(name: str) -> str:
-    """Assainit un nom de file/folder."""
-    name = name.replace('/', ' ').replace('\\', ' ')
-    name = re.sub(r'\s*:\s*', ' - ', name)
-    name = name.replace(',', '')
+    """Assainit un nom de file/folder.
+
+    Linear-time rewrite of the previous ``re.sub(r'\\s*:\\s*', ...)`` +
+    ``re.sub(r'\\s{2,}', ...)`` combo, which CodeQL flagged as
+    polynomial-degree (py/polynomial-redos #143). The ``\\s*X\\s*`` greedy
+    pattern is O(n²) on inputs made of unmatched whitespace; ``split``
+    + ``join`` is O(n) with the same effective output for well-formed
+    inputs. As a side benefit, isolated tabs/newlines in filenames
+    (which are anomalous and break shell scripts / display) are now
+    normalised to single spaces.
+    """
+    name = name.replace('/', ' ').replace('\\', ' ').replace(',', '')
     name = re.sub(r'[<>"|?*]', '', name)
-    name = re.sub(r'\s{2,}', ' ', name)
-    return name.strip()
+    if ':' in name:
+        name = ' - '.join(part.strip() for part in name.split(':'))
+    return ' '.join(name.split())
 
 
 def _validate_name(name: str) -> str | None:

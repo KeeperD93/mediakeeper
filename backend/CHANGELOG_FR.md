@@ -24,6 +24,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Soirées ciné — accepter une invitation ne déclenche plus de faux avertissement de conflit horaire.
 - Planificateur — les noms de tâches sont désormais traduits en français.
 - Proxy d'images et webhooks — durcis contre bypass SSRF et DNS rebinding.
+- Assainisseurs internes — regex polynomiales remplacées par opérations linéaires (protection ReDoS).
 
 ## [1.0.0-rc.3] - 2026-05-22
 
