@@ -102,7 +102,7 @@ ZIP) so a restored archive keeps the secrets readable.
 Boot logs should print:
 
 ```
-[startup] deployment mode=B (reverse proxy) | TRUSTED_PROXIES=192.0.2.10 | FRONTEND_ORIGIN=https://mediakeeper.your-domain.example | COOKIE_SECURE=true
+[startup] deployment mode=B (reverse proxy) | TRUSTED_PROXIES=192.0.2.10 | FRONTEND_ORIGIN=https://mediakeeper.your-domain.example | cookies.https_flag=true
 ```
 
 From any browser on the LAN:

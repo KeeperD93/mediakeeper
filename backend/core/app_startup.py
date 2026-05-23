@@ -310,19 +310,19 @@ def _log_deployment_mode() -> None:
     """
     trusted = os.getenv("TRUSTED_PROXIES", "").strip()
     frontend = os.getenv("FRONTEND_ORIGIN", "").strip()
-    cookie_secure = os.getenv("COOKIE_SECURE", "").strip()
+    https_flag = os.getenv("COOKIE_SECURE", "").strip()
 
     mode = "B (reverse proxy)" if trusted else "A (direct LAN)"
     frontend_label = frontend if frontend else "auto-derived"
-    cookie_label = cookie_secure if cookie_secure else "auto"
+    https_flag_label = https_flag if https_flag else "auto"
 
     logger.info(
         "[startup] deployment mode=%s | TRUSTED_PROXIES=%s | "
-        "FRONTEND_ORIGIN=%s | COOKIE_SECURE=%s",
+        "FRONTEND_ORIGIN=%s | cookies.https_flag=%s",
         mode,
         trusted or "(empty)",
         frontend_label,
-        cookie_label,
+        https_flag_label,
     )
 
 

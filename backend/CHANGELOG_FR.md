@@ -16,6 +16,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ### Changed
 - Planificateur — interface réorganisée par catégories, cartes compactes.
+- Démarrage — résumé déploiement : `COOKIE_SECURE=` devient `cookies.https_flag=`.
 
 ### Fixed
 - Connexion — la détection brute-force ignore désormais les variations de casse du nom d'utilisateur.
