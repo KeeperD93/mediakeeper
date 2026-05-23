@@ -16,6 +16,7 @@ This section intentionally has no date so it is not shown to users.
 
 ### Changed
 - Scheduler — UI reorganised by category with compact single-line rows.
+- Startup — deployment summary: `COOKIE_SECURE=` becomes `cookies.https_flag=`.
 
 ### Fixed
 - Login — brute-force tracking now ignores username casing variants.

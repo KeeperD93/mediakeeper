@@ -50,6 +50,7 @@ def test_log_deployment_mode_emits_summary_line(monkeypatch, caplog):
     assert matching, "expected one INFO record"
     assert "B (reverse proxy)" in matching[0].getMessage()
     assert "https://public.example" in matching[0].getMessage()
+    assert "cookies.https_flag=" in matching[0].getMessage()
 
 
 def test_log_deployment_mode_reports_mode_a_when_no_proxy(monkeypatch, caplog):
@@ -64,6 +65,7 @@ def test_log_deployment_mode_reports_mode_a_when_no_proxy(monkeypatch, caplog):
     msg = matching[0].getMessage()
     assert "A (direct LAN)" in msg
     assert "auto-derived" in msg
+    assert "cookies.https_flag=auto" in msg
 
 
 @pytest.mark.asyncio
