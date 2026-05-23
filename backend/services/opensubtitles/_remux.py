@@ -134,9 +134,9 @@ async def _safe_remux(
     parent = source.parent
     stem = source.stem
     suffix = source.suffix
-    token = uuid.uuid4().hex[:12]
-    tmp_path = parent / f".{stem}.remux-{token}{suffix}"
-    rollback_path = parent / f".{stem}.rollback-{token}{suffix}"
+    nonce = uuid.uuid4().hex[:12]
+    tmp_path = parent / f".{stem}.remux-{nonce}{suffix}"
+    rollback_path = parent / f".{stem}.rollback-{nonce}{suffix}"
 
     # 1) Rollback copy created BEFORE FFmpeg. Refuse the operation if it fails:
     #    we must not run FFmpeg without a recoverable copy of the source.

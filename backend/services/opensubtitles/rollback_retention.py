@@ -1,7 +1,7 @@
 """Retention policy for FFmpeg remux rollback artifacts.
 
 The remux flow in :mod:`services.opensubtitles.remove` keeps a sibling rollback
-copy named ``.<stem>.rollback-<token><suffix>`` next to the source after a
+copy named ``.<stem>.rollback-<nonce><suffix>`` next to the source after a
 successful destructive operation. These artifacts let an operator recover the
 original bytes if a regression is noticed later. Without retention they would
 accumulate forever next to the media files.
@@ -18,10 +18,10 @@ from typing import Iterable
 from ._constants import logger
 
 # Strict pattern: dot + stem + .rollback- + 12 hex chars + optional suffix.
-# The token is produced by ``uuid.uuid4().hex[:12]`` so 12 hex chars is enough
+# The nonce is produced by ``uuid.uuid4().hex[:12]`` so 12 hex chars is enough
 # to avoid colliding with arbitrary user filenames.
 _ROLLBACK_NAME_RE = re.compile(
-    r"^\.(?P<stem>.+)\.rollback-(?P<token>[0-9a-fA-F]{12})(?P<suffix>\.[^.]+)?$"
+    r"^\.(?P<stem>.+)\.rollback-(?P<nonce>[0-9a-fA-F]{12})(?P<suffix>\.[^.]+)?$"
 )
 
 # 30 days — conservative default. Enough time for an operator to roll back a
@@ -58,7 +58,7 @@ def purge_rollback_artifacts(
 
     Strict guarantees:
 
-    - Only files whose name matches the strict ``.<stem>.rollback-<token><suffix>``
+    - Only files whose name matches the strict ``.<stem>.rollback-<nonce><suffix>``
       pattern are considered. Any other file is left untouched.
     - The original media file (``<stem><suffix>``) is never targeted because it
       does not start with a dot and does not contain ``.rollback-`` after a dot.

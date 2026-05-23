@@ -588,7 +588,7 @@ async def test_remove_stream_purges_old_rollbacks_after_success(monkeypatch):
         import os as _os
         _os.utime(str(stale), (old_mtime, old_mtime))
 
-        # Lookalike but not a strict rollback artifact (token too short).
+        # Lookalike but not a strict rollback artifact (nonce too short).
         lookalike = movie_dir / ".note.rollback-short.txt"
         lookalike.write_bytes(b"unrelated")
 
