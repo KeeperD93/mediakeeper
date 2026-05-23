@@ -34,7 +34,6 @@ from urllib.parse import urlparse
 import httpx
 
 from core.url_safety import (
-    ALLOWED_DISCORD_HOSTS,
     UnsafeOutboundURL,
     is_discord_webhook_url,
     validate_outbound_url,
@@ -182,12 +181,15 @@ async def post_signed_with_retry(
     private/loopback/link-local targets and close the DNS-rebinding
     window between validation and connect (SSRF).
 
-    The actual ``client.post`` call uses a URL rebuilt from a literal
-    host pulled from :data:`core.url_safety.ALLOWED_DISCORD_HOSTS`.
-    The runtime defence chain is unchanged — this rebuild exists so
-    static analysers (CodeQL ``py/full-ssrf``) see the hostname
-    sanitiser at the sink instead of through the
-    :func:`validate_outbound_url` helper.
+    The actual ``client.post`` call uses a URL whose host is a literal
+    string constant — selected by an explicit ``if`` branch over the
+    parsed hostname. The runtime defence chain is unchanged: this
+    rebuild exists so static analysers (CodeQL ``py/full-ssrf``) see
+    the hostname sanitiser at the sink rather than relying on
+    interprocedural taint tracking through the
+    :func:`validate_outbound_url` helper. Set-membership of a tainted
+    variable is not enough — CodeQL recognises a literal in the URL
+    string, so we branch and use the literal directly in each arm.
 
     Note: the up-front validation duplicates the DNS lookup the safe
     transport will perform on connect (~10 ms overhead per webhook).
@@ -199,12 +201,17 @@ async def post_signed_with_retry(
     await validate_outbound_url(url)
     parsed = urlparse(url)
     host = (parsed.hostname or "").lower().rstrip(".")
-    if parsed.scheme != "https" or host not in ALLOWED_DISCORD_HOSTS:
+    if parsed.scheme != "https":
         raise UnsafeOutboundURL("webhook_host_not_allowed")
-    # ``host`` is now guaranteed equal to one of the literal constants
-    # in ALLOWED_DISCORD_HOSTS — rebuild the URL from that set so the
-    # value flowing into ``client.post`` is provably constrained.
-    safe_url = f"https://{host}{parsed.path}"
+    # Explicit branch over the (small) Discord-host whitelist so the
+    # URL passed to client.post embeds a string literal — CodeQL does
+    # not track set-membership constraints on tainted variables.
+    if host == "discord.com":
+        safe_url = f"https://discord.com{parsed.path}"
+    elif host == "discordapp.com":
+        safe_url = f"https://discordapp.com{parsed.path}"
+    else:
+        raise UnsafeOutboundURL("webhook_host_not_allowed")
     if parsed.query:
         safe_url = f"{safe_url}?{parsed.query}"
     body = _serialize_payload(payload)
