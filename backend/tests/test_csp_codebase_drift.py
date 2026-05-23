@@ -42,6 +42,10 @@ _NON_BROWSER_LOADED_HOSTS = frozenset({
     "discord.gg",
     "wiki.mediakeeper.app",
     "mediakeeper.app",
+    # Maintainer support / donation link surfaced as an <a> button
+    # (window.open with target=_blank, noopener,noreferrer) — never
+    # embedded as iframe/img/script in the MediaKeeper document.
+    "ko-fi.com",
     # Third-party reference links surfaced to the user as <a href>
     "www.themoviedb.org",
     "www.imdb.com",
