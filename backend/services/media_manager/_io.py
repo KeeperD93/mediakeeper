@@ -28,10 +28,10 @@ def _sync_move(src: str, target: str) -> None:
     target_p = Path(target)
     dest_ref = target_p.parent if not target_p.exists() else target_p
     if _same_device(src_p, dest_ref):
-        logger.debug(f"[MOVE] os.replace : {src!r} → {target!r}")
+        logger.debug("[MOVE] os.replace : %r → %r", src, target)
         os.replace(src, target)
     else:
-        logger.debug(f"[MOVE] shutil.move (cross-device) : {src!r} → {target!r}")
+        logger.debug("[MOVE] shutil.move (cross-device) : %r → %r", src, target)
         shutil.move(src, target)
 
 
@@ -47,21 +47,21 @@ def _sync_delete(path: Path) -> None:
     """
     def _onerror(func, fpath, _exc):
         try:
-            logger.warning(f"[DELETE] Permission refusede sur {fpath!r}, attempting chmod")
+            logger.warning("[DELETE] Permission refusede sur %r, attempting chmod", fpath)
             os.chmod(fpath, stat.S_IWRITE | stat.S_IREAD)
             func(fpath)
         except Exception as e:
             raise OSError(f"Impossible de supprimer {fpath} : {e}")
 
     if path.is_dir():
-        logger.debug(f"[DELETE] rmtree : {path!r}")
+        logger.debug("[DELETE] rmtree : %r", path)
         shutil.rmtree(str(path), onerror=_onerror)
     else:
-        logger.debug(f"[DELETE] unlink : {path!r}")
+        logger.debug("[DELETE] unlink : %r", path)
         try:
             path.unlink()
         except PermissionError:
-            logger.warning(f"[DELETE] Permission refusede sur {path!r}, attempting chmod")
+            logger.warning("[DELETE] Permission refusede sur %r, attempting chmod", path)
             os.chmod(str(path), stat.S_IWRITE | stat.S_IREAD)
             path.unlink()
 
