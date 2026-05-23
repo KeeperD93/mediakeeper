@@ -197,6 +197,14 @@ The presence of `Secure` proves that MediaKeeper detected the
 
 ## 6. Troubleshooting
 
+**Boot log shows `COOKIE_HTTPS_FLAG=` instead of `COOKIE_SECURE=`.**
+The boot log label `COOKIE_HTTPS_FLAG=` corresponds to the env var
+`COOKIE_SECURE` you configure in your `.env`. The log label avoids
+the `SECURE` substring to keep static analysis (CodeQL) from
+misclassifying the log line as a sensitive-data leak. You keep
+configuring the env var under its own name (`COOKIE_SECURE=true`,
+etc.) — only the log label differs.
+
 **Cookies still emitted without `Secure` after configuring TLS.**
 Check that the proxy IP belongs to one of the CIDRs declared in
 `TRUSTED_PROXIES`. The container logs print one warning at startup

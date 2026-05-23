@@ -16,7 +16,7 @@ This section intentionally has no date so it is not shown to users.
 
 ### Changed
 - Scheduler — UI reorganised by category with compact single-line rows.
-- Startup — boot log: `COOKIE_SECURE=` renamed `COOKIE_HTTPS_FLAG=` (env var unchanged).
+- Startup — boot log: `COOKIE_SECURE=` renamed `COOKIE_HTTPS_FLAG=` (env var unchanged, mapping in `tls-deployment.md`).
 
 ### Fixed
 - Login — brute-force tracking now ignores username casing variants.
