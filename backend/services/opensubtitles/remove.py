@@ -118,7 +118,8 @@ async def remove_stream(
     stream_type = target_stream.get("Type", "")
 
     logger.info(
-        f"[opensubtitles] Removing stream {stream_index} ({stream_type}) from {local_path}"
+        "[opensubtitles] Removing stream %s (%s) from %s",
+        stream_index, stream_type, local_path,
     )
 
     failure, rollback_path = await _safe_remux(Path(local_path), [stream_index])
@@ -158,7 +159,9 @@ async def remove_streams_batch(
         return {"error": "no_valid_streams"}
 
     local_path = ctx["local_path"]
-    logger.info(f"[opensubtitles] Batch removing streams {to_remove} from {local_path}")
+    logger.info(
+        "[opensubtitles] Batch removing streams %s from %s", to_remove, local_path,
+    )
 
     failure, rollback_path = await _safe_remux(Path(local_path), to_remove)
     if failure is not None:
