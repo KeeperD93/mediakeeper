@@ -36,10 +36,16 @@ async def test_merge_folder_into_broad_except_returns_generic_code(monkeypatch):
     never ``str(e)``. CodeQL #163/#164 regression guard."""
     workspace = _make_workspace_tmp("_attack_merge_codes")
     try:
-        src = workspace / "src_dir"
-        dest = workspace / "dest_dir"
+        media_root = workspace / "media"
+        media_root.mkdir()
+        src = media_root / "src_dir"
+        dest = media_root / "dest_dir"
         src.mkdir()
         dest.mkdir()
+        monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
+
+        from services.media_manager import categories as cat_mod
+        monkeypatch.setattr(cat_mod, "MEDIA_FOLDERS", {"movies": str(media_root)})
 
         async def boom_delete(_path):
             raise OSError(_LEAK_SENTINEL)

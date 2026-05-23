@@ -27,6 +27,7 @@ This section intentionally has no date so it is not shown to users.
 - Portal sanitisation — HTML-tag regex made linear-time (ReDoS hardening).
 - Internal sanitisers — polynomial regexes replaced with linear ops (ReDoS hardening).
 - Media manager rename — generic error codes returned (no exception echo, hardening).
+- Media manager merge — defence-in-depth containment guard at the sink.
 
 ## [1.0.0-rc.3] - 2026-05-22
 
