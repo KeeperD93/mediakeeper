@@ -218,7 +218,7 @@ For Synology DSM, reverse-proxy setups, TLS deployment and advanced configuratio
 
 ---
 
-## 📖 Documentation
+## Documentation
 
 | Surface                                                                    | Where                                                                                                                                                                                                                    |
 | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -242,7 +242,7 @@ For Synology DSM, reverse-proxy setups, TLS deployment and advanced configuratio
 
 ---
 
-## Buy me a coffee
+## ☕ Buy me a coffee
 
 MediaKeeper is free and open-source. If you find it useful, a coffee goes a long way:
 
