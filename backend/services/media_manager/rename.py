@@ -88,7 +88,7 @@ async def _merge_folder_into(src_path: str, dest_path: str) -> dict:
             logger.error(
                 "[MERGE] %s failure(s) — source kept: %s", failed, src_path,
             )
-            return {"error": f"partial_merge_failed: {failed} items not moved", "moved": moved, "failed": failed}
+            return {"error": "partial_merge_failed", "moved": moved, "failed": failed}
 
         if src.exists():
             await _force_delete(src)

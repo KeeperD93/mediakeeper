@@ -167,6 +167,41 @@ async def test_merge_dest_not_dir_returns_generic_code(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_merge_partial_failure_returns_stable_error_with_count_field(monkeypatch):
+    """When some items move but not all, the response code must be the
+    stable string ``partial_merge_failed`` (no count embedded in the
+    code), with the failed count surfaced separately in the ``failed``
+    field for callers that need it."""
+    workspace = _make_workspace_tmp("_attack_partial_merge")
+    try:
+        media_root = workspace / "media"
+        media_root.mkdir()
+        src_dir = media_root / "src_dir"
+        dest_dir = media_root / "dest_dir"
+        src_dir.mkdir()
+        dest_dir.mkdir()
+        (src_dir / "file_a.mkv").write_bytes(b"a")
+        (src_dir / "file_b.mkv").write_bytes(b"b")
+        monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
+
+        from services.media_manager import categories as cat_mod
+        monkeypatch.setattr(cat_mod, "MEDIA_FOLDERS", {"movies": str(media_root)})
+
+        async def boom_move(_src, _target):
+            raise OSError("move denied")
+
+        monkeypatch.setattr(rename_mod, "_fast_move", boom_move)
+
+        result = await _merge_folder_into(str(src_dir), str(dest_dir))
+
+        assert result.get("error") == "partial_merge_failed"
+        assert result.get("failed") == 2
+        assert result.get("moved") == 0
+    finally:
+        shutil.rmtree(workspace, ignore_errors=True)
+
+
+@pytest.mark.asyncio
 async def test_apply_rename_missing_path_returns_generic_code(monkeypatch):
     """When the source path passes ``_validate_path`` (parent exists in
     ``MEDIAKEEPER_PATH_ROOTS``) but the file itself is missing, the

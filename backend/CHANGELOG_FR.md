@@ -29,6 +29,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Renommage média — codes d'erreur génériques (plus d'echo d'exception, durcissement).
 - Fusion média — garde de confinement (défense en profondeur, durcissement).
 - Renommage média — erreurs not-a-dir/not-found nettoyées du chemin filesystem.
+- Fusion média — code d'erreur partial-failure stable (compteur dans champ dédié).
 
 ## [1.0.0-rc.3] - 2026-05-22
 
