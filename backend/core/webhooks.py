@@ -33,7 +33,11 @@ from urllib.parse import urlparse
 
 import httpx
 
-from core.url_safety import is_discord_webhook_url, validate_outbound_url
+from core.url_safety import (
+    UnsafeOutboundURL,
+    is_discord_webhook_url,
+    validate_outbound_url,
+)
 
 logger = logging.getLogger("mediakeeper.webhooks")
 
@@ -177,6 +181,16 @@ async def post_signed_with_retry(
     private/loopback/link-local targets and close the DNS-rebinding
     window between validation and connect (SSRF).
 
+    The actual ``client.post`` call uses a URL whose host is a literal
+    string constant — selected by an explicit ``if`` branch over the
+    parsed hostname. The runtime defence chain is unchanged: this
+    rebuild exists so static analysers (CodeQL ``py/full-ssrf``) see
+    the hostname sanitiser at the sink rather than relying on
+    interprocedural taint tracking through the
+    :func:`validate_outbound_url` helper. Set-membership of a tainted
+    variable is not enough — CodeQL recognises a literal in the URL
+    string, so we branch and use the literal directly in each arm.
+
     Note: the up-front validation duplicates the DNS lookup the safe
     transport will perform on connect (~10 ms overhead per webhook).
     Kept on purpose so unsupported schemes (``http://``, ``file://``)
@@ -185,15 +199,30 @@ async def post_signed_with_retry(
     stripped.
     """
     await validate_outbound_url(url)
+    parsed = urlparse(url)
+    host = (parsed.hostname or "").lower().rstrip(".")
+    if parsed.scheme != "https":
+        raise UnsafeOutboundURL("webhook_host_not_allowed")
+    # Explicit branch over the (small) Discord-host whitelist so the
+    # URL passed to client.post embeds a string literal — CodeQL does
+    # not track set-membership constraints on tainted variables.
+    if host == "discord.com":
+        safe_url = f"https://discord.com{parsed.path}"
+    elif host == "discordapp.com":
+        safe_url = f"https://discordapp.com{parsed.path}"
+    else:
+        raise UnsafeOutboundURL("webhook_host_not_allowed")
+    if parsed.query:
+        safe_url = f"{safe_url}?{parsed.query}"
     body = _serialize_payload(payload)
     headers = {
         "Content-Type": "application/json",
         SIGNATURE_HEADER_NAME: sign_webhook_payload(body),
     }
-    res = await client.post(url, content=body, headers=headers, timeout=timeout)
+    res = await client.post(safe_url, content=body, headers=headers, timeout=timeout)
     if res.status_code != 429:
         return res
     delay = parse_retry_after_header(res.headers.get("Retry-After"))
     if delay > 0:
         await asyncio.sleep(delay)
-    return await client.post(url, content=body, headers=headers, timeout=timeout)
+    return await client.post(safe_url, content=body, headers=headers, timeout=timeout)
