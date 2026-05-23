@@ -118,7 +118,7 @@
           </div>
 
           <div class="login-links">
-            <a href="https://discord.gg/mediakeeper" target="_blank" rel="noopener" title="Discord">
+            <a href="https://discord.gg/A2hyNUUn6a" target="_blank" rel="noopener" title="Discord">
               <IconDiscord :size="18" />
             </a>
             <a

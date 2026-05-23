@@ -15,7 +15,7 @@
   <a href="https://github.com/KeeperD93/mediakeeper/actions/workflows/backend.yml"><img alt="Backend CI" src="https://github.com/KeeperD93/mediakeeper/actions/workflows/backend.yml/badge.svg"></a>
   <a href="https://github.com/KeeperD93/mediakeeper/actions/workflows/frontend.yml"><img alt="Frontend CI" src="https://github.com/KeeperD93/mediakeeper/actions/workflows/frontend.yml/badge.svg"></a>
   <a href="https://github.com/KeeperD93/mediakeeper/actions/workflows/security.yml"><img alt="Security" src="https://github.com/KeeperD93/mediakeeper/actions/workflows/security.yml/badge.svg"></a>
-  <a href="<DISCORD_INVITE>"><img alt="Discord" src="https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white"></a>
+  <a href="https://discord.gg/A2hyNUUn6a"><img alt="Discord" src="https://img.shields.io/discord/1507137232941617234?label=Discord&logo=discord&color=5865F2&logoColor=white"></a>
   <img alt="AI-assisted" src="https://img.shields.io/badge/AI--assisted-Yes-8A2BE2">
 </p>
 
@@ -234,7 +234,7 @@ For Synology DSM, reverse-proxy setups, TLS deployment and advanced configuratio
 
 ## Community & support
 
-- **Discord** — `<DISCORD_INVITE>` _(coming soon)_
+- **Discord** — [discord.gg/A2hyNUUn6a](https://discord.gg/A2hyNUUn6a)
 - **GitHub Discussions** — https://github.com/KeeperD93/mediakeeper/discussions
 - **Bug reports & feature requests** — https://github.com/KeeperD93/mediakeeper/issues
 - **Security disclosures** — see [`SECURITY.md`](SECURITY.md); please do **not** open a public issue

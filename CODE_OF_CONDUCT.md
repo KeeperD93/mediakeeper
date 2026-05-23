@@ -19,7 +19,7 @@ Contributors and maintainers are expected to read it once and apply it in every 
 
 If you witness or experience behaviour that violates the Contributor Covenant in this project's spaces, please report it **privately**:
 
-1. **Preferred** — direct message a maintainer on the project's Discord server (`<DISCORD_INVITE>`).
+1. **Preferred** — direct message a maintainer on the project's Discord server ([discord.gg/A2hyNUUn6a](https://discord.gg/A2hyNUUn6a)).
 2. **Alternative** — open a brief, non-revealing public issue asking for a private channel and a maintainer will reply with one. **Do not include the details of the incident in that initial public issue.**
 
 All reports are handled confidentially.
