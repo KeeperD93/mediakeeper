@@ -12,7 +12,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 ### Added
 - Onboarding — module Portail ajouté au welcome et au tour.
 - Communauté — invitation Discord publiée (footer login, README, code de conduite).
-- Communauté — Ko-fi ajouté comme moyen de soutien (badge README, FUNDING.yml).
+- Communauté — Ko-fi ajouté comme moyen de soutien (bouton coeur admin, badge README, FUNDING.yml).
 
 ### Changed
 - Planificateur — interface réorganisée par catégories, cartes compactes.

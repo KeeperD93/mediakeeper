@@ -242,9 +242,9 @@ For Synology DSM, reverse-proxy setups, TLS deployment and advanced configuratio
 
 ---
 
-## Support the project
+## Buy me a coffee
 
-MediaKeeper is free and open-source. If you find it useful, you can support its development:
+MediaKeeper is free and open-source. If you find it useful, a coffee goes a long way:
 
 - **Ko-fi** — [ko-fi.com/keeperd93](https://ko-fi.com/keeperd93) — one-time tips or recurring memberships, PayPal and cards accepted
 - **Star the repo** — every star helps visibility on GitHub
