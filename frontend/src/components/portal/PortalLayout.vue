@@ -7,6 +7,7 @@
       :is-admin="isAdmin"
       :has-backoffice-access="hasBackofficeAccess"
       :show-requests-tab="showRequestsTab"
+      support-url="https://ko-fi.com/keeperd93"
       @navigate="onNavigate"
       @open-whats-new="onOpenWhatsNew"
       @open-daily-digest="onOpenDailyDigest"

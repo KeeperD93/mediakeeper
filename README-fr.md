@@ -16,6 +16,7 @@
   <a href="https://github.com/KeeperD93/mediakeeper/actions/workflows/frontend.yml"><img alt="Frontend CI" src="https://github.com/KeeperD93/mediakeeper/actions/workflows/frontend.yml/badge.svg"></a>
   <a href="https://github.com/KeeperD93/mediakeeper/actions/workflows/security.yml"><img alt="Security" src="https://github.com/KeeperD93/mediakeeper/actions/workflows/security.yml/badge.svg"></a>
   <a href="https://discord.gg/A2hyNUUn6a"><img alt="Discord" src="https://img.shields.io/discord/1507137232941617234?label=Discord&logo=discord&color=5865F2&logoColor=white"></a>
+  <a href="https://ko-fi.com/keeperd93"><img alt="Ko-fi" src="https://img.shields.io/badge/Ko--fi-Soutenir-FF5E5B?logo=ko-fi&logoColor=white"></a>
   <img alt="AI-assisted" src="https://img.shields.io/badge/Assist%C3%A9%20IA-Oui-8A2BE2">
 </p>
 
@@ -34,7 +35,7 @@
 
 ---
 
-## 🎯 Qu'est-ce que MediaKeeper ?
+## Qu'est-ce que MediaKeeper ?
 
 MediaKeeper est un **compagnon auto-hébergé en un seul container** pour une instance Emby. Il complète Emby avec deux surfaces dans une seule application :
 
@@ -45,7 +46,7 @@ Tout tourne depuis un **seul container Docker** avec PostgreSQL 16 embarqué.
 
 ---
 
-## ✨ Fonctionnalités clés
+## Fonctionnalités clés
 
 MediaKeeper étend Emby avec un back-office pour piloter l'instance et un portail qui offre aux utilisateurs une véritable expérience produit. Voici ce qui se distingue.
 
@@ -140,7 +141,7 @@ Pour le catalogue complet de fonctionnalités et l'historique des versions, voir
 
 ---
 
-## 📸 Aperçu
+## Aperçu
 
 ### Tableau de bord admin
 
@@ -152,7 +153,7 @@ Pour le catalogue complet de fonctionnalités et l'historique des versions, voir
 
 ---
 
-## 🚀 Démarrage rapide
+## Démarrage rapide
 
 ### Démarrage express — tirer l'image publiée
 
@@ -219,7 +220,7 @@ Pour Synology DSM, les configurations reverse-proxy, le déploiement TLS et la c
 
 ---
 
-## 📖 Documentation
+## Documentation
 
 | Surface                                                                        | Où                                                                                                                                                                                                                          |
 | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -234,7 +235,7 @@ Pour Synology DSM, les configurations reverse-proxy, le déploiement TLS et la c
 
 ---
 
-## 💬 Communauté & support
+## Communauté & support
 
 - **Discord** — [discord.gg/A2hyNUUn6a](https://discord.gg/A2hyNUUn6a)
 - **GitHub Discussions** — https://github.com/KeeperD93/mediakeeper/discussions
@@ -243,7 +244,16 @@ Pour Synology DSM, les configurations reverse-proxy, le déploiement TLS et la c
 
 ---
 
-## 🤝 Contribuer
+## ☕ Buy me a coffee
+
+MediaKeeper est gratuit et open-source. Si vous l'utilisez et appréciez le travail, un café fait toujours plaisir :
+
+- **Ko-fi** — [ko-fi.com/keeperd93](https://ko-fi.com/keeperd93) — dons ponctuels ou abonnements récurrents, PayPal et cartes acceptés
+- **Mettre une étoile** — chaque étoile aide la visibilité sur GitHub
+
+---
+
+## Contribuer
 
 Les pull requests sont les bienvenues. Avant de commencer, merci de lire [`CONTRIBUTING.md`](CONTRIBUTING.md) et le [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md).
 
@@ -257,13 +267,13 @@ En résumé :
 
 ---
 
-## 🤖 Développement assisté par IA
+## Développement assisté par IA
 
 MediaKeeper est développé avec l'aide de l'IA. Chaque modification est relue, testée et committée par le mainteneur, qui reste responsable du code livré.
 
 ---
 
-## 📦 Stack technique
+## Stack technique
 
 | Couche              | Tech                                                                                                                      |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------- |
@@ -274,7 +284,7 @@ MediaKeeper est développé avec l'aide de l'IA. Chaque modification est relue, 
 
 ---
 
-## 🔌 Attribution
+## Attribution
 
 Ce produit utilise l'**API TMDB** mais n'est ni approuvé ni certifié par TMDB. Voir https://www.themoviedb.org pour la source de données.
 
@@ -282,6 +292,6 @@ MediaKeeper s'intègre avec **Emby**, **OpenSubtitles**, les webhooks **Discord*
 
 ---
 
-## 📝 Licence
+## Licence
 
 MediaKeeper est publié sous **GNU General Public License v3.0 ou ultérieure** — voir [`LICENSE`](LICENSE).

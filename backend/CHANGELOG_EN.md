@@ -12,6 +12,7 @@ This section intentionally has no date so it is not shown to users.
 ### Added
 - Onboarding wizard — Portal module added to welcome and tour steps.
 - Community — Discord invite published (login footer, README, Code of Conduct).
+- Community — Ko-fi added as funding option (admin heart button, README badge, FUNDING.yml).
 
 ### Changed
 - Scheduler — UI reorganised by category with compact single-line rows.
