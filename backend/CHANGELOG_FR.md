@@ -28,7 +28,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Assainisseurs internes — regex polynomiales remplacées par opérations linéaires (protection ReDoS).
 - Renommage média — codes d'erreur génériques (plus d'echo d'exception, durcissement).
 - Fusion média — garde de confinement (défense en profondeur, durcissement).
-- Renommage média — erreurs not-a-dir/not-found nettoyées du chemin filesystem.
+- Renommage/fusion média — erreurs not-a-dir/not-found nettoyées du chemin filesystem.
 - Fusion média — code d'erreur partial-failure stable (compteur dans champ dédié).
 - Renommage média — erreurs destination/self-merge utilisent des codes stables.
 
