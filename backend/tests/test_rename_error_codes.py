@@ -120,3 +120,74 @@ async def test_merge_chain_error_does_not_leak_inner_str_exception(monkeypatch):
         assert "merge_failed" in str(result.get("error", ""))
     finally:
         shutil.rmtree(workspace, ignore_errors=True)
+
+
+@pytest.mark.asyncio
+async def test_merge_source_not_dir_returns_generic_code(monkeypatch):
+    """When src is a file (not a directory), the response code must be a
+    stable string with no filesystem path embedded."""
+    workspace = _make_workspace_tmp("_attack_leak_paths")
+    try:
+        media_root = workspace / "media"
+        media_root.mkdir()
+        src_file = media_root / "not_a_dir.mkv"
+        src_file.write_bytes(b"video")
+        dest_dir = media_root / "dest_dir"
+        dest_dir.mkdir()
+        monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
+
+        from services.media_manager.rename import _merge_folder_into
+
+        result = await _merge_folder_into(str(src_file), str(dest_dir))
+
+        assert result == {"error": "source_not_a_directory"}
+        assert str(src_file) not in str(result)
+    finally:
+        shutil.rmtree(workspace, ignore_errors=True)
+
+
+@pytest.mark.asyncio
+async def test_merge_dest_not_dir_returns_generic_code(monkeypatch):
+    """When dest is a file (not a directory), the response code must be a
+    stable string with no filesystem path embedded."""
+    workspace = _make_workspace_tmp("_attack_leak_paths")
+    try:
+        media_root = workspace / "media"
+        media_root.mkdir()
+        src_dir = media_root / "src_dir"
+        src_dir.mkdir()
+        dest_file = media_root / "not_a_dir.mkv"
+        dest_file.write_bytes(b"video")
+        monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
+
+        from services.media_manager.rename import _merge_folder_into
+
+        result = await _merge_folder_into(str(src_dir), str(dest_file))
+
+        assert result == {"error": "destination_not_a_directory"}
+        assert str(dest_file) not in str(result)
+    finally:
+        shutil.rmtree(workspace, ignore_errors=True)
+
+
+@pytest.mark.asyncio
+async def test_apply_rename_missing_path_returns_generic_code(monkeypatch):
+    """When the source path passes ``_validate_path`` (parent exists in
+    ``MEDIAKEEPER_PATH_ROOTS``) but the file itself is missing, the
+    response must be a stable code with no path leak."""
+    workspace = _make_workspace_tmp("_attack_leak_paths")
+    try:
+        media_root = workspace / "media"
+        media_root.mkdir()
+        missing = media_root / "does_not_exist.mkv"
+        monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
+
+        from services.media_manager import categories as cat_mod
+        monkeypatch.setattr(cat_mod, "MEDIA_FOLDERS", {"movies": str(media_root)})
+
+        result = await apply_rename(str(missing), "new.mkv")
+
+        assert result == {"error": "file_or_directory_not_found"}
+        assert str(missing) not in str(result)
+    finally:
+        shutil.rmtree(workspace, ignore_errors=True)

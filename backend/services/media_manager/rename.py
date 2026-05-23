@@ -37,9 +37,11 @@ async def _merge_folder_into(src_path: str, dest_path: str) -> dict:
     dest = Path(dest_path)
 
     if not src.is_dir():
-        return {"error": f"source_not_a_directory: {src_path}"}
+        logger.error("[MERGE] Source is not a directory: %s", src_path)
+        return {"error": "source_not_a_directory"}
     if not dest.is_dir():
-        return {"error": f"destination_not_a_directory: {dest_path}"}
+        logger.error("[MERGE] Destination is not a directory: %s", dest_path)
+        return {"error": "destination_not_a_directory"}
 
     # SAFETY: refuse self-merge — would nuke the source after a no-op loop.
     try:
@@ -113,7 +115,8 @@ async def apply_rename(old_path: str, new_name: str):
 
     src = Path(old_path)
     if not src.exists():
-        return {"error": f"file_or_directory_not_found: {old_path}"}
+        logger.error("[RENAME] File or directory not found: %s", old_path)
+        return {"error": "file_or_directory_not_found"}
 
     dest = src.parent / new_name
 
