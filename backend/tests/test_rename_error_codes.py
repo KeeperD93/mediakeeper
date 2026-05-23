@@ -136,6 +136,9 @@ async def test_merge_source_not_dir_returns_generic_code(monkeypatch):
         dest_dir.mkdir()
         monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
 
+        from services.media_manager import categories as cat_mod
+        monkeypatch.setattr(cat_mod, "MEDIA_FOLDERS", {"movies": str(media_root)})
+
         result = await _merge_folder_into(str(src_file), str(dest_dir))
 
         assert result == {"error": "source_not_a_directory"}
@@ -157,6 +160,9 @@ async def test_merge_dest_not_dir_returns_generic_code(monkeypatch):
         dest_file = media_root / "not_a_dir.mkv"
         dest_file.write_bytes(b"video")
         monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
+
+        from services.media_manager import categories as cat_mod
+        monkeypatch.setattr(cat_mod, "MEDIA_FOLDERS", {"movies": str(media_root)})
 
         result = await _merge_folder_into(str(src_dir), str(dest_file))
 
