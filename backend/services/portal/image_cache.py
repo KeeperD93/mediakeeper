@@ -36,7 +36,7 @@ import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.http_client import get_external_client
-from core.url_safety import UnsafeOutboundURL, is_allowed_image_url
+from core.url_safety import ALLOWED_IMAGE_HOST, UnsafeOutboundURL, is_allowed_image_url
 from services.settings import get_setting
 
 logger = logging.getLogger("mediakeeper.portal.image_cache")
@@ -131,14 +131,27 @@ async def fetch_or_serve(original_url: str) -> tuple[bytes, str]:
     write failed.
 
     Defence in depth: the public endpoint (:mod:`api.image_proxy`)
-    already validates the URL via :func:`is_allowed_image_url`, but
-    re-checking here means any future internal caller cannot bypass
-    the host whitelist by skipping the proxy layer.
+    already validates the URL via :func:`is_allowed_image_url`. Here
+    we re-validate inline (scheme + hostname compared against
+    ``ALLOWED_IMAGE_HOST`` as a literal constant) AND rebuild the
+    upstream URL from a hardcoded host so the request sent to httpx
+    can only ever target the TMDB CDN. The hostname comparison happens
+    at the call site of ``client.get`` so CodeQL's ``py/full-ssrf``
+    barrier model recognises the sanitiser.
     """
-    if not is_allowed_image_url(original_url):
+    parsed = urllib.parse.urlparse(original_url)
+    host = (parsed.hostname or "").lower().rstrip(".")
+    if parsed.scheme != "https" or host != ALLOWED_IMAGE_HOST:
         raise UnsafeOutboundURL("image_url_rejected")
+    # Rebuild the upstream URL from the literal host. The path / query
+    # remain user-influenced but cannot redirect the request to any
+    # host other than TMDB.
+    upstream = f"https://{ALLOWED_IMAGE_HOST}{parsed.path}"
+    if parsed.query:
+        upstream = f"{upstream}?{parsed.query}"
+
     _ensure_cache_dir()
-    path = _path_for(original_url)
+    path = _path_for(upstream)
     if path.exists():
         _stats["hits"] += 1
         return path.read_bytes(), _guess_content_type(path)
@@ -146,10 +159,10 @@ async def fetch_or_serve(original_url: str) -> tuple[bytes, str]:
     _stats["misses"] += 1
     try:
         client = get_external_client()
-        resp = await client.get(original_url, timeout=10.0)
+        resp = await client.get(upstream, timeout=10.0)
         if resp.status_code != 200:
             logger.warning(
-                f"image_cache: upstream HTTP {resp.status_code} for {original_url}"
+                f"image_cache: upstream HTTP {resp.status_code} for {upstream}"
             )
             return resp.content, resp.headers.get("content-type", "image/jpeg")
         content = resp.content
@@ -162,7 +175,7 @@ async def fetch_or_serve(original_url: str) -> tuple[bytes, str]:
             logger.warning(f"image_cache: write failed for {path}: {e}")
         return content, resp.headers.get("content-type", "image/jpeg")
     except httpx.HTTPError as e:
-        logger.warning(f"image_cache: upstream fetch failed for {original_url}: {e}")
+        logger.warning(f"image_cache: upstream fetch failed for {upstream}: {e}")
         raise
 
 

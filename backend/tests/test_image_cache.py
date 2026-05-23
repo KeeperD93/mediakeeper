@@ -215,3 +215,33 @@ async def test_fetch_or_serve_raises_on_non_tmdb_url():
     with pytest.raises(UnsafeOutboundURL) as exc:
         await image_cache.fetch_or_serve("https://evil.example.com/x.jpg")
     assert exc.value.reason == "image_url_rejected"
+
+
+@pytest.mark.asyncio
+async def test_fetch_or_serve_dispatches_to_hardcoded_tmdb_host():
+    """The outbound URL passed to ``client.get`` must be built from the
+    literal ``image.tmdb.org`` host, never the (potentially crafted)
+    original URL string. This is the runtime equivalent of the static
+    analysis barrier — even if a future caller skipped the upfront
+    ``is_allowed_image_url`` guard, the request can only ever target
+    the TMDB CDN.
+    """
+    fake_resp = MagicMock()
+    fake_resp.status_code = 200
+    fake_resp.content = b"x"
+    fake_resp.headers = {"content-type": "image/jpeg"}
+
+    fake_client = MagicMock()
+    fake_client.get = AsyncMock(return_value=fake_resp)
+
+    # Original URL uses a trailing dot — the safe URL must drop it.
+    crafted = "https://image.tmdb.org./t/p/w300/abc.jpg?lang=fr"
+    with patch(
+        "services.portal.image_cache.get_external_client",
+        return_value=fake_client,
+    ):
+        await image_cache.fetch_or_serve(crafted)
+
+    fake_client.get.assert_called_once()
+    sent_url = fake_client.get.call_args.args[0]
+    assert sent_url == "https://image.tmdb.org/t/p/w300/abc.jpg?lang=fr"
