@@ -15,7 +15,16 @@ template that uses ``v-html`` — call ``sanitize_html`` instead.
 """
 import re
 
-_HTML_TAG_RE = re.compile(r'<[^>]+>')
+# Linear-time alternative to ``<[^>]+>``: forbidding ``<`` inside the
+# character class prevents the engine from backtracking across nested
+# unmatched ``<`` repetitions, keeping ``.sub`` in O(n) instead of O(n²).
+# Closes CodeQL py/polynomial-redos #142.
+# Sémantique préservée sur HTML bien formé (les tags ne contiennent
+# jamais ``<``). Sur input mal formé du type ``<foo<bar>``, l'ancien
+# pattern strippait toute la sous-chaîne ; le nouveau ne strippe que
+# ``<bar>`` et laisse ``<foo`` visible — comportement plus correct
+# pour du stockage plain-text.
+_HTML_TAG_RE = re.compile(r'<[^<>]*>')
 
 
 def strip_tags_and_trim(text: str, max_len: int = 5000) -> str:
