@@ -26,6 +26,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Proxy d'images et webhooks — durcis contre bypass SSRF et DNS rebinding.
 - Sanitisation portail — regex de nettoyage HTML rendue linéaire (protection ReDoS).
 - Assainisseurs internes — regex polynomiales remplacées par opérations linéaires (protection ReDoS).
+- Renommage média — codes d'erreur génériques (plus d'echo d'exception, durcissement).
 
 ## [1.0.0-rc.3] - 2026-05-22
 

@@ -74,9 +74,9 @@ async def _merge_folder_into(src_path: str, dest_path: str) -> dict:
         )
         return {"success": True, "moved": moved}
 
-    except Exception as e:
-        logger.error("[MERGE] Exception: %s", e)
-        return {"error": str(e)}
+    except Exception:
+        logger.exception("[MERGE] Failed: src=%s dest=%s", src_path, dest_path)
+        return {"error": "merge_failed"}
 
 
 async def apply_rename(old_path: str, new_name: str):
@@ -138,8 +138,9 @@ async def apply_rename(old_path: str, new_name: str):
         src.rename(dest)
         return {"success": True, "new_path": str(dest)}
 
-    except Exception as e:
-        return {"error": str(e)}
+    except Exception:
+        logger.exception("[RENAME] Failed: old=%s new=%s", old_path, new_name)
+        return {"error": "rename_failed"}
 
 
 async def apply_rename_batch(items: list, cat: str = "") -> list:
