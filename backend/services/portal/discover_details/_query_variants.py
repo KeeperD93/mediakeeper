@@ -1,6 +1,4 @@
 """Query variant generation: orthography, plurals, romance suffixes, compound splits."""
-import re
-
 from ._constants import (
     _COMPOUND_CONNECTOR_WORDS,
     _COMPOUND_SPLIT_OVERRIDES,
@@ -89,8 +87,18 @@ def _normalize_query_separators(query: str) -> str:
 
 
 def _expand_symbol_words(query: str) -> str:
+    """Expand ``&`` / ``+`` symbols into their word-form so a search like
+    ``"Lilo & Stitch"`` or ``"Naruto+Boruto"`` matches the underlying
+    title naturally.
+
+    Linear-time rewrite of the previous ``re.sub(r"\\s*\\+\\s*", ...)``
+    pattern, which CodeQL flagged as polynomial-degree (py/polynomial-redos
+    #144). The ``\\s*X\\s*`` greedy form is O(n²) on inputs of unmatched
+    whitespace; ``split``/``join`` is O(n) with the same effective output.
+    """
     expanded = query.replace("&", " and ")
-    expanded = re.sub(r"\s*\+\s*", " ", expanded)
+    if "+" in expanded:
+        expanded = " ".join(part.strip() for part in expanded.split("+"))
     return " ".join(expanded.split())
 
 
