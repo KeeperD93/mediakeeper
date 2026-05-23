@@ -48,7 +48,7 @@ async def send_discord_test(
     color       = _hex_to_int(tpl_settings.get("color", DEFAULT_COLORS.get(tpl_key, 5763719)))
     image_style = tpl_settings.get("image_style", "image")
 
-    image_url = vars_dict.pop("imgur", "") if "imgur" in vars_dict else ""
+    image_url = vars_dict.pop("imgur", "")
     tmpl = _apply_vars(raw_tpl, _add_aliases(vars_dict))
     if "<imgur>" in tmpl and image_url:
         tmpl = tmpl.replace("<imgur>", "")  # put the image in the embed
