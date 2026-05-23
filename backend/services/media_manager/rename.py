@@ -120,16 +120,14 @@ async def apply_rename(old_path: str, new_name: str):
 
     dest = src.parent / new_name
 
-    # ────────────────────────────────────────────────────────────────
     # SAFETY: never merge/delete when src and dest resolve to the SAME
     # path. Renaming a folder to its own name used to trigger
     # _merge_folder_into(src=dest) which no-op'd then _force_delete()'d
     # the only copy on disk.
-    # ────────────────────────────────────────────────────────────────
     try:
         src_resolved = src.resolve()
         dest_resolved = dest.resolve() if dest.exists() else dest
-    except Exception:
+    except Exception:  # noqa: S110 -- best-effort resolve, fall back to non-resolved paths for the no-op check
         src_resolved, dest_resolved = src, dest
 
     if str(src_resolved) == str(dest_resolved) and src.name == new_name:
