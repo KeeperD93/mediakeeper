@@ -1,6 +1,5 @@
 """Renaming of files/folders + merge of same-named folders."""
 import logging
-from pathlib import Path
 
 from ._io import _fast_move, _force_delete
 from ._paths import (
@@ -103,20 +102,23 @@ async def _merge_folder_into(src_path: str, dest_path: str) -> dict:
 
 
 async def apply_rename(old_path: str, new_name: str):
-    err = _validate_path(old_path)
-    if err:
-        return {"error": err}
+    src = _ensure_within_media_roots(old_path)
+    if src is None:
+        logger.error("[RENAME] Containment rejected: old=%s", old_path)
+        return {"error": "path_not_allowed"}
 
     name_err = _validate_name(new_name)
     if name_err:
         return {"error": name_err}
     new_name = _sanitize_name(new_name)
 
-    src = Path(old_path)
     if not src.exists():
         logger.error("[RENAME] File or directory not found: %s", old_path)
         return {"error": "file_or_directory_not_found"}
 
+    # ``dest`` is built from ``src`` (already sanitised by the helper) and
+    # ``new_name`` (validated by ``_validate_name`` + sanitised by
+    # ``_sanitize_name``). No fresh ``Path(user_input)`` is constructed.
     dest = src.parent / new_name
 
     # SAFETY: never merge/delete when src and dest resolve to the SAME
@@ -124,12 +126,11 @@ async def apply_rename(old_path: str, new_name: str):
     # _merge_folder_into(src=dest) which no-op'd then _force_delete()'d
     # the only copy on disk.
     try:
-        src_resolved = src.resolve()
         dest_resolved = dest.resolve() if dest.exists() else dest
-    except Exception:  # noqa: S110 -- best-effort resolve, fall back to non-resolved paths for the no-op check
-        src_resolved, dest_resolved = src, dest
+    except Exception:  # noqa: S110 -- best-effort resolve, fall back to non-resolved dest for the no-op check
+        dest_resolved = dest
 
-    if str(src_resolved) == str(dest_resolved) and src.name == new_name:
+    if src == dest_resolved and src.name == new_name:
         logger.info("[RENAME] Skipped no-op rename: %s → %s", old_path, new_name)
         return {"success": True, "new_path": old_path, "noop": True}
 
