@@ -12,6 +12,7 @@ from sqlalchemy import inspect
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants import env_vars
 from core.database import DATABASE_URL, engine
 from core.http_client import close_clients, init_clients
 from core.log_redaction import install_log_redactor
@@ -25,7 +26,7 @@ from services.settings import encrypt_legacy_sensitive_values, get_setting
 
 logger = logging.getLogger("mediakeeper")
 
-_PROCESS_ROLE = os.getenv("MK_PROCESS_ROLE", "combined").strip().lower() or "combined"
+_PROCESS_ROLE = os.getenv(env_vars.MK_PROCESS_ROLE, "combined").strip().lower() or "combined"
 _db_ready = False
 _file_handler: logging.FileHandler | None = None
 
@@ -37,7 +38,7 @@ def is_db_ready() -> bool:
 def setup_logging() -> None:
     """Configure logging handlers (console + file) based on MK_DEBUG."""
     global _file_handler
-    mk_debug = os.getenv("MK_DEBUG", "false").lower() in ("true", "1", "yes")
+    mk_debug = os.getenv(env_vars.MK_DEBUG, "false").lower() in ("true", "1", "yes")
     initial_level = logging.DEBUG if mk_debug else logging.INFO
 
     ensure_log_dir()
@@ -83,7 +84,7 @@ def _schema_mode() -> str:
     - ``MK_DB_SCHEMA_MODE=create_all`` keeps the old bootstrap
       behaviour explicitly when needed.
     """
-    raw = (os.getenv("MK_DB_SCHEMA_MODE", "auto").strip().lower() or "auto")
+    raw = (os.getenv(env_vars.MK_DB_SCHEMA_MODE, "auto").strip().lower() or "auto")
     if raw in {"create_all", "validate"}:
         return raw
     return "create_all" if DATABASE_URL.startswith("sqlite") else "validate"
@@ -246,13 +247,13 @@ def _warn_if_secure_cookies_unavailable() -> None:
     surface a misconfiguration that would otherwise silently downgrade
     cookie protection in production.
     """
-    debug = os.getenv("MK_DEBUG", "").strip().lower() in {"true", "1", "yes", "on"}
+    debug = os.getenv(env_vars.MK_DEBUG, "").strip().lower() in {"true", "1", "yes", "on"}
     if debug:
         return
-    cookie_secure_set = os.getenv("COOKIE_SECURE", "").strip() != ""
+    cookie_secure_set = os.getenv(env_vars.COOKIE_SECURE, "").strip() != ""
     if cookie_secure_set:
         return
-    trusted_proxies = os.getenv("TRUSTED_PROXIES", "").strip()
+    trusted_proxies = os.getenv(env_vars.TRUSTED_PROXIES, "").strip()
     if trusted_proxies:
         return
     logger.warning(
@@ -281,13 +282,13 @@ def _warn_if_frontend_origin_missing_in_proxy_mode() -> None:
       - ``TRUSTED_PROXIES`` is non-empty (Mode B reverse proxy).
       - ``FRONTEND_ORIGIN`` is empty.
     """
-    debug = os.getenv("MK_DEBUG", "").strip().lower() in {"true", "1", "yes", "on"}
+    debug = os.getenv(env_vars.MK_DEBUG, "").strip().lower() in {"true", "1", "yes", "on"}
     if debug:
         return
-    trusted_proxies = os.getenv("TRUSTED_PROXIES", "").strip()
+    trusted_proxies = os.getenv(env_vars.TRUSTED_PROXIES, "").strip()
     if not trusted_proxies:
         return
-    frontend_origin = os.getenv("FRONTEND_ORIGIN", "").strip()
+    frontend_origin = os.getenv(env_vars.FRONTEND_ORIGIN, "").strip()
     if frontend_origin:
         return
     logger.warning(
@@ -311,9 +312,9 @@ def _log_deployment_mode() -> None:
     See ``docs/operations/tls-deployment.md`` for the mapping between
     env var names and the log labels.
     """
-    trusted = os.getenv("TRUSTED_PROXIES", "").strip()
-    frontend = os.getenv("FRONTEND_ORIGIN", "").strip()
-    cookie_https = os.getenv("COOKIE_SECURE", "").strip()
+    trusted = os.getenv(env_vars.TRUSTED_PROXIES, "").strip()
+    frontend = os.getenv(env_vars.FRONTEND_ORIGIN, "").strip()
+    cookie_https = os.getenv(env_vars.COOKIE_SECURE, "").strip()
 
     mode = "B (reverse proxy)" if trusted else "A (direct LAN)"
     frontend_label = frontend if frontend else "auto-derived"
