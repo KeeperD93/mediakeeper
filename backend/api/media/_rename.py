@@ -3,7 +3,7 @@ import logging
 from typing import List
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 
 from api.auth import get_current_user
 from models.user import User
@@ -20,15 +20,30 @@ from services.media_manager import (
 logger = logging.getLogger("mediakeeper.api.media")
 router = APIRouter()
 
+# Filesystem upper bounds used as request-level guards. POSIX caps the
+# full path at 4096 bytes and a single component at 255 bytes — going
+# higher serves no legitimate purpose and merely widens the surface
+# fed to downstream sanitisers (defence in depth against the
+# polynomial-degree regex class CodeQL flagged in `services.media_manager`).
+_MAX_PATH_LEN = 4096
+_MAX_NAME_LEN = 255
+_MAX_TITLE_LEN = 500
+_MAX_QUALITY_LEN = 50
+_MAX_EXT_LEN = 10
+_MAX_CATEGORY_LEN = 100
+_MAX_BATCH_ITEMS = 500
+
 
 class RenameRequest(BaseModel):
-    old_path: str
-    new_name: str
+    model_config = ConfigDict(extra="forbid")
+    old_path: str = Field(..., max_length=_MAX_PATH_LEN)
+    new_name: str = Field(..., min_length=1, max_length=_MAX_NAME_LEN)
 
 
 class RenameBatchRequest(BaseModel):
-    items: List[RenameRequest]
-    cat: str = ""
+    model_config = ConfigDict(extra="forbid")
+    items: List[RenameRequest] = Field(..., max_length=_MAX_BATCH_ITEMS)
+    cat: str = Field("", max_length=_MAX_CATEGORY_LEN)
 
 
 @router.post("/preview")
@@ -73,18 +88,20 @@ async def rename_batch(req: RenameBatchRequest, _: User = Depends(get_current_us
 
 
 class MovieNameRequest(BaseModel):
-    title:   str
-    year:    str
-    quality: str = ""
-    ext:     str = ""
+    model_config = ConfigDict(extra="forbid")
+    title:   str = Field(..., min_length=1, max_length=_MAX_TITLE_LEN)
+    year:    str = Field("", max_length=10)
+    quality: str = Field("", max_length=_MAX_QUALITY_LEN)
+    ext:     str = Field("", max_length=_MAX_EXT_LEN)
 
 
 class EpisodeNameRequest(BaseModel):
-    series:  str
-    season:  int
-    episode: int
-    title:   str
-    ext:     str = ""
+    model_config = ConfigDict(extra="forbid")
+    series:  str = Field(..., min_length=1, max_length=_MAX_TITLE_LEN)
+    season:  int = Field(..., ge=0, le=999)
+    episode: int = Field(..., ge=0, le=9999)
+    title:   str = Field(..., min_length=1, max_length=_MAX_TITLE_LEN)
+    ext:     str = Field("", max_length=_MAX_EXT_LEN)
 
 
 @router.post("/build/movie")
@@ -98,9 +115,10 @@ async def build_episode(req: EpisodeNameRequest, _: User = Depends(get_current_u
 
 
 class RenameFolderRequest(BaseModel):
-    cat:      str   # category key (e.g. "telechargement")
-    subpath:  str   # current relative path
-    new_name: str   # new folder name
+    model_config = ConfigDict(extra="forbid")
+    cat:      str = Field(..., max_length=_MAX_CATEGORY_LEN)   # category key (e.g. "telechargement")
+    subpath:  str = Field(..., max_length=_MAX_PATH_LEN)        # current relative path
+    new_name: str = Field(..., min_length=1, max_length=_MAX_NAME_LEN)  # new folder name
 
 
 @router.post("/rename-folder")
