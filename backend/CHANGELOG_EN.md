@@ -11,6 +11,7 @@ This section intentionally has no date so it is not shown to users.
 
 ### Added
 - Onboarding wizard — Portal module added to welcome and tour steps.
+- Community — Discord invite published (login footer, README, Code of Conduct).
 
 ### Changed
 - Scheduler — UI reorganised by category with compact single-line rows.

@@ -20,7 +20,7 @@ Les contributeurs et mainteneurs sont attendus à le lire une fois et à l'appli
 
 Si vous êtes témoin ou victime d'un comportement contraire au Contributor Covenant dans les espaces du projet, merci de le signaler **en privé** :
 
-1. **Préféré** — message direct à un mainteneur sur le serveur Discord du projet (`<DISCORD_INVITE>`).
+1. **Préféré** — message direct à un mainteneur sur le serveur Discord du projet ([discord.gg/A2hyNUUn6a](https://discord.gg/A2hyNUUn6a)).
 2. **Alternatif** — ouvrir une issue publique brève et non révélatrice demandant un canal privé ; un mainteneur vous répondra avec un canal. **N'incluez pas les détails de l'incident dans cette issue publique initiale.**
 
 Tous les signalements sont traités de manière confidentielle.

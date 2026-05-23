@@ -11,6 +11,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ### Added
 - Onboarding — module Portail ajouté au welcome et au tour.
+- Communauté — invitation Discord publiée (footer login, README, code de conduite).
 
 ### Changed
 - Planificateur — interface réorganisée par catégories, cartes compactes.
