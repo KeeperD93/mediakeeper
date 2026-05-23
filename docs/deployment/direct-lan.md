@@ -62,7 +62,7 @@ unreadable as soon as the container restarts.
 After boot, the container logs should show:
 
 ```
-[startup] deployment mode=A (direct LAN) | TRUSTED_PROXIES=(empty) | FRONTEND_ORIGIN=auto-derived | cookies.https_flag=auto
+[startup] deployment mode=A (direct LAN) | TRUSTED_PROXIES=(empty) | FRONTEND_ORIGIN=auto-derived | COOKIE_HTTPS_FLAG=auto
 ```
 
 Then from a client on the same LAN:

@@ -52,7 +52,7 @@ Boot logs from MediaKeeper should mention Mode B with the matching
 `TRUSTED_PROXIES` / `FRONTEND_ORIGIN`.
 
 ```text
-[startup] deployment mode=B (reverse proxy) | TRUSTED_PROXIES=172.17.0.0/16 | FRONTEND_ORIGIN=https://mediakeeper.your-domain.example | cookies.https_flag=true
+[startup] deployment mode=B (reverse proxy) | TRUSTED_PROXIES=172.17.0.0/16 | FRONTEND_ORIGIN=https://mediakeeper.your-domain.example | COOKIE_HTTPS_FLAG=true
 ```
 
 ## 4. Common pitfalls
