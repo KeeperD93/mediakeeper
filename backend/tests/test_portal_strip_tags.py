@@ -31,7 +31,7 @@ def test_returns_empty_on_empty_input():
 
 
 def test_returns_empty_on_none_input():
-    assert strip_tags_and_trim(None) == ""  # type: ignore[arg-type]
+    assert strip_tags_and_trim(None) == ""
 
 
 def test_respects_max_len_on_plain_text():
