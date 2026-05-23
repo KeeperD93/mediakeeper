@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 
 from ._io import _fast_move, _force_delete
-from ._paths import _media_roots, _sanitize_name, _validate_name, _validate_path
+from ._paths import _sanitize_name, _validate_name, _validate_path
 from .categories import MEDIA_FOLDERS
 
 logger = logging.getLogger("mediakeeper.media_manager")
@@ -13,23 +13,12 @@ async def _merge_folder_into(src_path: str, dest_path: str) -> dict:
     """Merge src into dest, then delete src — only if every move succeeded.
 
     Defense-in-depth: every API entry already gates input through
-    ``_validate_path``, but we re-anchor src/dest against the configured
-    media roots here so a future caller cannot bypass the gate and so the
-    static analyser sees a visible containment check right before the
-    filesystem sinks (``samefile``, ``resolve``, ``_force_delete``).
+    ``_validate_path``, but we re-run it here so a future caller cannot
+    bypass the top-level gate. ``_validate_path`` delegates to
+    ``validate_path_in_roots`` which performs anchored resolution +
+    containment check against the configured media roots.
     """
-    try:
-        _src_resolved = Path(src_path).resolve(strict=False)
-        _dest_resolved = Path(dest_path).resolve(strict=False)
-    except (ValueError, OSError, RuntimeError):
-        logger.error("[MERGE] Path resolve failed: src=%s dest=%s", src_path, dest_path)
-        return {"error": "path_not_allowed"}
-
-    _roots = [r.resolve(strict=False) for r in _media_roots()]
-    if not _roots or not all(
-        any(p.is_relative_to(root) for root in _roots)
-        for p in (_src_resolved, _dest_resolved)
-    ):
+    if _validate_path(src_path) is not None or _validate_path(dest_path) is not None:
         logger.error("[MERGE] Containment rejected: src=%s dest=%s", src_path, dest_path)
         return {"error": "path_not_allowed"}
 
