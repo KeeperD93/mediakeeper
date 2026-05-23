@@ -244,7 +244,7 @@ Pour Synology DSM, les configurations reverse-proxy, le déploiement TLS et la c
 
 ---
 
-## Soutenir le projet
+## 💝 Soutenir le projet
 
 MediaKeeper est gratuit et open-source. Si vous l'utilisez et appréciez le travail, vous pouvez soutenir son développement :
 
