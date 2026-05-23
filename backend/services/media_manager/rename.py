@@ -3,7 +3,12 @@ import logging
 from pathlib import Path
 
 from ._io import _fast_move, _force_delete
-from ._paths import _sanitize_name, _validate_name, _validate_path
+from ._paths import (
+    _ensure_within_media_roots,
+    _sanitize_name,
+    _validate_name,
+    _validate_path,
+)
 from .categories import MEDIA_FOLDERS
 
 logger = logging.getLogger("mediakeeper.media_manager")
@@ -12,18 +17,19 @@ logger = logging.getLogger("mediakeeper.media_manager")
 async def _merge_folder_into(src_path: str, dest_path: str) -> dict:
     """Merge src into dest, then delete src — only if every move succeeded.
 
-    Defense-in-depth: every API entry already gates input through
-    ``_validate_path``, but we re-run it here so a future caller cannot
-    bypass the top-level gate. ``_validate_path`` delegates to
-    ``validate_path_in_roots`` which performs anchored resolution +
-    containment check against the configured media roots.
+    Defense-in-depth: ``_ensure_within_media_roots`` validates and returns
+    the resolved ``Path`` for both src and dest. All downstream filesystem
+    sinks (``is_dir``, ``samefile``, ``iterdir``, ``_force_delete``, etc.)
+    operate on the *returned* ``Path`` rather than on a freshly-built
+    ``Path(input_string)``. The taint flow from the user-controlled string
+    is therefore broken at the function boundary via ``os.path.commonpath``,
+    which CodeQL recognises as a barrier guard for ``py/path-injection``.
     """
-    if _validate_path(src_path) is not None or _validate_path(dest_path) is not None:
+    src = _ensure_within_media_roots(src_path)
+    dest = _ensure_within_media_roots(dest_path)
+    if src is None or dest is None:
         logger.error("[MERGE] Containment rejected: src=%s dest=%s", src_path, dest_path)
         return {"error": "path_not_allowed"}
-
-    src  = Path(src_path)
-    dest = Path(dest_path)
 
     if not src.is_dir():
         logger.error("[MERGE] Source is not a directory: %s", src_path)
@@ -33,6 +39,16 @@ async def _merge_folder_into(src_path: str, dest_path: str) -> dict:
         return {"error": "destination_not_a_directory"}
 
     # SAFETY: refuse self-merge — would nuke the source after a no-op loop.
+    # src and dest are already resolved by _ensure_within_media_roots,
+    # so the equality check is a direct comparison; samefile() is the
+    # cross-filesystem fallback (handles hardlinks pointing to the same
+    # inode despite different paths).
+    if src == dest:
+        logger.error(
+            "[MERGE] Self-merge refused: resolved paths are identical: %s",
+            src_path,
+        )
+        return {"error": "self_merge_refused"}
     try:
         if src.samefile(dest):
             logger.error(
@@ -42,12 +58,6 @@ async def _merge_folder_into(src_path: str, dest_path: str) -> dict:
             return {"error": "self_merge_refused"}
     except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
         pass
-    if str(src.resolve()) == str(dest.resolve()):
-        logger.error(
-            "[MERGE] Self-merge refused: resolved paths are identical: %s",
-            src_path,
-        )
-        return {"error": "self_merge_refused"}
 
     try:
         moved = 0
