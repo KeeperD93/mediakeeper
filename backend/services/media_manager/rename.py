@@ -22,12 +22,18 @@ async def _merge_folder_into(src_path: str, dest_path: str) -> dict:
     # SAFETY: refuse self-merge — would nuke the source after a no-op loop.
     try:
         if src.samefile(dest):
-            logger.error(f"[MERGE] Self-merge refused: src and dest point to the same inode: {src_path}")
+            logger.error(
+                "[MERGE] Self-merge refused: src and dest point to the same inode: %s",
+                src_path,
+            )
             return {"error": "self_merge_refused"}
     except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
         pass
     if str(src.resolve()) == str(dest.resolve()):
-        logger.error(f"[MERGE] Self-merge refused: resolved paths are identical: {src_path}")
+        logger.error(
+            "[MERGE] Self-merge refused: resolved paths are identical: %s",
+            src_path,
+        )
         return {"error": "self_merge_refused"}
 
     try:
@@ -39,7 +45,10 @@ async def _merge_folder_into(src_path: str, dest_path: str) -> dict:
                 sub = await _merge_folder_into(str(item), str(target))
                 if sub.get("error"):
                     failed += 1
-                    logger.error(f"[MERGE] sub-merge failed {item} → {target}: {sub.get('error')}")
+                    logger.error(
+                        "[MERGE] sub-merge failed %s → %s: %s",
+                        item, target, sub.get("error"),
+                    )
                 else:
                     moved += sub.get("moved", 0)
             else:
@@ -48,21 +57,25 @@ async def _merge_folder_into(src_path: str, dest_path: str) -> dict:
                     moved += 1
                 except Exception as e:
                     failed += 1
-                    logger.error(f"[MERGE] mv failed {item} → {target}: {e}")
+                    logger.error("[MERGE] mv failed %s → %s: %s", item, target, e)
 
         # Delete the source ONLY if everything was moved successfully.
         if failed > 0:
-            logger.error(f"[MERGE] {failed} failure(s) — source kept: {src_path}")
+            logger.error(
+                "[MERGE] %s failure(s) — source kept: %s", failed, src_path,
+            )
             return {"error": f"partial_merge_failed: {failed} items not moved", "moved": moved, "failed": failed}
 
         if src.exists():
             await _force_delete(src)
 
-        logger.info(f"[MERGE] {moved} items merged from {src_path} → {dest_path}")
+        logger.info(
+            "[MERGE] %s items merged from %s → %s", moved, src_path, dest_path,
+        )
         return {"success": True, "moved": moved}
 
     except Exception as e:
-        logger.error(f"[MERGE] Exception: {e}")
+        logger.error("[MERGE] Exception: %s", e)
         return {"error": str(e)}
 
 
@@ -95,7 +108,7 @@ async def apply_rename(old_path: str, new_name: str):
         src_resolved, dest_resolved = src, dest
 
     if str(src_resolved) == str(dest_resolved) and src.name == new_name:
-        logger.info(f"[RENAME] Skipped no-op rename: {old_path} → {new_name}")
+        logger.info("[RENAME] Skipped no-op rename: %s → %s", old_path, new_name)
         return {"success": True, "new_path": old_path, "noop": True}
 
     try:
@@ -105,7 +118,8 @@ async def apply_rename(old_path: str, new_name: str):
             try:
                 if dest.samefile(src):
                     logger.warning(
-                        f"[RENAME] Refused self-merge — dest is the same file as src: {old_path}"
+                        "[RENAME] Refused self-merge — dest is the same file as src: %s",
+                        old_path,
                     )
                     return {"error": f"'{new_name}' refers to the folder itself"}
             except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
@@ -114,7 +128,7 @@ async def apply_rename(old_path: str, new_name: str):
             if src.is_dir() and dest.is_dir():
                 merge_result = await _merge_folder_into(str(src), str(dest))
                 if merge_result.get("success"):
-                    logger.info(f"[RENAME] Merge succeeded: {old_path} → {dest}")
+                    logger.info("[RENAME] Merge succeeded: %s → %s", old_path, dest)
                     return {"success": True, "new_path": str(dest), "merged": True}
                 else:
                     return {"error": f"'{new_name}' already exists and the merge failed: {merge_result.get('error')}"}
@@ -137,7 +151,7 @@ async def apply_rename_batch(items: list, cat: str = "") -> list:
             return path
         if cat and cat in MEDIA_FOLDERS:
             return f"{MEDIA_FOLDERS[cat]}/{path.strip('/')}"
-        logger.error(f"[RENAME] Unable to resolve relative path: {path}")
+        logger.error("[RENAME] Unable to resolve relative path: %s", path)
         return path
 
     results = []
