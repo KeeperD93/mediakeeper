@@ -16,7 +16,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ### Changed
 - Planificateur — interface réorganisée par catégories, cartes compactes.
-- Démarrage — log boot : `COOKIE_SECURE=` renommé `COOKIE_HTTPS_FLAG=` (variable env inchangée).
+- Démarrage — log boot : `COOKIE_SECURE=` renommé `COOKIE_HTTPS_FLAG=` (variable env inchangée, mapping dans `tls-deployment.md`).
 
 ### Fixed
 - Connexion — la détection brute-force ignore désormais les variations de casse du nom d'utilisateur.

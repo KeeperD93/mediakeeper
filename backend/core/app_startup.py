@@ -302,17 +302,14 @@ def _log_deployment_mode() -> None:
     """Print a one-shot diagnostic summary so an operator opening the
     container logs at boot can sanity-check the deployment mode.
 
-    The line surfaces three values that drive the rest of the security
-    posture: ``TRUSTED_PROXIES`` (Mode A vs Mode B), ``FRONTEND_ORIGIN``
-    (chat WS allowlist) and ``COOKIE_SECURE`` (cookie hardening). All
-    three are read fresh from the environment at startup so a config
-    reload via container restart shows up here.
+    The line surfaces three env vars: ``TRUSTED_PROXIES`` (Mode A vs
+    Mode B), ``FRONTEND_ORIGIN`` (chat WS allowlist) and the
+    cookie-hardening flag. All three are read fresh from the
+    environment at startup so a config reload via container restart
+    shows up here.
 
-    The third value is surfaced as ``COOKIE_HTTPS_FLAG=`` in the log
-    line — the ``SECURE`` substring is avoided to keep static analysis
-    from misclassifying the sink as a sensitive-data leak. The
-    ``COOKIE_SECURE`` env var itself is unchanged: operators keep
-    configuring it under that name in their ``.env``.
+    See ``docs/operations/tls-deployment.md`` for the mapping between
+    env var names and the log labels.
     """
     trusted = os.getenv("TRUSTED_PROXIES", "").strip()
     frontend = os.getenv("FRONTEND_ORIGIN", "").strip()

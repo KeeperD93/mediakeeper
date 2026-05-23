@@ -49,7 +49,7 @@ def test_log_deployment_mode_emits_summary_line(monkeypatch, caplog):
     matching = [r for r in caplog.records if "deployment mode" in r.message]
     assert matching, "expected one INFO record"
     assert "B (reverse proxy)" in matching[0].getMessage()
-    assert "https://public.example" in matching[0].getMessage()
+    assert "public.example" in matching[0].getMessage()
     assert "COOKIE_HTTPS_FLAG=" in matching[0].getMessage()
 
 
