@@ -208,6 +208,91 @@ async def test_merge_partial_failure_returns_stable_error_with_count_field(monke
 
 
 @pytest.mark.asyncio
+async def test_apply_rename_self_merge_returns_stable_code(monkeypatch):
+    """When ``dest.samefile(src)`` is true, the response must be the same
+    stable ``self_merge_refused`` code that ``_merge_folder_into`` returns
+    in equivalent situations — not an f-string embedding ``new_name``."""
+    workspace = _make_workspace_tmp("_attack_stable_codes")
+    try:
+        media_root = workspace / "media"
+        media_root.mkdir()
+        src_dir = media_root / "src_dir"
+        src_dir.mkdir()
+        twin = media_root / "twin"
+        twin.write_bytes(b"data")
+        monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
+
+        from services.media_manager import categories as cat_mod
+        monkeypatch.setattr(cat_mod, "MEDIA_FOLDERS", {"movies": str(media_root)})
+
+        monkeypatch.setattr(Path, "samefile", lambda self, other: True)
+
+        result = await apply_rename(str(src_dir), "twin")
+
+        assert result == {"error": "self_merge_refused"}
+    finally:
+        shutil.rmtree(workspace, ignore_errors=True)
+
+
+@pytest.mark.asyncio
+async def test_apply_rename_dest_exists_merge_failed_returns_stable_code(monkeypatch):
+    """When src is a directory, dest is an existing directory, and the
+    inner merge fails, the response must be the stable
+    ``destination_exists_merge_failed`` code with the sub-cause surfaced
+    in a dedicated ``merge_error`` field (not concatenated into the code)."""
+    workspace = _make_workspace_tmp("_attack_stable_codes")
+    try:
+        media_root = workspace / "media"
+        media_root.mkdir()
+        src_dir = media_root / "src_dir"
+        dest_dir = media_root / "dest_dir"
+        src_dir.mkdir()
+        dest_dir.mkdir()
+        (src_dir / "file_a.mkv").write_bytes(b"a")
+        monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
+
+        from services.media_manager import categories as cat_mod
+        monkeypatch.setattr(cat_mod, "MEDIA_FOLDERS", {"movies": str(media_root)})
+
+        async def boom_move(_src, _target):
+            raise OSError("move denied")
+
+        monkeypatch.setattr(rename_mod, "_fast_move", boom_move)
+
+        result = await apply_rename(str(src_dir), "dest_dir")
+
+        assert result.get("error") == "destination_exists_merge_failed"
+        assert result.get("merge_error") == "partial_merge_failed"
+    finally:
+        shutil.rmtree(workspace, ignore_errors=True)
+
+
+@pytest.mark.asyncio
+async def test_apply_rename_dest_exists_not_dir_returns_stable_code(monkeypatch):
+    """When dest already exists and either src or dest is not a directory,
+    the response must be the stable ``destination_exists`` code — never
+    an f-string embedding ``new_name``."""
+    workspace = _make_workspace_tmp("_attack_stable_codes")
+    try:
+        media_root = workspace / "media"
+        media_root.mkdir()
+        src_file = media_root / "source.mkv"
+        src_file.write_bytes(b"src")
+        existing = media_root / "existing.mkv"
+        existing.write_bytes(b"data")
+        monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
+
+        from services.media_manager import categories as cat_mod
+        monkeypatch.setattr(cat_mod, "MEDIA_FOLDERS", {"movies": str(media_root)})
+
+        result = await apply_rename(str(src_file), "existing.mkv")
+
+        assert result == {"error": "destination_exists"}
+    finally:
+        shutil.rmtree(workspace, ignore_errors=True)
+
+
+@pytest.mark.asyncio
 async def test_apply_rename_missing_path_returns_generic_code(monkeypatch):
     """When the source path passes ``_validate_path`` (parent exists in
     ``MEDIAKEEPER_PATH_ROOTS``) but the file itself is missing, the

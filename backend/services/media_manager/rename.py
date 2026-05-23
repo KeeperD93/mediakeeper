@@ -144,7 +144,7 @@ async def apply_rename(old_path: str, new_name: str):
                         "[RENAME] Refused self-merge — dest is the same file as src: %s",
                         old_path,
                     )
-                    return {"error": f"'{new_name}' refers to the folder itself"}
+                    return {"error": "self_merge_refused"}
             except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
                 pass
 
@@ -154,9 +154,14 @@ async def apply_rename(old_path: str, new_name: str):
                     logger.info("[RENAME] Merge succeeded: %s → %s", old_path, dest)
                     return {"success": True, "new_path": str(dest), "merged": True}
                 else:
-                    return {"error": f"'{new_name}' already exists and the merge failed: {merge_result.get('error')}"}
+                    logger.error(
+                        "[RENAME] Destination exists, merge failed: old=%s new=%s sub_error=%s",
+                        old_path, new_name, merge_result.get("error"),
+                    )
+                    return {"error": "destination_exists_merge_failed", "merge_error": merge_result.get("error")}
             else:
-                return {"error": f"'{new_name}' already exists"}
+                logger.warning("[RENAME] Destination exists: old=%s new=%s", old_path, new_name)
+                return {"error": "destination_exists"}
 
         src.rename(dest)
         return {"success": True, "new_path": str(dest)}
