@@ -16,6 +16,7 @@
   <a href="https://github.com/KeeperD93/mediakeeper/actions/workflows/frontend.yml"><img alt="Frontend CI" src="https://github.com/KeeperD93/mediakeeper/actions/workflows/frontend.yml/badge.svg"></a>
   <a href="https://github.com/KeeperD93/mediakeeper/actions/workflows/security.yml"><img alt="Security" src="https://github.com/KeeperD93/mediakeeper/actions/workflows/security.yml/badge.svg"></a>
   <a href="https://discord.gg/A2hyNUUn6a"><img alt="Discord" src="https://img.shields.io/discord/1507137232941617234?label=Discord&logo=discord&color=5865F2&logoColor=white"></a>
+  <a href="https://ko-fi.com/keeperd93"><img alt="Ko-fi" src="https://img.shields.io/badge/Ko--fi-Soutenir-FF5E5B?logo=ko-fi&logoColor=white"></a>
   <img alt="AI-assisted" src="https://img.shields.io/badge/Assist%C3%A9%20IA-Oui-8A2BE2">
 </p>
 
@@ -240,6 +241,15 @@ Pour Synology DSM, les configurations reverse-proxy, le déploiement TLS et la c
 - **GitHub Discussions** — https://github.com/KeeperD93/mediakeeper/discussions
 - **Rapports de bug & demandes de fonctionnalité** — https://github.com/KeeperD93/mediakeeper/issues
 - **Signalements de sécurité** — voir [`SECURITY.md`](SECURITY.md) ; n'ouvrez **pas** d'issue publique
+
+---
+
+## Soutenir le projet
+
+MediaKeeper est gratuit et open-source. Si vous l'utilisez et appréciez le travail, vous pouvez soutenir son développement :
+
+- **Ko-fi** — [ko-fi.com/keeperd93](https://ko-fi.com/keeperd93) — dons ponctuels ou abonnements récurrents, PayPal et cartes acceptés
+- **Mettre une étoile** — chaque étoile aide la visibilité sur GitHub
 
 ---
 
