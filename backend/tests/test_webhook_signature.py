@@ -227,5 +227,44 @@ async def test_post_signed_with_retry_refuses_unsafe_url(monkeypatch):
     assert client.calls == []
 
 
+@pytest.mark.asyncio
+async def test_post_signed_with_retry_refuses_non_discord_host(monkeypatch):
+    """Even when validate_outbound_url passes (private-IP / DNS rebinding
+    guard), the function must still reject any host outside the
+    Discord whitelist before posting. Closes the residual ``py/full-ssrf``
+    sink — the host that actually reaches ``client.post`` is provably
+    one of ``ALLOWED_DISCORD_HOSTS``."""
+    monkeypatch.setattr("asyncio.sleep", _async_noop_sleep)
+    client = _FakeClient([_FakeResponse(204)])
+    with pytest.raises(UnsafeOutboundURL) as exc:
+        await webhooks.post_signed_with_retry(
+            client,
+            "https://attacker.example.com/api/webhooks/1/x",
+            {"content": "ok"},
+            timeout=10.0,
+        )
+    assert exc.value.reason == "webhook_host_not_allowed"
+    assert client.calls == []
+
+
+@pytest.mark.asyncio
+async def test_post_signed_with_retry_normalises_url_before_post(monkeypatch):
+    """The URL passed to ``client.post`` must be rebuilt from a literal
+    host pulled from ``ALLOWED_DISCORD_HOSTS`` — trailing dots and
+    other host-spelling oddities cannot reach the network layer."""
+    monkeypatch.setattr("asyncio.sleep", _async_noop_sleep)
+    client = _FakeClient([_FakeResponse(204)])
+    await webhooks.post_signed_with_retry(
+        client,
+        "https://discord.com./api/webhooks/1/x?wait=true",
+        {"content": "ok"},
+        timeout=10.0,
+    )
+    assert len(client.calls) == 1
+    assert client.calls[0]["url"] == (
+        "https://discord.com/api/webhooks/1/x?wait=true"
+    )
+
+
 async def _async_noop_sleep(_delay):
     return None
