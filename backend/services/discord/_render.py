@@ -127,15 +127,27 @@ def _parse_fields(tmpl: str) -> tuple[str, list]:
     """
     Extract embed fields from the template.
     Syntax: <fields>[{"name":"N","value":"V","inline":true}]</fields>
+
+    Linear-time rewrite of the previous ``re.search(r"<fields>(.*?)</fields>",
+    ..., re.DOTALL)``, which CodeQL flagged as polynomial-degree
+    (py/polynomial-redos #145). ``str.find`` is O(n) garanti and the
+    code reads more naturally than a regex anyway. Only the first
+    ``<fields>...</fields>`` block is processed (matches previous
+    behaviour: ``re.search`` returns the first non-overlapping match).
     """
     fields = []
-    match = re.search(r"<fields>(.*?)</fields>", tmpl, re.DOTALL)
-    if match:
-        try:
-            fields = json.loads(match.group(1))
-        except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
-            pass
-        tmpl = tmpl[:match.start()] + tmpl[match.end():]
+    start_marker = "<fields>"
+    end_marker = "</fields>"
+    start = tmpl.find(start_marker)
+    if start != -1:
+        body_start = start + len(start_marker)
+        end = tmpl.find(end_marker, body_start)
+        if end != -1:
+            try:
+                fields = json.loads(tmpl[body_start:end])
+            except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
+                pass
+            tmpl = tmpl[:start] + tmpl[end + len(end_marker):]
     return tmpl.strip(), fields
 
 

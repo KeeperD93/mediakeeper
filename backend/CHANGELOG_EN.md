@@ -25,6 +25,7 @@ This section intentionally has no date so it is not shown to users.
 - Scheduler — task labels are now translated (FR/EN parity).
 - Image proxy and webhooks — hardened against SSRF bypasses and DNS rebinding.
 - Portal sanitisation — HTML-tag regex made linear-time (ReDoS hardening).
+- Internal sanitisers — polynomial regexes replaced with linear ops (ReDoS hardening).
 
 ## [1.0.0-rc.3] - 2026-05-22
 

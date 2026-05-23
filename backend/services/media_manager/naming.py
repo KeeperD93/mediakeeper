@@ -12,11 +12,18 @@ def format_size(size_bytes: int) -> str:
 
 
 def sanitize_filename(name: str) -> str:
-    name = re.sub(r'\s*:\s*', ' - ', name)
+    """Linear-time rewrite of the previous polynomial-degree regexes
+    (CodeQL py/polynomial-redos #146). ``\\s*X\\s*`` greedy on input
+    made of unmatched whitespace was O(n²); ``split``/``join`` is O(n)
+    with the same effective output for well-formed inputs. Isolated
+    tabs/newlines in filenames — which are anomalous and break shell
+    scripts / display — are now normalised to single spaces.
+    """
     name = name.replace(',', '')
     name = re.sub(r'[<>"/\\|?*]', '', name)
-    name = re.sub(r'\s{2,}', ' ', name)
-    return name.strip()
+    if ':' in name:
+        name = ' - '.join(part.strip() for part in name.split(':'))
+    return ' '.join(name.split())
 
 
 def build_movie_name(title: str, year: str, quality: str = "", ext: str = "") -> str:
