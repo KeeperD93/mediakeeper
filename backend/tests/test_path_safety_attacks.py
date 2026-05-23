@@ -31,7 +31,7 @@ from api.media._helpers import _is_allowed_browse_path
 from core.app_spa import _resolve_spa_file
 from services import backup as backup_service
 from services.logs import _files
-from services.media_manager._paths import _is_allowed_path, _validate_path
+from services.media_manager._paths import _ensure_within_media_roots, _is_allowed_path, _validate_path
 from services.path_config import is_path_within_backup_dir, validate_path_in_roots
 from services.portal.avatars import _safe_filename, avatar_path_for
 
@@ -236,6 +236,122 @@ def test_media_validate_rejects_symlink_targeting_outside(monkeypatch):
 
         # ``resolve()`` follows the symlink → escapes the media root.
         assert _validate_path(str(link)) == "path_not_allowed"
+    finally:
+        shutil.rmtree(workspace, ignore_errors=True)
+
+
+# _ensure_within_media_roots — CodeQL-recognised barrier-guard helper
+
+
+def test_ensure_within_media_roots_accepts_path_inside_root(monkeypatch):
+    """Returns the resolved ``Path`` for paths inside a configured root."""
+    workspace = _make_workspace_tmp("_attack_ensure")
+    try:
+        media_root = workspace / "media"
+        media_root.mkdir()
+        legit = media_root / "movie.mkv"
+        legit.write_bytes(b"\x00" * 10)
+        monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
+        from services.media_manager import categories as cat_mod
+        monkeypatch.setattr(cat_mod, "MEDIA_FOLDERS", {"movies": str(media_root)})
+
+        result = _ensure_within_media_roots(str(legit))
+
+        assert result is not None
+        assert result == legit.resolve()
+    finally:
+        shutil.rmtree(workspace, ignore_errors=True)
+
+
+def test_ensure_within_media_roots_rejects_parent_traversal(monkeypatch):
+    """Returns ``None`` for ``..`` payload resolving outside the roots."""
+    workspace = _make_workspace_tmp("_attack_ensure")
+    try:
+        media_root = workspace / "media"
+        media_root.mkdir()
+        (workspace / "secret.txt").write_text("nope", encoding="utf-8")
+        monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
+        from services.media_manager import categories as cat_mod
+        monkeypatch.setattr(cat_mod, "MEDIA_FOLDERS", {"movies": str(media_root)})
+
+        attack = str(media_root / ".." / "secret.txt")
+        assert _ensure_within_media_roots(attack) is None
+    finally:
+        shutil.rmtree(workspace, ignore_errors=True)
+
+
+def test_ensure_within_media_roots_rejects_absolute_outside(monkeypatch):
+    """Returns ``None`` for absolute paths outside the configured roots."""
+    workspace = _make_workspace_tmp("_attack_ensure")
+    try:
+        media_root = workspace / "media"
+        media_root.mkdir()
+        monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
+        from services.media_manager import categories as cat_mod
+        monkeypatch.setattr(cat_mod, "MEDIA_FOLDERS", {"movies": str(media_root)})
+
+        attack = "/etc/passwd" if sys.platform != "win32" else "C:\\Windows\\System32"
+        assert _ensure_within_media_roots(attack) is None
+    finally:
+        shutil.rmtree(workspace, ignore_errors=True)
+
+
+def test_ensure_within_media_roots_rejects_nul_byte(monkeypatch):
+    """Returns ``None`` when ``Path.resolve`` raises on NUL byte input."""
+    workspace = _make_workspace_tmp("_attack_ensure")
+    try:
+        media_root = workspace / "media"
+        media_root.mkdir()
+        monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
+        from services.media_manager import categories as cat_mod
+        monkeypatch.setattr(cat_mod, "MEDIA_FOLDERS", {"movies": str(media_root)})
+
+        assert _ensure_within_media_roots("movie.mkv\x00.txt") is None
+    finally:
+        shutil.rmtree(workspace, ignore_errors=True)
+
+
+def test_ensure_within_media_roots_rejects_backup_zone(monkeypatch):
+    """Returns ``None`` for paths that resolve inside the backup directory,
+    even when the backup dir lives under a configured media root."""
+    workspace = _make_workspace_tmp("_attack_ensure")
+    try:
+        media_root = workspace / "media"
+        backup_dir = media_root / "backups"
+        backup_dir.mkdir(parents=True)
+        target = backup_dir / "archive.zip"
+        target.write_text("zip", encoding="utf-8")
+        monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
+        monkeypatch.setenv("BACKUP_PATH", str(backup_dir))
+        from services.media_manager import categories as cat_mod
+        monkeypatch.setattr(cat_mod, "MEDIA_FOLDERS", {"movies": str(media_root)})
+
+        assert _ensure_within_media_roots(str(target)) is None
+    finally:
+        shutil.rmtree(workspace, ignore_errors=True)
+
+
+def test_ensure_within_media_roots_returns_resolved_path(monkeypatch):
+    """Contract: the returned ``Path`` is the ``resolve(strict=False)`` of
+    the input, so callers operating on it carry the sanitised value
+    downstream (CodeQL taint flow break)."""
+    workspace = _make_workspace_tmp("_attack_ensure")
+    try:
+        media_root = workspace / "media"
+        nested = media_root / "sub" / "dir"
+        nested.mkdir(parents=True)
+        monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
+        from services.media_manager import categories as cat_mod
+        monkeypatch.setattr(cat_mod, "MEDIA_FOLDERS", {"movies": str(media_root)})
+
+        # Input has a redundant `./` that resolve() will normalise away.
+        input_path = f"{media_root}/./sub/dir"
+        result = _ensure_within_media_roots(input_path)
+
+        assert result is not None
+        assert result == nested.resolve()
+        # The returned path string is the normalised form, NOT the input.
+        assert str(result) == str(nested.resolve())
     finally:
         shutil.rmtree(workspace, ignore_errors=True)
 
