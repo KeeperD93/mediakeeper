@@ -10,14 +10,27 @@ logger = logging.getLogger("mediakeeper.media_manager")
 
 
 async def _merge_folder_into(src_path: str, dest_path: str) -> dict:
-    """Merge src into dest, then delete src — only if every move succeeded."""
+    """Merge src into dest, then delete src — only if every move succeeded.
+
+    Defense-in-depth: every API entry already gates input through
+    ``_validate_path``, but we re-run it here so a future caller cannot
+    bypass the top-level gate. ``_validate_path`` delegates to
+    ``validate_path_in_roots`` which performs anchored resolution +
+    containment check against the configured media roots.
+    """
+    if _validate_path(src_path) is not None or _validate_path(dest_path) is not None:
+        logger.error("[MERGE] Containment rejected: src=%s dest=%s", src_path, dest_path)
+        return {"error": "path_not_allowed"}
+
     src  = Path(src_path)
     dest = Path(dest_path)
 
     if not src.is_dir():
-        return {"error": f"source_not_a_directory: {src_path}"}
+        logger.error("[MERGE] Source is not a directory: %s", src_path)
+        return {"error": "source_not_a_directory"}
     if not dest.is_dir():
-        return {"error": f"destination_not_a_directory: {dest_path}"}
+        logger.error("[MERGE] Destination is not a directory: %s", dest_path)
+        return {"error": "destination_not_a_directory"}
 
     # SAFETY: refuse self-merge — would nuke the source after a no-op loop.
     try:
@@ -64,7 +77,7 @@ async def _merge_folder_into(src_path: str, dest_path: str) -> dict:
             logger.error(
                 "[MERGE] %s failure(s) — source kept: %s", failed, src_path,
             )
-            return {"error": f"partial_merge_failed: {failed} items not moved", "moved": moved, "failed": failed}
+            return {"error": "partial_merge_failed", "moved": moved, "failed": failed}
 
         if src.exists():
             await _force_delete(src)
@@ -74,9 +87,9 @@ async def _merge_folder_into(src_path: str, dest_path: str) -> dict:
         )
         return {"success": True, "moved": moved}
 
-    except Exception as e:
-        logger.error("[MERGE] Exception: %s", e)
-        return {"error": str(e)}
+    except Exception:
+        logger.exception("[MERGE] Failed: src=%s dest=%s", src_path, dest_path)
+        return {"error": "merge_failed"}
 
 
 async def apply_rename(old_path: str, new_name: str):
@@ -91,20 +104,19 @@ async def apply_rename(old_path: str, new_name: str):
 
     src = Path(old_path)
     if not src.exists():
-        return {"error": f"file_or_directory_not_found: {old_path}"}
+        logger.error("[RENAME] File or directory not found: %s", old_path)
+        return {"error": "file_or_directory_not_found"}
 
     dest = src.parent / new_name
 
-    # ────────────────────────────────────────────────────────────────
     # SAFETY: never merge/delete when src and dest resolve to the SAME
     # path. Renaming a folder to its own name used to trigger
     # _merge_folder_into(src=dest) which no-op'd then _force_delete()'d
     # the only copy on disk.
-    # ────────────────────────────────────────────────────────────────
     try:
         src_resolved = src.resolve()
         dest_resolved = dest.resolve() if dest.exists() else dest
-    except Exception:
+    except Exception:  # noqa: S110 -- best-effort resolve, fall back to non-resolved paths for the no-op check
         src_resolved, dest_resolved = src, dest
 
     if str(src_resolved) == str(dest_resolved) and src.name == new_name:
@@ -121,7 +133,7 @@ async def apply_rename(old_path: str, new_name: str):
                         "[RENAME] Refused self-merge — dest is the same file as src: %s",
                         old_path,
                     )
-                    return {"error": f"'{new_name}' refers to the folder itself"}
+                    return {"error": "self_merge_refused"}
             except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
                 pass
 
@@ -131,15 +143,21 @@ async def apply_rename(old_path: str, new_name: str):
                     logger.info("[RENAME] Merge succeeded: %s → %s", old_path, dest)
                     return {"success": True, "new_path": str(dest), "merged": True}
                 else:
-                    return {"error": f"'{new_name}' already exists and the merge failed: {merge_result.get('error')}"}
+                    logger.error(
+                        "[RENAME] Destination exists, merge failed: old=%s new=%s sub_error=%s",
+                        old_path, new_name, merge_result.get("error"),
+                    )
+                    return {"error": "destination_exists_merge_failed", "merge_error": merge_result.get("error")}
             else:
-                return {"error": f"'{new_name}' already exists"}
+                logger.warning("[RENAME] Destination exists: old=%s new=%s", old_path, new_name)
+                return {"error": "destination_exists"}
 
         src.rename(dest)
         return {"success": True, "new_path": str(dest)}
 
-    except Exception as e:
-        return {"error": str(e)}
+    except Exception:
+        logger.exception("[RENAME] Failed: old=%s new=%s", old_path, new_name)
+        return {"error": "rename_failed"}
 
 
 async def apply_rename_batch(items: list, cat: str = "") -> list:

@@ -26,6 +26,11 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Proxy d'images et webhooks — durcis contre bypass SSRF et DNS rebinding.
 - Sanitisation portail — regex de nettoyage HTML rendue linéaire (protection ReDoS).
 - Assainisseurs internes — regex polynomiales remplacées par opérations linéaires (protection ReDoS).
+- Renommage/fusion média — codes d'erreur génériques (plus d'echo d'exception, durcissement).
+- Fusion média — garde de confinement (défense en profondeur, durcissement).
+- Renommage/fusion média — erreurs not-a-dir/not-found nettoyées du chemin filesystem.
+- Fusion média — code d'erreur partial-failure stable (compteur dans champ dédié).
+- Renommage média — erreurs destination/self-merge utilisent des codes stables.
 
 ## [1.0.0-rc.3] - 2026-05-22
 
