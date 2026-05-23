@@ -47,7 +47,7 @@ def _sync_delete(path: Path) -> None:
     """
     def _onerror(func, fpath, _exc):
         try:
-            logger.warning("[DELETE] Permission refusede sur %r, attempting chmod", fpath)
+            logger.warning("[DELETE] Permission refused sur %r, attempting chmod", fpath)
             os.chmod(fpath, stat.S_IWRITE | stat.S_IREAD)
             func(fpath)
         except Exception as e:
@@ -61,7 +61,7 @@ def _sync_delete(path: Path) -> None:
         try:
             path.unlink()
         except PermissionError:
-            logger.warning("[DELETE] Permission refusede sur %r, attempting chmod", path)
+            logger.warning("[DELETE] Permission refused sur %r, attempting chmod", path)
             os.chmod(str(path), stat.S_IWRITE | stat.S_IREAD)
             path.unlink()
 
