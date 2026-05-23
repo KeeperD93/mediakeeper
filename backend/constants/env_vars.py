@@ -2,8 +2,8 @@
 
 Routing the env var names through this module — instead of inline
 string literals at each ``os.getenv`` callsite — lets static analysis
-avoid misclassifying the lookup result via keyword-spotting on env
-var names that match the upstream classifier's heuristic.
+(CodeQL) avoid misclassifying the lookup result via keyword-spotting
+on env var names that match the upstream classifier's heuristic.
 
 Scope is intentionally limited to env vars actually read by
 ``backend/core/app_startup.py``. A wider centralisation across the
