@@ -31,7 +31,7 @@ def test_returns_empty_on_empty_input():
 
 
 def test_returns_empty_on_none_input():
-    assert strip_tags_and_trim(None) == ""  # type: ignore[arg-type]
+    assert strip_tags_and_trim(None) == ""
 
 
 def test_respects_max_len_on_plain_text():
@@ -44,12 +44,13 @@ def test_strips_then_clamps():
 
 
 def test_redos_guard_under_pathological_input():
-    """Polynomial-degree regex on pathological ``<`` input must complete
-    well under 1s thanks to the internal ``len(text) > max_len`` cap.
+    """The rewritten regex ``<[^<>]*>`` must process pathological ``<``
+    repetitions in O(n) — the forbidden ``<`` inside the character class
+    prevents the engine from backtracking across unmatched ``<`` runs.
 
-    Without the cap (regression scenario), 100k chars of ``<`` would
-    spin the engine on O(n²) ≈ 10^10 ops, blocking the worker. With the
-    cap, only the first ``max_len`` characters reach the regex.
+    Pre-fix scenario (``<[^>]+>``): 100k chars of ``<`` would spin the
+    engine on O(n²) ≈ 10^10 ops, blocking the worker for seconds.
+    Post-fix: linear scan returns in well under 1s.
     """
     pathological = "<" * 100_000
     start = time.monotonic()

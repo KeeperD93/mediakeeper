@@ -27,8 +27,13 @@ import re
 _HTML_TAG_RE = re.compile(r'<[^<>]*>')
 
 
-def strip_tags_and_trim(text: str, max_len: int = 5000) -> str:
+def strip_tags_and_trim(text: str | None, max_len: int = 5000) -> str:
     """Strip naked HTML tags and clamp length for plain-text storage.
+
+    ``text`` accepts ``None`` to match the guard pattern several callers
+    already rely on (``strip_tags_and_trim(data.get("description") or "")``
+    becomes simply ``strip_tags_and_trim(data.get("description"))``).
+    The return type stays ``str`` — falsy input collapses to ``""``.
 
     NOT an XSS sanitiser — see module docstring. The returned string is
     safe to render through Vue's ``{{ }}`` (auto-escaped) but must NOT

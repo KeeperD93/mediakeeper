@@ -53,37 +53,45 @@ async def preview(req: RenameRequest, _: User = Depends(get_current_user)):
 
 @router.post("/rename")
 async def rename(req: RenameRequest, _: User = Depends(get_current_user)):
-    logger.info(f"[RENAME] {req.old_path} → {req.new_name}")
+    logger.info("[RENAME] %s → %s", req.old_path, req.new_name)
     try:
         result = await apply_rename(req.old_path, req.new_name)
         if result.get("error"):
-            logger.error(f"[RENAME] Failed: {result['error']}")
+            logger.error("[RENAME] Failed: %s", result["error"])
         else:
-            logger.info(f"[RENAME] OK: {result.get('new_path', '')}")
+            logger.info("[RENAME] OK: %s", result.get("new_path", ""))
         return result
     except Exception as e:
-        logger.error(f"[RENAME] Exception: {e}")
+        logger.error("[RENAME] Exception: %s", e)
         raise
 
 
 @router.post("/rename-batch")
 async def rename_batch(req: RenameBatchRequest, _: User = Depends(get_current_user)):
-    logger.info(f"[RENAME-BATCH] {len(req.items)} files, cat={req.cat!r}")
+    logger.info("[RENAME-BATCH] %s files, cat=%r", len(req.items), req.cat)
     items = [{"old_path": r.old_path, "new_name": r.new_name} for r in req.items]
     if items:
-        logger.info(f"[RENAME-BATCH] First item: old_path={items[0]['old_path']!r} new_name={items[0]['new_name']!r}")
+        logger.info(
+            "[RENAME-BATCH] First item: old_path=%r new_name=%r",
+            items[0]["old_path"], items[0]["new_name"],
+        )
     try:
         result = await apply_rename_batch(items, cat=req.cat)
         errors = [r for r in result if r.get("error")]
         if errors:
-            logger.warning(f"[RENAME-BATCH] {len(errors)} errors out of {len(req.items)}")
-            for e in errors[:3]:
-                logger.warning(f"[RENAME-BATCH] Detail: old_path={e.get('old_path','?')} error={e.get('error','?')}")
+            logger.warning(
+                "[RENAME-BATCH] %s errors out of %s", len(errors), len(req.items),
+            )
+            for err in errors[:3]:
+                logger.warning(
+                    "[RENAME-BATCH] Detail: old_path=%s error=%s",
+                    err.get("old_path", "?"), err.get("error", "?"),
+                )
         else:
-            logger.info(f"[RENAME-BATCH] OK: {len(req.items)} files renamed")
+            logger.info("[RENAME-BATCH] OK: %s files renamed", len(req.items))
         return result
     except Exception as e:
-        logger.error(f"[RENAME-BATCH] Exception: {e}")
+        logger.error("[RENAME-BATCH] Exception: %s", e)
         raise
 
 
@@ -124,10 +132,13 @@ class RenameFolderRequest(BaseModel):
 @router.post("/rename-folder")
 async def rename_folder(req: RenameFolderRequest, _: User = Depends(get_current_user)):
     """Rename a folder by building the absolute path on the backend side."""
-    logger.info(f"[RENAME-FOLDER] cat={req.cat} subpath={req.subpath!r} → {req.new_name}")
+    logger.info(
+        "[RENAME-FOLDER] cat=%s subpath=%r → %s",
+        req.cat, req.subpath, req.new_name,
+    )
     base = MEDIA_FOLDERS.get(req.cat)
     if not base:
-        logger.error(f"[RENAME-FOLDER] Unknown category : {req.cat}")
+        logger.error("[RENAME-FOLDER] Unknown category : %s", req.cat)
         return {"error": f"Unknown category: {req.cat}"}
 
     abs_path = f"{base}/{req.subpath.strip('/')}"

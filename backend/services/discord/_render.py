@@ -1,7 +1,10 @@
 """Rendering helpers — variable substitution and embed construction."""
-import re
 import json
+import logging
+import re
 from datetime import datetime, timezone
+
+logger = logging.getLogger("mediakeeper.notifications.discord")
 
 
 def _hex_to_int(color_val) -> int:
@@ -145,8 +148,14 @@ def _parse_fields(tmpl: str) -> tuple[str, list]:
         if end != -1:
             try:
                 fields = json.loads(tmpl[body_start:end])
-            except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
-                pass
+            except Exception as exc:
+                # Best-effort: a malformed <fields> block degrades to an
+                # empty fields list rather than failing the whole embed.
+                # Emit at DEBUG so an admin tuning a template can grep the
+                # cause without polluting INFO logs.
+                logger.debug(
+                    "[discord] _parse_fields JSON invalid: %s", type(exc).__name__,
+                )
             tmpl = tmpl[:start] + tmpl[end + len(end_marker):]
     return tmpl.strip(), fields
 
