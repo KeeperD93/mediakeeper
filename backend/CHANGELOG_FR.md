@@ -31,6 +31,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Renommage/fusion média — erreurs not-a-dir/not-found nettoyées du chemin filesystem.
 - Fusion média — code d'erreur partial-failure stable (compteur dans champ dédié).
 - Renommage média — erreurs destination/self-merge utilisent des codes stables.
+- Renommage/fusion média — validation des chemins via barrière reconnue par CodeQL (durcissement).
 
 ## [1.0.0-rc.3] - 2026-05-22
 

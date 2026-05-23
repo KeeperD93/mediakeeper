@@ -1,4 +1,5 @@
 """Validation des paths et assainissement des noms."""
+import os
 import re
 from pathlib import Path
 
@@ -55,6 +56,46 @@ def _is_allowed_path(path: str) -> bool:
     if resolved is not None and is_path_within_backup_dir(resolved):
         return False
     return True
+
+
+def _ensure_within_media_roots(path: str) -> Path | None:
+    """Return the resolved ``Path`` if it lives under a configured media root, else ``None``.
+
+    Combines anchored ``Path.resolve(strict=False)`` with ``os.path.commonpath``
+    containment check. ``os.path.commonpath`` is a recognised barrier guard for
+    the CodeQL ``py/path-injection`` query: when a downstream sink uses the
+    ``Path`` returned by this helper (instead of the input string), the taint
+    flow is broken from the static-analyser standpoint.
+
+    Backup-zone exclusion is enforced as a second guard: even if the path
+    resolves under a legitimate media root, paths that fall inside the backup
+    directory are refused — media-manager must never be a vector to read or
+    mutate backup files.
+
+    **Caller contract** — to actually break the CodeQL taint flow, callers
+    MUST use the returned ``Path`` for every downstream filesystem operation
+    (``exists``, ``is_dir``, ``samefile``, ``resolve``, ``rename``,
+    ``iterdir``, ``unlink``, etc.) rather than reconstructing a new
+    ``Path(input_string)``. Passing the input string through this helper but
+    then operating on a freshly-built ``Path(input_string)`` defeats the
+    purpose.
+    """
+    try:
+        resolved = Path(path).expanduser().resolve(strict=False)
+    except (ValueError, OSError, RuntimeError):
+        return None
+    resolved_str = str(resolved)
+    for root in _media_roots():
+        root_str = str(root)
+        try:
+            if os.path.commonpath([root_str, resolved_str]) == root_str:
+                if is_path_within_backup_dir(resolved):
+                    return None
+                return resolved
+        except ValueError:
+            # Raised on Windows when paths live on different drives — not a match.
+            continue
+    return None
 
 
 def _validate_path(path: str) -> str | None:
