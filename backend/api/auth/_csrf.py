@@ -1,4 +1,5 @@
 """CSRF protection for cookie-authenticated backoffice endpoints."""
+import re
 import secrets
 
 from fastapi import HTTPException, Request, Response, status
@@ -19,6 +20,14 @@ CSRF_COOKIE_NAME = "mk_csrf"
 # changing call returns 403 until the user refreshes).
 _CSRF_COOKIE_MAX_AGE_SECONDS = ACCESS_TOKEN_EXPIRE_MINUTES * 60
 
+# Allowlist for an incoming CSRF cookie value. base64url charset matches
+# what secrets.token_urlsafe produces; the 32-128 window covers today's
+# 32-byte tokens (~43 chars) and leaves headroom for a future entropy
+# bump without forcing a code change. Any value outside the window is
+# treated as injected / tampered and replaced with a fresh token.
+_CSRF_TOKEN_RE = re.compile(r"\A[A-Za-z0-9_-]{32,128}\Z")
+_CSRF_TOKEN_BYTES = 32
+
 
 def _set_csrf_cookie(response: Response, token: str, request: Request) -> None:
     secure_cookie = should_use_secure_cookies(request)
@@ -34,9 +43,29 @@ def _set_csrf_cookie(response: Response, token: str, request: Request) -> None:
 
 
 def ensure_csrf_cookie(response: Response, request: Request) -> str:
-    token = (request.cookies.get(CSRF_COOKIE_NAME) or "").strip()
-    if not token:
-        token = secrets.token_urlsafe(32)
+    """Authenticated polls (``/me``, ``/refresh``) — reuse the existing
+    cookie when it matches the allowlist, otherwise mint a fresh token.
+
+    Preserves the double-submit token across concurrent SPA requests so a
+    poll does not invalidate a header issued just before by another tab.
+    Auth boundaries (login, change-password) must use
+    :func:`rotate_csrf_cookie` instead.
+    """
+    raw = (request.cookies.get(CSRF_COOKIE_NAME) or "").strip()
+    token = raw if _CSRF_TOKEN_RE.fullmatch(raw) else secrets.token_urlsafe(_CSRF_TOKEN_BYTES)
+    _set_csrf_cookie(response, token, request)
+    return token
+
+
+def rotate_csrf_cookie(response: Response, request: Request) -> str:
+    """Auth boundaries (login, portal-login, change-password) — always
+    generate a fresh token, ignoring any pre-existing cookie value.
+
+    Closes the session-fixation window: a value pre-posed on the victim's
+    browser before login (XSS subdomain, MITM HTTP, subdomain takeover)
+    does not survive the auth boundary.
+    """
+    token = secrets.token_urlsafe(_CSRF_TOKEN_BYTES)
     _set_csrf_cookie(response, token, request)
     return token
 
