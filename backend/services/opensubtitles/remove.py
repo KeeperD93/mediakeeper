@@ -89,8 +89,9 @@ async def _resolve_remove_target(
             ctx["to_remove"] = [i for i in require_indices if i in valid_indices]
 
         return ctx, None
-    except Exception as exc:  # noqa: BLE001 -- map to short error
-        return {}, {"error": str(exc)[:200]}
+    except Exception:
+        logger.exception("[opensubtitles] Resolve remove target failed")
+        return {}, {"error": "resolve_target_failed"}
 
 
 async def _refresh_emby(client, url: str, headers: dict, item_id: str) -> None:
@@ -100,7 +101,7 @@ async def _refresh_emby(client, url: str, headers: dict, item_id: str) -> None:
             headers=headers, timeout=10.0,
         )
     except Exception as exc:  # noqa: BLE001 -- refresh is best-effort
-        logger.debug(f"[opensubtitles] Emby refresh failed for {item_id}: {exc}")
+        logger.debug("[opensubtitles] Emby refresh failed for %s: %s", item_id, exc)
 
 
 async def remove_stream(
@@ -126,7 +127,7 @@ async def remove_stream(
     if failure is not None:
         return {"error": failure}
 
-    logger.info(f"[opensubtitles] Stream {stream_index} removed successfully")
+    logger.info("[opensubtitles] Stream %s removed successfully", stream_index)
 
     await _refresh_emby(ctx["client"], ctx["url"], ctx["headers"], item_id)
 
@@ -167,7 +168,7 @@ async def remove_streams_batch(
     if failure is not None:
         return {"error": failure}
 
-    logger.info(f"[opensubtitles] {len(to_remove)} streams removed successfully")
+    logger.info("[opensubtitles] %s streams removed successfully", len(to_remove))
 
     await _refresh_emby(ctx["client"], ctx["url"], ctx["headers"], item_id)
 

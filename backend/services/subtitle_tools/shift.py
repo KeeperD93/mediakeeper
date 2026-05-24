@@ -63,7 +63,7 @@ def shift_srt(filepath: str, offset_ms: int, allow_any_path: bool = False) -> di
         result_text = timing_re.sub(_replace_line, text)
 
         target.write_text(result_text, encoding="utf-8")
-        logger.info(f"[subtitle_tools] Shifted {filepath} by {offset_ms}ms ({lines_shifted} lines)")
+        logger.info("[subtitle_tools] Shifted %s by %sms (%s lines)", filepath, offset_ms, lines_shifted)
 
         return {
             "success": True,
@@ -72,6 +72,6 @@ def shift_srt(filepath: str, offset_ms: int, allow_any_path: bool = False) -> di
             "lines_shifted": lines_shifted,
         }
 
-    except Exception as e:
-        logger.error(f"[subtitle_tools] Shift error for {filepath}: {e}")
-        return {"error": str(e)[:200]}
+    except Exception:
+        logger.exception("[subtitle_tools] Shift failed for %r", filepath)
+        return {"error": "shift_failed"}

@@ -44,10 +44,10 @@ def fix_encoding(filepath: str, allow_any_path: bool = False) -> dict:
 
         text = raw.decode(enc, errors="replace")
         target.write_text(text, encoding="utf-8")
-        logger.info(f"[subtitle_tools] Converted {target}: {enc} → UTF-8")
+        logger.info("[subtitle_tools] Converted %s: %s → UTF-8", target, enc)
 
         return {"original_encoding": enc, "converted": True, "path": str(target)}
 
-    except Exception as e:
-        logger.warning(f"[subtitle_tools] Fix encoding error for {filepath}: {e}")
-        return {"original_encoding": "unknown", "converted": False, "path": filepath, "error": str(e)[:200]}
+    except Exception:
+        logger.exception("[subtitle_tools] Fix encoding failed for %r", filepath)
+        return {"original_encoding": "unknown", "converted": False, "path": filepath, "error": "encoding_failed"}

@@ -46,7 +46,7 @@ async def _get_local_path_roots(db: AsyncSession | None) -> list[Path]:
             for category in await get_categories(db):
                 _add_root(category.get("path"))
         except Exception as exc:
-            logger.debug(f"[opensubtitles] Unable to read media categories: {exc}")
+            logger.debug("[opensubtitles] Unable to read media categories: %s", exc)
 
     for fallback in ["/media", "/mnt", "/data/media", "/volume1/medias"]:
         _add_root(fallback)
@@ -95,7 +95,7 @@ async def _resolve_local_path(db: AsyncSession | None, emby_path: str) -> str:
     try:
         parts = Path(raw_path).parts
     except ValueError:
-        logger.warning(f"[opensubtitles] Invalid path components: {emby_path!r}")
+        logger.warning("[opensubtitles] Invalid path components: %r", emby_path)
         return ""
     for root in roots:
         for i in range(1, len(parts)):
@@ -112,7 +112,7 @@ async def _resolve_local_path(db: AsyncSession | None, emby_path: str) -> str:
                 continue
             return str(candidate)
 
-    logger.warning(f"[opensubtitles] Path not resolved locally: {emby_path}")
+    logger.warning("[opensubtitles] Path not resolved locally: %s", emby_path)
     return ""
 
 
@@ -162,7 +162,8 @@ def delete_external_subtitle(filepath: str, allow_any_path: bool = False) -> dic
             if path_error:
                 return {"error": _normalize_path_validation_error(path_error)}
         p.unlink()
-        logger.info(f"[opensubtitles] Deleted subtitle: {p}")
+        logger.info("[opensubtitles] Deleted subtitle: %s", p)
         return {"success": True, "path": str(p)}
-    except Exception as e:
-        return {"error": str(e)[:200]}
+    except Exception:
+        logger.exception("[opensubtitles] Delete external subtitle failed")
+        return {"error": "delete_failed"}
