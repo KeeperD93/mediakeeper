@@ -16,12 +16,12 @@ router = APIRouter()
 
 @router.get("/files/{folder_key}")
 async def get_files(folder_key: str, subpath: str = "", _: User = Depends(get_current_user)):
-    logger.info(f"[BROWSE] folder={folder_key} subpath={subpath!r}")
+    logger.info("[BROWSE] folder=%s subpath=%r", folder_key, subpath)
     try:
         result = await list_files(folder_key, subpath)
         return result
-    except Exception as e:
-        logger.error(f"[BROWSE] Error folder={folder_key} subpath={subpath!r}: {e}")
+    except Exception:
+        logger.exception("[BROWSE] Error folder=%s subpath=%r", folder_key, subpath)
         raise
 
 

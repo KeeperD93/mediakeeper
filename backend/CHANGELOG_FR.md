@@ -28,6 +28,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Sanitisation portail — regex de nettoyage HTML rendue linéaire (protection ReDoS).
 - Assainisseurs internes — regex polynomiales remplacées par opérations linéaires (protection ReDoS).
 - Renommage/fusion média — codes d'erreur génériques (plus d'echo d'exception, durcissement).
+- Médiathèque/TMDB — codes d'erreur génériques sur listing fichiers, ffprobe et TMDB (durcissement).
 - Fusion média — garde de confinement (défense en profondeur, durcissement).
 - Renommage/fusion média — erreurs not-a-dir/not-found nettoyées du chemin filesystem.
 - Fusion média — code d'erreur partial-failure stable (compteur dans champ dédié).

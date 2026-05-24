@@ -1,4 +1,4 @@
-"""Listing des files d'une category."""
+"""List files in a media category."""
 import logging
 from pathlib import Path
 
@@ -10,7 +10,7 @@ from services.path_config import is_path_within_backup_dir
 logger = logging.getLogger("mediakeeper.media_manager.files")
 
 
-async def list_files(folder_key: str, subpath: str = ""):
+async def list_files(folder_key: str, subpath: str = "") -> dict | list[dict]:
     folder_base = MEDIA_FOLDERS.get(folder_key)
     if not folder_base:
         return {"error": "unknown_folder"}

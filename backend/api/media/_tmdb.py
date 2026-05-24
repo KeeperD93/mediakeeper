@@ -6,11 +6,11 @@ from api.auth import get_current_user
 from core.database import get_db
 from models.user import User
 from services.tmdb import (
+    get_media_detail,
+    get_season_episodes,
+    get_tv_seasons,
     search_movie,
     search_tv,
-    get_tv_seasons,
-    get_season_episodes,
-    get_media_detail,
 )
 
 router = APIRouter()
