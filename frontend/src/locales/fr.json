@@ -85,6 +85,7 @@
       "tmdb_seasons_failed": "Échec du chargement des saisons TMDB",
       "tmdb_episodes_failed": "Échec du chargement des épisodes TMDB",
       "tmdb_detail_failed": "Échec du chargement du détail TMDB",
+      "invalid_media_type": "Type de média invalide",
       "quota_exceeded": "Quota dépassé",
       "invalid_credentials": "Identifiants incorrects.",
       "account_disabled": "Compte désactivé.",

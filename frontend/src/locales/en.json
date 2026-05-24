@@ -85,6 +85,7 @@
       "tmdb_seasons_failed": "TMDB seasons load failed",
       "tmdb_episodes_failed": "TMDB episodes load failed",
       "tmdb_detail_failed": "TMDB details load failed",
+      "invalid_media_type": "Invalid media type",
       "quota_exceeded": "Quota exceeded",
       "invalid_credentials": "Invalid credentials.",
       "account_disabled": "Account disabled.",
