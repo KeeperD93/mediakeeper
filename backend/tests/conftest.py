@@ -177,11 +177,28 @@ async def _build_client(seed_csrf: bool):
         transport = ASGITransport(app=app)
         kwargs: dict = {"transport": transport, "base_url": "http://test"}
         if seed_csrf:
-            csrf_token = "pytest-csrf-token"
+            # 42 chars in the [A-Za-z0-9_-] charset so the value passes the
+            # production allowlist guard (api/auth/_csrf._CSRF_TOKEN_RE) and
+            # is preserved by ensure_csrf_cookie on polls.
+            csrf_token = "pytest-csrf-token-padded-to-pass-allowlist"
             kwargs["headers"] = {"X-CSRF-Token": csrf_token}
             kwargs["cookies"] = {"mk_csrf": csrf_token}
 
         async with AsyncClient(**kwargs) as ac:
+            if seed_csrf:
+                # Keep the X-CSRF-Token header in lockstep with whatever
+                # mk_csrf value the server returns. Auth boundaries
+                # (login, change-password) rotate the cookie on success;
+                # without this hook the seeded header would go stale and
+                # every subsequent mutation would 403 csrf_token_invalid.
+                # A real SPA does the equivalent by reading document.cookie
+                # before each mutation.
+                async def _sync_csrf_header(response):
+                    new_csrf = response.cookies.get("mk_csrf")
+                    if new_csrf:
+                        ac.headers["X-CSRF-Token"] = new_csrf
+
+                ac.event_hooks.setdefault("response", []).append(_sync_csrf_header)
             yield ac
 
     app.dependency_overrides.clear()
