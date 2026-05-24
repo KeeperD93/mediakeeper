@@ -15,7 +15,7 @@ async def refresh_library(db: AsyncSession) -> dict:
     """Start a full scan of the Emby/Jellyfin library."""
     cfg = await _get_emby_config(db)
     if not cfg:
-        return {"error": "No active media source"}
+        return {"error": "no_active_media_source"}
 
     url, api_key = cfg
     headers = {"X-Emby-Token": api_key}
@@ -31,11 +31,11 @@ async def refresh_library(db: AsyncSession) -> dict:
             logger.info("[EMBY] Library scan started")
             return {"success": True, "message": "Library scan started"}
         else:
-            logger.error(f"[EMBY] Error scan: HTTP {res.status_code}")
-            return {"error": f"Emby error: HTTP {res.status_code}"}
-    except Exception as e:
-        logger.error(f"[EMBY] Error refresh_library: {e}")
-        return {"error": str(e)}
+            logger.error("[EMBY] scan failed: HTTP %s", res.status_code)
+            return {"error": f"emby_http_{res.status_code}"}
+    except Exception:
+        logger.exception("[EMBY] refresh_library failed")
+        return {"error": "refresh_library_failed"}
 
 
 async def get_latest_items(db: AsyncSession, limit: int = 50) -> list:
@@ -65,8 +65,8 @@ async def get_latest_items(db: AsyncSession, limit: int = 50) -> list:
         if res.status_code == 200:
             return res.json().get("Items", [])
         return []
-    except Exception as e:
-        logger.error(f"Error get_latest_items: {e}")
+    except Exception:
+        logger.exception("[EMBY] get_latest_items failed")
         return []
 
 
@@ -101,8 +101,8 @@ async def fetch_item_by_id(db: AsyncSession, item_id: str) -> dict | None:
             items = res.json().get("Items", [])
             return items[0] if items else None
         return None
-    except Exception as e:
-        logger.error(f"Error fetch_item_by_id({item_id}): {e}")
+    except Exception:
+        logger.exception("[EMBY] fetch_item_by_id %s failed", item_id)
         return None
 
 
@@ -267,6 +267,6 @@ async def search_series_id(db: AsyncSession, series_name: str) -> str | None:
             if items:
                 return items[0].get("Id", "")
         return None
-    except Exception as e:
-        logger.error(f"Error search_series_id: {e}")
+    except Exception:
+        logger.exception("[EMBY] search_series_id failed")
         return None

@@ -80,9 +80,9 @@ def read_log_file(filename: str, lines: int = 200) -> dict:
             "size_label": _format_size(stat.st_size),
             "modified": datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc).isoformat(),
         }
-    except Exception as e:
-        logger.error(f"Error playback log {filename}: {e}")
-        return {"error": str(e), "lines": [], "total_lines": 0}
+    except Exception:
+        logger.exception("[logs] read log file failed for %r", filename)
+        return {"error": "log_read_failed", "lines": [], "total_lines": 0}
 
 
 def get_log_filepath(filename: str) -> Path | None:
@@ -107,5 +107,5 @@ def write_log_line(log_type: str, message: str):
     try:
         with open(filepath, "a", encoding="utf-8") as f:
             f.write(f"{timestamp} {message}\n")
-    except Exception as e:
-        logger.error(f"Error write log {filename}: {e}")
+    except Exception:
+        logger.exception("[logs] write log line failed for %r", filename)
