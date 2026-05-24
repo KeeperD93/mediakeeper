@@ -324,3 +324,80 @@ async def test_get_file_metadata_path_traversal_rejected(monkeypatch, tmp_path):
     result = await _metadata.get_file_metadata(traversal_path, _=fake_user)
 
     assert result == {"error": "path_not_allowed"}
+
+
+# Cycle 21 stack-trace short-code guards
+
+
+@pytest.mark.asyncio
+async def test_ping_tool_opensubtitles_returns_short_code_on_exception(monkeypatch):
+    from api import settings as settings_module
+
+    fake_client = AsyncMock()
+    fake_client.get = AsyncMock(side_effect=RuntimeError(f"{_LEAK_MARKER} boom"))
+    monkeypatch.setattr(
+        settings_module, "get_tools_config",
+        AsyncMock(return_value={"opensubtitles": {"enabled": True, "api_key": "k"}}),
+    )
+    monkeypatch.setattr(settings_module, "get_external_client", lambda: fake_client)
+
+    result = await settings_module.ping_tool("opensubtitles", db=AsyncMock(), _=MagicMock())
+
+    assert result == {"online": False, "reason": "tool_ping_failed"}
+    assert _LEAK_MARKER not in str(result)
+
+
+@pytest.mark.asyncio
+async def test_ping_tool_tmdb_returns_short_code_on_exception(monkeypatch):
+    from api import settings as settings_module
+
+    fake_client = AsyncMock()
+    fake_client.get = AsyncMock(side_effect=RuntimeError(f"{_LEAK_MARKER} boom"))
+    monkeypatch.setattr(
+        settings_module, "get_tools_config",
+        AsyncMock(return_value={"tmdb": {"enabled": True, "api_key": "k"}}),
+    )
+    monkeypatch.setattr(settings_module, "get_external_client", lambda: fake_client)
+
+    result = await settings_module.ping_tool("tmdb", db=AsyncMock(), _=MagicMock())
+
+    assert result == {"online": False, "reason": "tool_ping_failed"}
+    assert _LEAK_MARKER not in str(result)
+
+
+@pytest.mark.asyncio
+async def test_ping_tool_generic_url_returns_short_code_on_exception(monkeypatch):
+    from api import settings as settings_module
+
+    fake_client = AsyncMock()
+    fake_client.get = AsyncMock(side_effect=RuntimeError(f"{_LEAK_MARKER} boom"))
+    monkeypatch.setattr(
+        settings_module, "get_tools_config",
+        AsyncMock(return_value={"emby": {"enabled": True, "url": "https://emby.example/"}}),
+    )
+    monkeypatch.setattr(settings_module, "get_internal_client", lambda: fake_client)
+
+    result = await settings_module.ping_tool("emby", db=AsyncMock(), _=MagicMock())
+
+    assert result == {"online": False, "reason": "tool_ping_failed"}
+    assert _LEAK_MARKER not in str(result)
+
+
+@pytest.mark.asyncio
+async def test_watch_providers_returns_short_code_on_exception(monkeypatch):
+    from api.portal.catalog import _browse as catalog_browse
+
+    fake_client = AsyncMock()
+    fake_client.get = AsyncMock(side_effect=RuntimeError(f"{_LEAK_MARKER} boom"))
+
+    with patch("core.http_client.get_external_client", return_value=fake_client), \
+         patch("services.tmdb._get_tmdb_key", new=AsyncMock(return_value="k")):
+        result = await catalog_browse.watch_providers(
+            region="FR",
+            media_type="movie",
+            up=(MagicMock(), MagicMock()),
+            db=AsyncMock(),
+        )
+
+    assert result == {"error": "watch_providers_failed", "items": []}
+    assert _LEAK_MARKER not in str(result)
