@@ -25,6 +25,7 @@ from fastapi import Request, Response
 from api.auth._csrf import (
     CSRF_COOKIE_NAME,
     _CSRF_TOKEN_RE,
+    _is_valid_csrf_token,
     ensure_csrf_cookie,
     rotate_csrf_cookie,
 )
@@ -188,3 +189,22 @@ def test_allowlist_rejects_empty_string():
 )
 def test_allowlist_rejects_attribute_injection_attempts(payload):
     assert _CSRF_TOKEN_RE.fullmatch(payload) is None
+
+
+# _is_valid_csrf_token — barrier guard wrapper (annotated for CodeQL)
+
+
+def test_is_valid_csrf_token_accepts_in_window_in_charset():
+    assert _is_valid_csrf_token("x" * 32) is True
+    assert _is_valid_csrf_token("aBc-_" * 8) is True  # 40 chars in charset
+
+
+def test_is_valid_csrf_token_rejects_empty_and_out_of_window():
+    assert _is_valid_csrf_token("") is False
+    assert _is_valid_csrf_token("a" * 31) is False
+    assert _is_valid_csrf_token("a" * 129) is False
+
+
+def test_is_valid_csrf_token_rejects_charset_violation():
+    assert _is_valid_csrf_token("a" * 32 + "!") is False
+    assert _is_valid_csrf_token("a" * 32 + "; Path=/x") is False

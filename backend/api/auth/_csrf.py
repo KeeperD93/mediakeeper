@@ -42,6 +42,18 @@ def _set_csrf_cookie(response: Response, token: str, request: Request) -> None:
     )
 
 
+def _is_valid_csrf_token(raw: str) -> bool:
+    """Return True when ``raw`` matches the base64url charset and the
+    32-128 length window expected of a server-issued CSRF token.
+
+    Annotated as a CodeQL ``barrierGuardModel`` for ``cookie-injection``
+    in ``.github/codeql/extensions/mediakeeper-custom-sanitizers`` so the
+    static analyser recognises the validation and stops tracking the
+    incoming cookie value as tainted through :func:`ensure_csrf_cookie`.
+    """
+    return _CSRF_TOKEN_RE.fullmatch(raw) is not None
+
+
 def ensure_csrf_cookie(response: Response, request: Request) -> str:
     """Authenticated polls (``/me``, ``/refresh``) — reuse the existing
     cookie when it matches the allowlist, otherwise mint a fresh token.
@@ -52,12 +64,7 @@ def ensure_csrf_cookie(response: Response, request: Request) -> str:
     :func:`rotate_csrf_cookie` instead.
     """
     raw = (request.cookies.get(CSRF_COOKIE_NAME) or "").strip()
-    match = _CSRF_TOKEN_RE.fullmatch(raw)
-    # Extract the token via Match.group(0) rather than passing ``raw``
-    # straight through. The values are identical (the pattern is anchored
-    # with \A...\Z) but the static analyser treats the engine-derived
-    # string as sanitised, breaking the cookie-injection taint flow.
-    token = match.group(0) if match else secrets.token_urlsafe(_CSRF_TOKEN_BYTES)
+    token = raw if _is_valid_csrf_token(raw) else secrets.token_urlsafe(_CSRF_TOKEN_BYTES)
     _set_csrf_cookie(response, token, request)
     return token
 
