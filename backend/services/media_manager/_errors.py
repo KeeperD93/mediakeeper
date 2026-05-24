@@ -15,7 +15,9 @@ from None`` — the same service-layer-catch pattern used by
 """
 from __future__ import annotations
 
-HARD_FAIL_CODES: frozenset[str] = frozenset({
+from typing import Final
+
+HARD_FAIL_CODES: Final[frozenset[str]] = frozenset({
     "move_failed",
     "move_overwrite_failed",
     "delete_failed",

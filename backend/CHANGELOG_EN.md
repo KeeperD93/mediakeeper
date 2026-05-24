@@ -34,7 +34,7 @@ This section intentionally has no date so it is not shown to users.
 - Media manager rename — destination-exists / self-merge errors now use stable codes.
 - Media manager rename/merge — path validation via CodeQL barrier (hardening).
 - CSRF cookie — rotation at auth boundaries (session fixation fix).
-- Media manager — exception traces hidden on move/delete via service catch (hardening).
+- Media manager — generic error message when a move or delete fails (hardening).
 
 ## [1.0.0-rc.3] - 2026-05-22
 

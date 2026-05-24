@@ -1,6 +1,5 @@
 """Endpoints for move, delete and folder creation."""
 import logging
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -96,7 +95,7 @@ class FolderItem(BaseModel):
 
 
 class CreateFoldersRequest(BaseModel):
-    folders: List[FolderItem]
+    folders: list[FolderItem]
 
 
 @router.post("/create-folders")
@@ -126,7 +125,7 @@ async def move(req: MoveRequest, _: User = Depends(get_current_user)):
 
 
 class CheckConflictsRequest(BaseModel):
-    file_names: List[str]
+    file_names: list[str]
     dest_folder: str
 
 

@@ -9,7 +9,7 @@ from .naming import format_size
 logger = logging.getLogger("mediakeeper.media_manager")
 
 
-async def delete_file(path: str):
+async def delete_file(path: str) -> dict:
     err = _validate_path(path)
     if err:
         return {"error": err}
