@@ -42,19 +42,28 @@ async def import_jellystats(
     and jf_libraries -> library_cache.
     """
     if not (file.filename or "").lower().endswith(".json"):
-        return {"error": "File must be in JSON format"}
+        return {"error": "import_invalid_format"}
 
     try:
         content = await _read_limited_json_upload(file)
+    except ValueError:
+        # _read_limited_json_upload raises ValueError when the upload
+        # exceeds _MAX_IMPORT_SIZE — surfaced as a distinct user-actionable
+        # code so the frontend can suggest splitting / compressing.
+        logger.warning("[stats] jellystats upload exceeds size limit")
+        return {"error": "import_file_too_large"}
+
+    try:
         data = json.loads(content)
-    except Exception as e:
-        return {"error": f"Unable to read JSON: {e}"}
+    except (json.JSONDecodeError, ValueError):
+        logger.warning("[stats] jellystats upload invalid JSON")
+        return {"error": "import_invalid_json"}
 
     try:
         return await import_jellystats_backup(db, data)
-    except Exception as e:
-        logger.error(f"Error import Jellystats: {e}", exc_info=True)
-        return {"error": f"Error during import: {str(e)[:200]}"}
+    except Exception:
+        logger.exception("[stats] jellystats import failed")
+        return {"error": "import_failed"}
 
 
 @router.post("/import/jellystats/purge")

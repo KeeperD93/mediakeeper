@@ -19,7 +19,7 @@ async def test_jellystats_import_rejects_non_json(client, admin_user):
     )
 
     assert resp.status_code == 200
-    assert resp.json()["error"] == "File must be in JSON format"
+    assert resp.json()["error"] == "import_invalid_format"
 
 
 @pytest.mark.asyncio
@@ -50,4 +50,4 @@ async def test_jellystats_import_stops_when_file_is_too_large(client, admin_user
     )
 
     assert resp.status_code == 200
-    assert "File too large" in resp.json()["error"]
+    assert resp.json()["error"] == "import_file_too_large"
