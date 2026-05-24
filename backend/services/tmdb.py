@@ -95,9 +95,9 @@ async def _search_tmdb(media_type: str, query: str, db: AsyncSession | None = No
             "genre_ids": r.get("genre_ids", []),
         } for r in results[:8]]
 
-    except Exception as e:
-        logger.error(f"Error _search_tmdb({media_type}): {e}")
-        return {"error": str(e)}
+    except Exception:
+        logger.exception("[tmdb] search %s failed", media_type)
+        return {"error": "tmdb_search_failed"}
 
 
 async def search_movie(query: str, db: AsyncSession | None = None, language: str | None = None, year: int | None = None):
@@ -130,9 +130,9 @@ async def get_tv_seasons(tmdb_id: int, db: AsyncSession | None = None, language:
             "episodes": s.get("episode_count", 0),
         } for s in seasons if s.get("season_number", 0) > 0]
 
-    except Exception as e:
-        logger.error(f"Error get_tv_seasons: {e}")
-        return {"error": str(e)}
+    except Exception:
+        logger.exception("[tmdb] get_tv_seasons failed")
+        return {"error": "tmdb_seasons_failed"}
 
 
 def _is_generic_episode_name(name: str, episode_number: int) -> bool:
@@ -200,9 +200,9 @@ async def get_season_episodes(tmdb_id: int, season: int, db: AsyncSession | None
             out.append({"number": num, "name": name})
         return out
 
-    except Exception as e:
-        logger.error(f"Error get_season_episodes: {e}")
-        return {"error": str(e)}
+    except Exception:
+        logger.exception("[tmdb] get_season_episodes failed")
+        return {"error": "tmdb_episodes_failed"}
 
 
 async def get_media_detail(media_type: str, tmdb_id: int, db: AsyncSession | None = None):
@@ -239,9 +239,9 @@ async def get_media_detail(media_type: str, tmdb_id: int, db: AsyncSession | Non
         else:
             result["runtime"] = d.get("runtime", 0)
         return result
-    except Exception as e:
-        logger.error(f"Error get_media_detail({media_type}, {tmdb_id}): {e}")
-        return {"error": str(e)}
+    except Exception:
+        logger.exception("[tmdb] get_media_detail %s/%s failed", media_type, tmdb_id)
+        return {"error": "tmdb_detail_failed"}
 
 
 async def get_media_details(
