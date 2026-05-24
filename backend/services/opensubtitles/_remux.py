@@ -65,10 +65,6 @@ def _cleanup_path(path: Path) -> None:
         logger.debug(f"[opensubtitles] Cleanup failed for {path}: {exc}")
 
 
-def _short_stderr_tail(stderr: bytes, length: int = 100) -> str:
-    return stderr.decode(errors="replace")[-length:].replace("\n", " ").strip()
-
-
 def _check_remux_disk_space(source: Path) -> str | None:
     """Refuse the remux up-front if the filesystem clearly cannot host the
     rollback copy + the FFmpeg tmp output beside the source.
@@ -184,9 +180,10 @@ async def _safe_remux(
             if rc != 0:
                 full_err = stderr.decode(errors="replace")
                 logger.error(
-                    f"[opensubtitles] FFmpeg failed (rc={rc}) for {source}\nstderr:\n{full_err}"
+                    "[opensubtitles] FFmpeg failed (rc=%s) for %s\nstderr:\n%s",
+                    rc, source, full_err,
                 )
-                error = f"ffmpeg_failed: {_short_stderr_tail(stderr)}"
+                error = "ffmpeg_failed"
             elif not tmp_path.is_file():
                 logger.error(f"[opensubtitles] FFmpeg returned 0 but tmp missing: {tmp_path}")
                 error = "ffmpeg_no_output"
@@ -219,9 +216,9 @@ async def _safe_remux(
                             logger.error(f"[opensubtitles] os.replace failed for {source}: {exc}")
                             error = "replace_failed"
 
-    except Exception as exc:  # noqa: BLE001 -- catch-all so cleanup runs
-        logger.error(f"[opensubtitles] Remux unexpected error for {source}: {exc}")
-        error = f"remux_error: {str(exc)[:80]}"
+    except Exception:  # noqa: BLE001 -- catch-all so cleanup runs
+        logger.exception("[opensubtitles] Remux unexpected error for %s", source)
+        error = "remux_error"
     finally:
         # tmp may have been consumed by os.replace; missing_ok handles that.
         _cleanup_path(tmp_path)
@@ -254,4 +251,4 @@ async def _safe_remux(
                 f"[opensubtitles] Rollback retention purge skipped for {parent}: {exc}"
             )
         return None, rollback_path
-    return error or "remux_error: unknown", None
+    return error or "remux_error", None
