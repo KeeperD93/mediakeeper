@@ -258,7 +258,8 @@ async def test_get_rootpath_unknown_category_returns_short_code():
 async def test_get_file_metadata_path_not_allowed_returns_short_code(monkeypatch):
     from api.media import _metadata
 
-    monkeypatch.setattr(_metadata, "_validate_path", lambda _path: "path_not_allowed")
+    # Force the sanitiser to refuse the path so we hit the path_not_allowed branch.
+    monkeypatch.setattr(_metadata, "_ensure_within_media_roots", lambda _path: None)
 
     fake_user = MagicMock()
     leaky_path = f"{_LEAK_MARKER}/movie.mkv"

@@ -6,7 +6,14 @@ Media folders are exposed to the container via Docker volumes.
 Les paths sont configureds soit via les variables MEDIA_*, soit via les
 categorys savedes en base.
 """
-from ._paths import VIDEO_EXTENSIONS, _is_allowed_path, _sanitize_name, _validate_name, _validate_path
+from ._paths import (  # noqa: F401 -- cross-module re-exports consumed by api/media/* and tests
+    VIDEO_EXTENSIONS,
+    _ensure_within_media_roots,
+    _is_allowed_path,
+    _sanitize_name,
+    _validate_name,
+    _validate_path,
+)
 from .categories import MEDIA_FOLDERS, get_categories, load_categories, save_categories
 from .files import list_files
 from .move import check_move_conflicts, create_folders_batch, delete_file, move_file, move_file_overwrite
