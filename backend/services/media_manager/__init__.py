@@ -1,10 +1,10 @@
-"""
-Service Media Manager — Management des files media via filesystem local.
-Package split into modules (Rule 9, <= 300 lines).
+"""Service Media Manager — manage media files via the local filesystem.
 
-Media folders are exposed to the container via Docker volumes.
-Les paths sont configureds soit via les variables MEDIA_*, soit via les
-categorys savedes en base.
+Package split into focused modules (Rules.md §14, target <= 300 lines).
+
+Media folders are exposed to the container via Docker volumes. Paths are
+configured either through the MEDIA_* environment variables or through the
+categories saved in the database.
 """
 from ._paths import (  # noqa: F401 -- cross-module re-exports consumed by api/media/* and tests
     VIDEO_EXTENSIONS,

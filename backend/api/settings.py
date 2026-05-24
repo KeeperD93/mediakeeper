@@ -162,7 +162,11 @@ async def save_tool(
     if updates:
         await set_settings_map(db, updates)
 
-    logger.info(f"[SETTINGS] Tool {tool_key} {'enabled' if req.enabled else 'disabled'}")
+    logger.info(
+        "[SETTINGS] Tool %s %s",
+        tool_key,
+        "enabled" if req.enabled else "disabled",
+    )
 
     # Invalidate caches whenever the tool config changes
     if tool_key == "tmdb":
