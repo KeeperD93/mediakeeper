@@ -96,7 +96,7 @@ async def test_create_folders_batch_rejects_parent_escape(monkeypatch):
         {"parent_path": "/media-root/Series", "folder_name": "../outside"},
     ])
 
-    assert payload[0]["error"] in {"name_not_allowed", "path_not_allowed"}
+    assert payload["results"][0]["error"] in {"name_not_allowed", "path_not_allowed"}
     assert "/media-root/outside" not in _FakePath.created_paths
 
 
@@ -114,7 +114,7 @@ async def test_create_folders_batch_still_creates_valid_child(monkeypatch):
         {"parent_path": "/media-root/Series", "folder_name": "Season 01"},
     ])
 
-    assert payload[0]["success"] is True
+    assert payload["results"][0]["success"] is True
     assert "/media-root/Series/Season 01" in _FakePath.created_paths
 
 
