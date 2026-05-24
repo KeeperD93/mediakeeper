@@ -1,4 +1,6 @@
 """Category/provider pagination + TMDB watch-providers debug helper."""
+import logging
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -8,6 +10,7 @@ from models.portal.profile import UserProfile
 from models.user import User
 from services.portal import discover as disc_svc
 
+logger = logging.getLogger("mediakeeper.api.portal.catalog")
 router = APIRouter()
 
 
@@ -98,5 +101,6 @@ async def watch_providers(
         ]
         items.sort(key=lambda x: (x.get("display_priority") or 999, x.get("provider_name") or ""))
         return {"region": region, "media_type": media_type, "count": len(items), "items": items}
-    except Exception as e:
-        return {"error": str(e), "items": []}
+    except Exception:
+        logger.exception("[catalog] watch_providers failed")
+        return {"error": "watch_providers_failed", "items": []}

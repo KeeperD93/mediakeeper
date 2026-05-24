@@ -113,7 +113,12 @@ async def test_list_files_permission_denied_returns_short_code(monkeypatch, tmp_
     media_dir.mkdir()
 
     monkeypatch.setattr(files_module, "MEDIA_FOLDERS", {"movies": str(media_dir)})
-    monkeypatch.setattr(files_module, "_validate_path", lambda _path: None)
+    # Bypass the os.path.commonpath sanitiser since tmp_path lives outside
+    # the real configured media roots — return the resolved Path directly.
+    monkeypatch.setattr(
+        files_module, "_ensure_within_media_roots",
+        lambda _candidate: media_dir,
+    )
 
     def _raise_permission(self, *args, **kwargs):
         raise PermissionError(f"{_LEAK_MARKER} permission boom")
@@ -134,7 +139,10 @@ async def test_list_files_generic_failure_returns_short_code(monkeypatch, tmp_pa
     media_dir.mkdir()
 
     monkeypatch.setattr(files_module, "MEDIA_FOLDERS", {"movies": str(media_dir)})
-    monkeypatch.setattr(files_module, "_validate_path", lambda _path: None)
+    monkeypatch.setattr(
+        files_module, "_ensure_within_media_roots",
+        lambda _candidate: media_dir,
+    )
 
     def _raise_generic(self, *args, **kwargs):
         raise RuntimeError(f"{_LEAK_MARKER} generic boom")
@@ -250,7 +258,8 @@ async def test_get_rootpath_unknown_category_returns_short_code():
 async def test_get_file_metadata_path_not_allowed_returns_short_code(monkeypatch):
     from api.media import _metadata
 
-    monkeypatch.setattr(_metadata, "_validate_path", lambda _path: "path_not_allowed")
+    # Force the sanitiser to refuse the path so we hit the path_not_allowed branch.
+    monkeypatch.setattr(_metadata, "_ensure_within_media_roots", lambda _path: None)
 
     fake_user = MagicMock()
     leaky_path = f"{_LEAK_MARKER}/movie.mkv"
@@ -258,3 +267,60 @@ async def test_get_file_metadata_path_not_allowed_returns_short_code(monkeypatch
 
     assert result == {"error": "path_not_allowed"}
     assert _LEAK_MARKER not in str(result)
+
+
+# Anti-regression path-injection guards (cycle 20.b)
+
+
+@pytest.mark.asyncio
+async def test_list_files_path_traversal_subpath_rejected(monkeypatch, tmp_path):
+    """Subpath with `../` traversal escaping the media root must be refused."""
+    from services.media_manager import _paths as paths_module
+    from services.media_manager import files as files_module
+
+    media_dir = tmp_path / "movies"
+    media_dir.mkdir()
+    fake_folders = {"movies": str(media_dir)}
+    # The sanitiser reads MEDIA_FOLDERS from the _paths module via _media_roots(),
+    # so both bindings must be patched for the helper to see the tmp root.
+    monkeypatch.setattr(files_module, "MEDIA_FOLDERS", fake_folders)
+    monkeypatch.setattr(paths_module, "MEDIA_FOLDERS", fake_folders)
+
+    result = await files_module.list_files("movies", subpath="../../../etc/passwd")
+
+    assert result == {"error": "path_not_allowed"}
+
+
+@pytest.mark.asyncio
+async def test_get_file_metadata_absolute_path_outside_roots_rejected(monkeypatch, tmp_path):
+    """Absolute path outside configured media roots must be refused."""
+    from api.media import _metadata
+    from services.media_manager import _paths as paths_module
+
+    media_dir = tmp_path / "movies"
+    media_dir.mkdir()
+    monkeypatch.setattr(paths_module, "MEDIA_FOLDERS", {"movies": str(media_dir)})
+
+    fake_user = MagicMock()
+    # /etc/passwd resolves outside the tmp_path media root → commonpath barrier
+    # guard rejects → helper returns None → route returns path_not_allowed.
+    result = await _metadata.get_file_metadata("/etc/passwd", _=fake_user)
+
+    assert result == {"error": "path_not_allowed"}
+
+
+@pytest.mark.asyncio
+async def test_get_file_metadata_path_traversal_rejected(monkeypatch, tmp_path):
+    """Traversal sequence inside an otherwise-rooted path must be refused after resolution."""
+    from api.media import _metadata
+    from services.media_manager import _paths as paths_module
+
+    media_dir = tmp_path / "movies"
+    media_dir.mkdir()
+    monkeypatch.setattr(paths_module, "MEDIA_FOLDERS", {"movies": str(media_dir)})
+
+    fake_user = MagicMock()
+    traversal_path = str(media_dir / ".." / ".." / ".." / "etc" / "passwd")
+    result = await _metadata.get_file_metadata(traversal_path, _=fake_user)
+
+    assert result == {"error": "path_not_allowed"}

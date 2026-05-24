@@ -2,13 +2,12 @@
 import asyncio
 import json
 import logging
-import os
 
 from fastapi import APIRouter, Depends
 
 from api.auth import get_current_user
 from models.user import User
-from services.media_manager import _validate_path, format_size
+from services.media_manager import _ensure_within_media_roots, format_size
 
 logger = logging.getLogger("mediakeeper.api.media")
 router = APIRouter()
@@ -177,17 +176,21 @@ async def get_file_metadata(path: str, _: User = Depends(get_current_user)):
     """Analyze a media file with ffprobe — video, audio, subtitles."""
     logger.info("[metadata] Requested path: %r", path)
 
-    err = _validate_path(path)
-    if err:
-        logger.warning("[metadata] Path validation failed: %s for %r", err, path)
-        return {"error": err}
+    # _ensure_within_media_roots applies the os.path.commonpath barrier guard
+    # (CodeQL-recognised for py/path-injection) and returns the sanitised Path.
+    # Downstream sinks (is_file, ffprobe subprocess) MUST consume this Path.
+    resolved = _ensure_within_media_roots(path)
+    if resolved is None:
+        logger.warning("[metadata] Path validation failed for %r", path)
+        return {"error": "path_not_allowed"}
 
-    if not os.path.isfile(path):
-        logger.warning("[metadata] File not found: %r", path)
+    resolved_str = str(resolved)
+    if not resolved.is_file():
+        logger.warning("[metadata] File not found: %r", resolved_str)
         return {"error": "file_not_found"}
 
-    logger.info("[metadata] Running ffprobe on: %r", path)
-    data, ffp_err = await _run_ffprobe(path)
+    logger.info("[metadata] Running ffprobe on: %r", resolved_str)
+    data, ffp_err = await _run_ffprobe(resolved_str)
     if ffp_err:
         return {"error": ffp_err}
 

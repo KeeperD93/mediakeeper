@@ -2,7 +2,7 @@
 import logging
 from pathlib import Path
 
-from ._paths import VIDEO_EXTENSIONS, _validate_path
+from ._paths import VIDEO_EXTENSIONS, _ensure_within_media_roots
 from .categories import MEDIA_FOLDERS
 from .naming import format_size
 from services.path_config import is_path_within_backup_dir
@@ -15,17 +15,16 @@ async def list_files(folder_key: str, subpath: str = "") -> dict | list[dict]:
     if not folder_base:
         return {"error": "unknown_folder"}
 
-    target = Path(folder_base)
-    if subpath:
-        clean_sub = subpath.strip('/')
-        if '..' in clean_sub.split('/'):
-            return {"error": "path_not_allowed"}
-        target = target / clean_sub
-
+    candidate = str(Path(folder_base) / subpath.strip('/')) if subpath else folder_base
+    # _ensure_within_media_roots applies the os.path.commonpath barrier guard
+    # (CodeQL-recognised for py/path-injection) and returns the sanitised Path.
+    # Downstream filesystem ops MUST consume this returned Path — reconstructing
+    # Path(candidate) here would defeat the taint flow break.
+    target = _ensure_within_media_roots(candidate)
+    if target is None:
+        logger.warning("[files] path not allowed: %r", candidate)
+        return {"error": "path_not_allowed"}
     target_str = str(target)
-    err = _validate_path(target_str)
-    if err:
-        return {"error": err}
 
     if not target.exists():
         logger.warning("[files] directory not found: %r", target_str)
