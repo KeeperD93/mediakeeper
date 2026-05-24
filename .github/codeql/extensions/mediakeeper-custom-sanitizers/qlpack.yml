@@ -1,0 +1,7 @@
+name: local/mediakeeper-custom-sanitizers
+version: 0.0.1
+library: true
+extensionTargets:
+  codeql/python-all: "*"
+dataExtensions:
+  - models/**/*.yml

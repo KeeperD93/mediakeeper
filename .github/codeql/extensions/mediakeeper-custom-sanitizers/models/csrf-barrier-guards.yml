@@ -1,0 +1,20 @@
+# Barrier guards for the MediaKeeper CSRF cookie lifecycle.
+#
+# CodeQL's py/cookie-injection query has no native sanitisers — the
+# Sanitizer class declared in CookieInjectionCustomizations.qll is
+# abstract with no default subclasses, so any regex-based allowlist
+# applied in Python code is invisible to the analyser by default.
+#
+# This file declares api.auth._csrf._is_valid_csrf_token as a barrier
+# guard: when the helper returns True, the value passed as its first
+# argument is recognised as validated and the taint flow stops.
+#
+# Documented format: [type, access_path, accepting_value, kind].
+# Reference example: github/codeql python/ql/lib/semmle/python/frameworks/Django.model.yml.
+
+extensions:
+  - addsTo:
+      pack: codeql/python-all
+      extensible: barrierGuardModel
+    data:
+      - ['api.auth._csrf', 'Member[_is_valid_csrf_token].Argument[0]', "true", 'cookie-injection']
