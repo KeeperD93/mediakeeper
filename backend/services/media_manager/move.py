@@ -1,20 +1,18 @@
 """Move, deletion et creation de folders."""
 import logging
-from pathlib import Path
 
 from ._io import _fast_move, _force_delete, _same_device
-from ._paths import _validate_name, _validate_path
+from ._paths import _ensure_within_media_roots, _validate_name
 from .naming import format_size
 
 logger = logging.getLogger("mediakeeper.media_manager")
 
 
 async def delete_file(path: str) -> dict:
-    err = _validate_path(path)
-    if err:
-        return {"error": err}
+    target = _ensure_within_media_roots(path)
+    if target is None:
+        return {"error": "path_not_allowed"}
 
-    target = Path(path)
     if not target.exists():
         return {"error": f"not_found: {path}"}
 
@@ -40,9 +38,9 @@ async def create_folders_batch(folders: list) -> dict:
             parent_path = f["parent_path"]
             folder_name = f["folder_name"]
 
-            err = _validate_path(parent_path)
-            if err:
-                results.append({"parent_path": parent_path, "folder_name": folder_name, "error": err})
+            parent = _ensure_within_media_roots(parent_path)
+            if parent is None:
+                results.append({"parent_path": parent_path, "folder_name": folder_name, "error": "path_not_allowed"})
                 continue
 
             name_err = _validate_name(folder_name)
@@ -50,10 +48,11 @@ async def create_folders_batch(folders: list) -> dict:
                 results.append({"parent_path": parent_path, "folder_name": folder_name, "error": name_err})
                 continue
 
-            parent = Path(parent_path).resolve()
-            target = parent / folder_name
-            target_resolved = target.resolve(strict=False)
-            if target_resolved.parent != parent:
+            target_candidate = parent / folder_name
+            target = target_candidate.resolve(strict=False)
+            try:
+                target.relative_to(parent)
+            except ValueError:
                 results.append({"parent_path": parent_path, "folder_name": folder_name, "error": "path_not_allowed"})
                 continue
 
@@ -64,7 +63,7 @@ async def create_folders_batch(folders: list) -> dict:
                     "parent_path": parent_path,
                     "folder_name": folder_name,
                     "success":     True,
-                    "path":        str(target_resolved),
+                    "path":        str(target),
                     "already_existed": already,
                 })
             except Exception:
@@ -83,14 +82,11 @@ async def create_folders_batch(folders: list) -> dict:
 
 async def move_file(src_path: str, dest_folder: str) -> dict:
     logger.info("[MOVE] %r → %r", src_path, dest_folder)
-    for p in (src_path, dest_folder):
-        err = _validate_path(p)
-        if err:
-            logger.warning("[MOVE] Path non allowed : %r — %s", p, err)
-            return {"error": err}
-
-    src  = Path(src_path)
-    dest = Path(dest_folder)
+    src = _ensure_within_media_roots(src_path)
+    dest = _ensure_within_media_roots(dest_folder)
+    if src is None or dest is None:
+        logger.warning("[MOVE] Containment rejected: src=%r dest=%r", src_path, dest_folder)
+        return {"error": "path_not_allowed"}
 
     if not src.exists():
         logger.warning("[MOVE] Source not found: %r", src_path)
@@ -100,7 +96,13 @@ async def move_file(src_path: str, dest_folder: str) -> dict:
         return {"error": f"destination_not_a_directory: {dest_folder}"}
 
     try:
-        target = dest / src.name
+        target_candidate = dest / src.name
+        target = target_candidate.resolve(strict=False)
+        try:
+            target.relative_to(dest)
+        except ValueError:
+            logger.warning("[MOVE] Target escape: %r", target_candidate)
+            return {"error": "path_not_allowed"}
         same_dev = _same_device(src, dest)
         logger.info("[MOVE] same_device=%s | target=%r", same_dev, target)
         await _fast_move(str(src), str(target))
@@ -113,30 +115,30 @@ async def move_file(src_path: str, dest_folder: str) -> dict:
 
 async def check_move_conflicts(file_names: list[str], dest_folder: str) -> dict:
     """Check si des files existent already in le folder de destination."""
-    err = _validate_path(dest_folder)
-    if err:
-        return {"error": err}
+    dest = _ensure_within_media_roots(dest_folder)
+    if dest is None:
+        return {"error": "path_not_allowed"}
 
-    dest = Path(dest_folder)
     if not dest.is_dir():
         return {"error": f"destination_not_found: {dest_folder}"}
 
     try:
         conflicts = []
-        dest_resolved = dest.resolve(strict=False)
         for name in file_names:
             name_err = _validate_name(name)
             if name_err:
                 return {"error": name_err}
-            target = dest / name
-            target_resolved = target.resolve(strict=False)
-            if target_resolved.parent != dest_resolved:
+            target_candidate = dest / name
+            target = target_candidate.resolve(strict=False)
+            try:
+                target.relative_to(dest)
+            except ValueError:
                 return {"error": "path_not_allowed"}
             if target.exists():
                 size = target.stat().st_size if target.is_file() else 0
                 conflicts.append({
                     "name": name,
-                    "existing_path": str(target_resolved),
+                    "existing_path": str(target),
                     "existing_size": size,
                     "existing_size_label": format_size(size) if size else "-",
                 })
@@ -149,14 +151,11 @@ async def check_move_conflicts(file_names: list[str], dest_folder: str) -> dict:
 async def move_file_overwrite(src_path: str, dest_folder: str) -> dict:
     """Move un file en overwriting si required."""
     logger.info("[MOVE-OW] %r → %r", src_path, dest_folder)
-    for p in (src_path, dest_folder):
-        err = _validate_path(p)
-        if err:
-            logger.warning("[MOVE-OW] Path non allowed : %r — %s", p, err)
-            return {"error": err}
-
-    src  = Path(src_path)
-    dest = Path(dest_folder)
+    src = _ensure_within_media_roots(src_path)
+    dest = _ensure_within_media_roots(dest_folder)
+    if src is None or dest is None:
+        logger.warning("[MOVE-OW] Containment rejected: src=%r dest=%r", src_path, dest_folder)
+        return {"error": "path_not_allowed"}
 
     if not src.exists():
         logger.warning("[MOVE-OW] Source not found: %r", src_path)
@@ -166,7 +165,13 @@ async def move_file_overwrite(src_path: str, dest_folder: str) -> dict:
         return {"error": f"destination_not_a_directory: {dest_folder}"}
 
     try:
-        target = dest / src.name
+        target_candidate = dest / src.name
+        target = target_candidate.resolve(strict=False)
+        try:
+            target.relative_to(dest)
+        except ValueError:
+            logger.warning("[MOVE-OW] Target escape: %r", target_candidate)
+            return {"error": "path_not_allowed"}
         if target.exists():
             logger.info("[MOVE-OW] Deletion target existante : %r (is_dir=%s)", target, target.is_dir())
             await _force_delete(target)
