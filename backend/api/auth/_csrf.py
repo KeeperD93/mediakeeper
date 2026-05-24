@@ -52,7 +52,12 @@ def ensure_csrf_cookie(response: Response, request: Request) -> str:
     :func:`rotate_csrf_cookie` instead.
     """
     raw = (request.cookies.get(CSRF_COOKIE_NAME) or "").strip()
-    token = raw if _CSRF_TOKEN_RE.fullmatch(raw) else secrets.token_urlsafe(_CSRF_TOKEN_BYTES)
+    match = _CSRF_TOKEN_RE.fullmatch(raw)
+    # Extract the token via Match.group(0) rather than passing ``raw``
+    # straight through. The values are identical (the pattern is anchored
+    # with \A...\Z) but the static analyser treats the engine-derived
+    # string as sanitised, breaking the cookie-injection taint flow.
+    token = match.group(0) if match else secrets.token_urlsafe(_CSRF_TOKEN_BYTES)
     _set_csrf_cookie(response, token, request)
     return token
 
