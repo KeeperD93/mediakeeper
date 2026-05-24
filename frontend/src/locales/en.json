@@ -95,6 +95,7 @@
       "log_read_failed": "Log read failed",
       "refresh_library_failed": "Library scan failed",
       "no_active_media_source": "No active media source",
+      "missing_url_or_api_key": "Missing URL or API key",
       "quota_exceeded": "Quota exceeded",
       "invalid_credentials": "Invalid credentials.",
       "account_disabled": "Account disabled.",

@@ -47,12 +47,12 @@ async def migrate_library_names(
 
     source = await get_active_media_source(db)
     if not source:
-        return {"error": "No active media source"}
+        return {"error": "no_active_media_source"}
 
     url = source.get("url", "").rstrip("/")
     api_key = source.get("api_key", "")
     if not url or not api_key:
-        return {"error": "Missing URL or API key"}
+        return {"error": "missing_url_or_api_key"}
 
     rows_res = await db.execute(
         select(PlaybackSession).where(

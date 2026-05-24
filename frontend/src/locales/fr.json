@@ -95,6 +95,7 @@
       "log_read_failed": "Échec de la lecture du journal",
       "refresh_library_failed": "Échec de l'analyse de la bibliothèque",
       "no_active_media_source": "Aucune source média active",
+      "missing_url_or_api_key": "URL ou clé API manquante",
       "quota_exceeded": "Quota dépassé",
       "invalid_credentials": "Identifiants incorrects.",
       "account_disabled": "Compte désactivé.",
