@@ -91,21 +91,21 @@ async def login(req: LoginRequest, request: Request, response: Response, db: Asy
 
     if not user or not verify_password(req.password, user.hashed_password):
         await record_failure(db, client_ip, tracking_username, "admin", user_agent)
-        logger.warning(f"[LOGIN] Failure for user={req.username!r} from {client_ip}")
+        logger.warning("[LOGIN] Failure for user=%r from %s", req.username, client_ip)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="invalid_credentials",
         )
 
     if not user.is_active:
-        logger.warning(f"[LOGIN] Account disabled: {req.username}")
+        logger.warning("[LOGIN] Account disabled: %s", req.username)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="account_disabled",
         )
     if not is_backoffice_admin(user.username) or is_external_auth_only_password(user.hashed_password):
         await record_failure(db, client_ip, tracking_username, "admin", user_agent)
-        logger.warning(f"[LOGIN] Backoffice refused for user={req.username!r} from {client_ip}")
+        logger.warning("[LOGIN] Backoffice refused for user=%r from %s", req.username, client_ip)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="backoffice_forbidden",
@@ -121,7 +121,7 @@ async def login(req: LoginRequest, request: Request, response: Response, db: Asy
     # logs, and an admin can resolve the id from the users table. The
     # FAILURE branches above keep the username clear on purpose so an
     # operator can still spot enumeration / brute-force patterns.
-    logger.info(f"[LOGIN] Success for user_id={user.id}")
+    logger.info("[LOGIN] Success for user_id=%s", user.id)
 
     return {
         "success":              True,
@@ -187,7 +187,7 @@ async def portal_login(
             await grant_portal_admin_session(request, response, user, db)
             await record_attempt(db, client_ip, tracking_username, "admin", success=True, user_agent=user_agent)
             await _stamp_admin_login(db, user, client_ip=client_ip, user_agent=user_agent)
-            logger.info(f"[PORTAL_LOGIN] Admin success for user_id={user.id}")
+            logger.info("[PORTAL_LOGIN] Admin success for user_id=%s", user.id)
             return {
                 "success": True,
                 "scope": "admin",
@@ -196,8 +196,9 @@ async def portal_login(
             }
 
         logger.info(
-            f"[PORTAL_LOGIN] Fallback Emby pour user={username!r} "
-            f"(identifiants backoffice invalides ou compte external-only)"
+            "[PORTAL_LOGIN] Emby fallback for user=%r "
+            "(backoffice credentials invalid or external-only account)",
+            username,
         )
 
     if user and not user.is_active:
@@ -231,7 +232,7 @@ async def portal_login(
     portal_session = await authenticate_emby_user(db, username, req.password)
     if not portal_session:
         await record_failure(db, client_ip, tracking_username, "portal", user_agent)
-        logger.warning(f"[PORTAL_LOGIN] Requests failure for user={username!r} from {client_ip}")
+        logger.warning("[PORTAL_LOGIN] Requests failure for user=%r from %s", username, client_ip)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="invalid_credentials",
@@ -255,7 +256,7 @@ async def portal_login(
     except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
         pass
 
-    logger.info(f"[PORTAL_LOGIN] Requests success for user_id={portal_user_id}")
+    logger.info("[PORTAL_LOGIN] Requests success for user_id=%s", portal_user_id)
     return {
         "success": True,
         "scope": "portal",

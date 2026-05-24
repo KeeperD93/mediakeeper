@@ -100,7 +100,7 @@ async def change_password(
     new_token = create_access_token({"sub": user.username, "scope": "admin"})
     _set_jwt_cookie(response, new_token, request)
     rotate_csrf_cookie(response, request)
-    logger.info(f"[PASSWORD] Password changed for user={user.username}")
+    logger.info("[PASSWORD] Password changed for user=%s", user.username)
     return {"success": True}
 
 
