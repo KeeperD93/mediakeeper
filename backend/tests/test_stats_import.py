@@ -9,6 +9,9 @@ import pytest
 from core.security import create_access_token
 
 
+_LEAK_MARKER = "/secret/path"
+
+
 @pytest.mark.asyncio
 async def test_jellystats_import_rejects_non_json(client, admin_user):
     client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
@@ -65,9 +68,6 @@ async def test_jellystats_import_invalid_json_returns_short_code(client, admin_u
 
     assert resp.status_code == 200
     assert resp.json()["error"] == "import_invalid_json"
-
-
-_LEAK_MARKER = "/secret/path"
 
 
 @pytest.mark.asyncio
