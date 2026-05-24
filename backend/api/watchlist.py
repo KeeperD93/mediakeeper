@@ -195,7 +195,7 @@ async def tmdb_detail(media_type: str, tmdb_id: int, db: AsyncSession = Depends(
     """Full details of a movie or series from TMDB."""
     from services.tmdb import get_media_detail
     if media_type not in ("movie", "tv"):
-        return {"error": "media_type must be 'movie' or 'tv'"}
+        return {"error": "invalid_media_type"}
     return await get_media_detail(media_type, tmdb_id, db)
 
 
