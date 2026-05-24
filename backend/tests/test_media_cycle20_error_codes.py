@@ -113,7 +113,12 @@ async def test_list_files_permission_denied_returns_short_code(monkeypatch, tmp_
     media_dir.mkdir()
 
     monkeypatch.setattr(files_module, "MEDIA_FOLDERS", {"movies": str(media_dir)})
-    monkeypatch.setattr(files_module, "_validate_path", lambda _path: None)
+    # Bypass the os.path.commonpath sanitiser since tmp_path lives outside
+    # the real configured media roots — return the resolved Path directly.
+    monkeypatch.setattr(
+        files_module, "_ensure_within_media_roots",
+        lambda _candidate: media_dir,
+    )
 
     def _raise_permission(self, *args, **kwargs):
         raise PermissionError(f"{_LEAK_MARKER} permission boom")
@@ -134,7 +139,10 @@ async def test_list_files_generic_failure_returns_short_code(monkeypatch, tmp_pa
     media_dir.mkdir()
 
     monkeypatch.setattr(files_module, "MEDIA_FOLDERS", {"movies": str(media_dir)})
-    monkeypatch.setattr(files_module, "_validate_path", lambda _path: None)
+    monkeypatch.setattr(
+        files_module, "_ensure_within_media_roots",
+        lambda _candidate: media_dir,
+    )
 
     def _raise_generic(self, *args, **kwargs):
         raise RuntimeError(f"{_LEAK_MARKER} generic boom")
