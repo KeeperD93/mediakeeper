@@ -48,6 +48,6 @@ def fix_encoding(filepath: str, allow_any_path: bool = False) -> dict:
 
         return {"original_encoding": enc, "converted": True, "path": str(target)}
 
-    except Exception as e:
-        logger.warning(f"[subtitle_tools] Fix encoding error for {filepath}: {e}")
-        return {"original_encoding": "unknown", "converted": False, "path": filepath, "error": str(e)[:200]}
+    except Exception:
+        logger.exception("[subtitle_tools] Fix encoding failed for %r", filepath)
+        return {"original_encoding": "unknown", "converted": False, "path": filepath, "error": "encoding_failed"}

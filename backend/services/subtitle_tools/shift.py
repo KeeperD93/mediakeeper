@@ -72,6 +72,6 @@ def shift_srt(filepath: str, offset_ms: int, allow_any_path: bool = False) -> di
             "lines_shifted": lines_shifted,
         }
 
-    except Exception as e:
-        logger.error(f"[subtitle_tools] Shift error for {filepath}: {e}")
-        return {"error": str(e)[:200]}
+    except Exception:
+        logger.exception("[subtitle_tools] Shift failed for %r", filepath)
+        return {"error": "shift_failed"}
