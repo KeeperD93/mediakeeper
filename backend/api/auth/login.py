@@ -62,6 +62,7 @@ async def _stamp_admin_login(
         db.add(profile)
         await db.commit()
     except Exception:
+        logger.exception("[LOGIN] Profile stamp failed for user_id=%s", user.id)
         await db.rollback()
 
 # Above this many recent portal failures, we stop forwarding the attempt to
