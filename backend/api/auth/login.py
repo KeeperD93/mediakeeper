@@ -21,7 +21,7 @@ from services.portal.emby_auth import authenticate_emby_user
 from services.portal.profiles import serialize_profile
 
 from ._cookies import _set_portal_jwt_cookie, _set_jwt_cookie
-from ._csrf import ensure_csrf_cookie
+from ._csrf import rotate_csrf_cookie
 from ._portal import (
     _safe_get_unread_news_count,
     _safe_serialize_portal_ui_flags,
@@ -113,7 +113,7 @@ async def login(req: LoginRequest, request: Request, response: Response, db: Asy
 
     token = create_access_token({"sub": user.username, "scope": "admin"})
     _set_jwt_cookie(response, token, request)
-    ensure_csrf_cookie(response, request)
+    rotate_csrf_cookie(response, request)
     await record_attempt(db, client_ip, tracking_username, "admin", success=True, user_agent=user_agent)
     await _stamp_admin_login(db, user, client_ip=client_ip, user_agent=user_agent)
     # Once authenticated, identify the actor by numeric id rather than
@@ -183,7 +183,7 @@ async def portal_login(
         if local_admin_ok:
             token = create_access_token({"sub": user.username, "scope": "admin"})
             _set_jwt_cookie(response, token, request)
-            ensure_csrf_cookie(response, request)
+            rotate_csrf_cookie(response, request)
             await grant_portal_admin_session(request, response, user, db)
             await record_attempt(db, client_ip, tracking_username, "admin", success=True, user_agent=user_agent)
             await _stamp_admin_login(db, user, client_ip=client_ip, user_agent=user_agent)
@@ -238,7 +238,7 @@ async def portal_login(
         )
 
     _set_portal_jwt_cookie(response, portal_session["token"], request)
-    ensure_csrf_cookie(response, request)
+    rotate_csrf_cookie(response, request)
     await record_attempt(db, client_ip, tracking_username, "portal", success=True, user_agent=user_agent)
 
     portal_user = portal_session["user"]

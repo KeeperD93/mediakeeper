@@ -15,7 +15,7 @@ from models.user import User
 from services.security import ensure_not_blocked, record_attempt, record_failure
 
 from ._cookies import PORTAL_COOKIE_NAME, _clear_jwt_cookie, _set_jwt_cookie
-from ._csrf import clear_csrf_cookie, ensure_csrf_cookie, require_csrf
+from ._csrf import clear_csrf_cookie, ensure_csrf_cookie, require_csrf, rotate_csrf_cookie
 from ._deps import get_current_user
 from ._schemas import ChangePasswordRequest, LocaleRequest, PreferencesRequest
 
@@ -99,7 +99,7 @@ async def change_password(
     )
     new_token = create_access_token({"sub": user.username, "scope": "admin"})
     _set_jwt_cookie(response, new_token, request)
-    ensure_csrf_cookie(response, request)
+    rotate_csrf_cookie(response, request)
     logger.info(f"[PASSWORD] Password changed for user={user.username}")
     return {"success": True}
 

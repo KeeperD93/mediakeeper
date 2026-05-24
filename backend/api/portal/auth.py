@@ -12,7 +12,7 @@ from core.proxy import get_client_ip
 from core.rate_limit import ip_key, limiter
 from core.security import decode_access_token
 from api.auth import PORTAL_COOKIE_NAME, _set_portal_jwt_cookie
-from api.auth._csrf import ensure_csrf_cookie
+from api.auth._csrf import ensure_csrf_cookie, rotate_csrf_cookie
 from api.portal.deps import get_current_profile
 from models.user import User
 from models.portal.profile import UserProfile
@@ -129,7 +129,7 @@ async def portal_login(
         )
 
     _set_portal_jwt_cookie(response, result["token"], request)
-    ensure_csrf_cookie(response, request)
+    rotate_csrf_cookie(response, request)
     await record_attempt(db, client_ip, req.username, "portal", success=True, user_agent=user_agent)
     await _log_login(db, result["user"].id, req.username, "portal", True, client_ip, user_agent)
 
