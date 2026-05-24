@@ -15,7 +15,7 @@ async def refresh_library(db: AsyncSession) -> dict:
     """Start a full scan of the Emby/Jellyfin library."""
     cfg = await _get_emby_config(db)
     if not cfg:
-        return {"error": "No active media source"}
+        return {"error": "no_active_media_source"}
 
     url, api_key = cfg
     headers = {"X-Emby-Token": api_key}
