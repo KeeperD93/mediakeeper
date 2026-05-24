@@ -46,10 +46,11 @@ def _is_valid_csrf_token(raw: str) -> bool:
     """Return True when ``raw`` matches the base64url charset and the
     32-128 length window expected of a server-issued CSRF token.
 
-    Annotated as a CodeQL ``barrierGuardModel`` for ``cookie-injection``
-    in ``.github/codeql/extensions/mediakeeper-custom-sanitizers`` so the
-    static analyser recognises the validation and stops tracking the
-    incoming cookie value as tainted through :func:`ensure_csrf_cookie`.
+    Extracted so the validation has a single name in the codebase and a
+    dedicated set of unit tests; ``ensure_csrf_cookie`` keeps a tampered
+    or oversized incoming cookie value from reaching ``response.set_cookie``
+    by replacing it with a fresh ``secrets.token_urlsafe`` when this guard
+    returns False.
     """
     return _CSRF_TOKEN_RE.fullmatch(raw) is not None
 
