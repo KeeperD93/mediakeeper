@@ -43,11 +43,11 @@ async def _run_subprocess(cmd: list[str], timeout: int) -> tuple[int, bytes]:
         except ProcessLookupError:
             pass
         except Exception as exc:  # noqa: BLE001 -- best-effort, never mask the timeout
-            logger.debug(f"[opensubtitles] proc.kill() failed for {cmd[0]}: {exc}")
+            logger.debug("[opensubtitles] proc.kill() failed for %s: %s", cmd[0], exc)
         try:
             await asyncio.wait_for(proc.wait(), timeout=5)
         except (asyncio.TimeoutError, Exception) as exc:  # noqa: BLE001
-            logger.debug(f"[opensubtitles] proc.wait() after kill failed for {cmd[0]}: {exc}")
+            logger.debug("[opensubtitles] proc.wait() after kill failed for %s: %s", cmd[0], exc)
         raise
 
     rc = proc.returncode
@@ -62,11 +62,7 @@ def _cleanup_path(path: Path) -> None:
     try:
         path.unlink(missing_ok=True)
     except Exception as exc:  # noqa: BLE001 -- best-effort cleanup, never block the caller
-        logger.debug(f"[opensubtitles] Cleanup failed for {path}: {exc}")
-
-
-def _short_stderr_tail(stderr: bytes, length: int = 100) -> str:
-    return stderr.decode(errors="replace")[-length:].replace("\n", " ").strip()
+        logger.debug("[opensubtitles] Cleanup failed for %s: %s", path, exc)
 
 
 def _check_remux_disk_space(source: Path) -> str | None:
@@ -84,14 +80,15 @@ def _check_remux_disk_space(source: Path) -> str | None:
         usage = shutil.disk_usage(str(source.parent))
     except OSError as exc:
         logger.debug(
-            f"[opensubtitles] Disk usage check skipped for {source.parent}: {exc}"
+            "[opensubtitles] Disk usage check skipped for %s: %s",
+            source.parent, exc,
         )
         return None
     required = size * 2 + _REMUX_DISK_MARGIN_BYTES
     if usage.free < required:
         logger.error(
-            "[opensubtitles] Insufficient disk space for remux: "
-            f"free={usage.free} required={required} source_size={size}"
+            "[opensubtitles] Insufficient disk space for remux: free=%s required=%s source_size=%s",
+            usage.free, required, size,
         )
         return "insufficient_disk_space"
     return None
@@ -143,7 +140,7 @@ async def _safe_remux(
     try:
         await asyncio.to_thread(shutil.copy2, str(source), str(rollback_path))
     except Exception as exc:  # noqa: BLE001 -- log and refuse, source untouched
-        logger.error(f"[opensubtitles] Rollback copy failed for {source}: {exc}")
+        logger.error("[opensubtitles] Rollback copy failed for %s: %s", source, exc)
         _cleanup_path(rollback_path)
         return "backup_failed", None
 
@@ -160,7 +157,8 @@ async def _safe_remux(
         # rollback bytes. The retention helper will then fall back to whatever
         # the filesystem reports — same behaviour as before this fix.
         logger.debug(
-            f"[opensubtitles] Failed to refresh rollback mtime for {rollback_path}: {exc}"
+            "[opensubtitles] Failed to refresh rollback mtime for %s: %s",
+            rollback_path, exc,
         )
 
     cmd: list[str] = ["ffmpeg", "-i", str(source), "-map", "0"]
@@ -176,19 +174,20 @@ async def _safe_remux(
             rc, stderr = await _run_subprocess(cmd, _FFMPEG_TIMEOUT_S)
         except asyncio.TimeoutError:
             logger.error(
-                f"[opensubtitles] FFmpeg timeout (>{_FFMPEG_TIMEOUT_S}s) "
-                f"removing {drop_indices} from {source}"
+                "[opensubtitles] FFmpeg timeout (>%ss) removing %s from %s",
+                _FFMPEG_TIMEOUT_S, drop_indices, source,
             )
             error = "ffmpeg_timeout"
         else:
             if rc != 0:
                 full_err = stderr.decode(errors="replace")
                 logger.error(
-                    f"[opensubtitles] FFmpeg failed (rc={rc}) for {source}\nstderr:\n{full_err}"
+                    "[opensubtitles] FFmpeg failed (rc=%s) for %s\nstderr:\n%s",
+                    rc, source, full_err,
                 )
-                error = f"ffmpeg_failed: {_short_stderr_tail(stderr)}"
+                error = "ffmpeg_failed"
             elif not tmp_path.is_file():
-                logger.error(f"[opensubtitles] FFmpeg returned 0 but tmp missing: {tmp_path}")
+                logger.error("[opensubtitles] FFmpeg returned 0 but tmp missing: %s", tmp_path)
                 error = "ffmpeg_no_output"
             else:
                 # 3) ffprobe validation on tmp before touching source
@@ -201,13 +200,14 @@ async def _safe_remux(
                 try:
                     probe_rc, probe_err = await _run_subprocess(probe_cmd, _FFPROBE_TIMEOUT_S)
                 except asyncio.TimeoutError:
-                    logger.error(f"[opensubtitles] ffprobe timeout for {tmp_path}")
+                    logger.error("[opensubtitles] ffprobe timeout for %s", tmp_path)
                     error = "ffprobe_timeout"
                 else:
                     if probe_rc != 0:
                         full_err = probe_err.decode(errors="replace")
                         logger.error(
-                            f"[opensubtitles] ffprobe rejected remux for {source}\nstderr:\n{full_err}"
+                            "[opensubtitles] ffprobe rejected remux for %s\nstderr:\n%s",
+                            source, full_err,
                         )
                         error = "ffprobe_failed"
                     else:
@@ -216,12 +216,12 @@ async def _safe_remux(
                             os.replace(str(tmp_path), str(source))
                             replaced = True
                         except OSError as exc:
-                            logger.error(f"[opensubtitles] os.replace failed for {source}: {exc}")
+                            logger.error("[opensubtitles] os.replace failed for %s: %s", source, exc)
                             error = "replace_failed"
 
-    except Exception as exc:  # noqa: BLE001 -- catch-all so cleanup runs
-        logger.error(f"[opensubtitles] Remux unexpected error for {source}: {exc}")
-        error = f"remux_error: {str(exc)[:80]}"
+    except Exception:  # noqa: BLE001 -- catch-all so cleanup runs
+        logger.exception("[opensubtitles] Remux unexpected error for %s", source)
+        error = "remux_error"
     finally:
         # tmp may have been consumed by os.replace; missing_ok handles that.
         _cleanup_path(tmp_path)
@@ -231,7 +231,7 @@ async def _safe_remux(
             _cleanup_path(rollback_path)
 
     if replaced:
-        logger.info(f"[opensubtitles] Rollback artifact kept for {source} at {rollback_path}")
+        logger.info("[opensubtitles] Rollback artifact kept for %s at %s", source, rollback_path)
         # Opportunistic, best-effort retention purge of stale rollback siblings
         # in the same directory. Bounded (single iterdir, strict pattern) and
         # tolerant: any failure is swallowed by the helper so a successful
@@ -251,7 +251,8 @@ async def _safe_remux(
             )
         except Exception as exc:  # noqa: BLE001 -- purge must never fail the remux
             logger.debug(
-                f"[opensubtitles] Rollback retention purge skipped for {parent}: {exc}"
+                "[opensubtitles] Rollback retention purge skipped for %s: %s",
+                parent, exc,
             )
         return None, rollback_path
-    return error or "remux_error: unknown", None
+    return error or "remux_error", None

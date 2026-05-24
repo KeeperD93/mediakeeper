@@ -177,3 +177,53 @@ def test_shift_srt_returns_short_code_on_exception(monkeypatch, tmp_path):
 
     assert result == {"error": "shift_failed"}
     assert _LEAK_MARKER not in str(result)
+
+
+# services/opensubtitles/_remux.py — _safe_remux ffmpeg failure
+
+
+@pytest.mark.asyncio
+async def test_safe_remux_returns_short_code_on_ffmpeg_failure(monkeypatch, tmp_path):
+    """FFmpeg returns rc != 0 with stderr embedding a path-like leak: the
+    short ``ffmpeg_failed`` code must reach the caller, the stderr stays
+    server-side via ``logger.error``."""
+    from services.opensubtitles import _remux
+
+    source = tmp_path / "movie.mkv"
+    source.write_bytes(b"fake bytes")
+
+    leaky_stderr = f"ffmpeg cannot open {_LEAK_MARKER}/source.mkv".encode()
+
+    async def _fake_subprocess(_cmd, _timeout):
+        return 1, leaky_stderr
+
+    monkeypatch.setattr(_remux, "_run_subprocess", _fake_subprocess)
+    monkeypatch.setattr(_remux, "_check_remux_disk_space", lambda _src: None)
+
+    error, rollback = await _remux._safe_remux(source, [0])
+
+    assert error == "ffmpeg_failed"
+    assert _LEAK_MARKER not in str(error)
+    assert rollback is None
+
+
+@pytest.mark.asyncio
+async def test_safe_remux_returns_short_code_on_unexpected_exception(monkeypatch, tmp_path):
+    """An unexpected exception inside the try block must surface as the
+    short ``remux_error`` code with no embedded message."""
+    from services.opensubtitles import _remux
+
+    source = tmp_path / "movie.mkv"
+    source.write_bytes(b"fake bytes")
+
+    async def _raising_subprocess(_cmd, _timeout):
+        raise RuntimeError(f"{_LEAK_MARKER} unexpected ffmpeg crash")
+
+    monkeypatch.setattr(_remux, "_run_subprocess", _raising_subprocess)
+    monkeypatch.setattr(_remux, "_check_remux_disk_space", lambda _src: None)
+
+    error, rollback = await _remux._safe_remux(source, [0])
+
+    assert error == "remux_error"
+    assert _LEAK_MARKER not in str(error)
+    assert rollback is None
