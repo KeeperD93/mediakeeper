@@ -58,7 +58,7 @@ async def search_subtitles(
         )
 
         if res.status_code != 200:
-            logger.warning(f"[opensubtitles] Search failed: {res.status_code}")
+            logger.warning("[opensubtitles] Search failed: %s", res.status_code)
             return {"error": f"api_error_{res.status_code}", "results": []}
 
         data = res.json()
@@ -159,7 +159,7 @@ async def download_subtitle(
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_bytes(sub_res.content)
 
-        logger.info(f"[opensubtitles] Downloaded subtitle → {dest}")
+        logger.info("[opensubtitles] Downloaded subtitle → %s", dest)
 
         result = {
             "success": True,
@@ -174,7 +174,7 @@ async def download_subtitle(
             enc_result = fix_encoding(str(dest), allow_any_path=allow_any_path)
             result["encoding"] = enc_result
         except Exception as e:
-            logger.warning(f"[opensubtitles] Encoding fix error: {e}")
+            logger.warning("[opensubtitles] Encoding fix error: %s", e)
 
         if media_duration_sec > 0:
             try:
@@ -187,7 +187,7 @@ async def download_subtitle(
                         f"delta={desync['delta_sec']}s"
                     )
             except Exception as e:
-                logger.warning(f"[opensubtitles] Desync check error: {e}")
+                logger.warning("[opensubtitles] Desync check error: %s", e)
 
         return result
 

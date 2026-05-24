@@ -63,7 +63,7 @@ def shift_srt(filepath: str, offset_ms: int, allow_any_path: bool = False) -> di
         result_text = timing_re.sub(_replace_line, text)
 
         target.write_text(result_text, encoding="utf-8")
-        logger.info(f"[subtitle_tools] Shifted {filepath} by {offset_ms}ms ({lines_shifted} lines)")
+        logger.info("[subtitle_tools] Shifted %s by %sms (%s lines)", filepath, offset_ms, lines_shifted)
 
         return {
             "success": True,
