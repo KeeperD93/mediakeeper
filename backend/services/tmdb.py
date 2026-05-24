@@ -57,7 +57,7 @@ def _tmdb_headers_sync(api_key: str) -> dict:
     }
 
 
-async def _search_tmdb(media_type: str, query: str, db: AsyncSession | None = None, language: str | None = None, year: int | None = None) -> list | dict:
+async def _search_tmdb(media_type: str, query: str, db: AsyncSession | None = None, language: str | None = None, year: int | None = None) -> list[dict] | dict:
     """
     Generic TMDB search.
     media_type: "movie" or "tv"

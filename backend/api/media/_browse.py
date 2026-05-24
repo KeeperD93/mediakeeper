@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends
 
 from api.auth import get_current_user
 from models.user import User
-from services.media_manager import list_files, MEDIA_FOLDERS
+from services.media_manager import MEDIA_FOLDERS, list_files
 from services.path_config import validate_path_in_roots
 
 from ._helpers import _get_browse_roots
@@ -39,7 +39,7 @@ async def browse_dirs(
     path: str = "/",
     _: User = Depends(get_current_user),
 ):
-    """Liste les sous-folders d'un path for le browser de folders."""
+    """List sub-folders of a path for the folder browser."""
     normalized_path = (path or "/").strip()
     if normalized_path in ("", "/"):
         return {"path": "/", "dirs": _get_browse_roots()}
