@@ -17,6 +17,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 ### Changed
 - Planificateur — interface réorganisée par catégories, cartes compactes.
 - Démarrage — log boot : `COOKIE_SECURE=` renommé `COOKIE_HTTPS_FLAG=` (variable env inchangée, mapping dans `tls-deployment.md`).
+- Cookie CSRF — validation par allowlist sur les polls (durcissement).
 
 ### Fixed
 - Connexion — la détection brute-force ignore désormais les variations de casse du nom d'utilisateur.
@@ -32,6 +33,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Fusion média — code d'erreur partial-failure stable (compteur dans champ dédié).
 - Renommage média — erreurs destination/self-merge utilisent des codes stables.
 - Renommage/fusion média — validation des chemins via barrière reconnue par CodeQL (durcissement).
+- Cookie CSRF — rotation aux frontières d'authentification (correction fixation de session).
 
 ## [1.0.0-rc.3] - 2026-05-22
 
