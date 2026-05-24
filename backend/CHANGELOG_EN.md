@@ -17,6 +17,7 @@ This section intentionally has no date so it is not shown to users.
 ### Changed
 - Scheduler — UI reorganised by category with compact single-line rows.
 - Startup — boot log: `COOKIE_SECURE=` renamed `COOKIE_HTTPS_FLAG=` (env var unchanged, mapping in `tls-deployment.md`).
+- CSRF cookie — allowlist validation on polls (hardening).
 
 ### Fixed
 - Login — brute-force tracking now ignores username casing variants.
@@ -32,6 +33,7 @@ This section intentionally has no date so it is not shown to users.
 - Media manager merge — partial-failure error code now stable (count in dedicated field).
 - Media manager rename — destination-exists / self-merge errors now use stable codes.
 - Media manager rename/merge — path validation via CodeQL barrier (hardening).
+- CSRF cookie — rotation at auth boundaries (session fixation fix).
 
 ## [1.0.0-rc.3] - 2026-05-22
 
