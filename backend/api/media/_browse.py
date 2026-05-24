@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends
 
 from api.auth import get_current_user
 from models.user import User
-from services.media_manager import list_files, MEDIA_FOLDERS
+from services.media_manager import MEDIA_FOLDERS, list_files
 from services.path_config import validate_path_in_roots
 
 from ._helpers import _get_browse_roots
@@ -16,12 +16,12 @@ router = APIRouter()
 
 @router.get("/files/{folder_key}")
 async def get_files(folder_key: str, subpath: str = "", _: User = Depends(get_current_user)):
-    logger.info(f"[BROWSE] folder={folder_key} subpath={subpath!r}")
+    logger.info("[BROWSE] folder=%s subpath=%r", folder_key, subpath)
     try:
         result = await list_files(folder_key, subpath)
         return result
-    except Exception as e:
-        logger.error(f"[BROWSE] Error folder={folder_key} subpath={subpath!r}: {e}")
+    except Exception:
+        logger.exception("[BROWSE] Error folder=%s subpath=%r", folder_key, subpath)
         raise
 
 
@@ -30,7 +30,7 @@ async def get_rootpath(folder_key: str, _: User = Depends(get_current_user)):
     """Return the absolute NAS path for a category (useful for cross-category D&D)."""
     path = MEDIA_FOLDERS.get(folder_key)
     if not path:
-        return {"error": f"unknown_category: {folder_key}"}
+        return {"error": "unknown_category"}
     return {"path": path, "key": folder_key}
 
 
@@ -39,7 +39,7 @@ async def browse_dirs(
     path: str = "/",
     _: User = Depends(get_current_user),
 ):
-    """Liste les sous-folders d'un path for le browser de folders."""
+    """List sub-folders of a path for the folder browser."""
     normalized_path = (path or "/").strip()
     if normalized_path in ("", "/"):
         return {"path": "/", "dirs": _get_browse_roots()}

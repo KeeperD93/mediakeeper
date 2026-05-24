@@ -1,8 +1,10 @@
+import logging
 import os
 import time
-import logging
-from core.http_client import get_external_client
+
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.http_client import get_external_client
 
 logger = logging.getLogger("mediakeeper.tmdb")
 
@@ -32,6 +34,7 @@ async def _get_tmdb_key(db: AsyncSession | None = None) -> str:
         return _cached_key
     # 1. From the DB
     if db:
+        # Deferred to avoid a circular import: services.settings -> services.tmdb (cache invalidation).
         from services.settings import get_setting
         key = await get_setting(db, "tmdb.api_key")
         if key:
@@ -54,7 +57,7 @@ def _tmdb_headers_sync(api_key: str) -> dict:
     }
 
 
-async def _search_tmdb(media_type: str, query: str, db: AsyncSession | None = None, language: str | None = None, year: int | None = None) -> list | dict:
+async def _search_tmdb(media_type: str, query: str, db: AsyncSession | None = None, language: str | None = None, year: int | None = None) -> list[dict] | dict:
     """
     Generic TMDB search.
     media_type: "movie" or "tv"
@@ -95,9 +98,9 @@ async def _search_tmdb(media_type: str, query: str, db: AsyncSession | None = No
             "genre_ids": r.get("genre_ids", []),
         } for r in results[:8]]
 
-    except Exception as e:
-        logger.error(f"Error _search_tmdb({media_type}): {e}")
-        return {"error": str(e)}
+    except Exception:
+        logger.exception("[tmdb] search %s failed", media_type)
+        return {"error": "tmdb_search_failed"}
 
 
 async def search_movie(query: str, db: AsyncSession | None = None, language: str | None = None, year: int | None = None):
@@ -110,7 +113,7 @@ async def search_tv(query: str, db: AsyncSession | None = None, language: str | 
     return await _search_tmdb("tv", query, db, language=language, year=year)
 
 
-async def get_tv_seasons(tmdb_id: int, db: AsyncSession | None = None, language: str | None = None):
+async def get_tv_seasons(tmdb_id: int, db: AsyncSession | None = None, language: str | None = None) -> list[dict] | dict:
     """Fetch the seasons of a series."""
     api_key = await _get_tmdb_key(db)
     lang = language or LANGUAGE
@@ -130,9 +133,9 @@ async def get_tv_seasons(tmdb_id: int, db: AsyncSession | None = None, language:
             "episodes": s.get("episode_count", 0),
         } for s in seasons if s.get("season_number", 0) > 0]
 
-    except Exception as e:
-        logger.error(f"Error get_tv_seasons: {e}")
-        return {"error": str(e)}
+    except Exception:
+        logger.exception("[tmdb] get_tv_seasons failed")
+        return {"error": "tmdb_seasons_failed"}
 
 
 def _is_generic_episode_name(name: str, episode_number: int) -> bool:
@@ -148,7 +151,7 @@ def _is_generic_episode_name(name: str, episode_number: int) -> bool:
     return stripped == f"episode {suffix}" or stripped == f"episode {suffix:>02}"
 
 
-async def get_season_episodes(tmdb_id: int, season: int, db: AsyncSession | None = None, language: str | None = None):
+async def get_season_episodes(tmdb_id: int, season: int, db: AsyncSession | None = None, language: str | None = None) -> list[dict] | dict:
     """Fetch the episodes of a season.
 
     When the requested language has no episode title (TMDB returns
@@ -200,12 +203,12 @@ async def get_season_episodes(tmdb_id: int, season: int, db: AsyncSession | None
             out.append({"number": num, "name": name})
         return out
 
-    except Exception as e:
-        logger.error(f"Error get_season_episodes: {e}")
-        return {"error": str(e)}
+    except Exception:
+        logger.exception("[tmdb] get_season_episodes failed")
+        return {"error": "tmdb_episodes_failed"}
 
 
-async def get_media_detail(media_type: str, tmdb_id: int, db: AsyncSession | None = None):
+async def get_media_detail(media_type: str, tmdb_id: int, db: AsyncSession | None = None) -> dict:
     """
     Fetch the full details of a movie or series.
     media_type: "movie" or "tv"
@@ -239,9 +242,9 @@ async def get_media_detail(media_type: str, tmdb_id: int, db: AsyncSession | Non
         else:
             result["runtime"] = d.get("runtime", 0)
         return result
-    except Exception as e:
-        logger.error(f"Error get_media_detail({media_type}, {tmdb_id}): {e}")
-        return {"error": str(e)}
+    except Exception:
+        logger.exception("[tmdb] get_media_detail %s/%s failed", media_type, tmdb_id)
+        return {"error": "tmdb_detail_failed"}
 
 
 async def get_media_details(
@@ -273,13 +276,14 @@ async def get_media_details(
         )
         if res.status_code != 200:
             logger.warning(
-                f"get_media_details: HTTP {res.status_code} for {media_type}/{tmdb_id}"
+                "[tmdb] get_media_details: HTTP %s for %s/%s",
+                res.status_code, media_type, tmdb_id,
             )
             return None
         data = res.json()
         return {"original_language": data.get("original_language") or None}
-    except Exception as e:
-        logger.warning(f"get_media_details({media_type}/{tmdb_id}) failed: {e}")
+    except Exception:
+        logger.exception("[tmdb] get_media_details %s/%s failed", media_type, tmdb_id)
         return None
 
 
@@ -326,6 +330,6 @@ async def get_meta_cached(
         meta = {"runtime": runtime, "year": date[:4] if date else ""}
         _meta_cache[key] = (meta, now)
         return meta
-    except Exception as e:
-        logger.warning(f"get_meta_cached({media_type}/{tmdb_id}) failed: {e}")
+    except Exception:
+        logger.exception("[tmdb] get_meta_cached %s/%s failed", media_type, tmdb_id)
         return {}

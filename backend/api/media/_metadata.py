@@ -84,21 +84,22 @@ async def _run_ffprobe(path: str) -> tuple[dict | None, str | None]:
         )
         stdout, stderr_out = await asyncio.wait_for(proc.communicate(), timeout=30)
         if not stdout.strip():
-            logger.error(f"[metadata] ffprobe empty output. stderr: {stderr_out.decode()[:500]}")
-            return None, f"ffprobe_empty_output. Stderr: {stderr_out.decode()[:200]}"
+            logger.error("[metadata] ffprobe empty output. stderr: %s", stderr_out.decode()[:500])
+            return None, "ffprobe_empty_output"
         return json.loads(stdout), None
     except asyncio.TimeoutError:
-        logger.error(f"[metadata] ffprobe timeout for {path!r}")
-        return None, "Timeout ffprobe (> 30s)"
-    except json.JSONDecodeError as e:
-        logger.error(f"[metadata] JSON parse error: {e}")
-        return None, f"ffprobe_json_parse_error: {e}"
-    except Exception as e:
-        logger.error(f"[metadata] Exception: {e}")
-        return None, f"ffprobe_error: {str(e)}"
+        logger.error("[metadata] ffprobe timeout for %r", path)
+        return None, "ffprobe_timeout"
+    except json.JSONDecodeError:
+        logger.exception("[metadata] JSON parse error")
+        return None, "ffprobe_json_parse_failed"
+    except Exception:
+        logger.exception("[metadata] ffprobe failed")
+        return None, "ffprobe_failed"
 
 
 def _parse_format(fmt: dict) -> dict:
+    """Extract size, duration and bitrate from the ffprobe ``format`` block."""
     result = {}
     size_bytes = int(fmt.get("size", 0))
     if size_bytes:
@@ -115,7 +116,8 @@ def _parse_format(fmt: dict) -> dict:
     return result
 
 
-def _parse_streams(streams: list) -> tuple[list, list, list]:
+def _parse_streams(streams: list[dict]) -> tuple[list[dict], list[dict], list[dict]]:
+    """Split ffprobe streams into (video, audio, subtitle) track lists."""
     video_tracks, audio_tracks, sub_tracks = [], [], []
 
     for s in streams:
@@ -173,24 +175,24 @@ def _parse_streams(streams: list) -> tuple[list, list, list]:
 @router.get("/metadata")
 async def get_file_metadata(path: str, _: User = Depends(get_current_user)):
     """Analyze a media file with ffprobe — video, audio, subtitles."""
-    logger.info(f"[metadata] Requested path: {path!r}")
+    logger.info("[metadata] Requested path: %r", path)
 
     err = _validate_path(path)
     if err:
-        logger.warning(f"[metadata] Path validation failed: {err} for {path!r}")
-        return {"error": f"path_not_allowed: {err}"}
+        logger.warning("[metadata] Path validation failed: %s for %r", err, path)
+        return {"error": err}
 
     if not os.path.isfile(path):
-        logger.warning(f"[metadata] File not found: {path!r}")
+        logger.warning("[metadata] File not found: %r", path)
         return {"error": "file_not_found"}
 
-    logger.info(f"[metadata] Running ffprobe on: {path!r}")
+    logger.info("[metadata] Running ffprobe on: %r", path)
     data, ffp_err = await _run_ffprobe(path)
     if ffp_err:
         return {"error": ffp_err}
 
     streams = data.get("streams", [])
-    logger.info(f"[metadata] ffprobe OK: {len(streams)} streams")
+    logger.info("[metadata] ffprobe OK: %d streams", len(streams))
 
     result = _parse_format(data.get("format", {}))
     video_tracks, audio_tracks, sub_tracks = _parse_streams(streams)

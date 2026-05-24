@@ -3,7 +3,7 @@ Watchlist API routes v3 — persistent scan, results from DB.
 """
 
 import logging
-from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.database import get_db
 from api.auth import get_current_user, require_csrf
 from models.user import User
+from services.tmdb import get_media_detail
 from services.watchlist import (
     get_series_libraries, get_scan_results, get_scan_status,
     full_scan, incremental_scan,
@@ -110,7 +111,7 @@ async def calendar_refresh(
 # --- Ignored ---
 
 class IgnoreRequest(BaseModel):
-    keys: List[str]
+    keys: list[str]
 
 @router.get("/ignored")
 async def list_ignored(db: AsyncSession = Depends(get_db), _: User = Depends(get_current_user)):
@@ -193,9 +194,8 @@ async def search(q: str = Query(..., min_length=2), db: AsyncSession = Depends(g
 @router.get("/tmdb/{media_type}/{tmdb_id}")
 async def tmdb_detail(media_type: str, tmdb_id: int, db: AsyncSession = Depends(get_db), _: User = Depends(get_current_user)):
     """Full details of a movie or series from TMDB."""
-    from services.tmdb import get_media_detail
     if media_type not in ("movie", "tv"):
-        return {"error": "media_type must be 'movie' or 'tv'"}
+        return {"error": "invalid_media_type"}
     return await get_media_detail(media_type, tmdb_id, db)
 
 
