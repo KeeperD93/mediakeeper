@@ -17,8 +17,6 @@ lives in a dedicated file because it requires the API surface.
 """
 from __future__ import annotations
 
-import re
-
 import pytest
 from fastapi import Request, Response
 
@@ -29,8 +27,6 @@ from api.auth._csrf import (
     ensure_csrf_cookie,
     rotate_csrf_cookie,
 )
-
-_VALID_TOKEN_FORMAT = re.compile(r"\A[A-Za-z0-9_-]{32,128}\Z")
 
 
 def _make_request(cookie_value: str | None = None) -> Request:
@@ -77,7 +73,7 @@ def test_ensure_csrf_cookie_no_existing_generates_fresh_token():
 
     token = ensure_csrf_cookie(response, request)
 
-    assert _VALID_TOKEN_FORMAT.fullmatch(token)
+    assert _CSRF_TOKEN_RE.fullmatch(token)
     assert _extract_cookie_value(response) == token
 
 
@@ -99,7 +95,7 @@ def test_ensure_csrf_cookie_too_short_is_replaced():
     token = ensure_csrf_cookie(response, request)
 
     assert token != "abcdef"
-    assert _VALID_TOKEN_FORMAT.fullmatch(token)
+    assert _CSRF_TOKEN_RE.fullmatch(token)
 
 
 def test_ensure_csrf_cookie_too_long_is_replaced():
@@ -110,7 +106,7 @@ def test_ensure_csrf_cookie_too_long_is_replaced():
     token = ensure_csrf_cookie(response, request)
 
     assert token != overlong
-    assert _VALID_TOKEN_FORMAT.fullmatch(token)
+    assert _CSRF_TOKEN_RE.fullmatch(token)
 
 
 @pytest.mark.parametrize(
@@ -132,7 +128,7 @@ def test_ensure_csrf_cookie_out_of_charset_is_replaced(tampered):
     token = ensure_csrf_cookie(response, request)
 
     assert token != tampered
-    assert _VALID_TOKEN_FORMAT.fullmatch(token)
+    assert _CSRF_TOKEN_RE.fullmatch(token)
 
 
 # rotate_csrf_cookie — always regenerate (auth boundaries)
@@ -147,7 +143,7 @@ def test_rotate_csrf_cookie_ignores_existing_value():
     token = rotate_csrf_cookie(response, request)
 
     assert token != valid
-    assert _VALID_TOKEN_FORMAT.fullmatch(token)
+    assert _CSRF_TOKEN_RE.fullmatch(token)
     assert _extract_cookie_value(response) == token
 
 
@@ -157,7 +153,7 @@ def test_rotate_csrf_cookie_generates_fresh_when_absent():
 
     token = rotate_csrf_cookie(response, request)
 
-    assert _VALID_TOKEN_FORMAT.fullmatch(token)
+    assert _CSRF_TOKEN_RE.fullmatch(token)
 
 
 def test_rotate_csrf_cookie_generates_unique_tokens_per_call():

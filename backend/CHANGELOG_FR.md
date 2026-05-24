@@ -34,7 +34,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Renommage média — erreurs destination/self-merge utilisent des codes stables.
 - Renommage/fusion média — validation des chemins via barrière reconnue par CodeQL (durcissement).
 - Cookie CSRF — rotation aux frontières d'authentification (correction fixation de session).
-- Médiathèque — erreurs serveur des opérations move/delete renvoient un code stable (durcissement).
+- Médiathèque — message d'erreur générique en cas d'échec de déplacement ou suppression (durcissement).
 
 ## [1.0.0-rc.3] - 2026-05-22
 

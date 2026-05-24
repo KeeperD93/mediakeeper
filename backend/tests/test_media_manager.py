@@ -383,12 +383,13 @@ async def test_create_folders_batch_refuses_under_backup(monkeypatch):
     folders on disk."""
     workspace, media_root, backup_dir, _ = _setup_nested_backup_layout(monkeypatch)
     try:
-        results = await media_manager.create_folders_batch([
+        payload = await media_manager.create_folders_batch([
             {"parent_path": str(backup_dir), "folder_name": "Trojan"},
             {"parent_path": str(backup_dir / "shard-a"), "folder_name": "Trojan"},
             # Regression: a legitimate media subfolder creation still succeeds.
             {"parent_path": str(media_root / "Films"), "folder_name": "Saison 1"},
         ])
+        results = payload["results"]
 
         assert results[0]["error"] == "path_not_allowed"
         assert results[1]["error"] == "path_not_allowed"

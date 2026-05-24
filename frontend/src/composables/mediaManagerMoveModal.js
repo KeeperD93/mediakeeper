@@ -284,7 +284,7 @@ export async function createMoveFolder(rawName) {
       body: JSON.stringify({ folders: [{ parent_path: parentPath, folder_name: name }] }),
     })
     const data = await res.json()
-    const entry = Array.isArray(data) ? data[0] : null
+    const entry = data?.results?.[0] || null
     if (!entry || entry.error) {
       console.error('[mediaManagerMoveModal.createMoveFolder] backend error', entry?.error)
       showToast(_t('common.apiError.unknown', { status: '' }), TOAST_TYPE.ERR)

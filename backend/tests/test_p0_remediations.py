@@ -1,5 +1,4 @@
 import json
-from pathlib import PurePosixPath
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -39,83 +38,50 @@ async def _create_portal_user(db_session, username: str, *, role: str = "viewer"
     return user, profile
 
 
-class _FakePath:
-    existing_paths: set[str] = set()
-    created_paths: set[str] = set()
+@pytest.mark.asyncio
+async def test_create_folders_batch_rejects_parent_escape(monkeypatch, tmp_path):
+    """Folder escape via '..' component is refused by the barrier guard."""
+    from services.media_manager import categories as cat_module
+    from services.media_manager import move as move_service
 
-    def __init__(self, raw):
-        self._path = PurePosixPath(str(raw))
+    media_root = tmp_path / "media-root"
+    series_root = media_root / "Series"
+    series_root.mkdir(parents=True)
+    monkeypatch.setattr(
+        cat_module,
+        "_categories_cache",
+        [{"key": "media", "label": "media", "path": str(media_root.resolve())}],
+    )
 
-    def resolve(self, strict=False):
-        return _FakePath(self._path)
+    payload = await move_service.create_folders_batch([
+        {"parent_path": str(series_root), "folder_name": "../outside"},
+    ])
 
-    @property
-    def parent(self):
-        return _FakePath(self._path.parent)
-
-    @property
-    def parts(self):
-        return self._path.parts
-
-    def exists(self):
-        return str(self._path) in self.existing_paths or str(self._path) in self.created_paths
-
-    def mkdir(self, parents=False, exist_ok=False):
-        self.created_paths.add(str(self._path))
-
-    def is_dir(self):
-        return self.exists()
-
-    def __truediv__(self, other):
-        return _FakePath(self._path / str(other))
-
-    def __str__(self):
-        return str(self._path)
-
-    def __repr__(self):
-        return f"_FakePath({self._path!s})"
-
-    def __eq__(self, other):
-        return isinstance(other, _FakePath) and self._path == other._path
-
-    def __hash__(self):
-        return hash(self._path)
+    assert payload["results"][0]["error"] in {"name_not_allowed", "path_not_allowed"}
+    assert not (media_root / "outside").exists()
 
 
 @pytest.mark.asyncio
-async def test_create_folders_batch_rejects_parent_escape(monkeypatch):
+async def test_create_folders_batch_still_creates_valid_child(monkeypatch, tmp_path):
+    """A legitimate child folder name is created under the parent."""
+    from services.media_manager import categories as cat_module
     from services.media_manager import move as move_service
 
-    _FakePath.existing_paths = {"/media-root", "/media-root/Series"}
-    _FakePath.created_paths = set()
-
-    monkeypatch.setattr(move_service, "_validate_path", lambda path: None)
-    monkeypatch.setattr(move_service, "Path", _FakePath)
-
-    payload = await move_service.create_folders_batch([
-        {"parent_path": "/media-root/Series", "folder_name": "../outside"},
-    ])
-
-    assert payload[0]["error"] in {"name_not_allowed", "path_not_allowed"}
-    assert "/media-root/outside" not in _FakePath.created_paths
-
-
-@pytest.mark.asyncio
-async def test_create_folders_batch_still_creates_valid_child(monkeypatch):
-    from services.media_manager import move as move_service
-
-    _FakePath.existing_paths = {"/media-root", "/media-root/Series"}
-    _FakePath.created_paths = set()
-
-    monkeypatch.setattr(move_service, "_validate_path", lambda path: None)
-    monkeypatch.setattr(move_service, "Path", _FakePath)
+    media_root = tmp_path / "media-root"
+    series_root = media_root / "Series"
+    series_root.mkdir(parents=True)
+    monkeypatch.setattr(
+        cat_module,
+        "_categories_cache",
+        [{"key": "media", "label": "media", "path": str(media_root.resolve())}],
+    )
 
     payload = await move_service.create_folders_batch([
-        {"parent_path": "/media-root/Series", "folder_name": "Season 01"},
+        {"parent_path": str(series_root), "folder_name": "Season 01"},
     ])
 
-    assert payload[0]["success"] is True
-    assert "/media-root/Series/Season 01" in _FakePath.created_paths
+    assert payload["results"][0]["success"] is True
+    assert (series_root / "Season 01").is_dir()
 
 
 @pytest.mark.asyncio
