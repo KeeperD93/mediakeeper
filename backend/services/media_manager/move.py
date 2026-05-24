@@ -14,7 +14,7 @@ async def delete_file(path: str) -> dict:
         return {"error": "path_not_allowed"}
 
     if not target.exists():
-        return {"error": f"not_found: {path}"}
+        return {"error": "not_found"}
 
     try:
         await _force_delete(target)
@@ -90,10 +90,10 @@ async def move_file(src_path: str, dest_folder: str) -> dict:
 
     if not src.exists():
         logger.warning("[MOVE] Source not found: %r", src_path)
-        return {"error": f"source_not_found: {src_path}"}
+        return {"error": "source_not_found"}
     if not dest.is_dir():
         logger.warning("[MOVE] Invalid destination: %r", dest_folder)
-        return {"error": f"destination_not_a_directory: {dest_folder}"}
+        return {"error": "destination_not_a_directory"}
 
     try:
         target_candidate = dest / src.name
@@ -120,7 +120,7 @@ async def check_move_conflicts(file_names: list[str], dest_folder: str) -> dict:
         return {"error": "path_not_allowed"}
 
     if not dest.is_dir():
-        return {"error": f"destination_not_found: {dest_folder}"}
+        return {"error": "destination_not_found"}
 
     try:
         conflicts = []
@@ -159,10 +159,10 @@ async def move_file_overwrite(src_path: str, dest_folder: str) -> dict:
 
     if not src.exists():
         logger.warning("[MOVE-OW] Source not found: %r", src_path)
-        return {"error": f"source_not_found: {src_path}"}
+        return {"error": "source_not_found"}
     if not dest.is_dir():
         logger.warning("[MOVE-OW] Invalid destination: %r", dest_folder)
-        return {"error": f"destination_not_a_directory: {dest_folder}"}
+        return {"error": "destination_not_a_directory"}
 
     try:
         target_candidate = dest / src.name
