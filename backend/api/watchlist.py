@@ -3,7 +3,7 @@ Watchlist API routes v3 — persistent scan, results from DB.
 """
 
 import logging
-from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -111,7 +111,7 @@ async def calendar_refresh(
 # --- Ignored ---
 
 class IgnoreRequest(BaseModel):
-    keys: List[str]
+    keys: list[str]
 
 @router.get("/ignored")
 async def list_ignored(db: AsyncSession = Depends(get_db), _: User = Depends(get_current_user)):
