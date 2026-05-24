@@ -89,8 +89,9 @@ async def _resolve_remove_target(
             ctx["to_remove"] = [i for i in require_indices if i in valid_indices]
 
         return ctx, None
-    except Exception as exc:  # noqa: BLE001 -- map to short error
-        return {}, {"error": str(exc)[:200]}
+    except Exception:
+        logger.exception("[opensubtitles] Resolve remove target failed")
+        return {}, {"error": "resolve_target_failed"}
 
 
 async def _refresh_emby(client, url: str, headers: dict, item_id: str) -> None:

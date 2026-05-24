@@ -162,7 +162,8 @@ def delete_external_subtitle(filepath: str, allow_any_path: bool = False) -> dic
             if path_error:
                 return {"error": _normalize_path_validation_error(path_error)}
         p.unlink()
-        logger.info(f"[opensubtitles] Deleted subtitle: {p}")
+        logger.info("[opensubtitles] Deleted subtitle: %s", p)
         return {"success": True, "path": str(p)}
-    except Exception as e:
-        return {"error": str(e)[:200]}
+    except Exception:
+        logger.exception("[opensubtitles] Delete external subtitle failed")
+        return {"error": "delete_failed"}

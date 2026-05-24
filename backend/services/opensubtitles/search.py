@@ -98,9 +98,9 @@ async def search_subtitles(
             "total": data.get("total_count", len(results)),
         }
 
-    except Exception as e:
-        logger.error(f"[opensubtitles] Search error: {e}")
-        return {"error": str(e)[:200], "results": []}
+    except Exception:
+        logger.exception("[opensubtitles] Search failed")
+        return {"error": "search_failed", "results": []}
 
 
 async def download_subtitle(
@@ -191,9 +191,9 @@ async def download_subtitle(
 
         return result
 
-    except Exception as e:
-        logger.error(f"[opensubtitles] Download error: {e}")
-        return {"error": str(e)[:200]}
+    except Exception:
+        logger.exception("[opensubtitles] Download failed")
+        return {"error": "download_failed"}
 
 
 async def get_quota(db: AsyncSession) -> dict:
@@ -219,5 +219,6 @@ async def get_quota(db: AsyncSession) -> dict:
                 "reset_time": data.get("reset_time", ""),
             }
         return {"error": f"api_error_{res.status_code}"}
-    except Exception as e:
-        return {"error": str(e)[:200]}
+    except Exception:
+        logger.exception("[opensubtitles] Quota failed")
+        return {"error": "quota_failed"}
