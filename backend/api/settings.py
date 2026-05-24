@@ -265,8 +265,9 @@ async def ping_tool(
             if resp.status_code == 200:
                 return {"online": True, "ok": True, "status": 200}
             return {"online": False, "reason": f"status_{resp.status_code}"}
-        except Exception as e:
-            return {"online": False, "reason": str(e)[:100]}
+        except Exception:
+            logger.exception("[settings] ping opensubtitles failed")
+            return {"online": False, "reason": "tool_ping_failed"}
 
     # Special case: TMDB (no URL, probe via API)
     if tool_key == "tmdb":
@@ -281,8 +282,9 @@ async def ping_tool(
                 timeout=5.0,
             )
             return {"online": resp.status_code == 200, "ok": resp.status_code == 200, "status": resp.status_code}
-        except Exception as e:
-            return {"online": False, "reason": str(e)[:100]}
+        except Exception:
+            logger.exception("[settings] ping tmdb failed")
+            return {"online": False, "reason": "tool_ping_failed"}
 
     url = cfg.get("url", "").strip().rstrip("/")
     if not url:
@@ -292,8 +294,9 @@ async def ping_tool(
         client = get_internal_client()
         resp = await client.get(url, timeout=5.0)
         return {"online": resp.status_code < 500, "ok": resp.status_code < 500, "status": resp.status_code}
-    except Exception as e:
-        return {"online": False, "reason": str(e)[:100]}
+    except Exception:
+        logger.exception("[settings] ping %s failed", tool_key)
+        return {"online": False, "reason": "tool_ping_failed"}
 
 
 # ── Network settings (image cache, DNS cache) ────────────────────────
