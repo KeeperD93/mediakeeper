@@ -17,6 +17,7 @@ from ._csrf import (
     clear_csrf_cookie,
     ensure_csrf_cookie,
     require_csrf,
+    rotate_csrf_cookie,
 )
 from ._portal import ensure_portal_admin_profile, grant_portal_admin_session
 from ._deps import get_current_user
@@ -40,5 +41,6 @@ __all__ = [
     "get_current_user",
     "grant_portal_admin_session",
     "require_csrf",
+    "rotate_csrf_cookie",
     "router",
 ]
