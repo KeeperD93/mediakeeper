@@ -30,7 +30,7 @@ async def get_rootpath(folder_key: str, _: User = Depends(get_current_user)):
     """Return the absolute NAS path for a category (useful for cross-category D&D)."""
     path = MEDIA_FOLDERS.get(folder_key)
     if not path:
-        return {"error": f"unknown_category: {folder_key}"}
+        return {"error": "unknown_category"}
     return {"path": path, "key": folder_key}
 
 

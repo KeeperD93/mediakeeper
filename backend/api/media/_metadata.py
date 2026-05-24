@@ -85,17 +85,17 @@ async def _run_ffprobe(path: str) -> tuple[dict | None, str | None]:
         stdout, stderr_out = await asyncio.wait_for(proc.communicate(), timeout=30)
         if not stdout.strip():
             logger.error(f"[metadata] ffprobe empty output. stderr: {stderr_out.decode()[:500]}")
-            return None, f"ffprobe_empty_output. Stderr: {stderr_out.decode()[:200]}"
+            return None, "ffprobe_empty_output"
         return json.loads(stdout), None
     except asyncio.TimeoutError:
         logger.error(f"[metadata] ffprobe timeout for {path!r}")
-        return None, "Timeout ffprobe (> 30s)"
+        return None, "ffprobe_timeout"
     except json.JSONDecodeError as e:
         logger.error(f"[metadata] JSON parse error: {e}")
-        return None, f"ffprobe_json_parse_error: {e}"
+        return None, "ffprobe_json_parse_failed"
     except Exception as e:
         logger.error(f"[metadata] Exception: {e}")
-        return None, f"ffprobe_error: {str(e)}"
+        return None, "ffprobe_failed"
 
 
 def _parse_format(fmt: dict) -> dict:
@@ -178,7 +178,7 @@ async def get_file_metadata(path: str, _: User = Depends(get_current_user)):
     err = _validate_path(path)
     if err:
         logger.warning(f"[metadata] Path validation failed: {err} for {path!r}")
-        return {"error": f"path_not_allowed: {err}"}
+        return {"error": err}
 
     if not os.path.isfile(path):
         logger.warning(f"[metadata] File not found: {path!r}")
