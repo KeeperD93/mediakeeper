@@ -2,7 +2,7 @@
 import logging
 from typing import List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from api.auth import get_current_user
@@ -36,7 +36,7 @@ async def move_cat(req: MoveCatRequest, _: User = Depends(get_current_user)):
     logger.info(f"[MOVE-CAT] {req.src_path!r} : {req.src_cat} → {req.dest_cat}")
     dest_base = MEDIA_FOLDERS.get(req.dest_cat)
     if not dest_base:
-        return {"error": f"unknown_destination_category: {req.dest_cat}"}
+        return {"error": "unknown_destination_category"}
     try:
         result = await move_file(req.src_path, dest_base)
         if result.get("error"):
@@ -44,9 +44,9 @@ async def move_cat(req: MoveCatRequest, _: User = Depends(get_current_user)):
         else:
             logger.info(f"[MOVE-CAT] OK → {dest_base}")
         return result
-    except Exception as e:
-        logger.error(f"[MOVE-CAT] Exception: {e}")
-        raise
+    except Exception:
+        logger.exception("[MOVE-CAT] failed")
+        raise HTTPException(status_code=500, detail="move_failed") from None
 
 
 @router.post("/delete")
@@ -57,11 +57,11 @@ async def delete(req: DeleteRequest, _: User = Depends(get_current_user)):
         if result.get("error"):
             logger.error(f"[DELETE] Failed: {result['error']}")
         else:
-            logger.info(f"[DELETE] OK")
+            logger.info("[DELETE] OK")
         return result
-    except Exception as e:
-        logger.error(f"[DELETE] Exception: {e}")
-        raise
+    except Exception:
+        logger.exception("[DELETE] failed")
+        raise HTTPException(status_code=500, detail="delete_failed") from None
 
 
 class BatchDeleteRequest(BaseModel):
@@ -77,8 +77,9 @@ async def delete_batch(req: BatchDeleteRequest, _: User = Depends(get_current_us
         try:
             r = await delete_file(p)
             results.append({"path": p, **(r or {})})
-        except Exception as e:
-            results.append({"path": p, "error": str(e)})
+        except Exception:
+            logger.exception("[DELETE-BATCH] item %r failed", p)
+            results.append({"path": p, "error": "delete_failed"})
     errors = [r for r in results if r.get("error")]
     if errors:
         logger.warning(f"[DELETE-BATCH] {len(errors)} errors sur {len(req.paths)}")
@@ -101,9 +102,9 @@ async def create_folders(req: CreateFoldersRequest, _: User = Depends(get_curren
     try:
         result = await create_folders_batch(items)
         return result
-    except Exception as e:
-        logger.error(f"[CREATE-FOLDERS] Exception: {e}")
-        raise
+    except Exception:
+        logger.exception("[CREATE-FOLDERS] failed")
+        raise HTTPException(status_code=500, detail="create_folders_failed") from None
 
 
 class MoveRequest(BaseModel):
@@ -119,11 +120,11 @@ async def move(req: MoveRequest, _: User = Depends(get_current_user)):
         if result.get("error"):
             logger.error(f"[MOVE] Failed: {result['error']}")
         else:
-            logger.info(f"[MOVE] OK")
+            logger.info("[MOVE] OK")
         return result
-    except Exception as e:
-        logger.error(f"[MOVE] Exception: {e}")
-        raise
+    except Exception:
+        logger.exception("[MOVE] failed")
+        raise HTTPException(status_code=500, detail="move_failed") from None
 
 
 class CheckConflictsRequest(BaseModel):
@@ -138,9 +139,9 @@ async def check_conflicts(req: CheckConflictsRequest, _: User = Depends(get_curr
     try:
         result = await check_move_conflicts(req.file_names, req.dest_folder)
         return result
-    except Exception as e:
-        logger.error(f"[CHECK-CONFLICTS] Exception: {e}")
-        raise
+    except Exception:
+        logger.exception("[CHECK-CONFLICTS] failed")
+        raise HTTPException(status_code=500, detail="check_conflicts_failed") from None
 
 
 class MoveOverwriteRequest(BaseModel):
@@ -157,8 +158,8 @@ async def move_overwrite(req: MoveOverwriteRequest, _: User = Depends(get_curren
         if result.get("error"):
             logger.error(f"[MOVE-OVERWRITE] Failed: {result['error']}")
         else:
-            logger.info(f"[MOVE-OVERWRITE] OK")
+            logger.info("[MOVE-OVERWRITE] OK")
         return result
-    except Exception as e:
-        logger.error(f"[MOVE-OVERWRITE] Exception: {e}")
-        raise
+    except Exception:
+        logger.exception("[MOVE-OVERWRITE] failed")
+        raise HTTPException(status_code=500, detail="move_overwrite_failed") from None

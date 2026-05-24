@@ -191,7 +191,7 @@ def test_allowlist_rejects_attribute_injection_attempts(payload):
     assert _CSRF_TOKEN_RE.fullmatch(payload) is None
 
 
-# _is_valid_csrf_token — barrier guard wrapper (annotated for CodeQL)
+# _is_valid_csrf_token — barrier guard wrapper
 
 
 def test_is_valid_csrf_token_accepts_in_window_in_charset():
