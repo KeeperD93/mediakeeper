@@ -23,7 +23,10 @@ self.addEventListener('activate', (event) => {
       Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
     )
   )
-  self.clients.claim()
+  // Intentionally no self.clients.claim(): claiming the page in flight
+  // can intercept subresource fetches before the precache populates,
+  // surfacing as a first-load loop on HTTPS deployments. The SW takes
+  // over on the next navigation, which is the PWA-recommended default.
 })
 
 self.addEventListener('fetch', (event) => {
