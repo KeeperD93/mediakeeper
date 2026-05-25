@@ -26,7 +26,7 @@
 .pt-carousel-title {
   font-size: var(--portal-text-section-title);
   font-weight: var(--portal-font-extrabold);
-  color: #fff;
+  color: var(--portal-text-primary);
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;

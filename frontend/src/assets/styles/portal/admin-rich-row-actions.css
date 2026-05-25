@@ -75,7 +75,7 @@
   .arr-row-copy:hover {
     background: rgb(var(--accent-rgb), 0.2);
     border-color: var(--accent-500);
-    color: #fff;
+    color: var(--portal-text-primary);
   }
 }
 @media (hover: none) {
@@ -87,8 +87,8 @@
 @media (hover: hover) {
   .arr-action:hover {
     transform: translateY(-2px);
-    border-color: rgb(255, 255, 255, 0.25);
-    color: #fff;
+    border-color: var(--portal-text-disabled);
+    color: var(--portal-text-primary);
   }
 }
 .arr-action--approve {

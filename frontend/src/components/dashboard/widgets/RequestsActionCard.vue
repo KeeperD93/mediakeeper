@@ -113,7 +113,7 @@ onMounted(async () => {
   min-height: 44px;
   padding: 5px 14px;
   border-radius: var(--radius-btn);
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   border: 1px solid var(--border-strong);
   color: rgb(255, 255, 255, 0.6);
   font-size: var(--text-3xs);

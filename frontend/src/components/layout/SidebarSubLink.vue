@@ -64,7 +64,7 @@ function onClick() {
   margin: 1px 0;
   border: none;
   background: transparent;
-  color: rgb(255, 255, 255, 0.42);
+  color: var(--text-muted);
   border-radius: var(--radius-btn);
   font-size: var(--text-xs);
   font-weight: 450;
@@ -79,13 +79,13 @@ function onClick() {
 
 @media (hover: hover) {
   .sb-sublink:hover {
-    color: rgb(255, 255, 255, 0.78);
-    background: rgb(255, 255, 255, 0.04);
+    color: var(--text-secondary);
+    background: var(--surface-2);
   }
 }
 
 .sb-sublink.active {
-  color: #fff;
+  color: var(--text-primary);
   background: rgb(var(--accent-rgb), 0.14);
 }
 
@@ -98,7 +98,7 @@ function onClick() {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: rgb(255, 255, 255, 0.18);
+  background: var(--text-decorative);
   transition:
     background var(--duration-base) ease,
     box-shadow var(--duration-base) ease;

@@ -158,7 +158,7 @@ defineEmits(['dismiss'])
   border-radius: var(--radius-btn);
   border: none;
   background: var(--accent);
-  color: #fff;
+  color: var(--portal-text-primary);
   font-weight: var(--portal-font-medium);
   cursor: pointer;
 }

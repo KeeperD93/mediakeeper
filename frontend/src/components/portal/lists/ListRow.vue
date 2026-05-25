@@ -171,7 +171,7 @@ const ownerLabel = computed(() => props.lst.contributors?.[0]?.username || `#${p
 .arr-row-list-count {
   font-size: var(--portal-text-md);
   font-weight: var(--portal-font-black);
-  color: #fff;
+  color: var(--portal-text-primary);
   font-family: var(--portal-font-display);
   letter-spacing: var(--portal-tracking-tight);
   text-shadow: 0 0 10px rgb(0, 0, 0, 0.4);

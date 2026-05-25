@@ -102,16 +102,23 @@ main#main-content:focus-visible {
    rebuilt on top of the design tokens.
    ============================================ */
 :root {
-  --bg-primary: #030712;
-  --bg-primary-rgb: 3, 7, 18; /* Companion RGB triplet for rgba() composition */
-  --bg-secondary: #111827;
-  --bg-tertiary: #1f2937;
+  /* Tells the browser to render native widgets (select dropdowns,
+     date pickers, scrollbars, autofill, focus rings) in dark mode so
+     they match the admin theme instead of falling back to white. */
+  color-scheme: dark;
+
+  --bg-primary: #151d2b;
+  --bg-primary-rgb: 21, 29, 43; /* Companion RGB triplet for rgba() composition */
+  --bg-secondary: #1c2533; /* Card / panel surface — aligned on chrome */
+  --bg-tertiary: #243044; /* Slightly lighter than chrome for stacked layers */
   --bg-panel: var(--bg-secondary); /* Alias — modal / panel surface */
-  --border: #1f2937;
-  --border-hover: #374151;
+  --mk-chrome-bg: #1c2533; /* Sidebar + topbar surface — admin chrome */
+  --mk-chrome-bg-rgb: 28, 37, 51;
+  --border: #243044; /* Default border — subtle separation on dark theme */
+  --border-hover: #3a4a66; /* Hover/focus border — clearly differentiated */
   --text-primary: #fff;
-  --text-secondary: #9ca3af;
-  --text-muted: #4b5563;
+  --text-secondary: #dde2eb;
+  --text-muted: #a8b2c2;
   --accent: #4338ca;
   --accent-light: #312e81;
   /* Accent color system — overridden by useTheme */
@@ -158,6 +165,15 @@ input:not([type='range'], [type='checkbox'], [type='radio']),
 select,
 textarea {
   border-radius: var(--radius-input) !important;
+}
+
+/* Native <select> options — the browser renders the opened list itself
+   (CSS reach is limited). Aligning background on --mk-chrome-bg keeps
+   the dropdown list in the same hue as the topbar/sidebar so it looks
+   like a continuation of the admin chrome rather than a black overlay. */
+select option {
+  background: var(--mk-chrome-bg);
+  color: var(--text-primary);
 }
 
 /* ============================================================

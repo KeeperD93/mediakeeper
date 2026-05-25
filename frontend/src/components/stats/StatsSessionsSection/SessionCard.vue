@@ -26,9 +26,7 @@
       </div>
       <div class="sc-right">
         <div class="sc-top-row">
-          <div class="sc-title">
-            {{ s.series || s.media }}{{ s.series ? ' — ' + s.media : '' }}
-          </div>
+          <div class="sc-title">{{ s.series || s.media }}{{ s.series ? ' — ' + s.media : '' }}</div>
           <span class="sc-badge" :class="s.is_playing ? 'badge-on' : 'badge-off'">
             <Play v-if="s.is_playing" :size="7" fill="currentColor" />
             <Pause v-else :size="7" fill="currentColor" />
@@ -44,18 +42,14 @@
           <span class="sc-dk">{{ $t('stats.video') }}</span>
           <span class="sc-dv" :class="s.video_decision === 'Transcode' ? 'c-amber' : 'c-green'">
             {{
-              s.video_decision === 'Transcode'
-                ? $t('stats.transcodeLabel')
-                : $t('stats.directPlay')
+              s.video_decision === 'Transcode' ? $t('stats.transcodeLabel') : $t('stats.directPlay')
             }}
             ({{ s.video_codec }}{{ s.video_height ? ' ' + s.video_height + 'p' : '' }})
           </span>
           <span class="sc-dk">{{ $t('stats.audio') }}</span>
           <span class="sc-dv" :class="s.audio_decision === 'Transcode' ? 'c-amber' : 'c-green'">
             {{
-              s.audio_decision === 'Transcode'
-                ? $t('stats.transcodeLabel')
-                : $t('stats.directPlay')
+              s.audio_decision === 'Transcode' ? $t('stats.transcodeLabel') : $t('stats.directPlay')
             }}
             ({{ s.audio_codec }}{{ s.audio_channels ? '-' + s.audio_channels + 'Ch' : '' }})
           </span>
@@ -70,9 +64,7 @@
           <span class="sc-dk">{{ $t('stats.eta') }}</span>
           <span class="sc-dv">{{ s.eta || '—' }}</span>
         </div>
-        <div class="sc-time">
-          {{ progress.position }} / {{ progress.duration }}
-        </div>
+        <div class="sc-time">{{ progress.position }} / {{ progress.duration }}</div>
       </div>
     </div>
     <div class="sc-progress">
@@ -149,9 +141,9 @@ defineProps({
   inset: 0;
   background: linear-gradient(
     135deg,
-    rgb(3, 7, 18, 0.75) 0%,
-    rgb(3, 7, 18, 0.55) 50%,
-    rgb(3, 7, 18, 0.75) 100%
+    rgb(var(--bg-primary-rgb), 0.75) 0%,
+    rgb(var(--bg-primary-rgb), 0.55) 50%,
+    rgb(var(--bg-primary-rgb), 0.75) 100%
   );
 }
 .sc-inner {
@@ -180,7 +172,7 @@ defineProps({
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
 }
 .sc-poster-empty-icon {
   opacity: 0.3;
@@ -192,7 +184,7 @@ defineProps({
   font-size: 0.5rem;
   font-weight: var(--font-bold);
   background: rgb(0, 0, 0, 0.7);
-  color: #fff;
+  color: var(--text-primary);
   padding: 2px 5px;
   border-radius: 3px;
   z-index: 2;
@@ -234,7 +226,7 @@ defineProps({
 .sc-title {
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  color: #fff;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -284,7 +276,7 @@ defineProps({
 }
 .sc-progress {
   height: 2px;
-  background: rgb(255, 255, 255, 0.08);
+  background: var(--surface-3);
   position: relative;
   z-index: 1;
 }
@@ -328,6 +320,6 @@ defineProps({
   justify-content: center;
   font-size: 0.55rem;
   font-weight: var(--font-bold);
-  color: #fff;
+  color: var(--text-primary);
 }
 </style>

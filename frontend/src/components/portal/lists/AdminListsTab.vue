@@ -217,7 +217,7 @@ onMounted(load)
 }
 @media (hover: hover) {
   .adm-btn:hover {
-    border-color: rgb(255, 255, 255, 0.25);
+    border-color: var(--portal-text-disabled);
     color: var(--text-primary);
   }
 }

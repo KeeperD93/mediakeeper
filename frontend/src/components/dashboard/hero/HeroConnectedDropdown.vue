@@ -178,7 +178,7 @@ onUnmounted(() => {
   transition: background 0.1s;
 }
 .hero-dropdown-row:hover {
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
 }
 .hero-dropdown-dot {
   width: 7px;
@@ -208,7 +208,7 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 .hero-dropdown-device {
-  color: rgb(255, 255, 255, 0.25);
+  color: var(--text-very-faint);
   font-size: 11px;
 }
 .hero-dropdown-status {
@@ -223,7 +223,7 @@ onUnmounted(() => {
   color: var(--color-success);
 }
 .hero-dropdown .status-idle {
-  background: rgb(255, 255, 255, 0.04);
+  background: var(--surface-2);
   color: rgb(255, 255, 255, 0.3);
 }
 </style>

@@ -285,7 +285,7 @@ function formatSize(bytes) {
 }
 .sub-modal-save {
   background: var(--accent-500);
-  color: #fff;
+  color: var(--text-primary);
 }
 .sub-modal-save:hover {
   opacity: 0.9;

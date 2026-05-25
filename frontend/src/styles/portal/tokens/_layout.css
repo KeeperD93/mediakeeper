@@ -58,10 +58,20 @@
   );
 
   /* Overlays ------------------------------------------------ */
-  --portal-veil-page: rgb(3, 7, 18, 0.6); /* page root backdrop tint */
-  --portal-overlay-modal: rgb(5, 5, 10, 0.85); /* modal/sheet backdrop */
-  --portal-panel-bg: rgb(20, 20, 30, 0.9); /* notification popup, chat aside */
-  --portal-panel-bg-dark: rgb(12, 16, 30, 0.96); /* daily digest panel */
+  --portal-veil-page: rgb(var(--portal-bg-primary-rgb), 0.6); /* page root backdrop tint */
+  --portal-overlay-modal: rgb(
+    5,
+    5,
+    10,
+    0.85
+  ); /* modal/sheet backdrop — stays dark for veil intent */
+
+  --portal-panel-bg: rgb(
+    var(--portal-chrome-bg-rgb),
+    0.92
+  ); /* notification popup, chat aside, panel wrappers */
+
+  --portal-panel-bg-dark: rgb(12, 16, 30, 0.96); /* daily digest panel — stays dark by design */
 
   /* Z-index (portal layers) -------------------------------- */
   --portal-z-sticky: 200;

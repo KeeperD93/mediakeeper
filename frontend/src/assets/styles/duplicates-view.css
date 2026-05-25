@@ -131,7 +131,7 @@
 }
 .cinema-duplicates .doub-btn-primary:hover:not(:disabled) {
   background: var(--accent-600);
-  color: #fff;
+  color: var(--text-primary);
 }
 .cinema-duplicates .doub-btn-secondary {
   background: var(--bg-tertiary);
@@ -296,7 +296,7 @@
 }
 .cinema-duplicates .doub-restore-btn:hover {
   background: var(--accent-600);
-  color: #fff;
+  color: var(--text-primary);
 }
 
 /* Sources */
@@ -375,7 +375,7 @@
 }
 .cinema-duplicates .doub-keep-btn:hover {
   background: var(--accent-600);
-  color: #fff;
+  color: var(--text-primary);
   border-color: var(--accent-600);
 }
 .cinema-duplicates .doub-delete-btn {
@@ -385,7 +385,7 @@
 }
 .cinema-duplicates .doub-delete-btn:hover {
   background: #e11d48;
-  color: #fff;
+  color: var(--text-primary);
   border-color: #e11d48;
 }
 
@@ -551,14 +551,14 @@
   box-sizing: border-box;
 }
 .cinema-duplicates .rule-sel option {
-  background: var(--bg-secondary);
+  background: var(--mk-chrome-bg);
   color: var(--text-primary);
 }
 .cinema-duplicates .rule-input {
   padding: 5px 8px;
   border-radius: var(--radius-sm);
   border: 0.5px solid var(--border-strong);
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   color: var(--text-primary);
   font-size: var(--text-2xs);
   font-family: inherit;

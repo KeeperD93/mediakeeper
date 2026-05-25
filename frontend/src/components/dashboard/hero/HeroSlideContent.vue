@@ -102,7 +102,7 @@ const currentEmbyUrl = computed(() => {
   width: 95px;
   height: 138px;
   border-radius: var(--radius-btn);
-  background: rgb(255, 255, 255, 0.05);
+  background: var(--surface-2);
   flex-shrink: 0;
   overflow: hidden;
   border: 1px solid rgb(255, 255, 255, 0.1);
@@ -119,7 +119,7 @@ const currentEmbyUrl = computed(() => {
 .hero-poster-ph {
   font-size: 28px;
   opacity: 0.3;
-  color: #fff;
+  color: var(--text-primary);
 }
 .hero-poster-clickable {
   cursor: pointer;
@@ -208,7 +208,7 @@ const currentEmbyUrl = computed(() => {
 .hero-title {
   font-size: 22px;
   font-weight: var(--font-medium);
-  color: #fff;
+  color: var(--text-primary);
   margin: 0 0 2px;
   white-space: nowrap;
   overflow: hidden;

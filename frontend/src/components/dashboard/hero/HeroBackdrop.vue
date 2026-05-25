@@ -138,7 +138,7 @@ const ambianceStyle = computed(() => {
   left: 0;
   right: 0;
   height: 160px;
-  background: linear-gradient(to top, var(--dash-bg, #060a14), transparent);
+  background: linear-gradient(to top, var(--dash-bg), transparent);
   z-index: 1;
   pointer-events: none;
 }

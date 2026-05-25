@@ -15,7 +15,7 @@
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: rgb(3, 7, 18, 0.72);
+  background: rgb(var(--portal-bg-primary-rgb), 0.72);
   -webkit-backdrop-filter: var(--portal-blur-md);
   backdrop-filter: var(--portal-blur-md);
 }
@@ -65,7 +65,7 @@
   max-width: 880px;
   max-height: 88vh;
   overflow: hidden;
-  background: linear-gradient(180deg, rgb(12, 16, 30, 0.98) 0%, rgb(12, 16, 30, 0.94) 100%);
+  background: var(--portal-panel-bg-dark);
   border: 1px solid rgb(255, 255, 255, 0.07);
   border-radius: 24px;
   box-shadow:
@@ -388,7 +388,7 @@
   height: 60px;
   border-radius: var(--portal-radius-circle);
   background: linear-gradient(145deg, var(--accent-500), var(--accent-700));
-  color: #fff;
+  color: var(--portal-text-primary);
   font-size: 1.45rem;
   font-weight: var(--portal-font-extrabold);
   font-variant-numeric: tabular-nums;
@@ -568,7 +568,7 @@
   -webkit-tap-highlight-color: transparent;
   background: linear-gradient(135deg, var(--accent-500), var(--accent-700));
   border: none;
-  color: #fff;
+  color: var(--portal-text-primary);
   box-shadow: 0 6px 18px rgb(var(--accent-rgb), 0.3);
 }
 @media (hover: hover) {

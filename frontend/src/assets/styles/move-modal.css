@@ -259,7 +259,7 @@
 .mv-tool-go:hover {
   background: var(--accent-500);
   border-color: var(--accent-500);
-  color: #fff;
+  color: var(--text-primary);
 }
 
 /* ── Liste — scroll interne uniquement ── */
@@ -409,7 +409,7 @@
 .mv-card-action:hover {
   background: var(--accent-500);
   border-color: var(--accent-500);
-  color: #fff;
+  color: var(--text-primary);
 }
 
 /* Carte "Ici" */
@@ -643,7 +643,7 @@
 }
 .mv-btn-primary {
   background: var(--gradient-pill-active);
-  color: #fff;
+  color: var(--text-primary);
   border-color: var(--accent-500);
   box-shadow: var(--mk-pill-shadow-sm);
 }

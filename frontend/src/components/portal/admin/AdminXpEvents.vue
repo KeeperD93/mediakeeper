@@ -203,7 +203,7 @@ onMounted(fetchEvents)
 .pt-btn--primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 .pt-empty {
   color: var(--text-muted);

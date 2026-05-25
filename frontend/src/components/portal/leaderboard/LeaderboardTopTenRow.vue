@@ -69,7 +69,7 @@ function moveTooltip(movement) {
   min-height: 64px;
   border-radius: var(--portal-radius-md);
   background: var(--portal-surface-1);
-  border: 1px solid rgb(255, 255, 255, 0.06);
+  border: 1px solid var(--portal-border-subtle);
   color: var(--portal-text-primary);
   text-decoration: none;
   transition:

@@ -5,7 +5,7 @@
   position: fixed;
   inset: 0;
   background: #050208;
-  color: #fff;
+  color: var(--portal-text-primary);
   overflow: hidden;
   z-index: 9999;
 }

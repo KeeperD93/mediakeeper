@@ -106,8 +106,8 @@ function categoryClass(cat) {
   /* Match the other Portal pages (Tickets, Lists, Requests): flat tint
      extended full-viewport via box-shadow + clip-path so the colour keeps
      going past the padding box even on short pages. */
-  background: rgb(3, 7, 18, 0.6);
-  box-shadow: 0 0 0 100vmax rgb(3, 7, 18, 0.6);
+  background: var(--portal-veil-page);
+  box-shadow: 0 0 0 100vmax var(--portal-veil-page);
   clip-path: inset(-100vmax);
 }
 
@@ -186,7 +186,7 @@ function categoryClass(cat) {
   height: 15px;
   border-radius: var(--portal-radius-circle);
   border: 2px solid rgb(var(--accent-rgb), 0.3);
-  background: var(--bg-primary);
+  background: var(--portal-bg-primary);
   z-index: 1;
   transition: all var(--portal-dur-base);
 }

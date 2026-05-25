@@ -224,7 +224,7 @@ onMounted(loadConfig)
   width: 36px;
   height: 20px;
   border-radius: var(--radius-pill);
-  background: rgb(255, 255, 255, 0.08);
+  background: var(--surface-3);
   transition: background var(--duration-base);
   position: relative;
 }
@@ -297,7 +297,7 @@ onMounted(loadConfig)
 }
 
 .hc-select {
-  background: var(--bg-secondary);
+  background: var(--mk-chrome-bg);
   border: 0.5px solid var(--border);
   border-radius: var(--radius-input);
   padding: 6px 28px 6px 10px;
@@ -315,7 +315,7 @@ onMounted(loadConfig)
   border-color: var(--accent-500);
 }
 .hc-select option {
-  background: var(--bg-secondary);
+  background: var(--mk-chrome-bg);
   color: var(--text-primary);
 }
 .hc-select-sm {
@@ -327,7 +327,7 @@ onMounted(loadConfig)
   padding: 5px 8px;
   font-size: var(--text-2xs);
   font-family: inherit;
-  background: var(--bg-secondary);
+  background: var(--mk-chrome-bg);
   border: 0.5px solid var(--border);
   border-radius: var(--radius-input);
   color: var(--text-primary);

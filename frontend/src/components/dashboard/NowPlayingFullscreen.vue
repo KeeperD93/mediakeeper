@@ -206,7 +206,7 @@ watch(
 }
 .np-close:hover {
   background: rgb(255, 255, 255, 0.2);
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .np-content {
@@ -291,7 +291,7 @@ watch(
 .np-title {
   font-size: 36px;
   font-weight: var(--font-bold);
-  color: #fff;
+  color: var(--text-primary);
   margin: 0 0 6px;
   line-height: 1.2;
 }
@@ -356,7 +356,7 @@ watch(
   font-size: var(--text-xs);
   padding: 4px 12px;
   border-radius: var(--radius-sm);
-  background: rgb(255, 255, 255, 0.08);
+  background: var(--surface-3);
   color: rgb(255, 255, 255, 0.5);
 }
 .np-chip-vote {

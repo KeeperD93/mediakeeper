@@ -302,7 +302,7 @@ onUnmounted(() => {
   justify-content: center;
   font-size: var(--text-3xs);
   font-weight: var(--font-bold);
-  color: #fff;
+  color: var(--text-primary);
 }
 .tot-avatars--compact .tot-avatar {
   width: 18px;
@@ -374,7 +374,7 @@ onUnmounted(() => {
   left: 50%;
   transform: translateX(-50%) translateY(-6px);
   background: rgb(15, 20, 35, 0.95);
-  color: #fff;
+  color: var(--text-primary);
   padding: 5px 10px;
   border-radius: var(--radius-sm);
   font-size: var(--text-2xs);

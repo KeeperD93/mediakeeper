@@ -15,6 +15,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Communauté — Ko-fi ajouté comme moyen de soutien (bouton coeur admin, badge README, FUNDING.yml).
 
 ### Changed
+- Interface admin — nouveau thème sombre, contraste texte renforcé pour la lisibilité.
 - Planificateur — interface réorganisée par catégories, cartes compactes.
 - Démarrage — log boot : `COOKIE_SECURE=` renommé `COOKIE_HTTPS_FLAG=` (variable env inchangée, mapping dans `tls-deployment.md`).
 - Cookie CSRF — validation par allowlist sur les polls (durcissement).

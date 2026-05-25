@@ -37,7 +37,7 @@
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
-  background: var(--bg-primary);
+  background: var(--portal-bg-primary);
   color: var(--text-primary);
   border: 1px solid var(--border);
   border-radius: var(--radius-btn);

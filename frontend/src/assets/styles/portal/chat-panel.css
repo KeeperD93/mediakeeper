@@ -9,7 +9,7 @@
   max-height: min(560px, calc(100vh - 130px));
   display: flex;
   flex-direction: column;
-  background: rgb(20, 20, 30, 0.85);
+  background: var(--portal-panel-bg);
   backdrop-filter: var(--portal-blur-lg);
   -webkit-backdrop-filter: var(--portal-blur-lg);
   border: 1px solid var(--portal-border-default);
@@ -17,7 +17,7 @@
   box-shadow: var(--portal-shadow-popup);
   z-index: 9998;
   overflow: hidden;
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 @media (min-width: 640px) {
   .pt-chat {
@@ -42,7 +42,7 @@
 .pt-chat-room {
   background: rgb(255, 255, 255, 0.05);
   border: 1px solid rgb(255, 255, 255, 0.1);
-  color: #fff;
+  color: var(--portal-text-primary);
   border-radius: var(--portal-radius-xs);
   padding: 0.2rem 0.4rem;
   font-size: var(--portal-text-xs);
@@ -57,7 +57,7 @@
 }
 .pt-chat-x:hover {
   background: var(--portal-surface-4);
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 
 .pt-chat-list {
@@ -145,7 +145,7 @@
   line-height: var(--portal-lh-tight);
 }
 .pt-chat-act:hover {
-  color: #fff;
+  color: var(--portal-text-primary);
   border-color: rgb(255, 255, 255, 0.3);
 }
 .pt-chat-act--warn:hover {
@@ -242,7 +242,7 @@
   flex-shrink: 0;
 }
 .pt-chat-icon:hover {
-  color: #fff;
+  color: var(--portal-text-primary);
   background: var(--portal-surface-3);
 }
 .pt-chat-icon--disabled {
@@ -270,7 +270,7 @@
      `-webkit-text-fill-color`, leaving the typed text invisible. */
   color: #fff !important;
   -webkit-text-fill-color: #fff !important;
-  caret-color: #fff;
+  caret-color: var(--portal-text-primary);
   border-radius: var(--radius-sm);
   padding: 0.45rem 0.65rem;
   font-size: var(--portal-text-sm);
@@ -288,13 +288,13 @@
 .pt-chat-field:-webkit-autofill:hover,
 .pt-chat-field:-webkit-autofill:focus {
   -webkit-text-fill-color: #fff !important;
-  -webkit-box-shadow: 0 0 0 1000px rgb(20, 20, 30, 0.95) inset !important;
-  caret-color: #fff;
+  -webkit-box-shadow: 0 0 0 1000px rgb(var(--portal-chrome-bg-rgb), 0.95) inset !important;
+  caret-color: var(--portal-text-primary);
 }
 
 .pt-chat-send {
   background: var(--accent-700);
-  color: #fff;
+  color: var(--portal-text-primary);
   border: none;
   width: 32px;
   height: 32px;
@@ -328,7 +328,7 @@
 .pt-chat-emoji-btn {
   background: transparent;
   border: none;
-  color: #fff;
+  color: var(--portal-text-primary);
   font-size: var(--portal-text-md);
   cursor: pointer;
   padding: 4px;

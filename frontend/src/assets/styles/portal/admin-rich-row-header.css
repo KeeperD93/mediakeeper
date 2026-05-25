@@ -8,11 +8,11 @@
      fixed-position overlay (see ::before) so it stays with the viewport
      rather than the element — the bottom halo never clips against the
      page edge when the list is short. */
-  background: rgb(3, 7, 18, 0.6);
+  background: var(--portal-veil-page);
   min-height: calc(100vh - 64px);
   /* Extend the flat tint beyond the padding box so any overflow of an
      ancestor (tall topbar, scroll area) keeps the same colour. */
-  box-shadow: 0 0 0 100vmax rgb(3, 7, 18, 0.6);
+  box-shadow: 0 0 0 100vmax var(--portal-veil-page);
   clip-path: inset(-100vmax);
 }
 /* Halo/mesh aurora retiré à la demande — fond plat uniquement. */
@@ -30,7 +30,7 @@
   font-weight: var(--portal-font-black);
   margin: 0;
   letter-spacing: var(--portal-tracking-tight);
-  color: #fff;
+  color: var(--portal-text-primary);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -116,7 +116,7 @@
 .arr-stat-value {
   font-size: var(--portal-text-2xl);
   font-weight: var(--portal-font-black);
-  color: #fff;
+  color: var(--portal-text-primary);
   font-family: var(--portal-font-display);
   line-height: var(--portal-lh-tight);
   letter-spacing: var(--portal-tracking-tight);
@@ -178,7 +178,7 @@
 .arr-pill--active {
   background: linear-gradient(135deg, rgb(var(--accent-rgb), 0.22), rgb(var(--accent-rgb), 0.1));
   border-color: var(--accent-500);
-  color: #fff;
+  color: var(--portal-text-primary);
   box-shadow: var(--mk-pill-shadow);
 }
 @media (hover: hover) {
@@ -209,8 +209,8 @@
 /* Native <option> dropdown list (browsers ignore most styles here, but
    explicitly setting bg+color prevents white-on-white in dark themes). */
 .arr-sort option {
-  background: #141414;
-  color: #fff;
+  background: var(--portal-chrome-bg);
+  color: var(--portal-text-primary);
 }
 
 /* Empty & loading */

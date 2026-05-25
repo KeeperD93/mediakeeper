@@ -56,14 +56,14 @@ const emit = defineEmits(['create', 'upload'])
 }
 .backup-spin-white {
   border-color: rgb(255, 255, 255, 0.3);
-  border-top-color: #fff;
+  border-top-color: var(--text-primary);
 }
 .backup-file-hidden {
   display: none;
 }
 .backup-btn-create {
   background: var(--accent-600);
-  color: #fff;
+  color: var(--text-primary);
 }
 .backup-btn-create:hover:not(:disabled) {
   background: var(--accent-500);

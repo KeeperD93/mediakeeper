@@ -293,7 +293,7 @@ onMounted(() => {
   box-sizing: border-box;
 }
 .excl-sel option {
-  background: var(--bg-secondary);
+  background: var(--mk-chrome-bg);
   color: var(--text-primary);
 }
 .excl-input {
@@ -397,7 +397,7 @@ onMounted(() => {
     background: rgb(239, 68, 68, 0.2);
   }
   .excl-item:hover {
-    background: rgb(255, 255, 255, 0.03);
+    background: var(--surface-1);
   }
   .excl-rm:hover {
     opacity: 1;

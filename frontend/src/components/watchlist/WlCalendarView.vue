@@ -192,7 +192,7 @@ watch(calVersion, loadMonth)
   transition: all var(--duration-fast);
 }
 .wlcal-arrow:hover {
-  background: rgb(255, 255, 255, 0.08);
+  background: var(--surface-3);
   color: var(--text-primary);
 }
 .wlcal-center {

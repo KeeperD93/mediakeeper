@@ -22,7 +22,7 @@
   max-height: 85vh;
   display: flex;
   flex-direction: column;
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 .pt-rmodal-header {
   display: flex;
@@ -117,7 +117,7 @@
   background: var(--portal-surface-4);
   border: 1px solid rgb(255, 255, 255, 0.15);
   border-radius: var(--portal-radius-xs);
-  color: #fff;
+  color: var(--portal-text-primary);
   padding: 0.5rem 0.75rem;
   font-size: var(--portal-text-sm);
 }
@@ -126,7 +126,7 @@
    Force a dark background so the list stays readable. */
 .pt-rmodal .pt-input option {
   background: #1a1a2e;
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 
 .pt-rmodal-select-all {
@@ -218,7 +218,7 @@
   vertical-align: middle;
 }
 .pt-rmodal-chk:hover:not(:disabled) {
-  border-color: rgb(255, 255, 255, 0.55);
+  border-color: var(--portal-text-secondary);
 }
 .pt-rmodal-chk:checked {
   background: var(--accent, #4338ca);
@@ -345,7 +345,7 @@
   border-radius: var(--portal-radius-xs);
   border: none;
   background: var(--accent, #4338ca);
-  color: #fff;
+  color: var(--portal-text-primary);
   font-weight: var(--portal-font-bold);
   font-size: var(--portal-text-base);
   cursor: pointer;

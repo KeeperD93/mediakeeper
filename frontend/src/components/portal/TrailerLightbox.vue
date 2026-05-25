@@ -134,7 +134,7 @@ useFocusTrap({
   background: rgb(0, 0, 0, 0.55);
   backdrop-filter: var(--portal-blur-xs);
   -webkit-backdrop-filter: var(--portal-blur-xs);
-  color: #fff;
+  color: var(--portal-text-primary);
   display: flex;
   align-items: center;
   justify-content: center;

@@ -143,7 +143,7 @@ const { mergeModal, mergeTargets, handleMerge, avatarColors } = useStatsUI()
   justify-content: center;
   font-size: var(--text-2xs);
   font-weight: var(--font-bold);
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .merge-search {
@@ -250,7 +250,7 @@ const { mergeModal, mergeTargets, handleMerge, avatarColors } = useStatsUI()
   padding: 10px 22px;
   border-radius: var(--radius-btn);
   background: var(--accent-600);
-  color: #fff;
+  color: var(--text-primary);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   font-family: inherit;

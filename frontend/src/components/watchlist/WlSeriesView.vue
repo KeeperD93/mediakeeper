@@ -245,7 +245,7 @@ const { exportCSV, exportJSON } = useWlsExport(displayedSeries, ignoredSet)
 }
 .wls-scan-btn:hover {
   background: var(--accent-600);
-  color: #fff;
+  color: var(--text-primary);
   border-color: transparent;
 }
 .wls-scan-btn:disabled {

@@ -46,12 +46,20 @@
 
       <label class="pt-setting-row">
         <div class="pt-setting-info">
-          <span class="pt-setting-title">{{ $t('portal.admin.settings.requestsCleanup.title') }}</span>
-          <span class="pt-setting-desc">{{ $t('portal.admin.settings.requestsCleanup.desc') }}</span>
+          <span class="pt-setting-title">
+            {{ $t('portal.admin.settings.requestsCleanup.title') }}
+          </span>
+          <span class="pt-setting-desc">
+            {{ $t('portal.admin.settings.requestsCleanup.desc') }}
+          </span>
         </div>
         <input
-          type="number" class="pt-setting-number" min="0" max="365"
-          :value="settings['requests.auto_cleanup_days']" :disabled="saving"
+          type="number"
+          class="pt-setting-number"
+          min="0"
+          max="365"
+          :value="settings['requests.auto_cleanup_days']"
+          :disabled="saving"
           @change="update('requests.auto_cleanup_days', parseInt($event.target.value) || 0)"
         />
       </label>
@@ -313,7 +321,7 @@ onMounted(fetchSettings)
   flex-shrink: 0;
   width: 60px;
   padding: 0.35rem 0.5rem;
-  background: var(--bg-primary);
+  background: var(--portal-bg-primary);
   border: 1px solid var(--border);
   border-radius: var(--radius-input);
   color: var(--text-primary);
@@ -330,7 +338,7 @@ onMounted(fetchSettings)
   flex-shrink: 0;
   min-width: 96px;
   padding: 0.4rem 0.7rem;
-  background: var(--bg-primary);
+  background: var(--portal-bg-primary);
   border: 1px solid var(--border);
   border-radius: var(--radius-input);
   color: var(--text-primary);
@@ -357,10 +365,13 @@ onMounted(fetchSettings)
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
 }
-.pt-maint-label { font-size: var(--portal-text-xs); color: var(--text-muted); }
+.pt-maint-label {
+  font-size: var(--portal-text-xs);
+  color: var(--text-muted);
+}
 .pt-maint-textarea {
   width: 100%;
-  background: var(--bg-primary);
+  background: var(--portal-bg-primary);
   border: 1px solid var(--border);
   border-radius: var(--radius-input);
   color: var(--text-primary);
@@ -369,8 +380,14 @@ onMounted(fetchSettings)
   font-family: inherit;
   resize: vertical;
 }
-.pt-maint-textarea:focus { border-color: var(--accent); outline: none; }
-.pt-maint-actions { display: flex; justify-content: flex-end; }
+.pt-maint-textarea:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+.pt-maint-actions {
+  display: flex;
+  justify-content: flex-end;
+}
 .pt-btn {
   padding: 0.45rem 1rem;
   border-radius: var(--radius-btn);
@@ -379,6 +396,12 @@ onMounted(fetchSettings)
   cursor: pointer;
   font-size: var(--portal-text-sm);
 }
-.pt-btn--primary { background: var(--accent); color: #fff; }
-.pt-btn--primary:disabled { opacity: 0.6; cursor: not-allowed; }
+.pt-btn--primary {
+  background: var(--accent);
+  color: var(--portal-text-primary);
+}
+.pt-btn--primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 </style>

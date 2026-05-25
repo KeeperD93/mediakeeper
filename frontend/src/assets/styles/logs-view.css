@@ -135,7 +135,7 @@
   padding: 8px;
   border-radius: var(--radius-btn);
   background: #10b981;
-  color: #fff;
+  color: var(--text-primary);
   border: none;
   cursor: pointer;
   transition: background var(--duration-fast);
@@ -193,7 +193,7 @@
   border: none;
   cursor: pointer;
   background: #6b7280;
-  color: #fff;
+  color: var(--text-primary);
   transition: background var(--duration-fast);
 }
 .cinema-logs .reader-btn.active {
@@ -356,7 +356,7 @@
 
 /* Config tab */
 .cinema-logs .glass-card {
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   border: 0.5px solid var(--border-default);
   border-radius: var(--radius-card);
 }

@@ -44,7 +44,7 @@
 }
 .ru-btn--primary {
   background: var(--accent);
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .ru-import-result {

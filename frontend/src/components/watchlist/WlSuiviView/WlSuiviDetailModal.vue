@@ -108,7 +108,7 @@ function typeLabel(item) {
 }
 .wlsu-detail-close:hover {
   background: rgb(255, 255, 255, 0.1);
-  color: #fff;
+  color: var(--text-primary);
 }
 .wlsu-detail-body {
   display: flex;
@@ -148,7 +148,7 @@ function typeLabel(item) {
 .wlsu-detail-title {
   font-size: var(--text-md);
   font-weight: var(--font-bold);
-  color: #fff;
+  color: var(--text-primary);
 }
 .wlsu-detail-meta {
   display: flex;
@@ -158,7 +158,7 @@ function typeLabel(item) {
 .wlsu-detail-meta span {
   font-size: var(--text-2xs);
   color: var(--text-muted);
-  background: rgb(255, 255, 255, 0.05);
+  background: var(--surface-2);
   padding: 2px 7px;
   border-radius: 5px;
 }

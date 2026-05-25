@@ -9,11 +9,7 @@
         :placeholder="$t('watchlist.searchSeries')"
         @input="$emit('update:searchQuery', $event.target.value)"
       />
-      <button
-        v-if="searchQuery"
-        class="wls-search-clear"
-        @click="$emit('update:searchQuery', '')"
-      >
+      <button v-if="searchQuery" class="wls-search-clear" @click="$emit('update:searchQuery', '')">
         <X :size="12" />
       </button>
     </div>
@@ -99,7 +95,7 @@ defineEmits(['update:searchQuery', 'update:sortBy', 'update:groupBy', 'export-cs
   padding: 7px 30px 7px 32px;
   border-radius: var(--radius-btn);
   border: 0.5px solid var(--border-strong);
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   color: var(--text-primary);
   font-size: var(--text-sm);
   font-family: inherit;
@@ -147,7 +143,7 @@ defineEmits(['update:searchQuery', 'update:sortBy', 'update:groupBy', 'export-cs
   border-color: rgb(var(--accent-rgb), 0.4);
 }
 .wls-select option {
-  background: var(--bg-secondary);
+  background: var(--mk-chrome-bg);
   color: var(--text-primary);
 }
 .wls-export-group {
@@ -161,7 +157,7 @@ defineEmits(['update:searchQuery', 'update:sortBy', 'update:groupBy', 'export-cs
   padding: 7px 14px;
   border-radius: var(--radius-btn);
   border: 0.5px solid var(--border-strong);
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   color: var(--text-muted);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);

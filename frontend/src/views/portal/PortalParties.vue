@@ -169,7 +169,7 @@ onMounted(() => fetchParties())
 }
 .pt-btn--primary {
   background: var(--accent);
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 .pt-btn--secondary {
   background: var(--bg-tertiary);

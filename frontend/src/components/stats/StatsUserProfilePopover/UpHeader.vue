@@ -44,7 +44,7 @@ defineEmits(['close'])
   justify-content: center;
   font-size: var(--text-base);
   font-weight: var(--font-bold);
-  color: #fff;
+  color: var(--text-primary);
   flex-shrink: 0;
 }
 .up-hinfo {

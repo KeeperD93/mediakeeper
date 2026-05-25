@@ -85,7 +85,7 @@
 }
 .pt-mode-pill--active {
   background: var(--portal-gradient-accent);
-  color: #fff;
+  color: var(--portal-text-primary);
   font-weight: var(--portal-font-bold);
   box-shadow: var(--mk-pill-shadow-sm);
 }
@@ -122,7 +122,7 @@
 }
 .pt-btn--primary {
   background: var(--portal-gradient-accent);
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 @media (hover: hover) {
   .pt-btn--primary:hover:not(:disabled) {

@@ -224,7 +224,7 @@ useFocusTrap({
   transition: background 0.18s ease;
 }
 .pt-dcm-btn:hover:not(:disabled) {
-  background: rgb(255, 255, 255, 0.08);
+  background: var(--portal-surface-4);
 }
 .pt-dcm-btn:disabled {
   opacity: 0.55;
@@ -233,7 +233,7 @@ useFocusTrap({
 .pt-dcm-btn--danger {
   background: #b91c1c;
   border-color: #b91c1c;
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 .pt-dcm-btn--danger:hover:not(:disabled) {
   background: #dc2626;

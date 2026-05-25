@@ -17,8 +17,8 @@
 
 .dp {
   min-height: 100vh;
-  background: var(--bg-primary);
-  color: #fff;
+  background: var(--portal-bg-primary);
+  color: var(--portal-text-primary);
   overflow-x: clip;
 }
 
@@ -155,7 +155,7 @@
 /* ═══ MAIN CONTENT LAYOUT ═══ */
 .gc-main {
   padding: 1.25rem;
-  background: rgb(3, 7, 18, 0.6);
+  background: var(--portal-veil-page);
 }
 .gc-bottom {
   display: grid;
@@ -212,7 +212,7 @@
   overflow: hidden;
   position: relative;
   text-decoration: none;
-  color: #fff;
+  color: var(--portal-text-primary);
   scroll-snap-align: start;
   transition:
     transform var(--portal-dur-med),
@@ -252,7 +252,7 @@
 .dp-section-title {
   font-size: var(--portal-text-section-title);
   font-weight: var(--portal-font-extrabold);
-  color: #fff;
+  color: var(--portal-text-primary);
   padding: 0 4%;
   /* Same rhythm as the portal home section titles (Seerr-aligned). */
   margin: var(--portal-section-rhythm-top) 0 var(--portal-section-rhythm-bottom);

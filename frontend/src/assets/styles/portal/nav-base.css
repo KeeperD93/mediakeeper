@@ -19,7 +19,7 @@
 }
 
 .pt-nav--solid {
-  background: rgb(var(--bg-primary-rgb), 0.84);
+  background: rgb(var(--portal-bg-primary-rgb), 0.84);
   backdrop-filter: var(--portal-blur-nav);
   border-bottom: 1px solid var(--portal-border-default);
   box-shadow: 0 16px 44px rgb(0, 0, 0, 0.28);
@@ -33,7 +33,7 @@
    scroll position. */
 @media (max-width: 767px) {
   .pt-nav {
-    background: rgb(var(--bg-primary-rgb), 0.96);
+    background: rgb(var(--portal-bg-primary-rgb), 0.96);
     backdrop-filter: var(--portal-blur-nav);
     border-bottom: 1px solid var(--portal-border-default);
     box-shadow: 0 16px 44px rgb(0, 0, 0, 0.28);
@@ -43,7 +43,7 @@
 /* Profile page — no hero behind the nav, apply the same solid look the
    home nav gets once the user scrolls past the hero. */
 .pt-layout:has(.dp) .pt-nav {
-  background: rgb(var(--bg-primary-rgb), 0.84);
+  background: rgb(var(--portal-bg-primary-rgb), 0.84);
   backdrop-filter: var(--portal-blur-nav);
   border-bottom: 1px solid var(--portal-border-default);
   box-shadow: 0 16px 44px rgb(0, 0, 0, 0.28);
@@ -67,7 +67,7 @@
   padding: 0;
   border: none;
   background: transparent;
-  color: #fff;
+  color: var(--portal-text-primary);
   cursor: pointer;
 }
 
@@ -120,13 +120,13 @@
 
 @media (hover: hover) {
   .pt-tab:hover {
-    color: #fff;
+    color: var(--portal-text-primary);
     background: var(--portal-surface-3);
   }
 }
 
 .pt-tab--active {
-  color: #fff;
+  color: var(--portal-text-primary);
   background: linear-gradient(
     135deg,
     rgb(var(--accent-rgb, 99, 102, 241), 0.26),
@@ -179,7 +179,7 @@
 
 @media (hover: hover) {
   .pt-nav-icon:hover:not(:disabled) {
-    color: #fff;
+    color: var(--portal-text-primary);
     background: var(--portal-surface-5);
     border-color: rgb(255, 255, 255, 0.14);
     transform: translateY(-1px);
@@ -253,7 +253,7 @@
   .pt-bell:hover {
     background: var(--portal-surface-5);
     border-color: rgb(255, 255, 255, 0.14);
-    color: #fff;
+    color: var(--portal-text-primary);
     transform: translateY(-1px);
   }
 }

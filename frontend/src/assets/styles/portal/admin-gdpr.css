@@ -101,7 +101,7 @@
 }
 .pt-gdpr-input {
   padding: 0.45rem 0.7rem;
-  background: var(--bg-primary);
+  background: var(--portal-bg-primary);
   border: 1px solid var(--border);
   border-radius: var(--radius-input);
   color: var(--text-primary);
@@ -131,7 +131,7 @@
   background: var(--accent);
   border: none;
   border-radius: var(--radius-input);
-  color: var(--bg-primary);
+  color: var(--portal-bg-primary);
   font-size: var(--portal-text-sm);
   font-weight: var(--portal-font-medium);
   cursor: pointer;
@@ -177,7 +177,7 @@
   align-items: center;
   gap: 0.35rem;
   padding: 0.3rem 0.7rem;
-  background: var(--bg-primary);
+  background: var(--portal-bg-primary);
   border: 1px solid var(--border);
   border-radius: var(--radius-input);
   color: var(--text-primary);
@@ -210,7 +210,7 @@
   font-size: var(--portal-text-sm);
 }
 .pt-gdpr-pending-empty {
-  background: var(--bg-primary);
+  background: var(--portal-bg-primary);
   border: 1px dashed var(--border);
   border-radius: var(--radius-input);
   justify-content: center;

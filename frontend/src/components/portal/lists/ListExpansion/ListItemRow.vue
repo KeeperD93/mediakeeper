@@ -164,7 +164,7 @@ defineEmits(['copy', 'remove'])
   .ale-item-copy:hover {
     background: rgb(var(--accent-rgb), 0.2);
     border-color: var(--accent-500);
-    color: #fff;
+    color: var(--portal-text-primary);
   }
 }
 @media (hover: none) {

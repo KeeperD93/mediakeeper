@@ -55,7 +55,7 @@ function select(tab) {
 <style scoped>
 .mk-tabs-wrap {
   display: flex;
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   backdrop-filter: var(--blur-sm);
   border: 0.5px solid var(--border-default);
   border-radius: var(--radius-card);
@@ -101,7 +101,7 @@ function select(tab) {
 }
 .mk-tab.active {
   background: var(--surface-3);
-  color: #fff;
+  color: var(--text-primary);
 }
 .mk-tab-disabled {
   opacity: 0.4;
@@ -128,7 +128,7 @@ function select(tab) {
   font-weight: var(--font-bold);
   padding: 1px 6px;
   border-radius: var(--radius-btn);
-  background: rgb(255, 255, 255, 0.08);
+  background: var(--surface-3);
   color: var(--text-faint);
   flex-shrink: 0;
 }
@@ -267,7 +267,7 @@ function select(tab) {
       box-shadow var(--duration-base) ease;
   }
   .mk-tabs-placement-bottom-mobile .mk-tab.active {
-    color: #fff;
+    color: var(--text-primary);
     background: linear-gradient(135deg, rgb(var(--accent-rgb), 0.28), rgb(var(--accent-rgb), 0.12));
     box-shadow: inset 0 0 0 1px rgb(var(--accent-rgb), 0.32);
   }
@@ -299,7 +299,7 @@ function select(tab) {
     padding: 0 3px;
     border-radius: var(--radius-pill);
     background: #ef4444;
-    color: #fff;
+    color: var(--text-primary);
     font-size: 0.58rem;
     font-weight: var(--font-bold);
     line-height: 14px;

@@ -154,7 +154,7 @@ onMounted(reload)
   box-sizing: border-box;
 }
 .sub-filter-sel option {
-  background: var(--bg-secondary);
+  background: var(--mk-chrome-bg);
   color: var(--text-primary);
 }
 
@@ -279,7 +279,7 @@ onMounted(reload)
   font-family: inherit;
 }
 .sub-hist-more-btn:hover {
-  background: rgb(255, 255, 255, 0.08);
+  background: var(--surface-3);
 }
 .sub-hist-more-btn:disabled {
   opacity: 0.4;

@@ -87,7 +87,7 @@
    an explicit option style, options inherit the system's white
    background, which collides with our white text. */
 .pt-debug .pt-debug-select option {
-  background: #141414;
+  background: var(--portal-chrome-bg);
   color: var(--portal-text-primary);
 }
 
@@ -117,7 +117,7 @@
 .pt-debug .pt-debug-btn--primary {
   background: linear-gradient(135deg, var(--portal-color-premium), var(--portal-color-info));
   border-color: transparent;
-  color: #fff;
+  color: var(--portal-text-primary);
   font-weight: var(--portal-font-bold);
 }
 .pt-debug .pt-debug-btn--small {

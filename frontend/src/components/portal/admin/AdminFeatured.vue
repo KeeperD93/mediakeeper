@@ -139,7 +139,7 @@ onMounted(loadFeatured)
 }
 .pt-btn--primary {
   background: var(--accent);
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 .pt-featured-results {
   margin-bottom: 1.5rem;

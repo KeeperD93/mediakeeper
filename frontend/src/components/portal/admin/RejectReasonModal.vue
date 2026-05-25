@@ -117,8 +117,8 @@ useFocusTrap({
   max-width: 100%;
   max-height: 85vh;
   overflow-y: auto;
-  background: var(--bg-primary);
-  color: #fff;
+  background: var(--portal-bg-primary);
+  color: var(--portal-text-primary);
   border: 1px solid var(--portal-border-default);
   border-radius: var(--radius-card) var(--radius-card) 0 0;
   padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px));
@@ -147,7 +147,7 @@ useFocusTrap({
   min-width: 44px;
   border: none;
   background: transparent;
-  color: #fff;
+  color: var(--portal-text-primary);
   font-size: var(--portal-text-xl);
   line-height: var(--portal-lh-tight);
   cursor: pointer;
@@ -189,7 +189,7 @@ useFocusTrap({
   border-radius: var(--radius-input);
   background: var(--portal-surface-2);
   border: 1px solid rgb(255, 255, 255, 0.1);
-  color: #fff;
+  color: var(--portal-text-primary);
   font: inherit;
   resize: vertical;
   min-height: 100px;
@@ -224,12 +224,12 @@ useFocusTrap({
 }
 .rrm-btn-ghost {
   background: transparent;
-  color: #fff;
+  color: var(--portal-text-primary);
   border-color: rgb(255, 255, 255, 0.14);
 }
 .rrm-btn-reject {
   background: rgb(180, 83, 9, 0.9);
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 @media (hover: hover) {
   .rrm-btn-ghost:hover {

@@ -14,7 +14,11 @@
   grid-template-columns: 54px 130px 1fr auto;
   grid-template-rows: 144px;
   align-items: stretch;
-  background: linear-gradient(135deg, rgb(15, 20, 35, 0.6), rgb(5, 8, 18, 0.78));
+  background: linear-gradient(
+    135deg,
+    rgb(var(--portal-bg-primary-rgb), 0.6),
+    rgb(var(--portal-bg-primary-rgb), 0.78)
+  );
   border: 1px solid var(--portal-border-subtle);
   border-radius: var(--portal-radius-lg);
   overflow: hidden;
@@ -262,7 +266,7 @@
   top: -7px;
   right: -7px;
   background: linear-gradient(135deg, var(--portal-color-error) 0%, #dc2626 100%);
-  color: #fff;
+  color: var(--portal-text-primary);
   font-size: var(--portal-text-2xs);
   font-weight: var(--portal-font-black);
   padding: 3px 9px;
@@ -319,7 +323,7 @@
   padding: 3px 9px;
   border-radius: var(--radius-sm);
   background: rgb(255, 255, 255, 0.1);
-  color: #fff;
+  color: var(--portal-text-primary);
   text-transform: uppercase;
   letter-spacing: var(--portal-tracking-eyebrow);
   backdrop-filter: var(--portal-blur-xs);
@@ -328,7 +332,7 @@
 .arr-row-title {
   font-size: var(--portal-text-xl);
   font-weight: var(--portal-font-black);
-  color: #fff;
+  color: var(--portal-text-primary);
   line-height: 1.18;
   letter-spacing: var(--portal-tracking-tight);
   margin: 0;
@@ -358,7 +362,7 @@
   font-weight: var(--portal-font-bold);
 }
 .arr-row-foot .arr-who {
-  color: #fff;
+  color: var(--portal-text-primary);
   font-weight: var(--portal-font-extrabold);
   text-shadow: 0 0 10px color-mix(in srgb, var(--accent-500) 55%, transparent);
 }
@@ -395,7 +399,7 @@
     color-mix(in srgb, var(--accent-500) 38%, transparent),
     color-mix(in srgb, var(--accent-500) 22%, transparent)
   );
-  color: #fff;
+  color: var(--portal-text-primary);
   font-size: var(--portal-text-3xs);
   font-weight: var(--portal-font-black);
   text-align: center;

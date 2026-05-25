@@ -142,7 +142,7 @@ onMounted(() => fetchNews(true, { admin: true }))
 }
 .pt-btn--primary {
   background: var(--accent);
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 .pt-news-header {
   display: flex;

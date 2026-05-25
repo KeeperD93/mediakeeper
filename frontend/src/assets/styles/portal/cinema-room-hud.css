@@ -19,7 +19,7 @@
   background: rgb(0, 0, 0, 0.65);
   border: 1px solid rgb(255, 255, 255, 0.2);
   border-radius: var(--radius-sm);
-  color: #fff;
+  color: var(--portal-text-primary);
   font-size: var(--portal-text-xs);
   font-weight: var(--portal-font-medium);
   cursor: pointer;
@@ -107,7 +107,7 @@
   gap: 0.4rem;
   padding: 0.5rem 1.2rem;
   background: rgb(0, 0, 0, 0.55);
-  border: 1px solid rgb(255, 255, 255, 0.18);
+  border: 1px solid var(--portal-border-intense);
   border-radius: var(--portal-radius-pill);
   color: var(--portal-text-primary);
   font-size: var(--portal-text-xs);

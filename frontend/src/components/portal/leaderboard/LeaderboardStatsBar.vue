@@ -88,7 +88,7 @@ const monthElapsedPct = computed(() => {
   border-radius: var(--portal-radius-lg);
   background: rgb(var(--accent-rgb), 0.04);
   backdrop-filter: blur(12px);
-  border: 1px solid rgb(255, 255, 255, 0.08);
+  border: 1px solid var(--portal-border-default);
   overflow-x: auto;
   scrollbar-width: none;
   white-space: nowrap;

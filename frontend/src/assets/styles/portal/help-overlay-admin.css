@@ -187,7 +187,7 @@
   font-size: var(--portal-text-sm);
 }
 .pt-help-edit-select option {
-  background: #141414;
+  background: var(--portal-chrome-bg);
   color: var(--portal-text-primary);
 }
 

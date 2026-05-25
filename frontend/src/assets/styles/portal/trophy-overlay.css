@@ -427,7 +427,7 @@
   letter-spacing: var(--portal-tracking-wide);
 }
 .ta-cat--active .ta-cat-name {
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 .ta-cat-count {
   grid-area: count;

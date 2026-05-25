@@ -95,7 +95,7 @@ defineProps({
   border-radius: 4px;
   object-fit: cover;
   flex-shrink: 0;
-  background: rgb(255, 255, 255, 0.05);
+  background: var(--surface-2);
   cursor: pointer;
 }
 .top-name {
@@ -128,7 +128,7 @@ defineProps({
   justify-content: center;
   font-size: 0.55rem;
   font-weight: var(--font-bold);
-  color: #fff;
+  color: var(--text-primary);
   flex-shrink: 0;
 }
 </style>

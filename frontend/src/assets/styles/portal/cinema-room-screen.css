@@ -103,8 +103,8 @@
   min-height: 36px;
   padding: 6px 12px;
   background: rgb(0, 0, 0, 0.55);
-  color: rgb(255, 255, 255, 0.92);
-  border: 1px solid rgb(255, 255, 255, 0.18);
+  color: var(--portal-text-primary);
+  border: 1px solid var(--portal-border-intense);
   border-radius: var(--portal-radius-pill);
   font-size: var(--portal-text-xs);
   font-weight: var(--portal-font-semibold);

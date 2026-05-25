@@ -287,7 +287,7 @@ async function deleteLibrary(id, nm) {
 .lib-header-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgb(3, 7, 18, 0.85) 5%, transparent 60%);
+  background: linear-gradient(to top, rgb(var(--bg-primary-rgb), 0.85) 5%, transparent 60%);
 }
 .lib-header-name {
   position: absolute;
@@ -295,7 +295,7 @@ async function deleteLibrary(id, nm) {
   left: 12px;
   font-size: var(--text-sm);
   font-weight: var(--font-bold);
-  color: #fff;
+  color: var(--text-primary);
   text-shadow: 0 1px 4px rgb(0, 0, 0, 0.5);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -329,7 +329,7 @@ async function deleteLibrary(id, nm) {
 }
 .lib-del:hover {
   background: #ef4444;
-  color: #fff;
+  color: var(--text-primary);
 }
 .lib-body {
   padding: 6px 12px 10px;
@@ -366,7 +366,7 @@ async function deleteLibrary(id, nm) {
   min-height: 32px;
   padding: 5px 14px;
   border-radius: var(--radius-pill);
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   border: 1px solid var(--border-strong);
   color: rgb(255, 255, 255, 0.6);
   font-size: var(--text-2xs);

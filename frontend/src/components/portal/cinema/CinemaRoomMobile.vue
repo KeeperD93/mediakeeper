@@ -192,7 +192,7 @@ function isLate(occ) {
   width: 44px;
   height: 44px;
   border-radius: var(--portal-radius-circle);
-  background: rgb(255, 255, 255, 0.04);
+  background: var(--portal-surface-2);
   border: 1px dashed rgb(255, 255, 255, 0.15);
 }
 </style>

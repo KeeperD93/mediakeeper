@@ -74,7 +74,7 @@ function typeLabel(item) {
   border-radius: var(--radius-btn);
   overflow: hidden;
   cursor: pointer;
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   border: 0.5px solid var(--border-default);
   transition: all var(--duration-base);
 }
@@ -145,7 +145,7 @@ function typeLabel(item) {
 .wlsu-card-name {
   font-size: var(--text-2xs);
   font-weight: var(--font-bold);
-  color: #fff;
+  color: var(--text-primary);
   line-height: 1.2;
 }
 .wlsu-card-meta {

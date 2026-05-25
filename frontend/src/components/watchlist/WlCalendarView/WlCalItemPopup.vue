@@ -74,8 +74,8 @@ function formatFullDate(d) {
   position: fixed;
   z-index: 9999;
   width: 290px;
-  background: rgb(13, 18, 32, 0.98);
-  border: 0.5px solid rgb(255, 255, 255, 0.12);
+  background: var(--mk-chrome-bg);
+  border: 0.5px solid var(--border-strong);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-lg);
   padding: 14px;
@@ -109,7 +109,7 @@ function formatFullDate(d) {
 }
 .wlcal-popup-close:hover {
   background: rgb(255, 255, 255, 0.1);
-  color: #fff;
+  color: var(--text-primary);
 }
 .wlcal-popup-body {
   display: flex;
@@ -145,7 +145,7 @@ function formatFullDate(d) {
 .wlcal-popup-name {
   font-size: var(--text-sm);
   font-weight: var(--font-bold);
-  color: #fff;
+  color: var(--text-primary);
   line-height: 1.2;
   margin-bottom: 3px;
 }
