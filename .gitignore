@@ -100,3 +100,6 @@ frontend/src/assets/styles/portal/trophy-workshop-fx-*.css
 # Anchored: only the top-level ``drill/`` workspace, not any future
 # ``backend/.../drill/`` test fixtures.
 /drill/
+
+*storybook.log
+storybook-static
