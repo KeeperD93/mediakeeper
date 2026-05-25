@@ -107,13 +107,20 @@ main#main-content:focus-visible {
      they match the admin theme instead of falling back to white. */
   color-scheme: dark;
 
-  --bg-primary: #151d2b;
-  --bg-primary-rgb: 21, 29, 43; /* Companion RGB triplet for rgba() composition */
-  --bg-secondary: #1c2533; /* Card / panel surface — aligned on chrome */
-  --bg-tertiary: #243044; /* Slightly lighter than chrome for stacked layers */
+  --bg-primary: #1f2126;
+  --bg-primary-rgb: 31, 33, 38; /* Companion RGB triplet for rgba() composition */
+  --bg-secondary: #24262b; /* Card / panel surface — lighter than bg-primary for visible separation */
+  --bg-tertiary: #2d3036; /* Slightly lighter for stacked layers */
   --bg-panel: var(--bg-secondary); /* Alias — modal / panel surface */
   --mk-chrome-bg: #1c2533; /* Sidebar + topbar surface — admin chrome */
   --mk-chrome-bg-rgb: 28, 37, 51;
+  --mk-chrome-gradient-top: #2d3139; /* Top stop for chrome gradient — medium grey-blue */
+  --mk-chrome-gradient-bottom: #15171c; /* Bottom stop — near-black */
+  --mk-chrome-gradient: linear-gradient(
+    to bottom,
+    var(--mk-chrome-gradient-top) 0%,
+    var(--mk-chrome-gradient-bottom) 100%
+  );
   --border: #243044; /* Default border — subtle separation on dark theme */
   --border-hover: #3a4a66; /* Hover/focus border — clearly differentiated */
   --text-primary: #fff;
@@ -121,12 +128,18 @@ main#main-content:focus-visible {
   --text-muted: #a8b2c2;
   --accent: #4338ca;
   --accent-light: #312e81;
-  /* Accent color system — overridden by useTheme */
-  --accent-500: #6366f1;
-  --accent-400: #818cf8;
+  /* Accent color system — overridden by useTheme.
+   * 9-step scale (50 → 900) for full Tailwind-like coverage. */
+  --accent-50: #eef2ff;
+  --accent-100: #e0e7ff;
+  --accent-200: #c7d2fe;
   --accent-300: #a5b4fc;
+  --accent-400: #818cf8;
+  --accent-500: #6366f1; /* Main accent — pilots the others when useTheme overrides */
   --accent-600: #4f46e5;
   --accent-700: #4338ca;
+  --accent-800: #3730a3;
+  --accent-900: #312e81;
   --accent-rgb: 99, 102, 241;
 
   /* Pill "neon" glow — controlled by the Appearance slider via --mk-glow (0..2, default 1).

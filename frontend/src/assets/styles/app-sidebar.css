@@ -12,7 +12,7 @@
   flex-direction: column;
   width: 240px;
   flex-shrink: 0;
-  background: var(--mk-chrome-bg);
+  background: var(--mk-chrome-gradient);
   border-right: 1px solid var(--border-subtle);
   transition: width var(--duration-slow) var(--ease-in-out);
   z-index: 50;

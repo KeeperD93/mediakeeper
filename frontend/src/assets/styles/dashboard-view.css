@@ -3,7 +3,7 @@
 .cinema-dash {
   --dash-bg: var(--bg-primary);
   --hero-bg: var(--bg-primary);
-  --ribbon-bg: var(--bg-primary);
+  --ribbon-bg: var(--bg-secondary);
   --ribbon-gap: var(--border-subtle);
   --card-bg: var(--surface-1);
   --card-border: var(--border-default);

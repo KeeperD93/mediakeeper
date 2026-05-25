@@ -153,9 +153,18 @@ function areaPoints(data) {
   min-width: 0;
   padding: 10px 10px 8px;
   background: var(--ribbon-bg, #0b1020);
-  display: flex; flex-direction: column; gap: 2px; position: relative; min-height: 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: relative;
+  min-height: 60px;
 }
-.ribbon-label { font-size: var(--text-3xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.ribbon-label {
+  font-size: var(--text-3xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
 .ribbon-value {
   font-size: var(--text-sm);
   font-weight: var(--font-regular);
@@ -164,53 +173,127 @@ function areaPoints(data) {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.spark { width: 100%; height: 18px; margin-top: 2px; }
+.spark {
+  width: 100%;
+  height: 18px;
+  margin-top: 2px;
+}
 
-.ribbon-svc { flex: 1 1 100%; padding-bottom: 12px; }
-.svc-list { display: flex; flex-direction: column; gap: 5px; margin-top: 6px; }
-.svc-row { display: flex; align-items: center; gap: 8px; }
-.svc-logo { width: 18px; height: 18px; flex-shrink: 0; transition: filter var(--duration-base); }
-.svc-offline { filter: grayscale(1) opacity(0.4); }
-.svc-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-.on { background: #22c55e; }
-.off { background: var(--color-error); }
-.svc-name { font-size: var(--text-sm); color: var(--text-secondary); font-weight: var(--font-regular); }
+.ribbon-svc {
+  flex: 1 1 100%;
+  padding-bottom: 12px;
+}
+.svc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 6px;
+}
+.svc-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.svc-logo {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  transition: filter var(--duration-base);
+}
+.svc-offline {
+  filter: grayscale(1) opacity(0.4);
+}
+.svc-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.on {
+  background: #22c55e;
+}
+.off {
+  background: var(--color-error);
+}
+.svc-name {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  font-weight: var(--font-regular);
+}
 
 /* Status with pulse */
-.svc-status-wrap { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+.svc-status-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
 .svc-pulse {
-  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
   position: relative;
 }
 .svc-pulse::after {
-  content: ''; position: absolute; inset: -3px;
-  border-radius: 50%; opacity: 0;
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  opacity: 0;
   animation: svc-ping var(--duration-pulse) ease-out infinite;
 }
-.pulse-on { background: #22c55e; }
-.pulse-on::after { border: 2px solid #22c55e; }
-.pulse-off { background: var(--color-error); }
-.pulse-off::after { border: 2px solid var(--color-error); animation-duration: 3s; }
-
-@keyframes svc-ping {
-  0% { transform: scale(1); opacity: 0.6; }
-  100% { transform: scale(2.2); opacity: 0; }
+.pulse-on {
+  background: #22c55e;
+}
+.pulse-on::after {
+  border: 2px solid #22c55e;
+}
+.pulse-off {
+  background: var(--color-error);
+}
+.pulse-off::after {
+  border: 2px solid var(--color-error);
+  animation-duration: 3s;
 }
 
-.svc-status-text { font-size: var(--text-2xs); }
-.st-on { color: #22c55e; }
-.st-off { color: var(--color-error); }
-.svc-name-empty { opacity: 0.4; }
+@keyframes svc-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+.svc-status-text {
+  font-size: var(--text-2xs);
+}
+.st-on {
+  color: #22c55e;
+}
+.st-off {
+  color: var(--color-error);
+}
+.svc-name-empty {
+  opacity: 0.4;
+}
 
 /* Desktop: 4 cells in a single row, taller items, larger value text. */
 @media (min-width: 768px) {
-  .ribbon { flex-wrap: nowrap; }
+  .ribbon {
+    flex-wrap: nowrap;
+  }
   .ribbon-item {
     flex: 1;
     padding: 14px 20px 10px;
     min-height: 72px;
   }
-  .ribbon-label { font-size: var(--text-2xs); }
+  .ribbon-label {
+    font-size: var(--text-2xs);
+  }
   .ribbon-value {
     font-size: 22px;
     line-height: normal;
@@ -218,7 +301,8 @@ function areaPoints(data) {
     overflow: visible;
     text-overflow: clip;
   }
-  .spark { height: 28px; }
-  .ribbon-svc { flex: initial; }
+  .spark {
+    height: 28px;
+  }
 }
 </style>

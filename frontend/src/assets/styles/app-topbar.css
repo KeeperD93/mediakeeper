@@ -8,7 +8,7 @@
   padding: 0 24px;
   height: 56px;
   flex-shrink: 0;
-  background: var(--mk-chrome-bg);
+  background: var(--mk-chrome-gradient);
   border-bottom: 1px solid var(--border-subtle);
   position: relative;
   z-index: 10;
