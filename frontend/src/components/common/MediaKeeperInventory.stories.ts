@@ -3,12 +3,14 @@ import type { Meta, StoryObj } from '@storybook/vue3-vite'
 /* ──────────────────────────────────────────────────────────────────────
  * Inventaire visuel des boutons MediaKeeper actuels
  *
- * Reproduit fidèlement les principaux styles trouvés dans le codebase,
- * regroupés par famille visuelle puis par intention sémantique.
- * Pour chaque bouton : aperçu visuel, nom de classe CSS, où il vit dans l'app.
+ * Regroupé par FAMILLE VISUELLE RÉELLE (non plus par intention sémantique)
+ * après lecture des CSS sources. Chaque preview reproduit fidèlement le
+ * style trouvé dans le code (background, bordure, shadow, gradient, halo,
+ * opacités exactes copiées des fichiers source).
  *
- * Objectif : permettre une décision éclairée sur quelles variantes
- * conserver dans MkButton.
+ * Découverte clé : la plupart des boutons "Enregistrer" ne sont PAS pleins
+ * violet, mais TINTED (fond accent translucide). MediaKeeper a en réalité
+ * ~14 styles visuels distincts, pas 5.
  * ────────────────────────────────────────────────────────────────────── */
 
 const meta: Meta = {
@@ -22,625 +24,379 @@ export default meta
 
 type Story = StoryObj
 
-/* Styles for this story are loaded globally via .storybook/preview.ts
- * which imports .storybook/inventory.css — keeps the template clean
- * and lets Storybook's HMR pick up CSS edits without rebuilding stories.
- */
-
 export const Inventory: Story = {
-  name: 'Inventaire complet',
+  name: 'Inventaire complet (styles visuels réels)',
   render: () => ({
     template: `
       <div>
         <div class="inv-page">
 
           <h1 style="margin: 0 0 8px; color: #fff;">📋 Inventaire des boutons MediaKeeper</h1>
-          <p style="color: #a8b2c2; margin: 0 0 32px; max-width: 780px;">
-            Reproduction visuelle des différents styles de boutons trouvés dans le code MediaKeeper,
-            regroupés par <strong>intention sémantique</strong> (Enregistrer, Supprimer, etc.).<br>
-            L'objectif : voir d'un coup d'œil lesquels se ressemblent visuellement et peuvent fusionner
-            sous une seule variante de <code>&lt;MkButton&gt;</code>.
+          <p style="color: #a8b2c2; margin: 0 0 32px; max-width: 880px;">
+            Reproduction <strong>fidèle</strong> des styles visuels trouvés dans le code source MediaKeeper,
+            regroupés par <strong>famille visuelle réelle</strong> (et non par intention sémantique).<br>
+            Chaque preview reproduit l'apparence exacte de la classe citée — backgrounds, opacités, halos copiés
+            des fichiers CSS sources.
           </p>
 
           <!-- ═══════════════════════════════════════════════════════════ -->
           <div class="inv-section">
-            <h2>🟦 FAMILLE 1 — Actions principales (fond plein violet/indigo)</h2>
+            <h2>🟦 Famille A — Solid accent (plein violet/indigo)</h2>
             <p class="intro">
-              Le bouton le plus utilisé : action forte et attendue. Fond plein, texte blanc, parfois icône.
-              <br>Tu as au moins <strong>~30 variantes</strong> visuellement identiques dispersées dans le code.
+              Background plein <code>var(--accent-600)</code> ou <code>--accent-700</code>, texte blanc, pas de bord.
+              Le style "primary" tel qu'on l'imagine généralement.
             </p>
             <div class="reco">
-              💡 <strong>Recommandation :</strong> toutes ces variantes fusionnent en <code>&lt;MkButton variant="primary"&gt;</code>
+              💡 Migration cible : <code>&lt;MkButton variant="primary"&gt;</code>
             </div>
-
-            <h3>1.A — "Enregistrer / Sauvegarder"</h3>
             <table class="inv-table">
               <thead>
-                <tr><th class="preview">Aperçu</th><th class="name">Nom de classe</th><th class="where">Où ça vit</th></tr>
+                <tr><th class="preview">Aperçu (fidèle)</th><th class="name">Classe CSS</th><th class="where">Où ça vit</th></tr>
               </thead>
               <tbody>
-                <tr>
-                  <td><button class="x-btn-primary-flat">💾 Enregistrer</button></td>
-                  <td class="name">.hc-save-btn</td>
-                  <td class="where">Santé média → Configuration</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-primary-flat">Enregistrer</button></td>
-                  <td class="name">.str-save-btn</td>
-                  <td class="where">Paramètres → Planificateur</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-primary-flat">Enregistrer</button></td>
-                  <td class="name">.tc-save-btn</td>
-                  <td class="where">Paramètres → Outils</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-primary-flat">Enregistrer</button></td>
-                  <td class="name">.sub-modal-save</td>
-                  <td class="where">Sous-titres (4 modales différentes)</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-primary-flat">Enregistrer</button></td>
-                  <td class="name">.nf-save-btn</td>
-                  <td class="where">Notifications</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-primary-flat">Enregistrer</button></td>
-                  <td class="name">.params-save-btn</td>
-                  <td class="where">Paramètres → Apparence</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-primary-flat">Enregistrer</button></td>
-                  <td class="name">.pt-gdpr-save</td>
-                  <td class="where">Admin Portail → RGPD</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-primary-flat">Enregistrer</button></td>
-                  <td class="name">.pt-settings-savebar</td>
-                  <td class="where">Portail → Paramètres (barre Save sticky)</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-primary-flat">Enregistrer</button></td>
-                  <td class="name">.backup-retention-save / .backup-dest-save</td>
-                  <td class="where">Paramètres → Sauvegardes</td>
-                </tr>
-              </tbody>
-            </table>
-
-            <h3>1.B — "Confirmer / Valider / OK" (modales et formulaires)</h3>
-            <table class="inv-table">
-              <thead>
-                <tr><th class="preview">Aperçu</th><th class="name">Nom de classe</th><th class="where">Où ça vit</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><button class="x-btn-primary-flat">Confirmer</button></td>
-                  <td class="name">.wn-btn-primary</td>
-                  <td class="where">Modale "Nouveautés" (admin)</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-primary-flat">Confirmer</button></td>
-                  <td class="name">.mk-confirm-btn-info / .mk-confirm-btn-warn</td>
-                  <td class="where">Composant MkConfirmDialog (transverse)</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-primary-flat">Renommer</button></td>
-                  <td class="name">.mr-btn-primary</td>
-                  <td class="where">Modale renommer dossier (Media Manager)</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-primary-flat">Déplacer</button></td>
-                  <td class="name">.mv-btn-primary</td>
-                  <td class="where">Modale déplacer (Media Manager)</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-primary-flat">OK</button></td>
-                  <td class="name">.mf-btn-primary</td>
-                  <td class="where">Modale dossier (Media Manager)</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-primary-flat">Confirmer</button></td>
-                  <td class="name">.lfm-btn--primary</td>
-                  <td class="where">Modale formulaire liste (Portail)</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-primary-flat">Confirmer</button></td>
-                  <td class="name">.so-btn--primary</td>
-                  <td class="where">Surprise overlay (Portail)</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-primary-flat">Confirmer</button></td>
-                  <td class="name">.ddd-btn-primary</td>
-                  <td class="where">Daily digest (Portail)</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-primary-flat">Inviter</button></td>
-                  <td class="name">.pt-evd-btn--primary</td>
-                  <td class="where">Modale détail événement (Soirées ciné)</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-primary-flat">Créer</button></td>
-                  <td class="name">.pt-evc-btn--primary</td>
-                  <td class="where">Modale création événement</td>
-                </tr>
-              </tbody>
-            </table>
-
-            <h3>1.C — "Créer / Ajouter" (avec icône +)</h3>
-            <table class="inv-table">
-              <thead>
-                <tr><th class="preview">Aperçu</th><th class="name">Nom de classe</th><th class="where">Où ça vit</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><button class="x-btn-primary-flat">+ Créer une liste</button></td>
-                  <td class="name">.arr-create-btn</td>
-                  <td class="where">Portail → Listes</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-primary-flat">+ Nouveau ticket</button></td>
-                  <td class="name">.ptl-create</td>
-                  <td class="where">Portail → Tickets</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-primary-flat">+ Ajouter</button></td>
-                  <td class="name">.nf-add-btn</td>
-                  <td class="where">Notifications → Templates</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-primary-flat">+ Ajouter dossier</button></td>
-                  <td class="name">.ob-add-folder-btn</td>
-                  <td class="where">Onboarding → Étape dossiers</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-primary-flat">+ Créer</button></td>
-                  <td class="name">.backup-btn-create</td>
-                  <td class="where">Paramètres → Sauvegardes</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-primary-flat">+ Ajouter</button></td>
-                  <td class="name">.excl-add-btn</td>
-                  <td class="where">Stats → Outils (exclusions)</td>
-                </tr>
-              </tbody>
-            </table>
-
-            <h3>1.D — "Importer / Lancer / Soumettre" (action immédiate)</h3>
-            <table class="inv-table">
-              <thead>
-                <tr><th class="preview">Aperçu</th><th class="name">Nom de classe</th><th class="where">Où ça vit</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><button class="x-btn-primary-flat">↑ Choisir un fichier</button></td>
-                  <td class="name">(import-jellystats)</td>
-                  <td class="where">Stats → Outils → Import Jellystats</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-primary-flat">⟳ Lancer</button></td>
-                  <td class="name">(migration-mediatheques)</td>
-                  <td class="where">Stats → Outils → Migration médiathèques</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-primary-flat">Se connecter</button></td>
-                  <td class="name">.login-submit</td>
-                  <td class="where">Page de connexion</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-primary-flat">⟳ Scanner</button></td>
-                  <td class="name">.wls-scan-btn</td>
-                  <td class="where">Vigilance média → Séries</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-primary-flat">⟳ Scanner</button></td>
-                  <td class="name">.wl-scan-btn</td>
-                  <td class="where">Vigilance média (vue principale)</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-primary-gradient">⟳ Suivant</button></td>
-                  <td class="name">.ob-btn-launch</td>
-                  <td class="where">Onboarding → Bouton "Lancer" (gradient unique violet)</td>
-                </tr>
-              </tbody>
-            </table>
-
-            <h3>1.E — Cas particuliers à arbitrer</h3>
-            <table class="inv-table">
-              <thead>
-                <tr><th class="preview">Aperçu</th><th class="name">Nom de classe</th><th class="where">Où ça vit</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><button class="x-btn-primary-white">Bande-annonce</button></td>
-                  <td class="name">.vmd2-btn--primary</td>
-                  <td class="where">Portail → Fiche détail média (UNIQUE : gradient blanc)</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-primary-gradient">Lancer</button></td>
-                  <td class="name">.ob-btn-launch</td>
-                  <td class="where">Onboarding (UNIQUE : gradient indigo→violet)</td>
-                </tr>
+                <tr><td><button class="x-mk-flat-primary">Confirmer</button></td><td class="name">.wn-btn-primary</td><td class="where">Modale "Nouveautés" (admin)</td></tr>
+                <tr><td><button class="x-mk-flat-primary">Enregistrer</button></td><td class="name">.str-save-btn</td><td class="where">Paramètres → Planificateur</td></tr>
+                <tr><td><button class="x-mk-flat-primary">Confirmer</button></td><td class="name">.lfm-btn--primary</td><td class="where">Modale formulaire liste (Portail)</td></tr>
+                <tr><td><button class="x-mk-flat-primary">Inviter</button></td><td class="name">.pt-evd-btn--primary</td><td class="where">Modale détail événement (Soirées)</td></tr>
+                <tr><td><button class="x-mk-flat-primary">Créer</button></td><td class="name">.pt-evc-btn--primary</td><td class="where">Modale création événement</td></tr>
+                <tr><td><button class="x-mk-flat-primary">Enregistrer</button></td><td class="name">.nf-save-btn</td><td class="where">Notifications → Save bar</td></tr>
               </tbody>
             </table>
           </div>
 
           <!-- ═══════════════════════════════════════════════════════════ -->
           <div class="inv-section">
-            <h2>🟥 FAMILLE 2 — Actions destructives (fond plein rouge)</h2>
+            <h2>💜 Famille B — Tinted accent (fond translucide + bord + texte clair)</h2>
             <p class="intro">
-              Suppression, retrait, bannissement. Fond rouge plein, texte blanc.
-              <br>Tu as au moins <strong>~15 variantes</strong> visuellement identiques.
+              Background <code>rgb(accent, 0.15-0.18)</code>, bord <code>rgb(accent, 0.25-0.3)</code>, texte
+              <code>--accent-400</code> ou <code>--accent-300</code>. Style "soft" très utilisé en admin.
+              <br><strong>⚠ C'est ce style que beaucoup de tes boutons "Enregistrer" utilisent actuellement</strong>
+              (Santé média, Notifications…) — pas le plein violet de la famille A.
             </p>
             <div class="reco">
-              💡 <strong>Recommandation :</strong> toutes ces variantes fusionnent en <code>&lt;MkButton variant="danger"&gt;</code>
+              💡 Migration cible : à arbitrer. Soit fusionner en <code>variant="primary"</code> (plein)
+              soit créer un <code>variant="primary-soft"</code> dédié. <strong>Tu as choisi : tout en plein</strong> —
+              ces boutons changeront d'apparence à la migration.
             </div>
-
             <table class="inv-table">
               <thead>
-                <tr><th class="preview">Aperçu</th><th class="name">Nom de classe</th><th class="where">Où ça vit</th></tr>
+                <tr><th class="preview">Aperçu (fidèle)</th><th class="name">Classe CSS</th><th class="where">Où ça vit</th></tr>
               </thead>
               <tbody>
-                <tr>
-                  <td><button class="x-btn-danger-flat">🗑 Supprimer</button></td>
-                  <td class="name">.mm-btn-danger</td>
-                  <td class="where">Media Manager → diverses modales</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-danger-flat">🗑 Supprimer</button></td>
-                  <td class="name">.doub-delete-btn</td>
-                  <td class="where">Doublons</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-danger-flat">Supprimer</button></td>
-                  <td class="name">.sec-btn-danger</td>
-                  <td class="where">Paramètres → Sécurité</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-danger-flat">🗑 Purger</button></td>
-                  <td class="name">.tool-btn-danger</td>
-                  <td class="where">Stats → Outils → Purger import</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-danger-flat">Supprimer</button></td>
-                  <td class="name">.params-danger-btn</td>
-                  <td class="where">Paramètres → Réinitialisation</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-danger-flat">Bannir</button></td>
-                  <td class="name">.ru-btn--danger</td>
-                  <td class="where">Admin Portail → Users</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-danger-flat">Supprimer</button></td>
-                  <td class="name">.nf-btn-danger</td>
-                  <td class="where">Notifications</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-danger-flat">Annuler RSVP</button></td>
-                  <td class="name">.pt-evd-btn--danger</td>
-                  <td class="where">Modale détail événement (Soirées)</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-danger-flat">Supprimer mon compte</button></td>
-                  <td class="name">.pt-settings-btn--danger</td>
-                  <td class="where">Portail → Paramètres → Compte</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-danger-flat">Confirmer suppression</button></td>
-                  <td class="name">.mk-confirm-btn-danger</td>
-                  <td class="where">Composant MkConfirmDialog (transverse)</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-danger-flat">Confirmer</button></td>
-                  <td class="name">.pt-dcm-btn--danger</td>
-                  <td class="where">Modale "Supprimer mon compte"</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-danger-flat">Effacer données</button></td>
-                  <td class="name">.pt-privacy-delete</td>
-                  <td class="where">Portail → Paramètres → Vie privée</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-danger-flat">Supprimer</button></td>
-                  <td class="name">.adm-btn--danger</td>
-                  <td class="where">Admin Portail → Listes</td>
-                </tr>
-              </tbody>
-            </table>
-
-            <h3>2.B — "Retirer" (suppression douce, souvent en croix petite)</h3>
-            <table class="inv-table">
-              <thead>
-                <tr><th class="preview">Aperçu</th><th class="name">Nom de classe</th><th class="where">Où ça vit</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><button class="x-btn-remove-x">✕</button> <span style="color: #a8b2c2;">("Marvel" × Retirer)</span></td>
-                  <td class="name">.ru-tag-remove</td>
-                  <td class="where">Admin Portail → Users → Tags</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-remove-x">✕</button></td>
-                  <td class="name">.ob-folder-remove</td>
-                  <td class="where">Onboarding → Étape dossiers</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-remove-x">✕</button></td>
-                  <td class="name">.ale-item-remove</td>
-                  <td class="where">Portail → Listes (item d'une liste)</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-remove-x">✕</button></td>
-                  <td class="name">.ale-contrib-remove</td>
-                  <td class="where">Portail → Listes (contributeurs)</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-remove-x">✕</button></td>
-                  <td class="name">.mm-rt-remove</td>
-                  <td class="where">Media Manager → Release tags</td>
-                </tr>
+                <tr><td><button class="x-mk-tinted-primary">💾 Enregistrer</button></td><td class="name">.hc-save-btn</td><td class="where">Santé média → Configuration</td></tr>
+                <tr><td><button class="x-mk-tinted-primary">▶ Lancer</button></td><td class="name">.str-run-btn</td><td class="where">Paramètres → Planificateur (Run)</td></tr>
+                <tr><td><button class="x-mk-tinted-primary">+ Ajouter</button></td><td class="name">.nf-add-btn</td><td class="where">Notifications → Templates</td></tr>
+                <tr><td><button class="x-mk-tinted-primary">OK</button></td><td class="name">.mk-confirm-btn-info</td><td class="where">MkConfirmDialog (info/transverse)</td></tr>
               </tbody>
             </table>
           </div>
 
           <!-- ═══════════════════════════════════════════════════════════ -->
           <div class="inv-section">
-            <h2>⬜ FAMILLE 3 — Actions secondaires / Annuler (transparent + contour)</h2>
+            <h2>🟣 Famille C — Pill gradient (Media Manager modales)</h2>
             <p class="intro">
-              Action alternative discrète. Fond transparent ou très subtil, contour gris, texte blanc/gris.
-              <br>Tu as au moins <strong>~15 variantes</strong> avec 3 sous-styles visuels.
+              Forme pill (<code>border-radius: 999px</code>), gradient <code>--gradient-pill-active</code>,
+              bord accent + halo. Style signature des modales Media Manager (Renommer, Déplacer, Dossier).
             </p>
             <div class="reco">
-              💡 <strong>Recommandation :</strong> tout fusionne en <code>&lt;MkButton variant="ghost"&gt;</code>
+              💡 Migration cible : <code>&lt;MkButton variant="primary"&gt;</code> (perd la forme pill et le halo).
+              <br><strong>⚠ Changement visuel important sur Media Manager.</strong>
             </div>
-
-            <h3>3.A — "Annuler" et "Précédent"</h3>
             <table class="inv-table">
               <thead>
-                <tr><th class="preview">Aperçu</th><th class="name">Nom de classe</th><th class="where">Où ça vit</th></tr>
+                <tr><th class="preview">Aperçu (fidèle)</th><th class="name">Classe CSS</th><th class="where">Où ça vit</th></tr>
               </thead>
               <tbody>
-                <tr>
-                  <td><button class="x-btn-secondary-grey">Annuler</button></td>
-                  <td class="name">.wn-btn-secondary</td>
-                  <td class="where">Modale "Nouveautés" (admin)</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-secondary-grey">Annuler</button></td>
-                  <td class="name">.mk-confirm-btn-cancel</td>
-                  <td class="where">Composant MkConfirmDialog (transverse)</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-secondary-grey">Annuler</button></td>
-                  <td class="name">.sub-modal-cancel</td>
-                  <td class="where">Sous-titres (4 modales)</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-secondary-grey">Annuler</button></td>
-                  <td class="name">.sub-batch-cancel-btn</td>
-                  <td class="where">Sous-titres → Progress batch</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-secondary-grey">Annuler</button></td>
-                  <td class="name">.pt-dpb-cancel</td>
-                  <td class="where">Portail → Bannière suppression compte</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-secondary-grey">Annuler</button></td>
-                  <td class="name">.pt-gdpr-pending-cancel</td>
-                  <td class="where">Admin → RGPD</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-secondary-grey">← Retour</button></td>
-                  <td class="name">.ob-btn-ghost</td>
-                  <td class="where">Onboarding wizard → Précédent</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-secondary-grey">← Retour</button></td>
-                  <td class="name">.ptd-back</td>
-                  <td class="where">Portail → Ticket détail</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-secondary-grey">← Retour</button></td>
-                  <td class="name">.pt-search-back / .pt-help-article-back</td>
-                  <td class="where">Portail → Recherche / Aide</td>
-                </tr>
-              </tbody>
-            </table>
-
-            <h3>3.B — Variantes avec fond légèrement teinté (sur cartes)</h3>
-            <table class="inv-table">
-              <thead>
-                <tr><th class="preview">Aperçu</th><th class="name">Nom de classe</th><th class="where">Où ça vit</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><button class="x-btn-secondary-bg">Annuler</button></td>
-                  <td class="name">.pt-btn--secondary</td>
-                  <td class="where">Portail → Soirées ciné / Wrapped / Profile-edit</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-secondary-bg">Annuler</button></td>
-                  <td class="name">.doub-btn-secondary</td>
-                  <td class="where">Doublons → Modales</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-secondary-bg">Annuler</button></td>
-                  <td class="name">.mm-btn-secondary</td>
-                  <td class="where">Media Manager (transverse)</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-secondary-pill">Auto-détecter</button></td>
-                  <td class="name">.mf-btn-secondary</td>
-                  <td class="where">Modale dossier (variante PILL arrondie)</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-secondary-bg">Annuler</button></td>
-                  <td class="name">.lfm-btn--secondary</td>
-                  <td class="where">Modale formulaire liste</td>
-                </tr>
+                <tr><td><button class="x-mk-pill-gradient">Renommer</button></td><td class="name">.mr-btn-primary</td><td class="where">Media Manager → Modale Renommer dossier</td></tr>
+                <tr><td><button class="x-mk-pill-gradient">Déplacer</button></td><td class="name">.mv-btn-primary</td><td class="where">Media Manager → Modale Déplacer</td></tr>
+                <tr><td><button class="x-mk-pill-gradient">OK</button></td><td class="name">.mf-btn-primary</td><td class="where">Media Manager → Modale Dossier</td></tr>
               </tbody>
             </table>
           </div>
 
           <!-- ═══════════════════════════════════════════════════════════ -->
           <div class="inv-section">
-            <h2>⊕ FAMILLE 4 — Boutons "Fermer" (X dans modales/popups)</h2>
+            <h2>🟪 Famille D — Gradient violet/indigo (CTA premium)</h2>
             <p class="intro">
-              Le bouton X en haut à droite d'une modale, popup, drawer. Carré ou rond, presque toujours icône seule.
-              <br>Tu as au moins <strong>~30 variantes</strong> de ce X selon les modales !
+              <code>linear-gradient(135deg, indigo, purple)</code> + shadow accent.
+              Réservé aux écrans d'accueil/CTA forts (login, onboarding, daily digest).
             </p>
             <div class="reco">
-              💡 <strong>Recommandation :</strong> tout fusionne en <code>&lt;MkButton variant="icon" icon="x"&gt;</code>
+              💡 Migration cible : <code>&lt;MkButton variant="primary"&gt;</code> perd les gradients distinctifs.
+              <br><strong>⚠ Page de login et onboarding perdent leur signature visuelle</strong>
+              (shimmer login, halo onboarding).
             </div>
-
-            <h3>4.A — Style carré contour subtle (le plus courant)</h3>
             <table class="inv-table">
               <thead>
-                <tr><th class="preview">Aperçu</th><th class="name">Nom de classe</th><th class="where">Où ça vit</th></tr>
+                <tr><th class="preview">Aperçu (fidèle)</th><th class="name">Classe CSS</th><th class="where">Où ça vit</th></tr>
               </thead>
               <tbody>
-                <tr><td><button class="x-btn-close-x">✕</button></td><td class="name">.wn-close</td><td class="where">Modale Nouveautés</td></tr>
-                <tr><td><button class="x-btn-close-x">✕</button></td><td class="name">.sm-close</td><td class="where">Modale recherche globale</td></tr>
-                <tr><td><button class="x-btn-close-x">✕</button></td><td class="name">.mf-close / .mv-close / .mr-close</td><td class="where">Media Manager (3 modales)</td></tr>
-                <tr><td><button class="x-btn-close-x">✕</button></td><td class="name">.mm-close-btn</td><td class="where">Media Manager (2 ctx menus)</td></tr>
-                <tr><td><button class="x-btn-close-x">✕</button></td><td class="name">.wlsu-detail-close / .wlsu-add-close</td><td class="where">Watchlist → Suivi (2 modales)</td></tr>
-                <tr><td><button class="x-btn-close-x">✕</button></td><td class="name">.wlcal-popup-close / .wlcal-modal-close</td><td class="where">Watchlist → Calendrier (2)</td></tr>
-                <tr><td><button class="x-btn-close-x">✕</button></td><td class="name">.so-close / .si-close</td><td class="where">Sous-titres overlays</td></tr>
-                <tr><td><button class="x-btn-close-x">✕</button></td><td class="name">.sub-prof-close / .sub-matrix-close / .sub-audit-close</td><td class="where">Sous-titres (3 modales)</td></tr>
-                <tr><td><button class="x-btn-close-x">✕</button></td><td class="name">.pt-popup-close</td><td class="where">Portail (5+ popups différentes)</td></tr>
-                <tr><td><button class="x-btn-close-x">✕</button></td><td class="name">.pt-rmodal-close</td><td class="where">Portail → Modale demande</td></tr>
-                <tr><td><button class="x-btn-close-x">✕</button></td><td class="name">.pt-help-close / .pt-tlb-close</td><td class="where">Portail → Aide / Trailer</td></tr>
-                <tr><td><button class="x-btn-close-x">✕</button></td><td class="name">.ddd-close</td><td class="where">Portail → Daily digest</td></tr>
-                <tr><td><button class="x-btn-close-x">✕</button></td><td class="name">.ta-close / .gc-trophy-modal-close</td><td class="where">Portail → Trophées</td></tr>
-                <tr><td><button class="x-btn-close-x">✕</button></td><td class="name">.dwn-close</td><td class="where">Portail → Modale nouveautés</td></tr>
-                <tr><td><button class="x-btn-close-x">✕</button></td><td class="name">.atl-close</td><td class="where">Portail → Ajout liste overlay</td></tr>
-                <tr><td><button class="x-btn-close-x">✕</button></td><td class="name">.lfm-close</td><td class="where">Portail → Modale liste form</td></tr>
-                <tr><td><button class="x-btn-close-x">✕</button></td><td class="name">.rrm-close</td><td class="where">Portail Admin → Rejeter raison</td></tr>
-                <tr><td><button class="x-btn-close-x">✕</button></td><td class="name">.ru-drawer-close</td><td class="where">Admin → Drawer user</td></tr>
-                <tr><td><button class="x-btn-close-x">✕</button></td><td class="name">.np-close</td><td class="where">Dashboard → Now Playing fullscreen</td></tr>
-                <tr><td><button class="x-btn-close-x">✕</button></td><td class="name">.up-close</td><td class="where">Stats → Popover utilisateur / Modale fusion</td></tr>
-              </tbody>
-            </table>
-
-            <h3>4.B — Variante ronde (cercle)</h3>
-            <table class="inv-table">
-              <thead>
-                <tr><th class="preview">Aperçu</th><th class="name">Nom de classe</th><th class="where">Où ça vit</th></tr>
-              </thead>
-              <tbody>
-                <tr><td><button class="x-btn-close-circle">✕</button></td><td class="name">.mm-btn-sm--close</td><td class="where">Media Manager → Petite croix</td></tr>
+                <tr><td><button class="x-mk-gradient-login">Se connecter</button></td><td class="name">.login-submit</td><td class="where">Page de connexion (+ effet shimmer)</td></tr>
+                <tr><td><button class="x-mk-gradient-onboarding">Lancer</button></td><td class="name">.ob-btn-launch</td><td class="where">Onboarding wizard → Étape finale</td></tr>
+                <tr><td><button class="x-mk-gradient-digest">Voir tout</button></td><td class="name">.ddd-btn-primary</td><td class="where">Portail → Daily digest CTA</td></tr>
+                <tr><td><button class="x-mk-gradient-portal">+ Créer une liste</button></td><td class="name">.arr-create-btn</td><td class="where">Portail → Listes</td></tr>
               </tbody>
             </table>
           </div>
 
           <!-- ═══════════════════════════════════════════════════════════ -->
           <div class="inv-section">
-            <h2>⚙ FAMILLE 5 — Boutons icône seule (carré ou rond)</h2>
+            <h2>⚪ Famille N — Cas particuliers uniques</h2>
             <p class="intro">
-              Bouton compact avec une icône (engrenage, crayon, lecture, etc.), pas de texte.
-              Utilisé dans les barres d'outils, headers de carte, listes.
+              Styles qui n'ont qu'un seul usage dans tout le code et ne suivent aucune autre famille.
             </p>
             <div class="reco">
-              💡 <strong>Recommandation :</strong> <code>&lt;MkButton variant="icon" icon="..."&gt;</code>
+              💡 Migration cible : décision au cas par cas. Soit fusionner en <code>variant="primary"</code>
+              (perte du look unique), soit garder en exception <code>variant="custom"</code>.
             </div>
-
             <table class="inv-table">
               <thead>
-                <tr><th class="preview">Aperçu</th><th class="name">Nom de classe</th><th class="where">Où ça vit</th></tr>
+                <tr><th class="preview">Aperçu (fidèle)</th><th class="name">Classe CSS</th><th class="where">Où ça vit</th></tr>
               </thead>
               <tbody>
-                <tr>
-                  <td><button class="x-btn-icon-square">⚙</button></td>
-                  <td class="name">.pt-icon-btn</td>
-                  <td class="where">Portail (4 endroits : Calendar / XpEvents / News / Featured)</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-icon-square">✎</button></td>
-                  <td class="name">.ru-icon-btn</td>
-                  <td class="where">Admin → Demandes utilisateurs</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-icon-square">⋯</button></td>
-                  <td class="name">.mk-iconbtn</td>
-                  <td class="where">PosterCard (carte affiche)</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-icon-gold">★</button></td>
-                  <td class="name">.mk-iconbtn--gold</td>
-                  <td class="where">PosterCard → Bookmark gold</td>
-                </tr>
+                <tr><td><button class="x-mk-white-gradient">▶ Bande-annonce</button></td><td class="name">.vmd2-btn--primary</td><td class="where">Portail → Fiche détail média (gradient BLANC unique)</td></tr>
+                <tr><td><button class="x-mk-cinema-gold">🎬 Cinéma</button></td><td class="name">.pt-evd-btn--cinema</td><td class="where">Soirées ciné → Mode "Cinéma" (gold + pulse)</td></tr>
               </tbody>
             </table>
           </div>
 
           <!-- ═══════════════════════════════════════════════════════════ -->
           <div class="inv-section">
-            <h2>🔗 FAMILLE 6 — Liens / Skip (texte seul, sans rien autour)</h2>
+            <h2>🟥 Famille F — Tinted danger (translucide rouge)</h2>
             <p class="intro">
-              Action très discrète, juste du texte cliquable. Pas de fond, pas de contour.
-              <br>Rare dans MediaKeeper (~3 cas) mais présent dans le wizard et quelques modales.
+              Background <code>rgb(error, 0.15)</code>, bord rouge translucide, texte rouge clair.
+              <br><strong>⚠ Style le plus utilisé pour "Supprimer" en admin</strong>, contrairement à ce qu'on imagine.
             </p>
             <div class="reco">
-              💡 <strong>Recommandation :</strong> ajouter une variante <code>&lt;MkButton variant="link"&gt;</code> ou utiliser un <code>&lt;a&gt;</code> stylisé
+              💡 Migration cible : <code>&lt;MkButton variant="danger"&gt;</code> (plein rouge).
+              <br><strong>⚠ Tous les boutons Media Manager / MkConfirmDialog deviendront plus visuellement agressifs.</strong>
             </div>
-
             <table class="inv-table">
               <thead>
-                <tr><th class="preview">Aperçu</th><th class="name">Nom de classe</th><th class="where">Où ça vit</th></tr>
+                <tr><th class="preview">Aperçu (fidèle)</th><th class="name">Classe CSS</th><th class="where">Où ça vit</th></tr>
               </thead>
               <tbody>
-                <tr>
-                  <td><button class="x-btn-skip">Passer</button></td>
-                  <td class="name">.ob-btn-skip</td>
-                  <td class="where">Onboarding wizard → Skip étape</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-skip">Plus tard</button></td>
-                  <td class="name">.mk-skip-link</td>
-                  <td class="where">Lien d'accessibilité (a11y)</td>
-                </tr>
-                <tr>
-                  <td><button class="x-btn-link">Voir tout →</button></td>
-                  <td class="name">(divers carousels/sections)</td>
-                  <td class="where">Dashboard, portail (liens "Voir plus")</td>
-                </tr>
+                <tr><td><button class="x-mk-tinted-danger">🗑 Supprimer</button></td><td class="name">.mm-btn-danger</td><td class="where">Media Manager → diverses modales</td></tr>
+                <tr><td><button class="x-mk-tinted-danger">Supprimer</button></td><td class="name">.mk-confirm-btn-danger</td><td class="where">MkConfirmDialog (transverse)</td></tr>
+                <tr><td><button class="x-mk-tinted-warn">Attention</button></td><td class="name">.mk-confirm-btn-warn</td><td class="where">MkConfirmDialog (variante warn jaune)</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- ═══════════════════════════════════════════════════════════ -->
+          <div class="inv-section">
+            <h2>🟥 Famille G — Solid danger (rouge plein)</h2>
+            <p class="intro">
+              Background rouge plein (<code>#b91c1c</code>), texte blanc. Style "destructif fort".
+            </p>
+            <div class="reco">
+              💡 Migration cible : <code>&lt;MkButton variant="danger"&gt;</code>.
+            </div>
+            <table class="inv-table">
+              <thead>
+                <tr><th class="preview">Aperçu (fidèle)</th><th class="name">Classe CSS</th><th class="where">Où ça vit</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><button class="x-mk-flat-danger">Annuler RSVP</button></td><td class="name">.pt-evd-btn--danger</td><td class="where">Soirées ciné → Modale détail (danger)</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- ═══════════════════════════════════════════════════════════ -->
+          <div class="inv-section">
+            <h2>🟢 Famille I — Tinted success (vert translucide)</h2>
+            <p class="intro">
+              Background <code>rgb(success, 0.12)</code>, bord vert translucide, texte vert.
+              Utilisé pour les états "validé/réussi" et confirmations positives.
+            </p>
+            <div class="reco">
+              💡 Cas non couvert par les 5 variantes MkButton actuelles. À discuter : variant="success" ?
+              <br>Présent uniquement dans Media Manager actuellement.
+            </div>
+            <table class="inv-table">
+              <thead>
+                <tr><th class="preview">Aperçu (fidèle)</th><th class="name">Classe CSS</th><th class="where">Où ça vit</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><button class="x-mk-tinted-success">✓ Valider</button></td><td class="name">.mm-btn-success</td><td class="where">Media Manager → Boutons validation</td></tr>
+                <tr><td><button class="x-mk-tinted-success">✓ Sauvegardé</button></td><td class="name">.mm-btn-saved</td><td class="where">Media Manager → État sauvegardé (transitoire)</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- ═══════════════════════════════════════════════════════════ -->
+          <div class="inv-section">
+            <h2>⬜ Famille H — Ghost outline neutre</h2>
+            <p class="intro">
+              Background transparent, bord gris translucide, texte gris/blanc.
+              Le style "Annuler" et "Précédent" standard.
+            </p>
+            <div class="reco">
+              💡 Migration cible : <code>&lt;MkButton variant="ghost"&gt;</code>.
+            </div>
+            <table class="inv-table">
+              <thead>
+                <tr><th class="preview">Aperçu (fidèle)</th><th class="name">Classe CSS</th><th class="where">Où ça vit</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><button class="x-mk-ghost-neutral">Annuler</button></td><td class="name">.wn-btn-secondary</td><td class="where">Modale Nouveautés</td></tr>
+                <tr><td><button class="x-mk-ghost-neutral">Annuler</button></td><td class="name">.mk-confirm-btn-cancel</td><td class="where">MkConfirmDialog (transverse)</td></tr>
+                <tr><td><button class="x-mk-ghost-neutral">Annuler</button></td><td class="name">.lfm-btn--secondary</td><td class="where">Modale formulaire liste</td></tr>
+                <tr><td><button class="x-mk-ghost-neutral">← Retour</button></td><td class="name">.ob-btn-ghost</td><td class="where">Onboarding wizard → Précédent</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- ═══════════════════════════════════════════════════════════ -->
+          <div class="inv-section">
+            <h2>⬜ Famille H-pill — Ghost pill (Media Manager modales)</h2>
+            <p class="intro">
+              Forme pill (<code>border-radius: 999px</code>), bord neutre, texte gris.
+              Toujours associé à la famille C (pill gradient) dans la même modale.
+            </p>
+            <div class="reco">
+              💡 Migration cible : <code>&lt;MkButton variant="ghost"&gt;</code> (perd la forme pill).
+            </div>
+            <table class="inv-table">
+              <thead>
+                <tr><th class="preview">Aperçu (fidèle)</th><th class="name">Classe CSS</th><th class="where">Où ça vit</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><button class="x-mk-pill-ghost">Annuler</button></td><td class="name">.mr-btn-ghost</td><td class="where">Media Manager → Modale Renommer</td></tr>
+                <tr><td><button class="x-mk-pill-ghost">Annuler</button></td><td class="name">.mv-btn-ghost</td><td class="where">Media Manager → Modale Déplacer</td></tr>
+                <tr><td><button class="x-mk-pill-ghost">Annuler</button></td><td class="name">.mf-btn-ghost</td><td class="where">Media Manager → Modale Dossier</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- ═══════════════════════════════════════════════════════════ -->
+          <div class="inv-section">
+            <h2>⊕ Famille K — Boutons "Fermer" (X de modales)</h2>
+            <p class="intro">
+              X en haut à droite des modales/popups. Tu en as <strong>~25 versions</strong> visuellement
+              identiques disséminées.
+            </p>
+            <div class="reco">
+              💡 Migration cible : <code>&lt;MkButton variant="icon" icon="x"&gt;</code>.
+            </div>
+            <table class="inv-table">
+              <thead>
+                <tr><th class="preview">Aperçu (fidèle)</th><th class="name">Classe CSS</th><th class="where">Où ça vit</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><button class="x-mk-icon-close">✕</button></td><td class="name">.wn-close / .sm-close / .pt-popup-close (×5+)</td><td class="where">Modales transverses (~25 occurrences)</td></tr>
+                <tr><td><button class="x-mk-icon-close">✕</button></td><td class="name">.mf-close / .mv-close / .mr-close</td><td class="where">Media Manager (3 modales)</td></tr>
+                <tr><td><button class="x-mk-icon-close">✕</button></td><td class="name">.so-close / .si-close / .sub-prof-close</td><td class="where">Sous-titres / Surprise overlay</td></tr>
+                <tr><td><button class="x-mk-icon-close">✕</button></td><td class="name">.wlsu-detail-close / .wlcal-popup-close</td><td class="where">Watchlist (Suivi + Calendrier)</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- ═══════════════════════════════════════════════════════════ -->
+          <div class="inv-section">
+            <h2>⚙ Famille K — Boutons icône seule (engrenage, crayon)</h2>
+            <p class="intro">
+              Bouton compact 32×32 avec icône lucide. Header de carte, toolbar, ligne de liste.
+            </p>
+            <div class="reco">
+              💡 Migration cible : <code>&lt;MkButton variant="icon" icon="..."&gt;</code>.
+            </div>
+            <table class="inv-table">
+              <thead>
+                <tr><th class="preview">Aperçu (fidèle)</th><th class="name">Classe CSS</th><th class="where">Où ça vit</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><button class="x-mk-icon-square">⚙</button></td><td class="name">.pt-icon-btn</td><td class="where">Portail (Calendar / News / Featured / XpEvents)</td></tr>
+                <tr><td><button class="x-mk-icon-square">✎</button></td><td class="name">.ru-icon-btn</td><td class="where">Admin → Demandes utilisateurs</td></tr>
+                <tr><td><button class="x-mk-icon-square">⋯</button></td><td class="name">.mk-iconbtn</td><td class="where">PosterCard (carte affiche)</td></tr>
+                <tr><td><button class="x-mk-icon-gold">★</button></td><td class="name">.mk-iconbtn--gold</td><td class="where">PosterCard → Bookmark gold (variante doré)</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- ═══════════════════════════════════════════════════════════ -->
+          <div class="inv-section">
+            <h2>⊝ Famille L — Mini "Retirer" (croix rouge ronde sur tag)</h2>
+            <p class="intro">
+              Mini bouton circulaire 18×18 utilisé pour retirer un élément d'une liste/tag.
+              Pas vraiment un bouton plein écran, c'est une variante d'icône.
+            </p>
+            <div class="reco">
+              💡 Migration cible : <code>&lt;MkButton variant="icon" icon="x" size="sm"&gt;</code>
+              avec couleur danger custom OU composant <code>&lt;MkChipRemove&gt;</code> dédié.
+            </div>
+            <table class="inv-table">
+              <thead>
+                <tr><th class="preview">Aperçu (fidèle)</th><th class="name">Classe CSS</th><th class="where">Où ça vit</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Marvel <button class="x-mk-mini-remove">✕</button></td><td class="name">.ru-tag-remove</td><td class="where">Admin → Tags utilisateur</td></tr>
+                <tr><td>/films <button class="x-mk-mini-remove">✕</button></td><td class="name">.ob-folder-remove</td><td class="where">Onboarding → Étape dossiers</td></tr>
+                <tr><td>Item <button class="x-mk-mini-remove">✕</button></td><td class="name">.ale-item-remove</td><td class="where">Portail → Listes (item)</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- ═══════════════════════════════════════════════════════════ -->
+          <div class="inv-section">
+            <h2>🔗 Famille J — Skip / Lien (texte seul)</h2>
+            <p class="intro">
+              Bouton plus discret encore que ghost : juste du texte cliquable.
+              Rare, utilisé pour "Passer", "Plus tard".
+            </p>
+            <div class="reco">
+              💡 Cas non couvert par les 5 variantes MkButton actuelles. À ajouter <code>variant="link"</code> ?
+            </div>
+            <table class="inv-table">
+              <thead>
+                <tr><th class="preview">Aperçu (fidèle)</th><th class="name">Classe CSS</th><th class="where">Où ça vit</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><button class="x-mk-skip">Passer</button></td><td class="name">.ob-btn-skip</td><td class="where">Onboarding → Skip étape</td></tr>
               </tbody>
             </table>
           </div>
 
           <!-- ═══════════════════════════════════════════════════════════ -->
           <div class="inv-section" style="border-top: 1px solid rgb(255,255,255,0.1); padding-top: 32px;">
-            <h2>📊 Synthèse</h2>
+            <h2>📊 Synthèse finale</h2>
             <table class="inv-table">
               <thead>
                 <tr>
-                  <th>Famille</th>
-                  <th style="text-align: center;">Nombre de versions actuelles</th>
-                  <th>Variante MkButton cible</th>
+                  <th>Famille visuelle</th>
+                  <th style="text-align: center;">Couverte par MkButton ?</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
-                <tr><td>1 — Action principale (plein violet)</td><td style="text-align: center;"><strong>~30</strong></td><td><code>variant="primary"</code></td></tr>
-                <tr><td>2 — Destructive (plein rouge)</td><td style="text-align: center;"><strong>~15</strong></td><td><code>variant="danger"</code></td></tr>
-                <tr><td>3 — Annuler / Précédent (transparent contour)</td><td style="text-align: center;"><strong>~15</strong></td><td><code>variant="ghost"</code></td></tr>
-                <tr><td>4 — Fermer (X de modale)</td><td style="text-align: center;"><strong>~30</strong></td><td><code>variant="icon" icon="x"</code></td></tr>
-                <tr><td>5 — Icône seule (engrenage, etc.)</td><td style="text-align: center;"><strong>~10</strong></td><td><code>variant="icon"</code></td></tr>
-                <tr><td>6 — Lien / Skip (texte seul)</td><td style="text-align: center;"><strong>~3</strong></td><td><code>variant="link"</code> (à ajouter)</td></tr>
-                <tr style="background: rgb(92, 87, 146, 0.15); font-weight: 600;">
-                  <td>TOTAL</td>
-                  <td style="text-align: center;">~100 boutons disséminés</td>
-                  <td>fusionnent en <strong>5 variantes</strong></td>
-                </tr>
+                <tr><td>A — Solid accent (plein violet)</td><td style="text-align: center;">✅ <code>variant="primary"</code></td><td>Migration directe</td></tr>
+                <tr><td>B — Tinted accent</td><td style="text-align: center;">⚠️ Non</td><td>Si on garde "que des pleins" → convertir en A</td></tr>
+                <tr><td>C — Pill gradient accent (MM modales)</td><td style="text-align: center;">⚠️ Perte forme</td><td>Convertir en A (perte de la pill + halo)</td></tr>
+                <tr><td>D — Gradient violet/indigo (login, onboarding)</td><td style="text-align: center;">⚠️ Perte gradient</td><td>Convertir en A OU garder exception</td></tr>
+                <tr><td>F — Tinted danger</td><td style="text-align: center;">⚠️ Non</td><td>Convertir en G (plein rouge)</td></tr>
+                <tr><td>G — Solid danger</td><td style="text-align: center;">✅ <code>variant="danger"</code></td><td>Migration directe</td></tr>
+                <tr><td>H — Ghost outline</td><td style="text-align: center;">✅ <code>variant="ghost"</code></td><td>Migration directe</td></tr>
+                <tr><td>H-pill — Ghost pill (MM modales)</td><td style="text-align: center;">⚠️ Perte forme</td><td>Convertir en H (perte pill)</td></tr>
+                <tr><td>I — Tinted success</td><td style="text-align: center;">❌ Non couvert</td><td>Décision : ajouter <code>variant="success"</code> ?</td></tr>
+                <tr><td>J — Skip / lien</td><td style="text-align: center;">❌ Non couvert</td><td>Décision : ajouter <code>variant="link"</code> ?</td></tr>
+                <tr><td>K — Icon-only (close, settings, edit)</td><td style="text-align: center;">✅ <code>variant="icon"</code></td><td>Migration directe</td></tr>
+                <tr><td>L — Mini remove (croix tag)</td><td style="text-align: center;">⚠️ Faisable</td><td>Via <code>icon size="sm"</code> + couleur custom</td></tr>
+                <tr><td>N — Cas particuliers (gradient blanc, gold pulse)</td><td style="text-align: center;">❌ Non couvert</td><td>Garder en exceptions custom OU fusionner</td></tr>
               </tbody>
             </table>
 
-            <h3 style="margin-top: 32px;">⚠ Cas particuliers à arbitrer</h3>
-            <ul style="color: #dde2eb; line-height: 1.8;">
-              <li><code>.vmd2-btn--primary</code> (Portail → Fiche détail) — <strong>gradient blanc unique</strong>. À garder distinct ou aligner sur primary violet ?</li>
-              <li><code>.ob-btn-launch</code> (Onboarding → Lancer) — <strong>gradient indigo→violet unique</strong>. À garder distinct ?</li>
-              <li>Variantes "Retirer" (croix rouge ronde mini) — c'est en réalité un <code>variant="icon"</code> avec couleur danger. Pas besoin de variante dédiée.</li>
-            </ul>
+            <h3 style="margin-top: 32px;">⚠ Implication de "tout en plein" (ta décision actuelle)</h3>
+            <p style="color: #dde2eb; line-height: 1.6;">
+              Si on fusionne strictement vers les 4-5 variantes MkButton actuelles, on perd
+              <strong>~6 styles visuels distincts</strong> de MediaKeeper : les tinted (A→B), les pill MM,
+              les gradients login/onboarding, les success, les cas particuliers.
+              <br><br>
+              C'est un changement d'identité visuelle <strong>non négligeable</strong>. Avantage cohérence,
+              inconvénient : perte de "signatures" sur des écrans iconiques (login, onboarding).
+              <br><br>
+              <strong>Décision à arbitrer</strong> : on garde la radicalité "tout en plein" ou on accepte
+              2-3 exceptions documentées (login + onboarding + MM modales par exemple) ?
+            </p>
           </div>
 
         </div>
