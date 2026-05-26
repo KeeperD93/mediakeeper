@@ -58,20 +58,19 @@
             </span>
           </button>
         </div>
-        <button class="editbar-btn editbar-reset" @click="resetLayout">
+        <MkButton variant="ghost" @click="resetLayout">
           {{ $t('dashboard.resetLayout') }}
-        </button>
-        <button class="editbar-btn editbar-done" @click="editing = false">
+        </MkButton>
+        <MkButton variant="primary" @click="editing = false">
           {{ $t('dashboard.done') }}
-        </button>
+        </MkButton>
       </div>
     </div>
 
     <div v-if="!editing && loaded && !isMobile" class="dash-customize-wrap">
-      <button class="dash-customize-btn" @click="editing = true">
-        <LayoutGrid :size="14" />
+      <MkButton variant="primary" icon="layout-grid" @click="editing = true">
         {{ $t('dashboard.customize') }}
-      </button>
+      </MkButton>
     </div>
 
     <!-- Skeleton -->
@@ -230,6 +229,7 @@ import { useDashboardData } from '@/composables/useDashboardData'
 import { useDashboardKeyboardMove } from '@/composables/useDashboardKeyboardMove'
 import { useMobile } from '@/composables/useMobile'
 
+import MkButton from '@/components/common/MkButton.vue'
 import HeroCarousel from '@/components/dashboard/HeroCarousel.vue'
 import StatRibbon from '@/components/dashboard/StatRibbon.vue'
 import ActivityTimeline from '@/components/dashboard/ActivityTimeline.vue'

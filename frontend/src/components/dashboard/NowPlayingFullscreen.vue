@@ -13,14 +13,14 @@
         <div class="np-gradient" />
 
         <!-- Close -->
-        <button
-          class="np-close"
-          type="button"
+        <MkButton
+          variant="icon"
+          icon="x"
+          size="sm"
           :aria-label="$t('common.close')"
+          class="np-close-wrap"
           @click="$emit('close')"
-        >
-          <X :size="14" />
-        </button>
+        />
 
         <!-- Content -->
         <div class="np-content">
@@ -93,7 +93,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { X } from 'lucide-vue-next'
+import MkButton from '@/components/common/MkButton.vue'
 import { useApi } from '@/composables/useApi'
 
 const props = defineProps({
