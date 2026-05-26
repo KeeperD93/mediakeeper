@@ -515,7 +515,6 @@
     "bulkUnhide": "Show",
     "bulkMerge": "Merge",
     "bulkMergeHint": "Select exactly 1 user to merge",
-    "bulkClear": "Deselect",
     "bulkDeleteConfirm": "Permanently delete {n} user's data? | Permanently delete {n} users' data?",
     "bulkUsersDeleted": "{n} user deleted | {n} users deleted",
     "bulkUsersHidden": "{n} user hidden | {n} users hidden",

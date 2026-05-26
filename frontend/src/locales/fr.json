@@ -515,7 +515,6 @@
     "bulkUnhide": "Afficher",
     "bulkMerge": "Fusionner",
     "bulkMergeHint": "Sélectionnez exactement 1 utilisateur pour fusionner",
-    "bulkClear": "Désélectionner",
     "bulkDeleteConfirm": "Supprimer définitivement les données de {n} utilisateur ? | Supprimer définitivement les données de {n} utilisateurs ?",
     "bulkUsersDeleted": "{n} utilisateur supprimé | {n} utilisateurs supprimés",
     "bulkUsersHidden": "{n} utilisateur masqué | {n} utilisateurs masqués",

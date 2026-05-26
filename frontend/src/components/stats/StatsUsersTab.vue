@@ -233,9 +233,6 @@
             <MkButton variant="danger" icon="trash-2" @click="bulkDelete">
               {{ $t('common.delete') }}
             </MkButton>
-            <MkButton variant="link" @click="clearSelection">
-              {{ $t('stats.bulkClear') }}
-            </MkButton>
           </div>
         </div>
       </Transition>
@@ -421,10 +418,13 @@ onMounted(() => {
 }
 
 /* ─── Bulk actions overlay ─── */
+/* Position centred over the content area, not the full viewport — the
+   240px admin sidebar would otherwise pull the bar visually off-centre.
+   Mobile breakpoint resets to a true 50% since the sidebar collapses. */
 .bulk-bar {
   position: fixed;
   bottom: 24px;
-  left: 50%;
+  left: calc(50% + 120px);
   transform: translateX(-50%);
   z-index: 100;
   display: flex;
@@ -475,6 +475,7 @@ onMounted(() => {
 @media (max-width: 767px) {
   .bulk-bar {
     bottom: 12px;
+    left: 50%;
     padding: 10px 12px;
     gap: 10px;
     max-width: calc(100vw - 24px);
