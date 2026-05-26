@@ -78,7 +78,7 @@
   height: 500px;
   top: -20%;
   left: -15%;
-  background: radial-gradient(circle, rgb(99, 60, 255, 0.14), transparent 70%);
+  background: radial-gradient(circle, rgb(255, 255, 255, 0.14), transparent 70%);
   animation: lo-drift1 14s ease-in-out infinite alternate;
 }
 .login-orb-2 {
@@ -86,7 +86,7 @@
   height: 400px;
   bottom: -20%;
   right: -15%;
-  background: radial-gradient(circle, rgb(124, 58, 237, 0.1), transparent 70%);
+  background: radial-gradient(circle, rgb(255, 255, 255, 0.1), transparent 70%);
   animation: lo-drift2 18s ease-in-out infinite alternate;
 }
 .login-orb-3 {
@@ -94,7 +94,7 @@
   height: 300px;
   top: 40%;
   left: 60%;
-  background: radial-gradient(circle, rgb(16, 185, 130, 0.06), transparent 70%);
+  background: radial-gradient(circle, rgb(255, 255, 255, 0.06), transparent 70%);
   animation: lo-drift3 20s ease-in-out infinite alternate;
 }
 .login-orb-4 {
@@ -102,7 +102,7 @@
   height: 200px;
   top: 10%;
   right: 25%;
-  background: radial-gradient(circle, rgb(244, 63, 94, 0.06), transparent 70%);
+  background: radial-gradient(circle, rgb(255, 255, 255, 0.06), transparent 70%);
   animation: lo-drift1 16s ease-in-out infinite alternate-reverse;
 }
 @keyframes lo-drift1 {
