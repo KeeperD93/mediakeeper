@@ -27,4 +27,10 @@
   --color-error-strong: #9a2620; /* hover state, slightly darker */
   --color-error-light: #d65b53;
   --color-error-soft: #f4d2cf;
+
+  /* Success green built around #007C00 (proposed by user) */
+  --color-success: #007c00;
+  --color-success-rgb: 0, 124, 0;
+  --color-success-light: #00a000; /* hover state, slightly brighter */
+  --color-success-soft: #c8e8c8;
 }
