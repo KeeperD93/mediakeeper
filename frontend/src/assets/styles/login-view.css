@@ -414,9 +414,13 @@
 .login-version {
   display: block;
   text-align: center;
-  font-size: var(--text-2xs);
-  color: var(--text-decorative);
-  letter-spacing: var(--tracking-widest);
+  /* Matches the sidebar's .sb-version exactly so both surfaces
+     surface the build at the same visual weight (--text-3xs +
+     0.12 alpha). Below --text-decorative (0.16) intentionally —
+     stays barely visible, mirroring the chrome footer. */
+  font-size: var(--text-3xs);
+  color: rgb(255, 255, 255, 0.12);
+  letter-spacing: 0.5px;
   margin-top: 2px;
 }
 
