@@ -7,12 +7,7 @@
        so we never truncate occupable seats. -->
   <div class="pt-cr-seats-wrap">
     <div class="pt-cr-seats">
-      <div
-        v-for="row in rows"
-        :key="`row-${row}`"
-        class="pt-cr-row"
-        :style="{ '--rowDepth': row }"
-      >
+      <div v-for="row in rows" :key="`row-${row}`" class="pt-cr-row" :style="{ '--rowDepth': row }">
         <!-- Decorative seats — left side. -->
         <div
           v-for="i in DECORATIVE_PER_SIDE"
@@ -39,19 +34,13 @@
           <div class="pt-cr-seat-base" />
           <template v-if="seatOccupant(seatIndexOf(row - 1, col - 1))">
             <div class="pt-cr-seat-avatar">
-              <img
-                v-if="seatOccupant(seatIndexOf(row - 1, col - 1)).avatar_url"
-                :src="seatOccupant(seatIndexOf(row - 1, col - 1)).avatar_url"
-                :alt="seatOccupant(seatIndexOf(row - 1, col - 1)).username || ''"
-                class="pt-cr-seat-avatar-img"
+              <MkAvatar
+                :src="seatOccupant(seatIndexOf(row - 1, col - 1)).avatar_url || null"
+                :name="seatOccupant(seatIndexOf(row - 1, col - 1)).username || '?'"
+                :size="48"
+                :tier="seatOccupant(seatIndexOf(row - 1, col - 1)).tier || 'bronze'"
+                class="pt-cr-seat-avatar-mk"
               />
-              <span v-else>
-                {{
-                  seatOccupant(seatIndexOf(row - 1, col - 1))
-                    .username?.charAt(0)
-                    ?.toUpperCase()
-                }}
-              </span>
             </div>
             <div class="pt-cr-seat-label">
               {{ seatOccupant(seatIndexOf(row - 1, col - 1)).username }}
@@ -89,6 +78,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRooms } from '@/composables/portal/useRooms'
 import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 import { INVITATION_STATUS } from '@/constants/events'
+import MkAvatar from '@/components/common/MkAvatar.vue'
 
 // Seat layout constants — kept here so the template stays declarative.
 // ``OCCUPABLE_PER_ROW`` matches the admin step (5) so every row neatly
