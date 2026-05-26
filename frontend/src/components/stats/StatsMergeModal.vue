@@ -127,24 +127,6 @@ const { mergeModal, mergeTargets, handleMerge } = useStatsUI()
   font-weight: var(--font-medium);
   color: var(--text-primary);
 }
-.up-close {
-  width: 28px;
-  height: 28px;
-  border-radius: var(--radius-btn);
-  background: var(--surface-2);
-  border: 0.5px solid var(--border-strong);
-  color: var(--text-secondary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.up-close:hover {
-  background: rgb(239, 68, 68, 0.1);
-  color: var(--color-error);
-  border-color: rgb(239, 68, 68, 0.2);
-}
 .up-empty {
   font-size: var(--text-2xs);
   color: var(--text-muted);
@@ -247,28 +229,6 @@ const { mergeModal, mergeTargets, handleMerge } = useStatsUI()
   margin-top: 16px;
   display: flex;
   justify-content: flex-end;
-}
-.params-save-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 22px;
-  border-radius: var(--radius-btn);
-  background: var(--accent-600);
-  color: var(--text-primary);
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  font-family: inherit;
-  border: none;
-  cursor: pointer;
-  transition: all var(--duration-base);
-}
-.params-save-btn:hover:not(:disabled) {
-  background: var(--accent-500);
-}
-.params-save-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 .merge-hinfo {
   flex: 1;

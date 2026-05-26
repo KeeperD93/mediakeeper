@@ -22,7 +22,6 @@
         :name="it.name || '?'"
         :size="24"
         :tier="it.tier || 'bronze'"
-        class="top-avatar-mk"
       />
       <span
         class="top-name"
@@ -48,7 +47,6 @@ import MkAvatar from '@/components/common/MkAvatar.vue'
 
 defineProps({
   card: { type: Object, required: true },
-  avatarColors: { type: Array, required: true },
   showPreview: { type: Function, required: true },
   hidePreview: { type: Function, required: true },
   openUserProfile: { type: Function, required: true },
@@ -125,9 +123,6 @@ defineProps({
   font-size: var(--text-xs);
   font-weight: var(--font-medium);
   color: var(--accent-400);
-  flex-shrink: 0;
-}
-.top-avatar-mk {
   flex-shrink: 0;
 }
 </style>

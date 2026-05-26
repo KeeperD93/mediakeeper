@@ -58,24 +58,6 @@ defineEmits(['close'])
   color: var(--text-muted);
   margin-top: 2px;
 }
-.up-close {
-  width: 28px;
-  height: 28px;
-  border-radius: var(--radius-btn);
-  background: var(--surface-2);
-  border: 0.5px solid var(--border-strong);
-  color: var(--text-secondary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.up-close:hover {
-  background: rgb(239, 68, 68, 0.1);
-  color: var(--color-error);
-  border-color: rgb(239, 68, 68, 0.2);
-}
 
 @media (max-width: 767px) {
   .up-header {
