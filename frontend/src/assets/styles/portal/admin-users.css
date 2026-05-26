@@ -208,14 +208,6 @@
   width: 48px;
 }
 
-/* Shared ring preset for admin-user MkAvatar instances (table rows,
-   card grid, user drawer, Emby import overlay). Subtle white ring so
-   the avatar stays consistent with the rest of the portal without
-   leaning on a tier colour we don't have in this context. */
-.ru-admin-avatar {
-  --mk-avatar-ring-width: 2px;
-  --mk-avatar-ring-color: rgb(255, 255, 255, 0.18);
-}
 .ru-col-level {
   white-space: nowrap;
   color: var(--text-secondary);
