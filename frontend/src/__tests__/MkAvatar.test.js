@@ -39,4 +39,22 @@ describe('MkAvatar', () => {
     const w = mount(MkAvatar, { props: { name: 'Charlie' } })
     expect(w.element.getAttribute('aria-label')).toBe('Charlie')
   })
+
+  it('applies the tier ring class when the tier prop is set', () => {
+    const w = mount(MkAvatar, { props: { name: 'X', tier: 'gold' } })
+    expect(w.classes()).toContain('mk-avatar-tier--gold')
+  })
+
+  it('omits the tier ring class when no tier prop is passed', () => {
+    const w = mount(MkAvatar, { props: { name: 'X' } })
+    expect(w.classes().some(c => c.startsWith('mk-avatar-tier--'))).toBe(false)
+  })
+
+  it('accepts every documented tier value', () => {
+    const tiers = ['bronze', 'silver', 'gold', 'platinum', 'diamond', 'master', 'legendary']
+    for (const t of tiers) {
+      const w = mount(MkAvatar, { props: { name: 'X', tier: t } })
+      expect(w.classes()).toContain('mk-avatar-tier--' + t)
+    }
+  })
 })

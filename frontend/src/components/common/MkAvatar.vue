@@ -91,8 +91,9 @@ function onError() {
   line-height: 1;
   /* Ring is a CSS border on the wrapper itself — no overlay SVG, no
      radial-gradient trickery. Border thickness + colour are driven by
-     CSS variables so parent tier classes (gc-lb-av--gold, etc.) set
-     them per rank without prop-drilling. Default = no ring. */
+     CSS variables so the ``tier`` prop (or a parent wrapper like the
+     leaderboard's ``.gc-lb-av--gold``) sets them per rank without
+     prop-drilling. Default = no ring. */
   border: var(--mk-avatar-ring-width, 0) solid
     var(--mk-avatar-ring-color, transparent);
   box-sizing: border-box;
@@ -149,16 +150,3 @@ function onError() {
 }
 </style>
 
-<!-- Non-scoped: reusable ring presets every consumer can stamp on
-     ``<MkAvatar class="mk-avatar--ring-subtle">`` without re-declaring
-     the custom properties on each call site. -->
-<style>
-.mk-avatar--ring-subtle {
-  --mk-avatar-ring-width: 2px;
-  --mk-avatar-ring-color: rgb(255, 255, 255, 0.18);
-}
-.mk-avatar--ring-thin {
-  --mk-avatar-ring-width: 1.5px;
-  --mk-avatar-ring-color: rgb(255, 255, 255, 0.2);
-}
-</style>
