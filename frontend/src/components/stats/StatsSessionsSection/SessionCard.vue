@@ -84,7 +84,6 @@
         :name="s.user || '?'"
         :size="18"
         :tier="s.tier || 'bronze'"
-        class="sc-ft-avatar"
       />
     </div>
   </div>
@@ -312,15 +311,9 @@ defineProps({
   font-size: var(--text-2xs);
   color: rgb(255, 255, 255, 0.5);
 }
-.sc-ft-avatar {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.55rem;
-  font-weight: var(--font-bold);
-  color: var(--text-primary);
-}
+/* MkAvatar owns its layout (flex-end + translateY(15%) for the
+   silhouette positioning). The wrapper used to force align-items
+   centre + text font props, which stacked with the internal transform
+   and pushed the icon below the circle. MkAvatar's :size prop drives
+   the dimensions inline. */
 </style>

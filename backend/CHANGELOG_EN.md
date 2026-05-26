@@ -20,6 +20,7 @@ This section intentionally has no date so it is not shown to users.
 
 ### Fixed
 - Stats — sessions and 24h actives now show photo + tier ring (leaderboard parity).
+- Stats — avatar silhouette now correctly centred inside the tier ring.
 - Login — brute-force tracking now ignores username casing variants.
 - Auth schemas now reject unknown JSON keys (defence in depth).
 - Events — accepting an invitation no longer triggers a self-collision conflict warning.

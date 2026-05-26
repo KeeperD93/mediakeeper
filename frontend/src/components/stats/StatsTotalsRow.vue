@@ -42,9 +42,8 @@
             :name="u.name"
             :size="24"
             :tier="u.tier"
-            class="tot-avatar"
           />
-          <div v-if="uniqueSessionUsers.length > 30" class="tot-avatar tot-avatar-more">
+          <div v-if="uniqueSessionUsers.length > 30" class="tot-avatar-more">
             +{{ uniqueSessionUsers.length - 30 }}
           </div>
           <span v-if="!uniqueSessionUsers.length" class="tot-sub tot-sub-inline">
@@ -299,28 +298,27 @@ onUnmounted(() => {
   gap: 4px;
   max-width: calc(15 * 18px + 14 * 4px);
 }
-.tot-avatar {
+/* MkAvatar paints its own circle + tier ring + bottom-anchored
+   silhouette. Forcing ``display: flex; align-items: center`` from a
+   parent wrapper overrode MkAvatar's internal ``align-items: flex-end``
+   and stacked with the icon's ``transform: translateY(15%)``, pushing
+   the silhouette below the visual centre. The ``+N`` overflow chip is
+   a plain <div> so it gets its own layout rule below. */
+.tot-avatar-more {
   width: 26px;
   height: 26px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--text-3xs);
-  font-weight: var(--font-bold);
-  color: var(--text-primary);
-}
-.tot-avatars--compact .tot-avatar {
-  width: 18px;
-  height: 18px;
-  font-size: 0.5rem;
-}
-.tot-avatar-more {
   background: rgb(255, 255, 255, 0.12);
   color: var(--text-secondary);
   font-size: 0.58rem;
+  font-weight: var(--font-bold);
 }
 .tot-avatars--compact .tot-avatar-more {
+  width: 18px;
+  height: 18px;
   font-size: 0.48rem;
 }
 .transcode-bar {
