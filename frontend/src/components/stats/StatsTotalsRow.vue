@@ -41,7 +41,8 @@
             :src="null"
             :name="u.id || ''"
             :size="24"
-            class="tot-avatar mk-avatar--ring-thin"
+            tier="bronze"
+            class="tot-avatar"
           />
           <div v-if="uniqueSessionUsers.length > 30" class="tot-avatar tot-avatar-more">
             +{{ uniqueSessionUsers.length - 30 }}

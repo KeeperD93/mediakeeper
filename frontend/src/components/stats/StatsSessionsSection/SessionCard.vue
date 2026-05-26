@@ -80,10 +80,11 @@
       <span class="sc-ft-title">{{ s.series || s.media }}</span>
       <span class="sc-ft-user">{{ s.user }}</span>
       <MkAvatar
-        :src="null"
+        :src="s.avatar_url || null"
         :name="s.user || '?'"
         :size="18"
-        class="sc-ft-avatar mk-avatar--ring-thin"
+        :tier="s.tier || 'bronze'"
+        class="sc-ft-avatar"
       />
     </div>
   </div>

@@ -89,7 +89,8 @@
               :src="profile?.avatar_url"
               :name="profile?.display_name || avatarInitial"
               :size="32"
-              class="mk-avatar--ring-subtle pt-avatar-mk"
+              :tier="profile?.tier || 'bronze'"
+              class="pt-avatar-mk"
             />
             <ChevronDown class="pt-avatar-chevron" :size="14" :stroke-width="2.2" />
           </button>
