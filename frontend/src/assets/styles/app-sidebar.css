@@ -270,9 +270,7 @@
 
 .sb-version {
   font-size: var(--text-3xs);
-  /* Intentionally below --text-decorative (0.16) to stay barely visible —
-     surfaces on hover via .sb-version-link:hover .sb-version. */
-  color: rgb(255, 255, 255, 0.12);
+  color: var(--text-muted);
   letter-spacing: 0.5px;
   display: block;
   text-align: center;
@@ -321,7 +319,7 @@
   margin-top: 4px;
   text-align: center;
   font-size: var(--text-3xs);
-  color: var(--text-decorative);
+  color: var(--text-muted);
   letter-spacing: 0.4px;
   text-decoration: none;
   padding: 2px 8px;

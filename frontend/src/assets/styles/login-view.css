@@ -414,12 +414,11 @@
 .login-version {
   display: block;
   text-align: center;
-  /* Matches the sidebar's .sb-version exactly so both surfaces
-     surface the build at the same visual weight (--text-3xs +
-     0.12 alpha). Below --text-decorative (0.16) intentionally —
-     stays barely visible, mirroring the chrome footer. */
+  /* Matches the sidebar's .sb-version + .sb-about-link tokens so
+     the build label sits at the same readable contrast as the nav
+     items (--text-muted) — visible at rest, not buried. */
   font-size: var(--text-3xs);
-  color: rgb(255, 255, 255, 0.12);
+  color: var(--text-muted);
   letter-spacing: 0.5px;
   margin-top: 2px;
 }
