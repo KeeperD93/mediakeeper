@@ -59,7 +59,7 @@
                       :src="u.avatar_url"
                       :name="u.username"
                       :size="32"
-                      class="ru-admin-avatar"
+                      tier="bronze"
                     />
                     <div class="ru-import-info">
                       <span class="ru-import-name">{{ u.username }}</span>
