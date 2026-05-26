@@ -5,6 +5,7 @@ from core.security import has_backoffice_access
 from models.portal.profile import UserProfile
 from models.user import User
 from services.portal._display_name import resolve_display_name
+from services.portal._rank_tiers import tier_for_level
 from services.portal.avatars import avatar_public_url
 
 DISPLAY_NAME_LOCK_DAYS = 30 * 6  # 6 months
@@ -52,6 +53,7 @@ def serialize_profile(profile: UserProfile, *, user: User | None = None) -> dict
         "bio": profile.bio,
         "favorite_genres": profile.favorite_genres,
         "level": profile.level,
+        "tier": tier_for_level(profile.level or 1),
         "xp": profile.xp,
         "selected_badges": profile.selected_badges,
         "selected_title": profile.selected_title,
@@ -89,6 +91,7 @@ def serialize_public_profile(profile: UserProfile, *, lang: str = "fr") -> dict:
         "avatar_url": _resolve_avatar_url(profile),
         "bio": profile.bio,
         "level": profile.level,
+        "tier": tier_for_level(profile.level or 1),
         "xp": profile.xp,
         "selected_badges": profile.selected_badges,
         "selected_title": profile.selected_title,

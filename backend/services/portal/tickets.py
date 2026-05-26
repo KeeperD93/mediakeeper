@@ -10,6 +10,7 @@ from models.portal.ticket import Ticket, TicketReply
 from models.portal.profile import UserProfile
 from core.pagination import decode_cursor, build_cursor_response
 from services.portal import strip_tags_and_trim
+from services.portal._rank_tiers import tier_for_level
 from services.portal.avatars import avatar_public_url
 
 logger = logging.getLogger("mediakeeper.portal.tickets")
@@ -285,12 +286,15 @@ async def _load_user_summaries(
                 if profile.avatar_custom_path
                 else profile.avatar_url
             )
+        level = (profile.level if profile and profile.level else 1)
         out[user.id] = {
             "user_id": user.id,
             "username": user.username,
             "display_name": (profile.display_name if profile else None) or user.username,
             "avatar_url": avatar,
             "role": profile.role if profile else "viewer",
+            "level": level,
+            "tier": tier_for_level(level),
         }
     return out
 

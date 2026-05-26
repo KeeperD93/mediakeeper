@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.user import User
 from models.portal.event import EventStatus, InvitationStatus, MKEvent, MKEventInvitation
 from models.portal.profile import UserProfile
+from services.portal._rank_tiers import tier_for_level
 from services.portal.avatars import avatar_public_url
 
 logger = logging.getLogger("mediakeeper.portal.mk_events")
@@ -116,6 +117,7 @@ async def _serialize_event(db: AsyncSession, event: MKEvent) -> dict:
             UserProfile.display_name,
             UserProfile.avatar_url,
             UserProfile.avatar_custom_path,
+            UserProfile.level,
         )
         .join(User, User.id == MKEventInvitation.user_id, isouter=True)
         .join(UserProfile, UserProfile.user_id == User.id, isouter=True)
@@ -123,17 +125,20 @@ async def _serialize_event(db: AsyncSession, event: MKEvent) -> dict:
     )).all()
     invitations = []
     now = datetime.now(timezone.utc)
-    for inv, username, display, emby_avatar, custom_avatar_path in inv_rows:
+    for inv, username, display, emby_avatar, custom_avatar_path, level in inv_rows:
         # Custom uploads take precedence over the Emby-proxied URL — same
         # rule the profile serializer applies. The seats UI falls back to
         # the username initial when both are missing (purged user, fresh
         # account with no profile, etc.).
         avatar = avatar_public_url(custom_avatar_path) if custom_avatar_path else emby_avatar
+        eff_level = level or 1
         invitations.append({
             "id": inv.id,
             "user_id": inv.user_id,
             "username": display or username or f"user#{inv.user_id}",
             "avatar_url": avatar,
+            "level": eff_level,
+            "tier": tier_for_level(eff_level),
             "status": inv.status,
             "invite_count": inv.invite_count,
             "seat_index": inv.seat_index,

@@ -11,6 +11,7 @@ from typing import Any
 from models.user import User
 from models.portal.profile import UserProfile
 from services.portal._display_name import resolve_display_name
+from services.portal._rank_tiers import tier_for_level
 
 from .admin_users_constants import (
     ONLINE_WINDOW_SECONDS,
@@ -85,6 +86,7 @@ def serialize_admin_user_row(profile: UserProfile, user: User) -> dict[str, Any]
         "account_active": bool(profile.account_active and user.is_active),
         "emby_is_disabled": profile.emby_is_disabled,
         "level": profile.level,
+        "tier": tier_for_level(profile.level or 1),
         "xp": profile.xp,
         "tags": profile.tags or [],
         "permissions": {key: bool(getattr(profile, key)) for key in PERMISSION_KEYS},

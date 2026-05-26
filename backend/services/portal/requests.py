@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.user import User
 from models.portal.request import MediaRequest
 from core.pagination import decode_cursor, build_cursor_response
+from services.portal._rank_tiers import tier_for_level
 from services.portal.profile_serializers import _resolve_avatar_url
 from services.portal.requests_blacklist import maybe_blacklist_media
 from services.portal.requests_quota import (
@@ -180,10 +181,13 @@ async def _load_requester_profiles(
     )
     out: dict[int, dict] = {}
     for user, profile in result.all():
+        level = (profile.level if profile and profile.level else 1)
         out[user.id] = {
             "username": user.username,
             "display_name": (profile.display_name if profile else None) or user.username,
             "avatar_url": _resolve_avatar_url(profile) if profile else None,
+            "level": level,
+            "tier": tier_for_level(level),
         }
     return out
 
