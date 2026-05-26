@@ -1,7 +1,7 @@
 /**
  * Whitelist of lucide-vue-next icons used by MkButton.
  *
- * Why a whitelist (Rules.md §3, perf):
+ * Why a whitelist (bundle perf):
  *   `import * as lucide from 'lucide-vue-next'` cannot be tree-shaken by Vite
  *   and pulls ~500 kb of icons into the prod bundle. A static named import
  *   per icon yields a tree-shakable ~5-10 kb footprint.
