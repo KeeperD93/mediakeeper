@@ -178,7 +178,8 @@
     <div class="sb-footer">
       <router-link to="/changelog" class="sb-version-link" :title="$t('changelog.title')">
         <span class="sb-version">
-          {{ collapsed ? 'v' + appVersion : 'MediaKeeper v' + appVersion }}
+          <Tag v-if="!collapsed" :size="11" :stroke-width="2" class="sb-version-icon" />
+          v{{ appVersion }}
         </span>
         <span v-if="hasNewChangelog" class="sb-version-dot" />
       </router-link>
@@ -210,7 +211,7 @@ import SidebarSection from './SidebarSection.vue'
 import { useSidebarCounters } from '@/composables/useSidebarCounters'
 import { fetchApiResponse, useApi } from '@/composables/useApi'
 import { useMobile } from '@/composables/useMobile'
-import { ChevronLeft, MessageSquare, Search } from 'lucide-vue-next'
+import { ChevronLeft, MessageSquare, Search, Tag } from 'lucide-vue-next'
 import { SIDEBAR_SUB_TABS } from '@/constants/sidebarSubTabs'
 import { SIDEBAR_MODULES } from '@/constants/sidebarModules'
 

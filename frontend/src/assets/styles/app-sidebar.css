@@ -272,8 +272,13 @@
   font-size: var(--text-3xs);
   color: var(--text-muted);
   letter-spacing: 0.5px;
-  display: block;
-  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.sb-version-icon {
+  flex-shrink: 0;
+  opacity: 0.7;
 }
 
 .sb-version-link {
