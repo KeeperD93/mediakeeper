@@ -1,7 +1,11 @@
 <template>
   <div
     class="mk-avatar"
-    :class="['mk-avatar-' + shape, { 'mk-avatar-fallback': !showImage }]"
+    :class="[
+      'mk-avatar-' + shape,
+      { 'mk-avatar-fallback': !showImage },
+      tier ? 'mk-avatar-tier--' + tier : null,
+    ]"
     :style="{
       width: size + 'px',
       height: size + 'px',
@@ -17,6 +21,8 @@
 import { computed, ref, watch } from 'vue'
 import { UserRound } from 'lucide-vue-next'
 
+const TIERS = ['bronze', 'silver', 'gold', 'platinum', 'diamond', 'master', 'legendary']
+
 const props = defineProps({
   src: { type: String, default: null },
   name: { type: String, required: true },
@@ -25,6 +31,16 @@ const props = defineProps({
     type: String,
     default: 'circle',
     validator: v => ['circle', 'square'].includes(v),
+  },
+  // Tier ring color (bronze → legendary). Maps to a global
+  // ``.mk-avatar-tier--{tier}`` class that drives the ring color +
+  // halo box-shadow defined in tokens/_avatar-tiers.css. Pass the
+  // tier returned by the backend (``user.tier``); leave null to keep
+  // the legacy "no ring" or class-driven behaviour.
+  tier: {
+    type: String,
+    default: null,
+    validator: v => v === null || TIERS.includes(v),
   },
 })
 
