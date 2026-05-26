@@ -244,7 +244,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useStats } from '@/composables/useStats'
 import { useApi } from '@/composables/useApi'
@@ -275,36 +275,36 @@ const showHiddenUsers = ref(false)
 const showHistoricalOnly = ref(false)
 let usersDb = null
 
-// Selection state — Set keyed by user_id for O(1) lookups.
-const selected = ref(new Set())
+// Selection state — reactive Set so .add() / .delete() / .clear()
+// automatically trigger re-renders (ref(new Set()) does not track method
+// calls, only reassignments).
+const selected = reactive(new Set())
 
 const selectedUsers = computed(() =>
-  users.value.users.filter(u => selected.value.has(u.user_id)),
+  users.value.users.filter(u => selected.has(u.user_id)),
 )
 const visibleSelected = computed(() => selectedUsers.value.filter(u => !u.is_hidden))
 const hiddenSelected = computed(() => selectedUsers.value.filter(u => u.is_hidden))
 const allSelected = computed(
-  () => users.value.users.length > 0 && selected.value.size === users.value.users.length,
+  () => users.value.users.length > 0 && selected.size === users.value.users.length,
 )
-const partiallySelected = computed(() => selected.value.size > 0 && !allSelected.value)
+const partiallySelected = computed(() => selected.size > 0 && !allSelected.value)
 
 function toggleSelect(userId) {
-  const next = new Set(selected.value)
-  if (next.has(userId)) next.delete(userId)
-  else next.add(userId)
-  selected.value = next
+  if (selected.has(userId)) selected.delete(userId)
+  else selected.add(userId)
 }
 
 function toggleSelectAll() {
   if (allSelected.value) {
-    selected.value = new Set()
+    selected.clear()
   } else {
-    selected.value = new Set(users.value.users.map(u => u.user_id))
+    users.value.users.forEach(u => selected.add(u.user_id))
   }
 }
 
 function clearSelection() {
-  selected.value = new Set()
+  selected.clear()
 }
 
 async function bulkHide() {
