@@ -241,7 +241,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onDeactivated } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useStats } from '@/composables/useStats'
 import { useApi } from '@/composables/useApi'
@@ -399,6 +399,15 @@ function toggleUserSort(c) {
 registerUsersRefresh(fetchUsers)
 onMounted(() => {
   if (!users.value.users.length) fetchUsers()
+})
+
+// The parent StatsView wraps tabs in <KeepAlive>, so this component is
+// cached rather than unmounted when the user navigates away (Activity
+// tab, another module, etc.). Without this hook the bulk-bar would
+// stay rendered on top of every other page since the selection state
+// survives the deactivation.
+onDeactivated(() => {
+  selected.clear()
 })
 </script>
 
