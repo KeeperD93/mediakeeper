@@ -235,5 +235,10 @@ async def emby_user_image(
     return Response(
         content=image_bytes,
         media_type=content_type,
-        headers={"Cache-Control": "private, max-age=604800"},
+        # Short max-age so a user updating their Emby photo sees it
+        # reflect within a few minutes across the app instead of being
+        # pinned for a week by browser disk cache. The 30 min in-memory
+        # cache in ``proxy_user_image`` keeps the load off Emby; the
+        # client-side window just bounds the visible staleness.
+        headers={"Cache-Control": "private, max-age=300"},
     )

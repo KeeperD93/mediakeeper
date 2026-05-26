@@ -19,8 +19,10 @@ This section intentionally has no date so it is not shown to users.
 - CSRF cookie — allowlist validation on polls (hardening).
 
 ### Fixed
+- Portal — "Available" badge no longer flickers on freshly added Emby items.
 - Stats — sessions and 24h actives now show photo + tier ring (leaderboard parity).
 - Stats — avatar silhouette now correctly centred inside the tier ring.
+- Emby avatars — photo updates reflect within ~5 min (was a 7-day browser cache).
 - Login — brute-force tracking now ignores username casing variants.
 - Auth schemas now reject unknown JSON keys (defence in depth).
 - Events — accepting an invitation no longer triggers a self-collision conflict warning.
