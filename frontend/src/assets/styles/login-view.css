@@ -203,7 +203,7 @@
   width: 300px;
   height: 200px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgb(var(--accent-rgb), 0.2), transparent 65%);
+  background: radial-gradient(circle, rgb(255, 255, 255, 0.2), transparent 65%);
   filter: blur(40px);
   pointer-events: none;
 }
