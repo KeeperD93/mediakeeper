@@ -222,7 +222,7 @@
 }
 .login-hero-sub {
   font-size: var(--text-sm);
-  color: rgb(255, 255, 255, 0.35);
+  color: var(--text-faint);
   margin: 0;
   letter-spacing: var(--tracking-widest);
   text-transform: uppercase;
@@ -282,7 +282,7 @@
 .login-label {
   font-size: var(--text-2xs);
   font-weight: var(--font-medium);
-  color: rgb(255, 255, 255, 0.35);
+  color: var(--text-faint);
   letter-spacing: var(--tracking-widest);
   text-transform: uppercase;
 }
@@ -295,7 +295,7 @@
 .login-input-icon {
   position: absolute;
   left: 14px;
-  color: rgb(255, 255, 255, 0.2);
+  color: var(--text-very-faint);
   pointer-events: none;
   transition: color var(--duration-base);
 }
@@ -322,7 +322,7 @@
   box-shadow: 0 0 0 3px rgb(99, 102, 241, 0.08);
 }
 .login-input::placeholder {
-  color: rgb(255, 255, 255, 0.12);
+  color: var(--text-decorative);
 }
 
 .login-remember {
@@ -331,7 +331,7 @@
   gap: 8px;
   cursor: pointer;
   font-size: var(--text-sm);
-  color: rgb(255, 255, 255, 0.3);
+  color: var(--text-faint);
 }
 .login-checkbox {
   width: 14px;
@@ -398,7 +398,7 @@
   margin-top: 4px;
 }
 .login-links a {
-  color: rgb(255, 255, 255, 0.2);
+  color: var(--text-very-faint);
   transition:
     color var(--duration-base),
     transform var(--duration-base);
@@ -407,7 +407,7 @@
   justify-content: center;
 }
 .login-links a:hover {
-  color: rgb(255, 255, 255, 0.6);
+  color: var(--text-muted);
   transform: translateY(-1px);
 }
 
@@ -415,7 +415,7 @@
   display: block;
   text-align: center;
   font-size: var(--text-2xs);
-  color: rgb(255, 255, 255, 0.15);
+  color: var(--text-decorative);
   letter-spacing: var(--tracking-widest);
   margin-top: 2px;
 }
