@@ -15,6 +15,7 @@ describe('MkButton — variantes', () => {
   it.each([
     ['primary', 'mk-btn--primary'],
     ['danger', 'mk-btn--danger'],
+    ['success', 'mk-btn--success'],
     ['ghost', 'mk-btn--ghost'],
     ['icon', 'mk-btn--icon'],
     ['link', 'mk-btn--link'],

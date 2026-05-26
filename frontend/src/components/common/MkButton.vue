@@ -39,7 +39,7 @@ const props = defineProps({
   variant: {
     type: String,
     default: 'primary',
-    validator: v => ['primary', 'danger', 'ghost', 'icon', 'link'].includes(v),
+    validator: v => ['primary', 'danger', 'success', 'ghost', 'icon', 'link'].includes(v),
   },
   size: {
     type: String,
@@ -161,6 +161,17 @@ const classes = computed(() => [
 @media (hover: hover) {
   .mk-btn--danger:hover:not(:disabled) {
     background: var(--color-error-strong);
+  }
+}
+
+.mk-btn--success {
+  background: var(--color-success);
+  color: var(--color-on-accent);
+  box-shadow: var(--shadow-button);
+}
+@media (hover: hover) {
+  .mk-btn--success:hover:not(:disabled) {
+    background: var(--color-success-light);
   }
 }
 
