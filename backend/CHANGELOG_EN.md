@@ -11,12 +11,9 @@ This section intentionally has no date so it is not shown to users.
 
 ### Added
 - Onboarding wizard — Portal module added to welcome and tour steps.
-- Community — Discord invite published (login footer, README, Code of Conduct).
-- Community — Ko-fi added as funding option (admin heart button, README badge, FUNDING.yml).
 
 ### Changed
 - Admin UI — refreshed dark theme with stronger text contrast for legibility.
-- Avatars — level-coloured ring (bronze → legendary) on every surface, matching the leaderboard.
 - Scheduler — UI reorganised by category with compact single-line rows.
 - Startup — boot log: `COOKIE_SECURE=` renamed `COOKIE_HTTPS_FLAG=` (env var unchanged, mapping in `tls-deployment.md`).
 - CSRF cookie — allowlist validation on polls (hardening).

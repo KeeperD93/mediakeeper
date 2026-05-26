@@ -21,7 +21,7 @@
       :style="{ zIndex: 10 - i }"
     >
       <MkAvatar
-        :src="s.avatar_url || userImages[s.user_id] || null"
+        :src="s.avatar_url"
         :name="s.user || '?'"
         :size="avatarSize"
         :tier="s.tier || 'bronze'"
@@ -38,44 +38,22 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
-import { useUserImages } from '@/composables/useUserImages'
+import { computed } from 'vue'
 import { useMobile } from '@/composables/useMobile'
 import MkAvatar from '@/components/common/MkAvatar.vue'
 
-const props = defineProps({
+defineProps({
   sessions: { type: Array, default: () => [] },
   idx: { type: Number, default: 0 },
 })
-const emit = defineEmits(['go-to'])
+defineEmits(['go-to'])
 
-const { getUserImageUrl } = useUserImages()
 const { isMobile } = useMobile()
-const userImages = ref({})
 
 // 28 px on phones keeps four avatars + the "+N" badge inside the
 // dashboard hero's compact right column without forcing the rest of
 // the layout to wrap. Desktop stays at the original 36 px.
 const avatarSize = computed(() => (isMobile.value ? 28 : 36))
-
-watch(
-  () => props.sessions,
-  async sessions => {
-    const userIds = [
-      ...new Set(
-        (sessions || [])
-          .slice(0, 4)
-          .map(s => s.user_id)
-          .filter(id => id && !userImages.value[id]),
-      ),
-    ]
-    if (!userIds.length) return
-    const results = await Promise.all(userIds.map(async id => [id, await getUserImageUrl(id)]))
-    const updates = Object.fromEntries(results.filter(([, url]) => url))
-    if (Object.keys(updates).length) userImages.value = { ...userImages.value, ...updates }
-  },
-  { immediate: true },
-)
 </script>
 
 <style scoped>

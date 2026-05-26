@@ -222,7 +222,7 @@
 }
 .login-hero-sub {
   font-size: var(--text-sm);
-  color: var(--text-faint);
+  color: var(--text-muted);
   margin: 0;
   letter-spacing: var(--tracking-widest);
   text-transform: uppercase;
@@ -282,7 +282,7 @@
 .login-label {
   font-size: var(--text-2xs);
   font-weight: var(--font-medium);
-  color: var(--text-faint);
+  color: var(--text-muted);
   letter-spacing: var(--tracking-widest);
   text-transform: uppercase;
 }
@@ -295,7 +295,7 @@
 .login-input-icon {
   position: absolute;
   left: 14px;
-  color: var(--text-very-faint);
+  color: var(--text-muted);
   pointer-events: none;
   transition: color var(--duration-base);
 }
@@ -331,7 +331,7 @@
   gap: 8px;
   cursor: pointer;
   font-size: var(--text-sm);
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 .login-checkbox {
   width: 14px;
@@ -401,7 +401,7 @@
   margin-top: 4px;
 }
 .login-links a {
-  color: var(--text-very-faint);
+  color: var(--text-muted);
   transition:
     color var(--duration-base),
     transform var(--duration-base);
@@ -410,7 +410,7 @@
   justify-content: center;
 }
 .login-links a:hover {
-  color: var(--text-muted);
+  color: var(--text-secondary);
   transform: translateY(-1px);
 }
 

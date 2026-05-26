@@ -11,8 +11,6 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ### Added
 - Onboarding — module Portail ajouté au welcome et au tour.
-- Communauté — invitation Discord publiée (footer login, README, code de conduite).
-- Communauté — Ko-fi ajouté comme moyen de soutien (bouton coeur admin, badge README, FUNDING.yml).
 
 ### Changed
 - Interface admin — nouveau thème sombre, contraste texte renforcé pour la lisibilité.
