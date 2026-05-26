@@ -241,7 +241,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onDeactivated } from 'vue'
+import { ref, reactive, computed, onMounted, onDeactivated, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useStats } from '@/composables/useStats'
 import { useApi } from '@/composables/useApi'
@@ -303,6 +303,24 @@ function toggleSelectAll() {
 function clearSelection() {
   selected.clear()
 }
+
+// Clear the selection whenever the underlying user list changes —
+// page change, sort, search, or any visibility filter. Without this,
+// ids selected on page 1 would still appear in selected.size after
+// jumping to page 2, and bulk actions would silently no-op on the
+// ids that are no longer in users.value.users.
+watch(
+  () => [
+    usersPage.value,
+    usersPerPage.value,
+    usersSearch.value,
+    usersSortBy.value,
+    usersSortOrder.value,
+    showHiddenUsers.value,
+    showHistoricalOnly.value,
+  ],
+  () => selected.clear(),
+)
 
 // Run a bulk API action sequentially with per-item try/catch. Parallel
 // calls would race on the backend (CSRF / concurrent writes to the
