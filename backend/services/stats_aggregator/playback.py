@@ -5,9 +5,35 @@ from sqlalchemy import select, func, distinct, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.playback_stats import PlaybackSession
+from models.portal.profile import UserProfile
+from services.portal._rank_tiers import tier_for_level
 
 from ._helpers import _get_library_name_map, _normalize_library_name, _merge_by_name, _lang_display
 from .exclusions import _get_exclusion_filters
+
+
+async def _load_mk_profile_map(db: AsyncSession, emby_user_ids: list[str]) -> dict[str, dict]:
+    """Resolve emby_user_id → {avatar_url, level, tier} for a batch.
+
+    Used by every top_users-style aggregation so the Top widgets render
+    the same tier ring as the rest of the app. Emby-only users (no MK
+    profile) implicitly fall back to bronze through the .get() in the
+    consuming list comprehension.
+    """
+    if not emby_user_ids:
+        return {}
+    rows = (await db.execute(
+        select(UserProfile.emby_user_id, UserProfile.level, UserProfile.avatar_url)
+        .where(UserProfile.emby_user_id.in_(emby_user_ids))
+    )).all()
+    return {
+        r.emby_user_id: {
+            "avatar_url": r.avatar_url,
+            "level": r.level or 1,
+            "tier": tier_for_level(r.level or 1),
+        }
+        for r in rows
+    }
 
 
 async def get_playback_stats(db: AsyncSession, days: int = 30):
@@ -110,7 +136,16 @@ async def get_playback_stats(db: AsyncSession, days: int = 30):
     ))
     top_users_raw = [{"user_id": r[0], "plays": r[1]} for r in top_users_q.all()]
     names = await _resolve_names([u["user_id"] for u in top_users_raw])
-    top_users = [{"name": names.get(u["user_id"], u["user_id"]), **u} for u in top_users_raw]
+    mk_profiles = await _load_mk_profile_map(db, [u["user_id"] for u in top_users_raw])
+    top_users = [
+        {
+            "name": names.get(u["user_id"], u["user_id"]),
+            "avatar_url": (mk_profiles.get(u["user_id"]) or {}).get("avatar_url"),
+            "tier": (mk_profiles.get(u["user_id"]) or {}).get("tier", "bronze"),
+            **u,
+        }
+        for u in top_users_raw
+    ]
 
     top_users_hours_q = await db.execute(_apply_exc(
         select(PlaybackSession.user_id,
@@ -119,7 +154,16 @@ async def get_playback_stats(db: AsyncSession, days: int = 30):
     ))
     top_users_hours_raw = [{"user_id": r[0], "ticks": r[1] or 0} for r in top_users_hours_q.all()]
     names_h = await _resolve_names([u["user_id"] for u in top_users_hours_raw])
-    top_users_hours = [{"name": names_h.get(u["user_id"], u["user_id"]), **u} for u in top_users_hours_raw]
+    mk_profiles_h = await _load_mk_profile_map(db, [u["user_id"] for u in top_users_hours_raw])
+    top_users_hours = [
+        {
+            "name": names_h.get(u["user_id"], u["user_id"]),
+            "avatar_url": (mk_profiles_h.get(u["user_id"]) or {}).get("avatar_url"),
+            "tier": (mk_profiles_h.get(u["user_id"]) or {}).get("tier", "bronze"),
+            **u,
+        }
+        for u in top_users_hours_raw
+    ]
 
     by_method_q = await db.execute(_apply_exc(
         select(PlaybackSession.play_method, func.count(PlaybackSession.id).label("count"),
@@ -136,7 +180,16 @@ async def get_playback_stats(db: AsyncSession, days: int = 30):
             PlaybackSession.play_method == "Transcode",
         ).group_by(PlaybackSession.user_name, PlaybackSession.user_id).order_by(desc("tc")).limit(5)
     ))
-    top_transcode_users = [{"name": r[0], "user_id": r[1], "plays": r[2]} for r in top_transcode_q.all()]
+    top_transcode_raw = [{"name": r[0], "user_id": r[1], "plays": r[2]} for r in top_transcode_q.all()]
+    mk_profiles_t = await _load_mk_profile_map(db, [u["user_id"] for u in top_transcode_raw])
+    top_transcode_users = [
+        {
+            **u,
+            "avatar_url": (mk_profiles_t.get(u["user_id"]) or {}).get("avatar_url"),
+            "tier": (mk_profiles_t.get(u["user_id"]) or {}).get("tier", "bronze"),
+        }
+        for u in top_transcode_raw
+    ]
 
     by_audio_lang_q = await db.execute(_apply_exc(
         select(PlaybackSession.audio_codec, func.count(PlaybackSession.id).label("c"),

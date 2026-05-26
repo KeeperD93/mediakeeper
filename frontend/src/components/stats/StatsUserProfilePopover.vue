@@ -5,8 +5,9 @@
       <div v-if="profileOpen" class="up-pop" :style="profileStyle">
         <UpHeader
           :profile-name="profileName"
+          :profile-tier="profileTier"
+          :profile-avatar-url="profileAvatarUrl"
           :user-profile="userProfile"
-          :avatar-colors="avatarColors"
           :ticks-to-duration="ticksToDuration"
           @close="profileOpen = false"
         />
@@ -53,7 +54,8 @@ import UpHeader from './StatsUserProfilePopover/UpHeader.vue'
 import UpRanks from './StatsUserProfilePopover/UpRanks.vue'
 import UpFluxRadar from './StatsUserProfilePopover/UpFluxRadar.vue'
 
-const { profileOpen, profileName, profileStyle, userProfile, avatarColors } = useStatsUI()
+const { profileOpen, profileName, profileTier, profileAvatarUrl, profileStyle, userProfile } =
+  useStatsUI()
 const { ticksToDuration, timeAgo } = useStats()
 
 const lastPlayText = computed(() => {

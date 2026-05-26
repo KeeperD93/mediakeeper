@@ -16,9 +16,12 @@
       <div class="merge-source-box">
         <span class="merge-label merge-label-source">{{ $t('stats.mergeSource') }}</span>
         <div class="merge-user-pill">
-          <div class="dt-avatar merge-avatar-source">
-            {{ (mergeModal.source?.name || '?')[0].toUpperCase() }}
-          </div>
+          <MkAvatar
+            :src="mergeModal.source?.avatar_url"
+            :name="mergeModal.source?.name || '?'"
+            :size="24"
+            :tier="mergeModal.source?.tier || 'bronze'"
+          />
           <span>{{ mergeModal.source?.name }}</span>
           <span class="merge-item-plays">
             {{ mergeModal.source?.play_count || 0 }} {{ $t('stats.plays').toLowerCase() }}
@@ -43,9 +46,12 @@
           :class="{ active: mergeModal.targetId === u.user_id }"
           @click="mergeModal.targetId = u.user_id"
         >
-          <div class="dt-avatar merge-avatar-target" :style="{ background: avatarColors[0] }">
-            {{ (u.name || '?')[0].toUpperCase() }}
-          </div>
+          <MkAvatar
+            :src="u.avatar_url"
+            :name="u.name || '?'"
+            :size="28"
+            :tier="u.tier || 'bronze'"
+          />
           <span class="merge-item-name">{{ u.name }}</span>
           <span class="merge-item-plays">
             {{ u.play_count }} {{ $t('stats.plays').toLowerCase() }}
@@ -70,8 +76,9 @@
 <script setup>
 import { useStatsUI } from '@/composables/useStatsUI'
 import { ArrowDown } from 'lucide-vue-next'
+import MkAvatar from '@/components/common/MkAvatar.vue'
 import MkButton from '@/components/common/MkButton.vue'
-const { mergeModal, mergeTargets, handleMerge, avatarColors } = useStatsUI()
+const { mergeModal, mergeTargets, handleMerge } = useStatsUI()
 </script>
 
 <style scoped>
@@ -141,17 +148,6 @@ const { mergeModal, mergeTargets, handleMerge, avatarColors } = useStatsUI()
   font-size: var(--text-2xs);
   color: var(--text-muted);
   padding: 12px 0;
-}
-.dt-avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--text-2xs);
-  font-weight: var(--font-bold);
-  color: var(--text-primary);
 }
 
 .merge-search {
@@ -275,16 +271,5 @@ const { mergeModal, mergeTargets, handleMerge, avatarColors } = useStatsUI()
 }
 .merge-hinfo {
   flex: 1;
-}
-.merge-avatar-source {
-  width: 24px;
-  height: 24px;
-  font-size: 0.6rem;
-  background: var(--color-error);
-}
-.merge-avatar-target {
-  width: 28px;
-  height: 28px;
-  font-size: 0.65rem;
 }
 </style>

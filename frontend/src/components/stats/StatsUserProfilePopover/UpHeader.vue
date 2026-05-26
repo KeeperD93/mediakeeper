@@ -1,8 +1,11 @@
 <template>
   <div class="up-header">
-    <div class="up-avatar" :style="{ background: avatarColors[0] }">
-      {{ profileName[0]?.toUpperCase() }}
-    </div>
+    <MkAvatar
+      :src="profileAvatarUrl"
+      :name="profileName"
+      :size="42"
+      :tier="profileTier || 'bronze'"
+    />
     <div class="up-hinfo">
       <div class="up-name">{{ profileName }}</div>
       <div v-if="userProfile" class="up-sub">
@@ -20,12 +23,14 @@
 </template>
 
 <script setup>
+import MkAvatar from '@/components/common/MkAvatar.vue'
 import MkButton from '@/components/common/MkButton.vue'
 
 defineProps({
   profileName: { type: String, required: true },
+  profileTier: { type: String, default: 'bronze' },
+  profileAvatarUrl: { type: String, default: null },
   userProfile: { type: Object, default: null },
-  avatarColors: { type: Array, required: true },
   ticksToDuration: { type: Function, required: true },
 })
 defineEmits(['close'])
@@ -37,18 +42,6 @@ defineEmits(['close'])
   align-items: center;
   gap: 12px;
   margin-bottom: 24px;
-}
-.up-avatar {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--text-base);
-  font-weight: var(--font-bold);
-  color: var(--text-primary);
-  flex-shrink: 0;
 }
 .up-hinfo {
   flex: 1;

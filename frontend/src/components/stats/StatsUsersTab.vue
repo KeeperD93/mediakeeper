@@ -137,7 +137,15 @@
                   class="dt-avatar"
                 />
               </td>
-              <td class="dt-name dt-clickable" @click="openUserProfile(u.user_id, u.name, $event)">
+              <td
+                class="dt-name dt-clickable"
+                @click="
+                  openUserProfile(u.user_id, u.name, $event, {
+                    tier: u.tier,
+                    avatar_url: u.avatar_url,
+                  })
+                "
+              >
                 {{ u.name }}
                 <span
                   v-if="u.is_historical"

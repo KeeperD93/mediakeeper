@@ -130,15 +130,11 @@ function onError() {
      stretch beyond ``props.size``). Without these, daily digest's
      stretched 40 px disc still rendered a 28 px-derived icon and
      looked smaller than every other surface. 130% overscales so the
-     visible silhouette (~67% of the SVG bbox due to lucide's
-     internal padding) reads as a properly framed portrait. */
+     shoulders naturally curve into the bottom edge of the ring with
+     ``align-items: flex-end`` instead of leaving an empty band. */
   width: 130% !important;
   height: 130% !important;
   flex-shrink: 1;
-  /* Push the silhouette down so the head sits at the visual centre
-     instead of riding the top edge. The icon SVG has the head in its
-     top third — ``flex-end`` alone leaves a wide empty band above. */
-  transform: translateY(15%);
 }
 
 .mk-avatar-fallback {
