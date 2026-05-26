@@ -54,8 +54,8 @@
   pointer-events: none;
   opacity: 0.06;
   background:
-    linear-gradient(rgb(99, 102, 241, 0.3) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(99, 102, 241, 0.3) 1px, transparent 1px);
+    linear-gradient(rgb(var(--accent-rgb), 0.3) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--accent-rgb), 0.3) 1px, transparent 1px);
   background-size: 60px 60px;
   transform: perspective(400px) rotateX(55deg);
   mask-image: linear-gradient(to top, rgb(0, 0, 0, 0.6), transparent 70%);
@@ -203,7 +203,7 @@
   width: 300px;
   height: 200px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgb(99, 102, 241, 0.2), transparent 65%);
+  background: radial-gradient(circle, rgb(var(--accent-rgb), 0.2), transparent 65%);
   filter: blur(40px);
   pointer-events: none;
 }
@@ -218,7 +218,7 @@
   object-fit: contain;
   margin: 0 auto 10px;
   display: block;
-  filter: drop-shadow(0 0 20px rgb(99, 102, 241, 0.15));
+  filter: drop-shadow(0 0 20px rgb(var(--accent-rgb), 0.15));
 }
 .login-hero-sub {
   font-size: var(--text-sm);
@@ -234,7 +234,7 @@
   left: 10%;
   right: 10%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgb(99, 102, 241, 0.3), transparent);
+  background: linear-gradient(90deg, transparent, rgb(var(--accent-rgb), 0.3), transparent);
 }
 
 .login-form-wrap {
@@ -317,9 +317,9 @@
   outline: none;
 }
 .login-input:focus {
-  border-color: rgb(99, 102, 241, 0.5);
+  border-color: rgb(var(--accent-rgb), 0.5);
   background: var(--surface-2);
-  box-shadow: 0 0 0 3px rgb(99, 102, 241, 0.08);
+  box-shadow: 0 0 0 3px rgb(var(--accent-rgb), 0.08);
 }
 .login-input::placeholder {
   color: var(--text-decorative);
@@ -346,7 +346,10 @@
   margin-top: 4px;
   border-radius: var(--radius-input);
   border: none;
-  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  /* Indigo → violet brand gradient — accent-600 (#4f46e5) is in the
+     accent palette; the violet stop (#7c3aed) is a one-off brand
+     accent kept as hex because no admin token matches it exactly. */
+  background: linear-gradient(135deg, var(--accent-600), #7c3aed);
   color: var(--text-primary);
   font-size: var(--text-base);
   font-weight: var(--font-medium);
@@ -379,8 +382,8 @@
 .login-submit:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow:
-    0 8px 30px rgb(99, 102, 241, 0.35),
-    0 0 60px rgb(99, 102, 241, 0.1);
+    0 8px 30px rgb(var(--accent-rgb), 0.35),
+    0 0 60px rgb(var(--accent-rgb), 0.1);
 }
 .login-submit:active:not(:disabled) {
   transform: translateY(0);
