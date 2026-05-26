@@ -55,6 +55,7 @@
       <div v-else class="tbl-scroll">
         <table class="dt">
           <colgroup>
+            <col class="ucol-w32" />
             <col class="ucol-w44" />
             <col class="ucol-w15p" />
             <col class="ucol-w24p" />
@@ -62,10 +63,19 @@
             <col class="ucol-w9p" />
             <col class="ucol-w10p" />
             <col class="ucol-w9p" />
-            <col class="ucol-actions" />
           </colgroup>
           <thead>
             <tr>
+              <th class="dt-c">
+                <input
+                  type="checkbox"
+                  class="dt-chk"
+                  :checked="allSelected"
+                  :indeterminate.prop="partiallySelected"
+                  :aria-label="$t('common.selectAll')"
+                  @change="toggleSelectAll"
+                />
+              </th>
               <th></th>
               <th class="sortable" @click="toggleUserSort('name')">
                 {{ $t('stats.user') }}
@@ -93,7 +103,6 @@
                   {{ sortArrow('last_seen', usersSortBy, usersSortOrder) }}
                 </span>
               </th>
-              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -103,8 +112,22 @@
             <tr
               v-for="u in users.users"
               :key="u.user_id"
-              :class="{ 'user-hidden-row': u.is_hidden, 'user-historical-row': u.is_historical }"
+              :class="{
+                'user-hidden-row': u.is_hidden,
+                'user-historical-row': u.is_historical,
+                'user-row-selected': selected.has(u.user_id),
+              }"
             >
+              <td class="dt-c">
+                <input
+                  type="checkbox"
+                  class="dt-chk"
+                  :checked="selected.has(u.user_id)"
+                  :aria-label="$t('common.select')"
+                  @change="toggleSelect(u.user_id)"
+                  @click.stop
+                />
+              </td>
               <td>
                 <MkAvatar
                   :src="null"
@@ -139,38 +162,6 @@
               <td class="dt-r dt-bold">{{ (u.play_count || 0).toLocaleString() }}</td>
               <td class="dt-r dt-sec">{{ ticksToDuration(u.total_ticks) }}</td>
               <td class="dt-r dt-accent">{{ u.last_seen ? timeAgo(u.last_seen) : '—' }}</td>
-              <td class="dt-actions">
-                <button
-                  v-if="!u.is_hidden"
-                  class="dt-act-btn"
-                  :title="$t('stats.hideUser')"
-                  @click.stop="handleHideUser(u)"
-                >
-                  <EyeOff :size="14" />
-                </button>
-                <button
-                  v-if="u.is_hidden"
-                  class="dt-act-btn dt-act-show"
-                  :title="$t('stats.unhideUser')"
-                  @click.stop="handleUnhideUser(u)"
-                >
-                  <Eye :size="14" />
-                </button>
-                <button
-                  class="dt-act-btn dt-act-merge"
-                  :title="$t('stats.mergeUser')"
-                  @click.stop="openMergeModal(u)"
-                >
-                  <ArrowLeftRight :size="14" />
-                </button>
-                <button
-                  class="dt-act-btn dt-act-del"
-                  :title="$t('stats.deleteUser')"
-                  @click.stop="handleDeleteUser(u)"
-                >
-                  <Trash2 :size="14" />
-                </button>
-              </td>
             </tr>
           </tbody>
         </table>
@@ -204,35 +195,72 @@
         </div>
       </div>
     </div>
+
+    <!-- Bulk actions overlay — appears when at least one user is selected.
+         Slides up from the bottom, centred. Same pattern as Gmail / GitHub. -->
+    <Teleport to="body">
+      <Transition name="bulk-slide">
+        <div v-if="selected.size > 0" class="bulk-bar" role="region" aria-live="polite">
+          <span class="bulk-count">
+            {{ $tc('stats.bulkSelected', selected.size, { n: selected.size }) }}
+          </span>
+          <div class="bulk-actions">
+            <MkButton
+              variant="ghost"
+              icon="eye-off"
+              :disabled="!visibleSelected.length"
+              @click="bulkHide"
+            >
+              {{ $t('stats.bulkHide') }}
+            </MkButton>
+            <MkButton
+              variant="ghost"
+              icon="eye"
+              :disabled="!hiddenSelected.length"
+              @click="bulkUnhide"
+            >
+              {{ $t('stats.bulkUnhide') }}
+            </MkButton>
+            <MkButton
+              variant="primary"
+              icon="shuffle"
+              :disabled="selected.size !== 1"
+              :title="selected.size === 1 ? '' : $t('stats.bulkMergeHint')"
+              @click="bulkMerge"
+            >
+              {{ $t('stats.bulkMerge') }}
+            </MkButton>
+            <MkButton variant="danger" icon="trash-2" @click="bulkDelete">
+              {{ $t('common.delete') }}
+            </MkButton>
+            <MkButton variant="link" @click="clearSelection">
+              {{ $t('stats.bulkClear') }}
+            </MkButton>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useStats } from '@/composables/useStats'
 import { useApi } from '@/composables/useApi'
 import MkAvatar from '@/components/common/MkAvatar.vue'
+import MkButton from '@/components/common/MkButton.vue'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import { useStatsUI } from '@/composables/useStatsUI'
 import { sortArrow, sortArrowClass } from '@/components/stats/statsTableUtils'
-import {
-  ArrowLeftRight,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  Clock,
-  Eye,
-  EyeOff,
-  Trash2,
-} from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, ChevronsLeft, Clock, EyeOff } from 'lucide-vue-next'
 import { useConfirm } from '@/composables/useConfirm'
 import '@/assets/styles/stats-tables.css'
 
 const mkConfirm = useConfirm()
 
-const { t } = useI18n()
+const { t, tc } = useI18n()
 const { users, loadingUsers, loadUsers, ticksToDuration, timeAgo } = useStats()
 const { apiPost, apiDelete } = useApi()
 const { showToast } = useToast()
@@ -247,6 +275,81 @@ const showHiddenUsers = ref(false)
 const showHistoricalOnly = ref(false)
 let usersDb = null
 
+// Selection state — Set keyed by user_id for O(1) lookups.
+const selected = ref(new Set())
+
+const selectedUsers = computed(() =>
+  users.value.users.filter(u => selected.value.has(u.user_id)),
+)
+const visibleSelected = computed(() => selectedUsers.value.filter(u => !u.is_hidden))
+const hiddenSelected = computed(() => selectedUsers.value.filter(u => u.is_hidden))
+const allSelected = computed(
+  () => users.value.users.length > 0 && selected.value.size === users.value.users.length,
+)
+const partiallySelected = computed(() => selected.value.size > 0 && !allSelected.value)
+
+function toggleSelect(userId) {
+  const next = new Set(selected.value)
+  if (next.has(userId)) next.delete(userId)
+  else next.add(userId)
+  selected.value = next
+}
+
+function toggleSelectAll() {
+  if (allSelected.value) {
+    selected.value = new Set()
+  } else {
+    selected.value = new Set(users.value.users.map(u => u.user_id))
+  }
+}
+
+function clearSelection() {
+  selected.value = new Set()
+}
+
+async function bulkHide() {
+  const targets = visibleSelected.value.slice()
+  for (const u of targets) {
+    await apiPost(`/api/stats/users/${encodeURIComponent(u.user_id)}/hide`)
+  }
+  showToast(tc('stats.bulkUsersHidden', targets.length, { n: targets.length }), TOAST_TYPE.OK)
+  clearSelection()
+  fetchUsers()
+}
+
+async function bulkUnhide() {
+  const targets = hiddenSelected.value.slice()
+  for (const u of targets) {
+    await apiPost(`/api/stats/users/${encodeURIComponent(u.user_id)}/unhide`)
+  }
+  showToast(tc('stats.bulkUsersUnhidden', targets.length, { n: targets.length }), TOAST_TYPE.OK)
+  clearSelection()
+  fetchUsers()
+}
+
+function bulkMerge() {
+  if (selected.value.size !== 1) return
+  const u = selectedUsers.value[0]
+  if (u) openMergeModal(u)
+}
+
+async function bulkDelete() {
+  const targets = selectedUsers.value.slice()
+  const ok = await mkConfirm({
+    title: t('common.confirmTitle.deleteUser'),
+    message: tc('stats.bulkDeleteConfirm', targets.length, { n: targets.length }),
+    variant: 'danger',
+    confirmLabel: t('common.delete'),
+  })
+  if (!ok) return
+  for (const u of targets) {
+    await apiDelete(`/api/stats/users/${encodeURIComponent(u.user_id)}`)
+  }
+  showToast(tc('stats.bulkUsersDeleted', targets.length, { n: targets.length }), TOAST_TYPE.OK)
+  clearSelection()
+  fetchUsers()
+}
+
 function fetchUsers() {
   loadUsers({
     page: usersPage.value,
@@ -257,29 +360,6 @@ function fetchUsers() {
     show_hidden: showHiddenUsers.value,
     historical_only: showHistoricalOnly.value,
   })
-}
-
-async function handleHideUser(u) {
-  await apiPost(`/api/stats/users/${encodeURIComponent(u.user_id)}/hide`)
-  showToast(t('stats.userHidden', { name: u.name }), TOAST_TYPE.OK)
-  fetchUsers()
-}
-async function handleUnhideUser(u) {
-  await apiPost(`/api/stats/users/${encodeURIComponent(u.user_id)}/unhide`)
-  showToast(t('stats.userUnhidden', { name: u.name }), TOAST_TYPE.OK)
-  fetchUsers()
-}
-async function handleDeleteUser(u) {
-  const ok = await mkConfirm({
-    title: t('common.confirmTitle.deleteUser'),
-    message: t('stats.confirmDeleteUser', { name: u.name }),
-    variant: 'danger',
-    confirmLabel: t('common.delete'),
-  })
-  if (!ok) return
-  await apiDelete(`/api/stats/users/${encodeURIComponent(u.user_id)}`)
-  showToast(t('stats.userDeleted', { name: u.name }), TOAST_TYPE.OK)
-  fetchUsers()
 }
 
 function debouncedFetchUsers() {
@@ -307,14 +387,11 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.ucol-w32 {
+  width: 32px;
+}
 .ucol-w44 {
   width: 44px;
-}
-/* Actions column: must fit 3 buttons (~22px each + 4px gap = ~74px actual)
-   without flex-end pushing them onto the previous column, which caused a
-   visual mismatch between header (empty th) and body (td flex). */
-.ucol-actions {
-  width: 100px;
 }
 .ucol-w9p {
   width: 9%;
@@ -330,5 +407,82 @@ onMounted(() => {
 }
 .ucol-w24p {
   width: 24%;
+}
+
+.dt-chk {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent-500);
+  cursor: pointer;
+}
+
+.user-row-selected {
+  background: rgb(var(--accent-rgb), 0.06);
+}
+
+/* ─── Bulk actions overlay ─── */
+.bulk-bar {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 12px 20px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  box-shadow: var(--shadow-modal);
+  backdrop-filter: blur(16px);
+}
+.bulk-count {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+.bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bulk-slide-enter-active,
+.bulk-slide-leave-active {
+  transition:
+    transform var(--duration-base) var(--ease-out),
+    opacity var(--duration-base) var(--ease-out);
+}
+.bulk-slide-enter-from,
+.bulk-slide-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(20px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bulk-slide-enter-active,
+  .bulk-slide-leave-active {
+    transition: opacity var(--duration-fast);
+  }
+  .bulk-slide-enter-from,
+  .bulk-slide-leave-to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 767px) {
+  .bulk-bar {
+    bottom: 12px;
+    padding: 10px 12px;
+    gap: 10px;
+    max-width: calc(100vw - 24px);
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .bulk-actions {
+    gap: 6px;
+  }
 }
 </style>
