@@ -21,8 +21,6 @@
 import { computed, ref, watch } from 'vue'
 import { UserRound } from 'lucide-vue-next'
 
-const TIERS = ['bronze', 'silver', 'gold', 'platinum', 'diamond', 'master', 'legendary']
-
 const props = defineProps({
   src: { type: String, default: null },
   name: { type: String, required: true },
@@ -37,10 +35,16 @@ const props = defineProps({
   // halo box-shadow defined in tokens/_avatar-tiers.css. Pass the
   // tier returned by the backend (``user.tier``); leave null to keep
   // the legacy "no ring" or class-driven behaviour.
+  //
+  // The tier list is inlined here because defineProps() is hoisted
+  // outside the setup() scope by the Vue SFC compiler and cannot
+  // reference module-level const arrays.
   tier: {
     type: String,
     default: null,
-    validator: v => v === null || TIERS.includes(v),
+    validator: v =>
+      v === null ||
+      ['bronze', 'silver', 'gold', 'platinum', 'diamond', 'master', 'legendary'].includes(v),
   },
 })
 
