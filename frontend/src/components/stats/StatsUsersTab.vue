@@ -202,7 +202,7 @@
       <Transition name="bulk-slide">
         <div v-if="selected.size > 0" class="bulk-bar" role="region" aria-live="polite">
           <span class="bulk-count">
-            {{ $tc('stats.bulkSelected', selected.size, { n: selected.size }) }}
+            {{ $t('stats.bulkSelected', selected.size, { n: selected.size }) }}
           </span>
           <div class="bulk-actions">
             <MkButton
@@ -260,7 +260,7 @@ import '@/assets/styles/stats-tables.css'
 
 const mkConfirm = useConfirm()
 
-const { t, tc } = useI18n()
+const { t } = useI18n()
 const { users, loadingUsers, loadUsers, ticksToDuration, timeAgo } = useStats()
 const { apiPost, apiDelete } = useApi()
 const { showToast } = useToast()
@@ -312,7 +312,7 @@ async function bulkHide() {
   for (const u of targets) {
     await apiPost(`/api/stats/users/${encodeURIComponent(u.user_id)}/hide`)
   }
-  showToast(tc('stats.bulkUsersHidden', targets.length, { n: targets.length }), TOAST_TYPE.OK)
+  showToast(t('stats.bulkUsersHidden', targets.length, { n: targets.length }), TOAST_TYPE.OK)
   clearSelection()
   fetchUsers()
 }
@@ -322,7 +322,7 @@ async function bulkUnhide() {
   for (const u of targets) {
     await apiPost(`/api/stats/users/${encodeURIComponent(u.user_id)}/unhide`)
   }
-  showToast(tc('stats.bulkUsersUnhidden', targets.length, { n: targets.length }), TOAST_TYPE.OK)
+  showToast(t('stats.bulkUsersUnhidden', targets.length, { n: targets.length }), TOAST_TYPE.OK)
   clearSelection()
   fetchUsers()
 }
@@ -337,7 +337,7 @@ async function bulkDelete() {
   const targets = selectedUsers.value.slice()
   const ok = await mkConfirm({
     title: t('common.confirmTitle.deleteUser'),
-    message: tc('stats.bulkDeleteConfirm', targets.length, { n: targets.length }),
+    message: t('stats.bulkDeleteConfirm', targets.length, { n: targets.length }),
     variant: 'danger',
     confirmLabel: t('common.delete'),
   })
@@ -345,7 +345,7 @@ async function bulkDelete() {
   for (const u of targets) {
     await apiDelete(`/api/stats/users/${encodeURIComponent(u.user_id)}`)
   }
-  showToast(tc('stats.bulkUsersDeleted', targets.length, { n: targets.length }), TOAST_TYPE.OK)
+  showToast(t('stats.bulkUsersDeleted', targets.length, { n: targets.length }), TOAST_TYPE.OK)
   clearSelection()
   fetchUsers()
 }
