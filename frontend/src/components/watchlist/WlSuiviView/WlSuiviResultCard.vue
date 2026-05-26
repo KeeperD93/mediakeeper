@@ -59,14 +59,14 @@ function typeLabel(item) {
   gap: 12px;
   padding: 12px;
   border-radius: var(--radius-btn);
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   border: 0.5px solid var(--border-default);
   transition: border-color var(--duration-fast);
   position: relative;
 }
 .wlsu-result-card:hover {
   border-color: rgb(99, 102, 241, 0.2);
-  background: rgb(255, 255, 255, 0.05);
+  background: var(--surface-2);
 }
 .wlsu-result-poster {
   width: 54px;
@@ -98,7 +98,7 @@ function typeLabel(item) {
 .wlsu-result-name {
   font-size: var(--text-base);
   font-weight: var(--font-bold);
-  color: #fff;
+  color: var(--text-primary);
   margin-bottom: 4px;
 }
 .wlsu-result-meta {

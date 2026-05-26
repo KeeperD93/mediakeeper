@@ -164,9 +164,7 @@ const isAdmin = computed(() => profile.value?.role === USER_ROLE.ADMIN)
 // (first login or admin-triggered reset) must clear the picker before
 // they can use anything else. Drives both the blocking ForceUsernameModal
 // and the v-if guards on the auto-popping overlays / FAB.
-const mustPickUsername = computed(
-  () => !isAdmin.value && !!profile.value?.display_name_must_set,
-)
+const mustPickUsername = computed(() => !isAdmin.value && !!profile.value?.display_name_must_set)
 // Backoffice access is its own gate: a Portal moderator (role=admin)
 // is not necessarily a backoffice operator. Imported Emby accounts
 // always fail the backoffice login because their stored hash is the
@@ -210,8 +208,8 @@ onMounted(async () => {
 <style scoped>
 .pt-layout {
   min-height: 100vh;
-  background: var(--bg-primary);
-  color: #fff;
+  background: var(--portal-bg-primary);
+  color: var(--portal-text-primary);
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior-y: contain;
   /* Safety net: any descendant absolute/fixed/translated element that

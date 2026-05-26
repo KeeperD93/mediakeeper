@@ -11,7 +11,7 @@
 
     <!-- Normal mode → full widgets in order. The "Customize" entry
          point lives in the global topbar (icon-only on /dashboard
-         mobile) and dispatches MOBILE_EDIT_EVENT on the window. -->
+         mobile) and dispatches DASHBOARD_EDIT_EVENT on the window. -->
     <div v-else class="m-dash-stack">
       <MobileDashboardWidget
         v-for="id in effectiveOrder"
@@ -38,7 +38,7 @@ import MobileDashboardStats from '@/components/dashboard/MobileDashboardStats.vu
 import MobileDashboardWidget from '@/components/dashboard/MobileDashboardWidget.vue'
 import MobileDashboardReorderList from '@/components/dashboard/MobileDashboardReorderList.vue'
 import MobileDashboardEditToolbar from '@/components/dashboard/MobileDashboardEditToolbar.vue'
-import { MOBILE_EDIT_EVENT } from '@/constants/dashboardEvents'
+import { DASHBOARD_EDIT_EVENT } from '@/constants/dashboardEvents'
 
 const props = defineProps({
   hidden: { type: Array, default: () => [] },
@@ -106,10 +106,10 @@ function onReorder({ fromIdx, toIdx }) {
 // The topbar "Customize" button on mobile fires this window-level
 // event because the two components live in separate router subtrees.
 onMounted(() => {
-  window.addEventListener(MOBILE_EDIT_EVENT, enterEditMode)
+  window.addEventListener(DASHBOARD_EDIT_EVENT, enterEditMode)
 })
 onBeforeUnmount(() => {
-  window.removeEventListener(MOBILE_EDIT_EVENT, enterEditMode)
+  window.removeEventListener(DASHBOARD_EDIT_EVENT, enterEditMode)
 })
 </script>
 

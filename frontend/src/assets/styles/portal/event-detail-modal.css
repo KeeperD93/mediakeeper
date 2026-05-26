@@ -15,16 +15,16 @@
   width: 100%;
   max-width: 600px;
   max-height: 90vh;
-  background: #14141e;
+  background: var(--portal-panel-bg);
   border: 1px solid rgb(255, 255, 255, 0.1);
   border-radius: var(--portal-radius-lg);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 .pt-evd-loading {
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 
 .pt-evd-head {
@@ -70,7 +70,7 @@
   padding: 4px;
 }
 .pt-evd-x:hover {
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 
 .pt-evd-body {
@@ -242,18 +242,18 @@
 }
 .pt-evd-btn--ghost {
   background: var(--portal-surface-4);
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 .pt-evd-btn--primary {
   background: var(--accent-700);
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 .pt-evd-btn--primary:hover {
   background: #5145e0;
 }
 .pt-evd-btn--danger {
   background: #b91c1c;
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 .pt-evd-btn--danger:hover {
   background: #dc2626;

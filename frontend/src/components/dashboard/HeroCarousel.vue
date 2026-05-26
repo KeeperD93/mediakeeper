@@ -57,9 +57,9 @@ onMounted(() => {
 <style scoped>
 .hero-wrap {
   position: relative;
-  height: 340px;
+  height: 240px;
   overflow: hidden;
-  background: var(--hero-bg, #0a0e1a);
+  background: var(--hero-bg);
   opacity: 0;
   transform: scale(1.02);
   transition:

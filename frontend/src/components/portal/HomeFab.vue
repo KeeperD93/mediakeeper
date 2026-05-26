@@ -144,7 +144,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside, true
   background: rgb(67, 56, 202, 0.9);
   backdrop-filter: var(--portal-blur-md);
   -webkit-backdrop-filter: var(--portal-blur-md);
-  color: #fff;
+  color: var(--portal-text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -181,10 +181,10 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside, true
   height: 44px;
   border-radius: var(--portal-radius-circle);
   border: 1px solid var(--portal-border-strong);
-  background: rgb(20, 20, 30, 0.82);
+  background: var(--portal-panel-bg);
   backdrop-filter: var(--portal-blur-md);
   -webkit-backdrop-filter: var(--portal-blur-md);
-  color: #fff;
+  color: var(--portal-text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -225,13 +225,13 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside, true
   padding: 0 4px;
   border-radius: 9px;
   background: var(--portal-color-error);
-  color: #fff;
+  color: var(--portal-text-primary);
   font-size: var(--portal-text-2xs);
   font-weight: var(--portal-font-bold);
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid rgb(20, 20, 30, 0.9);
+  border: 2px solid var(--portal-panel-bg);
   box-shadow: 0 0 10px rgb(var(--portal-color-error-rgb), 0.5);
 }
 /* Slightly bigger ring on the main "+" so the badge stays legible
@@ -239,7 +239,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside, true
 .pt-fab-badge--main {
   top: -6px;
   right: -6px;
-  border-color: var(--bg-primary, rgb(20, 20, 30, 0.9));
+  border-color: var(--portal-bg-primary);
 }
 
 /* ─── Pop transition: sub-buttons scale + fade in from below ─── */

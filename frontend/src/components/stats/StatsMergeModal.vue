@@ -6,9 +6,12 @@
         <div class="up-hinfo merge-hinfo">
           <div class="up-name">{{ $t('stats.mergeTitle') }}</div>
         </div>
-        <button class="up-close" @click="mergeModal.open = false">
-          <X :size="14" :stroke-width="2.5" />
-        </button>
+        <MkButton
+          variant="icon"
+          icon="x"
+          :aria-label="$t('common.close')"
+          @click="mergeModal.open = false"
+        />
       </div>
       <div class="merge-source-box">
         <span class="merge-label merge-label-source">{{ $t('stats.mergeSource') }}</span>
@@ -51,10 +54,14 @@
         <div v-if="!mergeTargets.length" class="up-empty">{{ $t('stats.noUsers') }}</div>
       </div>
       <div class="merge-actions">
-        <button class="params-save-btn" :disabled="!mergeModal.targetId" @click="handleMerge">
-          <Shuffle :size="14" />
+        <MkButton
+          variant="primary"
+          icon="shuffle"
+          :disabled="!mergeModal.targetId"
+          @click="handleMerge"
+        >
           {{ $t('stats.mergeConfirm') }}
-        </button>
+        </MkButton>
       </div>
     </div>
   </Transition>
@@ -62,7 +69,8 @@
 
 <script setup>
 import { useStatsUI } from '@/composables/useStatsUI'
-import { ArrowDown, Shuffle, X } from 'lucide-vue-next'
+import { ArrowDown } from 'lucide-vue-next'
+import MkButton from '@/components/common/MkButton.vue'
 const { mergeModal, mergeTargets, handleMerge, avatarColors } = useStatsUI()
 </script>
 
@@ -143,7 +151,7 @@ const { mergeModal, mergeTargets, handleMerge, avatarColors } = useStatsUI()
   justify-content: center;
   font-size: var(--text-2xs);
   font-weight: var(--font-bold);
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .merge-search {
@@ -250,7 +258,7 @@ const { mergeModal, mergeTargets, handleMerge, avatarColors } = useStatsUI()
   padding: 10px 22px;
   border-radius: var(--radius-btn);
   background: var(--accent-600);
-  color: #fff;
+  color: var(--text-primary);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   font-family: inherit;

@@ -74,7 +74,7 @@
 .gc-unlock-name {
   font-size: var(--portal-text-md);
   font-weight: var(--portal-font-black);
-  color: #fff;
+  color: var(--portal-text-primary);
   font-family: var(--portal-font-display);
 }
 .gc-unlock-xp {

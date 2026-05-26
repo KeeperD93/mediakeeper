@@ -194,13 +194,13 @@ onBeforeUnmount(() => {
   padding: 0 5px;
   border-radius: 9px;
   background: var(--portal-color-error);
-  color: #fff;
+  color: var(--portal-text-primary);
   font-size: var(--portal-text-2xs);
   font-weight: var(--portal-font-extrabold);
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid rgb(20, 20, 30, 0.95);
+  border: 2px solid var(--portal-panel-bg);
 }
 
 .pt-bell-shade {
@@ -215,11 +215,11 @@ onBeforeUnmount(() => {
   right: clamp(0.5rem, 4%, 2rem);
   width: clamp(280px, 90vw, 380px);
   max-height: 70vh;
-  background: rgb(20, 20, 30, 0.97);
+  background: var(--portal-panel-bg);
   border: 1px solid var(--portal-border-strong);
   border-radius: var(--radius-card);
   box-shadow: 0 24px 60px rgb(0, 0, 0, 0.6);
-  color: #fff;
+  color: var(--portal-text-primary);
   z-index: 8900;
   display: flex;
   flex-direction: column;
@@ -271,7 +271,7 @@ onBeforeUnmount(() => {
   padding: 0.7rem 0.75rem;
   border: none;
   background: transparent;
-  color: #fff;
+  color: var(--portal-text-primary);
   cursor: pointer;
   text-align: left;
   border-radius: var(--radius-btn);

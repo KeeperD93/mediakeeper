@@ -239,7 +239,7 @@ function sortedEpisodes(episodes) {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: rgb(255, 255, 255, 0.08);
+  background: var(--surface-3);
 }
 .dot-ok {
   background: var(--color-success);
@@ -267,7 +267,7 @@ function sortedEpisodes(episodes) {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: rgb(255, 255, 255, 0.08);
+  background: var(--surface-3);
 }
 
 .glass-card {

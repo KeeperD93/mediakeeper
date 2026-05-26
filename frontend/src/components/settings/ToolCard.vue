@@ -327,7 +327,7 @@ async function ping() {
   padding: 8px 18px;
   border-radius: var(--radius-btn);
   background: var(--accent-600);
-  color: #fff;
+  color: var(--text-primary);
   border: none;
   font-size: var(--text-sm);
   font-weight: var(--font-medium);

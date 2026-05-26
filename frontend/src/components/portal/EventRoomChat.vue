@@ -162,7 +162,7 @@ onBeforeUnmount(() => {
   border: 1px solid rgb(255, 255, 255, 0.15);
   border-right: none;
   background: rgb(15, 15, 22, 0.92);
-  color: #fff;
+  color: var(--portal-text-primary);
   border-radius: 8px 0 0 8px;
   cursor: pointer;
   display: flex;
@@ -183,7 +183,7 @@ onBeforeUnmount(() => {
 .pt-erc-head h3 {
   font-size: var(--portal-text-base);
   font-weight: var(--portal-font-extrabold);
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 
 .pt-erc-list {
@@ -245,7 +245,7 @@ onBeforeUnmount(() => {
   border: 1px solid var(--portal-border-strong);
   color: #fff !important;
   -webkit-text-fill-color: #fff !important;
-  caret-color: #fff;
+  caret-color: var(--portal-text-primary);
   border-radius: var(--radius-sm);
   padding: 0.5rem 0.7rem;
   font-size: var(--portal-text-sm);
@@ -261,7 +261,7 @@ onBeforeUnmount(() => {
   border-radius: var(--radius-sm);
   border: none;
   background: var(--accent-700);
-  color: #fff;
+  color: var(--portal-text-primary);
   cursor: pointer;
   display: flex;
   align-items: center;

@@ -43,7 +43,7 @@
 .gc-kpi-val {
   font-size: var(--portal-text-lg);
   font-weight: var(--portal-font-black);
-  color: #fff;
+  color: var(--portal-text-primary);
   font-family: var(--portal-font-display);
   display: inline-flex;
   align-items: center;

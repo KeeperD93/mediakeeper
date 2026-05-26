@@ -179,7 +179,7 @@ onMounted(async () => {
   padding: 0.3rem;
 }
 .pt-cal-empty {
-  background: var(--bg-primary);
+  background: var(--portal-bg-primary);
 }
 .pt-cal-today {
   outline: 2px solid var(--accent);

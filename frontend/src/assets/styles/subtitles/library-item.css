@@ -113,7 +113,7 @@
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   line-height: var(--lh-compact);
-  color: #fff;
+  color: var(--text-primary);
 }
 .sg-wrapper .sg-episode {
   font-size: var(--text-2xs);
@@ -197,7 +197,7 @@
   transition: all var(--duration-base);
 }
 .sg-wrapper .sl-row.sl-hovered {
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
 }
 .sg-wrapper .sl-row.sl-expanded {
   background: rgb(255, 255, 255, 0.02);

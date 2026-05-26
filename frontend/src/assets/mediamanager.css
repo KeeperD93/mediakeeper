@@ -148,7 +148,7 @@
   flex-wrap: wrap;
   padding: 0.4rem 0.6rem;
   margin-bottom: 4px;
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   border: 0.5px solid var(--border-strong);
   border-radius: var(--radius-btn);
   font-size: var(--text-2xs);
@@ -263,7 +263,7 @@
 .mm-tabs {
   display: flex;
   gap: 2px;
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   backdrop-filter: var(--blur-sm);
   border: 0.5px solid var(--border-default);
   border-radius: var(--radius-card);
@@ -301,11 +301,11 @@
 }
 .mm-tab.active {
   background: var(--surface-3);
-  color: #fff;
+  color: var(--text-primary);
 }
 .mm-tab.drop-hl {
   background: rgb(99, 102, 241, 0.08);
-  color: #fff;
+  color: var(--text-primary);
   outline: 2px dotted rgb(99, 102, 241, 0.7);
   outline-offset: -2px;
   box-shadow: none;
@@ -422,7 +422,7 @@
 
 /* ── Boutons ── */
 .mm-btn-sm {
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   border: 0.5px solid var(--border-strong);
   color: var(--text-secondary);
   padding: 0.28rem 0.6rem;
@@ -480,7 +480,7 @@
 }
 .mm-btn-accent:hover {
   background: var(--accent-600);
-  color: #fff;
+  color: var(--text-primary);
 }
 .mm-btn-danger {
   background: rgb(239, 68, 68, 0.15);
@@ -489,7 +489,7 @@
 }
 .mm-btn-danger:hover {
   background: #dc2626;
-  color: #fff;
+  color: var(--text-primary);
 }
 .mm-btn-success {
   background: rgb(var(--color-success-rgb), 0.12);
@@ -498,7 +498,7 @@
 }
 .mm-btn-success:hover {
   background: #16a34a;
-  color: #fff;
+  color: var(--text-primary);
 }
 .mm-btn-saved {
   background: rgb(var(--color-success-rgb), 0.25) !important;
@@ -537,7 +537,7 @@
 /* Filter */
 .mm-filter {
   flex: 1;
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   border: 0.5px solid var(--border-strong);
   color: var(--text-primary);
   padding: 0.3rem 0.6rem;
@@ -675,7 +675,7 @@
   height: 36px;
 }
 .mm-file-row:hover {
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
 }
 .mm-file-row.checked {
   background: rgb(var(--accent-rgb), 0.08);
@@ -699,7 +699,7 @@
   width: 9px;
   height: 9px;
   display: none;
-  color: #fff;
+  color: var(--text-primary);
 }
 .mm-file-row.checked .mm-check {
   background: var(--accent-500);
@@ -752,13 +752,13 @@
   font-size: 0.55rem;
   padding: 1px 5px;
   border-radius: 4px;
-  color: #fff;
+  color: var(--text-primary);
   font-weight: var(--font-medium);
   flex-shrink: 0;
   margin-left: 0.2rem;
 }
 .mm-row-btn {
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   border: 0.5px solid var(--border-default);
   color: var(--text-secondary);
   cursor: pointer;
@@ -778,12 +778,12 @@
   opacity: 1;
 }
 .mm-row-move:hover {
-  color: #fff;
+  color: var(--text-primary);
   background: var(--accent-600);
   border-color: var(--accent-600);
 }
 .mm-row-del:hover {
-  color: #fff;
+  color: var(--text-primary);
   background: #e11d48;
   border-color: #e11d48;
 }
@@ -828,7 +828,7 @@
   min-height: 32px;
   padding: 5px 14px;
   border-radius: var(--radius-pill);
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   border: 1px solid var(--border-strong);
   color: rgb(255, 255, 255, 0.6);
   font-size: var(--text-2xs);
@@ -854,7 +854,7 @@
 .mm-type-btn.active {
   background: var(--gradient-pill-active);
   border-color: var(--accent-500);
-  color: #fff;
+  color: var(--text-primary);
   box-shadow: var(--mk-pill-shadow);
 }
 .mm-search-row {
@@ -863,7 +863,7 @@
 }
 .mm-search-in {
   flex: 1;
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   border: 0.5px solid var(--border-strong);
   color: var(--text-primary);
   padding: 0.32rem 0.6rem;
@@ -895,7 +895,7 @@
 }
 .mm-search-btn:hover {
   background: var(--accent-600);
-  color: #fff;
+  color: var(--text-primary);
 }
 .mm-season-panel {
   padding: 0.5rem 0.75rem;
@@ -909,7 +909,7 @@
   flex-wrap: wrap;
 }
 .mm-season-sel {
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   border: 0.5px solid var(--border-strong);
   color: var(--text-primary);
   padding: 0.28rem 0.5rem;
@@ -921,7 +921,7 @@
   font-family: inherit;
 }
 .mm-season-sel option {
-  background: var(--bg-secondary);
+  background: var(--mk-chrome-bg);
   color: var(--text-primary);
 }
 .mm-tmdb-list {
@@ -942,7 +942,7 @@
   margin-bottom: 0.3rem;
 }
 .mm-tmdb-card:hover {
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
 }
 .mm-tmdb-card.selected {
   background: rgb(var(--accent-rgb), 0.08);
@@ -960,7 +960,7 @@
   width: 64px;
   height: 96px;
   border-radius: var(--radius-sm);
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -1005,12 +1005,12 @@
   font-size: var(--text-3xs);
   padding: 1px 5px;
   border-radius: 4px;
-  color: #fff;
+  color: var(--text-primary);
   font-weight: var(--font-medium);
 }
 .mm-tmdb-link {
   font-size: var(--text-2xs);
-  color: #fff;
+  color: var(--text-primary);
   text-decoration: none;
   background: rgb(var(--accent-rgb), 0.2);
   border: 0.5px solid rgb(var(--accent-rgb), 0.3);
@@ -1054,14 +1054,14 @@
 }
 .mm-btn-full:hover:not(:disabled) {
   background: var(--accent-600);
-  color: #fff;
+  color: var(--text-primary);
 }
 .mm-btn-full:disabled {
   opacity: 0.3;
   cursor: not-allowed;
 }
 .mm-btn-full.mm-btn-secondary {
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   border-color: var(--border-strong);
   color: var(--text-secondary);
 }
@@ -1077,7 +1077,7 @@
 }
 .mm-btn-full.mm-btn-success:hover:not(:disabled) {
   background: #16a34a;
-  color: #fff;
+  color: var(--text-primary);
 }
 .mm-btn-full.mm-btn-emby {
   background: rgb(124, 58, 237, 0.12);
@@ -1086,7 +1086,7 @@
 }
 .mm-btn-full.mm-btn-emby:hover {
   background: #7c3aed;
-  color: #fff;
+  color: var(--text-primary);
 }
 .mm-progress {
   height: 3px;
@@ -1134,7 +1134,7 @@
 .mm-new-row.warn-strong {
   background: rgb(var(--color-error-rgb), 0.15);
   border-color: rgb(var(--color-error-rgb), 0.4);
-  color: #fff;
+  color: var(--text-primary);
 }
 .mm-warn-ep {
   background: rgb(var(--color-error-rgb), 0.18) !important;
@@ -1301,7 +1301,7 @@
   justify-content: flex-end;
 }
 
-/* Modal move v3 — styles moved into `<style scoped>` inside MMMoveModal.vue.
+/* Modal move v3 — styles moved into `\3c style scoped>` inside MMMoveModal.vue.
  * Compat: these legacy classes are still referenced by other components
  * of the module (cross-category drag & drop, etc.) — kept here. */
 .mm-move-item {
@@ -1342,7 +1342,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   border: 0.5px solid var(--border-strong);
   border-radius: var(--radius-btn);
   padding: 0.2rem 0.5rem;
@@ -1363,7 +1363,7 @@
 }
 .mm-folder-input {
   width: 100%;
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   border: 0.5px solid var(--border-strong);
   color: var(--text-primary);
   padding: 0.35rem 0.6rem;
@@ -1404,7 +1404,7 @@
 .mm-config-sidebar {
   width: 190px;
   flex-shrink: 0;
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   border-right: 0.5px solid rgb(255, 255, 255, 0.07);
   display: flex;
   flex-direction: column;
@@ -1440,7 +1440,7 @@
   width: 100%;
 }
 .mm-config-tab:hover {
-  background: rgb(255, 255, 255, 0.05);
+  background: var(--surface-2);
   color: var(--text-primary);
 }
 .mm-config-tab.active {
@@ -1489,7 +1489,7 @@
   font-size: var(--text-2xs);
   color: var(--text-secondary);
   padding: 0.45rem 0.6rem;
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   border: 0.5px solid rgb(255, 255, 255, 0.07);
   border-radius: var(--radius-btn);
   line-height: 1.8;

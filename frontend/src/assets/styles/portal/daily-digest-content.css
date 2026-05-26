@@ -208,7 +208,7 @@
 .ddd-poster-title {
   font-size: var(--portal-text-sm);
   font-weight: var(--portal-font-bold);
-  color: #fff;
+  color: var(--portal-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

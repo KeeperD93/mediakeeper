@@ -201,7 +201,7 @@ watch(() => props.item, build, { immediate: true })
   border-radius: 16px;
 }
 .so-solid {
-  background: var(--bg-secondary);
+  background: var(--mk-chrome-bg);
   border: 1px solid var(--border-strong);
   border-radius: 14px;
 }
@@ -274,7 +274,7 @@ watch(() => props.item, build, { immediate: true })
   transition: background var(--duration-fast);
 }
 .so-season-header:hover {
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
 }
 .so-season-label {
   flex-shrink: 0;
@@ -357,7 +357,7 @@ watch(() => props.item, build, { immediate: true })
   padding: 5px 9px;
   font-size: var(--text-2xs);
   font-weight: var(--font-bold);
-  color: #fff;
+  color: var(--text-primary);
   background: rgb(15, 15, 25, 0.96);
   border: 1px solid rgb(255, 255, 255, 0.12);
   border-radius: var(--radius-sm);

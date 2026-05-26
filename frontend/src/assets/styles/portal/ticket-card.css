@@ -131,7 +131,7 @@
   color: var(--portal-color-success-light);
 }
 .tcd-pill--status-closed {
-  background: rgb(255, 255, 255, 0.08);
+  background: var(--portal-surface-4);
   color: var(--portal-text-secondary);
 }
 

@@ -112,7 +112,7 @@ onMounted(async () => {
 .pt-wrapped-title {
   font-size: 3rem;
   font-weight: var(--portal-font-black);
-  color: #fff;
+  color: var(--portal-text-primary);
   margin-bottom: 0.5rem;
 }
 .pt-wrapped-label {
@@ -136,7 +136,7 @@ onMounted(async () => {
 .pt-wrapped-glitch {
   font-size: 2.5rem;
   font-weight: var(--portal-font-extrabold);
-  color: #fff;
+  color: var(--portal-text-primary);
   animation: pt-glitch 0.3s ease-in-out;
 }
 .pt-wrapped-dots {
@@ -164,7 +164,7 @@ onMounted(async () => {
 }
 .pt-btn--primary {
   background: var(--accent);
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 
 .pt-slide-enter-active {

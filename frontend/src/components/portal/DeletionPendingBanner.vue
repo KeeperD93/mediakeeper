@@ -108,7 +108,7 @@ async function onCancel() {
   right: 0;
   z-index: 100; /* one above EventBanner so the user always sees it */
   background: rgb(180, 83, 9, 0.92);
-  color: #fff;
+  color: var(--portal-text-primary);
   border-top: 1px solid rgb(255, 255, 255, 0.15);
   border-bottom: 1px solid rgb(255, 255, 255, 0.15);
   box-shadow: 0 2px 12px rgb(0, 0, 0, 0.35);
@@ -137,7 +137,7 @@ async function onCancel() {
 .pt-dpb-cancel {
   flex: 0 0 auto;
   background: rgb(255, 255, 255, 0.18);
-  color: #fff;
+  color: var(--portal-text-primary);
   border: 1px solid rgb(255, 255, 255, 0.4);
   border-radius: 999px;
   padding: 0.3rem 0.85rem;

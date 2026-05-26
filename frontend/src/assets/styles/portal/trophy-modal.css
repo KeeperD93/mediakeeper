@@ -53,7 +53,7 @@
   line-height: var(--portal-lh-tight);
 }
 .gc-trophy-modal-close:hover {
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 .gc-trophy-modal-icon {
   font-size: 3rem;
@@ -67,7 +67,7 @@
 .gc-trophy-modal-name {
   font-size: var(--portal-text-lg);
   font-weight: var(--portal-font-black);
-  color: #fff;
+  color: var(--portal-text-primary);
   font-family: var(--portal-font-display);
   margin-bottom: 0.5rem;
 }

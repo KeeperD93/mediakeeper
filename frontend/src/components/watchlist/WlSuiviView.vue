@@ -112,7 +112,7 @@ function openAddModal() {
   width: 34px;
   height: 30px;
   border: 1px solid var(--border-strong);
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   border-radius: var(--radius-pill);
   cursor: pointer;
   color: rgb(255, 255, 255, 0.5);
@@ -133,7 +133,7 @@ function openAddModal() {
 .vt-btn.active {
   background: var(--gradient-pill-active);
   border-color: var(--accent-500);
-  color: #fff;
+  color: var(--text-primary);
   box-shadow: var(--mk-pill-shadow-sm);
 }
 

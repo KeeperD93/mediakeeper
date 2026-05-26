@@ -170,7 +170,7 @@ onMounted(load)
   min-height: 44px;
   padding: 3px 10px;
   border-radius: var(--radius-pill);
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   border: 1px solid var(--border-strong);
   color: rgb(255, 255, 255, 0.6);
   font-size: var(--text-3xs);
@@ -194,7 +194,7 @@ onMounted(load)
 .wg-eng-toggle-btn.is-active {
   background: var(--gradient-pill-active);
   border-color: var(--accent-500);
-  color: #fff;
+  color: var(--text-primary);
   box-shadow: var(--mk-pill-shadow-sm);
 }
 @media (hover: hover) {

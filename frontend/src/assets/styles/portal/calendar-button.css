@@ -34,11 +34,11 @@
   right: clamp(0.5rem, 4%, 2rem);
   width: clamp(300px, 92vw, 420px);
   max-height: 75vh;
-  background: rgb(20, 20, 30, 0.97);
+  background: var(--portal-panel-bg);
   border: 1px solid var(--portal-border-strong);
   border-radius: var(--radius-card);
   box-shadow: 0 24px 60px rgb(0, 0, 0, 0.6);
-  color: #fff;
+  color: var(--portal-text-primary);
   z-index: 8900;
   display: flex;
   flex-direction: column;
@@ -68,7 +68,7 @@
 }
 .pt-cal-popup .pt-cal-x:hover {
   background: var(--portal-surface-4);
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 
 .pt-cal-popup .pt-cal-list {
@@ -93,7 +93,7 @@
   background: var(--portal-surface-2);
   border: 1px solid var(--portal-border-default);
   border-radius: var(--radius-input);
-  color: #fff;
+  color: var(--portal-text-primary);
   text-align: left;
   cursor: pointer;
   margin-bottom: 0.45rem;

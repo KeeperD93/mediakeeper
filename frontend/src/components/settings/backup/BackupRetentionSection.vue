@@ -94,7 +94,7 @@ const emit = defineEmits(['mode-change', 'update:retentionDays', 'update:retenti
   padding: 7px 16px;
   border-radius: var(--radius-sm);
   background: var(--accent-600);
-  color: #fff;
+  color: var(--text-primary);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   border: none;

@@ -114,7 +114,7 @@ onMounted(async () => {
   padding: 10px 20px;
   border-radius: var(--radius-card);
   background: var(--accent-600);
-  color: #fff;
+  color: var(--text-primary);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   border: none;

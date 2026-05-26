@@ -215,7 +215,7 @@ function dateCls(e) {
 }
 .tl-date-now {
   background: linear-gradient(135deg, #6366f1, #7c3aed);
-  color: #fff;
+  color: var(--text-primary);
   font-size: var(--text-sm);
   padding: 6px 16px;
   border-radius: var(--radius-btn);
@@ -261,7 +261,7 @@ function dateCls(e) {
   height: 56px;
   border-radius: var(--radius-sm);
   overflow: hidden;
-  background: rgb(255, 255, 255, 0.05);
+  background: var(--surface-2);
   flex-shrink: 0;
   object-fit: cover;
 }

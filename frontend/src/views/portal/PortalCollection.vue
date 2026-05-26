@@ -114,9 +114,9 @@ onMounted(load)
   inset: 0;
   background: linear-gradient(
     180deg,
-    rgb(3, 7, 18, 0.3) 0%,
-    rgb(3, 7, 18, 0.75) 60%,
-    rgb(3, 7, 18, 1) 100%
+    rgb(var(--portal-bg-primary-rgb), 0.3) 0%,
+    rgb(var(--portal-bg-primary-rgb), 0.75) 60%,
+    rgb(var(--portal-bg-primary-rgb), 1) 100%
   );
 }
 .dmc-hero-content {
@@ -141,7 +141,7 @@ onMounted(load)
 .dmc-info {
   flex: 1;
   min-width: 0;
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 .dmc-label {
   font-size: var(--portal-text-2xs);

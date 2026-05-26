@@ -64,7 +64,7 @@
 }
 .ru-btn--primary {
   background: var(--accent);
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 .ru-btn--primary:hover:not(:disabled) {
   opacity: 0.88;

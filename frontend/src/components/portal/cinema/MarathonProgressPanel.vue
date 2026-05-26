@@ -129,9 +129,9 @@ defineExpose({ pct, formatRemaining })
   max-width: 92vw;
   padding: 10px 12px 12px;
   background: rgb(0, 0, 0, 0.55);
-  border: 1px solid rgb(255, 255, 255, 0.12);
+  border: 1px solid var(--portal-border-strong);
   border-radius: var(--portal-radius-md);
-  color: rgb(255, 255, 255, 0.92);
+  color: var(--portal-text-primary);
   backdrop-filter: blur(8px);
   font-size: 12px;
 }
@@ -186,7 +186,7 @@ defineExpose({ pct, formatRemaining })
 .pt-cr-marathon-bar {
   position: relative;
   height: 4px;
-  background: rgb(255, 255, 255, 0.12);
+  background: var(--portal-surface-5);
   border-radius: 2px;
   overflow: hidden;
 }

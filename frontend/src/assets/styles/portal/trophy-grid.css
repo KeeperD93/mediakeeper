@@ -18,7 +18,7 @@
 .gc-trophy-count {
   font-size: var(--portal-text-md);
   font-weight: var(--portal-font-black);
-  color: #fff;
+  color: var(--portal-text-primary);
   font-family: var(--portal-font-display);
 }
 .gc-trophy-count span {
@@ -69,7 +69,7 @@
 .gc-trophy-next-name {
   font-size: var(--portal-text-2xs);
   font-weight: var(--portal-font-bold);
-  color: #fff;
+  color: var(--portal-text-primary);
   margin-bottom: 0.2rem;
 }
 .gc-trophy-tier {

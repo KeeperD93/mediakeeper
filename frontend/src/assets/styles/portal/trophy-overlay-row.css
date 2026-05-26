@@ -187,7 +187,7 @@
 .ta-row-name {
   font-size: var(--portal-text-base);
   font-weight: var(--portal-font-extrabold);
-  color: #fff;
+  color: var(--portal-text-primary);
   margin: 0;
   font-family: var(--portal-font-display);
   letter-spacing: var(--portal-tracking-wide);

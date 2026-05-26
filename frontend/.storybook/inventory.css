@@ -1,0 +1,444 @@
+/* Storybook-only styles for the MediaKeeper inventory story.
+ * Loaded via .storybook/preview.ts so the inline-template classes resolve.
+ *
+ * Reproductions are written against the SAME CSS tokens the live app uses
+ * (var(--accent-*), var(--color-error), etc.) so the palette override in
+ * storybook-overrides.css applies consistently across MkButton AND the
+ * inventory. The structure (padding, radius, gradient direction, halo,
+ * border opacity) is copied verbatim from each source class so visual
+ * accuracy is preserved when the override is removed.
+ */
+
+/* ─── Page + tables ─── */
+.inv-page {
+  padding: 32px 40px;
+  color: var(--text-secondary);
+  font-family: var(--font-system);
+  max-width: 1400px;
+}
+.inv-section {
+  margin-bottom: 56px;
+}
+.inv-section h2 {
+  color: var(--text-primary);
+  font-size: 22px;
+  margin: 0 0 4px;
+}
+.inv-section h3 {
+  color: var(--text-primary);
+  font-size: 16px;
+  margin: 24px 0 8px;
+}
+.inv-section .intro {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin: 0 0 16px;
+  max-width: 880px;
+  line-height: 1.55;
+}
+.inv-section .reco {
+  background: rgb(var(--accent-rgb), 0.15);
+  border-left: 3px solid var(--accent-500);
+  padding: 10px 16px;
+  margin: 12px 0 20px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.inv-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-secondary);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+  margin-bottom: 16px;
+}
+.inv-table th {
+  text-align: left;
+  padding: 12px 16px;
+  background: var(--surface-1);
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  border-bottom: 1px solid var(--border-default);
+}
+.inv-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: middle;
+  font-size: 13px;
+}
+.inv-table tr:last-child td {
+  border-bottom: none;
+}
+.inv-table .preview {
+  width: 240px;
+}
+.inv-table .name {
+  width: 320px;
+  font-family: var(--font-mono);
+  color: var(--accent-300);
+  font-size: 12px;
+}
+.inv-table .where {
+  color: var(--text-muted);
+}
+
+/* ════════════════════════════════════════════════════════════════════
+ * FAITHFUL REPRODUCTIONS of MediaKeeper button visual families
+ * Each block cites the source class it mimics + the exact CSS values.
+ * Uses MediaKeeper tokens so the palette override stays consistent.
+ * ════════════════════════════════════════════════════════════════════ */
+
+/* Family A — Solid accent (accent-600 + white text)
+ * Sources: .wn-btn-primary, .str-save-btn, .lfm-btn--primary,
+ *          .pt-evd-btn--primary (uses accent-700), .nf-save-btn */
+.x-mk-flat-primary {
+  padding: 8px 20px;
+  border-radius: var(--radius-btn);
+  border: none;
+  background: var(--accent-600);
+  color: var(--color-on-accent);
+  font-weight: var(--font-medium);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+}
+
+/* Family B — Tinted accent (translucent bg + accent border + accent-400 text)
+ * Sources: .hc-save-btn (0.18 bg / 0.3 border), .str-run-btn (0.1 / 0.2),
+ *          .nf-add-btn (0.15 / 0.3), .mk-confirm-btn-info (0.15 / 0.25) */
+.x-mk-tinted-primary {
+  padding: 9px 22px;
+  border-radius: var(--radius-btn);
+  background: rgb(var(--accent-rgb), 0.18);
+  border: 0.5px solid rgb(var(--accent-rgb), 0.3);
+  color: var(--accent-400);
+  font-weight: var(--font-medium);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+}
+
+/* Family C — Pill gradient (translucent gradient + accent ring + accent halo)
+ * Sources: .mr-btn-primary, .mv-btn-primary, .mf-btn-primary
+ * Uses var(--gradient-pill-active) which is itself a TRANSLUCENT gradient
+ * (22% → 10% accent), NOT a solid violet—important visual distinction. */
+.x-mk-pill-gradient {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-pill);
+  background: var(--gradient-pill-active);
+  color: var(--text-primary);
+  border: 1px solid var(--accent-500);
+  font-weight: var(--font-bold);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  box-shadow: var(--mk-pill-shadow-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+}
+
+/* Family D-login — Linear gradient indigo→purple
+ * Source: .login-submit (background: linear-gradient(135deg, #4f46e5, #7c3aed)) */
+.x-mk-gradient-login {
+  padding: 12px 24px;
+  border-radius: var(--radius-input);
+  border: none;
+  background: linear-gradient(135deg, var(--accent-600), #7c3aed);
+  color: var(--text-primary);
+  font-weight: var(--font-medium);
+  font-size: var(--text-base);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: inherit;
+}
+
+/* Family D-onboarding — Gradient + accent shadow
+ * Source: .ob-btn-launch */
+.x-mk-gradient-onboarding {
+  padding: 10px 22px;
+  border-radius: var(--radius-btn);
+  border: none;
+  background: linear-gradient(135deg, var(--accent-600), #7c3aed);
+  color: var(--text-primary);
+  font-weight: var(--font-medium);
+  font-size: var(--text-base);
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgb(var(--accent-rgb), 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: inherit;
+}
+
+/* Family D-digest — Gradient accent-500 → accent-700 + accent halo
+ * Source: .ddd-btn-primary */
+.x-mk-gradient-digest {
+  padding: 12px 22px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, var(--accent-500), var(--accent-700));
+  color: var(--text-primary);
+  font-weight: var(--font-bold);
+  font-size: var(--text-sm);
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgb(var(--accent-rgb), 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+}
+
+/* Family E — Portal gradient accent (--portal-gradient-accent = accent-500 → accent-700)
+ * Source: .arr-create-btn */
+.x-mk-gradient-portal {
+  padding: 10px 18px;
+  border-radius: var(--radius-btn);
+  border: none;
+  background: linear-gradient(135deg, var(--accent-500), var(--accent-700));
+  color: var(--text-primary);
+  font-weight: var(--font-extrabold);
+  font-size: var(--text-sm);
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgb(var(--accent-rgb), 0.35);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: inherit;
+}
+
+/* Family F — Tinted danger (translucent red + red border + red text)
+ * Sources: .mm-btn-danger (0.15 / 0.3 / #ef4444),
+ *          .mk-confirm-btn-danger (--color-error-rgb 0.15 / 0.3) */
+.x-mk-tinted-danger {
+  padding: 8px 18px;
+  border-radius: var(--radius-btn);
+  background: rgb(var(--color-error-rgb), 0.15);
+  border: 1px solid rgb(var(--color-error-rgb), 0.3);
+  color: var(--color-error);
+  font-weight: var(--font-medium);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+}
+
+/* Family F-warn — Tinted warning (same pattern, warning color)
+ * Source: .mk-confirm-btn-warn */
+.x-mk-tinted-warn {
+  padding: 8px 18px;
+  border-radius: var(--radius-btn);
+  background: rgb(var(--color-warning-rgb), 0.15);
+  border: 1px solid rgb(var(--color-warning-rgb), 0.3);
+  color: var(--color-warning);
+  font-weight: var(--font-medium);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+}
+
+/* Family G — Solid danger (#b91c1c plein + texte blanc)
+ * Source: .pt-evd-btn--danger (background hardcoded #b91c1c, not a token) */
+.x-mk-flat-danger {
+  padding: 8px 18px;
+  border-radius: var(--radius-btn);
+  border: none;
+  background: #b91c1c;
+  color: var(--text-primary);
+  font-weight: var(--font-medium);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+}
+
+/* Family H — Ghost outline neutral (transparent + grey border + grey text)
+ * Sources: .wn-btn-secondary (border var(--border) + text-secondary),
+ *          .mk-confirm-btn-cancel (border-default + text-muted),
+ *          .lfm-btn--secondary (border rgba 0.1 + text-secondary),
+ *          .ob-btn-ghost (border 0.5 + text-secondary) */
+.x-mk-ghost-neutral {
+  padding: 8px 18px;
+  border-radius: var(--radius-btn);
+  background: transparent;
+  border: 1px solid var(--border-intense);
+  color: var(--text-secondary);
+  font-weight: var(--font-medium);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* Family H-pill — Ghost pill (MM modales)
+ * Sources: .mr-btn-ghost, .mv-btn-ghost, .mf-btn-ghost
+ * (border border-strong + text-secondary, no background) */
+.x-mk-pill-ghost {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text-secondary);
+  font-weight: var(--font-bold);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+}
+
+/* Family I — Tinted success (--color-success-rgb at 0.12 / 0.25)
+ * Source: .mm-btn-success */
+.x-mk-tinted-success {
+  padding: 8px 18px;
+  border-radius: var(--radius-btn);
+  background: rgb(var(--color-success-rgb), 0.12);
+  border: 1px solid rgb(var(--color-success-rgb), 0.25);
+  color: var(--color-success);
+  font-weight: var(--font-medium);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+}
+
+/* Family J — Skip / link (texte seul)
+ * Source: .ob-btn-skip (transparent + text-muted + text-xs) */
+.x-mk-skip {
+  background: transparent;
+  border: none;
+  padding: 6px 12px;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* Family K — Icon-only square (toolbar / header action)
+ * Sources: .pt-icon-btn, .ru-icon-btn, .mk-iconbtn */
+.x-mk-icon-square {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-btn);
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+/* Family K-close — Modale close X (carré subtle, transparent)
+ * Sources: .wn-close, .sm-close, .pt-popup-close, ~25 instances */
+.x-mk-icon-close {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-btn);
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-family: inherit;
+}
+
+/* Family K-gold — Bookmark gold (PosterCard)
+ * Source: .mk-iconbtn--gold (warning at 0.15 / 0.4 + warning text) */
+.x-mk-icon-gold {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgb(var(--color-warning-rgb), 0.15);
+  border: 1px solid rgb(var(--color-warning-rgb), 0.4);
+  color: var(--color-warning);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+/* Family L — Mini remove pill (croix rouge ronde sur tag)
+ * Sources: .ru-tag-remove, .ale-item-remove, .ob-folder-remove */
+.x-mk-mini-remove {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgb(var(--color-error-rgb), 0.2);
+  border: none;
+  color: var(--color-error);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  line-height: 1;
+  font-family: inherit;
+}
+
+/* Family M — Cinema gold pulsing (rare, fonction "Cinéma")
+ * Source: .pt-evd-btn--cinema (portal-gradient-gold + warning halo) */
+.x-mk-cinema-gold {
+  padding: 8px 18px;
+  border-radius: var(--radius-btn);
+  border: none;
+  background: linear-gradient(135deg, #fde68a, #f97316);
+  color: #1a0a05;
+  font-weight: var(--font-bold);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgb(var(--color-warning-rgb), 0.35);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+}
+
+/* Family N — White gradient (Portail détail "Bande-annonce")
+ * Source: .vmd2-btn--primary (background: linear-gradient(135deg, #fff, #e5e5e5)) */
+.x-mk-white-gradient {
+  padding: 10px 22px;
+  border-radius: var(--radius-btn);
+  border: none;
+  background: linear-gradient(135deg, #fff 0%, #e5e5e5 100%);
+  color: #141414;
+  font-weight: var(--font-medium);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+}

@@ -106,7 +106,7 @@ function onProfileChange() {
   cursor: pointer;
 }
 .sub-profile-sel option {
-  background: var(--bg-secondary);
+  background: var(--mk-chrome-bg);
   color: var(--text-primary);
 }
 .sub-profile-edit-btn {
@@ -122,7 +122,7 @@ function onProfileChange() {
   cursor: pointer;
 }
 .sub-profile-edit-btn:hover {
-  background: rgb(255, 255, 255, 0.08);
+  background: var(--surface-3);
   color: var(--text-primary);
 }
 
@@ -141,7 +141,7 @@ function onProfileChange() {
   font-family: inherit;
 }
 .sub-settings-btn:hover {
-  background: rgb(255, 255, 255, 0.08);
+  background: var(--surface-3);
 }
 
 .sub-auto-badge {

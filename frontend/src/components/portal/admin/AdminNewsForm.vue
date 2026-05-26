@@ -177,6 +177,6 @@ function onSubmit() {
 }
 .pt-btn--primary {
   background: var(--accent);
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 </style>

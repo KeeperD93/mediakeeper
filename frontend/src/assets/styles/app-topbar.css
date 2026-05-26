@@ -8,8 +8,8 @@
   padding: 0 24px;
   height: 56px;
   flex-shrink: 0;
-  background: transparent;
-  border-bottom: 1px solid rgb(255, 255, 255, 0.03);
+  background: var(--mk-chrome-gradient);
+  border-bottom: 1px solid var(--border-subtle);
   position: relative;
   z-index: 10;
   /* iPhone safe-area support so the topbar sits flush under the
@@ -39,11 +39,13 @@
   width: 44px;
   height: 44px;
   border-radius: var(--radius-btn);
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   border: 1px solid var(--border-default);
-  color: rgb(255, 255, 255, 0.5);
+  color: var(--text-faint);
   cursor: pointer;
-  transition: all var(--duration-base);
+  transition:
+    background var(--duration-base),
+    color var(--duration-base);
 }
 @media (max-width: 1023px) {
   .tb-burger {
@@ -53,7 +55,7 @@
 @media (hover: hover) {
   .tb-burger:hover {
     background: var(--surface-3);
-    color: rgb(255, 255, 255, 0.8);
+    color: var(--text-secondary);
   }
 }
 
@@ -81,17 +83,10 @@
   }
 }
 
-/* Mobile-only "Customize" trigger on /dashboard pages — sits next to
-   the bell. Hidden on tablet + desktop where the existing in-page
-   ghost CTA is the entry point. */
-.tb-customize-btn {
-  display: none;
-}
-@media (max-width: 767px) {
-  .tb-customize-btn {
-    display: inline-flex;
-  }
-}
+/* "Customize" trigger on /dashboard pages — sits next to the bell on
+   every breakpoint. The dashboard view listens for the dispatched
+   event and runs its own reorder flow per platform (desktop grid
+   drag vs mobile long-press). */
 
 /* Right */
 .tb-right {
@@ -112,11 +107,14 @@
   width: 36px;
   height: 36px;
   border-radius: var(--radius-btn);
-  background: rgb(255, 255, 255, 0.03);
-  border: 1px solid rgb(255, 255, 255, 0.05);
+  background: var(--surface-1);
+  border: 1px solid var(--border-default);
   color: var(--text-faint);
   cursor: pointer;
-  transition: all var(--duration-base);
+  transition:
+    background var(--duration-base),
+    border-color var(--duration-base),
+    color var(--duration-base);
 }
 @media (max-width: 767px) {
   .tb-action-btn {
@@ -128,7 +126,7 @@
   .tb-action-btn:hover {
     background: var(--surface-3);
     border-color: var(--border-strong);
-    color: rgb(255, 255, 255, 0.75);
+    color: var(--text-secondary);
   }
 }
 
@@ -141,24 +139,24 @@
   height: 16px;
   padding: 0 4px;
   border-radius: var(--radius-btn);
-  background: #ef4444;
-  color: #fff;
+  background: var(--color-error-strong);
+  color: var(--color-on-accent);
   font-size: 9px;
   font-weight: var(--font-bold);
   display: flex;
   align-items: center;
   justify-content: center;
   line-height: var(--lh-tight);
-  box-shadow: 0 0 8px rgb(239, 68, 68, 0.4);
+  box-shadow: 0 0 8px rgb(var(--color-error-strong-rgb), 0.4);
   animation: tb-badge-pulse var(--duration-pulse) ease-in-out infinite;
 }
 @keyframes tb-badge-pulse {
   0%,
   100% {
-    box-shadow: 0 0 8px rgb(239, 68, 68, 0.4);
+    box-shadow: 0 0 8px rgb(var(--color-error-strong-rgb), 0.4);
   }
   50% {
-    box-shadow: 0 0 14px rgb(239, 68, 68, 0.6);
+    box-shadow: 0 0 14px rgb(var(--color-error-strong-rgb), 0.6);
   }
 }
 
@@ -169,11 +167,14 @@
   gap: 8px;
   padding: 4px 10px 4px 4px;
   border-radius: var(--radius-btn);
-  background: rgb(255, 255, 255, 0.03);
-  border: 1px solid rgb(255, 255, 255, 0.05);
-  color: rgb(255, 255, 255, 0.6);
+  background: var(--surface-1);
+  border: 1px solid var(--border-default);
+  color: var(--text-muted);
   cursor: pointer;
-  transition: all var(--duration-base);
+  transition:
+    background var(--duration-base),
+    border-color var(--duration-base),
+    color var(--duration-base);
   min-height: 36px;
 }
 @media (max-width: 767px) {
@@ -186,7 +187,7 @@
   .tb-user-btn:hover {
     background: var(--surface-3);
     border-color: var(--border-strong);
-    color: rgb(255, 255, 255, 0.8);
+    color: var(--text-secondary);
   }
 }
 

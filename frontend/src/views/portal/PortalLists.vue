@@ -226,7 +226,7 @@ onMounted(() => loadTab('mine'))
   border-radius: var(--radius-btn);
   border: none;
   background: var(--portal-gradient-accent);
-  color: #fff;
+  color: var(--portal-text-primary);
   font-weight: var(--portal-font-extrabold);
   cursor: pointer;
   font-size: var(--portal-text-sm);
@@ -254,7 +254,7 @@ onMounted(() => loadTab('mine'))
   border-radius: var(--radius-btn);
   border: none;
   background: var(--portal-gradient-accent);
-  color: #fff;
+  color: var(--portal-text-primary);
   font-weight: var(--portal-font-extrabold);
   cursor: pointer;
   font-size: var(--portal-text-sm);

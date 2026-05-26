@@ -34,11 +34,7 @@
 
     <!-- Group 2 — subtitle status filter -->
     <div class="sf-group sf-group--status sf-status-btns">
-      <button
-        class="sf-status-btn"
-        :class="{ active: libStatus === '' }"
-        @click="onStatus('')"
-      >
+      <button class="sf-status-btn" :class="{ active: libStatus === '' }" @click="onStatus('')">
         {{ $t('subtitles.filterAll') }}
       </button>
       <button
@@ -97,14 +93,7 @@
 </template>
 
 <script setup>
-import {
-  AlertCircle,
-  Check,
-  CheckSquare,
-  ClipboardCheck,
-  LayoutGrid,
-  List,
-} from 'lucide-vue-next'
+import { AlertCircle, Check, CheckSquare, ClipboardCheck, LayoutGrid, List } from 'lucide-vue-next'
 
 defineProps({
   libSearch: { type: String, default: '' },
@@ -192,7 +181,7 @@ function onStatus(value) {
   font-size: var(--text-sm);
   font-family: inherit;
   box-sizing: border-box;
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   color: var(--text-primary);
   outline: none;
 }
@@ -216,7 +205,7 @@ function onStatus(value) {
   box-sizing: border-box;
 }
 .sf-select option {
-  background: var(--bg-secondary);
+  background: var(--mk-chrome-bg);
   color: var(--text-primary);
 }
 .sf-status-btns {
@@ -230,7 +219,7 @@ function onStatus(value) {
   min-height: 32px;
   padding: 5px 14px;
   border-radius: var(--radius-btn);
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   border: 1px solid var(--border-strong);
   font-size: var(--text-2xs);
   font-weight: var(--font-extrabold);
@@ -251,7 +240,7 @@ function onStatus(value) {
 .sf-status-btn.active {
   background: var(--gradient-pill-active);
   border-color: var(--accent-500);
-  color: #fff;
+  color: var(--text-primary);
   box-shadow: var(--mk-pill-shadow);
 }
 .sf-tool-btn {
@@ -275,7 +264,7 @@ function onStatus(value) {
 .sf-view-toggle {
   display: flex;
   gap: 2px;
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   border-radius: var(--radius-btn);
   padding: 2px;
 }
@@ -293,7 +282,7 @@ function onStatus(value) {
   transition: all var(--duration-base);
 }
 .sf-view-btn.active {
-  background: rgb(255, 255, 255, 0.08);
+  background: var(--surface-3);
   color: var(--text-primary);
 }
 

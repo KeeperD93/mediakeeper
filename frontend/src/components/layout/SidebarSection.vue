@@ -35,7 +35,7 @@ defineProps({
   font-weight: var(--font-bold);
   text-transform: uppercase;
   letter-spacing: 1.6px;
-  color: rgb(255, 255, 255, 0.55);
+  color: var(--text-muted);
   flex-shrink: 0;
   text-shadow: 0 0 12px rgb(var(--accent-rgb), 0.25);
 }

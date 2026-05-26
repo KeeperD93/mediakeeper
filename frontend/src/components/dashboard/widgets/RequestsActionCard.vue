@@ -2,10 +2,14 @@
   <div class="wg-req" :class="{ 'wg-req-editing': editing }">
     <div class="wg-req-head">
       <span class="wg-req-title">{{ $t('dashboard.portalAction.title') }}</span>
-      <button v-if="!editing" class="wg-req-head-link" @click="goTo('/admin/portal')">
+      <MkButton
+        v-if="!editing"
+        variant="link"
+        icon-right="chevron-right"
+        @click="goTo('/admin/portal')"
+      >
         {{ $t('dashboard.portalAction.manage') }}
-        <ChevronRight :size="12" />
-      </button>
+      </MkButton>
     </div>
     <div class="wg-req-grid">
       <button class="wg-req-tile" :disabled="editing" @click="goTo('/portal/requests')">
@@ -39,7 +43,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ChevronRight, Clock, LifeBuoy, CircleCheck, CircleX } from 'lucide-vue-next'
+import { Clock, LifeBuoy, CircleCheck, CircleX } from 'lucide-vue-next'
+import MkButton from '@/components/common/MkButton.vue'
 import { fetchApiResponse } from '@/composables/useApi'
 
 defineProps({ editing: { type: Boolean, default: false } })
@@ -113,7 +118,7 @@ onMounted(async () => {
   min-height: 44px;
   padding: 5px 14px;
   border-radius: var(--radius-btn);
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   border: 1px solid var(--border-strong);
   color: rgb(255, 255, 255, 0.6);
   font-size: var(--text-3xs);

@@ -133,7 +133,7 @@
   color: var(--accent);
 }
 .ru-trophy-icon--muted {
-  background: rgb(255, 255, 255, 0.04);
+  background: var(--portal-surface-2);
   color: var(--text-muted);
 }
 .ru-trophy-name {

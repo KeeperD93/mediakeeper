@@ -287,7 +287,7 @@
   align-items: center;
   justify-content: center;
   font-weight: var(--portal-font-extrabold);
-  color: #fff;
+  color: var(--portal-text-primary);
   font-size: clamp(0.65rem, 1.1vw, 0.95rem);
   box-shadow:
     0 4px 14px rgb(0, 0, 0, 0.8),

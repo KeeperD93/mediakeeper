@@ -35,7 +35,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   padding: 2rem 1rem;
-  background: var(--bg-primary);
+  background: var(--portal-bg-primary);
 }
 .pmaint-card {
   display: flex;

@@ -31,7 +31,7 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  background: rgb(8, 10, 20, 0.92);
+  background: rgb(var(--portal-bg-primary-rgb), 0.92);
   height: 100%;
   border-radius: 18px;
 }
@@ -234,7 +234,7 @@
   background: rgb(10, 12, 25, 0.95);
   font-size: var(--portal-text-3xl);
   font-weight: var(--portal-font-black);
-  color: #fff;
+  color: var(--portal-text-primary);
   font-family: var(--portal-font-display);
 }
 /* MkAvatar drives the avatar render here. Override the inline width/
@@ -373,7 +373,7 @@
 .gc-name {
   font-size: var(--portal-text-lg);
   font-weight: var(--portal-font-black);
-  color: #fff;
+  color: var(--portal-text-primary);
   font-family: var(--portal-font-display);
   margin-bottom: 0.1rem;
 }
@@ -382,7 +382,7 @@
 .gc--diamond .gc-name,
 .gc--master .gc-name,
 .gc--legendary .gc-name {
-  color: #fff;
+  color: var(--portal-text-primary);
   text-shadow: 0 2px 8px rgb(0, 0, 0, 0.5);
 }
 .gc--legendary .gc-name {

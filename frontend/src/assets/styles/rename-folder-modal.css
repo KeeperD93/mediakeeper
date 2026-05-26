@@ -276,7 +276,7 @@
 }
 .mr-btn-primary {
   background: var(--gradient-pill-active);
-  color: #fff;
+  color: var(--text-primary);
   border-color: var(--accent-500);
   box-shadow: var(--mk-pill-shadow-sm);
 }

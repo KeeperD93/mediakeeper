@@ -39,6 +39,7 @@
     "src/**/*.vue",
     "src/**/*.js",
     "src/**/*.mjs",
+    ".storybook/**/*.ts",
     "vite.config.js",
     "vitest.config.js",
     "eslint.config.js"

@@ -74,7 +74,7 @@
   min-height: 32px;
   padding: 5px 14px;
   border-radius: var(--radius-pill);
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   border: 1px solid var(--border-strong);
   color: rgb(255, 255, 255, 0.6);
   font-size: var(--text-2xs);
@@ -101,7 +101,7 @@
 .cinema-notif .nf-agent-btn.active {
   background: var(--gradient-pill-active);
   border-color: var(--accent-500);
-  color: #fff;
+  color: var(--text-primary);
   box-shadow: var(--mk-pill-shadow);
 }
 
@@ -111,7 +111,7 @@
   padding: 16px;
   border-radius: var(--radius-card);
   border: 1px solid var(--border);
-  background: rgb(var(--accent-rgb), 0.03);
+  background: var(--surface-1);
 }
 .cinema-notif .nf-section-hdr {
   display: flex;
@@ -141,7 +141,7 @@
 }
 .cinema-notif .nf-add-btn:hover {
   background: var(--accent-600);
-  color: #fff;
+  color: var(--text-primary);
 }
 
 /* Fields */
@@ -211,7 +211,7 @@
   box-sizing: border-box;
 }
 .cinema-notif .nf-select option {
-  background: var(--bg-secondary);
+  background: var(--mk-chrome-bg);
   color: var(--text-primary);
 }
 .cinema-notif .nf-toggle {
@@ -411,7 +411,7 @@
 }
 .cinema-notif .nf-del-btn:hover {
   background: #e11d48;
-  color: #fff;
+  color: var(--text-primary);
 }
 .cinema-notif .nf-events {
   display: grid;
@@ -472,7 +472,7 @@
   font-size: var(--text-base);
   font-weight: var(--font-bold);
   background: var(--accent-600);
-  color: #fff;
+  color: var(--text-primary);
   border: none;
   cursor: pointer;
   transition: background var(--duration-fast);
@@ -542,7 +542,7 @@
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   background: var(--accent-600);
-  color: #fff;
+  color: var(--text-primary);
   border: none;
   cursor: pointer;
   margin-top: 12px;
@@ -567,7 +567,7 @@
 }
 .cinema-notif .nf-btn-danger:hover {
   background: #e11d48;
-  color: #fff;
+  color: var(--text-primary);
 }
 .cinema-notif .ic {
   width: 16px;
@@ -690,7 +690,7 @@
   min-height: 32px;
   padding: 5px 14px;
   border-radius: var(--radius-pill);
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   border: 1px solid var(--border-strong);
   color: rgb(255, 255, 255, 0.6);
   font-size: var(--text-2xs);
@@ -712,7 +712,7 @@
 .cinema-notif .nf-tpl-wh-btn.active {
   background: var(--gradient-pill-active);
   border-color: var(--accent-500);
-  color: #fff;
+  color: var(--text-primary);
   box-shadow: var(--mk-pill-shadow);
 }
 
@@ -740,7 +740,7 @@
   border: 0.5px solid transparent;
 }
 .cinema-notif .nf-tpl-grp:hover {
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   border-color: var(--border);
 }
 .cinema-notif .nf-tpl-grp.active {
@@ -766,7 +766,7 @@
   font-size: 0.58rem;
   padding: 1px 5px;
   border-radius: 5px;
-  background: rgb(255, 255, 255, 0.05);
+  background: var(--surface-2);
   color: var(--text-muted);
   flex-shrink: 0;
 }
@@ -974,7 +974,7 @@
   height: 24px;
   border-radius: 50%;
   background: #5865f2;
-  color: #fff;
+  color: var(--text-primary);
   font-size: var(--text-2xs);
   font-weight: var(--font-bold);
   display: flex;
@@ -985,12 +985,12 @@
 .cinema-notif .nf-discord-uname {
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  color: #fff;
+  color: var(--text-primary);
 }
 .cinema-notif .nf-discord-bot-tag {
   font-size: 0.55rem;
   background: #5865f2;
-  color: #fff;
+  color: var(--text-primary);
   padding: 1px 5px;
   border-radius: 3px;
   font-weight: var(--font-medium);

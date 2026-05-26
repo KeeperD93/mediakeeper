@@ -33,7 +33,7 @@
   padding: 0 0.75rem 0 32px;
   border-radius: var(--radius-btn);
   border: 1px solid var(--border);
-  background: var(--bg-primary);
+  background: var(--portal-bg-primary);
   color: var(--text-primary);
   font: inherit;
   font-size: var(--text-sm);
@@ -77,7 +77,7 @@
   padding: 0 2rem 0 0.75rem;
   border-radius: var(--radius-btn);
   border: 1px solid var(--border);
-  background-color: var(--bg-primary);
+  background-color: var(--portal-bg-primary);
   color: var(--text-primary);
   font: inherit;
   font-size: var(--text-sm);
@@ -146,12 +146,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-primary);
+  background: var(--portal-bg-primary);
   color: var(--text-secondary);
   border: none;
   cursor: pointer;
 }
 .ru-toolbar-view-btn.is-active {
   background: var(--accent);
-  color: #fff;
+  color: var(--portal-text-primary);
 }

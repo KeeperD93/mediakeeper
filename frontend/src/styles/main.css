@@ -102,24 +102,45 @@ main#main-content:focus-visible {
    rebuilt on top of the design tokens.
    ============================================ */
 :root {
-  --bg-primary: #030712;
-  --bg-primary-rgb: 3, 7, 18; /* Companion RGB triplet for rgba() composition */
-  --bg-secondary: #111827;
-  --bg-tertiary: #1f2937;
+  /* Tells the browser to render native widgets (select dropdowns,
+     date pickers, scrollbars, autofill, focus rings) in dark mode so
+     they match the admin theme instead of falling back to white. */
+  color-scheme: dark;
+
+  --bg-primary: #1f2126;
+  --bg-primary-rgb: 31, 33, 38; /* Companion RGB triplet for rgba() composition */
+  --bg-secondary: #24262b; /* Card / panel surface — lighter than bg-primary for visible separation */
+  --bg-tertiary: #2d3036; /* Slightly lighter for stacked layers */
   --bg-panel: var(--bg-secondary); /* Alias — modal / panel surface */
-  --border: #1f2937;
-  --border-hover: #374151;
+  --mk-chrome-bg: #1c2533; /* Sidebar + topbar surface — admin chrome */
+  --mk-chrome-bg-rgb: 28, 37, 51;
+  --sidebar-width: 240px; /* Admin sidebar full width — collapsed state (68px) handled inline in app-sidebar.css */
+  --mk-chrome-gradient-top: #2d3139; /* Top stop for chrome gradient — medium grey-blue */
+  --mk-chrome-gradient-bottom: #15171c; /* Bottom stop — near-black */
+  --mk-chrome-gradient: linear-gradient(
+    to bottom,
+    var(--mk-chrome-gradient-top) 0%,
+    var(--mk-chrome-gradient-bottom) 100%
+  );
+  --border: #243044; /* Default border — subtle separation on dark theme */
+  --border-hover: #3a4a66; /* Hover/focus border — clearly differentiated */
   --text-primary: #fff;
-  --text-secondary: #9ca3af;
-  --text-muted: #4b5563;
+  --text-secondary: #dde2eb;
+  --text-muted: #a8b2c2;
   --accent: #4338ca;
   --accent-light: #312e81;
-  /* Accent color system — overridden by useTheme */
-  --accent-500: #6366f1;
-  --accent-400: #818cf8;
+  /* Accent color system — overridden by useTheme.
+   * 9-step scale (50 → 900) for full Tailwind-like coverage. */
+  --accent-50: #eef2ff;
+  --accent-100: #e0e7ff;
+  --accent-200: #c7d2fe;
   --accent-300: #a5b4fc;
+  --accent-400: #818cf8;
+  --accent-500: #6366f1; /* Main accent — pilots the others when useTheme overrides */
   --accent-600: #4f46e5;
   --accent-700: #4338ca;
+  --accent-800: #3730a3;
+  --accent-900: #312e81;
   --accent-rgb: 99, 102, 241;
 
   /* Pill "neon" glow — controlled by the Appearance slider via --mk-glow (0..2, default 1).
@@ -158,6 +179,15 @@ input:not([type='range'], [type='checkbox'], [type='radio']),
 select,
 textarea {
   border-radius: var(--radius-input) !important;
+}
+
+/* Native <select> options — the browser renders the opened list itself
+   (CSS reach is limited). Aligning background on --mk-chrome-bg keeps
+   the dropdown list in the same hue as the topbar/sidebar so it looks
+   like a continuation of the admin chrome rather than a black overlay. */
+select option {
+  background: var(--mk-chrome-bg);
+  color: var(--text-primary);
 }
 
 /* ============================================================

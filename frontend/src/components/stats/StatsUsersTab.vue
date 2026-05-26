@@ -55,6 +55,7 @@
       <div v-else class="tbl-scroll">
         <table class="dt">
           <colgroup>
+            <col class="ucol-w32" />
             <col class="ucol-w44" />
             <col class="ucol-w15p" />
             <col class="ucol-w24p" />
@@ -62,10 +63,19 @@
             <col class="ucol-w9p" />
             <col class="ucol-w10p" />
             <col class="ucol-w9p" />
-            <col class="ucol-actions" />
           </colgroup>
           <thead>
             <tr>
+              <th class="dt-c">
+                <input
+                  type="checkbox"
+                  class="dt-chk"
+                  :checked="allSelected"
+                  :indeterminate.prop="partiallySelected"
+                  :aria-label="$t('common.selectAll')"
+                  @change="toggleSelectAll"
+                />
+              </th>
               <th></th>
               <th class="sortable" @click="toggleUserSort('name')">
                 {{ $t('stats.user') }}
@@ -93,7 +103,6 @@
                   {{ sortArrow('last_seen', usersSortBy, usersSortOrder) }}
                 </span>
               </th>
-              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -103,8 +112,22 @@
             <tr
               v-for="u in users.users"
               :key="u.user_id"
-              :class="{ 'user-hidden-row': u.is_hidden, 'user-historical-row': u.is_historical }"
+              :class="{
+                'user-hidden-row': u.is_hidden,
+                'user-historical-row': u.is_historical,
+                'user-row-selected': selected.has(u.user_id),
+              }"
             >
+              <td class="dt-c">
+                <input
+                  type="checkbox"
+                  class="dt-chk"
+                  :checked="selected.has(u.user_id)"
+                  :aria-label="$t('common.select')"
+                  @change="toggleSelect(u.user_id)"
+                  @click.stop
+                />
+              </td>
               <td>
                 <MkAvatar
                   :src="null"
@@ -139,38 +162,6 @@
               <td class="dt-r dt-bold">{{ (u.play_count || 0).toLocaleString() }}</td>
               <td class="dt-r dt-sec">{{ ticksToDuration(u.total_ticks) }}</td>
               <td class="dt-r dt-accent">{{ u.last_seen ? timeAgo(u.last_seen) : '—' }}</td>
-              <td class="dt-actions">
-                <button
-                  v-if="!u.is_hidden"
-                  class="dt-act-btn"
-                  :title="$t('stats.hideUser')"
-                  @click.stop="handleHideUser(u)"
-                >
-                  <EyeOff :size="14" />
-                </button>
-                <button
-                  v-if="u.is_hidden"
-                  class="dt-act-btn dt-act-show"
-                  :title="$t('stats.unhideUser')"
-                  @click.stop="handleUnhideUser(u)"
-                >
-                  <Eye :size="14" />
-                </button>
-                <button
-                  class="dt-act-btn dt-act-merge"
-                  :title="$t('stats.mergeUser')"
-                  @click.stop="openMergeModal(u)"
-                >
-                  <ArrowLeftRight :size="14" />
-                </button>
-                <button
-                  class="dt-act-btn dt-act-del"
-                  :title="$t('stats.deleteUser')"
-                  @click.stop="handleDeleteUser(u)"
-                >
-                  <Trash2 :size="14" />
-                </button>
-              </td>
             </tr>
           </tbody>
         </table>
@@ -204,29 +195,63 @@
         </div>
       </div>
     </div>
+
+    <!-- Bulk actions overlay — appears when at least one user is selected.
+         Slides up from the bottom, centred. Same pattern as Gmail / GitHub. -->
+    <Teleport to="body">
+      <Transition name="bulk-slide">
+        <div v-if="selected.size > 0" class="bulk-bar" role="region" aria-live="polite">
+          <span class="bulk-count">
+            {{ $t('stats.bulkSelected', selected.size, { n: selected.size }) }}
+          </span>
+          <div class="bulk-actions">
+            <MkButton
+              variant="ghost"
+              icon="eye-off"
+              :disabled="!visibleSelected.length"
+              @click="bulkHide"
+            >
+              {{ $t('stats.bulkHide') }}
+            </MkButton>
+            <MkButton
+              variant="ghost"
+              icon="eye"
+              :disabled="!hiddenSelected.length"
+              @click="bulkUnhide"
+            >
+              {{ $t('stats.bulkUnhide') }}
+            </MkButton>
+            <MkButton
+              variant="primary"
+              icon="shuffle"
+              :disabled="selected.size !== 1"
+              :title="selected.size === 1 ? '' : $t('stats.bulkMergeHint')"
+              @click="bulkMerge"
+            >
+              {{ $t('stats.bulkMerge') }}
+            </MkButton>
+            <MkButton variant="danger" icon="trash-2" @click="bulkDelete">
+              {{ $t('common.delete') }}
+            </MkButton>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onDeactivated, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useStats } from '@/composables/useStats'
 import { useApi } from '@/composables/useApi'
 import MkAvatar from '@/components/common/MkAvatar.vue'
+import MkButton from '@/components/common/MkButton.vue'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import { useStatsUI } from '@/composables/useStatsUI'
 import { sortArrow, sortArrowClass } from '@/components/stats/statsTableUtils'
-import {
-  ArrowLeftRight,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  Clock,
-  Eye,
-  EyeOff,
-  Trash2,
-} from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, ChevronsLeft, Clock, EyeOff } from 'lucide-vue-next'
 import { useConfirm } from '@/composables/useConfirm'
 import '@/assets/styles/stats-tables.css'
 
@@ -247,6 +272,128 @@ const showHiddenUsers = ref(false)
 const showHistoricalOnly = ref(false)
 let usersDb = null
 
+// Selection state — reactive Set so .add() / .delete() / .clear()
+// automatically trigger re-renders (ref(new Set()) does not track method
+// calls, only reassignments).
+const selected = reactive(new Set())
+
+const selectedUsers = computed(() =>
+  users.value.users.filter(u => selected.has(u.user_id)),
+)
+const visibleSelected = computed(() => selectedUsers.value.filter(u => !u.is_hidden))
+const hiddenSelected = computed(() => selectedUsers.value.filter(u => u.is_hidden))
+const allSelected = computed(
+  () => users.value.users.length > 0 && selected.size === users.value.users.length,
+)
+const partiallySelected = computed(() => selected.size > 0 && !allSelected.value)
+
+function toggleSelect(userId) {
+  if (selected.has(userId)) selected.delete(userId)
+  else selected.add(userId)
+}
+
+function toggleSelectAll() {
+  if (allSelected.value) {
+    selected.clear()
+  } else {
+    users.value.users.forEach(u => selected.add(u.user_id))
+  }
+}
+
+function clearSelection() {
+  selected.clear()
+}
+
+// Clear the selection whenever the underlying user list changes —
+// page change, sort, search, or any visibility filter. Without this,
+// ids selected on page 1 would still appear in selected.size after
+// jumping to page 2, and bulk actions would silently no-op on the
+// ids that are no longer in users.value.users.
+watch(
+  () => [
+    usersPage.value,
+    usersPerPage.value,
+    usersSearch.value,
+    usersSortBy.value,
+    usersSortOrder.value,
+    showHiddenUsers.value,
+    showHistoricalOnly.value,
+  ],
+  () => selected.clear(),
+)
+
+// Run a bulk API action sequentially with per-item try/catch. Parallel
+// calls would race on the backend (CSRF / concurrent writes to the
+// same table) and only the first one would persist visibly, so each
+// mutation must commit before the next is fired. A try/catch around
+// every call keeps the loop alive on partial failure: we tally
+// succeeded / failed and report the right toast at the end.
+// clearSelection + fetchUsers run unconditionally so the UI always
+// reconciles with the server.
+async function runBulk(targets, callFor, successKey) {
+  if (!targets.length) return
+  let succeeded = 0
+  let failed = 0
+  for (const target of targets) {
+    try {
+      await callFor(target)
+      succeeded += 1
+    } catch (e) {
+      failed += 1
+      console.error('[StatsUsersTab.runBulk] item failed', e)
+    }
+  }
+  if (failed === 0) {
+    showToast(t(successKey, succeeded, { n: succeeded }), TOAST_TYPE.OK)
+  } else {
+    showToast(
+      t('stats.bulkPartialFail', { succeeded, failed, total: targets.length }),
+      TOAST_TYPE.ERR,
+    )
+  }
+  clearSelection()
+  fetchUsers()
+}
+
+async function bulkHide() {
+  await runBulk(
+    visibleSelected.value.slice(),
+    u => apiPost(`/api/stats/users/${encodeURIComponent(u.user_id)}/hide`),
+    'stats.bulkUsersHidden',
+  )
+}
+
+async function bulkUnhide() {
+  await runBulk(
+    hiddenSelected.value.slice(),
+    u => apiPost(`/api/stats/users/${encodeURIComponent(u.user_id)}/unhide`),
+    'stats.bulkUsersUnhidden',
+  )
+}
+
+function bulkMerge() {
+  if (selected.size !== 1) return
+  const u = selectedUsers.value[0]
+  if (u) openMergeModal(u)
+}
+
+async function bulkDelete() {
+  const targets = selectedUsers.value.slice()
+  if (!targets.length) return
+  const ok = await mkConfirm({
+    title: t('common.confirmTitle.deleteUser'),
+    message: t('stats.bulkDeleteConfirm', targets.length, { n: targets.length }),
+    variant: 'danger',
+    confirmLabel: t('common.delete'),
+  })
+  if (!ok) return
+  await runBulk(
+    targets,
+    u => apiDelete(`/api/stats/users/${encodeURIComponent(u.user_id)}`),
+    'stats.bulkUsersDeleted',
+  )
+}
+
 function fetchUsers() {
   loadUsers({
     page: usersPage.value,
@@ -257,29 +404,6 @@ function fetchUsers() {
     show_hidden: showHiddenUsers.value,
     historical_only: showHistoricalOnly.value,
   })
-}
-
-async function handleHideUser(u) {
-  await apiPost(`/api/stats/users/${encodeURIComponent(u.user_id)}/hide`)
-  showToast(t('stats.userHidden', { name: u.name }), TOAST_TYPE.OK)
-  fetchUsers()
-}
-async function handleUnhideUser(u) {
-  await apiPost(`/api/stats/users/${encodeURIComponent(u.user_id)}/unhide`)
-  showToast(t('stats.userUnhidden', { name: u.name }), TOAST_TYPE.OK)
-  fetchUsers()
-}
-async function handleDeleteUser(u) {
-  const ok = await mkConfirm({
-    title: t('common.confirmTitle.deleteUser'),
-    message: t('stats.confirmDeleteUser', { name: u.name }),
-    variant: 'danger',
-    confirmLabel: t('common.delete'),
-  })
-  if (!ok) return
-  await apiDelete(`/api/stats/users/${encodeURIComponent(u.user_id)}`)
-  showToast(t('stats.userDeleted', { name: u.name }), TOAST_TYPE.OK)
-  fetchUsers()
 }
 
 function debouncedFetchUsers() {
@@ -304,17 +428,23 @@ registerUsersRefresh(fetchUsers)
 onMounted(() => {
   if (!users.value.users.length) fetchUsers()
 })
+
+// The parent StatsView wraps tabs in <KeepAlive>, so this component is
+// cached rather than unmounted when the user navigates away (Activity
+// tab, another module, etc.). Without this hook the bulk-bar would
+// stay rendered on top of every other page since the selection state
+// survives the deactivation.
+onDeactivated(() => {
+  selected.clear()
+})
 </script>
 
 <style scoped>
+.ucol-w32 {
+  width: 32px;
+}
 .ucol-w44 {
   width: 44px;
-}
-/* Actions column: must fit 3 buttons (~22px each + 4px gap = ~74px actual)
-   without flex-end pushing them onto the previous column, which caused a
-   visual mismatch between header (empty th) and body (td flex). */
-.ucol-actions {
-  width: 100px;
 }
 .ucol-w9p {
   width: 9%;
@@ -330,5 +460,87 @@ onMounted(() => {
 }
 .ucol-w24p {
   width: 24%;
+}
+
+.dt-chk {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent-500);
+  cursor: pointer;
+}
+
+.user-row-selected {
+  background: rgb(var(--accent-rgb), 0.06);
+}
+
+/* ─── Bulk actions overlay ─── */
+/* Position centred over the content area, not the full viewport — the
+   admin sidebar (var(--sidebar-width)) would otherwise pull the bar
+   visually off-centre. Mobile breakpoint resets to a true 50% since
+   the sidebar collapses. */
+.bulk-bar {
+  position: fixed;
+  bottom: 24px;
+  left: calc(50% + var(--sidebar-width) / 2);
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 12px 20px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-modal);
+  backdrop-filter: var(--blur-md);
+}
+.bulk-count {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+.bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bulk-slide-enter-active,
+.bulk-slide-leave-active {
+  transition:
+    transform var(--duration-base) var(--ease-out),
+    opacity var(--duration-base) var(--ease-out);
+}
+.bulk-slide-enter-from,
+.bulk-slide-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(20px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bulk-slide-enter-active,
+  .bulk-slide-leave-active {
+    transition: opacity var(--duration-fast);
+  }
+  .bulk-slide-enter-from,
+  .bulk-slide-leave-to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 767px) {
+  .bulk-bar {
+    bottom: 12px;
+    left: 50%;
+    padding: 10px 12px;
+    gap: 10px;
+    max-width: calc(100vw - 24px);
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .bulk-actions {
+    gap: 6px;
+  }
 }
 </style>

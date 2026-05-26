@@ -43,7 +43,17 @@
 
   /* ─── Line heights ─── */
   --lh-tight: 1; /* inline counters, KPI values */
+  --lh-snug-tight: 1.2; /* compact display headings */
   --lh-compact: 1.3; /* titles, dense lists */
+  --lh-snug: 1.4; /* breathable yet compact captions */
   --lh-normal: 1.5; /* body paragraphs */
   --lh-relaxed: 1.6; /* long-form descriptions */
+
+  /* ─── Font families — centralised system stacks ─── */
+  --font-system:
+    -apple-system, blinkmacsystemfont, 'Segoe UI', roboto, oxygen, ubuntu, cantarell,
+    'Helvetica Neue', sans-serif;
+  --font-mono:
+    ui-monospace, sfmono-regular, menlo, monaco, consolas, 'Liberation Mono', 'Courier New',
+    monospace;
 }

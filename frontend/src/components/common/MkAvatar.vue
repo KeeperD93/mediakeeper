@@ -102,7 +102,7 @@ function onError() {
   /* Always white regardless of the parent's ``color`` cascade — the
      border's tier colour is driven by the dedicated CSS variable so
      the icon doesn't pick it up. */
-  color: #fff;
+  color: var(--text-primary);
   /* Override the inline width/height bound to lucide's ``size`` prop
      so the silhouette tracks the RENDERED MkAvatar size (which CSS
      parent overrides like ``.gc-avatar-mk { width: 100% }`` can
@@ -125,7 +125,7 @@ function onError() {
      coloured ring around us, the page background shows through the
      center. Only the white silhouette icon stays visible above. */
   background: transparent;
-  color: #fff;
+  color: var(--text-primary);
 }
 </style>
 

@@ -60,7 +60,7 @@
   box-shadow:
     inset 0 0 0 1px rgb(255, 255, 255, 0.18),
     0 6px 24px rgb(0, 0, 0, 0.5);
-  color: #fff;
+  color: var(--portal-text-primary);
   transition:
     transform var(--portal-dur-med) ease,
     box-shadow var(--portal-dur-med) ease,

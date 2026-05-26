@@ -1,6 +1,6 @@
 /* SchedulerTaskRow — mobile-first, tokens-only, a11y-aware.
    Classes namespaced under .str-* so this file safely lives outside
-   <style scoped> while preserving its scoping intent (§15).             */
+   \3c style scoped> while preserving its scoping intent (§15).             */
 
 /* ── Container ────────────────────────────────────────────────────── */
 .str-row {

@@ -425,7 +425,7 @@ async function makeDefault(id) {
 }
 .sub-modal-save {
   background: var(--accent-500);
-  color: #fff;
+  color: var(--text-primary);
 }
 .sub-modal-save:hover:not(:disabled) {
   opacity: 0.9;

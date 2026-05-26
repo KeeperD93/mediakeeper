@@ -77,7 +77,7 @@
   cursor: pointer;
 }
 .pt-help-tb-select option {
-  background: #141414;
+  background: var(--portal-chrome-bg);
   color: var(--portal-text-primary);
 }
 

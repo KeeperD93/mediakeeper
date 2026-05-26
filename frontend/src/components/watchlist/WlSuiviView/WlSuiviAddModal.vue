@@ -142,7 +142,7 @@ function onAddSearch() {
 .wlsu-add-title {
   font-size: var(--text-base);
   font-weight: var(--font-bold);
-  color: #fff;
+  color: var(--text-primary);
 }
 .wlsu-add-close {
   width: 28px;
@@ -159,7 +159,7 @@ function onAddSearch() {
 }
 .wlsu-add-close:hover {
   background: rgb(255, 255, 255, 0.1);
-  color: #fff;
+  color: var(--text-primary);
 }
 .wlsu-add-search-wrap {
   display: flex;
@@ -173,7 +173,7 @@ function onAddSearch() {
   flex: 1;
   border: none;
   background: transparent;
-  color: #fff;
+  color: var(--text-primary);
   font-family: inherit;
   font-size: var(--text-base);
   outline: none;

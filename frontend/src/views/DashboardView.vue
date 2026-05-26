@@ -58,20 +58,13 @@
             </span>
           </button>
         </div>
-        <button class="editbar-btn editbar-reset" @click="resetLayout">
+        <MkButton variant="ghost" @click="resetLayout">
           {{ $t('dashboard.resetLayout') }}
-        </button>
-        <button class="editbar-btn editbar-done" @click="editing = false">
+        </MkButton>
+        <MkButton variant="primary" @click="editing = false">
           {{ $t('dashboard.done') }}
-        </button>
+        </MkButton>
       </div>
-    </div>
-
-    <div v-if="!editing && loaded && !isMobile" class="dash-customize-wrap">
-      <button class="dash-customize-btn" @click="editing = true">
-        <LayoutGrid :size="14" />
-        {{ $t('dashboard.customize') }}
-      </button>
     </div>
 
     <!-- Skeleton -->
@@ -230,6 +223,8 @@ import { useDashboardData } from '@/composables/useDashboardData'
 import { useDashboardKeyboardMove } from '@/composables/useDashboardKeyboardMove'
 import { useMobile } from '@/composables/useMobile'
 
+import MkButton from '@/components/common/MkButton.vue'
+import { DASHBOARD_EDIT_EVENT } from '@/constants/dashboardEvents'
 import HeroCarousel from '@/components/dashboard/HeroCarousel.vue'
 import StatRibbon from '@/components/dashboard/StatRibbon.vue'
 import ActivityTimeline from '@/components/dashboard/ActivityTimeline.vue'
@@ -460,6 +455,13 @@ function scheduleSecondaryLoad() {
   })
 }
 
+function handleDashboardEdit() {
+  // Mobile has its own reorder flow handled by MobileDashboard; here we
+  // only open the desktop grid edit mode.
+  if (isMobile.value) return
+  editing.value = true
+}
+
 onMounted(async () => {
   await nextTick()
   if (particlesEnabled.value) cleanupParticles = initParticles()
@@ -467,6 +469,7 @@ onMounted(async () => {
   await Promise.all([loadSeenAlerts(), loadSystemStats(), loadServices(), loadSessions()])
   startPrimaryPolling()
   scheduleSecondaryLoad()
+  window.addEventListener(DASHBOARD_EDIT_EVENT, handleDashboardEdit)
 })
 onActivated(() => {
   if (!cleanupParticles && particlesEnabled.value) cleanupParticles = initParticles()
@@ -480,5 +483,6 @@ onDeactivated(() => {
 onUnmounted(() => {
   timers.forEach(clearInterval)
   if (cleanupParticles) cleanupParticles()
+  window.removeEventListener(DASHBOARD_EDIT_EVENT, handleDashboardEdit)
 })
 </script>

@@ -7,7 +7,7 @@
 
 .vmd2-root {
   position: relative;
-  color: #fff;
+  color: var(--portal-text-primary);
   min-height: 100vh;
   -webkit-tap-highlight-color: transparent;
   /* Contain the ::before backdrop in its own stacking context so
@@ -24,7 +24,7 @@
   content: '';
   position: fixed;
   inset: 0;
-  background: rgb(3, 7, 18, 0.6);
+  background: var(--portal-veil-page);
   z-index: -1;
   pointer-events: none;
 }
@@ -35,28 +35,28 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgb(3, 7, 18, 0.6);
+  background: var(--portal-veil-page);
 }
 /* ---------- Request button states (mirrors old .vmd-btn--*) ---------- */
 .vmd2-btn--requested {
   background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-  color: #fff;
+  color: var(--portal-text-primary);
   box-shadow: 0 4px 20px rgb(139, 92, 246, 0.45);
 }
 .vmd2-btn--approved {
   background: linear-gradient(135deg, var(--portal-color-success-light) 0%, #16a34a 100%);
-  color: #fff;
+  color: var(--portal-text-primary);
   box-shadow: 0 4px 20px rgb(74, 222, 128, 0.45);
 }
 .vmd2-btn--rejected,
 .vmd2-btn--resubmit {
   background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%);
-  color: #fff;
+  color: var(--portal-text-primary);
   box-shadow: 0 4px 20px rgb(var(--portal-color-highlight-rgb), 0.45);
 }
 .vmd2-btn--available {
   background: linear-gradient(135deg, #22d3ee 0%, #0891b2 100%);
-  color: #fff;
+  color: var(--portal-text-primary);
   box-shadow: 0 4px 20px rgb(34, 211, 238, 0.45);
 }
 .vmd2-btn:disabled {
@@ -247,7 +247,7 @@
 .vmd2-score-value {
   font-size: var(--portal-text-lg);
   font-weight: var(--portal-font-extrabold);
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 .vmd2-score-label {
   font-size: var(--portal-text-2xs);
@@ -269,7 +269,7 @@
 }
 /* Muted dot used for vote-count (neutral grey, not a percentage colour). */
 .vmd2-score-dot--muted {
-  color: rgb(255, 255, 255, 0.4);
+  color: var(--portal-text-muted);
 }
 
 .vmd2-genres {
@@ -319,12 +319,12 @@
 }
 .vmd2-btn--secondary {
   background: rgb(var(--accent-rgb), 0.85);
-  color: #fff;
+  color: var(--portal-text-primary);
   box-shadow: 0 4px 20px rgb(var(--accent-rgb), 0.4);
 }
 .vmd2-btn--ghost {
   background: rgb(255, 255, 255, 0.1);
-  color: #fff;
+  color: var(--portal-text-primary);
   border: 1px solid rgb(255, 255, 255, 0.15);
   backdrop-filter: blur(10px);
 }
@@ -865,7 +865,7 @@
 .vmd2-video-play svg {
   width: 56px;
   height: 56px;
-  color: #fff;
+  color: var(--portal-text-primary);
   filter: drop-shadow(0 4px 12px rgb(0, 0, 0, 0.6));
 }
 .vmd2-video-type {

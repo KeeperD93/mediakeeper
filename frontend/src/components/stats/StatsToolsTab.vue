@@ -22,10 +22,9 @@
           <h3 class="tool-title">{{ $t('stats.purge') }}</h3>
         </div>
         <p class="tool-desc">{{ $t('stats.purgeDesc') }}</p>
-        <button class="tool-btn-danger" @click="purgeJellystats">
-          <Trash2 :size="14" />
+        <MkButton variant="danger" icon="trash-2" @click="purgeJellystats">
           {{ $t('stats.purgeBtn') }}
-        </button>
+        </MkButton>
         <div v-if="purgeStatus" class="tool-status" :class="purgeStatus.type">
           {{ purgeStatus.text }}
         </div>
@@ -36,10 +35,9 @@
           <h3 class="tool-title">{{ $t('stats.migration') }}</h3>
         </div>
         <p class="tool-desc">{{ $t('stats.migrationDesc') }}</p>
-        <button class="tool-btn-accent" @click="migrateLibNames">
-          <RotateCw :size="14" />
+        <MkButton variant="primary" icon="refresh-cw" @click="migrateLibNames">
           {{ $t('stats.launch') }}
-        </button>
+        </MkButton>
         <div v-if="migrateStatus" class="tool-status" :class="migrateStatus.type">
           {{ migrateStatus.text }}
         </div>
@@ -62,7 +60,12 @@
           :placeholder="$t('stats.titlePlaceholder')"
           @keydown.enter="addExclusion"
         />
-        <button class="excl-add-btn" @click="addExclusion"><Plus :size="14" /></button>
+        <MkButton
+          variant="icon"
+          icon="plus"
+          :aria-label="$t('common.add')"
+          @click="addExclusion"
+        />
       </div>
       <div v-if="!exclusions.length" class="excl-empty">{{ $t('stats.noExclusions') }}</div>
       <div v-for="(exc, i) in exclusions" :key="i" class="excl-item">
@@ -70,9 +73,13 @@
           {{ exc.mode === 'exact' ? $t('stats.exact') : $t('stats.contains') }}
         </span>
         <span class="excl-val">{{ exc.value }}</span>
-        <button class="excl-rm" @click="removeExclusion(i)">
-          <X :size="10" :stroke-width="2.5" />
-        </button>
+        <MkButton
+          variant="icon"
+          icon="x"
+          size="sm"
+          :aria-label="$t('common.remove')"
+          @click="removeExclusion(i)"
+        />
       </div>
     </div>
   </div>
@@ -83,7 +90,8 @@ import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useApi } from '@/composables/useApi'
 import { useStats } from '@/composables/useStats'
-import { Ban, Plus, RefreshCw, RotateCw, Trash2, Upload, X } from 'lucide-vue-next'
+import { Ban, Plus, RefreshCw, Upload } from 'lucide-vue-next'
+import MkButton from '@/components/common/MkButton.vue'
 import { useConfirm } from '@/composables/useConfirm'
 
 const mkConfirm = useConfirm()
@@ -293,7 +301,7 @@ onMounted(() => {
   box-sizing: border-box;
 }
 .excl-sel option {
-  background: var(--bg-secondary);
+  background: var(--mk-chrome-bg);
   color: var(--text-primary);
 }
 .excl-input {
@@ -397,7 +405,7 @@ onMounted(() => {
     background: rgb(239, 68, 68, 0.2);
   }
   .excl-item:hover {
-    background: rgb(255, 255, 255, 0.03);
+    background: var(--surface-1);
   }
   .excl-rm:hover {
     opacity: 1;

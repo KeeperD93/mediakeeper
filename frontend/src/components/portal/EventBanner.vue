@@ -175,7 +175,7 @@ function formatFull(iso) {
   right: 0;
   z-index: 99;
   background: transparent;
-  color: #fff;
+  color: var(--portal-text-primary);
   height: 28px;
   display: flex;
   align-items: center;
@@ -222,7 +222,7 @@ function formatFull(iso) {
 }
 .pt-evb-title {
   font-weight: var(--portal-font-bold);
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 @keyframes pt-evb-scroll {
   from {

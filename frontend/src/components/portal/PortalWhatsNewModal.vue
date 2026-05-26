@@ -163,7 +163,7 @@ if (props.auto) {
 .dwn-modal {
   display: flex;
   flex-direction: column;
-  background: var(--bg-primary);
+  background: var(--portal-bg-primary);
   border: 0.5px solid var(--portal-border-default);
   outline: none;
 }
@@ -348,7 +348,7 @@ if (props.auto) {
   border-radius: var(--radius-btn);
   border: none;
   background: var(--accent-600);
-  color: #fff;
+  color: var(--portal-text-primary);
   font-size: var(--portal-text-xs);
   font-weight: var(--portal-font-medium);
   cursor: pointer;

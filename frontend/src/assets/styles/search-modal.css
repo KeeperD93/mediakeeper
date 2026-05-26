@@ -90,7 +90,7 @@
 }
 
 .sm-close:hover {
-  background: rgb(255, 255, 255, 0.08);
+  background: var(--surface-3);
   color: rgb(255, 255, 255, 0.9);
 }
 
@@ -135,7 +135,7 @@
   width: 36px;
   height: 36px;
   border-radius: var(--radius-btn);
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   border: 1px solid rgb(255, 255, 255, 0.05);
   color: var(--text-faint);
   flex-shrink: 0;

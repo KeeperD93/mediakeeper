@@ -272,7 +272,7 @@ onUnmounted(() => {
   font-size: var(--text-xs);
   font-weight: var(--font-medium);
   background: var(--accent-500);
-  color: #fff;
+  color: var(--text-primary);
   border: none;
   cursor: pointer;
   font-family: inherit;

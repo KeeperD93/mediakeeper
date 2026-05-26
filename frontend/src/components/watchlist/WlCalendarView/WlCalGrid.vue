@@ -232,7 +232,7 @@ function pad(n) {
   }
   .wlcal-grid-mobile .wlcal-cell.today .wlcal-mobile-badge {
     background: var(--accent-500);
-    color: #fff;
+    color: var(--text-primary);
   }
 }
 </style>

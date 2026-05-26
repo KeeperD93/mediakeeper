@@ -118,7 +118,7 @@ function pad(n) {
 }
 .wlcal-modal-close:hover {
   background: var(--surface-3);
-  color: #fff;
+  color: var(--text-primary);
 }
 .wlcal-modal-body {
   flex: 1;
@@ -139,7 +139,7 @@ function pad(n) {
   border-bottom: none;
 }
 .wlcal-modal-item:hover {
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
 }
 .wlcal-modal-poster {
   width: 34px;

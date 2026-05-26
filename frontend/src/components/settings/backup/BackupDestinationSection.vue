@@ -81,7 +81,7 @@ const emit = defineEmits(['update:backupDirInput', 'change-dir'])
   padding: 6px 14px;
   border-radius: var(--radius-sm);
   background: var(--accent-600);
-  color: #fff;
+  color: var(--text-primary);
   font-size: var(--text-xs);
   font-weight: var(--font-medium);
   border: none;

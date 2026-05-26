@@ -1,7 +1,7 @@
 /* PortalHome — outer shell + skeleton loading state. */
 
 .pt-home {
-  background: var(--bg-primary);
+  background: var(--portal-bg-primary);
   min-height: 100vh;
 }
 .pt-home-body {

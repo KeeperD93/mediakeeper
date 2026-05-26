@@ -41,7 +41,12 @@ jobs:
       - name: Install pip-audit
         run: python -m pip install --upgrade pip pip-audit
 
-      - name: Run pip-audit (OSV vulnerability service)
+      - name: Run pip-audit (PyPI vulnerability service)
+        # Switched off OSV after upstream started returning vulnerability
+        # entries without the ``ranges`` field, which crashes pip-audit's
+        # OSV parser with ``KeyError: 'ranges'``. The PyPI service goes
+        # through pip-audit's own deduped database and is unaffected.
+        #
         # PYSEC-2025-183 (CVE-2025-45768): disputed PyJWT advisory about
         # "weak encryption". The PyJWT maintainers reject the claim — key
         # strength is the caller's responsibility, not the library's. This
@@ -50,7 +55,7 @@ jobs:
         # apply. No fix version is published.
         run: |
           pip-audit \
-            --vulnerability-service osv \
+            --vulnerability-service pypi \
             --requirement backend/requirements.txt \
             --ignore-vuln PYSEC-2025-183 \
             --strict

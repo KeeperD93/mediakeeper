@@ -318,7 +318,7 @@ function emitIgnoreSeason(sn) {
   user-select: none;
 }
 .wlsc-season-head:hover {
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
 }
 .wlsc-season-check {
   width: 18px;
@@ -393,7 +393,7 @@ function emitIgnoreSeason(sn) {
   transition: background 0.1s;
 }
 .wlsc-ep:hover {
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
 }
 .wlsc-ep.present {
   opacity: 0.3;

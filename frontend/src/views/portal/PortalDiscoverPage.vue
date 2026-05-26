@@ -144,8 +144,8 @@ watch(
 .vd {
   min-height: 100vh;
   padding: 5rem 8px 4rem;
-  background: var(--bg-primary);
-  color: #fff;
+  background: var(--portal-bg-primary);
+  color: var(--portal-text-primary);
 }
 @media (min-width: 768px) {
   .vd {
@@ -162,7 +162,7 @@ watch(
 .dmd-back {
   background: var(--portal-surface-3);
   border: 1px solid var(--portal-border-strong);
-  color: #fff;
+  color: var(--portal-text-primary);
   width: 40px;
   height: 40px;
   border-radius: var(--portal-radius-circle);
@@ -203,11 +203,11 @@ watch(
     color var(--portal-dur-fast);
 }
 .dmd-sort-btn:hover {
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 .dmd-sort-btn--active {
   background: var(--accent, #4338ca);
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 
 /* Mobile: lock to 3 columns so every viewport ≤ 640 px gets a tight

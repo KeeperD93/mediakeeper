@@ -110,8 +110,10 @@ const iconComponent = computed(() => ICONS[props.icon] || ICONS.home)
   padding: 9px 12px;
   border-radius: var(--radius-btn);
   text-decoration: none;
-  color: var(--text-faint);
-  transition: all var(--duration-base) ease;
+  color: var(--text-muted);
+  transition:
+    color var(--duration-base) ease,
+    background var(--duration-base) ease;
   overflow: hidden;
   margin: 1px 0;
 }
@@ -123,8 +125,8 @@ const iconComponent = computed(() => ICONS[props.icon] || ICONS.home)
 
 @media (hover: hover) {
   .sb-link:hover {
-    color: rgb(255, 255, 255, 0.75);
-    background: rgb(255, 255, 255, 0.03);
+    color: var(--text-secondary);
+    background: var(--surface-1);
   }
 }
 .sb-link:active {
@@ -141,7 +143,7 @@ const iconComponent = computed(() => ICONS[props.icon] || ICONS.home)
 }
 
 .sb-link.active {
-  color: rgb(255, 255, 255, 0.95);
+  color: var(--text-primary);
   background: rgb(var(--accent-rgb), 0.08);
 }
 
@@ -211,7 +213,7 @@ const iconComponent = computed(() => ICONS[props.icon] || ICONS.home)
 .sb-eq-bar {
   width: 2.5px;
   border-radius: 1px;
-  background: #22c55e;
+  background: var(--color-success);
   will-change: height;
 }
 
@@ -256,7 +258,8 @@ const iconComponent = computed(() => ICONS[props.icon] || ICONS.home)
 }
 
 .sb-badge-alert {
-  background: rgb(239, 68, 68, 0.15);
+  background: rgb(var(--color-error-strong-rgb), 0.15);
+  /* #fca5a5 = red-300 light tint, no exact token (--color-error is red-400 #f87171). Soft alert label. */
   color: #fca5a5;
 }
 
@@ -343,7 +346,7 @@ const iconComponent = computed(() => ICONS[props.icon] || ICONS.home)
   width: 14px;
   height: 14px;
   margin-left: auto;
-  color: rgb(255, 255, 255, 0.35);
+  color: var(--text-faint);
   transition:
     transform var(--duration-base) ease,
     color var(--duration-base) ease;
@@ -353,7 +356,7 @@ const iconComponent = computed(() => ICONS[props.icon] || ICONS.home)
   color: var(--accent-300);
 }
 .sb-link.active .sb-chevron {
-  color: rgb(255, 255, 255, 0.7);
+  color: var(--text-secondary);
 }
 .sb-link.active .sb-chevron.open {
   color: var(--accent-300);

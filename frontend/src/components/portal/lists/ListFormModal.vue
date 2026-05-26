@@ -161,7 +161,7 @@ useFocusTrap({
 .lfm-panel {
   display: flex;
   flex-direction: column;
-  background: var(--bg-primary);
+  background: var(--portal-bg-primary);
   border: 0.5px solid var(--portal-border-default);
   outline: none;
 }
@@ -288,7 +288,7 @@ useFocusTrap({
 }
 .lfm-btn--primary {
   background: var(--accent-600);
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 .lfm-btn--primary:disabled {
   opacity: 0.45;
@@ -299,7 +299,7 @@ useFocusTrap({
     background: var(--accent-500);
   }
   .lfm-btn--secondary:hover {
-    border-color: rgb(255, 255, 255, 0.25);
+    border-color: var(--portal-text-disabled);
     color: var(--text-primary);
   }
 }

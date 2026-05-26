@@ -160,7 +160,7 @@ const {
   min-height: 44px;
   padding: 4px 12px;
   border-radius: var(--radius-pill);
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--surface-1);
   border: 1px solid var(--border-strong);
   color: rgb(255, 255, 255, 0.6);
   font-size: var(--text-3xs);
@@ -192,7 +192,7 @@ const {
 .tl-tab.active {
   background: var(--gradient-pill-active);
   border-color: var(--accent-500);
-  color: #fff;
+  color: var(--text-primary);
   box-shadow: var(--mk-pill-shadow-sm);
 }
 .tl-track {
@@ -234,7 +234,7 @@ const {
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  border: 2px solid var(--dash-bg, #0a0e1a);
+  border: 2px solid var(--dash-bg);
 }
 .dot-active {
   background: var(--color-success);

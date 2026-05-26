@@ -101,7 +101,7 @@
 .params-appearance-tab .radius-demo-btn {
   padding: 6px 16px;
   background: var(--accent-600);
-  color: #fff;
+  color: var(--text-primary);
   font-size: var(--text-2xs);
   font-weight: var(--font-medium);
   font-family: inherit;
@@ -128,7 +128,7 @@
   border-radius: var(--radius-pill);
   background: var(--gradient-pill-active);
   border: 1px solid var(--accent-500);
-  color: #fff;
+  color: var(--text-primary);
   font-size: var(--text-sm);
   font-weight: var(--font-extrabold);
   letter-spacing: var(--tracking-wide);
@@ -187,7 +187,7 @@
   border-radius: 50%;
   background: rgb(0, 0, 0, 0.6);
   border: 1px solid rgb(255, 255, 255, 0.2);
-  color: #fff;
+  color: var(--text-primary);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -230,7 +230,7 @@
   padding: 10px 22px;
   border-radius: var(--radius-btn);
   background: var(--accent-600);
-  color: #fff;
+  color: var(--text-primary);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   font-family: inherit;

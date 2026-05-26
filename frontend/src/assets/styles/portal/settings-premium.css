@@ -413,7 +413,7 @@
 /* Force a dark background on dropdown options — the browser renders
    the menu natively and would otherwise inherit the OS white. */
 .pt-settings-select option {
-  background: #141414;
+  background: var(--portal-chrome-bg);
   color: var(--portal-text-primary);
 }
 
@@ -576,7 +576,7 @@
 .pt-settings-btn--primary {
   background: linear-gradient(135deg, var(--pt-set-c1), var(--pt-set-c2));
   border-color: transparent;
-  color: #fff;
+  color: var(--portal-text-primary);
   font-weight: var(--portal-font-bold);
   box-shadow:
     0 8px 24px rgb(var(--pt-set-rgb1), 0.4),
@@ -854,7 +854,11 @@
      keyframe doesn't animate opacity and the static .dp-reveal-item
      declaration would otherwise leave the bar at opacity:0. */
   opacity: 1;
-  background: linear-gradient(180deg, rgb(20, 20, 30, 0.55), rgb(20, 20, 30, 0.85));
+  background: linear-gradient(
+    180deg,
+    rgb(var(--portal-chrome-bg-rgb), 0.55),
+    rgb(var(--portal-chrome-bg-rgb), 0.85)
+  );
   backdrop-filter: var(--portal-blur-lg);
   -webkit-backdrop-filter: var(--portal-blur-lg);
   border: 1px solid var(--portal-border-strong);
@@ -936,8 +940,7 @@
      a solid card on top of the blurred portal. The previous translucent
      surface-3 stack was bleeding the backdrop blur through the panel. */
   background:
-    linear-gradient(180deg, rgb(255, 255, 255, 0.04), rgb(255, 255, 255, 0.01)),
-    var(--bg-secondary);
+    linear-gradient(180deg, rgb(255, 255, 255, 0.04), rgb(255, 255, 255, 0.01)), var(--bg-secondary);
   border: 1px solid rgb(var(--pt-set-rgb1, 168, 85, 247), 0.3);
   border-radius: var(--portal-radius-xl);
   box-shadow:

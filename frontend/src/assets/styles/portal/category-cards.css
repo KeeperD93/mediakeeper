@@ -7,7 +7,7 @@
 .pt-catcards-title {
   font-size: var(--portal-text-section-title);
   font-weight: var(--portal-font-extrabold);
-  color: #fff;
+  color: var(--portal-text-primary);
   padding: 0 4%;
   /* Aligned on Seerr's slider-header rhythm so all section titles
      share the same vertical air on the portal home. */

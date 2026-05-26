@@ -13,14 +13,14 @@
         <div class="np-gradient" />
 
         <!-- Close -->
-        <button
-          class="np-close"
-          type="button"
+        <MkButton
+          variant="icon"
+          icon="x"
+          size="sm"
           :aria-label="$t('common.close')"
+          class="np-close-wrap"
           @click="$emit('close')"
-        >
-          <X :size="14" />
-        </button>
+        />
 
         <!-- Content -->
         <div class="np-content">
@@ -93,7 +93,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { X } from 'lucide-vue-next'
+import MkButton from '@/components/common/MkButton.vue'
 import { useApi } from '@/composables/useApi'
 
 const props = defineProps({
@@ -206,7 +206,7 @@ watch(
 }
 .np-close:hover {
   background: rgb(255, 255, 255, 0.2);
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .np-content {
@@ -291,7 +291,7 @@ watch(
 .np-title {
   font-size: 36px;
   font-weight: var(--font-bold);
-  color: #fff;
+  color: var(--text-primary);
   margin: 0 0 6px;
   line-height: 1.2;
 }
@@ -356,7 +356,7 @@ watch(
   font-size: var(--text-xs);
   padding: 4px 12px;
   border-radius: var(--radius-sm);
-  background: rgb(255, 255, 255, 0.08);
+  background: var(--surface-3);
   color: rgb(255, 255, 255, 0.5);
 }
 .np-chip-vote {

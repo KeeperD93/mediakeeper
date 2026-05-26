@@ -125,7 +125,7 @@
   background: rgb(var(--portal-color-success-rgb), 0.05);
 }
 .pt-profile .pt-title-howto-name {
-  color: #fff;
+  color: var(--portal-text-primary);
   font-weight: var(--portal-font-bold);
   display: flex;
   align-items: center;
@@ -158,7 +158,7 @@
 }
 .pt-profile .pt-btn--primary {
   background: var(--accent);
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 .pt-profile .pt-btn--secondary {
   background: var(--bg-tertiary);

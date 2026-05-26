@@ -21,7 +21,7 @@
   max-height: 600px;
   overflow: hidden;
   margin-bottom: 1rem;
-  background: #141414;
+  background: var(--portal-bg-primary);
 }
 .pt-eh-hero-bg {
   position: absolute;
@@ -48,15 +48,15 @@
   right: 0;
   top: 0;
   /* Top-anchored fade — starts at the exact topbar colour
-     (var(--bg-primary)) so the seam with the (now opaque) topbar
+     (var(--portal-bg-primary)) so the seam with the (now opaque) topbar
      disappears, then fades to transparent. */
   height: 50%;
   z-index: 3;
   background: linear-gradient(
     to bottom,
-    var(--bg-primary) 0%,
-    rgb(var(--bg-primary-rgb), 0.7) 30%,
-    rgb(var(--bg-primary-rgb), 0.3) 65%,
+    var(--portal-bg-primary) 0%,
+    rgb(var(--portal-bg-primary-rgb), 0.7) 30%,
+    rgb(var(--portal-bg-primary-rgb), 0.3) 65%,
     transparent 100%
   );
 }
@@ -66,15 +66,16 @@
   right: 0;
   bottom: 0;
   /* Bottom-anchored fade — same trick as the top one: ends at
-     var(--bg-primary) so the seam with the carousel row below (which
-     sits on the page background = var(--bg-primary)) disappears. */
+     var(--portal-bg-primary) so the seam with the carousel row below
+     (which sits on the page background = var(--portal-bg-primary))
+     disappears. */
   height: 45%;
   z-index: 3;
   background: linear-gradient(
     to top,
-    var(--bg-primary) 0%,
-    rgb(var(--bg-primary-rgb), 0.7) 30%,
-    rgb(var(--bg-primary-rgb), 0.3) 65%,
+    var(--portal-bg-primary) 0%,
+    rgb(var(--portal-bg-primary-rgb), 0.7) 30%,
+    rgb(var(--portal-bg-primary-rgb), 0.3) 65%,
     transparent 100%
   );
 }
@@ -86,7 +87,7 @@
   z-index: 4;
   max-width: 100%;
   padding: 0 1rem 1.25rem;
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 @media (min-aspect-ratio: 21/9) {
   .pt-eh-content {
@@ -98,7 +99,7 @@
   font-size: var(--portal-text-base);
   text-transform: uppercase;
   letter-spacing: var(--portal-tracking-eyebrow);
-  color: #fff;
+  color: var(--portal-text-primary);
   margin-bottom: 0.5rem;
   font-weight: var(--portal-font-black);
   text-shadow: 0 2px 12px rgb(0, 0, 0, 0.8);
@@ -119,7 +120,7 @@
   font-weight: var(--portal-font-black);
   line-height: var(--portal-lh-display);
   margin-bottom: 0.4rem;
-  color: #fff;
+  color: var(--portal-text-primary);
   text-shadow: 0 2px 16px rgb(0, 0, 0, 0.7);
 }
 .pt-eh-meta {
@@ -180,11 +181,11 @@
 }
 .pt-eh-btn--trailer {
   background: rgb(109, 109, 109, 0.7);
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 .pt-eh-btn--info {
   background: rgb(109, 109, 110, 0.7);
-  color: #fff;
+  color: var(--portal-text-primary);
 }
 /* Same shape strategy as HeroBanner: padding-driven sizing + aspect-ratio
    so the icon's intrinsic size dictates the button bounds and centers
@@ -216,8 +217,8 @@
     height: 35%;
     background: linear-gradient(
       to bottom,
-      var(--bg-primary) 0%,
-      rgb(var(--bg-primary-rgb), 0.6) 35%,
+      var(--portal-bg-primary) 0%,
+      rgb(var(--portal-bg-primary-rgb), 0.6) 35%,
       transparent 100%
     );
   }
@@ -225,8 +226,8 @@
     height: 35%;
     background: linear-gradient(
       to top,
-      var(--bg-primary) 0%,
-      rgb(var(--bg-primary-rgb), 0.6) 35%,
+      var(--portal-bg-primary) 0%,
+      rgb(var(--portal-bg-primary-rgb), 0.6) 35%,
       transparent 100%
     );
   }
