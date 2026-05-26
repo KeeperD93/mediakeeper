@@ -183,19 +183,15 @@
   max-width: 420px;
   border-radius: 16px;
   overflow: hidden;
-  background: rgb(8, 8, 20, 0.85);
+  background: var(--bg-primary);
   border: 0.5px solid var(--border-strong);
-  box-shadow:
-    0 50px 100px rgb(0, 0, 0, 0.7),
-    0 0 0 0.5px rgb(255, 255, 255, 0.05),
-    inset 0 1px 0 rgb(255, 255, 255, 0.04);
-  backdrop-filter: blur(24px);
+  box-shadow: var(--shadow-modal);
 }
 
 .login-hero {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #0a0818 0%, #110d22 50%, #0d0a1a 100%);
+  background: var(--mk-chrome-gradient);
   padding: 44px 32px 28px;
   text-align: center;
 }
