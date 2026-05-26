@@ -519,6 +519,7 @@
     "bulkUsersDeleted": "{n} user deleted | {n} users deleted",
     "bulkUsersHidden": "{n} user hidden | {n} users hidden",
     "bulkUsersUnhidden": "{n} user shown | {n} users shown",
+    "bulkPartialFail": "{succeeded} of {total} processed — {failed} failed",
     "confirmDeleteUser": "Permanently delete all playback data for {name}?",
     "activityHistory": "Activity history",
     "last24h": "Last 24 hours",

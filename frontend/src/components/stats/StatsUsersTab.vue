@@ -304,34 +304,54 @@ function clearSelection() {
   selected.clear()
 }
 
-async function bulkHide() {
-  const targets = visibleSelected.value.slice()
-  for (const u of targets) {
-    await apiPost(`/api/stats/users/${encodeURIComponent(u.user_id)}/hide`)
+// Run a bulk API action in parallel via Promise.allSettled so that a
+// single failed call does not abort the whole batch and leave the
+// selection / table state out of sync. Reports a precise toast: full
+// success → bulkUsers* (pluralised), any failure → bulkPartialFail
+// with succeeded / failed / total counts. clearSelection + fetchUsers
+// run unconditionally so the UI always reconciles with the server.
+async function runBulk(targets, callFor, successKey) {
+  if (!targets.length) return
+  const results = await Promise.allSettled(targets.map(callFor))
+  const succeeded = results.filter(r => r.status === 'fulfilled').length
+  const failed = results.length - succeeded
+  if (failed === 0) {
+    showToast(t(successKey, succeeded, { n: succeeded }), TOAST_TYPE.OK)
+  } else {
+    showToast(
+      t('stats.bulkPartialFail', { succeeded, failed, total: results.length }),
+      TOAST_TYPE.ERR,
+    )
   }
-  showToast(t('stats.bulkUsersHidden', targets.length, { n: targets.length }), TOAST_TYPE.OK)
   clearSelection()
   fetchUsers()
+}
+
+async function bulkHide() {
+  await runBulk(
+    visibleSelected.value.slice(),
+    u => apiPost(`/api/stats/users/${encodeURIComponent(u.user_id)}/hide`),
+    'stats.bulkUsersHidden',
+  )
 }
 
 async function bulkUnhide() {
-  const targets = hiddenSelected.value.slice()
-  for (const u of targets) {
-    await apiPost(`/api/stats/users/${encodeURIComponent(u.user_id)}/unhide`)
-  }
-  showToast(t('stats.bulkUsersUnhidden', targets.length, { n: targets.length }), TOAST_TYPE.OK)
-  clearSelection()
-  fetchUsers()
+  await runBulk(
+    hiddenSelected.value.slice(),
+    u => apiPost(`/api/stats/users/${encodeURIComponent(u.user_id)}/unhide`),
+    'stats.bulkUsersUnhidden',
+  )
 }
 
 function bulkMerge() {
-  if (selected.value.size !== 1) return
+  if (selected.size !== 1) return
   const u = selectedUsers.value[0]
   if (u) openMergeModal(u)
 }
 
 async function bulkDelete() {
   const targets = selectedUsers.value.slice()
+  if (!targets.length) return
   const ok = await mkConfirm({
     title: t('common.confirmTitle.deleteUser'),
     message: t('stats.bulkDeleteConfirm', targets.length, { n: targets.length }),
@@ -339,12 +359,11 @@ async function bulkDelete() {
     confirmLabel: t('common.delete'),
   })
   if (!ok) return
-  for (const u of targets) {
-    await apiDelete(`/api/stats/users/${encodeURIComponent(u.user_id)}`)
-  }
-  showToast(t('stats.bulkUsersDeleted', targets.length, { n: targets.length }), TOAST_TYPE.OK)
-  clearSelection()
-  fetchUsers()
+  await runBulk(
+    targets,
+    u => apiDelete(`/api/stats/users/${encodeURIComponent(u.user_id)}`),
+    'stats.bulkUsersDeleted',
+  )
 }
 
 function fetchUsers() {

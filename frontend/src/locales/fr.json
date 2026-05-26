@@ -519,6 +519,7 @@
     "bulkUsersDeleted": "{n} utilisateur supprimé | {n} utilisateurs supprimés",
     "bulkUsersHidden": "{n} utilisateur masqué | {n} utilisateurs masqués",
     "bulkUsersUnhidden": "{n} utilisateur réaffiché | {n} utilisateurs réaffichés",
+    "bulkPartialFail": "{succeeded} sur {total} traités — {failed} échec(s)",
     "confirmDeleteUser": "Supprimer définitivement toutes les données de lecture de {name} ?",
     "activityHistory": "Historique d'activité",
     "last24h": "Dernières 24 heures",
