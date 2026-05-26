@@ -215,17 +215,6 @@
   color: var(--accent-300);
   text-decoration: underline;
 }
-.cinema-stats .dt-avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--text-2xs);
-  font-weight: var(--font-bold);
-  color: var(--text-primary);
-}
 .cinema-stats .dt-actions {
   /* Garde le comportement table-cell standard pour conserver la hauteur
      de row uniforme (display: flex sur un <td> casse l'alignement vertical).
@@ -324,9 +313,6 @@
 }
 .cinema-stats .user-hidden-row {
   opacity: 0.5;
-}
-.cinema-stats .user-historical-row .dt-avatar {
-  border: 1.5px dashed rgb(255, 255, 255, 0.2);
 }
 
 .cinema-stats .act-chk {
