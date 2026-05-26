@@ -8,7 +8,7 @@ from core.pagination import decode_cursor, build_cursor_response
 from models.playback_stats import PlaybackSession
 
 from .exclusions import _get_exclusion_filters
-from .playback import _load_mk_profile_map
+from .playback import _load_mk_profile_map, _resolve_user_avatar
 
 
 async def get_activity_history(db: AsyncSession, page: int = 1, per_page: int = 30,
@@ -86,7 +86,10 @@ async def get_activity_minimap(db: AsyncSession):
     Each row carries the Emby ``user_id`` plus the MK profile
     ``avatar_url`` + ``tier`` resolved against UserProfile so the
     StatsTotalsRow dedup'ed avatar strip can render real photos +
-    tier rings (bronze fallback for Emby-only / historical accounts).
+    tier rings. Emby-only / historical accounts (no MK profile row)
+    fall back to the Emby-proxied photo URL + bronze tier via
+    ``_resolve_user_avatar`` so the strip stays consistent with the
+    leaderboard style instead of degrading to silhouettes.
     """
     since = datetime.now(timezone.utc) - timedelta(hours=24)
     exc_filters = await _get_exclusion_filters(db)
@@ -111,14 +114,15 @@ async def get_activity_minimap(db: AsyncSession):
         db, list({r.user_id for r in rows if r.user_id}),
     )
 
-    return [
-        {
+    enriched = []
+    for r in rows:
+        user_meta = _resolve_user_avatar(r.user_id, mk_profiles)
+        enriched.append({
             "started_at": r.started_at.isoformat() if r.started_at else None,
             "play_method": r.play_method,
             "user": r.user_name,
             "user_id": r.user_id,
-            "avatar_url": (mk_profiles.get(r.user_id) or {}).get("avatar_url"),
-            "tier": (mk_profiles.get(r.user_id) or {}).get("tier", "bronze"),
-        }
-        for r in rows
-    ]
+            "avatar_url": user_meta["avatar_url"],
+            "tier": user_meta["tier"],
+        })
+    return enriched

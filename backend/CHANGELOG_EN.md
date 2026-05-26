@@ -19,6 +19,7 @@ This section intentionally has no date so it is not shown to users.
 - CSRF cookie — allowlist validation on polls (hardening).
 
 ### Fixed
+- Stats — sessions and 24h actives now show photo + tier ring (leaderboard parity).
 - Login — brute-force tracking now ignores username casing variants.
 - Auth schemas now reject unknown JSON keys (defence in depth).
 - Events — accepting an invitation no longer triggers a self-collision conflict warning.

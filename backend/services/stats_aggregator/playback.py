@@ -7,9 +7,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.playback_stats import PlaybackSession
 from models.portal.profile import UserProfile
 from services.portal._rank_tiers import tier_for_level
+from services.portal.avatars import avatar_public_url
 
 from ._helpers import _get_library_name_map, _normalize_library_name, _merge_by_name, _lang_display
 from .exclusions import _get_exclusion_filters
+
+
+def _emby_user_image_url(emby_user_id: str | None) -> str | None:
+    """Fallback avatar URL for Emby-only users without a MK profile row.
+
+    The proxy endpoint accepts any Emby user id and returns 204 when no
+    photo exists, so this stays harmless even for accounts without an
+    Emby avatar set.
+    """
+    return f"/api/emby/user-image/{emby_user_id}" if emby_user_id else None
 
 
 async def _load_mk_profile_map(db: AsyncSession, emby_user_ids: list[str]) -> dict[str, dict]:
@@ -19,20 +30,59 @@ async def _load_mk_profile_map(db: AsyncSession, emby_user_ids: list[str]) -> di
     the same tier ring as the rest of the app. Emby-only users (no MK
     profile) implicitly fall back to bronze through the .get() in the
     consuming list comprehension.
+
+    Avatar resolution mirrors leaderboard's ``_resolve_avatar_url``: a
+    custom uploaded avatar takes precedence over the Emby-proxied URL,
+    so users who set their MK photo keep it across every stats surface.
     """
     if not emby_user_ids:
         return {}
     rows = (await db.execute(
-        select(UserProfile.emby_user_id, UserProfile.level, UserProfile.avatar_url)
+        select(
+            UserProfile.emby_user_id,
+            UserProfile.level,
+            UserProfile.avatar_url,
+            UserProfile.avatar_custom_path,
+        )
         .where(UserProfile.emby_user_id.in_(emby_user_ids))
     )).all()
     return {
         r.emby_user_id: {
-            "avatar_url": r.avatar_url,
+            "avatar_url": (
+                avatar_public_url(r.avatar_custom_path)
+                if r.avatar_custom_path
+                else r.avatar_url
+            ),
             "level": r.level or 1,
             "tier": tier_for_level(r.level or 1),
         }
         for r in rows
+    }
+
+
+def _resolve_user_avatar(
+    emby_user_id: str | None,
+    mk_profiles: dict[str, dict],
+) -> dict:
+    """Merge MK profile (if any) with Emby fallback for stats surfaces.
+
+    Returns the dict ``{avatar_url, level, tier}`` expected by the
+    Sessions card and the 24h active strip. Emby-only users (no MK
+    profile row) get the Emby-proxied photo URL + bronze tier so they
+    still show the leaderboard-style ring + photo when an Emby avatar
+    exists, instead of falling back to a silhouette.
+    """
+    mk = mk_profiles.get(emby_user_id or "")
+    if mk:
+        return {
+            "avatar_url": mk["avatar_url"] or _emby_user_image_url(emby_user_id),
+            "level": mk["level"],
+            "tier": mk["tier"],
+        }
+    return {
+        "avatar_url": _emby_user_image_url(emby_user_id),
+        "level": 1,
+        "tier": "bronze",
     }
 
 
