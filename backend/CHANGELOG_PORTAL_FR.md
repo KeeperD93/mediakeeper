@@ -16,6 +16,9 @@ utilisateurs.
 
 ## [Unreleased]
 
+### Changed
+- Avatars — anneau coloré par niveau (bronze → légendaire) sur toutes les surfaces, même rendu que le classement.
+
 ## [1.0.0-rc.3] - 2026-05-22
 
 ## [1.0.0-rc.2] - 2026-05-22

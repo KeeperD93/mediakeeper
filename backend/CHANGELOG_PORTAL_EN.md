@@ -14,6 +14,9 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Changed
+- Avatars — level-coloured ring (bronze → legendary) on every surface, matching the leaderboard.
+
 ## [1.0.0-rc.3] - 2026-05-22
 
 ## [1.0.0-rc.2] - 2026-05-22
