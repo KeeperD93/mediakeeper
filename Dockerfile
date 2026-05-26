@@ -64,7 +64,13 @@ COPY --from=frontend-build /build/dist/ ./frontend-dist/
 # ============================================
 # Persistent directories
 # ============================================
-RUN mkdir -p /data/pg /data/logs /data/backups \
+# /data/avatars holds custom uploads served by the Portal — without
+# the pre-created subdir the FastAPI handler raises PermissionError
+# on the first upload because the volume root is owned by an
+# unrelated UID when the host mounts an empty volume. Pre-creating +
+# chowning here, plus a defensive re-chown in entrypoint.sh, covers
+# both fresh installs and existing volumes that pre-date this fix.
+RUN mkdir -p /data/pg /data/logs /data/backups /data/avatars \
     && chown -R mkuser:users /data \
     && chown -R postgres:postgres /data/pg
 

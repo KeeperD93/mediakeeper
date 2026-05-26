@@ -31,8 +31,19 @@ if [ "$PUID" -ne 0 ]; then
     # Fix permissions on /data files still owned by the old UID
     chown mkuser:users /data/.jwt_secret /data/.pg_password 2>/dev/null || true
     chmod 600 /data/.jwt_secret /data/.pg_password 2>/dev/null || true
+    # Re-chown the /data root so mkuser can create new subdirs (avatars,
+    # future /data/* targets). /data/pg is re-chowned to postgres below.
+    chown mkuser:users /data 2>/dev/null || true
     chown -R mkuser:users /data/logs /data/backups 2>/dev/null || true
 fi
+
+# ---- 0b. Persistent dirs that must exist + be writable by mkuser ----
+# /data/avatars is created here (not just in the Dockerfile) so an
+# existing volume that pre-dates the dir gets it on the next boot
+# without requiring a manual ``docker exec mkdir`` from the operator.
+mkdir -p /data/avatars 2>/dev/null || true
+chown mkuser:users /data/avatars 2>/dev/null || true
+chmod 750 /data/avatars 2>/dev/null || true
 
 # ---- 1. Auto-generated PostgreSQL password ----
 if [ ! -f "$PG_PWD_FILE" ]; then
