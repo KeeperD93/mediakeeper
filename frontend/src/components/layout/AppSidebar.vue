@@ -178,7 +178,13 @@
     <div class="sb-footer">
       <router-link to="/changelog" class="sb-version-link" :title="$t('changelog.title')">
         <span class="sb-version">
-          <Package v-if="!collapsed" :size="11" :stroke-width="2" class="sb-version-icon" />
+          <Package
+            v-if="!collapsed"
+            :size="11"
+            :stroke-width="2"
+            class="sb-version-icon"
+            aria-hidden="true"
+          />
           v{{ appVersion }}
         </span>
         <span v-if="hasNewChangelog" class="sb-version-dot" />
