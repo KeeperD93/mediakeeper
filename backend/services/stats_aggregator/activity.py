@@ -8,6 +8,7 @@ from core.pagination import decode_cursor, build_cursor_response
 from models.playback_stats import PlaybackSession
 
 from .exclusions import _get_exclusion_filters
+from .playback import _load_mk_profile_map
 
 
 async def get_activity_history(db: AsyncSession, page: int = 1, per_page: int = 30,
@@ -80,7 +81,13 @@ def _activity_row_to_dict(r) -> dict:
 
 
 async def get_activity_minimap(db: AsyncSession):
-    """Return playbacks from the last 24h for the minimap (lightweight fields)."""
+    """Return playbacks from the last 24h for the minimap (lightweight fields).
+
+    Each row carries the Emby ``user_id`` plus the MK profile
+    ``avatar_url`` + ``tier`` resolved against UserProfile so the
+    StatsTotalsRow dedup'ed avatar strip can render real photos +
+    tier rings (bronze fallback for Emby-only / historical accounts).
+    """
     since = datetime.now(timezone.utc) - timedelta(hours=24)
     exc_filters = await _get_exclusion_filters(db)
 
@@ -89,6 +96,7 @@ async def get_activity_minimap(db: AsyncSession):
             PlaybackSession.started_at,
             PlaybackSession.play_method,
             PlaybackSession.user_name,
+            PlaybackSession.user_id,
         )
         .where(PlaybackSession.started_at >= since)
         .order_by(desc(PlaybackSession.started_at))
@@ -99,11 +107,18 @@ async def get_activity_minimap(db: AsyncSession):
     result = await db.execute(query)
     rows = result.all()
 
+    mk_profiles = await _load_mk_profile_map(
+        db, list({r.user_id for r in rows if r.user_id}),
+    )
+
     return [
         {
             "started_at": r.started_at.isoformat() if r.started_at else None,
             "play_method": r.play_method,
             "user": r.user_name,
+            "user_id": r.user_id,
+            "avatar_url": (mk_profiles.get(r.user_id) or {}).get("avatar_url"),
+            "tier": (mk_profiles.get(r.user_id) or {}).get("tier", "bronze"),
         }
         for r in rows
     ]

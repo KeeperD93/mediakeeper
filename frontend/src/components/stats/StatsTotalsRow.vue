@@ -38,10 +38,10 @@
           <MkAvatar
             v-for="u in uniqueSessionUsers.slice(0, 30)"
             :key="u.id"
-            :src="null"
-            :name="u.id || ''"
+            :src="u.avatar_url"
+            :name="u.name"
             :size="24"
-            tier="bronze"
+            :tier="u.tier"
             class="tot-avatar"
           />
           <div v-if="uniqueSessionUsers.length > 30" class="tot-avatar tot-avatar-more">
@@ -131,12 +131,17 @@ const uniqueSessionUsers = computed(() => {
   const seen = new Set()
   return minimap24h.value
     .filter(s => {
-      const u = s.user || '?'
-      if (seen.has(u)) return false
-      seen.add(u)
+      const key = s.user_id || s.user || '?'
+      if (seen.has(key)) return false
+      seen.add(key)
       return true
     })
-    .map(s => ({ id: s.user || '?', initial: (s.user || '?')[0].toUpperCase() }))
+    .map(s => ({
+      id: s.user_id || s.user || '?',
+      name: s.user || '?',
+      avatar_url: s.avatar_url || null,
+      tier: s.tier || 'bronze',
+    }))
 })
 
 function sparkH(v, arr) {

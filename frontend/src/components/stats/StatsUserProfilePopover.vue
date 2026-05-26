@@ -89,12 +89,11 @@ function upBarH(v) {
   width: 640px;
   max-width: calc(100vw - 24px);
   overflow: hidden;
-  background: rgb(15, 20, 35, 0.97);
-  backdrop-filter: blur(24px);
-  border: 0.5px solid rgb(255, 255, 255, 0.1);
+  background: var(--bg-primary);
+  border: 0.5px solid var(--border-default);
   border-radius: var(--radius-card);
   padding: 20px;
-  box-shadow: 0 20px 60px rgb(0, 0, 0, 0.4);
+  box-shadow: var(--shadow-modal);
 }
 .pop-profile-enter-active,
 .pop-profile-leave-active {
