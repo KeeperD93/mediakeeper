@@ -472,9 +472,9 @@ onDeactivated(() => {
   padding: 12px 20px;
   background: var(--surface-2);
   border: 1px solid var(--border-strong);
-  border-radius: 12px;
+  border-radius: var(--radius-card);
   box-shadow: var(--shadow-modal);
-  backdrop-filter: blur(16px);
+  backdrop-filter: var(--blur-md);
 }
 .bulk-count {
   font-size: var(--text-sm);
