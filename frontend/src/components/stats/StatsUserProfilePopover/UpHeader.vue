@@ -15,6 +15,7 @@
     </div>
     <MkButton
       variant="icon"
+      size="sm"
       icon="x"
       :aria-label="$t('common.close')"
       @click="$emit('close')"
