@@ -1,6 +1,6 @@
 /* Storybook-only palette overrides.
  *
- * Loaded AFTER the project tokens in preview.ts so we can experiment
+ * Loaded after the project tokens in preview.ts so we can experiment
  * with accent palettes in the catalogue without touching the live app.
  * Delete or tweak freely while iterating on the design system.
  */
