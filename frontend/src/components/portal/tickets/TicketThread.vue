@@ -24,7 +24,8 @@
           :src="!entry.deleted ? entry.author?.avatar_url || null : null"
           :name="entry.deleted ? '?' : entry.author?.display_name || '?'"
           :size="32"
-          class="tth-avatar mk-avatar--ring-subtle"
+          :tier="(!entry.deleted && entry.author?.tier) || 'bronze'"
+          class="tth-avatar"
         />
 
         <div class="tth-bubble">

@@ -9,7 +9,8 @@
           :name="c.username || ''"
           :src="c.avatar_url || null"
           :size="26"
-          class="ale-contrib-avatar mk-avatar--ring-subtle"
+          :tier="c.tier || 'bronze'"
+          class="ale-contrib-avatar"
         />
         <span class="ale-contrib-name">{{ c.username || `#${c.user_id}` }}</span>
         <span v-if="c.is_owner_row" class="ale-contrib-owner">
