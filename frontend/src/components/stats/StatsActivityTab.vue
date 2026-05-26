@@ -45,10 +45,14 @@
     <div class="glass-card tbl-wrap tbl-wrap-activity">
       <div class="tbl-header">
         <h2 class="tbl-title">{{ $t('stats.activityHistory') }}</h2>
-        <button v-if="activitySelected.size" class="act-bulk-del-btn" @click="bulkDeleteActivity">
-          <Trash2 :size="13" />
+        <MkButton
+          v-if="activitySelected.size"
+          variant="danger"
+          icon="trash-2"
+          @click="bulkDeleteActivity"
+        >
           {{ $t('common.delete') }} ({{ activitySelected.size }})
-        </button>
+        </MkButton>
         <div class="tbl-controls">
           <div class="tbl-ctrl">
             <span class="ctrl-lbl">{{ $t('common.showPerPage') }}</span>
@@ -225,7 +229,8 @@ import {
   formatDate,
   fluxBadgeClass,
 } from '@/components/stats/statsTableUtils'
-import { ChevronLeft, ChevronRight, ChevronsLeft, Trash2 } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, ChevronsLeft } from 'lucide-vue-next'
+import MkButton from '@/components/common/MkButton.vue'
 import { useConfirm } from '@/composables/useConfirm'
 import '@/assets/styles/stats-tables.css'
 

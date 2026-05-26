@@ -10,14 +10,17 @@
         {{ ticksToDuration(userProfile.total_ticks) }}
       </div>
     </div>
-    <button class="up-close" @click="$emit('close')">
-      <X :size="14" :stroke-width="2.5" />
-    </button>
+    <MkButton
+      variant="icon"
+      icon="x"
+      :aria-label="$t('common.close')"
+      @click="$emit('close')"
+    />
   </div>
 </template>
 
 <script setup>
-import { X } from 'lucide-vue-next'
+import MkButton from '@/components/common/MkButton.vue'
 
 defineProps({
   profileName: { type: String, required: true },
