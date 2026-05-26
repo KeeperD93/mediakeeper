@@ -304,22 +304,32 @@ function clearSelection() {
   selected.clear()
 }
 
-// Run a bulk API action in parallel via Promise.allSettled so that a
-// single failed call does not abort the whole batch and leave the
-// selection / table state out of sync. Reports a precise toast: full
-// success → bulkUsers* (pluralised), any failure → bulkPartialFail
-// with succeeded / failed / total counts. clearSelection + fetchUsers
-// run unconditionally so the UI always reconciles with the server.
+// Run a bulk API action sequentially with per-item try/catch. Parallel
+// calls would race on the backend (CSRF / concurrent writes to the
+// same table) and only the first one would persist visibly, so each
+// mutation must commit before the next is fired. A try/catch around
+// every call keeps the loop alive on partial failure: we tally
+// succeeded / failed and report the right toast at the end.
+// clearSelection + fetchUsers run unconditionally so the UI always
+// reconciles with the server.
 async function runBulk(targets, callFor, successKey) {
   if (!targets.length) return
-  const results = await Promise.allSettled(targets.map(callFor))
-  const succeeded = results.filter(r => r.status === 'fulfilled').length
-  const failed = results.length - succeeded
+  let succeeded = 0
+  let failed = 0
+  for (const target of targets) {
+    try {
+      await callFor(target)
+      succeeded += 1
+    } catch (e) {
+      failed += 1
+      console.error('[StatsUsersTab.runBulk] item failed', e)
+    }
+  }
   if (failed === 0) {
     showToast(t(successKey, succeeded, { n: succeeded }), TOAST_TYPE.OK)
   } else {
     showToast(
-      t('stats.bulkPartialFail', { succeeded, failed, total: results.length }),
+      t('stats.bulkPartialFail', { succeeded, failed, total: targets.length }),
       TOAST_TYPE.ERR,
     )
   }
