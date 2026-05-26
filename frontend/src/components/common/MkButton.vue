@@ -87,6 +87,10 @@ const classes = computed(() => [
   align-items: center;
   justify-content: center;
   gap: 8px;
+  /* border-box ensures all variants (1px transparent on primary/danger,
+     1.5px on ghost/icon) keep the same total height — content shrinks
+     to accommodate the border instead of pushing the box larger. */
+  box-sizing: border-box;
   font-family: var(--font-system);
   font-weight: var(--font-medium);
   border-radius: var(--radius-btn);
