@@ -8,7 +8,7 @@ const meta: Meta<typeof MkButton> = {
   argTypes: {
     variant: {
       control: 'select',
-      options: ['primary', 'secondary', 'danger', 'ghost', 'icon'],
+      options: ['primary', 'danger', 'ghost', 'icon', 'link'],
     },
     size: { control: 'select', options: ['sm', 'md', 'lg'] },
     icon: { control: 'text' },
@@ -31,15 +31,6 @@ export const Primary: Story = {
   }),
 }
 
-export const Secondary: Story = {
-  args: { variant: 'secondary' },
-  render: args => ({
-    components: { MkButton },
-    setup: () => ({ args }),
-    template: '<MkButton v-bind="args">Précédent</MkButton>',
-  }),
-}
-
 export const Danger: Story = {
   args: { variant: 'danger', icon: 'trash-2' },
   render: args => ({
@@ -55,6 +46,15 @@ export const Ghost: Story = {
     components: { MkButton },
     setup: () => ({ args }),
     template: '<MkButton v-bind="args">Annuler</MkButton>',
+  }),
+}
+
+export const Link: Story = {
+  args: { variant: 'link' },
+  render: args => ({
+    components: { MkButton },
+    setup: () => ({ args }),
+    template: '<MkButton v-bind="args">Passer</MkButton>',
   }),
 }
 
@@ -138,9 +138,9 @@ export const AllVariants: Story = {
       <div style="display: flex; flex-direction: column; gap: 16px; align-items: flex-start;">
         <div style="display: flex; gap: 12px; align-items: center;">
           <MkButton variant="primary" icon="save">Enregistrer</MkButton>
-          <MkButton variant="secondary">Précédent</MkButton>
           <MkButton variant="danger" icon="trash-2">Supprimer</MkButton>
           <MkButton variant="ghost">Annuler</MkButton>
+          <MkButton variant="link">Passer</MkButton>
           <MkButton variant="icon" icon="settings" aria-label="Paramètres" />
         </div>
       </div>

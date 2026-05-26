@@ -39,7 +39,7 @@ const props = defineProps({
   variant: {
     type: String,
     default: 'primary',
-    validator: v => ['primary', 'secondary', 'danger', 'ghost', 'icon'].includes(v),
+    validator: v => ['primary', 'danger', 'ghost', 'icon', 'link'].includes(v),
   },
   size: {
     type: String,
@@ -153,18 +153,6 @@ const classes = computed(() => [
   background: var(--accent-700);
 }
 
-.mk-btn--secondary {
-  background: transparent;
-  color: var(--accent-400);
-  border-color: var(--accent-500);
-}
-@media (hover: hover) {
-  .mk-btn--secondary:hover:not(:disabled) {
-    background: rgb(var(--accent-rgb), 0.1);
-    color: var(--accent-300);
-  }
-}
-
 .mk-btn--danger {
   background: var(--color-error);
   color: var(--color-on-accent);
@@ -201,6 +189,17 @@ const classes = computed(() => [
     background: var(--surface-1);
     color: var(--text-primary);
     border-color: var(--border-ghost-hover);
+  }
+}
+
+.mk-btn--link {
+  background: transparent;
+  color: var(--text-muted);
+  padding: 0 12px;
+}
+@media (hover: hover) {
+  .mk-btn--link:hover:not(:disabled) {
+    color: var(--text-primary);
   }
 }
 

@@ -14,10 +14,10 @@ describe('MkButton — variantes', () => {
 
   it.each([
     ['primary', 'mk-btn--primary'],
-    ['secondary', 'mk-btn--secondary'],
     ['danger', 'mk-btn--danger'],
     ['ghost', 'mk-btn--ghost'],
     ['icon', 'mk-btn--icon'],
+    ['link', 'mk-btn--link'],
   ])('applies the %s variant class', (variant, klass) => {
     const wrapper = mount(MkButton, { props: { variant } })
     expect(wrapper.classes()).toContain(klass)
