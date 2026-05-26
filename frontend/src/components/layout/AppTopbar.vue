@@ -14,15 +14,17 @@
 
     <!-- Right: actions -->
     <div class="tb-right">
-      <!-- Mobile-only "Customize" trigger on /dashboard. Dispatches a
-           window-level event the mobile dashboard listens for; the
-           two components live in separate router subtrees. -->
+      <!-- "Customize" trigger on /dashboard. Dispatches a window-level
+           event the dashboard view listens for. The dashboard then
+           enters its edit mode (grid drag on desktop, long-press
+           reorder on mobile) since the two surfaces live in separate
+           router subtrees. -->
       <button
         v-if="isOnDashboard"
         class="tb-action-btn tb-customize-btn"
         :title="$t('dashboard.customize')"
         :aria-label="$t('dashboard.customize')"
-        @click="dispatchMobileEdit"
+        @click="dispatchDashboardEdit"
       >
         <LayoutGrid :size="18" :stroke-width="1.8" />
       </button>
@@ -144,7 +146,7 @@ import { useAuth } from '@/composables/useAuth'
 import { useTopbarAlerts } from '@/composables/useTopbarAlerts'
 import { Bell, ChevronDown, LayoutGrid, LogOut, Menu } from 'lucide-vue-next'
 import MkAvatar from '@/components/common/MkAvatar.vue'
-import { MOBILE_EDIT_EVENT } from '@/constants/dashboardEvents'
+import { DASHBOARD_EDIT_EVENT } from '@/constants/dashboardEvents'
 import '@/assets/styles/app-topbar.css'
 import '@/assets/styles/app-topbar-dropdowns.css'
 
@@ -177,8 +179,8 @@ const userInitial = computed(() => (username.value || '?')[0].toUpperCase())
 const avatarUrl = computed(() => user.value?.avatar_url || null)
 const isOnDashboard = computed(() => route.name === 'dashboard')
 
-function dispatchMobileEdit() {
-  window.dispatchEvent(new Event(MOBILE_EDIT_EVENT))
+function dispatchDashboardEdit() {
+  window.dispatchEvent(new Event(DASHBOARD_EDIT_EVENT))
 }
 
 const pageTitle = computed(() => {

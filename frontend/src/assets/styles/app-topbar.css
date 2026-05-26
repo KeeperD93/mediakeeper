@@ -83,17 +83,10 @@
   }
 }
 
-/* Mobile-only "Customize" trigger on /dashboard pages — sits next to
-   the bell. Hidden on tablet + desktop where the existing in-page
-   ghost CTA is the entry point. */
-.tb-customize-btn {
-  display: none;
-}
-@media (max-width: 767px) {
-  .tb-customize-btn {
-    display: inline-flex;
-  }
-}
+/* "Customize" trigger on /dashboard pages — sits next to the bell on
+   every breakpoint. The dashboard view listens for the dispatched
+   event and runs its own reorder flow per platform (desktop grid
+   drag vs mobile long-press). */
 
 /* Right */
 .tb-right {

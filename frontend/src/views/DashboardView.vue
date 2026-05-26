@@ -67,12 +67,6 @@
       </div>
     </div>
 
-    <div v-if="!editing && loaded && !isMobile" class="dash-customize-wrap">
-      <MkButton variant="primary" icon="layout-grid" @click="editing = true">
-        {{ $t('dashboard.customize') }}
-      </MkButton>
-    </div>
-
     <!-- Skeleton -->
     <div v-if="!loaded && !isMobile" class="dash-skeleton">
       <div class="skel-row skel-row-main">
@@ -230,6 +224,7 @@ import { useDashboardKeyboardMove } from '@/composables/useDashboardKeyboardMove
 import { useMobile } from '@/composables/useMobile'
 
 import MkButton from '@/components/common/MkButton.vue'
+import { DASHBOARD_EDIT_EVENT } from '@/constants/dashboardEvents'
 import HeroCarousel from '@/components/dashboard/HeroCarousel.vue'
 import StatRibbon from '@/components/dashboard/StatRibbon.vue'
 import ActivityTimeline from '@/components/dashboard/ActivityTimeline.vue'
@@ -460,6 +455,13 @@ function scheduleSecondaryLoad() {
   })
 }
 
+function handleDashboardEdit() {
+  // Mobile has its own reorder flow handled by MobileDashboard; here we
+  // only open the desktop grid edit mode.
+  if (isMobile.value) return
+  editing.value = true
+}
+
 onMounted(async () => {
   await nextTick()
   if (particlesEnabled.value) cleanupParticles = initParticles()
@@ -467,6 +469,7 @@ onMounted(async () => {
   await Promise.all([loadSeenAlerts(), loadSystemStats(), loadServices(), loadSessions()])
   startPrimaryPolling()
   scheduleSecondaryLoad()
+  window.addEventListener(DASHBOARD_EDIT_EVENT, handleDashboardEdit)
 })
 onActivated(() => {
   if (!cleanupParticles && particlesEnabled.value) cleanupParticles = initParticles()
@@ -480,5 +483,6 @@ onDeactivated(() => {
 onUnmounted(() => {
   timers.forEach(clearInterval)
   if (cleanupParticles) cleanupParticles()
+  window.removeEventListener(DASHBOARD_EDIT_EVENT, handleDashboardEdit)
 })
 </script>
