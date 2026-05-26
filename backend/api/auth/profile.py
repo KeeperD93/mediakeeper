@@ -40,14 +40,23 @@ async def get_me(
     # topbar can render the same MkAvatar shown on /portal/users.
     # ``UserProfile`` is 1:1 with ``User`` via user_id; the lookup
     # returns ``None`` for admins who never visited the portal side.
+    # ``level`` rides on the same query so the topbar avatar can paint
+    # the matching tier ring (bronze default for admins without a
+    # portal profile yet).
     from models.portal.profile import UserProfile
-    avatar_row = (await db.execute(
-        select(UserProfile.avatar_url).where(UserProfile.user_id == current_user.id)
+    from services.portal._rank_tiers import tier_for_level
+    profile_row = (await db.execute(
+        select(UserProfile.avatar_url, UserProfile.level)
+        .where(UserProfile.user_id == current_user.id)
     )).first()
+    avatar_url = profile_row[0] if profile_row else None
+    level = (profile_row[1] if profile_row and profile_row[1] else 1)
     return {
         "username":             current_user.username,
         "must_change_password": current_user.must_change_password,
-        "avatar_url":           avatar_row[0] if avatar_row else None,
+        "avatar_url":           avatar_url,
+        "level":                level,
+        "tier":                 tier_for_level(level),
     }
 
 

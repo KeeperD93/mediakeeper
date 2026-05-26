@@ -21,10 +21,10 @@
       :style="{ zIndex: 10 - i }"
     >
       <MkAvatar
-        :src="userImages[s.user_id] || null"
+        :src="s.avatar_url || userImages[s.user_id] || null"
         :name="s.user || '?'"
         :size="avatarSize"
-        class="mk-avatar--ring-subtle"
+        :tier="s.tier || 'bronze'"
       />
     </div>
     <div
