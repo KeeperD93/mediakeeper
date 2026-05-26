@@ -419,12 +419,13 @@ onMounted(() => {
 
 /* ─── Bulk actions overlay ─── */
 /* Position centred over the content area, not the full viewport — the
-   240px admin sidebar would otherwise pull the bar visually off-centre.
-   Mobile breakpoint resets to a true 50% since the sidebar collapses. */
+   admin sidebar (var(--sidebar-width)) would otherwise pull the bar
+   visually off-centre. Mobile breakpoint resets to a true 50% since
+   the sidebar collapses. */
 .bulk-bar {
   position: fixed;
   bottom: 24px;
-  left: calc(50% + 120px);
+  left: calc(50% + var(--sidebar-width) / 2);
   transform: translateX(-50%);
   z-index: 100;
   display: flex;

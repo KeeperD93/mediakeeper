@@ -114,6 +114,7 @@ main#main-content:focus-visible {
   --bg-panel: var(--bg-secondary); /* Alias — modal / panel surface */
   --mk-chrome-bg: #1c2533; /* Sidebar + topbar surface — admin chrome */
   --mk-chrome-bg-rgb: 28, 37, 51;
+  --sidebar-width: 240px; /* Admin sidebar full width — collapsed state (68px) handled inline in app-sidebar.css */
   --mk-chrome-gradient-top: #2d3139; /* Top stop for chrome gradient — medium grey-blue */
   --mk-chrome-gradient-bottom: #15171c; /* Bottom stop — near-black */
   --mk-chrome-gradient: linear-gradient(
