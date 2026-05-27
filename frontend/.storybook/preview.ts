@@ -2,7 +2,6 @@ import type { Preview } from '@storybook/vue3-vite'
 
 import '../src/styles/design-tokens.css'
 import '../src/styles/main.css'
-import './storybook-overrides.css'
 import './inventory.css'
 
 const preview: Preview = {

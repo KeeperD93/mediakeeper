@@ -14,6 +14,8 @@ This section intentionally has no date so it is not shown to users.
 
 ### Changed
 - Admin UI — refreshed dark theme with stronger text contrast for legibility.
+- Buttons — MediaKeeper palette applied (violet, brick red, forest green) without affecting charts.
+- Appearance — accent picker temporarily removed (MK palette locked).
 - Scheduler — UI reorganised by category with compact single-line rows.
 - Startup — boot log: `COOKIE_SECURE=` renamed `COOKIE_HTTPS_FLAG=` (env var unchanged, mapping in `tls-deployment.md`).
 - CSRF cookie — allowlist validation on polls (hardening).

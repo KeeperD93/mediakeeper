@@ -75,6 +75,27 @@
   --color-info-light: #93c5fd;
   --color-info-soft: #bfdbfe;
 
+  /* ─── MkButton brand palette — MediaKeeper signature, deliberately
+   * decoupled from --accent-* (global decorations) and --color-*
+   * (semantic chart / badge tones, kept light + readable on dark bg).
+   *
+   * 3-layer color system:
+   *   • --mk-btn-*  : button-only, locked to the MK brand
+   *   • --color-*   : semantic surfaces (charts, gauges, badges, toasts)
+   *   • --accent-*  : global decorations (halos, focus rings, hovers)
+   *
+   * Each layer is independent: tweaking the button signature does not
+   * propagate to charts, and vice-versa. Only consumed by MkButton. ─── */
+  --mk-btn-primary: #5c5792; /* violet MK — primary CTA */
+  --mk-btn-primary-hover: #4d4878;
+  --mk-btn-primary-active: #3d395f;
+  --mk-btn-danger: #c23028; /* rouge brique — destructive actions */
+  --mk-btn-danger-hover: #9a2620;
+  --mk-btn-danger-active: #7c1e19;
+  --mk-btn-success: #007c00; /* vert forêt — confirm / validate */
+  --mk-btn-success-hover: #00a000;
+  --mk-btn-success-active: #006400;
+
   /* ─── Module-branded colors — each MediaKeeper module has a signature
    * accent used in icons, badges, hover hints to give the user a quick
    * visual cue of which area they're in. Kept separate from the

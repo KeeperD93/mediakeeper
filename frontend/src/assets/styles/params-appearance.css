@@ -4,44 +4,10 @@
  * `.params-switch`, `.params-slider` or custom background classes.
  */
 
-/* ── Accent grid ── */
-.params-appearance-tab .params-accent-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-}
-.params-appearance-tab .params-accent-btn {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 6px 11px;
-  border-radius: var(--radius-btn);
-  cursor: pointer;
-  border: 1.5px solid var(--border);
-  background: var(--bg-secondary);
-  transition: all var(--duration-fast);
-  font-family: inherit;
-  min-width: 0;
-}
-.params-appearance-tab .params-accent-btn:hover {
-  border-color: var(--dot-color);
-}
-.params-appearance-tab .params-accent-btn.active {
-  border-color: var(--dot-color);
-  background: rgb(var(--accent-rgb), 0.06);
-}
-.params-appearance-tab .accent-dot {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.params-appearance-tab .accent-name {
-  font-size: var(--text-2xs);
-  font-weight: var(--font-regular);
-  color: var(--text-secondary);
-  text-transform: capitalize;
-}
+/* Accent picker grid removed — the MediaKeeper-signature accent palette
+   is now set globally and not user-pickable for now. The MkButton primary
+   colour is decoupled into ``--mk-btn-primary*`` tokens in _colors.css so
+   the button signature stays brand-locked. */
 
 /* ── Radius slider ── */
 .params-appearance-tab .params-slider-row {

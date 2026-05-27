@@ -15,6 +15,8 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 ### Changed
 - Interface admin — nouveau thème sombre, contraste texte renforcé pour la lisibilité.
 - Avatars — anneau coloré par niveau (bronze → légendaire) sur toutes les surfaces, même rendu que le classement.
+- Boutons — palette MediaKeeper appliquée (violet, rouge brique, vert forêt) sans toucher aux graphiques.
+- Apparence — sélecteur d'accent retiré temporairement (palette MK verrouillée).
 - Planificateur — interface réorganisée par catégories, cartes compactes.
 - Démarrage — log boot : `COOKIE_SECURE=` renommé `COOKIE_HTTPS_FLAG=` (variable env inchangée, mapping dans `tls-deployment.md`).
 - Cookie CSRF — validation par allowlist sur les polls (durcissement).

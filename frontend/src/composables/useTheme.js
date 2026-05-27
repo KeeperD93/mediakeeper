@@ -68,6 +68,14 @@ applyGlow(glowIntensity.value)
 
 // ---- Accent ----
 const ACCENT_PRESETS = {
+  mediakeeper: {
+    500: '#5c5792',
+    400: '#7972a8',
+    300: '#9690bf',
+    600: '#4d4878',
+    700: '#3d395f',
+    rgb: '92,87,146',
+  },
   indigo: {
     500: '#6366f1',
     400: '#818cf8',
