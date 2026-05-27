@@ -23,7 +23,7 @@
           :src="u.avatar_url"
           :name="u.display_name || u.username"
           :size="56"
-          class="ru-admin-avatar"
+          :tier="u.tier || 'bronze'"
         />
         <div>
           <div class="ru-card-name">{{ u.display_name }}</div>

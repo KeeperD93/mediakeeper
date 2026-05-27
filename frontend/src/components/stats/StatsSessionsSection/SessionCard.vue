@@ -80,10 +80,10 @@
       <span class="sc-ft-title">{{ s.series || s.media }}</span>
       <span class="sc-ft-user">{{ s.user }}</span>
       <MkAvatar
-        :src="null"
+        :src="s.avatar_url || null"
         :name="s.user || '?'"
         :size="18"
-        class="sc-ft-avatar mk-avatar--ring-thin"
+        :tier="s.tier || 'bronze'"
       />
     </div>
   </div>
@@ -311,15 +311,9 @@ defineProps({
   font-size: var(--text-2xs);
   color: rgb(255, 255, 255, 0.5);
 }
-.sc-ft-avatar {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.55rem;
-  font-weight: var(--font-bold);
-  color: var(--text-primary);
-}
+/* MkAvatar owns its layout (flex-end + translateY(15%) for the
+   silhouette positioning). The wrapper used to force align-items
+   centre + text font props, which stacked with the internal transform
+   and pushed the icon below the circle. MkAvatar's :size prop drives
+   the dimensions inline. */
 </style>

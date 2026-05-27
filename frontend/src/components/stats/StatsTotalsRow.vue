@@ -38,12 +38,12 @@
           <MkAvatar
             v-for="u in uniqueSessionUsers.slice(0, 30)"
             :key="u.id"
-            :src="null"
-            :name="u.id || ''"
+            :src="u.avatar_url"
+            :name="u.name"
             :size="24"
-            class="tot-avatar mk-avatar--ring-thin"
+            :tier="u.tier"
           />
-          <div v-if="uniqueSessionUsers.length > 30" class="tot-avatar tot-avatar-more">
+          <div v-if="uniqueSessionUsers.length > 30" class="tot-avatar-more">
             +{{ uniqueSessionUsers.length - 30 }}
           </div>
           <span v-if="!uniqueSessionUsers.length" class="tot-sub tot-sub-inline">
@@ -130,12 +130,17 @@ const uniqueSessionUsers = computed(() => {
   const seen = new Set()
   return minimap24h.value
     .filter(s => {
-      const u = s.user || '?'
-      if (seen.has(u)) return false
-      seen.add(u)
+      const key = s.user_id || s.user || '?'
+      if (seen.has(key)) return false
+      seen.add(key)
       return true
     })
-    .map(s => ({ id: s.user || '?', initial: (s.user || '?')[0].toUpperCase() }))
+    .map(s => ({
+      id: s.user_id || s.user || '?',
+      name: s.user || '?',
+      avatar_url: s.avatar_url || null,
+      tier: s.tier || 'bronze',
+    }))
 })
 
 function sparkH(v, arr) {
@@ -293,28 +298,27 @@ onUnmounted(() => {
   gap: 4px;
   max-width: calc(15 * 18px + 14 * 4px);
 }
-.tot-avatar {
+/* MkAvatar paints its own circle + tier ring + bottom-anchored
+   silhouette. Forcing ``display: flex; align-items: center`` from a
+   parent wrapper overrode MkAvatar's internal ``align-items: flex-end``
+   and stacked with the icon's ``transform: translateY(15%)``, pushing
+   the silhouette below the visual centre. The ``+N`` overflow chip is
+   a plain <div> so it gets its own layout rule below. */
+.tot-avatar-more {
   width: 26px;
   height: 26px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--text-3xs);
-  font-weight: var(--font-bold);
-  color: var(--text-primary);
-}
-.tot-avatars--compact .tot-avatar {
-  width: 18px;
-  height: 18px;
-  font-size: 0.5rem;
-}
-.tot-avatar-more {
   background: rgb(255, 255, 255, 0.12);
   color: var(--text-secondary);
   font-size: 0.58rem;
+  font-weight: var(--font-bold);
 }
 .tot-avatars--compact .tot-avatar-more {
+  width: 18px;
+  height: 18px;
   font-size: 0.48rem;
 }
 .transcode-bar {

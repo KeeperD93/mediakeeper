@@ -21,10 +21,10 @@
       :style="{ zIndex: 10 - i }"
     >
       <MkAvatar
-        :src="userImages[s.user_id] || null"
+        :src="s.avatar_url"
         :name="s.user || '?'"
         :size="avatarSize"
-        class="mk-avatar--ring-subtle"
+        :tier="s.tier || 'bronze'"
       />
     </div>
     <div
@@ -38,73 +38,66 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
-import { useUserImages } from '@/composables/useUserImages'
+import { computed } from 'vue'
 import { useMobile } from '@/composables/useMobile'
 import MkAvatar from '@/components/common/MkAvatar.vue'
 
-const props = defineProps({
+defineProps({
   sessions: { type: Array, default: () => [] },
   idx: { type: Number, default: 0 },
 })
-const emit = defineEmits(['go-to'])
+defineEmits(['go-to'])
 
-const { getUserImageUrl } = useUserImages()
 const { isMobile } = useMobile()
-const userImages = ref({})
 
 // 28 px on phones keeps four avatars + the "+N" badge inside the
 // dashboard hero's compact right column without forcing the rest of
 // the layout to wrap. Desktop stays at the original 36 px.
 const avatarSize = computed(() => (isMobile.value ? 28 : 36))
-
-watch(
-  () => props.sessions,
-  async sessions => {
-    const userIds = [
-      ...new Set(
-        (sessions || [])
-          .slice(0, 4)
-          .map(s => s.user_id)
-          .filter(id => id && !userImages.value[id]),
-      ),
-    ]
-    if (!userIds.length) return
-    const results = await Promise.all(userIds.map(async id => [id, await getUserImageUrl(id)]))
-    const updates = Object.fromEntries(results.filter(([, url]) => url))
-    if (Object.keys(updates).length) userImages.value = { ...userImages.value, ...updates }
-  },
-  { immediate: true },
-)
 </script>
 
 <style scoped>
 .hero-dots {
   display: flex;
-  flex-direction: column;
+  /* Mobile-first — dots inline on phones (order: 2, padding-bottom: 0).
+     Desktop stacks them vertically with padding-bottom space-1 via the
+     @media (min-width: 768px) block. */
+  order: 2;
+  flex-direction: row;
   align-items: center;
+  /* 6 px between bullets — between --space-1 (4) and --space-2 (8). */
   gap: 6px;
   flex-shrink: 0;
-  padding-bottom: 4px;
+  padding-bottom: 0;
 }
 .hero-dot-btn {
+  /* 9 / 10 px bullets — too small for any --icon-* token (12+). */
   width: 9px;
   height: 9px;
-  border-radius: 50%;
-  background: rgb(255, 255, 255, 0.15);
+  border-radius: var(--radius-circle);
+  background: var(--border-ghost);
   border: 2px solid transparent;
   cursor: pointer;
   padding: 0;
-  transition: all var(--duration-slow);
+  /* Explicit transitions on the 4 properties that change between the
+     idle and active state — avoid `transition: all` for perf + to
+     prevent side-effect transitions on unrelated properties. */
+  transition:
+    background var(--duration-slow),
+    border-color var(--duration-slow),
+    width var(--duration-slow),
+    height var(--duration-slow);
 }
 .hero-dot-btn.active {
   background: var(--accent-500);
-  border-color: rgb(255, 255, 255, 0.3);
+  border-color: var(--border-ghost-hover);
   width: 10px;
   height: 10px;
 }
 .hero-dots-label {
-  font-size: 9px;
+  /* Mobile-first label — --text-3xs. Desktop bumps to a 9 px literal
+     to match the dot cluster's compactness (cf. min-width: 768px). */
+  font-size: var(--text-3xs);
   color: var(--text-very-faint);
   white-space: nowrap;
 }
@@ -112,37 +105,51 @@ watch(
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  padding-bottom: 8px;
+  /* Mobile-first — avatars on the right of the row (order: 3),
+     no bottom padding. Desktop adds space-2 via min-width: 768px. */
+  order: 3;
+  margin-left: auto;
+  padding-bottom: 0;
 }
 .hero-av-slot {
   position: relative;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+  /* Mobile-first 28 px (icon-frame-sm) — desktop bumps to icon-frame-md
+     (36 px) via the @media (min-width: 768px) block. */
+  width: var(--icon-frame-sm);
+  height: var(--icon-frame-sm);
+  border-radius: var(--radius-circle);
   /* Draws the separation between overlapping avatars without
-     enlarging the box — keeps MkAvatar's internal sizing intact. */
-  box-shadow: 0 0 0 2px var(--hero-bg, #0a0e1a);
+     enlarging the box — keeps MkAvatar's internal sizing intact.
+     1.5 px ring on phones — between --border-width-thin (0.5) and
+     --border-width (1) to halve the rim without disappearing.
+     Desktop uses 2 px via the min-width block. */
+  box-shadow: 0 0 0 1.5px var(--hero-bg);
 }
 .hero-av-more {
   position: relative;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+  width: var(--icon-frame-sm);
+  height: var(--icon-frame-sm);
+  border-radius: var(--radius-circle);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgb(255, 255, 255, 0.1);
-  font-size: var(--text-2xs);
+  background: var(--surface-3);
+  font-size: var(--text-3xs);
   font-weight: var(--font-medium);
   color: var(--text-faint);
-  box-shadow: 0 0 0 2px var(--hero-bg, #0a0e1a);
+  box-shadow: 0 0 0 1.5px var(--hero-bg);
 }
 .hero-av-offset {
-  margin-left: -8px;
+  /* 6 px overlap on phones — between --space-1 and --space-2.
+     Desktop uses calc(var(--space-2) * -1) via the min-width block. */
+  margin-left: -6px;
 }
 .anim-slide-up {
   opacity: 0;
   transform: translateY(16px);
+  /* 0.6 s — hero-only signature (also used in HeroSlideContent),
+     outside the --duration-* scale (slower 0.5). Accepted as literal
+     since the value is unique to the hero strip. */
   animation: hero-slide-up 0.6s ease-out forwards;
 }
 @keyframes hero-slide-up {
@@ -151,6 +158,9 @@ watch(
     transform: translateY(0);
   }
 }
+/* Stagger delays — orchestrate the cascade of hero strip elements
+   (dots → avatars). Sub-second values intentionally unique per stage,
+   not tokenized (each delay is one-off by design). */
 .stg-55 {
   animation-delay: 0.55s;
 }
@@ -158,36 +168,35 @@ watch(
   animation-delay: 0.6s;
 }
 
-@media (max-width: 767px) {
+@media (min-width: 768px) {
+  /* Restore the vertical bullet cluster + stacked layout for the
+     wider hero — mirrors the original desktop signature. */
   .hero-dots {
-    order: 2;
-    flex-direction: row;
-    padding-bottom: 0;
-    align-items: center;
+    order: 0;
+    flex-direction: column;
+    padding-bottom: var(--space-1);
   }
   .hero-dots-label {
-    font-size: var(--text-3xs);
+    /* 9 px micro-meta below --text-3xs (~9.9 px) — keeps the
+       bullets-and-count cluster compact on wide screens. */
+    font-size: 9px;
   }
   .hero-avatars {
-    order: 3;
-    padding-bottom: 0;
-    margin-left: auto;
+    order: 0;
+    padding-bottom: var(--space-2);
+    margin-left: 0;
   }
-  /* Shrink the avatar stack to match the smaller phone hero so the
-     row fits without wrapping and avatars no longer visually overlap
-     into one blob — the ``avatarSize`` prop and the ring shadow are
-     scaled together. */
   .hero-av-slot,
   .hero-av-more {
-    width: 28px;
-    height: 28px;
-    box-shadow: 0 0 0 1.5px var(--hero-bg, #0a0e1a);
+    width: var(--icon-frame-md);
+    height: var(--icon-frame-md);
+    box-shadow: 0 0 0 2px var(--hero-bg);
   }
   .hero-av-offset {
-    margin-left: -6px;
+    margin-left: calc(var(--space-2) * -1);
   }
   .hero-av-more {
-    font-size: var(--text-3xs);
+    font-size: var(--text-2xs);
   }
 }
 

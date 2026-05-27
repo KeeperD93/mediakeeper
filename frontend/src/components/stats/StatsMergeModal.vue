@@ -8,6 +8,7 @@
         </div>
         <MkButton
           variant="icon"
+          size="sm"
           icon="x"
           :aria-label="$t('common.close')"
           @click="mergeModal.open = false"
@@ -16,9 +17,12 @@
       <div class="merge-source-box">
         <span class="merge-label merge-label-source">{{ $t('stats.mergeSource') }}</span>
         <div class="merge-user-pill">
-          <div class="dt-avatar merge-avatar-source">
-            {{ (mergeModal.source?.name || '?')[0].toUpperCase() }}
-          </div>
+          <MkAvatar
+            :src="mergeModal.source?.avatar_url"
+            :name="mergeModal.source?.name || '?'"
+            :size="24"
+            :tier="mergeModal.source?.tier || 'bronze'"
+          />
           <span>{{ mergeModal.source?.name }}</span>
           <span class="merge-item-plays">
             {{ mergeModal.source?.play_count || 0 }} {{ $t('stats.plays').toLowerCase() }}
@@ -43,9 +47,12 @@
           :class="{ active: mergeModal.targetId === u.user_id }"
           @click="mergeModal.targetId = u.user_id"
         >
-          <div class="dt-avatar merge-avatar-target" :style="{ background: avatarColors[0] }">
-            {{ (u.name || '?')[0].toUpperCase() }}
-          </div>
+          <MkAvatar
+            :src="u.avatar_url"
+            :name="u.name || '?'"
+            :size="28"
+            :tier="u.tier || 'bronze'"
+          />
           <span class="merge-item-name">{{ u.name }}</span>
           <span class="merge-item-plays">
             {{ u.play_count }} {{ $t('stats.plays').toLowerCase() }}
@@ -70,8 +77,9 @@
 <script setup>
 import { useStatsUI } from '@/composables/useStatsUI'
 import { ArrowDown } from 'lucide-vue-next'
+import MkAvatar from '@/components/common/MkAvatar.vue'
 import MkButton from '@/components/common/MkButton.vue'
-const { mergeModal, mergeTargets, handleMerge, avatarColors } = useStatsUI()
+const { mergeModal, mergeTargets, handleMerge } = useStatsUI()
 </script>
 
 <style scoped>
@@ -88,12 +96,11 @@ const { mergeModal, mergeTargets, handleMerge, avatarColors } = useStatsUI()
   transform: translate(-50%, -50%);
   width: 420px;
   max-width: calc(100vw - 24px);
-  background: rgb(15, 20, 35, 0.97);
-  backdrop-filter: blur(24px);
-  border: 0.5px solid rgb(255, 255, 255, 0.1);
+  background: var(--bg-primary);
+  border: 0.5px solid var(--border-default);
   border-radius: var(--radius-card);
   padding: 20px;
-  box-shadow: 0 20px 60px rgb(0, 0, 0, 0.4);
+  box-shadow: var(--shadow-modal);
 }
 .pop-profile-enter-active,
 .pop-profile-leave-active {
@@ -119,39 +126,10 @@ const { mergeModal, mergeTargets, handleMerge, avatarColors } = useStatsUI()
   font-weight: var(--font-medium);
   color: var(--text-primary);
 }
-.up-close {
-  width: 28px;
-  height: 28px;
-  border-radius: var(--radius-btn);
-  background: var(--surface-2);
-  border: 0.5px solid var(--border-strong);
-  color: var(--text-secondary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.up-close:hover {
-  background: rgb(239, 68, 68, 0.1);
-  color: var(--color-error);
-  border-color: rgb(239, 68, 68, 0.2);
-}
 .up-empty {
   font-size: var(--text-2xs);
   color: var(--text-muted);
   padding: 12px 0;
-}
-.dt-avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--text-2xs);
-  font-weight: var(--font-bold);
-  color: var(--text-primary);
 }
 
 .merge-search {
@@ -251,40 +229,7 @@ const { mergeModal, mergeTargets, handleMerge, avatarColors } = useStatsUI()
   display: flex;
   justify-content: flex-end;
 }
-.params-save-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 22px;
-  border-radius: var(--radius-btn);
-  background: var(--accent-600);
-  color: var(--text-primary);
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  font-family: inherit;
-  border: none;
-  cursor: pointer;
-  transition: all var(--duration-base);
-}
-.params-save-btn:hover:not(:disabled) {
-  background: var(--accent-500);
-}
-.params-save-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
 .merge-hinfo {
   flex: 1;
-}
-.merge-avatar-source {
-  width: 24px;
-  height: 24px;
-  font-size: 0.6rem;
-  background: var(--color-error);
-}
-.merge-avatar-target {
-  width: 28px;
-  height: 28px;
-  font-size: 0.65rem;
 }
 </style>

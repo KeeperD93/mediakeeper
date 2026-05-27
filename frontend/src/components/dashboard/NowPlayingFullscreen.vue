@@ -1,7 +1,16 @@
 <template>
   <Teleport to="body">
     <transition name="np-fade">
-      <div v-if="visible" class="np-overlay" @click.self="$emit('close')">
+      <div
+        v-if="visible"
+        ref="panelRef"
+        class="np-overlay"
+        role="dialog"
+        aria-modal="true"
+        :aria-labelledby="titleId"
+        tabindex="-1"
+        @click.self="emit('close')"
+      >
         <!-- Backdrop -->
         <div class="np-backdrop">
           <img
@@ -19,7 +28,7 @@
           size="sm"
           :aria-label="$t('common.close')"
           class="np-close-wrap"
-          @click="$emit('close')"
+          @click="emit('close')"
         />
 
         <!-- Content -->
@@ -42,7 +51,7 @@
               </span>
             </div>
 
-            <h1 class="np-title">{{ session.series || session.media }}</h1>
+            <h1 :id="titleId" class="np-title">{{ session.series || session.media }}</h1>
             <p class="np-sub">
               {{
                 session.episode
@@ -71,9 +80,17 @@
                 <span v-if="tmdbData.vote" class="np-chip np-chip-vote">
                   ⭐ {{ tmdbData.vote }}
                 </span>
-                <span v-if="tmdbData.runtime" class="np-chip">{{ tmdbData.runtime }} min</span>
+                <span v-if="tmdbData.runtime" class="np-chip">
+                  {{ $t('dashboard.runtimeMinutes', { n: tmdbData.runtime }) }}
+                </span>
                 <span v-if="tmdbData.seasons_count" class="np-chip">
-                  {{ tmdbData.seasons_count }} saison{{ tmdbData.seasons_count > 1 ? 's' : '' }}
+                  {{
+                    $t(
+                      'dashboard.seasonsCount',
+                      { n: tmdbData.seasons_count },
+                      tmdbData.seasons_count,
+                    )
+                  }}
                 </span>
               </div>
               <div v-if="tmdbData.genres?.length" class="np-genres">
@@ -92,20 +109,32 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, toRef, useId, watch } from 'vue'
 import MkButton from '@/components/common/MkButton.vue'
 import { useApi } from '@/composables/useApi'
+import { useFocusTrap } from '@/composables/useFocusTrap'
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
   session: { type: Object, default: () => ({}) },
 })
-defineEmits(['close'])
+const emit = defineEmits(['close'])
 
 const { apiGet } = useApi()
 const tmdbData = ref(null)
 const tmdbLoading = ref(false)
 const cache = {}
+
+// Modal a11y wiring: aria-labelledby points at the dialog title,
+// focus trap activates on `visible`, Escape calls close, previously
+// focused element is restored on deactivate.
+const titleId = useId()
+const panelRef = ref(null)
+useFocusTrap({
+  active: toRef(props, 'visible'),
+  containerRef: panelRef,
+  onEscape: () => emit('close'),
+})
 
 watch(
   () => props.visible,
@@ -129,7 +158,8 @@ watch(
     try {
       const results = await apiGet(`/api/watchlist/search?q=${encodeURIComponent(base)}`)
       if (results?.length > 0) {
-        const detail = await apiGet(`/api/watchlist/tmdb/${results[0].type}/${results[0].id}`)
+        const best = results[0]
+        const detail = await apiGet(`/api/watchlist/tmdb/${best.media_type}/${best.tmdb_id}`)
         if (detail && !detail.error) {
           cache[base] = detail
           tmdbData.value = detail
@@ -156,6 +186,9 @@ watch(
 .np-overlay {
   position: fixed;
   inset: 0;
+  /* Sits between --z-overlay (9000) and --z-toast (9999) — pure
+     literal so the fullscreen card is above the dashboard backdrop
+     but yields to global toasts. */
   z-index: 9500;
   background: #000;
   display: flex;
@@ -185,48 +218,39 @@ watch(
   );
 }
 
-.np-close {
+.np-close-wrap {
   position: absolute;
-  top: 24px;
+  top: var(--space-6);
+  /* 28 px right inset — between --space-6 (24) and --space-8 (32). */
   right: 28px;
   z-index: 10;
-  background: rgb(255, 255, 255, 0.1);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgb(255, 255, 255, 0.15);
-  border-radius: 50%;
-  color: rgb(255, 255, 255, 0.7);
-  font-size: 20px;
-  width: 44px;
-  height: 44px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all var(--duration-fast);
-}
-.np-close:hover {
-  background: rgb(255, 255, 255, 0.2);
-  color: var(--text-primary);
 }
 
 .np-content {
   position: relative;
   z-index: 2;
   display: flex;
-  align-items: flex-start;
-  gap: 40px;
+  /* Mobile-first defaults — stacked column, centered, compact paddings.
+     Desktop layout (side-by-side, larger paddings) lives in the
+     @media (min-width: 768px) block below. */
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-6);
   max-width: 900px;
-  padding: 48px;
+  padding: var(--space-6);
 }
 
 .np-poster {
-  width: 220px;
-  height: 330px;
+  /* Mobile-first poster size — 160 / 240 px, 2:3 ratio. Desktop bumps
+     to 220 / 330 px via the @media (min-width: 768px) block below. */
+  width: 160px;
+  height: 240px;
   border-radius: var(--radius-card);
   overflow: hidden;
   flex-shrink: 0;
   box-shadow: var(--shadow-lg);
-  border: 1px solid rgb(255, 255, 255, 0.1);
+  border: var(--border-width) solid var(--border-intense);
   animation: np-poster-in var(--duration-slower) ease-out 0.1s both;
 }
 @keyframes np-poster-in {
@@ -264,75 +288,97 @@ watch(
 .np-badge {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
 }
 .np-status-dot {
+  /* 10 px badge dot — too small for any --icon-* token. */
   width: 10px;
   height: 10px;
-  border-radius: 50%;
+  border-radius: var(--radius-circle);
+  animation: np-status-pulse var(--duration-pulse) ease-in-out infinite;
 }
 .np-dot-green {
-  background: #22c55e;
-  box-shadow: 0 0 8px rgb(34, 197, 94, 0.5);
+  background: var(--color-online);
+  box-shadow: 0 0 8px rgb(var(--color-online-rgb), 0.5);
 }
 .np-dot-yellow {
-  background: #facc15;
-  box-shadow: 0 0 8px rgb(250, 204, 21, 0.5);
+  background: var(--color-warning);
+  box-shadow: 0 0 8px rgb(var(--color-warning-rgb), 0.5);
+}
+@keyframes np-status-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
 }
 .np-badge-label {
   font-size: var(--text-xs);
   font-weight: var(--font-regular);
+  /* 1.5 px tracking — above --tracking-widest's 0.06em (~0.84 px at
+     14 px font). Fullscreen-only emphasis. */
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: rgb(255, 255, 255, 0.6);
+  color: var(--text-secondary);
 }
 
 .np-title {
-  font-size: 36px;
+  /* Mobile-first title — 24 px between --text-lg (~20.8) and --text-xl.
+     Desktop bumps to 36 px (well above --text-xl's clamp max,
+     fullscreen-only signature) via the @media (min-width: 768px) block. */
+  font-size: 24px;
   font-weight: var(--font-bold);
   color: var(--text-primary);
   margin: 0 0 6px;
-  line-height: 1.2;
+  line-height: var(--lh-snug-tight);
 }
 .np-sub {
   font-size: var(--text-md);
-  color: rgb(255, 255, 255, 0.45);
-  margin: 0 0 16px;
+  color: var(--text-faint);
+  margin: 0 0 var(--space-4);
 }
 
 .np-user-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
 }
 .np-user-label {
   font-size: var(--text-base);
-  color: rgb(255, 255, 255, 0.7);
+  color: var(--text-secondary);
   font-weight: var(--font-regular);
 }
 .np-device {
   font-size: var(--text-xs);
-  color: rgb(255, 255, 255, 0.3);
+  color: var(--text-very-faint);
 }
 
 .np-progress-wrap {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
+  /* Mobile-first centers the progress bar; desktop left-aligns via the
+     @media (min-width: 768px) block. */
+  justify-content: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
 }
 .np-progress-bg {
   flex: 1;
+  /* 5 px bar — fullscreen-specific, between --border-width and
+     a 6 px scale step. */
   height: 5px;
-  background: rgb(255, 255, 255, 0.1);
+  background: var(--surface-3);
   border-radius: 3px;
+  /* 350 px cap — fullscreen-specific. */
   max-width: 350px;
 }
 .np-progress-fill {
   height: 5px;
-  background: linear-gradient(90deg, #6366f1, #818cf8);
+  background: linear-gradient(90deg, var(--accent-500), var(--accent-300));
   border-radius: 3px;
   transition: width var(--duration-slower);
 }
@@ -344,43 +390,51 @@ watch(
 
 /* TMDB info */
 .np-tmdb {
+  /* 0.4 s duration + 0.4 s delay — staggered cascade after .np-info
+     (0.5 s + 0.2 s). Hors palier --duration-* (slow 0.3 / slower 0.5)
+     pour préserver le timing d'apparition de la fiche TMDB enrichie. */
   animation: np-info-in 0.4s ease-out 0.4s both;
 }
 .np-tmdb-chips {
   display: flex;
   flex-wrap: wrap;
+  /* 6 px chip gap — between --space-1 and --space-2. */
   gap: 6px;
-  margin-bottom: 10px;
+  margin-bottom: var(--space-2-5);
 }
 .np-chip {
   font-size: var(--text-xs);
-  padding: 4px 12px;
+  padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-sm);
   background: var(--surface-3);
-  color: rgb(255, 255, 255, 0.5);
+  color: var(--text-faint);
 }
 .np-chip-vote {
-  background: rgb(250, 204, 21, 0.12);
-  color: #facc15;
+  background: rgb(var(--color-warning-rgb), 0.12);
+  color: var(--color-warning);
 }
 .np-genres {
   display: flex;
   flex-wrap: wrap;
+  /* 5 px genre gap — between --space-1 (4) and --space-2 (8). */
   gap: 5px;
-  margin-bottom: 14px;
+  margin-bottom: var(--space-3-5);
 }
 .np-genre {
   font-size: var(--text-2xs);
-  padding: 3px 10px;
-  border-radius: 4px;
-  background: rgb(99, 102, 241, 0.15);
-  color: var(--accent-400);
+  /* 3 / 10 px chip padding — vertical between --space-half and
+     --space-1, horizontal --space-2-5. */
+  padding: 3px var(--space-2-5);
+  border-radius: var(--radius-sm);
+  background: var(--surface-3);
+  color: var(--text-faint);
 }
 .np-overview {
   font-size: var(--text-base);
-  color: rgb(255, 255, 255, 0.45);
-  line-height: 1.7;
+  color: var(--text-faint);
+  line-height: var(--lh-relaxed);
   margin: 0;
+  /* 120 px cap on the synopsis — fullscreen-only safeguard. */
   max-height: 120px;
   overflow-y: auto;
 }
@@ -390,30 +444,57 @@ watch(
 }
 
 .np-overview::-webkit-scrollbar {
+  /* 3 px scrollbar — narrower than --scrollbar-width (6). */
   width: 3px;
 }
 .np-overview::-webkit-scrollbar-thumb {
-  background: rgb(255, 255, 255, 0.1);
+  background: var(--scrollbar-thumb);
   border-radius: 2px;
 }
 
-@media (max-width: 768px) {
+@media (min-width: 768px) {
   .np-content {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 24px;
-    gap: 24px;
+    flex-direction: row;
+    align-items: flex-start;
+    text-align: left;
+    /* 40 px gap between poster and info — between --space-8 (32) and a
+       hypothetical space-10. Fullscreen-only, kept literal. */
+    gap: 40px;
+    /* 48 px overlay padding — between --space-6 (24) and --space-8 (32)
+       times two. Fullscreen-only literal. */
+    padding: 48px;
   }
   .np-poster {
-    width: 160px;
-    height: 240px;
+    /* 220 / 330 px poster signature on tablets and desktop. */
+    width: 220px;
+    height: 330px;
   }
   .np-title {
-    font-size: 24px;
+    /* 36 px fullscreen hero title — well above --text-xl's clamp max. */
+    font-size: 36px;
   }
   .np-progress-wrap {
-    justify-content: center;
+    justify-content: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .np-fade-enter-active,
+  .np-fade-leave-active {
+    transition: none;
+  }
+  .np-poster,
+  .np-info,
+  .np-tmdb {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .np-status-dot {
+    animation: none;
+  }
+  .np-progress-fill {
+    transition: none;
   }
 }
 </style>

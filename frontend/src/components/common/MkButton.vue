@@ -144,39 +144,45 @@ const classes = computed(() => [
 
 /* ─── Variants ─── */
 .mk-btn--primary {
-  background: var(--accent-500);
+  background: var(--mk-btn-primary);
   color: var(--color-on-accent);
   box-shadow: var(--shadow-button);
 }
 @media (hover: hover) {
   .mk-btn--primary:hover:not(:disabled) {
-    background: var(--accent-600);
+    background: var(--mk-btn-primary-hover);
   }
 }
 .mk-btn--primary:active:not(:disabled) {
-  background: var(--accent-700);
+  background: var(--mk-btn-primary-active);
 }
 
 .mk-btn--danger {
-  background: var(--color-error);
+  background: var(--mk-btn-danger);
   color: var(--color-on-accent);
   box-shadow: var(--shadow-button);
 }
 @media (hover: hover) {
   .mk-btn--danger:hover:not(:disabled) {
-    background: var(--color-error-strong);
+    background: var(--mk-btn-danger-hover);
   }
+}
+.mk-btn--danger:active:not(:disabled) {
+  background: var(--mk-btn-danger-active);
 }
 
 .mk-btn--success {
-  background: var(--color-success);
+  background: var(--mk-btn-success);
   color: var(--color-on-accent);
   box-shadow: var(--shadow-button);
 }
 @media (hover: hover) {
   .mk-btn--success:hover:not(:disabled) {
-    background: var(--color-success-light);
+    background: var(--mk-btn-success-hover);
   }
+}
+.mk-btn--success:active:not(:disabled) {
+  background: var(--mk-btn-success-active);
 }
 
 .mk-btn--ghost {

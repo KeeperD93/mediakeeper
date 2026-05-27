@@ -74,6 +74,42 @@
   --color-info-rgb: 96, 165, 250;
   --color-info-light: #93c5fd;
   --color-info-soft: #bfdbfe;
+  --color-rating: #f472b6; /* pink — reviews, ratings, stars */
+  --color-rating-rgb: 244, 114, 182;
+  --color-online: #22c55e; /* green Tailwind-500 — services / status "online" pulse */
+  --color-online-rgb: 34, 197, 94;
+
+  /* ─── MkButton brand palette — MediaKeeper signature, deliberately
+   * decoupled from --accent-* (global decorations), --color-* (semantic
+   * chart / badge tones), and --text-* (typography emphasis).
+   *
+   * 4-layer color system:
+   *   • --mk-btn-*       : button-only, locked to the MK brand
+   *   • --color-*        : semantic surfaces (charts, gauges, badges, toasts)
+   *   • --accent-*       : global decorations (halos, focus rings, hovers)
+   *   • --text-highlight : typography emphasis on text only (counters,
+   *                        XP, headers, etc.). Defaults to --text-primary
+   *                        so accent doesn't leak onto copy.
+   *
+   * Each layer is independent: tweaking the button signature does not
+   * propagate to charts, and vice-versa. Only consumed by MkButton. ─── */
+  --mk-btn-primary: #5c5792; /* violet MK — primary CTA */
+  --mk-btn-primary-hover: #4d4878;
+  --mk-btn-primary-active: #3d395f;
+  --mk-btn-danger: #c23028; /* rouge brique — destructive actions */
+  --mk-btn-danger-hover: #9a2620;
+  --mk-btn-danger-active: #7c1e19;
+  --mk-btn-success: #007c00; /* vert forêt — confirm / validate */
+  --mk-btn-success-hover: #00a000;
+  --mk-btn-success-active: #006400;
+
+  /* ─── Text emphasis token — replaces ``color: var(--accent-*)`` on
+   * copy so the global accent stays reserved for actions / actives /
+   * focus rings. Defaults to --text-primary (white) so existing call
+   * sites that opt into this token stop pulling the accent hue onto
+   * paragraphs, counters, XP totals, etc. Adjust here to repaint every
+   * text emphasis in one place once enough surfaces have migrated. ─── */
+  --text-highlight: var(--text-primary);
 
   /* ─── Module-branded colors — each MediaKeeper module has a signature
    * accent used in icons, badges, hover hints to give the user a quick

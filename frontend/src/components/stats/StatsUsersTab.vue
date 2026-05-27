@@ -130,13 +130,22 @@
               </td>
               <td>
                 <MkAvatar
-                  :src="null"
+                  :src="u.avatar_url"
                   :name="u.name || '?'"
                   :size="32"
-                  class="dt-avatar mk-avatar--ring-subtle"
+                  :tier="u.tier || 'bronze'"
+                  class="dt-avatar"
                 />
               </td>
-              <td class="dt-name dt-clickable" @click="openUserProfile(u.user_id, u.name, $event)">
+              <td
+                class="dt-name dt-clickable"
+                @click="
+                  openUserProfile(u.user_id, u.name, $event, {
+                    tier: u.tier,
+                    avatar_url: u.avatar_url,
+                  })
+                "
+              >
                 {{ u.name }}
                 <span
                   v-if="u.is_historical"

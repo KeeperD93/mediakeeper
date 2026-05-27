@@ -9,6 +9,8 @@ const preview = reactive({ show: false, x: 0, y: 0, img: '', name: '' })
 
 const profileOpen = ref(false)
 const profileName = ref('')
+const profileTier = ref('bronze')
+const profileAvatarUrl = ref(null)
 const profileStyle = ref({})
 const userProfile = ref(null)
 
@@ -49,9 +51,15 @@ export function useStatsUI() {
     }
   }
 
-  async function openUserProfile(userId, name, event) {
+  async function openUserProfile(userId, name, event, opts = {}) {
     if (!userId) return
     profileName.value = name || '?'
+    // Tier + avatar from the caller's row (e.g. StatsUsersTab list,
+    // PlaybackCardRank items) so the popup header matches the rest
+    // of the app — the stats profile detail endpoint itself returns
+    // pure playback data with no identity fields.
+    profileTier.value = opts.tier || 'bronze'
+    profileAvatarUrl.value = opts.avatar_url || null
     const el = event?.target
     if (el) {
       const rect = el.getBoundingClientRect()
@@ -125,6 +133,8 @@ export function useStatsUI() {
     preview,
     profileOpen,
     profileName,
+    profileTier,
+    profileAvatarUrl,
     profileStyle,
     userProfile,
     mergeModal,

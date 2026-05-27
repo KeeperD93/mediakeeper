@@ -3,23 +3,18 @@
     <h2 class="params-title">{{ $t('settings.appearance') }}</h2>
     <p class="params-desc">{{ $t('settings.appearanceDesc') }}</p>
 
-    <section class="params-section params-section-full">
-      <h3 class="params-section-title">{{ $t('topbar.accent') }}</h3>
-      <div class="params-accent-grid">
-        <button
-          v-for="preset in accentPresets"
-          :key="preset.name"
-          class="params-accent-btn"
-          :class="{ active: preset.name === accentName }"
-          :style="{ '--dot-color': preset.color }"
-          @click="setAccent(preset.name)"
-        >
-          <span class="accent-dot" :style="{ background: preset.color }" />
-          <span class="accent-name">{{ preset.name }}</span>
-          <Check v-if="preset.name === accentName" :size="11" :stroke-width="3" />
-        </button>
-      </div>
-    </section>
+    <!-- Accent picker temporarily removed — the MK signature accent
+         palette is brand-locked for now. To re-enable later, restore:
+           1. The destructured imports below: accentName, accentPresets,
+              setAccent (from useTheme).
+           2. The <section class="params-section params-section-full">
+              block carrying the "Choix d'accent" grid (cf. git history
+              of this file for the exact markup).
+           3. The matching CSS rules in params-appearance.css
+              (.params-accent-grid / .params-accent-btn / .accent-dot /
+              .accent-name).
+         The useTheme composable still ships every preset + setAccent
+         so the wiring stays trivial — only the UI hook is dormant. -->
 
     <section class="params-section">
       <h3 class="params-section-title">{{ $t('settings.radiusLabel') }}</h3>
@@ -109,27 +104,12 @@
       </div>
     </section>
 
-    <section class="params-section">
-      <h3 class="params-section-title">{{ $t('settings.glowLabel') }}</h3>
-      <p class="params-section-desc">{{ $t('settings.glowDesc') }}</p>
-      <div class="params-slider-row">
-        <span class="params-slider-icon">◌</span>
-        <input
-          type="range"
-          min="0"
-          max="2"
-          step="0.05"
-          :value="glowIntensity"
-          class="params-slider"
-          @input="setGlowIntensity(+$event.target.value)"
-        />
-        <span class="params-slider-icon">◉</span>
-        <span class="params-slider-val">{{ Math.round(glowIntensity * 100) }}%</span>
-      </div>
-      <div class="params-glow-preview">
-        <button type="button" class="glow-demo-btn">{{ $t('common.preview') }}</button>
-      </div>
-    </section>
+    <!-- Glow intensity slider temporarily removed — the pill halo
+         (--mk-glow + --mk-pill-shadow*) is brand-locked for now.
+         To re-enable: restore the destructured ``glowIntensity`` +
+         ``setGlowIntensity`` imports below and the matching
+         ``<section>`` block (cf. git history). useTheme.js still ships
+         the underlying wiring so re-enabling is a 3-line restore. -->
 
     <section class="params-section">
       <div class="params-toggle-row">
@@ -169,9 +149,6 @@ import MkSpinner from '@/components/common/MkSpinner.vue'
 import '@/assets/styles/params-appearance.css'
 
 const {
-  accentName,
-  accentPresets,
-  setAccent,
   borderRadius,
   setRadius,
   customBg,
@@ -181,8 +158,6 @@ const {
   clearCustomBg,
   particlesEnabled,
   setParticles,
-  glowIntensity,
-  setGlowIntensity,
   saveAll,
 } = useTheme()
 

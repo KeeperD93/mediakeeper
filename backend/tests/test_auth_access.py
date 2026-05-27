@@ -76,3 +76,21 @@ async def test_emby_user_image_missing_returns_204(client):
         resp = await client.get("/api/emby/user-image/abc123")
 
     assert resp.status_code == 204
+
+
+@pytest.mark.asyncio
+async def test_emby_user_image_advertises_short_cache(client):
+    """The avatar response must opt into a short browser cache so a user
+    updating their Emby photo sees the new portrait within minutes — not
+    pinned by an aggressive ``max-age`` for a week."""
+    token = create_access_token({"sub": "admin", "scope": "admin"})
+    client.cookies.set("mk_token", token)
+
+    with patch(
+        "api.core_routes.proxy_user_image",
+        new=AsyncMock(return_value=(b"\x89PNG\r\n\x1a\n", "image/png")),
+    ):
+        resp = await client.get("/api/emby/user-image/abc123")
+
+    assert resp.status_code == 200
+    assert resp.headers.get("cache-control") == "private, max-age=300"

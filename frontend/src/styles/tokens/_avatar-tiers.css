@@ -1,0 +1,92 @@
+/* Avatar tier rings — universal palette consumed by MkAvatar across
+ * every surface (admin tables, dashboards, portal, settings).
+ *
+ * Why a dedicated token family:
+ *   The leaderboard already had ``.gc-lb-av--{tier}`` wired to
+ *   ``--portal-color-*`` tokens, which only exist inside the portal
+ *   namespace. Avatars surface in admin contexts too (topbar, stats
+ *   users, requests row, etc.) — they need a token family that does
+ *   not depend on either namespace.
+ *
+ * Rule (tier_for_level in services/portal/_rank_tiers.py):
+ *   1-5   → bronze        (default for level-1 / historical / Emby-only)
+ *   6-10  → silver
+ *   11-19 → gold
+ *   20-29 → platinum
+ *   30-39 → diamond
+ *   40-49 → master
+ *   50+   → legendary
+ *
+ * Each ``.mk-avatar-tier--{tier}`` class drives MkAvatar's internal
+ * border via the same ``--mk-avatar-ring-{width,color}`` custom
+ * properties the leaderboard uses, so the visual is identical.
+ *
+ * Halos (``box-shadow``) match the leaderboard treatment exactly so
+ * the same tier reads the same on every surface. The user opted to
+ * keep them universal — premium surfaces (RankSidebarCard, Settings
+ * identity, public profile hero) layer their own FX *above* this base
+ * and are intentionally left untouched.
+ */
+:root {
+  /* Ring colour per tier — values mirror the leaderboard exactly
+     (leaderboard-card.css .gc-lb-av--*) so the same user reads the
+     same on every surface. Diamond + master ring colours match the
+     leaderboard's portal-* tokens; the halo RGB pairs intentionally
+     differ from the ring for the depth effect (diamond ring purple
+     #7c3aed but halo --portal-color-premium-rgb 168,85,247). */
+  --mk-tier-bronze: #cd7f32;
+  --mk-tier-silver: #c0c0c0;
+  --mk-tier-gold: #fbbf24;
+  --mk-tier-gold-rgb: 251, 191, 36;
+  --mk-tier-platinum: #38bdf8;
+  --mk-tier-platinum-rgb: 56, 189, 248;
+  --mk-tier-diamond: #7c3aed;
+  --mk-tier-diamond-halo-rgb: 168, 85, 247;
+  --mk-tier-master: #ef4444;
+  --mk-tier-master-rgb: 239, 68, 68;
+  --mk-tier-legendary: #fbbf24;
+  --mk-tier-legendary-rgb: 251, 191, 36;
+  --mk-tier-legendary-halo-rgb: 239, 68, 68;
+}
+
+.mk-avatar-tier--bronze {
+  --mk-avatar-ring-width: 2px;
+  --mk-avatar-ring-color: var(--mk-tier-bronze);
+}
+
+.mk-avatar-tier--silver {
+  --mk-avatar-ring-width: 2px;
+  --mk-avatar-ring-color: var(--mk-tier-silver);
+}
+
+.mk-avatar-tier--gold {
+  --mk-avatar-ring-width: 2px;
+  --mk-avatar-ring-color: var(--mk-tier-gold);
+  box-shadow: 0 0 6px rgb(var(--mk-tier-gold-rgb), 0.3);
+}
+
+.mk-avatar-tier--platinum {
+  --mk-avatar-ring-width: 2px;
+  --mk-avatar-ring-color: var(--mk-tier-platinum);
+  box-shadow: 0 0 6px rgb(var(--mk-tier-platinum-rgb), 0.3);
+}
+
+.mk-avatar-tier--diamond {
+  --mk-avatar-ring-width: 2px;
+  --mk-avatar-ring-color: var(--mk-tier-diamond);
+  box-shadow: 0 0 8px rgb(var(--mk-tier-diamond-halo-rgb), 0.4);
+}
+
+.mk-avatar-tier--master {
+  --mk-avatar-ring-width: 2px;
+  --mk-avatar-ring-color: var(--mk-tier-master);
+  box-shadow: 0 0 8px rgb(var(--mk-tier-master-rgb), 0.4);
+}
+
+.mk-avatar-tier--legendary {
+  --mk-avatar-ring-width: 2px;
+  --mk-avatar-ring-color: var(--mk-tier-legendary);
+  box-shadow:
+    0 0 10px rgb(var(--mk-tier-legendary-rgb), 0.4),
+    0 0 20px rgb(var(--mk-tier-legendary-halo-rgb), 0.15);
+}

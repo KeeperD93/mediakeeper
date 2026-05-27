@@ -48,9 +48,13 @@ export function useActivityTimeline(props) {
     }
     const el = event.target
     const rect = el.getBoundingClientRect()
-    const rootRect = rootRef.value?.getBoundingClientRect() || { left: 0, top: 0 }
-    const left = Math.max(0, Math.min(rect.left - rootRect.left, rootRect.width - 340))
-    const top = rect.bottom - rootRect.top + 8
+    /* Position the popover in viewport coordinates so the ``position:
+     * fixed`` rule lets it escape the parent widget's ``overflow:
+     * hidden`` and render at its full size (otherwise the TMDB card
+     * gets clipped at the widget border). Clamp horizontally to keep
+     * the 340 px card inside the viewport on narrow screens. */
+    const left = Math.max(8, Math.min(rect.left, window.innerWidth - 340 - 8))
+    const top = rect.bottom + 8
     popover.style = { left: left + 'px', top: top + 'px' }
     popover.visible = true
     popover.loading = true

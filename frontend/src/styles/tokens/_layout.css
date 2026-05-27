@@ -10,10 +10,16 @@
  * layers, so nothing ever collides again.
  */
 :root {
-  /* ─── Spacing — 8px grid ─── */
+  /* ─── Spacing — 8px grid + half-steps.
+   * Half-steps (``-half`` / ``-2-5`` / ``-3-5``) cover the fine-grain
+   * adjustments that snap awkwardly to the 8px scale (icon-label gaps,
+   * pill paddings, etc.). Prefer entire steps when possible. ─── */
+  --space-half: 2px; /* micro gaps (icon-label, internal padding) */
   --space-1: 4px; /* hairline gaps, compact rows */
   --space-2: 8px; /* tight gaps, button padding */
+  --space-2-5: 10px; /* half-step between 2 and 3 */
   --space-3: 12px; /* default gap, card padding */
+  --space-3-5: 14px; /* half-step between 3 and 4 */
   --space-4: 16px; /* section spacing, modal padding */
   --space-5: 20px; /* card padding generous */
   --space-6: 24px; /* page padding */
@@ -96,6 +102,13 @@
   --icon-lg: 20;
   --icon-xl: 24;
   --icon-2xl: 32;
+
+  /* ─── Icon frames — square container that wraps an icon (e.g. tinted
+   * disc background behind a lucide icon). Distinct from --touch-target
+   * (a11y minimum for interactive elements). ─── */
+  --icon-frame-sm: 28px; /* dense rows */
+  --icon-frame-md: 36px; /* compact widgets, stat cards */
+  --icon-frame-lg: 44px; /* hero cards, big numbers (= --touch-target) */
 
   /* ─── Opacity — semantic UI states ─── */
   --opacity-disabled: 0.5; /* buttons, inputs disabled */

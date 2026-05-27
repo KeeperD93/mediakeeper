@@ -16,18 +16,23 @@
         @mouseleave="hidePreview"
         @click="goToActivitySearch(it.name)"
       />
-      <div
+      <MkAvatar
         v-if="card.avatar"
-        class="top-avatar"
-        :style="{ background: avatarColors[i % avatarColors.length] }"
-      >
-        {{ (it.name || '?')[0].toUpperCase() }}
-      </div>
+        :src="it.avatar_url"
+        :name="it.name || '?'"
+        :size="24"
+        :tier="it.tier || 'bronze'"
+      />
       <span
         class="top-name"
         :class="{ 'top-name-clickable': card.avatar && it.user_id }"
         @click="
-          card.avatar && it.user_id ? openUserProfile(it.user_id, it.name, $event) : null
+          card.avatar && it.user_id
+            ? openUserProfile(it.user_id, it.name, $event, {
+                tier: it.tier,
+                avatar_url: it.avatar_url,
+              })
+            : null
         "
       >
         {{ it.name }}
@@ -38,9 +43,10 @@
 </template>
 
 <script setup>
+import MkAvatar from '@/components/common/MkAvatar.vue'
+
 defineProps({
   card: { type: Object, required: true },
-  avatarColors: { type: Array, required: true },
   showPreview: { type: Function, required: true },
   hidePreview: { type: Function, required: true },
   openUserProfile: { type: Function, required: true },
@@ -117,18 +123,6 @@ defineProps({
   font-size: var(--text-xs);
   font-weight: var(--font-medium);
   color: var(--accent-400);
-  flex-shrink: 0;
-}
-.top-avatar {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.55rem;
-  font-weight: var(--font-bold);
-  color: var(--text-primary);
   flex-shrink: 0;
 }
 </style>

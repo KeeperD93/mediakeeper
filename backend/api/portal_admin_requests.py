@@ -26,6 +26,7 @@ from core.database import get_db
 from models.user import User
 from models.portal.profile import UserProfile
 from api.auth import get_current_user, grant_portal_admin_session, require_csrf
+from services.portal._rank_tiers import tier_for_level
 from services.portal.user_import import import_emby_users
 
 router = APIRouter(prefix="/api/portal/admin/requests", tags=["portal-admin-requests"])
@@ -78,6 +79,7 @@ async def list_users(
             "is_public": profile.is_public,
             "forced_public": profile.forced_public,
             "level": profile.level,
+            "tier": tier_for_level(profile.level or 1),
             "xp": profile.xp,
             "created_at": profile.created_at.isoformat() if profile.created_at else None,
             "updated_at": profile.updated_at.isoformat() if profile.updated_at else None,

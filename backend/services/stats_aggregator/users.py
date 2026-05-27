@@ -4,7 +4,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.http_client import get_internal_client
 from services.settings import get_active_media_source
+from services.portal._rank_tiers import tier_for_level
 from models.playback_stats import PlaybackSession
+from models.portal.profile import UserProfile
 
 from ._helpers import _apply_filters
 from .exclusions import _get_exclusion_filters
@@ -34,6 +36,21 @@ async def get_users_stats(db: AsyncSession, page: int = 1, per_page: int = 30,
 
     hidden_users = await _get_hidden_users(db)
     exc_filters = await _get_exclusion_filters(db)
+
+    # Pull MK profile rows once so each Emby/historical row can be enriched
+    # with its persistent level (and the matching tier ring) without an
+    # extra round-trip per user. Users disabled or removed from Emby keep
+    # whatever level they accrued on their MK profile — bronze otherwise.
+    mk_profile_rows = (
+        await db.execute(
+            select(UserProfile.emby_user_id, UserProfile.level, UserProfile.avatar_url)
+            .where(UserProfile.emby_user_id.isnot(None))
+        )
+    ).all()
+    mk_profile_map = {
+        row.emby_user_id: {"level": row.level or 1, "avatar_url": row.avatar_url}
+        for row in mk_profile_rows
+    }
 
     db_user_ids_q = _apply_filters(
         select(
@@ -126,10 +143,17 @@ async def get_users_stats(db: AsyncSession, page: int = 1, per_page: int = 30,
         if not last_seen and last_session and last_session.last_seen_at:
             last_seen = last_session.last_seen_at.isoformat()
 
+        mk_profile = mk_profile_map.get(uid)
+        level = mk_profile["level"] if mk_profile else 1
+        avatar_url = mk_profile["avatar_url"] if mk_profile else None
+
         users_data.append({
             "user_id": uid,
             "name": uname,
             "has_image": emby_user.get("HasPrimaryImage", False) if emby_user else False,
+            "avatar_url": avatar_url,
+            "level": level,
+            "tier": tier_for_level(level),
             "play_count": play_count,
             "total_ticks": total_ticks,
             "last_play": last_session.item_name if last_session else None,

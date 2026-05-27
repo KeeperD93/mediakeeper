@@ -68,6 +68,14 @@ applyGlow(glowIntensity.value)
 
 // ---- Accent ----
 const ACCENT_PRESETS = {
+  mediakeeper: {
+    500: '#5c5792',
+    400: '#7972a8',
+    300: '#9690bf',
+    600: '#4d4878',
+    700: '#3d395f',
+    rgb: '92,87,146',
+  },
   indigo: {
     500: '#6366f1',
     400: '#818cf8',
@@ -126,7 +134,12 @@ const ACCENT_PRESETS = {
   },
 }
 
-const accentName = ref(localStorage.getItem('mediakeeper_accent') || 'indigo')
+// Accent picker dormant: the localStorage read is deliberately bypassed
+// so any preset previously chosen by the user no longer overrides the
+// global --accent-* tokens at boot. To re-enable user customisation,
+// restore: ``ref(localStorage.getItem('mediakeeper_accent') || 'indigo')``
+// alongside the picker UI in ParamsAppearanceTab.vue.
+const accentName = ref('indigo')
 
 function applyAccent(name) {
   const preset = ACCENT_PRESETS[name] || ACCENT_PRESETS.indigo

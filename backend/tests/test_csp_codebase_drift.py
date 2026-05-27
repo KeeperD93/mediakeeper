@@ -26,6 +26,11 @@ from core.security_headers import CSP_DIRECTIVES
 _FRONTEND_ROOT = Path(__file__).resolve().parent.parent.parent / "frontend" / "src"
 _SCANNED_SUFFIXES = (".vue", ".html", ".ts", ".js")
 _SKIPPED_DIR_NAMES = {"__tests__", "node_modules", "dist", ".vite", "coverage"}
+# Storybook stories never ship in the production bundle — they are
+# loaded only by the local Storybook dev server. URLs they reference
+# (e.g. pravatar.cc placeholder avatars) are dev-tooling fixtures, not
+# runtime browser fetches, so they must not gate the CSP drift guard.
+_SKIPPED_FILENAME_INFIXES = (".stories.",)
 
 # Match http(s) URLs with a hostname containing at least one dot. The
 # trailing character class stops at the first whitespace, quote or
@@ -74,6 +79,8 @@ def _iter_frontend_files() -> list[Path]:
         if path.suffix not in _SCANNED_SUFFIXES:
             continue
         if any(part in _SKIPPED_DIR_NAMES for part in path.parts):
+            continue
+        if any(infix in path.name for infix in _SKIPPED_FILENAME_INFIXES):
             continue
         files.append(path)
     return files

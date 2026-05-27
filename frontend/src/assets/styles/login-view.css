@@ -5,7 +5,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #030712;
+  background: var(--bg-primary);
   position: relative;
   overflow: hidden;
 }
@@ -54,8 +54,8 @@
   pointer-events: none;
   opacity: 0.06;
   background:
-    linear-gradient(rgb(99, 102, 241, 0.3) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(99, 102, 241, 0.3) 1px, transparent 1px);
+    linear-gradient(rgb(var(--accent-rgb), 0.3) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--accent-rgb), 0.3) 1px, transparent 1px);
   background-size: 60px 60px;
   transform: perspective(400px) rotateX(55deg);
   mask-image: linear-gradient(to top, rgb(0, 0, 0, 0.6), transparent 70%);
@@ -78,7 +78,7 @@
   height: 500px;
   top: -20%;
   left: -15%;
-  background: radial-gradient(circle, rgb(99, 60, 255, 0.14), transparent 70%);
+  background: radial-gradient(circle, rgb(255, 255, 255, 0.14), transparent 70%);
   animation: lo-drift1 14s ease-in-out infinite alternate;
 }
 .login-orb-2 {
@@ -86,7 +86,7 @@
   height: 400px;
   bottom: -20%;
   right: -15%;
-  background: radial-gradient(circle, rgb(124, 58, 237, 0.1), transparent 70%);
+  background: radial-gradient(circle, rgb(255, 255, 255, 0.1), transparent 70%);
   animation: lo-drift2 18s ease-in-out infinite alternate;
 }
 .login-orb-3 {
@@ -94,7 +94,7 @@
   height: 300px;
   top: 40%;
   left: 60%;
-  background: radial-gradient(circle, rgb(16, 185, 130, 0.06), transparent 70%);
+  background: radial-gradient(circle, rgb(255, 255, 255, 0.06), transparent 70%);
   animation: lo-drift3 20s ease-in-out infinite alternate;
 }
 .login-orb-4 {
@@ -102,7 +102,7 @@
   height: 200px;
   top: 10%;
   right: 25%;
-  background: radial-gradient(circle, rgb(244, 63, 94, 0.06), transparent 70%);
+  background: radial-gradient(circle, rgb(255, 255, 255, 0.06), transparent 70%);
   animation: lo-drift1 16s ease-in-out infinite alternate-reverse;
 }
 @keyframes lo-drift1 {
@@ -183,19 +183,15 @@
   max-width: 420px;
   border-radius: 16px;
   overflow: hidden;
-  background: rgb(8, 8, 20, 0.85);
+  background: var(--mk-chrome-gradient);
   border: 0.5px solid var(--border-strong);
-  box-shadow:
-    0 50px 100px rgb(0, 0, 0, 0.7),
-    0 0 0 0.5px rgb(255, 255, 255, 0.05),
-    inset 0 1px 0 rgb(255, 255, 255, 0.04);
-  backdrop-filter: blur(24px);
+  box-shadow: var(--shadow-modal);
 }
 
 .login-hero {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #0a0818 0%, #110d22 50%, #0d0a1a 100%);
+  background: transparent;
   padding: 44px 32px 28px;
   text-align: center;
 }
@@ -207,7 +203,7 @@
   width: 300px;
   height: 200px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgb(99, 102, 241, 0.2), transparent 65%);
+  background: radial-gradient(circle, rgb(255, 255, 255, 0.2), transparent 65%);
   filter: blur(40px);
   pointer-events: none;
 }
@@ -222,11 +218,11 @@
   object-fit: contain;
   margin: 0 auto 10px;
   display: block;
-  filter: drop-shadow(0 0 20px rgb(99, 102, 241, 0.15));
+  filter: drop-shadow(0 0 20px rgb(var(--accent-rgb), 0.15));
 }
 .login-hero-sub {
   font-size: var(--text-sm);
-  color: rgb(255, 255, 255, 0.35);
+  color: var(--text-muted);
   margin: 0;
   letter-spacing: var(--tracking-widest);
   text-transform: uppercase;
@@ -238,7 +234,7 @@
   left: 10%;
   right: 10%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgb(99, 102, 241, 0.3), transparent);
+  background: linear-gradient(90deg, transparent, rgb(var(--accent-rgb), 0.3), transparent);
 }
 
 .login-form-wrap {
@@ -256,7 +252,7 @@
   border-radius: var(--radius-input);
   background: rgb(var(--color-error-rgb), 0.06);
   border: 0.5px solid rgb(var(--color-error-rgb), 0.15);
-  color: #fca5a5;
+  color: var(--color-error-soft);
   font-size: var(--text-sm);
 }
 
@@ -266,9 +262,9 @@
   gap: 8px;
   padding: 10px 14px;
   border-radius: var(--radius-input);
-  background: rgb(99, 102, 241, 0.08);
-  border: 0.5px solid rgb(99, 102, 241, 0.2);
-  color: #c7d2fe;
+  background: rgb(var(--accent-rgb), 0.08);
+  border: 0.5px solid rgb(var(--accent-rgb), 0.2);
+  color: var(--accent-200);
   font-size: var(--text-sm);
 }
 
@@ -286,7 +282,7 @@
 .login-label {
   font-size: var(--text-2xs);
   font-weight: var(--font-medium);
-  color: rgb(255, 255, 255, 0.35);
+  color: var(--text-muted);
   letter-spacing: var(--tracking-widest);
   text-transform: uppercase;
 }
@@ -299,7 +295,7 @@
 .login-input-icon {
   position: absolute;
   left: 14px;
-  color: rgb(255, 255, 255, 0.2);
+  color: var(--text-muted);
   pointer-events: none;
   transition: color var(--duration-base);
 }
@@ -321,12 +317,12 @@
   outline: none;
 }
 .login-input:focus {
-  border-color: rgb(99, 102, 241, 0.5);
+  border-color: rgb(var(--accent-rgb), 0.5);
   background: var(--surface-2);
-  box-shadow: 0 0 0 3px rgb(99, 102, 241, 0.08);
+  box-shadow: 0 0 0 3px rgb(var(--accent-rgb), 0.08);
 }
 .login-input::placeholder {
-  color: rgb(255, 255, 255, 0.12);
+  color: var(--text-decorative);
 }
 
 .login-remember {
@@ -335,7 +331,7 @@
   gap: 8px;
   cursor: pointer;
   font-size: var(--text-sm);
-  color: rgb(255, 255, 255, 0.3);
+  color: var(--text-muted);
 }
 .login-checkbox {
   width: 14px;
@@ -350,7 +346,10 @@
   margin-top: 4px;
   border-radius: var(--radius-input);
   border: none;
-  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  /* Indigo → violet brand gradient — accent-600 (#4f46e5) is in the
+     accent palette; the violet stop (#7c3aed) is a one-off brand
+     accent kept as hex because no admin token matches it exactly. */
+  background: linear-gradient(135deg, var(--accent-600), #7c3aed);
   color: var(--text-primary);
   font-size: var(--text-base);
   font-weight: var(--font-medium);
@@ -383,8 +382,8 @@
 .login-submit:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow:
-    0 8px 30px rgb(99, 102, 241, 0.35),
-    0 0 60px rgb(99, 102, 241, 0.1);
+    0 8px 30px rgb(var(--accent-rgb), 0.35),
+    0 0 60px rgb(var(--accent-rgb), 0.1);
 }
 .login-submit:active:not(:disabled) {
   transform: translateY(0);
@@ -402,7 +401,7 @@
   margin-top: 4px;
 }
 .login-links a {
-  color: rgb(255, 255, 255, 0.2);
+  color: var(--text-muted);
   transition:
     color var(--duration-base),
     transform var(--duration-base);
@@ -411,16 +410,19 @@
   justify-content: center;
 }
 .login-links a:hover {
-  color: rgb(255, 255, 255, 0.6);
+  color: var(--text-secondary);
   transform: translateY(-1px);
 }
 
 .login-version {
   display: block;
   text-align: center;
-  font-size: var(--text-2xs);
-  color: rgb(255, 255, 255, 0.15);
-  letter-spacing: var(--tracking-widest);
+  /* Matches the sidebar's .sb-version + .sb-about-link tokens so
+     the build label sits at the same readable contrast as the nav
+     items (--text-muted) — visible at rest, not buried. */
+  font-size: var(--text-3xs);
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
   margin-top: 2px;
 }
 

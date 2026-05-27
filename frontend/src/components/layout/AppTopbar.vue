@@ -99,7 +99,8 @@
             :src="avatarUrl"
             :name="username || userInitial"
             :size="28"
-            class="mk-avatar--ring-subtle tb-avatar-mk"
+            :tier="userTier"
+            class="tb-avatar-mk"
           />
           <span class="tb-username">{{ username }}</span>
           <ChevronDown
@@ -118,7 +119,7 @@
                   :src="avatarUrl"
                   :name="username || userInitial"
                   :size="40"
-                  class="mk-avatar--ring-subtle"
+                  :tier="userTier"
                 />
                 <div>
                   <p class="tb-user-name">{{ username }}</p>
@@ -177,6 +178,7 @@ const userDdPos = ref({})
 const username = computed(() => user.value?.username || '')
 const userInitial = computed(() => (username.value || '?')[0].toUpperCase())
 const avatarUrl = computed(() => user.value?.avatar_url || null)
+const userTier = computed(() => user.value?.tier || 'bronze')
 const isOnDashboard = computed(() => route.name === 'dashboard')
 
 function dispatchDashboardEdit() {

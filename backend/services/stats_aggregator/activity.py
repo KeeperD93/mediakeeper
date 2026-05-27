@@ -8,6 +8,7 @@ from core.pagination import decode_cursor, build_cursor_response
 from models.playback_stats import PlaybackSession
 
 from .exclusions import _get_exclusion_filters
+from .playback import _load_mk_profile_map, _resolve_user_avatar
 
 
 async def get_activity_history(db: AsyncSession, page: int = 1, per_page: int = 30,
@@ -80,7 +81,16 @@ def _activity_row_to_dict(r) -> dict:
 
 
 async def get_activity_minimap(db: AsyncSession):
-    """Return playbacks from the last 24h for the minimap (lightweight fields)."""
+    """Return playbacks from the last 24h for the minimap (lightweight fields).
+
+    Each row carries the Emby ``user_id`` plus the MK profile
+    ``avatar_url`` + ``tier`` resolved against UserProfile so the
+    StatsTotalsRow dedup'ed avatar strip can render real photos +
+    tier rings. Emby-only / historical accounts (no MK profile row)
+    fall back to the Emby-proxied photo URL + bronze tier via
+    ``_resolve_user_avatar`` so the strip stays consistent with the
+    leaderboard style instead of degrading to silhouettes.
+    """
     since = datetime.now(timezone.utc) - timedelta(hours=24)
     exc_filters = await _get_exclusion_filters(db)
 
@@ -89,6 +99,7 @@ async def get_activity_minimap(db: AsyncSession):
             PlaybackSession.started_at,
             PlaybackSession.play_method,
             PlaybackSession.user_name,
+            PlaybackSession.user_id,
         )
         .where(PlaybackSession.started_at >= since)
         .order_by(desc(PlaybackSession.started_at))
@@ -99,11 +110,19 @@ async def get_activity_minimap(db: AsyncSession):
     result = await db.execute(query)
     rows = result.all()
 
-    return [
-        {
+    mk_profiles = await _load_mk_profile_map(
+        db, list({r.user_id for r in rows if r.user_id}),
+    )
+
+    enriched = []
+    for r in rows:
+        user_meta = _resolve_user_avatar(r.user_id, mk_profiles)
+        enriched.append({
             "started_at": r.started_at.isoformat() if r.started_at else None,
             "play_method": r.play_method,
             "user": r.user_name,
-        }
-        for r in rows
-    ]
+            "user_id": r.user_id,
+            "avatar_url": user_meta["avatar_url"],
+            "tier": user_meta["tier"],
+        })
+    return enriched

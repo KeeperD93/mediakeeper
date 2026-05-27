@@ -11,6 +11,7 @@ from models.portal.achievement import UserAchievement
 from models.portal.profile import UserProfile
 from api.portal.deps import get_current_profile, get_request_lang
 from services.portal._display_name import resolve_display_name
+from services.portal._rank_tiers import tier_for_level
 from services.portal.achievement_defs import TITLE_REWARDS
 from services.portal.achievement_defs_meta import META_TARGET_CATEGORY
 from services.portal.profiles import (
@@ -209,6 +210,7 @@ async def search_users(
             UserProfile.display_name,
             UserProfile.display_name_must_set,
             UserProfile.avatar_url,
+            UserProfile.level,
         )
         .select_from(User)
         .join(UserProfile, UserProfile.user_id == User.id)
@@ -233,6 +235,8 @@ async def search_users(
                     None if r[3] else r[2], r[0], lang
                 ),
                 "avatar_url": r[4],
+                "level": r[5] or 1,
+                "tier": tier_for_level(r[5] or 1),
             }
             for r in rows
         ]

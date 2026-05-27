@@ -55,6 +55,12 @@ onMounted(() => {
   if (props.currentPoster) backdropA.value = props.currentPoster
 })
 
+/* Genre ambiance tints — soft RGBA overlays projected behind the hero
+ * backdrop. Kept as literal tints (not semantic tokens) because each
+ * TMDB genre id maps to a deliberate hue not present in the design
+ * palette (genre 27 horror → deep red, genre 14 fantasy → purple,
+ * etc.). Tokenising would force semantic reuse and break the per-genre
+ * visual cue. */
 const GENRE_COLORS = {
   28: 'rgba(239,68,68,0.12)',
   12: 'rgba(245,158,11,0.1)',
@@ -137,6 +143,8 @@ const ambianceStyle = computed(() => {
   bottom: 0;
   left: 0;
   right: 0;
+  /* 160 px hero-only fade — covers ~2/3 of the hero height so text
+     stays legible over any backdrop. */
   height: 160px;
   background: linear-gradient(to top, var(--dash-bg), transparent);
   z-index: 1;
@@ -147,6 +155,8 @@ const ambianceStyle = computed(() => {
   top: 0;
   left: 0;
   right: 0;
+  /* 60 px top fade — just enough to keep the active-count chip in
+     focus without darkening the poster. */
   height: 60px;
   background: linear-gradient(to bottom, rgb(6, 10, 20, 0.6), transparent);
   z-index: 1;
@@ -156,17 +166,22 @@ const ambianceStyle = computed(() => {
   position: absolute;
   inset: 0;
   z-index: 0;
+  /* Hero-only purple/navy gradient — the audio fallback signature
+     hue, deliberately outside the semantic palette. */
   background: linear-gradient(135deg, #1a0533 0%, #0d1b2a 40%, #1a0533 100%);
   display: flex;
   align-items: center;
   justify-content: center;
+  /* 6 px between bars — between --space-1 (4) and --space-2 (8). */
   gap: 6px;
   padding: 0 30%;
 }
 .hero-audio-wave {
   width: 4px;
+  /* 40 px resting height, animates 20 → 80 px. Outside the spacing
+     scale: hero-only equaliser bar. */
   height: 40px;
-  background: rgb(139, 132, 255, 0.3);
+  background: rgb(var(--color-module-subtitles-rgb), 0.3);
   border-radius: 2px;
   animation: audio-wave 1.2s ease-in-out infinite alternate;
 }

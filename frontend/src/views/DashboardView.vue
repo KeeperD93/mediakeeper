@@ -139,7 +139,7 @@
               :value="mediaStats.plays"
               route="/stats"
               :icon="Play"
-              accent="#6366f1"
+              :accent="STAT_CARD_ACCENT.plays"
               :editing="editing"
             />
             <StatCard
@@ -147,7 +147,7 @@
               :label="$t('dashboard.totalDuration')"
               :value="mediaStats.duration"
               :icon="Clock"
-              accent="#10b981"
+              :accent="STAT_CARD_ACCENT.duration"
               :editing="editing"
             />
             <StatCard
@@ -156,8 +156,14 @@
               :value="duplicatesCount"
               route="/duplicates"
               :icon="Copy"
-              accent="#f43f5e"
-              :color="duplicatesCount !== '0' && duplicatesCount !== '—' ? '#f43f5e' : ''"
+              :accent="STAT_CARD_ACCENT.duplicates"
+              :color="
+                duplicatesCount === '—'
+                  ? ''
+                  : duplicatesCount === '0'
+                    ? STAT_STATE_COLOR.ok
+                    : STAT_STATE_COLOR.alert
+              "
               :editing="editing"
             />
             <StatCard
@@ -165,7 +171,7 @@
               :label="$t('dashboard.storage')"
               :value="mediaStats.storage"
               :icon="HardDrive"
-              accent="#f59e0b"
+              :accent="STAT_CARD_ACCENT.storage"
               :editing="editing"
             />
             <Heatmap v-if="item.i === 'heatmap'" />
@@ -174,20 +180,22 @@
               :entries="leaderboardEntries.slice(0, 3)"
               widget
             />
-            <QuickLink
+            <StatCard
               v-if="item.i === 'linkWatchlist'"
-              :title="watchlistLabel"
-              :subtitle="
-                watchlistScanAgo
-                  ? $t('dashboard.lastScan') + ' ' + watchlistScanAgo
-                  : $t('sidebar.watchlist')
-              "
+              :label="$t('watchlist.missingEpisodes')"
+              :value="watchlistMissingCount"
               route="/watchlist"
-              icon-bg="rgba(139,92,246,0.12)"
+              :icon="ClipboardCheck"
+              :accent="STAT_CARD_ACCENT.watchlist"
+              :color="
+                watchlistMissingCount === '—'
+                  ? ''
+                  : watchlistMissingCount === 0
+                    ? STAT_STATE_COLOR.ok
+                    : STAT_STATE_COLOR.alert
+              "
               :editing="editing"
-            >
-              <template #icon><ClipboardCheck class="dash-wl-icon" :size="18" /></template>
-            </QuickLink>
+            />
             <RequestsActionCard v-if="item.i === 'portalAction'" :editing="editing" />
             <PortalEngagementCard v-if="item.i === 'portalEngagement'" :editing="editing" />
             <PortalUpcomingEventsCard v-if="item.i === 'portalEvents'" :editing="editing" />
@@ -213,7 +221,7 @@
 
 <script setup>
 defineOptions({ name: 'DashboardView' })
-import { ref, onMounted, onUnmounted, onActivated, onDeactivated, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, onActivated, onDeactivated, nextTick } from 'vue'
 import { GridLayout, GridItem } from 'grid-layout-plus'
 import { ClipboardCheck, Clock, Copy, HardDrive, LayoutGrid, Play, Plus, X } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
@@ -225,6 +233,7 @@ import { useMobile } from '@/composables/useMobile'
 
 import MkButton from '@/components/common/MkButton.vue'
 import { DASHBOARD_EDIT_EVENT } from '@/constants/dashboardEvents'
+import { STAT_CARD_ACCENT, STAT_STATE_COLOR } from '@/constants/dashboardStatColors'
 import HeroCarousel from '@/components/dashboard/HeroCarousel.vue'
 import StatRibbon from '@/components/dashboard/StatRibbon.vue'
 import ActivityTimeline from '@/components/dashboard/ActivityTimeline.vue'
@@ -232,7 +241,6 @@ import NowPlayingFullscreen from '@/components/dashboard/NowPlayingFullscreen.vu
 import StatCard from '@/components/dashboard/widgets/StatCard.vue'
 import Heatmap from '@/components/dashboard/widgets/Heatmap.vue'
 import LeaderboardCard from '@/components/portal/profile/LeaderboardCard.vue'
-import QuickLink from '@/components/dashboard/widgets/QuickLink.vue'
 import RequestsActionCard from '@/components/dashboard/widgets/RequestsActionCard.vue'
 import PortalEngagementCard from '@/components/dashboard/widgets/PortalEngagementCard.vue'
 import PortalUpcomingEventsCard from '@/components/dashboard/widgets/PortalUpcomingEventsCard.vue'
@@ -296,6 +304,16 @@ const {
   loadMediaStats,
   loadLeaderboard,
 } = useDashboardData()
+
+/* watchlistLabel ships either "{N} {missing}" (when there are missing
+ * episodes) or "Suivi" (zero state). The StatCard widget only wants
+ * the leading number — extract it here so the card always shows a
+ * clean count. Preserves the "—" loading placeholder. */
+const watchlistMissingCount = computed(() => {
+  if (watchlistLabel.value === '—') return '—'
+  const n = parseInt(watchlistLabel.value, 10)
+  return Number.isNaN(n) ? 0 : n
+})
 
 // ---- Drag snapshot: prevent other tiles from being displaced ----
 let dragSnapshot = null

@@ -141,7 +141,7 @@
                     :src="u.avatar_url"
                     :name="u.display_name || ''"
                     :size="24"
-                    class="mk-avatar--ring-subtle"
+                    :tier="u.tier || 'bronze'"
                   />
                   <span>{{ u.display_name }}</span>
                 </button>
@@ -153,7 +153,7 @@
                   :src="u.avatar_url"
                   :name="u.display_name || ''"
                   :size="18"
-                  class="mk-avatar--ring-subtle"
+                  :tier="u.tier || 'bronze'"
                 />
                 {{ u.display_name }}
                 <button type="button" class="pt-evc-chip-x" @click="removeUser(u.id)">×</button>

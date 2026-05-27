@@ -34,6 +34,7 @@
             />
             <span v-else class="uc-poster-ph">📺</span>
             <span class="uc-badge" :class="dateClass(ep.air_date)">
+              <span class="uc-badge-dot" />
               {{ relativeDate(ep.air_date) }}
             </span>
           </div>
@@ -132,10 +133,17 @@ function relativeDate(dateStr) {
   const diff = Math.round((new Date(dateStr + 'T00:00:00') - now) / 86400000)
   if (diff === 0) return t('common.today')
   if (diff === 1) return t('common.tomorrow')
-  if (diff < 0) return `${diff}j`
-  if (diff < 7) return `${diff}j`
-  if (diff < 30) return `${Math.ceil(diff / 7)} sem.`
-  return `${Math.ceil(diff / 30)} mois`
+  if (diff < 0) {
+    const n = Math.abs(diff)
+    return `-${t('dashboard.upcomingInDays', { n }, n)}`
+  }
+  if (diff < 7) return t('dashboard.upcomingInDays', { n: diff }, diff)
+  if (diff < 30) {
+    const n = Math.ceil(diff / 7)
+    return t('dashboard.upcomingInWeeks', { n }, n)
+  }
+  const n = Math.ceil(diff / 30)
+  return t('dashboard.upcomingInMonths', { n }, n)
 }
 function dateClass(dateStr) {
   if (!dateStr) return ''
@@ -151,62 +159,268 @@ function dateClass(dateStr) {
 
 <style scoped>
 .uc {
-  background: var(--card-bg, rgb(255,255,255,0.03)); border-radius:var(--radius-card);
-  border: 0.5px solid var(--card-border, rgb(255,255,255,0.05));
-  overflow: hidden; height: 100%; display: flex; flex-direction: column;
+  background: var(--card-bg);
+  border-radius: var(--radius-card);
+  border: var(--border-width-thin) solid var(--card-border);
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
-.uc-header { display: flex; align-items: center; gap: 8px; padding: 14px 16px 0; flex-shrink: 0; }
-.uc-title { font-size: var(--text-2xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-.uc-count { font-size: 9px; background: rgb(139,92,246,0.2); color: #a78bfa; padding: 1px 6px; border-radius:var(--radius-btn); font-weight: var(--font-medium); }
-.uc-empty { padding: 24px 16px; font-size: var(--text-xs); color: var(--text-muted); }
+.uc-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3-5) var(--space-4) 0;
+  flex-shrink: 0;
+}
+.uc-title {
+  font-size: var(--text-2xs);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-widest);
+}
+.uc-count {
+  /* 9 px count chip — matches the kind labels in PortalUpcomingEvents
+     for visual rhythm. */
+  font-size: 9px;
+  background: rgb(var(--color-module-watchlist-rgb), 0.2);
+  color: var(--text-primary);
+  /* 1 / 6 px chip padding — vertical sub-token, horizontal between
+     --space-1 and --space-2. */
+  padding: 1px 6px;
+  border-radius: var(--radius-btn);
+  font-weight: var(--font-medium);
+}
+.uc-empty {
+  padding: var(--space-6) var(--space-4);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
 
 /* Skeleton */
-.uc-skel-list { display: flex; gap: 12px; padding: 14px 16px; flex: 1; min-height: 0; }
-.uc-skel-card { flex: 1; display: flex; flex-direction: column; gap: 8px; }
-.uc-skel-poster { width: 100%; aspect-ratio: 2/3; border-radius:var(--radius-btn); background: linear-gradient(90deg, rgb(255,255,255,0.02) 25%, var(--surface-3) 50%, rgb(255,255,255,0.02) 75%); background-size: 200% 100%; animation: uc-shimmer var(--duration-animation) ease-in-out infinite; }
-.uc-skel-line { border-radius: 4px; background: linear-gradient(90deg, rgb(255,255,255,0.02) 25%, var(--surface-3) 50%, rgb(255,255,255,0.02) 75%); background-size: 200% 100%; animation: uc-shimmer var(--duration-animation) ease-in-out infinite; }
-.uc-skel-line-title { height: 12px; width: 80%; }
-.uc-skel-line-sub { height: 10px; width: 50%; }
-@keyframes uc-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.uc-skel-list {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3-5) var(--space-4);
+  flex: 1;
+  min-height: 0;
+}
+.uc-skel-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.uc-skel-poster {
+  width: 100%;
+  aspect-ratio: var(--aspect-poster);
+  border-radius: var(--radius-btn);
+  background: var(--gradient-skeleton-shimmer);
+  background-size: 200% 100%;
+  animation: uc-shimmer var(--duration-animation) ease-in-out infinite;
+}
+.uc-skel-line {
+  border-radius: var(--radius-sm);
+  background: var(--gradient-skeleton-shimmer);
+  background-size: 200% 100%;
+  animation: uc-shimmer var(--duration-animation) ease-in-out infinite;
+}
+.uc-skel-line-title {
+  height: 12px;
+  width: 80%;
+}
+.uc-skel-line-sub {
+  height: 10px;
+  width: 50%;
+}
+@keyframes uc-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
 
 /* Viewport clips the track, track slides via CSS animation */
 .uc-viewport {
-  flex: 1; min-height: 0; overflow: hidden;
-  padding: 12px 0 14px;
-  /* Fade edges */
-  -webkit-mask-image: linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent);
-  mask-image: linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent);
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: var(--space-3) 0 var(--space-3-5);
+  /* 16 px edge fade — hero-only mask outside the spacing scale. */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 16px,
+    black calc(100% - 16px),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 16px,
+    black calc(100% - 16px),
+    transparent
+  );
 }
 
 .uc-track {
-  display: flex; gap: 14px;
-  padding: 0 16px;
+  display: flex;
+  /* Gap mirrors the GAP constant in the script (14 px) — keep both in
+     sync since setWidth derives from CARD_W + GAP. */
+  gap: var(--space-3-5);
+  padding: 0 var(--space-4);
   width: max-content;
   animation: uc-scroll var(--anim-duration, 60s) linear infinite;
 }
-.uc-track.uc-paused { animation-play-state: paused; }
-
-@keyframes uc-scroll {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(calc(var(--set-width, 1000px) * -1)); }
+.uc-track.uc-paused {
+  animation-play-state: paused;
 }
 
-.uc-card { flex-shrink: 0; width: 140px; display: flex; flex-direction: column; gap: 8px; text-decoration: none; color: inherit; transition: transform var(--duration-base); }
-.uc-card:hover { transform: translateY(-3px); }
+@keyframes uc-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(calc(var(--set-width, 1000px) * -1));
+  }
+}
 
-.uc-poster { width: 100%; aspect-ratio: 2/3; border-radius:var(--radius-btn); background: var(--heat-0, var(--surface-2)); overflow: hidden; position: relative; }
-.uc-poster img { width: 100%; height: 100%; object-fit: cover; transition: transform var(--duration-slow); }
-.uc-card:hover .uc-poster img { transform: scale(1.05); }
-.uc-poster-ph { font-size: 24px; opacity: 0.2; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+.uc-card {
+  flex-shrink: 0;
+  /* Card width mirrors the CARD_W constant in the script (140 px). */
+  width: 140px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  text-decoration: none;
+  color: inherit;
+  transition: transform var(--duration-base);
+}
+.uc-card:hover {
+  transform: translateY(-3px);
+}
 
-.uc-badge { position: absolute; bottom: 6px; left: 6px; font-size: 9px; font-weight: var(--font-medium); padding: 2px 7px; border-radius:var(--radius-sm); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
-.badge-past { background: var(--surface-3); color: var(--text-very-faint); }
-.badge-imminent { background: rgb(var(--color-error-rgb),0.25); color: #fca5a5; }
-.badge-soon { background: rgb(250,204,21,0.2); color: #fde68a; }
-.badge-later { background: rgb(255,255,255,0.08); color: var(--text-muted); }
+.uc-poster {
+  width: 100%;
+  aspect-ratio: var(--aspect-poster);
+  border-radius: var(--radius-btn);
+  background: var(--heat-0, var(--surface-2));
+  overflow: hidden;
+  position: relative;
+}
+.uc-poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--duration-slow);
+}
+.uc-card:hover .uc-poster img {
+  transform: scale(1.05);
+}
+.uc-poster-ph {
+  /* 24 px placeholder glyph — between --text-lg (~20.8) and
+     --text-xl (clamp). Poster-only fallback. */
+  font-size: 24px;
+  opacity: 0.2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
 
-.uc-meta { display: flex; flex-direction: column; gap: 2px; padding: 0 2px; }
-.uc-series { font-size: var(--text-xs); font-weight: var(--font-regular); color: var(--text-secondary)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.uc-ep { font-size: var(--text-3xs); color: var(--text-muted); }
-.uc-date { font-size: var(--text-3xs); color: var(--text-muted); }
+.uc-badge {
+  /* Mirrors the portal poster ``.mk-poster__avail`` pill: pill shape,
+     frosted veil background, current-colour border + dot, uppercase
+     micro-label. Tints (red / yellow / grey) stay specific to the
+     date-proximity colour code. */
+  position: absolute;
+  /* 6 / 6 px corner inset — too small for --space-2 (8). */
+  top: 6px;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  /* 3 px dot-to-label gap — between --space-half (2) and --space-1 (4). */
+  gap: 3px;
+  /* 2 / 6 / 2 / 4 px asymmetric padding — extra left room compensates
+     for the inline dot, matches the portal Dispo pill exactly. */
+  padding: 2px 6px 2px 4px;
+  border-radius: var(--radius-pill);
+  background: rgb(var(--bg-primary-rgb), 0.55);
+  backdrop-filter: var(--blur-xs);
+  -webkit-backdrop-filter: var(--blur-xs);
+  font-size: 9px;
+  font-weight: var(--font-extrabold);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  box-shadow: var(--shadow-sm);
+  border: var(--border-width) solid transparent;
+}
+.uc-badge-dot {
+  /* 4 px dot — currentColor + subtle glow, mirrors
+     ``.mk-poster__avail-dot``. */
+  width: 4px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: currentcolor;
+  box-shadow: 0 0 4px currentcolor;
+}
+.badge-past {
+  color: var(--text-very-faint);
+  border-color: var(--border-default);
+}
+.badge-imminent {
+  color: var(--color-error-light);
+  border-color: rgb(var(--color-error-rgb), 0.33);
+}
+.badge-soon {
+  color: var(--color-warning-light);
+  border-color: rgb(var(--color-warning-rgb), 0.33);
+}
+.badge-later {
+  color: var(--text-muted);
+  border-color: var(--border-default);
+}
+
+.uc-meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-half);
+  padding: 0 var(--space-half);
+}
+.uc-series {
+  font-size: var(--text-xs);
+  font-weight: var(--font-regular);
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.uc-ep {
+  font-size: var(--text-3xs);
+  color: var(--text-muted);
+}
+.uc-date {
+  font-size: var(--text-3xs);
+  color: var(--text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .uc-skel-poster,
+  .uc-skel-line {
+    animation: none;
+  }
+  .uc-track {
+    /* Stop the auto-scrolling carousel — readers can still browse the
+       list by scrolling the page (overflow: visible inherited). */
+    animation: none;
+  }
+  .uc-card,
+  .uc-poster img {
+    transition: none;
+  }
+}
 </style>

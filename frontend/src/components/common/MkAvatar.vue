@@ -1,7 +1,11 @@
 <template>
   <div
     class="mk-avatar"
-    :class="['mk-avatar-' + shape, { 'mk-avatar-fallback': !showImage }]"
+    :class="[
+      'mk-avatar-' + shape,
+      { 'mk-avatar-fallback': !showImage },
+      tier ? 'mk-avatar-tier--' + tier : null,
+    ]"
     :style="{
       width: size + 'px',
       height: size + 'px',
@@ -25,6 +29,22 @@ const props = defineProps({
     type: String,
     default: 'circle',
     validator: v => ['circle', 'square'].includes(v),
+  },
+  // Tier ring color (bronze → legendary). Maps to a global
+  // ``.mk-avatar-tier--{tier}`` class that drives the ring color +
+  // halo box-shadow defined in tokens/_avatar-tiers.css. Pass the
+  // tier returned by the backend (``user.tier``); leave null to keep
+  // the legacy "no ring" or class-driven behaviour.
+  //
+  // The tier list is inlined here because defineProps() is hoisted
+  // outside the setup() scope by the Vue SFC compiler and cannot
+  // reference module-level const arrays.
+  tier: {
+    type: String,
+    default: null,
+    validator: v =>
+      v === null ||
+      ['bronze', 'silver', 'gold', 'platinum', 'diamond', 'master', 'legendary'].includes(v),
   },
 })
 
@@ -71,8 +91,9 @@ function onError() {
   line-height: 1;
   /* Ring is a CSS border on the wrapper itself — no overlay SVG, no
      radial-gradient trickery. Border thickness + colour are driven by
-     CSS variables so parent tier classes (gc-lb-av--gold, etc.) set
-     them per rank without prop-drilling. Default = no ring. */
+     CSS variables so the ``tier`` prop (or a parent wrapper like the
+     leaderboard's ``.gc-lb-av--gold``) sets them per rank without
+     prop-drilling. Default = no ring. */
   border: var(--mk-avatar-ring-width, 0) solid
     var(--mk-avatar-ring-color, transparent);
   box-sizing: border-box;
@@ -129,16 +150,3 @@ function onError() {
 }
 </style>
 
-<!-- Non-scoped: reusable ring presets every consumer can stamp on
-     ``<MkAvatar class="mk-avatar--ring-subtle">`` without re-declaring
-     the custom properties on each call site. -->
-<style>
-.mk-avatar--ring-subtle {
-  --mk-avatar-ring-width: 2px;
-  --mk-avatar-ring-color: rgb(255, 255, 255, 0.18);
-}
-.mk-avatar--ring-thin {
-  --mk-avatar-ring-width: 1.5px;
-  --mk-avatar-ring-color: rgb(255, 255, 255, 0.2);
-}
-</style>

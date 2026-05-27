@@ -5,7 +5,9 @@
        avatar grid. Chat, playback timer, screen + launch CTA keep
        working from the surrounding ``CinemaRoomView`` template. -->
   <section class="pt-crm" aria-label="participants">
-    <h3 class="pt-crm-title">{{ $t('portal.cinema.mobile.participants', { count: accepted.length, total: capacity }) }}</h3>
+    <h3 class="pt-crm-title">
+      {{ $t('portal.cinema.mobile.participants', { count: accepted.length, total: capacity }) }}
+    </h3>
     <ul class="pt-crm-grid">
       <li
         v-for="seatIdx in capacity"
@@ -17,26 +19,15 @@
         }"
       >
         <template v-if="seatOccupant(seatIdx - 1)">
-          <div class="pt-crm-avatar">
-            <img
-              v-if="seatOccupant(seatIdx - 1).avatar_url"
-              :src="seatOccupant(seatIdx - 1).avatar_url"
-              :alt="seatOccupant(seatIdx - 1).username || ''"
-              class="pt-crm-avatar-img"
-            />
-            <span v-else class="pt-crm-avatar-initial">
-              {{
-                seatOccupant(seatIdx - 1)
-                  .username?.charAt(0)
-                  ?.toUpperCase()
-              }}
-            </span>
-          </div>
+          <MkAvatar
+            :src="seatOccupant(seatIdx - 1).avatar_url || null"
+            :name="seatOccupant(seatIdx - 1).username || '?'"
+            :size="44"
+            :tier="seatOccupant(seatIdx - 1).tier || 'bronze'"
+            class="pt-crm-avatar"
+          />
           <span class="pt-crm-name">{{ seatOccupant(seatIdx - 1).username }}</span>
-          <span
-            v-if="isLate(seatOccupant(seatIdx - 1))"
-            class="pt-crm-late"
-          >
+          <span v-if="isLate(seatOccupant(seatIdx - 1))" class="pt-crm-late">
             {{ $t('portal.cinema.marathon.late') }}
           </span>
         </template>
@@ -50,6 +41,7 @@
 import { computed } from 'vue'
 import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 import { INVITATION_STATUS } from '@/constants/events'
+import MkAvatar from '@/components/common/MkAvatar.vue'
 
 const props = defineProps({
   event: { type: Object, default: null },
@@ -143,29 +135,12 @@ function isLate(occ) {
   border-color: var(--portal-color-warning);
   background: rgb(var(--portal-color-warning-rgb), 0.12);
 }
+/* MkAvatar paints its own circle, tier ring + silhouette/photo. The
+   wrapper used to be a hand-rolled indigo gradient disc with a text
+   initial fallback; replaced by the shared component so the seat
+   matches the leaderboard style (photo + level-coloured ring). */
 .pt-crm-avatar {
-  width: 44px;
-  height: 44px;
-  border-radius: var(--portal-radius-circle);
-  background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
-  border: 2px solid rgb(255, 255, 255, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
   flex-shrink: 0;
-}
-.pt-crm-avatar-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  border-radius: var(--portal-radius-circle);
-}
-.pt-crm-avatar-initial {
-  font-size: var(--portal-text-sm);
-  font-weight: var(--portal-font-extrabold);
-  color: var(--portal-text-primary);
 }
 .pt-crm-name {
   max-width: 100%;

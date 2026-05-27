@@ -1,12 +1,14 @@
 /* Design tokens — entry point.
  * ----------------------------------------------------------------
- * Aggregates the 4 token fragments under tokens/. Import this file
+ * Aggregates the token fragments under tokens/. Import this file
  * once from main.css and every component gets the full token set.
  *
- *   tokens/_colors.css      surfaces, borders, text extensions, statuses
- *   tokens/_typography.css  font sizes, weights, tracking, line-height
- *   tokens/_layout.css      spacing, radius, shadows, blur, z-index, gradients
- *   tokens/_motion.css      durations, easings
+ *   tokens/_colors.css        surfaces, borders, text extensions, statuses
+ *   tokens/_typography.css    font sizes, weights, tracking, line-height
+ *   tokens/_layout.css        spacing, radius, shadows, blur, z-index, gradients
+ *   tokens/_motion.css        durations, easings
+ *   tokens/_tiers.css         bronze → legendary 3-stop palette + glow per tier
+ *   tokens/_avatar-tiers.css  avatar ring colours + halo, matched to leaderboard
  *
  * ── Naming convention ──
  *   --<category>-<role>[-<modifier>]
@@ -32,3 +34,4 @@
 @import url('./tokens/_layout.css');
 @import url('./tokens/_motion.css');
 @import url('./tokens/_tiers.css');
+@import url('./tokens/_avatar-tiers.css');

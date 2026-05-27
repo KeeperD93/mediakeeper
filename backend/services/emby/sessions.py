@@ -3,9 +3,12 @@ import asyncio
 import time
 import logging
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.http_client import get_internal_client
+from models.portal.profile import UserProfile
+from services.portal._rank_tiers import tier_for_level
 
 from .config import _get_emby_config
 
@@ -63,6 +66,21 @@ async def get_sessions(db: AsyncSession):
     """Fetch les sessions actives sur Emby/Jellyfin for le dashboard."""
     sessions = await get_raw_sessions(db)
 
+    # Pre-load MK profile level + avatar keyed by emby_user_id so the
+    # dashboard hero strip can render the tier ring + the same MK avatar
+    # the rest of the app shows, without an Emby image proxy round-trip
+    # per session. Bronze fallback for Emby-only accounts.
+    profile_rows = (
+        await db.execute(
+            select(UserProfile.emby_user_id, UserProfile.level, UserProfile.avatar_url)
+            .where(UserProfile.emby_user_id.isnot(None))
+        )
+    ).all()
+    profile_map = {
+        row.emby_user_id: {"level": row.level or 1, "avatar_url": row.avatar_url}
+        for row in profile_rows
+    }
+
     result = []
     for s in sessions:
         if not s.get("UserName"):
@@ -88,9 +106,17 @@ async def get_sessions(db: AsyncSession):
         if progress >= 98:
             continue
 
+        emby_uid = s.get("UserId", "")
+        mk = profile_map.get(emby_uid)
+        level = mk["level"] if mk else 1
+        avatar_url = mk["avatar_url"] if mk else None
+
         result.append({
             "user": s.get("UserName", "Inconnu"),
-            "user_id": s.get("UserId", ""),
+            "user_id": emby_uid,
+            "avatar_url": avatar_url,
+            "level": level,
+            "tier": tier_for_level(level),
             "device": s.get("DeviceName", "Inconnu"),
             "client": s.get("Client", "Inconnu"),
             "ip": s.get("RemoteEndPoint", ""),

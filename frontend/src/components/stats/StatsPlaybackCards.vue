@@ -55,7 +55,6 @@
         <PlaybackCardRank
           v-else
           :card="card"
-          :avatar-colors="avatarColors"
           :show-preview="showPreview"
           :hide-preview="hidePreview"
           :open-user-profile="openUserProfile"
@@ -79,7 +78,7 @@ import { usePlaybackCards } from './StatsPlaybackCards/usePlaybackCards'
 
 const { t } = useI18n()
 const { playback, loadingPlayback, loadPlayback, resolveSeriesImageId, ticksToHours } = useStats()
-const { avatarColors, showPreview, hidePreview, openUserProfile, goToActivitySearch } = useStatsUI()
+const { showPreview, hidePreview, openUserProfile, goToActivitySearch } = useStatsUI()
 
 const periodOptions = [7, 30, 90, 180, 365]
 const playbackDays = ref(365)

@@ -43,59 +43,64 @@
       <p v-if="filteredItems.length === 0" class="tl-empty">{{ $t('dashboard.noActivity') }}</p>
     </div>
 
-    <!-- TMDB Popover -->
-    <div
-      v-if="popover.visible"
-      ref="popoverRef"
-      class="pop-card"
-      :style="popover.style"
-      @click.stop
-    >
-      <div v-if="popover.loading" class="pop-loading">
-        <MkSpinner size="sm" />
-      </div>
-      <div v-else-if="popover.error" class="pop-loading">
-        <span class="pop-error-text">{{ popover.error }}</span>
-      </div>
-      <template v-else-if="popover.data">
-        <div class="pop-top">
-          <div v-if="popover.data.poster" class="pop-poster">
-            <img
-              :src="popover.data.poster"
-              @error="$event => ($event.target.style.display = 'none')"
-            />
-          </div>
-          <div class="pop-info">
-            <h3 class="pop-title">{{ popover.data.title }}</h3>
-            <div class="pop-chips">
-              <span v-if="popover.data.year" class="pop-chip">{{ popover.data.year }}</span>
-              <span v-if="popover.data.vote" class="pop-chip pop-chip-vote">
-                ⭐ {{ popover.data.vote }}
-              </span>
-              <span v-if="popover.data.runtime" class="pop-chip">
-                {{ popover.data.runtime }} min
-              </span>
-            </div>
-            <div v-if="isTv(popover.data)" class="pop-chips">
-              <span v-if="popover.data.seasons_count" class="pop-chip">
-                {{ popover.data.seasons_count }} season{{
-                  popover.data.seasons_count > 1 ? 's' : ''
-                }}
-              </span>
-              <span v-if="popover.data.episodes_count" class="pop-chip">
-                {{ popover.data.episodes_count }} ep.
-              </span>
-            </div>
-            <div v-if="popover.data.genres?.length" class="pop-genres">
-              <span v-for="g in popover.data.genres.slice(0, 3)" :key="g" class="pop-genre">
-                {{ g }}
-              </span>
-            </div>
-          </div>
+    <!-- TMDB Popover — teleported to <body> so it escapes the
+         vue-grid-layout transformed ancestor (which would otherwise
+         clip / re-anchor a position:fixed child). Coordinates are
+         already in viewport space (see togglePopover). -->
+    <Teleport to="body">
+      <div
+        v-if="popover.visible"
+        ref="popoverRef"
+        class="pop-card"
+        :style="popover.style"
+        @click.stop
+      >
+        <div v-if="popover.loading" class="pop-loading">
+          <MkSpinner size="sm" />
         </div>
-        <p v-if="popover.data.overview" class="pop-overview">{{ popover.data.overview }}</p>
-      </template>
-    </div>
+        <div v-else-if="popover.error" class="pop-loading">
+          <span class="pop-error-text">{{ popover.error }}</span>
+        </div>
+        <template v-else-if="popover.data">
+          <div class="pop-top">
+            <div v-if="popover.data.poster" class="pop-poster">
+              <img
+                :src="popover.data.poster"
+                @error="$event => ($event.target.style.display = 'none')"
+              />
+            </div>
+            <div class="pop-info">
+              <h3 class="pop-title">{{ popover.data.title }}</h3>
+              <div class="pop-chips">
+                <span v-if="popover.data.year" class="pop-chip">{{ popover.data.year }}</span>
+                <span v-if="popover.data.vote" class="pop-chip pop-chip-vote">
+                  ⭐ {{ popover.data.vote }}
+                </span>
+                <span v-if="popover.data.runtime" class="pop-chip">
+                  {{ popover.data.runtime }} min
+                </span>
+              </div>
+              <div v-if="isTv(popover.data)" class="pop-chips">
+                <span v-if="popover.data.seasons_count" class="pop-chip">
+                  {{ popover.data.seasons_count }} season{{
+                    popover.data.seasons_count > 1 ? 's' : ''
+                  }}
+                </span>
+                <span v-if="popover.data.episodes_count" class="pop-chip">
+                  {{ popover.data.episodes_count }} ep.
+                </span>
+              </div>
+              <div v-if="popover.data.genres?.length" class="pop-genres">
+                <span v-for="g in popover.data.genres.slice(0, 3)" :key="g" class="pop-genre">
+                  {{ g }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <p v-if="popover.data.overview" class="pop-overview">{{ popover.data.overview }}</p>
+        </template>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -136,9 +141,9 @@ const {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 14px;
+  margin-bottom: var(--space-3-5);
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--space-2);
 }
 .tl-title {
   font-size: var(--text-base);
@@ -149,43 +154,44 @@ const {
 
 .tl-tabs {
   display: flex;
-  gap: 6px;
+  gap: var(--space-1);
   margin-right: auto;
   flex-wrap: wrap;
 }
 .tl-tab {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  min-height: 44px;
-  padding: 4px 12px;
+  gap: var(--space-1);
+  min-height: var(--touch-target);
+  padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-pill);
   background: var(--surface-1);
-  border: 1px solid var(--border-strong);
-  color: rgb(255, 255, 255, 0.6);
+  border: var(--border-width) solid var(--border-strong);
+  color: var(--text-muted);
   font-size: var(--text-3xs);
   font-weight: var(--font-extrabold);
   letter-spacing: var(--tracking-wide);
   cursor: pointer;
   transition:
-    background var(--duration-base) var(--ease-out),
-    border-color var(--duration-base) var(--ease-out),
-    color var(--duration-base) var(--ease-out),
-    box-shadow var(--duration-base) var(--ease-out),
-    transform var(--duration-base) var(--ease-out);
+    var(--transition-bg), var(--transition-border), var(--transition-color),
+    var(--transition-transform);
   backdrop-filter: var(--blur-xs);
   -webkit-tap-highlight-color: transparent;
   white-space: nowrap;
 }
 @media (min-width: 768px) {
+  /* Desktop: compact pill, mouse precision doesn't need the 44px touch
+     target. ``--icon-frame-sm`` (28px) feels too tight against the
+     standard pill padding — 32px stays inline with the rest of the
+     dashboard chips. */
   .tl-tab {
     min-height: 32px;
   }
 }
 @media (hover: hover) {
   .tl-tab:hover:not(.active) {
-    border-color: rgb(255, 255, 255, 0.18);
-    color: rgb(255, 255, 255, 0.85);
+    border-color: var(--border-intense);
+    color: var(--text-secondary);
     transform: translateY(-1px);
   }
 }
@@ -193,10 +199,16 @@ const {
   background: var(--gradient-pill-active);
   border-color: var(--accent-500);
   color: var(--text-primary);
+  /* Halo intentionally still wired to --mk-pill-shadow-sm. The global
+     killswitch --mk-glow: 0 currently flattens it; flipping --mk-glow
+     back to 1 restores the halo here without touching this rule. */
   box-shadow: var(--mk-pill-shadow-sm);
 }
 .tl-track {
-  border-left: 1px solid var(--card-border, var(--border-default));
+  border-left: var(--border-width) solid var(--card-border);
+  /* 6px / 18px keep the dot column aligned with the existing layout —
+     no spacing token matches both, kept in px since this is a single
+     widget. */
   margin-left: 6px;
   padding-left: 18px;
   display: flex;
@@ -210,10 +222,10 @@ const {
 
 .tl-entry {
   position: relative;
-  padding: 8px 0;
+  padding: var(--space-2) 0;
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: var(--space-2);
   animation: tl-cascade var(--duration-slow) ease-out both;
 }
 @keyframes tl-cascade {
@@ -229,11 +241,13 @@ const {
 
 .tl-dot {
   position: absolute;
+  /* -23 / 12 / 9 / 2 are ad-hoc dot-on-rail geometry — no spacing
+     token matches and the values only live here. */
   left: -23px;
   top: 12px;
   width: 9px;
   height: 9px;
-  border-radius: 50%;
+  border-radius: var(--radius-circle);
   border: 2px solid var(--dash-bg);
 }
 .dot-active {
@@ -255,7 +269,7 @@ const {
   font-size: var(--text-sm);
   color: var(--text-muted);
   margin: 0;
-  line-height: 1.4;
+  line-height: var(--lh-snug);
 }
 .tl-user {
   color: var(--text-secondary);
@@ -268,41 +282,41 @@ const {
   color: var(--text-primary);
   cursor: pointer;
   transition: border-bottom-color var(--duration-fast);
-  border-bottom: 1px dotted rgb(255, 255, 255, 0.25);
+  border-bottom: var(--border-width) dotted var(--text-very-faint);
 }
 .tl-media:hover {
-  border-bottom-color: rgb(255, 255, 255, 0.6);
+  border-bottom-color: var(--text-secondary);
 }
 .tl-meta {
   font-size: var(--text-2xs);
   color: var(--text-muted);
-  margin: 2px 0 0;
+  margin: var(--space-half) 0 0;
 }
 
 .tl-tag {
   font-size: var(--text-3xs);
-  padding: 2px 8px;
-  border-radius: 4px;
+  padding: var(--space-half) var(--space-2);
+  border-radius: var(--radius-sm);
   flex-shrink: 0;
-  margin-top: 2px;
+  margin-top: var(--space-half);
 }
 .tag-green {
-  background: rgb(34, 197, 94, 0.1);
+  background: rgb(var(--color-success-rgb), 0.1);
   color: var(--color-success);
 }
 .tag-yellow {
-  background: rgb(250, 204, 21, 0.1);
-  color: #facc15;
+  background: rgb(var(--color-warning-rgb), 0.1);
+  color: var(--color-warning);
 }
 
 .tl-empty {
   font-size: var(--text-sm);
   color: var(--text-muted);
-  margin: 20px 0;
+  margin: var(--space-5) 0;
 }
 
 .tl-track::-webkit-scrollbar {
-  width: 4px;
+  width: var(--scrollbar-width, 4px);
 }
 .tl-track::-webkit-scrollbar-thumb {
   background: var(--text-muted);
@@ -312,16 +326,20 @@ const {
 
 /* ---- TMDB POPOVER ---- */
 .pop-card {
-  position: absolute;
-  z-index: 50;
+  /* ``position: fixed`` so the popover escapes the parent ``.vgl-item``
+   * overflow:hidden clip. Coordinates are computed in viewport space
+   * by useActivityTimeline togglePopover. z-index lifts above the
+   * dashboard chrome (sidebar/topbar are lower). */
+  position: fixed;
+  z-index: var(--z-dropdown, 100);
   width: 340px;
   max-width: calc(100vw - 48px);
-  background: var(--pop-bg, rgb(15, 20, 35, 0.97));
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--card-border, rgb(255, 255, 255, 0.1));
+  background: var(--bg-primary);
+  backdrop-filter: var(--blur-md);
+  border: var(--border-width) solid var(--card-border, var(--border-default));
   border-radius: var(--radius-card);
   overflow: hidden;
-  box-shadow: 0 12px 40px rgb(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-lg);
   animation: pop-in var(--duration-fast) ease-out;
 }
 @keyframes pop-in {
@@ -335,12 +353,12 @@ const {
   }
 }
 .pop-loading {
-  padding: 32px 20px;
+  padding: var(--space-8) var(--space-5);
   text-align: center;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--space-2);
   color: var(--text-muted);
   font-size: var(--text-xs);
 }
@@ -350,8 +368,8 @@ const {
 }
 .pop-top {
   display: flex;
-  gap: 14px;
-  padding: 16px 16px 0;
+  gap: var(--space-3-5);
+  padding: var(--space-4) var(--space-4) 0;
 }
 .pop-poster {
   flex-shrink: 0;
@@ -360,7 +378,7 @@ const {
 .pop-poster img {
   width: 100%;
   border-radius: var(--radius-btn);
-  box-shadow: 0 2px 12px rgb(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-sm);
 }
 .pop-info {
   flex: 1;
@@ -370,45 +388,54 @@ const {
   font-size: var(--text-base);
   font-weight: var(--font-medium);
   color: var(--text-primary);
-  margin: 0 0 6px;
+  margin: 0 0 var(--space-1);
   line-height: var(--lh-compact);
 }
 .pop-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
-  margin-bottom: 6px;
+  gap: var(--space-1);
+  margin-bottom: var(--space-1);
 }
 .pop-chip {
   font-size: var(--text-3xs);
-  padding: 2px 7px;
-  border-radius: 4px;
+  padding: var(--space-half) 7px;
+  border-radius: var(--radius-sm);
   background: var(--heat-0, var(--surface-3));
   color: var(--text-muted);
 }
 .pop-chip-vote {
-  background: rgb(250, 204, 21, 0.12);
-  color: #facc15;
+  background: rgb(var(--color-warning-rgb), 0.12);
+  color: var(--color-warning);
 }
 .pop-genres {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: var(--space-1);
 }
 .pop-genre {
+  /* 9px font + 3px radius are pop-genre-only — too small for the
+     standard ``--text-3xs`` (~10px) and ``--radius-sm``. */
   font-size: 9px;
-  padding: 2px 6px;
+  padding: var(--space-half) 6px;
   border-radius: 3px;
-  background: rgb(99, 102, 241, 0.12);
-  color: var(--accent-400);
+  /* Neutral chip — genres are not semantically coloured (no "good"
+     or "bad" genre), and the accent tint pulled the global hue onto
+     decorative tags. */
+  background: var(--surface-2);
+  color: var(--text-secondary);
 }
 .pop-overview {
   font-size: var(--text-xs);
   color: var(--text-muted);
   line-height: var(--lh-normal);
   margin: 0;
-  padding: 10px 16px 14px;
-  max-height: 100px;
+  /* Bottom padding matches the .pop-top top padding so the overview
+     text never touches the tooltip border. ``-webkit-line-clamp``
+     handles the 5-line truncation on its own — the previous
+     ``max-height: 100px`` was capping the box BEFORE the padding could
+     render, defeating the bottom space entirely. */
+  padding: var(--space-2-5) var(--space-4) var(--space-5);
   display: -webkit-box;
   -webkit-line-clamp: 5;
   -webkit-box-orient: vertical;

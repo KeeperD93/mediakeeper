@@ -53,7 +53,8 @@
             :src="null"
             :name="'?'"
             :size="22"
-            class="arr-row-by-avatar mk-avatar--ring-subtle"
+            tier="bronze"
+            class="arr-row-by-avatar"
           />
           <span class="arr-who arr-who--deleted">{{ $t('portal.common.deletedUser') }}</span>
           ·
@@ -64,7 +65,8 @@
             :src="req.requester.avatar_url"
             :name="req.requester.display_name || req.requester.username || ''"
             :size="22"
-            class="arr-row-by-avatar mk-avatar--ring-subtle"
+            :tier="req.requester.tier || 'bronze'"
+            class="arr-row-by-avatar"
           />
           <span class="arr-who">{{ req.requester.display_name }}</span>
           ·

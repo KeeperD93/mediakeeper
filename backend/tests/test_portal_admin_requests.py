@@ -37,6 +37,7 @@ async def test_list_users_returns_profiles(client, admin_user, db_session):
             "is_public": True,
             "forced_public": None,
             "level": 1,
+            "tier": "bronze",
             "xp": 0,
             "created_at": profile.created_at.isoformat(),
             "updated_at": profile.updated_at.isoformat(),

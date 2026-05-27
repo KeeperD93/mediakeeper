@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.http_client import get_internal_client
 from services.settings import get_active_media_source
+from .playback import _load_mk_profile_map, _resolve_user_avatar
 
 logger = logging.getLogger("mediakeeper.stats.aggregator")
 
@@ -35,6 +36,14 @@ async def get_detailed_sessions(db: AsyncSession):
     except Exception as e:
         logger.error(f"Error get_detailed_sessions: {e}")
         return []
+
+    # Batch-resolve MK profiles (avatar + level + tier) keyed by
+    # emby_user_id so the Sessions card renders the same photo + tier
+    # ring as the leaderboard. Emby-only sessions fall back to the
+    # Emby-proxied photo URL + bronze tier via ``_resolve_user_avatar``.
+    mk_profiles = await _load_mk_profile_map(
+        db, list({s.get("UserId", "") for s in sessions if s.get("UserId")}),
+    )
 
     result = []
     for s in sessions:
@@ -97,9 +106,15 @@ async def get_detailed_sessions(db: AsyncSession):
             m, secs = divmod(remainder, 60)
             return f"{h}:{m:02d}:{secs:02d}"
 
+        emby_uid = s.get("UserId", "")
+        user_meta = _resolve_user_avatar(emby_uid, mk_profiles)
+
         result.append({
             "user": s.get("UserName", ""),
-            "user_id": s.get("UserId", ""),
+            "user_id": emby_uid,
+            "avatar_url": user_meta["avatar_url"],
+            "level": user_meta["level"],
+            "tier": user_meta["tier"],
             "device": s.get("DeviceName", ""),
             "client": s.get("Client", ""),
             "client_version": s.get("ApplicationVersion", ""),

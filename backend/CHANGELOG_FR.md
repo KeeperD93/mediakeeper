@@ -11,16 +11,21 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ### Added
 - Onboarding — module Portail ajouté au welcome et au tour.
-- Communauté — invitation Discord publiée (footer login, README, code de conduite).
-- Communauté — Ko-fi ajouté comme moyen de soutien (bouton coeur admin, badge README, FUNDING.yml).
 
 ### Changed
 - Interface admin — nouveau thème sombre, contraste texte renforcé pour la lisibilité.
+- Avatars — anneau coloré par niveau (bronze → légendaire) sur toutes les surfaces, même rendu que le classement.
+- Boutons — palette MediaKeeper appliquée (violet, rouge brique, vert forêt) sans toucher aux graphiques.
+- Apparence — sélecteur d'accent retiré temporairement (palette MK verrouillée).
 - Planificateur — interface réorganisée par catégories, cartes compactes.
 - Démarrage — log boot : `COOKIE_SECURE=` renommé `COOKIE_HTTPS_FLAG=` (variable env inchangée, mapping dans `tls-deployment.md`).
 - Cookie CSRF — validation par allowlist sur les polls (durcissement).
 
 ### Fixed
+- Portail — pastille « Dispo » stable sur les ajouts Emby récents (plus de clignotement).
+- Stats — sessions et actifs 24h : photo + anneau de niveau (parité classement).
+- Stats — silhouette d'avatar correctement centrée dans l'anneau de niveau.
+- Avatars Emby — photo rafraîchie sous 5 min après changement (au lieu de 7 jours).
 - Connexion — la détection brute-force ignore désormais les variations de casse du nom d'utilisateur.
 - Les schémas d'authentification rejettent désormais les clés JSON inconnues (défense en profondeur).
 - Soirées ciné — accepter une invitation ne déclenche plus de faux avertissement de conflit horaire.

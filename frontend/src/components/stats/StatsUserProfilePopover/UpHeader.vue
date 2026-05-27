@@ -1,8 +1,11 @@
 <template>
   <div class="up-header">
-    <div class="up-avatar" :style="{ background: avatarColors[0] }">
-      {{ profileName[0]?.toUpperCase() }}
-    </div>
+    <MkAvatar
+      :src="profileAvatarUrl"
+      :name="profileName"
+      :size="42"
+      :tier="profileTier || 'bronze'"
+    />
     <div class="up-hinfo">
       <div class="up-name">{{ profileName }}</div>
       <div v-if="userProfile" class="up-sub">
@@ -12,6 +15,7 @@
     </div>
     <MkButton
       variant="icon"
+      size="sm"
       icon="x"
       :aria-label="$t('common.close')"
       @click="$emit('close')"
@@ -20,12 +24,14 @@
 </template>
 
 <script setup>
+import MkAvatar from '@/components/common/MkAvatar.vue'
 import MkButton from '@/components/common/MkButton.vue'
 
 defineProps({
   profileName: { type: String, required: true },
+  profileTier: { type: String, default: 'bronze' },
+  profileAvatarUrl: { type: String, default: null },
   userProfile: { type: Object, default: null },
-  avatarColors: { type: Array, required: true },
   ticksToDuration: { type: Function, required: true },
 })
 defineEmits(['close'])
@@ -37,18 +43,6 @@ defineEmits(['close'])
   align-items: center;
   gap: 12px;
   margin-bottom: 24px;
-}
-.up-avatar {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--text-base);
-  font-weight: var(--font-bold);
-  color: var(--text-primary);
-  flex-shrink: 0;
 }
 .up-hinfo {
   flex: 1;
@@ -63,24 +57,6 @@ defineEmits(['close'])
   font-size: var(--text-2xs);
   color: var(--text-muted);
   margin-top: 2px;
-}
-.up-close {
-  width: 28px;
-  height: 28px;
-  border-radius: var(--radius-btn);
-  background: var(--surface-2);
-  border: 0.5px solid var(--border-strong);
-  color: var(--text-secondary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.up-close:hover {
-  background: rgb(239, 68, 68, 0.1);
-  color: var(--color-error);
-  border-color: rgb(239, 68, 68, 0.2);
 }
 
 @media (max-width: 767px) {
