@@ -20,6 +20,7 @@ This section intentionally has no date so it is not shown to users.
 
 ### Fixed
 - Availability badge — no longer flickers for ~0.5 s when index lags.
+- Home posters — no more 429 errors on first paint when many tiles load at once.
 
 ## [1.0.0-rc.3] - 2026-05-22
 

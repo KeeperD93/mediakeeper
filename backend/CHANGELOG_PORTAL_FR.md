@@ -22,6 +22,7 @@ utilisateurs.
 
 ### Fixed
 - Pastille Dispo — plus de clignotement de ~0.5 s quand l'index Emby est en retard.
+- Affiches de la home — plus d'erreurs 429 au premier chargement quand beaucoup de vignettes s'affichent.
 
 ## [1.0.0-rc.3] - 2026-05-22
 
