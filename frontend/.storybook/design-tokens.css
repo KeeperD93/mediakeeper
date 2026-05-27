@@ -1,0 +1,231 @@
+/* Styles dedicated to the Design Tokens catalogue stories.
+ *
+ * Loaded globally via preview.ts so the catalogue can ship as a TS file
+ * without struggling with <style> tags inside Vue render templates
+ * (which Storybook strips or scopes inconsistently). Same pattern as
+ * inventory.css.
+ */
+
+.tk-page {
+  padding: 32px 40px 80px;
+  color: #e8ecf5;
+  font-family: var(--font-system);
+  max-width: 1400px;
+}
+
+.tk-intro {
+  color: #a8b2c2;
+  margin: 0 0 18px;
+  max-width: 920px;
+  line-height: 1.55;
+  font-size: 13px;
+}
+.tk-intro strong {
+  color: #fff;
+}
+.tk-intro code {
+  background: rgb(255, 255, 255, 0.06);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.tk-h1 {
+  margin: 0 0 8px;
+  color: #fff;
+  font-size: 22px;
+}
+
+.tk-section {
+  margin: 36px 0 0;
+}
+.tk-section h2 {
+  margin: 0 0 6px;
+  font-size: 17px;
+  color: #fff;
+}
+.tk-section .lead {
+  color: #a8b2c2;
+  margin: 0 0 14px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.tk-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+.tk-grid--wide {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.tk-card {
+  background: #24262b;
+  border: 1px solid rgb(255, 255, 255, 0.06);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.tk-swatch {
+  height: 58px;
+  border-bottom: 1px solid rgb(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: rgb(255, 255, 255, 0.5);
+  position: relative;
+}
+.tk-swatch--check {
+  background-image:
+    linear-gradient(45deg, #1f2126 25%, transparent 25%),
+    linear-gradient(-45deg, #1f2126 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #1f2126 75%),
+    linear-gradient(-45deg, transparent 75%, #1f2126 75%);
+  background-size: 12px 12px;
+  background-position:
+    0 0,
+    0 6px,
+    6px -6px,
+    -6px 0;
+}
+.tk-swatch--tall {
+  height: 90px;
+}
+.tk-swatch--text {
+  background: #1f2126;
+}
+
+.tk-meta {
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.tk-name {
+  font-family: 'SF Mono', 'Cascadia Mono', monospace;
+  font-size: 12px;
+  color: #fff;
+  word-break: break-all;
+  line-height: 1.35;
+}
+.tk-val {
+  font-family: 'SF Mono', 'Cascadia Mono', monospace;
+  font-size: 11px;
+  color: #a8b2c2;
+  word-break: break-all;
+  line-height: 1.4;
+}
+.tk-use {
+  font-size: 11px;
+  color: rgb(255, 255, 255, 0.55);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+.tk-layer-banner {
+  background: rgb(99, 102, 241, 0.08);
+  border-left: 3px solid var(--accent-500);
+  padding: 10px 14px;
+  border-radius: 0 6px 6px 0;
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: #dde2eb;
+}
+.tk-layer-banner strong {
+  color: #fff;
+}
+
+.tk-demo {
+  padding: 14px 16px;
+}
+.tk-demo-row {
+  padding: 6px 0;
+}
+.tk-divider {
+  height: 1px;
+  background: rgb(255, 255, 255, 0.08);
+  margin: 48px 0 0;
+}
+
+.tk-toc {
+  columns: 2;
+  column-gap: 32px;
+  padding: 12px 16px;
+  background: #24262b;
+  border: 1px solid rgb(255, 255, 255, 0.06);
+  border-radius: 10px;
+}
+.tk-toc ol {
+  margin: 0;
+  padding-left: 20px;
+  color: #a8b2c2;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.tk-toc strong {
+  color: #fff;
+}
+
+.tk-shadow-demo {
+  background: #1c2533;
+  height: 100px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+.tk-blur-demo {
+  position: relative;
+  height: 90px;
+  overflow: hidden;
+  background: linear-gradient(45deg, #6366f1, #f43f5e, #fbbf24);
+  border-radius: 8px;
+}
+
+.tk-z-bar {
+  height: 28px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 12px;
+}
+
+/* Animation demos for the durations grid. */
+.tk-anim-demo {
+  background: var(--accent-500);
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+}
+.tk-anim-fast {
+  animation: tk-pulse var(--duration-fast) var(--ease-default) infinite alternate;
+}
+.tk-anim-base {
+  animation: tk-pulse var(--duration-base) var(--ease-default) infinite alternate;
+}
+.tk-anim-slow {
+  animation: tk-pulse var(--duration-slow) var(--ease-default) infinite alternate;
+}
+.tk-anim-slower {
+  animation: tk-pulse var(--duration-slower) var(--ease-default) infinite alternate;
+}
+.tk-anim-animation {
+  animation: tk-pulse var(--duration-animation) var(--ease-linear) infinite;
+}
+.tk-anim-pulse {
+  animation: tk-pulse var(--duration-pulse) var(--ease-in-out) infinite;
+}
+@keyframes tk-pulse {
+  from {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}

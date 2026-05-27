@@ -3,6 +3,8 @@ import type { Preview } from '@storybook/vue3-vite'
 import '../src/styles/design-tokens.css'
 import '../src/styles/main.css'
 import './inventory.css'
+import './design-tokens.css'
+import './design-tokens.js'
 
 const preview: Preview = {
   parameters: {
