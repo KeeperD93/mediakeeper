@@ -132,7 +132,7 @@ async def check_availability(
             try:
                 tv_status[tid] = task.result()
             except Exception as e:
-                logger.warning(f"[AVAILABILITY] tv completeness {tid}: {e}")
+                logger.warning("[AVAILABILITY] tv completeness %s: %s", tid, e)
                 tv_status[tid] = "full"
 
     results = {}

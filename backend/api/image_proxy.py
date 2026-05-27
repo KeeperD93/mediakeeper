@@ -43,7 +43,7 @@ async def proxy_image(
     try:
         content, content_type = await image_cache.fetch_or_serve(u)
     except Exception as e:  # noqa: BLE001 -- upstream + defence-in-depth failures
-        logger.warning(f"image_proxy: fetch failed for {u}: {e}")
+        logger.warning("image_proxy: fetch failed for %s: %s", u, e)
         raise HTTPException(status_code=502, detail="upstream_unavailable")
     # 7-day immutable cache hint — image bytes are content-addressed
     # by the upstream URL, so the same query always yields the same
