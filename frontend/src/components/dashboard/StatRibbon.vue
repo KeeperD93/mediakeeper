@@ -143,6 +143,9 @@ function areaPoints(data) {
 .ribbon {
   display: flex;
   flex-wrap: wrap;
+  /* 1 px hairline gap between cells — the colour comes from
+     ``--ribbon-gap`` (set by the parent ``.cinema-dash``). Kept in px:
+     no spacing token represents a sub-grid hairline. */
   gap: 1px;
   background: var(--ribbon-gap, var(--surface-2));
   position: relative;
@@ -151,19 +154,19 @@ function areaPoints(data) {
 .ribbon-item {
   flex: 1 1 33%;
   min-width: 0;
-  padding: 10px 10px 8px;
-  background: var(--ribbon-bg, #0b1020);
+  padding: var(--space-2-5) var(--space-2-5) var(--space-2);
+  background: var(--ribbon-bg);
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--space-half);
   position: relative;
   min-height: 60px;
 }
 .ribbon-label {
-  font-size: var(--text-3xs);
-  color: var(--text-muted);
+  font-size: var(--text-2xs);
+  color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: var(--tracking-wide);
 }
 .ribbon-value {
   font-size: var(--text-sm);
@@ -176,23 +179,23 @@ function areaPoints(data) {
 .spark {
   width: 100%;
   height: 18px;
-  margin-top: 2px;
+  margin-top: var(--space-half);
 }
 
 .ribbon-svc {
   flex: 1 1 100%;
-  padding-bottom: 12px;
+  padding-bottom: var(--space-3);
 }
 .svc-list {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  margin-top: 6px;
+  gap: var(--space-1);
+  margin-top: var(--space-1);
 }
 .svc-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
 }
 .svc-logo {
   width: 18px;
@@ -204,13 +207,15 @@ function areaPoints(data) {
   filter: grayscale(1) opacity(0.4);
 }
 .svc-dot {
+  /* 7 px status dot — too small for any --icon-* token (which start
+     at 12 px). Kept widget-local. */
   width: 7px;
   height: 7px;
-  border-radius: 50%;
+  border-radius: var(--radius-circle);
   flex-shrink: 0;
 }
 .on {
-  background: #22c55e;
+  background: var(--color-online);
 }
 .off {
   background: var(--color-error);
@@ -225,46 +230,33 @@ function areaPoints(data) {
 .svc-status-wrap {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1);
   margin-left: auto;
 }
 .svc-pulse {
   width: 7px;
   height: 7px;
-  border-radius: 50%;
+  border-radius: var(--radius-circle);
   flex-shrink: 0;
-  position: relative;
-}
-.svc-pulse::after {
-  content: '';
-  position: absolute;
-  inset: -3px;
-  border-radius: 50%;
-  opacity: 0;
-  animation: svc-ping var(--duration-pulse) ease-out infinite;
 }
 .pulse-on {
-  background: #22c55e;
-}
-.pulse-on::after {
-  border: 2px solid #22c55e;
+  background: var(--color-online);
+  animation: svc-pulse-dot var(--duration-pulse) ease-in-out infinite;
 }
 .pulse-off {
   background: var(--color-error);
-}
-.pulse-off::after {
-  border: 2px solid var(--color-error);
-  animation-duration: 3s;
+  /* Slower pulse for the offline state — 3 s mirrors the existing
+     "broken heartbeat" cadence; not in --duration-* (out of scale). */
+  animation: svc-pulse-dot 3s ease-in-out infinite;
 }
 
-@keyframes svc-ping {
-  0% {
-    transform: scale(1);
-    opacity: 0.6;
-  }
+@keyframes svc-pulse-dot {
+  0%,
   100% {
-    transform: scale(2.2);
-    opacity: 0;
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
   }
 }
 
@@ -272,7 +264,7 @@ function areaPoints(data) {
   font-size: var(--text-2xs);
 }
 .st-on {
-  color: #22c55e;
+  color: var(--color-online);
 }
 .st-off {
   color: var(--color-error);
@@ -288,13 +280,16 @@ function areaPoints(data) {
   }
   .ribbon-item {
     flex: 1;
-    padding: 14px 20px 10px;
+    padding: var(--space-3-5) var(--space-5) var(--space-2-5);
     min-height: 72px;
   }
   .ribbon-label {
-    font-size: var(--text-2xs);
+    font-size: var(--text-xs);
   }
   .ribbon-value {
+    /* 22 px sits between --text-lg (~20.8 px) and --text-xl (clamp).
+       Kept in px to preserve the ribbon's signature size — single
+       use-site does not justify a dedicated token. */
     font-size: 22px;
     line-height: normal;
     white-space: normal;

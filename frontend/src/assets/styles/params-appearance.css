@@ -76,34 +76,9 @@
   transition: border-radius var(--duration-base);
 }
 
-/* ── Glow preview ── */
-.params-appearance-tab .params-glow-preview {
-  display: flex;
-  justify-content: center;
-  padding: 24px;
-  background: var(--bg-secondary);
-  border: 0.5px solid var(--border);
-  border-radius: var(--radius-btn);
-  margin-bottom: 14px;
-}
-.params-appearance-tab .glow-demo-btn {
-  display: inline-flex;
-  align-items: center;
-  min-height: 32px;
-  padding: 5px 18px;
-  border-radius: var(--radius-pill);
-  background: var(--gradient-pill-active);
-  border: 1px solid var(--accent-500);
-  color: var(--text-primary);
-  font-size: var(--text-sm);
-  font-weight: var(--font-extrabold);
-  letter-spacing: var(--tracking-wide);
-  cursor: default;
-  backdrop-filter: var(--blur-xs);
-  box-shadow: var(--mk-pill-shadow);
-  font-family: inherit;
-  transition: box-shadow var(--duration-base);
-}
+/* Glow preview removed alongside the slider — the demo pill + its
+   container were the only consumers of these classes. Re-add when the
+   slider returns. */
 
 /* ── Custom BG ── */
 .params-appearance-tab .params-bg-upload {

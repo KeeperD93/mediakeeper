@@ -57,11 +57,16 @@ onMounted(() => {
 <style scoped>
 .hero-wrap {
   position: relative;
+  /* 240 px is the hero's signature height — outside the spacing scale
+     since the hero is a landing-page banner, not a card. */
   height: 240px;
   overflow: hidden;
   background: var(--hero-bg);
   opacity: 0;
   transform: scale(1.02);
+  /* 0.8 s — hero-only mount transition, outside the --duration-*
+     scale (slower 0.5, animation 1.5). Single occurrence accepted
+     as a literal rather than introducing a one-off duration token. */
   transition:
     opacity 0.8s ease,
     transform 0.8s ease;
@@ -81,22 +86,30 @@ onMounted(() => {
 }
 .hero-content {
   position: absolute;
-  bottom: 28px;
-  left: 28px;
-  right: 28px;
   display: flex;
   align-items: flex-end;
-  gap: 16px;
   z-index: 2;
+  /* Mobile-first paddings + wrap — keeps the avatar stack inside the
+     viewport on phones. Desktop relaxes (no wrap, 28 px insets, larger
+     gap) via the @media (min-width: 768px) block. */
+  flex-wrap: wrap;
+  bottom: var(--space-5);
+  /* 18 px hero-only inset on phones — between --space-4 and --space-5
+     to keep the avatar stack from kissing the viewport edge. */
+  left: 18px;
+  right: 18px;
+  gap: var(--space-3-5);
 }
 
-@media (max-width: 767px) {
+@media (min-width: 768px) {
   .hero-content {
-    flex-wrap: wrap;
-    bottom: 20px;
-    left: 18px;
-    right: 18px;
-    gap: 14px;
+    flex-wrap: nowrap;
+    /* 28 px content inset — slightly above --space-6 (24) to give the
+       hero its airy footprint while staying close to the 8 px grid. */
+    bottom: 28px;
+    left: 28px;
+    right: 28px;
+    gap: var(--space-4);
   }
 }
 

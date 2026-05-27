@@ -13,22 +13,26 @@
    matches the adjacent Heatmap widget's uppercase-muted title aesthetic,
    and adds breathing room between the card top and the title. */
 .gc-lb-box--widget {
-  background: var(--card-bg, rgb(255, 255, 255, 0.03));
-  border: 0.5px solid var(--card-border, rgb(255, 255, 255, 0.05));
+  background: var(--card-bg, var(--surface-1));
+  border: var(--border-width-thin) solid var(--card-border, var(--border-default));
   border-radius: var(--radius-card);
-  padding: 14px;
+  padding: var(--space-3-5);
   height: 100%;
   display: flex;
   flex-direction: column;
 }
 .gc-lb-box--widget .gc-lb-widget-title {
-  display: block;
-  font-size: var(--portal-text-3xs);
-  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-3xs);
+  color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: var(--portal-font-medium);
-  margin: 6px 0 14px;
+  letter-spacing: var(--tracking-widest);
+  font-weight: var(--font-medium);
+  /* 6 / 14 px asymmetric margin — top breathing space (between
+     --space-1 and --space-2), bottom matches the widget padding. */
+  margin: 6px 0 var(--space-3-5);
   flex-shrink: 0;
 }
 .gc-lb-box--widget .gc-lb-rows {
@@ -99,7 +103,7 @@
   color: var(--portal-color-error-light);
 }
 .gc-lb-move--flat {
-  color: rgb(255, 255, 255, 0.3);
+  color: var(--portal-text-primary);
 }
 .gc-lb-pos {
   font-size: var(--portal-text-sm);
@@ -144,7 +148,7 @@
 }
 .gc-lb-tier {
   font-size: var(--portal-text-4xs);
-  color: rgb(255, 255, 255, 0.35);
+  color: var(--portal-text-secondary);
   font-weight: var(--portal-font-medium);
   text-transform: uppercase;
   letter-spacing: var(--portal-tracking-caps);
@@ -225,7 +229,7 @@
   flex: 1;
   font-size: var(--portal-text-xs);
   font-weight: var(--portal-font-medium);
-  color: var(--portal-text-body);
+  color: var(--portal-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -234,7 +238,12 @@
 .gc-lb-v {
   font-size: var(--portal-text-xs);
   font-weight: var(--portal-font-bold);
-  color: var(--accent, #818cf8);
+  /* Intentional exception to the "no accent on text" rule: the monthly
+     XP total is the principal data point of the leaderboard card and
+     gets a saturated blue emphasis on purpose. Promote to a dedicated
+     ``--portal-color-xp`` token if a future palette tweak needs to
+     repaint it independently of the semantic info colour. */
+  color: var(--color-info);
   font-family: var(--portal-font-display);
   flex-shrink: 0;
 }
@@ -267,7 +276,7 @@
 }
 .gc-box-title--link:hover,
 .gc-box-title--link:focus-visible {
-  color: var(--accent-500);
+  color: var(--text-primary);
 }
 .gc-box-title-chevron {
   opacity: 0.6;
@@ -280,9 +289,10 @@
   opacity: 1;
   transform: translateX(2px);
 }
-.gc-lb-box--widget .gc-box-title-chevron {
-  display: none;
-}
+/* Chevron re-enabled in the widget variant — affordance request: the
+   compact dashboard tile needs to read as a clickable link too, so the
+   ``>`` arrow shows next to "CLASSEMENT CE MOIS" exactly like the full
+   profile page. */
 
 /* Rows that link to a public profile (router-link) get the right cursor
    and a subtle hover background on devices with a real pointer. */

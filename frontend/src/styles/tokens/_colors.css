@@ -74,6 +74,10 @@
   --color-info-rgb: 96, 165, 250;
   --color-info-light: #93c5fd;
   --color-info-soft: #bfdbfe;
+  --color-rating: #f472b6; /* pink — reviews, ratings, stars */
+  --color-rating-rgb: 244, 114, 182;
+  --color-online: #22c55e; /* green Tailwind-500 — services / status "online" pulse */
+  --color-online-rgb: 34, 197, 94;
 
   /* ─── MkButton brand palette — MediaKeeper signature, deliberately
    * decoupled from --accent-* (global decorations), --color-* (semantic

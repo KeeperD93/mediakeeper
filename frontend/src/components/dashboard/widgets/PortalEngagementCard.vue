@@ -25,31 +25,27 @@
     </div>
 
     <div class="wg-eng-grid">
-      <button
+      <StatTile
         v-for="tile in tiles"
         :key="tile.key"
-        class="wg-eng-tile"
-        :class="{ 'wg-eng-tile-static': !tile.route }"
-        :disabled="editing || !tile.route"
-        @click="tile.route && goTo(tile.route)"
-      >
-        <component :is="tile.icon" :size="16" class="wg-eng-ic" :style="{ color: tile.color }" />
-        <span class="wg-eng-val">{{ loading ? '—' : (data[tile.key] ?? 0) }}</span>
-        <span class="wg-eng-label">{{ $t(tile.labelKey) }}</span>
-      </button>
+        :icon="tile.icon"
+        :label="$t(tile.labelKey)"
+        :value="loading ? '—' : (data[tile.key] ?? 0)"
+        :accent="tile.accent"
+        :route="tile.route"
+        :disabled="editing"
+      />
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { ListPlus, Trophy, MessageSquare, Star } from 'lucide-vue-next'
+import { Bookmark, Trophy, MessageSquare, Star } from 'lucide-vue-next'
 import { fetchApiResponse } from '@/composables/useApi'
+import StatTile from './StatTile.vue'
 
 defineProps({ editing: { type: Boolean, default: false } })
-
-const router = useRouter()
 
 const window = ref(1)
 const loading = ref(true)
@@ -63,37 +59,33 @@ const data = ref({
 const tiles = computed(() => [
   {
     key: 'new_lists',
-    icon: ListPlus,
-    color: 'var(--accent-500)',
+    icon: Bookmark,
+    accent: 'var(--accent-300)',
     labelKey: 'dashboard.portalEngagement.newLists',
     route: { path: '/admin/portal', query: { tab: 'lists' } },
   },
   {
     key: 'achievements_unlocked',
     icon: Trophy,
-    color: '#fbbf24',
+    accent: 'var(--color-warning)',
     labelKey: 'dashboard.portalEngagement.achievements',
     route: '/portal/leaderboard',
   },
   {
     key: 'chat_messages',
     icon: MessageSquare,
-    color: '#60a5fa',
+    accent: 'var(--color-info)',
     labelKey: 'dashboard.portalEngagement.chatMessages',
     route: null,
   },
   {
     key: 'reviews',
     icon: Star,
-    color: '#f472b6',
+    accent: 'var(--color-rating)',
     labelKey: 'dashboard.portalEngagement.reviews',
     route: null,
   },
 ])
-
-function goTo(target) {
-  router.push(target)
-}
 
 async function load() {
   loading.value = true
@@ -123,14 +115,14 @@ onMounted(load)
 
 <style scoped>
 .wg-eng {
-  background: var(--card-bg, var(--surface-1));
+  background: var(--card-bg);
   border-radius: var(--radius-card);
-  padding: 12px 14px;
-  border: 0.5px solid var(--border-default);
+  padding: var(--space-3) var(--space-3-5);
+  border: var(--border-width-thin) solid var(--border-default);
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-2-5);
   min-width: 0;
   overflow: hidden;
 }
@@ -139,13 +131,13 @@ onMounted(load)
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--space-2);
   min-width: 0;
 }
 .wg-eng-title {
   font-size: var(--text-2xs);
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: var(--tracking-wide);
   color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
@@ -156,22 +148,22 @@ onMounted(load)
 
 .wg-eng-toggle {
   display: inline-flex;
-  gap: 4px;
+  gap: var(--space-1);
   flex-shrink: 0;
 }
 @media (min-width: 768px) {
-  /* Desktop only: clear the absolute `.widget-badge-icon` (14px @ right:10px)
-     sitting outside the card padding, and align with `.wg-req-head-link`. */
+  /* Desktop only: clear the absolute ``.widget-badge-icon`` (14px @ right:10px)
+     sitting outside the card padding. */
   .wg-eng-toggle {
     margin-right: 22px;
   }
 }
 .wg-eng-toggle-btn {
-  min-height: 44px;
-  padding: 3px 10px;
+  min-height: var(--touch-target);
+  padding: 3px var(--space-2-5);
   border-radius: var(--radius-pill);
   background: var(--surface-1);
-  border: 1px solid var(--border-strong);
+  border: var(--border-width) solid var(--border-strong);
   color: rgb(255, 255, 255, 0.6);
   font-size: var(--text-3xs);
   font-weight: var(--font-extrabold);
@@ -207,69 +199,12 @@ onMounted(load)
 
 .wg-eng-grid {
   display: grid;
-  /* Fixed 2×2 keeps tiles balanced at every card width (auto-fit produced
-     a 3+1 orphan layout at narrow grid widths). */
+  /* Fixed 2×2 keeps tiles balanced at every card width. */
   grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-auto-rows: min-content;
   align-content: center;
-  gap: 8px;
+  gap: var(--space-2);
   flex: 1;
   min-height: 0;
-}
-
-.wg-eng-tile {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 10px 12px;
-  background: rgb(255, 255, 255, 0.02);
-  border: 1px solid rgb(255, 255, 255, 0.05);
-  border-radius: var(--radius-card);
-  color: inherit;
-  cursor: pointer;
-  text-align: center;
-  min-width: 0;
-  min-height: 44px;
-  overflow: hidden;
-  transition:
-    border-color var(--duration-base),
-    background var(--duration-base),
-    transform var(--duration-fast);
-  -webkit-tap-highlight-color: transparent;
-}
-.wg-eng-tile:disabled {
-  cursor: default;
-}
-.wg-eng-tile-static {
-  cursor: default;
-}
-@media (hover: hover) {
-  .wg-eng-tile:not(:disabled):hover {
-    border-color: color-mix(in srgb, var(--accent-500) 35%, transparent);
-    background: rgb(var(--accent-rgb), 0.05);
-  }
-}
-.wg-eng-tile:not(:disabled):active {
-  transform: scale(0.98);
-}
-
-.wg-eng-ic {
-  flex-shrink: 0;
-}
-.wg-eng-val {
-  font-size: var(--text-lg);
-  font-weight: var(--font-medium);
-  line-height: 1.1;
-  color: var(--text-primary);
-}
-.wg-eng-label {
-  font-size: var(--text-3xs);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  color: var(--text-muted);
-  line-height: 1.2;
-  overflow-wrap: anywhere;
 }
 </style>

@@ -104,27 +104,12 @@
       </div>
     </section>
 
-    <section class="params-section">
-      <h3 class="params-section-title">{{ $t('settings.glowLabel') }}</h3>
-      <p class="params-section-desc">{{ $t('settings.glowDesc') }}</p>
-      <div class="params-slider-row">
-        <span class="params-slider-icon">◌</span>
-        <input
-          type="range"
-          min="0"
-          max="2"
-          step="0.05"
-          :value="glowIntensity"
-          class="params-slider"
-          @input="setGlowIntensity(+$event.target.value)"
-        />
-        <span class="params-slider-icon">◉</span>
-        <span class="params-slider-val">{{ Math.round(glowIntensity * 100) }}%</span>
-      </div>
-      <div class="params-glow-preview">
-        <button type="button" class="glow-demo-btn">{{ $t('common.preview') }}</button>
-      </div>
-    </section>
+    <!-- Glow intensity slider temporarily removed — the pill halo
+         (--mk-glow + --mk-pill-shadow*) is brand-locked for now.
+         To re-enable: restore the destructured ``glowIntensity`` +
+         ``setGlowIntensity`` imports below and the matching
+         ``<section>`` block (cf. git history). useTheme.js still ships
+         the underlying wiring so re-enabling is a 3-line restore. -->
 
     <section class="params-section">
       <div class="params-toggle-row">
@@ -173,8 +158,6 @@ const {
   clearCustomBg,
   particlesEnabled,
   setParticles,
-  glowIntensity,
-  setGlowIntensity,
   saveAll,
 } = useTheme()
 

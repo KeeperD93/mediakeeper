@@ -99,13 +99,15 @@ const currentEmbyUrl = computed(() => {
 
 <style scoped>
 .hero-poster {
+  /* 95×138 keeps the 2:3 poster ratio at the hero's signature size —
+     no spacing token represents this widget-specific footprint. */
   width: 95px;
   height: 138px;
   border-radius: var(--radius-btn);
   background: var(--surface-2);
   flex-shrink: 0;
   overflow: hidden;
-  border: 1px solid rgb(255, 255, 255, 0.1);
+  border: var(--border-width) solid var(--border-intense);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -117,6 +119,9 @@ const currentEmbyUrl = computed(() => {
   object-fit: cover;
 }
 .hero-poster-ph {
+  /* 28 px placeholder glyph — bigger than --text-xl's max (~32 px at
+     wide viewports) is irrelevant here since the poster doesn't
+     scale. Kept literal as a hero-only signature. */
   font-size: 28px;
   opacity: 0.3;
   color: var(--text-primary);
@@ -125,97 +130,87 @@ const currentEmbyUrl = computed(() => {
   cursor: pointer;
 }
 .hero-poster-audio {
-  background: linear-gradient(135deg, rgb(99, 102, 241, 0.15), rgb(167, 139, 250, 0.1));
-  border-color: rgb(139, 132, 255, 0.25);
+  background: linear-gradient(
+    135deg,
+    rgb(var(--accent-rgb), 0.15),
+    rgb(var(--color-module-subtitles-rgb), 0.1)
+  );
+  border-color: rgb(var(--color-module-subtitles-rgb), 0.25);
 }
 .hero-music-icon {
+  /* Audio fallback glyph — 32 px sits one step above .hero-poster-ph
+     so the music note still reads at poster size. Hero-only literal. */
   font-size: 32px;
   opacity: 0.5;
-  color: #a78bfa;
+  color: var(--color-module-subtitles);
 }
 .hero-info {
-  flex: 1;
+  /* Mobile-first basis — reserves space for the 95 px poster + 14 px
+     gap (109 px total) so the info column fills the rest of the row
+     and elides cleanly. Desktop overrides with ``flex: 1`` for natural
+     grow inside the wider hero layout (cf. @media (min-width: 768px)). */
+  flex: 1 1 calc(100% - 109px);
   min-width: 0;
 }
 .hero-badge-label {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1);
   font-size: var(--text-3xs);
   font-weight: var(--font-regular);
-  letter-spacing: 1px;
+  letter-spacing: var(--tracking-widest);
   text-transform: uppercase;
-  margin-bottom: 4px;
+  margin-bottom: var(--space-1);
 }
 .badge-playing {
-  color: #22c55e;
+  color: var(--color-online);
 }
 .badge-paused {
-  color: #facc15;
+  color: var(--color-warning);
 }
 .badge-audio {
-  color: #a78bfa;
+  color: var(--color-module-subtitles);
 }
 .hero-pulse-dot {
   width: 6px;
   height: 6px;
-  border-radius: 50%;
+  border-radius: var(--radius-circle);
   flex-shrink: 0;
-  position: relative;
   display: inline-block;
+  animation: hero-pulse-dot var(--duration-pulse) ease-in-out infinite;
 }
 .pulse-green {
-  background: #22c55e;
+  background: var(--color-online);
 }
 .pulse-yellow {
-  background: #facc15;
+  background: var(--color-warning);
 }
 .pulse-purple {
-  background: #a78bfa;
+  background: var(--color-module-subtitles);
 }
-.pulse-green::after,
-.pulse-yellow::after,
-.pulse-purple::after {
-  content: '';
-  position: absolute;
-  inset: -3px;
-  border-radius: 50%;
-  animation: hero-pulse var(--duration-pulse) ease-out infinite;
-}
-.pulse-green::after {
-  background: rgb(34, 197, 94, 0.5);
-}
-.pulse-yellow::after {
-  background: rgb(250, 204, 21, 0.5);
-}
-.pulse-purple::after {
-  background: rgb(167, 139, 250, 0.5);
-}
-@keyframes hero-pulse {
-  0% {
-    transform: scale(1);
-    opacity: 0.7;
-  }
-  70% {
-    transform: scale(2.5);
-    opacity: 0;
-  }
+@keyframes hero-pulse-dot {
+  0%,
   100% {
-    transform: scale(2.5);
-    opacity: 0;
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
   }
 }
 .hero-title {
+  /* 22 px is the hero's signature size — between --text-lg (~20.8 px)
+     and --text-xl's responsive clamp. Kept literal so the hero stays
+     visually identical across viewports. */
   font-size: 22px;
   font-weight: var(--font-medium);
   color: var(--text-primary);
-  margin: 0 0 2px;
+  margin: 0 0 var(--space-half);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
 }
 .hero-title-clickable {
   cursor: pointer;
@@ -231,34 +226,43 @@ const currentEmbyUrl = computed(() => {
   opacity: 0.8;
 }
 .hero-emby-icon {
+  /* 18 px below the --icon-md (16) → --icon-lg (20) step so the Emby
+     badge stays balanced against the 22 px title without overpowering
+     it. Hero-only literal. */
   width: 18px;
   height: 18px;
 }
 .hero-sub {
   font-size: var(--text-sm);
-  color: rgb(255, 255, 255, 0.45);
+  color: var(--text-faint);
   margin: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .hero-progress {
-  margin-top: 10px;
+  margin-top: var(--space-2-5);
+  /* 3 px progress bar — below --border-width-thin scale, widget-local. */
   height: 3px;
-  background: rgb(255, 255, 255, 0.1);
+  background: var(--surface-3);
   border-radius: 2px;
+  /* 240 px target width clipped by max-width on narrow viewports —
+     hero-only signature. */
   width: 240px;
   max-width: 100%;
 }
 .hero-progress-fill {
   height: 3px;
-  background: linear-gradient(90deg, #6366f1, #818cf8);
+  background: linear-gradient(90deg, var(--accent-500), var(--accent-300));
   border-radius: 2px;
   transition: width var(--duration-slower);
 }
 .anim-slide-up {
   opacity: 0;
   transform: translateY(16px);
+  /* 0.6 s — hero-only signature, outside the --duration-* scale
+     (slower 0.5, animation 1.5). Single occurrence accepted as a
+     literal rather than creating a one-off duration step. */
   animation: hero-slide-up 0.6s ease-out forwards;
 }
 @keyframes hero-slide-up {
@@ -267,6 +271,9 @@ const currentEmbyUrl = computed(() => {
     transform: translateY(0);
   }
 }
+/* Stagger delays — orchestrate the cascade of hero slide elements
+   (poster → info). Sub-second values intentionally unique per stage,
+   not tokenized (each delay is one-off by design). */
 .stg-30 {
   animation-delay: 0.3s;
 }
@@ -274,17 +281,15 @@ const currentEmbyUrl = computed(() => {
   animation-delay: 0.45s;
 }
 
-@media (max-width: 767px) {
+@media (min-width: 768px) {
   .hero-info {
-    flex: 1 1 calc(100% - 109px);
-    min-width: 0;
+    /* Desktop — natural flex grow inside the wider hero row. */
+    flex: 1;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pulse-green::after,
-  .pulse-yellow::after,
-  .pulse-purple::after {
+  .hero-pulse-dot {
     animation: none;
   }
   .anim-slide-up {

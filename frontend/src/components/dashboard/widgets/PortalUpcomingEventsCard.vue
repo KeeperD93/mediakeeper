@@ -14,6 +14,7 @@
         v-for="ev in items"
         :key="ev.id"
         class="wg-evt-item"
+        :class="`wg-evt-item--${ev.kind}`"
         :disabled="editing"
         @click="openEvent(ev)"
       >
@@ -102,14 +103,14 @@ onMounted(load)
 
 <style scoped>
 .wg-evt {
-  background: var(--card-bg, var(--surface-1));
+  background: var(--card-bg);
   border-radius: var(--radius-card);
-  padding: 12px 14px;
-  border: 0.5px solid var(--border-default);
+  padding: var(--space-3) var(--space-3-5);
+  border: var(--border-width-thin) solid var(--border-default);
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-2-5);
   min-width: 0;
   overflow: hidden;
 }
@@ -123,8 +124,8 @@ onMounted(load)
 .wg-evt-title {
   font-size: var(--text-2xs);
   text-transform: uppercase;
-  letter-spacing: 0.3px;
-  color: var(--text-muted);
+  letter-spacing: var(--tracking-widest);
+  color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -137,19 +138,23 @@ onMounted(load)
   justify-content: center;
   color: var(--text-muted);
   font-size: var(--text-sm);
-  padding: 12px;
+  padding: var(--space-3);
   text-align: center;
 }
 
 .wg-evt-list {
   display: flex;
   flex-direction: column;
+  /* 6 px between rows — between --space-1 (4) and --space-2 (8) to
+     keep the date pills snug without touching. */
   gap: 6px;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
 }
 .wg-evt-list::-webkit-scrollbar {
+  /* 3 px scrollbar — narrower than --scrollbar-width (6) for the
+     compact list view. Widget-local. */
   width: 3px;
 }
 .wg-evt-list::-webkit-scrollbar-thumb {
@@ -158,12 +163,17 @@ onMounted(load)
 }
 
 .wg-evt-item {
+  /* Hover tint flows from the event kind so the colour-coding of the
+     PRIVÉ / PUBLIC badge extends to the whole row. Defaults to the
+     global accent when no kind class is applied. */
+  --wg-evt-hover: var(--accent-500);
+  --wg-evt-hover-rgb: var(--accent-rgb);
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  background: rgb(255, 255, 255, 0.02);
-  border: 1px solid rgb(255, 255, 255, 0.05);
+  gap: var(--space-2-5);
+  padding: var(--space-2) var(--space-2-5);
+  background: var(--surface-1);
+  border: var(--border-width) solid var(--border-default);
   border-radius: var(--radius-card);
   color: inherit;
   cursor: pointer;
@@ -175,13 +185,21 @@ onMounted(load)
     transform var(--duration-fast);
   -webkit-tap-highlight-color: transparent;
 }
+.wg-evt-item--private {
+  --wg-evt-hover: var(--color-info);
+  --wg-evt-hover-rgb: var(--color-info-rgb);
+}
+.wg-evt-item--public {
+  --wg-evt-hover: var(--color-online);
+  --wg-evt-hover-rgb: var(--color-online-rgb);
+}
 .wg-evt-item:disabled {
   cursor: move;
 }
 @media (hover: hover) {
   .wg-evt-item:not(:disabled):hover {
-    border-color: color-mix(in srgb, var(--accent-500) 35%, transparent);
-    background: rgb(var(--accent-rgb), 0.05);
+    border-color: color-mix(in srgb, var(--wg-evt-hover) 35%, transparent);
+    background: rgb(var(--wg-evt-hover-rgb), 0.05);
   }
 }
 .wg-evt-item:not(:disabled):active {
@@ -190,13 +208,15 @@ onMounted(load)
 
 .wg-evt-date {
   flex-shrink: 0;
+  /* 48 px date column — fits "DD" + "MOIS" + "HH:MM" stacked without
+     wrapping. Widget-local. */
   width: 48px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  border-right: 1px solid var(--border-strong);
-  padding-right: 8px;
+  border-right: var(--border-width) solid var(--border-strong);
+  padding-right: var(--space-2);
 }
 .wg-evt-day {
   font-size: var(--text-md);
@@ -205,16 +225,19 @@ onMounted(load)
   color: var(--text-primary);
 }
 .wg-evt-month {
+  /* 9 px micro-label below --text-3xs (~9.9 px) — kept literal so
+     the date block stays compact. */
   font-size: 9px;
   font-weight: var(--font-bold);
   text-transform: uppercase;
   letter-spacing: var(--tracking-widest);
   color: var(--text-muted);
-  margin-top: 2px;
+  margin-top: var(--space-half);
 }
 .wg-evt-time {
   font-size: var(--text-3xs);
   color: var(--text-muted);
+  /* 3 px nudge — between --space-half (2) and --space-1 (4). */
   margin-top: 3px;
 }
 
@@ -223,6 +246,7 @@ onMounted(load)
   min-width: 0;
   display: flex;
   flex-direction: column;
+  /* 3 px between name and meta — tighter than --space-1. */
   gap: 3px;
 }
 .wg-evt-name {
@@ -236,25 +260,29 @@ onMounted(load)
 .wg-evt-meta {
   display: flex;
   align-items: center;
+  /* 6 px between meta chips — between --space-1 and --space-2. */
   gap: 6px;
   font-size: var(--text-3xs);
   flex-wrap: wrap;
 }
 .wg-evt-kind {
+  /* 1 / 6 px chip padding — vertical sub-token, horizontal between
+     --space-1 and --space-2. Hero-mini chip. */
   padding: 1px 6px;
   border-radius: var(--radius-sm);
   font-weight: var(--font-bold);
   text-transform: uppercase;
   letter-spacing: var(--tracking-widest);
+  /* 9 px label — matches .wg-evt-month for visual rhythm. */
   font-size: 9px;
 }
 .wg-evt-kind--private {
-  background: rgb(59, 130, 246, 0.2);
-  color: #93c5fd;
+  background: rgb(var(--color-info-rgb), 0.2);
+  color: var(--color-info-light);
 }
 .wg-evt-kind--public {
-  background: rgb(34, 197, 94, 0.2);
-  color: #86efac;
+  background: rgb(var(--color-online-rgb), 0.2);
+  color: var(--color-success-light);
 }
 .wg-evt-creator {
   color: var(--text-muted);
@@ -266,6 +294,8 @@ onMounted(load)
 .wg-evt-count {
   display: inline-flex;
   align-items: center;
+  /* 3 px gap between icon and number — Users icon is 11 px, so
+     anything larger would feel airy. */
   gap: 3px;
   color: var(--text-muted);
 }
