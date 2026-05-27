@@ -20,6 +20,9 @@ utilisateurs.
 - Avatars — anneau coloré par niveau (bronze → légendaire) sur toutes les surfaces, même rendu que le classement.
 - Soirée ciné — avatars des sièges alignés sur le classement (photo + anneau de niveau).
 
+### Fixed
+- Pastille Dispo — plus de clignotement de ~0.5 s quand l'index Emby est en retard.
+
 ## [1.0.0-rc.3] - 2026-05-22
 
 ## [1.0.0-rc.2] - 2026-05-22

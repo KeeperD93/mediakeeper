@@ -62,7 +62,14 @@ async function _flushQueue() {
     const now = Date.now()
     if (res?.results) {
       for (const [key, val] of Object.entries(res.results)) {
-        cache[key] = val ? { ...val, _ts: now } : { _ts: now, _empty: true }
+        // A payload with every Emby field null means the backend has no
+        // match for that tmdb_id (legacy shape, kept for forward-compat
+        // with older API revisions that return `{availability:null,...}`
+        // instead of bare `null`). Treat it as an empty stamp so
+        // MediaCard can fall back to the inline hint baked into
+        // /library/recent while EmbyTmdbIndex catches up.
+        const hasMatch = val && (val.availability || val.emby_item_id || val.emby_url)
+        cache[key] = hasMatch ? { ...val, _ts: now } : { _ts: now, _empty: true }
       }
     }
     // Stamp missing ids so the TTL applies to "not available" too.

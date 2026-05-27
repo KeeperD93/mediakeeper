@@ -156,11 +156,14 @@ async def check_availability(
                 "emby_url": emby_link,
             }
         else:
-            results[str(tmdb_id)] = {
-                "availability": None,
-                "emby_item_id": None,
-                "emby_url": None,
-            }
+            # Explicit null distinguishes "not indexed yet" from "indexed
+            # with no availability" — the frontend cache flags null as
+            # ``_empty`` so MediaCard falls back to the inline hint
+            # stamped by /library/recent while EmbyTmdbIndex catches up
+            # on freshly added Emby items. Returning an all-null object
+            # previously looked like a real hit and silently erased the
+            # "Dispo" badge ~0.5 s after page load.
+            results[str(tmdb_id)] = None
 
     return {"results": results}
 
