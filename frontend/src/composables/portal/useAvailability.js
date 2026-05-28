@@ -79,8 +79,12 @@ async function _flushQueue() {
         cache[key] = { _ts: now, _empty: true }
       }
     }
-  } catch {
-    // Silently fail — cards just won't show dots
+  } catch (err) {
+    // No user toast — the home fires ~13 concurrent batches and a
+    // transient network blip should not stack notifications. We log
+    // the technical context so an operator can still diagnose; cards
+    // simply miss their availability dot until the next call.
+    console.error('[useAvailability] flush failed', err)
   } finally {
     resolvers.forEach(r => r())
   }
