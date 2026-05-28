@@ -5,7 +5,7 @@ from datetime import date
 from typing import Literal
 
 from fastapi import APIRouter, Depends, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -29,7 +29,7 @@ from services.watchlist_scanner._emby import _get_emby_episodes
 from services.watchlist_scanner._tmdb import _tmdb_series, _tmdb_season
 # Ignored episodes in the Watchlist module must also be ignored here:
 # if the user has marked an episode as "don't care" (e.g. a special),
-        # the Portal UI shouldn't flag the series as incomplete nor let
+# the Portal UI shouldn't flag the series as incomplete nor let
 # anyone re-request that episode.
 from services.watchlist_tracking import get_ignored
 
@@ -52,11 +52,16 @@ class AvailabilityItem(BaseModel):
     underlying ``EmbyTmdbIndex.tmdb_id`` is a strict ``Integer`` column
     that refuses anything else.
     """
+
+    model_config = ConfigDict(extra="forbid")
+
     tmdb_id: int
     media_type: Literal["movie", "tv"] = "movie"
 
 
 class AvailabilityQuery(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     items: list[AvailabilityItem]
 
 
@@ -183,7 +188,7 @@ async def _check_series_completeness(
     Episodes the user has ignored in the Watchlist are treated as if
     they were present — they don't trigger partial status. This keeps
     the two modules consistent (a series considered "done" in Suivi
-        can't suddenly look incomplete in Portal).
+    can't suddenly look incomplete in Portal).
 
     For ended / canceled series we walk per-season anyway so that
     ignored episodes can be excluded from the count.

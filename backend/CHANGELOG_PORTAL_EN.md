@@ -19,8 +19,8 @@ This section intentionally has no date so it is not shown to users.
 - Cinema room — seat avatars now match the leaderboard style (photo + tier ring).
 
 ### Fixed
-- Availability badge — no longer flickers for ~0.5 s when index lags.
-- Home posters — no more 429 errors on first paint when many tiles load at once.
+- Availability badge — no longer flickers when the index is catching up.
+- Home posters — first-paint burst no longer breaks tile rendering.
 
 ## [1.0.0-rc.3] - 2026-05-22
 

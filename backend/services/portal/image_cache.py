@@ -1,11 +1,10 @@
 """On-disk image proxy + cache for TMDB posters / backdrops.
 
-Mirrors Seerr's "Cache d'images" feature: when the admin enables
-``network.image_cache_enabled``, every poster URL the API hands to
-the frontend is rewritten to flow through this service. The first
-request for a given URL downloads the bytes from the TMDB CDN and
-saves them under ``/data/cache/images/<sha256>.<ext>``; subsequent
-requests stream the file straight from disk.
+When the admin enables ``network.image_cache_enabled``, every poster
+URL the API hands to the frontend is rewritten to flow through this
+service. The first request for a given URL downloads the bytes from
+the TMDB CDN and saves them under ``/data/cache/images/<sha256>.<ext>``;
+subsequent requests stream the file straight from disk.
 
 Why this matters:
 - Reduces outbound bandwidth from the NAS (TMDB only pays once per
@@ -13,7 +12,7 @@ Why this matters:
 - Keeps the portal responsive when TMDB rate-limits or has a slow
   CDN edge.
 - The user explicitly opted out of a size cap — purge is manual via
-  a scheduler task (and a "Vider" button in the admin UI later).
+  a scheduler task (and a clear button in the admin UI later).
 
 Flag freshness:
 - ``_enabled`` is a module-level snapshot, refreshed at startup and
@@ -71,7 +70,7 @@ async def refresh_enabled_flag(db: AsyncSession, *, force: bool = False) -> bool
     try:
         raw = await get_setting(db, SETTING_KEY)
     except Exception as e:  # noqa: BLE001 -- best-effort, log + keep
-        logger.warning(f"image_cache: failed to read {SETTING_KEY}: {e}")
+        logger.warning("image_cache: failed to read %s: %s", SETTING_KEY, e)
         return _enabled
     _enabled = (raw or "").strip().lower() == "true"
     _enabled_last_refresh = now
@@ -162,7 +161,7 @@ async def fetch_or_serve(original_url: str) -> tuple[bytes, str]:
         resp = await client.get(upstream, timeout=10.0)
         if resp.status_code != 200:
             logger.warning(
-                f"image_cache: upstream HTTP {resp.status_code} for {upstream}"
+                "image_cache: upstream HTTP %s for %s", resp.status_code, upstream
             )
             return resp.content, resp.headers.get("content-type", "image/jpeg")
         content = resp.content
@@ -172,10 +171,10 @@ async def fetch_or_serve(original_url: str) -> tuple[bytes, str]:
             # Disk full / permissions / read-only mount — return the
             # bytes anyway so the user sees the image; the next request
             # will try the write again.
-            logger.warning(f"image_cache: write failed for {path}: {e}")
+            logger.warning("image_cache: write failed for %s: %s", path, e)
         return content, resp.headers.get("content-type", "image/jpeg")
     except httpx.HTTPError as e:
-        logger.warning(f"image_cache: upstream fetch failed for {upstream}: {e}")
+        logger.warning("image_cache: upstream fetch failed for %s: %s", upstream, e)
         raise
 
 
@@ -202,10 +201,10 @@ def get_cache_stats() -> dict:
                     keys += 1
                     try:
                         value_bytes += entry.stat().st_size
-                    except OSError:
+                    except OSError:  # noqa: S110 -- best-effort stat per entry, skip broken file
                         pass
         except OSError as e:
-            logger.warning(f"image_cache: stat failed on {CACHE_DIR}: {e}")
+            logger.warning("image_cache: stat failed on %s: %s", CACHE_DIR, e)
     return {
         "name": "Image cache (TMDB)",
         "hits": _stats["hits"],
@@ -232,7 +231,7 @@ def clear_cache() -> int:
                     entry.unlink()
                     removed += 1
                 except OSError as e:
-                    logger.warning(f"image_cache: unlink failed for {entry}: {e}")
+                    logger.warning("image_cache: unlink failed for %s: %s", entry, e)
     _stats["hits"] = 0
     _stats["misses"] = 0
     return removed
