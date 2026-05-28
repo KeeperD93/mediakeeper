@@ -21,6 +21,8 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Planificateur — interface réorganisée par catégories, cartes compactes.
 - Démarrage — log boot : `COOKIE_SECURE=` renommé `COOKIE_HTTPS_FLAG=` (variable env inchangée, mapping dans `tls-deployment.md`).
 - Cookie CSRF — validation par allowlist sur les polls (durcissement).
+- Tableau de bord — titres des cartes uniformisés sur la nuance de texte atténuée.
+- Menu latéral — cliquer un module ouvre son sous-menu sans quitter la page.
 
 ### Fixed
 - Portail — pastille « Dispo » stable sur les ajouts Emby récents (plus de clignotement).

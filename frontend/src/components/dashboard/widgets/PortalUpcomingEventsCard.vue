@@ -125,7 +125,7 @@ onMounted(load)
   font-size: var(--text-2xs);
   text-transform: uppercase;
   letter-spacing: var(--tracking-widest);
-  color: var(--text-secondary);
+  color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

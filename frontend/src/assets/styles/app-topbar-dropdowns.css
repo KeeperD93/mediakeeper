@@ -8,7 +8,7 @@
   background: var(--mk-chrome-bg);
   backdrop-filter: var(--blur-lg);
   -webkit-backdrop-filter: var(--blur-lg);
-  border: 1px solid var(--border-strong);
+  border: var(--border-width) solid var(--border-strong);
   border-radius: var(--radius-card);
   overflow: hidden;
   box-shadow:
@@ -25,8 +25,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--border-default);
+  padding: var(--space-3-5) var(--space-4);
+  border-bottom: var(--border-width) solid var(--border-default);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   color: var(--text-secondary);
@@ -45,7 +45,7 @@
 }
 
 .tb-notif-empty {
-  padding: 24px;
+  padding: var(--space-6);
   text-align: center;
   font-size: var(--text-sm);
   color: var(--text-very-faint);
@@ -54,9 +54,9 @@
 .tb-notif-item {
   display: flex;
   align-items: start;
-  gap: 10px;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border-subtle);
+  gap: var(--space-2-5);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: var(--border-width) solid var(--border-subtle);
   transition: background var(--duration-fast);
 }
 .tb-notif-item:hover {
@@ -87,7 +87,7 @@
 .tb-notif-date {
   font-size: var(--text-2xs);
   color: var(--text-very-faint);
-  margin: 2px 0 0;
+  margin: var(--space-half) 0 0;
 }
 
 .tb-notif-dot {
@@ -120,7 +120,7 @@
 }
 .tb-notif-act {
   background: var(--surface-3);
-  border: 1px solid var(--border-strong);
+  border: var(--border-width) solid var(--border-strong);
   color: var(--text-secondary);
   font-size: var(--text-2xs);
   padding: 3px 9px;
@@ -132,8 +132,7 @@
   background: var(--surface-3);
 }
 .tb-notif-act--danger {
-  /* #fca5a5 = red-300 light tint, no exact token (--color-error is red-400). Soft alert label. */
-  color: #fca5a5;
+  color: var(--color-error-light);
   border-color: rgb(var(--color-error-strong-rgb), 0.35);
 }
 .tb-notif-act--danger:hover {
@@ -146,7 +145,7 @@
   background: var(--mk-chrome-bg);
   backdrop-filter: var(--blur-lg);
   -webkit-backdrop-filter: var(--blur-lg);
-  border: 1px solid var(--border-strong);
+  border: var(--border-width) solid var(--border-strong);
   border-radius: var(--radius-card);
   overflow: hidden;
   box-shadow:
@@ -157,8 +156,8 @@
 .tb-user-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px;
+  gap: var(--space-3);
+  padding: var(--space-4);
 }
 .tb-user-name {
   font-size: var(--text-sm);
@@ -172,17 +171,17 @@
   margin: 2px 0 0;
 }
 .tb-user-sep {
-  height: 1px;
+  height: var(--border-width);
   background: var(--border-default);
-  margin: 0 12px;
+  margin: 0 var(--space-3);
 }
 
 .tb-user-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2-5);
   width: 100%;
-  padding: 12px 16px;
+  padding: var(--space-3) var(--space-4);
   background: transparent;
   border: none;
   color: var(--text-faint);

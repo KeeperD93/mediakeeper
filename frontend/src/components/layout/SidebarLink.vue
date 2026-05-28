@@ -1,10 +1,13 @@
 <template>
-  <router-link
-    :to="to"
+  <component
+    :is="expandable ? 'button' : 'router-link'"
+    :to="expandable ? undefined : to"
+    :type="expandable ? 'button' : undefined"
     class="sb-link"
     :class="{ active: isActive, collapsed, 'has-chevron': expandable && !collapsed }"
     :title="collapsed ? label + (badge > 0 ? ` (${badge})` : '') : undefined"
-    @click="emit('navigate')"
+    :aria-expanded="expandable ? expanded : undefined"
+    @click="onClick"
   >
     <span class="sb-indicator" />
 
@@ -37,7 +40,7 @@
     </transition>
 
     <span class="sb-hover-glow" />
-  </router-link>
+  </component>
 </template>
 
 <script setup>
@@ -73,8 +76,16 @@ const props = defineProps({
   expanded: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['navigate'])
+const emit = defineEmits(['navigate', 'toggle'])
 const route = useRoute()
+
+function onClick() {
+  // Expandable modules (those with sub-tabs) toggle their sub-tab panel
+  // instead of navigating, so the user can open the list while staying
+  // on the current page. Plain links navigate as before.
+  if (props.expandable) emit('toggle')
+  else emit('navigate')
+}
 
 const isActive = computed(() => {
   if (props.to === '/') return route.path === '/'
@@ -106,7 +117,7 @@ const iconComponent = computed(() => ICONS[props.icon] || ICONS.home)
   position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
   padding: 9px 12px;
   border-radius: var(--radius-btn);
   text-decoration: none;
@@ -116,11 +127,20 @@ const iconComponent = computed(() => ICONS[props.icon] || ICONS.home)
     background var(--duration-base) ease;
   overflow: hidden;
   margin: 1px 0;
+  /* Button reset: expandable modules render as <button> (toggle sub-tabs
+     without navigating); keep them visually identical to the <a>. */
+  width: 100%;
+  font: inherit;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  appearance: none;
 }
 
 .sb-link.collapsed {
   justify-content: center;
-  padding: 10px;
+  padding: var(--space-2-5);
 }
 
 @media (hover: hover) {
@@ -134,8 +154,8 @@ const iconComponent = computed(() => ICONS[props.icon] || ICONS.home)
 }
 @media (max-width: 1023px) {
   .sb-link {
-    min-height: 44px;
-    padding: 10px 14px;
+    min-height: var(--touch-target);
+    padding: var(--space-2-5) var(--space-3-5);
   }
   .sb-label {
     font-size: var(--text-base);
@@ -144,7 +164,15 @@ const iconComponent = computed(() => ICONS[props.icon] || ICONS.home)
 
 .sb-link.active {
   color: var(--text-primary);
-  background: rgb(var(--accent-rgb), 0.08);
+  /* Denser than the shared --gradient-pill-active: a primary nav selection
+     needs more presence than a filter pill, and it must read at the default
+     glow setting (--mk-glow: 0) where the halo below is invisible. */
+  background: linear-gradient(
+    135deg,
+    rgb(var(--accent-rgb), 0.3),
+    rgb(var(--accent-rgb), 0.14)
+  );
+  box-shadow: var(--mk-pill-shadow-sm);
 }
 
 .sb-indicator {
@@ -152,7 +180,7 @@ const iconComponent = computed(() => ICONS[props.icon] || ICONS.home)
   left: 0;
   top: 50%;
   transform: translateY(-50%);
-  width: 3px;
+  width: 4px;
   height: 0;
   border-radius: 0 3px 3px 0;
   background: linear-gradient(180deg, var(--accent-400), var(--accent-500));
@@ -163,7 +191,7 @@ const iconComponent = computed(() => ICONS[props.icon] || ICONS.home)
 }
 
 .sb-link.active .sb-indicator {
-  height: 60%;
+  height: 100%;
 }
 
 .sb-icon {
@@ -184,7 +212,7 @@ const iconComponent = computed(() => ICONS[props.icon] || ICONS.home)
 .sb-label-wrap {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   flex: 1;
   min-width: 0;
 }
@@ -241,7 +269,7 @@ const iconComponent = computed(() => ICONS[props.icon] || ICONS.home)
 
 .sb-badge {
   position: absolute;
-  right: 10px;
+  right: var(--space-2-5);
   top: 50%;
   transform: translateY(-50%);
   min-width: 18px;
@@ -259,8 +287,7 @@ const iconComponent = computed(() => ICONS[props.icon] || ICONS.home)
 
 .sb-badge-alert {
   background: rgb(var(--color-error-strong-rgb), 0.15);
-  /* #fca5a5 = red-300 light tint, no exact token (--color-error is red-400 #f87171). Soft alert label. */
-  color: #fca5a5;
+  color: var(--color-error-light);
 }
 
 .sb-link.has-chevron .sb-badge:not(.sb-badge-collapsed) {

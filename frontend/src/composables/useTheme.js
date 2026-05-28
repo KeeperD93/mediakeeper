@@ -134,12 +134,13 @@ const ACCENT_PRESETS = {
   },
 }
 
-// Accent picker dormant: the localStorage read is deliberately bypassed
-// so any preset previously chosen by the user no longer overrides the
-// global --accent-* tokens at boot. To re-enable user customisation,
-// restore: ``ref(localStorage.getItem('mediakeeper_accent') || 'indigo')``
-// alongside the picker UI in ParamsAppearanceTab.vue.
-const accentName = ref('indigo')
+// Single locked accent for now — the MediaKeeper signature violet. The
+// picker is dormant (ParamsAppearanceTab.vue) and the server accent
+// preference is intentionally ignored in syncFromServer below, so the whole
+// app uses one accent until alternate accents return. To re-enable: restore
+// the picker UI + the accent block in syncFromServer, and seed from
+// ``ref(localStorage.getItem('mediakeeper_accent') || 'mediakeeper')``.
+const accentName = ref('mediakeeper')
 
 function applyAccent(name) {
   const preset = ACCENT_PRESETS[name] || ACCENT_PRESETS.indigo
@@ -167,12 +168,8 @@ async function syncFromServer() {
     const res = await fetchApiResponse('/api/auth/preferences', { redirectOn401: false })
     if (!res.ok) return
     const prefs = await res.json()
-    // Accent
-    if (prefs.accent && ACCENT_PRESETS[prefs.accent]) {
-      accentName.value = prefs.accent
-      localStorage.setItem('mediakeeper_accent', prefs.accent)
-      applyAccent(prefs.accent)
-    }
+    // Accent intentionally NOT synced: locked to the single MediaKeeper
+    // accent (see accentName above). Restore this block with multi-accent.
     // Radius
     if (prefs.radius != null && !isNaN(prefs.radius)) {
       borderRadius.value = prefs.radius

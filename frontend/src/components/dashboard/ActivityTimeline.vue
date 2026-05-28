@@ -148,7 +148,7 @@ const {
 .tl-title {
   font-size: var(--text-base);
   font-weight: var(--font-regular);
-  color: var(--text-secondary);
+  color: var(--text-muted);
   margin: 0;
 }
 

@@ -5,23 +5,23 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
+  padding: 0 var(--space-6);
   height: 56px;
   flex-shrink: 0;
   background: var(--mk-chrome-gradient);
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: var(--border-width) solid var(--border-subtle);
   position: relative;
   z-index: 10;
   /* iPhone safe-area support so the topbar sits flush under the
      status bar / dynamic island when the browser chrome hides. */
   padding-top: env(safe-area-inset-top, 0);
-  padding-left: max(24px, env(safe-area-inset-left, 0px));
-  padding-right: max(24px, env(safe-area-inset-right, 0px));
+  padding-left: max(var(--space-6), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--space-6), env(safe-area-inset-right, 0px));
 }
 @media (max-width: 767px) {
   .mk-topbar {
-    padding-left: max(12px, env(safe-area-inset-left, 0px));
-    padding-right: max(12px, env(safe-area-inset-right, 0px));
+    padding-left: max(var(--space-3), env(safe-area-inset-left, 0px));
+    padding-right: max(var(--space-3), env(safe-area-inset-right, 0px));
   }
 }
 
@@ -29,18 +29,18 @@
 .tb-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .tb-burger {
   display: none;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: var(--touch-target);
+  height: var(--touch-target);
   border-radius: var(--radius-btn);
   background: var(--surface-1);
-  border: 1px solid var(--border-default);
+  border: var(--border-width) solid var(--border-default);
   color: var(--text-faint);
   cursor: pointer;
   transition:
@@ -108,7 +108,7 @@
   height: 36px;
   border-radius: var(--radius-btn);
   background: var(--surface-1);
-  border: 1px solid var(--border-default);
+  border: var(--border-width) solid var(--border-default);
   color: var(--text-faint);
   cursor: pointer;
   transition:
@@ -118,8 +118,8 @@
 }
 @media (max-width: 767px) {
   .tb-action-btn {
-    width: 44px;
-    height: 44px;
+    width: var(--touch-target);
+    height: var(--touch-target);
   }
 }
 @media (hover: hover) {
@@ -137,7 +137,7 @@
   right: -2px;
   min-width: 16px;
   height: 16px;
-  padding: 0 4px;
+  padding: 0 var(--space-1);
   border-radius: var(--radius-btn);
   background: var(--color-error-strong);
   color: var(--color-on-accent);
@@ -164,11 +164,11 @@
 .tb-user-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 10px 4px 4px;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2-5) var(--space-1) var(--space-1);
   border-radius: var(--radius-btn);
   background: var(--surface-1);
-  border: 1px solid var(--border-default);
+  border: var(--border-width) solid var(--border-default);
   color: var(--text-muted);
   cursor: pointer;
   transition:
@@ -179,8 +179,8 @@
 }
 @media (max-width: 767px) {
   .tb-user-btn {
-    min-height: 44px;
-    padding: 4px 8px 4px 4px;
+    min-height: var(--touch-target);
+    padding: var(--space-1) var(--space-2) var(--space-1) var(--space-1);
   }
 }
 @media (hover: hover) {
