@@ -45,6 +45,18 @@ logger = logging.getLogger("mediakeeper.portal.image_cache")
 CACHE_DIR = Path(os.environ.get("MK_IMAGE_CACHE_DIR", "/data/cache/images"))
 SETTING_KEY = "network.image_cache_enabled"
 
+# Single source of truth for the suffixes TMDB actually serves. Drives
+# both the cache filename allowlist (severs the user → path taint flow
+# at the suffix boundary) and the cached-byte content-type lookup.
+_SUFFIX_TO_MIME = {
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".png": "image/png",
+    ".webp": "image/webp",
+    ".gif": "image/gif",
+}
+_ALLOWED_SUFFIXES = frozenset(_SUFFIX_TO_MIME)
+
 # How long a cached ``_enabled`` snapshot stays trusted before we
 # re-read the DB. 30 s feels right for admin toggles: long enough
 # that high-traffic endpoints don't query the settings table on
@@ -112,9 +124,15 @@ def _hash_for(url: str) -> str:
 
 def _path_for(url: str) -> Path:
     digest = _hash_for(url)
-    # Suffix preservation lets the browser DevTools show .jpg / .webp
-    # next to the request — purely cosmetic but useful when debugging.
-    suffix = Path(urllib.parse.urlparse(url).path).suffix or ".bin"
+    # Allowlist the suffix against the 5 image types TMDB serves. Any
+    # other value (or none) falls back to ``.bin``. This severs the
+    # user → path taint flow at its source: the final filename inside
+    # CACHE_DIR can never inherit a path separator, a filesystem
+    # reserved character or a control byte from the URL, regardless of
+    # what slips past the upstream host check. Suffix preservation on
+    # legitimate URLs keeps the .jpg / .webp hint visible in DevTools.
+    raw_suffix = Path(urllib.parse.urlparse(url).path).suffix.lower()
+    suffix = raw_suffix if raw_suffix in _ALLOWED_SUFFIXES else ".bin"
     return CACHE_DIR / f"{digest}{suffix}"
 
 
@@ -182,14 +200,7 @@ async def fetch_or_serve(original_url: str) -> tuple[bytes, str]:
 
 def _guess_content_type(path: Path) -> str:
     """Crude suffix-to-MIME mapping; good enough for TMDB CDN content."""
-    suffix = path.suffix.lower()
-    return {
-        ".jpg": "image/jpeg",
-        ".jpeg": "image/jpeg",
-        ".png": "image/png",
-        ".webp": "image/webp",
-        ".gif": "image/gif",
-    }.get(suffix, "application/octet-stream")
+    return _SUFFIX_TO_MIME.get(path.suffix.lower(), "application/octet-stream")
 
 
 def get_cache_stats() -> dict:

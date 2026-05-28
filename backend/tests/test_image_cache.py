@@ -217,6 +217,30 @@ async def test_fetch_or_serve_raises_on_non_tmdb_url():
     assert exc.value.reason == "image_url_rejected"
 
 
+@pytest.mark.parametrize(
+    "url,expected_suffix",
+    [
+        ("https://image.tmdb.org/t/p/w300/abc.jpg", ".jpg"),
+        ("https://image.tmdb.org/t/p/w300/abc.JPEG", ".jpeg"),
+        ("https://image.tmdb.org/t/p/w300/abc.PNG", ".png"),
+        ("https://image.tmdb.org/t/p/w300/abc.webp", ".webp"),
+        ("https://image.tmdb.org/t/p/w300/abc.gif", ".gif"),
+        # Unknown extensions must fall back to ``.bin`` so the cache
+        # filename cannot inherit a user-controlled string.
+        ("https://image.tmdb.org/t/p/w300/abc.evil", ".bin"),
+        ("https://image.tmdb.org/t/p/w300/abc.txt", ".bin"),
+        # No extension also falls back to ``.bin`` (was the historical
+        # default; the allowlist preserves the behaviour).
+        ("https://image.tmdb.org/t/p/w300/abc", ".bin"),
+    ],
+)
+def test_path_for_allowlists_suffix(url, expected_suffix):
+    """Cache filename suffix is restricted to the 5 image types served
+    by TMDB; anything else collapses to ``.bin`` so a crafted URL can
+    never seed a user-controlled extension into the cache directory."""
+    assert image_cache._path_for(url).suffix == expected_suffix
+
+
 @pytest.mark.asyncio
 async def test_fetch_or_serve_dispatches_to_hardcoded_tmdb_host():
     """The outbound URL passed to ``client.get`` must be built from the
