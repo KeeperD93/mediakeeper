@@ -373,8 +373,8 @@
     "widgetTitles": {
       "activity": "Activité",
       "healthScore": "Santé médias",
-      "portalAction": "Demandes — à traiter",
-      "portalEngagement": "Demandes — activité",
+      "portalAction": "Portail Utilisateurs — à traiter",
+      "portalEngagement": "Portail Utilisateurs — activité",
       "portalEvents": "Portal — événements",
       "upcoming": "Sorties à venir",
       "topUsers": "Top utilisateurs",
@@ -384,7 +384,7 @@
     "requests": "Demandes",
     "requestsSoon": "Bientôt disponible",
     "portalAction": {
-      "title": "Demandes — à traiter",
+      "title": "Portail Utilisateurs — à traiter",
       "manage": "Gérer",
       "pending": "En attente",
       "tickets": "Tickets ouverts",
@@ -392,7 +392,7 @@
       "rejectedWeek": "Refusées 7j"
     },
     "portalEngagement": {
-      "title": "Demandes — activité",
+      "title": "Portail Utilisateurs — activité",
       "newLists": "Nouvelles listes",
       "achievements": "Trophées",
       "chatMessages": "Messages chat",

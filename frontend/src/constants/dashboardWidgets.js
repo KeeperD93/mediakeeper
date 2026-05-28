@@ -43,75 +43,19 @@ export const WIDGET_ICONS = {
 }
 
 export const WIDGET_REGISTRY = {
-  activity: { label: 'Activity', defaultLayout: { x: 0, y: 0, w: 11, h: 30 }, minW: 6, minH: 12 },
-  statPlays: { label: 'Total plays', defaultLayout: { x: 21, y: 0, w: 4, h: 5 }, minW: 3, minH: 4 },
-  statDuration: {
-    label: 'Total duration',
-    defaultLayout: { x: 25, y: 0, w: 4, h: 5 },
-    minW: 3,
-    minH: 4,
-  },
-  statStorage: {
-    label: 'Media storage',
-    defaultLayout: { x: 29, y: 0, w: 4, h: 5 },
-    minW: 3,
-    minH: 4,
-  },
-  statDuplicates: {
-    label: 'Duplicates',
-    defaultLayout: { x: 33, y: 0, w: 3, h: 5 },
-    minW: 3,
-    minH: 4,
-  },
-  topUsers: {
-    label: 'Top users',
-    defaultLayout: { x: 11, y: 0, w: 10, h: 10 },
-    minW: 6,
-    minH: 9,
-    maxH: 12,
-  },
-  heatmap: {
-    label: 'Activity heatmap',
-    defaultLayout: { x: 28, y: 20, w: 8, h: 10 },
-    minW: 6,
-    minH: 6,
-  },
-  upcoming: {
-    label: 'Upcoming releases',
-    defaultLayout: { x: 0, y: 30, w: 36, h: 15 },
-    minW: 6,
-    minH: 6,
-  },
-  portalAction: {
-    label: 'Requests — action',
-    defaultLayout: { x: 11, y: 10, w: 10, h: 8 },
-    minW: 10,
-    minH: 7,
-  },
-  portalEngagement: {
-    label: 'Requests — activity',
-    defaultLayout: { x: 11, y: 18, w: 10, h: 12 },
-    minW: 10,
-    minH: 7,
-  },
-  portalEvents: {
-    label: 'Portal — upcoming events',
-    defaultLayout: { x: 28, y: 5, w: 8, h: 15 },
-    minW: 4,
-    minH: 7,
-  },
-  linkWatchlist: {
-    label: 'Tracking',
-    defaultLayout: { x: 21, y: 9, w: 7, h: 4 },
-    minW: 6,
-    minH: 4,
-  },
-  healthScore: {
-    label: 'Media health',
-    defaultLayout: { x: 21, y: 5, w: 7, h: 4 },
-    minW: 6,
-    minH: 4,
-  },
+  activity: { defaultLayout: { x: 0, y: 0, w: 11, h: 30 }, minW: 6, minH: 12 },
+  statPlays: { defaultLayout: { x: 21, y: 0, w: 4, h: 5 }, minW: 3, minH: 4 },
+  statDuration: { defaultLayout: { x: 25, y: 0, w: 4, h: 5 }, minW: 3, minH: 4 },
+  statStorage: { defaultLayout: { x: 29, y: 0, w: 4, h: 5 }, minW: 3, minH: 4 },
+  statDuplicates: { defaultLayout: { x: 33, y: 0, w: 3, h: 5 }, minW: 3, minH: 4 },
+  topUsers: { defaultLayout: { x: 11, y: 0, w: 10, h: 10 }, minW: 6, minH: 9, maxH: 12 },
+  heatmap: { defaultLayout: { x: 28, y: 20, w: 8, h: 10 }, minW: 6, minH: 6 },
+  upcoming: { defaultLayout: { x: 0, y: 30, w: 36, h: 15 }, minW: 6, minH: 6 },
+  portalAction: { defaultLayout: { x: 11, y: 10, w: 10, h: 8 }, minW: 10, minH: 7 },
+  portalEngagement: { defaultLayout: { x: 11, y: 18, w: 10, h: 12 }, minW: 10, minH: 7 },
+  portalEvents: { defaultLayout: { x: 28, y: 5, w: 8, h: 15 }, minW: 4, minH: 7 },
+  linkWatchlist: { defaultLayout: { x: 21, y: 9, w: 7, h: 4 }, minW: 6, minH: 4 },
+  healthScore: { defaultLayout: { x: 21, y: 5, w: 7, h: 4 }, minW: 6, minH: 4 },
 }
 
 // Canonical widget IDs — single source of truth so consumers never
@@ -145,9 +89,11 @@ export const MOBILE_STAT_IDS = [
   WIDGET_ID.STAT_STORAGE,
 ]
 
-// i18n key per widget for the mobile reorder list (lines display only
-// the title, not the full widget). Consumers pass these keys through
-// $t(). Keeps the i18n contract — no literal label in templates.
+// i18n key per widget for any UI that needs a localised widget label
+// (mobile reorder list, desktop edit-bar chip…). Consumers pass these
+// keys through $t(). Keeps the i18n contract — no literal label in
+// templates. The four stat tiles reuse the same keys their card body
+// already renders (dashboard.totalPlays etc.).
 export const WIDGET_TITLE_KEY = Object.freeze({
   [WIDGET_ID.ACTIVITY]: 'dashboard.widgetTitles.activity',
   [WIDGET_ID.HEALTH_SCORE]: 'dashboard.widgetTitles.healthScore',
@@ -158,6 +104,10 @@ export const WIDGET_TITLE_KEY = Object.freeze({
   [WIDGET_ID.TOP_USERS]: 'dashboard.widgetTitles.topUsers',
   [WIDGET_ID.HEATMAP]: 'dashboard.widgetTitles.heatmap',
   [WIDGET_ID.LINK_WATCHLIST]: 'dashboard.widgetTitles.linkWatchlist',
+  [WIDGET_ID.STAT_PLAYS]: 'dashboard.totalPlays',
+  [WIDGET_ID.STAT_DURATION]: 'dashboard.totalDuration',
+  [WIDGET_ID.STAT_DUPLICATES]: 'dashboard.duplicates',
+  [WIDGET_ID.STAT_STORAGE]: 'dashboard.storage',
 })
 
 // Mobile stack default ordering — the vertical sequence below the

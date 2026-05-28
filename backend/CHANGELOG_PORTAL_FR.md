@@ -17,8 +17,12 @@ utilisateurs.
 ## [Unreleased]
 
 ### Changed
-- Avatars — anneau coloré par niveau (bronze → légendaire) sur toutes les surfaces, même rendu que le classement.
-- Soirée ciné — avatars des sièges alignés sur le classement (photo + anneau de niveau).
+- Avatars — anneau coloré par niveau (bronze → légendaire) partout.
+- Soirée ciné — avatars des sièges au style du classement.
+
+### Fixed
+- Pastille Dispo — plus de clignotement quand l'index rattrape son retard.
+- Affiches de la home — plus de vignettes cassées au premier chargement.
 
 ## [1.0.0-rc.3] - 2026-05-22
 

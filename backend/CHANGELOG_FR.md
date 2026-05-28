@@ -13,6 +13,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Onboarding — module Portail ajouté au welcome et au tour.
 
 ### Changed
+- Tableau de bord — cartes « Demandes » renommées « Portail Utilisateurs ».
 - Interface admin — nouveau thème sombre, contraste texte renforcé pour la lisibilité.
 - Avatars — anneau coloré par niveau (bronze → légendaire) sur toutes les surfaces, même rendu que le classement.
 - Boutons — palette MediaKeeper appliquée (violet, rouge brique, vert forêt) sans toucher aux graphiques.

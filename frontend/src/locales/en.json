@@ -373,8 +373,8 @@
     "widgetTitles": {
       "activity": "Activity",
       "healthScore": "Media health",
-      "portalAction": "Requests — action",
-      "portalEngagement": "Requests — activity",
+      "portalAction": "User Portal — action",
+      "portalEngagement": "User Portal — activity",
       "portalEvents": "Portal — events",
       "upcoming": "Upcoming releases",
       "topUsers": "Top users",
@@ -384,7 +384,7 @@
     "requests": "Requests",
     "requestsSoon": "Coming soon",
     "portalAction": {
-      "title": "Requests — action",
+      "title": "User Portal — action",
       "manage": "Manage",
       "pending": "Pending",
       "tickets": "Open tickets",
@@ -392,7 +392,7 @@
       "rejectedWeek": "Rejected 7d"
     },
     "portalEngagement": {
-      "title": "Requests — activity",
+      "title": "User Portal — activity",
       "newLists": "New lists",
       "achievements": "Trophies",
       "chatMessages": "Chat messages",

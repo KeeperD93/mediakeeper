@@ -15,8 +15,12 @@ This section intentionally has no date so it is not shown to users.
 ## [Unreleased]
 
 ### Changed
-- Avatars — level-coloured ring (bronze → legendary) on every surface, matching the leaderboard.
-- Cinema room — seat avatars now match the leaderboard style (photo + tier ring).
+- Avatars — level-coloured ring (bronze → legendary) everywhere.
+- Cinema room — seats use the leaderboard avatar style.
+
+### Fixed
+- Availability badge — no longer flickers when the index is catching up.
+- Home posters — first-paint burst no longer breaks tile rendering.
 
 ## [1.0.0-rc.3] - 2026-05-22
 

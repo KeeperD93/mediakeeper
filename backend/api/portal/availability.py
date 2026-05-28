@@ -5,31 +5,33 @@ from datetime import date
 from typing import Literal
 
 from fastapi import APIRouter, Depends, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.portal.deps import get_current_profile
+from constants.portal_availability import AVAILABILITY_FULL, AVAILABILITY_PARTIAL
+from constants.tmdb_status import TMDB_TERMINAL_STATUSES
 from core.database import get_db
 from core.http_client import get_internal_client
 from core.rate_limit import limiter, portal_user_or_ip_key
-from models.user import User
-from models.portal.profile import UserProfile
 from models.portal.emby_tmdb_index import EmbyTmdbIndex
-from api.portal.deps import get_current_profile
+from models.portal.profile import UserProfile
+from models.user import User
 from services.settings import (
+    build_emby_deep_link,
     get_active_media_source,
     get_emby_public_url,
     get_emby_server_id,
-    build_emby_deep_link,
 )
 # Reuse the watchlist ("suivi") module's Emby + TMDB helpers so our
 # notion of "complete series" matches what the Watchlist scanner
 # already shows the user. Both helpers are cached (6h TTL for TMDB).
 from services.watchlist_scanner._emby import _get_emby_episodes
-from services.watchlist_scanner._tmdb import _tmdb_series, _tmdb_season
+from services.watchlist_scanner._tmdb import _tmdb_season, _tmdb_series
 # Ignored episodes in the Watchlist module must also be ignored here:
 # if the user has marked an episode as "don't care" (e.g. a special),
-        # the Portal UI shouldn't flag the series as incomplete nor let
+# the Portal UI shouldn't flag the series as incomplete nor let
 # anyone re-request that episode.
 from services.watchlist_tracking import get_ignored
 
@@ -52,19 +54,25 @@ class AvailabilityItem(BaseModel):
     underlying ``EmbyTmdbIndex.tmdb_id`` is a strict ``Integer`` column
     that refuses anything else.
     """
+
+    model_config = ConfigDict(extra="forbid")
+
     tmdb_id: int
     media_type: Literal["movie", "tv"] = "movie"
 
 
 class AvailabilityQuery(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     items: list[AvailabilityItem]
 
 
 @router.post("")
-# 120/minute (vs 30 historique) — l'endpoint est cheap (lookup index +
-# completeness TV en parallèle), batched côté frontend, et appelé en
-# burst sur la Home (13 carrousels). Le rate-limit pré-existant
-# saturait sur usage normal et déclenchait un stack de toasts user.
+# 120/minute (vs the historical 30/minute) — the endpoint is cheap
+# (index lookup + parallel TV completeness checks), batched from the
+# frontend, and called in burst on the Home (13 carousels). The
+# previous limit saturated under normal use and stacked rate-limit
+# notifications.
 @limiter.limit("120/minute", key_func=portal_user_or_ip_key)
 async def check_availability(
     query: AvailabilityQuery,
@@ -132,8 +140,8 @@ async def check_availability(
             try:
                 tv_status[tid] = task.result()
             except Exception as e:
-                logger.warning(f"[AVAILABILITY] tv completeness {tid}: {e}")
-                tv_status[tid] = "full"
+                logger.warning("[AVAILABILITY] tv completeness %s: %s", tid, e)
+                tv_status[tid] = AVAILABILITY_FULL
 
     results = {}
     for it in query.items:
@@ -145,7 +153,11 @@ async def check_availability(
         entries_for_tmdb = index_map.get(tmdb_id)
         if entries_for_tmdb:
             entry = entries_for_tmdb[0]
-            avail = tv_status.get(tmdb_id, "full") if media_type == "tv" else "full"
+            avail = (
+                tv_status.get(tmdb_id, AVAILABILITY_FULL)
+                if media_type == "tv"
+                else AVAILABILITY_FULL
+            )
             # User-facing deep link uses the public URL + serverId.
             # Emby 4.9+ requires the serverId query param to render the
             # item page; without it the SPA loads but stays blank.
@@ -156,11 +168,14 @@ async def check_availability(
                 "emby_url": emby_link,
             }
         else:
-            results[str(tmdb_id)] = {
-                "availability": None,
-                "emby_item_id": None,
-                "emby_url": None,
-            }
+            # Explicit null distinguishes "not indexed yet" from "indexed
+            # with no availability" — the frontend cache flags null as
+            # ``_empty`` so MediaCard falls back to the inline hint
+            # stamped by /library/recent while EmbyTmdbIndex catches up
+            # on freshly added Emby items. Returning an all-null object
+            # previously looked like a real hit and silently erased the
+            # "Dispo" badge ~0.5 s after page load.
+            results[str(tmdb_id)] = None
 
     return {"results": results}
 
@@ -180,7 +195,7 @@ async def _check_series_completeness(
     Episodes the user has ignored in the Watchlist are treated as if
     they were present — they don't trigger partial status. This keeps
     the two modules consistent (a series considered "done" in Suivi
-        can't suddenly look incomplete in Portal).
+    can't suddenly look incomplete in Portal).
 
     For ended / canceled series we walk per-season anyway so that
     ignored episodes can be excluded from the count.
@@ -192,7 +207,7 @@ async def _check_series_completeness(
     """
     td = await _tmdb_series(db, tmdb_id)
     if not td:
-        return "full"
+        return AVAILABILITY_FULL
 
     emby_set: set[tuple[int, int]] = set()
     if emby_series_ids:
@@ -206,7 +221,7 @@ async def _check_series_completeness(
     ignored_set = ignored_set or set()
     today = date.today().isoformat()
     status = (td.get("status") or "").lower()
-    is_ended = status in ("ended", "canceled")
+    is_ended = status in TMDB_TERMINAL_STATUSES
 
     for si in td.get("seasons", []):
         sn = si.get("season_number", 0)
@@ -228,11 +243,11 @@ async def _check_series_completeness(
             # still honour the air-date gate so upcoming episodes
             # don't look like gaps.
             if is_ended:
-                return "partial"
+                return AVAILABILITY_PARTIAL
             air = ep.get("air_date", "")
             if air and air <= today:
-                return "partial"
-    return "full"
+                return AVAILABILITY_PARTIAL
+    return AVAILABILITY_FULL
 
 
 @router.get("/tv/{tmdb_id}/episodes")
@@ -311,7 +326,10 @@ async def tv_available_episodes(
             if res.status_code != 200:
                 return []
             return res.json().get("Items", []) or []
-        except Exception:
+        except Exception as e:  # noqa: BLE001 -- best-effort per-shard fetch
+            logger.warning(
+                "[AVAILABILITY] episode fetch failed for %s: %s", emby_id, e
+            )
             return []
 
     fetched = await asyncio.gather(*[_fetch_episodes(e.emby_item_id) for e in entries])
