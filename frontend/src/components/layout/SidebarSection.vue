@@ -20,7 +20,7 @@ defineProps({
 .sb-section {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   padding: 18px 8px 8px;
   user-select: none;
 }
@@ -57,7 +57,7 @@ defineProps({
     rgb(255, 255, 255, 0.04) 0%,
     rgb(var(--accent-rgb), 0.35) 100%
   );
-  max-width: 12px;
+  max-width: var(--space-3);
 }
 
 .sb-section-line-right {
@@ -69,8 +69,8 @@ defineProps({
 }
 
 .sb-section-dot {
-  width: 16px;
-  height: 2px;
+  width: var(--space-4);
+  height: var(--space-half);
   border-radius: 1px;
   background: linear-gradient(
     90deg,

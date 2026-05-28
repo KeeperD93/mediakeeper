@@ -59,6 +59,7 @@
           :expandable="!collapsed && hasSubTabs(m.to)"
           :expanded="!collapsed && isExpanded(m.to)"
           @navigate="closeMobile"
+          @toggle="toggleExpand(m.to)"
         />
         <transition name="sb-subtabs">
           <div v-if="!collapsed && isExpanded(m.to)" class="sb-subtabs">
@@ -110,6 +111,7 @@
         :expandable="!collapsed && hasSubTabs('/admin/portal')"
         :expanded="!collapsed && isExpanded('/admin/portal')"
         @navigate="closeMobile"
+        @toggle="toggleExpand('/admin/portal')"
       />
       <transition name="sb-subtabs">
         <div v-if="!collapsed && isExpanded('/admin/portal')" class="sb-subtabs">
@@ -135,6 +137,7 @@
         :expandable="!collapsed && hasSubTabs('/settings')"
         :expanded="!collapsed && isExpanded('/settings')"
         @navigate="closeMobile"
+        @toggle="toggleExpand('/settings')"
       />
       <transition name="sb-subtabs">
         <div v-if="!collapsed && isExpanded('/settings')" class="sb-subtabs">
@@ -158,6 +161,7 @@
         :expandable="!collapsed && hasSubTabs('/logs')"
         :expanded="!collapsed && isExpanded('/logs')"
         @navigate="closeMobile"
+        @toggle="toggleExpand('/logs')"
       />
       <transition name="sb-subtabs">
         <div v-if="!collapsed && isExpanded('/logs')" class="sb-subtabs">
@@ -217,6 +221,7 @@ import SidebarSection from './SidebarSection.vue'
 import { useSidebarCounters } from '@/composables/useSidebarCounters'
 import { fetchApiResponse, useApi } from '@/composables/useApi'
 import { useMobile } from '@/composables/useMobile'
+import { useSidebarExpand, hasSubTabs } from '@/composables/useSidebarExpand'
 import { ChevronLeft, MessageSquare, Package, Search } from 'lucide-vue-next'
 import { SIDEBAR_SUB_TABS } from '@/constants/sidebarSubTabs'
 import { SIDEBAR_MODULES } from '@/constants/sidebarModules'
@@ -234,10 +239,6 @@ const moduleEntries = computed(() =>
   SIDEBAR_MODULES.filter(m => !m.desktopOnly || !isMobile.value),
 )
 
-function hasSubTabs(path) {
-  return Array.isArray(SIDEBAR_SUB_TABS[path]) && SIDEBAR_SUB_TABS[path].length > 0
-}
-
 function getSubs(path) {
   return SIDEBAR_SUB_TABS[path] || []
 }
@@ -247,11 +248,8 @@ function firstTabId(path) {
   return list && list[0] ? list[0].id : null
 }
 
-function isExpanded(path) {
-  if (!hasSubTabs(path)) return false
-  if (path === '/admin/portal') return route.path === path
-  return route.path === path || route.path.startsWith(path + '/')
-}
+// Sidebar sub-tab expansion — see useSidebarExpand for the rationale.
+const { toggleExpand, isExpanded } = useSidebarExpand(route)
 
 async function enterRequestsModule() {
   try {

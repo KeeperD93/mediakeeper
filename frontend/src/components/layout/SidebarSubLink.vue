@@ -58,7 +58,7 @@ function onClick() {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2-5);
   width: 100%;
   padding: 6px 10px 6px 28px;
   margin: 1px 0;
@@ -97,7 +97,7 @@ function onClick() {
   transform: translateY(-50%);
   width: 4px;
   height: 4px;
-  border-radius: 50%;
+  border-radius: var(--radius-circle);
   background: var(--text-decorative);
   transition:
     background var(--duration-base) ease,
