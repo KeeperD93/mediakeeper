@@ -20,6 +20,7 @@ This section intentionally has no date so it is not shown to users.
 - Scheduler — UI reorganised by category with compact single-line rows.
 - Startup — boot log: `COOKIE_SECURE=` renamed `COOKIE_HTTPS_FLAG=` (env var unchanged, mapping in `tls-deployment.md`).
 - CSRF cookie — allowlist validation on polls (hardening).
+- Dashboard — card titles unified on the muted text shade.
 
 ### Fixed
 - Portal — "Available" badge no longer flickers on freshly added Emby items.

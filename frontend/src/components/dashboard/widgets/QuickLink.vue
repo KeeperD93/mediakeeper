@@ -52,7 +52,7 @@ function onClick() {
 .ql-no-click { cursor: move; }
 .ql-icon { width: 40px; height: 40px; border-radius:var(--radius-card); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .ql-text { flex: 1; min-width: 0; }
-.ql-main { display: block; font-size: var(--text-base); color: var(--text-secondary)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ql-main { display: block; font-size: var(--text-base); color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ql-sub { display: block; font-size: var(--text-2xs); color: var(--text-muted); margin-top: 2px; }
 .ql-arrow { font-size: var(--text-md); color: var(--text-muted); flex-shrink: 0; }
 

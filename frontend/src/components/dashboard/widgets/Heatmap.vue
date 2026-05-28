@@ -127,7 +127,7 @@ onMounted(async () => {
 .hm-title {
   display: block;
   font-size: var(--text-2xs);
-  color: var(--text-secondary);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: var(--tracking-widest);
   margin-bottom: var(--space-2);

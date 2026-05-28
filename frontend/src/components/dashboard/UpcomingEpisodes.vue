@@ -176,7 +176,7 @@ function dateClass(dateStr) {
 }
 .uc-title {
   font-size: var(--text-2xs);
-  color: var(--text-secondary);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: var(--tracking-widest);
 }
