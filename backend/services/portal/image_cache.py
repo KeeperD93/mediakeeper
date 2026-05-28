@@ -133,24 +133,28 @@ def _path_for(url: str) -> Path:
     # legitimate URLs keeps the .jpg / .webp hint visible in DevTools.
     raw_suffix = Path(urllib.parse.urlparse(url).path).suffix.lower()
     suffix = raw_suffix if raw_suffix in _ALLOWED_SUFFIXES else ".bin"
-    candidate = CACHE_DIR / f"{digest}{suffix}"
-    # Sanitiser pattern recognised by CodeQL's py/path-injection model:
-    # ``os.path.realpath`` is annotated as a path normaliser (resolves
-    # ``..`` and symlinks); the ``startswith`` check against the
-    # normalised cache root acts as the safe-access guard. Returning
-    # the normalised value (not the original candidate) propagates the
-    # sanitised flow to the downstream ``exists`` / ``read_bytes`` /
-    # ``write_bytes`` sinks. Defence in depth on top of the suffix
-    # allowlist + sha256 digest — also fails closed if a future caller
-    # somehow seeds ``CACHE_DIR`` with a relative or crafted value.
-    cache_root_real = os.path.realpath(CACHE_DIR)
-    candidate_real = os.path.realpath(candidate)
-    if not (
-        candidate_real == cache_root_real
-        or candidate_real.startswith(cache_root_real + os.sep)
-    ):
-        raise UnsafeOutboundURL("path_outside_cache")
-    return Path(candidate_real)
+    # Same sanitiser shape as ``services.media_manager._paths.
+    # _ensure_within_media_roots``: ``Path.resolve(strict=False)``
+    # normalises ``..`` segments and symlinks, then a
+    # ``os.path.commonpath`` containment check against the resolved
+    # cache root acts as the barrier guard. The returned ``Path`` is
+    # the resolved one — callers must keep using it (not rebuild a
+    # ``Path(string)``) so the sanitised flow reaches the downstream
+    # ``exists`` / ``read_bytes`` / ``write_bytes`` sinks.
+    try:
+        resolved = (CACHE_DIR / f"{digest}{suffix}").resolve(strict=False)
+        cache_root = CACHE_DIR.resolve(strict=False)
+    except (ValueError, OSError, RuntimeError) as exc:
+        raise UnsafeOutboundURL("path_outside_cache") from exc
+    cache_root_str = str(cache_root)
+    resolved_str = str(resolved)
+    try:
+        if os.path.commonpath([cache_root_str, resolved_str]) != cache_root_str:
+            raise UnsafeOutboundURL("path_outside_cache")
+    except ValueError as exc:
+        # Different drives on Windows — fail closed.
+        raise UnsafeOutboundURL("path_outside_cache") from exc
+    return resolved
 
 
 def _ensure_cache_dir() -> None:
