@@ -134,22 +134,23 @@ def _path_for(url: str) -> Path:
     raw_suffix = Path(urllib.parse.urlparse(url).path).suffix.lower()
     suffix = raw_suffix if raw_suffix in _ALLOWED_SUFFIXES else ".bin"
     candidate = CACHE_DIR / f"{digest}{suffix}"
-    # Barrier guard for CodeQL's py/path-injection model. The join is
-    # already mathematically inside CACHE_DIR (sha256 hex digest + an
-    # allowlisted suffix), but the static analyser does not model
-    # ``hashlib`` as a sanitiser and keeps the taint flow alive all the
-    # way to ``path.exists`` / ``read_bytes`` / ``write_bytes``. The
-    # explicit ``commonpath`` containment check is the pattern the
-    # model recognises and pins the runtime contract.
-    cache_root = os.fspath(CACHE_DIR)
-    try:
-        common = os.path.commonpath([cache_root, os.fspath(candidate)])
-    except ValueError as exc:
-        # Different drives on Windows or invalid path mix — fail closed.
-        raise UnsafeOutboundURL("path_outside_cache") from exc
-    if common != cache_root:
+    # Sanitiser pattern recognised by CodeQL's py/path-injection model:
+    # ``os.path.realpath`` is annotated as a path normaliser (resolves
+    # ``..`` and symlinks); the ``startswith`` check against the
+    # normalised cache root acts as the safe-access guard. Returning
+    # the normalised value (not the original candidate) propagates the
+    # sanitised flow to the downstream ``exists`` / ``read_bytes`` /
+    # ``write_bytes`` sinks. Defence in depth on top of the suffix
+    # allowlist + sha256 digest — also fails closed if a future caller
+    # somehow seeds ``CACHE_DIR`` with a relative or crafted value.
+    cache_root_real = os.path.realpath(CACHE_DIR)
+    candidate_real = os.path.realpath(candidate)
+    if not (
+        candidate_real == cache_root_real
+        or candidate_real.startswith(cache_root_real + os.sep)
+    ):
         raise UnsafeOutboundURL("path_outside_cache")
-    return candidate
+    return Path(candidate_real)
 
 
 def _ensure_cache_dir() -> None:
