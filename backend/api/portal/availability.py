@@ -9,14 +9,14 @@ from pydantic import BaseModel, ConfigDict
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.portal.deps import get_current_profile
+from constants.portal_availability import AVAILABILITY_FULL, AVAILABILITY_PARTIAL
 from core.database import get_db
 from core.http_client import get_internal_client
 from core.rate_limit import limiter, portal_user_or_ip_key
-from models.user import User
-from models.portal.profile import UserProfile
 from models.portal.emby_tmdb_index import EmbyTmdbIndex
-from api.portal.deps import get_current_profile
-from constants.portal_availability import AVAILABILITY_FULL, AVAILABILITY_PARTIAL
+from models.portal.profile import UserProfile
+from models.user import User
 from services.settings import (
     build_emby_deep_link,
     get_active_media_source,
@@ -27,7 +27,7 @@ from services.settings import (
 # notion of "complete series" matches what the Watchlist scanner
 # already shows the user. Both helpers are cached (6h TTL for TMDB).
 from services.watchlist_scanner._emby import _get_emby_episodes
-from services.watchlist_scanner._tmdb import _tmdb_series, _tmdb_season
+from services.watchlist_scanner._tmdb import _tmdb_season, _tmdb_series
 # Ignored episodes in the Watchlist module must also be ignored here:
 # if the user has marked an episode as "don't care" (e.g. a special),
 # the Portal UI shouldn't flag the series as incomplete nor let
