@@ -314,7 +314,10 @@ async def tv_available_episodes(
             if res.status_code != 200:
                 return []
             return res.json().get("Items", []) or []
-        except Exception:
+        except Exception as e:  # noqa: BLE001 -- best-effort per-shard fetch
+            logger.warning(
+                "[AVAILABILITY] episode fetch failed for %s: %s", emby_id, e
+            )
             return []
 
     fetched = await asyncio.gather(*[_fetch_episodes(e.emby_item_id) for e in entries])
