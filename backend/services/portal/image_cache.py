@@ -24,6 +24,7 @@ Flag freshness:
 """
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import logging
 import os
@@ -149,11 +150,12 @@ async def fetch_or_serve(original_url: str) -> tuple[bytes, str]:
     if parsed.query:
         upstream = f"{upstream}?{parsed.query}"
 
-    _ensure_cache_dir()
+    await asyncio.to_thread(_ensure_cache_dir)
     path = _path_for(upstream)
     if path.exists():
         _stats["hits"] += 1
-        return path.read_bytes(), _guess_content_type(path)
+        cached = await asyncio.to_thread(path.read_bytes)
+        return cached, _guess_content_type(path)
 
     _stats["misses"] += 1
     try:
@@ -166,7 +168,7 @@ async def fetch_or_serve(original_url: str) -> tuple[bytes, str]:
             return resp.content, resp.headers.get("content-type", "image/jpeg")
         content = resp.content
         try:
-            path.write_bytes(content)
+            await asyncio.to_thread(path.write_bytes, content)
         except OSError as e:
             # Disk full / permissions / read-only mount — return the
             # bytes anyway so the user sees the image; the next request
