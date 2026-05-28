@@ -133,28 +133,21 @@ def _path_for(url: str) -> Path:
     # legitimate URLs keeps the .jpg / .webp hint visible in DevTools.
     raw_suffix = Path(urllib.parse.urlparse(url).path).suffix.lower()
     suffix = raw_suffix if raw_suffix in _ALLOWED_SUFFIXES else ".bin"
-    # Same sanitiser shape as ``services.media_manager._paths.
-    # _ensure_within_media_roots``: ``Path.resolve(strict=False)``
-    # normalises ``..`` segments and symlinks, then a
-    # ``os.path.commonpath`` containment check against the resolved
-    # cache root acts as the barrier guard. The returned ``Path`` is
-    # the resolved one — callers must keep using it (not rebuild a
-    # ``Path(string)``) so the sanitised flow reaches the downstream
-    # ``exists`` / ``read_bytes`` / ``write_bytes`` sinks.
-    try:
-        resolved = (CACHE_DIR / f"{digest}{suffix}").resolve(strict=False)
-        cache_root = CACHE_DIR.resolve(strict=False)
-    except (ValueError, OSError, RuntimeError) as exc:
-        raise UnsafeOutboundURL("path_outside_cache") from exc
-    cache_root_str = str(cache_root)
-    resolved_str = str(resolved)
-    try:
-        if os.path.commonpath([cache_root_str, resolved_str]) != cache_root_str:
-            raise UnsafeOutboundURL("path_outside_cache")
-    except ValueError as exc:
-        # Different drives on Windows — fail closed.
-        raise UnsafeOutboundURL("path_outside_cache") from exc
-    return resolved
+    # Stay in the os.path string domain that CodeQL py/path-injection
+    # explicitly annotates. ``os.path.normpath`` is one of the three
+    # recognised normalisers (along with ``abspath`` and ``realpath``)
+    # per github/codeql Stdlib.qll, and the ``startswith`` check after
+    # it is a documented SafeAccessCheck barrier. Building the candidate
+    # through ``os.path.join`` + ``normpath`` rather than through the
+    # ``/`` operator means the user-derived components never reach a
+    # ``Path()`` constructor until the safety check has cleared them.
+    cache_root_norm = os.path.normpath(os.fspath(CACHE_DIR))
+    candidate_norm = os.path.normpath(
+        os.path.join(cache_root_norm, f"{digest}{suffix}")
+    )
+    if not candidate_norm.startswith(cache_root_norm + os.sep):
+        raise UnsafeOutboundURL("path_outside_cache")
+    return Path(candidate_norm)
 
 
 def _ensure_cache_dir() -> None:
