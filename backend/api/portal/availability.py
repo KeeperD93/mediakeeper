@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.portal.deps import get_current_profile
 from constants.portal_availability import AVAILABILITY_FULL, AVAILABILITY_PARTIAL
+from constants.tmdb_status import TMDB_TERMINAL_STATUSES
 from core.database import get_db
 from core.http_client import get_internal_client
 from core.rate_limit import limiter, portal_user_or_ip_key
@@ -220,7 +221,7 @@ async def _check_series_completeness(
     ignored_set = ignored_set or set()
     today = date.today().isoformat()
     status = (td.get("status") or "").lower()
-    is_ended = status in ("ended", "canceled")
+    is_ended = status in TMDB_TERMINAL_STATUSES
 
     for si in td.get("seasons", []):
         sn = si.get("season_number", 0)
