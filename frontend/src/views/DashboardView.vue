@@ -44,14 +44,14 @@
       <div class="editbar-actions">
         <div class="editbar-toggles">
           <button
-            v-for="(def, id) in WIDGET_REGISTRY"
+            v-for="id in Object.keys(WIDGET_REGISTRY)"
             :key="id"
             class="editbar-chip"
             :class="{ 'chip-hidden': hidden.includes(id) }"
             @click="toggleWidget(id)"
           >
             <component :is="WIDGET_ICONS[id]" class="chip-icon" :size="13" :stroke-width="2" />
-            <span class="chip-label">{{ def.label }}</span>
+            <span class="chip-label">{{ $t(WIDGET_TITLE_KEY[id]) }}</span>
             <span class="chip-toggle">
               <Plus v-if="hidden.includes(id)" :size="12" />
               <X v-else :size="12" />
@@ -226,7 +226,12 @@ import { GridLayout, GridItem } from 'grid-layout-plus'
 import { ClipboardCheck, Clock, Copy, HardDrive, LayoutGrid, Play, Plus, X } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
 import { useTheme } from '@/composables/useTheme'
-import { useDashboardLayout, WIDGET_REGISTRY, WIDGET_ICONS } from '@/composables/useDashboardLayout'
+import {
+  useDashboardLayout,
+  WIDGET_REGISTRY,
+  WIDGET_ICONS,
+  WIDGET_TITLE_KEY,
+} from '@/composables/useDashboardLayout'
 import { useDashboardData } from '@/composables/useDashboardData'
 import { useDashboardKeyboardMove } from '@/composables/useDashboardKeyboardMove'
 import { useMobile } from '@/composables/useMobile'
