@@ -133,7 +133,23 @@ def _path_for(url: str) -> Path:
     # legitimate URLs keeps the .jpg / .webp hint visible in DevTools.
     raw_suffix = Path(urllib.parse.urlparse(url).path).suffix.lower()
     suffix = raw_suffix if raw_suffix in _ALLOWED_SUFFIXES else ".bin"
-    return CACHE_DIR / f"{digest}{suffix}"
+    candidate = CACHE_DIR / f"{digest}{suffix}"
+    # Barrier guard for CodeQL's py/path-injection model. The join is
+    # already mathematically inside CACHE_DIR (sha256 hex digest + an
+    # allowlisted suffix), but the static analyser does not model
+    # ``hashlib`` as a sanitiser and keeps the taint flow alive all the
+    # way to ``path.exists`` / ``read_bytes`` / ``write_bytes``. The
+    # explicit ``commonpath`` containment check is the pattern the
+    # model recognises and pins the runtime contract.
+    cache_root = os.fspath(CACHE_DIR)
+    try:
+        common = os.path.commonpath([cache_root, os.fspath(candidate)])
+    except ValueError as exc:
+        # Different drives on Windows or invalid path mix — fail closed.
+        raise UnsafeOutboundURL("path_outside_cache") from exc
+    if common != cache_root:
+        raise UnsafeOutboundURL("path_outside_cache")
+    return candidate
 
 
 def _ensure_cache_dir() -> None:
