@@ -35,6 +35,7 @@ from pathlib import Path
 import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.portal_paths import IMAGE_PROXY_PATH
 from core.http_client import get_external_client
 from core.url_safety import ALLOWED_IMAGE_HOST, UnsafeOutboundURL, is_allowed_image_url
 from services.settings import get_setting
@@ -43,7 +44,6 @@ logger = logging.getLogger("mediakeeper.portal.image_cache")
 
 CACHE_DIR = Path(os.environ.get("MK_IMAGE_CACHE_DIR", "/data/cache/images"))
 SETTING_KEY = "network.image_cache_enabled"
-PROXY_PATH = "/api/img"
 
 # How long a cached ``_enabled`` snapshot stays trusted before we
 # re-read the DB. 30 s feels right for admin toggles: long enough
@@ -103,7 +103,7 @@ def proxied_url(original_url: str) -> str:
     if not is_allowed_image_url(original_url):
         return original_url
     encoded = urllib.parse.quote(original_url, safe="")
-    return f"{PROXY_PATH}?u={encoded}"
+    return f"{IMAGE_PROXY_PATH}?u={encoded}"
 
 
 def _hash_for(url: str) -> str:

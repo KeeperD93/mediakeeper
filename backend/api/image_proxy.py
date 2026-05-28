@@ -14,6 +14,7 @@ import logging
 
 from fastapi import APIRouter, HTTPException, Query, Request, Response
 
+from constants.portal_paths import IMAGE_PROXY_PATH
 from core.rate_limit import ip_key, limiter
 from core.url_safety import is_allowed_image_url
 from services.portal import image_cache
@@ -22,7 +23,7 @@ logger = logging.getLogger("mediakeeper.api.image_proxy")
 router = APIRouter()
 
 
-@router.get("/api/img")
+@router.get(IMAGE_PROXY_PATH)
 # Dedicated bucket above the slowapi global ``120/minute`` default — the
 # Portal Home renders ~130 image tiles on first paint and the shared cap
 # turned the tail of the burst into 429s. TMDB CDN bytes are public and
