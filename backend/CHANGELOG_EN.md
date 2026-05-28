@@ -13,6 +13,7 @@ This section intentionally has no date so it is not shown to users.
 - Onboarding wizard — Portal module added to welcome and tour steps.
 
 ### Changed
+- Dashboard — "Requests" cards renamed to "User Portal".
 - Admin UI — refreshed dark theme with stronger text contrast for legibility.
 - Buttons — MediaKeeper palette applied (violet, brick red, forest green) without affecting charts.
 - Appearance — accent picker temporarily removed (MK palette locked).

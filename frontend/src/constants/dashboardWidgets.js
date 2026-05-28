@@ -83,13 +83,13 @@ export const WIDGET_REGISTRY = {
     minH: 6,
   },
   portalAction: {
-    label: 'Requests — action',
+    label: 'User Portal — action',
     defaultLayout: { x: 11, y: 10, w: 10, h: 8 },
     minW: 10,
     minH: 7,
   },
   portalEngagement: {
-    label: 'Requests — activity',
+    label: 'User Portal — activity',
     defaultLayout: { x: 11, y: 18, w: 10, h: 12 },
     minW: 10,
     minH: 7,
