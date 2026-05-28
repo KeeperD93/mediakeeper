@@ -16,11 +16,12 @@ from models.user import User
 from models.portal.profile import UserProfile
 from models.portal.emby_tmdb_index import EmbyTmdbIndex
 from api.portal.deps import get_current_profile
+from constants.portal_availability import AVAILABILITY_FULL, AVAILABILITY_PARTIAL
 from services.settings import (
+    build_emby_deep_link,
     get_active_media_source,
     get_emby_public_url,
     get_emby_server_id,
-    build_emby_deep_link,
 )
 # Reuse the watchlist ("suivi") module's Emby + TMDB helpers so our
 # notion of "complete series" matches what the Watchlist scanner
@@ -139,7 +140,7 @@ async def check_availability(
                 tv_status[tid] = task.result()
             except Exception as e:
                 logger.warning("[AVAILABILITY] tv completeness %s: %s", tid, e)
-                tv_status[tid] = "full"
+                tv_status[tid] = AVAILABILITY_FULL
 
     results = {}
     for it in query.items:
@@ -151,7 +152,11 @@ async def check_availability(
         entries_for_tmdb = index_map.get(tmdb_id)
         if entries_for_tmdb:
             entry = entries_for_tmdb[0]
-            avail = tv_status.get(tmdb_id, "full") if media_type == "tv" else "full"
+            avail = (
+                tv_status.get(tmdb_id, AVAILABILITY_FULL)
+                if media_type == "tv"
+                else AVAILABILITY_FULL
+            )
             # User-facing deep link uses the public URL + serverId.
             # Emby 4.9+ requires the serverId query param to render the
             # item page; without it the SPA loads but stays blank.
@@ -201,7 +206,7 @@ async def _check_series_completeness(
     """
     td = await _tmdb_series(db, tmdb_id)
     if not td:
-        return "full"
+        return AVAILABILITY_FULL
 
     emby_set: set[tuple[int, int]] = set()
     if emby_series_ids:
@@ -237,11 +242,11 @@ async def _check_series_completeness(
             # still honour the air-date gate so upcoming episodes
             # don't look like gaps.
             if is_ended:
-                return "partial"
+                return AVAILABILITY_PARTIAL
             air = ep.get("air_date", "")
             if air and air <= today:
-                return "partial"
-    return "full"
+                return AVAILABILITY_PARTIAL
+    return AVAILABILITY_FULL
 
 
 @router.get("/tv/{tmdb_id}/episodes")
