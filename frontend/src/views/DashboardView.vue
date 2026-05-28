@@ -221,7 +221,7 @@
 
 <script setup>
 defineOptions({ name: 'DashboardView' })
-import { ref, computed, onMounted, onUnmounted, onActivated, onDeactivated, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { GridLayout, GridItem } from 'grid-layout-plus'
 import { ClipboardCheck, Clock, Copy, HardDrive, LayoutGrid, Play, Plus, X } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
@@ -234,6 +234,8 @@ import {
 } from '@/composables/useDashboardLayout'
 import { useDashboardData } from '@/composables/useDashboardData'
 import { useDashboardKeyboardMove } from '@/composables/useDashboardKeyboardMove'
+import { useDashboardParticles } from '@/composables/useDashboardParticles'
+import { useDashboardPolling } from '@/composables/useDashboardPolling'
 import { useMobile } from '@/composables/useMobile'
 
 import MkButton from '@/components/common/MkButton.vue'
@@ -351,133 +353,34 @@ function onDragEnd(id) {
   draggingId = null
 }
 
-// ---- Particles ----
+// ---- Particles + polling (extracted composables) ----
 const dashRef = ref(null)
 const particleCanvas = ref(null)
-let particleRaf = null
-function initParticles() {
-  const canvas = particleCanvas.value
-  const container = dashRef.value
-  if (!canvas || !container) return
-  const ctx = canvas.getContext('2d')
-  const COUNT = 50
-  const particles = []
-  let prevW = 0,
-    prevH = 0
-  function resize() {
-    const newW = container.clientWidth,
-      newH = container.scrollHeight
-    canvas.width = newW
-    canvas.height = newH
-    if (prevW > 0 && prevH > 0) {
-      const sx = newW / prevW,
-        sy = newH / prevH
-      for (const p of particles) {
-        p.x *= sx
-        p.y *= sy
-      }
-    }
-    prevW = newW
-    prevH = newH
-  }
-  resize()
-  const ro = new ResizeObserver(resize)
-  ro.observe(container)
-  for (let i = 0; i < COUNT; i++) {
-    const a = Math.random() * Math.PI * 2
-    const s = 0.1 + Math.random() * 0.25
-    particles.push({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      r: 1 + Math.random() * 2,
-      dx: Math.cos(a) * s,
-      dy: Math.sin(a) * s,
-      o: 0.15 + Math.random() * 0.3,
-    })
-  }
-  function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-    for (const p of particles) {
-      p.x += p.dx
-      p.y += p.dy
-      if (p.x < -10) p.x = canvas.width + 10
-      if (p.x > canvas.width + 10) p.x = -10
-      if (p.y < -10) p.y = canvas.height + 10
-      if (p.y > canvas.height + 10) p.y = -10
-      ctx.beginPath()
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
-      ctx.fillStyle = `rgba(139,132,255,${p.o})`
-      ctx.fill()
-    }
-    particleRaf = requestAnimationFrame(draw)
-  }
-  draw()
-  return () => {
-    ro.disconnect()
-    if (particleRaf) cancelAnimationFrame(particleRaf)
-  }
-}
-let cleanupParticles = null
+useDashboardParticles(dashRef, particleCanvas, particlesEnabled)
 
-// ---- Lifecycle / polling ----
+const { start: startPolling } = useDashboardPolling({
+  loadSeenAlerts,
+  loadSystemStats,
+  loadServices,
+  loadSessions,
+  loadLogs,
+  loadAlerts,
+  loadDuplicates,
+  loadWatchlist,
+  loadMediaStats,
+  loadLeaderboard,
+})
+
+// ---- NowPlaying fullscreen ----
 const npVisible = ref(false)
 const npSession = ref({})
-const timers = []
-let secondaryLoadStarted = false
 
 function openFullscreen(session) {
   npSession.value = session
   npVisible.value = true
 }
 
-function queueDeferredLoad(task) {
-  if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
-    window.requestIdleCallback(
-      () => {
-        void task()
-      },
-      { timeout: 1500 },
-    )
-    return
-  }
-  window.setTimeout(() => {
-    void task()
-  }, 0)
-}
-
-function startPrimaryPolling() {
-  timers.push(
-    setInterval(loadSystemStats, 10000),
-    setInterval(loadSessions, 15000),
-    setInterval(loadServices, 60000),
-  )
-}
-
-function startSecondaryPolling() {
-  timers.push(
-    setInterval(loadLogs, 15000),
-    setInterval(loadAlerts, 30000),
-    setInterval(loadMediaStats, 60000),
-    setInterval(loadWatchlist, 30000),
-  )
-}
-
-function scheduleSecondaryLoad() {
-  if (secondaryLoadStarted) return
-  secondaryLoadStarted = true
-  queueDeferredLoad(async () => {
-    await Promise.all([
-      loadLogs(),
-      loadAlerts(),
-      loadDuplicates(),
-      loadWatchlist(),
-      loadMediaStats(),
-      loadLeaderboard(),
-    ])
-    startSecondaryPolling()
-  })
-}
-
+// ---- Edit mode bridge ----
 function handleDashboardEdit() {
   // Mobile has its own reorder flow handled by MobileDashboard; here we
   // only open the desktop grid edit mode.
@@ -486,26 +389,12 @@ function handleDashboardEdit() {
 }
 
 onMounted(async () => {
-  await nextTick()
-  if (particlesEnabled.value) cleanupParticles = initParticles()
   await loadLayout()
-  await Promise.all([loadSeenAlerts(), loadSystemStats(), loadServices(), loadSessions()])
-  startPrimaryPolling()
-  scheduleSecondaryLoad()
+  await startPolling()
   window.addEventListener(DASHBOARD_EDIT_EVENT, handleDashboardEdit)
 })
-onActivated(() => {
-  if (!cleanupParticles && particlesEnabled.value) cleanupParticles = initParticles()
-})
-onDeactivated(() => {
-  if (cleanupParticles) {
-    cleanupParticles()
-    cleanupParticles = null
-  }
-})
+
 onUnmounted(() => {
-  timers.forEach(clearInterval)
-  if (cleanupParticles) cleanupParticles()
   window.removeEventListener(DASHBOARD_EDIT_EVENT, handleDashboardEdit)
 })
 </script>
