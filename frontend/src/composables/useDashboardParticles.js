@@ -10,7 +10,6 @@
 import { nextTick, onActivated, onDeactivated, onMounted, onUnmounted } from 'vue'
 
 const PARTICLE_COUNT = 50
-const PARTICLE_FILL_RGB = '139,132,255'
 
 export function useDashboardParticles(containerRef, canvasRef, enabledRef) {
   let cleanup = null
@@ -21,6 +20,11 @@ export function useDashboardParticles(containerRef, canvasRef, enabledRef) {
     if (!canvas || !container) return null
 
     const ctx = canvas.getContext('2d')
+    // Read --accent-rgb at init time so the particle colour follows
+    // the active admin palette instead of a baked brand purple. The
+    // value is captured once per init; if the operator changes the
+    // accent at runtime, the canvas refreshes on the next mount cycle.
+    const accentRgb = getComputedStyle(container).getPropertyValue('--accent-rgb').trim()
     const particles = []
     let raf = null
     let prevW = 0
@@ -73,7 +77,7 @@ export function useDashboardParticles(containerRef, canvasRef, enabledRef) {
         if (p.y > canvas.height + 10) p.y = -10
         ctx.beginPath()
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(${PARTICLE_FILL_RGB},${p.o})`
+        ctx.fillStyle = `rgba(${accentRgb},${p.o})`
         ctx.fill()
       }
       raf = requestAnimationFrame(draw)
