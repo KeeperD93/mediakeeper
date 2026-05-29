@@ -16,6 +16,7 @@ callers can either ``raise`` the lot or merely log them.
 from __future__ import annotations
 
 import json
+import logging
 import re
 from pathlib import Path
 
@@ -29,6 +30,8 @@ from services.portal.achievement_defs import (
 )
 from services.portal.achievement_defs_constants import PLACEHOLDER_IDS
 from services.portal.achievement_defs_secrets import SECRET_DEFS
+
+logger = logging.getLogger("mediakeeper.portal.achievements")
 
 # ─── Source-of-truth: the condition_types each check pass implements. ───
 #
@@ -197,7 +200,14 @@ def _load_portal_achievements_keys(path: Path) -> set[str] | None:
     """
     if not path.exists():
         return None
-    data = json.loads(path.read_text(encoding="utf-8"))
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError) as exc:
+        logger.warning(
+            "[ACHIEVEMENTS] Locale file unreadable, skipping i18n check: %s (%s)",
+            path, exc,
+        )
+        return None
     return set((data.get("portal", {}).get("achievements", {}) or {}).keys())
 
 
@@ -278,7 +288,13 @@ def _has_predecessor(target_id: str, by_id: dict[str, dict]) -> bool:
 
 def _find_chain_root(any_id: str, by_id: dict[str, dict]) -> str:
     cur = any_id
+    # visited guards against an accidental next_tier_id cycle, which would
+    # otherwise spin this walk forever and hang the boot validator.
+    visited: set[str] = set()
     while True:
+        if cur in visited:
+            return cur
+        visited.add(cur)
         prev = next(
             (d["id"] for d in by_id.values() if d.get("next_tier_id") == cur),
             None,
@@ -291,7 +307,10 @@ def _find_chain_root(any_id: str, by_id: dict[str, dict]) -> str:
 def _walk_chain_thresholds(root_id: str, by_id: dict[str, dict]) -> list[int]:
     thresholds: list[int] = []
     cur: str | None = root_id
-    while cur is not None and cur in by_id:
+    # Same cycle guard as _find_chain_root: stop if next_tier_id loops back.
+    visited: set[str] = set()
+    while cur is not None and cur in by_id and cur not in visited:
+        visited.add(cur)
         thresholds.append(int(by_id[cur].get("threshold") or 0))
         cur = by_id[cur].get("next_tier_id")
     return thresholds
