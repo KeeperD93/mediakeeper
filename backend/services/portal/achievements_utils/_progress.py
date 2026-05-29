@@ -1,4 +1,4 @@
-"""Progression/unlock + hygiene des lines user_achievements."""
+"""Progression/unlock + hygiene of user_achievements rows."""
 import logging
 from datetime import datetime, timezone
 
@@ -6,6 +6,7 @@ from sqlalchemy import desc, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.achievement import Achievement, UserAchievement
+from services.portal.xp import grant_xp
 
 logger = logging.getLogger("mediakeeper.portal.achievements")
 
@@ -64,7 +65,7 @@ async def update_progress(
         ua.unlocked = True
         ua.unlocked_at = datetime.now(timezone.utc)
         newly_unlocked = True
-        logger.info(f"[ACHIEVEMENT] user_id={user_id} unlocked '{achievement_id}'")
+        logger.info("[ACHIEVEMENT] user_id=%s unlocked '%s'", user_id, achievement_id)
 
     await db.flush()
 
@@ -83,7 +84,6 @@ async def update_progress(
 async def _grant_xp(
     db: AsyncSession, user_id: int, achievement_id: str, amount: int
 ):
-    from services.portal.xp import grant_xp
     await grant_xp(
         db,
         user_id,
@@ -169,4 +169,4 @@ async def _enforce_user_achievement_uniqueness(db: AsyncSession) -> None:
             "ON user_achievements (user_id, achievement_id)"
         ))
     except Exception as e:
-        logger.debug(f"[ACHIEVEMENTS] uniqueness enforcement skipped: {e}")
+        logger.debug("[ACHIEVEMENTS] uniqueness enforcement skipped: %s", e)

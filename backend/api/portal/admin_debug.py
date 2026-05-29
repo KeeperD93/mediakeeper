@@ -16,7 +16,11 @@ from core.database import get_db
 from models.portal.profile import UserProfile
 from models.user import User
 from services.portal import admin_debug
-from services.portal.achievement_defs import ACHIEVEMENT_DEFS
+from services.portal.achievement_defs import (
+    ACHIEVEMENT_DEFS,
+    META_TARGET_CATEGORY,
+    achievements_for_category,
+)
 
 
 router = APIRouter(prefix="/admin/debug", tags=["portal-admin-debug"])
@@ -81,7 +85,19 @@ async def debug_list_achievements(
 ):
     """Flat catalogue of every achievement so the picker can list them
     grouped by category. Reads the in-memory defs (not the DB) so this
-    works even before ``check_all_achievements`` has stamped progress."""
+    works even before ``check_all_achievements`` has stamped progress.
+
+    Meta thresholds are computed from the current category contents (the
+    same rule ``seed_achievements`` applies to the DB row) so the picker
+    shows the real unlock count rather than the META_DEFS placeholder.
+    """
+    def _threshold(d: dict) -> int:
+        if d.get("condition_type") == "meta":
+            target = META_TARGET_CATEGORY.get(d["id"])
+            if target:
+                return max(1, len(achievements_for_category(target)))
+        return d.get("threshold", 1)
+
     return {
         "items": [
             {
@@ -91,7 +107,7 @@ async def debug_list_achievements(
                 "category": d.get("category", "misc"),
                 "tier": d.get("tier", 1),
                 "secret": bool(d.get("secret")),
-                "threshold": d.get("threshold", 1),
+                "threshold": _threshold(d),
                 "xp_reward": d.get("xp_reward", 0),
             }
             for d in ACHIEVEMENT_DEFS
