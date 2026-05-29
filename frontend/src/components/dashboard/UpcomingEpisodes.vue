@@ -17,7 +17,7 @@
     <div v-else class="uc-viewport" @mouseenter="paused = true" @mouseleave="paused = false">
       <div class="uc-track" :class="{ 'uc-paused': paused }" :style="trackStyle">
         <a
-          v-for="(ep, i) in loopedEpisodes"
+          v-for="(ep, i) in displayEpisodes"
           :key="'ep-' + i"
           class="uc-card"
           :href="tmdbUrl(ep)"
@@ -72,6 +72,20 @@ const loopedEpisodes = computed(() => {
   return [...episodes.value, ...episodes.value]
 })
 
+// Honour the OS "reduce motion" preference: the auto-scroll marquee is
+// swapped for a manual horizontal scroller (see the reduced-motion CSS), and
+// we render the single episode set instead of the doubled marquee set so
+// series are not listed twice when the user scrolls the strip by hand.
+const prefersReducedMotion = ref(false)
+let _motionQuery = null
+function _syncMotionPref(e) {
+  prefersReducedMotion.value = e.matches
+}
+
+const displayEpisodes = computed(() =>
+  prefersReducedMotion.value ? episodes.value : loopedEpisodes.value
+)
+
 // Total width of one set of cards
 const setWidth = computed(() => episodes.value.length * (CARD_W + GAP))
 
@@ -98,6 +112,11 @@ async function fetchData() {
 }
 
 onMounted(async () => {
+  if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+    _motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    prefersReducedMotion.value = _motionQuery.matches
+    _motionQuery.addEventListener('change', _syncMotionPref)
+  }
   const ok = await fetchData()
   if (!ok) {
     let attempts = 0
@@ -113,6 +132,7 @@ onMounted(async () => {
 })
 onUnmounted(() => {
   if (retryTimer) clearInterval(retryTimer)
+  _motionQuery?.removeEventListener('change', _syncMotionPref)
 })
 
 function tmdbUrl(ep) {
@@ -414,9 +434,25 @@ function dateClass(dateStr) {
     animation: none;
   }
   .uc-track {
-    /* Stop the auto-scrolling carousel — readers can still browse the
-       list by scrolling the page (overflow: visible inherited). */
+    /* Stop the auto-scrolling marquee. The viewport below becomes a manual
+       horizontal scroller so every upcoming episode stays reachable
+       without any auto-motion. */
     animation: none;
+  }
+  .uc-viewport {
+    /* Reduced-motion fallback: no marquee, but the strip must stay fully
+       browsable. Turn the clipped viewport into a touch-friendly
+       horizontal scroller and drop the edge-fade mask (it would hide the
+       cards near the edges and the scroll affordance). */
+    overflow: auto hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: var(--space-4);
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .uc-card {
+    scroll-snap-align: start;
   }
   .uc-card,
   .uc-poster img {

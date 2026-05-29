@@ -25,6 +25,8 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Menu latéral — cliquer un module ouvre son sous-menu sans quitter la page.
 
 ### Fixed
+- Tableau de bord — carrousel des sorties scrollable à la main en animations réduites (était figé et tronqué).
+- Admin — journal d'audit utilisateur : libellés d'action lisibles (certaines actions affichaient la clé brute).
 - Portail — pastille « Dispo » stable sur les ajouts Emby récents (plus de clignotement).
 - Stats — sessions et actifs 24h : photo + anneau de niveau (parité classement).
 - Stats — silhouette d'avatar correctement centrée dans l'anneau de niveau.
