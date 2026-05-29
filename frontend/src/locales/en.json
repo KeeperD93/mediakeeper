@@ -2132,26 +2132,28 @@
         "create": "Create account"
       },
       "audit": {
-        "user.created": "Account created",
-        "user.imported": "Imported from Emby",
-        "user.force_logout": "Sessions invalidated",
-        "user.identity_updated": "Identity updated",
-        "user.role_changed": "Role changed",
-        "user.permissions_changed": "Permissions changed",
-        "user.access_window_set": "Access window updated",
-        "user.access_extended": "Access extended",
-        "user.activated": "Account activated",
-        "user.deactivated": "Account deactivated",
-        "user.emby_enabled": "Emby access enabled",
-        "user.emby_disabled": "Emby access disabled",
-        "user.password_reset": "Password reset",
-        "user.notes_updated": "Admin notes updated",
-        "user.tags_updated": "Tags updated",
-        "user.notification_sent": "Notification sent",
-        "user.rgpd_export": "GDPR export",
-        "user.soft_deleted": "Account soft-deleted",
-        "user.restored": "Account restored",
-        "user.bulk_action": "Bulk action"
+        "user": {
+          "created": "Account created",
+          "imported": "Imported from Emby",
+          "force_logout": "Sessions invalidated",
+          "identity_updated": "Identity updated",
+          "role_changed": "Role changed",
+          "permissions_changed": "Permissions changed",
+          "access_window_set": "Access window updated",
+          "access_extended": "Access extended",
+          "activated": "Account activated",
+          "deactivated": "Account deactivated",
+          "emby_enabled": "Emby access enabled",
+          "emby_disabled": "Emby access disabled",
+          "password_reset": "Password reset",
+          "notes_updated": "Admin notes updated",
+          "tags_updated": "Tags updated",
+          "notification_sent": "Notification sent",
+          "rgpd_export": "GDPR export",
+          "soft_deleted": "Account soft-deleted",
+          "restored": "Account restored",
+          "bulk_action": "Bulk action"
+        }
       }
     }
   },

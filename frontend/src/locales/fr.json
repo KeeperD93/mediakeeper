@@ -2132,26 +2132,28 @@
         "create": "Créer le compte"
       },
       "audit": {
-        "user.created": "Compte créé",
-        "user.imported": "Importé depuis Emby",
-        "user.force_logout": "Sessions invalidées",
-        "user.identity_updated": "Identité mise à jour",
-        "user.role_changed": "Rôle modifié",
-        "user.permissions_changed": "Permissions modifiées",
-        "user.access_window_set": "Période d'accès mise à jour",
-        "user.access_extended": "Accès prolongé",
-        "user.activated": "Compte activé",
-        "user.deactivated": "Compte désactivé",
-        "user.emby_enabled": "Accès Emby activé",
-        "user.emby_disabled": "Accès Emby désactivé",
-        "user.password_reset": "Mot de passe réinitialisé",
-        "user.notes_updated": "Notes admin mises à jour",
-        "user.tags_updated": "Tags mis à jour",
-        "user.notification_sent": "Notification envoyée",
-        "user.rgpd_export": "Export RGPD",
-        "user.soft_deleted": "Compte supprimé (soft)",
-        "user.restored": "Compte restauré",
-        "user.bulk_action": "Action groupée"
+        "user": {
+          "created": "Compte créé",
+          "imported": "Importé depuis Emby",
+          "force_logout": "Sessions invalidées",
+          "identity_updated": "Identité mise à jour",
+          "role_changed": "Rôle modifié",
+          "permissions_changed": "Permissions modifiées",
+          "access_window_set": "Période d'accès mise à jour",
+          "access_extended": "Accès prolongé",
+          "activated": "Compte activé",
+          "deactivated": "Compte désactivé",
+          "emby_enabled": "Accès Emby activé",
+          "emby_disabled": "Accès Emby désactivé",
+          "password_reset": "Mot de passe réinitialisé",
+          "notes_updated": "Notes admin mises à jour",
+          "tags_updated": "Tags mis à jour",
+          "notification_sent": "Notification envoyée",
+          "rgpd_export": "Export RGPD",
+          "soft_deleted": "Compte supprimé (soft)",
+          "restored": "Compte restauré",
+          "bulk_action": "Action groupée"
+        }
       }
     }
   },
