@@ -16,6 +16,7 @@ from services.opensubtitles import (
     download_subtitle,
     get_existing_subtitles,
     remove_stream,
+    remove_streams_batch,
     search_subtitles,
 )
 from services.path_config import validate_path_in_roots
@@ -140,7 +141,7 @@ async def remove_stream_route(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    """Supprime un stream audio ou sous-titre embedded via ffmpeg remux."""
+    """Delete one embedded audio/subtitle stream via ffmpeg remux."""
     return await remove_stream(db, req.item_id, req.stream_index)
 
 
@@ -150,6 +151,5 @@ async def remove_streams_batch_route(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    """Supprime several streams en un seul remux ffmpeg."""
-    from services.opensubtitles import remove_streams_batch
+    """Delete several embedded streams in a single ffmpeg remux."""
     return await remove_streams_batch(db, req.item_id, req.stream_indices)

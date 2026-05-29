@@ -39,11 +39,11 @@ def _reset_config_cache() -> None:
     _emby_config_cache_ts = 0
 
 
-async def _get_emby_config(db: AsyncSession):
-    """
-    Return (url, api_key) si la source active est Emby/Jellyfin,
-    None si none source active ou si c'est Plex.
-    Result cached in memory for 30s (avoids ~7 SELECT/page).
+async def _get_emby_config(db: AsyncSession) -> tuple[str, str] | None:
+    """Return ``(url, api_key)`` when the active media source is Emby/Jellyfin,
+    or ``None`` when no source is active (or it is Plex).
+
+    Result cached in memory for 30s (avoids ~7 SELECT per page).
     """
     global _emby_config_cache, _emby_config_cache_ts
     now = time.monotonic()
