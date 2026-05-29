@@ -1,4 +1,4 @@
-import { apiFetch, fileMetaModal, thumbnailCache } from './mediaManagerState'
+import { apiFetch, fileMetaModal } from './mediaManagerState'
 import { _parseFileName } from './mediaManagerHelpers'
 import { FILE_TYPE } from '@/constants/mediaManager'
 
@@ -32,23 +32,4 @@ export async function openFileMeta(f) {
 }
 export function closeFileMeta() {
   fileMetaModal.value = { show: false, file: null, loading: false, data: null, parsed: null }
-}
-
-// ─── THUMBNAIL EMBY ───
-export async function loadThumbnail(filePath) {
-  if (thumbnailCache.value[filePath] !== undefined) return thumbnailCache.value[filePath]
-  thumbnailCache.value = { ...thumbnailCache.value, [filePath]: 'loading' }
-  try {
-    const res = await apiFetch(`/api/emby/thumbnail?path=${encodeURIComponent(filePath)}`)
-    if (res?.ok) {
-      const data = await res.json()
-      const url = data?.url || null
-      thumbnailCache.value = { ...thumbnailCache.value, [filePath]: url }
-      return url
-    }
-  } catch {
-    /* silent: thumbnail fallback handled below */
-  }
-  thumbnailCache.value = { ...thumbnailCache.value, [filePath]: null }
-  return null
 }

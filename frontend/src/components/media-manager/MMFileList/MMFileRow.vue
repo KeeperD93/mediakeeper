@@ -15,8 +15,6 @@
     @dragover.prevent="f.type === FILE_TYPE.FOLDER && $emit('drag-over')"
     @dragleave="$emit('drag-leave')"
     @drop.prevent="f.type === FILE_TYPE.FOLDER && $emit('drop')"
-    @mouseenter="$emit('hover', $event)"
-    @mouseleave="$emit('hover-end')"
   >
     <div class="mm-check">
       <Check v-if="isChecked" :stroke-width="3" />
@@ -117,8 +115,6 @@ defineEmits([
   'drag-over',
   'drag-leave',
   'drop',
-  'hover',
-  'hover-end',
   'quality-enter',
   'quality-leave',
   'open-meta',

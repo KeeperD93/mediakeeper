@@ -2098,20 +2098,6 @@
   padding: 0 2px;
   text-decoration: line-through;
 }
-.mm-thumb-hover {
-  position: fixed;
-  z-index: 9999;
-  pointer-events: none;
-  border-radius: var(--radius-btn);
-  overflow: hidden;
-  box-shadow: 0 8px 32px rgb(0, 0, 0, 0.5);
-  border: 0.5px solid rgb(var(--accent-rgb), 0.2);
-}
-.mm-thumb-hover img {
-  width: 160px;
-  height: auto;
-  display: block;
-}
 .mm-quality-popup {
   position: fixed;
   z-index: 9999;

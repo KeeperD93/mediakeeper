@@ -179,9 +179,6 @@ export const showMoveConflictModal = ref(false)
 export const pendingMoveFiles = ref([])
 export const pendingMoveDest = ref('')
 
-// Thumbnails cache
-export const thumbnailCache = ref({})
-
 // Threshold new file (24h)
 export const newFileThresholdMs = 24 * 60 * 60 * 1000
 

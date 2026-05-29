@@ -64,7 +64,6 @@ import {
   multiCatMode,
   extractionRunning,
   fileRenameStatus,
-  thumbnailCache,
   moveConflicts,
   showMoveConflictModal,
   fileMetaModal,
@@ -193,7 +192,7 @@ import {
   execFolderOrganize,
   execRenameAllFolders,
 } from './mediaManagerFolderModal'
-import { openFileMeta, closeFileMeta, loadThumbnail } from './mediaManagerMeta'
+import { openFileMeta, closeFileMeta } from './mediaManagerMeta'
 import {
   saveAnomalyRules,
   issuesCount,
@@ -378,8 +377,6 @@ export function useMediaManager() {
     isFileNew,
     newFilesCount,
     fileRenameStatus,
-    thumbnailCache,
-    loadThumbnail,
     moveConflicts,
     showMoveConflictModal,
     execMoveWithOverwrite,
