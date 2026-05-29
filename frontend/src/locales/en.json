@@ -187,6 +187,7 @@
     "preview": "Preview",
     "add": "Add",
     "remove": "Remove",
+    "select": "Select",
     "selectAll": "Select all",
     "searching": "Searching…",
     "notAvailable": "Coming soon",
@@ -2152,7 +2153,10 @@
           "rgpd_export": "GDPR export",
           "soft_deleted": "Account soft-deleted",
           "restored": "Account restored",
-          "bulk_action": "Bulk action"
+          "bulk_action": "Bulk action",
+          "display_name_reset": "Display name reset",
+          "access_expired": "Access expired",
+          "deletion_request_cancelled": "Deletion request cancelled"
         }
       }
     }

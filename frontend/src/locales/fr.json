@@ -187,6 +187,7 @@
     "preview": "Aperçu",
     "add": "Ajouter",
     "remove": "Retirer",
+    "select": "Sélectionner",
     "selectAll": "Tout sélectionner",
     "searching": "Recherche en cours…",
     "noResultsFor": "Aucun résultat pour \"{query}\"",
@@ -2152,7 +2153,10 @@
           "rgpd_export": "Export RGPD",
           "soft_deleted": "Compte supprimé (soft)",
           "restored": "Compte restauré",
-          "bulk_action": "Action groupée"
+          "bulk_action": "Action groupée",
+          "display_name_reset": "Nom d'affichage réinitialisé",
+          "access_expired": "Accès expiré",
+          "deletion_request_cancelled": "Demande de suppression annulée"
         }
       }
     }
