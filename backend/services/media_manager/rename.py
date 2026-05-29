@@ -14,6 +14,13 @@ from .categories import MEDIA_FOLDERS
 
 logger = logging.getLogger("mediakeeper.media_manager")
 
+# Serialise rename mutations: the dest-existence check and the os-level rename
+# must be atomic relative to each other, otherwise two concurrent renames
+# targeting the same destination could race between the check and the rename
+# (TOCTOU, CWE-367) and silently overwrite. Renames are admin-only and rare,
+# so a single global lock is simpler and safer than a per-directory registry.
+_rename_lock = asyncio.Lock()
+
 
 async def _merge_folder_into(src_path: str, dest_path: str) -> dict:
     """Merge src into dest, then delete src — only if every move succeeded.
@@ -137,36 +144,37 @@ async def apply_rename(old_path: str, new_name: str):
         return {"success": True, "new_path": old_path, "noop": True}
 
     try:
-        if dest.exists():
-            # Even if dest.exists() is true, reject the merge when
-            # dest points to the same inode as src.
-            try:
-                if dest.samefile(src):
-                    logger.warning(
-                        "[RENAME] Refused self-merge — dest is the same file as src: %s",
-                        old_path,
-                    )
-                    return {"error": "self_merge_refused"}
-            except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
-                pass
+        async with _rename_lock:
+            if dest.exists():
+                # Even if dest.exists() is true, reject the merge when
+                # dest points to the same inode as src.
+                try:
+                    if dest.samefile(src):
+                        logger.warning(
+                            "[RENAME] Refused self-merge — dest is the same file as src: %s",
+                            old_path,
+                        )
+                        return {"error": "self_merge_refused"}
+                except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
+                    pass
 
-            if src.is_dir() and dest.is_dir():
-                merge_result = await _merge_folder_into(str(src), str(dest))
-                if merge_result.get("success"):
-                    logger.info("[RENAME] Merge succeeded: %s → %s", old_path, dest)
-                    return {"success": True, "new_path": str(dest), "merged": True}
+                if src.is_dir() and dest.is_dir():
+                    merge_result = await _merge_folder_into(str(src), str(dest))
+                    if merge_result.get("success"):
+                        logger.info("[RENAME] Merge succeeded: %s → %s", old_path, dest)
+                        return {"success": True, "new_path": str(dest), "merged": True}
+                    else:
+                        logger.error(
+                            "[RENAME] Destination exists, merge failed: old=%s new=%s sub_error=%s",
+                            old_path, new_name, merge_result.get("error"),
+                        )
+                        return {"error": "destination_exists_merge_failed", "merge_error": merge_result.get("error")}
                 else:
-                    logger.error(
-                        "[RENAME] Destination exists, merge failed: old=%s new=%s sub_error=%s",
-                        old_path, new_name, merge_result.get("error"),
-                    )
-                    return {"error": "destination_exists_merge_failed", "merge_error": merge_result.get("error")}
-            else:
-                logger.warning("[RENAME] Destination exists: old=%s new=%s", old_path, new_name)
-                return {"error": "destination_exists"}
+                    logger.warning("[RENAME] Destination exists: old=%s new=%s", old_path, new_name)
+                    return {"error": "destination_exists"}
 
-        await asyncio.to_thread(src.rename, dest)
-        return {"success": True, "new_path": str(dest)}
+            await asyncio.to_thread(src.rename, dest)
+            return {"success": True, "new_path": str(dest)}
 
     except Exception:
         logger.exception("[RENAME] Failed: old=%s new=%s", old_path, new_name)
