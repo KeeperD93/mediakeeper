@@ -90,7 +90,7 @@ import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useApi } from '@/composables/useApi'
 import { useStats } from '@/composables/useStats'
-import { Ban, Plus, RefreshCw, Upload } from 'lucide-vue-next'
+import { Ban, Plus, RefreshCw, Trash2, Upload } from 'lucide-vue-next'
 import MkButton from '@/components/common/MkButton.vue'
 import { useConfirm } from '@/composables/useConfirm'
 
