@@ -1,8 +1,7 @@
 import os
 from pathlib import Path
 from urllib.parse import urlparse, quote
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 # Connection URL construction.
 # Priority:
@@ -47,9 +46,8 @@ else:
 
 engine = create_async_engine(DATABASE_URL, **_engine_kwargs)
 
-AsyncSessionLocal = sessionmaker(
-    bind=engine,
-    class_=AsyncSession,
+AsyncSessionLocal = async_sessionmaker(
+    engine,
     expire_on_commit=False,
 )
 
