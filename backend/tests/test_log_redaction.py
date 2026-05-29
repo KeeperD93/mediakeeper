@@ -12,9 +12,7 @@ from core.log_redaction import (
 )
 
 
-# ---------------------------------------------------------------------------
 # Helpers
-# ---------------------------------------------------------------------------
 
 def _make_record(message: str, *args) -> logging.LogRecord:
     return logging.LogRecord(
@@ -34,9 +32,7 @@ def _redacted(message: str, *args) -> str:
     return record.getMessage()
 
 
-# ---------------------------------------------------------------------------
 # Patterns — positive matches
-# ---------------------------------------------------------------------------
 
 @pytest.mark.parametrize(
     "raw,expected_substring",
@@ -148,9 +144,7 @@ def test_redacts_inside_lazy_format_args():
     assert REDACTED in record.getMessage()
 
 
-# ---------------------------------------------------------------------------
 # Patterns — negative cases (false-positive guards)
-# ---------------------------------------------------------------------------
 
 @pytest.mark.parametrize(
     "raw",
@@ -179,9 +173,7 @@ def test_short_bearer_value_not_redacted():
     assert _redacted(raw) == raw
 
 
-# ---------------------------------------------------------------------------
 # install_log_redactor — handler-level wiring
-# ---------------------------------------------------------------------------
 
 def test_install_log_redactor_attaches_to_existing_handlers():
     root = logging.getLogger()
@@ -229,9 +221,7 @@ def test_filter_does_not_swallow_records_with_format_errors():
     assert LogRedactor().filter(record) is True
 
 
-# ---------------------------------------------------------------------------
 # safe_request_url
-# ---------------------------------------------------------------------------
 
 def _fake_request(url_obj):
     return SimpleNamespace(url=url_obj)
