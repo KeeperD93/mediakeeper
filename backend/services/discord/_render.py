@@ -7,9 +7,11 @@ from datetime import datetime, timezone
 logger = logging.getLogger("mediakeeper.notifications.discord")
 
 
-def _hex_to_int(color_val) -> int:
+def _hex_to_int(color_val: int | str | None) -> int:
     """Convert a hex color (#RRGGBB) or int to a Discord integer."""
-    if isinstance(color_val, int):
+    # bool is a subclass of int — exclude it so a stray ``color: true`` in
+    # an admin config falls back to the default instead of rendering as 1.
+    if isinstance(color_val, int) and not isinstance(color_val, bool):
         return color_val
     if isinstance(color_val, str) and color_val.startswith("#"):
         try:
@@ -70,11 +72,13 @@ def _apply_vars(tmpl: str, vars_dict: dict) -> str:
 
 # Mapping FR → EN for variable names
 # Allow users to write <title> or <titre> interchangeably
+# Self-referential entries (key == value, e.g. "genres": "genres") are
+# omitted on purpose: _add_aliases skips them anyway since the key is already
+# present, so they were dead weight.
 VAR_ALIASES = {
     "titre":          "title",
     "annee":          "year",
     "synopsis":       "overview",
-    "genres":         "genres",
     "note":           "rating",
     "duree":          "runtime",
     "nb_saisons":     "seasons",
@@ -83,10 +87,6 @@ VAR_ALIASES = {
     "saison":         "season",
     "nb_episodes":    "episodes",
     "titre_episode":  "episode_title",
-    "episode":        "episode",
-    "code":           "code",
-    "tmdb":           "tmdb",
-    "imgur":           "imgur",
     "nom_serveur":    "server_name",
     "heure":          "time",
     "titre_media":    "media_title",
@@ -98,17 +98,13 @@ VAR_ALIASES = {
     "utilisateur":    "user",
     "titre_demande":  "request_title",
     "type_media":     "media_type",
-    "date":           "date",
     "approuve_par":   "approved_by",
     "dispo":          "available",
-    "total":          "total",
     "raison":         "reason",
     "type_probleme":  "issue_type",
-    "description":    "description",
     "commentaire":    "comment",
     "resolu_par":     "resolved_by",
     "type_alerte":    "alert_type",
-    "message":        "message",
     "severite":       "severity",
 }
 # Reverse mapping EN → FR
