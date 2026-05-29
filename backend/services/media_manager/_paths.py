@@ -1,4 +1,4 @@
-"""Validation des paths et assainissement des noms."""
+"""Path validation and name sanitisation."""
 import os
 import re
 from pathlib import Path
@@ -39,7 +39,7 @@ def _media_roots() -> list[Path]:
 
 
 def _is_allowed_path(path: str) -> bool:
-    """Check qu'un path est sous un folder media allowed et without traversal.
+    """Check that a path lives under an allowed media folder without traversal.
 
     Also rejects anything that resolves into the backup zone, even when the
     backup directory legitimately lives inside a media root: media-manager
@@ -99,7 +99,7 @@ def _ensure_within_media_roots(path: str) -> Path | None:
 
 
 def _validate_path(path: str) -> str | None:
-    """Valide un path. Return un message d'error ou None si valid.
+    """Validate a path. Return an error code or None if valid.
 
     All ``path_outside_configured_zones`` / ``invalid_path`` /
     ``no_roots_configured`` outcomes — and any path that lands in the backup
@@ -122,7 +122,7 @@ def _validate_path(path: str) -> str | None:
 
 
 def _sanitize_name(name: str) -> str:
-    """Assainit un nom de file/folder.
+    """Sanitise a file/folder name.
 
     Linear-time rewrite of the previous ``re.sub(r'\\s*:\\s*', ...)`` +
     ``re.sub(r'\\s{2,}', ...)`` combo, which CodeQL flagged as
@@ -141,14 +141,15 @@ def _sanitize_name(name: str) -> str:
 
 
 def _validate_name(name: str) -> str | None:
-    """Valide un nom de file. Return un message d'error ou None."""
-    if not name or not name.strip():
+    """Validate a file name. Return an error code or None if valid."""
+    stripped = name.strip() if name else ""
+    if not stripped:
         return "empty_name"
-    # Path traversal : seul le segment exact ".." est dangereux comme
-    # composant de chemin. Autoriser les "..." dans les titres légitimes
-    # (ex. "Fontaine je ne boirai pas...mkv").
+    # Path traversal: only the exact ".." segment is dangerous as a path
+    # component. Legitimate titles may contain "..." (e.g. a movie title
+    # ending in an ellipsis, "Fontaine je ne boirai pas...mkv").
     if '/' in name or '\\' in name:
         return "name_not_allowed"
-    if name.strip() in ('.', '..'):
+    if stripped in ('.', '..'):
         return "name_not_allowed"
     return None

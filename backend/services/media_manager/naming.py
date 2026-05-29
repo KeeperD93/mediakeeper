@@ -1,4 +1,4 @@
-"""Construction et assainissement des noms de files / folders."""
+"""File / folder name construction and sanitisation."""
 import re
 
 
@@ -27,6 +27,11 @@ def sanitize_filename(name: str) -> str:
 
 
 def build_movie_name(title: str, year: str, quality: str = "", ext: str = "") -> str:
+    """Build a movie filename: ``Title (year) [quality].ext``.
+
+    ``year``, ``quality`` and ``ext`` are optional and omitted when empty.
+    The result is run through ``sanitize_filename``.
+    """
     name = f"{title} ({year})" if year else title
     if quality:
         name += f" [{quality}]"
@@ -36,15 +41,26 @@ def build_movie_name(title: str, year: str, quality: str = "", ext: str = "") ->
 
 
 def build_series_folder_name(title: str, year: str = "") -> str:
+    """Build a series folder name: ``Title (year)`` (year omitted when empty)."""
     name = f"{title} ({year})" if year else title
     return sanitize_filename(name)
 
 
 def build_season_folder_name(season_number: int) -> str:
+    """Build a season folder name: ``Saison NN`` (zero-padded to 2 digits)."""
     return f"Saison {season_number:02d}"
 
 
 def build_episode_name(series: str, season: int, episode: int, title: str, ext: str = "") -> str:
+    """Build an episode filename: ``Series - SssEee - Title.ext``.
+
+    ``season`` and ``episode`` are zero-padded to 2 digits and must be
+    non-negative; a negative value raises ``ValueError``. This is defence
+    in depth — the HTTP boundary already enforces ``ge=0`` via the Pydantic
+    schema, but the helper can also be called from scripts/tests.
+    """
+    if season < 0 or episode < 0:
+        raise ValueError("season and episode must be non-negative")
     name = f"{series} - S{season:02d}E{episode:02d} - {title}"
     if ext:
         name += ext

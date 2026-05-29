@@ -18,11 +18,12 @@ def _same_device(p1: Path, p2: Path) -> bool:
 
 
 def _sync_move(src: str, target: str) -> None:
-    """
-    Move portable :
-    - Same device -> os.replace(): atomic, instant (simple kernel-level rename)
-    - Different devices -> shutil.move() in a thread (physical copy unavoidable)
-    os.replace() functionne sur Linux, macOS et Windows.
+    """Portable move.
+
+    - Same device -> ``os.replace()``: atomic, instant (kernel-level rename).
+    - Different devices -> ``shutil.move()`` (physical copy unavoidable).
+
+    ``os.replace()`` works on Linux, macOS and Windows.
     """
     src_p = Path(src)
     target_p = Path(target)
@@ -36,36 +37,36 @@ def _sync_move(src: str, target: str) -> None:
 
 
 async def _fast_move(src: str, target: str) -> None:
-    """Move asynchrone — non-blocking for uvicorn."""
+    """Async move — non-blocking for uvicorn."""
     await asyncio.to_thread(_sync_move, src, target)
 
 
 def _sync_delete(path: Path) -> None:
+    """Portable deletion with read-only permission handling.
+
+    Works on Linux, macOS and Windows.
     """
-    Deletion portable with management des permissions en playback seule.
-    Functionne sur Linux, macOS et Windows.
-    """
-    def _onerror(func, fpath, _exc):
+    def _onexc(func, fpath, _exc):
         try:
-            logger.warning("[DELETE] Permission refused sur %r, attempting chmod", fpath)
+            logger.warning("[DELETE] Permission denied on %r, attempting chmod", fpath)
             os.chmod(fpath, stat.S_IWRITE | stat.S_IREAD)
             func(fpath)
         except Exception as e:
-            raise OSError(f"Impossible de supprimer {fpath} : {e}")
+            raise OSError(f"Unable to delete {fpath}") from e
 
     if path.is_dir():
         logger.debug("[DELETE] rmtree : %r", path)
-        shutil.rmtree(str(path), onerror=_onerror)
+        shutil.rmtree(str(path), onexc=_onexc)
     else:
         logger.debug("[DELETE] unlink : %r", path)
         try:
             path.unlink()
         except PermissionError:
-            logger.warning("[DELETE] Permission refused sur %r, attempting chmod", path)
+            logger.warning("[DELETE] Permission denied on %r, attempting chmod", path)
             os.chmod(str(path), stat.S_IWRITE | stat.S_IREAD)
             path.unlink()
 
 
 async def _force_delete(path: Path) -> None:
-    """Deletion asynchrone — non-blocking for uvicorn."""
+    """Async deletion — non-blocking for uvicorn."""
     await asyncio.to_thread(_sync_delete, path)

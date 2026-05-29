@@ -1,5 +1,7 @@
 """Renaming of files/folders + merge of same-named folders."""
+import asyncio
 import logging
+from pathlib import Path
 
 from ._io import _fast_move, _force_delete
 from ._paths import (
@@ -163,7 +165,7 @@ async def apply_rename(old_path: str, new_name: str):
                 logger.warning("[RENAME] Destination exists: old=%s new=%s", old_path, new_name)
                 return {"error": "destination_exists"}
 
-        src.rename(dest)
+        await asyncio.to_thread(src.rename, dest)
         return {"success": True, "new_path": str(dest)}
 
     except Exception:
@@ -179,7 +181,7 @@ async def apply_rename_batch(items: list, cat: str = "") -> list:
         if path.startswith("/"):
             return path
         if cat and cat in MEDIA_FOLDERS:
-            return f"{MEDIA_FOLDERS[cat]}/{path.strip('/')}"
+            return str(Path(MEDIA_FOLDERS[cat]) / path.strip("/\\"))
         logger.error("[RENAME] Unable to resolve relative path: %s", path)
         return path
 
@@ -206,6 +208,14 @@ async def apply_rename_batch(items: list, cat: str = "") -> list:
 
 
 def preview_rename(old_path: str, new_name: str):
+    """Format-only preview of the rename target.
+
+    INTENTIONALLY performs no path/name validation: this is a pure display
+    helper that never touches the filesystem. ``apply_rename`` revalidates
+    (``_validate_name`` + ``_sanitize_name`` + containment) before any real
+    operation, so a preview may legitimately show a target the rename would
+    later reject.
+    """
     parts    = old_path.rsplit("/", 1)
     parent   = parts[0] if len(parts) > 1 else ""
     new_path = f"{parent}/{new_name}"
