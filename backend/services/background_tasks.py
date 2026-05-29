@@ -151,9 +151,10 @@ class BackgroundTaskManager:
                 )
                 last_state_was_down = True
 
-            # NullPool (sqlite/tests) exposes no checkout metrics and cannot
-            # saturate the way a QueuePool does — skip the probe instead of
-            # spinning on AttributeError every tick.
+            # Non-QueuePool engines (StaticPool for in-memory sqlite tests,
+            # NullPool, …) expose no checkout metrics and cannot saturate the
+            # way a QueuePool does — skip the probe instead of spinning on
+            # AttributeError every tick.
             pool = self._engine.pool
             if hasattr(pool, "checkedout"):
                 try:

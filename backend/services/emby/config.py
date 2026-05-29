@@ -1,4 +1,4 @@
-"""Configuration Emby/Jellyfin + invalidation globale des caches."""
+"""Emby/Jellyfin configuration + global cache invalidation."""
 import time
 import logging
 
@@ -28,9 +28,9 @@ ALERT_SEVERITIES = {"Warning", "Error"}
 
 
 # ── Cache config (TTL 30s) ────────────────────────────────────────────────────
-_emby_config_cache: tuple | None = None  # (url, api_key) ou None
+_emby_config_cache: tuple | None = None  # (url, api_key) or None
 _emby_config_cache_ts: float = 0
-_EMBY_CONFIG_TTL = 30  # secondes
+_EMBY_CONFIG_TTL = 30  # seconds
 
 
 def _reset_config_cache() -> None:
