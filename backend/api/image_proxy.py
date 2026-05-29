@@ -25,12 +25,12 @@ router = APIRouter()
 
 @router.get(IMAGE_PROXY_PATH)
 # Dedicated bucket above the slowapi global ``120/minute`` default — the
-# Portal Home renders ~130 image tiles on first paint and the shared cap
-# turned the tail of the burst into 429s. TMDB CDN bytes are public and
-# cached browser-side for 7 days (see Cache-Control below), so a
-# generous per-IP ceiling is safe; the cap still throttles a hammer
-# loop trying to fan out the proxy bandwidth.
-@limiter.limit("600/minute", key_func=ip_key)
+# Portal Home and dashboard render 100+ image tiles per view and rapid
+# navigation across views bursts past a tighter cap, turning the tail into
+# 429s. TMDB CDN bytes are public and cached browser-side for 7 days (see
+# Cache-Control below), so a generous per-IP ceiling is safe; the cap still
+# throttles a hammer loop trying to fan out the proxy bandwidth.
+@limiter.limit("1800/minute", key_func=ip_key)
 async def proxy_image(
     request: Request,
     u: str = Query(..., description="Original TMDB image URL."),
