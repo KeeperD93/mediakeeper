@@ -45,6 +45,7 @@ async def main() -> None:
     finally:
         await manager.stop()
         await close_clients()
+        await engine.dispose()
         logger.info("Mediakeeper background worker stopped")
 
 

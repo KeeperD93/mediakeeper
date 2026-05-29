@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants import env_vars
 from core.database import DATABASE_URL, engine
+from core.env_flags import env_truthy
 from core.http_client import close_clients, init_clients
 from core.log_redaction import install_log_redactor
 from core.logging_config import JSONFormatter
@@ -30,19 +31,6 @@ _PROCESS_ROLE = os.getenv(env_vars.MK_PROCESS_ROLE, "combined").strip().lower() 
 _db_ready = False
 _file_handler: logging.FileHandler | None = None
 
-_TRUTHY_ENV_VALUES = frozenset({"true", "1", "yes", "on"})
-
-
-def _env_truthy(name: str) -> bool:
-    """Return True when env var ``name`` holds a recognised truthy value.
-
-    Single source of truth so MK_DEBUG (and friends) are read identically by
-    every consumer. setup_logging previously accepted {true,1,yes} while the
-    deployment-warning helpers also accepted "on", leaving MK_DEBUG=on as a
-    dead zone (neither debug logs nor production warnings).
-    """
-    return os.getenv(name, "").strip().lower() in _TRUTHY_ENV_VALUES
-
 
 def is_db_ready() -> bool:
     return _db_ready
@@ -51,7 +39,7 @@ def is_db_ready() -> bool:
 def setup_logging() -> None:
     """Configure logging handlers (console + file) based on MK_DEBUG."""
     global _file_handler
-    mk_debug = _env_truthy(env_vars.MK_DEBUG)
+    mk_debug = env_truthy(env_vars.MK_DEBUG)
     initial_level = logging.DEBUG if mk_debug else logging.INFO
 
     ensure_log_dir()
@@ -260,7 +248,7 @@ def _warn_if_secure_cookies_unavailable() -> None:
     surface a misconfiguration that would otherwise silently downgrade
     cookie protection in production.
     """
-    if _env_truthy(env_vars.MK_DEBUG):
+    if env_truthy(env_vars.MK_DEBUG):
         return
     cookie_secure_set = os.getenv(env_vars.COOKIE_SECURE, "").strip() != ""
     if cookie_secure_set:
@@ -294,7 +282,7 @@ def _warn_if_frontend_origin_missing_in_proxy_mode() -> None:
       - ``TRUSTED_PROXIES`` is non-empty (Mode B reverse proxy).
       - ``FRONTEND_ORIGIN`` is empty.
     """
-    if _env_truthy(env_vars.MK_DEBUG):
+    if env_truthy(env_vars.MK_DEBUG):
         return
     trusted_proxies = os.getenv(env_vars.TRUSTED_PROXIES, "").strip()
     if not trusted_proxies:
