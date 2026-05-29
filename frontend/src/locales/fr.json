@@ -186,6 +186,8 @@
     "clear": "Vider",
     "preview": "Aperçu",
     "add": "Ajouter",
+    "remove": "Retirer",
+    "selectAll": "Tout sélectionner",
     "searching": "Recherche en cours…",
     "noResultsFor": "Aucun résultat pour \"{query}\"",
     "notAvailable": "Bientôt disponible",

@@ -186,6 +186,8 @@
     "clear": "Clear",
     "preview": "Preview",
     "add": "Add",
+    "remove": "Remove",
+    "selectAll": "Select all",
     "searching": "Searching…",
     "notAvailable": "Coming soon",
     "off": "Off",
