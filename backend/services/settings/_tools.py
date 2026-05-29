@@ -23,7 +23,10 @@ async def get_tools_config(
       ...
     }
     """
-    all_settings = await get_all_settings(db)
+    # Tool config needs plaintext: it surfaces editable secret values to the
+    # admin UI and uses url/api_key to query Emby. get_all_settings is
+    # fail-safe (encrypted) by default, so plaintext is opted into explicitly.
+    all_settings = await get_all_settings(db, decrypt_sensitive=True)
     config = {}
 
     for tool_key, tool_def in TOOLS_DEFINITION.items():
