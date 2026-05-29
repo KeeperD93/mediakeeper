@@ -71,6 +71,33 @@ def test_redacts_token_keys(raw, expected_key):
     assert f"{expected_key}={REDACTED}" in out
 
 
+@pytest.mark.parametrize(
+    "raw,key,secret",
+    [
+        ("client_secret=oauth-app-secret", "client_secret", "oauth-app-secret"),
+        ("refresh_token=rt-very-secret", "refresh_token", "rt-very-secret"),
+        ("auth_token=auth-distinct", "auth_token", "auth-distinct"),
+        ("bearer_token=bt-distinct", "bearer_token", "bt-distinct"),
+        ("id_token=id-distinct-val", "id_token", "id-distinct-val"),
+        ("session_token=st-distinct", "session_token", "st-distinct"),
+        ("session_key=sesskey-distinct", "session_key", "sesskey-distinct"),
+        ("private_key=pem-blob-distinct", "private_key", "pem-blob-distinct"),
+        ("pkey=pk-distinct", "pkey", "pk-distinct"),
+        ("webhook_url=https://hooks.example/secretpath", "webhook_url", "secretpath"),
+        ("secret=plain-distinct", "secret", "plain-distinct"),
+        ("jwt=opaque-distinct", "jwt", "opaque-distinct"),
+    ],
+)
+def test_redacts_oauth_and_secret_keys(raw, key, secret):
+    """Defence-in-depth keywords added to the redaction pattern: the value
+    must be removed and the key kept. Compound (underscored) forms are listed
+    explicitly because the bare 'token'/'secret' alternatives cannot match
+    inside a compound key (no word boundary after '_')."""
+    out = _redacted(raw)
+    assert f"{key}={REDACTED}" in out
+    assert secret not in out
+
+
 def test_redacts_bearer_jwt():
     raw = "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ4In0.signaturepart"
     out = _redacted(raw)

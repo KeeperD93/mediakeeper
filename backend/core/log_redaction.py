@@ -73,6 +73,18 @@ _PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
                 | mk[_-]?token
                 | mk[_-]?csrf
                 | rq[_-]?token
+                | client[_-]?secret
+                | secret
+                | private[_-]?key
+                | pkey
+                | refresh[_-]?token
+                | auth[_-]?token
+                | bearer[_-]?token
+                | id[_-]?token
+                | session[_-]?token
+                | session[_-]?key
+                | webhook[_-]?url
+                | jwt
             )
             ['"]?
             \s* [=:] \s*
