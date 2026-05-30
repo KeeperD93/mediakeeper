@@ -3,8 +3,8 @@ import logging
 import re
 from pathlib import Path
 
-from fastapi import FastAPI
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, Request
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 logger = logging.getLogger("mediakeeper")
@@ -48,13 +48,17 @@ def _resolve_spa_file(frontend_dir: Path, full_path: str) -> Path | None:
     return candidate if candidate.is_file() else None
 
 
-def register_spa(app: FastAPI) -> None:
-    """Mount the Vite build + SPA fallback route if frontend-dist/ exists."""
-    app_root = Path(__file__).resolve().parent.parent.parent
-    vue_dist = app_root / "frontend-dist"
+def register_spa(app: FastAPI, dist_dir: Path | None = None) -> None:
+    """Mount the Vite build + install the SPA 404 fallback if frontend-dist/ exists.
 
-    if vue_dist.is_dir() and (vue_dist / "index.html").is_file():
-        frontend_dir = vue_dist
+    ``dist_dir`` defaults to the bundled ``frontend-dist`` next to the app; tests
+    inject a temporary build directory to exercise the fallback handler.
+    """
+    if dist_dir is None:
+        dist_dir = Path(__file__).resolve().parent.parent.parent / "frontend-dist"
+
+    if dist_dir.is_dir() and (dist_dir / "index.html").is_file():
+        frontend_dir = dist_dir
         logger.info(f"Serving Vue 3 frontend from {frontend_dir}")
     else:
         logger.warning("No frontend directory found!")
@@ -70,13 +74,29 @@ def register_spa(app: FastAPI) -> None:
         if subpath.is_dir():
             app.mount(f"/{subdir}", StaticFiles(directory=str(subpath)), name=f"static_{subdir}")
 
-    @app.get("/{full_path:path}")
-    async def spa_fallback(full_path: str):
-        """SPA fallback — return index.html for any non-API route."""
-        if full_path.startswith("api/"):
-            from fastapi.responses import JSONResponse as _JR
-            return _JR(status_code=404, content={"detail": "Not Found"})
-        candidate = _resolve_spa_file(frontend_dir, full_path)
-        if candidate:
-            return FileResponse(candidate)
-        return FileResponse(frontend_dir / "index.html")
+    # SPA fallback as a 404 handler instead of a ``/{full_path:path}`` catch-all
+    # route. A catch-all matches every path — including ``/api/*`` — and, being
+    # registered last, shadows slowapi's per-route limit lookup: its middleware
+    # (``_find_route_handler`` keeps the LAST full match) resolves every request
+    # to this handler, so per-route ``@limiter.limit`` / ``@limiter.exempt`` are
+    # never applied. Serving the SPA from the 404 path leaves the route table
+    # clean, so each API route keeps its own rate limit.
+    @app.exception_handler(404)
+    async def spa_fallback(request: Request, exc):
+        """Serve index.html for unmatched non-API GET/HEAD routes (client-side
+        routing). ``/api/*`` and ``/assets/*`` keep the JSON 404 — a missing
+        hashed asset must not be masked as the HTML shell (the browser would
+        parse it as JS and the service worker would cache the broken body).
+        Every other 404 keeps the normal JSON error."""
+        if request.method in ("GET", "HEAD") and not request.url.path.startswith(
+            ("/api/", "/assets/")
+        ):
+            candidate = _resolve_spa_file(frontend_dir, request.url.path.lstrip("/"))
+            if candidate:
+                return FileResponse(candidate)
+            return FileResponse(frontend_dir / "index.html")
+        return JSONResponse(
+            status_code=404,
+            content={"detail": getattr(exc, "detail", "Not Found")},
+            headers=getattr(exc, "headers", None),
+        )

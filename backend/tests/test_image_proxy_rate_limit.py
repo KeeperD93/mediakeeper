@@ -1,13 +1,11 @@
-"""Rate-limit contract on ``GET /api/img``.
+"""``GET /api/img`` keeps its own high per-IP limit, above the global default.
 
-The Portal Home renders ~130 image tiles on first paint. Under the
-slowapi global default (``120/minute`` per IP), the tail of that
-burst returned 429s and broke the badge UI until the in-memory
-bucket recovered. The image proxy now carves out a dedicated
-``1800/minute`` per-IP ceiling — well above the legitimate burst,
-still throttling a runaway hammer loop. This test pins the contract
-so a future change cannot silently revert the proxy to the shared
-default.
+The image proxy serves public, SSRF-guarded TMDB CDN bytes cached browser-side
+for 7 days, and the Portal Home alone renders 100+ tiles per view. It carries a
+per-route ``@limiter.limit("1800/minute")`` that overrides the global
+``120/minute`` default, so a single page load cannot 429 the tail of its tiles.
+This test pins that contract: a burst far above the 120 default (but under the
+route's own cap) must never surface a 429.
 """
 from __future__ import annotations
 
@@ -20,38 +18,19 @@ _FAKE_BYTES = (b"\xff\xd8\xff\xe0fake", "image/jpeg")
 
 
 @pytest.mark.asyncio
-async def test_image_proxy_allows_300_calls_per_minute(client):
-    """Sanity floor — accept at least the Home's first-paint burst.
-
-    300 well exceeds the 120/min global default and stays well below
-    the dedicated 1800/min cap; every call must return 200.
-    """
-    with patch(
-        "services.portal.image_cache.fetch_or_serve",
-        new_callable=AsyncMock,
-        return_value=_FAKE_BYTES,
-    ):
-        for i in range(300):
-            r = await client.get("/api/img", params={"u": _TMDB_URL})
-            assert r.status_code == 200, (
-                f"call #{i + 1} unexpectedly returned {r.status_code}: {r.text}"
-            )
-
-
-@pytest.mark.asyncio
-async def test_image_proxy_throttles_beyond_1800_per_minute(client):
-    """Past the configured ceiling the endpoint must surface a 429 —
-    the limiter is still active, just dimensioned for image bursts.
-    """
+async def test_image_proxy_burst_above_default_is_not_throttled(client):
+    """A 300-call burst (>120 default, <1800 route cap) returns all 200 — the
+    route's own limit overrides the default, so no tile is throttled."""
     seen = []
     with patch(
         "services.portal.image_cache.fetch_or_serve",
         new_callable=AsyncMock,
         return_value=_FAKE_BYTES,
     ):
-        for _ in range(1820):
+        for _ in range(300):
             r = await client.get("/api/img", params={"u": _TMDB_URL})
             seen.append(r.status_code)
-    assert 429 in seen, (
-        f"expected a 429 within 1820 calls, saw status counts: {sorted(set(seen))}"
+    assert 429 not in seen, (
+        f"a 300-burst above the 120 default must not 429, saw: {sorted(set(seen))}"
     )
+    assert set(seen) == {200}, f"all calls should return 200, saw: {sorted(set(seen))}"

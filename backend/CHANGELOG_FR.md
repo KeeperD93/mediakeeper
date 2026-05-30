@@ -30,6 +30,8 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Admin — historique XP utilisateur : libellés d'action lisibles (octroi admin, surprise, trophée).
 - Portail — bandeau événements : respecte les animations réduites (statique au lieu de défiler).
 - Portail — pastille « Dispo » stable sur les ajouts Emby récents (plus de clignotement).
+- Proxy d'images — les affiches ne renvoient plus de 429 quand une page en charge beaucoup d'un coup.
+- Navigation portail — disponibilité et statut des demandes ne renvoient plus de 429 en défilement intense.
 - Stats — sessions et actifs 24h : photo + anneau de niveau (parité classement).
 - Stats — silhouette d'avatar correctement centrée dans l'anneau de niveau.
 - Avatars Emby — photo rafraîchie sous 5 min après changement (au lieu de 7 jours).
