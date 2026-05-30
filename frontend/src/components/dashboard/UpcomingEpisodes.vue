@@ -115,7 +115,11 @@ onMounted(async () => {
   if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
     _motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
     prefersReducedMotion.value = _motionQuery.matches
-    _motionQuery.addEventListener('change', _syncMotionPref)
+    if (typeof _motionQuery.addEventListener === 'function') {
+      _motionQuery.addEventListener('change', _syncMotionPref)
+    } else if (typeof _motionQuery.addListener === 'function') {
+      _motionQuery.addListener(_syncMotionPref)
+    }
   }
   const ok = await fetchData()
   if (!ok) {
@@ -132,7 +136,13 @@ onMounted(async () => {
 })
 onUnmounted(() => {
   if (retryTimer) clearInterval(retryTimer)
-  _motionQuery?.removeEventListener('change', _syncMotionPref)
+  if (_motionQuery) {
+    if (typeof _motionQuery.removeEventListener === 'function') {
+      _motionQuery.removeEventListener('change', _syncMotionPref)
+    } else if (typeof _motionQuery.removeListener === 'function') {
+      _motionQuery.removeListener(_syncMotionPref)
+    }
+  }
 })
 
 function tmdbUrl(ep) {
@@ -441,11 +451,10 @@ function dateClass(dateStr) {
   }
   .uc-viewport {
     /* Reduced-motion fallback: no marquee, but the strip must stay fully
-       browsable. Turn the clipped viewport into a touch-friendly
-       horizontal scroller and drop the edge-fade mask (it would hide the
-       cards near the edges and the scroll affordance). */
+       browsable. Turn the clipped viewport into a horizontal scroller and
+       drop the edge-fade mask (it would hide the cards near the edges and
+       the scroll affordance). */
     overflow: auto hidden;
-    -webkit-overflow-scrolling: touch;
     scroll-snap-type: x proximity;
     scroll-padding-inline: var(--space-4);
     -webkit-mask-image: none;
