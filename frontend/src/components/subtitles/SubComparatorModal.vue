@@ -211,9 +211,7 @@ function formatSize(bytes) {
 }
 
 .sub-cmp-results {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
+  overflow-x: auto;}
 .sub-cmp-table {
   width: 100%;
   border-collapse: collapse;

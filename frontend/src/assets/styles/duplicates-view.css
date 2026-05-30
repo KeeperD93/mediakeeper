@@ -391,9 +391,7 @@
 
 /* Compare table */
 .cinema-duplicates .doub-compare {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  margin-top: 4px;
+  overflow-x: auto;  margin-top: 4px;
 }
 .cinema-duplicates .cmp-table {
   width: 100%;

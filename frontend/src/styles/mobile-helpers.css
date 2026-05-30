@@ -42,9 +42,7 @@
    and put ``data-label="Column name"`` on each <td> for the card-mode
    label to render on mobile. */
 .mk-table-wrap {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
+  overflow-x: auto;}
 @media (max-width: 767px) {
   .mk-table-wrap {
     overflow-x: visible;
