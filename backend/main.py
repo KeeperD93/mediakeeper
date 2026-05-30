@@ -11,6 +11,8 @@ from slowapi.middleware import SlowAPIMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse as _JSONResponse
 
+from core.env_flags import env_truthy
+
 # Models — required for Base.metadata.create_all
 from models.portal.achievement import Achievement, UserAchievement  # noqa: F401
 from models.portal.xp_boost import XpBoostEvent  # noqa: F401
@@ -92,7 +94,7 @@ app.add_middleware(CsrfMiddleware)
 app.add_middleware(SlowAPIMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 
-MK_DEBUG = os.getenv("MK_DEBUG", "false").lower() in ("true", "1", "yes")
+MK_DEBUG = env_truthy("MK_DEBUG")
 
 if MK_DEBUG:
     _debug_origin = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")

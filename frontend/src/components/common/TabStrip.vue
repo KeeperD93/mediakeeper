@@ -173,7 +173,6 @@ function select(tab) {
   gap: 4px;
   overflow-y: visible;
   padding-bottom: 2px;
-  -webkit-overflow-scrolling: touch;
 }
 .mk-tabs-placement-top .mk-tab {
   flex: 1 1 0;

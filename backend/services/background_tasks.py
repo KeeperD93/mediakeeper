@@ -151,24 +151,29 @@ class BackgroundTaskManager:
                 )
                 last_state_was_down = True
 
-            try:
-                pool = self._engine.pool
-                checked_out = pool.checkedout()
-                size = pool.size()
-                overflow = pool.overflow()
-                capacity = size + max(overflow, 0)
-                if capacity > 0 and checked_out >= capacity - 1:
-                    pool_saturation_streak += 1
-                else:
-                    pool_saturation_streak = 0
-                if pool_saturation_streak >= HEALTH_MONITOR_FAILURES_BEFORE_ALERT:
-                    await send_alert(
-                        AlertType.POOL_SATURATED,
-                        {"checked_out": checked_out, "capacity": capacity},
-                    )
-                    pool_saturation_streak = 0
-            except Exception as exc:
-                logger.debug("[health_monitor] pool inspection failed: %s", exc)
+            # Non-QueuePool engines (StaticPool for in-memory sqlite tests,
+            # NullPool, …) expose no checkout metrics and cannot saturate the
+            # way a QueuePool does — skip the probe instead of spinning on
+            # AttributeError every tick.
+            pool = self._engine.pool
+            if hasattr(pool, "checkedout"):
+                try:
+                    checked_out = pool.checkedout()
+                    size = pool.size()
+                    overflow = pool.overflow()
+                    capacity = size + max(overflow, 0)
+                    if capacity > 0 and checked_out >= capacity - 1:
+                        pool_saturation_streak += 1
+                    else:
+                        pool_saturation_streak = 0
+                    if pool_saturation_streak >= HEALTH_MONITOR_FAILURES_BEFORE_ALERT:
+                        await send_alert(
+                            AlertType.POOL_SATURATED,
+                            {"checked_out": checked_out, "capacity": capacity},
+                        )
+                        pool_saturation_streak = 0
+                except Exception as exc:
+                    logger.debug("[health_monitor] pool inspection failed: %s", exc)
 
             await asyncio.sleep(HEALTH_MONITOR_INTERVAL_SEC)
 

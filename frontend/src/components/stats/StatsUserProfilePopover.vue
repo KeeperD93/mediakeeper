@@ -189,7 +189,6 @@ function upBarH(v) {
     transform: none !important;
     max-height: calc(100dvh - 24px);
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
     padding: 16px;
   }
   .up-body {

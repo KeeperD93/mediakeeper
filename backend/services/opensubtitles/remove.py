@@ -7,6 +7,7 @@ remux, and refreshing Emby on success.
 """
 from pathlib import Path
 
+import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.http_client import get_internal_client
@@ -24,6 +25,8 @@ async def _resolve_remove_target(
     require_single: int | None = None,
 ) -> tuple[dict, dict | None]:
     """Resolve the local file + target streams. Returns (ctx, error_dict)."""
+    # Imported lazily so a test-patched ``services.emby._get_emby_config`` is
+    # resolved at call time rather than bound once at module import.
     from services.emby import _get_emby_config
 
     cfg = await _get_emby_config(db)
@@ -94,7 +97,7 @@ async def _resolve_remove_target(
         return {}, {"error": "resolve_target_failed"}
 
 
-async def _refresh_emby(client, url: str, headers: dict, item_id: str) -> None:
+async def _refresh_emby(client: httpx.AsyncClient, url: str, headers: dict, item_id: str) -> None:
     try:
         await client.post(
             f"{url}/Items/{item_id}/Refresh",

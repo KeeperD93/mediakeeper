@@ -1,10 +1,10 @@
 """Seed achievement definitions into the database on startup."""
 import logging
 import os
-from sqlalchemy import select
+from sqlalchemy import delete as sa_delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models.portal.achievement import Achievement
+from models.portal.achievement import Achievement, UserAchievement
 from services.portal.achievement_defs import (
     ACHIEVEMENT_DEFS,
     META_TARGET_CATEGORY,
@@ -49,7 +49,7 @@ _ACHIEVEMENT_MUTABLE_FIELDS = tuple(
 )
 
 
-async def seed_achievements(db: AsyncSession):
+async def seed_achievements(db: AsyncSession) -> None:
     """Insert or update achievement definitions. Safe to call on every startup."""
     # Refuse to seed a drifted catalogue in dev/test — the same diagnostics
     # the pytest meta-test uses, so CI and runtime agree on what "consistent"
@@ -58,38 +58,43 @@ async def seed_achievements(db: AsyncSession):
 
     # Resolve meta thresholds from the current category contents so the
     # unlock condition always matches reality (regardless of added/removed
-    # trophies). Overrides the placeholder threshold declared in META_DEFS.
+    # trophies). Computed into a local map rather than mutated in place on
+    # the shared ACHIEVEMENT_DEFS dicts (which are read elsewhere in-process).
+    meta_thresholds: dict[str, int] = {}
     for d in ACHIEVEMENT_DEFS:
         if d.get("condition_type") == "meta":
             target = META_TARGET_CATEGORY.get(d["id"])
             if target:
-                d["threshold"] = max(1, len(achievements_for_category(target)))
+                meta_thresholds[d["id"]] = max(1, len(achievements_for_category(target)))
     logger.info("[ACHIEVEMENTS] Starting seed (%d definitions)...", len(ACHIEVEMENT_DEFS))
 
-    existing_ids = set()
-    result = await db.execute(select(Achievement.id))
-    for row in result.scalars().all():
-        existing_ids.add(row)
-    logger.info("[ACHIEVEMENTS] Found %d existing achievements in DB", len(existing_ids))
+    # Bulk-load every existing row once instead of one db.get per definition
+    # (~166 round-trips per pass before). Newly created rows are added to the
+    # same map so pass 2 can resolve them without re-querying.
+    rows = (await db.execute(select(Achievement))).scalars().all()
+    by_id: dict[str, Achievement] = {ach.id: ach for ach in rows}
+    existing_count = len(by_id)
+    logger.info("[ACHIEVEMENTS] Found %d existing achievements in DB", existing_count)
 
     # Pass 1: insert/update WITHOUT next_tier_id to avoid FK ordering issues
     count_new = 0
     for d in ACHIEVEMENT_DEFS:
-        if d["id"] in existing_ids:
-            ach = await db.get(Achievement, d["id"])
-            if ach:
-                for field in _ACHIEVEMENT_MUTABLE_FIELDS:
-                    if field in d:
-                        setattr(ach, field, d[field])
+        eff = {**d, "threshold": meta_thresholds[d["id"]]} if d["id"] in meta_thresholds else d
+        ach = by_id.get(eff["id"])
+        if ach is not None:
+            for field in _ACHIEVEMENT_MUTABLE_FIELDS:
+                if field in eff:
+                    setattr(ach, field, eff[field])
         else:
             row_data = {
                 field: value
-                for field, value in d.items()
+                for field, value in eff.items()
                 if field in _ACHIEVEMENT_DB_FIELDS and field != "next_tier_id"
             }
             row_data["next_tier_id"] = None
             ach = Achievement(**row_data)
             db.add(ach)
+            by_id[eff["id"]] = ach
             count_new += 1
 
     await db.commit()
@@ -97,7 +102,7 @@ async def seed_achievements(db: AsyncSession):
     # Pass 2: set next_tier_id now that all rows exist
     for d in ACHIEVEMENT_DEFS:
         if d.get("next_tier_id"):
-            ach = await db.get(Achievement, d["id"])
+            ach = by_id.get(d["id"])
             if ach and ach.next_tier_id != d["next_tier_id"]:
                 ach.next_tier_id = d["next_tier_id"]
 
@@ -113,13 +118,11 @@ async def seed_achievements(db: AsyncSession):
     db_ids = set(result.scalars().all())
     stale = db_ids - current_ids
     if stale:
-        from models.portal.achievement import UserAchievement
-        from sqlalchemy import delete as sa_delete
         await db.execute(sa_delete(UserAchievement).where(UserAchievement.achievement_id.in_(stale)))
         await db.execute(sa_delete(Achievement).where(Achievement.id.in_(stale)))
         await db.commit()
         logger.info("[ACHIEVEMENTS] Pruned %d stale achievements: %s", len(stale), sorted(stale))
 
-    logger.info("[ACHIEVEMENTS] Seed complete: %d new, %d updated", count_new, len(existing_ids))
+    logger.info("[ACHIEVEMENTS] Seed complete: %d new, %d updated", count_new, existing_count)
 
     await _enforce_user_achievement_uniqueness(db)

@@ -87,8 +87,6 @@
           @drag-over="dragOverFolder = newNames.length ? vi : vi + vsStart"
           @drag-leave="dragOverFolder = null"
           @drop="(dropOnFolder(newNames.length ? vi : vi + vsStart), (dragOverFolder = null))"
-          @hover="onFileHover(f, $event)"
-          @hover-end="onFileHoverEnd"
           @quality-enter="showQualityPopup($event, f)"
           @quality-leave="hideQualityPopup"
           @open-meta="openFileMeta(f)"
@@ -97,14 +95,6 @@
         />
         <div v-if="!newNames.length" :style="{ height: vsBottom + 'px' }" />
       </template>
-    </div>
-
-    <div
-      v-if="hoverThumbnail.visible && hoverThumbnail.url"
-      class="mm-thumb-hover"
-      :style="{ left: hoverThumbnail.x + 'px', top: hoverThumbnail.y + 'px' }"
-    >
-      <img :src="hoverThumbnail.url" />
     </div>
 
     <MMQualityPopup :quality-popup="qualityPopup" :get-quality-color="getQualityColor" />
@@ -206,9 +196,6 @@ const vsBottom = computed(() => Math.max(0, (filtered.value.length - vsEnd.value
 const {
   lassoDragging,
   lassoStyle,
-  hoverThumbnail,
-  onFileHover,
-  onFileHoverEnd,
   ctxMenu,
   openCtxMenu,
   ctxRename,

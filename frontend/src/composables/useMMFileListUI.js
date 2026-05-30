@@ -4,14 +4,13 @@ import { useApi } from '@/composables/useApi'
 import { useToast } from '@/composables/useToast'
 import { useRectLasso } from '@/composables/useRectLasso'
 import { TOAST_TYPE } from '@/constants/toast'
-import { FILE_TYPE } from '@/constants/mediaManager'
 import { useMediaManager } from '@/composables/useMediaManager'
 
 /**
  * Groups all UI-only state/behaviour that would otherwise bloat
  * MMFileList: lasso-selection rectangle (delegated to ``useRectLasso``),
- * context menu, inline rename modal, quality-score popup with penalty
- * detection, and hover thumbnail preview.
+ * context menu, inline rename modal, and quality-score popup with
+ * penalty detection.
  *
  * The caller passes the scroll container ref + the visible filtered
  * items ref so the lasso can resolve indices against the current view.
@@ -73,23 +72,6 @@ export function useMMFileListUI({ fileListRef, filtered, checked }) {
   watch(lassoDragging, dragging => {
     if (!dragging) _selectionBeforeLasso.value = null
   })
-
-  // ── Hover thumbnail ──
-  const hoverThumbnail = ref({ visible: false, url: null, x: 0, y: 0 })
-  const { loadThumbnail } = useMediaManager()
-  let _thumbTimer = null
-  async function onFileHover(f, e) {
-    if (f.type !== FILE_TYPE.FILE) return
-    clearTimeout(_thumbTimer)
-    _thumbTimer = setTimeout(async () => {
-      const url = await loadThumbnail(f.path)
-      if (url) hoverThumbnail.value = { visible: true, url, x: e.clientX + 16, y: e.clientY + 16 }
-    }, 400)
-  }
-  function onFileHoverEnd() {
-    clearTimeout(_thumbTimer)
-    hoverThumbnail.value = { ...hoverThumbnail.value, visible: false }
-  }
 
   // ── Context menu + inline rename modal ──
   const ctxMenu = ref({ show: false, x: 0, y: 0, idx: null, file: null })
@@ -206,9 +188,6 @@ export function useMMFileListUI({ fileListRef, filtered, checked }) {
   return {
     lassoDragging,
     lassoStyle,
-    hoverThumbnail,
-    onFileHover,
-    onFileHoverEnd,
     ctxMenu,
     openCtxMenu,
     ctxRename,

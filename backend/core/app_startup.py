@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants import env_vars
 from core.database import DATABASE_URL, engine
+from core.env_flags import env_truthy
 from core.http_client import close_clients, init_clients
 from core.log_redaction import install_log_redactor
 from core.logging_config import JSONFormatter
@@ -38,7 +39,7 @@ def is_db_ready() -> bool:
 def setup_logging() -> None:
     """Configure logging handlers (console + file) based on MK_DEBUG."""
     global _file_handler
-    mk_debug = os.getenv(env_vars.MK_DEBUG, "false").lower() in ("true", "1", "yes")
+    mk_debug = env_truthy(env_vars.MK_DEBUG)
     initial_level = logging.DEBUG if mk_debug else logging.INFO
 
     ensure_log_dir()
@@ -247,8 +248,7 @@ def _warn_if_secure_cookies_unavailable() -> None:
     surface a misconfiguration that would otherwise silently downgrade
     cookie protection in production.
     """
-    debug = os.getenv(env_vars.MK_DEBUG, "").strip().lower() in {"true", "1", "yes", "on"}
-    if debug:
+    if env_truthy(env_vars.MK_DEBUG):
         return
     cookie_secure_set = os.getenv(env_vars.COOKIE_SECURE, "").strip() != ""
     if cookie_secure_set:
@@ -282,8 +282,7 @@ def _warn_if_frontend_origin_missing_in_proxy_mode() -> None:
       - ``TRUSTED_PROXIES`` is non-empty (Mode B reverse proxy).
       - ``FRONTEND_ORIGIN`` is empty.
     """
-    debug = os.getenv(env_vars.MK_DEBUG, "").strip().lower() in {"true", "1", "yes", "on"}
-    if debug:
+    if env_truthy(env_vars.MK_DEBUG):
         return
     trusted_proxies = os.getenv(env_vars.TRUSTED_PROXIES, "").strip()
     if not trusted_proxies:
@@ -352,6 +351,7 @@ async def lifespan(app: FastAPI):
         )
         yield
         await close_clients()
+        await engine.dispose()
         return
 
     register_source(OpenSubtitlesSource())
@@ -411,3 +411,4 @@ async def lifespan(app: FastAPI):
     if background_manager is not None:
         await background_manager.stop()
     await close_clients()
+    await engine.dispose()

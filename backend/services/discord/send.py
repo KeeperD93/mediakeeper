@@ -14,7 +14,7 @@ logger = logging.getLogger("mediakeeper.notifications.discord")
 
 async def send_discord_test(
     webhook_url: str,
-    wh_config: dict = None,
+    wh_config: dict | None = None,
     test_type: str = "movie",
 ) -> dict:
     """Send a test message with sample data."""

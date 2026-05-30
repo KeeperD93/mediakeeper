@@ -90,9 +90,15 @@ async def set_settings_map(
 async def get_all_settings(
     db: AsyncSession,
     *,
-    decrypt_sensitive: bool = True,
+    decrypt_sensitive: bool = False,
 ) -> dict:
-    """Return all les settings sous forme {key: value}."""
+    """Return every setting as a ``{key: value}`` mapping.
+
+    Sensitive values stay encrypted by default (fail-safe): a caller that
+    genuinely needs plaintext secrets must opt in with
+    ``decrypt_sensitive=True``, so an accidental dump of the result cannot
+    leak Fernet-decrypted API keys / passwords to an HTTP response.
+    """
     result = await db.execute(select(Setting))
     rows = result.scalars().all()
     if decrypt_sensitive:

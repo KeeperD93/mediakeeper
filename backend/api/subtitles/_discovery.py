@@ -87,7 +87,7 @@ async def batch_remove_streams(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    """Deletion de masse de streams (audio/sous-titres) via ffmpeg."""
+    """Bulk-delete embedded streams (audio/subtitle) via ffmpeg remux."""
     results = {"success": [], "failed": []}
     for op in req.operations:
         item_id = op.get("item_id", "")

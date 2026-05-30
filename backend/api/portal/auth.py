@@ -101,15 +101,20 @@ async def portal_login(
     """Authenticate via Emby and issue JWT cookie."""
     client_ip = get_client_ip(request) or "unknown"
     user_agent = request.headers.get("user-agent")
-    await ensure_not_blocked(db, client_ip, req.username, "portal")
+    # Normalize input for brute-force tracking so casing variants resolve to a
+    # single rate-limit bucket (mirrors api.auth.login). Raw req.username is
+    # kept for Emby auth (its own casing semantics), the enumeration warning
+    # log and the login-history row.
+    tracking_username = (req.username or "").strip().lower()
+    await ensure_not_blocked(db, client_ip, tracking_username, "portal")
 
     # Shadow-skip Emby once we already recorded a recent failure, so Emby's
     # own lockout on the user account doesn't trip before our block does.
     recent_fails = await count_recent_failures(
-        db, client_ip, req.username, "portal",
+        db, client_ip, tracking_username, "portal",
     )
     if recent_fails > EMBY_SHADOW_SKIP_THRESHOLD:
-        await record_failure(db, client_ip, req.username, "portal", user_agent)
+        await record_failure(db, client_ip, tracking_username, "portal", user_agent)
         logger.warning(
             "[PORTAL_LOGIN] Shadow-skip Emby for user=%s ip=%s (fails=%s)",
             req.username, client_ip, recent_fails,
@@ -121,7 +126,7 @@ async def portal_login(
 
     result = await authenticate_emby_user(db, req.username, req.password)
     if not result:
-        await record_failure(db, client_ip, req.username, "portal", user_agent)
+        await record_failure(db, client_ip, tracking_username, "portal", user_agent)
         await _log_login(db, None, req.username, "portal", False, client_ip, user_agent)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -130,7 +135,7 @@ async def portal_login(
 
     _set_portal_jwt_cookie(response, result["token"], request)
     rotate_csrf_cookie(response, request)
-    await record_attempt(db, client_ip, req.username, "portal", success=True, user_agent=user_agent)
+    await record_attempt(db, client_ip, tracking_username, "portal", success=True, user_agent=user_agent)
     await _log_login(db, result["user"].id, req.username, "portal", True, client_ip, user_agent)
 
     user = result["user"]

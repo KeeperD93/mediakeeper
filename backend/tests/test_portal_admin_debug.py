@@ -29,6 +29,33 @@ async def _admin_client(client, db_session):
 
 
 @pytest.mark.asyncio
+async def test_debug_achievements_reports_computed_meta_threshold(client, db_session):
+    """The catalogue picker reports the real computed threshold for meta
+    achievements (same rule as the DB seed), not the META_DEFS placeholder,
+    without relying on a seed-time mutation of the in-memory defs."""
+    from services.portal.achievement_defs import (
+        ACHIEVEMENT_DEFS,
+        META_TARGET_CATEGORY,
+        achievements_for_category,
+    )
+    await _admin_client(client, db_session)
+    meta = next(
+        (
+            d for d in ACHIEVEMENT_DEFS
+            if d.get("condition_type") == "meta" and META_TARGET_CATEGORY.get(d["id"])
+        ),
+        None,
+    )
+    assert meta is not None
+
+    resp = await client.get("/api/portal/admin/debug/achievements")
+    assert resp.status_code == 200, resp.text
+    items = {it["id"]: it for it in resp.json()["items"]}
+    expected = max(1, len(achievements_for_category(META_TARGET_CATEGORY[meta["id"]])))
+    assert items[meta["id"]]["threshold"] == expected
+
+
+@pytest.mark.asyncio
 async def test_grant_xp_positive_levels_up(client, db_session):
     await _admin_client(client, db_session)
     target, tp = await make_portal_user(db_session, username="alice")

@@ -1,5 +1,6 @@
 """Renaming endpoints (files + folders) and name-building helpers."""
 import logging
+from pathlib import Path
 from typing import List
 
 from fastapi import APIRouter, Depends
@@ -141,7 +142,7 @@ async def rename_folder(req: RenameFolderRequest, _: User = Depends(get_current_
         logger.error("[RENAME-FOLDER] Unknown category : %s", req.cat)
         return {"error": f"Unknown category: {req.cat}"}
 
-    abs_path = f"{base}/{req.subpath.strip('/')}"
+    abs_path = str(Path(base) / req.subpath.strip("/\\"))
 
     err = _validate_path(abs_path)
     if err:

@@ -244,4 +244,26 @@ function formatFull(iso) {
   transform: translateY(-100%);
   opacity: 0;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .pt-evb-content {
+    /* No marquee: park the event text statically at the start of the bar
+       instead of leaving it off-screen at left: 100% (where the animation
+       would otherwise be the only thing sweeping it into view). The bar is
+       pointer-events: none, so a too-long line simply clips after the
+       title/date rather than scrolling. */
+    left: 0;
+    padding-inline: 0.75rem;
+    animation: none;
+  }
+  .pt-evb-enter-active,
+  .pt-evb-leave-active {
+    transition: opacity var(--portal-dur-slow) ease;
+  }
+  .pt-evb-enter-from,
+  .pt-evb-leave-to {
+    transform: none;
+    opacity: 0;
+  }
+}
 </style>

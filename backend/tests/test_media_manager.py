@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from services import media_manager
+from tests._media_helpers import single_media_root
 
 
 def _make_workspace_tmp() -> Path:
@@ -403,23 +404,11 @@ async def test_create_folders_batch_refuses_under_backup(monkeypatch):
         shutil.rmtree(workspace, ignore_errors=True)
 
 
-def _setup_simple_media_root(monkeypatch, tmp_path: Path) -> Path:
-    """Configure a single media root for the soft-error short-code tests."""
-    media_root = tmp_path / "media"
-    media_root.mkdir()
-    monkeypatch.setattr(
-        media_manager.categories,
-        "_categories_cache",
-        [{"key": "media", "label": "media", "path": str(media_root.resolve())}],
-    )
-    return media_root
-
-
 @pytest.mark.asyncio
 async def test_move_file_soft_error_codes_are_short(monkeypatch, tmp_path):
     """``move_file`` soft errors must not embed the user-supplied path in
     the response body — only the short identifier reaches the API."""
-    media_root = _setup_simple_media_root(monkeypatch, tmp_path)
+    media_root = single_media_root(monkeypatch, tmp_path)
     dest = media_root / "dest"
     dest.mkdir()
     src = media_root / "ghost.mkv"
@@ -441,7 +430,7 @@ async def test_move_file_soft_error_codes_are_short(monkeypatch, tmp_path):
 @pytest.mark.asyncio
 async def test_move_file_overwrite_soft_error_codes_are_short(monkeypatch, tmp_path):
     """``move_file_overwrite`` mirrors ``move_file`` on the short-code contract."""
-    media_root = _setup_simple_media_root(monkeypatch, tmp_path)
+    media_root = single_media_root(monkeypatch, tmp_path)
     dest = media_root / "dest"
     dest.mkdir()
     src = media_root / "ghost.mkv"
@@ -461,7 +450,7 @@ async def test_move_file_overwrite_soft_error_codes_are_short(monkeypatch, tmp_p
 @pytest.mark.asyncio
 async def test_delete_file_not_found_short_code(monkeypatch, tmp_path):
     """``delete_file`` returns ``not_found`` without leaking the path."""
-    media_root = _setup_simple_media_root(monkeypatch, tmp_path)
+    media_root = single_media_root(monkeypatch, tmp_path)
     missing = media_root / "nope.mkv"
 
     result = await media_manager.delete_file(str(missing))
@@ -472,7 +461,7 @@ async def test_delete_file_not_found_short_code(monkeypatch, tmp_path):
 @pytest.mark.asyncio
 async def test_check_move_conflicts_destination_not_found_short_code(monkeypatch, tmp_path):
     """``check_move_conflicts`` returns ``destination_not_found`` without leak."""
-    media_root = _setup_simple_media_root(monkeypatch, tmp_path)
+    media_root = single_media_root(monkeypatch, tmp_path)
     missing_dest = media_root / "no-such-folder"
 
     result = await media_manager.check_move_conflicts(["a.mkv"], str(missing_dest))

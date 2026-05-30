@@ -1024,7 +1024,6 @@
     overflow: auto hidden;
     padding: 0 12px 10px;
     gap: 6px;
-    -webkit-overflow-scrolling: touch;
   }
   .ob-nav-item {
     flex: 0 0 auto;

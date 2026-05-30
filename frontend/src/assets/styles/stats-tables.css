@@ -78,7 +78,6 @@
 }
 .cinema-stats .tbl-scroll {
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
 }
 /* On mobile, let the dense fixed-width admin table lay out naturally
    with a minimum width so the horizontal scroll kicks in (card-mode
