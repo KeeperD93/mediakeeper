@@ -3,8 +3,8 @@ import logging
 import re
 from pathlib import Path
 
-from fastapi import FastAPI
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, Request
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 logger = logging.getLogger("mediakeeper")
@@ -70,13 +70,20 @@ def register_spa(app: FastAPI) -> None:
         if subpath.is_dir():
             app.mount(f"/{subdir}", StaticFiles(directory=str(subpath)), name=f"static_{subdir}")
 
-    @app.get("/{full_path:path}")
-    async def spa_fallback(full_path: str):
-        """SPA fallback — return index.html for any non-API route."""
-        if full_path.startswith("api/"):
-            from fastapi.responses import JSONResponse as _JR
-            return _JR(status_code=404, content={"detail": "Not Found"})
-        candidate = _resolve_spa_file(frontend_dir, full_path)
-        if candidate:
-            return FileResponse(candidate)
-        return FileResponse(frontend_dir / "index.html")
+    # SPA fallback as a 404 handler instead of a ``/{full_path:path}`` catch-all
+    # route. A catch-all matches every path — including ``/api/*`` — and, being
+    # registered last, shadows slowapi's per-route limit lookup: its middleware
+    # (``_find_route_handler`` keeps the LAST full match) resolves every request
+    # to this handler, so per-route ``@limiter.limit`` / ``@limiter.exempt`` are
+    # never applied. Serving the SPA from the 404 path leaves the route table
+    # clean, so each API route keeps its own rate limit.
+    @app.exception_handler(404)
+    async def spa_fallback(request: Request, exc):
+        """Serve index.html for unmatched non-API GET/HEAD routes (client-side
+        routing); every other 404 keeps the normal JSON error."""
+        if request.method in ("GET", "HEAD") and not request.url.path.startswith("/api/"):
+            candidate = _resolve_spa_file(frontend_dir, request.url.path.lstrip("/"))
+            if candidate:
+                return FileResponse(candidate)
+            return FileResponse(frontend_dir / "index.html")
+        return JSONResponse(status_code=404, content={"detail": getattr(exc, "detail", "Not Found")})
