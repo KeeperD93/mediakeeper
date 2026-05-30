@@ -2077,6 +2077,9 @@
           "event_joined": "Event joined",
           "streak_7": "7-day streak",
           "streak_30": "30-day streak",
+          "achievement_unlocked": "Trophy unlocked",
+          "surprise_used": "Surprise used",
+          "admin_grant": "Admin grant",
           "achievementNamed": "Trophy « {name} » unlocked"
         },
         "notes": {

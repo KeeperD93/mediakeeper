@@ -2077,6 +2077,9 @@
           "event_joined": "Événement rejoint",
           "streak_7": "Série de 7 jours",
           "streak_30": "Série de 30 jours",
+          "achievement_unlocked": "Trophée débloqué",
+          "surprise_used": "Surprise utilisée",
+          "admin_grant": "Octroi admin",
           "achievementNamed": "Trophée « {name} » débloqué"
         },
         "notes": {
