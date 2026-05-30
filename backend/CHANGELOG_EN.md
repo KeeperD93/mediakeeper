@@ -25,7 +25,7 @@ This section intentionally has no date so it is not shown to users.
 - Sidebar — clicking a module opens its sub-menu without leaving the current page.
 
 ### Fixed
-- Dashboard — upcoming-episodes strip is scrollable under reduced-motion (was frozen and clipped).
+- Dashboard — upcoming-episodes strip is scrollable by hand under reduced-motion (was frozen and clipped).
 - Admin — user audit log shows readable action labels (some actions showed the raw key).
 - Portal — events ticker honours reduced-motion (static instead of scrolling).
 - Portal — "Available" badge no longer flickers on freshly added Emby items.
