@@ -60,12 +60,7 @@
           :placeholder="$t('stats.titlePlaceholder')"
           @keydown.enter="addExclusion"
         />
-        <MkButton
-          variant="icon"
-          icon="plus"
-          :aria-label="$t('common.add')"
-          @click="addExclusion"
-        />
+        <MkButton variant="icon" icon="plus" :aria-label="$t('common.add')" @click="addExclusion" />
       </div>
       <div v-if="!exclusions.length" class="excl-empty">{{ $t('stats.noExclusions') }}</div>
       <div v-for="(exc, i) in exclusions" :key="i" class="excl-item">

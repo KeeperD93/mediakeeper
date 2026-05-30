@@ -172,7 +172,8 @@ function select(tab) {
 .mk-tabs-placement-top .mk-tabs {
   gap: 4px;
   overflow-y: visible;
-  padding-bottom: 2px;}
+  padding-bottom: 2px;
+}
 .mk-tabs-placement-top .mk-tab {
   flex: 1 1 0;
   min-width: 0;

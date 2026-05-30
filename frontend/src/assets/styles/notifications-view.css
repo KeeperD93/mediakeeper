@@ -1084,7 +1084,8 @@
     border-right: none;
     padding-right: 0;
     border-bottom: 0.5px solid var(--border);
-    padding-bottom: 10px;  }
+    padding-bottom: 10px;
+  }
   .cinema-notif .nf-tpl-grp {
     flex: 0 0 auto;
     min-height: 44px;
@@ -1101,7 +1102,8 @@
   }
 
   .cinema-notif .nf-tpl-subtabs {
-    overflow-x: auto;  }
+    overflow-x: auto;
+  }
   .cinema-notif .nf-tpl-subtab {
     flex: 0 0 auto;
     min-height: 44px;

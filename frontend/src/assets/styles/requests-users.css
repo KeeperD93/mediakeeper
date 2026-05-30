@@ -69,7 +69,8 @@
   .ru-table {
     min-width: 720px;
     display: block;
-    overflow-x: auto;  }
+    overflow-x: auto;
+  }
 }
 
 .ru-table {

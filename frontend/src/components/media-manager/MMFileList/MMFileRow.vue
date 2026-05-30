@@ -33,11 +33,7 @@
         📁 {{ f.path.split('/').slice(-2, -1)[0] }}
       </span>
     </span>
-    <span
-      v-if="getFileCat(f)"
-      class="mm-cat-badge"
-      :style="{ background: getFileCat(f).color }"
-    >
+    <span v-if="getFileCat(f)" class="mm-cat-badge" :style="{ background: getFileCat(f).color }">
       {{ getFileCat(f).label }}
     </span>
     <span v-if="isFileNew(f)" class="mm-new-badge">{{ $t('mediaManager.newBadge') }}</span>

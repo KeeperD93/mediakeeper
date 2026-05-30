@@ -83,7 +83,7 @@ function _syncMotionPref(e) {
 }
 
 const displayEpisodes = computed(() =>
-  prefersReducedMotion.value ? episodes.value : loopedEpisodes.value
+  prefersReducedMotion.value ? episodes.value : loopedEpisodes.value,
 )
 
 // Total width of one set of cards

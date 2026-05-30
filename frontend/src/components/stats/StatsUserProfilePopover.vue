@@ -188,7 +188,8 @@ function upBarH(v) {
     inset: 12px 12px auto !important;
     transform: none !important;
     max-height: calc(100dvh - 24px);
-    overflow-y: auto;    padding: 16px;
+    overflow-y: auto;
+    padding: 16px;
   }
   .up-body {
     grid-template-columns: 1fr;

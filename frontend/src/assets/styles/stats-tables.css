@@ -77,7 +77,8 @@
   border-color: var(--accent-500);
 }
 .cinema-stats .tbl-scroll {
-  overflow-x: auto;}
+  overflow-x: auto;
+}
 /* On mobile, let the dense fixed-width admin table lay out naturally
    with a minimum width so the horizontal scroll kicks in (card-mode
    would lose the sortable column headers that are the whole point
