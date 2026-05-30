@@ -1,10 +1,11 @@
 """Portal media request endpoints."""
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
+from core.rate_limit import limiter, portal_user_or_ip_key
 from models.user import User
 from models.portal.profile import UserProfile
 from api.portal.deps import require_admin, require_permission
@@ -89,8 +90,13 @@ def _dedupe_keep_order(ids: list[int]) -> list[int]:
 
 
 @router.post("/batch-status")
+# 3600/minute (was the global 120 default) — infinite-scroll discover fires
+# one batch lookup per loaded page, so a fast browse bursts past 120. The high
+# ceiling clears that while still bounding abuse (per-account scope).
+@limiter.limit("3600/minute", key_func=portal_user_or_ip_key)
 async def batch_status(
     data: BatchStatusQuery,
+    request: Request,
     up: tuple[User, UserProfile] = Depends(require_permission("can_portal")),
     db: AsyncSession = Depends(get_db),
 ):

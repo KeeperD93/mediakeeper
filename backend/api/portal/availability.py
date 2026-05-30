@@ -68,12 +68,13 @@ class AvailabilityQuery(BaseModel):
 
 
 @router.post("")
-# 120/minute (vs the historical 30/minute) — the endpoint is cheap
-# (index lookup + parallel TV completeness checks), batched from the
-# frontend, and called in burst on the Home (13 carousels). The
-# previous limit saturated under normal use and stacked rate-limit
-# notifications.
-@limiter.limit("120/minute", key_func=portal_user_or_ip_key)
+# 3600/minute (history: 30 → 120 → 3600) — the endpoint is cheap (index
+# lookup + parallel TV completeness checks), batched from the frontend, and
+# called in burst while browsing (Home carousels + infinite-scroll discover).
+# Earlier caps saturated under normal use and stacked rate-limit toasts; the
+# high ceiling clears legitimate browsing while still bounding a runaway loop
+# (per-account scope via portal_user_or_ip_key).
+@limiter.limit("3600/minute", key_func=portal_user_or_ip_key)
 async def check_availability(
     query: AvailabilityQuery,
     request: Request,
