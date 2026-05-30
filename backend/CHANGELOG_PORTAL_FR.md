@@ -21,6 +21,7 @@ utilisateurs.
 - Soirée ciné — avatars des sièges au style du classement.
 
 ### Fixed
+- Bandeau événements — lisible (statique) en mode mouvement réduit.
 - Pastille Dispo — plus de clignotement quand l'index rattrape son retard.
 - Affiches de la home — plus de vignettes cassées au premier chargement.
 

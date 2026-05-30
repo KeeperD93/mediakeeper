@@ -19,6 +19,7 @@ This section intentionally has no date so it is not shown to users.
 - Cinema room — seats use the leaderboard avatar style.
 
 ### Fixed
+- Events ticker — readable (static) when reduced-motion is on.
 - Availability badge — no longer flickers when the index is catching up.
 - Home posters — first-paint burst no longer breaks tile rendering.
 
