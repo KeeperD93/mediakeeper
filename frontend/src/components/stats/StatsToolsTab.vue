@@ -254,11 +254,11 @@ onMounted(() => {
   color: var(--accent-400);
 }
 .tool-status.ok {
-  background: rgb(34, 197, 94, 0.1);
+  background: rgb(var(--color-success-rgb), 0.1);
   color: var(--color-success);
 }
 .tool-status.err {
-  background: rgb(239, 68, 68, 0.1);
+  background: rgb(var(--color-error-rgb), 0.1);
   color: var(--color-error);
 }
 
