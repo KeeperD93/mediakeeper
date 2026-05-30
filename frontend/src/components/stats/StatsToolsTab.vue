@@ -312,6 +312,9 @@ onMounted(() => {
   border-radius: var(--radius-sm);
 }
 .excl-badge {
+  /* 0.58rem / 4px sit below the smallest text + radius tokens
+     (--text-3xs 0.62rem, --radius-sm floor); deliberately fixed for this
+     micro mode-badge, kept raw per the rule of 3 — not an oversight. */
   font-size: 0.58rem;
   padding: 2px 6px;
   border-radius: 4px;
