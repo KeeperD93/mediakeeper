@@ -4,7 +4,7 @@ The Portal Home renders ~130 image tiles on first paint. Under the
 slowapi global default (``120/minute`` per IP), the tail of that
 burst returned 429s and broke the badge UI until the in-memory
 bucket recovered. The image proxy now carves out a dedicated
-``600/minute`` per-IP ceiling — well above the legitimate burst,
+``1800/minute`` per-IP ceiling — well above the legitimate burst,
 still throttling a runaway hammer loop. This test pins the contract
 so a future change cannot silently revert the proxy to the shared
 default.
@@ -24,7 +24,7 @@ async def test_image_proxy_allows_300_calls_per_minute(client):
     """Sanity floor — accept at least the Home's first-paint burst.
 
     300 well exceeds the 120/min global default and stays well below
-    the dedicated 600/min cap; every call must return 200.
+    the dedicated 1800/min cap; every call must return 200.
     """
     with patch(
         "services.portal.image_cache.fetch_or_serve",
@@ -39,7 +39,7 @@ async def test_image_proxy_allows_300_calls_per_minute(client):
 
 
 @pytest.mark.asyncio
-async def test_image_proxy_throttles_beyond_600_per_minute(client):
+async def test_image_proxy_throttles_beyond_1800_per_minute(client):
     """Past the configured ceiling the endpoint must surface a 429 —
     the limiter is still active, just dimensioned for image bursts.
     """
@@ -49,9 +49,9 @@ async def test_image_proxy_throttles_beyond_600_per_minute(client):
         new_callable=AsyncMock,
         return_value=_FAKE_BYTES,
     ):
-        for _ in range(620):
+        for _ in range(1820):
             r = await client.get("/api/img", params={"u": _TMDB_URL})
             seen.append(r.status_code)
     assert 429 in seen, (
-        f"expected a 429 within 620 calls, saw status counts: {sorted(set(seen))}"
+        f"expected a 429 within 1820 calls, saw status counts: {sorted(set(seen))}"
     )
