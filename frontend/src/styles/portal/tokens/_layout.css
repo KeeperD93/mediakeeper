@@ -83,7 +83,7 @@
   --portal-z-toast: 9998;
   --portal-z-top: 9999;
 
-  /* Carousel rhythm (aligned on Seerr's slider rhythm) ------
+  /* Carousel rhythm — shared section cadence.
      Used by every section header (MediaCarousel, Top20, CategoryCards)
      and every track padding on the portal home, so the vertical
      cadence between sections stays consistent. */
