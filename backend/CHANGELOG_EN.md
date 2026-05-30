@@ -30,6 +30,7 @@ This section intentionally has no date so it is not shown to users.
 - Admin — user XP history shows readable action labels (admin grant, surprise, trophy).
 - Portal — events ticker honours reduced-motion (static instead of scrolling).
 - Portal — "Available" badge no longer flickers on freshly added Emby items.
+- Image proxy — poster tiles no longer hit 429 when a page renders many at once.
 - Stats — sessions and 24h actives now show photo + tier ring (leaderboard parity).
 - Stats — avatar silhouette now correctly centred inside the tier ring.
 - Emby avatars — photo updates reflect within ~5 min (was a 7-day browser cache).
