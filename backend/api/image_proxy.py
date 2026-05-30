@@ -15,7 +15,7 @@ import logging
 from fastapi import APIRouter, HTTPException, Query, Request, Response
 
 from constants.portal_paths import IMAGE_PROXY_PATH
-from core.rate_limit import limiter
+from core.rate_limit import ip_key, limiter
 from core.url_safety import is_allowed_image_url
 from services.portal import image_cache
 
@@ -24,16 +24,16 @@ router = APIRouter()
 
 
 @router.get(IMAGE_PROXY_PATH)
-# Exempt from the global ``120/minute`` default. The slowapi middleware
-# applies that default to every route, and a per-route ``@limiter.limit``
-# only stacks a second bucket on top — it cannot lift the 120 cap. The
-# Portal Home alone renders 100+ image tiles per view, so that cap turned
-# the tail of every first paint into 429s. These bytes are public TMDB CDN
-# content, validated to image.tmdb.org (SSRF guard, see ``is_allowed_image_url``)
-# and cached browser-side for 7 days, so an inbound per-IP throttle here
-# costs more than it protects; abuse stays bounded to TMDB content plus the
-# manual cache purge.
-@limiter.exempt
+# High explicit per-IP limit instead of the global ``120/minute`` default.
+# The Portal Home alone renders 100+ image tiles on first paint, so the 120
+# default turned the tail of every load into 429s. ``1800/minute`` clears that
+# burst with a wide margin while keeping a ceiling on this unauthenticated
+# endpoint (each cache miss does an outbound TMDB fetch + a disk-cache write).
+# This per-route limit overrides the default — and is honoured only because the
+# SPA fallback is a 404 handler (see ``app_spa.py``) and no longer shadows
+# slowapi's per-route lookup. Bytes are public TMDB CDN content, SSRF-guarded
+# (``is_allowed_image_url``) and cached browser-side for 7 days.
+@limiter.limit("1800/minute", key_func=ip_key)
 async def proxy_image(
     request: Request,
     u: str = Query(..., description="Original TMDB image URL."),

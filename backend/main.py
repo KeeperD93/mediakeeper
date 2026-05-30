@@ -173,5 +173,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 
-# Must be registered last: the SPA fallback captures all non-API routes.
+# SPA served via a 404 exception handler (see app_spa.register_spa): it leaves
+# the route table clean so each /api route resolves to its own handler and keeps
+# its per-route rate limit. Registration order vs the routers is not significant.
 register_spa(app)
