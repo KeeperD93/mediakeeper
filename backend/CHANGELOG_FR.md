@@ -9,6 +9,8 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+## [1.0.0-rc.4] - 2026-05-30
+
 ### Added
 - Onboarding — module Portail ajouté au welcome et au tour.
 
@@ -19,7 +21,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Boutons — palette MediaKeeper appliquée (violet, rouge brique, vert forêt) sans toucher aux graphiques.
 - Apparence — sélecteur d'accent retiré temporairement (palette MK verrouillée).
 - Planificateur — interface réorganisée par catégories, cartes compactes.
-- Démarrage — log boot : `COOKIE_SECURE=` renommé `COOKIE_HTTPS_FLAG=` (variable env inchangée, mapping dans `tls-deployment.md`).
+- Démarrage — log boot : `COOKIE_SECURE=` renommé `COOKIE_HTTPS_FLAG=` (variable env inchangée).
 - Cookie CSRF — validation par allowlist sur les polls (durcissement).
 - Tableau de bord — titres des cartes uniformisés sur la nuance de texte atténuée.
 - Menu latéral — cliquer un module ouvre son sous-menu sans quitter la page.
@@ -39,20 +41,11 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Les schémas d'authentification rejettent désormais les clés JSON inconnues (défense en profondeur).
 - Soirées ciné — accepter une invitation ne déclenche plus de faux avertissement de conflit horaire.
 - Planificateur — les noms de tâches sont désormais traduits en français.
-- Proxy d'images et webhooks — durcis contre bypass SSRF et DNS rebinding.
-- Sanitisation portail — regex de nettoyage HTML rendue linéaire (protection ReDoS).
-- Assainisseurs internes — regex polynomiales remplacées par opérations linéaires (protection ReDoS).
-- Renommage/fusion média — codes d'erreur génériques (plus d'echo d'exception, durcissement).
-- Médiathèque/TMDB — codes d'erreur génériques sur listing fichiers, ffprobe et TMDB (durcissement).
-- Sécurité — sanitiseur paths médiathèque + codes courts sur outils ping, import Jellystats, fournisseurs portail (durcissement).
-- Sécurité — codes courts sur lecture journaux et analyse bibliothèque Emby (durcissement).
-- Fusion média — garde de confinement (défense en profondeur, durcissement).
-- Renommage/fusion média — erreurs not-a-dir/not-found nettoyées du chemin filesystem.
-- Fusion média — code d'erreur partial-failure stable (compteur dans champ dédié).
-- Renommage média — erreurs destination/self-merge utilisent des codes stables.
-- Renommage/fusion média — validation des chemins via barrière reconnue par CodeQL (durcissement).
+- Sécurité — codes d'erreur génériques et stables sur médiathèque, outils et TMDB.
+- Sécurité — chemins médias validés et confinés à chaque point d'écriture (gestionnaire, analyses, fournisseurs).
+- Sécurité — assainisseurs rendus linéaires (protection ReDoS).
+- Proxy d'images et webhooks — durcis contre SSRF et DNS rebinding.
 - Cookie CSRF — rotation aux frontières d'authentification (correction fixation de session).
-- Médiathèque — message d'erreur générique en cas d'échec de déplacement ou suppression (durcissement).
 
 ## [1.0.0-rc.3] - 2026-05-22
 

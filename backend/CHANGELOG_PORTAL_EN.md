@@ -14,6 +14,8 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+## [1.0.0-rc.4] - 2026-05-30
+
 ### Changed
 - Avatars — level-coloured ring (bronze → legendary) everywhere.
 - Cinema room — seats use the leaderboard avatar style.
@@ -22,6 +24,7 @@ This section intentionally has no date so it is not shown to users.
 - Events ticker — readable (static) when reduced-motion is on.
 - Availability badge — no longer flickers when the index is catching up.
 - Home posters — first-paint burst no longer breaks tile rendering.
+- Browsing — availability and request badges keep loading during fast scrolling.
 
 ## [1.0.0-rc.3] - 2026-05-22
 

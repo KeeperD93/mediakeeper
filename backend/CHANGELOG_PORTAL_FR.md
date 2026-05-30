@@ -16,6 +16,8 @@ utilisateurs.
 
 ## [Unreleased]
 
+## [1.0.0-rc.4] - 2026-05-30
+
 ### Changed
 - Avatars — anneau coloré par niveau (bronze → légendaire) partout.
 - Soirée ciné — avatars des sièges au style du classement.
@@ -24,6 +26,7 @@ utilisateurs.
 - Bandeau événements — lisible (statique) en mode mouvement réduit.
 - Pastille Dispo — plus de clignotement quand l'index rattrape son retard.
 - Affiches de la home — plus de vignettes cassées au premier chargement.
+- Navigation — pastilles de disponibilité et de demande chargent même en défilement rapide.
 
 ## [1.0.0-rc.3] - 2026-05-22
 

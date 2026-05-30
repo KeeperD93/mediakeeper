@@ -9,6 +9,8 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+## [1.0.0-rc.4] - 2026-05-30
+
 ### Added
 - Onboarding wizard — Portal module added to welcome and tour steps.
 
@@ -19,7 +21,7 @@ This section intentionally has no date so it is not shown to users.
 - Buttons — MediaKeeper palette applied (violet, brick red, forest green) without affecting charts.
 - Appearance — accent picker temporarily removed (MK palette locked).
 - Scheduler — UI reorganised by category with compact single-line rows.
-- Startup — boot log: `COOKIE_SECURE=` renamed `COOKIE_HTTPS_FLAG=` (env var unchanged, mapping in `tls-deployment.md`).
+- Startup — boot log: `COOKIE_SECURE=` renamed `COOKIE_HTTPS_FLAG=` (env var unchanged).
 - CSRF cookie — allowlist validation on polls (hardening).
 - Dashboard — card titles unified on the muted text shade.
 - Sidebar — clicking a module opens its sub-menu without leaving the current page.
@@ -39,20 +41,11 @@ This section intentionally has no date so it is not shown to users.
 - Auth schemas now reject unknown JSON keys (defence in depth).
 - Events — accepting an invitation no longer triggers a self-collision conflict warning.
 - Scheduler — task labels are now translated (FR/EN parity).
-- Image proxy and webhooks — hardened against SSRF bypasses and DNS rebinding.
-- Portal sanitisation — HTML-tag regex made linear-time (ReDoS hardening).
-- Internal sanitisers — polynomial regexes replaced with linear ops (ReDoS hardening).
-- Media manager rename — generic error codes returned (no exception echo, hardening).
-- Media manager/TMDB — generic error codes on file listing, ffprobe and TMDB (hardening).
-- Security — media path sanitiser + short codes on tool ping, Jellystats import, portal providers (hardening).
-- Security — short codes on log file read and Emby library refresh (hardening).
-- Media manager merge — defence-in-depth containment guard at the sink.
-- Media manager — not-a-dir/not-found errors stripped of filesystem path.
-- Media manager merge — partial-failure error code now stable (count in dedicated field).
-- Media manager rename — destination-exists / self-merge errors now use stable codes.
-- Media manager rename/merge — path validation via CodeQL barrier (hardening).
+- Security — generic, stable error codes across media manager, tools and TMDB.
+- Security — media paths validated and contained at every sink (manager, library scans, providers).
+- Security — sanitisers made linear-time (ReDoS hardening).
+- Image proxy and webhooks — hardened against SSRF and DNS rebinding.
 - CSRF cookie — rotation at auth boundaries (session fixation fix).
-- Media manager — generic error message when a move or delete fails (hardening).
 
 ## [1.0.0-rc.3] - 2026-05-22
 
