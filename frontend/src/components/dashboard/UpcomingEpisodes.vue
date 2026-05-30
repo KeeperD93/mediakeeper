@@ -142,6 +142,7 @@ onUnmounted(() => {
     } else if (typeof _motionQuery.removeListener === 'function') {
       _motionQuery.removeListener(_syncMotionPref)
     }
+    _motionQuery = null
   }
 })
 
