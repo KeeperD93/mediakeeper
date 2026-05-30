@@ -2,10 +2,7 @@
   <div class="ab-root mk-page-root">
     <div class="ab-inner">
       <header class="ab-header">
-        <div class="ab-title-row">
-          <h1 class="ab-title">{{ t('attribution.about.title') }}</h1>
-          <span class="ab-current">v{{ appVersion }}</span>
-        </div>
+        <h1 class="ab-title">{{ t('attribution.about.title') }}</h1>
         <p class="ab-subtitle">{{ t('attribution.about.subtitle') }}</p>
       </header>
 
@@ -55,11 +52,9 @@
 
 <script setup>
 import { useI18n } from 'vue-i18n'
-import pkg from '../../package.json'
 
 const { t } = useI18n()
 
-const appVersion = pkg.version
 const repoUrl = 'https://github.com/KeeperD93/mediakeeper'
 
 const stack = {
@@ -91,26 +86,11 @@ const links = {
   gap: 6px;
 }
 
-.ab-title-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
 .ab-title {
   margin: 0;
   font-size: var(--text-2xl, 24px);
   color: var(--text-primary);
   font-weight: var(--font-semibold, 600);
-}
-
-.ab-current {
-  font-size: var(--text-sm, 14px);
-  color: var(--text-muted);
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-btn, 8px);
-  padding: 2px 10px;
 }
 
 .ab-subtitle {
