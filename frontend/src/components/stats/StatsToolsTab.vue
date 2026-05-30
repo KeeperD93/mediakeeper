@@ -248,20 +248,6 @@ onMounted(() => {
   cursor: pointer;
   transition: all var(--duration-fast);
 }
-.tool-btn-danger {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border-radius: var(--radius-btn);
-  font-size: var(--text-xs);
-  font-weight: var(--font-regular);
-  background: rgb(239, 68, 68, 0.1);
-  color: var(--color-error);
-  border: 0.5px solid rgb(239, 68, 68, 0.15);
-  cursor: pointer;
-  transition: all var(--duration-fast);
-}
 .tool-status {
   margin-top: 10px;
   font-size: var(--text-2xs);
@@ -318,19 +304,6 @@ onMounted(() => {
 .excl-input:focus {
   border-color: var(--accent-500);
 }
-.excl-add-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-sm);
-  background: rgb(var(--accent-rgb), 0.15);
-  color: var(--accent-400);
-  border: 0.5px solid rgb(var(--accent-rgb), 0.2);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
 .excl-empty {
   font-size: var(--text-2xs);
   color: var(--text-muted);
@@ -359,21 +332,6 @@ onMounted(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.excl-rm {
-  width: 20px;
-  height: 20px;
-  border-radius: 4px;
-  background: transparent;
-  border: none;
-  color: #ef4444;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  opacity: 0.4;
-}
-
 .tool-ico-accent {
   color: var(--accent-500);
 }
@@ -397,18 +355,11 @@ onMounted(() => {
   }
 }
 @media (hover: hover) {
-  .tool-btn-accent:hover,
-  .excl-add-btn:hover {
+  .tool-btn-accent:hover {
     background: rgb(var(--accent-rgb), 0.25);
-  }
-  .tool-btn-danger:hover {
-    background: rgb(239, 68, 68, 0.2);
   }
   .excl-item:hover {
     background: var(--surface-1);
-  }
-  .excl-rm:hover {
-    opacity: 1;
   }
 }
 </style>
