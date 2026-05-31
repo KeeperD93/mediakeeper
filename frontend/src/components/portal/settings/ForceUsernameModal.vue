@@ -1,12 +1,7 @@
 <template>
   <Teleport to="body">
     <transition name="pt-force-fade">
-      <div
-        v-if="open"
-        class="pt-force-uname-overlay"
-        role="dialog"
-        aria-modal="true"
-      >
+      <div v-if="open" class="pt-force-uname-overlay" role="dialog" aria-modal="true">
         <div ref="panelRef" class="pt-force-uname-panel" tabindex="-1">
           <h2 class="pt-force-uname-title">{{ $t('portal.settings.forceUsername.title') }}</h2>
           <p class="pt-force-uname-sub">{{ $t('portal.settings.forceUsername.subtitle') }}</p>

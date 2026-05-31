@@ -22,15 +22,7 @@ import AdminXpEvents from '@/components/portal/admin/AdminXpEvents.vue'
 import AdminSettings from '@/components/portal/admin/AdminSettings.vue'
 import AdminDebug from '@/components/portal/admin/AdminDebug.vue'
 
-const TAB_IDS = [
-  'settings',
-  'blacklist',
-  'tickets',
-  'news',
-  'featured',
-  'xpEvents',
-  'debug',
-]
+const TAB_IDS = ['settings', 'blacklist', 'tickets', 'news', 'featured', 'xpEvents', 'debug']
 const activeTab = useTabSync(TAB_IDS, 'settings')
 </script>
 

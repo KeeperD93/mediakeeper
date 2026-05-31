@@ -77,7 +77,13 @@ describe('PortalTickets — refonte toolbar', () => {
     expect(options).toHaveLength(8)
     expect(options[0].attributes('value')).toBe('')
     expect(options.slice(1).map(o => o.attributes('value'))).toEqual([
-      'audio', 'subtitles', 'video', 'metadata', 'playback', 'file', 'other',
+      'audio',
+      'subtitles',
+      'video',
+      'metadata',
+      'playback',
+      'file',
+      'other',
     ])
   })
 
@@ -87,8 +93,6 @@ describe('PortalTickets — refonte toolbar', () => {
     fetchTickets.mockClear()
     const sortSelect = w.findAll('.ptl-toolbar-select')[1]
     await sortSelect.setValue('oldest')
-    expect(fetchTickets).toHaveBeenCalledWith(
-      expect.objectContaining({ sort: 'oldest' }),
-    )
+    expect(fetchTickets).toHaveBeenCalledWith(expect.objectContaining({ sort: 'oldest' }))
   })
 })

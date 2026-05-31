@@ -16,13 +16,7 @@ import { ref } from 'vue'
  * The composable mutates `layout.value[idx]` in place, matching how
  * `grid-layout-plus` consumes its bound layout.
  */
-export function useDashboardKeyboardMove({
-  layout,
-  editing,
-  colNum,
-  onLayoutUpdated,
-  t,
-}) {
+export function useDashboardKeyboardMove({ layout, editing, colNum, onLayoutUpdated, t }) {
   const movingItemId = ref(null)
   const liveAnnouncement = ref('')
   let origin = null

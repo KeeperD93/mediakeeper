@@ -268,7 +268,7 @@ import { formatAgo as formatAgoUtil } from '@/utils/formatAgo'
 import '@/assets/styles/duplicates-view.css'
 
 const { t } = useI18n()
-const formatAgo = (input) => formatAgoUtil(input, t)
+const formatAgo = input => formatAgoUtil(input, t)
 
 const {
   duplicates,

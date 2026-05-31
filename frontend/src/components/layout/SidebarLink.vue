@@ -167,11 +167,7 @@ const iconComponent = computed(() => ICONS[props.icon] || ICONS.home)
   /* Denser than the shared --gradient-pill-active: a primary nav selection
      needs more presence than a filter pill, and it must read at the default
      glow setting (--mk-glow: 0) where the halo below is invisible. */
-  background: linear-gradient(
-    135deg,
-    rgb(var(--accent-rgb), 0.3),
-    rgb(var(--accent-rgb), 0.14)
-  );
+  background: linear-gradient(135deg, rgb(var(--accent-rgb), 0.3), rgb(var(--accent-rgb), 0.14));
   box-shadow: var(--mk-pill-shadow-sm);
 }
 

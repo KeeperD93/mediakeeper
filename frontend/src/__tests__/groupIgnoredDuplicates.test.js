@@ -22,10 +22,7 @@ describe('groupIgnoredDuplicates', () => {
   })
 
   it('keeps movies as standalone rows', () => {
-    const out = groupIgnoredDuplicates([
-      ep('200_3', 'Inception'),
-      ep('201_2', 'The Matrix'),
-    ])
+    const out = groupIgnoredDuplicates([ep('200_3', 'Inception'), ep('201_2', 'The Matrix')])
     expect(out).toHaveLength(2)
     expect(out.every(g => g.type === 'movie')).toBe(true)
     expect(out.map(g => g.name)).toEqual(['Inception', 'The Matrix'])
@@ -51,18 +48,12 @@ describe('groupIgnoredDuplicates', () => {
       ep('b', 'Show - S01E10 - z'),
       ep('c', 'Show - S01E01 - z'),
     ])
-    expect(out[0].eps.map(e => `${e.season}-${e.episode}`)).toEqual([
-      '1-1',
-      '1-10',
-      '2-5',
-    ])
+    expect(out[0].eps.map(e => `${e.season}-${e.episode}`)).toEqual(['1-1', '1-10', '2-5'])
   })
 
   it('falls back to the key when title is empty', () => {
     const out = groupIgnoredDuplicates([{ key: 'orphan_1', title: '' }])
-    expect(out).toEqual([
-      { type: 'movie', name: 'orphan_1', key: 'orphan_1', keys: ['orphan_1'] },
-    ])
+    expect(out).toEqual([{ type: 'movie', name: 'orphan_1', key: 'orphan_1', keys: ['orphan_1'] }])
   })
 
   it('returns an empty array for non-array input', () => {

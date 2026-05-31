@@ -4,10 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const cssPath = resolve(
-  __dirname,
-  '../assets/styles/app-topbar-dropdowns.css',
-)
+const cssPath = resolve(__dirname, '../assets/styles/app-topbar-dropdowns.css')
 const css = readFileSync(cssPath, 'utf8')
 
 function ruleBody(selector) {

@@ -42,9 +42,7 @@ export function useCinemaRoomFlow(scheduledTime) {
   // the screening started doesn't need to sit through a 10-second intro,
   // they should land straight on the launch CTA. The ``CinemaRoomView``
   // ``load()`` flow handles the post-T0 case via ``skipToReady()``.
-  const canStartAcademy = computed(
-    () => remainingMs.value <= 10_000 && remainingMs.value > 0,
-  )
+  const canStartAcademy = computed(() => remainingMs.value <= 10_000 && remainingMs.value > 0)
 
   const countdownDisplay = computed(() => {
     const ms = Math.abs(remainingMs.value)

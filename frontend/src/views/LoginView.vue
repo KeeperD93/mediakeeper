@@ -205,8 +205,12 @@ function getRedirectTarget() {
 const isPortalLogin = computed(() => getRedirectTarget().startsWith('/portal'))
 const headingKey = computed(() => (isPortalLogin.value ? 'portalLogin.title' : 'login.title'))
 const subtitleKey = computed(() => (isPortalLogin.value ? 'portalLogin.subtitle' : 'login.title'))
-const usernameKey = computed(() => (isPortalLogin.value ? 'portalLogin.username' : 'login.username'))
-const passwordKey = computed(() => (isPortalLogin.value ? 'portalLogin.password' : 'login.password'))
+const usernameKey = computed(() =>
+  isPortalLogin.value ? 'portalLogin.username' : 'login.username',
+)
+const passwordKey = computed(() =>
+  isPortalLogin.value ? 'portalLogin.password' : 'login.password',
+)
 const submitKey = computed(() => (isPortalLogin.value ? 'portalLogin.submit' : 'login.submit'))
 
 async function waitForAuth() {

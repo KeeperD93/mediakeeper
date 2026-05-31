@@ -93,7 +93,7 @@ defineProps({ type: String })
 defineEmits(['scan'])
 
 const { t } = useI18n()
-const formatAgo = (input) => formatAgoUtil(input, t)
+const formatAgo = input => formatAgoUtil(input, t)
 
 const {
   data,

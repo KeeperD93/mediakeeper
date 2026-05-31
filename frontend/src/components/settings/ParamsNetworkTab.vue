@@ -157,8 +157,13 @@ onMounted(load)
   animation: pn-skel-pulse 1.4s ease-in-out infinite;
 }
 @keyframes pn-skel-pulse {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.7; }
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 .pn-card {
   background: var(--bg-secondary);

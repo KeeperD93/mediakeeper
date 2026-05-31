@@ -13,7 +13,11 @@
         <ArrowLeftRight :size="13" />
         {{ $t('mediaManager.ctxMove') }}
       </button>
-      <button v-if="ctxMenu.file?.type === FILE_TYPE.FILE" class="mm-ctx-item" @click="$emit('ctx-info')">
+      <button
+        v-if="ctxMenu.file?.type === FILE_TYPE.FILE"
+        class="mm-ctx-item"
+        @click="$emit('ctx-info')"
+      >
         <Info :size="13" />
         {{ $t('mediaManager.ctxInfo') }}
       </button>
@@ -23,11 +27,7 @@
         {{ $t('mediaManager.ctxDelete') }}
       </button>
     </div>
-    <div
-      v-if="inlineRename.show"
-      class="mm-overlay show"
-      @click.self="$emit('close-rename')"
-    >
+    <div v-if="inlineRename.show" class="mm-overlay show" @click.self="$emit('close-rename')">
       <div class="mm-ctx-rename-modal">
         <div class="mm-cat-modal-header">
           <span>{{ $t('mediaManager.ctxRename') }}</span>
@@ -71,7 +71,15 @@ defineProps({
   inlineRename: { type: Object, required: true },
   setRenameInput: { type: Function, required: true },
 })
-defineEmits(['ctx-rename', 'ctx-move', 'ctx-info', 'ctx-delete', 'submit-rename', 'close-rename', 'update:rename-value'])
+defineEmits([
+  'ctx-rename',
+  'ctx-move',
+  'ctx-info',
+  'ctx-delete',
+  'submit-rename',
+  'close-rename',
+  'update:rename-value',
+])
 </script>
 
 <style scoped>

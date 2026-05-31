@@ -39,7 +39,9 @@
 
             <div v-if="flow.academyActive.value" class="pt-cr-academy">
               <div class="pt-cr-academy-circle">
-                <span :key="flow.academyValue.value" class="pt-cr-academy-num">{{ flow.academyValue.value }}</span>
+                <span :key="flow.academyValue.value" class="pt-cr-academy-num">
+                  {{ flow.academyValue.value }}
+                </span>
               </div>
             </div>
 
@@ -77,11 +79,7 @@
       <!-- Launch CTA: appears ABOVE the screen after the academy countdown -->
       <transition name="pt-cr-cta">
         <div v-if="flow.academyDone.value" class="pt-cr-launch">
-          <button
-            type="button"
-            class="pt-cr-launch-btn"
-            @click="onLaunchClick"
-          >
+          <button type="button" class="pt-cr-launch-btn" @click="onLaunchClick">
             <Play :size="22" :stroke-width="2.5" />
             {{ launchLabel }}
           </button>
@@ -110,9 +108,16 @@
           <LogOut :size="18" :stroke-width="2.5" />
           {{ $t('portal.cinema.leave') }}
         </button>
-        <div class="pt-cr-countdown" :class="{ 'pt-cr-countdown--late': flow.countdownNegative.value }">
+        <div
+          class="pt-cr-countdown"
+          :class="{ 'pt-cr-countdown--late': flow.countdownNegative.value }"
+        >
           <span class="pt-cr-countdown-label">
-            {{ flow.countdownNegative.value ? $t('portal.cinema.elapsed') : $t('portal.cinema.startsIn') }}
+            {{
+              flow.countdownNegative.value
+                ? $t('portal.cinema.elapsed')
+                : $t('portal.cinema.startsIn')
+            }}
           </span>
           <span class="pt-cr-countdown-value">{{ flow.countdownDisplay.value }}</span>
         </div>
@@ -191,7 +196,7 @@ const myUserStep = computed(() => {
 // Heartbeat composable handles its own lifecycle (interval mount,
 // beforeunload + unmount leave). Wire it as soon as the event id is
 // known so peers see the avatar appear right after enter_room.
-const eventIdRef = computed(() => (eventIdParam || null))
+const eventIdRef = computed(() => eventIdParam || null)
 usePresenceHeartbeat(eventIdRef)
 // The MKEventMedia payload stored on tmdb_ids does not carry an
 // ``emby_url`` (the create-event schema only persists tmdb_id, type,
@@ -410,9 +415,7 @@ async function onAdvanceSelfClick() {
   if (!res || res.error) return
   if (event.value?.invitations) {
     event.value.invitations = event.value.invitations.map(inv =>
-      inv.user_id === myUserId.value
-        ? { ...inv, user_step: res.user_step }
-        : inv,
+      inv.user_id === myUserId.value ? { ...inv, user_step: res.user_step } : inv,
     )
     event.value = { ...event.value, current_step: res.current_step }
   }

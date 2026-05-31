@@ -7,10 +7,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { computed, nextTick, reactive } from 'vue'
 
-import {
-  tabFromHash,
-  useSettingsTabHash,
-} from '@/composables/portal/useSettingsTabHash'
+import { tabFromHash, useSettingsTabHash } from '@/composables/portal/useSettingsTabHash'
 
 const ALL_IDS = ['identity', 'appearance', 'preferences', 'visibility', 'account', 'privacy']
 const NO_PRIVACY_IDS = ALL_IDS.filter(id => id !== 'privacy')

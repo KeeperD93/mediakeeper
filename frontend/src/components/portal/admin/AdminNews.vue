@@ -221,7 +221,9 @@ onMounted(() => fetchNews(true, { admin: true }))
   color: var(--text-muted);
   cursor: pointer;
   box-shadow: var(--mk-pill-shadow-sm);
-  transition: color var(--portal-dur-fast) ease, background var(--portal-dur-fast) ease;
+  transition:
+    color var(--portal-dur-fast) ease,
+    background var(--portal-dur-fast) ease;
 }
 @media (hover: hover) {
   .pt-icon-btn--edit:hover {

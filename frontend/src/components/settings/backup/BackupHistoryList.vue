@@ -1,8 +1,6 @@
 <template>
   <section class="params-section">
-    <h3 class="params-section-title">
-      {{ $t('backup.history') }} ({{ backups.length }})
-    </h3>
+    <h3 class="params-section-title">{{ $t('backup.history') }} ({{ backups.length }})</h3>
 
     <div v-if="backupLoading" class="params-loading">
       <div v-for="i in 3" :key="i" class="params-skel" />

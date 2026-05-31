@@ -235,9 +235,7 @@ const route = useRoute()
 const { apiPost } = useApi()
 const { isMobile } = useMobile()
 
-const moduleEntries = computed(() =>
-  SIDEBAR_MODULES.filter(m => !m.desktopOnly || !isMobile.value),
-)
+const moduleEntries = computed(() => SIDEBAR_MODULES.filter(m => !m.desktopOnly || !isMobile.value))
 
 function getSubs(path) {
   return SIDEBAR_SUB_TABS[path] || []

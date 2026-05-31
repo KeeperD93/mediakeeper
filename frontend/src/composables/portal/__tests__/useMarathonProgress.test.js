@@ -32,9 +32,7 @@ describe('useMarathonProgress', () => {
     await Promise.resolve()
 
     expect(apiGetMock).toHaveBeenCalledTimes(1)
-    expect(apiGetMock).toHaveBeenCalledWith(
-      '/api/portal/events/rooms/42/marathon-progress',
-    )
+    expect(apiGetMock).toHaveBeenCalledWith('/api/portal/events/rooms/42/marathon-progress')
     expect(poll.enabled.value).toBe(true)
 
     vi.advanceTimersByTime(3000)

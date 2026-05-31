@@ -8,13 +8,19 @@
           :value="libSearch"
           class="sf-search"
           :placeholder="$t('subtitles.searchLibrary')"
-          @input="emit('update:libSearch', $event.target.value); emit('debounce-library')"
+          @input="
+            emit('update:libSearch', $event.target.value)
+            emit('debounce-library')
+          "
         />
       </div>
       <select
         :value="libType"
         class="sf-select mk-select-chevron"
-        @change="emit('update:libType', $event.target.value); emit('reset-library')"
+        @change="
+          emit('update:libType', $event.target.value)
+          emit('reset-library')
+        "
       >
         <option value="Movie,Episode">{{ $t('subtitles.typeAll') }}</option>
         <option value="Movie">{{ $t('subtitles.typeMovie') }}</option>
@@ -23,7 +29,10 @@
       <select
         :value="libLibrary"
         class="sf-select mk-select-chevron"
-        @change="emit('update:libLibrary', $event.target.value); emit('reset-library')"
+        @change="
+          emit('update:libLibrary', $event.target.value)
+          emit('reset-library')
+        "
       >
         <option value="">{{ $t('subtitles.allLibraries') }}</option>
         <option v-for="lib in embyLibraries" :key="lib.id" :value="lib.id">{{ lib.name }}</option>

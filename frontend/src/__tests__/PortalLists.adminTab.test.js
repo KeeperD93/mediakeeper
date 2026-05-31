@@ -80,8 +80,7 @@ vi.mock('@/components/common/TabStrip.vue', () => ({
     name: 'TabStrip',
     props: ['modelValue', 'tabs'],
     emits: ['update:modelValue'],
-    template:
-      '<div class="tab-strip-stub" :data-tab-ids="tabs.map(t => t.id).join(\',\')" />',
+    template: '<div class="tab-strip-stub" :data-tab-ids="tabs.map(t => t.id).join(\',\')" />',
   },
 }))
 

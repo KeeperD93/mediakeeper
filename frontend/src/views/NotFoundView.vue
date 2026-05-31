@@ -112,7 +112,9 @@ onMounted(() => {
   background: var(--accent-500);
   border: 1px solid var(--accent-600);
   border-radius: var(--radius-btn);
-  transition: background 0.15s ease, transform 0.15s ease;
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
 }
 
 .not-found-cta:hover {

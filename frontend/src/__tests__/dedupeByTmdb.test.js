@@ -32,7 +32,11 @@ describe('dedupeByTmdb', () => {
 
   it('preserves unique entries unchanged', () => {
     const input = [entry(1, 4), entry(2, 0), entry(3, 7)]
-    expect(dedupeByTmdb(input).map(s => s.tmdb_id).sort()).toEqual([1, 2, 3])
+    expect(
+      dedupeByTmdb(input)
+        .map(s => s.tmdb_id)
+        .sort(),
+    ).toEqual([1, 2, 3])
   })
 
   it('passes through entries with no tmdb_id', () => {

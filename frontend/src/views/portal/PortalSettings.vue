@@ -217,10 +217,7 @@ async function onSave() {
   const languageBefore = profileData.value?.language || null
   const res = await save()
   if (res.ok) {
-    if (
-      profileData.value?.language
-      && profileData.value.language !== languageBefore
-    ) {
+    if (profileData.value?.language && profileData.value.language !== languageBefore) {
       // Portal hero overviews, trending descriptions and discover lists
       // are fetched from TMDB using profile.language. Pages that have
       // already loaded those rows still hold the previous-language

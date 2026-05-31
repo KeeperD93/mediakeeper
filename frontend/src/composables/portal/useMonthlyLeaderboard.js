@@ -65,9 +65,7 @@ export function useMonthlyLeaderboard() {
     error.value = null
     inflight = (async () => {
       try {
-        const res = await apiGet(
-          `/api/portal/achievements/leaderboard/monthly?limit=${limit}`,
-        )
+        const res = await apiGet(`/api/portal/achievements/leaderboard/monthly?limit=${limit}`)
         const payload = {
           items: res?.items || [],
           viewer_rank: res?.viewer_rank ?? null,

@@ -51,7 +51,12 @@
     <WlSuiviDetailModal
       :selected="selected"
       @close="selected = null"
-      @untrack="(item) => { toggleTrack(item); selected = null }"
+      @untrack="
+        item => {
+          toggleTrack(item)
+          selected = null
+        }
+      "
     />
 
     <WlSuiviAddModal

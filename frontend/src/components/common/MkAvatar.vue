@@ -94,8 +94,7 @@ function onError() {
      CSS variables so the ``tier`` prop (or a parent wrapper like the
      leaderboard's ``.gc-lb-av--gold``) sets them per rank without
      prop-drilling. Default = no ring. */
-  border: var(--mk-avatar-ring-width, 0) solid
-    var(--mk-avatar-ring-color, transparent);
+  border: var(--mk-avatar-ring-width, 0) solid var(--mk-avatar-ring-color, transparent);
   box-sizing: border-box;
 }
 
@@ -149,4 +148,3 @@ function onError() {
   color: var(--text-primary);
 }
 </style>
-

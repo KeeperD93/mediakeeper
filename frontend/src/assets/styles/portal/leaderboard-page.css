@@ -31,11 +31,7 @@
       rgb(var(--portal-color-warning-rgb), 0.05),
       transparent
     ),
-    radial-gradient(
-      ellipse 60% 40% at 50% 80%,
-      rgb(var(--accent-rgb), 0.04),
-      transparent
-    );
+    radial-gradient(ellipse 60% 40% at 50% 80%, rgb(var(--accent-rgb), 0.04), transparent);
   pointer-events: none;
 }
 
@@ -65,8 +61,12 @@
 }
 
 @keyframes lb-float {
-  from { transform: translateY(100vh); }
-  to   { transform: translateY(-10vh); }
+  from {
+    transform: translateY(100vh);
+  }
+  to {
+    transform: translateY(-10vh);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

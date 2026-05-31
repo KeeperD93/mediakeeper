@@ -60,7 +60,11 @@ export function useCinemaTrailerCarousel({ playerElRef, initialMuted = true } = 
 
   function destroyPlayer() {
     if (player) {
-      try { player.destroy() } catch { /* ignore */ }
+      try {
+        player.destroy()
+      } catch {
+        /* ignore */
+      }
       player = null
     }
     // ``YT.Player.destroy()`` releases the internal player state but
@@ -122,8 +126,14 @@ export function useCinemaTrailerCarousel({ playerElRef, initialMuted = true } = 
   }
 
   function clearVeilTimers() {
-    if (veilTimer) { clearTimeout(veilTimer); veilTimer = null }
-    if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = null }
+    if (veilTimer) {
+      clearTimeout(veilTimer)
+      veilTimer = null
+    }
+    if (fallbackTimer) {
+      clearTimeout(fallbackTimer)
+      fallbackTimer = null
+    }
   }
 
   function advanceNext() {
@@ -159,7 +169,9 @@ export function useCinemaTrailerCarousel({ playerElRef, initialMuted = true } = 
     try {
       if (muted.value) player.mute()
       else player.unMute()
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   refreshTimer = setInterval(() => {
@@ -167,7 +179,10 @@ export function useCinemaTrailerCarousel({ playerElRef, initialMuted = true } = 
   }, FETCH_INTERVAL_MS)
 
   function destroy() {
-    if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null }
+    if (refreshTimer) {
+      clearInterval(refreshTimer)
+      refreshTimer = null
+    }
     clearVeilTimers()
     destroyPlayer()
   }

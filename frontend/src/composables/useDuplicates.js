@@ -25,7 +25,9 @@ export function useDuplicates() {
   const LAST_DETECTION_KEY = 'mk_doublon_last_detection'
   const RULES_STORAGE_KEY = 'mk_doublon_rules'
   const initialDetection = Number(localStorage.getItem(LAST_DETECTION_KEY))
-  const lastDetection = ref(Number.isFinite(initialDetection) && initialDetection > 0 ? initialDetection : null)
+  const lastDetection = ref(
+    Number.isFinite(initialDetection) && initialDetection > 0 ? initialDetection : null,
+  )
 
   try {
     rules.value = JSON.parse(localStorage.getItem(RULES_STORAGE_KEY) || '[]')

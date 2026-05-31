@@ -48,10 +48,7 @@
           <GripVertical :size="12" fill="currentColor" />
         </div>
         <PlaybackCardDonut v-if="card.type === 'donut'" :by-method="playback?.by_method || []" />
-        <PlaybackCardRadar
-          v-else-if="card.type === 'genre'"
-          :by-genre="playback?.by_genre || []"
-        />
+        <PlaybackCardRadar v-else-if="card.type === 'genre'" :by-genre="playback?.by_genre || []" />
         <PlaybackCardRank
           v-else
           :card="card"

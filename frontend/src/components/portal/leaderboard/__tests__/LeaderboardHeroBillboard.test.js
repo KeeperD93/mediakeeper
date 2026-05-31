@@ -39,11 +39,14 @@ function buildEntry(overrides = {}) {
 
 describe('LeaderboardHeroBillboard.vue', () => {
   beforeEach(() => {
-    vi.stubGlobal('matchMedia', vi.fn(() => ({
-      matches: false,
-      addEventListener: () => {},
-      removeEventListener: () => {},
-    })))
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn(() => ({
+        matches: false,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+      })),
+    )
   })
   afterEach(() => {
     vi.useRealTimers()
@@ -83,7 +86,10 @@ describe('LeaderboardHeroBillboard.vue', () => {
     // Default duration is 1400 ms — advance well past it.
     vi.advanceTimersByTime(1600)
     await wrapper.vm.$nextTick()
-    const xpValue = wrapper.find('.lb-hero-xp-value').text().replace(/[^0-9]/g, '')
+    const xpValue = wrapper
+      .find('.lb-hero-xp-value')
+      .text()
+      .replace(/[^0-9]/g, '')
     expect(xpValue).toBe('1500')
   })
 })

@@ -88,9 +88,7 @@ const year = computed(() => {
 // Duration label — runtime is in minutes. Items missing the field
 // produce an empty string, which the PosterCard meta line elides
 // (no orphan ' · ' separator).
-const duration = computed(() =>
-  formatRuntime(props.item?.runtime || props.item?.duration || 0),
-)
+const duration = computed(() => formatRuntime(props.item?.runtime || props.item?.duration || 0))
 
 const isBlacklisted = computed(() => displayedReqStatus.value === 'blacklisted')
 

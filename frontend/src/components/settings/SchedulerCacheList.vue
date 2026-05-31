@@ -117,8 +117,13 @@ function onClear(cache) {
   animation: scl-skel-pulse 1.4s ease-in-out infinite;
 }
 @keyframes scl-skel-pulse {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.7; }
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 .scl-empty {
   font-size: var(--text-2xs);

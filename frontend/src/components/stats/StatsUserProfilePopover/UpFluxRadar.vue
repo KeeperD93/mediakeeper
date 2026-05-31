@@ -2,12 +2,7 @@
   <div class="up-col">
     <div class="up-section">
       <div class="up-stitle">{{ $t('stats.flux') }}</div>
-      <div
-        v-for="m in userProfile.by_method"
-        :key="m.method"
-        class="up-flux-row"
-        :title="m.method"
-      >
+      <div v-for="m in userProfile.by_method" :key="m.method" class="up-flux-row" :title="m.method">
         <span class="up-flux-dot" :class="fluxClass(m.method)" />
         <span class="up-flux-name">{{ m.method }}</span>
         <span class="up-flux-val">{{ m.count }}</span>
@@ -81,9 +76,7 @@
               :style="{
                 width:
                   Math.round(
-                    (lib.count /
-                      Math.max(1, ...userProfile.by_library.map(l => l.count))) *
-                      100,
+                    (lib.count / Math.max(1, ...userProfile.by_library.map(l => l.count))) * 100,
                   ) + '%',
               }"
             />

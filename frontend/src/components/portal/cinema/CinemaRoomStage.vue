@@ -31,5 +31,4 @@
   <div class="pt-cr-pelmet" />
 </template>
 
-<script setup>
-</script>
+<script setup></script>

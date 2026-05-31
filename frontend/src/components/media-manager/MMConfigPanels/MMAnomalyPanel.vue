@@ -24,11 +24,7 @@
         </div>
       </label>
       <label class="mm-rule-row">
-        <input
-          v-model="anomalyDraft.checkMultipleUnderscores"
-          type="checkbox"
-          class="mm-chkbox"
-        />
+        <input v-model="anomalyDraft.checkMultipleUnderscores" type="checkbox" class="mm-chkbox" />
         <div>
           <div class="mm-rule-label">{{ $t('mediaManager.ruleUnderscores') }}</div>
           <div class="mm-rule-hint">{{ $t('mediaManager.ruleUnderscoresHint') }}</div>

@@ -168,7 +168,7 @@ export function useHealthCheck() {
     reloadAll()
   }
 
-  const formatAgo = (input) => formatAgoUtil(input, t)
+  const formatAgo = input => formatAgoUtil(input, t)
 
   return {
     summary,

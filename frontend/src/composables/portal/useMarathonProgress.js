@@ -37,9 +37,7 @@ export function useMarathonProgress(eventId) {
     if (!eventId) return
     loading.value = true
     try {
-      const payload = await apiGet(
-        `/api/portal/events/rooms/${eventId}/marathon-progress`,
-      )
+      const payload = await apiGet(`/api/portal/events/rooms/${eventId}/marathon-progress`)
       progress.value = payload
       error.value = null
     } catch (err) {

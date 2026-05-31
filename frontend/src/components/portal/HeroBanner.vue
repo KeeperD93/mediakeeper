@@ -110,11 +110,7 @@ const bgStyle = computed(() => {
 async function ensureTrailerResolved() {
   const it = viewItem.value
   if (!it) return
-  await resolveTrailer(
-    it.media_type || 'movie',
-    it.tmdb_id || it.id,
-    it.emby_item_id || null,
-  )
+  await resolveTrailer(it.media_type || 'movie', it.tmdb_id || it.id, it.emby_item_id || null)
 }
 
 function openLightbox() {

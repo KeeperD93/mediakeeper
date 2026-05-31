@@ -232,10 +232,7 @@ export function useParamsScheduler() {
 
   async function schedClearCache(cache) {
     try {
-      const res = await apiFetch(
-        `/api/scheduler/caches/${cache.id}/clear`,
-        { method: 'POST' },
-      )
+      const res = await apiFetch(`/api/scheduler/caches/${cache.id}/clear`, { method: 'POST' })
       const data = await res.json()
       if (data.success) {
         showToast(t('scheduler.cacheCleared', { name: cache.name }), TOAST_TYPE.OK)

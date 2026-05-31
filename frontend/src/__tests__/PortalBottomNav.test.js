@@ -60,18 +60,14 @@ describe('PortalBottomNav', () => {
 
   it('marks only Lists with aria-current="page" when activeTab is LISTS', () => {
     const w = render({ showRequestsTab: true, activeTab: PORTAL_TAB.LISTS })
-    const current = w
-      .findAll('.pt-bottom-tab')
-      .filter(b => b.attributes('aria-current') === 'page')
+    const current = w.findAll('.pt-bottom-tab').filter(b => b.attributes('aria-current') === 'page')
     expect(current).toHaveLength(1)
     expect(current[0].attributes('aria-label')).toBe('portal.lists.navLabel')
   })
 
   it('keeps Tickets active when activeTab is TICKET_DETAIL', () => {
     const w = render({ showRequestsTab: true, activeTab: PORTAL_TAB.TICKET_DETAIL })
-    const current = w
-      .findAll('.pt-bottom-tab')
-      .filter(b => b.attributes('aria-current') === 'page')
+    const current = w.findAll('.pt-bottom-tab').filter(b => b.attributes('aria-current') === 'page')
     expect(current).toHaveLength(1)
     expect(current[0].attributes('aria-label')).toBe('portal.tabs.problems')
   })
