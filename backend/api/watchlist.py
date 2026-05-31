@@ -232,4 +232,4 @@ async def upcoming_episodes(_: User = Depends(get_current_user)):
                     })
 
     episodes.sort(key=lambda x: x["air_date"])
-    return episodes[:20]
+    return episodes[:30]

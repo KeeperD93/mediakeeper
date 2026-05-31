@@ -16,6 +16,12 @@ utilisateurs.
 
 ## [Unreleased]
 
+### Changed
+- Avatars — anneau légendaire (niv. 50) : arc-en-ciel animé sur toutes les surfaces.
+
+### Fixed
+- Paramètres — couleurs de votre rang appliquées dès l'ouverture (plus de flash).
+
 ## [1.0.0-rc.4] - 2026-05-30
 
 ### Changed

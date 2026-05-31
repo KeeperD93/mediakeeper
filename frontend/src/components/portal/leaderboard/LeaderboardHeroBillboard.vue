@@ -5,12 +5,13 @@
     class="lb-hero"
     :aria-label="$t('portal.leaderboard.hero.rankBadge')"
   >
-    <div class="lb-hero-avatar" :class="`lb-hero-avatar--${entry.tier || 'gold'}`">
+    <div class="lb-hero-avatar">
       <div class="lb-hero-avatar-inner">
         <MkAvatar
           :name="entry.display_name || ''"
           :src="entry.avatar_url || null"
           :size="140"
+          :tier="entry.tier || 'gold'"
         />
       </div>
     </div>
@@ -112,46 +113,37 @@ const { displayed: displayedXp } = useCountUp(targetXp.value, { duration: 1400 }
   height: 140px;
   flex-shrink: 0;
   border-radius: var(--portal-radius-circle);
-  /* Ring drawn by MkAvatar's CSS border — pure layout container here.
-     Default ring colour is rank-1 gold; tier variants override below
-     so a top-rank user in a different tier (e.g. legendary) still gets
-     their own tier colour rather than a hard-coded gold ring. */
-  --mk-avatar-ring-width: 5px;
-  --mk-avatar-ring-color: var(--portal-color-warning);
+  /* Pure layout container — the tier ring (colour, halo, and the
+     spinning legendary rainbow) is drawn by MkAvatar itself via the
+     universal :tier prop, so the #1 champion matches every other
+     leaderboard surface instead of a static bespoke ring. */
   position: relative;
   z-index: 1;
-}
-.lb-hero-avatar--bronze {
-  --mk-avatar-ring-color: #cd7f32;
-}
-.lb-hero-avatar--silver {
-  --mk-avatar-ring-color: #c0c0c0;
-}
-.lb-hero-avatar--gold {
-  --mk-avatar-ring-color: var(--portal-color-warning);
-}
-.lb-hero-avatar--platinum {
-  --mk-avatar-ring-color: var(--portal-color-cinema);
-}
-.lb-hero-avatar--diamond {
-  --mk-avatar-ring-color: #7c3aed;
-}
-.lb-hero-avatar--master {
-  --mk-avatar-ring-color: var(--portal-color-error);
-}
-.lb-hero-avatar--legendary {
-  --mk-avatar-ring-color: var(--portal-color-warning);
 }
 .lb-hero-avatar-inner {
   width: 100%;
   height: 100%;
   border-radius: var(--portal-radius-circle);
-  /* Transparent so the page bg shows through the hollow ring above. */
+  /* Transparent so the page bg shows through MkAvatar's hollow tier
+     ring (the ring is a border on MkAvatar itself). Clipping is mobile-
+     only (see media query): on desktop it would cut MkAvatar's tier
+     halo box-shadow and the #1 champion would lose the glow the other
+     leaderboard surfaces show. */
   background: transparent;
-  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+/* The champion avatar is much larger (140px) than the podium (84px), so the
+   universal 2px ring reads as too thin here. Match the podium's visual ring
+   weight with a proportionally thicker 5px ring (5px / 140px ≈ 3px / 84px).
+   Mirrors the podium's :deep override; legendary keeps its rainbow ::after
+   but widens its band to the same 5px. */
+.lb-hero-avatar :deep(.mk-avatar:not(.mk-avatar-tier--legendary)) {
+  --mk-avatar-ring-width: 5px;
+}
+.lb-hero-avatar :deep(.mk-avatar-tier--legendary)::after {
+  padding: 5px;
 }
 .lb-hero-body {
   flex: 1;
@@ -242,6 +234,10 @@ const { displayed: displayedXp } = useCountUp(targetXp.value, { duration: 1400 }
   .lb-hero-avatar {
     width: 96px;
     height: 96px;
+  }
+  /* Crop the fixed 140 px MkAvatar into the smaller mobile slot. */
+  .lb-hero-avatar-inner {
+    overflow: hidden;
   }
 }
 .lb-hero-custom-title--rarity-common { color: var(--portal-text-body); }

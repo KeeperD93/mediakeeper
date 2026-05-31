@@ -9,6 +9,9 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Changed
+- Dashboard — 30 upcoming releases shown (was 20).
+
 ## [1.0.0-rc.4] - 2026-05-30
 
 ### Added

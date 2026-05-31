@@ -8,11 +8,12 @@
     @click="effectiveOnPodium ? scrollToHero() : null"
   >
     <span class="lb-my-rank-label">{{ $t('portal.leaderboard.myRank.label') }}</span>
-    <div class="lb-my-rank-avatar" :class="`gc-lb-av gc-lb-av--${effectiveEntry.tier || 'bronze'}`">
+    <div class="lb-my-rank-avatar gc-lb-av">
       <MkAvatar
         :name="effectiveEntry.display_name || ''"
         :src="effectiveEntry.avatar_url || null"
         :size="44"
+        :tier="effectiveEntry.tier || 'bronze'"
       />
     </div>
     <div class="lb-my-rank-pseudo">{{ effectiveEntry.display_name }}</div>

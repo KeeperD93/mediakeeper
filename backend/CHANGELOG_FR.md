@@ -9,6 +9,9 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+### Changed
+- Tableau de bord — 30 prochaines sorties affichées (au lieu de 20).
+
 ## [1.0.0-rc.4] - 2026-05-30
 
 ### Added

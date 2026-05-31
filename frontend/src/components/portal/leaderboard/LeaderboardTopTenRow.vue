@@ -8,8 +8,13 @@
     <span class="lb-top-row-rank" :class="`lb-top-row-rank--${entry.tier || 'bronze'}`">
       {{ entry.rank }}
     </span>
-    <div class="gc-lb-av lb-top-row-av" :class="`gc-lb-av--${entry.tier || 'bronze'}`">
-      <MkAvatar :name="entry.display_name || ''" :src="entry.avatar_url || null" :size="40" />
+    <div class="gc-lb-av lb-top-row-av">
+      <MkAvatar
+        :name="entry.display_name || ''"
+        :src="entry.avatar_url || null"
+        :size="40"
+        :tier="entry.tier || 'bronze'"
+      />
     </div>
     <div class="lb-top-row-info">
       <span class="lb-top-row-pseudo">

@@ -1,6 +1,5 @@
 /* Leaderboard card — monthly XP ranking list with tier-colored avatars.
- * Used by LeaderboardCard.vue. Global styles.
- * Depends on @keyframes gc-ring-shift from rank-card.css. */
+ * Used by LeaderboardCard.vue. Global styles. */
 
 .gc-lb-box {
   padding: 0.85rem;
@@ -197,34 +196,12 @@
   align-items: center;
   justify-content: center;
 }
-.gc-lb-av--bronze {
-  --mk-avatar-ring-color: #cd7f32;
-}
-.gc-lb-av--silver {
-  --mk-avatar-ring-color: #c0c0c0;
-}
-.gc-lb-av--gold {
-  --mk-avatar-ring-color: var(--portal-color-warning);
-  box-shadow: 0 0 6px rgb(var(--portal-color-warning-rgb), 0.3);
-}
-.gc-lb-av--platinum {
-  --mk-avatar-ring-color: var(--portal-color-cinema);
-  box-shadow: 0 0 6px rgb(var(--portal-color-cinema-rgb), 0.3);
-}
-.gc-lb-av--diamond {
-  --mk-avatar-ring-color: #7c3aed;
-  box-shadow: 0 0 8px rgb(var(--portal-color-premium-rgb), 0.4);
-}
-.gc-lb-av--master {
-  --mk-avatar-ring-color: var(--portal-color-error);
-  box-shadow: 0 0 8px rgb(var(--portal-color-error-rgb), 0.4);
-}
-.gc-lb-av--legendary {
-  --mk-avatar-ring-color: var(--portal-color-warning);
-  box-shadow:
-    0 0 10px rgb(var(--portal-color-warning-rgb), 0.4),
-    0 0 20px rgb(var(--portal-color-error-rgb), 0.15);
-}
+/* Tier ring colour + glow now come from the universal avatar system
+   (``.mk-avatar-tier--{tier}`` in tokens/_avatar-tiers.css): the leaderboard
+   MkAvatars pass ``:tier`` so admin and portal render identically — same hex
+   per tier, and the legendary tier gets the same spinning rainbow ring. The
+   old ``.gc-lb-av--{tier}`` ring classes were dropped from every template and
+   from this file; ``.gc-lb-av`` alone remains as the layout wrapper. */
 .gc-lb-n {
   flex: 1;
   font-size: var(--portal-text-xs);
@@ -246,21 +223,6 @@
   color: var(--color-info);
   font-family: var(--portal-font-display);
   flex-shrink: 0;
-}
-
-/* Self-suffhereent: duplicated from rank-card.css so LeaderboardCard can
-   be mounted outside the portal profile page (e.g. dashboard widget)
-   without the avatar tiers losing their animated gradient. */
-@keyframes gc-ring-shift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
 }
 
 /* Title of the leaderboard card is a link to the dedicated /portal/leaderboard

@@ -182,12 +182,6 @@
   width: 64px;
   height: 64px;
   border-radius: var(--portal-radius-circle);
-  /* Ring drawn by MkAvatar's CSS border via these custom properties.
-     Tier colour comes from --rk-c1 which the parent .gc--{tier} sets
-     (see profile-page.css). 3 px ring stays visually present at both
-     the 64 px mobile and 88 px desktop sizes. */
-  --mk-avatar-ring-width: 3px;
-  --mk-avatar-ring-color: var(--rk-c1);
   transition: box-shadow var(--portal-dur-slow);
 }
 @media (min-width: 768px) {
@@ -244,6 +238,53 @@
 .gc-avatar-mk {
   width: 100% !important;
   height: 100% !important;
+  /* Ring vars set DIRECTLY on the MkAvatar element (not the .gc-avatar-
+     ring wrapper) so MkAvatar's own CSS border reliably resolves them.
+     Tier colour from --rk-c1 (.gc--{tier}, profile-page.css). No load-
+     state fallback: until the tier resolves the ring is simply absent
+     rather than tinted, so there is no wrong-colour flash on refresh.
+     3 px ring reads at both the 64 px mobile and 88 px desktop sizes. */
+  --mk-avatar-ring-width: 3px;
+  --mk-avatar-ring-color: var(--rk-c1);
+}
+/* Legendary (lvl 50): drop the solid ring and paint a spinning rainbow
+   ring on the avatar, reusing the card frame's --border-angle + gc-rotate
+   spin and the same 8-stop rainbow. A flat gold ring (--rk-c1 = warning)
+   was invisible against the card's gold glow; this matches the leaderboard
+   legendary avatars and reads unmistakably as level 50. */
+.gc--legendary .gc-avatar-mk {
+  --mk-avatar-ring-width: 0;
+  position: relative;
+}
+.gc--legendary .gc-avatar-mk::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 3px;
+  background: conic-gradient(
+    from var(--border-angle),
+    #f00,
+    #f80,
+    #ff0,
+    #0f0,
+    #08f,
+    #85f,
+    #f0f,
+    #f00
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: gc-rotate 4s linear infinite;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .gc--legendary .gc-avatar-mk::after {
+    animation: none;
+  }
 }
 .gc--master .gc-avatar-inner,
 .gc--legendary .gc-avatar-inner {

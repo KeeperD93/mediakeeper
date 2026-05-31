@@ -62,7 +62,10 @@ export function useProfileData() {
   const continueWatching = ref([])
   const ranking = ref({ position: 0, total: 0, percentile: 0, movement: 0, leaderboard: [] })
   const titleKey = ref('spectator')
-  const rankTier = ref('bronze')
+  // Empty until the profile resolves: applying a tier class before the real
+  // rank loads would flash the bronze (level-1) theme for ~0.5s on a
+  // higher-tier user. Consumers gate the ``gc--`` class on a truthy value.
+  const rankTier = ref('')
   const trophies = ref({ items: [], unlocked_count: 0, total_count: 0, next_achievement: null })
   // Trophy unlocked in the last 5 min — the SFC wires this into the
   // useTrophyDisplay toast ref (owning that state there would create

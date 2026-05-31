@@ -1,6 +1,17 @@
 <template>
-  <div :class="['pt-settings', 'mk-page-root', `gc--${rankTier}`]">
-    <div class="dp-reveal-item dp-reveal-item--d0">
+  <div :class="['pt-settings', 'mk-page-root', rankTier ? `gc--${rankTier}` : '']">
+    <!-- Until the profile-full payload resolves the rank tier is unknown, so
+         the whole-page accent (tabs, save button, title gradient, hero card)
+         would paint in the default premium hue then snap to the real tier — a
+         visible colour flash. Mirror the profile dashboard: hold a neutral
+         loader until `loading` clears (rankTier is set by then) so the page
+         renders once, straight into the correct tier. -->
+    <div v-if="loading" class="dp-loading pt-settings-loading">
+      <MkSpinner size="sm" inline />
+      {{ $t('common.loading') }}
+    </div>
+
+    <div v-else class="dp-reveal-item dp-reveal-item--d0">
       <SettingsHero
         :profile-data="profileData"
         :live-preview="livePreview"
@@ -17,7 +28,7 @@
       />
     </div>
 
-    <section class="pt-settings-body">
+    <section v-if="!loading" class="pt-settings-body">
       <header class="pt-settings-header dp-reveal-item dp-reveal-item--d1">
         <h1 class="pt-settings-h1">{{ $t('portal.settings.title') }}</h1>
         <p class="pt-settings-sub">{{ $t('portal.settings.subtitle') }}</p>
@@ -131,6 +142,7 @@ import SettingsTabPreferences from '@/components/portal/settings/SettingsTabPref
 import SettingsTabVisibility from '@/components/portal/settings/SettingsTabVisibility.vue'
 import SettingsTabAccount from '@/components/portal/settings/SettingsTabAccount.vue'
 import PrivacyTab from '@/components/portal/settings/PrivacyTab.vue'
+import MkSpinner from '@/components/common/MkSpinner.vue'
 
 import '@/assets/styles/portal/settings-premium.css'
 
@@ -169,7 +181,7 @@ const {
   deleteCustomAvatar,
 } = usePortalSettings()
 
-const { stats, ranking, titleKey, rankTier, trophies, load } = useProfileData()
+const { loading, stats, ranking, titleKey, rankTier, trophies, load } = useProfileData()
 const { titleTierName, memberSince, xpPercent, nextLevelXp } = useProfileXp(profileData, stats)
 const { displayTrophies } = useTrophyDisplay(trophies, profileData)
 
@@ -301,5 +313,11 @@ onMounted(async () => {
   margin: 0;
   font-size: var(--portal-text-sm);
   color: var(--portal-text-secondary);
+}
+
+.pt-settings-loading {
+  /* Span both grid columns so the loader sits centred across the full page
+     instead of being squeezed into the 320px hero column. */
+  grid-column: 1 / -1;
 }
 </style>
