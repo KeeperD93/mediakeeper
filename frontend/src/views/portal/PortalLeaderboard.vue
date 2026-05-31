@@ -81,11 +81,12 @@
               }"
             >
               <span class="gc-lb-pos">{{ entry.rank }}</span>
-              <div class="gc-lb-av" :class="`gc-lb-av--${entry.tier || 'bronze'}`">
+              <div class="gc-lb-av">
                 <MkAvatar
                   :name="entry.display_name || ''"
                   :src="entry.avatar_url || null"
                   :size="24"
+                  :tier="entry.tier || 'bronze'"
                 />
               </div>
               <div class="gc-lb-info">

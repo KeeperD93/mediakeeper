@@ -15,8 +15,13 @@
         class="pt-lb-podium-medal"
         aria-hidden="true"
       />
-      <div class="gc-lb-av" :class="`gc-lb-av--${entry.tier || 'bronze'}`">
-        <MkAvatar :name="entry.display_name || ''" :src="entry.avatar_url || null" :size="84" />
+      <div class="gc-lb-av">
+        <MkAvatar
+          :name="entry.display_name || ''"
+          :src="entry.avatar_url || null"
+          :size="84"
+          :tier="entry.tier || 'bronze'"
+        />
       </div>
       <div class="pt-lb-podium-name">{{ entry.display_name }}</div>
       <div class="pt-lb-podium-meta">
@@ -144,8 +149,12 @@ function moveTooltip(movement) {
 .pt-lb-podium-card :deep(.gc-lb-av) {
   width: 84px;
   height: 84px;
-  /* Thicker ring on the larger podium avatar so the tier colour reads
-     at this scale. The actual ring is drawn by MkAvatar's CSS border. */
+}
+/* Thicker ring on the larger podium avatar so the tier colour reads at this
+   scale. Set on the avatar element itself so it wins over the 2px the
+   ``.mk-avatar-tier--{tier}`` class sets there; legendary is excluded since it
+   draws its ring via the ::after rainbow band, not the solid border. */
+.pt-lb-podium-card :deep(.mk-avatar:not(.mk-avatar-tier--legendary)) {
   --mk-avatar-ring-width: 3px;
 }
 .pt-lb-podium-name {

@@ -1,11 +1,13 @@
 <template>
   <aside class="pt-settings-hero">
     <!-- Mirror of /portal/me: the RankSidebarCard is wrapped in the
-         exact same `.gc.gc--{tier}` container so the tier-driven FX
-         (aurora, starfield, particles, ring shimmer…) render the same
-         way here as on the profile dashboard. Nothing extra, nothing
-         missing — the card is a strict copy. -->
-    <section class="gc" :class="`gc--${rankTier}`">
+         same `.gc.gc--{tier}` container so the tier-driven FX (aurora,
+         starfield, particles, ring shimmer…) render the same way here
+         as on the profile dashboard. The tier class is gated on a
+         truthy `rankTier`: while the profile loads (~0.5s) the card
+         shows a neutral skeleton instead of flashing the bronze
+         level-1 theme on a higher-tier user. -->
+    <section class="gc" :class="rankTier ? `gc--${rankTier}` : ''">
       <RankSidebarCard
         :profile-data="livePreviewProfile"
         :rank-tier="rankTier"

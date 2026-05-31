@@ -1,5 +1,5 @@
 <template>
-  <div :class="['pt-settings', 'mk-page-root', `gc--${rankTier}`]">
+  <div :class="['pt-settings', 'mk-page-root', rankTier ? `gc--${rankTier}` : '']">
     <div class="dp-reveal-item dp-reveal-item--d0">
       <SettingsHero
         :profile-data="profileData"

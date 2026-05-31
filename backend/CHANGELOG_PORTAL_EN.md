@@ -14,6 +14,12 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Changed
+- Avatars — legendary ring (level 50): animated rainbow on every surface.
+
+### Fixed
+- Profile & Settings — avatar ring shows the correct rank colour on open.
+
 ## [1.0.0-rc.4] - 2026-05-30
 
 ### Changed

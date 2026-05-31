@@ -27,6 +27,24 @@
  * identity, public profile hero) layer their own FX *above* this base
  * and are intentionally left untouched.
  */
+
+/* Legendary tier (level 50): a rainbow ring that ROTATES around the avatar (a
+   conic gradient spun via --mk-legendary-angle), mirroring the RankSidebarCard's
+   spinning border — the colours travel around the ring, it is not a uniform
+   colour cycle. The angle is @property-registered so it interpolates smoothly.
+   See the .mk-avatar-tier--legendary::after rule below. */
+@property --mk-legendary-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes mk-legendary-ring-spin {
+  to {
+    --mk-legendary-angle: 360deg;
+  }
+}
+
 :root {
   /* Ring colour per tier — values mirror the leaderboard exactly
      (leaderboard-card.css .gc-lb-av--*) so the same user reads the
@@ -44,6 +62,8 @@
   --mk-tier-diamond-halo-rgb: 168, 85, 247;
   --mk-tier-master: #ef4444;
   --mk-tier-master-rgb: 239, 68, 68;
+  /* Legendary ring is a spinning rainbow (see .mk-avatar-tier--legendary::after);
+     the warm halo below (-rgb pair) is the static glow beneath it. */
   --mk-tier-legendary: #fbbf24;
   --mk-tier-legendary-rgb: 251, 191, 36;
   --mk-tier-legendary-halo-rgb: 239, 68, 68;
@@ -84,9 +104,47 @@
 }
 
 .mk-avatar-tier--legendary {
-  --mk-avatar-ring-width: 2px;
-  --mk-avatar-ring-color: var(--mk-tier-legendary);
+  /* No solid border — the spinning rainbow ring is painted by ::after below.
+     The box-shadow is the static warm glow beneath it (matches the leaderboard
+     legendary avatar treatment). */
+  --mk-avatar-ring-width: 0;
+  position: relative;
   box-shadow:
     0 0 10px rgb(var(--mk-tier-legendary-rgb), 0.4),
     0 0 20px rgb(var(--mk-tier-legendary-halo-rgb), 0.15);
+}
+
+/* Rainbow ring = a conic gradient masked down to the edge band (same technique
+   as the RankSidebarCard border): spinning --mk-legendary-angle rotates the
+   8-stop rainbow so the colours travel around the ring. */
+.mk-avatar-tier--legendary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(
+    from var(--mk-legendary-angle),
+    #f00,
+    #f80,
+    #ff0,
+    #0f0,
+    #08f,
+    #85f,
+    #f0f,
+    #f00
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: mk-legendary-ring-spin 4s linear infinite;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mk-avatar-tier--legendary::after {
+    animation: none;
+  }
 }
