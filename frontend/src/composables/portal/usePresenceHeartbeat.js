@@ -6,9 +6,7 @@ const CSRF_COOKIE = 'mk_csrf'
 
 function _readCsrfCookie() {
   if (typeof document === 'undefined') return ''
-  const match = document.cookie
-    .split('; ')
-    .find(c => c.startsWith(`${CSRF_COOKIE}=`))
+  const match = document.cookie.split('; ').find(c => c.startsWith(`${CSRF_COOKIE}=`))
   return match ? decodeURIComponent(match.slice(CSRF_COOKIE.length + 1)) : ''
 }
 

@@ -8,12 +8,7 @@
       class="ale-item-link"
     >
       <span class="ale-item-poster">
-        <img
-          v-if="item.poster_url"
-          :src="item.poster_url"
-          :alt="item.title || ''"
-          loading="lazy"
-        />
+        <img v-if="item.poster_url" :src="item.poster_url" :alt="item.title || ''" loading="lazy" />
         <span v-else class="ale-item-poster-fallback">
           {{ (item.title || '?').charAt(0) }}
         </span>

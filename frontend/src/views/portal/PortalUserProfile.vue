@@ -15,9 +15,7 @@
       <Lock :size="48" :stroke-width="1.5" class="pt-up-private-icon" />
       <h1>{{ $t('portal.profile.privateProfile.title') }}</h1>
       <p>
-        {{
-          $t('portal.profile.privateProfile.desc', { name: data.display_name || '—' })
-        }}
+        {{ $t('portal.profile.privateProfile.desc', { name: data.display_name || '—' }) }}
       </p>
     </section>
 

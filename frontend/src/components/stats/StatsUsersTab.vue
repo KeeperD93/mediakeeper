@@ -286,9 +286,7 @@ let usersDb = null
 // calls, only reassignments).
 const selected = reactive(new Set())
 
-const selectedUsers = computed(() =>
-  users.value.users.filter(u => selected.has(u.user_id)),
-)
+const selectedUsers = computed(() => users.value.users.filter(u => selected.has(u.user_id)))
 const visibleSelected = computed(() => selectedUsers.value.filter(u => !u.is_hidden))
 const hiddenSelected = computed(() => selectedUsers.value.filter(u => u.is_hidden))
 const allSelected = computed(

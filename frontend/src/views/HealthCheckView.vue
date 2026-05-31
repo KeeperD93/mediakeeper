@@ -230,11 +230,7 @@
 
     <!-- ═══ Scroll to top ═══ -->
     <Transition name="hc-scroll-up">
-      <button
-        v-if="showScrollTop && tab === 'health'"
-        class="hc-scroll-top"
-        @click="scrollToTop"
-      >
+      <button v-if="showScrollTop && tab === 'health'" class="hc-scroll-top" @click="scrollToTop">
         <ChevronUp :size="14" :stroke-width="2.5" />
         {{ $t('healthCheck.backToTop') }}
       </button>

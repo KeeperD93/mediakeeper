@@ -20,7 +20,11 @@
           :class="`mk-poster__avail--${availability}`"
         >
           <span class="mk-poster__avail-dot" />
-          {{ availability === 'full' ? $t('portal.posterCard.availFull') : $t('portal.posterCard.availPartial') }}
+          {{
+            availability === 'full'
+              ? $t('portal.posterCard.availFull')
+              : $t('portal.posterCard.availPartial')
+          }}
         </div>
       </div>
 
@@ -108,7 +112,6 @@
             <Bookmark :size="18" />
           </button>
         </div>
-
       </div>
     </div>
   </section>
@@ -153,9 +156,7 @@ const runtimeLabel = computed(() => {
   return h > 0 ? `${h}h${m > 0 ? m : ''}` : `${m}min`
 })
 
-const languageLabel = computed(() =>
-  formatLanguage(props.media.original_language, locale.value),
-)
+const languageLabel = computed(() => formatLanguage(props.media.original_language, locale.value))
 const countryLabel = computed(() => formatCountry(props.media.country_codes?.[0], locale.value))
 
 const requestBtnLabel = computed(() => t('portal.detail.request'))
@@ -183,13 +184,29 @@ const statusRibbon = computed(() => {
   const s = props.reqStatus
   if (!s) return null
   if (s === REQUEST_STATUS.PENDING)
-    return { label: t(STATUS_LABEL_KEY.pending).toUpperCase(), color: STATUS_COLOR.pending, tooltip: props.reqStatusTooltip }
+    return {
+      label: t(STATUS_LABEL_KEY.pending).toUpperCase(),
+      color: STATUS_COLOR.pending,
+      tooltip: props.reqStatusTooltip,
+    }
   if (s === REQUEST_STATUS.APPROVED)
-    return { label: t(STATUS_LABEL_KEY.approved).toUpperCase(), color: STATUS_COLOR.approved, tooltip: props.reqStatusTooltip }
+    return {
+      label: t(STATUS_LABEL_KEY.approved).toUpperCase(),
+      color: STATUS_COLOR.approved,
+      tooltip: props.reqStatusTooltip,
+    }
   if (s === REQUEST_STATUS.REJECTED)
-    return { label: t(STATUS_LABEL_KEY.rejected).toUpperCase(), color: STATUS_COLOR.rejected, tooltip: props.reqStatusTooltip }
+    return {
+      label: t(STATUS_LABEL_KEY.rejected).toUpperCase(),
+      color: STATUS_COLOR.rejected,
+      tooltip: props.reqStatusTooltip,
+    }
   if (s === 'blacklisted')
-    return { label: t(STATUS_LABEL_KEY.blacklisted).toUpperCase(), color: STATUS_COLOR.blacklisted, tooltip: props.reqStatusTooltip }
+    return {
+      label: t(STATUS_LABEL_KEY.blacklisted).toUpperCase(),
+      color: STATUS_COLOR.blacklisted,
+      tooltip: props.reqStatusTooltip,
+    }
   return null
 })
 

@@ -152,7 +152,10 @@
           class="pt-debug-input"
           :placeholder="$t('portal.admin.debug.achievementSearch')"
         />
-        <select v-model="achCategory" class="pt-debug-select mk-select-chevron pt-debug-select--inline">
+        <select
+          v-model="achCategory"
+          class="pt-debug-select mk-select-chevron pt-debug-select--inline"
+        >
           <option value="">{{ $t('portal.admin.debug.categoryAll') }}</option>
           <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
         </select>

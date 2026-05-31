@@ -21,13 +21,7 @@ import { ref, computed, watch, onScopeDispose } from 'vue'
  * selection is intentionally not provided — Ctrl/Shift-clicking rows
  * already covers the multi-select path for keyboard users.
  */
-export function useRectLasso({
-  container,
-  hitTest,
-  onSelect,
-  onCancel,
-  excludeSelector = '',
-}) {
+export function useRectLasso({ container, hitTest, onSelect, onCancel, excludeSelector = '' }) {
   const isDragging = ref(false)
   const startX = ref(0)
   const startY = ref(0)

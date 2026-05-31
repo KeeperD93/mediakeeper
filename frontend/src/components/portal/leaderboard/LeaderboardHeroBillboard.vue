@@ -33,9 +33,7 @@
           v-if="entry.selected_title"
           class="lb-hero-custom-title"
           :class="
-            entry.title_tier
-              ? `lb-hero-custom-title--rarity-${tierToRarity(entry.title_tier)}`
-              : ''
+            entry.title_tier ? `lb-hero-custom-title--rarity-${tierToRarity(entry.title_tier)}` : ''
           "
         >
           · {{ $t(entry.selected_title) }}
@@ -94,7 +92,11 @@ const { displayed: displayedXp } = useCountUp(targetXp.value, { duration: 1400 }
   text-decoration: none;
   color: var(--portal-text-primary);
   background:
-    radial-gradient(ellipse at center, rgb(var(--portal-color-warning-rgb), 0.18) 0%, transparent 70%),
+    radial-gradient(
+      ellipse at center,
+      rgb(var(--portal-color-warning-rgb), 0.18) 0%,
+      transparent 70%
+    ),
     var(--portal-surface-2);
   border: 1px solid rgb(var(--portal-color-warning-rgb), 0.35);
   box-shadow: 0 8px 30px rgb(var(--portal-color-warning-rgb), 0.12);
@@ -240,10 +242,22 @@ const { displayed: displayedXp } = useCountUp(targetXp.value, { duration: 1400 }
     overflow: hidden;
   }
 }
-.lb-hero-custom-title--rarity-common { color: var(--portal-text-body); }
-.lb-hero-custom-title--rarity-uncommon { color: var(--portal-color-success); }
-.lb-hero-custom-title--rarity-rare { color: var(--portal-color-cinema); }
-.lb-hero-custom-title--rarity-epic { color: var(--portal-color-premium); }
-.lb-hero-custom-title--rarity-legendary { color: var(--portal-color-warning); }
-.lb-hero-custom-title--rarity-mythic { color: var(--portal-color-error); }
+.lb-hero-custom-title--rarity-common {
+  color: var(--portal-text-body);
+}
+.lb-hero-custom-title--rarity-uncommon {
+  color: var(--portal-color-success);
+}
+.lb-hero-custom-title--rarity-rare {
+  color: var(--portal-color-cinema);
+}
+.lb-hero-custom-title--rarity-epic {
+  color: var(--portal-color-premium);
+}
+.lb-hero-custom-title--rarity-legendary {
+  color: var(--portal-color-warning);
+}
+.lb-hero-custom-title--rarity-mythic {
+  color: var(--portal-color-error);
+}
 </style>

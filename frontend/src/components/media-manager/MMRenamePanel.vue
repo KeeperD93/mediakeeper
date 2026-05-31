@@ -7,11 +7,7 @@
     <div class="mm-toolbar mm-toolbar--between">
       <span class="mm-hint">{{ $t('mediaManager.dragToReorder') }}</span>
       <div class="mm-row-flex-tight">
-        <button
-          v-if="selectedNew.size > 0"
-          class="mm-btn-sm mm-btn-danger"
-          @click="deleteSelected"
-        >
+        <button v-if="selectedNew.size > 0" class="mm-btn-sm mm-btn-danger" @click="deleteSelected">
           <Trash2 :size="11" />
           {{ $t('mediaManager.deleteSelected', { n: selectedNew.size }) }}
         </button>

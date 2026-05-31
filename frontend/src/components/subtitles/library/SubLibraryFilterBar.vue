@@ -8,23 +8,15 @@
           :value="libSearch"
           class="sf-search"
           :placeholder="$t('subtitles.searchLibrary')"
-          @input="emit('update:libSearch', $event.target.value); emit('debounce-library')"
+          @input="onSearch"
         />
       </div>
-      <select
-        :value="libType"
-        class="sf-select mk-select-chevron"
-        @change="emit('update:libType', $event.target.value); emit('reset-library')"
-      >
+      <select :value="libType" class="sf-select mk-select-chevron" @change="onType">
         <option value="Movie,Episode">{{ $t('subtitles.typeAll') }}</option>
         <option value="Movie">{{ $t('subtitles.typeMovie') }}</option>
         <option value="Episode">{{ $t('subtitles.typeSeries') }}</option>
       </select>
-      <select
-        :value="libLibrary"
-        class="sf-select mk-select-chevron"
-        @change="emit('update:libLibrary', $event.target.value); emit('reset-library')"
-      >
+      <select :value="libLibrary" class="sf-select mk-select-chevron" @change="onLibrary">
         <option value="">{{ $t('subtitles.allLibraries') }}</option>
         <option v-for="lib in embyLibraries" :key="lib.id" :value="lib.id">{{ lib.name }}</option>
       </select>
@@ -118,6 +110,18 @@ const emit = defineEmits([
 
 function onStatus(value) {
   emit('update:libStatus', value)
+  emit('reset-library')
+}
+function onSearch(e) {
+  emit('update:libSearch', e.target.value)
+  emit('debounce-library')
+}
+function onType(e) {
+  emit('update:libType', e.target.value)
+  emit('reset-library')
+}
+function onLibrary(e) {
+  emit('update:libLibrary', e.target.value)
   emit('reset-library')
 }
 </script>

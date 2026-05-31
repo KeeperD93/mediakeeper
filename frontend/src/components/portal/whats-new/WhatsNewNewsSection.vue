@@ -71,7 +71,9 @@ function initialOf(n) {
   color: var(--accent-300);
   font-weight: var(--portal-font-bold);
 }
-.wnns-thumb-mark { font-size: var(--portal-text-md); }
+.wnns-thumb-mark {
+  font-size: var(--portal-text-md);
+}
 .wnns-body {
   display: flex;
   flex-direction: column;

@@ -25,11 +25,7 @@
 export function formatAgo(input, t) {
   if (!input) return ''
   const ms =
-    typeof input === 'number'
-      ? input < 1e12
-        ? input * 1000
-        : input
-      : new Date(input).getTime()
+    typeof input === 'number' ? (input < 1e12 ? input * 1000 : input) : new Date(input).getTime()
   if (Number.isNaN(ms) || ms <= 0) return ''
   const diff = Date.now() - ms
   if (diff < 0) return ''

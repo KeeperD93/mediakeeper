@@ -36,7 +36,9 @@
         </span>
       </div>
       <div v-if="stats?.projected_end_rank" class="lb-my-rank-stat">
-        <span class="lb-my-rank-stat-label">{{ $t('portal.leaderboard.myRank.projectedEnd') }}</span>
+        <span class="lb-my-rank-stat-label">
+          {{ $t('portal.leaderboard.myRank.projectedEnd') }}
+        </span>
         <span class="lb-my-rank-stat-value">#{{ stats.projected_end_rank }}</span>
       </div>
     </div>
@@ -84,8 +86,7 @@ function scrollToHero() {
   margin: 16px 0 24px;
   border-radius: var(--portal-radius-lg);
   background:
-    linear-gradient(135deg, rgb(var(--accent-rgb), 0.1), transparent 70%),
-    var(--portal-surface-1);
+    linear-gradient(135deg, rgb(var(--accent-rgb), 0.1), transparent 70%), var(--portal-surface-1);
   border-left: 4px solid var(--accent-500);
   border-top: 1px solid rgb(255, 255, 255, 0.06);
   border-right: 1px solid rgb(255, 255, 255, 0.06);

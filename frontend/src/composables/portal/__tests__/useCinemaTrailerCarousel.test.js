@@ -67,7 +67,8 @@ describe('useCinemaTrailerCarousel', () => {
     const playerEl = ref(document.createElement('div'))
     document.body.appendChild(playerEl.value)
 
-    const { useCinemaTrailerCarousel } = await import('@/composables/portal/useCinemaTrailerCarousel')
+    const { useCinemaTrailerCarousel } =
+      await import('@/composables/portal/useCinemaTrailerCarousel')
     const carousel = useCinemaTrailerCarousel({ playerElRef: playerEl })
 
     await carousel.start()
@@ -89,7 +90,8 @@ describe('useCinemaTrailerCarousel', () => {
     const playerEl = ref(document.createElement('div'))
     document.body.appendChild(playerEl.value)
 
-    const { useCinemaTrailerCarousel } = await import('@/composables/portal/useCinemaTrailerCarousel')
+    const { useCinemaTrailerCarousel } =
+      await import('@/composables/portal/useCinemaTrailerCarousel')
     const carousel = useCinemaTrailerCarousel({ playerElRef: playerEl })
 
     await carousel.start()
@@ -125,7 +127,8 @@ describe('useCinemaTrailerCarousel', () => {
     const playerEl = ref(document.createElement('div'))
     document.body.appendChild(playerEl.value)
 
-    const { useCinemaTrailerCarousel } = await import('@/composables/portal/useCinemaTrailerCarousel')
+    const { useCinemaTrailerCarousel } =
+      await import('@/composables/portal/useCinemaTrailerCarousel')
     const carousel = useCinemaTrailerCarousel({ playerElRef: playerEl, initialMuted: true })
     await carousel.start()
     await nextTick()
@@ -142,7 +145,8 @@ describe('useCinemaTrailerCarousel', () => {
     apiGetMock.mockResolvedValue({ items: [] })
     const playerEl = ref(document.createElement('div'))
 
-    const { useCinemaTrailerCarousel } = await import('@/composables/portal/useCinemaTrailerCarousel')
+    const { useCinemaTrailerCarousel } =
+      await import('@/composables/portal/useCinemaTrailerCarousel')
     const carousel = useCinemaTrailerCarousel({ playerElRef: playerEl })
     await carousel.start()
 

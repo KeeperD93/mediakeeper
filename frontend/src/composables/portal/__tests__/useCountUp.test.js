@@ -22,16 +22,24 @@ function makeHost(target, options) {
     },
   })
   const wrapper = mount(Host)
-  return { wrapper, get displayed() { return captured.api.displayed.value } }
+  return {
+    wrapper,
+    get displayed() {
+      return captured.api.displayed.value
+    },
+  }
 }
 
 function stubMatchMedia(matches) {
-  vi.stubGlobal('matchMedia', vi.fn(() => ({
-    matches,
-    media: '(prefers-reduced-motion: reduce)',
-    addEventListener: () => {},
-    removeEventListener: () => {},
-  })))
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn(() => ({
+      matches,
+      media: '(prefers-reduced-motion: reduce)',
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    })),
+  )
 }
 
 describe('useCountUp', () => {

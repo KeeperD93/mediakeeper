@@ -55,12 +55,7 @@
                       :checked="selected.includes(u.emby_user_id)"
                       @change="toggle(u.emby_user_id)"
                     />
-                    <MkAvatar
-                      :src="u.avatar_url"
-                      :name="u.username"
-                      :size="32"
-                      tier="bronze"
-                    />
+                    <MkAvatar :src="u.avatar_url" :name="u.username" :size="32" tier="bronze" />
                     <div class="ru-import-info">
                       <span class="ru-import-name">{{ u.username }}</span>
                       <span class="ru-import-meta">

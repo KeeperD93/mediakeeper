@@ -1,9 +1,5 @@
 <template>
-  <aside
-    v-if="visible"
-    class="pt-cr-marathon"
-    :aria-live="ready ? 'polite' : 'off'"
-  >
+  <aside v-if="visible" class="pt-cr-marathon" :aria-live="ready ? 'polite' : 'off'">
     <header class="pt-cr-marathon-head">
       <Film :size="14" :stroke-width="2.5" />
       <span>{{ headerLabel }}</span>
@@ -21,20 +17,15 @@
         </span>
         <div
           class="pt-cr-marathon-bar"
-          :aria-label="$t('portal.cinema.marathon.barAria', {
-            name: p.display_name,
-            percent: pct(p.ratio),
-          })"
+          :aria-label="
+            $t('portal.cinema.marathon.barAria', {
+              name: p.display_name,
+              percent: pct(p.ratio),
+            })
+          "
         >
-          <div
-            class="pt-cr-marathon-bar-fill"
-            :style="{ width: pct(p.ratio) + '%' }"
-          />
-          <div
-            v-if="p.meets_threshold"
-            class="pt-cr-marathon-bar-done"
-            aria-hidden="true"
-          >
+          <div class="pt-cr-marathon-bar-fill" :style="{ width: pct(p.ratio) + '%' }" />
+          <div v-if="p.meets_threshold" class="pt-cr-marathon-bar-done" aria-hidden="true">
             <Check :size="10" :stroke-width="3" />
           </div>
         </div>
@@ -46,10 +37,7 @@
         </span>
       </li>
     </ul>
-    <p
-      v-if="ineligibleCount > 0"
-      class="pt-cr-marathon-ineligible"
-    >
+    <p v-if="ineligibleCount > 0" class="pt-cr-marathon-ineligible">
       {{ $t('portal.cinema.marathon.ineligible', ineligibleCount, { count: ineligibleCount }) }}
     </p>
   </aside>

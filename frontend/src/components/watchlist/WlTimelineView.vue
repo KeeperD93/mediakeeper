@@ -8,19 +8,10 @@
       <div class="tl-outer">
         <!-- Scrollable timeline -->
         <div ref="scrollRef" class="tl-scroll">
-          <TlRow
-            v-for="(e, i) in entries"
-            :key="e.date"
-            :entry="e"
-            :left-active="isLeft(i)"
-          />
+          <TlRow v-for="(e, i) in entries" :key="e.date" :entry="e" :left-active="isLeft(i)" />
         </div>
 
-        <TlNavSidebar
-          :months="months"
-          @go-today="goToday"
-          @go-month="goMonth"
-        />
+        <TlNavSidebar :months="months" @go-today="goToday" @go-month="goMonth" />
       </div>
     </template>
   </div>
@@ -36,8 +27,7 @@ import TlNavSidebar from './WlTimelineView/TlNavSidebar.vue'
 const { timelineItems, timelineLoading } = useWatchlist()
 const rootRef = ref(null)
 
-const { scrollRef, entries, months, goToday, goMonth, doAutoScroll } =
-  useTimelineNav(timelineItems)
+const { scrollRef, entries, months, goToday, goMonth, doAutoScroll } = useTimelineNav(timelineItems)
 
 const isMobile = ref(false)
 function updateIsMobile() {

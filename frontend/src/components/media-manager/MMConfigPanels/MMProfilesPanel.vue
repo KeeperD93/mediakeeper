@@ -6,9 +6,7 @@
       <div v-for="profile in profiles" :key="profile.id" class="mm-profile-row">
         <div class="mm-profile-info">
           <span class="mm-profile-name">{{ profile.name }}</span>
-          <span class="mm-profile-meta">
-            {{ profile.config.movie }} · {{ profile.config.tv }}
-          </span>
+          <span class="mm-profile-meta">{{ profile.config.movie }} · {{ profile.config.tv }}</span>
         </div>
         <div class="mm-profile-actions">
           <button
@@ -42,11 +40,7 @@
         @click="$emit('save-profile')"
       >
         <Check />
-        {{
-          saved
-            ? $t('mediaManager.savedBtnProfile')
-            : $t('mediaManager.saveBtnProfile')
-        }}
+        {{ saved ? $t('mediaManager.savedBtnProfile') : $t('mediaManager.saveBtnProfile') }}
       </button>
     </div>
   </div>

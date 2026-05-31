@@ -38,10 +38,7 @@
             >
               TMDB ↗
             </a>
-            <button
-              class="wlsu-untrack-btn-lg"
-              @click="$emit('untrack', selected)"
-            >
+            <button class="wlsu-untrack-btn-lg" @click="$emit('untrack', selected)">
               <EyeOff :size="13" />
               {{ $t('watchlist.unfollow') }}
             </button>

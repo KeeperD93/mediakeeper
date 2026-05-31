@@ -20,7 +20,13 @@ describe('WhatsNewNewsSection', () => {
     const w = mount(WhatsNewNewsSection, {
       props: {
         news: [
-          { id: 1, title: 'A', content_excerpt: '', image_url: 'https://x.test/a.png', type: 'announcement' },
+          {
+            id: 1,
+            title: 'A',
+            content_excerpt: '',
+            image_url: 'https://x.test/a.png',
+            type: 'announcement',
+          },
         ],
       },
     })

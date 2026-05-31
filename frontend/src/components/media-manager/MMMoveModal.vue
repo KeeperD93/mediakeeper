@@ -10,7 +10,12 @@
             {{ $t('mediaManager.movingNFiles', { count: moveSourcesCount }, moveSourcesCount) }}
           </span>
         </div>
-        <button ref="closeBtnRef" class="mv-close" :title="$t('common.close')" @click="closeMoveModal">
+        <button
+          ref="closeBtnRef"
+          class="mv-close"
+          :title="$t('common.close')"
+          @click="closeMoveModal"
+        >
           <X :size="14" />
         </button>
       </header>

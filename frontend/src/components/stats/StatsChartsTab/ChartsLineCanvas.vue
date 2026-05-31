@@ -2,8 +2,8 @@
   <div class="glass-card chart-card">
     <div class="chart-sub">
       {{ chartMetric === 'count' ? $t('stats.playsMetric') : $t('stats.durationMetric') }}
-      {{ chartGroupBy === 'library' ? $t('stats.byLibrary') : $t('stats.byUser') }} —
-      {{ chartDays }}{{ $t('stats.daysShort') }}
+      {{ chartGroupBy === 'library' ? $t('stats.byLibrary') : $t('stats.byUser') }} — {{ chartDays
+      }}{{ $t('stats.daysShort') }}
     </div>
     <div class="chart-container"><canvas ref="chartCanvas" /></div>
   </div>
@@ -123,8 +123,7 @@ async function renderChart() {
           ticks: { color: mc, font: { size: 10 } },
           title: {
             display: true,
-            text:
-              props.chartMetric === 'count' ? t('stats.playsMetric') : t('stats.minutesLabel'),
+            text: props.chartMetric === 'count' ? t('stats.playsMetric') : t('stats.minutesLabel'),
             color: mc,
           },
         },

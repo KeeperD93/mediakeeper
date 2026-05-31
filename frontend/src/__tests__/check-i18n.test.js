@@ -67,8 +67,8 @@ describe('validateLocales', () => {
     const fr = { msg: 'Bonjour {name}, vous avez {count} messages' }
     const en = { msg: 'Hello {name}' }
     const failures = validateLocales({ locales: { fr, en } })
-    expect(failures.some((f) => f.includes('placeholder mismatch at "msg"'))).toBe(true)
-    expect(failures.some((f) => f.includes('missing {count}'))).toBe(true)
+    expect(failures.some(f => f.includes('placeholder mismatch at "msg"'))).toBe(true)
+    expect(failures.some(f => f.includes('missing {count}'))).toBe(true)
   })
 
   it('flags empty values', () => {
@@ -83,7 +83,7 @@ describe('validateLocales', () => {
     const fr = { count: 42 }
     const en = { count: 42 }
     const failures = validateLocales({ locales: { fr, en } })
-    expect(failures.some((f) => f.includes('non-string value at "count"'))).toBe(true)
+    expect(failures.some(f => f.includes('non-string value at "count"'))).toBe(true)
   })
 
   it('flags missing route keys in any locale', () => {

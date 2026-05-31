@@ -23,11 +23,7 @@
      the portal home (MediaCarousel, Top20, CategoryCards) and on the
      profile page (.dp-section-title). Mobile reads at --portal-text-md
      (1rem), desktop ramps up to --portal-text-xl (1.3rem). */
-  --portal-text-section-title: clamp(
-    var(--portal-text-md),
-    2vw + 0.3rem,
-    var(--portal-text-xl)
-  );
+  --portal-text-section-title: clamp(var(--portal-text-md), 2vw + 0.3rem, var(--portal-text-xl));
 
   /* Responsive hero title — shared by the main HeroBanner and the
      EmbyRecentHero so the two heroes on the home page read at the same

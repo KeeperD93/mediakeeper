@@ -209,7 +209,10 @@
             <p class="nf-desc">{{ $t('notifications.discord.filtersDesc') }}</p>
             <div class="nf-field">
               <label class="nf-label">{{ $t('notifications.discord.minResolution') }}</label>
-              <select v-model="rules.min_resolution" class="nf-select mk-select-chevron nf-select-w150">
+              <select
+                v-model="rules.min_resolution"
+                class="nf-select mk-select-chevron nf-select-w150"
+              >
                 <option value="">{{ $t('notifications.discord.historyAll') }}</option>
                 <option value="720p">720p+</option>
                 <option value="1080p">1080p+</option>

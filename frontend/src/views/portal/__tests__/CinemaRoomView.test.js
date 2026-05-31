@@ -242,7 +242,10 @@ describe('CinemaRoomView.vue', () => {
 
   it('renders the poster when academyDone + currentMedia.poster_url is set', async () => {
     mockEnterRoom.mockResolvedValue({
-      event: setEvent({ scheduledOffsetMs: -1000, posterUrl: '/api/emby/image/emby-1?type=Primary' }),
+      event: setEvent({
+        scheduledOffsetMs: -1000,
+        posterUrl: '/api/emby/image/emby-1?type=Primary',
+      }),
     })
     flowState.canLaunch.value = true
     const wrapper = await mountView()
@@ -273,8 +276,12 @@ describe('CinemaRoomView.vue', () => {
     mockEnterRoom.mockResolvedValue({ event: marathon })
     flowState.canLaunch.value = true
     marathonProgressState.progress.value = {
-      is_marathon: true, current_step: 0, total_steps: 2, ready: false,
-      participants: [], ineligible_count: 0,
+      is_marathon: true,
+      current_step: 0,
+      total_steps: 2,
+      ready: false,
+      participants: [],
+      ineligible_count: 0,
     }
     marathonProgressState.ready.value = false
 
@@ -299,10 +306,7 @@ describe('CinemaRoomView.vue', () => {
     await flushPromises()
 
     expect(mockGetOne).not.toHaveBeenCalled()
-    expect(mockShowToast).toHaveBeenCalledWith(
-      'portal.cinema.errors.not_member',
-      expect.anything(),
-    )
+    expect(mockShowToast).toHaveBeenCalledWith('portal.cinema.errors.not_member', expect.anything())
     expect(mockRouterReplace).toHaveBeenCalledWith(
       expect.objectContaining({ name: expect.any(String) }),
     )

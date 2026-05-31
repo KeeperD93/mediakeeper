@@ -3,7 +3,7 @@ import { useMediaCardState } from '@/composables/portal/useMediaCardState'
 
 // Mock i18n + collaborators
 vi.mock('vue-i18n', () => ({
-  useI18n: () => ({ t: (key) => key }),
+  useI18n: () => ({ t: key => key }),
 }))
 
 const mockAvailability = { value: null }

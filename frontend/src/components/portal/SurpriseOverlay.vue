@@ -13,7 +13,14 @@
       5. "Je retente ma chance" flips the card back and restarts.
   -->
   <Teleport to="body">
-    <div ref="panelRef" class="so" role="dialog" aria-modal="true" tabindex="-1" @click.self="close">
+    <div
+      ref="panelRef"
+      class="so"
+      role="dialog"
+      aria-modal="true"
+      tabindex="-1"
+      @click.self="close"
+    >
       <button ref="closeBtnRef" class="so-close" :aria-label="$t('common.close')" @click="close">
         <X :size="22" :stroke-width="2.5" />
       </button>

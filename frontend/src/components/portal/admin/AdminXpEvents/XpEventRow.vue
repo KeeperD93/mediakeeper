@@ -1,8 +1,5 @@
 <template>
-  <div
-    class="pt-xp-row"
-    :class="{ 'pt-xp-row--active': ev.is_active }"
-  >
+  <div class="pt-xp-row" :class="{ 'pt-xp-row--active': ev.is_active }">
     <span
       class="pt-xp-status"
       :class="{ 'pt-xp-status--on': ev.is_active }"
@@ -19,9 +16,7 @@
     <span class="pt-xp-mult">×{{ ev.multiplier }}</span>
     <div class="pt-xp-info">
       <div class="pt-xp-name">{{ ev.name }}</div>
-      <div class="pt-xp-dates">
-        {{ formatDate(ev.starts_at) }} → {{ formatDate(ev.ends_at) }}
-      </div>
+      <div class="pt-xp-dates">{{ formatDate(ev.starts_at) }} → {{ formatDate(ev.ends_at) }}</div>
       <div v-if="ev.action_filter" class="pt-xp-filters">
         <span
           v-for="a in ev.action_filter

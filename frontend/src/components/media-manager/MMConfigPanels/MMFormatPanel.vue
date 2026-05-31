@@ -48,11 +48,7 @@
         @click="$emit('save')"
       >
         <Check />
-        {{
-          saved
-            ? $t('mediaManager.savedBtnLabel')
-            : $t('mediaManager.saveBtnLabel')
-        }}
+        {{ saved ? $t('mediaManager.savedBtnLabel') : $t('mediaManager.saveBtnLabel') }}
       </button>
     </div>
   </div>

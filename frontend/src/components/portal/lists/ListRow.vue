@@ -125,7 +125,7 @@ const props = defineProps({
 defineEmits(['toggle', 'edit', 'delete', 'copy-list'])
 
 const { t } = useI18n()
-const formatAgo = (input) => formatAgoUtil(input, t)
+const formatAgo = input => formatAgoUtil(input, t)
 
 const PRIVACY_TO_BAR = {
   private: 'rejected',
@@ -152,7 +152,6 @@ const backdropStyle = computed(() => {
 })
 
 const ownerLabel = computed(() => props.lst.contributors?.[0]?.username || `#${props.lst.owner_id}`)
-
 </script>
 
 <style scoped>

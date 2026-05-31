@@ -103,15 +103,13 @@ function moveTooltip(movement) {
 }
 .pt-lb-podium-card--2 {
   background:
-    linear-gradient(135deg, rgb(192, 192, 192, 0.08), transparent 70%),
-    var(--portal-surface-1);
+    linear-gradient(135deg, rgb(192, 192, 192, 0.08), transparent 70%), var(--portal-surface-1);
   border: 1px solid rgb(192, 192, 192, 0.3);
   box-shadow: 0 4px 24px rgb(192, 192, 192, 0.1);
 }
 .pt-lb-podium-card--3 {
   background:
-    linear-gradient(135deg, rgb(205, 127, 50, 0.08), transparent 70%),
-    var(--portal-surface-1);
+    linear-gradient(135deg, rgb(205, 127, 50, 0.08), transparent 70%), var(--portal-surface-1);
   border: 1px solid rgb(205, 127, 50, 0.3);
   box-shadow: 0 4px 24px rgb(205, 127, 50, 0.1);
 }
@@ -136,16 +134,24 @@ function moveTooltip(movement) {
   top: 14px;
   right: 14px;
 }
-.pt-lb-podium-card--2 .pt-lb-podium-medal { color: #c0c0c0; }
-.pt-lb-podium-card--3 .pt-lb-podium-medal { color: #cd7f32; }
+.pt-lb-podium-card--2 .pt-lb-podium-medal {
+  color: #c0c0c0;
+}
+.pt-lb-podium-card--3 .pt-lb-podium-medal {
+  color: #cd7f32;
+}
 .pt-lb-podium-rank {
   font-size: var(--portal-text-2xl);
   font-weight: var(--portal-font-black);
   font-family: var(--portal-font-display);
   line-height: 1;
 }
-.pt-lb-podium-card--2 .pt-lb-podium-rank { color: #c0c0c0; }
-.pt-lb-podium-card--3 .pt-lb-podium-rank { color: #cd7f32; }
+.pt-lb-podium-card--2 .pt-lb-podium-rank {
+  color: #c0c0c0;
+}
+.pt-lb-podium-card--3 .pt-lb-podium-rank {
+  color: #cd7f32;
+}
 .pt-lb-podium-card :deep(.gc-lb-av) {
   width: 84px;
   height: 84px;
@@ -187,8 +193,12 @@ function moveTooltip(movement) {
   font-weight: var(--portal-font-extrabold);
   font-family: var(--portal-font-display);
 }
-.pt-lb-podium-card--2 .pt-lb-podium-xp { color: #c0c0c0; }
-.pt-lb-podium-card--3 .pt-lb-podium-xp { color: #cd7f32; }
+.pt-lb-podium-card--2 .pt-lb-podium-xp {
+  color: #c0c0c0;
+}
+.pt-lb-podium-card--3 .pt-lb-podium-xp {
+  color: #cd7f32;
+}
 .pt-lb-podium-move {
   min-width: 36px;
 }

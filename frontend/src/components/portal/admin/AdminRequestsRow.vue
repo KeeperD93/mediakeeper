@@ -49,13 +49,7 @@
       </h3>
       <div class="arr-row-foot">
         <span v-if="req.requester_deleted" class="arr-row-by arr-row-by--anon">
-          <MkAvatar
-            :src="null"
-            :name="'?'"
-            :size="22"
-            tier="bronze"
-            class="arr-row-by-avatar"
-          />
+          <MkAvatar :src="null" :name="'?'" :size="22" tier="bronze" class="arr-row-by-avatar" />
           <span class="arr-who arr-who--deleted">{{ $t('portal.common.deletedUser') }}</span>
           ·
           <strong>{{ formatAgo(req.created_at) }}</strong>
@@ -144,7 +138,7 @@ const props = defineProps({
 defineEmits(['action', 'delete'])
 
 const { t } = useI18n()
-const formatAgo = (input) => formatAgoUtil(input, t)
+const formatAgo = input => formatAgoUtil(input, t)
 
 const copied = ref(false)
 const copyTitleLabel = computed(() =>
@@ -190,5 +184,4 @@ const isFresh = computed(() => {
   const ageMs = Date.now() - new Date(ts).getTime()
   return ageMs < 3600_000 && props.req.status !== REQUEST_STATUS.PENDING
 })
-
 </script>

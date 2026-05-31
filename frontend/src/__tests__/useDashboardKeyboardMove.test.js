@@ -15,9 +15,7 @@ function buildHarness({ editing = true } = {}) {
   const layout = ref(buildLayout())
   const editingRef = ref(editing)
   const onLayoutUpdated = vi.fn()
-  const t = vi.fn((key, params) =>
-    params ? `${key}:${JSON.stringify(params)}` : key,
-  )
+  const t = vi.fn((key, params) => (params ? `${key}:${JSON.stringify(params)}` : key))
   const api = useDashboardKeyboardMove({
     layout,
     editing: editingRef,

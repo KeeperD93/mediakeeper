@@ -27,14 +27,18 @@
         :class="`mk-poster__avail--${availability}`"
       >
         <span class="mk-poster__avail-dot" />
-        {{ availability === 'full' ? $t('portal.posterCard.availFull') : $t('portal.posterCard.availPartial') }}
+        {{
+          availability === 'full'
+            ? $t('portal.posterCard.availFull')
+            : $t('portal.posterCard.availPartial')
+        }}
       </div>
 
       <div class="mk-poster__panel">
         <div class="mk-poster__title" :title="title">{{ title }}</div>
         <div class="mk-poster__meta">
           <span v-if="year">{{ year }}</span>
-          <template v-if="year && duration"> · </template>
+          <template v-if="year && duration">·</template>
           <span v-if="duration">{{ duration }}</span>
         </div>
 
