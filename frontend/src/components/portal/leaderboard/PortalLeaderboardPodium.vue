@@ -157,6 +157,12 @@ function moveTooltip(movement) {
 .pt-lb-podium-card :deep(.mk-avatar:not(.mk-avatar-tier--legendary)) {
   --mk-avatar-ring-width: 3px;
 }
+/* Legendary draws its ring via the ::after rainbow band (no solid border), so
+   widen its band to the same 3px the other tiers get above — otherwise a
+   level-50 podium avatar reads visibly thinner than a master next to it. */
+.pt-lb-podium-card :deep(.mk-avatar-tier--legendary)::after {
+  padding: 3px;
+}
 .pt-lb-podium-name {
   font-size: var(--portal-text-lg);
   font-weight: var(--portal-font-bold);

@@ -62,9 +62,9 @@
   --mk-tier-diamond-halo-rgb: 168, 85, 247;
   --mk-tier-master: #ef4444;
   --mk-tier-master-rgb: 239, 68, 68;
-  /* Legendary ring is a spinning rainbow (see .mk-avatar-tier--legendary::after);
-     the warm halo below (-rgb pair) is the static glow beneath it. */
-  --mk-tier-legendary: #fbbf24;
+  /* Legendary ring is a spinning rainbow (see .mk-avatar-tier--legendary::after),
+     so it has no flat ring colour — only the warm halo below (the -rgb pair)
+     remains, painting the static glow beneath the rainbow. */
   --mk-tier-legendary-rgb: 251, 191, 36;
   --mk-tier-legendary-halo-rgb: 239, 68, 68;
 }

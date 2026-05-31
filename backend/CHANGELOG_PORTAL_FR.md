@@ -20,7 +20,7 @@ utilisateurs.
 - Avatars — anneau légendaire (niv. 50) : arc-en-ciel animé sur toutes les surfaces.
 
 ### Fixed
-- Profil & Paramètres — anneau d'avatar à la bonne couleur de rang dès l'ouverture.
+- Paramètres — couleurs de votre rang appliquées dès l'ouverture (plus de flash).
 
 ## [1.0.0-rc.4] - 2026-05-30
 

@@ -660,7 +660,9 @@ export const ColorsAvatarTiers: Story = {
             ${swatch('--mk-tier-platinum', 'Ring platinum — niveau 20-29')}
             ${swatch('--mk-tier-diamond', 'Ring diamond — niveau 30-39')}
             ${swatch('--mk-tier-master', 'Ring master — niveau 40-49')}
-            ${swatch('--mk-tier-legendary', 'Ring legendary — niveau 50+')}
+            <!-- Legendary (50+) has no flat ring colour: its ring is a spinning
+                 rainbow conic-gradient (see .mk-avatar-tier--legendary::after in
+                 _avatar-tiers.css), not a single swatchable token. -->
           </div>
         </div>
 
