@@ -113,14 +113,25 @@ async function submit() {
 </script>
 
 <style scoped>
-.params-lang-select-wrap { max-width: 260px; }
-.params-lang-select {
-  width: 100%; padding: 9px 14px; border-radius: var(--radius-btn);
-  border: .5px solid var(--border); background: var(--bg-secondary);
-  color: var(--text-primary); font-size: var(--text-sm); font-family: inherit;
-  cursor: pointer; appearance: auto;
+.params-lang-select-wrap {
+  max-width: 260px;
 }
-.params-lang-select:focus { outline: none; border-color: var(--accent-500); }
+.params-lang-select {
+  width: 100%;
+  padding: 9px 14px;
+  border-radius: var(--radius-btn);
+  border: 0.5px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  font-family: inherit;
+  cursor: pointer;
+  appearance: auto;
+}
+.params-lang-select:focus {
+  outline: none;
+  border-color: var(--accent-500);
+}
 
 .params-pwd-form {
   display: flex;
@@ -133,12 +144,12 @@ async function submit() {
   flex-direction: column;
   gap: 0.35rem;
   font-size: var(--text-sm);
-  color: var(--text-secondary));
+  color: var(--text-secondary);
 }
 .params-pwd-field input {
   padding: 9px 12px;
   border-radius: var(--radius-input);
-  border: .5px solid var(--border);
+  border: 0.5px solid var(--border);
   background: var(--bg-secondary);
   color: var(--text-primary);
   font-size: var(--text-base);
@@ -151,7 +162,7 @@ async function submit() {
 .params-pwd-rules {
   list-style: disc inside;
   font-size: var(--text-xs);
-  color: var(--text-secondary));
+  color: var(--text-secondary);
   margin: 0;
   padding: 0;
   display: grid;
