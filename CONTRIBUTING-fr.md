@@ -12,7 +12,7 @@ Avant toute chose, merci de lire le [Code de conduite](CODE_OF_CONDUCT-fr.md) et
 
 ## Prérequis
 
-- **Node.js** ≥ 20 et **npm** ≥ 10 (frontend)
+- **Node.js** ≥ 22.12 et **npm** ≥ 10 (frontend)
 - **Python** ≥ 3.11 (backend — uniquement si vous l'exécutez localement, sinon Docker suffit)
 - **Docker** + **docker compose** (recommandé pour un backend en mode production-like)
 - **Git**
