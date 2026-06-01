@@ -12,6 +12,7 @@ from services.portal.discover_details_enrich import (
     pick_watch_providers,
 )
 from services.portal.discover_lists import _IMG_BASE, _normalize
+from services.portal.runtime_cache import resolve_runtimes
 from services.tmdb import _get_tmdb_key, _tmdb_headers_sync, TMDB_BASE
 
 from ._constants import LANGUAGE, logger
@@ -94,6 +95,7 @@ async def get_full_details(
             video_priority.append(original_lang)
         videos = extract_videos(d.get("videos", {}), language_priority=video_priority)
         recs = [_normalize(r) for r in d.get("recommendations", {}).get("results", [])[:20]]
+        await resolve_runtimes(recs)
 
         kw_payload = d.get("keywords", {}) or {}
         raw_kw = kw_payload.get("keywords") or kw_payload.get("results") or []
@@ -213,6 +215,7 @@ async def get_person_filmography(
                 seen[key] = it
         items = sorted(seen.values(), key=lambda x: x.get("popularity", 0), reverse=True)
         normalized = [_normalize(i) for i in items]
+        await resolve_runtimes(normalized)
 
         return {
             "person": {
@@ -243,6 +246,8 @@ async def get_collection(db: AsyncSession, collection_id: int) -> dict:
             return {"collection": None, "items": []}
         d = res.json()
         items = sorted(d.get("parts", []), key=lambda x: x.get("release_date") or "")
+        parts = [_normalize(i) for i in items]
+        await resolve_runtimes(parts)
         return {
             "collection": {
                 "id": d.get("id"),
@@ -251,7 +256,7 @@ async def get_collection(db: AsyncSession, collection_id: int) -> dict:
                 "poster": f"{_IMG_BASE}/w500{d['poster_path']}" if d.get("poster_path") else None,
                 "backdrop": f"{_IMG_BASE}/w1280{d['backdrop_path']}" if d.get("backdrop_path") else None,
             },
-            "items": [_normalize(i) for i in items],
+            "items": parts,
         }
     except Exception as e:
         logger.error(f"[DISCOVER] collection error: {e}")

@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.http_client import get_external_client
 from services.tmdb import _get_tmdb_key, _tmdb_headers_sync, TMDB_BASE
+from services.portal.runtime_cache import resolve_runtimes
 from services.portal.discover_lists import _normalize
 
 logger = logging.getLogger("mediakeeper.portal.discover")
@@ -120,6 +121,7 @@ async def discover_paginated(
             total_pages = j.get("total_pages", 1)
             total_results = j.get("total_results", 0)
             normed = [n for r in results if not r.get("adult") and (n := _normalize({**r, "media_type": mt})).get("poster")]
+            await resolve_runtimes(normed)
             if "with_watch_providers" in query_params:
                 logger.info(
                     f"[DISCOVER] /discover/{mt} provider="

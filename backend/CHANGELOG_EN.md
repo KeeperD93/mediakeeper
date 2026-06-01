@@ -12,6 +12,9 @@ This section intentionally has no date so it is not shown to users.
 ### Changed
 - Dashboard — 30 upcoming releases shown (was 20).
 
+### Fixed
+- Stats — Users and merge: profile photo (custom or Emby) now shown.
+
 ## [1.0.0-rc.4] - 2026-05-30
 
 ### Added

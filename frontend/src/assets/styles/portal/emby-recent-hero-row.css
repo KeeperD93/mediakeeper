@@ -101,13 +101,13 @@
 /* Highlight the poster that matches the trailer currently playing in
    the hero above. MediaCard wraps PosterCard inside `.mk-mediacard` /
    `.mk-poster`; the legacy `.pt-card-poster` is kept so a non-migrated
-   call site still gets the highlight. We use a box-shadow ring on the
-   poster wrapper instead of an outline — outline collides with the
+   call site still gets the highlight. We ring the poster art box with a
+   box-shadow (not an outline, and not on the whole .mk-poster which now
+   also holds the mobile caption) — an outline would collide with the
    default `.mk-poster__art` outline AND with the rank-1/2/3 medal
    borders which set `outline: none`, swallowing the highlight on
    exactly the cards that should still show it. */
-.pt-eh-card--active .mk-poster {
-  border-radius: var(--portal-radius-lg);
+.pt-eh-card--active .mk-poster__art {
   box-shadow:
     0 0 0 2px #fff,
     0 0 24px rgb(255, 255, 255, 0.25);

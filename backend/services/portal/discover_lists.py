@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.http_client import get_external_client
 from core.ttl_cache import cached_tmdb_list
 from services.tmdb import _get_tmdb_key, _tmdb_headers_sync, TMDB_BASE
+from services.portal.runtime_cache import resolve_runtimes
 
 logger = logging.getLogger("mediakeeper.portal.discover")
 LANGUAGE = os.getenv("TMDB_LANGUAGE", "fr-FR")
@@ -243,17 +244,20 @@ async def _fetch_list_params(
         from services.portal.requests_blacklist import blacklisted_tmdb_ids
         blacklist = await blacklisted_tmdb_ids(db)
         if include_adult:
-            return [
+            out = [
                 n for r in results[:20]
                 if (n := _normalize(r)).get("poster")
                 and n.get("tmdb_id") not in blacklist
             ]
-        return [
-            n for r in results[:20]
-            if not r.get("adult")
-            and (n := _normalize(r)).get("poster")
-            and n.get("tmdb_id") not in blacklist
-        ]
+        else:
+            out = [
+                n for r in results[:20]
+                if not r.get("adult")
+                and (n := _normalize(r)).get("poster")
+                and n.get("tmdb_id") not in blacklist
+            ]
+        await resolve_runtimes(out)
+        return out
     except Exception as e:
         logger.error(f"[DISCOVER] Error fetching {endpoint}: {e}")
         return []

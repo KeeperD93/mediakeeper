@@ -24,6 +24,7 @@ const stubs = {
   Plus: { template: '<span />' },
   Clock: { template: '<span />' },
   RotateCcw: { template: '<span />' },
+  Star: { template: '<span />' },
 }
 
 function mountCard(props = {}) {
@@ -182,6 +183,49 @@ describe('PosterCard — rank medals', () => {
   it('applies the bronze medal class when rank is 3', () => {
     const w = mountCard({ rank: 3 })
     expect(w.classes()).toContain('mk-poster--rank-3')
+  })
+})
+
+describe('PosterCard — TMDB rating', () => {
+  it('renders the star + percentage (vote*10) with an i18n aria-label when rating is set', () => {
+    const w = mountCard({ rating: 7.5 })
+    const r = w.find('.mk-poster__rating')
+    expect(r.exists()).toBe(true)
+    expect(r.text()).toContain('75%')
+    // The $t stub serialises params as `key:{json}`, so assert the i18n key
+    // is used AND the pct (75) is forwarded to it.
+    expect(r.attributes('aria-label')).toContain('portal.posterCard.tmdbRating')
+    expect(r.attributes('aria-label')).toContain('75')
+  })
+
+  it('hides the rating when rating is 0 or absent', () => {
+    expect(mountCard({ rating: 0 }).find('.mk-poster__rating').exists()).toBe(false)
+    expect(mountCard({}).find('.mk-poster__rating').exists()).toBe(false)
+  })
+})
+
+describe('PosterCard — mobile caption', () => {
+  it('renders the title and year under the poster', () => {
+    const w = mountCard({ title: 'Dune', year: '2021' })
+    const info = w.find('.mk-poster__info')
+    expect(info.exists()).toBe(true)
+    expect(info.find('.mk-poster__info-title').text()).toBe('Dune')
+    expect(info.find('.mk-poster__info-year').text()).toBe('2021')
+  })
+
+  it('omits the year line when year is absent', () => {
+    const w = mountCard({ title: 'Dune' })
+    expect(w.find('.mk-poster__info-title').text()).toBe('Dune')
+    expect(w.find('.mk-poster__info-year').exists()).toBe(false)
+  })
+
+  it('shows the rating next to the date in the caption', () => {
+    const w = mountCard({ title: 'Dune', year: '2021', rating: 8.4 })
+    const meta = w.find('.mk-poster__info-meta')
+    expect(meta.find('.mk-poster__info-year').text()).toBe('2021')
+    const r = meta.find('.mk-poster__info-rating')
+    expect(r.exists()).toBe(true)
+    expect(r.text()).toContain('84%')
   })
 })
 

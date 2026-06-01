@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.http_client import get_external_client
 from models.portal.emby_tmdb_index import EmbyTmdbIndex
 from services.portal.discover_lists import _normalize
+from services.portal.runtime_cache import resolve_runtimes
 from services.tmdb import _get_tmdb_key, _tmdb_headers_sync, TMDB_BASE
 
 from ._constants import _SEARCH_MAX_UPSTREAM_REQUESTS, logger
@@ -60,7 +61,9 @@ async def search_tmdb_multi(
         ]
         if available_only:
             items = await _filter_available(db, items)
-        return items[:20]
+        items = items[:20]
+        await resolve_runtimes(items)
+        return items
     except Exception as e:
         logger.error(f"[DISCOVER] Search error: {e}")
         return []

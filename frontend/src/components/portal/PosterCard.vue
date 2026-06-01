@@ -37,9 +37,19 @@
       <div class="mk-poster__panel">
         <div class="mk-poster__title" :title="title">{{ title }}</div>
         <div class="mk-poster__meta">
-          <span v-if="year">{{ year }}</span>
-          <template v-if="year && duration">·</template>
-          <span v-if="duration">{{ duration }}</span>
+          <span class="mk-poster__meta-dates">
+            <span v-if="year">{{ year }}</span>
+            <template v-if="year && duration">·</template>
+            <span v-if="duration">{{ duration }}</span>
+          </span>
+          <span
+            v-if="ratingPct"
+            class="mk-poster__rating"
+            :aria-label="$t('portal.posterCard.tmdbRating', { pct: ratingPct })"
+          >
+            <Star :size="12" :stroke-width="2" fill="currentColor" aria-hidden="true" />
+            {{ ratingPct }}%
+          </span>
         </div>
 
         <div class="mk-poster__actions">
@@ -90,13 +100,28 @@
         </div>
       </div>
     </div>
+
+    <div class="mk-poster__info">
+      <div class="mk-poster__info-title" :title="title">{{ title }}</div>
+      <div class="mk-poster__info-meta">
+        <span v-if="year" class="mk-poster__info-year">{{ year }}</span>
+        <span
+          v-if="ratingPct"
+          class="mk-poster__info-rating"
+          :aria-label="$t('portal.posterCard.tmdbRating', { pct: ratingPct })"
+        >
+          <Star :size="11" :stroke-width="2" fill="currentColor" aria-hidden="true" />
+          {{ ratingPct }}%
+        </span>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Bookmark, EyeOff, Plus, Clock, RotateCcw } from 'lucide-vue-next'
+import { Bookmark, EyeOff, Plus, Clock, RotateCcw, Star } from 'lucide-vue-next'
 import PremiumRibbon from '@/components/portal/PremiumRibbon.vue'
 
 import '@/assets/styles/portal/poster-card.css'
@@ -106,6 +131,9 @@ const props = defineProps({
   image: { type: String, default: null },
   year: { type: [String, Number], default: '' },
   duration: { type: String, default: '' },
+  // TMDB vote_average (0-10). Rendered as a gold star + percentage on the
+  // hover overlay, mirroring the detail page. 0 / falsy hides it.
+  rating: { type: Number, default: 0 },
   // REST-aligned keys — mirror the request lifecycle + watch status used
   // across the portal API. Null = no status decoration.
   status: {
@@ -143,6 +171,9 @@ const props = defineProps({
 const emit = defineEmits(['play', 'request', 'toggle-bookmark', 'toggle-blacklist'])
 
 const { t } = useI18n()
+
+// TMDB 0-10 score → 0-100 percentage, same transform as the detail hero.
+const ratingPct = computed(() => Math.round((props.rating || 0) * 10))
 
 const STATUS_COLOR = {
   pending: 'var(--portal-color-warning)',

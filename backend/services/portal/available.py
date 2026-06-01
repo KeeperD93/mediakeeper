@@ -15,9 +15,16 @@ logger = logging.getLogger("mediakeeper.portal.available")
 _IMG_BASE = "https://image.tmdb.org/t/p"
 
 
-async def get_recently_added(db: AsyncSession, limit: int = 20) -> list[dict]:
-    """Latest items added to Emby."""
-    return await _emby_items(db, {
+async def get_recently_added(
+    db: AsyncSession, limit: int = 20, *, enrich_rating: bool = False,
+) -> list[dict]:
+    """Latest items added to Emby.
+
+    ``enrich_rating`` backfills the TMDB rating on items whose Emby payload
+    carries no CommunityRating, so the home carousel shows a note like every
+    other row. Opt-in: background consumers (digest, trailers) skip it.
+    """
+    items = await _emby_items(db, {
         "SortBy": "DateCreated",
         "SortOrder": "Descending",
         "IncludeItemTypes": "Movie,Series",
@@ -25,6 +32,23 @@ async def get_recently_added(db: AsyncSession, limit: int = 20) -> list[dict]:
         "Limit": str(limit),
         "Fields": "ProviderIds,Overview,DateCreated",
     })
+    if enrich_rating:
+        await _backfill_tmdb_votes(items, db)
+    return items
+
+
+async def _backfill_tmdb_votes(items: list[dict], db: AsyncSession) -> None:
+    """Fill ``vote`` (TMDB rating) on items lacking a usable Emby
+    CommunityRating, using the in-memory TMDB meta cache. ``get_meta_cached``
+    swallows its own transport errors (returns {}), so one hiccup is harmless.
+    """
+    from services.tmdb import get_meta_cached
+    for it in items:
+        if it.get("vote") or not it.get("tmdb_id") or not it.get("media_type"):
+            continue
+        meta = await get_meta_cached(int(it["tmdb_id"]), it["media_type"], db)
+        if meta.get("vote"):
+            it["vote"] = meta["vote"]
 
 
 async def get_recently_added_paginated(

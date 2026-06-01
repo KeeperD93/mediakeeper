@@ -67,6 +67,7 @@
   --portal-color-accent-hot-rgb: 236, 72, 153;
   --portal-color-highlight: #f97316; /* orange — ticket audio, highlights */
   --portal-color-highlight-rgb: 249, 115, 22;
+  --portal-color-rating: #fbbf24; /* gold star — TMDB rating (card + detail) */
 
   /* Solid neutrals (poster surfaces, blacklist ribbon) ---- */
   --portal-poster-bg: #0e1320; /* dark backdrop behind poster artwork */

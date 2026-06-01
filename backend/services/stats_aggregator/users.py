@@ -5,11 +5,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.http_client import get_internal_client
 from services.settings import get_active_media_source
 from services.portal._rank_tiers import tier_for_level
+from services.portal.avatars import avatar_public_url
 from models.playback_stats import PlaybackSession
 from models.portal.profile import UserProfile
 
 from ._helpers import _apply_filters
 from .exclusions import _get_exclusion_filters
+from .playback import _emby_user_image_url
 from .users_admin import _get_hidden_users
 
 
@@ -43,12 +45,27 @@ async def get_users_stats(db: AsyncSession, page: int = 1, per_page: int = 30,
     # whatever level they accrued on their MK profile — bronze otherwise.
     mk_profile_rows = (
         await db.execute(
-            select(UserProfile.emby_user_id, UserProfile.level, UserProfile.avatar_url)
-            .where(UserProfile.emby_user_id.isnot(None))
+            select(
+                UserProfile.emby_user_id,
+                UserProfile.level,
+                UserProfile.avatar_url,
+                UserProfile.avatar_custom_path,
+            ).where(UserProfile.emby_user_id.isnot(None))
         )
     ).all()
+    # Avatar resolution mirrors playback.py / sessions.py / activity.py so the
+    # Users tab + merge overlay show the same photo as every other stats
+    # surface: a custom MK upload wins, else the stored Emby URL, else the
+    # Emby-proxied fallback (204s to a silhouette when no photo exists).
     mk_profile_map = {
-        row.emby_user_id: {"level": row.level or 1, "avatar_url": row.avatar_url}
+        row.emby_user_id: {
+            "level": row.level or 1,
+            "avatar_url": (
+                avatar_public_url(row.avatar_custom_path)
+                if row.avatar_custom_path
+                else (row.avatar_url or _emby_user_image_url(row.emby_user_id))
+            ),
+        }
         for row in mk_profile_rows
     }
 
@@ -145,7 +162,9 @@ async def get_users_stats(db: AsyncSession, page: int = 1, per_page: int = 30,
 
         mk_profile = mk_profile_map.get(uid)
         level = mk_profile["level"] if mk_profile else 1
-        avatar_url = mk_profile["avatar_url"] if mk_profile else None
+        # Emby-only users (no MK profile) still get their Emby-proxied photo,
+        # matching the Top widgets / Sessions / 24h strip (no silhouette gap).
+        avatar_url = mk_profile["avatar_url"] if mk_profile else _emby_user_image_url(uid)
 
         users_data.append({
             "user_id": uid,
