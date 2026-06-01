@@ -103,7 +103,17 @@
 
     <div class="mk-poster__info">
       <div class="mk-poster__info-title" :title="title">{{ title }}</div>
-      <div v-if="year" class="mk-poster__info-year">{{ year }}</div>
+      <div class="mk-poster__info-meta">
+        <span v-if="year" class="mk-poster__info-year">{{ year }}</span>
+        <span
+          v-if="ratingPct"
+          class="mk-poster__info-rating"
+          :aria-label="$t('portal.posterCard.tmdbRating', { pct: ratingPct })"
+        >
+          <Star :size="11" :stroke-width="2" fill="currentColor" aria-hidden="true" />
+          {{ ratingPct }}%
+        </span>
+      </div>
     </div>
   </div>
 </template>

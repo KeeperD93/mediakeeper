@@ -282,13 +282,29 @@
   -webkit-line-clamp: 2;
   overflow: hidden;
   overflow-wrap: anywhere;
+  /* Reserve two lines so cards keep a uniform height and posters stay
+     aligned across a row regardless of 1- vs 2-line titles. */
+  min-height: 2.6em;
+}
+.mk-poster__info-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 2px;
 }
 .mk-poster__info-year {
-  margin-top: 2px;
   color: var(--portal-text-secondary);
   font-size: var(--portal-text-3xs);
   font-family: var(--portal-font-mono);
   letter-spacing: var(--portal-tracking-caps);
+}
+.mk-poster__info-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--portal-color-rating);
+  font-size: var(--portal-text-3xs);
 }
 @media (hover: hover) {
   .mk-poster__info {

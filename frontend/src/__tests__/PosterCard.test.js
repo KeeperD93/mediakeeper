@@ -218,6 +218,15 @@ describe('PosterCard — mobile caption', () => {
     expect(w.find('.mk-poster__info-title').text()).toBe('Dune')
     expect(w.find('.mk-poster__info-year').exists()).toBe(false)
   })
+
+  it('shows the rating next to the date in the caption', () => {
+    const w = mountCard({ title: 'Dune', year: '2021', rating: 8.4 })
+    const meta = w.find('.mk-poster__info-meta')
+    expect(meta.find('.mk-poster__info-year').text()).toBe('2021')
+    const r = meta.find('.mk-poster__info-rating')
+    expect(r.exists()).toBe(true)
+    expect(r.text()).toContain('84%')
+  })
 })
 
 describe('PosterCard — ribbon tooltip', () => {

@@ -19,7 +19,7 @@ utilisateurs.
 ### Added
 - Jaquettes — durée du film ou série affichée au survol partout.
 - Jaquettes — note TMDB (étoile dorée) affichée au survol.
-- Jaquettes — titre et date affichés sous la vignette sur mobile.
+- Jaquettes — titre, date et note affichés sous la vignette sur mobile.
 
 ### Changed
 - Fiche média — couleur de la note TMDB harmonisée en doré.
