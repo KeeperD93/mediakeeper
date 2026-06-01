@@ -2318,7 +2318,8 @@
       "actionReRequest": "RE-DEMANDÉ",
       "actionPending": "EN ATTENTE",
       "btnBookmark": "Ajouter à une liste",
-      "btnBlacklist": "Blacklister"
+      "btnBlacklist": "Blacklister",
+      "tmdbRating": "Note TMDB : {pct} %"
     },
     "seeMore": "Voir plus",
     "seeAll": "Voir tout",

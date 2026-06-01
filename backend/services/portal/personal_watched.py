@@ -22,6 +22,7 @@ from models.portal.profile import UserProfile
 from models.portal.emby_tmdb_index import EmbyTmdbIndex
 from services.tmdb import _get_tmdb_key, _tmdb_headers_sync, TMDB_BASE
 from services.portal.discover import _normalize
+from services.portal.runtime_cache import resolve_runtimes
 from services.portal.personal_utils import (
     _LATEST_POOL,
     _playback_user_filter,
@@ -209,7 +210,9 @@ async def _fetch_recommendations(
         if res.status_code != 200:
             return []
         results = (res.json() or {}).get("results") or []
-        return [_normalize(r) for r in results[:20]]
+        recs = [_normalize(r) for r in results[:20]]
+        await resolve_runtimes(recs)
+        return recs
     except Exception as e:
         logger.debug(f"[PERSONAL] recommendations fetch failed: {e}")
         return []

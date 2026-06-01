@@ -33,7 +33,7 @@ _series_id_cache: dict[str, str] = {}
 
 
 async def _enrich_top20_meta(items: list[dict], db: AsyncSession) -> None:
-    """Stamp runtime + year on Top 20 items in-place.
+    """Stamp runtime + year + TMDB rating on Top 20 items in-place.
 
     The lookup is cheap thanks to the TMDB meta cache (24h TTL). Items
     without a tmdb_id stay untouched, and per-item TMDB failures are
@@ -54,6 +54,8 @@ async def _enrich_top20_meta(items: list[dict], db: AsyncSession) -> None:
             it["runtime"] = meta["runtime"]
         if meta.get("year"):
             it["year"] = meta["year"]
+        if meta.get("vote"):
+            it["vote"] = meta["vote"]
 
 
 async def _find_series_id(series_name: str, url: str, api_key: str) -> str | None:

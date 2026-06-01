@@ -1,8 +1,8 @@
 """Tests for the Top 20 runtime + year enrichment helper.
 
-`_enrich_top20_meta` stamps runtime + year on each item that carries a
-tmdb_id, leaves the others alone, and isolates per-item TMDB failures
-so one bad item never kills the whole payload.
+`_enrich_top20_meta` stamps runtime + year + TMDB rating on each item that
+carries a tmdb_id, leaves the others alone, and isolates per-item TMDB
+failures so one bad item never kills the whole payload.
 """
 from __future__ import annotations
 
@@ -36,6 +36,16 @@ async def test_item_with_tmdb_id_gets_runtime_and_year_stamped(fake_db):
     assert items[0]["runtime"] == 90
     assert items[0]["year"] == "2025"
     fake_meta.assert_awaited_once_with(99, "movie", fake_db)
+
+
+@pytest.mark.asyncio
+async def test_tmdb_rating_is_stamped_when_present(fake_db):
+    """The TMDB rating surfaces on the card when the cache returns a vote."""
+    items = [{"tmdb_id": 77, "media_type": "movie", "title": "Rated"}]
+    fake_meta = AsyncMock(return_value={"runtime": 100, "year": "2024", "vote": 7.4})
+    with patch("api.portal.top20.get_meta_cached", new=fake_meta):
+        await _enrich_top20_meta(items, fake_db)
+    assert items[0]["vote"] == 7.4
 
 
 @pytest.mark.asyncio

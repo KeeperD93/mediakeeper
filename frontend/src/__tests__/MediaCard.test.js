@@ -56,6 +56,7 @@ const stubs = {
       'image',
       'year',
       'duration',
+      'rating',
       'status',
       'count',
       'availability',
@@ -234,6 +235,18 @@ describe('MediaCard — rank forwarding', () => {
       global: { stubs },
     })
     expect(w.findComponent({ name: 'PosterCard' }).props('rank')).toBe(1)
+  })
+})
+
+describe('MediaCard — rating forwarding', () => {
+  it('forwards item.vote to the PosterCard rating prop', () => {
+    const w = mountCard({ tmdb_id: 70, title: 'Rated', vote: 8 })
+    expect(w.findComponent({ name: 'PosterCard' }).props('rating')).toBe(8)
+  })
+
+  it('forwards 0 when vote is absent', () => {
+    const w = mountCard({ tmdb_id: 71, title: 'NoVote' })
+    expect(w.findComponent({ name: 'PosterCard' }).props('rating')).toBe(0)
   })
 })
 

@@ -14,7 +14,13 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Added
+- Posters — movie or series duration shown on hover everywhere.
+- Posters — TMDB rating (gold star) shown on hover.
+- Posters — title and release date shown under the poster on mobile.
+
 ### Changed
+- Media detail — TMDB rating colour unified to gold.
 - Avatars — legendary ring (level 50): animated rainbow on every surface.
 
 ### Fixed

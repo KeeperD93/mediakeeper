@@ -327,7 +327,11 @@ async def get_meta_cached(
             eps = d.get("episode_run_time") or []
             runtime = int(eps[0]) if eps else 0
             date = d.get("first_air_date") or ""
-        meta = {"runtime": runtime, "year": date[:4] if date else ""}
+        meta = {
+            "runtime": runtime,
+            "year": date[:4] if date else "",
+            "vote": round(float(d.get("vote_average") or 0), 1),
+        }
         _meta_cache[key] = (meta, now)
         return meta
     except Exception:

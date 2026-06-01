@@ -1,9 +1,10 @@
 """Tests for `services.tmdb.get_meta_cached`.
 
-The function backfills runtime + year for Top 20 cards from TMDB and
-caches the result in-process for 24 h. These tests pin its contract:
-shape per media type, invalid media-type guard, cache reuse within the
-TTL window, and graceful degradation on transport / HTTP failures.
+The function backfills runtime + year + TMDB rating for Top 20 cards from
+TMDB and caches the result in-process for 24 h. These tests pin its
+contract: shape per media type, invalid media-type guard, cache reuse
+within the TTL window, and graceful degradation on transport / HTTP
+failures.
 """
 from __future__ import annotations
 
@@ -61,12 +62,12 @@ def fake_db():
 async def test_movie_returns_runtime_and_year(fake_db):
     """A movie payload exposes runtime + release_date — both surface."""
     client = _make_client(
-        _FakeResponse(200, {"runtime": 105, "release_date": "2024-03-15"})
+        _FakeResponse(200, {"runtime": 105, "release_date": "2024-03-15", "vote_average": 7.8})
     )
     with patch("services.tmdb.get_external_client", return_value=client), \
          patch("services.tmdb._get_tmdb_key", new=AsyncMock(return_value="fake-key")):
         meta = await get_meta_cached(123, "movie", fake_db)
-    assert meta == {"runtime": 105, "year": "2024"}
+    assert meta == {"runtime": 105, "year": "2024", "vote": 7.8}
     assert client.get.await_count == 1
 
 
@@ -74,12 +75,14 @@ async def test_movie_returns_runtime_and_year(fake_db):
 async def test_series_uses_episode_run_time(fake_db):
     """TV payloads expose episode_run_time[0] + first_air_date."""
     client = _make_client(
-        _FakeResponse(200, {"episode_run_time": [50], "first_air_date": "2023-11-02"})
+        _FakeResponse(200, {
+            "episode_run_time": [50], "first_air_date": "2023-11-02", "vote_average": 8.1,
+        })
     )
     with patch("services.tmdb.get_external_client", return_value=client), \
          patch("services.tmdb._get_tmdb_key", new=AsyncMock(return_value="fake-key")):
         meta = await get_meta_cached(456, "tv", fake_db)
-    assert meta == {"runtime": 50, "year": "2023"}
+    assert meta == {"runtime": 50, "year": "2023", "vote": 8.1}
 
 
 @pytest.mark.asyncio
@@ -99,13 +102,13 @@ async def test_invalid_media_type_returns_empty_dict(fake_db):
 async def test_cache_hit_within_ttl(fake_db):
     """The second call on the same key reuses the cache (one HTTP call)."""
     client = _make_client(
-        _FakeResponse(200, {"runtime": 120, "release_date": "2022-05-01"})
+        _FakeResponse(200, {"runtime": 120, "release_date": "2022-05-01", "vote_average": 6.5})
     )
     with patch("services.tmdb.get_external_client", return_value=client), \
          patch("services.tmdb._get_tmdb_key", new=AsyncMock(return_value="fake-key")):
         first = await get_meta_cached(42, "movie", fake_db)
         second = await get_meta_cached(42, "movie", fake_db)
-    assert first == second == {"runtime": 120, "year": "2022"}
+    assert first == second == {"runtime": 120, "year": "2022", "vote": 6.5}
     assert client.get.await_count == 1
 
 

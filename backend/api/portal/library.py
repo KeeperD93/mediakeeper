@@ -22,7 +22,7 @@ async def recently_added(
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):
-    return {"items": await avail_svc.get_recently_added(db, limit)}
+    return {"items": await avail_svc.get_recently_added(db, limit, enrich_rating=True)}
 
 
 @router.get("/recommended")

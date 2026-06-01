@@ -16,7 +16,13 @@ utilisateurs.
 
 ## [Unreleased]
 
+### Added
+- Jaquettes — durée du film ou série affichée au survol partout.
+- Jaquettes — note TMDB (étoile dorée) affichée au survol.
+- Jaquettes — titre et date affichés sous la vignette sur mobile.
+
 ### Changed
+- Fiche média — couleur de la note TMDB harmonisée en doré.
 - Avatars — anneau légendaire (niv. 50) : arc-en-ciel animé sur toutes les surfaces.
 
 ### Fixed

@@ -10,6 +10,7 @@
       :image="image"
       :year="year"
       :duration="duration"
+      :rating="rating"
       :status="status"
       :count="count"
       :availability="availability"
@@ -89,6 +90,10 @@ const year = computed(() => {
 // produce an empty string, which the PosterCard meta line elides
 // (no orphan ' · ' separator).
 const duration = computed(() => formatRuntime(props.item?.runtime || props.item?.duration || 0))
+
+// TMDB rating (vote_average, 0-10) — present on every normalized payload
+// as ``vote``. PosterCard renders it as a star + percentage on hover.
+const rating = computed(() => props.item?.vote || 0)
 
 const isBlacklisted = computed(() => displayedReqStatus.value === 'blacklisted')
 
@@ -186,25 +191,25 @@ function onBlacklist() {}
 .mk-mediacard--fill {
   display: block;
   width: 100%;
-  /* Anchor the 2:3 ratio on the card wrapper itself so each grid track
-     resolves to the same height regardless of the inner cascade. Both
-     ``.mk-poster`` and ``.mk-poster__art`` then consume 100% of that
-     box, which keeps `<img>` height: 100% / object-fit: cover stable
-     across browsers (the previous attempt put aspect-ratio on the
-     inner art element, where ``height: 100%`` on the <img> resolved
-     against an aspect-ratio-defined parent — Chromium handles it but
-     mobile Safari/Firefox occasionally fell back to the natural image
-     aspect, producing the ragged-row effect). */
-  aspect-ratio: 2 / 3;
 }
 .mk-mediacard--fill :deep(.mk-poster) {
   --mk-poster-w: 100%;
   width: 100%;
-  height: 100%;
 }
+/* The 2:3 ratio lives on the art box (not the wrapper) so the wrapper can
+   grow to fit the mobile caption below the poster. The <img> is taken out
+   of flow (absolute fill) instead of height: 100% so it resolves against the
+   aspect-ratio box deterministically across browsers — the in-flow
+   height: 100% variant fell back to the natural image aspect on mobile
+   Safari/Firefox (ragged rows). */
 .mk-mediacard--fill :deep(.mk-poster__art) {
   width: 100%;
-  height: 100%;
+  height: auto;
+  aspect-ratio: 2 / 3;
+}
+.mk-mediacard--fill :deep(.mk-poster__art > img) {
+  position: absolute;
+  inset: 0;
 }
 
 @media (max-width: 767px) {

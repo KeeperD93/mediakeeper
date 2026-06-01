@@ -264,6 +264,38 @@
   }
 }
 
+/* Static caption under the poster. The hover panel above is unreachable on
+   touch (display: none under @media hover: none), so phones get the title +
+   year here instead. Mobile-first: shown by default, hidden on hover-capable
+   devices where the overlay panel takes over. */
+.mk-poster__info {
+  margin-top: 8px;
+  padding: 0 2px;
+}
+.mk-poster__info-title {
+  color: var(--portal-text-primary);
+  font-size: var(--portal-text-2xs);
+  font-weight: var(--portal-font-bold);
+  line-height: var(--portal-lh-compact);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.mk-poster__info-year {
+  margin-top: 2px;
+  color: var(--portal-text-secondary);
+  font-size: var(--portal-text-3xs);
+  font-family: var(--portal-font-mono);
+  letter-spacing: var(--portal-tracking-caps);
+}
+@media (hover: hover) {
+  .mk-poster__info {
+    display: none;
+  }
+}
+
 .mk-poster__title {
   color: var(--portal-text-primary);
   font-size: var(--portal-text-sm);
@@ -281,12 +313,23 @@
 }
 
 .mk-poster__meta {
+  display: flex;
+  align-items: center;
   color: var(--portal-text-secondary);
   font-size: var(--portal-text-3xs);
   font-weight: var(--portal-font-regular);
   margin-top: 3px;
   font-family: var(--portal-font-mono);
   letter-spacing: var(--portal-tracking-caps);
+}
+
+/* Pushed to the right edge of the meta line; gold star + TMDB percentage. */
+.mk-poster__rating {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--portal-color-rating);
 }
 
 .mk-poster__actions {

@@ -20,6 +20,7 @@ from models.portal.event import (
 )
 from models.portal.featured import FeaturedHero
 from models.portal.help import HelpArticle, HelpArticleTranslation
+from models.portal.tmdb_runtime import TmdbRuntimeCache
 
 __all__ = [
     "UserProfile", "AdminAuditLog", "UserLoginHistory", "EmbyTmdbIndex",
@@ -37,4 +38,5 @@ __all__ = [
     "MKEvent", "MKEventInvitation", "MKEventMessage", "MKNotification",
     "FeaturedHero",
     "HelpArticle", "HelpArticleTranslation",
+    "TmdbRuntimeCache",
 ]
