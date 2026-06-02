@@ -26,7 +26,7 @@ def _isolate_signing_cache(monkeypatch):
     webhooks.reset_signing_key_cache()
 
 
-# --- sign_webhook_payload ---------------------------------------------------
+# sign_webhook_payload
 
 def test_signature_is_sha256_prefixed_hex():
     sig = webhooks.sign_webhook_payload(b"{}")
@@ -59,7 +59,7 @@ def test_signature_uses_derived_key_not_master(monkeypatch):
     assert derived != raw  # the helper applies a domain-separation step
 
 
-# --- webhook_log_id ---------------------------------------------------------
+# webhook_log_id
 
 def test_log_id_extracts_discord_numeric_id():
     url = "https://discord.com/api/webhooks/123456789012345678/secrettoken"
@@ -84,7 +84,7 @@ def test_log_id_does_not_emit_token_for_discord_url():
     assert "super-secret-token-value" not in log_id
 
 
-# --- parse_retry_after_header ----------------------------------------------
+# parse_retry_after_header
 
 def test_retry_after_parses_seconds():
     assert webhooks.parse_retry_after_header("2") == 2.0
@@ -113,7 +113,7 @@ def test_retry_after_falls_back_when_unparseable():
     )
 
 
-# --- post_signed_with_retry ------------------------------------------------
+# post_signed_with_retry
 
 class _FakeResponse:
     def __init__(self, status_code: int, headers: dict | None = None):
