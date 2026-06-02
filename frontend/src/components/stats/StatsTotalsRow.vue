@@ -33,7 +33,7 @@
         <div
           class="tot-avatars"
           :class="{ 'tot-avatars--compact': uniqueSessionUsers.length > 10 }"
-          :title="uniqueSessionUsers.map(u => u.id).join(', ')"
+          :title="uniqueSessionUsers.map(u => u.name).join(', ')"
         >
           <MkAvatar
             v-for="u in uniqueSessionUsers.slice(0, 30)"
