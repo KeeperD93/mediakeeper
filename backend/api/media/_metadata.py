@@ -2,6 +2,7 @@
 import asyncio
 import json
 import logging
+from collections.abc import Callable
 
 from fastapi import APIRouter, Depends
 
@@ -97,7 +98,7 @@ async def _run_ffprobe(path: str) -> tuple[dict | None, str | None]:
         return None, "ffprobe_failed"
 
 
-def _coerce_number(raw, cast, field: str) -> int | float:
+def _coerce_number(raw: object, cast: Callable[[object], int | float], field: str) -> int | float:
     """Parse an ffprobe numeric field, tolerating the non-numeric strings
     (e.g. "N/A") ffprobe emits for corrupted files — a raw ``int()`` /
     ``float()`` would raise and turn the whole request into a 500.
