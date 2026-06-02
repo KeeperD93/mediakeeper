@@ -628,8 +628,8 @@ def test_purge_rollback_artifacts_removes_only_aged_strict_matches(tmp_path: Pat
     # Files that must NEVER be deleted by the helper:
     media = tmp_path / "movie.mkv"
     media.write_bytes(b"media")
-    bad_token = tmp_path / ".movie.rollback-not-hex-here.mkv"
-    bad_token.write_bytes(b"bad")
+    bad_nonce = tmp_path / ".movie.rollback-not-hex-here.mkv"
+    bad_nonce.write_bytes(b"bad")
     backup_zip = tmp_path / "mediakeeper_backup_20260101_010101.zip"
     backup_zip.write_bytes(b"app-backup")
 
@@ -639,7 +639,7 @@ def test_purge_rollback_artifacts_removes_only_aged_strict_matches(tmp_path: Pat
     assert not aged.exists()
     assert fresh.exists()
     assert media.exists()
-    assert bad_token.exists()
+    assert bad_nonce.exists()
     assert backup_zip.exists()
 
 
