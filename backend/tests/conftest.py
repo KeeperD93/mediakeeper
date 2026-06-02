@@ -234,3 +234,18 @@ async def raw_client(db_session):
     exercise the CSRF middleware itself (origin mismatch, missing header…)."""
     async for c in _build_client(seed_csrf=False):
         yield c
+
+
+@pytest_asyncio.fixture
+async def authed_client(client, admin_user):
+    """``client`` logged in as the local backoffice admin.
+
+    The default ``client`` fixture auto-seeds the CSRF cookie+header and
+    re-syncs it across the auth-boundary rotation. Backoffice routes behind
+    ``get_current_user`` (+ the CSRF middleware on mutations) need this."""
+    r = await client.post(
+        "/api/auth/login",
+        json={"username": "admin", "password": "TestPassword123!"},
+    )
+    assert r.status_code == 200, r.text
+    return client
