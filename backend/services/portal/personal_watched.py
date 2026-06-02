@@ -70,7 +70,7 @@ async def get_because_you_watched(
     try:
         rows = (await db.execute(stmt)).all()
     except Exception as e:
-        logger.debug(f"[PERSONAL] latest play query failed: {e}")
+        logger.debug("[PERSONAL] latest play query failed: %s", e)
         return empty
 
     if not rows:
@@ -214,5 +214,5 @@ async def _fetch_recommendations(
         await resolve_runtimes(recs)
         return recs
     except Exception as e:
-        logger.debug(f"[PERSONAL] recommendations fetch failed: {e}")
+        logger.debug("[PERSONAL] recommendations fetch failed: %s", e)
         return []

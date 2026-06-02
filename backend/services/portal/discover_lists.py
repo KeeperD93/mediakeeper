@@ -194,7 +194,7 @@ async def get_media_videos(
                 })
         return videos
     except Exception as e:
-        logger.error(f"[DISCOVER] Error fetching videos: {e}")
+        logger.error("[DISCOVER] Error fetching videos: %s", e)
         return []
 
 
@@ -259,7 +259,7 @@ async def _fetch_list_params(
         await resolve_runtimes(out)
         return out
     except Exception as e:
-        logger.error(f"[DISCOVER] Error fetching {endpoint}: {e}")
+        logger.error("[DISCOVER] Error fetching %s: %s", endpoint, e)
         return []
 
 
