@@ -40,7 +40,7 @@ async def fetch_and_store_emby_logs(db):
                 new_count += 1
 
         if new_count > 0:
-            logger.debug(f"Emby logs : {new_count} new entrys writeses")
+            logger.debug("Emby logs : %s new entries written", new_count)
 
     except Exception as e:
-        logger.error(f"Error fetch_and_store_emby_logs: {e}")
+        logger.error("Error fetch_and_store_emby_logs: %s", e)
