@@ -1,4 +1,4 @@
-"""Move, deletion et creation de folders."""
+"""Move, delete and create folders."""
 import logging
 
 from ._io import _fast_move, _force_delete, _same_device
@@ -114,7 +114,7 @@ async def move_file(src_path: str, dest_folder: str) -> dict:
 
 
 async def check_move_conflicts(file_names: list[str], dest_folder: str) -> dict:
-    """Check si des files existent already in le folder de destination."""
+    """Check whether files already exist in the destination folder."""
     dest = _ensure_within_media_roots(dest_folder)
     if dest is None:
         return {"error": "path_not_allowed"}
@@ -149,7 +149,7 @@ async def check_move_conflicts(file_names: list[str], dest_folder: str) -> dict:
 
 
 async def move_file_overwrite(src_path: str, dest_folder: str) -> dict:
-    """Move un file en overwriting si required."""
+    """Move a file, overwriting the destination if required."""
     logger.info("[MOVE-OW] %r → %r", src_path, dest_folder)
     src = _ensure_within_media_roots(src_path)
     dest = _ensure_within_media_roots(dest_folder)
@@ -173,7 +173,7 @@ async def move_file_overwrite(src_path: str, dest_folder: str) -> dict:
             logger.warning("[MOVE-OW] Target escape: %r", target_candidate)
             return {"error": "path_not_allowed"}
         if target.exists():
-            logger.info("[MOVE-OW] Deletion target existante : %r (is_dir=%s)", target, target.is_dir())
+            logger.info("[MOVE-OW] Deleting existing target: %r (is_dir=%s)", target, target.is_dir())
             await _force_delete(target)
             logger.info("[MOVE-OW] Target deleted OK")
         same_dev = _same_device(src, dest)
