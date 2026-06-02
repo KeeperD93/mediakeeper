@@ -1,7 +1,6 @@
 """Renaming endpoints (files + folders) and name-building helpers."""
 import logging
 from pathlib import Path
-from typing import List
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, ConfigDict, Field
@@ -43,7 +42,7 @@ class RenameRequest(BaseModel):
 
 class RenameBatchRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    items: List[RenameRequest] = Field(..., max_length=_MAX_BATCH_ITEMS)
+    items: list[RenameRequest] = Field(..., max_length=_MAX_BATCH_ITEMS)
     cat: str = Field("", max_length=_MAX_CATEGORY_LEN)
 
 

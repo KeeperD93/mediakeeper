@@ -110,7 +110,7 @@ async def _merge_folder_into(src_path: str, dest_path: str) -> dict:
         return {"error": "merge_failed"}
 
 
-async def apply_rename(old_path: str, new_name: str):
+async def apply_rename(old_path: str, new_name: str) -> dict:
     src = _ensure_within_media_roots(old_path)
     if src is None:
         logger.error("[RENAME] Containment rejected: old=%s", old_path)
@@ -181,7 +181,7 @@ async def apply_rename(old_path: str, new_name: str):
         return {"error": "rename_failed"}
 
 
-async def apply_rename_batch(items: list, cat: str = "") -> list:
+async def apply_rename_batch(items: list[dict], cat: str = "") -> list[dict]:
     if not items:
         return []
 
@@ -215,7 +215,7 @@ async def apply_rename_batch(items: list, cat: str = "") -> list:
     return results
 
 
-def preview_rename(old_path: str, new_name: str):
+def preview_rename(old_path: str, new_name: str) -> dict:
     """Format-only preview of the rename target.
 
     INTENTIONALLY performs no path/name validation: this is a pure display
