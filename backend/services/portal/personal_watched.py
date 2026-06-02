@@ -129,7 +129,7 @@ async def get_because_you_watched(
 
 async def _find_series_index_entry(
     db: AsyncSession, series_name: str | None,
-):
+) -> EmbyTmdbIndex | None:
     """
     Lookup a series in ``emby_tmdb_index`` by its title. The playback row
     only gives us the series *name* (not id), so we have to match on
