@@ -297,7 +297,7 @@ async def tv_available_episodes(
         if not key.startswith(prefix):
             continue
         try:
-            body = key[len(prefix):]  # "{N}_e{M}"
+            body = key.removeprefix(prefix)  # "{N}_e{M}"
             s_part, e_part = body.split("_e", 1)
             s_num = int(s_part)
             e_num = int(e_part)
