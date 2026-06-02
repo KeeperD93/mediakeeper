@@ -14,6 +14,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ### Fixed
 - Stats — Utilisateurs et fusion : photo de profil (perso ou Emby) désormais affichée.
+- Médiathèque — le détail des pistes n'échoue plus sur un fichier corrompu.
 
 ## [1.0.0-rc.4] - 2026-05-30
 

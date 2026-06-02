@@ -97,19 +97,32 @@ async def _run_ffprobe(path: str) -> tuple[dict | None, str | None]:
         return None, "ffprobe_failed"
 
 
+def _coerce_number(raw, cast, field: str) -> int | float:
+    """Parse an ffprobe numeric field, tolerating the non-numeric strings
+    (e.g. "N/A") ffprobe emits for corrupted files — a raw ``int()`` /
+    ``float()`` would raise and turn the whole request into a 500.
+    """
+    try:
+        return cast(raw)
+    except (TypeError, ValueError):
+        if raw not in (None, ""):
+            logger.warning("[metadata] non-numeric %s=%r, using fallback", field, raw)
+        return cast(0)
+
+
 def _parse_format(fmt: dict) -> dict:
     """Extract size, duration and bitrate from the ffprobe ``format`` block."""
     result = {}
-    size_bytes = int(fmt.get("size", 0))
+    size_bytes = _coerce_number(fmt.get("size"), int, "size")
     if size_bytes:
         result["taille"] = format_size(size_bytes)
-    duration_s = float(fmt.get("duration", 0))
+    duration_s = _coerce_number(fmt.get("duration"), float, "duration")
     if duration_s:
         h = int(duration_s // 3600)
         m = int((duration_s % 3600) // 60)
         s = int(duration_s % 60)
         result["duree"] = f"{h}h {m:02d}m {s:02d}s" if h else f"{m}m {s:02d}s"
-    bitrate = int(fmt.get("bit_rate", 0))
+    bitrate = _coerce_number(fmt.get("bit_rate"), int, "bit_rate")
     if bitrate:
         result["debit_global"] = f"{bitrate // 1000} kbps"
     return result
@@ -132,12 +145,13 @@ def _parse_streams(streams: list[dict]) -> tuple[list[dict], list[dict], list[di
         is_commentary = disposition.get("comment", 0) == 1
 
         if codec_type == "video":
+            v_bitrate = _coerce_number(s.get("bit_rate"), int, "bit_rate")
             track = {
                 "codec": s.get("codec_name", "—").upper(),
                 "profil": s.get("profile", ""),
                 "resolution": f"{s.get('width', '?')}×{s.get('height', '?')}",
                 "fps": s.get("r_frame_rate", "").replace("/1", "") + " fps" if s.get("r_frame_rate") else "",
-                "bitrate": f"{int(s['bit_rate']) // 1000} kbps" if s.get("bit_rate") else "",
+                "bitrate": f"{v_bitrate // 1000} kbps" if v_bitrate else "",
                 "hdr": _detect_hdr(s),
                 "titre": title,
             }
@@ -146,11 +160,12 @@ def _parse_streams(streams: list[dict]) -> tuple[list[dict], list[dict], list[di
         elif codec_type == "audio":
             channels = s.get("channels", 0)
             ch_label = {1: "Mono", 2: "Stereo", 6: "5.1", 8: "7.1"}.get(channels, f"{channels} ch")
+            a_bitrate = _coerce_number(s.get("bit_rate"), int, "bit_rate")
             track = {
                 "langue": lang,
                 "codec": s.get("codec_name", "—").upper(),
                 "canaux": ch_label,
-                "bitrate": f"{int(s['bit_rate']) // 1000} kbps" if s.get("bit_rate") else "",
+                "bitrate": f"{a_bitrate // 1000} kbps" if a_bitrate else "",
                 "titre": title,
                 "par_defaut": "Yes" if is_default else "",
                 "commentaire": "Yes" if is_commentary else "",
