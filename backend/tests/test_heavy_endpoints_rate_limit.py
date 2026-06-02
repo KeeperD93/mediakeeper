@@ -19,20 +19,11 @@ from models.user import User
 from services.portal.profiles import get_or_create_profile
 
 
-async def _portal_login(client) -> None:
-    """Promote the admin to a portal session via the cascade login."""
-    r = await client.post("/api/auth/portal-login", json={
-        "username": "admin",
-        "password": "TestPassword123!",
-    })
-    assert r.status_code == 200, r.text
-
-
 @pytest.mark.asyncio
-async def test_chat_send_caps_at_thirty_per_minute(client, admin_user, db_session):
+async def test_chat_send_caps_at_thirty_per_minute(client, admin_user, db_session, portal_login):
     """Same 30/min cap on chat send. Admin profile is created on the
     fly so ``can_chat`` evaluates True."""
-    await _portal_login(client)
+    await portal_login(client)
 
     # Make sure the admin profile is chat-enabled (auto-created by login).
     profile = await get_or_create_profile(db_session, admin_user)

@@ -12,14 +12,6 @@ from models.portal.profile import UserProfile
 from models.portal.social import UserList, UserListContributor
 
 
-async def _portal_login(client, *, username: str, password: str) -> None:
-    r = await client.post("/api/auth/portal-login", json={
-        "username": username,
-        "password": password,
-    })
-    assert r.status_code == 200, r.text
-
-
 async def _make_user(db_session, *, username: str, password: str = "AnyPassword123!"):
     user = User(
         username=username,
@@ -43,9 +35,9 @@ async def _make_user(db_session, *, username: str, password: str = "AnyPassword1
 
 
 @pytest.mark.asyncio
-async def test_owner_sees_history_on_public_readonly_list(client, admin_user, db_session):
+async def test_owner_sees_history_on_public_readonly_list(client, admin_user, db_session, portal_login):
     """The owner is always allowed to read the history of their list."""
-    await _portal_login(client, username="admin", password="TestPassword123!")
+    await portal_login(client)
 
     lst = UserList(
         user_id=admin_user.id,
@@ -63,9 +55,9 @@ async def test_owner_sees_history_on_public_readonly_list(client, admin_user, db
 
 
 @pytest.mark.asyncio
-async def test_contributor_sees_history_on_public_readonly_list(client, admin_user, db_session):
+async def test_contributor_sees_history_on_public_readonly_list(client, admin_user, db_session, portal_login):
     """A contributor named on the list must keep history access."""
-    await _portal_login(client, username="admin", password="TestPassword123!")
+    await portal_login(client)
 
     bob, _ = await _make_user(db_session, username="bob")
     lst = UserList(
@@ -87,10 +79,10 @@ async def test_contributor_sees_history_on_public_readonly_list(client, admin_us
 
 
 @pytest.mark.asyncio
-async def test_random_viewer_does_not_see_history_on_public_readonly_list(client, admin_user, db_session):
+async def test_random_viewer_does_not_see_history_on_public_readonly_list(client, admin_user, db_session, portal_login):
     """A user who is neither owner nor contributor receives an empty
     history payload — no leak of who added/removed which item."""
-    await _portal_login(client, username="admin", password="TestPassword123!")
+    await portal_login(client)
 
     bob, _ = await _make_user(db_session, username="bob")
     lst = UserList(

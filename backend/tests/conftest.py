@@ -151,6 +151,21 @@ async def admin_user(db_session: AsyncSession):
     return user
 
 
+@pytest.fixture
+def portal_login():
+    """Return an async helper that logs a user into the portal via the
+    cascade login. Callers pass their own HTTP client (seeded ``client`` or
+    bare ``raw_client``); credentials default to the ``admin_user`` fixture."""
+    async def _login(http_client, *, username: str = "admin", password: str = "TestPassword123!"):
+        r = await http_client.post("/api/auth/portal-login", json={
+            "username": username,
+            "password": password,
+        })
+        assert r.status_code == 200, r.text
+        return r
+    return _login
+
+
 async def _build_client(seed_csrf: bool):
     """Shared factory for the test HTTP client — see the two fixtures below."""
     from core.database import get_db

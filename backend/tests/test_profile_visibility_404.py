@@ -22,14 +22,6 @@ from models.user import User
 from models.portal.profile import UserProfile
 
 
-async def _portal_login_admin(client) -> None:
-    r = await client.post("/api/auth/portal-login", json={
-        "username": "admin",
-        "password": "TestPassword123!",
-    })
-    assert r.status_code == 200, r.text
-
-
 async def _make_user(db_session, *, username: str, is_public: bool):
     user = User(
         username=username,
@@ -53,9 +45,9 @@ async def _make_user(db_session, *, username: str, is_public: bool):
 
 
 @pytest.mark.asyncio
-async def test_private_profile_returns_placeholder(client, admin_user, db_session):
+async def test_private_profile_returns_placeholder(client, admin_user, db_session, portal_login):
     """Private profile reached by a non-owner → 200 + placeholder."""
-    await _portal_login_admin(client)
+    await portal_login(client)
     user, _ = await _make_user(db_session, username="private", is_public=False)
     r = await client.get(f"/api/portal/profiles/by-user-id/{user.id}/public")
     assert r.status_code == 200
@@ -69,17 +61,17 @@ async def test_private_profile_returns_placeholder(client, admin_user, db_sessio
 
 
 @pytest.mark.asyncio
-async def test_missing_profile_returns_404(client, admin_user, db_session):
+async def test_missing_profile_returns_404(client, admin_user, db_session, portal_login):
     """Missing IDs stay opaque — same 404 shape regardless of cause."""
-    await _portal_login_admin(client)
+    await portal_login(client)
     r = await client.get("/api/portal/profiles/by-user-id/99999/public")
     assert r.status_code == 404
     assert r.json()["detail"] == "profile_not_found"
 
 
 @pytest.mark.asyncio
-async def test_public_profile_still_returns_200(client, admin_user, db_session):
-    await _portal_login_admin(client)
+async def test_public_profile_still_returns_200(client, admin_user, db_session, portal_login):
+    await portal_login(client)
     user, _ = await _make_user(db_session, username="public", is_public=True)
     r = await client.get(f"/api/portal/profiles/by-user-id/{user.id}/public")
     assert r.status_code == 200
