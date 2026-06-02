@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import pytest
 
-from core.security import hash_password
 from models.portal.profile import UserProfile
 
 

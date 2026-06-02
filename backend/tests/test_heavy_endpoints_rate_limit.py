@@ -14,8 +14,6 @@ from __future__ import annotations
 
 import pytest
 
-from models.portal.profile import UserProfile
-from models.user import User
 from services.portal.profiles import get_or_create_profile
 
 
