@@ -18,7 +18,6 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, Field
-from typing import Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -88,10 +87,10 @@ async def list_users(
 
 
 class ProfileAdminUpdate(BaseModel):
-    account_active: Optional[bool] = None
-    role: Optional[str] = Field(None, pattern="^(viewer|moderator|admin)$")
-    chat_enabled: Optional[bool] = None
-    forced_public: Optional[bool] = None
+    account_active: bool | None = None
+    role: str | None = Field(None, pattern="^(viewer|moderator|admin)$")
+    chat_enabled: bool | None = None
+    forced_public: bool | None = None
 
 
 @router.patch("/users/{profile_id}")
