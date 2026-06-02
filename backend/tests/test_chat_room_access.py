@@ -19,14 +19,6 @@ from services.portal import chat as chat_svc
 from services.portal.profiles import get_or_create_profile
 
 
-async def _portal_login_admin(client) -> None:
-    r = await client.post("/api/auth/portal-login", json={
-        "username": "admin",
-        "password": "TestPassword123!",
-    })
-    assert r.status_code == 200, r.text
-
-
 @pytest.mark.asyncio
 async def test_user_can_access_room_returns_true_for_lounge(db_session):
     """The seeded lounge stays accessible to keep the FAB chat working."""
@@ -57,10 +49,10 @@ async def test_user_can_access_room_refuses_unknown_id(db_session):
 
 
 @pytest.mark.asyncio
-async def test_send_message_refuses_when_room_is_private(client, admin_user, db_session):
+async def test_send_message_refuses_when_room_is_private(client, admin_user, db_session, portal_login):
     """``POST /chat/rooms/{room_id}/messages`` must return an error when
     the user is not allowed in the room — even if they are chat-enabled."""
-    await _portal_login_admin(client)
+    await portal_login(client)
 
     profile = await get_or_create_profile(db_session, admin_user)
     profile.role = "admin"
@@ -82,10 +74,10 @@ async def test_send_message_refuses_when_room_is_private(client, admin_user, db_
 
 
 @pytest.mark.asyncio
-async def test_get_messages_refuses_when_room_is_private(client, admin_user, db_session):
+async def test_get_messages_refuses_when_room_is_private(client, admin_user, db_session, portal_login):
     """Same gate on the read path — listing a private room's history
     from a non-member returns 403, not the messages."""
-    await _portal_login_admin(client)
+    await portal_login(client)
 
     profile = await get_or_create_profile(db_session, admin_user)
     profile.role = "admin"

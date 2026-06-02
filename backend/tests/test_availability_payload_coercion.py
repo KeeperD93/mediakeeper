@@ -18,19 +18,11 @@ import pytest
 from services.portal.profiles import get_or_create_profile
 
 
-async def _portal_login(client) -> None:
-    r = await client.post("/api/auth/portal-login", json={
-        "username": "admin",
-        "password": "TestPassword123!",
-    })
-    assert r.status_code == 200, r.text
-
-
 @pytest.mark.asyncio
-async def test_availability_accepts_int_tmdb_id(client, admin_user, db_session):
+async def test_availability_accepts_int_tmdb_id(client, admin_user, db_session, portal_login):
     """Backwards-compatible payload — frontend sends int. The endpoint
     returns 200 with the (empty) results map for an unknown id."""
-    await _portal_login(client)
+    await portal_login(client)
     await get_or_create_profile(db_session, admin_user)
 
     r = await client.post("/api/portal/availability", json={
@@ -43,10 +35,10 @@ async def test_availability_accepts_int_tmdb_id(client, admin_user, db_session):
 
 
 @pytest.mark.asyncio
-async def test_availability_accepts_string_tmdb_id(client, admin_user, db_session):
+async def test_availability_accepts_string_tmdb_id(client, admin_user, db_session, portal_login):
     """Pydantic v2 coerces a numeric string to int — the production
     payload that triggered the original 500 must now succeed."""
-    await _portal_login(client)
+    await portal_login(client)
     await get_or_create_profile(db_session, admin_user)
 
     r = await client.post("/api/portal/availability", json={
@@ -59,10 +51,10 @@ async def test_availability_accepts_string_tmdb_id(client, admin_user, db_sessio
 
 
 @pytest.mark.asyncio
-async def test_availability_rejects_non_numeric_tmdb_id(client, admin_user, db_session):
+async def test_availability_rejects_non_numeric_tmdb_id(client, admin_user, db_session, portal_login):
     """Anything that isn't a base-10 integer fails Pydantic validation
     and surfaces as 422 instead of 500. No SQL is issued."""
-    await _portal_login(client)
+    await portal_login(client)
     await get_or_create_profile(db_session, admin_user)
 
     r = await client.post("/api/portal/availability", json={
@@ -72,10 +64,10 @@ async def test_availability_rejects_non_numeric_tmdb_id(client, admin_user, db_s
 
 
 @pytest.mark.asyncio
-async def test_availability_rejects_invalid_media_type(client, admin_user, db_session):
+async def test_availability_rejects_invalid_media_type(client, admin_user, db_session, portal_login):
     """``media_type`` is constrained to ``movie`` / ``tv`` so a typo
     like ``"film"`` cannot reach the completeness branch."""
-    await _portal_login(client)
+    await portal_login(client)
     await get_or_create_profile(db_session, admin_user)
 
     r = await client.post("/api/portal/availability", json={
@@ -85,9 +77,9 @@ async def test_availability_rejects_invalid_media_type(client, admin_user, db_se
 
 
 @pytest.mark.asyncio
-async def test_availability_handles_empty_items(client, admin_user, db_session):
+async def test_availability_handles_empty_items(client, admin_user, db_session, portal_login):
     """Empty payload is a no-op — returns 200 with an empty results map."""
-    await _portal_login(client)
+    await portal_login(client)
     await get_or_create_profile(db_session, admin_user)
 
     r = await client.post("/api/portal/availability", json={"items": []})

@@ -13,14 +13,6 @@ from models.user import User
 from models.portal.profile import UserProfile
 
 
-async def _portal_login_admin(client) -> None:
-    r = await client.post("/api/auth/portal-login", json={
-        "username": "admin",
-        "password": "TestPassword123!",
-    })
-    assert r.status_code == 200, r.text
-
-
 async def _make_user(db_session, *, username: str, role: str, is_public: bool, active: bool):
     user = User(
         username=username,
@@ -45,16 +37,16 @@ async def _make_user(db_session, *, username: str, role: str, is_public: bool, a
 
 
 @pytest.mark.asyncio
-async def test_returns_404_when_target_profile_does_not_exist(client, admin_user):
-    await _portal_login_admin(client)
+async def test_returns_404_when_target_profile_does_not_exist(client, admin_user, portal_login):
+    await portal_login(client)
     r = await client.get("/api/portal/achievements/user/99999")
     assert r.status_code == 404
     assert r.json()["detail"] == "profile_not_found"
 
 
 @pytest.mark.asyncio
-async def test_returns_404_when_target_account_is_deactivated(client, admin_user, db_session):
-    await _portal_login_admin(client)
+async def test_returns_404_when_target_account_is_deactivated(client, admin_user, db_session, portal_login):
+    await portal_login(client)
     user, _ = await _make_user(
         db_session, username="ghost", role="viewer", is_public=True, active=False,
     )
@@ -63,10 +55,10 @@ async def test_returns_404_when_target_account_is_deactivated(client, admin_user
 
 
 @pytest.mark.asyncio
-async def test_returns_404_when_target_is_admin_and_caller_is_someone_else(client, admin_user, db_session):
+async def test_returns_404_when_target_is_admin_and_caller_is_someone_else(client, admin_user, db_session, portal_login):
     """Admin profiles are hidden from non-self lookups so the trophy
     list cannot be used to single them out."""
-    await _portal_login_admin(client)
+    await portal_login(client)
     other_admin, _ = await _make_user(
         db_session, username="other-admin", role="admin", is_public=True, active=True,
     )
@@ -75,10 +67,10 @@ async def test_returns_404_when_target_is_admin_and_caller_is_someone_else(clien
 
 
 @pytest.mark.asyncio
-async def test_returns_404_when_target_profile_is_private(client, admin_user, db_session):
+async def test_returns_404_when_target_profile_is_private(client, admin_user, db_session, portal_login):
     """Private profiles return 404 — same shape as missing/admin so the
     caller cannot distinguish the underlying reason."""
-    await _portal_login_admin(client)
+    await portal_login(client)
     user, _ = await _make_user(
         db_session, username="private", role="viewer", is_public=False, active=True,
     )
@@ -88,8 +80,8 @@ async def test_returns_404_when_target_profile_is_private(client, admin_user, db
 
 
 @pytest.mark.asyncio
-async def test_returns_200_when_target_profile_is_public(client, admin_user, db_session):
-    await _portal_login_admin(client)
+async def test_returns_200_when_target_profile_is_public(client, admin_user, db_session, portal_login):
+    await portal_login(client)
     user, _ = await _make_user(
         db_session, username="public", role="viewer", is_public=True, active=True,
     )

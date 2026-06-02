@@ -13,7 +13,7 @@ from core.url_safety import (
 )
 
 
-# ─────────────────────────── scheme acceptance ───────────────────────────
+# scheme acceptance
 
 
 def test_safe_url_accepts_https():
@@ -33,7 +33,7 @@ def test_safe_url_accepts_http_when_explicitly_allowed():
     assert safe_url("http://example.com", schemes=("http", "https")) == "http://example.com"
 
 
-# ─────────────────────────── scheme rejection ───────────────────────────
+# scheme rejection
 
 
 def test_safe_url_blocks_javascript_scheme():
@@ -77,7 +77,7 @@ def test_safe_url_blocks_blocked_scheme_even_when_listed():
     assert safe_url("javascript:alert(1)", schemes=("javascript", "https")) is None
 
 
-# ─────────────────────────── input handling ───────────────────────────
+# input handling
 
 
 def test_safe_url_rejects_empty_inputs():
@@ -102,7 +102,7 @@ def test_safe_url_rejects_url_without_host():
     assert safe_url("https:///path") is None
 
 
-# ─────────────────────────── host whitelist ───────────────────────────
+# host whitelist
 
 
 def test_safe_url_accepts_host_in_whitelist():
@@ -138,7 +138,7 @@ def test_safe_url_no_whitelist_accepts_any_host():
     assert safe_url("https://other.example") == "https://other.example"
 
 
-# ─────────────────────────── parser robustness ───────────────────────────
+# parser robustness
 
 
 def test_safe_url_handles_garbage_strings():

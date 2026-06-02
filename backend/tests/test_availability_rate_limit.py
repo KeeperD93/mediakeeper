@@ -19,20 +19,12 @@ from services.portal.profiles import get_or_create_profile
 _AVAILABILITY_ROUTE = "api.portal.availability.check_availability"
 
 
-async def _portal_login(client) -> None:
-    r = await client.post("/api/auth/portal-login", json={
-        "username": "admin",
-        "password": "TestPassword123!",
-    })
-    assert r.status_code == 200, r.text
-
-
 @pytest.mark.asyncio
-async def test_availability_allows_large_browsing_burst(client, admin_user, db_session):
+async def test_availability_allows_large_browsing_burst(client, admin_user, db_session, portal_login):
     """The raised ceiling must accept a burst far above the old 120/min cap —
     a fast browse legitimately exceeds it. Under the previous 120/min limit
     this loop tripped on call 121; 200 calls must now all succeed."""
-    await _portal_login(client)
+    await portal_login(client)
     await get_or_create_profile(db_session, admin_user)
 
     for i in range(200):

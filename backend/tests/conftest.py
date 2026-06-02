@@ -151,6 +151,21 @@ async def admin_user(db_session: AsyncSession):
     return user
 
 
+@pytest.fixture
+def portal_login():
+    """Return an async helper that logs a user into the portal via the
+    cascade login. Callers pass their own HTTP client (seeded ``client`` or
+    bare ``raw_client``); credentials default to the ``admin_user`` fixture."""
+    async def _login(http_client, *, username: str = "admin", password: str = "TestPassword123!"):
+        r = await http_client.post("/api/auth/portal-login", json={
+            "username": username,
+            "password": password,
+        })
+        assert r.status_code == 200, r.text
+        return r
+    return _login
+
+
 async def _build_client(seed_csrf: bool):
     """Shared factory for the test HTTP client — see the two fixtures below."""
     from core.database import get_db
@@ -219,3 +234,18 @@ async def raw_client(db_session):
     exercise the CSRF middleware itself (origin mismatch, missing header…)."""
     async for c in _build_client(seed_csrf=False):
         yield c
+
+
+@pytest_asyncio.fixture
+async def authed_client(client, admin_user):
+    """``client`` logged in as the local backoffice admin.
+
+    The default ``client`` fixture auto-seeds the CSRF cookie+header and
+    re-syncs it across the auth-boundary rotation. Backoffice routes behind
+    ``get_current_user`` (+ the CSRF middleware on mutations) need this."""
+    r = await client.post(
+        "/api/auth/login",
+        json={"username": "admin", "password": "TestPassword123!"},
+    )
+    assert r.status_code == 200, r.text
+    return client

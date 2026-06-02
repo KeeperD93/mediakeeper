@@ -19,17 +19,9 @@ import pytest
 from services.portal.profiles import get_or_create_profile
 
 
-async def _portal_login(client) -> None:
-    r = await client.post("/api/auth/portal-login", json={
-        "username": "admin",
-        "password": "TestPassword123!",
-    })
-    assert r.status_code == 200, r.text
-
-
 @pytest.mark.asyncio
 async def test_unknown_tmdb_id_returns_null_under_key(
-    client, admin_user, db_session,
+    client, admin_user, db_session, portal_login,
 ):
     """Unindexed tmdb_id → ``results[id]`` is exactly ``None``.
 
@@ -37,7 +29,7 @@ async def test_unknown_tmdb_id_returns_null_under_key(
     an all-null object (which the frontend cache mis-classifies as a
     real hit).
     """
-    await _portal_login(client)
+    await portal_login(client)
     await get_or_create_profile(db_session, admin_user)
 
     r = await client.post("/api/portal/availability", json={

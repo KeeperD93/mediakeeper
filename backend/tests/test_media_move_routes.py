@@ -18,26 +18,6 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, patch
 
 import pytest
-import pytest_asyncio
-
-_ADMIN_PASSWORD = "TestPassword123!"
-
-
-@pytest_asyncio.fixture
-async def authed_client(client, admin_user):
-    """``client`` logged in as the local backoffice admin.
-
-    The default ``client`` fixture auto-seeds the CSRF cookie+header and
-    re-syncs the header when the server rotates ``mk_csrf`` at the auth
-    boundary. Mutation routes under /api/media/* go through the CSRF
-    middleware, so this is the only fixture that works for them.
-    """
-    r = await client.post(
-        "/api/auth/login",
-        json={"username": "admin", "password": _ADMIN_PASSWORD},
-    )
-    assert r.status_code == 200, r.text
-    return client
 
 
 # /api/media/move

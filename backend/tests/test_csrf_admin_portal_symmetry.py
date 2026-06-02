@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import pytest
 
-from core.security import hash_password
 from models.portal.profile import UserProfile
 
 
@@ -20,14 +19,6 @@ async def _admin_login(raw_client) -> None:
     the resulting cookie state is the only thing carried into the
     follow-up mutation."""
     r = await raw_client.post("/api/auth/login", json={
-        "username": "admin",
-        "password": "TestPassword123!",
-    })
-    assert r.status_code == 200, r.text
-
-
-async def _portal_login(raw_client) -> None:
-    r = await raw_client.post("/api/auth/portal-login", json={
         "username": "admin",
         "password": "TestPassword123!",
     })
@@ -65,11 +56,11 @@ async def test_admin_mutation_with_mismatched_csrf_token_returns_403(raw_client,
 
 
 @pytest.mark.asyncio
-async def test_portal_mutation_without_csrf_header_returns_403(raw_client, admin_user, db_session):
+async def test_portal_mutation_without_csrf_header_returns_403(raw_client, admin_user, db_session, portal_login):
     """Same shape on the portal cookie. Without the header the mutation
     is refused before the route handler runs — proving the global
     middleware enforces parity with the admin path."""
-    await _portal_login(raw_client)
+    await portal_login(raw_client)
     raw_client.cookies.delete("mk_csrf")
 
     # The admin profile was created on the fly by portal-login.
@@ -89,8 +80,8 @@ async def test_portal_mutation_without_csrf_header_returns_403(raw_client, admin
 
 
 @pytest.mark.asyncio
-async def test_portal_mutation_with_mismatched_csrf_token_returns_403(raw_client, admin_user):
-    await _portal_login(raw_client)
+async def test_portal_mutation_with_mismatched_csrf_token_returns_403(raw_client, admin_user, portal_login):
+    await portal_login(raw_client)
     raw_client.cookies.set("mk_csrf", "cookie-side")
 
     r = await raw_client.put(

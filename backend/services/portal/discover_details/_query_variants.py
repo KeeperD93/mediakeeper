@@ -19,6 +19,9 @@ from ._text_helpers import (
 
 
 def _search_query_variants(query: str) -> list[str]:
+    """Layer separator/symbol/diacritic/canonical rewrites and per-word transforms
+    (compound split, soft correction, romance suffix, plural/singular, repeated-letter
+    reduction) into a deduplicated variant list, capped at ``_SEARCH_MAX_VARIANTS``."""
     base = " ".join((query or "").split()).strip()
     if not base:
         return []
@@ -68,6 +71,8 @@ def _search_query_variants(query: str) -> list[str]:
 
 
 def _map_query_words(query: str, transform) -> str:
+    """Apply ``transform`` to each word token of ``query`` (punctuation prefix/suffix
+    preserved); return the rewritten string, or ``""`` when nothing changed."""
     changed = False
     parts = []
     for token in query.split():
@@ -83,6 +88,7 @@ def _map_query_words(query: str, transform) -> str:
 
 
 def _normalize_query_separators(query: str) -> str:
+    """Replace punctuation separators with spaces (e.g. ``spider-man`` → ``spider man``)."""
     return " ".join(part for part in _SEARCH_SEPARATOR_RE.split(query) if part)
 
 
@@ -103,6 +109,8 @@ def _expand_symbol_words(query: str) -> str:
 
 
 def _split_compound_word(word: str) -> str:
+    """Split a glued compound word into its parts via the override table or the
+    recursive segmenter; return ``word`` unchanged when it is not a known compound."""
     normalized = _strip_diacritics(word).lower()
     if normalized in _COMPOUND_SPLIT_OVERRIDES:
         return _COMPOUND_SPLIT_OVERRIDES[normalized]
@@ -116,6 +124,14 @@ def _split_compound_word(word: str) -> str:
 
 
 def _segment_compound_word(value: str) -> list[str] | None:
+    """Segment ``value`` into 2-to-5 dictionary pieces via recursive backtracking.
+
+    ``walk`` tries the longest piece first at each position and recurses on the
+    remainder, memoised on ``(index, part_count, min(strong_count, 2),
+    last_was_connector)``. A split is accepted only when it spans the whole word
+    with at least 2 pieces, at least 2 of them "strong" (real words, not
+    connectors), and does not end on a connector. Returns the piece list, or
+    ``None`` when no valid segmentation exists."""
     memo: dict[tuple[int, int, int, bool], list[str] | None] = {}
     max_parts = 5
 
@@ -159,6 +175,8 @@ def _segment_compound_word(value: str) -> list[str] | None:
 
 
 def _compound_piece_strength(piece: str) -> int | None:
+    """Rate a candidate piece: ``0`` for a connector word, ``1`` when it (or a
+    soft-corrected/singularised form) is a known split word, else ``None``."""
     if piece in _COMPOUND_CONNECTOR_WORDS:
         return 0
 
@@ -178,6 +196,8 @@ def _compound_piece_strength(piece: str) -> int | None:
 
 
 def _pluralize_word(word: str) -> str:
+    """Pluralise a Latin ``word`` (``y``→``ies``, ``ch``/``sh``→``es``,
+    ``au``/``eau``/``eu``→``x``, else ``+s``); unchanged if non-Latin or already plural."""
     normalized = _strip_diacritics(word).lower()
     if not _is_latin_search_word(normalized) or normalized.endswith(("s", "x", "z")):
         return word
@@ -191,6 +211,9 @@ def _pluralize_word(word: str) -> str:
 
 
 def _singularize_word(word: str) -> str:
+    """Singularise a Latin ``word`` — the inverse of ``_pluralize_word``
+    (``ies``→``y``, ``ches/shes/xes/zes``→drop ``es``, else drop a trailing ``s``
+    unless ``ss/ous/ius/sis/us``)."""
     normalized = _strip_diacritics(word).lower()
     if not _is_latin_search_word(normalized):
         return word
@@ -207,6 +230,8 @@ def _singularize_word(word: str) -> str:
 
 
 def _soft_correct_word(word: str) -> str:
+    """Light spelling correction: clamp repeated-letter runs to a double and restore
+    a dropped final ``e`` after ``quet``/``ell``/``enn``/``ett``/``iqu`` endings."""
     normalized = _strip_diacritics(word).lower()
     if not _is_latin_search_word(normalized):
         return word
@@ -223,6 +248,8 @@ def _soft_correct_word(word: str) -> str:
 
 
 def _alternate_romance_suffix_word(word: str) -> str:
+    """Offer the doubled feminine romance suffix: a word ending in
+    ``nel``/``rel``/``tel``/``iel``/``uel`` gets ``+le`` (e.g. ``naturel`` → ``naturelle``)."""
     normalized = _strip_diacritics(word).lower()
     if not _is_latin_search_word(normalized):
         return word
@@ -232,6 +259,9 @@ def _alternate_romance_suffix_word(word: str) -> str:
 
 
 def _reduce_repeated_word(word: str) -> str:
+    """Collapse a reducible doubled letter (``_REDUCIBLE_REPEATED_LETTER_RE``) to a
+    single — the inverse of ``_soft_correct_word``'s doubling, to also match titles
+    spelled with the single letter."""
     normalized = _strip_diacritics(word).lower()
     if not _is_latin_search_word(normalized) or not _REDUCIBLE_REPEATED_LETTER_RE.search(word):
         return word
