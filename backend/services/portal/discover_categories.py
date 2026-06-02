@@ -113,7 +113,8 @@ async def discover_paginated(
             )
             if res.status_code != 200:
                 logger.warning(
-                    f"[DISCOVER] /discover/{mt} HTTP {res.status_code} — params={query_params}"
+                    "[DISCOVER] /discover/%s HTTP %s — params=%s",
+                    mt, res.status_code, query_params,
                 )
                 return [], False
             j = res.json()
@@ -124,15 +125,19 @@ async def discover_paginated(
             await resolve_runtimes(normed)
             if "with_watch_providers" in query_params:
                 logger.info(
-                    f"[DISCOVER] /discover/{mt} provider="
-                    f"{query_params.get('with_watch_providers')} "
-                    f"region={query_params.get('watch_region')} "
-                    f"raw={len(results)} normed={len(normed)} "
-                    f"total_pages={total_pages} total_results={total_results}"
+                    "[DISCOVER] /discover/%s provider=%s region=%s "
+                    "raw=%s normed=%s total_pages=%s total_results=%s",
+                    mt,
+                    query_params.get("with_watch_providers"),
+                    query_params.get("watch_region"),
+                    len(results),
+                    len(normed),
+                    total_pages,
+                    total_results,
                 )
             return normed, page < total_pages
         except Exception as e:
-            logger.error(f"[DISCOVER] Error /discover/{mt}: {e}")
+            logger.error("[DISCOVER] Error /discover/%s: %s", mt, e)
             return [], False
 
     if media_type == "movie":

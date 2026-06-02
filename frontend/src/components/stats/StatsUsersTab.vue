@@ -250,7 +250,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onDeactivated, watch } from 'vue'
+import { ref, reactive, computed, onMounted, onDeactivated, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useStats } from '@/composables/useStats'
 import { useApi } from '@/composables/useApi'
@@ -443,6 +443,13 @@ onMounted(() => {
 // survives the deactivation.
 onDeactivated(() => {
   selected.clear()
+  // Cancel a pending search debounce so it can't fire a fetch on the
+  // cached (deactivated) tab — see the timer in debouncedFetchUsers.
+  clearTimeout(usersDb)
+})
+
+onUnmounted(() => {
+  clearTimeout(usersDb)
 })
 </script>
 

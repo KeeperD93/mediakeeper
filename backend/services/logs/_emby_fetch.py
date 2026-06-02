@@ -5,8 +5,8 @@ from ._files import write_log_line
 
 async def fetch_and_store_emby_logs(db):
     """
-    Fetch les logs Emby via l'API et les writes in emby.txt.
-    Avoid les duplicates en gardant trace du last log saved.
+    Fetch Emby logs via the API and write them to emby.txt.
+    Avoid duplicates by tracking the last log saved.
     """
     from services.emby import get_activity_logs
 
@@ -40,7 +40,7 @@ async def fetch_and_store_emby_logs(db):
                 new_count += 1
 
         if new_count > 0:
-            logger.debug(f"Emby logs : {new_count} new entrys writeses")
+            logger.debug("Emby logs : %s new entries written", new_count)
 
     except Exception as e:
-        logger.error(f"Error fetch_and_store_emby_logs: {e}")
+        logger.error("Error fetch_and_store_emby_logs: %s", e)

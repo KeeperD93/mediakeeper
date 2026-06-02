@@ -10,7 +10,6 @@ frontend hides the row in that case.
 from __future__ import annotations
 
 import logging
-from typing import Optional
 
 from sqlalchemy import select, desc, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -70,7 +69,7 @@ async def get_because_you_watched(
     try:
         rows = (await db.execute(stmt)).all()
     except Exception as e:
-        logger.debug(f"[PERSONAL] latest play query failed: {e}")
+        logger.debug("[PERSONAL] latest play query failed: %s", e)
         return empty
 
     if not rows:
@@ -129,8 +128,8 @@ async def get_because_you_watched(
 
 
 async def _find_series_index_entry(
-    db: AsyncSession, series_name: Optional[str],
-):
+    db: AsyncSession, series_name: str | None,
+) -> EmbyTmdbIndex | None:
     """
     Lookup a series in ``emby_tmdb_index`` by its title. The playback row
     only gives us the series *name* (not id), so we have to match on
@@ -214,5 +213,5 @@ async def _fetch_recommendations(
         await resolve_runtimes(recs)
         return recs
     except Exception as e:
-        logger.debug(f"[PERSONAL] recommendations fetch failed: {e}")
+        logger.debug("[PERSONAL] recommendations fetch failed: %s", e)
         return []
