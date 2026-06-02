@@ -64,7 +64,7 @@ async def get_full_details(
                     if en_overview:
                         d["overview"] = en_overview
             except Exception as exc:
-                logger.debug(f"[DISCOVER] overview en-US fallback failed: {exc}")
+                logger.debug("[DISCOVER] overview en-US fallback failed: %s", exc)
 
         title = d.get("title") or d.get("name", "")
         date_key = "release_date" if media_type == "movie" else "first_air_date"
@@ -170,7 +170,9 @@ async def get_full_details(
 
         return result
     except Exception as e:
-        logger.error(f"[DISCOVER] Error get_full_details({media_type}/{tmdb_id}): {e}")
+        logger.error(
+            "[DISCOVER] Error get_full_details(%s/%s): %s", media_type, tmdb_id, e,
+        )
         return None
 
 
@@ -228,7 +230,7 @@ async def get_person_filmography(
             "items": normalized,
         }
     except Exception as e:
-        logger.error(f"[DISCOVER] person filmography error: {e}")
+        logger.error("[DISCOVER] person filmography error: %s", e)
         return {"person": None, "items": []}
 
 
@@ -259,5 +261,5 @@ async def get_collection(db: AsyncSession, collection_id: int) -> dict:
             "items": parts,
         }
     except Exception as e:
-        logger.error(f"[DISCOVER] collection error: {e}")
+        logger.error("[DISCOVER] collection error: %s", e)
         return {"collection": None, "items": []}

@@ -65,7 +65,7 @@ async def search_tmdb_multi(
         await resolve_runtimes(items)
         return items
     except Exception as e:
-        logger.error(f"[DISCOVER] Search error: {e}")
+        logger.error("[DISCOVER] Search error: %s", e)
         return []
 
 

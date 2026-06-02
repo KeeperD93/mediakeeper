@@ -216,4 +216,4 @@ async def merge_original_language_videos(
             v for v in extra if v.get("key") and v.get("key") not in seen
         ]
     except Exception as exc:
-        logger.debug(f"[DISCOVER] original-lang videos fetch failed: {exc}")
+        logger.debug("[DISCOVER] original-lang videos fetch failed: %s", exc)
