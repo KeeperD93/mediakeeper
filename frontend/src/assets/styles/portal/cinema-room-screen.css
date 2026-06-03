@@ -8,7 +8,7 @@
      budget, 1280 px is the hard frame ceiling, and ``50vh * 16 / 9``
      forces the 16:9 ``.pt-cr-screen`` child to fit inside half the
      viewport height, leaving room for the seats panel below. */
-  width: min(74vw, calc(50vh * 16 / 9), 1280px);
+  width: min(52vw, calc(54vh * 16 / 9), 1280px);
   margin-top: 0;
   padding: 14px;
   background: linear-gradient(180deg, #0a0a14 0%, #050208 100%);

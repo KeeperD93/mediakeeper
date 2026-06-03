@@ -33,7 +33,7 @@
      vertically + ``overflow: hidden`` so the room reads as a single
      "screening" composition on every resolution we target (mobile
      portrait through 4K desktop). */
-  justify-content: center;
+  justify-content: flex-end;
   padding: 2vh 0;
   overflow: hidden;
   background:
@@ -148,39 +148,6 @@
     transparent 100%
   );
 }
-.pt-cr-sconce {
-  position: absolute;
-  right: 22%;
-  width: 16px;
-  height: 26px;
-  border-radius: 50% 50% 30% 30%;
-  background: radial-gradient(
-    circle at 50% 30%,
-    var(--portal-color-warning-soft) 0%,
-    var(--portal-color-warning-dark) 50%,
-    #7c2d12 100%
-  );
-  box-shadow:
-    0 0 30px rgb(var(--portal-color-warning-rgb), 0.55),
-    0 0 60px rgb(245, 158, 11, 0.3);
-  animation: pt-cr-flicker 5s ease-in-out infinite;
-}
-.pt-cr-wall--right .pt-cr-sconce {
-  left: 22%;
-  right: auto;
-}
-/* Three fixed vertical positions per wall (upper / middle / lower).
-   Hardcoded so the inline `style="top: X%"` can be dropped in favour
-   of a semantic modifier class. */
-.pt-cr-sconce--1 {
-  top: 18%;
-}
-.pt-cr-sconce--2 {
-  top: 42%;
-}
-.pt-cr-sconce--3 {
-  top: 66%;
-}
 .pt-cr-led {
   position: absolute;
   bottom: 10vh;
@@ -213,8 +180,8 @@
   position: absolute;
   top: 100%;
   left: 50%;
-  width: 130%;
-  height: 130px;
+  width: 56vw;
+  height: 150px;
   margin-top: -8px;
   transform: translateX(-50%) perspective(1100px) rotateX(58deg);
   transform-origin: 50% 0%;
