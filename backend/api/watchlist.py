@@ -202,34 +202,76 @@ async def tmdb_detail(media_type: str, tmdb_id: int, db: AsyncSession = Depends(
 # --- Upcoming episodes ---
 
 @router.get("/upcoming")
-async def upcoming_episodes(_: User = Depends(get_current_user)):
-    """Return upcoming episodes, sorted by air_date."""
-    from datetime import date
-    from services.watchlist_scanner import get_scan_status
-    cache = get_scan_status()
-    if not cache.get("ready"):
+async def upcoming_episodes(
+    lang: str = Query("fr"),
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    """Upcoming episodes (sorted by air_date), display fields localized to ``lang``.
+
+    The scan cache holds language-neutral structure (which episodes are
+    upcoming) plus French display fields. The series name / poster /
+    episode title are re-resolved here in the viewer's language via the
+    per-(id, lang) TMDB cache, so a viewer in English sees English.
+    """
+    from datetime import date, timedelta
+    from services.watchlist_scanner import get_scan_status, _cache as scan_cache
+    from services.watchlist_scanner._tmdb import (
+        _tmdb_series, _tmdb_season, TMDB_LANG_BY_LOCALE, DEFAULT_TMDB_LANG,
+    )
+    if not get_scan_status().get("ready") or not scan_cache:
         return []
 
-    from services.watchlist_scanner import _cache as scan_cache
-    if not scan_cache:
-        return []
+    cutoff = (date.today() - timedelta(days=2)).isoformat()
+    tmdb_lang = TMDB_LANG_BY_LOCALE.get(lang, DEFAULT_TMDB_LANG)
 
-    cutoff = (date.today() - __import__('datetime').timedelta(days=2)).isoformat()
-
-    episodes = []
+    # 1) Collect the language-neutral upcoming structure from the scan cache.
+    pending = []
     for series in scan_cache.get("series", []):
         for season in series.get("seasons", []):
             for ep in season.get("episodes", []):
                 if ep.get("status") == "upcoming" and ep.get("air_date") and ep["air_date"] >= cutoff:
-                    episodes.append({
-                        "series_name": series.get("name", ""),
-                        "poster": series.get("poster", "") or series.get("emby_poster", ""),
+                    pending.append({
                         "tmdb_id": series.get("tmdb_id"),
+                        "emby_poster": series.get("emby_poster", ""),
                         "season": season.get("season", 0),
                         "episode": ep.get("episode", 0),
-                        "episode_name": ep.get("name", ""),
                         "air_date": ep.get("air_date", ""),
                     })
+    pending.sort(key=lambda x: x["air_date"])
+    pending = pending[:30]
 
-    episodes.sort(key=lambda x: x["air_date"])
-    return episodes[:30]
+    # 2) Resolve name / poster / episode title in the viewer's language.
+    #    Memoized per request; the per-(id, lang) TMDB cache means the
+    #    default locale hits the scanner's cache and others fetch once / 6h.
+    series_memo: dict[int, tuple[str, str]] = {}
+    season_memo: dict[tuple[int, int], dict[int, str]] = {}
+    out = []
+    for it in pending:
+        tid = it["tmdb_id"]
+        if tid and tid not in series_memo:
+            sd = await _tmdb_series(db, tid, tmdb_lang)
+            pp = sd.get("poster_path", "") if sd else ""
+            poster = f"https://image.tmdb.org/t/p/w300{pp}" if pp else it["emby_poster"]
+            series_memo[tid] = (sd.get("name", "") if sd else "", poster)
+        series_name, poster = series_memo.get(tid, ("", it["emby_poster"]))
+
+        skey = (tid, it["season"])
+        if tid and skey not in season_memo:
+            sd2 = await _tmdb_season(db, tid, it["season"], tmdb_lang)
+            season_memo[skey] = {
+                e.get("episode_number"): e.get("name", "")
+                for e in (sd2.get("episodes", []) if sd2 else [])
+            }
+        episode_name = season_memo.get(skey, {}).get(it["episode"], "")
+
+        out.append({
+            "series_name": series_name,
+            "poster": poster,
+            "tmdb_id": tid,
+            "season": it["season"],
+            "episode": it["episode"],
+            "episode_name": episode_name,
+            "air_date": it["air_date"],
+        })
+    return out
