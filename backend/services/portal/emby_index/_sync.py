@@ -65,14 +65,20 @@ def _parse_emby_date_created(value: object) -> datetime | None:
 MAX_TMDB_LANG_FETCHES_PER_SYNC = 250
 
 
-async def sync_emby_tmdb_index(db: AsyncSession) -> dict:
+async def sync_emby_tmdb_index(db: AsyncSession, *, recent_limit: int | None = None) -> dict:
     """
-    Fetch all Emby library items and store their TMDB IDs.
+    Fetch Emby library items and store their TMDB IDs.
 
     Each item goes through a 3-step cascade:
       1. Trust ``ProviderIds.Tmdb`` when present.
       2. Resolve via IMDB id using TMDB ``/find``.
       3. Fuzzy search TMDB by title + year.
+
+    ``recent_limit`` switches to the cheap "recently added" mode: only the N
+    newest items per type are fetched (``SortBy=DateCreated``) and neither the
+    orphan purge nor the language enrichment runs — both need the full library
+    view. Meant to run every few minutes so freshly-added content shows up
+    fast; the periodic full scan handles removals and enrichment.
 
     Returns a dict with per-stage counters so operators can diagnose
     which matching strategy is doing the heavy lifting.
@@ -100,16 +106,16 @@ async def sync_emby_tmdb_index(db: AsyncSession) -> dict:
 
     for item_type, media_type in [("Movie", "movie"), ("Series", "tv")]:
         try:
-            res = await client.get(
-                f"{url}/Items",
-                params={
-                    "IncludeItemTypes": item_type,
-                    "Recursive": "true",
-                    "Fields": "ProviderIds,ProductionYear,DateCreated",
-                    "Limit": str(PAGE_LIMIT),
-                },
-                headers=headers,
-            )
+            params = {
+                "IncludeItemTypes": item_type,
+                "Recursive": "true",
+                "Fields": "ProviderIds,ProductionYear,DateCreated",
+                "Limit": str(recent_limit or PAGE_LIMIT),
+            }
+            if recent_limit:
+                params["SortBy"] = "DateCreated"
+                params["SortOrder"] = "Descending"
+            res = await client.get(f"{url}/Items", params=params, headers=headers)
             if res.status_code != 200:
                 logger.warning("[EMBY_INDEX] HTTP %s for %s", res.status_code, item_type)
                 continue
@@ -120,7 +126,9 @@ async def sync_emby_tmdb_index(db: AsyncSession) -> dict:
             # Emby's /Items has a Limit cap. If the real total exceeds
             # what we received, the listing is truncated — purging would
             # delete legitimate items that fell off the page.
-            truncated = len(items) < total
+            # Recent mode fetches a small window on purpose, so the truncation
+            # check (and the purge it guards) is full-scan only.
+            truncated = recent_limit is None and len(items) < total
             if truncated:
                 logger.warning(
                     "[EMBY_INDEX] %s truncated (%s/%s) — skip purge",
@@ -172,7 +180,7 @@ async def sync_emby_tmdb_index(db: AsyncSession) -> dict:
             # Enable purge only AFTER the whole listing has been walked
             # without exception — a partial scan would leave seen_by_type
             # incomplete and cause valid rows to be deleted as orphans.
-            if not truncated and items:
+            if recent_limit is None and not truncated and items:
                 purge_ok_by_type[media_type] = True
 
         except Exception as e:
@@ -203,7 +211,7 @@ async def sync_emby_tmdb_index(db: AsyncSession) -> dict:
     # ── Lazy enrichment: original_language from TMDB ────────────────────
     # Only rows with a resolved tmdb_id but no cached language yet.
     # Capped per-run to keep the sync bounded; remaining rows resume next time.
-    if tmdb_key:
+    if recent_limit is None and tmdb_key:
         missing = (await db.execute(
             select(EmbyTmdbIndex.id, EmbyTmdbIndex.tmdb_id, EmbyTmdbIndex.media_type)
             .where(EmbyTmdbIndex.original_language.is_(None))
@@ -241,10 +249,11 @@ async def sync_emby_tmdb_index(db: AsyncSession) -> dict:
 
     await db.commit()
     synced = counters["tmdb"] + counters["imdb"] + counters["search"]
+    mode = "Recent sync" if recent_limit else "Sync"
     logger.info(
-        "[EMBY_INDEX] Sync done: %s synced (tmdb=%s, imdb=%s, search=%s), "
+        "[EMBY_INDEX] %s done: %s synced (tmdb=%s, imdb=%s, search=%s), "
         "%s skipped, %s purged, lang_enriched=%s",
-        synced, counters["tmdb"], counters["imdb"], counters["search"],
+        mode, synced, counters["tmdb"], counters["imdb"], counters["search"],
         counters["skipped"], purged, counters["lang_enriched"],
     )
     return {"synced": synced, "skipped": counters["skipped"], "purged": purged, **counters}
