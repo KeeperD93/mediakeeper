@@ -7,7 +7,7 @@ import { TASK_STATUS } from '@/constants/scheduler'
 import { useConfirm } from '@/composables/useConfirm'
 
 export function useNotifs() {
-  const { t, locale } = useI18n()
+  const { t } = useI18n()
   const { apiGet, apiFetch } = useApi()
   const { showToast } = useToast()
   const mkConfirm = useConfirm()
@@ -125,7 +125,6 @@ export function useNotifs() {
             templates: wh.templates || {},
             settings: wh.settings || {},
             image_host: discord.image_host,
-            lang: locale.value,
           },
           test_type: type,
         }),

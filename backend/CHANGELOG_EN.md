@@ -18,6 +18,7 @@ This section intentionally has no date so it is not shown to users.
 
 ### Fixed
 - Notifications — saving a Discord webhook no longer fails.
+- Notifications — Discord test message follows the configured default language.
 - Stats — Users and merge: profile photo (custom or Emby) now shown.
 - Stats — active-users hover: names shown instead of raw identifiers.
 - Media library — track details no longer fail on a corrupted file.

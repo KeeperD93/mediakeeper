@@ -185,7 +185,7 @@ async def test_discord(
             if str(webhook.get("id")) == str(req.webhook_id):
                 webhook_url = (webhook.get("url") or "").strip()
                 break
-    return await send_discord_test(webhook_url, req.wh_config, req.test_type)
+    return await send_discord_test(webhook_url, req.wh_config, req.test_type, db)
 
 
 @router.get("/discord/meta")
