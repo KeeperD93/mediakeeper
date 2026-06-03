@@ -79,7 +79,7 @@ def _parse_int(raw: str | None, default: int, min_val: int, max_val: int) -> int
 
 
 async def get_portal_settings(db: AsyncSession) -> dict:
-    """Read all Portal admin settings (booleans + integers)."""
+    """Read all Portal admin settings (booleans + integers + strings)."""
     all_keys = (
         list(PORTAL_SETTING_FLAGS.keys())
         + list(PORTAL_SETTING_INTS.keys())
@@ -139,7 +139,7 @@ async def update_portal_settings(
     db: AsyncSession, updates: dict
 ) -> dict:
     """
-    Upsert a subset of Portal admin settings (booleans + integers).
+    Upsert a subset of Portal admin settings (booleans + integers + strings).
     Unknown keys are silently ignored so a stale frontend can't poison
     the settings table. Returns the full refreshed settings dict.
     """
