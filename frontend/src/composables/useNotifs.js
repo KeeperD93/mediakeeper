@@ -147,7 +147,9 @@ export function useNotifs() {
           enabled: discord.enabled,
           delay: discord.delay,
           image_host: discord.image_host,
-          webhooks: discord.webhooks,
+          // Strip the UI-only accordion flag: the backend WebhookItem schema is
+          // extra="forbid" and rejects an unknown `_open` field with a 422.
+          webhooks: discord.webhooks.map(({ _open, ...wh }) => wh),
         }),
       })
       if (res?.ok) {
