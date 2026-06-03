@@ -267,6 +267,17 @@ async function prefetchCalendar() {
   }
 }
 
+async function reloadForLocale() {
+  // Locale changed: the backend re-localizes display fields per request, so
+  // drop the locale-specific caches and refetch what the views show.
+  Object.keys(calCache).forEach(k => delete calCache[k])
+  calDirty = false
+  timelineLoading.value = true
+  await loadScan()
+  await prefetchCalendar()
+  calVersion.value++
+}
+
 async function searchTMDB(q) {
   try {
     const res = await apiFetch(`/api/watchlist/search?q=${encodeURIComponent(q)}`)
@@ -302,6 +313,7 @@ export function useWatchlist() {
     timelineItems: readonly(timelineItems),
     timelineLoading: readonly(timelineLoading),
     prefetchCalendar,
+    reloadForLocale,
     searchTMDB,
   }
 }
