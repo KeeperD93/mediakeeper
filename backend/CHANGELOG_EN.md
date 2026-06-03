@@ -9,6 +9,9 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Added
+- Scheduler — Emby index scan (recently-added + full), interval configurable.
+
 ### Changed
 - Dashboard — 30 upcoming releases shown (was 20).
 

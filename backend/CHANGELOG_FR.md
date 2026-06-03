@@ -9,6 +9,9 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+### Added
+- Planificateur — scan d'index Emby (ajouts récents + complet), délai configurable.
+
 ### Changed
 - Tableau de bord — 30 prochaines sorties affichées (au lieu de 20).
 
