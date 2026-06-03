@@ -3,6 +3,7 @@ import logging
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.i18n import normalize_locale
 from models.user import User
 from models.settings import Setting
 from models.portal.profile import UserProfile
@@ -47,6 +48,14 @@ PORTAL_SETTING_INTS: dict[str, tuple[int, int, int]] = {
     "portal.events.max_participants_max": (20, 5, 20),
 }
 
+# String settings. ``portal.default_language`` is the instance-wide default
+# portal locale — a per-user ``user_profiles.language`` NULL inherits it, and
+# blank here means inherit ``MK_DEFAULT_LOCALE``. Normalised to a 2-letter base
+# on write.
+PORTAL_SETTING_STRINGS: dict[str, str] = {
+    "portal.default_language": "",
+}
+
 # Capacity values are always multiples of this step (radio chips
 # 5/10/15/20 in the create-event picker). Exported for the admin
 # patch endpoint to clamp client input and for the create-event
@@ -71,7 +80,11 @@ def _parse_int(raw: str | None, default: int, min_val: int, max_val: int) -> int
 
 async def get_portal_settings(db: AsyncSession) -> dict:
     """Read all Portal admin settings (booleans + integers)."""
-    all_keys = list(PORTAL_SETTING_FLAGS.keys()) + list(PORTAL_SETTING_INTS.keys())
+    all_keys = (
+        list(PORTAL_SETTING_FLAGS.keys())
+        + list(PORTAL_SETTING_INTS.keys())
+        + list(PORTAL_SETTING_STRINGS.keys())
+    )
     rows = (await db.execute(
         select(Setting).where(Setting.key.in_(all_keys))
     )).scalars().all()
@@ -81,6 +94,8 @@ async def get_portal_settings(db: AsyncSession) -> dict:
         result[k] = _parse_bool(stored.get(k), default)
     for k, (default, lo, hi) in PORTAL_SETTING_INTS.items():
         result[k] = _parse_int(stored.get(k), default, lo, hi)
+    for k, default in PORTAL_SETTING_STRINGS.items():
+        result[k] = stored.get(k) or default
     return result
 
 
@@ -165,6 +180,9 @@ async def update_portal_settings(
         elif key in PORTAL_SETTING_INTS:
             _, lo, hi = PORTAL_SETTING_INTS[key]
             value_str = str(max(lo, min(hi, int(val))))
+        elif key in PORTAL_SETTING_STRINGS:
+            # Normalise to a 2-letter base ("fr-FR" -> "fr"); invalid/blank = inherit.
+            value_str = normalize_locale(val) or ""
         else:
             logger.warning(f"[PORTAL_SETTINGS] ignoring unknown key: {key}")
             continue

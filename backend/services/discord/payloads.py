@@ -9,12 +9,12 @@ from ._images import _get_image_url
 
 
 async def _resolve_system_lang(db) -> str:
-    """Fetch the MediaKeeper admin UI locale; fallback to FR if DB unavailable."""
+    """Fetch the instance default portal language for system messages; fallback FR."""
     if db is None:
         return "fr"
     try:
-        from services.settings import get_admin_locale
-        return await get_admin_locale(db, default="fr")
+        from services.settings import get_portal_default_language
+        return await get_portal_default_language(db, default="fr")
     except Exception:
         return "fr"
 

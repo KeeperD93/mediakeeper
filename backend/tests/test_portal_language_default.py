@@ -80,3 +80,28 @@ async def test_put_me_sets_explicit_language(client, db_session):
     resp = await client.put(_ME, json={"language": "en"})
     assert resp.status_code == 200, resp.text
     assert resp.json()["language"] == "en"
+
+
+@pytest.mark.asyncio
+async def test_portal_default_language_admin_round_trip(db_session):
+    # Admin save path normalises (en-US -> en), get_portal_settings returns it,
+    # the helper resolves it, and blank clears back to the MK_DEFAULT_LOCALE inherit.
+    from services.portal.admin import get_portal_settings, update_portal_settings
+
+    await update_portal_settings(db_session, {"portal.default_language": "en-US"})
+    assert (await get_portal_settings(db_session))["portal.default_language"] == "en"
+    assert await get_portal_default_language(db_session) == "en"
+    await update_portal_settings(db_session, {"portal.default_language": ""})
+    assert await get_portal_default_language(db_session) == "fr"
+
+
+@pytest.mark.asyncio
+async def test_discord_system_lang_follows_instance_default(db_session):
+    # Discord system messages now use the instance default, not the first-active-user
+    # heuristic (closes the get_admin_locale mislabel).
+    from services.discord.payloads import _resolve_system_lang
+    from services.portal.admin import update_portal_settings
+
+    assert await _resolve_system_lang(db_session) == "fr"
+    await update_portal_settings(db_session, {"portal.default_language": "en"})
+    assert await _resolve_system_lang(db_session) == "en"

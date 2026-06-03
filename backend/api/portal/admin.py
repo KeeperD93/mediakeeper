@@ -201,6 +201,8 @@ class PortalSettingsUpdate(BaseModel):
         le=20,
         alias="events.max_participants_max",
     )
+    # Instance-wide default portal language; "" lets users inherit MK_DEFAULT_LOCALE.
+    default_language: Optional[str] = Field(default=None, max_length=10)
 
 
 @router.get("/settings")
@@ -236,5 +238,7 @@ async def patch_settings(
         updates["portal.events.max_participants_min"] = payload.events_max_participants_min
     if payload.events_max_participants_max is not None:
         updates["portal.events.max_participants_max"] = payload.events_max_participants_max
+    if payload.default_language is not None:
+        updates["portal.default_language"] = payload.default_language
     raw = await admin_svc.update_portal_settings(db, updates)
     return {k.replace("portal.", ""): v for k, v in raw.items()}
