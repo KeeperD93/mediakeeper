@@ -170,6 +170,15 @@ async def get_admin_locale(db: AsyncSession, default: str = "fr") -> str:
     return locale if isinstance(locale, str) and locale else default
 
 
+async def get_portal_default_language(db: AsyncSession, default: str | None = None) -> str:
+    """Instance-wide default portal language (settings key
+    ``portal.default_language``). A NULL ``user_profiles.language`` inherits it.
+    Falls back to ``default`` then ``MK_DEFAULT_LOCALE``."""
+    from core.i18n import DEFAULT_LOCALE, normalize_locale
+    raw = await get_setting(db, "portal.default_language")
+    return normalize_locale(raw) or normalize_locale(default) or DEFAULT_LOCALE
+
+
 async def upsert_user_preferences(
     db: AsyncSession,
     user_id: int,

@@ -25,7 +25,7 @@ class UserProfile(Base):
     avatar_effect   = Column(String(50), nullable=True)
     is_public       = Column(Boolean, server_default="true", nullable=False)
     role            = Column(String(20), server_default="viewer", nullable=False)
-    language        = Column(String(10), server_default="fr", nullable=False)
+    language        = Column(String(10), nullable=True)  # NULL = inherit instance default
     chat_enabled    = Column(Boolean, server_default="true", nullable=False)
     chat_muted_until = Column(DateTime(timezone=True), nullable=True)
     chat_last_read_message_id = Column(Integer, nullable=True)

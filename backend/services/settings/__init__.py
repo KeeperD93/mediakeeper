@@ -9,6 +9,7 @@ from ._emby_urls import (
 )
 from ._kv import (
     get_admin_locale,
+    get_portal_default_language,
     get_all_settings,
     get_notification_channel,
     get_setting,
@@ -36,6 +37,7 @@ __all__ = [
     "get_user_preferences",
     "upsert_user_preferences",
     "get_admin_locale",
+    "get_portal_default_language",
     "get_watchlist_data",
     "set_watchlist_data",
     "get_notification_channel",
