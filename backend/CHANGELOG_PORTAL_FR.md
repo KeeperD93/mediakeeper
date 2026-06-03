@@ -27,6 +27,7 @@ utilisateurs.
 - Avatars — anneau légendaire (niv. 50) : arc-en-ciel animé sur toutes les surfaces.
 
 ### Fixed
+- Mode maintenance — le portail est désormais entièrement verrouillé (page d'attente seule).
 - Surprise — titre et synopsis du tirage affichés dans votre langue.
 - Paramètres — couleurs de votre rang appliquées dès l'ouverture (plus de flash).
 - Salle ciné — bouton « Lancer » centré sur l'écran, ouverture Emby fiabilisée.
