@@ -37,11 +37,12 @@ if [ "$PUID" -ne 0 ]; then
     chown -R mkuser:users /data/logs /data/backups 2>/dev/null || true
 fi
 
-# ---- 0b. Persistent dirs that must exist + be writable by mkuser ----
-# /data/avatars is created here (not just in the Dockerfile) so an
-# existing volume that pre-dates the dir gets it on the next boot
-# without requiring a manual ``docker exec mkdir`` from the operator.
-mkdir -p /data/avatars 2>/dev/null || true
+# ---- 0b. Persistent dirs that must exist before first use ----
+# Created here (not only in the Dockerfile) so a fresh /data — a named
+# volume OR a bind-mount to an empty host dir — has them on boot, without a
+# manual ``docker exec mkdir`` from the operator. pg is re-owned to postgres
+# and logs/backups to mkuser by the steps further down; initdb sets pg's mode.
+mkdir -p /data/avatars /data/pg /data/logs /data/backups 2>/dev/null || true
 chown mkuser:users /data/avatars 2>/dev/null || true
 chmod 750 /data/avatars 2>/dev/null || true
 
