@@ -14,6 +14,7 @@ const tracked = ref([])
 const loading = ref(false)
 const calCache = {}
 let calDirty = false
+let _scanSeq = 0 // monotonic token so only the latest scan fetch writes data
 
 // Timeline & Calendar — singleton, pre-filled in the background
 const timelineItems = ref([])
@@ -73,14 +74,18 @@ async function loadTracked() {
 }
 
 async function _fetchScan() {
+  // Only the latest scan wins: a slower in-flight fetch (e.g. the initial load
+  // still running when the viewer switches language) must not overwrite a newer
+  // locale's result.
+  const seq = ++_scanSeq
   loading.value = true
   try {
     const d = await apiGet('/api/watchlist/scan')
-    if (d) data.value = d
+    if (d && seq === _scanSeq) data.value = d
   } catch {
     /* ignore */
   }
-  loading.value = false
+  if (seq === _scanSeq) loading.value = false
 }
 
 async function loadScan() {
