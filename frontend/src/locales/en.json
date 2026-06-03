@@ -3376,6 +3376,7 @@
       "preferences": {
         "languageSection": "Interface language",
         "languageHint": "Affects the app, recommendations and trailers.",
+        "languageDefault": "Default",
         "genresSection": "My favorite genres",
         "genresHint": "Pick the genres you like. Powers your recommendations."
       },
@@ -3592,6 +3593,11 @@
         "eventCapacityMax": {
           "title": "Maximum event capacity",
           "desc": "Largest value event creators can pick when starting a new event (steps of 5)."
+        },
+        "defaultLanguage": {
+          "title": "Default portal language",
+          "desc": "Default language for new users until they choose their own; Auto follows the server default.",
+          "auto": "Auto"
         },
         "maintenance": {
           "title": "Maintenance mode",

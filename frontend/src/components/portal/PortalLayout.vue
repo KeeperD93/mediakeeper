@@ -112,10 +112,11 @@ const { unreadNews, fetchUnread, markRead } = usePortalNews()
 const { applyPortalLocale, restoreGlobalLocale } = usePortalLocale()
 const { initGlobalChat, shutdownGlobalChat } = usePortalChat()
 
-// Apply the user's Portal-preferred language as soon as the profile is loaded,
-// and react to live changes from profile/settings updates.
+// Apply the viewer's effective portal language (their explicit pick, or the
+// instance default when they inherit) as soon as the profile loads, and react
+// to live profile/settings updates.
 watch(
-  () => profile.value?.language,
+  () => profile.value?.effective_language,
   lang => {
     if (lang) applyPortalLocale(lang)
   },

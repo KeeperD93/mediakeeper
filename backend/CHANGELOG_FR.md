@@ -11,6 +11,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ### Added
 - Planificateur — scan d'index Emby (ajouts récents + complet), délai configurable.
+- Portail — langue par défaut du portail configurable (réglages admin).
 
 ### Changed
 - Tableau de bord — 30 prochaines sorties affichées (au lieu de 20).
@@ -23,6 +24,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Médiathèque — fiches détail TMDB affichées dans votre langue (repli anglais).
 - Watchlist — séries, épisodes et synopsis affichés dans votre langue.
 - Notifications — toasts (module + lecture en cours) affichés dans votre langue.
+- Notifications Discord — langue suit le défaut du portail.
 
 ## [1.0.0-rc.4] - 2026-05-30
 

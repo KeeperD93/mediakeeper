@@ -18,6 +18,7 @@ This section intentionally has no date so it is not shown to users.
 - Posters — movie or series duration shown on hover everywhere.
 - Posters — TMDB rating (gold star) shown on hover.
 - Posters — title, release date and rating shown under the poster on mobile.
+- Preferences — "Default" language option that follows the portal default.
 
 ### Changed
 - Media detail — TMDB rating colour unified to gold.

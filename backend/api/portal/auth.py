@@ -17,7 +17,7 @@ from api.portal.deps import get_current_profile
 from models.user import User
 from models.portal.profile import UserProfile
 from services.portal.emby_auth import authenticate_emby_user
-from services.portal.profiles import serialize_profile
+from services.portal.profiles import serialize_profile_with_effective_lang
 from services.portal.news import get_unread_news
 from services.portal.admin import get_portal_flag
 from services.security import (
@@ -155,7 +155,7 @@ async def portal_login(
         await db.rollback()
     user_id = user.id
     username = user.username
-    profile_payload = serialize_profile(profile, user=user)
+    profile_payload = await serialize_profile_with_effective_lang(db, profile, user=user)
     unread = await _safe_get_unread_news(db, user_id)
     ui_flags = await _safe_serialize_ui_flags(db, profile)
 
@@ -213,7 +213,7 @@ async def portal_me(
 
     unread = await _safe_get_unread_news(db, user.id)
     return {
-        "profile": serialize_profile(profile, user=user),
+        "profile": await serialize_profile_with_effective_lang(db, profile, user=user),
         "unread_news_count": len(unread),
         "ui": await _safe_serialize_ui_flags(db, profile),
         "gdpr": await _safe_serialize_gdpr(db, user),

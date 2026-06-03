@@ -13,8 +13,20 @@ from services.portal.profile_serializers import (
     serialize_profile as serialize_profile,
     serialize_public_profile as _serialize_public,
 )
+from services.settings import get_portal_default_language
 
 logger = logging.getLogger("mediakeeper.portal.profiles")
+
+
+async def serialize_profile_with_effective_lang(
+    db: AsyncSession, profile: UserProfile, *, user: User | None = None
+) -> dict:
+    """``serialize_profile`` plus ``effective_language``: the nullable raw
+    ``language`` resolved against the instance default. Used by the owner-facing
+    surfaces that drive the portal locale (auth /login + /me, profiles /me)."""
+    result = serialize_profile(profile, user=user)
+    result["effective_language"] = profile.language or await get_portal_default_language(db)
+    return result
 
 MAX_DISPLAY_NAME_RESOLVE_ATTEMPTS = 999
 

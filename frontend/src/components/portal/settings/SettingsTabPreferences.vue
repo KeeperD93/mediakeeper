@@ -7,6 +7,15 @@
 
     <div class="pt-settings-chips">
       <button
+        type="button"
+        class="pt-settings-chip"
+        :class="{ 'pt-settings-chip--on': !form.language }"
+        @click="updateField('language', null)"
+      >
+        <span>🌐</span>
+        <span>{{ $t('portal.settings.preferences.languageDefault') }}</span>
+      </button>
+      <button
         v-for="loc in AVAILABLE_LOCALES"
         :key="loc.code"
         type="button"

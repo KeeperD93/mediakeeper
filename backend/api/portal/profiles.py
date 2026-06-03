@@ -15,9 +15,8 @@ from services.portal._rank_tiers import tier_for_level
 from services.portal.achievement_defs import TITLE_REWARDS
 from services.portal.achievement_defs_meta import META_TARGET_CATEGORY
 from services.portal.profiles import (
-    update_profile, serialize_profile,
+    update_profile, serialize_profile_with_effective_lang,
 )
-from services.settings import get_portal_default_language
 
 router = APIRouter(prefix="/profiles", tags=["portal-profiles"])
 
@@ -104,9 +103,7 @@ async def get_my_profile(
 ):
     user, profile = up
     profile = await _prune_stale_decorations(db, profile, user.id)
-    result = serialize_profile(profile, user=user)
-    result["effective_language"] = profile.language or await get_portal_default_language(db)
-    return result
+    return await serialize_profile_with_effective_lang(db, profile, user=user)
 
 
 @router.get("/me/titles")
@@ -180,9 +177,7 @@ async def update_my_profile(
         if not set(payload["selected_badges"]).issubset(unlocked_badges):
             raise HTTPException(status_code=403, detail="badge_not_unlocked")
     updated = await update_profile(db, profile, payload)
-    result = serialize_profile(updated, user=user)
-    result["effective_language"] = updated.language or await get_portal_default_language(db)
-    return result
+    return await serialize_profile_with_effective_lang(db, updated, user=user)
 
 
 @router.get("/search/users")

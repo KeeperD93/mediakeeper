@@ -33,7 +33,7 @@ function snapshot(profile) {
   return {
     display_name: profile.display_name || '',
     bio: profile.bio || '',
-    language: profile.language || 'fr',
+    language: profile.language ?? null,
     hide_adult: profile.hide_adult !== false,
     is_public: profile.is_public !== false,
     selected_title: profile.selected_title || null,

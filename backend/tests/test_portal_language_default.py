@@ -105,3 +105,22 @@ async def test_discord_system_lang_follows_instance_default(db_session):
     assert await _resolve_system_lang(db_session) == "fr"
     await update_portal_settings(db_session, {"portal.default_language": "en"})
     assert await _resolve_system_lang(db_session) == "en"
+
+
+@pytest.mark.asyncio
+async def test_auth_me_exposes_effective_language(client, db_session):
+    # The portal auth /me profile carries effective_language so PortalLayout can
+    # apply the inherited instance default on portal entry (not just /profiles/me).
+    from services.portal.admin import update_portal_settings
+
+    user, profile = await make_portal_user(db_session, username="frank", display_name="Frank")
+    profile.language = None
+    await db_session.commit()
+    client.cookies.set(PORTAL_COOKIE, portal_token(user.username))
+    r = await client.get("/api/portal/auth/me")
+    assert r.status_code == 200, r.text
+    assert r.json()["profile"]["effective_language"] == "fr"
+
+    await update_portal_settings(db_session, {"portal.default_language": "en"})
+    r2 = await client.get("/api/portal/auth/me")
+    assert r2.json()["profile"]["effective_language"] == "en"
