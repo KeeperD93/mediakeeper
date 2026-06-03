@@ -21,6 +21,9 @@ from services.watchlist import (
     get_tracked, add_tracked, remove_tracked,
     search_tmdb_multi,
 )
+from services.watchlist_scanner._localize import (
+    localize_series_list, localize_calendar_items,
+)
 
 logger = logging.getLogger("mediakeeper.api.watchlist")
 router = APIRouter(prefix="/api/watchlist", tags=["watchlist"])
@@ -53,9 +56,15 @@ async def list_libraries(db: AsyncSession = Depends(get_db), _: User = Depends(g
 
 
 @router.get("/scan")
-async def scan(db: AsyncSession = Depends(get_db), _: User = Depends(get_current_user)):
-    """Return the latest scan results (from DB/cache). Does not relaunch a scan."""
-    return await get_scan_results(db)
+async def scan(
+    locale: str = Depends(get_request_locale),
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    """Latest scan results (from DB/cache), display fields localized to the
+    viewer. Does not relaunch a scan."""
+    results = await get_scan_results(db)
+    return {**results, "series": await localize_series_list(db, results.get("series", []), locale)}
 
 
 @router.post("/scan/refresh")
@@ -93,9 +102,11 @@ async def scan_status(_: User = Depends(get_current_user)):
 @router.get("/calendar")
 async def calendar(
     year: int = Query(...), month: int = Query(..., ge=1, le=12),
+    locale: str = Depends(get_request_locale),
     db: AsyncSession = Depends(get_db), _: User = Depends(get_current_user),
 ):
-    return await get_calendar(db, year, month)
+    items = await get_calendar(db, year, month)
+    return await localize_calendar_items(db, items, locale)
 
 
 @router.post("/calendar/refresh")
