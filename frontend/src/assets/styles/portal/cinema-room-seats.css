@@ -241,7 +241,8 @@
   top: 0;
   height: 72%;
   background: radial-gradient(ellipse at 50% 25%, #8a1e1e 0%, #6e1818 50%, #3d0a0a 100%);
-  border-radius: 18px 18px 6px 6px;
+  /* % radius (not px) so the seat keeps the same shape at any size / zoom. */
+  border-radius: 30% 30% 10% 10%;
   border: 1px solid rgb(0, 0, 0, 0.75);
   box-shadow:
     inset 0 6px 10px rgb(255, 255, 255, 0.1),
@@ -257,7 +258,7 @@
   top: 60%;
   height: 22%;
   background: linear-gradient(180deg, #6e1818 0%, #3d0a0a 100%);
-  border-radius: 8px 8px 4px 4px;
+  border-radius: 20% 20% 10% 10%;
   border: 1px solid rgb(0, 0, 0, 0.75);
   box-shadow:
     inset 0 4px 6px rgb(255, 255, 255, 0.08),
@@ -315,50 +316,15 @@
   pointer-events: none;
   z-index: 6;
 }
-.pt-cr-seat--occupied .pt-cr-seat-back {
-  background: radial-gradient(ellipse at 50% 25%, #a02828 0%, #842828 50%, #4a1010 100%);
-}
 
-/* Decorative seats — empty fillers that give the room a "filled"
-   silhouette without belonging to ``max_participants``. They never
-   carry an avatar / bubble and dim slightly so the eye still picks
-   the occupable centre first. Each ``--dec-N`` class collapses on
-   tighter breakpoints below to avoid truncating the 5 occupable
-   seats. */
+/* Decorative seats — opaque fillers around the occupable centre block.
+   They never carry an avatar / bubble and are visually identical to an
+   empty occupable seat (only a seated avatar marks occupancy). The grid
+   size (see CinemaRoomSeats.vue) adapts to the viewport, so no seat is
+   ever truncated on the sides. */
 .pt-cr-seat--decorative {
-  opacity: 0.55;
   pointer-events: none;
   flex-shrink: 0;
-}
-.pt-cr-seat--decorative .pt-cr-seat-back {
-  background: radial-gradient(ellipse at 50% 25%, #4a1010 0%, #2a0808 70%, #150404 100%);
-}
-
-/* Out-of-capacity guard: a seat slot rendered beyond ``max_participants``
-   (only triggers if the admin step ever stops being a multiple of 5).
-   Hidden so the layout stays clean — the slot still consumes layout
-   space, which keeps the occupable seats horizontally centred. */
-.pt-cr-seat--out-of-capacity {
-  visibility: hidden;
-}
-
-/* Mobile portrait → drop the outermost decorative pair. Tablet
-   landscape → drop the two outermost columns. Above ~1280 px we keep
-   all three pairs so the wide-screen cinema feels properly populated. */
-@media (max-width: 1279px) {
-  .pt-cr-seat--dec-3 {
-    display: none;
-  }
-}
-@media (max-width: 1023px) {
-  .pt-cr-seat--dec-2 {
-    display: none;
-  }
-}
-@media (max-width: 639px) {
-  .pt-cr-seat--decorative {
-    display: none;
-  }
 }
 
 /* "My seat" highlight — the tier ring already paints the user's
