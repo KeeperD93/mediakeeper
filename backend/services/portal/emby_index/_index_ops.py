@@ -1,4 +1,4 @@
-"""Upsert + playback de la table emby_tmdb_index."""
+"""Upsert and lookups for the emby_tmdb_index table."""
 from datetime import datetime
 
 from sqlalchemy import select

@@ -111,7 +111,7 @@ async def sync_emby_tmdb_index(db: AsyncSession) -> dict:
                 headers=headers,
             )
             if res.status_code != 200:
-                logger.warning(f"[EMBY_INDEX] HTTP {res.status_code} for {item_type}")
+                logger.warning("[EMBY_INDEX] HTTP %s for %s", res.status_code, item_type)
                 continue
 
             payload = res.json()
@@ -123,7 +123,8 @@ async def sync_emby_tmdb_index(db: AsyncSession) -> dict:
             truncated = len(items) < total
             if truncated:
                 logger.warning(
-                    f"[EMBY_INDEX] {item_type} truncated ({len(items)}/{total}) — skip purge"
+                    "[EMBY_INDEX] %s truncated (%s/%s) — skip purge",
+                    item_type, len(items), total,
                 )
 
             for item in items:
@@ -157,7 +158,7 @@ async def sync_emby_tmdb_index(db: AsyncSession) -> dict:
 
                 if not tmdb_id_int:
                     counters["skipped"] += 1
-                    logger.debug(f"[EMBY_INDEX] skipped {media_type} '{name}' ({year}) — no match")
+                    logger.debug("[EMBY_INDEX] skipped %s '%s' (%s) — no match", media_type, name, year)
                     continue
 
                 date_created = _parse_emby_date_created(item.get("DateCreated"))
@@ -175,7 +176,7 @@ async def sync_emby_tmdb_index(db: AsyncSession) -> dict:
                 purge_ok_by_type[media_type] = True
 
         except Exception as e:
-            logger.error(f"[EMBY_INDEX] Error syncing {item_type}: {e}")
+            logger.error("[EMBY_INDEX] Error syncing %s: %s", item_type, e)
 
     # Purge orphan rows (their Emby item no longer exists) so a
     # re-imported title doesn't leave a dead row that fakes a "partial"
@@ -214,7 +215,8 @@ async def sync_emby_tmdb_index(db: AsyncSession) -> dict:
                 details = await get_media_details(db, row.tmdb_id, row.media_type)
             except Exception as e:  # noqa: S110 -- best-effort; never block sync on TMDB
                 logger.debug(
-                    f"[EMBY_INDEX] lang fetch failed for {row.media_type}/{row.tmdb_id}: {e}"
+                    "[EMBY_INDEX] lang fetch failed for %s/%s: %s",
+                    row.media_type, row.tmdb_id, e,
                 )
                 continue
             if not details:
@@ -233,16 +235,16 @@ async def sync_emby_tmdb_index(db: AsyncSession) -> dict:
             counters["lang_enriched"] += 1
         if cap_hit:
             logger.warning(
-                f"[EMBY_INDEX] TMDB lang enrichment hit cap "
-                f"({MAX_TMDB_LANG_FETCHES_PER_SYNC}); remaining rows resume next sync"
+                "[EMBY_INDEX] TMDB lang enrichment hit cap (%s); remaining rows resume next sync",
+                MAX_TMDB_LANG_FETCHES_PER_SYNC,
             )
 
     await db.commit()
     synced = counters["tmdb"] + counters["imdb"] + counters["search"]
     logger.info(
-        f"[EMBY_INDEX] Sync done: {synced} synced "
-        f"(tmdb={counters['tmdb']}, imdb={counters['imdb']}, search={counters['search']}), "
-        f"{counters['skipped']} skipped, {purged} purged, "
-        f"lang_enriched={counters['lang_enriched']}"
+        "[EMBY_INDEX] Sync done: %s synced (tmdb=%s, imdb=%s, search=%s), "
+        "%s skipped, %s purged, lang_enriched=%s",
+        synced, counters["tmdb"], counters["imdb"], counters["search"],
+        counters["skipped"], purged, counters["lang_enriched"],
     )
     return {"synced": synced, "skipped": counters["skipped"], "purged": purged, **counters}
