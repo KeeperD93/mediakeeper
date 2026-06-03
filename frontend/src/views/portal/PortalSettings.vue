@@ -214,15 +214,15 @@ const statusLabel = computed(() => {
 })
 
 async function onSave() {
-  const languageBefore = profileData.value?.language || null
+  const localeBefore = profileData.value?.effective_language
   const res = await save()
   if (res.ok) {
-    if (profileData.value?.language && profileData.value.language !== languageBefore) {
-      // Portal hero overviews, trending descriptions and discover lists
-      // are fetched from TMDB using profile.language. Pages that have
-      // already loaded those rows still hold the previous-language
-      // strings — reload so every cached row comes back in the new
-      // locale at once.
+    if (profileData.value?.effective_language !== localeBefore) {
+      // Portal hero overviews, trending descriptions and discover lists are
+      // fetched from TMDB in the viewer's effective portal language (explicit
+      // pick, or the instance default when set to Default). Pages that already
+      // loaded those rows still hold the previous-locale strings — reload so
+      // every cached row comes back in the new locale at once.
       window.location.reload()
       return
     }
