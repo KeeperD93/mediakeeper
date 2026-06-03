@@ -110,7 +110,11 @@ export function useNotifs() {
       showToast(t('notifications.discord.invalidUrl'), TOAST_TYPE.ERR)
       return
     }
-    if (wh.url && !wh.url.startsWith('https://discord.com/api/webhooks/')) {
+    if (
+      wh.url &&
+      !wh.url.startsWith('https://discord.com/api/webhooks/') &&
+      !wh.url.startsWith('https://discordapp.com/api/webhooks/')
+    ) {
       showToast(t('notifications.discord.invalidUrl'), TOAST_TYPE.ERR)
       return
     }
