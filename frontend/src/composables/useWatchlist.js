@@ -72,8 +72,7 @@ async function loadTracked() {
   }
 }
 
-async function loadScan() {
-  if (loading.value) return
+async function _fetchScan() {
   loading.value = true
   try {
     const d = await apiGet('/api/watchlist/scan')
@@ -82,6 +81,11 @@ async function loadScan() {
     /* ignore */
   }
   loading.value = false
+}
+
+async function loadScan() {
+  if (loading.value) return
+  await _fetchScan()
 }
 
 async function refreshScan() {
@@ -269,11 +273,13 @@ async function prefetchCalendar() {
 
 async function reloadForLocale() {
   // Locale changed: the backend re-localizes display fields per request, so
-  // drop the locale-specific caches and refetch what the views show.
+  // drop the locale-specific caches and refetch what the views show. Force the
+  // scan refetch (_fetchScan, not loadScan) so an in-flight scan can't swallow
+  // the locale refresh via loadScan's loading guard.
   Object.keys(calCache).forEach(k => delete calCache[k])
   calDirty = false
   timelineLoading.value = true
-  await loadScan()
+  await _fetchScan()
   await prefetchCalendar()
   calVersion.value++
 }
