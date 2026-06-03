@@ -1,15 +1,15 @@
 """
-Service Discord — construction et envoi des payloads.
+Discord service — building and sending notification payloads.
 
-Structure d'un template de notification :
-  - First line before \\n\\n = content Discord (texte au-dessus de l'embed)
-  - Reste = description de l'embed
-  - <fields> = bloc JSON inline for les embed fields : [{"name":"Titre","value":"Value","inline":true}]
+Notification template structure:
+  - First line before \\n\\n = the Discord content (text shown above the embed)
+  - Rest = the embed description
+  - <fields> = inline JSON block for the embed fields: [{"name":"Title","value":"Value","inline":true}]
   - image_style = "image" (large image at the bottom) or "thumbnail" (small on the right)
-  - embed_color = couleur hex ou entier Discord
+  - embed_color = a Discord hex or integer colour
 
-Package split into modules (Rule 9, <= 300 lines). Legacy imports
-`from services.discord import X` continuent de functionner via les re-exports.
+Package split into focused modules (kept under ~300 lines each). Legacy imports
+`from services.discord import X` keep working through the re-exports.
 """
 from ._defaults import DEFAULT_COLORS, DEFAULT_TEMPLATES, get_default_templates
 from ._samples import SAMPLE_DATA, SAMPLE_SYSTEM
