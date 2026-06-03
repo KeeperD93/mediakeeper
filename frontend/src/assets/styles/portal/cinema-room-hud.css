@@ -59,9 +59,11 @@
 /* ---------- Launch CTA ---------- */
 .pt-cr-launch {
   position: absolute;
-  top: 1rem;
+  /* top/left are set at runtime (syncLaunchPos) to the virtual screen's
+     centre; these are the pre-measure fallback. */
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   z-index: 15;
   display: flex;
   flex-direction: column;
@@ -130,7 +132,7 @@
 .pt-cr-cta-enter-from,
 .pt-cr-cta-leave-to {
   opacity: 0;
-  transform: translateX(-50%) translateY(-12px);
+  transform: translate(-50%, calc(-50% - 12px));
 }
 
 /* ---------- Mobile base (applied by default; desktop is an override) ---------- */
