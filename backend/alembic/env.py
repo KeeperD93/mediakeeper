@@ -29,14 +29,10 @@ from models.scheduler_task import SchedulerTask      # noqa: F401
 from models.healthcheck import HealthCheckResult     # noqa: F401
 from models.subtitle_history import SubtitleDownload  # noqa: F401
 from models.subtitle_profile import SubtitleProfile  # noqa: F401
-from models.portal import (                                 # noqa: F401
-    UserProfile, EmbyTmdbIndex, MediaRequest, RequestQuota,
-    Ticket, TicketReply, News, NewsRead, Achievement, UserAchievement,
-    ChatRoom, ChatMessage, ChatMute, UserList, UserListItem,
-    UserRating, UserRatingLike, ReleaseReminder,
-    XpBoostEvent,
-    SeasonalEvent, SeasonalProgress, WatchParty, WatchPartyParticipant,
-)
+from models.security import SecurityAttempt, SecurityBlock  # noqa: F401
+# Every portal model is re-exported by models.portal (single source of truth),
+# so autogenerate sees the whole schema without a hand-maintained list here.
+from models.portal import *  # noqa: F401,F403
 
 config = context.config
 if config.config_file_name is not None:
