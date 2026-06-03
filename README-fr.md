@@ -239,6 +239,7 @@ Pour Synology DSM, les configurations reverse-proxy, le déploiement TLS et la c
 
 - **Discord** — [discord.gg/A2hyNUUn6a](https://discord.gg/A2hyNUUn6a)
 - **GitHub Discussions** — https://github.com/KeeperD93/mediakeeper/discussions
+- **Feuille de route** — tableau public de ce qui est prévu : https://github.com/users/KeeperD93/projects/1
 - **Rapports de bug & demandes de fonctionnalité** — https://github.com/KeeperD93/mediakeeper/issues
 - **Signalements de sécurité** — voir [`SECURITY.md`](SECURITY.md) ; n'ouvrez **pas** d'issue publique
 

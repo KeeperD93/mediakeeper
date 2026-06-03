@@ -237,6 +237,7 @@ For Synology DSM, reverse-proxy setups, TLS deployment and advanced configuratio
 
 - **Discord** — [discord.gg/A2hyNUUn6a](https://discord.gg/A2hyNUUn6a)
 - **GitHub Discussions** — https://github.com/KeeperD93/mediakeeper/discussions
+- **Roadmap** — public board of what's planned: https://github.com/users/KeeperD93/projects/1
 - **Bug reports & feature requests** — https://github.com/KeeperD93/mediakeeper/issues
 - **Security disclosures** — see [`SECURITY.md`](SECURITY.md); please do **not** open a public issue
 
