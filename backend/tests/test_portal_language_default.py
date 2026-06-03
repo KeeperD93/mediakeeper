@@ -98,7 +98,7 @@ async def test_portal_default_language_admin_round_trip(db_session):
 @pytest.mark.asyncio
 async def test_discord_system_lang_follows_instance_default(db_session):
     # Discord system messages now use the instance default, not the first-active-user
-    # heuristic (closes the get_admin_locale mislabel).
+    # heuristic.
     from services.discord.payloads import _resolve_system_lang
     from services.portal.admin import update_portal_settings
 

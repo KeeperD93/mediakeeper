@@ -144,32 +144,6 @@ async def get_user_preferences(db: AsyncSession, user_id: int) -> UserPreference
     return result.scalar_one_or_none()
 
 
-async def get_admin_locale(db: AsyncSession, default: str = "fr") -> str:
-    """Return the MediaKeeper admin UI locale, used for system-wide messages.
-
-    Reads the first active user's stored preferences. Falls back to the
-    provided default when no user, no preferences row, or no locale field.
-    """
-    import json
-    from models.user import User
-
-    result = await db.execute(
-        select(User).where(User.is_active == True).order_by(User.id).limit(1)  # noqa: E712
-    )
-    user = result.scalar_one_or_none()
-    if not user:
-        return default
-    row = await get_user_preferences(db, user.id)
-    if not row or not row.preferences:
-        return default
-    try:
-        prefs = json.loads(row.preferences)
-    except Exception:
-        return default
-    locale = prefs.get("locale")
-    return locale if isinstance(locale, str) and locale else default
-
-
 async def get_portal_default_language(db: AsyncSession, default: str | None = None) -> str:
     """Instance-wide default portal language (settings key
     ``portal.default_language``). A NULL ``user_profiles.language`` inherits it.
