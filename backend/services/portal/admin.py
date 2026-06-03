@@ -184,7 +184,7 @@ async def update_portal_settings(
             # Normalise to a 2-letter base ("fr-FR" -> "fr"); invalid/blank = inherit.
             value_str = normalize_locale(val) or ""
         else:
-            logger.warning(f"[PORTAL_SETTINGS] ignoring unknown key: {key}")
+            logger.warning("[PORTAL_SETTINGS] ignoring unknown key: %s", key)
             continue
         row = (await db.execute(
             select(Setting).where(Setting.key == key)
@@ -241,7 +241,7 @@ async def update_user_role(
     profile.role = role
     db.add(profile)
     await db.commit()
-    logger.info(f"[ADMIN] user_id={user_id} role changed to {role}")
+    logger.info("[ADMIN] user_id=%s role changed to %s", user_id, role)
     return {"success": True}
 
 
@@ -265,7 +265,7 @@ async def toggle_user_active(
         db.add(user)
 
     await db.commit()
-    logger.info(f"[ADMIN] user_id={user_id} active={active}")
+    logger.info("[ADMIN] user_id=%s active=%s", user_id, active)
     return {"success": True}
 
 
