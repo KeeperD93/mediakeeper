@@ -20,6 +20,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Stats — survol des utilisateurs actifs : noms affichés au lieu des identifiants.
 - Médiathèque — le détail des pistes n'échoue plus sur un fichier corrompu.
 - Tableau de bord — « Prochaines sorties » affichées dans votre langue.
+- Médiathèque — fiches détail TMDB affichées dans votre langue (repli anglais).
 
 ## [1.0.0-rc.4] - 2026-05-30
 

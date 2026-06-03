@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
+from core.i18n import get_request_locale
 from api.auth import get_current_user, require_csrf
 from models.user import User
 from services.tmdb import get_media_detail
@@ -192,11 +193,11 @@ async def search(q: str = Query(..., min_length=2), db: AsyncSession = Depends(g
 # --- TMDB detail ---
 
 @router.get("/tmdb/{media_type}/{tmdb_id}")
-async def tmdb_detail(media_type: str, tmdb_id: int, db: AsyncSession = Depends(get_db), _: User = Depends(get_current_user)):
+async def tmdb_detail(media_type: str, tmdb_id: int, locale: str = Depends(get_request_locale), db: AsyncSession = Depends(get_db), _: User = Depends(get_current_user)):
     """Full details of a movie or series from TMDB."""
     if media_type not in ("movie", "tv"):
         return {"error": "invalid_media_type"}
-    return await get_media_detail(media_type, tmdb_id, db)
+    return await get_media_detail(media_type, tmdb_id, db, locale=locale)
 
 
 # --- Upcoming episodes ---

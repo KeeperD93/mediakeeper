@@ -20,6 +20,7 @@ This section intentionally has no date so it is not shown to users.
 - Stats — active-users hover: names shown instead of raw identifiers.
 - Media library — track details no longer fail on a corrupted file.
 - Dashboard — "Upcoming releases" now shown in your language.
+- Media library — TMDB detail pages now shown in your language (English fallback).
 
 ## [1.0.0-rc.4] - 2026-05-30
 
