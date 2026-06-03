@@ -1,4 +1,4 @@
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 import { useApi } from '@/composables/useApi'
 
 const POLL_INTERVAL_MS = 3000
@@ -72,6 +72,11 @@ export function useMarathonProgress(eventId) {
   }
 
   const ready = computed(() => Boolean(progress.value?.ready))
+
+  // Stop polling when the room view unmounts — otherwise the 3 s interval
+  // leaks and keeps hitting the endpoint (eventually 429) long after the
+  // viewer has left the room.
+  onBeforeUnmount(stop)
 
   return { progress, loading, error, enabled, ready, start, stop, bump }
 }

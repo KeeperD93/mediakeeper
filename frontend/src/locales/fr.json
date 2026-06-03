@@ -2714,7 +2714,8 @@
       "nextFilm": "Film suivant",
       "errors": {
         "event_ended": "Événement terminé — la salle est fermée.",
-        "not_member": "Vous n'avez pas accepté l'invitation à cette salle."
+        "not_member": "Vous n'avez pas accepté l'invitation à cette salle.",
+        "launch_unavailable": "Lancement momentanément indisponible, réessaie."
       },
       "marathon": {
         "title": "Marathon · film {current}/{total}",

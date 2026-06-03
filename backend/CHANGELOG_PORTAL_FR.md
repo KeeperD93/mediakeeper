@@ -27,6 +27,10 @@ utilisateurs.
 
 ### Fixed
 - Paramètres — couleurs de votre rang appliquées dès l'ouverture (plus de flash).
+- Salle ciné — bouton « Lancer » centré sur l'écran, ouverture Emby fiabilisée.
+- Salle ciné — bande-annonce reprend au retour de l'onglet Emby.
+- Salle ciné — décompte d'intro synchronisé avec le compte à rebours.
+- Salle ciné — plus de requêtes en boucle après avoir quitté la salle.
 
 ## [1.0.0-rc.4] - 2026-05-30
 

@@ -7,7 +7,7 @@
         <CinemaRoomStage />
 
         <!-- Big screen -->
-        <div class="pt-cr-screen-frame">
+        <div ref="screenFrameEl" class="pt-cr-screen-frame">
           <div class="pt-cr-screen">
             <div
               v-show="!flow.canLaunch.value && carousel.hasTrailer.value"
@@ -76,9 +76,10 @@
         <MarathonProgressPanel :progress="marathonProgress.progress.value" />
       </div>
 
-      <!-- Launch CTA: appears ABOVE the screen after the academy countdown -->
+      <!-- Launch CTA: centred on the virtual screen via syncLaunchPos
+           (the screen is not at the viewport centre). -->
       <transition name="pt-cr-cta">
-        <div v-if="flow.academyDone.value" class="pt-cr-launch">
+        <div v-if="flow.academyDone.value" class="pt-cr-launch" :style="launchPos">
           <button type="button" class="pt-cr-launch-btn" @click="onLaunchClick">
             <Play :size="22" :stroke-width="2.5" />
             {{ launchLabel }}
@@ -138,7 +139,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useRooms } from '@/composables/portal/useRooms'
@@ -228,6 +229,16 @@ const launchLabel = computed(() => {
     : t('portal.cinema.launchMovie')
 })
 
+// The launch CTA centres on the *virtual screen*, which is not the viewport
+// centre (seats sit below it) and must stay above the side chat — so it lives
+// at the root layer, positioned from the screen frame's measured box.
+const screenFrameEl = ref(null)
+const launchPos = ref({ top: '50%', left: '50%' })
+function syncLaunchPos() {
+  const r = screenFrameEl.value?.getBoundingClientRect()
+  if (r) launchPos.value = { top: `${r.top + r.height / 2}px`, left: `${r.left + r.width / 2}px` }
+}
+
 function toggleMute() {
   muted.value = !muted.value
   carousel.applyMute(muted.value)
@@ -245,7 +256,7 @@ watch(flow.canStartAcademy, v => {
   // viewer reaches T-0 with the screen ready, not 10 s late.
   if (v && !flow.academyActive.value && !flow.academyDone.value) {
     carousel.destroy()
-    flow.startAcademy(flow.remainingMs.value / 1000)
+    flow.startAcademy()
   }
 })
 
@@ -300,8 +311,10 @@ async function load() {
   }
   if (event.value?.tmdb_ids?.length) {
     // Warm the availability cache for every media of the event so the
-    // launch CTA can resolve its emby_url synchronously when clicked.
-    checkAvailability(event.value.tmdb_ids).catch(() => {})
+    // launch CTA resolves its emby_url without a round trip when clicked.
+    // ``checkAvailability`` returns undefined when every id is already
+    // fresh, so wrap it before ``.catch`` to stay safe on a warm re-entry.
+    Promise.resolve(checkAvailability(event.value.tmdb_ids)).catch(() => {})
   }
   // Marathon step is now tracked per-user via ``invitations[i].user_step``
   // — no shared marker to mirror locally. Single-film events still get
@@ -319,7 +332,7 @@ async function load() {
     flow.skipToReady()
   } else if (flow.canStartAcademy.value) {
     if (!flow.academyDone.value && !flow.academyActive.value) {
-      flow.startAcademy(flow.remainingMs.value / 1000)
+      flow.startAcademy()
     }
   } else {
     carousel.start().catch(() => {})
@@ -375,13 +388,21 @@ function resolveLaunchUrl(media) {
 // waiting for the next 3 s tick.
 const LAUNCH_POLL_KICK_MS = 2_000
 
-function onLaunchClick() {
+async function onLaunchClick() {
   // The launch button opens the *viewer's* current film (per-user
   // marathon step). The marathon-wide ``/advance`` POST is gone from
   // this path; ``/advance-self`` now bumps just our own step so peers
   // can stay where they are while we move forward.
   if (!event.value || !currentMedia.value) return
-  const url = resolveLaunchUrl(currentMedia.value)
+  let url = resolveLaunchUrl(currentMedia.value)
+  if (!url) {
+    // Cold cache, or the 60 s availability TTL lapsed while the viewer
+    // waited for showtime: resolve on demand so the click reliably opens
+    // Emby. The sub-second resolve keeps window.open inside the click's
+    // transient activation, so it is not popup-blocked.
+    await Promise.resolve(checkAvailability([currentMedia.value])).catch(() => {})
+    url = resolveLaunchUrl(currentMedia.value)
+  }
   if (url) {
     window.open(url, '_blank', 'noopener')
     // Force a fresh progress fetch so the playback panel surfaces the
@@ -390,19 +411,11 @@ function onLaunchClick() {
     setTimeout(() => marathonProgress.bump(), LAUNCH_POLL_KICK_MS)
     return
   }
-  // Availability cache miss (cold start, Emby index out of sync). Land
-  // on the portal media detail page so the user reaches the canonical
-  // "Open in Emby" button instead of clicking a dead-end.
-  const id = currentMedia.value.tmdb_id
-  if (id) {
-    router.push({
-      name: 'portal-media-detail',
-      params: {
-        type: currentMedia.value.media_type === 'tv' ? 'tv' : 'movie',
-        id,
-      },
-    })
-  }
+  // The film is always in Emby (only Emby-available titles can be picked
+  // at event creation), so an unresolved url means the availability index
+  // is momentarily behind — ask the viewer to retry instead of routing
+  // them away to the portal detail page.
+  showToast(t('portal.cinema.errors.launch_unavailable'), TOAST_TYPE.WARN)
 }
 
 async function onAdvanceSelfClick() {
@@ -422,8 +435,21 @@ async function onAdvanceSelfClick() {
   flow.resetAcademy()
 }
 
+// Re-centre the launch CTA once the room + seats have rendered, and on
+// every viewport resize.
+watch(event, async v => {
+  if (!v) return
+  await nextTick()
+  syncLaunchPos()
+})
+
 onMounted(() => {
   load()
   flow.startTicker()
+  window.addEventListener('resize', syncLaunchPos)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', syncLaunchPos)
 })
 </script>
