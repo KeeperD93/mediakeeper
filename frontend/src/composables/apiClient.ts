@@ -39,6 +39,15 @@ export function buildApiHeaders(options: ApiFetchOptions = {}): Headers {
     if (csrfToken) headers.set('X-CSRF-Token', csrfToken)
   }
 
+  // Forward the viewer's active UI locale (global or portal-ephemeral) so the
+  // backend can localize content per viewer. Read from <html lang> (kept in
+  // sync by i18n) instead of importing i18n — i18n imports this module, so a
+  // direct import would be circular.
+  if (typeof document !== 'undefined') {
+    const locale = document.documentElement.lang
+    if (locale && !headers.has('X-MK-Locale')) headers.set('X-MK-Locale', locale)
+  }
+
   return headers
 }
 

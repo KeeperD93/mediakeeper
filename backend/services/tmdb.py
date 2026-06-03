@@ -11,6 +11,23 @@ logger = logging.getLogger("mediakeeper.tmdb")
 TMDB_BASE    = "https://api.themoviedb.org/3"
 LANGUAGE     = os.getenv("TMDB_LANGUAGE", "fr-FR")
 
+# 2-letter UI locale -> TMDB region. Generic so a new language needs at most
+# one entry here (and still works via the xx-XX fallback). The viewer locale
+# itself is resolved per request in core.i18n.
+_TMDB_REGION = {
+    "fr": "FR", "en": "US", "de": "DE", "es": "ES", "it": "IT",
+    "pt": "BR", "ja": "JP", "ru": "RU", "zh": "CN", "ko": "KR", "nl": "NL",
+}
+
+
+def tmdb_language(locale: str | None) -> str:
+    """Map a 2-letter UI locale to a TMDB ``xx-YY`` code (blank -> ``LANGUAGE``)."""
+    code = (locale or "").strip().lower()[:2]
+    if len(code) != 2 or not code.isalpha():
+        return LANGUAGE
+    return f"{code}-{_TMDB_REGION.get(code, code.upper())}"
+
+
 # In-memory key cache (avoids a DB call on every request)
 _cached_key: str = ""
 
