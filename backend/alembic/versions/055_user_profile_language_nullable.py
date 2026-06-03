@@ -7,8 +7,10 @@ indistinguishable from a real choice, so they are converted to NULL: the
 instance default then applies to everyone who has not explicitly picked a
 language. New rows are born NULL (``server_default`` dropped).
 
-Idempotent: the column alter is skipped when ``language`` is already nullable
-(deployments bootstrapped via ``Base.metadata.create_all`` already have it).
+Same DDL dispatch as 053: native ``ALTER COLUMN`` on PostgreSQL,
+inspector-guarded ``batch_alter_table`` on SQLite, and a post-condition that
+raises if the column is still NOT NULL — so a silent ``batch_alter_table``
+no-op on asyncpg can never recur for this change.
 """
 from alembic import op
 import sqlalchemy as sa
@@ -27,7 +29,10 @@ def _language_nullable(bind) -> bool:
 
 def upgrade() -> None:
     bind = op.get_bind()
-    if not _language_nullable(bind):
+    if bind.dialect.name == "postgresql":
+        op.execute("ALTER TABLE user_profiles ALTER COLUMN language DROP NOT NULL")
+        op.execute("ALTER TABLE user_profiles ALTER COLUMN language DROP DEFAULT")
+    elif not _language_nullable(bind):
         with op.batch_alter_table("user_profiles") as batch:
             batch.alter_column(
                 "language",
@@ -38,14 +43,23 @@ def upgrade() -> None:
     # Pre-feature 'fr' is the old default, not a real choice -> NULL so the
     # instance default applies until the user explicitly picks a language.
     op.execute("UPDATE user_profiles SET language = NULL WHERE language = 'fr'")
+    if not _language_nullable(bind):
+        raise RuntimeError(
+            "Migration 055 silently failed to make user_profiles.language nullable."
+        )
 
 
 def downgrade() -> None:
     op.execute("UPDATE user_profiles SET language = 'fr' WHERE language IS NULL")
-    with op.batch_alter_table("user_profiles") as batch:
-        batch.alter_column(
-            "language",
-            existing_type=sa.String(length=10),
-            nullable=False,
-            server_default="fr",
-        )
+    bind = op.get_bind()
+    if bind.dialect.name == "postgresql":
+        op.execute("ALTER TABLE user_profiles ALTER COLUMN language SET DEFAULT 'fr'")
+        op.execute("ALTER TABLE user_profiles ALTER COLUMN language SET NOT NULL")
+    else:
+        with op.batch_alter_table("user_profiles") as batch:
+            batch.alter_column(
+                "language",
+                existing_type=sa.String(length=10),
+                nullable=False,
+                server_default="fr",
+            )
