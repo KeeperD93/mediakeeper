@@ -85,3 +85,28 @@ async def test_recent_mode_indexes_new_items_without_purging(db_session, monkeyp
         select(EmbyTmdbIndex).where(EmbyTmdbIndex.emby_item_id == "old-emby")
     )).scalar_one_or_none()
     assert survived is not None
+
+
+def test_emby_scan_tasks_registered_with_expected_defaults():
+    from services.scheduler._tasks import TASK_DEFINITIONS
+    recent = TASK_DEFINITIONS["emby_recent_scan"]
+    full = TASK_DEFINITIONS["emby_full_scan"]
+    assert recent["default_sec"] == 300 and recent["default_on"] is True
+    assert full["default_sec"] == 7200 and full["default_on"] is True
+
+
+@pytest.mark.asyncio
+async def test_scheduler_handlers_dispatch_correct_mode(db_session, monkeypatch):
+    """The recent handler runs the windowed scan, the full handler the complete
+    one — proof the scheduler tasks wire to the right sync mode."""
+    from services.scheduler import _handlers
+    calls = []
+
+    async def fake_sync(_db, *, recent_limit=None):
+        calls.append(recent_limit)
+        return {"synced": 0}
+
+    monkeypatch.setattr("services.portal.emby_index.sync_emby_tmdb_index", fake_sync)
+    await _handlers._handler_emby_recent_scan(db_session)
+    await _handlers._handler_emby_full_scan(db_session)
+    assert calls == [50, None]
