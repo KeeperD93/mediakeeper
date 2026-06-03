@@ -70,3 +70,27 @@ async def test_surprise_schedules_background_task_with_scalar_args(client, db_se
     assert isinstance(uid, int) and uid > 0
     assert uname == username
     assert action == "surprise_used"
+
+
+@pytest.mark.asyncio
+async def test_surprise_localized_meta_follows_viewer_locale(client, db_session):
+    """The reveal-time meta endpoint resolves title + synopsis in the viewer
+    locale (X-MK-Locale), threading it through to the TMDB detail lookup."""
+    username = await _seed_user(db_session)
+    _auth(client, username)
+
+    captured = {}
+
+    async def _fake_detail(media_type, tmdb_id, db=None, locale=None):
+        captured["args"] = (media_type, tmdb_id, locale)
+        return {"title": "Localized Title", "overview": "Localized synopsis."}
+
+    with patch("api.portal.library.get_media_detail", side_effect=_fake_detail):
+        r = await client.get(
+            "/api/portal/library/localized-meta?tmdb_id=603&media_type=movie",
+            headers={"X-MK-Locale": "en"},
+        )
+
+    assert r.status_code == 200, r.text
+    assert r.json() == {"title": "Localized Title", "overview": "Localized synopsis."}
+    assert captured["args"] == ("movie", 603, "en")

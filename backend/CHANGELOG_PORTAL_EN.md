@@ -25,6 +25,7 @@ This section intentionally has no date so it is not shown to users.
 - Avatars — legendary ring (level 50): animated rainbow on every surface.
 
 ### Fixed
+- Surprise — the drawn pick's title and synopsis follow your language.
 - Settings — your rank colours applied on open (no flash).
 - Cinema room — Start button centred on screen, Emby launch made reliable.
 - Cinema room — trailer resumes when returning from the Emby tab.
