@@ -27,7 +27,12 @@ async def _fake_season(db, tmdb_id, sn, lang):
     return {"episodes": [{"episode_number": e, "name": f"S{sn}E{e} [{lang}]"} for e in range(1, 4)]}
 
 
+async def _fake_key(db=None):
+    return "test-key"
+
+
 def _patch_tmdb(monkeypatch):
+    monkeypatch.setattr("services.watchlist_scanner._localize._get_tmdb_key", _fake_key)
     monkeypatch.setattr("services.watchlist_scanner._tmdb._tmdb_series", _fake_series)
     monkeypatch.setattr("services.watchlist_scanner._tmdb._tmdb_season", _fake_season)
 
@@ -99,6 +104,19 @@ async def test_scan_does_not_mutate_cached_blob(authed_client, monkeypatch):
     # The shared cache object must survive a per-request localization untouched.
     assert blob["series"][0]["name"] == "Emby A"
     assert blob["series"][0]["seasons"][0]["episodes"][0]["name"] == "ancien"
+
+
+@pytest.mark.asyncio
+async def test_scan_no_tmdb_key_serves_cache(authed_client, monkeypatch):
+    # No TMDB key: cannot re-resolve, so the cache is served untouched even for a
+    # non-default locale -- and no concurrent DB access is attempted on the session.
+    async def _no_key(db=None):
+        return ""
+    monkeypatch.setattr("services.watchlist_scanner._localize._get_tmdb_key", _no_key)
+    _patch_scan(monkeypatch, _scan_blob())
+    r = await authed_client.get(_SCAN, headers={"X-MK-Locale": "en"})
+    assert r.status_code == 200
+    assert r.json()["series"][0]["name"] == "Emby A"
 
 
 @pytest.mark.asyncio

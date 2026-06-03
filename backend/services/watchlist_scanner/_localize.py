@@ -11,7 +11,7 @@ import asyncio
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from services.tmdb import _is_generic_episode_name, tmdb_language
+from services.tmdb import _get_tmdb_key, _is_generic_episode_name, tmdb_language
 
 from . import _tmdb
 from ._tmdb import DEFAULT_TMDB_LANG
@@ -72,6 +72,11 @@ async def localize_series_list(db: AsyncSession, series: list[dict], locale: str
     lang = tmdb_language(locale)
     if lang == DEFAULT_TMDB_LANG or not series:
         return series
+    # Warm the TMDB key cache first so the concurrent re-resolution below makes
+    # no DB call on the shared session (a cold key would race db.execute calls).
+    # No key configured -> nothing to re-resolve, serve the cache as-is.
+    if not await _get_tmdb_key(db):
+        return series
     sem = asyncio.Semaphore(_LOCALIZE_CONCURRENCY)
 
     async def _one(s: dict) -> dict:
@@ -86,6 +91,8 @@ async def localize_calendar_items(db: AsyncSession, items: list[dict], locale: s
     rows are left as-is — they need the /movie endpoint, out of this pass."""
     lang = tmdb_language(locale)
     if lang == DEFAULT_TMDB_LANG or not items:
+        return items
+    if not await _get_tmdb_key(db):  # warm the key cache; no key -> serve as-is
         return items
     sem = asyncio.Semaphore(_LOCALIZE_CONCURRENCY)
 
