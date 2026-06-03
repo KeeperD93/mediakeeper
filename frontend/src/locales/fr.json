@@ -286,6 +286,20 @@
     "expand": "Étendre",
     "collapse": "Réduire"
   },
+  "toastModule": {
+    "dashboard": "Tableau de bord",
+    "statistics": "Statistiques",
+    "manager": "Gestionnaire",
+    "notifications": "Notifications",
+    "logs": "Journaux",
+    "health": "Santé",
+    "tracking": "Suivi",
+    "duplicates": "Doublons",
+    "subtitles": "Sous-titres",
+    "settings": "Paramètres",
+    "changelog": "Journal des modifications",
+    "app": "MediaKeeper"
+  },
   "topbar": {
     "logout": "Déconnexion",
     "theme": "Thème",
@@ -354,6 +368,14 @@
     "sessions": "Sessions actives",
     "noSessions": "Aucune session active",
     "nowPlaying": "En cours de lecture",
+    "nowWatching": "{user} regarde {title}",
+    "aMedia": "un média",
+    "mediaType": {
+      "movie": "Film",
+      "episode": "Épisode",
+      "audio": "Audio",
+      "trailer": "Bande-annonce"
+    },
     "listening": "En écoute",
     "recentActivity": "Activité récente",
     "noActivity": "Aucune activité récente",

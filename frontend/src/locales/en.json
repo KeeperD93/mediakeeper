@@ -286,6 +286,20 @@
     "expand": "Expand",
     "collapse": "Collapse"
   },
+  "toastModule": {
+    "dashboard": "Dashboard",
+    "statistics": "Statistics",
+    "manager": "Media Manager",
+    "notifications": "Notifications",
+    "logs": "Logs",
+    "health": "Health",
+    "tracking": "Watchlist",
+    "duplicates": "Duplicates",
+    "subtitles": "Subtitles",
+    "settings": "Settings",
+    "changelog": "Changelog",
+    "app": "MediaKeeper"
+  },
   "topbar": {
     "logout": "Log out",
     "theme": "Theme",
@@ -354,6 +368,14 @@
     "sessions": "Active sessions",
     "noSessions": "No active sessions",
     "nowPlaying": "Now playing",
+    "nowWatching": "{user} is watching {title}",
+    "aMedia": "a media",
+    "mediaType": {
+      "movie": "Movie",
+      "episode": "Episode",
+      "audio": "Audio",
+      "trailer": "Trailer"
+    },
     "listening": "Listening",
     "recentActivity": "Recent activity",
     "noActivity": "No recent activity",

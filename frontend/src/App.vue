@@ -39,7 +39,7 @@
       >
         <!-- Header: module name -->
         <div class="mk-toast-header">
-          <span class="mk-toast-module">{{ toast.module }}</span>
+          <span class="mk-toast-module">{{ t(toast.module) }}</span>
         </div>
         <div class="mk-toast-divider" />
 

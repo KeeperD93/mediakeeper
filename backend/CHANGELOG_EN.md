@@ -22,6 +22,7 @@ This section intentionally has no date so it is not shown to users.
 - Dashboard — "Upcoming releases" now shown in your language.
 - Media library — TMDB detail pages now shown in your language (English fallback).
 - Watchlist — series, episodes and synopsis now shown in your language.
+- Notifications — toasts (module + now playing) now shown in your language.
 
 ## [1.0.0-rc.4] - 2026-05-30
 

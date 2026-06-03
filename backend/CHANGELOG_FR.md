@@ -22,6 +22,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Tableau de bord — « Prochaines sorties » affichées dans votre langue.
 - Médiathèque — fiches détail TMDB affichées dans votre langue (repli anglais).
 - Watchlist — séries, épisodes et synopsis affichés dans votre langue.
+- Notifications — toasts (module + lecture en cours) affichés dans votre langue.
 
 ## [1.0.0-rc.4] - 2026-05-30
 
