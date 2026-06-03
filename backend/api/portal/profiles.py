@@ -1,6 +1,6 @@
 """Portal profile endpoints."""
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -23,6 +23,7 @@ router = APIRouter(prefix="/profiles", tags=["portal-profiles"])
 
 
 class ProfileUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     # ``avatar_url`` is intentionally omitted: a custom MediaKeeper avatar is
     # uploaded via POST /me/avatar (see api/portal/profile_settings.py),
     # while the Emby-proxied URL is owned by the auth flow.
