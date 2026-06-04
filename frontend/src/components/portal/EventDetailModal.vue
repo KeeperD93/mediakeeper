@@ -159,6 +159,7 @@ import { useNotifications } from '@/composables/portal/useNotifications'
 import { EVENT_STATUS, INVITATION_STATUS } from '@/constants/events'
 import { isTv } from '@/constants/media'
 import { X } from 'lucide-vue-next'
+import { localizedDateTime } from '@/utils/datetime'
 
 import '@/assets/styles/portal/event-detail-modal.css'
 
@@ -264,7 +265,7 @@ async function removeMember(userId) {
 function formatFull(iso) {
   if (!iso) return ''
   try {
-    return new Date(iso).toLocaleString(undefined, {
+    return localizedDateTime(new Date(iso), {
       weekday: 'long',
       day: '2-digit',
       month: 'long',

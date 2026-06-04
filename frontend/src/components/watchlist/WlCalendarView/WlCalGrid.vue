@@ -38,7 +38,7 @@
               <span class="wlcal-item-ep">
                 {{
                   item.is_movie
-                    ? $t('common.film')
+                    ? $t('dashboard.movieRelease')
                     : 'S' + pad(item.season) + 'E' + pad(item.episode)
                 }}
               </span>

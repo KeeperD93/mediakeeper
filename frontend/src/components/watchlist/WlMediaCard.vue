@@ -42,17 +42,18 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useWatchlist } from '@/composables/useWatchlist'
 import { Eye, EyeOff } from 'lucide-vue-next'
 import { isMovie, isTv } from '@/constants/media'
+import { tmdbWebUrl } from '@/utils/tmdb'
 
 const props = defineProps({ item: Object })
 const { isTracked, toggleTrack } = useWatchlist()
+const { locale } = useI18n()
 
 const isT = computed(() => isTracked(props.item.tmdb_id, props.item.media_type))
-const tmdbUrl = computed(
-  () => `https://www.themoviedb.org/${props.item.media_type}/${props.item.tmdb_id}`,
-)
+const tmdbUrl = computed(() => tmdbWebUrl(props.item.media_type, props.item.tmdb_id, locale.value))
 </script>
 
 <style scoped>

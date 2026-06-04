@@ -13,6 +13,7 @@ from models.portal.xp_ledger import XpLedger
 from api.portal.deps import get_current_profile
 from services.portal import available as avail_svc
 from services.portal.achievements import safe_check_all_achievements_in_new_session
+from services.portal.available_localize import localize_emby_items
 from services.tmdb import get_media_detail
 
 router = APIRouter(prefix="/library", tags=["portal-available"])
@@ -21,38 +22,46 @@ router = APIRouter(prefix="/library", tags=["portal-available"])
 @router.get("/recent")
 async def recently_added(
     limit: int = Query(20, ge=1, le=50),
+    locale: str = Depends(get_request_locale),
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):
-    return {"items": await avail_svc.get_recently_added(db, limit, enrich_rating=True)}
+    items = await avail_svc.get_recently_added(db, limit, enrich_rating=True)
+    return {"items": await localize_emby_items(db, items, locale)}
 
 
 @router.get("/recommended")
 async def recommended(
     limit: int = Query(20, ge=1, le=50),
+    locale: str = Depends(get_request_locale),
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):
-    return {"items": await avail_svc.get_recommended(db, limit)}
+    items = await avail_svc.get_recommended(db, limit)
+    return {"items": await localize_emby_items(db, items, locale)}
 
 
 @router.get("/continue")
 async def continue_watching(
     limit: int = Query(10, ge=1, le=30),
+    locale: str = Depends(get_request_locale),
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):
-    return {"items": await avail_svc.get_continue_watching(db, limit=limit)}
+    items = await avail_svc.get_continue_watching(db, limit=limit)
+    return {"items": await localize_emby_items(db, items, locale)}
 
 
 @router.get("/genre/{genre_id}")
 async def by_genre(
     genre_id: str,
     limit: int = Query(20, ge=1, le=50),
+    locale: str = Depends(get_request_locale),
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):
-    return {"items": await avail_svc.get_by_genre(db, genre_id, limit)}
+    items = await avail_svc.get_by_genre(db, genre_id, limit)
+    return {"items": await localize_emby_items(db, items, locale)}
 
 
 @router.get("/surprise")

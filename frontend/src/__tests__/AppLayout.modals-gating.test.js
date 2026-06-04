@@ -2,6 +2,8 @@ import { describe, it, expect, vi } from 'vitest'
 import { shallowMount } from '@vue/test-utils'
 import { ref } from 'vue'
 
+vi.mock('@/i18n', () => ({ getLocale: () => 'fr' }))
+
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: key => key, locale: ref('fr') }),
 }))

@@ -25,8 +25,13 @@ This section intentionally has no date so it is not shown to users.
 - Dashboard — "Upcoming releases" now shown in your language.
 - Media library — TMDB detail pages now shown in your language (English fallback).
 - Watchlist — series, episodes and synopsis now shown in your language.
+- Watchlist — calendar movies now shown in your language.
+- Watchlist — calendar month and day names follow the app language.
+- Watchlist — followed media (Suivi tab) shown in your language.
 - Notifications — toasts (module + now playing) now shown in your language.
 - Discord notifications — language follows the portal default.
+- TMDB links — open the page in the app language (watchlist, upcoming).
+- Dates now follow the app language (instead of the browser).
 
 ## [1.0.0-rc.4] - 2026-05-30
 

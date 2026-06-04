@@ -4,6 +4,7 @@ import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import { TASK_STATUS } from '@/constants/scheduler'
 import { useI18n } from 'vue-i18n'
+import { localizedDateTime } from '@/utils/datetime'
 
 const schedTasks = ref([])
 const schedCaches = ref([])
@@ -41,7 +42,7 @@ function formatSeconds(sec) {
 }
 function formatRunDate(iso) {
   if (!iso) return '—'
-  return new Date(iso).toLocaleString(undefined, {
+  return localizedDateTime(new Date(iso), {
     day: '2-digit',
     month: 'short',
     hour: '2-digit',

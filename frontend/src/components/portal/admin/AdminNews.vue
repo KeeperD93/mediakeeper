@@ -23,7 +23,7 @@
         >
           {{ $t('portal.admin.news.expiredBadge') }}
         </span>
-        <span class="pt-news-date">{{ new Date(n.created_at).toLocaleDateString() }}</span>
+        <span class="pt-news-date">{{ localizedDate(new Date(n.created_at)) }}</span>
         <button
           class="pt-icon-btn pt-icon-btn--edit"
           type="button"
@@ -65,6 +65,7 @@ import { TOAST_TYPE } from '@/constants/toast'
 import { useI18n } from 'vue-i18n'
 import { Pencil, Trash2 } from 'lucide-vue-next'
 import AdminNewsForm from './AdminNewsForm.vue'
+import { localizedDate } from '@/utils/datetime'
 
 const { news, fetchNews, createNews, updateNews, deleteNews } = usePortalNews()
 const { showToast } = useToast()

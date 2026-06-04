@@ -21,7 +21,7 @@
             <h3 class="pt-news-title">{{ item.title }}</h3>
             <p class="pt-news-content">{{ item.content }}</p>
             <span class="pt-news-date">
-              {{ new Date(item.created_at).toLocaleDateString() }}
+              {{ localizedDate(new Date(item.created_at)) }}
             </span>
           </div>
           <div v-if="!items.length" class="pt-news-empty">
@@ -40,6 +40,7 @@
 
 <script setup>
 import { X } from 'lucide-vue-next'
+import { localizedDate } from '@/utils/datetime'
 
 defineProps({
   items: { type: Array, default: () => [] },

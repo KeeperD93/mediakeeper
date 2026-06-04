@@ -5,6 +5,7 @@ import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import { TASK_STATUS } from '@/constants/scheduler'
 import { useConfirm } from '@/composables/useConfirm'
+import { localizedDate } from '@/utils/datetime'
 
 export function useNotifs() {
   const { t } = useI18n()
@@ -219,7 +220,7 @@ export function useNotifs() {
 
   function fmtDate(d) {
     if (!d) return ''
-    return new Date(d).toLocaleDateString(undefined, {
+    return localizedDate(new Date(d), {
       day: '2-digit',
       month: 'short',
       hour: '2-digit',

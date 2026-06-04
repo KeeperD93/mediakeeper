@@ -60,6 +60,7 @@ import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRooms } from '@/composables/portal/useRooms'
 import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 import { ChevronLeft, ChevronRight, Send } from 'lucide-vue-next'
+import { localizedTime } from '@/utils/datetime'
 
 const props = defineProps({
   eventId: { type: Number, required: true },
@@ -120,7 +121,7 @@ function scrollBottom() {
 function formatTime(iso) {
   if (!iso) return ''
   const d = new Date(iso)
-  return d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+  return localizedTime(d, { hour: '2-digit', minute: '2-digit' })
 }
 
 onMounted(() => {

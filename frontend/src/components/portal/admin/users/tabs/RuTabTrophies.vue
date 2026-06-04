@@ -100,6 +100,7 @@ import { useI18n } from 'vue-i18n'
 import { Award, Target, Trophy } from 'lucide-vue-next'
 import { usePortalAdminUsers } from '@/composables/portal/usePortalAdminUsers'
 import RuTrophyIcon from '../RuTrophyIcon.vue'
+import { localizedDateTime } from '@/utils/datetime'
 import '@/assets/styles/portal/admin-users-feed.css'
 
 const props = defineProps({
@@ -166,7 +167,7 @@ function formatXpAction(entry) {
 function fmt(value) {
   if (!value) return '—'
   try {
-    return new Date(value).toLocaleString()
+    return localizedDateTime(new Date(value))
   } catch {
     return value
   }

@@ -27,11 +27,16 @@ This section intentionally has no date so it is not shown to users.
 ### Fixed
 - Maintenance mode — the portal is now fully locked (holding page only).
 - Surprise — the drawn pick's title and synopsis follow your language.
+- Home — carousel titles and synopsis follow your language.
 - Settings — your rank colours applied on open (no flash).
 - Cinema room — Start button centred on screen, Emby launch made reliable.
 - Cinema room — trailer resumes when returning from the Emby tab.
 - Cinema room — intro countdown synced with the main countdown.
 - Cinema room — no more looping requests after leaving the room.
+- Requests — titles follow your language.
+- Media detail — TMDB link opens in the app language.
+- Dates now shown in your language (instead of the browser).
+- Discover — lists (trending, popular, …) now shown in your language.
 
 ## [1.0.0-rc.4] - 2026-05-30
 

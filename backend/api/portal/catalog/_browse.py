@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.portal.deps import get_current_profile
 from core.database import get_db
+from core.i18n import get_request_locale
 from models.portal.profile import UserProfile
 from models.user import User
 from services.portal import discover as disc_svc
@@ -19,6 +20,7 @@ async def browse_category(
     category: str,
     page: int = Query(1, ge=1, le=500),
     sort: str = Query("popularity", pattern="^(popularity|release|rating)$"),
+    locale: str = Depends(get_request_locale),
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):
@@ -41,10 +43,8 @@ async def browse_category(
         user, _ = up
         return await get_my_requests_paginated(db, user, page=page)
 
-    _, profile = up
-    user_lang = (profile.language or "").split("-")[0].lower() or None
     return await disc_svc.discover_category(
-        db, category, page=page, sort=sort, language=user_lang,
+        db, category, page=page, sort=sort, language=locale,
     )
 
 
@@ -54,14 +54,13 @@ async def browse_provider(
     page: int = Query(1, ge=1, le=500),
     sort: str = Query("popularity", pattern="^(popularity|release|rating)$"),
     region: str = Query("FR", min_length=2, max_length=4),
+    locale: str = Depends(get_request_locale),
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):
     """Paginated browse for a watch provider (Netflix, Prime, …)."""
-    _, profile = up
-    user_lang = (profile.language or "").split("-")[0].lower() or None
     return await disc_svc.discover_provider(
-        db, provider_id, page=page, sort=sort, language=user_lang, region=region,
+        db, provider_id, page=page, sort=sort, language=locale, region=region,
     )
 
 

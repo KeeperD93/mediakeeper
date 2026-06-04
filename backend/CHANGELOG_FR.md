@@ -25,8 +25,13 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Tableau de bord — « Prochaines sorties » affichées dans votre langue.
 - Médiathèque — fiches détail TMDB affichées dans votre langue (repli anglais).
 - Watchlist — séries, épisodes et synopsis affichés dans votre langue.
+- Watchlist — films du calendrier affichés dans votre langue.
+- Watchlist — mois et jours du calendrier suivent la langue de l'app.
+- Watchlist — médias suivis (onglet Suivi) affichés dans votre langue.
 - Notifications — toasts (module + lecture en cours) affichés dans votre langue.
 - Notifications Discord — langue suit le défaut du portail.
+- Liens TMDB — ouvrent la fiche dans la langue de l'app (watchlist, prochaines sorties).
+- Dates affichées dans la langue de l'app (au lieu de celle du navigateur).
 
 ## [1.0.0-rc.4] - 2026-05-30
 

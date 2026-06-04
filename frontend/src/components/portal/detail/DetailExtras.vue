@@ -55,6 +55,7 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
 import { Play } from 'lucide-vue-next'
+import { localizedDate } from '@/utils/datetime'
 
 defineProps({
   media: { type: Object, required: true },
@@ -70,7 +71,7 @@ function translateType(type) {
 function formatDate(iso) {
   if (!iso) return ''
   try {
-    return new Date(iso).toLocaleDateString()
+    return localizedDate(new Date(iso))
   } catch {
     return iso
   }
