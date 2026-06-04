@@ -29,11 +29,16 @@ utilisateurs.
 ### Fixed
 - Mode maintenance — le portail est désormais entièrement verrouillé (page d'attente seule).
 - Surprise — titre et synopsis du tirage affichés dans votre langue.
+- Accueil — titres et synopsis des carrousels affichés dans votre langue.
 - Paramètres — couleurs de votre rang appliquées dès l'ouverture (plus de flash).
 - Salle ciné — bouton « Lancer » centré sur l'écran, ouverture Emby fiabilisée.
 - Salle ciné — bande-annonce reprend au retour de l'onglet Emby.
 - Salle ciné — décompte d'intro synchronisé avec le compte à rebours.
 - Salle ciné — plus de requêtes en boucle après avoir quitté la salle.
+- Demandes — titres affichés dans votre langue.
+- Fiche média — lien TMDB ouvre dans la langue de l'app.
+- Dates affichées dans votre langue (au lieu de celle du navigateur).
+- Découvrir — listes (tendances, populaires, etc.) affichées dans votre langue.
 - Changelog — versions sans nouveauté masquées (plus de cartes vides).
 
 ## [1.0.0-rc.4] - 2026-05-30

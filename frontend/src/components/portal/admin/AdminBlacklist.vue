@@ -56,6 +56,7 @@ import { useApi } from '@/composables/useApi'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import { isTv } from '@/constants/media'
+import { localizedDate } from '@/utils/datetime'
 
 const { t } = useI18n()
 const { apiGet, apiDelete } = useApi()
@@ -86,7 +87,7 @@ async function unblock(bl) {
 
 function fmtDate(iso) {
   if (!iso) return ''
-  return new Date(iso).toLocaleDateString()
+  return localizedDate(new Date(iso))
 }
 
 onMounted(fetchList)

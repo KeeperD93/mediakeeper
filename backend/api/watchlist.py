@@ -22,7 +22,7 @@ from services.watchlist import (
     search_tmdb_multi,
 )
 from services.watchlist_scanner._localize import (
-    localize_series_list, localize_calendar_items,
+    localize_series_list, localize_calendar_items, localize_tracked_items,
 )
 
 logger = logging.getLogger("mediakeeper.api.watchlist")
@@ -168,8 +168,12 @@ class UntrackRequest(BaseModel):
     media_type: str
 
 @router.get("/tracked")
-async def list_tracked(db: AsyncSession = Depends(get_db), _: User = Depends(get_current_user)):
-    return await get_tracked(db)
+async def list_tracked(
+    locale: str = Depends(get_request_locale),
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    return await localize_tracked_items(db, await get_tracked(db), locale)
 
 @router.post("/tracked/add")
 async def track_add(

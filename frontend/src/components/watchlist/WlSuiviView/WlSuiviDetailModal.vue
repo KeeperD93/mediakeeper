@@ -25,17 +25,7 @@
               </span>
             </div>
             <p v-if="selected.overview" class="wlsu-detail-overview">{{ selected.overview }}</p>
-            <a
-              :href="
-                'https://www.themoviedb.org/' +
-                (selected.media_type || 'tv') +
-                '/' +
-                selected.tmdb_id
-              "
-              target="_blank"
-              rel="noopener"
-              class="wlsu-tmdb-link"
-            >
+            <a :href="tmdbLink(selected)" target="_blank" rel="noopener" class="wlsu-tmdb-link">
               TMDB ↗
             </a>
             <button class="wlsu-untrack-btn-lg" @click="$emit('untrack', selected)">
@@ -53,14 +43,19 @@
 import { useI18n } from 'vue-i18n'
 import { isMovie } from '@/constants/media'
 import { EyeOff, X } from 'lucide-vue-next'
+import { tmdbWebUrl } from '@/utils/tmdb'
 
 defineProps({ selected: { type: Object, default: null } })
 defineEmits(['close', 'untrack'])
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 function typeLabel(item) {
   return isMovie(item) ? t('common.film') : t('common.series')
+}
+
+function tmdbLink(item) {
+  return tmdbWebUrl(item.media_type, item.tmdb_id, locale.value)
 }
 </script>
 

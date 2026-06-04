@@ -111,11 +111,7 @@
 
         <h3 class="vmd2-sidebar-heading">{{ $t('portal.detail.externalLinks') }}</h3>
         <div class="vmd2-external-links">
-          <a
-            :href="`https://www.themoviedb.org/${media.media_type}/${media.tmdb_id}`"
-            target="_blank"
-            rel="noopener"
-          >
+          <a :href="tmdbUrl" target="_blank" rel="noopener">
             TMDB
             <ExternalLink class="vmd2-link-icon" aria-hidden="true" />
           </a>
@@ -155,12 +151,17 @@ import {
 } from 'lucide-vue-next'
 import { formatCountry, formatLanguage } from '@/utils/formatIntlLabel'
 import { safeHref } from '@/utils/safeUrl'
+import { tmdbWebUrl } from '@/utils/tmdb'
 
 const props = defineProps({
   media: { type: Object, required: true },
 })
 
 const { te, t, locale } = useI18n()
+
+const tmdbUrl = computed(() =>
+  tmdbWebUrl(props.media.media_type, props.media.tmdb_id, locale.value),
+)
 
 // Maps TMDB ``status`` strings to a portal severity token. Keeps the
 // dot in the sidebar coherent with the status ribbon on the hero.

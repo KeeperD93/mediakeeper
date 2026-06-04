@@ -123,6 +123,7 @@ import { downloadJsonFile } from '@/composables/portal/useFileDownload'
 import RuNotifyModal from '../RuNotifyModal.vue'
 import RuPasswordResetModal from '../RuPasswordResetModal.vue'
 import RuUserBadge from '../RuUserBadge.vue'
+import { localizedDateTime } from '@/utils/datetime'
 import '@/assets/styles/portal/admin-users-feed.css'
 
 const props = defineProps({ user: { type: Object, required: true } })
@@ -215,7 +216,7 @@ async function onResetPassword() {
 function fmt(value) {
   if (!value) return ''
   try {
-    return new Date(value).toLocaleString()
+    return localizedDateTime(new Date(value))
   } catch {
     return value
   }

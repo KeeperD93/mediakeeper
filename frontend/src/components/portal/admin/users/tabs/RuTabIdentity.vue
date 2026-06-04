@@ -91,6 +91,7 @@ import { useToast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
 import { TOAST_TYPE } from '@/constants/toast'
 import { usePortalAdminUsers } from '@/composables/portal/usePortalAdminUsers'
+import { localizedDateTime } from '@/utils/datetime'
 
 const props = defineProps({ user: { type: Object, required: true } })
 const emit = defineEmits(['changed'])
@@ -174,7 +175,7 @@ async function save() {
 function fmt(value) {
   if (!value) return '—'
   try {
-    return new Date(value).toLocaleString()
+    return localizedDateTime(new Date(value))
   } catch {
     return value
   }

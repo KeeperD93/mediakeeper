@@ -200,7 +200,7 @@ function _addMovieToCalCache(item) {
     tmdb_id: item.tmdb_id,
     season: 0,
     episode: 0,
-    episode_name: _t('dashboard.movieRelease'),
+    episode_name: '',
     poster: item.poster || '',
     emby_poster: '',
     source: TRAILER_SOURCE.TRACKED,

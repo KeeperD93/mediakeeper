@@ -22,6 +22,7 @@ from services.portal.requests_quota import (
     get_user_quota,  # noqa: F401 — re-exported
 )
 from services.portal.requests_create import create_request  # noqa: F401
+from services.portal.requests_localize import localize_request_titles
 
 logger = logging.getLogger("mediakeeper.portal.requests")
 
@@ -100,6 +101,7 @@ async def list_requests(
     limit: int = 25,
     *,
     include_sensitive: bool = False,
+    locale: str | None = None,
 ) -> dict:
     """List requests with optional status filter and cursor pagination.
 
@@ -140,6 +142,8 @@ async def list_requests(
         )
         for r in rows
     ]
+    if locale:
+        items = await localize_request_titles(db, items, locale)
     return build_cursor_response(items, total, limit)
 
 

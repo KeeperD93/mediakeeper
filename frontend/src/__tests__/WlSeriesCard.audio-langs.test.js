@@ -10,7 +10,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 
 vi.mock('vue-i18n', () => ({
-  useI18n: () => ({ t: key => key }),
+  useI18n: () => ({ t: key => key, locale: { value: 'en' } }),
 }))
 
 vi.mock('lucide-vue-next', () => ({

@@ -25,13 +25,15 @@
 </template>
 
 <script setup>
+import { localizedDate } from '@/utils/datetime'
+
 defineProps({
   user: { type: Object, required: true },
 })
 
 function shortDate(value) {
   try {
-    return new Date(value).toLocaleDateString()
+    return localizedDate(new Date(value))
   } catch {
     return value
   }

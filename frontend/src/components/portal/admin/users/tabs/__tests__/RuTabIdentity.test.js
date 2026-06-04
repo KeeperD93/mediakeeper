@@ -6,6 +6,8 @@ const patchIdentity = vi.fn()
 const resetDisplayName = vi.fn()
 const confirmMock = vi.fn()
 
+vi.mock('@/i18n', () => ({ getLocale: () => 'fr' }))
+
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: (k, p) => (p ? `${k}:${JSON.stringify(p)}` : k), te: () => false }),
 }))

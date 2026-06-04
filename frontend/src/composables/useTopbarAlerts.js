@@ -1,5 +1,6 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { localizedDateTime } from '@/utils/datetime'
 
 export function useTopbarAlerts() {
   const { apiGet, apiPost, apiDelete } = useApi()
@@ -79,7 +80,7 @@ export function useTopbarAlerts() {
 
   function formatDate(dateStr) {
     if (!dateStr) return ''
-    return new Date(dateStr).toLocaleString(undefined, {
+    return localizedDateTime(new Date(dateStr), {
       day: '2-digit',
       month: '2-digit',
       hour: '2-digit',

@@ -127,6 +127,7 @@ import { ref, watch, onMounted } from 'vue'
 import { Inbox, LifeBuoy, ListMusic, Sparkles, Star, TrendingUp } from 'lucide-vue-next'
 import { usePortalAdminUsers } from '@/composables/portal/usePortalAdminUsers'
 import RuUserBadge from '../RuUserBadge.vue'
+import { localizedDate } from '@/utils/datetime'
 import '@/assets/styles/portal/admin-users-feed.css'
 
 const props = defineProps({
@@ -167,7 +168,7 @@ function reqVariant(status) {
 function fmt(value) {
   if (!value) return '—'
   try {
-    return new Date(value).toLocaleDateString()
+    return localizedDate(new Date(value))
   } catch {
     return value
   }

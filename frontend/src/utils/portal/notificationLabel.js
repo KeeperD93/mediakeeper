@@ -1,5 +1,6 @@
 import { Bell, Film, Flag, MessageSquare, Target, TicketCheck } from 'lucide-vue-next'
 import { NOTIF_TYPE } from '@/constants/notifications'
+import { localizedDate } from '@/utils/datetime'
 
 /**
  * Lucide component used to prefix a notification row in the bell popup.
@@ -75,5 +76,5 @@ export function timeAgoForNotification(iso, t) {
   if (diff < 60) return t('portal.notifications.now')
   if (diff < 3600) return `${Math.floor(diff / 60)} min`
   if (diff < 86400) return `${Math.floor(diff / 3600)} h`
-  return d.toLocaleDateString()
+  return localizedDate(d)
 }

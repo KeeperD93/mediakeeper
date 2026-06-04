@@ -9,6 +9,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 
+vi.mock('@/i18n', () => ({ getLocale: () => 'fr' }))
+
 const apiGet = vi.fn()
 
 vi.mock('@/composables/useApi', () => ({
