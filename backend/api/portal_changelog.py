@@ -48,6 +48,13 @@ def _find_changelog(lang: str = "fr") -> Path | None:
     return None
 
 
+def _has_entries(version: dict) -> bool:
+    """True when a version carries at least one non-empty category. Versions
+    that shipped only changes on the other surface (admin vs portal) parse to
+    empty categories and must be skipped so they don't render as blank cards."""
+    return any(version["categories"].values())
+
+
 def _parse_changelog(lang: str = "fr", max_versions: int = 0) -> list[dict]:
     """Parse CHANGELOG_PORTAL_XX.md into a list of structured versions."""
     path = _find_changelog(lang)
@@ -65,7 +72,7 @@ def _parse_changelog(lang: str = "fr", max_versions: int = 0) -> list[dict]:
         # ## [0.1.0] - 2026-04-19
         m = re.match(r"^## \[([^\]]+)\]\s*-\s*(.+)$", line)
         if m:
-            if current_version:
+            if current_version and _has_entries(current_version):
                 versions.append(current_version)
                 if max_versions and len(versions) >= max_versions:
                     return versions
@@ -89,7 +96,7 @@ def _parse_changelog(lang: str = "fr", max_versions: int = 0) -> list[dict]:
         if m and current_version is not None and current_category:
             current_version["categories"][current_category].append(m.group(1).strip())
 
-    if current_version:
+    if current_version and _has_entries(current_version):
         versions.append(current_version)
 
     return versions
