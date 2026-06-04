@@ -81,19 +81,6 @@ class BackgroundTaskManager:
             except Exception as e:
                 logger.error(f"Error refresh library cache: {e}")
 
-    async def _periodic_emby_index(self):
-        await asyncio.sleep(30)
-        while True:
-            try:
-                from services.portal.emby_index import sync_emby_tmdb_index
-
-                async with AsyncSession(self._engine, expire_on_commit=False) as session:
-                    result = await sync_emby_tmdb_index(session)
-                    logger.info(f"[EMBY_INDEX] Periodic sync: {result}")
-            except Exception as e:
-                logger.error(f"[EMBY_INDEX] Periodic sync error: {e}")
-            await asyncio.sleep(7200)
-
     async def _periodic_ticket_auto_close(self):
         await asyncio.sleep(180)
         while True:
@@ -226,7 +213,6 @@ class BackgroundTaskManager:
             asyncio.create_task(self._supervised("scheduler", self._run_scheduler)),
             asyncio.create_task(self._supervised("stats_collection", self._periodic_stats_collection)),
             asyncio.create_task(self._supervised("library_cache", self._periodic_library_cache)),
-            asyncio.create_task(self._supervised("emby_index", self._periodic_emby_index)),
             asyncio.create_task(self._supervised("ticket_auto_close", self._periodic_ticket_auto_close)),
             asyncio.create_task(self._supervised("chat_purge", self._periodic_chat_purge)),
             asyncio.create_task(self._supervised("health_monitor", self._periodic_health_monitor)),

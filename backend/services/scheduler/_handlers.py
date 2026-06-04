@@ -21,6 +21,17 @@ async def _handler_emby_refresh(db: AsyncSession) -> None:
     await refresh_library(db)
 
 
+async def _handler_emby_recent_scan(db: AsyncSession) -> dict:
+    from services.portal.emby_index import sync_emby_tmdb_index
+    # 50 newest items per type: absorbs a batch add between 5-min ticks.
+    return await sync_emby_tmdb_index(db, recent_limit=50)
+
+
+async def _handler_emby_full_scan(db: AsyncSession) -> dict:
+    from services.portal.emby_index import sync_emby_tmdb_index
+    return await sync_emby_tmdb_index(db)
+
+
 async def _handler_log_cleanup(db: AsyncSession) -> None:
     from services.logs import fetch_and_store_emby_logs, rotate_logs_if_needed
     rotate_logs_if_needed()

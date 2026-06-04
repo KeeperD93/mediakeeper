@@ -32,7 +32,7 @@ export const SCHEDULER_CATEGORIES: Readonly<Record<SchedulerCategoryKey, Schedul
     portal: Object.freeze({
       key: 'portal' as const,
       labelKey: 'scheduler.categories.portal',
-      tasks: Object.freeze(['cleanup_available_requests']),
+      tasks: Object.freeze(['cleanup_available_requests', 'emby_recent_scan', 'emby_full_scan']),
     }),
     users: Object.freeze({
       key: 'users' as const,

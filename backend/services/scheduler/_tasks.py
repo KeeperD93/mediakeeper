@@ -4,6 +4,8 @@ from ._handlers import (
     _handler_clear_image_cache,
     _handler_cleanup_available_requests,
     _handler_duplicates,
+    _handler_emby_full_scan,
+    _handler_emby_recent_scan,
     _handler_emby_refresh,
     _handler_expire_users,
     _handler_gdpr_purge,
@@ -73,6 +75,22 @@ TASK_DEFINITIONS: dict[str, dict] = {
                                 # harmless when 0 (early return, no query).
         "handler":     _handler_cleanup_available_requests,
         "description": "scheduler.cleanup_available_requests",
+    },
+    "emby_recent_scan": {
+        "label":       "Emby Recently Added Scan",
+        "label_key":   "scheduler.tasks.emby_recent_scan",
+        "default_sec": 300,     # 5 min
+        "default_on":  True,
+        "handler":     _handler_emby_recent_scan,
+        "description": "scheduler.emby_recent_scan",
+    },
+    "emby_full_scan": {
+        "label":       "Emby Full Library Scan",
+        "label_key":   "scheduler.tasks.emby_full_scan",
+        "default_sec": 7200,    # 2h
+        "default_on":  True,
+        "handler":     _handler_emby_full_scan,
+        "description": "scheduler.emby_full_scan",
     },
     "healthcheck_scan": {
         "label":       "Library health scan",

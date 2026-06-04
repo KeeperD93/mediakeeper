@@ -1,5 +1,5 @@
-"""Upsert + playback de la table emby_tmdb_index."""
-from datetime import datetime, timezone
+"""Upsert and lookups for the emby_tmdb_index table."""
+from datetime import datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -38,7 +38,9 @@ async def _upsert_index(
             entry.original_language = original_language
         if date_created is not None and entry.date_created is None:
             entry.date_created = date_created
-        entry.updated_at = datetime.now(timezone.utc)
+        # No manual ``updated_at`` bump: the column's ``onupdate`` fires only on
+        # a real change (re-assigning identical values is a flush no-op), so an
+        # unchanged item writes zero rows — lets the sync run every few minutes.
     else:
         entry = EmbyTmdbIndex(
             emby_item_id=emby_item_id,
