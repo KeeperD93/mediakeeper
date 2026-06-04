@@ -1,6 +1,8 @@
 import { describe, it, expect, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 
+vi.mock('@/i18n', () => ({ getLocale: () => 'fr' }))
+
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (k, p) => (p ? `${k}:${JSON.stringify(p)}` : k),

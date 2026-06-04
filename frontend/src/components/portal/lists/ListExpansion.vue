@@ -52,6 +52,7 @@ import MkSpinner from '@/components/common/MkSpinner.vue'
 import ListItemRow from './ListExpansion/ListItemRow.vue'
 import ListContributors from './ListExpansion/ListContributors.vue'
 import ListHistory from './ListExpansion/ListHistory.vue'
+import { localizedDate } from '@/utils/datetime'
 
 const props = defineProps({
   lst: { type: Object, required: true },
@@ -124,7 +125,7 @@ defineExpose({ reload: load })
 
 function formatDate(iso) {
   if (!iso) return ''
-  return new Date(iso).toLocaleDateString()
+  return localizedDate(new Date(iso))
 }
 
 function actionLabel(h) {

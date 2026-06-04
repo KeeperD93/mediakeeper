@@ -138,6 +138,7 @@ import { useI18n } from 'vue-i18n'
 import { useApi } from '@/composables/useApi'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
+import { localizedDateTime } from '@/utils/datetime'
 
 const { t } = useI18n()
 const { apiGet, apiPost, apiDelete } = useApi()
@@ -154,7 +155,7 @@ const form = ref({ ip: '', username: '', scope: 'all', permanent: true, reason: 
 
 function formatDate(iso) {
   if (!iso) return ''
-  return new Date(iso).toLocaleString()
+  return localizedDateTime(new Date(iso))
 }
 
 async function loadBlocks() {

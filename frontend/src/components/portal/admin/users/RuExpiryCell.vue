@@ -20,6 +20,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { localizedDate } from '@/utils/datetime'
 
 const props = defineProps({
   user: { type: Object, required: true },
@@ -41,7 +42,7 @@ const imminent = computed(() => {
 
 function shortDate(value) {
   try {
-    return new Date(value).toLocaleDateString()
+    return localizedDate(new Date(value))
   } catch {
     return value
   }

@@ -12,16 +12,14 @@
       <div v-for="p in parties" :key="p.id" class="pt-party-card">
         <div class="pt-party-date">
           {{
-            new Date(p.scheduled_at).toLocaleDateString(undefined, {
+            localizedDate(new Date(p.scheduled_at), {
               weekday: 'short',
               month: 'short',
               day: 'numeric',
             })
           }}
           <br />
-          {{
-            new Date(p.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          }}
+          {{ localizedTime(new Date(p.scheduled_at), { hour: '2-digit', minute: '2-digit' }) }}
         </div>
         <div class="pt-party-info">
           <h3>{{ p.title }}</h3>
@@ -83,6 +81,7 @@ import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import { useI18n } from 'vue-i18n'
 import { X } from 'lucide-vue-next'
+import { localizedDate, localizedTime } from '@/utils/datetime'
 
 const { parties, fetchParties, createParty, joinParty } = usePortalEvents()
 const { showToast } = useToast()

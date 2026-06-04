@@ -66,6 +66,7 @@ import { useSubtitles } from '@/composables/useSubtitles'
 import SubQualityStars from './SubQualityStars.vue'
 import { Clock } from 'lucide-vue-next'
 import MkEmptyState from '@/components/common/MkEmptyState.vue'
+import { localizedDate, localizedTime } from '@/utils/datetime'
 
 const { history, historyTotal, loadHistory } = useSubtitles()
 
@@ -87,9 +88,9 @@ function formatDate(iso) {
   if (!iso) return ''
   const d = new Date(iso)
   return (
-    d.toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' }) +
+    localizedDate(d, { day: '2-digit', month: '2-digit', year: 'numeric' }) +
     ' ' +
-    d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+    localizedTime(d, { hour: '2-digit', minute: '2-digit' })
   )
 }
 

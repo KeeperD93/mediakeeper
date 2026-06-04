@@ -20,7 +20,7 @@
             <span class="mm-hist-meta">
               {{ entry.items.length }} fichier(s) ·
               {{
-                new Date(entry.timestamp).toLocaleDateString(undefined, {
+                localizedDate(new Date(entry.timestamp), {
                   day: '2-digit',
                   month: 'short',
                   hour: '2-digit',
@@ -94,7 +94,7 @@
             </span>
             <span class="mm-hist-meta">
               {{
-                new Date(entry.timestamp).toLocaleDateString(undefined, {
+                localizedDate(new Date(entry.timestamp), {
                   day: '2-digit',
                   month: 'short',
                   hour: '2-digit',
@@ -143,6 +143,7 @@
 import { ref, computed } from 'vue'
 import { useMediaManager } from '@/composables/useMediaManager'
 import { ArrowLeftRight, Clock, RefreshCw } from 'lucide-vue-next'
+import { localizedDate } from '@/utils/datetime'
 
 defineProps({ modelValue: { type: Boolean, default: false } })
 defineEmits(['update:modelValue'])

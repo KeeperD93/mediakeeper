@@ -53,6 +53,7 @@ import { useRouter } from 'vue-router'
 import { Users } from 'lucide-vue-next'
 import { fetchApiResponse } from '@/composables/useApi'
 import { INVITATION_STATUS } from '@/constants/events'
+import { localizedDate, localizedTime } from '@/utils/datetime'
 
 defineProps({ editing: { type: Boolean, default: false } })
 
@@ -70,11 +71,11 @@ function formatDay(iso) {
 }
 function formatMonth(iso) {
   if (!iso) return ''
-  return new Date(iso).toLocaleDateString(undefined, { month: 'short' })
+  return localizedDate(new Date(iso), { month: 'short' })
 }
 function formatTime(iso) {
   if (!iso) return ''
-  return new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+  return localizedTime(new Date(iso), { hour: '2-digit', minute: '2-digit' })
 }
 
 function acceptedCount(ev) {

@@ -37,6 +37,7 @@ utilisateurs.
 - Salle ciné — plus de requêtes en boucle après avoir quitté la salle.
 - Demandes — titres affichés dans votre langue.
 - Fiche média — lien TMDB ouvre dans la langue de l'app.
+- Dates affichées dans votre langue (au lieu de celle du navigateur).
 
 ## [1.0.0-rc.4] - 2026-05-30
 

@@ -4,6 +4,7 @@ import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import { useI18n } from 'vue-i18n'
 import { useConfirm } from '@/composables/useConfirm'
+import { localizedDateTime } from '@/utils/datetime'
 
 const backupInfo = ref(null)
 const backupLoading = ref(false)
@@ -30,7 +31,7 @@ function formatSize(bytes) {
   return (bytes / 1024 / 1024).toFixed(2) + ' MB'
 }
 function formatBackupDate(iso) {
-  return new Date(iso).toLocaleString(undefined, {
+  return localizedDateTime(new Date(iso), {
     day: '2-digit',
     month: 'short',
     year: 'numeric',

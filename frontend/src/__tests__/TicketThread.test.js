@@ -4,6 +4,8 @@ import { ref } from 'vue'
 
 const profileRef = ref({ user_id: 17, role: 'viewer' })
 
+vi.mock('@/i18n', () => ({ getLocale: () => 'fr' }))
+
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key, params) => (params ? `${key}:${JSON.stringify(params)}` : key),

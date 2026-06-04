@@ -65,6 +65,7 @@ import { ArrowLeft, RotateCcw, Trash2 } from 'lucide-vue-next'
 
 import MkSpinner from '@/components/common/MkSpinner.vue'
 import { usePortalHelpAdmin } from '@/composables/portal/usePortalHelpAdmin'
+import { localizedDate } from '@/utils/datetime'
 
 const props = defineProps({
   lang: { type: String, default: 'fr' },
@@ -106,7 +107,7 @@ async function onHardDelete(id) {
 function formatDate(iso) {
   if (!iso) return '—'
   try {
-    return new Date(iso).toLocaleDateString()
+    return localizedDate(new Date(iso))
   } catch {
     return iso
   }

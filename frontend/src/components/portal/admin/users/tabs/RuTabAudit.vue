@@ -25,6 +25,7 @@
 import { ref, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { usePortalAdminUsers } from '@/composables/portal/usePortalAdminUsers'
+import { localizedDate, localizedDateTime } from '@/utils/datetime'
 
 const props = defineProps({ user: { type: Object, required: true } })
 const api = usePortalAdminUsers()
@@ -49,7 +50,7 @@ onMounted(load)
 function fmt(value) {
   if (!value) return '—'
   try {
-    return new Date(value).toLocaleString()
+    return localizedDateTime(new Date(value))
   } catch {
     return value
   }
@@ -73,7 +74,7 @@ function tPerm(key) {
 function fmtDate(value) {
   if (!value) return t('requestsAdmin.users.drawer.audit.noLimit')
   try {
-    return new Date(value).toLocaleDateString()
+    return localizedDate(new Date(value))
   } catch {
     return value
   }

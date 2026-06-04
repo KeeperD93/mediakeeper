@@ -106,6 +106,7 @@ import { TOAST_TYPE } from '@/constants/toast'
 import { usePortalAdminUsers } from '@/composables/portal/usePortalAdminUsers'
 import MkAvatar from '@/components/common/MkAvatar.vue'
 import RuUserBadge from './RuUserBadge.vue'
+import { localizedDate } from '@/utils/datetime'
 import '@/assets/styles/portal/admin-users-modals.css'
 
 const props = defineProps({ open: { type: Boolean, default: false } })
@@ -175,7 +176,7 @@ function close() {
 function fmt(value) {
   if (!value) return '—'
   try {
-    return new Date(value).toLocaleDateString()
+    return localizedDate(new Date(value))
   } catch {
     return value
   }

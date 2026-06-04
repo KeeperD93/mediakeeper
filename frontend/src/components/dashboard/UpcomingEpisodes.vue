@@ -56,6 +56,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useApi } from '@/composables/useApi'
 import { tmdbWebUrl } from '@/utils/tmdb'
+import { localizedDate } from '@/utils/datetime'
 
 const CARD_W = 140
 const GAP = 14
@@ -160,7 +161,7 @@ function tmdbUrl(ep) {
 }
 function formatDate(dateStr) {
   if (!dateStr) return '—'
-  return new Date(dateStr + 'T00:00:00').toLocaleDateString(undefined, {
+  return localizedDate(new Date(dateStr + 'T00:00:00'), {
     day: 'numeric',
     month: 'short',
     year: 'numeric',

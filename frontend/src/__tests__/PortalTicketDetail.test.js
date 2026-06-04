@@ -9,6 +9,8 @@ vi.mock('vue-router', () => ({
   useRoute: () => ({ params: { id: '1' } }),
 }))
 
+vi.mock('@/i18n', () => ({ getLocale: () => 'fr' }))
+
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key, params) => (params ? `${key}:${JSON.stringify(params)}` : key),

@@ -35,6 +35,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { localizedDate } from '@/utils/datetime'
 
 const { apiGet } = useApi()
 const heatmapDays = ref([])
@@ -83,7 +84,7 @@ onMounted(async () => {
     days.push({
       date: d.toISOString().slice(0, 10),
       count: 0,
-      label: d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' }),
+      label: localizedDate(d, { day: 'numeric', month: 'short' }),
     })
   }
 

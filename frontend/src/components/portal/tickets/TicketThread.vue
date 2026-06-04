@@ -80,6 +80,7 @@ import { useI18n } from 'vue-i18n'
 import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 import { MessageSquare } from 'lucide-vue-next'
 import MkAvatar from '@/components/common/MkAvatar.vue'
+import { localizedDateTime } from '@/utils/datetime'
 
 import '@/assets/styles/portal/ticket-thread.css'
 
@@ -156,7 +157,7 @@ function formatRelative(iso) {
 
 function formatAbsolute(iso) {
   if (!iso) return ''
-  return new Date(iso).toLocaleString()
+  return localizedDateTime(new Date(iso))
 }
 
 async function onSubmit() {

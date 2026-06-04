@@ -31,6 +31,7 @@ This section intentionally has no date so it is not shown to users.
 - Notifications — toasts (module + now playing) now shown in your language.
 - Discord notifications — language follows the portal default.
 - TMDB links — open the page in the app language (watchlist, upcoming).
+- Dates now follow the app language (instead of the browser).
 
 ## [1.0.0-rc.4] - 2026-05-30
 

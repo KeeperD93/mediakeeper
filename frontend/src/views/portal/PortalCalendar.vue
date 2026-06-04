@@ -43,7 +43,7 @@
       <span>{{ isMovie(r) ? '🎬' : '📺' }}</span>
       <span class="pt-reminder-title">TMDB #{{ r.tmdb_id }}</span>
       <span class="pt-reminder-date">
-        {{ r.release_date ? new Date(r.release_date).toLocaleDateString() : '—' }}
+        {{ r.release_date ? localizedDate(new Date(r.release_date)) : '—' }}
       </span>
       <button class="pt-icon-btn" @click="removeRem(r.tmdb_id)"><i class="icon-x" /></button>
     </div>
@@ -56,6 +56,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { usePortalSocial } from '@/composables/portal/usePortalSocial'
 import { isMovie } from '@/constants/media'
+import { localizedDate } from '@/utils/datetime'
 
 defineEmits(['select'])
 
@@ -67,7 +68,7 @@ const upcomingItems = ref([])
 
 const monthLabel = computed(() => {
   const d = currentMonth.value
-  return d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
+  return localizedDate(d, { month: 'long', year: 'numeric' })
 })
 
 const calendarCells = computed(() => {
