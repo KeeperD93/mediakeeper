@@ -1,12 +1,12 @@
 <template>
-  <main class="pmaint-root">
+  <div class="pmaint-root">
     <div class="pmaint-card">
       <HardHat :size="96" :stroke-width="1.5" class="pmaint-icon" />
       <h1 class="pmaint-title">{{ $t('portal.maintenance.title') }}</h1>
       <p v-if="loaded" class="pmaint-text">{{ text }}</p>
       <p v-else class="pmaint-text pmaint-text--placeholder">&nbsp;</p>
     </div>
-  </main>
+  </div>
 </template>
 
 <script setup>

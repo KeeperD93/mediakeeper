@@ -104,6 +104,28 @@ export function useSurpriseOverlay(emit) {
       const id = winner.value.tmdb_id || winner.value.id
       const type = winner.value.media_type || 'movie'
       resolveTrailer(type, id, winner.value.emby_item_id || null)
+      localizeWinner(winner.value)
+    }
+  }
+
+  // The pool comes from Emby in the library's language; re-resolve the drawn
+  // pick's title + synopsis in the viewer's language from TMDB (no-op without a
+  // tmdb_id, keeps the Emby values on any failure).
+  async function localizeWinner(item) {
+    if (!item.tmdb_id) return
+    try {
+      const res = await apiGet(
+        `/api/portal/library/localized-meta?tmdb_id=${item.tmdb_id}&media_type=${item.media_type}`,
+      )
+      if (winner.value === item && res) {
+        winner.value = {
+          ...item,
+          title: res.title || item.title,
+          overview: res.overview || item.overview,
+        }
+      }
+    } catch {
+      /* keep the Emby title/overview */
     }
   }
 

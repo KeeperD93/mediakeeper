@@ -109,6 +109,29 @@
         </select>
       </label>
 
+      <!-- Default portal language for users who have not picked one -->
+      <label class="pt-setting-row">
+        <div class="pt-setting-info">
+          <span class="pt-setting-title">
+            {{ $t('portal.admin.settings.defaultLanguage.title') }}
+          </span>
+          <span class="pt-setting-desc">
+            {{ $t('portal.admin.settings.defaultLanguage.desc') }}
+          </span>
+        </div>
+        <select
+          class="pt-setting-select"
+          :value="settings.default_language"
+          :disabled="saving"
+          @change="update('default_language', $event.target.value)"
+        >
+          <option value="">{{ $t('portal.admin.settings.defaultLanguage.auto') }}</option>
+          <option v-for="loc in AVAILABLE_LOCALES" :key="loc.code" :value="loc.code">
+            {{ loc.label }}
+          </option>
+        </select>
+      </label>
+
       <!-- Maintenance mode toggle -->
       <div class="pt-setting-row">
         <div class="pt-setting-info">
@@ -168,6 +191,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { AVAILABLE_LOCALES } from '@/i18n'
 import { useApi } from '@/composables/useApi'
 import GdprSection from '@/components/portal/admin/GdprSection.vue'
 import MkToggle from '@/components/common/MkToggle.vue'
@@ -187,6 +211,7 @@ const settings = ref({
   'requests.auto_cleanup_days': 0,
   'events.max_participants_min': 5,
   'events.max_participants_max': 20,
+  default_language: '',
 })
 const maintenance = reactive({ enabled: false, text_fr: '', text_en: '' })
 const loading = ref(false)

@@ -18,12 +18,15 @@ This section intentionally has no date so it is not shown to users.
 - Posters — movie or series duration shown on hover everywhere.
 - Posters — TMDB rating (gold star) shown on hover.
 - Posters — title, release date and rating shown under the poster on mobile.
+- Preferences — "Default" language option that follows the portal default.
 
 ### Changed
 - Media detail — TMDB rating colour unified to gold.
 - Avatars — legendary ring (level 50): animated rainbow on every surface.
 
 ### Fixed
+- Maintenance mode — the portal is now fully locked (holding page only).
+- Surprise — the drawn pick's title and synopsis follow your language.
 - Settings — your rank colours applied on open (no flash).
 - Cinema room — Start button centred on screen, Emby launch made reliable.
 - Cinema room — trailer resumes when returning from the Emby tab.

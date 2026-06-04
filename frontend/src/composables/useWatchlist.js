@@ -14,6 +14,7 @@ const tracked = ref([])
 const loading = ref(false)
 const calCache = {}
 let calDirty = false
+let _scanSeq = 0 // monotonic token so only the latest scan fetch writes data
 
 // Timeline & Calendar — singleton, pre-filled in the background
 const timelineItems = ref([])
@@ -72,16 +73,24 @@ async function loadTracked() {
   }
 }
 
-async function loadScan() {
-  if (loading.value) return
+async function _fetchScan() {
+  // Only the latest scan wins: a slower in-flight fetch (e.g. the initial load
+  // still running when the viewer switches language) must not overwrite a newer
+  // locale's result.
+  const seq = ++_scanSeq
   loading.value = true
   try {
     const d = await apiGet('/api/watchlist/scan')
-    if (d) data.value = d
+    if (d && seq === _scanSeq) data.value = d
   } catch {
     /* ignore */
   }
-  loading.value = false
+  if (seq === _scanSeq) loading.value = false
+}
+
+async function loadScan() {
+  if (loading.value) return
+  await _fetchScan()
 }
 
 async function refreshScan() {
@@ -267,6 +276,19 @@ async function prefetchCalendar() {
   }
 }
 
+async function reloadForLocale() {
+  // Locale changed: the backend re-localizes display fields per request, so
+  // drop the locale-specific caches and refetch what the views show. Force the
+  // scan refetch (_fetchScan, not loadScan) so an in-flight scan can't swallow
+  // the locale refresh via loadScan's loading guard.
+  Object.keys(calCache).forEach(k => delete calCache[k])
+  calDirty = false
+  timelineLoading.value = true
+  await _fetchScan()
+  await prefetchCalendar()
+  calVersion.value++
+}
+
 async function searchTMDB(q) {
   try {
     const res = await apiFetch(`/api/watchlist/search?q=${encodeURIComponent(q)}`)
@@ -302,6 +324,7 @@ export function useWatchlist() {
     timelineItems: readonly(timelineItems),
     timelineLoading: readonly(timelineLoading),
     prefetchCalendar,
+    reloadForLocale,
     searchTMDB,
   }
 }

@@ -28,14 +28,18 @@ vi.mock('@/composables/useApi', () => ({
   }),
 }))
 
-vi.mock('vue-i18n', () => ({
-  useI18n: () => ({
-    t: (key, params) => {
-      if (params && typeof params === 'object') return `${key}:${JSON.stringify(params)}`
-      return key
-    },
-  }),
-}))
+vi.mock('vue-i18n', async () => {
+  const { ref } = await vi.importActual('vue')
+  return {
+    useI18n: () => ({
+      t: (key, params) => {
+        if (params && typeof params === 'object') return `${key}:${JSON.stringify(params)}`
+        return key
+      },
+      locale: ref('fr'),
+    }),
+  }
+})
 
 import UpcomingEpisodes from '@/components/dashboard/UpcomingEpisodes.vue'
 

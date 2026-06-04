@@ -58,9 +58,11 @@ _NON_BROWSER_LOADED_HOSTS = frozenset({
     "www.opensubtitles.com",
     "www.opensubtitles.org",
     "ffmpeg.org",
-    # Discord webhook URL — only used as validation prefix and as form
-    # placeholder text, never loaded as an iframe/img/script.
+    # Discord webhook URL hosts (modern + legacy alias) — only used as
+    # validation prefixes and as form placeholder text, never loaded as
+    # an iframe/img/script.
     "discord.com",
+    "discordapp.com",
     # SVG namespace literal in inline data: URIs.
     "www.w3.org",
     # RFC 5737 / IANA reserved example domains used in unit tests.

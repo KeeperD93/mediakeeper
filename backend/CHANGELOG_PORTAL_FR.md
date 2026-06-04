@@ -20,12 +20,15 @@ utilisateurs.
 - Jaquettes — durée du film ou série affichée au survol partout.
 - Jaquettes — note TMDB (étoile dorée) affichée au survol.
 - Jaquettes — titre, date et note affichés sous la vignette sur mobile.
+- Préférences — option « Par défaut » : la langue suit le défaut du portail.
 
 ### Changed
 - Fiche média — couleur de la note TMDB harmonisée en doré.
 - Avatars — anneau légendaire (niv. 50) : arc-en-ciel animé sur toutes les surfaces.
 
 ### Fixed
+- Mode maintenance — le portail est désormais entièrement verrouillé (page d'attente seule).
+- Surprise — titre et synopsis du tirage affichés dans votre langue.
 - Paramètres — couleurs de votre rang appliquées dès l'ouverture (plus de flash).
 - Salle ciné — bouton « Lancer » centré sur l'écran, ouverture Emby fiabilisée.
 - Salle ciné — bande-annonce reprend au retour de l'onglet Emby.

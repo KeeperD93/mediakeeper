@@ -7,7 +7,7 @@ import { TASK_STATUS } from '@/constants/scheduler'
 import { useConfirm } from '@/composables/useConfirm'
 
 export function useNotifs() {
-  const { t, locale } = useI18n()
+  const { t } = useI18n()
   const { apiGet, apiFetch } = useApi()
   const { showToast } = useToast()
   const mkConfirm = useConfirm()
@@ -110,7 +110,11 @@ export function useNotifs() {
       showToast(t('notifications.discord.invalidUrl'), TOAST_TYPE.ERR)
       return
     }
-    if (wh.url && !wh.url.startsWith('https://discord.com/api/webhooks/')) {
+    if (
+      wh.url &&
+      !wh.url.startsWith('https://discord.com/api/webhooks/') &&
+      !wh.url.startsWith('https://discordapp.com/api/webhooks/')
+    ) {
       showToast(t('notifications.discord.invalidUrl'), TOAST_TYPE.ERR)
       return
     }
@@ -125,7 +129,6 @@ export function useNotifs() {
             templates: wh.templates || {},
             settings: wh.settings || {},
             image_host: discord.image_host,
-            lang: locale.value,
           },
           test_type: type,
         }),
@@ -147,7 +150,9 @@ export function useNotifs() {
           enabled: discord.enabled,
           delay: discord.delay,
           image_host: discord.image_host,
-          webhooks: discord.webhooks,
+          // Strip the UI-only accordion flag: the backend WebhookItem schema is
+          // extra="forbid" and rejects an unknown `_open` field with a 422.
+          webhooks: discord.webhooks.map(({ _open, ...wh }) => wh),
         }),
       })
       if (res?.ok) {

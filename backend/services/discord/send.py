@@ -1,6 +1,8 @@
 """Sending Discord webhooks (tests + production)."""
 import logging
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from core.http_client import get_external_client
 from core.url_safety import is_discord_webhook_url
 from core.webhooks import post_signed_with_retry, webhook_log_id
@@ -8,6 +10,7 @@ from core.webhooks import post_signed_with_retry, webhook_log_id
 from ._defaults import DEFAULT_COLORS, get_default_templates
 from ._render import _hex_to_int, _apply_vars, _add_aliases, _build_embed
 from ._samples import SAMPLE_DATA, SAMPLE_SYSTEM
+from .payloads import _resolve_system_lang
 
 logger = logging.getLogger("mediakeeper.notifications.discord")
 
@@ -16,6 +19,7 @@ async def send_discord_test(
     webhook_url: str,
     wh_config: dict | None = None,
     test_type: str = "movie",
+    db: AsyncSession | None = None,
 ) -> dict:
     """Send a test message with sample data."""
     # Strict hostname check defeats ``https://discord.com@evil.com/...``
@@ -42,7 +46,9 @@ async def send_discord_test(
 
     tpl_key, vars_src = type_map[test_type]
     vars_dict = dict(vars_src)  # copy so we don't mutate SAMPLE_DATA
-    lang = wh_config.get("lang", "fr")
+    # Resolve the language like real notifications (instance default) so the
+    # test previews what users will receive, not the admin's UI locale.
+    lang = wh_config.get("lang") or await _resolve_system_lang(db)
     raw_tpl = templates.get(tpl_key) or get_default_templates(lang).get(tpl_key, "")
     tpl_settings = settings.get(tpl_key, {})
     color       = _hex_to_int(tpl_settings.get("color", DEFAULT_COLORS.get(tpl_key, 5763719)))

@@ -52,7 +52,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useApi } from '@/composables/useApi'
 
@@ -60,7 +60,7 @@ const CARD_W = 140
 const GAP = 14
 
 const { apiGet } = useApi()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const episodes = ref([])
 const loading = ref(true)
 const paused = ref(false)
@@ -99,7 +99,7 @@ const trackStyle = computed(() => ({
 
 async function fetchData() {
   try {
-    const data = await apiGet('/api/watchlist/upcoming')
+    const data = await apiGet(`/api/watchlist/upcoming?lang=${encodeURIComponent(locale.value)}`)
     if (Array.isArray(data) && data.length > 0) {
       episodes.value = data
       loading.value = false
@@ -144,6 +144,14 @@ onUnmounted(() => {
     }
     _motionQuery = null
   }
+})
+
+// Re-fetch when the UI language changes so titles + posters come back
+// localized (the backend resolves them per ``lang``).
+watch(locale, () => {
+  loading.value = true
+  episodes.value = []
+  fetchData()
 })
 
 function tmdbUrl(ep) {

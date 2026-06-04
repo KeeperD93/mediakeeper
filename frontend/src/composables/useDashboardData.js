@@ -17,6 +17,15 @@ try {
 
 const MAX_HISTORY = 15
 
+// Emby NowPlayingItem.Type -> i18n key for the toast subtitle. Unknown types
+// fall back to the raw value; episodes use their SxxExx code instead.
+const MEDIA_TYPE_KEYS = {
+  Movie: 'dashboard.mediaType.movie',
+  Episode: 'dashboard.mediaType.episode',
+  Audio: 'dashboard.mediaType.audio',
+  Trailer: 'dashboard.mediaType.trailer',
+}
+
 export function useDashboardData() {
   const { apiGet } = useApi()
   const { showToast } = useToast()
@@ -127,16 +136,14 @@ export function useDashboardData() {
         for (const s of active) {
           const sid = s.session_id || s.user + s.media
           if (!prevSessionIds.value.has(sid)) {
-            showToast(
-              `${s.user} is watching ${s.series || s.media || 'a media'}`,
-              TOAST_TYPE.MEDIA,
-              5000,
-              {
-                thumb: s.thumb_url || null,
-                user: s.user,
-                subtitle: s.episode || s.media_type || 'Now playing',
-              },
-            )
+            const title = s.series || s.media || t('dashboard.aMedia')
+            const typeKey = MEDIA_TYPE_KEYS[s.media_type]
+            showToast(t('dashboard.nowWatching', { user: s.user, title }), TOAST_TYPE.MEDIA, 5000, {
+              thumb: s.thumb_url || null,
+              user: s.user,
+              subtitle:
+                s.episode || (typeKey ? t(typeKey) : s.media_type) || t('dashboard.nowPlaying'),
+            })
             playNotifSound()
           }
         }

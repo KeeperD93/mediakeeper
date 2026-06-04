@@ -1,6 +1,6 @@
 """Portal profile endpoints."""
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,13 +15,14 @@ from services.portal._rank_tiers import tier_for_level
 from services.portal.achievement_defs import TITLE_REWARDS
 from services.portal.achievement_defs_meta import META_TARGET_CATEGORY
 from services.portal.profiles import (
-    update_profile, serialize_profile,
+    update_profile, serialize_profile_with_effective_lang,
 )
 
 router = APIRouter(prefix="/profiles", tags=["portal-profiles"])
 
 
 class ProfileUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     # ``avatar_url`` is intentionally omitted: a custom MediaKeeper avatar is
     # uploaded via POST /me/avatar (see api/portal/profile_settings.py),
     # while the Emby-proxied URL is owned by the auth flow.
@@ -102,7 +103,7 @@ async def get_my_profile(
 ):
     user, profile = up
     profile = await _prune_stale_decorations(db, profile, user.id)
-    return serialize_profile(profile, user=user)
+    return await serialize_profile_with_effective_lang(db, profile, user=user)
 
 
 @router.get("/me/titles")
@@ -176,7 +177,7 @@ async def update_my_profile(
         if not set(payload["selected_badges"]).issubset(unlocked_badges):
             raise HTTPException(status_code=403, detail="badge_not_unlocked")
     updated = await update_profile(db, profile, payload)
-    return serialize_profile(updated, user=user)
+    return await serialize_profile_with_effective_lang(db, updated, user=user)
 
 
 @router.get("/search/users")

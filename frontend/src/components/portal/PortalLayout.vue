@@ -1,7 +1,8 @@
 <template>
   <a href="#main-content" class="mk-skip-link">{{ $t('common.skipToMain') }}</a>
-  <div class="pt-layout">
+  <div class="pt-layout" :class="{ 'pt-layout--bare': isMaintenancePage }">
     <PortalNav
+      v-if="!isMaintenancePage"
       :active-tab="activeTab"
       :profile="profile"
       :is-admin="isAdmin"
@@ -19,6 +20,7 @@
     </main>
 
     <PortalBottomNav
+      v-if="!isMaintenancePage"
       :active-tab="activeTab"
       :show-requests-tab="showRequestsTab"
       @navigate="onNavigate"
@@ -29,7 +31,7 @@
          once per layout and keep the singleton websocket happy.
          Hidden while the user owes us a display name so they can't drop
          into chat under their pre-reset alias. -->
-    <HomeFab v-if="!mustPickUsername" @open-surprise="surpriseOpen = true" />
+    <HomeFab v-if="!mustPickUsername && !isMaintenancePage" @open-surprise="surpriseOpen = true" />
 
     <SurpriseOverlay v-if="surpriseOpen" @close="surpriseOpen = false" />
 
@@ -39,7 +41,7 @@
          What's-new and Daily-digest popups (whose z-index is higher than
          the portal overlay token) paint over the picker and trap them. -->
     <NewsPopup
-      v-if="showNewsPopup && !mustPickUsername"
+      v-if="showNewsPopup && !mustPickUsername && !isMaintenancePage"
       :items="unreadNews"
       @dismiss="dismissNews"
     />
@@ -47,15 +49,15 @@
     <!-- GDPR opt-in: persistent grace-period banner shown on every page
          while a deletion request is pending. EventBanner stacks below
          it so neither hides the other. -->
-    <DeletionPendingBanner />
+    <DeletionPendingBanner v-if="!isMaintenancePage" />
 
     <!-- Top scrolling banner for upcoming events I'm part of. -->
-    <EventBanner />
+    <EventBanner v-if="!isMaintenancePage" />
 
     <!-- "What's new" popup for the Portal viewer (auto-shows once per version,
          can also be manually re-opened from the avatar menu). -->
     <PortalWhatsNewModal
-      v-if="!mustPickUsername"
+      v-if="!mustPickUsername && !isMaintenancePage"
       :open="whatsNewOpen"
       @close="whatsNewOpen = false"
     />
@@ -63,7 +65,7 @@
     <!-- Daily digest overlay: auto-opens once per calendar day when there is
          content to show, can also be re-opened manually from the avatar menu. -->
     <PortalDailyDigestOverlay
-      v-if="!mustPickUsername"
+      v-if="!mustPickUsername && !isMaintenancePage"
       :open="dailyDigestOpen"
       @close="dailyDigestOpen = false"
     />
@@ -71,7 +73,7 @@
     <!-- Help center overlay — opened from the avatar menu. Lazy-rendered:
          the heavy article body / sanitised HTML is only fetched when the
          overlay is first opened. -->
-    <PortalHelpOverlay :open="helpOpen" @close="helpOpen = false" />
+    <PortalHelpOverlay v-if="!isMaintenancePage" :open="helpOpen" @close="helpOpen = false" />
 
     <!-- Blocking modal mounted via v-if so the picker is GUARANTEED to be
          visible whenever ``mustPickUsername`` is true: the modal arms in
@@ -112,10 +114,11 @@ const { unreadNews, fetchUnread, markRead } = usePortalNews()
 const { applyPortalLocale, restoreGlobalLocale } = usePortalLocale()
 const { initGlobalChat, shutdownGlobalChat } = usePortalChat()
 
-// Apply the user's Portal-preferred language as soon as the profile is loaded,
-// and react to live changes from profile/settings updates.
+// Apply the viewer's effective portal language (their explicit pick, or the
+// instance default when they inherit) as soon as the profile loads, and react
+// to live profile/settings updates.
 watch(
-  () => profile.value?.language,
+  () => profile.value?.effective_language,
   lang => {
     if (lang) applyPortalLocale(lang)
   },
@@ -165,6 +168,10 @@ const isAdmin = computed(() => profile.value?.role === USER_ROLE.ADMIN)
 // they can use anything else. Drives both the blocking ForceUsernameModal
 // and the v-if guards on the auto-popping overlays / FAB.
 const mustPickUsername = computed(() => !isAdmin.value && !!profile.value?.display_name_must_set)
+// Maintenance lockdown: non-admins are redirected here by the router guard.
+// Hide the whole portal chrome (nav, FAB, banners, auto-popping overlays) so
+// only the holding page — and the first-login username picker — remain.
+const isMaintenancePage = computed(() => route.name === 'portal-maintenance')
 // Backoffice access is its own gate: a Portal moderator (role=admin)
 // is not necessarily a backoffice operator. Imported Emby accounts
 // always fail the backoffice login because their stored hash is the
@@ -238,6 +245,12 @@ onMounted(async () => {
 /* Home page hero already fills the space, override */
 .pt-main > :deep(.pt-home),
 .pt-main > :deep(.vmd2-root) {
+  padding-top: 0;
+}
+
+/* Maintenance holding page renders without the top nav, so drop the nav
+   clearance — the card centres in the full viewport. */
+.pt-layout--bare .pt-main > :deep(*) {
   padding-top: 0;
 }
 

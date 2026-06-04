@@ -6,12 +6,14 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
+from core.i18n import get_request_locale
 from models.user import User
 from models.portal.profile import UserProfile
 from models.portal.xp_ledger import XpLedger
 from api.portal.deps import get_current_profile
 from services.portal import available as avail_svc
 from services.portal.achievements import safe_check_all_achievements_in_new_session
+from services.tmdb import get_media_detail
 
 router = APIRouter(prefix="/library", tags=["portal-available"])
 
@@ -103,3 +105,18 @@ async def surprise_pool(
         "surprise_used",
     )
     return {"items": items}
+
+
+@router.get("/localized-meta")
+async def localized_meta(
+    tmdb_id: int = Query(..., gt=0),
+    media_type: str = Query(..., pattern="^(movie|tv)$"),
+    locale: str = Depends(get_request_locale),
+    up: tuple[User, UserProfile] = Depends(get_current_profile),
+    db: AsyncSession = Depends(get_db),
+):
+    """Title + synopsis for one TMDB id, resolved to the viewer locale. The
+    Surprise overlay calls this on reveal so the drawn pick shows in the
+    viewer's language (the Emby pool serves them in the library's language)."""
+    detail = await get_media_detail(media_type, tmdb_id, db, locale)
+    return {"title": detail.get("title") or "", "overview": detail.get("overview") or ""}

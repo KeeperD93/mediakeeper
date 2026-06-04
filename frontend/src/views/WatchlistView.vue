@@ -36,6 +36,7 @@
 <script setup>
 defineOptions({ name: 'WatchlistView' })
 import { reactive, watch, onMounted, defineAsyncComponent } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useWatchlist } from '@/composables/useWatchlist'
 import { useTabSync } from '@/composables/useTabSync'
 const WlSeriesView = defineAsyncComponent(() => import('@/components/watchlist/WlSeriesView.vue'))
@@ -50,8 +51,17 @@ const WlIgnoredView = defineAsyncComponent(() => import('@/components/watchlist/
 import { ClipboardCheck, RefreshCw } from 'lucide-vue-next'
 import MkSpinner from '@/components/common/MkSpinner.vue'
 
-const { data, loading, loadIgnored, loadTracked, loadScan, refreshScan, prefetchCalendar } =
-  useWatchlist()
+const {
+  data,
+  loading,
+  loadIgnored,
+  loadTracked,
+  loadScan,
+  refreshScan,
+  prefetchCalendar,
+  reloadForLocale,
+} = useWatchlist()
+const { locale } = useI18n()
 const activeTab = useTabSync(['missing', 'timeline', 'suivi', 'calendar', 'ignored'], 'missing')
 
 // Lazy mount: only mount heavy tabs on first selection
@@ -64,6 +74,10 @@ watch(
   },
   { immediate: true },
 )
+
+// Re-localize watchlist content when the viewer's language changes (the backend
+// resolves display fields per request from the X-MK-Locale header).
+watch(locale, reloadForLocale)
 
 onMounted(async () => {
   await Promise.all([loadIgnored(), loadTracked()])

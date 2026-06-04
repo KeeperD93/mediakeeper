@@ -21,8 +21,8 @@
 
     <XpEventForm
       v-if="showForm"
-      v-model:form="form"
       v-model:selected-actions="selectedActions"
+      :form="form"
       :available-actions="availableActions"
       :can-save="canSave"
       :is-edit="!!editingId"

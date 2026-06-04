@@ -286,6 +286,20 @@
     "expand": "Étendre",
     "collapse": "Réduire"
   },
+  "toastModule": {
+    "dashboard": "Tableau de bord",
+    "statistics": "Statistiques",
+    "manager": "Gestionnaire",
+    "notifications": "Notifications",
+    "logs": "Journaux",
+    "health": "Santé",
+    "tracking": "Suivi",
+    "duplicates": "Doublons",
+    "subtitles": "Sous-titres",
+    "settings": "Paramètres",
+    "changelog": "Journal des modifications",
+    "app": "MediaKeeper"
+  },
   "topbar": {
     "logout": "Déconnexion",
     "theme": "Thème",
@@ -354,6 +368,14 @@
     "sessions": "Sessions actives",
     "noSessions": "Aucune session active",
     "nowPlaying": "En cours de lecture",
+    "nowWatching": "{user} regarde {title}",
+    "aMedia": "un média",
+    "mediaType": {
+      "movie": "Film",
+      "episode": "Épisode",
+      "audio": "Audio",
+      "trailer": "Bande-annonce"
+    },
     "listening": "En écoute",
     "recentActivity": "Activité récente",
     "noActivity": "Aucune activité récente",
@@ -3354,6 +3376,7 @@
       "preferences": {
         "languageSection": "Langue de l'interface",
         "languageHint": "Affecte l'app, les recommandations et les bandes-annonces.",
+        "languageDefault": "Par défaut",
         "genresSection": "Mes genres préférés",
         "genresHint": "Cochez les genres qui vous intéressent. Alimente vos recommandations."
       },
@@ -3570,6 +3593,11 @@
         "eventCapacityMax": {
           "title": "Capacité maximale d'un événement",
           "desc": "Plus grande valeur que les créateurs peuvent choisir lors de la création d'un événement (paliers de 5)."
+        },
+        "defaultLanguage": {
+          "title": "Langue par défaut du portail",
+          "desc": "Langue par défaut des nouveaux utilisateurs jusqu'à ce qu'ils choisissent la leur ; « Auto » suit le défaut serveur.",
+          "auto": "Auto"
         },
         "maintenance": {
           "title": "Mode maintenance",

@@ -11,14 +11,22 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ### Added
 - Planificateur — scan d'index Emby (ajouts récents + complet), délai configurable.
+- Portail — langue par défaut du portail configurable (réglages admin).
 
 ### Changed
 - Tableau de bord — 30 prochaines sorties affichées (au lieu de 20).
 
 ### Fixed
+- Notifications — l'enregistrement d'un webhook Discord n'échoue plus.
+- Notifications — le message test Discord suit la langue par défaut configurée.
 - Stats — Utilisateurs et fusion : photo de profil (perso ou Emby) désormais affichée.
 - Stats — survol des utilisateurs actifs : noms affichés au lieu des identifiants.
 - Médiathèque — le détail des pistes n'échoue plus sur un fichier corrompu.
+- Tableau de bord — « Prochaines sorties » affichées dans votre langue.
+- Médiathèque — fiches détail TMDB affichées dans votre langue (repli anglais).
+- Watchlist — séries, épisodes et synopsis affichés dans votre langue.
+- Notifications — toasts (module + lecture en cours) affichés dans votre langue.
+- Notifications Discord — langue suit le défaut du portail.
 
 ## [1.0.0-rc.4] - 2026-05-30
 

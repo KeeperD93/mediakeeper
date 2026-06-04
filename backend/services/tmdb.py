@@ -11,6 +11,23 @@ logger = logging.getLogger("mediakeeper.tmdb")
 TMDB_BASE    = "https://api.themoviedb.org/3"
 LANGUAGE     = os.getenv("TMDB_LANGUAGE", "fr-FR")
 
+# 2-letter UI locale -> TMDB region. Generic so a new language needs at most
+# one entry here (and still works via the xx-XX fallback). The viewer locale
+# itself is resolved per request in core.i18n.
+_TMDB_REGION = {
+    "fr": "FR", "en": "US", "de": "DE", "es": "ES", "it": "IT",
+    "pt": "BR", "ja": "JP", "ru": "RU", "zh": "CN", "ko": "KR", "nl": "NL",
+}
+
+
+def tmdb_language(locale: str | None) -> str:
+    """Map a 2-letter UI locale to a TMDB ``xx-YY`` code (blank -> ``LANGUAGE``)."""
+    code = (locale or "").strip().lower()[:2]
+    if len(code) != 2 or not code.isalpha():
+        return LANGUAGE
+    return f"{code}-{_TMDB_REGION.get(code, code.upper())}"
+
+
 # In-memory key cache (avoids a DB call on every request)
 _cached_key: str = ""
 
@@ -208,22 +225,40 @@ async def get_season_episodes(tmdb_id: int, season: int, db: AsyncSession | None
         return {"error": "tmdb_episodes_failed"}
 
 
-async def get_media_detail(media_type: str, tmdb_id: int, db: AsyncSession | None = None) -> dict:
+async def get_media_detail(media_type: str, tmdb_id: int, db: AsyncSession | None = None, locale: str | None = None) -> dict:
     """
-    Fetch the full details of a movie or series.
+    Fetch the full details of a movie or series, localized to ``locale``
+    (2-letter UI locale; defaults to ``LANGUAGE``). Falls back to the English
+    overview when the localized one is blank so it is never left empty.
     media_type: "movie" or "tv"
     """
     api_key = await _get_tmdb_key(db)
     title_key = "title" if media_type == "movie" else "name"
     date_key = "release_date" if media_type == "movie" else "first_air_date"
+    lang = tmdb_language(locale)
     try:
         client = get_external_client()
         res = await client.get(
             f"{TMDB_BASE}/{media_type}/{tmdb_id}",
-            params={"language": LANGUAGE},
+            params={"language": lang},
             headers=_tmdb_headers_sync(api_key),
         )
         d = res.json()
+        # Language cascade: fall back to the English overview when the
+        # localized one is empty (a common TMDB gap for non-English languages).
+        if not (d.get("overview") or "").strip() and not lang.startswith("en"):
+            try:
+                res_en = await client.get(
+                    f"{TMDB_BASE}/{media_type}/{tmdb_id}",
+                    params={"language": "en-US"},
+                    headers=_tmdb_headers_sync(api_key),
+                )
+                if res_en.status_code == 200:
+                    en_overview = (res_en.json().get("overview") or "").strip()
+                    if en_overview:
+                        d["overview"] = en_overview
+            except Exception:
+                logger.debug("[tmdb] get_media_detail en overview fallback failed", exc_info=True)
         result = {
             "id": d.get("id"),
             "title": d.get(title_key, ""),

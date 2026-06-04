@@ -1,5 +1,5 @@
 import json
-from unittest.mock import AsyncMock, patch
+from unittest.mock import ANY, AsyncMock, patch
 
 import pytest
 
@@ -254,4 +254,4 @@ async def test_discord_test_can_use_stored_webhook_id(client, admin_user, db_ses
         })
 
     assert resp.status_code == 200
-    mocked.assert_awaited_once_with("https://discord.com/api/webhooks/2/token", {}, "movie")
+    mocked.assert_awaited_once_with("https://discord.com/api/webhooks/2/token", {}, "movie", ANY)

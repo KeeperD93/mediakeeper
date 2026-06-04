@@ -84,7 +84,8 @@ async def _analyze_one(db: AsyncSession, emby_item: dict) -> dict | None:
     return {
         "series_id": series_id, "tmdb_id": tmdb_id,
         "library_id": emby_item.get("ParentId", ""),
-        "name": emby_item.get("Name", ""),
+        # Series name from TMDB (localizable per viewer at read-time); Emby name fallback.
+        "name": td.get("name") or emby_item.get("Name", ""),
         "year": (emby_item.get("PremiereDate") or "")[:4],
         "poster": f"https://image.tmdb.org/t/p/w300{pp}" if pp else "",
         "emby_poster": f"/api/emby/image/{series_id}",

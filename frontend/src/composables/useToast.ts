@@ -20,19 +20,20 @@ export interface ToastItem {
 const toasts = ref<ToastItem[]>([])
 let toastId = 0
 
+// i18n keys, resolved with t() in the toast renderer — never raw English labels.
 const ROUTE_MODULES: Record<string, string> = {
-  '/': 'Dashboard',
-  '/dashboard': 'Dashboard',
-  '/stats': 'Statistics',
-  '/media-manager': 'Manager',
-  '/notifications': 'Notifications',
-  '/logs': 'Logs',
-  '/healthcheck': 'Health',
-  '/watchlist': 'Tracking',
-  '/duplicates': 'Duplicates',
-  '/subtitles': 'Subtitles',
-  '/settings': 'Settings',
-  '/changelog': 'Changelog',
+  '/': 'toastModule.dashboard',
+  '/dashboard': 'toastModule.dashboard',
+  '/stats': 'toastModule.statistics',
+  '/media-manager': 'toastModule.manager',
+  '/notifications': 'toastModule.notifications',
+  '/logs': 'toastModule.logs',
+  '/healthcheck': 'toastModule.health',
+  '/watchlist': 'toastModule.tracking',
+  '/duplicates': 'toastModule.duplicates',
+  '/subtitles': 'toastModule.subtitles',
+  '/settings': 'toastModule.settings',
+  '/changelog': 'toastModule.changelog',
 }
 
 let _routerInstance: Router | null = null
@@ -64,7 +65,7 @@ export function useToast(): UseToastApi {
   ): void {
     const id = ++toastId
     const path = _routerInstance?.currentRoute?.value?.path || '/'
-    const module = ROUTE_MODULES[path] || 'MediaKeeper'
+    const module = ROUTE_MODULES[path] || 'toastModule.app'
     toasts.value.push({ id, message, type, meta, module })
 
     if (duration > 0) {

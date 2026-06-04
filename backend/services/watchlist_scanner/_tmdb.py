@@ -9,9 +9,16 @@ logger = logging.getLogger("mediakeeper.watchlist.scanner")
 
 TMDB_BASE = "https://api.themoviedb.org/3"
 
-_tmdb_series_cache: dict[int, tuple[float, dict]] = {}
-_tmdb_season_cache: dict[tuple[int, int], tuple[float, dict]] = {}
+# Cache keyed by (tmdb_id, lang) / (tmdb_id, season, lang) so the same
+# series can be cached in several languages side by side.
+_tmdb_series_cache: dict[tuple[int, str], tuple[float, dict]] = {}
+_tmdb_season_cache: dict[tuple[int, int, str], tuple[float, dict]] = {}
 _TMDB_CACHE_TTL = 6 * 3600
+
+# The scanner fetches in the default language; consumers (e.g. the dashboard
+# "upcoming" widget) re-resolve display fields per viewer locale.
+DEFAULT_TMDB_LANG = "fr-FR"
+TMDB_LANG_BY_LOCALE = {"fr": "fr-FR", "en": "en-US"}
 
 
 def _h(api_key: str) -> dict:
@@ -29,27 +36,28 @@ def _get_cached_tmdb_entry(cache: dict, key):
     return data
 
 
-async def _tmdb_series(db, tmdb_id):
-    cached = _get_cached_tmdb_entry(_tmdb_series_cache, tmdb_id)
+async def _tmdb_series(db, tmdb_id, lang=DEFAULT_TMDB_LANG):
+    cache_key = (tmdb_id, lang)
+    cached = _get_cached_tmdb_entry(_tmdb_series_cache, cache_key)
     if cached:
         return cached
     ak = await _get_tmdb_key(db)
     if not ak:
         return None
     try:
-        r = await get_external_client().get(f"{TMDB_BASE}/tv/{tmdb_id}", params={"language": "fr-FR"}, headers=_h(ak), timeout=10.0)
+        r = await get_external_client().get(f"{TMDB_BASE}/tv/{tmdb_id}", params={"language": lang}, headers=_h(ak), timeout=10.0)
         if r.status_code == 200:
             data = r.json()
-            _tmdb_series_cache[tmdb_id] = (time.time(), data)
+            _tmdb_series_cache[cache_key] = (time.time(), data)
             return data
         return None
     except Exception as e:
-        logger.error(f"_tmdb_series({tmdb_id}): {e}")
+        logger.error("_tmdb_series(%s, %s): %s", tmdb_id, lang, e)
         return None
 
 
-async def _tmdb_season(db, tmdb_id, sn):
-    cache_key = (tmdb_id, sn)
+async def _tmdb_season(db, tmdb_id, sn, lang=DEFAULT_TMDB_LANG):
+    cache_key = (tmdb_id, sn, lang)
     cached = _get_cached_tmdb_entry(_tmdb_season_cache, cache_key)
     if cached:
         return cached
@@ -57,12 +65,12 @@ async def _tmdb_season(db, tmdb_id, sn):
     if not ak:
         return None
     try:
-        r = await get_external_client().get(f"{TMDB_BASE}/tv/{tmdb_id}/season/{sn}", params={"language": "fr-FR"}, headers=_h(ak), timeout=10.0)
+        r = await get_external_client().get(f"{TMDB_BASE}/tv/{tmdb_id}/season/{sn}", params={"language": lang}, headers=_h(ak), timeout=10.0)
         if r.status_code == 200:
             data = r.json()
             _tmdb_season_cache[cache_key] = (time.time(), data)
             return data
         return None
     except Exception as e:
-        logger.error(f"_tmdb_season({tmdb_id},S{sn}): {e}")
+        logger.error("_tmdb_season(%s, S%s, %s): %s", tmdb_id, sn, lang, e)
         return None

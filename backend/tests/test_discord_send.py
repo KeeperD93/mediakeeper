@@ -194,3 +194,25 @@ async def test_send_discord_test_signs_payload(monkeypatch):
     assert captured[0]["headers"][webhooks.SIGNATURE_HEADER_NAME].startswith(
         "sha256="
     )
+
+
+@pytest.mark.asyncio
+async def test_send_discord_test_resolves_instance_default_lang(monkeypatch):
+    """With no per-call lang, the test message language follows the instance
+    default (like real notifications), not the admin's UI locale or 'fr'."""
+    post_mock, _ = _make_post_mock([_FakeResponse(204)])
+    fake_client = AsyncMock()
+    fake_client.post = post_mock
+    captured_lang = {}
+
+    def _fake_templates(lang):
+        captured_lang["lang"] = lang
+        return {"added_movie": "sample"}
+
+    with patch("services.discord.send.get_external_client", return_value=fake_client), \
+         patch("services.discord.send._resolve_system_lang", new=AsyncMock(return_value="en")), \
+         patch("services.discord.send.get_default_templates", side_effect=_fake_templates):
+        res = await send_discord_test(VALID_DISCORD_URL, wh_config={}, test_type="movie", db=object())
+
+    assert res == {"success": True}
+    assert captured_lang["lang"] == "en"

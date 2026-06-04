@@ -227,6 +227,15 @@ async def test_put_me_rejects_reserved_name(client, db_session):
 
 
 @pytest.mark.asyncio
+async def test_put_me_rejects_unknown_field(client, db_session):
+    # ProfileUpdate uses extra="forbid": an unknown key is a 422, not silently dropped.
+    user, _ = await make_portal_user(db_session, username="ulrich", display_name="Ulrich")
+    client.cookies.set(PORTAL_COOKIE, portal_token(user.username))
+    resp = await client.put("/api/portal/profiles/me", json={"bogus_field": "x"})
+    assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
 async def test_admin_can_keep_admin_username(client, db_session):
     admin, _ = await make_portal_user(
         db_session, username="admin", display_name="admin", role="admin",
