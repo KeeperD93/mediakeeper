@@ -34,6 +34,7 @@ utilisateurs.
 - Salle ciné — bande-annonce reprend au retour de l'onglet Emby.
 - Salle ciné — décompte d'intro synchronisé avec le compte à rebours.
 - Salle ciné — plus de requêtes en boucle après avoir quitté la salle.
+- Découvrir — listes (tendances, populaires, etc.) affichées dans votre langue.
 
 ## [1.0.0-rc.4] - 2026-05-30
 
