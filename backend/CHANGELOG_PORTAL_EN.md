@@ -32,6 +32,7 @@ This section intentionally has no date so it is not shown to users.
 - Cinema room — trailer resumes when returning from the Emby tab.
 - Cinema room — intro countdown synced with the main countdown.
 - Cinema room — no more looping requests after leaving the room.
+- Requests — titles follow your language.
 
 ## [1.0.0-rc.4] - 2026-05-30
 
