@@ -30,6 +30,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Watchlist — médias suivis (onglet Suivi) affichés dans votre langue.
 - Notifications — toasts (module + lecture en cours) affichés dans votre langue.
 - Notifications Discord — langue suit le défaut du portail.
+- Liens TMDB — ouvrent la fiche dans la langue de l'app (watchlist, prochaines sorties).
 
 ## [1.0.0-rc.4] - 2026-05-30
 
