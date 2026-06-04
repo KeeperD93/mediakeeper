@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from api.changelog import APP_VERSION, _merge_changelogs
+from api.changelog import APP_VERSION, _has_entries, _merge_changelogs, _parse_changelog
 from api.portal_changelog import PORTAL_VERSION
 
 
@@ -159,3 +159,18 @@ async def test_combined_seen_rejects_extra_fields(client, admin_user, monkeypatc
         json={"unknown_field": "x"},
     )
     assert resp.status_code == 422
+
+
+def test_admin_parser_skips_empty_versions(monkeypatch, tmp_path):
+    """A version that shipped only portal changes parses to no admin entry and
+    must be dropped instead of rendering as a blank card."""
+    sample = (
+        "## [9.9.9] - 2026-01-03\n\n### Added\n- Real.\n\n"
+        "## [9.9.8] - 2026-01-02\n\n"
+        "## [9.9.7] - 2026-01-01\n\n### Fixed\n- Fix.\n"
+    )
+    f = tmp_path / "CHANGELOG_FR.md"
+    f.write_text(sample, encoding="utf-8")
+    monkeypatch.setattr("api.changelog._find_changelog", lambda lang="fr": f)
+    assert [v["version"] for v in _parse_changelog(lang="fr")] == ["9.9.9", "9.9.7"]
+    assert _has_entries({"categories": {}}) is False

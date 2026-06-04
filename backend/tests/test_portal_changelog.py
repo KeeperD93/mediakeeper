@@ -2,7 +2,7 @@
 
 import pytest
 
-from api.portal_changelog import PORTAL_VERSION, _parse_changelog
+from api.portal_changelog import PORTAL_VERSION, _has_entries, _parse_changelog
 from core.security import create_access_token, hash_password
 from models.user import User
 from models.portal.profile import UserProfile
@@ -85,3 +85,51 @@ async def test_changelog_list_requires_auth(client):
     """GET /api/portal/changelog/ must reject unauthenticated requests."""
     resp = await client.get("/api/portal/changelog/")
     assert resp.status_code in (401, 403)
+
+
+def test_has_entries_detects_empty_versions():
+    assert _has_entries({"categories": {"Added": ["x"]}}) is True
+    assert _has_entries({"categories": {}}) is False
+    assert _has_entries({"categories": {"Added": []}}) is False  # header, no items
+
+
+# [Unreleased] is dropped (no date); 9.9.8 has no categories; 9.9.6 has an
+# empty category header — only 9.9.9 and 9.9.7 carry real entries.
+_SAMPLE = """## [Unreleased]
+
+### Added
+- unreleased item
+
+## [9.9.9] - 2026-01-03
+
+### Added
+- Real feature.
+
+## [9.9.8] - 2026-01-02
+
+## [9.9.7] - 2026-01-01
+
+### Fixed
+- Real fix.
+
+## [9.9.6] - 2025-12-31
+
+### Added
+"""
+
+
+def test_parser_skips_empty_versions(monkeypatch, tmp_path):
+    f = tmp_path / "CHANGELOG_PORTAL_FR.md"
+    f.write_text(_SAMPLE, encoding="utf-8")
+    monkeypatch.setattr("api.portal_changelog._find_changelog", lambda lang="fr": f)
+    versions = _parse_changelog(lang="fr")
+    assert [v["version"] for v in versions] == ["9.9.9", "9.9.7"]
+    assert versions[0]["categories"] == {"Added": ["Real feature."]}
+
+
+def test_parser_limit_counts_only_non_empty(monkeypatch, tmp_path):
+    f = tmp_path / "CHANGELOG_PORTAL_FR.md"
+    f.write_text(_SAMPLE, encoding="utf-8")
+    monkeypatch.setattr("api.portal_changelog._find_changelog", lambda lang="fr": f)
+    versions = _parse_changelog(lang="fr", max_versions=1)
+    assert [v["version"] for v in versions] == ["9.9.9"]

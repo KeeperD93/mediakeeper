@@ -39,6 +39,7 @@ utilisateurs.
 - Fiche média — lien TMDB ouvre dans la langue de l'app.
 - Dates affichées dans votre langue (au lieu de celle du navigateur).
 - Découvrir — listes (tendances, populaires, etc.) affichées dans votre langue.
+- Changelog — versions sans nouveauté masquées (plus de cartes vides).
 
 ## [1.0.0-rc.4] - 2026-05-30
 
