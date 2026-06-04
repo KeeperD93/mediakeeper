@@ -201,7 +201,7 @@
                   v-if="ach.status === TROPHY_STATUS.UNLOCKED && ach.unlocked_at"
                   class="ta-row-date"
                 >
-                  {{ new Date(ach.unlocked_at).toLocaleDateString() }}
+                  {{ localizedDate(new Date(ach.unlocked_at)) }}
                 </div>
               </div>
               <button
@@ -236,6 +236,7 @@ import { ref, computed, watch, nextTick } from 'vue'
 import { HelpCircle, Gift, Pin, Crown, Search, Sparkles } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
 import { TROPHY_STATUS, TROPHY_CATEGORY } from '@/constants/achievements'
+import { localizedDate } from '@/utils/datetime'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },

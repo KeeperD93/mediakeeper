@@ -95,6 +95,7 @@ import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import { USER_ROLE } from '@/constants/auth'
 import TicketThread from '@/components/portal/tickets/TicketThread.vue'
+import { localizedDateTime } from '@/utils/datetime'
 
 import '@/assets/styles/portal/ticket-detail.css'
 
@@ -151,7 +152,7 @@ const scopeLabel = computed(() => {
 
 function formatDate(iso) {
   if (!iso) return ''
-  return new Date(iso).toLocaleString()
+  return localizedDateTime(new Date(iso))
 }
 
 async function onReply(content) {
