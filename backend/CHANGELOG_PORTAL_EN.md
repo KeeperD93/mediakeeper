@@ -36,6 +36,7 @@ This section intentionally has no date so it is not shown to users.
 - Requests — titles follow your language.
 - Media detail — TMDB link opens in the app language.
 - Dates now shown in your language (instead of the browser).
+- Discover — lists (trending, popular, …) now shown in your language.
 
 ## [1.0.0-rc.4] - 2026-05-30
 
