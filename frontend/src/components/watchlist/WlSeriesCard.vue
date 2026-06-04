@@ -114,6 +114,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Ban, Check, ChevronDown, Copy } from 'lucide-vue-next'
 import { EPISODE_STATUS } from '@/constants/watchlist'
 
@@ -122,6 +123,7 @@ const props = defineProps({
   ignoredSet: Object,
 })
 const emit = defineEmits(['ignore-ep', 'ignore-season'])
+const { locale } = useI18n()
 
 // ── LOCAL state to this card ──
 const open = ref(false)
@@ -172,7 +174,7 @@ function pad(n) {
 }
 function formatDate(d) {
   if (!d) return ''
-  return new Date(d).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })
+  return new Date(d).toLocaleDateString(locale.value, { day: '2-digit', month: 'short' })
 }
 
 function copyTitle() {

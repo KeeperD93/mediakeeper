@@ -26,6 +26,7 @@ This section intentionally has no date so it is not shown to users.
 - Media library — TMDB detail pages now shown in your language (English fallback).
 - Watchlist — series, episodes and synopsis now shown in your language.
 - Watchlist — calendar movies now shown in your language.
+- Watchlist — calendar month and day names follow the app language.
 - Notifications — toasts (module + now playing) now shown in your language.
 - Discord notifications — language follows the portal default.
 

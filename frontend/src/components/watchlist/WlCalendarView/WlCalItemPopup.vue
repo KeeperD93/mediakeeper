@@ -45,17 +45,20 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import { Calendar, X } from 'lucide-vue-next'
 
 defineProps({ popup: { type: Object, required: true } })
 defineEmits(['close'])
+
+const { locale } = useI18n()
 
 function pad(n) {
   return String(n).padStart(2, '0')
 }
 function formatFullDate(d) {
   if (!d) return ''
-  return new Date(d).toLocaleDateString(undefined, {
+  return new Date(d).toLocaleDateString(locale.value, {
     day: 'numeric',
     month: 'long',
     year: 'numeric',

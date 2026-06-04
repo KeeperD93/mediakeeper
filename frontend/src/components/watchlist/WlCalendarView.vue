@@ -37,6 +37,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, onActivated, reactive, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useWatchlist } from '@/composables/useWatchlist'
 import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import MkSpinner from '@/components/common/MkSpinner.vue'
@@ -44,6 +45,7 @@ import WlCalGrid from './WlCalendarView/WlCalGrid.vue'
 import WlCalItemPopup from './WlCalendarView/WlCalItemPopup.vue'
 import WlCalDayModal from './WlCalendarView/WlCalDayModal.vue'
 const { getCalendar, calVersion } = useWatchlist()
+const { locale } = useI18n()
 
 const isMobile = ref(false)
 function updateIsMobile() {
@@ -53,7 +55,7 @@ function updateIsMobile() {
 const monthNames = computed(() =>
   Array.from({ length: 12 }, (_, i) =>
     new Date(2000, i, 1)
-      .toLocaleDateString(undefined, { month: 'long' })
+      .toLocaleDateString(locale.value, { month: 'long' })
       .replace(/^./, c => c.toUpperCase()),
   ),
 )
@@ -61,7 +63,7 @@ const dayNames = computed(() => {
   const days = []
   for (let i = 1; i <= 7; i++) {
     const d = new Date(2018, 0, i)
-    days.push(d.toLocaleDateString(undefined, { weekday: 'short' }).slice(0, 3).toUpperCase())
+    days.push(d.toLocaleDateString(locale.value, { weekday: 'short' }).slice(0, 3).toUpperCase())
   }
   return days
 })
@@ -103,7 +105,7 @@ function isToday(day) {
   return dateStr(day) === todayStr.value
 }
 function formatDayTitle(day) {
-  return new Date(dateStr(day)).toLocaleDateString(undefined, {
+  return new Date(dateStr(day)).toLocaleDateString(locale.value, {
     weekday: 'long',
     day: 'numeric',
     month: 'long',

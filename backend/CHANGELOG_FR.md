@@ -26,6 +26,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Médiathèque — fiches détail TMDB affichées dans votre langue (repli anglais).
 - Watchlist — séries, épisodes et synopsis affichés dans votre langue.
 - Watchlist — films du calendrier affichés dans votre langue.
+- Watchlist — mois et jours du calendrier suivent la langue de l'app.
 - Notifications — toasts (module + lecture en cours) affichés dans votre langue.
 - Notifications Discord — langue suit le défaut du portail.
 
