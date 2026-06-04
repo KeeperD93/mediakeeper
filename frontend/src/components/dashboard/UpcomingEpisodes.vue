@@ -55,6 +55,7 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useApi } from '@/composables/useApi'
+import { tmdbWebUrl } from '@/utils/tmdb'
 
 const CARD_W = 140
 const GAP = 14
@@ -155,7 +156,7 @@ watch(locale, () => {
 })
 
 function tmdbUrl(ep) {
-  return ep.tmdb_id ? `https://www.themoviedb.org/tv/${ep.tmdb_id}` : '#'
+  return ep.tmdb_id ? tmdbWebUrl('tv', ep.tmdb_id, locale.value) : '#'
 }
 function formatDate(dateStr) {
   if (!dateStr) return '—'
