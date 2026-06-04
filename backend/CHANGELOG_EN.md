@@ -27,6 +27,7 @@ This section intentionally has no date so it is not shown to users.
 - Watchlist — series, episodes and synopsis now shown in your language.
 - Watchlist — calendar movies now shown in your language.
 - Watchlist — calendar month and day names follow the app language.
+- Watchlist — followed media (Suivi tab) shown in your language.
 - Notifications — toasts (module + now playing) now shown in your language.
 - Discord notifications — language follows the portal default.
 

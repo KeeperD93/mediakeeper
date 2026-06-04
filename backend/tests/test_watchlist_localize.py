@@ -152,3 +152,40 @@ async def test_calendar_default_locale_served_as_is(authed_client, monkeypatch):
     r = await authed_client.get(_CAL, params={"year": 2030, "month": 1})
     assert r.status_code == 200
     assert r.json()[0]["series_name"] == "Emby A"  # no re-resolution at default
+
+
+_TRACKED = "/api/watchlist/tracked"
+
+
+def _patch_tracked(monkeypatch, items):
+    async def _fake(db):
+        return items
+    monkeypatch.setattr("api.watchlist.get_tracked", _fake)
+
+
+def _tracked_items() -> list[dict]:
+    return [
+        {"tmdb_id": 99, "media_type": "movie", "name": "Film FR", "overview": "synopsis FR", "poster": "/old.jpg"},
+        {"tmdb_id": 7, "media_type": "tv", "name": "Serie FR", "overview": "ov FR", "poster": "/old2.jpg"},
+    ]
+
+
+@pytest.mark.asyncio
+async def test_tracked_localizes_name_and_overview(authed_client, monkeypatch):
+    _patch_tmdb(monkeypatch)
+    _patch_tracked(monkeypatch, _tracked_items())
+    r = await authed_client.get(_TRACKED, headers={"X-MK-Locale": "en"})
+    assert r.status_code == 200
+    movie = next(i for i in r.json() if i["media_type"] == "movie")
+    assert movie["name"] == "Movie99 [en]"
+    assert movie["overview"] == "Ov99 [en]"
+    assert movie["poster"] == "https://image.tmdb.org/t/p/w300/m99.jpg"
+
+
+@pytest.mark.asyncio
+async def test_tracked_default_locale_served_as_is(authed_client, monkeypatch):
+    _patch_tmdb(monkeypatch)
+    _patch_tracked(monkeypatch, _tracked_items())
+    r = await authed_client.get(_TRACKED)  # default locale -> no re-resolution
+    assert r.status_code == 200
+    assert next(i for i in r.json() if i["media_type"] == "movie")["name"] == "Film FR"

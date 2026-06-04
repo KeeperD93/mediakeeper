@@ -128,3 +128,33 @@ async def localize_calendar_items(db: AsyncSession, items: list[dict], locale: s
         }
 
     return await asyncio.gather(*(_one(it) for it in items))
+
+
+async def localize_tracked_items(db: AsyncSession, items: list[dict], locale: str) -> list[dict]:
+    """Re-resolve tracked media (Suivi tab) name + synopsis to ``locale``. The
+    tracked list is stored in the default language at track time; movies and
+    series are both re-resolved via the TMDB detail endpoint. Default locale
+    served as-is, input never mutated."""
+    lang = tmdb_language(locale)
+    if lang == DEFAULT_TMDB_LANG or not items:
+        return items
+    if not await _get_tmdb_key(db):  # warm the key cache; no key -> serve as-is
+        return items
+    sem = asyncio.Semaphore(_LOCALIZE_CONCURRENCY)
+
+    async def _one(it: dict) -> dict:
+        tid, mt = it.get("tmdb_id"), it.get("media_type")
+        if not tid or mt not in ("movie", "tv"):
+            return it
+        async with sem:
+            detail = await get_media_detail(mt, tid, db, locale)
+        if detail.get("error"):
+            return it
+        return {
+            **it,
+            "name": detail.get("title") or it.get("name", ""),
+            "overview": ((detail.get("overview") or "").strip() or it.get("overview", ""))[:400],
+            "poster": detail.get("poster") or it.get("poster", ""),
+        }
+
+    return await asyncio.gather(*(_one(it) for it in items))
