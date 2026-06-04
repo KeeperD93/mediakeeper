@@ -18,10 +18,14 @@
           <div class="wlcal-popup-ep">
             {{
               popup.item?.is_movie
-                ? $t('common.film')
+                ? $t('dashboard.movieRelease')
                 : 'S' + pad(popup.item?.season || 0) + 'E' + pad(popup.item?.episode || 0)
             }}
-            {{ popup.item?.episode_name ? ' · ' + popup.item.episode_name : '' }}
+            {{
+              !popup.item?.is_movie && popup.item?.episode_name
+                ? ' · ' + popup.item.episode_name
+                : ''
+            }}
           </div>
           <div v-if="popup.item?.air_date || popup.item?.date" class="wlcal-popup-date">
             <Calendar :size="10" :stroke-width="1.8" />

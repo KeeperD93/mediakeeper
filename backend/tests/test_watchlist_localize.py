@@ -27,12 +27,21 @@ async def _fake_season(db, tmdb_id, sn, lang):
     return {"episodes": [{"episode_number": e, "name": f"S{sn}E{e} [{lang}]"} for e in range(1, 4)]}
 
 
+async def _fake_detail(media_type, tmdb_id, db=None, locale=None):
+    return {
+        "title": f"Movie{tmdb_id} [{locale}]",
+        "overview": f"Ov{tmdb_id} [{locale}]",
+        "poster": f"https://image.tmdb.org/t/p/w300/m{tmdb_id}.jpg",
+    }
+
+
 async def _fake_key(db=None):
     return "test-key"
 
 
 def _patch_tmdb(monkeypatch):
     monkeypatch.setattr("services.watchlist_scanner._localize._get_tmdb_key", _fake_key)
+    monkeypatch.setattr("services.watchlist_scanner._localize.get_media_detail", _fake_detail)
     monkeypatch.setattr("services.watchlist_scanner._tmdb._tmdb_series", _fake_series)
     monkeypatch.setattr("services.watchlist_scanner._tmdb._tmdb_season", _fake_season)
 
@@ -54,7 +63,7 @@ def _cal_items() -> list[dict]:
         {"date": "2030-01-05", "series_name": "Emby A", "tmdb_id": 7, "season": 1, "episode": 1,
          "episode_name": "ancien", "poster": "/old.jpg", "overview": "vieux", "is_movie": False},
         {"date": "2030-01-10", "series_name": "Film X", "tmdb_id": 99, "season": 0, "episode": 0,
-         "episode_name": "Sortie film", "poster": "", "overview": "", "is_movie": True},
+         "episode_name": "", "poster": "", "overview": "", "is_movie": True},
     ]
 
 
@@ -120,7 +129,7 @@ async def test_scan_no_tmdb_key_serves_cache(authed_client, monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_calendar_localizes_tv_keeps_movies(authed_client, monkeypatch):
+async def test_calendar_localizes_tv_and_movies(authed_client, monkeypatch):
     _patch_tmdb(monkeypatch)
     _patch_calendar(monkeypatch, _cal_items())
     r = await authed_client.get(_CAL, params={"year": 2030, "month": 1}, headers={"X-MK-Locale": "en"})
@@ -130,9 +139,10 @@ async def test_calendar_localizes_tv_keeps_movies(authed_client, monkeypatch):
     movie = next(i for i in body if i["is_movie"])
     assert tv["series_name"] == "Show7 [en-US]"
     assert tv["episode_name"] == "S1E1 [en-US]"
-    # Movie row left untouched (needs the /movie endpoint, deferred).
-    assert movie["series_name"] == "Film X"
-    assert movie["episode_name"] == "Sortie film"
+    # Movie row now re-resolved via the /movie detail endpoint; no episode
+    # title applies (the frontend renders a localized "movie release" label).
+    assert movie["series_name"] == "Movie99 [en]"
+    assert movie["episode_name"] == ""
 
 
 @pytest.mark.asyncio
