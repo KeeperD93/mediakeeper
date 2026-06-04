@@ -87,8 +87,8 @@ function pad(n) {
   return String(n).padStart(2, '0')
 }
 function label(it) {
-  let s = it.is_movie ? t('common.film') : 'S' + pad(it.season) + 'E' + pad(it.episode)
-  if (it.episode_name) s += ' · ' + it.episode_name
+  let s = it.is_movie ? t('dashboard.movieRelease') : 'S' + pad(it.season) + 'E' + pad(it.episode)
+  if (!it.is_movie && it.episode_name) s += ' · ' + it.episode_name
   return s
 }
 function dateCls(e) {

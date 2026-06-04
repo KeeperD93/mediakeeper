@@ -25,9 +25,9 @@
               <p class="wlcal-modal-ep">
                 {{
                   item.is_movie
-                    ? $t('common.film')
+                    ? $t('dashboard.movieRelease')
                     : 'S' + pad(item.season) + 'E' + pad(item.episode)
-                }}{{ item.episode_name ? ' · ' + item.episode_name : '' }}
+                }}{{ !item.is_movie && item.episode_name ? ' · ' + item.episode_name : '' }}
               </p>
             </div>
             <span

@@ -1,6 +1,8 @@
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 export function useTimelineNav(timelineItems) {
+  const { locale } = useI18n()
   const NOW = new Date().toISOString().slice(0, 10)
   const FROM = (() => {
     const d = new Date()
@@ -31,7 +33,7 @@ export function useTimelineNav(timelineItems) {
           date: d,
           today: d === NOW,
           past: d < NOW,
-          label: dt.toLocaleDateString(undefined, {
+          label: dt.toLocaleDateString(locale.value, {
             day: 'numeric',
             month: 'long',
             year: 'numeric',
@@ -47,7 +49,10 @@ export function useTimelineNav(timelineItems) {
     for (let i = -6; i <= 6; i++) {
       const d = new Date(n.getFullYear(), n.getMonth() + i, 1)
       const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-      const s = d.toLocaleDateString(undefined, { month: 'short' }).replace('.', '').toUpperCase()
+      const s = d
+        .toLocaleDateString(locale.value, { month: 'short' })
+        .replace('.', '')
+        .toUpperCase()
       const y = String(d.getFullYear()).slice(2)
       let first = k + '-01'
       for (const e of entries.value) {

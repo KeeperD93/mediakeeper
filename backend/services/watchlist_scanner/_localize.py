@@ -11,7 +11,7 @@ import asyncio
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from services.tmdb import _get_tmdb_key, _is_generic_episode_name, tmdb_language
+from services.tmdb import _get_tmdb_key, _is_generic_episode_name, get_media_detail, tmdb_language
 
 from . import _tmdb
 from ._tmdb import DEFAULT_TMDB_LANG
@@ -87,8 +87,10 @@ async def localize_series_list(db: AsyncSession, series: list[dict], locale: str
 
 
 async def localize_calendar_items(db: AsyncSession, items: list[dict], locale: str) -> list[dict]:
-    """Re-resolve calendar TV episodes' display fields to ``locale``. Movie
-    rows are left as-is — they need the /movie endpoint, out of this pass."""
+    """Re-resolve calendar items' display fields to ``locale``. TV rows go
+    through the cached series/season endpoints; movie rows re-resolve title +
+    synopsis via the /movie detail endpoint (the frontend renders a localized
+    "movie release" label, so no episode title applies to them)."""
     lang = tmdb_language(locale)
     if lang == DEFAULT_TMDB_LANG or not items:
         return items
@@ -98,8 +100,19 @@ async def localize_calendar_items(db: AsyncSession, items: list[dict], locale: s
 
     async def _one(it: dict) -> dict:
         tid = it.get("tmdb_id")
-        if not tid or it.get("is_movie"):
+        if not tid:
             return it
+        if it.get("is_movie"):
+            async with sem:
+                detail = await get_media_detail("movie", tid, db, locale)
+            if detail.get("error"):
+                return it
+            return {
+                **it,
+                "series_name": detail.get("title") or it.get("series_name", ""),
+                "poster": detail.get("poster") or it.get("poster", ""),
+                "overview": ((detail.get("overview") or "").strip() or it.get("overview", ""))[:300],
+            }
         async with sem:
             sd = await _tmdb._tmdb_series(db, tid, lang)
             ep_names = await _episode_names(db, tid, it["season"], lang) if it.get("season") else {}
@@ -112,6 +125,36 @@ async def localize_calendar_items(db: AsyncSession, items: list[dict], locale: s
             "poster": f"{_POSTER_BASE}{pp}" if pp else it.get("poster", ""),
             "overview": ((sd.get("overview") or "").strip() or it.get("overview", ""))[:300],
             "episode_name": ep_names.get(it.get("episode")) or it.get("episode_name", ""),
+        }
+
+    return await asyncio.gather(*(_one(it) for it in items))
+
+
+async def localize_tracked_items(db: AsyncSession, items: list[dict], locale: str) -> list[dict]:
+    """Re-resolve tracked media (Suivi tab) name + synopsis to ``locale``. The
+    tracked list is stored in the default language at track time; movies and
+    series are both re-resolved via the TMDB detail endpoint. Default locale
+    served as-is, input never mutated."""
+    lang = tmdb_language(locale)
+    if lang == DEFAULT_TMDB_LANG or not items:
+        return items
+    if not await _get_tmdb_key(db):  # warm the key cache; no key -> serve as-is
+        return items
+    sem = asyncio.Semaphore(_LOCALIZE_CONCURRENCY)
+
+    async def _one(it: dict) -> dict:
+        tid, mt = it.get("tmdb_id"), it.get("media_type")
+        if not tid or mt not in ("movie", "tv"):
+            return it
+        async with sem:
+            detail = await get_media_detail(mt, tid, db, locale)
+        if detail.get("error"):
+            return it
+        return {
+            **it,
+            "name": detail.get("title") or it.get("name", ""),
+            "overview": ((detail.get("overview") or "").strip() or it.get("overview", ""))[:400],
+            "poster": detail.get("poster") or it.get("poster", ""),
         }
 
     return await asyncio.gather(*(_one(it) for it in items))

@@ -5,6 +5,7 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
+from core.i18n import get_request_locale
 from core.rate_limit import limiter, portal_user_or_ip_key
 from models.user import User
 from models.portal.profile import UserProfile
@@ -37,6 +38,7 @@ async def list_requests(
     status_filter: Optional[str] = Query(None, alias="status"),
     cursor: Optional[str] = None,
     limit: int = Query(25, ge=1, le=100),
+    locale: str = Depends(get_request_locale),
     up: tuple[User, UserProfile] = Depends(require_permission("can_portal")),
     db: AsyncSession = Depends(get_db),
 ):
@@ -46,6 +48,7 @@ async def list_requests(
         cursor,
         limit,
         include_sensitive=False,
+        locale=locale,
     )
 
 
@@ -54,6 +57,7 @@ async def list_requests_admin(
     status_filter: Optional[str] = Query(None, alias="status"),
     cursor: Optional[str] = None,
     limit: int = Query(25, ge=1, le=100),
+    locale: str = Depends(get_request_locale),
     _: tuple[User, UserProfile] = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
@@ -63,6 +67,7 @@ async def list_requests_admin(
         cursor,
         limit,
         include_sensitive=True,
+        locale=locale,
     )
 
 

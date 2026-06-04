@@ -18,10 +18,14 @@
           <div class="wlcal-popup-ep">
             {{
               popup.item?.is_movie
-                ? $t('common.film')
+                ? $t('dashboard.movieRelease')
                 : 'S' + pad(popup.item?.season || 0) + 'E' + pad(popup.item?.episode || 0)
             }}
-            {{ popup.item?.episode_name ? ' · ' + popup.item.episode_name : '' }}
+            {{
+              !popup.item?.is_movie && popup.item?.episode_name
+                ? ' · ' + popup.item.episode_name
+                : ''
+            }}
           </div>
           <div v-if="popup.item?.air_date || popup.item?.date" class="wlcal-popup-date">
             <Calendar :size="10" :stroke-width="1.8" />
@@ -41,17 +45,20 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import { Calendar, X } from 'lucide-vue-next'
 
 defineProps({ popup: { type: Object, required: true } })
 defineEmits(['close'])
+
+const { locale } = useI18n()
 
 function pad(n) {
   return String(n).padStart(2, '0')
 }
 function formatFullDate(d) {
   if (!d) return ''
-  return new Date(d).toLocaleDateString(undefined, {
+  return new Date(d).toLocaleDateString(locale.value, {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
