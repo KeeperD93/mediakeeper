@@ -2714,7 +2714,8 @@
       "nextFilm": "Next film",
       "errors": {
         "event_ended": "Event ended — the cinema room is closed.",
-        "not_member": "You haven't accepted this room's invitation."
+        "not_member": "You haven't accepted this room's invitation.",
+        "launch_unavailable": "Launch temporarily unavailable, please retry."
       },
       "marathon": {
         "title": "Marathon · film {current} of {total}",

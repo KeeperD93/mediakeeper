@@ -1,52 +1,37 @@
 <template>
-  <!-- Cinema seats: dynamic layout driven by ``event.max_participants``.
-       The N seats (5/10/15/20) lay out as ceil(N/5) rows × 5 occupable
-       columns centred via flex. Decorative seats on each side give the
-       room a "filled" feel — they're rendered through the same DOM but
-       carry no avatar and disappear via media queries on narrow screens
-       so we never truncate occupable seats. -->
-  <div class="pt-cr-seats-wrap">
+  <!-- Cinema seats: a full opaque grid that fills the room. ``cols`` and
+       ``rows`` are computed from the viewport so the grid adapts to the
+       screen without ever truncating seats on the sides. The centred
+       block of 5 × ceil(max_participants / 5) seats is occupable (carries
+       an avatar); every other seat is a decorative-but-opaque filler. -->
+  <div ref="wrapEl" class="pt-cr-seats-wrap">
     <div class="pt-cr-seats">
-      <div v-for="row in rows" :key="`row-${row}`" class="pt-cr-row" :style="{ '--rowDepth': row }">
-        <!-- Decorative seats — left side. -->
+      <div v-for="r in rows" :key="`row-${r}`" class="pt-cr-row" :style="{ '--rowDepth': r }">
         <div
-          v-for="i in DECORATIVE_PER_SIDE"
-          :key="`dec-l-${row}-${i}`"
-          class="pt-cr-seat pt-cr-seat--decorative"
-          :class="`pt-cr-seat--dec-${i}`"
-          aria-hidden="true"
-        >
-          <div class="pt-cr-seat-back" />
-          <div class="pt-cr-seat-cushion" />
-          <div class="pt-cr-seat-base" />
-        </div>
-
-        <!-- Occupable seats — 5 per row, indexed by ``seat_index``. -->
-        <div
-          v-for="col in OCCUPABLE_PER_ROW"
-          :key="`s-${row}-${col}`"
+          v-for="c in cols"
+          :key="`seat-${r}-${c}`"
           class="pt-cr-seat"
-          :class="seatClass(seatIndexOf(row - 1, col - 1))"
-          :title="seatTitle(seatIndexOf(row - 1, col - 1))"
+          :class="seatClass(seatIndexAt(r - 1, c - 1))"
+          :title="seatTitle(seatIndexAt(r - 1, c - 1))"
         >
           <div class="pt-cr-seat-back" />
           <div class="pt-cr-seat-cushion" />
           <div class="pt-cr-seat-base" />
-          <template v-if="seatOccupant(seatIndexOf(row - 1, col - 1))">
+          <template v-if="seatOccupant(seatIndexAt(r - 1, c - 1))">
             <div class="pt-cr-seat-avatar">
               <MkAvatar
-                :src="seatOccupant(seatIndexOf(row - 1, col - 1)).avatar_url || null"
-                :name="seatOccupant(seatIndexOf(row - 1, col - 1)).username || '?'"
+                :src="seatOccupant(seatIndexAt(r - 1, c - 1)).avatar_url || null"
+                :name="seatOccupant(seatIndexAt(r - 1, c - 1)).username || '?'"
                 :size="48"
-                :tier="seatOccupant(seatIndexOf(row - 1, col - 1)).tier || 'bronze'"
+                :tier="seatOccupant(seatIndexAt(r - 1, c - 1)).tier || 'bronze'"
                 class="pt-cr-seat-avatar-mk"
               />
             </div>
             <div class="pt-cr-seat-label">
-              {{ seatOccupant(seatIndexOf(row - 1, col - 1)).username }}
+              {{ seatOccupant(seatIndexAt(r - 1, c - 1)).username }}
             </div>
             <div
-              v-for="(b, bi) in seatBubbles(seatIndexOf(row - 1, col - 1))"
+              v-for="(b, bi) in seatBubbles(seatIndexAt(r - 1, c - 1))"
               :key="b.id"
               class="pt-cr-bubble"
               :style="{ '--bi': bi }"
@@ -55,39 +40,21 @@
             </div>
           </template>
         </div>
-
-        <!-- Decorative seats — right side. -->
-        <div
-          v-for="i in DECORATIVE_PER_SIDE"
-          :key="`dec-r-${row}-${i}`"
-          class="pt-cr-seat pt-cr-seat--decorative"
-          :class="`pt-cr-seat--dec-${i}`"
-          aria-hidden="true"
-        >
-          <div class="pt-cr-seat-back" />
-          <div class="pt-cr-seat-cushion" />
-          <div class="pt-cr-seat-base" />
-        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRooms } from '@/composables/portal/useRooms'
 import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 import { INVITATION_STATUS } from '@/constants/events'
 import MkAvatar from '@/components/common/MkAvatar.vue'
 
-// Seat layout constants — kept here so the template stays declarative.
-// ``OCCUPABLE_PER_ROW`` matches the admin step (5) so every row neatly
-// represents one capacity bucket. ``DECORATIVE_PER_SIDE`` is rendered
-// in the DOM but the matching CSS class drops the outermost columns
-// (``--dec-3``, ``--dec-2``) under tighter breakpoints to avoid
-// truncating the occupable centre.
+// Occupable block is 5 seats wide (matches the admin capacity step) and
+// ceil(max_participants / 5) rows tall, centred in the larger filler grid.
 const OCCUPABLE_PER_ROW = 5
-const DECORATIVE_PER_SIDE = 3
 
 const props = defineProps({
   event: { type: Object, default: null },
@@ -111,14 +78,52 @@ const capacity = computed(() => {
   return OCCUPABLE_PER_ROW
 })
 
-const rows = computed(() => Math.max(1, Math.ceil(capacity.value / OCCUPABLE_PER_ROW)))
+const occRows = computed(() => Math.max(1, Math.ceil(capacity.value / OCCUPABLE_PER_ROW)))
 
-function seatIndexOf(row, col) {
-  return row * OCCUPABLE_PER_ROW + col
+// ---------- Responsive filler grid ----------
+// Derive the grid from the *measured* seat + container so it tracks the CSS
+// clamp and browser zoom exactly. Computing the seat size from ``vw`` used
+// to drift out of sync on zoom — wrong column count and seats spilling onto
+// the podium. Columns fill the row width (forced odd so the 5 occupable
+// seats stay centred); rows fill the band under the 48vh screen.
+const wrapEl = ref(null)
+const cols = ref(OCCUPABLE_PER_ROW)
+const rows = ref(1)
+
+function computeGrid() {
+  const wrap = wrapEl.value
+  const seatsEl = wrap?.firstElementChild
+  const sample = wrap?.querySelector('.pt-cr-seat')
+  if (!wrap || !seatsEl || !sample) return
+  const seatsStyle = getComputedStyle(seatsEl)
+  const padX = parseFloat(seatsStyle.paddingLeft) + parseFloat(seatsStyle.paddingRight)
+  const rowGap = parseFloat(seatsStyle.rowGap) || 0
+  const colGap = parseFloat(getComputedStyle(sample.parentElement).columnGap) || 0
+  // offsetWidth/Height = untransformed layout box (ignores the perspective).
+  const seatW = sample.offsetWidth
+  const seatH = sample.offsetHeight
+  if (!seatW || !seatH) return
+
+  let c = Math.floor((wrap.clientWidth - padX + colGap) / (seatW + colGap))
+  if (c % 2 === 0) c -= 1
+  cols.value = Math.max(OCCUPABLE_PER_ROW, c)
+
+  const r = Math.floor((window.innerHeight * 0.4) / (seatH + rowGap))
+  rows.value = Math.max(occRows.value, r)
+}
+
+// Map a grid cell to its occupable seat_index, or null for a filler seat.
+function seatIndexAt(row, col) {
+  const rowOffset = Math.floor((rows.value - occRows.value) / 2)
+  const colOffset = Math.floor((cols.value - OCCUPABLE_PER_ROW) / 2)
+  const oRow = row - rowOffset
+  const oCol = col - colOffset
+  if (oRow < 0 || oRow >= occRows.value || oCol < 0 || oCol >= OCCUPABLE_PER_ROW) return null
+  return oRow * OCCUPABLE_PER_ROW + oCol
 }
 
 function seatOccupant(seatIdx) {
-  if (!props.event || terminated.value) return null
+  if (seatIdx === null || !props.event || terminated.value) return null
   if (seatIdx < 0 || seatIdx >= capacity.value) return null
   const inv = props.event.invitations?.find(
     i => i.status === INVITATION_STATUS.ACCEPTED && i.seat_index === seatIdx,
@@ -130,12 +135,11 @@ function seatOccupant(seatIdx) {
 }
 
 function seatClass(seatIdx) {
-  if (seatIdx >= capacity.value) return 'pt-cr-seat--out-of-capacity'
+  if (seatIdx === null) return 'pt-cr-seat--decorative'
+  // All chairs share one look; only the current viewer's seat gets a
+  // subtle avatar halo via ``--mine``. Occupancy is shown by the avatar.
   const occ = seatOccupant(seatIdx)
-  if (!occ) return ''
-  return occ.user_id === myUserId.value
-    ? 'pt-cr-seat--occupied pt-cr-seat--mine'
-    : 'pt-cr-seat--occupied'
+  return occ && occ.user_id === myUserId.value ? 'pt-cr-seat--mine' : ''
 }
 
 function seatTitle(seatIdx) {
@@ -189,11 +193,15 @@ function sweepBubbles() {
 }
 
 onMounted(() => {
+  // nextTick so the initial seats are laid out before we measure them.
+  nextTick(computeGrid)
+  window.addEventListener('resize', computeGrid)
   bubblePollTimer = setInterval(pollBubbles, 3000)
   bubbleSweepTimer = setInterval(sweepBubbles, 1000)
 })
 
 onBeforeUnmount(() => {
+  window.removeEventListener('resize', computeGrid)
   if (bubblePollTimer) clearInterval(bubblePollTimer)
   if (bubbleSweepTimer) clearInterval(bubbleSweepTimer)
 })

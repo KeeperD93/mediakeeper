@@ -59,9 +59,11 @@
 /* ---------- Launch CTA ---------- */
 .pt-cr-launch {
   position: absolute;
-  top: 1rem;
+  /* top/left are set at runtime (syncLaunchPos) to the virtual screen's
+     centre; these are the pre-measure fallback. */
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   z-index: 15;
   display: flex;
   flex-direction: column;
@@ -130,7 +132,7 @@
 .pt-cr-cta-enter-from,
 .pt-cr-cta-leave-to {
   opacity: 0;
-  transform: translateX(-50%) translateY(-12px);
+  transform: translate(-50%, calc(-50% - 12px));
 }
 
 /* ---------- Mobile base (applied by default; desktop is an override) ---------- */
@@ -138,7 +140,7 @@
   /* Same three-way ``min`` discipline as the desktop override below:
      keep the screen narrow enough to leave seat-room within the
      viewport height (50vh × 16/9), capped at 92vw on small screens. */
-  width: min(92vw, calc(50vh * 16 / 9));
+  width: min(92vw, calc(54vh * 16 / 9));
 }
 .pt-cr-seats {
   transform: perspective(1100px) rotateX(24deg);
@@ -158,7 +160,7 @@
 /* ---------- Desktop — restore the wide-viewport cinema layout ---------- */
 @media (min-width: 1024px) {
   .pt-cr-screen-frame {
-    width: min(74vw, calc(50vh * 16 / 9), 1280px);
+    width: min(52vw, calc(54vh * 16 / 9), 1280px);
   }
   .pt-cr-seats {
     transform: perspective(1400px) rotateX(20deg);

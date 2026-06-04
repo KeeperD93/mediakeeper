@@ -25,6 +25,10 @@ This section intentionally has no date so it is not shown to users.
 
 ### Fixed
 - Settings — your rank colours applied on open (no flash).
+- Cinema room — Start button centred on screen, Emby launch made reliable.
+- Cinema room — trailer resumes when returning from the Emby tab.
+- Cinema room — intro countdown synced with the main countdown.
+- Cinema room — no more looping requests after leaving the room.
 
 ## [1.0.0-rc.4] - 2026-05-30
 

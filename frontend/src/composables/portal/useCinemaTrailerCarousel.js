@@ -174,11 +174,25 @@ export function useCinemaTrailerCarousel({ playerElRef, initialMuted = true } = 
     }
   }
 
+  // Returning to the tab (e.g. the trailer Info button opened Emby in a
+  // new tab) leaves the YouTube embed paused — a background tab ignores
+  // the auto-resume in onStateChange, so resume it on the way back.
+  function handleVisibility() {
+    if (document.visibilityState !== 'visible' || !player || transitioning.value) return
+    try {
+      player.playVideo()
+    } catch {
+      /* ignore */
+    }
+  }
+
   refreshTimer = setInterval(() => {
     fetchQueue().catch(() => {})
   }, FETCH_INTERVAL_MS)
+  document.addEventListener('visibilitychange', handleVisibility)
 
   function destroy() {
+    document.removeEventListener('visibilitychange', handleVisibility)
     if (refreshTimer) {
       clearInterval(refreshTimer)
       refreshTimer = null

@@ -10,17 +10,11 @@
     <div class="pt-cr-projector" />
   </div>
 
-  <!-- Side walls with sconces + LED aisle strip -->
+  <!-- Side walls with LED aisle strip -->
   <div class="pt-cr-wall pt-cr-wall--left">
-    <span class="pt-cr-sconce pt-cr-sconce--1" />
-    <span class="pt-cr-sconce pt-cr-sconce--2" />
-    <span class="pt-cr-sconce pt-cr-sconce--3" />
     <span class="pt-cr-led" />
   </div>
   <div class="pt-cr-wall pt-cr-wall--right">
-    <span class="pt-cr-sconce pt-cr-sconce--1" />
-    <span class="pt-cr-sconce pt-cr-sconce--2" />
-    <span class="pt-cr-sconce pt-cr-sconce--3" />
     <span class="pt-cr-led" />
   </div>
 
