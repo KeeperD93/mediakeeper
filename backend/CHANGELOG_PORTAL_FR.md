@@ -29,6 +29,7 @@ utilisateurs.
 ### Fixed
 - Mode maintenance — le portail est désormais entièrement verrouillé (page d'attente seule).
 - Surprise — titre et synopsis du tirage affichés dans votre langue.
+- Accueil — titres et synopsis des carrousels affichés dans votre langue.
 - Paramètres — couleurs de votre rang appliquées dès l'ouverture (plus de flash).
 - Salle ciné — bouton « Lancer » centré sur l'écran, ouverture Emby fiabilisée.
 - Salle ciné — bande-annonce reprend au retour de l'onglet Emby.
