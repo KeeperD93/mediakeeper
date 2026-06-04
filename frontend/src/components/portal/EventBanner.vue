@@ -25,6 +25,7 @@ import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRooms } from '@/composables/portal/useRooms'
 import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 import { EVENT_STATUS, INVITATION_STATUS } from '@/constants/events'
+import { localizedDateTime } from '@/utils/datetime'
 
 // Cycles through the user's upcoming events:
 //   - Show the current event for ~30 seconds (one full marquee pass)
@@ -156,7 +157,7 @@ onBeforeUnmount(() => {
 function formatFull(iso) {
   if (!iso) return ''
   try {
-    return new Date(iso).toLocaleString(undefined, {
+    return localizedDateTime(new Date(iso), {
       day: '2-digit',
       month: 'short',
       hour: '2-digit',

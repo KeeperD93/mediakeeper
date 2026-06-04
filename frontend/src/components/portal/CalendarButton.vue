@@ -66,6 +66,7 @@ import { useRooms } from '@/composables/portal/useRooms'
 import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 import EventDetailModal from './EventDetailModal.vue'
 import { EVENT_STATUS, EVENT_KIND, INVITATION_STATUS } from '@/constants/events'
+import { localizedDate, localizedTime } from '@/utils/datetime'
 
 import '@/assets/styles/portal/calendar-button.css'
 
@@ -160,10 +161,10 @@ function formatDay(iso) {
   return new Date(iso).getDate().toString().padStart(2, '0')
 }
 function formatMonth(iso) {
-  return new Date(iso).toLocaleDateString(undefined, { month: 'short' })
+  return localizedDate(new Date(iso), { month: 'short' })
 }
 function formatTime(iso) {
-  return new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+  return localizedTime(new Date(iso), { hour: '2-digit', minute: '2-digit' })
 }
 
 onMounted(() => {

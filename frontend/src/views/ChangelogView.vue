@@ -57,6 +57,7 @@ import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useApi } from '@/composables/useApi'
 import MkSpinner from '@/components/common/MkSpinner.vue'
+import { localizedDate } from '@/utils/datetime'
 
 const { locale } = useI18n()
 const { apiGet, apiPost } = useApi()
@@ -89,7 +90,7 @@ onMounted(async () => {
 function formatDate(dateStr) {
   if (!dateStr) return ''
   const d = new Date(dateStr + 'T00:00:00')
-  return d.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })
+  return localizedDate(d, { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 function categoryIcon(cat) {

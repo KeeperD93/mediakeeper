@@ -4,6 +4,7 @@ import { useApi } from '@/composables/useApi'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import { useConfirm } from '@/composables/useConfirm'
+import { localizedDate } from '@/utils/datetime'
 
 export function useDuplicates() {
   const { t } = useI18n()
@@ -93,7 +94,7 @@ export function useDuplicates() {
   }
   function fmtDate(d) {
     if (!d) return ''
-    return new Date(d).toLocaleDateString(undefined, {
+    return localizedDate(new Date(d), {
       day: '2-digit',
       month: 'short',
       year: 'numeric',

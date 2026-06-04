@@ -29,7 +29,7 @@
             <span class="mm-info-val">
               {{
                 fileMetaModal.file.mtime
-                  ? new Date(fileMetaModal.file.mtime * 1000).toLocaleDateString(undefined, {
+                  ? localizedDate(new Date(fileMetaModal.file.mtime * 1000), {
                       day: '2-digit',
                       month: 'long',
                       year: 'numeric',
@@ -159,6 +159,7 @@
 import { useMediaManager } from '@/composables/useMediaManager'
 import { Captions, FileText, Info, Video, Volume2 } from 'lucide-vue-next'
 import MkSpinner from '@/components/common/MkSpinner.vue'
+import { localizedDate } from '@/utils/datetime'
 
 const { fileMetaModal, closeFileMeta } = useMediaManager()
 

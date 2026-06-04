@@ -41,6 +41,7 @@ import { useI18n } from 'vue-i18n'
 import { useConfirm } from '@/composables/useConfirm'
 import XpEventRow from './AdminXpEvents/XpEventRow.vue'
 import XpEventForm from './AdminXpEvents/XpEventForm.vue'
+import { localizedDateTime } from '@/utils/datetime'
 
 const mkConfirm = useConfirm()
 
@@ -81,7 +82,7 @@ const canSave = computed(
 
 function formatDate(s) {
   if (!s) return '—'
-  return new Date(s).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })
+  return localizedDateTime(new Date(s), { dateStyle: 'short', timeStyle: 'short' })
 }
 
 function reset() {

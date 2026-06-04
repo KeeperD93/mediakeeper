@@ -221,6 +221,7 @@ import {
   Heart,
   Clapperboard as ClapperboardFallback,
 } from 'lucide-vue-next'
+import { localizedDate } from '@/utils/datetime'
 
 const { t } = useI18n()
 
@@ -307,7 +308,7 @@ const recordMonthLabel = computed(() => {
   if (!m) return '—'
   const [year, month] = m.split('-')
   const date = new Date(Number(year), Number(month) - 1, 1)
-  return date.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
+  return localizedDate(date, { month: 'long', year: 'numeric' })
 })
 </script>
 
