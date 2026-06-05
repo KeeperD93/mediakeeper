@@ -42,6 +42,7 @@ utilisateurs.
 - Changelog — versions sans nouveauté masquées (plus de cartes vides).
 - Avatars personnalisés affichés dans les contributeurs de listes et le sélecteur d'utilisateurs.
 - Pastilles « déjà demandé » affichées sur les grandes listes.
+- Quoi de neuf — barre XP pleine au niveau max (sans niveau 51).
 
 ## [1.0.0-rc.4] - 2026-05-30
 

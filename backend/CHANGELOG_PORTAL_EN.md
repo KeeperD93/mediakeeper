@@ -40,6 +40,7 @@ This section intentionally has no date so it is not shown to users.
 - Changelog — versions with no entries are hidden (no more blank cards).
 - Custom avatars now shown in list contributors and the user picker.
 - "Already requested" badges now load on large lists.
+- Daily digest — full XP bar at max level (no level 51).
 
 ## [1.0.0-rc.4] - 2026-05-30
 

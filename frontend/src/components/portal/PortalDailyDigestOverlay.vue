@@ -71,17 +71,23 @@
                     />
                   </div>
                   <div class="ddd-level-meta">
-                    <span>
+                    <span v-if="digest.level.maxed">{{ digest.level.xp }} XP</span>
+                    <span v-else>
                       {{ digest.level.xp_into_level }} /
                       {{ digest.level.xp_next_level - digest.level.xp_current_level }} XP
                     </span>
                     <span class="ddd-level-remaining">
-                      {{
-                        $t('portal.dailyDigest.level.toNext', {
-                          xp: Math.max(0, digest.level.xp_next_level - digest.level.xp),
-                          level: digest.level.level + 1,
-                        })
-                      }}
+                      <template v-if="digest.level.maxed">
+                        {{ $t('portal.dailyDigest.level.maxed') }}
+                      </template>
+                      <template v-else>
+                        {{
+                          $t('portal.dailyDigest.level.toNext', {
+                            xp: Math.max(0, digest.level.xp_next_level - digest.level.xp),
+                            level: digest.level.level + 1,
+                          })
+                        }}
+                      </template>
                     </span>
                   </div>
                 </div>

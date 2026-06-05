@@ -2574,7 +2574,8 @@
       },
       "level": {
         "eyebrow": "Your level",
-        "toNext": "{xp} XP to reach level {level}"
+        "toNext": "{xp} XP to reach level {level}",
+        "maxed": "Max level reached"
       },
       "events": {
         "public": "Public",
