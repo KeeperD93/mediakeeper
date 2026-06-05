@@ -92,8 +92,8 @@ async def discover_paginated(
         base_params["region"] = region
     # Exclude pornographic keywords TMDB does not flag as ``adult`` (hentai
     # et al.) unless the viewer has disabled hide_adult.
+    base_params["include_adult"] = "true" if include_adult else "false"
     if not include_adult:
-        base_params["include_adult"] = "false"
         base_params["without_keywords"] = ADULT_KEYWORDS_CSV
 
     async def _query(mt: str, mt_extra: dict | None = None) -> tuple[list[dict], bool]:

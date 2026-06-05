@@ -19,7 +19,7 @@ async def test_trending_uses_request_locale(client, db_session, monkeypatch):
     await _auth(client, db_session)
     captured = {}
 
-    async def _fake(db, page=1, *, language=None):
+    async def _fake(db, page=1, *, language=None, include_adult=False):
         captured["language"] = language
         return []
 
@@ -34,7 +34,7 @@ async def test_trending_defaults_without_header(client, db_session, monkeypatch)
     await _auth(client, db_session)
     captured = {}
 
-    async def _fake(db, page=1, *, language=None):
+    async def _fake(db, page=1, *, language=None, include_adult=False):
         captured["language"] = language
         return []
 
@@ -49,7 +49,7 @@ async def test_category_uses_request_locale(client, db_session, monkeypatch):
     await _auth(client, db_session)
     captured = {}
 
-    async def _fake(db, category, page=1, sort="popularity", language=None):
+    async def _fake(db, category, page=1, sort="popularity", language=None, include_adult=False):
         captured["language"] = language
         return {"items": [], "page": page, "has_more": False}
 

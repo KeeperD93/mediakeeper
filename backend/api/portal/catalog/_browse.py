@@ -43,8 +43,10 @@ async def browse_category(
         user, _ = up
         return await get_my_requests_paginated(db, user, page=page)
 
+    _, profile = up
     return await disc_svc.discover_category(
         db, category, page=page, sort=sort, language=locale,
+        include_adult=not bool(profile.hide_adult),
     )
 
 
@@ -59,8 +61,10 @@ async def browse_provider(
     db: AsyncSession = Depends(get_db),
 ):
     """Paginated browse for a watch provider (Netflix, Prime, …)."""
+    _, profile = up
     return await disc_svc.discover_provider(
         db, provider_id, page=page, sort=sort, language=locale, region=region,
+        include_adult=not bool(profile.hide_adult),
     )
 
 
