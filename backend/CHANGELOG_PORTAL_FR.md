@@ -31,6 +31,7 @@ utilisateurs.
 - Accueil — Populaires et Mieux notés viennent désormais de Découvrir.
 
 ### Fixed
+- Demandes — les demandes de film en un clic affichent succès ou refus.
 - Mode maintenance — le portail est désormais entièrement verrouillé (page d'attente seule).
 - Surprise — titre et synopsis du tirage affichés dans votre langue.
 - Accueil — titres et synopsis des carrousels affichés dans votre langue.
