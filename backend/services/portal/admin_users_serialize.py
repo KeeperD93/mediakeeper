@@ -12,6 +12,7 @@ from models.user import User
 from models.portal.profile import UserProfile
 from services.portal._display_name import resolve_display_name
 from services.portal._rank_tiers import tier_for_level
+from services.portal.avatars import resolve_avatar_url
 
 from .admin_users_constants import (
     ONLINE_WINDOW_SECONDS,
@@ -78,7 +79,7 @@ def serialize_admin_user_row(profile: UserProfile, user: User) -> dict[str, Any]
         "user_id": user.id,
         "username": user.username,
         "display_name": resolve_display_name(profile.display_name, user.id),
-        "avatar_url": profile.avatar_url,
+        "avatar_url": resolve_avatar_url(profile.avatar_url, profile.avatar_custom_path),
         "avatar_custom_path": profile.avatar_custom_path,
         "email": profile.email,
         "source": profile.source or (SOURCE_EMBY if profile.emby_user_id else SOURCE_LOCAL),
