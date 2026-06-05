@@ -32,6 +32,7 @@ This section intentionally has no date so it is not shown to users.
 - Discord notifications — language follows the portal default.
 - TMDB links — open the page in the app language (watchlist, upcoming).
 - Dates now follow the app language (instead of the browser).
+- Custom avatars now shown in admin topbar, user list and sessions.
 
 ## [1.0.0-rc.4] - 2026-05-30
 

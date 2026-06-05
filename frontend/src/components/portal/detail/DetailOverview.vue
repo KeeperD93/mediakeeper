@@ -149,6 +149,7 @@ import {
   TrendingUp,
   Tv,
 } from 'lucide-vue-next'
+import { localizedDate } from '@/utils/datetime'
 import { formatCountry, formatLanguage } from '@/utils/formatIntlLabel'
 import { safeHref } from '@/utils/safeUrl'
 import { tmdbWebUrl } from '@/utils/tmdb'
@@ -227,7 +228,7 @@ function formatMoney(n) {
 function formatDate(iso) {
   if (!iso) return ''
   try {
-    return new Date(iso).toLocaleDateString()
+    return localizedDate(new Date(iso))
   } catch {
     return iso
   }

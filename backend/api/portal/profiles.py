@@ -14,6 +14,7 @@ from services.portal._display_name import resolve_display_name
 from services.portal._rank_tiers import tier_for_level
 from services.portal.achievement_defs import TITLE_REWARDS
 from services.portal.achievement_defs_meta import META_TARGET_CATEGORY
+from services.portal.avatars import resolve_avatar_url
 from services.portal.profiles import (
     update_profile, serialize_profile_with_effective_lang,
 )
@@ -211,6 +212,7 @@ async def search_users(
             UserProfile.display_name,
             UserProfile.display_name_must_set,
             UserProfile.avatar_url,
+            UserProfile.avatar_custom_path,
             UserProfile.level,
         )
         .select_from(User)
@@ -235,9 +237,9 @@ async def search_users(
                 "display_name": resolve_display_name(
                     None if r[3] else r[2], r[0], lang
                 ),
-                "avatar_url": r[4],
-                "level": r[5] or 1,
-                "tier": tier_for_level(r[5] or 1),
+                "avatar_url": resolve_avatar_url(r[4], r[5]),
+                "level": r[6] or 1,
+                "tier": tier_for_level(r[6] or 1),
             }
             for r in rows
         ]

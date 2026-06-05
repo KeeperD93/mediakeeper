@@ -45,12 +45,21 @@ async def get_me(
     # portal profile yet).
     from models.portal.profile import UserProfile
     from services.portal._rank_tiers import tier_for_level
+    from services.portal.avatars import resolve_avatar_url
     profile_row = (await db.execute(
-        select(UserProfile.avatar_url, UserProfile.level)
+        select(
+            UserProfile.avatar_url,
+            UserProfile.avatar_custom_path,
+            UserProfile.level,
+        )
         .where(UserProfile.user_id == current_user.id)
     )).first()
-    avatar_url = profile_row[0] if profile_row else None
-    level = (profile_row[1] if profile_row and profile_row[1] else 1)
+    avatar_url = (
+        resolve_avatar_url(profile_row.avatar_url, profile_row.avatar_custom_path)
+        if profile_row
+        else None
+    )
+    level = profile_row.level if profile_row and profile_row.level else 1
     return {
         "username":             current_user.username,
         "must_change_password": current_user.must_change_password,
