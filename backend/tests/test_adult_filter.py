@@ -42,6 +42,16 @@ def test_adult_keyword_set_is_precise():
     assert ADULT_KEYWORDS_CSV == ",".join(str(k) for k in ADULT_KEYWORD_IDS)
 
 
+def test_allow_adult_requests_flag_registered_and_off_by_default():
+    from services.portal.admin import PORTAL_SETTING_FLAGS
+    assert PORTAL_SETTING_FLAGS.get("portal.allow_adult_requests") is False
+
+
+def test_patch_schema_accepts_allow_adult_requests():
+    from api.portal.admin import PortalSettingsUpdate
+    assert PortalSettingsUpdate(allow_adult_requests=True).allow_adult_requests is True
+
+
 def test_has_adult_keyword_detects_adult_ids():
     assert has_adult_keyword({198385}) is True          # hentai
     assert has_adult_keyword([155477, 18]) is True       # softcore + drama

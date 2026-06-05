@@ -174,6 +174,7 @@ class PortalSettingsUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
     anonymize_requests: Optional[bool] = None
+    allow_adult_requests: Optional[bool] = None
     hero_trend_count: Optional[int] = None
     # Dotted JSON key (``requests.auto_cleanup_days``) preserved via
     # alias so the frontend can address the setting under its real
@@ -230,6 +231,8 @@ async def patch_settings(
     updates: dict = {}
     if payload.anonymize_requests is not None:
         updates["portal.anonymize_requests"] = payload.anonymize_requests
+    if payload.allow_adult_requests is not None:
+        updates["portal.allow_adult_requests"] = payload.allow_adult_requests
     if payload.hero_trend_count is not None:
         updates["portal.hero_trend_count"] = payload.hero_trend_count
     if payload.requests_auto_cleanup_days is not None:

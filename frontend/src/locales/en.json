@@ -3580,6 +3580,10 @@
           "title": "Anonymize requests",
           "desc": "When enabled, the username of whoever filed a request is hidden from other users. Only the request date remains visible. Admins still see who requested what for moderation."
         },
+        "allowAdultRequests": {
+          "title": "Allow adult content requests",
+          "desc": "When off, users cannot request pornographic titles even after disabling \"hide adult content\" in their preferences. Turn on to let them request adult content."
+        },
         "heroTrendCount": {
           "title": "Hero trend count",
           "desc": "Total number of items shown in the home hero banner (TMDB trending + manually featured). Featuring a movie takes one trending slot. Set to 0 to hide the hero entirely."

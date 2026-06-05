@@ -23,6 +23,24 @@
         />
       </div>
 
+      <!-- Allow adult content requests -->
+      <div class="pt-setting-row">
+        <div class="pt-setting-info">
+          <span class="pt-setting-title">
+            {{ $t('portal.admin.settings.allowAdultRequests.title') }}
+          </span>
+          <span class="pt-setting-desc">
+            {{ $t('portal.admin.settings.allowAdultRequests.desc') }}
+          </span>
+        </div>
+        <MkToggle
+          :model-value="settings.allow_adult_requests"
+          :disabled="saving"
+          :aria-label="$t('portal.admin.settings.allowAdultRequests.title')"
+          @update:model-value="v => update('allow_adult_requests', v)"
+        />
+      </div>
+
       <!-- Number of trends in the hero -->
       <label class="pt-setting-row">
         <div class="pt-setting-info">
@@ -207,6 +225,7 @@ const CAPACITY_OPTIONS = [5, 10, 15, 20]
 
 const settings = ref({
   anonymize_requests: false,
+  allow_adult_requests: false,
   hero_trend_count: 10,
   'requests.auto_cleanup_days': 0,
   'events.max_participants_min': 5,
