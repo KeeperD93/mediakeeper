@@ -44,8 +44,13 @@ async def _serialize_ui_flags(db: AsyncSession, profile: UserProfile) -> dict:
         db,
         "portal.anonymize_requests",
     )
+    allow_adult_requests = is_admin or await get_portal_flag(
+        db,
+        "portal.allow_adult_requests",
+    )
     return {
         "show_requests_tab": is_admin or not anonymize_requests,
+        "allow_adult_requests": allow_adult_requests,
     }
 
 

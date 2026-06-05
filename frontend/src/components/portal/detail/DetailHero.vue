@@ -93,11 +93,15 @@
             v-if="showRequestBtn && !reqStatus"
             class="vmd2-btn"
             :class="requestBtnClass"
+            :disabled="!!requestBlockedReason"
             @click="$emit('request')"
           >
             <component :is="requestBtnIcon" />
             {{ requestBtnLabel }}
           </button>
+          <p v-if="showRequestBtn && !reqStatus && requestBlockedReason" class="dh-request-blocked">
+            {{ requestBlockedReason }}
+          </p>
 
           <button v-if="trailerKey" class="vmd2-btn vmd2-btn--ghost" @click="$emit('open-trailer')">
             <Video :size="16" />
@@ -134,6 +138,9 @@ const props = defineProps({
   // hero status ribbon. Empty string keeps the attribute off the DOM.
   reqStatusTooltip: { type: String, default: '' },
   showRequestBtn: { type: Boolean, default: false },
+  // Non-empty when the viewer may NOT request this title (e.g. adult content
+  // while the admin disallows adult requests): disables the button + shows why.
+  requestBlockedReason: { type: String, default: '' },
   trailerKey: { type: String, default: null },
 })
 
@@ -218,3 +225,19 @@ const availability = computed(() => {
   return a === 'partial' ? 'partial' : 'full'
 })
 </script>
+
+<style scoped>
+/* Greyed-out request button + its reason when the viewer can't request this
+   title (adult content while admin requests are disabled). */
+.vmd2-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.dh-request-blocked {
+  margin-top: 0.4rem;
+  max-width: 36ch;
+  font-size: var(--portal-text-xs);
+  line-height: 1.35;
+  color: var(--portal-text-body-muted);
+}
+</style>

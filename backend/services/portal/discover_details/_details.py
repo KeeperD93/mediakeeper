@@ -11,6 +11,7 @@ from services.portal.discover_details_enrich import (
     pick_certification,
     pick_watch_providers,
 )
+from services.portal.adult_filter import has_adult_keyword
 from services.portal.discover_lists import _IMG_BASE, _normalize
 from services.portal.runtime_cache import resolve_runtimes
 from services.tmdb import _get_tmdb_key, _tmdb_headers_sync, TMDB_BASE
@@ -100,6 +101,9 @@ async def get_full_details(
         kw_payload = d.get("keywords", {}) or {}
         raw_kw = kw_payload.get("keywords") or kw_payload.get("results") or []
         keywords = [k.get("name", "") for k in raw_kw if k.get("name")]
+        is_adult = has_adult_keyword(
+            {k.get("id") for k in raw_kw if isinstance(k.get("id"), int)}
+        )
 
         reviews = extract_reviews(d.get("reviews", {}))
         studios = extract_studios(d.get("production_companies", []))
@@ -129,6 +133,7 @@ async def get_full_details(
             "popularity": round(d.get("popularity", 0), 1),
             "genres": [g.get("name", "") for g in d.get("genres", [])],
             "media_type": media_type,
+            "is_adult": is_adult,
             "directors": directors,
             "key_crew": key_crew,
             "cast": cast,
