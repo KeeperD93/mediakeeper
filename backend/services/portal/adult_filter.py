@@ -7,6 +7,7 @@ live-action porn but rarely flags animated adult content (hentai) — those
 slip through and are tracked separately. Emby-sourced rows (recently added,
 Top 20) carry no adult metadata and are filtered elsewhere.
 """
+from collections.abc import Iterable
 
 
 # TMDB keyword IDs for unambiguous pornographic content. Fed to the
@@ -28,7 +29,7 @@ ADULT_KEYWORDS_CSV = ",".join(str(k) for k in ADULT_KEYWORD_IDS)
 _ADULT_KEYWORD_SET = frozenset(ADULT_KEYWORD_IDS)
 
 
-def has_adult_keyword(keyword_ids) -> bool:
+def has_adult_keyword(keyword_ids: Iterable[int] | None) -> bool:
     """True if any of the item's TMDB keyword IDs marks pornographic content."""
     return bool(_ADULT_KEYWORD_SET.intersection(keyword_ids or ()))
 
