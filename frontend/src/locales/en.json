@@ -3380,7 +3380,10 @@
         "languageHint": "Affects the app, recommendations and trailers.",
         "languageDefault": "Default",
         "genresSection": "My favorite genres",
-        "genresHint": "Pick the genres you like. Powers your recommendations."
+        "genresHint": "Pick the genres you like. Powers your recommendations.",
+        "adultSection": "Adult content",
+        "hideAdult": "Hide adult content",
+        "hideAdultHint": "Filters MediaKeeper UI. Does not affect your Emby catalog."
       },
       "visibility": {
         "profileSection": "Profile visibility",
@@ -3388,10 +3391,7 @@
         "publicHint": "Visible in the leaderboard and viewable by other users.",
         "private": "Private",
         "privateHint": "Hidden from the leaderboard, profile not viewable.",
-        "publicLocked": "Visibility forced by an administrator.",
-        "adultSection": "Adult content",
-        "hideAdult": "Hide adult content",
-        "hideAdultHint": "Filters MediaKeeper UI. Does not affect your Emby catalog."
+        "publicLocked": "Visibility forced by an administrator."
       },
       "account": {
         "passwordSection": "Password",
