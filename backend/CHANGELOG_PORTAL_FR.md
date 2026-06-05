@@ -41,6 +41,7 @@ utilisateurs.
 - Découvrir — listes (tendances, populaires, etc.) affichées dans votre langue.
 - Changelog — versions sans nouveauté masquées (plus de cartes vides).
 - Avatars personnalisés affichés dans les contributeurs de listes et le sélecteur d'utilisateurs.
+- Pastilles « déjà demandé » affichées sur les grandes listes.
 
 ## [1.0.0-rc.4] - 2026-05-30
 

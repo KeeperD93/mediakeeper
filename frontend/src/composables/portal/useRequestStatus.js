@@ -1,6 +1,6 @@
 import { reactive } from 'vue'
 import { useApi } from '@/composables/useApi'
-import { REQUEST_STATUS } from '@/constants/requests'
+import { BATCH_STATUS_MAX_IDS, REQUEST_STATUS } from '@/constants/requests'
 
 // Global cache: tmdb_id -> { status, requested_at, requested_by, request_id, _ts }
 // Mirrors useAvailability so MediaCard can simply lookup both caches
@@ -58,28 +58,36 @@ export function useRequestStatus() {
     }
     if (!toCheck.length) return
 
-    try {
-      const res = await apiPost('/api/portal/requests/batch-status', {
-        tmdb_ids: toCheck,
-      })
-      const now = Date.now()
+    // The backend rejects more than BATCH_STATUS_MAX_IDS unique ids per call
+    // (422 too_many_tmdb_ids). Large views (multi-carousel home, infinite
+    // scroll, cold cache) blow past it, so split into capped chunks run in
+    // parallel — allSettled keeps a transient failure on one chunk from
+    // wiping the badges the others resolved.
+    const now = Date.now()
+    const chunks = []
+    for (let i = 0; i < toCheck.length; i += BATCH_STATUS_MAX_IDS) {
+      chunks.push(toCheck.slice(i, i + BATCH_STATUS_MAX_IDS))
+    }
+    const settled = await Promise.allSettled(
+      chunks.map(ids => apiPost('/api/portal/requests/batch-status', { tmdb_ids: ids })),
+    )
+    settled.forEach((outcome, i) => {
+      if (outcome.status !== 'fulfilled') return // chunk failed → retry next call
+      const res = outcome.value
       if (res?.results) {
         for (const [key, val] of Object.entries(res.results)) {
           cache[key] = val ? { ...val, _ts: now } : null
         }
       }
-      // Stamp the missing ones (no active request) so we don't re-query
-      // them on the next call. They carry their own timestamp so the
-      // TTL logic treats them identically to populated entries.
-      for (const id of toCheck) {
+      // Stamp this chunk's misses (no active request) so they aren't
+      // re-queried until the TTL lapses — same shape as populated entries.
+      for (const id of chunks[i]) {
         const key = String(id)
         if (!(key in cache) || cache[key] === null) {
           cache[key] = { _ts: now, _empty: true }
         }
       }
-    } catch {
-      // Silent — UI just won't show the badge
-    }
+    })
   }
 
   /**
