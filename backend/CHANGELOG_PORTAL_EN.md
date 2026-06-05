@@ -23,6 +23,8 @@ This section intentionally has no date so it is not shown to users.
 ### Changed
 - Media detail — TMDB rating colour unified to gold.
 - Avatars — legendary ring (level 50): animated rainbow on every surface.
+- Preferences — the "hide adult content" setting moved here, under the genres.
+- Home — Popular and Top-rated rows now sourced from Discover.
 
 ### Fixed
 - Maintenance mode — the portal is now fully locked (holding page only).
@@ -42,6 +44,8 @@ This section intentionally has no date so it is not shown to users.
 - "Already requested" badges now load on large lists.
 - Daily digest — full XP bar at max level (no level 51).
 - Recommended for you — the home row now fills to 20 distinct titles.
+- Adult content — hiding it now applies to every list, search and recommendations.
+- Requests — adult titles can only be requested if the administrator allows it.
 
 ## [1.0.0-rc.4] - 2026-05-30
 
