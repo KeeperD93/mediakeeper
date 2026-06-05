@@ -9,6 +9,7 @@ from api.portal.deps import get_current_profile, get_request_lang
 from core.database import get_db
 from models.portal.profile import UserProfile
 from models.user import User
+from services.portal.adult_filter import drop_adult
 
 logger = logging.getLogger("mediakeeper.portal.discover")
 router = APIRouter()
@@ -170,7 +171,9 @@ async def because_you_watched(
     from services.portal.personal import get_because_you_watched
     user, profile = up
     try:
-        return await get_because_you_watched(db, user, profile, media_type_filter=media_type)
+        result = await get_because_you_watched(db, user, profile, media_type_filter=media_type)
+        result["items"] = drop_adult(result.get("items"), bool(profile.hide_adult))
+        return result
     except Exception:
         return {"pivot": None, "items": []}
 

@@ -302,4 +302,7 @@ def _normalize(r: dict) -> dict:
         "popularity": r.get("popularity", 0),
         "genres": r.get("genre_ids", []),
         "media_type": media_type,
+        # TMDB adult flag carried through so each catalog endpoint can honour
+        # the viewer's hide_adult preference (#289). See adult_filter.drop_adult.
+        "adult": bool(r.get("adult")),
     }

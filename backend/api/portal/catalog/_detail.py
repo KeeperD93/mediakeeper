@@ -7,6 +7,7 @@ from core.database import get_db
 from models.portal.profile import UserProfile
 from models.user import User
 from services.portal import discover as disc_svc
+from services.portal.adult_filter import drop_adult
 from services.portal.discover_details import get_person_filmography, get_collection
 from services.portal.tmdb_search import search_with_cache
 from services.tmdb import get_season_episodes, get_tv_seasons
@@ -40,6 +41,7 @@ async def media_detail(
     result = await disc_svc.get_full_details(db, media_type, tmdb_id, language=user_lang)
     if not result:
         raise HTTPException(status_code=404, detail="not_found")
+    result["recommendations"] = drop_adult(result.get("recommendations"), bool(profile.hide_adult))
     return result
 
 
@@ -53,11 +55,10 @@ async def search(
 ):
     _, profile = up
     user_lang = (profile.language or "").split("-")[0].lower() or None
-    return {
-        "items": await search_with_cache(
-            db, q, page, available_only=available_only, language=user_lang,
-        ),
-    }
+    items = await search_with_cache(
+        db, q, page, available_only=available_only, language=user_lang,
+    )
+    return {"items": drop_adult(items, bool(profile.hide_adult))}
 
 
 @router.get("/person/{person_id}")
@@ -69,7 +70,10 @@ async def person_filmography(
     db: AsyncSession = Depends(get_db),
 ):
     """Combined filmography of a person (as director and/or cast)."""
-    return await get_person_filmography(db, person_id, role=role, media_filter=media)
+    _, profile = up
+    result = await get_person_filmography(db, person_id, role=role, media_filter=media)
+    result["items"] = drop_adult(result.get("items"), bool(profile.hide_adult))
+    return result
 
 
 @router.get("/collection/{collection_id}")
@@ -79,7 +83,10 @@ async def collection_detail(
     db: AsyncSession = Depends(get_db),
 ):
     """TMDB franchise / collection items."""
-    return await get_collection(db, collection_id)
+    _, profile = up
+    result = await get_collection(db, collection_id)
+    result["items"] = drop_adult(result.get("items"), bool(profile.hide_adult))
+    return result
 
 
 # Portal-authenticated TMDB season/episode endpoints. Needed so the
