@@ -41,6 +41,7 @@ This section intentionally has no date so it is not shown to users.
 - Custom avatars now shown in list contributors and the user picker.
 - "Already requested" badges now load on large lists.
 - Daily digest — full XP bar at max level (no level 51).
+- Recommended for you — the home row now fills to 20 distinct titles.
 
 ## [1.0.0-rc.4] - 2026-05-30
 
