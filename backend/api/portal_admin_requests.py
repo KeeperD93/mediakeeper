@@ -26,6 +26,7 @@ from models.user import User
 from models.portal.profile import UserProfile
 from api.auth import get_current_user, grant_portal_admin_session, require_csrf
 from services.portal._rank_tiers import tier_for_level
+from services.portal.avatars import resolve_avatar_url
 from services.portal.user_import import import_emby_users
 
 router = APIRouter(prefix="/api/portal/admin/requests", tags=["portal-admin-requests"])
@@ -71,7 +72,7 @@ async def list_users(
             "user_id": user.id,
             "username": user.username,
             "display_name": profile.display_name,
-            "avatar_url": profile.avatar_url,
+            "avatar_url": resolve_avatar_url(profile.avatar_url, profile.avatar_custom_path),
             "role": profile.role,
             "account_active": profile.account_active,
             "chat_enabled": profile.chat_enabled,

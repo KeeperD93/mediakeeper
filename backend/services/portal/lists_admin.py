@@ -21,6 +21,7 @@ from models.portal.social import (
 )
 from services.portal._display_name import resolve_display_name
 from services.portal._rank_tiers import tier_for_level
+from services.portal.avatars import resolve_avatar_url
 from services.portal.lists import (
     _log, _contributor_row, can_view, can_manage,
 )
@@ -94,6 +95,7 @@ async def get_contributors(
             UserProfile.display_name,
             UserProfile.display_name_must_set,
             UserProfile.avatar_url,
+            UserProfile.avatar_custom_path,
             UserProfile.level,
         )
         .join(User, User.id == UserListContributor.user_id)
@@ -112,13 +114,13 @@ async def get_contributors(
             "username": resolve_display_name(
                 None if must_set else display_name, c.user_id, lang,
             ),
-            "avatar_url": avatar_url,
+            "avatar_url": resolve_avatar_url(avatar_url, avatar_custom_path),
             "level": level or 1,
             "tier": tier_for_level(level or 1),
             "muted": c.muted,
             "added_at": c.added_at.isoformat() if c.added_at else None,
         }
-        for c, display_name, must_set, avatar_url, level in rows
+        for c, display_name, must_set, avatar_url, avatar_custom_path, level in rows
     ]
 
 

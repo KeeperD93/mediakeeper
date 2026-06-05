@@ -6,7 +6,7 @@ from models.portal.profile import UserProfile
 from models.user import User
 from services.portal._display_name import resolve_display_name
 from services.portal._rank_tiers import tier_for_level
-from services.portal.avatars import avatar_public_url
+from services.portal.avatars import resolve_avatar_url
 
 DISPLAY_NAME_LOCK_DAYS = 30 * 6  # 6 months
 
@@ -104,9 +104,7 @@ def serialize_public_profile(profile: UserProfile, *, lang: str = "fr") -> dict:
 
 def _resolve_avatar_url(profile: UserProfile) -> str | None:
     """A custom uploaded avatar takes precedence over the Emby-proxied URL."""
-    if profile.avatar_custom_path:
-        return avatar_public_url(profile.avatar_custom_path)
-    return profile.avatar_url
+    return resolve_avatar_url(profile.avatar_url, profile.avatar_custom_path)
 
 
 def build_private_placeholder(profile: UserProfile, *, lang: str) -> dict:
