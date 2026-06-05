@@ -1,7 +1,8 @@
 /**
  * In-app notification type strings. Must match the `type` column emitted
- * by the backend notification dispatcher (`backend/app/notifications/*`).
- * Used by the notification bell to pick icons / navigation targets.
+ * by the backend portal notification service (`backend/services/portal/
+ * notifications.py` and its callers). Used by the notification bell to
+ * pick icons / navigation targets.
  */
 export const NOTIF_TYPE = Object.freeze({
   REQUEST_APPROVED: 'request_approved',
@@ -14,6 +15,9 @@ export const NOTIF_TYPE = Object.freeze({
   TICKET_RESOLVED: 'ticket_resolved',
   EVENT_ROOM_OPEN: 'event_room_open',
   CHAT_MESSAGE_REPORTED: 'chat_message_reported',
+  ADMIN_MESSAGE: 'admin_message',
+  LIST_COPIED: 'list_copied',
+  LIST_CONTRIBUTOR_ADDED: 'list_contributor_added',
 } as const)
 
 export type NotifType = (typeof NOTIF_TYPE)[keyof typeof NOTIF_TYPE]

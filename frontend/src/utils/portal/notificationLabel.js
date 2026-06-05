@@ -1,4 +1,13 @@
-import { Bell, Film, Flag, MessageSquare, Target, TicketCheck } from 'lucide-vue-next'
+import {
+  Bell,
+  Film,
+  Flag,
+  ListPlus,
+  Megaphone,
+  MessageSquare,
+  Target,
+  TicketCheck,
+} from 'lucide-vue-next'
 import { NOTIF_TYPE } from '@/constants/notifications'
 import { localizedDate } from '@/utils/datetime'
 
@@ -10,9 +19,11 @@ import { localizedDate } from '@/utils/datetime'
 export function iconComponentForNotification(type) {
   if (!type) return Bell
   if (type === NOTIF_TYPE.CHAT_MESSAGE_REPORTED) return Flag
+  if (type === NOTIF_TYPE.ADMIN_MESSAGE) return Megaphone
   if (type.startsWith('event_')) return Film
   if (type.startsWith('request_')) return Target
   if (type.startsWith('ticket_')) return TicketCheck
+  if (type.startsWith('list_')) return ListPlus
   if (type.startsWith('chat_')) return MessageSquare
   return Bell
 }
@@ -59,6 +70,12 @@ export function labelForNotification(n, t) {
         from: p.reporter_name || '?',
         excerpt: p.excerpt || '',
       })
+    case NOTIF_TYPE.ADMIN_MESSAGE:
+      return t('portal.notifications.tpl.adminMessage', { title: p.title || '' })
+    case NOTIF_TYPE.LIST_COPIED:
+      return t('portal.notifications.tpl.listCopied')
+    case NOTIF_TYPE.LIST_CONTRIBUTOR_ADDED:
+      return t('portal.notifications.tpl.listContributorAdded')
     default:
       return n.type
   }

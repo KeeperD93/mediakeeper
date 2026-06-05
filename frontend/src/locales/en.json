@@ -2707,7 +2707,10 @@
         "ticketCreated": "New ticket: \"{title}\"",
         "ticketReplied": "An admin replied to your ticket \"{title}\"",
         "ticketResolved": "Your ticket \"{title}\" has been resolved",
-        "chatMessageReported": "Message reported by {from}: \"{excerpt}\""
+        "chatMessageReported": "Message reported by {from}: \"{excerpt}\"",
+        "adminMessage": "Admin message: \"{title}\"",
+        "listCopied": "Someone copied one of your lists",
+        "listContributorAdded": "You were added as a contributor to a list"
       }
     },
     "mkCalendar": {

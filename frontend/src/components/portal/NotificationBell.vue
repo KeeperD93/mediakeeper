@@ -147,6 +147,13 @@ async function onClick(n) {
     }
     return
   }
+  // List notifs (your list copied / you were added as contributor) open the
+  // lists page — the route has no per-list deep link.
+  if (n.type === NOTIF_TYPE.LIST_COPIED || n.type === NOTIF_TYPE.LIST_CONTRIBUTOR_ADDED) {
+    close()
+    router.push({ name: PORTAL_TAB.LISTS })
+    return
+  }
   const eid = p.event_id
   if (!eid) return
   // Room-open notif jumps directly to the cinema room. Everything
