@@ -99,6 +99,36 @@ async def get_recommendations_for_user(
     movies = [m for m in movies if m.get("tmdb_id") not in indexed_movies]
     tv = [t for t in tv if t.get("tmdb_id") not in indexed_tv]
 
+    # Page-1 popular titles in the user's favourite genres are usually
+    # already in the library and get filtered out here, leaving the row
+    # short of 20 — the one row that filters against the index. Pull a few
+    # more pages (sequentially — concurrent nested fetches on the same
+    # session break SQLAlchemy async), skipping indexed and already-kept
+    # ids so the row reaches 20 distinct items.
+    seen_movies = {m.get("tmdb_id") for m in movies}
+    seen_tv = {t.get("tmdb_id") for t in tv}
+    for page in (2, 3):
+        if len(movies) + len(tv) >= 20:
+            break
+        more_movies = await _fetch_list_params(
+            db, "/discover/movie", page, discover_params,
+            include_adult=include_adult, language=user_lang,
+        )
+        more_tv = await _fetch_list_params(
+            db, "/discover/tv", page, discover_params,
+            include_adult=include_adult, language=user_lang,
+        )
+        for m in more_movies:
+            mid = m.get("tmdb_id")
+            if mid not in indexed_movies and mid not in seen_movies:
+                movies.append(m)
+                seen_movies.add(mid)
+        for t in more_tv:
+            tid = t.get("tmdb_id")
+            if tid not in indexed_tv and tid not in seen_tv:
+                tv.append(t)
+                seen_tv.add(tid)
+
     return _interleave(movies, tv, max_n=20)
 
 
