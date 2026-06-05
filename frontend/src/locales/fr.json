@@ -2574,7 +2574,8 @@
       },
       "level": {
         "eyebrow": "Votre niveau",
-        "toNext": "Plus que {xp} XP pour le niveau {level}"
+        "toNext": "Plus que {xp} XP pour le niveau {level}",
+        "maxed": "Niveau maximum atteint"
       },
       "events": {
         "public": "Public",

@@ -38,6 +38,7 @@ This section intentionally has no date so it is not shown to users.
 - Dates now shown in your language (instead of the browser).
 - Discover — lists (trending, popular, …) now shown in your language.
 - Changelog — versions with no entries are hidden (no more blank cards).
+- Daily digest — full XP bar at max level (no level 51).
 
 ## [1.0.0-rc.4] - 2026-05-30
 

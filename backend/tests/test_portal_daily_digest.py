@@ -9,6 +9,7 @@ from models.user import User
 from models.portal.profile import UserProfile
 from services.portal import daily_digest as dd_svc
 from services.portal import daily_digest_sources as dd_sources
+from services.portal.xp import MAX_LEVEL, xp_for_level
 from services.settings import get_user_preferences
 
 
@@ -163,3 +164,22 @@ async def test_endpoints_require_auth(client):
     assert resp.status_code in (401, 403)
     resp = await client.post("/api/portal/daily-digest/dismiss")
     assert resp.status_code in (401, 403)
+
+
+def test_level_info_below_max_progresses_to_next():
+    """A mid-level profile reports progress toward the next level."""
+    floor, ceiling = xp_for_level(5), xp_for_level(6)
+    profile = UserProfile(level=5, xp=floor + (ceiling - floor) // 2)
+    info = dd_sources.level_info(profile)
+    assert info["maxed"] is False
+    assert info["xp_next_level"] == ceiling
+    assert 40 <= info["percent"] <= 60
+
+
+def test_level_info_at_max_level_is_full_and_capped():
+    """At the cap the bar is full and there is no phantom level 51."""
+    profile = UserProfile(level=MAX_LEVEL, xp=xp_for_level(MAX_LEVEL) + 1490)
+    info = dd_sources.level_info(profile)
+    assert info["maxed"] is True
+    assert info["percent"] == 100
+    assert info["xp_next_level"] == info["xp_current_level"] == xp_for_level(MAX_LEVEL)

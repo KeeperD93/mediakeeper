@@ -40,6 +40,7 @@ utilisateurs.
 - Dates affichées dans votre langue (au lieu de celle du navigateur).
 - Découvrir — listes (tendances, populaires, etc.) affichées dans votre langue.
 - Changelog — versions sans nouveauté masquées (plus de cartes vides).
+- Quoi de neuf — barre XP pleine au niveau max (sans niveau 51).
 
 ## [1.0.0-rc.4] - 2026-05-30
 
