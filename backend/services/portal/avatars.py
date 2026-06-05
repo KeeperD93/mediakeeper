@@ -154,3 +154,14 @@ def avatar_public_url(stored_name: str | None) -> str | None:
     if not stored_name:
         return None
     return f"/api/portal/avatars/{stored_name}"
+
+
+def resolve_avatar_url(avatar_url: str | None, avatar_custom_path: str | None) -> str | None:
+    """Pick the avatar to display: a custom uploaded avatar (served from
+    ``avatar_custom_path``) always wins over the Emby-proxied ``avatar_url``.
+
+    Single source of truth for that precedence so every serializer that
+    exposes an avatar resolves it identically."""
+    if avatar_custom_path:
+        return avatar_public_url(avatar_custom_path)
+    return avatar_url

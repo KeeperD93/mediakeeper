@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.http_client import get_internal_client
 from models.portal.profile import UserProfile
 from services.portal._rank_tiers import tier_for_level
+from services.portal.avatars import resolve_avatar_url
 
 from .config import _get_emby_config
 
@@ -72,12 +73,20 @@ async def get_sessions(db: AsyncSession):
     # per session. Bronze fallback for Emby-only accounts.
     profile_rows = (
         await db.execute(
-            select(UserProfile.emby_user_id, UserProfile.level, UserProfile.avatar_url)
+            select(
+                UserProfile.emby_user_id,
+                UserProfile.level,
+                UserProfile.avatar_url,
+                UserProfile.avatar_custom_path,
+            )
             .where(UserProfile.emby_user_id.isnot(None))
         )
     ).all()
     profile_map = {
-        row.emby_user_id: {"level": row.level or 1, "avatar_url": row.avatar_url}
+        row.emby_user_id: {
+            "level": row.level or 1,
+            "avatar_url": resolve_avatar_url(row.avatar_url, row.avatar_custom_path),
+        }
         for row in profile_rows
     }
 

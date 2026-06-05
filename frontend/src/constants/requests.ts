@@ -13,3 +13,10 @@ export const REQUEST_STATUS = Object.freeze({
 export type RequestStatus = (typeof REQUEST_STATUS)[keyof typeof REQUEST_STATUS]
 
 export const ACTIONABLE_REQUEST_STATUSES: readonly RequestStatus[] = [REQUEST_STATUS.PENDING]
+
+/**
+ * Max unique tmdb_ids the backend accepts per batch-status call (mirrors
+ * `BATCH_STATUS_MAX_IDS` in backend/api/portal/requests.py). The frontend
+ * chunks larger lists to stay under it instead of triggering a 422.
+ */
+export const BATCH_STATUS_MAX_IDS = 100

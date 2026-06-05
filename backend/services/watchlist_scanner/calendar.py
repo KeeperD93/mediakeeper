@@ -108,17 +108,17 @@ async def _build_calendar(db: AsyncSession, year: int, month: int) -> list[dict]
         rd = t.get("release_date", "")
         logger.debug(f"[calendar] Film '{t.get('name')}' release_date='{rd}' in_range={bool(rd and ms <= rd < me)}")
         if rd and ms <= rd < me:
-                items.append({
-                    "date": rd, "series_name": t.get("name", ""), "series_id": "",
-                    "tmdb_id": t["tmdb_id"], "season": 0, "episode": 0,
-                    # No hardcoded label: the frontend renders a localized
-                    # "movie release" tag for movie rows (dashboard.movieRelease).
-                    "episode_name": "", "poster": t.get("poster", ""),
-                    "emby_poster": "", "source": "tracked",
-                    "overview": (t.get("overview") or "")[:300],
-                    "total_seasons": 0, "total_episodes": 0,
-                    "first_air_date": rd, "is_movie": True,
-                })
+            items.append({
+                "date": rd, "series_name": t.get("name", ""), "series_id": "",
+                "tmdb_id": t["tmdb_id"], "season": 0, "episode": 0,
+                # No hardcoded label: the frontend renders a localized
+                # "movie release" tag for movie rows (dashboard.movieRelease).
+                "episode_name": "", "poster": t.get("poster", ""),
+                "emby_poster": "", "source": "tracked",
+                "overview": (t.get("overview") or "")[:300],
+                "total_seasons": 0, "total_episodes": 0,
+                "first_air_date": rd, "is_movie": True,
+            })
 
     items.sort(key=lambda x: (x["date"], x["series_name"]))
     return items
