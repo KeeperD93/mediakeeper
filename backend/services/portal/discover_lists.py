@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.http_client import get_external_client
 from core.ttl_cache import cached_tmdb_list
 from services.tmdb import _get_tmdb_key, _tmdb_headers_sync, TMDB_BASE
+from services.portal.adult_filter import ADULT_KEYWORDS_CSV
 from services.portal.runtime_cache import resolve_runtimes
 
 logger = logging.getLogger("mediakeeper.portal.discover")
@@ -235,6 +236,10 @@ async def _fetch_list_params(
             "include_adult": "true" if include_adult else "false",
             **extra_params,
         }
+        # Exclude pornographic keywords TMDB does not flag as ``adult``
+        # (hentai et al.) when the viewer hides adult content.
+        if not include_adult:
+            params["without_keywords"] = ADULT_KEYWORDS_CSV
         res = await client.get(
             f"{TMDB_BASE}{endpoint}",
             params=params,
@@ -303,6 +308,6 @@ def _normalize(r: dict) -> dict:
         "genres": r.get("genre_ids", []),
         "media_type": media_type,
         # TMDB adult flag carried through so each catalog endpoint can honour
-        # the viewer's hide_adult preference (#289). See adult_filter.drop_adult.
+        # the viewer's hide_adult preference. See adult_filter.drop_adult.
         "adult": bool(r.get("adult")),
     }

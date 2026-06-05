@@ -1,5 +1,9 @@
-"""Adult-content filtering for TMDB catalog responses (#289 Phase 1)."""
-from services.portal.adult_filter import drop_adult
+"""Adult-content filtering for TMDB catalog responses."""
+from services.portal.adult_filter import (
+    ADULT_KEYWORD_IDS,
+    ADULT_KEYWORDS_CSV,
+    drop_adult,
+)
 from services.portal.discover_lists import _normalize
 
 
@@ -23,3 +27,13 @@ def test_normalize_carries_adult_flag():
     assert _normalize({"id": 5, "title": "X", "adult": True})["adult"] is True
     # Absent flag normalises to False so existing TMDB rows stay visible.
     assert _normalize({"id": 6, "title": "Y"})["adult"] is False
+
+
+def test_adult_keyword_set_is_precise():
+    assert 198385 in ADULT_KEYWORD_IDS  # hentai
+    assert 155477 in ADULT_KEYWORD_IDS  # softcore
+    # Borderline-but-legit markers stay OUT to avoid hiding mainstream titles.
+    assert 256466 not in ADULT_KEYWORD_IDS  # erotic (erotic thrillers)
+    assert 195669 not in ADULT_KEYWORD_IDS  # ecchi (fan-service anime)
+    assert 161919 not in ADULT_KEYWORD_IDS  # adult animation (South Park…)
+    assert ADULT_KEYWORDS_CSV == ",".join(str(k) for k in ADULT_KEYWORD_IDS)
