@@ -65,6 +65,17 @@ async def create_request(
     media_type = data["media_type"]
     requested_seasons = data.get("requested_seasons")
 
+    # Block pornographic requests for non-admins unless the instance allows
+    # them. The TMDB keyword lookup only runs when the policy is restrictive
+    # (default), so enabling adult requests adds zero per-request cost.
+    if not is_admin:
+        from services.portal.admin import get_portal_flag
+        if not await get_portal_flag(db, "portal.allow_adult_requests"):
+            from services.portal.adult_filter import has_adult_keyword
+            from services.tmdb import get_keyword_ids
+            if has_adult_keyword(await get_keyword_ids(media_type, tmdb_id, db)):
+                return {"error": "adult_requests_disabled"}
+
     # The "already_available" guard is binary for movies but wrong for
     # partially-available TV series: the user is asking specifically for
     # the missing seasons/episodes, which the EmbyTmdbIndex can't tell

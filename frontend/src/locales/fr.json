@@ -2482,6 +2482,7 @@
         "already_requested": "Ce titre est déjà demandé et en attente de validation.",
         "already_available": "Ce titre est déjà disponible sur Emby, vous pouvez le regarder directement.",
         "media_blacklisted": "Ce titre a été bloqué par un administrateur et ne peut pas être redemandé.",
+        "adult_requests_disabled": "Les demandes de contenu adulte sont désactivées par l'administrateur.",
         "quota_exceeded": "Vous avez atteint votre quota de demandes pour ce mois.",
         "not_found": "Demande introuvable."
       },

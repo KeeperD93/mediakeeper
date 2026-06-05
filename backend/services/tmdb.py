@@ -225,6 +225,34 @@ async def get_season_episodes(tmdb_id: int, season: int, db: AsyncSession | None
         return {"error": "tmdb_episodes_failed"}
 
 
+async def get_keyword_ids(media_type: str, tmdb_id: int, db: AsyncSession | None = None) -> set[int]:
+    """Return the set of TMDB keyword IDs attached to an item.
+
+    Movies expose them under ``keywords``, TV shows under ``results``. Used to
+    detect pornographic content TMDB's ``adult`` flag misses (e.g. hentai).
+    Returns an empty set on any error (fails open — a transport hiccup must not
+    block legitimate requests; the discover-list keyword filter is the primary
+    barrier).
+    """
+    api_key = await _get_tmdb_key(db)
+    if not api_key:
+        return set()
+    try:
+        client = get_external_client()
+        res = await client.get(
+            f"{TMDB_BASE}/{media_type}/{tmdb_id}/keywords",
+            headers=_tmdb_headers_sync(api_key),
+        )
+        if res.status_code != 200:
+            return set()
+        data = res.json() or {}
+        items = data.get("keywords") or data.get("results") or []
+        return {k["id"] for k in items if isinstance(k, dict) and isinstance(k.get("id"), int)}
+    except Exception as e:
+        logger.debug("[TMDB] keywords fetch failed for %s/%s: %s", media_type, tmdb_id, e)
+        return set()
+
+
 async def get_media_detail(media_type: str, tmdb_id: int, db: AsyncSession | None = None, locale: str | None = None) -> dict:
     """
     Fetch the full details of a movie or series, localized to ``locale``

@@ -25,6 +25,12 @@ ADULT_KEYWORD_IDS = (
     284535,   # adult video
 )
 ADULT_KEYWORDS_CSV = ",".join(str(k) for k in ADULT_KEYWORD_IDS)
+_ADULT_KEYWORD_SET = frozenset(ADULT_KEYWORD_IDS)
+
+
+def has_adult_keyword(keyword_ids) -> bool:
+    """True if any of the item's TMDB keyword IDs marks pornographic content."""
+    return bool(_ADULT_KEYWORD_SET.intersection(keyword_ids or ()))
 
 
 def drop_adult(items: list[dict] | None, hide_adult: bool) -> list[dict]:

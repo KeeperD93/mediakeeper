@@ -1,8 +1,11 @@
 """Adult-content filtering for TMDB catalog responses."""
+import pytest
+
 from services.portal.adult_filter import (
     ADULT_KEYWORD_IDS,
     ADULT_KEYWORDS_CSV,
     drop_adult,
+    has_adult_keyword,
 )
 from services.portal.discover_lists import _normalize
 
@@ -37,3 +40,33 @@ def test_adult_keyword_set_is_precise():
     assert 195669 not in ADULT_KEYWORD_IDS  # ecchi (fan-service anime)
     assert 161919 not in ADULT_KEYWORD_IDS  # adult animation (South Park…)
     assert ADULT_KEYWORDS_CSV == ",".join(str(k) for k in ADULT_KEYWORD_IDS)
+
+
+def test_has_adult_keyword_detects_adult_ids():
+    assert has_adult_keyword({198385}) is True          # hentai
+    assert has_adult_keyword([155477, 18]) is True       # softcore + drama
+    assert has_adult_keyword({18, 28}) is False          # drama + action only
+    assert has_adult_keyword([]) is False
+    assert has_adult_keyword(None) is False
+
+
+@pytest.mark.asyncio
+async def test_create_request_blocks_adult_when_disabled(db_session, monkeypatch):
+    """A non-admin cannot request adult content while the admin policy is off."""
+    from services.portal import requests_create
+
+    async def _flag(db, key):
+        return False
+
+    async def _keywords(media_type, tmdb_id, db=None):
+        return {198385}  # hentai
+
+    monkeypatch.setattr("services.portal.admin.get_portal_flag", _flag)
+    monkeypatch.setattr("services.tmdb.get_keyword_ids", _keywords)
+
+    result = await requests_create.create_request(
+        db_session, 1,
+        {"tmdb_id": 999999, "media_type": "movie", "title": "X"},
+        is_admin=False,
+    )
+    assert result == {"error": "adult_requests_disabled"}

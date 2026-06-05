@@ -2482,6 +2482,7 @@
         "already_requested": "This title is already pending approval.",
         "already_available": "This title is already on Emby — play it directly.",
         "media_blacklisted": "This title has been blocked by an admin and can't be re-requested.",
+        "adult_requests_disabled": "Adult content requests are disabled by the administrator.",
         "quota_exceeded": "You've reached your monthly request quota.",
         "not_found": "Request not found."
       },
