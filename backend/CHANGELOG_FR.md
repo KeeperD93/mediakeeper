@@ -37,6 +37,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Média Manager — fil d'ariane : repli du chemin trop long, séparateurs visibles.
 - Média Manager — animations des fenêtres coupées si « réduire les animations » est actif.
 - Tableau de bord — « Prochaines sorties » affichées dans votre langue.
+- Tableau de bord — fil d'activité (connexions, lectures) affiché dans votre langue.
 - Médiathèque — fiches détail TMDB affichées dans votre langue (repli anglais).
 - Watchlist — séries, épisodes et synopsis affichés dans votre langue.
 - Watchlist — films du calendrier affichés dans votre langue.
