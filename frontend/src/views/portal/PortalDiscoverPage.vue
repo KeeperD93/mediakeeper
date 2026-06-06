@@ -8,7 +8,7 @@
     show, then this component handles fetching, sorting, infinite
     scroll, and rendering a uniform poster grid.
   -->
-  <div class="vd">
+  <div class="vd mk-page-root">
     <header class="dmd-header">
       <button class="dmd-back" :aria-label="$t('common.back')" @click="$router.back()">
         <ChevronLeft :size="20" :stroke-width="2.5" />
@@ -163,16 +163,18 @@ watch(
   background: var(--portal-surface-3);
   border: 1px solid var(--portal-border-strong);
   color: var(--portal-text-primary);
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: var(--portal-radius-circle);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
-.dmd-back:hover {
-  background: rgb(255, 255, 255, 0.14);
+@media (hover: hover) {
+  .dmd-back:hover {
+    background: var(--portal-surface-5);
+  }
 }
 
 .dmd-title {
@@ -184,8 +186,8 @@ watch(
 .dmd-sort {
   display: inline-flex;
   gap: 0.4rem;
-  background: rgb(255, 255, 255, 0.05);
-  border: 1px solid rgb(255, 255, 255, 0.1);
+  background: var(--portal-surface-3);
+  border: 1px solid var(--portal-border-strong);
   border-radius: var(--portal-radius-pill);
   padding: 4px;
 }
@@ -193,7 +195,7 @@ watch(
   padding: 0.4rem 0.9rem;
   background: transparent;
   border: none;
-  color: rgb(255, 255, 255, 0.65);
+  color: var(--portal-text-body-muted);
   cursor: pointer;
   font-size: var(--portal-text-xs);
   font-weight: var(--portal-font-medium);
@@ -202,11 +204,13 @@ watch(
     background var(--portal-dur-fast),
     color var(--portal-dur-fast);
 }
-.dmd-sort-btn:hover {
-  color: var(--portal-text-primary);
+@media (hover: hover) {
+  .dmd-sort-btn:hover {
+    color: var(--portal-text-primary);
+  }
 }
 .dmd-sort-btn--active {
-  background: var(--accent, #4338ca);
+  background: var(--portal-accent);
   color: var(--portal-text-primary);
 }
 
@@ -242,7 +246,7 @@ watch(
   justify-content: center;
   gap: 0.6rem;
   padding: 2rem 1rem;
-  color: rgb(255, 255, 255, 0.5);
+  color: var(--portal-text-secondary);
   font-size: var(--portal-text-sm);
 }
 

@@ -15,6 +15,7 @@
   --portal-bg-primary-rgb: 31, 33, 38;
   --portal-chrome-bg: #1c2533; /* opaque chrome surface (popups, panels) */
   --portal-chrome-bg-rgb: 28, 37, 51;
+  --portal-accent: #4338ca; /* brand accent — mirrors the admin accent hex, portal namespace self-contained */
 
   /* Surfaces (background layers) --------------------------- */
   --portal-surface-1: rgb(255, 255, 255, 0.02); /* subtle tint */
