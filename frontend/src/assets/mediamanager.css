@@ -370,6 +370,12 @@
   letter-spacing: var(--tracking-widest);
   color: var(--text-muted);
 }
+.mm-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
 .mm-count {
   font-family: 'SF Mono', 'Cascadia Mono', monospace;
   font-size: var(--text-2xs);
@@ -389,6 +395,13 @@
   background: rgb(255, 255, 255, 0.015);
   flex-shrink: 0;
 }
+/* Lock the left & right column header + toolbar to equal heights so each
+   file lines up with its generated name; scoped to .mm-col so the centre
+   TMDB panel keeps its own sizing. */
+.mm-col > .mm-col-header,
+.mm-col > .mm-toolbar {
+  height: 45px;
+}
 .mm-hint {
   font-size: var(--text-2xs);
   color: var(--text-muted);
@@ -403,7 +416,9 @@
   font-size: var(--text-2xs);
   color: var(--text-muted);
   flex: 1;
+  min-width: 0;
   overflow: hidden;
+  white-space: nowrap;
 }
 .mm-crumb {
   color: var(--accent-400);
@@ -413,11 +428,32 @@
   align-items: center;
   gap: 0.2rem;
 }
+/* Collapsed current folder can still be long on its own → let it ellipsize */
+.mm-crumb--current {
+  min-width: 0;
+}
+.mm-crumb svg {
+  flex-shrink: 0;
+}
+/* Category + current folder truncate with … (full name on hover via title);
+   intermediate folders collapse into a single … crumb. */
+.mm-crumb-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mm-crumb-more {
+  flex-shrink: 0;
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  line-height: 1;
+}
 .mm-crumb:hover {
   text-decoration: underline;
 }
 .mm-sep {
-  color: var(--border);
+  color: var(--text-muted);
+  flex-shrink: 0;
 }
 
 /* ── Boutons ── */

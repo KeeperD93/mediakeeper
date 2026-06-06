@@ -33,6 +33,8 @@ This section intentionally has no date so it is not shown to users.
 - Media Manager — rename history labels follow the app language.
 - Media Manager — accessible dialogs: keyboard focus, Esc, screen-reader announcement.
 - Media Manager — keyboard tabbing skips hidden dialogs and buttons.
+- Media Manager — files now line up with their generated names.
+- Media Manager — breadcrumb collapses an overflowing path, clearer separators.
 - Dashboard — "Upcoming releases" now shown in your language.
 - Media library — TMDB detail pages now shown in your language (English fallback).
 - Watchlist — series, episodes and synopsis now shown in your language.
