@@ -140,7 +140,7 @@ onMounted(() => fetchParties())
   text-align: center;
   font-size: var(--portal-text-xs);
   font-weight: var(--portal-font-bold);
-  color: var(--accent);
+  color: var(--portal-accent);
   min-width: 60px;
 }
 .pt-party-info {
@@ -167,7 +167,7 @@ onMounted(() => fetchParties())
   gap: 0.3rem;
 }
 .pt-btn--primary {
-  background: var(--accent);
+  background: var(--portal-accent);
   color: var(--portal-text-primary);
 }
 .pt-btn--secondary {

@@ -147,7 +147,7 @@ onMounted(async () => {
 .pt-cal-nav button {
   background: none;
   border: none;
-  color: var(--accent);
+  color: var(--portal-accent);
   font-size: var(--portal-text-xl);
   cursor: pointer;
 }
@@ -183,7 +183,7 @@ onMounted(async () => {
   background: var(--portal-bg-primary);
 }
 .pt-cal-today {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--portal-accent);
   outline-offset: -2px;
 }
 .pt-cal-num {
