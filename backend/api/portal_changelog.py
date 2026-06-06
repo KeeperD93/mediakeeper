@@ -10,7 +10,7 @@ import json
 import logging
 from pathlib import Path
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy.ext.asyncio import AsyncSession
 from core.database import get_db
 from models.user import User
@@ -145,6 +145,8 @@ async def check_new_portal_version(
 
 
 class MarkSeenRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     version: str = ""
 
 
