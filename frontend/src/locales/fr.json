@@ -1071,7 +1071,6 @@
     "cancelMoveConfirm": "Annuler le déplacement de {count} fichier(s) ?",
     "filesRestored": "{count} fichier(s) restauré(s)",
     "historyCleared": "Historique vidé",
-    "undoLabel": "Undo",
     "moveHistoryTitle": "Historique des déplacements",
     "conflictsTitle": "Conflits détectés",
     "skipConflicts": "Ignorer",
