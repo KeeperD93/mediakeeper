@@ -99,14 +99,21 @@ async def _build_calendar(db: AsyncSession, year: int, month: int) -> list[dict]
                             "is_movie": False,
                         })
         except Exception as e:
-            logger.debug(f"Calendrier {s['name']}: {e}")
+            logger.debug("[calendar] %s: %s", s["name"], e)
 
-    # Films suivis
+    # Tracked movies
     tracked_movies = [t for t in tracked if t.get("media_type") == "movie"]
-    logger.info(f"[calendar] {len(tracked_movies)} tracked movies, period {ms} → {me}")
+    logger.info(
+        "[calendar] %s tracked movies, period %s → %s", len(tracked_movies), ms, me
+    )
     for t in tracked_movies:
         rd = t.get("release_date", "")
-        logger.debug(f"[calendar] Film '{t.get('name')}' release_date='{rd}' in_range={bool(rd and ms <= rd < me)}")
+        logger.debug(
+            "[calendar] Film '%s' release_date='%s' in_range=%s",
+            t.get("name"),
+            rd,
+            bool(rd and ms <= rd < me),
+        )
         if rd and ms <= rd < me:
             items.append({
                 "date": rd, "series_name": t.get("name", ""), "series_id": "",
