@@ -81,9 +81,15 @@
     </div>
 
     <div class="ru-toolbar-right">
-      <span class="ru-toolbar-count">
-        {{ $t('requestsAdmin.users.totalCount', { count: total }) }}
-      </span>
+      <PortalPagination
+        v-if="total"
+        :page="page"
+        :per-page="perPage"
+        :total="total"
+        :disabled="loading"
+        @update:page="$emit('update:page', $event)"
+        @update:per-page="$emit('update:perPage', $event)"
+      />
       <div class="ru-toolbar-view" role="tablist">
         <button
           type="button"
@@ -114,6 +120,8 @@
 
 <script setup>
 import { Search, Clock, Trash2, List, LayoutGrid } from 'lucide-vue-next'
+import PortalPagination from '@/components/portal/PortalPagination.vue'
+import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
 
 defineProps({
   search: { type: String, default: '' },
@@ -126,6 +134,9 @@ defineProps({
   includeDeleted: { type: Boolean, default: false },
   viewMode: { type: String, default: 'table' },
   total: { type: Number, default: 0 },
+  page: { type: Number, default: 1 },
+  perPage: { type: Number, default: DEFAULT_PAGE_SIZE },
+  loading: { type: Boolean, default: false },
 })
 
 const emit = defineEmits([
@@ -137,6 +148,8 @@ const emit = defineEmits([
   'update:expiresWithin',
   'update:includeDeleted',
   'update:viewMode',
+  'update:page',
+  'update:perPage',
 ])
 
 function onCustomExpire(raw) {

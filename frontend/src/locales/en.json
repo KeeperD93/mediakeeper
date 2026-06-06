@@ -1823,7 +1823,6 @@
       "title": "Users",
       "subtitle": "Emby and local accounts: import, activation, roles, access, audit.",
       "empty": "No user matches the current filters.",
-      "totalCount": "{count} account(s)",
       "search": { "placeholder": "Search by name, username or email…" },
       "view": { "table": "Table view", "cards": "Card view" },
       "filters": {

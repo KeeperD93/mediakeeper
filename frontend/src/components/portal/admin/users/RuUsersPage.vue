@@ -45,18 +45,12 @@
       v-model:view-mode="viewMode"
       :tag-options="tagOptions"
       :total="total"
+      :page="page"
+      :per-page="perPage"
+      :loading="loading"
+      @update:page="onPage"
+      @update:per-page="onPerPage"
     />
-
-    <div v-if="total" class="ru-pager-bar">
-      <PortalPagination
-        :page="page"
-        :per-page="perPage"
-        :total="total"
-        :disabled="loading"
-        @update:page="onPage"
-        @update:per-page="onPerPage"
-      />
-    </div>
 
     <div v-if="loading && !items.length" class="ru-loading">{{ $t('common.loading') }}</div>
 
@@ -129,7 +123,6 @@ import RuUserDrawer from './RuUserDrawer.vue'
 import RuEmbyImportOverlay from './RuEmbyImportOverlay.vue'
 import RuLocalCreateModal from './RuLocalCreateModal.vue'
 import RuStatsBanner from './RuStatsBanner.vue'
-import PortalPagination from '@/components/portal/PortalPagination.vue'
 
 import '@/assets/styles/portal/admin-users.css'
 import '@/assets/styles/portal/admin-users-toolbar.css'
