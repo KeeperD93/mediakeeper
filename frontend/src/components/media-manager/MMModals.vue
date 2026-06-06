@@ -5,7 +5,7 @@
     :class="{ show: modalConfirm.show }"
     @click.self="modalConfirm.show = false"
   >
-    <div class="mm-modal">
+    <div ref="confirmPanelRef" class="mm-modal" role="dialog" aria-modal="true" tabindex="-1">
       <h3>
         <Pencil />
         {{ $t('mediaManager.confirmRenameTitle') }}
@@ -46,7 +46,13 @@
 
   <!-- ── RENAME ERRORS MODAL ── -->
   <div class="mm-overlay" :class="{ show: showRenameErrorsModal }" @click.self="clearRenameErrors">
-    <div class="mm-modal mm-modal-580">
+    <div
+      ref="errorsPanelRef"
+      class="mm-modal mm-modal-580"
+      role="dialog"
+      aria-modal="true"
+      tabindex="-1"
+    >
       <h3 class="mm-title-error">
         <TriangleAlert />
         {{
@@ -80,7 +86,13 @@
 
   <!-- ── MOVE CONFLICT MODAL ── -->
   <div class="mm-overlay" :class="{ show: showMoveConflictModal }" @click.self="cancelMoveConflict">
-    <div class="mm-modal mm-modal-500">
+    <div
+      ref="conflictPanelRef"
+      class="mm-modal mm-modal-500"
+      role="dialog"
+      aria-modal="true"
+      tabindex="-1"
+    >
       <h3>
         <TriangleAlert class="mm-ico-warn" />
         {{ $t('mediaManager.conflictsTitle') }}
@@ -109,7 +121,9 @@
 </template>
 
 <script setup>
+import { ref, computed } from 'vue'
 import { useMediaManager } from '@/composables/useMediaManager'
+import { useFocusTrap } from '@/composables/useFocusTrap'
 import MMFileMetaModal from './MMFileMetaModal.vue'
 import MMFolderModal from './MMFolderModal.vue'
 import MMHistoryModals from './MMHistoryModals.vue'
@@ -130,6 +144,25 @@ const {
 } = useMediaManager()
 
 const showHistoryModal = defineModel('showHistoryModal', { type: Boolean, default: false })
+
+const confirmPanelRef = ref(null)
+const errorsPanelRef = ref(null)
+const conflictPanelRef = ref(null)
+useFocusTrap({
+  active: computed(() => modalConfirm.value.show),
+  containerRef: confirmPanelRef,
+  onEscape: () => (modalConfirm.value.show = false),
+})
+useFocusTrap({
+  active: computed(() => showRenameErrorsModal.value),
+  containerRef: errorsPanelRef,
+  onEscape: clearRenameErrors,
+})
+useFocusTrap({
+  active: computed(() => showMoveConflictModal.value),
+  containerRef: conflictPanelRef,
+  onEscape: cancelMoveConflict,
+})
 </script>
 
 <style scoped>

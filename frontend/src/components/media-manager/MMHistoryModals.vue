@@ -5,7 +5,13 @@
     :class="{ show: modelValue }"
     @click.self="$emit('update:modelValue', false)"
   >
-    <div class="mm-modal mm-modal-560">
+    <div
+      ref="renameHistPanelRef"
+      class="mm-modal mm-modal-560"
+      role="dialog"
+      aria-modal="true"
+      tabindex="-1"
+    >
       <h3>
         <Clock />
         {{ $t('mediaManager.renameHistoryTitle') }}
@@ -80,7 +86,13 @@
     :class="{ show: showMoveHistoryModal }"
     @click.self="showMoveHistoryModal = false"
   >
-    <div class="mm-modal mm-modal-560">
+    <div
+      ref="moveHistPanelRef"
+      class="mm-modal mm-modal-560"
+      role="dialog"
+      aria-modal="true"
+      tabindex="-1"
+    >
       <h3>
         <ArrowLeftRight />
         {{ $t('mediaManager.cancelMoves') }}
@@ -144,11 +156,12 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useMediaManager } from '@/composables/useMediaManager'
+import { useFocusTrap } from '@/composables/useFocusTrap'
 import { ArrowLeftRight, Clock, RefreshCw } from 'lucide-vue-next'
 import { localizedDate } from '@/utils/datetime'
 
-defineProps({ modelValue: { type: Boolean, default: false } })
-defineEmits(['update:modelValue'])
+const props = defineProps({ modelValue: { type: Boolean, default: false } })
+const emit = defineEmits(['update:modelValue'])
 
 const {
   renameHistory,
@@ -159,6 +172,19 @@ const {
   undoMove,
   clearMoveHistory,
 } = useMediaManager()
+
+const renameHistPanelRef = ref(null)
+const moveHistPanelRef = ref(null)
+useFocusTrap({
+  active: computed(() => props.modelValue),
+  containerRef: renameHistPanelRef,
+  onEscape: () => emit('update:modelValue', false),
+})
+useFocusTrap({
+  active: computed(() => showMoveHistoryModal.value),
+  containerRef: moveHistPanelRef,
+  onEscape: () => (showMoveHistoryModal.value = false),
+})
 
 const HIST_PAGE_SIZE = 5
 const histPage = ref(0)

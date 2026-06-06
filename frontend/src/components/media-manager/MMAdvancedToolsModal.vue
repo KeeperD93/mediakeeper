@@ -4,7 +4,13 @@
     :class="{ show: showAdvancedModal }"
     @click.self="showAdvancedModal = false"
   >
-    <div class="mm-config-modal mm-config-modal-760">
+    <div
+      ref="advPanelRef"
+      class="mm-config-modal mm-config-modal-760"
+      role="dialog"
+      aria-modal="true"
+      tabindex="-1"
+    >
       <div class="mm-config-sidebar">
         <div class="mm-config-sidebar-title">
           <Wrench :size="14" />
@@ -86,10 +92,11 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useMediaManager } from '@/composables/useMediaManager'
 import { useMMConfigPanels } from '@/composables/useMMConfigPanels'
+import { useFocusTrap } from '@/composables/useFocusTrap'
 import MMRulesPanel from './MMRulesPanel.vue'
 import MMCsvPanel from './MMCsvPanel.vue'
 import MMDupesPanel from './MMDupesPanel.vue'
@@ -99,6 +106,13 @@ const { t } = useI18n()
 
 const { showAdvancedModal, advancedTab, getAllProfiles, deleteProfile } = useMediaManager()
 const { newProfileName, applyProfileLocal, saveCurrentAsProfile } = useMMConfigPanels()
+
+const advPanelRef = ref(null)
+useFocusTrap({
+  active: computed(() => showAdvancedModal.value),
+  containerRef: advPanelRef,
+  onEscape: () => (showAdvancedModal.value = false),
+})
 
 const ADVANCED_TABS = [
   { id: 'profiles', label: t('mediaManager.profilesTab'), icon: Folder },

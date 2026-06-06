@@ -63,7 +63,7 @@
 
     <!-- Modal ajout category -->
     <div v-if="showAddModal" class="mm-overlay show" @click.self="showAddModal = false">
-      <div class="mm-cat-modal">
+      <div ref="addCatPanelRef" class="mm-cat-modal" role="dialog" aria-modal="true" tabindex="-1">
         <div class="mm-cat-modal-header">
           <span>{{ $t('mediaManager.addCategoryTitle') }}</span>
           <button class="mm-btn-sm mm-btn-sm--close" @click="showAddModal = false">
@@ -161,6 +161,7 @@ import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useMediaManager, CATS } from '@/composables/useMediaManager'
 import { useApi } from '@/composables/useApi'
+import { useFocusTrap } from '@/composables/useFocusTrap'
 import {
   Check,
   ChevronLeft,
@@ -203,6 +204,12 @@ function onDropTab(key) {
 
 // ── Ajout category ──
 const showAddModal = ref(false)
+const addCatPanelRef = ref(null)
+useFocusTrap({
+  active: computed(() => showAddModal.value),
+  containerRef: addCatPanelRef,
+  onEscape: () => (showAddModal.value = false),
+})
 const newCatLabel = ref('')
 const newCatPath = ref('')
 

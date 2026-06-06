@@ -1,6 +1,12 @@
 <template>
   <div class="mm-overlay" :class="{ show: fileMetaModal.show }" @click.self="closeFileMeta">
-    <div class="mm-modal mm-modal-560">
+    <div
+      ref="metaPanelRef"
+      class="mm-modal mm-modal-560"
+      role="dialog"
+      aria-modal="true"
+      tabindex="-1"
+    >
       <h3>
         <Info />
         {{ $t('mediaManager.metadataTitle') }}
@@ -156,12 +162,21 @@
 </template>
 
 <script setup>
+import { ref, computed } from 'vue'
 import { useMediaManager } from '@/composables/useMediaManager'
+import { useFocusTrap } from '@/composables/useFocusTrap'
 import { Captions, FileText, Info, Video, Volume2 } from 'lucide-vue-next'
 import MkSpinner from '@/components/common/MkSpinner.vue'
 import { localizedDate } from '@/utils/datetime'
 
 const { fileMetaModal, closeFileMeta } = useMediaManager()
+
+const metaPanelRef = ref(null)
+useFocusTrap({
+  active: computed(() => fileMetaModal.value.show),
+  containerRef: metaPanelRef,
+  onEscape: closeFileMeta,
+})
 
 const META_LABELS = {
   resolution: 'Resolution',
