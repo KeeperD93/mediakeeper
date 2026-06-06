@@ -47,6 +47,17 @@
       :total="total"
     />
 
+    <div v-if="total" class="ru-pager-bar">
+      <PortalPagination
+        :page="page"
+        :per-page="perPage"
+        :total="total"
+        :disabled="loading"
+        @update:page="onPage"
+        @update:per-page="onPerPage"
+      />
+    </div>
+
     <div v-if="loading && !items.length" class="ru-loading">{{ $t('common.loading') }}</div>
 
     <div v-else-if="!items.length" class="ru-empty">
@@ -108,6 +119,7 @@ import { TOAST_TYPE } from '@/constants/toast'
 import { usePortalAdminUsers } from '@/composables/portal/usePortalAdminUsers'
 import { downloadJsonFile } from '@/composables/portal/useFileDownload'
 import { BULK_ACTION, VIEW_MODE } from '@/constants/portalAdminUsers'
+import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
 
 import RuUsersToolbar from './RuUsersToolbar.vue'
 import RuUsersTable from './RuUsersTable.vue'
@@ -117,6 +129,7 @@ import RuUserDrawer from './RuUserDrawer.vue'
 import RuEmbyImportOverlay from './RuEmbyImportOverlay.vue'
 import RuLocalCreateModal from './RuLocalCreateModal.vue'
 import RuStatsBanner from './RuStatsBanner.vue'
+import PortalPagination from '@/components/portal/PortalPagination.vue'
 
 import '@/assets/styles/portal/admin-users.css'
 import '@/assets/styles/portal/admin-users-toolbar.css'
@@ -142,6 +155,8 @@ const viewMode = ref(VIEW_MODE.TABLE)
 
 const items = ref([])
 const total = ref(0)
+const page = ref(1)
+const perPage = ref(DEFAULT_PAGE_SIZE)
 const loading = ref(false)
 const selectedIds = ref([])
 
@@ -179,16 +194,23 @@ async function reload() {
         include_deleted: filters.include_deleted || undefined,
         sort: filters.sort,
         order: filters.order,
-        limit: 200,
+        limit: perPage.value,
+        offset: (page.value - 1) * perPage.value,
       }),
       api.fetchStats(),
     ])
     items.value = res?.items || []
     total.value = res?.total || 0
-    selectedIds.value = selectedIds.value.filter(id => allIds.value.includes(id))
     if (freshStats) stats.value = freshStats
   } finally {
     loading.value = false
+  }
+  // Deletions can leave the current page past the end; clamp to the last
+  // valid page so the admin never lands on a blank page behind the pager.
+  const maxPage = Math.max(1, Math.ceil(total.value / perPage.value))
+  if (page.value > maxPage) {
+    page.value = maxPage
+    await reload()
   }
 }
 
@@ -212,7 +234,27 @@ function debouncedReload() {
   if (reloadTimer) clearTimeout(reloadTimer)
   reloadTimer = setTimeout(reload, 250)
 }
-watch(filters, debouncedReload, { deep: true })
+// A filter/sort/search change returns to the first page and drops the
+// previous selection, which no longer maps to the new result set.
+watch(
+  filters,
+  () => {
+    page.value = 1
+    selectedIds.value = []
+    debouncedReload()
+  },
+  { deep: true },
+)
+
+function onPage(p) {
+  page.value = p
+  reload()
+}
+function onPerPage(size) {
+  perPage.value = size
+  page.value = 1
+  reload()
+}
 
 function toggleSelection(id) {
   const idx = selectedIds.value.indexOf(id)
@@ -315,3 +357,11 @@ onMounted(async () => {
   await Promise.all([reload(), reloadMeta()])
 })
 </script>
+
+<style scoped>
+.ru-pager-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0.75rem 0;
+}
+</style>
