@@ -1,7 +1,7 @@
 <template>
-  <nav v-if="total > 0" class="rqp" :aria-label="$t('portal.admin.req.pagination')">
+  <nav v-if="total > 0" class="rqp" :aria-label="$t('common.pagination.label')">
     <div class="rqp-size">
-      <label class="rqp-size-label" :for="sizeId">{{ $t('portal.admin.req.pageSize') }}</label>
+      <label class="rqp-size-label" :for="sizeId">{{ $t('common.pagination.perPage') }}</label>
       <select
         :id="sizeId"
         class="rqp-size-select"
@@ -18,7 +18,7 @@
         type="button"
         class="rqp-btn"
         :disabled="disabled || page <= 1"
-        :aria-label="$t('portal.admin.req.prevPage')"
+        :aria-label="$t('common.pagination.prevPage')"
         @click="emit('update:page', page - 1)"
       >
         <ChevronLeft :size="16" />
@@ -39,7 +39,7 @@
         type="button"
         class="rqp-btn"
         :disabled="disabled || page >= totalPages"
-        :aria-label="$t('portal.admin.req.nextPage')"
+        :aria-label="$t('common.pagination.nextPage')"
         @click="emit('update:page', page + 1)"
       >
         <ChevronRight :size="16" />
@@ -53,15 +53,15 @@
 <script setup>
 import { computed, useId } from 'vue'
 import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
-import { DEFAULT_REQUEST_PAGE_SIZE, REQUEST_PAGE_SIZES } from '@/constants/requests'
+import { DEFAULT_PAGE_SIZE, PAGE_SIZES } from '@/constants/pagination'
 
 const ELLIPSIS = '…'
 
 const props = defineProps({
   page: { type: Number, default: 1 },
-  perPage: { type: Number, default: DEFAULT_REQUEST_PAGE_SIZE },
+  perPage: { type: Number, default: DEFAULT_PAGE_SIZE },
   total: { type: Number, default: 0 },
-  sizes: { type: Array, default: () => REQUEST_PAGE_SIZES },
+  sizes: { type: Array, default: () => PAGE_SIZES },
   disabled: { type: Boolean, default: false },
 })
 const emit = defineEmits(['update:page', 'update:perPage'])

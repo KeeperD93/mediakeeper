@@ -1,7 +1,8 @@
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useRequestStatus } from '@/composables/portal/useRequestStatus'
-import { DEFAULT_REQUEST_PAGE_SIZE, REQUEST_SORT } from '@/constants/requests'
+import { REQUEST_SORT } from '@/constants/requests'
+import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
 
 export function usePortalRequests() {
   const { apiGet, apiPost, apiPut, apiDelete, loading, error } = useApi()
@@ -15,7 +16,7 @@ export function usePortalRequests() {
   async function fetchAdminRequests({
     status = null,
     page = 1,
-    perPage = DEFAULT_REQUEST_PAGE_SIZE,
+    perPage = DEFAULT_PAGE_SIZE,
     sort = REQUEST_SORT.RECENT,
     mediaType = null,
   } = {}) {

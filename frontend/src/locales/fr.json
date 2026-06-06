@@ -194,6 +194,12 @@
     "notAvailable": "Bientôt disponible",
     "off": "Off",
     "of": "sur",
+    "pagination": {
+      "label": "Pagination",
+      "perPage": "Par page",
+      "prevPage": "Page précédente",
+      "nextPage": "Page suivante"
+    },
     "showPerPage": "Afficher",
     "moduleComingSoon": "Ce module est en cours de développement.",
     "moduleComingSoonDesc": "Il sera disponible dans une prochaine mise à jour.",
@@ -3573,11 +3579,7 @@
         "openDetail": "Ouvrir la fiche du média",
         "typeAll": "Tous",
         "typeMovies": "Films",
-        "typeSeries": "Séries",
-        "pageSize": "Par page",
-        "pagination": "Pagination des demandes",
-        "prevPage": "Page précédente",
-        "nextPage": "Page suivante"
+        "typeSeries": "Séries"
       },
       "settings": {
         "anonymizeRequests": {

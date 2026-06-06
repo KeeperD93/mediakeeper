@@ -193,6 +193,12 @@
     "notAvailable": "Coming soon",
     "off": "Off",
     "of": "of",
+    "pagination": {
+      "label": "Pagination",
+      "perPage": "Per page",
+      "prevPage": "Previous page",
+      "nextPage": "Next page"
+    },
     "showPerPage": "Show",
     "moduleComingSoon": "This module is under development.",
     "moduleComingSoonDesc": "It will be available in a future update.",
@@ -3573,11 +3579,7 @@
         "openDetail": "Open media detail",
         "typeAll": "All",
         "typeMovies": "Movies",
-        "typeSeries": "Series",
-        "pageSize": "Per page",
-        "pagination": "Requests pagination",
-        "prevPage": "Previous page",
-        "nextPage": "Next page"
+        "typeSeries": "Series"
       },
       "settings": {
         "anonymizeRequests": {

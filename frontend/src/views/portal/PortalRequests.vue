@@ -72,7 +72,7 @@
         <option :value="REQUEST_SORT.OLDEST">{{ $t('portal.admin.req.sortOldest') }}</option>
         <option :value="REQUEST_SORT.TITLE">{{ $t('portal.admin.req.sortTitle') }}</option>
       </select>
-      <RequestsPagination
+      <PortalPagination
         :page="page"
         :per-page="perPage"
         :total="total"
@@ -116,11 +116,12 @@ import { usePortalAdmin } from '@/composables/portal/usePortalAdmin'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import AdminRequestsRow from '@/components/portal/admin/AdminRequestsRow.vue'
-import RequestsPagination from '@/components/portal/admin/RequestsPagination.vue'
+import PortalPagination from '@/components/portal/PortalPagination.vue'
 import MkSpinner from '@/components/common/MkSpinner.vue'
 import { useConfirm } from '@/composables/useConfirm'
 import RejectReasonModal from '@/components/portal/admin/RejectReasonModal.vue'
-import { REQUEST_STATUS, REQUEST_SORT, DEFAULT_REQUEST_PAGE_SIZE } from '@/constants/requests'
+import { REQUEST_STATUS, REQUEST_SORT } from '@/constants/requests'
+import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
 
 import '@/assets/styles/portal/admin-rich-row-header.css'
 import '@/assets/styles/portal/admin-rich-row.css'
@@ -137,7 +138,7 @@ const filter = ref('')
 const typeFilter = ref('')
 const sortKey = ref(REQUEST_SORT.RECENT)
 const page = ref(1)
-const perPage = ref(DEFAULT_REQUEST_PAGE_SIZE)
+const perPage = ref(DEFAULT_PAGE_SIZE)
 const loading = ref(false)
 const rejectTarget = ref(null)
 
