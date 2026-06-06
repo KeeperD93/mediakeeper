@@ -30,6 +30,7 @@
       "remove": "Retirer ?"
     },
     "loading": "Chargement...",
+    "loadMore": "Charger plus",
     "error": "Erreur",
     "success": "Succès",
     "search": "Rechercher...",
@@ -194,6 +195,12 @@
     "notAvailable": "Bientôt disponible",
     "off": "Off",
     "of": "sur",
+    "pagination": {
+      "label": "Pagination",
+      "perPage": "Par page",
+      "prevPage": "Page précédente",
+      "nextPage": "Page suivante"
+    },
     "showPerPage": "Afficher",
     "moduleComingSoon": "Ce module est en cours de développement.",
     "moduleComingSoonDesc": "Il sera disponible dans une prochaine mise à jour.",
@@ -1816,7 +1823,6 @@
       "title": "Utilisateurs",
       "subtitle": "Comptes Emby et locaux : import, activation, rôles, accès, audit.",
       "empty": "Aucun utilisateur ne correspond aux filtres.",
-      "totalCount": "{count} compte(s)",
       "search": { "placeholder": "Rechercher par pseudo, identifiant ou email…" },
       "view": { "table": "Vue tableau", "cards": "Vue cartes" },
       "filters": {

@@ -17,6 +17,7 @@
           </div>
         </li>
       </ol>
+      <PortalLoadMore :show="hasMore" :loading="loadingMore" @load="loadMore" />
     </section>
   </div>
 </template>
@@ -26,21 +27,42 @@ import { ref, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { usePortalAdminUsers } from '@/composables/portal/usePortalAdminUsers'
 import { localizedDate, localizedDateTime } from '@/utils/datetime'
+import PortalLoadMore from '@/components/portal/PortalLoadMore.vue'
 
 const props = defineProps({ user: { type: Object, required: true } })
 const api = usePortalAdminUsers()
 const { t, te } = useI18n()
 
+const AUDIT_PAGE = 100
 const loading = ref(false)
+const loadingMore = ref(false)
 const entries = ref([])
+const hasMore = ref(false)
 
 async function load() {
   loading.value = true
   try {
-    const res = await api.fetchAudit(props.user.id, { limit: 200 })
+    const res = await api.fetchAudit(props.user.id, { limit: AUDIT_PAGE, offset: 0 })
     entries.value = res?.items || []
+    hasMore.value = entries.value.length === AUDIT_PAGE
   } finally {
     loading.value = false
+  }
+}
+
+async function loadMore() {
+  if (loadingMore.value || !hasMore.value) return
+  loadingMore.value = true
+  try {
+    const res = await api.fetchAudit(props.user.id, {
+      limit: AUDIT_PAGE,
+      offset: entries.value.length,
+    })
+    const items = res?.items || []
+    entries.value = [...entries.value, ...items]
+    hasMore.value = items.length === AUDIT_PAGE
+  } finally {
+    loadingMore.value = false
   }
 }
 

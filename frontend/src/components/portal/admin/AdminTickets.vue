@@ -10,6 +10,16 @@
       >
         {{ $t(`portal.tickets.status.${st || 'all'}`) }}
       </button>
+      <div class="pt-admin-pager">
+        <PortalPagination
+          :page="page"
+          :per-page="perPage"
+          :total="total"
+          :disabled="loading"
+          @update:page="onPage"
+          @update:per-page="onPerPage"
+        />
+      </div>
     </div>
 
     <div class="pt-admin-table">
@@ -41,25 +51,53 @@ import { usePortalTickets } from '@/composables/portal/usePortalTickets'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import { useI18n } from 'vue-i18n'
+import PortalPagination from '@/components/portal/PortalPagination.vue'
+import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
 
-const { tickets, fetchTickets, updateStatus } = usePortalTickets()
+const { tickets, total, fetchTickets, updateStatus, loading } = usePortalTickets()
 const { showToast } = useToast()
 const { t } = useI18n()
 const filter = ref('')
+const page = ref(1)
+const perPage = ref(DEFAULT_PAGE_SIZE)
 const statuses = ['', 'open', 'in_progress', 'resolved', 'closed']
 
+function buildQuery() {
+  return { status: filter.value || null, page: page.value, perPage: perPage.value }
+}
+async function load() {
+  await fetchTickets(buildQuery())
+}
+async function reload() {
+  page.value = 1
+  await load()
+}
 async function filterBy(st) {
   filter.value = st
-  await fetchTickets(st || null)
+  await reload()
+}
+function onPage(p) {
+  page.value = p
+  load()
+}
+function onPerPage(size) {
+  perPage.value = size
+  reload()
 }
 
 async function changeStatus(id, status) {
   await updateStatus(id, status)
   showToast(t('common.saved'), TOAST_TYPE.OK)
-  await fetchTickets(filter.value || null)
+  await load()
+  // A status change can empty the active-filter page — step back so the
+  // admin never lands on a blank page behind a populated pager.
+  if (!tickets.value.length && page.value > 1) {
+    page.value -= 1
+    await load()
+  }
 }
 
-onMounted(() => fetchTickets())
+onMounted(load)
 </script>
 
 <style scoped>
@@ -81,6 +119,9 @@ onMounted(() => fetchTickets())
 .pt-filter-btn.active {
   border-color: var(--accent);
   color: var(--accent);
+}
+.pt-admin-pager {
+  margin-left: auto;
 }
 .pt-admin-row {
   display: flex;

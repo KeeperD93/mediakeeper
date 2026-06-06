@@ -45,6 +45,11 @@
       v-model:view-mode="viewMode"
       :tag-options="tagOptions"
       :total="total"
+      :page="page"
+      :per-page="perPage"
+      :loading="loading"
+      @update:page="onPage"
+      @update:per-page="onPerPage"
     />
 
     <div v-if="loading && !items.length" class="ru-loading">{{ $t('common.loading') }}</div>
@@ -108,6 +113,7 @@ import { TOAST_TYPE } from '@/constants/toast'
 import { usePortalAdminUsers } from '@/composables/portal/usePortalAdminUsers'
 import { downloadJsonFile } from '@/composables/portal/useFileDownload'
 import { BULK_ACTION, VIEW_MODE } from '@/constants/portalAdminUsers'
+import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
 
 import RuUsersToolbar from './RuUsersToolbar.vue'
 import RuUsersTable from './RuUsersTable.vue'
@@ -142,6 +148,8 @@ const viewMode = ref(VIEW_MODE.TABLE)
 
 const items = ref([])
 const total = ref(0)
+const page = ref(1)
+const perPage = ref(DEFAULT_PAGE_SIZE)
 const loading = ref(false)
 const selectedIds = ref([])
 
@@ -179,16 +187,23 @@ async function reload() {
         include_deleted: filters.include_deleted || undefined,
         sort: filters.sort,
         order: filters.order,
-        limit: 200,
+        limit: perPage.value,
+        offset: (page.value - 1) * perPage.value,
       }),
       api.fetchStats(),
     ])
     items.value = res?.items || []
     total.value = res?.total || 0
-    selectedIds.value = selectedIds.value.filter(id => allIds.value.includes(id))
     if (freshStats) stats.value = freshStats
   } finally {
     loading.value = false
+  }
+  // Deletions can leave the current page past the end; clamp to the last
+  // valid page so the admin never lands on a blank page behind the pager.
+  const maxPage = Math.max(1, Math.ceil(total.value / perPage.value))
+  if (page.value > maxPage) {
+    page.value = maxPage
+    await reload()
   }
 }
 
@@ -212,7 +227,30 @@ function debouncedReload() {
   if (reloadTimer) clearTimeout(reloadTimer)
   reloadTimer = setTimeout(reload, 250)
 }
-watch(filters, debouncedReload, { deep: true })
+// Selection is scoped to the visible page: drop it whenever the result set
+// changes (filter/sort/search) or the page/size moves, so a bulk action can
+// never run on rows that have scrolled off-screen.
+watch(
+  filters,
+  () => {
+    page.value = 1
+    selectedIds.value = []
+    debouncedReload()
+  },
+  { deep: true },
+)
+
+function onPage(p) {
+  selectedIds.value = []
+  page.value = p
+  reload()
+}
+function onPerPage(size) {
+  selectedIds.value = []
+  perPage.value = size
+  page.value = 1
+  reload()
+}
 
 function toggleSelection(id) {
   const idx = selectedIds.value.indexOf(id)
@@ -315,3 +353,11 @@ onMounted(async () => {
   await Promise.all([reload(), reloadMeta()])
 })
 </script>
+
+<style scoped>
+.ru-pager-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0.75rem 0;
+}
+</style>

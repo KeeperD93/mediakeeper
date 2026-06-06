@@ -45,11 +45,19 @@
           <option value="newest">{{ $t('portal.tickets.list.sortNewest') }}</option>
           <option value="oldest">{{ $t('portal.tickets.list.sortOldest') }}</option>
         </select>
+        <PortalPagination
+          :page="page"
+          :per-page="perPage"
+          :total="total"
+          :disabled="loading"
+          @update:page="onPage"
+          @update:per-page="onPerPage"
+        />
       </div>
     </div>
 
-    <p v-if="tickets.length" class="ptl-count">
-      {{ $t('portal.tickets.list.count', tickets.length) }}
+    <p v-if="total" class="ptl-count">
+      {{ $t('portal.tickets.list.count', total) }}
     </p>
 
     <div v-if="!tickets.length" class="ptl-empty">
@@ -139,14 +147,16 @@ import { useI18n } from 'vue-i18n'
 import TicketCard from '@/components/portal/tickets/TicketCard.vue'
 import EmbyMediaPicker from '@/components/portal/tickets/EmbyMediaPicker.vue'
 import TicketSeasonPicker from '@/components/portal/tickets/TicketSeasonPicker.vue'
+import PortalPagination from '@/components/portal/PortalPagination.vue'
 import { PORTAL_TAB } from '@/constants/portal'
+import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
 import { CircleCheck, Plus, X } from 'lucide-vue-next'
 
 import '@/assets/styles/portal/admin-rich-row-header.css'
 import '@/assets/styles/portal/tickets-list.css'
 import '@/assets/styles/portal/tickets-create-modal.css'
 
-const { tickets, fetchTickets, createTicket } = usePortalTickets()
+const { tickets, total, fetchTickets, createTicket, loading } = usePortalTickets()
 const { showToast } = useToast()
 const { t } = useI18n()
 const router = useRouter()
@@ -155,6 +165,8 @@ const showForm = ref(false)
 const statusFilter = ref('')
 const issueFilter = ref('')
 const sortOrder = ref('newest')
+const page = ref(1)
+const perPage = ref(DEFAULT_PAGE_SIZE)
 const ISSUE_TYPES = ['audio', 'subtitles', 'video', 'metadata', 'playback', 'file', 'other']
 const modes = [
   { value: 'library', label: 'portal.tickets.picker.modeLibrary' },
@@ -172,8 +184,10 @@ const STATUS_OPTIONS = [
 function buildFilters() {
   return {
     status: statusFilter.value || null,
-    issue_type: issueFilter.value ? [issueFilter.value] : [],
+    issueTypes: issueFilter.value ? [issueFilter.value] : null,
     sort: sortOrder.value,
+    page: page.value,
+    perPage: perPage.value,
   }
 }
 
@@ -221,15 +235,31 @@ function resetForm() {
   form.description = ''
 }
 
+async function load() {
+  await fetchTickets(buildFilters())
+}
+// Any status/type/sort/size change returns to the first page.
+async function reload() {
+  page.value = 1
+  await load()
+}
 async function setStatus(value) {
   statusFilter.value = value
-  await fetchTickets(buildFilters())
+  await reload()
 }
-async function onIssueChange() {
-  await fetchTickets(buildFilters())
+function onIssueChange() {
+  reload()
 }
-async function onSortChange() {
-  await fetchTickets(buildFilters())
+function onSortChange() {
+  reload()
+}
+function onPage(p) {
+  page.value = p
+  load()
+}
+function onPerPage(size) {
+  perPage.value = size
+  reload()
 }
 
 function openTicket(id) {
@@ -273,9 +303,9 @@ async function submit() {
   if (res?.success) {
     showToast(t('common.success'), TOAST_TYPE.OK)
     closeForm()
-    await fetchTickets(buildFilters())
+    await reload()
   }
 }
 
-onMounted(() => fetchTickets(buildFilters()))
+onMounted(load)
 </script>

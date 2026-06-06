@@ -30,6 +30,7 @@
       "remove": "Remove?"
     },
     "loading": "Loading...",
+    "loadMore": "Load more",
     "error": "Error",
     "success": "Success",
     "search": "Search...",
@@ -193,6 +194,12 @@
     "notAvailable": "Coming soon",
     "off": "Off",
     "of": "of",
+    "pagination": {
+      "label": "Pagination",
+      "perPage": "Per page",
+      "prevPage": "Previous page",
+      "nextPage": "Next page"
+    },
     "showPerPage": "Show",
     "moduleComingSoon": "This module is under development.",
     "moduleComingSoonDesc": "It will be available in a future update.",
@@ -1816,7 +1823,6 @@
       "title": "Users",
       "subtitle": "Emby and local accounts: import, activation, roles, access, audit.",
       "empty": "No user matches the current filters.",
-      "totalCount": "{count} account(s)",
       "search": { "placeholder": "Search by name, username or email…" },
       "view": { "table": "Table view", "cards": "Card view" },
       "filters": {

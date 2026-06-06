@@ -13,11 +13,17 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Planificateur — scan d'index Emby (ajouts récents + complet), délai configurable.
 - Portail — langue par défaut du portail configurable (réglages admin).
 - Portail — réglage pour autoriser les demandes de contenu adulte (désactivé par défaut).
+- Demandes — navigation par pages avec choix du nombre affiché (10/25/50/100).
+- Problèmes (admin) — file de tickets paginée (10/25/50/100).
+- Utilisateurs portail (admin) — liste paginée (10/25/50/100).
+- Actualités (admin) — bouton « Charger plus » au-delà des 20 récentes.
+- Utilisateurs portail (admin) — audit de la fiche : « Charger plus » au-delà de 100 entrées.
 
 ### Changed
 - Tableau de bord — 30 prochaines sorties affichées (au lieu de 20).
 
 ### Fixed
+- Problèmes (admin) — filtre par statut réparé (ne plante plus, n'est plus ignoré).
 - Notifications — l'enregistrement d'un webhook Discord n'échoue plus.
 - Notifications — le message test Discord suit la langue par défaut configurée.
 - Stats — Utilisateurs et fusion : photo de profil (perso ou Emby) désormais affichée.

@@ -84,10 +84,12 @@ async def list_tickets(
     sort: str = "newest",
     cursor: str | None = None,
     limit: int = 25,
+    page: int | None = None,
 ) -> dict:
     # Ticket.id is monotonically allocated alongside created_at, so ordering
-    # by id keeps the cursor pagination cheap while honouring the requested
-    # creation-time direction.
+    # by id keeps pagination cheap while honouring the requested creation-time
+    # direction. ``page`` switches to offset pagination (the ticket lists use
+    # numbered pages); cursor stays the default for any other caller.
     order_clause = Ticket.id.asc() if sort == "oldest" else Ticket.id.desc()
     query = select(Ticket).order_by(order_clause)
     count_q = select(func.count(Ticket.id))
@@ -102,12 +104,16 @@ async def list_tickets(
         query = query.where(Ticket.issue_type.in_(issue_types))
         count_q = count_q.where(Ticket.issue_type.in_(issue_types))
 
+    total = (await db.execute(count_q)).scalar() or 0
+
+    if page is not None:
+        rows = (await db.execute(query.offset((page - 1) * limit).limit(limit))).scalars().all()
+        return {"items": [_serialize(t) for t in rows], "total": total, "page": page, "per_page": limit}
+
     cursor_data = decode_cursor(cursor)
     if cursor_data and cursor_data.get("id"):
         cursor_id = cursor_data["id"]
         query = query.where(Ticket.id > cursor_id if sort == "oldest" else Ticket.id < cursor_id)
-
-    total = (await db.execute(count_q)).scalar() or 0
     items = [_serialize(t) for t in (await db.execute(query.limit(limit))).scalars().all()]
     return build_cursor_response(items, total, limit)
 

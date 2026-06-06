@@ -1,47 +1,42 @@
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useRequestStatus } from '@/composables/portal/useRequestStatus'
+import { REQUEST_SORT } from '@/constants/requests'
+import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
 
 export function usePortalRequests() {
   const { apiGet, apiPost, apiPut, apiDelete, loading, error } = useApi()
   const { markStatus, invalidate } = useRequestStatus()
   const requests = ref([])
   const quota = ref(null)
-  const hasMore = ref(false)
-  const nextCursor = ref(null)
+  const total = ref(0)
 
-  async function fetchRequests(status = null, reset = true, options = {}) {
-    const { admin = false } = options
-    if (reset) {
-      requests.value = []
-      nextCursor.value = null
-    }
-    let url = admin ? '/api/portal/requests/admin?limit=25' : '/api/portal/requests?limit=25'
-    if (status) url += `&status=${status}`
-    if (nextCursor.value) url += `&cursor=${nextCursor.value}`
-
+  // Admin queue: offset pagination + server-side sort/filter so the toolbar
+  // acts on the whole set, not just the loaded page.
+  async function fetchAdminRequests({
+    status = null,
+    page = 1,
+    perPage = DEFAULT_PAGE_SIZE,
+    sort = REQUEST_SORT.RECENT,
+    mediaType = null,
+  } = {}) {
+    const params = new URLSearchParams({ page, per_page: perPage, sort })
+    if (status) params.set('status', status)
+    if (mediaType) params.set('type', mediaType)
     try {
-      const res = await apiGet(url)
+      const res = await apiGet(`/api/portal/requests/admin?${params}`)
       if (!res) return
-      if (reset) {
-        requests.value = res.items || []
-      } else {
-        requests.value.push(...(res.items || []))
-      }
-      nextCursor.value = res.next_cursor
-      hasMore.value = res.has_more
+      requests.value = res.items || []
+      total.value = res.total || 0
     } catch {
-      // Backend may not be migrated yet — fail silently
-      if (reset) requests.value = []
+      // Backend may not be migrated yet — fail to an empty list.
+      requests.value = []
+      total.value = 0
     }
   }
 
   async function createRequest(data) {
     return await apiPost('/api/portal/requests', data)
-  }
-
-  async function fetchAdminRequests(status = null, reset = true) {
-    return fetchRequests(status, reset, { admin: true })
   }
 
   async function updateRequestStatus(requestId, status, reason = null) {
@@ -77,9 +72,7 @@ export function usePortalRequests() {
   return {
     requests,
     quota,
-    hasMore,
-    nextCursor,
-    fetchRequests,
+    total,
     fetchAdminRequests,
     createRequest,
     updateRequestStatus,
