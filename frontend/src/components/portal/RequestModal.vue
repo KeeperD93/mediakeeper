@@ -166,11 +166,9 @@
 <script setup>
 import { ref, computed, onMounted, useId } from 'vue'
 import { useApi } from '@/composables/useApi'
-import { useToast } from '@/composables/useToast'
-import { TOAST_TYPE } from '@/constants/toast'
+import { usePortalRequestFeedback } from '@/composables/portal/usePortalRequestFeedback'
 import { useRequestSelection } from '@/composables/portal/useRequestSelection'
 import { useFocusTrap } from '@/composables/useFocusTrap'
-import { useI18n } from 'vue-i18n'
 import { MEDIA_TYPE, isTv } from '@/constants/media'
 import { X } from 'lucide-vue-next'
 
@@ -183,8 +181,7 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'done'])
 const { apiGet, apiPost } = useApi()
-const { showToast } = useToast()
-const { t } = useI18n()
+const { presentRequestResult } = usePortalRequestFeedback()
 
 const users = ref([])
 const selectedUserId = ref(null)
@@ -323,28 +320,11 @@ async function submit() {
   }
   submitting.value = false
   if (res?.success) {
-    if (res.quota) {
-      const { used, max } = res.quota
-      if (used >= max) {
-        showToast(t('portal.request.quotaReached', { used, max }), TOAST_TYPE.WARN, 5000)
-      } else {
-        showToast(t('portal.request.quotaInfo', { used, max }), TOAST_TYPE.OK, 4000)
-      }
-    } else {
-      const successKey =
-        res.retry_count && res.retry_count >= 1
-          ? 'portal.request.resubmitSuccess'
-          : 'common.success'
-      showToast(t(successKey), TOAST_TYPE.OK)
-    }
+    presentRequestResult(res)
     emit('done', { retry_count: res.retry_count || 0, id: res.id })
     emit('close')
   } else {
-    // errorCode (depuis exception apiFetch) prioritaire sur res.detail/error.
-    const code = errorCode || res?.detail || res?.error
-    const i18nKey = code ? `portal.request.errors.${code}` : null
-    const msg = i18nKey && t(i18nKey) !== i18nKey ? t(i18nKey) : code || t('common.error')
-    showToast(msg, TOAST_TYPE.ERR)
+    presentRequestResult(res, errorCode)
   }
 }
 

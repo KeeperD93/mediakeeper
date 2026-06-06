@@ -102,6 +102,7 @@ import { useAvailability } from '@/composables/portal/useAvailability'
 import { useRequestStatus } from '@/composables/portal/useRequestStatus'
 import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 import { useDetailExtras } from '@/composables/portal/useDetailExtras'
+import { usePortalRequestFeedback } from '@/composables/portal/usePortalRequestFeedback'
 
 import MediaCarousel from '@/components/portal/MediaCarousel.vue'
 import MediaCard from '@/components/portal/MediaCard.vue'
@@ -132,6 +133,7 @@ const { apiGet, apiPost } = useApi()
 const { trailer, resolve: resolveTrailer, clear: clearTrailer } = useTrailer()
 const { checkAvailability, getAvailability } = useAvailability()
 const { checkStatus: checkRequestStatus, getStatus, markRequested } = useRequestStatus()
+const { presentRequestResult } = usePortalRequestFeedback()
 const { profile, ui } = usePortalAuth()
 const {
   directorFilmo,
@@ -242,16 +244,23 @@ async function handleCarouselRequest(item) {
     return
   }
   const id = item.tmdb_id || item.id
-  const res = await apiPost('/api/portal/requests', {
-    tmdb_id: id,
-    media_type: MEDIA_TYPE.MOVIE,
-    title: item.title,
-    year: item.year ? parseInt(item.year) : null,
-    poster_url: item.poster_url || item.poster || '',
-  }).catch(() => null)
+  let res = null
+  let errorCode = null
+  try {
+    res = await apiPost('/api/portal/requests', {
+      tmdb_id: id,
+      media_type: MEDIA_TYPE.MOVIE,
+      title: item.title,
+      year: item.year ? parseInt(item.year) : null,
+      poster_url: item.poster_url || item.poster || '',
+    })
+  } catch (e) {
+    errorCode = e?.message || null
+  }
   if (res?.success && id) {
     markRequested(id, { request_id: res.id || null })
   }
+  presentRequestResult(res, errorCode)
 }
 
 function onRequestDone(payload) {

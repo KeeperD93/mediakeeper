@@ -177,6 +177,7 @@ import { useApi } from '@/composables/useApi'
 import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 import { usePortalHomeData } from '@/composables/portal/usePortalHomeData'
 import { useRequestStatus } from '@/composables/portal/useRequestStatus'
+import { usePortalRequestFeedback } from '@/composables/portal/usePortalRequestFeedback'
 import HeroBanner from '@/components/portal/HeroBanner.vue'
 import Top20Carousel from '@/components/portal/Top20Carousel.vue'
 import MediaCarousel from '@/components/portal/MediaCarousel.vue'
@@ -196,6 +197,7 @@ const { apiPost } = useApi()
 const { profile } = usePortalAuth()
 
 const { markRequested } = useRequestStatus()
+const { presentRequestResult } = usePortalRequestFeedback()
 const isAdmin = computed(() => profile.value?.role === USER_ROLE.ADMIN)
 const requestItem = ref(null)
 
@@ -293,16 +295,23 @@ async function handleRequest(item) {
     requestItem.value = item
     return
   }
-  const res = await apiPost('/api/portal/requests', {
-    tmdb_id: item.tmdb_id || item.id,
-    media_type: MEDIA_TYPE.MOVIE,
-    title: item.title,
-    year: item.year ? parseInt(item.year) : null,
-    poster_url: item.poster_url || item.poster || '',
-  }).catch(() => null)
+  let res = null
+  let errorCode = null
+  try {
+    res = await apiPost('/api/portal/requests', {
+      tmdb_id: item.tmdb_id || item.id,
+      media_type: MEDIA_TYPE.MOVIE,
+      title: item.title,
+      year: item.year ? parseInt(item.year) : null,
+      poster_url: item.poster_url || item.poster || '',
+    })
+  } catch (e) {
+    errorCode = e?.message || null
+  }
   if (res?.success) {
     markRequested(item.tmdb_id || item.id)
   }
+  presentRequestResult(res, errorCode)
 }
 
 onMounted(loadAllData)

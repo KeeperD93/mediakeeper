@@ -29,6 +29,7 @@ This section intentionally has no date so it is not shown to users.
 - Home — Popular and Top-rated rows now sourced from Discover.
 
 ### Fixed
+- Requests — one-click movie requests now show success or refusal.
 - Maintenance mode — the portal is now fully locked (holding page only).
 - Surprise — the drawn pick's title and synopsis follow your language.
 - Home — carousel titles and synopsis follow your language.
