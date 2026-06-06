@@ -16,6 +16,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Demandes — navigation par pages avec choix du nombre affiché (10/25/50/100).
 - Problèmes (admin) — file de tickets paginée (10/25/50/100).
 - Utilisateurs portail (admin) — liste paginée (10/25/50/100).
+- Actualités (admin) — bouton « Charger plus » au-delà des 20 récentes.
 
 ### Changed
 - Tableau de bord — 30 prochaines sorties affichées (au lieu de 20).

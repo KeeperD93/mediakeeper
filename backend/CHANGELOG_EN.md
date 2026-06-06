@@ -16,6 +16,7 @@ This section intentionally has no date so it is not shown to users.
 - Requests — paged navigation with a per-page count selector (10/25/50/100).
 - Issues (admin) — ticket queue now paginated (10/25/50/100).
 - Portal users (admin) — paginated list (10/25/50/100).
+- News (admin) — "Load more" button beyond the 20 most recent.
 
 ### Changed
 - Dashboard — 30 upcoming releases shown (was 20).

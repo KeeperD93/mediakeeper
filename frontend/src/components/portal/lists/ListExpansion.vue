@@ -23,6 +23,7 @@
             @remove="$emit('remove-item', $event)"
           />
         </ul>
+        <PortalLoadMore :show="hasMoreItems" :loading="loadingMore" @load="loadMoreItems" />
       </div>
 
       <!-- Contributors + history column -->
@@ -52,6 +53,7 @@ import MkSpinner from '@/components/common/MkSpinner.vue'
 import ListItemRow from './ListExpansion/ListItemRow.vue'
 import ListContributors from './ListExpansion/ListContributors.vue'
 import ListHistory from './ListExpansion/ListHistory.vue'
+import PortalLoadMore from '@/components/portal/PortalLoadMore.vue'
 import { localizedDate } from '@/utils/datetime'
 
 const props = defineProps({
@@ -62,13 +64,20 @@ defineEmits(['remove-item', 'remove-contributor'])
 const { t } = useI18n()
 const svc = usePortalLists()
 
+const ITEMS_PER_PAGE = 50
 const detail = ref(null)
 const contributors = ref([])
 const history = ref([])
 const loadingItems = ref(false)
+const loadingMore = ref(false)
 const loadingHistory = ref(false)
 const historyOpen = ref(false)
 const copiedId = ref(null)
+const page = ref(1)
+
+const hasMoreItems = computed(
+  () => (detail.value?.items?.length || 0) < (detail.value?.items_total || 0),
+)
 
 async function copyTitle(item) {
   const text = item.title || `#${item.tmdb_id}`
@@ -97,9 +106,10 @@ const allContributors = computed(() => {
 })
 
 async function load() {
+  page.value = 1
   loadingItems.value = true
   try {
-    const d = await svc.fetchList(props.lst.id, { pageSize: 50 })
+    const d = await svc.fetchList(props.lst.id, { page: 1, pageSize: ITEMS_PER_PAGE })
     if (d && !d.error) {
       detail.value = d
       contributors.value = d.contributors || []
@@ -116,6 +126,25 @@ async function load() {
     } finally {
       loadingHistory.value = false
     }
+  }
+}
+
+async function loadMoreItems() {
+  if (loadingMore.value || !hasMoreItems.value) return
+  loadingMore.value = true
+  try {
+    const next = page.value + 1
+    const d = await svc.fetchList(props.lst.id, { page: next, pageSize: ITEMS_PER_PAGE })
+    if (d && !d.error && d.items?.length) {
+      page.value = next
+      detail.value = {
+        ...detail.value,
+        items: [...(detail.value.items || []), ...d.items],
+        items_total: d.items_total,
+      }
+    }
+  } finally {
+    loadingMore.value = false
   }
 }
 

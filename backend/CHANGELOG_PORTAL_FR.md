@@ -22,6 +22,7 @@ utilisateurs.
 - Jaquettes — titre, date et note affichés sous la vignette sur mobile.
 - Préférences — option « Par défaut » : la langue suit le défaut du portail.
 - Problèmes — navigation par pages avec choix du nombre affiché (10/25/50/100).
+- Listes — bouton « Charger plus » pour voir au-delà de 50 titres.
 
 ### Changed
 - Fiche média — couleur de la note TMDB harmonisée en doré.

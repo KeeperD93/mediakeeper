@@ -46,6 +46,8 @@
       <div v-if="!news.length" class="pt-empty">{{ $t('common.noResults') }}</div>
     </div>
 
+    <PortalLoadMore :show="hasMore" :loading="loading" @load="fetchNews(false, { admin: true })" />
+
     <AdminNewsForm
       v-if="showForm"
       :initial="editing"
@@ -65,9 +67,10 @@ import { TOAST_TYPE } from '@/constants/toast'
 import { useI18n } from 'vue-i18n'
 import { Pencil, Trash2 } from 'lucide-vue-next'
 import AdminNewsForm from './AdminNewsForm.vue'
+import PortalLoadMore from '@/components/portal/PortalLoadMore.vue'
 import { localizedDate } from '@/utils/datetime'
 
-const { news, fetchNews, createNews, updateNews, deleteNews } = usePortalNews()
+const { news, hasMore, fetchNews, createNews, updateNews, deleteNews, loading } = usePortalNews()
 const { showToast } = useToast()
 const confirm = useConfirm()
 const { t } = useI18n()
