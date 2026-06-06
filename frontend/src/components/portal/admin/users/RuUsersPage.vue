@@ -234,8 +234,9 @@ function debouncedReload() {
   if (reloadTimer) clearTimeout(reloadTimer)
   reloadTimer = setTimeout(reload, 250)
 }
-// A filter/sort/search change returns to the first page and drops the
-// previous selection, which no longer maps to the new result set.
+// Selection is scoped to the visible page: drop it whenever the result set
+// changes (filter/sort/search) or the page/size moves, so a bulk action can
+// never run on rows that have scrolled off-screen.
 watch(
   filters,
   () => {
@@ -247,10 +248,12 @@ watch(
 )
 
 function onPage(p) {
+  selectedIds.value = []
   page.value = p
   reload()
 }
 function onPerPage(size) {
+  selectedIds.value = []
   perPage.value = size
   page.value = 1
   reload()
