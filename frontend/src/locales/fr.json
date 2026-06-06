@@ -3573,7 +3573,11 @@
         "openDetail": "Ouvrir la fiche du média",
         "typeAll": "Tous",
         "typeMovies": "Films",
-        "typeSeries": "Séries"
+        "typeSeries": "Séries",
+        "pageSize": "Par page",
+        "pagination": "Pagination des demandes",
+        "prevPage": "Page précédente",
+        "nextPage": "Page suivante"
       },
       "settings": {
         "anonymizeRequests": {

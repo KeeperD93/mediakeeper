@@ -13,6 +13,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Planificateur — scan d'index Emby (ajouts récents + complet), délai configurable.
 - Portail — langue par défaut du portail configurable (réglages admin).
 - Portail — réglage pour autoriser les demandes de contenu adulte (désactivé par défaut).
+- Demandes — navigation par pages avec choix du nombre affiché (10/25/50/100).
 
 ### Changed
 - Tableau de bord — 30 prochaines sorties affichées (au lieu de 20).

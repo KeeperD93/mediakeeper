@@ -15,7 +15,7 @@ export const portalRoutes = [
   {
     path: 'requests',
     name: 'portal-requests',
-    component: () => import('@/views/portal/PortalDiscover.vue'),
+    component: () => import('@/views/portal/PortalRequests.vue'),
     meta: { titleKey: 'portal.routeTitles.requests', portal: true },
   },
   {

@@ -3573,7 +3573,11 @@
         "openDetail": "Open media detail",
         "typeAll": "All",
         "typeMovies": "Movies",
-        "typeSeries": "Series"
+        "typeSeries": "Series",
+        "pageSize": "Per page",
+        "pagination": "Requests pagination",
+        "prevPage": "Previous page",
+        "nextPage": "Next page"
       },
       "settings": {
         "anonymizeRequests": {

@@ -26,6 +26,14 @@ from services.portal.requests_localize import localize_request_titles
 
 logger = logging.getLogger("mediakeeper.portal.requests")
 
+# Sort keys accepted by the admin queue (offset mode), mapped to ORDER BY
+# clauses. Mirrors REQUEST_SORT in frontend/src/constants/requests.ts.
+_REQUEST_SORTS = {
+    "recent": (MediaRequest.id.desc(),),
+    "oldest": (MediaRequest.id.asc(),),
+    "title": (func.lower(MediaRequest.title).asc(), MediaRequest.id.desc()),
+}
+
 
 async def get_batch_status(
     db: AsyncSession,
@@ -100,31 +108,50 @@ async def list_requests(
     cursor: str | None = None,
     limit: int = 25,
     *,
+    page: int | None = None,
+    sort: str = "recent",
+    media_type: str | None = None,
     include_sensitive: bool = False,
     locale: str | None = None,
 ) -> dict:
-    """List requests with optional status filter and cursor pagination.
+    """List requests with optional status filter and pagination.
+
+    Two pagination modes:
+      - cursor (default): ``id < cursor`` ordered by id desc — the public
+        ``/requests`` feed.
+      - offset (when ``page`` is set): ``OFFSET (page-1)*limit`` honouring
+        ``sort`` (recent/oldest/title) and ``media_type`` — the admin queue,
+        which needs jump-to-page navigation plus server-side sort/filter
+        across the whole set rather than just the loaded slice.
 
     When ``include_sensitive`` (admin path) is set, the response is
     enriched with the requester's display_name + avatar_url and the
     ``backdrop_url`` is backfilled live from TMDB for rows that were
     created before the column existed.
     """
-    query = select(MediaRequest).order_by(MediaRequest.id.desc())
+    query = select(MediaRequest)
     count_query = select(func.count(MediaRequest.id))
 
     if status_filter:
         query = query.where(MediaRequest.status == status_filter)
         count_query = count_query.where(MediaRequest.status == status_filter)
+    if media_type:
+        query = query.where(MediaRequest.media_type == media_type)
+        count_query = count_query.where(MediaRequest.media_type == media_type)
 
-    cursor_data = decode_cursor(cursor)
-    if cursor_data and cursor_data.get("id"):
-        query = query.where(MediaRequest.id < cursor_data["id"])
+    total = (await db.execute(count_query)).scalar() or 0
 
-    total_result = await db.execute(count_query)
-    total = total_result.scalar() or 0
+    if page is not None:
+        order_by = _REQUEST_SORTS.get(sort, _REQUEST_SORTS["recent"])
+        query = query.order_by(*order_by).offset((page - 1) * limit).limit(limit)
+    else:
+        query = query.order_by(MediaRequest.id.desc())
+        cursor_data = decode_cursor(cursor)
+        if cursor_data and cursor_data.get("id"):
+            query = query.where(MediaRequest.id < cursor_data["id"])
+        query = query.limit(limit)
 
-    result = await db.execute(query.limit(limit))
+    result = await db.execute(query)
     rows = list(result.scalars().all())
 
     requesters: dict[int, dict] = {}
@@ -144,6 +171,9 @@ async def list_requests(
     ]
     if locale:
         items = await localize_request_titles(db, items, locale)
+
+    if page is not None:
+        return {"items": items, "total": total, "page": page, "per_page": limit}
     return build_cursor_response(items, total, limit)
 
 

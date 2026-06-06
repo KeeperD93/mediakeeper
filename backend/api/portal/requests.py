@@ -55,17 +55,23 @@ async def list_requests(
 @router.get("/admin")
 async def list_requests_admin(
     status_filter: Optional[str] = Query(None, alias="status"),
-    cursor: Optional[str] = None,
-    limit: int = Query(25, ge=1, le=100),
+    page: int = Query(1, ge=1),
+    per_page: int = Query(25, ge=1, le=100),
+    sort: str = Query("recent", pattern="^(recent|oldest|title)$"),
+    media_type: Optional[str] = Query(None, alias="type", pattern="^(movie|tv)$"),
     locale: str = Depends(get_request_locale),
     _: tuple[User, UserProfile] = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
+    # Admin queue: offset pagination + server-side sort/filter so the
+    # toolbar acts on the whole set, not just the loaded page.
     return await req_svc.list_requests(
         db,
         status_filter,
-        cursor,
-        limit,
+        limit=per_page,
+        page=page,
+        sort=sort,
+        media_type=media_type,
         include_sensitive=True,
         locale=locale,
     )
