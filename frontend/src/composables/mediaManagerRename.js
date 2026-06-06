@@ -171,37 +171,37 @@ export async function undoRename(historyIdx) {
   })
   if (!confirmed) return
   setProgress(5)
-  let ok = 0,
-    err = 0
-  for (let i = 0; i < entry.items.length; i++) {
-    const item = entry.items[i]
-    setProgress(5 + 90 * ((i + 1) / entry.items.length))
-    const undoPath = item.newPath || item.path.replace(/[^/]+$/, item.newName)
-    try {
-      const res = await apiFetch('/api/media/rename-batch', {
-        method: 'POST',
-        body: JSON.stringify({
-          items: [{ old_path: undoPath, new_name: item.oldName }],
-          cat: entry.cat,
-        }),
-      })
-      const results = await res.json()
-      if (results[0]?.success) ok++
-      else err++
-    } catch {
-      err++
-    }
+  // Revert every file in ONE batch request: the backend handles the whole list
+  // and returns one result per item (same order). Firing one request per file
+  // used to trip the 120/min rate limit (429) and leave the undo half-applied.
+  const items = entry.items.map(it => ({
+    old_path: it.newPath || it.path.replace(/[^/]+$/, it.newName),
+    new_name: it.oldName,
+  }))
+  let results = []
+  try {
+    const res = await apiFetch('/api/media/rename-batch', {
+      method: 'POST',
+      body: JSON.stringify({ items, cat: entry.cat }),
+    })
+    const body = await res.json()
+    if (Array.isArray(body)) results = body
+  } catch {
+    /* network / 429 → results stays empty, the whole entry is kept below */
   }
   endProgress()
-  if (ok > 0) {
-    renameHistory.value.splice(historyIdx, 1)
-    _saveRenameHistory()
-  }
+  // Keep the items that could NOT be reverted so the undo stays available for a
+  // retry; only drop the history entry once everything is restored.
+  const failed = entry.items.filter((_, i) => !results[i]?.success)
+  const ok = entry.items.length - failed.length
+  if (failed.length) renameHistory.value[historyIdx] = { ...entry, items: failed }
+  else renameHistory.value.splice(historyIdx, 1)
+  _saveRenameHistory()
   showToast(
-    err === 0
+    failed.length === 0
       ? _t('mediaManager.filesRestored', { count: ok })
-      : _t('mediaManager.partialResult', { ok, errors: err }),
-    err === 0 ? TOAST_TYPE.OK : TOAST_TYPE.ERR,
+      : _t('mediaManager.partialResult', { ok, errors: failed.length }),
+    failed.length === 0 ? TOAST_TYPE.OK : TOAST_TYPE.ERR,
   )
   loadFiles()
 }

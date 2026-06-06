@@ -34,7 +34,7 @@
               @click="undoRename(histPageOffset + hi)"
             >
               <RefreshCw :size="11" />
-              Undo
+              {{ $t('common.cancel') }}
             </button>
           </div>
           <div v-for="item in entry.items.slice(0, 3)" :key="item.oldName" class="mm-hist-item">

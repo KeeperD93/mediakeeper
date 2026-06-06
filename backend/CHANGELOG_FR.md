@@ -29,6 +29,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Stats — Utilisateurs et fusion : photo de profil (perso ou Emby) désormais affichée.
 - Stats — survol des utilisateurs actifs : noms affichés au lieu des identifiants.
 - Médiathèque — le détail des pistes n'échoue plus sur un fichier corrompu.
+- Média Manager — annuler un renommage en lot ne s'interrompt plus à mi-chemin (réessai possible).
 - Tableau de bord — « Prochaines sorties » affichées dans votre langue.
 - Médiathèque — fiches détail TMDB affichées dans votre langue (repli anglais).
 - Watchlist — séries, épisodes et synopsis affichés dans votre langue.
