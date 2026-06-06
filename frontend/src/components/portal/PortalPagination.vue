@@ -4,7 +4,7 @@
       <label class="rqp-size-label" :for="sizeId">{{ $t('common.pagination.perPage') }}</label>
       <select
         :id="sizeId"
-        class="rqp-size-select"
+        class="rqp-size-select mk-select-chevron"
         :value="perPage"
         :disabled="disabled"
         @change="onSize"
@@ -110,8 +110,13 @@ function onSize(e) {
 }
 .rqp-size-select {
   min-height: 44px;
-  padding: 8px 12px;
-  background: var(--portal-surface-3);
+  /* padding-right is owned by .mk-select-chevron (28px) so the value clears
+     the custom chevron; padding-left mirrors the chevron's right gap. */
+  padding-block: 8px;
+  padding-left: 12px;
+  /* background-color (not the shorthand) so .mk-select-chevron's
+     background-image survives — the caller owns surface + border only. */
+  background-color: var(--portal-surface-3);
   border: 1px solid var(--portal-border-default);
   border-radius: var(--portal-radius-md);
   color: var(--portal-text-primary);
