@@ -16,9 +16,11 @@
         </div>
         <div v-for="(entry, hi) in renameHistoryPage" :key="entry.timestamp" class="mm-hist-entry">
           <div class="mm-hist-header">
-            <span class="mm-hist-title">{{ entry.tmdbTitle || 'Renommage' }}</span>
+            <span class="mm-hist-title">
+              {{ entry.tmdbTitle || $t('mediaManager.renameFallbackTitle') }}
+            </span>
             <span class="mm-hist-meta">
-              {{ entry.items.length }} fichier(s) ·
+              {{ $t('mediaManager.renameEntryFiles', { count: entry.items.length }) }} ·
               {{
                 localizedDate(new Date(entry.timestamp), {
                   day: '2-digit',
@@ -46,7 +48,7 @@
             </span>
           </div>
           <div v-if="entry.items.length > 3" class="mm-hist-more">
-            + {{ entry.items.length - 3 }} autres…
+            {{ $t('mediaManager.moreItems', { count: entry.items.length - 3 }) }}
           </div>
         </div>
       </div>
@@ -116,7 +118,7 @@
             <span class="mm-hist-new">→ {{ entry.dest }}</span>
           </div>
           <div v-if="entry.items.length > 3" class="mm-hist-more">
-            + {{ entry.items.length - 3 }} autres…
+            {{ $t('mediaManager.moreItems', { count: entry.items.length - 3 }) }}
           </div>
         </div>
       </div>
