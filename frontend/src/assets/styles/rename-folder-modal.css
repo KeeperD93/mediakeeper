@@ -41,6 +41,12 @@
 .mr-overlay.show .mr-modal {
   transform: translateY(0) scale(1);
 }
+@media (prefers-reduced-motion: reduce) {
+  .mr-overlay,
+  .mr-modal {
+    transition: none;
+  }
+}
 
 /* ── Header ── */
 .mr-header {

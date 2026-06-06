@@ -1311,6 +1311,13 @@
 .mm-overlay.show .mm-modal {
   transform: translateY(0);
 }
+@media (prefers-reduced-motion: reduce) {
+  .mm-overlay,
+  .mm-modal,
+  .mm-config-modal {
+    transition: none;
+  }
+}
 .mm-modal h3 {
   font-size: var(--text-base);
   font-weight: var(--font-bold);
