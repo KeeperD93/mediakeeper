@@ -23,10 +23,10 @@ logger = logging.getLogger("mediakeeper.changelog")
 
 router = APIRouter(prefix="/api/changelog", tags=["changelog"])
 
-# ── Current version (single source of truth) ──
+# Current version (single source of truth)
 APP_VERSION = "1.0.0-rc.4"
 
-# ── Path des files CHANGELOG ──
+# Changelog file paths
 _BASE_DIR = Path(__file__).resolve().parent.parent
 _ALT_DIRS = [Path("/app/backend"), Path("/app"), _BASE_DIR.parent]
 
@@ -119,7 +119,7 @@ async def get_changelog(
 
 @router.get("/current")
 async def get_current_version():
-    """Return la version current (pas besoin d'auth)."""
+    """Return the current version (no auth required)."""
     return {"version": APP_VERSION}
 
 
@@ -152,7 +152,7 @@ async def mark_changelog_seen(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """Marque la version comme vue par l'user."""
+    """Mark the version as seen by the user."""
     version = req.version or APP_VERSION
     from services.settings import get_user_preferences, upsert_user_preferences
     prefs = await get_user_preferences(db, user.id)
