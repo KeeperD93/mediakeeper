@@ -7,6 +7,7 @@
         :req-status="reqStatus"
         :req-status-tooltip="reqStatusTooltip"
         :show-request-btn="showRequestBtn"
+        :request-blocked-reason="requestBlockedReason"
         :trailer-key="trailerKey"
         @request="onRequestClick"
         @open-trailer="openTrailer"
@@ -131,7 +132,7 @@ const { apiGet, apiPost } = useApi()
 const { trailer, resolve: resolveTrailer, clear: clearTrailer } = useTrailer()
 const { checkAvailability, getAvailability } = useAvailability()
 const { checkStatus: checkRequestStatus, getStatus, markRequested } = useRequestStatus()
-const { profile } = usePortalAuth()
+const { profile, ui } = usePortalAuth()
 const {
   directorFilmo,
   actorFilmo,
@@ -210,7 +211,16 @@ const showRequestBtn = computed(() => {
   return availInfo.value?.availability === 'partial'
 })
 
+// Adult titles stay requestable only if the admin allows it (the API enforces
+// it too). Otherwise the button is disabled with a visible reason.
+const requestBlockedReason = computed(() =>
+  media.value?.is_adult && !ui.value?.allow_adult_requests
+    ? t('portal.request.errors.adult_requests_disabled')
+    : '',
+)
+
 function onRequestClick() {
+  if (requestBlockedReason.value) return
   if (reqStatus.value && reqStatus.value !== REQUEST_STATUS.REJECTED) return
   if (!media.value) return
   requestItem.value = {

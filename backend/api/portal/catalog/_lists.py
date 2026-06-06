@@ -19,7 +19,11 @@ async def trending(
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):
-    return {"items": await disc_svc.get_trending(db, page, language=locale)}
+    _, profile = up
+    include_adult = not bool(profile.hide_adult)
+    return {"items": await disc_svc.get_trending(
+        db, page, language=locale, include_adult=include_adult,
+    )}
 
 
 @router.get("/popular")
@@ -29,7 +33,11 @@ async def popular(
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):
-    return {"items": await disc_svc.get_popular_movies(db, page, language=locale)}
+    _, profile = up
+    include_adult = not bool(profile.hide_adult)
+    return {"items": await disc_svc.get_popular_movies(
+        db, page, language=locale, include_adult=include_adult,
+    )}
 
 
 @router.get("/popular-tv")
@@ -39,7 +47,11 @@ async def popular_tv(
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):
-    return {"items": await disc_svc.get_popular_tv(db, page, language=locale)}
+    _, profile = up
+    include_adult = not bool(profile.hide_adult)
+    return {"items": await disc_svc.get_popular_tv(
+        db, page, language=locale, include_adult=include_adult,
+    )}
 
 
 @router.get("/top-rated")
@@ -49,7 +61,11 @@ async def top_rated(
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):
-    return {"items": await disc_svc.get_top_rated(db, page, language=locale)}
+    _, profile = up
+    include_adult = not bool(profile.hide_adult)
+    return {"items": await disc_svc.get_top_rated(
+        db, page, language=locale, include_adult=include_adult,
+    )}
 
 
 @router.get("/oscars")
@@ -58,7 +74,11 @@ async def oscars(
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):
-    return {"items": await disc_svc.get_oscar_winners(db, language=locale)}
+    _, profile = up
+    include_adult = not bool(profile.hide_adult)
+    return {"items": await disc_svc.get_oscar_winners(
+        db, language=locale, include_adult=include_adult,
+    )}
 
 
 @router.get("/family")
@@ -67,7 +87,11 @@ async def family(
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):
-    return {"items": await disc_svc.get_family(db, language=locale)}
+    _, profile = up
+    include_adult = not bool(profile.hide_adult)
+    return {"items": await disc_svc.get_family(
+        db, language=locale, include_adult=include_adult,
+    )}
 
 
 @router.get("/top-rated-year")
@@ -77,7 +101,11 @@ async def top_rated_year(
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):
-    return {"items": await disc_svc.get_top_rated_year(db, page, language=locale)}
+    _, profile = up
+    include_adult = not bool(profile.hide_adult)
+    return {"items": await disc_svc.get_top_rated_year(
+        db, page, language=locale, include_adult=include_adult,
+    )}
 
 
 @router.get("/provider/{provider_id}")
@@ -89,9 +117,11 @@ async def by_provider(
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):
+    _, profile = up
     return {
         "items": await disc_svc.get_by_provider(
             db, provider_id, media_type, page, language=locale,
+            include_adult=not bool(profile.hide_adult),
         ),
     }
 
@@ -103,4 +133,8 @@ async def upcoming(
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):
-    return {"items": await disc_svc.get_upcoming(db, page, language=locale)}
+    _, profile = up
+    include_adult = not bool(profile.hide_adult)
+    return {"items": await disc_svc.get_upcoming(
+        db, page, language=locale, include_adult=include_adult,
+    )}

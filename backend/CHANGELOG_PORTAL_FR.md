@@ -25,6 +25,8 @@ utilisateurs.
 ### Changed
 - Fiche média — couleur de la note TMDB harmonisée en doré.
 - Avatars — anneau légendaire (niv. 50) : arc-en-ciel animé sur toutes les surfaces.
+- Préférences — le réglage « masquer le contenu adulte » déplacé ici, sous les genres.
+- Accueil — Populaires et Mieux notés viennent désormais de Découvrir.
 
 ### Fixed
 - Mode maintenance — le portail est désormais entièrement verrouillé (page d'attente seule).
@@ -44,6 +46,8 @@ utilisateurs.
 - Pastilles « déjà demandé » affichées sur les grandes listes.
 - Quoi de neuf — barre XP pleine au niveau max (sans niveau 51).
 - Recommandés pour vous — le carrousel d'accueil affiche 20 titres distincts.
+- Contenu adulte — le masquage s'applique à toutes les listes, recherche et recommandations.
+- Demandes — les titres adultes ne sont demandables que si l'administrateur l'autorise.
 
 ## [1.0.0-rc.4] - 2026-05-30
 

@@ -2482,6 +2482,7 @@
         "already_requested": "Ce titre est déjà demandé et en attente de validation.",
         "already_available": "Ce titre est déjà disponible sur Emby, vous pouvez le regarder directement.",
         "media_blacklisted": "Ce titre a été bloqué par un administrateur et ne peut pas être redemandé.",
+        "adult_requests_disabled": "Les demandes de contenu adulte sont désactivées par l'administrateur.",
         "quota_exceeded": "Vous avez atteint votre quota de demandes pour ce mois.",
         "not_found": "Demande introuvable."
       },
@@ -3379,7 +3380,10 @@
         "languageHint": "Affecte l'app, les recommandations et les bandes-annonces.",
         "languageDefault": "Par défaut",
         "genresSection": "Mes genres préférés",
-        "genresHint": "Cochez les genres qui vous intéressent. Alimente vos recommandations."
+        "genresHint": "Cochez les genres qui vous intéressent. Alimente vos recommandations.",
+        "adultSection": "Contenus adultes",
+        "hideAdult": "Masquer les contenus adultes",
+        "hideAdultHint": "Filtre l'affichage côté MediaKeeper. N'affecte pas votre catalogue Emby."
       },
       "visibility": {
         "profileSection": "Visibilité du profil",
@@ -3387,10 +3391,7 @@
         "publicHint": "Visible dans le classement et consultable par les autres utilisateurs.",
         "private": "Privé",
         "privateHint": "Invisible du classement, profil non consultable.",
-        "publicLocked": "Visibilité forcée par un administrateur.",
-        "adultSection": "Contenus adultes",
-        "hideAdult": "Masquer les contenus adultes",
-        "hideAdultHint": "Filtre l'affichage côté MediaKeeper. N'affecte pas votre catalogue Emby."
+        "publicLocked": "Visibilité forcée par un administrateur."
       },
       "account": {
         "passwordSection": "Mot de passe",
@@ -3578,6 +3579,10 @@
         "anonymizeRequests": {
           "title": "Anonymisation des demandes",
           "desc": "Quand cette option est activée, le pseudo de l'utilisateur qui a fait une demande n'est plus visible par les autres. Seule la date reste affichée. Les administrateurs continuent de voir qui a demandé quoi."
+        },
+        "allowAdultRequests": {
+          "title": "Autoriser les demandes de contenu adulte",
+          "desc": "Désactivé, les utilisateurs ne peuvent pas demander de contenu pornographique, même après avoir décoché « masquer le contenu adulte » dans leurs préférences. Activez pour leur permettre de demander du contenu adulte."
         },
         "heroTrendCount": {
           "title": "Tendances dans le héro",

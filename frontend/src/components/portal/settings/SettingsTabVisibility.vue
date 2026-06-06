@@ -41,26 +41,6 @@
     <p v-if="visibilityLocked" class="pt-settings-hint">
       {{ $t('portal.settings.visibility.publicLocked') }}
     </p>
-
-    <hr class="pt-settings-divider" />
-
-    <h3 class="pt-settings-section-title">{{ $t('portal.settings.visibility.adultSection') }}</h3>
-
-    <label class="pt-settings-toggle">
-      <input
-        type="checkbox"
-        :checked="form.hide_adult"
-        @change="updateField('hide_adult', $event.target.checked)"
-      />
-      <span class="pt-settings-toggle-text">
-        <span class="pt-settings-toggle-label">
-          {{ $t('portal.settings.visibility.hideAdult') }}
-        </span>
-        <span class="pt-settings-toggle-hint">
-          {{ $t('portal.settings.visibility.hideAdultHint') }}
-        </span>
-      </span>
-    </label>
   </div>
 </template>
 
@@ -80,11 +60,3 @@ function updateField(key, value) {
   emit('update-field', key, value)
 }
 </script>
-
-<style scoped>
-.pt-settings-divider {
-  border: none;
-  border-top: 1px solid var(--portal-border-default);
-  margin: 0.5rem 0;
-}
-</style>

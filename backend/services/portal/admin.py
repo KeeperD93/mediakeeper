@@ -28,6 +28,10 @@ PORTAL_SETTING_FLAGS: dict[str, bool] = {
     # When True, request responses strip `requested_by` for non-admin users
     # so nobody can tell who filed which request. Date stays visible.
     "portal.anonymize_requests": False,
+    # When True, non-admin users may request pornographic content (TMDB
+    # adult keywords) once they disable hide_adult. Default False: even a
+    # viewer who unhides adult content cannot file such a request.
+    "portal.allow_adult_requests": False,
 }
 
 PORTAL_SETTING_INTS: dict[str, tuple[int, int, int]] = {

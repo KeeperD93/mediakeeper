@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.http_client import get_external_client
 from core.ttl_cache import cached_tmdb_list
 from services.tmdb import _get_tmdb_key, _tmdb_headers_sync, TMDB_BASE
+from services.portal.adult_filter import ADULT_KEYWORDS_CSV
 from services.portal.runtime_cache import resolve_runtimes
 
 logger = logging.getLogger("mediakeeper.portal.discover")
@@ -33,34 +34,51 @@ _OSCARS_TTL_SEC = 6 * 60 * 60
 @cached_tmdb_list(_LIST_TTL_SEC)
 async def get_trending(
     db: AsyncSession, page: int = 1, *, language: str | None = None,
+    include_adult: bool = False,
 ) -> list[dict]:
-    return await _fetch_list(db, "/trending/all/week", page, language=language)
+    # /trending is not a /discover endpoint, so without_keywords cannot apply;
+    # adult content here is only dropped via the TMDB ``adult`` flag.
+    return await _fetch_list(
+        db, "/trending/all/week", page, language=language, include_adult=include_adult,
+    )
 
 
 @cached_tmdb_list(_LIST_TTL_SEC)
 async def get_popular_movies(
     db: AsyncSession, page: int = 1, *, language: str | None = None,
+    include_adult: bool = False,
 ) -> list[dict]:
-    return await _fetch_list(db, "/movie/popular", page, language=language)
+    # /discover (not /movie/popular) so the adult-keyword filter can apply.
+    return await _fetch_list_params(db, "/discover/movie", page, {
+        "sort_by": "popularity.desc",
+    }, include_adult=include_adult, language=language)
 
 
 @cached_tmdb_list(_LIST_TTL_SEC)
 async def get_popular_tv(
     db: AsyncSession, page: int = 1, *, language: str | None = None,
+    include_adult: bool = False,
 ) -> list[dict]:
-    return await _fetch_list(db, "/tv/popular", page, language=language)
+    return await _fetch_list_params(db, "/discover/tv", page, {
+        "sort_by": "popularity.desc",
+    }, include_adult=include_adult, language=language)
 
 
 @cached_tmdb_list(_LIST_TTL_SEC)
 async def get_top_rated(
     db: AsyncSession, page: int = 1, *, language: str | None = None,
+    include_adult: bool = False,
 ) -> list[dict]:
-    return await _fetch_list(db, "/movie/top_rated", page, language=language)
+    return await _fetch_list_params(db, "/discover/movie", page, {
+        "sort_by": "vote_average.desc",
+        "vote_count.gte": "300",
+    }, include_adult=include_adult, language=language)
 
 
 @cached_tmdb_list(_LIST_TTL_SEC)
 async def get_top_rated_year(
     db: AsyncSession, page: int = 1, *, language: str | None = None,
+    include_adult: bool = False,
 ) -> list[dict]:
     """Top rated movies + TV released this year, mixed."""
     import asyncio
@@ -71,12 +89,12 @@ async def get_top_rated_year(
             "sort_by": "vote_average.desc",
             "vote_count.gte": "50",
             "primary_release_year": str(year),
-        }, language=language),
+        }, include_adult=include_adult, language=language),
         _fetch_list_params(db, "/discover/tv", page, {
             "sort_by": "vote_average.desc",
             "vote_count.gte": "30",
             "first_air_date_year": str(year),
-        }, language=language),
+        }, include_adult=include_adult, language=language),
     )
     mixed = sorted(movies + tv, key=lambda x: x.get("vote", 0), reverse=True)
     return mixed[:20]
@@ -85,6 +103,7 @@ async def get_top_rated_year(
 @cached_tmdb_list(_OSCARS_TTL_SEC)
 async def get_oscar_winners(
     db: AsyncSession, page: int = 1, *, language: str | None = None,
+    include_adult: bool = False,
 ) -> list[dict]:
     """
     Films winning / nominated for major awards (Oscars, Cannes, Cesars, BAFTA,
@@ -98,7 +117,7 @@ async def get_oscar_winners(
             "sort_by": "vote_average.desc",
             "vote_count.gte": "500",
             "with_keywords": "207317",
-        }, language=language)
+        }, include_adult=include_adult, language=language)
         if not chunk:
             break
         pool.extend(chunk)
@@ -122,18 +141,20 @@ async def get_oscar_winners(
 @cached_tmdb_list(_LIST_TTL_SEC)
 async def get_family(
     db: AsyncSession, page: int = 1, *, language: str | None = None,
+    include_adult: bool = False,
 ) -> list[dict]:
     """Family-friendly movies (genre 10751) by popularity, with a votes floor."""
     return await _fetch_list_params(db, "/discover/movie", page, {
         "sort_by": "popularity.desc",
         "with_genres": "10751",
         "vote_count.gte": "200",
-    }, language=language)
+    }, include_adult=include_adult, language=language)
 
 
 @cached_tmdb_list(_LIST_TTL_SEC)
 async def get_upcoming(
     db: AsyncSession, page: int = 1, *, language: str | None = None,
+    include_adult: bool = False,
 ) -> list[dict]:
     """Upcoming movies + TV, mixed — only future releases (today → +90 days)."""
     import asyncio
@@ -145,12 +166,12 @@ async def get_upcoming(
             "primary_release_date.gte": today,
             "primary_release_date.lte": future,
             "vote_count.gte": "0",
-        }, language=language),
+        }, include_adult=include_adult, language=language),
         _fetch_list_params(db, "/discover/tv", page, {
             "sort_by": "popularity.desc",
             "first_air_date.gte": today,
             "first_air_date.lte": future,
-        }, language=language),
+        }, include_adult=include_adult, language=language),
     )
     mixed = movies + tv
     mixed.sort(key=lambda x: x.get("vote", 0) or 0, reverse=True)
@@ -165,13 +186,14 @@ async def get_by_provider(
     page: int = 1,
     *,
     language: str | None = None,
+    include_adult: bool = False,
 ) -> list[dict]:
     """Discover by watch provider (Netflix=8, Prime=9, Disney+=337, HBO=384, Hulu=15, Apple=350)."""
     return await _fetch_list_params(db, f"/discover/{media_type}", page, {
         "sort_by": "popularity.desc",
         "with_watch_providers": str(provider_id),
         "watch_region": "FR",
-    }, language=language)
+    }, include_adult=include_adult, language=language)
 
 
 async def get_media_videos(
@@ -199,9 +221,12 @@ async def get_media_videos(
 
 
 async def _fetch_list(
-    db: AsyncSession, endpoint: str, page: int, *, language: str | None = None,
+    db: AsyncSession, endpoint: str, page: int, *,
+    language: str | None = None, include_adult: bool = False,
 ) -> list[dict]:
-    return await _fetch_list_params(db, endpoint, page, {}, language=language)
+    return await _fetch_list_params(
+        db, endpoint, page, {}, include_adult=include_adult, language=language,
+    )
 
 
 async def _fetch_list_params(
@@ -235,6 +260,10 @@ async def _fetch_list_params(
             "include_adult": "true" if include_adult else "false",
             **extra_params,
         }
+        # Exclude pornographic keywords TMDB does not flag as ``adult``
+        # (hentai et al.) when the viewer hides adult content.
+        if not include_adult:
+            params["without_keywords"] = ADULT_KEYWORDS_CSV
         res = await client.get(
             f"{TMDB_BASE}{endpoint}",
             params=params,
@@ -302,4 +331,7 @@ def _normalize(r: dict) -> dict:
         "popularity": r.get("popularity", 0),
         "genres": r.get("genre_ids", []),
         "media_type": media_type,
+        # TMDB adult flag carried through so each catalog endpoint can honour
+        # the viewer's hide_adult preference. See adult_filter.drop_adult.
+        "adult": bool(r.get("adult")),
     }

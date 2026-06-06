@@ -44,8 +44,13 @@ async def _serialize_ui_flags(db: AsyncSession, profile: UserProfile) -> dict:
         db,
         "portal.anonymize_requests",
     )
+    allow_adult_requests = is_admin or await get_portal_flag(
+        db,
+        "portal.allow_adult_requests",
+    )
     return {
         "show_requests_tab": is_admin or not anonymize_requests,
+        "allow_adult_requests": allow_adult_requests,
     }
 
 
@@ -53,7 +58,10 @@ async def _safe_serialize_ui_flags(db: AsyncSession, profile: UserProfile) -> di
     try:
         return await _serialize_ui_flags(db, profile)
     except Exception:
-        return {"show_requests_tab": True}
+        # Mirror the full success shape so the frontend never reads an absent
+        # flag on the degraded path (fail-closed: the request button stays
+        # disabled rather than wrongly enabled).
+        return {"show_requests_tab": True, "allow_adult_requests": False}
 
 
 async def _safe_get_unread_news(db: AsyncSession, user_id: int) -> list[dict]:

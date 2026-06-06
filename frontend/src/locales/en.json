@@ -2482,6 +2482,7 @@
         "already_requested": "This title is already pending approval.",
         "already_available": "This title is already on Emby — play it directly.",
         "media_blacklisted": "This title has been blocked by an admin and can't be re-requested.",
+        "adult_requests_disabled": "Adult content requests are disabled by the administrator.",
         "quota_exceeded": "You've reached your monthly request quota.",
         "not_found": "Request not found."
       },
@@ -3379,7 +3380,10 @@
         "languageHint": "Affects the app, recommendations and trailers.",
         "languageDefault": "Default",
         "genresSection": "My favorite genres",
-        "genresHint": "Pick the genres you like. Powers your recommendations."
+        "genresHint": "Pick the genres you like. Powers your recommendations.",
+        "adultSection": "Adult content",
+        "hideAdult": "Hide adult content",
+        "hideAdultHint": "Filters MediaKeeper UI. Does not affect your Emby catalog."
       },
       "visibility": {
         "profileSection": "Profile visibility",
@@ -3387,10 +3391,7 @@
         "publicHint": "Visible in the leaderboard and viewable by other users.",
         "private": "Private",
         "privateHint": "Hidden from the leaderboard, profile not viewable.",
-        "publicLocked": "Visibility forced by an administrator.",
-        "adultSection": "Adult content",
-        "hideAdult": "Hide adult content",
-        "hideAdultHint": "Filters MediaKeeper UI. Does not affect your Emby catalog."
+        "publicLocked": "Visibility forced by an administrator."
       },
       "account": {
         "passwordSection": "Password",
@@ -3578,6 +3579,10 @@
         "anonymizeRequests": {
           "title": "Anonymize requests",
           "desc": "When enabled, the username of whoever filed a request is hidden from other users. Only the request date remains visible. Admins still see who requested what for moderation."
+        },
+        "allowAdultRequests": {
+          "title": "Allow adult content requests",
+          "desc": "When off, users cannot request pornographic titles even after disabling \"hide adult content\" in their preferences. Turn on to let them request adult content."
         },
         "heroTrendCount": {
           "title": "Hero trend count",

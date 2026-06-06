@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.http_client import get_external_client
 from services.tmdb import _get_tmdb_key, _tmdb_headers_sync, TMDB_BASE
 from services.portal.runtime_cache import resolve_runtimes
+from services.portal.adult_filter import ADULT_KEYWORDS_CSV
 from services.portal.discover_lists import _normalize
 
 logger = logging.getLogger("mediakeeper.portal.discover")
@@ -43,6 +44,7 @@ async def discover_paginated(
     extra: dict | None = None,
     movie_extra: dict | None = None,
     tv_extra: dict | None = None,
+    include_adult: bool = False,
 ) -> dict:
     """
     Generic paginated discover query.
@@ -88,6 +90,11 @@ async def discover_paginated(
     base_params = {"language": lang, "sort_by": sort_param, **extra}
     if region:
         base_params["region"] = region
+    # Exclude pornographic keywords TMDB does not flag as ``adult`` (hentai
+    # et al.) unless the viewer has disabled hide_adult.
+    base_params["include_adult"] = "true" if include_adult else "false"
+    if not include_adult:
+        base_params["without_keywords"] = ADULT_KEYWORDS_CSV
 
     async def _query(mt: str, mt_extra: dict | None = None) -> tuple[list[dict], bool]:
         api_key = await _get_tmdb_key(db)
@@ -121,7 +128,10 @@ async def discover_paginated(
             results = j.get("results", [])
             total_pages = j.get("total_pages", 1)
             total_results = j.get("total_results", 0)
-            normed = [n for r in results if not r.get("adult") and (n := _normalize({**r, "media_type": mt})).get("poster")]
+            if include_adult:
+                normed = [n for r in results if (n := _normalize({**r, "media_type": mt})).get("poster")]
+            else:
+                normed = [n for r in results if not r.get("adult") and (n := _normalize({**r, "media_type": mt})).get("poster")]
             await resolve_runtimes(normed)
             if "with_watch_providers" in query_params:
                 logger.info(
@@ -176,6 +186,7 @@ async def discover_paginated(
 async def discover_category(
     db: AsyncSession, category: str, page: int = 1,
     sort: str = "popularity", language: str | None = None,
+    *, include_adult: bool = False,
 ) -> dict:
     """
     Paginated discover for one of the UX categories defined in
@@ -233,13 +244,14 @@ async def discover_category(
         extra=extra,
         movie_extra=movie_extra,
         tv_extra=tv_extra,
+        include_adult=include_adult,
     )
 
 
 async def discover_provider(
     db: AsyncSession, provider_id: int, page: int = 1,
     sort: str = "popularity", language: str | None = None,
-    region: str = "FR",
+    region: str = "FR", *, include_adult: bool = False,
 ) -> dict:
     """
     Paginated discover for a watch provider (Netflix=8, Prime=9,
@@ -254,4 +266,5 @@ async def discover_provider(
     }
     return await discover_paginated(
         db, "mixed", page, sort=sort, language=language, extra=extra,
+        include_adult=include_adult,
     )
