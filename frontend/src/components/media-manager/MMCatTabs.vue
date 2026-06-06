@@ -52,7 +52,7 @@
     >
       <ChevronRight :size="14" />
     </button>
-    <!-- Bouton + ajouter category -->
+    <!-- Add-category button -->
     <button
       class="mm-tabs-add"
       :title="$t('mediaManager.addCategoryTitle')"
@@ -61,7 +61,7 @@
       <Plus :size="14" />
     </button>
 
-    <!-- Modal ajout category -->
+    <!-- Add-category modal -->
     <div v-if="showAddModal" class="mm-overlay show" @click.self="showAddModal = false">
       <div
         ref="addCatPanelRef"
@@ -104,7 +104,7 @@
                 </span>
               </template>
             </div>
-            <!-- Liste des folders -->
+            <!-- Folder list -->
             <div class="mm-browse-list">
               <div v-if="browseLoading" class="mm-browse-empty">
                 <span class="mk-spin mk-spin--14" />
@@ -148,7 +148,7 @@
       </div>
     </div>
 
-    <!-- Menu contextuel deletion -->
+    <!-- Delete context menu -->
     <div
       v-if="deleteMenu.show"
       class="mm-cat-ctx"
@@ -209,7 +209,7 @@ function onDropTab(key) {
   dropOnCat(key)
 }
 
-// ── Ajout category ──
+// Add category
 const showAddModal = ref(false)
 const addCatPanelRef = ref(null)
 const titleId = useId()
@@ -221,7 +221,7 @@ useFocusTrap({
 const newCatLabel = ref('')
 const newCatPath = ref('')
 
-// ── Browse folders ──
+// Browse folders
 const browsePath = ref('/')
 const browseDirs = ref([])
 const browseLoading = ref(false)
@@ -286,7 +286,7 @@ async function submitAdd() {
   }
 }
 
-// ── Deletion category (clic droit) ──
+// Delete category (right-click)
 const deleteMenu = ref({ show: false, x: 0, y: 0, key: '' })
 
 function openDeleteMenu(e, key) {
@@ -313,7 +313,7 @@ async function confirmDelete() {
   }
 }
 
-// ── Scroll ──
+// Scroll
 const tabsRef = ref(null)
 const canScrollLeft = ref(false)
 const canScrollRight = ref(false)
