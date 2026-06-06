@@ -21,6 +21,7 @@ utilisateurs.
 - Jaquettes — note TMDB (étoile dorée) affichée au survol.
 - Jaquettes — titre, date et note affichés sous la vignette sur mobile.
 - Préférences — option « Par défaut » : la langue suit le défaut du portail.
+- Problèmes — navigation par pages avec choix du nombre affiché (10/25/50/100).
 
 ### Changed
 - Fiche média — couleur de la note TMDB harmonisée en doré.

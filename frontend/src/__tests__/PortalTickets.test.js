@@ -3,6 +3,8 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { ref } from 'vue'
 
 const tickets = ref([])
+const total = ref(0)
+const loading = ref(false)
 const fetchTickets = vi.fn(() => Promise.resolve())
 const createTicket = vi.fn(() => Promise.resolve({ success: true }))
 
@@ -17,6 +19,8 @@ vi.mock('vue-i18n', () => ({
 vi.mock('@/composables/portal/usePortalTickets', () => ({
   usePortalTickets: () => ({
     tickets,
+    total,
+    loading,
     fetchTickets,
     createTicket,
   }),

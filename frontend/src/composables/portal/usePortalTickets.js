@@ -1,33 +1,34 @@
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
 
 export function usePortalTickets() {
   const { apiGet, apiPost, apiPut, loading, error } = useApi()
   const tickets = ref([])
   const currentTicket = ref(null)
-  const hasMore = ref(false)
-  const nextCursor = ref(null)
+  const total = ref(0)
 
-  async function fetchTickets(filters = {}, reset = true) {
-    if (reset) {
-      tickets.value = []
-      nextCursor.value = null
-    }
-    const qs = new URLSearchParams({ limit: '25' })
-    if (filters.status) qs.set('status', filters.status)
-    if (filters.issue_type?.length) qs.set('issue_type', filters.issue_type.join(','))
-    if (filters.sort) qs.set('sort', filters.sort)
-    if (nextCursor.value) qs.set('cursor', nextCursor.value)
-
+  // Offset pagination + server-side status/type/sort filtering. ``sort`` is
+  // left to the backend default (newest) when the caller omits it.
+  async function fetchTickets({
+    status = null,
+    issueTypes = null,
+    sort = null,
+    page = 1,
+    perPage = DEFAULT_PAGE_SIZE,
+  } = {}) {
+    const qs = new URLSearchParams({ page, per_page: perPage })
+    if (sort) qs.set('sort', sort)
+    if (status) qs.set('status', status)
+    if (issueTypes?.length) qs.set('issue_type', issueTypes.join(','))
     try {
-      const res = await apiGet(`/api/portal/tickets?${qs.toString()}`)
+      const res = await apiGet(`/api/portal/tickets?${qs}`)
       if (!res) return
-      if (reset) tickets.value = res.items || []
-      else tickets.value.push(...(res.items || []))
-      nextCursor.value = res.next_cursor
-      hasMore.value = res.has_more
+      tickets.value = res.items || []
+      total.value = res.total || 0
     } catch {
-      if (reset) tickets.value = []
+      tickets.value = []
+      total.value = 0
     }
   }
 
@@ -54,8 +55,7 @@ export function usePortalTickets() {
   return {
     tickets,
     currentTicket,
-    hasMore,
-    nextCursor,
+    total,
     fetchTickets,
     fetchTicket,
     createTicket,

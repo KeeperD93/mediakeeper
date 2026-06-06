@@ -14,11 +14,13 @@ This section intentionally has no date so it is not shown to users.
 - Portal — configurable default portal language (admin settings).
 - Portal — setting to authorise adult-content requests (off by default).
 - Requests — paged navigation with a per-page count selector (10/25/50/100).
+- Issues (admin) — ticket queue now paginated (10/25/50/100).
 
 ### Changed
 - Dashboard — 30 upcoming releases shown (was 20).
 
 ### Fixed
+- Issues (admin) — status filter fixed (no longer crashes or is ignored).
 - Notifications — saving a Discord webhook no longer fails.
 - Notifications — Discord test message follows the configured default language.
 - Stats — Users and merge: profile photo (custom or Emby) now shown.

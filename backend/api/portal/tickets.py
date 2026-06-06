@@ -61,19 +61,24 @@ async def list_tickets(
     sort: Literal["newest", "oldest"] = "newest",
     cursor: Optional[str] = None,
     limit: int = Query(25, ge=1, le=100),
+    page: Optional[int] = Query(None, ge=1),
+    per_page: int = Query(25, ge=1, le=100),
     up: tuple[User, UserProfile] = Depends(require_permission("can_problems")),
     db: AsyncSession = Depends(get_db),
 ):
     user, profile = up
     user_id = None if profile.role == "admin" else user.id
     issue_types = _split_csv(issue_type, VALID_ISSUE_TYPES)
+    # Ticket lists use numbered pages (offset) when ``page`` is given; the
+    # cursor path stays as a fallback for any other caller.
     return await ticket_svc.list_tickets(
         db, user_id,
         status_filter=status_filter,
         issue_types=issue_types,
         sort=sort,
         cursor=cursor,
-        limit=limit,
+        limit=per_page if page is not None else limit,
+        page=page,
     )
 
 

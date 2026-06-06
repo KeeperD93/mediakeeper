@@ -14,11 +14,13 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Portail — langue par défaut du portail configurable (réglages admin).
 - Portail — réglage pour autoriser les demandes de contenu adulte (désactivé par défaut).
 - Demandes — navigation par pages avec choix du nombre affiché (10/25/50/100).
+- Problèmes (admin) — file de tickets paginée (10/25/50/100).
 
 ### Changed
 - Tableau de bord — 30 prochaines sorties affichées (au lieu de 20).
 
 ### Fixed
+- Problèmes (admin) — filtre par statut réparé (ne plante plus, n'est plus ignoré).
 - Notifications — l'enregistrement d'un webhook Discord n'échoue plus.
 - Notifications — le message test Discord suit la langue par défaut configurée.
 - Stats — Utilisateurs et fusion : photo de profil (perso ou Emby) désormais affichée.
