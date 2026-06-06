@@ -2,6 +2,7 @@
   <div
     class="mm-overlay"
     :class="{ show: showAdvancedModal }"
+    :inert="!showAdvancedModal"
     @click.self="showAdvancedModal = false"
   >
     <div

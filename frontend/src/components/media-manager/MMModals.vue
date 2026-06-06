@@ -3,6 +3,7 @@
   <div
     class="mm-overlay"
     :class="{ show: modalConfirm.show }"
+    :inert="!modalConfirm.show"
     @click.self="modalConfirm.show = false"
   >
     <div
@@ -52,7 +53,12 @@
   <MMFileMetaModal />
 
   <!-- ── RENAME ERRORS MODAL ── -->
-  <div class="mm-overlay" :class="{ show: showRenameErrorsModal }" @click.self="clearRenameErrors">
+  <div
+    class="mm-overlay"
+    :class="{ show: showRenameErrorsModal }"
+    :inert="!showRenameErrorsModal"
+    @click.self="clearRenameErrors"
+  >
     <div
       ref="errorsPanelRef"
       class="mm-modal mm-modal-580"
@@ -93,7 +99,12 @@
   </div>
 
   <!-- ── MOVE CONFLICT MODAL ── -->
-  <div class="mm-overlay" :class="{ show: showMoveConflictModal }" @click.self="cancelMoveConflict">
+  <div
+    class="mm-overlay"
+    :class="{ show: showMoveConflictModal }"
+    :inert="!showMoveConflictModal"
+    @click.self="cancelMoveConflict"
+  >
     <div
       ref="conflictPanelRef"
       class="mm-modal mm-modal-500"

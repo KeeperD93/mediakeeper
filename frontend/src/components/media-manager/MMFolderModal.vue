@@ -1,5 +1,10 @@
 <template>
-  <div class="mf-overlay" :class="{ show: modalFolders.show }" @click.self="close">
+  <div
+    class="mf-overlay"
+    :class="{ show: modalFolders.show }"
+    :inert="!modalFolders.show"
+    @click.self="close"
+  >
     <div ref="panelRef" class="mf-modal" role="dialog" aria-modal="true" :aria-labelledby="titleId">
       <header class="mf-header">
         <div class="mf-header-title">

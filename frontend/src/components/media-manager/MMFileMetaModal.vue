@@ -1,5 +1,10 @@
 <template>
-  <div class="mm-overlay" :class="{ show: fileMetaModal.show }" @click.self="closeFileMeta">
+  <div
+    class="mm-overlay"
+    :class="{ show: fileMetaModal.show }"
+    :inert="!fileMetaModal.show"
+    @click.self="closeFileMeta"
+  >
     <div
       ref="metaPanelRef"
       class="mm-modal mm-modal-560"

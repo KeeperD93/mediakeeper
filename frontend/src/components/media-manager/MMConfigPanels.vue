@@ -1,5 +1,10 @@
 <template>
-  <div class="mm-overlay" :class="{ show: showConfigPanel }" @click.self="showConfigPanel = false">
+  <div
+    class="mm-overlay"
+    :class="{ show: showConfigPanel }"
+    :inert="!showConfigPanel"
+    @click.self="showConfigPanel = false"
+  >
     <div
       ref="configPanelRef"
       class="mm-config-modal"

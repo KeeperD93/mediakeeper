@@ -1,5 +1,10 @@
 <template>
-  <div class="mr-overlay" :class="{ show: modalRenameFolderShow }" @click.self="close">
+  <div
+    class="mr-overlay"
+    :class="{ show: modalRenameFolderShow }"
+    :inert="!modalRenameFolderShow"
+    @click.self="close"
+  >
     <div ref="panelRef" class="mr-modal" role="dialog" aria-modal="true" :aria-labelledby="titleId">
       <header class="mr-header">
         <div class="mr-header-title">

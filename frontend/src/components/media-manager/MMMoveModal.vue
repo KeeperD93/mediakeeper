@@ -1,5 +1,10 @@
 <template>
-  <div class="mv-overlay" :class="{ show: modalMoveShow }" @click.self="closeMoveModal">
+  <div
+    class="mv-overlay"
+    :class="{ show: modalMoveShow }"
+    :inert="!modalMoveShow"
+    @click.self="closeMoveModal"
+  >
     <div ref="panelRef" class="mv-modal" role="dialog" aria-modal="true" :aria-labelledby="titleId">
       <header class="mv-header">
         <div class="mv-header-title">

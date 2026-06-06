@@ -3,6 +3,7 @@
   <div
     class="mm-overlay"
     :class="{ show: modelValue }"
+    :inert="!modelValue"
     @click.self="$emit('update:modelValue', false)"
   >
     <div
@@ -85,6 +86,7 @@
   <div
     class="mm-overlay"
     :class="{ show: showMoveHistoryModal }"
+    :inert="!showMoveHistoryModal"
     @click.self="showMoveHistoryModal = false"
   >
     <div
