@@ -4,6 +4,7 @@
       <button
         v-for="st in statuses"
         :key="st"
+        type="button"
         class="pt-filter-btn"
         :class="{ active: filter === st }"
         @click="filterBy(st)"
@@ -154,7 +155,7 @@ onMounted(load)
   text-transform: uppercase;
 }
 .pt-ts--open {
-  color: #eab308;
+  color: var(--portal-color-warning);
 }
 .pt-ts--in_progress {
   color: var(--accent);
