@@ -59,10 +59,10 @@ def _parse_changelog(lang: str = "fr", max_versions: int = 0) -> list[dict]:
     """Parse CHANGELOG_PORTAL_XX.md into a list of structured versions."""
     path = _find_changelog(lang)
     if not path:
-        logger.warning(f"[PORTAL_CHANGELOG] No changelog file found for lang={lang}")
+        logger.warning("[PORTAL_CHANGELOG] No changelog file found for lang=%s", lang)
         return []
 
-    logger.debug(f"[PORTAL_CHANGELOG] Using: {path}")
+    logger.debug("[PORTAL_CHANGELOG] Using: %s", path)
     text = path.read_text(encoding="utf-8")
     versions = []
     current_version = None
