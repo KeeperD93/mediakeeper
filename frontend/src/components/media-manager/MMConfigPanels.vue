@@ -1,8 +1,15 @@
 <template>
   <div class="mm-overlay" :class="{ show: showConfigPanel }" @click.self="showConfigPanel = false">
-    <div ref="configPanelRef" class="mm-config-modal" role="dialog" aria-modal="true" tabindex="-1">
+    <div
+      ref="configPanelRef"
+      class="mm-config-modal"
+      role="dialog"
+      aria-modal="true"
+      :aria-labelledby="titleId"
+      tabindex="-1"
+    >
       <div class="mm-config-sidebar">
-        <div class="mm-config-sidebar-title">
+        <div :id="titleId" class="mm-config-sidebar-title">
           <Settings :size="14" />
           {{ $t('mediaManager.configTitle') }}
         </div>
@@ -75,7 +82,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useMediaManager } from '@/composables/useMediaManager'
 import { useToast } from '@/composables/useToast'
@@ -113,6 +120,7 @@ const { newProfileName, applyProfileLocal, saveCurrentAsProfile } = useMMConfigP
 
 const showConfigPanel = defineModel('showConfigPanel', { type: Boolean, default: false })
 const configPanelRef = ref(null)
+const titleId = useId()
 useFocusTrap({
   active: computed(() => showConfigPanel.value),
   containerRef: configPanelRef,

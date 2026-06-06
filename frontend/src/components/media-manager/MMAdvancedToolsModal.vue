@@ -9,10 +9,11 @@
       class="mm-config-modal mm-config-modal-760"
       role="dialog"
       aria-modal="true"
+      :aria-labelledby="titleId"
       tabindex="-1"
     >
       <div class="mm-config-sidebar">
-        <div class="mm-config-sidebar-title">
+        <div :id="titleId" class="mm-config-sidebar-title">
           <Wrench :size="14" />
           {{ $t('mediaManager.advancedTools') }}
         </div>
@@ -92,7 +93,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useMediaManager } from '@/composables/useMediaManager'
 import { useMMConfigPanels } from '@/composables/useMMConfigPanels'
@@ -108,6 +109,7 @@ const { showAdvancedModal, advancedTab, getAllProfiles, deleteProfile } = useMed
 const { newProfileName, applyProfileLocal, saveCurrentAsProfile } = useMMConfigPanels()
 
 const advPanelRef = ref(null)
+const titleId = useId()
 useFocusTrap({
   active: computed(() => showAdvancedModal.value),
   containerRef: advPanelRef,

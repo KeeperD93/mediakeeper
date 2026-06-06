@@ -5,8 +5,15 @@
     :class="{ show: modalConfirm.show }"
     @click.self="modalConfirm.show = false"
   >
-    <div ref="confirmPanelRef" class="mm-modal" role="dialog" aria-modal="true" tabindex="-1">
-      <h3>
+    <div
+      ref="confirmPanelRef"
+      class="mm-modal"
+      role="dialog"
+      aria-modal="true"
+      :aria-labelledby="confirmTitleId"
+      tabindex="-1"
+    >
+      <h3 :id="confirmTitleId">
         <Pencil />
         {{ $t('mediaManager.confirmRenameTitle') }}
       </h3>
@@ -51,9 +58,10 @@
       class="mm-modal mm-modal-580"
       role="dialog"
       aria-modal="true"
+      :aria-labelledby="errorsTitleId"
       tabindex="-1"
     >
-      <h3 class="mm-title-error">
+      <h3 :id="errorsTitleId" class="mm-title-error">
         <TriangleAlert />
         {{
           $t(
@@ -91,9 +99,10 @@
       class="mm-modal mm-modal-500"
       role="dialog"
       aria-modal="true"
+      :aria-labelledby="conflictTitleId"
       tabindex="-1"
     >
-      <h3>
+      <h3 :id="conflictTitleId">
         <TriangleAlert class="mm-ico-warn" />
         {{ $t('mediaManager.conflictsTitle') }}
       </h3>
@@ -121,7 +130,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, useId } from 'vue'
 import { useMediaManager } from '@/composables/useMediaManager'
 import { useFocusTrap } from '@/composables/useFocusTrap'
 import MMFileMetaModal from './MMFileMetaModal.vue'
@@ -148,6 +157,9 @@ const showHistoryModal = defineModel('showHistoryModal', { type: Boolean, defaul
 const confirmPanelRef = ref(null)
 const errorsPanelRef = ref(null)
 const conflictPanelRef = ref(null)
+const confirmTitleId = useId()
+const errorsTitleId = useId()
+const conflictTitleId = useId()
 useFocusTrap({
   active: computed(() => modalConfirm.value.show),
   containerRef: confirmPanelRef,

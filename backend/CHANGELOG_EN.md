@@ -31,7 +31,7 @@ This section intentionally has no date so it is not shown to users.
 - Media library — track details no longer fail on a corrupted file.
 - Media Manager — undoing a batch rename no longer stops halfway (retry kept).
 - Media Manager — rename history labels follow the app language.
-- Media Manager — dialogs: keyboard focus trapped and Esc to close.
+- Media Manager — accessible dialogs: keyboard focus, Esc, screen-reader announcement.
 - Dashboard — "Upcoming releases" now shown in your language.
 - Media library — TMDB detail pages now shown in your language (English fallback).
 - Watchlist — series, episodes and synopsis now shown in your language.

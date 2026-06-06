@@ -10,9 +10,10 @@
       class="mm-modal mm-modal-560"
       role="dialog"
       aria-modal="true"
+      :aria-labelledby="renameHistTitleId"
       tabindex="-1"
     >
-      <h3>
+      <h3 :id="renameHistTitleId">
         <Clock />
         {{ $t('mediaManager.renameHistoryTitle') }}
       </h3>
@@ -91,9 +92,10 @@
       class="mm-modal mm-modal-560"
       role="dialog"
       aria-modal="true"
+      :aria-labelledby="moveHistTitleId"
       tabindex="-1"
     >
-      <h3>
+      <h3 :id="moveHistTitleId">
         <ArrowLeftRight />
         {{ $t('mediaManager.cancelMoves') }}
       </h3>
@@ -154,7 +156,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, useId } from 'vue'
 import { useMediaManager } from '@/composables/useMediaManager'
 import { useFocusTrap } from '@/composables/useFocusTrap'
 import { ArrowLeftRight, Clock, RefreshCw } from 'lucide-vue-next'
@@ -175,6 +177,8 @@ const {
 
 const renameHistPanelRef = ref(null)
 const moveHistPanelRef = ref(null)
+const renameHistTitleId = useId()
+const moveHistTitleId = useId()
 useFocusTrap({
   active: computed(() => props.modelValue),
   containerRef: renameHistPanelRef,

@@ -5,9 +5,10 @@
       class="mm-modal mm-modal-560"
       role="dialog"
       aria-modal="true"
+      :aria-labelledby="titleId"
       tabindex="-1"
     >
-      <h3>
+      <h3 :id="titleId">
         <Info />
         {{ $t('mediaManager.metadataTitle') }}
       </h3>
@@ -162,7 +163,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, useId } from 'vue'
 import { useMediaManager } from '@/composables/useMediaManager'
 import { useFocusTrap } from '@/composables/useFocusTrap'
 import { Captions, FileText, Info, Video, Volume2 } from 'lucide-vue-next'
@@ -172,6 +173,7 @@ import { localizedDate } from '@/utils/datetime'
 const { fileMetaModal, closeFileMeta } = useMediaManager()
 
 const metaPanelRef = ref(null)
+const titleId = useId()
 useFocusTrap({
   active: computed(() => fileMetaModal.value.show),
   containerRef: metaPanelRef,
