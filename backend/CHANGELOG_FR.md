@@ -32,7 +32,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Média Manager — annuler un renommage en lot ne s'interrompt plus à mi-chemin (réessai possible).
 - Média Manager — libellés de l'historique de renommage suivent la langue de l'app.
 - Média Manager — fenêtres accessibles : focus clavier, Échap, annonce lecteur d'écran.
-- Média Manager — la tabulation ne traverse plus les fenêtres fermées.
+- Média Manager — la tabulation clavier ignore les fenêtres et boutons masqués.
 - Tableau de bord — « Prochaines sorties » affichées dans votre langue.
 - Médiathèque — fiches détail TMDB affichées dans votre langue (repli anglais).
 - Watchlist — séries, épisodes et synopsis affichés dans votre langue.
