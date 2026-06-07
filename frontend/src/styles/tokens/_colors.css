@@ -79,6 +79,12 @@
   --color-online: #22c55e; /* green Tailwind-500 — services / status "online" pulse */
   --color-online-rgb: 34, 197, 94;
 
+  /* ─── Premium — purple badge for premium content. Mirrors the portal
+   * premium hue so the /admin/portal management badges keep the same
+   * tone as the portal they manage. ─── */
+  --color-premium: #a855f7;
+  --color-premium-rgb: 168, 85, 247;
+
   /* ─── MkButton brand palette — MediaKeeper signature, deliberately
    * decoupled from --accent-* (global decorations), --color-* (semantic
    * chart / badge tones), and --text-* (typography emphasis).

@@ -137,16 +137,16 @@ onMounted(() => fetchNews(true, { admin: true }))
   padding: 0.45rem 1rem;
   border-radius: var(--radius-btn);
   border: none;
-  font-weight: var(--portal-font-medium);
+  font-weight: var(--font-medium);
   cursor: pointer;
-  font-size: var(--portal-text-sm);
+  font-size: var(--text-sm);
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
 }
 .pt-btn--primary {
   background: var(--accent);
-  color: var(--portal-text-primary);
+  color: var(--text-primary);
 }
 .pt-news-header {
   display: flex;
@@ -161,27 +161,27 @@ onMounted(() => fetchNews(true, { admin: true }))
   border-bottom: 1px solid var(--border);
 }
 .pt-news-badge-mini {
-  font-size: var(--portal-text-2xs);
-  font-weight: var(--portal-font-bold);
+  font-size: var(--text-2xs);
+  font-weight: var(--font-bold);
   text-transform: uppercase;
   padding: 0.1rem 0.4rem;
-  border-radius: var(--portal-radius-xs);
+  border-radius: var(--radius-sm);
 }
 .pt-badge--announcement {
   background: rgb(var(--accent-rgb), 0.2);
   color: var(--accent);
 }
 .pt-badge--additions {
-  background: rgb(var(--portal-color-success-rgb), 0.2);
-  color: var(--portal-color-success);
+  background: rgb(var(--color-success-rgb), 0.2);
+  color: var(--color-success);
 }
 .pt-badge--maintenance {
   background: rgb(234, 179, 8, 0.2);
   color: #eab308;
 }
 .pt-badge--event {
-  background: rgb(var(--portal-color-premium-rgb), 0.2);
-  color: var(--portal-color-premium);
+  background: rgb(var(--color-premium-rgb), 0.2);
+  color: var(--color-premium);
 }
 .pt-badge--other {
   background: var(--bg-tertiary);
@@ -189,17 +189,17 @@ onMounted(() => fetchNews(true, { admin: true }))
 }
 .pt-news-title {
   flex: 1;
-  font-weight: var(--portal-font-medium);
+  font-weight: var(--font-medium);
   color: var(--text-primary);
-  font-size: var(--portal-text-base);
+  font-size: var(--text-base);
 }
 .pt-news-schedule {
-  font-size: var(--portal-text-2xs);
-  font-weight: var(--portal-font-bold);
+  font-size: var(--text-2xs);
+  font-weight: var(--font-bold);
   text-transform: uppercase;
-  letter-spacing: var(--portal-tracking-caps);
+  letter-spacing: var(--tracking-widest);
   padding: 0.1rem 0.4rem;
-  border-radius: var(--portal-radius-xs);
+  border-radius: var(--radius-sm);
 }
 .pt-news-schedule--scheduled {
   background: rgb(var(--accent-rgb), 0.15);
@@ -210,7 +210,7 @@ onMounted(() => fetchNews(true, { admin: true }))
   color: var(--text-faint);
 }
 .pt-news-date {
-  font-size: var(--portal-text-xs);
+  font-size: var(--text-xs);
   color: var(--text-muted);
 }
 .pt-icon-btn {
@@ -221,20 +221,20 @@ onMounted(() => fetchNews(true, { admin: true }))
   height: 32px;
   background: var(--bg-tertiary);
   border: 1px solid var(--border);
-  border-radius: var(--portal-radius-pill);
+  border-radius: var(--radius-pill);
   color: var(--text-muted);
   cursor: pointer;
   box-shadow: var(--mk-pill-shadow-sm);
   transition:
-    color var(--portal-dur-fast) ease,
-    background var(--portal-dur-fast) ease;
+    color var(--duration-fast) ease,
+    background var(--duration-fast) ease;
 }
 @media (hover: hover) {
   .pt-icon-btn--edit:hover {
     color: var(--accent);
   }
   .pt-icon-btn--danger:hover {
-    color: var(--portal-color-error);
+    color: var(--color-error);
   }
 }
 .pt-empty {
