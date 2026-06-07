@@ -115,7 +115,7 @@ onMounted(load)
   background: var(--bg-secondary);
   color: var(--text-muted);
   cursor: pointer;
-  font-size: var(--portal-text-sm);
+  font-size: var(--text-sm);
 }
 .pt-filter-btn.active {
   border-color: var(--accent);
@@ -132,36 +132,36 @@ onMounted(load)
   border-bottom: 1px solid var(--border);
 }
 .pt-ticket-id {
-  font-weight: var(--portal-font-bold);
+  font-weight: var(--font-bold);
   color: var(--text-muted);
-  font-size: var(--portal-text-sm);
+  font-size: var(--text-sm);
   width: 3rem;
 }
 .pt-ticket-type {
-  font-size: var(--portal-text-xs);
+  font-size: var(--text-xs);
   color: var(--text-secondary);
 }
 .pt-ticket-media {
   flex: 1;
-  font-size: var(--portal-text-sm);
+  font-size: var(--text-sm);
   color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .pt-ticket-status {
-  font-size: var(--portal-text-2xs);
-  font-weight: var(--portal-font-bold);
+  font-size: var(--text-2xs);
+  font-weight: var(--font-bold);
   text-transform: uppercase;
 }
 .pt-ts--open {
-  color: var(--portal-color-warning);
+  color: var(--color-warning);
 }
 .pt-ts--in_progress {
   color: var(--accent);
 }
 .pt-ts--resolved {
-  color: var(--portal-color-success);
+  color: var(--color-success);
 }
 .pt-ts--closed {
   color: var(--text-muted);
@@ -175,7 +175,7 @@ onMounted(load)
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
-  font-size: var(--portal-text-xs);
+  font-size: var(--text-xs);
   padding: 0.2rem 0.4rem;
 }
 .pt-empty {
