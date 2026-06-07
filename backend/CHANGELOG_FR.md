@@ -18,6 +18,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Utilisateurs portail (admin) — liste paginée (10/25/50/100).
 - Actualités (admin) — bouton « Charger plus » au-delà des 20 récentes.
 - Utilisateurs portail (admin) — audit de la fiche : « Charger plus » au-delà de 100 entrées.
+- Portail — lien de don configurable pour vos utilisateurs (réglages admin).
 
 ### Changed
 - Tableau de bord — 30 prochaines sorties affichées (au lieu de 20).

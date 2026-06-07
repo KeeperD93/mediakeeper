@@ -8,7 +8,7 @@
       :is-admin="isAdmin"
       :has-backoffice-access="hasBackofficeAccess"
       :show-requests-tab="showRequestsTab"
-      support-url="https://ko-fi.com/keeperd93"
+      :donation="ui.donation"
       @navigate="onNavigate"
       @open-whats-new="onOpenWhatsNew"
       @open-daily-digest="onOpenDailyDigest"
@@ -109,7 +109,7 @@ import { PORTAL_TAB } from '@/constants/portal'
 
 const route = useRoute()
 const router = useRouter()
-const { profile, checkPortalAuth } = usePortalAuth()
+const { profile, ui, checkPortalAuth } = usePortalAuth()
 const { unreadNews, fetchUnread, markRead } = usePortalNews()
 const { applyPortalLocale, restoreGlobalLocale } = usePortalLocale()
 const { initGlobalChat, shutdownGlobalChat } = usePortalChat()
