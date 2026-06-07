@@ -29,18 +29,31 @@
       <p class="pt-hero-overview">{{ viewItem?.overview }}</p>
 
       <div class="pt-hero-actions">
-        <!-- The hero is informational, not a launch CTA: only the
-             "Request" button surfaces when the title is missing from
-             Emby. Items already on Emby get no action button — the
-             "Info" / trailer affordances cover the rest. -->
-        <button
-          v-if="!viewItem?.emby_url"
-          class="pt-hero-btn pt-hero-btn--play"
-          @click="$emit('request', viewItem)"
-        >
-          <Plus :size="22" :stroke-width="2.5" />
-          {{ $t('portal.card.requestBtn') }}
-        </button>
+        <!-- The hero is informational, not a launch CTA: when the title
+             is missing from Emby it surfaces a "Request" button, or a
+             muted "Pending" button when it was already requested. Items
+             already on Emby get no action button — the "Info" / trailer
+             affordances cover the rest. -->
+        <template v-if="!viewItem?.emby_url">
+          <button
+            v-if="isRequestPending"
+            class="pt-hero-btn pt-hero-btn--pending"
+            type="button"
+            aria-disabled="true"
+          >
+            <Clock :size="22" :stroke-width="2.5" />
+            {{ $t('portal.card.pendingBtn') }}
+          </button>
+          <button
+            v-else
+            class="pt-hero-btn pt-hero-btn--play"
+            type="button"
+            @click="$emit('request', viewItem)"
+          >
+            <Plus :size="22" :stroke-width="2.5" />
+            {{ $t('portal.card.requestBtn') }}
+          </button>
+        </template>
         <button v-if="trailer" class="pt-hero-btn pt-hero-btn--trailer" @click="openLightbox">
           <Video :size="22" />
           {{ $t('portal.detail.watchTrailer') }}
@@ -72,9 +85,11 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { useTrailer } from '@/composables/portal/useTrailer'
+import { useRequestStatus } from '@/composables/portal/useRequestStatus'
+import { REQUEST_STATUS } from '@/constants/requests'
 import TrailerLightbox from './TrailerLightbox.vue'
 import { isTv } from '@/constants/media'
-import { Info, Plus, Video } from 'lucide-vue-next'
+import { Clock, Info, Plus, Video } from 'lucide-vue-next'
 
 import '@/assets/styles/portal/hero-banner.css'
 
@@ -96,10 +111,25 @@ defineEmits(['play', 'detail', 'goto', 'video-ended', 'request'])
 // then tears it down on close. Eliminates every chance of the
 // YouTube centre play/pause overlay being painted over the hero.
 const { trailer, resolve: resolveTrailer, prefetch: prefetchTrailer } = useTrailer()
+const { getStatus, checkStatus } = useRequestStatus()
 
 const heroRef = ref(null)
 const lightboxOpen = ref(false)
 const viewItem = computed(() => props.item)
+
+// Request status for the current hero item, mirroring the poster cards:
+// an active request (pending/approved) swaps the "Request" CTA for a
+// muted "Pending" one. Rejected items aren't returned by the backend, so
+// they fall back to "Request" (re-request). Follows the rotation since it
+// derives from the current ``viewItem``.
+const reqStatus = computed(() => {
+  const id = viewItem.value?.tmdb_id || viewItem.value?.id
+  return id ? getStatus(id) : null
+})
+const isRequestPending = computed(() => {
+  const s = reqStatus.value?.status
+  return s === REQUEST_STATUS.PENDING || s === REQUEST_STATUS.APPROVED
+})
 
 const bgStyle = computed(() => {
   const it = viewItem.value
@@ -111,6 +141,12 @@ async function ensureTrailerResolved() {
   const it = viewItem.value
   if (!it) return
   await resolveTrailer(it.media_type || 'movie', it.tmdb_id || it.id, it.emby_item_id || null)
+}
+
+// Prime the global request-status cache for the current item so the CTA
+// can reflect an existing "Pending" request (deduped by TTL in the cache).
+function ensureStatusChecked() {
+  if (viewItem.value) checkStatus([viewItem.value])
 }
 
 function openLightbox() {
@@ -125,6 +161,7 @@ watch(
   () => props.item?.id,
   () => {
     ensureTrailerResolved()
+    ensureStatusChecked()
   },
 )
 
@@ -142,5 +179,6 @@ watch(
 
 onMounted(() => {
   ensureTrailerResolved()
+  ensureStatusChecked()
 })
 </script>
