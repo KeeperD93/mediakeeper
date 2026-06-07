@@ -1,14 +1,40 @@
 <template>
   <div class="mm-col">
     <div class="mm-col-header">
-      <div class="mm-bc">
-        <span class="mm-crumb" @click="navRoot">
+      <div ref="bcRef" class="mm-bc">
+        <span class="mm-crumb" :title="categoryLabel" @click="navRoot">
           <Folder :size="12" />
-          {{ CATS.find(c => c.key === activeCat)?.label }}
+          <span class="mm-crumb-label">{{ categoryLabel }}</span>
         </span>
-        <template v-for="(seg, i) in breadcrumbs" :key="i">
+        <!-- Collapsed: intermediate folders hidden behind a … crumb -->
+        <template v-if="bcCollapsed && breadcrumbs.length">
+          <template v-if="breadcrumbs.length > 1">
+            <span class="mm-sep">/</span>
+            <span
+              class="mm-crumb mm-crumb-more"
+              :title="hiddenCrumbsPath"
+              @click="navTo(breadcrumbs.length - 2)"
+            >
+              …
+            </span>
+          </template>
           <span class="mm-sep">/</span>
-          <span class="mm-crumb" @click="navTo(i)">{{ seg }}</span>
+          <span
+            class="mm-crumb mm-crumb--current"
+            :title="currentCrumb"
+            @click="navTo(breadcrumbs.length - 1)"
+          >
+            <span class="mm-crumb-label">{{ currentCrumb }}</span>
+          </span>
+        </template>
+        <!-- Full: every segment visible -->
+        <template v-else>
+          <template v-for="(seg, i) in breadcrumbs" :key="i">
+            <span class="mm-sep">/</span>
+            <span class="mm-crumb" :title="seg" @click="navTo(i)">
+              <span class="mm-crumb-label">{{ seg }}</span>
+            </span>
+          </template>
         </template>
       </div>
       <div class="mm-header-actions">
@@ -118,6 +144,7 @@
 import { ref, computed, inject } from 'vue'
 import { useMediaManager, CATS } from '@/composables/useMediaManager'
 import { useMMFileListUI } from '@/composables/useMMFileListUI'
+import { useBreadcrumbCollapse } from '@/composables/useBreadcrumbCollapse'
 import { Folder, Pencil } from 'lucide-vue-next'
 import { FILE_TYPE } from '@/constants/mediaManager'
 import MkSpinner from '@/components/common/MkSpinner.vue'
@@ -175,6 +202,12 @@ const {
 } = useMediaManager()
 
 const { showHistoryModal } = inject('mmCtx')
+
+// Breadcrumb: full path when it fits, collapse the middle to "…" on overflow.
+const { bcRef, bcCollapsed } = useBreadcrumbCollapse(breadcrumbs)
+const categoryLabel = computed(() => CATS.value.find(c => c.key === activeCat.value)?.label || '')
+const currentCrumb = computed(() => breadcrumbs.value[breadcrumbs.value.length - 1] ?? '')
+const hiddenCrumbsPath = computed(() => breadcrumbs.value.slice(0, -1).join(' / '))
 
 const dragOverFolder = ref(null)
 const showQualityScore = ref(false)

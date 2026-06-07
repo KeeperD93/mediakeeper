@@ -42,6 +42,12 @@
 .mf-overlay.show .mf-modal {
   transform: translateY(0) scale(1);
 }
+@media (prefers-reduced-motion: reduce) {
+  .mf-overlay,
+  .mf-modal {
+    transition: none;
+  }
+}
 
 /* ── Header ── */
 .mf-header {

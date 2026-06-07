@@ -63,6 +63,7 @@
     <button
       v-if="f.type === FILE_TYPE.FILE"
       class="mm-row-btn mm-row-info"
+      tabindex="-1"
       :title="''"
       @click.stop="$emit('open-meta')"
     >
@@ -70,6 +71,7 @@
     </button>
     <button
       class="mm-row-btn mm-row-move"
+      tabindex="-1"
       :title="$t('mediaManager.move')"
       @click.stop="$emit('open-move')"
     >
@@ -77,6 +79,7 @@
     </button>
     <button
       class="mm-row-btn mm-row-del"
+      tabindex="-1"
       :title="$t('mediaManager.delete')"
       @click.stop="$emit('delete-file')"
     >

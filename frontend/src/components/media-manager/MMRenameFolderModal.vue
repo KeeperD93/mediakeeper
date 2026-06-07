@@ -1,10 +1,15 @@
 <template>
-  <div class="mr-overlay" :class="{ show: modalRenameFolderShow }" @click.self="close">
-    <div ref="panelRef" class="mr-modal" role="dialog" aria-modal="true">
+  <div
+    class="mr-overlay"
+    :class="{ show: modalRenameFolderShow }"
+    :inert="!modalRenameFolderShow"
+    @click.self="close"
+  >
+    <div ref="panelRef" class="mr-modal" role="dialog" aria-modal="true" :aria-labelledby="titleId">
       <header class="mr-header">
         <div class="mr-header-title">
           <Pencil :size="16" />
-          <h3>{{ $t('mediaManager.renameFolderTitle') }}</h3>
+          <h3 :id="titleId">{{ $t('mediaManager.renameFolderTitle') }}</h3>
           <span v-if="categoryLabel" class="mr-chip">
             <Folder :size="11" />
             {{ categoryLabel }}
@@ -74,7 +79,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, ref, useId, watch } from 'vue'
 import { useMediaManager, CATS } from '@/composables/useMediaManager'
 import { useFocusTrap } from '@/composables/useFocusTrap'
 import { Check, ChevronRight, Folder, Pencil, X } from 'lucide-vue-next'
@@ -118,6 +123,7 @@ function onEnter() {
   if (hasChange.value) execRenameFolder()
 }
 
+const titleId = useId()
 useFocusTrap({
   active: modalRenameFolderShow,
   containerRef: panelRef,
