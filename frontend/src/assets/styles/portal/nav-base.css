@@ -224,6 +224,11 @@
     transform: scale(1);
   }
 }
+@media (prefers-reduced-motion: reduce) {
+  .pt-nav-icon--heart svg {
+    animation: none;
+  }
+}
 
 /* Notification bell styled to match the .pt-nav-icon shell. The calendar
    trigger manages its own circular style (see calendar-button.css). */
