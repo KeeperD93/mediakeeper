@@ -5,6 +5,22 @@
   "app": {
     "rebuilt_logout": "App was updated, please sign in again."
   },
+  "donation": {
+    "panelTitle": "Support",
+    "mkTitle": "Support the project",
+    "mkIntro": "MediaKeeper was born from a wish to simplify managing a media library: combining simplicity with complete management, while adding features you won't find anywhere else, like the achievements system. I use it every day and I don't plan to stop — whether for new features, stability or security.\n\nThis project takes a lot of my time. If you'd like to support it, feel free to join the discussions, report issues and share your suggestions, or simply tell the people around you about the app.",
+    "mkHow": "To do more:",
+    "mkThanks": "Thank you all for your trust!",
+    "kofi": "Buy me a coffee on Ko-fi",
+    "kofiSub": "A one-time or monthly tip",
+    "sponsor": "Buy me a coffee on GitHub Sponsors",
+    "sponsorSub": "A recurring sponsorship via GitHub",
+    "star": "Star the project",
+    "starSub": "Free — it helps spread the word",
+    "instanceTitle": "Support this server",
+    "instanceIntro": "Support this server's administrator.",
+    "instanceCta": "Donate"
+  },
   "common": {
     "actions": "Actions",
     "save": "Save",
@@ -2519,8 +2535,6 @@
     },
     "nav": {
       "brand": "MediaKeeper",
-      "support": "Buy me a coffee",
-      "supportSoon": "Donation link coming soon",
       "bottomNav": "Main navigation"
     },
     "avatar": {
@@ -3623,6 +3637,15 @@
           "title": "Maintenance mode",
           "desc": "When on, the entire portal navigation redirects to a customizable holding page. Admins keep full access.",
           "textLabel": "Displayed message (current locale)"
+        },
+        "donation": {
+          "title": "Donation button",
+          "desc": "Shows a heart in the portal with your donation link and message. Your users only see what you configure here; the MediaKeeper support section stays admin-only. Has no effect until a link is set.",
+          "urlLabel": "Donation link",
+          "urlPlaceholder": "https://...",
+          "buttonLabelLabel": "Button text (optional)",
+          "buttonLabelPlaceholder": "Donate",
+          "messageLabel": "Message (optional)"
         },
         "gdpr": {
           "title": "Privacy mode",

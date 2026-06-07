@@ -19,7 +19,7 @@ from models.portal.profile import UserProfile
 from services.portal.emby_auth import authenticate_emby_user
 from services.portal.profiles import serialize_profile_with_effective_lang
 from services.portal.news import get_unread_news
-from services.portal.admin import get_portal_flag
+from services.portal.admin import get_donation_config, get_portal_flag
 from services.security import (
     count_recent_failures,
     ensure_not_blocked,
@@ -51,6 +51,7 @@ async def _serialize_ui_flags(db: AsyncSession, profile: UserProfile) -> dict:
     return {
         "show_requests_tab": is_admin or not anonymize_requests,
         "allow_adult_requests": allow_adult_requests,
+        "donation": await get_donation_config(db),
     }
 
 
@@ -61,7 +62,11 @@ async def _safe_serialize_ui_flags(db: AsyncSession, profile: UserProfile) -> di
         # Mirror the full success shape so the frontend never reads an absent
         # flag on the degraded path (fail-closed: the request button stays
         # disabled rather than wrongly enabled).
-        return {"show_requests_tab": True, "allow_adult_requests": False}
+        return {
+            "show_requests_tab": True,
+            "allow_adult_requests": False,
+            "donation": {"enabled": False, "url": "", "message": "", "button_label": ""},
+        }
 
 
 async def _safe_get_unread_news(db: AsyncSession, user_id: int) -> list[dict]:

@@ -188,6 +188,20 @@ async def media_source(
     return source or {"source": None}
 
 
+@router.get("/donation")
+async def donation_config(
+    db: AsyncSession = Depends(get_db),
+    _:  User         = Depends(get_current_user),
+):
+    """Operator donation config for the backoffice top-bar heart panel.
+
+    Same shape as the portal ``ui.donation`` block; readable by any
+    authenticated backoffice user (the values are shown to every portal
+    user anyway)."""
+    from services.portal.admin import get_donation_config
+    return await get_donation_config(db)
+
+
 @router.get("/media-folders")
 async def get_media_folders(
     db: AsyncSession = Depends(get_db),

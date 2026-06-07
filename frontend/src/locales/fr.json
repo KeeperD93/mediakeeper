@@ -5,6 +5,22 @@
   "app": {
     "rebuilt_logout": "Mise à jour de l'application, reconnecte-toi."
   },
+  "donation": {
+    "panelTitle": "Soutenir",
+    "mkTitle": "Soutenir le projet",
+    "mkIntro": "MediaKeeper est né d'une envie de simplifier la gestion d'une médiathèque : allier simplicité et gestion complète, tout en apportant des fonctionnalités que l'on ne trouve nulle part ailleurs, comme le système de trophées. Je l'utilise au quotidien et je ne compte pas m'arrêter — que ce soit pour les nouveautés, la stabilité ou la sécurité.\n\nCe projet me prend beaucoup de temps. Si vous souhaitez le soutenir, n'hésitez pas à participer aux échanges, à me remonter les problèmes et vos suggestions, ou simplement à parler de l'application autour de vous.",
+    "mkHow": "Pour faire plus :",
+    "mkThanks": "Merci à tous pour votre confiance !",
+    "kofi": "M'offrir un café sur Ko-fi",
+    "kofiSub": "Un soutien ponctuel ou mensuel",
+    "sponsor": "M'offrir un café sur GitHub Sponsor",
+    "sponsorSub": "Un parrainage récurrent via GitHub",
+    "star": "Mettre une étoile au projet",
+    "starSub": "Gratuit — ça aide à faire connaître le projet",
+    "instanceTitle": "Soutenir ce serveur",
+    "instanceIntro": "Soutenez l'administrateur de ce serveur.",
+    "instanceCta": "Faire un don"
+  },
   "common": {
     "actions": "Actions",
     "save": "Enregistrer",
@@ -2519,8 +2535,6 @@
     },
     "nav": {
       "brand": "MediaKeeper",
-      "support": "Buy me a coffee",
-      "supportSoon": "Lien de don bientôt disponible",
       "bottomNav": "Navigation principale"
     },
     "avatar": {
@@ -3623,6 +3637,15 @@
           "title": "Mode maintenance",
           "desc": "Quand activé, toute la navigation portail redirige vers une page d'attente personnalisable. Les administrateurs gardent leur accès.",
           "textLabel": "Message affiché (langue actuelle)"
+        },
+        "donation": {
+          "title": "Bouton de don",
+          "desc": "Affiche un cœur dans le portail avec votre lien de don et votre message. Vos utilisateurs ne voient que ce que vous configurez ici ; le soutien à MediaKeeper reste réservé aux administrateurs. Reste sans effet tant qu'aucun lien n'est renseigné.",
+          "urlLabel": "Lien de don",
+          "urlPlaceholder": "https://...",
+          "buttonLabelLabel": "Texte du bouton (optionnel)",
+          "buttonLabelPlaceholder": "Faire un don",
+          "messageLabel": "Message (optionnel)"
         },
         "gdpr": {
           "title": "Mode Confidentialité",

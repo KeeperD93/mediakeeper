@@ -41,14 +41,12 @@
         </button>
 
         <button
-          v-if="isAdmin"
+          v-if="isAdmin || donation?.enabled"
           class="pt-nav-icon pt-nav-icon--heart"
-          :class="{ 'pt-nav-icon--disabled': !supportUrl }"
           type="button"
-          :title="supportTitle"
-          :aria-label="supportTitle"
-          :disabled="!supportUrl"
-          @click="openSupport"
+          :title="$t('donation.panelTitle')"
+          :aria-label="$t('donation.panelTitle')"
+          @click="donationOpen = true"
         >
           <Heart :size="20" fill="currentColor" stroke="currentColor" :stroke-width="1.5" />
         </button>
@@ -173,6 +171,13 @@
         <PortalSearchBox class="pt-nav-search-drawer-box" />
       </div>
     </transition>
+
+    <DonationOverlay
+      :open="donationOpen"
+      :is-admin="isAdmin"
+      :donation="donation"
+      @close="donationOpen = false"
+    />
   </nav>
 </template>
 
@@ -182,6 +187,7 @@ import NotificationBell from './NotificationBell.vue'
 import CalendarButton from './CalendarButton.vue'
 import PortalSearchBox from './PortalSearchBox.vue'
 import MkAvatar from '@/components/common/MkAvatar.vue'
+import DonationOverlay from '@/components/common/DonationOverlay.vue'
 import { ChevronDown, Heart, Home, Library, Search } from 'lucide-vue-next'
 import { usePortalNav } from './usePortalNav.js'
 import { PORTAL_TAB } from '@/constants/portal'
@@ -195,7 +201,7 @@ const props = defineProps({
   isAdmin: { type: Boolean, default: false },
   hasBackofficeAccess: { type: Boolean, default: false },
   showRequestsTab: { type: Boolean, default: true },
-  supportUrl: { type: String, default: '' },
+  donation: { type: Object, default: null },
 })
 
 const emit = defineEmits(['navigate', 'open-whats-new', 'open-daily-digest', 'open-help'])
@@ -209,14 +215,12 @@ const {
   tabs,
   avatarInitial,
   roleLabel,
-  supportTitle,
   toggleSearchDrawer,
   isTabActive,
   navigateTo,
   goToDashboard,
   goToSettings,
   toggleMenu,
-  openSupport,
   doLogout,
   openWhatsNew,
   openDailyDigest,
@@ -225,6 +229,7 @@ const {
 } = usePortalNav(props, emit)
 
 const calendarRef = ref(null)
+const donationOpen = ref(false)
 
 // Mobile avatar-menu shortcut — the visible calendar button is hidden
 // on phones, so this is how users reach the events popup.

@@ -1,7 +1,7 @@
 """Portal admin endpoints: user management, stats, index sync."""
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -204,6 +204,27 @@ class PortalSettingsUpdate(BaseModel):
     )
     # Instance-wide default portal language; "" lets users inherit MK_DEFAULT_LOCALE.
     default_language: Optional[str] = Field(default=None, max_length=10)
+    # Operator donation link surfaced on the heart panel. ``donation_url`` is
+    # scheme-checked below; ``donation_message`` is the optional appeal text.
+    donation_enabled: Optional[bool] = Field(default=None, alias="donation.enabled")
+    donation_url: Optional[str] = Field(default=None, max_length=500, alias="donation.url")
+    # Rich-text (sanitised server-side); larger cap than plain fields.
+    donation_message: Optional[str] = Field(
+        default=None, max_length=4000, alias="donation.message"
+    )
+    donation_button_label: Optional[str] = Field(
+        default=None, max_length=60, alias="donation.button_label"
+    )
+
+    @field_validator("donation_url")
+    @classmethod
+    def _validate_donation_url(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return None
+        v = v.strip()
+        if v and not v.lower().startswith(("http://", "https://")):
+            raise ValueError("donation_url must be an http(s) URL")
+        return v
 
 
 @router.get("/settings")
@@ -243,5 +264,13 @@ async def patch_settings(
         updates["portal.events.max_participants_max"] = payload.events_max_participants_max
     if payload.default_language is not None:
         updates["portal.default_language"] = payload.default_language
+    if payload.donation_enabled is not None:
+        updates["portal.donation.enabled"] = payload.donation_enabled
+    if payload.donation_url is not None:
+        updates["portal.donation.url"] = payload.donation_url
+    if payload.donation_message is not None:
+        updates["portal.donation.message"] = payload.donation_message
+    if payload.donation_button_label is not None:
+        updates["portal.donation.button_label"] = payload.donation_button_label
     raw = await admin_svc.update_portal_settings(db, updates)
     return {k.replace("portal.", ""): v for k, v in raw.items()}

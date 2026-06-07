@@ -29,6 +29,17 @@
         <LayoutGrid :size="18" :stroke-width="1.8" />
       </button>
 
+      <!-- Donation / support panel (MediaKeeper project links for the operator) -->
+      <button
+        class="tb-action-btn tb-heart"
+        type="button"
+        :title="$t('donation.panelTitle')"
+        :aria-label="$t('donation.panelTitle')"
+        @click="donationOpen = true"
+      >
+        <Heart :size="18" fill="currentColor" stroke="currentColor" :stroke-width="1.5" />
+      </button>
+
       <!-- Notifications bell -->
       <div ref="notifRef" class="tb-action-wrap">
         <button
@@ -136,6 +147,13 @@
         </Teleport>
       </div>
     </div>
+
+    <DonationOverlay
+      :open="donationOpen"
+      is-admin
+      :donation="donation"
+      @close="donationOpen = false"
+    />
   </header>
 </template>
 
@@ -145,8 +163,10 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/composables/useAuth'
 import { useTopbarAlerts } from '@/composables/useTopbarAlerts'
-import { Bell, ChevronDown, LayoutGrid, LogOut, Menu } from 'lucide-vue-next'
+import { useDonationConfig } from '@/composables/useDonationConfig'
+import { Bell, ChevronDown, Heart, LayoutGrid, LogOut, Menu } from 'lucide-vue-next'
 import MkAvatar from '@/components/common/MkAvatar.vue'
+import DonationOverlay from '@/components/common/DonationOverlay.vue'
 import { DASHBOARD_EDIT_EVENT } from '@/constants/dashboardEvents'
 import '@/assets/styles/app-topbar.css'
 import '@/assets/styles/app-topbar-dropdowns.css'
@@ -170,6 +190,8 @@ const {
 
 const showNotifPanel = ref(false)
 const showUserMenu = ref(false)
+const donationOpen = ref(false)
+const { donation, loadDonation } = useDonationConfig()
 const notifRef = ref(null)
 const userRef = ref(null)
 const notifDdPos = ref({})
@@ -247,6 +269,7 @@ watch(showUserMenu, v => {
 onMounted(() => {
   document.addEventListener('click', onClickOutside)
   document.addEventListener('keydown', onKeydown)
+  loadDonation()
 })
 
 onUnmounted(() => {

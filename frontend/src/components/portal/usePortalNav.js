@@ -3,7 +3,6 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 import { PORTAL_TAB } from '@/constants/portal'
-import { safeHref } from '@/utils/safeUrl'
 import { useSearchHotkey } from '@/composables/portal/useSearchHotkey'
 
 export function usePortalNav(props, emit) {
@@ -74,9 +73,6 @@ export function usePortalNav(props, emit) {
   const roleLabel = computed(() =>
     props.isAdmin ? t('portal.avatar.admin') : t('portal.avatar.user'),
   )
-  const supportTitle = computed(() =>
-    props.supportUrl ? t('portal.nav.support') : t('portal.nav.supportSoon'),
-  )
   const hasHero = computed(
     () => props.activeTab === PORTAL_TAB.HOME || props.activeTab === PORTAL_TAB.ME,
   )
@@ -128,12 +124,6 @@ export function usePortalNav(props, emit) {
 
   function toggleMenu() {
     menuOpen.value = !menuOpen.value
-  }
-
-  function openSupport() {
-    const target = safeHref(props.supportUrl)
-    if (!target) return
-    window.open(target, '_blank', 'noopener,noreferrer')
   }
 
   async function doLogout() {
@@ -201,7 +191,6 @@ export function usePortalNav(props, emit) {
     tabs,
     avatarInitial,
     roleLabel,
-    supportTitle,
     toggleSearchDrawer,
     focusPortalSearch,
     isTabActive,
@@ -209,7 +198,6 @@ export function usePortalNav(props, emit) {
     goToDashboard,
     goToSettings,
     toggleMenu,
-    openSupport,
     doLogout,
     openWhatsNew,
     openDailyDigest,

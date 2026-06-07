@@ -18,6 +18,8 @@ This section intentionally has no date so it is not shown to users.
 - Portal users (admin) — paginated list (10/25/50/100).
 - News (admin) — "Load more" button beyond the 20 most recent.
 - Portal users (admin) — user audit log: "Load more" beyond 100 entries.
+- Portal — configurable donation link for your users (admin settings).
+- Dashboard — MediaKeeper support heart in the top bar (Ko-fi, star).
 
 ### Changed
 - Dashboard — 30 upcoming releases shown (was 20).

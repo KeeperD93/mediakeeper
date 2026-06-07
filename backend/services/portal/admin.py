@@ -1,5 +1,6 @@
 """Admin user management for portal."""
 import logging
+import re
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -8,6 +9,7 @@ from models.user import User
 from models.settings import Setting
 from models.portal.profile import UserProfile
 from models.portal.request import RequestQuota
+from services.portal._html_sanitize import sanitize_html
 from services.portal.profiles import serialize_profile
 
 logger = logging.getLogger("mediakeeper.portal.admin")
@@ -32,6 +34,10 @@ PORTAL_SETTING_FLAGS: dict[str, bool] = {
     # adult keywords) once they disable hide_adult. Default False: even a
     # viewer who unhides adult content cannot file such a request.
     "portal.allow_adult_requests": False,
+    # When True, the heart panel surfaces the operator's own donation link
+    # + message to every portal user. Independent of the static MediaKeeper
+    # support links (admin-only). Has no effect until a link is also set.
+    "portal.donation.enabled": False,
 }
 
 PORTAL_SETTING_INTS: dict[str, tuple[int, int, int]] = {
@@ -60,6 +66,26 @@ PORTAL_SETTING_STRINGS: dict[str, str] = {
     "portal.default_language": "",
 }
 
+# Free-text string settings — stored verbatim (trimmed + length-capped),
+# NOT locale-normalised like PORTAL_SETTING_STRINGS. Value is
+# ``(default, max_len)``. The donation link/message power the heart
+# "support" panel surfaced to every portal user once the operator turns
+# on ``portal.donation.enabled``.
+PORTAL_SETTING_FREETEXT: dict[str, tuple[str, int]] = {
+    "portal.donation.url": ("", 500),
+    # Optional custom label for the operator's donation button; blank falls
+    # back to the translated default on the frontend.
+    "portal.donation.button_label": ("", 60),
+}
+
+# Rich-text (WYSIWYG) settings — run through the shared bleach pipeline on
+# write and rendered via ``v-html`` on read (same boundary as the GDPR
+# privacy texts / Help Center). Value is the max raw length accepted before
+# sanitising.
+PORTAL_SETTING_HTML: dict[str, int] = {
+    "portal.donation.message": 4000,
+}
+
 # Capacity values are always multiples of this step (radio chips
 # 5/10/15/20 in the create-event picker). Exported for the admin
 # patch endpoint to clamp client input and for the create-event
@@ -82,12 +108,41 @@ def _parse_int(raw: str | None, default: int, min_val: int, max_val: int) -> int
         return default
 
 
+def _clean_freetext(key: str, raw) -> str:
+    """Trim + length-cap a free-text setting. The donation URL additionally
+    must be an http(s) link — anything else (javascript:, data:, ...) is
+    dropped, since the value is rendered as a user-facing link."""
+    _default, max_len = PORTAL_SETTING_FREETEXT[key]
+    text = ("" if raw is None else str(raw)).strip()[:max_len]
+    if key == "portal.donation.url" and text and not text.lower().startswith(
+        ("http://", "https://")
+    ):
+        return ""
+    return text
+
+
+_HTML_TAG_RE = re.compile(r"<[^>]+>")
+
+
+def _clean_html(key: str, raw) -> str:
+    """Sanitise a WYSIWYG value through the shared bleach pipeline, then
+    normalise visually-empty content (e.g. ``<p></p>`` from an emptied
+    editor) to "" so the frontend can fall back to its default text."""
+    max_len = PORTAL_SETTING_HTML[key]
+    cleaned = sanitize_html(("" if raw is None else str(raw))[:max_len])
+    if not _HTML_TAG_RE.sub("", cleaned).strip() and "<img" not in cleaned.lower():
+        return ""
+    return cleaned
+
+
 async def get_portal_settings(db: AsyncSession) -> dict:
     """Read all Portal admin settings (booleans + integers + strings)."""
     all_keys = (
         list(PORTAL_SETTING_FLAGS.keys())
         + list(PORTAL_SETTING_INTS.keys())
         + list(PORTAL_SETTING_STRINGS.keys())
+        + list(PORTAL_SETTING_FREETEXT.keys())
+        + list(PORTAL_SETTING_HTML.keys())
     )
     rows = (await db.execute(
         select(Setting).where(Setting.key.in_(all_keys))
@@ -100,7 +155,27 @@ async def get_portal_settings(db: AsyncSession) -> dict:
         result[k] = _parse_int(stored.get(k), default, lo, hi)
     for k, default in PORTAL_SETTING_STRINGS.items():
         result[k] = stored.get(k) or default
+    for k, (default, _max_len) in PORTAL_SETTING_FREETEXT.items():
+        result[k] = stored.get(k) or default
+    for k in PORTAL_SETTING_HTML:
+        result[k] = stored.get(k) or ""
     return result
+
+
+async def get_donation_config(db: AsyncSession) -> dict:
+    """Operator donation config for the heart panel, shared by the portal
+    ``ui`` payload and the backoffice top-bar read. ``enabled`` is True only
+    when the operator turned it on AND set a link, so callers can gate the
+    heart on this single flag."""
+    s = await get_portal_settings(db)
+    url = s.get("portal.donation.url", "")
+    enabled = bool(s.get("portal.donation.enabled")) and bool(url)
+    return {
+        "enabled": enabled,
+        "url": url if enabled else "",
+        "message": s.get("portal.donation.message", "") if enabled else "",
+        "button_label": s.get("portal.donation.button_label", "") if enabled else "",
+    }
 
 
 async def get_portal_flag(db: AsyncSession, key: str) -> bool:
@@ -187,6 +262,10 @@ async def update_portal_settings(
         elif key in PORTAL_SETTING_STRINGS:
             # Normalise to a 2-letter base ("fr-FR" -> "fr"); invalid/blank = inherit.
             value_str = normalize_locale(val) or ""
+        elif key in PORTAL_SETTING_FREETEXT:
+            value_str = _clean_freetext(key, val)
+        elif key in PORTAL_SETTING_HTML:
+            value_str = _clean_html(key, val)
         else:
             logger.warning("[PORTAL_SETTINGS] ignoring unknown key: %s", key)
             continue

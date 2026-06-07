@@ -186,24 +186,16 @@
   }
 }
 
-.pt-nav-icon--disabled,
 .pt-nav-icon:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
 
 /* Support heart — red pulsing icon. Animation runs on the inner SVG so
- * the button's own transition/hover transform doesn't override it.
- * The pulse stays on even when the link is unset so the icon still feels
- * alive (it's the visual cue, not the clickability). */
-.pt-nav-icon--heart,
-.pt-nav-icon--heart[disabled],
-.pt-nav-icon--heart.pt-nav-icon--disabled {
+ * the button's own transition/hover transform doesn't override it. */
+.pt-nav-icon--heart {
   color: var(--portal-color-error) !important;
   opacity: 1;
-}
-.pt-nav-icon--heart.pt-nav-icon--disabled {
-  opacity: 0.75;
 }
 .pt-nav-icon--heart svg {
   animation: pt-heart-pulse 1.1s ease-in-out infinite;
@@ -230,6 +222,11 @@
   }
   60% {
     transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pt-nav-icon--heart svg {
+    animation: none;
   }
 }
 
