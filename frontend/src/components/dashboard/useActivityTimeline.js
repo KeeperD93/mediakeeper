@@ -1,6 +1,7 @@
 import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useApi } from '@/composables/useApi'
+import { parseActivityLog, parseActivityAlert } from './activityLog.js'
 
 export function useActivityTimeline(props) {
   const { t } = useI18n()
@@ -150,7 +151,7 @@ export function useActivityTimeline(props) {
       items.push({
         type: 'alert',
         user: '',
-        action: a.name,
+        action: parseActivityAlert(a, t),
         media: '',
         rawMediaName: '',
         device: '',
@@ -162,7 +163,7 @@ export function useActivityTimeline(props) {
       })
     }
     for (const log of props.logs) {
-      const p = parseLog(log)
+      const p = parseActivityLog(log, t)
       items.push({
         type: 'log',
         user: p.user,
@@ -199,60 +200,6 @@ export function useActivityTimeline(props) {
     if (item.type === 'playing') return 'dot-active'
     if (item.type === 'alert') return 'dot-error'
     return 'dot-past'
-  }
-
-  function parseLog(log) {
-    const name = log.name || ''
-    let user = log.user || ''
-    if (!user) {
-      const patterns = [
-        / est en train de lire /,
-        / vient d'arrêter la lecture de /,
-        / vient d'arrêter /,
-        / a démarré la lecture de /,
-      ]
-      for (const p of patterns) {
-        const match = name.match(p)
-        if (match) {
-          user = name.substring(0, match.index)
-          break
-        }
-      }
-    }
-    if (!user) user = t('dashboard.system')
-    if (name.includes('est en train de lire')) {
-      const afterUser = name.split(/est en train de lire /)[1] || ''
-      const media = afterUser.split(' sur ')[0] || ''
-      const device = afterUser.split(' sur ').pop() || ''
-      return {
-        user,
-        action: t('dashboard.watching'),
-        media: media.trim(),
-        rawMediaName: extractBaseName(media.trim()),
-        device: device.trim(),
-      }
-    }
-    if (name.includes("vient d'arrêter")) {
-      const afterUser = name.split(/vient d'arrêter (?:la lecture de )?/)[1] || ''
-      const media = afterUser.split(' sur ')[0] || ''
-      return {
-        user,
-        action: t('dashboard.finished'),
-        media: media.trim(),
-        rawMediaName: extractBaseName(media.trim()),
-        device: '',
-      }
-    }
-    return { user, action: name.slice(0, 80), media: '', rawMediaName: '', device: '' }
-  }
-
-  function extractBaseName(mediaStr) {
-    return mediaStr
-      .replace(/ - S\d+.*$/i, '')
-      .replace(/ S\d+E\d+.*$/i, '')
-      .replace(/ - Saison.*$/i, '')
-      .replace(/ saison.*$/i, '')
-      .trim()
   }
 
   function timeAgo(dateStr) {
