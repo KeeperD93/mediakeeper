@@ -40,6 +40,7 @@ This section intentionally has no date so it is not shown to users.
 - TMDB links — open the page in the app language (watchlist, upcoming).
 - Dates now follow the app language (instead of the browser).
 - Custom avatars now shown in admin topbar, user list and sessions.
+- Portal — Discover page: bigger back button, no sticky hover or sideways scroll.
 
 ## [1.0.0-rc.4] - 2026-05-30
 
