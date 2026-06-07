@@ -142,13 +142,13 @@ const closeBtnRef = ref(null)
 const instanceHref = computed(() => safeHref(props.donation?.url || ''))
 const showInstance = computed(() => !!props.donation?.enabled && !!instanceHref.value)
 
-// The operator message is sanitised HTML (bleach server-side). Re-purify
-// before v-html as defence in depth; empty/blank content falls back to the
-// default intro line.
+// The operator message is sanitised HTML (bleach server-side, with empty
+// editor content like "<p></p>" already normalised to ""). A non-empty
+// value is therefore real content; DOMPurify re-purifies before v-html as
+// defence in depth.
 const messageHtml = computed(() => {
   const raw = props.donation?.message || ''
-  if (!raw.replace(/<[^>]*>/g, '').trim()) return ''
-  return DOMPurify.sanitize(raw)
+  return raw ? DOMPurify.sanitize(raw) : ''
 })
 
 function close() {
