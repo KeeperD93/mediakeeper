@@ -1,6 +1,6 @@
 /**
  * useFocusTrap — the shared focus-trap behind every Media Manager (and other)
- * dialog. Covers the §23.6 contract: Tab wraps in both directions, Escape
+ * dialog. Covers the a11y contract: Tab wraps in both directions, Escape
  * triggers the close callback, focus moves into the dialog on activation and is
  * restored to the opener on deactivation.
  */
