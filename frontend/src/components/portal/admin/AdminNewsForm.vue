@@ -133,15 +133,15 @@ function onSubmit() {
   border-bottom: 1px solid var(--border);
 }
 .pt-popup-header h2 {
-  font-size: var(--portal-text-md);
-  font-weight: var(--portal-font-bold);
+  font-size: var(--text-md);
+  font-weight: var(--font-bold);
   color: var(--text-primary);
 }
 .pt-popup-close {
   background: none;
   border: none;
   color: var(--text-muted);
-  font-size: var(--portal-text-md);
+  font-size: var(--text-md);
   cursor: pointer;
 }
 .pt-popup-body {
@@ -149,7 +149,7 @@ function onSubmit() {
 }
 .pt-popup-body label {
   display: block;
-  font-size: var(--portal-text-sm);
+  font-size: var(--text-sm);
   color: var(--text-muted);
   margin: 0.75rem 0 0.25rem;
 }
@@ -160,7 +160,7 @@ function onSubmit() {
   border-radius: var(--radius-input);
   color: var(--text-primary);
   padding: 0.5rem 0.75rem;
-  font-size: var(--portal-text-sm);
+  font-size: var(--text-sm);
 }
 .pt-popup-footer {
   padding: 1rem 1.5rem;
@@ -171,12 +171,12 @@ function onSubmit() {
   padding: 0.45rem 1rem;
   border-radius: var(--radius-btn);
   border: none;
-  font-weight: var(--portal-font-medium);
+  font-weight: var(--font-medium);
   cursor: pointer;
-  font-size: var(--portal-text-sm);
+  font-size: var(--text-sm);
 }
 .pt-btn--primary {
   background: var(--accent);
-  color: var(--portal-text-primary);
+  color: var(--text-primary);
 }
 </style>

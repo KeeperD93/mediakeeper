@@ -126,14 +126,14 @@ function onActionToggle(action, checked) {
   border: 1px solid var(--border);
   background: var(--bg-tertiary);
   color: var(--text-primary);
-  font-weight: var(--portal-font-medium);
+  font-weight: var(--font-medium);
   cursor: pointer;
-  font-size: var(--portal-text-sm);
+  font-size: var(--text-sm);
 }
 .pt-btn--primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: var(--portal-text-primary);
+  color: var(--text-primary);
 }
 .pt-btn:disabled {
   opacity: 0.4;
@@ -153,9 +153,9 @@ function onActionToggle(action, checked) {
   align-items: center;
   gap: 0.5rem;
   padding: 0.3rem 0.4rem;
-  border-radius: var(--portal-radius-xs);
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: var(--portal-text-sm) !important;
+  font-size: var(--text-sm) !important;
   color: var(--text-primary) !important;
   margin: 0 !important;
 }
@@ -176,8 +176,8 @@ function onActionToggle(action, checked) {
   flex: 1;
 }
 .pt-action-code {
-  font-family: var(--portal-font-mono);
-  font-size: var(--portal-text-2xs);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
   color: var(--text-muted);
   background: var(--bg-secondary);
   padding: 1px 5px;
@@ -211,15 +211,15 @@ function onActionToggle(action, checked) {
   border-bottom: 1px solid var(--border);
 }
 .pt-popup-header h2 {
-  font-size: var(--portal-text-md);
-  font-weight: var(--portal-font-bold);
+  font-size: var(--text-md);
+  font-weight: var(--font-bold);
   color: var(--text-primary);
 }
 .pt-popup-close {
   background: none;
   border: none;
   color: var(--text-muted);
-  font-size: var(--portal-text-md);
+  font-size: var(--text-md);
   cursor: pointer;
 }
 .pt-popup-body {
@@ -229,7 +229,7 @@ function onActionToggle(action, checked) {
 }
 .pt-popup-body label {
   display: block;
-  font-size: var(--portal-text-sm);
+  font-size: var(--text-sm);
   color: var(--text-muted);
   margin: 0.75rem 0 0.25rem;
 }
@@ -241,7 +241,7 @@ function onActionToggle(action, checked) {
   border-radius: var(--radius-input);
   color: var(--text-primary);
   padding: 0.5rem 0.75rem;
-  font-size: var(--portal-text-sm);
+  font-size: var(--text-sm);
 }
 .pt-row-2 {
   display: grid;
@@ -255,7 +255,7 @@ function onActionToggle(action, checked) {
   margin-top: 1rem;
   cursor: pointer;
   color: var(--text-primary) !important;
-  font-size: var(--portal-text-sm) !important;
+  font-size: var(--text-sm) !important;
 }
 .pt-popup-footer {
   padding: 1rem 1.5rem;

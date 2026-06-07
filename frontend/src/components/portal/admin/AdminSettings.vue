@@ -320,7 +320,7 @@ onMounted(fetchSettings)
 .pt-settings-loading {
   padding: 1rem;
   color: var(--text-muted);
-  font-size: var(--portal-text-sm);
+  font-size: var(--text-sm);
 }
 .pt-settings-list {
   display: flex;
@@ -338,8 +338,8 @@ onMounted(fetchSettings)
   border-radius: var(--radius-card);
   cursor: pointer;
   transition:
-    border-color var(--portal-dur-fast),
-    background var(--portal-dur-fast);
+    border-color var(--duration-fast),
+    background var(--duration-fast);
 }
 .pt-setting-row:hover {
   border-color: var(--border-hover);
@@ -352,12 +352,12 @@ onMounted(fetchSettings)
   min-width: 0;
 }
 .pt-setting-title {
-  font-size: var(--portal-text-base);
-  font-weight: var(--portal-font-medium);
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
   color: var(--text-primary);
 }
 .pt-setting-desc {
-  font-size: var(--portal-text-xs);
+  font-size: var(--text-xs);
   color: var(--text-muted);
   line-height: 1.35;
 }
@@ -365,12 +365,12 @@ onMounted(fetchSettings)
   flex-shrink: 0;
   width: 60px;
   padding: 0.35rem 0.5rem;
-  background: var(--portal-bg-primary);
+  background: var(--bg-primary);
   border: 1px solid var(--border);
   border-radius: var(--radius-input);
   color: var(--text-primary);
-  font-size: var(--portal-text-sm);
-  font-weight: var(--portal-font-medium);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
   text-align: center;
   cursor: pointer;
 }
@@ -382,12 +382,12 @@ onMounted(fetchSettings)
   flex-shrink: 0;
   min-width: 96px;
   padding: 0.4rem 0.7rem;
-  background: var(--portal-bg-primary);
+  background: var(--bg-primary);
   border: 1px solid var(--border);
   border-radius: var(--radius-input);
   color: var(--text-primary);
-  font-size: var(--portal-text-sm);
-  font-weight: var(--portal-font-medium);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
   cursor: pointer;
 }
 .pt-setting-select:focus {
@@ -395,7 +395,7 @@ onMounted(fetchSettings)
   outline: none;
 }
 .pt-settings-saved {
-  font-size: var(--portal-text-xs);
+  font-size: var(--text-xs);
   color: var(--accent);
   margin-top: 0.5rem;
   padding-left: 0.25rem;
@@ -410,17 +410,17 @@ onMounted(fetchSettings)
   border-radius: var(--radius-card);
 }
 .pt-maint-label {
-  font-size: var(--portal-text-xs);
+  font-size: var(--text-xs);
   color: var(--text-muted);
 }
 .pt-maint-textarea {
   width: 100%;
-  background: var(--portal-bg-primary);
+  background: var(--bg-primary);
   border: 1px solid var(--border);
   border-radius: var(--radius-input);
   color: var(--text-primary);
   padding: 0.5rem 0.75rem;
-  font-size: var(--portal-text-sm);
+  font-size: var(--text-sm);
   font-family: inherit;
   resize: vertical;
 }
@@ -436,13 +436,13 @@ onMounted(fetchSettings)
   padding: 0.45rem 1rem;
   border-radius: var(--radius-btn);
   border: none;
-  font-weight: var(--portal-font-medium);
+  font-weight: var(--font-medium);
   cursor: pointer;
-  font-size: var(--portal-text-sm);
+  font-size: var(--text-sm);
 }
 .pt-btn--primary {
   background: var(--accent);
-  color: var(--portal-text-primary);
+  color: var(--text-primary);
 }
 .pt-btn--primary:disabled {
   opacity: 0.6;

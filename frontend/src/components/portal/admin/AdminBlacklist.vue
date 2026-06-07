@@ -100,7 +100,7 @@ onMounted(fetchList)
   gap: 0.8rem;
 }
 .ab-state {
-  font-size: var(--portal-text-sm);
+  font-size: var(--text-sm);
   color: var(--text-muted);
   text-align: center;
   padding: 2rem 1rem;
@@ -125,7 +125,7 @@ onMounted(fetchList)
   height: 100px;
   border-radius: var(--radius-sm);
   overflow: hidden;
-  background: var(--portal-surface-2);
+  background: var(--surface-2);
 }
 .ab-poster img {
   width: 100%;
@@ -138,7 +138,7 @@ onMounted(fetchList)
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--portal-text-2xl);
+  font-size: var(--text-xl);
   opacity: 0.3;
 }
 .ab-info {
@@ -148,13 +148,13 @@ onMounted(fetchList)
   gap: 0.35rem;
 }
 .ab-title {
-  font-size: var(--portal-text-base);
-  font-weight: var(--portal-font-bold);
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
   color: var(--text-primary);
 }
 .ab-year {
   color: var(--text-muted);
-  font-weight: var(--portal-font-regular);
+  font-weight: var(--font-regular);
 }
 .ab-meta {
   display: flex;
@@ -162,14 +162,14 @@ onMounted(fetchList)
   gap: 0.35rem;
 }
 .ab-pill {
-  font-size: var(--portal-text-2xs);
-  font-weight: var(--portal-font-bold);
+  font-size: var(--text-2xs);
+  font-weight: var(--font-bold);
   padding: 2px 8px;
   border-radius: var(--radius-input);
-  background: var(--portal-surface-3);
-  color: var(--portal-text-body-muted);
-  border: 1px solid var(--portal-border-default);
-  letter-spacing: var(--portal-tracking-wide);
+  background: var(--surface-3);
+  color: var(--text-muted);
+  border: 1px solid var(--border-strong);
+  letter-spacing: var(--tracking-wide);
 }
 .ab-pill--type {
   background: rgb(99, 102, 241, 0.15);
@@ -179,34 +179,34 @@ onMounted(fetchList)
 .ab-pill--date {
   background: transparent;
   border-color: transparent;
-  color: var(--portal-text-muted);
+  color: var(--text-faint);
 }
 .ab-requesters {
-  font-size: var(--portal-text-xs);
-  color: var(--portal-text-secondary);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
 }
 .ab-requesters-label {
-  font-weight: var(--portal-font-medium);
+  font-weight: var(--font-medium);
   color: rgb(255, 255, 255, 0.45);
   margin-right: 0.25rem;
 }
 .ab-requester {
-  color: var(--portal-text-body-muted);
+  color: var(--text-muted);
   margin-right: 0.15rem;
 }
 .ab-unblock {
   padding: 0.55rem 1rem;
   border-radius: var(--radius-btn);
-  border: 1px solid rgb(var(--portal-color-success-rgb), 0.4);
-  background: rgb(var(--portal-color-success-rgb), 0.15);
-  color: var(--portal-color-success-soft);
-  font-size: var(--portal-text-sm);
-  font-weight: var(--portal-font-bold);
+  border: 1px solid rgb(var(--color-success-rgb), 0.4);
+  background: rgb(var(--color-success-rgb), 0.15);
+  color: var(--color-success-soft);
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
   cursor: pointer;
   white-space: nowrap;
 }
 .ab-unblock:hover:not(:disabled) {
-  background: rgb(var(--portal-color-success-rgb), 0.25);
+  background: rgb(var(--color-success-rgb), 0.25);
 }
 .ab-unblock:disabled {
   opacity: 0.5;

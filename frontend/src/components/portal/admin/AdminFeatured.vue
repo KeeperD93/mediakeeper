@@ -127,19 +127,19 @@ onMounted(loadFeatured)
   border-radius: var(--radius-input);
   color: var(--text-primary);
   padding: 0.5rem 0.75rem;
-  font-size: var(--portal-text-sm);
+  font-size: var(--text-sm);
 }
 .pt-btn {
   padding: 0.45rem 1rem;
   border-radius: var(--radius-btn);
   border: none;
-  font-weight: var(--portal-font-medium);
+  font-weight: var(--font-medium);
   cursor: pointer;
-  font-size: var(--portal-text-sm);
+  font-size: var(--text-sm);
 }
 .pt-btn--primary {
   background: var(--accent);
-  color: var(--portal-text-primary);
+  color: var(--text-primary);
 }
 .pt-featured-results {
   margin-bottom: 1.5rem;
@@ -162,22 +162,22 @@ onMounted(loadFeatured)
 }
 .pt-featured-result-title {
   display: block;
-  font-weight: var(--portal-font-medium);
+  font-weight: var(--font-medium);
   color: var(--text-primary);
-  font-size: var(--portal-text-base);
+  font-size: var(--text-base);
 }
 .pt-featured-result-meta {
-  font-size: var(--portal-text-xs);
+  font-size: var(--text-xs);
   color: var(--text-muted);
 }
 .pt-section-subtitle {
-  font-size: var(--portal-text-base);
-  font-weight: var(--portal-font-bold);
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
   color: var(--text-primary);
   margin: 1rem 0 0.5rem;
 }
 .pt-section-desc {
-  font-size: var(--portal-text-sm);
+  font-size: var(--text-sm);
   color: var(--text-muted);
   margin: 0.25rem 0 1rem;
 }
@@ -189,19 +189,19 @@ onMounted(loadFeatured)
   border-bottom: 1px solid var(--border);
 }
 .pt-featured-order {
-  font-weight: var(--portal-font-bold);
+  font-weight: var(--font-bold);
   color: var(--text-muted);
   width: 2rem;
-  font-size: var(--portal-text-sm);
+  font-size: var(--text-sm);
 }
 .pt-featured-name {
   flex: 1;
-  font-weight: var(--portal-font-medium);
+  font-weight: var(--font-medium);
   color: var(--text-primary);
-  font-size: var(--portal-text-base);
+  font-size: var(--text-base);
 }
 .pt-featured-type {
-  font-size: var(--portal-text-2xs);
+  font-size: var(--text-2xs);
   color: var(--text-muted);
   text-transform: uppercase;
 }
@@ -209,7 +209,7 @@ onMounted(loadFeatured)
   display: flex;
   align-items: center;
   gap: 0.3rem;
-  font-size: var(--portal-text-xs);
+  font-size: var(--text-xs);
   color: var(--text-secondary);
   cursor: pointer;
 }
@@ -220,7 +220,7 @@ onMounted(loadFeatured)
   cursor: pointer;
 }
 .pt-icon-btn:hover {
-  color: var(--portal-color-error);
+  color: var(--color-error);
 }
 .pt-empty {
   color: var(--text-muted);
