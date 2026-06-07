@@ -25,6 +25,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Tableau de bord — 30 prochaines sorties affichées (au lieu de 20).
 
 ### Fixed
+- Tableau de bord — avatar et anneau de rang corrects dès la connexion (sans actualiser).
 - Problèmes (admin) — filtre par statut réparé (ne plante plus, n'est plus ignoré).
 - Notifications — l'enregistrement d'un webhook Discord n'échoue plus.
 - Notifications — le message test Discord suit la langue par défaut configurée.

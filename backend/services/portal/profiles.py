@@ -7,6 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.user import User
 from models.portal.profile import UserProfile
 from services.portal import strip_tags_and_trim
+from services.portal._rank_tiers import tier_for_level
+from services.portal.avatars import resolve_avatar_url
 from services.portal.profile_serializers import (
     DISPLAY_NAME_LOCK_DAYS as DISPLAY_NAME_LOCK_DAYS,
     display_name_locked_until,
@@ -27,6 +29,29 @@ async def serialize_profile_with_effective_lang(
     result = serialize_profile(profile, user=user)
     result["effective_language"] = profile.language or await get_portal_default_language(db)
     return result
+
+
+async def resolve_admin_identity(db: AsyncSession, user_id: int) -> dict:
+    """Avatar/level/tier for the backoffice topbar avatar.
+
+    Shared by /auth/me and the admin /portal-login response so both expose
+    the same ring data. Without this, the login payload omitted tier/avatar
+    and the topbar fell back to the bronze default until the next /me
+    (page refresh). ``UserProfile`` is 1:1 with ``User``; the row is ``None``
+    for admins who never visited the portal side (→ bronze, level 1)."""
+    row = (await db.execute(
+        select(
+            UserProfile.avatar_url,
+            UserProfile.avatar_custom_path,
+            UserProfile.level,
+        ).where(UserProfile.user_id == user_id)
+    )).first()
+    level = row.level if row and row.level else 1
+    return {
+        "avatar_url": resolve_avatar_url(row.avatar_url, row.avatar_custom_path) if row else None,
+        "level": level,
+        "tier": tier_for_level(level),
+    }
 
 MAX_DISPLAY_NAME_RESOLVE_ATTEMPTS = 999
 
