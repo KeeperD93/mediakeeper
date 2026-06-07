@@ -6,11 +6,13 @@ PATCH endpoint (alias + http(s) validation + extra="forbid"), and the
 """
 import pytest
 
+from core.security import create_access_token
 from services.portal.admin import get_portal_settings, update_portal_settings
 from tests._portal_profile_helpers import PORTAL_COOKIE, make_portal_user, portal_token
 
 _SETTINGS = "/api/portal/admin/settings"
 _ME = "/api/portal/auth/me"
+_BACKOFFICE = "/api/settings/donation"
 
 
 @pytest.mark.asyncio
@@ -105,6 +107,27 @@ async def test_me_ui_exposes_donation_when_enabled(client, db_session):
     assert donation["url"] == "https://ko-fi.com/keeperd93"
     assert donation["message"] == "Thanks"
     assert donation["button_label"] == "Tip me"
+
+
+@pytest.mark.asyncio
+async def test_backoffice_donation_endpoint(client, admin_user, db_session):
+    # The dashboard top-bar heart reads the donation config from a backoffice
+    # endpoint (main app auth), returning the same shape as ui.donation.
+    await update_portal_settings(db_session, {
+        "portal.donation.enabled": True,
+        "portal.donation.url": "https://ko-fi.com/keeperd93",
+        "portal.donation.button_label": "Tip me",
+    })
+    client.cookies.set(
+        "mk_token",
+        create_access_token({"sub": admin_user.username, "scope": "admin"}),
+    )
+    r = await client.get(_BACKOFFICE)
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["enabled"] is True
+    assert body["url"] == "https://ko-fi.com/keeperd93"
+    assert body["button_label"] == "Tip me"
 
 
 @pytest.mark.asyncio
