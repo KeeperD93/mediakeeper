@@ -7,13 +7,18 @@
   },
   "donation": {
     "panelTitle": "Support",
-    "mkTitle": "Support MediaKeeper",
-    "mkIntro": "Hi, I'm the creator of MediaKeeper. I built this app in my spare time to bring a polished experience to an Emby library — content requests, tracking, community — and to share it freely with fellow enthusiasts. MediaKeeper will keep evolving: I'm committed to maintaining and improving it for the long run. If you enjoy the project, your support helps me dedicate time to it.",
-    "kofi": "Donate on Ko-fi",
-    "sponsor": "Become a GitHub sponsor",
+    "mkTitle": "Support the project",
+    "mkIntro": "MediaKeeper was born from a wish to simplify managing a media library: combining simplicity with complete management, while adding features you won't find anywhere else, like the achievements system. I use it every day and I don't plan to stop — whether for new features, stability or security.\n\nThis project takes a lot of my time. If you'd like to support it, feel free to join the discussions, report issues and share your suggestions, or simply tell the people around you about the app.",
+    "mkHow": "To do more:",
+    "mkThanks": "Thank you all for your trust!",
+    "kofi": "Buy me a coffee on Ko-fi",
+    "kofiSub": "A one-time or monthly tip",
+    "sponsor": "Buy me a coffee on GitHub Sponsors",
+    "sponsorSub": "A recurring sponsorship via GitHub",
     "star": "Star the project",
-    "instanceTitle": "Support this instance",
-    "instanceIntro": "Support this instance's administrator.",
+    "starSub": "Free — it helps spread the word",
+    "instanceTitle": "Support this server",
+    "instanceIntro": "Support this server's administrator.",
     "instanceCta": "Donate"
   },
   "common": {
@@ -3635,11 +3640,12 @@
         },
         "donation": {
           "title": "Donation button",
-          "desc": "Show a heart in the portal linking to your donation page, with an optional message. Has no effect until a link is set.",
+          "desc": "Shows a heart in the portal with your donation link and message. Your users only see what you configure here; the MediaKeeper support section stays admin-only. Has no effect until a link is set.",
           "urlLabel": "Donation link",
           "urlPlaceholder": "https://...",
-          "messageLabel": "Message (optional)",
-          "messagePlaceholder": "Explain why you're asking for donations (optional)."
+          "buttonLabelLabel": "Button text (optional)",
+          "buttonLabelPlaceholder": "Donate",
+          "messageLabel": "Message (optional)"
         },
         "gdpr": {
           "title": "Privacy mode",

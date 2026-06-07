@@ -11,6 +11,7 @@ function pick(res) {
     enabled: !!res?.['donation.enabled'],
     url: res?.['donation.url'] || '',
     message: res?.['donation.message'] || '',
+    buttonLabel: res?.['donation.button_label'] || '',
   }
 }
 

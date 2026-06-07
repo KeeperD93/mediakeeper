@@ -7,13 +7,18 @@
   },
   "donation": {
     "panelTitle": "Soutenir",
-    "mkTitle": "Soutenir MediaKeeper",
-    "mkIntro": "Bonjour, je suis le créateur de MediaKeeper. J'ai conçu cette application sur mon temps libre pour offrir une expérience soignée autour d'une médiathèque Emby — demandes de contenu, suivi, communauté — et la partager gratuitement avec d'autres passionnés. MediaKeeper continuera d'évoluer : je m'engage à le maintenir et à l'améliorer dans la durée. Si le projet vous plaît, votre soutien m'aide à y consacrer du temps.",
-    "kofi": "Faire un don sur Ko-fi",
-    "sponsor": "Devenir sponsor GitHub",
+    "mkTitle": "Soutenir le projet",
+    "mkIntro": "MediaKeeper est né d'une envie de simplifier la gestion d'une médiathèque : allier simplicité et gestion complète, tout en apportant des fonctionnalités que l'on ne trouve nulle part ailleurs, comme le système de trophées. Je l'utilise au quotidien et je ne compte pas m'arrêter — que ce soit pour les nouveautés, la stabilité ou la sécurité.\n\nCe projet me prend beaucoup de temps. Si vous souhaitez le soutenir, n'hésitez pas à participer aux échanges, à me remonter les problèmes et vos suggestions, ou simplement à parler de l'application autour de vous.",
+    "mkHow": "Pour faire plus :",
+    "mkThanks": "Merci à tous pour votre confiance !",
+    "kofi": "M'offrir un café sur Ko-fi",
+    "kofiSub": "Un soutien ponctuel ou mensuel",
+    "sponsor": "M'offrir un café sur GitHub Sponsor",
+    "sponsorSub": "Un parrainage récurrent via GitHub",
     "star": "Mettre une étoile au projet",
-    "instanceTitle": "Soutenir cette instance",
-    "instanceIntro": "Soutenez l'administrateur de cette instance.",
+    "starSub": "Gratuit — ça aide à faire connaître le projet",
+    "instanceTitle": "Soutenir ce serveur",
+    "instanceIntro": "Soutenez l'administrateur de ce serveur.",
     "instanceCta": "Faire un don"
   },
   "common": {
@@ -3635,11 +3640,12 @@
         },
         "donation": {
           "title": "Bouton de don",
-          "desc": "Affiche un cœur dans le portail menant à votre lien de don, avec un message optionnel. Sans effet tant qu'aucun lien n'est renseigné.",
+          "desc": "Affiche un cœur dans le portail avec votre lien de don et votre message. Vos utilisateurs ne voient que ce que vous configurez ici ; le soutien à MediaKeeper reste réservé aux administrateurs. Reste sans effet tant qu'aucun lien n'est renseigné.",
           "urlLabel": "Lien de don",
           "urlPlaceholder": "https://...",
-          "messageLabel": "Message (optionnel)",
-          "messagePlaceholder": "Expliquez pourquoi vous sollicitez des dons (facultatif)."
+          "buttonLabelLabel": "Texte du bouton (optionnel)",
+          "buttonLabelPlaceholder": "Faire un don",
+          "messageLabel": "Message (optionnel)"
         },
         "gdpr": {
           "title": "Mode Confidentialité",

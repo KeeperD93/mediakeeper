@@ -19,7 +19,7 @@ from models.portal.profile import UserProfile
 from services.portal.emby_auth import authenticate_emby_user
 from services.portal.profiles import serialize_profile_with_effective_lang
 from services.portal.news import get_unread_news
-from services.portal.admin import get_portal_flag, get_portal_settings
+from services.portal.admin import get_donation_config, get_portal_flag
 from services.security import (
     count_recent_failures,
     ensure_not_blocked,
@@ -38,20 +38,6 @@ class PortalLoginRequest(BaseModel):
     password: str = Field(..., min_length=1, max_length=500)
 
 
-async def _serialize_donation(db: AsyncSession) -> dict:
-    """Operator-configured donation link surfaced on the heart panel to
-    every portal user. ``enabled`` is True only when the operator turned it
-    on AND set a link, so the frontend can gate the heart on this alone."""
-    s = await get_portal_settings(db)
-    url = s.get("portal.donation.url", "")
-    enabled = bool(s.get("portal.donation.enabled")) and bool(url)
-    return {
-        "enabled": enabled,
-        "url": url if enabled else "",
-        "message": s.get("portal.donation.message", "") if enabled else "",
-    }
-
-
 async def _serialize_ui_flags(db: AsyncSession, profile: UserProfile) -> dict:
     is_admin = profile.role == "admin"
     anonymize_requests = False if is_admin else await get_portal_flag(
@@ -65,7 +51,7 @@ async def _serialize_ui_flags(db: AsyncSession, profile: UserProfile) -> dict:
     return {
         "show_requests_tab": is_admin or not anonymize_requests,
         "allow_adult_requests": allow_adult_requests,
-        "donation": await _serialize_donation(db),
+        "donation": await get_donation_config(db),
     }
 
 
@@ -79,7 +65,7 @@ async def _safe_serialize_ui_flags(db: AsyncSession, profile: UserProfile) -> di
         return {
             "show_requests_tab": True,
             "allow_adult_requests": False,
-            "donation": {"enabled": False, "url": "", "message": ""},
+            "donation": {"enabled": False, "url": "", "message": "", "button_label": ""},
         }
 
 

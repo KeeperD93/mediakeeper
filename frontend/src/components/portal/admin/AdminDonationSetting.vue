@@ -32,17 +32,24 @@
       </div>
 
       <div class="pt-don-field">
-        <label class="pt-don-label" :for="msgId">
-          {{ $t('portal.admin.settings.donation.messageLabel') }}
+        <label class="pt-don-label" :for="labelId">
+          {{ $t('portal.admin.settings.donation.buttonLabelLabel') }}
         </label>
-        <textarea
-          :id="msgId"
-          v-model="message"
-          class="pt-don-textarea"
-          rows="3"
-          maxlength="500"
-          :placeholder="$t('portal.admin.settings.donation.messagePlaceholder')"
+        <input
+          :id="labelId"
+          v-model="buttonLabel"
+          type="text"
+          class="pt-don-input"
+          :placeholder="$t('portal.admin.settings.donation.buttonLabelPlaceholder')"
+          maxlength="60"
         />
+      </div>
+
+      <div class="pt-don-field">
+        <span class="pt-don-label">
+          {{ $t('portal.admin.settings.donation.messageLabel') }}
+        </span>
+        <HelpEditor v-model="message" />
       </div>
 
       <div class="pt-don-actions">
@@ -61,19 +68,25 @@ import { onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Save } from 'lucide-vue-next'
 import MkToggle from '@/components/common/MkToggle.vue'
+import HelpEditor from '@/components/portal/help/HelpEditor.vue'
 import { useDonationAdmin } from '@/composables/portal/useDonationAdmin'
+import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 
 const SAVED_MESSAGE_TIMEOUT_MS = 2000
 
 const { t } = useI18n()
 const { saving, fetchDonation, saveDonation } = useDonationAdmin()
+// Refresh the shared portal payload so the heart panel (which reads
+// ui.donation) reflects edits without a full page reload.
+const { refreshAuth } = usePortalAuth()
 
 const urlId = useId()
-const msgId = useId()
+const labelId = useId()
 
 const enabled = ref(false)
 const url = ref('')
 const message = ref('')
+const buttonLabel = ref('')
 const savedMessage = ref('')
 let savedTimer = null
 
@@ -81,6 +94,7 @@ function apply(cfg) {
   enabled.value = cfg.enabled
   url.value = cfg.url
   message.value = cfg.message
+  buttonLabel.value = cfg.buttonLabel
 }
 
 function flashSaved() {
@@ -97,17 +111,20 @@ async function onToggle(next) {
   if (res) {
     apply(res)
     flashSaved()
+    await refreshAuth()
   }
 }
 
 async function onSave() {
   const res = await saveDonation({
     'donation.url': url.value.trim(),
-    'donation.message': message.value.trim(),
+    'donation.message': message.value,
+    'donation.button_label': buttonLabel.value.trim(),
   })
   if (res) {
     apply(res)
     flashSaved()
+    await refreshAuth()
   }
 }
 
@@ -167,8 +184,7 @@ onMounted(async () => {
   font-size: var(--text-xs);
   color: var(--text-muted);
 }
-.pt-don-input,
-.pt-don-textarea {
+.pt-don-input {
   width: 100%;
   background: var(--bg-primary);
   border: 1px solid var(--border);
@@ -178,11 +194,7 @@ onMounted(async () => {
   font-size: var(--text-sm);
   font-family: inherit;
 }
-.pt-don-textarea {
-  resize: vertical;
-}
-.pt-don-input:focus,
-.pt-don-textarea:focus {
+.pt-don-input:focus {
   border-color: var(--accent);
   outline: none;
 }

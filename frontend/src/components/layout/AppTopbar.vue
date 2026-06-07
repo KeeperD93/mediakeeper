@@ -148,7 +148,12 @@
       </div>
     </div>
 
-    <DonationOverlay :open="donationOpen" is-admin @close="donationOpen = false" />
+    <DonationOverlay
+      :open="donationOpen"
+      is-admin
+      :donation="donation"
+      @close="donationOpen = false"
+    />
   </header>
 </template>
 
@@ -158,6 +163,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/composables/useAuth'
 import { useTopbarAlerts } from '@/composables/useTopbarAlerts'
+import { useDonationConfig } from '@/composables/useDonationConfig'
 import { Bell, ChevronDown, Heart, LayoutGrid, LogOut, Menu } from 'lucide-vue-next'
 import MkAvatar from '@/components/common/MkAvatar.vue'
 import DonationOverlay from '@/components/common/DonationOverlay.vue'
@@ -185,6 +191,7 @@ const {
 const showNotifPanel = ref(false)
 const showUserMenu = ref(false)
 const donationOpen = ref(false)
+const { donation, loadDonation } = useDonationConfig()
 const notifRef = ref(null)
 const userRef = ref(null)
 const notifDdPos = ref({})
@@ -262,6 +269,7 @@ watch(showUserMenu, v => {
 onMounted(() => {
   document.addEventListener('click', onClickOutside)
   document.addEventListener('keydown', onKeydown)
+  loadDonation()
 })
 
 onUnmounted(() => {

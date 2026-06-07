@@ -32,6 +32,16 @@ describe('DonationOverlay', () => {
     w.unmount()
   })
 
+  it('shows both the MediaKeeper and server sections for an admin when configured', () => {
+    const w = build({
+      isAdmin: true,
+      donation: { enabled: true, url: 'https://example.org/give', message: '' },
+    })
+    expect(w.html()).toContain('ko-fi.com/keeperd93')
+    expect(w.find('.dn-section--instance').exists()).toBe(true)
+    w.unmount()
+  })
+
   it('shows only the operator section for a non-admin when enabled', () => {
     const w = build({
       isAdmin: false,

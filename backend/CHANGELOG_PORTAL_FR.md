@@ -23,7 +23,7 @@ utilisateurs.
 - Préférences — option « Par défaut » : la langue suit le défaut du portail.
 - Problèmes — navigation par pages avec choix du nombre affiché (10/25/50/100).
 - Listes — bouton « Charger plus » pour voir au-delà de 50 titres.
-- Soutien — cœur d'en-tête ouvrant le lien de don de l'instance (si configuré).
+- Soutien — cœur d'en-tête ouvrant le lien de don du serveur (si configuré).
 
 ### Changed
 - Fiche média — couleur de la note TMDB harmonisée en doré.

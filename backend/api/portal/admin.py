@@ -208,8 +208,12 @@ class PortalSettingsUpdate(BaseModel):
     # scheme-checked below; ``donation_message`` is the optional appeal text.
     donation_enabled: Optional[bool] = Field(default=None, alias="donation.enabled")
     donation_url: Optional[str] = Field(default=None, max_length=500, alias="donation.url")
+    # Rich-text (sanitised server-side); larger cap than plain fields.
     donation_message: Optional[str] = Field(
-        default=None, max_length=500, alias="donation.message"
+        default=None, max_length=4000, alias="donation.message"
+    )
+    donation_button_label: Optional[str] = Field(
+        default=None, max_length=60, alias="donation.button_label"
     )
 
     @field_validator("donation_url")
@@ -266,5 +270,7 @@ async def patch_settings(
         updates["portal.donation.url"] = payload.donation_url
     if payload.donation_message is not None:
         updates["portal.donation.message"] = payload.donation_message
+    if payload.donation_button_label is not None:
+        updates["portal.donation.button_label"] = payload.donation_button_label
     raw = await admin_svc.update_portal_settings(db, updates)
     return {k.replace("portal.", ""): v for k, v in raw.items()}
