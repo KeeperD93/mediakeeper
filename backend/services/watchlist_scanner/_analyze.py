@@ -119,7 +119,7 @@ async def _analyze_series_batch(
             try:
                 return item, await _analyze_one(db, item)
             except Exception as e:
-                logger.error(f"Error analyse {item.get('Name', '?')}: {e}")
+                logger.error("Error analyse %s: %s", item.get("Name", "?"), e)
                 return item, None
 
     tasks = [asyncio.create_task(_run_one(item)) for item in series_list]
