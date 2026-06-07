@@ -1,8 +1,14 @@
 """Tests for /api/portal/changelog."""
 
 import pytest
+from pydantic import ValidationError
 
-from api.portal_changelog import PORTAL_VERSION, _has_entries, _parse_changelog
+from api.portal_changelog import (
+    PORTAL_VERSION,
+    MarkSeenRequest,
+    _has_entries,
+    _parse_changelog,
+)
 from core.security import create_access_token, hash_password
 from models.user import User
 from models.portal.profile import UserProfile
@@ -78,6 +84,27 @@ async def test_mark_seen_then_check(client, db_session):
     data = resp.json()
     assert data["seen_version"] == PORTAL_VERSION
     assert data["has_new"] is False
+
+
+def test_mark_seen_request_rejects_extra_key():
+    """extra=forbid: an unknown body field fails validation loudly (symmetry
+    with the admin MarkSeenRequest twin)."""
+    with pytest.raises(ValidationError) as exc:
+        MarkSeenRequest.model_validate({"version": "1.0.0", "bogus_field": True})
+    assert "bogus_field" in str(exc.value)
+
+
+@pytest.mark.asyncio
+async def test_mark_seen_endpoint_returns_422_on_extra_key(client, db_session):
+    """Round-trip: the extra=forbid rejection surfaces as a clean 422, not
+    shadowed by the portal auth gate."""
+    await _seed_portal_viewer(client, db_session)
+    resp = await client.post(
+        "/api/portal/changelog/seen",
+        json={"version": "1.0.0", "rogue_probe": "x"},
+    )
+    assert resp.status_code == 422, resp.text
+    assert "rogue_probe" in str(resp.json())
 
 
 @pytest.mark.asyncio

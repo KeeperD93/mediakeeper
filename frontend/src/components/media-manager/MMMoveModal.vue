@@ -1,10 +1,15 @@
 <template>
-  <div class="mv-overlay" :class="{ show: modalMoveShow }" @click.self="closeMoveModal">
-    <div ref="panelRef" class="mv-modal" role="dialog" aria-modal="true">
+  <div
+    class="mv-overlay"
+    :class="{ show: modalMoveShow }"
+    :inert="!modalMoveShow"
+    @click.self="closeMoveModal"
+  >
+    <div ref="panelRef" class="mv-modal" role="dialog" aria-modal="true" :aria-labelledby="titleId">
       <header class="mv-header">
         <div class="mv-header-title">
           <ArrowLeftRight :size="16" />
-          <h3>{{ $t('mediaManager.moveTo') }}</h3>
+          <h3 :id="titleId">{{ $t('mediaManager.moveTo') }}</h3>
           <span v-if="moveSourcesCount" class="mv-chip">
             <Files :size="11" />
             {{ $t('mediaManager.movingNFiles', { count: moveSourcesCount }, moveSourcesCount) }}
@@ -233,7 +238,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, useId } from 'vue'
 import { useMediaManager, CATS } from '@/composables/useMediaManager'
 import { useFocusTrap } from '@/composables/useFocusTrap'
 import {
@@ -312,6 +317,7 @@ function folderAbsPath(f) {
   return movePath.value ? `${movePath.value}/${f.name}` : f.name
 }
 
+const titleId = useId()
 useFocusTrap({
   active: modalMoveShow,
   containerRef: panelRef,

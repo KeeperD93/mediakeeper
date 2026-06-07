@@ -1,10 +1,15 @@
 <template>
-  <div class="mf-overlay" :class="{ show: modalFolders.show }" @click.self="close">
-    <div ref="panelRef" class="mf-modal" role="dialog" aria-modal="true">
+  <div
+    class="mf-overlay"
+    :class="{ show: modalFolders.show }"
+    :inert="!modalFolders.show"
+    @click.self="close"
+  >
+    <div ref="panelRef" class="mf-modal" role="dialog" aria-modal="true" :aria-labelledby="titleId">
       <header class="mf-header">
         <div class="mf-header-title">
           <Folder :size="16" />
-          <h3>{{ $t('mediaManager.organizeFolders') }}</h3>
+          <h3 :id="titleId">{{ $t('mediaManager.organizeFolders') }}</h3>
           <span v-if="folderExistingDirs.length" class="mf-chip">
             <Files :size="11" />
             {{
@@ -135,7 +140,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, useId } from 'vue'
 import { useMediaManager } from '@/composables/useMediaManager'
 import { useFocusTrap } from '@/composables/useFocusTrap'
 import { ArrowRight, Check, Files, Folder, Pencil, RefreshCw, X } from 'lucide-vue-next'
@@ -184,6 +189,7 @@ function close() {
 
 const panelRef = ref(null)
 const closeBtnRef = ref(null)
+const titleId = useId()
 const folderModalActive = computed(() => modalFolders.value.show)
 
 useFocusTrap({

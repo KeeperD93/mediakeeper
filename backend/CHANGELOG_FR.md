@@ -29,6 +29,13 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Stats — Utilisateurs et fusion : photo de profil (perso ou Emby) désormais affichée.
 - Stats — survol des utilisateurs actifs : noms affichés au lieu des identifiants.
 - Médiathèque — le détail des pistes n'échoue plus sur un fichier corrompu.
+- Média Manager — annuler un renommage en lot ne s'interrompt plus à mi-chemin (réessai possible).
+- Média Manager — libellés de l'historique de renommage suivent la langue de l'app.
+- Média Manager — fenêtres accessibles : focus clavier, Échap, annonce lecteur d'écran.
+- Média Manager — la tabulation clavier ignore les fenêtres et boutons masqués.
+- Média Manager — fichiers alignés avec leurs noms générés à droite.
+- Média Manager — fil d'ariane : repli du chemin trop long, séparateurs visibles.
+- Média Manager — animations des fenêtres coupées si « réduire les animations » est actif.
 - Tableau de bord — « Prochaines sorties » affichées dans votre langue.
 - Médiathèque — fiches détail TMDB affichées dans votre langue (repli anglais).
 - Watchlist — séries, épisodes et synopsis affichés dans votre langue.

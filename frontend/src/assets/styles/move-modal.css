@@ -41,6 +41,12 @@
 .mv-overlay.show .mv-modal {
   transform: translateY(0) scale(1);
 }
+@media (prefers-reduced-motion: reduce) {
+  .mv-overlay,
+  .mv-modal {
+    transition: none;
+  }
+}
 
 /* ── Header ── */
 .mv-header {

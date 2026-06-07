@@ -52,7 +52,7 @@
     >
       <ChevronRight :size="14" />
     </button>
-    <!-- Bouton + ajouter category -->
+    <!-- Add-category button -->
     <button
       class="mm-tabs-add"
       :title="$t('mediaManager.addCategoryTitle')"
@@ -61,11 +61,18 @@
       <Plus :size="14" />
     </button>
 
-    <!-- Modal ajout category -->
+    <!-- Add-category modal -->
     <div v-if="showAddModal" class="mm-overlay show" @click.self="showAddModal = false">
-      <div class="mm-cat-modal">
+      <div
+        ref="addCatPanelRef"
+        class="mm-cat-modal"
+        role="dialog"
+        aria-modal="true"
+        :aria-labelledby="titleId"
+        tabindex="-1"
+      >
         <div class="mm-cat-modal-header">
-          <span>{{ $t('mediaManager.addCategoryTitle') }}</span>
+          <span :id="titleId">{{ $t('mediaManager.addCategoryTitle') }}</span>
           <button class="mm-btn-sm mm-btn-sm--close" @click="showAddModal = false">
             <X :size="12" />
           </button>
@@ -97,7 +104,7 @@
                 </span>
               </template>
             </div>
-            <!-- Liste des folders -->
+            <!-- Folder list -->
             <div class="mm-browse-list">
               <div v-if="browseLoading" class="mm-browse-empty">
                 <span class="mk-spin mk-spin--14" />
@@ -141,7 +148,7 @@
       </div>
     </div>
 
-    <!-- Menu contextuel deletion -->
+    <!-- Delete context menu -->
     <div
       v-if="deleteMenu.show"
       class="mm-cat-ctx"
@@ -157,10 +164,11 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useMediaManager, CATS } from '@/composables/useMediaManager'
 import { useApi } from '@/composables/useApi'
+import { useFocusTrap } from '@/composables/useFocusTrap'
 import {
   Check,
   ChevronLeft,
@@ -201,12 +209,19 @@ function onDropTab(key) {
   dropOnCat(key)
 }
 
-// ── Ajout category ──
+// Add category
 const showAddModal = ref(false)
+const addCatPanelRef = ref(null)
+const titleId = useId()
+useFocusTrap({
+  active: computed(() => showAddModal.value),
+  containerRef: addCatPanelRef,
+  onEscape: () => (showAddModal.value = false),
+})
 const newCatLabel = ref('')
 const newCatPath = ref('')
 
-// ── Browse folders ──
+// Browse folders
 const browsePath = ref('/')
 const browseDirs = ref([])
 const browseLoading = ref(false)
@@ -271,7 +286,7 @@ async function submitAdd() {
   }
 }
 
-// ── Deletion category (clic droit) ──
+// Delete category (right-click)
 const deleteMenu = ref({ show: false, x: 0, y: 0, key: '' })
 
 function openDeleteMenu(e, key) {
@@ -298,7 +313,7 @@ async function confirmDelete() {
   }
 }
 
-// ── Scroll ──
+// Scroll
 const tabsRef = ref(null)
 const canScrollLeft = ref(false)
 const canScrollRight = ref(false)

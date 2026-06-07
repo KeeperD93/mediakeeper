@@ -3,10 +3,18 @@
   <div
     class="mm-overlay"
     :class="{ show: modelValue }"
+    :inert="!modelValue"
     @click.self="$emit('update:modelValue', false)"
   >
-    <div class="mm-modal mm-modal-560">
-      <h3>
+    <div
+      ref="renameHistPanelRef"
+      class="mm-modal mm-modal-560"
+      role="dialog"
+      aria-modal="true"
+      :aria-labelledby="renameHistTitleId"
+      tabindex="-1"
+    >
+      <h3 :id="renameHistTitleId">
         <Clock />
         {{ $t('mediaManager.renameHistoryTitle') }}
       </h3>
@@ -16,9 +24,11 @@
         </div>
         <div v-for="(entry, hi) in renameHistoryPage" :key="entry.timestamp" class="mm-hist-entry">
           <div class="mm-hist-header">
-            <span class="mm-hist-title">{{ entry.tmdbTitle || 'Renommage' }}</span>
+            <span class="mm-hist-title">
+              {{ entry.tmdbTitle || $t('mediaManager.renameFallbackTitle') }}
+            </span>
             <span class="mm-hist-meta">
-              {{ entry.items.length }} fichier(s) ·
+              {{ $t('mediaManager.renameEntryFiles', { count: entry.items.length }) }} ·
               {{
                 localizedDate(new Date(entry.timestamp), {
                   day: '2-digit',
@@ -34,7 +44,7 @@
               @click="undoRename(histPageOffset + hi)"
             >
               <RefreshCw :size="11" />
-              Undo
+              {{ $t('common.cancel') }}
             </button>
           </div>
           <div v-for="item in entry.items.slice(0, 3)" :key="item.oldName" class="mm-hist-item">
@@ -46,7 +56,7 @@
             </span>
           </div>
           <div v-if="entry.items.length > 3" class="mm-hist-more">
-            + {{ entry.items.length - 3 }} autres…
+            {{ $t('mediaManager.moreItems', { count: entry.items.length - 3 }) }}
           </div>
         </div>
       </div>
@@ -76,10 +86,18 @@
   <div
     class="mm-overlay"
     :class="{ show: showMoveHistoryModal }"
+    :inert="!showMoveHistoryModal"
     @click.self="showMoveHistoryModal = false"
   >
-    <div class="mm-modal mm-modal-560">
-      <h3>
+    <div
+      ref="moveHistPanelRef"
+      class="mm-modal mm-modal-560"
+      role="dialog"
+      aria-modal="true"
+      :aria-labelledby="moveHistTitleId"
+      tabindex="-1"
+    >
+      <h3 :id="moveHistTitleId">
         <ArrowLeftRight />
         {{ $t('mediaManager.cancelMoves') }}
       </h3>
@@ -116,7 +134,7 @@
             <span class="mm-hist-new">→ {{ entry.dest }}</span>
           </div>
           <div v-if="entry.items.length > 3" class="mm-hist-more">
-            + {{ entry.items.length - 3 }} autres…
+            {{ $t('mediaManager.moreItems', { count: entry.items.length - 3 }) }}
           </div>
         </div>
       </div>
@@ -140,13 +158,14 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, useId } from 'vue'
 import { useMediaManager } from '@/composables/useMediaManager'
+import { useFocusTrap } from '@/composables/useFocusTrap'
 import { ArrowLeftRight, Clock, RefreshCw } from 'lucide-vue-next'
 import { localizedDate } from '@/utils/datetime'
 
-defineProps({ modelValue: { type: Boolean, default: false } })
-defineEmits(['update:modelValue'])
+const props = defineProps({ modelValue: { type: Boolean, default: false } })
+const emit = defineEmits(['update:modelValue'])
 
 const {
   renameHistory,
@@ -157,6 +176,21 @@ const {
   undoMove,
   clearMoveHistory,
 } = useMediaManager()
+
+const renameHistPanelRef = ref(null)
+const moveHistPanelRef = ref(null)
+const renameHistTitleId = useId()
+const moveHistTitleId = useId()
+useFocusTrap({
+  active: computed(() => props.modelValue),
+  containerRef: renameHistPanelRef,
+  onEscape: () => emit('update:modelValue', false),
+})
+useFocusTrap({
+  active: computed(() => showMoveHistoryModal.value),
+  containerRef: moveHistPanelRef,
+  onEscape: () => (showMoveHistoryModal.value = false),
+})
 
 const HIST_PAGE_SIZE = 5
 const histPage = ref(0)

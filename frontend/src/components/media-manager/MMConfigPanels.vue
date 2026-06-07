@@ -1,8 +1,20 @@
 <template>
-  <div class="mm-overlay" :class="{ show: showConfigPanel }" @click.self="showConfigPanel = false">
-    <div class="mm-config-modal">
+  <div
+    class="mm-overlay"
+    :class="{ show: showConfigPanel }"
+    :inert="!showConfigPanel"
+    @click.self="showConfigPanel = false"
+  >
+    <div
+      ref="configPanelRef"
+      class="mm-config-modal"
+      role="dialog"
+      aria-modal="true"
+      :aria-labelledby="titleId"
+      tabindex="-1"
+    >
       <div class="mm-config-sidebar">
-        <div class="mm-config-sidebar-title">
+        <div :id="titleId" class="mm-config-sidebar-title">
           <Settings :size="14" />
           {{ $t('mediaManager.configTitle') }}
         </div>
@@ -75,12 +87,13 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useMediaManager } from '@/composables/useMediaManager'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import { useMMConfigPanels } from '@/composables/useMMConfigPanels'
+import { useFocusTrap } from '@/composables/useFocusTrap'
 import MMAdvancedToolsModal from './MMAdvancedToolsModal.vue'
 import MMRulesPanel from './MMRulesPanel.vue'
 import MMReleaseTagsPanel from './MMReleaseTagsPanel.vue'
@@ -111,6 +124,13 @@ const { anomalyRules, saveAnomalyRules, getAllProfiles, deleteProfile } = useMed
 const { newProfileName, applyProfileLocal, saveCurrentAsProfile } = useMMConfigPanels()
 
 const showConfigPanel = defineModel('showConfigPanel', { type: Boolean, default: false })
+const configPanelRef = ref(null)
+const titleId = useId()
+useFocusTrap({
+  active: computed(() => showConfigPanel.value),
+  containerRef: configPanelRef,
+  onEscape: () => (showConfigPanel.value = false),
+})
 const configTab = ref('format')
 const configTabs = [
   { id: 'format', label: t('mediaManager.renameFormatLabel'), icon: Code2 },
