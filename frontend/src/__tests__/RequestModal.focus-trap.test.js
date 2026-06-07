@@ -34,6 +34,10 @@ vi.mock('lucide-vue-next', () => ({
   X: { name: 'XStub', template: '<i />' },
 }))
 
+vi.mock('@/composables/portal/usePortalAuth', () => ({
+  usePortalAuth: () => ({ profile: { value: null } }),
+}))
+
 import RequestModal from '@/components/portal/RequestModal.vue'
 
 const movieItem = {

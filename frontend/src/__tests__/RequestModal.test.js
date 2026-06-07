@@ -4,10 +4,12 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
+import { ref } from 'vue'
 
 const apiGet = vi.fn()
 const apiPost = vi.fn()
 const showToast = vi.fn()
+const profileRef = ref(null)
 
 vi.mock('@/composables/useApi', () => ({
   useApi: () => ({
@@ -32,6 +34,10 @@ vi.mock('vue-i18n', () => ({
 
 vi.mock('lucide-vue-next', () => ({
   X: { name: 'XStub', template: '<i />' },
+}))
+
+vi.mock('@/composables/portal/usePortalAuth', () => ({
+  usePortalAuth: () => ({ profile: profileRef }),
 }))
 
 import RequestModal from '@/components/portal/RequestModal.vue'
@@ -119,6 +125,49 @@ describe('RequestModal — a11y & keyboard', () => {
 
     const closeBtn = w.get('.pt-rmodal-close')
     expect(document.activeElement).toBe(closeBtn.element)
+
+    w.unmount()
+  })
+})
+
+describe('RequestModal — admin on-behalf-of default', () => {
+  const users = [
+    { user_id: 1, display_name: 'Alice' },
+    { user_id: 42, display_name: 'Bob (admin)' },
+    { user_id: 3, display_name: 'Charlie' },
+  ]
+
+  beforeEach(() => {
+    apiGet.mockReset()
+    apiPost.mockReset()
+    showToast.mockReset()
+    apiPost.mockImplementation(() => new Promise(() => {}))
+    apiGet.mockImplementation(url =>
+      url.includes('/admin/users') ? Promise.resolve({ items: users }) : Promise.resolve(null),
+    )
+    profileRef.value = null
+  })
+
+  function selectedOption(w) {
+    return w.findAll('.pt-input option').find(o => o.element.selected)
+  }
+
+  it('defaults the picker to the logged-in admin, not the first user alphabetically', async () => {
+    profileRef.value = { user_id: 42, role: 'admin' }
+    const w = buildModal({ isAdmin: true })
+    await flushPromises()
+
+    expect(selectedOption(w)?.text()).toContain('Bob')
+
+    w.unmount()
+  })
+
+  it('falls back to the first user when the admin is absent from the list', async () => {
+    profileRef.value = { user_id: 999, role: 'admin' }
+    const w = buildModal({ isAdmin: true })
+    await flushPromises()
+
+    expect(selectedOption(w)?.text()).toContain('Alice')
 
     w.unmount()
   })
