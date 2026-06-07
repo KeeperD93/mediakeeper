@@ -3624,6 +3624,14 @@
           "desc": "Quand activé, toute la navigation portail redirige vers une page d'attente personnalisable. Les administrateurs gardent leur accès.",
           "textLabel": "Message affiché (langue actuelle)"
         },
+        "donation": {
+          "title": "Bouton de don",
+          "desc": "Affiche un cœur dans le portail menant à votre lien de don, avec un message optionnel. Sans effet tant qu'aucun lien n'est renseigné.",
+          "urlLabel": "Lien de don",
+          "urlPlaceholder": "https://...",
+          "messageLabel": "Message (optionnel)",
+          "messagePlaceholder": "Expliquez pourquoi vous sollicitez des dons (facultatif)."
+        },
         "gdpr": {
           "title": "Mode Confidentialité",
           "intro": "Active les surfaces utilisateur dédiées à la protection des données. Désactivé par défaut : aucun impact tant que vous ne basculez pas l'interrupteur.",

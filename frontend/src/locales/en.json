@@ -3624,6 +3624,14 @@
           "desc": "When on, the entire portal navigation redirects to a customizable holding page. Admins keep full access.",
           "textLabel": "Displayed message (current locale)"
         },
+        "donation": {
+          "title": "Donation button",
+          "desc": "Show a heart in the portal linking to your donation page, with an optional message. Has no effect until a link is set.",
+          "urlLabel": "Donation link",
+          "urlPlaceholder": "https://...",
+          "messageLabel": "Message (optional)",
+          "messagePlaceholder": "Explain why you're asking for donations (optional)."
+        },
         "gdpr": {
           "title": "Privacy mode",
           "intro": "Enable the user-facing data-protection surfaces. Off by default: nothing changes until you flip the switch.",
