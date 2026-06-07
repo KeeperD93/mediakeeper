@@ -32,6 +32,10 @@ PORTAL_SETTING_FLAGS: dict[str, bool] = {
     # adult keywords) once they disable hide_adult. Default False: even a
     # viewer who unhides adult content cannot file such a request.
     "portal.allow_adult_requests": False,
+    # When True, the heart panel surfaces the operator's own donation link
+    # + message to every portal user. Independent of the static MediaKeeper
+    # support links (admin-only). Has no effect until a link is also set.
+    "portal.donation.enabled": False,
 }
 
 PORTAL_SETTING_INTS: dict[str, tuple[int, int, int]] = {
@@ -60,6 +64,16 @@ PORTAL_SETTING_STRINGS: dict[str, str] = {
     "portal.default_language": "",
 }
 
+# Free-text string settings — stored verbatim (trimmed + length-capped),
+# NOT locale-normalised like PORTAL_SETTING_STRINGS. Value is
+# ``(default, max_len)``. The donation link/message power the heart
+# "support" panel surfaced to every portal user once the operator turns
+# on ``portal.donation.enabled``.
+PORTAL_SETTING_FREETEXT: dict[str, tuple[str, int]] = {
+    "portal.donation.url": ("", 500),
+    "portal.donation.message": ("", 500),
+}
+
 # Capacity values are always multiples of this step (radio chips
 # 5/10/15/20 in the create-event picker). Exported for the admin
 # patch endpoint to clamp client input and for the create-event
@@ -82,12 +96,26 @@ def _parse_int(raw: str | None, default: int, min_val: int, max_val: int) -> int
         return default
 
 
+def _clean_freetext(key: str, raw) -> str:
+    """Trim + length-cap a free-text setting. The donation URL additionally
+    must be an http(s) link — anything else (javascript:, data:, ...) is
+    dropped, since the value is rendered as a user-facing link."""
+    _default, max_len = PORTAL_SETTING_FREETEXT[key]
+    text = ("" if raw is None else str(raw)).strip()[:max_len]
+    if key == "portal.donation.url" and text and not text.lower().startswith(
+        ("http://", "https://")
+    ):
+        return ""
+    return text
+
+
 async def get_portal_settings(db: AsyncSession) -> dict:
     """Read all Portal admin settings (booleans + integers + strings)."""
     all_keys = (
         list(PORTAL_SETTING_FLAGS.keys())
         + list(PORTAL_SETTING_INTS.keys())
         + list(PORTAL_SETTING_STRINGS.keys())
+        + list(PORTAL_SETTING_FREETEXT.keys())
     )
     rows = (await db.execute(
         select(Setting).where(Setting.key.in_(all_keys))
@@ -99,6 +127,8 @@ async def get_portal_settings(db: AsyncSession) -> dict:
     for k, (default, lo, hi) in PORTAL_SETTING_INTS.items():
         result[k] = _parse_int(stored.get(k), default, lo, hi)
     for k, default in PORTAL_SETTING_STRINGS.items():
+        result[k] = stored.get(k) or default
+    for k, (default, _max_len) in PORTAL_SETTING_FREETEXT.items():
         result[k] = stored.get(k) or default
     return result
 
@@ -187,6 +217,8 @@ async def update_portal_settings(
         elif key in PORTAL_SETTING_STRINGS:
             # Normalise to a 2-letter base ("fr-FR" -> "fr"); invalid/blank = inherit.
             value_str = normalize_locale(val) or ""
+        elif key in PORTAL_SETTING_FREETEXT:
+            value_str = _clean_freetext(key, val)
         else:
             logger.warning("[PORTAL_SETTINGS] ignoring unknown key: %s", key)
             continue
