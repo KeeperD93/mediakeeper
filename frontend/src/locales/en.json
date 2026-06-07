@@ -5,6 +5,17 @@
   "app": {
     "rebuilt_logout": "App was updated, please sign in again."
   },
+  "donation": {
+    "panelTitle": "Support",
+    "mkTitle": "Support MediaKeeper",
+    "mkIntro": "Hi, I'm the creator of MediaKeeper. I built this app in my spare time to bring a polished experience to an Emby library — content requests, tracking, community — and to share it freely with fellow enthusiasts. MediaKeeper will keep evolving: I'm committed to maintaining and improving it for the long run. If you enjoy the project, your support helps me dedicate time to it.",
+    "kofi": "Donate on Ko-fi",
+    "sponsor": "Become a GitHub sponsor",
+    "star": "Star the project",
+    "instanceTitle": "Support this instance",
+    "instanceIntro": "Support this instance's administrator.",
+    "instanceCta": "Donate"
+  },
   "common": {
     "actions": "Actions",
     "save": "Save",

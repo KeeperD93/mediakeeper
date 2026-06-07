@@ -5,6 +5,17 @@
   "app": {
     "rebuilt_logout": "Mise à jour de l'application, reconnecte-toi."
   },
+  "donation": {
+    "panelTitle": "Soutenir",
+    "mkTitle": "Soutenir MediaKeeper",
+    "mkIntro": "Bonjour, je suis le créateur de MediaKeeper. J'ai conçu cette application sur mon temps libre pour offrir une expérience soignée autour d'une médiathèque Emby — demandes de contenu, suivi, communauté — et la partager gratuitement avec d'autres passionnés. MediaKeeper continuera d'évoluer : je m'engage à le maintenir et à l'améliorer dans la durée. Si le projet vous plaît, votre soutien m'aide à y consacrer du temps.",
+    "kofi": "Faire un don sur Ko-fi",
+    "sponsor": "Devenir sponsor GitHub",
+    "star": "Mettre une étoile au projet",
+    "instanceTitle": "Soutenir cette instance",
+    "instanceIntro": "Soutenez l'administrateur de cette instance.",
+    "instanceCta": "Faire un don"
+  },
   "common": {
     "actions": "Actions",
     "save": "Enregistrer",
