@@ -47,6 +47,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Liens TMDB — ouvrent la fiche dans la langue de l'app (watchlist, prochaines sorties).
 - Dates affichées dans la langue de l'app (au lieu de celle du navigateur).
 - Avatars personnalisés affichés dans la barre admin, la liste utilisateurs et les sessions.
+- Portail — page Découvrir : bouton retour agrandi, survol collant et défilement latéral corrigés.
 
 ## [1.0.0-rc.4] - 2026-05-30
 

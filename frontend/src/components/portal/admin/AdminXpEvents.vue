@@ -185,7 +185,7 @@ onMounted(fetchEvents)
   flex-wrap: wrap;
 }
 .pt-xp-hint {
-  font-size: var(--portal-text-sm);
+  font-size: var(--text-sm);
   color: var(--text-muted);
   margin: 0;
   flex: 1;
@@ -197,14 +197,14 @@ onMounted(fetchEvents)
   border: 1px solid var(--border);
   background: var(--bg-tertiary);
   color: var(--text-primary);
-  font-weight: var(--portal-font-medium);
+  font-weight: var(--font-medium);
   cursor: pointer;
-  font-size: var(--portal-text-sm);
+  font-size: var(--text-sm);
 }
 .pt-btn--primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: var(--portal-text-primary);
+  color: var(--text-primary);
 }
 .pt-empty {
   color: var(--text-muted);

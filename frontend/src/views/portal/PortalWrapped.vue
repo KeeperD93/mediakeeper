@@ -125,7 +125,7 @@ onMounted(async () => {
 .pt-wrapped-big-number {
   font-size: 5rem;
   font-weight: var(--portal-font-black);
-  color: var(--accent);
+  color: var(--portal-accent);
   display: block;
 }
 .pt-wrapped-sub {
@@ -152,7 +152,7 @@ onMounted(async () => {
   background: rgb(255, 255, 255, 0.2);
 }
 .pt-dot.active {
-  background: var(--accent);
+  background: var(--portal-accent);
 }
 .pt-btn {
   padding: 0.6rem 2rem;
@@ -163,7 +163,7 @@ onMounted(async () => {
   font-size: var(--portal-text-md);
 }
 .pt-btn--primary {
-  background: var(--accent);
+  background: var(--portal-accent);
   color: var(--portal-text-primary);
 }
 

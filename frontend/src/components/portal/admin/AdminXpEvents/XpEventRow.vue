@@ -64,30 +64,30 @@ defineEmits(['edit', 'remove'])
   background: rgb(var(--accent-rgb), 0.06);
 }
 .pt-xp-status {
-  font-size: var(--portal-text-md);
+  font-size: var(--text-md);
   color: var(--text-muted);
 }
 .pt-xp-status--on {
-  color: var(--portal-color-success);
-  text-shadow: 0 0 6px rgb(var(--portal-color-success-rgb), 0.5);
+  color: var(--color-success);
+  text-shadow: 0 0 6px rgb(var(--color-success-rgb), 0.5);
 }
 .pt-xp-mult {
-  font-weight: var(--portal-font-extrabold);
-  font-size: var(--portal-text-base);
+  font-weight: var(--font-extrabold);
+  font-size: var(--text-base);
   color: var(--accent);
-  font-family: var(--portal-font-display);
+  font-family: var(--font-system);
   min-width: 40px;
 }
 .pt-xp-info {
   min-width: 0;
 }
 .pt-xp-name {
-  font-weight: var(--portal-font-bold);
+  font-weight: var(--font-bold);
   color: var(--text-primary);
-  font-size: var(--portal-text-base);
+  font-size: var(--text-base);
 }
 .pt-xp-dates {
-  font-size: var(--portal-text-2xs);
+  font-size: var(--text-2xs);
   color: var(--text-muted);
   display: flex;
   gap: 0.5rem;
@@ -105,24 +105,24 @@ defineEmits(['edit', 'remove'])
   background: rgb(var(--accent-rgb), 0.12);
   color: var(--accent);
   padding: 1px 6px;
-  border-radius: var(--portal-radius-xs);
-  font-size: var(--portal-text-2xs);
-  font-weight: var(--portal-font-medium);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-2xs);
+  font-weight: var(--font-medium);
 }
 .pt-icon-btn {
   background: none;
   border: none;
   color: var(--text-muted);
   cursor: pointer;
-  font-size: var(--portal-text-md);
+  font-size: var(--text-md);
   padding: 0.25rem 0.5rem;
-  border-radius: var(--portal-radius-xs);
+  border-radius: var(--radius-sm);
 }
 .pt-icon-btn:hover {
   background: var(--bg-tertiary);
   color: var(--text-primary);
 }
 .pt-icon-btn--danger:hover {
-  color: var(--portal-color-error);
+  color: var(--color-error);
 }
 </style>
