@@ -26,6 +26,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ### Fixed
 - Demandes (admin) — « Au nom de l'utilisateur » préréglé sur votre compte.
+- Statistiques — médiathèques : nom Emby réel au lieu d'un sous-dossier (réparation auto).
 - Problèmes (admin) — filtre par statut réparé (ne plante plus, n'est plus ignoré).
 - Notifications — l'enregistrement d'un webhook Discord n'échoue plus.
 - Notifications — le message test Discord suit la langue par défaut configurée.
