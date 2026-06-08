@@ -39,8 +39,16 @@ defineEmits(['go-today', 'go-month'])
   align-items: center;
   gap: 1px;
   padding: 6px 0;
+  /* Mobile: fixed-height band that stays visible while the page scrolls. */
   height: 80vh;
   justify-content: center;
+}
+@media (min-width: 768px) {
+  /* Desktop: the timeline panel now fills the content area (see WatchlistView
+     .wl-fill + WlTimelineView .tl), so the months bar follows that height. */
+  .tl-nav-list {
+    height: 100%;
+  }
 }
 .tl-nav-auj {
   background: rgb(99, 102, 241, 0.15) !important;

@@ -1,5 +1,5 @@
 <template>
-  <div class="cinema-wl mk-page-root">
+  <div class="cinema-wl mk-page-root" :class="{ 'wl-fill': activeTab === 'timeline' }">
     <!-- Mesh background identical to Dashboard/Stats -->
 
     <div class="wl-inner">
@@ -111,6 +111,26 @@ onMounted(async () => {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+/* Timeline tab (desktop): make the active panel fill the scrollable content
+   area so the timeline's own panel isn't capped at 80vh — that cap left an
+   empty band below it on tall screens. Mobile keeps a single page scroll. */
+@media (min-width: 768px) {
+  .wl-fill {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  .wl-fill .wl-inner {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .wl-fill .tab-panel {
+    flex: 1;
+    min-height: 0;
   }
 }
 .wl-center {
