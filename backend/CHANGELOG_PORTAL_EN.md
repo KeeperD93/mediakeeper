@@ -31,6 +31,7 @@ This section intentionally has no date so it is not shown to users.
 - Home — Popular and Top-rated rows now sourced from Discover.
 
 ### Fixed
+- Posters — an upcoming title's duration appears once TMDB publishes it.
 - Home — featured banner shows "Pending" for an already-requested title.
 - Requests — one-click movie requests now show success or refusal.
 - Maintenance mode — the portal is now fully locked (holding page only).
