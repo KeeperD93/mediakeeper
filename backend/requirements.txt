@@ -8,7 +8,7 @@ python-dotenv==1.2.2
 psutil==5.9.8
 bcrypt==5.0.0
 PyJWT[crypto]==2.13.0
-python-multipart==0.0.30
+python-multipart==0.0.32
 aiofiles==25.1.0
 alembic==1.18.4
 slowapi==0.1.9
