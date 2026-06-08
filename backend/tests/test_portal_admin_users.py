@@ -443,3 +443,94 @@ async def test_extend_access_sets_end_date(client, admin_user, db_session):
     body = resp.json()
     assert body["ok"] is True
     assert body["access_end_date"] is not None
+
+
+async def _admin_profile(db_session, admin_user):
+    """Create the admin's own profile; feeds resolve by its profile id."""
+    profile = UserProfile(
+        user_id=admin_user.id,
+        display_name="Admin",
+        role="admin",
+        source="local",
+        account_active=True,
+    )
+    db_session.add(profile)
+    await db_session.commit()
+    await db_session.refresh(profile)
+    return profile
+
+
+async def _walk_offset(client, url_base):
+    """Walk a feed in pages of 2 via offset; return the collected ids."""
+    seen: list[int] = []
+    for offset in (0, 2, 4):
+        resp = await client.get(f"{url_base}?limit=2&offset={offset}")
+        assert resp.status_code == 200, resp.text
+        seen.extend(item["id"] for item in resp.json()["items"])
+    return seen
+
+
+@pytest.mark.asyncio
+async def test_user_requests_feed_offset_pagination(client, admin_user, db_session):
+    from models.portal.request import MediaRequest
+
+    profile = await _admin_profile(db_session, admin_user)
+    db_session.add_all([
+        MediaRequest(user_id=admin_user.id, tmdb_id=7000 + i, media_type="movie",
+                     title=f"Req {i:02d}", status="pending")
+        for i in range(5)
+    ])
+    await db_session.commit()
+    _auth(client, admin_user)
+
+    seen = await _walk_offset(client, f"/api/portal/admin/users/{profile.id}/requests")
+    assert len(seen) == 5 and len(set(seen)) == 5
+
+
+@pytest.mark.asyncio
+async def test_user_tickets_feed_offset_pagination(client, admin_user, db_session):
+    from models.portal.ticket import Ticket
+
+    profile = await _admin_profile(db_session, admin_user)
+    db_session.add_all([
+        Ticket(user_id=admin_user.id, media_title=f"Movie {i}", media_type="movie",
+               issue_type="audio", description="x")
+        for i in range(5)
+    ])
+    await db_session.commit()
+    _auth(client, admin_user)
+
+    seen = await _walk_offset(client, f"/api/portal/admin/users/{profile.id}/tickets")
+    assert len(seen) == 5 and len(set(seen)) == 5
+
+
+@pytest.mark.asyncio
+async def test_xp_history_feed_offset_pagination(client, admin_user, db_session):
+    from models.portal.xp_ledger import XpLedger
+
+    profile = await _admin_profile(db_session, admin_user)
+    db_session.add_all([
+        XpLedger(user_id=admin_user.id, action="manual_grant", reference=f"ref-{i}", xp=10)
+        for i in range(5)
+    ])
+    await db_session.commit()
+    _auth(client, admin_user)
+
+    seen = await _walk_offset(client, f"/api/portal/admin/users/{profile.id}/xp-history")
+    assert len(seen) == 5 and len(set(seen)) == 5
+
+
+@pytest.mark.asyncio
+async def test_login_history_feed_offset_pagination(client, admin_user, db_session):
+    from models.portal.login_history import UserLoginHistory
+
+    profile = await _admin_profile(db_session, admin_user)
+    db_session.add_all([
+        UserLoginHistory(user_id=admin_user.id, source="portal", success=True)
+        for _ in range(5)
+    ])
+    await db_session.commit()
+    _auth(client, admin_user)
+
+    seen = await _walk_offset(client, f"/api/portal/admin/users/{profile.id}/login-history")
+    assert len(seen) == 5 and len(set(seen)) == 5

@@ -100,6 +100,11 @@
           <span class="ru-feed-tail" :title="h.user_agent">{{ shortUa(h.user_agent) }}</span>
         </li>
       </ol>
+      <PortalLoadMore
+        :show="historyHasMore"
+        :loading="loadingMoreHistory"
+        @load="loadMoreHistory"
+      />
     </section>
 
     <RuNotifyModal :open="notifyOpen" :user="user" @close="notifyOpen = false" @sent="onSent" />
@@ -123,6 +128,7 @@ import { downloadJsonFile } from '@/composables/portal/useFileDownload'
 import RuNotifyModal from '../RuNotifyModal.vue'
 import RuPasswordResetModal from '../RuPasswordResetModal.vue'
 import RuUserBadge from '../RuUserBadge.vue'
+import PortalLoadMore from '@/components/portal/PortalLoadMore.vue'
 import { localizedDateTime } from '@/utils/datetime'
 import '@/assets/styles/portal/admin-users-feed.css'
 
@@ -137,17 +143,37 @@ const api = usePortalAdminUsers()
 const busy = ref(false)
 const notifyOpen = ref(false)
 const resetPassword = ref(null)
+const LOGIN_PAGE = 100
 const history = ref([])
 const loadingHistory = ref(false)
+const loadingMoreHistory = ref(false)
+const historyHasMore = ref(false)
 
 async function loadHistory() {
   if (!props.user?.id) return
   loadingHistory.value = true
   try {
-    const res = await api.fetchLoginHistory(props.user.id, { limit: 50 })
+    const res = await api.fetchLoginHistory(props.user.id, { limit: LOGIN_PAGE, offset: 0 })
     history.value = res?.items || []
+    historyHasMore.value = history.value.length === LOGIN_PAGE
   } finally {
     loadingHistory.value = false
+  }
+}
+
+async function loadMoreHistory() {
+  if (loadingMoreHistory.value || !historyHasMore.value) return
+  loadingMoreHistory.value = true
+  try {
+    const res = await api.fetchLoginHistory(props.user.id, {
+      limit: LOGIN_PAGE,
+      offset: history.value.length,
+    })
+    const items = res?.items || []
+    history.value = [...history.value, ...items]
+    historyHasMore.value = items.length === LOGIN_PAGE
+  } finally {
+    loadingMoreHistory.value = false
   }
 }
 watch(() => props.user.id, loadHistory)
