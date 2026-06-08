@@ -69,7 +69,7 @@ async def list_user_trophies(db: AsyncSession, user_id: int) -> dict[str, Any]:
 
 
 async def list_user_xp_ledger(
-    db: AsyncSession, user_id: int, *, limit: int = 100
+    db: AsyncSession, user_id: int, *, limit: int = 100, offset: int = 0
 ) -> dict[str, Any]:
     """Latest-first XP grants for a user."""
     from models.portal.xp_ledger import XpLedger
@@ -78,6 +78,7 @@ async def list_user_xp_ledger(
         select(XpLedger)
         .where(XpLedger.user_id == user_id)
         .order_by(desc(XpLedger.created_at))
+        .offset(offset)
         .limit(limit)
     )).scalars().all()
     return {
@@ -95,7 +96,7 @@ async def list_user_xp_ledger(
 
 
 async def list_user_requests(
-    db: AsyncSession, user_id: int, *, limit: int = 100
+    db: AsyncSession, user_id: int, *, limit: int = 100, offset: int = 0
 ) -> dict[str, Any]:
     """Latest-first media requests for a user (title + status only)."""
     from models.portal.request import MediaRequest
@@ -104,6 +105,7 @@ async def list_user_requests(
         select(MediaRequest)
         .where(MediaRequest.user_id == user_id)
         .order_by(desc(MediaRequest.created_at))
+        .offset(offset)
         .limit(limit)
     )).scalars().all()
     return {
@@ -123,7 +125,7 @@ async def list_user_requests(
 
 
 async def list_user_tickets(
-    db: AsyncSession, user_id: int, *, limit: int = 100
+    db: AsyncSession, user_id: int, *, limit: int = 100, offset: int = 0
 ) -> dict[str, Any]:
     """Latest-first problem tickets for a user (title + state only)."""
     from models.portal.ticket import Ticket
@@ -132,6 +134,7 @@ async def list_user_tickets(
         select(Ticket)
         .where(Ticket.user_id == user_id)
         .order_by(desc(Ticket.created_at))
+        .offset(offset)
         .limit(limit)
     )).scalars().all()
     return {

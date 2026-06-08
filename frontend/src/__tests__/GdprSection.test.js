@@ -86,7 +86,7 @@ describe('GdprSection', () => {
       dpo_contact: 'op@example.org',
       account_purge_delay_days: 30,
     })
-    fetchPendingDeletions.mockResolvedValueOnce([])
+    fetchPendingDeletions.mockResolvedValueOnce({ items: [], total: 0 })
     const w = mount(GdprSection)
     await flushPromises()
 
@@ -111,7 +111,7 @@ describe('GdprSection', () => {
       dpo_contact: '',
       account_purge_delay_days: 30,
     })
-    fetchPendingDeletions.mockResolvedValueOnce([])
+    fetchPendingDeletions.mockResolvedValueOnce({ items: [], total: 0 })
     const w = mount(GdprSection)
     await flushPromises()
 
@@ -131,7 +131,7 @@ describe('GdprSection', () => {
       dpo_contact: '',
       account_purge_delay_days: 30,
     })
-    fetchPendingDeletions.mockResolvedValueOnce([])
+    fetchPendingDeletions.mockResolvedValueOnce({ items: [], total: 0 })
     const w = mount(GdprSection)
     await flushPromises()
 
@@ -153,7 +153,7 @@ describe('GdprSection', () => {
       dpo_contact: '',
       account_purge_delay_days: 30,
     })
-    fetchPendingDeletions.mockResolvedValueOnce([])
+    fetchPendingDeletions.mockResolvedValueOnce({ items: [], total: 0 })
     const w = mount(GdprSection)
     await flushPromises()
 
@@ -171,7 +171,7 @@ describe('GdprSection', () => {
       dpo_contact: '',
       account_purge_delay_days: 30,
     })
-    fetchPendingDeletions.mockResolvedValueOnce([])
+    fetchPendingDeletions.mockResolvedValueOnce({ items: [], total: 0 })
     saveSettings.mockResolvedValueOnce({
       enabled: true,
       privacy_text_fr: '<p>fr</p>',
@@ -205,9 +205,12 @@ describe('GdprSection', () => {
       dpo_contact: '',
       account_purge_delay_days: 30,
     })
-    fetchPendingDeletions.mockResolvedValueOnce([
-      { id: 1, username: 'pending-user', deletion_requested_at: '', pending_deletion_at: '' },
-    ])
+    fetchPendingDeletions.mockResolvedValueOnce({
+      items: [
+        { id: 1, username: 'pending-user', deletion_requested_at: '', pending_deletion_at: '' },
+      ],
+      total: 1,
+    })
     saveSettings.mockResolvedValueOnce({
       enabled: false,
       privacy_text_fr: '',
@@ -225,5 +228,39 @@ describe('GdprSection', () => {
 
     expect(saveSettings).toHaveBeenCalledWith({ enabled: false })
     expect(w.find('.pt-gdpr-config').exists()).toBe(false)
+  })
+
+  it('appends the next page of pending deletions on "load more"', async () => {
+    fetchSettings.mockResolvedValueOnce({
+      enabled: true,
+      privacy_text_fr: '',
+      privacy_text_en: '',
+      dpo_contact: '',
+      account_purge_delay_days: 30,
+    })
+    const page = (start, n) =>
+      Array.from({ length: n }, (_, i) => ({
+        id: start + i,
+        username: `user-${start + i}`,
+        deletion_requested_at: '',
+        pending_deletion_at: '',
+      }))
+    fetchPendingDeletions
+      .mockResolvedValueOnce({ items: page(1, 50), total: 60 })
+      .mockResolvedValueOnce({ items: page(51, 10), total: 60 })
+    const w = mount(GdprSection)
+    await flushPromises()
+
+    expect(w.findAll('.pt-gdpr-pending-table tbody tr')).toHaveLength(50)
+    const loadMore = w.find('.pmlm')
+    expect(loadMore.exists()).toBe(true)
+
+    await loadMore.trigger('click')
+    await flushPromises()
+
+    // offset = current row count; the next page is appended.
+    expect(fetchPendingDeletions).toHaveBeenLastCalledWith(50)
+    expect(w.findAll('.pt-gdpr-pending-table tbody tr')).toHaveLength(60)
+    expect(w.find('.pmlm').exists()).toBe(false)
   })
 })
