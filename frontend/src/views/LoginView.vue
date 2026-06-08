@@ -158,7 +158,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/composables/useAuth'
 import { fetchApiResponse, resolveApiError } from '@/composables/useApi'
-import { SESSION_EXPIRED_FLAG } from '@/composables/apiClient'
+import { STORAGE_KEYS } from '@/constants/storage'
 import { useTheme } from '@/composables/useTheme'
 import { initLoginParticles } from '@/composables/useLoginParticles'
 import {
@@ -250,16 +250,16 @@ onMounted(async () => {
   if (particlesEnabled.value) cleanupParticles = initLoginParticles(canvasRef.value, pageRef.value)
   await waitForAuth()
   const justLoggedOut =
-    route.query.logged_out === '1' || sessionStorage.getItem('mk_just_logged_out') === '1'
-  const sessionExpired = sessionStorage.getItem(SESSION_EXPIRED_FLAG) === '1'
+    route.query.logged_out === '1' || sessionStorage.getItem(STORAGE_KEYS.JUST_LOGGED_OUT) === '1'
+  const sessionExpired = sessionStorage.getItem(STORAGE_KEYS.SESSION_EXPIRED) === '1'
   const redirect = getRedirectTarget()
   const isPortalRedirect = redirect.startsWith('/portal')
   const isPortalAdminRedirect = redirect.startsWith('/admin/portal') || isPortalRedirect
 
   if (justLoggedOut) {
     try {
-      sessionStorage.removeItem('mk_just_logged_out')
-      sessionStorage.removeItem(SESSION_EXPIRED_FLAG)
+      sessionStorage.removeItem(STORAGE_KEYS.JUST_LOGGED_OUT)
+      sessionStorage.removeItem(STORAGE_KEYS.SESSION_EXPIRED)
     } catch {
       /* ignore */
     }
@@ -269,7 +269,7 @@ onMounted(async () => {
       loggedOutTimer = null
     }, 4000)
     fetchVersion()
-    const saved = localStorage.getItem('mediakeeper_saved_username')
+    const saved = localStorage.getItem(STORAGE_KEYS.SAVED_USERNAME)
     if (saved) {
       username.value = saved
       remember.value = true
@@ -279,7 +279,7 @@ onMounted(async () => {
 
   if (sessionExpired) {
     try {
-      sessionStorage.removeItem(SESSION_EXPIRED_FLAG)
+      sessionStorage.removeItem(STORAGE_KEYS.SESSION_EXPIRED)
     } catch {
       /* ignore */
     }
@@ -317,7 +317,7 @@ onMounted(async () => {
   }
 
   fetchVersion()
-  const saved = localStorage.getItem('mediakeeper_saved_username')
+  const saved = localStorage.getItem(STORAGE_KEYS.SAVED_USERNAME)
   if (saved) {
     username.value = saved
     remember.value = true
@@ -347,12 +347,10 @@ async function doLogin() {
     const isPortalRedirect = redirect.startsWith('/portal')
 
     if (remember.value) {
-      localStorage.setItem('mediakeeper_saved_username', username.value.trim())
+      localStorage.setItem(STORAGE_KEYS.SAVED_USERNAME, username.value.trim())
     } else {
-      localStorage.removeItem('mediakeeper_saved_username')
+      localStorage.removeItem(STORAGE_KEYS.SAVED_USERNAME)
     }
-
-    localStorage.setItem('mediakeeper_username', data.username)
 
     if (data.scope === 'portal') {
       router.push(isPortalRedirect ? redirect : '/portal')

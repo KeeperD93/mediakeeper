@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeAll } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
+import { STORAGE_KEYS } from '@/constants/storage'
 
 beforeAll(() => {
   const proto = globalThis.HTMLImageElement?.prototype
@@ -165,7 +166,7 @@ describe('LoginView', () => {
 
   it('shows the logged-out banner from the mk_just_logged_out session flag', async () => {
     routeQuery.value = {}
-    sessionStorage.setItem('mk_just_logged_out', '1')
+    sessionStorage.setItem(STORAGE_KEYS.JUST_LOGGED_OUT, '1')
     try {
       const w = mount(LoginView, {
         global: { stubs: { img: ImgStub } },
@@ -173,9 +174,9 @@ describe('LoginView', () => {
       for (let i = 0; i < 10; i++) await flushPromises()
 
       expect(w.find('[data-test="login-logged-out"]').exists()).toBe(true)
-      expect(sessionStorage.getItem('mk_just_logged_out')).toBeNull()
+      expect(sessionStorage.getItem(STORAGE_KEYS.JUST_LOGGED_OUT)).toBeNull()
     } finally {
-      sessionStorage.removeItem('mk_just_logged_out')
+      sessionStorage.removeItem(STORAGE_KEYS.JUST_LOGGED_OUT)
     }
   })
 

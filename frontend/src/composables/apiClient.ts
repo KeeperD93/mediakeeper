@@ -1,10 +1,10 @@
+import { STORAGE_KEYS } from '@/constants/storage'
+
 const SAFE_METHODS = new Set<string>(['GET', 'HEAD', 'OPTIONS'])
 
 const AUTH_REFRESH_URL = '/api/auth/refresh'
 const PORTAL_ADMIN_ENTER_URL = '/api/portal/admin/requests/enter'
 const CSRF_COOKIE = 'mk_csrf'
-
-export const SESSION_EXPIRED_FLAG = 'mk_session_expired'
 
 export interface ApiFetchOptions extends RequestInit {
   retryOn401?: boolean
@@ -53,7 +53,7 @@ export function buildApiHeaders(options: ApiFetchOptions = {}): Headers {
 
 function redirectToLogin(): null {
   try {
-    sessionStorage.setItem(SESSION_EXPIRED_FLAG, '1')
+    sessionStorage.setItem(STORAGE_KEYS.SESSION_EXPIRED, '1')
   } catch {
     /* sessionStorage may be unavailable (private mode, SSR) — degrade silently */
   }

@@ -1,6 +1,7 @@
 import { ref, readonly } from 'vue'
 import { fetchApiResponse } from '@/composables/useApi'
 import { showRateLimitToast } from '@/composables/handle429'
+import { STORAGE_KEYS } from '@/constants/storage'
 
 const user = ref(null)
 const isAuthenticated = ref(false)
@@ -117,7 +118,7 @@ export function useAuth() {
       /* ignore */
     }
     try {
-      sessionStorage.setItem('mk_just_logged_out', '1')
+      sessionStorage.setItem(STORAGE_KEYS.JUST_LOGGED_OUT, '1')
     } catch {
       /* ignore */
     }
