@@ -54,3 +54,26 @@ async def _resolve_library_name(
     except Exception as e:
         logger.warning(f"Error _resolve_library_name({item_id}): {e}")
     return None
+
+
+async def _session_library_name(
+    np: dict,
+    item_id: str,
+    url: str,
+    api_key: str,
+    library_aliases: dict | None = None,
+) -> str | None:
+    """Best Emby library (CollectionFolder) name for a playing session item.
+
+    Order: Emby's own ``LibraryName`` → resolve via the Ancestors API (walks
+    up to the CollectionFolder, correct even for items nested in a sub-folder)
+    → ``ParentName`` only as a last resort. ParentName is the immediate parent
+    (a sub-folder, or a season for episodes), not the library — using it before
+    the resolver was the "sub-folder shown instead of library" bug.
+    """
+    return (
+        np.get("LibraryName")
+        or await _resolve_library_name(item_id, url, api_key, library_aliases)
+        or np.get("ParentName")
+        or None
+    )
