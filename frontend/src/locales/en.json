@@ -2322,6 +2322,7 @@
       "available": "Available",
       "partial": "Partially available",
       "requestBtn": "Request",
+      "pendingBtn": "Pending",
       "requestedBtn": "Requested",
       "resubmitBtn": "Resubmit",
       "addToListBtn": "Add to a list",

@@ -232,6 +232,20 @@
   background: rgb(109, 109, 110, 0.7);
   color: var(--portal-text-primary);
 }
+/* Muted "already requested" CTA — same neutral surface as the secondary
+   buttons but with muted text + default cursor so it reads as a
+   non-actionable status, mirroring the poster card's pending CTA. */
+.pt-hero-btn--pending {
+  background: rgb(109, 109, 110, 0.7);
+  color: var(--portal-text-body-muted);
+  cursor: default;
+}
+/* Neutralise the generic ``.pt-hero-btn:hover`` opacity shift for the
+   muted state on every device (incl. sticky touch hover) — kept ungated
+   on purpose so it cancels the effect on touch, not only on desktop. */
+.pt-hero-btn--pending:hover {
+  opacity: 1;
+}
 .pt-hero-btn--icon {
   padding: 0.6rem;
   aspect-ratio: 1 / 1;
