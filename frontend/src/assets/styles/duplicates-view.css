@@ -447,6 +447,10 @@
   flex-direction: column;
   gap: 6px;
 }
+.cinema-duplicates .doub-load-more {
+  margin-top: 12px;
+  text-align: center;
+}
 .cinema-duplicates .hist-row {
   display: flex;
   align-items: center;
