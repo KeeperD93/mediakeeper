@@ -1,7 +1,10 @@
 <template>
   <div class="pt-gdpr-pending">
     <div class="pt-gdpr-pending-head">
-      <h4>{{ $t('portal.admin.settings.gdpr.pending.title') }}</h4>
+      <h4>
+        {{ $t('portal.admin.settings.gdpr.pending.title') }}
+        <span v-if="total">({{ total }})</span>
+      </h4>
       <button
         type="button"
         class="pt-gdpr-pending-refresh"
@@ -67,20 +70,26 @@
         </tr>
       </tbody>
     </table>
+
+    <PortalLoadMore :show="hasMore" :loading="loadingMore" @load="$emit('load-more')" />
   </div>
 </template>
 
 <script setup>
 import { RefreshCw, ShieldCheck, Undo2 } from 'lucide-vue-next'
+import PortalLoadMore from '@/components/portal/PortalLoadMore.vue'
 
 import '@/assets/styles/portal/admin-gdpr.css'
 
 defineProps({
   rows: { type: Array, default: () => [] },
+  total: { type: Number, default: 0 },
   loading: { type: Boolean, default: false },
+  loadingMore: { type: Boolean, default: false },
+  hasMore: { type: Boolean, default: false },
   cancellingId: { type: Number, default: null },
 })
-defineEmits(['refresh', 'cancel'])
+defineEmits(['refresh', 'cancel', 'load-more'])
 
 function formatDate(iso) {
   if (!iso) return '—'
