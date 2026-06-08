@@ -25,6 +25,7 @@ This section intentionally has no date so it is not shown to users.
 - Dashboard — 30 upcoming releases shown (was 20).
 
 ### Fixed
+- Dashboard — History tabs (Notifications, Duplicates): "Load more" button.
 - Dashboard — activity feed: plugin updates now shown in your language.
 - Dashboard — avatar and rank ring correct right after login (no refresh needed).
 - Requests (admin) — "On behalf of" now defaults to your account.
