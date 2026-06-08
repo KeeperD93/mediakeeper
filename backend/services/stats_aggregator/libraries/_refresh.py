@@ -96,6 +96,12 @@ async def refresh_library_cache(db: AsyncSession):
         await db.commit()
         logger.info(f"Library cache refreshed: {len(seen_ids)} libraries")
 
+        # Heal playback rows still on a sub-folder/slug library name (e.g. a
+        # session whose Emby payload lacked LibraryName). Idempotent — only
+        # suspect rows are re-resolved, so steady state / fresh installs no-op.
+        from ._repair import repair_library_names
+        await repair_library_names(db)
+
     except Exception as e:
         logger.error(f"Error refresh_library_cache: {e}")
 
