@@ -62,6 +62,8 @@
           />
         </template>
       </div>
+
+      <PortalLoadMore :show="publicHasMore" :loading="loadingMorePublic" @load="loadMorePublic" />
     </template>
 
     <ListFormModal
@@ -86,6 +88,7 @@ import ListExpansion from '@/components/portal/lists/ListExpansion.vue'
 import AdminListsTab from '@/components/portal/lists/AdminListsTab.vue'
 import TabStrip from '@/components/common/TabStrip.vue'
 import MkSpinner from '@/components/common/MkSpinner.vue'
+import PortalLoadMore from '@/components/portal/PortalLoadMore.vue'
 import { useConfirm } from '@/composables/useConfirm'
 import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 import { USER_ROLE } from '@/constants/auth'
@@ -120,17 +123,36 @@ const formMode = ref('create')
 const formInitial = ref({})
 const loading = ref(false)
 
+const PUBLIC_PAGE = 50
+const loadingMorePublic = ref(false)
 const currentTabLists = computed(() =>
   activeTab.value === 'mine' ? svc.lists.value : svc.publicLists.value,
+)
+const publicHasMore = computed(
+  () => activeTab.value === 'public' && svc.publicLists.value.length < svc.publicTotal.value,
 )
 
 async function loadTab(tab) {
   loading.value = true
   try {
     if (tab === 'mine') await svc.fetchMyLists()
-    else await svc.fetchPublicLists()
+    else await svc.fetchPublicLists({ limit: PUBLIC_PAGE, offset: 0 })
   } finally {
     loading.value = false
+  }
+}
+
+async function loadMorePublic() {
+  if (loadingMorePublic.value || !publicHasMore.value) return
+  loadingMorePublic.value = true
+  try {
+    await svc.fetchPublicLists({
+      limit: PUBLIC_PAGE,
+      offset: svc.publicLists.value.length,
+      append: true,
+    })
+  } finally {
+    loadingMorePublic.value = false
   }
 }
 

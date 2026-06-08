@@ -6,6 +6,9 @@ export function usePortalLists() {
 
   const lists = ref([])
   const publicLists = ref([])
+  const publicTotal = ref(0)
+  const moderationLists = ref([])
+  const moderationTotal = ref(0)
   const currentList = ref(null)
   const history = ref([])
 
@@ -15,10 +18,21 @@ export function usePortalLists() {
     return lists.value
   }
 
-  async function fetchPublicLists(limit = 50) {
-    const res = await apiGet(`/api/portal/lists/public?limit=${limit}`)
-    if (res) publicLists.value = res.items || []
-    return publicLists.value
+  async function fetchPublicLists({ limit = 50, offset = 0, append = false } = {}) {
+    const res = await apiGet(`/api/portal/lists/public?limit=${limit}&offset=${offset}`)
+    const items = res?.items || []
+    publicLists.value = append ? [...publicLists.value, ...items] : items
+    publicTotal.value = res?.total ?? publicLists.value.length
+    return res
+  }
+
+  // Admin moderation feed: includes soft-deleted lists (require_admin).
+  async function fetchModerationLists({ limit = 50, offset = 0, append = false } = {}) {
+    const res = await apiGet(`/api/portal/admin/lists?limit=${limit}&offset=${offset}`)
+    const items = res?.items || []
+    moderationLists.value = append ? [...moderationLists.value, ...items] : items
+    moderationTotal.value = res?.total ?? moderationLists.value.length
+    return res
   }
 
   async function fetchList(id, { sort = 'added_desc', page = 1, pageSize = 100 } = {}) {
@@ -109,10 +123,14 @@ export function usePortalLists() {
   return {
     lists,
     publicLists,
+    publicTotal,
+    moderationLists,
+    moderationTotal,
     currentList,
     history,
     fetchMyLists,
     fetchPublicLists,
+    fetchModerationLists,
     fetchList,
     createList,
     updateList,
