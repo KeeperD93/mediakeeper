@@ -1468,6 +1468,7 @@
     "foldersTitle": "Dossiers média",
     "foldersDesc": "Indiquez les chemins vers vos dossiers média dans le conteneur Docker. Ces chemins doivent correspondre à vos volumes montés.",
     "foldersHint": "Laissez vide pour utiliser les valeurs par défaut ou les variables d'environnement.",
+    "foldersOptional": "Optionnel : vous pourrez configurer vos dossiers à tout moment dans Paramètres → Dossiers.",
     "tourTitle": "Les modules MediaKeeper",
     "tourDesc": "Voici un aperçu rapide de ce que vous pouvez faire avec MediaKeeper.",
     "modDashboard": "Vue d'ensemble en temps réel",
