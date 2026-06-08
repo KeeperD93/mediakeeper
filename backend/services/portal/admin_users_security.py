@@ -126,12 +126,13 @@ async def reset_display_name(
 
 
 async def list_user_login_history(
-    db: AsyncSession, user_id: int, *, limit: int = 100
+    db: AsyncSession, user_id: int, *, limit: int = 100, offset: int = 0
 ) -> dict[str, Any]:
     rows = (await db.execute(
         select(UserLoginHistory)
         .where(UserLoginHistory.user_id == user_id)
         .order_by(desc(UserLoginHistory.created_at))
+        .offset(offset)
         .limit(limit)
     )).scalars().all()
     return {

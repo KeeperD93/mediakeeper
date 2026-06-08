@@ -81,13 +81,13 @@ async def get_user_lists(
 
 
 async def get_public_lists(
-    db: AsyncSession, user_id: int, *, limit: int = 50,
-) -> list[dict]:
+    db: AsyncSession, user_id: int, *, limit: int = 50, offset: int = 0,
+) -> dict:
     # Exclude lists whose owner has been soft-deleted or deactivated:
     # the owner row survives but their identifying surfaces (pseudo,
     # avatar, profile) are gated everywhere else. Public list browsing
     # must honour that boundary instead of leaking ``owner_username``.
-    q = (
+    base = (
         select(UserList)
         .join(User, User.id == UserList.user_id)
         .join(UserProfile, UserProfile.user_id == UserList.user_id)
@@ -98,11 +98,35 @@ async def get_public_lists(
             UserProfile.account_active.is_(True),
             UserProfile.deleted_at.is_(None),
         )
-        .order_by(UserList.updated_at.desc())
-        .limit(limit)
     )
-    lists = (await db.execute(q)).scalars().all()
-    return [await _serialize_list(db, lst, user_id, lightweight=True) for lst in lists]
+    total = (await db.execute(
+        select(func.count()).select_from(base.subquery())
+    )).scalar() or 0
+    lists = (await db.execute(
+        base.order_by(UserList.updated_at.desc()).offset(offset).limit(limit)
+    )).scalars().all()
+    items = [await _serialize_list(db, lst, user_id, lightweight=True) for lst in lists]
+    return {"items": items, "total": total}
+
+
+async def get_moderation_lists(
+    db: AsyncSession, user_id: int, *, limit: int = 50, offset: int = 0,
+) -> dict:
+    """Admin moderation view: every public/collaborative list — INCLUDING
+    soft-deleted ones and those of deactivated/purged owners — so the admin
+    can restore or hard-delete them. Owner display safely falls back to the
+    anonymous alias for a purged owner via ``_serialize_list``."""
+    base = select(UserList).where(
+        UserList.privacy.in_((PRIVACY_PUBLIC_READONLY, PRIVACY_COLLABORATIVE)),
+    )
+    total = (await db.execute(
+        select(func.count()).select_from(base.subquery())
+    )).scalar() or 0
+    lists = (await db.execute(
+        base.order_by(UserList.updated_at.desc()).offset(offset).limit(limit)
+    )).scalars().all()
+    items = [await _serialize_list(db, lst, user_id, lightweight=True) for lst in lists]
+    return {"items": items, "total": total}
 
 
 async def _serialize_list(
