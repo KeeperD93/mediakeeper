@@ -27,6 +27,7 @@ This section intentionally has no date so it is not shown to users.
 ### Changed
 - Dashboard — 30 upcoming releases shown (was 20).
 - Onboarding — Folders step now notes it's optional (configurable later).
+- Watchlist — Timeline tab: months bar widened and more readable.
 
 ### Fixed
 - Dashboard — History tabs (Notifications, Duplicates): "Load more" button.

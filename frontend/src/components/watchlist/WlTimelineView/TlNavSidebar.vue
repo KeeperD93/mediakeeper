@@ -27,7 +27,7 @@ defineEmits(['go-today', 'go-month'])
 
 <style scoped>
 .tl-nav {
-  width: 56px;
+  width: 84px;
   flex-shrink: 0;
   border-left: 0.5px solid var(--border-default);
 }
@@ -37,7 +37,7 @@ defineEmits(['go-today', 'go-month'])
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1px;
+  gap: 5px;
   padding: 6px 0;
   /* Mobile: fixed-height band that stays visible while the page scrolls. */
   height: 80vh;
@@ -79,30 +79,34 @@ defineEmits(['go-today', 'go-month'])
   flex-direction: column;
   align-items: center;
   gap: 1px;
-  padding: 5px 4px;
+  padding: 7px 4px;
   border: none;
   background: transparent;
-  color: rgb(165, 180, 252, 0.3);
+  color: var(--text-secondary);
   font-weight: var(--font-bold);
   font-family: inherit;
   text-transform: uppercase;
   cursor: pointer;
   border-radius: var(--radius-sm);
-  transition: all var(--duration-fast);
-  width: 48px;
-  font-size: var(--text-3xs);
+  transition:
+    background-color var(--duration-fast),
+    color var(--duration-fast);
+  width: 72px;
+  font-size: var(--text-2xs);
 }
 .tl-nav-item:hover {
   background: rgb(99, 102, 241, 0.1);
   color: var(--accent-300);
 }
 .tl-nav-item.now {
-  background: rgb(99, 102, 241, 0.12);
-  color: var(--accent-400);
+  background: rgb(99, 102, 241, 0.22);
+  color: var(--text-primary);
+  font-weight: var(--font-extrabold);
+  box-shadow: inset 2px 0 0 rgb(99, 102, 241);
 }
 .tl-nav-y {
-  font-size: 0.48rem;
-  opacity: 0.5;
+  font-size: var(--text-3xs);
+  opacity: 0.8;
 }
 
 @media (max-width: 767px) {

@@ -27,6 +27,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 ### Changed
 - Tableau de bord — 30 prochaines sorties affichées (au lieu de 20).
 - Onboarding — l'étape Dossiers précise qu'elle est optionnelle (configurable plus tard).
+- Watchlist — onglet Timeline : barre des mois élargie et plus lisible.
 
 ### Fixed
 - Tableau de bord — onglets Historique (Notifications, Doublons) : bouton « Charger plus ».
