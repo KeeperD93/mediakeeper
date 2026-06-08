@@ -25,6 +25,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Tableau de bord — 30 prochaines sorties affichées (au lieu de 20).
 
 ### Fixed
+- Tableau de bord — fil d'activité : mises à jour de plugin affichées dans votre langue.
 - Tableau de bord — avatar et anneau de rang corrects dès la connexion (sans actualiser).
 - Demandes (admin) — « Au nom de l'utilisateur » préréglé sur votre compte.
 - Statistiques — médiathèques : nom Emby réel au lieu d'un sous-dossier (réparation auto).

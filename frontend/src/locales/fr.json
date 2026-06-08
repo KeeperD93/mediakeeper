@@ -476,6 +476,7 @@
     "watching": "regarde",
     "finished": "a terminé",
     "signedIn": "s'est connecté",
+    "pluginUpdated": "{plugin} mis à jour vers {version}",
     "signInFailed": "Tentative de connexion échouée",
     "signInFailedFor": "Tentative de connexion échouée : {user}",
     "justNow": "à l'instant",

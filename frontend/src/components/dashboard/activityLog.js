@@ -28,6 +28,31 @@ const NAME_VERBS = {
 }
 const DEVICE_SEPARATORS = [' sur ', ' on ']
 
+// Plugin-update entries (`plugins.pluginupdated`) embed the whole sentence in
+// the localized name: "<plugin> <verb> <version> sur/on <server>". Parse the
+// FR + EN variants to recover plugin + version so the row renders in the
+// viewer's language. The server name is dropped (always this instance).
+const PLUGIN_UPDATE_VERBS = [' est mis à jour vers ', ' has been updated to ', ' updated to ']
+
+function parsePluginUpdate(name) {
+  for (const verb of PLUGIN_UPDATE_VERBS) {
+    const idx = name.indexOf(verb)
+    if (idx === -1) continue
+    const plugin = name.slice(0, idx).trim()
+    let rest = name.slice(idx + verb.length)
+    for (const sep of DEVICE_SEPARATORS) {
+      const i = rest.lastIndexOf(sep)
+      if (i !== -1) {
+        rest = rest.slice(0, i)
+        break
+      }
+    }
+    const version = rest.trim()
+    if (plugin && version) return { plugin, version }
+  }
+  return null
+}
+
 function logActionLabel(type, t) {
   if (type === 'playback.start') return t('dashboard.watching')
   if (type === 'playback.stop') return t('dashboard.finished')
@@ -61,6 +86,19 @@ export function parseActivityLog(log, t) {
   }
   if (!user) user = t('dashboard.system')
 
+  if (type === 'plugins.pluginupdated') {
+    const pu = parsePluginUpdate(name)
+    if (pu) {
+      return {
+        user,
+        action: t('dashboard.pluginUpdated', pu),
+        media: '',
+        rawMediaName: '',
+        device: '',
+      }
+    }
+  }
+
   if (PLAYBACK_TYPES.has(type)) {
     let media = remainder
     let device = ''
@@ -84,7 +122,8 @@ export function parseActivityLog(log, t) {
 
   if (action) return { user, action, media: '', rawMediaName: '', device: '' }
 
-  // Unknown type → raw label fallback (current Emby never reaches this).
+  // Unknown / unparsed type → raw Emby label fallback (e.g. plugin
+  // install/uninstall, system updates — not yet machine-mapped).
   return { user, action: name.slice(0, 80), media: '', rawMediaName: '', device: '' }
 }
 
