@@ -166,6 +166,7 @@
 <script setup>
 import { ref, computed, onMounted, useId } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 import { usePortalRequestFeedback } from '@/composables/portal/usePortalRequestFeedback'
 import { useRequestSelection } from '@/composables/portal/useRequestSelection'
 import { useFocusTrap } from '@/composables/useFocusTrap'
@@ -181,6 +182,7 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'done'])
 const { apiGet, apiPost } = useApi()
+const { profile } = usePortalAuth()
 const { presentRequestResult } = usePortalRequestFeedback()
 
 const users = ref([])
@@ -333,7 +335,12 @@ onMounted(async () => {
     const res = await apiGet('/api/portal/admin/users?limit=200').catch(() => null)
     if (res) {
       users.value = res.items
-      if (users.value.length) selectedUserId.value = users.value[0].user_id
+      if (users.value.length) {
+        // Default the "on behalf of" picker to the admin's own account
+        // (matched by id), not the first user alphabetically.
+        const selfUser = users.value.find(u => u.user_id === profile.value?.user_id)
+        selectedUserId.value = (selfUser ?? users.value[0]).user_id
+      }
     }
   }
   await Promise.all([loadSeasons(), loadAvailability()])
