@@ -17,6 +17,9 @@ export function useNotifs() {
   const testing = ref(null)
   const histFilter = ref('')
   const history = ref([])
+  const historyCursor = ref(null)
+  const historyHasMore = ref(false)
+  const loadingMoreHistory = ref(false)
   const hStats = reactive({ total: 0, sent: 0, failed: 0 })
 
   const discord = reactive({ enabled: false, delay: 10, image_host: 'imgur', webhooks: [] })
@@ -208,6 +211,8 @@ export function useNotifs() {
     try {
       await apiFetch('/api/notifications/history', { method: 'DELETE' })
       history.value = []
+      historyCursor.value = null
+      historyHasMore.value = false
       hStats.total = 0
       hStats.sent = 0
       hStats.failed = 0
@@ -253,6 +258,26 @@ export function useNotifs() {
     imgur.client_secret_length = Number(d.client_secret_length) || 0
   }
 
+  // Cursor-paginated history (admin): first page on mount, "load more"
+  // appends the next page. ``append=false`` resets to the first page.
+  async function loadHistory(append = false) {
+    if (append && (!historyHasMore.value || loadingMoreHistory.value)) return
+    if (append) loadingMoreHistory.value = true
+    try {
+      const params = new URLSearchParams()
+      if (append && historyCursor.value) params.set('cursor', historyCursor.value)
+      const d = await apiGet(`/api/notifications/history?${params}`)
+      const items = d?.items || (Array.isArray(d) ? d : [])
+      history.value = append ? [...history.value, ...items] : items
+      historyCursor.value = d?.next_cursor || null
+      historyHasMore.value = !!d?.has_more
+    } catch {
+      /* silent: history fetch */
+    } finally {
+      loadingMoreHistory.value = false
+    }
+  }
+
   onMounted(async () => {
     try {
       await loadDiscordConfig()
@@ -270,13 +295,7 @@ export function useNotifs() {
     } catch {
       /* silent: rules fetch */
     }
-    try {
-      const d = await apiGet('/api/notifications/history')
-      if (d && d.items) history.value = d.items
-      else if (Array.isArray(d)) history.value = d
-    } catch {
-      /* silent: history fetch */
-    }
+    await loadHistory()
     try {
       const d = await apiGet('/api/notifications/history/stats')
       if (d) Object.assign(hStats, d)
@@ -290,6 +309,9 @@ export function useNotifs() {
     testing,
     histFilter,
     history,
+    historyHasMore,
+    loadingMoreHistory,
+    loadHistory,
     hStats,
     discord,
     imgur,

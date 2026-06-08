@@ -101,6 +101,11 @@
           </RuUserBadge>
         </li>
       </ul>
+      <PortalLoadMore
+        :show="requestsHasMore"
+        :loading="loadingMoreRequests"
+        @load="loadMoreRequests"
+      />
     </section>
 
     <section class="ru-tab-section">
@@ -118,6 +123,11 @@
           </RuUserBadge>
         </li>
       </ul>
+      <PortalLoadMore
+        :show="ticketsHasMore"
+        :loading="loadingMoreTickets"
+        @load="loadMoreTickets"
+      />
     </section>
   </div>
 </template>
@@ -127,6 +137,7 @@ import { ref, watch, onMounted } from 'vue'
 import { Inbox, LifeBuoy, ListMusic, Sparkles, Star, TrendingUp } from 'lucide-vue-next'
 import { usePortalAdminUsers } from '@/composables/portal/usePortalAdminUsers'
 import RuUserBadge from '../RuUserBadge.vue'
+import PortalLoadMore from '@/components/portal/PortalLoadMore.vue'
 import { localizedDate } from '@/utils/datetime'
 import '@/assets/styles/portal/admin-users-feed.css'
 
@@ -136,22 +147,61 @@ const props = defineProps({
 })
 
 const api = usePortalAdminUsers()
+const FEED_PAGE = 100
 const requests = ref([])
 const tickets = ref([])
 const loadingFeeds = ref(false)
+const requestsHasMore = ref(false)
+const ticketsHasMore = ref(false)
+const loadingMoreRequests = ref(false)
+const loadingMoreTickets = ref(false)
 
 async function load() {
   if (!props.user?.id) return
   loadingFeeds.value = true
   try {
     const [rq, tk] = await Promise.all([
-      api.fetchUserRequests(props.user.id, { limit: 200 }),
-      api.fetchUserTickets(props.user.id, { limit: 200 }),
+      api.fetchUserRequests(props.user.id, { limit: FEED_PAGE, offset: 0 }),
+      api.fetchUserTickets(props.user.id, { limit: FEED_PAGE, offset: 0 }),
     ])
     requests.value = rq?.items || []
     tickets.value = tk?.items || []
+    requestsHasMore.value = requests.value.length === FEED_PAGE
+    ticketsHasMore.value = tickets.value.length === FEED_PAGE
   } finally {
     loadingFeeds.value = false
+  }
+}
+
+async function loadMoreRequests() {
+  if (loadingMoreRequests.value || !requestsHasMore.value) return
+  loadingMoreRequests.value = true
+  try {
+    const res = await api.fetchUserRequests(props.user.id, {
+      limit: FEED_PAGE,
+      offset: requests.value.length,
+    })
+    const items = res?.items || []
+    requests.value = [...requests.value, ...items]
+    requestsHasMore.value = items.length === FEED_PAGE
+  } finally {
+    loadingMoreRequests.value = false
+  }
+}
+
+async function loadMoreTickets() {
+  if (loadingMoreTickets.value || !ticketsHasMore.value) return
+  loadingMoreTickets.value = true
+  try {
+    const res = await api.fetchUserTickets(props.user.id, {
+      limit: FEED_PAGE,
+      offset: tickets.value.length,
+    })
+    const items = res?.items || []
+    tickets.value = [...tickets.value, ...items]
+    ticketsHasMore.value = items.length === FEED_PAGE
+  } finally {
+    loadingMoreTickets.value = false
   }
 }
 

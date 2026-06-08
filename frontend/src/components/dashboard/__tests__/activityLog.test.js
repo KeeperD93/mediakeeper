@@ -90,6 +90,40 @@ describe('parseActivityLog', () => {
     expect(r.media).toBe('')
   })
 
+  it('translates a plugin update, extracting plugin + version (FR Emby)', () => {
+    const tt = (key, p) => (p ? `${key}|${p.plugin}|${p.version}` : key)
+    const r = parseActivityLog(
+      {
+        type: 'plugins.pluginupdated',
+        name: 'Plugin est mis à jour vers 1.2.3 sur Emby',
+      },
+      tt,
+    )
+    expect(r.user).toBe('dashboard.system')
+    expect(r.action).toBe('dashboard.pluginUpdated|Plugin|1.2.3')
+    expect(r.media).toBe('')
+  })
+
+  it('translates a plugin update from an English Emby entry', () => {
+    const tt = (key, p) => (p ? `${key}|${p.plugin}|${p.version}` : key)
+    const r = parseActivityLog(
+      {
+        type: 'plugins.pluginupdated',
+        name: 'Plugin has been updated to 1.2.3 on Emby',
+      },
+      tt,
+    )
+    expect(r.action).toBe('dashboard.pluginUpdated|Plugin|1.2.3')
+  })
+
+  it('falls back to the raw label when a plugin update name is unparseable', () => {
+    const r = parseActivityLog(
+      { type: 'plugins.pluginupdated', name: 'Unexpected format string' },
+      t,
+    )
+    expect(r.action).toBe('Unexpected format string')
+  })
+
   it('keeps the backend-provided user instead of parsing the name', () => {
     const r = parseActivityLog({ type: 'user.authenticated', name: 'irrelevant', user: 'Dave' }, t)
     expect(r.user).toBe('Dave')

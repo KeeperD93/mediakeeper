@@ -606,6 +606,10 @@
   flex-direction: column;
   gap: 4px;
 }
+.cinema-notif .nf-load-more {
+  margin-top: 12px;
+  text-align: center;
+}
 .cinema-notif .nf-hist-row {
   display: flex;
   align-items: center;

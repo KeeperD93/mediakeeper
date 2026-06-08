@@ -23,6 +23,7 @@ utilisateurs.
 - Préférences — option « Par défaut » : la langue suit le défaut du portail.
 - Problèmes — navigation par pages avec choix du nombre affiché (10/25/50/100).
 - Listes — bouton « Charger plus » pour voir au-delà de 50 titres.
+- Listes — onglet « Public » : « Charger plus » au-delà de 50 listes.
 - Notifications — bouton « Charger plus » pour voir les anciennes notifications.
 - Soutien — cœur d'en-tête ouvrant le lien de don du serveur (si configuré).
 
@@ -33,6 +34,8 @@ utilisateurs.
 - Accueil — Populaires et Mieux notés viennent désormais de Découvrir.
 
 ### Fixed
+- Jaquettes — durée d'un titre à venir affichée dès que TMDB la publie.
+- Accueil — bandeau vedette : un titre déjà demandé affiche « En attente ».
 - Demandes — les demandes de film en un clic affichent succès ou refus.
 - Mode maintenance — le portail est désormais entièrement verrouillé (page d'attente seule).
 - Surprise — titre et synopsis du tirage affichés dans votre langue.

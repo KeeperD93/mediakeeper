@@ -13,6 +13,7 @@ import { ref } from 'vue'
 const profileRef = ref({ role: 'user' })
 const listsRef = ref([])
 const publicListsRef = ref([])
+const publicTotalRef = ref(0)
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
@@ -28,6 +29,7 @@ vi.mock('@/composables/portal/usePortalLists', () => ({
   usePortalLists: () => ({
     lists: listsRef,
     publicLists: publicListsRef,
+    publicTotal: publicTotalRef,
     fetchMyLists: vi.fn(() => Promise.resolve(listsRef.value)),
     fetchPublicLists: vi.fn(() => Promise.resolve(publicListsRef.value)),
     fetchList: vi.fn(),

@@ -18,13 +18,22 @@ This section intentionally has no date so it is not shown to users.
 - Portal users (admin) — paginated list (10/25/50/100).
 - News (admin) — "Load more" button beyond the 20 most recent.
 - Portal users (admin) — user audit log: "Load more" beyond 100 entries.
+- Portal users (admin) — user drawer: "Load more" on activity, trophies (XP) and security.
+- GDPR (admin) — pending deletions: "Load more" button beyond the first 50.
+- Lists (admin) — moderation: soft-deleted lists visible/restorable + "Load more".
 - Portal — configurable donation link for your users (admin settings).
 - Dashboard — MediaKeeper support heart in the top bar (Ko-fi, star).
 
 ### Changed
 - Dashboard — 30 upcoming releases shown (was 20).
+- Onboarding — Folders step now notes it's optional (configurable later).
 
 ### Fixed
+- Dashboard — History tabs (Notifications, Duplicates): "Load more" button.
+- Dashboard — activity feed: plugin updates now shown in your language.
+- Dashboard — avatar and rank ring correct right after login (no refresh needed).
+- Requests (admin) — "On behalf of" now defaults to your account.
+- Statistics — libraries: real Emby name instead of a sub-folder (auto-repair).
 - Issues (admin) — status filter fixed (no longer crashes or is ignored).
 - Notifications — saving a Discord webhook no longer fails.
 - Notifications — Discord test message follows the configured default language.

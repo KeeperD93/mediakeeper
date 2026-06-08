@@ -21,6 +21,7 @@ This section intentionally has no date so it is not shown to users.
 - Preferences — "Default" language option that follows the portal default.
 - Issues — paged navigation with a per-page count selector (10/25/50/100).
 - Lists — "Load more" button to reach beyond the first 50 items.
+- Lists — Public tab: "Load more" beyond the first 50 lists.
 - Notifications — "Load more" button to see older notifications.
 - Support — header heart opening the server's donation link (when configured).
 
@@ -31,6 +32,8 @@ This section intentionally has no date so it is not shown to users.
 - Home — Popular and Top-rated rows now sourced from Discover.
 
 ### Fixed
+- Posters — an upcoming title's duration appears once TMDB publishes it.
+- Home — featured banner shows "Pending" for an already-requested title.
 - Requests — one-click movie requests now show success or refusal.
 - Maintenance mode — the portal is now fully locked (holding page only).
 - Surprise — the drawn pick's title and synopsis follow your language.

@@ -280,6 +280,11 @@
             </div>
           </div>
         </div>
+        <div v-if="historyHasMore" class="nf-load-more">
+          <button class="nf-btn-sm" :disabled="loadingMoreHistory" @click="loadHistory(true)">
+            {{ $t('common.loadMore') }}
+          </button>
+        </div>
       </div>
 
       <!-- ═══ TAB: Configuration ═══ -->
@@ -350,6 +355,9 @@ const {
   libraryFilterText,
   genreFilterText,
   filteredHistory,
+  historyHasMore,
+  loadingMoreHistory,
+  loadHistory,
   whHealth,
   whHealthTip,
   addWebhook,

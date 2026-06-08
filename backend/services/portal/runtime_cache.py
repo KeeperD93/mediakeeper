@@ -16,9 +16,9 @@ Any new portal surface that returns normalized card dicts should call
 import asyncio
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -35,6 +35,16 @@ LANGUAGE = os.getenv("TMDB_LANGUAGE", "fr-FR")
 # upstream requests at once.
 _FETCH_CONCURRENCY = 8
 _sem = asyncio.Semaphore(_FETCH_CONCURRENCY)
+
+# A real runtime is immutable and cached forever. A cached "absent" runtime
+# (0 — e.g. an upcoming title TMDB has no duration for yet) is only trusted
+# for this window, then re-resolved so a later-published duration is picked up.
+_ZERO_RUNTIME_TTL_DAYS = 7
+
+
+def _as_utc(dt: datetime) -> datetime:
+    """SQLite hands back naive datetimes; treat them as UTC for comparison."""
+    return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
 
 
 async def resolve_runtimes(items: list[dict]) -> None:
@@ -68,16 +78,29 @@ async def resolve_runtimes(items: list[dict]) -> None:
 async def _read_cache(
     db: AsyncSession, targets: set[tuple[int, str]],
 ) -> dict[tuple[int, str], int]:
-    """Batch-read cached runtimes for the requested (tmdb_id, media_type)."""
+    """Batch-read cached runtimes for the requested (tmdb_id, media_type).
+
+    A real runtime (>0) is a permanent hit; a cached "absent" (0) is a hit
+    only within ``_ZERO_RUNTIME_TTL_DAYS`` and is otherwise omitted so it
+    re-resolves as a miss.
+    """
     ids = {tid for tid, _ in targets}
     rows = await db.execute(
         select(
             TmdbRuntimeCache.tmdb_id,
             TmdbRuntimeCache.media_type,
             TmdbRuntimeCache.runtime,
+            TmdbRuntimeCache.fetched_at,
         ).where(TmdbRuntimeCache.tmdb_id.in_(ids))
     )
-    found = {(r.tmdb_id, r.media_type): r.runtime for r in rows.all()}
+    cutoff = datetime.now(timezone.utc) - timedelta(days=_ZERO_RUNTIME_TTL_DAYS)
+    found: dict[tuple[int, str], int] = {}
+    for r in rows.all():
+        if r.runtime and r.runtime > 0:
+            found[(r.tmdb_id, r.media_type)] = r.runtime
+        elif r.fetched_at and _as_utc(r.fetched_at) >= cutoff:
+            found[(r.tmdb_id, r.media_type)] = r.runtime  # fresh "absent" → trust
+        # else: stale absent (0) → omit so it re-resolves as a miss
     return {k: v for k, v in found.items() if k in targets}
 
 
@@ -104,7 +127,18 @@ async def _fetch_and_store(
                 ))
                 await db.flush()
         except IntegrityError:
-            pass  # a concurrent render cached the same item first
+            # Row already exists. Refresh only a cached "absent" (0) runtime —
+            # it may now be resolvable; a real runtime is immutable, so a
+            # concurrent insert of the same value stays a no-op.
+            await db.execute(
+                update(TmdbRuntimeCache)
+                .where(
+                    TmdbRuntimeCache.tmdb_id == tid,
+                    TmdbRuntimeCache.media_type == mt,
+                    TmdbRuntimeCache.runtime <= 0,
+                )
+                .values(runtime=runtime, fetched_at=now)
+            )
     await db.commit()
     return out
 

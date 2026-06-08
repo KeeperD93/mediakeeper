@@ -90,6 +90,7 @@
           <span class="ru-feed-tail">+{{ entry.xp }} XP</span>
         </li>
       </ol>
+      <PortalLoadMore :show="xpHasMore" :loading="loadingMoreXp" @load="loadMoreXp" />
     </section>
   </div>
 </template>
@@ -100,6 +101,7 @@ import { useI18n } from 'vue-i18n'
 import { Award, Target, Trophy } from 'lucide-vue-next'
 import { usePortalAdminUsers } from '@/composables/portal/usePortalAdminUsers'
 import RuTrophyIcon from '../RuTrophyIcon.vue'
+import PortalLoadMore from '@/components/portal/PortalLoadMore.vue'
 import { localizedDateTime } from '@/utils/datetime'
 import '@/assets/styles/portal/admin-users-feed.css'
 
@@ -111,9 +113,12 @@ const props = defineProps({
 const { t, te } = useI18n()
 const api = usePortalAdminUsers()
 
+const XP_PAGE = 100
 const trophies = ref(null)
 const xp = ref([])
 const loadingXp = ref(false)
+const loadingMoreXp = ref(false)
+const xpHasMore = ref(false)
 
 async function load() {
   if (!props.user?.id) return
@@ -121,12 +126,26 @@ async function load() {
   try {
     const [tr, xh] = await Promise.all([
       api.fetchTrophies(props.user.id),
-      api.fetchXpHistory(props.user.id, { limit: 200 }),
+      api.fetchXpHistory(props.user.id, { limit: XP_PAGE, offset: 0 }),
     ])
     trophies.value = tr || null
     xp.value = xh?.items || []
+    xpHasMore.value = xp.value.length === XP_PAGE
   } finally {
     loadingXp.value = false
+  }
+}
+
+async function loadMoreXp() {
+  if (loadingMoreXp.value || !xpHasMore.value) return
+  loadingMoreXp.value = true
+  try {
+    const res = await api.fetchXpHistory(props.user.id, { limit: XP_PAGE, offset: xp.value.length })
+    const items = res?.items || []
+    xp.value = [...xp.value, ...items]
+    xpHasMore.value = items.length === XP_PAGE
+  } finally {
+    loadingMoreXp.value = false
   }
 }
 

@@ -18,13 +18,22 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Utilisateurs portail (admin) — liste paginée (10/25/50/100).
 - Actualités (admin) — bouton « Charger plus » au-delà des 20 récentes.
 - Utilisateurs portail (admin) — audit de la fiche : « Charger plus » au-delà de 100 entrées.
+- Utilisateurs portail (admin) — fiche : « Charger plus » sur activité, trophées (XP) et sécurité.
+- RGPD (admin) — suppressions en attente : bouton « Charger plus » au-delà de 50.
+- Listes (admin) — modération : listes supprimées visibles/restaurables + « Charger plus ».
 - Portail — lien de don configurable pour vos utilisateurs (réglages admin).
 - Tableau de bord — cœur de soutien MediaKeeper dans le bandeau (Ko-fi, étoile).
 
 ### Changed
 - Tableau de bord — 30 prochaines sorties affichées (au lieu de 20).
+- Onboarding — l'étape Dossiers précise qu'elle est optionnelle (configurable plus tard).
 
 ### Fixed
+- Tableau de bord — onglets Historique (Notifications, Doublons) : bouton « Charger plus ».
+- Tableau de bord — fil d'activité : mises à jour de plugin affichées dans votre langue.
+- Tableau de bord — avatar et anneau de rang corrects dès la connexion (sans actualiser).
+- Demandes (admin) — « Au nom de l'utilisateur » préréglé sur votre compte.
+- Statistiques — médiathèques : nom Emby réel au lieu d'un sous-dossier (réparation auto).
 - Problèmes (admin) — filtre par statut réparé (ne plante plus, n'est plus ignoré).
 - Notifications — l'enregistrement d'un webhook Discord n'échoue plus.
 - Notifications — le message test Discord suit la langue par défaut configurée.

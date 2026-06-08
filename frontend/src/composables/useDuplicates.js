@@ -17,6 +17,9 @@ export function useDuplicates() {
   const refreshing = ref(false)
   const ignoredItems = ref([])
   const history = ref([])
+  const historyCursor = ref(null)
+  const historyHasMore = ref(false)
+  const loadingMoreHistory = ref(false)
   const historyStats = ref({ total_deleted: 0, total_bytes_freed: 0 })
   const rules = ref([])
 
@@ -206,13 +209,22 @@ export function useDuplicates() {
       /* silent: background fetch, list stays empty */
     }
   }
-  async function loadHistory() {
+  // Cursor-paginated history: ``append=true`` fetches+appends the next page.
+  async function loadHistory(append = false) {
+    if (append && (!historyHasMore.value || loadingMoreHistory.value)) return
+    if (append) loadingMoreHistory.value = true
     try {
-      const d = await apiGet('/api/duplicates/history')
-      if (d && d.items) history.value = d.items
-      else if (Array.isArray(d)) history.value = d
+      const params = new URLSearchParams()
+      if (append && historyCursor.value) params.set('cursor', historyCursor.value)
+      const d = await apiGet(`/api/duplicates/history?${params}`)
+      const items = d?.items || (Array.isArray(d) ? d : [])
+      history.value = append ? [...history.value, ...items] : items
+      historyCursor.value = d?.next_cursor || null
+      historyHasMore.value = !!d?.has_more
     } catch {
       /* silent: background fetch, list stays empty */
+    } finally {
+      loadingMoreHistory.value = false
     }
   }
   async function loadHistoryStats() {
@@ -326,6 +338,8 @@ export function useDuplicates() {
     refreshing,
     ignoredItems,
     history,
+    historyHasMore,
+    loadingMoreHistory,
     historyStats,
     rules,
     lastDetection,

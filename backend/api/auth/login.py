@@ -18,7 +18,7 @@ from core.security import (
 from models.portal.profile import UserProfile
 from models.user import User
 from services.portal.emby_auth import authenticate_emby_user
-from services.portal.profiles import serialize_profile
+from services.portal.profiles import resolve_admin_identity, serialize_profile
 
 from ._cookies import _set_portal_jwt_cookie, _set_jwt_cookie
 from ._csrf import rotate_csrf_cookie
@@ -189,11 +189,16 @@ async def portal_login(
             await record_attempt(db, client_ip, tracking_username, "admin", success=True, user_agent=user_agent)
             await _stamp_admin_login(db, user, client_ip=client_ip, user_agent=user_agent)
             logger.info("[PORTAL_LOGIN] Admin success for user_id=%s", user.id)
+            # Same avatar/level/tier as /auth/me so the topbar rank ring
+            # renders on login instead of falling back to bronze until the
+            # next /me (page refresh).
+            identity = await resolve_admin_identity(db, user.id)
             return {
                 "success": True,
                 "scope": "admin",
                 "must_change_password": user.must_change_password,
                 "username": user.username,
+                **identity,
             }
 
         logger.info(

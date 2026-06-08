@@ -36,36 +36,15 @@ async def get_me(
     current_user: User = Depends(get_current_user),
 ):
     ensure_csrf_cookie(response, request)
-    # Surface the linked portal avatar (when present) so the admin
-    # topbar can render the same MkAvatar shown on /portal/users.
-    # ``UserProfile`` is 1:1 with ``User`` via user_id; the lookup
-    # returns ``None`` for admins who never visited the portal side.
-    # ``level`` rides on the same query so the topbar avatar can paint
-    # the matching tier ring (bronze default for admins without a
-    # portal profile yet).
-    from models.portal.profile import UserProfile
-    from services.portal._rank_tiers import tier_for_level
-    from services.portal.avatars import resolve_avatar_url
-    profile_row = (await db.execute(
-        select(
-            UserProfile.avatar_url,
-            UserProfile.avatar_custom_path,
-            UserProfile.level,
-        )
-        .where(UserProfile.user_id == current_user.id)
-    )).first()
-    avatar_url = (
-        resolve_avatar_url(profile_row.avatar_url, profile_row.avatar_custom_path)
-        if profile_row
-        else None
-    )
-    level = profile_row.level if profile_row and profile_row.level else 1
+    # Avatar/level/tier come from the linked portal profile so the admin
+    # topbar paints the matching rank ring. Shared with /portal-login via
+    # ``resolve_admin_identity`` so both payloads stay in sync.
+    from services.portal.profiles import resolve_admin_identity
+    identity = await resolve_admin_identity(db, current_user.id)
     return {
         "username":             current_user.username,
         "must_change_password": current_user.must_change_password,
-        "avatar_url":           avatar_url,
-        "level":                level,
-        "tier":                 tier_for_level(level),
+        **identity,
     }
 
 

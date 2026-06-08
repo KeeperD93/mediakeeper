@@ -215,6 +215,15 @@
             </div>
           </div>
         </div>
+        <div v-if="historyHasMore" class="doub-load-more">
+          <button
+            class="doub-btn doub-btn-secondary"
+            :disabled="loadingMoreHistory"
+            @click="loadHistory(true)"
+          >
+            {{ $t('common.loadMore') }}
+          </button>
+        </div>
       </div>
 
       <!-- ══════ TAB: Rules ══════ -->
@@ -276,6 +285,8 @@ const {
   refreshing,
   ignoredItems,
   history,
+  historyHasMore,
+  loadingMoreHistory,
   historyStats,
   rules,
   lastDetection,
