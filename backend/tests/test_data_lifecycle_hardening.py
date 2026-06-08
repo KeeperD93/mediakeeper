@@ -276,7 +276,7 @@ async def test_get_public_lists_excludes_owner_soft_deleted(db_session):
 
     # Sanity: visible while active.
     visible_before = await get_public_lists(db_session, owner.id, limit=50)
-    assert any(lst["owner_id"] == owner.id for lst in visible_before)
+    assert any(lst["owner_id"] == owner.id for lst in visible_before["items"])
 
     owner.is_active = False
     owner_profile.deleted_at = datetime.now(timezone.utc)
@@ -285,7 +285,7 @@ async def test_get_public_lists_excludes_owner_soft_deleted(db_session):
     await db_session.commit()
 
     visible_after = await get_public_lists(db_session, owner.id, limit=50)
-    assert all(lst["owner_id"] != owner.id for lst in visible_after)
+    assert all(lst["owner_id"] != owner.id for lst in visible_after["items"])
 
 
 @pytest.mark.asyncio
@@ -304,7 +304,7 @@ async def test_get_public_lists_excludes_owner_inactive(db_session):
     await db_session.commit()
 
     visible = await get_public_lists(db_session, owner.id, limit=50)
-    assert all(lst["owner_id"] != owner.id for lst in visible)
+    assert all(lst["owner_id"] != owner.id for lst in visible["items"])
 
 
 @pytest.mark.asyncio
@@ -319,7 +319,7 @@ async def test_get_public_lists_includes_active_owner(db_session):
     visible = await get_public_lists(db_session, owner.id, limit=50)
     assert any(
         lst["owner_id"] == owner.id and lst["name"] == "Active and visible"
-        for lst in visible
+        for lst in visible["items"]
     )
 
 

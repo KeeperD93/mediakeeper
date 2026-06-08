@@ -20,6 +20,7 @@ This section intentionally has no date so it is not shown to users.
 - Portal users (admin) — user audit log: "Load more" beyond 100 entries.
 - Portal users (admin) — user drawer: "Load more" on activity, trophies (XP) and security.
 - GDPR (admin) — pending deletions: "Load more" button beyond the first 50.
+- Lists (admin) — moderation: soft-deleted lists visible/restorable + "Load more".
 - Portal — configurable donation link for your users (admin settings).
 - Dashboard — MediaKeeper support heart in the top bar (Ko-fi, star).
 

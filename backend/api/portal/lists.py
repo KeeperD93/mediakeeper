@@ -91,11 +91,13 @@ async def list_mine(
 @router.get("/public")
 async def list_public(
     limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
     up: tuple[User, UserProfile] = Depends(require_permission("can_lists")),
     db: AsyncSession = Depends(get_db),
 ):
     user, _ = up
-    return {"items": await svc_query.get_public_lists(db, user.id, limit=limit)}
+    result = await svc_query.get_public_lists(db, user.id, limit=limit, offset=offset)
+    return {**result, "limit": limit, "offset": offset}
 
 
 @router.get("/{list_id}")
