@@ -7,6 +7,10 @@ import { useApi } from '@/composables/useApi'
 const items = ref([])
 const unread = ref(0)
 const loading = ref(false)
+const loadingMore = ref(false)
+const nextCursor = ref(null)
+const hasMore = ref(false)
+let activeUnreadOnly = false
 let pollTimer = null
 
 export function useNotifications() {
@@ -21,14 +25,33 @@ export function useNotifications() {
     }
   }
 
-  async function fetchList(unreadOnly = false) {
-    loading.value = true
-    try {
-      const res = await apiGet(`/api/portal/notifications?unread_only=${unreadOnly}`)
-      items.value = res?.items || []
-    } finally {
-      loading.value = false
+  // First page replaces the list; ``append`` keyset-loads the next page and
+  // appends older notifications (bell "load more").
+  async function fetchList(unreadOnly = false, append = false) {
+    if (append && (!hasMore.value || loadingMore.value)) return
+    if (append) loadingMore.value = true
+    else {
+      loading.value = true
+      activeUnreadOnly = unreadOnly
     }
+    try {
+      const params = new URLSearchParams({
+        unread_only: append ? activeUnreadOnly : unreadOnly,
+      })
+      if (append && nextCursor.value) params.set('cursor', nextCursor.value)
+      const res = await apiGet(`/api/portal/notifications?${params}`)
+      const list = res?.items || []
+      items.value = append ? [...items.value, ...list] : list
+      nextCursor.value = res?.next_cursor || null
+      hasMore.value = !!res?.has_more
+    } finally {
+      if (append) loadingMore.value = false
+      else loading.value = false
+    }
+  }
+
+  function loadMore() {
+    return fetchList(activeUnreadOnly, true)
   }
 
   async function markRead(id) {
@@ -70,8 +93,11 @@ export function useNotifications() {
     items,
     unread,
     loading,
+    loadingMore,
+    hasMore,
     fetchCount,
     fetchList,
+    loadMore,
     markRead,
     markAllRead,
     startPolling,

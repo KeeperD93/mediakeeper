@@ -23,6 +23,7 @@ utilisateurs.
 - Préférences — option « Par défaut » : la langue suit le défaut du portail.
 - Problèmes — navigation par pages avec choix du nombre affiché (10/25/50/100).
 - Listes — bouton « Charger plus » pour voir au-delà de 50 titres.
+- Notifications — bouton « Charger plus » pour voir les anciennes notifications.
 - Soutien — cœur d'en-tête ouvrant le lien de don du serveur (si configuré).
 
 ### Changed

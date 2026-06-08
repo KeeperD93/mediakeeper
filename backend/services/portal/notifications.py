@@ -11,9 +11,13 @@ from datetime import datetime, timezone
 from sqlalchemy import select, func, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.pagination import build_cursor_response, decode_cursor
 from models.portal.event import MKNotification
 
 logger = logging.getLogger("mediakeeper.portal.notifications")
+
+# Bell page size: show the latest 10, then "load more" pulls 10 older each time.
+DEFAULT_PAGE_SIZE = 10
 
 
 async def create(
@@ -65,15 +69,31 @@ async def list_for_user(
     db: AsyncSession,
     user_id: int,
     unread_only: bool = False,
-    limit: int = 50,
-) -> list[dict]:
-    """Most recent notifications first. Limit caps at 50 by default."""
-    q = select(MKNotification).where(MKNotification.user_id == user_id)
+    limit: int = DEFAULT_PAGE_SIZE,
+    cursor: str | None = None,
+) -> dict:
+    """Most recent first, keyset-paginated by id.
+
+    Returns a cursor response (items + next_cursor + has_more + total) so the
+    bell can append older notifications via "load more". Ordering by ``id`` is
+    newest-first since the PK auto-increments with ``created_at``.
+    """
+    filters = [MKNotification.user_id == user_id]
     if unread_only:
-        q = q.where(MKNotification.read.is_(False))
-    q = q.order_by(MKNotification.created_at.desc()).limit(limit)
+        filters.append(MKNotification.read.is_(False))
+
+    total = int(
+        (await db.execute(select(func.count(MKNotification.id)).where(*filters))).scalar() or 0
+    )
+
+    q = select(MKNotification).where(*filters)
+    decoded = decode_cursor(cursor) if cursor else None
+    if decoded and decoded.get("id") is not None:
+        q = q.where(MKNotification.id < decoded["id"])
+    q = q.order_by(MKNotification.id.desc()).limit(limit)
     rows = (await db.execute(q)).scalars().all()
-    return [
+
+    items = [
         {
             "id": r.id,
             "type": r.type,
@@ -83,6 +103,7 @@ async def list_for_user(
         }
         for r in rows
     ]
+    return build_cursor_response(items, total, limit, cursor_field="id")
 
 
 async def count_unread(db: AsyncSession, user_id: int) -> int:
