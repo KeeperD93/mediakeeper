@@ -19,6 +19,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Actualités (admin) — bouton « Charger plus » au-delà des 20 récentes.
 - Utilisateurs portail (admin) — audit de la fiche : « Charger plus » au-delà de 100 entrées.
 - Utilisateurs portail (admin) — fiche : « Charger plus » sur activité, trophées (XP) et sécurité.
+- RGPD (admin) — suppressions en attente : bouton « Charger plus » au-delà de 50.
 - Portail — lien de don configurable pour vos utilisateurs (réglages admin).
 - Tableau de bord — cœur de soutien MediaKeeper dans le bandeau (Ko-fi, étoile).
 

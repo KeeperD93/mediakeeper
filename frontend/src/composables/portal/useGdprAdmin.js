@@ -16,6 +16,9 @@ const DEFAULT_SETTINGS = {
   account_purge_delay_days: 30,
 }
 
+// Pending-deletion table page size; "load more" pulls the next page.
+const PENDING_PAGE_SIZE = 50
+
 export function useGdprAdmin() {
   const { apiGet, apiPut, apiDelete } = useApi()
   const saving = ref(false)
@@ -54,10 +57,15 @@ export function useGdprAdmin() {
     })
   }
 
-  async function fetchPendingDeletions() {
+  async function fetchPendingDeletions(offset = 0, limit = PENDING_PAGE_SIZE) {
     return run(async () => {
-      const res = await apiGet('/api/portal/admin/users?pending_deletion=true&limit=200')
-      return Array.isArray(res?.items) ? res.items : []
+      const res = await apiGet(
+        `/api/portal/admin/users?pending_deletion=true&limit=${limit}&offset=${offset}`,
+      )
+      return {
+        items: Array.isArray(res?.items) ? res.items : [],
+        total: Number(res?.total) || 0,
+      }
     })
   }
 
