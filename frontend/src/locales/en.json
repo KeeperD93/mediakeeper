@@ -476,6 +476,7 @@
     "watching": "is watching",
     "finished": "finished",
     "signedIn": "signed in",
+    "pluginUpdated": "{plugin} updated to {version}",
     "signInFailed": "Failed sign-in attempt",
     "signInFailedFor": "Failed sign-in attempt: {user}",
     "justNow": "just now",

@@ -25,6 +25,7 @@ This section intentionally has no date so it is not shown to users.
 - Dashboard — 30 upcoming releases shown (was 20).
 
 ### Fixed
+- Dashboard — activity feed: plugin updates now shown in your language.
 - Issues (admin) — status filter fixed (no longer crashes or is ignored).
 - Notifications — saving a Discord webhook no longer fails.
 - Notifications — Discord test message follows the configured default language.
