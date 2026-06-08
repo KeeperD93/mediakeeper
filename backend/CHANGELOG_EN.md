@@ -25,6 +25,7 @@ This section intentionally has no date so it is not shown to users.
 - Dashboard — 30 upcoming releases shown (was 20).
 
 ### Fixed
+- Statistics — libraries: real Emby name instead of a sub-folder (auto-repair).
 - Issues (admin) — status filter fixed (no longer crashes or is ignored).
 - Notifications — saving a Discord webhook no longer fails.
 - Notifications — Discord test message follows the configured default language.
