@@ -32,6 +32,7 @@ utilisateurs.
 - Accueil — Populaires et Mieux notés viennent désormais de Découvrir.
 
 ### Fixed
+- Jaquettes — durée d'un titre à venir affichée dès que TMDB la publie.
 - Accueil — bandeau vedette : un titre déjà demandé affiche « En attente ».
 - Demandes — les demandes de film en un clic affichent succès ou refus.
 - Mode maintenance — le portail est désormais entièrement verrouillé (page d'attente seule).

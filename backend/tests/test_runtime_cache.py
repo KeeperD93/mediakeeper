@@ -8,6 +8,7 @@ Covers the paths #104 relies on:
 Items that already carry a runtime (Emby library cards) or have no
 ``tmdb_id`` are left untouched.
 """
+from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock
 
 import pytest
@@ -145,4 +146,50 @@ async def test_fetch_and_store_swallows_concurrent_insert_race(db_session, monke
     row = (await db_session.execute(
         select(TmdbRuntimeCache).where(TmdbRuntimeCache.tmdb_id == 88888)
     )).scalar_one()  # exactly one row, the original — insert was a no-op
-    assert row.runtime == 120
+    assert row.runtime == 120  # a real runtime is immutable, not overwritten
+
+
+@pytest.mark.asyncio
+async def test_resolve_runtimes_refetches_stale_zero(db_session, monkeypatch):
+    # A cached "absent" runtime (0) older than the TTL is re-resolved in place:
+    # an upcoming title that now has a duration on TMDB gets picked up.
+    stale = datetime.now(timezone.utc) - timedelta(days=rc._ZERO_RUNTIME_TTL_DAYS + 1)
+    db_session.add(TmdbRuntimeCache(
+        tmdb_id=99001, media_type="movie", runtime=0, fetched_at=stale,
+    ))
+    await db_session.commit()
+    _mock_tmdb(monkeypatch, db_session, _FakeClient({"runtime": 110}))
+
+    items = [{"tmdb_id": 99001, "media_type": "movie", "title": "Now Known"}]
+    await rc.resolve_runtimes(items)
+
+    assert items[0]["runtime"] == 110
+    row = (await db_session.execute(
+        select(TmdbRuntimeCache).where(TmdbRuntimeCache.tmdb_id == 99001)
+    )).scalar_one()  # same row, refreshed in place
+    assert row.runtime == 110
+
+
+@pytest.mark.asyncio
+async def test_resolve_runtimes_keeps_fresh_zero_without_refetch(db_session, monkeypatch):
+    # A fresh "absent" runtime (0 within the TTL) is trusted: no TMDB call.
+    db_session.add(TmdbRuntimeCache(
+        tmdb_id=99002, media_type="movie", runtime=0,
+        fetched_at=datetime.now(timezone.utc),
+    ))
+    await db_session.commit()
+
+    calls = {"n": 0}
+
+    class _CountingClient(_FakeClient):
+        async def get(self, *a, **k):
+            calls["n"] += 1
+            return await super().get(*a, **k)
+
+    _mock_tmdb(monkeypatch, db_session, _CountingClient({"runtime": 110}))
+
+    items = [{"tmdb_id": 99002, "media_type": "movie", "title": "Fresh Zero"}]
+    await rc.resolve_runtimes(items)
+
+    assert "runtime" not in items[0]  # still absent, not stamped
+    assert calls["n"] == 0  # fresh 0 trusted → no re-fetch
