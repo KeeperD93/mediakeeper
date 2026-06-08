@@ -197,6 +197,23 @@ class BackgroundTaskManager:
                 logger.error(f"[CHAT_PURGE] error: {e}")
             await asyncio.sleep(86400)
 
+    async def _periodic_notification_purge(self):
+        await asyncio.sleep(150)
+        while True:
+            try:
+                from services.portal import notifications as notifs
+
+                async with AsyncSession(self._engine, expire_on_commit=False) as session:
+                    removed = await notifs.delete_old(session)
+                    await session.commit()
+                    if removed:
+                        logger.info(
+                            "[NOTIF_PURGE] Removed %d notification(s) past retention", removed
+                        )
+            except Exception as e:
+                logger.error("[NOTIF_PURGE] error: %s", e)
+            await asyncio.sleep(86400)
+
     async def start(self):
         if self._started:
             return
@@ -215,6 +232,7 @@ class BackgroundTaskManager:
             asyncio.create_task(self._supervised("library_cache", self._periodic_library_cache)),
             asyncio.create_task(self._supervised("ticket_auto_close", self._periodic_ticket_auto_close)),
             asyncio.create_task(self._supervised("chat_purge", self._periodic_chat_purge)),
+            asyncio.create_task(self._supervised("notification_purge", self._periodic_notification_purge)),
             asyncio.create_task(self._supervised("health_monitor", self._periodic_health_monitor)),
             asyncio.create_task(self._supervised("ws_revocation", self._periodic_ws_revocation_sweep)),
         ]

@@ -22,6 +22,7 @@ This section intentionally has no date so it is not shown to users.
 - Issues — paged navigation with a per-page count selector (10/25/50/100).
 - Lists — "Load more" button to reach beyond the first 50 items.
 - Lists — Public tab: "Load more" beyond the first 50 lists.
+- Notifications — "Load more" button to see older notifications.
 - Support — header heart opening the server's donation link (when configured).
 
 ### Changed
