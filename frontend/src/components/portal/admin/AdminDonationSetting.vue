@@ -70,15 +70,15 @@ import { Save } from 'lucide-vue-next'
 import MkToggle from '@/components/common/MkToggle.vue'
 import HelpEditor from '@/components/portal/help/HelpEditor.vue'
 import { useDonationAdmin } from '@/composables/portal/useDonationAdmin'
-import { usePortalAuth } from '@/composables/portal/usePortalAuth'
+import { useDonationConfig } from '@/composables/useDonationConfig'
 
 const SAVED_MESSAGE_TIMEOUT_MS = 2000
 
 const { t } = useI18n()
 const { saving, fetchDonation, saveDonation } = useDonationAdmin()
-// Refresh the shared portal payload so the heart panel (which reads
-// ui.donation) reflects edits without a full page reload.
-const { refreshAuth } = usePortalAuth()
+// Refresh the shared (singleton) donation config so the dashboard top-bar
+// heart panel reflects edits live, without a full page reload.
+const { loadDonation } = useDonationConfig()
 
 const urlId = useId()
 const labelId = useId()
@@ -111,7 +111,7 @@ async function onToggle(next) {
   if (res) {
     apply(res)
     flashSaved()
-    await refreshAuth()
+    await loadDonation()
   }
 }
 
@@ -124,7 +124,7 @@ async function onSave() {
   if (res) {
     apply(res)
     flashSaved()
-    await refreshAuth()
+    await loadDonation()
   }
 }
 

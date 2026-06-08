@@ -152,7 +152,7 @@ async function migrateLibNames() {
     }
     migrateStatus.value = {
       type: 'ok',
-      text: `${d.migrated} ${t('stats.resolved')}, ${d.fallback} ${t('stats.fallback')}`,
+      text: `${d.migrated} ${t('stats.resolved')}, ${d.unresolved} ${t('stats.unresolved')}`,
     }
   } catch {
     migrateStatus.value = { type: 'err', text: t('common.error') }
