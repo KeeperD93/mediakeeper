@@ -1,10 +1,15 @@
-"""Cursor pagination on GET /api/portal/notifications (bell "load more")."""
+"""Cursor pagination on GET /api/portal/notifications (bell "load more")
+plus the 6-month retention purge (services.portal.notifications.delete_old)."""
+
+from datetime import datetime, timedelta, timezone
 
 import pytest
+from sqlalchemy import select
 
 from core.security import create_access_token
 from models.portal.profile import UserProfile
 from models.portal.event import MKNotification
+from services.portal import notifications as notifs
 
 
 async def _portal_cookie(client, user, db_session):
@@ -117,3 +122,27 @@ async def test_invalid_limit_returns_422(client, admin_user, db_session):
     for query in ("limit=0", "limit=201"):
         resp = await client.get(f"/api/portal/notifications?{query}")
         assert resp.status_code == 422, query
+
+
+@pytest.mark.asyncio
+async def test_delete_old_purges_only_notifications_past_retention(db_session, admin_user):
+    now = datetime.now(timezone.utc)
+    db_session.add_all([
+        MKNotification(user_id=admin_user.id, type="event_invitation", read=True,
+                       created_at=now - timedelta(days=200)),
+        MKNotification(user_id=admin_user.id, type="event_invitation", read=False,
+                       created_at=now - timedelta(days=181)),
+        MKNotification(user_id=admin_user.id, type="event_invitation", read=True,
+                       created_at=now - timedelta(days=30)),
+    ])
+    await db_session.commit()
+
+    # Default retention is 6 months: both >180d rows go, the 30d one stays.
+    removed = await notifs.delete_old(db_session)
+    await db_session.commit()
+    assert removed == 2
+
+    remaining = (await db_session.execute(
+        select(MKNotification.id).where(MKNotification.user_id == admin_user.id)
+    )).scalars().all()
+    assert len(remaining) == 1

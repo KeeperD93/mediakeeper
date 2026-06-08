@@ -7,7 +7,7 @@ demand-related notifs (request_approved, request_rejected, ticket_replied,
 …).
 """
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import select, func, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,6 +18,10 @@ logger = logging.getLogger("mediakeeper.portal.notifications")
 
 # Bell page size: show the latest 10, then "load more" pulls 10 older each time.
 DEFAULT_PAGE_SIZE = 10
+
+# Notifications are transient (event invites, request status). Keep ~6 months
+# of history; the daily background purge drops anything older.
+NOTIFICATION_RETENTION_DAYS = 180
 
 
 async def create(
@@ -140,11 +144,10 @@ async def mark_all_read(db: AsyncSession, user_id: int) -> int:
     return res.rowcount or 0
 
 
-async def delete_old(db: AsyncSession, older_than_days: int = 30) -> int:
-    """House-keeping helper for the scheduler — purges stale notifs."""
-    cutoff = datetime.now(timezone.utc).timestamp() - older_than_days * 86400
-    cutoff_dt = datetime.fromtimestamp(cutoff, tz=timezone.utc)
+async def delete_old(db: AsyncSession, older_than_days: int = NOTIFICATION_RETENTION_DAYS) -> int:
+    """House-keeping helper for the daily purge loop — drops stale notifs."""
+    cutoff = datetime.now(timezone.utc) - timedelta(days=older_than_days)
     res = await db.execute(
-        delete(MKNotification).where(MKNotification.created_at < cutoff_dt)
+        delete(MKNotification).where(MKNotification.created_at < cutoff)
     )
     return res.rowcount or 0
