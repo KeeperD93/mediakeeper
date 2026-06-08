@@ -69,6 +69,36 @@ async def test_portal_login_admin_gets_backoffice_and_portal_cookies(client, adm
 
 
 @pytest.mark.asyncio
+async def test_portal_login_admin_payload_carries_avatar_tier(client, db_session, admin_user):
+    """Admin portal-login exposes the same avatar/level/tier as /auth/me so the
+    topbar rank ring renders on login without a page refresh."""
+    db_session.add(UserProfile(
+        user_id=admin_user.id,
+        display_name="Admin",
+        role="admin",
+        account_active=True,
+        level=50,
+    ))
+    await db_session.commit()
+
+    resp = await client.post("/api/auth/portal-login", json={
+        "username": "admin",
+        "password": "TestPassword123!",
+    })
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["scope"] == "admin"
+    assert body["level"] == 50
+    assert body["tier"] == "legendary"
+    assert "avatar_url" in body
+
+    me = (await client.get("/api/auth/me")).json()
+    assert (body["level"], body["tier"], body["avatar_url"]) == (
+        me["level"], me["tier"], me["avatar_url"],
+    )
+
+
+@pytest.mark.asyncio
 async def test_portal_login_emby_user_redirects_to_portal(client, db_session):
     """The portal login must accept an imported Emby account without opening the backoffice."""
     user = User(

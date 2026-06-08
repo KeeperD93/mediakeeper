@@ -10,7 +10,7 @@ from services.emby import get_raw_sessions
 from services.settings import get_active_media_source
 
 from ._cache import _normalize_library_name
-from ._resolver import _resolve_library_name
+from ._resolver import _session_library_name
 
 logger = logging.getLogger("mediakeeper.stats.collector")
 
@@ -116,19 +116,13 @@ async def collect_active_sessions(db: AsyncSession):
             if not row.genres and genres_str:
                 row.genres = genres_str
             if not row.library_name:
-                lib_name = np.get("LibraryName") or np.get("ParentName") or None
-                if not lib_name:
-                    lib_name = await _resolve_library_name(item_id, url, api_key, library_aliases)
+                lib_name = await _session_library_name(np, item_id, url, api_key, library_aliases)
                 if lib_name:
                     logger.info(f"Session {session_key}: library_name enrichi → {lib_name}")
                 row.library_name = lib_name
         else:
-            lib_name = np.get("LibraryName") or np.get("ParentName") or None
-            if lib_name:
-                logger.debug(f"New session {item_id}: LibraryName Emby = {lib_name}")
-            else:
-                lib_name = await _resolve_library_name(item_id, url, api_key, library_aliases)
-                logger.info(f"New session {item_id}: library_name resolved = {lib_name}")
+            lib_name = await _session_library_name(np, item_id, url, api_key, library_aliases)
+            logger.debug(f"New session {item_id}: library_name resolved = {lib_name}")
             row = PlaybackSession(
                 session_key=session_key,
                 user_id=user_id,
