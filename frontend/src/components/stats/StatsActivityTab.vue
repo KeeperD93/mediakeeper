@@ -1,46 +1,6 @@
 <template>
   <div class="tab-panel">
-    <div v-if="minimap24h.length" class="minimap-wrap glass-card">
-      <div class="minimap-header">
-        <span class="minimap-title">{{ $t('stats.last24h') }}</span>
-        <span class="minimap-count">{{ minimapStats.total }} {{ $t('stats.plays_unit') }}</span>
-      </div>
-      <div class="minimap-hours">
-        <div
-          v-for="h in 24"
-          :key="'mh24' + h"
-          class="minimap-hour-col"
-          :title="minimapHourData[h - 1].title"
-        >
-          <div
-            class="minimap-hour-fill"
-            :style="{
-              height: minimapHourData[h - 1].pct + '%',
-              background: minimapHourData[h - 1].color,
-            }"
-          />
-        </div>
-      </div>
-      <div class="minimap-hlabels">
-        <span v-for="h in [0, 3, 6, 9, 12, 15, 18, 21]" :key="'ml' + h" class="minimap-hlabel">
-          {{ h }}h
-        </span>
-      </div>
-      <div class="minimap-legend">
-        <span class="minimap-leg">
-          <span class="minimap-ldot minimap-ldot-direct" />
-          {{ $t('stats.directPlay') }}
-        </span>
-        <span class="minimap-leg">
-          <span class="minimap-ldot minimap-ldot-transcode" />
-          {{ $t('stats.transcodeLabel') }}
-        </span>
-        <span class="minimap-leg">
-          <span class="minimap-ldot minimap-ldot-other" />
-          {{ $t('stats.otherStream') }}
-        </span>
-      </div>
-    </div>
+    <StatsActivityMinimap v-if="minimap24h.length" :items="minimap24h" />
 
     <div class="glass-card tbl-wrap tbl-wrap-activity">
       <div class="tbl-header">
@@ -59,7 +19,7 @@
             <select
               v-model="activityPerPage"
               class="ctrl-sel mk-select-chevron"
-              @change="((activityCursorHistory = []), fetchActivityData(''))"
+              @change="changePerPage"
             >
               <option :value="25">25</option>
               <option :value="50">50</option>
@@ -218,254 +178,50 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useApi } from '@/composables/useApi'
+import { onMounted } from 'vue'
+import { ChevronLeft, ChevronRight, ChevronsLeft } from 'lucide-vue-next'
 import { useStats } from '@/composables/useStats'
-import { useStatsUI } from '@/composables/useStatsUI'
+import { useStatsActivityTable } from '@/composables/useStatsActivityTable'
 import {
   sortArrow,
   sortArrowClass,
   formatDate,
   fluxBadgeClass,
 } from '@/components/stats/statsTableUtils'
-import { ChevronLeft, ChevronRight, ChevronsLeft } from 'lucide-vue-next'
 import MkButton from '@/components/common/MkButton.vue'
-import { useConfirm } from '@/composables/useConfirm'
+import StatsActivityMinimap from '@/components/stats/StatsActivityMinimap.vue'
 import '@/assets/styles/stats-tables.css'
 
-const mkConfirm = useConfirm()
-
-const { t } = useI18n()
-const { apiPost } = useApi()
-const { activity, loadingActivity, loadActivity, minimap24h, loadMinimap24h, ticksToDuration } =
-  useStats()
-const { activitySearchSeed } = useStatsUI()
-
-const activityCursorHistory = ref([])
-const activitySearch = ref('')
-const activitySortBy = ref('started_at')
-const activitySortOrder = ref('desc')
-const activityPerPage = ref(25)
-let actDb = null
-
-function fetchActivityData(cursor = '') {
-  loadActivity({ cursor, limit: activityPerPage.value, search: activitySearch.value })
-}
-function activityNextPage() {
-  const nc = activity.value.next_cursor
-  if (nc) {
-    activityCursorHistory.value.push('')
-    fetchActivityData(nc)
-  }
-}
-function activityPrevPage() {
-  if (activityCursorHistory.value.length) {
-    activityCursorHistory.value.pop()
-    fetchActivityData('')
-  }
-}
-function activityFirstPage() {
-  activityCursorHistory.value = []
-  fetchActivityData('')
-}
-function debouncedFetchActivity() {
-  clearTimeout(actDb)
-  actDb = setTimeout(() => {
-    activityCursorHistory.value = []
-    fetchActivityData('')
-  }, 300)
-}
-
-function toggleActivitySort(c) {
-  if (activitySortBy.value === c)
-    activitySortOrder.value = activitySortOrder.value === 'desc' ? 'asc' : 'desc'
-  else {
-    activitySortBy.value = c
-    activitySortOrder.value = 'desc'
-  }
-}
-
-const sortedActivity = computed(() => {
-  const it = [...(activity.value?.items || [])]
-  if (activitySortBy.value === 'started_at' && activitySortOrder.value === 'desc') return it
-  it.sort((a, b) => {
-    let va = a[activitySortBy.value] || ''
-    let vb = b[activitySortBy.value] || ''
-    if (activitySortBy.value === 'duration') {
-      va = a.duration_ticks || 0
-      vb = b.duration_ticks || 0
-    }
-    if (typeof va === 'number') return activitySortOrder.value === 'desc' ? vb - va : va - vb
-    return activitySortOrder.value === 'desc'
-      ? String(vb).localeCompare(String(va))
-      : String(va).localeCompare(String(vb))
-  })
-  return it
-})
-
-const activitySelected = ref(new Set())
-const activityAllChecked = computed(
-  () =>
-    sortedActivity.value.length > 0 &&
-    sortedActivity.value.every(it => activitySelected.value.has(it.id)),
-)
-function toggleActivitySelect(id) {
-  const s = new Set(activitySelected.value)
-  if (s.has(id)) s.delete(id)
-  else s.add(id)
-  activitySelected.value = s
-}
-function toggleActivitySelectAll() {
-  if (activityAllChecked.value) activitySelected.value = new Set()
-  else activitySelected.value = new Set(sortedActivity.value.map(it => it.id))
-}
-async function bulkDeleteActivity() {
-  const ids = [...activitySelected.value]
-  if (!ids.length) return
-  const ok = await mkConfirm({
-    title: t('common.confirmTitle.delete'),
-    message: t('stats.confirmBulkDeleteActivity', { count: ids.length }),
-    variant: 'danger',
-    confirmLabel: t('common.delete'),
-  })
-  if (!ok) return
-  try {
-    await apiPost('/api/stats/activity/bulk-delete', { ids })
-    activitySelected.value = new Set()
-    fetchActivityData('')
-  } catch (e) {
-    console.error('[StatsActivityTab.bulkDeleteActivity] failed to bulk-delete', e)
-  }
-}
-
-const minimapStats = computed(() => ({ total: minimap24h.value.length }))
-const minimapHourData = computed(() => {
-  const items = minimap24h.value
-  const hours = Array.from({ length: 24 }, () => ({ direct: 0, transcode: 0, other: 0, users: [] }))
-  for (const i of items) {
-    const h = new Date(i.started_at).getHours()
-    if (i.play_method === 'DirectPlay') hours[h].direct++
-    else if (i.play_method === 'Transcode') hours[h].transcode++
-    else hours[h].other++
-    if (!hours[h].users.includes(i.user)) hours[h].users.push(i.user)
-  }
-  const maxCount = Math.max(1, ...hours.map(h => h.direct + h.transcode + h.other))
-  return hours.map((h, idx) => {
-    const total = h.direct + h.transcode + h.other
-    const dominant = h.transcode > h.direct ? '#fbbf24' : total > 0 ? '#4ade80' : 'transparent'
-    return {
-      pct: Math.round((total / maxCount) * 100),
-      color: dominant,
-      title: `${idx}h : ${total} lecture${total > 1 ? 's' : ''}${h.users.length ? ' (' + h.users.join(', ') + ')' : ''}`,
-    }
-  })
-})
-
-watch(activitySearchSeed, seed => {
-  if (seed) {
-    activitySearch.value = seed
-    activityCursorHistory.value = []
-    fetchActivityData('')
-    activitySearchSeed.value = ''
-  }
-})
+const { minimap24h, loadMinimap24h } = useStats()
+const {
+  activity,
+  loadingActivity,
+  ticksToDuration,
+  activityCursorHistory,
+  activitySearch,
+  activitySortBy,
+  activitySortOrder,
+  activityPerPage,
+  activitySelected,
+  sortedActivity,
+  activityAllChecked,
+  changePerPage,
+  debouncedFetchActivity,
+  activityFirstPage,
+  activityPrevPage,
+  activityNextPage,
+  toggleActivitySort,
+  toggleActivitySelect,
+  toggleActivitySelectAll,
+  bulkDeleteActivity,
+} = useStatsActivityTable()
 
 onMounted(() => {
-  if (activitySearchSeed.value) {
-    activitySearch.value = activitySearchSeed.value
-    activitySearchSeed.value = ''
-  }
-  if (!activity.value.items.length || activitySearch.value) fetchActivityData('')
   if (!minimap24h.value.length) loadMinimap24h()
 })
 </script>
 
 <style scoped>
-.minimap-wrap {
-  padding: 14px 16px;
-  margin-bottom: 0;
-}
-.minimap-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-.minimap-title {
-  font-size: var(--text-2xs);
-  font-weight: var(--font-medium);
-  color: var(--text-primary);
-}
-.minimap-count {
-  font-size: var(--text-2xs);
-  color: var(--text-muted);
-}
-.minimap-hours {
-  display: flex;
-  align-items: flex-end;
-  gap: 3px;
-  height: 48px;
-  padding: 0 2px;
-}
-.minimap-hour-col {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: flex-end;
-  height: 100%;
-  background: rgb(255, 255, 255, 0.02);
-  border-radius: 3px 3px 0 0;
-  cursor: default;
-  transition: background var(--duration-fast);
-}
-.minimap-hour-col:hover {
-  background: var(--surface-3);
-}
-.minimap-hour-fill {
-  width: 100%;
-  border-radius: 3px 3px 0 0;
-  min-height: 0;
-  transition: height var(--duration-slow) ease;
-}
-.minimap-hlabels {
-  display: flex;
-  justify-content: space-between;
-  padding: 4px 2px 0;
-}
-.minimap-hlabel {
-  font-size: 0.5rem;
-  color: var(--text-muted);
-  width: calc(100% / 8);
-  text-align: center;
-}
-.minimap-legend {
-  display: flex;
-  gap: 12px;
-  margin-top: 8px;
-  justify-content: center;
-}
-.minimap-leg {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.58rem;
-  color: var(--text-muted);
-}
-.minimap-ldot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.minimap-ldot-direct {
-  background: #4ade80;
-}
-.minimap-ldot-transcode {
-  background: var(--color-warning);
-}
-.minimap-ldot-other {
-  background: #818cf8;
-}
 .glass-card {
   background: var(--surface-1);
   backdrop-filter: blur(16px);
