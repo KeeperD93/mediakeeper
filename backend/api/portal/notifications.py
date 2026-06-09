@@ -14,12 +14,13 @@ router = APIRouter(prefix="/notifications", tags=["portal-notifications"])
 @router.get("")
 async def list_notifs(
     unread_only: bool = Query(False),
-    limit: int = Query(50, ge=1, le=200),
+    limit: int = Query(notifs.DEFAULT_PAGE_SIZE, ge=1, le=200),
+    cursor: str | None = Query(None),
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):
     user, _ = up
-    return {"items": await notifs.list_for_user(db, user.id, unread_only, limit)}
+    return await notifs.list_for_user(db, user.id, unread_only, limit, cursor)
 
 
 @router.get("/count")

@@ -1468,6 +1468,7 @@
     "foldersTitle": "Media folders",
     "foldersDesc": "Enter the paths to your media folders inside the Docker container. These paths must match your mounted volumes.",
     "foldersHint": "Leave empty to use default values or environment variables.",
+    "foldersOptional": "Optional: you can configure your folders anytime in Settings → Folders.",
     "tourTitle": "MediaKeeper modules",
     "tourDesc": "Here is a quick overview of what you can do with MediaKeeper.",
     "modDashboard": "Real-time overview",

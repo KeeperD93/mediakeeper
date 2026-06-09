@@ -92,6 +92,7 @@
     </button>
 
     <p class="ob-folders-hint">{{ $t('onboarding.foldersHint') }}</p>
+    <p class="ob-folders-hint">{{ $t('onboarding.foldersOptional') }}</p>
   </div>
 </template>
 

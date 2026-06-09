@@ -4,7 +4,7 @@ from sqlalchemy import select
 
 from core.security import create_access_token, hash_password
 from models.portal.profile import UserProfile
-from models.portal.social import UserList
+from models.portal.social import UserList, PRIVACY_PUBLIC_READONLY, PRIVACY_COLLABORATIVE
 from models.user import User
 
 
@@ -290,3 +290,87 @@ async def test_add_item_keeps_whitelisted_tmdb_poster(client, db_session):
     assert resp.status_code == 200
     body = (await client.get(f"/api/portal/lists/{list_id}")).json()
     assert body["items"][0]["poster_url"] == poster
+
+
+@pytest.mark.asyncio
+async def test_public_lists_offset_pagination(client, db_session):
+    owner = await _bootstrap(db_session, "pg_owner")
+    db_session.add_all([
+        UserList(user_id=owner.id, name=f"Public {i:02d}", privacy=PRIVACY_PUBLIC_READONLY)
+        for i in range(5)
+    ])
+    await db_session.commit()
+    _rq(client, owner)
+
+    seen: list[int] = []
+    for offset in (0, 2, 4):
+        resp = await client.get(f"/api/portal/lists/public?limit=2&offset={offset}")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["total"] == 5
+        seen.extend(it["id"] for it in body["items"])
+    assert len(seen) == 5 and len(set(seen)) == 5
+
+
+@pytest.mark.asyncio
+async def test_public_lists_hide_soft_deleted_from_users(client, db_session):
+    """The user-facing /public endpoint must never leak a soft-deleted list."""
+    owner = await _bootstrap(db_session, "pd_owner")
+    db_session.add(UserList(
+        user_id=owner.id, name="Gone", privacy=PRIVACY_PUBLIC_READONLY, is_deleted=True,
+    ))
+    await db_session.commit()
+    _rq(client, owner)
+
+    body = (await client.get("/api/portal/lists/public")).json()
+    assert all(it["name"] != "Gone" for it in body["items"])
+    assert body["total"] == 0
+
+
+@pytest.mark.asyncio
+async def test_moderation_lists_include_soft_deleted_for_admin(client, db_session):
+    """Admin moderation sees soft-deleted lists so the undelete button works."""
+    owner = await _bootstrap(db_session, "mod_owner")
+    admin = await _bootstrap(db_session, "mod_admin", role="admin")
+    db_session.add_all([
+        UserList(user_id=owner.id, name="Live one", privacy=PRIVACY_PUBLIC_READONLY),
+        UserList(user_id=owner.id, name="Deleted one",
+                 privacy=PRIVACY_PUBLIC_READONLY, is_deleted=True),
+    ])
+    await db_session.commit()
+    _rq(client, admin)
+
+    body = (await client.get("/api/portal/admin/lists")).json()
+    names = {it["name"] for it in body["items"]}
+    assert {"Live one", "Deleted one"} <= names
+    assert body["total"] == 2
+
+
+@pytest.mark.asyncio
+async def test_moderation_lists_offset_pagination(client, db_session):
+    owner = await _bootstrap(db_session, "modpg_owner")
+    admin = await _bootstrap(db_session, "modpg_admin", role="admin")
+    db_session.add_all([
+        UserList(user_id=owner.id, name=f"Mod {i:02d}", privacy=PRIVACY_COLLABORATIVE)
+        for i in range(5)
+    ])
+    await db_session.commit()
+    _rq(client, admin)
+
+    seen: list[int] = []
+    for offset in (0, 2, 4):
+        resp = await client.get(f"/api/portal/admin/lists?limit=2&offset={offset}")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["total"] == 5
+        seen.extend(it["id"] for it in body["items"])
+    assert len(seen) == 5 and len(set(seen)) == 5
+
+
+@pytest.mark.asyncio
+async def test_moderation_lists_rejects_non_admin(client, db_session):
+    """The moderation feed exposes deleted lists → must stay admin-only."""
+    viewer = await _bootstrap(db_session, "mod_viewer")
+    _rq(client, viewer)
+    resp = await client.get("/api/portal/admin/lists")
+    assert resp.status_code == 403

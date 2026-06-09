@@ -100,8 +100,20 @@ function isLeft(i) {
   scrollbar-color: rgb(99, 102, 241, 0.2) transparent;
 }
 @media (min-width: 768px) {
+  /* Fill the content area (the .wl-fill flex chain gives .tl a real height)
+     instead of capping at 80vh, while keeping the panel's own internal scroll
+     so the months sidebar + jump-to-today stay usable. */
+  .tl {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  .tl-outer {
+    flex: 1;
+    min-height: 0;
+  }
   .tl-scroll {
-    max-height: 80vh;
+    min-height: 0;
   }
 }
 </style>

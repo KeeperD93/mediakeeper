@@ -2,7 +2,7 @@
 
 Mounted under ``/api/portal/admin/lists``. Gated by ``require_admin``.
 """
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,12 +11,29 @@ from models.user import User
 from models.portal.profile import UserProfile
 from api.portal.deps import require_admin
 from services.portal import lists_admin as svc_admin
+from services.portal import lists_query as svc_query
 
 router = APIRouter(prefix="/admin/lists", tags=["portal-lists-admin"])
 
 
 class MuteToggle(BaseModel):
     muted: bool
+
+
+@router.get("")
+async def admin_list_all(
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    up: tuple[User, UserProfile] = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """All public/collaborative lists for moderation — including soft-deleted
+    ones (so the admin can restore them) and lists of deactivated owners."""
+    admin_user, _ = up
+    result = await svc_query.get_moderation_lists(
+        db, admin_user.id, limit=limit, offset=offset,
+    )
+    return {**result, "limit": limit, "offset": offset}
 
 
 def _http_error(result: dict) -> None:

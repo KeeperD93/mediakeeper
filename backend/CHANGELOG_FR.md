@@ -18,11 +18,16 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Utilisateurs portail (admin) — liste paginée (10/25/50/100).
 - Actualités (admin) — bouton « Charger plus » au-delà des 20 récentes.
 - Utilisateurs portail (admin) — audit de la fiche : « Charger plus » au-delà de 100 entrées.
+- Utilisateurs portail (admin) — fiche : « Charger plus » sur activité, trophées (XP) et sécurité.
+- RGPD (admin) — suppressions en attente : bouton « Charger plus » au-delà de 50.
+- Listes (admin) — modération : listes supprimées visibles/restaurables + « Charger plus ».
 - Portail — lien de don configurable pour vos utilisateurs (réglages admin).
 - Tableau de bord — cœur de soutien MediaKeeper dans le bandeau (Ko-fi, étoile).
 
 ### Changed
 - Tableau de bord — 30 prochaines sorties affichées (au lieu de 20).
+- Onboarding — l'étape Dossiers précise qu'elle est optionnelle (configurable plus tard).
+- Watchlist — onglet Timeline : barre des mois élargie et plus lisible.
 
 ### Fixed
 - Tableau de bord — onglets Historique (Notifications, Doublons) : bouton « Charger plus ».
@@ -56,6 +61,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Dates affichées dans la langue de l'app (au lieu de celle du navigateur).
 - Avatars personnalisés affichés dans la barre admin, la liste utilisateurs et les sessions.
 - Portail — page Découvrir : bouton retour agrandi, survol collant et défilement latéral corrigés.
+- Watchlist — onglet Timeline : la frise remplit la hauteur (plus de bande vide).
 
 ## [1.0.0-rc.4] - 2026-05-30
 

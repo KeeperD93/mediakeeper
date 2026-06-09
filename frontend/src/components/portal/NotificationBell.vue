@@ -40,6 +40,7 @@
                 <div class="pt-bell-time">{{ timeAgoForNotification(n.created_at, t) }}</div>
               </div>
             </button>
+            <PortalLoadMore :show="hasMore" :loading="loadingMore" @load="loadMore" />
           </div>
         </div>
       </transition>
@@ -61,6 +62,7 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useNotifications } from '@/composables/portal/useNotifications'
 import EventDetailModal from './EventDetailModal.vue'
+import PortalLoadMore from './PortalLoadMore.vue'
 import { NOTIF_TYPE } from '@/constants/notifications'
 import { PORTAL_TAB } from '@/constants/portal'
 import {
@@ -73,8 +75,19 @@ import { Bell } from 'lucide-vue-next'
 const router = useRouter()
 
 const { t } = useI18n()
-const { items, unread, loading, fetchList, markRead, markAllRead, startPolling, stopPolling } =
-  useNotifications()
+const {
+  items,
+  unread,
+  loading,
+  loadingMore,
+  hasMore,
+  fetchList,
+  loadMore,
+  markRead,
+  markAllRead,
+  startPolling,
+  stopPolling,
+} = useNotifications()
 
 const open = ref(false)
 const detailEventId = ref(null)

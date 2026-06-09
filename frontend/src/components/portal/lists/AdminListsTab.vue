@@ -52,6 +52,8 @@
         </tr>
       </tbody>
     </table>
+
+    <PortalLoadMore :show="hasMore" :loading="loadingMore" @load="loadMore" />
   </div>
 </template>
 
@@ -62,6 +64,7 @@ import { usePortalLists } from '@/composables/portal/usePortalLists'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import MkSpinner from '@/components/common/MkSpinner.vue'
+import PortalLoadMore from '@/components/portal/PortalLoadMore.vue'
 import { useConfirm } from '@/composables/useConfirm'
 
 const { t } = useI18n()
@@ -70,14 +73,31 @@ const svc = usePortalLists()
 const mkConfirm = useConfirm()
 const loading = ref(false)
 
-const allLists = computed(() => svc.publicLists.value)
+const MOD_PAGE = 50
+const allLists = computed(() => svc.moderationLists.value)
+const loadingMore = ref(false)
+const hasMore = computed(() => svc.moderationLists.value.length < svc.moderationTotal.value)
 
 async function load() {
   loading.value = true
   try {
-    await svc.fetchPublicLists(200)
+    await svc.fetchModerationLists({ limit: MOD_PAGE, offset: 0 })
   } finally {
     loading.value = false
+  }
+}
+
+async function loadMore() {
+  if (loadingMore.value || !hasMore.value) return
+  loadingMore.value = true
+  try {
+    await svc.fetchModerationLists({
+      limit: MOD_PAGE,
+      offset: svc.moderationLists.value.length,
+      append: true,
+    })
+  } finally {
+    loadingMore.value = false
   }
 }
 

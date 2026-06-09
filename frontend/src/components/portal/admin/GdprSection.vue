@@ -115,10 +115,14 @@
 
         <GdprPendingTable
           :rows="pending"
+          :total="pendingTotal"
           :loading="pendingLoading"
+          :loading-more="pendingLoadingMore"
+          :has-more="pendingHasMore"
           :cancelling-id="cancellingId"
-          @refresh="loadPending"
+          @refresh="loadPending(false)"
           @cancel="onCancel"
+          @load-more="loadPending(true)"
         />
       </div>
     </template>
@@ -155,8 +159,11 @@ const savedMessage = ref('')
 let savedTimer = null
 
 const pending = ref([])
+const pendingTotal = ref(0)
 const pendingLoading = ref(false)
+const pendingLoadingMore = ref(false)
 const cancellingId = ref(null)
+const pendingHasMore = computed(() => pending.value.length < pendingTotal.value)
 
 const delayInvalid = computed(() => {
   const n = Number(form.account_purge_delay_days)
@@ -175,12 +182,21 @@ async function load() {
   }
 }
 
-async function loadPending() {
-  pendingLoading.value = true
+async function loadPending(append = false) {
+  if (append) {
+    if (pendingLoadingMore.value) return
+    pendingLoadingMore.value = true
+  } else {
+    pendingLoading.value = true
+  }
   try {
-    pending.value = await fetchPendingDeletions()
+    const offset = append ? pending.value.length : 0
+    const { items, total } = await fetchPendingDeletions(offset)
+    pending.value = append ? [...pending.value, ...items] : items
+    pendingTotal.value = total
   } finally {
-    pendingLoading.value = false
+    if (append) pendingLoadingMore.value = false
+    else pendingLoading.value = false
   }
 }
 
@@ -198,7 +214,10 @@ async function onToggle(next) {
   Object.assign(form, res)
   flashSaved()
   if (next) await loadPending()
-  else pending.value = []
+  else {
+    pending.value = []
+    pendingTotal.value = 0
+  }
 }
 
 async function onSave() {
