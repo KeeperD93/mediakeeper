@@ -62,6 +62,23 @@ async def get_activity_history(db: AsyncSession, page: int = 1, per_page: int = 
     }
 
 
+def _session_ticks(r) -> int:
+    """How long a session lasted, in Emby ticks, capped at the media runtime.
+
+    The DB has no dedicated watch-time field; ``last_seen_at - started_at`` is
+    the active span. Capping at the runtime neutralises never-closed / live
+    sessions whose span can otherwise reach days.
+    """
+    if not r.started_at or not r.last_seen_at:
+        return 0
+    span = (r.last_seen_at - r.started_at).total_seconds()
+    if span <= 0:
+        return 0
+    span_ticks = int(span * 1e7)
+    runtime = r.duration_ticks or 0
+    return min(span_ticks, runtime) if runtime > 0 else span_ticks
+
+
 def _activity_row_to_dict(r) -> dict:
     return {
         "id": r.id,
@@ -76,7 +93,12 @@ def _activity_row_to_dict(r) -> dict:
         "play_method": r.play_method,
         "ip": r.ip_address,
         "started_at": r.started_at.isoformat() if r.started_at else None,
-        "duration_ticks": r.position_ticks or 0,
+        # position_ticks = how far into the media this session reached;
+        # runtime_ticks = the media total length (both feed the progress column);
+        # session_ticks = how long the session lasted (capped at the runtime).
+        "position_ticks": r.position_ticks or 0,
+        "runtime_ticks": r.duration_ticks or 0,
+        "session_ticks": _session_ticks(r),
     }
 
 

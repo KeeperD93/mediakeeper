@@ -71,8 +71,8 @@ export function useStatsActivityTable() {
       let va = a[activitySortBy.value] || ''
       let vb = b[activitySortBy.value] || ''
       if (activitySortBy.value === 'duration') {
-        va = a.duration_ticks || 0
-        vb = b.duration_ticks || 0
+        va = a.session_ticks || 0
+        vb = b.session_ticks || 0
       }
       if (typeof va === 'number') return activitySortOrder.value === 'desc' ? vb - va : va - vb
       return activitySortOrder.value === 'desc'

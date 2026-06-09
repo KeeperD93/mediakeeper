@@ -23,6 +23,7 @@ This section intentionally has no date so it is not shown to users.
 - Lists (admin) — moderation: soft-deleted lists visible/restorable + "Load more".
 - Portal — configurable donation link for your users (admin settings).
 - Dashboard — MediaKeeper support heart in the top bar (Ko-fi, star).
+- Statistics — activity history: watch-progress column (position/total) + per-session duration.
 
 ### Changed
 - Dashboard — 30 upcoming releases shown (was 20).

@@ -48,11 +48,12 @@
           <colgroup>
             <col class="col-w36" />
             <col class="col-w11p" />
-            <col class="col-w26p" />
+            <col class="col-w18p" />
             <col class="col-w11p" />
             <col class="col-w13p" />
             <col class="col-w9p" />
             <col class="col-w11p" />
+            <col class="col-w13p" />
             <col class="col-w11p" />
           </colgroup>
           <thead>
@@ -96,6 +97,7 @@
                   {{ sortArrow('duration', activitySortBy, activitySortOrder) }}
                 </span>
               </th>
+              <th class="dt-r">{{ $t('stats.progress') }}</th>
               <th class="sortable dt-r" @click="toggleActivitySort('started_at')">
                 {{ $t('common.date') }}
                 <span :class="sortArrowClass('started_at', activitySortBy)">
@@ -106,7 +108,7 @@
           </thead>
           <tbody>
             <tr v-if="!sortedActivity.length">
-              <td colspan="8" class="dt-empty">{{ $t('stats.noData') }}</td>
+              <td colspan="9" class="dt-empty">{{ $t('stats.noData') }}</td>
             </tr>
             <tr
               v-for="it in sortedActivity"
@@ -133,7 +135,10 @@
                   {{ it.play_method || '—' }}
                 </span>
               </td>
-              <td class="dt-r dt-sec">{{ ticksToDuration(it.duration_ticks) }}</td>
+              <td class="dt-r dt-sec">{{ ticksToDuration(it.session_ticks) }}</td>
+              <td class="dt-r">
+                <StatsActivityProgress :position="it.position_ticks" :runtime="it.runtime_ticks" />
+              </td>
               <td class="dt-r dt-muted">{{ it.started_at ? formatDate(it.started_at) : '—' }}</td>
             </tr>
           </tbody>
@@ -190,6 +195,7 @@ import {
 } from '@/components/stats/statsTableUtils'
 import MkButton from '@/components/common/MkButton.vue'
 import StatsActivityMinimap from '@/components/stats/StatsActivityMinimap.vue'
+import StatsActivityProgress from '@/components/stats/StatsActivityProgress.vue'
 import '@/assets/styles/stats-tables.css'
 
 const { minimap24h, loadMinimap24h } = useStats()
@@ -243,7 +249,7 @@ onMounted(() => {
 .col-w13p {
   width: 13%;
 }
-.col-w26p {
-  width: 26%;
+.col-w18p {
+  width: 18%;
 }
 </style>

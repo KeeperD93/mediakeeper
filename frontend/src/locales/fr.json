@@ -579,6 +579,8 @@
     "bulkPartialFail": "{succeeded} sur {total} traités — {failed} échec(s)",
     "confirmDeleteUser": "Supprimer définitivement toutes les données de lecture de {name} ?",
     "activityHistory": "Historique d'activité",
+    "watchedPercent": "{pct} % regardé",
+    "progress": "Progression",
     "last24h": "Dernières 24 heures",
     "flux": "Flux",
     "of": "sur",
