@@ -171,4 +171,56 @@ describe('parseActivityAlert', () => {
     const r = parseActivityAlert({ type: 'plugin.installed', name: 'Plugin X installed' }, t)
     expect(r).toBe('Plugin X installed')
   })
+
+  it('localizes a password-change alert from the backend-resolved user', () => {
+    const r = parseActivityAlert(
+      {
+        type: 'user.passwordchanged',
+        name: 'Le mot de passe a été modifié pour User_test sur X',
+        user: 'User_test',
+      },
+      t,
+    )
+    expect(r).toBe('dashboard.alertPasswordChanged|User_test')
+  })
+
+  it('localizes a user-created alert (name has no "pour", user comes from backend)', () => {
+    const r = parseActivityAlert(
+      {
+        type: 'user.created',
+        name: 'Le nouvel utilisateur User_test est créé sur X',
+        user: 'User_test',
+      },
+      t,
+    )
+    expect(r).toBe('dashboard.alertUserCreated|User_test')
+  })
+
+  it('localizes a policy-update alert, parsing the user from the name as fallback', () => {
+    const r = parseActivityAlert(
+      {
+        type: 'user.policyupdated',
+        name: 'La stratégie utilisateur a été mise à jour pour User_test sur X',
+      },
+      t,
+    )
+    expect(r).toBe('dashboard.alertPolicyUpdated|User_test')
+  })
+
+  it('localizes plugin install/uninstall alerts', () => {
+    expect(parseActivityAlert({ type: 'plugins.plugininstalled', name: 'x' }, t)).toBe(
+      'dashboard.alertPluginInstalled',
+    )
+    expect(parseActivityAlert({ type: 'plugins.pluginuninstalled', name: 'x' }, t)).toBe(
+      'dashboard.alertPluginUninstalled',
+    )
+  })
+
+  it('falls back to the raw name when a user alert has no resolvable user', () => {
+    const r = parseActivityAlert(
+      { type: 'user.created', name: 'Raw text without user', user: '' },
+      t,
+    )
+    expect(r).toBe('Raw text without user')
+  })
 })

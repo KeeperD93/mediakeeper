@@ -8,21 +8,20 @@ from services.settings import get_active_media_source
 
 logger = logging.getLogger("mediakeeper.emby")
 
-# Types considered as alerts (separated from normal activities)
+# Warning/Error severity entries are alerts (see ALERT_SEVERITIES) — this already
+# covers the real security events Emby tags as Error (user.authenticationfailed,
+# user.lockedout). The Info-severity types below are *also* escalated to alerts
+# (security / admin-lifecycle events Emby logs as Info). Real Emby type strings,
+# verified against /System/ActivityLog/Entries; routine Info types with a
+# dedicated activity rendering (playback.*, user.authenticated,
+# plugins.pluginupdated) are intentionally left as activities.
 ALERT_TYPES = {
-    "user.failed.login",
     "user.passwordchanged",
-    "user.locked",
-    "user.deleted",
     "user.created",
-    "plugin.installed",
-    "plugin.updated",
-    "plugin.uninstalled",
-    "system.update.available",
-    "system.update.installed",
-    "task.failed",
-    "server.restart",
-    "server.shutdown",
+    "user.deleted",
+    "user.policyupdated",
+    "plugins.plugininstalled",
+    "plugins.pluginuninstalled",
 }
 ALERT_SEVERITIES = {"Warning", "Error"}
 
