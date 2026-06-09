@@ -27,6 +27,7 @@ This section intentionally has no date so it is not shown to users.
 ### Changed
 - Dashboard — 30 upcoming releases shown (was 20).
 - Onboarding — Folders step now notes it's optional (configurable later).
+- Watchlist — Timeline tab: months bar widened and more readable.
 
 ### Fixed
 - Dashboard — History tabs (Notifications, Duplicates): "Load more" button.
@@ -60,6 +61,7 @@ This section intentionally has no date so it is not shown to users.
 - Dates now follow the app language (instead of the browser).
 - Custom avatars now shown in admin topbar, user list and sessions.
 - Portal — Discover page: bigger back button, no sticky hover or sideways scroll.
+- Watchlist — Timeline tab: now fills the available height (no empty band).
 
 ## [1.0.0-rc.4] - 2026-05-30
 

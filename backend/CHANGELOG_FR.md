@@ -27,6 +27,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 ### Changed
 - Tableau de bord — 30 prochaines sorties affichées (au lieu de 20).
 - Onboarding — l'étape Dossiers précise qu'elle est optionnelle (configurable plus tard).
+- Watchlist — onglet Timeline : barre des mois élargie et plus lisible.
 
 ### Fixed
 - Tableau de bord — onglets Historique (Notifications, Doublons) : bouton « Charger plus ».
@@ -60,6 +61,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Dates affichées dans la langue de l'app (au lieu de celle du navigateur).
 - Avatars personnalisés affichés dans la barre admin, la liste utilisateurs et les sessions.
 - Portail — page Découvrir : bouton retour agrandi, survol collant et défilement latéral corrigés.
+- Watchlist — onglet Timeline : la frise remplit la hauteur (plus de bande vide).
 
 ## [1.0.0-rc.4] - 2026-05-30
 
