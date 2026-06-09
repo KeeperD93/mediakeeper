@@ -1,10 +1,17 @@
-"""Activity-history row serialization (progress + session-duration data)."""
+"""Activity-history row serialization (progress + session-duration data)
+and the ephemeral exclude-users display filter."""
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
+import pytest
+
 from models.playback_stats import PlaybackSession
-from services.stats_aggregator.activity import _activity_row_to_dict
+from services.stats_aggregator.activity import (
+    _activity_row_to_dict,
+    get_activity_history,
+    get_activity_users,
+)
 
 
 def _ticks(minutes: float) -> int:
@@ -49,3 +56,41 @@ def test_runtime_and_session_default_to_zero_when_unknown():
     d = _activity_row_to_dict(_row(duration_ticks=None, position_ticks=_ticks(5)))
     assert d["runtime_ticks"] == 0
     assert d["session_ticks"] == 0  # no timestamps -> no span
+
+
+@pytest.mark.asyncio
+async def test_get_activity_history_excludes_users(db_session):
+    db_session.add_all([
+        _row(id=1, session_key="s1", user_id="A", user_name="Admin"),
+        _row(id=2, session_key="s2", user_id="A", user_name="Admin"),
+        _row(id=3, session_key="s3", user_id="B", user_name="Bob"),
+    ])
+    await db_session.commit()
+
+    full = await get_activity_history(db_session)
+    assert full["total"] == 3
+
+    filtered = await get_activity_history(db_session, exclude_users="A")
+    assert filtered["total"] == 1
+    assert [it["user_id"] for it in filtered["items"]] == ["B"]
+
+
+@pytest.mark.asyncio
+async def test_get_activity_history_ignores_empty_exclude(db_session):
+    db_session.add(_row(id=1, session_key="s1", user_id="A", user_name="Admin"))
+    await db_session.commit()
+    res = await get_activity_history(db_session, exclude_users="")
+    assert res["total"] == 1
+
+
+@pytest.mark.asyncio
+async def test_get_activity_users_returns_distinct(db_session):
+    db_session.add_all([
+        _row(id=1, session_key="s1", user_id="A", user_name="Admin"),
+        _row(id=2, session_key="s2", user_id="A", user_name="Admin"),
+        _row(id=3, session_key="s3", user_id="B", user_name="Bob"),
+    ])
+    await db_session.commit()
+    users = await get_activity_users(db_session)
+    assert {u["id"] for u in users} == {"A", "B"}
+    assert {u["name"] for u in users} == {"Admin", "Bob"}

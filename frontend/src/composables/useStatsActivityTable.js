@@ -12,7 +12,14 @@ export function useStatsActivityTable() {
   const { t } = useI18n()
   const { apiPost } = useApi()
   const mkConfirm = useConfirm()
-  const { activity, loadingActivity, loadActivity, ticksToDuration } = useStats()
+  const {
+    activity,
+    loadingActivity,
+    loadActivity,
+    ticksToDuration,
+    activityUsers,
+    loadActivityUsers,
+  } = useStats()
   const { activitySearchSeed } = useStatsUI()
 
   const activityCursorHistory = ref([])
@@ -21,10 +28,25 @@ export function useStatsActivityTable() {
   const activitySortOrder = ref('desc')
   const activityPerPage = ref(25)
   const activitySelected = ref(new Set())
+  const excludedUserIds = ref(new Set()) // ephemeral display filter, reset on reload
   let actDb = null
 
   function fetchActivityData(cursor = '') {
-    loadActivity({ cursor, limit: activityPerPage.value, search: activitySearch.value })
+    loadActivity({
+      cursor,
+      limit: activityPerPage.value,
+      search: activitySearch.value,
+      excludeUsers: [...excludedUserIds.value].join(','),
+    })
+  }
+
+  function toggleUserFilter(id) {
+    const s = new Set(excludedUserIds.value)
+    if (s.has(id)) s.delete(id)
+    else s.add(id)
+    excludedUserIds.value = s
+    activityCursorHistory.value = []
+    fetchActivityData('')
   }
   function changePerPage() {
     activityCursorHistory.value = []
@@ -131,6 +153,7 @@ export function useStatsActivityTable() {
       activitySearchSeed.value = ''
     }
     if (!activity.value.items.length || activitySearch.value) fetchActivityData('')
+    if (!activityUsers.value.length) loadActivityUsers()
   })
 
   return {
@@ -143,6 +166,8 @@ export function useStatsActivityTable() {
     activitySortOrder,
     activityPerPage,
     activitySelected,
+    activityUsers,
+    excludedUserIds,
     sortedActivity,
     activityAllChecked,
     changePerPage,
@@ -154,5 +179,6 @@ export function useStatsActivityTable() {
     toggleActivitySelect,
     toggleActivitySelectAll,
     bulkDeleteActivity,
+    toggleUserFilter,
   }
 }

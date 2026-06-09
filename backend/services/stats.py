@@ -29,6 +29,7 @@ from services.stats_aggregator import (  # noqa: F401
     get_users_stats,
     get_activity_history,
     get_activity_minimap,
+    get_activity_users,
     get_daily_chart_data,
     get_weekly_heatmap,
     get_records,

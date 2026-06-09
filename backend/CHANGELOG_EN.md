@@ -24,6 +24,7 @@ This section intentionally has no date so it is not shown to users.
 - Portal — configurable donation link for your users (admin settings).
 - Dashboard — MediaKeeper support heart in the top bar (Ko-fi, star).
 - Statistics — activity history: watch-progress column (position/total) + per-session duration.
+- Statistics — activity: filter which users' activity is shown (temporary).
 
 ### Changed
 - Dashboard — 30 upcoming releases shown (was 20).

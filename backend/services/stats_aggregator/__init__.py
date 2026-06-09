@@ -5,7 +5,11 @@ Package split into modules (Rule 9, <= 300 lines).
 Legacy imports `from services.stats_aggregator import X` keep working
 thanks to the re-exports below.
 """
-from .activity import _activity_row_to_dict, get_activity_history, get_activity_minimap
+from .activity import (
+    get_activity_history,
+    get_activity_minimap,
+    get_activity_users,
+)
 from .charts import get_daily_chart_data, get_weekly_heatmap
 from .exclusions import _get_exclusion_filters, add_exclusion, get_exclusions, remove_exclusion
 from .libraries import get_libraries_stats, refresh_library_cache
@@ -29,6 +33,7 @@ __all__ = [
     "delete_user_stats",
     "get_activity_history",
     "get_activity_minimap",
+    "get_activity_users",
     "get_daily_chart_data",
     "get_detailed_sessions",
     "get_exclusions",

@@ -12,8 +12,13 @@ from .playback import _load_mk_profile_map, _resolve_user_avatar
 
 
 async def get_activity_history(db: AsyncSession, page: int = 1, per_page: int = 30,
-                               search: str = "", cursor: str = "", limit: int = 0):
-    """Paginated history of all playbacks (cursor-based or offset fallback)."""
+                               search: str = "", cursor: str = "", limit: int = 0,
+                               exclude_users: str = ""):
+    """Paginated history of all playbacks (cursor-based or offset fallback).
+
+    ``exclude_users`` is a comma-separated list of Emby user ids whose rows are
+    hidden from the result — an ephemeral display filter, not a stored setting.
+    """
     use_cursor = bool(cursor or limit)
     effective_limit = limit if limit > 0 else per_page
 
@@ -22,6 +27,10 @@ async def get_activity_history(db: AsyncSession, page: int = 1, per_page: int = 
 
     for f in exc_filters:
         query = query.where(f)
+
+    excluded_ids = [u for u in exclude_users.split(",") if u]
+    if excluded_ids:
+        query = query.where(PlaybackSession.user_id.notin_(excluded_ids))
 
     if search:
         search_filter = f"%{search}%"
@@ -100,6 +109,18 @@ def _activity_row_to_dict(r) -> dict:
         "runtime_ticks": r.duration_ticks or 0,
         "session_ticks": _session_ticks(r),
     }
+
+
+async def get_activity_users(db: AsyncSession) -> list[dict]:
+    """Distinct users that appear in the activity history (for the display filter)."""
+    rows = (
+        await db.execute(
+            select(PlaybackSession.user_id, func.max(PlaybackSession.user_name).label("name"))
+            .group_by(PlaybackSession.user_id)
+            .order_by(func.max(PlaybackSession.user_name))
+        )
+    ).all()
+    return [{"id": uid, "name": name} for uid, name in rows]
 
 
 async def get_activity_minimap(db: AsyncSession):

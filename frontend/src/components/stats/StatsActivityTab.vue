@@ -36,6 +36,20 @@
           />
         </div>
       </div>
+      <div v-if="activityUsers.length" class="act-uf">
+        <span class="act-uf-lbl">{{ $t('stats.filterUsers') }}</span>
+        <button
+          v-for="u in activityUsers"
+          :key="u.id"
+          type="button"
+          class="act-uf-chip"
+          :class="{ 'act-uf-off': excludedUserIds.has(u.id) }"
+          :aria-pressed="!excludedUserIds.has(u.id)"
+          @click="toggleUserFilter(u.id)"
+        >
+          {{ u.name }}
+        </button>
+      </div>
       <div v-if="loadingActivity && !activity.items.length" class="tbl-loading">
         <div v-for="n in 5" :key="n" class="skel-tbl-row">
           <div class="skel-line w40" />
@@ -209,6 +223,8 @@ const {
   activitySortOrder,
   activityPerPage,
   activitySelected,
+  activityUsers,
+  excludedUserIds,
   sortedActivity,
   activityAllChecked,
   changePerPage,
@@ -220,6 +236,7 @@ const {
   toggleActivitySelect,
   toggleActivitySelectAll,
   bulkDeleteActivity,
+  toggleUserFilter,
 } = useStatsActivityTable()
 
 onMounted(() => {
@@ -251,5 +268,34 @@ onMounted(() => {
 }
 .col-w18p {
   width: 18%;
+}
+.act-uf {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px 0;
+}
+.act-uf-lbl {
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
+}
+.act-uf-chip {
+  padding: 3px 10px;
+  font-size: var(--text-2xs);
+  color: var(--text-primary);
+  background: rgb(var(--accent-rgb), 0.16);
+  border: none;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition:
+    background var(--duration-fast),
+    opacity var(--duration-fast);
+}
+.act-uf-chip.act-uf-off {
+  background: var(--surface-3);
+  color: var(--text-muted);
+  text-decoration: line-through;
+  opacity: 0.7;
 }
 </style>
