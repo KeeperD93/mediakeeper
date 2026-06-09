@@ -72,6 +72,7 @@ async def browse_provider(
 async def watch_providers(
     region: str = Query("FR", min_length=2, max_length=4),
     media_type: str = Query("movie", pattern="^(movie|tv)$"),
+    locale: str = Depends(get_request_locale),
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):
@@ -81,14 +82,14 @@ async def watch_providers(
     Usage: ``GET /api/portal/catalog/watch-providers?region=FR&media_type=movie``
     """
     from core.http_client import get_external_client
-    from services.tmdb import TMDB_BASE, _get_tmdb_key, _tmdb_headers_sync
+    from services.tmdb import TMDB_BASE, _get_tmdb_key, _tmdb_headers_sync, tmdb_language
 
     api_key = await _get_tmdb_key(db)
     try:
         client = get_external_client()
         res = await client.get(
             f"{TMDB_BASE}/watch/providers/{media_type}",
-            params={"watch_region": region, "language": "fr-FR"},
+            params={"watch_region": region, "language": tmdb_language(locale)},
             headers=_tmdb_headers_sync(api_key),
         )
         if res.status_code != 200:
