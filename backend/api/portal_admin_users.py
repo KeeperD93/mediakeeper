@@ -15,7 +15,7 @@ from datetime import datetime
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -136,6 +136,7 @@ async def get_user_audit(
 
 
 class IdentityUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     display_name: Optional[str] = Field(None, max_length=50)
     first_name: Optional[str] = Field(None, max_length=100)
     last_name: Optional[str] = Field(None, max_length=100)
@@ -172,6 +173,7 @@ async def patch_identity(
 
 
 class RoleUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     role: str = Field(..., pattern="^(viewer|moderator|admin)$")
 
 
@@ -196,6 +198,7 @@ async def patch_role(
 
 
 class PermissionsUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     permissions: dict[str, bool]
 
 
@@ -220,6 +223,7 @@ async def patch_permissions(
 
 
 class ActiveUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     active: bool
 
 
@@ -245,6 +249,7 @@ async def patch_active(
 
 
 class AccessWindow(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     start: Optional[datetime] = None
     end: Optional[datetime] = None
 

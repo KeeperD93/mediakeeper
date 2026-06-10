@@ -534,3 +534,30 @@ async def test_login_history_feed_offset_pagination(client, admin_user, db_sessi
 
     seen = await _walk_offset(client, f"/api/portal/admin/users/{profile.id}/login-history")
     assert len(seen) == 5 and len(set(seen)) == 5
+
+
+@pytest.mark.asyncio
+async def test_user_mutations_reject_unknown_field(client, admin_user, db_session):
+    """extra="forbid" on the 5 user-mutation schemas: an unknown body field
+    is rejected with 422 instead of being silently ignored. Validation fires
+    before the handler, so any existing profile id exercises the contract."""
+    profile = UserProfile(
+        user_id=admin_user.id, display_name="Target", role="viewer",
+        source="local", account_active=True,
+    )
+    db_session.add(profile)
+    await db_session.commit()
+    await db_session.refresh(profile)
+
+    _auth(client, admin_user)
+    pid = profile.id
+    cases = [
+        (f"/api/portal/admin/users/{pid}", {"display_name": "X"}),
+        (f"/api/portal/admin/users/{pid}/role", {"role": "moderator"}),
+        (f"/api/portal/admin/users/{pid}/permissions", {"permissions": {"can_chat": True}}),
+        (f"/api/portal/admin/users/{pid}/active", {"active": True}),
+        (f"/api/portal/admin/users/{pid}/access", {"start": None, "end": None}),
+    ]
+    for url, body in cases:
+        resp = await client.patch(url, json={**body, "unexpected": "x"})
+        assert resp.status_code == 422, f"{url} -> {resp.status_code}: {resp.text}"
