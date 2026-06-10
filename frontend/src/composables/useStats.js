@@ -313,17 +313,29 @@ export function useStats() {
   async function loadActivity({
     cursor = '',
     limit = 25,
+    page = 0,
+    perPage = 0,
     search = '',
     excludeUsers = '',
+    sortBy = '',
+    sortOrder = '',
     append = false,
   } = {}) {
     loadingActivity.value = true
     try {
       const params = new URLSearchParams()
-      if (cursor) params.set('cursor', cursor)
-      params.set('limit', limit)
+      // page > 0 = flat sorted view (offset paging); otherwise grouped (cursor).
+      if (page > 0) {
+        params.set('page', page)
+        params.set('per_page', perPage || limit)
+      } else {
+        params.set('limit', limit)
+        if (cursor) params.set('cursor', cursor)
+      }
       if (search) params.set('search', search)
       if (excludeUsers) params.set('exclude_users', excludeUsers)
+      if (sortBy) params.set('sort_by', sortBy)
+      if (sortOrder) params.set('sort_order', sortOrder)
       const d = await apiGet(`/api/stats/activity?${params}`)
       if (d) {
         if (append && d.items)

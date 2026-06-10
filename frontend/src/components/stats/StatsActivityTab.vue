@@ -5,15 +5,14 @@
     <div class="glass-card tbl-wrap tbl-wrap-activity">
       <div class="tbl-header">
         <h2 class="tbl-title">{{ $t('stats.activityHistory') }}</h2>
-        <MkButton
-          v-if="activitySelected.size"
-          variant="danger"
-          icon="trash-2"
-          @click="bulkDeleteActivity"
-        >
-          {{ $t('common.delete') }} ({{ activitySelected.size }})
-        </MkButton>
         <div class="tbl-controls">
+          <StatsActivityUserFilter
+            v-if="activityUsers.length"
+            :users="activityUsers"
+            :excluded-ids="excludedUserIds"
+            @toggle="toggleUserFilter"
+            @set-all="setAllUsersFilter"
+          />
           <div class="tbl-ctrl">
             <span class="ctrl-lbl">{{ $t('common.showPerPage') }}</span>
             <select
@@ -36,20 +35,7 @@
           />
         </div>
       </div>
-      <div v-if="activityUsers.length" class="act-uf">
-        <span class="act-uf-lbl">{{ $t('stats.filterUsers') }}</span>
-        <button
-          v-for="u in activityUsers"
-          :key="u.id"
-          type="button"
-          class="act-uf-chip"
-          :class="{ 'act-uf-off': excludedUserIds.has(u.id) }"
-          :aria-pressed="!excludedUserIds.has(u.id)"
-          @click="toggleUserFilter(u.id)"
-        >
-          {{ u.name }}
-        </button>
-      </div>
+      <p v-if="!isGrouped" class="act-flat-note">{{ $t('stats.flatSortNotice') }}</p>
       <div v-if="loadingActivity && !activity.items.length" class="tbl-loading">
         <div v-for="n in 5" :key="n" class="skel-tbl-row">
           <div class="skel-line w40" />
@@ -58,60 +44,62 @@
         </div>
       </div>
       <div v-else class="tbl-scroll">
-        <table class="dt">
+        <table ref="tableRef" class="dt">
           <colgroup>
-            <col class="col-w36" />
-            <col class="col-w11p" />
-            <col class="col-w18p" />
-            <col class="col-w11p" />
-            <col class="col-w13p" />
-            <col class="col-w9p" />
-            <col class="col-w11p" />
-            <col class="col-w13p" />
-            <col class="col-w11p" />
+            <col v-for="(w, i) in colWidths" :key="i" :style="{ width: w + 'px' }" />
           </colgroup>
           <thead>
             <tr>
               <th class="dt-c">
                 <input
+                  v-indeterminate="activitySomeChecked"
                   type="checkbox"
                   class="act-chk"
                   :checked="activityAllChecked"
                   @change="toggleActivitySelectAll"
                 />
               </th>
+              <th class="dt-c" />
               <th class="sortable" @click="toggleActivitySort('user')">
                 {{ $t('common.user') }}
                 <span :class="sortArrowClass('user', activitySortBy)">
                   {{ sortArrow('user', activitySortBy, activitySortOrder) }}
                 </span>
+                <MkColResizer :index="2" @start="startResize" />
               </th>
               <th class="sortable" @click="toggleActivitySort('title')">
                 {{ $t('stats.title') }}
                 <span :class="sortArrowClass('title', activitySortBy)">
                   {{ sortArrow('title', activitySortBy, activitySortOrder) }}
                 </span>
+                <MkColResizer :index="3" @start="startResize" />
               </th>
               <th class="sortable" @click="toggleActivitySort('client')">
                 {{ $t('common.client') }}
                 <span :class="sortArrowClass('client', activitySortBy)">
                   {{ sortArrow('client', activitySortBy, activitySortOrder) }}
                 </span>
+                <MkColResizer :index="4" @start="startResize" />
               </th>
-              <th>{{ $t('common.device') }}</th>
+              <th>
+                {{ $t('common.device') }}
+                <MkColResizer :index="5" @start="startResize" />
+              </th>
               <th class="sortable dt-c" @click="toggleActivitySort('play_method')">
                 {{ $t('stats.stream') }}
                 <span :class="sortArrowClass('play_method', activitySortBy)">
                   {{ sortArrow('play_method', activitySortBy, activitySortOrder) }}
                 </span>
+                <MkColResizer :index="6" @start="startResize" />
               </th>
-              <th class="sortable dt-r" @click="toggleActivitySort('duration')">
+              <th class="dt-r">
                 {{ $t('common.durationLabel') }}
-                <span :class="sortArrowClass('duration', activitySortBy)">
-                  {{ sortArrow('duration', activitySortBy, activitySortOrder) }}
-                </span>
+                <MkColResizer :index="7" @start="startResize" />
               </th>
-              <th class="dt-r">{{ $t('stats.progress') }}</th>
+              <th class="dt-r">
+                {{ $t('stats.progress') }}
+                <MkColResizer :index="8" @start="startResize" />
+              </th>
               <th class="sortable dt-r" @click="toggleActivitySort('started_at')">
                 {{ $t('common.date') }}
                 <span :class="sortArrowClass('started_at', activitySortBy)">
@@ -121,103 +109,189 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-if="!sortedActivity.length">
-              <td colspan="9" class="dt-empty">{{ $t('stats.noData') }}</td>
+            <tr v-if="!activityItems.length">
+              <td colspan="10" class="dt-empty">{{ $t('stats.noData') }}</td>
             </tr>
-            <tr
-              v-for="it in sortedActivity"
-              :key="it.id"
-              :class="{ 'act-row-selected': activitySelected.has(it.id) }"
-            >
-              <td class="dt-c">
-                <input
-                  type="checkbox"
-                  class="act-chk"
-                  :checked="activitySelected.has(it.id)"
-                  @change="toggleActivitySelect(it.id)"
-                />
-              </td>
-              <td class="dt-name">{{ it.user }}</td>
-              <td class="dt-sec">
-                {{ it.title }}
-                <span v-if="it.episode" class="dt-ep">{{ it.episode }}</span>
-              </td>
-              <td class="dt-sec">{{ it.client || '—' }}</td>
-              <td class="dt-sec">{{ it.device || '—' }}</td>
-              <td class="dt-c">
-                <span class="flux-badge" :class="fluxBadgeClass(it.play_method)">
-                  {{ it.play_method || '—' }}
-                </span>
-              </td>
-              <td class="dt-r dt-sec">{{ ticksToDuration(it.session_ticks) }}</td>
-              <td class="dt-r">
-                <StatsActivityProgress :position="it.position_ticks" :runtime="it.runtime_ticks" />
-              </td>
-              <td class="dt-r dt-muted">{{ it.started_at ? formatDate(it.started_at) : '—' }}</td>
-            </tr>
+            <template v-for="it in activityItems" :key="it.id">
+              <tr :class="{ 'act-row-selected': rowSelectState(it) !== 'none' }">
+                <td class="dt-c">
+                  <input
+                    v-indeterminate="rowSelectState(it) === 'some'"
+                    type="checkbox"
+                    class="act-chk"
+                    :checked="rowSelectState(it) === 'all'"
+                    @change="toggleActivitySelect(it)"
+                  />
+                </td>
+                <td class="dt-c">
+                  <button
+                    v-if="it.session_count > 1"
+                    type="button"
+                    class="act-exp"
+                    :aria-expanded="isExpanded(it.id)"
+                    :aria-label="
+                      $t(isExpanded(it.id) ? 'stats.collapseGroup' : 'stats.expandGroup')
+                    "
+                    @click="toggleExpand(it.id)"
+                  >
+                    <Minus v-if="isExpanded(it.id)" :size="12" />
+                    <Plus v-else :size="12" />
+                  </button>
+                </td>
+                <td v-ellipsis-title class="dt-name">{{ it.user }}</td>
+                <td v-ellipsis-title class="dt-sec">
+                  {{ it.title }}
+                  <span v-if="it.episode" class="dt-ep">{{ it.episode }}</span>
+                </td>
+                <td v-ellipsis-title class="dt-sec">{{ it.client || '—' }}</td>
+                <td v-ellipsis-title class="dt-sec">{{ it.device || '—' }}</td>
+                <td v-ellipsis-title class="dt-c">
+                  <span class="flux-badge" :class="fluxBadgeClass(it.play_method)">
+                    {{ it.play_method || '—' }}
+                  </span>
+                </td>
+                <td v-ellipsis-title class="dt-r dt-sec">
+                  {{ ticksToDuration(it.session_ticks) }}
+                  <span
+                    v-if="it.session_count > 1"
+                    class="act-count"
+                    :aria-label="$t('stats.groupSessions', { count: it.session_count })"
+                  >
+                    ({{ it.session_count }})
+                  </span>
+                </td>
+                <td class="dt-r">
+                  <StatsActivitySegmentBar
+                    v-if="it.session_count > 1"
+                    :position="it.max_position_ticks"
+                    :runtime="it.runtime_ticks"
+                    :sessions="it.sessions"
+                  />
+                  <StatsActivityProgress
+                    v-else
+                    :position="it.position_ticks"
+                    :runtime="it.runtime_ticks"
+                  />
+                </td>
+                <td v-ellipsis-title class="dt-r dt-muted">
+                  {{ it.started_at ? formatDate(it.started_at) : '—' }}
+                </td>
+              </tr>
+              <tr
+                v-for="s in isExpanded(it.id) && it.sessions ? it.sessions.slice(1) : []"
+                :key="s.id"
+                class="act-child"
+                :class="{ 'act-row-selected': activitySelected.has(s.id) }"
+              >
+                <td class="dt-c">
+                  <input
+                    type="checkbox"
+                    class="act-chk"
+                    :checked="activitySelected.has(s.id)"
+                    @change="toggleSessionSelect(s.id)"
+                  />
+                </td>
+                <td class="dt-c"><span class="act-child-mark" aria-hidden="true">↳</span></td>
+                <td class="dt-name" />
+                <td class="dt-sec" />
+                <td v-ellipsis-title class="dt-sec">{{ s.client || '—' }}</td>
+                <td v-ellipsis-title class="dt-sec">{{ s.device || '—' }}</td>
+                <td v-ellipsis-title class="dt-c">
+                  <span class="flux-badge" :class="fluxBadgeClass(s.play_method)">
+                    {{ s.play_method || '—' }}
+                  </span>
+                </td>
+                <td v-ellipsis-title class="dt-r dt-sec">{{ ticksToDuration(s.session_ticks) }}</td>
+                <td class="dt-r">
+                  <StatsActivityProgress :position="s.position_ticks" :runtime="s.runtime_ticks" />
+                </td>
+                <td v-ellipsis-title class="dt-r dt-muted">
+                  {{ s.started_at ? formatDate(s.started_at) : '—' }}
+                </td>
+              </tr>
+            </template>
           </tbody>
         </table>
       </div>
-      <div v-if="activity.total > 25" class="tbl-pag">
+      <div v-if="canPrev || canNext" class="tbl-pag">
         <span class="pag-info">
-          {{
-            activity.items.length
-              ? `${activityCursorHistory.length * 25 + 1}–${activityCursorHistory.length * 25 + activity.items.length}`
-              : '0'
-          }}
-          {{ $t('common.of') }} {{ activity.total }}
+          <template v-if="isGrouped">{{ activity.total }} {{ $t('stats.sessionsTotal') }}</template>
+          <template v-else>
+            {{ flatRangeStart }}–{{ flatRangeEnd }} {{ $t('common.of') }} {{ activity.total }}
+          </template>
         </span>
         <div class="pag-btns">
-          <button
-            class="pag-btn"
-            :disabled="!activityCursorHistory.length"
-            @click="activityFirstPage()"
-          >
+          <button class="pag-btn" :disabled="!canPrev" @click="activityFirstPage()">
             <ChevronsLeft :size="12" />
           </button>
-          <button
-            class="pag-btn"
-            :disabled="!activityCursorHistory.length"
-            @click="activityPrevPage()"
-          >
+          <button class="pag-btn" :disabled="!canPrev" @click="activityPrevPage()">
             <ChevronLeft :size="12" />
           </button>
-          <span class="pag-cur">{{ activityCursorHistory.length + 1 }}</span>
-          <button
-            class="pag-btn pag-next"
-            :disabled="!activity.has_more"
-            @click="activityNextPage()"
-          >
+          <span class="pag-cur">{{ pageNumber }}</span>
+          <button class="pag-btn pag-next" :disabled="!canNext" @click="activityNextPage()">
             <ChevronRight :size="12" />
           </button>
         </div>
       </div>
     </div>
+
+    <MkBulkBar :count="activitySelected.size">
+      <template #count>
+        {{ $t('stats.bulkSelected', activitySelected.size, { n: activitySelected.size }) }}
+      </template>
+      <MkButton variant="danger" icon="trash-2" @click="bulkDeleteActivity">
+        {{ $t('common.delete') }}
+      </MkButton>
+    </MkBulkBar>
   </div>
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
-import { ChevronLeft, ChevronRight, ChevronsLeft } from 'lucide-vue-next'
+import { onMounted, nextTick, ref, watch } from 'vue'
+import { ChevronLeft, ChevronRight, ChevronsLeft, Minus, Plus } from 'lucide-vue-next'
 import { useStats } from '@/composables/useStats'
 import { useStatsActivityTable } from '@/composables/useStatsActivityTable'
+import { useColumnResize } from '@/composables/useColumnResize'
 import {
   sortArrow,
   sortArrowClass,
   formatDate,
   fluxBadgeClass,
 } from '@/components/stats/statsTableUtils'
+import MkBulkBar from '@/components/common/MkBulkBar.vue'
 import MkButton from '@/components/common/MkButton.vue'
+import MkColResizer from '@/components/common/MkColResizer.vue'
 import StatsActivityMinimap from '@/components/stats/StatsActivityMinimap.vue'
 import StatsActivityProgress from '@/components/stats/StatsActivityProgress.vue'
+import StatsActivitySegmentBar from '@/components/stats/StatsActivitySegmentBar.vue'
+import StatsActivityUserFilter from '@/components/stats/StatsActivityUserFilter.vue'
 import '@/assets/styles/stats-tables.css'
+
+// Reflect a partial group selection on the parent checkbox (DOM-only prop).
+const vIndeterminate = {
+  mounted: (el, b) => (el.indeterminate = b.value),
+  updated: (el, b) => (el.indeterminate = b.value),
+}
+
+// Native tooltip only when a cell's text is actually clipped — re-checked on
+// hover so it stays accurate after a column resize. No tooltip when it fits.
+const vEllipsisTitle = {
+  mounted(el) {
+    el.__truncCheck = () => {
+      el.title = el.scrollWidth > el.clientWidth ? el.textContent.replace(/\s+/g, ' ').trim() : ''
+    }
+    el.addEventListener('mouseenter', el.__truncCheck)
+  },
+  unmounted(el) {
+    if (el.__truncCheck) el.removeEventListener('mouseenter', el.__truncCheck)
+  },
+}
 
 const { minimap24h, loadMinimap24h } = useStats()
 const {
   activity,
   loadingActivity,
   ticksToDuration,
-  activityCursorHistory,
   activitySearch,
   activitySortBy,
   activitySortOrder,
@@ -225,22 +299,62 @@ const {
   activitySelected,
   activityUsers,
   excludedUserIds,
-  sortedActivity,
+  activityItems,
+  isGrouped,
   activityAllChecked,
+  activitySomeChecked,
+  canPrev,
+  canNext,
+  pageNumber,
+  flatRangeStart,
+  flatRangeEnd,
   changePerPage,
   debouncedFetchActivity,
   activityFirstPage,
   activityPrevPage,
   activityNextPage,
   toggleActivitySort,
+  isExpanded,
+  toggleExpand,
+  rowSelectState,
   toggleActivitySelect,
+  toggleSessionSelect,
   toggleActivitySelectAll,
   bulkDeleteActivity,
   toggleUserFilter,
+  setAllUsersFilter,
 } = useStatsActivityTable()
 
+// Resizable columns (checkbox + expander first, then the 8 data columns).
+const tableRef = ref(null)
+const ACTIVITY_COLS = [40, 44, 103, 335, 153, 215, 177, 75, 351, 91]
+const {
+  widths: colWidths,
+  ready: colsReady,
+  init: initColWidths,
+  startResize,
+} = useColumnResize(ACTIVITY_COLS, { min: 32, fixed: 2, persistKey: 'stats.activity' })
+
+// Fit columns to the container once the table is actually in the DOM (it isn't
+// during the loading skeleton). Idempotent via the colsReady guard.
+let fitting = false
+async function fitColumns() {
+  if (colsReady.value || fitting) return
+  fitting = true
+  try {
+    await nextTick()
+    const c = tableRef.value?.parentElement?.clientWidth
+    if (c) await initColWidths(c)
+  } finally {
+    fitting = false
+  }
+}
 onMounted(() => {
   if (!minimap24h.value.length) loadMinimap24h()
+  fitColumns()
+})
+watch(loadingActivity, v => {
+  if (!v) fitColumns()
 })
 </script>
 
@@ -253,49 +367,5 @@ onMounted(() => {
 }
 .tbl-wrap-activity {
   margin-top: 12px;
-}
-.col-w36 {
-  width: 36px;
-}
-.col-w9p {
-  width: 9%;
-}
-.col-w11p {
-  width: 11%;
-}
-.col-w13p {
-  width: 13%;
-}
-.col-w18p {
-  width: 18%;
-}
-.act-uf {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 14px 0;
-}
-.act-uf-lbl {
-  font-size: var(--text-2xs);
-  color: var(--text-muted);
-}
-.act-uf-chip {
-  padding: 3px 10px;
-  font-size: var(--text-2xs);
-  color: var(--text-primary);
-  background: rgb(var(--accent-rgb), 0.16);
-  border: none;
-  border-radius: var(--radius-pill);
-  cursor: pointer;
-  transition:
-    background var(--duration-fast),
-    opacity var(--duration-fast);
-}
-.act-uf-chip.act-uf-off {
-  background: var(--surface-3);
-  color: var(--text-muted);
-  text-decoration: line-through;
-  opacity: 0.7;
 }
 </style>

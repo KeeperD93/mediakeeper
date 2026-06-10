@@ -1,10 +1,5 @@
 <template>
   <div v-if="pct !== null" class="act-prog">
-    <span class="act-prog-label">
-      {{ positionLabel }}
-      <span class="act-prog-sep">/</span>
-      {{ runtimeLabel }}
-    </span>
     <div
       class="act-prog-track"
       role="progressbar"
@@ -14,7 +9,13 @@
       :aria-label="$t('stats.watchedPercent', { pct })"
     >
       <div class="act-prog-fill" :style="{ width: pct + '%' }" />
+      <span class="act-prog-pct">{{ pct }}%</span>
     </div>
+    <span class="act-prog-time">
+      {{ positionLabel }}
+      <span class="act-prog-sep">/</span>
+      {{ runtimeLabel }}
+    </span>
   </div>
   <span v-else class="act-prog-na">—</span>
 </template>
@@ -38,30 +39,47 @@ const runtimeLabel = computed(() => ticksToDuration(props.runtime))
 <style scoped>
 .act-prog {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 96px;
-}
-.act-prog-label {
-  font-size: var(--text-2xs);
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-.act-prog-sep {
-  opacity: 0.5;
+  align-items: center;
+  gap: 8px;
 }
 .act-prog-track {
-  height: 6px;
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 20px;
   background: var(--surface-3);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-sm);
   overflow: hidden;
 }
 .act-prog-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
   height: 100%;
-  border-radius: var(--radius-pill);
-  background: linear-gradient(90deg, rgb(var(--color-success-rgb), 0.8), var(--color-success));
+  background: linear-gradient(90deg, rgb(var(--color-success-rgb), 0.85), var(--color-success));
   transition: width var(--duration-slow) ease;
+}
+.act-prog-pct {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-2xs);
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+  text-shadow: var(--text-shadow-subtle);
+  font-variant-numeric: tabular-nums;
+}
+.act-prog-time {
+  flex: none;
+  width: 110px;
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.act-prog-sep {
+  opacity: 0.5;
 }
 .act-prog-na {
   color: var(--text-muted);

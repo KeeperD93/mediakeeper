@@ -25,11 +25,13 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Tableau de bord — cœur de soutien MediaKeeper dans le bandeau (Ko-fi, étoile).
 - Statistiques — activité : colonne de progression (vu/total) + durée par session.
 - Statistiques — activité : filtrer quels utilisateurs sont affichés (temporaire).
+- Statistiques — activité : colonnes du tableau redimensionnables, largeurs mémorisées par utilisateur.
 
 ### Changed
 - Tableau de bord — 30 prochaines sorties affichées (au lieu de 20).
 - Onboarding — l'étape Dossiers précise qu'elle est optionnelle (configurable plus tard).
 - Watchlist — onglet Timeline : barre des mois élargie et plus lisible.
+- Statistiques — activité : sessions consécutives d'un même contenu regroupées (dépliables, barre segmentée).
 
 ### Fixed
 - Tableau de bord — onglets Historique (Notifications, Doublons) : bouton « Charger plus ».
@@ -42,6 +44,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Notifications — le message test Discord suit la langue par défaut configurée.
 - Stats — Utilisateurs et fusion : photo de profil (perso ou Emby) désormais affichée.
 - Stats — survol des utilisateurs actifs : noms affichés au lieu des identifiants.
+- Statistiques — activité : tri serveur sur toutes les pages (et non par page).
 - Médiathèque — le détail des pistes n'échoue plus sur un fichier corrompu.
 - Média Manager — annuler un renommage en lot ne s'interrompt plus à mi-chemin (réessai possible).
 - Média Manager — libellés de l'historique de renommage suivent la langue de l'app.
