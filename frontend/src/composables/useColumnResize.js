@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { ref, onScopeDispose } from 'vue'
 import { useApi } from '@/composables/useApi'
 
 // Pointer-drag column resizing for a <table> with one <col> per column.
@@ -14,7 +14,6 @@ export function useColumnResize(defaults, { min = 56, fixed = 0, persistKey = ''
   const base = [...defaults]
   const widths = ref([...defaults])
   const ready = ref(false)
-  const total = computed(() => widths.value.reduce((a, b) => a + b, 0))
   let drag = null
   let saveTimer = null
 
@@ -81,5 +80,19 @@ export function useColumnResize(defaults, { min = 56, fixed = 0, persistKey = ''
     e.stopPropagation()
   }
 
-  return { widths, total, ready, init, startResize }
+  // Keep the table fitting its container on viewport / sidebar resize: re-fit the
+  // current proportions to the new width (no horizontal scroll, no right-edge gap).
+  let observer = null
+  function observe(el) {
+    if (!el || typeof ResizeObserver === 'undefined') return
+    observer?.disconnect()
+    observer = new ResizeObserver(() => {
+      const w = el.clientWidth
+      if (w && ready.value) distribute(widths.value, w)
+    })
+    observer.observe(el)
+  }
+  onScopeDispose(() => observer?.disconnect())
+
+  return { widths, ready, init, observe, startResize }
 }

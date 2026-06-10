@@ -111,7 +111,6 @@ def _group_to_dict(run: list) -> dict:
     sessions = [_activity_row_to_dict(r) for r in run]
     parent = dict(sessions[0])  # latest session
     parent["session_count"] = len(run)
-    parent["total_session_ticks"] = sum(s["session_ticks"] for s in sessions)
     parent["max_position_ticks"] = max((s["position_ticks"] for s in sessions), default=0)
     parent["sessions"] = sessions
     return parent
