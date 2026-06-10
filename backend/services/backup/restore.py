@@ -61,6 +61,7 @@ async def _restore_preferences(db: AsyncSession, data: list) -> str:
             pref["user_id"],
             preferences=json.dumps(pref.get("preferences", {})),
             dashboard_layout=json.dumps(pref["dashboard_layout"]) if pref.get("dashboard_layout") else None,
+            table_columns=json.dumps(pref["table_columns"]) if pref.get("table_columns") else None,
             commit=False,
         )
     return "ok"
