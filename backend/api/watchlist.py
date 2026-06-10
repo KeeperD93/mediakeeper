@@ -2,6 +2,7 @@
 Watchlist API routes v3 — persistent scan, results from DB.
 """
 
+from datetime import date, timedelta
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -14,7 +15,7 @@ from core.i18n import get_request_locale
 from api.auth import get_current_user, require_csrf
 from models.user import User
 from models.watchlist_scans import WatchlistScan
-from services.tmdb import get_media_detail
+from services.tmdb import get_media_detail, tmdb_language
 from services.watchlist import (
     get_series_libraries, get_scan_results, get_scan_status,
     full_scan, incremental_scan,
@@ -26,6 +27,8 @@ from services.watchlist import (
 from services.watchlist_scanner._localize import (
     localize_series_list, localize_calendar_items, localize_tracked_items,
 )
+from services.watchlist_scanner._state import get_cache
+from services.watchlist_scanner._tmdb import _tmdb_series, _tmdb_season
 
 logger = logging.getLogger("mediakeeper.api.watchlist")
 router = APIRouter(prefix="/api/watchlist", tags=["watchlist"])
@@ -222,27 +225,24 @@ async def tmdb_detail(media_type: str, tmdb_id: int, locale: str = Depends(get_r
 
 @router.get("/upcoming")
 async def upcoming_episodes(
-    lang: str = Query("fr"),
+    locale: str = Depends(get_request_locale),
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    """Upcoming episodes (sorted by air_date), display fields localized to ``lang``.
+    """Upcoming episodes (sorted by air_date), display fields localized to the
+    viewer's locale (``X-MK-Locale`` header).
 
     The scan cache holds language-neutral structure (which episodes are
     upcoming) plus French display fields. The series name / poster /
     episode title are re-resolved here in the viewer's language via the
     per-(id, lang) TMDB cache, so a viewer in English sees English.
     """
-    from datetime import date, timedelta
-    from services.watchlist_scanner import get_scan_status, _cache as scan_cache
-    from services.watchlist_scanner._tmdb import (
-        _tmdb_series, _tmdb_season, TMDB_LANG_BY_LOCALE, DEFAULT_TMDB_LANG,
-    )
+    scan_cache = get_cache()
     if not get_scan_status().get("ready") or not scan_cache:
         return []
 
     cutoff = (date.today() - timedelta(days=2)).isoformat()
-    tmdb_lang = TMDB_LANG_BY_LOCALE.get(lang, DEFAULT_TMDB_LANG)
+    tmdb_lang = tmdb_language(locale)
 
     # 1) Collect the language-neutral upcoming structure from the scan cache.
     pending = []

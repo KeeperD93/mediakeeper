@@ -101,7 +101,7 @@ const trackStyle = computed(() => ({
 
 async function fetchData() {
   try {
-    const data = await apiGet(`/api/watchlist/upcoming?lang=${encodeURIComponent(locale.value)}`)
+    const data = await apiGet('/api/watchlist/upcoming')
     if (Array.isArray(data) && data.length > 0) {
       episodes.value = data
       loading.value = false
@@ -149,7 +149,7 @@ onUnmounted(() => {
 })
 
 // Re-fetch when the UI language changes so titles + posters come back
-// localized (the backend resolves them per ``lang``).
+// localized (the backend resolves them per the viewer's X-MK-Locale header).
 watch(locale, () => {
   loading.value = true
   episodes.value = []

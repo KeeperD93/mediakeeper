@@ -28,7 +28,7 @@ This section intentionally has no date so it is not shown to users.
 - Statistics — activity: resizable table columns, widths remembered per user.
 
 ### Changed
-- Dashboard — 30 upcoming releases shown (was 20).
+- Dashboard — 30 upcoming releases shown (was 20), titles in your language.
 - Onboarding — Folders step now notes it's optional (configurable later).
 - Watchlist — Timeline tab: months bar widened and more readable.
 - Statistics — activity: consecutive sessions of the same content grouped (expandable, segmented bar).
