@@ -7,7 +7,6 @@ import logging
 
 from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel, ConfigDict, Field
-from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
@@ -45,7 +44,7 @@ logger = logging.getLogger("mediakeeper.api.portal_admin_users_actions")
 
 class NotesUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    notes: Optional[str] = Field(None, max_length=4000)
+    notes: str | None = Field(None, max_length=4000)
 
 
 @router.patch("/{profile_id}/notes")
@@ -189,7 +188,7 @@ class BulkAction(BaseModel):
     model_config = ConfigDict(extra="forbid")
     action: str = Field(..., pattern="^(activate|deactivate|delete|set_role|set_permissions|export)$")
     profile_ids: list[int] = Field(..., min_length=1, max_length=500)
-    payload: Optional[dict] = None
+    payload: dict | None = None
 
 
 @router.post("/bulk")
