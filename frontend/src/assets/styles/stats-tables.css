@@ -137,6 +137,7 @@
   table-layout: fixed;
 }
 .cinema-stats .dt th {
+  position: relative;
   text-align: left;
   padding: 8px 10px;
   font-size: var(--text-2xs);
@@ -327,6 +328,45 @@
 }
 .cinema-stats .act-row-selected {
   background: rgb(99, 102, 241, 0.08) !important;
+}
+.cinema-stats .act-flat-note {
+  margin: 0;
+  padding: 8px 14px 0;
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
+}
+.cinema-stats .act-exp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  color: var(--bg-primary);
+  background: rgb(var(--text-primary-rgb));
+  border: none;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+@media (hover: hover) {
+  .cinema-stats .act-exp:hover {
+    opacity: 0.85;
+  }
+}
+.cinema-stats .act-exp:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+.cinema-stats .act-count {
+  margin-left: 4px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.cinema-stats .act-child .act-child-mark {
+  color: var(--text-muted);
+}
+.cinema-stats .act-child td {
+  background: rgb(var(--accent-rgb), 0.04);
 }
 .cinema-stats .act-bulk-del-btn {
   display: inline-flex;

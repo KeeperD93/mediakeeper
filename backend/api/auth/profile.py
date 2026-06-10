@@ -17,7 +17,7 @@ from services.security import ensure_not_blocked, record_attempt, record_failure
 from ._cookies import PORTAL_COOKIE_NAME, _clear_jwt_cookie, _set_jwt_cookie
 from ._csrf import clear_csrf_cookie, ensure_csrf_cookie, require_csrf, rotate_csrf_cookie
 from ._deps import get_current_user
-from ._schemas import ChangePasswordRequest, LocaleRequest, PreferencesRequest
+from ._schemas import ChangePasswordRequest, LocaleRequest, PreferencesRequest, TableColumnsRequest
 
 logger = logging.getLogger("mediakeeper.api.auth")
 router = APIRouter()
@@ -26,6 +26,9 @@ router = APIRouter()
 # ``portal``. Kept distinct so a series of failed change-password attempts
 # does not auto-block the legitimate login flow on the same identity.
 PASSWORD_CHANGE_SCOPE = "admin_password"  # noqa: S105 -- scope identifier, not a credential value
+
+# Bound the per-user table-columns map so a client can't grow the row without limit.
+MAX_TABLE_PREFS = 50
 
 
 @router.get("/me")
@@ -178,4 +181,45 @@ async def save_locale(
             current = {}
     current["locale"] = req.locale
     await upsert_user_preferences(db, current_user.id, preferences=json.dumps(current))
+    return {"success": True}
+
+
+@router.get("/table-columns")
+async def get_table_columns(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Per-user resizable table column widths, as a ``{table_id: [widths]}`` map."""
+    from services.settings import get_user_preferences
+    row = await get_user_preferences(db, current_user.id)
+    if not row or not row.table_columns:
+        return {}
+    try:
+        data = json.loads(row.table_columns)
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+@router.put("/table-columns")
+async def save_table_columns(
+    req: TableColumnsRequest,
+    csrf_protected: None = Depends(require_csrf),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Store one table's column widths, merging into the user's existing map."""
+    from services.settings import get_user_preferences, upsert_user_preferences
+    row = await get_user_preferences(db, current_user.id)
+    current = {}
+    if row and row.table_columns:
+        try:
+            parsed = json.loads(row.table_columns)
+            current = parsed if isinstance(parsed, dict) else {}
+        except Exception:
+            current = {}
+    current[req.table] = req.widths
+    if len(current) > MAX_TABLE_PREFS:
+        current = dict(list(current.items())[-MAX_TABLE_PREFS:])
+    await upsert_user_preferences(db, current_user.id, table_columns=json.dumps(current))
     return {"success": True}
