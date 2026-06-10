@@ -25,18 +25,34 @@ def encode_cursor(data: dict) -> str:
     return base64.urlsafe_b64encode(raw.encode()).decode().rstrip("=")
 
 
-def decode_cursor(cursor: str) -> Optional[dict]:
-    """Decode an opaque cursor. Return None if invalid."""
+def decode_cursor(cursor: str, int_fields: tuple[str, ...] = ("id",)) -> dict | None:
+    """Decode an opaque cursor. Return None if invalid.
+
+    `int_fields` are coerced to int: a forged non-integer value (e.g. ``{"id": "x"}``)
+    would otherwise reach a ``WHERE col < <value>`` comparison and raise on
+    PostgreSQL (``bigint < text``). SQLite coerces silently, so it must be rejected
+    here rather than relying on the database.
+    """
     if not cursor:
         return None
     try:
         # Re-pad base64
         padded = cursor + "=" * (-len(cursor) % 4)
         raw = base64.urlsafe_b64decode(padded).decode()
-        return json.loads(raw)
+        decoded = json.loads(raw)
     except Exception:
-        logger.warning(f"Invalid cursor ignored: {cursor[:50]}")
+        logger.warning("Invalid cursor ignored: %s", cursor[:50])
         return None
+    if not isinstance(decoded, dict):
+        return None
+    try:
+        for field in int_fields:
+            if field in decoded:
+                decoded[field] = int(decoded[field])
+    except (TypeError, ValueError):
+        logger.warning("Cursor with non-integer pagination field ignored")
+        return None
+    return decoded
 
 
 def build_cursor_response(
