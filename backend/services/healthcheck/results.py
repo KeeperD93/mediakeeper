@@ -71,7 +71,7 @@ async def get_healthcheck_issues(
     total_res = await db.execute(count_q)
     total = total_res.scalar() or 0
 
-    decoded = decode_cursor(cursor)
+    decoded = decode_cursor(cursor, int_fields=("id", "severity_rank"))
     if decoded and "id" in decoded and "severity_rank" in decoded:
         query = query.where(
             or_(

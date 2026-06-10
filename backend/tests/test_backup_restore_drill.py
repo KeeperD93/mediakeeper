@@ -77,3 +77,23 @@ async def test_restore_round_trip_keeps_kv_layer(
     assert results["settings"] == "ok"
     assert "encryption_key" in results
     assert await get_setting(db_session, "drill.smoke") == "before"
+
+
+@pytest.mark.asyncio
+async def test_restore_round_trip_keeps_table_columns(
+    db_session, admin_user, drill_backup_dir, drill_pg_dump_stub,
+):
+    """Per-user resizable column widths survive a backup -> restore round-trip."""
+    from services.settings import get_user_preferences, upsert_user_preferences
+
+    await upsert_user_preferences(
+        db_session, admin_user.id,
+        table_columns=json.dumps({"stats.activity": [40, 120, 200]}),
+    )
+    backup_path = await create_backup(db_session)
+
+    await upsert_user_preferences(db_session, admin_user.id, table_columns="{}")
+    await restore_backup(db_session, backup_path, components={"preferences": True})
+
+    row = await get_user_preferences(db_session, admin_user.id)
+    assert json.loads(row.table_columns) == {"stats.activity": [40, 120, 200]}

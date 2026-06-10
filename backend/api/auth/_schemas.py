@@ -61,3 +61,19 @@ class LocaleRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     locale: str = Field(..., min_length=2, max_length=8)
+
+
+class TableColumnsRequest(BaseModel):
+    """Persist one resizable table's column widths (px) for the current user."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    table:  str = Field(..., min_length=1, max_length=64, pattern=r"^[A-Za-z0-9._-]+$")
+    widths: list[int] = Field(..., min_length=1, max_length=64)
+
+    @field_validator("widths")
+    @classmethod
+    def widths_in_range(cls, v):
+        if any(w < 0 or w > 2000 for w in v):
+            raise ValueError("column width out of range")
+        return v

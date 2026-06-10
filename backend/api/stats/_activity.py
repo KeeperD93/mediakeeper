@@ -9,7 +9,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.auth import get_current_user
 from core.database import get_db
 from models.user import User
-from services.stats import get_activity_history, get_activity_minimap
+from services.stats import (
+    get_activity_grouped,
+    get_activity_history,
+    get_activity_minimap,
+    get_activity_users,
+)
 
 logger = logging.getLogger("mediakeeper.api.stats")
 router = APIRouter()
@@ -26,12 +31,25 @@ async def activity(
     search: str = Query(""),
     cursor: str = Query(""),
     limit: int = Query(0, ge=0, le=500),
+    exclude_users: str = Query(""),
+    sort_by: str = Query("started_at"),
+    sort_order: str = Query("desc"),
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    """Paginated activity history (cursor-based or offset fallback)."""
-    return await get_activity_history(db, page=page, per_page=per_page,
-                                      search=search, cursor=cursor, limit=limit)
+    """Paginated activity history.
+
+    Default (date, newest-first) returns sessions grouped by consecutive
+    same-(user, item) runs with cursor paging; any other sort returns a flat,
+    server-sorted list with offset paging (grouping only makes sense in
+    chronological order).
+    """
+    if sort_by in ("", "started_at") and sort_order == "desc":
+        return await get_activity_grouped(db, limit=limit or per_page, cursor=cursor,
+                                          search=search, exclude_users=exclude_users)
+    return await get_activity_history(db, page=page, per_page=per_page, search=search,
+                                      exclude_users=exclude_users, sort_by=sort_by,
+                                      sort_order=sort_order)
 
 
 @router.delete("/activity/{activity_id}")
@@ -74,6 +92,15 @@ async def delete_activities_bulk(
     await db.commit()
     logger.info(f"{deleted} activity row(s) deleted by {_.username}")
     return {"ok": True, "deleted": deleted}
+
+
+@router.get("/activity/users")
+async def activity_users(
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    """Distinct users present in the activity history (for the display filter)."""
+    return await get_activity_users(db)
 
 
 @router.get("/activity/minimap")

@@ -24,6 +24,7 @@ const records = ref(null)
 const userProfile = ref(null)
 const users = ref({ users: [], total: 0, page: 1, per_page: 30 })
 const activity = ref({ items: [], total: 0, limit: 25, next_cursor: null, has_more: false })
+const activityUsers = ref([]) // distinct users in the activity history (display filter)
 const minimap24h = ref([])
 const dailyChart = ref(null)
 const heatmap = ref(null)
@@ -309,13 +310,32 @@ export function useStats() {
     loadingUsers.value = false
   }
 
-  async function loadActivity({ cursor = '', limit = 25, search = '', append = false } = {}) {
+  async function loadActivity({
+    cursor = '',
+    limit = 25,
+    page = 0,
+    perPage = 0,
+    search = '',
+    excludeUsers = '',
+    sortBy = '',
+    sortOrder = '',
+    append = false,
+  } = {}) {
     loadingActivity.value = true
     try {
       const params = new URLSearchParams()
-      if (cursor) params.set('cursor', cursor)
-      params.set('limit', limit)
+      // page > 0 = flat sorted view (offset paging); otherwise grouped (cursor).
+      if (page > 0) {
+        params.set('page', page)
+        params.set('per_page', perPage || limit)
+      } else {
+        params.set('limit', limit)
+        if (cursor) params.set('cursor', cursor)
+      }
       if (search) params.set('search', search)
+      if (excludeUsers) params.set('exclude_users', excludeUsers)
+      if (sortBy) params.set('sort_by', sortBy)
+      if (sortOrder) params.set('sort_order', sortOrder)
       const d = await apiGet(`/api/stats/activity?${params}`)
       if (d) {
         if (append && d.items)
@@ -326,6 +346,15 @@ export function useStats() {
       /* silent: activity fetch */
     }
     loadingActivity.value = false
+  }
+
+  async function loadActivityUsers() {
+    try {
+      const d = await apiGet('/api/stats/activity/users')
+      if (Array.isArray(d)) activityUsers.value = d
+    } catch {
+      /* silent: activity users fetch */
+    }
   }
 
   async function loadMinimap24h() {
@@ -395,6 +424,7 @@ export function useStats() {
     libraries,
     users,
     activity,
+    activityUsers,
     minimap24h,
     dailyChart,
     heatmap,
@@ -416,6 +446,7 @@ export function useStats() {
     loadLibraries,
     loadUsers,
     loadActivity,
+    loadActivityUsers,
     loadMinimap24h,
     loadDailyChart,
     loadHeatmap,
