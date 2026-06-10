@@ -4,7 +4,7 @@ import logging
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.portal.deps import get_current_profile
+from api.portal.deps import get_current_profile, require_admin
 from core.database import get_db
 from core.i18n import get_request_locale
 from models.portal.profile import UserProfile
@@ -73,11 +73,13 @@ async def watch_providers(
     region: str = Query("FR", min_length=2, max_length=4),
     media_type: str = Query("movie", pattern="^(movie|tv)$"),
     locale: str = Depends(get_request_locale),
-    up: tuple[User, UserProfile] = Depends(get_current_profile),
+    up: tuple[User, UserProfile] = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     """
-    Debug/admin helper: list all TMDB watch providers for a region + media type.
+    Admin-only maintainer helper: list all TMDB watch providers for a region
+    + media type. Gated by ``require_admin`` (403 ``admin_required`` otherwise)
+    — it exists to look up provider ids, has no portal UI consumer.
 
     Usage: ``GET /api/portal/catalog/watch-providers?region=FR&media_type=movie``
     """

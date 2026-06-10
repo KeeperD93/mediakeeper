@@ -29,8 +29,10 @@ async def _fake_key(db):
 
 
 async def _auth(client, db_session):
+    # watch-providers is admin-gated (require_admin); the locale behaviour
+    # under test is role-independent, so authenticate as an admin to reach it.
     user, _ = await make_portal_user(
-        db_session, username="wp-i18n", display_name="V", role="viewer",
+        db_session, username="wp-i18n", display_name="V", role="admin",
     )
     client.cookies.set(PORTAL_COOKIE, portal_token(user.username))
 
