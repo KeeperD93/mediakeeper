@@ -158,6 +158,7 @@ async def upsert_user_preferences(
     user_id: int,
     preferences: str | None = None,
     dashboard_layout: str | None = None,
+    table_columns: str | None = None,
     *,
     commit: bool = True,
 ):
@@ -169,6 +170,8 @@ async def upsert_user_preferences(
         row.preferences = preferences
     if dashboard_layout is not None:
         row.dashboard_layout = dashboard_layout
+    if table_columns is not None:
+        row.table_columns = table_columns
     if commit:
         await db.commit()
     else:
