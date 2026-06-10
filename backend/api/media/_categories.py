@@ -4,7 +4,7 @@ import re as _re
 from pathlib import Path
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.auth import get_current_user
@@ -19,6 +19,7 @@ router = APIRouter()
 
 
 class CategoryRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     label: str
     path: str
 

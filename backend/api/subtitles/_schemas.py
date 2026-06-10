@@ -1,5 +1,5 @@
 """Pydantic schemas for the subtitle endpoints."""
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class SearchRequest(BaseModel):
@@ -13,6 +13,7 @@ class SearchRequest(BaseModel):
 
 
 class DownloadRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     file_id: int
     destination: str              # chemin complet du fichier .srt a ecrire
     item_id: str = ""             # pour refresh Emby apres
@@ -35,15 +36,18 @@ class DownloadRequest(BaseModel):
 
 
 class DeleteRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     path: str
 
 
 class RemoveStreamRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     item_id: str
     stream_index: int
 
 
 class RemoveStreamsBatchRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     item_id: str
     stream_indices: list[int]
 
@@ -54,6 +58,7 @@ class ScanRequest(BaseModel):
 
 
 class ProfileRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     name: str
     languages: list[str] = ["fre", "eng"]
     include_hi: bool = False
@@ -77,15 +82,18 @@ class CompareRequest(BaseModel):
 
 
 class FixEncodingRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     path: str
 
 
 class ShiftSrtRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     path: str
     offset_ms: int  # positif = retarder, negatif = avancer
 
 
 class BatchDownloadRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     items: list[dict]
     profile_id: int = 0
 
@@ -97,4 +105,5 @@ class AuditRequest(BaseModel):
 
 
 class BatchRemoveStreamRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     operations: list[dict]  # [{"item_id": "xxx", "stream_index": 3}, ...]
