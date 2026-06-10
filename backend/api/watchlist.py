@@ -6,12 +6,14 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, ConfigDict
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
 from core.i18n import get_request_locale
 from api.auth import get_current_user, require_csrf
 from models.user import User
+from models.watchlist_scans import WatchlistScan
 from services.tmdb import get_media_detail
 from services.watchlist import (
     get_series_libraries, get_scan_results, get_scan_status,
@@ -31,18 +33,16 @@ router = APIRouter(prefix="/api/watchlist", tags=["watchlist"])
 async def _invalidate_calendar_cache(db: AsyncSession):
     """Invalidate the in-memory calendar cache AND the DB cache."""
     invalidate_calendar_cache()
-    # Delete calendar.* entries in DB to force regeneration
-    from models.watchlist_scans import WatchlistScan
-    from sqlalchemy import delete as sa_delete, select as sa_select
-    # Force a session flush before the delete
+    # Delete calendar.* entries in DB to force regeneration; flush first so
+    # the SELECT sees any pending writes from the caller's session.
     await db.flush()
     result = await db.execute(
-        sa_select(WatchlistScan.id).where(WatchlistScan.scan_key.like("calendar.%"))
+        select(WatchlistScan.id).where(WatchlistScan.scan_key.like("calendar.%"))
     )
     ids = [row[0] for row in result.fetchall()]
     if ids:
-        await db.execute(sa_delete(WatchlistScan).where(WatchlistScan.id.in_(ids)))
-        logger.info(f"[watchlist] Invalidated {len(ids)} calendar cache entries")
+        await db.execute(delete(WatchlistScan).where(WatchlistScan.id.in_(ids)))
+        logger.info("[watchlist] Invalidated %s calendar cache entries", len(ids))
     else:
         logger.info("[watchlist] No calendar cache entries to invalidate")
     await db.commit()
