@@ -5,7 +5,7 @@ Watchlist API routes v3 — persistent scan, results from DB.
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
@@ -123,6 +123,7 @@ async def calendar_refresh(
 # --- Ignored ---
 
 class IgnoreRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     keys: list[str]
 
 @router.get("/ignored")
@@ -153,6 +154,7 @@ async def ignore_remove(
 # --- Tracking ---
 
 class TrackRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     tmdb_id: int
     media_type: str
     name: str = ""
@@ -164,6 +166,7 @@ class TrackRequest(BaseModel):
     total_episodes: int = 0
 
 class UntrackRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     tmdb_id: int
     media_type: str
 
