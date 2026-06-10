@@ -27,6 +27,7 @@ from services.stats_aggregator import (  # noqa: F401
     get_global_totals,
     get_playback_stats,
     get_users_stats,
+    get_activity_grouped,
     get_activity_history,
     get_activity_minimap,
     get_activity_users,

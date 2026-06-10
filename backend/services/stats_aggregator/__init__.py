@@ -6,6 +6,7 @@ Legacy imports `from services.stats_aggregator import X` keep working
 thanks to the re-exports below.
 """
 from .activity import (
+    get_activity_grouped,
     get_activity_history,
     get_activity_minimap,
     get_activity_users,
@@ -31,6 +32,7 @@ from .users_admin import (
 __all__ = [
     "add_exclusion",
     "delete_user_stats",
+    "get_activity_grouped",
     "get_activity_history",
     "get_activity_minimap",
     "get_activity_users",
