@@ -71,8 +71,15 @@ class ProfileRequest(BaseModel):
     min_score: float = 3.0
 
 
+class AvailableCountItem(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    imdb_id: str = ""
+    tmdb_id: str = ""
+    type: str = ""
+
+
 class AvailableCountRequest(BaseModel):
-    items: list[dict]  # [{"imdb_id": "tt123", "tmdb_id": "456", "type": "Movie"}, ...]
+    items: list[AvailableCountItem]
 
 
 class CompareRequest(BaseModel):
@@ -92,9 +99,23 @@ class ShiftSrtRequest(BaseModel):
     offset_ms: int  # positif = retarder, negatif = avancer
 
 
+class BatchDownloadItem(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    emby_item_id: str = ""
+    file_path: str = ""
+    media_name: str = ""
+    type: str = ""
+    imdb_id: str = ""
+    tmdb_id: str = ""
+    series_name: str = ""
+    season: int = 0
+    episode: int = 0
+    series_imdb_id: str = ""
+
+
 class BatchDownloadRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    items: list[dict]
+    items: list[BatchDownloadItem]
     profile_id: int = 0
 
 
@@ -104,6 +125,12 @@ class AuditRequest(BaseModel):
     checks: list[str] = ["missing", "forced", "image_only"]
 
 
+class BatchRemoveStreamOperation(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    item_id: str
+    stream_index: int
+
+
 class BatchRemoveStreamRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    operations: list[dict]  # [{"item_id": "xxx", "stream_index": 3}, ...]
+    operations: list[BatchRemoveStreamOperation]
