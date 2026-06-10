@@ -88,6 +88,7 @@ async def create_backup(
                         "user_id":          p.user_id,
                         "preferences":      json.loads(p.preferences) if p.preferences else {},
                         "dashboard_layout": json.loads(p.dashboard_layout) if p.dashboard_layout else None,
+                        "table_columns":    json.loads(p.table_columns) if p.table_columns else None,
                     }
                     for p in prefs
                 ]

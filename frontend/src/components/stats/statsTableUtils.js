@@ -23,3 +23,12 @@ export function formatDate(iso) {
 export function fluxBadgeClass(m) {
   return m === 'DirectPlay' ? 'flux-direct' : m === 'Transcode' ? 'flux-transcode' : 'flux-other'
 }
+
+// Real percentage of the media watched (position reached / total runtime),
+// clamped to 0-100. Returns null when the total runtime is unknown
+// (legacy/imported rows) so the UI hides the bar.
+export function watchedPct(positionTicks, runtimeTicks) {
+  if (!runtimeTicks || runtimeTicks <= 0) return null
+  const pct = Math.round((positionTicks / runtimeTicks) * 100)
+  return Math.max(0, Math.min(100, pct))
+}

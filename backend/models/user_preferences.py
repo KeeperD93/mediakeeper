@@ -17,6 +17,8 @@ class UserPreference(Base):
     preferences = Column(Text, nullable=True, default="{}")
     # JSON : {"hidden": [], "positions": {...}}
     dashboard_layout = Column(Text, nullable=True, default="{}")
+    # JSON : {"stats.activity": [w0, w1, ...]} — resizable table column widths, per table id.
+    table_columns = Column(Text, nullable=True, default="{}")
     updated_at = Column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),

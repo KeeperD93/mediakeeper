@@ -23,11 +23,15 @@ This section intentionally has no date so it is not shown to users.
 - Lists (admin) — moderation: soft-deleted lists visible/restorable + "Load more".
 - Portal — configurable donation link for your users (admin settings).
 - Dashboard — MediaKeeper support heart in the top bar (Ko-fi, star).
+- Statistics — activity history: watch-progress column (position/total) + per-session duration.
+- Statistics — activity: filter which users' activity is shown (temporary).
+- Statistics — activity: resizable table columns, widths remembered per user.
 
 ### Changed
 - Dashboard — 30 upcoming releases shown (was 20).
 - Onboarding — Folders step now notes it's optional (configurable later).
 - Watchlist — Timeline tab: months bar widened and more readable.
+- Statistics — activity: consecutive sessions of the same content grouped (expandable, segmented bar).
 
 ### Fixed
 - Dashboard — History tabs (Notifications, Duplicates): "Load more" button.
@@ -40,6 +44,7 @@ This section intentionally has no date so it is not shown to users.
 - Notifications — Discord test message follows the configured default language.
 - Stats — Users and merge: profile photo (custom or Emby) now shown.
 - Stats — active-users hover: names shown instead of raw identifiers.
+- Statistics — activity: sorting now spans all pages (was per-page).
 - Media library — track details no longer fail on a corrupted file.
 - Media Manager — undoing a batch rename no longer stops halfway (retry kept).
 - Media Manager — rename history labels follow the app language.
