@@ -16,7 +16,6 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, ConfigDict, Field
-from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
@@ -61,14 +60,14 @@ async def role_presets(_: User = Depends(get_current_user)):
 
 @router.get("")
 async def list_users(
-    search: Optional[str] = Query(None, max_length=100),
-    source: Optional[str] = Query(None, pattern="^(emby|local)$"),
-    role: Optional[str] = Query(None, pattern="^(viewer|moderator|admin)$"),
-    status: Optional[str] = Query(None, pattern="^(active|inactive|expired|never_logged_in)$"),
-    expires_within: Optional[int] = Query(None, ge=1, le=365),
+    search: str | None = Query(None, max_length=100),
+    source: str | None = Query(None, pattern="^(emby|local)$"),
+    role: str | None = Query(None, pattern="^(viewer|moderator|admin)$"),
+    status: str | None = Query(None, pattern="^(active|inactive|expired|never_logged_in)$"),
+    expires_within: int | None = Query(None, ge=1, le=365),
     include_deleted: bool = Query(False),
-    tag: Optional[str] = Query(None, max_length=32),
-    pending_deletion: Optional[bool] = Query(None),
+    tag: str | None = Query(None, max_length=32),
+    pending_deletion: bool | None = Query(None),
     sort: str = Query("display_name"),
     order: str = Query("asc", pattern="^(asc|desc)$"),
     limit: int = Query(50, ge=1, le=200),
@@ -137,10 +136,10 @@ async def get_user_audit(
 
 class IdentityUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    display_name: Optional[str] = Field(None, max_length=50)
-    first_name: Optional[str] = Field(None, max_length=100)
-    last_name: Optional[str] = Field(None, max_length=100)
-    email: Optional[str] = Field(None, max_length=255)
+    display_name: str | None = Field(None, max_length=50)
+    first_name: str | None = Field(None, max_length=100)
+    last_name: str | None = Field(None, max_length=100)
+    email: str | None = Field(None, max_length=255)
 
 
 @router.patch("/{profile_id}")
@@ -250,8 +249,8 @@ async def patch_active(
 
 class AccessWindow(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    start: Optional[datetime] = None
-    end: Optional[datetime] = None
+    start: datetime | None = None
+    end: datetime | None = None
 
 
 @router.patch("/{profile_id}/access")
