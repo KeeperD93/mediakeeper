@@ -61,7 +61,7 @@ async def add_category(
         return {"error": f"category_already_exists: {label}"}
     cats.append({"key": key, "label": label, "path": str(target)})
     await save_categories(db, cats)
-    logger.info(f"Category added: {label} → {target} par {_.username}")
+    logger.info("Category added: %s → %s by %s", label, target, _.username)
     return {"ok": True, "categories": cats}
 
 
@@ -77,5 +77,5 @@ async def remove_category(
     if len(new_cats) == len(cats):
         return {"error": "category_not_found"}
     await save_categories(db, new_cats)
-    logger.info(f"Category deleted: {cat_key} par {_.username}")
+    logger.info("Category deleted: %s by %s", cat_key, _.username)
     return {"ok": True, "categories": new_cats}
