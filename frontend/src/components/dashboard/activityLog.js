@@ -145,12 +145,35 @@ function attemptedUser(name) {
   return ''
 }
 
-// Build the display label for an Emby alert entry (Error/Warning severity).
+// Account/admin alert types whose label reads "<verb> <user>". The subject user
+// is resolved backend-side (alert.user, from the Emby UserId); attemptedUser
+// parses it out of the localized name as a fallback when the backend left it empty.
+const USER_ALERT_KEYS = {
+  'user.passwordchanged': 'dashboard.alertPasswordChanged',
+  'user.created': 'dashboard.alertUserCreated',
+  'user.deleted': 'dashboard.alertUserDeleted',
+  'user.policyupdated': 'dashboard.alertPolicyUpdated',
+}
+
+// Build the display label for an Emby alert entry (Error severity, or an
+// escalated account/plugin admin event), localized in the viewer's language.
 export function parseActivityAlert(alert, t) {
-  if (alert.type === 'user.authenticationfailed') {
+  const type = alert.type || ''
+
+  if (type === 'user.authenticationfailed') {
     const user = attemptedUser(alert.name || '')
     return user ? t('dashboard.signInFailedFor', { user }) : t('dashboard.signInFailed')
   }
-  // Other alert types are not machine-mapped yet → keep Emby's raw label.
+
+  const key = USER_ALERT_KEYS[type]
+  if (key) {
+    const user = alert.user || attemptedUser(alert.name || '')
+    return user ? t(key, { user }) : alert.name || ''
+  }
+
+  if (type === 'plugins.plugininstalled') return t('dashboard.alertPluginInstalled')
+  if (type === 'plugins.pluginuninstalled') return t('dashboard.alertPluginUninstalled')
+
+  // Unmapped alert type → keep Emby's raw label.
   return alert.name || ''
 }

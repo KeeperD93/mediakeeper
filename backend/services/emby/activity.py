@@ -3,11 +3,14 @@ import asyncio
 import logging
 import time
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.http_client import get_internal_client
+from models.portal.profile import UserProfile
 
 from .config import ALERT_SEVERITIES, ALERT_TYPES, _get_emby_config
+from .users import get_emby_user
 
 logger = logging.getLogger("mediakeeper.emby")
 
@@ -18,12 +21,19 @@ _raw_entries_cache: list | None = None
 _raw_entries_cache_ts: float = 0
 _raw_entries_lock = asyncio.Lock()
 
+_USER_NAME_TTL = 300  # Emby UserId -> name; names are near-immutable.
+_user_name_cache: dict[str, str] = {}
+_user_name_cache_ts: float = 0
+
 
 def _reset_activity_cache() -> None:
-    """Reset the activity cache — used by tests."""
+    """Reset the activity caches — used by tests."""
     global _raw_entries_cache, _raw_entries_cache_ts
+    global _user_name_cache, _user_name_cache_ts
     _raw_entries_cache = None
     _raw_entries_cache_ts = 0
+    _user_name_cache = {}
+    _user_name_cache_ts = 0
 
 
 async def _get_raw_entries(db: AsyncSession) -> list:
@@ -52,15 +62,46 @@ async def _get_raw_entries(db: AsyncSession) -> list:
                 headers={"X-Emby-Token": api_key},
             )
             if res.status_code != 200:
-                logger.warning(f"_fetch_activity_entries: Emby HTTP {res.status_code}")
+                logger.warning("_get_raw_entries: Emby HTTP %s", res.status_code)
                 return _raw_entries_cache or []
             items = res.json().get("Items", [])
             _raw_entries_cache = items
             _raw_entries_cache_ts = time.monotonic()
             return items
         except Exception as e:
-            logger.error(f"Error _fetch_activity_entries: {e}")
+            logger.error("_get_raw_entries error: %s", e)
             return _raw_entries_cache or []
+
+
+async def _resolve_user_names(db: AsyncSession, ids: set[str]) -> dict[str, str]:
+    """Map Emby ``UserId`` -> display name.
+
+    Emby's ActivityLog carries ``UserId`` (never ``UserName``), so the name is
+    resolved here: MediaKeeper profiles first (one query, no Emby round-trip),
+    then ``/Users/{id}`` for Emby-only accounts. Cached for ``_USER_NAME_TTL``
+    since names are near-immutable.
+    """
+    global _user_name_cache, _user_name_cache_ts
+    now = time.monotonic()
+    if (now - _user_name_cache_ts) >= _USER_NAME_TTL:
+        _user_name_cache = {}
+        _user_name_cache_ts = now
+
+    missing = {i for i in ids if i and i not in _user_name_cache}
+    if missing:
+        rows = (
+            await db.execute(
+                select(UserProfile.emby_user_id, UserProfile.display_name)
+                .where(UserProfile.emby_user_id.in_(missing))
+            )
+        ).all()
+        for emby_id, name in rows:
+            _user_name_cache[emby_id] = name
+        for uid in missing - _user_name_cache.keys():
+            emby_user = await get_emby_user(db, uid)
+            _user_name_cache[uid] = (emby_user or {}).get("Name", "")
+
+    return {i: _user_name_cache.get(i, "") for i in ids}
 
 
 async def _fetch_activity_entries(
@@ -76,7 +117,7 @@ async def _fetch_activity_entries(
     """
     items = await _get_raw_entries(db)
 
-    result = []
+    selected = []
     for item in items:
         t = item.get("Type", "")
         s = item.get("Severity", "")
@@ -87,20 +128,27 @@ async def _fetch_activity_entries(
         if not include_alerts and is_alert:
             continue
 
+        selected.append(item)
+        if len(selected) >= limit:
+            break
+
+    names = await _resolve_user_names(
+        db, {item.get("UserId", "") for item in selected if item.get("UserId")}
+    )
+
+    result = []
+    for item in selected:
         entry = {
             "date":     item.get("Date", ""),
             "name":     item.get("Name", ""),
-            "type":     t,
-            "user":     item.get("UserName", ""),
-            "severity": s,
+            "type":     item.get("Type", ""),
+            "user":     names.get(item.get("UserId", ""), ""),
+            "severity": item.get("Severity", ""),
         }
         if include_alerts:
             entry["id"]       = str(item.get("Id", ""))
             entry["overview"] = item.get("Overview", "")
-
         result.append(entry)
-        if len(result) >= limit:
-            break
 
     return result
 
