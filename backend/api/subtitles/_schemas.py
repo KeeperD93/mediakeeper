@@ -1,5 +1,5 @@
 """Pydantic schemas for the subtitle endpoints."""
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class SearchRequest(BaseModel):
@@ -13,6 +13,7 @@ class SearchRequest(BaseModel):
 
 
 class DownloadRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     file_id: int
     destination: str              # chemin complet du fichier .srt a ecrire
     item_id: str = ""             # pour refresh Emby apres
@@ -35,15 +36,18 @@ class DownloadRequest(BaseModel):
 
 
 class DeleteRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     path: str
 
 
 class RemoveStreamRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     item_id: str
     stream_index: int
 
 
 class RemoveStreamsBatchRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     item_id: str
     stream_indices: list[int]
 
@@ -54,6 +58,7 @@ class ScanRequest(BaseModel):
 
 
 class ProfileRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     name: str
     languages: list[str] = ["fre", "eng"]
     include_hi: bool = False
@@ -66,8 +71,15 @@ class ProfileRequest(BaseModel):
     min_score: float = 3.0
 
 
+class AvailableCountItem(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    imdb_id: str = ""
+    tmdb_id: str = ""
+    type: str = ""
+
+
 class AvailableCountRequest(BaseModel):
-    items: list[dict]  # [{"imdb_id": "tt123", "tmdb_id": "456", "type": "Movie"}, ...]
+    items: list[AvailableCountItem]
 
 
 class CompareRequest(BaseModel):
@@ -77,16 +89,33 @@ class CompareRequest(BaseModel):
 
 
 class FixEncodingRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     path: str
 
 
 class ShiftSrtRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     path: str
     offset_ms: int  # positif = retarder, negatif = avancer
 
 
+class BatchDownloadItem(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    emby_item_id: str = ""
+    file_path: str = ""
+    media_name: str = ""
+    type: str = ""
+    imdb_id: str = ""
+    tmdb_id: str = ""
+    series_name: str = ""
+    season: int = 0
+    episode: int = 0
+    series_imdb_id: str = ""
+
+
 class BatchDownloadRequest(BaseModel):
-    items: list[dict]
+    model_config = ConfigDict(extra="forbid")
+    items: list[BatchDownloadItem]
     profile_id: int = 0
 
 
@@ -96,5 +125,12 @@ class AuditRequest(BaseModel):
     checks: list[str] = ["missing", "forced", "image_only"]
 
 
+class BatchRemoveStreamOperation(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    item_id: str
+    stream_index: int
+
+
 class BatchRemoveStreamRequest(BaseModel):
-    operations: list[dict]  # [{"item_id": "xxx", "stream_index": 3}, ...]
+    model_config = ConfigDict(extra="forbid")
+    operations: list[BatchRemoveStreamOperation]

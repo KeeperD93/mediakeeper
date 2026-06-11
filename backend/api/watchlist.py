@@ -2,17 +2,20 @@
 Watchlist API routes v3 — persistent scan, results from DB.
 """
 
+from datetime import date, timedelta
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
 from core.i18n import get_request_locale
 from api.auth import get_current_user, require_csrf
 from models.user import User
-from services.tmdb import get_media_detail
+from models.watchlist_scans import WatchlistScan
+from services.tmdb import get_media_detail, tmdb_language
 from services.watchlist import (
     get_series_libraries, get_scan_results, get_scan_status,
     full_scan, incremental_scan,
@@ -24,6 +27,8 @@ from services.watchlist import (
 from services.watchlist_scanner._localize import (
     localize_series_list, localize_calendar_items, localize_tracked_items,
 )
+from services.watchlist_scanner._state import get_cache
+from services.watchlist_scanner._tmdb import _tmdb_series, _tmdb_season
 
 logger = logging.getLogger("mediakeeper.api.watchlist")
 router = APIRouter(prefix="/api/watchlist", tags=["watchlist"])
@@ -31,18 +36,16 @@ router = APIRouter(prefix="/api/watchlist", tags=["watchlist"])
 async def _invalidate_calendar_cache(db: AsyncSession):
     """Invalidate the in-memory calendar cache AND the DB cache."""
     invalidate_calendar_cache()
-    # Delete calendar.* entries in DB to force regeneration
-    from models.watchlist_scans import WatchlistScan
-    from sqlalchemy import delete as sa_delete, select as sa_select
-    # Force a session flush before the delete
+    # Delete calendar.* entries in DB to force regeneration; flush first so
+    # the SELECT sees any pending writes from the caller's session.
     await db.flush()
     result = await db.execute(
-        sa_select(WatchlistScan.id).where(WatchlistScan.scan_key.like("calendar.%"))
+        select(WatchlistScan.id).where(WatchlistScan.scan_key.like("calendar.%"))
     )
     ids = [row[0] for row in result.fetchall()]
     if ids:
-        await db.execute(sa_delete(WatchlistScan).where(WatchlistScan.id.in_(ids)))
-        logger.info(f"[watchlist] Invalidated {len(ids)} calendar cache entries")
+        await db.execute(delete(WatchlistScan).where(WatchlistScan.id.in_(ids)))
+        logger.info("[watchlist] Invalidated %s calendar cache entries", len(ids))
     else:
         logger.info("[watchlist] No calendar cache entries to invalidate")
     await db.commit()
@@ -123,6 +126,7 @@ async def calendar_refresh(
 # --- Ignored ---
 
 class IgnoreRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     keys: list[str]
 
 @router.get("/ignored")
@@ -153,6 +157,7 @@ async def ignore_remove(
 # --- Tracking ---
 
 class TrackRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     tmdb_id: int
     media_type: str
     name: str = ""
@@ -164,6 +169,7 @@ class TrackRequest(BaseModel):
     total_episodes: int = 0
 
 class UntrackRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     tmdb_id: int
     media_type: str
 
@@ -219,27 +225,24 @@ async def tmdb_detail(media_type: str, tmdb_id: int, locale: str = Depends(get_r
 
 @router.get("/upcoming")
 async def upcoming_episodes(
-    lang: str = Query("fr"),
+    locale: str = Depends(get_request_locale),
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    """Upcoming episodes (sorted by air_date), display fields localized to ``lang``.
+    """Upcoming episodes (sorted by air_date), display fields localized to the
+    viewer's locale (``X-MK-Locale`` header).
 
     The scan cache holds language-neutral structure (which episodes are
     upcoming) plus French display fields. The series name / poster /
     episode title are re-resolved here in the viewer's language via the
     per-(id, lang) TMDB cache, so a viewer in English sees English.
     """
-    from datetime import date, timedelta
-    from services.watchlist_scanner import get_scan_status, _cache as scan_cache
-    from services.watchlist_scanner._tmdb import (
-        _tmdb_series, _tmdb_season, TMDB_LANG_BY_LOCALE, DEFAULT_TMDB_LANG,
-    )
+    scan_cache = get_cache()
     if not get_scan_status().get("ready") or not scan_cache:
         return []
 
     cutoff = (date.today() - timedelta(days=2)).isoformat()
-    tmdb_lang = TMDB_LANG_BY_LOCALE.get(lang, DEFAULT_TMDB_LANG)
+    tmdb_lang = tmdb_language(locale)
 
     # 1) Collect the language-neutral upcoming structure from the scan cache.
     pending = []

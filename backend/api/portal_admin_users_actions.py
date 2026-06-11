@@ -6,8 +6,7 @@ password, force-logout, login history."""
 import logging
 
 from fastapi import APIRouter, Depends, Query, Request
-from pydantic import BaseModel, Field
-from typing import Optional
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
@@ -44,7 +43,8 @@ logger = logging.getLogger("mediakeeper.api.portal_admin_users_actions")
 
 
 class NotesUpdate(BaseModel):
-    notes: Optional[str] = Field(None, max_length=4000)
+    model_config = ConfigDict(extra="forbid")
+    notes: str | None = Field(None, max_length=4000)
 
 
 @router.patch("/{profile_id}/notes")
@@ -64,6 +64,7 @@ async def patch_notes(
 
 
 class TagsUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     tags: list[str] = Field(default_factory=list)
 
 
@@ -84,6 +85,7 @@ async def patch_tags(
 
 
 class ExtendAccess(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     months: int = Field(..., ge=1, le=60)
 
 
@@ -104,6 +106,7 @@ async def post_extend_access(
 
 
 class EmbyToggle(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     enabled: bool
 
 
@@ -182,9 +185,10 @@ async def get_export(
 
 
 class BulkAction(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     action: str = Field(..., pattern="^(activate|deactivate|delete|set_role|set_permissions|export)$")
     profile_ids: list[int] = Field(..., min_length=1, max_length=500)
-    payload: Optional[dict] = None
+    payload: dict | None = None
 
 
 @router.post("/bulk")
@@ -207,6 +211,7 @@ async def post_bulk(
 
 
 class NotifyPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     title: str = Field(..., min_length=1, max_length=120)
     body: str = Field(..., min_length=1, max_length=1000)
 

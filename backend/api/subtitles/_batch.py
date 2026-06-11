@@ -36,12 +36,14 @@ async def start_batch(
     if not profile:
         raise HTTPException(status_code=400, detail="no_profile_available")
 
+    items = [it.model_dump() for it in req.items]
+
     async def _run_batch():
         async with AsyncSessionLocal() as bg_db:
-            await batch_download(bg_db, req.items, profile)
+            await batch_download(bg_db, items, profile)
 
     safe_create_task(_run_batch(), name="subtitles.batch_download")
-    return {"started": True, "total": len(req.items)}
+    return {"started": True, "total": len(items)}
 
 
 @router.get("/batch-progress")

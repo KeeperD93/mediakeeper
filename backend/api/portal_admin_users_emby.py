@@ -9,8 +9,7 @@ Routes mounted at ``/api/portal/admin/users``:
 import logging
 
 from fastapi import APIRouter, Depends, Request
-from pydantic import BaseModel, Field, field_validator
-from typing import Optional
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
@@ -51,6 +50,7 @@ async def post_sync_emby_ids(
 
 
 class EmbyImportSelection(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     emby_user_ids: list[str] = Field(..., min_length=1, max_length=200)
 
 
@@ -72,12 +72,13 @@ async def post_emby_import(
 
 
 class LocalUserCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     username: str = Field(..., min_length=3, max_length=50)
     password: str = Field(..., min_length=8, max_length=MAX_BCRYPT_PASSWORD_BYTES)
-    display_name: Optional[str] = Field(None, max_length=50)
-    email: Optional[str] = Field(None, max_length=255)
-    first_name: Optional[str] = Field(None, max_length=100)
-    last_name: Optional[str] = Field(None, max_length=100)
+    display_name: str | None = Field(None, max_length=50)
+    email: str | None = Field(None, max_length=255)
+    first_name: str | None = Field(None, max_length=100)
+    last_name: str | None = Field(None, max_length=100)
     role: str = Field("viewer", pattern="^(viewer|moderator|admin)$")
     account_active: bool = True
 

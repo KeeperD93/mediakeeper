@@ -63,7 +63,7 @@ async def available_count(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    return await get_available_counts(db, req.items)
+    return await get_available_counts(db, [it.model_dump() for it in req.items])
 
 
 @router.get("/search-streams")
@@ -90,8 +90,8 @@ async def batch_remove_streams(
     """Bulk-delete embedded streams (audio/subtitle) via ffmpeg remux."""
     results = {"success": [], "failed": []}
     for op in req.operations:
-        item_id = op.get("item_id", "")
-        stream_index = op.get("stream_index", -1)
+        item_id = op.item_id
+        stream_index = op.stream_index
         if not item_id or stream_index < 0:
             results["failed"].append({"item_id": item_id, "error": "invalid_params"})
             continue

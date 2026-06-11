@@ -28,7 +28,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Statistiques — activité : colonnes du tableau redimensionnables, largeurs mémorisées par utilisateur.
 
 ### Changed
-- Tableau de bord — 30 prochaines sorties affichées (au lieu de 20).
+- Tableau de bord — 30 prochaines sorties affichées (au lieu de 20), titres dans votre langue.
 - Onboarding — l'étape Dossiers précise qu'elle est optionnelle (configurable plus tard).
 - Watchlist — onglet Timeline : barre des mois élargie et plus lisible.
 - Statistiques — activité : sessions consécutives d'un même contenu regroupées (dépliables, barre segmentée).

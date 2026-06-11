@@ -2,7 +2,7 @@
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from api.auth import get_current_user
 from models.user import User
@@ -34,10 +34,12 @@ def _raise_if_hard_fail(result: dict) -> None:
 
 
 class DeleteRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     path: str
 
 
 class MoveCatRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     src_path: str
     src_cat:  str
     dest_cat: str
@@ -72,6 +74,7 @@ async def delete(req: DeleteRequest, _: User = Depends(get_current_user)):
 
 
 class BatchDeleteRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     paths: list[str]
 
 
@@ -90,11 +93,13 @@ async def delete_batch(req: BatchDeleteRequest, _: User = Depends(get_current_us
 
 
 class FolderItem(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     parent_path: str
     folder_name: str
 
 
 class CreateFoldersRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     folders: list[FolderItem]
 
 
@@ -108,6 +113,7 @@ async def create_folders(req: CreateFoldersRequest, _: User = Depends(get_curren
 
 
 class MoveRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     src_path:    str
     dest_folder: str
 
@@ -125,6 +131,7 @@ async def move(req: MoveRequest, _: User = Depends(get_current_user)):
 
 
 class CheckConflictsRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     file_names: list[str]
     dest_folder: str
 
@@ -139,6 +146,7 @@ async def check_conflicts(req: CheckConflictsRequest, _: User = Depends(get_curr
 
 
 class MoveOverwriteRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     src_path: str
     dest_folder: str
 
