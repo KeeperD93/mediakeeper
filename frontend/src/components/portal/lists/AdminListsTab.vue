@@ -76,12 +76,12 @@ const loading = ref(false)
 const MOD_PAGE = 50
 const allLists = computed(() => svc.moderationLists.value)
 const loadingMore = ref(false)
-const hasMore = computed(() => svc.moderationLists.value.length < svc.moderationTotal.value)
+const hasMore = computed(() => svc.moderationHasMore.value)
 
 async function load() {
   loading.value = true
   try {
-    await svc.fetchModerationLists({ limit: MOD_PAGE, offset: 0 })
+    await svc.fetchModerationLists({ limit: MOD_PAGE })
   } finally {
     loading.value = false
   }
@@ -93,7 +93,7 @@ async function loadMore() {
   try {
     await svc.fetchModerationLists({
       limit: MOD_PAGE,
-      offset: svc.moderationLists.value.length,
+      cursor: svc.moderationCursor.value,
       append: true,
     })
   } finally {

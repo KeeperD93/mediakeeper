@@ -23,17 +23,14 @@ class MuteToggle(BaseModel):
 @router.get("")
 async def admin_list_all(
     limit: int = Query(50, ge=1, le=200),
-    offset: int = Query(0, ge=0),
+    cursor: str | None = Query(None),
     up: tuple[User, UserProfile] = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     """All public/collaborative lists for moderation — including soft-deleted
     ones (so the admin can restore them) and lists of deactivated owners."""
     admin_user, _ = up
-    result = await svc_query.get_moderation_lists(
-        db, admin_user.id, limit=limit, offset=offset,
-    )
-    return {**result, "limit": limit, "offset": offset}
+    return await svc_query.get_moderation_lists(db, admin_user.id, limit=limit, cursor=cursor)
 
 
 def _http_error(result: dict) -> None:

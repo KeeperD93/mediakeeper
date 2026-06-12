@@ -293,7 +293,7 @@ async def test_add_item_keeps_whitelisted_tmdb_poster(client, db_session):
 
 
 @pytest.mark.asyncio
-async def test_public_lists_offset_pagination(client, db_session):
+async def test_public_lists_cursor_pagination(client, db_session):
     owner = await _bootstrap(db_session, "pg_owner")
     db_session.add_all([
         UserList(user_id=owner.id, name=f"Public {i:02d}", privacy=PRIVACY_PUBLIC_READONLY)
@@ -303,12 +303,17 @@ async def test_public_lists_offset_pagination(client, db_session):
     _rq(client, owner)
 
     seen: list[int] = []
-    for offset in (0, 2, 4):
-        resp = await client.get(f"/api/portal/lists/public?limit=2&offset={offset}")
+    cursor = None
+    for _ in range(10):  # safety bound well above the 5 seeded lists
+        url = "/api/portal/lists/public?limit=2" + (f"&cursor={cursor}" if cursor else "")
+        resp = await client.get(url)
         assert resp.status_code == 200
         body = resp.json()
         assert body["total"] == 5
         seen.extend(it["id"] for it in body["items"])
+        cursor = body.get("next_cursor")
+        if not cursor:
+            break
     assert len(seen) == 5 and len(set(seen)) == 5
 
 
@@ -347,7 +352,7 @@ async def test_moderation_lists_include_soft_deleted_for_admin(client, db_sessio
 
 
 @pytest.mark.asyncio
-async def test_moderation_lists_offset_pagination(client, db_session):
+async def test_moderation_lists_cursor_pagination(client, db_session):
     owner = await _bootstrap(db_session, "modpg_owner")
     admin = await _bootstrap(db_session, "modpg_admin", role="admin")
     db_session.add_all([
@@ -358,12 +363,17 @@ async def test_moderation_lists_offset_pagination(client, db_session):
     _rq(client, admin)
 
     seen: list[int] = []
-    for offset in (0, 2, 4):
-        resp = await client.get(f"/api/portal/admin/lists?limit=2&offset={offset}")
+    cursor = None
+    for _ in range(10):  # safety bound well above the 5 seeded lists
+        url = "/api/portal/admin/lists?limit=2" + (f"&cursor={cursor}" if cursor else "")
+        resp = await client.get(url)
         assert resp.status_code == 200
         body = resp.json()
         assert body["total"] == 5
         seen.extend(it["id"] for it in body["items"])
+        cursor = body.get("next_cursor")
+        if not cursor:
+            break
     assert len(seen) == 5 and len(set(seen)) == 5
 
 

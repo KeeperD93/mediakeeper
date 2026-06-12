@@ -1,9 +1,12 @@
 """Read-path for user lists: get single list, user lists, public lists + serialization."""
 from __future__ import annotations
 
-from sqlalchemy import select, func
+from datetime import datetime
+
+from sqlalchemy import select, func, or_, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.pagination import decode_cursor, encode_cursor
 from models.portal.profile import UserProfile
 from models.portal.social import (
     UserList, UserListItem, UserListContributor,
@@ -81,7 +84,7 @@ async def get_user_lists(
 
 
 async def get_public_lists(
-    db: AsyncSession, user_id: int, *, limit: int = 50, offset: int = 0,
+    db: AsyncSession, user_id: int, *, limit: int = 50, cursor: str | None = None,
 ) -> dict:
     # Exclude lists whose owner has been soft-deleted or deactivated:
     # the owner row survives but their identifying surfaces (pseudo,
@@ -99,18 +102,11 @@ async def get_public_lists(
             UserProfile.deleted_at.is_(None),
         )
     )
-    total = (await db.execute(
-        select(func.count()).select_from(base.subquery())
-    )).scalar() or 0
-    lists = (await db.execute(
-        base.order_by(UserList.updated_at.desc()).offset(offset).limit(limit)
-    )).scalars().all()
-    items = [await _serialize_list(db, lst, user_id, lightweight=True) for lst in lists]
-    return {"items": items, "total": total}
+    return await _paginate_lists_by_activity(db, base, user_id, limit=limit, cursor=cursor)
 
 
 async def get_moderation_lists(
-    db: AsyncSession, user_id: int, *, limit: int = 50, offset: int = 0,
+    db: AsyncSession, user_id: int, *, limit: int = 50, cursor: str | None = None,
 ) -> dict:
     """Admin moderation view: every public/collaborative list — INCLUDING
     soft-deleted ones and those of deactivated/purged owners — so the admin
@@ -119,14 +115,42 @@ async def get_moderation_lists(
     base = select(UserList).where(
         UserList.privacy.in_((PRIVACY_PUBLIC_READONLY, PRIVACY_COLLABORATIVE)),
     )
+    return await _paginate_lists_by_activity(db, base, user_id, limit=limit, cursor=cursor)
+
+
+async def _paginate_lists_by_activity(
+    db: AsyncSession, base, user_id: int, *, limit: int, cursor: str | None,
+) -> dict:
+    """Keyset-paginate a list query by ``(updated_at, id)`` descending.
+
+    ``updated_at`` is mutable (bumped on edit/copy), so a plain offset window
+    drifts when a row is re-sorted between two pages. The cursor carries both
+    the activity timestamp and the id, giving a total order with no duplicate
+    or skipped rows at "load more".
+    """
     total = (await db.execute(
         select(func.count()).select_from(base.subquery())
     )).scalar() or 0
-    lists = (await db.execute(
-        base.order_by(UserList.updated_at.desc()).offset(offset).limit(limit)
+    q = base
+    decoded = decode_cursor(cursor) if cursor else None
+    if decoded and decoded.get("id") is not None and decoded.get("updated_at"):
+        c_updated = datetime.fromisoformat(decoded["updated_at"])
+        c_id = decoded["id"]
+        q = q.where(or_(
+            UserList.updated_at < c_updated,
+            and_(UserList.updated_at == c_updated, UserList.id < c_id),
+        ))
+    rows = (await db.execute(
+        q.order_by(UserList.updated_at.desc(), UserList.id.desc()).limit(limit)
     )).scalars().all()
-    items = [await _serialize_list(db, lst, user_id, lightweight=True) for lst in lists]
-    return {"items": items, "total": total}
+    items = [await _serialize_list(db, lst, user_id, lightweight=True) for lst in rows]
+    has_more = len(rows) >= limit
+    next_cursor = (
+        encode_cursor({"updated_at": rows[-1].updated_at.isoformat(), "id": rows[-1].id})
+        if has_more and rows
+        else None
+    )
+    return {"items": items, "total": int(total), "next_cursor": next_cursor, "has_more": has_more}
 
 
 async def _serialize_list(

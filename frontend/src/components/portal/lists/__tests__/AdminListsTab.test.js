@@ -8,12 +8,16 @@ vi.mock('vue-i18n', () => ({
 
 const moderationListsRef = ref([])
 const moderationTotalRef = ref(0)
+const moderationHasMoreRef = ref(false)
+const moderationCursorRef = ref(null)
 const fetchModerationLists = vi.fn()
 
 vi.mock('@/composables/portal/usePortalLists', () => ({
   usePortalLists: () => ({
     moderationLists: moderationListsRef,
     moderationTotal: moderationTotalRef,
+    moderationHasMore: moderationHasMoreRef,
+    moderationCursor: moderationCursorRef,
     fetchModerationLists,
     adminUndelete: vi.fn(() => Promise.resolve({ success: true })),
     adminHardDelete: vi.fn(() => Promise.resolve({ success: true })),
@@ -48,6 +52,8 @@ const page = (start, n) => Array.from({ length: n }, (_, i) => row(start + i))
 beforeEach(() => {
   moderationListsRef.value = []
   moderationTotalRef.value = 0
+  moderationHasMoreRef.value = false
+  moderationCursorRef.value = null
   fetchModerationLists.mockReset()
 })
 
@@ -55,7 +61,7 @@ describe('AdminListsTab — moderation', () => {
   it('shows a soft-deleted list with an undelete action', async () => {
     fetchModerationLists.mockImplementation(() => {
       moderationListsRef.value = [row(1), row(2, { is_deleted: true })]
-      moderationTotalRef.value = 2
+      moderationHasMoreRef.value = false
       return Promise.resolve()
     })
     const w = mount(AdminListsTab, { global: { stubs: STUBS } })
@@ -68,11 +74,12 @@ describe('AdminListsTab — moderation', () => {
     expect(w.findAll('.adm-btn').some(b => b.text().includes('undelete'))).toBe(true)
   })
 
-  it('load more appends the next moderation page, offset = current count', async () => {
-    fetchModerationLists.mockImplementation(({ offset = 0, append = false } = {}) => {
-      const p = offset === 0 ? page(1, 50) : page(51, 10)
+  it('load more appends the next moderation page via the previous cursor', async () => {
+    fetchModerationLists.mockImplementation(({ cursor = null, append = false } = {}) => {
+      const p = cursor === null ? page(1, 50) : page(51, 10)
       moderationListsRef.value = append ? [...moderationListsRef.value, ...p] : p
-      moderationTotalRef.value = 60
+      moderationHasMoreRef.value = cursor === null
+      moderationCursorRef.value = cursor === null ? 'cur-50' : null
       return Promise.resolve()
     })
     const w = mount(AdminListsTab, { global: { stubs: STUBS } })
@@ -84,7 +91,11 @@ describe('AdminListsTab — moderation', () => {
     await w.find('.lm').trigger('click')
     await flushPromises()
 
-    expect(fetchModerationLists).toHaveBeenLastCalledWith({ limit: 50, offset: 50, append: true })
+    expect(fetchModerationLists).toHaveBeenLastCalledWith({
+      limit: 50,
+      cursor: 'cur-50',
+      append: true,
+    })
     expect(w.findAll('.adm-table tbody tr')).toHaveLength(60)
     expect(w.find('.lm').exists()).toBe(false)
   })
