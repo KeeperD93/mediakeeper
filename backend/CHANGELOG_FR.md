@@ -29,6 +29,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ### Changed
 - Tableau de bord — 30 prochaines sorties affichées (au lieu de 20), titres dans votre langue.
+- Tableau de bord — prochaines sorties : épisodes du même jour regroupés, libellés clarifiés.
 - Onboarding — l'étape Dossiers précise qu'elle est optionnelle (configurable plus tard).
 - Watchlist — onglet Timeline : barre des mois élargie et plus lisible.
 - Statistiques — activité : sessions consécutives d'un même contenu regroupées (dépliables, barre segmentée).

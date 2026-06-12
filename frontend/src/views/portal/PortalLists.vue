@@ -128,15 +128,13 @@ const loadingMorePublic = ref(false)
 const currentTabLists = computed(() =>
   activeTab.value === 'mine' ? svc.lists.value : svc.publicLists.value,
 )
-const publicHasMore = computed(
-  () => activeTab.value === 'public' && svc.publicLists.value.length < svc.publicTotal.value,
-)
+const publicHasMore = computed(() => activeTab.value === 'public' && svc.publicHasMore.value)
 
 async function loadTab(tab) {
   loading.value = true
   try {
     if (tab === 'mine') await svc.fetchMyLists()
-    else await svc.fetchPublicLists({ limit: PUBLIC_PAGE, offset: 0 })
+    else await svc.fetchPublicLists({ limit: PUBLIC_PAGE })
   } finally {
     loading.value = false
   }
@@ -148,7 +146,7 @@ async function loadMorePublic() {
   try {
     await svc.fetchPublicLists({
       limit: PUBLIC_PAGE,
-      offset: svc.publicLists.value.length,
+      cursor: svc.publicCursor.value,
       append: true,
     })
   } finally {

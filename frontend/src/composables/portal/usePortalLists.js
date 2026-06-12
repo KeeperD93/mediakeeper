@@ -7,10 +7,21 @@ export function usePortalLists() {
   const lists = ref([])
   const publicLists = ref([])
   const publicTotal = ref(0)
+  const publicHasMore = ref(false)
+  const publicCursor = ref(null)
   const moderationLists = ref([])
   const moderationTotal = ref(0)
+  const moderationHasMore = ref(false)
+  const moderationCursor = ref(null)
   const currentList = ref(null)
   const history = ref([])
+
+  // Drop rows already present (by id) when appending a "load more" page. The
+  // keyset cursor avoids overlap; this is the display-side safety net.
+  function _dedupById(items) {
+    const seen = new Set()
+    return items.filter(it => !seen.has(it.id) && seen.add(it.id))
+  }
 
   async function fetchMyLists() {
     const res = await apiGet('/api/portal/lists')
@@ -18,20 +29,26 @@ export function usePortalLists() {
     return lists.value
   }
 
-  async function fetchPublicLists({ limit = 50, offset = 0, append = false } = {}) {
-    const res = await apiGet(`/api/portal/lists/public?limit=${limit}&offset=${offset}`)
+  async function fetchPublicLists({ limit = 50, cursor = null, append = false } = {}) {
+    const qs = cursor ? `?limit=${limit}&cursor=${encodeURIComponent(cursor)}` : `?limit=${limit}`
+    const res = await apiGet(`/api/portal/lists/public${qs}`)
     const items = res?.items || []
-    publicLists.value = append ? [...publicLists.value, ...items] : items
+    publicLists.value = append ? _dedupById([...publicLists.value, ...items]) : items
     publicTotal.value = res?.total ?? publicLists.value.length
+    publicHasMore.value = !!res?.has_more
+    publicCursor.value = res?.next_cursor || null
     return res
   }
 
   // Admin moderation feed: includes soft-deleted lists (require_admin).
-  async function fetchModerationLists({ limit = 50, offset = 0, append = false } = {}) {
-    const res = await apiGet(`/api/portal/admin/lists?limit=${limit}&offset=${offset}`)
+  async function fetchModerationLists({ limit = 50, cursor = null, append = false } = {}) {
+    const qs = cursor ? `?limit=${limit}&cursor=${encodeURIComponent(cursor)}` : `?limit=${limit}`
+    const res = await apiGet(`/api/portal/admin/lists${qs}`)
     const items = res?.items || []
-    moderationLists.value = append ? [...moderationLists.value, ...items] : items
+    moderationLists.value = append ? _dedupById([...moderationLists.value, ...items]) : items
     moderationTotal.value = res?.total ?? moderationLists.value.length
+    moderationHasMore.value = !!res?.has_more
+    moderationCursor.value = res?.next_cursor || null
     return res
   }
 
@@ -124,8 +141,12 @@ export function usePortalLists() {
     lists,
     publicLists,
     publicTotal,
+    publicHasMore,
+    publicCursor,
     moderationLists,
     moderationTotal,
+    moderationHasMore,
+    moderationCursor,
     currentList,
     history,
     fetchMyLists,

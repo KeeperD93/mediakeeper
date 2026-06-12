@@ -8,8 +8,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from sqlalchemy import select, desc
+from sqlalchemy import select, desc, func
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.pagination import build_cursor_response, decode_cursor
 
 
 _TIER_NAMES = {1: "bronze", 2: "silver", 3: "gold", 4: "platinum", 5: "diamond", 6: "mythic"}
@@ -69,85 +71,91 @@ async def list_user_trophies(db: AsyncSession, user_id: int) -> dict[str, Any]:
 
 
 async def list_user_xp_ledger(
-    db: AsyncSession, user_id: int, *, limit: int = 100, offset: int = 0
+    db: AsyncSession, user_id: int, *, limit: int = 100, cursor: str | None = None
 ) -> dict[str, Any]:
-    """Latest-first XP grants for a user."""
+    """Latest-first XP grants for a user (keyset-paginated by id)."""
     from models.portal.xp_ledger import XpLedger
 
+    total = int((await db.execute(
+        select(func.count(XpLedger.id)).where(XpLedger.user_id == user_id)
+    )).scalar() or 0)
+    q = select(XpLedger).where(XpLedger.user_id == user_id)
+    decoded = decode_cursor(cursor) if cursor else None
+    if decoded and decoded.get("id") is not None:
+        q = q.where(XpLedger.id < decoded["id"])
     rows = (await db.execute(
-        select(XpLedger)
-        .where(XpLedger.user_id == user_id)
-        .order_by(desc(XpLedger.created_at))
-        .offset(offset)
-        .limit(limit)
+        q.order_by(XpLedger.id.desc()).limit(limit)
     )).scalars().all()
-    return {
-        "items": [
-            {
-                "id": r.id,
-                "action": r.action,
-                "reference": r.reference,
-                "xp": r.xp,
-                "created_at": r.created_at.isoformat() if r.created_at else None,
-            }
-            for r in rows
-        ]
-    }
+    items = [
+        {
+            "id": r.id,
+            "action": r.action,
+            "reference": r.reference,
+            "xp": r.xp,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+        }
+        for r in rows
+    ]
+    return build_cursor_response(items, total, limit, cursor_field="id")
 
 
 async def list_user_requests(
-    db: AsyncSession, user_id: int, *, limit: int = 100, offset: int = 0
+    db: AsyncSession, user_id: int, *, limit: int = 100, cursor: str | None = None
 ) -> dict[str, Any]:
     """Latest-first media requests for a user (title + status only)."""
     from models.portal.request import MediaRequest
 
+    total = int((await db.execute(
+        select(func.count(MediaRequest.id)).where(MediaRequest.user_id == user_id)
+    )).scalar() or 0)
+    q = select(MediaRequest).where(MediaRequest.user_id == user_id)
+    decoded = decode_cursor(cursor) if cursor else None
+    if decoded and decoded.get("id") is not None:
+        q = q.where(MediaRequest.id < decoded["id"])
     rows = (await db.execute(
-        select(MediaRequest)
-        .where(MediaRequest.user_id == user_id)
-        .order_by(desc(MediaRequest.created_at))
-        .offset(offset)
-        .limit(limit)
+        q.order_by(MediaRequest.id.desc()).limit(limit)
     )).scalars().all()
-    return {
-        "items": [
-            {
-                "id": r.id,
-                "title": r.title,
-                "year": r.year,
-                "media_type": r.media_type,
-                "status": r.status,
-                "tmdb_id": r.tmdb_id,
-                "created_at": r.created_at.isoformat() if r.created_at else None,
-            }
-            for r in rows
-        ]
-    }
+    items = [
+        {
+            "id": r.id,
+            "title": r.title,
+            "year": r.year,
+            "media_type": r.media_type,
+            "status": r.status,
+            "tmdb_id": r.tmdb_id,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+        }
+        for r in rows
+    ]
+    return build_cursor_response(items, total, limit, cursor_field="id")
 
 
 async def list_user_tickets(
-    db: AsyncSession, user_id: int, *, limit: int = 100, offset: int = 0
+    db: AsyncSession, user_id: int, *, limit: int = 100, cursor: str | None = None
 ) -> dict[str, Any]:
     """Latest-first problem tickets for a user (title + state only)."""
     from models.portal.ticket import Ticket
 
+    total = int((await db.execute(
+        select(func.count(Ticket.id)).where(Ticket.user_id == user_id)
+    )).scalar() or 0)
+    q = select(Ticket).where(Ticket.user_id == user_id)
+    decoded = decode_cursor(cursor) if cursor else None
+    if decoded and decoded.get("id") is not None:
+        q = q.where(Ticket.id < decoded["id"])
     rows = (await db.execute(
-        select(Ticket)
-        .where(Ticket.user_id == user_id)
-        .order_by(desc(Ticket.created_at))
-        .offset(offset)
-        .limit(limit)
+        q.order_by(Ticket.id.desc()).limit(limit)
     )).scalars().all()
-    return {
-        "items": [
-            {
-                "id": r.id,
-                "title": r.media_title,
-                "media_type": r.media_type,
-                "issue_type": r.issue_type,
-                "priority": r.priority,
-                "status": r.status,
-                "created_at": r.created_at.isoformat() if r.created_at else None,
-            }
-            for r in rows
-        ]
-    }
+    items = [
+        {
+            "id": r.id,
+            "title": r.media_title,
+            "media_type": r.media_type,
+            "issue_type": r.issue_type,
+            "priority": r.priority,
+            "status": r.status,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+        }
+        for r in rows
+    ]
+    return build_cursor_response(items, total, limit, cursor_field="id")

@@ -8,9 +8,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.pagination import build_cursor_response, decode_cursor
 from models.portal.audit import AdminAuditLog
 
 
@@ -50,28 +51,31 @@ async def list_audit_for_user(
     target_user_id: int,
     *,
     limit: int = 100,
-    offset: int = 0,
+    cursor: str | None = None,
 ) -> dict[str, Any]:
     """Latest-first audit trail for a single user (drawer Audit tab)."""
-    query = (
-        select(AdminAuditLog)
-        .where(AdminAuditLog.target_user_id == target_user_id)
-        .order_by(AdminAuditLog.created_at.desc())
-        .offset(offset)
-        .limit(limit)
-    )
-    rows = (await db.execute(query)).scalars().all()
-    return {
-        "items": [
-            {
-                "id": r.id,
-                "admin_user_id": r.admin_user_id,
-                "action": r.action,
-                "payload": r.payload,
-                "ip": r.ip,
-                "user_agent": r.user_agent,
-                "created_at": r.created_at.isoformat() if r.created_at else None,
-            }
-            for r in rows
-        ]
-    }
+    total = int((await db.execute(
+        select(func.count(AdminAuditLog.id)).where(
+            AdminAuditLog.target_user_id == target_user_id
+        )
+    )).scalar() or 0)
+    q = select(AdminAuditLog).where(AdminAuditLog.target_user_id == target_user_id)
+    decoded = decode_cursor(cursor) if cursor else None
+    if decoded and decoded.get("id") is not None:
+        q = q.where(AdminAuditLog.id < decoded["id"])
+    rows = (await db.execute(
+        q.order_by(AdminAuditLog.id.desc()).limit(limit)
+    )).scalars().all()
+    items = [
+        {
+            "id": r.id,
+            "admin_user_id": r.admin_user_id,
+            "action": r.action,
+            "payload": r.payload,
+            "ip": r.ip,
+            "user_agent": r.user_agent,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+        }
+        for r in rows
+    ]
+    return build_cursor_response(items, total, limit, cursor_field="id")

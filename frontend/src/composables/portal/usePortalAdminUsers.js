@@ -50,8 +50,8 @@ export function usePortalAdminUsers() {
     return await apiPost(`${BASE}/${id}/reset-display-name`, {})
   }
 
-  async function fetchLoginHistory(id, { limit = 100, offset = 0 } = {}) {
-    return await apiGet(`${BASE}/${id}/login-history?limit=${limit}&offset=${offset}`)
+  async function fetchLoginHistory(id, { limit = 100, cursor = null } = {}) {
+    return await apiGet(`${BASE}/${id}/login-history${buildQuery({ limit, cursor })}`)
   }
 
   async function fetchUsers(params = {}) {
@@ -70,20 +70,20 @@ export function usePortalAdminUsers() {
     return await apiGet(`${BASE}/${id}/trophies`)
   }
 
-  async function fetchXpHistory(id, { limit = 100, offset = 0 } = {}) {
-    return await apiGet(`${BASE}/${id}/xp-history?limit=${limit}&offset=${offset}`)
+  async function fetchXpHistory(id, { limit = 100, cursor = null } = {}) {
+    return await apiGet(`${BASE}/${id}/xp-history${buildQuery({ limit, cursor })}`)
   }
 
-  async function fetchUserRequests(id, { limit = 100, offset = 0 } = {}) {
-    return await apiGet(`${BASE}/${id}/requests?limit=${limit}&offset=${offset}`)
+  async function fetchUserRequests(id, { limit = 100, cursor = null } = {}) {
+    return await apiGet(`${BASE}/${id}/requests${buildQuery({ limit, cursor })}`)
   }
 
-  async function fetchUserTickets(id, { limit = 100, offset = 0 } = {}) {
-    return await apiGet(`${BASE}/${id}/tickets?limit=${limit}&offset=${offset}`)
+  async function fetchUserTickets(id, { limit = 100, cursor = null } = {}) {
+    return await apiGet(`${BASE}/${id}/tickets${buildQuery({ limit, cursor })}`)
   }
 
-  async function fetchAudit(id, { limit = 100, offset = 0 } = {}) {
-    return await apiGet(`${BASE}/${id}/audit?limit=${limit}&offset=${offset}`)
+  async function fetchAudit(id, { limit = 100, cursor = null } = {}) {
+    return await apiGet(`${BASE}/${id}/audit${buildQuery({ limit, cursor })}`)
   }
 
   async function patchIdentity(id, payload) {

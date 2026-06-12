@@ -62,8 +62,8 @@ beforeEach(() => {
 describe('RuTabSecurity — login history load more', () => {
   it('appends the next login page and stops on a partial page', async () => {
     fetchLoginHistory
-      .mockResolvedValueOnce({ items: loginPage(1, 100) })
-      .mockResolvedValueOnce({ items: loginPage(101, 5) })
+      .mockResolvedValueOnce({ items: loginPage(1, 100), has_more: true, next_cursor: 'cur-100' })
+      .mockResolvedValueOnce({ items: loginPage(101, 5), has_more: false, next_cursor: null })
 
     const w = mountTab()
     await flushPromises()
@@ -74,7 +74,7 @@ describe('RuTabSecurity — login history load more', () => {
     await w.find('.lm').trigger('click')
     await flushPromises()
 
-    expect(fetchLoginHistory).toHaveBeenLastCalledWith(9, { limit: 100, offset: 100 })
+    expect(fetchLoginHistory).toHaveBeenLastCalledWith(9, { limit: 100, cursor: 'cur-100' })
     expect(w.findAll('.ru-feed-row')).toHaveLength(105)
     expect(w.find('.lm').exists()).toBe(false)
   })

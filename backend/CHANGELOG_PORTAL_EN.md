@@ -26,6 +26,7 @@ This section intentionally has no date so it is not shown to users.
 - Support — header heart opening the server's donation link (when configured).
 
 ### Changed
+- Notifications — those older than 6 months are removed automatically.
 - Media detail — TMDB rating colour unified to gold.
 - Avatars — legendary ring (level 50): animated rainbow on every surface.
 - Preferences — the "hide adult content" setting moved here, under the genres.

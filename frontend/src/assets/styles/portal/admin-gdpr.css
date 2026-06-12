@@ -222,9 +222,6 @@
 }
 .pt-gdpr-pending-table th,
 .pt-gdpr-pending-table td {
-  padding: 0.55rem 0.75rem;
-  text-align: left;
-  border-bottom: 1px solid var(--border);
   color: var(--text-primary);
 }
 .pt-gdpr-pending-table th {
@@ -232,9 +229,20 @@
   color: var(--text-muted);
   font-size: var(--portal-text-xs);
 }
-.pt-gdpr-pending-th--act,
-.pt-gdpr-pending-td--act {
-  text-align: right;
+/* Desktop cell layout. On mobile the ``mk-table`` helper switches the table
+   to a stacked card mode, so these table-cell rules are desktop-only to
+   avoid fighting the helper's per-row card styling. */
+@media (min-width: 768px) {
+  .pt-gdpr-pending-table th,
+  .pt-gdpr-pending-table td {
+    padding: 0.55rem 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .pt-gdpr-pending-th--act,
+  .pt-gdpr-pending-td--act {
+    text-align: right;
+  }
 }
 .pt-gdpr-pending-username {
   font-weight: var(--portal-font-medium);

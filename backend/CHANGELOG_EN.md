@@ -29,6 +29,7 @@ This section intentionally has no date so it is not shown to users.
 
 ### Changed
 - Dashboard — 30 upcoming releases shown (was 20), titles in your language.
+- Dashboard — upcoming releases: same-day episodes grouped, labels clarified.
 - Onboarding — Folders step now notes it's optional (configurable later).
 - Watchlist — Timeline tab: months bar widened and more readable.
 - Statistics — activity: consecutive sessions of the same content grouped (expandable, segmented bar).

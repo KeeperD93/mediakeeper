@@ -39,33 +39,33 @@ async def get_trophies(
 async def get_xp_history(
     profile_id: int,
     limit: int = Query(100, ge=1, le=500),
-    offset: int = Query(0, ge=0),
+    cursor: str | None = Query(None),
     _: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     profile, _user = await resolve_profile(profile_id, db)
-    return await list_user_xp_ledger(db, profile.user_id, limit=limit, offset=offset)
+    return await list_user_xp_ledger(db, profile.user_id, limit=limit, cursor=cursor)
 
 
 @router.get("/{profile_id}/requests")
 async def get_requests(
     profile_id: int,
     limit: int = Query(100, ge=1, le=500),
-    offset: int = Query(0, ge=0),
+    cursor: str | None = Query(None),
     _: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     profile, _user = await resolve_profile(profile_id, db)
-    return await list_user_requests(db, profile.user_id, limit=limit, offset=offset)
+    return await list_user_requests(db, profile.user_id, limit=limit, cursor=cursor)
 
 
 @router.get("/{profile_id}/tickets")
 async def get_tickets(
     profile_id: int,
     limit: int = Query(100, ge=1, le=500),
-    offset: int = Query(0, ge=0),
+    cursor: str | None = Query(None),
     _: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     profile, _user = await resolve_profile(profile_id, db)
-    return await list_user_tickets(db, profile.user_id, limit=limit, offset=offset)
+    return await list_user_tickets(db, profile.user_id, limit=limit, cursor=cursor)

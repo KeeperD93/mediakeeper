@@ -5,8 +5,11 @@
  * the row payload upstream — Phase 11B.2 wires the API call in the
  * GdprSection composition root.
  */
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+
+vi.mock('@/i18n', () => ({ getLocale: () => 'fr' }))
+
 import GdprPendingTable from '@/components/portal/admin/GdprPendingTable.vue'
 
 describe('GdprPendingTable', () => {

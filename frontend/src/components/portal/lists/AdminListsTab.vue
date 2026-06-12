@@ -16,7 +16,7 @@
         <tr>
           <th>{{ $t('portal.lists.form.name') }}</th>
           <th>{{ $t('portal.lists.form.privacyLabel') }}</th>
-          <th>{{ $t('portal.lists.itemCount', { count: 0 }, 2) }}</th>
+          <th>{{ $t('portal.lists.admin.colTitles') }}</th>
           <th>{{ $t('common.actions') }}</th>
         </tr>
       </thead>
@@ -31,7 +31,7 @@
               {{ $t(`portal.lists.privacy.${lst.privacy}`) }}
             </span>
           </td>
-          <td :data-label="$t('portal.lists.itemCount', { count: 0 }, 2)">
+          <td :data-label="$t('portal.lists.admin.colTitles')">
             {{ lst.item_count }}
           </td>
           <td :data-label="$t('common.actions')" class="adm-actions">
@@ -76,12 +76,12 @@ const loading = ref(false)
 const MOD_PAGE = 50
 const allLists = computed(() => svc.moderationLists.value)
 const loadingMore = ref(false)
-const hasMore = computed(() => svc.moderationLists.value.length < svc.moderationTotal.value)
+const hasMore = computed(() => svc.moderationHasMore.value)
 
 async function load() {
   loading.value = true
   try {
-    await svc.fetchModerationLists({ limit: MOD_PAGE, offset: 0 })
+    await svc.fetchModerationLists({ limit: MOD_PAGE })
   } finally {
     loading.value = false
   }
@@ -93,7 +93,7 @@ async function loadMore() {
   try {
     await svc.fetchModerationLists({
       limit: MOD_PAGE,
-      offset: svc.moderationLists.value.length,
+      cursor: svc.moderationCursor.value,
       append: true,
     })
   } finally {
@@ -112,9 +112,9 @@ async function undelete(id) {
 async function hardDelete(id) {
   const ok = await mkConfirm({
     title: t('common.confirmTitle.delete'),
-    message: t('portal.lists.actions.confirmDelete'),
+    message: t('portal.lists.admin.confirmHardDelete'),
     variant: 'danger',
-    confirmLabel: t('common.delete'),
+    confirmLabel: t('portal.lists.admin.hardDelete'),
   })
   if (!ok) return
   const res = await svc.adminHardDelete(id)

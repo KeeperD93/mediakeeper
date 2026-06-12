@@ -456,6 +456,8 @@
     "upcomingInDays": "{n} day | {n} days",
     "upcomingInWeeks": "{n} week | {n} weeks",
     "upcomingInMonths": "{n} month | {n} months",
+    "upcomingEpLabel": "Season {season} — Episode {episode}",
+    "upcomingEpCount": "Season {season} — {count} episode | Season {season} — {count} episodes",
     "runtimeMinutes": "{n} min",
     "seasonsCount": "{n} season | {n} seasons",
     "notEnoughData": "Not enough data",
@@ -2718,7 +2720,9 @@
         "undelete": "Restore",
         "hardDelete": "Delete permanently",
         "muteOwner": "Mute owner",
-        "unmuteOwner": "Unmute owner"
+        "unmuteOwner": "Unmute owner",
+        "colTitles": "Titles",
+        "confirmHardDelete": "Permanently delete this list? This cannot be undone and also erases its contents."
       },
       "errors": {
         "not_found": "List not found",
