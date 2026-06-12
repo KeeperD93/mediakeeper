@@ -154,13 +154,14 @@
 
 <script setup>
 import { computed, ref, onMounted, onUnmounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/composables/useAuth'
-import { fetchApiResponse, resolveApiError } from '@/composables/useApi'
+import { resolveApiError } from '@/composables/useApi'
 import { STORAGE_KEYS } from '@/constants/storage'
 import { useTheme } from '@/composables/useTheme'
 import { initLoginParticles } from '@/composables/useLoginParticles'
+import { useLoginRedirect } from '@/composables/useLoginRedirect'
 import {
   BookOpen,
   CircleCheck,
@@ -177,8 +178,7 @@ import '@/assets/styles/login-view.css'
 
 const { t } = useI18n()
 const router = useRouter()
-const route = useRoute()
-const { login, checkAuth } = useAuth()
+const { login } = useAuth()
 const { particlesEnabled } = useTheme()
 
 const username = ref('')
@@ -187,20 +187,20 @@ const remember = ref(false)
 const errorMsg = ref('')
 const loggedOutMsg = ref('')
 const submitting = ref(false)
-const backendReady = ref(false)
-const appVersion = ref('')
 const pageRef = ref(null)
 const canvasRef = ref(null)
 let cleanupParticles = null
-let loggedOutTimer = null
+
+const { backendReady, appVersion, getRedirectTarget, start, dispose } = useLoginRedirect({
+  username,
+  remember,
+  errorMsg,
+  loggedOutMsg,
+})
 
 const repoUrl = 'https://github.com/KeeperD93/mediakeeper'
 const logoUrl = '/assets/icons/mediakeeper.png'
 const bannerUrl = '/assets/icons/mediakeeper_banner.png'
-
-function getRedirectTarget() {
-  return typeof route.query.redirect === 'string' ? route.query.redirect : ''
-}
 
 const isPortalLogin = computed(() => getRedirectTarget().startsWith('/portal'))
 const headingKey = computed(() => (isPortalLogin.value ? 'portalLogin.title' : 'login.title'))
@@ -213,123 +213,14 @@ const passwordKey = computed(() =>
 )
 const submitKey = computed(() => (isPortalLogin.value ? 'portalLogin.submit' : 'login.submit'))
 
-async function waitForAuth() {
-  while (true) {
-    try {
-      const res = await fetchApiResponse('/api/health', {
-        retryOn401: false,
-        redirectOn401: false,
-      })
-      if (res.status < 500) {
-        backendReady.value = true
-        return
-      }
-    } catch {
-      /* silent: health poll retries by design */
-    }
-    await new Promise(r => setTimeout(r, 1500))
-  }
-}
-
-async function fetchVersion() {
-  try {
-    const res = await fetchApiResponse('/api/changelog/current', {
-      retryOn401: false,
-      redirectOn401: false,
-    })
-    if (res.ok) {
-      const data = await res.json()
-      appVersion.value = data.version || ''
-    }
-  } catch {
-    /* silent: version display is cosmetic */
-  }
-}
-
 onMounted(async () => {
   if (particlesEnabled.value) cleanupParticles = initLoginParticles(canvasRef.value, pageRef.value)
-  await waitForAuth()
-  const justLoggedOut =
-    route.query.logged_out === '1' || sessionStorage.getItem(STORAGE_KEYS.JUST_LOGGED_OUT) === '1'
-  const sessionExpired = sessionStorage.getItem(STORAGE_KEYS.SESSION_EXPIRED) === '1'
-  const redirect = getRedirectTarget()
-  const isPortalRedirect = redirect.startsWith('/portal')
-  const isPortalAdminRedirect = redirect.startsWith('/admin/portal') || isPortalRedirect
-
-  if (justLoggedOut) {
-    try {
-      sessionStorage.removeItem(STORAGE_KEYS.JUST_LOGGED_OUT)
-      sessionStorage.removeItem(STORAGE_KEYS.SESSION_EXPIRED)
-    } catch {
-      /* ignore */
-    }
-    loggedOutMsg.value = t('login.justLoggedOut')
-    loggedOutTimer = setTimeout(() => {
-      loggedOutMsg.value = ''
-      loggedOutTimer = null
-    }, 4000)
-    fetchVersion()
-    const saved = localStorage.getItem(STORAGE_KEYS.SAVED_USERNAME)
-    if (saved) {
-      username.value = saved
-      remember.value = true
-    }
-    return
-  }
-
-  if (sessionExpired) {
-    try {
-      sessionStorage.removeItem(STORAGE_KEYS.SESSION_EXPIRED)
-    } catch {
-      /* ignore */
-    }
-    errorMsg.value = t('login.sessionExpired')
-  }
-
-  if (await checkAuth()) {
-    if (redirect && isPortalAdminRedirect) {
-      // Admin's mk_token survived but rq_token did not — re-issue the
-      // portal session before honouring the deep-link so the destination
-      // page doesn't immediately bounce back here.
-      try {
-        await fetchApiResponse('/api/portal/admin/requests/enter', {
-          method: 'POST',
-          retryOn401: false,
-          redirectOn401: false,
-        })
-      } catch {
-        /* best-effort — page-level guard will still surface a fresh 401 */
-      }
-    }
-    router.replace(redirect || '/')
-    return
-  }
-
-  try {
-    const { usePortalAuth } = await import('@/composables/portal/usePortalAuth')
-    const ok = await usePortalAuth().checkPortalAuth()
-    if (ok) {
-      router.replace(isPortalRedirect ? redirect : '/portal')
-      return
-    }
-  } catch {
-    // Stay on the login page if the portal check fails.
-  }
-
-  fetchVersion()
-  const saved = localStorage.getItem(STORAGE_KEYS.SAVED_USERNAME)
-  if (saved) {
-    username.value = saved
-    remember.value = true
-  }
+  await start()
 })
 
 onUnmounted(() => {
   if (cleanupParticles) cleanupParticles()
-  if (loggedOutTimer) {
-    clearTimeout(loggedOutTimer)
-    loggedOutTimer = null
-  }
+  dispose()
 })
 
 async function doLogin() {
