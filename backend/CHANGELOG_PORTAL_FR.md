@@ -33,6 +33,7 @@ utilisateurs.
 - Avatars — anneau légendaire (niv. 50) : arc-en-ciel animé sur toutes les surfaces.
 - Préférences — le réglage « masquer le contenu adulte » déplacé ici, sous les genres.
 - Accueil — Populaires et Mieux notés viennent désormais de Découvrir.
+- Quoi de neuf — les nouveautés restent jusqu'à votre prochaine visite.
 
 ### Fixed
 - Jaquettes — durée d'un titre à venir affichée dès que TMDB la publie.

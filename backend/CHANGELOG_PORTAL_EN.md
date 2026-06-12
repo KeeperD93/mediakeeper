@@ -31,6 +31,7 @@ This section intentionally has no date so it is not shown to users.
 - Avatars — legendary ring (level 50): animated rainbow on every surface.
 - Preferences — the "hide adult content" setting moved here, under the genres.
 - Home — Popular and Top-rated rows now sourced from Discover.
+- What's new — recent additions stay until your next visit.
 
 ### Fixed
 - Posters — an upcoming title's duration appears once TMDB publishes it.

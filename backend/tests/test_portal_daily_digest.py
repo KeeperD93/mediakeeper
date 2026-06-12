@@ -1,5 +1,6 @@
 """Tests for /api/portal/daily-digest."""
 import json
+from datetime import datetime, timedelta, timezone
 
 import pytest
 from unittest.mock import patch, AsyncMock
@@ -10,7 +11,7 @@ from models.portal.profile import UserProfile
 from services.portal import daily_digest as dd_svc
 from services.portal import daily_digest_sources as dd_sources
 from services.portal.xp import MAX_LEVEL, xp_for_level
-from services.settings import get_user_preferences
+from services.settings import get_user_preferences, upsert_user_preferences
 
 
 async def _seed_viewer(client, db_session, username: str = "viewer_digest"):
@@ -183,3 +184,100 @@ def test_level_info_at_max_level_is_full_and_capped():
     assert info["maxed"] is True
     assert info["percent"] == 100
     assert info["xp_next_level"] == info["xp_current_level"] == xp_for_level(MAX_LEVEL)
+
+
+def _fake_adds(count: int) -> list[dict]:
+    """``count`` items dated day-0..day-(count-1), newest first (Emby DESC)."""
+    today = datetime.now(timezone.utc).date()
+    return [
+        {
+            "tmdb_id": i, "emby_item_id": str(i), "title": f"T{i}", "year": "2024",
+            "media_type": "movie", "poster_url": "",
+            "date_created": (today - timedelta(days=i)).isoformat(),
+        }
+        for i in range(count)
+    ]
+
+
+@pytest.mark.asyncio
+async def test_recent_adds_keeps_only_items_after_since(db_session):
+    """Items strictly newer than the since-date are kept, older ones dropped."""
+    since = datetime.now(timezone.utc) - timedelta(days=10)
+    with patch.object(dd_sources, "get_recently_added", AsyncMock(return_value=_fake_adds(40))):
+        out = await dd_sources.recent_adds(db_session, since=since)
+    # since.date() == today-10; strict ">" keeps days 0..9 only.
+    assert [it["tmdb_id"] for it in out] == list(range(10))
+    assert all("backdrop_url" not in it for it in out)  # dead field dropped
+
+
+@pytest.mark.asyncio
+async def test_recent_adds_caps_at_30(db_session):
+    """A long catch-up window is capped at 30 posters, newest first."""
+    since = datetime.now(timezone.utc) - timedelta(days=100)
+    with patch.object(dd_sources, "get_recently_added", AsyncMock(return_value=_fake_adds(40))):
+        out = await dd_sources.recent_adds(db_session, since=since)
+    assert [it["tmdb_id"] for it in out] == list(range(30))
+
+
+@pytest.mark.asyncio
+async def test_dismiss_stores_dismissed_at_instant(client, db_session):
+    """Dismiss records the precise instant so the 24h grace can be timed."""
+    user = await _seed_viewer(client, db_session, username="viewer_digest_at")
+    dd_svc._digest_cache.clear()
+    await client.post("/api/portal/daily-digest/dismiss")
+    stored = json.loads((await get_user_preferences(db_session, user.id)).preferences)
+    assert "portal_daily_digest_dismissed_at" in stored
+
+
+def test_recent_cutoff_uses_dismiss_after_grace():
+    """Past the 24h grace, the dismiss instant becomes the cutoff watermark."""
+    now = datetime.now(timezone.utc)
+    dismissed_at = now - timedelta(hours=25)
+    cutoff = dd_svc._recent_cutoff(
+        {"portal_daily_digest_dismissed_at": dismissed_at.isoformat()}, now
+    )
+    assert abs((cutoff - dismissed_at).total_seconds()) < 2
+
+
+def test_recent_cutoff_holds_at_floor_within_grace():
+    """Within the 24h grace, no committed watermark → cutoff floors at 30 days."""
+    now = datetime.now(timezone.utc)
+    dismissed_at = now - timedelta(hours=2)
+    cutoff = dd_svc._recent_cutoff(
+        {"portal_daily_digest_dismissed_at": dismissed_at.isoformat()}, now
+    )
+    floor = now - timedelta(days=dd_svc._MAX_LOOKBACK_DAYS)
+    assert abs((cutoff - floor).total_seconds()) < 2
+
+
+def test_recent_cutoff_ignores_future_watermark():
+    """A corrupted future seen_at must not blackout the list (falls to floor)."""
+    now = datetime.now(timezone.utc)
+    cutoff = dd_svc._recent_cutoff(
+        {"portal_daily_digest_recent_seen_at": (now + timedelta(days=5)).isoformat()}, now
+    )
+    floor = now - timedelta(days=dd_svc._MAX_LOOKBACK_DAYS)
+    assert abs((cutoff - floor).total_seconds()) < 2
+
+
+@pytest.mark.asyncio
+async def test_dismiss_commits_elapsed_watermark(db_session):
+    """A fresh dismiss promotes a prior, grace-elapsed dismiss into the watermark."""
+    user = User(
+        username="viewer_promote",
+        hashed_password=hash_password("ViewerPassword123!"),
+        is_active=True,
+        must_change_password=False,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    old = datetime.now(timezone.utc) - timedelta(hours=30)
+    await upsert_user_preferences(
+        db_session, user.id,
+        preferences=json.dumps({"portal_daily_digest_dismissed_at": old.isoformat()}),
+    )
+    await dd_svc.mark_dismissed(db_session, user.id)
+    prefs = await dd_svc._load_prefs(db_session, user.id)
+    assert dd_svc._parse_dt(prefs["portal_daily_digest_recent_seen_at"]) == old
+    assert dd_svc._parse_dt(prefs["portal_daily_digest_dismissed_at"]) != old
