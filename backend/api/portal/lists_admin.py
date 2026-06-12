@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.database import get_db
 from models.user import User
 from models.portal.profile import UserProfile
-from api.portal.deps import require_admin
+from api.portal.deps import get_request_lang, require_admin
 from services.portal import lists_admin as svc_admin
 from services.portal import lists_query as svc_query
 
@@ -26,11 +26,14 @@ async def admin_list_all(
     cursor: str | None = Query(None),
     up: tuple[User, UserProfile] = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
+    lang: str = Depends(get_request_lang),
 ):
     """All public/collaborative lists for moderation — including soft-deleted
     ones (so the admin can restore them) and lists of deactivated owners."""
     admin_user, _ = up
-    return await svc_query.get_moderation_lists(db, admin_user.id, limit=limit, cursor=cursor)
+    return await svc_query.get_moderation_lists(
+        db, admin_user.id, limit=limit, cursor=cursor, lang=lang
+    )
 
 
 def _http_error(result: dict) -> None:

@@ -83,9 +83,10 @@ def _http_error(result: dict) -> None:
 async def list_mine(
     up: tuple[User, UserProfile] = Depends(require_permission("can_lists")),
     db: AsyncSession = Depends(get_db),
+    lang: str = Depends(get_request_lang),
 ):
     user, _ = up
-    return {"items": await svc_query.get_user_lists(db, user.id)}
+    return {"items": await svc_query.get_user_lists(db, user.id, lang=lang)}
 
 
 @router.get("/public")
@@ -94,9 +95,12 @@ async def list_public(
     cursor: str | None = Query(None),
     up: tuple[User, UserProfile] = Depends(require_permission("can_lists")),
     db: AsyncSession = Depends(get_db),
+    lang: str = Depends(get_request_lang),
 ):
     user, _ = up
-    return await svc_query.get_public_lists(db, user.id, limit=limit, cursor=cursor)
+    return await svc_query.get_public_lists(
+        db, user.id, limit=limit, cursor=cursor, lang=lang
+    )
 
 
 @router.get("/{list_id}")

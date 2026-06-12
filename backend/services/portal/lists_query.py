@@ -51,7 +51,8 @@ async def get_list(
 
 
 async def get_user_lists(
-    db: AsyncSession, user_id: int, *, include_contributed: bool = True,
+    db: AsyncSession, user_id: int, *,
+    include_contributed: bool = True, lang: str = "fr",
 ) -> list[dict]:
     """Owner lists, plus collaborative lists the user is a contributor to."""
     owned = (await db.execute(
@@ -79,12 +80,15 @@ async def get_user_lists(
         if lst.id in seen:
             continue
         seen.add(lst.id)
-        out.append(await _serialize_list(db, lst, user_id, lightweight=True))
+        out.append(
+            await _serialize_list(db, lst, user_id, lightweight=True, lang=lang)
+        )
     return out
 
 
 async def get_public_lists(
-    db: AsyncSession, user_id: int, *, limit: int = 50, cursor: str | None = None,
+    db: AsyncSession, user_id: int, *,
+    limit: int = 50, cursor: str | None = None, lang: str = "fr",
 ) -> dict:
     # Exclude lists whose owner has been soft-deleted or deactivated:
     # the owner row survives but their identifying surfaces (pseudo,
@@ -102,11 +106,14 @@ async def get_public_lists(
             UserProfile.deleted_at.is_(None),
         )
     )
-    return await _paginate_lists_by_activity(db, base, user_id, limit=limit, cursor=cursor)
+    return await _paginate_lists_by_activity(
+        db, base, user_id, limit=limit, cursor=cursor, lang=lang
+    )
 
 
 async def get_moderation_lists(
-    db: AsyncSession, user_id: int, *, limit: int = 50, cursor: str | None = None,
+    db: AsyncSession, user_id: int, *,
+    limit: int = 50, cursor: str | None = None, lang: str = "fr",
 ) -> dict:
     """Admin moderation view: every public/collaborative list — INCLUDING
     soft-deleted ones and those of deactivated/purged owners — so the admin
@@ -115,11 +122,14 @@ async def get_moderation_lists(
     base = select(UserList).where(
         UserList.privacy.in_((PRIVACY_PUBLIC_READONLY, PRIVACY_COLLABORATIVE)),
     )
-    return await _paginate_lists_by_activity(db, base, user_id, limit=limit, cursor=cursor)
+    return await _paginate_lists_by_activity(
+        db, base, user_id, limit=limit, cursor=cursor, lang=lang
+    )
 
 
 async def _paginate_lists_by_activity(
-    db: AsyncSession, base, user_id: int, *, limit: int, cursor: str | None,
+    db: AsyncSession, base, user_id: int, *,
+    limit: int, cursor: str | None, lang: str = "fr",
 ) -> dict:
     """Keyset-paginate a list query by ``(updated_at, id)`` descending.
 
@@ -147,7 +157,10 @@ async def _paginate_lists_by_activity(
     rows = (await db.execute(
         q.order_by(UserList.updated_at.desc(), UserList.id.desc()).limit(limit)
     )).scalars().all()
-    items = [await _serialize_list(db, lst, user_id, lightweight=True) for lst in rows]
+    items = [
+        await _serialize_list(db, lst, user_id, lightweight=True, lang=lang)
+        for lst in rows
+    ]
     has_more = len(rows) >= limit
     next_cursor = (
         encode_cursor({"updated_at": rows[-1].updated_at.isoformat(), "id": rows[-1].id})

@@ -337,6 +337,42 @@ async def test_public_lists_rejects_forged_cursor(client, db_session):
 
 
 @pytest.mark.asyncio
+async def test_public_list_owner_alias_localized_to_viewer(client, db_session):
+    # Owner with no chosen pseudo → rendered as the anonymous alias, which
+    # must follow the viewer's Accept-Language (not a hardcoded French default).
+    owner = User(
+        username="silent-owner", hashed_password=hash_password("Irrelevant123!"),
+        is_active=True, must_change_password=False,
+    )
+    db_session.add(owner)
+    await db_session.commit()
+    await db_session.refresh(owner)
+    # ``display_name_must_set`` makes the serializer ignore the stored name
+    # and fall back to the anonymous alias, regardless of the column value.
+    db_session.add(UserProfile(
+        user_id=owner.id, display_name="silent-owner", display_name_must_set=True,
+        role="viewer", account_active=True,
+    ))
+    db_session.add(UserList(
+        user_id=owner.id, name="Public", privacy=PRIVACY_PUBLIC_READONLY,
+    ))
+    await db_session.commit()
+    _rq(client, owner)
+
+    en = (await client.get(
+        "/api/portal/lists/public", headers={"Accept-Language": "en"},
+    )).json()
+    row = next(r for r in en["items"] if r["owner_id"] == owner.id)
+    assert row["owner_username"].startswith("User ")
+
+    fr = (await client.get(
+        "/api/portal/lists/public", headers={"Accept-Language": "fr"},
+    )).json()
+    row = next(r for r in fr["items"] if r["owner_id"] == owner.id)
+    assert row["owner_username"].startswith("Utilisateur ")
+
+
+@pytest.mark.asyncio
 async def test_public_lists_hide_soft_deleted_from_users(client, db_session):
     """The user-facing /public endpoint must never leak a soft-deleted list."""
     owner = await _bootstrap(db_session, "pd_owner")
