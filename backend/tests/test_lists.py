@@ -4,7 +4,9 @@ from sqlalchemy import select
 
 from core.security import create_access_token, hash_password
 from models.portal.profile import UserProfile
-from models.portal.social import UserList, PRIVACY_PUBLIC_READONLY, PRIVACY_COLLABORATIVE
+from models.portal.social import (
+    UserList, PRIVACY_PUBLIC_READONLY, PRIVACY_COLLABORATIVE, PRIVACY_PRIVATE,
+)
 from models.user import User
 
 
@@ -414,6 +416,28 @@ async def test_contributor_sees_alias_for_soft_deleted_owner(client, db_session)
     )
     assert row["owner_username"] != "RealOwner"
     assert row["owner_username"].startswith("Utilisateur ")
+
+
+@pytest.mark.asyncio
+async def test_moderation_shows_soft_deleted_private_for_restore(client, db_session):
+    owner = await _bootstrap(db_session, "priv-owner")
+    admin = await _bootstrap(db_session, "priv-admin", role="admin")
+    # An active private list stays out of moderation; a soft-deleted one shows
+    # so the admin can restore it.
+    db_session.add_all([
+        UserList(user_id=owner.id, name="ActivePrivate", privacy=PRIVACY_PRIVATE),
+        UserList(
+            user_id=owner.id, name="DeletedPrivate",
+            privacy=PRIVACY_PRIVATE, is_deleted=True,
+        ),
+    ])
+    await db_session.commit()
+    _rq(client, admin)
+
+    body = (await client.get("/api/portal/admin/lists")).json()
+    names = [r["name"] for r in body["items"]]
+    assert "DeletedPrivate" in names
+    assert "ActivePrivate" not in names
 
 
 @pytest.mark.asyncio

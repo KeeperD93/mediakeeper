@@ -115,12 +115,16 @@ async def get_moderation_lists(
     db: AsyncSession, user_id: int, *,
     limit: int = 50, cursor: str | None = None, lang: str = "fr",
 ) -> dict:
-    """Admin moderation view: every public/collaborative list — INCLUDING
-    soft-deleted ones and those of deactivated/purged owners — so the admin
-    can restore or hard-delete them. Owner display safely falls back to the
-    anonymous alias for a purged owner via ``_serialize_list``."""
+    """Admin moderation view: every public/collaborative list PLUS any
+    soft-deleted list (including private ones) — so the admin can restore or
+    hard-delete them. An active private list stays out of the feed; only its
+    soft-deleted state surfaces it for recovery. Owner display falls back to
+    the anonymous alias for a deactivated/purged owner via ``_serialize_list``."""
     base = select(UserList).where(
-        UserList.privacy.in_((PRIVACY_PUBLIC_READONLY, PRIVACY_COLLABORATIVE)),
+        or_(
+            UserList.privacy.in_((PRIVACY_PUBLIC_READONLY, PRIVACY_COLLABORATIVE)),
+            UserList.is_deleted.is_(True),
+        )
     )
     return await _paginate_lists_by_activity(
         db, base, user_id, limit=limit, cursor=cursor, lang=lang
