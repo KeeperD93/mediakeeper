@@ -143,6 +143,11 @@
   transform-box: fill-box;
 }
 @media (hover: hover) {
+  /* Keep the heart red on hover — the shared .tb-action-btn:hover recolours
+     to --text-secondary, which would wash the heart out. */
+  .tb-heart:hover {
+    color: var(--color-error-strong);
+  }
   .tb-heart:hover svg {
     filter: drop-shadow(0 0 10px rgb(var(--color-error-strong-rgb), 0.85));
   }
