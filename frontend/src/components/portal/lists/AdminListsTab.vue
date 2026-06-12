@@ -16,7 +16,7 @@
         <tr>
           <th>{{ $t('portal.lists.form.name') }}</th>
           <th>{{ $t('portal.lists.form.privacyLabel') }}</th>
-          <th>{{ $t('portal.lists.itemCount', { count: 0 }, 2) }}</th>
+          <th>{{ $t('portal.lists.admin.colTitles') }}</th>
           <th>{{ $t('common.actions') }}</th>
         </tr>
       </thead>
@@ -31,7 +31,7 @@
               {{ $t(`portal.lists.privacy.${lst.privacy}`) }}
             </span>
           </td>
-          <td :data-label="$t('portal.lists.itemCount', { count: 0 }, 2)">
+          <td :data-label="$t('portal.lists.admin.colTitles')">
             {{ lst.item_count }}
           </td>
           <td :data-label="$t('common.actions')" class="adm-actions">
@@ -112,9 +112,9 @@ async function undelete(id) {
 async function hardDelete(id) {
   const ok = await mkConfirm({
     title: t('common.confirmTitle.delete'),
-    message: t('portal.lists.actions.confirmDelete'),
+    message: t('portal.lists.admin.confirmHardDelete'),
     variant: 'danger',
-    confirmLabel: t('common.delete'),
+    confirmLabel: t('portal.lists.admin.hardDelete'),
   })
   if (!ok) return
   const res = await svc.adminHardDelete(id)

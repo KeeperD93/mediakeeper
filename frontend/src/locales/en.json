@@ -2718,7 +2718,9 @@
         "undelete": "Restore",
         "hardDelete": "Delete permanently",
         "muteOwner": "Mute owner",
-        "unmuteOwner": "Unmute owner"
+        "unmuteOwner": "Unmute owner",
+        "colTitles": "Titles",
+        "confirmHardDelete": "Permanently delete this list? This cannot be undone and also erases its contents."
       },
       "errors": {
         "not_found": "List not found",

@@ -2718,7 +2718,9 @@
         "undelete": "Restaurer",
         "hardDelete": "Supprimer définitivement",
         "muteOwner": "Museler le propriétaire",
-        "unmuteOwner": "Démuseler le propriétaire"
+        "unmuteOwner": "Démuseler le propriétaire",
+        "colTitles": "Titres",
+        "confirmHardDelete": "Supprimer définitivement cette liste ? Cette action est irréversible et efface aussi son contenu."
       },
       "errors": {
         "not_found": "Liste introuvable",
