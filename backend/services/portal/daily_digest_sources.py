@@ -32,27 +32,31 @@ from services.portal.xp import MAX_LEVEL, xp_for_level
 logger = logging.getLogger("mediakeeper.portal.daily_digest")
 
 RECENT_ADDS_FETCH_LIMIT = 80
+RECENT_ADDS_CAP = 30
 EVENTS_WINDOW_DAYS = 7
 
 
-async def recent_adds(db: AsyncSession) -> list[dict]:
-    """Emby items whose ``date_created`` is today or yesterday.
+async def recent_adds(
+    db: AsyncSession, *, since: datetime, cap: int = RECENT_ADDS_CAP
+) -> list[dict]:
+    """Emby items added since the viewer last caught up, newest first.
 
-    Emby returns ``DateCreated`` as an ISO-8601 UTC timestamp; the
-    ``available`` serializer already truncates it to ``YYYY-MM-DD``. We
-    fetch a generous batch and keep the rows that fall inside the
-    rolling 48h window (today + yesterday) — that's lenient enough to
-    survive timezone skew between the NAS and the viewer.
+    ``since`` is the viewer's seen watermark (see
+    :func:`daily_digest._recent_cutoff`); items strictly newer than its
+    UTC date are kept, capped at ``cap`` posters. Emby's ``date_created``
+    is a ``YYYY-MM-DD`` UTC prefix, so the comparison is day-granular —
+    lexicographic order on ISO dates matches chronological order. Day
+    granularity means an item added later on the same calendar day as the
+    watermark counts as already seen (Emby exposes no sub-day
+    ``DateCreated``).
     """
-    today = datetime.now(timezone.utc).date()
-    yesterday = today - timedelta(days=1)
-    window = {today.isoformat(), yesterday.isoformat()}
+    since_date = since.astimezone(timezone.utc).date().isoformat()
     try:
         items = await get_recently_added(db, limit=RECENT_ADDS_FETCH_LIMIT)
     except Exception as e:  # noqa: BLE001
-        logger.debug(f"[DIGEST] recent adds failed: {e}")
+        logger.debug("[DIGEST] recent adds failed: %s", e)
         return []
-    kept = [it for it in items if (it.get("date_created") or "") in window]
+    kept = [it for it in items if (it.get("date_created") or "") > since_date]
     return [
         {
             "tmdb_id": it.get("tmdb_id"),
@@ -61,10 +65,9 @@ async def recent_adds(db: AsyncSession) -> list[dict]:
             "year": it.get("year"),
             "media_type": it.get("media_type"),
             "poster_url": it.get("poster_url"),
-            "backdrop_url": it.get("backdrop_url"),
             "date_created": it.get("date_created"),
         }
-        for it in kept
+        for it in kept[:cap]
     ]
 
 

@@ -1,9 +1,9 @@
 """Activity history: paginated list, minimap, single or bulk deletes."""
 import logging
 
-from fastapi import APIRouter, Depends, Query
-from pydantic import BaseModel
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, ConfigDict, Field
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.auth import get_current_user
@@ -21,7 +21,8 @@ router = APIRouter()
 
 
 class BulkDeleteRequest(BaseModel):
-    ids: list[int]
+    model_config = ConfigDict(extra="forbid")
+    ids: list[int] = Field(..., min_length=1, max_length=1000)
 
 
 @router.get("/activity")
@@ -65,10 +66,10 @@ async def delete_activity(
     )
     row = result.scalar_one_or_none()
     if not row:
-        return {"error": "Activity not found"}
+        raise HTTPException(status_code=404, detail="activity_not_found")
     await db.delete(row)
     await db.commit()
-    logger.info(f"Activity {activity_id} deleted by {_.username}")
+    logger.info("Activity %s deleted by %s", activity_id, _.username)
     return {"ok": True}
 
 
@@ -78,19 +79,16 @@ async def delete_activities_bulk(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    """Delete several activity history rows."""
+    """Delete several activity history rows in a single statement."""
     from models.playback_stats import PlaybackSession
-    deleted = 0
-    for aid in req.ids:
-        result = await db.execute(
-            select(PlaybackSession).where(PlaybackSession.id == aid)
-        )
-        row = result.scalar_one_or_none()
-        if row:
-            await db.delete(row)
-            deleted += 1
+    result = await db.execute(
+        delete(PlaybackSession)
+        .where(PlaybackSession.id.in_(req.ids))
+        .execution_options(synchronize_session=False)
+    )
     await db.commit()
-    logger.info(f"{deleted} activity row(s) deleted by {_.username}")
+    deleted = result.rowcount or 0
+    logger.info("%s activity row(s) deleted by %s", deleted, _.username)
     return {"ok": True, "deleted": deleted}
 
 
