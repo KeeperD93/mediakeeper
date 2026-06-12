@@ -1,4 +1,4 @@
-"""MediaKeeper admin endpoints for Portal users & chat moderation.
+"""MediaKeeper admin endpoints for Portal session bypass & chat moderation.
 
 Protected by the regular MediaKeeper ``mk_token`` cookie via
 ``get_current_user`` — admin-side tooling, not part of the Portal
@@ -6,9 +6,6 @@ user-facing API.
 
 Exposed routes (mounted under ``/api/portal/admin/requests``):
 
-- ``POST   /users/import``      — batch import Emby users
-- ``GET    /users``             — list every UserProfile
-- ``PATCH  /users/{id}``        — update active flag, role, chat settings
 - ``POST   /enter``             — grant current MK admin a Portal session
 - ``GET    /chat/reports``      — list open chat moderation reports
 - ``POST   /chat/reports/{id}/dismiss`` — mark report handled
@@ -17,104 +14,15 @@ Exposed routes (mounted under ``/api/portal/admin/requests``):
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
 from models.user import User
-from models.portal.profile import UserProfile
 from api.auth import get_current_user, grant_portal_admin_session, require_csrf
-from services.portal._rank_tiers import tier_for_level
-from services.portal.avatars import resolve_avatar_url
-from services.portal.user_import import import_emby_users
 
 router = APIRouter(prefix="/api/portal/admin/requests", tags=["portal-admin-requests"])
 logger = logging.getLogger("mediakeeper.api.portal_admin_requests")
-
-
-# ---------------------------------------------------------------------------
-# Import
-# ---------------------------------------------------------------------------
-
-@router.post("/users/import")
-async def import_users(
-    csrf_protected: None = Depends(require_csrf),
-    _: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    """Pull the list of users from Emby and create matching Portal profiles."""
-    result = await import_emby_users(db)
-    if result.get("error"):
-        raise HTTPException(status_code=400, detail=result["error"])
-    return result
-
-
-# ---------------------------------------------------------------------------
-# List / manage
-# ---------------------------------------------------------------------------
-
-@router.get("/users")
-async def list_users(
-    _: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    """Return every Portal profile with its MediaKeeper user row joined."""
-    rows = await db.execute(
-        select(UserProfile, User)
-        .join(User, User.id == UserProfile.user_id)
-        .order_by(UserProfile.display_name)
-    )
-    items = []
-    for profile, user in rows.all():
-        items.append({
-            "id": profile.id,
-            "user_id": user.id,
-            "username": user.username,
-            "display_name": profile.display_name,
-            "avatar_url": resolve_avatar_url(profile.avatar_url, profile.avatar_custom_path),
-            "role": profile.role,
-            "account_active": profile.account_active,
-            "chat_enabled": profile.chat_enabled,
-            "is_public": profile.is_public,
-            "forced_public": profile.forced_public,
-            "level": profile.level,
-            "tier": tier_for_level(profile.level or 1),
-            "xp": profile.xp,
-            "created_at": profile.created_at.isoformat() if profile.created_at else None,
-            "updated_at": profile.updated_at.isoformat() if profile.updated_at else None,
-        })
-    return {"items": items}
-
-
-class ProfileAdminUpdate(BaseModel):
-    account_active: bool | None = None
-    role: str | None = Field(None, pattern="^(viewer|moderator|admin)$")
-    chat_enabled: bool | None = None
-    forced_public: bool | None = None
-
-
-@router.patch("/users/{profile_id}")
-async def update_user(
-    profile_id: int,
-    data: ProfileAdminUpdate,
-    csrf_protected: None = Depends(require_csrf),
-    _: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    """Admin update: activate/disable, change role, mute chat, force visibility."""
-    profile = (
-        await db.execute(select(UserProfile).where(UserProfile.id == profile_id))
-    ).scalar_one_or_none()
-    if not profile:
-        raise HTTPException(status_code=404, detail="profile_not_found")
-
-    payload = data.model_dump(exclude_none=True)
-    for key, value in payload.items():
-        setattr(profile, key, value)
-    db.add(profile)
-    await db.commit()
-    return {"ok": True}
 
 
 @router.post("/enter")
