@@ -460,18 +460,24 @@ async def _admin_profile(db_session, admin_user):
     return profile
 
 
-async def _walk_offset(client, url_base):
-    """Walk a feed in pages of 2 via offset; return the collected ids."""
+async def _walk_cursor(client, url_base):
+    """Walk a feed in pages of 2 via keyset cursor; return the collected ids."""
     seen: list[int] = []
-    for offset in (0, 2, 4):
-        resp = await client.get(f"{url_base}?limit=2&offset={offset}")
+    cursor = None
+    for _ in range(10):  # safety bound well above the fixtures' row count
+        url = f"{url_base}?limit=2" + (f"&cursor={cursor}" if cursor else "")
+        resp = await client.get(url)
         assert resp.status_code == 200, resp.text
-        seen.extend(item["id"] for item in resp.json()["items"])
+        data = resp.json()
+        seen.extend(item["id"] for item in data["items"])
+        cursor = data.get("next_cursor")
+        if not cursor:
+            break
     return seen
 
 
 @pytest.mark.asyncio
-async def test_user_requests_feed_offset_pagination(client, admin_user, db_session):
+async def test_user_requests_feed_cursor_pagination(client, admin_user, db_session):
     from models.portal.request import MediaRequest
 
     profile = await _admin_profile(db_session, admin_user)
@@ -483,12 +489,12 @@ async def test_user_requests_feed_offset_pagination(client, admin_user, db_sessi
     await db_session.commit()
     _auth(client, admin_user)
 
-    seen = await _walk_offset(client, f"/api/portal/admin/users/{profile.id}/requests")
+    seen = await _walk_cursor(client, f"/api/portal/admin/users/{profile.id}/requests")
     assert len(seen) == 5 and len(set(seen)) == 5
 
 
 @pytest.mark.asyncio
-async def test_user_tickets_feed_offset_pagination(client, admin_user, db_session):
+async def test_user_tickets_feed_cursor_pagination(client, admin_user, db_session):
     from models.portal.ticket import Ticket
 
     profile = await _admin_profile(db_session, admin_user)
@@ -500,12 +506,12 @@ async def test_user_tickets_feed_offset_pagination(client, admin_user, db_sessio
     await db_session.commit()
     _auth(client, admin_user)
 
-    seen = await _walk_offset(client, f"/api/portal/admin/users/{profile.id}/tickets")
+    seen = await _walk_cursor(client, f"/api/portal/admin/users/{profile.id}/tickets")
     assert len(seen) == 5 and len(set(seen)) == 5
 
 
 @pytest.mark.asyncio
-async def test_xp_history_feed_offset_pagination(client, admin_user, db_session):
+async def test_xp_history_feed_cursor_pagination(client, admin_user, db_session):
     from models.portal.xp_ledger import XpLedger
 
     profile = await _admin_profile(db_session, admin_user)
@@ -516,12 +522,12 @@ async def test_xp_history_feed_offset_pagination(client, admin_user, db_session)
     await db_session.commit()
     _auth(client, admin_user)
 
-    seen = await _walk_offset(client, f"/api/portal/admin/users/{profile.id}/xp-history")
+    seen = await _walk_cursor(client, f"/api/portal/admin/users/{profile.id}/xp-history")
     assert len(seen) == 5 and len(set(seen)) == 5
 
 
 @pytest.mark.asyncio
-async def test_login_history_feed_offset_pagination(client, admin_user, db_session):
+async def test_login_history_feed_cursor_pagination(client, admin_user, db_session):
     from models.portal.login_history import UserLoginHistory
 
     profile = await _admin_profile(db_session, admin_user)
@@ -532,7 +538,24 @@ async def test_login_history_feed_offset_pagination(client, admin_user, db_sessi
     await db_session.commit()
     _auth(client, admin_user)
 
-    seen = await _walk_offset(client, f"/api/portal/admin/users/{profile.id}/login-history")
+    seen = await _walk_cursor(client, f"/api/portal/admin/users/{profile.id}/login-history")
+    assert len(seen) == 5 and len(set(seen)) == 5
+
+
+@pytest.mark.asyncio
+async def test_audit_feed_cursor_pagination(client, admin_user, db_session):
+    from models.portal.audit import AdminAuditLog
+
+    profile = await _admin_profile(db_session, admin_user)
+    db_session.add_all([
+        AdminAuditLog(admin_user_id=admin_user.id, target_user_id=admin_user.id,
+                      action="test_action")
+        for _ in range(5)
+    ])
+    await db_session.commit()
+    _auth(client, admin_user)
+
+    seen = await _walk_cursor(client, f"/api/portal/admin/users/{profile.id}/audit")
     assert len(seen) == 5 and len(set(seen)) == 5
 
 

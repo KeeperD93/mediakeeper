@@ -287,9 +287,9 @@ async def post_reset_display_name(
 async def get_login_history(
     profile_id: int,
     limit: int = Query(100, ge=1, le=500),
-    offset: int = Query(0, ge=0),
+    cursor: str | None = Query(None),
     _: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     profile, _user = await resolve_profile(profile_id, db)
-    return await list_user_login_history(db, profile.user_id, limit=limit, offset=offset)
+    return await list_user_login_history(db, profile.user_id, limit=limit, cursor=cursor)

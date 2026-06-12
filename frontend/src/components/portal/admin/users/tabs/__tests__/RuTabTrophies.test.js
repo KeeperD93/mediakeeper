@@ -93,8 +93,8 @@ describe('RuTabTrophies — XP ledger label', () => {
 describe('RuTabTrophies — XP history load more', () => {
   it('appends the next XP page and stops on a partial page', async () => {
     fetchXpHistory
-      .mockResolvedValueOnce({ items: xpPage(1, 100) })
-      .mockResolvedValueOnce({ items: xpPage(101, 10) })
+      .mockResolvedValueOnce({ items: xpPage(1, 100), has_more: true, next_cursor: 'cur-100' })
+      .mockResolvedValueOnce({ items: xpPage(101, 10), has_more: false, next_cursor: null })
     const w = mountTab()
     await flushPromises()
 
@@ -104,7 +104,7 @@ describe('RuTabTrophies — XP history load more', () => {
     await w.find('.lm').trigger('click')
     await flushPromises()
 
-    expect(fetchXpHistory).toHaveBeenLastCalledWith(42, { limit: 100, offset: 100 })
+    expect(fetchXpHistory).toHaveBeenLastCalledWith(42, { limit: 100, cursor: 'cur-100' })
     expect(w.findAll('.ru-feed-row')).toHaveLength(110)
     expect(w.find('.lm').exists()).toBe(false) // partial page → no more
   })

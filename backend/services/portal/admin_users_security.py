@@ -16,9 +16,10 @@ import secrets
 import string
 from typing import Any
 
-from sqlalchemy import select, desc
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.pagination import build_cursor_response, decode_cursor
 from core.security import hash_password
 from models.user import User
 from models.portal.profile import UserProfile
@@ -126,25 +127,27 @@ async def reset_display_name(
 
 
 async def list_user_login_history(
-    db: AsyncSession, user_id: int, *, limit: int = 100, offset: int = 0
+    db: AsyncSession, user_id: int, *, limit: int = 100, cursor: str | None = None
 ) -> dict[str, Any]:
+    total = int((await db.execute(
+        select(func.count(UserLoginHistory.id)).where(UserLoginHistory.user_id == user_id)
+    )).scalar() or 0)
+    q = select(UserLoginHistory).where(UserLoginHistory.user_id == user_id)
+    decoded = decode_cursor(cursor) if cursor else None
+    if decoded and decoded.get("id") is not None:
+        q = q.where(UserLoginHistory.id < decoded["id"])
     rows = (await db.execute(
-        select(UserLoginHistory)
-        .where(UserLoginHistory.user_id == user_id)
-        .order_by(desc(UserLoginHistory.created_at))
-        .offset(offset)
-        .limit(limit)
+        q.order_by(UserLoginHistory.id.desc()).limit(limit)
     )).scalars().all()
-    return {
-        "items": [
-            {
-                "id": r.id,
-                "source": r.source,
-                "success": r.success,
-                "ip": r.ip,
-                "user_agent": r.user_agent,
-                "created_at": r.created_at.isoformat() if r.created_at else None,
-            }
-            for r in rows
-        ]
-    }
+    items = [
+        {
+            "id": r.id,
+            "source": r.source,
+            "success": r.success,
+            "ip": r.ip,
+            "user_agent": r.user_agent,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+        }
+        for r in rows
+    ]
+    return build_cursor_response(items, total, limit, cursor_field="id")

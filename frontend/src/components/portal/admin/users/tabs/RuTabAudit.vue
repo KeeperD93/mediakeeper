@@ -38,13 +38,15 @@ const loading = ref(false)
 const loadingMore = ref(false)
 const entries = ref([])
 const hasMore = ref(false)
+const auditCursor = ref(null)
 
 async function load() {
   loading.value = true
   try {
-    const res = await api.fetchAudit(props.user.id, { limit: AUDIT_PAGE, offset: 0 })
+    const res = await api.fetchAudit(props.user.id, { limit: AUDIT_PAGE })
     entries.value = res?.items || []
-    hasMore.value = entries.value.length === AUDIT_PAGE
+    hasMore.value = !!res?.has_more
+    auditCursor.value = res?.next_cursor || null
   } finally {
     loading.value = false
   }
@@ -56,11 +58,12 @@ async function loadMore() {
   try {
     const res = await api.fetchAudit(props.user.id, {
       limit: AUDIT_PAGE,
-      offset: entries.value.length,
+      cursor: auditCursor.value,
     })
     const items = res?.items || []
     entries.value = [...entries.value, ...items]
-    hasMore.value = items.length === AUDIT_PAGE
+    hasMore.value = !!res?.has_more
+    auditCursor.value = res?.next_cursor || null
   } finally {
     loadingMore.value = false
   }

@@ -153,6 +153,8 @@ const tickets = ref([])
 const loadingFeeds = ref(false)
 const requestsHasMore = ref(false)
 const ticketsHasMore = ref(false)
+const requestsCursor = ref(null)
+const ticketsCursor = ref(null)
 const loadingMoreRequests = ref(false)
 const loadingMoreTickets = ref(false)
 
@@ -161,13 +163,15 @@ async function load() {
   loadingFeeds.value = true
   try {
     const [rq, tk] = await Promise.all([
-      api.fetchUserRequests(props.user.id, { limit: FEED_PAGE, offset: 0 }),
-      api.fetchUserTickets(props.user.id, { limit: FEED_PAGE, offset: 0 }),
+      api.fetchUserRequests(props.user.id, { limit: FEED_PAGE }),
+      api.fetchUserTickets(props.user.id, { limit: FEED_PAGE }),
     ])
     requests.value = rq?.items || []
     tickets.value = tk?.items || []
-    requestsHasMore.value = requests.value.length === FEED_PAGE
-    ticketsHasMore.value = tickets.value.length === FEED_PAGE
+    requestsHasMore.value = !!rq?.has_more
+    ticketsHasMore.value = !!tk?.has_more
+    requestsCursor.value = rq?.next_cursor || null
+    ticketsCursor.value = tk?.next_cursor || null
   } finally {
     loadingFeeds.value = false
   }
@@ -179,11 +183,12 @@ async function loadMoreRequests() {
   try {
     const res = await api.fetchUserRequests(props.user.id, {
       limit: FEED_PAGE,
-      offset: requests.value.length,
+      cursor: requestsCursor.value,
     })
     const items = res?.items || []
     requests.value = [...requests.value, ...items]
-    requestsHasMore.value = items.length === FEED_PAGE
+    requestsHasMore.value = !!res?.has_more
+    requestsCursor.value = res?.next_cursor || null
   } finally {
     loadingMoreRequests.value = false
   }
@@ -195,11 +200,12 @@ async function loadMoreTickets() {
   try {
     const res = await api.fetchUserTickets(props.user.id, {
       limit: FEED_PAGE,
-      offset: tickets.value.length,
+      cursor: ticketsCursor.value,
     })
     const items = res?.items || []
     tickets.value = [...tickets.value, ...items]
-    ticketsHasMore.value = items.length === FEED_PAGE
+    ticketsHasMore.value = !!res?.has_more
+    ticketsCursor.value = res?.next_cursor || null
   } finally {
     loadingMoreTickets.value = false
   }
