@@ -212,25 +212,26 @@
   background: currentcolor;
   box-shadow: 0 0 4px currentcolor;
 }
-.badge-past {
+.uc-badge--past {
   color: var(--text-very-faint);
   border-color: var(--border-default);
 }
-.badge-imminent {
+.uc-badge--imminent {
   color: var(--color-error-light);
   border-color: rgb(var(--color-error-rgb), 0.33);
 }
-.badge-soon {
+.uc-badge--soon {
   color: var(--color-warning-light);
   border-color: rgb(var(--color-warning-rgb), 0.33);
 }
-.badge-later {
+.uc-badge--later {
   color: var(--text-muted);
   border-color: var(--border-default);
 }
 
 /* Grouped card: count badge (top-left) + stacked-cards shadow signalling the
-   poster stands for several episodes of the day. */
+   poster stands for several episodes of the day. The 9 px font / 6 px padding
+   mirror the .uc-count chip rhythm (deliberate sub-token geometry). */
 .uc-count-badge {
   position: absolute;
   top: 6px;

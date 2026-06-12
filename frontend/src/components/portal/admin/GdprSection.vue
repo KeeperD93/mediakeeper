@@ -221,6 +221,7 @@ async function onToggle(next) {
   flashSaved()
   if (next) await loadPending()
   else {
+    pendingGen++ // invalidate any in-flight loadPending so it can't repopulate
     pending.value = []
     pendingTotal.value = 0
   }
@@ -239,7 +240,7 @@ async function onSave() {
 }
 
 async function onCancel(row) {
-  if (cancellingId.value) return // a cancel is already in flight
+  if (cancellingId.value !== null) return // a cancel is already in flight
   cancellingId.value = row.id
   try {
     await cancelDeletionRequest(row.id)
