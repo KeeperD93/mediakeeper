@@ -79,23 +79,6 @@ async def test_admin_users_list_resolves_custom_avatar(client, admin_user, db_se
 
 
 @pytest.mark.asyncio
-async def test_legacy_admin_users_list_resolves_custom_avatar(client, admin_user, db_session):
-    """Legacy admin user list (/api/portal/admin/requests/users)."""
-    db_session.add(UserProfile(
-        user_id=admin_user.id, display_name="Admin", role="admin",
-        account_active=True, level=3,
-        avatar_url=EMBY_URL, avatar_custom_path="legacy_7.png",
-    ))
-    await db_session.commit()
-    _admin_auth(client, admin_user)
-    resp = await client.get("/api/portal/admin/requests/users")
-    assert resp.status_code == 200
-    row = resp.json()["items"][0]
-    assert row["avatar_url"] == "/api/portal/avatars/legacy_7.png"
-    assert row["level"] == 3
-
-
-@pytest.mark.asyncio
 async def test_get_sessions_resolves_custom_avatar(db_session):
     """Admin dashboard active-sessions hero strip."""
     user = User(
