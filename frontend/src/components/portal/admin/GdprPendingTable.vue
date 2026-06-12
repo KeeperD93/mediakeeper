@@ -8,7 +8,7 @@
       <button
         type="button"
         class="pt-gdpr-pending-refresh"
-        :disabled="loading"
+        :disabled="loading || loadingMore"
         @click="$emit('refresh')"
       >
         <RefreshCw :size="14" />
@@ -60,7 +60,7 @@
             <button
               type="button"
               class="pt-gdpr-pending-cancel"
-              :disabled="cancellingId === row.id"
+              :disabled="cancellingId !== null"
               @click="$emit('cancel', row)"
             >
               <Undo2 :size="14" />

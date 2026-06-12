@@ -182,16 +182,22 @@ async function load() {
   }
 }
 
+// Monotonic token: a newer load supersedes any in-flight one, so a stale
+// response (e.g. an append that resolves after a refresh) is discarded
+// instead of corrupting the list with duplicate or dropped rows.
+let pendingGen = 0
+
 async function loadPending(append = false) {
-  if (append) {
-    if (pendingLoadingMore.value) return
-    pendingLoadingMore.value = true
-  } else {
-    pendingLoading.value = true
-  }
+  // An append continues the current window — never start one while another
+  // load (refresh or append) is already in flight.
+  if (append && (pendingLoadingMore.value || pendingLoading.value)) return
+  const gen = ++pendingGen
+  if (append) pendingLoadingMore.value = true
+  else pendingLoading.value = true
   try {
     const offset = append ? pending.value.length : 0
     const { items, total } = await fetchPendingDeletions(offset)
+    if (gen !== pendingGen) return // superseded by a newer load → discard
     pending.value = append ? [...pending.value, ...items] : items
     pendingTotal.value = total
   } finally {
@@ -233,6 +239,7 @@ async function onSave() {
 }
 
 async function onCancel(row) {
+  if (cancellingId.value) return // a cancel is already in flight
   cancellingId.value = row.id
   try {
     await cancelDeletionRequest(row.id)

@@ -263,4 +263,40 @@ describe('GdprSection', () => {
     expect(w.findAll('.pt-gdpr-pending-table tbody tr')).toHaveLength(60)
     expect(w.find('.pmlm').exists()).toBe(false)
   })
+
+  it('locks out refresh while a "load more" page is in flight', async () => {
+    fetchSettings.mockResolvedValueOnce({
+      enabled: true,
+      privacy_text_fr: '',
+      privacy_text_en: '',
+      dpo_contact: '',
+      account_purge_delay_days: 30,
+    })
+    const page = (start, n) =>
+      Array.from({ length: n }, (_, i) => ({
+        id: start + i,
+        username: `user-${start + i}`,
+        deletion_requested_at: '',
+        pending_deletion_at: '',
+      }))
+    let resolveAppend
+    fetchPendingDeletions
+      .mockResolvedValueOnce({ items: page(1, 50), total: 60 })
+      .mockImplementationOnce(() => new Promise(r => (resolveAppend = r)))
+    const w = mount(GdprSection)
+    await flushPromises()
+
+    expect(w.find('.pt-gdpr-pending-refresh').attributes('disabled')).toBeUndefined()
+
+    await w.find('.pmlm').trigger('click') // append left in flight
+    await flushPromises()
+
+    // A concurrent refresh would corrupt the window → it must be locked out.
+    expect(w.find('.pt-gdpr-pending-refresh').attributes('disabled')).toBeDefined()
+
+    resolveAppend({ items: page(51, 10), total: 60 })
+    await flushPromises()
+
+    expect(w.find('.pt-gdpr-pending-refresh').attributes('disabled')).toBeUndefined()
+  })
 })
