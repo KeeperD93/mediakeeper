@@ -123,3 +123,31 @@ describe('UpcomingEpisodes — relativeDate buckets', () => {
     w.unmount()
   })
 })
+
+describe('UpcomingEpisodes — same-day grouping + labels', () => {
+  beforeEach(() => {
+    apiGet.mockReset()
+  })
+
+  it('collapses 2+ same-series same-day episodes into one count card', async () => {
+    apiGet.mockResolvedValueOnce([
+      { series_name: 'A', season: 1, episode: 1, air_date: '2026-07-01', tmdb_id: 1, poster: null },
+      { series_name: 'A', season: 1, episode: 2, air_date: '2026-07-01', tmdb_id: 1, poster: null },
+      { series_name: 'B', season: 2, episode: 5, air_date: '2026-07-02', tmdb_id: 2, poster: null },
+    ])
+
+    const w = mount(UpcomingEpisodes)
+    await flushPromises()
+
+    const labels = w.findAll('.uc-ep').map(e => e.text())
+    // Series A's two same-day episodes collapse to a "{count:2}" card; B stays single.
+    expect(labels.some(t => t.includes('upcomingEpCount') && t.includes('"count":2'))).toBe(true)
+    expect(labels.some(t => t.includes('upcomingEpLabel') && t.includes('"episode":"05"'))).toBe(
+      true,
+    )
+    // The old S0xE0y label is gone.
+    expect(labels.every(t => !/S\d\dE\d\d/.test(t))).toBe(true)
+
+    w.unmount()
+  })
+})

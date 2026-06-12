@@ -16,36 +16,41 @@
     </div>
     <div v-else class="uc-viewport" @mouseenter="paused = true" @mouseleave="paused = false">
       <div class="uc-track" :class="{ 'uc-paused': paused }" :style="trackStyle">
-        <a
-          v-for="(ep, i) in displayEpisodes"
-          :key="'ep-' + i"
-          class="uc-card"
-          :href="tmdbUrl(ep)"
-          target="_blank"
-          rel="noopener"
-        >
-          <div class="uc-poster">
-            <img
-              v-if="ep.poster"
-              :src="ep.poster"
-              :alt="ep.series_name"
-              loading="lazy"
-              @error="$event => ($event.target.style.display = 'none')"
-            />
-            <span v-else class="uc-poster-ph">📺</span>
-            <span class="uc-badge" :class="dateClass(ep.air_date)">
-              <span class="uc-badge-dot" />
-              {{ relativeDate(ep.air_date) }}
-            </span>
-          </div>
-          <div class="uc-meta">
-            <span class="uc-series">{{ ep.series_name }}</span>
-            <span class="uc-ep">
-              S{{ String(ep.season).padStart(2, '0') }}E{{ String(ep.episode).padStart(2, '0') }}
-            </span>
-            <span class="uc-date">{{ formatDate(ep.air_date) }}</span>
-          </div>
-        </a>
+        <template v-for="(item, i) in displayItems" :key="'it-' + i">
+          <span v-if="item.type === 'sep'" class="uc-sep" aria-hidden="true" />
+          <a
+            v-else
+            class="uc-card"
+            :class="{ 'uc-card--group': item.count }"
+            :href="tmdbUrl(item)"
+            target="_blank"
+            rel="noopener"
+          >
+            <div class="uc-poster">
+              <img
+                v-if="item.poster"
+                :src="item.poster"
+                :alt="item.series_name"
+                loading="lazy"
+                @error="$event => ($event.target.style.display = 'none')"
+              />
+              <span v-else class="uc-poster-ph">📺</span>
+              <span class="uc-badge" :class="dateClass(item.air_date)">
+                <span class="uc-badge-dot" />
+                {{ relativeDate(item.air_date) }}
+              </span>
+              <span v-if="item.count" class="uc-count-badge">
+                <Layers :size="9" />
+                {{ item.count }}
+              </span>
+            </div>
+            <div class="uc-meta">
+              <span class="uc-series">{{ item.series_name }}</span>
+              <span class="uc-ep">{{ epLabel(item) }}</span>
+              <span class="uc-date">{{ formatDate(item.air_date) }}</span>
+            </div>
+          </a>
+        </template>
       </div>
     </div>
   </div>
@@ -54,12 +59,14 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { Layers } from 'lucide-vue-next'
 import { useApi } from '@/composables/useApi'
 import { tmdbWebUrl } from '@/utils/tmdb'
 import { localizedDate } from '@/utils/datetime'
 
 const CARD_W = 140
 const GAP = 14
+const SEP_W = 3
 
 const { apiGet } = useApi()
 const { t, locale } = useI18n()
@@ -68,31 +75,55 @@ const loading = ref(true)
 const paused = ref(false)
 let retryTimer = null
 
-// Duplicate for seamless loop
-const loopedEpisodes = computed(() => {
-  if (episodes.value.length === 0) return []
-  return [...episodes.value, ...episodes.value]
+const pad = n => String(n ?? 0).padStart(2, '0')
+
+// Collapse episodes of the same series + season landing on the same day into a
+// single card ("Saison X — N épisodes"); a lone episode keeps its own card.
+const groupedItems = computed(() => {
+  const groups = new Map()
+  for (const ep of episodes.value) {
+    const key = `${ep.tmdb_id}|${ep.air_date}|${ep.season}`
+    if (!groups.has(key)) groups.set(key, [])
+    groups.get(key).push(ep)
+  }
+  const out = []
+  const seen = new Set()
+  for (const ep of episodes.value) {
+    const key = `${ep.tmdb_id}|${ep.air_date}|${ep.season}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    const grp = groups.get(key)
+    out.push(grp.length >= 2 ? { ...grp[0], count: grp.length } : { ...grp[0] })
+  }
+  return out
 })
 
 // Honour the OS "reduce motion" preference: the auto-scroll marquee is
 // swapped for a manual horizontal scroller (see the reduced-motion CSS), and
-// we render the single episode set instead of the doubled marquee set so
-// series are not listed twice when the user scrolls the strip by hand.
+// we render a single set so series are not listed twice when scrolled by hand.
 const prefersReducedMotion = ref(false)
 let _motionQuery = null
 function _syncMotionPref(e) {
   prefersReducedMotion.value = e.matches
 }
 
-const displayEpisodes = computed(() =>
-  prefersReducedMotion.value ? episodes.value : loopedEpisodes.value,
-)
+// Marquee duplicates the set; a thin separator marks the loop seam (last →
+// first). Reduced motion shows one set with a trailing seam marker.
+const displayItems = computed(() => {
+  const cards = groupedItems.value.map(c => ({ ...c, type: 'card' }))
+  if (cards.length === 0) return []
+  const sep = { type: 'sep' }
+  return prefersReducedMotion.value ? [...cards, sep] : [...cards, sep, ...cards, sep]
+})
 
-// Total width of one set of cards
-const setWidth = computed(() => episodes.value.length * (CARD_W + GAP))
+// Width of one looped unit: the grouped cards + one separator + their gaps.
+const setWidth = computed(() => {
+  const n = groupedItems.value.length
+  return n * CARD_W + SEP_W + (n + 1) * GAP
+})
 
 // CSS animation duration: slower = more items. ~8s per card width
-const animDuration = computed(() => Math.max(20, episodes.value.length * 8))
+const animDuration = computed(() => Math.max(20, groupedItems.value.length * 8))
 
 const trackStyle = computed(() => ({
   '--set-width': setWidth.value + 'px',
@@ -158,6 +189,16 @@ watch(locale, () => {
 
 function tmdbUrl(ep) {
   return ep.tmdb_id ? tmdbWebUrl('tv', ep.tmdb_id, locale.value) : '#'
+}
+function epLabel(item) {
+  if (item.count) {
+    return t(
+      'dashboard.upcomingEpCount',
+      { season: pad(item.season), count: item.count },
+      item.count,
+    )
+  }
+  return t('dashboard.upcomingEpLabel', { season: pad(item.season), episode: pad(item.episode) })
 }
 function formatDate(dateStr) {
   if (!dateStr) return '—'
@@ -426,6 +467,31 @@ function dateClass(dateStr) {
   border-color: var(--border-default);
 }
 
+/* Grouped card: count badge (top-left) + stacked-cards shadow signalling the
+   poster stands for several episodes of the day. */
+.uc-count-badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-half);
+  padding: var(--space-half) 6px var(--space-half) var(--space-1);
+  border-radius: var(--radius-pill);
+  background: rgb(var(--color-module-watchlist-rgb), 0.92);
+  color: var(--text-primary);
+  font-size: 9px;
+  font-weight: var(--font-extrabold);
+  box-shadow: var(--shadow-sm);
+}
+.uc-card--group .uc-poster {
+  box-shadow:
+    3px 3px 0 -1px var(--card-bg),
+    3px 3px 0 0 var(--card-border),
+    6px 6px 0 -1px var(--card-bg),
+    6px 6px 0 0 var(--card-border);
+}
+
 .uc-meta {
   display: flex;
   flex-direction: column;
@@ -447,6 +513,21 @@ function dateClass(dateStr) {
 .uc-date {
   font-size: var(--text-3xs);
   color: var(--text-muted);
+}
+/* Loop-seam separator: a vertical gradient rule (fades top/bottom) between
+   the last and first card so the marquee's start/end stays legible. */
+.uc-sep {
+  flex-shrink: 0;
+  width: 3px;
+  align-self: stretch;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgb(var(--color-module-watchlist-rgb), 0.55) 25%,
+    rgb(var(--color-module-watchlist-rgb), 0.55) 75%,
+    transparent
+  );
 }
 
 @media (prefers-reduced-motion: reduce) {

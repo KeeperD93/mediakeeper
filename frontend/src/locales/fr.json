@@ -456,6 +456,8 @@
     "upcomingInDays": "{n} jour | {n} jours",
     "upcomingInWeeks": "{n} semaine | {n} semaines",
     "upcomingInMonths": "{n} mois",
+    "upcomingEpLabel": "Saison {season} — Épisode {episode}",
+    "upcomingEpCount": "Saison {season} — {count} épisode | Saison {season} — {count} épisodes",
     "runtimeMinutes": "{n} min",
     "seasonsCount": "{n} saison | {n} saisons",
     "notEnoughData": "Pas assez de données",
