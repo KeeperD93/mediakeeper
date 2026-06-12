@@ -318,6 +318,25 @@ async def test_public_lists_cursor_pagination(client, db_session):
 
 
 @pytest.mark.asyncio
+async def test_public_lists_rejects_forged_cursor(client, db_session):
+    """A cursor with a malformed timestamp is ignored (served from the top),
+    never a 500."""
+    from core.pagination import encode_cursor
+
+    owner = await _bootstrap(db_session, "pg_forged_owner")
+    db_session.add(UserList(
+        user_id=owner.id, name="Visible", privacy=PRIVACY_PUBLIC_READONLY,
+    ))
+    await db_session.commit()
+    _rq(client, owner)
+
+    forged = encode_cursor({"updated_at": "not-a-date", "id": 1})
+    resp = await client.get(f"/api/portal/lists/public?limit=2&cursor={forged}")
+    assert resp.status_code == 200
+    assert any(it["name"] == "Visible" for it in resp.json()["items"])
+
+
+@pytest.mark.asyncio
 async def test_public_lists_hide_soft_deleted_from_users(client, db_session):
     """The user-facing /public endpoint must never leak a soft-deleted list."""
     owner = await _bootstrap(db_session, "pd_owner")

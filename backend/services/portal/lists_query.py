@@ -133,12 +133,16 @@ async def _paginate_lists_by_activity(
     )).scalar() or 0
     q = base
     decoded = decode_cursor(cursor) if cursor else None
-    if decoded and decoded.get("id") is not None and decoded.get("updated_at"):
-        c_updated = datetime.fromisoformat(decoded["updated_at"])
-        c_id = decoded["id"]
+    c_updated = None
+    if decoded and decoded.get("updated_at"):
+        try:
+            c_updated = datetime.fromisoformat(decoded["updated_at"])
+        except (TypeError, ValueError):
+            c_updated = None  # forged/malformed cursor → ignore, serve from the top
+    if c_updated is not None and decoded.get("id") is not None:
         q = q.where(or_(
             UserList.updated_at < c_updated,
-            and_(UserList.updated_at == c_updated, UserList.id < c_id),
+            and_(UserList.updated_at == c_updated, UserList.id < decoded["id"]),
         ))
     rows = (await db.execute(
         q.order_by(UserList.updated_at.desc(), UserList.id.desc()).limit(limit)
