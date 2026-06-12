@@ -177,14 +177,18 @@ async def _serialize_list(
     count = (await db.execute(
         select(func.count(UserListItem.id)).where(UserListItem.list_id == lst.id)
     )).scalar() or 0
-    # Privacy boundary: expose the owner's chosen portal
-    # pseudo or the localized anonymous alias — never the raw Emby
-    # ``User.username``. The User row stays joined so a deleted owner
-    # surfaces a NULL ``display_name`` that the helper folds into the
-    # alias fallback.
+    # Privacy boundary: expose the owner's chosen portal pseudo or the
+    # localized anonymous alias — never the raw Emby ``User.username``.
+    # Gate on ``account_active``/``deleted_at`` so a soft-deleted or purged
+    # owner yields no row and folds into the anonymous alias (the pseudo
+    # comes back if the account is later restored).
     owner_row = (await db.execute(
         select(UserProfile.display_name, UserProfile.display_name_must_set)
-        .where(UserProfile.user_id == lst.user_id)
+        .where(
+            UserProfile.user_id == lst.user_id,
+            UserProfile.account_active.is_(True),
+            UserProfile.deleted_at.is_(None),
+        )
     )).first()
     if owner_row is None:
         owner_display_name, owner_must_set = None, True

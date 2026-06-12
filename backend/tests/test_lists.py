@@ -373,6 +373,50 @@ async def test_public_list_owner_alias_localized_to_viewer(client, db_session):
 
 
 @pytest.mark.asyncio
+async def test_contributor_sees_alias_for_soft_deleted_owner(client, db_session):
+    from datetime import datetime, timezone
+
+    owner = await _bootstrap(db_session, "co-owner-del")
+    friend = await _bootstrap(db_session, "co-friend")
+    # Give the owner a chosen pseudo so a verbatim leak would be observable.
+    owner_profile = (await db_session.execute(
+        select(UserProfile).where(UserProfile.user_id == owner.id)
+    )).scalar_one()
+    owner_profile.display_name = "RealOwner"
+    owner_profile.display_name_must_set = False
+    db_session.add(owner_profile)
+    await db_session.commit()
+
+    _rq(client, owner)
+    list_id = (await client.post(
+        "/api/portal/lists", json={"name": "Collab", "privacy": "collaborative"},
+    )).json()["id"]
+    await client.post(f"/api/portal/lists/{list_id}/contributors", json={"user_id": friend.id})
+
+    # Sanity: while the owner is active the contributor sees the real pseudo.
+    _rq(client, friend)
+    row = next(
+        r for r in (await client.get("/api/portal/lists")).json()["items"]
+        if r["id"] == list_id
+    )
+    assert row["owner_username"] == "RealOwner"
+
+    # Soft-delete the owner → the contributor must see the anonymous alias.
+    owner_profile.account_active = False
+    owner_profile.deleted_at = datetime.now(timezone.utc)
+    owner.is_active = False
+    db_session.add_all([owner_profile, owner])
+    await db_session.commit()
+
+    row = next(
+        r for r in (await client.get("/api/portal/lists")).json()["items"]
+        if r["id"] == list_id
+    )
+    assert row["owner_username"] != "RealOwner"
+    assert row["owner_username"].startswith("Utilisateur ")
+
+
+@pytest.mark.asyncio
 async def test_public_lists_hide_soft_deleted_from_users(client, db_session):
     """The user-facing /public endpoint must never leak a soft-deleted list."""
     owner = await _bootstrap(db_session, "pd_owner")
