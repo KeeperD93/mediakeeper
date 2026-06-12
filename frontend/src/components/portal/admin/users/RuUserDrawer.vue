@@ -194,7 +194,8 @@ const closeBtnRef = ref(null)
 const api = usePortalAdminUsers()
 
 async function load() {
-  if (!props.profileId) {
+  const pid = props.profileId
+  if (!pid) {
     user.value = null
     activity.value = null
     return
@@ -202,10 +203,12 @@ async function load() {
   loading.value = true
   try {
     const [u, a, p] = await Promise.all([
-      api.fetchUser(props.profileId),
-      api.fetchActivity(props.profileId),
+      api.fetchUser(pid),
+      api.fetchActivity(pid),
       presets.value ? Promise.resolve(presets.value) : api.fetchPresets(),
     ])
+    // Drop the response if the admin already navigated to another profile.
+    if (pid !== props.profileId) return
     user.value = u || null
     activity.value = a || null
     if (!presets.value) presets.value = p

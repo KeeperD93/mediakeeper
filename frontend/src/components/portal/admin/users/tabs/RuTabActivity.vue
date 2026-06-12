@@ -159,13 +159,16 @@ const loadingMoreRequests = ref(false)
 const loadingMoreTickets = ref(false)
 
 async function load() {
-  if (!props.user?.id) return
+  const uid = props.user?.id
+  if (!uid) return
   loadingFeeds.value = true
   try {
     const [rq, tk] = await Promise.all([
-      api.fetchUserRequests(props.user.id, { limit: FEED_PAGE }),
-      api.fetchUserTickets(props.user.id, { limit: FEED_PAGE }),
+      api.fetchUserRequests(uid, { limit: FEED_PAGE }),
+      api.fetchUserTickets(uid, { limit: FEED_PAGE }),
     ])
+    // Drop the response if the drawer already switched to another user.
+    if (uid !== props.user?.id) return
     requests.value = rq?.items || []
     tickets.value = tk?.items || []
     requestsHasMore.value = !!rq?.has_more
@@ -179,12 +182,14 @@ async function load() {
 
 async function loadMoreRequests() {
   if (loadingMoreRequests.value || !requestsHasMore.value) return
+  const uid = props.user?.id
   loadingMoreRequests.value = true
   try {
-    const res = await api.fetchUserRequests(props.user.id, {
+    const res = await api.fetchUserRequests(uid, {
       limit: FEED_PAGE,
       cursor: requestsCursor.value,
     })
+    if (uid !== props.user?.id) return
     const items = res?.items || []
     requests.value = [...requests.value, ...items]
     requestsHasMore.value = !!res?.has_more
@@ -196,12 +201,14 @@ async function loadMoreRequests() {
 
 async function loadMoreTickets() {
   if (loadingMoreTickets.value || !ticketsHasMore.value) return
+  const uid = props.user?.id
   loadingMoreTickets.value = true
   try {
-    const res = await api.fetchUserTickets(props.user.id, {
+    const res = await api.fetchUserTickets(uid, {
       limit: FEED_PAGE,
       cursor: ticketsCursor.value,
     })
+    if (uid !== props.user?.id) return
     const items = res?.items || []
     tickets.value = [...tickets.value, ...items]
     ticketsHasMore.value = !!res?.has_more

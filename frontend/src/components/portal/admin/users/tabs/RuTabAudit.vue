@@ -41,9 +41,13 @@ const hasMore = ref(false)
 const auditCursor = ref(null)
 
 async function load() {
+  const uid = props.user?.id
+  if (!uid) return
   loading.value = true
   try {
-    const res = await api.fetchAudit(props.user.id, { limit: AUDIT_PAGE })
+    const res = await api.fetchAudit(uid, { limit: AUDIT_PAGE })
+    // Drop the response if the drawer already switched to another user.
+    if (uid !== props.user?.id) return
     entries.value = res?.items || []
     hasMore.value = !!res?.has_more
     auditCursor.value = res?.next_cursor || null
@@ -54,12 +58,14 @@ async function load() {
 
 async function loadMore() {
   if (loadingMore.value || !hasMore.value) return
+  const uid = props.user?.id
   loadingMore.value = true
   try {
-    const res = await api.fetchAudit(props.user.id, {
+    const res = await api.fetchAudit(uid, {
       limit: AUDIT_PAGE,
       cursor: auditCursor.value,
     })
+    if (uid !== props.user?.id) return
     const items = res?.items || []
     entries.value = [...entries.value, ...items]
     hasMore.value = !!res?.has_more

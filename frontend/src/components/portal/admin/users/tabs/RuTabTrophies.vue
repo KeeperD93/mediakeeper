@@ -122,13 +122,16 @@ const xpHasMore = ref(false)
 const xpCursor = ref(null)
 
 async function load() {
-  if (!props.user?.id) return
+  const uid = props.user?.id
+  if (!uid) return
   loadingXp.value = true
   try {
     const [tr, xh] = await Promise.all([
-      api.fetchTrophies(props.user.id),
-      api.fetchXpHistory(props.user.id, { limit: XP_PAGE }),
+      api.fetchTrophies(uid),
+      api.fetchXpHistory(uid, { limit: XP_PAGE }),
     ])
+    // Drop the response if the drawer already switched to another user.
+    if (uid !== props.user?.id) return
     trophies.value = tr || null
     xp.value = xh?.items || []
     xpHasMore.value = !!xh?.has_more
@@ -140,9 +143,11 @@ async function load() {
 
 async function loadMoreXp() {
   if (loadingMoreXp.value || !xpHasMore.value) return
+  const uid = props.user?.id
   loadingMoreXp.value = true
   try {
-    const res = await api.fetchXpHistory(props.user.id, { limit: XP_PAGE, cursor: xpCursor.value })
+    const res = await api.fetchXpHistory(uid, { limit: XP_PAGE, cursor: xpCursor.value })
+    if (uid !== props.user?.id) return
     const items = res?.items || []
     xp.value = [...xp.value, ...items]
     xpHasMore.value = !!res?.has_more

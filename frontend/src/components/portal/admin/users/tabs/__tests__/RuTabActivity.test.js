@@ -69,3 +69,25 @@ describe('RuTabActivity — feed load more', () => {
     expect(w.findAll('.lm')).toHaveLength(0) // partial page → no more
   })
 })
+
+describe('RuTabActivity — stale navigation', () => {
+  it('discards a slow response from a user the admin already navigated away from', async () => {
+    const resolvers = []
+    fetchUserRequests.mockImplementation(() => new Promise(resolve => resolvers.push(resolve)))
+    fetchUserTickets.mockResolvedValue({ items: [], has_more: false, next_cursor: null })
+
+    const w = mountTab() // user 7 → request #0
+    await flushPromises()
+    await w.setProps({ user: { id: 9 }, activity: ACTIVITY }) // user.id 7 → 9 → request #1
+    await flushPromises()
+
+    // Resolve the current user (9) first, then the superseded user (7) late.
+    resolvers[1]({ items: reqPage(900, 2), has_more: false, next_cursor: null })
+    await flushPromises()
+    resolvers[0]({ items: reqPage(700, 3), has_more: false, next_cursor: null })
+    await flushPromises()
+
+    // The stale user-7 payload is dropped: only user 9's two rows remain.
+    expect(w.findAll('.ru-feed-row')).toHaveLength(2)
+  })
+})

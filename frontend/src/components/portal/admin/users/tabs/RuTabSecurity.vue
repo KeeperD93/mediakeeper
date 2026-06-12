@@ -151,10 +151,13 @@ const historyHasMore = ref(false)
 const historyCursor = ref(null)
 
 async function loadHistory() {
-  if (!props.user?.id) return
+  const uid = props.user?.id
+  if (!uid) return
   loadingHistory.value = true
   try {
-    const res = await api.fetchLoginHistory(props.user.id, { limit: LOGIN_PAGE })
+    const res = await api.fetchLoginHistory(uid, { limit: LOGIN_PAGE })
+    // Drop the response if the drawer already switched to another user.
+    if (uid !== props.user?.id) return
     history.value = res?.items || []
     historyHasMore.value = !!res?.has_more
     historyCursor.value = res?.next_cursor || null
@@ -165,12 +168,14 @@ async function loadHistory() {
 
 async function loadMoreHistory() {
   if (loadingMoreHistory.value || !historyHasMore.value) return
+  const uid = props.user?.id
   loadingMoreHistory.value = true
   try {
-    const res = await api.fetchLoginHistory(props.user.id, {
+    const res = await api.fetchLoginHistory(uid, {
       limit: LOGIN_PAGE,
       cursor: historyCursor.value,
     })
+    if (uid !== props.user?.id) return
     const items = res?.items || []
     history.value = [...history.value, ...items]
     historyHasMore.value = !!res?.has_more
