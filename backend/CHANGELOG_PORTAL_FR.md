@@ -28,6 +28,7 @@ utilisateurs.
 - Soutien — cœur d'en-tête ouvrant le lien de don du serveur (si configuré).
 
 ### Changed
+- Notifications — celles de plus de 6 mois supprimées automatiquement.
 - Fiche média — couleur de la note TMDB harmonisée en doré.
 - Avatars — anneau légendaire (niv. 50) : arc-en-ciel animé sur toutes les surfaces.
 - Préférences — le réglage « masquer le contenu adulte » déplacé ici, sous les genres.
