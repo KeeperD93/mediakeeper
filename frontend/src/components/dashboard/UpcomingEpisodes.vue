@@ -82,21 +82,25 @@ const pad = n => String(n ?? 0).padStart(2, '0')
 // Collapse episodes of the same series + season landing on the same day into a
 // single card ("Saison X — N épisodes"); a lone episode keeps its own card.
 const groupedItems = computed(() => {
+  // A null tmdb_id (series with no TMDB match) must not merge distinct series,
+  // so those episodes key on their array index and stay ungrouped.
+  const keyFor = (ep, i) =>
+    ep.tmdb_id == null ? `solo-${i}` : `${ep.tmdb_id}|${ep.air_date}|${ep.season}`
   const groups = new Map()
-  for (const ep of episodes.value) {
-    const key = `${ep.tmdb_id}|${ep.air_date}|${ep.season}`
+  episodes.value.forEach((ep, i) => {
+    const key = keyFor(ep, i)
     if (!groups.has(key)) groups.set(key, [])
     groups.get(key).push(ep)
-  }
+  })
   const out = []
   const seen = new Set()
-  for (const ep of episodes.value) {
-    const key = `${ep.tmdb_id}|${ep.air_date}|${ep.season}`
-    if (seen.has(key)) continue
+  episodes.value.forEach((ep, i) => {
+    const key = keyFor(ep, i)
+    if (seen.has(key)) return
     seen.add(key)
     const grp = groups.get(key)
     out.push(grp.length >= 2 ? { ...grp[0], count: grp.length } : { ...grp[0] })
-  }
+  })
   return out
 })
 
@@ -234,9 +238,9 @@ function dateClass(dateStr) {
   const now = new Date()
   now.setHours(0, 0, 0, 0)
   const diff = Math.round((new Date(dateStr + 'T00:00:00') - now) / 86400000)
-  if (diff < 0) return 'badge-past'
-  if (diff <= 1) return 'badge-imminent'
-  if (diff <= 7) return 'badge-soon'
-  return 'badge-later'
+  if (diff < 0) return 'uc-badge--past'
+  if (diff <= 1) return 'uc-badge--imminent'
+  if (diff <= 7) return 'uc-badge--soon'
+  return 'uc-badge--later'
 }
 </script>

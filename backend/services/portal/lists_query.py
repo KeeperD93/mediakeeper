@@ -168,7 +168,7 @@ async def _paginate_lists_by_activity(
     has_more = len(rows) >= limit
     next_cursor = (
         encode_cursor({"updated_at": rows[-1].updated_at.isoformat(), "id": rows[-1].id})
-        if has_more and rows
+        if has_more and rows and rows[-1].updated_at
         else None
     )
     return {"items": items, "total": int(total), "next_cursor": next_cursor, "has_more": has_more}
