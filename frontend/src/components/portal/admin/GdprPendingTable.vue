@@ -29,47 +29,54 @@
       <span>{{ $t('portal.admin.settings.gdpr.pending.empty') }}</span>
     </div>
 
-    <table v-else class="pt-gdpr-pending-table">
-      <thead>
-        <tr>
-          <th>{{ $t('portal.admin.settings.gdpr.pending.colUsername') }}</th>
-          <th>{{ $t('portal.admin.settings.gdpr.pending.colRequestedAt') }}</th>
-          <th>{{ $t('portal.admin.settings.gdpr.pending.colScheduledAt') }}</th>
-          <th class="pt-gdpr-pending-th--act">
-            {{ $t('portal.admin.settings.gdpr.pending.colAction') }}
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="row in rows" :key="row.id">
-          <td>
-            <span class="pt-gdpr-pending-username">{{ row.username }}</span>
-          </td>
-          <td>{{ formatDate(row.deletion_requested_at) }}</td>
-          <td>
-            <span
-              :class="[
-                'pt-gdpr-pending-scheduled',
-                isOverdue(row.pending_deletion_at) && 'pt-gdpr-pending-scheduled--overdue',
-              ]"
+    <div v-else class="mk-table-wrap">
+      <table class="pt-gdpr-pending-table mk-table">
+        <thead>
+          <tr>
+            <th>{{ $t('portal.admin.settings.gdpr.pending.colUsername') }}</th>
+            <th>{{ $t('portal.admin.settings.gdpr.pending.colRequestedAt') }}</th>
+            <th>{{ $t('portal.admin.settings.gdpr.pending.colScheduledAt') }}</th>
+            <th class="pt-gdpr-pending-th--act">
+              {{ $t('portal.admin.settings.gdpr.pending.colAction') }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="row in rows" :key="row.id">
+            <td :data-label="$t('portal.admin.settings.gdpr.pending.colUsername')">
+              <span class="pt-gdpr-pending-username">{{ row.username }}</span>
+            </td>
+            <td :data-label="$t('portal.admin.settings.gdpr.pending.colRequestedAt')">
+              {{ formatDate(row.deletion_requested_at) }}
+            </td>
+            <td :data-label="$t('portal.admin.settings.gdpr.pending.colScheduledAt')">
+              <span
+                :class="[
+                  'pt-gdpr-pending-scheduled',
+                  isOverdue(row.pending_deletion_at) && 'pt-gdpr-pending-scheduled--overdue',
+                ]"
+              >
+                {{ formatDate(row.pending_deletion_at) }}
+              </span>
+            </td>
+            <td
+              class="pt-gdpr-pending-td--act"
+              :data-label="$t('portal.admin.settings.gdpr.pending.colAction')"
             >
-              {{ formatDate(row.pending_deletion_at) }}
-            </span>
-          </td>
-          <td class="pt-gdpr-pending-td--act">
-            <button
-              type="button"
-              class="pt-gdpr-pending-cancel"
-              :disabled="cancellingId !== null"
-              @click="$emit('cancel', row)"
-            >
-              <Undo2 :size="14" />
-              <span>{{ $t('portal.admin.settings.gdpr.pending.cancel') }}</span>
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+              <button
+                type="button"
+                class="pt-gdpr-pending-cancel"
+                :disabled="cancellingId !== null"
+                @click="$emit('cancel', row)"
+              >
+                <Undo2 :size="14" />
+                <span>{{ $t('portal.admin.settings.gdpr.pending.cancel') }}</span>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <PortalLoadMore :show="hasMore" :loading="loadingMore" @load="$emit('load-more')" />
   </div>
@@ -78,6 +85,7 @@
 <script setup>
 import { RefreshCw, ShieldCheck, Undo2 } from 'lucide-vue-next'
 import PortalLoadMore from '@/components/portal/PortalLoadMore.vue'
+import { localizedDateTime } from '@/utils/datetime'
 
 import '@/assets/styles/portal/admin-gdpr.css'
 
@@ -95,14 +103,9 @@ function formatDate(iso) {
   if (!iso) return '—'
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return iso
-  // Local date + HH:MM — admins read this on a desktop, no need for
-  // tz suffixes here, the column header already names the field.
-  const dd = String(d.getDate()).padStart(2, '0')
-  const mo = String(d.getMonth() + 1).padStart(2, '0')
-  const yy = d.getFullYear()
-  const hh = String(d.getHours()).padStart(2, '0')
-  const mm = String(d.getMinutes()).padStart(2, '0')
-  return `${dd}/${mo}/${yy} ${hh}:${mm}`
+  // Locale-aware (viewer's language): a fixed DD/MM/YYYY order is ambiguous
+  // for an EN admin. Compact form — date + time, no seconds.
+  return localizedDateTime(d, { dateStyle: 'short', timeStyle: 'short' })
 }
 
 function isOverdue(iso) {

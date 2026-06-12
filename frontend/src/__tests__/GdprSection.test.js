@@ -17,6 +17,8 @@ vi.mock('vue-i18n', () => ({
   }),
 }))
 
+vi.mock('@/i18n', () => ({ getLocale: () => 'fr' }))
+
 const fetchSettings = vi.fn()
 const saveSettings = vi.fn()
 const fetchPendingDeletions = vi.fn()
