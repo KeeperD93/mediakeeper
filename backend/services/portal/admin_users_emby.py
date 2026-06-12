@@ -1,7 +1,6 @@
 """Selective Emby import + manual local user creation.
 
-The legacy ``user_import.import_emby_users`` does a bulk pull, which
-the refactored UI replaces with a two-step flow:
+The import UI is a two-step flow:
 
 1. ``list_unimported_emby_users`` powers the import overlay (admin
    ticks the users they want).

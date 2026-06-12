@@ -13,10 +13,8 @@
       >
         <div
           class="minimap-hour-fill"
-          :style="{
-            height: minimapHourData[h - 1].pct + '%',
-            background: minimapHourData[h - 1].color,
-          }"
+          :class="'minimap-hour-fill--' + minimapHourData[h - 1].state"
+          :style="{ height: minimapHourData[h - 1].pct + '%' }"
         />
       </div>
     </div>
@@ -44,10 +42,13 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
   items: { type: Array, default: () => [] },
 })
+
+const { t } = useI18n()
 
 const minimapStats = computed(() => ({ total: props.items.length }))
 const minimapHourData = computed(() => {
@@ -62,11 +63,14 @@ const minimapHourData = computed(() => {
   const maxCount = Math.max(1, ...hours.map(h => h.direct + h.transcode + h.other))
   return hours.map((h, idx) => {
     const total = h.direct + h.transcode + h.other
-    const dominant = h.transcode > h.direct ? '#fbbf24' : total > 0 ? '#4ade80' : 'transparent'
+    // transcode-dominant hours read warning, any other play reads success,
+    // empty hours stay transparent — the colour itself lives on the token class.
+    const state = h.transcode > h.direct ? 'transcode' : total > 0 ? 'active' : 'empty'
+    const users = h.users.length ? t('stats.minimapHourUsers', { users: h.users.join(', ') }) : ''
     return {
       pct: Math.round((total / maxCount) * 100),
-      color: dominant,
-      title: `${idx}h : ${total} lecture${total > 1 ? 's' : ''}${h.users.length ? ' (' + h.users.join(', ') + ')' : ''}`,
+      state,
+      title: t('stats.minimapHourTooltip', total, { hour: idx, count: total }) + users,
     }
   })
 })
@@ -118,6 +122,15 @@ const minimapHourData = computed(() => {
   min-height: 0;
   transition: height var(--duration-slow) ease;
 }
+.minimap-hour-fill--transcode {
+  background: var(--color-warning);
+}
+.minimap-hour-fill--active {
+  background: var(--color-success);
+}
+.minimap-hour-fill--empty {
+  background: transparent;
+}
 .minimap-hlabels {
   display: flex;
   justify-content: space-between;
@@ -149,13 +162,13 @@ const minimapHourData = computed(() => {
   flex-shrink: 0;
 }
 .minimap-ldot-direct {
-  background: #4ade80;
+  background: var(--color-success);
 }
 .minimap-ldot-transcode {
   background: var(--color-warning);
 }
 .minimap-ldot-other {
-  background: #818cf8;
+  background: var(--accent-400);
 }
 .glass-card {
   background: var(--surface-1);

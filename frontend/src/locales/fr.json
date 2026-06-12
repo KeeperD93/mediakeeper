@@ -669,6 +669,8 @@
     "directPlay": "Direct",
     "transcodeLabel": "Transcode",
     "otherStream": "Autre",
+    "minimapHourTooltip": "{hour}h : {count} lecture | {hour}h : {count} lectures",
+    "minimapHourUsers": " ({users})",
     "peakMonth": "Pic : {label} ({count} lectures)",
     "weekdays": {
       "sun": "Dim",
