@@ -39,6 +39,16 @@ export function useEventCreateModal(emit) {
     return opts
   })
 
+  // Public rooms use the size the creator picked; private rooms are not
+  // shown the picker and size themselves to the smallest option that still
+  // seats the host plus every invitee (the host takes one seat, hence +1),
+  // falling back to the largest option if no smaller one fits.
+  const effectiveMaxParticipants = computed(() => {
+    if (kind.value === EVENT_KIND.PUBLIC) return maxParticipants.value
+    const needed = selectedUsers.value.length + 1
+    return capacityOptions.value.find(o => o >= needed) ?? capacityMax.value
+  })
+
   onMounted(async () => {
     try {
       const res = await apiGet('/api/portal/events/rooms/capacity-bounds')
@@ -139,7 +149,9 @@ export function useEventCreateModal(emit) {
   }
   function addUser(u) {
     if (selectedUsers.value.some(x => x.id === u.id)) return
-    if (selectedUsers.value.length >= 19) return
+    // A private room seats the host plus the invitees, so the guest list
+    // tops out one below the largest allowed capacity.
+    if (selectedUsers.value.length >= capacityMax.value - 1) return
     selectedUsers.value.push(u)
     userQuery.value = ''
     userResults.value = []
@@ -172,7 +184,7 @@ export function useEventCreateModal(emit) {
       scheduled_at: scheduled.toISOString(),
       comment: comment.value.trim() || null,
       invitees: kind.value === EVENT_KIND.PRIVATE ? selectedUsers.value.map(u => u.id) : null,
-      max_participants: maxParticipants.value,
+      max_participants: effectiveMaxParticipants.value,
     }
     try {
       const res = await create(payload)
