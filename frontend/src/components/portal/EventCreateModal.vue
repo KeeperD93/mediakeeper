@@ -161,8 +161,8 @@
             </div>
           </div>
 
-          <!-- Capacity -->
-          <div class="pt-evc-field">
+          <!-- Capacity (public only — private rooms size themselves to the invitees) -->
+          <div v-if="kind === EVENT_KIND.PUBLIC" class="pt-evc-field">
             <label class="pt-evc-label">
               {{ $t('portal.mkEvents.create.capacity') }}
             </label>

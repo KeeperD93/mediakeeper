@@ -57,6 +57,7 @@ This section intentionally has no date so it is not shown to users.
 - Adult content — hiding it now applies to every list, search and recommendations.
 - Requests — adult titles can only be requested if the administrator allows it.
 - Notifications — admin messages and list updates now show a readable label.
+- Movie night — private event: capacity follows the guests (picker hidden).
 
 ## [1.0.0-rc.4] - 2026-05-30
 

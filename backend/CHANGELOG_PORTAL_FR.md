@@ -59,6 +59,7 @@ utilisateurs.
 - Contenu adulte — le masquage s'applique à toutes les listes, recherche et recommandations.
 - Demandes — les titres adultes ne sont demandables que si l'administrateur l'autorise.
 - Notifications — messages admin et notifs de listes affichent un libellé lisible.
+- Soirée ciné — événement privé : capacité suivie des invités (sélecteur masqué).
 
 ## [1.0.0-rc.4] - 2026-05-30
 
