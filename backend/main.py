@@ -70,7 +70,24 @@ from core.security_headers import SecurityHeadersMiddleware
 setup_logging()
 logger = logging.getLogger("mediakeeper")
 
-app = FastAPI(title="Mediakeeper API", version=APP_VERSION, lifespan=lifespan)
+MK_DEBUG = env_truthy("MK_DEBUG")
+if MK_DEBUG and os.getenv("ENV", "").strip().lower() == "production":
+    raise RuntimeError(
+        "MK_DEBUG=true is refused when ENV=production: it disables the CSP and "
+        "relaxes CORS. Unset MK_DEBUG (or ENV) before starting in production."
+    )
+
+# /docs, /redoc and /openapi.json are developer tooling: expose them only in
+# debug mode so a production instance does not publish its endpoint inventory
+# and version number to unauthenticated callers.
+app = FastAPI(
+    title="Mediakeeper API",
+    version=APP_VERSION,
+    lifespan=lifespan,
+    docs_url="/docs" if MK_DEBUG else None,
+    redoc_url="/redoc" if MK_DEBUG else None,
+    openapi_url="/openapi.json" if MK_DEBUG else None,
+)
 
 
 class _StartupMiddleware(BaseHTTPMiddleware):
@@ -93,8 +110,6 @@ app.add_middleware(CsrfMiddleware)
 # the rate-limit kicks in before the inner application work runs.
 app.add_middleware(SlowAPIMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
-
-MK_DEBUG = env_truthy("MK_DEBUG")
 
 if MK_DEBUG:
     _debug_origin = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
