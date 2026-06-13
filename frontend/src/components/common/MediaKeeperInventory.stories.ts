@@ -6,8 +6,8 @@ import MkButton from './MkButton.vue'
  *
  * Scope strict : seuls les boutons utilisant les tokens admin (sans
  * préfixe --portal-*). Les boutons portail seront couverts par un
- * composant séparé futur (<PortalButton>) pour respecter §3.4 de
- * Rules.md (séparation stricte admin ↔ portail).
+ * composant séparé futur (<PortalButton>) pour garder une séparation
+ * stricte admin ↔ portail.
  *
  * Colonne « Aperçu actuel » : reproduction fidèle du style trouvé dans
  * le code source MediaKeeper.

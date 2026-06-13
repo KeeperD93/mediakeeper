@@ -99,6 +99,7 @@ def _err(result: dict) -> None:
         "not_found": 404,
         "forbidden": 403,
         "not_invited": 403,
+        "not_invitable": 403,
         "not_member": 403,
         "removed_user": 403,
     }

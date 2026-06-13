@@ -2536,6 +2536,7 @@
         "already_available": "This title is already on Emby — play it directly.",
         "media_blacklisted": "This title has been blocked by an admin and can't be re-requested.",
         "adult_requests_disabled": "Adult content requests are disabled by the administrator.",
+        "adult_check_unavailable": "Content check is temporarily unavailable — please try again shortly.",
         "quota_exceeded": "You've reached your monthly request quota.",
         "not_found": "Request not found."
       },
@@ -3446,7 +3447,7 @@
         "public": "Public",
         "publicHint": "Visible in the leaderboard and viewable by other users.",
         "private": "Private",
-        "privateHint": "Hidden from the leaderboard, profile not viewable.",
+        "privateHint": "Hidden from the leaderboard, profile not viewable, and not invitable to events.",
         "publicLocked": "Visibility forced by an administrator."
       },
       "account": {

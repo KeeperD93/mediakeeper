@@ -9,7 +9,7 @@
 :root {
   /* Theme base (page + chrome) ---------------------------- */
   /* Mirrors the admin theme values without referencing admin
-     tokens — keeps the portal namespace self-contained per §3.4
+     tokens — keeps the portal namespace self-contained
      (no mixing between admin / portal token families). */
   --portal-bg-primary: #1f2126; /* page background, full viewport */
   --portal-bg-primary-rgb: 31, 33, 38;

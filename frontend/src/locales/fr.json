@@ -2536,6 +2536,7 @@
         "already_available": "Ce titre est déjà disponible sur Emby, vous pouvez le regarder directement.",
         "media_blacklisted": "Ce titre a été bloqué par un administrateur et ne peut pas être redemandé.",
         "adult_requests_disabled": "Les demandes de contenu adulte sont désactivées par l'administrateur.",
+        "adult_check_unavailable": "Vérification du contenu temporairement indisponible — réessayez dans un instant.",
         "quota_exceeded": "Vous avez atteint votre quota de demandes pour ce mois.",
         "not_found": "Demande introuvable."
       },
@@ -3446,7 +3447,7 @@
         "public": "Public",
         "publicHint": "Visible dans le classement et consultable par les autres utilisateurs.",
         "private": "Privé",
-        "privateHint": "Invisible du classement, profil non consultable.",
+        "privateHint": "Invisible du classement, profil non consultable, et non invitable aux événements.",
         "publicLocked": "Visibilité forcée par un administrateur."
       },
       "account": {

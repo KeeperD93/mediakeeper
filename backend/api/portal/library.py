@@ -48,7 +48,10 @@ async def continue_watching(
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):
-    items = await avail_svc.get_continue_watching(db, limit=limit)
+    _user, profile = up
+    items = await avail_svc.get_continue_watching(
+        db, emby_user_id=profile.emby_user_id, limit=limit
+    )
     return {"items": await localize_emby_items(db, items, locale)}
 
 
