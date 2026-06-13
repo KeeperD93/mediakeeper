@@ -127,13 +127,17 @@ async def get_contributors(
 # ── History ──
 
 async def get_history(
-    db: AsyncSession, list_id: int, user_id: int, *, limit: int = 100,
+    db: AsyncSession, list_id: int, user_id: int, *, limit: int = 100, lang: str = "fr",
 ) -> list[dict]:
     """Return audit log entries for a list — restricted to the owner
     and named contributors. ``can_view`` is too permissive here: it
     grants ``public_readonly`` viewers access, but the history reveals
     *who* added or removed *which* item, which is contributor metadata
-    rather than published content."""
+    rather than published content.
+
+    Privacy boundary (mirrors ``get_contributors``): surface each actor's
+    chosen portal pseudo or the localized anonymous alias — never the raw
+    Emby ``User.username``."""
     lst = await db.get(UserList, list_id)
     if not lst:
         return []
@@ -142,8 +146,12 @@ async def get_history(
     if not (is_owner or is_contributor):
         return []
     rows = (await db.execute(
-        select(UserListHistory, User)
-        .outerjoin(User, User.id == UserListHistory.user_id)
+        select(
+            UserListHistory,
+            UserProfile.display_name,
+            UserProfile.display_name_must_set,
+        )
+        .outerjoin(UserProfile, UserProfile.user_id == UserListHistory.user_id)
         .where(UserListHistory.list_id == list_id)
         .order_by(UserListHistory.created_at.desc())
         .limit(min(limit, 500))
@@ -154,10 +162,15 @@ async def get_history(
             "tmdb_id": h.tmdb_id, "media_type": h.media_type,
             "title": h.title, "extra": h.extra or {},
             "user_id": h.user_id,
-            "username": u.username if u else None,
+            "username": (
+                resolve_display_name(
+                    None if must_set else display_name, h.user_id, lang
+                )
+                if h.user_id is not None else None
+            ),
             "created_at": h.created_at.isoformat() if h.created_at else None,
         }
-        for h, u in rows
+        for h, display_name, must_set in rows
     ]
 
 

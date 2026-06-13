@@ -36,6 +36,7 @@ utilisateurs.
 - Quoi de neuf — les nouveautés restent jusqu'à votre prochaine visite.
 
 ### Fixed
+- Listes — l'historique des collaborateurs affiche les pseudos, jamais les logins Emby.
 - Jaquettes — durée d'un titre à venir affichée dès que TMDB la publie.
 - Accueil — bandeau vedette : un titre déjà demandé affiche « En attente ».
 - Demandes — les demandes de film en un clic affichent succès ou refus.
