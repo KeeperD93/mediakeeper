@@ -1,6 +1,6 @@
 /**
  * Browser-storage keys for the auth/session flow, centralized so the same
- * literal is never recopied across LoginView, useAuth and apiClient (§6).
+ * literal is never recopied across LoginView, useAuth and apiClient.
  */
 export const STORAGE_KEYS = Object.freeze({
   /** sessionStorage — set on logout; shows the "logged out" banner on /login. */

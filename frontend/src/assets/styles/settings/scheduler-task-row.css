@@ -1,6 +1,6 @@
 /* SchedulerTaskRow — mobile-first, tokens-only, a11y-aware.
    Classes namespaced under .str-* so this file safely lives outside
-   \3c style scoped> while preserving its scoping intent (§15).             */
+   \3c style scoped> while preserving its scoping intent.             */
 
 /* ── Container ────────────────────────────────────────────────────── */
 .str-row {
@@ -255,7 +255,7 @@
   text-overflow: ellipsis;
 }
 
-/* ── Hover gating (Rules §2.7) ────────────────────────────────────── */
+/* ── Hover gating ─────────────────────────────────────────────────── */
 @media (hover: hover) {
   .str-row:hover {
     border-color: var(--border-hover);
@@ -272,7 +272,7 @@
   }
 }
 
-/* ── Desktop overrides (Rules §2.1 mobile-first) ──────────────────── */
+/* ── Desktop overrides (mobile-first) ─────────────────────────────── */
 @media (min-width: 768px) {
   .str-toggle-track {
     width: 34px;
@@ -297,7 +297,7 @@
   }
 }
 
-/* ── Reduced motion (Rules §23) ───────────────────────────────────── */
+/* ── Reduced motion ───────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .str-row,
   .str-toggle-track,

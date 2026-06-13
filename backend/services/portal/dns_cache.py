@@ -23,7 +23,6 @@ synthetic ``value_bytes`` for the table layout consistency).
 from __future__ import annotations
 
 import logging
-import os
 import socket
 import sys
 import time
@@ -31,6 +30,7 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.env_flags import env_int
 from services.settings import get_setting
 
 logger = logging.getLogger("mediakeeper.portal.dns_cache")
@@ -38,7 +38,7 @@ logger = logging.getLogger("mediakeeper.portal.dns_cache")
 SETTING_KEY = "network.dns_cache_enabled"
 TTL_SETTING_KEY = "network.dns_cache_ttl_seconds"
 
-_DEFAULT_TTL = int(os.environ.get("MK_DNS_CACHE_TTL_SECONDS", "300"))
+_DEFAULT_TTL = env_int("MK_DNS_CACHE_TTL_SECONDS", 300)
 
 # In-memory cache. Each key maps to ``(records, expires_at, host)``
 # — keeping the host alongside the records lets the readout name
