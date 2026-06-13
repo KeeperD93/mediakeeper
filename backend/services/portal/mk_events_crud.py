@@ -16,7 +16,7 @@ from services.portal.admin import (
     get_event_capacity_bounds,
 )
 from services.portal.mk_events_utils import (
-    _user_label, _serialize_event,
+    _user_label, _serialize_event, is_invitable,
 )
 
 
@@ -99,6 +99,10 @@ async def create_event(
     if kind == "private":
         invitees = [u for u in set(invitees) if u != creator_user_id]
         for uid in invitees:
+            # Never add a private / admin / inactive account as a guest, even
+            # if a crafted payload slips a user_id past the picker.
+            if not await is_invitable(db, uid):
+                continue
             db.add(MKEventInvitation(
                 event_id=event.id,
                 user_id=uid,

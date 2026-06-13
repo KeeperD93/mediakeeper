@@ -36,7 +36,7 @@ utilisateurs.
 - Quoi de neuf — les nouveautés restent jusqu'à votre prochaine visite.
 
 ### Fixed
-- Invitations — le sélecteur ne liste plus les profils privés ni les admins.
+- Invitations — les profils privés et les admins ne peuvent plus être invités.
 - Jaquettes — durée d'un titre à venir affichée dès que TMDB la publie.
 - Accueil — bandeau vedette : un titre déjà demandé affiche « En attente ».
 - Demandes — les demandes de film en un clic affichent succès ou refus.

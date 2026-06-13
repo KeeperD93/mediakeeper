@@ -34,7 +34,7 @@ This section intentionally has no date so it is not shown to users.
 - What's new — recent additions stay until your next visit.
 
 ### Fixed
-- Event invites — the people picker no longer lists private profiles or admins.
+- Event invites — private profiles and admins can no longer be invited.
 - Posters — an upcoming title's duration appears once TMDB publishes it.
 - Home — featured banner shows "Pending" for an already-requested title.
 - Requests — one-click movie requests now show success or refusal.
