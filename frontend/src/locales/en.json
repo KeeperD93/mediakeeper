@@ -3446,7 +3446,7 @@
         "public": "Public",
         "publicHint": "Visible in the leaderboard and viewable by other users.",
         "private": "Private",
-        "privateHint": "Hidden from the leaderboard, profile not viewable.",
+        "privateHint": "Hidden from the leaderboard, profile not viewable, and not invitable to events.",
         "publicLocked": "Visibility forced by an administrator."
       },
       "account": {
