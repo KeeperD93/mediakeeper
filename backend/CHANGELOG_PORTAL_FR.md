@@ -36,6 +36,7 @@ utilisateurs.
 - Quoi de neuf — les nouveautés restent jusqu'à votre prochaine visite.
 
 ### Fixed
+- Invitations — les profils privés et les admins ne peuvent plus être invités.
 - Reprendre la lecture — affiche uniquement vos titres en cours.
 - Jaquettes — durée d'un titre à venir affichée dès que TMDB la publie.
 - Accueil — bandeau vedette : un titre déjà demandé affiche « En attente ».

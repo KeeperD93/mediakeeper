@@ -108,6 +108,35 @@ async def _user_label(db: AsyncSession, user_id: int | None) -> str | None:
     return row[0] or row[1] or f"user#{user_id}"
 
 
+async def is_invitable(db: AsyncSession, user_id: int) -> bool:
+    """True iff ``user_id`` may be added as an event guest: an active,
+    public, non-admin portal profile.
+
+    Mirrors the invite picker's visibility filter (``search_users``) so a
+    private profile or the admin account can never be invited — even via a
+    direct API call or a crafted ``invitees`` payload — honouring the
+    "private profile = not invitable" contract.
+    """
+    row = (await db.execute(
+        select(
+            UserProfile.is_public,
+            UserProfile.role,
+            UserProfile.account_active,
+            UserProfile.deleted_at,
+        )
+        .join(User, User.id == UserProfile.user_id)
+        .where(UserProfile.user_id == user_id, User.is_active.is_(True))
+    )).first()
+    if row is None:
+        return False
+    return (
+        bool(row.is_public)
+        and row.role != "admin"
+        and bool(row.account_active)
+        and row.deleted_at is None
+    )
+
+
 async def _serialize_event(db: AsyncSession, event: MKEvent) -> dict:
     """Plain-dict representation including invitations + creator pseudo."""
     inv_rows = (await db.execute(

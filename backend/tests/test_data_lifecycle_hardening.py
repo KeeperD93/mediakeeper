@@ -58,6 +58,7 @@ async def _make_user_with_profile(
     account_active: bool = True,
     deleted_at: datetime | None = None,
     is_active: bool = True,
+    is_public: bool = True,
 ) -> tuple[User, UserProfile]:
     user = User(
         username=username,
@@ -74,6 +75,7 @@ async def _make_user_with_profile(
         role=role,
         account_active=account_active,
         deleted_at=deleted_at,
+        is_public=is_public,
         # These fixtures model accounts that have completed their first-time
         # onboarding (pseudo picked), so user-facing endpoints return the
         # ``display_name`` verbatim rather than the anonymous alias.
@@ -256,6 +258,32 @@ async def test_search_users_includes_active_user(client, db_session):
     assert resp.status_code == 200
     usernames = {item["display_name"] for item in resp.json()["items"]}
     assert "search-friend" in usernames
+
+
+@pytest.mark.asyncio
+async def test_search_users_excludes_private_profile(client, db_session):
+    me, _me_profile = await _make_user_with_profile(db_session, username="search-me-4")
+    await _make_user_with_profile(
+        db_session, username="search-private", is_public=False,
+    )
+
+    _set_portal_cookie(client, me)
+    resp = await client.get("/api/portal/profiles/search/users")
+    assert resp.status_code == 200
+    names = {item["display_name"] for item in resp.json()["items"]}
+    assert "search-private" not in names
+
+
+@pytest.mark.asyncio
+async def test_search_users_excludes_admin(client, db_session):
+    me, _me_profile = await _make_user_with_profile(db_session, username="search-me-5")
+    await _make_user_with_profile(db_session, username="search-admin", role="admin")
+
+    _set_portal_cookie(client, me)
+    resp = await client.get("/api/portal/profiles/search/users")
+    assert resp.status_code == 200
+    names = {item["display_name"] for item in resp.json()["items"]}
+    assert "search-admin" not in names
 
 
 # ═══════════════════════════════════════════════════════════════════

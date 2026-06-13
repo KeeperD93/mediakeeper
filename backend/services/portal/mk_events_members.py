@@ -13,6 +13,7 @@ from services.portal.mk_events_utils import (
     _has_conflict,
     _user_label,
     is_event_terminated,
+    is_invitable,
 )
 
 logger = logging.getLogger("mediakeeper.portal.mk_events_members")
@@ -49,6 +50,8 @@ async def invite_user(
         return {"error": "not_found"}
     if event.creator_user_id != creator_user_id:
         return {"error": "forbidden"}
+    if not await is_invitable(db, invitee_user_id):
+        return {"error": "not_invitable"}
 
     inv = await _load_invitation(db, event_id, invitee_user_id)
 
