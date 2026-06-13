@@ -80,7 +80,7 @@
 
   /* ─── Focus ring — applied via :focus-visible across interactive
    * elements (buttons, links, inputs, tab strips). One source of truth
-   * keeps the a11y outline consistent (Rules §23). ─── */
+   * keeps the a11y outline consistent. ─── */
   --focus-ring-color: var(--accent-500);
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;

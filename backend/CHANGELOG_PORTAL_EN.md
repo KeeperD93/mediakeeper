@@ -35,6 +35,7 @@ This section intentionally has no date so it is not shown to users.
 
 ### Fixed
 - Event invites — private profiles and admins can no longer be invited.
+- Continue watching — shows only your own in-progress titles.
 - Posters — an upcoming title's duration appears once TMDB publishes it.
 - Home — featured banner shows "Pending" for an already-requested title.
 - Requests — one-click movie requests now show success or refusal.

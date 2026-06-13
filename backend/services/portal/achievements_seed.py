@@ -1,9 +1,9 @@
 """Seed achievement definitions into the database on startup."""
 import logging
-import os
 from sqlalchemy import delete as sa_delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.env_flags import is_production
 from models.portal.achievement import Achievement, UserAchievement
 from services.portal.achievement_defs import (
     ACHIEVEMENT_DEFS,
@@ -23,10 +23,7 @@ def _is_strict_environment() -> bool:
     a typo in a future migration — the runtime can keep serving with the
     other definitions. Dev and CI catch the typo loudly so it never ships.
     """
-    env = (os.environ.get("ENV") or os.environ.get("ENVIRONMENT") or "").lower()
-    if env in ("prod", "production"):
-        return False
-    return True
+    return not is_production()
 
 
 def _validate_definitions() -> None:
