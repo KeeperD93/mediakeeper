@@ -1,4 +1,6 @@
-"""Tests for /api/portal/trailers/random extended schema."""
+"""Tests for the portal trailer endpoints: /random schema + proxy id/type guard."""
+
+from types import SimpleNamespace
 
 import pytest
 from unittest.mock import AsyncMock, patch
@@ -6,6 +8,7 @@ from unittest.mock import AsyncMock, patch
 from core.security import create_access_token, hash_password
 from models.user import User
 from models.portal.profile import UserProfile
+from services.portal import trailers as trailers_svc
 
 
 async def _seed_portal_viewer(client, db_session, username: str = "viewer_trailer"):
@@ -136,3 +139,49 @@ async def test_random_trailers_handles_missing_emby_url(client, db_session):
     item = resp.json()["items"][0]
     assert item["emby_url"] is None
     assert item["emby_item_id"] == "emby-xyz"
+
+
+_EMBY_SOURCE = {"source": "emby", "url": "http://emby.test", "api_key": "secret"}
+
+
+def _emby_item_resp(item_type):
+    """Fake Emby /Items?Ids= response carrying one item of the given Type."""
+    return SimpleNamespace(
+        status_code=200,
+        json=lambda: {"Items": [{"Id": "x1", "Type": item_type}]},
+        headers={},
+        content=b"",
+    )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("bad_id", ["abc?x=y", "../secret", "a/b", "id space", ""])
+async def test_stream_emby_trailer_rejects_malformed_id(bad_id):
+    # The format guard runs before any Emby call, so a forged id never
+    # reaches the upstream stream URL.
+    assert await trailers_svc.stream_emby_trailer(None, bad_id) is None
+
+
+@pytest.mark.asyncio
+async def test_stream_emby_trailer_refuses_non_trailer_item():
+    client = SimpleNamespace(get=AsyncMock(return_value=_emby_item_resp("Movie")))
+    with (
+        patch("services.portal.trailers.get_active_media_source",
+              AsyncMock(return_value=_EMBY_SOURCE)),
+        patch("services.portal.trailers.get_internal_client", return_value=client),
+    ):
+        # A movie/episode id must not be streamable through the trailer proxy.
+        assert await trailers_svc.stream_emby_trailer(None, "movie123") is None
+
+
+@pytest.mark.asyncio
+async def test_stream_emby_trailer_allows_real_trailer():
+    client = SimpleNamespace(get=AsyncMock(return_value=_emby_item_resp("Trailer")))
+    with (
+        patch("services.portal.trailers.get_active_media_source",
+              AsyncMock(return_value=_EMBY_SOURCE)),
+        patch("services.portal.trailers.get_internal_client", return_value=client),
+    ):
+        info = await trailers_svc.stream_emby_trailer(None, "trailer123")
+    assert info is not None
+    assert "/Videos/trailer123/stream" in info["url"]

@@ -24,6 +24,11 @@ from services.portal.trailers import resolve_trailer, stream_emby_trailer
 router = APIRouter(prefix="/trailers", tags=["portal-trailers"])
 logger = logging.getLogger("mediakeeper.portal.trailers")
 
+# Defence-in-depth cap on the proxied stream. ``stream_emby_trailer``
+# already restricts this proxy to real trailers (short clips), so this
+# only guards against a pathologically large upstream file.
+_MAX_TRAILER_BYTES = 1024 * 1024 * 1024  # 1 GiB
+
 
 @router.get("/random")
 async def random_trailers(
@@ -120,17 +125,34 @@ async def proxy_emby_trailer(
 
     upstream_url = info["url"]
     client = get_internal_client()
+    try:
+        resp = await client.send(
+            client.build_request("GET", upstream_url, timeout=30.0), stream=True
+        )
+    except httpx.HTTPError as e:
+        logger.warning("[TRAILERS] proxy connect error: %s", e)
+        raise HTTPException(status_code=502, detail="trailer_upstream_error") from e
+    if resp.status_code != 200:
+        await resp.aclose()
+        raise HTTPException(status_code=404, detail="trailer_not_available")
+    # Propagate Emby's real Content-Type (mp4/mkv/webm) instead of assuming mp4.
+    content_type = resp.headers.get("content-type") or "video/mp4"
 
     async def iterator():
+        streamed = 0
         try:
-            async with client.stream("GET", upstream_url, timeout=30.0) as resp:
-                if resp.status_code != 200:
-                    return
-                async for chunk in resp.aiter_bytes():
-                    yield chunk
+            async for chunk in resp.aiter_bytes():
+                streamed += len(chunk)
+                if streamed > _MAX_TRAILER_BYTES:
+                    logger.warning(
+                        "[TRAILERS] trailer %s exceeded the %d-byte cap; truncating",
+                        trailer_id, _MAX_TRAILER_BYTES,
+                    )
+                    break
+                yield chunk
         except httpx.HTTPError as e:
-            logger.warning(f"[TRAILERS] proxy stream error: {e}")
-            return
+            logger.warning("[TRAILERS] proxy stream error: %s", e)
+        finally:
+            await resp.aclose()
 
-    # Emby usually returns video/mp4; we don't introspect to keep it simple.
-    return StreamingResponse(iterator(), media_type="video/mp4")
+    return StreamingResponse(iterator(), media_type=content_type)
