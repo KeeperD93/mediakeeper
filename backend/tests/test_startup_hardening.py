@@ -13,6 +13,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 BACKEND_ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -35,15 +37,24 @@ def test_placeholder_jwt_secret_refused_at_import():
     assert "placeholder" in result.stderr.lower()
 
 
-def test_debug_true_in_production_refused_at_import():
-    result = _import_in_subprocess("main", {"MK_DEBUG": "true", "ENV": "production"})
+@pytest.mark.parametrize("env_marker", [
+    {"ENV": "production"},
+    {"ENV": "prod"},
+    {"ENVIRONMENT": "production"},
+    {"ENVIRONMENT": "prod"},
+])
+def test_debug_true_in_production_refused_at_import(env_marker):
+    # The guard must fire for either env var name and either spelling.
+    result = _import_in_subprocess(
+        "main", {"MK_DEBUG": "true", "ENV": "", "ENVIRONMENT": "", **env_marker}
+    )
     assert result.returncode != 0
     assert "MK_DEBUG" in result.stderr
 
 
 def test_debug_true_without_production_boots():
-    # MK_DEBUG alone (no ENV=production) must not trip the guard.
-    result = _import_in_subprocess("main", {"MK_DEBUG": "true", "ENV": ""})
+    # MK_DEBUG alone (no production marker) must not trip the guard.
+    result = _import_in_subprocess("main", {"MK_DEBUG": "true", "ENV": "", "ENVIRONMENT": ""})
     assert result.returncode == 0, result.stderr
 
 

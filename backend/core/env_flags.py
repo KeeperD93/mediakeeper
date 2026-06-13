@@ -40,3 +40,14 @@ def env_int(name: str, default: int) -> int:
             "Invalid integer for %s=%r; falling back to %d", name, raw, default
         )
         return default
+
+
+def is_production() -> bool:
+    """True when the deployment marks itself as production.
+
+    Accepts either env var (``ENV`` / ``ENVIRONMENT``) and either spelling
+    (``production`` / ``prod``) so every boot-time guard agrees on a single
+    definition instead of each reader rolling its own.
+    """
+    env = (os.getenv("ENV") or os.getenv("ENVIRONMENT") or "").strip().lower()
+    return env in ("prod", "production")

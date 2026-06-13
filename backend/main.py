@@ -11,7 +11,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse as _JSONResponse
 
-from core.env_flags import env_truthy
+from core.env_flags import env_truthy, is_production
 
 # Models — required for Base.metadata.create_all
 from models.portal.achievement import Achievement, UserAchievement  # noqa: F401
@@ -71,10 +71,11 @@ setup_logging()
 logger = logging.getLogger("mediakeeper")
 
 MK_DEBUG = env_truthy("MK_DEBUG")
-if MK_DEBUG and os.getenv("ENV", "").strip().lower() == "production":
+if MK_DEBUG and is_production():
     raise RuntimeError(
-        "MK_DEBUG=true is refused when ENV=production: it disables the CSP and "
-        "relaxes CORS. Unset MK_DEBUG (or ENV) before starting in production."
+        "MK_DEBUG=true is refused in production (ENV/ENVIRONMENT=production|prod): "
+        "it disables the CSP and relaxes CORS. Unset MK_DEBUG before starting in "
+        "production."
     )
 
 # /docs, /redoc and /openapi.json are developer tooling: expose them only in
