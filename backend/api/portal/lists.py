@@ -267,9 +267,10 @@ async def get_history(
     limit: int = Query(100, ge=1, le=500),
     up: tuple[User, UserProfile] = Depends(require_permission("can_lists")),
     db: AsyncSession = Depends(get_db),
+    lang: str = Depends(get_request_lang),
 ):
     user, _ = up
-    return {"items": await svc_admin.get_history(db, list_id, user.id, limit=limit)}
+    return {"items": await svc_admin.get_history(db, list_id, user.id, limit=limit, lang=lang)}
 
 
 @router.post("/{list_id}/contributors")

@@ -37,6 +37,7 @@ This section intentionally has no date so it is not shown to users.
 - Event invites — private profiles and admins can no longer be invited.
 - Continue watching — shows only your own in-progress titles.
 - Requests — refused (not allowed through) when the adult check can't reach TMDB.
+- Lists — collaborator history shows pseudonyms, never raw Emby logins.
 - Posters — an upcoming title's duration appears once TMDB publishes it.
 - Home — featured banner shows "Pending" for an already-requested title.
 - Requests — one-click movie requests now show success or refusal.
