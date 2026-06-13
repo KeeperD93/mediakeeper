@@ -23,8 +23,8 @@ import os
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
-from starlette.types import ASGIApp
 
+from core.env_flags import env_truthy
 from core.proxy import is_request_secure
 
 
@@ -91,7 +91,7 @@ def _csp_mode() -> str:
     Vite HMR (``MK_DEBUG=true``) disables CSP entirely to keep the dev
     workflow ergonomic.
     """
-    if os.getenv("MK_DEBUG", "").strip().lower() in {"true", "1", "yes", "on"}:
+    if env_truthy("MK_DEBUG"):
         return "off"
     mode = os.getenv("MK_CSP_MODE", "").strip().lower()
     if mode in {"report-only", "report_only"}:
