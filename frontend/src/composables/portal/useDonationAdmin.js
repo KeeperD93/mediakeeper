@@ -3,7 +3,7 @@ import { useApi } from '@/composables/useApi'
 
 // Donation config rides the shared portal-admin settings endpoint; we
 // only read/write the three ``donation.*`` keys (sent under their dotted
-// alias). Kept out of the component so it does no HTTP itself (§5).
+// alias). Kept out of the component so it does no HTTP itself.
 const ENDPOINT = '/api/portal/admin/settings'
 
 function pick(res) {

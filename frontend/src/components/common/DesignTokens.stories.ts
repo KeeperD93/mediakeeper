@@ -14,7 +14,7 @@ import type { Meta, StoryObj } from '@storybook/vue3-vite'
  *
  * Portal-namespaced tokens (``--portal-*``) live in
  * frontend/src/styles/portal/tokens/ and have their own future catalogue.
- * Rules.md §3.4 forbids mixing the two namespaces.
+ * The two namespaces must never be mixed.
  *
  * Each swatch displays its computed runtime value via the small
  * ``data-token`` resolver script appended to every story.
@@ -85,7 +85,7 @@ export const Overview: Story = {
         <h1 class="tk-h1">🎨 MediaKeeper — Catalogue des design tokens</h1>
         <p class="tk-intro">
           Catalogue exhaustif des tokens du <strong>namespace admin</strong>. Les tokens portail
-          (<code>--portal-*</code>) ont leur propre catalogue séparé — Rules.md §3.4 interdit de
+          (<code>--portal-*</code>) ont leur propre catalogue séparé : il ne faut jamais
           mélanger les deux namespaces.
         </p>
         <p class="tk-intro">
@@ -1008,7 +1008,7 @@ export const Effects: Story = {
 
         <div class="tk-section">
           <h2>Focus rings (a11y)</h2>
-          <p class="lead">Appliqué via <code>:focus-visible</code> sur tous les éléments interactifs (Rules §23).</p>
+          <p class="lead">Appliqué via <code>:focus-visible</code> sur tous les éléments interactifs.</p>
           <div class="tk-grid">
             <div class="tk-card"><div class="tk-swatch" style="background: var(--surface-2); outline: var(--focus-ring); outline-offset: var(--focus-ring-offset);"></div><div class="tk-meta"><span class="tk-name">--focus-ring (composite)</span><span class="tk-val" data-token="--focus-ring">…</span><span class="tk-use">Outline complet prêt à poser</span></div></div>
             ${swatch('--focus-ring-color', 'Couleur de la bordure focus')}
