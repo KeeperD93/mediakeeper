@@ -76,7 +76,7 @@ async def upcoming_events(db: AsyncSession, user_id: int) -> list[dict]:
     try:
         rows = await list_events_for_user(db, user_id)
     except Exception as e:  # noqa: BLE001
-        logger.debug(f"[DIGEST] events failed: {e}")
+        logger.debug("[DIGEST] events failed: %s", e)
         return []
     now = datetime.now(timezone.utc)
     horizon = now + timedelta(days=EVENTS_WINDOW_DAYS)
@@ -112,7 +112,7 @@ async def open_tickets_count(db: AsyncSession, user_id: int) -> int:
         )
         return int(result.scalar() or 0)
     except Exception as e:  # noqa: BLE001
-        logger.debug(f"[DIGEST] tickets count failed: {e}")
+        logger.debug("[DIGEST] tickets count failed: %s", e)
         return 0
 
 
@@ -120,7 +120,7 @@ async def closest_achievement(db: AsyncSession, user_id: int) -> dict | None:
     try:
         payload = await get_achievements_for_profile(db, user_id)
     except Exception as e:  # noqa: BLE001
-        logger.debug(f"[DIGEST] achievements failed: {e}")
+        logger.debug("[DIGEST] achievements failed: %s", e)
         return None
     nxt = payload.get("next_achievement")
     if not nxt:
@@ -143,7 +143,7 @@ async def current_streak(db: AsyncSession, user: User, profile: UserProfile) -> 
         user_filter = _playback_user_filter(user, profile)
         return int(await compute_streak(db, user_filter, excl_filters) or 0)
     except Exception as e:  # noqa: BLE001
-        logger.debug(f"[DIGEST] streak failed: {e}")
+        logger.debug("[DIGEST] streak failed: %s", e)
         return 0
 
 
@@ -154,7 +154,7 @@ async def ranking_snapshot(
     try:
         r = await compute_ranking(db, user, lang=lang)
     except Exception as e:  # noqa: BLE001
-        logger.debug(f"[DIGEST] ranking failed: {e}")
+        logger.debug("[DIGEST] ranking failed: %s", e)
         return {"position": 0, "total": 0, "movement": 0, "top3": []}
     # Same shape as the dashboard ``LeaderboardCard`` widget so the
     # daily-digest top 3 can render through the exact same component
@@ -220,7 +220,7 @@ async def quota_snapshot(db: AsyncSession, user_id: int) -> dict:
     try:
         q = await get_user_quota(db, user_id)
     except Exception as e:  # noqa: BLE001
-        logger.debug(f"[DIGEST] quota failed: {e}")
+        logger.debug("[DIGEST] quota failed: %s", e)
         return {"used": 0, "max_allowed": 0, "unlimited": False, "remaining": 0}
     max_allowed = int(q.get("max_allowed") or 0)
     used = int(q.get("used") or 0)

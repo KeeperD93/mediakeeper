@@ -70,7 +70,7 @@ const minimapHourData = computed(() => {
     return {
       pct: Math.round((total / maxCount) * 100),
       state,
-      title: t('stats.minimapHourTooltip', total, { hour: idx, count: total }) + users,
+      title: t('stats.minimapHourTooltip', { hour: idx, count: total }) + users,
     }
   })
 })
