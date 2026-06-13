@@ -1,6 +1,6 @@
 """Service Media Manager — manage media files via the local filesystem.
 
-Package split into focused modules (Rules.md §14, target <= 300 lines).
+Package split into focused, single-responsibility modules (target <= 300 lines each).
 
 Media folders are exposed to the container via Docker volumes. Paths are
 configured either through the MEDIA_* environment variables or through the

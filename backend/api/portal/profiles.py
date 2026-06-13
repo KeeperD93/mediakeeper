@@ -221,6 +221,8 @@ async def search_users(
         .where(User.is_active.is_(True))
         .where(UserProfile.account_active.is_(True))
         .where(UserProfile.deleted_at.is_(None))
+        .where(UserProfile.is_public.is_(True))
+        .where(UserProfile.role != "admin")
     )
     if needle:
         like = f"%{needle}%"

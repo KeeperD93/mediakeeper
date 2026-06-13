@@ -3447,7 +3447,7 @@
         "public": "Public",
         "publicHint": "Visible dans le classement et consultable par les autres utilisateurs.",
         "private": "Privé",
-        "privateHint": "Invisible du classement, profil non consultable.",
+        "privateHint": "Invisible du classement, profil non consultable, et non invitable aux événements.",
         "publicLocked": "Visibilité forcée par un administrateur."
       },
       "account": {

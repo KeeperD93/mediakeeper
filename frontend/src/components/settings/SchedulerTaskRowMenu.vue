@@ -52,7 +52,7 @@ onMounted(() => {
   // the menu does not immediately close it.
   setTimeout(() => document.addEventListener('click', onDocumentClick), 0)
   document.addEventListener('keydown', onKeydown)
-  // Move focus into the popover for keyboard users (Rules §23).
+  // Move focus into the popover for keyboard users.
   nextTick(() => resetBtnEl.value?.focus())
 })
 onBeforeUnmount(() => {
