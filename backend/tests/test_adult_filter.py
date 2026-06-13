@@ -1,4 +1,6 @@
 """Adult-content filtering for TMDB catalog responses."""
+from types import SimpleNamespace
+
 import pytest
 
 from services.portal.adult_filter import (
@@ -89,6 +91,18 @@ class _BoomClient:
         raise RuntimeError("tmdb down")
 
 
+class _StatusClient:
+    """TMDB client stub returning a non-200 response — a TMDB-side error
+    (rate limit, 5xx) that arrives as a real Response, not a transport
+    exception, so it exercises the status_code branch of get_keyword_ids."""
+
+    def __init__(self, status_code):
+        self._status_code = status_code
+
+    async def get(self, *args, **kwargs):
+        return SimpleNamespace(status_code=self._status_code, json=lambda: {})
+
+
 @pytest.mark.asyncio
 async def test_get_keyword_ids_strict_raises_on_tmdb_error(monkeypatch):
     from services import tmdb
@@ -111,6 +125,34 @@ async def test_get_keyword_ids_lenient_swallows_tmdb_error(monkeypatch):
 
     monkeypatch.setattr("services.tmdb._get_tmdb_key", _key)
     monkeypatch.setattr("services.tmdb.get_external_client", lambda: _BoomClient())
+    assert await tmdb.get_keyword_ids("movie", 1, None) == set()
+
+
+@pytest.mark.asyncio
+async def test_get_keyword_ids_strict_raises_on_non_200(monkeypatch):
+    # A non-200 TMDB response (503 here) is a genuine error distinct from a
+    # transport failure: strict mode must raise so the adult-request guard
+    # fails closed rather than treat an unverifiable item as clean.
+    from services import tmdb
+
+    async def _key(db=None):
+        return "tmdb-key"
+
+    monkeypatch.setattr("services.tmdb._get_tmdb_key", _key)
+    monkeypatch.setattr("services.tmdb.get_external_client", lambda: _StatusClient(503))
+    with pytest.raises(tmdb.TmdbUnavailable):
+        await tmdb.get_keyword_ids("movie", 1, None, strict=True)
+
+
+@pytest.mark.asyncio
+async def test_get_keyword_ids_lenient_swallows_non_200(monkeypatch):
+    from services import tmdb
+
+    async def _key(db=None):
+        return "tmdb-key"
+
+    monkeypatch.setattr("services.tmdb._get_tmdb_key", _key)
+    monkeypatch.setattr("services.tmdb.get_external_client", lambda: _StatusClient(503))
     assert await tmdb.get_keyword_ids("movie", 1, None) == set()
 
 
