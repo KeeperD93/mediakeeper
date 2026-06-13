@@ -35,6 +35,11 @@ from services.tmdb import _get_tmdb_key, _tmdb_headers_sync, TMDB_BASE
 
 logger = logging.getLogger("mediakeeper.portal.trailers")
 
+# Emby item ids are alphanumeric GUIDs. Reject anything else before it
+# reaches the upstream URL so a forged id cannot smuggle path/query
+# characters into the proxied Emby request.
+_TRAILER_ID_RE = re.compile(r"^[A-Za-z0-9]+$")
+
 
 # ---------------------------------------------------------------------------
 # Public API
@@ -124,18 +129,42 @@ async def _resolve_emby_local_trailer(
 
 async def stream_emby_trailer(
     db: AsyncSession, trailer_item_id: str
-):
+) -> Optional[dict]:
+    """Build the upstream Emby stream URL for a local trailer.
+
+    Returns ``{"url": ...}`` only when ``trailer_item_id`` is a
+    syntactically valid Emby id AND the item is actually a ``Trailer``;
+    ``None`` otherwise. The stream URL carries the admin API key, so
+    without the type check any exposed Emby id (movie, episode) could be
+    streamed in full through this proxy, bypassing per-user library
+    permissions, parental control and the adult filter.
     """
-    Generator-style proxy that streams an Emby local trailer to the client.
-    Returns (status_code, headers, async_iterator) — used by the FastAPI
-    endpoint with ``StreamingResponse``.
-    """
+    if not trailer_item_id or not _TRAILER_ID_RE.match(trailer_item_id):
+        return None
     source = await get_active_media_source(db)
     if not source or source.get("source") not in ("emby", "jellyfin"):
         return None
     internal_url = (source.get("url") or "").rstrip("/")
     api_key = source.get("api_key") or ""
     if not internal_url or not api_key:
+        return None
+    client = get_internal_client()
+    try:
+        meta = await client.get(
+            f"{internal_url}/Items",
+            params={"Ids": trailer_item_id},
+            headers={"X-Emby-Token": api_key},
+        )
+        if meta.status_code != 200:
+            return None
+        # Parse inside the try: a 200 with a non-JSON body (proxy error
+        # page, truncated response) raises in ``.json()`` and must fail
+        # closed to a 404, not bubble up as an uncaught 500.
+        items = (meta.json() or {}).get("Items") or []
+    except Exception as e:
+        logger.warning("[TRAILERS] trailer lookup failed for %s: %s", trailer_item_id, e)
+        return None
+    if not items or items[0].get("Type") != "Trailer":
         return None
     return {
         "url": f"{internal_url}/Videos/{trailer_item_id}/stream?Static=true&api_key={api_key}",
