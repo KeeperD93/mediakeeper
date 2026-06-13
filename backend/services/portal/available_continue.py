@@ -19,7 +19,14 @@ logger = logging.getLogger("mediakeeper.portal.available")
 async def get_continue_watching(
     db: AsyncSession, emby_user_id: str | None = None, limit: int = 10,
 ) -> list[dict]:
-    """Items in progress for a given Emby user."""
+    """Items in progress for one Emby user.
+
+    Returns an empty list when no Emby user id is supplied: querying the
+    server-wide ``/Items`` with the admin API key would leak every user's
+    in-progress titles to the caller. Fail closed on cross-user isolation.
+    """
+    if not emby_user_id:
+        return []
     # Lazy import to avoid a circular import with ``available`` (which
     # re-exports this function).
     from services.portal.available import _get_config, _normalize_emby
@@ -46,7 +53,7 @@ async def get_continue_watching(
             "Limit": str(max(limit * 4, 30)),
             "Fields": "ProviderIds,Overview,SeriesId,SeriesName,ImageTags",
         }
-        endpoint = f"{url}/Users/{emby_user_id}/Items" if emby_user_id else f"{url}/Items"
+        endpoint = f"{url}/Users/{emby_user_id}/Items"
         res = await client.get(endpoint, params=params, headers=headers)
         if res.status_code != 200:
             return []
