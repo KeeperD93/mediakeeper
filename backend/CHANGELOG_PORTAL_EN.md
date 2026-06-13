@@ -34,6 +34,7 @@ This section intentionally has no date so it is not shown to users.
 - What's new — recent additions stay until your next visit.
 
 ### Fixed
+- Requests — refused (not allowed through) when the adult check can't reach TMDB.
 - Posters — an upcoming title's duration appears once TMDB publishes it.
 - Home — featured banner shows "Pending" for an already-requested title.
 - Requests — one-click movie requests now show success or refusal.

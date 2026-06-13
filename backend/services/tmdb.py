@@ -225,14 +225,31 @@ async def get_season_episodes(tmdb_id: int, season: int, db: AsyncSession | None
         return {"error": "tmdb_episodes_failed"}
 
 
-async def get_keyword_ids(media_type: str, tmdb_id: int, db: AsyncSession | None = None) -> set[int]:
+class TmdbUnavailable(Exception):
+    """Raised by keyword lookups when TMDB cannot be reached or returns an
+    error, so a caller enforcing a content policy can fail closed instead
+    of treating an unverifiable item as clean."""
+
+
+async def get_keyword_ids(
+    media_type: str,
+    tmdb_id: int,
+    db: AsyncSession | None = None,
+    *,
+    strict: bool = False,
+) -> set[int]:
     """Return the set of TMDB keyword IDs attached to an item.
 
     Movies expose them under ``keywords``, TV shows under ``results``. Used to
     detect pornographic content TMDB's ``adult`` flag misses (e.g. hentai).
-    Returns an empty set on any error (fails open — a transport hiccup must not
-    block legitimate requests; the discover-list keyword filter is the primary
-    barrier).
+
+    Returns an empty set when no TMDB key is configured — that is a
+    permanent state (the check is simply inoperative), never a reason to
+    block, even in strict mode. On a genuine TMDB error (non-200,
+    transport failure) the default is also an empty set (fail open); pass
+    ``strict=True`` to raise :class:`TmdbUnavailable` instead, so the
+    adult-request guard can fail closed during a TMDB outage rather than
+    silently treat an unverifiable item as clean.
     """
     api_key = await _get_tmdb_key(db)
     if not api_key:
@@ -244,12 +261,18 @@ async def get_keyword_ids(media_type: str, tmdb_id: int, db: AsyncSession | None
             headers=_tmdb_headers_sync(api_key),
         )
         if res.status_code != 200:
+            if strict:
+                raise TmdbUnavailable(f"tmdb_status_{res.status_code}")
             return set()
         data = res.json() or {}
         items = data.get("keywords") or data.get("results") or []
         return {k["id"] for k in items if isinstance(k, dict) and isinstance(k.get("id"), int)}
+    except TmdbUnavailable:
+        raise
     except Exception as e:
         logger.debug("[TMDB] keywords fetch failed for %s/%s: %s", media_type, tmdb_id, e)
+        if strict:
+            raise TmdbUnavailable("tmdb_request_failed") from e
         return set()
 
 
