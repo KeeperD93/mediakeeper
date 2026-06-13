@@ -72,8 +72,15 @@ async def create_request(
         from services.portal.admin import get_portal_flag
         if not await get_portal_flag(db, "portal.allow_adult_requests"):
             from services.portal.adult_filter import has_adult_keyword
-            from services.tmdb import get_keyword_ids
-            if has_adult_keyword(await get_keyword_ids(media_type, tmdb_id, db)):
+            from services.tmdb import TmdbUnavailable, get_keyword_ids
+            try:
+                keyword_ids = await get_keyword_ids(media_type, tmdb_id, db, strict=True)
+            except TmdbUnavailable:
+                # Fail closed: we cannot confirm the item is non-adult, so
+                # refuse rather than risk letting restricted content through
+                # while the policy is off.
+                return {"error": "adult_check_unavailable"}
+            if has_adult_keyword(keyword_ids):
                 return {"error": "adult_requests_disabled"}
 
     # The "already_available" guard is binary for movies but wrong for

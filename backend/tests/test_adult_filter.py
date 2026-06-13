@@ -1,4 +1,6 @@
 """Adult-content filtering for TMDB catalog responses."""
+from types import SimpleNamespace
+
 import pytest
 
 from services.portal.adult_filter import (
@@ -68,7 +70,7 @@ async def test_create_request_blocks_adult_when_disabled(db_session, monkeypatch
     async def _flag(db, key):
         return False
 
-    async def _keywords(media_type, tmdb_id, db=None):
+    async def _keywords(media_type, tmdb_id, db=None, *, strict=False):
         return {198385}  # hentai
 
     monkeypatch.setattr("services.portal.admin.get_portal_flag", _flag)
@@ -80,3 +82,112 @@ async def test_create_request_blocks_adult_when_disabled(db_session, monkeypatch
         is_admin=False,
     )
     assert result == {"error": "adult_requests_disabled"}
+
+
+class _BoomClient:
+    """TMDB client stub whose every request raises — simulates an outage."""
+
+    async def get(self, *args, **kwargs):
+        raise RuntimeError("tmdb down")
+
+
+class _StatusClient:
+    """TMDB client stub returning a non-200 response — a TMDB-side error
+    (rate limit, 5xx) that arrives as a real Response, not a transport
+    exception, so it exercises the status_code branch of get_keyword_ids."""
+
+    def __init__(self, status_code):
+        self._status_code = status_code
+
+    async def get(self, *args, **kwargs):
+        return SimpleNamespace(status_code=self._status_code, json=lambda: {})
+
+
+@pytest.mark.asyncio
+async def test_get_keyword_ids_strict_raises_on_tmdb_error(monkeypatch):
+    from services import tmdb
+
+    async def _key(db=None):
+        return "tmdb-key"
+
+    monkeypatch.setattr("services.tmdb._get_tmdb_key", _key)
+    monkeypatch.setattr("services.tmdb.get_external_client", lambda: _BoomClient())
+    with pytest.raises(tmdb.TmdbUnavailable):
+        await tmdb.get_keyword_ids("movie", 1, None, strict=True)
+
+
+@pytest.mark.asyncio
+async def test_get_keyword_ids_lenient_swallows_tmdb_error(monkeypatch):
+    from services import tmdb
+
+    async def _key(db=None):
+        return "tmdb-key"
+
+    monkeypatch.setattr("services.tmdb._get_tmdb_key", _key)
+    monkeypatch.setattr("services.tmdb.get_external_client", lambda: _BoomClient())
+    assert await tmdb.get_keyword_ids("movie", 1, None) == set()
+
+
+@pytest.mark.asyncio
+async def test_get_keyword_ids_strict_raises_on_non_200(monkeypatch):
+    # A non-200 TMDB response (503 here) is a genuine error distinct from a
+    # transport failure: strict mode must raise so the adult-request guard
+    # fails closed rather than treat an unverifiable item as clean.
+    from services import tmdb
+
+    async def _key(db=None):
+        return "tmdb-key"
+
+    monkeypatch.setattr("services.tmdb._get_tmdb_key", _key)
+    monkeypatch.setattr("services.tmdb.get_external_client", lambda: _StatusClient(503))
+    with pytest.raises(tmdb.TmdbUnavailable):
+        await tmdb.get_keyword_ids("movie", 1, None, strict=True)
+
+
+@pytest.mark.asyncio
+async def test_get_keyword_ids_lenient_swallows_non_200(monkeypatch):
+    from services import tmdb
+
+    async def _key(db=None):
+        return "tmdb-key"
+
+    monkeypatch.setattr("services.tmdb._get_tmdb_key", _key)
+    monkeypatch.setattr("services.tmdb.get_external_client", lambda: _StatusClient(503))
+    assert await tmdb.get_keyword_ids("movie", 1, None) == set()
+
+
+@pytest.mark.asyncio
+async def test_get_keyword_ids_no_key_never_blocks(monkeypatch):
+    # No TMDB key is a permanent config state, not an outage: the check is
+    # inoperative and must never block, even in strict mode.
+    from services import tmdb
+
+    async def _no_key(db=None):
+        return ""
+
+    monkeypatch.setattr("services.tmdb._get_tmdb_key", _no_key)
+    assert await tmdb.get_keyword_ids("movie", 1, None, strict=True) == set()
+
+
+@pytest.mark.asyncio
+async def test_create_request_fails_closed_when_adult_check_unavailable(db_session, monkeypatch):
+    """A TMDB outage blocks the request instead of silently allowing it while
+    the adult-requests policy is off."""
+    from services.portal import requests_create
+    from services.tmdb import TmdbUnavailable
+
+    async def _flag(db, key):
+        return False
+
+    async def _keywords(media_type, tmdb_id, db=None, *, strict=False):
+        raise TmdbUnavailable("tmdb_down")
+
+    monkeypatch.setattr("services.portal.admin.get_portal_flag", _flag)
+    monkeypatch.setattr("services.tmdb.get_keyword_ids", _keywords)
+
+    result = await requests_create.create_request(
+        db_session, 1,
+        {"tmdb_id": 999999, "media_type": "movie", "title": "X"},
+        is_admin=False,
+    )
+    assert result == {"error": "adult_check_unavailable"}
