@@ -37,7 +37,7 @@ async def random_trailers(
     db: AsyncSession = Depends(get_db),
 ):
     """
-    Random pool of trailer keys for the cinema room amwellt screen.
+    Random pool of trailer keys for the cinema room ambient screen.
 
     Picks a handful of recently-added Emby items, runs the trailer
     cascade for each, and returns the YouTube keys (or Emby URLs) so

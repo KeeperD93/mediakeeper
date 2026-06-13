@@ -155,12 +155,15 @@ async def stream_emby_trailer(
             params={"Ids": trailer_item_id},
             headers={"X-Emby-Token": api_key},
         )
+        if meta.status_code != 200:
+            return None
+        # Parse inside the try: a 200 with a non-JSON body (proxy error
+        # page, truncated response) raises in ``.json()`` and must fail
+        # closed to a 404, not bubble up as an uncaught 500.
+        items = (meta.json() or {}).get("Items") or []
     except Exception as e:
         logger.warning("[TRAILERS] trailer lookup failed for %s: %s", trailer_item_id, e)
         return None
-    if meta.status_code != 200:
-        return None
-    items = (meta.json() or {}).get("Items") or []
     if not items or items[0].get("Type") != "Trailer":
         return None
     return {

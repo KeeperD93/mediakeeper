@@ -2,6 +2,7 @@
 
 from types import SimpleNamespace
 
+import httpx
 import pytest
 from unittest.mock import AsyncMock, patch
 
@@ -185,3 +186,136 @@ async def test_stream_emby_trailer_allows_real_trailer():
         info = await trailers_svc.stream_emby_trailer(None, "trailer123")
     assert info is not None
     assert "/Videos/trailer123/stream" in info["url"]
+
+
+@pytest.mark.asyncio
+async def test_stream_emby_trailer_non_json_body_fails_closed():
+    # A 200 carrying a non-JSON body (upstream proxy error page, truncated
+    # response) must fail closed to ``None`` (→ 404) instead of letting
+    # ``.json()`` raise and bubble up as an uncaught 500.
+    def _boom():
+        raise ValueError("not json")
+    bad = SimpleNamespace(status_code=200, json=_boom, headers={}, content=b"<html/>")
+    internal = SimpleNamespace(get=AsyncMock(return_value=bad))
+    with (
+        patch("services.portal.trailers.get_active_media_source",
+              AsyncMock(return_value=_EMBY_SOURCE)),
+        patch("services.portal.trailers.get_internal_client", return_value=internal),
+    ):
+        assert await trailers_svc.stream_emby_trailer(None, "trailer123") is None
+
+
+@pytest.mark.asyncio
+async def test_stream_emby_trailer_non_200_returns_none():
+    resp = SimpleNamespace(status_code=503, json=lambda: {}, headers={}, content=b"")
+    internal = SimpleNamespace(get=AsyncMock(return_value=resp))
+    with (
+        patch("services.portal.trailers.get_active_media_source",
+              AsyncMock(return_value=_EMBY_SOURCE)),
+        patch("services.portal.trailers.get_internal_client", return_value=internal),
+    ):
+        assert await trailers_svc.stream_emby_trailer(None, "trailer123") is None
+
+
+# --- proxy endpoint behaviour: connect/stream/cap/content-type ---
+
+_RESOLVED_URL = {"url": "http://emby.test/Videos/x1/stream?Static=true&api_key=secret"}
+
+
+def _streaming_client(send_mock):
+    """Fake internal client whose ``send`` is driven by the test."""
+    return SimpleNamespace(build_request=lambda *a, **k: object(), send=send_mock)
+
+
+@pytest.mark.asyncio
+async def test_proxy_emby_trailer_404_when_unresolvable(client, db_session):
+    await _seed_portal_viewer(client, db_session, "viewer_tr_404")
+    with patch("api.portal.trailers.stream_emby_trailer", AsyncMock(return_value=None)):
+        resp = await client.get("/api/portal/trailers/emby/trailer123")
+    assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_proxy_emby_trailer_502_on_connect_error(client, db_session):
+    await _seed_portal_viewer(client, db_session, "viewer_tr_502")
+    internal = _streaming_client(AsyncMock(side_effect=httpx.ConnectError("boom")))
+    with (
+        patch("api.portal.trailers.stream_emby_trailer",
+              AsyncMock(return_value=_RESOLVED_URL)),
+        patch("api.portal.trailers.get_internal_client", return_value=internal),
+    ):
+        resp = await client.get("/api/portal/trailers/emby/trailer123")
+    assert resp.status_code == 502
+
+
+@pytest.mark.asyncio
+async def test_proxy_emby_trailer_404_on_upstream_non_200(client, db_session):
+    await _seed_portal_viewer(client, db_session, "viewer_tr_up404")
+    upstream = SimpleNamespace(status_code=404, headers={}, aclose=AsyncMock())
+    internal = _streaming_client(AsyncMock(return_value=upstream))
+    with (
+        patch("api.portal.trailers.stream_emby_trailer",
+              AsyncMock(return_value=_RESOLVED_URL)),
+        patch("api.portal.trailers.get_internal_client", return_value=internal),
+    ):
+        resp = await client.get("/api/portal/trailers/emby/trailer123")
+    assert resp.status_code == 404
+    upstream.aclose.assert_awaited()
+
+
+@pytest.mark.asyncio
+async def test_proxy_emby_trailer_propagates_upstream_content_type(client, db_session):
+    await _seed_portal_viewer(client, db_session, "viewer_tr_ct")
+
+    async def _chunks():
+        yield b"hello "
+        yield b"world"
+
+    upstream = SimpleNamespace(
+        status_code=200,
+        headers={"content-type": "video/webm"},
+        aiter_bytes=lambda: _chunks(),
+        aclose=AsyncMock(),
+    )
+    internal = _streaming_client(AsyncMock(return_value=upstream))
+    with (
+        patch("api.portal.trailers.stream_emby_trailer",
+              AsyncMock(return_value=_RESOLVED_URL)),
+        patch("api.portal.trailers.get_internal_client", return_value=internal),
+    ):
+        resp = await client.get("/api/portal/trailers/emby/trailer123")
+    assert resp.status_code == 200
+    assert resp.headers["content-type"].startswith("video/webm")
+    assert resp.content == b"hello world"
+    upstream.aclose.assert_awaited()
+
+
+@pytest.mark.asyncio
+async def test_proxy_emby_trailer_truncates_at_cap(client, db_session, monkeypatch):
+    await _seed_portal_viewer(client, db_session, "viewer_tr_cap")
+    # Shrink the cap so the test doesn't stream a gigabyte; leave the
+    # upstream content-type unset to also pin the video/mp4 default.
+    monkeypatch.setattr("api.portal.trailers._MAX_TRAILER_BYTES", 5)
+
+    async def _chunks():
+        yield b"abc"      # streamed=3, under the cap → forwarded
+        yield b"defgh"    # streamed=8 > 5 → truncated, not forwarded
+        yield b"ignored"
+
+    upstream = SimpleNamespace(
+        status_code=200,
+        headers={},
+        aiter_bytes=lambda: _chunks(),
+        aclose=AsyncMock(),
+    )
+    internal = _streaming_client(AsyncMock(return_value=upstream))
+    with (
+        patch("api.portal.trailers.stream_emby_trailer",
+              AsyncMock(return_value=_RESOLVED_URL)),
+        patch("api.portal.trailers.get_internal_client", return_value=internal),
+    ):
+        resp = await client.get("/api/portal/trailers/emby/trailer123")
+    assert resp.status_code == 200
+    assert resp.content == b"abc"
+    assert resp.headers["content-type"].startswith("video/mp4")
+    upstream.aclose.assert_awaited()
