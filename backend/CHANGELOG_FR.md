@@ -42,6 +42,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Demandes (admin) — « Au nom de l'utilisateur » préréglé sur votre compte.
 - Statistiques — médiathèques : nom Emby réel au lieu d'un sous-dossier (réparation auto).
 - Problèmes (admin) — filtre par statut réparé (ne plante plus, n'est plus ignoré).
+- Paramètres de sauvegarde — indication claire quand le dossier est verrouillé par la configuration.
 - Notifications — l'enregistrement d'un webhook Discord n'échoue plus.
 - Notifications — le message test Discord suit la langue par défaut configurée.
 - Stats — Utilisateurs et fusion : photo de profil (perso ou Emby) désormais affichée.
@@ -55,6 +56,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Média Manager — fichiers alignés avec leurs noms générés à droite.
 - Média Manager — fil d'ariane : repli du chemin trop long, séparateurs visibles.
 - Média Manager — animations des fenêtres coupées si « réduire les animations » est actif.
+- Média Manager — renommage d'un dossier vers un nom vidé refusé (était une perte de données).
 - Tableau de bord — « Prochaines sorties » affichées dans votre langue.
 - Tableau de bord — fil d'activité (connexions, lectures) affiché dans votre langue.
 - Médiathèque — fiches détail TMDB affichées dans votre langue (repli anglais).
@@ -69,6 +71,10 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Avatars personnalisés affichés dans la barre admin, la liste utilisateurs et les sessions.
 - Portail — page Découvrir : bouton retour agrandi, survol collant et défilement latéral corrigés.
 - Watchlist — onglet Timeline : la frise remplit la hauteur (plus de bande vide).
+- Médiathèque — recherche TMDB : description en anglais affichée quand la traduction manque.
+- Utilisateurs portail (admin) — fiche : statuts de tickets « En cours » et « Résolu » traduits.
+- Problèmes (admin) — statuts de tickets traduits dans la liste et le sélecteur.
+- Erreurs réseau — message clair affiché au lieu d'une liste vide trompeuse.
 
 ## [1.0.0-rc.4] - 2026-05-30
 

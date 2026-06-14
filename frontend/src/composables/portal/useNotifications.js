@@ -1,5 +1,8 @@
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useToast } from '@/composables/useToast'
+import { TOAST_TYPE } from '@/constants/toast'
+import i18n from '@/i18n'
 
 // Module-level state so the bell badge stays in sync across every
 // component that imports the composable. Polled every 30 s; can be
@@ -15,6 +18,7 @@ let pollTimer = null
 
 export function useNotifications() {
   const { apiGet, apiPost } = useApi()
+  const { showToast } = useToast()
 
   async function fetchCount() {
     try {
@@ -28,11 +32,17 @@ export function useNotifications() {
   // First page replaces the list; ``append`` keyset-loads the next page and
   // appends older notifications (bell "load more").
   async function fetchList(unreadOnly = false, append = false) {
-    if (append && (!hasMore.value || loadingMore.value)) return
+    // Block "load more" while the first page is still loading — stale paging
+    // from a previous popup session must not fire a keyset request.
+    if (append && (loading.value || !hasMore.value || loadingMore.value)) return
     if (append) loadingMore.value = true
     else {
       loading.value = true
       activeUnreadOnly = unreadOnly
+      // Reset paging up front so a reopened popup never shows the previous
+      // session's "load more" with a stale cursor before the GET resolves.
+      hasMore.value = false
+      nextCursor.value = null
     }
     try {
       const params = new URLSearchParams({
@@ -44,6 +54,9 @@ export function useNotifications() {
       items.value = append ? [...items.value, ...list] : list
       nextCursor.value = res?.next_cursor || null
       hasMore.value = !!res?.has_more
+    } catch (e) {
+      console.error('[useNotifications.fetchList] failed', e)
+      showToast(i18n.global.t('common.networkError'), TOAST_TYPE.ERR)
     } finally {
       if (append) loadingMore.value = false
       else loading.value = false
@@ -77,6 +90,12 @@ export function useNotifications() {
     }
   }
 
+  // Clear the badge on open without flagging items read, so the list keeps
+  // highlighting unread across all pages until close syncs the server.
+  function clearUnreadBadge() {
+    unread.value = 0
+  }
+
   function startPolling(intervalMs = 30000) {
     stopPolling()
     fetchCount()
@@ -100,6 +119,7 @@ export function useNotifications() {
     loadMore,
     markRead,
     markAllRead,
+    clearUnreadBadge,
     startPolling,
     stopPolling,
     hasUnread: computed(() => unread.value > 0),

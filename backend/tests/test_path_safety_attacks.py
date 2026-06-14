@@ -504,22 +504,20 @@ def test_is_allowed_browse_path_rejects_nul_byte(monkeypatch):
 # get_backup_path — regex filename + containment
 
 
-def test_backup_get_path_rejects_traversal(monkeypatch):
+def test_backup_get_path_rejects_traversal():
     workspace = _make_workspace_tmp("_attack_backup")
     try:
         backup_dir = workspace / "backups"
         backup_dir.mkdir()
         valid = backup_dir / "mediakeeper_backup_20260522_010203.zip"
         valid.write_text("zip", encoding="utf-8")
-        monkeypatch.setenv("BACKUP_PATH", str(backup_dir))
-        monkeypatch.setattr(backup_service._state, "_runtime_backup_dir", None)
 
         assert backup_service.get_backup_path(
-            "../mediakeeper_backup_20260522_010203.zip"
+            "../mediakeeper_backup_20260522_010203.zip", backup_dir
         ) is None
-        assert backup_service.get_backup_path("/etc/passwd") is None
-        assert backup_service.get_backup_path("random.zip") is None
+        assert backup_service.get_backup_path("/etc/passwd", backup_dir) is None
+        assert backup_service.get_backup_path("random.zip", backup_dir) is None
         # Sanity: the legitimate name still resolves.
-        assert backup_service.get_backup_path(valid.name) == valid.resolve()
+        assert backup_service.get_backup_path(valid.name, backup_dir) == valid.resolve()
     finally:
         shutil.rmtree(workspace, ignore_errors=True)

@@ -7,7 +7,7 @@ import os
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
+from urllib.parse import unquote, urlparse
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,7 +19,7 @@ from models.user_preferences import UserPreference
 from services.logs import LOG_DIR
 from services.settings import get_all_settings
 
-from ._state import DEFAULT_COMPONENTS, get_current_backup_dir
+from ._state import DEFAULT_COMPONENTS, resolve_backup_dir
 
 logger = logging.getLogger("mediakeeper.backup")
 
@@ -42,13 +42,13 @@ _EPHEMERAL_KEY_WARNING = (
 
 async def create_backup(
     db: AsyncSession,
-    components: Optional[dict] = None,
+    components: dict | None = None,
     label: str = "",
     progress_cb=None,
 ) -> Path:
     """Create a backup ZIP file. Returns the path of the created file."""
     opts = {**DEFAULT_COMPONENTS, **(components or {})}
-    backup_dir = get_current_backup_dir()
+    backup_dir = await resolve_backup_dir(db)
     backup_dir.mkdir(parents=True, exist_ok=True)
 
     ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -74,7 +74,7 @@ async def create_backup(
                 all_settings = await get_all_settings(db, decrypt_sensitive=False)
                 zf.writestr("settings.json", json.dumps(all_settings, ensure_ascii=False, indent=2))
             except Exception as e:
-                logger.error(f"[backup] settings: {e}")
+                logger.error("[backup] settings: %s", e)
 
         if opts.get("preferences"):
             step += 1
@@ -94,7 +94,7 @@ async def create_backup(
                 ]
                 zf.writestr("preferences.json", json.dumps(prefs_data, ensure_ascii=False, indent=2))
             except Exception as e:
-                logger.error(f"[backup] preferences: {e}")
+                logger.error("[backup] preferences: %s", e)
 
         if opts.get("scheduler"):
             step += 1
@@ -117,7 +117,7 @@ async def create_backup(
                 ]
                 zf.writestr("scheduler.json", json.dumps(tasks_data, ensure_ascii=False, indent=2))
             except Exception as e:
-                logger.error(f"[backup] scheduler: {e}")
+                logger.error("[backup] scheduler: %s", e)
 
         if opts.get("watchlist"):
             step += 1
@@ -130,7 +130,7 @@ async def create_backup(
                 scans_data = [{"scan_key": s.scan_key, "data": s.data} for s in scans]
                 zf.writestr("watchlist.json", json.dumps(scans_data, ensure_ascii=False, indent=2))
             except Exception as e:
-                logger.error(f"[backup] watchlist: {e}")
+                logger.error("[backup] watchlist: %s", e)
 
         if opts.get("logs"):
             step += 1
@@ -140,7 +140,7 @@ async def create_backup(
                 for log_file in LOG_DIR.glob("*.txt"):
                     zf.write(log_file, f"logs/{log_file.name}")
             except Exception as e:
-                logger.error(f"[backup] logs: {e}")
+                logger.error("[backup] logs: %s", e)
 
         if opts.get("pg_dump"):
             step += 1
@@ -151,7 +151,7 @@ async def create_backup(
                 if sql:
                     zf.writestr("pg_dump.sql", sql)
             except Exception as e:
-                logger.error(f"[backup] pg_dump: {e}")
+                logger.error("[backup] pg_dump: %s", e)
 
         encryption_key_meta = _embed_encryption_key(zf)
 
@@ -167,7 +167,7 @@ async def create_backup(
 
     dest.write_bytes(buf.getvalue())
     size_kb = dest.stat().st_size // 1024
-    logger.info(f"[backup] Created : {dest.name} ({size_kb} KB)")
+    logger.info("[backup] Created: %s (%s KB)", dest.name, size_kb)
     return dest
 
 
@@ -208,20 +208,36 @@ def _embed_encryption_key(zf: zipfile.ZipFile) -> dict:
     }
 
 
-async def _pg_dump_async() -> Optional[str]:
+def _parse_pg_dsn(database_url: str) -> dict[str, str]:
+    """Split a SQLAlchemy/asyncpg DSN into pg_dump connection parts.
+
+    urlparse does not percent-decode credentials; the DSN percent-encodes
+    reserved chars (@ : / %). Decode them so pg_dump connects with the same
+    values asyncpg uses — else auth fails and the archive silently omits the dump.
+    """
+    parsed = urlparse(database_url.replace("+asyncpg", ""))
+    return {
+        "host": parsed.hostname or "127.0.0.1",
+        "port": str(parsed.port or 5432),
+        "user": unquote(parsed.username or "mediakeeper"),
+        "password": unquote(parsed.password or ""),
+        "dbname": unquote((parsed.path or "/mediakeeper_db").lstrip("/")),
+    }
+
+
+async def _pg_dump_async() -> str | None:
     """Start pg_dump in a subprocess and return the SQL."""
-    from urllib.parse import urlparse
-    parsed = urlparse(DATABASE_URL.replace("+asyncpg", ""))
+    dsn = _parse_pg_dsn(DATABASE_URL)
 
     env = os.environ.copy()
-    env["PGPASSWORD"] = parsed.password or ""
+    env["PGPASSWORD"] = dsn["password"]
 
     cmd = [
         "pg_dump",
-        "-h", parsed.hostname or "127.0.0.1",
-        "-p", str(parsed.port or 5432),
-        "-U", parsed.username or "mediakeeper",
-        "-d", (parsed.path or "/mediakeeper_db").lstrip("/"),
+        "-h", dsn["host"],
+        "-p", dsn["port"],
+        "-U", dsn["user"],
+        "-d", dsn["dbname"],
         "--no-owner", "--no-acl", "--if-exists", "--clean",
     ]
 
@@ -234,7 +250,7 @@ async def _pg_dump_async() -> Optional[str]:
     stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=120)
 
     if proc.returncode != 0:
-        logger.error(f"[backup] pg_dump failed: {stderr.decode()[:300]}")
+        logger.error("[backup] pg_dump failed: %s", stderr.decode()[:300])
         try:
             from services.monitoring import AlertType, send_alert
 

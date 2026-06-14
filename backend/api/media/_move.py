@@ -2,7 +2,7 @@
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from api.auth import get_current_user
 from models.user import User
@@ -75,7 +75,7 @@ async def delete(req: DeleteRequest, _: User = Depends(get_current_user)):
 
 class BatchDeleteRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    paths: list[str]
+    paths: list[str] = Field(max_length=1000)
 
 
 @router.post("/delete-batch")

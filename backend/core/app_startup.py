@@ -213,15 +213,6 @@ async def apply_runtime_settings() -> None:
         from services.media_manager import load_categories
         await load_categories(session)
 
-    async with AsyncSession(engine) as session:
-        saved_backup_dir = await get_setting(session, "backup.directory")
-        if saved_backup_dir:
-            from services.backup import set_backup_directory
-            try:
-                set_backup_directory(saved_backup_dir)
-            except Exception as e:
-                logger.warning(f"Unable to restore backup directory '{saved_backup_dir}': {e}")
-
 
 async def prime_watchlist_cache() -> None:
     from services.watchlist_scanner import ensure_cache_loaded

@@ -1598,6 +1598,8 @@
     "destinationDesc": "Directory where backup files are stored.",
     "availableDirs": "Available:",
     "dirChanged": "Backup directory changed",
+    "dirLocked": "The backup directory is locked by the BACKUP_PATH configuration.",
+    "dirLockedNotice": "The backup directory is set by the BACKUP_PATH environment variable and can't be changed here. Edit your compose configuration to change it.",
     "retentionTitle": "Retention policy",
     "retentionDesc": "Set the retention period or maximum number of backups.",
     "retentionByDays": "By duration",
@@ -2133,6 +2135,8 @@
           },
           "ticketStatus": {
             "open": "Open",
+            "in_progress": "In progress",
+            "resolved": "Resolved",
             "closed": "Closed"
           }
         },

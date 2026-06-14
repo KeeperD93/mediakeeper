@@ -1598,6 +1598,8 @@
     "destinationDesc": "Répertoire où les fichiers de backup sont stockés.",
     "availableDirs": "Disponibles :",
     "dirChanged": "Répertoire de backup modifié",
+    "dirLocked": "Le répertoire de sauvegarde est verrouillé par la configuration BACKUP_PATH.",
+    "dirLockedNotice": "Le répertoire de sauvegarde est défini par la variable d'environnement BACKUP_PATH et ne peut pas être modifié ici. Modifiez votre configuration compose pour le changer.",
     "retentionTitle": "Politique de rétention",
     "retentionDesc": "Définissez la durée de conservation ou le nombre maximum de sauvegardes.",
     "retentionByDays": "Par durée",
@@ -2133,6 +2135,8 @@
           },
           "ticketStatus": {
             "open": "Ouvert",
+            "in_progress": "En cours",
+            "resolved": "Résolu",
             "closed": "Fermé"
           }
         },

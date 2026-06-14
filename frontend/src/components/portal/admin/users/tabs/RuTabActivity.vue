@@ -136,6 +136,9 @@
 import { ref, watch, onMounted } from 'vue'
 import { Inbox, LifeBuoy, ListMusic, Sparkles, Star, TrendingUp } from 'lucide-vue-next'
 import { usePortalAdminUsers } from '@/composables/portal/usePortalAdminUsers'
+import { useToast } from '@/composables/useToast'
+import { TOAST_TYPE } from '@/constants/toast'
+import i18n from '@/i18n'
 import RuUserBadge from '../RuUserBadge.vue'
 import PortalLoadMore from '@/components/portal/PortalLoadMore.vue'
 import { localizedDate } from '@/utils/datetime'
@@ -147,6 +150,7 @@ const props = defineProps({
 })
 
 const api = usePortalAdminUsers()
+const { showToast } = useToast()
 const FEED_PAGE = 100
 const requests = ref([])
 const tickets = ref([])
@@ -175,6 +179,9 @@ async function load() {
     ticketsHasMore.value = !!tk?.has_more
     requestsCursor.value = rq?.next_cursor || null
     ticketsCursor.value = tk?.next_cursor || null
+  } catch (e) {
+    console.error('[RuTabActivity.load] failed', e)
+    showToast(i18n.global.t('common.networkError'), TOAST_TYPE.ERR)
   } finally {
     loadingFeeds.value = false
   }
@@ -194,6 +201,9 @@ async function loadMoreRequests() {
     requests.value = [...requests.value, ...items]
     requestsHasMore.value = !!res?.has_more
     requestsCursor.value = res?.next_cursor || null
+  } catch (e) {
+    console.error('[RuTabActivity.loadMoreRequests] failed', e)
+    showToast(i18n.global.t('common.networkError'), TOAST_TYPE.ERR)
   } finally {
     loadingMoreRequests.value = false
   }
@@ -213,6 +223,9 @@ async function loadMoreTickets() {
     tickets.value = [...tickets.value, ...items]
     ticketsHasMore.value = !!res?.has_more
     ticketsCursor.value = res?.next_cursor || null
+  } catch (e) {
+    console.error('[RuTabActivity.loadMoreTickets] failed', e)
+    showToast(i18n.global.t('common.networkError'), TOAST_TYPE.ERR)
   } finally {
     loadingMoreTickets.value = false
   }

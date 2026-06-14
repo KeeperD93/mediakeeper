@@ -4,6 +4,9 @@
       ref="btnRef"
       class="pt-nav-icon pt-bell"
       :title="$t('portal.notifications.title')"
+      :aria-label="$t('portal.notifications.title')"
+      aria-haspopup="dialog"
+      :aria-expanded="open"
       @click="toggle"
     >
       <Bell :size="20" />
@@ -12,9 +15,19 @@
 
     <Teleport to="body">
       <transition name="pt-bell-pop">
-        <div v-if="open" class="pt-bell-popup" :style="popupStyle" @click.stop>
+        <div
+          v-if="open"
+          ref="panelRef"
+          class="pt-bell-popup"
+          :style="popupStyle"
+          role="dialog"
+          aria-modal="true"
+          :aria-labelledby="titleId"
+          tabindex="-1"
+          @click.stop
+        >
           <header class="pt-bell-head">
-            <h3>{{ $t('portal.notifications.title') }}</h3>
+            <h3 :id="titleId">{{ $t('portal.notifications.title') }}</h3>
           </header>
           <div class="pt-bell-list">
             <div v-if="loading" class="pt-bell-empty">{{ $t('common.loading') }}</div>
@@ -57,10 +70,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useNotifications } from '@/composables/portal/useNotifications'
+import { useFocusTrap } from '@/composables/useFocusTrap'
 import EventDetailModal from './EventDetailModal.vue'
 import PortalLoadMore from './PortalLoadMore.vue'
 import { NOTIF_TYPE } from '@/constants/notifications'
@@ -85,6 +99,7 @@ const {
   loadMore,
   markRead,
   markAllRead,
+  clearUnreadBadge,
   startPolling,
   stopPolling,
 } = useNotifications()
@@ -92,7 +107,12 @@ const {
 const open = ref(false)
 const detailEventId = ref(null)
 const btnRef = ref(null)
+const panelRef = ref(null)
 const popupStyle = ref({})
+const titleId = useId()
+// Guards the post-await startPolling() in close() from firing after an
+// unmount mid-navigation, which would leak the polling interval.
+let unmounted = false
 
 // Anchor the popup to the trigger button's rect. The nav has a
 // max-width so on wide viewports the bell sits far from the viewport's
@@ -116,18 +136,30 @@ function computePopupStyle() {
 }
 
 async function toggle() {
-  open.value = !open.value
   if (open.value) {
-    await nextTick()
-    computePopupStyle()
-    await fetchList(false)
-    // Opening the popup is the read action — clears the badge and
-    // flags every listed item on the server.
-    if (unread.value > 0) await markAllRead()
+    close()
+    return
   }
+  open.value = true
+  stopPolling()
+  // Kick the fetch off synchronously so paging/loading reset before the first
+  // render — no stale "load more" button flashes on reopen.
+  const pending = fetchList(false)
+  await nextTick()
+  computePopupStyle()
+  await pending
+  // Opening clears the badge but keeps per-item unread highlight, so every
+  // loaded page still shows what was new; the server sync happens on close.
+  clearUnreadBadge()
 }
-function close() {
+async function close() {
+  if (!open.value) return
   open.value = false
+  // Closing is the read action: flag everything read server-side first (only
+  // when something is still unread), then resume polling so the refreshed
+  // count reflects the committed state instead of racing the read-all request.
+  if (items.value.some(n => !n.read)) await markAllRead()
+  if (!unmounted) startPolling()
 }
 function onResize() {
   if (open.value) computePopupStyle()
@@ -180,12 +212,22 @@ async function onClick(n) {
   close()
 }
 
+useFocusTrap({
+  active: open,
+  containerRef: panelRef,
+  onEscape: close,
+})
+
 onMounted(() => {
-  startPolling(30000)
+  startPolling()
   window.addEventListener('resize', onResize)
   window.addEventListener('scroll', onResize, { passive: true })
 })
 onBeforeUnmount(() => {
+  unmounted = true
+  // Best-effort: if the panel is still open (no close() fired — e.g. logout or
+  // a programmatic route change), commit the read state so it isn't lost.
+  if (open.value && items.value.some(n => !n.read)) markAllRead()
   stopPolling()
   window.removeEventListener('resize', onResize)
   window.removeEventListener('scroll', onResize)
@@ -338,5 +380,11 @@ onBeforeUnmount(() => {
 .pt-bell-pop-leave-to {
   opacity: 0;
   transform: translateY(-6px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pt-bell-pop-enter-active,
+  .pt-bell-pop-leave-active {
+    transition: none;
+  }
 }
 </style>

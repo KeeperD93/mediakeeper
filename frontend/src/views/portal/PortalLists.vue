@@ -135,6 +135,9 @@ async function loadTab(tab) {
   try {
     if (tab === 'mine') await svc.fetchMyLists()
     else await svc.fetchPublicLists({ limit: PUBLIC_PAGE })
+  } catch (e) {
+    console.error('[PortalLists.loadTab] failed', e)
+    showToast(t('common.networkError'), TOAST_TYPE.ERR)
   } finally {
     loading.value = false
   }
@@ -149,6 +152,9 @@ async function loadMorePublic() {
       cursor: svc.publicCursor.value,
       append: true,
     })
+  } catch (e) {
+    console.error('[PortalLists.loadMorePublic] failed', e)
+    showToast(t('common.networkError'), TOAST_TYPE.ERR)
   } finally {
     loadingMorePublic.value = false
   }

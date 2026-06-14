@@ -145,11 +145,12 @@ def _validate_name(name: str) -> str | None:
     stripped = name.strip() if name else ""
     if not stripped:
         return "empty_name"
-    # Path traversal: only the exact ".." segment is dangerous as a path
-    # component. Legitimate titles may contain "..." (e.g. a movie title
-    # ending in an ellipsis, "Fontaine je ne boirai pas...mkv").
     if '/' in name or '\\' in name:
         return "name_not_allowed"
-    if stripped in ('.', '..'):
+    # Reject names made only of dots/spaces ('.', '..', '...', '. .'): on Windows
+    # the FS strips trailing dots/spaces, so such a name resolves to the parent
+    # directory (a merge-into-parent + delete vector). Titles that merely contain
+    # an ellipsis keep real text and pass ("Fontaine...mkv".rstrip('. ') is text).
+    if not stripped.rstrip('. '):
         return "name_not_allowed"
     return None

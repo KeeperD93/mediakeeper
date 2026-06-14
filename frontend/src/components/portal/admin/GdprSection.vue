@@ -136,6 +136,8 @@ import { Save } from 'lucide-vue-next'
 import HelpEditor from '@/components/portal/help/HelpEditor.vue'
 import GdprPendingTable from '@/components/portal/admin/GdprPendingTable.vue'
 import MkToggle from '@/components/common/MkToggle.vue'
+import { useToast } from '@/composables/useToast'
+import { TOAST_TYPE } from '@/constants/toast'
 import { DEFAULT_SETTINGS, useGdprAdmin } from '@/composables/portal/useGdprAdmin'
 
 import '@/assets/styles/portal/admin-gdpr.css'
@@ -145,6 +147,7 @@ const DELAY_MAX = 90
 const SAVED_MESSAGE_TIMEOUT_MS = 2000
 
 const { t, locale } = useI18n()
+const { showToast } = useToast()
 const { saving, fetchSettings, saveSettings, fetchPendingDeletions, cancelDeletionRequest } =
   useGdprAdmin()
 
@@ -177,6 +180,9 @@ async function load() {
     Object.assign(form, res)
     loaded.value = true
     if (form.enabled) await loadPending()
+  } catch (e) {
+    console.error('[GdprSection.load] failed', e)
+    showToast(t('common.networkError'), TOAST_TYPE.ERR)
   } finally {
     loading.value = false
   }
@@ -200,6 +206,9 @@ async function loadPending(append = false) {
     if (gen !== pendingGen) return // superseded by a newer load → discard
     pending.value = append ? [...pending.value, ...items] : items
     pendingTotal.value = total
+  } catch (e) {
+    console.error('[GdprSection.loadPending] failed', e)
+    showToast(t('common.networkError'), TOAST_TYPE.ERR)
   } finally {
     if (append) pendingLoadingMore.value = false
     else pendingLoading.value = false

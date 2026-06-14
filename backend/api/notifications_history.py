@@ -7,7 +7,7 @@ Mounted as a sub-router on the main notifications router so URLs stay
 import json
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select, func, delete
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -42,7 +42,7 @@ class LogRequest(BaseModel):
 
 @router.get("/history")
 async def get_history(
-    limit: int = 100,
+    limit: int = Query(100, ge=1, le=200),
     channel: Optional[str] = None,
     status: Optional[str] = None,
     cursor: str = "",

@@ -44,7 +44,7 @@ async def _handler_notifications(db: AsyncSession) -> None:
 
 
 async def _handler_backup(db: AsyncSession) -> None:
-    from services.backup import apply_retention, create_backup
+    from services.backup import apply_retention, create_backup, resolve_backup_dir
     from services.settings import get_setting
 
     components_raw = await get_setting(db, "backup.auto_components") or "{}"
@@ -59,7 +59,7 @@ async def _handler_backup(db: AsyncSession) -> None:
         progress_cb=lambda c, t, label: update_progress("backup_auto", c, t, label),
     )
     retention = int(await get_setting(db, "backup.retention_days") or 30)
-    apply_retention(retention)
+    apply_retention(retention, await resolve_backup_dir(db))
 
 
 async def _handler_healthcheck(db: AsyncSession) -> None:

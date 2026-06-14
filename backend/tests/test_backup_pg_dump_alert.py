@@ -3,8 +3,31 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from services.backup.create import _pg_dump_async
+from services.backup.create import _parse_pg_dsn, _pg_dump_async
 from services.monitoring import AlertType, reset_debounce_state
+
+
+def test_parse_pg_dsn_percent_decodes_credentials():
+    """asyncpg/SQLAlchemy require reserved chars in the DSN to be
+    percent-encoded; pg_dump must receive the *decoded* values, otherwise auth
+    fails and the archive silently ships without the database dump."""
+    dsn = _parse_pg_dsn("postgresql+asyncpg://u%24er:p%40ss%2Fword@db.host:6543/my%2Ddb")
+    assert dsn["user"] == "u$er"
+    assert dsn["password"] == "p@ss/word"
+    assert dsn["host"] == "db.host"
+    assert dsn["port"] == "6543"
+    assert dsn["dbname"] == "my-db"
+
+
+def test_parse_pg_dsn_falls_back_to_defaults():
+    dsn = _parse_pg_dsn("postgresql://")
+    assert dsn == {
+        "host": "127.0.0.1",
+        "port": "5432",
+        "user": "mediakeeper",
+        "password": "",
+        "dbname": "mediakeeper_db",
+    }
 
 
 @pytest.fixture(autouse=True)

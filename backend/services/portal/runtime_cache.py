@@ -61,9 +61,14 @@ async def resolve_runtimes(items: list[dict]) -> None:
     try:
         async with AsyncSessionLocal() as db:
             runtimes = await _read_cache(db, targets)
-            misses = [t for t in targets if t not in runtimes]
-            if misses:
-                runtimes.update(await _fetch_and_store(db, misses))
+            # Sort misses so concurrent renders insert in the same order and
+            # never cross-lock the unique index (deadlock prevention).
+            misses = sorted(t for t in targets if t not in runtimes)
+            api_key = await _get_tmdb_key(db) if misses else None
+        # The connection is released here, BEFORE the slow TMDB calls, so a
+        # cold-cache burst can't pin a pooled connection idle-in-transaction.
+        if misses and api_key:
+            runtimes.update(await _fetch_and_store(misses, api_key))
     except Exception:
         logger.exception("[runtime_cache] resolve failed (%d items)", len(items))
         return
@@ -105,41 +110,50 @@ async def _read_cache(
 
 
 async def _fetch_and_store(
-    db: AsyncSession, misses: list[tuple[int, str]],
+    misses: list[tuple[int, str]], api_key: str,
 ) -> dict[tuple[int, str], int]:
-    """Fetch missing runtimes from TMDB (bounded concurrency) and persist."""
-    api_key = await _get_tmdb_key(db)
-    if not api_key:
-        return {}
+    """Fetch missing runtimes from TMDB (bounded concurrency) and persist.
+
+    ``misses`` must be pre-sorted by the caller so concurrent renders insert in
+    the same order — they then acquire the unique-index locks identically and
+    cannot deadlock. The TMDB fetch runs with no DB connection held; a fresh
+    short-lived session opens only to write the results.
+    """
     fetched = await asyncio.gather(
         *(_fetch_one(api_key, tid, mt) for tid, mt in misses)
     )
     now = datetime.now(timezone.utc)
-    out = {}
+    out: dict[tuple[int, str], int] = {}
+    pending: list[tuple[int, str, int]] = []
     for (tid, mt), runtime in zip(misses, fetched):
         if runtime is None:  # transient failure — retry on a later render
             continue
         out[(tid, mt)] = runtime
-        try:
-            async with db.begin_nested():
-                db.add(TmdbRuntimeCache(
-                    tmdb_id=tid, media_type=mt, runtime=runtime, fetched_at=now,
-                ))
-                await db.flush()
-        except IntegrityError:
-            # Row already exists. Refresh only a cached "absent" (0) runtime —
-            # it may now be resolvable; a real runtime is immutable, so a
-            # concurrent insert of the same value stays a no-op.
-            await db.execute(
-                update(TmdbRuntimeCache)
-                .where(
-                    TmdbRuntimeCache.tmdb_id == tid,
-                    TmdbRuntimeCache.media_type == mt,
-                    TmdbRuntimeCache.runtime <= 0,
+        pending.append((tid, mt, runtime))
+    if not pending:
+        return out
+    async with AsyncSessionLocal() as db:
+        for tid, mt, runtime in pending:
+            try:
+                async with db.begin_nested():
+                    db.add(TmdbRuntimeCache(
+                        tmdb_id=tid, media_type=mt, runtime=runtime, fetched_at=now,
+                    ))
+                    await db.flush()
+            except IntegrityError:
+                # Row already exists. Refresh only a cached "absent" (0) runtime —
+                # it may now be resolvable; a real runtime is immutable, so a
+                # concurrent insert of the same value stays a no-op.
+                await db.execute(
+                    update(TmdbRuntimeCache)
+                    .where(
+                        TmdbRuntimeCache.tmdb_id == tid,
+                        TmdbRuntimeCache.media_type == mt,
+                        TmdbRuntimeCache.runtime <= 0,
+                    )
+                    .values(runtime=runtime, fetched_at=now)
                 )
-                .values(runtime=runtime, fetched_at=now)
-            )
-    await db.commit()
+        await db.commit()
     return out
 
 

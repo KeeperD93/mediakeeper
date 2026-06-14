@@ -18,8 +18,8 @@ from services.settings import set_setting
 @pytest.fixture
 def patched_backup_dir(workspace_tmp_path, monkeypatch):
     monkeypatch.setattr(
-        "services.backup.create.get_current_backup_dir",
-        lambda: Path(workspace_tmp_path),
+        "services.backup.create.resolve_backup_dir",
+        AsyncMock(return_value=Path(workspace_tmp_path)),
     )
     return workspace_tmp_path
 

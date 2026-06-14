@@ -5,14 +5,14 @@ from datetime import date
 from typing import Literal
 
 from fastapi import APIRouter, Depends, Request
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.portal.deps import get_current_profile
 from constants.portal_availability import AVAILABILITY_FULL, AVAILABILITY_PARTIAL
 from constants.tmdb_status import TMDB_TERMINAL_STATUSES
-from core.database import get_db
+from core.database import AsyncSessionLocal, get_db
 from core.http_client import get_internal_client
 from core.rate_limit import limiter, portal_user_or_ip_key
 from models.portal.emby_tmdb_index import EmbyTmdbIndex
@@ -43,6 +43,11 @@ def _ignored_key(tmdb_id: int, season: int, episode: int) -> str:
 router = APIRouter(prefix="/availability", tags=["portal-availability"])
 logger = logging.getLogger("mediakeeper.portal.availability")
 
+# Cap concurrent TV completeness checks: each runs an Emby + TMDB fan-out,
+# so an unbounded batch could saturate both. The batch list itself is also
+# bounded (AvailabilityQuery.items max_length) to cap total work.
+_AVAILABILITY_CONCURRENCY = 8
+
 
 class AvailabilityItem(BaseModel):
     """Single entry in the batch availability query.
@@ -64,7 +69,7 @@ class AvailabilityItem(BaseModel):
 class AvailabilityQuery(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    items: list[AvailabilityItem]
+    items: list[AvailabilityItem] = Field(max_length=500)
 
 
 @router.post("")
@@ -120,29 +125,17 @@ async def check_availability(
     server_id = await get_emby_server_id(source) if source else ""
     ignored_set = set(await get_ignored(db))
 
-    # TV completeness checks are independent — run them in parallel so
-    # a page with ~20 series doesn't serialise 20 × (Emby + TMDB) calls.
-    # Movies and non-indexed items skip the check entirely.
-    tv_jobs: dict[int, asyncio.Task] = {}
+    # TV completeness checks are independent — run them in parallel (capped at
+    # _AVAILABILITY_CONCURRENCY) so a page with ~20 series doesn't serialise
+    # 20 × (Emby + TMDB) calls, nor fan out without bound. Movies and
+    # non-indexed items skip the check entirely.
+    tv_jobs: dict[int, list[str]] = {}
     for it in query.items:
-        tmdb_id = it.tmdb_id
-        media_type = it.media_type
-        entries_for_tmdb = index_map.get(tmdb_id)
-        if entries_for_tmdb and media_type == "tv":
-            emby_ids = [e.emby_item_id for e in entries_for_tmdb]
-            tv_jobs[tmdb_id] = asyncio.create_task(
-                _check_series_completeness(db, emby_ids, tmdb_id, ignored_set)
-            )
+        entries_for_tmdb = index_map.get(it.tmdb_id)
+        if entries_for_tmdb and it.media_type == "tv":
+            tv_jobs[it.tmdb_id] = [e.emby_item_id for e in entries_for_tmdb]
 
-    tv_status: dict[int, str] = {}
-    if tv_jobs:
-        await asyncio.gather(*tv_jobs.values(), return_exceptions=True)
-        for tid, task in tv_jobs.items():
-            try:
-                tv_status[tid] = task.result()
-            except Exception as e:
-                logger.warning("[AVAILABILITY] tv completeness %s: %s", tid, e)
-                tv_status[tid] = AVAILABILITY_FULL
+    tv_status = await _gather_tv_completeness(tv_jobs, ignored_set)
 
     results = {}
     for it in query.items:
@@ -249,6 +242,37 @@ async def _check_series_completeness(
             if air and air <= today:
                 return AVAILABILITY_PARTIAL
     return AVAILABILITY_FULL
+
+
+async def _gather_tv_completeness(
+    jobs: dict[int, list[str]],
+    ignored_set: set[str],
+) -> dict[int, str]:
+    """Run series-completeness checks for ``{tmdb_id: [emby_ids]}`` in
+    parallel, capped at :data:`_AVAILABILITY_CONCURRENCY` concurrent
+    (Emby + TMDB) checks so a large batch can't fan out without bound.
+    Each task gets its OWN short-lived session — an AsyncSession is not
+    safe for concurrent use, so the capped tasks must not share one. A
+    failing check degrades to "full" so one bad series can't blank the
+    whole batch."""
+    if not jobs:
+        return {}
+    sem = asyncio.Semaphore(_AVAILABILITY_CONCURRENCY)
+
+    async def _one(tid: int, emby_ids: list[str]) -> str:
+        async with sem, AsyncSessionLocal() as task_db:
+            return await _check_series_completeness(task_db, emby_ids, tid, ignored_set)
+
+    tasks = {tid: asyncio.create_task(_one(tid, eids)) for tid, eids in jobs.items()}
+    await asyncio.gather(*tasks.values(), return_exceptions=True)
+    status: dict[int, str] = {}
+    for tid, task in tasks.items():
+        try:
+            status[tid] = task.result()
+        except Exception as e:
+            logger.warning("[AVAILABILITY] tv completeness %s: %s", tid, e)
+            status[tid] = AVAILABILITY_FULL
+    return status
 
 
 @router.get("/tv/{tmdb_id}/episodes")
