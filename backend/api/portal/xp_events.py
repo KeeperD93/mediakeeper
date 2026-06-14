@@ -56,9 +56,10 @@ async def update_xp_event(
     _=Depends(require_admin),
 ):
     payload = {k: v for k, v in body.model_dump().items() if v is not None or k in ("description", "action_filter")}
-    if "starts_at" in payload and "ends_at" in payload and payload["ends_at"] <= payload["starts_at"]:
-        raise HTTPException(400, "ends_at must be after starts_at")
-    result = await svc.update_event(db, event_id, payload)
+    try:
+        result = await svc.update_event(db, event_id, payload)
+    except ValueError as e:
+        raise HTTPException(400, "ends_at must be after starts_at") from e
     if result is None:
         raise HTTPException(404, "Event not found")
     return result
