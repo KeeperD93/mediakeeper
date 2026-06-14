@@ -125,6 +125,9 @@ async function load() {
   const uid = props.user?.id
   if (!uid) return
   loadingXp.value = true
+  // Reset paging up front so a fast user-switch can't reuse the old cursor.
+  xpHasMore.value = false
+  xpCursor.value = null
   try {
     const [tr, xh] = await Promise.all([
       api.fetchTrophies(uid),

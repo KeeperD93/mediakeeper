@@ -44,6 +44,9 @@ async function load() {
   const uid = props.user?.id
   if (!uid) return
   loading.value = true
+  // Reset paging up front so a fast user-switch can't reuse the old cursor.
+  hasMore.value = false
+  auditCursor.value = null
   try {
     const res = await api.fetchAudit(uid, { limit: AUDIT_PAGE })
     // Drop the response if the drawer already switched to another user.

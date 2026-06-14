@@ -154,6 +154,9 @@ async function loadHistory() {
   const uid = props.user?.id
   if (!uid) return
   loadingHistory.value = true
+  // Reset paging up front so a fast user-switch can't reuse the old cursor.
+  historyHasMore.value = false
+  historyCursor.value = null
   try {
     const res = await api.fetchLoginHistory(uid, { limit: LOGIN_PAGE })
     // Drop the response if the drawer already switched to another user.
