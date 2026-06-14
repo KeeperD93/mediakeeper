@@ -1,0 +1,15 @@
+# GitGuardian configuration.
+#
+# Silences a confirmed false positive: a fabricated Postgres DSN used only to
+# unit-test the pg_dump DSN percent-decode parser
+# (backend/tests/test_backup_pg_dump_alert.py). The host "db.host" is a
+# non-existent placeholder (GitGuardian validity = "failed to check") and the
+# credentials are URL-encoded placeholders chosen to exercise reserved-character
+# decoding — no real secret.
+version: 2
+secret:
+  ignored-matches:
+    - name: Synthetic Postgres DSN test fixture (pg_dump parser test)
+      match: postgresql+asyncpg://u%24er:p%40ss%2Fword@db.host:6543/my%2Ddb
+  ignored-paths:
+    - backend/tests/test_backup_pg_dump_alert.py
