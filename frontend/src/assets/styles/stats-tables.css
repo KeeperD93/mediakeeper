@@ -368,25 +368,6 @@
 .cinema-stats .act-child td {
   background: rgb(var(--accent-rgb), 0.04);
 }
-.cinema-stats .act-bulk-del-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 12px;
-  border-radius: var(--radius-sm);
-  font-size: var(--text-2xs);
-  font-weight: var(--font-medium);
-  background: rgb(239, 68, 68, 0.1);
-  color: #ef4444;
-  border: 0.5px solid rgb(239, 68, 68, 0.2);
-  cursor: pointer;
-  font-family: inherit;
-  transition: background var(--duration-fast);
-  margin-right: auto;
-}
-.cinema-stats .act-bulk-del-btn:hover {
-  background: rgb(239, 68, 68, 0.2);
-}
 
 .cinema-stats .flux-badge {
   font-size: var(--text-2xs);
@@ -459,13 +440,12 @@
   text-align: center;
 }
 
-/* Touch targets ≥ 44×44px on mobile for the toolbar toggle, bulk-delete
-   and pagination buttons. Placed after the base rules so the mobile
+/* Touch targets ≥ 44×44px on mobile for the toolbar toggle and
+   pagination buttons. Placed after the base rules so the mobile
    min-height wins over .ctrl-toggle's 32px desktop default (equal
    specificity → source order decides). */
 @media (max-width: 767px) {
   .cinema-stats .ctrl-toggle,
-  .cinema-stats .act-bulk-del-btn,
   .cinema-stats .pag-btn {
     min-width: 44px;
     min-height: 44px;

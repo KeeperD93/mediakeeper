@@ -319,7 +319,6 @@ export function useStats() {
     excludeUsers = '',
     sortBy = '',
     sortOrder = '',
-    append = false,
   } = {}) {
     loadingActivity.value = true
     try {
@@ -337,11 +336,7 @@ export function useStats() {
       if (sortBy) params.set('sort_by', sortBy)
       if (sortOrder) params.set('sort_order', sortOrder)
       const d = await apiGet(`/api/stats/activity?${params}`)
-      if (d) {
-        if (append && d.items)
-          activity.value = { ...d, items: [...activity.value.items, ...d.items] }
-        else activity.value = d
-      }
+      if (d) activity.value = d
     } catch {
       /* silent: activity fetch */
     }
