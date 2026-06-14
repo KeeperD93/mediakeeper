@@ -5,18 +5,16 @@ from pathlib import Path
 
 from services.path_config import get_existing_path_roots, is_backup_dir_locked, validate_path_in_roots
 
-from ._state import get_current_backup_dir, set_runtime_backup_dir
-
 logger = logging.getLogger("mediakeeper.backup")
 
 
-def list_available_backup_dirs() -> list[str]:
+def list_available_backup_dirs(current_dir: Path) -> list[str]:
     """
     List the directories available for storing backups.
     Look up common mounted volumes and check write permissions.
     """
     candidates = set()
-    candidates.add(str(get_current_backup_dir()))
+    candidates.add(str(current_dir))
     for root in get_existing_path_roots():
         candidates.add(str(root))
 
@@ -69,10 +67,9 @@ def set_backup_directory(new_path: str):
     try:
         p.mkdir(parents=True, exist_ok=True)
     except Exception as e:
-        raise ValueError(f"cannot_create_directory: {e}")
+        raise ValueError(f"cannot_create_directory: {e}") from e
 
     if not os.access(str(p), os.W_OK):
         raise ValueError(f"directory_not_writable: {new_path}")
 
-    set_runtime_backup_dir(p)
-    logger.info(f"[backup] Directory changed to : {p}")
+    logger.info("[backup] Directory validated: %s", p)

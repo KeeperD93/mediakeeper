@@ -32,9 +32,11 @@ This section intentionally has no date so it is not shown to users.
 - Preferences — the "hide adult content" setting moved here, under the genres.
 - Home — Popular and Top-rated rows now sourced from Discover.
 - What's new — recent additions stay until your next visit.
+- Notifications — marked read when the panel closes (highlight kept while open).
 
 ### Fixed
 - Event invites — private profiles and admins can no longer be invited.
+- Notifications — keyboard navigation (Esc to close) and no duplicates on load.
 - Continue watching — shows only your own in-progress titles.
 - Requests — refused (not allowed through) when the adult check can't reach TMDB.
 - Lists — collaborator history shows pseudonyms, never raw Emby logins.
@@ -62,6 +64,7 @@ This section intentionally has no date so it is not shown to users.
 - Requests — adult titles can only be requested if the administrator allows it.
 - Notifications — admin messages and list updates now show a readable label.
 - Movie night — private event: capacity follows the guests (picker hidden).
+- Network errors — clear message shown instead of a misleading empty list.
 
 ## [1.0.0-rc.4] - 2026-05-30
 

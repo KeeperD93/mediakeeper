@@ -28,7 +28,9 @@
         <span class="pt-ticket-id">#{{ ticket.id }}</span>
         <span class="pt-ticket-type">{{ $t(`portal.tickets.types.${ticket.issue_type}`) }}</span>
         <span class="pt-ticket-media">{{ ticket.media_title }}</span>
-        <span class="pt-ticket-status" :class="`pt-ts--${ticket.status}`">{{ ticket.status }}</span>
+        <span class="pt-ticket-status" :class="`pt-ts--${ticket.status}`">
+          {{ $t(`portal.tickets.status.${ticket.status}`) }}
+        </span>
         <div class="pt-admin-actions">
           <select
             :value="ticket.status"
@@ -36,7 +38,7 @@
             @change="changeStatus(ticket.id, $event.target.value)"
           >
             <option v-for="s in ['open', 'in_progress', 'resolved', 'closed']" :key="s" :value="s">
-              {{ s }}
+              {{ $t(`portal.tickets.status.${s}`) }}
             </option>
           </select>
         </div>

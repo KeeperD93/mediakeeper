@@ -46,13 +46,13 @@ class ItemsAdd(BaseModel):
 
 
 class ItemsRemove(BaseModel):
-    item_ids: Optional[list[int]] = None
-    items: Optional[list[ItemPayload]] = None
+    item_ids: Optional[list[int]] = Field(default=None, max_length=200)
+    items: Optional[list[ItemPayload]] = Field(default=None, max_length=200)
 
 
 class ItemsMove(BaseModel):
     dst_list_id: int
-    item_ids: list[int] = Field(..., min_length=1)
+    item_ids: list[int] = Field(..., min_length=1, max_length=200)
 
 
 class CopyListRequest(BaseModel):

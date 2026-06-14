@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Path
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from core.database import get_db
@@ -18,12 +18,12 @@ async def get_seen_alerts(
     result = await db.execute(
         select(SeenAlert.alert_id).where(SeenAlert.user_id == current_user.id)
     )
-    return {"seen": [row for row in result.scalars().all()]}
+    return {"seen": list(result.scalars().all())}
 
 
 @router.post("/seen/{alert_id}")
 async def mark_alert_seen(
-    alert_id: str,
+    alert_id: str = Path(..., min_length=1, max_length=128),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):

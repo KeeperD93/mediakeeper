@@ -120,6 +120,13 @@ async def apply_rename(old_path: str, new_name: str) -> dict:
     if name_err:
         return {"error": name_err}
     new_name = _sanitize_name(new_name)
+    # Re-validate after sanitisation: a name of only strippable chars ("<>",
+    # "***", ",") collapses to "" (or "..," to ".."), making dest == src.parent
+    # and silently merging+deleting the folder into its parent. Fail closed.
+    name_err = _validate_name(new_name)
+    if name_err:
+        logger.warning("[RENAME] Name rejected after sanitisation: old=%s", old_path)
+        return {"error": name_err}
 
     if not src.exists():
         logger.error("[RENAME] File or directory not found: %s", old_path)

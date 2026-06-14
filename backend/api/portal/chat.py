@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import time
+from collections import deque
 from datetime import datetime, timezone
 from typing import Optional
 from urllib.parse import urlsplit
@@ -36,6 +37,14 @@ WS_REVOCATION_CHECK_INTERVAL_SEC = 300
 # Close codes — kept in one place for the test suite.
 WS_CLOSE_AUTH_FAILED = 4001
 WS_CLOSE_ORIGIN_REJECTED = 4003
+
+# Per-connection WebSocket message throttle — the socket path bypasses the
+# HTTP limiter on POST /messages, so it mirrors that 30/min ceiling here.
+WS_MSG_LIMIT = 30
+WS_MSG_WINDOW_SEC = 60
+# How often the receive loop re-validates chat permission + token revocation,
+# so a kicked user stops within seconds instead of only at the periodic sweep.
+WS_PERM_RECHECK_INTERVAL_SEC = 30
 
 
 class SendMessage(BaseModel):
@@ -125,6 +134,19 @@ def _coerce_iat(payload_iat) -> datetime | None:
         return datetime.fromtimestamp(int(payload_iat), tz=timezone.utc)
     except (TypeError, ValueError):
         return None
+
+
+def _over_rate_limit(times: deque, now: float) -> bool:
+    """Sliding-window throttle for the chat WebSocket: returns ``True`` (drop
+    the message) once ``WS_MSG_LIMIT`` messages were sent within the last
+    ``WS_MSG_WINDOW_SEC``. Mutates ``times`` — evicts expired stamps and
+    records ``now`` when the message is allowed through."""
+    while times and now - times[0] > WS_MSG_WINDOW_SEC:
+        times.popleft()
+    if len(times) >= WS_MSG_LIMIT:
+        return True
+    times.append(now)
+    return False
 
 
 @router.get("/rooms")
@@ -306,6 +328,8 @@ async def websocket_chat(websocket: WebSocket, room_id: int):
         _ws_rooms[room_id] = {}
     _ws_rooms[room_id][user_id] = (websocket, jwt_iat)
 
+    msg_times: deque = deque()
+    last_perm_check = time.monotonic()
     try:
         while True:
             raw = await websocket.receive_text()
@@ -313,10 +337,29 @@ async def websocket_chat(websocket: WebSocket, room_id: int):
                 data = json.loads(raw)
             except json.JSONDecodeError:
                 continue
+            if not isinstance(data, dict):
+                continue
 
-            content = data.get("content", "").strip()
+            content = data.get("content")
+            if not isinstance(content, str):
+                continue
+            content = content.strip()
             if not content or len(content) > 2000:
                 continue
+
+            now = time.monotonic()
+            # Anti-spam: the socket bypasses the HTTP limiter, so throttle here.
+            if _over_rate_limit(msg_times, now):
+                continue
+
+            # Re-validate permission / revocation periodically so a kicked user
+            # stops within seconds, not only at the next sweep.
+            if now - last_perm_check >= WS_PERM_RECHECK_INTERVAL_SEC:
+                last_perm_check = now
+                async with AsyncSessionLocal() as db:
+                    if not await _ws_still_authorized(db, user_id, jwt_iat):
+                        await websocket.close(code=WS_CLOSE_AUTH_FAILED)
+                        break
 
             async with AsyncSessionLocal() as db:
                 result = await chat_svc.send_message(db, room_id, user_id, content)
@@ -363,6 +406,24 @@ async def _authenticate_ws(websocket: WebSocket) -> tuple[int, datetime] | None:
         if not is_token_valid_for_revocation_pivot(payload.get("iat"), profile.tokens_invalidated_at):
             return None
         return user.id, iat
+
+
+async def _ws_still_authorized(db: AsyncSession, user_id: int, jwt_iat: datetime) -> bool:
+    """Re-check, mid-session, that the user may still chat: active account,
+    chat permission not revoked, and JWT not invalidated since the handshake.
+    Lets a permission change take effect within seconds (loop recheck) instead
+    of only at the next prune_revoked_ws_sessions sweep — without a global
+    token bump that would log the user out everywhere."""
+    profile = (await db.execute(
+        select(UserProfile).where(UserProfile.user_id == user_id)
+    )).scalar_one_or_none()
+    if not profile:
+        return False
+    if not profile.chat_enabled or not profile.can_chat or not profile.account_active:
+        return False
+    if not is_token_valid_for_revocation_pivot(int(jwt_iat.timestamp()), profile.tokens_invalidated_at):
+        return False
+    return True
 
 
 async def _broadcast(room_id: int, message: dict):
@@ -412,11 +473,7 @@ async def prune_revoked_ws_sessions(db: AsyncSession) -> int:
     closed = 0
     for room_id, user_id, ws, iat in snapshot:
         pivot = pivots.get(user_id)
-        if pivot is None:
-            continue
-        if pivot.tzinfo is None:
-            pivot = pivot.replace(tzinfo=timezone.utc)
-        if iat >= pivot:
+        if is_token_valid_for_revocation_pivot(int(iat.timestamp()), pivot):
             continue
         try:
             await ws.close(code=WS_CLOSE_AUTH_FAILED)

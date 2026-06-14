@@ -17,6 +17,9 @@ build/
 venv/
 env/
 
+# pytest workspace temp dir (tests/conftest workspace_tmp_path) — local artifact.
+backend/.pytest-temp/
+
 # ---------- Node / Frontend ----------
 node_modules/
 frontend/dist/

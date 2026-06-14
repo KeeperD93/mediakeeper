@@ -3,8 +3,12 @@
     <h3 class="params-section-title">{{ $t('backup.destinationTitle') }}</h3>
     <p class="params-section-desc">{{ $t('backup.destinationDesc') }}</p>
     <div class="backup-dest-row">
-      <div class="backup-dest-input-wrap">
-        <Folder class="backup-dest-icon" :size="14" />
+      <p v-if="locked" class="backup-dest-locked">
+        <Lock :size="14" class="backup-dest-icon" aria-hidden="true" />
+        {{ $t('backup.dirLockedNotice') }}
+      </p>
+      <div v-if="!locked" class="backup-dest-input-wrap">
+        <Folder class="backup-dest-icon" :size="14" aria-hidden="true" />
         <input
           :value="backupDirInput"
           type="text"
@@ -20,7 +24,7 @@
           {{ $t('common.save') }}
         </button>
       </div>
-      <div v-if="backupDirs.length" class="backup-dest-suggestions">
+      <div v-if="!locked && backupDirs.length" class="backup-dest-suggestions">
         <span class="backup-dest-suggestions-label">{{ $t('backup.availableDirs') }}</span>
         <button
           v-for="dir in backupDirs"
@@ -37,12 +41,13 @@
 </template>
 
 <script setup>
-import { Folder } from 'lucide-vue-next'
+import { Folder, Lock } from 'lucide-vue-next'
 
 defineProps({
   backupDirInput: { type: String, default: '' },
   currentDir: { type: String, default: '/data/backups' },
   backupDirs: { type: Array, default: () => [] },
+  locked: { type: Boolean, default: false },
 })
 const emit = defineEmits(['update:backupDirInput', 'change-dir'])
 </script>
@@ -52,6 +57,18 @@ const emit = defineEmits(['update:backupDirInput', 'change-dir'])
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+.backup-dest-locked {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 14px;
+  background: var(--bg-primary);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-btn);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
 }
 .backup-dest-input-wrap {
   display: flex;

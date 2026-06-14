@@ -24,7 +24,7 @@ class CreateRequest(BaseModel):
     year: Optional[int] = None
     poster_url: Optional[str] = Field(None, max_length=500)
     backdrop_url: Optional[str] = Field(None, max_length=500)
-    requested_seasons: Optional[list] = None
+    requested_seasons: Optional[list] = Field(default=None, max_length=100)
     on_behalf_of: Optional[int] = None
 
 

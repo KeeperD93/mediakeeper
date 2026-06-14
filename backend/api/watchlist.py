@@ -4,9 +4,10 @@ Watchlist API routes v3 — persistent scan, results from DB.
 
 from datetime import date, timedelta
 import logging
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -32,6 +33,11 @@ from services.watchlist_scanner._tmdb import _tmdb_series, _tmdb_season
 
 logger = logging.getLogger("mediakeeper.api.watchlist")
 router = APIRouter(prefix="/api/watchlist", tags=["watchlist"])
+
+# Allowed TMDB media types for tracked items — single source for the
+# Pydantic pattern and the runtime check below.
+_MEDIA_TYPES = ("movie", "tv")
+_MEDIA_TYPE_PATTERN = f"^({'|'.join(_MEDIA_TYPES)})$"
 
 async def _invalidate_calendar_cache(db: AsyncSession):
     """Invalidate the in-memory calendar cache AND the DB cache."""
@@ -127,7 +133,7 @@ async def calendar_refresh(
 
 class IgnoreRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    keys: list[str]
+    keys: list[Annotated[str, Field(max_length=512)]] = Field(max_length=1000)
 
 @router.get("/ignored")
 async def list_ignored(db: AsyncSession = Depends(get_db), _: User = Depends(get_current_user)):
@@ -159,19 +165,19 @@ async def ignore_remove(
 class TrackRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     tmdb_id: int
-    media_type: str
-    name: str = ""
-    poster: str = ""
-    overview: str = ""
-    release_date: str = ""
-    year: str = ""
-    total_seasons: int = 0
-    total_episodes: int = 0
+    media_type: str = Field(pattern=_MEDIA_TYPE_PATTERN)
+    name: str = Field(default="", max_length=500)
+    poster: str = Field(default="", max_length=1000)
+    overview: str = Field(default="", max_length=5000)
+    release_date: str = Field(default="", max_length=32)
+    year: str = Field(default="", max_length=32)
+    total_seasons: int = Field(default=0, ge=0)
+    total_episodes: int = Field(default=0, ge=0)
 
 class UntrackRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     tmdb_id: int
-    media_type: str
+    media_type: str = Field(pattern=_MEDIA_TYPE_PATTERN)
 
 @router.get("/tracked")
 async def list_tracked(
@@ -216,7 +222,7 @@ async def search(q: str = Query(..., min_length=2), db: AsyncSession = Depends(g
 @router.get("/tmdb/{media_type}/{tmdb_id}")
 async def tmdb_detail(media_type: str, tmdb_id: int, locale: str = Depends(get_request_locale), db: AsyncSession = Depends(get_db), _: User = Depends(get_current_user)):
     """Full details of a movie or series from TMDB."""
-    if media_type not in ("movie", "tv"):
+    if media_type not in _MEDIA_TYPES:
         return {"error": "invalid_media_type"}
     return await get_media_detail(media_type, tmdb_id, db, locale=locale)
 

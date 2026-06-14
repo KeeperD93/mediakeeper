@@ -23,7 +23,7 @@ class CreateTicket(BaseModel):
     tmdb_id: Optional[int] = None
     media_title: str = Field(..., min_length=1, max_length=500)
     media_type: str = Field(..., pattern="^(movie|series|season|episode|other)$")
-    selected_seasons: Optional[list[dict]] = None
+    selected_seasons: Optional[list[dict]] = Field(default=None, max_length=100)
     issue_type: str = Field(..., min_length=1, max_length=30)
     priority: str = Field("minor", pattern="^(minor|blocking)$")
     description: str = Field(..., min_length=1, max_length=2000)

@@ -5,6 +5,8 @@ from pathlib import Path
 import pytest
 
 from services import backup as backup_service
+from services.path_config import get_backup_dir
+from services.settings import set_setting
 
 
 def _make_workspace_tmp() -> Path:
@@ -18,7 +20,6 @@ def test_set_backup_directory_rejects_when_locked_by_compose(monkeypatch):
     try:
         compose_backup_dir = root / "compose-backups"
         monkeypatch.setenv("BACKUP_PATH", str(compose_backup_dir))
-        monkeypatch.setattr(backup_service._state, "_runtime_backup_dir", None)
 
         with pytest.raises(ValueError, match="BACKUP_PATH"):
             backup_service.set_backup_directory(str(root / "other-backups"))
@@ -35,13 +36,13 @@ def test_set_backup_directory_accepts_path_inside_configured_roots(monkeypatch):
 
         monkeypatch.delenv("BACKUP_PATH", raising=False)
         monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(mounted_root))
-        monkeypatch.setattr(backup_service._state, "_runtime_backup_dir", None)
 
+        # Validates and creates the directory; persistence is the endpoint's job
+        # (set_setting), no per-process cache is mutated.
         backup_service.set_backup_directory(str(target))
 
         assert target.exists()
         assert target.is_dir()
-        assert backup_service.get_current_backup_dir() == target.resolve()
     finally:
         shutil.rmtree(root, ignore_errors=True)
 
@@ -57,7 +58,6 @@ def test_set_backup_directory_rejects_path_outside_configured_roots(monkeypatch)
 
         monkeypatch.delenv("BACKUP_PATH", raising=False)
         monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(mounted_root))
-        monkeypatch.setattr(backup_service._state, "_runtime_backup_dir", None)
 
         with pytest.raises(ValueError, match="MEDIAKEEPER_PATH_ROOTS|BACKUP_PATH"):
             backup_service.set_backup_directory(str(outside_target))
@@ -74,9 +74,8 @@ def test_list_available_backup_dirs_includes_configured_roots_and_env_backup(mon
 
         monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(mounted_root))
         monkeypatch.setenv("BACKUP_PATH", str(configured_backup_dir))
-        monkeypatch.setattr(backup_service._state, "_runtime_backup_dir", None)
 
-        directories = backup_service.list_available_backup_dirs()
+        directories = backup_service.list_available_backup_dirs(get_backup_dir())
 
         assert str(mounted_root.resolve()) in directories
         assert str(configured_backup_dir.resolve()) in directories
@@ -84,7 +83,7 @@ def test_list_available_backup_dirs_includes_configured_roots_and_env_backup(mon
         shutil.rmtree(root, ignore_errors=True)
 
 
-def test_get_backup_path_rejects_non_backup_zip_names(monkeypatch):
+def test_get_backup_path_rejects_non_backup_zip_names():
     root = _make_workspace_tmp()
     try:
         backup_dir = root / "backups"
@@ -93,11 +92,52 @@ def test_get_backup_path_rejects_non_backup_zip_names(monkeypatch):
         valid = backup_dir / "mediakeeper_backup_20260429_010203.zip"
         valid.write_text("backup", encoding="utf-8")
 
-        monkeypatch.setenv("BACKUP_PATH", str(backup_dir))
-        monkeypatch.setattr(backup_service._state, "_runtime_backup_dir", None)
+        assert backup_service.get_backup_path("manual.zip", backup_dir) is None
+        assert (
+            backup_service.get_backup_path(
+                "../mediakeeper_backup_20260429_010203.zip", backup_dir
+            )
+            is None
+        )
+        assert backup_service.get_backup_path(valid.name, backup_dir) == valid.resolve()
+    finally:
+        shutil.rmtree(root, ignore_errors=True)
 
-        assert backup_service.get_backup_path("manual.zip") is None
-        assert backup_service.get_backup_path("../mediakeeper_backup_20260429_010203.zip") is None
-        assert backup_service.get_backup_path(valid.name) == valid.resolve()
+
+@pytest.mark.asyncio
+async def test_resolve_backup_dir_reads_db_setting(db_session, monkeypatch):
+    """No per-process cache: the worker resolves the directory the web process
+    saved to the DB, even though it never called set_backup_directory itself."""
+    custom = _make_workspace_tmp() / "custom-backups"
+    try:
+        monkeypatch.delenv("BACKUP_PATH", raising=False)  # unlocked → DB override is honoured
+        await set_setting(db_session, "backup.directory", str(custom))
+        assert await backup_service.resolve_backup_dir(db_session) == custom
+    finally:
+        shutil.rmtree(custom.parent, ignore_errors=True)
+
+
+@pytest.mark.asyncio
+async def test_resolve_backup_dir_falls_back_to_env_when_unset(db_session, monkeypatch):
+    root = _make_workspace_tmp()
+    try:
+        monkeypatch.setenv("BACKUP_PATH", str(root / "env-backups"))
+        assert await backup_service.resolve_backup_dir(db_session) == get_backup_dir()
+    finally:
+        shutil.rmtree(root, ignore_errors=True)
+
+
+@pytest.mark.asyncio
+async def test_resolve_backup_dir_lock_overrides_stale_db_setting(db_session, monkeypatch):
+    """BACKUP_PATH always wins: a DB override persisted before the lock was
+    added must be ignored once BACKUP_PATH pins the directory."""
+    root = _make_workspace_tmp()
+    try:
+        env_dir = root / "env-locked"
+        monkeypatch.setenv("BACKUP_PATH", str(env_dir))
+        await set_setting(db_session, "backup.directory", str(root / "stale-db-dir"))
+        resolved = await backup_service.resolve_backup_dir(db_session)
+        assert resolved == get_backup_dir()  # env-pinned, not the stale DB value
+        assert resolved == env_dir.resolve()
     finally:
         shutil.rmtree(root, ignore_errors=True)

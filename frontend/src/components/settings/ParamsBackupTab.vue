@@ -19,6 +19,7 @@
       v-model:backup-dir-input="backupDirInput"
       :current-dir="backupInfo?.backup_dir || '/data/backups'"
       :backup-dirs="backupDirs"
+      :locked="backupDirLocked"
       @change-dir="changeBackupDir"
     />
 
@@ -59,6 +60,7 @@ const {
   backupRestoring,
   backupDirs,
   backupDirInput,
+  backupDirLocked,
   retentionMode,
   retentionDays,
   retentionCount,

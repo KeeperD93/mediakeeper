@@ -42,6 +42,7 @@ This section intentionally has no date so it is not shown to users.
 - Requests (admin) — "On behalf of" now defaults to your account.
 - Statistics — libraries: real Emby name instead of a sub-folder (auto-repair).
 - Issues (admin) — status filter fixed (no longer crashes or is ignored).
+- Backup settings — clear notice when the directory is locked by configuration.
 - Notifications — saving a Discord webhook no longer fails.
 - Notifications — Discord test message follows the configured default language.
 - Stats — Users and merge: profile photo (custom or Emby) now shown.
@@ -55,6 +56,7 @@ This section intentionally has no date so it is not shown to users.
 - Media Manager — files now line up with their generated names.
 - Media Manager — breadcrumb collapses an overflowing path, clearer separators.
 - Media Manager — dialog animations disabled when reduced motion is on.
+- Media Manager — folder rename to an emptied name is refused (was silent data loss).
 - Dashboard — "Upcoming releases" now shown in your language.
 - Dashboard — activity feed (logins, playback) now shown in your language.
 - Media library — TMDB detail pages now shown in your language (English fallback).
@@ -69,6 +71,10 @@ This section intentionally has no date so it is not shown to users.
 - Custom avatars now shown in admin topbar, user list and sessions.
 - Portal — Discover page: bigger back button, no sticky hover or sideways scroll.
 - Watchlist — Timeline tab: now fills the available height (no empty band).
+- Media library — TMDB search: English description shown when the translation is missing.
+- Portal users (admin) — drawer: ticket statuses "In progress" and "Resolved" now translated.
+- Issues (admin) — ticket statuses translated in the list and the status selector.
+- Network errors — clear message shown instead of a misleading empty list.
 
 ## [1.0.0-rc.4] - 2026-05-30
 

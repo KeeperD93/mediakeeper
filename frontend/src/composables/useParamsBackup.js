@@ -23,6 +23,7 @@ const selectedComponents = ref({
   logs: false,
   pg_dump: false,
 })
+const backupDirLocked = computed(() => !!backupInfo.value?.backup_dir_locked)
 let loadedOnce = false
 
 function formatSize(bytes) {
@@ -114,6 +115,12 @@ export function useParamsBackup() {
         await loadBackupInfo()
       } else showToast(data.detail || t('common.networkError'), TOAST_TYPE.ERR)
     } catch (e) {
+      // BACKUP_PATH lock returns a dedicated code — explain it rather than
+      // surfacing a generic network error.
+      if (e?.message === 'backup_directory_locked') {
+        showToast(t('backup.dirLocked'), TOAST_TYPE.ERR)
+        return
+      }
       console.error('[useParamsBackup.changeBackupDir] failed to change backup directory', e)
       showToast(t('common.networkError'), TOAST_TYPE.ERR)
     }
@@ -213,6 +220,7 @@ export function useParamsBackup() {
     backupRestoring,
     backupDirs,
     backupDirInput,
+    backupDirLocked,
     retentionMode,
     retentionDays,
     retentionCount,

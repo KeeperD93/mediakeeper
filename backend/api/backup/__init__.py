@@ -1,6 +1,6 @@
 """
-API Backup & restauration.
-Package split into modules (Rule 9, <= 300 lines).
+API Backup & restore.
+Package split into modules (<= 300 lines).
 """
 from fastapi import APIRouter
 

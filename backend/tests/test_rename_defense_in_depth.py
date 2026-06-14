@@ -18,7 +18,7 @@ from pathlib import Path
 
 import pytest
 
-from services.media_manager.rename import _merge_folder_into
+from services.media_manager.rename import _merge_folder_into, apply_rename
 
 
 def _make_workspace_tmp(prefix: str) -> Path:
@@ -40,9 +40,6 @@ async def test_merge_rejects_src_outside_media_roots(monkeypatch):
         dest_dir = media_root / "dest_dir"
         dest_dir.mkdir()
         monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
-
-        from services.media_manager import categories as cat_mod
-        monkeypatch.setattr(cat_mod, "MEDIA_FOLDERS", {"movies": str(media_root)})
 
         result = await _merge_folder_into(str(outside), str(dest_dir))
 
@@ -66,9 +63,6 @@ async def test_merge_rejects_dest_outside_media_roots(monkeypatch):
         outside_dest.mkdir()
         monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
 
-        from services.media_manager import categories as cat_mod
-        monkeypatch.setattr(cat_mod, "MEDIA_FOLDERS", {"movies": str(media_root)})
-
         result = await _merge_folder_into(str(src_dir), str(outside_dest))
 
         assert result == {"error": "path_not_allowed"}
@@ -89,9 +83,6 @@ async def test_merge_rejects_parent_traversal_payload(monkeypatch):
         dest_dir = media_root / "dest_dir"
         dest_dir.mkdir()
         monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
-
-        from services.media_manager import categories as cat_mod
-        monkeypatch.setattr(cat_mod, "MEDIA_FOLDERS", {"movies": str(media_root)})
 
         attack_src = f"{media_root}/sub/../../sibling"
         result = await _merge_folder_into(attack_src, str(dest_dir))
@@ -116,9 +107,6 @@ async def test_merge_accepts_paths_inside_media_root(monkeypatch):
         (src_dir / "movie.mkv").write_bytes(b"video")
         monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
 
-        from services.media_manager import categories as cat_mod
-        monkeypatch.setattr(cat_mod, "MEDIA_FOLDERS", {"movies": str(media_root)})
-
         result = await _merge_folder_into(str(src_dir), str(dest_dir))
 
         # Either succeeded with `moved>0`, or fell into the legit business
@@ -142,9 +130,6 @@ async def test_merge_accepts_nested_subpath(monkeypatch):
         nested_dest.mkdir(parents=True)
         monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
 
-        from services.media_manager import categories as cat_mod
-        monkeypatch.setattr(cat_mod, "MEDIA_FOLDERS", {"movies": str(media_root)})
-
         result = await _merge_folder_into(str(nested_src), str(nested_dest))
 
         assert result.get("error") != "path_not_allowed"
@@ -164,12 +149,38 @@ async def test_merge_rejects_absolute_path_outside_roots(monkeypatch):
         dest_dir.mkdir()
         monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
 
-        from services.media_manager import categories as cat_mod
-        monkeypatch.setattr(cat_mod, "MEDIA_FOLDERS", {"movies": str(media_root)})
-
         attack = "/etc/passwd" if sys.platform != "win32" else "C:\\Windows\\System32"
         result = await _merge_folder_into(attack, str(dest_dir))
 
         assert result == {"error": "path_not_allowed"}
+    finally:
+        shutil.rmtree(workspace, ignore_errors=True)
+
+
+@pytest.mark.asyncio
+async def test_rename_rejects_name_that_sanitises_to_empty(monkeypatch):
+    """A new_name made only of strippable characters passes the pre-sanitise
+    validator but collapses to "" (or "..," to "..") afterwards — which would
+    make dest == src.parent and silently merge+delete the folder into its
+    parent. ``apply_rename`` must re-validate after sanitisation and refuse,
+    leaving the source folder, its contents and the homonym sibling intact."""
+    workspace = _make_workspace_tmp("_attack_rename_empty")
+    try:
+        media_root = workspace / "media"
+        media_root.mkdir()
+        collection = media_root / "MaCollection"
+        collection.mkdir()
+        (collection / "movie.mkv").write_bytes(b"video")
+        sibling = media_root / "movie.mkv"  # homonym sibling in the parent
+        sibling.write_bytes(b"sibling")
+        monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
+
+        for payload in ("<>", "***", "???", "|||", ",", "..,", "...", ". ."):
+            result = await apply_rename(str(collection), payload)
+            assert result.get("error") in {"empty_name", "name_not_allowed"}, payload
+
+        assert collection.is_dir()
+        assert (collection / "movie.mkv").read_bytes() == b"video"
+        assert sibling.read_bytes() == b"sibling"
     finally:
         shutil.rmtree(workspace, ignore_errors=True)

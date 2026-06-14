@@ -100,20 +100,42 @@ async def _search_tmdb(media_type: str, query: str, db: AsyncSession | None = No
             params=params,
             headers=_tmdb_headers_sync(api_key),
         )
-        data    = res.json()
-        results = data.get("results", [])
+        results = res.json().get("results", [])[:8]
+
+        # Language cascade: TMDB often has no localized overview for non-EN
+        # locales. Backfill the blanks from a single EN search call (same
+        # pattern as get_season_episodes), keyed by TMDB id.
+        en_overview: dict[int, str] = {}
+        if not lang.startswith("en") and any(
+            not (r.get("overview") or "").strip() for r in results
+        ):
+            try:
+                en_res = await client.get(
+                    f"{TMDB_BASE}/{endpoint}",
+                    params={**params, "language": "en-US"},
+                    headers=_tmdb_headers_sync(api_key),
+                )
+                for r in en_res.json().get("results", []):
+                    rid, ov = r.get("id"), (r.get("overview") or "").strip()
+                    if rid is not None and ov:
+                        en_overview[rid] = ov
+            except Exception:
+                logger.debug(
+                    "[tmdb] search %s en overview fallback failed",
+                    media_type, exc_info=True,
+                )
 
         return [{
             "id":       r.get("id"),
             "title":    r.get(title_key, ""),
             "year":     r.get(date_key, "")[:4] if r.get(date_key) else "",
-            "overview": r.get("overview", ""),
+            "overview": (r.get("overview") or "").strip() or en_overview.get(r.get("id"), ""),
             "poster":   f"https://image.tmdb.org/t/p/w200{r['poster_path']}" if r.get("poster_path") else "",
             "vote":     round(r.get("vote_average", 0), 1),
             "tmdb_url": f"https://www.themoviedb.org/{url_segment}/{r.get('id')}",
             "type":     media_type,
             "genre_ids": r.get("genre_ids", []),
-        } for r in results[:8]]
+        } for r in results]
 
     except Exception:
         logger.exception("[tmdb] search %s failed", media_type)

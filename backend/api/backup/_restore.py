@@ -1,4 +1,4 @@
-"""Endpoints : restore from file existant, upload-restore ZIP et JSON."""
+"""Endpoints: restore from an existing file, ZIP upload-restore, and JSON."""
 import json
 import zipfile
 from pathlib import Path
@@ -20,7 +20,7 @@ from core.file_validation import (
 from models.user import User
 from services.backup import (
     get_backup_path,
-    get_current_backup_dir,
+    resolve_backup_dir,
     restore_backup,
     restore_json_backup,
 )
@@ -78,16 +78,16 @@ async def restore_backup_endpoint(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    path = get_backup_path(req.filename)
+    path = get_backup_path(req.filename, await resolve_backup_dir(db))
     if not path:
         raise HTTPException(status_code=404, detail="backup_not_found")
     _validate_uploaded_backup_archive(path)
     try:
         results = await restore_backup(db, path, components=req.components)
-    except InvalidBackupArchiveError:
-        raise HTTPException(status_code=400, detail="invalid_archive_format")
-    except BackupRestoreError:
-        raise HTTPException(status_code=500, detail="backup_restore_failed")
+    except InvalidBackupArchiveError as exc:
+        raise HTTPException(status_code=400, detail="invalid_archive_format") from exc
+    except BackupRestoreError as exc:
+        raise HTTPException(status_code=500, detail="backup_restore_failed") from exc
     return {"success": True, "results": results, "warning": _RESTORE_WARNING}
 
 
@@ -103,7 +103,7 @@ async def upload_and_restore(
     if not filename.lower().endswith(".zip"):
         raise HTTPException(status_code=400, detail="file_must_be_zip")
 
-    backup_dir = get_current_backup_dir()
+    backup_dir = await resolve_backup_dir(db)
     tmp = backup_dir / f"__upload_{uuid4().hex}.zip"
     backup_dir.mkdir(parents=True, exist_ok=True)
     try:
@@ -112,10 +112,10 @@ async def upload_and_restore(
         opts = _parse_components_payload(components)
         try:
             results = await restore_backup(db, tmp, components=opts)
-        except InvalidBackupArchiveError:
-            raise HTTPException(status_code=400, detail="invalid_archive_format")
-        except BackupRestoreError:
-            raise HTTPException(status_code=500, detail="backup_restore_failed")
+        except InvalidBackupArchiveError as exc:
+            raise HTTPException(status_code=400, detail="invalid_archive_format") from exc
+        except BackupRestoreError as exc:
+            raise HTTPException(status_code=500, detail="backup_restore_failed") from exc
         return {"success": True, "results": results, "warning": _RESTORE_WARNING}
     finally:
         await file.close()
@@ -130,12 +130,12 @@ async def upload_and_restore_json(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    """Upload un file JSON de backup et le restaure."""
+    """Upload a JSON backup file and restore it."""
     filename = Path(file.filename or "").name
     if not filename.lower().endswith(".json"):
         raise HTTPException(status_code=400, detail="file_must_be_json")
 
-    backup_dir = get_current_backup_dir()
+    backup_dir = await resolve_backup_dir(db)
     tmp = backup_dir / f"__upload_{uuid4().hex}.json"
     backup_dir.mkdir(parents=True, exist_ok=True)
     try:
@@ -144,18 +144,18 @@ async def upload_and_restore_json(
         opts = _parse_components_payload(components)
         try:
             results = await restore_json_backup(db, data, components=opts)
-        except BackupRestoreError:
-            raise HTTPException(status_code=500, detail="backup_restore_failed")
+        except BackupRestoreError as exc:
+            raise HTTPException(status_code=500, detail="backup_restore_failed") from exc
         if any(str(status).startswith("error:") for status in results.values()):
             raise HTTPException(status_code=500, detail="backup_restore_failed")
         return {"success": True, "results": results, "warning": _RESTORE_WARNING}
     except HTTPException:
         raise
-    except (UnicodeDecodeError, json.JSONDecodeError):
-        raise HTTPException(status_code=400, detail="json_file_invalid")
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise HTTPException(status_code=400, detail="json_file_invalid") from exc
     except Exception as e:
-        logger.error(f"[backup] Error restauration JSON: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="backup_restore_failed")
+        logger.error("[backup] JSON restore error: %s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail="backup_restore_failed") from e
     finally:
         await file.close()
         if tmp.exists():

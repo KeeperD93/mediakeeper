@@ -30,7 +30,7 @@ export function useGdprAdmin() {
     try {
       return await fn()
     } catch (err) {
-      error.value = err?.data?.detail || err?.message || 'gdpr_admin_failed'
+      error.value = err?.message || 'gdpr_admin_failed'
       throw err
     } finally {
       saving.value = false

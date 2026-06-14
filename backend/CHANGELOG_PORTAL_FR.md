@@ -34,9 +34,11 @@ utilisateurs.
 - Préférences — le réglage « masquer le contenu adulte » déplacé ici, sous les genres.
 - Accueil — Populaires et Mieux notés viennent désormais de Découvrir.
 - Quoi de neuf — les nouveautés restent jusqu'à votre prochaine visite.
+- Notifications — marquées lues à la fermeture du panneau (surbrillance conservée à l'ouverture).
 
 ### Fixed
 - Invitations — les profils privés et les admins ne peuvent plus être invités.
+- Notifications — navigation clavier (Échap pour fermer) et fin des doublons au chargement.
 - Reprendre la lecture — affiche uniquement vos titres en cours.
 - Demandes — refusées (au lieu d'être laissées passer) si la vérification adulte ne joint pas TMDB.
 - Listes — l'historique des collaborateurs affiche les pseudos, jamais les logins Emby.
@@ -64,6 +66,7 @@ utilisateurs.
 - Demandes — les titres adultes ne sont demandables que si l'administrateur l'autorise.
 - Notifications — messages admin et notifs de listes affichent un libellé lisible.
 - Soirée ciné — événement privé : capacité suivie des invités (sélecteur masqué).
+- Erreurs réseau — message clair affiché au lieu d'une liste vide trompeuse.
 
 ## [1.0.0-rc.4] - 2026-05-30
 

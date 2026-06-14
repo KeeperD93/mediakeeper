@@ -1,9 +1,8 @@
-"""Restauration d'un backup ZIP ou d'un JSON unique."""
+"""Restore a backup ZIP or a single JSON."""
 import json
 import logging
 import zipfile
 from pathlib import Path
-from typing import Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -149,9 +148,9 @@ def _inspect_encryption_key(zf: zipfile.ZipFile) -> dict:
 async def restore_backup(
     db: AsyncSession,
     zip_path: Path,
-    components: Optional[dict] = None,
+    components: dict | None = None,
 ) -> dict:
-    """Restaure un backup. Return un dict {component: 'ok'|'error'|'skipped'}.
+    """Restore a backup. Return a dict {component: 'ok'|'error'|'skipped'}.
     Does NOT restore PostgreSQL relational data; run `psql -f pg_dump.sql`
     first — see docs/operations/backup-restore.md.
     """
@@ -214,14 +213,14 @@ async def restore_backup(
     if encryption_key_info is not None:
         results["encryption_key"] = encryption_key_info
 
-    logger.info(f"[backup] Restore complete : {results}")
+    logger.info("[backup] Restore complete: %s", results)
     return results
 
 
 async def restore_json_backup(
     db: AsyncSession,
     data: dict,
-    components: Optional[dict] = None,
+    components: dict | None = None,
 ) -> dict:
     """
     Restore a single JSON file (settings, preferences, scheduler or watchlist).

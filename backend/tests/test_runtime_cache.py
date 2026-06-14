@@ -136,17 +136,42 @@ async def test_fetch_and_store_swallows_concurrent_insert_race(db_session, monke
     # pre-existing row must be left intact.
     db_session.add(TmdbRuntimeCache(tmdb_id=88888, media_type="movie", runtime=120))
     await db_session.commit()
-    monkeypatch.setattr(rc, "_get_tmdb_key", AsyncMock(return_value="key"))
+    monkeypatch.setattr(rc, "AsyncSessionLocal", _factory(db_session))
     monkeypatch.setattr(rc, "_tmdb_headers_sync", lambda _k: {})
     monkeypatch.setattr(rc, "get_external_client", lambda: _FakeClient({"runtime": 999}))
 
-    fetched = await rc._fetch_and_store(db_session, [(88888, "movie")])
+    fetched = await rc._fetch_and_store([(88888, "movie")], "key")
 
     assert fetched == {(88888, "movie"): 999}  # returns the freshly fetched value
     row = (await db_session.execute(
         select(TmdbRuntimeCache).where(TmdbRuntimeCache.tmdb_id == 88888)
     )).scalar_one()  # exactly one row, the original — insert was a no-op
     assert row.runtime == 120  # a real runtime is immutable, not overwritten
+
+
+@pytest.mark.asyncio
+async def test_resolve_runtimes_sorts_misses_for_deterministic_lock_order(db_session, monkeypatch):
+    """Misses are handed to the persister in a deterministic (sorted) order so
+    concurrent renders acquire the unique-index locks identically and cannot
+    cross-lock into a Postgres deadlock."""
+    monkeypatch.setattr(rc, "AsyncSessionLocal", _factory(db_session))
+    monkeypatch.setattr(rc, "_get_tmdb_key", AsyncMock(return_value="key"))
+    captured = {}
+
+    async def _capture(misses, api_key):
+        captured["misses"] = list(misses)
+        return {}
+
+    monkeypatch.setattr(rc, "_fetch_and_store", _capture)
+
+    items = [
+        {"tmdb_id": 300, "media_type": "movie"},
+        {"tmdb_id": 100, "media_type": "tv"},
+        {"tmdb_id": 200, "media_type": "movie"},
+    ]
+    await rc.resolve_runtimes(items)
+
+    assert captured["misses"] == [(100, "tv"), (200, "movie"), (300, "movie")]
 
 
 @pytest.mark.asyncio

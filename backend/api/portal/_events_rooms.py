@@ -52,7 +52,7 @@ class CreateMKEvent(BaseModel):
     tmdb_ids: list[MKEventMedia] = Field(..., min_length=1, max_length=20)
     scheduled_at: datetime
     comment: Optional[str] = Field(None, max_length=2000)
-    invitees: Optional[list[int]] = None
+    invitees: Optional[list[int]] = Field(default=None, max_length=100)
     # Per-event capacity (5/10/15/20 — radio chips on the create form).
     # The actual [min, max] window is admin-tunable and re-checked
     # server-side in ``create_event`` against the current bounds.
