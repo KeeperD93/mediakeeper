@@ -1,8 +1,8 @@
 """Endpoints for category tags (persistent TMDB badges)."""
 import json
 
-from fastapi import APIRouter, Depends
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.auth import get_current_user
@@ -12,9 +12,28 @@ from services.settings import get_setting, set_setting
 
 router = APIRouter()
 
+# Per-file category badges all live in one JSON setting; bound the entry
+# count and key/value sizes so the row can't be grown without limit
+# (admin-only, but otherwise no guard against accidental/abusive bloat).
+MAX_TAGS = 20000
+MAX_KEY_LENGTH = 1024
+MAX_VALUE_LENGTH = 2048
+
 
 class TagsRequest(BaseModel):
-    tags: dict  # {filename: {label, color, cat}}
+    tags: dict  # {filename: category-descriptor}
+
+    @field_validator("tags")
+    @classmethod
+    def _bounded(cls, value: dict) -> dict:
+        if len(value) > MAX_TAGS:
+            raise ValueError("too_many_tags")
+        for key, val in value.items():
+            if len(key) > MAX_KEY_LENGTH:
+                raise ValueError("tag_key_too_long")
+            if len(json.dumps(val)) > MAX_VALUE_LENGTH:
+                raise ValueError("tag_value_too_large")
+        return value
 
 
 @router.get("/tags")
@@ -47,5 +66,7 @@ async def save_tags(
         except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
             pass
     existing.update(req.tags)
+    if len(existing) > MAX_TAGS:
+        raise HTTPException(400, "too_many_tags")
     await set_setting(db, "media.tags", json.dumps(existing))
     return {"success": True, "count": len(existing)}
