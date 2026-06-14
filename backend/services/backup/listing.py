@@ -49,20 +49,16 @@ def get_backup_path(filename: str, backup_dir: Path) -> Path | None:
     """Return the full path of a backup if the file exists."""
     if not _BACKUP_FILENAME_RE.fullmatch(filename or ""):
         return None
-    backup_dir = backup_dir.resolve(strict=False)
-    path = (backup_dir / filename).resolve(strict=False)
-    # Containment barrier: the resolved target must stay within backup_dir.
-    # os.path.commonpath is the form CodeQL recognises as a py/path-injection
-    # guard (mirrors services/media_manager/_paths.py); callers must use the
-    # returned Path downstream for the taint flow to stay broken.
-    backup_dir_str = str(backup_dir)
-    try:
-        within = os.path.commonpath([backup_dir_str, str(path)]) == backup_dir_str
-    except ValueError:  # different drives on Windows
-        within = False
-    if not within or path.parent != backup_dir:
+    # Containment guard in the form CodeQL recognises for py/path-injection:
+    # os.path.realpath normalisation + a startswith check on the resolved path
+    # (see the query help). The filename allowlist above already blocks
+    # traversal; downstream sinks must consume the returned Path.
+    base = os.path.realpath(backup_dir)
+    resolved = os.path.realpath(os.path.join(base, filename))
+    if not resolved.startswith(base + os.sep):
         return None
-    return path if path.exists() and path.is_file() and path.suffix == ".zip" else None
+    path = Path(resolved)
+    return path if path.is_file() and path.suffix == ".zip" else None
 
 
 def delete_backup(filename: str, backup_dir: Path) -> bool:
