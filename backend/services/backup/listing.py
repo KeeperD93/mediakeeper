@@ -1,6 +1,7 @@
 """List, manifest reading, deletion and retention of backups."""
 import json
 import logging
+import os
 import re
 import zipfile
 from datetime import datetime, timedelta, timezone
@@ -50,7 +51,16 @@ def get_backup_path(filename: str, backup_dir: Path) -> Path | None:
         return None
     backup_dir = backup_dir.resolve(strict=False)
     path = (backup_dir / filename).resolve(strict=False)
-    if path.parent != backup_dir:
+    # Containment barrier: the resolved target must stay within backup_dir.
+    # os.path.commonpath is the form CodeQL recognises as a py/path-injection
+    # guard (mirrors services/media_manager/_paths.py); callers must use the
+    # returned Path downstream for the taint flow to stay broken.
+    backup_dir_str = str(backup_dir)
+    try:
+        within = os.path.commonpath([backup_dir_str, str(path)]) == backup_dir_str
+    except ValueError:  # different drives on Windows
+        within = False
+    if not within or path.parent != backup_dir:
         return None
     return path if path.exists() and path.is_file() and path.suffix == ".zip" else None
 
