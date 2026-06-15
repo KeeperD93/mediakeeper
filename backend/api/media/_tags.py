@@ -2,7 +2,7 @@
 import json
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.auth import get_current_user
@@ -21,6 +21,8 @@ MAX_VALUE_LENGTH = 2048
 
 
 class TagsRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     tags: dict  # {filename: category-descriptor}
 
     @field_validator("tags")

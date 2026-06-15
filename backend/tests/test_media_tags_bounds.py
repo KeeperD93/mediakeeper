@@ -30,3 +30,22 @@ def test_rejects_oversized_key():
 def test_rejects_oversized_value():
     with pytest.raises(ValidationError):
         TagsRequest(tags={"f.mkv": {"blob": "x" * (MAX_VALUE_LENGTH + 1)}})
+
+
+def test_rejects_unknown_top_level_field():
+    with pytest.raises(ValidationError):
+        TagsRequest(tags={}, evil="hack")
+
+
+@pytest.mark.asyncio
+async def test_save_tags_rejects_merge_over_cap(authed_client, db_session, monkeypatch):
+    """The post-merge total cap rejects a payload that, once merged with the
+    stored tags, would exceed MAX_TAGS — even when the request itself is small."""
+    import json
+
+    from services.settings import set_setting
+
+    monkeypatch.setattr("api.media._tags.MAX_TAGS", 2)
+    await set_setting(db_session, "media.tags", json.dumps({"a": {}, "b": {}}))
+    r = await authed_client.post("/api/media/tags", json={"tags": {"c": {}}})
+    assert r.status_code == 400, r.text
