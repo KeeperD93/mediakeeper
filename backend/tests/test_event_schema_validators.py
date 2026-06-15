@@ -13,7 +13,7 @@ import pytest
 from pydantic import ValidationError
 
 from api.portal._events_rooms import (
-    MKEventMedia, RespondPayload, RoomMessage, UpdateMKEvent,
+    AdvanceRequest, CreateMKEvent, MKEventMedia, RespondPayload, RoomMessage, UpdateMKEvent,
 )
 from api.portal._events_seasonal import CreateEvent, CreateParty
 
@@ -71,3 +71,11 @@ def test_room_schemas_reject_unknown_fields():
         RespondPayload(decision="accept", bogus=1)
     with pytest.raises(ValidationError):
         RoomMessage(content="hi", bogus=1)
+    with pytest.raises(ValidationError):
+        CreateMKEvent(
+            title="X", kind="private",
+            tmdb_ids=[MKEventMedia(tmdb_id=1, media_type="movie", title="X")],
+            scheduled_at=_aware(1), max_participants=10, bogus=1,
+        )
+    with pytest.raises(ValidationError):
+        AdvanceRequest(expected_step=1, bogus=1)
