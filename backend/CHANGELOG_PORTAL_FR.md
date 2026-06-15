@@ -45,6 +45,7 @@ utilisateurs.
 - Demandes — refusées (au lieu d'être laissées passer) si la vérification adulte ne joint pas TMDB.
 - Listes — l'historique des collaborateurs affiche les pseudos, jamais les logins Emby.
 - Jaquettes — durée d'un titre à venir affichée dès que TMDB la publie.
+- Jaquettes — plus de décalage laissant un vide sombre sous l'affiche.
 - Accueil — bandeau vedette : un titre déjà demandé affiche « En attente ».
 - Demandes — les demandes de film en un clic affichent succès ou refus.
 - Mode maintenance — le portail est désormais entièrement verrouillé (page d'attente seule).

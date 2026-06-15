@@ -43,6 +43,7 @@ This section intentionally has no date so it is not shown to users.
 - Requests — refused (not allowed through) when the adult check can't reach TMDB.
 - Lists — collaborator history shows pseudonyms, never raw Emby logins.
 - Posters — an upcoming title's duration appears once TMDB publishes it.
+- Posters — no more shift leaving a dark gap below the artwork.
 - Home — featured banner shows "Pending" for an already-requested title.
 - Requests — one-click movie requests now show success or refusal.
 - Maintenance mode — the portal is now fully locked (holding page only).

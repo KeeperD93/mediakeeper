@@ -81,7 +81,6 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Médiathèque — recherche TMDB : description en anglais affichée quand la traduction manque.
 - Utilisateurs portail (admin) — fiche : statuts de tickets « En cours » et « Résolu » traduits.
 - Problèmes (admin) — statuts de tickets traduits dans la liste et le sélecteur.
-- Portail — jaquettes : plus de décalage laissant un vide sombre sous l'affiche.
 - Erreurs réseau — message clair affiché au lieu d'une liste vide trompeuse.
 - Listes — jaquette conservée à l'ajout d'un film depuis une carte.
 - Sécurité (admin) — blocage sans effet ou auto-blocage désormais refusés.
