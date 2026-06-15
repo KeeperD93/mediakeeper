@@ -5,7 +5,7 @@ or failure) is persisted so an admin can audit abuse, manually unban or
 permanently block an IP or username.
 
 Thresholds:
-  - ``FAIL_BLOCK_THRESHOLD`` (5) failed attempts within ``FAIL_WINDOW_SECONDS``
+  - ``FAIL_BLOCK_THRESHOLD`` (3) failed attempts within ``FAIL_WINDOW_SECONDS``
     (5 min) → automatic temporary block for ``TEMP_BLOCK_SECONDS`` (10 min).
   - ``ALERT_THRESHOLD`` (3) failed attempts in the same window → fire an
     admin alert via the notification engine (best-effort, never fatal).
@@ -18,7 +18,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 
 from fastapi import HTTPException, status
-from sqlalchemy import and_, delete, or_, select
+from sqlalchemy import and_, delete, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.security import SecurityAttempt, SecurityBlock
@@ -36,7 +36,6 @@ ALERT_THRESHOLD = 3
 FAIL_WINDOW_SECONDS = 300
 TEMP_BLOCK_SECONDS = 600
 RETENTION_DAYS = 90
-ALERT_COOLDOWN_SECONDS = 600  # don't re-alert the same IP/user more often
 
 
 async def count_recent_failures(
@@ -59,7 +58,7 @@ async def _count_recent_ip_failures(
     db: AsyncSession, ip: str, scope: str, within_seconds: int,
 ) -> int:
     cutoff = datetime.now(timezone.utc) - timedelta(seconds=within_seconds)
-    stmt = select(SecurityAttempt).where(
+    stmt = select(func.count()).select_from(SecurityAttempt).where(
         and_(
             SecurityAttempt.success == 0,
             SecurityAttempt.scope == scope,
@@ -67,8 +66,7 @@ async def _count_recent_ip_failures(
             SecurityAttempt.ip == ip,
         )
     )
-    rows = (await db.execute(stmt)).scalars().all()
-    return len(rows)
+    return (await db.execute(stmt)).scalar() or 0
 
 
 async def _count_recent_username_failures(
@@ -77,7 +75,7 @@ async def _count_recent_username_failures(
     if not username:
         return 0
     cutoff = datetime.now(timezone.utc) - timedelta(seconds=within_seconds)
-    stmt = select(SecurityAttempt).where(
+    stmt = select(func.count()).select_from(SecurityAttempt).where(
         and_(
             SecurityAttempt.success == 0,
             SecurityAttempt.scope == scope,
@@ -85,8 +83,7 @@ async def _count_recent_username_failures(
             SecurityAttempt.username == username,
         )
     )
-    rows = (await db.execute(stmt)).scalars().all()
-    return len(rows)
+    return (await db.execute(stmt)).scalar() or 0
 
 
 async def is_blocked(
@@ -164,7 +161,6 @@ async def _auto_block(
         existing.username = username
         existing.ip = ip
         existing.reason = f"auto_block_bruteforce_{reason_suffix}:{scope}"
-        db.add(existing)
     else:
         db.add(SecurityBlock(
             ip=ip,
