@@ -10,6 +10,7 @@ from pydantic import ValidationError
 
 from api.duplicates import CleanupEntry, CleanupRequest
 from api.duplicates import IgnoreRequest as DupIgnoreRequest
+from api.media._release_tags import ReleaseTagsPayload
 from api.stats._exclusions import ExclusionRequest
 from api.stats._users import MergeRequest
 from api.watchlist import IgnoreRequest as WlIgnoreRequest, TrackRequest, UntrackRequest
@@ -84,6 +85,11 @@ def test_stats_schemas_reject_unknown_fields():
         MergeRequest(target_user_id="u1", bogus=1)
     with pytest.raises(ValidationError):
         ExclusionRequest(mode="exact", value="x", bogus=1)
+
+
+def test_release_tags_schema_rejects_unknown_fields():
+    with pytest.raises(ValidationError):
+        ReleaseTagsPayload(tags=["1080p"], bogus=1)
 
 
 # --- Route param bounds (Query / Path) via the authenticated client ---

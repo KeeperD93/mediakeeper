@@ -7,7 +7,7 @@ POST   /api/media/release-tags/reset  → {"tags": defaults}
 from typing import List
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.auth import get_current_user
@@ -24,6 +24,7 @@ router = APIRouter()
 
 
 class ReleaseTagsPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     tags: List[str] = []
 
 
