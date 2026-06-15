@@ -13,10 +13,19 @@ chokepoint. These tests pin the contract:
 from __future__ import annotations
 
 import pytest
+from pydantic import ValidationError
 
+from api.portal.chat import ReportMessage, SendMessage
 from models.portal.chat import ChatRoom
 from services.portal import chat as chat_svc
 from services.portal.profiles import get_or_create_profile
+
+
+def test_chat_schemas_reject_unknown_fields():
+    with pytest.raises(ValidationError):
+        SendMessage(content="hi", bogus=1)
+    with pytest.raises(ValidationError):
+        ReportMessage(reason="spam", bogus=1)
 
 
 @pytest.mark.asyncio
