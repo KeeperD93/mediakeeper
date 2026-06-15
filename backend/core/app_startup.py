@@ -167,7 +167,7 @@ async def init_db():
             result = await session.execute(select(User).where(User.username == "admin"))
             existing = result.scalar_one_or_none()
             if not existing:
-                initial_password = secrets.token_urlsafe(16)
+                initial_password = secrets.token_urlsafe(32)
                 admin = User(
                     username             = "admin",
                     hashed_password      = hash_password(initial_password),

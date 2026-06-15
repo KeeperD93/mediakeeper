@@ -86,7 +86,7 @@ async def _reset(username: str, *, session_factory=None) -> int:
             )
             return 2
 
-        new_password = secrets.token_urlsafe(16)
+        new_password = secrets.token_urlsafe(32)
         user.hashed_password = hash_password(new_password)
         user.must_change_password = True
         user.tokens_invalidated_at = datetime.now(timezone.utc)
