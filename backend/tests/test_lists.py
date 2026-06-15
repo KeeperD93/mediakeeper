@@ -507,3 +507,43 @@ async def test_moderation_lists_rejects_non_admin(client, db_session):
     _rq(client, viewer)
     resp = await client.get("/api/portal/admin/lists")
     assert resp.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_mutation_schemas_reject_unknown_fields(client, db_session):
+    """A payload carrying an unexpected field is rejected (422) rather than
+    silently ignored — defence in depth against forged requests."""
+    user = await _bootstrap(db_session, "forbid_owner")
+    _rq(client, user)
+
+    # Top-level schema (ListCreate)
+    resp = await client.post("/api/portal/lists", json={
+        "name": "Strict", "privacy": "private", "is_admin": True,
+    })
+    assert resp.status_code == 422
+
+    list_id = (await client.post(
+        "/api/portal/lists", json={"name": "Strict"},
+    )).json()["id"]
+
+    # Nested schema (ItemPayload inside ItemsAdd)
+    resp = await client.post(f"/api/portal/lists/{list_id}/items", json={
+        "items": [{"tmdb_id": 1, "media_type": "movie", "rating": 9.5}],
+    })
+    assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_admin_mute_rejects_unknown_fields(client, db_session):
+    owner = await _bootstrap(db_session, "fb_mute_owner")
+    admin = await _bootstrap(db_session, "fb_mute_admin", role="admin")
+    _rq(client, owner)
+    list_id = (await client.post(
+        "/api/portal/lists", json={"name": "Collab", "privacy": "collaborative"},
+    )).json()["id"]
+
+    _rq(client, admin)
+    resp = await client.post(f"/api/portal/admin/lists/{list_id}/mute-owner", json={
+        "muted": True, "forever": True,
+    })
+    assert resp.status_code == 422

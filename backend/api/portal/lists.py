@@ -1,6 +1,6 @@
 """Portal user-lists API."""
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,6 +18,7 @@ router = APIRouter(prefix="/lists", tags=["portal-lists"])
 
 
 class ListCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     name: str = Field(..., min_length=1, max_length=200)
     description: Optional[str] = Field(None, max_length=1000)
     privacy: str = Field("private", pattern="^(private|public_readonly|collaborative)$")
@@ -26,6 +27,7 @@ class ListCreate(BaseModel):
 
 
 class ListUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     name: Optional[str] = Field(None, min_length=1, max_length=200)
     description: Optional[str] = Field(None, max_length=1000)
     privacy: Optional[str] = Field(None, pattern="^(private|public_readonly|collaborative)$")
@@ -34,6 +36,7 @@ class ListUpdate(BaseModel):
 
 
 class ItemPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     tmdb_id: int
     media_type: str = Field(..., pattern="^(movie|tv)$")
     title: Optional[str] = Field(None, max_length=500)
@@ -42,24 +45,29 @@ class ItemPayload(BaseModel):
 
 
 class ItemsAdd(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     items: list[ItemPayload] = Field(..., min_length=1, max_length=200)
 
 
 class ItemsRemove(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     item_ids: Optional[list[int]] = Field(default=None, max_length=200)
     items: Optional[list[ItemPayload]] = Field(default=None, max_length=200)
 
 
 class ItemsMove(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     dst_list_id: int
     item_ids: list[int] = Field(..., min_length=1, max_length=200)
 
 
 class CopyListRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     new_name: Optional[str] = Field(None, max_length=200)
 
 
 class ContributorPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     user_id: int
 
 
