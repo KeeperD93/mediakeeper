@@ -271,6 +271,27 @@ watch(
   },
 )
 
+// The 3 s presence poll only toggles rows we already know — it cannot
+// introduce a peer who joined after our initial load (no local invitation
+// row, so their seat never paints until a manual refresh). Re-pull
+// the full membership on a slow cadence (well under the 60/min room limit)
+// and reconcile by user_id: adopt the fresh row for newcomers, keep the
+// fast poll's presence/step overlay on rows we already track.
+const MEMBERSHIP_REFRESH_MS = 15_000
+let membershipTimer = null
+
+async function refreshMembership() {
+  const fresh = await getOne(eventIdParam).catch(() => null)
+  if (!fresh?.invitations || !event.value) return
+  const localByUser = new Map(event.value.invitations.map(i => [i.user_id, i]))
+  event.value.invitations = fresh.invitations.map(inv => {
+    const local = localByUser.get(inv.user_id)
+    return local
+      ? { ...inv, is_currently_in_room: local.is_currently_in_room, user_step: local.user_step }
+      : inv
+  })
+}
+
 async function load() {
   loading.value = true
   try {
@@ -323,6 +344,7 @@ async function load() {
   // tick — used to require a manual refresh otherwise.
   if (event.value) {
     marathonProgress.start()
+    membershipTimer = setInterval(refreshMembership, MEMBERSHIP_REFRESH_MS)
   }
   if (flow.canLaunch.value) {
     // Latecomer joining after T0: skip the academy intro and land
@@ -451,5 +473,9 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', syncLaunchPos)
+  if (membershipTimer) {
+    clearInterval(membershipTimer)
+    membershipTimer = null
+  }
 })
 </script>

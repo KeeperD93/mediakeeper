@@ -56,6 +56,8 @@ utilisateurs.
 - Salle ciné — bande-annonce reprend au retour de l'onglet Emby.
 - Salle ciné — décompte d'intro synchronisé avec le compte à rebours.
 - Salle ciné — plus de requêtes en boucle après avoir quitté la salle.
+- Salle ciné — les personnes rejoignant après vous apparaissent sans rafraîchir.
+- Salle ciné — changer d'onglet ne fait plus quitter votre siège.
 - Demandes — titres affichés dans votre langue.
 - Fiche média — lien TMDB ouvre dans la langue de l'app.
 - Dates affichées dans votre langue (au lieu de celle du navigateur).

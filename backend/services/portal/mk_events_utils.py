@@ -27,13 +27,17 @@ ROOM_OPEN_BEFORE_MIN = 15
 # back-to-back screening; longer events can still be re-opened by an
 # admin via the explicit ``done`` status reset (out of scope here).
 ROOM_CLOSE_AFTER_HOURS = 6
-# Live presence in the cinema room: a viewer is considered ``online``
-# when the front-end has heart-beat them within this window. Past it,
-# the seat avatar disappears from peers' view even though the seat
-# stays reserved (see ``MKEventInvitation.last_seen_at``). The poller
-# runs every 3 s and the heartbeat every 5 s, so a 15 s grace window
-# tolerates one missed beat without flapping.
-PRESENCE_WINDOW_SECONDS = 15
+# Live presence in the cinema room: a viewer is ``online`` when the
+# front-end has heart-beat them within this window; past it the seat
+# avatar disappears from peers' view though the seat stays reserved
+# (``MKEventInvitation.last_seen_at``). Graceful exits (tab/window close,
+# navigation, leave button) clear ``last_seen_at`` immediately via
+# ``/leave``, so this window only governs ungraceful disconnects. It is
+# kept well above the 5 s heartbeat because browsers throttle background-
+# tab timers down to ~once a minute: a generous window keeps a
+# switched-away tab seated instead of flapping out — only a real close
+# removes the avatar promptly.
+PRESENCE_WINDOW_SECONDS = 90
 
 
 def is_currently_in_room(

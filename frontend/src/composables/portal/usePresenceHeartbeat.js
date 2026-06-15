@@ -79,11 +79,23 @@ export function usePresenceHeartbeat(eventIdRef) {
     _sendKeepaliveLeave()
   }
 
+  function _onVisible() {
+    // A backgrounded tab throttles the 5 s interval, so last_seen_at can
+    // lapse past the 15 s window and peers see the avatar drop. Re-stamp
+    // immediately on refocus so presence does not flap on tab switches.
+    if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+      _tick()
+    }
+  }
+
   onMounted(() => {
     _tick()
     timer = setInterval(_tick, HEARTBEAT_INTERVAL_MS)
     if (typeof window !== 'undefined') {
       window.addEventListener('beforeunload', _onBeforeUnload)
+    }
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', _onVisible)
     }
   })
 
@@ -94,6 +106,9 @@ export function usePresenceHeartbeat(eventIdRef) {
     }
     if (typeof window !== 'undefined') {
       window.removeEventListener('beforeunload', _onBeforeUnload)
+    }
+    if (typeof document !== 'undefined') {
+      document.removeEventListener('visibilitychange', _onVisible)
     }
     const id = _currentEventId()
     if (id) leaveRoom(id).catch(() => {})

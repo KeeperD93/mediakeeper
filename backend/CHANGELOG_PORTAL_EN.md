@@ -54,6 +54,8 @@ This section intentionally has no date so it is not shown to users.
 - Cinema room — trailer resumes when returning from the Emby tab.
 - Cinema room — intro countdown synced with the main countdown.
 - Cinema room — no more looping requests after leaving the room.
+- Cinema room — people who join after you appear without refreshing.
+- Cinema room — switching browser tabs no longer leaves your seat.
 - Requests — titles follow your language.
 - Media detail — TMDB link opens in the app language.
 - Dates now shown in your language (instead of the browser).
