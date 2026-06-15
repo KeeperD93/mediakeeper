@@ -5,12 +5,17 @@ backoffice auth, so this is defence-in-depth, not a public guard.
 """
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
 import pytest
 from pydantic import ValidationError
 
 from api.duplicates import CleanupEntry, CleanupRequest
 from api.duplicates import IgnoreRequest as DupIgnoreRequest
 from api.media._release_tags import ReleaseTagsPayload
+from api.portal.requests import BatchStatusQuery, CreateRequest, StatusUpdate
+from api.portal.tickets import CreateTicket, TicketReplyBody, TicketStatusUpdate
+from api.portal.xp_events import XpEventPayload, XpEventUpdate
 from api.stats._exclusions import ExclusionRequest
 from api.stats._users import MergeRequest
 from api.watchlist import IgnoreRequest as WlIgnoreRequest, TrackRequest, UntrackRequest
@@ -90,6 +95,35 @@ def test_stats_schemas_reject_unknown_fields():
 def test_release_tags_schema_rejects_unknown_fields():
     with pytest.raises(ValidationError):
         ReleaseTagsPayload(tags=["1080p"], bogus=1)
+
+
+def test_request_schemas_reject_unknown_fields():
+    with pytest.raises(ValidationError):
+        CreateRequest(tmdb_id=1, media_type="movie", title="X", bogus=1)
+    with pytest.raises(ValidationError):
+        StatusUpdate(status="approved", bogus=1)
+    with pytest.raises(ValidationError):
+        BatchStatusQuery(tmdb_ids=[1], bogus=1)
+
+
+def test_ticket_schemas_reject_unknown_fields():
+    with pytest.raises(ValidationError):
+        CreateTicket(
+            media_title="X", media_type="other", issue_type="audio",
+            description="d", bogus=1,
+        )
+    with pytest.raises(ValidationError):
+        TicketReplyBody(content="hi", bogus=1)
+    with pytest.raises(ValidationError):
+        TicketStatusUpdate(status="open", bogus=1)
+
+
+def test_xp_event_schemas_reject_unknown_fields():
+    now = datetime.now(timezone.utc)
+    with pytest.raises(ValidationError):
+        XpEventPayload(name="X", starts_at=now, ends_at=now, bogus=1)
+    with pytest.raises(ValidationError):
+        XpEventUpdate(name="X", bogus=1)
 
 
 # --- Route param bounds (Query / Path) via the authenticated client ---

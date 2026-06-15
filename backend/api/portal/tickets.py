@@ -1,6 +1,6 @@
 """Portal ticket endpoints."""
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from typing import Literal, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,6 +18,7 @@ VALID_ISSUE_TYPES = {"audio", "subtitles", "video", "metadata", "playback", "fil
 
 
 class CreateTicket(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     emby_item_id: Optional[str] = Field(None, max_length=64)
     series_emby_id: Optional[str] = Field(None, max_length=64)
     tmdb_id: Optional[int] = None
@@ -44,10 +45,12 @@ class CreateTicket(BaseModel):
 
 
 class TicketReplyBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     content: str = Field(..., min_length=1, max_length=2000)
 
 
 class TicketStatusUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     status: str = Field(..., pattern="^(open|in_progress|resolved|closed)$")
 
 
