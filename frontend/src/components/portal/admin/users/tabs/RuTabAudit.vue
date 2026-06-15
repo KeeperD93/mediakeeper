@@ -26,11 +26,14 @@
 import { ref, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { usePortalAdminUsers } from '@/composables/portal/usePortalAdminUsers'
+import { useToast } from '@/composables/useToast'
+import { TOAST_TYPE } from '@/constants/toast'
 import { localizedDate, localizedDateTime } from '@/utils/datetime'
 import PortalLoadMore from '@/components/portal/PortalLoadMore.vue'
 
 const props = defineProps({ user: { type: Object, required: true } })
 const api = usePortalAdminUsers()
+const { showToast } = useToast()
 const { t, te } = useI18n()
 
 const AUDIT_PAGE = 100
@@ -44,6 +47,9 @@ async function load() {
   const uid = props.user?.id
   if (!uid) return
   loading.value = true
+  // Reset paging up front so a fast user-switch can't reuse the old cursor.
+  hasMore.value = false
+  auditCursor.value = null
   try {
     const res = await api.fetchAudit(uid, { limit: AUDIT_PAGE })
     // Drop the response if the drawer already switched to another user.
@@ -51,6 +57,9 @@ async function load() {
     entries.value = res?.items || []
     hasMore.value = !!res?.has_more
     auditCursor.value = res?.next_cursor || null
+  } catch (e) {
+    console.error('[RuTabAudit.load] failed', e)
+    showToast(t('common.networkError'), TOAST_TYPE.ERR)
   } finally {
     loading.value = false
   }

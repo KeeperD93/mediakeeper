@@ -166,6 +166,11 @@ async function load() {
   const uid = props.user?.id
   if (!uid) return
   loadingFeeds.value = true
+  // Reset paging up front so a fast user-switch can't reuse the old cursor.
+  requestsHasMore.value = false
+  ticketsHasMore.value = false
+  requestsCursor.value = null
+  ticketsCursor.value = null
   try {
     const [rq, tk] = await Promise.all([
       api.fetchUserRequests(uid, { limit: FEED_PAGE }),

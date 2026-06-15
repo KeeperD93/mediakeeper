@@ -154,6 +154,9 @@ async function loadHistory() {
   const uid = props.user?.id
   if (!uid) return
   loadingHistory.value = true
+  // Reset paging up front so a fast user-switch can't reuse the old cursor.
+  historyHasMore.value = false
+  historyCursor.value = null
   try {
     const res = await api.fetchLoginHistory(uid, { limit: LOGIN_PAGE })
     // Drop the response if the drawer already switched to another user.
@@ -161,6 +164,9 @@ async function loadHistory() {
     history.value = res?.items || []
     historyHasMore.value = !!res?.has_more
     historyCursor.value = res?.next_cursor || null
+  } catch (e) {
+    console.error('[RuTabSecurity.loadHistory] failed', e)
+    showToast(t('common.networkError'), TOAST_TYPE.ERR)
   } finally {
     loadingHistory.value = false
   }

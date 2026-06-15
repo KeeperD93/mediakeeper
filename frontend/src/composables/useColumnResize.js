@@ -61,13 +61,16 @@ export function useColumnResize(defaults, { min = 56, fixed = 0, persistKey = ''
     widths.value[drag.i] = drag.w + d
     widths.value[drag.i + 1] = drag.wNext - d
   }
-  function onUp() {
-    const was = !!drag
+  function stopDrag() {
     drag = null
     window.removeEventListener('pointermove', onMove)
     window.removeEventListener('pointerup', onUp)
     document.body.style.cursor = ''
     document.body.style.userSelect = ''
+  }
+  function onUp() {
+    const was = !!drag
+    stopDrag()
     if (was) save()
   }
   function startResize(i, e) {
@@ -92,7 +95,14 @@ export function useColumnResize(defaults, { min = 56, fixed = 0, persistKey = ''
     })
     observer.observe(el)
   }
-  onScopeDispose(() => observer?.disconnect())
+  // Tear down a drag in flight too — unmounting mid-drag would otherwise leak
+  // the window listeners and the col-resize body cursor. A debounced save that
+  // is still pending is left to fire (its timer self-clears and apiPut needs no
+  // mounted component) so a just-committed width isn't dropped on navigation.
+  onScopeDispose(() => {
+    stopDrag()
+    observer?.disconnect()
+  })
 
   return { widths, ready, init, observe, startResize }
 }

@@ -62,15 +62,20 @@ async def update_event(db: AsyncSession, event_id: int, payload: dict) -> dict |
     ev = await db.get(XpBoostEvent, event_id)
     if not ev:
         return None
+    # Validate the effective window: a single-field date edit must be checked
+    # against the stored bound it isn't replacing, not skipped. Both sides go
+    # through _parse_dt so a tz-naive stored value can't break the comparison.
+    new_start = _parse_dt(payload["starts_at"] if "starts_at" in payload else ev.starts_at)
+    new_end = _parse_dt(payload["ends_at"] if "ends_at" in payload else ev.ends_at)
+    if ("starts_at" in payload or "ends_at" in payload) and new_end <= new_start:
+        raise ValueError("ends_at must be after starts_at")
     for field in ("name", "description", "action_filter"):
         if field in payload:
             setattr(ev, field, payload[field] or None)
     if "multiplier" in payload:
         ev.multiplier = float(payload["multiplier"])
-    if "starts_at" in payload:
-        ev.starts_at = _parse_dt(payload["starts_at"])
-    if "ends_at" in payload:
-        ev.ends_at = _parse_dt(payload["ends_at"])
+    ev.starts_at = new_start
+    ev.ends_at = new_end
     if "enabled" in payload:
         ev.enabled = bool(payload["enabled"])
     await db.commit()
@@ -96,18 +101,18 @@ def _parse_dt(value) -> datetime:
 
 
 def _serialize(ev: XpBoostEvent, now: datetime) -> dict:
-    is_active = (
-        ev.enabled
-        and ev.starts_at and ev.starts_at <= now
-        and ev.ends_at and ev.ends_at >= now
+    starts = _parse_dt(ev.starts_at) if ev.starts_at else None
+    ends = _parse_dt(ev.ends_at) if ev.ends_at else None
+    is_active = bool(
+        ev.enabled and starts and starts <= now and ends and ends >= now
     )
     return {
         "id": ev.id,
         "name": ev.name,
         "description": ev.description,
         "multiplier": ev.multiplier,
-        "starts_at": ev.starts_at.isoformat() if ev.starts_at else None,
-        "ends_at": ev.ends_at.isoformat() if ev.ends_at else None,
+        "starts_at": starts.isoformat() if starts else None,
+        "ends_at": ends.isoformat() if ends else None,
         "action_filter": ev.action_filter,
         "enabled": ev.enabled,
         "is_active": is_active,

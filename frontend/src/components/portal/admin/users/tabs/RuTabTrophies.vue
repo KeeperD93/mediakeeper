@@ -100,6 +100,8 @@ import { computed, ref, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Award, Target, Trophy } from 'lucide-vue-next'
 import { usePortalAdminUsers } from '@/composables/portal/usePortalAdminUsers'
+import { useToast } from '@/composables/useToast'
+import { TOAST_TYPE } from '@/constants/toast'
 import RuTrophyIcon from '../RuTrophyIcon.vue'
 import PortalLoadMore from '@/components/portal/PortalLoadMore.vue'
 import { localizedDateTime } from '@/utils/datetime'
@@ -111,6 +113,7 @@ const props = defineProps({
 })
 
 const { t, te } = useI18n()
+const { showToast } = useToast()
 const api = usePortalAdminUsers()
 
 const XP_PAGE = 100
@@ -125,6 +128,9 @@ async function load() {
   const uid = props.user?.id
   if (!uid) return
   loadingXp.value = true
+  // Reset paging up front so a fast user-switch can't reuse the old cursor.
+  xpHasMore.value = false
+  xpCursor.value = null
   try {
     const [tr, xh] = await Promise.all([
       api.fetchTrophies(uid),
@@ -136,6 +142,9 @@ async function load() {
     xp.value = xh?.items || []
     xpHasMore.value = !!xh?.has_more
     xpCursor.value = xh?.next_cursor || null
+  } catch (e) {
+    console.error('[RuTabTrophies.load] failed', e)
+    showToast(t('common.networkError'), TOAST_TYPE.ERR)
   } finally {
     loadingXp.value = false
   }

@@ -1,9 +1,9 @@
 """Seasonal events + watch parties (community challenges)."""
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator, model_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.portal.deps import get_current_profile, require_admin
@@ -15,6 +15,14 @@ from services.portal import events as events_svc
 router = APIRouter()
 
 
+def _aware_utc(value: datetime | None) -> datetime | None:
+    if value is None:
+        return None
+    if value.tzinfo is None or value.utcoffset() is None:
+        raise ValueError("timezone_required")
+    return value.astimezone(timezone.utc)
+
+
 class CreateEvent(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)
     description: str = Field("", max_length=2000)
@@ -24,6 +32,17 @@ class CreateEvent(BaseModel):
     target_count: int = Field(10, ge=1, le=1000)
     badge_id: Optional[str] = None
 
+    @field_validator("start_date", "end_date")
+    @classmethod
+    def _dates_must_be_aware(cls, value: datetime) -> datetime:
+        return _aware_utc(value)
+
+    @model_validator(mode="after")
+    def _window_not_inverted(self) -> "CreateEvent":
+        if self.end_date <= self.start_date:
+            raise ValueError("end_date_must_be_after_start_date")
+        return self
+
 
 class CreateParty(BaseModel):
     title: str = Field(..., min_length=1, max_length=300)
@@ -31,6 +50,11 @@ class CreateParty(BaseModel):
     media_type: Optional[str] = Field(None, pattern="^(movie|tv)$")
     scheduled_at: datetime
     max_participants: int = Field(20, ge=2, le=100)
+
+    @field_validator("scheduled_at")
+    @classmethod
+    def _scheduled_at_must_be_aware(cls, value: datetime) -> datetime:
+        return _aware_utc(value)
 
 
 # ── Seasonal events ──

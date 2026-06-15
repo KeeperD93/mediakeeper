@@ -1,6 +1,7 @@
 <template>
   <div ref="root" class="auf">
     <button
+      ref="trigger"
       type="button"
       class="auf-trigger"
       aria-haspopup="true"
@@ -39,6 +40,7 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { ChevronDown } from 'lucide-vue-next'
+import { vIndeterminate } from '@/directives/tableCell'
 
 const props = defineProps({
   users: { type: Array, default: () => [] },
@@ -46,13 +48,9 @@ const props = defineProps({
 })
 defineEmits(['toggle', 'set-all'])
 
-const vIndeterminate = {
-  mounted: (el, b) => (el.indeterminate = b.value),
-  updated: (el, b) => (el.indeterminate = b.value),
-}
-
 const open = ref(false)
 const root = ref(null)
+const trigger = ref(null)
 const includedCount = computed(() => props.users.length - props.excludedIds.size)
 const allIncluded = computed(() => props.excludedIds.size === 0)
 const someIncluded = computed(
@@ -63,7 +61,10 @@ function onDocClick(e) {
   if (open.value && root.value && !root.value.contains(e.target)) open.value = false
 }
 function onKey(e) {
-  if (e.key === 'Escape') open.value = false
+  if (e.key === 'Escape' && open.value) {
+    open.value = false
+    trigger.value?.focus()
+  }
 }
 onMounted(() => {
   document.addEventListener('click', onDocClick)
