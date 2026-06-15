@@ -76,6 +76,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Problèmes (admin) — statuts de tickets traduits dans la liste et le sélecteur.
 - Erreurs réseau — message clair affiché au lieu d'une liste vide trompeuse.
 - Listes — jaquette conservée à l'ajout d'un film depuis une carte.
+- Sécurité (admin) — blocage sans effet ou auto-blocage désormais refusés.
 
 ## [1.0.0-rc.4] - 2026-05-30
 

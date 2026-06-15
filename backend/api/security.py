@@ -1,11 +1,12 @@
 """Admin security dashboard API — read login attempts, manage blocks."""
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
+from core.proxy import get_client_ip
 from models.user import User
 from services.security import (
     create_block,
@@ -68,12 +69,27 @@ async def get_blocks(
 @router.post("/blocks")
 async def post_block(
     payload: BlockRequest,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(get_current_user),
 ):
     blocked_until = payload.blocked_until
     if blocked_until and blocked_until.tzinfo is None:
         blocked_until = blocked_until.replace(tzinfo=timezone.utc)
+    # A non-permanent block with no future expiry is inert (never active and
+    # hidden from the list) — reject it so the operator isn't misled into
+    # thinking an attacker is blocked mid-incident.
+    if not payload.permanent and (
+        blocked_until is None or blocked_until <= datetime.now(timezone.utc)
+    ):
+        raise HTTPException(status_code=400, detail="block_requires_future_expiry")
+    # Refuse self-block: a block on the operator's own username or current IP
+    # locks them out of the backoffice once their JWT expires (hard to recover
+    # on a single-admin instance).
+    if payload.username and payload.username.strip().lower() == (admin.username or "").strip().lower():
+        raise HTTPException(status_code=400, detail="self_block_forbidden")
+    if payload.ip and payload.ip == get_client_ip(request):
+        raise HTTPException(status_code=400, detail="self_block_forbidden")
     try:
         block_id = await create_block(
             db,
