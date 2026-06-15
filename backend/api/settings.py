@@ -5,7 +5,7 @@ from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from core.database import get_db
 from core.http_client import get_internal_client, get_external_client
@@ -27,11 +27,11 @@ logger = logging.getLogger("mediakeeper.api.settings")
 
 
 class ToolSaveRequest(BaseModel):
-    # Pydantic strictly validates declared fields — any ``fields[i].key``
-    # from TOOLS_DEFINITION that isn't listed here is silently dropped
-    # by ``getattr`` in save_tool. Keep this in sync with the tool defs.
-    # Fields default to None so save_tool can distinguish "not sent"
-    # (preserve existing value) from "sent as empty" (wipe the value).
+    model_config = ConfigDict(extra="forbid")
+    # ``extra="forbid"`` rejects any key not listed here with a 422 — keep
+    # this schema in sync with the field keys in TOOLS_DEFINITION. Fields
+    # default to None so save_tool can distinguish "not sent" (preserve
+    # existing value) from "sent as empty" (wipe the value).
     enabled:     bool | None = None
     url:         str  | None = None
     public_url:  str  | None = None   # Emby: optional HTTPS URL for user-facing links
@@ -45,12 +45,14 @@ class MediaSourceRequest(BaseModel):
 
 
 class MediaFolderRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     key: str | None = None
     label: str
     path: str
 
 
 class MediaFoldersSaveRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     folders: list[MediaFolderRequest] = []
 
 
@@ -321,6 +323,7 @@ async def ping_tool(
 
 
 class NetworkSettingsRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     image_cache_enabled: bool | None = None
     dns_cache_enabled: bool | None = None
     dns_cache_ttl_seconds: int | None = None

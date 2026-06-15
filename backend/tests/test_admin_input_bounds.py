@@ -16,6 +16,9 @@ from api.media._release_tags import ReleaseTagsPayload
 from api.portal.requests import BatchStatusQuery, CreateRequest, StatusUpdate
 from api.portal.tickets import CreateTicket, TicketReplyBody, TicketStatusUpdate
 from api.portal.xp_events import XpEventPayload, XpEventUpdate
+from api.settings import (
+    MediaFolderRequest, MediaFoldersSaveRequest, NetworkSettingsRequest, ToolSaveRequest,
+)
 from api.stats._exclusions import ExclusionRequest
 from api.stats._users import MergeRequest
 from api.watchlist import IgnoreRequest as WlIgnoreRequest, TrackRequest, UntrackRequest
@@ -124,6 +127,17 @@ def test_xp_event_schemas_reject_unknown_fields():
         XpEventPayload(name="X", starts_at=now, ends_at=now, bogus=1)
     with pytest.raises(ValidationError):
         XpEventUpdate(name="X", bogus=1)
+
+
+def test_settings_schemas_reject_unknown_fields():
+    with pytest.raises(ValidationError):
+        ToolSaveRequest(enabled=True, bogus=1)
+    with pytest.raises(ValidationError):
+        MediaFolderRequest(label="Movies", path="/data/movies", bogus=1)
+    with pytest.raises(ValidationError):
+        MediaFoldersSaveRequest(folders=[], bogus=1)
+    with pytest.raises(ValidationError):
+        NetworkSettingsRequest(image_cache_enabled=True, bogus=1)
 
 
 # --- Route param bounds (Query / Path) via the authenticated client ---
