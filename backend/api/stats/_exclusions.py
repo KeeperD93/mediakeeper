@@ -1,6 +1,6 @@
 """Manage content excluded from stats (blacklist CLI)."""
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.auth import get_current_user
@@ -12,6 +12,7 @@ router = APIRouter()
 
 
 class ExclusionRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     mode: str   # "exact" or "contains"
     value: str
 
