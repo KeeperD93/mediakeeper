@@ -31,7 +31,7 @@ class QuotaUpdate(BaseModel):
     max_allowed: Optional[int] = Field(None, ge=1, le=100)
     unlimited: Optional[bool] = None
     auto_approve: Optional[bool] = None
-    mode: Optional[str] = Field(None, pattern="^(fixed|proportional)$")
+    mode: Optional[str] = Field(None, pattern="^(manual|auto)$")
 
 
 class MuteUser(BaseModel):

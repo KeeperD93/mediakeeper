@@ -104,4 +104,9 @@ async def get_user_quota(db: AsyncSession, user_id: int) -> dict:
         "auto_approve": quota.auto_approve,
         "mode": quota.mode,
         "month": quota.month,
+        "auto_min": quota.auto_min,
+        "auto_max": quota.auto_max,
+        "last_recomputed_at": (
+            quota.last_recomputed_at.isoformat() if quota.last_recomputed_at else None
+        ),
     }

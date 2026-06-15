@@ -76,9 +76,17 @@ class RequestQuota(Base):
     month         = Column(String(7), nullable=False)
     used          = Column(Integer, server_default="0", nullable=False)
     max_allowed   = Column(Integer, server_default="5", nullable=False)
-    mode          = Column(String(20), server_default="fixed", nullable=False)
+    # 'manual' = admin-set max_allowed ; 'auto' = nightly engagement-scored
+    # cap that drifts within [auto_min, auto_max] (see services/portal/quota_auto).
+    mode          = Column(String(20), server_default="manual", nullable=False)
     unlimited     = Column(Boolean, server_default="false", nullable=False)
     auto_approve  = Column(Boolean, server_default="false", nullable=False)
+    # Per-user clamps for 'auto' mode (seeded from instance defaults, admin
+    # may override per user). Ignored while mode='manual'.
+    auto_min      = Column(Integer, server_default="2", nullable=False)
+    auto_max      = Column(Integer, server_default="15", nullable=False)
+    # Stamped by the nightly auto-recompute job; NULL until its first touch.
+    last_recomputed_at = Column(DateTime(timezone=True), nullable=True)
     updated_at    = Column(DateTime(timezone=True),
                            default=lambda: datetime.now(timezone.utc),
                            onupdate=lambda: datetime.now(timezone.utc))
