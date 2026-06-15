@@ -12,6 +12,9 @@ from datetime import datetime, timedelta, timezone
 import pytest
 from pydantic import ValidationError
 
+from api.portal._events_rooms import (
+    MKEventMedia, RespondPayload, RoomMessage, UpdateMKEvent,
+)
 from api.portal._events_seasonal import CreateEvent, CreateParty
 
 
@@ -50,3 +53,21 @@ def test_create_party_accepts_aware():
 def test_create_party_rejects_naive():
     with pytest.raises(ValidationError):
         CreateParty(title="Movie night", scheduled_at=datetime.now())  # noqa: DTZ005
+
+
+def test_seasonal_schemas_reject_unknown_fields():
+    with pytest.raises(ValidationError):
+        CreateEvent(name="Spring", start_date=_aware(0), end_date=_aware(30), bogus=1)
+    with pytest.raises(ValidationError):
+        CreateParty(title="Movie night", scheduled_at=_aware(1), bogus=1)
+
+
+def test_room_schemas_reject_unknown_fields():
+    with pytest.raises(ValidationError):
+        MKEventMedia(tmdb_id=1, media_type="movie", title="X", bogus=1)
+    with pytest.raises(ValidationError):
+        UpdateMKEvent(title="X", bogus=1)
+    with pytest.raises(ValidationError):
+        RespondPayload(decision="accept", bogus=1)
+    with pytest.raises(ValidationError):
+        RoomMessage(content="hi", bogus=1)
