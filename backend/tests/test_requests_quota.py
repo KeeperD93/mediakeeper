@@ -104,6 +104,21 @@ async def test_quota_defaults_expose_auto_mode_fields(admin_user, db_session):
 
 
 @pytest.mark.asyncio
+async def test_quota_seeds_unlimited_for_moderator(admin_user, db_session):
+    """Moderators (and admins) get an unlimited quota row by default."""
+    from models.portal.profile import UserProfile
+
+    db_session.add(UserProfile(
+        user_id=admin_user.id, display_name="Mod", role="moderator",
+        source="local", account_active=True,
+    ))
+    await db_session.commit()
+
+    quota = await get_or_create_quota(db_session, admin_user.id)
+    assert quota.unlimited is True
+
+
+@pytest.mark.asyncio
 async def test_create_request_non_admin_blocked_when_quota_exceeded(admin_user, db_session):
     quota = await get_or_create_quota(db_session, admin_user.id)
     quota.unlimited = False

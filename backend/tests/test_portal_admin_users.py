@@ -95,6 +95,57 @@ async def test_create_local_user_then_role_change(client, admin_user, db_session
 
 
 @pytest.mark.asyncio
+async def test_patch_quota_updates_and_audits(client, admin_user, db_session):
+    """PATCH quota persists the change and records a user.quota_changed audit."""
+    db_session.add(UserProfile(
+        user_id=admin_user.id, display_name="Admin", role="admin",
+        source="local", account_active=True,
+    ))
+    await db_session.commit()
+    _auth(client, admin_user)
+
+    resp = await client.post("/api/portal/admin/users/local", json={
+        "username": "quotauser", "password": "supersecret",
+    })
+    assert resp.status_code == 200, resp.text
+    pid = resp.json()["profile_id"]
+
+    resp = await client.patch(
+        f"/api/portal/admin/users/{pid}/quota",
+        json={"max_allowed": 12, "mode": "auto", "auto_min": 3, "auto_max": 20},
+    )
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["success"] is True
+    assert set(body["changed"]) >= {"max_allowed", "mode", "auto_min", "auto_max"}
+
+    resp = await client.get(f"/api/portal/admin/users/{pid}/audit")
+    assert resp.status_code == 200
+    assert "user.quota_changed" in [i["action"] for i in resp.json()["items"]]
+
+
+@pytest.mark.asyncio
+async def test_patch_quota_rejects_inverted_bounds(client, admin_user, db_session):
+    """auto_min above the stored auto_max (merged) is rejected with 422."""
+    db_session.add(UserProfile(
+        user_id=admin_user.id, display_name="Admin", role="admin",
+        source="local", account_active=True,
+    ))
+    await db_session.commit()
+    _auth(client, admin_user)
+
+    resp = await client.post("/api/portal/admin/users/local", json={
+        "username": "quotabounds", "password": "supersecret",
+    })
+    pid = resp.json()["profile_id"]
+
+    resp = await client.patch(
+        f"/api/portal/admin/users/{pid}/quota", json={"auto_min": 50},
+    )
+    assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
 async def test_soft_delete_then_restore(client, admin_user, db_session):
     """Soft delete must keep the row but flag it; restore reverses."""
     db_session.add(UserProfile(

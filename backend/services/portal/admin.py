@@ -8,9 +8,11 @@ from core.i18n import normalize_locale
 from models.user import User
 from models.settings import Setting
 from models.portal.profile import UserProfile
-from models.portal.request import RequestQuota
 from services.portal._html_sanitize import sanitize_html
 from services.portal.profiles import serialize_profile
+from services.portal.requests_quota import get_or_create_quota
+from services.portal.admin_users_audit import record_audit
+from services.portal.admin_users_constants import ACTION_USER_QUOTA_CHANGED
 
 logger = logging.getLogger("mediakeeper.portal.admin")
 
@@ -353,22 +355,44 @@ async def toggle_user_active(
 
 
 async def update_user_quota(
-    db: AsyncSession, user_id: int, data: dict
+    db: AsyncSession,
+    user_id: int,
+    data: dict,
+    *,
+    admin_user_id: int | None = None,
+    ip: str | None = None,
+    user_agent: str | None = None,
 ) -> dict:
-    """Admin: update quota settings for a user."""
-    result = await db.execute(
-        select(RequestQuota).where(RequestQuota.user_id == user_id)
-    )
-    quota = result.scalar_one_or_none()
-    if not quota:
-        return {"error": "not_found"}
+    """Admin: update a user's quota, recording a from/to audit entry for
+    every field that actually changes. Creates the row on first edit
+    (seeding the admin/moderator unlimited default via get_or_create_quota)."""
+    quota = await get_or_create_quota(db, user_id)
 
-    for key in ("max_allowed", "unlimited", "auto_approve", "mode"):
-        if key in data:
+    # Reject an inverted auto-mode range against the MERGED values — a
+    # single-field PATCH may set only one bound.
+    if data.get("auto_min", quota.auto_min) > data.get("auto_max", quota.auto_max):
+        return {"error": "invalid_bounds"}
+
+    changed: dict[str, dict] = {}
+    for key in ("max_allowed", "unlimited", "auto_approve", "mode", "auto_min", "auto_max"):
+        if key in data and getattr(quota, key) != data[key]:
+            changed[key] = {"from": getattr(quota, key), "to": data[key]}
             setattr(quota, key, data[key])
+    if not changed:
+        return {"success": True, "changed": {}}
     db.add(quota)
+    await record_audit(
+        db,
+        admin_user_id=admin_user_id,
+        target_user_id=user_id,
+        action=ACTION_USER_QUOTA_CHANGED,
+        payload={"changed": changed, "source": "admin"},
+        ip=ip,
+        user_agent=user_agent,
+        commit=False,
+    )
     await db.commit()
-    return {"success": True}
+    return {"success": True, "changed": changed}
 
 
 async def toggle_chat(

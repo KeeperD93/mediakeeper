@@ -27,13 +27,6 @@ class ActiveUpdate(BaseModel):
     active: bool
 
 
-class QuotaUpdate(BaseModel):
-    max_allowed: Optional[int] = Field(None, ge=1, le=100)
-    unlimited: Optional[bool] = None
-    auto_approve: Optional[bool] = None
-    mode: Optional[str] = Field(None, pattern="^(manual|auto)$")
-
-
 class MuteUser(BaseModel):
     muted_until: datetime
     reason: Optional[str] = Field(None, max_length=300)
@@ -88,19 +81,6 @@ async def set_active(
     db: AsyncSession = Depends(get_db),
 ):
     result = await admin_svc.toggle_user_active(db, user_id, data.active)
-    if "error" in result:
-        raise HTTPException(status_code=404, detail=result["error"])
-    return result
-
-
-@router.put("/users/{user_id}/quota")
-async def set_quota(
-    user_id: int,
-    data: QuotaUpdate,
-    admin: tuple[User, UserProfile] = Depends(require_admin),
-    db: AsyncSession = Depends(get_db),
-):
-    result = await admin_svc.update_user_quota(db, user_id, data.model_dump(exclude_none=True))
     if "error" in result:
         raise HTTPException(status_code=404, detail=result["error"])
     return result
