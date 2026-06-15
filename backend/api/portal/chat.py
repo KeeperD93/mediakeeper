@@ -10,7 +10,7 @@ from urllib.parse import urlsplit
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -48,6 +48,7 @@ WS_PERM_RECHECK_INTERVAL_SEC = 30
 
 
 class SendMessage(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     content: str = Field(..., min_length=1, max_length=2000)
 
 
@@ -237,6 +238,7 @@ async def delete_message(
 
 
 class ReportMessage(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     reason: Optional[str] = Field(None, max_length=500)
 
 

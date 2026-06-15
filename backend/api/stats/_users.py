@@ -2,7 +2,7 @@
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.auth import get_current_user
@@ -22,6 +22,7 @@ router = APIRouter()
 
 
 class MergeRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     target_user_id: str
 
 

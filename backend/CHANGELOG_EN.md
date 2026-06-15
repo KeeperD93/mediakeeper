@@ -75,6 +75,9 @@ This section intentionally has no date so it is not shown to users.
 - Portal users (admin) — drawer: ticket statuses "In progress" and "Resolved" now translated.
 - Issues (admin) — ticket statuses translated in the list and the status selector.
 - Network errors — clear message shown instead of a misleading empty list.
+- Lists — poster kept when adding a title from a card.
+- Security (admin) — ineffective blocks and self-blocks now refused.
+- Security (admin) — configured secret length hidden (fixed-width mask).
 
 ## [1.0.0-rc.4] - 2026-05-30
 

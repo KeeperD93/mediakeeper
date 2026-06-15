@@ -7,7 +7,7 @@ from core.database import get_db
 from models.user import User
 from api.auth import get_current_user
 from services.discord import send_discord_test, DEFAULT_COLORS, SAMPLE_SYSTEM, get_default_templates, get_tpl_vars
-from services.settings import get_notification_channel, set_notification_channel
+from services.settings import MASKED_SECRET_LENGTH, get_notification_channel, set_notification_channel
 from api.notifications_history import router as history_router
 
 router = APIRouter(prefix="/api/notifications", tags=["notifications"])
@@ -132,7 +132,7 @@ def _mask_imgur_config(data: dict) -> dict:
     masked = deepcopy(data)
     secret = (masked.get("client_secret") or "").strip()
     masked["client_secret_configured"] = bool(secret)
-    masked["client_secret_length"] = len(secret)
+    masked["client_secret_length"] = MASKED_SECRET_LENGTH if secret else 0
     masked["client_secret"] = ""
     return masked
 

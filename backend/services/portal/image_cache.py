@@ -118,6 +118,23 @@ def proxied_url(original_url: str) -> str:
     return f"{IMAGE_PROXY_PATH}?u={encoded}"
 
 
+def unproxied_url(url: str) -> str:
+    """Inverse of :func:`proxied_url`: recover the original CDN URL embedded
+    in a local image-proxy URL (``{IMAGE_PROXY_PATH}?u=<encoded>``).
+
+    Returns ``url`` unchanged when it isn't a proxy URL, so callers can run
+    it unconditionally before their own validation. Lets a snapshot consumer
+    (e.g. user lists) store the canonical TMDB URL even when the card it was
+    added from carries the cache-proxy variant.
+    """
+    if not url:
+        return url
+    parsed = urllib.parse.urlparse(url)
+    if parsed.path != IMAGE_PROXY_PATH:
+        return url
+    return urllib.parse.parse_qs(parsed.query).get("u", [""])[0] or url
+
+
 def _hash_for(url: str) -> str:
     return hashlib.sha256(url.encode("utf-8")).hexdigest()
 

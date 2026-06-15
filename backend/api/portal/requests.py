@@ -1,6 +1,6 @@
 """Portal media request endpoints."""
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,6 +18,7 @@ router = APIRouter(prefix="/requests", tags=["portal-requests"])
 
 
 class CreateRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     tmdb_id: int
     media_type: str = Field(..., pattern="^(movie|tv)$")
     title: str = Field(..., min_length=1, max_length=500)
@@ -29,6 +30,7 @@ class CreateRequest(BaseModel):
 
 
 class StatusUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     status: str = Field(..., pattern="^(approved|rejected|available)$")
     reason: Optional[str] = Field(None, max_length=500)
 
@@ -85,6 +87,7 @@ BATCH_STATUS_MAX_RAW_IDS = BATCH_STATUS_MAX_IDS * 10
 
 
 class BatchStatusQuery(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     tmdb_ids: list[int] = Field(..., max_length=BATCH_STATUS_MAX_RAW_IDS)
 
 

@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.portal.deps import get_current_profile, require_admin
@@ -24,6 +24,7 @@ def _aware_utc(value: datetime | None) -> datetime | None:
 
 
 class CreateEvent(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     name: str = Field(..., min_length=1, max_length=200)
     description: str = Field("", max_length=2000)
     start_date: datetime
@@ -45,6 +46,7 @@ class CreateEvent(BaseModel):
 
 
 class CreateParty(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     title: str = Field(..., min_length=1, max_length=300)
     tmdb_id: Optional[int] = None
     media_type: Optional[str] = Field(None, pattern="^(movie|tv)$")

@@ -162,6 +162,63 @@ async def test_admin_can_list_and_manage_blocks(client, db_session):
 
 
 @pytest.mark.asyncio
+async def test_post_block_rejects_inert_non_permanent_block(client, db_session):
+    """A non-permanent block with no future expiry is inert (never active,
+    hidden from the list); the API must reject it (400) instead of silently
+    storing a dead row (#395)."""
+    admin = User(
+        username="admin", hashed_password=hash_password("TestPassword123!"),
+        is_active=True, must_change_password=False,
+    )
+    db_session.add(admin)
+    await db_session.commit()
+    client.cookies.set("mk_token", create_access_token({"sub": "admin", "scope": "admin"}))
+
+    no_expiry = await client.post("/api/security/blocks", json={
+        "ip": "203.0.113.5", "scope": "all", "permanent": False,
+    })
+    assert no_expiry.status_code == 400
+    assert no_expiry.json()["detail"] == "block_requires_future_expiry"
+
+    past = await client.post("/api/security/blocks", json={
+        "ip": "203.0.113.5", "scope": "all", "permanent": False,
+        "blocked_until": "2000-01-01T00:00:00+00:00",
+    })
+    assert past.status_code == 400
+
+    future = (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
+    ok = await client.post("/api/security/blocks", json={
+        "ip": "203.0.113.5", "scope": "all", "permanent": False,
+        "blocked_until": future,
+    })
+    assert ok.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_post_block_refuses_self_block_by_username(client, db_session):
+    """Blocking the operator's own username would lock them out of the
+    backoffice after JWT expiry; the API must refuse it (#396)."""
+    admin = User(
+        username="admin", hashed_password=hash_password("TestPassword123!"),
+        is_active=True, must_change_password=False,
+    )
+    db_session.add(admin)
+    await db_session.commit()
+    client.cookies.set("mk_token", create_access_token({"sub": "admin", "scope": "admin"}))
+
+    own = await client.post("/api/security/blocks", json={
+        "username": "admin", "scope": "all", "permanent": True,
+    })
+    assert own.status_code == 400
+    assert own.json()["detail"] == "self_block_forbidden"
+
+    other = await client.post("/api/security/blocks", json={
+        "username": "someone-else", "scope": "all", "permanent": True,
+    })
+    assert other.status_code == 200
+
+
+@pytest.mark.asyncio
 async def test_login_endpoint_blocks_after_failures(client, db_session):
     # Prime: create admin user so the /login path exercises the real failure flow
     admin = User(

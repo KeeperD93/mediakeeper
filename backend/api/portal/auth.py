@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response, status
 from sqlalchemy import select, update
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
@@ -34,6 +34,7 @@ router = APIRouter(prefix="/auth", tags=["portal-auth"])
 
 
 class PortalLoginRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     username: str = Field(..., min_length=1, max_length=100)
     password: str = Field(..., min_length=1, max_length=500)
 
@@ -58,7 +59,11 @@ async def _serialize_ui_flags(db: AsyncSession, profile: UserProfile) -> dict:
 async def _safe_serialize_ui_flags(db: AsyncSession, profile: UserProfile) -> dict:
     try:
         return await _serialize_ui_flags(db, profile)
-    except Exception:
+    except Exception as exc:
+        logger.warning(
+            "[PORTAL_AUTH] UI flags fallback for user_id=%s: %s",
+            getattr(profile, "user_id", "unknown"), exc,
+        )
         # Mirror the full success shape so the frontend never reads an absent
         # flag on the degraded path (fail-closed: the request button stays
         # disabled rather than wrongly enabled).
@@ -72,7 +77,10 @@ async def _safe_serialize_ui_flags(db: AsyncSession, profile: UserProfile) -> di
 async def _safe_get_unread_news(db: AsyncSession, user_id: int) -> list[dict]:
     try:
         return await get_unread_news(db, user_id)
-    except Exception:
+    except Exception as exc:
+        logger.warning(
+            "[PORTAL_AUTH] unread news fallback for user_id=%s: %s", user_id, exc,
+        )
         return []
 
 
@@ -98,7 +106,11 @@ async def _log_login(
             user_agent=(user_agent or "")[:255] or None,
         ))
         await db.commit()
-    except Exception:
+    except Exception as exc:
+        logger.warning(
+            "[PORTAL_AUTH] login-history write failed for user_id=%s: %s",
+            user_id, exc,
+        )
         await db.rollback()
 
 
@@ -164,7 +176,11 @@ async def portal_login(
         profile.last_login_user_agent = (user_agent or "")[:255] or None
         db.add(profile)
         await db.commit()
-    except Exception:
+    except Exception as exc:
+        logger.warning(
+            "[PORTAL_LOGIN] profile stamp failed for user_id=%s: %s",
+            user.id, exc,
+        )
         await db.rollback()
     user_id = user.id
     username = user.username
@@ -176,8 +192,10 @@ async def portal_login(
     try:
         from services.portal.xp import grant_daily_login_xp
         await grant_daily_login_xp(db, user_id)
-    except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
-        pass
+    except Exception as exc:
+        logger.warning(
+            "[PORTAL_LOGIN] daily XP grant failed for user_id=%s: %s", user_id, exc,
+        )
 
     # Check achievements on login — fire-and-forget so the response is not
     # blocked by an inherently slow scan (5 passes + playback queries). The
@@ -221,7 +239,10 @@ async def portal_me(
             profile.last_seen_at = now
             db.add(profile)
             await db.commit()
-    except Exception:
+    except Exception as exc:
+        logger.warning(
+            "[PORTAL_ME] last_seen bump failed for user_id=%s: %s", user.id, exc,
+        )
         await db.rollback()
 
     unread = await _safe_get_unread_news(db, user.id)
@@ -243,7 +264,10 @@ async def _safe_serialize_gdpr(db: AsyncSession, user: User) -> dict:
     try:
         from services.portal.gdpr import is_gdpr_enabled
         enabled = await is_gdpr_enabled(db)
-    except Exception:
+    except Exception as exc:
+        logger.warning(
+            "[PORTAL_AUTH] GDPR flags fallback for user_id=%s: %s", user.id, exc,
+        )
         enabled = False
     pending = getattr(user, "pending_deletion_at", None)
     requested = getattr(user, "deletion_requested_at", None)
@@ -284,6 +308,9 @@ async def portal_logout(
                     .values(tokens_invalidated_at=datetime.now(timezone.utc))
                 )
                 await db.commit()
-        except Exception:
+        except Exception as exc:
+            logger.warning(
+                "[PORTAL_LOGOUT] token revoke failed for user=%s: %s", username, exc,
+            )
             await db.rollback()
     return {"ok": True}

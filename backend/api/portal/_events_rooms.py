@@ -37,6 +37,7 @@ def _aware_utc(value: datetime | None) -> datetime | None:
 
 
 class MKEventMedia(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     tmdb_id: int
     media_type: str = Field(..., pattern="^(movie|tv)$")
     title: str = Field(..., max_length=300)
@@ -72,6 +73,7 @@ class CreateMKEvent(BaseModel):
 
 
 class UpdateMKEvent(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     title: Optional[str] = Field(None, min_length=1, max_length=200)
     tmdb_ids: Optional[list[MKEventMedia]] = None
     scheduled_at: Optional[datetime] = None
@@ -84,10 +86,12 @@ class UpdateMKEvent(BaseModel):
 
 
 class RespondPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     decision: str = Field(..., pattern="^(accept|decline)$")
 
 
 class RoomMessage(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     content: str = Field(..., min_length=1, max_length=2000)
 
 

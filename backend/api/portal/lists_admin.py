@@ -3,7 +3,7 @@
 Mounted under ``/api/portal/admin/lists``. Gated by ``require_admin``.
 """
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
@@ -17,6 +17,7 @@ router = APIRouter(prefix="/admin/lists", tags=["portal-lists-admin"])
 
 
 class MuteToggle(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     muted: bool
 
 

@@ -4,7 +4,7 @@ Scheduler API — task CRUD + manual trigger.
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,6 +19,7 @@ router = APIRouter(prefix="/api/scheduler", tags=["scheduler"])
 
 
 class TaskUpdateRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     enabled:      bool | None = None
     interval_sec: int  | None = None
 

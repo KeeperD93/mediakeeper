@@ -1,7 +1,7 @@
 """Admin endpoints for XP boost events (Christmas double-XP, etc.)."""
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,6 +13,7 @@ router = APIRouter(prefix="/admin/xp-events", tags=["portal-admin"])
 
 
 class XpEventPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     name: str = Field(..., min_length=1, max_length=100)
     description: Optional[str] = Field(None, max_length=500)
     multiplier: float = Field(2.0, gt=0, le=20)
@@ -23,6 +24,7 @@ class XpEventPayload(BaseModel):
 
 
 class XpEventUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     name: Optional[str] = Field(None, min_length=1, max_length=100)
     description: Optional[str] = Field(None, max_length=500)
     multiplier: Optional[float] = Field(None, gt=0, le=20)

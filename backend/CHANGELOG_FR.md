@@ -75,6 +75,9 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Utilisateurs portail (admin) — fiche : statuts de tickets « En cours » et « Résolu » traduits.
 - Problèmes (admin) — statuts de tickets traduits dans la liste et le sélecteur.
 - Erreurs réseau — message clair affiché au lieu d'une liste vide trompeuse.
+- Listes — jaquette conservée à l'ajout d'un film depuis une carte.
+- Sécurité (admin) — blocage sans effet ou auto-blocage désormais refusés.
+- Sécurité (admin) — longueur réelle des secrets configurés masquée (points fixes).
 
 ## [1.0.0-rc.4] - 2026-05-30
 

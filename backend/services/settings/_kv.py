@@ -123,6 +123,8 @@ async def encrypt_legacy_sensitive_values(
             row.value = encrypt_value(row.value)
             settings_count += 1
 
+    # NotificationChannel.data is always sensitive (webhook URLs, tokens) —
+    # encrypt unconditionally, unlike Settings rows which mix sensitivity.
     channels_count = 0
     result = await db.execute(select(NotificationChannel))
     for row in result.scalars().all():

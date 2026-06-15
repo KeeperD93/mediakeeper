@@ -111,7 +111,7 @@ async def refresh_token(
     csrf_protected: None = Depends(require_csrf),
     current_user: User = Depends(get_current_user),
 ):
-    """Renew le cookie JWT."""
+    """Renew the admin JWT cookie."""
     new_token = create_access_token({"sub": current_user.username, "scope": "admin"})
     _set_jwt_cookie(response, new_token, request)
     ensure_csrf_cookie(response, request)
@@ -147,7 +147,11 @@ async def get_preferences(
         return {"theme": "dark", "sidebar_collapsed": False}
     try:
         return json.loads(row.preferences)
-    except Exception:
+    except Exception as exc:
+        logger.warning(
+            "[PREFERENCES] corrupt preferences JSON for user_id=%s: %s",
+            current_user.id, exc,
+        )
         return {"theme": "dark", "sidebar_collapsed": False}
 
 
@@ -177,7 +181,11 @@ async def save_locale(
     if row and row.preferences:
         try:
             current = json.loads(row.preferences)
-        except Exception:
+        except Exception as exc:
+            logger.warning(
+                "[LOCALE] corrupt preferences JSON for user_id=%s: %s",
+                current_user.id, exc,
+            )
             current = {}
     current["locale"] = req.locale
     await upsert_user_preferences(db, current_user.id, preferences=json.dumps(current))
@@ -197,7 +205,11 @@ async def get_table_columns(
     try:
         data = json.loads(row.table_columns)
         return data if isinstance(data, dict) else {}
-    except Exception:
+    except Exception as exc:
+        logger.warning(
+            "[TABLE_COLUMNS] corrupt table-columns JSON for user_id=%s: %s",
+            current_user.id, exc,
+        )
         return {}
 
 
@@ -216,7 +228,11 @@ async def save_table_columns(
         try:
             parsed = json.loads(row.table_columns)
             current = parsed if isinstance(parsed, dict) else {}
-        except Exception:
+        except Exception as exc:
+            logger.warning(
+                "[TABLE_COLUMNS] corrupt table-columns JSON for user_id=%s: %s",
+                current_user.id, exc,
+            )
             current = {}
     current[req.table] = req.widths
     if len(current) > MAX_TABLE_PREFS:

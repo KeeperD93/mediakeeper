@@ -13,6 +13,7 @@ from models.portal.social import (
     UserList, UserListItem, PRIVACY_COLLABORATIVE, PRIVACY_PRIVATE,
 )
 from services.portal import strip_tags_and_trim
+from services.portal.image_cache import unproxied_url
 from services.portal.lists import (
     MAX_ITEMS_PER_LIST, MAX_NAME_LEN,
     can_view, can_edit_items, _log, _rate_limited,
@@ -54,8 +55,11 @@ async def add_items(
         if not tmdb_id or media_type not in ("movie", "tv"):
             continue
         title = strip_tags_and_trim(raw.get("title") or "", 500) or None
+        # Cards hand us the cache-proxy URL when the image cache is on;
+        # recover the canonical TMDB URL behind it so the poster survives
+        # the TMDB-only host whitelist instead of being dropped to NULL.
         poster_url = safe_url(
-            raw.get("poster_url") or "",
+            unproxied_url(raw.get("poster_url") or ""),
             allowed_hosts=_POSTER_ALLOWED_HOSTS,
         )
         year_raw = raw.get("year")

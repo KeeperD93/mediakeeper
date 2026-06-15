@@ -61,7 +61,7 @@ def check_desync(
         }
 
     except Exception as e:
-        logger.warning(f"[subtitle_tools] Desync check error: {e}")
+        logger.warning("[subtitle_tools] Desync check error: %s", e)
         return {
             "desynced": False,
             "delta_sec": 0,
