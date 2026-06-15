@@ -96,10 +96,11 @@ export function useColumnResize(defaults, { min = 56, fixed = 0, persistKey = ''
     observer.observe(el)
   }
   // Tear down a drag in flight too — unmounting mid-drag would otherwise leak
-  // the window listeners, the pending save timer and the col-resize body cursor.
+  // the window listeners and the col-resize body cursor. A debounced save that
+  // is still pending is left to fire (its timer self-clears and apiPut needs no
+  // mounted component) so a just-committed width isn't dropped on navigation.
   onScopeDispose(() => {
     stopDrag()
-    clearTimeout(saveTimer)
     observer?.disconnect()
   })
 
