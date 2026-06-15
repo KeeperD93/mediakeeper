@@ -2024,6 +2024,7 @@
           "overview": "Overview",
           "identity": "Identity",
           "access": "Access & role",
+          "quota": "Quota",
           "security": "Security",
           "activity": "Activity",
           "trophies": "Trophies",
@@ -2082,6 +2083,23 @@
           "deleteBullet3": "The Emby account is NOT touched — use « Disable Emby » above to block streaming.",
           "deleteAction": "Delete this account from MediaKeeper",
           "restoreHelp": "This account has been deleted. Restoring it re-enables MediaKeeper access."
+        },
+        "quota": {
+          "mode": "Quota mode",
+          "modeManual": "Manual",
+          "modeAuto": "Automatic",
+          "modeHelp": "Manual: you set the monthly allowance. Automatic: it adjusts with the user's activity, within the bounds below.",
+          "unlimited": "Unlimited",
+          "unlimitedHelp": "No monthly cap on requests for this user.",
+          "maxAllowed": "Requests per month",
+          "autoMin": "Minimum",
+          "autoMax": "Maximum",
+          "autoCurrent": "Current allowance: {cap}",
+          "autoLastRun": "last adjusted {date}",
+          "boundsError": "Minimum must not exceed maximum.",
+          "autoApprove": "Auto-approve requests",
+          "autoApproveHelp": "Requests from this user are approved automatically (no moderation).",
+          "usage": "Used this month: {used} / {cap}"
         },
         "security": {
           "lastLogin": "Last login",
@@ -2186,7 +2204,9 @@
           "embyError": "Failed on the Emby side ({error})",
           "tagsSet": "Tags: {tags}",
           "tagsCleared": "Tags removed",
-          "notification": "Title: {title}"
+          "notification": "Title: {title}",
+          "quotaChange": "Changed: {fields}",
+          "quotaAuto": "Auto-adjusted: {fields}"
         },
         "notify": {
           "target": "Recipient: {name}",
@@ -2225,6 +2245,7 @@
           "identity_updated": "Identity updated",
           "role_changed": "Role changed",
           "permissions_changed": "Permissions changed",
+          "quota_changed": "Quota changed",
           "access_window_set": "Access window updated",
           "access_extended": "Access extended",
           "activated": "Account activated",

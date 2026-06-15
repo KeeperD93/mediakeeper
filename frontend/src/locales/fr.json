@@ -2024,6 +2024,7 @@
           "overview": "Vue d'ensemble",
           "identity": "Identité",
           "access": "Accès & Rôle",
+          "quota": "Quota",
           "security": "Sécurité",
           "activity": "Activité",
           "trophies": "Trophées",
@@ -2082,6 +2083,23 @@
           "deleteBullet3": "Le compte Emby n'est PAS touché — utilisez « Désactiver Emby » au-dessus pour le bloquer côté streaming.",
           "deleteAction": "Supprimer ce compte de MediaKeeper",
           "restoreHelp": "Ce compte a été supprimé. La restauration le réactive et lui rend l'accès à MediaKeeper."
+        },
+        "quota": {
+          "mode": "Mode de quota",
+          "modeManual": "Manuel",
+          "modeAuto": "Automatique",
+          "modeHelp": "Manuel : vous fixez le quota mensuel. Automatique : il s'ajuste selon l'activité de l'utilisateur, dans les bornes ci-dessous.",
+          "unlimited": "Illimité",
+          "unlimitedHelp": "Aucune limite mensuelle de demandes pour cet utilisateur.",
+          "maxAllowed": "Demandes par mois",
+          "autoMin": "Minimum",
+          "autoMax": "Maximum",
+          "autoCurrent": "Quota actuel : {cap}",
+          "autoLastRun": "dernier ajustement {date}",
+          "boundsError": "Le minimum ne doit pas dépasser le maximum.",
+          "autoApprove": "Approbation automatique",
+          "autoApproveHelp": "Les demandes de cet utilisateur sont approuvées automatiquement (sans modération).",
+          "usage": "Utilisé ce mois : {used} / {cap}"
         },
         "security": {
           "lastLogin": "Dernière connexion",
@@ -2186,7 +2204,9 @@
           "embyError": "Échec côté Emby ({error})",
           "tagsSet": "Tags : {tags}",
           "tagsCleared": "Tags retirés",
-          "notification": "Titre : {title}"
+          "notification": "Titre : {title}",
+          "quotaChange": "Modifié : {fields}",
+          "quotaAuto": "Ajusté automatiquement : {fields}"
         },
         "notify": {
           "target": "Destinataire : {name}",
@@ -2225,6 +2245,7 @@
           "identity_updated": "Identité mise à jour",
           "role_changed": "Rôle modifié",
           "permissions_changed": "Permissions modifiées",
+          "quota_changed": "Quota modifié",
           "access_window_set": "Période d'accès mise à jour",
           "access_extended": "Accès prolongé",
           "activated": "Compte activé",

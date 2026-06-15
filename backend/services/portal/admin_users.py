@@ -22,6 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.user import User
 from models.portal.profile import UserProfile
 
+from services.portal.requests_quota import get_user_quota
 from .admin_users_audit import record_audit
 from .admin_users_constants import (
     ACCESS_EXPIRY_WARNING_DAYS,
@@ -214,7 +215,9 @@ async def get_admin_user_detail(
     if not pair:
         return None
     profile, user = pair
-    return serialize_admin_user_detail(profile, user)
+    detail = serialize_admin_user_detail(profile, user)
+    detail["quota"] = await get_user_quota(db, profile.user_id)
+    return detail
 
 
 async def update_user_identity(

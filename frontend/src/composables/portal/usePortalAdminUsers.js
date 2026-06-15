@@ -106,6 +106,10 @@ export function usePortalAdminUsers() {
     return await apiPatch(`${BASE}/${id}/access`, { start, end })
   }
 
+  async function patchQuota(id, payload) {
+    return await apiPatch(`${BASE}/${id}/quota`, payload)
+  }
+
   async function postExtendAccess(id, months) {
     return await apiPost(`${BASE}/${id}/extend-access`, { months })
   }
@@ -183,6 +187,7 @@ export function usePortalAdminUsers() {
     patchPermissions,
     patchActive,
     patchAccess,
+    patchQuota,
     postExtendAccess,
     postEmbyToggle,
     patchNotes,

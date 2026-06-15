@@ -124,6 +124,7 @@
                 :presets="presets"
                 @changed="onChanged"
               />
+              <RuTabQuota v-else-if="activeTab === 'quota'" :user="user" @changed="onChanged" />
               <RuTabSecurity
                 v-else-if="activeTab === 'security'"
                 :user="user"
@@ -156,6 +157,7 @@ import MkAvatar from '@/components/common/MkAvatar.vue'
 import RuUserBadge from './RuUserBadge.vue'
 import RuTabIdentity from './tabs/RuTabIdentity.vue'
 import RuTabAccess from './tabs/RuTabAccess.vue'
+import RuTabQuota from './tabs/RuTabQuota.vue'
 import RuTabSecurity from './tabs/RuTabSecurity.vue'
 import RuTabActivity from './tabs/RuTabActivity.vue'
 import RuTabTrophies from './tabs/RuTabTrophies.vue'

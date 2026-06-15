@@ -111,6 +111,20 @@ function tPerm(key) {
   return te(i18nKey) ? t(i18nKey) : key
 }
 
+const _QUOTA_FIELD_LABELS = {
+  max_allowed: 'maxAllowed',
+  unlimited: 'unlimited',
+  auto_approve: 'autoApprove',
+  mode: 'mode',
+  auto_min: 'autoMin',
+  auto_max: 'autoMax',
+}
+
+function tQuotaField(key) {
+  const i18nKey = `requestsAdmin.users.drawer.quota.${_QUOTA_FIELD_LABELS[key] || key}`
+  return te(i18nKey) ? t(i18nKey) : key
+}
+
 function fmtDate(value) {
   if (!value) return t('requestsAdmin.users.drawer.audit.noLimit')
   try {
@@ -164,6 +178,11 @@ function describe(entry) {
   }
   if (a === 'user.notification_sent' && p.title) {
     return t('requestsAdmin.users.drawer.audit.notification', { title: p.title })
+  }
+  if (a === 'user.quota_changed' && p.changed) {
+    const fields = Object.keys(p.changed).map(tQuotaField).join(', ')
+    const key = p.source === 'auto' ? 'quotaAuto' : 'quotaChange'
+    return t(`requestsAdmin.users.drawer.audit.${key}`, { fields })
   }
   return ''
 }

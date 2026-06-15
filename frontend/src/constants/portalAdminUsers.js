@@ -69,6 +69,7 @@ export const VIEW_MODE = Object.freeze({
 export const DRAWER_TAB = Object.freeze({
   IDENTITY: 'identity',
   ACCESS: 'access',
+  QUOTA: 'quota',
   SECURITY: 'security',
   ACTIVITY: 'activity',
   TROPHIES: 'trophies',
@@ -79,6 +80,7 @@ export const DRAWER_TAB = Object.freeze({
 export const DRAWER_TABS = [
   DRAWER_TAB.IDENTITY,
   DRAWER_TAB.ACCESS,
+  DRAWER_TAB.QUOTA,
   DRAWER_TAB.SECURITY,
   DRAWER_TAB.ACTIVITY,
   DRAWER_TAB.TROPHIES,
