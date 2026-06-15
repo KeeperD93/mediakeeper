@@ -112,7 +112,7 @@ async def download(
             }
             await svc_record_download(db, **history_data)
         except Exception as e:
-            logger.warning(f"[subtitles] Failed to record download history: {e}")
+            logger.warning("[subtitles] Failed to record download history: %s", e)
 
     return result
 

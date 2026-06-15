@@ -52,14 +52,14 @@ async def get_raw_sessions(db: AsyncSession) -> list:
             client = get_internal_client()
             res = await client.get(f"{url}/Sessions", headers=headers)
             if res.status_code != 200:
-                logger.warning(f"get_raw_sessions: Emby HTTP {res.status_code}")
+                logger.warning("get_raw_sessions: Emby HTTP %s", res.status_code)
                 return _raw_sessions_cache or []
             sessions = res.json()
             _raw_sessions_cache = sessions
             _raw_sessions_cache_ts = time.monotonic()
             return sessions
         except Exception as e:
-            logger.error(f"Error get_raw_sessions: {e}")
+            logger.error("Error get_raw_sessions: %s", e)
             return _raw_sessions_cache or []
 
 
