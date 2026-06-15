@@ -77,6 +77,7 @@ This section intentionally has no date so it is not shown to users.
 - Network errors — clear message shown instead of a misleading empty list.
 - Lists — poster kept when adding a title from a card.
 - Security (admin) — ineffective blocks and self-blocks now refused.
+- Security (admin) — configured secret length hidden (fixed-width mask).
 
 ## [1.0.0-rc.4] - 2026-05-30
 

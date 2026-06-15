@@ -1,5 +1,5 @@
 """
-Service settings — package split into modules (Rule 9, <= 300 lines).
+Service settings — package split into modules (<= 300 lines per file).
 """
 from ._emby_urls import (
     _emby_server_id_cache,
@@ -22,7 +22,7 @@ from ._kv import (
     set_watchlist_data,
     upsert_user_preferences,
 )
-from ._tools import get_active_media_source, get_tools_config
+from ._tools import MASKED_SECRET_LENGTH, get_active_media_source, get_tools_config
 from ._tools_def import TOOLS_DEFINITION
 
 __all__ = [
@@ -42,6 +42,7 @@ __all__ = [
     "set_notification_channel",
     "get_tools_config",
     "get_active_media_source",
+    "MASKED_SECRET_LENGTH",
     "get_emby_public_url",
     "get_emby_server_id",
     "build_emby_deep_link",

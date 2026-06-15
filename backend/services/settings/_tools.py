@@ -5,6 +5,10 @@ from ._emby_urls import get_emby_server_id
 from ._kv import get_all_settings
 from ._tools_def import TOOLS_DEFINITION
 
+# Width of the asterisk mask returned for a configured secret. A fixed value
+# rather than len(secret) so the admin UI never leaks the real secret length.
+MASKED_SECRET_LENGTH = 12
+
 
 def _is_secret_field(field: dict) -> bool:
     return field.get("type") == "password" or field.get("key") in {"api_key", "password"}
@@ -42,7 +46,7 @@ async def get_tools_config(
             if mask_secrets and _is_secret_field(field):
                 tool_config[fk] = ""
                 tool_config[f"{fk}_configured"] = bool(raw_value)
-                tool_config[f"{fk}_length"] = len(raw_value)
+                tool_config[f"{fk}_length"] = MASKED_SECRET_LENGTH if raw_value else 0
             else:
                 tool_config[fk] = raw_value
 

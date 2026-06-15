@@ -7,7 +7,7 @@ from core.security import create_access_token, hash_password
 from models.user import User
 from models.portal.profile import UserProfile
 from models.portal.request import MediaRequest
-from services.settings import get_notification_channel, get_setting
+from services.settings import MASKED_SECRET_LENGTH, get_notification_channel, get_setting
 
 
 async def _create_user_with_profile(
@@ -137,7 +137,7 @@ async def test_settings_tools_mask_secrets_and_preserve_partial_updates(client, 
     first_save = await client.post("/api/settings/tools/emby", json={
         "enabled": True,
         "url": "http://emby.local",
-        "api_key": "super-secret",
+        "api_key": "super-secret-api-key-value",
     })
     assert first_save.status_code == 200
 
@@ -147,7 +147,8 @@ async def test_settings_tools_mask_secrets_and_preserve_partial_updates(client, 
     assert emby["url"] == "http://emby.local"
     assert emby["api_key"] == ""
     assert emby["api_key_configured"] is True
-    assert emby["api_key_length"] == len("super-secret")
+    # Fixed mask width, not the real secret length (length is not leaked).
+    assert emby["api_key_length"] == MASKED_SECRET_LENGTH
 
     second_save = await client.post("/api/settings/tools/emby", json={
         "enabled": True,
@@ -155,7 +156,7 @@ async def test_settings_tools_mask_secrets_and_preserve_partial_updates(client, 
     })
     assert second_save.status_code == 200
 
-    assert await get_setting(db_session, "emby.api_key") == "super-secret"
+    assert await get_setting(db_session, "emby.api_key") == "super-secret-api-key-value"
     assert await get_setting(db_session, "emby.url") == "http://emby.internal"
 
 
@@ -206,7 +207,7 @@ async def test_notification_configs_mask_secrets_and_preserve_hidden_values(clie
 
     imgur_save = await client.post("/api/notifications/imgur/config", json={
         "client_id": "imgur-id",
-        "client_secret": "imgur-secret",
+        "client_secret": "imgur-client-secret-value",
     })
     assert imgur_save.status_code == 200
 
@@ -214,7 +215,7 @@ async def test_notification_configs_mask_secrets_and_preserve_hidden_values(clie
     assert imgur_get.status_code == 200
     assert imgur_get.json()["client_secret"] == ""
     assert imgur_get.json()["client_secret_configured"] is True
-    assert imgur_get.json()["client_secret_length"] == len("imgur-secret")
+    assert imgur_get.json()["client_secret_length"] == MASKED_SECRET_LENGTH
 
     imgur_update = await client.post("/api/notifications/imgur/config", json={
         "client_id": "imgur-id-2",
@@ -225,7 +226,7 @@ async def test_notification_configs_mask_secrets_and_preserve_hidden_values(clie
 
     stored_imgur = json.loads(await get_notification_channel(db_session, "imgur"))
     assert stored_imgur["client_id"] == "imgur-id-2"
-    assert stored_imgur["client_secret"] == "imgur-secret"
+    assert stored_imgur["client_secret"] == "imgur-client-secret-value"
 
 
 @pytest.mark.asyncio
