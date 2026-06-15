@@ -62,3 +62,45 @@ async def test_update_single_date_still_valid_ok(db_session):
     now = datetime.now(timezone.utc)
     result = await svc.update_event(db_session, ev["id"], {"ends_at": now + timedelta(days=30)})
     assert result is not None
+
+
+@pytest.mark.asyncio
+async def test_serialize_emits_tz_aware_iso(db_session):
+    # Stored datetimes come back tz-naive on the SQLite test engine; _serialize
+    # must coerce them to UTC so the emitted ISO carries an offset and the
+    # is_active comparison can't blow up on naive-vs-aware.
+    ev = await _create(db_session)
+    assert ev["starts_at"].endswith("+00:00")
+    assert ev["ends_at"].endswith("+00:00")
+
+
+async def _login_xp_admin(db_session, admin_user, client, portal_login):
+    from services.portal.profiles import get_or_create_profile
+
+    profile = await get_or_create_profile(db_session, admin_user)
+    profile.role = "admin"
+    await db_session.commit()
+    await portal_login(client)
+
+
+@pytest.mark.asyncio
+async def test_update_route_rejects_single_field_inversion(
+    client, admin_user, db_session, portal_login,
+):
+    await _login_xp_admin(db_session, admin_user, client, portal_login)
+    now = datetime.now(timezone.utc)
+    ev = await _create(db_session)  # window now → now+10d
+    r = await client.put(
+        f"/api/portal/admin/xp-events/{ev['id']}",
+        json={"starts_at": (now + timedelta(days=20)).isoformat()},
+    )
+    assert r.status_code == 400, r.text
+
+
+@pytest.mark.asyncio
+async def test_update_route_404_for_missing_event(
+    client, admin_user, db_session, portal_login,
+):
+    await _login_xp_admin(db_session, admin_user, client, portal_login)
+    r = await client.put("/api/portal/admin/xp-events/999999", json={"name": "x"})
+    assert r.status_code == 404, r.text
