@@ -68,6 +68,15 @@ def test_cleanup_request_caps_entries():
         CleanupRequest(entries=[CleanupEntry() for _ in range(1001)])
 
 
+def test_dup_schemas_reject_unknown_fields():
+    with pytest.raises(ValidationError):
+        DupIgnoreRequest(keys=["k"], bogus=1)
+    with pytest.raises(ValidationError):
+        CleanupEntry(title="t", bogus=1)
+    with pytest.raises(ValidationError):
+        CleanupRequest(entries=[], bogus=1)
+
+
 # --- Route param bounds (Query / Path) via the authenticated client ---
 
 @pytest.mark.asyncio

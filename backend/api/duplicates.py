@@ -2,7 +2,7 @@ import time
 import logging
 from typing import Annotated, List, Optional
 from fastapi import APIRouter, Depends, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete, func
 
@@ -65,6 +65,7 @@ async def count_duplicates(
 # ── Ignored ──
 
 class IgnoreRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     keys: List[Annotated[str, Field(max_length=512)]] = Field(max_length=1000)
     titles: List[Annotated[str, Field(max_length=512)]] = Field(default=[], max_length=1000)
 
@@ -97,12 +98,14 @@ async def remove_ignored(req: IgnoreRequest, db: AsyncSession = Depends(get_db),
 # ── Cleanup history ──
 
 class CleanupEntry(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     title: Optional[str] = Field(default=None, max_length=512)
     filename: Optional[str] = Field(default=None, max_length=512)
     size_bytes: int = Field(default=0, ge=0)
     action: str = Field(default="deleted", max_length=32)
 
 class CleanupRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     entries: List[CleanupEntry] = Field(max_length=1000)
 
 @router.get("/history")
