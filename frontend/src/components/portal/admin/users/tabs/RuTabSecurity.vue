@@ -164,6 +164,9 @@ async function loadHistory() {
     history.value = res?.items || []
     historyHasMore.value = !!res?.has_more
     historyCursor.value = res?.next_cursor || null
+  } catch (e) {
+    console.error('[RuTabSecurity.loadHistory] failed', e)
+    showToast(t('common.networkError'), TOAST_TYPE.ERR)
   } finally {
     loadingHistory.value = false
   }
