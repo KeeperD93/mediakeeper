@@ -2,7 +2,7 @@
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
@@ -23,6 +23,7 @@ VALID_SCOPES = {"admin", "admin_password", "portal", "all"}
 
 
 class BlockRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     ip: str | None = Field(default=None, max_length=64)
     username: str | None = Field(default=None, max_length=100)
     scope: str = Field(default="all")

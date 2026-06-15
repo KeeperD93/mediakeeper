@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response, status
 from sqlalchemy import select, update
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
@@ -34,6 +34,7 @@ router = APIRouter(prefix="/auth", tags=["portal-auth"])
 
 
 class PortalLoginRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     username: str = Field(..., min_length=1, max_length=100)
     password: str = Field(..., min_length=1, max_length=500)
 

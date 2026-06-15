@@ -13,9 +13,12 @@ from pydantic import ValidationError
 from api.duplicates import CleanupEntry, CleanupRequest
 from api.duplicates import IgnoreRequest as DupIgnoreRequest
 from api.media._release_tags import ReleaseTagsPayload
+from api.portal.auth import PortalLoginRequest
 from api.portal.requests import BatchStatusQuery, CreateRequest, StatusUpdate
 from api.portal.tickets import CreateTicket, TicketReplyBody, TicketStatusUpdate
 from api.portal.xp_events import XpEventPayload, XpEventUpdate
+from api.scheduler import TaskUpdateRequest
+from api.security import BlockRequest
 from api.settings import (
     MediaFolderRequest, MediaFoldersSaveRequest, NetworkSettingsRequest, ToolSaveRequest,
 )
@@ -138,6 +141,15 @@ def test_settings_schemas_reject_unknown_fields():
         MediaFoldersSaveRequest(folders=[], bogus=1)
     with pytest.raises(ValidationError):
         NetworkSettingsRequest(image_cache_enabled=True, bogus=1)
+
+
+def test_security_auth_scheduler_schemas_reject_unknown_fields():
+    with pytest.raises(ValidationError):
+        BlockRequest(username="x", bogus=1)
+    with pytest.raises(ValidationError):
+        TaskUpdateRequest(enabled=True, bogus=1)
+    with pytest.raises(ValidationError):
+        PortalLoginRequest(username="u", password="p", bogus=1)
 
 
 # --- Route param bounds (Query / Path) via the authenticated client ---
