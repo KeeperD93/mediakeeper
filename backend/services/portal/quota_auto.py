@@ -12,6 +12,7 @@ defaults, grace, steps, on/off) come from the ``quota.auto.*`` Settings keys.
 """
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import func, select
@@ -27,6 +28,8 @@ from models.user import User
 from services.portal.admin_users_audit import record_audit
 from services.portal.admin_users_constants import ACTION_USER_QUOTA_CHANGED
 from services.portal.personal_utils import _playback_user_filter
+
+logger = logging.getLogger("mediakeeper.portal.quota")
 
 # Per-signal weight × per-signal cap. The cap stops a single, cheaply-farmed
 # metric (junk tickets, throwaway lists) from inflating the allowance; Emby
@@ -146,9 +149,12 @@ async def _load_settings(db: AsyncSession) -> dict:
 
     cfg: dict = {}
     for key, default in _INT_DEFAULTS.items():
+        # get_setting returns "" for an absent key (never None), so guard on
+        # truthiness: an unset key takes the default directly instead of
+        # routing int("") through the except.
         raw = await get_setting(db, f"quota.auto.{key}")
         try:
-            cfg[key] = int(raw) if raw is not None else default
+            cfg[key] = int(raw) if raw else default
         except (TypeError, ValueError):
             cfg[key] = default
     enabled = await get_setting(db, "quota.auto.enabled")
@@ -169,6 +175,7 @@ async def recompute_auto_quotas(db: AsyncSession, *, now: datetime | None = None
     """
     cfg = await _load_settings(db)
     if not cfg["enabled"]:
+        logger.debug("[QUOTA] auto recompute skipped (disabled)")
         return {"skipped": "disabled"}
     now = now or datetime.now(timezone.utc)
     cutoff = now - timedelta(days=cfg["window_days"])
@@ -226,4 +233,5 @@ async def recompute_auto_quotas(db: AsyncSession, *, now: datetime | None = None
             )
             changed += 1
     await db.commit()
+    logger.info("[QUOTA] auto recompute: processed=%s changed=%s", processed, changed)
     return {"processed": processed, "changed": changed}
