@@ -7,10 +7,16 @@
       </div>
 
       <div class="ru-bulkbar-actions">
-        <button class="ru-btn ru-btn--ghost" @click="$emit('action', { action: 'activate' })">
+        <button
+          class="ru-btn ru-btn--ghost"
+          @click="$emit('action', { action: BULK_ACTION.ACTIVATE })"
+        >
           {{ $t('requestsAdmin.users.actions.activate') }}
         </button>
-        <button class="ru-btn ru-btn--ghost" @click="$emit('action', { action: 'deactivate' })">
+        <button
+          class="ru-btn ru-btn--ghost"
+          @click="$emit('action', { action: BULK_ACTION.DEACTIVATE })"
+        >
           {{ $t('requestsAdmin.users.actions.deactivate') }}
         </button>
         <select class="ru-toolbar-select mk-select-chevron" @change="onSetRole">
@@ -22,10 +28,16 @@
         <button class="ru-btn ru-btn--ghost" @click="permsOpen = true">
           {{ $t('requestsAdmin.users.bulkPerms.title') }}…
         </button>
-        <button class="ru-btn ru-btn--ghost" @click="$emit('action', { action: 'export' })">
+        <button
+          class="ru-btn ru-btn--ghost"
+          @click="$emit('action', { action: BULK_ACTION.EXPORT })"
+        >
           {{ $t('requestsAdmin.users.actions.export') }}
         </button>
-        <button class="ru-btn ru-btn--danger" @click="$emit('action', { action: 'delete' })">
+        <button
+          class="ru-btn ru-btn--danger"
+          @click="$emit('action', { action: BULK_ACTION.DELETE })"
+        >
           {{ $t('requestsAdmin.users.actions.delete') }}
         </button>
         <button class="ru-btn ru-btn--ghost" @click="$emit('clear')">
@@ -46,6 +58,7 @@
 import { ref } from 'vue'
 import { Users } from 'lucide-vue-next'
 import RuBulkPermsModal from './RuBulkPermsModal.vue'
+import { BULK_ACTION } from '@/constants/portalAdminUsers'
 
 defineProps({ count: { type: Number, default: 0 } })
 const emit = defineEmits(['action', 'clear'])
@@ -54,7 +67,7 @@ const permsOpen = ref(false)
 function onSetRole(event) {
   const role = event.target.value
   if (!role) return
-  emit('action', { action: 'set_role', payload: { role } })
+  emit('action', { action: BULK_ACTION.SET_ROLE, payload: { role } })
   event.target.value = ''
 }
 
@@ -62,6 +75,6 @@ function onSetRole(event) {
 // the matching backend bulk calls (set_permissions / set_quota).
 function onApplyBulk({ permissions, quota }) {
   permsOpen.value = false
-  emit('action', { action: 'bulk_edit', payload: { permissions, quota } })
+  emit('action', { action: BULK_ACTION.BULK_EDIT, payload: { permissions, quota } })
 }
 </script>

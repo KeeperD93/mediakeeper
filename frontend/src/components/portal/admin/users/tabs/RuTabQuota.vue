@@ -6,18 +6,18 @@
         <button
           type="button"
           class="ru-pill"
-          :class="{ 'ru-pill--active': form.mode === 'manual' }"
+          :class="{ 'ru-pill--active': form.mode === QUOTA_MODE.MANUAL }"
           :disabled="busy"
-          @click="form.mode = 'manual'"
+          @click="form.mode = QUOTA_MODE.MANUAL"
         >
           {{ $t('requestsAdmin.users.drawer.quota.modeManual') }}
         </button>
         <button
           type="button"
           class="ru-pill"
-          :class="{ 'ru-pill--active': form.mode === 'auto' }"
+          :class="{ 'ru-pill--active': form.mode === QUOTA_MODE.AUTO }"
           :disabled="busy"
-          @click="form.mode = 'auto'"
+          @click="form.mode = QUOTA_MODE.AUTO"
         >
           {{ $t('requestsAdmin.users.drawer.quota.modeAuto') }}
         </button>
@@ -25,7 +25,7 @@
       <p class="ru-help">{{ $t('requestsAdmin.users.drawer.quota.modeHelp') }}</p>
     </section>
 
-    <section v-if="form.mode === 'manual'" class="ru-tab-section">
+    <section v-if="form.mode === QUOTA_MODE.MANUAL" class="ru-tab-section">
       <div class="ru-toggle-row">
         <label class="ru-switch">
           <input v-model="form.unlimited" type="checkbox" :disabled="busy" />
@@ -113,6 +113,7 @@ import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import { localizedDate } from '@/utils/datetime'
 import { usePortalAdminUsers } from '@/composables/portal/usePortalAdminUsers'
+import { QUOTA_MODE } from '@/constants/portalAdminUsers'
 
 const props = defineProps({ user: { type: Object, required: true } })
 const emit = defineEmits(['changed'])
@@ -125,7 +126,7 @@ const busy = ref(false)
 const quota = computed(() => props.user.quota || {})
 
 const form = reactive({
-  mode: 'manual',
+  mode: QUOTA_MODE.MANUAL,
   max_allowed: 5,
   unlimited: false,
   auto_approve: false,
@@ -134,7 +135,7 @@ const form = reactive({
 })
 
 function hydrate(q) {
-  form.mode = q.mode === 'auto' ? 'auto' : 'manual'
+  form.mode = q.mode === QUOTA_MODE.AUTO ? QUOTA_MODE.AUTO : QUOTA_MODE.MANUAL
   form.max_allowed = q.max_allowed ?? 5
   form.unlimited = !!q.unlimited
   form.auto_approve = !!q.auto_approve
@@ -145,7 +146,7 @@ hydrate(quota.value)
 watch(quota, hydrate)
 
 const boundsError = computed(
-  () => form.mode === 'auto' && Number(form.auto_min) > Number(form.auto_max),
+  () => form.mode === QUOTA_MODE.AUTO && Number(form.auto_min) > Number(form.auto_max),
 )
 const capLabel = computed(() => (quota.value.unlimited ? '∞' : (quota.value.max_allowed ?? '—')))
 
@@ -160,7 +161,7 @@ function fmtDate(value) {
 async function save() {
   if (boundsError.value) return
   const payload = { mode: form.mode, auto_approve: form.auto_approve }
-  if (form.mode === 'manual') {
+  if (form.mode === QUOTA_MODE.MANUAL) {
     payload.unlimited = form.unlimited
     if (!form.unlimited) payload.max_allowed = form.max_allowed
   } else {

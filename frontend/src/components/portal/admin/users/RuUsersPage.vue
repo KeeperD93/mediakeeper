@@ -326,12 +326,15 @@ async function onBulkAction({ action, payload = null }) {
   }
   // The "bulk edit" overlay carries two groups; fan out to the matching
   // backend actions and report the real applied count once both have run.
-  if (action === 'bulk_edit') {
+  if (action === BULK_ACTION.BULK_EDIT) {
     const ids = [...selectedIds.value]
     const { permissions = {}, quota = {} } = payload || {}
     const groups = [
-      Object.keys(permissions).length && { action: 'set_permissions', payload: { permissions } },
-      Object.keys(quota).length && { action: 'set_quota', payload: quota },
+      Object.keys(permissions).length && {
+        action: BULK_ACTION.SET_PERMISSIONS,
+        payload: { permissions },
+      },
+      Object.keys(quota).length && { action: BULK_ACTION.SET_QUOTA, payload: quota },
     ].filter(Boolean)
     if (!groups.length) return
     let applied = 0

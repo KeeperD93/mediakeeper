@@ -62,16 +62,16 @@
                 <span class="ru-bulk-label">{{ $t('requestsAdmin.users.drawer.quota.mode') }}</span>
                 <select v-model="quota.mode" class="ru-bulk-control">
                   <option value="">{{ $t('requestsAdmin.users.bulkPerms.noChange') }}</option>
-                  <option value="manual">
+                  <option :value="QUOTA_MODE.MANUAL">
                     {{ $t('requestsAdmin.users.drawer.quota.modeManual') }}
                   </option>
-                  <option value="auto">
+                  <option :value="QUOTA_MODE.AUTO">
                     {{ $t('requestsAdmin.users.drawer.quota.modeAuto') }}
                   </option>
                 </select>
               </label>
 
-              <template v-if="quota.mode === 'manual'">
+              <template v-if="quota.mode === QUOTA_MODE.MANUAL">
                 <label class="ru-bulk-row">
                   <span class="ru-bulk-label">
                     {{ $t('requestsAdmin.users.drawer.quota.unlimited') }}
@@ -97,7 +97,7 @@
                 </label>
               </template>
 
-              <template v-else-if="quota.mode === 'auto'">
+              <template v-else-if="quota.mode === QUOTA_MODE.AUTO">
                 <label class="ru-bulk-row">
                   <span class="ru-bulk-label">
                     {{ $t('requestsAdmin.users.drawer.quota.autoMin') }}
@@ -151,7 +151,7 @@
 <script setup>
 import { reactive, ref, computed, toRef, watch } from 'vue'
 import { X } from 'lucide-vue-next'
-import { PERMISSION_KEYS } from '@/constants/portalAdminUsers'
+import { PERMISSION_KEYS, QUOTA_MODE } from '@/constants/portalAdminUsers'
 
 import { useFocusTrap } from '@/composables/useFocusTrap'
 import '@/assets/styles/portal/admin-users-modals.css'
@@ -191,7 +191,7 @@ watch(
 
 const boundsError = computed(
   () =>
-    quota.mode === 'auto' &&
+    quota.mode === QUOTA_MODE.AUTO &&
     quota.auto_min !== '' &&
     quota.auto_max !== '' &&
     Number(quota.auto_min) > Number(quota.auto_max),
@@ -210,10 +210,10 @@ function buildQuota() {
   const out = {}
   if (quota.auto_approve) out.auto_approve = quota.auto_approve === 'on'
   if (quota.mode) out.mode = quota.mode
-  if (quota.mode === 'manual') {
+  if (quota.mode === QUOTA_MODE.MANUAL) {
     if (quota.unlimited) out.unlimited = quota.unlimited === 'on'
     if (quota.max_allowed !== '') out.max_allowed = Number(quota.max_allowed)
-  } else if (quota.mode === 'auto') {
+  } else if (quota.mode === QUOTA_MODE.AUTO) {
     if (quota.auto_min !== '') out.auto_min = Number(quota.auto_min)
     if (quota.auto_max !== '') out.auto_max = Number(quota.auto_max)
   }
@@ -259,12 +259,19 @@ useFocusTrap({
 }
 /* Label takes the remaining width (no more two-line wrapping); every control
    sits in the same fixed column so the right edge stays uniform. */
+/* Mobile-first: label stacked over control on narrow phones; the fixed
+   control column kicks in once there is room, keeping the right edge uniform. */
 .ru-bulk-row {
   display: grid;
-  grid-template-columns: 1fr 190px;
-  align-items: center;
-  gap: 1rem;
+  grid-template-columns: 1fr;
+  gap: 0.4rem 1rem;
   margin-bottom: 0.55rem;
+}
+@media (min-width: 480px) {
+  .ru-bulk-row {
+    grid-template-columns: 1fr 190px;
+    align-items: center;
+  }
 }
 .ru-bulk-label {
   font-weight: var(--font-medium);
