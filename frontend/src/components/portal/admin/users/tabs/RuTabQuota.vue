@@ -97,7 +97,7 @@
       <button
         type="button"
         class="ru-btn ru-btn--primary"
-        :disabled="busy || boundsError"
+        :disabled="busy || formInvalid"
         @click="save"
       >
         {{ $t('common.save') }}
@@ -148,6 +148,16 @@ watch(quota, hydrate)
 const boundsError = computed(
   () => form.mode === QUOTA_MODE.AUTO && Number(form.auto_min) > Number(form.auto_max),
 )
+// A required cap must be an integer in [1, 100] (mirrors the backend QuotaUpdate
+// bounds). v-model.number yields '' for an emptied input, which fails this.
+const isValidCap = v => Number.isInteger(v) && v >= 1 && v <= 100
+// Block save (and disable the button) when a required field is blank or out of
+// range, so an emptied input cannot fire a silently-rejected save.
+const formInvalid = computed(() =>
+  form.mode === QUOTA_MODE.MANUAL
+    ? !form.unlimited && !isValidCap(form.max_allowed)
+    : !isValidCap(form.auto_min) || !isValidCap(form.auto_max) || boundsError.value,
+)
 const capLabel = computed(() => (quota.value.unlimited ? '∞' : (quota.value.max_allowed ?? '—')))
 
 function fmtDate(value) {
@@ -159,7 +169,7 @@ function fmtDate(value) {
 }
 
 async function save() {
-  if (boundsError.value) return
+  if (formInvalid.value) return
   const payload = { mode: form.mode, auto_approve: form.auto_approve }
   if (form.mode === QUOTA_MODE.MANUAL) {
     payload.unlimited = form.unlimited
