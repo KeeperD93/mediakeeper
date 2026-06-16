@@ -71,6 +71,38 @@ async def test_recompute_grants_active_user(admin_user, db_session):
 
 
 @pytest.mark.asyncio
+async def test_recompute_records_system_audit_on_grant(admin_user, db_session):
+    """A cap change emits a system audit row (actor=None, source=auto) carrying
+    the from/to and the grant/reduction direction — the auto branch's audit
+    content differs from the admin path and must be pinned."""
+    from models.portal.audit import AdminAuditLog
+    from models.portal.login_history import UserLoginHistory
+    from services.portal.admin_users_constants import ACTION_USER_QUOTA_CHANGED
+
+    _seed_auto_quota(db_session, admin_user)
+    now = datetime.now(timezone.utc)
+    for i in range(16):
+        db_session.add(UserLoginHistory(
+            user_id=admin_user.id, username="active", source="portal",
+            success=True, created_at=now - timedelta(days=i % 25),
+        ))
+    await db_session.commit()
+
+    await qa.recompute_auto_quotas(db_session, now=now)
+
+    audit = (await db_session.execute(
+        select(AdminAuditLog).where(
+            AdminAuditLog.target_user_id == admin_user.id,
+            AdminAuditLog.action == ACTION_USER_QUOTA_CHANGED,
+        )
+    )).scalar_one()
+    assert audit.admin_user_id is None  # system actor, not an admin
+    assert audit.payload["source"] == "auto"
+    assert audit.payload["direction"] == "grant"
+    assert audit.payload["changed"]["max_allowed"] == {"from": 5, "to": 7}
+
+
+@pytest.mark.asyncio
 async def test_recompute_is_idempotent_within_guard(admin_user, db_session):
     from models.portal.login_history import UserLoginHistory
     from models.portal.request import RequestQuota
