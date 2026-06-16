@@ -1437,6 +1437,7 @@
       "subtitle_auto": "Auto-download subtitles",
       "expire_users": "Expire user accounts",
       "gdpr_purge": "GDPR purge of pending deletions",
+      "quota_auto_recompute": "Auto request-quota recompute",
       "clear_image_cache": "Clear image cache"
     },
     "watchlist_check": "Checks for missing episodes and updates the watchlist.",
@@ -1452,6 +1453,7 @@
     "expire_users": "Automatically disables accounts (Emby + MediaKeeper) whose access window has expired.",
     "cleanup_available_requests": "Automatically clears available requests after the configured grace period.",
     "gdpr_purge": "Permanently removes user accounts marked for GDPR purge.",
+    "quota_auto_recompute": "Nightly recompute of automatic request quotas from each user's recent activity.",
     "clear_image_cache": "Automatically clears the on-disk image cache (manual purge also available from the cache row).",
     "starting": "Starting…",
     "cache": {

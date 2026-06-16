@@ -112,12 +112,12 @@ async def test_patch_quota_updates_and_audits(client, admin_user, db_session):
 
     resp = await client.patch(
         f"/api/portal/admin/users/{pid}/quota",
-        json={"max_allowed": 12, "mode": "auto", "auto_min": 3, "auto_max": 20},
+        json={"max_allowed": 12},
     )
     assert resp.status_code == 200, resp.text
     body = resp.json()
     assert body["success"] is True
-    assert set(body["changed"]) >= {"max_allowed", "mode", "auto_min", "auto_max"}
+    assert body["changed"]["max_allowed"]["to"] == 12
 
     resp = await client.get(f"/api/portal/admin/users/{pid}/audit")
     assert resp.status_code == 200
@@ -143,6 +143,31 @@ async def test_patch_quota_rejects_inverted_bounds(client, admin_user, db_sessio
         f"/api/portal/admin/users/{pid}/quota", json={"auto_min": 50},
     )
     assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_patch_quota_switch_to_auto_resets_cap(client, admin_user, db_session):
+    """Switching to auto resets the working cap to the start value (5, clamped
+    to the band) so a high manual cap doesn't carry over."""
+    db_session.add(UserProfile(
+        user_id=admin_user.id, display_name="Admin", role="admin",
+        source="local", account_active=True,
+    ))
+    await db_session.commit()
+    _auth(client, admin_user)
+
+    resp = await client.post("/api/portal/admin/users/local", json={
+        "username": "quotaauto", "password": "supersecret",
+    })
+    pid = resp.json()["profile_id"]
+
+    await client.patch(f"/api/portal/admin/users/{pid}/quota", json={"max_allowed": 80})
+    resp = await client.patch(
+        f"/api/portal/admin/users/{pid}/quota",
+        json={"mode": "auto", "auto_min": 2, "auto_max": 30},
+    )
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["changed"]["max_allowed"]["to"] == 5
 
 
 @pytest.mark.asyncio

@@ -373,6 +373,15 @@ async def update_user_quota(
     if data.get("auto_min", quota.auto_min) > data.get("auto_max", quota.auto_max):
         return {"error": "invalid_bounds"}
 
+    # Switching to auto resets the working cap to the start value (clamped to
+    # the band) so a high manual cap doesn't carry over; the nightly job then
+    # drifts it from there.
+    if data.get("mode") == "auto" and quota.mode != "auto":
+        from services.portal.quota_auto import START_CAP
+        lo = data.get("auto_min", quota.auto_min)
+        hi = data.get("auto_max", quota.auto_max)
+        data = {**data, "max_allowed": max(lo, min(hi, START_CAP))}
+
     changed: dict[str, dict] = {}
     for key in ("max_allowed", "unlimited", "auto_approve", "mode", "auto_min", "auto_max"):
         if key in data and getattr(quota, key) != data[key]:

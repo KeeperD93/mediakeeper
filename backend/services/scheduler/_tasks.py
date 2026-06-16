@@ -12,6 +12,7 @@ from ._handlers import (
     _handler_healthcheck,
     _handler_log_cleanup,
     _handler_notifications,
+    _handler_quota_recompute,
     _handler_subtitle_auto,
     _handler_watchlist,
 )
@@ -125,6 +126,16 @@ TASK_DEFINITIONS: dict[str, dict] = {
                                 # when off (early return, no query).
         "handler":     _handler_gdpr_purge,
         "description": "scheduler.gdpr_purge",
+    },
+    "quota_auto_recompute": {
+        "label":       "Auto request-quota recompute",
+        "label_key":   "scheduler.tasks.quota_auto_recompute",
+        "default_sec": 3600,    # Hourly check; the handler only acts during
+                                # the local midnight hour (lands at ~00:00).
+        "default_on":  True,    # Gated: no-op outside midnight, when disabled
+                                # via quota.auto.enabled, or with no auto rows.
+        "handler":     _handler_quota_recompute,
+        "description": "scheduler.quota_auto_recompute",
     },
     "clear_image_cache": {
         "label":       "Clear image cache",

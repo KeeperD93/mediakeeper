@@ -1437,6 +1437,7 @@
       "subtitle_auto": "Téléchargement automatique des sous-titres",
       "expire_users": "Expiration des comptes utilisateurs",
       "gdpr_purge": "Purge RGPD des suppressions en attente",
+      "quota_auto_recompute": "Recalcul auto des quotas de demandes",
       "clear_image_cache": "Vider le cache d'images"
     },
     "watchlist_check": "Vérifie les épisodes manquants et met à jour la watchlist.",
@@ -1452,6 +1453,7 @@
     "expire_users": "Désactive automatiquement les comptes (Emby + MediaKeeper) dont la période d'accès a expiré.",
     "cleanup_available_requests": "Nettoie automatiquement les demandes marquées disponibles après le délai configuré.",
     "gdpr_purge": "Supprime définitivement les comptes utilisateurs marqués pour purge RGPD.",
+    "quota_auto_recompute": "Recalcul nocturne des quotas de demandes automatiques selon l'activité récente de chaque utilisateur.",
     "clear_image_cache": "Vide automatiquement le cache d'images sur disque (purge manuelle disponible côté cache).",
     "starting": "Démarrage…",
     "cache": {

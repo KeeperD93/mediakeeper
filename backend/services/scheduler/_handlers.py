@@ -88,6 +88,20 @@ async def _handler_gdpr_purge(db: AsyncSession) -> None:
     await purge_pending_deletions(db)
 
 
+async def _handler_quota_recompute(db: AsyncSession) -> None:
+    """Engagement-based auto request-quota recompute.
+
+    Fires hourly but only acts during the server's local midnight hour, so
+    it lands at ~00:00. The recompute is idempotent per day and a no-op when
+    the feature is disabled or no user is in auto mode.
+    """
+    from datetime import datetime
+    if datetime.now().hour != 0:
+        return
+    from services.portal.quota_auto import recompute_auto_quotas
+    await recompute_auto_quotas(db)
+
+
 async def _handler_clear_image_cache(_db: AsyncSession) -> dict:
     """Wipe the on-disk image proxy cache.
 
