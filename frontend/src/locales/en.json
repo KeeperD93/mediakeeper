@@ -1914,7 +1914,6 @@
         "deactivate": "Deactivate",
         "delete": "Delete",
         "set_role": "Change role",
-        "set_permissions": "Change permissions",
         "export": "Export (GDPR)",
         "exportJson": "Export JSON",
         "exportCsv": "Export CSV",
@@ -1957,12 +1956,14 @@
         "selected": "{count} selected"
       },
       "bulkPerms": {
-        "title": "Bulk-edit permissions",
+        "title": "Bulk edit",
         "help": "Pick the effect to apply on the {count} selected account(s). « No change » leaves the current value untouched.",
         "noChange": "No change",
         "enable": "Enable",
         "disable": "Disable",
-        "apply": "Apply"
+        "apply": "Apply",
+        "permsGroup": "Permissions",
+        "requestsGroup": "Requests"
       },
       "confirms": {
         "delete": "Soft-delete {name}? Data stays available via the « Show deleted » filter.",
@@ -1983,6 +1984,7 @@
         "notified": "Notification sent",
         "created": "User created",
         "bulkDone": "{count} action(s) applied",
+        "bulkNoChange": "No changes applied",
         "embyIdsSynced": "{updated} account(s) linked to Emby, {already} already up-to-date, {unmatched} unmatched",
         "forceLogoutDone": "Sessions invalidated",
         "displayNameResetDone": "Display name reset scheduled"
@@ -2026,7 +2028,7 @@
           "overview": "Overview",
           "identity": "Identity",
           "access": "Access & role",
-          "quota": "Quota",
+          "quota": "Requests",
           "security": "Security",
           "activity": "Activity",
           "trophies": "Trophies",

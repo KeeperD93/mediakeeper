@@ -1914,7 +1914,6 @@
         "deactivate": "Désactiver",
         "delete": "Supprimer",
         "set_role": "Changer le rôle",
-        "set_permissions": "Modifier les permissions",
         "export": "Exporter (RGPD)",
         "exportJson": "Export JSON",
         "exportCsv": "Export CSV",
@@ -1957,12 +1956,14 @@
         "selected": "{count} sélectionné(s)"
       },
       "bulkPerms": {
-        "title": "Modifier les permissions en masse",
+        "title": "Modifier en masse",
         "help": "Choisissez l'effet à appliquer sur les {count} compte(s) sélectionné(s). « Ne pas changer » laisse la valeur actuelle intacte.",
         "noChange": "Ne pas changer",
         "enable": "Activer",
         "disable": "Désactiver",
-        "apply": "Appliquer"
+        "apply": "Appliquer",
+        "permsGroup": "Permissions",
+        "requestsGroup": "Demandes"
       },
       "confirms": {
         "delete": "Supprimer (soft) le compte de {name} ? Les données restent accessibles via le filtre « Afficher supprimés ».",
@@ -1983,6 +1984,7 @@
         "notified": "Notification envoyée",
         "created": "Utilisateur créé",
         "bulkDone": "{count} action(s) appliquée(s)",
+        "bulkNoChange": "Aucune modification appliquée",
         "embyIdsSynced": "{updated} compte(s) liés à Emby, {already} déjà à jour, {unmatched} non trouvés",
         "forceLogoutDone": "Sessions invalidées",
         "displayNameResetDone": "Reset du pseudo programmé"
@@ -2026,7 +2028,7 @@
           "overview": "Vue d'ensemble",
           "identity": "Identité",
           "access": "Accès & Rôle",
-          "quota": "Quota",
+          "quota": "Demandes",
           "security": "Sécurité",
           "activity": "Activité",
           "trophies": "Trophées",

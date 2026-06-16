@@ -324,6 +324,32 @@ async function onBulkAction({ action, payload = null }) {
     showToast(t('requestsAdmin.users.toasts.exported'), TOAST_TYPE.OK)
     return
   }
+  // The "bulk edit" overlay carries two groups; fan out to the matching
+  // backend actions and report the real applied count once both have run.
+  if (action === 'bulk_edit') {
+    const ids = [...selectedIds.value]
+    const { permissions = {}, quota = {} } = payload || {}
+    const groups = [
+      Object.keys(permissions).length && { action: 'set_permissions', payload: { permissions } },
+      Object.keys(quota).length && { action: 'set_quota', payload: quota },
+    ].filter(Boolean)
+    if (!groups.length) return
+    let applied = 0
+    for (const g of groups) {
+      const r = await api.bulkAction({ action: g.action, profile_ids: ids, payload: g.payload })
+      if (r?.ok) applied += r.processed || 0
+    }
+    if (applied > 0) {
+      showToast(t('requestsAdmin.users.toasts.bulkDone', { count: applied }), TOAST_TYPE.OK)
+      selectedIds.value = []
+      await reload()
+    } else {
+      // Every target was rejected (e.g. an inverted auto band); keep the
+      // selection so the admin can fix the values and retry.
+      showToast(t('requestsAdmin.users.toasts.bulkNoChange'), TOAST_TYPE.ERR)
+    }
+    return
+  }
   const res = await api.bulkAction({
     action,
     profile_ids: [...selectedIds.value],

@@ -20,7 +20,7 @@
           <option value="admin">{{ $t('requestsAdmin.users.filters.role.admin') }}</option>
         </select>
         <button class="ru-btn ru-btn--ghost" @click="permsOpen = true">
-          {{ $t('requestsAdmin.users.actions.set_permissions') }}…
+          {{ $t('requestsAdmin.users.bulkPerms.title') }}…
         </button>
         <button class="ru-btn ru-btn--ghost" @click="$emit('action', { action: 'export' })">
           {{ $t('requestsAdmin.users.actions.export') }}
@@ -37,7 +37,7 @@
       :open="permsOpen"
       :count="count"
       @close="permsOpen = false"
-      @apply="onApplyPerms"
+      @apply="onApplyBulk"
     />
   </Teleport>
 </template>
@@ -58,9 +58,10 @@ function onSetRole(event) {
   event.target.value = ''
 }
 
-function onApplyPerms(permissions) {
+// One overlay edits permissions + request rights; the page splits this into
+// the matching backend bulk calls (set_permissions / set_quota).
+function onApplyBulk({ permissions, quota }) {
   permsOpen.value = false
-  if (!Object.keys(permissions).length) return
-  emit('action', { action: 'set_permissions', payload: { permissions } })
+  emit('action', { action: 'bulk_edit', payload: { permissions, quota } })
 }
 </script>
