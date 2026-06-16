@@ -3705,6 +3705,34 @@
           "buttonLabelPlaceholder": "Faire un don",
           "messageLabel": "Message (optionnel)"
         },
+        "autoQuota": {
+          "title": "Quota de demandes automatique",
+          "desc": "Ajuste chaque mois le nombre de demandes autorisé selon l'activité de chaque membre placé en mode automatique. Sans effet tant qu'aucun membre n'est en mode automatique.",
+          "min": {
+            "label": "Plancher par défaut",
+            "hint": "Quota minimum appliqué à un membre quand on le passe en automatique (ajustable ensuite membre par membre)."
+          },
+          "max": {
+            "label": "Plafond par défaut",
+            "hint": "Quota maximum appliqué à un membre quand on le passe en automatique."
+          },
+          "window_days": {
+            "label": "Fenêtre d'activité (jours)",
+            "hint": "Période d'activité récente prise en compte pour calculer le quota."
+          },
+          "grace_days": {
+            "label": "Délai de grâce (jours)",
+            "hint": "Jours d'inactivité tolérés avant de commencer à réduire le quota."
+          },
+          "up_step": {
+            "label": "Pas de hausse",
+            "hint": "Augmentation maximale du quota par nuit."
+          },
+          "down_step": {
+            "label": "Pas de baisse",
+            "hint": "Réduction maximale du quota par nuit."
+          }
+        },
         "gdpr": {
           "title": "Mode Confidentialité",
           "intro": "Active les surfaces utilisateur dédiées à la protection des données. Désactivé par défaut : aucun impact tant que vous ne basculez pas l'interrupteur.",

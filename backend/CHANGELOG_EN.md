@@ -19,6 +19,9 @@ This section intentionally has no date so it is not shown to users.
 - News (admin) — "Load more" button beyond the 20 most recent.
 - Portal users (admin) — user audit log: "Load more" beyond 100 entries.
 - Portal users (admin) — user drawer: "Load more" on activity, trophies (XP) and security.
+- Portal users (admin) — per-member request quota, manual or automatic.
+- Portal users (admin) — automatic quota retuned nightly from activity (instance settings).
+- Portal users (admin) — bulk-edit permissions and quotas.
 - GDPR (admin) — pending deletions: "Load more" button beyond the first 50.
 - Lists (admin) — moderation: soft-deleted lists visible/restorable + "Load more".
 - Portal — configurable donation link for your users (admin settings).

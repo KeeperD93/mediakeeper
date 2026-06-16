@@ -19,6 +19,9 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Actualités (admin) — bouton « Charger plus » au-delà des 20 récentes.
 - Utilisateurs portail (admin) — audit de la fiche : « Charger plus » au-delà de 100 entrées.
 - Utilisateurs portail (admin) — fiche : « Charger plus » sur activité, trophées (XP) et sécurité.
+- Utilisateurs portail (admin) — quota de demandes par membre, manuel ou automatique.
+- Utilisateurs portail (admin) — quota auto ajusté chaque nuit selon l'activité (réglages d'instance).
+- Utilisateurs portail (admin) — édition en masse des permissions et des quotas.
 - RGPD (admin) — suppressions en attente : bouton « Charger plus » au-delà de 50.
 - Listes (admin) — modération : listes supprimées visibles/restaurables + « Charger plus ».
 - Portail — lien de don configurable pour vos utilisateurs (réglages admin).

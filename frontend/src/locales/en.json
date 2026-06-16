@@ -3705,6 +3705,34 @@
           "buttonLabelPlaceholder": "Donate",
           "messageLabel": "Message (optional)"
         },
+        "autoQuota": {
+          "title": "Automatic request quota",
+          "desc": "Adjusts each month's request allowance from a member's activity, for members placed in automatic mode. Has no effect until at least one member is in automatic mode.",
+          "min": {
+            "label": "Default floor",
+            "hint": "Lowest allowance a member gets when switched to automatic (adjustable per member afterwards)."
+          },
+          "max": {
+            "label": "Default ceiling",
+            "hint": "Highest allowance a member gets when switched to automatic."
+          },
+          "window_days": {
+            "label": "Activity window (days)",
+            "hint": "Recent activity period used to compute the allowance."
+          },
+          "grace_days": {
+            "label": "Grace period (days)",
+            "hint": "Idle days tolerated before the allowance starts dropping."
+          },
+          "up_step": {
+            "label": "Increase step",
+            "hint": "Maximum allowance increase per night."
+          },
+          "down_step": {
+            "label": "Decrease step",
+            "hint": "Maximum allowance decrease per night."
+          }
+        },
         "gdpr": {
           "title": "Privacy mode",
           "intro": "Enable the user-facing data-protection surfaces. Off by default: nothing changes until you flip the switch.",

@@ -201,6 +201,8 @@
 
       <p v-if="savedMessage" class="pt-settings-saved">{{ savedMessage }}</p>
 
+      <AdminAutoQuotaSetting />
+
       <AdminDonationSetting />
 
       <GdprSection />
@@ -215,6 +217,7 @@ import { AVAILABLE_LOCALES } from '@/i18n'
 import { useApi } from '@/composables/useApi'
 import GdprSection from '@/components/portal/admin/GdprSection.vue'
 import AdminDonationSetting from '@/components/portal/admin/AdminDonationSetting.vue'
+import AdminAutoQuotaSetting from '@/components/portal/admin/AdminAutoQuotaSetting.vue'
 import MkToggle from '@/components/common/MkToggle.vue'
 
 const { t, locale } = useI18n()
