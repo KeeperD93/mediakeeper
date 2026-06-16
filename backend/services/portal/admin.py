@@ -19,7 +19,7 @@ from services.portal.admin_settings import (
     get_donation_config,  # noqa: F401
     get_event_capacity_bounds,  # noqa: F401
     get_portal_flag,  # noqa: F401
-    get_portal_int,  # noqa: F401
+    get_portal_int,
     get_portal_settings,  # noqa: F401
     update_portal_settings,  # noqa: F401
 )
@@ -110,9 +110,15 @@ async def update_user_quota(
 
     # Switching to auto resets the working cap to the start value (clamped to
     # the band) so a high manual cap doesn't carry over; the nightly job then
-    # drifts it from there.
+    # drifts it from there. A plain flip (no band given) seeds the per-user
+    # band from the instance defaults; an explicit band in this PATCH wins.
     if data.get("mode") == "auto" and quota.mode != "auto":
         from services.portal.quota_auto import START_CAP
+        if "auto_min" not in data and "auto_max" not in data:
+            inst_min = await get_portal_int(db, "quota.auto.min")
+            inst_max = await get_portal_int(db, "quota.auto.max")
+            data = {**data, "auto_min": min(inst_min, inst_max),
+                    "auto_max": max(inst_min, inst_max)}
         lo = data.get("auto_min", quota.auto_min)
         hi = data.get("auto_max", quota.auto_max)
         data = {**data, "max_allowed": max(lo, min(hi, START_CAP))}

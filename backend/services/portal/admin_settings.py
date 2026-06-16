@@ -34,6 +34,9 @@ PORTAL_SETTING_FLAGS: dict[str, bool] = {
     # + message to every portal user. Independent of the static MediaKeeper
     # support links (admin-only). Has no effect until a link is also set.
     "portal.donation.enabled": False,
+    # Master switch for the nightly engagement-based auto quota recompute.
+    # ON by default; still a no-op unless users are in auto mode.
+    "quota.auto.enabled": True,
 }
 
 PORTAL_SETTING_INTS: dict[str, tuple[int, int, int]] = {
@@ -52,6 +55,16 @@ PORTAL_SETTING_INTS: dict[str, tuple[int, int, int]] = {
     # mobile-friendly layout (max 20 seats on a 4×5 grid).
     "portal.events.max_participants_min": (5, 5, 20),
     "portal.events.max_participants_max": (20, 5, 20),
+    # Instance defaults for the automatic request-quota mode. ``min``/``max``
+    # seed the per-user band (auto_min/auto_max) when an admin switches a user
+    # to auto; the rest drive the nightly recompute. Keep in sync with the
+    # fallbacks in services/portal/quota_auto._INT_DEFAULTS.
+    "quota.auto.min": (2, 1, 100),
+    "quota.auto.max": (15, 1, 100),
+    "quota.auto.window_days": (30, 1, 90),
+    "quota.auto.grace_days": (14, 0, 90),
+    "quota.auto.up_step": (2, 1, 50),
+    "quota.auto.down_step": (1, 1, 50),
 }
 
 # String settings. ``portal.default_language`` is the instance-wide default

@@ -195,6 +195,21 @@ class PortalSettingsUpdate(BaseModel):
     donation_button_label: Optional[str] = Field(
         default=None, max_length=60, alias="donation.button_label"
     )
+    # Automatic request-quota instance defaults (per-user auto_min/auto_max
+    # override these). Bounds mirror PORTAL_SETTING_INTS.
+    quota_auto_enabled: Optional[bool] = Field(default=None, alias="quota.auto.enabled")
+    quota_auto_min: Optional[int] = Field(default=None, ge=1, le=100, alias="quota.auto.min")
+    quota_auto_max: Optional[int] = Field(default=None, ge=1, le=100, alias="quota.auto.max")
+    quota_auto_window_days: Optional[int] = Field(
+        default=None, ge=1, le=90, alias="quota.auto.window_days"
+    )
+    quota_auto_grace_days: Optional[int] = Field(
+        default=None, ge=0, le=90, alias="quota.auto.grace_days"
+    )
+    quota_auto_up_step: Optional[int] = Field(default=None, ge=1, le=50, alias="quota.auto.up_step")
+    quota_auto_down_step: Optional[int] = Field(
+        default=None, ge=1, le=50, alias="quota.auto.down_step"
+    )
 
     @field_validator("donation_url")
     @classmethod
@@ -252,5 +267,19 @@ async def patch_settings(
         updates["portal.donation.message"] = payload.donation_message
     if payload.donation_button_label is not None:
         updates["portal.donation.button_label"] = payload.donation_button_label
+    if payload.quota_auto_enabled is not None:
+        updates["quota.auto.enabled"] = payload.quota_auto_enabled
+    if payload.quota_auto_min is not None:
+        updates["quota.auto.min"] = payload.quota_auto_min
+    if payload.quota_auto_max is not None:
+        updates["quota.auto.max"] = payload.quota_auto_max
+    if payload.quota_auto_window_days is not None:
+        updates["quota.auto.window_days"] = payload.quota_auto_window_days
+    if payload.quota_auto_grace_days is not None:
+        updates["quota.auto.grace_days"] = payload.quota_auto_grace_days
+    if payload.quota_auto_up_step is not None:
+        updates["quota.auto.up_step"] = payload.quota_auto_up_step
+    if payload.quota_auto_down_step is not None:
+        updates["quota.auto.down_step"] = payload.quota_auto_down_step
     raw = await admin_svc.update_portal_settings(db, updates)
     return {k.replace("portal.", ""): v for k, v in raw.items()}

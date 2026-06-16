@@ -81,8 +81,9 @@ class RequestQuota(Base):
     mode          = Column(String(20), server_default="manual", nullable=False)
     unlimited     = Column(Boolean, server_default="false", nullable=False)
     auto_approve  = Column(Boolean, server_default="false", nullable=False)
-    # Per-user clamps for 'auto' mode (seeded from instance defaults, admin
-    # may override per user). Ignored while mode='manual'.
+    # Per-user band for 'auto' mode (ignored while 'manual'). New rows use the
+    # column default; switching a user to auto re-seeds the band from the
+    # instance quota.auto.min/max settings, which the admin may then override.
     auto_min      = Column(Integer, server_default="2", nullable=False)
     auto_max      = Column(Integer, server_default="15", nullable=False)
     # Stamped by the nightly auto-recompute job; NULL until its first touch.

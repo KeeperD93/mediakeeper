@@ -5,6 +5,9 @@ import pytest
 
 from core.security import create_access_token
 from models.portal.profile import UserProfile
+from models.settings import Setting
+from services.portal.admin import get_portal_settings, update_portal_settings
+from tests._portal_profile_helpers import PORTAL_COOKIE, make_portal_user, portal_token
 
 
 def _auth(client, admin_user) -> None:
@@ -168,6 +171,81 @@ async def test_patch_quota_switch_to_auto_resets_cap(client, admin_user, db_sess
     )
     assert resp.status_code == 200, resp.text
     assert resp.json()["changed"]["max_allowed"]["to"] == 5
+
+
+@pytest.mark.asyncio
+async def test_patch_quota_flip_to_auto_seeds_band_from_instance(client, admin_user, db_session):
+    """A plain flip to auto (no band in the PATCH) seeds the per-user band
+    from the instance quota.auto.min/max settings; an explicit band wins."""
+    db_session.add(UserProfile(
+        user_id=admin_user.id, display_name="Admin", role="admin",
+        source="local", account_active=True,
+    ))
+    # Instance band differs from the column default (2/15).
+    db_session.add(Setting(key="quota.auto.min", value="4"))
+    db_session.add(Setting(key="quota.auto.max", value="25"))
+    await db_session.commit()
+    _auth(client, admin_user)
+
+    seeded = (await client.post("/api/portal/admin/users/local", json={
+        "username": "quotaseed", "password": "supersecret",
+    })).json()["profile_id"]
+    # Push a high manual cap first so the flip's reset to START_CAP is visible.
+    await client.patch(f"/api/portal/admin/users/{seeded}/quota", json={"max_allowed": 80})
+    resp = await client.patch(
+        f"/api/portal/admin/users/{seeded}/quota", json={"mode": "auto"},
+    )
+    assert resp.status_code == 200, resp.text
+    changed = resp.json()["changed"]
+    assert changed["auto_min"]["to"] == 4
+    assert changed["auto_max"]["to"] == 25
+    assert changed["max_allowed"]["to"] == 5  # START_CAP clamped into [4, 25]
+
+    explicit = (await client.post("/api/portal/admin/users/local", json={
+        "username": "quotaexplicit", "password": "supersecret",
+    })).json()["profile_id"]
+    resp = await client.patch(
+        f"/api/portal/admin/users/{explicit}/quota",
+        json={"mode": "auto", "auto_min": 7, "auto_max": 9},
+    )
+    assert resp.status_code == 200, resp.text
+    changed = resp.json()["changed"]
+    assert changed["auto_min"]["to"] == 7
+    assert changed["auto_max"]["to"] == 9  # explicit band wins over instance 4/25
+
+
+@pytest.mark.asyncio
+async def test_patch_settings_quota_auto_round_trip(client, db_session):
+    """The quota.auto.* instance settings round-trip through the admin
+    settings endpoint (alias mapping), are bound-checked, and clamped."""
+    user, _ = await make_portal_user(
+        db_session, username="qadmin", display_name="QA", role="admin"
+    )
+    client.cookies.set(PORTAL_COOKIE, portal_token(user.username))
+
+    resp = await client.patch("/api/portal/admin/settings", json={
+        "quota.auto.enabled": False,
+        "quota.auto.min": 3,
+        "quota.auto.max": 40,
+        "quota.auto.window_days": 60,
+        "quota.auto.grace_days": 7,
+        "quota.auto.up_step": 3,
+        "quota.auto.down_step": 2,
+    })
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["quota.auto.enabled"] is False
+    assert body["quota.auto.min"] == 3
+    assert body["quota.auto.max"] == 40
+    assert body["quota.auto.window_days"] == 60
+
+    # Out-of-range is rejected by the Pydantic field bounds.
+    resp = await client.patch("/api/portal/admin/settings", json={"quota.auto.min": 999})
+    assert resp.status_code == 422
+
+    # Registry clamp is the service-layer safety net independent of Pydantic.
+    await update_portal_settings(db_session, {"quota.auto.max": 999})
+    assert (await get_portal_settings(db_session))["quota.auto.max"] == 100
 
 
 @pytest.mark.asyncio
