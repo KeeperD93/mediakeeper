@@ -192,3 +192,33 @@ async def test_recompute_runs_when_enabled_setting_blank(admin_user, db_session)
     res = await qa.recompute_auto_quotas(db_session, now=datetime.now(timezone.utc))
     assert "skipped" not in res
     assert res["processed"] == 1
+
+
+@pytest.mark.asyncio
+async def test_handler_runs_engine_only_at_midnight_hour(db_session, monkeypatch):
+    """The scheduler wrapper fires hourly but only runs the engine during the
+    server's local-midnight hour (the hour != 0 guard)."""
+    from services.scheduler import _handlers
+
+    calls = []
+
+    async def fake_recompute(_db, *, now=None):
+        calls.append(True)
+        return {"processed": 0, "changed": 0}
+
+    monkeypatch.setattr("services.portal.quota_auto.recompute_auto_quotas", fake_recompute)
+
+    class _Clock:
+        hour = 12
+
+        @classmethod
+        def now(cls, tz=None):
+            return cls
+
+    monkeypatch.setattr(_handlers, "datetime", _Clock)
+    await _handlers._handler_quota_recompute(db_session)
+    assert calls == []  # not the midnight hour -> engine skipped
+
+    _Clock.hour = 0
+    await _handlers._handler_quota_recompute(db_session)
+    assert calls == [True]  # midnight hour -> engine runs

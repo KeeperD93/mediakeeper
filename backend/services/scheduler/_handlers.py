@@ -1,5 +1,6 @@
 """Scheduled task handlers — lazy imports to avoid cycles."""
 import json
+from datetime import datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -95,7 +96,6 @@ async def _handler_quota_recompute(db: AsyncSession) -> None:
     it lands at ~00:00. The recompute is idempotent per day and a no-op when
     the feature is disabled or no user is in auto mode.
     """
-    from datetime import datetime
     if datetime.now().hour != 0:
         return
     from services.portal.quota_auto import recompute_auto_quotas
