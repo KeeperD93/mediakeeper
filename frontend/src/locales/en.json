@@ -3707,7 +3707,7 @@
         },
         "autoQuota": {
           "title": "Automatic request quota",
-          "desc": "Adjusts each month's request allowance from a member's activity, for members placed in automatic mode. Has no effect until at least one member is in automatic mode.",
+          "desc": "Retunes the monthly request quota nightly from activity, for members in automatic mode. Has no effect until at least one member is in automatic mode.",
           "min": {
             "label": "Default floor",
             "hint": "Lowest allowance a member gets when switched to automatic (adjustable per member afterwards)."

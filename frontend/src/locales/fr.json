@@ -3707,7 +3707,7 @@
         },
         "autoQuota": {
           "title": "Quota de demandes automatique",
-          "desc": "Ajuste chaque mois le nombre de demandes autorisé selon l'activité de chaque membre placé en mode automatique. Sans effet tant qu'aucun membre n'est en mode automatique.",
+          "desc": "Ajuste chaque nuit le quota mensuel de demandes selon l'activité, pour les membres en mode automatique. Sans effet tant qu'aucun membre n'est en mode automatique.",
           "min": {
             "label": "Plancher par défaut",
             "hint": "Quota minimum appliqué à un membre quand on le passe en automatique (ajustable ensuite membre par membre)."
