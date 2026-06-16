@@ -26,6 +26,7 @@ from .admin_users_constants import (
     BULK_DEACTIVATE,
     BULK_DELETE,
     BULK_SET_PERMISSIONS,
+    BULK_SET_QUOTA,
     BULK_SET_ROLE,
     PERMISSION_KEYS,
     ROLES,
@@ -215,6 +216,26 @@ async def export_user_data_rgpd(
     return payload
 
 
+def _sanitize_bulk_quota(payload: dict[str, Any]) -> dict[str, Any]:
+    """Keep only valid quota fields from an untrusted bulk payload, coercing
+    booleans and clamping the numeric bounds to the same [1, 100] range the
+    per-user PATCH enforces. ``update_user_quota`` still rejects an inverted
+    auto band (auto_min > auto_max)."""
+    clean: dict[str, Any] = {}
+    if payload.get("mode") in ("manual", "auto"):
+        clean["mode"] = payload["mode"]
+    for flag in ("auto_approve", "unlimited"):
+        if flag in payload:
+            clean[flag] = bool(payload[flag])
+    for num in ("max_allowed", "auto_min", "auto_max"):
+        if payload.get(num) is not None:
+            try:
+                clean[num] = max(1, min(100, int(payload[num])))
+            except (TypeError, ValueError):
+                pass
+    return clean
+
+
 async def run_bulk_action(
     db: AsyncSession,
     *,
@@ -282,6 +303,18 @@ async def run_bulk_action(
                 )
             else:
                 result = {"error": "no_permissions"}
+        elif action == BULK_SET_QUOTA:
+            clean = _sanitize_bulk_quota(payload or {})
+            if not clean:
+                result = {"error": "no_quota_fields"}
+            else:
+                # Lazy import: services.portal.admin pulls in the quota stack;
+                # importing it at module load would risk an import cycle.
+                from services.portal.admin import update_user_quota
+                result = await update_user_quota(
+                    db, user.id, clean, admin_user_id=admin_user_id,
+                    ip=ip, user_agent=user_agent,
+                )
         if result is None or (isinstance(result, dict) and result.get("error")):
             reason = (result or {}).get("error", "no_op")
             skipped.append({"id": profile.id, "reason": reason})

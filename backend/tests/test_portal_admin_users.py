@@ -250,6 +250,50 @@ async def test_bulk_set_role(client, admin_user, db_session):
 
 
 @pytest.mark.asyncio
+async def test_bulk_set_quota_applies_and_validates(client, admin_user, db_session):
+    db_session.add(UserProfile(
+        user_id=admin_user.id, display_name="Admin", role="admin",
+        source="local", account_active=True,
+    ))
+    await db_session.commit()
+    _auth(client, admin_user)
+
+    ids = []
+    for username in ("erin", "frank"):
+        resp = await client.post("/api/portal/admin/users/local", json={
+            "username": username, "password": "supersecret",
+        })
+        assert resp.status_code == 200
+        ids.append(resp.json()["profile_id"])
+
+    # One overlay submit -> manual cap + auto-approve on both accounts.
+    resp = await client.post("/api/portal/admin/users/bulk", json={
+        "action": "set_quota",
+        "profile_ids": ids,
+        "payload": {"mode": "manual", "max_allowed": 12, "auto_approve": True},
+    })
+    assert resp.status_code == 200
+    assert resp.json()["processed"] == 2
+
+    for profile_id in ids:
+        detail = (await client.get(f"/api/portal/admin/users/{profile_id}")).json()
+        assert detail["quota"]["max_allowed"] == 12
+        assert detail["quota"]["mode"] == "manual"
+        assert detail["quota"]["auto_approve"] is True
+
+    # An inverted auto band is rejected per user (skipped), never applied.
+    resp = await client.post("/api/portal/admin/users/bulk", json={
+        "action": "set_quota",
+        "profile_ids": ids,
+        "payload": {"mode": "auto", "auto_min": 20, "auto_max": 5},
+    })
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["processed"] == 0
+    assert len(body["skipped"]) == 2
+
+
+@pytest.mark.asyncio
 async def test_patch_identity_returns_persisted_detail(client, admin_user, db_session):
     """PATCH must persist the new identity AND return a payload whose
     `user` mirror matches the value that the subsequent GET serves.

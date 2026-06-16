@@ -87,10 +87,11 @@ BULK_DEACTIVATE = "deactivate"
 BULK_DELETE = "delete"
 BULK_SET_ROLE = "set_role"
 BULK_SET_PERMISSIONS = "set_permissions"
+BULK_SET_QUOTA = "set_quota"
 BULK_EXPORT = "export"
 BULK_ACTIONS = (
     BULK_ACTIVATE, BULK_DEACTIVATE, BULK_DELETE,
-    BULK_SET_ROLE, BULK_SET_PERMISSIONS, BULK_EXPORT,
+    BULK_SET_ROLE, BULK_SET_PERMISSIONS, BULK_SET_QUOTA, BULK_EXPORT,
 )
 
 # Number of days before access_end_date that should surface a warning

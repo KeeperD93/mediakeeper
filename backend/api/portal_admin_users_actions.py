@@ -226,7 +226,9 @@ async def get_export(
 
 class BulkAction(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    action: str = Field(..., pattern="^(activate|deactivate|delete|set_role|set_permissions|export)$")
+    action: str = Field(
+        ..., pattern="^(activate|deactivate|delete|set_role|set_permissions|set_quota|export)$"
+    )
     profile_ids: list[int] = Field(..., min_length=1, max_length=500)
     payload: dict | None = None
 
