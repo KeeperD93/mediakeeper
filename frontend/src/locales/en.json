@@ -3665,22 +3665,20 @@
         "saveBar": {
           "label": "Save changes",
           "unsaved": "Unsaved changes",
-          "discard": "Discard"
+          "discard": "Discard",
+          "invalid": "Invalid values"
         },
         "cat": {
           "requests": "Requests",
           "requestsDesc": "Visibility and hygiene of member requests.",
-          "autoQuota": "Automatic quota",
           "home": "Home",
           "homeDesc": "What shows on the portal home.",
           "events": "Events",
           "eventsDesc": "Capacity of rooms created by members.",
           "language": "Language",
           "languageDesc": "Default language for new members.",
-          "donation": "Donation",
           "maintenance": "Maintenance",
-          "maintenanceDesc": "Public holding page during an outage.",
-          "gdpr": "Privacy"
+          "maintenanceDesc": "Public holding page during an outage."
         },
         "anonymizeRequests": {
           "title": "Anonymize requests",
@@ -3728,6 +3726,7 @@
         "autoQuota": {
           "title": "Automatic request quota",
           "desc": "Retunes the monthly request quota nightly from activity, for members in automatic mode. Has no effect until at least one member is in automatic mode.",
+          "boundsError": "Minimum must be ≤ maximum.",
           "help": {
             "button": "How the automatic quota works",
             "intro": "Each night, an engagement score from the member's recent activity sets a target inside their floor–ceiling range. The quota moves one step toward that target.",

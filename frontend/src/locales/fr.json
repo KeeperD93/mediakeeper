@@ -3665,22 +3665,20 @@
         "saveBar": {
           "label": "Enregistrer les modifications",
           "unsaved": "Modifications non enregistrées",
-          "discard": "Annuler"
+          "discard": "Annuler",
+          "invalid": "Valeurs invalides"
         },
         "cat": {
           "requests": "Demandes",
           "requestsDesc": "Visibilité et hygiène des demandes des membres.",
-          "autoQuota": "Quota automatique",
           "home": "Accueil",
           "homeDesc": "Ce qui s'affiche sur l'accueil du portail.",
           "events": "Événements",
           "eventsDesc": "Capacité des salles créées par les membres.",
           "language": "Langue",
           "languageDesc": "Langue par défaut des nouveaux membres.",
-          "donation": "Don",
           "maintenance": "Maintenance",
-          "maintenanceDesc": "Page d'attente publique pendant une coupure.",
-          "gdpr": "Confidentialité"
+          "maintenanceDesc": "Page d'attente publique pendant une coupure."
         },
         "anonymizeRequests": {
           "title": "Anonymisation des demandes",
@@ -3728,6 +3726,7 @@
         "autoQuota": {
           "title": "Quota de demandes automatique",
           "desc": "Ajuste chaque nuit le quota mensuel de demandes selon l'activité, pour les membres en mode automatique. Sans effet tant qu'aucun membre n'est en mode automatique.",
+          "boundsError": "Le minimum doit être ≤ au maximum.",
           "help": {
             "button": "Comment fonctionne le quota automatique",
             "intro": "Chaque nuit, un score d'engagement basé sur l'activité récente du membre détermine une cible à l'intérieur de sa fourchette plancher–plafond. Le quota se rapproche de cette cible un pas à la fois.",

@@ -9,7 +9,13 @@
     <SettingsMaintenance class="set-block" />
     <GdprSection class="set-block" />
 
-    <SettingsSaveBar :dirty="dirty" :saving="saving" @save="save" @reset="reset" />
+    <SettingsSaveBar
+      :dirty="dirty"
+      :saving="saving"
+      :invalid="invalid"
+      @save="save"
+      @reset="reset"
+    />
   </div>
 </template>
 
@@ -31,7 +37,7 @@ import GdprSection from './GdprSection.vue'
 import '@/assets/styles/portal/admin-settings.css'
 
 const draftApi = useSettingsDraft()
-const { dirty, saving, load, save, reset } = draftApi
+const { dirty, saving, invalid, load, save, reset } = draftApi
 provide('settingsDraft', draftApi)
 
 onMounted(load)

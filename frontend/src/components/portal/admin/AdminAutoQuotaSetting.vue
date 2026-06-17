@@ -35,6 +35,10 @@
         />
       </div>
 
+      <p v-if="boundsError" class="pt-aq-error">
+        {{ $t('portal.admin.settings.autoQuota.boundsError') }}
+      </p>
+
       <div class="pt-aq-actions">
         <button type="button" class="pt-aq-save" :disabled="saving || formInvalid" @click="onSave">
           <Save :size="14" />
@@ -53,6 +57,8 @@ import { Save } from 'lucide-vue-next'
 import MkToggle from '@/components/common/MkToggle.vue'
 import AutoQuotaHelp from '@/components/portal/admin/AutoQuotaHelp.vue'
 import { useApi } from '@/composables/useApi'
+import { useToast } from '@/composables/useToast'
+import { TOAST_TYPE } from '@/constants/toast'
 
 const SAVED_MESSAGE_TIMEOUT_MS = 2000
 const SETTINGS_URL = '/api/portal/admin/settings'
@@ -70,6 +76,7 @@ const FIELDS = [
 
 const { t } = useI18n()
 const { apiGet, apiPatch } = useApi()
+const { showToast } = useToast()
 
 const ids = Object.fromEntries(FIELDS.map(f => [f.key, useId()]))
 
@@ -81,11 +88,16 @@ let savedTimer = null
 
 // Disable Save when any field is blank or out of range, so an emptied input
 // cannot trigger a silent backend rejection without feedback.
-const formInvalid = computed(() =>
-  FIELDS.some(f => {
-    const v = form[f.key]
-    return !Number.isInteger(v) || v < f.min || v > f.max
-  }),
+// The default floor must not exceed the default ceiling (mirrors the per-user
+// tab; the instance settings are otherwise saved without a cross-field check).
+const boundsError = computed(() => Number(form.min) > Number(form.max))
+const formInvalid = computed(
+  () =>
+    boundsError.value ||
+    FIELDS.some(f => {
+      const v = form[f.key]
+      return !Number.isInteger(v) || v < f.min || v > f.max
+    }),
 )
 
 function apply(res) {
@@ -102,6 +114,7 @@ function flashSaved() {
 }
 
 async function onToggle(next) {
+  const prev = enabled.value
   enabled.value = next
   saving.value = true
   try {
@@ -110,12 +123,17 @@ async function onToggle(next) {
       apply(res)
       flashSaved()
     }
+  } catch (e) {
+    enabled.value = prev
+    console.error('[AdminAutoQuotaSetting.onToggle]', e)
+    showToast(t('common.networkError'), TOAST_TYPE.ERR)
   } finally {
     saving.value = false
   }
 }
 
 async function onSave() {
+  if (formInvalid.value) return
   saving.value = true
   try {
     const payload = Object.fromEntries(FIELDS.map(f => [`quota.auto.${f.key}`, form[f.key]]))
@@ -124,14 +142,22 @@ async function onSave() {
       apply(res)
       flashSaved()
     }
+  } catch (e) {
+    console.error('[AdminAutoQuotaSetting.onSave]', e)
+    showToast(t('common.networkError'), TOAST_TYPE.ERR)
   } finally {
     saving.value = false
   }
 }
 
 onMounted(async () => {
-  const res = await apiGet(SETTINGS_URL)
-  if (res) apply(res)
+  try {
+    const res = await apiGet(SETTINGS_URL)
+    if (res) apply(res)
+  } catch (e) {
+    console.error('[AdminAutoQuotaSetting.onMounted]', e)
+    showToast(t('common.networkError'), TOAST_TYPE.ERR)
+  }
 })
 </script>
 
@@ -206,6 +232,11 @@ onMounted(async () => {
 .pt-aq-input:focus {
   border-color: var(--accent);
   outline: none;
+}
+.pt-aq-error {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-error);
 }
 .pt-aq-actions {
   display: flex;

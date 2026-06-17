@@ -7,7 +7,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const apiGet = vi.fn()
 const apiPatch = vi.fn()
+const showToast = vi.fn()
 vi.mock('@/composables/useApi', () => ({ useApi: () => ({ apiGet, apiPatch }) }))
+vi.mock('@/composables/useToast', () => ({ useToast: () => ({ showToast }) }))
+vi.mock('@/constants/toast', () => ({ TOAST_TYPE: { ERR: 'err', OK: 'ok' } }))
+vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: k => k }) }))
 
 import { useSettingsDraft } from '@/composables/portal/useSettingsDraft'
 
@@ -24,6 +28,7 @@ const SETTINGS = {
 beforeEach(() => {
   apiGet.mockReset().mockResolvedValue({ ...SETTINGS })
   apiPatch.mockReset().mockResolvedValue({ ...SETTINGS })
+  showToast.mockClear()
 })
 
 describe('useSettingsDraft', () => {
@@ -68,5 +73,28 @@ describe('useSettingsDraft', () => {
     await d.load()
     await d.save()
     expect(apiPatch).not.toHaveBeenCalled()
+  })
+
+  it('marks an emptied numeric field invalid and blocks save', async () => {
+    const d = useSettingsDraft()
+    await d.load()
+
+    d.draft.hero_trend_count = ''
+    expect(d.invalid.value).toBe(true)
+
+    await d.save()
+    expect(apiPatch).not.toHaveBeenCalled()
+  })
+
+  it('surfaces a toast when the save request fails', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const d = useSettingsDraft()
+    await d.load()
+
+    d.draft.hero_trend_count = 12
+    apiPatch.mockRejectedValueOnce(new Error('500'))
+    await d.save()
+
+    expect(showToast).toHaveBeenCalled()
   })
 })

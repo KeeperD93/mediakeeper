@@ -8,7 +8,9 @@ import { mount, flushPromises } from '@vue/test-utils'
 
 const apiGet = vi.fn()
 const apiPatch = vi.fn()
+const showToast = vi.fn()
 vi.mock('@/composables/useApi', () => ({ useApi: () => ({ apiGet, apiPatch }) }))
+vi.mock('@/composables/useToast', () => ({ useToast: () => ({ showToast }) }))
 vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: k => k }) }))
 vi.mock('lucide-vue-next', () => ({ Save: { name: 'SaveStub', template: '<i />' } }))
 
@@ -40,6 +42,7 @@ describe('AdminAutoQuotaSetting', () => {
   beforeEach(() => {
     apiGet.mockReset().mockResolvedValue({ ...SETTINGS })
     apiPatch.mockReset().mockResolvedValue({ ...SETTINGS })
+    showToast.mockClear()
   })
 
   it('loads the instance settings and enables Save when the form is valid', async () => {
@@ -80,6 +83,31 @@ describe('AdminAutoQuotaSetting', () => {
       'quota.auto.up_step': 2,
       'quota.auto.down_step': 1,
     })
+
+    w.unmount()
+  })
+
+  it('disables Save and shows a bounds error when the floor exceeds the ceiling', async () => {
+    apiGet.mockResolvedValueOnce({ ...SETTINGS, 'quota.auto.min': 50, 'quota.auto.max': 10 })
+    const w = buildCard()
+    await flushPromises()
+
+    expect(w.find('.pt-aq-error').exists()).toBe(true)
+    expect(w.get('.pt-aq-save').element.disabled).toBe(true)
+
+    w.unmount()
+  })
+
+  it('surfaces a toast when the save request fails', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    apiPatch.mockRejectedValueOnce(new Error('500'))
+    const w = buildCard()
+    await flushPromises()
+
+    await w.get('.pt-aq-save').trigger('click')
+    await flushPromises()
+
+    expect(showToast).toHaveBeenCalled()
 
     w.unmount()
   })

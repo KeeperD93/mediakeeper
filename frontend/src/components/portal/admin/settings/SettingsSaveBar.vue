@@ -6,7 +6,13 @@
       role="region"
       :aria-label="$t('portal.admin.settings.saveBar.label')"
     >
-      <span class="set-save-bar-text">{{ $t('portal.admin.settings.saveBar.unsaved') }}</span>
+      <span class="set-save-bar-text">
+        {{
+          invalid
+            ? $t('portal.admin.settings.saveBar.invalid')
+            : $t('portal.admin.settings.saveBar.unsaved')
+        }}
+      </span>
       <div class="set-save-bar-actions">
         <button
           type="button"
@@ -19,7 +25,7 @@
         <button
           type="button"
           class="set-bar-btn set-bar-btn--primary"
-          :disabled="saving"
+          :disabled="saving || invalid"
           @click="$emit('save')"
         >
           {{ $t('common.save') }}
@@ -33,6 +39,7 @@
 defineProps({
   dirty: { type: Boolean, default: false },
   saving: { type: Boolean, default: false },
+  invalid: { type: Boolean, default: false },
 })
 defineEmits(['save', 'reset'])
 </script>
