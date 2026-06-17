@@ -3708,6 +3708,23 @@
         "autoQuota": {
           "title": "Quota de demandes automatique",
           "desc": "Ajuste chaque nuit le quota mensuel de demandes selon l'activité, pour les membres en mode automatique. Sans effet tant qu'aucun membre n'est en mode automatique.",
+          "help": {
+            "button": "Comment fonctionne le quota automatique",
+            "intro": "Chaque nuit, un score d'engagement basé sur l'activité récente du membre détermine une cible à l'intérieur de sa fourchette plancher–plafond. Le quota se rapproche de cette cible un pas à la fois.",
+            "pace": "La hausse est rapide tant que l'activité la justifie ; la baisse est plus lente et ne démarre qu'après le délai de grâce d'inactivité — un membre absent quelques jours ne perd rien.",
+            "scoreIntro": "Le score combine cinq signaux, chacun pondéré et plafonné (le plafond évite de gonfler le score avec une seule métrique facile à répéter) :",
+            "colSignal": "Signal",
+            "colWeight": "Poids",
+            "colCap": "Compté jusqu'à",
+            "note": "La lecture Emby pèse le plus : c'est le signal le plus difficile à simuler.",
+            "signals": {
+              "play": "Lectures Emby",
+              "login": "Connexions",
+              "request": "Demandes",
+              "list": "Listes créées",
+              "ticket": "Tickets"
+            }
+          },
           "min": {
             "label": "Plancher par défaut",
             "hint": "Quota minimum appliqué à un membre quand on le passe en automatique (ajustable ensuite membre par membre)."

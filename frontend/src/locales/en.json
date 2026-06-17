@@ -3708,6 +3708,23 @@
         "autoQuota": {
           "title": "Automatic request quota",
           "desc": "Retunes the monthly request quota nightly from activity, for members in automatic mode. Has no effect until at least one member is in automatic mode.",
+          "help": {
+            "button": "How the automatic quota works",
+            "intro": "Each night, an engagement score from the member's recent activity sets a target inside their floor–ceiling range. The quota moves one step toward that target.",
+            "pace": "Increases are quick while activity justifies them; decreases are slower and only start after the idle grace period — a member away for a few days loses nothing.",
+            "scoreIntro": "The score combines five signals, each weighted and capped (the cap stops a single easily-repeated metric from inflating it):",
+            "colSignal": "Signal",
+            "colWeight": "Weight",
+            "colCap": "Counted up to",
+            "note": "Emby playback weighs the most: it is the hardest signal to fake.",
+            "signals": {
+              "play": "Emby playback",
+              "login": "Logins",
+              "request": "Requests",
+              "list": "Lists created",
+              "ticket": "Tickets"
+            }
+          },
           "min": {
             "label": "Default floor",
             "hint": "Lowest allowance a member gets when switched to automatic (adjustable per member afterwards)."

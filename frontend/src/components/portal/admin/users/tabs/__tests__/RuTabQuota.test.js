@@ -23,7 +23,10 @@ import RuTabQuota from '@/components/portal/admin/users/tabs/RuTabQuota.vue'
 import { QUOTA_MODE } from '@/constants/portalAdminUsers'
 
 function mountTab(quota) {
-  return mount(RuTabQuota, { props: { user: { id: 7, quota } } })
+  return mount(RuTabQuota, {
+    props: { user: { id: 7, quota } },
+    global: { stubs: { AutoQuotaHelp: true } },
+  })
 }
 
 const BASE = {

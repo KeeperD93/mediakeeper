@@ -28,7 +28,10 @@ function buildCard() {
   return mount(AdminAutoQuotaSetting, {
     global: {
       mocks: { $t: k => k },
-      stubs: { MkToggle: { template: '<button class="mk-toggle-stub" />' } },
+      stubs: {
+        MkToggle: { template: '<button class="mk-toggle-stub" />' },
+        AutoQuotaHelp: true,
+      },
     },
   })
 }

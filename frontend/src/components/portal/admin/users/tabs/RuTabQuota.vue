@@ -23,6 +23,7 @@
         </button>
       </div>
       <p class="ru-help">{{ $t('requestsAdmin.users.drawer.quota.modeHelp') }}</p>
+      <AutoQuotaHelp />
     </section>
 
     <section v-if="form.mode === QUOTA_MODE.MANUAL" class="ru-tab-section">
@@ -114,6 +115,7 @@ import { TOAST_TYPE } from '@/constants/toast'
 import { localizedDate } from '@/utils/datetime'
 import { usePortalAdminUsers } from '@/composables/portal/usePortalAdminUsers'
 import { QUOTA_MODE } from '@/constants/portalAdminUsers'
+import AutoQuotaHelp from '@/components/portal/admin/AutoQuotaHelp.vue'
 
 const props = defineProps({ user: { type: Object, required: true } })
 const emit = defineEmits(['changed'])

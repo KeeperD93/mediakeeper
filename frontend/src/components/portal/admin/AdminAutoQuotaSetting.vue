@@ -17,6 +17,8 @@
       />
     </div>
 
+    <AutoQuotaHelp />
+
     <div v-if="enabled" class="pt-aq-config">
       <div v-for="f in FIELDS" :key="f.key" class="pt-aq-field">
         <label class="pt-aq-label" :for="ids[f.key]">
@@ -49,6 +51,7 @@ import { computed, onMounted, reactive, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Save } from 'lucide-vue-next'
 import MkToggle from '@/components/common/MkToggle.vue'
+import AutoQuotaHelp from '@/components/portal/admin/AutoQuotaHelp.vue'
 import { useApi } from '@/composables/useApi'
 
 const SAVED_MESSAGE_TIMEOUT_MS = 2000
