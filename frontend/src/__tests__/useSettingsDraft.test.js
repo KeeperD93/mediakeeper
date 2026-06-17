@@ -97,4 +97,27 @@ describe('useSettingsDraft', () => {
 
     expect(showToast).toHaveBeenCalled()
   })
+
+  it('flags out-of-range numeric values invalid and blocks save (over-max, negative, float)', async () => {
+    const d = useSettingsDraft()
+    await d.load()
+
+    for (const bad of [21, -1, 10.5]) {
+      d.draft.hero_trend_count = bad
+      expect(d.invalid.value).toBe(true)
+    }
+
+    await d.save()
+    expect(apiPatch).not.toHaveBeenCalled()
+  })
+
+  it('surfaces a toast when the initial load fails', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    apiGet.mockRejectedValueOnce(new Error('500'))
+    const d = useSettingsDraft()
+    await d.load()
+
+    expect(showToast).toHaveBeenCalled()
+    expect(d.loaded.value).toBe(false)
+  })
 })
