@@ -37,6 +37,7 @@ This section intentionally has no date so it is not shown to users.
 - Watchlist — Timeline tab: months bar widened and more readable.
 - Statistics — activity: consecutive sessions of the same content grouped (expandable, segmented bar).
 - Forms — fields with sharper corners, distinct from rounded filters.
+- Configuration (admin) — screen reorganised into sections, global save bar.
 
 ### Fixed
 - Dashboard — History tabs (Notifications, Duplicates): "Load more" button.

@@ -37,6 +37,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Watchlist — onglet Timeline : barre des mois élargie et plus lisible.
 - Statistiques — activité : sessions consécutives d'un même contenu regroupées (dépliables, barre segmentée).
 - Formulaires — champs aux coins plus nets, distincts des filtres arrondis.
+- Configuration (admin) — écran réorganisé par sections, barre d'enregistrement globale.
 
 ### Fixed
 - Tableau de bord — onglets Historique (Notifications, Doublons) : bouton « Charger plus ».

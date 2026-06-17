@@ -3662,6 +3662,26 @@
         "typeSeries": "Séries"
       },
       "settings": {
+        "saveBar": {
+          "label": "Enregistrer les modifications",
+          "unsaved": "Modifications non enregistrées",
+          "discard": "Annuler"
+        },
+        "cat": {
+          "requests": "Demandes",
+          "requestsDesc": "Visibilité et hygiène des demandes des membres.",
+          "autoQuota": "Quota automatique",
+          "home": "Accueil",
+          "homeDesc": "Ce qui s'affiche sur l'accueil du portail.",
+          "events": "Événements",
+          "eventsDesc": "Capacité des salles créées par les membres.",
+          "language": "Langue",
+          "languageDesc": "Langue par défaut des nouveaux membres.",
+          "donation": "Don",
+          "maintenance": "Maintenance",
+          "maintenanceDesc": "Page d'attente publique pendant une coupure.",
+          "gdpr": "Confidentialité"
+        },
         "anonymizeRequests": {
           "title": "Anonymisation des demandes",
           "desc": "Quand cette option est activée, le pseudo de l'utilisateur qui a fait une demande n'est plus visible par les autres. Seule la date reste affichée. Les administrateurs continuent de voir qui a demandé quoi."

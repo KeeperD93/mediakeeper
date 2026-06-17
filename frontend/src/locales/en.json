@@ -3662,6 +3662,26 @@
         "typeSeries": "Series"
       },
       "settings": {
+        "saveBar": {
+          "label": "Save changes",
+          "unsaved": "Unsaved changes",
+          "discard": "Discard"
+        },
+        "cat": {
+          "requests": "Requests",
+          "requestsDesc": "Visibility and hygiene of member requests.",
+          "autoQuota": "Automatic quota",
+          "home": "Home",
+          "homeDesc": "What shows on the portal home.",
+          "events": "Events",
+          "eventsDesc": "Capacity of rooms created by members.",
+          "language": "Language",
+          "languageDesc": "Default language for new members.",
+          "donation": "Donation",
+          "maintenance": "Maintenance",
+          "maintenanceDesc": "Public holding page during an outage.",
+          "gdpr": "Privacy"
+        },
         "anonymizeRequests": {
           "title": "Anonymize requests",
           "desc": "When enabled, the username of whoever filed a request is hidden from other users. Only the request date remains visible. Admins still see who requested what for moderation."
