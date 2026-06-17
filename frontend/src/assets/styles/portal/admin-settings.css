@@ -1,0 +1,76 @@
+/* Shared controls for the portal admin Configuration screen
+   (AdminSettings.vue + its settings/ panels). Non-scoped so inputs, selects,
+   textareas and action buttons reused across panels (save bar, maintenance)
+   share one consistent style instead of each panel redeclaring its own. Page
+   layout lives scoped in AdminSettings.vue. */
+.set-input,
+.set-select {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  color: var(--text-primary);
+  padding: 0.45rem 0.6rem;
+  font: inherit;
+  font-size: var(--text-sm);
+  color-scheme: dark;
+}
+.set-input {
+  width: 88px;
+  text-align: right;
+}
+.set-select {
+  min-width: 130px;
+}
+.set-input:focus,
+.set-select:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+.set-textarea {
+  width: 100%;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  color: var(--text-primary);
+  padding: 0.5rem 0.75rem;
+  font: inherit;
+  font-size: var(--text-sm);
+  resize: vertical;
+}
+.set-textarea:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+/* Action buttons shared by the save bar and per-card panels (e.g. maintenance).
+   Kept here (non-scoped) so any panel can reuse them without re-declaring. */
+.set-bar-btn {
+  padding: 0.45rem 1.1rem;
+  border-radius: var(--radius-btn);
+  border: 1px solid transparent;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+}
+.set-bar-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.set-bar-btn--ghost {
+  background: none;
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+@media (hover: hover) {
+  .set-bar-btn--ghost:hover {
+    color: var(--text-primary);
+  }
+}
+.set-bar-btn--primary {
+  background: var(--accent);
+  color: var(--color-on-accent);
+}
+.set-bar-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

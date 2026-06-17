@@ -5,8 +5,8 @@ restore, RGPD export, bulk runner, targeted notification, reset
 password, force-logout, login history."""
 import logging
 
-from fastapi import APIRouter, Depends, Query, Request
-from pydantic import BaseModel, ConfigDict, Field
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
@@ -17,6 +17,7 @@ from api.auth import get_current_user, require_csrf
 from api._portal_admin_users_helpers import (
     client_ip, client_ua, resolve_profile, rgpd_export_to_csv,
 )
+from services.portal.admin import update_user_quota as svc_update_quota
 from services.portal.admin_users_activity import get_user_activity_summary
 from services.portal.admin_users_actions import (
     extend_access as svc_extend_access,
@@ -82,6 +83,45 @@ async def patch_tags(
         db, profile, tags=data.tags or [], admin_user_id=admin.id,
         ip=client_ip(request), user_agent=client_ua(request),
     )
+
+
+class QuotaUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    max_allowed: int | None = Field(None, ge=1, le=100)
+    unlimited: bool | None = None
+    auto_approve: bool | None = None
+    mode: str | None = Field(None, pattern="^(manual|auto)$")
+    auto_min: int | None = Field(None, ge=1, le=100)
+    auto_max: int | None = Field(None, ge=1, le=100)
+
+    @model_validator(mode="after")
+    def _ordered_bounds(self) -> "QuotaUpdate":
+        if (
+            self.auto_min is not None
+            and self.auto_max is not None
+            and self.auto_min > self.auto_max
+        ):
+            raise ValueError("auto_min must not exceed auto_max")
+        return self
+
+
+@router.patch("/{profile_id}/quota")
+async def patch_quota(
+    profile_id: int,
+    data: QuotaUpdate,
+    request: Request,
+    _csrf: None = Depends(require_csrf),
+    admin: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    profile, _user = await resolve_profile(profile_id, db)
+    result = await svc_update_quota(
+        db, profile.user_id, data.model_dump(exclude_none=True),
+        admin_user_id=admin.id, ip=client_ip(request), user_agent=client_ua(request),
+    )
+    if result.get("error") == "invalid_bounds":
+        raise HTTPException(status_code=422, detail="invalid_bounds")
+    return result
 
 
 class ExtendAccess(BaseModel):
@@ -186,7 +226,9 @@ async def get_export(
 
 class BulkAction(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    action: str = Field(..., pattern="^(activate|deactivate|delete|set_role|set_permissions|export)$")
+    action: str = Field(
+        ..., pattern="^(activate|deactivate|delete|set_role|set_permissions|set_quota|export)$"
+    )
     profile_ids: list[int] = Field(..., min_length=1, max_length=500)
     payload: dict | None = None
 

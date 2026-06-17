@@ -19,6 +19,12 @@ export const USER_SOURCE = Object.freeze({
 
 export const USER_SOURCES = [USER_SOURCE.EMBY, USER_SOURCE.LOCAL]
 
+// Request-quota mode, exchanged with the backend (RequestQuota.mode).
+export const QUOTA_MODE = Object.freeze({
+  MANUAL: 'manual',
+  AUTO: 'auto',
+})
+
 export const PERMISSION_KEYS = Object.freeze([
   'can_chat',
   'can_portal',
@@ -48,7 +54,12 @@ export const BULK_ACTION = Object.freeze({
   DEACTIVATE: 'deactivate',
   DELETE: 'delete',
   SET_ROLE: 'set_role',
+  SET_PERMISSIONS: 'set_permissions',
+  SET_QUOTA: 'set_quota',
   EXPORT: 'export',
+  // Frontend-only: the bulk-edit overlay fans this out into SET_PERMISSIONS
+  // and/or SET_QUOTA at the page level; it never reaches the backend.
+  BULK_EDIT: 'bulk_edit',
 })
 
 export const SORT_KEYS = Object.freeze([
@@ -69,6 +80,7 @@ export const VIEW_MODE = Object.freeze({
 export const DRAWER_TAB = Object.freeze({
   IDENTITY: 'identity',
   ACCESS: 'access',
+  QUOTA: 'quota',
   SECURITY: 'security',
   ACTIVITY: 'activity',
   TROPHIES: 'trophies',
@@ -79,6 +91,7 @@ export const DRAWER_TAB = Object.freeze({
 export const DRAWER_TABS = [
   DRAWER_TAB.IDENTITY,
   DRAWER_TAB.ACCESS,
+  DRAWER_TAB.QUOTA,
   DRAWER_TAB.SECURITY,
   DRAWER_TAB.ACTIVITY,
   DRAWER_TAB.TROPHIES,

@@ -5,6 +5,9 @@ import pytest
 
 from core.security import create_access_token
 from models.portal.profile import UserProfile
+from models.settings import Setting
+from services.portal.admin import get_portal_settings, update_portal_settings
+from tests._portal_profile_helpers import PORTAL_COOKIE, make_portal_user, portal_token
 
 
 def _auth(client, admin_user) -> None:
@@ -95,6 +98,157 @@ async def test_create_local_user_then_role_change(client, admin_user, db_session
 
 
 @pytest.mark.asyncio
+async def test_patch_quota_updates_and_audits(client, admin_user, db_session):
+    """PATCH quota persists the change and records a user.quota_changed audit."""
+    db_session.add(UserProfile(
+        user_id=admin_user.id, display_name="Admin", role="admin",
+        source="local", account_active=True,
+    ))
+    await db_session.commit()
+    _auth(client, admin_user)
+
+    resp = await client.post("/api/portal/admin/users/local", json={
+        "username": "quotauser", "password": "supersecret",
+    })
+    assert resp.status_code == 200, resp.text
+    pid = resp.json()["profile_id"]
+
+    resp = await client.patch(
+        f"/api/portal/admin/users/{pid}/quota",
+        json={"max_allowed": 12},
+    )
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["success"] is True
+    assert body["changed"]["max_allowed"]["to"] == 12
+
+    resp = await client.get(f"/api/portal/admin/users/{pid}/audit")
+    assert resp.status_code == 200
+    assert "user.quota_changed" in [i["action"] for i in resp.json()["items"]]
+
+
+@pytest.mark.asyncio
+async def test_patch_quota_rejects_inverted_bounds(client, admin_user, db_session):
+    """auto_min above the stored auto_max (merged) is rejected with 422."""
+    db_session.add(UserProfile(
+        user_id=admin_user.id, display_name="Admin", role="admin",
+        source="local", account_active=True,
+    ))
+    await db_session.commit()
+    _auth(client, admin_user)
+
+    resp = await client.post("/api/portal/admin/users/local", json={
+        "username": "quotabounds", "password": "supersecret",
+    })
+    pid = resp.json()["profile_id"]
+
+    resp = await client.patch(
+        f"/api/portal/admin/users/{pid}/quota", json={"auto_min": 50},
+    )
+    assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_patch_quota_switch_to_auto_resets_cap(client, admin_user, db_session):
+    """Switching to auto resets the working cap to the start value (5, clamped
+    to the band) so a high manual cap doesn't carry over."""
+    db_session.add(UserProfile(
+        user_id=admin_user.id, display_name="Admin", role="admin",
+        source="local", account_active=True,
+    ))
+    await db_session.commit()
+    _auth(client, admin_user)
+
+    resp = await client.post("/api/portal/admin/users/local", json={
+        "username": "quotaauto", "password": "supersecret",
+    })
+    pid = resp.json()["profile_id"]
+
+    await client.patch(f"/api/portal/admin/users/{pid}/quota", json={"max_allowed": 80})
+    resp = await client.patch(
+        f"/api/portal/admin/users/{pid}/quota",
+        json={"mode": "auto", "auto_min": 2, "auto_max": 30},
+    )
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["changed"]["max_allowed"]["to"] == 5
+
+
+@pytest.mark.asyncio
+async def test_patch_quota_flip_to_auto_seeds_band_from_instance(client, admin_user, db_session):
+    """A plain flip to auto (no band in the PATCH) seeds the per-user band
+    from the instance quota.auto.min/max settings; an explicit band wins."""
+    db_session.add(UserProfile(
+        user_id=admin_user.id, display_name="Admin", role="admin",
+        source="local", account_active=True,
+    ))
+    # Instance band differs from the column default (2/15).
+    db_session.add(Setting(key="quota.auto.min", value="4"))
+    db_session.add(Setting(key="quota.auto.max", value="25"))
+    await db_session.commit()
+    _auth(client, admin_user)
+
+    seeded = (await client.post("/api/portal/admin/users/local", json={
+        "username": "quotaseed", "password": "supersecret",
+    })).json()["profile_id"]
+    # Push a high manual cap first so the flip's reset to START_CAP is visible.
+    await client.patch(f"/api/portal/admin/users/{seeded}/quota", json={"max_allowed": 80})
+    resp = await client.patch(
+        f"/api/portal/admin/users/{seeded}/quota", json={"mode": "auto"},
+    )
+    assert resp.status_code == 200, resp.text
+    changed = resp.json()["changed"]
+    assert changed["auto_min"]["to"] == 4
+    assert changed["auto_max"]["to"] == 25
+    assert changed["max_allowed"]["to"] == 5  # START_CAP clamped into [4, 25]
+
+    explicit = (await client.post("/api/portal/admin/users/local", json={
+        "username": "quotaexplicit", "password": "supersecret",
+    })).json()["profile_id"]
+    resp = await client.patch(
+        f"/api/portal/admin/users/{explicit}/quota",
+        json={"mode": "auto", "auto_min": 7, "auto_max": 9},
+    )
+    assert resp.status_code == 200, resp.text
+    changed = resp.json()["changed"]
+    assert changed["auto_min"]["to"] == 7
+    assert changed["auto_max"]["to"] == 9  # explicit band wins over instance 4/25
+
+
+@pytest.mark.asyncio
+async def test_patch_settings_quota_auto_round_trip(client, db_session):
+    """The quota.auto.* instance settings round-trip through the admin
+    settings endpoint (alias mapping), are bound-checked, and clamped."""
+    user, _ = await make_portal_user(
+        db_session, username="qadmin", display_name="QA", role="admin"
+    )
+    client.cookies.set(PORTAL_COOKIE, portal_token(user.username))
+
+    resp = await client.patch("/api/portal/admin/settings", json={
+        "quota.auto.enabled": False,
+        "quota.auto.min": 3,
+        "quota.auto.max": 40,
+        "quota.auto.window_days": 60,
+        "quota.auto.grace_days": 7,
+        "quota.auto.up_step": 3,
+        "quota.auto.down_step": 2,
+    })
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["quota.auto.enabled"] is False
+    assert body["quota.auto.min"] == 3
+    assert body["quota.auto.max"] == 40
+    assert body["quota.auto.window_days"] == 60
+
+    # Out-of-range is rejected by the Pydantic field bounds.
+    resp = await client.patch("/api/portal/admin/settings", json={"quota.auto.min": 999})
+    assert resp.status_code == 422
+
+    # Registry clamp is the service-layer safety net independent of Pydantic.
+    await update_portal_settings(db_session, {"quota.auto.max": 999})
+    assert (await get_portal_settings(db_session))["quota.auto.max"] == 100
+
+
+@pytest.mark.asyncio
 async def test_soft_delete_then_restore(client, admin_user, db_session):
     """Soft delete must keep the row but flag it; restore reverses."""
     db_session.add(UserProfile(
@@ -171,6 +325,50 @@ async def test_bulk_set_role(client, admin_user, db_session):
         resp = await client.get(f"/api/portal/admin/users/{profile_id}")
         assert resp.status_code == 200
         assert resp.json()["role"] == "moderator"
+
+
+@pytest.mark.asyncio
+async def test_bulk_set_quota_applies_and_validates(client, admin_user, db_session):
+    db_session.add(UserProfile(
+        user_id=admin_user.id, display_name="Admin", role="admin",
+        source="local", account_active=True,
+    ))
+    await db_session.commit()
+    _auth(client, admin_user)
+
+    ids = []
+    for username in ("erin", "frank"):
+        resp = await client.post("/api/portal/admin/users/local", json={
+            "username": username, "password": "supersecret",
+        })
+        assert resp.status_code == 200
+        ids.append(resp.json()["profile_id"])
+
+    # One overlay submit -> manual cap + auto-approve on both accounts.
+    resp = await client.post("/api/portal/admin/users/bulk", json={
+        "action": "set_quota",
+        "profile_ids": ids,
+        "payload": {"mode": "manual", "max_allowed": 12, "auto_approve": True},
+    })
+    assert resp.status_code == 200
+    assert resp.json()["processed"] == 2
+
+    for profile_id in ids:
+        detail = (await client.get(f"/api/portal/admin/users/{profile_id}")).json()
+        assert detail["quota"]["max_allowed"] == 12
+        assert detail["quota"]["mode"] == "manual"
+        assert detail["quota"]["auto_approve"] is True
+
+    # An inverted auto band is rejected per user (skipped), never applied.
+    resp = await client.post("/api/portal/admin/users/bulk", json={
+        "action": "set_quota",
+        "profile_ids": ids,
+        "payload": {"mode": "auto", "auto_min": 20, "auto_max": 5},
+    })
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["processed"] == 0
+    assert len(body["skipped"]) == 2
 
 
 @pytest.mark.asyncio

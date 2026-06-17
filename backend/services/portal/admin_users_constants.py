@@ -62,6 +62,7 @@ ACTION_USER_UPDATED_IDENTITY = "user.identity_updated"
 ACTION_USER_DISPLAY_NAME_RESET = "user.display_name_reset"
 ACTION_USER_ROLE_CHANGED = "user.role_changed"
 ACTION_USER_PERMISSIONS_CHANGED = "user.permissions_changed"
+ACTION_USER_QUOTA_CHANGED = "user.quota_changed"
 ACTION_USER_ACCESS_WINDOW = "user.access_window_set"
 ACTION_USER_ACCESS_EXTENDED = "user.access_extended"
 ACTION_USER_ACCESS_EXPIRED = "user.access_expired"
@@ -86,10 +87,11 @@ BULK_DEACTIVATE = "deactivate"
 BULK_DELETE = "delete"
 BULK_SET_ROLE = "set_role"
 BULK_SET_PERMISSIONS = "set_permissions"
+BULK_SET_QUOTA = "set_quota"
 BULK_EXPORT = "export"
 BULK_ACTIONS = (
     BULK_ACTIVATE, BULK_DEACTIVATE, BULK_DELETE,
-    BULK_SET_ROLE, BULK_SET_PERMISSIONS, BULK_EXPORT,
+    BULK_SET_ROLE, BULK_SET_PERMISSIONS, BULK_SET_QUOTA, BULK_EXPORT,
 )
 
 # Number of days before access_end_date that should surface a warning

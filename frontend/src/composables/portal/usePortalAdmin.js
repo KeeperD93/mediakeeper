@@ -2,15 +2,11 @@ import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
 
 export function usePortalAdmin() {
-  const { apiGet, apiPost, apiPut, loading, error } = useApi()
+  const { apiGet, apiPost, loading, error } = useApi()
   const stats = ref(null)
 
   async function fetchStats() {
     stats.value = await apiGet('/api/portal/admin/stats')
-  }
-
-  async function setQuota(userId, data) {
-    return await apiPut(`/api/portal/admin/users/${userId}/quota`, data)
   }
 
   async function muteUser(userId, mutedUntil, reason = '') {
@@ -27,7 +23,6 @@ export function usePortalAdmin() {
   return {
     stats,
     fetchStats,
-    setQuota,
     muteUser,
     unmuteUser,
     loading,

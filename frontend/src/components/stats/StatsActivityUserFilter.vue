@@ -91,7 +91,7 @@ onBeforeUnmount(() => {
   color: var(--text-primary);
   background: var(--surface-2);
   border: 0.5px solid var(--border-strong);
-  border-radius: var(--radius-btn);
+  border-radius: var(--radius-input);
   cursor: pointer;
   box-sizing: border-box;
 }

@@ -35,6 +35,7 @@ utilisateurs.
 - Accueil — Populaires et Mieux notés viennent désormais de Découvrir.
 - Quoi de neuf — les nouveautés restent jusqu'à votre prochaine visite.
 - Notifications — marquées lues à la fermeture du panneau (surbrillance conservée à l'ouverture).
+- Formulaires — champs aux coins plus nets, distincts des filtres arrondis.
 
 ### Fixed
 - Invitations — les profils privés et les admins ne peuvent plus être invités.

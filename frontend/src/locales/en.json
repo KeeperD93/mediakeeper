@@ -1437,6 +1437,7 @@
       "subtitle_auto": "Auto-download subtitles",
       "expire_users": "Expire user accounts",
       "gdpr_purge": "GDPR purge of pending deletions",
+      "quota_auto_recompute": "Auto request-quota recompute",
       "clear_image_cache": "Clear image cache"
     },
     "watchlist_check": "Checks for missing episodes and updates the watchlist.",
@@ -1452,6 +1453,7 @@
     "expire_users": "Automatically disables accounts (Emby + MediaKeeper) whose access window has expired.",
     "cleanup_available_requests": "Automatically clears available requests after the configured grace period.",
     "gdpr_purge": "Permanently removes user accounts marked for GDPR purge.",
+    "quota_auto_recompute": "Nightly recompute of automatic request quotas from each user's recent activity.",
     "clear_image_cache": "Automatically clears the on-disk image cache (manual purge also available from the cache row).",
     "starting": "Starting…",
     "cache": {
@@ -1912,7 +1914,6 @@
         "deactivate": "Deactivate",
         "delete": "Delete",
         "set_role": "Change role",
-        "set_permissions": "Change permissions",
         "export": "Export (GDPR)",
         "exportJson": "Export JSON",
         "exportCsv": "Export CSV",
@@ -1955,12 +1956,14 @@
         "selected": "{count} selected"
       },
       "bulkPerms": {
-        "title": "Bulk-edit permissions",
+        "title": "Bulk edit",
         "help": "Pick the effect to apply on the {count} selected account(s). « No change » leaves the current value untouched.",
         "noChange": "No change",
         "enable": "Enable",
         "disable": "Disable",
-        "apply": "Apply"
+        "apply": "Apply",
+        "permsGroup": "Permissions",
+        "requestsGroup": "Requests"
       },
       "confirms": {
         "delete": "Soft-delete {name}? Data stays available via the « Show deleted » filter.",
@@ -1981,6 +1984,7 @@
         "notified": "Notification sent",
         "created": "User created",
         "bulkDone": "{count} action(s) applied",
+        "bulkNoChange": "No changes applied",
         "embyIdsSynced": "{updated} account(s) linked to Emby, {already} already up-to-date, {unmatched} unmatched",
         "forceLogoutDone": "Sessions invalidated",
         "displayNameResetDone": "Display name reset scheduled"
@@ -2024,6 +2028,7 @@
           "overview": "Overview",
           "identity": "Identity",
           "access": "Access & role",
+          "quota": "Requests",
           "security": "Security",
           "activity": "Activity",
           "trophies": "Trophies",
@@ -2082,6 +2087,23 @@
           "deleteBullet3": "The Emby account is NOT touched — use « Disable Emby » above to block streaming.",
           "deleteAction": "Delete this account from MediaKeeper",
           "restoreHelp": "This account has been deleted. Restoring it re-enables MediaKeeper access."
+        },
+        "quota": {
+          "mode": "Quota mode",
+          "modeManual": "Manual",
+          "modeAuto": "Automatic",
+          "modeHelp": "Manual: you set the monthly allowance. Automatic: it adjusts with the user's activity, within the bounds below.",
+          "unlimited": "Unlimited",
+          "unlimitedHelp": "No monthly cap on requests for this user.",
+          "maxAllowed": "Requests per month",
+          "autoMin": "Minimum",
+          "autoMax": "Maximum",
+          "autoCurrent": "Current allowance: {cap}",
+          "autoLastRun": "last adjusted {date}",
+          "boundsError": "Minimum must not exceed maximum.",
+          "autoApprove": "Auto-approve requests",
+          "autoApproveHelp": "Requests from this user are approved automatically (no moderation).",
+          "usage": "Used this month: {used} / {cap}"
         },
         "security": {
           "lastLogin": "Last login",
@@ -2186,7 +2208,9 @@
           "embyError": "Failed on the Emby side ({error})",
           "tagsSet": "Tags: {tags}",
           "tagsCleared": "Tags removed",
-          "notification": "Title: {title}"
+          "notification": "Title: {title}",
+          "quotaChange": "Changed: {fields}",
+          "quotaAuto": "Auto-adjusted: {fields}"
         },
         "notify": {
           "target": "Recipient: {name}",
@@ -2225,6 +2249,7 @@
           "identity_updated": "Identity updated",
           "role_changed": "Role changed",
           "permissions_changed": "Permissions changed",
+          "quota_changed": "Quota changed",
           "access_window_set": "Access window updated",
           "access_extended": "Access extended",
           "activated": "Account activated",
@@ -3637,6 +3662,24 @@
         "typeSeries": "Series"
       },
       "settings": {
+        "saveBar": {
+          "label": "Save changes",
+          "unsaved": "Unsaved changes",
+          "discard": "Discard",
+          "invalid": "Invalid values"
+        },
+        "cat": {
+          "requests": "Requests",
+          "requestsDesc": "Visibility and hygiene of member requests.",
+          "home": "Home",
+          "homeDesc": "What shows on the portal home.",
+          "events": "Events",
+          "eventsDesc": "Capacity of rooms created by members.",
+          "language": "Language",
+          "languageDesc": "Default language for new members.",
+          "maintenance": "Maintenance",
+          "maintenanceDesc": "Public holding page during an outage."
+        },
         "anonymizeRequests": {
           "title": "Anonymize requests",
           "desc": "When enabled, the username of whoever filed a request is hidden from other users. Only the request date remains visible. Admins still see who requested what for moderation."
@@ -3679,6 +3722,52 @@
           "buttonLabelLabel": "Button text (optional)",
           "buttonLabelPlaceholder": "Donate",
           "messageLabel": "Message (optional)"
+        },
+        "autoQuota": {
+          "title": "Automatic request quota",
+          "desc": "Retunes the monthly request quota nightly from activity, for members in automatic mode. Has no effect until at least one member is in automatic mode.",
+          "boundsError": "Minimum must be ≤ maximum.",
+          "help": {
+            "button": "How the automatic quota works",
+            "intro": "Each night, an engagement score from the member's recent activity sets a target inside their floor–ceiling range. The quota moves one step toward that target.",
+            "pace": "Increases are quick while activity justifies them; decreases are slower and only start after the idle grace period — a member away for a few days loses nothing.",
+            "scoreIntro": "The score combines five signals, each weighted and capped (the cap stops a single easily-repeated metric from inflating it):",
+            "colSignal": "Signal",
+            "colWeight": "Weight",
+            "colCap": "Counted up to",
+            "note": "Emby playback weighs the most: it is the hardest signal to fake.",
+            "signals": {
+              "play": "Emby playback",
+              "login": "Logins",
+              "request": "Requests",
+              "list": "Lists created",
+              "ticket": "Tickets"
+            }
+          },
+          "min": {
+            "label": "Default floor",
+            "hint": "Lowest allowance a member gets when switched to automatic (adjustable per member afterwards)."
+          },
+          "max": {
+            "label": "Default ceiling",
+            "hint": "Highest allowance a member gets when switched to automatic."
+          },
+          "window_days": {
+            "label": "Activity window (days)",
+            "hint": "Recent activity period used to compute the allowance."
+          },
+          "grace_days": {
+            "label": "Grace period (days)",
+            "hint": "Idle days tolerated before the allowance starts dropping."
+          },
+          "up_step": {
+            "label": "Increase step",
+            "hint": "Maximum allowance increase per night."
+          },
+          "down_step": {
+            "label": "Decrease step",
+            "hint": "Maximum allowance decrease per night."
+          }
         },
         "gdpr": {
           "title": "Privacy mode",

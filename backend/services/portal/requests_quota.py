@@ -12,7 +12,9 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from models.portal.profile import UserProfile
 from models.portal.request import RequestQuota
+from services.portal.admin_users_constants import ROLE_ADMIN, ROLE_MODERATOR
 
 
 def current_month() -> str:
@@ -69,6 +71,14 @@ async def get_or_create_quota(
         return quota
 
     new_quota = RequestQuota(user_id=user_id, month=current_month())
+    # Admins and moderators start unlimited by default (an admin can still
+    # untick it per user later); degrade to the column default on an
+    # unresolved role.
+    role = (await db.execute(
+        select(UserProfile.role).where(UserProfile.user_id == user_id)
+    )).scalar_one_or_none()
+    if role in (ROLE_ADMIN, ROLE_MODERATOR):
+        new_quota.unlimited = True
     try:
         async with db.begin_nested():
             db.add(new_quota)
@@ -104,4 +114,9 @@ async def get_user_quota(db: AsyncSession, user_id: int) -> dict:
         "auto_approve": quota.auto_approve,
         "mode": quota.mode,
         "month": quota.month,
+        "auto_min": quota.auto_min,
+        "auto_max": quota.auto_max,
+        "last_recomputed_at": (
+            quota.last_recomputed_at.isoformat() if quota.last_recomputed_at else None
+        ),
     }

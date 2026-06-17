@@ -87,6 +87,38 @@ async def test_create_request_non_admin_returns_quota_info(admin_user, db_sessio
 
 
 @pytest.mark.asyncio
+async def test_quota_defaults_expose_auto_mode_fields(admin_user, db_session):
+    """A freshly created quota carries the auto-mode defaults and the public
+    snapshot surfaces them (mode 'manual', bounds 2/15, never recomputed)."""
+    quota = await get_or_create_quota(db_session, admin_user.id)
+    assert quota.mode == "manual"
+    assert quota.auto_min == 2
+    assert quota.auto_max == 15
+    assert quota.last_recomputed_at is None
+
+    snapshot = await get_user_quota(db_session, admin_user.id)
+    assert snapshot["mode"] == "manual"
+    assert snapshot["auto_min"] == 2
+    assert snapshot["auto_max"] == 15
+    assert snapshot["last_recomputed_at"] is None
+
+
+@pytest.mark.asyncio
+async def test_quota_seeds_unlimited_for_moderator(admin_user, db_session):
+    """Moderators (and admins) get an unlimited quota row by default."""
+    from models.portal.profile import UserProfile
+
+    db_session.add(UserProfile(
+        user_id=admin_user.id, display_name="Mod", role="moderator",
+        source="local", account_active=True,
+    ))
+    await db_session.commit()
+
+    quota = await get_or_create_quota(db_session, admin_user.id)
+    assert quota.unlimited is True
+
+
+@pytest.mark.asyncio
 async def test_create_request_non_admin_blocked_when_quota_exceeded(admin_user, db_session):
     quota = await get_or_create_quota(db_session, admin_user.id)
     quota.unlimited = False

@@ -19,6 +19,9 @@ This section intentionally has no date so it is not shown to users.
 - News (admin) — "Load more" button beyond the 20 most recent.
 - Portal users (admin) — user audit log: "Load more" beyond 100 entries.
 - Portal users (admin) — user drawer: "Load more" on activity, trophies (XP) and security.
+- Portal users (admin) — per-member request quota, manual or automatic.
+- Portal users (admin) — automatic quota retuned nightly from activity (instance settings).
+- Portal users (admin) — bulk-edit permissions and quotas.
 - GDPR (admin) — pending deletions: "Load more" button beyond the first 50.
 - Lists (admin) — moderation: soft-deleted lists visible/restorable + "Load more".
 - Portal — configurable donation link for your users (admin settings).
@@ -33,6 +36,8 @@ This section intentionally has no date so it is not shown to users.
 - Onboarding — Folders step now notes it's optional (configurable later).
 - Watchlist — Timeline tab: months bar widened and more readable.
 - Statistics — activity: consecutive sessions of the same content grouped (expandable, segmented bar).
+- Forms — fields with sharper corners, distinct from rounded filters.
+- Configuration (admin) — screen reorganised into sections, global save bar.
 
 ### Fixed
 - Dashboard — History tabs (Notifications, Duplicates): "Load more" button.
