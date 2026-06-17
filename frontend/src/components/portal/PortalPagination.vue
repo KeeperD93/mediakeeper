@@ -118,7 +118,7 @@ function onSize(e) {
      background-image survives — the caller owns surface + border only. */
   background-color: var(--portal-surface-3);
   border: 1px solid var(--portal-border-default);
-  border-radius: var(--portal-radius-md);
+  border-radius: var(--radius-input);
   color: var(--portal-text-primary);
   font-family: inherit;
   font-size: var(--portal-text-xs);

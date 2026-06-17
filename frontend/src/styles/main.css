@@ -199,7 +199,10 @@ select option {
 :root {
   --radius-card: 12px;
   --radius-btn: 8px;
-  --radius-input: 10px;
+  /* Form fields (inputs/selects/textarea) — crisp rectangles, clearly tighter
+     than buttons/cards. Pre-hydration fallback; the live value is set by
+     useTheme.applyRadius (Math.max(2, r - 8), 4px at the default r=12). */
+  --radius-input: 4px;
   --custom-bg-url: none;
   --custom-bg-opacity: 0.15;
   --custom-bg-blur: 20px;

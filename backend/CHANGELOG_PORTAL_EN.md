@@ -33,6 +33,7 @@ This section intentionally has no date so it is not shown to users.
 - Home — Popular and Top-rated rows now sourced from Discover.
 - What's new — recent additions stay until your next visit.
 - Notifications — marked read when the panel closes (highlight kept while open).
+- Forms — fields with sharper corners, distinct from rounded filters.
 
 ### Fixed
 - Event invites — private profiles and admins can no longer be invited.

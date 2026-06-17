@@ -194,7 +194,7 @@
   min-height: 36px;
   background: rgb(255, 255, 255, 0.03);
   border: 1px solid var(--portal-border-default);
-  border-radius: var(--radius-btn);
+  border-radius: var(--radius-input);
   color: rgb(255, 255, 255, 0.72);
   font-size: var(--portal-text-xs);
   font-weight: var(--portal-font-bold);

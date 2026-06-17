@@ -21,7 +21,9 @@ function applyRadius(r) {
   const root = document.documentElement
   root.style.setProperty('--radius-card', r + 'px')
   root.style.setProperty('--radius-btn', Math.max(4, r - 4) + 'px')
-  root.style.setProperty('--radius-input', Math.max(6, r - 2) + 'px')
+  // Form fields stay crisp rectangles: a big negative offset + low floor keeps
+  // inputs/selects markedly squarer than cards/buttons (4px at the default r=12).
+  root.style.setProperty('--radius-input', Math.max(2, r - 8) + 'px')
   root.style.setProperty('--radius-sm', Math.max(4, r - 6) + 'px')
 }
 applyRadius(borderRadius.value)
