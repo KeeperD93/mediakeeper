@@ -31,6 +31,7 @@
 .ru-form input[type='password'],
 .ru-form input[type='datetime-local'],
 .ru-tab-access input[type='datetime-local'],
+.ru-form-grid input[type='number'],
 .ru-form select,
 .ru-input,
 .ru-textarea {
