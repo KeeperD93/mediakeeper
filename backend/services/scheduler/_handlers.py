@@ -1,6 +1,5 @@
 """Scheduled task handlers — lazy imports to avoid cycles."""
 import json
-from datetime import datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -92,12 +91,11 @@ async def _handler_gdpr_purge(db: AsyncSession) -> None:
 async def _handler_quota_recompute(db: AsyncSession) -> None:
     """Engagement-based auto request-quota recompute.
 
-    Fires hourly but only acts during the server's local midnight hour, so
-    it lands at ~00:00. The recompute is idempotent per day and a no-op when
+    The midnight-only cadence lives in the scheduler's ``cadence_guard`` (see
+    TASK_DEFINITIONS), so a manual "Run Now" bypasses it and recomputes
+    immediately. The recompute is itself idempotent per day and a no-op when
     the feature is disabled or no user is in auto mode.
     """
-    if datetime.now().hour != 0:
-        return
     from services.portal.quota_auto import recompute_auto_quotas
     await recompute_auto_quotas(db)
 

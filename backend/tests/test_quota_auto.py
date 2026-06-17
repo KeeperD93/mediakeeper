@@ -195,9 +195,10 @@ async def test_recompute_runs_when_enabled_setting_blank(admin_user, db_session)
 
 
 @pytest.mark.asyncio
-async def test_handler_runs_engine_only_at_midnight_hour(db_session, monkeypatch):
-    """The scheduler wrapper fires hourly but only runs the engine during the
-    server's local-midnight hour (the hour != 0 guard)."""
+async def test_handler_always_invokes_engine(db_session, monkeypatch):
+    """The handler no longer self-gates on the hour: the midnight cadence moved
+    to the scheduler's cadence_guard, so a manual "Run Now" reaches the engine
+    at any time. The handler simply delegates to the recompute engine."""
     from services.scheduler import _handlers
 
     calls = []
@@ -208,17 +209,27 @@ async def test_handler_runs_engine_only_at_midnight_hour(db_session, monkeypatch
 
     monkeypatch.setattr("services.portal.quota_auto.recompute_auto_quotas", fake_recompute)
 
+    await _handlers._handler_quota_recompute(db_session)
+    assert calls == [True]  # delegates unconditionally; cadence gate is elsewhere
+
+
+def test_quota_cadence_guard_gates_to_midnight_hour(monkeypatch):
+    """The scheduled-run gate now lives in TASK_DEFINITIONS['...'].cadence_guard:
+    it opens only during the local midnight hour. A force-run ("Run Now") skips
+    this guard entirely (it is checked only on the interval cadence path)."""
+    import services.scheduler._tasks as tasks_mod
+
+    guard = tasks_mod.TASK_DEFINITIONS["quota_auto_recompute"]["cadence_guard"]
+
     class _Clock:
-        hour = 12
+        hour = 0
 
         @classmethod
         def now(cls, tz=None):
             return cls
 
-    monkeypatch.setattr(_handlers, "datetime", _Clock)
-    await _handlers._handler_quota_recompute(db_session)
-    assert calls == []  # not the midnight hour -> engine skipped
+    monkeypatch.setattr(tasks_mod, "datetime", _Clock)
+    assert guard() is True  # midnight hour -> scheduled run proceeds
 
-    _Clock.hour = 0
-    await _handlers._handler_quota_recompute(db_session)
-    assert calls == [True]  # midnight hour -> engine runs
+    _Clock.hour = 12
+    assert guard() is False  # any other hour -> scheduled run skipped

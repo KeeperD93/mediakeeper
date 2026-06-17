@@ -163,6 +163,12 @@ class Scheduler:
                 next_run = self._timers.get(key, now)
                 if now >= next_run:
                     self._timers[key] = now + interval
+                    # Cadence-only gate (e.g. quota recompute lands at midnight).
+                    # A manual force-run bypasses this via _consume_force_run_requests.
+                    defn = TASK_DEFINITIONS.get(key)
+                    guard = defn.get("cadence_guard") if defn else None
+                    if guard and not guard():
+                        continue
                     asyncio.create_task(self._run_task(key))
 
     async def _consume_force_run_requests(self) -> None:
