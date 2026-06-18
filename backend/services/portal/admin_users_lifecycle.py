@@ -9,6 +9,7 @@ from typing import Any, Iterable
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.quota import QUOTA_BAND_MAX, QUOTA_BAND_MIN
 from models.user import User
 from models.portal.profile import UserProfile
 
@@ -230,7 +231,7 @@ def _sanitize_bulk_quota(payload: dict[str, Any]) -> dict[str, Any]:
     for num in ("max_allowed", "auto_min", "auto_max"):
         if payload.get(num) is not None:
             try:
-                clean[num] = max(1, min(100, int(payload[num])))
+                clean[num] = max(QUOTA_BAND_MIN, min(QUOTA_BAND_MAX, int(payload[num])))
             except (TypeError, ValueError):
                 pass
     return clean

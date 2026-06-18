@@ -233,3 +233,37 @@ def test_quota_cadence_guard_gates_to_midnight_hour(monkeypatch):
 
     _Clock.hour = 12
     assert guard() is False  # any other hour -> scheduled run skipped
+
+
+def test_quota_band_and_defaults_single_source():
+    """The registry defaults and cap band come from constants/quota.py, so the
+    schema, engine and bulk sanitiser can't drift from the settings registry."""
+    from constants.quota import QUOTA_AUTO_DEFAULTS, QUOTA_BAND_MAX, QUOTA_BAND_MIN
+    from services.portal.admin_settings import PORTAL_SETTING_INTS
+
+    for key, default in QUOTA_AUTO_DEFAULTS.items():
+        assert PORTAL_SETTING_INTS[f"quota.auto.{key}"][0] == default
+    for key in ("min", "max"):
+        _, lo, hi = PORTAL_SETTING_INTS[f"quota.auto.{key}"]
+        assert (lo, hi) == (QUOTA_BAND_MIN, QUOTA_BAND_MAX)
+
+
+@pytest.mark.asyncio
+async def test_instance_band_reorder_equalizes_min_over_max(db_session):
+    """update_portal_settings keeps quota.auto.min <= max the same way it does
+    for the event-capacity pair: a min pushed above max is equalised (max := min),
+    resolved against stored values so a single-field PATCH can't invert the band."""
+    from services.portal.admin import get_portal_settings, update_portal_settings
+
+    # Both keys in one PATCH: min above max -> max bumps up to match min.
+    await update_portal_settings(db_session, {"quota.auto.min": 40, "quota.auto.max": 10})
+    s = await get_portal_settings(db_session)
+    assert s["quota.auto.min"] == 40
+    assert s["quota.auto.max"] == 40
+
+    # Single-field PATCH resolved against stored values: lowering max below the
+    # stored min equalises (max := min) rather than inverting the band.
+    await update_portal_settings(db_session, {"quota.auto.max": 5})
+    s = await get_portal_settings(db_session)
+    assert s["quota.auto.min"] == 40
+    assert s["quota.auto.max"] == 40

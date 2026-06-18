@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.quota import QUOTA_BAND_MAX, QUOTA_BAND_MIN
 from core.database import get_db
 from models.user import User
 from models.portal.profile import UserProfile
@@ -196,10 +197,15 @@ class PortalSettingsUpdate(BaseModel):
         default=None, max_length=60, alias="donation.button_label"
     )
     # Automatic request-quota instance defaults (per-user auto_min/auto_max
-    # override these). Bounds mirror PORTAL_SETTING_INTS.
+    # override these). The cap band comes from constants/quota.py (single
+    # source shared with the registry, engine and bulk sanitiser).
     quota_auto_enabled: Optional[bool] = Field(default=None, alias="quota.auto.enabled")
-    quota_auto_min: Optional[int] = Field(default=None, ge=1, le=100, alias="quota.auto.min")
-    quota_auto_max: Optional[int] = Field(default=None, ge=1, le=100, alias="quota.auto.max")
+    quota_auto_min: Optional[int] = Field(
+        default=None, ge=QUOTA_BAND_MIN, le=QUOTA_BAND_MAX, alias="quota.auto.min"
+    )
+    quota_auto_max: Optional[int] = Field(
+        default=None, ge=QUOTA_BAND_MIN, le=QUOTA_BAND_MAX, alias="quota.auto.max"
+    )
     quota_auto_window_days: Optional[int] = Field(
         default=None, ge=1, le=90, alias="quota.auto.window_days"
     )
