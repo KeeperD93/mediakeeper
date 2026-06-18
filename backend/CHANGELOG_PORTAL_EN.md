@@ -38,6 +38,7 @@ This section intentionally has no date so it is not shown to users.
 ### Fixed
 - Event invites — private profiles and admins can no longer be invited.
 - Notifications — keyboard navigation (Esc to close) and no duplicates on load.
+- Notifications — unread highlight now follows your theme accent colour.
 - Continue watching — shows only your own in-progress titles.
 - Requests — refused (not allowed through) when the adult check can't reach TMDB.
 - Lists — collaborator history shows pseudonyms, never raw Emby logins.

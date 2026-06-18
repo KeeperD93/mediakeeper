@@ -40,6 +40,7 @@ utilisateurs.
 ### Fixed
 - Invitations — les profils privés et les admins ne peuvent plus être invités.
 - Notifications — navigation clavier (Échap pour fermer) et fin des doublons au chargement.
+- Notifications — surbrillance des non-lues suit la couleur d'accent de votre thème.
 - Reprendre la lecture — affiche uniquement vos titres en cours.
 - Demandes — refusées (au lieu d'être laissées passer) si la vérification adulte ne joint pas TMDB.
 - Listes — l'historique des collaborateurs affiche les pseudos, jamais les logins Emby.
