@@ -71,10 +71,13 @@ import MkToggle from '@/components/common/MkToggle.vue'
 import HelpEditor from '@/components/portal/help/HelpEditor.vue'
 import { useDonationAdmin } from '@/composables/portal/useDonationAdmin'
 import { useDonationConfig } from '@/composables/useDonationConfig'
+import { useToast } from '@/composables/useToast'
+import { TOAST_TYPE } from '@/constants/toast'
 
 const SAVED_MESSAGE_TIMEOUT_MS = 2000
 
 const { t } = useI18n()
+const { showToast } = useToast()
 const { saving, fetchDonation, saveDonation } = useDonationAdmin()
 // Refresh the shared (singleton) donation config so the dashboard top-bar
 // heart panel reflects edits live, without a full page reload.
@@ -106,30 +109,47 @@ function flashSaved() {
 }
 
 async function onToggle(next) {
+  const prev = enabled.value
   enabled.value = next
-  const res = await saveDonation({ 'donation.enabled': next })
-  if (res) {
-    apply(res)
-    flashSaved()
-    await loadDonation()
+  try {
+    const res = await saveDonation({ 'donation.enabled': next })
+    if (res) {
+      apply(res)
+      flashSaved()
+      await loadDonation()
+    }
+  } catch (e) {
+    enabled.value = prev
+    console.error('[AdminDonationSetting.onToggle]', e)
+    showToast(t('common.networkError'), TOAST_TYPE.ERR)
   }
 }
 
 async function onSave() {
-  const res = await saveDonation({
-    'donation.url': url.value.trim(),
-    'donation.message': message.value,
-    'donation.button_label': buttonLabel.value.trim(),
-  })
-  if (res) {
-    apply(res)
-    flashSaved()
-    await loadDonation()
+  try {
+    const res = await saveDonation({
+      'donation.url': url.value.trim(),
+      'donation.message': message.value,
+      'donation.button_label': buttonLabel.value.trim(),
+    })
+    if (res) {
+      apply(res)
+      flashSaved()
+      await loadDonation()
+    }
+  } catch (e) {
+    console.error('[AdminDonationSetting.onSave]', e)
+    showToast(t('common.networkError'), TOAST_TYPE.ERR)
   }
 }
 
 onMounted(async () => {
-  apply(await fetchDonation())
+  try {
+    apply(await fetchDonation())
+  } catch (e) {
+    console.error('[AdminDonationSetting.onMounted]', e)
+    showToast(t('common.networkError'), TOAST_TYPE.ERR)
+  }
 })
 </script>
 
