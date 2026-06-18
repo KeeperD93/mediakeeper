@@ -48,6 +48,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Statistiques — médiathèques : nom Emby réel au lieu d'un sous-dossier (réparation auto).
 - Problèmes (admin) — filtre par statut réparé (ne plante plus, n'est plus ignoré).
 - Paramètres de sauvegarde — indication claire quand le dossier est verrouillé par la configuration.
+- Sauvegardes — rétention « garder les N dernières » appliquée aussi aux sauvegardes planifiées.
 - Notifications — l'enregistrement d'un webhook Discord n'échoue plus.
 - Notifications — le message test Discord suit la langue par défaut configurée.
 - Stats — Utilisateurs et fusion : photo de profil (perso ou Emby) désormais affichée.
