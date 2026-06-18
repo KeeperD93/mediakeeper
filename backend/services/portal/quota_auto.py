@@ -131,7 +131,13 @@ async def _gather(
     last_play = (await db.execute(
         select(func.max(PlaybackSession.started_at)).where(play_filter)
     )).scalar()
-    stamps = [s for s in (_aware(last_login), _aware(last_play)) if s is not None]
+    # last_seen_at is bumped on every /me, so a portal-active member who files
+    # requests/lists/tickets but never streams still counts as present — else
+    # the decay would shrink their cap despite real engagement.
+    last_seen = profile.last_seen_at if profile else None
+    stamps = [
+        s for s in (_aware(last_login), _aware(last_play), _aware(last_seen)) if s is not None
+    ]
     return counts, (max(stamps) if stamps else None)
 
 
@@ -172,9 +178,13 @@ async def recompute_auto_quotas(db: AsyncSession, *, now: datetime | None = None
     cutoff = now - timedelta(days=cfg["window_days"])
     guard = now - timedelta(hours=_RERUN_GUARD_HOURS)
 
-    quotas = (await db.execute(
-        select(RequestQuota).where(RequestQuota.mode == "auto")
-    )).scalars().all()
+    # Lock the auto rows for the batch so a concurrent admin edit (which also
+    # locks the row) can't lose its write to the recompute. Ignored on SQLite.
+    stmt = select(RequestQuota).where(RequestQuota.mode == "auto")
+    bind = db.get_bind()
+    if bind is not None and bind.dialect.name != "sqlite":
+        stmt = stmt.with_for_update()
+    quotas = (await db.execute(stmt)).scalars().all()
 
     processed = 0
     changed = 0

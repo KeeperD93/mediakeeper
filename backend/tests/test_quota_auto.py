@@ -267,3 +267,50 @@ async def test_instance_band_reorder_equalizes_min_over_max(db_session):
     s = await get_portal_settings(db_session)
     assert s["quota.auto.min"] == 40
     assert s["quota.auto.max"] == 40
+
+
+@pytest.mark.asyncio
+async def test_recompute_treats_last_seen_as_presence(admin_user, db_session):
+    """A portal-active member (recent last_seen_at) with no streams or logins is
+    held, not decayed: last_seen_at counts as presence. Without it the member
+    would read as fully idle and lose a step the first night."""
+    from models.portal.profile import UserProfile
+    from models.portal.request import RequestQuota
+
+    _seed_auto_quota(db_session, admin_user, max_allowed=10)
+    now = datetime.now(timezone.utc)
+    profile = (await db_session.execute(
+        select(UserProfile).where(UserProfile.user_id == admin_user.id)
+    )).scalar_one()
+    profile.last_seen_at = now  # visited the portal today, but never streamed
+    await db_session.commit()
+
+    await qa.recompute_auto_quotas(db_session, now=now)
+
+    refreshed = (await db_session.execute(
+        select(RequestQuota).where(RequestQuota.user_id == admin_user.id)
+    )).scalar_one()
+    assert refreshed.max_allowed == 10  # within grace -> not decayed
+
+
+@pytest.mark.asyncio
+async def test_flip_to_auto_seeds_grace_stamp(admin_user, db_session):
+    """Flipping a user to auto stamps last_recomputed_at so the first nightly
+    pass skips the freshly-seeded START_CAP for one grace cycle."""
+    from services.portal.admin import update_user_quota
+    from models.portal.request import RequestQuota
+
+    db_session.add(RequestQuota(
+        user_id=admin_user.id, month="2026-06", max_allowed=20,
+        mode="manual", unlimited=False, auto_min=2, auto_max=15,
+    ))
+    await db_session.commit()
+
+    res = await update_user_quota(db_session, admin_user.id, {"mode": "auto"})
+    assert res["success"] is True
+
+    quota = (await db_session.execute(
+        select(RequestQuota).where(RequestQuota.user_id == admin_user.id)
+    )).scalar_one()
+    assert quota.mode == "auto"
+    assert quota.last_recomputed_at is not None  # grace stamp set at flip
