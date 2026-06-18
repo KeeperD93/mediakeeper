@@ -42,7 +42,10 @@ function applyCustomBg(url, opacity, blur) {
       el.id = 'mk-custom-bg'
       document.body.insertBefore(el, document.body.firstChild)
     }
-    root.style.setProperty('--custom-bg-url', `url("${url}")`)
+    // Strip characters that could break out of the url("...") wrapper and
+    // inject arbitrary CSS (self-only via localStorage; defence-in-depth).
+    const escapedUrl = String(url).replace(/["\\\n\r]/g, '')
+    root.style.setProperty('--custom-bg-url', `url("${escapedUrl}")`)
     root.style.setProperty('--custom-bg-opacity', String(opacity))
     root.style.setProperty('--custom-bg-blur', blur + 'px')
     document.body.classList.add('has-custom-bg')

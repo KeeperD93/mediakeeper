@@ -7,7 +7,7 @@
           v-for="v in media.videos"
           :key="v.key"
           class="vmd2-video-card"
-          :href="`https://www.youtube.com/watch?v=${v.key}`"
+          :href="`https://www.youtube.com/watch?v=${encodeURIComponent(v.key)}`"
           target="_blank"
           rel="noopener"
         >

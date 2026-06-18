@@ -28,8 +28,8 @@
         class="pt-tlb-media"
       />
       <iframe
-        v-else
-        :src="`${trailer.url}?autoplay=1&controls=1&rel=0&modestbranding=1&playsinline=1`"
+        v-else-if="iframeSrc"
+        :src="iframeSrc"
         frameborder="0"
         allow="autoplay; encrypted-media; fullscreen"
         sandbox="allow-scripts allow-same-origin allow-presentation"
@@ -50,13 +50,22 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useFocusTrap } from '@/composables/useFocusTrap'
 import { TRAILER_SOURCE } from '@/constants/trailers'
+import { safeIframeSrc } from '@/utils/safeUrl'
 import { X } from 'lucide-vue-next'
 
-defineProps({
+const props = defineProps({
   trailer: { type: Object, required: true },
+})
+
+// Only embed a validated absolute https URL (defence-in-depth: the backend
+// already builds fixed YouTube/Vimeo schemes, but the iframe sink shouldn't
+// trust its input). null -> the iframe simply isn't rendered.
+const iframeSrc = computed(() => {
+  const safe = safeIframeSrc(props.trailer.url)
+  return safe ? `${safe}?autoplay=1&controls=1&rel=0&modestbranding=1&playsinline=1` : null
 })
 
 const emit = defineEmits(['close'])

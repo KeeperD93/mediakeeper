@@ -91,6 +91,17 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
-  const url = event.notification.data?.url || '/portal'
-  event.waitUntil(clients.openWindow(url))
+  const raw = event.notification.data?.url
+  // Only ever open a same-origin destination — a push payload must not be able
+  // to navigate the user to an arbitrary external site.
+  let target = '/portal'
+  if (raw) {
+    try {
+      const u = new URL(raw, self.location.origin)
+      if (u.origin === self.location.origin) target = u.href
+    } catch {
+      /* malformed URL -> fall back to the portal home */
+    }
+  }
+  event.waitUntil(clients.openWindow(target))
 })
