@@ -89,6 +89,14 @@ def _modes_by_user(engine) -> dict[int, str]:
     return {row[0]: row[1] for row in rows}
 
 
+def _auto_bounds_by_user(engine) -> dict[int, tuple[int, int]]:
+    with engine.connect() as conn:
+        rows = conn.exec_driver_sql(
+            f"SELECT user_id, auto_min, auto_max FROM {_TABLE}"
+        ).fetchall()
+    return {row[0]: (row[1], row[2]) for row in rows}
+
+
 def test_upgrade_adds_columns_and_renames_modes(alembic_db):
     cfg, engine = alembic_db
     _seed_pre_057(engine)
@@ -119,3 +127,14 @@ def test_idempotent_upgrade_downgrade_upgrade(alembic_db):
     command.upgrade(cfg, _TARGET_REV)
     assert all(c in _columns(engine, _TABLE) for c in _NEW_COLS)
     assert _modes_by_user(engine) == {1: "manual", 2: "auto"}
+
+
+def test_upgrade_backfills_auto_band_server_default(alembic_db):
+    """auto_min/auto_max land with the 2/15 server_default, so pre-057 rows are
+    backfilled with a valid band (and later inserts inherit it)."""
+    cfg, engine = alembic_db
+    _seed_pre_057(engine)
+
+    command.upgrade(cfg, _TARGET_REV)
+
+    assert _auto_bounds_by_user(engine) == {1: (2, 15), 2: (2, 15)}

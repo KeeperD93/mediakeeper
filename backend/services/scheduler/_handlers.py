@@ -91,7 +91,7 @@ async def _handler_gdpr_purge(db: AsyncSession) -> None:
 async def _handler_quota_recompute(db: AsyncSession) -> None:
     """Engagement-based auto request-quota recompute.
 
-    The midnight-only cadence lives in the scheduler's ``cadence_guard`` (see
+    The once-a-day cadence lives in the scheduler's ``daily_cadence`` flag (see
     TASK_DEFINITIONS), so a manual "Run Now" bypasses it and recomputes
     immediately. The recompute is itself idempotent per day and a no-op when
     the feature is disabled or no user is in auto mode.

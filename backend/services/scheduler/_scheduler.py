@@ -1,7 +1,7 @@
 """Scheduler class: main loop + integration (init / getter)."""
 import asyncio
 import logging
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
@@ -30,6 +30,7 @@ class Scheduler:
         self._engine = engine
         self._config: dict[str, dict] = {}  # key → {enabled, interval_sec}
         self._timers: dict[str, float] = {}  # key → monotonic instant of the next run
+        self._cadence_last_date: dict[str, date] = {}  # daily-cadence: last local date dispatched
         self._heavy_lock = asyncio.Lock()    # serializes heavy tasks
         self._running_tasks: set[str] = set()
         self._running_lock = asyncio.Lock()
@@ -128,6 +129,20 @@ class Scheduler:
                 self._timers[key] = now + remaining
                 logger.info(f"[scheduler] {key} : next run in {remaining/3600:.1f}h")
 
+    def _interval_due(self, key: str, now: float) -> bool:
+        """The monotonic interval timer for ``key`` has elapsed."""
+        return now >= self._timers.get(key, now)
+
+    def _daily_cadence_ok(self, key: str, today: date) -> bool:
+        """A task flagged ``daily_cadence`` dispatches at most once per local
+        calendar day. Checked on the wall-clock date (not a fixed hour) so the
+        monotonic interval drift can't make it skip a midnight window. Non-daily
+        tasks always pass."""
+        defn = TASK_DEFINITIONS.get(key)
+        if not (defn and defn.get("daily_cadence")):
+            return True
+        return self._cadence_last_date.get(key) != today
+
     async def run(self) -> None:
         """Main scheduler loop."""
         async with AsyncSession(self._engine, expire_on_commit=False) as db:
@@ -156,20 +171,23 @@ class Scheduler:
             # waits behind a regular tick.
             await self._consume_force_run_requests()
 
+            today = datetime.now().date()
             for key, cfg in self._config.items():
                 if not cfg.get("enabled"):
                     continue
-                interval = cfg.get("interval_sec", 86400)
-                next_run = self._timers.get(key, now)
-                if now >= next_run:
-                    self._timers[key] = now + interval
-                    # Cadence-only gate (e.g. quota recompute lands at midnight).
-                    # A manual force-run bypasses this via _consume_force_run_requests.
-                    defn = TASK_DEFINITIONS.get(key)
-                    guard = defn.get("cadence_guard") if defn else None
-                    if guard and not guard():
-                        continue
-                    asyncio.create_task(self._run_task(key))
+                if not self._interval_due(key, now):
+                    continue
+                # Re-arm the interval timer on every due tick, even when the
+                # daily cadence blocks dispatch, so the next check is one
+                # interval out.
+                self._timers[key] = now + cfg.get("interval_sec", 86400)
+                if not self._daily_cadence_ok(key, today):
+                    continue
+                if TASK_DEFINITIONS.get(key, {}).get("daily_cadence"):
+                    self._cadence_last_date[key] = today
+                # A manual force-run bypasses the daily cadence via
+                # _consume_force_run_requests.
+                asyncio.create_task(self._run_task(key))
 
     async def _consume_force_run_requests(self) -> None:
         """Poll ``force_run_requested_at`` and launch any flagged tasks.

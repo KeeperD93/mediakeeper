@@ -100,6 +100,8 @@ async def test_recompute_records_system_audit_on_grant(admin_user, db_session):
     assert audit.payload["source"] == "auto"
     assert audit.payload["direction"] == "grant"
     assert audit.payload["changed"]["max_allowed"] == {"from": 5, "to": 7}
+    assert audit.payload["score"] == 7.5  # 16 logins capped at 15 * weight 0.5
+    assert audit.payload["target"] == 6   # score 7.5 mapped onto band [2, 15]
 
 
 @pytest.mark.asyncio
@@ -196,9 +198,9 @@ async def test_recompute_runs_when_enabled_setting_blank(admin_user, db_session)
 
 @pytest.mark.asyncio
 async def test_handler_always_invokes_engine(db_session, monkeypatch):
-    """The handler no longer self-gates on the hour: the midnight cadence moved
-    to the scheduler's cadence_guard, so a manual "Run Now" reaches the engine
-    at any time. The handler simply delegates to the recompute engine."""
+    """The handler no longer self-gates on the hour: the once-a-day cadence
+    lives in the scheduler's daily-cadence dispatch, so a manual "Run Now"
+    reaches the engine at any time. The handler simply delegates."""
     from services.scheduler import _handlers
 
     calls = []
@@ -211,28 +213,6 @@ async def test_handler_always_invokes_engine(db_session, monkeypatch):
 
     await _handlers._handler_quota_recompute(db_session)
     assert calls == [True]  # delegates unconditionally; cadence gate is elsewhere
-
-
-def test_quota_cadence_guard_gates_to_midnight_hour(monkeypatch):
-    """The scheduled-run gate now lives in TASK_DEFINITIONS['...'].cadence_guard:
-    it opens only during the local midnight hour. A force-run ("Run Now") skips
-    this guard entirely (it is checked only on the interval cadence path)."""
-    import services.scheduler._tasks as tasks_mod
-
-    guard = tasks_mod.TASK_DEFINITIONS["quota_auto_recompute"]["cadence_guard"]
-
-    class _Clock:
-        hour = 0
-
-        @classmethod
-        def now(cls, tz=None):
-            return cls
-
-    monkeypatch.setattr(tasks_mod, "datetime", _Clock)
-    assert guard() is True  # midnight hour -> scheduled run proceeds
-
-    _Clock.hour = 12
-    assert guard() is False  # any other hour -> scheduled run skipped
 
 
 def test_quota_band_and_defaults_single_source():

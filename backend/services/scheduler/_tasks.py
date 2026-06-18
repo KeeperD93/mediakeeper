@@ -1,6 +1,4 @@
 """Task definitions — label, default interval, handler."""
-from datetime import datetime
-
 from ._handlers import (
     _handler_backup,
     _handler_clear_image_cache,
@@ -132,16 +130,16 @@ TASK_DEFINITIONS: dict[str, dict] = {
     "quota_auto_recompute": {
         "label":       "Auto request-quota recompute",
         "label_key":   "scheduler.tasks.quota_auto_recompute",
-        "default_sec": 3600,    # Hourly check; ``cadence_guard`` lets the
-                                # scheduled run act only at ~00:00.
-        "default_on":  True,    # Gated: scheduled run only at midnight, no-op
+        "default_sec": 3600,    # Hourly check; ``daily_cadence`` lets the
+                                # scheduled run fire once per calendar day.
+        "default_on":  True,    # Gated: scheduled run fires once a day, no-op
                                 # when disabled via quota.auto.enabled or with
                                 # no auto rows.
         "handler":     _handler_quota_recompute,
-        # Cadence-only gate: the scheduled (interval) run fires hourly but acts
-        # only during the local midnight hour. A manual "Run Now" force-run
-        # bypasses this and reaches the engine immediately.
-        "cadence_guard": lambda: datetime.now().hour == 0,
+        # Daily cadence: the hourly interval tick fires the engine at most once
+        # per local calendar day (first tick after midnight) — drift-proof vs
+        # the monotonic timer. A manual "Run Now" force-run bypasses it.
+        "daily_cadence": True,
         "description": "scheduler.quota_auto_recompute",
     },
     "clear_image_cache": {
