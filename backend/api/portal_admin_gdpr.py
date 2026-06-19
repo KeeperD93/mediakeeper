@@ -136,14 +136,20 @@ async def put_gdpr_settings(
         updates[GDPR_DELAY_KEY] = str(int(payload.account_purge_delay_days or 30))
 
     if updates:
-        await set_settings_map(db, updates)
+        # On a re-enable, defer the commit so the grace refresh lands in the SAME
+        # transaction as the toggle write: a failed refresh then rolls the enable
+        # back too, never leaving gdpr=ON with stale (overdue) deletion deadlines.
+        await set_settings_map(db, updates, commit=not gdpr_reenabled)
         logger.info(
             "[GDPR_SETTINGS] admin_user_id=%s updated keys=%s",
             admin.id, sorted(updates.keys()),
         )
 
     if gdpr_reenabled:
-        await refresh_pending_grace(db, delay_days=await get_purge_delay_days(db))
+        await refresh_pending_grace(
+            db, delay_days=await get_purge_delay_days(db), commit=False,
+        )
+        await db.commit()
 
     raw = await get_settings_map(db, list(_ALL_KEYS))
     return {
