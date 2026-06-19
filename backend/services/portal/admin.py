@@ -102,7 +102,11 @@ async def update_user_quota(
     every field that actually changes. Creates the row on first edit
     (seeding the admin/moderator unlimited default via get_or_create_quota)."""
     # Lock the row: an admin edit can land concurrently with the nightly
-    # recompute (which also locks), so serialize to avoid a lost update.
+    # recompute (which also locks), so serialize to avoid a lost update. The
+    # lock releases at the commit below, or at session cleanup on an early
+    # return; the early returns intentionally do NOT rollback — this also runs
+    # inside run_bulk_action's shared session and a rollback would expire its
+    # in-flight objects.
     quota = await get_or_create_quota(db, user_id, lock_row=True)
 
     # Reject an inverted auto-mode range against the MERGED values — a
