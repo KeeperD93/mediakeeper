@@ -131,6 +131,24 @@ async def test_onboarding_folders_are_optional_and_status_reflects_db(client, ad
 
 
 @pytest.mark.asyncio
+async def test_onboarding_status_rejects_deactivated_admin(client, admin_user, db_session):
+    """A deactivated admin's still-valid JWT can no longer read setup state —
+    /status mirrors get_current_user's live checks (#393)."""
+    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
+
+    active = await client.get("/api/onboarding/status")
+    assert active.json()["authenticated"] is True
+
+    admin_user.is_active = False
+    db_session.add(admin_user)
+    await db_session.commit()
+
+    revoked = await client.get("/api/onboarding/status")
+    assert revoked.status_code == 200
+    assert revoked.json()["authenticated"] is False
+
+
+@pytest.mark.asyncio
 async def test_settings_tools_mask_secrets_and_preserve_partial_updates(client, admin_user, db_session):
     client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
 

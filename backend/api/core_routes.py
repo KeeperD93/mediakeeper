@@ -11,9 +11,14 @@ from api.auth import get_current_user
 from core.encryption import get_persistent_fernet_key
 from core.http_client import get_internal_client
 from core.database import engine, get_db
-from core.security import decode_access_token
+from core.security import (
+    decode_access_token,
+    is_backoffice_admin,
+    is_token_valid_for_revocation_pivot,
+)
 from models.settings import Setting
 from models.user import User
+from models.portal.profile import UserProfile
 from services.emby import (
     get_activity_logs,
     get_alerts,
@@ -35,11 +40,60 @@ router = APIRouter()
 BOOT_ID = uuid.uuid4().hex
 
 
+async def _admin_session_valid(username: str, iat, db: AsyncSession) -> bool:
+    """True iff ``username`` still maps to an active backoffice admin whose
+    session predates any force-logout pivot. Mirrors get_current_user's live
+    checks (minus its must-change-password UX gate)."""
+    user = (
+        await db.execute(select(User).where(User.username == username))
+    ).scalar_one_or_none()
+    return bool(
+        user
+        and user.is_active
+        and is_backoffice_admin(user.username)
+        and is_token_valid_for_revocation_pivot(iat, user.tokens_invalidated_at)
+    )
+
+
+async def _portal_session_valid(username: str, iat, db: AsyncSession) -> bool:
+    """True iff ``username`` maps to an active portal profile whose session
+    predates any force-logout pivot. Mirrors get_current_profile's checks."""
+    user = (
+        await db.execute(select(User).where(User.username == username))
+    ).scalar_one_or_none()
+    if not user or not user.is_active:
+        return False
+    profile = (
+        await db.execute(select(UserProfile).where(UserProfile.user_id == user.id))
+    ).scalar_one_or_none()
+    return bool(
+        profile
+        and profile.account_active
+        and is_token_valid_for_revocation_pivot(iat, profile.tokens_invalidated_at)
+    )
+
+
+async def _is_health_full_authorized(request: Request, db: AsyncSession) -> bool:
+    """Gate for the infra-exposing ``full`` health variant: a valid, active,
+    non-revoked admin session. On any failure the route falls back to the
+    public basic payload instead of erroring."""
+    from api.auth import COOKIE_NAME
+
+    token = request.cookies.get(COOKIE_NAME)
+    payload = decode_access_token(token) if token else None
+    if not payload or payload.get("scope") != "admin":
+        return False
+    username = payload.get("sub")
+    if not username:
+        return False
+    return await _admin_session_valid(username, payload.get("iat"), db)
+
+
 def register_health_route(app, version: str, is_db_ready_fn) -> None:
     """Register /api/health with the dynamic DB-state check."""
 
     @app.get("/api/health")
-    async def health_check(full: bool = Query(default=False)):
+    async def health_check(request: Request, full: bool = Query(default=False)):
         if not is_db_ready_fn():
             return JSONResponse(
                 status_code=503,
@@ -56,10 +110,15 @@ def register_health_route(app, version: str, is_db_ready_fn) -> None:
             "database": "ok",
             "boot_id": BOOT_ID,
         }
+        # The full variant runs an outbound media-source probe and exposes
+        # infra state, so it is gated behind a valid admin session; an
+        # unauthenticated caller silently gets the basic payload.
+        full_allowed = False
         try:
             async with AsyncSession(engine) as session:
                 await session.execute(select(Setting).limit(1))
-                if full:
+                full_allowed = full and await _is_health_full_authorized(request, session)
+                if full_allowed:
                     media_source = await get_active_media_source(session)
                     if not media_source:
                         status["media_source"] = "not_configured"
@@ -89,7 +148,7 @@ def register_health_route(app, version: str, is_db_ready_fn) -> None:
         except Exception:
             status["status"] = "degraded"
             status["database"] = "error"
-        if full and status["status"] != "ok":
+        if full_allowed and status["status"] != "ok":
             return JSONResponse(status_code=503, content=status)
         return status
 
@@ -170,29 +229,36 @@ async def emby_refresh(
     return await refresh_library(db)
 
 
-def _authenticate_media_proxy_request(request: Request) -> str:
+async def _authenticate_media_proxy_request(request: Request, db: AsyncSession) -> str:
     """
-    Validate the JWT on image proxy routes without hitting the DB
-    for every poster/avatar loaded.
+    Validate the JWT on image proxy routes against the live account state.
 
-    Accepts both the admin and the portal cookies because posters and
-    avatars are consumed by both surfaces, but each token must carry an
-    explicit ``scope`` claim — a JWT without a scope is rejected so a
-    forged or migrated-out-of-scope token cannot ride image routes.
+    Accepts both the admin and the portal cookies because posters and avatars
+    are consumed by both surfaces; each token must carry an explicit ``scope``
+    claim. The backing account is checked for deactivation and force-logout
+    (revocation pivot) so a revoked session stops loading images immediately
+    instead of riding the JWT to its natural expiry.
     """
     from api.auth import COOKIE_NAME, PORTAL_COOKIE_NAME
 
-    jwt_token = request.cookies.get(COOKIE_NAME)
-    if not jwt_token:
-        jwt_token = request.cookies.get(PORTAL_COOKIE_NAME)
-
+    jwt_token = request.cookies.get(COOKIE_NAME) or request.cookies.get(PORTAL_COOKIE_NAME)
     payload = decode_access_token(jwt_token) if jwt_token else None
-    if not payload or payload.get("scope") not in ("admin", "portal"):
+    scope = payload.get("scope") if payload else None
+    if scope not in ("admin", "portal"):
         raise HTTPException(status_code=401, detail="not_authenticated")
 
     username = payload.get("sub")
     if not username:
         raise HTTPException(status_code=401, detail="token_invalid")
+
+    iat = payload.get("iat")
+    valid = (
+        await _admin_session_valid(username, iat, db)
+        if scope == "admin"
+        else await _portal_session_valid(username, iat, db)
+    )
+    if not valid:
+        raise HTTPException(status_code=401, detail="not_authenticated")
     return username
 
 
@@ -207,7 +273,7 @@ async def emby_image(
     Emby image proxy — avoids exposing the api_key to the frontend.
     Auth via cookie httpOnly only.
     """
-    _authenticate_media_proxy_request(request)
+    await _authenticate_media_proxy_request(request, db)
 
     result = await proxy_image(db, item_id, image_type=type)
     if not result:
@@ -227,7 +293,7 @@ async def emby_user_image(
     db: AsyncSession = Depends(get_db),
 ):
     """Proxy image de profil user Emby."""
-    _authenticate_media_proxy_request(request)
+    await _authenticate_media_proxy_request(request, db)
     result = await proxy_user_image(db, user_id)
     if not result:
         return Response(status_code=204)
