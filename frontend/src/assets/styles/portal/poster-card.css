@@ -16,7 +16,12 @@
   width: var(--mk-poster-w);
   height: var(--mk-poster-h);
   border-radius: var(--portal-radius-lg);
-  overflow: hidden;
+  /* ``clip`` (not ``hidden``): the hover panel is absolutely positioned just
+     below the art and slides up on hover, which makes an ``overflow: hidden``
+     box scrollable. Scroll anchoring could then scroll the art and shift the
+     in-flow <img> up by the panel height (~100px), leaving a dark gap below
+     the poster. ``clip`` clips identically without creating a scroll container. */
+  overflow: clip;
   background: var(--portal-poster-bg);
   box-shadow: var(--portal-shadow-md);
   /* 1.5px outline shared by every poster (matched the legacy MediaCard

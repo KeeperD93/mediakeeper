@@ -13,6 +13,8 @@ Three contracts:
 """
 from __future__ import annotations
 
+import logging
+
 import pytest
 
 
@@ -114,3 +116,43 @@ async def test_report_endpoint_caps_at_sixty_per_minute(raw_client):
         if r.status_code == 429:
             break
     assert 429 in seen, f"expected 429 within 65 requests, saw {seen[:10]}..."
+
+
+@pytest.mark.asyncio
+async def test_report_endpoint_neutralises_crlf_in_logged_body(raw_client, caplog):
+    """A non-JSON body carrying CR/LF must be logged on a single line so a
+    hostile client cannot forge extra log entries (log injection)."""
+    forged = "plain\r\n2099-01-01 00:00:00 [AUTH] admin login OK"
+    with caplog.at_level(logging.INFO, logger="mediakeeper.csp"):
+        r = await raw_client.post(
+            "/api/csp-violation-report",
+            headers={"Content-Type": "text/plain"},
+            content=forged,
+        )
+    assert r.status_code == 204
+    records = [rec for rec in caplog.records if "[CSP_VIOLATION]" in rec.getMessage()]
+    assert records, "expected a CSP_VIOLATION log record"
+    msg = records[-1].getMessage()
+    assert "\n" not in msg and "\r" not in msg
+    # The forged text survives only inline, never as a standalone log line.
+    assert "admin login OK" in msg
+
+
+@pytest.mark.asyncio
+async def test_report_endpoint_caps_oversized_body_in_log(raw_client, caplog):
+    """An oversized body is buffered up to a cap and the logged payload is
+    truncated, so a hostile report cannot bloat the log pipeline."""
+    from api.csp_report import _MAX_LOG_CHARS
+
+    big = "A" * 50_000
+    with caplog.at_level(logging.INFO, logger="mediakeeper.csp"):
+        r = await raw_client.post(
+            "/api/csp-violation-report",
+            headers={"Content-Type": "text/plain"},
+            content=big,
+        )
+    assert r.status_code == 204
+    records = [rec for rec in caplog.records if "[CSP_VIOLATION]" in rec.getMessage()]
+    assert records, "expected a CSP_VIOLATION log record"
+    # The payload is the last positional arg of the lazy log call.
+    assert len(records[-1].args[-1]) <= _MAX_LOG_CHARS

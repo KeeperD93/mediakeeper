@@ -43,6 +43,7 @@ This section intentionally has no date so it is not shown to users.
 - Requests — refused (not allowed through) when the adult check can't reach TMDB.
 - Lists — collaborator history shows pseudonyms, never raw Emby logins.
 - Posters — an upcoming title's duration appears once TMDB publishes it.
+- Posters — no more shift leaving a dark gap below the artwork.
 - Home — featured banner shows "Pending" for an already-requested title.
 - Requests — one-click movie requests now show success or refusal.
 - Maintenance mode — the portal is now fully locked (holding page only).
@@ -53,6 +54,8 @@ This section intentionally has no date so it is not shown to users.
 - Cinema room — trailer resumes when returning from the Emby tab.
 - Cinema room — intro countdown synced with the main countdown.
 - Cinema room — no more looping requests after leaving the room.
+- Cinema room — people who join after you appear without refreshing.
+- Cinema room — switching browser tabs no longer leaves your seat.
 - Requests — titles follow your language.
 - Media detail — TMDB link opens in the app language.
 - Dates now shown in your language (instead of the browser).

@@ -45,6 +45,7 @@ utilisateurs.
 - Demandes — refusées (au lieu d'être laissées passer) si la vérification adulte ne joint pas TMDB.
 - Listes — l'historique des collaborateurs affiche les pseudos, jamais les logins Emby.
 - Jaquettes — durée d'un titre à venir affichée dès que TMDB la publie.
+- Jaquettes — plus de décalage laissant un vide sombre sous l'affiche.
 - Accueil — bandeau vedette : un titre déjà demandé affiche « En attente ».
 - Demandes — les demandes de film en un clic affichent succès ou refus.
 - Mode maintenance — le portail est désormais entièrement verrouillé (page d'attente seule).
@@ -55,6 +56,8 @@ utilisateurs.
 - Salle ciné — bande-annonce reprend au retour de l'onglet Emby.
 - Salle ciné — décompte d'intro synchronisé avec le compte à rebours.
 - Salle ciné — plus de requêtes en boucle après avoir quitté la salle.
+- Salle ciné — les personnes rejoignant après vous apparaissent sans rafraîchir.
+- Salle ciné — changer d'onglet ne fait plus quitter votre siège.
 - Demandes — titres affichés dans votre langue.
 - Fiche média — lien TMDB ouvre dans la langue de l'app.
 - Dates affichées dans votre langue (au lieu de celle du navigateur).
