@@ -49,6 +49,7 @@ This section intentionally has no date so it is not shown to users.
 - Issues (admin) — status filter fixed (no longer crashes or is ignored).
 - Backup settings — clear notice when the directory is locked by configuration.
 - Backups — keep-N-most-recent retention now also applied to scheduled auto-backups.
+- GDPR — re-enabling account deletion grants pending requests a fresh grace period.
 - Notifications — saving a Discord webhook no longer fails.
 - Notifications — Discord test message follows the configured default language.
 - Stats — Users and merge: profile photo (custom or Emby) now shown.
