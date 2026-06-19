@@ -570,6 +570,18 @@ async def test_self_deactivate_is_blocked(client, admin_user, db_session):
 
 
 @pytest.mark.asyncio
+async def test_legacy_put_role_active_endpoints_removed(client, admin_user):
+    """Regression guard: the unaudited legacy ``PUT`` role/active endpoints
+    were removed. Only the audited ``PATCH`` surface remains, so a ``PUT``
+    on the same path is rejected as method-not-allowed."""
+    _auth(client, admin_user)
+    r = await client.put("/api/portal/admin/users/1/role", json={"role": "admin"})
+    assert r.status_code == 405
+    r = await client.put("/api/portal/admin/users/1/active", json={"active": True})
+    assert r.status_code == 405
+
+
+@pytest.mark.asyncio
 async def test_reset_display_name_flags_profile_and_audits(client, admin_user, db_session):
     """POST /reset-display-name must flip the must-set flag and log the action."""
     db_session.add(UserProfile(
