@@ -18,6 +18,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.portal.achievement import Achievement, UserAchievement
 from models.portal.profile import UserProfile
 from models.portal.xp_ledger import XpLedger
+from services.portal.admin_users_audit import record_audit
+from services.portal.admin_users_constants import (
+    ACTION_DEBUG_ACHIEVEMENT_LOCKED,
+    ACTION_DEBUG_ACHIEVEMENT_RESET_ALL,
+    ACTION_DEBUG_ACHIEVEMENT_UNLOCKED,
+    ACTION_DEBUG_LEVEL_SET,
+    ACTION_DEBUG_XP_GRANTED,
+)
 from services.portal.xp import MAX_LEVEL, level_from_xp, xp_for_level
 
 
@@ -34,6 +42,8 @@ async def _get_profile(db: AsyncSession, user_id: int) -> UserProfile | None:
 
 async def admin_grant_xp(
     db: AsyncSession, user_id: int, amount: int, note: str | None = None,
+    *, admin_user_id: int | None = None,
+    ip: str | None = None, user_agent: str | None = None,
 ) -> dict | None:
     """Add (or remove, when ``amount`` is negative) XP from a user.
 
@@ -63,6 +73,12 @@ async def admin_grant_xp(
     profile.xp = max(0, (profile.xp or 0) + delta)
     profile.level = level_from_xp(profile.xp)
     db.add(profile)
+    await record_audit(
+        db, admin_user_id=admin_user_id, target_user_id=user_id,
+        action=ACTION_DEBUG_XP_GRANTED,
+        payload={"delta": delta, "note": note, "xp": profile.xp, "level": profile.level},
+        ip=ip, user_agent=user_agent, commit=False,
+    )
     await db.commit()
     await db.refresh(profile)
 
@@ -79,6 +95,8 @@ async def admin_grant_xp(
 
 async def admin_set_level(
     db: AsyncSession, user_id: int, level: int,
+    *, admin_user_id: int | None = None,
+    ip: str | None = None, user_agent: str | None = None,
 ) -> dict | None:
     """Force the user to a specific level. ``profile.xp`` is bumped
     up to (and never above) the cumulative XP required for that
@@ -103,6 +121,12 @@ async def admin_set_level(
     profile.xp = target_xp_floor
     profile.level = target
     db.add(profile)
+    await record_audit(
+        db, admin_user_id=admin_user_id, target_user_id=user_id,
+        action=ACTION_DEBUG_LEVEL_SET,
+        payload={"level": target, "delta": delta},
+        ip=ip, user_agent=user_agent, commit=False,
+    )
     await db.commit()
     await db.refresh(profile)
 
@@ -115,6 +139,8 @@ async def admin_set_level(
 
 async def admin_unlock_achievement(
     db: AsyncSession, user_id: int, achievement_id: str,
+    *, admin_user_id: int | None = None,
+    ip: str | None = None, user_agent: str | None = None,
 ) -> dict | None:
     """Mark an achievement unlocked for the user. Idempotent."""
     achievement = await db.get(Achievement, achievement_id)
@@ -147,6 +173,12 @@ async def admin_unlock_achievement(
         ua.progress = max(ua.progress or 0, achievement.threshold or 1)
         db.add(ua)
 
+    await record_audit(
+        db, admin_user_id=admin_user_id, target_user_id=user_id,
+        action=ACTION_DEBUG_ACHIEVEMENT_UNLOCKED,
+        payload={"achievement_id": achievement_id},
+        ip=ip, user_agent=user_agent, commit=False,
+    )
     await db.commit()
     logger.info(
         "[ADMIN_DEBUG] unlock_achievement user_id=%s ach=%s",
@@ -157,6 +189,8 @@ async def admin_unlock_achievement(
 
 async def admin_lock_achievement(
     db: AsyncSession, user_id: int, achievement_id: str,
+    *, admin_user_id: int | None = None,
+    ip: str | None = None, user_agent: str | None = None,
 ) -> dict | None:
     """Reset an achievement: drop the UserAchievement row entirely so
     progression starts over. Idempotent — calling on an already-locked
@@ -171,6 +205,12 @@ async def admin_lock_achievement(
             UserAchievement.achievement_id == achievement_id,
         )
     )
+    await record_audit(
+        db, admin_user_id=admin_user_id, target_user_id=user_id,
+        action=ACTION_DEBUG_ACHIEVEMENT_LOCKED,
+        payload={"achievement_id": achievement_id, "removed": deleted.rowcount},
+        ip=ip, user_agent=user_agent, commit=False,
+    )
     await db.commit()
     logger.info(
         "[ADMIN_DEBUG] lock_achievement user_id=%s ach=%s removed=%s",
@@ -181,6 +221,8 @@ async def admin_lock_achievement(
 
 async def admin_reset_achievement_for_all(
     db: AsyncSession, achievement_id: str,
+    *, admin_user_id: int | None = None,
+    ip: str | None = None, user_agent: str | None = None,
 ) -> dict | None:
     """Reset a specific achievement for **every** user.
 
@@ -233,6 +275,18 @@ async def admin_reset_achievement_for_all(
             db.add(profile)
             rebuilt += 1
 
+    # Multi-user mutation → no single target_user_id; the counts in the
+    # payload bound the blast radius for after-the-fact review.
+    await record_audit(
+        db, admin_user_id=admin_user_id, target_user_id=None,
+        action=ACTION_DEBUG_ACHIEVEMENT_RESET_ALL,
+        payload={
+            "achievement_id": achievement_id,
+            "user_achievements_removed": deleted_ua.rowcount,
+            "profiles_rebuilt": rebuilt,
+        },
+        ip=ip, user_agent=user_agent, commit=False,
+    )
     await db.commit()
     logger.info(
         "[ADMIN_DEBUG] reset_for_all ach=%s ua_removed=%s ledger_removed=%s "

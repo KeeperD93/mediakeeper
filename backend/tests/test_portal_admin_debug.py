@@ -242,3 +242,53 @@ async def test_debug_achievements_catalogue(client, db_session):
     sample = items[0]
     for key in ("id", "name_key", "category", "tier", "secret"):
         assert key in sample
+
+
+# ─── audit trail (#418) ────────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_grant_xp_records_audit(client, db_session):
+    from models.portal.audit import AdminAuditLog
+
+    admin = await _admin_client(client, db_session)
+    target, _ = await make_portal_user(db_session, username="audit_target")
+
+    resp = await client.post(
+        "/api/portal/admin/debug/grant-xp",
+        json={"user_id": target.id, "amount": 50},
+    )
+    assert resp.status_code == 200, resp.text
+
+    rows = (await db_session.execute(
+        select(AdminAuditLog).where(AdminAuditLog.action == "debug.xp_granted")
+    )).scalars().all()
+    assert len(rows) == 1
+    assert rows[0].admin_user_id == admin.id
+    assert rows[0].target_user_id == target.id
+
+
+@pytest.mark.asyncio
+async def test_reset_achievement_for_all_records_audit(client, db_session):
+    from models.portal.achievement import Achievement
+    from models.portal.audit import AdminAuditLog
+
+    admin = await _admin_client(client, db_session)
+    await seed_achievements(db_session)
+    ach_id = (await db_session.execute(select(Achievement.id).limit(1))).scalar_one()
+
+    resp = await client.post(
+        "/api/portal/admin/debug/reset-achievement-for-all",
+        json={"achievement_id": ach_id},
+    )
+    assert resp.status_code == 200, resp.text
+
+    rows = (await db_session.execute(
+        select(AdminAuditLog).where(
+            AdminAuditLog.action == "debug.achievement_reset_all"
+        )
+    )).scalars().all()
+    assert len(rows) == 1
+    assert rows[0].admin_user_id == admin.id
+    # Multi-user mutation → no single target.
+    assert rows[0].target_user_id is None

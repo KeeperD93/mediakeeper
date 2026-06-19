@@ -6,11 +6,12 @@ Kept out of ``admin.py`` to honour the 300-line file-size cap.
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api._portal_admin_users_helpers import client_ip, client_ua
 from api.portal.deps import require_admin
 from core.database import get_db
 from models.portal.profile import UserProfile
@@ -118,11 +119,13 @@ async def debug_list_achievements(
 @router.post("/grant-xp")
 async def debug_grant_xp(
     body: GrantXpRequest,
-    _: tuple[User, UserProfile] = Depends(require_admin),
+    request: Request,
+    admin: tuple[User, UserProfile] = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     res = await admin_debug.admin_grant_xp(
         db, body.user_id, body.amount, note=body.note,
+        admin_user_id=admin[0].id, ip=client_ip(request), user_agent=client_ua(request),
     )
     if res is None:
         raise HTTPException(status_code=404, detail="profile_not_found")
@@ -132,10 +135,14 @@ async def debug_grant_xp(
 @router.post("/set-level")
 async def debug_set_level(
     body: SetLevelRequest,
-    _: tuple[User, UserProfile] = Depends(require_admin),
+    request: Request,
+    admin: tuple[User, UserProfile] = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    res = await admin_debug.admin_set_level(db, body.user_id, body.level)
+    res = await admin_debug.admin_set_level(
+        db, body.user_id, body.level,
+        admin_user_id=admin[0].id, ip=client_ip(request), user_agent=client_ua(request),
+    )
     if res is None:
         raise HTTPException(status_code=404, detail="profile_not_found")
     return res
@@ -144,11 +151,13 @@ async def debug_set_level(
 @router.post("/unlock-achievement")
 async def debug_unlock_achievement(
     body: AchievementToggleRequest,
-    _: tuple[User, UserProfile] = Depends(require_admin),
+    request: Request,
+    admin: tuple[User, UserProfile] = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     res = await admin_debug.admin_unlock_achievement(
         db, body.user_id, body.achievement_id,
+        admin_user_id=admin[0].id, ip=client_ip(request), user_agent=client_ua(request),
     )
     if res is None:
         raise HTTPException(status_code=404, detail="achievement_not_found")
@@ -158,11 +167,13 @@ async def debug_unlock_achievement(
 @router.post("/lock-achievement")
 async def debug_lock_achievement(
     body: AchievementToggleRequest,
-    _: tuple[User, UserProfile] = Depends(require_admin),
+    request: Request,
+    admin: tuple[User, UserProfile] = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     res = await admin_debug.admin_lock_achievement(
         db, body.user_id, body.achievement_id,
+        admin_user_id=admin[0].id, ip=client_ip(request), user_agent=client_ua(request),
     )
     if res is None:
         raise HTTPException(status_code=404, detail="achievement_not_found")
@@ -172,7 +183,8 @@ async def debug_lock_achievement(
 @router.post("/reset-achievement-for-all")
 async def debug_reset_achievement_for_all(
     body: ResetAchievementForAllRequest,
-    _: tuple[User, UserProfile] = Depends(require_admin),
+    request: Request,
+    admin: tuple[User, UserProfile] = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     """Wipe a specific achievement and its XP from every user.
@@ -181,7 +193,10 @@ async def debug_reset_achievement_for_all(
     unlocked through a counter bug — only users who still qualify will
     re-earn it on the next pass.
     """
-    res = await admin_debug.admin_reset_achievement_for_all(db, body.achievement_id)
+    res = await admin_debug.admin_reset_achievement_for_all(
+        db, body.achievement_id,
+        admin_user_id=admin[0].id, ip=client_ip(request), user_agent=client_ua(request),
+    )
     if res is None:
         raise HTTPException(status_code=404, detail="achievement_not_found")
     return res
