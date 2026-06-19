@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.quota import QUOTA_BAND_MAX, QUOTA_BAND_MIN
 from core.database import get_db
 from core.rate_limit import ip_key, limiter
 from models.user import User
@@ -87,12 +88,12 @@ async def patch_tags(
 
 class QuotaUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    max_allowed: int | None = Field(None, ge=1, le=100)
+    max_allowed: int | None = Field(None, ge=QUOTA_BAND_MIN, le=QUOTA_BAND_MAX)
     unlimited: bool | None = None
     auto_approve: bool | None = None
     mode: str | None = Field(None, pattern="^(manual|auto)$")
-    auto_min: int | None = Field(None, ge=1, le=100)
-    auto_max: int | None = Field(None, ge=1, le=100)
+    auto_min: int | None = Field(None, ge=QUOTA_BAND_MIN, le=QUOTA_BAND_MAX)
+    auto_max: int | None = Field(None, ge=QUOTA_BAND_MIN, le=QUOTA_BAND_MAX)
 
     @model_validator(mode="after")
     def _ordered_bounds(self) -> "QuotaUpdate":
