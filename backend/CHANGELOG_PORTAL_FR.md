@@ -63,6 +63,7 @@ utilisateurs.
 - Avatars personnalisés affichés dans les contributeurs de listes et le sélecteur d'utilisateurs.
 - Pastilles « déjà demandé » affichées sur les grandes listes.
 - Quoi de neuf — barre XP pleine au niveau max (sans niveau 51).
+- Quoi de neuf — un ajout du jour reste visible même après fermeture de l'overlay.
 - Recommandés pour vous — le carrousel d'accueil affiche 20 titres distincts.
 - Contenu adulte — le masquage s'applique à toutes les listes, recherche et recommandations.
 - Demandes — les titres adultes ne sont demandables que si l'administrateur l'autorise.

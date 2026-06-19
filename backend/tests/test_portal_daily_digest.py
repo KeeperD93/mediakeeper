@@ -220,6 +220,30 @@ async def test_recent_adds_caps_at_30(db_session):
 
 
 @pytest.mark.asyncio
+async def test_recent_adds_keeps_same_day_item_added_after_watermark(db_session):
+    """An item added later on the SAME calendar day as the watermark is kept —
+    the full-timestamp comparison fixes the day-granular drop."""
+    now = datetime.now(timezone.utc)
+    since = now - timedelta(hours=3)  # watermark earlier today
+    day = now.date().isoformat()
+    items = [
+        {  # added after the watermark, same day -> kept
+            "tmdb_id": 1, "emby_item_id": "1", "title": "After", "year": "2024",
+            "media_type": "movie", "poster_url": "", "date_created": day,
+            "date_created_at": (now - timedelta(hours=1)).isoformat(),
+        },
+        {  # added before the watermark, same day -> dropped
+            "tmdb_id": 2, "emby_item_id": "2", "title": "Before", "year": "2024",
+            "media_type": "movie", "poster_url": "", "date_created": day,
+            "date_created_at": (now - timedelta(hours=5)).isoformat(),
+        },
+    ]
+    with patch.object(dd_sources, "get_recently_added", AsyncMock(return_value=items)):
+        out = await dd_sources.recent_adds(db_session, since=since)
+    assert [it["tmdb_id"] for it in out] == [1]
+
+
+@pytest.mark.asyncio
 async def test_dismiss_stores_dismissed_at_instant(client, db_session):
     """Dismiss records the precise instant so the 24h grace can be timed."""
     user = await _seed_viewer(client, db_session, username="viewer_digest_at")

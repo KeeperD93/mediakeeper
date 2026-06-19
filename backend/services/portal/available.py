@@ -228,10 +228,11 @@ def _normalize_emby(item: dict, public_url: str = "", server_id: str = "") -> di
     except (TypeError, ValueError):
         vote = 0
 
-    # Emby returns DateCreated as ISO-8601 (UTC) — we keep just the
-    # "YYYY-MM-DD" prefix, which is enough for the frontend "New on
-    # Emby" ribbon to compute "less than 7 days old" locally without
-    # timezone headaches.
+    # Emby returns DateCreated as ISO-8601 (UTC). ``date_created`` keeps the
+    # "YYYY-MM-DD" prefix (enough for the frontend "New on Emby" ribbon to
+    # compute "less than 7 days old" locally without timezone headaches);
+    # ``date_created_at`` keeps the full timestamp for sub-day comparisons
+    # (e.g. the digest "added since you last caught up" watermark).
     date_created_raw = item.get("DateCreated") or ""
     date_created = date_created_raw[:10] if date_created_raw else ""
 
@@ -250,5 +251,6 @@ def _normalize_emby(item: dict, public_url: str = "", server_id: str = "") -> di
         "runtime": runtime_minutes,
         "release_date": release_date,
         "date_created": date_created,
+        "date_created_at": date_created_raw,
         "vote": vote,
     }
