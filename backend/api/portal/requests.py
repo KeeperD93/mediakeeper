@@ -1,10 +1,11 @@
 """Portal media request endpoints."""
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
+from core.url_safety import safe_url
 from core.i18n import get_request_locale
 from core.rate_limit import limiter, portal_user_or_ip_key
 from models.user import User
@@ -27,6 +28,13 @@ class CreateRequest(BaseModel):
     backdrop_url: Optional[str] = Field(None, max_length=500)
     requested_seasons: Optional[list] = Field(default=None, max_length=100)
     on_behalf_of: Optional[int] = None
+
+    # Drop any non-http(s) image URL before it is stored and re-served to
+    # the community list / admin queue (background-image / <img src> sinks).
+    @field_validator("poster_url", "backdrop_url")
+    @classmethod
+    def _safe_image_url(cls, v: Optional[str]) -> Optional[str]:
+        return safe_url(v, schemes={"http", "https"})
 
 
 class StatusUpdate(BaseModel):
