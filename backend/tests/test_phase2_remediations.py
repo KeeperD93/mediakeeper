@@ -179,6 +179,35 @@ async def test_settings_tools_mask_secrets_and_preserve_partial_updates(client, 
 
 
 @pytest.mark.asyncio
+async def test_save_tool_rejects_unsafe_public_url(client, admin_user):
+    """A javascript: public_url is rejected at the write edge — it would
+    otherwise be re-served verbatim into "Watch on Emby" deep-links (#380)."""
+    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
+
+    resp = await client.post("/api/settings/tools/emby", json={
+        "enabled": True,
+        "url": "http://emby.local",
+        "public_url": "javascript:alert(1)//",
+    })
+    assert resp.status_code == 400
+    assert resp.json()["detail"] == "invalid_url_scheme"
+
+
+@pytest.mark.asyncio
+async def test_save_tool_accepts_valid_public_url(client, admin_user, db_session):
+    """A valid https public_url is stored intact (#380)."""
+    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
+
+    resp = await client.post("/api/settings/tools/emby", json={
+        "enabled": True,
+        "url": "http://emby.local",
+        "public_url": "https://emby.example.com",
+    })
+    assert resp.status_code == 200
+    assert await get_setting(db_session, "emby.public_url") == "https://emby.example.com"
+
+
+@pytest.mark.asyncio
 async def test_notification_configs_mask_secrets_and_preserve_hidden_values(client, admin_user, db_session):
     client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
 
