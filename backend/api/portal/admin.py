@@ -20,14 +20,6 @@ from services.portal.emby_index import sync_emby_tmdb_index
 router = APIRouter(prefix="/admin", tags=["portal-admin"])
 
 
-class RoleUpdate(BaseModel):
-    role: str = Field(..., pattern="^(admin|viewer)$")
-
-
-class ActiveUpdate(BaseModel):
-    active: bool
-
-
 class MuteUser(BaseModel):
     muted_until: datetime
     reason: Optional[str] = Field(None, max_length=300)
@@ -59,32 +51,6 @@ async def admin_events_upcoming(
 ):
     """Next scheduled events portal-wide, regardless of privacy (admin view)."""
     return {"items": await mk_events_svc.list_upcoming_admin(db, limit=limit)}
-
-
-@router.put("/users/{user_id}/role")
-async def set_role(
-    user_id: int,
-    data: RoleUpdate,
-    admin: tuple[User, UserProfile] = Depends(require_admin),
-    db: AsyncSession = Depends(get_db),
-):
-    result = await admin_svc.update_user_role(db, user_id, data.role)
-    if "error" in result:
-        raise HTTPException(status_code=404, detail=result["error"])
-    return result
-
-
-@router.put("/users/{user_id}/active")
-async def set_active(
-    user_id: int,
-    data: ActiveUpdate,
-    admin: tuple[User, UserProfile] = Depends(require_admin),
-    db: AsyncSession = Depends(get_db),
-):
-    result = await admin_svc.toggle_user_active(db, user_id, data.active)
-    if "error" in result:
-        raise HTTPException(status_code=404, detail=result["error"])
-    return result
 
 
 @router.put("/users/{user_id}/chat")

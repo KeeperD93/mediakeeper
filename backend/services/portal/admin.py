@@ -4,7 +4,6 @@ import logging
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models.user import User
 from models.portal.profile import UserProfile
 from services.portal.profiles import serialize_profile
 from services.portal.requests_quota import get_or_create_quota
@@ -46,47 +45,6 @@ async def list_portal_users(
     result = await db.execute(query.offset(offset).limit(limit))
     items = [serialize_profile(p) for p in result.scalars().all()]
     return {"items": items, "total": total}
-
-
-async def update_user_role(
-    db: AsyncSession, user_id: int, role: str
-) -> dict:
-    """Change a user's role (admin/viewer)."""
-    result = await db.execute(
-        select(UserProfile).where(UserProfile.user_id == user_id)
-    )
-    profile = result.scalar_one_or_none()
-    if not profile:
-        return {"error": "not_found"}
-    profile.role = role
-    db.add(profile)
-    await db.commit()
-    logger.info("[ADMIN] user_id=%s role changed to %s", user_id, role)
-    return {"success": True}
-
-
-async def toggle_user_active(
-    db: AsyncSession, user_id: int, active: bool
-) -> dict:
-    """Enable/disable a portal user account."""
-    result = await db.execute(
-        select(UserProfile).where(UserProfile.user_id == user_id)
-    )
-    profile = result.scalar_one_or_none()
-    if not profile:
-        return {"error": "not_found"}
-    profile.account_active = active
-    db.add(profile)
-
-    user_result = await db.execute(select(User).where(User.id == user_id))
-    user = user_result.scalar_one_or_none()
-    if user:
-        user.is_active = active
-        db.add(user)
-
-    await db.commit()
-    logger.info("[ADMIN] user_id=%s active=%s", user_id, active)
-    return {"success": True}
 
 
 async def update_user_quota(
