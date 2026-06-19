@@ -4,7 +4,13 @@
     <p class="pt-settings-section-sub">{{ $t('portal.settings.account.passwordHint') }}</p>
 
     <div>
-      <a v-if="embyUrl" :href="embyUrl" target="_blank" rel="noopener" class="pt-settings-btn">
+      <a
+        v-if="embyUrl"
+        :href="embyHref"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="pt-settings-btn"
+      >
         <ExternalLink :size="14" />
         {{ $t('portal.settings.account.passwordEmbyCta') }}
       </a>
@@ -39,6 +45,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ExternalLink } from 'lucide-vue-next'
+import { safeHref } from '@/utils/safeUrl'
 
 const props = defineProps({
   profileData: { type: Object, default: null },
@@ -46,6 +53,9 @@ const props = defineProps({
 })
 
 const { t, locale } = useI18n()
+
+// Gate the Emby account deep-link through the scheme whitelist.
+const embyHref = computed(() => safeHref(props.embyUrl) || '#')
 
 function formatDate(iso) {
   if (!iso) return ''

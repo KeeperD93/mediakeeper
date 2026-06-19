@@ -159,6 +159,7 @@ import { useMobile } from '@/composables/useMobile'
 import { isTv as isTvMedia } from '@/constants/media'
 import { PORTAL_TAB } from '@/constants/portal'
 import { TOAST_TYPE } from '@/constants/toast'
+import { safeHref } from '@/utils/safeUrl'
 import { Info, LogOut, Play, Volume2, VolumeX } from 'lucide-vue-next'
 
 import '@/assets/styles/portal/cinema-room-stage.css'
@@ -245,7 +246,7 @@ function toggleMute() {
 }
 
 function openTrailerInfo() {
-  const url = currentTrailer.value?.emby_url
+  const url = safeHref(currentTrailer.value?.emby_url)
   if (!url) return
   window.open(url, '_blank', 'noopener')
 }
@@ -425,6 +426,7 @@ async function onLaunchClick() {
     await Promise.resolve(checkAvailability([currentMedia.value])).catch(() => {})
     url = resolveLaunchUrl(currentMedia.value)
   }
+  url = safeHref(url)
   if (url) {
     window.open(url, '_blank', 'noopener')
     // Force a fresh progress fetch so the playback panel surfaces the
