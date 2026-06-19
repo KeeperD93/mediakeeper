@@ -27,7 +27,7 @@ from unittest.mock import patch
 
 import pytest
 
-from api.media._helpers import _is_allowed_browse_path
+from api.media._helpers import _get_browse_roots, _is_allowed_browse_path
 from core.app_spa import _resolve_spa_file
 from services import backup as backup_service
 from services.logs import _files
@@ -117,6 +117,29 @@ def test_validate_rejects_double_dot_inside_resolved_path(monkeypatch):
             attack, must_be_dir=False, label="Test path"
         )
         assert error == "path_outside_configured_zones"
+    finally:
+        shutil.rmtree(workspace, ignore_errors=True)
+
+
+def test_browse_surface_excludes_backup_zone(monkeypatch):
+    """The folder browser never exposes the backup zone, even when it lives
+    inside a media root (#399)."""
+    workspace = _make_workspace_tmp("_attack_browse")
+    try:
+        media_root = workspace / "media"
+        backup_dir = media_root / "backups"
+        backup_dir.mkdir(parents=True)
+        (backup_dir / "secret").mkdir()
+        monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
+        monkeypatch.setenv("BACKUP_PATH", str(backup_dir))
+
+        assert _is_allowed_browse_path(media_root) is True
+        assert _is_allowed_browse_path(backup_dir) is False
+        assert _is_allowed_browse_path(backup_dir / "secret") is False
+
+        roots = {r["path"] for r in _get_browse_roots()}
+        assert str(media_root.resolve()) in roots
+        assert str(backup_dir.resolve()) not in roots
     finally:
         shutil.rmtree(workspace, ignore_errors=True)
 
