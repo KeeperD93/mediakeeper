@@ -88,7 +88,7 @@ async def get_article_user(
 class ArticleCreatePayload(BaseModel):
     category: str = Field(..., min_length=1, max_length=40)
     title: str = Field(..., min_length=1, max_length=300)
-    body_html: str = Field(default="")
+    body_html: str = Field(default="", max_length=100_000)
     lang: str = Field(default=help_service.DEFAULT_LANG, max_length=8)
     icon: Optional[str] = Field(default=None, max_length=60)
     sort_order: int = Field(default=0)
@@ -104,7 +104,7 @@ class ArticlePatchPayload(BaseModel):
 
 class TranslationPayload(BaseModel):
     title: str = Field(..., min_length=1, max_length=300)
-    body_html: str = Field(default="")
+    body_html: str = Field(default="", max_length=100_000)
 
 
 # ─────────────────────────── Admin endpoints ───────────────────────────

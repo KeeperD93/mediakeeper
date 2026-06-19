@@ -1,5 +1,5 @@
 """TMDB details + multi-search."""
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.portal.deps import get_current_profile
@@ -17,8 +17,8 @@ router = APIRouter()
 
 @router.get("/videos/{media_type}/{tmdb_id}")
 async def videos(
-    media_type: str,
-    tmdb_id: int,
+    media_type: str = Path(..., pattern="^(movie|tv)$"),
+    tmdb_id: int = Path(...),
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):
@@ -27,8 +27,8 @@ async def videos(
 
 @router.get("/detail/{media_type}/{tmdb_id}")
 async def media_detail(
-    media_type: str,
-    tmdb_id: int,
+    media_type: str = Path(..., pattern="^(movie|tv)$"),
+    tmdb_id: int = Path(...),
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):

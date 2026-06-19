@@ -1,5 +1,5 @@
 """Portal ticket endpoints."""
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Path, Query
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from typing import Literal, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -136,7 +136,7 @@ async def search_emby_for_ticket(
 
 @router.get("/emby/series/{series_id}/seasons")
 async def list_emby_series_seasons(
-    series_id: str,
+    series_id: str = Path(..., pattern="^[A-Za-z0-9]+$"),
     up: tuple[User, UserProfile] = Depends(require_permission("can_problems")),
     db: AsyncSession = Depends(get_db),
 ):
@@ -154,8 +154,10 @@ async def get_ticket(
     if not result:
         raise HTTPException(status_code=404, detail="ticket_not_found")
     user, profile = up
+    # A ticket the caller doesn't own is invisible: 404, not 403, so its
+    # existence is never leaked to a third party.
     if result["user_id"] != user.id and profile.role != "admin":
-        raise HTTPException(status_code=403, detail="forbidden")
+        raise HTTPException(status_code=404, detail="ticket_not_found")
     return result
 
 
@@ -174,9 +176,10 @@ async def reply_ticket(
         data.content,
         is_admin=profile.role == "admin",
     )
+    # Both "not_found" and "forbidden" collapse to 404 so a non-owner can't
+    # tell an existing ticket apart from a missing one.
     if "error" in result:
-        status_code = 403 if result["error"] == "forbidden" else 404
-        raise HTTPException(status_code=status_code, detail=result["error"])
+        raise HTTPException(status_code=404, detail="ticket_not_found")
     return result
 
 
