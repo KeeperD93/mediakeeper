@@ -56,3 +56,35 @@ async def test_table_columns_rejects_out_of_range_width(authed_client):
         json={"table": "t", "widths": [10, 99999]},
     )
     assert r.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_table_columns_rejects_boolean_width(authed_client):
+    # A JSON ``true`` must not slip through as width 1 (StrictInt rejects bools).
+    r = await authed_client.put(
+        "/api/auth/table-columns",
+        json={"table": "t", "widths": [True, 50]},
+    )
+    assert r.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_table_columns_eviction_keeps_just_saved_table(authed_client):
+    """At the cap, re-saving an old table moves it to the most-recent slot so it
+    survives when a new table pushes the map over the limit."""
+    from api.auth.profile import MAX_TABLE_PREFS
+
+    for i in range(MAX_TABLE_PREFS):
+        r = await authed_client.put(
+            "/api/auth/table-columns", json={"table": f"t{i}", "widths": [10]},
+        )
+        assert r.status_code == 200
+    # Re-save the oldest table, then push the map over the cap with a new one.
+    await authed_client.put("/api/auth/table-columns", json={"table": "t0", "widths": [20]})
+    await authed_client.put("/api/auth/table-columns", json={"table": "tNew", "widths": [30]})
+
+    body = (await authed_client.get("/api/auth/table-columns")).json()
+    assert len(body) == MAX_TABLE_PREFS
+    assert body["t0"] == [20]  # re-saved -> moved to recent -> kept
+    assert "tNew" in body
+    assert "t1" not in body  # now the oldest -> evicted
