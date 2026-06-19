@@ -11,6 +11,11 @@ from ._constants import logger, OS_API_BASE, _SUBTITLE_FILE_EXTENSIONS
 from .hashing import compute_quality_score
 from .paths import _normalize_path_validation_error
 
+# A legitimate subtitle is a few hundred KB at most; cap the download so a
+# malicious OpenSubtitles response or a redirect MITM cannot OOM the backend
+# or fill the media volume by streaming gigabytes (#402).
+MAX_SUBTITLE_BYTES = 16 * 1024 * 1024
+
 
 async def search_subtitles(
     db: AsyncSession,
@@ -152,12 +157,19 @@ async def download_subtitle(
         if not download_link:
             return {"error": "no_download_link"}
 
-        sub_res = await client.get(download_link, timeout=30.0, follow_redirects=True)
-        if sub_res.status_code != 200:
-            return {"error": f"download_failed_{sub_res.status_code}"}
+        content = bytearray()
+        async with client.stream(
+            "GET", download_link, timeout=30.0, follow_redirects=True,
+        ) as sub_res:
+            if sub_res.status_code != 200:
+                return {"error": f"download_failed_{sub_res.status_code}"}
+            async for chunk in sub_res.aiter_bytes():
+                content.extend(chunk)
+                if len(content) > MAX_SUBTITLE_BYTES:
+                    return {"error": "subtitle_too_large"}
 
         dest.parent.mkdir(parents=True, exist_ok=True)
-        dest.write_bytes(sub_res.content)
+        dest.write_bytes(bytes(content))
 
         logger.info("[opensubtitles] Downloaded subtitle → %s", dest)
 
