@@ -226,7 +226,10 @@ onMounted(() => {
 onBeforeUnmount(() => {
   unmounted = true
   // Best-effort: if the panel is still open (no close() fired — e.g. logout or
-  // a programmatic route change), commit the read state so it isn't lost.
+  // a programmatic route change), commit the read state so it isn't lost. A
+  // hard browser unload (refresh / tab close) does not fire this hook, so the
+  // read-all is intentionally not committed then ("read on close" semantics):
+  // the notifications simply re-show unread, no data loss.
   if (open.value && items.value.some(n => !n.read)) markAllRead()
   stopPolling()
   window.removeEventListener('resize', onResize)
@@ -343,10 +346,10 @@ onBeforeUnmount(() => {
   background: var(--portal-surface-3);
 }
 .pt-bell-item--unread {
-  background: rgb(67, 56, 202, 0.12);
+  background: rgb(var(--accent-rgb), 0.12);
 }
 .pt-bell-item--unread:hover {
-  background: rgb(67, 56, 202, 0.2);
+  background: rgb(var(--accent-rgb), 0.2);
 }
 .pt-bell-icon {
   flex-shrink: 0;

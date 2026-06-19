@@ -56,6 +56,8 @@ import { computed, onMounted, reactive, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Wrench } from 'lucide-vue-next'
 import { useApi } from '@/composables/useApi'
+import { useToast } from '@/composables/useToast'
+import { TOAST_TYPE } from '@/constants/toast'
 import MkToggle from '@/components/common/MkToggle.vue'
 import SettingsSection from '../SettingsSection.vue'
 import SettingRow from '../SettingRow.vue'
@@ -65,6 +67,7 @@ const SAVED_MESSAGE_TIMEOUT_MS = 2000
 
 const { t, locale } = useI18n()
 const { apiGet, apiPatch } = useApi()
+const { showToast } = useToast()
 const textId = useId()
 
 const maintenance = reactive({ enabled: false, text_fr: '', text_en: '' })
@@ -92,6 +95,9 @@ async function onToggle(next) {
       Object.assign(maintenance, res)
       flashSaved()
     }
+  } catch (e) {
+    console.error('[SettingsMaintenance.onToggle]', e)
+    showToast(t('common.networkError'), TOAST_TYPE.ERR)
   } finally {
     saving.value = false
   }
@@ -109,14 +115,22 @@ async function saveText() {
       Object.assign(maintenance, res)
       flashSaved()
     }
+  } catch (e) {
+    console.error('[SettingsMaintenance.saveText]', e)
+    showToast(t('common.networkError'), TOAST_TYPE.ERR)
   } finally {
     saving.value = false
   }
 }
 
 onMounted(async () => {
-  const res = await apiGet(MAINTENANCE_URL)
-  if (res) Object.assign(maintenance, res)
+  try {
+    const res = await apiGet(MAINTENANCE_URL)
+    if (res) Object.assign(maintenance, res)
+  } catch (e) {
+    console.error('[SettingsMaintenance.onMounted]', e)
+    showToast(t('common.networkError'), TOAST_TYPE.ERR)
+  }
 })
 </script>
 

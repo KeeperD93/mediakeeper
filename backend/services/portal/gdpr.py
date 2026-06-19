@@ -28,7 +28,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.user import User
@@ -182,6 +182,34 @@ async def admin_cancel_deletion_request(
         user.id, admin_user_id,
     )
     return {"ok": True}
+
+
+async def refresh_pending_grace(
+    db: AsyncSession, *, delay_days: int, commit: bool = True,
+) -> int:
+    """Re-stamp ``pending_deletion_at`` to ``now + delay_days`` for every user
+    with a pending deletion, returning the number refreshed.
+
+    Called when GDPR is re-enabled: a request that sat frozen while the feature
+    was off would otherwise be purged instantly on the next run (its deadline
+    long past). Refreshing the grace gives the member a fresh window to cancel.
+    ``deletion_requested_at`` (the original intent timestamp) is left untouched.
+
+    ``commit=False`` lets the caller batch this into the same transaction as the
+    enable write, so a failed refresh rolls the toggle back too (atomic).
+    """
+    new_at = datetime.now(timezone.utc) + timedelta(days=delay_days)
+    result = await db.execute(
+        update(User)
+        .where(User.pending_deletion_at.isnot(None))
+        .values(pending_deletion_at=new_at)
+    )
+    if commit:
+        await db.commit()
+    count = result.rowcount or 0
+    if count:
+        logger.info("[GDPR] re-enabled: refreshed grace for %s pending deletion(s)", count)
+    return count
 
 
 # ─────────────────────────── Scheduler purge ───────────────────────────

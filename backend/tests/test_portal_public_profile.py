@@ -123,3 +123,55 @@ async def test_public_profile_ranking_reflects_xp_order(client, db_session):
     body = resp.json()
     assert body["ranking"]["position"] == 2
     assert body["ranking"]["total_public"] == 2
+
+
+@pytest.mark.asyncio
+async def test_public_profile_hides_stale_cosmetics_without_writing(client, db_session):
+    """Viewing a third party's public profile hides cosmetics they can no longer
+    select (no unlocked achievement grants them), but never writes to their row:
+    a read must not mutate the viewed user's profile."""
+    from sqlalchemy import select
+    from models.portal.profile import UserProfile
+
+    _owner, profile = await make_portal_user(db_session, username="owner", display_name="Owner")
+    profile.selected_title = "phantom_title"  # equipped but never unlocked
+    db_session.add(profile)
+    await db_session.commit()
+    pid = profile.id
+
+    viewer, _ = await make_portal_user(db_session, username="viewer")
+    client.cookies.set(PORTAL_COOKIE, portal_token(viewer.username))
+
+    resp = await client.get(f"/api/portal/profiles/{pid}")
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["selected_title"] is None  # hidden for display
+
+    db_session.expire_all()
+    stored = (await db_session.execute(
+        select(UserProfile).where(UserProfile.id == pid)
+    )).scalar_one()
+    assert stored.selected_title == "phantom_title"  # row untouched (no write-on-read)
+
+
+@pytest.mark.asyncio
+async def test_own_profile_prunes_stale_cosmetics(client, db_session):
+    """Loading your OWN profile (/me) clears cosmetics you can no longer select
+    and persists the cleanup (own row, no cross-user race)."""
+    from sqlalchemy import select
+    from models.portal.profile import UserProfile
+
+    me, profile = await make_portal_user(db_session, username="owner2", display_name="Owner2")
+    profile.selected_title = "phantom_title"
+    db_session.add(profile)
+    await db_session.commit()
+    uid = me.id
+
+    client.cookies.set(PORTAL_COOKIE, portal_token(me.username))
+    resp = await client.get("/api/portal/profiles/me")
+    assert resp.status_code == 200, resp.text
+
+    db_session.expire_all()
+    stored = (await db_session.execute(
+        select(UserProfile).where(UserProfile.user_id == uid)
+    )).scalar_one()
+    assert stored.selected_title is None  # persisted cleanup

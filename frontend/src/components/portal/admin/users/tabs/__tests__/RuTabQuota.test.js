@@ -65,6 +65,15 @@ describe('RuTabQuota — blank-field save guard (#447)', () => {
     w.unmount()
   })
 
+  it('disables Save and shows an error when the auto floor exceeds the ceiling', async () => {
+    const w = mountTab({ ...BASE, mode: QUOTA_MODE.AUTO, auto_min: 15, auto_max: 2 })
+    await flushPromises()
+
+    expect(w.get('.ru-btn--primary').element.disabled).toBe(true)
+    expect(w.find('.ru-form-error').exists()).toBe(true)
+    w.unmount()
+  })
+
   it('saves the manual payload when the form is valid', async () => {
     const w = mountTab({ ...BASE, mode: QUOTA_MODE.MANUAL })
     await flushPromises()

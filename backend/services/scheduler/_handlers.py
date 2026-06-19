@@ -1,6 +1,5 @@
 """Scheduled task handlers — lazy imports to avoid cycles."""
 import json
-from datetime import datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -45,7 +44,7 @@ async def _handler_notifications(db: AsyncSession) -> None:
 
 
 async def _handler_backup(db: AsyncSession) -> None:
-    from services.backup import apply_retention, create_backup, resolve_backup_dir
+    from services.backup import apply_retention_for_setting, create_backup, resolve_backup_dir
     from services.settings import get_setting
 
     components_raw = await get_setting(db, "backup.auto_components") or "{}"
@@ -60,7 +59,7 @@ async def _handler_backup(db: AsyncSession) -> None:
         progress_cb=lambda c, t, label: update_progress("backup_auto", c, t, label),
     )
     retention = int(await get_setting(db, "backup.retention_days") or 30)
-    apply_retention(retention, await resolve_backup_dir(db))
+    apply_retention_for_setting(retention, await resolve_backup_dir(db))
 
 
 async def _handler_healthcheck(db: AsyncSession) -> None:
@@ -92,12 +91,11 @@ async def _handler_gdpr_purge(db: AsyncSession) -> None:
 async def _handler_quota_recompute(db: AsyncSession) -> None:
     """Engagement-based auto request-quota recompute.
 
-    Fires hourly but only acts during the server's local midnight hour, so
-    it lands at ~00:00. The recompute is idempotent per day and a no-op when
+    The once-a-day cadence lives in the scheduler's ``daily_cadence`` flag (see
+    TASK_DEFINITIONS), so a manual "Run Now" bypasses it and recomputes
+    immediately. The recompute is itself idempotent per day and a no-op when
     the feature is disabled or no user is in auto mode.
     """
-    if datetime.now().hour != 0:
-        return
     from services.portal.quota_auto import recompute_auto_quotas
     await recompute_auto_quotas(db)
 

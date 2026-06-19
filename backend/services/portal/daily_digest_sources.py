@@ -9,6 +9,7 @@ dismissal and composition logic.
 from __future__ import annotations
 
 import logging
+import re
 from datetime import datetime, timezone, timedelta
 
 from sqlalchemy import select, func
@@ -36,27 +37,47 @@ RECENT_ADDS_CAP = 30
 EVENTS_WINDOW_DAYS = 7
 
 
+def _parse_emby_iso(raw: str) -> datetime | None:
+    """Parse Emby's full ``DateCreated`` (UTC ISO, e.g. ``...Z`` with up to 7
+    fractional digits) into a tz-aware UTC datetime, or ``None`` when absent or
+    unparseable. ``fromisoformat`` accepts at most 6 fractional digits, so the
+    Emby surplus is trimmed first."""
+    if not raw:
+        return None
+    s = re.sub(r"(\.\d{6})\d+", r"\1", raw.replace("Z", "+00:00"))
+    try:
+        dt = datetime.fromisoformat(s)
+    except ValueError:
+        return None
+    return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+
+
 async def recent_adds(
     db: AsyncSession, *, since: datetime, cap: int = RECENT_ADDS_CAP
 ) -> list[dict]:
     """Emby items added since the viewer last caught up, newest first.
 
     ``since`` is the viewer's seen watermark (see
-    :func:`daily_digest._recent_cutoff`); items strictly newer than its
-    UTC date are kept, capped at ``cap`` posters. Emby's ``date_created``
-    is a ``YYYY-MM-DD`` UTC prefix, so the comparison is day-granular —
-    lexicographic order on ISO dates matches chronological order. Day
-    granularity means an item added later on the same calendar day as the
-    watermark counts as already seen (Emby exposes no sub-day
-    ``DateCreated``).
+    :func:`daily_digest._recent_cutoff`); items strictly newer than it are
+    kept, capped at ``cap`` posters. The comparison uses the full
+    ``date_created_at`` timestamp, so an item added later on the *same*
+    calendar day as the watermark is still surfaced. Only when Emby exposed no
+    sub-day timestamp do we fall back to the day-granular ``date_created``.
     """
     since_date = since.astimezone(timezone.utc).date().isoformat()
+
+    def _is_new(it: dict) -> bool:
+        created_at = _parse_emby_iso(it.get("date_created_at") or "")
+        if created_at is not None:
+            return created_at > since
+        return (it.get("date_created") or "") > since_date
+
     try:
         items = await get_recently_added(db, limit=RECENT_ADDS_FETCH_LIMIT)
     except Exception as e:  # noqa: BLE001
         logger.debug("[DIGEST] recent adds failed: %s", e)
         return []
-    kept = [it for it in items if (it.get("date_created") or "") > since_date]
+    kept = [it for it in items if _is_new(it)]
     return [
         {
             "tmdb_id": it.get("tmdb_id"),

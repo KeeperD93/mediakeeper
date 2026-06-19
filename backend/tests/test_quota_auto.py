@@ -100,6 +100,8 @@ async def test_recompute_records_system_audit_on_grant(admin_user, db_session):
     assert audit.payload["source"] == "auto"
     assert audit.payload["direction"] == "grant"
     assert audit.payload["changed"]["max_allowed"] == {"from": 5, "to": 7}
+    assert audit.payload["score"] == 7.5  # 16 logins capped at 15 * weight 0.5
+    assert audit.payload["target"] == 6   # score 7.5 mapped onto band [2, 15]
 
 
 @pytest.mark.asyncio
@@ -195,9 +197,10 @@ async def test_recompute_runs_when_enabled_setting_blank(admin_user, db_session)
 
 
 @pytest.mark.asyncio
-async def test_handler_runs_engine_only_at_midnight_hour(db_session, monkeypatch):
-    """The scheduler wrapper fires hourly but only runs the engine during the
-    server's local-midnight hour (the hour != 0 guard)."""
+async def test_handler_always_invokes_engine(db_session, monkeypatch):
+    """The handler no longer self-gates on the hour: the once-a-day cadence
+    lives in the scheduler's daily-cadence dispatch, so a manual "Run Now"
+    reaches the engine at any time. The handler simply delegates."""
     from services.scheduler import _handlers
 
     calls = []
@@ -208,17 +211,86 @@ async def test_handler_runs_engine_only_at_midnight_hour(db_session, monkeypatch
 
     monkeypatch.setattr("services.portal.quota_auto.recompute_auto_quotas", fake_recompute)
 
-    class _Clock:
-        hour = 12
-
-        @classmethod
-        def now(cls, tz=None):
-            return cls
-
-    monkeypatch.setattr(_handlers, "datetime", _Clock)
     await _handlers._handler_quota_recompute(db_session)
-    assert calls == []  # not the midnight hour -> engine skipped
+    assert calls == [True]  # delegates unconditionally; cadence gate is elsewhere
 
-    _Clock.hour = 0
-    await _handlers._handler_quota_recompute(db_session)
-    assert calls == [True]  # midnight hour -> engine runs
+
+def test_quota_band_and_defaults_single_source():
+    """The registry defaults and cap band come from constants/quota.py, so the
+    schema, engine and bulk sanitiser can't drift from the settings registry."""
+    from constants.quota import QUOTA_AUTO_DEFAULTS, QUOTA_BAND_MAX, QUOTA_BAND_MIN
+    from services.portal.admin_settings import PORTAL_SETTING_INTS
+
+    for key, default in QUOTA_AUTO_DEFAULTS.items():
+        assert PORTAL_SETTING_INTS[f"quota.auto.{key}"][0] == default
+    for key in ("min", "max"):
+        _, lo, hi = PORTAL_SETTING_INTS[f"quota.auto.{key}"]
+        assert (lo, hi) == (QUOTA_BAND_MIN, QUOTA_BAND_MAX)
+
+
+@pytest.mark.asyncio
+async def test_instance_band_reorder_equalizes_min_over_max(db_session):
+    """update_portal_settings keeps quota.auto.min <= max the same way it does
+    for the event-capacity pair: a min pushed above max is equalised (max := min),
+    resolved against stored values so a single-field PATCH can't invert the band."""
+    from services.portal.admin import get_portal_settings, update_portal_settings
+
+    # Both keys in one PATCH: min above max -> max bumps up to match min.
+    await update_portal_settings(db_session, {"quota.auto.min": 40, "quota.auto.max": 10})
+    s = await get_portal_settings(db_session)
+    assert s["quota.auto.min"] == 40
+    assert s["quota.auto.max"] == 40
+
+    # Single-field PATCH resolved against stored values: lowering max below the
+    # stored min equalises (max := min) rather than inverting the band.
+    await update_portal_settings(db_session, {"quota.auto.max": 5})
+    s = await get_portal_settings(db_session)
+    assert s["quota.auto.min"] == 40
+    assert s["quota.auto.max"] == 40
+
+
+@pytest.mark.asyncio
+async def test_recompute_treats_last_seen_as_presence(admin_user, db_session):
+    """A portal-active member (recent last_seen_at) with no streams or logins is
+    held, not decayed: last_seen_at counts as presence. Without it the member
+    would read as fully idle and lose a step the first night."""
+    from models.portal.profile import UserProfile
+    from models.portal.request import RequestQuota
+
+    _seed_auto_quota(db_session, admin_user, max_allowed=10)
+    now = datetime.now(timezone.utc)
+    profile = (await db_session.execute(
+        select(UserProfile).where(UserProfile.user_id == admin_user.id)
+    )).scalar_one()
+    profile.last_seen_at = now  # visited the portal today, but never streamed
+    await db_session.commit()
+
+    await qa.recompute_auto_quotas(db_session, now=now)
+
+    refreshed = (await db_session.execute(
+        select(RequestQuota).where(RequestQuota.user_id == admin_user.id)
+    )).scalar_one()
+    assert refreshed.max_allowed == 10  # within grace -> not decayed
+
+
+@pytest.mark.asyncio
+async def test_flip_to_auto_seeds_grace_stamp(admin_user, db_session):
+    """Flipping a user to auto stamps last_recomputed_at so the first nightly
+    pass skips the freshly-seeded START_CAP for one grace cycle."""
+    from services.portal.admin import update_user_quota
+    from models.portal.request import RequestQuota
+
+    db_session.add(RequestQuota(
+        user_id=admin_user.id, month="2026-06", max_allowed=20,
+        mode="manual", unlimited=False, auto_min=2, auto_max=15,
+    ))
+    await db_session.commit()
+
+    res = await update_user_quota(db_session, admin_user.id, {"mode": "auto"})
+    assert res["success"] is True
+
+    quota = (await db_session.execute(
+        select(RequestQuota).where(RequestQuota.user_id == admin_user.id)
+    )).scalar_one()
+    assert quota.mode == "auto"
+    assert quota.last_recomputed_at is not None  # grace stamp set at flip

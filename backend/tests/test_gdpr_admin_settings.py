@@ -152,3 +152,84 @@ async def test_put_requires_csrf(raw_client, admin_user, db_session):
         json={"enabled": True},
     )
     assert resp.status_code in (401, 403)
+
+
+def _aware(dt):
+    from datetime import timezone
+    return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+
+
+@pytest.mark.asyncio
+async def test_reenabling_gdpr_refreshes_frozen_grace(client, admin_user, db_session):
+    """A deletion request frozen while GDPR was off gets a fresh grace window
+    when GDPR is re-enabled — never an instant purge on the next run."""
+    from datetime import datetime, timedelta, timezone
+    from sqlalchemy import select
+    from models.user import User
+
+    await _admin_profile(db_session, admin_user)
+    member = User(username="leaver", hashed_password="x", is_active=True)
+    member.deletion_requested_at = datetime.now(timezone.utc) - timedelta(days=100)
+    member.pending_deletion_at = datetime.now(timezone.utc) - timedelta(days=70)
+    db_session.add(member)
+    await db_session.commit()
+    mid = member.id
+
+    _auth(client, admin_user)
+    resp = await client.put("/api/portal/admin/gdpr/settings", json={"enabled": True})
+    assert resp.status_code == 200, resp.text
+
+    db_session.expire_all()
+    stored = (await db_session.execute(select(User).where(User.id == mid))).scalar_one()
+    assert _aware(stored.pending_deletion_at) > datetime.now(timezone.utc)  # refreshed
+
+
+@pytest.mark.asyncio
+async def test_put_without_transition_keeps_pending_grace(client, admin_user, db_session):
+    """Re-saving settings while GDPR is already enabled does not touch pending
+    deletion deadlines — only a disabled->enabled transition refreshes them."""
+    from datetime import datetime, timedelta, timezone
+    from sqlalchemy import select
+    from models.user import User
+
+    await _admin_profile(db_session, admin_user)
+    await set_setting(db_session, "gdpr.enabled", "true")  # already enabled
+    member = User(username="leaver2", hashed_password="x", is_active=True)
+    member.pending_deletion_at = datetime.now(timezone.utc) - timedelta(days=5)
+    db_session.add(member)
+    await db_session.commit()
+    mid = member.id
+
+    _auth(client, admin_user)
+    resp = await client.put("/api/portal/admin/gdpr/settings", json={"enabled": True})
+    assert resp.status_code == 200, resp.text
+
+    db_session.expire_all()
+    stored = (await db_session.execute(select(User).where(User.id == mid))).scalar_one()
+    assert _aware(stored.pending_deletion_at) < datetime.now(timezone.utc)  # untouched
+
+
+@pytest.mark.asyncio
+async def test_reenable_is_atomic_rolls_back_toggle_on_refresh_failure(
+    client, admin_user, db_session, monkeypatch,
+):
+    """Re-enable + grace refresh are one transaction: if the refresh raises, the
+    gdpr.enabled write rolls back too (never left ON with stale deadlines)."""
+    import api.portal_admin_gdpr as gdpr_api
+    from services.portal.gdpr import is_gdpr_enabled
+
+    await _admin_profile(db_session, admin_user)  # gdpr OFF by default
+
+    async def _boom(*_a, **_k):
+        raise RuntimeError("simulated DB error during grace refresh")
+    monkeypatch.setattr(gdpr_api, "refresh_pending_grace", _boom)
+
+    _auth(client, admin_user)
+    try:
+        resp = await client.put("/api/portal/admin/gdpr/settings", json={"enabled": True})
+        assert resp.status_code >= 500  # unhandled error surfaces as 500
+    except RuntimeError:
+        pass  # some test transports re-raise the server exception instead
+
+    db_session.expire_all()
+    assert await is_gdpr_enabled(db_session) is False  # toggle rolled back

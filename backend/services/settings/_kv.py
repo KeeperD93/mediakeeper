@@ -141,9 +141,17 @@ async def encrypt_legacy_sensitive_values(
 
 
 # user_preferences
-async def get_user_preferences(db: AsyncSession, user_id: int) -> UserPreference | None:
-    result = await db.execute(select(UserPreference).where(UserPreference.user_id == user_id))
-    return result.scalar_one_or_none()
+async def get_user_preferences(
+    db: AsyncSession, user_id: int, *, lock_row: bool = False,
+) -> UserPreference | None:
+    stmt = select(UserPreference).where(UserPreference.user_id == user_id)
+    if lock_row:
+        # FOR UPDATE serializes a read-merge-write of the JSON columns against a
+        # concurrent save so neither write is lost. Ignored on SQLite.
+        bind = db.get_bind()
+        if bind is not None and bind.dialect.name != "sqlite":
+            stmt = stmt.with_for_update()
+    return (await db.execute(stmt)).scalar_one_or_none()
 
 
 async def get_portal_default_language(db: AsyncSession, default: str | None = None) -> str:

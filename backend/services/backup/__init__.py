@@ -23,6 +23,7 @@ from .directory import list_available_backup_dirs, set_backup_directory
 from .listing import (
     apply_retention,
     apply_retention_by_count,
+    apply_retention_for_setting,
     delete_backup,
     get_backup_path,
     list_backups,
@@ -35,6 +36,7 @@ __all__ = [
     "RETENTION_DAYS_KEY",
     "apply_retention",
     "apply_retention_by_count",
+    "apply_retention_for_setting",
     "create_backup",
     "delete_backup",
     "get_backup_path",

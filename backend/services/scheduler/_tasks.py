@@ -130,11 +130,16 @@ TASK_DEFINITIONS: dict[str, dict] = {
     "quota_auto_recompute": {
         "label":       "Auto request-quota recompute",
         "label_key":   "scheduler.tasks.quota_auto_recompute",
-        "default_sec": 3600,    # Hourly check; the handler only acts during
-                                # the local midnight hour (lands at ~00:00).
-        "default_on":  True,    # Gated: no-op outside midnight, when disabled
-                                # via quota.auto.enabled, or with no auto rows.
+        "default_sec": 3600,    # Hourly check; ``daily_cadence`` lets the
+                                # scheduled run fire once per calendar day.
+        "default_on":  True,    # Gated: scheduled run fires once a day, no-op
+                                # when disabled via quota.auto.enabled or with
+                                # no auto rows.
         "handler":     _handler_quota_recompute,
+        # Daily cadence: the hourly interval tick fires the engine at most once
+        # per local calendar day (first tick after midnight) — drift-proof vs
+        # the monotonic timer. A manual "Run Now" force-run bypasses it.
+        "daily_cadence": True,
         "description": "scheduler.quota_auto_recompute",
     },
     "clear_image_cache": {

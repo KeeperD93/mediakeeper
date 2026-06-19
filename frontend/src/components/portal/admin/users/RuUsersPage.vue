@@ -60,7 +60,7 @@
     </div>
 
     <RuUsersTable
-      v-else-if="viewMode === 'table'"
+      v-else-if="viewMode === VIEW_MODE.TABLE"
       :items="items"
       :selected-ids="selectedIds"
       :active-id="drawerProfileId"

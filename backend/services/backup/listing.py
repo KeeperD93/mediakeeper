@@ -95,3 +95,13 @@ def apply_retention_by_count(max_count: int, backup_dir: Path) -> int:
         removed += 1
         logger.info("[backup] Count retention: removed %s", f.name)
     return removed
+
+
+def apply_retention_for_setting(retention: int, backup_dir: Path) -> int:
+    """Apply the configured ``backup.retention_days`` policy. A negative value
+    means "keep the N most recent" (count-based); a positive value means
+    "delete older than N days". The manual endpoint and the scheduled backup
+    handler both route through this so the two paths can't diverge."""
+    if retention < 0:
+        return apply_retention_by_count(abs(retention), backup_dir)
+    return apply_retention(retention, backup_dir)

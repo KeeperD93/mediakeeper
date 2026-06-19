@@ -36,6 +36,9 @@ from services.portal.gdpr import (
     GDPR_ENABLED_KEY,
     GDPR_PRIVACY_EN_KEY,
     GDPR_PRIVACY_FR_KEY,
+    get_purge_delay_days,
+    is_gdpr_enabled,
+    refresh_pending_grace,
 )
 from services.settings import get_settings_map, set_settings_map
 
@@ -115,6 +118,10 @@ async def put_gdpr_settings(
     """
     sent = payload.model_fields_set
     updates: dict[str, str] = {}
+    # Detect a disabled -> enabled transition (read the live value before the
+    # write) so frozen deletion requests get a fresh grace window instead of
+    # being purged instantly on the next run.
+    gdpr_reenabled = "enabled" in sent and payload.enabled and not await is_gdpr_enabled(db)
     if "enabled" in sent:
         updates[GDPR_ENABLED_KEY] = "true" if payload.enabled else "false"
     if "privacy_text_fr" in sent:
@@ -129,11 +136,20 @@ async def put_gdpr_settings(
         updates[GDPR_DELAY_KEY] = str(int(payload.account_purge_delay_days or 30))
 
     if updates:
-        await set_settings_map(db, updates)
+        # On a re-enable, defer the commit so the grace refresh lands in the SAME
+        # transaction as the toggle write: a failed refresh then rolls the enable
+        # back too, never leaving gdpr=ON with stale (overdue) deletion deadlines.
+        await set_settings_map(db, updates, commit=not gdpr_reenabled)
         logger.info(
             "[GDPR_SETTINGS] admin_user_id=%s updated keys=%s",
             admin.id, sorted(updates.keys()),
         )
+
+    if gdpr_reenabled:
+        await refresh_pending_grace(
+            db, delay_days=await get_purge_delay_days(db), commit=False,
+        )
+        await db.commit()
 
     raw = await get_settings_map(db, list(_ALL_KEYS))
     return {

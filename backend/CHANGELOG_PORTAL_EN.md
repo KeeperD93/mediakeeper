@@ -38,6 +38,7 @@ This section intentionally has no date so it is not shown to users.
 ### Fixed
 - Event invites — private profiles and admins can no longer be invited.
 - Notifications — keyboard navigation (Esc to close) and no duplicates on load.
+- Notifications — unread highlight now follows your theme accent colour.
 - Continue watching — shows only your own in-progress titles.
 - Requests — refused (not allowed through) when the adult check can't reach TMDB.
 - Lists — collaborator history shows pseudonyms, never raw Emby logins.
@@ -60,6 +61,7 @@ This section intentionally has no date so it is not shown to users.
 - Custom avatars now shown in list contributors and the user picker.
 - "Already requested" badges now load on large lists.
 - What's new — full XP bar at max level (no level 51).
+- What's new — a same-day addition stays visible even after dismissing the overlay.
 - Recommended for you — the home row now fills to 20 distinct titles.
 - Adult content — hiding it now applies to every list, search and recommendations.
 - Requests — adult titles can only be requested if the administrator allows it.

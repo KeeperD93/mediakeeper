@@ -40,6 +40,7 @@ utilisateurs.
 ### Fixed
 - Invitations — les profils privés et les admins ne peuvent plus être invités.
 - Notifications — navigation clavier (Échap pour fermer) et fin des doublons au chargement.
+- Notifications — surbrillance des non-lues suit la couleur d'accent de votre thème.
 - Reprendre la lecture — affiche uniquement vos titres en cours.
 - Demandes — refusées (au lieu d'être laissées passer) si la vérification adulte ne joint pas TMDB.
 - Listes — l'historique des collaborateurs affiche les pseudos, jamais les logins Emby.
@@ -62,6 +63,7 @@ utilisateurs.
 - Avatars personnalisés affichés dans les contributeurs de listes et le sélecteur d'utilisateurs.
 - Pastilles « déjà demandé » affichées sur les grandes listes.
 - Quoi de neuf — barre XP pleine au niveau max (sans niveau 51).
+- Quoi de neuf — un ajout du jour reste visible même après fermeture de l'overlay.
 - Recommandés pour vous — le carrousel d'accueil affiche 20 titres distincts.
 - Contenu adulte — le masquage s'applique à toutes les listes, recherche et recommandations.
 - Demandes — les titres adultes ne sont demandables que si l'administrateur l'autorise.

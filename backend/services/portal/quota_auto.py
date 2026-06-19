@@ -18,6 +18,7 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.quota import QUOTA_AUTO_DEFAULTS, QUOTA_BAND_MAX, QUOTA_BAND_MIN
 from models.playback_stats import PlaybackSession
 from models.portal.login_history import UserLoginHistory
 from models.portal.profile import UserProfile
@@ -45,16 +46,6 @@ START_CAP = 5
 # A row recomputed within this window is skipped on the next pass, so a reboot
 # during the midnight hour cannot double-step a cap in the same night.
 _RERUN_GUARD_HOURS = 20
-
-# Settings defaults — overridable via the ``quota.auto.<key>`` Settings rows.
-_INT_DEFAULTS = {
-    "window_days": 30,
-    "min": 2,
-    "max": 15,
-    "grace_days": 14,
-    "up_step": 2,
-    "down_step": 1,
-}
 
 
 def compute_score(counts: dict[str, int]) -> float:
@@ -140,7 +131,13 @@ async def _gather(
     last_play = (await db.execute(
         select(func.max(PlaybackSession.started_at)).where(play_filter)
     )).scalar()
-    stamps = [s for s in (_aware(last_login), _aware(last_play)) if s is not None]
+    # last_seen_at is bumped on every /me, so a portal-active member who files
+    # requests/lists/tickets but never streams still counts as present — else
+    # the decay would shrink their cap despite real engagement.
+    last_seen = profile.last_seen_at if profile else None
+    stamps = [
+        s for s in (_aware(last_login), _aware(last_play), _aware(last_seen)) if s is not None
+    ]
     return counts, (max(stamps) if stamps else None)
 
 
@@ -148,7 +145,7 @@ async def _load_settings(db: AsyncSession) -> dict:
     from services.settings import get_setting
 
     cfg: dict = {}
-    for key, default in _INT_DEFAULTS.items():
+    for key, default in QUOTA_AUTO_DEFAULTS.items():
         # get_setting returns "" for an absent key (never None), so guard on
         # truthiness: an unset key takes the default directly instead of
         # routing int("") through the except.
@@ -181,9 +178,13 @@ async def recompute_auto_quotas(db: AsyncSession, *, now: datetime | None = None
     cutoff = now - timedelta(days=cfg["window_days"])
     guard = now - timedelta(hours=_RERUN_GUARD_HOURS)
 
-    quotas = (await db.execute(
-        select(RequestQuota).where(RequestQuota.mode == "auto")
-    )).scalars().all()
+    # Lock the auto rows for the batch so a concurrent admin edit (which also
+    # locks the row) can't lose its write to the recompute. Ignored on SQLite.
+    stmt = select(RequestQuota).where(RequestQuota.mode == "auto")
+    bind = db.get_bind()
+    if bind is not None and bind.dialect.name != "sqlite":
+        stmt = stmt.with_for_update()
+    quotas = (await db.execute(stmt)).scalars().all()
 
     processed = 0
     changed = 0
@@ -200,8 +201,8 @@ async def recompute_auto_quotas(db: AsyncSession, *, now: datetime | None = None
         profile = (await db.execute(
             select(UserProfile).where(UserProfile.user_id == quota.user_id)
         )).scalar_one_or_none()
-        lo = _clamp(quota.auto_min, 1, 100)
-        hi = max(lo, _clamp(quota.auto_max, 1, 100))
+        lo = _clamp(quota.auto_min, QUOTA_BAND_MIN, QUOTA_BAND_MAX)
+        hi = max(lo, _clamp(quota.auto_max, QUOTA_BAND_MIN, QUOTA_BAND_MAX))
         counts, last_active = await _gather(db, user, profile, cutoff)
         score = compute_score(counts)
         target = compute_target(score, lo, hi)

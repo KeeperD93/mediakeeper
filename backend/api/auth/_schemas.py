@@ -1,7 +1,7 @@
 """Pydantic schemas for the authentication endpoints."""
 import re
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, StrictInt, field_validator
 
 from core.security import MAX_BCRYPT_PASSWORD_BYTES, password_byte_length
 
@@ -69,7 +69,8 @@ class TableColumnsRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     table:  str = Field(..., min_length=1, max_length=64, pattern=r"^[A-Za-z0-9._-]+$")
-    widths: list[int] = Field(..., min_length=1, max_length=64)
+    # StrictInt rejects booleans (a JSON ``true`` would otherwise coerce to 1).
+    widths: list[StrictInt] = Field(..., min_length=1, max_length=64)
 
     @field_validator("widths")
     @classmethod

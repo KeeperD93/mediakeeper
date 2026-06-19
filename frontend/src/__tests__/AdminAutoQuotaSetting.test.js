@@ -31,7 +31,11 @@ function buildCard() {
     global: {
       mocks: { $t: k => k },
       stubs: {
-        MkToggle: { template: '<button class="mk-toggle-stub" />' },
+        MkToggle: {
+          props: ['modelValue'],
+          template:
+            '<button class="mk-toggle-stub" @click="$emit(\'update:model-value\', !modelValue)" />',
+        },
         AutoQuotaHelp: true,
       },
     },
@@ -108,6 +112,23 @@ describe('AdminAutoQuotaSetting', () => {
     await flushPromises()
 
     expect(showToast).toHaveBeenCalled()
+
+    w.unmount()
+  })
+
+  it('reverts the optimistic toggle and shows a toast when the enable PATCH fails', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    apiPatch.mockRejectedValueOnce(new Error('500'))
+    const w = buildCard()
+    await flushPromises()
+    expect(w.find('.pt-aq-config').exists()).toBe(true) // enabled=true from load
+
+    await w.get('.mk-toggle-stub').trigger('click') // emits update:model-value=false
+    await flushPromises()
+
+    expect(showToast).toHaveBeenCalled()
+    // optimistic flip to disabled was reverted on failure -> config still shown
+    expect(w.find('.pt-aq-config').exists()).toBe(true)
 
     w.unmount()
   })

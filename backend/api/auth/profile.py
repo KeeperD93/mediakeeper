@@ -176,7 +176,7 @@ async def save_locale(
 ):
     """Persist just the locale field, merging with existing preferences."""
     from services.settings import get_user_preferences, upsert_user_preferences
-    row = await get_user_preferences(db, current_user.id)
+    row = await get_user_preferences(db, current_user.id, lock_row=True)
     current = {}
     if row and row.preferences:
         try:
@@ -222,7 +222,7 @@ async def save_table_columns(
 ):
     """Store one table's column widths, merging into the user's existing map."""
     from services.settings import get_user_preferences, upsert_user_preferences
-    row = await get_user_preferences(db, current_user.id)
+    row = await get_user_preferences(db, current_user.id, lock_row=True)
     current = {}
     if row and row.table_columns:
         try:
@@ -234,6 +234,9 @@ async def save_table_columns(
                 current_user.id, exc,
             )
             current = {}
+    # Re-insert at the end so the just-saved table is the most recent and can't
+    # be evicted below in favour of a stale entry kept only by its old position.
+    current.pop(req.table, None)
     current[req.table] = req.widths
     if len(current) > MAX_TABLE_PREFS:
         current = dict(list(current.items())[-MAX_TABLE_PREFS:])

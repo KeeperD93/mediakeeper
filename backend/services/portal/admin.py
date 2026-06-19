@@ -101,7 +101,13 @@ async def update_user_quota(
     """Admin: update a user's quota, recording a from/to audit entry for
     every field that actually changes. Creates the row on first edit
     (seeding the admin/moderator unlimited default via get_or_create_quota)."""
-    quota = await get_or_create_quota(db, user_id)
+    # Lock the row: an admin edit can land concurrently with the nightly
+    # recompute (which also locks), so serialize to avoid a lost update. The
+    # lock releases at the commit below, or at session cleanup on an early
+    # return; the early returns intentionally do NOT rollback — this also runs
+    # inside run_bulk_action's shared session and a rollback would expire its
+    # in-flight objects.
+    quota = await get_or_create_quota(db, user_id, lock_row=True)
 
     # Reject an inverted auto-mode range against the MERGED values — a
     # single-field PATCH may set only one bound.
@@ -113,6 +119,7 @@ async def update_user_quota(
     # drifts it from there. A plain flip (no band given) seeds the per-user
     # band from the instance defaults; an explicit band in this PATCH wins.
     if data.get("mode") == "auto" and quota.mode != "auto":
+        from datetime import datetime, timezone
         from services.portal.quota_auto import START_CAP
         if "auto_min" not in data and "auto_max" not in data:
             inst_min = await get_portal_int(db, "quota.auto.min")
@@ -122,6 +129,10 @@ async def update_user_quota(
         lo = data.get("auto_min", quota.auto_min)
         hi = data.get("auto_max", quota.auto_max)
         data = {**data, "max_allowed": max(lo, min(hi, START_CAP))}
+        # Stamp the seed time so the rerun guard skips this row on the first
+        # nightly pass: the freshly-seeded START_CAP gets one grace cycle
+        # instead of being stepped the very first night.
+        quota.last_recomputed_at = datetime.now(timezone.utc)
 
     changed: dict[str, dict] = {}
     for key in ("max_allowed", "unlimited", "auto_approve", "mode", "auto_min", "auto_max"):

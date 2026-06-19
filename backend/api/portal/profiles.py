@@ -69,28 +69,40 @@ async def _user_unlocked_achievement_ids(db: AsyncSession, user_id: int) -> set[
     return set(rows)
 
 
-async def _prune_stale_decorations(
+async def _stale_decoration_updates(
     db: AsyncSession, profile: UserProfile, user_id: int,
-) -> UserProfile:
-    """Clear equipped title / badges / avatar_effect that no longer reference
-    unlocked achievements — the dropdowns filter locked items, so without this
-    the user keeps cosmetics they cannot re-select."""
-    changed = False
-    if profile.selected_title:
-        if profile.selected_title not in await _user_unlocked_titles(db, user_id):
-            profile.selected_title = None
-            changed = True
-    if profile.avatar_effect:
-        if profile.avatar_effect not in await _user_unlocked_avatar_effects(db, user_id):
-            profile.avatar_effect = None
-            changed = True
+) -> dict:
+    """Equipped cosmetics on ``profile`` that no longer reference an unlocked
+    achievement, as a ``{column: cleaned_value}`` map (empty when nothing is
+    stale). Pure read — the caller decides whether to persist (the owner's own
+    profile) or just hide them for display (a third party's public view)."""
+    updates: dict = {}
+    if profile.selected_title and (
+        profile.selected_title not in await _user_unlocked_titles(db, user_id)
+    ):
+        updates["selected_title"] = None
+    if profile.avatar_effect and (
+        profile.avatar_effect not in await _user_unlocked_avatar_effects(db, user_id)
+    ):
+        updates["avatar_effect"] = None
     if profile.selected_badges:
         unlocked = await _user_unlocked_achievement_ids(db, user_id)
         kept = [b for b in profile.selected_badges if b in unlocked]
         if len(kept) != len(profile.selected_badges):
-            profile.selected_badges = kept or None
-            changed = True
-    if changed:
+            updates["selected_badges"] = kept or None
+    return updates
+
+
+async def _prune_stale_decorations(
+    db: AsyncSession, profile: UserProfile, user_id: int,
+) -> UserProfile:
+    """Clear equipped cosmetics that no longer reference unlocked achievements
+    and persist — the dropdowns filter locked items, so without this the user
+    keeps cosmetics they cannot re-select. Owner's own profile only (it writes)."""
+    updates = await _stale_decoration_updates(db, profile, user_id)
+    if updates:
+        for field, value in updates.items():
+            setattr(profile, field, value)
         db.add(profile)
         await db.commit()
         await db.refresh(profile)
@@ -266,5 +278,13 @@ async def get_profile(
     )).scalar_one_or_none()
     if not row:
         raise HTTPException(status_code=404, detail="profile_not_found")
-    row = await _prune_stale_decorations(db, row, row.user_id)
+    # Read-only: hide cosmetics no longer unlocked WITHOUT writing to the viewed
+    # user's row. A viewer must not mutate the profile they look at — that was a
+    # write-on-read + lost-update footgun. The owner's row is cleaned for real
+    # when they next open their own profile (/me).
+    updates = await _stale_decoration_updates(db, row, row.user_id)
+    if updates:
+        db.expunge(row)  # detach so the display-only cleanup can never be flushed
+        for field, value in updates.items():
+            setattr(row, field, value)
     return _serialize_public(row, lang=lang)

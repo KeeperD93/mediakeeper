@@ -15,6 +15,7 @@ import re
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.quota import QUOTA_AUTO_DEFAULTS, QUOTA_BAND_MAX, QUOTA_BAND_MIN
 from core.i18n import normalize_locale
 from models.settings import Setting
 from services.portal._html_sanitize import sanitize_html
@@ -57,14 +58,14 @@ PORTAL_SETTING_INTS: dict[str, tuple[int, int, int]] = {
     "portal.events.max_participants_max": (20, 5, 20),
     # Instance defaults for the automatic request-quota mode. ``min``/``max``
     # seed the per-user band (auto_min/auto_max) when an admin switches a user
-    # to auto; the rest drive the nightly recompute. Keep in sync with the
-    # fallbacks in services/portal/quota_auto._INT_DEFAULTS.
-    "quota.auto.min": (2, 1, 100),
-    "quota.auto.max": (15, 1, 100),
-    "quota.auto.window_days": (30, 1, 90),
-    "quota.auto.grace_days": (14, 0, 90),
-    "quota.auto.up_step": (2, 1, 50),
-    "quota.auto.down_step": (1, 1, 50),
+    # to auto; the rest drive the nightly recompute. Defaults and the [min,
+    # max] cap band come from constants/quota.py (single source).
+    "quota.auto.min": (QUOTA_AUTO_DEFAULTS["min"], QUOTA_BAND_MIN, QUOTA_BAND_MAX),
+    "quota.auto.max": (QUOTA_AUTO_DEFAULTS["max"], QUOTA_BAND_MIN, QUOTA_BAND_MAX),
+    "quota.auto.window_days": (QUOTA_AUTO_DEFAULTS["window_days"], 1, 90),
+    "quota.auto.grace_days": (QUOTA_AUTO_DEFAULTS["grace_days"], 0, 90),
+    "quota.auto.up_step": (QUOTA_AUTO_DEFAULTS["up_step"], 1, 50),
+    "quota.auto.down_step": (QUOTA_AUTO_DEFAULTS["down_step"], 1, 50),
 }
 
 # String settings. ``portal.default_language`` is the instance-wide default
@@ -213,6 +214,8 @@ _EVENT_CAPACITY_KEYS = {
     "portal.events.max_participants_max",
 }
 
+_QUOTA_BAND_KEYS = {"quota.auto.min", "quota.auto.max"}
+
 
 def _snap_to_step(value: int, step: int, lo: int, hi: int) -> int:
     """Clamp ``value`` to [lo, hi] then snap to the nearest ``step``
@@ -260,11 +263,31 @@ async def update_portal_settings(
         pending_capacity["portal.events.max_participants_min"] = proposed_min
         pending_capacity["portal.events.max_participants_max"] = proposed_max
 
+    # Auto-quota band keeps the same min ≤ max invariant as the event
+    # capacity pair: resolve against stored values so a single-field PATCH
+    # can't leave min > max. min > max is equalised (max := min), mirroring
+    # the capacity reorder above.
+    pending_quota: dict[str, int] = {}
+    for key in _QUOTA_BAND_KEYS:
+        if key in updates:
+            _, lo, hi = PORTAL_SETTING_INTS[key]
+            pending_quota[key] = max(lo, min(hi, int(updates[key])))
+    if pending_quota:
+        current = await get_portal_settings(db)
+        q_min = pending_quota.get("quota.auto.min", current["quota.auto.min"])
+        q_max = pending_quota.get("quota.auto.max", current["quota.auto.max"])
+        if q_max < q_min:
+            q_max = q_min
+        pending_quota["quota.auto.min"] = q_min
+        pending_quota["quota.auto.max"] = q_max
+
     for key, val in updates.items():
         if key in PORTAL_SETTING_FLAGS:
             value_str = "true" if val else "false"
         elif key in pending_capacity:
             value_str = str(pending_capacity[key])
+        elif key in pending_quota:
+            value_str = str(pending_quota[key])
         elif key in PORTAL_SETTING_INTS:
             _, lo, hi = PORTAL_SETTING_INTS[key]
             value_str = str(max(lo, min(hi, int(val))))
