@@ -8,6 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.http_client import get_internal_client
 from services.opensubtitles import _normalize_lang
+from services.path_config import get_existing_media_path_roots, validate_path_in_roots
+
+_SUBTITLE_SUFFIXES = {".srt", ".ass", ".ssa", ".vtt"}
 
 logger = logging.getLogger("mediakeeper.subtitle_audit")
 
@@ -46,6 +49,11 @@ async def run_audit(
 
     if checks is None:
         checks = ["missing", "forced", "image_only"]
+
+    # External subtitle paths come straight from the (trusted-but-fallible)
+    # media server. Validate them against the media roots before reading so a
+    # compromised server can't make us read arbitrary files (#401).
+    media_roots = get_existing_media_path_roots()
 
     cfg = await _get_emby_config(db)
     if not cfg:
@@ -173,9 +181,17 @@ async def run_audit(
                 # Check: encodage (files SRT externes non-UTF8)
                 if "encoding" in checks:
                     for srt_path in external_srt_paths:
+                        resolved_srt, srt_err = validate_path_in_roots(
+                            srt_path,
+                            allowed_suffixes=_SUBTITLE_SUFFIXES,
+                            must_be_dir=False,
+                            roots=media_roots,
+                        )
+                        if srt_err:
+                            continue
                         try:
                             import chardet
-                            raw = Path(srt_path).read_bytes()[:4096]
+                            raw = resolved_srt.read_bytes()[:4096]
                             detected = chardet.detect(raw)
                             enc = (detected.get("encoding") or "utf-8").upper()
                             if enc not in ("UTF-8", "ASCII", "UTF-8-SIG"):
