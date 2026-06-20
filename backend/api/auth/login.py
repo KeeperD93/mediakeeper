@@ -1,5 +1,6 @@
 """Endpoints /login et /portal-login."""
 import logging
+import secrets
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
@@ -11,6 +12,7 @@ from core.proxy import get_client_ip
 from core.rate_limit import ip_key, limiter
 from core.security import (
     create_access_token,
+    hash_password,
     is_backoffice_admin,
     is_external_auth_only_password,
     verify_password,
@@ -34,6 +36,11 @@ from services.security import (
     record_attempt,
     record_failure,
 )
+
+# Pre-hashed throwaway password. Verifying an attacker's input against it when
+# the username is unknown makes the failed-login path spend the same bcrypt
+# time whether or not the account exists, closing the timing oracle (CWE-208).
+_DUMMY_PASSWORD_HASH = hash_password(secrets.token_urlsafe(16))
 
 
 async def _stamp_admin_login(
@@ -90,7 +97,14 @@ async def login(req: LoginRequest, request: Request, response: Response, db: Asy
     )
     user   = result.scalar_one_or_none()
 
-    if not user or not verify_password(req.password, user.hashed_password):
+    if user:
+        password_ok = verify_password(req.password, user.hashed_password)
+    else:
+        # No such user: still run bcrypt so the response time can't reveal it.
+        verify_password(req.password, _DUMMY_PASSWORD_HASH)
+        password_ok = False
+
+    if not password_ok:
         await record_failure(db, client_ip, tracking_username, "admin", user_agent)
         logger.warning("[LOGIN] Failure for user=%r from %s", req.username, client_ip)
         raise HTTPException(
@@ -169,11 +183,16 @@ async def portal_login(
     # the user typed. Falls back to the raw input when no DB row
     # matched — keeps the existing Emby cascade behaviour.
     if is_backoffice_admin(user.username if user else username):
-        local_admin_ok = bool(
-            user
-            and verify_password(req.password, user.hashed_password)
-            and not is_external_auth_only_password(user.hashed_password)
-        )
+        if user:
+            local_admin_ok = bool(
+                verify_password(req.password, user.hashed_password)
+                and not is_external_auth_only_password(user.hashed_password)
+            )
+        else:
+            # Admin-listed username with no account row: run bcrypt anyway so
+            # the timing matches a real account with a wrong password.
+            verify_password(req.password, _DUMMY_PASSWORD_HASH)
+            local_admin_ok = False
 
         if user and not user.is_active:
             raise HTTPException(
