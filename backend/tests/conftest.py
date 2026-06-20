@@ -113,6 +113,19 @@ def _reset_media_categories_cache():
 
 
 @pytest.fixture(autouse=True)
+def _reset_top20_caches():
+    """Drop the module-level Top 20 result cache + series-id memo between
+    tests so a cached payload from one test never leaks into another that
+    seeds a different playback fixture."""
+    from api.portal import top20 as _top20
+    _top20._series_id_cache.clear()
+    _top20._top20_result_cache.update({"payload": None, "at": None})
+    yield
+    _top20._series_id_cache.clear()
+    _top20._top20_result_cache.update({"payload": None, "at": None})
+
+
+@pytest.fixture(autouse=True)
 def _reset_diagnostic_log_sentinels():
     """Restore the WARN-once cooldown sentinels to their module-init
     value (-inf) between tests. The CSRF middleware and the WS

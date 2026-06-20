@@ -106,7 +106,9 @@ async def unpin_badge(
 
 
 @router.post("/check")
+@limiter.limit("6/minute", key_func=portal_user_or_ip_key)
 async def check_achievements(
+    request: Request,
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):
