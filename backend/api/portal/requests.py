@@ -155,12 +155,6 @@ async def batch_status(
     if not is_admin:
         anonymize = await get_portal_flag(db, "portal.anonymize_requests")
 
-    import logging
-    logging.getLogger("mediakeeper.portal.requests").info(
-        f"[BATCH_STATUS] user={user.username!r} role={profile.role!r} "
-        f"is_admin={is_admin} anonymize={anonymize} tmdb_ids={len(unique_ids)}"
-    )
-
     return {"results": await req_svc.get_batch_status(
         db, unique_ids, anonymize=anonymize,
     )}
