@@ -1,7 +1,6 @@
 """Endpoints for dynamic media category management."""
 import logging
 import re as _re
-from pathlib import Path
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, ConfigDict
@@ -44,23 +43,20 @@ async def add_category(
     path = req.path.strip()
     if not label or not path:
         return {"error": "name_and_path_required"}
-    # Confine the user path to an allowed media root (realpath + prefix check)
-    # before any filesystem access reads it.
+    # Confine to an allowed media root: returns the validated real path of an
+    # existing directory, or None (all filesystem access stays inside the guard).
     confined = _confine_browse_path(path)
     if confined is None:
         return {"error": "path_outside_allowed_zones"}
-    target = Path(confined)
-    if not target.is_dir():
-        return {"error": "path_must_be_existing_directory"}
     key = _re.sub(r'[^a-z0-9]+', '', label.lower().replace(' ', ''))
     if not key:
         return {"error": "invalid_name"}
     cats = await get_categories(db)
     if any(c["key"] == key for c in cats):
         return {"error": f"category_already_exists: {label}"}
-    cats.append({"key": key, "label": label, "path": str(target)})
+    cats.append({"key": key, "label": label, "path": confined})
     await save_categories(db, cats)
-    logger.info("Category added: %s → %s by %s", label, target, _.username)
+    logger.info("Category added: %s → %s by %s", label, confined, _.username)
     return {"ok": True, "categories": cats}
 
 
