@@ -68,6 +68,7 @@ EXEMPT_PATHS = {
 # is skipped on these paths but the Origin / Referer guard still runs.
 LOGIN_PATHS = {
     "/api/auth/login",
+    "/api/auth/portal-login",
     "/api/portal/auth/login",
 }
 
