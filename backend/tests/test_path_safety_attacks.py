@@ -27,7 +27,7 @@ from unittest.mock import patch
 
 import pytest
 
-from api.media._helpers import _get_browse_roots, _is_allowed_browse_path
+from api.media._helpers import _confine_browse_path, _get_browse_roots, _is_allowed_browse_path
 from core.app_spa import _resolve_spa_file
 from services import backup as backup_service
 from services.logs import _files
@@ -520,6 +520,25 @@ def test_is_allowed_browse_path_rejects_nul_byte(monkeypatch):
         monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
 
         assert _is_allowed_browse_path(Path("movie.mkv\x00.txt")) is False
+    finally:
+        shutil.rmtree(workspace, ignore_errors=True)
+
+
+def test_confine_browse_path_returns_confined_real_path(monkeypatch):
+    workspace = _make_workspace_tmp("_attack_browse")
+    try:
+        media_root = workspace / "media"
+        sub = media_root / "movies"
+        sub.mkdir(parents=True)
+        monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
+
+        # In-root subdir -> the confined real path used by add_category.
+        confined = _confine_browse_path(sub)
+        assert confined is not None and Path(confined) == sub.resolve()
+        # A traversal that escapes the root after realpath, and a sibling
+        # outside the root, both reject.
+        assert _confine_browse_path(media_root / ".." / "outside") is None
+        assert _confine_browse_path(workspace / "outside") is None
     finally:
         shutil.rmtree(workspace, ignore_errors=True)
 
