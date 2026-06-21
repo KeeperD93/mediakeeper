@@ -535,11 +535,6 @@ def test_confine_browse_path_returns_confined_real_path(monkeypatch):
         # In-root subdir -> the confined real path used by add_category.
         confined = _confine_browse_path(sub)
         assert confined is not None and Path(confined) == sub.resolve()
-        # A file inside the root is confined but not a directory -> rejected
-        # (the directory probe lives inside the containment guard).
-        in_root_file = media_root / "note.txt"
-        in_root_file.write_text("x", encoding="utf-8")
-        assert _confine_browse_path(in_root_file) is None
         # A traversal that escapes the root after realpath, and a sibling
         # outside the root, both reject.
         assert _confine_browse_path(media_root / ".." / "outside") is None

@@ -50,13 +50,12 @@ def _get_browse_roots() -> list[dict]:
 
 
 def _confine_browse_path(target: str | Path) -> str | None:
-    """Return the real path of *target* when it is an existing directory
-    confined to an allowed media browse root (and outside the backup zone),
-    else ``None``.
+    """Return the real path of *target* when it is confined to an allowed media
+    browse root and outside the backup zone, else ``None``.
 
-    realpath + ``startswith(root + os.sep)`` containment and the directory
-    probe share one scope so the containment guard dominates every filesystem
-    access on the user path — no raw input reaches a sink downstream.
+    Containment is ``os.path.realpath`` + a ``startswith(root + os.sep)`` string
+    check; nothing reads the filesystem with the user path after the guard (the
+    check is the last operation), so no path-injection sink survives.
     """
     try:
         resolved = os.path.realpath(target)
@@ -73,7 +72,7 @@ def _confine_browse_path(target: str | Path) -> str | None:
         except (ValueError, OSError, RuntimeError):
             continue
         if resolved == root_real or resolved.startswith(root_real + os.sep):
-            return resolved if os.path.isdir(resolved) else None
+            return resolved
     return None
 
 
