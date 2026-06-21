@@ -52,6 +52,20 @@ def test_parse_trusted_proxies_empty_yields_empty_list():
     assert parse_trusted_proxies(None) == []
 
 
+def test_parse_trusted_proxies_warns_on_overly_broad_cidr(caplog):
+    import logging
+
+    with caplog.at_level(logging.WARNING, logger="mediakeeper"):
+        nets = parse_trusted_proxies("0.0.0.0/0, 10.0.0.0/8, 198.51.100.10/32")
+
+    # All three are still accepted — the warning is advisory, not a reject.
+    assert len(nets) == 3
+    warnings = " ".join(r.message for r in caplog.records if r.levelno == logging.WARNING)
+    assert "very broad" in warnings
+    # A tight /32 host must never be flagged.
+    assert "198.51.100.10/32" not in warnings
+
+
 def test_is_trusted_proxy_host_matches_cidr():
     nets = parse_trusted_proxies("172.18.0.0/16")
     assert is_trusted_proxy_host("172.18.5.5", nets) is True

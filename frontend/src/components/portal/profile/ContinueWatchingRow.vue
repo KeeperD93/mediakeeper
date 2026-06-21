@@ -3,10 +3,11 @@
     <h3 class="dp-section-title">{{ $t('portal.sections.continueWatching') }}</h3>
     <div ref="cwTrackRef" class="dp-cw-track" @scroll="cwOnScroll">
       <a
-        v-for="item in items"
+        v-for="item in safeItems"
         :key="item.emby_item_id || item.id"
-        :href="item.emby_url"
+        :href="item.embyHref"
         target="_blank"
+        rel="noopener noreferrer"
         class="dp-cw-card"
       >
         <img
@@ -40,13 +41,19 @@
 </template>
 
 <script setup>
-import { toRef } from 'vue'
+import { computed, toRef } from 'vue'
 import { useCarouselArrows } from '@/composables/portal/useCarouselArrows'
 import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
+import { safeHref } from '@/utils/safeUrl'
 
 const props = defineProps({
   items: { type: Array, default: () => [] },
 })
+
+// Precompute a scheme-safe Emby deep-link per card (dead '#' if unsafe).
+const safeItems = computed(() =>
+  props.items.map(item => ({ ...item, embyHref: safeHref(item.emby_url) || '#' })),
+)
 
 const itemsRef = toRef(props, 'items')
 const {

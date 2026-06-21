@@ -98,6 +98,17 @@ def test_stats_schemas_reject_unknown_fields():
         ExclusionRequest(mode="exact", value="x", bogus=1)
 
 
+def test_exclusion_request_validates_mode_and_value():
+    """Bad mode / blank value are rejected at the schema (422 at the route)
+    instead of the old 200 + {"error": ...} contract (#381)."""
+    with pytest.raises(ValidationError):
+        ExclusionRequest(mode="bogus", value="x")
+    with pytest.raises(ValidationError):
+        ExclusionRequest(mode="exact", value="   ")
+    # A valid payload strips the value.
+    assert ExclusionRequest(mode="contains", value="  hi  ").value == "hi"
+
+
 def test_release_tags_schema_rejects_unknown_fields():
     with pytest.raises(ValidationError):
         ReleaseTagsPayload(tags=["1080p"], bogus=1)

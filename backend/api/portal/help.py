@@ -25,7 +25,7 @@ from __future__ import annotations
 from typing import Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.portal.deps import get_current_profile, require_admin
@@ -86,9 +86,10 @@ async def get_article_user(
 
 
 class ArticleCreatePayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     category: str = Field(..., min_length=1, max_length=40)
     title: str = Field(..., min_length=1, max_length=300)
-    body_html: str = Field(default="")
+    body_html: str = Field(default="", max_length=100_000)
     lang: str = Field(default=help_service.DEFAULT_LANG, max_length=8)
     icon: Optional[str] = Field(default=None, max_length=60)
     sort_order: int = Field(default=0)
@@ -96,6 +97,7 @@ class ArticleCreatePayload(BaseModel):
 
 
 class ArticlePatchPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     category: Optional[str] = Field(default=None, max_length=40)
     icon: Optional[str] = Field(default=None, max_length=60)
     sort_order: Optional[int] = None
@@ -103,8 +105,9 @@ class ArticlePatchPayload(BaseModel):
 
 
 class TranslationPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     title: str = Field(..., min_length=1, max_length=300)
-    body_html: str = Field(default="")
+    body_html: str = Field(default="", max_length=100_000)
 
 
 # ─────────────────────────── Admin endpoints ───────────────────────────

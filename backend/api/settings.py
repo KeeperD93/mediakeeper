@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict
 
 from core.database import get_db
 from core.http_client import get_internal_client, get_external_client
+from core.url_safety import safe_url
 from api.auth import get_current_user
 from models.user import User
 from services.settings import (
@@ -144,6 +145,15 @@ async def save_tool(
 
     tool_def = TOOLS_DEFINITION[tool_key]
     sent = req.model_fields_set  # Only update fields the client explicitly sent
+
+    # Connection / public deep-link URLs must be http(s): public_url is
+    # re-served verbatim into user-facing "Watch on Emby" links, so a
+    # javascript:/data: scheme is rejected at the write edge.
+    for url_field in ("url", "public_url"):
+        if url_field in sent:
+            raw = getattr(req, url_field, None)
+            if raw and safe_url(raw, schemes={"http", "https"}) is None:
+                raise HTTPException(status_code=400, detail="invalid_url_scheme")
 
     # Only one media source can be active at a time
     updates = {}

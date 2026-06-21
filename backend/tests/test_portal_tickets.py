@@ -437,7 +437,7 @@ async def test_series_seasons_returns_episode_tree(client, db_session):
     with patch("services.emby.search._get_emby_config", new=AsyncMock(
         return_value=("http://emby.test", "secret"),
     )), patch("services.emby.search.get_internal_client", return_value=fake_client):
-        resp = await client.get("/api/portal/tickets/emby/series/emby-ser-42/seasons")
+        resp = await client.get("/api/portal/tickets/emby/series/embyser42/seasons")
 
     assert resp.status_code == 200, resp.text
     seasons = resp.json()["seasons"]
@@ -445,3 +445,54 @@ async def test_series_seasons_returns_episode_tree(client, db_session):
     assert seasons[0]["episodes"][0]["episode_number"] == 1
     assert seasons[0]["episodes"][1]["name"] == "Half Loop"
     assert len(seasons[1]["episodes"]) == 1
+
+
+@pytest.mark.asyncio
+async def test_series_seasons_rejects_non_alphanumeric_series_id(client, db_session):
+    """A series_id carrying query-injection chars is rejected at the boundary
+    (422) before it can be interpolated into the upstream Emby URL (#420)."""
+    await _seed(client, db_session)
+    resp = await client.get(
+        "/api/portal/tickets/emby/series/abc%3Fx%3Dy/seasons"
+    )
+    assert resp.status_code == 422
+
+
+# ---------------------------------------------------------------------------
+# Ticket ownership visibility (#422) — a non-owner gets 404, never 403
+# ---------------------------------------------------------------------------
+
+
+async def _create_ticket_as(client, db_session, username):
+    await _seed(client, db_session, username=username)
+    resp = await client.post("/api/portal/tickets", json={
+        "media_title": "Bug app",
+        "media_type": "other",
+        "issue_type": "other",
+        "description": "Quelque chose cloche",
+    })
+    assert resp.status_code == 200, resp.text
+    return resp.json()["id"]
+
+
+@pytest.mark.asyncio
+async def test_get_ticket_of_another_user_returns_404(client, db_session):
+    ticket_id = await _create_ticket_as(client, db_session, "owner-a")
+    # Switch to a different non-admin viewer.
+    await _seed(client, db_session, username="intruder-b")
+
+    resp = await client.get(f"/api/portal/tickets/{ticket_id}")
+    assert resp.status_code == 404
+    assert resp.json()["detail"] == "ticket_not_found"
+
+
+@pytest.mark.asyncio
+async def test_reply_to_another_users_ticket_returns_404(client, db_session):
+    ticket_id = await _create_ticket_as(client, db_session, "owner-c")
+    await _seed(client, db_session, username="intruder-d")
+
+    resp = await client.post(f"/api/portal/tickets/{ticket_id}/reply", json={
+        "content": "je ne devrais pas voir ce ticket",
+    })
+    assert resp.status_code == 404
+    assert resp.json()["detail"] == "ticket_not_found"

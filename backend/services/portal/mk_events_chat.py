@@ -10,6 +10,7 @@ from models.portal.event import (
     MKEventMessage,
 )
 from models.portal.profile import UserProfile
+from services.portal import strip_tags_and_trim
 from services.portal._display_name import resolve_display_name
 
 
@@ -96,7 +97,7 @@ async def post_message(
     msg = MKEventMessage(
         event_id=event_id,
         user_id=user_id,
-        content=content[:2000],
+        content=strip_tags_and_trim(content, 2000),
     )
     db.add(msg)
     await db.commit()

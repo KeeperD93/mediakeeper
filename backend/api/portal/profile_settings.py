@@ -10,12 +10,13 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Query, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Query, Request, UploadFile
 from fastapi.responses import FileResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
+from core.rate_limit import limiter, portal_user_or_ip_key
 from models.portal.achievement import UserAchievement
 from models.portal.profile import UserProfile
 from models.user import User
@@ -50,7 +51,9 @@ PUBLIC_TOTAL_ACHIEVEMENTS = sum(
 
 
 @router.get("/me/check-username")
+@limiter.limit("30/minute", key_func=portal_user_or_ip_key)
 async def check_username(
+    request: Request,
     name: str = Query(..., min_length=1, max_length=50),
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),

@@ -1,12 +1,13 @@
 """Featured heroes: admin manages, public reads."""
 import logging
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
+from core.url_safety import safe_url
 from models.user import User
 from models.portal.profile import UserProfile
 from models.portal.featured import FeaturedHero
@@ -26,6 +27,13 @@ class AddFeatured(BaseModel):
     vote: Optional[float] = None
     year: Optional[str] = Field(None, max_length=10)
     sort_order: int = 0
+
+    # Drop any non-http(s) image URL (javascript:, data:, …) before it is
+    # stored and re-served into a background-image / <img src> sink.
+    @field_validator("poster_url", "backdrop")
+    @classmethod
+    def _safe_image_url(cls, v: Optional[str]) -> Optional[str]:
+        return safe_url(v, schemes={"http", "https"})
 
 
 class UpdateFeatured(BaseModel):
