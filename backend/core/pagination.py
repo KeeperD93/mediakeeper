@@ -14,7 +14,6 @@ Backwards compatibility: if `page` is given without `cursor`, we fall back to of
 import base64
 import json
 import logging
-from typing import Optional
 
 logger = logging.getLogger("mediakeeper.pagination")
 
@@ -64,7 +63,7 @@ def build_cursor_response(
     total: int,
     limit: int,
     cursor_field: str = "id",
-    has_more: Optional[bool] = None,
+    has_more: bool | None = None,
 ) -> dict:
     """
     Build the cursor-based paginated response.
