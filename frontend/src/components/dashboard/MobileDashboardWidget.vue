@@ -25,7 +25,7 @@
       watchlistScanAgo ? $t('dashboard.lastScan') + ' ' + watchlistScanAgo : $t('sidebar.watchlist')
     "
     route="/watchlist"
-    icon-bg="rgba(139,92,246,0.12)"
+    icon-bg="rgb(var(--color-module-watchlist-rgb), 0.12)"
   >
     <template #icon><ClipboardCheck class="m-dash-ql-icon" :size="18" /></template>
   </QuickLink>
@@ -59,8 +59,6 @@ defineProps({
 
 <style scoped>
 .m-dash-ql-icon {
-  /* Pre-existing brand-violet for the watchlist QuickLink icon —
-     no token captures this hue yet (debt flagged separately). */
-  color: #8b5cf6;
+  color: var(--color-module-watchlist);
 }
 </style>

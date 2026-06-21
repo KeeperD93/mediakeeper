@@ -6,14 +6,14 @@
       :value="mediaStats.plays"
       route="/stats"
       :icon="Play"
-      accent="#6366f1"
+      :accent="STAT_CARD_ACCENT.plays"
     />
     <StatCard
       v-if="!hidden.includes(WIDGET_ID.STAT_DURATION)"
       :label="$t('dashboard.totalDuration')"
       :value="mediaStats.duration"
       :icon="Clock"
-      accent="#10b981"
+      :accent="STAT_CARD_ACCENT.duration"
     />
     <StatCard
       v-if="!hidden.includes(WIDGET_ID.STAT_DUPLICATES)"
@@ -21,15 +21,15 @@
       :value="duplicatesCount"
       route="/duplicates"
       :icon="Copy"
-      accent="#f43f5e"
-      :color="duplicatesCount !== '0' && duplicatesCount !== '—' ? '#f43f5e' : ''"
+      :accent="STAT_CARD_ACCENT.duplicates"
+      :color="duplicatesCount !== '0' && duplicatesCount !== '—' ? STAT_CARD_ACCENT.duplicates : ''"
     />
     <StatCard
       v-if="!hidden.includes(WIDGET_ID.STAT_STORAGE)"
       :label="$t('dashboard.storage')"
       :value="mediaStats.storage"
       :icon="HardDrive"
-      accent="#f59e0b"
+      :accent="STAT_CARD_ACCENT.storage"
     />
   </div>
 </template>
@@ -38,6 +38,7 @@
 import { Play, Clock, Copy, HardDrive } from 'lucide-vue-next'
 import StatCard from '@/components/dashboard/widgets/StatCard.vue'
 import { WIDGET_ID } from '@/composables/useDashboardLayout'
+import { STAT_CARD_ACCENT } from '@/constants/dashboardStatColors'
 
 defineProps({
   hidden: { type: Array, default: () => [] },
