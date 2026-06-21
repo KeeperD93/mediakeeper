@@ -65,6 +65,35 @@ async def test_batch_remove_streams_route_reads_operations_by_attribute(authed_c
 
 
 @pytest.mark.asyncio
+async def test_batch_remove_streams_groups_by_item(authed_client):
+    """Ops run grouped by item (groups concurrent, same-item ops serialised);
+    every op is reported once and same-item ops keep their submitted order."""
+    calls = []
+
+    async def fake_remove(db, item_id, stream_index):
+        calls.append((item_id, stream_index))
+        return {"success": True}
+
+    with patch("api.subtitles._discovery.remove_stream", new=fake_remove):
+        r = await authed_client.post(
+            "/api/subtitles/batch-remove-streams",
+            json={"operations": [
+                {"item_id": "a", "stream_index": 1},
+                {"item_id": "b", "stream_index": 2},
+                {"item_id": "a", "stream_index": 3},
+            ]},
+        )
+    assert r.status_code == 200
+    body = r.json()
+    assert body["failed"] == []
+    assert {(s["item_id"], s["stream_index"]) for s in body["success"]} == {
+        ("a", 1), ("b", 2), ("a", 3),
+    }
+    # Same-item ops stay serialised in submitted order within their group.
+    assert [idx for (iid, idx) in calls if iid == "a"] == [1, 3]
+
+
+@pytest.mark.asyncio
 async def test_available_count_route_dumps_typed_items_to_service(authed_client):
     """The route model_dump()s the typed items, so the unchanged service
     still receives plain dicts (not Pydantic models)."""
