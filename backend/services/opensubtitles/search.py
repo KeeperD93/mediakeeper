@@ -176,7 +176,7 @@ async def download_subtitle(
         result = {
             "success": True,
             "path": str(dest),
-            "size": len(sub_res.content),
+            "size": len(content),
             "remaining": remaining,
             "reset_time": reset_time,
         }
