@@ -133,7 +133,9 @@ async def get_room_capacity_bounds(
 
 
 @router.post("/rooms")
+@limiter.limit("10/minute", key_func=portal_user_or_ip_key)
 async def create_mk_event(
+    request: Request,
     data: CreateMKEvent,
     background_tasks: BackgroundTasks,
     up: tuple[User, UserProfile] = Depends(get_current_profile),

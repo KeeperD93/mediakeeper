@@ -30,6 +30,15 @@ router = APIRouter(prefix="/top20", tags=["portal-top20"])
 logger = logging.getLogger("mediakeeper.portal.top20")
 
 _series_id_cache: dict[str, str] = {}
+# Cap the name→id memo so a library with many distinct series can't grow it
+# without bound over the process lifetime; drop it wholesale when full.
+_SERIES_ID_CACHE_MAX = 2000
+
+# The Top 20 is identical for every viewer (global "most played this month"),
+# so cache the whole payload briefly: repeated loads then skip the playback
+# aggregation + Emby/TMDB round-trips instead of recomputing per request.
+_TOP20_TTL_SECONDS = 600
+_top20_result_cache: dict[str, object] = {"payload": None, "at": None}
 
 
 async def _enrich_top20_meta(items: list[dict], db: AsyncSession) -> None:
@@ -78,6 +87,8 @@ async def _find_series_id(series_name: str, url: str, api_key: str) -> str | Non
             items = res.json().get("Items", [])
             if items:
                 sid = items[0].get("Id", "")
+                if len(_series_id_cache) >= _SERIES_ID_CACHE_MAX:
+                    _series_id_cache.clear()
                 _series_id_cache[series_name] = sid
                 return sid
     except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
@@ -100,6 +111,14 @@ async def get_top20(
     up to 20 movies, and a series-heavy month up to 20 series.
     """
     now = datetime.now(timezone.utc)
+    cached_at = _top20_result_cache["at"]
+    if (
+        _top20_result_cache["payload"] is not None
+        and cached_at is not None
+        and (now - cached_at).total_seconds() < _TOP20_TTL_SECONDS
+    ):
+        return _top20_result_cache["payload"]
+
     month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
     # Get Emby config for series poster lookup. ``emby_url`` is the
@@ -240,4 +259,7 @@ async def get_top20(
     # showing an empty " · ".
     await _enrich_top20_meta(items, db)
 
-    return {"items": items}
+    result = {"items": items}
+    _top20_result_cache["payload"] = result
+    _top20_result_cache["at"] = now
+    return result

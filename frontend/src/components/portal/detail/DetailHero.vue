@@ -82,8 +82,9 @@
           <a
             v-if="availInfo?.emby_url"
             class="vmd2-btn vmd2-btn--primary"
-            :href="availInfo.emby_url"
+            :href="embyHref"
             target="_blank"
+            rel="noopener noreferrer"
           >
             <img src="/assets/icons/emby.svg" alt="" class="vmd2-btn-emby" />
             {{ $t('portal.hero.play') }}
@@ -128,6 +129,7 @@ import { REQUEST_STATUS } from '@/constants/requests'
 import { Bookmark, Plus, Video } from 'lucide-vue-next'
 import PremiumRibbon from '@/components/portal/PremiumRibbon.vue'
 import { formatCountry, formatLanguage } from '@/utils/formatIntlLabel'
+import { safeHref } from '@/utils/safeUrl'
 import '@/assets/styles/portal/poster-card.css'
 
 const props = defineProps({
@@ -147,6 +149,10 @@ const props = defineProps({
 defineEmits(['request', 'open-trailer', 'add-to-list'])
 
 const { t, locale } = useI18n()
+
+// Gate the Emby deep-link through the scheme whitelist; falls back to a
+// dead '#' if the stored URL ever carries an unsafe scheme.
+const embyHref = computed(() => safeHref(props.availInfo?.emby_url) || '#')
 
 const topStudios = computed(() => (props.media.studios || []).filter(s => s.logo).slice(0, 3))
 

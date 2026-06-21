@@ -58,3 +58,26 @@ async def test_login_accepts_request_without_origin_header(raw_client, admin_use
         json={"username": "admin", "password": "TestPassword123!"},
     )
     assert r.status_code == 200, r.text
+
+
+@pytest.mark.asyncio
+async def test_backoffice_portal_login_rejects_cross_origin_request(raw_client, admin_user):
+    """The /api/auth/portal-login bootstrap endpoint now runs the same
+    Origin guard as its sibling logins (#385)."""
+    r = await raw_client.post(
+        "/api/auth/portal-login",
+        headers={"Origin": "https://evil.example.com"},
+        json={"username": "admin", "password": "TestPassword123!"},
+    )
+    assert r.status_code == 403
+    assert r.json()["detail"] == "csrf_origin_mismatch"
+
+
+@pytest.mark.asyncio
+async def test_backoffice_portal_login_accepts_request_without_origin(raw_client, admin_user):
+    """Origin-less (curl-like) clients must still bootstrap a session."""
+    r = await raw_client.post(
+        "/api/auth/portal-login",
+        json={"username": "admin", "password": "TestPassword123!"},
+    )
+    assert r.status_code == 200, r.text

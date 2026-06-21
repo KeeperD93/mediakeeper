@@ -102,8 +102,10 @@ async def test_ticket_reply_forbidden_for_other_non_admin(client, db_session):
     client.cookies.set("rq_token", create_access_token({"sub": other.username, "scope": "portal"}))
     resp = await client.post(f"/api/portal/tickets/{ticket.id}/reply", json={"content": "hello"})
 
-    assert resp.status_code == 403
-    assert resp.json()["detail"] == "forbidden"
+    # A non-owner is denied without leaking the ticket's existence: 404,
+    # not 403 (#422).
+    assert resp.status_code == 404
+    assert resp.json()["detail"] == "ticket_not_found"
 
 
 @pytest.mark.asyncio

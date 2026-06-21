@@ -30,9 +30,15 @@ APP_VERSION = "1.0.0-rc.4"
 _BASE_DIR = Path(__file__).resolve().parent.parent
 _ALT_DIRS = [Path("/app/backend"), Path("/app"), _BASE_DIR.parent]
 
+# Languages with a shipped CHANGELOG file. Any other value is coerced to "fr"
+# so an untrusted query string can never be interpolated into the filename.
+_SUPPORTED_LANGS = frozenset({"fr", "en"})
+
 
 def _find_changelog(lang: str = "fr") -> Path | None:
     """Find the CHANGELOG file for the given language."""
+    if lang.lower() not in _SUPPORTED_LANGS:
+        lang = "fr"
     filename = f"CHANGELOG_{lang.upper()}.md"
     fallback = "CHANGELOG.md"
 

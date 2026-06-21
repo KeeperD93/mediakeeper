@@ -2,12 +2,13 @@
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.portal.deps import get_current_profile, require_admin
 from core.database import get_db
+from core.rate_limit import limiter, portal_user_or_ip_key
 from models.portal.profile import UserProfile
 from models.user import User
 from services.portal import events as events_svc
@@ -100,7 +101,9 @@ async def upcoming_parties(
 
 
 @router.post("/parties")
+@limiter.limit("10/minute", key_func=portal_user_or_ip_key)
 async def create_party(
+    request: Request,
     data: CreateParty,
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),

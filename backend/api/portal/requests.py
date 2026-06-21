@@ -1,10 +1,11 @@
 """Portal media request endpoints."""
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
+from core.url_safety import safe_url
 from core.i18n import get_request_locale
 from core.rate_limit import limiter, portal_user_or_ip_key
 from models.user import User
@@ -27,6 +28,13 @@ class CreateRequest(BaseModel):
     backdrop_url: Optional[str] = Field(None, max_length=500)
     requested_seasons: Optional[list] = Field(default=None, max_length=100)
     on_behalf_of: Optional[int] = None
+
+    # Drop any non-http(s) image URL before it is stored and re-served to
+    # the community list / admin queue (background-image / <img src> sinks).
+    @field_validator("poster_url", "backdrop_url")
+    @classmethod
+    def _safe_image_url(cls, v: Optional[str]) -> Optional[str]:
+        return safe_url(v, schemes={"http", "https"})
 
 
 class StatusUpdate(BaseModel):
@@ -141,17 +149,11 @@ async def batch_status(
     if len(unique_ids) > BATCH_STATUS_MAX_IDS:
         raise HTTPException(status_code=422, detail="too_many_tmdb_ids")
 
-    user, profile = up
+    _, profile = up
     is_admin = profile.role == "admin"
     anonymize = False
     if not is_admin:
         anonymize = await get_portal_flag(db, "portal.anonymize_requests")
-
-    import logging
-    logging.getLogger("mediakeeper.portal.requests").info(
-        f"[BATCH_STATUS] user={user.username!r} role={profile.role!r} "
-        f"is_admin={is_admin} anonymize={anonymize} tmdb_ids={len(unique_ids)}"
-    )
 
     return {"results": await req_svc.get_batch_status(
         db, unique_ids, anonymize=anonymize,

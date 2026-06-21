@@ -160,3 +160,11 @@ def test_parser_limit_counts_only_non_empty(monkeypatch, tmp_path):
     monkeypatch.setattr("api.portal_changelog._find_changelog", lambda lang="fr": f)
     versions = _parse_changelog(lang="fr", max_versions=1)
     assert [v["version"] for v in versions] == ["9.9.9"]
+
+
+def test_find_changelog_coerces_unknown_lang_to_fr():
+    """Portal twin of #391 — unsupported lang falls back to "fr"."""
+    from api.portal_changelog import _find_changelog
+
+    assert _find_changelog("../../etc/passwd") == _find_changelog("fr")
+    assert _find_changelog("zz") == _find_changelog("fr")

@@ -26,7 +26,6 @@ import asyncio
 import hashlib
 import hmac
 import json
-import logging
 import os
 from functools import lru_cache
 from urllib.parse import urlparse
@@ -38,8 +37,6 @@ from core.url_safety import (
     is_discord_webhook_url,
     validate_outbound_url,
 )
-
-logger = logging.getLogger("mediakeeper.webhooks")
 
 #: Header name used on every outbound webhook POST.
 SIGNATURE_HEADER_NAME = "X-MediaKeeper-Signature"

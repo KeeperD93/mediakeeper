@@ -68,6 +68,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
+import { safeHref } from '@/utils/safeUrl'
 
 const props = defineProps({
   current: { type: Object, default: () => ({}) },
@@ -93,7 +94,9 @@ const currentEmbyUrl = computed(() => {
   if (!props.embyBaseUrl || !s.item_id) return ''
   let url = `${props.embyBaseUrl}/web/index.html#!/item?id=${s.item_id}`
   if (props.embyServerId) url += `&serverId=${props.embyServerId}`
-  return url
+  // Defence-in-depth: drop the link if the configured base URL ever
+  // resolves to an unsafe scheme.
+  return safeHref(url) || ''
 })
 </script>
 

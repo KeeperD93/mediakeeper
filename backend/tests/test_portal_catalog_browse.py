@@ -52,3 +52,23 @@ async def test_watch_providers_allows_admin(client, db_session):
     body = resp.json()
     assert body["count"] == 1
     assert body["items"][0]["provider_name"] == "Test Provider"
+
+
+@pytest.mark.asyncio
+async def test_catalog_videos_rejects_invalid_media_type(client, db_session):
+    """media_type is pinned to movie|tv so it can't inject a query string
+    into the upstream TMDB URL (#420)."""
+    viewer, _ = await make_portal_user(db_session, username="viewer_vids", role="viewer")
+    client.cookies.set(PORTAL_COOKIE, portal_token(viewer.username))
+
+    resp = await client.get("/api/portal/catalog/videos/notatype/550")
+    assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_catalog_detail_rejects_invalid_media_type(client, db_session):
+    viewer, _ = await make_portal_user(db_session, username="viewer_det", role="viewer")
+    client.cookies.set(PORTAL_COOKIE, portal_token(viewer.username))
+
+    resp = await client.get("/api/portal/catalog/detail/notatype/550")
+    assert resp.status_code == 422

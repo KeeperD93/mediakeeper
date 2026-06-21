@@ -127,11 +127,11 @@ async def get_rules(db: AsyncSession = Depends(get_db), _: User = Depends(get_cu
             return json.loads(val)
         except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
             pass
-    return NotifRulesConfig().model_dump() if hasattr(NotifRulesConfig, 'model_dump') else NotifRulesConfig().dict()
+    return NotifRulesConfig().model_dump()
 
 
 @router.post("/rules")
 async def save_rules(req: NotifRulesConfig, db: AsyncSession = Depends(get_db), _: User = Depends(get_current_user)):
-    data_str = req.model_dump_json() if hasattr(req, 'model_dump_json') else req.json()
+    data_str = req.model_dump_json()
     await set_notification_channel(db, "notif_rules", data_str)
     return {"success": True}

@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends
 from api.auth import get_current_user
 from models.user import User
 from services.media_manager import MEDIA_FOLDERS, list_files
-from services.path_config import validate_path_in_roots
+from services.path_config import is_path_within_backup_dir, validate_path_in_roots
 
 from ._helpers import _get_browse_roots
 
@@ -52,6 +52,10 @@ async def browse_dirs(
         roots=browse_roots,
         label="Browse path",
     )
+    # Refuse to descend into the backup zone even when it lives under a media
+    # root (validate_path_in_roots accepts it as a child of that root).
+    if not error and is_path_within_backup_dir(target):
+        error = "directory_not_found"
     if error:
         if error == "path_not_found":
             error = "directory_not_found"
@@ -63,6 +67,9 @@ async def browse_dirs(
                 continue
             name = entry.name
             if name.startswith('.') or name.startswith('@') or name.startswith('$'):
+                continue
+            # Never surface the backup zone, even when it sits inside a media root.
+            if is_path_within_backup_dir(entry):
                 continue
             dirs.append({"name": name, "path": str(entry)})
     except PermissionError:
