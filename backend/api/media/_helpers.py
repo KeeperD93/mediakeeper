@@ -1,4 +1,5 @@
 """Shared helpers for the media router (navigation roots + validation)."""
+import os
 from pathlib import Path
 
 from services.media_manager import MEDIA_FOLDERS
@@ -48,21 +49,32 @@ def _get_browse_roots() -> list[dict]:
     return sorted(roots.values(), key=lambda item: item["path"].lower())
 
 
-def _is_allowed_browse_path(target: Path) -> bool:
+def _confine_browse_path(target: str | Path) -> str | None:
+    """Return the real path of *target* when it is confined to an allowed media
+    browse root and outside the backup zone, else ``None``.
+
+    Confinement is expressed as ``os.path.realpath`` + a ``startswith(root +
+    os.sep)`` string check (rather than ``Path.parents``) so the user path is
+    provably contained before any later filesystem access reads it.
+    """
     try:
-        resolved = target.resolve()
+        resolved = os.path.realpath(target)
     except (ValueError, OSError, RuntimeError):
-        return False
+        return None
 
     # The backup zone is off-limits even when it sits inside a media root.
     if is_path_within_backup_dir(resolved):
-        return False
+        return None
 
     for root in _get_browse_roots():
         try:
-            root_path = Path(root["path"]).resolve()
+            root_real = os.path.realpath(root["path"])
         except (ValueError, OSError, RuntimeError):
             continue
-        if resolved == root_path or root_path in resolved.parents:
-            return True
-    return False
+        if resolved == root_real or resolved.startswith(root_real + os.sep):
+            return resolved
+    return None
+
+
+def _is_allowed_browse_path(target: Path) -> bool:
+    return _confine_browse_path(target) is not None
