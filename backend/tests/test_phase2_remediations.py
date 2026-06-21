@@ -131,6 +131,24 @@ async def test_onboarding_folders_are_optional_and_status_reflects_db(client, ad
 
 
 @pytest.mark.asyncio
+async def test_onboarding_status_rejects_deactivated_admin(client, admin_user, db_session):
+    """A deactivated admin's still-valid JWT can no longer read setup state —
+    /status mirrors get_current_user's live checks (#393)."""
+    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
+
+    active = await client.get("/api/onboarding/status")
+    assert active.json()["authenticated"] is True
+
+    admin_user.is_active = False
+    db_session.add(admin_user)
+    await db_session.commit()
+
+    revoked = await client.get("/api/onboarding/status")
+    assert revoked.status_code == 200
+    assert revoked.json()["authenticated"] is False
+
+
+@pytest.mark.asyncio
 async def test_settings_tools_mask_secrets_and_preserve_partial_updates(client, admin_user, db_session):
     client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
 
@@ -158,6 +176,35 @@ async def test_settings_tools_mask_secrets_and_preserve_partial_updates(client, 
 
     assert await get_setting(db_session, "emby.api_key") == "super-secret-api-key-value"
     assert await get_setting(db_session, "emby.url") == "http://emby.internal"
+
+
+@pytest.mark.asyncio
+async def test_save_tool_rejects_unsafe_public_url(client, admin_user):
+    """A javascript: public_url is rejected at the write edge — it would
+    otherwise be re-served verbatim into "Watch on Emby" deep-links (#380)."""
+    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
+
+    resp = await client.post("/api/settings/tools/emby", json={
+        "enabled": True,
+        "url": "http://emby.local",
+        "public_url": "javascript:alert(1)//",
+    })
+    assert resp.status_code == 400
+    assert resp.json()["detail"] == "invalid_url_scheme"
+
+
+@pytest.mark.asyncio
+async def test_save_tool_accepts_valid_public_url(client, admin_user, db_session):
+    """A valid https public_url is stored intact (#380)."""
+    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
+
+    resp = await client.post("/api/settings/tools/emby", json={
+        "enabled": True,
+        "url": "http://emby.local",
+        "public_url": "https://emby.example.com",
+    })
+    assert resp.status_code == 200
+    assert await get_setting(db_session, "emby.public_url") == "https://emby.example.com"
 
 
 @pytest.mark.asyncio

@@ -2,12 +2,18 @@
 from pathlib import Path
 
 from services.media_manager import MEDIA_FOLDERS
-from services.path_config import get_existing_path_roots, validate_path_in_roots
+from services.path_config import (
+    get_existing_media_path_roots,
+    is_path_within_backup_dir,
+    validate_path_in_roots,
+)
 
 
 def _get_browse_roots() -> list[dict]:
     roots: dict[str, dict] = {}
-    configured_roots = get_existing_path_roots()
+    # Media-only roots: the backup zone must never be browsable through the
+    # media manager, even when it lives inside a media root.
+    configured_roots = get_existing_media_path_roots()
 
     def _add_root(path: Path | None):
         if path is None:
@@ -17,6 +23,8 @@ def _get_browse_roots() -> list[dict]:
         except (ValueError, OSError, RuntimeError):
             return
         if not resolved.exists() or not resolved.is_dir():
+            return
+        if is_path_within_backup_dir(resolved):
             return
         _, error = validate_path_in_roots(
             resolved,
@@ -44,6 +52,10 @@ def _is_allowed_browse_path(target: Path) -> bool:
     try:
         resolved = target.resolve()
     except (ValueError, OSError, RuntimeError):
+        return False
+
+    # The backup zone is off-limits even when it sits inside a media root.
+    if is_path_within_backup_dir(resolved):
         return False
 
     for root in _get_browse_roots():

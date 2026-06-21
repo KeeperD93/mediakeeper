@@ -336,3 +336,20 @@ async def test_portal_login_emby_user_survives_xp_rollback(client, db_session):
     assert resp.json()["username"] == "emby-xp-user"
     assert resp.json()["profile"]["display_name"] == "XP User"
     assert client.cookies.get("rq_token") == "rq-xp-token"
+
+
+@pytest.mark.asyncio
+async def test_login_unknown_user_still_runs_bcrypt(client):
+    """An unknown username must still trigger a bcrypt verify so the response
+    time can't reveal whether the account exists (timing oracle, #386)."""
+    from unittest.mock import MagicMock
+
+    spy = MagicMock(return_value=False)
+    with patch("api.auth.login.verify_password", spy):
+        resp = await client.post("/api/auth/login", json={
+            "username": "definitely-not-a-real-user-xyz",
+            "password": "whatever",
+        })
+
+    assert resp.status_code == 401
+    spy.assert_called()

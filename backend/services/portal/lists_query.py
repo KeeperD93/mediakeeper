@@ -19,6 +19,11 @@ from services.portal.lists import (
 )
 
 
+# Sentinel: lets a batched caller hand _serialize_list ready values
+# (including a legitimate None / 0 / empty) and skip its per-list queries.
+_UNSET = object()
+
+
 _SORT_MAP = {
     "added_desc": UserListItem.added_at.desc(),
     "added_asc": UserListItem.added_at.asc(),
@@ -161,10 +166,7 @@ async def _paginate_lists_by_activity(
     rows = (await db.execute(
         q.order_by(UserList.updated_at.desc(), UserList.id.desc()).limit(limit)
     )).scalars().all()
-    items = [
-        await _serialize_list(db, lst, user_id, lightweight=True, lang=lang)
-        for lst in rows
-    ]
+    items = await _serialize_lists_batch(db, rows, user_id, lang=lang)
     has_more = len(rows) >= limit
     next_cursor = (
         encode_cursor({"updated_at": rows[-1].updated_at.isoformat(), "id": rows[-1].id})
@@ -174,36 +176,102 @@ async def _paginate_lists_by_activity(
     return {"items": items, "total": int(total), "next_cursor": next_cursor, "has_more": has_more}
 
 
+async def _serialize_lists_batch(
+    db: AsyncSession, rows, user_id: int, *, lang: str = "fr",
+) -> list[dict]:
+    """Serialize a page of lists with batched lookups so the feed costs a
+    constant 3 queries (counts, owners, preview posters) instead of 3 per
+    row. Single-list / per-user callers keep the per-list path."""
+    if not rows:
+        return []
+    list_ids = [lst.id for lst in rows]
+    owner_ids = {lst.user_id for lst in rows}
+
+    counts = dict((await db.execute(
+        select(UserListItem.list_id, func.count(UserListItem.id))
+        .where(UserListItem.list_id.in_(list_ids))
+        .group_by(UserListItem.list_id)
+    )).all())
+
+    owners = {
+        uid: (name, must_set)
+        for uid, name, must_set in (await db.execute(
+            select(
+                UserProfile.user_id,
+                UserProfile.display_name,
+                UserProfile.display_name_must_set,
+            ).where(
+                UserProfile.user_id.in_(owner_ids),
+                UserProfile.account_active.is_(True),
+                UserProfile.deleted_at.is_(None),
+            )
+        )).all()
+    }
+
+    # Top-4 posters per list in a single window-function pass, ordered so
+    # the per-list slice keeps the added_at-desc order of the per-list query.
+    rn = func.row_number().over(
+        partition_by=UserListItem.list_id,
+        order_by=UserListItem.added_at.desc(),
+    ).label("rn")
+    poster_sub = (
+        select(UserListItem.list_id, UserListItem.poster_url, rn)
+        .where(UserListItem.list_id.in_(list_ids), UserListItem.poster_url.isnot(None))
+        .subquery()
+    )
+    posters: dict[int, list[str]] = {}
+    for lid, purl in (await db.execute(
+        select(poster_sub.c.list_id, poster_sub.c.poster_url)
+        .where(poster_sub.c.rn <= 4)
+        .order_by(poster_sub.c.list_id, poster_sub.c.rn)
+    )).all():
+        posters.setdefault(lid, []).append(purl)
+
+    return [
+        await _serialize_list(
+            db, lst, user_id, lightweight=True, lang=lang,
+            count=counts.get(lst.id, 0),
+            owner=owners.get(lst.user_id),
+            posters=posters.get(lst.id, []),
+        )
+        for lst in rows
+    ]
+
+
 async def _serialize_list(
     db: AsyncSession, lst: UserList, user_id: int,
     *, lightweight: bool = False, lang: str = "fr",
+    count=_UNSET, owner=_UNSET, posters=_UNSET,
 ) -> dict:
-    count = (await db.execute(
-        select(func.count(UserListItem.id)).where(UserListItem.list_id == lst.id)
-    )).scalar() or 0
+    # count / owner / posters are queried per-list, unless a batched caller
+    # (the public + moderation feeds) prefetched them for the whole page to
+    # avoid the 3-queries-per-row N+1.
+    if count is _UNSET:
+        count = (await db.execute(
+            select(func.count(UserListItem.id)).where(UserListItem.list_id == lst.id)
+        )).scalar() or 0
     # Privacy boundary: expose the owner's chosen portal pseudo or the
     # localized anonymous alias — never the raw Emby ``User.username``.
     # Gate on ``account_active``/``deleted_at`` so a soft-deleted or purged
     # owner yields no row and folds into the anonymous alias (the pseudo
     # comes back if the account is later restored).
-    owner_row = (await db.execute(
-        select(UserProfile.display_name, UserProfile.display_name_must_set)
-        .where(
-            UserProfile.user_id == lst.user_id,
-            UserProfile.account_active.is_(True),
-            UserProfile.deleted_at.is_(None),
-        )
-    )).first()
-    if owner_row is None:
-        owner_display_name, owner_must_set = None, True
-    else:
-        owner_display_name, owner_must_set = owner_row
-    preview_posters = (await db.execute(
-        select(UserListItem.poster_url)
-        .where(UserListItem.list_id == lst.id, UserListItem.poster_url.isnot(None))
-        .order_by(UserListItem.added_at.desc())
-        .limit(4)
-    )).scalars().all()
+    if owner is _UNSET:
+        owner = (await db.execute(
+            select(UserProfile.display_name, UserProfile.display_name_must_set)
+            .where(
+                UserProfile.user_id == lst.user_id,
+                UserProfile.account_active.is_(True),
+                UserProfile.deleted_at.is_(None),
+            )
+        )).first()
+    owner_display_name, owner_must_set = owner if owner else (None, True)
+    if posters is _UNSET:
+        posters = (await db.execute(
+            select(UserListItem.poster_url)
+            .where(UserListItem.list_id == lst.id, UserListItem.poster_url.isnot(None))
+            .order_by(UserListItem.added_at.desc())
+            .limit(4)
+        )).scalars().all()
     base = {
         "id": lst.id,
         "owner_id": lst.user_id,
@@ -219,7 +287,7 @@ async def _serialize_list(
         "content_type": lst.content_type,
         "genres": lst.genres or [],
         "item_count": count,
-        "preview_posters": list(preview_posters),
+        "preview_posters": list(posters),
         "copy_count": lst.copy_count or 0,
         "owner_muted": lst.owner_muted,
         "is_deleted": lst.is_deleted,

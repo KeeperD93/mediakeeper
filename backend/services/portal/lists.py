@@ -179,7 +179,7 @@ async def update_list(
             changes["name"] = {"from": lst.name, "to": new_name}
             lst.name = new_name
     if "description" in data:
-        new_desc = strip_tags_and_trim(data["description"] or "", MAX_DESCRIPTION_LEN) or None
+        new_desc = strip_tags_and_trim(data["description"], MAX_DESCRIPTION_LEN) or None
         if new_desc != lst.description:
             changes["description"] = True
             lst.description = new_desc

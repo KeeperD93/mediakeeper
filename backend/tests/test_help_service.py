@@ -114,3 +114,40 @@ async def test_serialize_falls_back_to_default_lang(db_session):
     assert payload["title"] == "Bonjour"
     assert payload["lang"] == "fr"
     assert payload["available_langs"] == ["fr"]
+
+
+# ---------------------------------------------------------------------------
+# Admin payload bounds (#412) — body_html is capped to keep a Text column
+# and the response payload from growing without limit.
+# ---------------------------------------------------------------------------
+
+
+def test_article_create_payload_caps_body_html():
+    from pydantic import ValidationError
+    from api.portal.help import ArticleCreatePayload
+
+    ArticleCreatePayload(category="general", title="t", body_html="x" * 100_000)
+    with pytest.raises(ValidationError):
+        ArticleCreatePayload(category="general", title="t", body_html="x" * 100_001)
+
+
+def test_translation_payload_caps_body_html():
+    from pydantic import ValidationError
+    from api.portal.help import TranslationPayload
+
+    TranslationPayload(title="t", body_html="x" * 100_000)
+    with pytest.raises(ValidationError):
+        TranslationPayload(title="t", body_html="x" * 100_001)
+
+
+def test_help_admin_payloads_forbid_extra():
+    """Admin help mutating schemas reject unknown keys (extra=forbid)."""
+    from pydantic import ValidationError
+    from api.portal.help import ArticleCreatePayload, ArticlePatchPayload, TranslationPayload
+
+    with pytest.raises(ValidationError):
+        ArticleCreatePayload(category="general", title="t", bogus=1)
+    with pytest.raises(ValidationError):
+        ArticlePatchPayload(category="general", bogus=1)
+    with pytest.raises(ValidationError):
+        TranslationPayload(title="t", bogus=1)

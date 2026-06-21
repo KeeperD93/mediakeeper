@@ -174,3 +174,12 @@ def test_admin_parser_skips_empty_versions(monkeypatch, tmp_path):
     monkeypatch.setattr("api.changelog._find_changelog", lambda lang="fr": f)
     assert [v["version"] for v in _parse_changelog(lang="fr")] == ["9.9.9", "9.9.7"]
     assert _has_entries({"categories": {}}) is False
+
+
+def test_find_changelog_coerces_unknown_lang_to_fr():
+    """An unsupported / path-traversal lang must resolve exactly like "fr"
+    so an untrusted query string never lands in the filename (#391)."""
+    from api.changelog import _find_changelog
+
+    assert _find_changelog("../../../../etc/passwd") == _find_changelog("fr")
+    assert _find_changelog("zz") == _find_changelog("fr")

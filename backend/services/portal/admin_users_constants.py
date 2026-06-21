@@ -72,6 +72,14 @@ ACTION_USER_EMBY_ENABLED = "user.emby_enabled"
 ACTION_USER_EMBY_DISABLED = "user.emby_disabled"
 ACTION_USER_PASSWORD_RESET = "user.password_reset"  # noqa: S105 -- audit log action identifier, not a credential value
 ACTION_USER_NOTES_UPDATED = "user.notes_updated"
+
+# Admin debug actions — surgical XP / level / achievement edits.
+ACTION_DEBUG_XP_GRANTED = "debug.xp_granted"
+ACTION_DEBUG_LEVEL_SET = "debug.level_set"
+ACTION_DEBUG_ACHIEVEMENT_UNLOCKED = "debug.achievement_unlocked"
+ACTION_DEBUG_ACHIEVEMENT_LOCKED = "debug.achievement_locked"
+ACTION_DEBUG_ACHIEVEMENT_RESET_ALL = "debug.achievement_reset_all"
+ACTION_DEBUG_ACHIEVEMENT_RECHECK_ALL = "debug.achievement_recheck_all"
 ACTION_USER_TAGS_UPDATED = "user.tags_updated"
 ACTION_USER_NOTIFICATION_SENT = "user.notification_sent"
 ACTION_USER_RGPD_EXPORT = "user.rgpd_export"

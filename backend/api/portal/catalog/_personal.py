@@ -75,7 +75,7 @@ async def profile_full(
     try:
         return await get_profile_full(db, user, profile, lang=lang)
     except Exception as e:
-        logger.error(f"[PROFILE-FULL] failed for user={user.username}: {e}\n{traceback.format_exc()}")
+        logger.error("[PROFILE-FULL] failed for user=%s: %s\n%s", user.id, e, traceback.format_exc())
         return {
             "stats": {"total_plays": 0, "total_minutes": 0, "streak": 0,
                       "record_day": {"date": None, "count": 0},
@@ -103,7 +103,7 @@ async def recommendations_full(
     user, profile = up
     try:
         items = await get_recommendations_for_user(db, user, profile)
-        logger.info(f"[RECO-FULL] user={user.username} got {len(items)} items from base engine")
+        logger.info("[RECO-FULL] user=%s got %s items from base engine", user.id, len(items))
 
         total_plays = await _count_total_plays(db, user, profile)
         inferred_primary, inferred_all = await _infer_genres_from_history_full(db, user, profile)
@@ -158,7 +158,7 @@ async def recommendations_full(
             "genre_ids": inferred_primary[:5],
         }
     except Exception as e:
-        logger.error(f"[RECO-FULL] failed for user={user.username}: {e}\n{traceback.format_exc()}")
+        logger.error("[RECO-FULL] failed for user=%s: %s\n%s", user.id, e, traceback.format_exc())
         return {"hero": None, "stats": {"total_plays": 0, "top_genres": []}, "items": [], "genre_ids": []}
 
 

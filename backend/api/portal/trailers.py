@@ -86,7 +86,7 @@ async def random_trailers(
 async def resolve(
     media_type: str = Query(..., pattern="^(movie|tv)$"),
     tmdb_id: int = Query(..., gt=0),
-    emby_item_id: str | None = Query(None),
+    emby_item_id: str | None = Query(None, pattern="^[A-Za-z0-9]+$"),
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):

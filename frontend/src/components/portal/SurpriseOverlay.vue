@@ -63,8 +63,9 @@
               </button>
               <a
                 v-if="winner?.emby_url"
-                :href="winner.emby_url"
+                :href="embyHref"
                 target="_blank"
+                rel="noopener noreferrer"
                 class="so-btn so-btn--primary"
               >
                 <img src="/assets/icons/emby.svg" alt="" class="so-btn-emby" />
@@ -132,10 +133,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import TrailerLightbox from './TrailerLightbox.vue'
 import { useSurpriseOverlay } from './useSurpriseOverlay.js'
 import { useFocusTrap } from '@/composables/useFocusTrap'
+import { safeHref } from '@/utils/safeUrl'
 import { Dice1, Dices, Video, Volume2, VolumeX, X } from 'lucide-vue-next'
 
 import '@/assets/styles/portal/surprise-overlay.css'
@@ -169,6 +171,9 @@ const {
   formatRuntime,
   close,
 } = useSurpriseOverlay(emit)
+
+// Gate the Emby deep-link through the scheme whitelist (dead '#' if unsafe).
+const embyHref = computed(() => safeHref(winner.value?.emby_url) || '#')
 
 useFocusTrap({
   active: ref(true),
