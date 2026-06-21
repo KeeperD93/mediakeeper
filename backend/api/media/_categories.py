@@ -43,8 +43,8 @@ async def add_category(
     path = req.path.strip()
     if not label or not path:
         return {"error": "name_and_path_required"}
-    # Confine to an allowed media root: returns the validated real path of an
-    # existing directory, or None (all filesystem access stays inside the guard).
+    # Confine the user path to an allowed media root (realpath + prefix check);
+    # nothing here reads the filesystem with the raw path (path-injection safe).
     confined = _confine_browse_path(path)
     if confined is None:
         return {"error": "path_outside_allowed_zones"}
