@@ -91,3 +91,48 @@ async def test_event_party_creation_caps_at_ten_per_minute(client, admin_user, d
         if r.status_code == 429:
             break
     assert 429 in seen_codes, f"expected 429 within 12 calls, saw {seen_codes}"
+
+
+@pytest.mark.asyncio
+async def test_event_room_creation_caps_at_ten_per_minute(client, admin_user, db_session, portal_login):
+    """create_mk_event (POST /events/rooms) shares the 10/min/account cap of
+    its sibling party endpoint (#408)."""
+    await portal_login(client)
+    profile = await get_or_create_profile(db_session, admin_user)
+    profile.role = "admin"
+    profile.account_active = True
+    db_session.add(profile)
+    await db_session.commit()
+
+    payload = {
+        "title": "room",
+        "kind": "private",
+        "tmdb_ids": [{"tmdb_id": 1, "media_type": "movie", "title": "M"}],
+        "scheduled_at": "2099-06-01T12:00:00+00:00",
+        "max_participants": 10,
+    }
+    seen_codes: list[int] = []
+    for _ in range(12):
+        r = await client.post("/api/portal/events/rooms", json=payload)
+        seen_codes.append(r.status_code)
+        if r.status_code == 429:
+            break
+    assert 429 in seen_codes, f"expected 429 within 12 calls, saw {seen_codes}"
+
+
+@pytest.mark.asyncio
+async def test_daily_digest_caps_at_twenty_per_minute(client, admin_user, db_session, portal_login):
+    """The new 20/min cap on the daily-digest read endpoint is pinned (#382)."""
+    await portal_login(client)
+    profile = await get_or_create_profile(db_session, admin_user)
+    profile.account_active = True
+    db_session.add(profile)
+    await db_session.commit()
+
+    seen_codes: list[int] = []
+    for _ in range(22):
+        r = await client.get("/api/portal/daily-digest")
+        seen_codes.append(r.status_code)
+        if r.status_code == 429:
+            break
+    assert 429 in seen_codes, f"expected 429 within 22 calls, saw {seen_codes}"

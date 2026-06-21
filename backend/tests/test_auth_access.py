@@ -134,3 +134,20 @@ async def test_emby_image_proxy_rejects_disabled_portal_profile(client, db_sessi
 
     resp = await client.get("/api/emby/image/14437")
     assert resp.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_emby_image_proxy_rejects_pre_pivot_admin_token(client, admin_user, db_session):
+    """A JWT issued before the force-logout pivot is rejected on the image
+    proxy — not only the deactivation case (#389 revocation headline)."""
+    from datetime import datetime, timedelta, timezone
+
+    token = create_access_token({"sub": admin_user.username, "scope": "admin"})
+    client.cookies.set("mk_token", token)
+    # Pivot in the (near) future so the just-issued token's iat predates it.
+    admin_user.tokens_invalidated_at = datetime.now(timezone.utc) + timedelta(minutes=5)
+    db_session.add(admin_user)
+    await db_session.commit()
+
+    resp = await client.get("/api/emby/image/14437")
+    assert resp.status_code == 401
