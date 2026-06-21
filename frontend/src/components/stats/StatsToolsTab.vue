@@ -111,16 +111,14 @@ async function importJellystats(e) {
     fd.append('file', f)
     const r = await apiFetch('/api/stats/import/jellystats', { method: 'POST', body: fd })
     const d = r ? await r.json() : {}
-    if (d.error) importStatus.value = { type: 'err', text: d.error }
-    else {
-      importStatus.value = {
-        type: 'ok',
-        text: `${d.playback_imported} ${t('stats.imported')}, ${d.playback_skipped} ${t('stats.duplicatesSkipped')}`,
-      }
-      loadTotals()
+    importStatus.value = {
+      type: 'ok',
+      text: `${d.playback_imported} ${t('stats.imported')}, ${d.playback_skipped} ${t('stats.duplicatesSkipped')}`,
     }
-  } catch {
-    importStatus.value = { type: 'err', text: t('common.error') }
+    loadTotals()
+  } catch (err) {
+    // apiFetch throws Error(detail) on a 4xx/413 — surface the short code.
+    importStatus.value = { type: 'err', text: err?.message || t('common.error') }
   }
   e.target.value = ''
 }

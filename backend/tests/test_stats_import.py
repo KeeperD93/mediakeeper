@@ -21,8 +21,8 @@ async def test_jellystats_import_rejects_non_json(client, admin_user):
         files={"file": ("backup.txt", io.BytesIO(b"{}"), "text/plain")},
     )
 
-    assert resp.status_code == 200
-    assert resp.json()["error"] == "import_invalid_format"
+    assert resp.status_code == 400
+    assert resp.json()["detail"] == "import_invalid_format"
 
 
 @pytest.mark.asyncio
@@ -52,8 +52,8 @@ async def test_jellystats_import_stops_when_file_is_too_large(client, admin_user
         files={"file": ("backup.json", io.BytesIO(b'{"items": []}'), "application/json")},
     )
 
-    assert resp.status_code == 200
-    assert resp.json()["error"] == "import_file_too_large"
+    assert resp.status_code == 413
+    assert resp.json()["detail"] == "import_file_too_large"
 
 
 @pytest.mark.asyncio
@@ -66,8 +66,8 @@ async def test_jellystats_import_invalid_json_returns_short_code(client, admin_u
         files={"file": ("backup.json", io.BytesIO(b"not valid json {{{"), "application/json")},
     )
 
-    assert resp.status_code == 200
-    assert resp.json()["error"] == "import_invalid_json"
+    assert resp.status_code == 400
+    assert resp.json()["detail"] == "import_invalid_json"
 
 
 @pytest.mark.asyncio
@@ -85,6 +85,6 @@ async def test_jellystats_import_backup_failure_returns_short_code(client, admin
             files={"file": ("backup.json", io.BytesIO(b'{"items": []}'), "application/json")},
         )
 
-    assert resp.status_code == 200
-    assert resp.json()["error"] == "import_failed"
+    assert resp.status_code == 400
+    assert resp.json()["detail"] == "import_failed"
     assert _LEAK_MARKER not in resp.text

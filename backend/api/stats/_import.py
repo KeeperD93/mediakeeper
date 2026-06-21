@@ -2,7 +2,7 @@
 import json
 import logging
 
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.auth import get_current_user
@@ -42,28 +42,28 @@ async def import_jellystats(
     and jf_libraries -> library_cache.
     """
     if not (file.filename or "").lower().endswith(".json"):
-        return {"error": "import_invalid_format"}
+        raise HTTPException(status_code=400, detail="import_invalid_format")
 
     try:
         content = await _read_limited_json_upload(file)
-    except ValueError:
+    except ValueError as exc:
         # _read_limited_json_upload raises ValueError when the upload
         # exceeds _MAX_IMPORT_SIZE — surfaced as a distinct user-actionable
         # code so the frontend can suggest splitting / compressing.
         logger.warning("[stats] jellystats upload exceeds size limit")
-        return {"error": "import_file_too_large"}
+        raise HTTPException(status_code=413, detail="import_file_too_large") from exc
 
     try:
         data = json.loads(content)
-    except (json.JSONDecodeError, ValueError):
+    except (json.JSONDecodeError, ValueError) as exc:
         logger.warning("[stats] jellystats upload invalid JSON")
-        return {"error": "import_invalid_json"}
+        raise HTTPException(status_code=400, detail="import_invalid_json") from exc
 
     try:
         return await import_jellystats_backup(db, data)
-    except Exception:
+    except Exception as exc:
         logger.exception("[stats] jellystats import failed")
-        return {"error": "import_failed"}
+        raise HTTPException(status_code=400, detail="import_failed") from exc
 
 
 @router.post("/import/jellystats/purge")
