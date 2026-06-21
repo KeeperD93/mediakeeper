@@ -48,6 +48,10 @@ def decode_cursor(cursor: str, int_fields: tuple[str, ...] = ("id",)) -> dict | 
     try:
         for field in int_fields:
             if field in decoded:
+                # int(True) == 1 / int(False) == 0 would slip a forged
+                # boolean through as a valid integer — reject it explicitly.
+                if isinstance(decoded[field], bool):
+                    return None
                 decoded[field] = int(decoded[field])
     except (TypeError, ValueError):
         logger.warning("Cursor with non-integer pagination field ignored")
