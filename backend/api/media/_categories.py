@@ -1,7 +1,6 @@
 """Endpoints for dynamic media category management."""
 import logging
 import re as _re
-from pathlib import Path
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, ConfigDict
@@ -12,7 +11,7 @@ from core.database import get_db
 from models.user import User
 from services.media_manager import get_categories, save_categories
 
-from ._helpers import _is_allowed_browse_path
+from ._helpers import _confine_browse_path
 
 logger = logging.getLogger("mediakeeper.api.media")
 router = APIRouter()
@@ -44,14 +43,10 @@ async def add_category(
     path = req.path.strip()
     if not label or not path:
         return {"error": "name_and_path_required"}
-    target = Path(path)
-    try:
-        target = target.resolve()
-    except (ValueError, OSError, RuntimeError):
-        return {"error": "invalid_path"}
-    if not target.exists() or not target.is_dir():
-        return {"error": "path_must_be_existing_directory"}
-    if not _is_allowed_browse_path(target):
+    # Confine the user path to an allowed media root (realpath + prefix check);
+    # nothing here reads the filesystem with the raw path (path-injection safe).
+    confined = _confine_browse_path(path)
+    if confined is None:
         return {"error": "path_outside_allowed_zones"}
     key = _re.sub(r'[^a-z0-9]+', '', label.lower().replace(' ', ''))
     if not key:
@@ -59,9 +54,9 @@ async def add_category(
     cats = await get_categories(db)
     if any(c["key"] == key for c in cats):
         return {"error": f"category_already_exists: {label}"}
-    cats.append({"key": key, "label": label, "path": str(target)})
+    cats.append({"key": key, "label": label, "path": confined})
     await save_categories(db, cats)
-    logger.info("Category added: %s → %s by %s", label, target, _.username)
+    logger.info("Category added: %s → %s by %s", label, confined, _.username)
     return {"ok": True, "categories": cats}
 
 
