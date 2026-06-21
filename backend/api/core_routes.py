@@ -40,7 +40,7 @@ router = APIRouter()
 BOOT_ID = uuid.uuid4().hex
 
 
-async def _admin_session_valid(username: str, iat, db: AsyncSession) -> bool:
+async def _admin_session_valid(username: str, iat: int | None, db: AsyncSession) -> bool:
     """True iff ``username`` still maps to an active backoffice admin whose
     session predates any force-logout pivot. Mirrors get_current_user's live
     checks (minus its must-change-password UX gate)."""
@@ -55,7 +55,7 @@ async def _admin_session_valid(username: str, iat, db: AsyncSession) -> bool:
     )
 
 
-async def _portal_session_valid(username: str, iat, db: AsyncSession) -> bool:
+async def _portal_session_valid(username: str, iat: int | None, db: AsyncSession) -> bool:
     """True iff ``username`` maps to an active portal profile whose session
     predates any force-logout pivot. Mirrors get_current_profile's checks."""
     user = (

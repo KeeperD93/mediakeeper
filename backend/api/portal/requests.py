@@ -149,7 +149,7 @@ async def batch_status(
     if len(unique_ids) > BATCH_STATUS_MAX_IDS:
         raise HTTPException(status_code=422, detail="too_many_tmdb_ids")
 
-    user, profile = up
+    _, profile = up
     is_admin = profile.role == "admin"
     anonymize = False
     if not is_admin:
