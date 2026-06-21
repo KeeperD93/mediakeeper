@@ -28,12 +28,12 @@ export function extractDetailCode(data, fallback) {
 }
 
 /**
- * Composable d'authentification.
- * State global shared entre all les components.
+ * Authentication composable.
+ * Global state shared across all components.
  */
 export function useAuth() {
   /**
-   * Check le cookie JWT via /api/auth/me
+   * Check the JWT cookie via /api/auth/me
    */
   async function checkAuth() {
     try {
@@ -137,19 +137,19 @@ export function useAuth() {
   }
 
   /**
-   * Refresh JWT cookie all les 25 min
+   * Refresh the JWT cookie every 25 min
    */
   function startTokenRefresh() {
     stopTokenRefresh()
 
-    // Refresh immediat
+    // Immediate refresh
     fetchApiResponse('/api/auth/refresh', {
       method: 'POST',
       retryOn401: false,
       redirectOn401: false,
     }).catch(() => {})
 
-    // Refresh all les 25 min
+    // Refresh every 25 min
     refreshInterval = setInterval(
       () => {
         fetchApiResponse('/api/auth/refresh', {
@@ -161,7 +161,7 @@ export function useAuth() {
       25 * 60 * 1000,
     )
 
-    // Refresh au retour sur l'tab
+    // Refresh when the tab regains focus
     document.addEventListener('visibilitychange', onVisibilityChange)
   }
 
@@ -184,7 +184,7 @@ export function useAuth() {
   }
 
   /**
-   * Changement de mot de passe
+   * Change password
    */
   async function changePassword(currentPassword, newPassword) {
     const body = JSON.stringify({

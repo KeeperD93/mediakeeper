@@ -86,6 +86,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Sécurité (admin) — blocage sans effet ou auto-blocage désormais refusés.
 - Sécurité (admin) — longueur réelle des secrets configurés masquée (points fixes).
 - Recherche (admin) — les caractères spéciaux ne servent plus de jokers.
+- Tableau de bord — l'état des services (en ligne/hors ligne) suit la langue de l'app.
 
 ## [1.0.0-rc.4] - 2026-05-30
 

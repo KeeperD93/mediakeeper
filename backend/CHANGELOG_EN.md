@@ -86,6 +86,7 @@ This section intentionally has no date so it is not shown to users.
 - Security (admin) — ineffective blocks and self-blocks now refused.
 - Security (admin) — configured secret length hidden (fixed-width mask).
 - Search (admin) — special characters no longer used as search wildcards.
+- Dashboard — service status (online/offline) now follows the app language.
 
 ## [1.0.0-rc.4] - 2026-05-30
 
