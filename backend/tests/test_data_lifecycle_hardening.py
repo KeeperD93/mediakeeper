@@ -492,3 +492,36 @@ async def test_get_contributors_includes_active(db_session):
 
     visible = await get_contributors(db_session, lst.id)
     assert any(c["user_id"] == contributor.id for c in visible)
+
+
+@pytest.mark.asyncio
+async def test_get_public_lists_batches_count_and_posters(db_session):
+    """The batched feed serialization returns the same item_count and top-4
+    preview posters (added_at desc) as the per-list path (#369)."""
+    from datetime import timedelta
+
+    from models.portal.social import UserListItem
+
+    owner, _ = await _make_user_with_profile(db_session, username="pl-batch-owner")
+    lst = UserList(
+        user_id=owner.id, name="Batched feed", privacy=PRIVACY_PUBLIC_READONLY,
+    )
+    db_session.add(lst)
+    await db_session.commit()
+    await db_session.refresh(lst)
+
+    base = datetime.now(timezone.utc)
+    for i in range(5):
+        db_session.add(UserListItem(
+            list_id=lst.id, tmdb_id=100 + i, media_type="movie",
+            poster_url=f"https://image.tmdb.org/p{i}.jpg",
+            added_at=base + timedelta(minutes=i),
+        ))
+    await db_session.commit()
+
+    feed = await get_public_lists(db_session, owner.id, limit=50)
+    row = next(x for x in feed["items"] if x["id"] == lst.id)
+    assert row["item_count"] == 5
+    assert len(row["preview_posters"]) == 4
+    # Newest first (added_at desc): the 5th item (index 4) leads.
+    assert row["preview_posters"][0] == "https://image.tmdb.org/p4.jpg"

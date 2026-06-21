@@ -80,7 +80,7 @@ class BatchDeleteRequest(BaseModel):
 
 @router.post("/delete-batch")
 async def delete_batch(req: BatchDeleteRequest, _: User = Depends(get_current_user)):
-    """Supprime several files/folders d'un coup."""
+    """Delete several files/folders at once."""
     logger.info("[DELETE-BATCH] %s items", len(req.paths))
     results = []
     for p in req.paths:
@@ -88,7 +88,7 @@ async def delete_batch(req: BatchDeleteRequest, _: User = Depends(get_current_us
         results.append({"path": p, **(r or {})})
     errors = [r for r in results if r.get("error")]
     if errors:
-        logger.warning("[DELETE-BATCH] %s errors sur %s", len(errors), len(req.paths))
+        logger.warning("[DELETE-BATCH] %s errors out of %s", len(errors), len(req.paths))
     return {"results": results, "deleted": len(results) - len(errors), "errors": len(errors)}
 
 

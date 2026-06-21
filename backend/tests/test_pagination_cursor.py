@@ -56,3 +56,9 @@ def test_compound_cursor_round_trip():
 def test_forged_compound_severity_rank_returns_none():
     cursor = _raw_cursor({"id": 5, "severity_rank": "x"})
     assert decode_cursor(cursor, int_fields=("id", "severity_rank")) is None
+
+
+def test_forged_boolean_id_returns_none():
+    # int(True) == 1 would otherwise smuggle a boolean through as a valid id.
+    assert decode_cursor(_raw_cursor({"id": True})) is None
+    assert decode_cursor(_raw_cursor({"id": False})) is None

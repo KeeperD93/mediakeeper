@@ -180,7 +180,7 @@ async def test_discord(
     """Send a one-off test Discord message."""
     webhook_url = (req.webhook_url or "").strip()
     if not webhook_url and req.webhook_id:
-        current = _load_channel_json(await get_notification_channel(db, "discord"), DiscordConfig().model_dump() if hasattr(DiscordConfig, "model_dump") else DiscordConfig().dict())
+        current = _load_channel_json(await get_notification_channel(db, "discord"), DiscordConfig().model_dump())
         for webhook in current.get("webhooks", []):
             if str(webhook.get("id")) == str(req.webhook_id):
                 webhook_url = (webhook.get("url") or "").strip()
@@ -208,7 +208,7 @@ async def get_discord_config(
 ):
     """Load the Discord config from the DB."""
     cfg = DiscordConfig()
-    default = cfg.model_dump() if hasattr(cfg, "model_dump") else cfg.dict()
+    default = cfg.model_dump()
     stored = _load_channel_json(await get_notification_channel(db, "discord"), default)
     return _mask_discord_config(stored)
 
@@ -219,10 +219,10 @@ async def save_discord_config(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user)
 ):
-    """Persist the Discord config, compatible with Pydantic V1 and V2."""
-    default = DiscordConfig().model_dump() if hasattr(DiscordConfig, "model_dump") else DiscordConfig().dict()
+    """Persist the Discord config."""
+    default = DiscordConfig().model_dump()
     existing = _load_channel_json(await get_notification_channel(db, "discord"), default)
-    incoming = req.model_dump() if hasattr(req, "model_dump") else req.dict()
+    incoming = req.model_dump()
     confirm_clear = bool(incoming.get("confirm_clear"))
     merged = _merge_discord_config(existing, incoming)
     _assert_clear_acknowledged(
@@ -242,7 +242,7 @@ async def get_imgur_config(
 ):
     """Load the Imgur config from the DB."""
     cfg = ImgurConfig()
-    default = cfg.model_dump() if hasattr(cfg, "model_dump") else cfg.dict()
+    default = cfg.model_dump()
     stored = _load_channel_json(await get_notification_channel(db, "imgur"), default)
     return _mask_imgur_config(stored)
 
@@ -253,10 +253,10 @@ async def save_imgur_config(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user)
 ):
-    """Persist the Imgur config, compatible with Pydantic V1 and V2."""
-    default = ImgurConfig().model_dump() if hasattr(ImgurConfig, "model_dump") else ImgurConfig().dict()
+    """Persist the Imgur config."""
+    default = ImgurConfig().model_dump()
     existing = _load_channel_json(await get_notification_channel(db, "imgur"), default)
-    incoming = req.model_dump() if hasattr(req, "model_dump") else req.dict()
+    incoming = req.model_dump()
     confirm_clear = bool(incoming.get("confirm_clear"))
     merged = _merge_imgur_config(existing, incoming)
     _assert_clear_acknowledged(

@@ -41,10 +41,6 @@ class ToolSaveRequest(BaseModel):
     password:    str  | None = None   # OpenSubtitles
 
 
-class MediaSourceRequest(BaseModel):
-    source: str  # "emby" | "plex" | "jellyfin" | ""
-
-
 class MediaFolderRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     key: str | None = None
