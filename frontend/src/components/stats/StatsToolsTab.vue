@@ -83,7 +83,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useApi } from '@/composables/useApi'
+import { useApi, resolveApiError } from '@/composables/useApi'
 import { useStats } from '@/composables/useStats'
 import { Ban, Plus, RefreshCw, Trash2, Upload } from 'lucide-vue-next'
 import MkButton from '@/components/common/MkButton.vue'
@@ -117,8 +117,9 @@ async function importJellystats(e) {
     }
     loadTotals()
   } catch (err) {
-    // apiFetch throws Error(detail) on a 4xx/413 — surface the short code.
-    importStatus.value = { type: 'err', text: err?.message || t('common.error') }
+    // apiFetch throws Error(detail) on a 4xx/413 — translate the backend
+    // code to a user label (falls back to a generic message if unknown).
+    importStatus.value = { type: 'err', text: resolveApiError(err?.message) }
   }
   e.target.value = ''
 }
