@@ -37,6 +37,7 @@ import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 import { REQUEST_STATUS } from '@/constants/requests'
 import { USER_ROLE } from '@/constants/auth'
 import { formatRuntime } from '@/utils/format'
+import { safeHref } from '@/utils/safeUrl'
 
 const props = defineProps({
   item: { type: Object, required: true },
@@ -146,7 +147,7 @@ function onCardClick(e) {
 }
 
 function onPlay() {
-  const url = availData.value?.emby_url
+  const url = safeHref(availData.value?.emby_url)
   if (!url) return
   window.open(url, '_blank', 'noopener,noreferrer')
 }

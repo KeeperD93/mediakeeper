@@ -40,9 +40,19 @@ def parse_trusted_proxies(raw: str | None) -> list[_Network]:
         if not token:
             continue
         try:
-            networks.append(ipaddress.ip_network(token, strict=False))
+            net = ipaddress.ip_network(token, strict=False)
         except ValueError:
             logger.warning("Ignoring invalid TRUSTED_PROXIES entry: %r", token)
+            continue
+        networks.append(net)
+        # A very broad CIDR makes every client look trusted, so X-Forwarded-*
+        # (Origin / proto / client IP) would be honoured from anyone. Accept
+        # it (the operator may know what they are doing) but warn loudly.
+        if net.prefixlen == 0 or (net.version == 4 and net.prefixlen < 8):
+            logger.warning(
+                "TRUSTED_PROXIES entry %r is very broad (%s); restrict it to "
+                "your reverse proxy's address.", token, net,
+            )
     return networks
 
 

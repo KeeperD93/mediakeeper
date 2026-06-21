@@ -319,3 +319,15 @@ async def test_proxy_emby_trailer_truncates_at_cap(client, db_session, monkeypat
     assert resp.content == b"abc"
     assert resp.headers["content-type"].startswith("video/mp4")
     upstream.aclose.assert_awaited()
+
+
+@pytest.mark.asyncio
+async def test_resolve_rejects_non_alphanumeric_emby_item_id(client, db_session):
+    """A malformed emby_item_id is rejected (422) before it reaches the
+    upstream Emby URL builder in resolve_trailer (#420)."""
+    await _seed_portal_viewer(client, db_session, "viewer_tr_guard")
+    resp = await client.get(
+        "/api/portal/trailers/resolve",
+        params={"media_type": "movie", "tmdb_id": 1, "emby_item_id": "abc?x=y"},
+    )
+    assert resp.status_code == 422

@@ -4,10 +4,11 @@ Exposes the once-per-day "Quoi de neuf aujourd'hui ?" payload (seven
 aggregated blocks) plus a dismiss endpoint so the frontend can skip the
 overlay for the rest of the calendar day.
 """
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
+from core.rate_limit import limiter, portal_user_or_ip_key
 from models.user import User
 from models.portal.profile import UserProfile
 from api.portal.deps import get_current_profile, get_request_lang
@@ -17,7 +18,9 @@ router = APIRouter(prefix="/daily-digest", tags=["portal-daily-digest"])
 
 
 @router.get("")
+@limiter.limit("20/minute", key_func=portal_user_or_ip_key)
 async def get_daily_digest(
+    request: Request,
     force: bool = Query(False, description="Bypass the 1h in-memory cache"),
     db: AsyncSession = Depends(get_db),
     up: tuple[User, UserProfile] = Depends(get_current_profile),

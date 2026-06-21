@@ -6,16 +6,19 @@ Kept out of ``admin.py`` to honour the 300-line file-size cap.
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api._portal_admin_users_helpers import client_ip, client_ua
 from api.portal.deps import require_admin
 from core.database import get_db
 from models.portal.profile import UserProfile
 from models.user import User
 from services.portal import admin_debug
+from services.portal.admin_users_audit import record_audit
+from services.portal.admin_users_constants import ACTION_DEBUG_ACHIEVEMENT_RECHECK_ALL
 from services.portal.achievement_defs import (
     ACHIEVEMENT_DEFS,
     META_TARGET_CATEGORY,
@@ -27,22 +30,26 @@ router = APIRouter(prefix="/admin/debug", tags=["portal-admin-debug"])
 
 
 class GrantXpRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     user_id: int
     amount: int = Field(..., ge=-100000, le=100000)
     note: str | None = Field(None, max_length=120)
 
 
 class SetLevelRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     user_id: int
     level: int = Field(..., ge=0, le=50)
 
 
 class AchievementToggleRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     user_id: int
     achievement_id: str = Field(..., min_length=1, max_length=120)
 
 
 class ResetAchievementForAllRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     achievement_id: str = Field(..., min_length=1, max_length=120)
 
 
@@ -118,11 +125,13 @@ async def debug_list_achievements(
 @router.post("/grant-xp")
 async def debug_grant_xp(
     body: GrantXpRequest,
-    _: tuple[User, UserProfile] = Depends(require_admin),
+    request: Request,
+    admin: tuple[User, UserProfile] = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     res = await admin_debug.admin_grant_xp(
         db, body.user_id, body.amount, note=body.note,
+        admin_user_id=admin[0].id, ip=client_ip(request), user_agent=client_ua(request),
     )
     if res is None:
         raise HTTPException(status_code=404, detail="profile_not_found")
@@ -132,10 +141,14 @@ async def debug_grant_xp(
 @router.post("/set-level")
 async def debug_set_level(
     body: SetLevelRequest,
-    _: tuple[User, UserProfile] = Depends(require_admin),
+    request: Request,
+    admin: tuple[User, UserProfile] = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    res = await admin_debug.admin_set_level(db, body.user_id, body.level)
+    res = await admin_debug.admin_set_level(
+        db, body.user_id, body.level,
+        admin_user_id=admin[0].id, ip=client_ip(request), user_agent=client_ua(request),
+    )
     if res is None:
         raise HTTPException(status_code=404, detail="profile_not_found")
     return res
@@ -144,11 +157,13 @@ async def debug_set_level(
 @router.post("/unlock-achievement")
 async def debug_unlock_achievement(
     body: AchievementToggleRequest,
-    _: tuple[User, UserProfile] = Depends(require_admin),
+    request: Request,
+    admin: tuple[User, UserProfile] = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     res = await admin_debug.admin_unlock_achievement(
         db, body.user_id, body.achievement_id,
+        admin_user_id=admin[0].id, ip=client_ip(request), user_agent=client_ua(request),
     )
     if res is None:
         raise HTTPException(status_code=404, detail="achievement_not_found")
@@ -158,11 +173,13 @@ async def debug_unlock_achievement(
 @router.post("/lock-achievement")
 async def debug_lock_achievement(
     body: AchievementToggleRequest,
-    _: tuple[User, UserProfile] = Depends(require_admin),
+    request: Request,
+    admin: tuple[User, UserProfile] = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     res = await admin_debug.admin_lock_achievement(
         db, body.user_id, body.achievement_id,
+        admin_user_id=admin[0].id, ip=client_ip(request), user_agent=client_ua(request),
     )
     if res is None:
         raise HTTPException(status_code=404, detail="achievement_not_found")
@@ -172,7 +189,8 @@ async def debug_lock_achievement(
 @router.post("/reset-achievement-for-all")
 async def debug_reset_achievement_for_all(
     body: ResetAchievementForAllRequest,
-    _: tuple[User, UserProfile] = Depends(require_admin),
+    request: Request,
+    admin: tuple[User, UserProfile] = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     """Wipe a specific achievement and its XP from every user.
@@ -181,7 +199,10 @@ async def debug_reset_achievement_for_all(
     unlocked through a counter bug — only users who still qualify will
     re-earn it on the next pass.
     """
-    res = await admin_debug.admin_reset_achievement_for_all(db, body.achievement_id)
+    res = await admin_debug.admin_reset_achievement_for_all(
+        db, body.achievement_id,
+        admin_user_id=admin[0].id, ip=client_ip(request), user_agent=client_ua(request),
+    )
     if res is None:
         raise HTTPException(status_code=404, detail="achievement_not_found")
     return res
@@ -189,7 +210,8 @@ async def debug_reset_achievement_for_all(
 
 @router.post("/recheck-all-achievements")
 async def debug_recheck_all_achievements(
-    _: tuple[User, UserProfile] = Depends(require_admin),
+    request: Request,
+    admin: tuple[User, UserProfile] = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     """Run ``check_all_achievements`` for every active profile.
@@ -222,6 +244,14 @@ async def debug_recheck_all_achievements(
                 "newly_unlocked": len(unlocks),
                 "achievement_ids": [u["achievement_id"] for u in unlocks],
             })
+    # Mass mutation (unlocks + XP across every active user) → no single
+    # target; the counts bound the blast radius for after-the-fact review.
+    await record_audit(
+        db, admin_user_id=admin[0].id, target_user_id=None,
+        action=ACTION_DEBUG_ACHIEVEMENT_RECHECK_ALL,
+        payload={"users_processed": len(profiles), "total_new_unlocks": total_unlocks},
+        ip=client_ip(request), user_agent=client_ua(request), commit=True,
+    )
     return {
         "users_processed": len(profiles),
         "users_with_new_unlocks": sum(1 for s in summary if s.get("newly_unlocked")),

@@ -242,3 +242,114 @@ async def test_debug_achievements_catalogue(client, db_session):
     sample = items[0]
     for key in ("id", "name_key", "category", "tier", "secret"):
         assert key in sample
+
+
+# ─── audit trail (#418) ────────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_grant_xp_records_audit(client, db_session):
+    from models.portal.audit import AdminAuditLog
+
+    admin = await _admin_client(client, db_session)
+    target, _ = await make_portal_user(db_session, username="audit_target")
+
+    resp = await client.post(
+        "/api/portal/admin/debug/grant-xp",
+        json={"user_id": target.id, "amount": 50},
+    )
+    assert resp.status_code == 200, resp.text
+
+    rows = (await db_session.execute(
+        select(AdminAuditLog).where(AdminAuditLog.action == "debug.xp_granted")
+    )).scalars().all()
+    assert len(rows) == 1
+    assert rows[0].admin_user_id == admin.id
+    assert rows[0].target_user_id == target.id
+
+
+@pytest.mark.asyncio
+async def test_reset_achievement_for_all_records_audit(client, db_session):
+    from models.portal.achievement import Achievement
+    from models.portal.audit import AdminAuditLog
+
+    admin = await _admin_client(client, db_session)
+    await seed_achievements(db_session)
+    ach_id = (await db_session.execute(select(Achievement.id).limit(1))).scalar_one()
+
+    resp = await client.post(
+        "/api/portal/admin/debug/reset-achievement-for-all",
+        json={"achievement_id": ach_id},
+    )
+    assert resp.status_code == 200, resp.text
+
+    rows = (await db_session.execute(
+        select(AdminAuditLog).where(
+            AdminAuditLog.action == "debug.achievement_reset_all"
+        )
+    )).scalars().all()
+    assert len(rows) == 1
+    assert rows[0].admin_user_id == admin.id
+    # Multi-user mutation → no single target.
+    assert rows[0].target_user_id is None
+
+
+@pytest.mark.asyncio
+async def test_set_level_records_audit(client, db_session):
+    from models.portal.audit import AdminAuditLog
+
+    admin = await _admin_client(client, db_session)
+    target, _ = await make_portal_user(db_session, username="lvl_target")
+    resp = await client.post(
+        "/api/portal/admin/debug/set-level", json={"user_id": target.id, "level": 5},
+    )
+    assert resp.status_code == 200, resp.text
+    rows = (await db_session.execute(
+        select(AdminAuditLog).where(AdminAuditLog.action == "debug.level_set")
+    )).scalars().all()
+    assert len(rows) == 1
+    assert rows[0].admin_user_id == admin.id
+    assert rows[0].target_user_id == target.id
+
+
+@pytest.mark.asyncio
+async def test_unlock_and_lock_achievement_record_audit(client, db_session):
+    from models.portal.achievement import Achievement
+    from models.portal.audit import AdminAuditLog
+
+    admin = await _admin_client(client, db_session)
+    target, _ = await make_portal_user(db_session, username="ach_audit_target")
+    await seed_achievements(db_session)
+    ach_id = (await db_session.execute(select(Achievement.id).limit(1))).scalar_one()
+
+    u = await client.post(
+        "/api/portal/admin/debug/unlock-achievement",
+        json={"user_id": target.id, "achievement_id": ach_id},
+    )
+    assert u.status_code == 200, u.text
+    locked = await client.post(
+        "/api/portal/admin/debug/lock-achievement",
+        json={"user_id": target.id, "achievement_id": ach_id},
+    )
+    assert locked.status_code == 200, locked.text
+
+    actions = {r.action for r in (await db_session.execute(select(AdminAuditLog))).scalars().all()}
+    assert "debug.achievement_unlocked" in actions
+    assert "debug.achievement_locked" in actions
+    assert admin.id is not None
+
+
+@pytest.mark.asyncio
+async def test_recheck_all_records_audit(client, db_session):
+    from models.portal.audit import AdminAuditLog
+
+    admin = await _admin_client(client, db_session)
+    resp = await client.post("/api/portal/admin/debug/recheck-all-achievements")
+    assert resp.status_code == 200, resp.text
+
+    rows = (await db_session.execute(
+        select(AdminAuditLog).where(AdminAuditLog.action == "debug.achievement_recheck_all")
+    )).scalars().all()
+    assert len(rows) == 1
+    assert rows[0].admin_user_id == admin.id
+    assert rows[0].target_user_id is None

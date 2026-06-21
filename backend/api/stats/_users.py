@@ -78,7 +78,7 @@ async def hide_user_endpoint(
 ):
     """Masque un user des statistiques."""
     hidden = await hide_user(db, user_id)
-    logger.info(f"User {user_id} hidden by {_.username}")
+    logger.info("User %s hidden by %s", user_id, _.id)
     return {"hidden_users": hidden}
 
 
@@ -90,7 +90,7 @@ async def unhide_user_endpoint(
 ):
     """Unhide a hidden user."""
     hidden = await unhide_user(db, user_id)
-    logger.info(f"User {user_id} unhidden by {_.username}")
+    logger.info("User %s unhidden by %s", user_id, _.id)
     return {"hidden_users": hidden}
 
 
@@ -102,7 +102,7 @@ async def delete_user_endpoint(
 ):
     """Delete all playback data for one user."""
     deleted = await delete_user_stats(db, user_id)
-    logger.info(f"{deleted} session(s) deleted for user {user_id} by {_.username}")
+    logger.info("%s session(s) deleted for user %s by %s", deleted, user_id, _.id)
     return {"deleted": deleted}
 
 
@@ -117,7 +117,7 @@ async def merge_user_endpoint(
     if user_id == req.target_user_id:
         raise HTTPException(status_code=400, detail="cannot_merge_self")
     merged = await merge_user_stats(db, source_user_id=user_id, target_user_id=req.target_user_id)
-    logger.info(f"{merged} session(s) merged from {user_id} to {req.target_user_id} by {_.username}")
+    logger.info("%s session(s) merged from %s to %s by %s", merged, user_id, req.target_user_id, _.id)
     return {"merged": merged}
 
 
