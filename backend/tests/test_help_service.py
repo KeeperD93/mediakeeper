@@ -138,3 +138,16 @@ def test_translation_payload_caps_body_html():
     TranslationPayload(title="t", body_html="x" * 100_000)
     with pytest.raises(ValidationError):
         TranslationPayload(title="t", body_html="x" * 100_001)
+
+
+def test_help_admin_payloads_forbid_extra():
+    """Admin help mutating schemas reject unknown keys (extra=forbid)."""
+    from pydantic import ValidationError
+    from api.portal.help import ArticleCreatePayload, ArticlePatchPayload, TranslationPayload
+
+    with pytest.raises(ValidationError):
+        ArticleCreatePayload(category="general", title="t", bogus=1)
+    with pytest.raises(ValidationError):
+        ArticlePatchPayload(category="general", bogus=1)
+    with pytest.raises(ValidationError):
+        TranslationPayload(title="t", bogus=1)
