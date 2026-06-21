@@ -12,7 +12,7 @@ from core.database import get_db
 from models.user import User
 from services.media_manager import get_categories, save_categories
 
-from ._helpers import _is_allowed_browse_path
+from ._helpers import _confine_browse_path
 
 logger = logging.getLogger("mediakeeper.api.media")
 router = APIRouter()
@@ -44,15 +44,14 @@ async def add_category(
     path = req.path.strip()
     if not label or not path:
         return {"error": "name_and_path_required"}
-    target = Path(path)
-    try:
-        target = target.resolve()
-    except (ValueError, OSError, RuntimeError):
-        return {"error": "invalid_path"}
-    if not target.exists() or not target.is_dir():
-        return {"error": "path_must_be_existing_directory"}
-    if not _is_allowed_browse_path(target):
+    # Confine the user path to an allowed media root (realpath + prefix check)
+    # before any filesystem access reads it.
+    confined = _confine_browse_path(path)
+    if confined is None:
         return {"error": "path_outside_allowed_zones"}
+    target = Path(confined)
+    if not target.is_dir():
+        return {"error": "path_must_be_existing_directory"}
     key = _re.sub(r'[^a-z0-9]+', '', label.lower().replace(' ', ''))
     if not key:
         return {"error": "invalid_name"}
