@@ -63,9 +63,9 @@ async def get_healthcheck_issues(
     if library:
         query = query.where(HealthCheckResult.library_name == library)
     if issue_type:
-        query = query.where(HealthCheckResult.issues.contains(f'"type": "{issue_type}"'))
+        query = query.where(HealthCheckResult.issues.contains(f'"type": "{issue_type}"', autoescape=True))
     if extension:
-        query = query.where(HealthCheckResult.file_path.ilike(f"%.{extension}"))
+        query = query.where(HealthCheckResult.file_path.iendswith(f".{extension}", autoescape=True))
 
     count_q = select(func.count()).select_from(query.subquery())
     total_res = await db.execute(count_q)
@@ -171,7 +171,7 @@ async def get_healthcheck_grouped(
     if library:
         q = q.where(HealthCheckResult.library_name == library)
     if extension:
-        q = q.where(HealthCheckResult.file_path.ilike(f"%.{extension}"))
+        q = q.where(HealthCheckResult.file_path.iendswith(f".{extension}", autoescape=True))
     res = await db.execute(q)
     rows = res.all()
 

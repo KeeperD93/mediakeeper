@@ -51,8 +51,7 @@ async def get_exclusion_filters(db: AsyncSession) -> list:
         if mode == "exact":
             conditions.append(PlaybackSession.item_name != value)
         elif mode == "contains":
-            escaped = value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-            conditions.append(~PlaybackSession.item_name.ilike(f"%{escaped}%"))
+            conditions.append(~PlaybackSession.item_name.icontains(value, autoescape=True))
     return conditions
 
 
@@ -73,6 +72,5 @@ async def get_pause_event_exclusion_filters(db: AsyncSession) -> list:
         if mode == "exact":
             conditions.append(PlaybackPauseEvent.item_name != value)
         elif mode == "contains":
-            escaped = value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-            conditions.append(~PlaybackPauseEvent.item_name.ilike(f"%{escaped}%"))
+            conditions.append(~PlaybackPauseEvent.item_name.icontains(value, autoescape=True))
     return conditions

@@ -85,6 +85,26 @@ async def test_get_activity_history_ignores_empty_exclude(db_session):
 
 
 @pytest.mark.asyncio
+async def test_search_matches_like_wildcards_literally(db_session):
+    # #341: the search box must treat % and _ as literal characters, not SQL
+    # LIKE wildcards. autoescape emits an ESCAPE clause so this holds on SQLite
+    # too (Postgres defaults to backslash; SQLite has no default escape).
+    db_session.add_all([
+        _row(id=1, session_key="w1", item_name="50% off"),
+        _row(id=2, session_key="w2", item_name="5000 off"),   # '%' wildcard would catch this
+        _row(id=3, session_key="w3", item_name="john_doe"),
+        _row(id=4, session_key="w4", item_name="johnXdoe"),    # '_' wildcard would catch this
+    ])
+    await db_session.commit()
+
+    percent = await get_activity_history(db_session, search="50% off")
+    assert [it["title"] for it in percent["items"]] == ["50% off"]
+
+    underscore = await get_activity_history(db_session, search="john_doe")
+    assert [it["title"] for it in underscore["items"]] == ["john_doe"]
+
+
+@pytest.mark.asyncio
 async def test_get_activity_users_returns_distinct(db_session):
     db_session.add_all([
         _row(id=1, session_key="s1", user_id="A", user_name="Admin"),

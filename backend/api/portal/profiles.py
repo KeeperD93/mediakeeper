@@ -237,10 +237,9 @@ async def search_users(
         .where(UserProfile.role != "admin")
     )
     if needle:
-        like = f"%{needle}%"
         stmt = stmt.where(or_(
-            User.username.ilike(like),
-            UserProfile.display_name.ilike(like),
+            User.username.icontains(needle, autoescape=True),
+            UserProfile.display_name.icontains(needle, autoescape=True),
         ))
     stmt = stmt.limit(limit)
     rows = (await db.execute(stmt)).all()

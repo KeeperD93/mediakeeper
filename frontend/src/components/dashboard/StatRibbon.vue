@@ -60,7 +60,7 @@
     </div>
     <!-- Services -->
     <div class="ribbon-item ribbon-svc">
-      <span class="ribbon-label">Services</span>
+      <span class="ribbon-label">{{ $t('dashboard.services') }}</span>
       <div class="svc-list">
         <div v-for="svc in services" :key="svc.key" class="svc-row">
           <img
@@ -97,7 +97,7 @@
           <span class="svc-status-wrap">
             <span class="svc-pulse" :class="svc.online ? 'pulse-on' : 'pulse-off'" />
             <span class="svc-status-text" :class="svc.online ? 'st-on' : 'st-off'">
-              {{ svc.online ? 'En ligne' : 'Hors ligne' }}
+              {{ svc.online ? $t('dashboard.online') : $t('dashboard.offline') }}
             </span>
           </span>
         </div>

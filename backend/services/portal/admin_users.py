@@ -55,19 +55,20 @@ def _apply_filters(
         base_query = base_query.where(User.pending_deletion_at.isnot(None))
 
     if search:
-        like = f"%{search}%"
         # ``#tag`` shorthand: treat the rest of the search as a tag
         # filter so admins can power-search from a single input.
         if search.startswith("#") and len(search) > 1:
             tag = (tag or search[1:]).strip()
         else:
+            # autoescape: %/_ in the search are matched literally (ESCAPE
+            # clause emitted so SQLite honours it, not only Postgres).
             base_query = base_query.where(
                 or_(
-                    UserProfile.display_name.ilike(like),
-                    User.username.ilike(like),
-                    UserProfile.email.ilike(like),
-                    UserProfile.first_name.ilike(like),
-                    UserProfile.last_name.ilike(like),
+                    UserProfile.display_name.icontains(search, autoescape=True),
+                    User.username.icontains(search, autoescape=True),
+                    UserProfile.email.icontains(search, autoescape=True),
+                    UserProfile.first_name.icontains(search, autoescape=True),
+                    UserProfile.last_name.icontains(search, autoescape=True),
                 )
             )
     if source:
@@ -79,7 +80,7 @@ def _apply_filters(
         # token. Quoted because the JSON serialiser wraps strings.
         from sqlalchemy import cast, String
         base_query = base_query.where(
-            cast(UserProfile.tags, String).ilike(f'%"{tag}"%')
+            cast(UserProfile.tags, String).icontains(f'"{tag}"', autoescape=True)
         )
 
     if status == "active":

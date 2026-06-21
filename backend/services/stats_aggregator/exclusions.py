@@ -30,8 +30,7 @@ async def _get_exclusion_filters(db: AsyncSession):
         if mode == "exact":
             filters.append(PlaybackSession.item_name != value)
         elif mode == "contains":
-            escaped = value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-            filters.append(~PlaybackSession.item_name.ilike(f"%{escaped}%"))
+            filters.append(~PlaybackSession.item_name.icontains(value, autoescape=True))
     return filters
 
 

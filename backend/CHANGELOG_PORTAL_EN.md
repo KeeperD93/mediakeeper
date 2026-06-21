@@ -71,6 +71,7 @@ This section intentionally has no date so it is not shown to users.
 - Notifications — admin messages and list updates now show a readable label.
 - Movie night — private event: capacity follows the guests (picker hidden).
 - Network errors — clear message shown instead of a misleading empty list.
+- Event invites — search no longer treats special characters as wildcards.
 
 ## [1.0.0-rc.4] - 2026-05-30
 
