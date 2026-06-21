@@ -54,7 +54,7 @@ async def add_items(
         media_type = str(raw.get("media_type") or "").strip().lower()
         if not tmdb_id or media_type not in ("movie", "tv"):
             continue
-        title = strip_tags_and_trim(raw.get("title") or "", 500) or None
+        title = strip_tags_and_trim(raw.get("title"), 500) or None
         # Cards hand us the cache-proxy URL when the image cache is on;
         # recover the canonical TMDB URL behind it so the poster survives
         # the TMDB-only host whitelist instead of being dropped to NULL.
