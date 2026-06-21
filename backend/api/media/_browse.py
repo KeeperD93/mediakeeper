@@ -1,4 +1,5 @@
 """Endpoints de navigation/listing (files, rootpath, browse-dirs)."""
+import asyncio
 import logging
 from pathlib import Path
 from fastapi import APIRouter, Depends
@@ -34,6 +35,24 @@ async def get_rootpath(folder_key: str, _: User = Depends(get_current_user)):
     return {"path": path, "key": folder_key}
 
 
+def _list_subdirs(target: Path) -> list[dict]:
+    """Synchronous sub-folder scan, offloaded via ``asyncio.to_thread``:
+    ``iterdir`` + per-entry ``is_dir`` and backup-zone checks block the event
+    loop on large NAS directories."""
+    dirs = []
+    for entry in sorted(target.iterdir(), key=lambda e: e.name.lower()):
+        if not entry.is_dir():
+            continue
+        name = entry.name
+        if name.startswith('.') or name.startswith('@') or name.startswith('$'):
+            continue
+        # Never surface the backup zone, even when it sits inside a media root.
+        if is_path_within_backup_dir(entry):
+            continue
+        dirs.append({"name": name, "path": str(entry)})
+    return dirs
+
+
 @router.get("/browse-dirs")
 async def browse_dirs(
     path: str = "/",
@@ -60,18 +79,8 @@ async def browse_dirs(
         if error == "path_not_found":
             error = "directory_not_found"
         return {"path": normalized_path, "dirs": [], "error": error}
-    dirs = []
     try:
-        for entry in sorted(target.iterdir(), key=lambda e: e.name.lower()):
-            if not entry.is_dir():
-                continue
-            name = entry.name
-            if name.startswith('.') or name.startswith('@') or name.startswith('$'):
-                continue
-            # Never surface the backup zone, even when it sits inside a media root.
-            if is_path_within_backup_dir(entry):
-                continue
-            dirs.append({"name": name, "path": str(entry)})
+        dirs = await asyncio.to_thread(_list_subdirs, target)
     except PermissionError:
         return {"path": path, "dirs": [], "error": "permission_denied"}
     return {"path": path, "dirs": dirs}
