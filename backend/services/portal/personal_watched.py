@@ -165,12 +165,11 @@ async def _find_series_index_entry(
 
     # 2. Loose substring match (handles "Dr. Stone" ↔ "Dr Stone",
     #    "Show Name (2024)" ↔ "Show Name", etc.)
-    like = f"%{clean}%"
     stmt = (
         select(EmbyTmdbIndex)
         .where(
             EmbyTmdbIndex.media_type == "tv",
-            EmbyTmdbIndex.title.ilike(like),
+            EmbyTmdbIndex.title.icontains(clean, autoescape=True),
         )
         .limit(1)
     )
@@ -185,7 +184,7 @@ async def _find_series_index_entry(
         select(EmbyTmdbIndex)
         .where(
             EmbyTmdbIndex.media_type == "tv",
-            func.lower(EmbyTmdbIndex.title).like(func.lower(clean).concat("%")),
+            EmbyTmdbIndex.title.istartswith(clean, autoescape=True),
         )
         .order_by(func.length(EmbyTmdbIndex.title))
         .limit(1)

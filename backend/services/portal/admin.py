@@ -37,9 +37,8 @@ async def list_portal_users(
     count_q = select(func.count(UserProfile.id))
 
     if search:
-        like = f"%{search}%"
-        query = query.where(UserProfile.display_name.ilike(like))
-        count_q = count_q.where(UserProfile.display_name.ilike(like))
+        query = query.where(UserProfile.display_name.icontains(search, autoescape=True))
+        count_q = count_q.where(UserProfile.display_name.icontains(search, autoescape=True))
 
     total = (await db.execute(count_q)).scalar() or 0
     result = await db.execute(query.offset(offset).limit(limit))

@@ -73,6 +73,7 @@ utilisateurs.
 - Notifications — messages admin et notifs de listes affichent un libellé lisible.
 - Soirée ciné — événement privé : capacité suivie des invités (sélecteur masqué).
 - Erreurs réseau — message clair affiché au lieu d'une liste vide trompeuse.
+- Invitations — la recherche ne traite plus les caractères spéciaux comme des jokers.
 
 ## [1.0.0-rc.4] - 2026-05-30
 

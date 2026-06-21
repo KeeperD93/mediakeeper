@@ -22,14 +22,15 @@ async def _activity_base_query(db: AsyncSession, search: str, exclude_users: str
         query = query.where(PlaybackSession.user_id.notin_(excluded_ids))
 
     if search:
-        sf = f"%{search}%"
+        # autoescape: treat %/_ in the user's search literally (and emit an
+        # ESCAPE clause so SQLite honours it too, not just Postgres).
         query = query.where(
             or_(
-                PlaybackSession.user_name.ilike(sf),
-                PlaybackSession.item_name.ilike(sf),
-                PlaybackSession.series_name.ilike(sf),
-                PlaybackSession.client_name.ilike(sf),
-                PlaybackSession.device_name.ilike(sf),
+                PlaybackSession.user_name.icontains(search, autoescape=True),
+                PlaybackSession.item_name.icontains(search, autoescape=True),
+                PlaybackSession.series_name.icontains(search, autoescape=True),
+                PlaybackSession.client_name.icontains(search, autoescape=True),
+                PlaybackSession.device_name.icontains(search, autoescape=True),
             )
         )
     return query
