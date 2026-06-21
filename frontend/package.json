@@ -45,7 +45,9 @@
   "overrides": {
     "fast-uri": "^3.1.2",
     "uuid": "^14.0.0",
-    "esbuild": "^0.28.1"
+    "esbuild": "^0.28.1",
+    "@redocly/openapi-core": { "js-yaml": "4.2.0" },
+    "cosmiconfig": { "js-yaml": "4.2.0" }
   },
   "dependencies": {
     "@primevue/themes": "^4.3.1",
@@ -89,7 +91,6 @@
     "@vitest/coverage-v8": "^4.1.8",
     "@vue/test-utils": "^2.4.11",
     "autocannon": "^8.0.0",
-    "depcheck": "^1.4.7",
     "eslint": "^10.5.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.6",
