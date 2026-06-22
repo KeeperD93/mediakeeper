@@ -6,6 +6,7 @@ stored and decrypted on read. Callers keep using plaintext — encryption is
 transparent at this layer.
 """
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.encryption import ENCRYPTED_PREFIX, decrypt_value, encrypt_value, is_sensitive_key
@@ -173,9 +174,18 @@ async def upsert_user_preferences(
     commit: bool = True,
 ):
     row = await get_user_preferences(db, user_id)
-    if not row:
+    if row is None:
         row = UserPreference(user_id=user_id)
-        db.add(row)
+        try:
+            async with db.begin_nested():
+                db.add(row)
+                await db.flush()
+        except IntegrityError:
+            # A concurrent first-save won the user_id unique race: the nested
+            # rollback keeps the session usable and we adopt the winning row.
+            row = await get_user_preferences(db, user_id)
+            if row is None:
+                raise
     if preferences is not None:
         row.preferences = preferences
     if dashboard_layout is not None:
