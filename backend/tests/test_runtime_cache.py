@@ -218,3 +218,29 @@ async def test_resolve_runtimes_keeps_fresh_zero_without_refetch(db_session, mon
 
     assert "runtime" not in items[0]  # still absent, not stamped
     assert calls["n"] == 0  # fresh 0 trusted → no re-fetch
+
+
+@pytest.mark.asyncio
+async def test_resolve_runtimes_rearms_stale_zero_when_still_absent(db_session, monkeypatch):
+    # Anti-hammering: a stale "absent" (0) re-resolved while TMDB still has no
+    # runtime stays 0 but gets fetched_at re-armed to now, so the next render
+    # trusts it as fresh instead of re-hitting TMDB forever. A regression that
+    # dropped the fetched_at=now from the <=0 UPDATE would leave it stale and
+    # re-fetch every render — this test would then go red.
+    stale = datetime.now(timezone.utc) - timedelta(days=rc._ZERO_RUNTIME_TTL_DAYS + 1)
+    db_session.add(TmdbRuntimeCache(
+        tmdb_id=99003, media_type="movie", runtime=0, fetched_at=stale,
+    ))
+    await db_session.commit()
+    _mock_tmdb(monkeypatch, db_session, _FakeClient({"runtime": 0}))  # still absent
+
+    items = [{"tmdb_id": 99003, "media_type": "movie", "title": "Still Absent"}]
+    await rc.resolve_runtimes(items)
+
+    assert "runtime" not in items[0]  # still 0 → not stamped
+    cutoff = datetime.now(timezone.utc) - timedelta(days=rc._ZERO_RUNTIME_TTL_DAYS)
+    row = (await db_session.execute(
+        select(TmdbRuntimeCache).where(TmdbRuntimeCache.tmdb_id == 99003)
+    )).scalar_one()
+    assert row.runtime == 0  # unchanged
+    assert rc._as_utc(row.fetched_at) >= cutoff  # re-armed → fresh, no re-fetch next render
