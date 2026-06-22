@@ -13,13 +13,13 @@ from datetime import datetime, timezone
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.notifications import NOTIF_REQUEST_AVAILABLE
 from models.portal.request import MediaRequest
 from services.portal import notifications as notif_svc
 
 logger = logging.getLogger("mediakeeper.notifications.requests")
 
 REQUEST_AVAILABLE_STATUS = "available"
-REQUEST_FULFILLED_NOTIF_TYPE = "request_available"
 ACTIONABLE_STATUSES = ("pending", "approved")
 
 
@@ -111,7 +111,7 @@ async def try_auto_fulfill(item: dict, db: AsyncSession) -> int | None:
             return None
         if requester_id is not None:
             await notif_svc.create(
-                db, requester_id, REQUEST_FULFILLED_NOTIF_TYPE, payload,
+                db, requester_id, NOTIF_REQUEST_AVAILABLE, payload,
             )
 
     logger.info(

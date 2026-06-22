@@ -5,6 +5,12 @@ from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.notifications import (
+    NOTIF_EVENT_ACCEPTED,
+    NOTIF_EVENT_DECLINED,
+    NOTIF_EVENT_INVITATION,
+    NOTIF_EVENT_REMOVED,
+)
 from models.portal.event import InvitationStatus, MKEvent, MKEventInvitation
 from services.portal import notifications as notifs
 from services.portal.mk_events_utils import (
@@ -93,7 +99,7 @@ async def invite_user(
             return {"ok": True}
 
         creator_label = await _user_label(db, creator_user_id)
-        await notifs.create(db, invitee_user_id, "event_invitation", {
+        await notifs.create(db, invitee_user_id, NOTIF_EVENT_INVITATION, {
             "event_id": event.id,
             "title": event.title,
             "kind": event.kind,
@@ -144,7 +150,7 @@ async def invite_user(
         return {"error": "max_retries_reached"}
 
     creator_label = await _user_label(db, creator_user_id)
-    await notifs.create(db, invitee_user_id, "event_invitation", {
+    await notifs.create(db, invitee_user_id, NOTIF_EVENT_INVITATION, {
         "event_id": event.id,
         "title": event.title,
         "kind": event.kind,
@@ -238,7 +244,7 @@ async def respond(
         )
 
     user_label = await _user_label(db, user_id)
-    notif_type = "event_accepted" if decision == "accept" else "event_declined"
+    notif_type = NOTIF_EVENT_ACCEPTED if decision == "accept" else NOTIF_EVENT_DECLINED
     await notifs.create(db, event.creator_user_id, notif_type, {
         "event_id": event.id,
         "title": event.title,
@@ -281,7 +287,7 @@ async def remove_member(
     inv.last_seen_at = None
     db.add(inv)
     await _compact_seats(db, event_id)
-    await notifs.create(db, member_user_id, "event_removed", {
+    await notifs.create(db, member_user_id, NOTIF_EVENT_REMOVED, {
         "event_id": event.id,
         "title": event.title,
     })

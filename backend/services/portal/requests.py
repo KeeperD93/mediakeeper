@@ -10,6 +10,7 @@ import logging
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.notifications import NOTIF_REQUEST_APPROVED, NOTIF_REQUEST_AVAILABLE
 from models.user import User
 from models.portal.request import MediaRequest
 from core.pagination import decode_cursor, build_cursor_response
@@ -281,9 +282,9 @@ async def update_request_status(
     # is NOT NULL, so an insert with ``None`` would crash. The admin
     # action itself still succeeds.
     if new_status == "approved" and req.user_id is not None:
-        await notif_svc.create(db, req.user_id, "request_approved", payload)
+        await notif_svc.create(db, req.user_id, NOTIF_REQUEST_APPROVED, payload)
     elif new_status == "available" and req.user_id is not None:
-        await notif_svc.create(db, req.user_id, "request_available", payload)
+        await notif_svc.create(db, req.user_id, NOTIF_REQUEST_AVAILABLE, payload)
     elif new_status == "rejected":
         await maybe_blacklist_media(db, req, admin_id)
 

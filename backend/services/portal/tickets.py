@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import select, func, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.notifications import NOTIF_TICKET_REPLIED, NOTIF_TICKET_RESOLVED
 from models.user import User
 from models.portal.ticket import Ticket, TicketReply
 from models.portal.profile import UserProfile
@@ -178,7 +179,7 @@ async def add_reply(
     if ticket.user_id is not None and user_id != ticket.user_id:
         from services.portal import notifications as notif_svc
         try:
-            await notif_svc.create(db, ticket.user_id, "ticket_replied", {
+            await notif_svc.create(db, ticket.user_id, NOTIF_TICKET_REPLIED, {
                 "ticket_id": ticket.id,
                 "title": ticket.media_title,
             })
@@ -241,7 +242,7 @@ async def update_ticket_status(
     ):
         from services.portal import notifications as notif_svc
         try:
-            await notif_svc.create(db, ticket.user_id, "ticket_resolved", {
+            await notif_svc.create(db, ticket.user_id, NOTIF_TICKET_RESOLVED, {
                 "ticket_id": ticket.id,
                 "title": ticket.media_title,
                 "status": new_status,
