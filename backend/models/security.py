@@ -5,7 +5,7 @@ restarts, can be audited and manually overridden by an admin.
 """
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, DateTime, ForeignKey, Index, Integer, String
+from sqlalchemy import CheckConstraint, Column, DateTime, ForeignKey, Index, Integer, String
 
 from models.base import Base
 
@@ -36,6 +36,7 @@ class SecurityAttempt(Base):
     __table_args__ = (
         Index("ix_security_attempts_ip_created", "ip", "created_at"),
         Index("ix_security_attempts_user_created", "username", "created_at"),
+        CheckConstraint("success IN (0, 1)", name="ck_security_attempts_success_bool"),
     )
 
 
@@ -67,4 +68,8 @@ class SecurityBlock(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
+    )
+
+    __table_args__ = (
+        CheckConstraint("permanent IN (0, 1)", name="ck_security_blocks_permanent_bool"),
     )
