@@ -30,8 +30,9 @@ async def _merge_folder_into(src_path: str, dest_path: str) -> dict:
     sinks (``is_dir``, ``samefile``, ``iterdir``, ``_force_delete``, etc.)
     operate on the *returned* ``Path`` rather than on a freshly-built
     ``Path(input_string)``. The taint flow from the user-controlled string
-    is therefore broken at the function boundary via ``os.path.commonpath``,
-    which CodeQL recognises as a barrier guard for ``py/path-injection``.
+    is therefore broken at the function boundary via ``os.path.realpath`` +
+    prefix containment, which CodeQL recognises as a barrier guard for
+    ``py/path-injection``.
     """
     src = _ensure_within_media_roots(src_path)
     dest = _ensure_within_media_roots(dest_path)

@@ -192,8 +192,8 @@ async def get_file_metadata(path: str, _: User = Depends(get_current_user)):
     """Analyze a media file with ffprobe — video, audio, subtitles."""
     logger.info("[metadata] Requested path: %r", path)
 
-    # _ensure_within_media_roots applies the os.path.commonpath barrier guard
-    # (CodeQL-recognised for py/path-injection) and returns the sanitised Path.
+    # _ensure_within_media_roots applies the os.path.realpath + prefix barrier
+    # guard (CodeQL-recognised for py/path-injection) and returns the sanitised Path.
     # Downstream sinks (is_file, ffprobe subprocess) MUST consume this Path.
     resolved = _ensure_within_media_roots(path)
     if resolved is None:

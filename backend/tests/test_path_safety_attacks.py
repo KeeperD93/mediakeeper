@@ -320,7 +320,7 @@ def test_ensure_within_media_roots_rejects_absolute_outside(monkeypatch):
 
 
 def test_ensure_within_media_roots_rejects_nul_byte(monkeypatch):
-    """Returns ``None`` when ``Path.resolve`` raises on NUL byte input."""
+    """Returns ``None`` for NUL byte input (realpath raises, or it matches no root)."""
     workspace = _make_workspace_tmp("_attack_ensure")
     try:
         media_root = workspace / "media"
@@ -355,9 +355,9 @@ def test_ensure_within_media_roots_rejects_backup_zone(monkeypatch):
 
 
 def test_ensure_within_media_roots_returns_resolved_path(monkeypatch):
-    """Contract: the returned ``Path`` is the ``resolve(strict=False)`` of
-    the input, so callers operating on it carry the sanitised value
-    downstream (CodeQL taint flow break)."""
+    """Contract: the returned ``Path`` is the ``realpath`` of the input, so
+    callers operating on it carry the sanitised value downstream (CodeQL taint
+    flow break)."""
     workspace = _make_workspace_tmp("_attack_ensure")
     try:
         media_root = workspace / "media"
@@ -375,6 +375,28 @@ def test_ensure_within_media_roots_returns_resolved_path(monkeypatch):
         assert result == nested.resolve()
         # The returned path string is the normalised form, NOT the input.
         assert str(result) == str(nested.resolve())
+    finally:
+        shutil.rmtree(workspace, ignore_errors=True)
+
+
+def test_ensure_within_media_roots_rejects_sibling_prefix(monkeypatch):
+    """Returns ``None`` for a sibling dir sharing the root's name prefix.
+
+    Guards the ``startswith(root + os.sep)`` boundary: ``/media/movies-secret``
+    must not pass containment for the root ``/media/movies`` — a raw prefix
+    match without the separator would wrongly accept it."""
+    workspace = _make_workspace_tmp("_attack_ensure")
+    try:
+        media_root = workspace / "movies"
+        media_root.mkdir()
+        sibling = workspace / "movies-secret"
+        sibling.mkdir()
+        (sibling / "leak.mkv").write_bytes(b"\x00" * 4)
+        monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
+        from services.media_manager import categories as cat_mod
+        monkeypatch.setattr(cat_mod, "MEDIA_FOLDERS", {"movies": str(media_root)})
+
+        assert _ensure_within_media_roots(str(sibling / "leak.mkv")) is None
     finally:
         shutil.rmtree(workspace, ignore_errors=True)
 
