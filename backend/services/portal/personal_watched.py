@@ -137,9 +137,9 @@ async def _find_series_index_entry(
     stored in the index, so we do a best-effort cascade:
 
       1. Exact case-insensitive match — the common case.
-      2. Substring match in either direction — handles punctuation drops
-         ("Dr. Stone" vs "Dr Stone") and suffixes like "(2024)" appended
-         to the Emby title.
+      2. Substring match — the stored index title contains the Emby
+         title, which absorbs punctuation drops ("Dr. Stone" vs
+         "Dr Stone") and suffixes like "(2024)" on the index title.
 
     Returns the first ``media_type == 'tv'`` hit, or ``None``.
     """
@@ -163,30 +163,15 @@ async def _find_series_index_entry(
     if row:
         return row
 
-    # 2. Loose substring match (handles "Dr. Stone" ↔ "Dr Stone",
-    #    "Show Name (2024)" ↔ "Show Name", etc.)
+    # 2. Substring fallback: the stored index title contains the Emby
+    #    title (handles "Dr Stone" ⊆ "Dr. Stone", "Show Name" ⊆
+    #    "Show Name (2024)", etc.).
     stmt = (
         select(EmbyTmdbIndex)
         .where(
             EmbyTmdbIndex.media_type == "tv",
             EmbyTmdbIndex.title.icontains(clean, autoescape=True),
         )
-        .limit(1)
-    )
-    row = (await db.execute(stmt)).scalar_one_or_none()
-    if row:
-        return row
-
-    # 3. Reverse substring: maybe the Emby title is a prefix of the
-    #    TMDB title (or vice versa). Pick the shortest candidate to
-    #    minimise false positives.
-    stmt = (
-        select(EmbyTmdbIndex)
-        .where(
-            EmbyTmdbIndex.media_type == "tv",
-            EmbyTmdbIndex.title.istartswith(clean, autoescape=True),
-        )
-        .order_by(func.length(EmbyTmdbIndex.title))
         .limit(1)
     )
     return (await db.execute(stmt)).scalar_one_or_none()
