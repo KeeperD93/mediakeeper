@@ -180,3 +180,39 @@ async def test_resolve_valid_admin_session_rejects_revoked_session():
         tokens_invalidated_at=datetime(2999, 1, 1, tzinfo=timezone.utc),
     )
     assert await resolve_valid_admin_session(_fake_request(token), _fake_db(revoked)) is None
+
+
+@pytest.mark.asyncio
+async def test_resolve_valid_admin_session_ignores_must_change_password():
+    from api.auth import resolve_valid_admin_session
+    # The soft helper deliberately omits get_current_user's must-change-password
+    # gate so the bootstrap admin reaches the wizard with the seed password
+    # pending. A regression re-adding that gate must fail this test.
+    token = create_access_token({"sub": "admin", "scope": "admin"})
+    pending = SimpleNamespace(
+        username="admin", is_active=True, tokens_invalidated_at=None,
+        must_change_password=True,
+    )
+    assert await resolve_valid_admin_session(_fake_request(token), _fake_db(pending)) is pending
+
+
+@pytest.mark.asyncio
+async def test_resolve_valid_admin_session_rejects_malformed_token():
+    from api.auth import resolve_valid_admin_session
+    # A garbage/forged cookie fails to decode -> None payload -> rejected.
+    assert await resolve_valid_admin_session(_fake_request("not-a-jwt"), _fake_db(_FAKE_ADMIN)) is None
+
+
+@pytest.mark.asyncio
+async def test_resolve_valid_admin_session_rejects_token_without_sub():
+    from api.auth import resolve_valid_admin_session
+    token = create_access_token({"scope": "admin"})  # no sub claim
+    assert await resolve_valid_admin_session(_fake_request(token), _fake_db(_FAKE_ADMIN)) is None
+
+
+@pytest.mark.asyncio
+async def test_resolve_valid_admin_session_rejects_unknown_user():
+    from api.auth import resolve_valid_admin_session
+    # Valid admin token whose sub maps to no DB row (deleted/renamed account).
+    token = create_access_token({"sub": "ghost", "scope": "admin"})
+    assert await resolve_valid_admin_session(_fake_request(token), _fake_db(None)) is None
