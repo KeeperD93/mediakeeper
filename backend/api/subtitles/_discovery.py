@@ -1,9 +1,11 @@
 """Discovery endpoints: quota, scan, suggest-path, series matrix, streams."""
+import asyncio
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.auth import get_current_user
-from core.database import get_db
+from core.database import AsyncSessionLocal, get_db
 from models.user import User
 from services.opensubtitles import (
     get_available_counts,
@@ -81,23 +83,48 @@ async def search_streams(
     return await search_streams_in_library(db, query=query, stream_type=stream_type, start=start, limit=limit)
 
 
+# ffmpeg remux is disk- and CPU-heavy; cap how many run at once so a large
+# batch can't saturate the NAS.
+_MAX_CONCURRENT_REMUX = 2
+
+
 @router.post("/batch-remove-streams")
 async def batch_remove_streams(
     req: BatchRemoveStreamRequest,
-    db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    """Bulk-delete embedded streams (audio/subtitle) via ffmpeg remux."""
-    results = {"success": [], "failed": []}
+    """Bulk-delete embedded streams (audio/subtitle) via ffmpeg remux.
+
+    Ops are grouped by item and the groups run concurrently (bounded by
+    ``_MAX_CONCURRENT_REMUX``). Same-item ops stay serialised within their group
+    — two remuxes must never touch the same file at once — and each group uses
+    its own DB session since an ``AsyncSession`` can't be shared across
+    concurrent coroutines.
+    """
+    results: dict[str, list[dict]] = {"success": [], "failed": []}
+    by_item: dict[str, list[int]] = {}
     for op in req.operations:
-        item_id = op.item_id
-        stream_index = op.stream_index
-        if not item_id or stream_index < 0:
-            results["failed"].append({"item_id": item_id, "error": "invalid_params"})
+        if not op.item_id or op.stream_index < 0:
+            results["failed"].append({"item_id": op.item_id, "error": "invalid_params"})
             continue
-        r = await remove_stream(db, item_id, stream_index)
-        if r.get("success"):
-            results["success"].append({"item_id": item_id, "stream_index": stream_index})
-        else:
-            results["failed"].append({"item_id": item_id, "error": r.get("error", "unknown")})
+        by_item.setdefault(op.item_id, []).append(op.stream_index)
+
+    sem = asyncio.Semaphore(_MAX_CONCURRENT_REMUX)
+
+    async def _process_item(item_id: str, indices: list[int]) -> list[tuple[str, dict]]:
+        out: list[tuple[str, dict]] = []
+        async with sem, AsyncSessionLocal() as item_db:
+            for stream_index in indices:
+                r = await remove_stream(item_db, item_id, stream_index)
+                if r.get("success"):
+                    out.append(("success", {"item_id": item_id, "stream_index": stream_index}))
+                else:
+                    out.append(("failed", {"item_id": item_id, "error": r.get("error", "unknown")}))
+        return out
+
+    for group in await asyncio.gather(
+        *(_process_item(iid, idx) for iid, idx in by_item.items())
+    ):
+        for bucket, payload in group:
+            results[bucket].append(payload)
     return results

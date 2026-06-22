@@ -10,7 +10,7 @@ from core.http_client import get_internal_client
 from models.portal.profile import UserProfile
 
 from .config import ALERT_SEVERITIES, ALERT_TYPES, _get_emby_config
-from .users import get_emby_user
+from .users import list_emby_users
 
 logger = logging.getLogger("mediakeeper.emby")
 
@@ -24,6 +24,7 @@ _raw_entries_lock = asyncio.Lock()
 _USER_NAME_TTL = 300  # Emby UserId -> name; names are near-immutable.
 _user_name_cache: dict[str, str] = {}
 _user_name_cache_ts: float = 0
+_user_name_lock = asyncio.Lock()
 
 
 def _reset_activity_cache() -> None:
@@ -78,30 +79,37 @@ async def _resolve_user_names(db: AsyncSession, ids: set[str]) -> dict[str, str]
 
     Emby's ActivityLog carries ``UserId`` (never ``UserName``), so the name is
     resolved here: MediaKeeper profiles first (one query, no Emby round-trip),
-    then ``/Users/{id}`` for Emby-only accounts. Cached for ``_USER_NAME_TTL``
-    since names are near-immutable.
+    then a single ``/Users`` bulk call for Emby-only accounts. Cached for
+    ``_USER_NAME_TTL`` since names are near-immutable; the lock keeps concurrent
+    pollers from racing on the cache or firing redundant lookups.
     """
     global _user_name_cache, _user_name_cache_ts
-    now = time.monotonic()
-    if (now - _user_name_cache_ts) >= _USER_NAME_TTL:
-        _user_name_cache = {}
-        _user_name_cache_ts = now
+    async with _user_name_lock:
+        now = time.monotonic()
+        if (now - _user_name_cache_ts) >= _USER_NAME_TTL:
+            _user_name_cache = {}
+            _user_name_cache_ts = now
 
-    missing = {i for i in ids if i and i not in _user_name_cache}
-    if missing:
-        rows = (
-            await db.execute(
-                select(UserProfile.emby_user_id, UserProfile.display_name)
-                .where(UserProfile.emby_user_id.in_(missing))
-            )
-        ).all()
-        for emby_id, name in rows:
-            _user_name_cache[emby_id] = name
-        for uid in missing - _user_name_cache.keys():
-            emby_user = await get_emby_user(db, uid)
-            _user_name_cache[uid] = (emby_user or {}).get("Name", "")
+        missing = {i for i in ids if i and i not in _user_name_cache}
+        if missing:
+            rows = (
+                await db.execute(
+                    select(UserProfile.emby_user_id, UserProfile.display_name)
+                    .where(UserProfile.emby_user_id.in_(missing))
+                )
+            ).all()
+            for emby_id, name in rows:
+                _user_name_cache[emby_id] = name
+            still_missing = missing - _user_name_cache.keys()
+            if still_missing:
+                # One /Users bulk call instead of one GET per id.
+                emby_names = {
+                    u.get("Id"): u.get("Name", "") for u in await list_emby_users(db)
+                }
+                for uid in still_missing:
+                    _user_name_cache[uid] = emby_names.get(uid, "")
 
-    return {i: _user_name_cache.get(i, "") for i in ids}
+        return {i: _user_name_cache.get(i, "") for i in ids}
 
 
 async def _fetch_activity_entries(
@@ -159,5 +167,5 @@ async def get_activity_logs(db: AsyncSession, limit: int = 20):
 
 
 async def get_alerts(db: AsyncSession, limit: int = 30):
-    """Fetch les true alertes : failures auth, plugins, errors system."""
+    """Fetch the alerts only: auth failures, plugin issues, system errors."""
     return await _fetch_activity_entries(db, include_alerts=True, limit=limit)

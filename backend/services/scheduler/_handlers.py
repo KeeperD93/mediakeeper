@@ -1,4 +1,5 @@
 """Scheduled task handlers — lazy imports to avoid cycles."""
+import asyncio
 import json
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -108,7 +109,7 @@ async def _handler_clear_image_cache(_db: AsyncSession) -> dict:
     helper). Returns the count for the observability surface.
     """
     from services.portal.image_cache import clear_cache
-    removed = clear_cache()
+    removed = await asyncio.to_thread(clear_cache)
     return {"removed": removed}
 
 

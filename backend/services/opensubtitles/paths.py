@@ -54,12 +54,15 @@ async def _get_local_path_roots(db: AsyncSession | None) -> list[Path]:
     return roots
 
 
-async def _resolve_local_path(db: AsyncSession | None, emby_path: str) -> str:
+async def _resolve_local_path(
+    db: AsyncSession | None, emby_path: str, roots: list[Path] | None = None
+) -> str:
     """Translate an Emby path to the local path accessible inside the container.
 
     Returns an empty string when no candidate inside the configured media
     roots matches the Emby path. Callers must treat ``""`` as a refusal
-    and not feed it to downstream consumers (ffprobe, unlink…).
+    and not feed it to downstream consumers (ffprobe, unlink…). ``roots`` may
+    be passed in to reuse an already-resolved list (avoids a duplicate query).
     """
     raw_path = (emby_path or "").strip()
     if not raw_path:
@@ -73,7 +76,8 @@ async def _resolve_local_path(db: AsyncSession | None, emby_path: str) -> str:
         # re-raise on POSIX, so we skip the fast-path entirely.
         resolved_input = None
 
-    roots = await _get_local_path_roots(db)
+    if roots is None:
+        roots = await _get_local_path_roots(db)
 
     def _within_roots(candidate: Path) -> bool:
         return any(candidate == r or r in candidate.parents for r in roots)
