@@ -413,14 +413,3 @@ body.mk-konami-active .mk-sidebar {
     transform: none;
   }
 }
-
-/* Pages with a mobile-bottom TabStrip (Watchlist, Settings, Stats, Logs,
- * Notifications, Duplicates, Subtitles, Media health): add a matching
- * padding-bottom on the scroll container so content above the fixed tab
- * bar isn't hidden. Uses :has() — supported on Chrome 105+, Safari 15.4+,
- * Firefox 121+. Falls back silently on older browsers. */
-@media (max-width: 767px) {
-  .mk-app-content:has(.mk-tabs-placement-bottom-mobile) {
-    padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
-  }
-}
