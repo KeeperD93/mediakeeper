@@ -163,3 +163,20 @@ def test_backoffice_admin_allowlist_follows_env(monkeypatch):
     monkeypatch.setenv("MK_ADMIN_USERS", "bob")
     assert is_backoffice_admin("bob")
     assert not is_backoffice_admin("alice")
+
+
+def test_backoffice_admin_allowlist_empty_env_falls_back_to_admin(monkeypatch):
+    """An empty / blank / separator-only allow-list must fail safe to {"admin"},
+    never an empty set (which would change the backoffice gate semantics)."""
+    for raw in ("", "   ", ",", " ; , "):
+        monkeypatch.setenv("MK_ADMIN_USERS", raw)
+        assert is_backoffice_admin("admin")
+        assert not is_backoffice_admin("alice")
+
+
+def test_backoffice_admin_allowlist_accepts_semicolon_separator(monkeypatch):
+    """MK_ADMIN_USERS accepts ';' as a separator alongside ','."""
+    monkeypatch.setenv("MK_ADMIN_USERS", "alice;bob")
+    assert is_backoffice_admin("alice")
+    assert is_backoffice_admin("bob")
+    assert not is_backoffice_admin("carol")
