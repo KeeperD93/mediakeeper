@@ -1,6 +1,7 @@
 """
 Scheduler API — task CRUD + manual trigger.
 """
+import asyncio
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -155,7 +156,7 @@ async def run_task_now(
 # ``_CACHES`` registry.
 
 
-def _list_caches() -> list[dict]:
+async def _list_caches() -> list[dict]:
     """Return one stat snapshot per registered cache.
 
     The registry is local to this module and intentionally simple —
@@ -165,9 +166,12 @@ def _list_caches() -> list[dict]:
     """
     from services.portal import dns_cache, image_cache, tmdb_search
 
+    # The image cache stats walk the disk; offload so the event loop stays
+    # free. tmdb/dns are in-memory and resolve instantly.
+    image_stats = await asyncio.to_thread(image_cache.get_cache_stats)
     return [
         {"id": "tmdb", **tmdb_search.get_cache_stats()},
-        {"id": "images", **image_cache.get_cache_stats()},
+        {"id": "images", **image_stats},
         {"id": "dns", **dns_cache.get_cache_stats()},
     ]
 
@@ -177,7 +181,7 @@ async def list_caches(
     _: User = Depends(get_current_user),
 ):
     """Snapshot of every cache for the admin readout."""
-    return {"items": _list_caches()}
+    return {"items": await _list_caches()}
 
 
 @router.post("/caches/{cache_id}/clear")
@@ -201,5 +205,7 @@ async def clear_cache_endpoint(
     handler = handlers.get(cache_id)
     if handler is None:
         raise HTTPException(status_code=404, detail="cache_unknown")
-    cleared = handler()
+    # Offload: the image cache clear walks the disk (the in-memory caches
+    # return instantly, so a thread hop is harmless).
+    cleared = await asyncio.to_thread(handler)
     return {"success": True, "cleared": cleared}

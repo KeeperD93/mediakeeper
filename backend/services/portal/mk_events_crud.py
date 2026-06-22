@@ -3,6 +3,11 @@ from datetime import datetime, timezone
 from sqlalchemy import select, and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.notifications import (
+    NOTIF_EVENT_CANCELLED,
+    NOTIF_EVENT_INVITATION,
+    NOTIF_EVENT_MODIFIED,
+)
 from models.user import User
 from models.portal.event import (
     EventStatus,
@@ -109,13 +114,13 @@ async def create_event(
                 status=InvitationStatus.PENDING.value,
                 invite_count=1,
             ))
-            await notifs.create(db, uid, "event_invitation", payload_base)
+            await notifs.create(db, uid, NOTIF_EVENT_INVITATION, payload_base)
     else:
         # Public: notify everyone except the creator.
         users = (await db.execute(
             select(User.id).where(User.id != creator_user_id)
         )).scalars().all()
-        await notifs.create_many(db, list(users), "event_invitation", payload_base)
+        await notifs.create_many(db, list(users), NOTIF_EVENT_INVITATION, payload_base)
 
     await db.commit()
     await db.refresh(event)
@@ -172,7 +177,7 @@ async def update_event(
         "title": event.title,
         "scheduled_at": event.scheduled_at.isoformat(),
     }
-    await notifs.create_many(db, list(accepted), "event_modified", payload)
+    await notifs.create_many(db, list(accepted), NOTIF_EVENT_MODIFIED, payload)
 
     await db.commit()
     await db.refresh(event)
@@ -205,7 +210,7 @@ async def cancel_event(
         )
     )).scalars().all()
     payload = {"event_id": event.id, "title": event.title}
-    await notifs.create_many(db, list(accepted), "event_cancelled", payload)
+    await notifs.create_many(db, list(accepted), NOTIF_EVENT_CANCELLED, payload)
     await db.commit()
     return {"ok": True}
 

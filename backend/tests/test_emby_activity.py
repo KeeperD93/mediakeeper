@@ -51,15 +51,15 @@ async def test_user_resolved_from_mk_profile_then_emby_fallback(db_session):
         _item("playback.stop", "Info", "u2"),             # Emby-only -> Bob
         _item("plugins.pluginupdated", "Info", ""),       # system event, no UserId
     ]
-    emby_user = AsyncMock(return_value={"Name": "Bob"})
+    emby_users = AsyncMock(return_value=[{"Id": "u2", "Name": "Bob"}])
     with patch.object(activity, "_get_raw_entries", new=AsyncMock(return_value=items)), \
-         patch.object(activity, "get_emby_user", new=emby_user):
+         patch.object(activity, "list_emby_users", new=emby_users):
         acts = await activity.get_activity_logs(db_session, limit=20)
     by_type = {a["type"]: a["user"] for a in acts}
     assert by_type["playback.start"] == "Alice"   # from MK profile, no Emby call
-    assert by_type["playback.stop"] == "Bob"      # from Emby fallback
+    assert by_type["playback.stop"] == "Bob"      # from Emby /Users bulk fallback
     assert by_type["plugins.pluginupdated"] == ""  # system event stays user-less
-    emby_user.assert_awaited_once_with(db_session, "u2")
+    emby_users.assert_awaited_once_with(db_session)
     activity._reset_activity_cache()
 
 
@@ -67,12 +67,12 @@ async def test_user_resolved_from_mk_profile_then_emby_fallback(db_session):
 async def test_user_name_cache_avoids_repeat_emby_calls(db_session):
     activity._reset_activity_cache()
     items = [_item("playback.start", "Info", "u9")]
-    emby_user = AsyncMock(return_value={"Name": "Zoe"})
+    emby_users = AsyncMock(return_value=[{"Id": "u9", "Name": "Zoe"}])
     with patch.object(activity, "_get_raw_entries", new=AsyncMock(return_value=items)), \
-         patch.object(activity, "get_emby_user", new=emby_user):
+         patch.object(activity, "list_emby_users", new=emby_users):
         first = await activity.get_activity_logs(db_session, limit=20)
         second = await activity.get_activity_logs(db_session, limit=20)
     assert first[0]["user"] == "Zoe"
     assert second[0]["user"] == "Zoe"
-    emby_user.assert_awaited_once()  # second call served from cache
+    emby_users.assert_awaited_once()  # second call served from cache
     activity._reset_activity_cache()
