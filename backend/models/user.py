@@ -17,7 +17,7 @@ class User(Base):
     # is the wall-clock at which the purge job is allowed to hard-delete
     # the row. Both stay NULL on a normal account.
     deletion_requested_at = Column(DateTime(timezone=True), nullable=True)
-    pending_deletion_at  = Column(DateTime(timezone=True), nullable=True)
+    pending_deletion_at  = Column(DateTime(timezone=True), nullable=True, index=True)
     created_at           = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at           = Column(
         DateTime(timezone=True),
