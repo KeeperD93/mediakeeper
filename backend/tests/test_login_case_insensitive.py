@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from core.security import EXTERNAL_AUTH_PASSWORD_SENTINEL, hash_password
+from core.security import EXTERNAL_AUTH_PASSWORD_SENTINEL, hash_password, is_backoffice_admin
 from models.portal.profile import UserProfile
 from models.user import User
 
@@ -151,3 +151,15 @@ async def test_emby_auth_lookup_is_case_insensitive(db_session):
     assert result is not None, "Lower-case input should match canonical user"
     assert result["user"].username == "Alice"
     assert result["user"].id == user.id
+
+
+def test_backoffice_admin_allowlist_follows_env(monkeypatch):
+    """The memoised MK_ADMIN_USERS parse must honour a live env change, so
+    monkeypatching the allow-list never leaks a stale set between tests."""
+    monkeypatch.setenv("MK_ADMIN_USERS", "alice")
+    assert is_backoffice_admin("alice")
+    assert not is_backoffice_admin("bob")
+
+    monkeypatch.setenv("MK_ADMIN_USERS", "bob")
+    assert is_backoffice_admin("bob")
+    assert not is_backoffice_admin("alice")
