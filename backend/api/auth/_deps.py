@@ -62,3 +62,40 @@ async def get_current_user(
         )
 
     return user
+
+
+async def resolve_valid_admin_session(
+    request: Request,
+    db: AsyncSession,
+) -> User | None:
+    """Resolve the admin user behind a light-auth request, or ``None``.
+
+    Shared by the soft boundaries (onboarding status, full-health gate) that
+    accept a plain valid admin JWT without the strict dependency's UX gate. It
+    runs get_current_user's live checks — valid admin-scope token, account still
+    active, still a backoffice admin, session not force-logged-out — MINUS the
+    must-change-password gate (the bootstrap admin must reach the wizard with
+    the seed password pending) and MINUS the typed 401/403 errors (any failure
+    returns ``None``; callers pick the soft fallback). For the strict raising
+    dependency, use :func:`get_current_user`.
+    """
+    token = request.cookies.get(COOKIE_NAME)
+    if not token:
+        return None
+    payload = decode_access_token(token)
+    if not payload or payload.get("scope") != "admin":
+        return None
+    username = payload.get("sub")
+    if not username:
+        return None
+    user = (
+        await db.execute(select(User).where(User.username == username))
+    ).scalar_one_or_none()
+    if (
+        not user
+        or not user.is_active
+        or not is_backoffice_admin(user.username)
+        or not is_token_valid_for_revocation_pivot(payload.get("iat"), user.tokens_invalidated_at)
+    ):
+        return None
+    return user

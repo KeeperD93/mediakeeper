@@ -117,3 +117,66 @@ async def test_health_full_without_admin_falls_back_to_basic(client):
     assert data["status"] == "ok"
     assert "media_source" not in data
     fake_client.get.assert_not_awaited()
+
+
+# ── resolve_valid_admin_session (shared soft admin-session resolver) ───────────
+
+
+def _fake_request(token=None):
+    return SimpleNamespace(cookies={"mk_token": token} if token else {})
+
+
+def _fake_db(user):
+    result = SimpleNamespace(scalar_one_or_none=lambda: user)
+    return SimpleNamespace(execute=AsyncMock(return_value=result))
+
+
+@pytest.mark.asyncio
+async def test_resolve_valid_admin_session_returns_active_admin():
+    from api.auth import resolve_valid_admin_session
+    token = create_access_token({"sub": "admin", "scope": "admin"})
+    user = await resolve_valid_admin_session(_fake_request(token), _fake_db(_FAKE_ADMIN))
+    assert user is _FAKE_ADMIN
+
+
+@pytest.mark.asyncio
+async def test_resolve_valid_admin_session_rejects_missing_cookie():
+    from api.auth import resolve_valid_admin_session
+    assert await resolve_valid_admin_session(_fake_request(None), _fake_db(_FAKE_ADMIN)) is None
+
+
+@pytest.mark.asyncio
+async def test_resolve_valid_admin_session_rejects_non_admin_scope():
+    from api.auth import resolve_valid_admin_session
+    token = create_access_token({"sub": "admin", "scope": "portal"})
+    assert await resolve_valid_admin_session(_fake_request(token), _fake_db(_FAKE_ADMIN)) is None
+
+
+@pytest.mark.asyncio
+async def test_resolve_valid_admin_session_rejects_inactive_user():
+    from api.auth import resolve_valid_admin_session
+    token = create_access_token({"sub": "admin", "scope": "admin"})
+    inactive = SimpleNamespace(username="admin", is_active=False, tokens_invalidated_at=None)
+    assert await resolve_valid_admin_session(_fake_request(token), _fake_db(inactive)) is None
+
+
+@pytest.mark.asyncio
+async def test_resolve_valid_admin_session_rejects_non_backoffice_user():
+    from api.auth import resolve_valid_admin_session
+    # "bob" is not in the default backoffice allowlist {"admin"}.
+    token = create_access_token({"sub": "bob", "scope": "admin"})
+    user = SimpleNamespace(username="bob", is_active=True, tokens_invalidated_at=None)
+    assert await resolve_valid_admin_session(_fake_request(token), _fake_db(user)) is None
+
+
+@pytest.mark.asyncio
+async def test_resolve_valid_admin_session_rejects_revoked_session():
+    from datetime import datetime, timezone
+    from api.auth import resolve_valid_admin_session
+    # A force-logout pivot in the future invalidates a token issued now.
+    token = create_access_token({"sub": "admin", "scope": "admin"})
+    revoked = SimpleNamespace(
+        username="admin", is_active=True,
+        tokens_invalidated_at=datetime(2999, 1, 1, tzinfo=timezone.utc),
+    )
+    assert await resolve_valid_admin_session(_fake_request(token), _fake_db(revoked)) is None
