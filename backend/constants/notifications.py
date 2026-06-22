@@ -1,7 +1,7 @@
 """Notification ``type`` slugs written by the portal producers and read by the
 bell + the Discord templates.
 
-Centralised so producers don't hand-write the strings (§6); the Discord lookup
+Centralised so producers don't hand-write the strings; the Discord lookup
 tables in :mod:`services.discord` key off these same string values.
 """
 from typing import Final
