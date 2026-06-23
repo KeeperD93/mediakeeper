@@ -40,6 +40,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Configuration (admin) — écran réorganisé par sections, barre d'enregistrement globale.
 
 ### Fixed
+- Gestionnaire de médias — renommer un dossier racine ne peut plus le sortir des chemins configurés.
 - Tableau de bord — onglets Historique (Notifications, Doublons) : bouton « Charger plus ».
 - Tableau de bord — fil d'activité : mises à jour de plugin affichées dans votre langue.
 - Tableau de bord — les alertes signalent désormais les événements admin (comptes, plugins).
