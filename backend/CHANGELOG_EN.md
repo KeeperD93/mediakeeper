@@ -86,6 +86,7 @@ This section intentionally has no date so it is not shown to users.
 - Security (admin) — ineffective blocks and self-blocks now refused.
 - Security (admin) — configured secret length hidden (fixed-width mask).
 - Preferences — simultaneous save from two tabs no longer fails.
+- Watchlist — tracking/ignoring a title from two simultaneous actions no longer fails.
 - Search (admin) — special characters no longer used as search wildcards.
 - Dashboard — service status (online/offline) now follows the app language.
 

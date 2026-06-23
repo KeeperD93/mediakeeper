@@ -86,6 +86,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Sécurité (admin) — blocage sans effet ou auto-blocage désormais refusés.
 - Sécurité (admin) — longueur réelle des secrets configurés masquée (points fixes).
 - Préférences — l'enregistrement simultané depuis deux onglets n'échoue plus.
+- Watchlist — suivre/ignorer un titre depuis deux actions simultanées n'échoue plus.
 - Recherche (admin) — les caractères spéciaux ne servent plus de jokers.
 - Tableau de bord — l'état des services (en ligne/hors ligne) suit la langue de l'app.
 
