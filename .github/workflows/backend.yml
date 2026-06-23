@@ -53,3 +53,47 @@ jobs:
           name: backend-coverage
           path: coverage.xml
           retention-days: 14
+
+  migration-drift:
+    name: alembic replay + model drift
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: drift
+          POSTGRES_DB: mkdrift
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Replay migrations on PostgreSQL and check model drift
+        # Importing the models loads core/security, which needs a >=32-char
+        # JWT_SECRET_KEY at import; generate a throwaway one at runtime so no
+        # secret-looking literal lives in the workflow.
+        run: |
+          export JWT_SECRET_KEY="$(openssl rand -hex 24)"
+          python backend/scripts/check_migration_drift.py
+        env:
+          DATABASE_URL: postgresql://postgres:drift@localhost:5432/mkdrift
