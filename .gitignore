@@ -67,6 +67,10 @@ Thumbs.db
 # ---------- Audits locaux (workflow IA, hors périmètre public) ----------
 audits/
 
+# ---------- Communication / Growth (playbook interne, hors périmètre public) ----------
+# Anchored: only the top-level ``comms/`` strategy workspace.
+/comms/
+
 # ---------- Tests ----------
 .pytest_cache/
 htmlcov/
