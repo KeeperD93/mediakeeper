@@ -69,6 +69,63 @@ async def test_user_preferences(db_session, admin_user):
 
 
 @pytest.mark.asyncio
+async def test_upsert_user_preferences_absorbs_first_write_race(db_session, admin_user, monkeypatch):
+    """A concurrent first-save that wins the user_id unique race is adopted as
+    the row to update, not surfaced as an IntegrityError (the create path uses
+    a SAVEPOINT + reload)."""
+    from models.user_preferences import UserPreference
+    from services.settings import _kv
+
+    # A row already exists (as if a parallel request just inserted it) but the
+    # first lookup misses it, reproducing the SELECT-then-INSERT window.
+    db_session.add(UserPreference(user_id=admin_user.id, preferences='{"x":1}'))
+    await db_session.commit()
+
+    real_get = _kv.get_user_preferences
+    seen = {"n": 0}
+
+    async def _missing_first(db, user_id, **kw):
+        seen["n"] += 1
+        return None if seen["n"] == 1 else await real_get(db, user_id, **kw)
+
+    monkeypatch.setattr(_kv, "get_user_preferences", _missing_first)
+
+    row = await upsert_user_preferences(db_session, admin_user.id, table_columns='{"t":[10]}')
+    assert row.user_id == admin_user.id
+    assert json.loads(row.table_columns)["t"] == [10]
+
+
+@pytest.mark.asyncio
+async def test_set_watchlist_data_absorbs_first_write_race(db_session, monkeypatch):
+    """A concurrent first-write that wins the scan_key unique race is adopted,
+    not surfaced as an IntegrityError (same SAVEPOINT pattern as preferences)."""
+    from models.watchlist_scans import WatchlistScan
+    from services.settings import _kv
+
+    # A row already exists (a parallel writer just inserted it) but the first
+    # lookup misses it, reproducing the SELECT-then-INSERT window.
+    db_session.add(WatchlistScan(scan_key="tracked", data='{"old": 1}'))
+    await db_session.commit()
+
+    real_get = _kv._get_watchlist_row
+    seen = {"n": 0}
+
+    async def _missing_first(db, scan_key):
+        seen["n"] += 1
+        return None if seen["n"] == 1 else await real_get(db, scan_key)
+
+    monkeypatch.setattr(_kv, "_get_watchlist_row", _missing_first)
+
+    await set_watchlist_data(db_session, "tracked", '{"new": 2}')
+
+    rows = (await db_session.execute(
+        select(WatchlistScan).where(WatchlistScan.scan_key == "tracked")
+    )).scalars().all()
+    assert len(rows) == 1  # no duplicate row created
+    assert json.loads(rows[0].data)["new"] == 2  # winning row adopted + data applied
+
+
+@pytest.mark.asyncio
 async def test_watchlist_data(db_session):
     """get/set watchlist_scans."""
     val = await get_watchlist_data(db_session, "scan_results")

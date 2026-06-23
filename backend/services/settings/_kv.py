@@ -6,6 +6,7 @@ stored and decrypted on read. Callers keep using plaintext — encryption is
 transparent at this layer.
 """
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.encryption import ENCRYPTED_PREFIX, decrypt_value, encrypt_value, is_sensitive_key
@@ -173,9 +174,18 @@ async def upsert_user_preferences(
     commit: bool = True,
 ):
     row = await get_user_preferences(db, user_id)
-    if not row:
+    if row is None:
         row = UserPreference(user_id=user_id)
-        db.add(row)
+        try:
+            async with db.begin_nested():
+                db.add(row)
+                await db.flush()
+        except IntegrityError:
+            # A concurrent first-save won the user_id unique race: the nested
+            # rollback keeps the session usable and we adopt the winning row.
+            row = await get_user_preferences(db, user_id)
+            if row is None:
+                raise
     if preferences is not None:
         row.preferences = preferences
     if dashboard_layout is not None:
@@ -190,20 +200,32 @@ async def upsert_user_preferences(
 
 
 # watchlist_scans
+async def _get_watchlist_row(db: AsyncSession, scan_key: str) -> WatchlistScan | None:
+    return (await db.execute(
+        select(WatchlistScan).where(WatchlistScan.scan_key == scan_key)
+    )).scalar_one_or_none()
+
+
 async def get_watchlist_data(db: AsyncSession, scan_key: str) -> str:
-    result = await db.execute(select(WatchlistScan).where(WatchlistScan.scan_key == scan_key))
-    row = result.scalar_one_or_none()
+    row = await _get_watchlist_row(db, scan_key)
     return row.data if row else ""
 
 
 async def set_watchlist_data(db: AsyncSession, scan_key: str, data: str, *, commit: bool = True):
-    result = await db.execute(select(WatchlistScan).where(WatchlistScan.scan_key == scan_key))
-    row = result.scalar_one_or_none()
-    if row:
-        row.data = data
-    else:
-        row = WatchlistScan(scan_key=scan_key, data=data)
-        db.add(row)
+    row = await _get_watchlist_row(db, scan_key)
+    if row is None:
+        row = WatchlistScan(scan_key=scan_key)
+        try:
+            async with db.begin_nested():
+                db.add(row)
+                await db.flush()
+        except IntegrityError:
+            # A concurrent first-write won the scan_key unique race; adopt the
+            # winning row (same pattern as upsert_user_preferences).
+            row = await _get_watchlist_row(db, scan_key)
+            if row is None:
+                raise
+    row.data = data
     if commit:
         await db.commit()
     else:

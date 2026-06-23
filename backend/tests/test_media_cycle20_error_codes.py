@@ -113,7 +113,7 @@ async def test_list_files_permission_denied_returns_short_code(monkeypatch, tmp_
     media_dir.mkdir()
 
     monkeypatch.setattr(files_module, "MEDIA_FOLDERS", {"movies": str(media_dir)})
-    # Bypass the os.path.commonpath sanitiser since tmp_path lives outside
+    # Bypass the path-confinement sanitiser since tmp_path lives outside
     # the real configured media roots — return the resolved Path directly.
     monkeypatch.setattr(
         files_module, "_ensure_within_media_roots",
@@ -302,8 +302,8 @@ async def test_get_file_metadata_absolute_path_outside_roots_rejected(monkeypatc
     monkeypatch.setattr(paths_module, "MEDIA_FOLDERS", {"movies": str(media_dir)})
 
     fake_user = MagicMock()
-    # /etc/passwd resolves outside the tmp_path media root → commonpath barrier
-    # guard rejects → helper returns None → route returns path_not_allowed.
+    # /etc/passwd resolves outside the tmp_path media root → the realpath
+    # barrier guard rejects → helper returns None → route returns path_not_allowed.
     result = await _metadata.get_file_metadata("/etc/passwd", _=fake_user)
 
     assert result == {"error": "path_not_allowed"}

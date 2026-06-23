@@ -51,6 +51,13 @@ def alembic_db(workspace_tmp_path, monkeypatch):
     sync_url = f"sqlite:///{db_path.as_posix()}"
     engine = sa.create_engine(sync_url, future=True)
     Base.metadata.create_all(engine)
+    # create_all reflects the current metadata, but this fixture stamps at 039
+    # and exercises only 040's transitions. SQLite refuses to DROP COLUMN while
+    # an index references it, so strip the index a later migration (059) puts on
+    # users.pending_deletion_at — in the real chain 059's downgrade removes it
+    # before 040's downgrade drops the column.
+    with engine.begin() as conn:
+        conn.execute(sa.text("DROP INDEX IF EXISTS ix_users_pending_deletion_at"))
 
     monkeypatch.setenv("DATABASE_URL", sync_url)
     cfg = _make_alembic_config()

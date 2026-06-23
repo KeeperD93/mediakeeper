@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.auth import get_current_user
+from api.auth import get_current_user, resolve_valid_admin_session
 from core.encryption import get_persistent_fernet_key
 from core.http_client import get_internal_client
 from core.database import engine, get_db
@@ -77,16 +77,7 @@ async def _is_health_full_authorized(request: Request, db: AsyncSession) -> bool
     """Gate for the infra-exposing ``full`` health variant: a valid, active,
     non-revoked admin session. On any failure the route falls back to the
     public basic payload instead of erroring."""
-    from api.auth import COOKIE_NAME
-
-    token = request.cookies.get(COOKIE_NAME)
-    payload = decode_access_token(token) if token else None
-    if not payload or payload.get("scope") != "admin":
-        return False
-    username = payload.get("sub")
-    if not username:
-        return False
-    return await _admin_session_valid(username, payload.get("iat"), db)
+    return await resolve_valid_admin_session(request, db) is not None
 
 
 def register_health_route(app, version: str, is_db_ready_fn) -> None:
