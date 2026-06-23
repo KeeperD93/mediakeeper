@@ -184,3 +184,51 @@ async def test_rename_rejects_name_that_sanitises_to_empty(monkeypatch):
         assert sibling.read_bytes() == b"sibling"
     finally:
         shutil.rmtree(workspace, ignore_errors=True)
+
+
+@pytest.mark.asyncio
+async def test_rename_rejects_renaming_a_configured_root(monkeypatch):
+    """Renaming a configured media root would resolve ``dest`` to
+    ``root.parent / new_name`` — one level ABOVE the zone — and relocate the
+    whole root out of the configured paths (the containment helper accepts a
+    path equal to a root, so ``src.parent`` legitimately escapes). ``apply_rename``
+    must re-confine ``dest`` and refuse, leaving the root and its contents intact."""
+    workspace = _make_workspace_tmp("_attack_rename_root")
+    try:
+        media_root = workspace / "media"
+        media_root.mkdir()
+        (media_root / "movie.mkv").write_bytes(b"video")
+        monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
+
+        result = await apply_rename(str(media_root), "PWNED_OUTSIDE_ROOT")
+
+        assert result == {"error": "path_not_allowed"}
+        # The root must NOT have been relocated to workspace/PWNED_OUTSIDE_ROOT.
+        assert media_root.is_dir()
+        assert (media_root / "movie.mkv").read_bytes() == b"video"
+        assert not (workspace / "PWNED_OUTSIDE_ROOT").exists()
+    finally:
+        shutil.rmtree(workspace, ignore_errors=True)
+
+
+@pytest.mark.asyncio
+async def test_rename_accepts_legit_rename_inside_root(monkeypatch):
+    """The dest re-confinement must not break a normal rename: a folder inside
+    a root renamed to another in-root name still succeeds with its contents."""
+    workspace = _make_workspace_tmp("_rename_legit")
+    try:
+        media_root = workspace / "media"
+        media_root.mkdir()
+        folder = media_root / "OldName"
+        folder.mkdir()
+        (folder / "movie.mkv").write_bytes(b"video")
+        monkeypatch.setenv("MEDIAKEEPER_PATH_ROOTS", str(media_root))
+
+        result = await apply_rename(str(folder), "NewName")
+
+        assert result.get("error") is None
+        assert (media_root / "NewName").is_dir()
+        assert (media_root / "NewName" / "movie.mkv").read_bytes() == b"video"
+        assert not folder.exists()
+    finally:
+        shutil.rmtree(workspace, ignore_errors=True)

@@ -135,8 +135,15 @@ async def apply_rename(old_path: str, new_name: str) -> dict:
 
     # ``dest`` is built from ``src`` (already sanitised by the helper) and
     # ``new_name`` (validated by ``_validate_name`` + sanitised by
-    # ``_sanitize_name``). No fresh ``Path(user_input)`` is constructed.
-    dest = src.parent / new_name
+    # ``_sanitize_name``). Re-confine it against the roots: ``src`` may itself
+    # be a configured media root, so ``src.parent`` legitimately escapes one
+    # level above the zone — renaming a root would otherwise relocate the whole
+    # root outside the configured paths. Feeding ``dest`` back through the
+    # realpath+prefix barrier fails closed on any out-of-root target.
+    dest = _ensure_within_media_roots(str(src.parent / new_name))
+    if dest is None:
+        logger.error("[RENAME] Containment rejected dest: old=%s new=%s", old_path, new_name)
+        return {"error": "path_not_allowed"}
 
     # SAFETY: never merge/delete when src and dest resolve to the SAME
     # path. Renaming a folder to its own name used to trigger
