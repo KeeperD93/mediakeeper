@@ -25,6 +25,7 @@ from alembic import command  # noqa: E402
 from alembic.autogenerate import compare_metadata  # noqa: E402
 from alembic.config import Config  # noqa: E402
 from alembic.migration import MigrationContext  # noqa: E402
+from sqlalchemy import MetaData  # noqa: E402
 from sqlalchemy.ext.asyncio import create_async_engine  # noqa: E402
 
 # compare_metadata also reports index / constraint / nullable nuances that are
@@ -35,7 +36,7 @@ from sqlalchemy.ext.asyncio import create_async_engine  # noqa: E402
 _DRIFT_OPS = {"add_table", "remove_table", "add_column", "remove_column"}
 
 
-async def _model_vs_db(async_url, metadata):
+async def _model_vs_db(async_url: str, metadata: MetaData) -> list:
     engine = create_async_engine(async_url)
     try:
         async with engine.connect() as conn:
