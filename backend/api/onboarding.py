@@ -4,16 +4,10 @@ Onboarding API — first-run configuration wizard.
 import logging
 
 from fastapi import APIRouter, Depends, Request
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
-from api.auth import get_current_user, COOKIE_NAME
-from core.security import (
-    decode_access_token,
-    is_backoffice_admin,
-    is_token_valid_for_revocation_pivot,
-)
+from api.auth import get_current_user, resolve_valid_admin_session
 from models.user import User
 from services.settings import get_setting, set_setting, get_tools_config
 from services.media_manager import get_categories
@@ -36,30 +30,11 @@ async def get_status(
     Accessible without full auth (just a valid JWT) so the wizard can render
     before everything is configured.
     """
-    # Light auth so the wizard can render before everything is configured,
-    # but it mirrors get_current_user's live checks (active account, still a
-    # backoffice admin, not force-logged-out) so a revoked/deactivated admin
-    # token can't read setup state. The must-change-password gate is left out
-    # on purpose: the bootstrap admin must reach the wizard with the seed
-    # password still pending. Any failure maps to authenticated:false.
-    token = request.cookies.get(COOKIE_NAME)
-    if not token:
-        return {"authenticated": False}
-    payload = decode_access_token(token)
-    if not payload or payload.get("scope") != "admin":
-        return {"authenticated": False}
-    username = payload.get("sub")
-    if not username:
-        return {"authenticated": False}
-    user = (
-        await db.execute(select(User).where(User.username == username))
-    ).scalar_one_or_none()
-    if (
-        not user
-        or not user.is_active
-        or not is_backoffice_admin(user.username)
-        or not is_token_valid_for_revocation_pivot(payload.get("iat"), user.tokens_invalidated_at)
-    ):
+    # Light auth: the wizard must render before everything is configured, so we
+    # accept a plain valid admin session. resolve_valid_admin_session runs the
+    # live checks minus the must-change-password gate (the bootstrap admin still
+    # has the seed password pending). Any failure maps to authenticated:false.
+    if await resolve_valid_admin_session(request, db) is None:
         return {"authenticated": False}
 
     done = await get_setting(db, ONBOARDING_KEY)

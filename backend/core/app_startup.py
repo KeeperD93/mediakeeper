@@ -27,7 +27,17 @@ from services.settings import encrypt_legacy_sensitive_values, get_setting
 
 logger = logging.getLogger("mediakeeper")
 
-_PROCESS_ROLE = os.getenv(env_vars.MK_PROCESS_ROLE, "combined").strip().lower() or "combined"
+# Username of the bootstrap admin seeded by init_db on first run.
+_BOOTSTRAP_ADMIN_USERNAME = "admin"
+
+# Process role: "web" serves the API, "worker" runs background jobs, "combined"
+# (the default) does both. Only combined/worker drive the in-process task manager.
+_ROLE_COMBINED = "combined"
+_ROLE_WORKER = "worker"
+_DEFAULT_PROCESS_ROLE = _ROLE_COMBINED
+_BACKGROUND_TASK_ROLES = frozenset({_ROLE_COMBINED, _ROLE_WORKER})
+
+_PROCESS_ROLE = os.getenv(env_vars.MK_PROCESS_ROLE, _DEFAULT_PROCESS_ROLE).strip().lower() or _DEFAULT_PROCESS_ROLE
 _db_ready = False
 _file_handler: logging.FileHandler | None = None
 
@@ -164,12 +174,14 @@ async def init_db():
 
     try:
         async with AsyncSession(engine) as session:
-            result = await session.execute(select(User).where(User.username == "admin"))
+            result = await session.execute(
+                select(User).where(User.username == _BOOTSTRAP_ADMIN_USERNAME)
+            )
             existing = result.scalar_one_or_none()
             if not existing:
                 initial_password = secrets.token_urlsafe(32)
                 admin = User(
-                    username             = "admin",
+                    username             = _BOOTSTRAP_ADMIN_USERNAME,
                     hashed_password      = hash_password(initial_password),
                     is_active            = True,
                     must_change_password = True,
@@ -180,7 +192,7 @@ async def init_db():
                 except IntegrityError:
                     await session.rollback()
                 else:
-                    _emit_bootstrap_admin_credentials("admin", initial_password)
+                    _emit_bootstrap_admin_credentials(_BOOTSTRAP_ADMIN_USERNAME, initial_password)
     except Exception as exc:
         logger.error(
             "[init_db] Schema validated but unusable at runtime: %s. "
@@ -393,7 +405,7 @@ async def lifespan(app: FastAPI):
     except Exception:
         logger.error("[STARTUP] DNS cache toggle apply FAILED", exc_info=True)
 
-    if _PROCESS_ROLE in {"combined", "worker"}:
+    if _PROCESS_ROLE in _BACKGROUND_TASK_ROLES:
         background_manager = BackgroundTaskManager(engine)
         await background_manager.start()
 

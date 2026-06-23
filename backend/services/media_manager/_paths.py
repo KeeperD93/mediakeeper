@@ -61,40 +61,37 @@ def _is_allowed_path(path: str) -> bool:
 def _ensure_within_media_roots(path: str) -> Path | None:
     """Return the resolved ``Path`` if it lives under a configured media root, else ``None``.
 
-    Combines anchored ``Path.resolve(strict=False)`` with ``os.path.commonpath``
-    containment check. ``os.path.commonpath`` is a recognised barrier guard for
-    the CodeQL ``py/path-injection`` query: when a downstream sink uses the
-    ``Path`` returned by this helper (instead of the input string), the taint
-    flow is broken from the static-analyser standpoint.
+    Containment is ``os.path.realpath`` + a ``startswith(root + os.sep)`` prefix
+    check (plus an equality check for the root itself), kept in the string
+    domain before the final ``Path()``. CodeQL recognises this as a barrier
+    guard for ``py/path-injection``: ``realpath`` is an annotated normaliser and
+    the prefix check is the last operation, so no sink survives — including the
+    helper's own entry point (no ``Path(input)`` before the guard). This unifies
+    the idiom with ``_confine_browse_path``; ``os.path.commonpath`` is not a
+    reliable sanitiser and is no longer used.
 
-    Backup-zone exclusion is enforced as a second guard: even if the path
-    resolves under a legitimate media root, paths that fall inside the backup
-    directory are refused — media-manager must never be a vector to read or
-    mutate backup files.
+    Backup-zone exclusion is enforced first: even when the backup directory
+    lives under a legitimate media root, paths inside it are refused —
+    media-manager must never be a vector to read or mutate backup files.
 
-    **Caller contract** — to actually break the CodeQL taint flow, callers
-    MUST use the returned ``Path`` for every downstream filesystem operation
-    (``exists``, ``is_dir``, ``samefile``, ``resolve``, ``rename``,
-    ``iterdir``, ``unlink``, etc.) rather than reconstructing a new
-    ``Path(input_string)``. Passing the input string through this helper but
-    then operating on a freshly-built ``Path(input_string)`` defeats the
-    purpose.
+    **Caller contract** — to keep the taint flow broken, callers MUST use the
+    returned ``Path`` for every downstream filesystem operation (``exists``,
+    ``is_dir``, ``samefile``, ``resolve``, ``rename``, ``iterdir``, ``unlink``,
+    etc.) rather than reconstructing a new ``Path(input_string)``.
     """
     try:
-        resolved = Path(path).expanduser().resolve(strict=False)
+        resolved = os.path.realpath(os.path.expanduser(path))
     except (ValueError, OSError, RuntimeError):
         return None
-    resolved_str = str(resolved)
+    if is_path_within_backup_dir(resolved):
+        return None
     for root in _media_roots():
-        root_str = str(root)
         try:
-            if os.path.commonpath([root_str, resolved_str]) == root_str:
-                if is_path_within_backup_dir(resolved):
-                    return None
-                return resolved
-        except ValueError:
-            # Raised on Windows when paths live on different drives — not a match.
+            root_real = os.path.realpath(str(root))
+        except (ValueError, OSError, RuntimeError):
             continue
+        if resolved == root_real or resolved.startswith(root_real + os.sep):
+            return Path(resolved)
     return None
 
 

@@ -105,6 +105,43 @@ async def test_unread_only_filters_items_and_total(client, admin_user, db_sessio
 
 
 @pytest.mark.asyncio
+async def test_unread_only_and_cursor_paginate_filtered_set(client, admin_user, db_session):
+    """Combined keyset: unread_only + cursor must walk only the unread rows,
+    skipping interleaved read ones, with a stable cursor-independent total."""
+    await _portal_cookie(client, admin_user, db_session)
+    # Interleave read/unread so the (read=false AND id < cursor) keyset must skip
+    # read rows sitting between unread ones in id space.
+    db_session.add_all([
+        MKNotification(
+            user_id=admin_user.id,
+            type="event_invitation",
+            payload={"i": i},
+            read=(i % 2 == 0),
+        )
+        for i in range(24)
+    ])
+    await db_session.commit()
+
+    seen: list[int] = []
+    cursor = None
+    for _ in range(3):
+        url = "/api/portal/notifications?unread_only=true&limit=5"
+        if cursor:
+            url += f"&cursor={cursor}"
+        body = (await client.get(url)).json()
+        assert body["total"] == 12  # unread count, independent of the cursor
+        assert all(item["read"] is False for item in body["items"])
+        seen.extend(item["id"] for item in body["items"])
+        cursor = body["next_cursor"]
+        if cursor is None:
+            break
+
+    assert len(seen) == 12  # every unread row, no read leaked in
+    assert len(set(seen)) == 12  # no overlap across pages
+    assert seen == sorted(seen, reverse=True)  # newest-first across the filtered set
+
+
+@pytest.mark.asyncio
 async def test_invalid_cursor_is_ignored_returns_first_page(client, admin_user, db_session):
     await _portal_cookie(client, admin_user, db_session)
     await _seed(db_session, admin_user, 4)

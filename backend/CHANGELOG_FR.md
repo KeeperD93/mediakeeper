@@ -40,6 +40,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Configuration (admin) — écran réorganisé par sections, barre d'enregistrement globale.
 
 ### Fixed
+- Gestionnaire de médias — renommer un dossier racine ne peut plus le sortir des chemins configurés.
 - Tableau de bord — onglets Historique (Notifications, Doublons) : bouton « Charger plus ».
 - Tableau de bord — fil d'activité : mises à jour de plugin affichées dans votre langue.
 - Tableau de bord — les alertes signalent désormais les événements admin (comptes, plugins).
@@ -85,6 +86,8 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Listes — jaquette conservée à l'ajout d'un film depuis une carte.
 - Sécurité (admin) — blocage sans effet ou auto-blocage désormais refusés.
 - Sécurité (admin) — longueur réelle des secrets configurés masquée (points fixes).
+- Préférences — l'enregistrement simultané depuis deux onglets n'échoue plus.
+- Watchlist — suivre/ignorer un titre depuis deux actions simultanées n'échoue plus.
 - Recherche (admin) — les caractères spéciaux ne servent plus de jokers.
 - Tableau de bord — l'état des services (en ligne/hors ligne) suit la langue de l'app.
 

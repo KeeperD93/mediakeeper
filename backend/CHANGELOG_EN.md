@@ -40,6 +40,7 @@ This section intentionally has no date so it is not shown to users.
 - Configuration (admin) — screen reorganised into sections, global save bar.
 
 ### Fixed
+- Media manager — renaming a root folder can no longer move it outside the configured paths.
 - Dashboard — History tabs (Notifications, Duplicates): "Load more" button.
 - Dashboard — activity feed: plugin updates now shown in your language.
 - Dashboard — alerts now flag account and plugin admin events.
@@ -85,6 +86,8 @@ This section intentionally has no date so it is not shown to users.
 - Lists — poster kept when adding a title from a card.
 - Security (admin) — ineffective blocks and self-blocks now refused.
 - Security (admin) — configured secret length hidden (fixed-width mask).
+- Preferences — simultaneous save from two tabs no longer fails.
+- Watchlist — tracking/ignoring a title from two simultaneous actions no longer fails.
 - Search (admin) — special characters no longer used as search wildcards.
 - Dashboard — service status (online/offline) now follows the app language.
 

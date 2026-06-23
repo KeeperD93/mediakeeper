@@ -1,7 +1,7 @@
 """
-/api/auth router — package split into modules (Rule 9, <= 300 lines).
+/api/auth router — package split into modules (<= 300 lines).
 
-Re-exports for compat history des imports `from api.auth import X`.
+Re-exports kept for ``from api.auth import X`` import-path compatibility.
 """
 from fastapi import APIRouter
 
@@ -20,7 +20,7 @@ from ._csrf import (
     rotate_csrf_cookie,
 )
 from ._portal import ensure_portal_admin_profile, grant_portal_admin_session
-from ._deps import get_current_user
+from ._deps import get_current_user, resolve_valid_admin_session
 from .login import router as _login_router
 from .profile import router as _profile_router
 
@@ -40,6 +40,7 @@ __all__ = [
     "ensure_csrf_cookie",
     "get_current_user",
     "grant_portal_admin_session",
+    "resolve_valid_admin_session",
     "require_csrf",
     "rotate_csrf_cookie",
     "router",

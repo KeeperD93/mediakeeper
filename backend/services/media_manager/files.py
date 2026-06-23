@@ -59,8 +59,8 @@ async def list_files(folder_key: str, subpath: str = "") -> dict | list[dict]:
         return {"error": "unknown_folder"}
 
     candidate = str(Path(folder_base) / subpath.strip('/')) if subpath else folder_base
-    # _ensure_within_media_roots applies the os.path.commonpath barrier guard
-    # (CodeQL-recognised for py/path-injection) and returns the sanitised Path.
+    # _ensure_within_media_roots applies the os.path.realpath + prefix barrier
+    # guard (CodeQL-recognised for py/path-injection) and returns the sanitised Path.
     # Downstream filesystem ops MUST consume this returned Path — reconstructing
     # Path(candidate) here would defeat the taint flow break.
     target = _ensure_within_media_roots(candidate)

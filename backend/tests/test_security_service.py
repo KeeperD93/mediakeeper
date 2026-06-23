@@ -76,6 +76,26 @@ async def test_ensure_not_blocked_raises_429_when_blocked(db_session):
 
 
 @pytest.mark.asyncio
+async def test_security_attempt_success_rejects_non_boolean(db_session):
+    """The CHECK(0/1) guard refuses a success value outside the boolean range."""
+    from sqlalchemy.exc import IntegrityError
+    db_session.add(SecurityAttempt(ip="2.2.2.2", scope="admin", success=2))
+    with pytest.raises(IntegrityError):
+        await db_session.flush()
+    await db_session.rollback()
+
+
+@pytest.mark.asyncio
+async def test_security_block_permanent_rejects_non_boolean(db_session):
+    """The CHECK(0/1) guard refuses a permanent value outside the boolean range."""
+    from sqlalchemy.exc import IntegrityError
+    db_session.add(SecurityBlock(scope="admin", permanent=5))
+    with pytest.raises(IntegrityError):
+        await db_session.flush()
+    await db_session.rollback()
+
+
+@pytest.mark.asyncio
 async def test_ensure_not_blocked_passes_when_scope_differs(db_session):
     await create_block(
         db_session,

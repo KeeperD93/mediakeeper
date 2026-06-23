@@ -3,6 +3,7 @@ import bcrypt
 import jwt
 from pathlib import Path
 from datetime import datetime, timedelta, timezone
+from functools import lru_cache
 
 from core.env_flags import env_int
 
@@ -93,18 +94,26 @@ def is_external_auth_only_password(hashed: str) -> bool:
     return verify_password(EXTERNAL_AUTH_PASSWORD_SENTINEL, hashed)
 
 
-def get_backoffice_admin_usernames() -> set[str]:
-    """
-    Return the list of accounts allowed to open a
-    MediaKeeper backoffice session.
-    """
-    raw = os.getenv("MK_ADMIN_USERS", "admin")
+@lru_cache(maxsize=8)
+def _parse_admin_usernames(raw: str) -> frozenset[str]:
     usernames = {
         part.strip()
         for part in raw.replace(";", ",").split(",")
         if part.strip()
     }
-    return usernames or {"admin"}
+    return frozenset(usernames or {"admin"})
+
+
+def get_backoffice_admin_usernames() -> set[str]:
+    """
+    Return the list of accounts allowed to open a
+    MediaKeeper backoffice session.
+
+    The raw ``MK_ADMIN_USERS`` value is re-read on every call (cheap), but its
+    parse is memoised per distinct value — so a live env change (the test suite
+    monkeypatches it) is still honoured while the per-request split is cached.
+    """
+    return set(_parse_admin_usernames(os.getenv("MK_ADMIN_USERS", "admin")))
 
 
 def is_backoffice_admin(username: str) -> bool:
