@@ -256,8 +256,8 @@ watch(() => props.item, build, { immediate: true })
 }
 @media (hover: hover) {
   .so-close:hover {
-    background: rgb(244, 63, 94, 0.1);
-    color: #fb7185;
+    background: rgb(var(--color-error-rgb), 0.1);
+    color: var(--color-error);
   }
 }
 .so-episodes {
@@ -397,9 +397,9 @@ watch(() => props.item, build, { immediate: true })
   }
 }
 .hc-it-critical {
-  background: rgb(244, 63, 94, 0.12);
-  color: #fb7185;
-  border: 1px solid rgb(244, 63, 94, 0.15);
+  background: rgb(var(--color-error-rgb), 0.12);
+  color: var(--color-error);
+  border: 1px solid rgb(var(--color-error-rgb), 0.15);
 }
 .hc-it-warning {
   background: rgb(var(--color-warning-rgb), 0.12);

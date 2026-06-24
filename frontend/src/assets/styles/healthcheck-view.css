@@ -164,7 +164,7 @@
   letter-spacing: 0.3px;
 }
 .cinema-health .hc-sev-dot-critical {
-  background: #fb7185;
+  background: var(--color-error);
 }
 .cinema-health .hc-sev-dot-warning {
   background: var(--color-warning);
@@ -173,7 +173,7 @@
   background: var(--color-info);
 }
 .cinema-health .hc-sev-count-critical {
-  color: #fb7185;
+  color: var(--color-error);
 }
 .cinema-health .hc-sev-count-warning {
   color: var(--color-warning);
@@ -314,7 +314,7 @@
   background: var(--color-info);
 }
 .cinema-health .hc-td-no_audio {
-  background: #fb7185;
+  background: var(--color-error);
 }
 .cinema-health .hc-td-large_file,
 .cinema-health .hc-td-hdr_no_sdr {

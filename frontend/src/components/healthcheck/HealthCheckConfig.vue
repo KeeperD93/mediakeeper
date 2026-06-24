@@ -149,8 +149,8 @@ const { config, configDirty, configSaving, configRules, saveConfig } = useHealth
   font-weight: var(--font-medium);
 }
 .hc-rs-critical {
-  background: rgb(244, 63, 94, 0.12);
-  color: #fb7185;
+  background: rgb(var(--color-error-rgb), 0.12);
+  color: var(--color-error);
 }
 .hc-rs-warning {
   background: rgb(var(--color-warning-rgb), 0.12);
