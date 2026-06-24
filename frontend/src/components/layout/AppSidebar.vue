@@ -212,14 +212,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import SidebarLink from './SidebarLink.vue'
 import SidebarSubLink from './SidebarSubLink.vue'
 import SidebarSection from './SidebarSection.vue'
 import { useSidebarCounters } from '@/composables/useSidebarCounters'
-import { fetchApiResponse, useApi } from '@/composables/useApi'
+import { useAppSidebar } from '@/composables/useAppSidebar'
 import { useMobile } from '@/composables/useMobile'
 import { useSidebarExpand, hasSubTabs } from '@/composables/useSidebarExpand'
 import { ChevronLeft, MessageSquare, Package, Search } from 'lucide-vue-next'
@@ -232,8 +232,8 @@ const { t } = useI18n()
 const { counters } = useSidebarCounters()
 const router = useRouter()
 const route = useRoute()
-const { apiPost } = useApi()
 const { isMobile } = useMobile()
+const { appVersion, hasNewChangelog, provisionPortalEntry } = useAppSidebar()
 
 const moduleEntries = computed(() => SIDEBAR_MODULES.filter(m => !m.desktopOnly || !isMobile.value))
 
@@ -250,17 +250,10 @@ function firstTabId(path) {
 const { toggleExpand, isExpanded } = useSidebarExpand(route)
 
 async function enterRequestsModule() {
-  try {
-    await apiPost('/api/portal/admin/requests/enter')
-  } catch {
-    // Non-fatal: navigation will land on the portal login if provisioning failed.
-  }
+  await provisionPortalEntry()
   closeMobile()
   router.push('/portal')
 }
-
-const appVersion = ref('...')
-const hasNewChangelog = ref(false)
 
 defineProps({
   collapsed: Boolean,
@@ -272,29 +265,4 @@ const emit = defineEmits(['toggle', 'closeMobile', 'openSearch'])
 function closeMobile() {
   emit('closeMobile')
 }
-
-onMounted(async () => {
-  try {
-    const res = await fetchApiResponse('/api/changelog/check', { redirectOn401: false })
-    if (res.ok) {
-      const data = await res.json()
-      appVersion.value = data.current_version || '0.0.0'
-      hasNewChangelog.value = !!data.has_new
-    }
-  } catch {
-    // Fallback si l'API n'est pas encore ready
-    try {
-      const res = await fetchApiResponse('/api/changelog/current', {
-        retryOn401: false,
-        redirectOn401: false,
-      })
-      if (res.ok) {
-        const data = await res.json()
-        appVersion.value = data.version || '0.0.0'
-      }
-    } catch {
-      /* silent: version display is cosmetic */
-    }
-  }
-})
 </script>
