@@ -151,3 +151,17 @@
   background: var(--accent);
   color: var(--portal-text-primary);
 }
+
+/* Touch targets ≥ 44px on mobile for the toolbar controls. */
+@media (max-width: 767px) {
+  .ru-toolbar-input,
+  .ru-toolbar-pill-input,
+  .ru-toolbar-select,
+  .ru-pill {
+    min-height: 44px;
+  }
+  .ru-toolbar-view-btn {
+    width: 44px;
+    height: 44px;
+  }
+}

@@ -284,8 +284,10 @@ const {
   transition: border-bottom-color var(--duration-fast);
   border-bottom: var(--border-width) dotted var(--text-very-faint);
 }
-.tl-media:hover {
-  border-bottom-color: var(--text-secondary);
+@media (hover: hover) {
+  .tl-media:hover {
+    border-bottom-color: var(--text-secondary);
+  }
 }
 .tl-meta {
   font-size: var(--text-2xs);

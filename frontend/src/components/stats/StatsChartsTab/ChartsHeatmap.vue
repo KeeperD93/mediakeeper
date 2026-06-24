@@ -98,8 +98,10 @@ const { hmMonthGrid, hmCellColor, hmMonthPeak, hmTip, hmTooltipShow, hmTooltipHi
 .hm-month-header,
 .hm-month-row {
   display: grid;
-  grid-template-columns: 52px repeat(31, 1fr);
-  gap: 2px;
+  /* 31 day columns use minmax(0,1fr) so cells shrink instead of
+     overflowing; the first column is a fixed label gutter. */
+  grid-template-columns: 32px repeat(31, minmax(0, 1fr));
+  gap: 1px;
   width: 100%;
   align-items: center;
 }
@@ -107,18 +109,29 @@ const { hmMonthGrid, hmCellColor, hmMonthPeak, hmTip, hmTooltipShow, hmTooltipHi
   margin-bottom: 4px;
 }
 .hm-month-row-label {
-  font-size: var(--text-3xs);
+  font-size: 0.55rem;
   color: var(--text-muted);
   text-align: right;
-  padding-right: 8px;
+  padding-right: 4px;
   white-space: nowrap;
 }
 .hm-month-day-num {
   text-align: center;
-  font-size: 0.55rem;
+  /* Sub-token sizes (0.45/0.55rem): the 31-day grid is too dense for
+     --text-3xs (0.62rem); deliberately raw. Mobile hides all but the
+     1/7/14/21/28 markers below. */
+  font-size: 0.45rem;
   color: var(--text-muted);
   opacity: 0.5;
   user-select: none;
+  visibility: hidden;
+}
+.hm-month-header > :nth-child(2),
+.hm-month-header > :nth-child(8),
+.hm-month-header > :nth-child(15),
+.hm-month-header > :nth-child(22),
+.hm-month-header > :nth-child(29) {
+  visibility: visible;
 }
 .hm-month-body {
   display: flex;
@@ -222,7 +235,7 @@ const { hmMonthGrid, hmCellColor, hmMonthPeak, hmTip, hmTooltipShow, hmTooltipHi
   }
 }
 .chart-card {
-  padding: 20px;
+  padding: 14px 12px;
 }
 .chart-card-spaced {
   margin-top: 14px;
@@ -234,32 +247,25 @@ const { hmMonthGrid, hmCellColor, hmMonthPeak, hmTip, hmTooltipShow, hmTooltipHi
   margin-top: 8px;
 }
 
-@media (max-width: 767px) {
-  /* Narrow screens can't fit 31 day numbers without overflow. Keep only
-     a handful of markers (1, 7, 14, 21, 28) so the timeline still gives
-     a visual anchor while the empty slots reserve the grid layout. */
+/* Desktop: full 52px label gutter, all day numbers visible, larger gaps.
+   Narrow screens keep only the 1/7/14/21/28 markers (base above) so the
+   31-day row never overflows. */
+@media (min-width: 768px) {
   .hm-month-header,
   .hm-month-row {
-    grid-template-columns: 32px repeat(31, 1fr);
-    gap: 1px;
+    grid-template-columns: 52px repeat(31, minmax(0, 1fr));
+    gap: 2px;
   }
   .hm-month-row-label {
-    font-size: 0.55rem;
-    padding-right: 4px;
+    font-size: var(--text-3xs);
+    padding-right: 8px;
   }
   .hm-month-day-num {
-    visibility: hidden;
-    font-size: 0.45rem;
-  }
-  .hm-month-header > :nth-child(2),
-  .hm-month-header > :nth-child(8),
-  .hm-month-header > :nth-child(15),
-  .hm-month-header > :nth-child(22),
-  .hm-month-header > :nth-child(29) {
+    font-size: 0.55rem;
     visibility: visible;
   }
   .chart-card {
-    padding: 14px 12px;
+    padding: 20px;
   }
 }
 </style>

@@ -163,4 +163,12 @@ onBeforeUnmount(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Touch targets ≥ 44px on mobile for the filter trigger and list rows. */
+@media (max-width: 767px) {
+  .auf-trigger,
+  .auf-item {
+    min-height: 44px;
+  }
+}
 </style>

@@ -191,3 +191,13 @@
   gap: 0.4rem;
   flex-shrink: 0;
 }
+
+/* Touch targets ≥ 44px on mobile for the debug controls. */
+@media (max-width: 767px) {
+  .pt-debug .pt-debug-input,
+  .pt-debug .pt-debug-select,
+  .pt-debug .pt-debug-btn,
+  .pt-debug .pt-debug-btn--small {
+    min-height: 44px;
+  }
+}

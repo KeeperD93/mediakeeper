@@ -111,11 +111,13 @@ const {
 .tc.active .tc-header {
   background: rgb(var(--accent-rgb), 0.08);
 }
-.tc-header:hover {
-  background: var(--bg-secondary);
-}
-.tc.active .tc-header:hover {
-  background: rgb(var(--accent-rgb), 0.12);
+@media (hover: hover) {
+  .tc-header:hover {
+    background: var(--bg-secondary);
+  }
+  .tc.active .tc-header:hover {
+    background: rgb(var(--accent-rgb), 0.12);
+  }
 }
 
 .tc-header-left {
@@ -247,8 +249,10 @@ const {
   cursor: pointer;
   transition: background var(--duration-fast);
 }
-.tc-save-btn:hover {
-  background: var(--accent-700);
+@media (hover: hover) {
+  .tc-save-btn:hover {
+    background: var(--accent-700);
+  }
 }
 .tc-save-btn:disabled {
   opacity: 0.5;
@@ -264,9 +268,11 @@ const {
   cursor: pointer;
   transition: all var(--duration-fast);
 }
-.tc-ping-btn:hover {
-  border-color: var(--accent-500);
-  color: var(--text-primary);
+@media (hover: hover) {
+  .tc-ping-btn:hover {
+    border-color: var(--accent-500);
+    color: var(--text-primary);
+  }
 }
 .tc-ping-btn:disabled {
   opacity: 0.5;
@@ -283,5 +289,22 @@ const {
   color: var(--accent-500);
   text-decoration: underline;
   text-underline-offset: 2px;
+}
+
+/* Touch targets ≥ 44px on mobile. The switch keeps its compact track
+   visual; only the tappable label grows to a 44px square. */
+@media (max-width: 767px) {
+  .tc-switch {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .tc-input,
+  .tc-save-btn,
+  .tc-ping-btn {
+    min-height: 44px;
+  }
 }
 </style>
