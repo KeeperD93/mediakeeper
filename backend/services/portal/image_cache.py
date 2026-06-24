@@ -68,9 +68,9 @@ _enabled = False
 _enabled_last_refresh = 0.0
 
 _stats: dict[str, int] = {"hits": 0, "misses": 0}
-# clear_cache() runs on a worker thread (asyncio.to_thread) while
-# fetch_or_serve / get_cache_stats touch _stats on the event loop — guard
-# the counters so a concurrent purge can't tear a read-modify-write.
+# clear_cache() and get_cache_stats() run on a worker thread
+# (asyncio.to_thread) while fetch_or_serve increments on the event loop —
+# guard the counters so a concurrent purge can't tear a read-modify-write.
 _stats_lock = threading.Lock()
 
 
