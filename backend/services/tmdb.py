@@ -4,6 +4,7 @@ import time
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.tmdb_media import TMDB_MEDIA_MOVIE, TMDB_MEDIA_TV, TMDB_MEDIA_TYPES
 from core.http_client import get_external_client
 
 logger = logging.getLogger("mediakeeper.tmdb")
@@ -80,17 +81,17 @@ async def _search_tmdb(media_type: str, query: str, db: AsyncSession | None = No
     media_type: "movie" or "tv"
     """
     api_key = await _get_tmdb_key(db)
-    endpoint = "search/movie" if media_type == "movie" else "search/tv"
-    title_key = "title" if media_type == "movie" else "name"
-    date_key  = "release_date" if media_type == "movie" else "first_air_date"
-    url_segment = "movie" if media_type == "movie" else "tv"
+    endpoint = "search/movie" if media_type == TMDB_MEDIA_MOVIE else "search/tv"
+    title_key = "title" if media_type == TMDB_MEDIA_MOVIE else "name"
+    date_key  = "release_date" if media_type == TMDB_MEDIA_MOVIE else "first_air_date"
+    url_segment = TMDB_MEDIA_MOVIE if media_type == TMDB_MEDIA_MOVIE else TMDB_MEDIA_TV
     lang = language or LANGUAGE
 
     params: dict[str, str | int] = {"query": query, "language": lang, "page": 1}
     if year:
         # Empty/zero values would be rejected by TMDB and silently filter out
         # every result — only include the param when it's a real filter.
-        year_key = "primary_release_year" if media_type == "movie" else "first_air_date_year"
+        year_key = "primary_release_year" if media_type == TMDB_MEDIA_MOVIE else "first_air_date_year"
         params[year_key] = year
 
     try:
@@ -144,12 +145,12 @@ async def _search_tmdb(media_type: str, query: str, db: AsyncSession | None = No
 
 async def search_movie(query: str, db: AsyncSession | None = None, language: str | None = None, year: int | None = None):
     """Search for a movie on TMDB."""
-    return await _search_tmdb("movie", query, db, language=language, year=year)
+    return await _search_tmdb(TMDB_MEDIA_MOVIE, query, db, language=language, year=year)
 
 
 async def search_tv(query: str, db: AsyncSession | None = None, language: str | None = None, year: int | None = None):
     """Search for a series on TMDB."""
-    return await _search_tmdb("tv", query, db, language=language, year=year)
+    return await _search_tmdb(TMDB_MEDIA_TV, query, db, language=language, year=year)
 
 
 async def get_tv_seasons(tmdb_id: int, db: AsyncSession | None = None, language: str | None = None) -> list[dict] | dict:
@@ -306,8 +307,8 @@ async def get_media_detail(media_type: str, tmdb_id: int, db: AsyncSession | Non
     media_type: "movie" or "tv"
     """
     api_key = await _get_tmdb_key(db)
-    title_key = "title" if media_type == "movie" else "name"
-    date_key = "release_date" if media_type == "movie" else "first_air_date"
+    title_key = "title" if media_type == TMDB_MEDIA_MOVIE else "name"
+    date_key = "release_date" if media_type == TMDB_MEDIA_MOVIE else "first_air_date"
     lang = tmdb_language(locale)
     try:
         client = get_external_client()
@@ -343,7 +344,7 @@ async def get_media_detail(media_type: str, tmdb_id: int, db: AsyncSession | Non
             "genres": [g.get("name", "") for g in d.get("genres", [])],
             "type": media_type,
         }
-        if media_type == "tv":
+        if media_type == TMDB_MEDIA_TV:
             result["seasons_count"] = d.get("number_of_seasons", 0)
             result["episodes_count"] = d.get("number_of_episodes", 0)
             result["status"] = d.get("status", "")
@@ -370,7 +371,7 @@ async def get_media_details(
     on any failure (no key, network error, unknown ``media_type``). The
     short timeout keeps a slow TMDB instance from stalling the sync.
     """
-    if media_type not in ("movie", "tv"):
+    if media_type not in TMDB_MEDIA_TYPES:
         return None
     api_key = await _get_tmdb_key(db)
     if not api_key:
@@ -407,7 +408,7 @@ async def get_meta_cached(
     in-process; failures degrade to an empty dict so the caller can
     render the row without runtime / year.
     """
-    if media_type not in ("movie", "tv"):
+    if media_type not in TMDB_MEDIA_TYPES:
         return {}
     key = (int(tmdb_id), media_type)
     now = time.time()
@@ -428,7 +429,7 @@ async def get_meta_cached(
         if res.status_code != 200:
             return {}
         d = res.json()
-        if media_type == "movie":
+        if media_type == TMDB_MEDIA_MOVIE:
             runtime = int(d.get("runtime") or 0)
             date = d.get("release_date") or ""
         else:

@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.auth import get_current_user
+from constants.tmdb_media import TMDB_MEDIA_TYPES
 from core.database import get_db
 from core.i18n import get_request_locale
 from models.user import User
@@ -40,6 +41,6 @@ async def tmdb_episodes(tmdb_id: int, season: int, language: str = None, db: Asy
 @router.get("/tmdb/detail/{media_type}/{tmdb_id}")
 async def tmdb_detail(media_type: str, tmdb_id: int, locale: str = Depends(get_request_locale), db: AsyncSession = Depends(get_db), _: User = Depends(get_current_user)):
     """Return the full details of a movie or series (overview, backdrop, genres, runtime, ...)."""
-    if media_type not in ("movie", "tv"):
+    if media_type not in TMDB_MEDIA_TYPES:
         return {"error": "invalid_media_type"}
     return await get_media_detail(media_type, tmdb_id, db, locale=locale)
