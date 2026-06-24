@@ -11,7 +11,7 @@
 }
 
 .cinema-stats .tbl-wrap {
-  padding: 18px 20px;
+  padding: 14px 12px;
   background: var(--surface-1);
   backdrop-filter: blur(16px);
   border: 0.5px solid var(--border-default);
@@ -19,11 +19,11 @@
 }
 .cinema-stats .tbl-header {
   display: flex;
-  align-items: center;
+  flex-flow: column wrap;
+  align-items: stretch;
   justify-content: space-between;
   margin-bottom: 16px;
-  flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
 }
 .cinema-stats .tbl-title {
   font-size: var(--text-md);
@@ -34,7 +34,8 @@
 .cinema-stats .tbl-controls {
   display: flex;
   align-items: center;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 .cinema-stats .tbl-ctrl {
   display: flex;
@@ -70,7 +71,9 @@
   font-size: var(--text-xs);
   color: var(--text-primary);
   outline: none;
-  width: 180px;
+  flex: 1 1 140px;
+  width: auto;
+  min-width: 0;
   transition: border-color var(--duration-base);
 }
 .cinema-stats .ctrl-search:focus {
@@ -78,42 +81,6 @@
 }
 .cinema-stats .tbl-scroll {
   overflow-x: auto;
-}
-/* On mobile, let the dense fixed-width admin table lay out naturally
-   with a minimum width so the horizontal scroll kicks in (card-mode
-   would lose the sortable column headers that are the whole point
-   of an admin data table). The header + controls are stacked and
-   wrap so the search input and toggles never overflow the card. */
-@media (max-width: 767px) {
-  .cinema-stats .tbl-wrap {
-    padding: 14px 12px;
-  }
-  .cinema-stats .tbl-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-  }
-  .cinema-stats .tbl-controls {
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-  .cinema-stats .ctrl-search {
-    flex: 1 1 140px;
-    width: auto;
-    min-width: 0;
-  }
-  .cinema-stats .dt {
-    table-layout: auto;
-    min-width: 1100px;
-  }
-  /* Mobile : pas de tronquage. L'utilisateur scrolle horizontalement et voit le
-     contenu complet de chaque cellule. Retire ellipsis en parallèle sur th ET
-     td pour garder header et body alignés (largeur calculée identique). */
-  .cinema-stats .dt th,
-  .cinema-stats .dt td {
-    overflow: visible;
-    text-overflow: clip;
-  }
 }
 .cinema-stats .tbl-loading {
   display: flex;
@@ -129,7 +96,11 @@
 .cinema-stats .dt {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed;
+  /* Mobile-first: natural-width table that scrolls horizontally inside
+     .tbl-scroll (card-mode would lose the sortable headers). Desktop
+     switches to a fitted fixed layout below. */
+  table-layout: auto;
+  min-width: 1100px;
 }
 .cinema-stats .dt th {
   position: relative;
@@ -142,8 +113,8 @@
   letter-spacing: 0.3px;
   border-bottom: 1px solid var(--border-default);
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: visible;
+  text-overflow: clip;
 }
 .cinema-stats .dt th.sortable {
   cursor: pointer;
@@ -168,8 +139,8 @@
   font-size: var(--text-sm);
   color: rgb(255, 255, 255, 0.7);
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: visible;
+  text-overflow: clip;
   vertical-align: middle;
 }
 @media (hover: hover) {
@@ -412,5 +383,37 @@
   .cinema-stats .ctrl-sel,
   .cinema-stats .ctrl-search {
     min-height: 44px;
+  }
+}
+
+/* Desktop overrides (mobile-first base above): the dense admin table
+   fits the card with a fixed layout + ellipsis truncation; on mobile it
+   keeps its natural width and scrolls horizontally instead. */
+@media (min-width: 768px) {
+  .cinema-stats .tbl-wrap {
+    padding: 18px 20px;
+  }
+  .cinema-stats .tbl-header {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+  }
+  .cinema-stats .tbl-controls {
+    flex-wrap: nowrap;
+    gap: 10px;
+  }
+  .cinema-stats .ctrl-search {
+    flex: initial;
+    width: 180px;
+    min-width: auto;
+  }
+  .cinema-stats .dt {
+    table-layout: fixed;
+    min-width: 0;
+  }
+  .cinema-stats .dt th,
+  .cinema-stats .dt td {
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
