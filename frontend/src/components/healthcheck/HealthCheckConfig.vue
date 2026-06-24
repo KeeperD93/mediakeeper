@@ -191,8 +191,10 @@ const { config, configDirty, configSaving, configRules, saveConfig } = useHealth
   cursor: pointer;
   transition: border-color var(--duration-fast);
 }
-.hc-select:hover {
-  border-color: var(--border-hover);
+@media (hover: hover) {
+  .hc-select:hover {
+    border-color: var(--border-hover);
+  }
 }
 .hc-select:focus {
   border-color: var(--accent-500);
@@ -223,8 +225,10 @@ const { config, configDirty, configSaving, configRules, saveConfig } = useHealth
   -webkit-appearance: none;
   margin: 0;
 }
-.hc-input-num:hover {
-  border-color: var(--border-hover);
+@media (hover: hover) {
+  .hc-input-num:hover {
+    border-color: var(--border-hover);
+  }
 }
 .hc-input-num:focus {
   border-color: var(--accent-500);
@@ -251,8 +255,10 @@ const { config, configDirty, configSaving, configRules, saveConfig } = useHealth
   transition: all var(--duration-fast);
   font-family: inherit;
 }
-.hc-save-btn:hover:not(:disabled) {
-  background: rgb(var(--accent-rgb), 0.28);
+@media (hover: hover) {
+  .hc-save-btn:hover:not(:disabled) {
+    background: rgb(var(--accent-rgb), 0.28);
+  }
 }
 .hc-save-btn:disabled {
   opacity: 0.45;

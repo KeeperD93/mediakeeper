@@ -31,8 +31,10 @@
   cursor: pointer;
   transition: border-color var(--duration-fast);
 }
-.cinema-health .hc-select:hover {
-  border-color: var(--border-hover);
+@media (hover: hover) {
+  .cinema-health .hc-select:hover {
+    border-color: var(--border-hover);
+  }
 }
 .cinema-health .hc-select:focus {
   border-color: var(--accent-500);
@@ -58,9 +60,11 @@
     transform var(--duration-base),
     box-shadow var(--duration-base);
 }
-.cinema-health .sg-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 30px rgb(0, 0, 0, 0.45);
+@media (hover: hover) {
+  .cinema-health .sg-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgb(0, 0, 0, 0.45);
+  }
 }
 .cinema-health .sg-poster-wrap {
   position: relative;
@@ -75,8 +79,10 @@
   filter: brightness(0.85);
   transition: filter 0.4s;
 }
-.cinema-health .sg-card:hover .sg-poster {
-  filter: brightness(1.1);
+@media (hover: hover) {
+  .cinema-health .sg-card:hover .sg-poster {
+    filter: brightness(1.1);
+  }
 }
 .cinema-health .sg-gradient {
   position: absolute;

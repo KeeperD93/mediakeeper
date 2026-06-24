@@ -254,9 +254,11 @@ watch(() => props.item, build, { immediate: true })
     height: 32px;
   }
 }
-.so-close:hover {
-  background: rgb(244, 63, 94, 0.1);
-  color: #fb7185;
+@media (hover: hover) {
+  .so-close:hover {
+    background: rgb(244, 63, 94, 0.1);
+    color: #fb7185;
+  }
 }
 .so-episodes {
   padding: 8px 12px;
@@ -273,8 +275,10 @@ watch(() => props.item, build, { immediate: true })
   color: var(--text-primary);
   transition: background var(--duration-fast);
 }
-.so-season-header:hover {
-  background: var(--surface-1);
+@media (hover: hover) {
+  .so-season-header:hover {
+    background: var(--surface-1);
+  }
 }
 .so-season-label {
   flex-shrink: 0;
@@ -385,10 +389,12 @@ watch(() => props.item, build, { immediate: true })
     transform var(--duration-fast) ease;
   z-index: 20;
 }
-.hc-issue-tag[data-tooltip]:hover::after,
-.hc-issue-tag[data-tooltip]:hover::before {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
+@media (hover: hover) {
+  .hc-issue-tag[data-tooltip]:hover::after,
+  .hc-issue-tag[data-tooltip]:hover::before {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 .hc-it-critical {
   background: rgb(244, 63, 94, 0.12);

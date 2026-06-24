@@ -43,8 +43,10 @@
   transition: all var(--duration-fast);
   font-family: inherit;
 }
-.cinema-health .hc-scan-btn:hover:not(:disabled) {
-  background: rgb(var(--accent-rgb), 0.25);
+@media (hover: hover) {
+  .cinema-health .hc-scan-btn:hover:not(:disabled) {
+    background: rgb(var(--accent-rgb), 0.25);
+  }
 }
 .cinema-health .hc-scan-btn:disabled {
   opacity: 0.5;
@@ -131,8 +133,10 @@
   transition: all var(--duration-base);
   border: 0.5px solid transparent;
 }
-.cinema-health .hc-sev-card:hover {
-  border-color: var(--border-strong);
+@media (hover: hover) {
+  .cinema-health .hc-sev-card:hover {
+    border-color: var(--border-strong);
+  }
 }
 .cinema-health .hc-sev-active {
   border-color: rgb(var(--accent-rgb), 0.3) !important;
@@ -217,8 +221,10 @@
   transition: all var(--duration-fast);
   border-radius: 4px;
 }
-.cinema-health .hc-lib-item:hover .hc-lib-name {
-  color: var(--accent-400);
+@media (hover: hover) {
+  .cinema-health .hc-lib-item:hover .hc-lib-name {
+    color: var(--accent-400);
+  }
 }
 .cinema-health .hc-lib-active .hc-lib-name {
   color: var(--accent-400);
@@ -366,10 +372,12 @@
   transition: all var(--duration-base);
   box-shadow: 0 4px 20px rgb(0, 0, 0, 0.3);
 }
-.cinema-health .hc-scroll-top:hover {
-  background: rgb(var(--accent-rgb), 0.35);
-  transform: translateX(-50%) translateY(-2px);
-  box-shadow: 0 6px 24px rgb(0, 0, 0, 0.4);
+@media (hover: hover) {
+  .cinema-health .hc-scroll-top:hover {
+    background: rgb(var(--accent-rgb), 0.35);
+    transform: translateX(-50%) translateY(-2px);
+    box-shadow: 0 6px 24px rgb(0, 0, 0, 0.4);
+  }
 }
 .hc-scroll-up-enter-active,
 .hc-scroll-up-leave-active {
