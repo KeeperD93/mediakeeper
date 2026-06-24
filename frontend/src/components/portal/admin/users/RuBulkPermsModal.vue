@@ -6,7 +6,7 @@
         class="atl-overlay mk-modal-sheet"
         role="dialog"
         aria-modal="true"
-        :aria-label="$t('requestsAdmin.users.bulkPerms.title')"
+        :aria-labelledby="titleId"
         @click.self="close"
       >
         <form
@@ -15,7 +15,7 @@
           @submit.prevent="submit"
         >
           <div class="atl-header">
-            <h2 class="atl-title">{{ $t('requestsAdmin.users.bulkPerms.title') }}</h2>
+            <h2 :id="titleId" class="atl-title">{{ $t('requestsAdmin.users.bulkPerms.title') }}</h2>
             <button
               ref="closeBtnRef"
               class="atl-close"
@@ -149,7 +149,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, computed, toRef, watch } from 'vue'
+import { reactive, ref, computed, toRef, watch, useId } from 'vue'
 import { X } from 'lucide-vue-next'
 import { PERMISSION_KEYS, QUOTA_MODE } from '@/constants/portalAdminUsers'
 
@@ -161,6 +161,7 @@ const props = defineProps({
   count: { type: Number, default: 0 },
 })
 const emit = defineEmits(['close', 'apply'])
+const titleId = useId()
 
 // Each control defaults to "" = no change. Permissions + auto-approve +
 // unlimited use a tri-state select (''/on/off); the quota numbers stay blank

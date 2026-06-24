@@ -6,12 +6,14 @@
         class="atl-overlay mk-modal-sheet"
         role="dialog"
         aria-modal="true"
-        :aria-label="$t('requestsAdmin.users.drawerEmby.title')"
+        :aria-labelledby="titleId"
         @click.self="close"
       >
         <div ref="panelRef" class="atl-panel mk-modal-sheet-panel ru-import-panel" tabindex="-1">
           <div class="atl-header">
-            <h2 class="atl-title">{{ $t('requestsAdmin.users.drawerEmby.title') }}</h2>
+            <h2 :id="titleId" class="atl-title">
+              {{ $t('requestsAdmin.users.drawerEmby.title') }}
+            </h2>
             <button
               ref="closeBtnRef"
               class="atl-close"
@@ -97,7 +99,7 @@
 </template>
 
 <script setup>
-import { ref, computed, toRef, watch } from 'vue'
+import { ref, computed, toRef, watch, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { X } from 'lucide-vue-next'
 import { useFocusTrap } from '@/composables/useFocusTrap'
@@ -111,6 +113,7 @@ import '@/assets/styles/portal/admin-users-modals.css'
 
 const props = defineProps({ open: { type: Boolean, default: false } })
 const emit = defineEmits(['close', 'imported'])
+const titleId = useId()
 
 const { t } = useI18n()
 const { showToast } = useToast()

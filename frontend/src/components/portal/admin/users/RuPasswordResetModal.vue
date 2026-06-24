@@ -6,12 +6,14 @@
         class="atl-overlay mk-modal-sheet"
         role="dialog"
         aria-modal="true"
-        :aria-label="$t('requestsAdmin.users.drawer.security.passwordReset')"
+        :aria-labelledby="titleId"
         @click.self="close"
       >
         <div ref="panelRef" class="atl-panel mk-modal-sheet-panel ru-create-panel">
           <div class="atl-header">
-            <h2 class="atl-title">{{ $t('requestsAdmin.users.drawer.security.passwordReset') }}</h2>
+            <h2 :id="titleId" class="atl-title">
+              {{ $t('requestsAdmin.users.drawer.security.passwordReset') }}
+            </h2>
             <button
               ref="closeBtnRef"
               class="atl-close"
@@ -44,7 +46,7 @@
 </template>
 
 <script setup>
-import { ref, toRef } from 'vue'
+import { ref, toRef, useId } from 'vue'
 import { Check, Copy, X } from 'lucide-vue-next'
 
 import { useFocusTrap } from '@/composables/useFocusTrap'
@@ -55,6 +57,7 @@ const props = defineProps({
   password: { type: String, default: '' },
 })
 const emit = defineEmits(['close'])
+const titleId = useId()
 
 const copied = ref(false)
 const panelRef = ref(null)

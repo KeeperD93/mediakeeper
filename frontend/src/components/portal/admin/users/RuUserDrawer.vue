@@ -7,7 +7,7 @@
           class="ru-drawer"
           role="dialog"
           aria-modal="true"
-          :aria-label="user?.display_name || ''"
+          :aria-labelledby="titleId"
           tabindex="-1"
         >
           <header class="ru-drawer-header">
@@ -55,7 +55,7 @@
                 :tier="user.tier || 'bronze'"
               />
               <div class="ru-drawer-id-text">
-                <h2>{{ user.display_name }}</h2>
+                <h2 :id="titleId">{{ user.display_name }}</h2>
                 <div class="ru-drawer-sub">
                   @{{ user.username }}
                   <RuUserBadge :variant="user.source === USER_SOURCE.EMBY ? 'info' : 'success'">
@@ -151,7 +151,7 @@
 </template>
 
 <script setup>
-import { computed, ref, toRef, watch } from 'vue'
+import { computed, ref, toRef, watch, useId } from 'vue'
 import { ChevronLeft, ChevronRight, X } from 'lucide-vue-next'
 import MkAvatar from '@/components/common/MkAvatar.vue'
 import RuUserBadge from './RuUserBadge.vue'
@@ -177,6 +177,7 @@ const props = defineProps({
   orderedIds: { type: Array, default: () => [] },
 })
 const emit = defineEmits(['close', 'changed', 'navigate'])
+const titleId = useId()
 
 const currentIndex = computed(() => props.orderedIds.indexOf(props.profileId))
 const hasPrev = computed(() => currentIndex.value > 0)
