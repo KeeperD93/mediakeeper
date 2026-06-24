@@ -7,7 +7,7 @@
           class="ru-drawer"
           role="dialog"
           aria-modal="true"
-          :aria-label="user?.display_name || ''"
+          :aria-labelledby="titleId"
           tabindex="-1"
         >
           <header class="ru-drawer-header">
@@ -55,12 +55,12 @@
                 :tier="user.tier || 'bronze'"
               />
               <div class="ru-drawer-id-text">
-                <h2>{{ user.display_name }}</h2>
+                <h2 :id="titleId">{{ user.display_name }}</h2>
                 <div class="ru-drawer-sub">
                   @{{ user.username }}
-                  <RuUserBadge :variant="user.source === 'emby' ? 'info' : 'success'">
+                  <RuUserBadge :variant="user.source === USER_SOURCE.EMBY ? 'info' : 'success'">
                     {{
-                      user.source === 'emby'
+                      user.source === USER_SOURCE.EMBY
                         ? 'Emby'
                         : $t('requestsAdmin.users.filters.source.local')
                     }}
@@ -73,7 +73,7 @@
                     }}
                   </RuUserBadge>
                   <RuUserBadge
-                    v-if="user.source === 'emby' && user.emby_is_disabled"
+                    v-if="user.source === USER_SOURCE.EMBY && user.emby_is_disabled"
                     variant="danger"
                   >
                     {{ $t('requestsAdmin.users.labels.embyDisabled') }}
@@ -117,31 +117,43 @@
               <p>{{ $t('requestsAdmin.users.drawer.loadError') }}</p>
             </div>
             <template v-else>
-              <RuTabIdentity v-if="activeTab === 'identity'" :user="user" @changed="onChanged" />
+              <RuTabIdentity
+                v-if="activeTab === DRAWER_TAB.IDENTITY"
+                :user="user"
+                @changed="onChanged"
+              />
               <RuTabAccess
-                v-else-if="activeTab === 'access'"
+                v-else-if="activeTab === DRAWER_TAB.ACCESS"
                 :user="user"
                 :presets="presets"
                 @changed="onChanged"
               />
-              <RuTabQuota v-else-if="activeTab === 'quota'" :user="user" @changed="onChanged" />
+              <RuTabQuota
+                v-else-if="activeTab === DRAWER_TAB.QUOTA"
+                :user="user"
+                @changed="onChanged"
+              />
               <RuTabSecurity
-                v-else-if="activeTab === 'security'"
+                v-else-if="activeTab === DRAWER_TAB.SECURITY"
                 :user="user"
                 @changed="onChanged"
               />
               <RuTabActivity
-                v-else-if="activeTab === 'activity'"
+                v-else-if="activeTab === DRAWER_TAB.ACTIVITY"
                 :user="user"
                 :activity="activity"
               />
               <RuTabTrophies
-                v-else-if="activeTab === 'trophies'"
+                v-else-if="activeTab === DRAWER_TAB.TROPHIES"
                 :user="user"
                 :activity="activity"
               />
-              <RuTabNotes v-else-if="activeTab === 'notes'" :user="user" @changed="onChanged" />
-              <RuTabAudit v-else-if="activeTab === 'audit'" :user="user" />
+              <RuTabNotes
+                v-else-if="activeTab === DRAWER_TAB.NOTES"
+                :user="user"
+                @changed="onChanged"
+              />
+              <RuTabAudit v-else-if="activeTab === DRAWER_TAB.AUDIT" :user="user" />
             </template>
           </div>
         </aside>
@@ -151,7 +163,7 @@
 </template>
 
 <script setup>
-import { computed, ref, toRef, watch } from 'vue'
+import { computed, ref, toRef, watch, useId } from 'vue'
 import { ChevronLeft, ChevronRight, X } from 'lucide-vue-next'
 import MkAvatar from '@/components/common/MkAvatar.vue'
 import RuUserBadge from './RuUserBadge.vue'
@@ -164,7 +176,7 @@ import RuTabTrophies from './tabs/RuTabTrophies.vue'
 import RuTabNotes from './tabs/RuTabNotes.vue'
 import RuTabAudit from './tabs/RuTabAudit.vue'
 
-import { DRAWER_TABS } from '@/constants/portalAdminUsers'
+import { DRAWER_TAB, DRAWER_TABS, USER_SOURCE } from '@/constants/portalAdminUsers'
 import { usePortalAdminUsers } from '@/composables/portal/usePortalAdminUsers'
 import { useFocusTrap } from '@/composables/useFocusTrap'
 
@@ -177,6 +189,7 @@ const props = defineProps({
   orderedIds: { type: Array, default: () => [] },
 })
 const emit = defineEmits(['close', 'changed', 'navigate'])
+const titleId = useId()
 
 const currentIndex = computed(() => props.orderedIds.indexOf(props.profileId))
 const hasPrev = computed(() => currentIndex.value > 0)
@@ -185,7 +198,7 @@ const hasNext = computed(
 )
 
 const tabs = DRAWER_TABS
-const activeTab = ref('identity')
+const activeTab = ref(DRAWER_TAB.IDENTITY)
 const user = ref(null)
 const activity = ref(null)
 const presets = ref(null)
@@ -229,7 +242,7 @@ watch(
   () => props.open,
   v => {
     if (v) {
-      activeTab.value = 'identity'
+      activeTab.value = DRAWER_TAB.IDENTITY
       load()
     }
   },

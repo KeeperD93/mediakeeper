@@ -148,11 +148,13 @@
 import { ref, onMounted } from 'vue'
 import { useLogs } from '@/composables/useLogs'
 import { useTabSync } from '@/composables/useTabSync'
+import { SIDEBAR_SUB_TABS } from '@/constants/sidebarSubTabs'
 import { ChevronLeft, Download, FileText, Film, RefreshCw } from 'lucide-vue-next'
 import { formatFileDate } from '@/utils/logsTime'
 import '@/assets/styles/logs-view.css'
 
-const activeTab = useTabSync(['logs', 'config'], 'logs')
+const TAB_IDS = SIDEBAR_SUB_TABS['/logs'].map(t => t.id)
+const activeTab = useTabSync(TAB_IDS, TAB_IDS[0])
 const readerEl = ref(null)
 
 const {

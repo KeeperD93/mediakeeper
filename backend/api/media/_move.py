@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 
 from api.auth import get_current_user
+from constants.media_manager_errors import HARD_FAIL_CODES
 from models.user import User
 from services.media_manager import (
     move_file,
@@ -14,7 +15,6 @@ from services.media_manager import (
     create_folders_batch,
     MEDIA_FOLDERS,
 )
-from services.media_manager._errors import HARD_FAIL_CODES
 
 logger = logging.getLogger("mediakeeper.api.media")
 router = APIRouter()

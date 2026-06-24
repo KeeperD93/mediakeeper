@@ -41,14 +41,6 @@ export const STATUS_FILTER = Object.freeze({
   NEVER_LOGGED_IN: 'never_logged_in',
 })
 
-export const STATUS_FILTERS = [
-  STATUS_FILTER.ALL,
-  STATUS_FILTER.ACTIVE,
-  STATUS_FILTER.INACTIVE,
-  STATUS_FILTER.EXPIRED,
-  STATUS_FILTER.NEVER_LOGGED_IN,
-]
-
 export const BULK_ACTION = Object.freeze({
   ACTIVATE: 'activate',
   DEACTIVATE: 'deactivate',
@@ -61,16 +53,6 @@ export const BULK_ACTION = Object.freeze({
   // and/or SET_QUOTA at the page level; it never reaches the backend.
   BULK_EDIT: 'bulk_edit',
 })
-
-export const SORT_KEYS = Object.freeze([
-  'display_name',
-  'username',
-  'level',
-  'xp',
-  'last_seen_at',
-  'access_end_date',
-  'created_at',
-])
 
 export const VIEW_MODE = Object.freeze({
   TABLE: 'table',

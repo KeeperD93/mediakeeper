@@ -3,7 +3,7 @@
     <button
       class="ru-stats-card"
       :class="{ 'is-active': active === 'all' }"
-      @click="$emit('apply', { status: '', expires_within: null })"
+      @click="$emit('apply', { status: STATUS_FILTER.ALL, expires_within: null })"
     >
       <span class="ru-stats-val">{{ stats?.total ?? 0 }}</span>
       <span class="ru-stats-label">{{ $t('requestsAdmin.users.stats.total') }}</span>
@@ -11,7 +11,7 @@
     <button
       class="ru-stats-card ru-stats-card--success"
       :class="{ 'is-active': active === 'active' }"
-      @click="$emit('apply', { status: 'active', expires_within: null })"
+      @click="$emit('apply', { status: STATUS_FILTER.ACTIVE, expires_within: null })"
     >
       <span class="ru-stats-val">{{ stats?.active ?? 0 }}</span>
       <span class="ru-stats-label">{{ $t('requestsAdmin.users.stats.active') }}</span>
@@ -19,7 +19,7 @@
     <button
       class="ru-stats-card ru-stats-card--muted"
       :class="{ 'is-active': active === 'inactive' }"
-      @click="$emit('apply', { status: 'inactive', expires_within: null })"
+      @click="$emit('apply', { status: STATUS_FILTER.INACTIVE, expires_within: null })"
     >
       <span class="ru-stats-val">{{ stats?.inactive ?? 0 }}</span>
       <span class="ru-stats-label">{{ $t('requestsAdmin.users.stats.inactive') }}</span>
@@ -27,7 +27,7 @@
     <button
       class="ru-stats-card ru-stats-card--warn"
       :class="{ 'is-active': active === 'expiring' }"
-      @click="$emit('apply', { status: '', expires_within: 7 })"
+      @click="$emit('apply', { status: STATUS_FILTER.ALL, expires_within: EXPIRY_WARNING_DAYS })"
     >
       <span class="ru-stats-val">{{ stats?.expiring_soon ?? 0 }}</span>
       <span class="ru-stats-label">{{ $t('requestsAdmin.users.stats.expiringSoon') }}</span>
@@ -35,7 +35,7 @@
     <button
       class="ru-stats-card ru-stats-card--danger"
       :class="{ 'is-active': active === 'expired' }"
-      @click="$emit('apply', { status: 'expired', expires_within: null })"
+      @click="$emit('apply', { status: STATUS_FILTER.EXPIRED, expires_within: null })"
     >
       <span class="ru-stats-val">{{ stats?.expired ?? 0 }}</span>
       <span class="ru-stats-label">{{ $t('requestsAdmin.users.stats.expired') }}</span>
@@ -44,6 +44,8 @@
 </template>
 
 <script setup>
+import { STATUS_FILTER, EXPIRY_WARNING_DAYS } from '@/constants/portalAdminUsers'
+
 defineProps({
   stats: { type: Object, default: null },
   active: { type: String, default: '' },

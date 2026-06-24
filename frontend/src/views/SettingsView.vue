@@ -13,6 +13,7 @@
 <script setup>
 import { computed, defineAsyncComponent } from 'vue'
 import { useTabSync } from '@/composables/useTabSync'
+import { SIDEBAR_SUB_TABS } from '@/constants/sidebarSubTabs'
 const ParamsGeneralTab = defineAsyncComponent(
   () => import('@/components/settings/ParamsGeneralTab.vue'),
 )
@@ -37,17 +38,8 @@ const ParamsSecurityTab = defineAsyncComponent(
 )
 import '@/assets/styles/params-view.css'
 
-const TAB_IDS = [
-  'general',
-  'appearance',
-  'config',
-  'scheduler',
-  'network',
-  'backup',
-  'test',
-  'security',
-]
-const activeTab = useTabSync(TAB_IDS, 'general')
+const TAB_IDS = SIDEBAR_SUB_TABS['/settings'].map(t => t.id)
+const activeTab = useTabSync(TAB_IDS, TAB_IDS[0])
 
 const TAB_COMPONENTS = {
   general: ParamsGeneralTab,

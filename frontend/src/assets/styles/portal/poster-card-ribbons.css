@@ -1,0 +1,168 @@
+/* ─────────────────────────────────────────────────────────────────
+ * Portal · PosterCard — rank medals, top-left ribbon, availability chip.
+ * Loaded via poster-card.css (@import). .mk-* namespace, portal tokens only.
+ * ───────────────────────────────────────────────────────────────── */
+
+/* ─── Top 3 medal frames (gold / silver / bronze) ──────────────── */
+.mk-poster--rank-1 .mk-poster__art {
+  outline: none;
+  border: 3px solid #fbbf24;
+  box-shadow:
+    0 0 14px rgb(251, 191, 36, 0.35),
+    0 0 32px rgb(251, 191, 36, 0.15);
+}
+
+.mk-poster--rank-2 .mk-poster__art {
+  outline: none;
+  border: 3px solid #cbd5e1;
+  box-shadow:
+    0 0 14px rgb(203, 213, 225, 0.35),
+    0 0 32px rgb(203, 213, 225, 0.15);
+}
+
+.mk-poster--rank-3 .mk-poster__art {
+  outline: none;
+  border: 3px solid #cd7f32;
+  box-shadow:
+    0 0 14px rgb(205, 127, 50, 0.35),
+    0 0 32px rgb(205, 127, 50, 0.15);
+}
+
+/* ─── Top-left ribbon ──────────────────────────────────────────── */
+.mk-ribbon-wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 160px;
+  height: 160px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.mk-ribbon {
+  position: absolute;
+  top: 20px;
+  left: -68px;
+  width: 200px;
+  height: 24px;
+  transform: rotate(-45deg);
+  color: var(--portal-text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--portal-text-4xs);
+  font-weight: var(--portal-font-extrabold);
+  letter-spacing: var(--portal-tracking-eyebrow);
+  white-space: nowrap;
+  /* Re-enable pointer events on the ribbon strip itself so the native
+     `title` tooltip surfaces on hover. The parent .mk-ribbon-wrap keeps
+     `pointer-events: none` for its 160×160 corner box so clicks outside
+     the ribbon diagonal still hit the poster underneath. */
+  pointer-events: auto;
+  background: linear-gradient(
+    180deg,
+    var(--mk-ribbon-c) 0%,
+    color-mix(in srgb, var(--mk-ribbon-c) 78%, black) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 var(--portal-border-intense),
+    inset 0 -1px 0 rgb(0, 0, 0, 0.3);
+  text-shadow: 0 1px 0 rgb(0, 0, 0, 0.15);
+}
+
+/* Pulse halo painted by a sibling pseudo so the animation only touches
+   `opacity`, which the compositor handles on the GPU. The previous
+   filter / drop-shadow keyframes thrashed the CPU and produced a jerky
+   pulse on weaker devices. */
+.mk-ribbon::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--mk-ribbon-c);
+  filter: blur(8px);
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+  will-change: opacity;
+}
+
+.mk-ribbon--pulse::after {
+  animation: mk-ribbon-pulse var(--portal-anim-pulse) ease-in-out infinite;
+}
+
+@keyframes mk-ribbon-pulse {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.65;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mk-ribbon--pulse::after {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+/* ─── Availability chip ────────────────────────────────────────── */
+/* Mobile-first : positionné bas-droite par défaut pour ne pas chevaucher
+   le ruban diagonal (statut / NEW) qui couvre tout le coin haut sur les
+   posters mobiles (108-120px). La zone bas est libre côté mobile puisque
+   le panel hover est masqué (cf. règle hover: none plus bas). Desktop
+   restaure la position top-droite + dimensions plus généreuses via la
+   media query ≥ --bp-lg. */
+.mk-poster__avail {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  padding: 2px 6px 2px 4px;
+  border-radius: var(--portal-radius-pill);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: var(--portal-veil-page);
+  backdrop-filter: var(--portal-blur-sm);
+  -webkit-backdrop-filter: var(--portal-blur-sm);
+  font-size: var(--portal-text-4xs);
+  font-weight: var(--portal-font-extrabold);
+  letter-spacing: var(--portal-tracking-caps);
+  box-shadow: var(--portal-shadow-sm);
+  border: 1px solid transparent;
+}
+
+.mk-poster__avail--full {
+  color: var(--portal-color-success);
+  border-color: rgb(var(--portal-color-success-rgb), 0.33);
+}
+
+.mk-poster__avail--partial {
+  color: var(--portal-color-warning);
+  border-color: rgb(var(--portal-color-warning-rgb), 0.33);
+}
+
+.mk-poster__avail-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: var(--portal-radius-pill);
+  background: currentcolor;
+  box-shadow: 0 0 4px currentcolor;
+}
+
+@media (min-width: 768px) {
+  .mk-poster__avail {
+    top: 10px;
+    bottom: auto;
+    right: 10px;
+    padding: 3px 8px 3px 6px;
+    gap: 5px;
+  }
+
+  .mk-poster__avail-dot {
+    width: 6px;
+    height: 6px;
+    box-shadow: 0 0 6px currentcolor;
+  }
+}

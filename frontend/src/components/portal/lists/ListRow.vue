@@ -125,7 +125,7 @@ const props = defineProps({
 defineEmits(['toggle', 'edit', 'delete', 'copy-list'])
 
 const { t } = useI18n()
-const formatAgo = input => formatAgoUtil(input, t)
+const formatAgo = input => formatAgoUtil(input, t, { style: 'verbose' })
 
 const PRIVACY_TO_BAR = {
   private: 'rejected',

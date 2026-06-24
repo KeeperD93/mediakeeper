@@ -684,6 +684,8 @@
     "less": "Less",
     "more": "More",
     "daysShort": "d",
+    "monthsShort": "mo",
+    "yearsShort": "y",
     "customDays": "Custom",
     "minutesLabel": "Minutes",
     "confirmBulkDeleteActivity": "Delete {count} activity(ies)?",

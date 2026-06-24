@@ -6,7 +6,7 @@
         class="atl-overlay mk-modal-sheet"
         role="dialog"
         aria-modal="true"
-        :aria-label="$t('requestsAdmin.users.drawerLocal.title')"
+        :aria-labelledby="titleId"
         @click.self="close"
       >
         <form
@@ -15,7 +15,9 @@
           @submit.prevent="submit"
         >
           <div class="atl-header">
-            <h2 class="atl-title">{{ $t('requestsAdmin.users.drawerLocal.title') }}</h2>
+            <h2 :id="titleId" class="atl-title">
+              {{ $t('requestsAdmin.users.drawerLocal.title') }}
+            </h2>
             <button
               ref="closeBtnRef"
               class="atl-close"
@@ -80,11 +82,9 @@
             <label>
               <span>{{ $t('requestsAdmin.users.drawerLocal.role') }}</span>
               <select v-model="form.role">
-                <option value="viewer">{{ $t('requestsAdmin.users.filters.role.viewer') }}</option>
-                <option value="moderator">
-                  {{ $t('requestsAdmin.users.filters.role.moderator') }}
+                <option v-for="r in USER_ROLES" :key="r" :value="r">
+                  {{ $t(`requestsAdmin.users.filters.role.${r}`) }}
                 </option>
-                <option value="admin">{{ $t('requestsAdmin.users.filters.role.admin') }}</option>
               </select>
             </label>
             <label class="ru-form-row ru-form-row--inline">
@@ -110,15 +110,17 @@
 </template>
 
 <script setup>
-import { reactive, ref, toRef, watch } from 'vue'
+import { reactive, ref, toRef, watch, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Eye, EyeOff, X } from 'lucide-vue-next'
 import { usePortalAdminUsers } from '@/composables/portal/usePortalAdminUsers'
 import { useFocusTrap } from '@/composables/useFocusTrap'
+import { USER_ROLE, USER_ROLES } from '@/constants/portalAdminUsers'
 import '@/assets/styles/portal/admin-users-modals.css'
 
 const props = defineProps({ open: { type: Boolean, default: false } })
 const emit = defineEmits(['close', 'created'])
+const titleId = useId()
 
 const { t } = useI18n()
 const api = usePortalAdminUsers()
@@ -130,7 +132,7 @@ const empty = () => ({
   email: '',
   first_name: '',
   last_name: '',
-  role: 'viewer',
+  role: USER_ROLE.VIEWER,
   account_active: true,
 })
 const form = reactive(empty())

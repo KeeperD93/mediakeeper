@@ -331,6 +331,7 @@ import { useI18n } from 'vue-i18n'
 import { useNotifs } from '@/composables/useNotifs'
 import { useNotifTemplates } from '@/composables/useNotifTemplates'
 import { useTabSync } from '@/composables/useTabSync'
+import { SIDEBAR_SUB_TABS } from '@/constants/sidebarSubTabs'
 import NotifTemplatesTab from '@/components/notifications/NotifTemplatesTab.vue'
 import { ChevronDown, Clock3, Filter, Mail, Moon, Send, X } from 'lucide-vue-next'
 import { TASK_STATUS } from '@/constants/scheduler'
@@ -340,7 +341,8 @@ import '@/assets/styles/notifications-view.css'
 
 const { t } = useI18n()
 
-const activeTab = useTabSync(['agents', 'templates', 'rules', 'history', 'config'], 'agents')
+const TAB_IDS = SIDEBAR_SUB_TABS['/notifications'].map(t => t.id)
+const activeTab = useTabSync(TAB_IDS, TAB_IDS[0])
 const agent = ref('discord')
 const imgurSecretEditing = ref(false)
 

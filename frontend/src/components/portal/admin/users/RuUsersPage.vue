@@ -112,7 +112,12 @@ import { useConfirm } from '@/composables/useConfirm'
 import { TOAST_TYPE } from '@/constants/toast'
 import { usePortalAdminUsers } from '@/composables/portal/usePortalAdminUsers'
 import { downloadJsonFile } from '@/composables/portal/useFileDownload'
-import { BULK_ACTION, VIEW_MODE } from '@/constants/portalAdminUsers'
+import {
+  BULK_ACTION,
+  VIEW_MODE,
+  STATUS_FILTER,
+  EXPIRY_WARNING_DAYS,
+} from '@/constants/portalAdminUsers'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
 
 import RuUsersToolbar from './RuUsersToolbar.vue'
@@ -161,10 +166,10 @@ const stats = ref(null)
 const tagOptions = ref([])
 
 const bannerActive = computed(() => {
-  if (filters.expires_within === 7) return 'expiring'
-  if (filters.status === 'active') return 'active'
-  if (filters.status === 'inactive') return 'inactive'
-  if (filters.status === 'expired') return 'expired'
+  if (filters.expires_within === EXPIRY_WARNING_DAYS) return 'expiring'
+  if (filters.status === STATUS_FILTER.ACTIVE) return 'active'
+  if (filters.status === STATUS_FILTER.INACTIVE) return 'inactive'
+  if (filters.status === STATUS_FILTER.EXPIRED) return 'expired'
   return 'all'
 })
 

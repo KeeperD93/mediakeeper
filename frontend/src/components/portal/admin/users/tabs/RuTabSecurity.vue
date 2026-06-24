@@ -45,7 +45,7 @@
       <p class="ru-help">{{ $t('requestsAdmin.users.drawer.security.forceLogoutScope') }}</p>
     </section>
 
-    <section v-if="user.source === 'local'" class="ru-tab-section">
+    <section v-if="user.source === USER_SOURCE.LOCAL" class="ru-tab-section">
       <h3>{{ $t('requestsAdmin.users.drawer.security.passwordReset') }}</h3>
       <p class="ru-help">{{ $t('requestsAdmin.users.drawer.security.passwordResetHelp') }}</p>
       <button type="button" class="ru-btn ru-btn--ghost" :disabled="busy" @click="onResetPassword">
@@ -130,6 +130,7 @@ import RuPasswordResetModal from '../RuPasswordResetModal.vue'
 import RuUserBadge from '../RuUserBadge.vue'
 import PortalLoadMore from '@/components/portal/PortalLoadMore.vue'
 import { localizedDateTime } from '@/utils/datetime'
+import { USER_SOURCE } from '@/constants/portalAdminUsers'
 import '@/assets/styles/portal/admin-users-feed.css'
 
 const props = defineProps({ user: { type: Object, required: true } })

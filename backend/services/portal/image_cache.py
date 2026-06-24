@@ -28,6 +28,7 @@ import asyncio
 import hashlib
 import logging
 import os
+import threading
 import time
 import urllib.parse
 from pathlib import Path
@@ -67,6 +68,10 @@ _enabled = False
 _enabled_last_refresh = 0.0
 
 _stats: dict[str, int] = {"hits": 0, "misses": 0}
+# clear_cache() and get_cache_stats() run on a worker thread
+# (asyncio.to_thread) while fetch_or_serve increments on the event loop —
+# guard the counters so a concurrent purge can't tear a read-modify-write.
+_stats_lock = threading.Lock()
 
 
 async def refresh_enabled_flag(db: AsyncSession, *, force: bool = False) -> bool:
@@ -202,11 +207,13 @@ async def fetch_or_serve(original_url: str) -> tuple[bytes, str]:
     await asyncio.to_thread(_ensure_cache_dir)
     path = _path_for(upstream)
     if path.exists():
-        _stats["hits"] += 1
+        with _stats_lock:
+            _stats["hits"] += 1
         cached = await asyncio.to_thread(path.read_bytes)
         return cached, _guess_content_type(path)
 
-    _stats["misses"] += 1
+    with _stats_lock:
+        _stats["misses"] += 1
     try:
         client = get_external_client()
         resp = await client.get(upstream, timeout=10.0)
@@ -249,10 +256,12 @@ def get_cache_stats() -> dict:
                         pass
         except OSError as e:
             logger.warning("image_cache: stat failed on %s: %s", CACHE_DIR, e)
+    with _stats_lock:
+        hits, misses = _stats["hits"], _stats["misses"]
     return {
         "name": "Image cache (TMDB)",
-        "hits": _stats["hits"],
-        "misses": _stats["misses"],
+        "hits": hits,
+        "misses": misses,
         "keys": keys,
         "max_keys": None,
         "ttl_seconds": None,
@@ -276,6 +285,7 @@ def clear_cache() -> int:
                     removed += 1
                 except OSError as e:
                     logger.warning("image_cache: unlink failed for %s: %s", entry, e)
-    _stats["hits"] = 0
-    _stats["misses"] = 0
+    with _stats_lock:
+        _stats["hits"] = 0
+        _stats["misses"] = 0
     return removed

@@ -6,7 +6,7 @@
         class="atl-overlay mk-modal-sheet"
         role="dialog"
         aria-modal="true"
-        :aria-label="$t('requestsAdmin.users.actions.notify')"
+        :aria-labelledby="titleId"
         @click.self="close"
       >
         <form
@@ -15,7 +15,7 @@
           @submit.prevent="submit"
         >
           <div class="atl-header">
-            <h2 class="atl-title">{{ $t('requestsAdmin.users.actions.notify') }}</h2>
+            <h2 :id="titleId" class="atl-title">{{ $t('requestsAdmin.users.actions.notify') }}</h2>
             <button
               ref="closeBtnRef"
               class="atl-close"
@@ -60,7 +60,7 @@
 </template>
 
 <script setup>
-import { ref, toRef, watch } from 'vue'
+import { ref, toRef, watch, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { X } from 'lucide-vue-next'
 import { useFocusTrap } from '@/composables/useFocusTrap'
@@ -74,6 +74,7 @@ const props = defineProps({
   user: { type: Object, default: null },
 })
 const emit = defineEmits(['close', 'sent'])
+const titleId = useId()
 
 const { t } = useI18n()
 const { showToast } = useToast()

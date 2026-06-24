@@ -270,6 +270,7 @@ import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useDuplicates } from '@/composables/useDuplicates'
 import { useTabSync } from '@/composables/useTabSync'
+import { SIDEBAR_SUB_TABS } from '@/constants/sidebarSubTabs'
 import { CircleCheck, Check, EyeOff, Film, Files, Search, Trash2, Zap } from 'lucide-vue-next'
 import MkEmptyState from '@/components/common/MkEmptyState.vue'
 import DupIgnoredView from '@/components/duplicates/DupIgnoredView.vue'
@@ -314,7 +315,8 @@ const {
   refresh,
 } = useDuplicates()
 
-const activeTab = useTabSync(['duplicates', 'ignored', 'history', 'rules'], 'duplicates')
+const TAB_IDS = SIDEBAR_SUB_TABS['/duplicates'].map(t => t.id)
+const activeTab = useTabSync(TAB_IDS, TAB_IDS[0])
 const compareOpen = ref(null)
 function toggleCompare(id) {
   compareOpen.value = compareOpen.value === id ? null : id

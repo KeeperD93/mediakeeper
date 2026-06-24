@@ -38,7 +38,11 @@
         <div>
           <dt>{{ $t('requestsAdmin.users.drawer.identity.source') }}</dt>
           <dd>
-            {{ user.source === 'emby' ? 'Emby' : $t('requestsAdmin.users.filters.source.local') }}
+            {{
+              user.source === USER_SOURCE.EMBY
+                ? 'Emby'
+                : $t('requestsAdmin.users.filters.source.local')
+            }}
           </dd>
         </div>
         <div v-if="user.emby_user_id">
@@ -92,6 +96,7 @@ import { useConfirm } from '@/composables/useConfirm'
 import { TOAST_TYPE } from '@/constants/toast'
 import { usePortalAdminUsers } from '@/composables/portal/usePortalAdminUsers'
 import { localizedDateTime } from '@/utils/datetime'
+import { USER_SOURCE } from '@/constants/portalAdminUsers'
 
 const props = defineProps({ user: { type: Object, required: true } })
 const emit = defineEmits(['changed'])

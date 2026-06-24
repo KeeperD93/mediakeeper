@@ -1,0 +1,157 @@
+/* ─────────────────────────────────────────────────────────────────
+ * Portal · PosterCard — hover-panel action buttons (CTA + icon buttons).
+ * Loaded via poster-card.css (@import). .mk-* namespace, portal tokens only.
+ * ───────────────────────────────────────────────────────────────── */
+
+/* ─── Primary button ──────────────────────────────────────────── */
+.mk-btn {
+  position: relative;
+  height: 30px;
+  min-height: 30px;
+  flex: 1;
+  border: 1px solid var(--portal-border-intense);
+  background: var(--portal-surface-3);
+  color: var(--portal-text-primary);
+  border-radius: var(--portal-radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 8px;
+  font-weight: var(--portal-font-bold);
+  font-size: var(--portal-text-4xs);
+  letter-spacing: var(--portal-tracking-caps);
+  font-family: inherit;
+  backdrop-filter: var(--portal-blur-md) saturate(1.3);
+  -webkit-backdrop-filter: var(--portal-blur-md) saturate(1.3);
+  transition:
+    background var(--portal-dur-med) var(--portal-ease-swift),
+    border-color var(--portal-dur-med) var(--portal-ease-swift),
+    box-shadow var(--portal-dur-slow) var(--portal-ease-swift),
+    transform var(--portal-dur-base) var(--portal-ease-swift);
+}
+
+@media (hover: hover) {
+  .mk-btn:hover {
+    background: var(--portal-surface-5);
+    border-color: var(--portal-border-intense);
+    box-shadow:
+      0 8px 24px rgb(0, 0, 0, 0.35),
+      0 0 18px var(--portal-surface-4);
+    transform: translateY(-1px);
+  }
+}
+
+.mk-btn:active {
+  transform: translateY(0);
+}
+
+/* Request / re-request — info tint on hover. */
+@media (hover: hover) {
+  .mk-btn--request:hover {
+    background: rgb(var(--portal-color-info-rgb), 0.18);
+    border-color: rgb(var(--portal-color-info-rgb), 0.45);
+    box-shadow:
+      0 8px 24px rgb(0, 0, 0, 0.35),
+      0 0 18px rgb(var(--portal-color-info-rgb), 0.2);
+  }
+}
+
+/* Play — success tint on hover, mirrors the request button language. */
+@media (hover: hover) {
+  .mk-btn--play:hover {
+    background: rgb(var(--portal-color-success-rgb), 0.18);
+    border-color: rgb(var(--portal-color-success-rgb), 0.45);
+    box-shadow:
+      0 8px 24px rgb(0, 0, 0, 0.35),
+      0 0 18px rgb(var(--portal-color-success-rgb), 0.2);
+  }
+}
+
+/* Pending — always-on warning tint, not clickable (aria-disabled, not
+   the HTML `disabled` attribute, so the click handler can still strip
+   focus and release the sticky `:hover` styles). */
+.mk-btn--muted {
+  background: rgb(var(--portal-color-warning-rgb), 0.16);
+  border-color: rgb(var(--portal-color-warning-rgb), 0.38);
+  cursor: not-allowed;
+  pointer-events: auto;
+}
+
+.mk-btn[aria-disabled='true'] {
+  cursor: not-allowed;
+}
+
+@media (hover: hover) {
+  .mk-btn--muted:hover {
+    background: rgb(var(--portal-color-warning-rgb), 0.16);
+    border-color: rgb(var(--portal-color-warning-rgb), 0.38);
+    box-shadow: none;
+    transform: none;
+  }
+}
+
+.mk-btn__emby {
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+/* ─── Icon buttons (bookmark / blacklist) ──────────────────────── */
+.mk-iconbtn {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: var(--portal-radius-sm);
+  border: 1px solid var(--portal-border-intense);
+  background: var(--portal-surface-3);
+  backdrop-filter: var(--portal-blur-md) saturate(1.3);
+  -webkit-backdrop-filter: var(--portal-blur-md) saturate(1.3);
+  color: var(--portal-text-body-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background var(--portal-dur-med) var(--portal-ease-swift),
+    border-color var(--portal-dur-med) var(--portal-ease-swift),
+    color var(--portal-dur-med) var(--portal-ease-swift),
+    box-shadow var(--portal-dur-slow) var(--portal-ease-swift),
+    transform var(--portal-dur-base) var(--portal-ease-swift);
+}
+
+@media (hover: hover) {
+  .mk-iconbtn:hover {
+    background: var(--portal-surface-5);
+    border-color: var(--portal-border-intense);
+    color: var(--portal-text-primary);
+    box-shadow:
+      0 8px 18px rgb(0, 0, 0, 0.35),
+      0 0 14px var(--portal-surface-4);
+    transform: translateY(-1px);
+  }
+}
+
+.mk-iconbtn:active {
+  transform: translateY(0);
+}
+
+.mk-iconbtn--gold {
+  color: var(--portal-color-warning);
+}
+
+@media (hover: hover) {
+  .mk-iconbtn--gold:hover {
+    color: var(--portal-color-warning-soft);
+  }
+}
+
+.mk-iconbtn--red {
+  color: var(--portal-color-error);
+}
+
+@media (hover: hover) {
+  .mk-iconbtn--red:hover {
+    color: var(--portal-color-error-soft);
+  }
+}

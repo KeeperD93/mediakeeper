@@ -70,10 +70,17 @@
           </td>
           <td>
             <div class="ru-source-cell">
-              <RuUserBadge :variant="u.source === 'emby' ? 'info' : 'success'">
-                {{ u.source === 'emby' ? 'Emby' : $t('requestsAdmin.users.filters.source.local') }}
+              <RuUserBadge :variant="u.source === USER_SOURCE.EMBY ? 'info' : 'success'">
+                {{
+                  u.source === USER_SOURCE.EMBY
+                    ? 'Emby'
+                    : $t('requestsAdmin.users.filters.source.local')
+                }}
               </RuUserBadge>
-              <RuUserBadge v-if="u.source === 'emby' && u.emby_is_disabled" variant="danger">
+              <RuUserBadge
+                v-if="u.source === USER_SOURCE.EMBY && u.emby_is_disabled"
+                variant="danger"
+              >
                 {{ $t('requestsAdmin.users.labels.embyDisabled') }}
               </RuUserBadge>
             </div>
@@ -98,6 +105,7 @@ import MkAvatar from '@/components/common/MkAvatar.vue'
 import RuUserBadge from './RuUserBadge.vue'
 import RuUserStatusCell from './RuUserStatusCell.vue'
 import RuExpiryCell from './RuExpiryCell.vue'
+import { USER_ROLE, USER_SOURCE } from '@/constants/portalAdminUsers'
 
 const props = defineProps({
   items: { type: Array, required: true },
@@ -125,8 +133,8 @@ const allSelected = computed(
 const someSelected = computed(() => props.items.some(u => props.selectedIds.includes(u.id)))
 
 function roleVariant(role) {
-  if (role === 'admin') return 'premium'
-  if (role === 'moderator') return 'info'
+  if (role === USER_ROLE.ADMIN) return 'premium'
+  if (role === USER_ROLE.MODERATOR) return 'info'
   return 'neutral'
 }
 </script>

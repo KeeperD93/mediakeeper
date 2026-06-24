@@ -18,8 +18,9 @@
         @change="$emit('update:source', $event.target.value)"
       >
         <option value="">{{ $t('requestsAdmin.users.filters.source.all') }}</option>
-        <option value="emby">{{ $t('requestsAdmin.users.filters.source.emby') }}</option>
-        <option value="local">{{ $t('requestsAdmin.users.filters.source.local') }}</option>
+        <option v-for="s in USER_SOURCES" :key="s" :value="s">
+          {{ $t(`requestsAdmin.users.filters.source.${s}`) }}
+        </option>
       </select>
 
       <select
@@ -28,9 +29,9 @@
         @change="$emit('update:role', $event.target.value)"
       >
         <option value="">{{ $t('requestsAdmin.users.filters.role.all') }}</option>
-        <option value="viewer">{{ $t('requestsAdmin.users.filters.role.viewer') }}</option>
-        <option value="moderator">{{ $t('requestsAdmin.users.filters.role.moderator') }}</option>
-        <option value="admin">{{ $t('requestsAdmin.users.filters.role.admin') }}</option>
+        <option v-for="r in USER_ROLES" :key="r" :value="r">
+          {{ $t(`requestsAdmin.users.filters.role.${r}`) }}
+        </option>
       </select>
 
       <select
@@ -38,11 +39,19 @@
         class="ru-toolbar-select mk-select-chevron"
         @change="$emit('update:status', $event.target.value)"
       >
-        <option value="">{{ $t('requestsAdmin.users.filters.status.all') }}</option>
-        <option value="active">{{ $t('requestsAdmin.users.filters.status.active') }}</option>
-        <option value="inactive">{{ $t('requestsAdmin.users.filters.status.inactive') }}</option>
-        <option value="expired">{{ $t('requestsAdmin.users.filters.status.expired') }}</option>
-        <option value="never_logged_in">
+        <option :value="STATUS_FILTER.ALL">
+          {{ $t('requestsAdmin.users.filters.status.all') }}
+        </option>
+        <option :value="STATUS_FILTER.ACTIVE">
+          {{ $t('requestsAdmin.users.filters.status.active') }}
+        </option>
+        <option :value="STATUS_FILTER.INACTIVE">
+          {{ $t('requestsAdmin.users.filters.status.inactive') }}
+        </option>
+        <option :value="STATUS_FILTER.EXPIRED">
+          {{ $t('requestsAdmin.users.filters.status.expired') }}
+        </option>
+        <option :value="STATUS_FILTER.NEVER_LOGGED_IN">
           {{ $t('requestsAdmin.users.filters.status.never_logged_in') }}
         </option>
       </select>
@@ -95,10 +104,10 @@
           type="button"
           role="tab"
           class="ru-toolbar-view-btn"
-          :class="{ 'is-active': viewMode === 'table' }"
-          :aria-selected="viewMode === 'table'"
+          :class="{ 'is-active': viewMode === VIEW_MODE.TABLE }"
+          :aria-selected="viewMode === VIEW_MODE.TABLE"
           :title="$t('requestsAdmin.users.view.table')"
-          @click="$emit('update:viewMode', 'table')"
+          @click="$emit('update:viewMode', VIEW_MODE.TABLE)"
         >
           <List :size="16" />
         </button>
@@ -106,10 +115,10 @@
           type="button"
           role="tab"
           class="ru-toolbar-view-btn"
-          :class="{ 'is-active': viewMode === 'cards' }"
-          :aria-selected="viewMode === 'cards'"
+          :class="{ 'is-active': viewMode === VIEW_MODE.CARDS }"
+          :aria-selected="viewMode === VIEW_MODE.CARDS"
           :title="$t('requestsAdmin.users.view.cards')"
-          @click="$emit('update:viewMode', 'cards')"
+          @click="$emit('update:viewMode', VIEW_MODE.CARDS)"
         >
           <LayoutGrid :size="16" />
         </button>
@@ -122,6 +131,7 @@
 import { Search, Clock, Trash2, List, LayoutGrid } from 'lucide-vue-next'
 import PortalPagination from '@/components/portal/PortalPagination.vue'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
+import { USER_SOURCES, USER_ROLES, STATUS_FILTER, VIEW_MODE } from '@/constants/portalAdminUsers'
 
 defineProps({
   search: { type: String, default: '' },
@@ -132,7 +142,7 @@ defineProps({
   tagOptions: { type: Array, default: () => [] },
   expiresWithin: { default: null, validator: v => v === null || typeof v === 'number' },
   includeDeleted: { type: Boolean, default: false },
-  viewMode: { type: String, default: 'table' },
+  viewMode: { type: String, default: VIEW_MODE.TABLE },
   total: { type: Number, default: 0 },
   page: { type: Number, default: 1 },
   perPage: { type: Number, default: DEFAULT_PAGE_SIZE },

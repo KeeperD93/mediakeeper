@@ -17,7 +17,7 @@
         :label="$t('dashboard.portalAction.tickets')"
         :value="loading ? '—' : stats.open_tickets"
         accent="var(--color-info)"
-        :route="{ path: '/admin/portal', query: { tab: 'tickets' } }"
+        route="/portal/tickets"
         :disabled="editing"
       />
       <StatTile

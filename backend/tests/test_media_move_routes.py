@@ -6,7 +6,7 @@ Every endpoint must:
 * keep soft validation outcomes (path_not_allowed, source_not_found, ...)
   in the 200 OK body so the frontend can surface them as user feedback,
 * promote a hard runtime failure code (listed in
-  :data:`services.media_manager._errors.HARD_FAIL_CODES`) to a 500
+  :data:`constants.media_manager_errors.HARD_FAIL_CODES`) to a 500
   HTTPException with the code in ``detail``.
 
 These contracts were not pinned before the cycle 18.b refactor and a
