@@ -20,134 +20,137 @@
   <img alt="AI-assisted" src="https://img.shields.io/badge/AI--assisted-Yes-8A2BE2">
 </p>
 
+<p align="center">
+  <a href="#getting-started"><b>Quickstart</b></a> ·
+  <a href="#why-mediakeeper">Why</a> ·
+  <a href="#highlights">Highlights</a> ·
+  <a href="#features">Features</a> ·
+  <a href="https://github.com/KeeperD93/mediakeeper/wiki">Docs</a> ·
+  <a href="https://discord.gg/A2hyNUUn6a">Discord</a> ·
+  <a href="https://ko-fi.com/keeperd93">Support</a>
+</p>
+
 ---
 
 > [!WARNING]
-> **Under active development — not yet stable.**
->
-> MediaKeeper is on its `v1.0.0-rc.x` line, ahead of the first stable `v1.0.0` release.
-> Expect schema changes, breaking refactors, missing pieces and rough edges.
-> Do not point it at production data you cannot afford to lose, and pin an
-> immutable image tag (e.g. `ghcr.io/keeperd93/mediakeeper:v1.0.0-rc.3`) rather
-> than `:latest` if you need reproducible behaviour.
+> **Under active development — not yet stable.** MediaKeeper is on its `v1.0.0-rc.x` line, ahead of the first stable `v1.0.0`. Expect schema changes and rough edges; don't point it at data you can't lose.
+> Pin an immutable tag (e.g. `ghcr.io/keeperd93/mediakeeper:vX.Y.Z-rc.N`) rather than `:latest` if you need reproducible behaviour.
 
 ---
 
 ## What is MediaKeeper?
 
-MediaKeeper is a **single-container, self-hosted companion** for an Emby instance. It complements Emby with two surfaces in one app:
-
-- A polished **admin back-office** for managing your library, spotting duplicates, watching activity, handling subtitles and more.
-- A friendly **Portal viewer** designed for the people you share Emby with — catalogue browsing, requests, achievements, lists, daily digests, news, tickets and shared movie nights.
-
-Everything runs from a **single Docker container** with an embedded PostgreSQL 16.
+MediaKeeper sits next to your Emby server and gives two audiences their own surface. Operators get a back-office to run the library — duplicates, health checks, watchlist, on-disk media management, subtitles. The people you share Emby with get a Portal where they browse the catalogue, request titles, earn trophies and join movie nights. It ships as one Docker container with PostgreSQL embedded, so there is no external database to wire up.
 
 ---
 
-## Key features
+## Why MediaKeeper?
 
-MediaKeeper extends Emby with a back-office to run the instance and a Portal that brings your viewers a real product experience. Here is what stands out.
+Most tools in this space do one job — request management, library stats, or media cleanup. MediaKeeper combines an operator back-office and a gamified viewer Portal in a single container, with a few things you won't easily find elsewhere.
 
-### Highlights
+| Capability                                                          | MediaKeeper | Typical companion   |
+| ------------------------------------------------------------------- | :---------: | :-----------------: |
+| Gamification — achievements, XP, levels, monthly leaderboard        |     ✅      |         ✗          |
+| Shared movie nights with a virtual cinema room                      |     ✅      |         ✗          |
+| Realtime chat, collaborative lists, public viewer profiles          |     ✅      |         ✗          |
+| Social request Portal (quotas, blacklist, moderation)               |     ✅      |  Often a bare form  |
+| Admin depth — duplicates, library health, watchlist, media manager  |     ✅      |       Partial       |
+| User lifecycle — access windows & dated account expiry              |     ✅      |       Partial       |
+| Single container with embedded PostgreSQL                           |     ✅      | External DB common  |
+| Bilingual UI (EN + FR) with strict parity                           |     ✅      |       Varies        |
+| Multi-arch image (amd64 + arm64)                                    |     ✅      |       Varies        |
+| GDPR opt-in tooling (per-user export, lifecycle deletion)           |     ✅      |         ✗          |
 
-- **Immersive shared movie nights** — schedule events with a virtual cinema room.
-- **Built-in request system** — viewers ask for films, shows or seasons; quotas, blacklist, auto-cleanup and admin moderation are wired in.
-- **Achievements & XP** — 160+ trophies across families (community, watching, marathons, secrets, milestones, lists), levels up to 50, monthly leaderboard.
-- **Public viewer profiles** — every viewer can customise a username, avatar, equip cosmetic titles, and other viewers can browse the public version of the profile.
-- **User management** — manage your users, adjust their Emby access window, fill in profile information, track their statistics…
-- **Daily digest** — a once-per-day "what's new today" overlay surfaces the monthly Top 3, the viewer's ranking, the latest additions and admin-curated news…
+> Compared against the general category of self-hosted media-server companions, not any specific product — capabilities vary by tool and evolve over time.
 
-### Admin back-office
+---
 
-Built for the operator who keeps the Emby instance alive.
+## Highlights
 
-**Library health**
-
-- **Dashboard** — live stats, services health, activity feed, customizable widget layout (drag-and-drop, mobile reorder via title list)
-- **Statistics** — users, libraries, plays, charts with mobile-readable tables
-- **Health check** — automatic library scan, severity grouping, issue posters, runnable on demand
-- **Duplicates** — detection rules, history, ignored list, restore, fast cached access
-- **Watchlist** — series tracking (missing seasons), audio language tags on episodes, monitoring rules, configurable scan
-
-**File management**
-
-- **Media Manager** (desktop) — browse, move, rename with the help of TMDB (API), tag, dedupe directly on disk, lasso selection…
-- **Subtitles** — OpenSubtitles batch download, removal of language tracks and subtitle streams already on disk…
-
-**User & request operations**
-
-- **Users** — 7-tab drawer (identity, access, security, activity, trophies, notes, audit), granular roles & permissions (chat, requests, problems, lists, offline XP), access window with extension shortcuts, reversible soft-delete, audit log, admin notes, tags, per-user GDPR export
-- **Requests premium** — search, filters, table/card view, bulk actions, auto-cleanup configurable, all-time totals per counter
-- **News admin** — create, edit, delete and schedule entries (start/end dates)
-- **Maintenance mode** — toggle a customizable maintenance message for the Portal
-- **GDPR admin** — opt-in toggle, privacy text editable inline, lifecycle deletion in two steps
-
-**Background work**
-
-- **Scheduler** — recurring tasks with cache stats, manual triggers, hit/miss insights
-- **Backups** — manual ZIPs + scheduled jobs + drill-tested restore procedure, SQL dump + Fernet encryption key embedded by default
-- **Onboarding wizard** — guided first-boot configuration
-- **Image / DNS cache** — performance toggles for the portal image proxy
-
-### Portal viewer
-
-Built for the people you share Emby with — gamified, social and friendly.
-
-**Browse & discover**
-
-- **Catalog Discover** — Trending, Popular, Top-rated, Oscars, Family, Upcoming, by Provider, personalised recommendations
-- **Hero strip** — auto-rotating image slideshow (10 s crossfade)
-- **Search** — instant TMDB suggestions with 5-min cache, recent history…
-- **Detail pages** — premium sidebar (Lucide icons, status dot, language & country localised, original language read from TMDB)
-- **Mobile-first** — 3-column poster grids on mobile, tap-to-open, dense layouts, dedicated mobile views where needed
-
-**Engagement**
-
-- **Requests** — submit movies, shows or seasons; quota tracking, status feedback, blacklist handling, clear error messages
-- **Movie nights** — schedule shared cinema events, virtual room with marathon mode and per-event capacity (5/10/15/20), realtime presence, mobile-dedicated view, past events automatically locked after 6 h
-- **Lists** — public, private or collaborative lists with anonymised pseudos, tied to the Curator and Librarian achievement families
-- **Daily digest** — a once-per-day overlay summarising the day, with the monthly Top 3 and the viewer's ranking appended off-podium
-- **News & announcements** — admin-scheduled posts surface in the bell
-
-**Identity & community**
-
-- **Custom username** — mandatory pick on first sign-in, live availability check, editable every 6 months, reserved usernames protected
-- **Custom avatar** — inherit your Emby avatar or upload your own directly on MediaKeeper (up to 5 MB) + cosmetic titles preview before saving
-- **Premium Settings** in five tabs — identity, appearance, preferences, visibility, account
-- **Public profile pages** — card, bio, genres, trophies; reachable from the leaderboard
-- **Login streak** indicator on the dedicated portal sign-in page
-
-**Achievements & social**
-
-- **160+ achievements** across families: community, watching, marathons, secrets, milestones, lists (Curator + Librarian, 5 tiers each)
-- **XP system & levels** — progression up to 50, premium grade ladder
-- **Monthly leaderboard** — premium showcase: monthly champion hero, live stats bar, top 100, enriched podium
-- **Realtime chat** — moderation, unread counter persistent across sessions, report button locked after send, flagged messages visible to admins and moderators
-- **Tickets** — pinpoint the exact movie, series, season or episode when reporting; filters by status / source / type; auto-close after 7 days of inactivity
-- **Help center** — 15+ articles editable by admins with a rich-text editor, auto-save, drafts, 30-day restore trash
-
-### Cross-cutting
-
-- **Bilingual UI** (French + English) with strict locale parity; TMDB cascade `user → English → original → language-agnostic`
-- **Single Docker container** with embedded PostgreSQL 16; production worker split available via `MK_SEPARATE_BACKGROUND_WORKER`; multi-arch ready (`amd64` + `arm64`)
-- **Defensive security** — JWT scope separation admin / portal, CSRF double-submit, rate-limited login, Fernet-encrypted secrets at rest, log redaction, security CI workflow (`pip-audit`, `npm audit`, `bandit`, `ruff S`, `semgrep`)
-- **Full accessibility** — focus traps on 20+ modals, ARIA labels, keyboard navigation, `prefers-reduced-motion`, toasts via `aria-live`, skip-to-main link
-- **Notifications** — in-app bell with admin-pushed targeted messages + Discord webhooks
-- **GDPR opt-in** — per-user export (JSON), privacy text editable by admin, lifecycle deletion in two steps
-
-For the full feature catalogue and version history, see the [Wiki](https://github.com/KeeperD93/mediakeeper/wiki) and the changelogs ([admin EN](backend/CHANGELOG_EN.md) · [portal EN](backend/CHANGELOG_PORTAL_EN.md)).
+- **Achievements & XP** — earn 160+ trophies across many families, level up an XP system, and compete on a monthly leaderboard.
+- **Shared movie nights** — schedule events in a virtual cinema room, with marathon mode and realtime presence.
+- **Request Portal** — viewers ask for films, shows or seasons; quotas, blacklist, auto-cleanup and admin moderation are wired in, not a bare contact form.
+- **Single container** — everything runs from one Docker image with embedded PostgreSQL, no external database to provision or back up separately.
+- **Admin depth** — live dashboard, duplicate detection, library health checks, a missing-season watchlist and a desktop Media Manager.
+- **User management** — give each user an Emby access window that expires on a date you choose (or never), with one-click extensions and optional auto-disable of lapsed accounts on both Emby and MediaKeeper; plus roles, soft-delete and an audit log.
+- **Social Portal** — realtime chat with moderation, collaborative lists, public viewer profiles, tickets and a daily digest.
+- **Bilingual & portable** — strict EN/FR parity across the UI, on a multi-arch image that runs natively on amd64 and arm64 (Synology, Raspberry Pi, x86).
+- **GDPR opt-in** — per-user data export, admin-editable privacy text and a two-step account deletion.
 
 ---
 
 ## Preview
 
-### Admin dashboard
+<p align="center">
+  <!-- screenshot: admin dashboard (widgets, ribbon, activity feed) — paste a 1200-1600px wide image here -->
+  <br>
+  <em>Admin dashboard</em>
+</p>
 
-<!-- screenshot placeholder: admin dashboard (widgets, ribbon, activity feed) — paste a 1200-1600px wide image here -->
+<p align="center">
+  <!-- screenshot: portal home (hero strip, lists, posters) — paste a 1200-1600px wide image here -->
+  <br>
+  <em>Portal viewer</em>
+</p>
 
-### Portal viewer
+---
 
-<!-- screenshot placeholder: portal home (hero strip, lists, posters) — paste a 1200-1600px wide image here -->
+## Features
+
+The highlights are the short version. Here is the full scope by surface — the fine detail lives in the app itself.
+
+<details>
+<summary><b>Admin back-office</b> — for the operator who runs the Emby instance</summary>
+
+<br>
+
+- **Dashboard** — live stats, services health, an activity feed and a customizable widget layout
+- **Statistics** — users, libraries and plays, with mobile-readable charts
+- **Health check** — scan the library for problems, grouped by severity, with posters
+- **Duplicates** — rule-based detection with history, an ignore list and restore
+- **Watchlist** — series tracking with missing-season alerts and audio-language tags
+- **Media Manager** (desktop) — browse, move, rename with TMDB help, tag and dedupe on disk
+- **Subtitles** — OpenSubtitles batch download, plus removal of unwanted tracks on disk
+- **Users** — Emby access windows with dated expiry, roles & permissions, requests quota, soft-delete, audit log and per-user GDPR export
+- **Requests** — moderate viewer requests with filters, bulk actions and configurable auto-cleanup
+- **News** — create, edit and schedule announcements
+- **Maintenance mode**, **GDPR tools**, a **task scheduler**, **encrypted backups** with tested restore, a **first-boot onboarding wizard** and **image / DNS caches**
+
+</details>
+
+<details>
+<summary><b>Portal viewer</b> — for the people you share Emby with</summary>
+
+<br>
+
+- **Discover** — Trending, Popular, Top-rated, by provider and personalised recommendations, with instant TMDB search
+- **Requests** — submit movies, shows or seasons, with quota tracking and clear status feedback
+- **Movie nights** — shared cinema events in a virtual room, with marathon mode and realtime presence
+- **Lists** — public, private or collaborative, tied to the Curator and Librarian trophy families
+- **Achievements & XP** — trophies across many families, an XP and level system, and a monthly leaderboard
+- **Realtime chat** — moderated, with a persistent unread counter and message reporting
+- **Tickets** — report a problem on a precise movie, series, season or episode
+- **Identity** — custom username, avatar (your Emby one or your own upload) and cosmetic titles
+- **Public profiles**, a **daily digest**, **in-app news** and an admin-editable **help center**
+- **Mobile-first** throughout
+
+</details>
+
+<details>
+<summary><b>Cross-cutting</b> — platform, security, accessibility and i18n</summary>
+
+<br>
+
+- **Bilingual UI** (English + French) with strict locale parity
+- **Single Docker container** with embedded PostgreSQL; an optional separate worker for production; multi-arch (amd64 + arm64)
+- **Defensive security** — separate admin/portal sessions, CSRF protection, rate-limited login, encrypted secrets at rest, log redaction and a security CI pipeline
+- **Accessibility** — focus traps, ARIA labels, keyboard navigation, reduced-motion support and skip-to-main
+- **Notifications** — an in-app bell with admin-pushed messages, plus Discord webhooks
+- **GDPR opt-in** — per-user export, admin-editable privacy text and two-step deletion
+
+</details>
+
+For the full feature catalogue and version history, see the [Wiki](https://github.com/KeeperD93/mediakeeper/wiki) and the changelogs ([admin EN](backend/CHANGELOG_EN.md) · [portal EN](backend/CHANGELOG_PORTAL_EN.md)).
 
 ---
 
@@ -165,6 +168,11 @@ docker compose -f docker-compose.prod.yml up -d
 
 The image is multi-arch (`linux/amd64` + `linux/arm64`) so it runs natively on Synology DSM, Raspberry Pi, traditional x86 servers, etc.
 
+<details>
+<summary>Image tags and building from source</summary>
+
+<br>
+
 **Available image tags:**
 
 | Tag       | Pointer                                       | Recommended for                      |
@@ -172,7 +180,7 @@ The image is multi-arch (`linux/amd64` + `linux/arm64`) so it runs natively on S
 | `:latest` | most recent stable release                    | everyday self-hosters                |
 | `:beta`   | most recent pre-release / release-candidate   | early adopters, testing              |
 | `:vX.Y.Z` | exact release (immutable)                     | reproducible deployments, CI pinning |
-| `:X.Y`    | floats on the X.Y patch series (e.g. `:0.10`) | following a single minor line        |
+| `:X.Y`    | floats on the X.Y patch series (e.g. `:1.0`)  | following a single minor line        |
 
 ### Alternative — clone and build from source
 
@@ -186,13 +194,15 @@ docker compose up -d
 
 This uses `docker-compose.yml` (with `build: .`) and compiles a fresh image from the local source.
 
+</details>
+
 ### First boot
 
 **No `.env` required for a first boot**. MediaKeeper auto-generates everything sensitive on first startup and persists it under `/data/`:
 
 - the PostgreSQL password,
-- the JWT secret (≥ 32 bytes),
-- the Fernet encryption key for secrets stored in the database,
+- the JWT secret,
+- the encryption key for secrets stored in the database,
 - an initial **admin** account with a random password printed once in the container logs.
 
 Read the initial admin password from the logs as soon as the container is up:
@@ -210,7 +220,7 @@ Then open `http://<host>:8888`, sign in as `admin` with that password — a pass
 
 **Need to customise?** Copy `.env.example` to `.env` and adjust the variables you need (e.g. `TMDB_API_KEY`, `FRONTEND_ORIGIN`, `MEDIAKEEPER_PATH_ROOTS`) before running `docker compose up -d`. Auto-generated values are respected on subsequent boots.
 
-The application runs `alembic upgrade head` at boot, so database migrations are applied automatically.
+The application runs database migrations automatically at boot.
 
 Updating an existing install? See [`docs/operations/updating.md`](docs/operations/updating.md).
 
@@ -254,7 +264,7 @@ MediaKeeper is free and open-source. If you find it useful, a coffee goes a long
 
 ## Contributing
 
-Pull requests are welcome. Before you start, please read [`CONTRIBUTING.md`](CONTRIBUTING.md) and the [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md).
+Pull requests are welcome. Before you start, read [`CONTRIBUTING.md`](CONTRIBUTING.md) and the [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md).
 
 In short:
 
@@ -274,12 +284,19 @@ MediaKeeper is developed with AI assistance. Every change is reviewed, tested an
 
 ## Tech stack
 
-| Layer        | Tech                                                                                                                      |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------- |
-| **Frontend** | Vue 3 (`<script setup>`), Vue Router 5, vue-i18n 11, Vite 6, PrimeVue 4, Chart.js 4, lucide-vue-next, TipTap              |
-| **Backend**  | FastAPI (Python 3.12), SQLAlchemy 2 (async), Alembic, PyJWT, bcrypt, httpx, slowapi, cryptography (Fernet), bleach        |
-| **Database** | PostgreSQL 16 (production, embedded in the Docker image), SQLite (tests)                                                  |
-| **Quality**  | ESLint, Prettier, Stylelint, Vitest, pytest + pytest-cov, Husky + commitlint, ruff, bandit, semgrep, pip-audit, npm audit |
+<details>
+<summary>Frontend, backend, database and quality tooling</summary>
+
+<br>
+
+| Layer        | Tech                                                                                                |
+| ------------ | --------------------------------------------------------------------------------------------------- |
+| **Frontend** | Vue, Vue Router, vue-i18n, Vite, PrimeVue, Chart.js, lucide-vue-next, TipTap                        |
+| **Backend**  | FastAPI (Python), SQLAlchemy (async), Alembic, PyJWT, bcrypt, httpx, slowapi, cryptography, bleach  |
+| **Database** | PostgreSQL (embedded in the image), SQLite for tests                                                |
+| **Quality**  | ESLint, Prettier, Stylelint, Vitest, pytest, Husky + commitlint, ruff, bandit, semgrep, pip-audit, npm audit |
+
+</details>
 
 ---
 
