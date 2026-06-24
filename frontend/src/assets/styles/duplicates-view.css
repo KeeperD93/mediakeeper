@@ -43,8 +43,10 @@
   gap: 3px;
   transition: border-color var(--duration-base);
 }
-.cinema-duplicates .glass-kpi:hover {
-  border-color: rgb(99, 102, 241, 0.2);
+@media (hover: hover) {
+  .cinema-duplicates .glass-kpi:hover {
+    border-color: rgb(99, 102, 241, 0.2);
+  }
 }
 .cinema-duplicates .kpi-val {
   font-size: var(--text-lg);
@@ -129,27 +131,33 @@
   color: var(--accent-400);
   border-color: rgb(var(--accent-rgb), 0.3);
 }
-.cinema-duplicates .doub-btn-primary:hover:not(:disabled) {
-  background: var(--accent-600);
-  color: var(--text-primary);
+@media (hover: hover) {
+  .cinema-duplicates .doub-btn-primary:hover:not(:disabled) {
+    background: var(--accent-600);
+    color: var(--text-primary);
+  }
 }
 .cinema-duplicates .doub-btn-secondary {
   background: var(--bg-tertiary);
   color: var(--text-secondary);
   border-color: var(--border);
 }
-.cinema-duplicates .doub-btn-secondary:hover:not(:disabled) {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
+@media (hover: hover) {
+  .cinema-duplicates .doub-btn-secondary:hover:not(:disabled) {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+  }
 }
 .cinema-duplicates .doub-btn-accent {
   background: rgb(var(--color-warning-rgb), 0.12);
   color: var(--color-warning);
   border-color: rgb(var(--color-warning-rgb), 0.3);
 }
-.cinema-duplicates .doub-btn-accent:hover {
-  background: rgb(var(--color-warning-rgb), 0.25);
-  color: #fde68a;
+@media (hover: hover) {
+  .cinema-duplicates .doub-btn-accent:hover {
+    background: rgb(var(--color-warning-rgb), 0.25);
+    color: #fde68a;
+  }
 }
 
 /* Grid & Card */
@@ -270,33 +278,44 @@
   color: var(--text-muted);
   background: var(--bg-tertiary);
 }
-.cinema-duplicates .doub-ignore-btn:hover {
-  color: var(--text-primary);
-  background: var(--bg-secondary);
+@media (hover: hover) {
+  .cinema-duplicates .doub-ignore-btn:hover {
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+  }
 }
 .cinema-duplicates .doub-compare-btn {
   color: var(--text-muted);
   background: var(--bg-tertiary);
 }
-.cinema-duplicates .doub-compare-btn:hover,
 .cinema-duplicates .doub-compare-btn.active {
   color: var(--accent-400);
   background: rgb(var(--accent-rgb), 0.1);
+}
+@media (hover: hover) {
+  .cinema-duplicates .doub-compare-btn:hover {
+    color: var(--accent-400);
+    background: rgb(var(--accent-rgb), 0.1);
+  }
 }
 .cinema-duplicates .doub-suggest-btn {
   color: var(--color-success);
   background: rgb(var(--color-success-rgb), 0.1);
 }
-.cinema-duplicates .doub-suggest-btn:hover {
-  background: rgb(var(--color-success-rgb), 0.2);
+@media (hover: hover) {
+  .cinema-duplicates .doub-suggest-btn:hover {
+    background: rgb(var(--color-success-rgb), 0.2);
+  }
 }
 .cinema-duplicates .doub-restore-btn {
   color: var(--accent-400);
   background: rgb(var(--accent-rgb), 0.1);
 }
-.cinema-duplicates .doub-restore-btn:hover {
-  background: var(--accent-600);
-  color: var(--text-primary);
+@media (hover: hover) {
+  .cinema-duplicates .doub-restore-btn:hover {
+    background: var(--accent-600);
+    color: var(--text-primary);
+  }
 }
 
 /* Sources */
@@ -373,20 +392,24 @@
   color: var(--accent-400);
   border-color: rgb(var(--accent-rgb), 0.3);
 }
-.cinema-duplicates .doub-keep-btn:hover {
-  background: var(--accent-600);
-  color: var(--text-primary);
-  border-color: var(--accent-600);
+@media (hover: hover) {
+  .cinema-duplicates .doub-keep-btn:hover {
+    background: var(--accent-600);
+    color: var(--text-primary);
+    border-color: var(--accent-600);
+  }
 }
 .cinema-duplicates .doub-delete-btn {
   background: rgb(244, 63, 94, 0.1);
   color: #fb7185;
   border-color: rgb(244, 63, 94, 0.3);
 }
-.cinema-duplicates .doub-delete-btn:hover {
-  background: #e11d48;
-  color: var(--text-primary);
-  border-color: #e11d48;
+@media (hover: hover) {
+  .cinema-duplicates .doub-delete-btn:hover {
+    background: #e11d48;
+    color: var(--text-primary);
+    border-color: #e11d48;
+  }
 }
 
 /* Compare table */
@@ -461,8 +484,10 @@
   border: 0.5px solid rgb(255, 255, 255, 0.05);
   transition: border-color var(--duration-fast);
 }
-.cinema-duplicates .hist-row:hover {
-  border-color: rgb(99, 102, 241, 0.15);
+@media (hover: hover) {
+  .cinema-duplicates .hist-row:hover {
+    border-color: rgb(99, 102, 241, 0.15);
+  }
 }
 .cinema-duplicates .hist-icon {
   width: 28px;
@@ -587,9 +612,11 @@
   border-radius: var(--radius-sm);
   transition: all var(--duration-fast);
 }
-.cinema-duplicates .rule-del:hover {
-  background: rgb(244, 63, 94, 0.1);
-  color: #fb7185;
+@media (hover: hover) {
+  .cinema-duplicates .rule-del:hover {
+    background: rgb(244, 63, 94, 0.1);
+    color: #fb7185;
+  }
 }
 /* Touch targets ≥ 44px on mobile for the duplicate-rule controls. */
 @media (max-width: 767px) {
