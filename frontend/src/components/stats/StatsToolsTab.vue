@@ -351,6 +351,14 @@ onMounted(() => {
     grid-template-columns: 1fr;
   }
 }
+/* Touch targets ≥ 44px on mobile for the exclusion controls + file picker. */
+@media (max-width: 767px) {
+  .excl-sel,
+  .excl-input,
+  .tool-btn-accent {
+    min-height: 44px;
+  }
+}
 @media (hover: hover) {
   .tool-btn-accent:hover {
     background: rgb(var(--accent-rgb), 0.25);

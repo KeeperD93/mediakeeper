@@ -284,4 +284,21 @@ const {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+
+/* Touch targets ≥ 44px on mobile. The switch keeps its compact track
+   visual; only the tappable label grows to a 44px square. */
+@media (max-width: 767px) {
+  .tc-switch {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .tc-input,
+  .tc-save-btn,
+  .tc-ping-btn {
+    min-height: 44px;
+  }
+}
 </style>

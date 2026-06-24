@@ -591,6 +591,17 @@
   background: rgb(244, 63, 94, 0.1);
   color: #fb7185;
 }
+/* Touch targets ≥ 44px on mobile for the duplicate-rule controls. */
+@media (max-width: 767px) {
+  .cinema-duplicates .rule-sel,
+  .cinema-duplicates .rule-input {
+    min-height: 44px;
+  }
+  .cinema-duplicates .rule-del {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
 
 /* Skeleton */
 .cinema-duplicates .doub-skeleton {
