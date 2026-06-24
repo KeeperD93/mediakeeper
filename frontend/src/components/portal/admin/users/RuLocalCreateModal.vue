@@ -80,11 +80,9 @@
             <label>
               <span>{{ $t('requestsAdmin.users.drawerLocal.role') }}</span>
               <select v-model="form.role">
-                <option value="viewer">{{ $t('requestsAdmin.users.filters.role.viewer') }}</option>
-                <option value="moderator">
-                  {{ $t('requestsAdmin.users.filters.role.moderator') }}
+                <option v-for="r in USER_ROLES" :key="r" :value="r">
+                  {{ $t(`requestsAdmin.users.filters.role.${r}`) }}
                 </option>
-                <option value="admin">{{ $t('requestsAdmin.users.filters.role.admin') }}</option>
               </select>
             </label>
             <label class="ru-form-row ru-form-row--inline">
@@ -115,6 +113,7 @@ import { useI18n } from 'vue-i18n'
 import { Eye, EyeOff, X } from 'lucide-vue-next'
 import { usePortalAdminUsers } from '@/composables/portal/usePortalAdminUsers'
 import { useFocusTrap } from '@/composables/useFocusTrap'
+import { USER_ROLE, USER_ROLES } from '@/constants/portalAdminUsers'
 import '@/assets/styles/portal/admin-users-modals.css'
 
 const props = defineProps({ open: { type: Boolean, default: false } })
@@ -130,7 +129,7 @@ const empty = () => ({
   email: '',
   first_name: '',
   last_name: '',
-  role: 'viewer',
+  role: USER_ROLE.VIEWER,
   account_active: true,
 })
 const form = reactive(empty())

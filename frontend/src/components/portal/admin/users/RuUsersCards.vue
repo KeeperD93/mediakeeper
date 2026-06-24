@@ -31,8 +31,10 @@
         </div>
       </div>
       <div class="ru-card-meta">
-        <RuUserBadge :variant="u.source === 'emby' ? 'info' : 'success'">
-          {{ u.source === 'emby' ? 'Emby' : $t('requestsAdmin.users.filters.source.local') }}
+        <RuUserBadge :variant="u.source === USER_SOURCE.EMBY ? 'info' : 'success'">
+          {{
+            u.source === USER_SOURCE.EMBY ? 'Emby' : $t('requestsAdmin.users.filters.source.local')
+          }}
         </RuUserBadge>
         <RuUserBadge v-if="u.emby_is_disabled" variant="danger">
           {{ $t('requestsAdmin.users.labels.embyDisabled') }}
@@ -58,6 +60,7 @@ import MkAvatar from '@/components/common/MkAvatar.vue'
 import RuUserBadge from './RuUserBadge.vue'
 import RuUserStatusCell from './RuUserStatusCell.vue'
 import RuExpiryCell from './RuExpiryCell.vue'
+import { USER_ROLE, USER_SOURCE } from '@/constants/portalAdminUsers'
 
 defineProps({
   items: { type: Array, required: true },
@@ -68,8 +71,8 @@ defineProps({
 defineEmits(['toggle', 'open'])
 
 function roleVariant(role) {
-  if (role === 'admin') return 'premium'
-  if (role === 'moderator') return 'info'
+  if (role === USER_ROLE.ADMIN) return 'premium'
+  if (role === USER_ROLE.MODERATOR) return 'info'
   return 'neutral'
 }
 </script>

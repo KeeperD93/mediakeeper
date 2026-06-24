@@ -4,7 +4,7 @@
       <h3>{{ $t('requestsAdmin.users.drawer.access.role') }}</h3>
       <div class="ru-pill-row">
         <button
-          v-for="r in presets?.roles || ['viewer', 'moderator', 'admin']"
+          v-for="r in presets?.roles || USER_ROLES"
           :key="r"
           type="button"
           class="ru-pill"
@@ -58,7 +58,7 @@
         <span class="ru-form-divider" />
         <span class="ru-help">{{ $t('requestsAdmin.users.drawer.access.extend') }}</span>
         <button
-          v-for="m in [1, 3, 6, 12]"
+          v-for="m in EXTEND_PRESETS"
           :key="m"
           type="button"
           class="ru-pill"
@@ -88,7 +88,7 @@
         </div>
       </div>
 
-      <div v-if="user.source === 'emby'" class="ru-toggle-row">
+      <div v-if="user.source === USER_SOURCE.EMBY" class="ru-toggle-row">
         <label class="ru-switch">
           <input
             type="checkbox"
@@ -142,7 +142,12 @@ import { useToast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
 import { TOAST_TYPE } from '@/constants/toast'
 import { usePortalAdminUsers } from '@/composables/portal/usePortalAdminUsers'
-import { PERMISSION_KEYS } from '@/constants/portalAdminUsers'
+import {
+  PERMISSION_KEYS,
+  USER_ROLES,
+  USER_SOURCE,
+  EXTEND_PRESETS,
+} from '@/constants/portalAdminUsers'
 
 const props = defineProps({
   user: { type: Object, required: true },

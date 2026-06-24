@@ -58,9 +58,9 @@
                 <h2>{{ user.display_name }}</h2>
                 <div class="ru-drawer-sub">
                   @{{ user.username }}
-                  <RuUserBadge :variant="user.source === 'emby' ? 'info' : 'success'">
+                  <RuUserBadge :variant="user.source === USER_SOURCE.EMBY ? 'info' : 'success'">
                     {{
-                      user.source === 'emby'
+                      user.source === USER_SOURCE.EMBY
                         ? 'Emby'
                         : $t('requestsAdmin.users.filters.source.local')
                     }}
@@ -73,7 +73,7 @@
                     }}
                   </RuUserBadge>
                   <RuUserBadge
-                    v-if="user.source === 'emby' && user.emby_is_disabled"
+                    v-if="user.source === USER_SOURCE.EMBY && user.emby_is_disabled"
                     variant="danger"
                   >
                     {{ $t('requestsAdmin.users.labels.embyDisabled') }}
@@ -164,7 +164,7 @@ import RuTabTrophies from './tabs/RuTabTrophies.vue'
 import RuTabNotes from './tabs/RuTabNotes.vue'
 import RuTabAudit from './tabs/RuTabAudit.vue'
 
-import { DRAWER_TABS } from '@/constants/portalAdminUsers'
+import { DRAWER_TABS, USER_SOURCE } from '@/constants/portalAdminUsers'
 import { usePortalAdminUsers } from '@/composables/portal/usePortalAdminUsers'
 import { useFocusTrap } from '@/composables/useFocusTrap'
 
