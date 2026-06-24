@@ -10,8 +10,8 @@ import { useConfirm } from '@/composables/useConfirm'
 /**
  * Data, selection and bulk-action logic for the Statistics → Users tab.
  * Extracted from StatsUsersTab.vue so the component stays a thin
- * presentation layer (Rules §14). Owns the reactive list/sort/pagination
- * state plus the KeepAlive deactivation and debounce-cleanup wiring.
+ * presentation layer. Owns the reactive list / sort / pagination state
+ * plus the KeepAlive deactivation and debounce-cleanup wiring.
  */
 export function useStatsUsers() {
   const { t } = useI18n()
