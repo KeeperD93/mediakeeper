@@ -391,14 +391,18 @@
   text-align: center;
 }
 
-/* Touch targets ≥ 44×44px on mobile for the toolbar toggle and
-   pagination buttons. Placed after the base rules so the mobile
-   min-height wins over .ctrl-toggle's 32px desktop default (equal
+/* Touch targets ≥ 44×44px on mobile for the toolbar controls (toggle,
+   pagination, per-page select, search). Placed after the base rules so
+   the mobile min-height wins over the 32px desktop default (equal
    specificity → source order decides). */
 @media (max-width: 767px) {
   .cinema-stats .ctrl-toggle,
   .cinema-stats .pag-btn {
     min-width: 44px;
+    min-height: 44px;
+  }
+  .cinema-stats .ctrl-sel,
+  .cinema-stats .ctrl-search {
     min-height: 44px;
   }
 }
