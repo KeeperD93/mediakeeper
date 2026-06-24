@@ -1,4 +1,4 @@
-"""Add backdrop_url to media_requests — powers the Overseerr-style row
+"""Add backdrop_url to media_requests — powers the row
 backdrop in the admin requests view. Populated on create from the TMDB
 payload; missing values are backfilled live the first time the admin
 list loads (see ``services.portal.requests.list_requests``)."""

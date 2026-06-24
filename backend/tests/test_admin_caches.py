@@ -1,6 +1,6 @@
 """Admin cache stats + clear endpoints.
 
-The Seerr-style cache panel in Settings → Scheduler reads from
+The cache panel in Settings → Scheduler reads from
 ``GET /api/scheduler/caches`` and clears via
 ``POST /api/scheduler/caches/<id>/clear``. These tests pin the
 shape of the readout and that ``clear`` resets both the entries

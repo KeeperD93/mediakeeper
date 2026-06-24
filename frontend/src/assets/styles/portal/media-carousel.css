@@ -2,8 +2,7 @@
 
 .pt-carousel {
   position: relative;
-  /* Vertical rhythm is now driven by .pt-carousel-header (margin: 24px 0 16px,
-     mirroring Seerr's slider-header) so the wrapper itself stays flush. */
+  /* Vertical rhythm is now driven by .pt-carousel-header (margin: 24px 0 16px) so the wrapper itself stays flush. */
   margin-bottom: 0;
 }
 
@@ -13,7 +12,7 @@
   align-items: baseline;
   gap: 1rem;
   padding: 0 5%;
-  /* Header spacing aligned on Seerr's slider-header rhythm (24px 0 16px)
+  /* Header spacing on the shared slider-header rhythm (24px 0 16px)
      so successive carousels read the same: clear breathing room above
      the title, tight gap below it before posters. */
   margin: var(--portal-section-rhythm-top) 0 var(--portal-section-rhythm-bottom);
@@ -69,7 +68,7 @@
      of leaving a poster half-cut at the viewport boundary. */
   scroll-snap-type: x mandatory;
   scroll-padding-left: 5%;
-  /* Tight vertical padding aligned on Seerr's slider track. The
+  /* Tight vertical padding on the slider track. The
      hover zoom is small enough that this gap still keeps the scaled
      poster and its glow inside the clipped box. */
   padding: var(--portal-section-rhythm-track) 5%;

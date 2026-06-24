@@ -150,7 +150,7 @@ async def run_task_now(
 # ── Cache inspection / management ─────────────────────────────────────
 #
 # Surfaces the in-memory caches the app maintains so the admin panel
-# can render a Seerr-style "Cache" section under the same Settings →
+# can render a "Cache" section under the same Settings →
 # Scheduler tab. Phase B exposes the TMDB search cache; Phase C will
 # add the image and DNS caches by registering them in the same
 # ``_CACHES`` registry.
@@ -192,7 +192,7 @@ async def clear_cache_endpoint(
 ):
     """Drop every entry from the named cache + reset its counters.
 
-    Behaves like Seerr's "Vider le cache" button: the cache rebuilds
+    Behaves like a "clear cache" button: the cache rebuilds
     organically on the next user query, no warmup needed.
     """
     from services.portal import dns_cache, image_cache, tmdb_search
