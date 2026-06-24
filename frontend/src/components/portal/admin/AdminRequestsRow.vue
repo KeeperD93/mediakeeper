@@ -138,7 +138,7 @@ const props = defineProps({
 defineEmits(['action', 'delete'])
 
 const { t } = useI18n()
-const formatAgo = input => formatAgoUtil(input, t)
+const formatAgo = input => formatAgoUtil(input, t, { style: 'verbose' })
 
 const copied = ref(false)
 const copyTitleLabel = computed(() =>

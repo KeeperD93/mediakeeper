@@ -31,6 +31,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Statistiques — activité : colonnes du tableau redimensionnables, largeurs mémorisées par utilisateur.
 
 ### Changed
+- Demandes & listes (admin) — temps relatif en mois et années pour les entrées anciennes.
 - Tableau de bord — 30 prochaines sorties affichées (au lieu de 20), titres dans votre langue.
 - Tableau de bord — prochaines sorties : épisodes du même jour regroupés, libellés clarifiés.
 - Onboarding — l'étape Dossiers précise qu'elle est optionnelle (configurable plus tard).
