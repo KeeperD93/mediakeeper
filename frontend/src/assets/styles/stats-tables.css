@@ -114,11 +114,6 @@
     overflow: visible;
     text-overflow: clip;
   }
-  /* Touch targets ≥ 44×44px on mobile for row action buttons. */
-  .cinema-stats .dt-act-btn {
-    min-width: 44px;
-    min-height: 44px;
-  }
 }
 .cinema-stats .tbl-loading {
   display: flex;
@@ -214,50 +209,6 @@
 .cinema-stats .dt-clickable:hover {
   color: var(--accent-300);
   text-decoration: underline;
-}
-.cinema-stats .dt-actions {
-  /* Garde le comportement table-cell standard pour conserver la hauteur
-     de row uniforme (display: flex sur un <td> casse l'alignement vertical).
-     L'alignement des boutons à droite passe par text-align + inline-flex sur les buttons. */
-  text-align: right;
-  white-space: nowrap;
-  vertical-align: middle;
-}
-.cinema-stats .dt-act-btn + .dt-act-btn {
-  margin-left: 4px;
-}
-.cinema-stats .dt-act-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: var(--radius-sm);
-  color: var(--text-muted);
-  transition:
-    background var(--duration-fast),
-    color var(--duration-fast);
-  /* inline-flex (et non flex) pour que les boutons d'actions restent côte à
-     côte dans un <td> standard (sans parent flex). Le align-items: center
-     garde l'icône centrée à l'intérieur du bouton. */
-  display: inline-flex;
-  align-items: center;
-  vertical-align: middle;
-}
-.cinema-stats .dt-act-btn:hover {
-  background: var(--surface-3);
-  color: var(--text-primary);
-}
-.cinema-stats .dt-act-del:hover {
-  color: var(--color-error);
-  background: rgb(var(--color-error-rgb), 0.08);
-}
-.cinema-stats .dt-act-show:hover {
-  color: var(--color-success);
-  background: rgb(var(--color-success-rgb), 0.08);
-}
-.cinema-stats .dt-act-merge:hover {
-  color: var(--accent-400);
-  background: rgb(var(--accent-rgb), 0.08);
 }
 
 .cinema-stats .ctrl-toggle {
