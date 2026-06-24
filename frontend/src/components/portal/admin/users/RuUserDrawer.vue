@@ -117,31 +117,43 @@
               <p>{{ $t('requestsAdmin.users.drawer.loadError') }}</p>
             </div>
             <template v-else>
-              <RuTabIdentity v-if="activeTab === 'identity'" :user="user" @changed="onChanged" />
+              <RuTabIdentity
+                v-if="activeTab === DRAWER_TAB.IDENTITY"
+                :user="user"
+                @changed="onChanged"
+              />
               <RuTabAccess
-                v-else-if="activeTab === 'access'"
+                v-else-if="activeTab === DRAWER_TAB.ACCESS"
                 :user="user"
                 :presets="presets"
                 @changed="onChanged"
               />
-              <RuTabQuota v-else-if="activeTab === 'quota'" :user="user" @changed="onChanged" />
+              <RuTabQuota
+                v-else-if="activeTab === DRAWER_TAB.QUOTA"
+                :user="user"
+                @changed="onChanged"
+              />
               <RuTabSecurity
-                v-else-if="activeTab === 'security'"
+                v-else-if="activeTab === DRAWER_TAB.SECURITY"
                 :user="user"
                 @changed="onChanged"
               />
               <RuTabActivity
-                v-else-if="activeTab === 'activity'"
+                v-else-if="activeTab === DRAWER_TAB.ACTIVITY"
                 :user="user"
                 :activity="activity"
               />
               <RuTabTrophies
-                v-else-if="activeTab === 'trophies'"
+                v-else-if="activeTab === DRAWER_TAB.TROPHIES"
                 :user="user"
                 :activity="activity"
               />
-              <RuTabNotes v-else-if="activeTab === 'notes'" :user="user" @changed="onChanged" />
-              <RuTabAudit v-else-if="activeTab === 'audit'" :user="user" />
+              <RuTabNotes
+                v-else-if="activeTab === DRAWER_TAB.NOTES"
+                :user="user"
+                @changed="onChanged"
+              />
+              <RuTabAudit v-else-if="activeTab === DRAWER_TAB.AUDIT" :user="user" />
             </template>
           </div>
         </aside>
@@ -164,7 +176,7 @@ import RuTabTrophies from './tabs/RuTabTrophies.vue'
 import RuTabNotes from './tabs/RuTabNotes.vue'
 import RuTabAudit from './tabs/RuTabAudit.vue'
 
-import { DRAWER_TABS, USER_SOURCE } from '@/constants/portalAdminUsers'
+import { DRAWER_TAB, DRAWER_TABS, USER_SOURCE } from '@/constants/portalAdminUsers'
 import { usePortalAdminUsers } from '@/composables/portal/usePortalAdminUsers'
 import { useFocusTrap } from '@/composables/useFocusTrap'
 
@@ -186,7 +198,7 @@ const hasNext = computed(
 )
 
 const tabs = DRAWER_TABS
-const activeTab = ref('identity')
+const activeTab = ref(DRAWER_TAB.IDENTITY)
 const user = ref(null)
 const activity = ref(null)
 const presets = ref(null)
@@ -230,7 +242,7 @@ watch(
   () => props.open,
   v => {
     if (v) {
-      activeTab.value = 'identity'
+      activeTab.value = DRAWER_TAB.IDENTITY
       load()
     }
   },
