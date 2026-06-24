@@ -2,7 +2,10 @@
  * Every selector is prefixed with `.cinema-health` so these rules can't
  * bleed into other views that share class names like `.tab-panel`, `.glass-card`.
  * Overlay + tag styles live in the HealthCheckIssueOverlay component.
+ * The issues-list controls and the poster grid live in the @imported
+ * healthcheck-poster-grid.css companion to keep this file within the cap.
  */
+@import url('./healthcheck-poster-grid.css');
 
 .cinema-health {
   position: relative;
@@ -318,150 +321,6 @@
   background: #a78bfa;
 }
 
-/* ═══ Issues list ═══ */
-.cinema-health .hc-issues-card {
-  padding: 18px 20px;
-}
-.cinema-health .hc-issues-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-.cinema-health .hc-filters {
-  display: flex;
-  gap: 8px;
-}
-.cinema-health .hc-select {
-  background: var(--mk-chrome-bg);
-  border: 0.5px solid var(--border);
-  border-radius: var(--radius-input);
-  padding: 6px 28px 6px 10px;
-  font-size: var(--text-2xs);
-  color: var(--text-primary);
-  outline: none;
-  font-family: inherit;
-  cursor: pointer;
-  transition: border-color var(--duration-fast);
-}
-.cinema-health .hc-select:hover {
-  border-color: var(--border-hover);
-}
-.cinema-health .hc-select:focus {
-  border-color: var(--accent-500);
-}
-.cinema-health .hc-select option {
-  background: var(--mk-chrome-bg);
-  color: var(--text-primary);
-}
-
-/* ═══ Poster grid ═══ */
-.cinema-health .hc-poster-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 16px;
-}
-.cinema-health .sg-card {
-  position: relative;
-  border-radius: var(--radius-card);
-  overflow: hidden;
-  cursor: pointer;
-  background: rgb(255, 255, 255, 0.02);
-  transition:
-    transform var(--duration-base),
-    box-shadow var(--duration-base);
-}
-.cinema-health .sg-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 30px rgb(0, 0, 0, 0.45);
-}
-.cinema-health .sg-poster-wrap {
-  position: relative;
-  aspect-ratio: 2 / 3;
-  overflow: hidden;
-}
-.cinema-health .sg-poster {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  filter: brightness(0.85);
-  transition: filter 0.4s;
-}
-.cinema-health .sg-card:hover .sg-poster {
-  filter: brightness(1.1);
-}
-.cinema-health .sg-gradient {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    0deg,
-    rgb(10, 10, 15, 0.95) 0%,
-    rgb(10, 10, 15, 0.4) 40%,
-    transparent 70%
-  );
-  pointer-events: none;
-}
-.cinema-health .sg-tag {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 1;
-  padding: 3px 10px;
-  border-radius: var(--radius-btn);
-  font-size: var(--text-3xs);
-  font-weight: var(--font-bold);
-  font-family: 'Space Mono', monospace;
-  backdrop-filter: blur(8px);
-}
-.cinema-health .hc-sg-tag {
-  font-family: 'Space Mono', monospace;
-  font-weight: var(--font-extrabold);
-}
-.cinema-health .hc-sg-critical {
-  background: rgb(244, 63, 94, 0.2) !important;
-  color: #fb7185 !important;
-  border: 1px solid rgb(244, 63, 94, 0.3) !important;
-}
-.cinema-health .hc-sg-warning {
-  background: rgb(var(--color-warning-rgb), 0.2) !important;
-  color: var(--color-warning) !important;
-  border: 1px solid rgb(var(--color-warning-rgb), 0.3) !important;
-}
-.cinema-health .hc-sg-info {
-  background: rgb(var(--color-info-rgb), 0.2) !important;
-  color: var(--color-info) !important;
-  border: 1px solid rgb(var(--color-info-rgb), 0.3) !important;
-}
-.cinema-health .sg-bottom {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 10px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.cinema-health .sg-title {
-  font-size: var(--text-sm);
-  font-weight: var(--font-bold);
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  text-shadow: 0 2px 4px rgb(0, 0, 0, 0.6);
-}
-.cinema-health .sg-episode {
-  font-size: var(--text-3xs);
-  color: rgb(255, 255, 255, 0.65);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 /* ═══ Sentinel + empty ═══ */
 .cinema-health .hc-sentinel {
   height: 40px;
@@ -547,14 +406,5 @@
   .cinema-health .hc-issues-header {
     flex-direction: column;
     align-items: flex-start;
-  }
-}
-@media (max-width: 768px) {
-  .cinema-health .hc-issues-card {
-    padding: 14px 12px;
-  }
-  .cinema-health .hc-poster-grid {
-    grid-template-columns: repeat(auto-fill, minmax(clamp(84px, 24vw, 120px), 1fr));
-    gap: 8px;
   }
 }
