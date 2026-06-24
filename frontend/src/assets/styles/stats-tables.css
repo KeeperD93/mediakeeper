@@ -149,8 +149,10 @@
   cursor: pointer;
   user-select: none;
 }
-.cinema-stats .dt th.sortable:hover {
-  color: rgb(255, 255, 255, 0.5);
+@media (hover: hover) {
+  .cinema-stats .dt th.sortable:hover {
+    color: rgb(255, 255, 255, 0.5);
+  }
 }
 .cinema-stats .dt th.dt-r,
 .cinema-stats .dt td.dt-r {
@@ -170,8 +172,10 @@
   text-overflow: ellipsis;
   vertical-align: middle;
 }
-.cinema-stats .dt tbody tr:hover td {
-  background: rgb(var(--accent-rgb), 0.03);
+@media (hover: hover) {
+  .cinema-stats .dt tbody tr:hover td {
+    background: rgb(var(--accent-rgb), 0.03);
+  }
 }
 .cinema-stats .dt-name {
   font-weight: var(--font-regular);
@@ -206,9 +210,11 @@
   color: var(--accent-400);
   transition: color var(--duration-fast);
 }
-.cinema-stats .dt-clickable:hover {
-  color: var(--accent-300);
-  text-decoration: underline;
+@media (hover: hover) {
+  .cinema-stats .dt-clickable:hover {
+    color: var(--accent-300);
+    text-decoration: underline;
+  }
 }
 
 .cinema-stats .ctrl-toggle {
@@ -370,9 +376,11 @@
     color var(--duration-fast),
     opacity var(--duration-fast);
 }
-.cinema-stats .pag-btn:hover:not(:disabled) {
-  border-color: var(--accent-500);
-  color: var(--accent-500);
+@media (hover: hover) {
+  .cinema-stats .pag-btn:hover:not(:disabled) {
+    border-color: var(--accent-500);
+    color: var(--accent-500);
+  }
 }
 .cinema-stats .pag-btn:disabled {
   opacity: 0.3;

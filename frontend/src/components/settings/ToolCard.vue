@@ -111,11 +111,13 @@ const {
 .tc.active .tc-header {
   background: rgb(var(--accent-rgb), 0.08);
 }
-.tc-header:hover {
-  background: var(--bg-secondary);
-}
-.tc.active .tc-header:hover {
-  background: rgb(var(--accent-rgb), 0.12);
+@media (hover: hover) {
+  .tc-header:hover {
+    background: var(--bg-secondary);
+  }
+  .tc.active .tc-header:hover {
+    background: rgb(var(--accent-rgb), 0.12);
+  }
 }
 
 .tc-header-left {
@@ -247,8 +249,10 @@ const {
   cursor: pointer;
   transition: background var(--duration-fast);
 }
-.tc-save-btn:hover {
-  background: var(--accent-700);
+@media (hover: hover) {
+  .tc-save-btn:hover {
+    background: var(--accent-700);
+  }
 }
 .tc-save-btn:disabled {
   opacity: 0.5;
@@ -264,9 +268,11 @@ const {
   cursor: pointer;
   transition: all var(--duration-fast);
 }
-.tc-ping-btn:hover {
-  border-color: var(--accent-500);
-  color: var(--text-primary);
+@media (hover: hover) {
+  .tc-ping-btn:hover {
+    border-color: var(--accent-500);
+    color: var(--text-primary);
+  }
 }
 .tc-ping-btn:disabled {
   opacity: 0.5;
