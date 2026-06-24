@@ -114,29 +114,30 @@ onMounted(async () => {
 .tab-charts-dark {
   background: rgb(0, 0, 0, 0.15);
   border-radius: var(--radius-card);
-  padding: 16px;
-  margin: -8px;
-  margin-top: 0;
+  padding: 12px;
+  margin: -4px;
 }
 .chart-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 8px;
 }
 .chart-toggles {
   display: flex;
+  flex-flow: column wrap;
   align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
 }
 .toggle-group {
   display: flex;
   gap: 6px;
   min-width: 0;
-  flex-wrap: wrap;
+  width: 100%;
+  flex-wrap: nowrap;
 }
 .toggle-btn {
   min-height: 32px;
@@ -168,32 +169,36 @@ onMounted(async () => {
   box-shadow: var(--mk-pill-shadow);
 }
 
-@media (max-width: 767px) {
+/* Mobile-first: the two toggle groups stack so each pair (library/user,
+   plays/duration) spans the row and its two buttons split the width. */
+.toggle-group .toggle-btn {
+  flex: 1 1 0;
+  padding: 6px 8px;
+  min-width: 0;
+}
+@media (min-width: 768px) {
   .tab-charts-dark {
-    padding: 12px;
-    margin: -4px;
+    padding: 16px;
+    margin: -8px;
+    margin-top: 0;
   }
   .chart-toolbar {
-    gap: 8px;
-    margin-bottom: 12px;
+    gap: 12px;
+    margin-bottom: 16px;
   }
-  /* Stack the two toggle groups so each pair (library/user, plays/duration)
-     spans the full row and the two buttons inside split the width evenly. */
   .chart-toggles {
-    flex-direction: column;
-    gap: 8px;
-    width: 100%;
+    flex-direction: row;
+    gap: 6px;
+    width: auto;
   }
   .toggle-group {
-    gap: 6px;
-    width: 100%;
-    flex-wrap: nowrap;
+    width: auto;
+    flex-wrap: wrap;
   }
   .toggle-group .toggle-btn {
-    flex: 1 1 0;
-    padding: 6px 8px;
-    font-size: var(--text-2xs);
-    min-width: 0;
+    flex: initial;
+    padding: 5px 12px;
+    min-width: auto;
   }
 }
 </style>

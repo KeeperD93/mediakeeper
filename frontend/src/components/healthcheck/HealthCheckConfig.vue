@@ -149,8 +149,8 @@ const { config, configDirty, configSaving, configRules, saveConfig } = useHealth
   font-weight: var(--font-medium);
 }
 .hc-rs-critical {
-  background: rgb(244, 63, 94, 0.12);
-  color: #fb7185;
+  background: rgb(var(--color-error-rgb), 0.12);
+  color: var(--color-error);
 }
 .hc-rs-warning {
   background: rgb(var(--color-warning-rgb), 0.12);
@@ -191,8 +191,10 @@ const { config, configDirty, configSaving, configRules, saveConfig } = useHealth
   cursor: pointer;
   transition: border-color var(--duration-fast);
 }
-.hc-select:hover {
-  border-color: var(--border-hover);
+@media (hover: hover) {
+  .hc-select:hover {
+    border-color: var(--border-hover);
+  }
 }
 .hc-select:focus {
   border-color: var(--accent-500);
@@ -223,8 +225,10 @@ const { config, configDirty, configSaving, configRules, saveConfig } = useHealth
   -webkit-appearance: none;
   margin: 0;
 }
-.hc-input-num:hover {
-  border-color: var(--border-hover);
+@media (hover: hover) {
+  .hc-input-num:hover {
+    border-color: var(--border-hover);
+  }
 }
 .hc-input-num:focus {
   border-color: var(--accent-500);
@@ -251,8 +255,10 @@ const { config, configDirty, configSaving, configRules, saveConfig } = useHealth
   transition: all var(--duration-fast);
   font-family: inherit;
 }
-.hc-save-btn:hover:not(:disabled) {
-  background: rgb(var(--accent-rgb), 0.28);
+@media (hover: hover) {
+  .hc-save-btn:hover:not(:disabled) {
+    background: rgb(var(--accent-rgb), 0.28);
+  }
 }
 .hc-save-btn:disabled {
   opacity: 0.45;

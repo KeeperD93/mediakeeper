@@ -141,8 +141,10 @@ async function onRestoreAll() {
   border-radius: var(--radius-btn);
   transition: border-color var(--duration-fast);
 }
-.glass-row:hover {
-  border-color: rgb(99, 102, 241, 0.2);
+@media (hover: hover) {
+  .glass-row:hover {
+    border-color: rgb(99, 102, 241, 0.2);
+  }
 }
 .dig-row-name {
   font-size: var(--text-sm);
@@ -183,8 +185,10 @@ async function onRestoreAll() {
   transition: color var(--duration-fast);
   line-height: var(--lh-tight);
 }
-.dig-tag-x:hover {
-  color: var(--color-error);
+@media (hover: hover) {
+  .dig-tag-x:hover {
+    color: var(--color-error);
+  }
 }
 .dig-restore-row {
   display: inline-flex;
