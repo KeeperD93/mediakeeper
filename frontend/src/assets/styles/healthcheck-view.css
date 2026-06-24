@@ -10,7 +10,7 @@
 .cinema-health {
   position: relative;
   min-height: 100%;
-  padding: 12px 24px 24px;
+  padding: 12px 12px 24px;
   overflow-x: clip;
   -webkit-tap-highlight-color: transparent;
 }
@@ -79,7 +79,7 @@
 /* ═══ Hero row ═══ */
 .cinema-health .hc-hero-row {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: 1fr;
   gap: 16px;
   margin-bottom: 16px;
 }
@@ -191,7 +191,7 @@
 /* ═══ Breakdown ═══ */
 .cinema-health .hc-breakdown-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 16px;
   margin-bottom: 16px;
 }
@@ -400,19 +400,15 @@
   border-radius: var(--radius-card);
 }
 
-/* ═══ Responsive ═══ */
-@media (max-width: 768px) {
+/* ═══ Desktop overrides (mobile-first base above) ═══ */
+@media (min-width: 768px) {
   .cinema-health {
-    padding: 12px 12px 24px;
+    padding: 12px 24px 24px;
   }
   .cinema-health .hc-hero-row {
-    grid-template-columns: 1fr;
+    grid-template-columns: auto 1fr;
   }
   .cinema-health .hc-breakdown-row {
-    grid-template-columns: 1fr;
-  }
-  .cinema-health .hc-issues-header {
-    flex-direction: column;
-    align-items: flex-start;
+    grid-template-columns: 1fr 1fr;
   }
 }

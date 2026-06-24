@@ -5,14 +5,14 @@
 
 /* ═══ Issues list ═══ */
 .cinema-health .hc-issues-card {
-  padding: 18px 20px;
+  padding: 14px 12px;
 }
 .cinema-health .hc-issues-header {
   display: flex;
-  align-items: center;
+  flex-flow: column wrap;
+  align-items: flex-start;
   justify-content: space-between;
   margin-bottom: 14px;
-  flex-wrap: wrap;
   gap: 10px;
 }
 .cinema-health .hc-filters {
@@ -47,8 +47,8 @@
 /* ═══ Poster grid ═══ */
 .cinema-health .hc-poster-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(clamp(84px, 24vw, 120px), 1fr));
+  gap: 8px;
 }
 .cinema-health .sg-card {
   position: relative;
@@ -153,12 +153,16 @@
   text-overflow: ellipsis;
 }
 
-@media (max-width: 768px) {
+@media (min-width: 768px) {
+  .cinema-health .hc-issues-header {
+    flex-direction: row;
+    align-items: center;
+  }
   .cinema-health .hc-issues-card {
-    padding: 14px 12px;
+    padding: 18px 20px;
   }
   .cinema-health .hc-poster-grid {
-    grid-template-columns: repeat(auto-fill, minmax(clamp(84px, 24vw, 120px), 1fr));
-    gap: 8px;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 16px;
   }
 }
