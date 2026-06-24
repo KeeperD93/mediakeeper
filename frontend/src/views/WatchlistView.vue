@@ -39,6 +39,7 @@ import { reactive, watch, onMounted, defineAsyncComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useWatchlist } from '@/composables/useWatchlist'
 import { useTabSync } from '@/composables/useTabSync'
+import { SIDEBAR_SUB_TABS } from '@/constants/sidebarSubTabs'
 const WlSeriesView = defineAsyncComponent(() => import('@/components/watchlist/WlSeriesView.vue'))
 const WlTimelineView = defineAsyncComponent(
   () => import('@/components/watchlist/WlTimelineView.vue'),
@@ -62,7 +63,8 @@ const {
   reloadForLocale,
 } = useWatchlist()
 const { locale } = useI18n()
-const activeTab = useTabSync(['missing', 'timeline', 'suivi', 'calendar', 'ignored'], 'missing')
+const TAB_IDS = SIDEBAR_SUB_TABS['/watchlist'].map(t => t.id)
+const activeTab = useTabSync(TAB_IDS, TAB_IDS[0])
 
 // Lazy mount: only mount heavy tabs on first selection
 const mounted = reactive({ timeline: false, calendar: false })

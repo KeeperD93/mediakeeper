@@ -24,6 +24,7 @@ import { ref, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useSubtitles } from '@/composables/useSubtitles'
 import { useTabSync } from '@/composables/useTabSync'
+import { SIDEBAR_SUB_TABS } from '@/constants/sidebarSubTabs'
 
 import SubHeader from '@/components/subtitles/SubHeader.vue'
 import SubLibraryTab from '@/components/subtitles/SubLibraryTab.vue'
@@ -36,7 +37,8 @@ import SubAuditPanel from '@/components/subtitles/SubAuditPanel.vue'
 const route = useRoute()
 const { init } = useSubtitles()
 
-const tab = useTabSync(['library', 'search', 'history', 'statistics'], 'library')
+const TAB_IDS = SIDEBAR_SUB_TABS['/subtitles'].map(t => t.id)
+const tab = useTabSync(TAB_IDS, TAB_IDS[0])
 const missingCount = ref(0)
 const showProfileModal = ref(false)
 const showAuditPanel = ref(false)

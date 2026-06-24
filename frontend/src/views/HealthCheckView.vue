@@ -242,6 +242,7 @@
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useHealthCheck } from '@/composables/useHealthCheck'
 import { useTabSync } from '@/composables/useTabSync'
+import { SIDEBAR_SUB_TABS } from '@/constants/sidebarSubTabs'
 import HealthCheckConfig from '@/components/healthcheck/HealthCheckConfig.vue'
 import HealthCheckIssueOverlay from '@/components/healthcheck/HealthCheckIssueOverlay.vue'
 import { ChevronUp, RefreshCw, Search, ShieldCheck } from 'lucide-vue-next'
@@ -282,7 +283,8 @@ const {
   formatAgo,
 } = useHealthCheck()
 
-const tab = useTabSync(['health', 'config'], 'health')
+const TAB_IDS = SIDEBAR_SUB_TABS['/health'].map(t => t.id)
+const tab = useTabSync(TAB_IDS, TAB_IDS[0])
 const selectedIssue = ref(null)
 
 // Scroll to top
