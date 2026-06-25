@@ -543,7 +543,7 @@
   transition: all var(--duration-fast);
 }
 .ob-folder-browse-btn:hover {
-  background: rgb(var(--accent-rgb, 99, 102, 241), 0.1);
+  background: rgb(var(--accent-rgb), 0.1);
   border-color: var(--accent-500);
 }
 
@@ -646,7 +646,7 @@
   padding: 6px 10px;
   border: 0.5px solid var(--accent-500);
   border-radius: var(--radius-sm);
-  background: rgb(var(--accent-rgb, 99, 102, 241), 0.08);
+  background: rgb(var(--accent-rgb), 0.08);
   color: var(--accent-400);
   font-size: var(--text-2xs);
   font-weight: var(--font-medium);
