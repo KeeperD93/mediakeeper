@@ -48,7 +48,8 @@
     rgb(255, 255, 255, 0.08),
     rgb(255, 255, 255, 0.02)
   );
-  --portal-gradient-accent: linear-gradient(135deg, var(--accent-500), var(--accent-700));
+  /* Self-contained (no admin var): current locked-accent shades, like the gold gradients. */
+  --portal-gradient-accent: linear-gradient(135deg, #5c5792, #3d395f);
   --portal-gradient-gold: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
   --portal-gradient-gold-bar: linear-gradient(90deg, #b8860b, #fbbf24, #fde68a);
   --portal-gradient-shine: linear-gradient(
