@@ -300,4 +300,10 @@ onMounted(load)
   gap: 3px;
   color: var(--text-muted);
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .wg-evt-item {
+    transition: none;
+  }
+}
 </style>

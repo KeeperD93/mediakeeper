@@ -1,0 +1,37 @@
+/* Narrow-screen overrides (≤ 640px): stack card, compact poster, full-width actions. */
+@media (max-width: 640px) {
+  .cinema-duplicates {
+    padding: var(--space-3) var(--space-4) var(--space-4);
+  }
+  .cinema-duplicates .doub-card {
+    flex-direction: column;
+  }
+  .cinema-duplicates .doub-poster {
+    width: 100%;
+    flex-direction: row;
+    gap: var(--space-3);
+  }
+  .cinema-duplicates .doub-poster-img,
+  .cinema-duplicates .doub-poster-ph {
+    width: 64px;
+    height: 96px;
+  }
+  .cinema-duplicates .doub-source {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .cinema-duplicates .doub-source-acts {
+    width: 100%;
+  }
+  .cinema-duplicates .doub-keep-btn,
+  .cinema-duplicates .doub-delete-btn {
+    flex: 1;
+    text-align: center;
+  }
+  .cinema-duplicates .doub-info-btns {
+    flex-direction: column;
+  }
+  .cinema-duplicates .cmp-table {
+    font-size: var(--text-3xs);
+  }
+}

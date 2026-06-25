@@ -70,6 +70,11 @@ const isLoading = computed(() => props.value == null || props.value === '—')
 const displayValue = ref('—')
 const animFrame = ref(null)
 
+function prefersReducedMotion() {
+  if (typeof window === 'undefined' || !window.matchMedia) return false
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
 function parseNumeric(val) {
   if (val == null || val === '—') return null
   const s = String(val).replace(/\s/g, '').replace(',', '.')
@@ -91,7 +96,7 @@ function formatLike(target, num) {
 
 function animateCounter(target) {
   const num = parseNumeric(target)
-  if (num === null || num === 0) {
+  if (num === null || num === 0 || prefersReducedMotion()) {
     displayValue.value = target
     return
   }
@@ -130,7 +135,7 @@ const tiltStyle = computed(() => ({
 }))
 
 function onTilt(e) {
-  if (props.editing) return
+  if (props.editing || prefersReducedMotion()) return
   const rect = e.currentTarget.getBoundingClientRect()
   const x = (e.clientX - rect.left) / rect.width - 0.5
   const y = (e.clientY - rect.top) / rect.height - 0.5
@@ -288,5 +293,15 @@ function onClick() {
 }
 .wg-stat:hover .wg-glow {
   opacity: 1;
+}
+
+/* Reduced-motion: instant hover state, no animated fades (the JS 3D tilt
+   and the count-up are short-circuited in script). */
+@media (prefers-reduced-motion: reduce) {
+  .wg-stat,
+  .wg-stat-icon,
+  .wg-glow {
+    transition: none;
+  }
 }
 </style>

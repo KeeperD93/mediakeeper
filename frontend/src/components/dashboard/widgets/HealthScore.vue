@@ -147,12 +147,14 @@ onMounted(async () => {
 .wg-health-click {
   cursor: pointer;
 }
-.wg-health:hover {
-  border-color: color-mix(in srgb, var(--wg-hover) 35%, transparent);
-  box-shadow:
-    0 0 24px color-mix(in srgb, var(--wg-hover) 12%, transparent),
-    0 0 60px color-mix(in srgb, var(--wg-hover) 4%, transparent),
-    inset 0 0 20px color-mix(in srgb, var(--wg-hover) 4%, transparent);
+@media (hover: hover) {
+  .wg-health:hover {
+    border-color: color-mix(in srgb, var(--wg-hover) 35%, transparent);
+    box-shadow:
+      0 0 24px color-mix(in srgb, var(--wg-hover) 12%, transparent),
+      0 0 60px color-mix(in srgb, var(--wg-hover) 4%, transparent),
+      inset 0 0 20px color-mix(in srgb, var(--wg-hover) 4%, transparent);
+  }
 }
 
 /* Ambient glow orb — same pattern as .wg-glow in StatCard. Revealed
@@ -172,8 +174,10 @@ onMounted(async () => {
   pointer-events: none;
   z-index: 0;
 }
-.wg-health:hover .wg-h-glow {
-  opacity: 1;
+@media (hover: hover) {
+  .wg-health:hover .wg-h-glow {
+    opacity: 1;
+  }
 }
 
 .wg-h-ring-wrap {
@@ -294,6 +298,15 @@ onMounted(async () => {
   }
   100% {
     background-position: -200% 0;
+  }
+}
+
+/* Reduced-motion: drop the decorative hover / glow / arc transitions. */
+@media (prefers-reduced-motion: reduce) {
+  .wg-health,
+  .wg-h-glow,
+  .wg-h-arc {
+    transition: none;
   }
 }
 </style>

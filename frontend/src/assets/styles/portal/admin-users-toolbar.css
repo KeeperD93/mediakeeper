@@ -113,9 +113,11 @@
   opacity: 0.5;
   cursor: default;
 }
-.ru-pill:hover:not(:disabled) {
-  color: var(--text-primary);
-  border-color: rgb(var(--accent-rgb), 0.35);
+@media (hover: hover) {
+  .ru-pill:hover:not(:disabled) {
+    color: var(--text-primary);
+    border-color: rgb(var(--accent-rgb), 0.35);
+  }
 }
 .ru-pill--active {
   background: rgb(var(--accent-rgb), 0.15);

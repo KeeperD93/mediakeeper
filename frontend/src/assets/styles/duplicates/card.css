@@ -1,0 +1,287 @@
+/* Duplicate card (DupCard): grid, poster, info, source rows, tags and compare table. */
+.cinema-duplicates .doub-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3-5);
+}
+.cinema-duplicates .doub-card {
+  display: flex;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border-radius: var(--radius-card);
+  background: rgb(var(--accent-rgb), 0.04);
+  border: 1px solid var(--border);
+  backdrop-filter: var(--blur-sm);
+  animation: doub-card-in var(--duration-slow) ease-out both;
+}
+@keyframes doub-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.cinema-duplicates .doub-poster {
+  flex-shrink: 0;
+  width: 90px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+.cinema-duplicates .doub-poster-img {
+  width: 90px;
+  height: 132px;
+  object-fit: cover;
+  border-radius: var(--radius-btn);
+  background: var(--bg-tertiary);
+}
+.cinema-duplicates .doub-poster-ph {
+  width: 90px;
+  height: 132px;
+  border-radius: var(--radius-btn);
+  background: var(--bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+.cinema-duplicates .w-8 {
+  width: 32px;
+  height: 32px;
+}
+.cinema-duplicates .doub-year {
+  font-size: var(--text-2xs);
+  font-weight: var(--font-medium);
+  color: var(--text-muted);
+}
+.cinema-duplicates .doub-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.cinema-duplicates .doub-info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-2-5);
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.cinema-duplicates .doub-title {
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  line-height: var(--lh-compact);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.cinema-duplicates .doub-versions {
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
+  margin-top: var(--space-half);
+}
+.cinema-duplicates .doub-info-btns {
+  display: flex;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}
+.cinema-duplicates .doub-ignore-btn,
+.cinema-duplicates .doub-compare-btn,
+.cinema-duplicates .doub-suggest-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2-5);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-2xs);
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--duration-fast);
+  font-family: inherit;
+}
+.cinema-duplicates .doub-ignore-btn {
+  color: var(--text-muted);
+  background: var(--bg-tertiary);
+}
+@media (hover: hover) {
+  .cinema-duplicates .doub-ignore-btn:hover {
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+  }
+}
+.cinema-duplicates .doub-compare-btn {
+  color: var(--text-muted);
+  background: var(--bg-tertiary);
+}
+.cinema-duplicates .doub-compare-btn.active {
+  color: var(--accent-400);
+  background: rgb(var(--accent-rgb), 0.1);
+}
+@media (hover: hover) {
+  .cinema-duplicates .doub-compare-btn:hover {
+    color: var(--accent-400);
+    background: rgb(var(--accent-rgb), 0.1);
+  }
+}
+.cinema-duplicates .doub-suggest-btn {
+  color: var(--color-success);
+  background: rgb(var(--color-success-rgb), 0.1);
+}
+@media (hover: hover) {
+  .cinema-duplicates .doub-suggest-btn:hover {
+    background: rgb(var(--color-success-rgb), 0.2);
+  }
+}
+/* Sources */
+.cinema-duplicates .doub-sources {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  flex: 1;
+}
+.cinema-duplicates .doub-source {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2-5);
+  padding: var(--space-2-5) var(--space-3);
+  border-radius: var(--radius-btn);
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  transition: border-color var(--duration-fast);
+}
+.cinema-duplicates .doub-source-best {
+  border-color: rgb(var(--color-success-rgb), 0.3);
+  background: rgb(var(--color-success-rgb), 0.03);
+}
+.cinema-duplicates .doub-source-info {
+  flex: 1;
+  min-width: 0;
+}
+.cinema-duplicates .doub-filename {
+  font-size: var(--text-xs);
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cinema-duplicates .doub-tags {
+  display: flex;
+  gap: var(--space-1);
+  margin-top: var(--space-1);
+  flex-wrap: wrap;
+}
+.cinema-duplicates .doub-tag {
+  font-size: var(--text-3xs);
+  padding: var(--space-half) var(--space-1);
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+  font-weight: var(--font-regular);
+}
+.cinema-duplicates .doub-tag-best {
+  background: rgb(var(--color-success-rgb), 0.12);
+  color: var(--color-success);
+  font-weight: var(--font-bold);
+}
+.cinema-duplicates .doub-source-acts {
+  display: flex;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+.cinema-duplicates .doub-keep-btn,
+.cinema-duplicates .doub-delete-btn {
+  padding: var(--space-1) var(--space-2-5);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-2xs);
+  font-weight: var(--font-medium);
+  border: 1px solid;
+  cursor: pointer;
+  transition: all var(--duration-base);
+  font-family: inherit;
+}
+.cinema-duplicates .doub-keep-btn {
+  background: rgb(var(--accent-rgb), 0.1);
+  color: var(--accent-400);
+  border-color: rgb(var(--accent-rgb), 0.3);
+}
+@media (hover: hover) {
+  .cinema-duplicates .doub-keep-btn:hover {
+    background: var(--accent-600);
+    color: var(--text-primary);
+    border-color: var(--accent-600);
+  }
+}
+.cinema-duplicates .doub-delete-btn {
+  background: rgb(var(--color-error-rgb), 0.1);
+  color: var(--color-error);
+  border-color: rgb(var(--color-error-rgb), 0.3);
+}
+@media (hover: hover) {
+  .cinema-duplicates .doub-delete-btn:hover {
+    background: rgb(var(--color-error-strong-rgb));
+    color: var(--text-primary);
+    border-color: rgb(var(--color-error-strong-rgb));
+  }
+}
+
+/* Compare table */
+.cinema-duplicates .doub-compare {
+  overflow-x: auto;
+  margin-top: var(--space-1);
+}
+.cinema-duplicates .cmp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-2xs);
+}
+@media (max-width: 767px) {
+  .cinema-duplicates .cmp-table {
+    min-width: 560px;
+  }
+}
+.cinema-duplicates .cmp-table th {
+  text-align: left;
+  padding: var(--space-2);
+  color: var(--text-muted);
+  font-weight: var(--font-medium);
+  font-size: var(--text-3xs);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-widest);
+  border-bottom: 1px solid var(--border);
+}
+.cinema-duplicates .cmp-table td {
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.cinema-duplicates .cmp-file {
+  font-family: var(--font-mono);
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cinema-duplicates .cmp-best {
+  background: rgb(var(--color-success-rgb), 0.04);
+}
+.cinema-duplicates .cmp-best td:first-child::before {
+  content: '★ ';
+  color: var(--color-success);
+}
+.cinema-duplicates .cmp-score {
+  font-weight: var(--font-bold);
+  font-family: var(--font-mono);
+}
+.cinema-duplicates .cmp-actions {
+  display: flex;
+  gap: var(--space-1);
+}
