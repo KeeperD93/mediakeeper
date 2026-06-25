@@ -45,7 +45,7 @@
 }
 @media (hover: hover) {
   .cinema-duplicates .glass-kpi:hover {
-    border-color: rgb(99, 102, 241, 0.2);
+    border-color: rgb(var(--accent-rgb), 0.2);
   }
 }
 .cinema-duplicates .kpi-val {
@@ -156,7 +156,7 @@
 @media (hover: hover) {
   .cinema-duplicates .doub-btn-accent:hover {
     background: rgb(var(--color-warning-rgb), 0.25);
-    color: #fde68a;
+    color: var(--color-warning-light);
   }
 }
 
@@ -400,15 +400,15 @@
   }
 }
 .cinema-duplicates .doub-delete-btn {
-  background: rgb(244, 63, 94, 0.1);
-  color: #fb7185;
-  border-color: rgb(244, 63, 94, 0.3);
+  background: rgb(var(--color-error-rgb), 0.1);
+  color: var(--color-error);
+  border-color: rgb(var(--color-error-rgb), 0.3);
 }
 @media (hover: hover) {
   .cinema-duplicates .doub-delete-btn:hover {
-    background: #e11d48;
+    background: rgb(var(--color-error-strong-rgb));
     color: var(--text-primary);
-    border-color: #e11d48;
+    border-color: rgb(var(--color-error-strong-rgb));
   }
 }
 
@@ -486,7 +486,7 @@
 }
 @media (hover: hover) {
   .cinema-duplicates .hist-row:hover {
-    border-color: rgb(99, 102, 241, 0.15);
+    border-color: rgb(var(--accent-rgb), 0.15);
   }
 }
 .cinema-duplicates .hist-icon {
@@ -499,8 +499,8 @@
   flex-shrink: 0;
 }
 .cinema-duplicates .hist-del {
-  background: rgb(244, 63, 94, 0.1);
-  color: #fb7185;
+  background: rgb(var(--color-error-rgb), 0.1);
+  color: var(--color-error);
 }
 .cinema-duplicates .hist-keep {
   background: rgb(var(--color-success-rgb), 0.1);
@@ -595,7 +595,7 @@
 }
 .cinema-duplicates .rule-input:focus,
 .cinema-duplicates .rule-sel:focus {
-  border-color: rgb(99, 102, 241, 0.4);
+  border-color: rgb(var(--accent-rgb), 0.4);
 }
 .cinema-duplicates .rule-auto {
   font-size: var(--text-2xs);
@@ -614,8 +614,8 @@
 }
 @media (hover: hover) {
   .cinema-duplicates .rule-del:hover {
-    background: rgb(244, 63, 94, 0.1);
-    color: #fb7185;
+    background: rgb(var(--color-error-rgb), 0.1);
+    color: var(--color-error);
   }
 }
 /* Touch targets ≥ 44px on mobile for the duplicate-rule controls. */
