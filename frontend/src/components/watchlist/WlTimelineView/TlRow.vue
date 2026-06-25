@@ -99,11 +99,12 @@ function dateCls(e) {
 <style scoped>
 .tl-row {
   display: grid;
-  grid-template-columns: 1fr 40px 1fr;
-  min-height: 48px;
+  grid-template-columns: 28px 1fr;
+  min-height: auto;
 }
 
 .tl-left {
+  display: none;
   min-width: 0;
   overflow: hidden;
   padding: 6px 0;
@@ -130,25 +131,26 @@ function dateCls(e) {
 .tl-right {
   min-width: 0;
   overflow: hidden;
-  padding: 6px 0;
+  padding: 8px 0 8px 10px;
 }
 .tl-right.active {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  /* Matches the desktop grid's align-items:start (content-width cards) — the
+     pre-inversion mobile layout relied on this value leaking from the base. */
   align-items: start;
 }
 .tl-right-pill {
   display: flex;
   align-items: flex-start;
-  padding: 0 10px;
-  padding-top: 4px;
+  padding: 0 0 4px;
 }
 .tl-right-cards {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  padding-left: 6px;
+  gap: 6px;
+  padding-left: 0;
 }
 
 .tl-axis {
@@ -217,9 +219,9 @@ function dateCls(e) {
 }
 
 .tl-date {
-  font-size: var(--text-sm);
+  font-size: var(--text-2xs);
   font-weight: var(--font-bold);
-  padding: 4px 12px;
+  padding: 3px 10px;
   border-radius: var(--radius-btn);
   background: rgb(var(--accent-rgb), 0.12);
   color: var(--text-primary);
@@ -231,8 +233,6 @@ function dateCls(e) {
      accent scale and used only here, so no dedicated design token. */
   background: linear-gradient(135deg, var(--accent-500), #7c3aed);
   color: var(--text-primary);
-  font-size: var(--text-sm);
-  padding: 6px 16px;
   border-radius: var(--radius-btn);
   box-shadow: 0 4px 20px rgb(var(--accent-rgb), 0.4);
 }
@@ -256,8 +256,8 @@ function dateCls(e) {
 .tl-card {
   display: flex;
   align-items: center;
-  gap: 11px;
-  padding: 9px 14px;
+  gap: 10px;
+  padding: 8px 10px;
   border-radius: var(--radius-card);
   background: var(--surface-2);
   backdrop-filter: var(--blur-sm);
@@ -274,8 +274,8 @@ function dateCls(e) {
   }
 }
 .tl-poster {
-  width: 38px;
-  height: 56px;
+  width: 40px;
+  height: 58px;
   border-radius: var(--radius-sm);
   overflow: hidden;
   background: var(--surface-2);
@@ -296,78 +296,79 @@ function dateCls(e) {
 .tl-name {
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  white-space: nowrap;
+  color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
-  color: var(--text-primary);
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-height: 1.25;
 }
 .tl-ep {
   font-size: var(--text-2xs);
   color: var(--text-secondary);
   font-family: 'SF Mono', 'Cascadia Mono', monospace;
   margin-top: 2px;
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
 }
 
-/* Mobile — single-column: axis on the left, pill + cards take full width */
-@media (max-width: 767px) {
+/* Desktop — two-sided timeline: left/right halves around the centre axis.
+   Mobile-first base is the single-column layout (axis left, content right). */
+@media (min-width: 768px) {
   .tl-row {
-    grid-template-columns: 28px 1fr;
-    min-height: auto;
+    grid-template-columns: 1fr 40px 1fr;
+    min-height: 48px;
   }
   .tl-left {
-    display: none;
+    display: block;
   }
   .tl-right {
-    padding: 8px 0 8px 10px;
+    padding: 6px 0;
   }
   .tl-right.active {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0;
+    align-items: start;
   }
   .tl-right-pill {
-    padding: 0 0 4px;
+    padding: 0 10px;
+    padding-top: 4px;
   }
   .tl-right-cards {
-    padding-left: 0;
-    gap: 6px;
+    gap: 5px;
+    padding-left: 6px;
   }
   .tl-card {
-    padding: 8px 10px;
-    gap: 10px;
+    padding: 9px 14px;
+    gap: 11px;
   }
   .tl-poster {
-    width: 40px;
-    height: 58px;
-  }
-  .tl-info {
-    min-width: 0;
+    width: 38px;
+    height: 56px;
   }
   .tl-name {
-    font-size: var(--text-sm);
-    white-space: normal;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    line-height: 1.25;
+    white-space: nowrap;
+    display: block;
+    line-height: normal;
   }
   .tl-ep {
-    font-size: var(--text-2xs);
-    white-space: normal;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
+    white-space: nowrap;
+    display: block;
   }
   .tl-date {
-    font-size: var(--text-2xs);
-    padding: 3px 10px;
+    font-size: var(--text-sm);
+    padding: 4px 12px;
+  }
+  .tl-date-now {
+    font-size: var(--text-sm);
+    padding: 6px 16px;
   }
 }
 </style>

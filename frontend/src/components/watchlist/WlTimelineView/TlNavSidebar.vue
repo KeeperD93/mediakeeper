@@ -27,7 +27,7 @@ defineEmits(['go-today', 'go-month'])
 
 <style scoped>
 .tl-nav {
-  width: 84px;
+  width: 40px;
   flex-shrink: 0;
   border-left: 0.5px solid var(--border-default);
 }
@@ -77,7 +77,7 @@ defineEmits(['go-today', 'go-month'])
   flex-direction: column;
   align-items: center;
   gap: 1px;
-  padding: 7px 4px;
+  padding: 4px 2px;
   border: none;
   background: transparent;
   color: var(--text-secondary);
@@ -89,8 +89,10 @@ defineEmits(['go-today', 'go-month'])
   transition:
     background-color var(--duration-fast),
     color var(--duration-fast);
-  width: 72px;
-  font-size: var(--text-2xs);
+  /* Compact jump-rail: sub-44px touch targets are an accepted exception —
+     a 15-item vertical month rail can't fit 44px items in an 80vh band. */
+  width: 36px;
+  font-size: 0.52rem;
 }
 @media (hover: hover) {
   .tl-nav-item:hover {
@@ -110,19 +112,20 @@ defineEmits(['go-today', 'go-month'])
 .tl-nav-y {
   font-size: var(--text-3xs);
   opacity: 0.8;
+  display: none;
 }
 
-@media (max-width: 767px) {
+@media (min-width: 768px) {
   .tl-nav {
-    width: 40px;
+    width: 84px;
   }
   .tl-nav-item {
-    width: 36px;
-    padding: 4px 2px;
-    font-size: 0.52rem;
+    width: 72px;
+    padding: 7px 4px;
+    font-size: var(--text-2xs);
   }
   .tl-nav-y {
-    display: none;
+    display: revert;
   }
 }
 </style>
