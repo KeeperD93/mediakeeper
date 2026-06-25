@@ -543,7 +543,7 @@
   transition: all var(--duration-fast);
 }
 .ob-folder-browse-btn:hover {
-  background: rgb(var(--accent-rgb, 99, 102, 241), 0.1);
+  background: rgb(var(--accent-rgb), 0.1);
   border-color: var(--accent-500);
 }
 
@@ -572,7 +572,7 @@
   cursor: pointer;
   padding: 1px 4px;
   border-radius: 3px;
-  transition: background 0.12s;
+  transition: var(--transition-bg);
 }
 .ob-browse-crumb:hover {
   background: var(--surface-3);
@@ -596,13 +596,13 @@
   cursor: pointer;
   font-size: var(--text-xs);
   color: var(--text-secondary);
-  transition: background 0.12s;
+  transition: var(--transition-bg);
 }
 .ob-browse-item:hover {
   background: var(--surface-3);
 }
 .ob-browse-item svg {
-  color: #f59e0b;
+  color: var(--color-warning-dark);
   flex-shrink: 0;
 }
 .ob-browse-name {
@@ -620,7 +620,7 @@
   font-size: var(--text-2xs);
   font-weight: var(--font-medium);
   cursor: pointer;
-  transition: all 0.12s;
+  transition: var(--transition-bg), var(--transition-color);
   flex-shrink: 0;
 }
 .ob-browse-select:hover {
@@ -646,13 +646,13 @@
   padding: 6px 10px;
   border: 0.5px solid var(--accent-500);
   border-radius: var(--radius-sm);
-  background: rgb(var(--accent-rgb, 99, 102, 241), 0.08);
+  background: rgb(var(--accent-rgb), 0.08);
   color: var(--accent-400);
   font-size: var(--text-2xs);
   font-weight: var(--font-medium);
   cursor: pointer;
   font-family: inherit;
-  transition: all 0.12s;
+  transition: var(--transition-bg), var(--transition-color);
 }
 .ob-browse-use-current:hover {
   background: var(--accent-500);

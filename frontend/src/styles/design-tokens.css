@@ -7,7 +7,6 @@
  *   tokens/_typography.css    font sizes, weights, tracking, line-height
  *   tokens/_layout.css        spacing, radius, shadows, blur, z-index, gradients
  *   tokens/_motion.css        durations, easings
- *   tokens/_tiers.css         bronze → legendary 3-stop palette + glow per tier
  *   tokens/_avatar-tiers.css  avatar ring colours + halo, matched to leaderboard
  *
  * ── Naming convention ──
@@ -33,5 +32,4 @@
 @import url('./tokens/_typography.css');
 @import url('./tokens/_layout.css');
 @import url('./tokens/_motion.css');
-@import url('./tokens/_tiers.css');
 @import url('./tokens/_avatar-tiers.css');

@@ -64,6 +64,8 @@
   --color-warning-rgb: 251, 191, 36;
   --color-warning-light: #fcd34d;
   --color-warning-soft: #fef3c7;
+  --color-warning-dark: #f59e0b; /* deeper amber (folder accent), mirrors --portal-color-warning-dark */
+  --color-warning-dark-rgb: 245, 158, 11;
   --color-error: #f87171;
   --color-error-rgb: 248, 113, 113;
   --color-error-light: #fca5a5;
