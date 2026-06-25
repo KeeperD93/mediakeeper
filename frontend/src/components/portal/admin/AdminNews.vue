@@ -176,8 +176,8 @@ onMounted(() => fetchNews(true, { admin: true }))
   color: var(--color-success);
 }
 .pt-badge--maintenance {
-  background: rgb(234, 179, 8, 0.2);
-  color: #eab308;
+  background: rgb(var(--color-warning-rgb), 0.2);
+  color: var(--color-warning);
 }
 .pt-badge--event {
   background: rgb(var(--color-premium-rgb), 0.2);

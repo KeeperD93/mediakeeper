@@ -172,8 +172,8 @@ onMounted(fetchList)
   letter-spacing: var(--tracking-wide);
 }
 .ab-pill--type {
-  background: rgb(99, 102, 241, 0.15);
-  border-color: rgb(99, 102, 241, 0.3);
+  background: rgb(var(--accent-rgb), 0.15);
+  border-color: rgb(var(--accent-rgb), 0.3);
   color: var(--accent-300);
 }
 .ab-pill--date {
@@ -187,7 +187,7 @@ onMounted(fetchList)
 }
 .ab-requesters-label {
   font-weight: var(--font-medium);
-  color: rgb(255, 255, 255, 0.45);
+  color: var(--text-faint);
   margin-right: 0.25rem;
 }
 .ab-requester {

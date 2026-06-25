@@ -103,7 +103,7 @@ useFocusTrap({
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  background: rgb(0, 0, 0, 0.6);
+  background: var(--overlay-backdrop);
   backdrop-filter: blur(4px);
 }
 @media (min-width: 768px) {
@@ -162,7 +162,7 @@ useFocusTrap({
 
 .rrm-media {
   font-size: var(--text-sm);
-  color: rgb(255, 255, 255, 0.65);
+  color: var(--text-muted);
   margin: 0 0 14px;
   font-style: italic;
 }
@@ -179,7 +179,7 @@ useFocusTrap({
 }
 .rrm-field-label {
   font-size: var(--text-xs);
-  color: rgb(255, 255, 255, 0.75);
+  color: var(--text-muted);
   font-weight: var(--font-medium);
 }
 
@@ -188,7 +188,7 @@ useFocusTrap({
   padding: 10px 12px;
   border-radius: var(--radius-input);
   background: var(--surface-2);
-  border: 1px solid rgb(255, 255, 255, 0.1);
+  border: 1px solid var(--border-strong);
   color: var(--text-primary);
   font: inherit;
   resize: vertical;
@@ -202,7 +202,7 @@ useFocusTrap({
 
 .rrm-hint {
   font-size: var(--text-xs);
-  color: rgb(255, 255, 255, 0.5);
+  color: var(--text-faint);
   margin: 0;
 }
 
@@ -225,10 +225,10 @@ useFocusTrap({
 .rrm-btn-ghost {
   background: transparent;
   color: var(--text-primary);
-  border-color: rgb(255, 255, 255, 0.14);
+  border-color: var(--border-strong);
 }
 .rrm-btn-reject {
-  background: rgb(180, 83, 9, 0.9);
+  background: rgb(var(--color-error-rgb), 0.9);
   color: var(--text-primary);
 }
 @media (hover: hover) {
@@ -236,7 +236,7 @@ useFocusTrap({
     background: var(--surface-3);
   }
   .rrm-btn-reject:hover {
-    background: rgb(180, 83, 9, 1);
+    background: var(--color-error);
   }
 }
 
