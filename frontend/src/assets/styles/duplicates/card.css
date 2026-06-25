@@ -24,10 +24,6 @@
     transform: translateY(0);
   }
 }
-.cinema-duplicates .doub-card-ignored {
-  opacity: 0.6;
-  border-style: dashed;
-}
 .cinema-duplicates .doub-poster {
   flex-shrink: 0;
   width: 90px;
@@ -98,8 +94,7 @@
 }
 .cinema-duplicates .doub-ignore-btn,
 .cinema-duplicates .doub-compare-btn,
-.cinema-duplicates .doub-suggest-btn,
-.cinema-duplicates .doub-restore-btn {
+.cinema-duplicates .doub-suggest-btn {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
@@ -145,17 +140,6 @@
     background: rgb(var(--color-success-rgb), 0.2);
   }
 }
-.cinema-duplicates .doub-restore-btn {
-  color: var(--accent-400);
-  background: rgb(var(--accent-rgb), 0.1);
-}
-@media (hover: hover) {
-  .cinema-duplicates .doub-restore-btn:hover {
-    background: var(--accent-600);
-    color: var(--text-primary);
-  }
-}
-
 /* Sources */
 .cinema-duplicates .doub-sources {
   display: flex;

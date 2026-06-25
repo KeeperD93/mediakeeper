@@ -45,9 +45,6 @@
 .cinema-duplicates .doub-kpi-info {
   color: var(--color-info);
 }
-.cinema-duplicates .doub-info-flex {
-  flex: 1;
-}
 .cinema-duplicates .doub-btn-spaced {
   margin-top: var(--space-3);
 }
