@@ -15,3 +15,15 @@ export const PORTAL_TAB = Object.freeze({
 } as const)
 
 export type PortalTab = (typeof PORTAL_TAB)[keyof typeof PORTAL_TAB]
+
+/**
+ * Person filmography role filter — also the `role` query param used when
+ * deep-linking into the person page from detail carousels / cast lists.
+ */
+export const PERSON_ROLE = Object.freeze({
+  ALL: 'all',
+  DIRECTOR: 'director',
+  ACTING: 'acting',
+} as const)
+
+export type PersonRole = (typeof PERSON_ROLE)[keyof typeof PERSON_ROLE]

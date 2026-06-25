@@ -12,6 +12,7 @@
   --portal-radius-md: 10px; /* admin rows, posters */
   --portal-radius-lg: 14px; /* cards, chat, modals */
   --portal-radius-xl: 20px; /* trophy modal, avatar pop, panels */
+  --portal-radius-2xl: 24px; /* person hero bottom corners */
   --portal-radius-pill: 999px; /* pill shape (60+ usages) */
   --portal-radius-circle: 50%; /* avatars, close buttons, dots */
 

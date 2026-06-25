@@ -8,7 +8,11 @@
       card-width="160px"
       :title-route="
         director?.id
-          ? { name: 'portal-person', params: { id: director.id }, query: { role: 'director' } }
+          ? {
+              name: 'portal-person',
+              params: { id: director.id },
+              query: { role: PERSON_ROLE.DIRECTOR },
+            }
           : null
       "
       @select="$emit('select', $event)"
@@ -23,7 +27,11 @@
       card-width="160px"
       :title-route="
         leadActor?.id
-          ? { name: 'portal-person', params: { id: leadActor.id }, query: { role: 'acting' } }
+          ? {
+              name: 'portal-person',
+              params: { id: leadActor.id },
+              query: { role: PERSON_ROLE.ACTING },
+            }
           : null
       "
       @select="$emit('select', $event)"
@@ -49,6 +57,7 @@
 
 <script setup>
 import MediaCarousel from '@/components/portal/MediaCarousel.vue'
+import { PERSON_ROLE } from '@/constants/portal'
 
 defineProps({
   director: { type: Object, default: null },
