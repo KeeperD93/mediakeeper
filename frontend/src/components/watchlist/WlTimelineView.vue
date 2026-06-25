@@ -92,8 +92,8 @@ function isLeft(i) {
 .tl-scroll {
   flex: 1;
   min-width: 0;
-  /* Mobile (défaut) : pas de max-height pour laisser le scroll de la page
-     être le scroll principal. Évite un scroll imbriqué inutilisable au tactile. */
+  /* Mobile (default): no max-height so the page scroll stays the primary
+     scroller — avoids an unusable nested touch scroll. */
   overflow: hidden auto;
   padding: 20px 0 12px;
   scrollbar-width: thin;
