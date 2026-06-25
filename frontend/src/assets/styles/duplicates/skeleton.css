@@ -1,0 +1,49 @@
+/* Loading skeleton (shimmer placeholders). */
+.cinema-duplicates .doub-skeleton {
+  pointer-events: none;
+}
+.cinema-duplicates .skel-poster,
+.cinema-duplicates .skel-line,
+.cinema-duplicates .skel-source {
+  border-radius: var(--radius-btn);
+  background: linear-gradient(
+    90deg,
+    var(--bg-tertiary) 25%,
+    var(--bg-secondary) 50%,
+    var(--bg-tertiary) 75%
+  );
+  background-size: 200% 100%;
+  animation: doub-shimmer var(--duration-animation) ease-in-out infinite;
+}
+.cinema-duplicates .skel-poster {
+  width: 90px;
+  height: 132px;
+  flex-shrink: 0;
+}
+.cinema-duplicates .skel-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-top: var(--space-1);
+}
+.cinema-duplicates .skel-title {
+  height: 18px;
+  width: 60%;
+}
+.cinema-duplicates .skel-sub {
+  height: 12px;
+  width: 30%;
+}
+.cinema-duplicates .skel-source {
+  height: 48px;
+  width: 100%;
+}
+@keyframes doub-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
