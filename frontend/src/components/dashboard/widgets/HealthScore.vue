@@ -300,4 +300,13 @@ onMounted(async () => {
     background-position: -200% 0;
   }
 }
+
+/* Reduced-motion: drop the decorative hover / glow / arc transitions. */
+@media (prefers-reduced-motion: reduce) {
+  .wg-health,
+  .wg-h-glow,
+  .wg-h-arc {
+    transition: none;
+  }
+}
 </style>
