@@ -160,19 +160,27 @@ function dateCls(e) {
   flex: 1;
   width: 3px;
   min-height: 6px;
-  background: rgb(99, 102, 241, 0.35);
+  background: rgb(var(--accent-rgb), 0.35);
 }
 .tl-row:first-child .tl-bar:first-child {
-  background: linear-gradient(to bottom, rgb(99, 102, 241, 0.05), rgb(99, 102, 241, 0.35));
+  background: linear-gradient(
+    to bottom,
+    rgb(var(--accent-rgb), 0.05),
+    rgb(var(--accent-rgb), 0.35)
+  );
 }
 .tl-row:last-child .tl-bar:last-child {
-  background: linear-gradient(to bottom, rgb(99, 102, 241, 0.35), rgb(99, 102, 241, 0.05));
+  background: linear-gradient(
+    to bottom,
+    rgb(var(--accent-rgb), 0.35),
+    rgb(var(--accent-rgb), 0.05)
+  );
 }
 .tl-dot {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: rgb(99, 102, 241, 0.5);
+  background: rgb(var(--accent-rgb), 0.5);
   border: 2.5px solid rgb(15, 15, 30, 0.9);
   flex-shrink: 0;
   margin: -1px 0;
@@ -182,10 +190,10 @@ function dateCls(e) {
   width: 16px;
   height: 16px;
   background: var(--accent-400);
-  border: 3px solid rgb(99, 102, 241, 0.4);
+  border: 3px solid rgb(var(--accent-rgb), 0.4);
   box-shadow:
-    0 0 18px rgb(99, 102, 241, 0.6),
-    0 0 40px rgb(99, 102, 241, 0.2);
+    0 0 18px rgb(var(--accent-rgb), 0.6),
+    0 0 40px rgb(var(--accent-rgb), 0.2);
   animation: glow 2.5s ease-in-out infinite;
   margin: -2px 0;
 }
@@ -193,13 +201,18 @@ function dateCls(e) {
   0%,
   100% {
     box-shadow:
-      0 0 18px rgb(99, 102, 241, 0.6),
-      0 0 40px rgb(99, 102, 241, 0.2);
+      0 0 18px rgb(var(--accent-rgb), 0.6),
+      0 0 40px rgb(var(--accent-rgb), 0.2);
   }
   50% {
     box-shadow:
-      0 0 28px rgb(99, 102, 241, 0.8),
-      0 0 56px rgb(99, 102, 241, 0.3);
+      0 0 28px rgb(var(--accent-rgb), 0.8),
+      0 0 56px rgb(var(--accent-rgb), 0.3);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tl-dot-now {
+    animation: none;
   }
 }
 
@@ -208,22 +221,24 @@ function dateCls(e) {
   font-weight: var(--font-bold);
   padding: 4px 12px;
   border-radius: var(--radius-btn);
-  background: rgb(99, 102, 241, 0.12);
-  color: var(--accent-300);
+  background: rgb(var(--accent-rgb), 0.12);
+  color: var(--text-primary);
   white-space: nowrap;
   letter-spacing: 0.3px;
 }
 .tl-date-now {
-  background: linear-gradient(135deg, #6366f1, #7c3aed);
+  /* #7c3aed = violet flair specific to the "today" badge, not part of the
+     indigo accent scale — no admin token, single-use so no rule-of-3 token. */
+  background: linear-gradient(135deg, var(--accent-500), #7c3aed);
   color: var(--text-primary);
   font-size: var(--text-sm);
   padding: 6px 16px;
   border-radius: var(--radius-btn);
-  box-shadow: 0 4px 20px rgb(99, 102, 241, 0.4);
+  box-shadow: 0 4px 20px rgb(var(--accent-rgb), 0.4);
 }
 .tl-date-past {
-  background: rgb(99, 102, 241, 0.07);
-  color: rgb(165, 180, 252, 0.5);
+  background: rgb(var(--accent-rgb), 0.07);
+  color: var(--text-secondary);
 }
 .tl-past {
   font-size: 0.5rem;
@@ -252,9 +267,11 @@ function dateCls(e) {
     transform var(--duration-fast);
   cursor: default;
 }
-.tl-card:hover {
-  border-color: rgb(99, 102, 241, 0.35);
-  transform: translateY(-1px);
+@media (hover: hover) {
+  .tl-card:hover {
+    border-color: rgb(var(--accent-rgb), 0.35);
+    transform: translateY(-1px);
+  }
 }
 .tl-poster {
   width: 38px;

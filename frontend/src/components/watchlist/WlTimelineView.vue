@@ -97,7 +97,7 @@ function isLeft(i) {
   overflow: hidden auto;
   padding: 20px 0 12px;
   scrollbar-width: thin;
-  scrollbar-color: rgb(99, 102, 241, 0.2) transparent;
+  scrollbar-color: rgb(var(--accent-rgb), 0.2) transparent;
 }
 @media (min-width: 768px) {
   /* Fill the content area (the .wl-fill flex chain gives .tl a real height)

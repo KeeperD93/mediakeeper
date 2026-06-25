@@ -50,17 +50,15 @@ defineEmits(['go-today', 'go-month'])
     height: 100%;
   }
 }
-.tl-nav-auj {
-  background: rgb(99, 102, 241, 0.15) !important;
-  color: var(--accent-400) !important;
-  border-radius: var(--radius-btn) !important;
-  padding: 6px 4px !important;
-  gap: 2px;
-  font-size: 0.56rem !important;
-  font-weight: var(--font-extrabold) !important;
-}
-.tl-nav-auj:hover {
-  background: rgb(99, 102, 241, 0.25) !important;
+/* Compound selector outranks .tl-nav-item without !important; the old gap:2px
+   was dead (overridden by .tl-nav-item gap:1px), so the button keeps gap:1px. */
+.tl-nav-item.tl-nav-auj {
+  background: rgb(var(--accent-rgb), 0.15);
+  color: var(--accent-400);
+  border-radius: var(--radius-btn);
+  padding: 6px 4px;
+  font-size: 0.56rem;
+  font-weight: var(--font-extrabold);
 }
 .tl-nav-dot {
   width: 5px;
@@ -94,15 +92,20 @@ defineEmits(['go-today', 'go-month'])
   width: 72px;
   font-size: var(--text-2xs);
 }
-.tl-nav-item:hover {
-  background: rgb(99, 102, 241, 0.1);
-  color: var(--accent-300);
+@media (hover: hover) {
+  .tl-nav-item:hover {
+    background: rgb(var(--accent-rgb), 0.1);
+    color: var(--accent-300);
+  }
+  .tl-nav-item.tl-nav-auj:hover {
+    background: rgb(var(--accent-rgb), 0.25);
+  }
 }
 .tl-nav-item.now {
-  background: rgb(99, 102, 241, 0.22);
+  background: rgb(var(--accent-rgb), 0.22);
   color: var(--text-primary);
   font-weight: var(--font-extrabold);
-  box-shadow: inset 2px 0 0 rgb(99, 102, 241);
+  box-shadow: inset 2px 0 0 rgb(var(--accent-rgb));
 }
 .tl-nav-y {
   font-size: var(--text-3xs);
