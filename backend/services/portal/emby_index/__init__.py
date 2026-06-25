@@ -1,6 +1,6 @@
 """Build and maintain the Emby ↔ TMDB index (package split, Rule 9 <= 300 lines).
 
-Matching strategy (in priority order, like Jellyseerr / Ombi sync mode):
+Matching strategy (in priority order):
 
     1. ``ProviderIds.Tmdb`` — cheapest, exact, trust it.
     2. ``ProviderIds.Imdb`` → TMDB ``/find/{imdb_id}?external_source=imdb_id``

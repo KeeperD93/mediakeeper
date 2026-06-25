@@ -14,7 +14,7 @@ MediaKeeper publishes four kinds of image tags:
 | `:latest` | the most recent **stable** release (`vX.Y.Z` with no hyphen)    | each stable release      |
 | `:beta`   | the most recent **pre-release** (`vX.Y.Z-rc.N`, `-beta.N`, ...) | each pre-release         |
 | `:vX.Y.Z` | exactly that release                                            | immutable, never moves   |
-| `:X.Y`    | the latest patch of the `X.Y` minor series (e.g. `:0.10`)       | each patch on that minor |
+| `:X.Y`    | the latest patch of the `X.Y` minor series (e.g. `:1.0`)        | each patch on that minor |
 
 Choose your channel once, then update by pulling the same tag.
 

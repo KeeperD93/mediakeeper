@@ -195,7 +195,7 @@
   display: flex;
   gap: 14px;
   overflow: auto clip;
-  /* Aligned on the Seerr-like track rhythm shared by every list on the
+  /* Aligned on the track rhythm shared by every list on the
      portal (8px vertical, see --portal-section-rhythm-track). */
   padding: var(--portal-section-rhythm-track) 4%;
   scrollbar-width: none;
@@ -254,6 +254,6 @@
   font-weight: var(--portal-font-extrabold);
   color: var(--portal-text-primary);
   padding: 0 4%;
-  /* Same rhythm as the portal home section titles (Seerr-aligned). */
+  /* Same rhythm as the portal home section titles. */
   margin: var(--portal-section-rhythm-top) 0 var(--portal-section-rhythm-bottom);
 }

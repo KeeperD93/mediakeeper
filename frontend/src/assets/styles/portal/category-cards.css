@@ -1,6 +1,6 @@
 .pt-catcards {
   position: relative;
-  /* Rhythm driven by .pt-catcards-title (margin: 24px 0 16px, Seerr-aligned). */
+  /* Rhythm driven by .pt-catcards-title (margin: 24px 0 16px). */
   margin-bottom: 0;
   overflow: visible;
 }
@@ -9,14 +9,14 @@
   font-weight: var(--portal-font-extrabold);
   color: var(--portal-text-primary);
   padding: 0 4%;
-  /* Aligned on Seerr's slider-header rhythm so all section titles
+  /* Aligned on the shared slider-header rhythm so all section titles
      share the same vertical air on the portal home. */
   margin: var(--portal-section-rhythm-top) 0 var(--portal-section-rhythm-bottom);
 }
 .pt-catcards-grid {
   display: flex;
   gap: 0.75rem;
-  /* Vertical padding matches Seerr's slider track — tight against the
+  /* Vertical padding matches the slider track — tight against the
      title above. Hover scale (1.05) is small enough to fit. */
   padding: var(--portal-section-rhythm-track) 4%;
   overflow: auto visible;

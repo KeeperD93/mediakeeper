@@ -63,7 +63,7 @@ updates:
       - dependency-name: "chardet"
         update-types: ["version-update:semver-major"]
 
-  # Docker base images (multi-stage: node:20-alpine + python:3.12-slim)
+  # Docker base images (multi-stage: node:20-alpine + python:3.14-slim)
   - package-ecosystem: "docker"
     directory: "/"
     schedule:

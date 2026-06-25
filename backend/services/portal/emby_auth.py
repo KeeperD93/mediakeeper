@@ -58,7 +58,7 @@ async def authenticate_emby_user(
     # --- Security gate --------------------------------------------------
     # Users MUST be pre-imported by an admin before they can log in.
     # We deliberately do NOT auto-create User / UserProfile rows here —
-    # that was the old Jellyseerr-style "just-in-time" flow and it let
+    # that was the old "just-in-time" provisioning flow and it let
     # any Emby user self-provision a Portal account, which is not what
     # we want. Import first, activate, then login.
     # Lookup case-insensitive so a user typing any casing matches the

@@ -731,7 +731,7 @@
   /* ``clip`` instead of default so hover-scaled MediaCards (1.08) and
      their drop-shadows don't clip at the top/bottom edges when this
      scroller hosts them (saga block). Vertical padding aligned on the
-     Seerr-like track rhythm shared with the portal home carousels. */
+     track rhythm shared with the portal home carousels. */
   padding: var(--portal-section-rhythm-track) 0;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;

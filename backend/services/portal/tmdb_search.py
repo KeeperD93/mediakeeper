@@ -13,10 +13,10 @@ Cache behaviour:
   language)``. The Emby ``available_on_emby`` flag is stamped *after*
   the cache lookup so admin toggles take effect immediately without
   waiting for the TTL to elapse.
-- TTL aligned on Seerr defaults (5 min) to balance freshness vs. call
+- TTL kept short (5 min) to balance freshness vs. call
   count.
 - Hits / misses / size are exposed via :func:`get_cache_stats` so the
-  admin panel can render them à la Seerr.
+  admin panel can render them.
 - Singleton module-level cache — the worker process and the web
   process each have their own instance, which is fine for our usage
   pattern (one user, low concurrency).
@@ -40,7 +40,7 @@ logger = logging.getLogger("mediakeeper.portal.tmdb_search")
 
 # Cache configuration. Sized for a typical single-user browsing
 # session (20-100 unique queries between TTL windows). The TTL is
-# aligned on Seerr's default value so the cache strikes the same
+# kept short so the cache strikes the same
 # trade-off between freshness and upstream call volume.
 _CACHE_MAX_SIZE = 256
 _CACHE_TTL_SECONDS = 300  # 5 minutes
@@ -143,7 +143,7 @@ async def _stamp_available_on_emby(
 def get_cache_stats() -> dict[str, Any]:
     """Snapshot of the cache state for the admin panel.
 
-    Returns the Seerr-style readout: cache name, hits, misses, key
+    Returns the cache readout: cache name, hits, misses, key
     count + a rough byte-size estimate of the cached values.
     """
     total_keys = len(_cache)

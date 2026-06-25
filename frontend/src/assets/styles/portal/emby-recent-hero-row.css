@@ -8,7 +8,7 @@
   align-items: stretch;
   gap: 14px;
   overflow: auto clip;
-  /* Vertical padding aligned on Seerr's slider track for tight,
+  /* Vertical padding kept on the slider track for tight,
      uniform rhythm across every carousel on the home. */
   padding: var(--portal-section-rhythm-track) 0;
   scrollbar-width: none;

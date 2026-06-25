@@ -2,7 +2,7 @@
 
 .pt-eh {
   position: relative;
-  /* Rhythm driven by the next section's title margin-top (Seerr-aligned).
+  /* Rhythm driven by the next section's title margin-top.
      The hero has no header of its own — its top is the page edge after
      CategoryCards above, which provides margin-top via its title. */
   margin-bottom: 0;
