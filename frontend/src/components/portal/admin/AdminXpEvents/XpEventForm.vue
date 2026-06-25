@@ -188,7 +188,7 @@ function onActionToggle(action, checked) {
   position: fixed;
   inset: 0;
   z-index: 9000;
-  background: rgb(0, 0, 0, 0.7);
+  background: var(--overlay-backdrop);
   display: flex;
   align-items: center;
   justify-content: center;

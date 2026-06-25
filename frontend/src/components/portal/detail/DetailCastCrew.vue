@@ -6,7 +6,7 @@
         <router-link
           v-for="c in media.cast"
           :key="c.id || c.name"
-          :to="{ name: 'portal-person', params: { id: c.id }, query: { role: 'acting' } }"
+          :to="{ name: 'portal-person', params: { id: c.id }, query: { role: PERSON_ROLE.ACTING } }"
           class="vmd2-cast-card"
         >
           <img v-if="c.photo" :src="c.photo" :alt="c.name" class="vmd2-cast-photo" loading="lazy" />
@@ -39,6 +39,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { User } from 'lucide-vue-next'
+import { PERSON_ROLE } from '@/constants/portal'
 
 const props = defineProps({
   media: { type: Object, required: true },

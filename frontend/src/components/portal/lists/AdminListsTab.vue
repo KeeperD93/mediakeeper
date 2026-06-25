@@ -144,12 +144,12 @@ onMounted(load)
 .adm-lists-title {
   font-size: var(--portal-text-md);
   font-weight: var(--portal-font-bold);
-  color: var(--text-primary);
+  color: var(--portal-text-primary);
   margin: 0;
 }
 .adm-lists-sub {
   font-size: var(--portal-text-xs);
-  color: var(--text-muted);
+  color: var(--portal-text-body-muted);
   margin: 0 0 12px;
 }
 .adm-loading {
@@ -160,7 +160,7 @@ onMounted(load)
 .adm-empty {
   text-align: center;
   padding: 2rem;
-  color: var(--text-muted);
+  color: var(--portal-text-body-muted);
   font-size: var(--portal-text-sm);
 }
 
@@ -173,7 +173,7 @@ onMounted(load)
   padding: 8px 10px;
   font-size: var(--portal-text-2xs);
   font-weight: var(--portal-font-bold);
-  color: var(--text-muted);
+  color: var(--portal-text-body-muted);
   text-transform: uppercase;
   letter-spacing: var(--portal-tracking-caps);
   border-bottom: 1px solid var(--portal-border-default);
@@ -181,7 +181,7 @@ onMounted(load)
 .adm-table td {
   padding: 10px;
   font-size: var(--portal-text-sm);
-  color: var(--text-secondary);
+  color: var(--portal-text-body);
   border-bottom: 1px solid var(--portal-border-faint);
 }
 .adm-row--deleted {
@@ -189,7 +189,7 @@ onMounted(load)
 }
 .adm-name {
   font-weight: var(--portal-font-medium);
-  color: var(--text-primary);
+  color: var(--portal-text-primary);
   margin-right: 6px;
 }
 .adm-muted-tag {
@@ -200,13 +200,13 @@ onMounted(load)
   font-size: var(--portal-text-4xs);
   font-weight: var(--portal-font-extrabold);
   padding: 2px 7px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--portal-radius-sm);
   text-transform: uppercase;
   letter-spacing: var(--portal-tracking-caps);
 }
 .adm-privacy--private {
-  background: rgb(156, 163, 175, 0.18);
-  color: #d1d5db;
+  background: var(--portal-surface-5);
+  color: var(--portal-text-body);
 }
 .adm-privacy--public_readonly {
   background: rgb(var(--portal-color-info-rgb), 0.18);
@@ -225,10 +225,10 @@ onMounted(load)
 .adm-btn {
   padding: 6px 10px;
   min-height: 34px;
-  border-radius: var(--radius-btn);
-  border: 1px solid rgb(255, 255, 255, 0.1);
-  background: rgb(255, 255, 255, 0.03);
-  color: var(--text-secondary);
+  border-radius: var(--portal-radius-sm);
+  border: 1px solid var(--portal-border-strong);
+  background: var(--portal-surface-2);
+  color: var(--portal-text-body);
   font-size: var(--portal-text-xs);
   font-weight: var(--portal-font-medium);
   cursor: pointer;
@@ -238,7 +238,7 @@ onMounted(load)
 @media (hover: hover) {
   .adm-btn:hover {
     border-color: var(--portal-text-disabled);
-    color: var(--text-primary);
+    color: var(--portal-text-primary);
   }
 }
 .adm-btn--danger {
