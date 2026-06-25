@@ -47,7 +47,7 @@ const emit = defineEmits(['load'])
   }
 }
 .pmlm:focus-visible {
-  outline: 2px solid rgb(var(--accent-rgb), 0.4);
+  outline: 2px solid rgb(var(--portal-accent-rgb), 0.4);
   outline-offset: 1px;
 }
 </style>

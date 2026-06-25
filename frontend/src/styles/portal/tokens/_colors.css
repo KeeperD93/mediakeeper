@@ -17,6 +17,7 @@
   --portal-chrome-bg-rgb: 28, 37, 51;
   --portal-accent: #4338ca; /* brand accent — mirrors the admin accent hex, portal namespace self-contained */
   --portal-accent-light: #a5b4fc; /* light accent (eyebrows on dark heroes) — mirrors admin --accent-300 */
+  --portal-accent-rgb: 67, 56, 202; /* accent triplet for focus rings / alpha fills */
 
   /* Surfaces (background layers) --------------------------- */
   --portal-surface-1: rgb(255, 255, 255, 0.02); /* subtle tint */
