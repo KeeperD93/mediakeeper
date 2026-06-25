@@ -24,8 +24,8 @@
   }
 }
 .cinema-duplicates .hist-icon {
-  width: 28px;
-  height: 28px;
+  width: var(--icon-frame-sm);
+  height: var(--icon-frame-sm);
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;

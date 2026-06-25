@@ -4,17 +4,7 @@ import { useApi } from '@/composables/useApi'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import { useConfirm } from '@/composables/useConfirm'
-import {
-  bestSource,
-  doubKey,
-  formatBytes,
-  fmtDate,
-  getDeleteTargets,
-  isBest,
-  reclaimableFor,
-  scoreColor,
-  srcScore,
-} from '@/utils/duplicates'
+import { bestSource, doubKey, formatBytes, getDeleteTargets } from '@/utils/duplicates'
 
 export function useDuplicates() {
   const { t } = useI18n()
@@ -262,13 +252,6 @@ export function useDuplicates() {
     totalReclaimable,
     rulesMatchCount,
     saveRules,
-    srcScore,
-    bestSource,
-    isBest,
-    scoreColor,
-    formatBytes,
-    fmtDate,
-    reclaimableFor,
     applyRules,
     loadDuplicates,
     loadIgnored,
