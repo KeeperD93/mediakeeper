@@ -54,6 +54,8 @@ import { useApi } from '@/composables/useApi'
 import MediaCard from '@/components/portal/MediaCard.vue'
 import TabStrip from '@/components/common/TabStrip.vue'
 import MkSpinner from '@/components/common/MkSpinner.vue'
+import { MEDIA_TYPE } from '@/constants/media'
+import { PERSON_ROLE } from '@/constants/portal'
 
 import '@/assets/styles/portal/admin-rich-row-header.css'
 
@@ -64,12 +66,12 @@ const { apiGet } = useApi()
 
 const data = ref(null)
 const loading = ref(false)
-const role = ref(route.query.role || 'all')
+const role = ref(route.query.role || PERSON_ROLE.ALL)
 
 const roleTabs = computed(() => [
-  { id: 'all', label: t('portal.detail.roleAll') },
-  { id: 'director', label: t('portal.detail.roleDirector') },
-  { id: 'acting', label: t('portal.detail.roleActing') },
+  { id: PERSON_ROLE.ALL, label: t('portal.detail.roleAll') },
+  { id: PERSON_ROLE.DIRECTOR, label: t('portal.detail.roleDirector') },
+  { id: PERSON_ROLE.ACTING, label: t('portal.detail.roleActing') },
 ])
 
 const filteredItems = computed(() => data.value?.items || [])
@@ -106,7 +108,7 @@ async function load() {
 }
 
 function goToDetail(item) {
-  const type = item.media_type || 'movie'
+  const type = item.media_type || MEDIA_TYPE.MOVIE
   const id = item.tmdb_id || item.id
   router.push({ name: 'portal-media-detail', params: { type, id } })
 }
@@ -130,7 +132,7 @@ onMounted(load)
   padding: 3rem 1.5rem 2rem;
   min-height: 320px;
   overflow: hidden;
-  border-radius: 0 0 24px 24px;
+  border-radius: 0 0 var(--portal-radius-2xl) var(--portal-radius-2xl);
 }
 .dmp-hero-bg {
   position: absolute;
@@ -173,6 +175,8 @@ onMounted(load)
   height: 210px;
   object-fit: cover;
   border-radius: var(--portal-radius-lg);
+  /* One-off hero-photo elevation: no portal-shadow-* token matches 40px/.6 and
+     it is used only here, so kept inline rather than adding a single-use token. */
   box-shadow:
     0 10px 40px rgb(0, 0, 0, 0.6),
     0 0 0 1px var(--portal-border-default);
@@ -192,7 +196,7 @@ onMounted(load)
 .dmp-known {
   font-size: var(--portal-text-2xs);
   font-weight: var(--portal-font-black);
-  color: var(--accent-300);
+  color: var(--portal-accent-light);
   text-transform: uppercase;
   letter-spacing: var(--portal-tracking-eyebrow);
 }
@@ -202,6 +206,7 @@ onMounted(load)
   letter-spacing: var(--portal-tracking-tight);
   margin: 8px 0 14px;
   line-height: 1.05;
+  /* One-off title glow: no portal text-shadow token family exists; single use. */
   text-shadow: 0 4px 24px rgb(0, 0, 0, 0.5);
 }
 @media (min-width: 768px) {
@@ -212,7 +217,7 @@ onMounted(load)
 .dmp-bio {
   font-size: var(--portal-text-base);
   line-height: var(--portal-lh-relaxed);
-  color: rgb(255, 255, 255, 0.75);
+  color: var(--portal-text-body-muted);
   max-width: 780px;
   margin: 0 0 18px;
 }

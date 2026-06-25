@@ -8,18 +8,18 @@
   gap: 1rem;
   margin-top: 1.5rem;
   padding-top: 1.5rem;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--portal-border-default);
 }
 .pt-gdpr-section-head h3 {
   margin: 0 0 0.25rem;
   font-size: var(--portal-text-lg);
   font-weight: var(--portal-font-bold);
-  color: var(--text-primary);
+  color: var(--portal-text-primary);
 }
 .pt-gdpr-section-desc {
   margin: 0;
   font-size: var(--portal-text-xs);
-  color: var(--text-muted);
+  color: var(--portal-text-body-muted);
 }
 
 /* Toggle row — local copy of the ``pt-setting-row`` shape used in
@@ -31,15 +31,15 @@
   justify-content: space-between;
   gap: 1rem;
   padding: 1rem 1.25rem;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
+  background: var(--portal-chrome-bg);
+  border: 1px solid var(--portal-border-default);
+  border-radius: var(--portal-radius-lg);
   transition:
     border-color var(--portal-dur-fast),
     background var(--portal-dur-fast);
 }
 .pt-gdpr-toggle-row:hover {
-  border-color: var(--border-hover);
+  border-color: var(--portal-border-strong);
 }
 .pt-gdpr-toggle-info {
   display: flex;
@@ -51,16 +51,16 @@
 .pt-gdpr-toggle-title {
   font-size: var(--portal-text-base);
   font-weight: var(--portal-font-medium);
-  color: var(--text-primary);
+  color: var(--portal-text-primary);
 }
 .pt-gdpr-toggle-desc {
   font-size: var(--portal-text-xs);
-  color: var(--text-muted);
+  color: var(--portal-text-body-muted);
   line-height: 1.35;
 }
 .pt-gdpr-loading {
   padding: 1rem;
-  color: var(--text-muted);
+  color: var(--portal-text-body-muted);
   font-size: var(--portal-text-sm);
 }
 .pt-gdpr-config {
@@ -92,23 +92,23 @@
   gap: 0.15rem;
   font-size: var(--portal-text-sm);
   font-weight: var(--portal-font-medium);
-  color: var(--text-primary);
+  color: var(--portal-text-primary);
 }
 .pt-gdpr-hint {
   font-size: var(--portal-text-xs);
-  color: var(--text-muted);
+  color: var(--portal-text-body-muted);
   font-weight: var(--portal-font-regular);
 }
 .pt-gdpr-input {
   padding: 0.45rem 0.7rem;
   background: var(--portal-bg-primary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-input);
-  color: var(--text-primary);
+  border: 1px solid var(--portal-border-default);
+  border-radius: var(--portal-radius-xs);
+  color: var(--portal-text-primary);
   font-size: var(--portal-text-sm);
 }
 .pt-gdpr-input:focus {
-  border-color: var(--accent);
+  border-color: var(--portal-accent);
   outline: none;
 }
 .pt-gdpr-input--number {
@@ -116,7 +116,7 @@
 }
 .pt-gdpr-error {
   font-size: var(--portal-text-xs);
-  color: var(--accent);
+  color: var(--portal-accent);
 }
 .pt-gdpr-actions {
   display: flex;
@@ -128,9 +128,9 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.45rem 0.9rem;
-  background: var(--accent);
+  background: var(--portal-accent);
   border: none;
-  border-radius: var(--radius-input);
+  border-radius: var(--portal-radius-xs);
   color: var(--portal-bg-primary);
   font-size: var(--portal-text-sm);
   font-weight: var(--portal-font-medium);
@@ -146,7 +146,7 @@
 }
 .pt-gdpr-saved {
   font-size: var(--portal-text-xs);
-  color: var(--accent);
+  color: var(--portal-accent);
 }
 
 /* Pending-deletion table */
@@ -155,9 +155,9 @@
   flex-direction: column;
   gap: 0.6rem;
   padding: 1rem 1.25rem;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
+  background: var(--portal-chrome-bg);
+  border: 1px solid var(--portal-border-default);
+  border-radius: var(--portal-radius-lg);
 }
 .pt-gdpr-pending-head {
   display: flex;
@@ -169,7 +169,7 @@
   margin: 0;
   font-size: var(--portal-text-base);
   font-weight: var(--portal-font-medium);
-  color: var(--text-primary);
+  color: var(--portal-text-primary);
 }
 .pt-gdpr-pending-refresh,
 .pt-gdpr-pending-cancel {
@@ -178,9 +178,9 @@
   gap: 0.35rem;
   padding: 0.3rem 0.7rem;
   background: var(--portal-bg-primary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-input);
-  color: var(--text-primary);
+  border: 1px solid var(--portal-border-default);
+  border-radius: var(--portal-radius-xs);
+  color: var(--portal-text-primary);
   font-size: var(--portal-text-xs);
   cursor: pointer;
   transition:
@@ -188,7 +188,7 @@
     background var(--portal-dur-fast);
 }
 .pt-gdpr-pending-cancel:hover:not(:disabled) {
-  border-color: var(--accent);
+  border-color: var(--portal-accent);
 }
 .pt-gdpr-pending-refresh:disabled,
 .pt-gdpr-pending-cancel:disabled {
@@ -198,7 +198,7 @@
 .pt-gdpr-pending-desc {
   margin: 0;
   font-size: var(--portal-text-xs);
-  color: var(--text-muted);
+  color: var(--portal-text-body-muted);
 }
 .pt-gdpr-pending-loading,
 .pt-gdpr-pending-empty {
@@ -206,13 +206,13 @@
   align-items: center;
   gap: 0.5rem;
   padding: 1rem;
-  color: var(--text-muted);
+  color: var(--portal-text-body-muted);
   font-size: var(--portal-text-sm);
 }
 .pt-gdpr-pending-empty {
   background: var(--portal-bg-primary);
-  border: 1px dashed var(--border);
-  border-radius: var(--radius-input);
+  border: 1px dashed var(--portal-border-default);
+  border-radius: var(--portal-radius-xs);
   justify-content: center;
 }
 .pt-gdpr-pending-table {
@@ -222,11 +222,11 @@
 }
 .pt-gdpr-pending-table th,
 .pt-gdpr-pending-table td {
-  color: var(--text-primary);
+  color: var(--portal-text-primary);
 }
 .pt-gdpr-pending-table th {
   font-weight: var(--portal-font-medium);
-  color: var(--text-muted);
+  color: var(--portal-text-body-muted);
   font-size: var(--portal-text-xs);
 }
 /* Desktop cell layout. On mobile the ``mk-table`` helper switches the table
@@ -237,7 +237,7 @@
   .pt-gdpr-pending-table td {
     padding: 0.55rem 0.75rem;
     text-align: left;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--portal-border-default);
   }
   .pt-gdpr-pending-th--act,
   .pt-gdpr-pending-td--act {
@@ -248,6 +248,6 @@
   font-weight: var(--portal-font-medium);
 }
 .pt-gdpr-pending-scheduled--overdue {
-  color: var(--accent);
+  color: var(--portal-accent);
   font-weight: var(--portal-font-medium);
 }
