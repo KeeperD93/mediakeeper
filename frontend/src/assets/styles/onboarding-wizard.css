@@ -991,6 +991,15 @@
   transform: translateX(-20px);
 }
 
+/* Decorative looping animations off under reduced-motion (functional spinners
+   stay — they signal loading). */
+@media (prefers-reduced-motion: reduce) {
+  .ob-orb,
+  .ob-done-ring {
+    animation: none;
+  }
+}
+
 /* Mobile (project standard 767px breakpoint) */
 @media (max-width: 767px) {
   /* Overlay & shell — claw back width, take the full available height so
