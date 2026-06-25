@@ -227,8 +227,8 @@ function dateCls(e) {
   letter-spacing: 0.3px;
 }
 .tl-date-now {
-  /* #7c3aed = violet flair specific to the "today" badge, not part of the
-     indigo accent scale — no admin token, single-use so no rule-of-3 token. */
+  /* #7c3aed = one-off violet flair for the "today" badge; not in the indigo
+     accent scale and used only here, so no dedicated design token. */
   background: linear-gradient(135deg, var(--accent-500), #7c3aed);
   color: var(--text-primary);
   font-size: var(--text-sm);
