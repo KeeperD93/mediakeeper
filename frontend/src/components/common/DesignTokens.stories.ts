@@ -9,7 +9,6 @@ import type { Meta, StoryObj } from '@storybook/vue3-vite'
  *   • frontend/src/styles/tokens/_typography.css
  *   • frontend/src/styles/tokens/_motion.css
  *   • frontend/src/styles/tokens/_layout.css  (spacing, radius, shadow, blur, z…)
- *   • frontend/src/styles/tokens/_tiers.css   (rank c1/c2/c3 + glow)
  *   • frontend/src/styles/tokens/_avatar-tiers.css
  *
  * Portal-namespaced tokens (``--portal-*``) live in
@@ -112,7 +111,6 @@ export const Overview: Story = {
                   <li>Bordures</li>
                   <li>Texte (échelle de lisibilité)</li>
                   <li>Modules</li>
-                  <li>Tiers (rangs)</li>
                   <li>Avatar tiers (anneaux)</li>
                 </ol>
               </li>
@@ -592,44 +590,6 @@ export const ColorsModules: Story = {
             ${swatch('--color-module-subtitles', 'Outillage sous-titres — magenta')}
           </div>
         </div>
-      </div>
-      ${resolveTokenScript}
-    `,
-  }),
-}
-
-/* ────────────────────────────────────────────────────────────────────── */
-/* 11. Couleurs — Tiers (rangs admin)                                      */
-/* ────────────────────────────────────────────────────────────────────── */
-export const ColorsTiers: Story = {
-  name: '11. Couleurs — Tiers (rangs)',
-  render: () => ({
-    template: `
-      ${styles}
-      <div class="tk-page">
-        <h1 class="tk-h1">🏅 Tiers (rangs)</h1>
-        <p class="tk-intro">
-          Palette de rangs (bronze → legendary) miroir des <code>--portal-tier-*</code> côté portail —
-          mêmes hex pour garantir la cohérence admin / portail. Chaque tier a 3 stops (<code>c1</code>
-          clair, <code>c2</code> medium, <code>c3</code> profond) + un <code>glow</code> compagnon
-          pour les halos.
-        </p>
-
-        ${['bronze', 'silver', 'gold', 'platinum', 'diamond', 'master', 'legendary']
-          .map(
-            t => `
-          <div class="tk-section">
-            <h2 style="text-transform: capitalize;">${t}</h2>
-            <div class="tk-grid">
-              ${swatch(`--tier-${t}-c1`, 'Stop clair')}
-              ${swatch(`--tier-${t}-c2`, 'Stop medium')}
-              ${swatch(`--tier-${t}-c3`, 'Stop profond')}
-              ${swatch(`--tier-${t}-glow`, 'Halo (rgba)')}
-            </div>
-          </div>
-        `,
-          )
-          .join('')}
       </div>
       ${resolveTokenScript}
     `,
