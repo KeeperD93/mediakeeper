@@ -115,9 +115,9 @@ const crumbs = computed(() => props.browsePath.replace(/^\/+/, '').split('/').fi
 
 <style scoped>
 .ob-step-icon-folders {
-  background: rgb(245, 158, 11, 0.1);
+  background: rgb(var(--color-warning-dark-rgb), 0.1);
 }
 .ob-step-icon-folder-ic {
-  color: #f59e0b;
+  color: var(--color-warning-dark);
 }
 </style>
