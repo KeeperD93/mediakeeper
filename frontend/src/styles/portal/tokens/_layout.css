@@ -12,6 +12,7 @@
   --portal-radius-md: 10px; /* admin rows, posters */
   --portal-radius-lg: 14px; /* cards, chat, modals */
   --portal-radius-xl: 20px; /* trophy modal, avatar pop, panels */
+  --portal-radius-2xl: 24px; /* person hero bottom corners */
   --portal-radius-pill: 999px; /* pill shape (60+ usages) */
   --portal-radius-circle: 50%; /* avatars, close buttons, dots */
 
@@ -31,9 +32,9 @@
   --portal-shadow-panel: 0 32px 80px rgb(0, 0, 0, 0.55);
   --portal-shadow-deep: 0 30px 80px rgb(0, 0, 0, 0.7);
   --portal-shadow-arrow: 0 6px 24px rgb(0, 0, 0, 0.55), inset 0 1px 0 rgb(255, 255, 255, 0.18);
-  --portal-shadow-fab: 0 8px 28px rgb(67, 56, 202, 0.45), 0 4px 12px rgb(0, 0, 0, 0.3);
-  --portal-shadow-accent: 0 6px 18px rgb(var(--accent-rgb), 0.35);
-  --portal-shadow-accent-strong: 0 10px 24px rgb(var(--accent-rgb), 0.45);
+  --portal-shadow-fab: 0 8px 28px rgb(var(--portal-accent-rgb), 0.45), 0 4px 12px rgb(0, 0, 0, 0.3);
+  --portal-shadow-accent: 0 6px 18px rgb(var(--portal-accent-rgb), 0.35);
+  --portal-shadow-accent-strong: 0 10px 24px rgb(var(--portal-accent-rgb), 0.45);
   --portal-shadow-gold: 0 12px 32px rgb(251, 191, 36, 0.4);
 
   /* Gradients ----------------------------------------------- */

@@ -6,26 +6,26 @@
 /* ─── Top 3 medal frames (gold / silver / bronze) ──────────────── */
 .mk-poster--rank-1 .mk-poster__art {
   outline: none;
-  border: 3px solid #fbbf24;
+  border: 3px solid var(--portal-color-medal-gold);
   box-shadow:
-    0 0 14px rgb(251, 191, 36, 0.35),
-    0 0 32px rgb(251, 191, 36, 0.15);
+    0 0 14px rgb(var(--portal-color-medal-gold-rgb), 0.35),
+    0 0 32px rgb(var(--portal-color-medal-gold-rgb), 0.15);
 }
 
 .mk-poster--rank-2 .mk-poster__art {
   outline: none;
-  border: 3px solid #cbd5e1;
+  border: 3px solid var(--portal-color-medal-silver);
   box-shadow:
-    0 0 14px rgb(203, 213, 225, 0.35),
-    0 0 32px rgb(203, 213, 225, 0.15);
+    0 0 14px rgb(var(--portal-color-medal-silver-rgb), 0.35),
+    0 0 32px rgb(var(--portal-color-medal-silver-rgb), 0.15);
 }
 
 .mk-poster--rank-3 .mk-poster__art {
   outline: none;
-  border: 3px solid #cd7f32;
+  border: 3px solid var(--portal-color-medal-bronze);
   box-shadow:
-    0 0 14px rgb(205, 127, 50, 0.35),
-    0 0 32px rgb(205, 127, 50, 0.15);
+    0 0 14px rgb(var(--portal-color-medal-bronze-rgb), 0.35),
+    0 0 32px rgb(var(--portal-color-medal-bronze-rgb), 0.15);
 }
 
 /* ─── Top-left ribbon ──────────────────────────────────────────── */
