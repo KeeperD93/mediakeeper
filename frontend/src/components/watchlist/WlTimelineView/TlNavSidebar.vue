@@ -89,8 +89,9 @@ defineEmits(['go-today', 'go-month'])
   transition:
     background-color var(--duration-fast),
     color var(--duration-fast);
-  /* Compact jump-rail: sub-44px touch targets are an accepted exception —
-     a 15-item vertical month rail can't fit 44px items in an 80vh band. */
+  /* Compact jump-rail: a 15-item vertical month rail can't fit 44px touch
+     targets in an 80vh band — the sub-44px sizing is pre-existing, tracked
+     a11y debt (not a self-declared exception). */
   width: 36px;
   font-size: 0.52rem;
 }
