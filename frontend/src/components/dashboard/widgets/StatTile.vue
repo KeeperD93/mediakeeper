@@ -132,4 +132,11 @@ function onClick(e) {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .st-tile,
+  .st-tile-icon {
+    transition: none;
+  }
+}
 </style>

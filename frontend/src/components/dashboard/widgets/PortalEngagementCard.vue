@@ -207,4 +207,10 @@ onMounted(load)
   flex: 1;
   min-height: 0;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .wg-eng-toggle-btn {
+    transition: none;
+  }
+}
 </style>
