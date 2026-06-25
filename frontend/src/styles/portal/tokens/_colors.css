@@ -69,6 +69,12 @@
   --portal-color-highlight: #f97316; /* orange — ticket audio, highlights */
   --portal-color-highlight-rgb: 249, 115, 22;
   --portal-color-rating: #fbbf24; /* gold star — TMDB rating (card + detail) */
+  --portal-color-medal-gold: #fbbf24; /* podium rank medals (PosterCard top-3) */
+  --portal-color-medal-gold-rgb: 251, 191, 36;
+  --portal-color-medal-silver: #cbd5e1;
+  --portal-color-medal-silver-rgb: 203, 213, 225;
+  --portal-color-medal-bronze: #cd7f32;
+  --portal-color-medal-bronze-rgb: 205, 127, 50;
 
   /* Solid neutrals (poster surfaces, blacklist ribbon) ---- */
   --portal-poster-bg: #0e1320; /* dark backdrop behind poster artwork */
