@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
+from core.i18n import get_request_locale
 from models.user import User
 from api.auth import get_current_user
 
@@ -54,9 +55,10 @@ async def get_requests(
     cursor: str | None = Query(None),
     _: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    locale: str = Depends(get_request_locale),
 ):
     profile, _user = await resolve_profile(profile_id, db)
-    return await list_user_requests(db, profile.user_id, limit=limit, cursor=cursor)
+    return await list_user_requests(db, profile.user_id, limit=limit, cursor=cursor, locale=locale)
 
 
 @router.get("/{profile_id}/tickets")
@@ -66,6 +68,7 @@ async def get_tickets(
     cursor: str | None = Query(None),
     _: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    locale: str = Depends(get_request_locale),
 ):
     profile, _user = await resolve_profile(profile_id, db)
-    return await list_user_tickets(db, profile.user_id, limit=limit, cursor=cursor)
+    return await list_user_tickets(db, profile.user_id, limit=limit, cursor=cursor, locale=locale)

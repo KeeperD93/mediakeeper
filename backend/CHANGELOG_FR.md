@@ -85,6 +85,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Watchlist — onglet Timeline : la frise remplit la hauteur (plus de bande vide).
 - Médiathèque — recherche TMDB : description en anglais affichée quand la traduction manque.
 - Utilisateurs portail (admin) — fiche : statuts de tickets « En cours » et « Résolu » traduits.
+- Utilisateurs portail (admin) — fiche : titres des demandes et tickets dans votre langue.
 - Problèmes (admin) — statuts de tickets traduits dans la liste et le sélecteur.
 - Erreurs réseau — message clair affiché au lieu d'une liste vide trompeuse.
 - Listes — jaquette conservée à l'ajout d'un film depuis une carte.

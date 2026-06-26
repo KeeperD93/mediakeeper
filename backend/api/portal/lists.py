@@ -5,6 +5,7 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
+from core.i18n import get_request_locale
 from models.user import User
 from models.portal.profile import UserProfile
 from api.portal.deps import get_request_lang, require_permission
@@ -120,11 +121,12 @@ async def get_single(
     up: tuple[User, UserProfile] = Depends(require_permission("can_lists")),
     db: AsyncSession = Depends(get_db),
     lang: str = Depends(get_request_lang),
+    locale: str = Depends(get_request_locale),
 ):
     user, _ = up
     result = await svc_query.get_list(
         db, list_id, user.id,
-        sort=sort, page=page, page_size=page_size, lang=lang,
+        sort=sort, page=page, page_size=page_size, lang=lang, locale=locale,
     )
     _http_error(result)
     return result
@@ -255,9 +257,10 @@ async def export_list(
     fmt: str = Query("json", pattern="^(json|csv)$"),
     up: tuple[User, UserProfile] = Depends(require_permission("can_lists")),
     db: AsyncSession = Depends(get_db),
+    locale: str = Depends(get_request_locale),
 ):
     user, _ = up
-    result = await svc_admin.export_list(db, list_id, user.id, fmt=fmt)
+    result = await svc_admin.export_list(db, list_id, user.id, fmt=fmt, locale=locale)
     if not result:
         raise HTTPException(status_code=404, detail="not_found")
     return Response(
@@ -276,9 +279,12 @@ async def get_history(
     up: tuple[User, UserProfile] = Depends(require_permission("can_lists")),
     db: AsyncSession = Depends(get_db),
     lang: str = Depends(get_request_lang),
+    locale: str = Depends(get_request_locale),
 ):
     user, _ = up
-    return {"items": await svc_admin.get_history(db, list_id, user.id, limit=limit, lang=lang)}
+    return {"items": await svc_admin.get_history(
+        db, list_id, user.id, limit=limit, lang=lang, locale=locale,
+    )}
 
 
 @router.post("/{list_id}/contributors")

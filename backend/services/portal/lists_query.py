@@ -17,6 +17,7 @@ from services.portal._display_name import resolve_display_name
 from services.portal.lists import (
     DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, can_view,
 )
+from services.portal.media_title_localize import localize_titles
 
 
 # Sentinel: lets a batched caller hand _serialize_list ready values
@@ -37,7 +38,7 @@ async def get_list(
     *, include_items: bool = True,
     sort: str = "added_desc",
     page: int = 1, page_size: int = DEFAULT_PAGE_SIZE,
-    lang: str = "fr",
+    lang: str = "fr", locale: str = "fr",
 ) -> dict:
     lst = await db.get(UserList, list_id)
     if not lst or not await can_view(db, lst, user_id):
@@ -48,7 +49,7 @@ async def get_list(
         items, total = await _paginated_items(
             db, list_id, sort=sort, page=page, page_size=page_size,
         )
-        serialized["items"] = items
+        serialized["items"] = await localize_titles(db, items, locale)
         serialized["items_total"] = total
         serialized["items_page"] = page
         serialized["items_page_size"] = page_size

@@ -12,6 +12,7 @@ from sqlalchemy import select, desc, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.pagination import build_cursor_response, decode_cursor
+from services.portal.media_title_localize import localize_titles
 
 
 _TIER_NAMES = {1: "bronze", 2: "silver", 3: "gold", 4: "platinum", 5: "diamond", 6: "mythic"}
@@ -100,7 +101,8 @@ async def list_user_xp_ledger(
 
 
 async def list_user_requests(
-    db: AsyncSession, user_id: int, *, limit: int = 100, cursor: str | None = None
+    db: AsyncSession, user_id: int, *, limit: int = 100, cursor: str | None = None,
+    locale: str = "fr",
 ) -> dict[str, Any]:
     """Latest-first media requests for a user (title + status only)."""
     from models.portal.request import MediaRequest
@@ -127,11 +129,13 @@ async def list_user_requests(
         }
         for r in rows
     ]
+    items = await localize_titles(db, items, locale)
     return build_cursor_response(items, total, limit, cursor_field="id")
 
 
 async def list_user_tickets(
-    db: AsyncSession, user_id: int, *, limit: int = 100, cursor: str | None = None
+    db: AsyncSession, user_id: int, *, limit: int = 100, cursor: str | None = None,
+    locale: str = "fr",
 ) -> dict[str, Any]:
     """Latest-first problem tickets for a user (title + state only)."""
     from models.portal.ticket import Ticket
@@ -149,6 +153,7 @@ async def list_user_tickets(
     items = [
         {
             "id": r.id,
+            "tmdb_id": r.tmdb_id,
             "title": r.media_title,
             "media_type": r.media_type,
             "issue_type": r.issue_type,
@@ -158,4 +163,5 @@ async def list_user_tickets(
         }
         for r in rows
     ]
+    items = await localize_titles(db, items, locale)
     return build_cursor_response(items, total, limit, cursor_field="id")

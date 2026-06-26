@@ -85,6 +85,7 @@ This section intentionally has no date so it is not shown to users.
 - Watchlist — Timeline tab: now fills the available height (no empty band).
 - Media library — TMDB search: English description shown when the translation is missing.
 - Portal users (admin) — drawer: ticket statuses "In progress" and "Resolved" now translated.
+- Portal users (admin) — drawer: request and ticket titles in your language.
 - Issues (admin) — ticket statuses translated in the list and the status selector.
 - Network errors — clear message shown instead of a misleading empty list.
 - Lists — poster kept when adding a title from a card.

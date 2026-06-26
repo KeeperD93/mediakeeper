@@ -1,10 +1,11 @@
-"""Re-resolve stored request titles to the viewer locale (read-time).
+"""Re-resolve stored media titles to the viewer locale (read-time).
 
-``MediaRequest.title`` is a snapshot frozen in the requester's language at
-creation. The moderation and user request lists re-resolve it to the viewer's
-locale via the TMDB detail endpoint, cached per ``(tmdb_id, media_type, lang)``.
-The default locale is served as-is (no call) and the input dicts are never
-mutated — new dicts are returned, mirroring the watchlist localize pattern.
+Request / list / history titles are snapshots frozen in the author's language
+at creation. Any serialized surface carrying a ``tmdb_id`` + ``media_type``
+re-resolves its ``title`` to the viewer's locale via the TMDB detail endpoint,
+cached per ``(tmdb_id, media_type, lang)``. The default locale is served as-is
+(no call) and the input dicts are never mutated — new dicts are returned,
+mirroring the watchlist localize pattern.
 """
 import asyncio
 import time
@@ -18,6 +19,11 @@ _LOCALIZE_CONCURRENCY = 4
 # watchlist TMDB cache TTL and a container restart invalidates it on top.
 _CACHE_TTL_SEC = 6 * 3600
 _title_cache: dict[tuple[int, str, str], tuple[float, str]] = {}
+
+# Map a surface's media_type onto the two TMDB detail types. Surfaces use
+# "movie"/"tv" (requests, lists) or "series" for tv (tickets); anything else
+# (season/episode/other) has no localizable TMDB title.
+_TMDB_TYPE = {"movie": "movie", "tv": "tv", "series": "tv"}
 
 
 async def _localized_title(
@@ -37,27 +43,28 @@ async def _localized_title(
     return title
 
 
-async def localize_request_titles(
-    db: AsyncSession, items: list[dict], locale: str
+async def localize_titles(
+    db: AsyncSession, items: list[dict], locale: str, *, title_key: str = "title"
 ) -> list[dict]:
-    """Re-resolve each serialized request's ``title`` to ``locale``. The default
-    language is served as-is (the stored title already holds it) — same list, no
-    TMDB call. Rows without a usable tmdb_id are kept untouched."""
+    """Re-resolve each item dict's title to ``locale``. The default language is
+    served as-is (the stored title already holds it) — same list, no TMDB call.
+    Items without a usable tmdb_id / media_type are kept untouched. ``title_key``
+    is the dict field to localize (e.g. ``media_title`` for tickets)."""
     lang = tmdb_language(locale)
     if lang == LANGUAGE or not items:
         return items
-    # Warm the key cache first so the concurrent re-resolution makes no DB call
-    # on the shared session; no key configured -> nothing to re-resolve.
+    # No TMDB key configured -> nothing to re-resolve; serve the stored titles.
     if not await _get_tmdb_key(db):
         return items
     sem = asyncio.Semaphore(_LOCALIZE_CONCURRENCY)
 
     async def _one(it: dict) -> dict:
-        tid, mt = it.get("tmdb_id"), it.get("media_type")
-        if not tid or mt not in ("movie", "tv"):
+        tid = it.get("tmdb_id")
+        mt = _TMDB_TYPE.get(it.get("media_type"))
+        if not tid or not mt:
             return it
         async with sem:
             title = await _localized_title(db, mt, tid, lang, locale)
-        return {**it, "title": title} if title else it
+        return {**it, title_key: title} if title else it
 
     return await asyncio.gather(*(_one(it) for it in items))

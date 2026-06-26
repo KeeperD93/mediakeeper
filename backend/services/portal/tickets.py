@@ -13,6 +13,7 @@ from core.pagination import decode_cursor, build_cursor_response
 from services.portal import strip_tags_and_trim
 from services.portal._rank_tiers import tier_for_level
 from services.portal.avatars import avatar_public_url
+from services.portal.media_title_localize import localize_titles
 
 logger = logging.getLogger("mediakeeper.portal.tickets")
 
@@ -86,6 +87,7 @@ async def list_tickets(
     cursor: str | None = None,
     limit: int = 25,
     page: int | None = None,
+    locale: str = "fr",
 ) -> dict:
     # Ticket.id is monotonically allocated alongside created_at, so ordering
     # by id keeps pagination cheap while honouring the requested creation-time
@@ -109,17 +111,19 @@ async def list_tickets(
 
     if page is not None:
         rows = (await db.execute(query.offset((page - 1) * limit).limit(limit))).scalars().all()
-        return {"items": [_serialize(t) for t in rows], "total": total, "page": page, "per_page": limit}
+        items = await localize_titles(db, [_serialize(t) for t in rows], locale, title_key="media_title")
+        return {"items": items, "total": total, "page": page, "per_page": limit}
 
     cursor_data = decode_cursor(cursor)
     if cursor_data and cursor_data.get("id"):
         cursor_id = cursor_data["id"]
         query = query.where(Ticket.id > cursor_id if sort == "oldest" else Ticket.id < cursor_id)
     items = [_serialize(t) for t in (await db.execute(query.limit(limit))).scalars().all()]
+    items = await localize_titles(db, items, locale, title_key="media_title")
     return build_cursor_response(items, total, limit)
 
 
-async def get_ticket(db: AsyncSession, ticket_id: int) -> dict | None:
+async def get_ticket(db: AsyncSession, ticket_id: int, *, locale: str = "fr") -> dict | None:
     ticket = await db.get(Ticket, ticket_id)
     if not ticket:
         return None
@@ -147,7 +151,7 @@ async def get_ticket(db: AsyncSession, ticket_id: int) -> dict | None:
         }
         for r in replies
     ]
-    return data
+    return (await localize_titles(db, [data], locale, title_key="media_title"))[0]
 
 
 async def add_reply(
