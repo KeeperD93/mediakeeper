@@ -59,9 +59,12 @@ utilisateurs.
 - Salle ciné — les personnes rejoignant après vous apparaissent sans rafraîchir.
 - Salle ciné — changer d'onglet ne fait plus quitter votre siège.
 - Demandes — titres affichés dans votre langue.
+- Mes Listes — titres affichés dans votre langue (lignes, historique, export).
+- Problèmes — titres des tickets affichés dans votre langue (liste, détail).
 - Fiche média — lien TMDB ouvre dans la langue de l'app.
 - Dates affichées dans votre langue (au lieu de celle du navigateur).
 - Découvrir — listes (tendances, populaires, etc.) affichées dans votre langue.
+- Découvrir — page « Récemment ajoutés » : titres et synopsis dans votre langue.
 - Changelog — versions sans nouveauté masquées (plus de cartes vides).
 - Avatars personnalisés affichés dans les contributeurs de listes et le sélecteur d'utilisateurs.
 - Pastilles « déjà demandé » affichées sur les grandes listes.

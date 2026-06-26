@@ -1,4 +1,9 @@
-"""/metadata endpoint — ffprobe analysis of video/audio/subtitle tracks."""
+"""/metadata endpoint — ffprobe analysis of video/audio/subtitle tracks.
+
+The response uses machine codes (snake_case EN keys, ISO language codes,
+raw byte/second/bps numbers, booleans, HDR slugs). The frontend formats
+and localizes them per viewer (i18n) — see MMFileMetaModal.vue.
+"""
 import asyncio
 import json
 import logging
@@ -8,61 +13,83 @@ from fastapi import APIRouter, Depends
 
 from api.auth import get_current_user
 from models.user import User
-from services.media_manager import _ensure_within_media_roots, format_size
+from services.media_manager import _ensure_within_media_roots
 
 logger = logging.getLogger("mediakeeper.api.media")
 router = APIRouter()
 
 
-LANG_MAP = {
-    "fre": "French", "fra": "French", "fr": "French",
-    "eng": "English", "en": "English",
-    "jpn": "Japanese", "ja": "Japanese",
-    "ger": "German", "deu": "German", "de": "German",
-    "spa": "Spanish", "es": "Spanish",
-    "ita": "Italian", "it": "Italian",
-    "por": "Portuguese", "pt": "Portuguese",
-    "chi": "Chinese", "zho": "Chinese", "zh": "Chinese",
-    "kor": "Korean", "ko": "Korean",
-    "ara": "Arabic", "ar": "Arabic",
-    "rus": "Russian", "ru": "Russian",
-    "dut": "Dutch", "nld": "Dutch", "nl": "Dutch",
-    "dan": "Danish", "da": "Danish",
-    "fin": "Finnish", "fi": "Finnish",
-    "nor": "Norwegian", "no": "Norwegian",
-    "swe": "Swedish", "sv": "Swedish",
-    "pol": "Polish", "pl": "Polish",
-    "tur": "Turkish", "tr": "Turkish",
-    "ces": "Czech", "cze": "Czech", "cs": "Czech",
-    "ron": "Romanian", "rum": "Romanian", "ro": "Romanian",
-    "hun": "Hungarian", "hu": "Hungarian",
-    "ell": "Greek", "gre": "Greek", "el": "Greek",
-    "heb": "Hebrew", "he": "Hebrew",
-    "tha": "Thai", "th": "Thai",
-    "vie": "Vietnamese", "vi": "Vietnamese",
-    "ind": "Indonesian", "id": "Indonesian",
-    "ukr": "Ukrainian", "uk": "Ukrainian",
-    "hin": "Hindi", "hi": "Hindi",
-    "und": "Undefined",
+# ffprobe language tags (ISO 639-2/B, 639-2/T and 639-1) normalised to a
+# single canonical code the frontend localizes via mediaManager.languages.*.
+LANG_CODE = {
+    "fre": "fr", "fra": "fr", "fr": "fr",
+    "eng": "en", "en": "en",
+    "jpn": "ja", "ja": "ja",
+    "ger": "de", "deu": "de", "de": "de",
+    "spa": "es", "es": "es",
+    "ita": "it", "it": "it",
+    "por": "pt", "pt": "pt",
+    "chi": "zh", "zho": "zh", "zh": "zh",
+    "kor": "ko", "ko": "ko",
+    "ara": "ar", "ar": "ar",
+    "rus": "ru", "ru": "ru",
+    "dut": "nl", "nld": "nl", "nl": "nl",
+    "dan": "da", "da": "da",
+    "fin": "fi", "fi": "fi",
+    "nor": "no", "no": "no",
+    "swe": "sv", "sv": "sv",
+    "pol": "pl", "pl": "pl",
+    "tur": "tr", "tr": "tr",
+    "ces": "cs", "cze": "cs", "cs": "cs",
+    "ron": "ro", "rum": "ro", "ro": "ro",
+    "hun": "hu", "hu": "hu",
+    "ell": "el", "gre": "el", "el": "el",
+    "heb": "he", "he": "he",
+    "tha": "th", "th": "th",
+    "vie": "vi", "vi": "vi",
+    "ind": "id", "id": "id",
+    "ukr": "uk", "uk": "uk",
+    "hin": "hi", "hi": "hi",
+    "und": "und",
 }
 
 
+def _format_fps(rate: str) -> str:
+    """Format an ffprobe ``r_frame_rate`` ("num/den") as "<value> fps".
+
+    Evaluates the fraction so fractional NTSC rates like 24000/1001 render
+    as ~23.976 instead of being mangled by a naive ``/1`` string strip
+    (24000/1001 -> "24000001"). Whole rates drop their decimals.
+    """
+    if not rate or "/" not in rate:
+        return ""
+    num, den = rate.split("/", 1)
+    try:
+        fps = int(num) / int(den)
+    except (ValueError, ZeroDivisionError):
+        return ""
+    text = f"{fps:.3f}".rstrip("0").rstrip(".") if fps % 1 else str(int(fps))
+    return f"{text} fps"
+
+
 def _detect_hdr(stream: dict) -> str:
-    """Detect the HDR type from the video track metadata."""
+    """Detect the HDR type from the video track metadata. Returns a slug
+    (``dolby_vision`` / ``hdr10_plus`` / ``hdr10`` / ``hlg``) or ``""``.
+    """
     color_transfer = stream.get("color_transfer", "")
     side_data = stream.get("side_data_list", [])
     for sd in side_data:
         sd_type = sd.get("side_data_type", "").lower()
         if "dolby vision" in sd_type:
-            return "Dolby Vision"
+            return "dolby_vision"
         if "hdr10+" in sd_type or "hdr10 plus" in sd_type:
-            return "HDR10+"
+            return "hdr10_plus"
         if "content light" in sd_type or "mastering display" in sd_type:
-            return "HDR10"
+            return "hdr10"
     if "smpte2084" in color_transfer or "pq" in color_transfer:
-        return "HDR10"
+        return "hdr10"
     if "arib-std-b67" in color_transfer or "hlg" in color_transfer:
-        return "HLG"
+        return "hlg"
     return ""
 
 
@@ -112,20 +139,17 @@ def _coerce_number(raw: object, cast: Callable[[object], int | float], field: st
 
 
 def _parse_format(fmt: dict) -> dict:
-    """Extract size, duration and bitrate from the ffprobe ``format`` block."""
+    """Extract raw size / duration / bitrate from the ffprobe ``format`` block."""
     result = {}
     size_bytes = _coerce_number(fmt.get("size"), int, "size")
     if size_bytes:
-        result["taille"] = format_size(size_bytes)
+        result["size_bytes"] = size_bytes
     duration_s = _coerce_number(fmt.get("duration"), float, "duration")
     if duration_s:
-        h = int(duration_s // 3600)
-        m = int((duration_s % 3600) // 60)
-        s = int(duration_s % 60)
-        result["duree"] = f"{h}h {m:02d}m {s:02d}s" if h else f"{m}m {s:02d}s"
+        result["duration_seconds"] = duration_s
     bitrate = _coerce_number(fmt.get("bit_rate"), int, "bit_rate")
     if bitrate:
-        result["debit_global"] = f"{bitrate // 1000} kbps"
+        result["overall_bitrate_bps"] = bitrate
     return result
 
 
@@ -136,8 +160,8 @@ def _parse_streams(streams: list[dict]) -> tuple[list[dict], list[dict], list[di
     for s in streams:
         codec_type = s.get("codec_type", "")
         tags = s.get("tags", {})
-        lang_code = tags.get("language", tags.get("LANGUAGE", ""))
-        lang = LANG_MAP.get(lang_code.lower(), lang_code.upper() if lang_code else "—")
+        raw_lang = tags.get("language", tags.get("LANGUAGE", "")).lower()
+        language_code = LANG_CODE.get(raw_lang, raw_lang) if raw_lang else ""
         title = tags.get("title", tags.get("TITLE", ""))
         disposition = s.get("disposition", {})
         is_default = disposition.get("default", 0) == 1
@@ -149,38 +173,36 @@ def _parse_streams(streams: list[dict]) -> tuple[list[dict], list[dict], list[di
             v_bitrate = _coerce_number(s.get("bit_rate"), int, "bit_rate")
             track = {
                 "codec": s.get("codec_name", "—").upper(),
-                "profil": s.get("profile", ""),
+                "profile": s.get("profile", ""),
                 "resolution": f"{s.get('width', '?')}×{s.get('height', '?')}",
-                "fps": s.get("r_frame_rate", "").replace("/1", "") + " fps" if s.get("r_frame_rate") else "",
-                "bitrate": f"{v_bitrate // 1000} kbps" if v_bitrate else "",
-                "hdr": _detect_hdr(s),
-                "titre": title,
+                "fps": _format_fps(s.get("r_frame_rate", "")),
+                "bitrate_bps": v_bitrate,
+                "hdr_type": _detect_hdr(s),
+                "title": title,
             }
             video_tracks.append({k: v for k, v in track.items() if v})
 
         elif codec_type == "audio":
-            channels = s.get("channels", 0)
-            ch_label = {1: "Mono", 2: "Stereo", 6: "5.1", 8: "7.1"}.get(channels, f"{channels} ch")
             a_bitrate = _coerce_number(s.get("bit_rate"), int, "bit_rate")
             track = {
-                "langue": lang,
+                "language_code": language_code,
                 "codec": s.get("codec_name", "—").upper(),
-                "canaux": ch_label,
-                "bitrate": f"{a_bitrate // 1000} kbps" if a_bitrate else "",
-                "titre": title,
-                "par_defaut": "Yes" if is_default else "",
-                "commentaire": "Yes" if is_commentary else "",
+                "channels": s.get("channels", 0),
+                "bitrate_bps": a_bitrate,
+                "title": title,
+                "is_default": is_default,
+                "is_commentary": is_commentary,
             }
             audio_tracks.append({k: v for k, v in track.items() if v})
 
         elif codec_type == "subtitle":
             track = {
-                "langue": lang,
+                "language_code": language_code,
                 "codec": s.get("codec_name", "—").upper(),
-                "titre": title,
-                "force": "Yes" if is_forced else "",
-                "malentendants": "Yes" if is_hearing_impaired else "",
-                "par_defaut": "Yes" if is_default else "",
+                "title": title,
+                "is_forced": is_forced,
+                "is_hearing_impaired": is_hearing_impaired,
+                "is_default": is_default,
             }
             sub_tracks.append({k: v for k, v in track.items() if v})
 
@@ -215,7 +237,7 @@ async def get_file_metadata(path: str, _: User = Depends(get_current_user)):
 
     result = _parse_format(data.get("format", {}))
     video_tracks, audio_tracks, sub_tracks = _parse_streams(streams)
-    result["pistes_video"] = video_tracks
-    result["pistes_audio"] = audio_tracks
-    result["pistes_sous_titres"] = sub_tracks
+    result["video_tracks"] = video_tracks
+    result["audio_tracks"] = audio_tracks
+    result["subtitle_tracks"] = sub_tracks
     return result

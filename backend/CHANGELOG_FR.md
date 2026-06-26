@@ -44,6 +44,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Gestionnaire de médias — renommer un dossier racine ne peut plus le sortir des chemins configurés.
 - Tableau de bord — onglets Historique (Notifications, Doublons) : bouton « Charger plus ».
 - Tableau de bord — fil d'activité : mises à jour de plugin affichées dans votre langue.
+- Tableau de bord — fil d'activité : fiche film/série traduite (saisons, épisodes, durée).
 - Tableau de bord — les alertes signalent désormais les événements admin (comptes, plugins).
 - Tableau de bord — avatar et anneau de rang corrects dès la connexion (sans actualiser).
 - Demandes (admin) — « Au nom de l'utilisateur » préréglé sur votre compte.
@@ -60,6 +61,8 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Médiathèque — le détail des pistes n'échoue plus sur un fichier corrompu.
 - Média Manager — annuler un renommage en lot ne s'interrompt plus à mi-chemin (réessai possible).
 - Média Manager — libellés de l'historique de renommage suivent la langue de l'app.
+- Média Manager — infos fichier : langue/canaux des pistes dans votre langue.
+- Média Manager — infos fichier : images par seconde affichées correctement (NTSC).
 - Média Manager — fenêtres accessibles : focus clavier, Échap, annonce lecteur d'écran.
 - Média Manager — la tabulation clavier ignore les fenêtres et boutons masqués.
 - Média Manager — fichiers alignés avec leurs noms générés à droite.
@@ -82,6 +85,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Watchlist — onglet Timeline : la frise remplit la hauteur (plus de bande vide).
 - Médiathèque — recherche TMDB : description en anglais affichée quand la traduction manque.
 - Utilisateurs portail (admin) — fiche : statuts de tickets « En cours » et « Résolu » traduits.
+- Utilisateurs portail (admin) — fiche : titres des demandes et tickets dans votre langue.
 - Problèmes (admin) — statuts de tickets traduits dans la liste et le sélecteur.
 - Erreurs réseau — message clair affiché au lieu d'une liste vide trompeuse.
 - Listes — jaquette conservée à l'ajout d'un film depuis une carte.

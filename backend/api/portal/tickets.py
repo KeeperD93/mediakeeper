@@ -5,6 +5,7 @@ from typing import Literal, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
+from core.i18n import get_request_locale
 from models.user import User
 from models.portal.profile import UserProfile
 from api.portal.deps import require_admin, require_permission
@@ -68,6 +69,7 @@ async def list_tickets(
     per_page: int = Query(25, ge=1, le=100),
     up: tuple[User, UserProfile] = Depends(require_permission("can_problems")),
     db: AsyncSession = Depends(get_db),
+    locale: str = Depends(get_request_locale),
 ):
     user, profile = up
     user_id = None if profile.role == "admin" else user.id
@@ -82,6 +84,7 @@ async def list_tickets(
         cursor=cursor,
         limit=per_page if page is not None else limit,
         page=page,
+        locale=locale,
     )
 
 
@@ -149,8 +152,9 @@ async def get_ticket(
     ticket_id: int,
     up: tuple[User, UserProfile] = Depends(require_permission("can_problems")),
     db: AsyncSession = Depends(get_db),
+    locale: str = Depends(get_request_locale),
 ):
-    result = await ticket_svc.get_ticket(db, ticket_id)
+    result = await ticket_svc.get_ticket(db, ticket_id, locale=locale)
     if not result:
         raise HTTPException(status_code=404, detail="ticket_not_found")
     user, profile = up

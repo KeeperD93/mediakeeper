@@ -25,6 +25,7 @@ from services.portal.avatars import resolve_avatar_url
 from services.portal.lists import (
     _log, _contributor_row, can_view, can_manage,
 )
+from services.portal.media_title_localize import localize_titles
 
 logger = logging.getLogger("mediakeeper.portal.lists_admin")
 
@@ -127,7 +128,8 @@ async def get_contributors(
 # ── History ──
 
 async def get_history(
-    db: AsyncSession, list_id: int, user_id: int, *, limit: int = 100, lang: str = "fr",
+    db: AsyncSession, list_id: int, user_id: int, *,
+    limit: int = 100, lang: str = "fr", locale: str = "fr",
 ) -> list[dict]:
     """Return audit log entries for a list — restricted to the owner
     and named contributors. ``can_view`` is too permissive here: it
@@ -156,7 +158,7 @@ async def get_history(
         .order_by(UserListHistory.created_at.desc())
         .limit(min(limit, 500))
     )).all()
-    return [
+    items = [
         {
             "id": h.id, "action": h.action,
             "tmdb_id": h.tmdb_id, "media_type": h.media_type,
@@ -172,6 +174,7 @@ async def get_history(
         }
         for h, display_name, must_set in rows
     ]
+    return await localize_titles(db, items, locale)
 
 
 # ── Export ──
@@ -201,6 +204,7 @@ def content_disposition(filename: str, *, fallback_stem: str = "download") -> st
 
 async def export_list(
     db: AsyncSession, list_id: int, user_id: int, fmt: str = "json",
+    locale: str = "fr",
 ) -> dict | None:
     lst = await db.get(UserList, list_id)
     if not lst or not await can_view(db, lst, user_id):
@@ -212,16 +216,25 @@ async def export_list(
     )).scalars().all()
 
     if fmt == "csv":
+        rows = await localize_titles(db, [
+            {
+                "tmdb_id": r.tmdb_id, "media_type": r.media_type,
+                "title": r.title or "",
+                "year": r.year,
+                "added_at": r.added_at.isoformat() if r.added_at else "",
+            }
+            for r in items
+        ], locale)
         buf = io.StringIO()
         # BOM so Excel opens UTF-8 titles correctly.
         buf.write("\ufeff")
         writer = csv.writer(buf)
         writer.writerow(["title", "year", "added_at"])
-        for row in items:
+        for row in rows:
             writer.writerow(safe_csv_row([
-                row.title or "",
-                row.year if row.year else "",
-                row.added_at.isoformat() if row.added_at else "",
+                row["title"],
+                row["year"] if row["year"] else "",
+                row["added_at"],
             ]))
         return {
             "content": buf.getvalue(),

@@ -31,7 +31,10 @@ async def browse_category(
     """
     if category == "recently-added":
         from services.portal import available as avail_svc
-        return await avail_svc.get_recently_added_paginated(db, page=page)
+        from services.portal.available_localize import localize_emby_items
+        result = await avail_svc.get_recently_added_paginated(db, page=page)
+        result["items"] = await localize_emby_items(db, result["items"], locale)
+        return result
 
     if category == "watch-history":
         from services.portal.profile_stats import get_watch_history_paginated

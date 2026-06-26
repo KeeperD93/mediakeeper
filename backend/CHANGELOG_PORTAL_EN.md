@@ -57,9 +57,12 @@ This section intentionally has no date so it is not shown to users.
 - Cinema room — people who join after you appear without refreshing.
 - Cinema room — switching browser tabs no longer leaves your seat.
 - Requests — titles follow your language.
+- My Lists — titles shown in your language (rows, history, export).
+- Issues — ticket titles shown in your language (list, detail).
 - Media detail — TMDB link opens in the app language.
 - Dates now shown in your language (instead of the browser).
 - Discover — lists (trending, popular, …) now shown in your language.
+- Discover — "Recently added" page: titles and synopsis in your language.
 - Changelog — versions with no entries are hidden (no more blank cards).
 - Custom avatars now shown in list contributors and the user picker.
 - "Already requested" badges now load on large lists.

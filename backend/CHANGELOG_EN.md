@@ -44,6 +44,7 @@ This section intentionally has no date so it is not shown to users.
 - Media manager — renaming a root folder can no longer move it outside the configured paths.
 - Dashboard — History tabs (Notifications, Duplicates): "Load more" button.
 - Dashboard — activity feed: plugin updates now shown in your language.
+- Dashboard — activity feed: film/series card localized (seasons, episodes, runtime).
 - Dashboard — alerts now flag account and plugin admin events.
 - Dashboard — avatar and rank ring correct right after login (no refresh needed).
 - Requests (admin) — "On behalf of" now defaults to your account.
@@ -60,6 +61,8 @@ This section intentionally has no date so it is not shown to users.
 - Media library — track details no longer fail on a corrupted file.
 - Media Manager — undoing a batch rename no longer stops halfway (retry kept).
 - Media Manager — rename history labels follow the app language.
+- Media Manager — file info: track language/channels shown in your language.
+- Media Manager — file info: frame rate now displays correctly (NTSC).
 - Media Manager — accessible dialogs: keyboard focus, Esc, screen-reader announcement.
 - Media Manager — keyboard tabbing skips hidden dialogs and buttons.
 - Media Manager — files now line up with their generated names.
@@ -82,6 +85,7 @@ This section intentionally has no date so it is not shown to users.
 - Watchlist — Timeline tab: now fills the available height (no empty band).
 - Media library — TMDB search: English description shown when the translation is missing.
 - Portal users (admin) — drawer: ticket statuses "In progress" and "Resolved" now translated.
+- Portal users (admin) — drawer: request and ticket titles in your language.
 - Issues (admin) — ticket statuses translated in the list and the status selector.
 - Network errors — clear message shown instead of a misleading empty list.
 - Lists — poster kept when adding a title from a card.

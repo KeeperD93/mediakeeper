@@ -23,7 +23,7 @@ from services.portal.requests_quota import (
     get_user_quota,  # noqa: F401 — re-exported
 )
 from services.portal.requests_create import create_request  # noqa: F401
-from services.portal.requests_localize import localize_request_titles
+from services.portal.media_title_localize import localize_titles
 
 logger = logging.getLogger("mediakeeper.portal.requests")
 
@@ -171,7 +171,7 @@ async def list_requests(
         for r in rows
     ]
     if locale:
-        items = await localize_request_titles(db, items, locale)
+        items = await localize_titles(db, items, locale)
 
     if page is not None:
         return {"items": items, "total": total, "page": page, "per_page": limit}
