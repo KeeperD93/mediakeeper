@@ -65,6 +65,7 @@ utilisateurs.
 - Dates affichées dans votre langue (au lieu de celle du navigateur).
 - Découvrir — listes (tendances, populaires, etc.) affichées dans votre langue.
 - Découvrir — page « Récemment ajoutés » : titres et synopsis dans votre langue.
+- Découvrir — historique et mes demandes : titres dans votre langue.
 - Changelog — versions sans nouveauté masquées (plus de cartes vides).
 - Avatars personnalisés affichés dans les contributeurs de listes et le sélecteur d'utilisateurs.
 - Pastilles « déjà demandé » affichées sur les grandes listes.

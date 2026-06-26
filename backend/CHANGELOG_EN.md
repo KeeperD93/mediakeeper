@@ -62,6 +62,7 @@ This section intentionally has no date so it is not shown to users.
 - Media Manager — undoing a batch rename no longer stops halfway (retry kept).
 - Media Manager — rename history labels follow the app language.
 - Media Manager — file info: track language/channels shown in your language.
+- Media Manager — file info: detected labels (resolution, source…) shown in your language.
 - Media Manager — file info: frame rate now displays correctly (NTSC).
 - Media Manager — accessible dialogs: keyboard focus, Esc, screen-reader announcement.
 - Media Manager — keyboard tabbing skips hidden dialogs and buttons.
@@ -71,6 +72,7 @@ This section intentionally has no date so it is not shown to users.
 - Media Manager — folder rename to an emptied name is refused (was silent data loss).
 - Dashboard — "Upcoming releases" now shown in your language.
 - Dashboard — activity feed (logins, playback) now shown in your language.
+- Dashboard — activity feed: animations disabled when reduced motion is on.
 - Media library — TMDB detail pages now shown in your language (English fallback).
 - Watchlist — series, episodes and synopsis now shown in your language.
 - Watchlist — calendar movies now shown in your language.

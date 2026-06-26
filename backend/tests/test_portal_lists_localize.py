@@ -155,3 +155,67 @@ async def test_get_list_localizes_item_titles(db_session, monkeypatch):
     ll._title_cache.clear()
     res_fr = await svc_query.get_list(db_session, lst.id, user.id, locale="fr")  # default -> as-is
     assert any(it["title"] == "Matrice" for it in res_fr["items"])
+
+
+@pytest.mark.asyncio
+async def test_get_history_localizes_titles(db_session, monkeypatch):
+    """The list audit log (owner/contributor only) re-resolves item titles."""
+    from models.portal.social import UserListHistory
+    from services.portal import lists_admin
+
+    user = User(
+        username="list-hist-i18n",
+        hashed_password=hash_password("ViewerPassword123!"),
+        is_active=True,
+        must_change_password=False,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    lst = UserList(user_id=user.id, name="My films")
+    db_session.add(lst)
+    await db_session.commit()
+    await db_session.refresh(lst)
+    db_session.add(UserListHistory(
+        list_id=lst.id, user_id=user.id, action="add",
+        tmdb_id=603, media_type="movie", title="Matrice",
+    ))
+    await db_session.commit()
+
+    async def _detail(mt, tid, db=None, locale=None):
+        return {"title": f"T{tid} [{locale}]"}
+
+    _patch(monkeypatch, _detail)
+    hist = await lists_admin.get_history(db_session, lst.id, user.id, locale="en")
+    assert any(h["title"] == "T603 [en]" for h in hist)
+
+
+@pytest.mark.asyncio
+async def test_export_csv_localizes_titles(db_session, monkeypatch):
+    """The CSV export's title column is localized before serialization."""
+    from services.portal import lists_admin
+
+    user = User(
+        username="list-export-i18n",
+        hashed_password=hash_password("ViewerPassword123!"),
+        is_active=True,
+        must_change_password=False,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    lst = UserList(user_id=user.id, name="My films")
+    db_session.add(lst)
+    await db_session.commit()
+    await db_session.refresh(lst)
+    db_session.add(UserListItem(
+        list_id=lst.id, tmdb_id=603, media_type="movie", title="Matrice", year=1999,
+    ))
+    await db_session.commit()
+
+    async def _detail(mt, tid, db=None, locale=None):
+        return {"title": f"T{tid} [{locale}]"}
+
+    _patch(monkeypatch, _detail)
+    out = await lists_admin.export_list(db_session, lst.id, user.id, fmt="csv", locale="en")
+    assert "T603 [en]" in out["content"]

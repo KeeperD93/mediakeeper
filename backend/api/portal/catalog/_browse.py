@@ -38,13 +38,21 @@ async def browse_category(
 
     if category == "watch-history":
         from services.portal.profile_stats import get_watch_history_paginated
+        from services.portal.media_title_localize import localize_titles
         user, profile = up
-        return await get_watch_history_paginated(db, user, profile, page=page)
+        result = await get_watch_history_paginated(db, user, profile, page=page)
+        # Episodes are already collapsed to their series name (no "S01E02"
+        # to clobber), so re-resolving title via TMDB is safe per viewer.
+        result["items"] = await localize_titles(db, result["items"], locale)
+        return result
 
     if category == "my-requests":
         from services.portal.profile_stats import get_my_requests_paginated
+        from services.portal.media_title_localize import localize_titles
         user, _ = up
-        return await get_my_requests_paginated(db, user, page=page)
+        result = await get_my_requests_paginated(db, user, page=page)
+        result["items"] = await localize_titles(db, result["items"], locale)
+        return result
 
     _, profile = up
     return await disc_svc.discover_category(

@@ -265,4 +265,9 @@ const {
   opacity: 0.4;
   border-radius: 2px;
 }
+@media (prefers-reduced-motion: reduce) {
+  .tl-entry {
+    animation: none;
+  }
+}
 </style>

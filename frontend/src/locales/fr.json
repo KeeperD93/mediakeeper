@@ -1237,6 +1237,22 @@
       "und": "Indéterminé"
     },
     "detectedFromName": "Détecté depuis le nom de fichier",
+    "detectedFields": {
+      "resolution": "Résolution",
+      "source": "Source",
+      "codec_video": "Codec vidéo",
+      "codec_audio": "Codec audio",
+      "hdr": "HDR",
+      "bit_depth": "Profondeur",
+      "langues": "Langues",
+      "sous_titres": "Sous-titres",
+      "annee": "Année",
+      "episode": "Épisode",
+      "edition": "Édition",
+      "qualite_note": "Qualité",
+      "team": "Équipe / Groupe",
+      "framerate": "Images/s"
+    },
     "cannotAnalyze": "Impossible d'analyser ce fichier",
     "checkPermissions": "Vérifiez les droits, l'espace disque ou les caractères invalides.",
     "skipConflictsBtn": "Ignorer les conflits",
