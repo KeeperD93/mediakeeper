@@ -178,10 +178,10 @@ async def test_metadata_route_assembles_track_lists(authed_client, monkeypatch, 
 
     assert r.status_code == 200
     body = r.json()
-    assert len(body["pistes_video"]) == 1
-    assert len(body["pistes_audio"]) == 1
-    assert body["pistes_sous_titres"] == []
-    assert body["duree"] == "1h 01m 01s"
+    assert len(body["video_tracks"]) == 1
+    assert len(body["audio_tracks"]) == 1
+    assert body["subtitle_tracks"] == []
+    assert body["duration_seconds"] == 3661.0
 
 
 @pytest.mark.asyncio

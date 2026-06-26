@@ -61,6 +61,8 @@ This section intentionally has no date so it is not shown to users.
 - Media library — track details no longer fail on a corrupted file.
 - Media Manager — undoing a batch rename no longer stops halfway (retry kept).
 - Media Manager — rename history labels follow the app language.
+- Media Manager — file info: track language/channels shown in your language.
+- Media Manager — file info: frame rate now displays correctly (NTSC).
 - Media Manager — accessible dialogs: keyboard focus, Esc, screen-reader announcement.
 - Media Manager — keyboard tabbing skips hidden dialogs and buttons.
 - Media Manager — files now line up with their generated names.

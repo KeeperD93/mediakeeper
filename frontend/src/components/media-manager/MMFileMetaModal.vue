@@ -31,12 +31,20 @@
           <div class="mm-info-grid">
             <span class="mm-info-label">{{ $t('mediaManager.fileSize') }}</span>
             <span class="mm-info-val">
-              {{ fileMetaModal.data?.taille || fileMetaModal.file.size_label || '—' }}
+              {{
+                formatBytes(fileMetaModal.data?.size_bytes, locale) ||
+                fileMetaModal.file.size_label ||
+                '—'
+              }}
             </span>
             <span class="mm-info-label">{{ $t('mediaManager.fileDuration') }}</span>
-            <span class="mm-info-val">{{ fileMetaModal.data?.duree || '—' }}</span>
+            <span class="mm-info-val">
+              {{ formatDuration(fileMetaModal.data?.duration_seconds) || '—' }}
+            </span>
             <span class="mm-info-label">{{ $t('mediaManager.fileBitrate') }}</span>
-            <span class="mm-info-val">{{ fileMetaModal.data?.debit_global || '—' }}</span>
+            <span class="mm-info-val">
+              {{ formatBitrate(fileMetaModal.data?.overall_bitrate_bps, locale) || '—' }}
+            </span>
             <span class="mm-info-label">{{ $t('mediaManager.fileModified') }}</span>
             <span class="mm-info-val">
               {{
@@ -54,84 +62,96 @@
             <span class="mm-info-label">{{ $t('mediaManager.filePath') }}</span>
             <span class="mm-info-val mm-info-path">{{ fileMetaModal.file.path }}</span>
           </div>
-          <template v-if="fileMetaModal.data?.pistes_video?.length">
+          <template v-if="fileMetaModal.data?.video_tracks?.length">
             <div class="mm-info-section-title">
               <Video :size="11" />
               {{ $t('mediaManager.videoSection') }}
             </div>
             <div
-              v-for="(t, ti) in fileMetaModal.data.pistes_video"
+              v-for="(t, ti) in fileMetaModal.data.video_tracks"
               :key="'v' + ti"
               class="mm-track-card"
             >
               <div class="mm-track-badges">
                 <span v-if="t.codec" class="mm-track-badge mm-badge-codec">{{ t.codec }}</span>
-                <span v-if="t.hdr" class="mm-track-badge mm-badge-hdr">{{ t.hdr }}</span>
+                <span v-if="t.hdr_type" class="mm-track-badge mm-badge-hdr">
+                  {{ hdrLabel(t.hdr_type) }}
+                </span>
                 <span v-if="t.resolution" class="mm-track-badge">{{ t.resolution }}</span>
                 <span v-if="t.fps" class="mm-track-badge">{{ t.fps }}</span>
-                <span v-if="t.bitrate" class="mm-track-badge">{{ t.bitrate }}</span>
-                <span v-if="t.profil" class="mm-track-badge mm-badge-dim">{{ t.profil }}</span>
+                <span v-if="t.bitrate_bps" class="mm-track-badge">
+                  {{ formatBitrate(t.bitrate_bps, locale) }}
+                </span>
+                <span v-if="t.profile" class="mm-track-badge mm-badge-dim">{{ t.profile }}</span>
               </div>
-              <div v-if="t.titre" class="mm-track-title">{{ t.titre }}</div>
+              <div v-if="t.title" class="mm-track-title">{{ t.title }}</div>
             </div>
           </template>
-          <template v-if="fileMetaModal.data?.pistes_audio?.length">
+          <template v-if="fileMetaModal.data?.audio_tracks?.length">
             <div class="mm-info-section-title">
               <Volume2 :size="11" />
               {{
                 $t('mediaManager.audioTracksWithCount', {
-                  count: fileMetaModal.data.pistes_audio.length,
+                  count: fileMetaModal.data.audio_tracks.length,
                 })
               }}
             </div>
             <div
-              v-for="(t, ti) in fileMetaModal.data.pistes_audio"
+              v-for="(t, ti) in fileMetaModal.data.audio_tracks"
               :key="'a' + ti"
               class="mm-track-card"
-              :class="{ 'mm-track-default': t.par_defaut }"
+              :class="{ 'mm-track-default': t.is_default }"
             >
               <div class="mm-track-badges">
-                <span v-if="t.langue" class="mm-track-badge mm-badge-lang">{{ t.langue }}</span>
+                <span v-if="t.language_code" class="mm-track-badge mm-badge-lang">
+                  {{ languageLabel(t.language_code, $t) }}
+                </span>
                 <span v-if="t.codec" class="mm-track-badge mm-badge-codec">{{ t.codec }}</span>
-                <span v-if="t.canaux" class="mm-track-badge">{{ t.canaux }}</span>
-                <span v-if="t.bitrate" class="mm-track-badge">{{ t.bitrate }}</span>
-                <span v-if="t.par_defaut" class="mm-track-badge mm-badge-default">
+                <span v-if="t.channels" class="mm-track-badge">
+                  {{ channelsLabel(t.channels, $t) }}
+                </span>
+                <span v-if="t.bitrate_bps" class="mm-track-badge">
+                  {{ formatBitrate(t.bitrate_bps, locale) }}
+                </span>
+                <span v-if="t.is_default" class="mm-track-badge mm-badge-default">
                   {{ $t('mediaManager.trackDefault') }}
                 </span>
-                <span v-if="t.commentaire" class="mm-track-badge mm-badge-dim">
+                <span v-if="t.is_commentary" class="mm-track-badge mm-badge-dim">
                   {{ $t('mediaManager.trackComment') }}
                 </span>
               </div>
-              <div v-if="t.titre" class="mm-track-title">{{ t.titre }}</div>
+              <div v-if="t.title" class="mm-track-title">{{ t.title }}</div>
             </div>
           </template>
-          <template v-if="fileMetaModal.data?.pistes_sous_titres?.length">
+          <template v-if="fileMetaModal.data?.subtitle_tracks?.length">
             <div class="mm-info-section-title">
               <Captions :size="11" />
               {{
                 $t('mediaManager.subtitleTracksWithCount', {
-                  count: fileMetaModal.data.pistes_sous_titres.length,
+                  count: fileMetaModal.data.subtitle_tracks.length,
                 })
               }}
             </div>
             <div
-              v-for="(t, ti) in fileMetaModal.data.pistes_sous_titres"
+              v-for="(t, ti) in fileMetaModal.data.subtitle_tracks"
               :key="'s' + ti"
               class="mm-track-card"
-              :class="{ 'mm-track-default': t.par_defaut }"
+              :class="{ 'mm-track-default': t.is_default }"
             >
               <div class="mm-track-badges">
-                <span v-if="t.langue" class="mm-track-badge mm-badge-lang">{{ t.langue }}</span>
+                <span v-if="t.language_code" class="mm-track-badge mm-badge-lang">
+                  {{ languageLabel(t.language_code, $t) }}
+                </span>
                 <span v-if="t.codec" class="mm-track-badge mm-badge-dim">{{ t.codec }}</span>
-                <span v-if="t.force" class="mm-track-badge mm-badge-warn">
+                <span v-if="t.is_forced" class="mm-track-badge mm-badge-warn">
                   {{ $t('mediaManager.trackForced') }}
                 </span>
-                <span v-if="t.malentendants" class="mm-track-badge mm-badge-dim">SDH</span>
-                <span v-if="t.par_defaut" class="mm-track-badge mm-badge-default">
+                <span v-if="t.is_hearing_impaired" class="mm-track-badge mm-badge-dim">SDH</span>
+                <span v-if="t.is_default" class="mm-track-badge mm-badge-default">
                   {{ $t('mediaManager.trackDefault') }}
                 </span>
               </div>
-              <div v-if="t.titre" class="mm-track-title">{{ t.titre }}</div>
+              <div v-if="t.title" class="mm-track-title">{{ t.title }}</div>
             </div>
           </template>
           <template v-if="fileMetaModal.parsed && Object.keys(fileMetaModal.parsed).length">
@@ -169,13 +189,23 @@
 
 <script setup>
 import { ref, computed, useId } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useMediaManager } from '@/composables/useMediaManager'
 import { useFocusTrap } from '@/composables/useFocusTrap'
 import { Captions, FileText, Info, Video, Volume2 } from 'lucide-vue-next'
 import MkSpinner from '@/components/common/MkSpinner.vue'
 import { localizedDate } from '@/utils/datetime'
+import {
+  formatBytes,
+  formatDuration,
+  formatBitrate,
+  hdrLabel,
+  channelsLabel,
+  languageLabel,
+} from '@/utils/mediaMeta'
 
 const { fileMetaModal, closeFileMeta } = useMediaManager()
+const { locale } = useI18n()
 
 const metaPanelRef = ref(null)
 const titleId = useId()
