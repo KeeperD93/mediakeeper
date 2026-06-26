@@ -460,6 +460,7 @@
     "upcomingEpCount": "Saison {season} — {count} épisode | Saison {season} — {count} épisodes",
     "runtimeMinutes": "{n} min",
     "seasonsCount": "{n} saison | {n} saisons",
+    "episodesCount": "{n} ép.",
     "notEnoughData": "Pas assez de données",
     "activityWeeks": "Activité (12 semaines)",
     "less": "Moins",

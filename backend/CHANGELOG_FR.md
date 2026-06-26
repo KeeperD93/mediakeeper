@@ -44,6 +44,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Gestionnaire de médias — renommer un dossier racine ne peut plus le sortir des chemins configurés.
 - Tableau de bord — onglets Historique (Notifications, Doublons) : bouton « Charger plus ».
 - Tableau de bord — fil d'activité : mises à jour de plugin affichées dans votre langue.
+- Tableau de bord — fil d'activité : fiche film/série traduite (saisons, épisodes, durée).
 - Tableau de bord — les alertes signalent désormais les événements admin (comptes, plugins).
 - Tableau de bord — avatar et anneau de rang corrects dès la connexion (sans actualiser).
 - Demandes (admin) — « Au nom de l'utilisateur » préréglé sur votre compte.
