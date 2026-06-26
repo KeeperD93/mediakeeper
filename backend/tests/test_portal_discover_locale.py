@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 
+from services.portal import media_title_localize as ml
 from tests._portal_profile_helpers import PORTAL_COOKIE, portal_token, make_portal_user
 
 
@@ -12,6 +13,21 @@ async def _auth(client, db_session):
         db_session, username="disc-i18n", display_name="V", role="viewer",
     )
     client.cookies.set(PORTAL_COOKIE, portal_token(user.username))
+
+
+def _patch_localize(monkeypatch):
+    """Make ``localize_titles`` actually re-resolve (non-default locale) via a
+    stubbed TMDB, so the route's localization wiring is exercised end-to-end."""
+    ml._title_cache.clear()
+
+    async def _key(db=None):
+        return "test-key"
+
+    async def _detail(mt, tid, db=None, locale=None):
+        return {"title": f"T{tid} [{locale}]"}
+
+    monkeypatch.setattr("services.portal.media_title_localize._get_tmdb_key", _key)
+    monkeypatch.setattr("services.portal.media_title_localize.get_media_detail", _detail)
 
 
 @pytest.mark.asyncio
@@ -57,3 +73,49 @@ async def test_category_uses_request_locale(client, db_session, monkeypatch):
     r = await client.get("/api/portal/catalog/category/movies", headers={"X-MK-Locale": "en"})
     assert r.status_code == 200, r.text
     assert captured["language"] == "en"
+
+
+@pytest.mark.asyncio
+async def test_watch_history_category_localizes_titles(client, db_session, monkeypatch):
+    """The watch-history browse category re-resolves item titles per viewer."""
+    await _auth(client, db_session)
+
+    async def _fake(db, user, profile, page=1, **kw):
+        return {
+            "items": [{"tmdb_id": 603, "media_type": "movie", "title": "Matrice"}],
+            "page": page, "has_more": False,
+        }
+
+    monkeypatch.setattr("services.portal.profile_stats.get_watch_history_paginated", _fake)
+    _patch_localize(monkeypatch)
+
+    r = await client.get(
+        "/api/portal/catalog/category/watch-history", headers={"X-MK-Locale": "en"}
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["items"][0]["title"] == "T603 [en]"
+
+    ml._title_cache.clear()
+    r_fr = await client.get("/api/portal/catalog/category/watch-history")  # default -> as-is
+    assert r_fr.json()["items"][0]["title"] == "Matrice"
+
+
+@pytest.mark.asyncio
+async def test_my_requests_category_localizes_titles(client, db_session, monkeypatch):
+    """The my-requests browse category re-resolves item titles per viewer."""
+    await _auth(client, db_session)
+
+    async def _fake(db, user, page=1, **kw):
+        return {
+            "items": [{"tmdb_id": 1399, "media_type": "tv", "title": "Trône"}],
+            "page": page, "has_more": False,
+        }
+
+    monkeypatch.setattr("services.portal.profile_stats.get_my_requests_paginated", _fake)
+    _patch_localize(monkeypatch)
+
+    r = await client.get(
+        "/api/portal/catalog/category/my-requests", headers={"X-MK-Locale": "en"}
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["items"][0]["title"] == "T1399 [en]"
