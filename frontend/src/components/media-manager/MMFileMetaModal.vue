@@ -205,7 +205,8 @@ import {
 } from '@/utils/mediaMeta'
 
 const { fileMetaModal, closeFileMeta } = useMediaManager()
-const { locale } = useI18n()
+// Aliased: the template uses ``t`` as the per-track v-for variable.
+const { t: translate, locale } = useI18n()
 
 const metaPanelRef = ref(null)
 const titleId = useId()
@@ -215,24 +216,12 @@ useFocusTrap({
   onEscape: closeFileMeta,
 })
 
-const META_LABELS = {
-  resolution: 'Resolution',
-  source: 'Source',
-  codec_video: 'Video codec',
-  codec_audio: 'Audio codec',
-  hdr: 'HDR',
-  bit_depth: 'Bit depth',
-  langues: 'Languages',
-  sous_titres: 'Subtitles',
-  annee: 'Year',
-  episode: 'Episode',
-  edition: 'Edition',
-  qualite_note: 'Quality',
-  team: 'Team / Group',
-  framerate: 'FPS',
-}
 function metaKeyLabel(key) {
-  return META_LABELS[key] || key
+  // Labels for the filename-parsed metadata grid, localized per viewer.
+  // Unknown keys (no i18n entry) fall back to the raw key.
+  const k = `mediaManager.detectedFields.${key}`
+  const label = translate(k)
+  return label === k ? key : label
 }
 </script>
 

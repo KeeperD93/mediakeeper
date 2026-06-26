@@ -72,3 +72,29 @@ def test_parse_streams_emits_machine_codes():
     assert subs[0]["language_code"] == "en"
     assert subs[0]["is_forced"] is True
     assert subs[0]["is_hearing_impaired"] is True
+
+
+def test_parse_streams_omits_falsy_disposition_and_channels():
+    """Falsy values must be OMITTED, not emitted as False/0.
+
+    The modal renders chips on key presence (``v-if='t.is_default'`` /
+    channel counts), so a disposition flag set to 0 (or channels=0) must
+    not appear as a key. Asserted on the track type that emits each flag:
+    audio carries ``is_default``, subtitles carry ``is_forced`` /
+    ``is_hearing_impaired``.
+    """
+    _, audio, subs = _parse_streams([
+        {
+            "codec_type": "audio", "codec_name": "aac", "channels": 0,
+            "disposition": {"default": 0},
+        },
+        {
+            "codec_type": "subtitle", "codec_name": "subrip",
+            "tags": {"language": "eng"},
+            "disposition": {"forced": 0, "hearing_impaired": 0},
+        },
+    ])
+    assert "is_default" not in audio[0]  # audio emits is_default when truthy
+    assert "channels" not in audio[0]    # channels=0 dropped by the falsy filter
+    assert "is_forced" not in subs[0]            # subs emit is_forced when truthy
+    assert "is_hearing_impaired" not in subs[0]

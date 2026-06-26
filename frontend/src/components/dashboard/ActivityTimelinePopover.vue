@@ -189,4 +189,9 @@ defineExpose({ contains: target => cardRef.value?.contains(target) })
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+@media (prefers-reduced-motion: reduce) {
+  .pop-card {
+    animation: none;
+  }
+}
 </style>

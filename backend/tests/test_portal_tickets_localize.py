@@ -72,3 +72,37 @@ async def test_list_tickets_localizes_media_title(db_session, monkeypatch):
     ml._title_cache.clear()
     res_fr = await ticket_svc.list_tickets(db_session, user.id, page=1, locale="fr")  # default -> as-is
     assert any(it["media_title"] == "Trône" for it in res_fr["items"])
+
+
+@pytest.mark.asyncio
+async def test_admin_drawer_tickets_localizes(db_session, monkeypatch):
+    """The admin user-drawer Tickets tab re-resolves titles too.
+
+    Unlike the ticket service (``title_key="media_title"``), the drawer
+    aliases ``media_title`` onto the default ``title`` key and relies on the
+    ``tmdb_id`` field, so this pins both the default-key path and the
+    ``series`` -> ``tv`` alias on the admin feed.
+    """
+    from services.portal import admin_users_feed
+
+    user = User(
+        username="ticket-drawer-i18n",
+        hashed_password=hash_password("ViewerPassword123!"),
+        is_active=True,
+        must_change_password=False,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    db_session.add(Ticket(
+        user_id=user.id, tmdb_id=1399, media_title="Trône", media_type="series",
+        issue_type="video", description="x",
+    ))
+    await db_session.commit()
+
+    async def _detail(mt, tid, db=None, locale=None):
+        return {"title": f"T{tid} [{mt}/{locale}]"}
+
+    _patch(monkeypatch, _detail)
+    res = await admin_users_feed.list_user_tickets(db_session, user.id, locale="en")
+    assert any(it["title"] == "T1399 [tv/en]" for it in res["items"])  # series -> tv
