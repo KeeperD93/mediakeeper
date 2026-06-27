@@ -1,0 +1,267 @@
+/* ---------- Tab bar wrapper ---------- */
+.vmd2-tabs-wrap {
+  position: relative;
+  z-index: 10;
+  padding: 0.75rem 5%;
+  background: rgb(10, 12, 19, 0.92);
+  border-bottom: 1px solid var(--portal-border-subtle);
+}
+/* The wrapper is 92% opaque, so its own blur added nothing but stacked
+   with the sticky TabStrip's blur into an intermittent white glow over
+   the bright hero during scroll (nested backdrop-filters can flicker).
+   Drop both here; the shared TabStrip keeps its glass on other pages. */
+.vmd2-tabs-wrap .mk-tabs-wrap {
+  backdrop-filter: none;
+}
+@media (min-width: 768px) {
+  .vmd2-tabs-wrap {
+    padding: 0.75rem 4%;
+  }
+}
+
+/* ---------- Sections ---------- */
+.vmd2-section {
+  padding: 2rem 5%;
+}
+@media (min-width: 768px) {
+  .vmd2-section {
+    padding: 2.5rem 4%;
+  }
+}
+.vmd2-section h2 {
+  font-size: clamp(1.2rem, 2vw + 0.4rem, 1.6rem);
+  font-weight: var(--portal-font-extrabold);
+  margin: 0 0 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.vmd2-section h2::before {
+  content: '';
+  width: 4px;
+  height: 22px;
+  background: var(--accent-500);
+  border-radius: 2px;
+}
+.vmd2-section h3 {
+  font-size: var(--portal-text-md);
+  font-weight: var(--portal-font-extrabold);
+  color: var(--portal-text-body);
+  margin: 1.25rem 0 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: var(--portal-tracking-caps);
+}
+
+.vmd2-layout {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 1024px) {
+  /* Main column capped at a readable width so long paragraphs wrap
+     instead of spanning a 1920px monitor end-to-end. Remaining space
+     is absorbed by the sidebar column (pinned right, 400px max). */
+  .vmd2-layout {
+    grid-template-columns: minmax(0, 720px) minmax(0, 1fr);
+  }
+  .vmd2-layout > .vmd2-sidebar {
+    max-width: 400px;
+    margin-left: auto;
+  }
+}
+/* Cap every child of the main column (synopsis, keyword chips row,
+   providers row) at the same readable width. Stops 15 keyword chips
+   from sprawling across a wide desktop. */
+.vmd2-layout > :first-child {
+  min-width: 0;
+  max-width: 720px;
+}
+.vmd2-overview {
+  font-size: var(--portal-text-md);
+  line-height: 1.75;
+  color: var(--portal-text-body);
+  margin: 0 0 1.5rem;
+}
+
+/* --- Keywords --- */
+.vmd2-keyword-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.vmd2-keyword {
+  padding: 0.3rem 0.7rem;
+  background: var(--portal-surface-2);
+  border: 1px solid var(--portal-border-default);
+  border-radius: var(--radius-sm);
+  font-size: var(--portal-text-xs);
+  color: var(--portal-text-body-muted);
+  /* Static chips, no click target wired yet — keep cursor default so
+     users don't expect a navigation that doesn't exist. */
+  cursor: default;
+}
+
+/* --- Providers --- */
+.vmd2-provider-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.vmd2-provider {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgb(0, 0, 0, 0.3);
+}
+.vmd2-provider img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* --- Sidebar facts --- */
+.vmd2-sidebar {
+  background: var(--portal-surface-2);
+  border: 1px solid var(--portal-border-subtle);
+  border-radius: var(--radius-card);
+  padding: 1.25rem;
+  height: fit-content;
+}
+/* Reset the top margin on the first heading inside the sidebar so it
+   aligns with the padding, without relying on an inline `style="margin-top:0"`. */
+.vmd2-sidebar > h3:first-child {
+  margin-top: 0;
+}
+
+/* Shared section-break heading used when a second <h2> follows another
+   block inside the same vmd2-section (key crew, recent reviews,
+   recommended-for-you…). Keeps the vertical rhythm consistent and
+   removes the old inline `style="margin-top: 2.5rem"`.
+   Selector includes `h2` to beat the `.vmd2-section h2 { margin: 0 ... }`
+   shorthand which would otherwise reset margin-top to 0. */
+.vmd2-section h2.vmd2-section-break {
+  margin-top: 2.5rem;
+}
+
+/* Collection banner — margin reset on the saga title + overview. Used
+   by the real detail page and the demo so the inline `style="margin: …"`
+   hardcodes can be dropped. */
+.vmd2-collection-title {
+  margin: 0 0 0.75rem;
+}
+.vmd2-collection-overview {
+  margin-bottom: 1.5rem;
+}
+.vmd2-facts-list {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  gap: 0;
+  margin: 0;
+}
+.vmd2-facts-list dt,
+.vmd2-facts-list dd {
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--portal-border-subtle);
+}
+.vmd2-facts-list > dt:nth-last-of-type(1),
+.vmd2-facts-list > dd:nth-last-of-type(1) {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.vmd2-facts-list dt {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-right: 1rem;
+  font-size: var(--portal-text-2xs);
+  text-transform: uppercase;
+  letter-spacing: var(--portal-tracking-caps);
+  color: var(--portal-text-muted);
+  font-weight: var(--portal-font-bold);
+}
+.vmd2-fact-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--portal-text-body-muted);
+}
+.vmd2-facts-list dd {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  font-size: var(--portal-text-base);
+  font-weight: var(--portal-font-medium);
+}
+.vmd2-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--portal-color-neutral-dark);
+}
+.vmd2-status-dot--success {
+  background: var(--portal-color-success);
+}
+.vmd2-status-dot--warning {
+  background: var(--portal-color-warning);
+}
+.vmd2-status-dot--error {
+  background: var(--portal-color-error);
+}
+.vmd2-status-dot--neutral {
+  background: var(--portal-color-neutral-dark);
+}
+.vmd2-sidebar-heading {
+  position: relative;
+  padding-left: 0.7rem;
+  margin: 1.5rem 0 0.75rem;
+}
+.vmd2-sidebar-heading::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.15em;
+  bottom: 0.15em;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--portal-color-info);
+}
+.vmd2-sidebar > .vmd2-sidebar-heading:first-child {
+  margin-top: 0;
+}
+.vmd2-link-icon {
+  width: 12px;
+  height: 12px;
+  margin-left: 0.35rem;
+  flex-shrink: 0;
+}
+.vmd2-external-links {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.vmd2-external-links a {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 0.7rem;
+  background: var(--portal-surface-2);
+  border: 1px solid var(--portal-border-default);
+  border-radius: var(--radius-sm);
+  color: var(--accent-300);
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-medium);
+  text-decoration: none;
+  transition: background var(--portal-dur-fast);
+}
+@media (hover: hover) {
+  .vmd2-external-links a:hover {
+    background: rgb(var(--accent-rgb), 0.15);
+  }
+}

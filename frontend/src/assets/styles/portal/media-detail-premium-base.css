@@ -1,0 +1,90 @@
+/* =======================================================================
+   Premium detail page styling. Shared by the demo route (fake data) and
+   the real viewer (live TMDB data). Information-dense layout inspired
+   by modern streaming catalogues, themed with the MediaKeeper accent
+   system and translated to our radius / mobile-first rules.
+   ======================================================================= */
+
+.vmd2-root {
+  position: relative;
+  color: var(--portal-text-primary);
+  min-height: 100vh;
+  -webkit-tap-highlight-color: transparent;
+  /* Contain the ::before backdrop in its own stacking context so
+     ``z-index: -1`` keeps it behind all children without forcing every
+     child to claim a ``z-index`` of its own. */
+  isolation: isolate;
+}
+
+/* Fixed backdrop tint, same flat colour as .arr-page (Portal /
+   Problèmes / Listes). Rendered as a ::before so it always covers the
+   viewport behind the content — no ``padding-bottom`` hack that would
+   extend the document, no ``box-shadow`` that parents might clip. */
+.vmd2-root::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: var(--portal-veil-page);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* ---------- Loading spinner ---------- */
+.vmd2-loading {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--portal-veil-page);
+}
+/* ---------- Request button states (mirrors old .vmd-btn--*) ---------- */
+.vmd2-btn--requested {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: var(--portal-text-primary);
+  box-shadow: 0 4px 20px rgb(139, 92, 246, 0.45);
+}
+.vmd2-btn--approved {
+  background: linear-gradient(135deg, var(--portal-color-success-light) 0%, #16a34a 100%);
+  color: var(--portal-text-primary);
+  box-shadow: 0 4px 20px rgb(74, 222, 128, 0.45);
+}
+.vmd2-btn--rejected,
+.vmd2-btn--resubmit {
+  background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%);
+  color: var(--portal-text-primary);
+  box-shadow: 0 4px 20px rgb(var(--portal-color-highlight-rgb), 0.45);
+}
+.vmd2-btn--available {
+  background: linear-gradient(135deg, #22d3ee 0%, #0891b2 100%);
+  color: var(--portal-text-primary);
+  box-shadow: 0 4px 20px rgb(34, 211, 238, 0.45);
+}
+.vmd2-btn:disabled {
+  opacity: 0.85;
+  cursor: default;
+}
+.vmd2-btn--requested:disabled,
+.vmd2-btn--approved:disabled,
+.vmd2-btn--available:disabled {
+  opacity: 1;
+}
+.vmd2-btn-emby {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+/* "Similar" tab — provide vertical rhythm for nested MediaCarousel
+   components that bring their own 5%/4% horizontal padding. Full
+   viewport width so carousels align with the Home page. */
+.vmd2-similar-wrap {
+  padding: 2rem 0 3rem;
+}
+
+/* No-data placeholders in tabs */
+.vmd2-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--portal-text-muted);
+  font-style: italic;
+}

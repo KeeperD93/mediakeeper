@@ -1,0 +1,178 @@
+/* --- Scrollers (recs / extras / seasons) --- */
+.vmd2-scroller {
+  display: flex;
+  gap: 0.85rem;
+  overflow: auto clip;
+  /* ``clip`` instead of default so hover-scaled MediaCards (1.08) and
+     their drop-shadows don't clip at the top/bottom edges when this
+     scroller hosts them (saga block). Vertical padding aligned on the
+     track rhythm shared with the portal home carousels. */
+  padding: var(--portal-section-rhythm-track) 0;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.vmd2-scroller::-webkit-scrollbar {
+  display: none;
+}
+.vmd2-rec-card {
+  flex-shrink: 0;
+  width: clamp(140px, 22vw, 170px);
+  scroll-snap-align: start;
+  text-decoration: none;
+  color: inherit;
+}
+.vmd2-rec-poster {
+  width: 100%;
+  aspect-ratio: 2/3;
+  border-radius: var(--radius-card);
+  object-fit: cover;
+  transition: transform var(--portal-dur-base);
+  position: relative;
+}
+.vmd2-rec-card:hover .vmd2-rec-poster {
+  transform: scale(1.04);
+}
+.vmd2-rec-poster-wrap {
+  position: relative;
+}
+.vmd2-rec-score {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 0.2rem 0.45rem;
+  background: rgb(0, 0, 0, 0.8);
+  border: 1px solid #21d07a;
+  border-radius: var(--portal-radius-pill);
+  font-size: var(--portal-text-2xs);
+  font-weight: var(--portal-font-extrabold);
+  color: #21d07a;
+}
+.vmd2-rec-title {
+  display: block;
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-bold);
+  margin-top: 0.5rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.vmd2-rec-year {
+  font-size: var(--portal-text-xs);
+  color: var(--portal-text-secondary);
+}
+
+/* --- Collection banner --- */
+.vmd2-collection {
+  position: relative;
+  padding: 3rem 5%;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  margin: 2rem 5%;
+  max-width: none;
+}
+.vmd2-collection-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(2px) brightness(0.4);
+  opacity: 0.55;
+  z-index: 0;
+  /* Soft fade on every edge of the saga banner so the backdrop melts
+     into the page tint. Radial alone couldn't handle a very wide
+     banner: we stack a horizontal and a vertical linear fade and
+     intersect them so all four edges (including the long top/bottom
+     runs) dissolve smoothly. */
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0%, #000 8%, #000 92%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, #000 18%, #000 82%, transparent 100%);
+  mask-image:
+    linear-gradient(to right, transparent 0%, #000 8%, #000 92%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, #000 18%, #000 82%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+.vmd2-collection-body {
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+}
+.vmd2-collection-kicker {
+  font-size: var(--portal-text-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--portal-tracking-eyebrow);
+  color: var(--accent-300);
+  font-weight: var(--portal-font-extrabold);
+  margin-bottom: 0.35rem;
+}
+
+/* --- Extras (videos) --- */
+.vmd2-video-card {
+  flex-shrink: 0;
+  width: clamp(220px, 32vw, 280px);
+  scroll-snap-align: start;
+}
+.vmd2-video-thumb-wrap {
+  position: relative;
+  aspect-ratio: 16/9;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  background: #000;
+}
+.vmd2-video-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.vmd2-video-play {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0, 0, 0, 0.25);
+  opacity: 0;
+  transition: opacity var(--portal-dur-base);
+}
+.vmd2-video-card:hover .vmd2-video-play {
+  opacity: 1;
+}
+.vmd2-video-play svg {
+  width: 56px;
+  height: 56px;
+  color: var(--portal-text-primary);
+  filter: drop-shadow(0 4px 12px rgb(0, 0, 0, 0.6));
+}
+.vmd2-video-type {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  padding: 0.2rem 0.5rem;
+  background: rgb(0, 0, 0, 0.8);
+  border-radius: var(--radius-sm);
+  font-size: var(--portal-text-2xs);
+  font-weight: var(--portal-font-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--portal-tracking-caps);
+}
+.vmd2-video-title {
+  display: block;
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-bold);
+  margin-top: 0.5rem;
+}
+
+/* --- Demo banner --- */
+.vmd2-demo-banner {
+  position: relative;
+  z-index: 3;
+  padding: 0.6rem 5%;
+  background: linear-gradient(90deg, rgb(var(--accent-rgb), 0.25), rgb(var(--accent-rgb), 0.1));
+  border-bottom: 1px solid rgb(var(--accent-rgb), 0.3);
+  font-size: var(--portal-text-sm);
+  text-align: center;
+  color: var(--portal-text-body);
+}
+.vmd2-demo-banner strong {
+  color: var(--accent-300);
+}
