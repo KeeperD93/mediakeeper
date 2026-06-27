@@ -85,6 +85,11 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   line-height: var(--portal-lh-display);
+  /* Breathing room so overflow:hidden doesn't shave the ink overhang of
+     the first/last glyph; the negative margin keeps the width (and the
+     ellipsis threshold) unchanged. */
+  padding-inline: 2px;
+  margin-inline: -2px;
 }
 
 .pt-bottom-tab-badge {
