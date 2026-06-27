@@ -29,7 +29,7 @@ export function useMMRenamePanelUI({ rightListRef, newNames }) {
       if (!rows.length) return []
       // Rows live in container-document coordinates (lasso bakes
       // ``scrollTop`` in), so anchor row rects to the same origin: each
-      // row's offsetTop relative to the container is its top edge in
+      // row's bounding-rect top relative to the container is its top edge in
       // that coordinate space, regardless of current scroll.
       // admin zoom: getBoundingClientRect deltas are zoomed; scale them into the
       // unzoomed content space the lasso now emits y1/y2 in (utils/zoom).

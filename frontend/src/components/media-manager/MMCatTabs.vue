@@ -168,6 +168,7 @@ import { ref, computed, watch, onMounted, onUnmounted, nextTick, useId } from 'v
 import { useI18n } from 'vue-i18n'
 import { useMediaManager, CATS } from '@/composables/useMediaManager'
 import { useApi } from '@/composables/useApi'
+import { rootZoom } from '@/utils/zoom'
 import { useFocusTrap } from '@/composables/useFocusTrap'
 import {
   Check,
@@ -290,7 +291,8 @@ async function submitAdd() {
 const deleteMenu = ref({ show: false, x: 0, y: 0, key: '' })
 
 function openDeleteMenu(e, key) {
-  deleteMenu.value = { show: true, x: e.clientX, y: e.clientY, key }
+  const z = rootZoom() // admin zoom: divide the final position (utils/zoom)
+  deleteMenu.value = { show: true, x: e.clientX / z, y: e.clientY / z, key }
   const close = () => {
     deleteMenu.value.show = false
     document.removeEventListener('click', close)

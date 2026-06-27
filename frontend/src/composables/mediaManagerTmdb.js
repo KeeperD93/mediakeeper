@@ -18,6 +18,7 @@ import {
 } from './mediaManagerState'
 import { cleanName, extractYear, _levenshtein } from './mediaManagerHelpers'
 import { checkedFiles, checkedDirs, _registerAutoSearch } from './mediaManagerNavigation'
+import { rootZoom } from '@/utils/zoom'
 
 function _validYear(y) {
   if (y === null || y === undefined || y === '') return null
@@ -95,24 +96,26 @@ export async function loadSeasons(tmdbId) {
 
 export function showTooltipTmdb(item, e) {
   const ov = (item.overview || '').slice(0, 240) + ((item.overview || '').length > 240 ? '…' : '')
+  const z = rootZoom() // admin zoom: divide the final position (utils/zoom)
   tooltip.value = {
     visible: true,
     title: item.title || '',
     year: item.year || '—',
     vote: item.vote ? item.vote.toFixed(1) : '—',
     overview: ov,
-    x: e.clientX + 14,
-    y: e.clientY + 14,
+    x: (e.clientX + 14) / z,
+    y: (e.clientY + 14) / z,
   }
 }
 export function moveTooltip(e) {
   if (!tooltip.value.visible) return
+  const z = rootZoom() // admin zoom: divide the final position (utils/zoom)
   let x = e.clientX + 14,
     y = e.clientY + 14
   if (x + 250 > window.innerWidth) x = e.clientX - 264
   if (y + 120 > window.innerHeight) y = e.clientY - 134
-  tooltip.value.x = x
-  tooltip.value.y = y
+  tooltip.value.x = x / z
+  tooltip.value.y = y / z
 }
 export function hideTooltip() {
   tooltip.value.visible = false

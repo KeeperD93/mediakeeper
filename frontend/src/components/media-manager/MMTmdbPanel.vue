@@ -161,16 +161,20 @@
       </div>
     </div>
 
-    <!-- Tooltip TMDB -->
-    <div
-      class="mm-tooltip"
-      :class="{ visible: tooltip.visible }"
-      :style="{ left: tooltip.x + 'px', top: tooltip.y + 'px' }"
-    >
-      <div class="mm-tt-title">{{ tooltip.title }}</div>
-      <div class="mm-tt-meta">{{ tooltip.year }} · ★ {{ tooltip.vote }}</div>
-      <div class="mm-tt-overview">{{ tooltip.overview || $t('mediaManager.noSynopsis') }}</div>
-    </div>
+    <!-- Tooltip TMDB — teleported to <body> so the fixed popup is positioned
+         against the viewport (like the other hover popups), not against this
+         column, and stays put under the admin zoom. -->
+    <Teleport to="body">
+      <div
+        class="mm-tooltip"
+        :class="{ visible: tooltip.visible }"
+        :style="{ left: tooltip.x + 'px', top: tooltip.y + 'px' }"
+      >
+        <div class="mm-tt-title">{{ tooltip.title }}</div>
+        <div class="mm-tt-meta">{{ tooltip.year }} · ★ {{ tooltip.vote }}</div>
+        <div class="mm-tt-overview">{{ tooltip.overview || $t('mediaManager.noSynopsis') }}</div>
+      </div>
+    </Teleport>
   </div>
 </template>
 

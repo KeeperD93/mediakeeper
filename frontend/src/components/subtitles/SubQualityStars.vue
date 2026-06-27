@@ -56,6 +56,7 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { Star } from 'lucide-vue-next'
+import { rootZoom } from '@/utils/zoom'
 
 const props = defineProps({
   score: { type: Number, default: 0 },
@@ -73,11 +74,12 @@ const ratingsBonus = computed(() => {
 
 function updatePos() {
   if (!wrapRef.value) return
+  const z = rootZoom() // admin zoom: divide the final position (utils/zoom)
   const r = wrapRef.value.getBoundingClientRect()
   popupPos.value = {
     position: 'fixed',
-    left: r.left + 'px',
-    top: r.bottom + 6 + 'px',
+    left: r.left / z + 'px',
+    top: (r.bottom + 6) / z + 'px',
     zIndex: 9999,
   }
 }

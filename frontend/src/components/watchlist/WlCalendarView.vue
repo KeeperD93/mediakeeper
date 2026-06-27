@@ -39,6 +39,7 @@
 import { ref, computed, onMounted, onUnmounted, onActivated, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useWatchlist } from '@/composables/useWatchlist'
+import { rootZoom } from '@/utils/zoom'
 import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import MkSpinner from '@/components/common/MkSpinner.vue'
 import WlCalGrid from './WlCalendarView/WlCalGrid.vue'
@@ -117,13 +118,14 @@ function openDayModal(day) {
 }
 
 function openItemPopup(e, item) {
+  const z = rootZoom() // admin zoom: divide the final position (utils/zoom)
   const rect = e.currentTarget.getBoundingClientRect()
   const spaceBelow = window.innerHeight - rect.bottom
   const popupH = 220
   const top = spaceBelow > popupH ? rect.bottom + 6 : rect.top - popupH - 6
   const left = Math.max(8, Math.min(rect.left, window.innerWidth - 300))
   popup.item = item
-  popup.style = { top: top + 'px', left: left + 'px' }
+  popup.style = { top: top / z + 'px', left: left / z + 'px' }
   popup.visible = true
 }
 
