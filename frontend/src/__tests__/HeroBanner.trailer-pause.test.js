@@ -13,9 +13,11 @@ vi.mock('@/composables/portal/useRequestStatus', () => ({
 
 vi.mock('@/composables/portal/useTrailer', async () => {
   const { ref } = await vi.importActual('vue')
+  const descriptor = { source: 'youtube', url: 'https://x', key: 'abc', name: 'Trailer' }
   return {
     useTrailer: () => ({
-      trailer: ref({ source: 'youtube', url: 'https://x', key: 'abc', name: 'Trailer' }),
+      trailer: ref(descriptor),
+      candidates: ref([descriptor]),
       resolve: vi.fn(),
       prefetch: vi.fn(),
     }),

@@ -19,7 +19,7 @@ from core.http_client import get_internal_client
 from models.user import User
 from models.portal.profile import UserProfile
 from api.portal.deps import get_current_profile
-from services.portal.trailers import resolve_trailer, stream_emby_trailer
+from services.portal.trailers import resolve_trailer, resolve_trailers, stream_emby_trailer
 
 router = APIRouter(prefix="/trailers", tags=["portal-trailers"])
 logger = logging.getLogger("mediakeeper.portal.trailers")
@@ -91,19 +91,23 @@ async def resolve(
     db: AsyncSession = Depends(get_db),
 ):
     """
-    Resolve the best trailer for a given media using the cascade.
+    Resolve trailers for a given media using the cascade.
+
+    Returns the best trailer (``trailer``) plus the full ranked candidate
+    list (``candidates``) so the player can fall back to another one when
+    the first is region-blocked by the provider. ``candidates[0] == trailer``.
     The user's preferred language is read from their Portal profile.
     """
     _, profile = up
     user_lang = (profile.language or "en").split("-")[0].lower()
     try:
-        trailer = await resolve_trailer(
+        candidates = await resolve_trailers(
             db, media_type, tmdb_id, user_lang, emby_item_id=emby_item_id
         )
     except Exception as e:
         logger.warning(f"[TRAILERS] resolve failed: {e}")
-        trailer = None
-    return {"trailer": trailer}
+        candidates = []
+    return {"trailer": candidates[0] if candidates else None, "candidates": candidates}
 
 
 @router.get("/emby/{trailer_id}")

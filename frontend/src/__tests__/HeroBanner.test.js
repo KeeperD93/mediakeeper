@@ -16,7 +16,12 @@ vi.mock('@/composables/portal/useRequestStatus', () => ({
 }))
 
 vi.mock('@/composables/portal/useTrailer', () => ({
-  useTrailer: () => ({ trailer: ref(null), resolve: vi.fn(), prefetch: vi.fn() }),
+  useTrailer: () => ({
+    trailer: ref(null),
+    candidates: ref([]),
+    resolve: vi.fn(),
+    prefetch: vi.fn(),
+  }),
 }))
 
 vi.mock('@/components/portal/TrailerLightbox.vue', () => ({

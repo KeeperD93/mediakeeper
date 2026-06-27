@@ -331,3 +331,41 @@ async def test_resolve_rejects_non_alphanumeric_emby_item_id(client, db_session)
         params={"media_type": "movie", "tmdb_id": 1, "emby_item_id": "abc?x=y"},
     )
     assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_resolve_returns_candidates_and_best(client, db_session):
+    """The resolve endpoint returns the full candidate list plus the best
+    one (candidates[0]) so the player can fall back past a blocked trailer."""
+    await _seed_portal_viewer(client, db_session, "viewer_tr_cand")
+    cands = [
+        {"source": "youtube", "key": "AAA",
+         "url": "https://www.youtube-nocookie.com/embed/AAA",
+         "language": "fr", "name": "BA officielle"},
+        {"source": "youtube", "key": "BBB",
+         "url": "https://www.youtube-nocookie.com/embed/BBB",
+         "language": "en", "name": "Trailer"},
+    ]
+    with patch("api.portal.trailers.resolve_trailers", AsyncMock(return_value=cands)):
+        resp = await client.get(
+            "/api/portal/trailers/resolve",
+            params={"media_type": "movie", "tmdb_id": 42},
+        )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["candidates"] == cands
+    assert data["trailer"] == cands[0]
+
+
+@pytest.mark.asyncio
+async def test_resolve_empty_candidates_returns_null_trailer(client, db_session):
+    await _seed_portal_viewer(client, db_session, "viewer_tr_empty")
+    with patch("api.portal.trailers.resolve_trailers", AsyncMock(return_value=[])):
+        resp = await client.get(
+            "/api/portal/trailers/resolve",
+            params={"media_type": "movie", "tmdb_id": 43},
+        )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["trailer"] is None
+    assert data["candidates"] == []

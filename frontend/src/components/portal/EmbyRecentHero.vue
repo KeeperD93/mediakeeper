@@ -1,6 +1,10 @@
 <template>
   <section ref="sectionRef" class="pt-eh">
-    <TrailerLightbox v-if="lightboxOpen && trailer" :trailer="trailer" @close="closeLightbox" />
+    <TrailerLightbox
+      v-if="lightboxOpen && candidates.length"
+      :trailers="candidates"
+      @close="closeLightbox"
+    />
 
     <div class="pt-eh-hero">
       <Transition name="pt-eh-bg-fade">
@@ -124,7 +128,7 @@ const lightboxOpen = ref(false)
 // button can show / hide based on availability; clicking the button
 // opens the fullscreen lightbox where the actual <iframe> finally
 // lives. Module-level cache keeps the per-item resolve to one request.
-const { trailer, resolve: resolveTrailer } = useTrailer()
+const { trailer, candidates, resolve: resolveTrailer } = useTrailer()
 
 const visibleItems = computed(() => props.items.slice(0, MAX_VISIBLE))
 const showSeeMoreCard = computed(() => props.items.length > 0)

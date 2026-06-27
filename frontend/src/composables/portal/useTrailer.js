@@ -1,8 +1,8 @@
 /**
  * useTrailer
  * ----------
- * Tiny composable that asks the backend for the best available trailer
- * for a given media, using the cascade implemented in
+ * Tiny composable that asks the backend for the available trailers for a
+ * given media, using the cascade implemented in
  * ``backend/services/portal/trailers.py``:
  *
  *   1. Emby LocalTrailer  → MP4 streamed via /api/portal/trailers/emby/{id}
@@ -14,7 +14,10 @@
  * The backend reads the user's preferred language from their Portal
  * profile, so the caller doesn't have to pass it.
  *
- * Returned shape:
+ * Exposes both ``trailer`` (the best descriptor — drives the button
+ * visibility) and ``candidates`` (the full ranked list, best first) so the
+ * player can fall back to another one when the first is region-blocked by
+ * the provider. Each descriptor:
  *   { source: 'emby' | 'youtube' | 'vimeo',
  *     url:    string,           // ready to drop into <video> or <iframe>
  *     key:    string | null,    // provider id when applicable
@@ -24,9 +27,10 @@
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
 
-// Module-level cache shared across every useTrailer() instance so that
-// the hero banner can prefetch the next item's trailer in parallel with
-// the current one playing — the rotation then resolves instantly.
+// Module-level cache shared across every useTrailer() instance: key -> the
+// ranked candidate list (best first). The hero can prefetch the next item's
+// trailers in parallel with the current one playing — the rotation then
+// resolves instantly.
 const trailerCache = new Map()
 
 function cacheKey(mediaType, tmdbId, embyItemId) {
@@ -36,6 +40,7 @@ function cacheKey(mediaType, tmdbId, embyItemId) {
 export function useTrailer() {
   const { apiGet } = useApi()
   const trailer = ref(null)
+  const candidates = ref([])
   const loading = ref(false)
 
   async function fetchFromApi(mediaType, tmdbId, embyItemId) {
@@ -43,33 +48,39 @@ export function useTrailer() {
     if (embyItemId) params.set('emby_item_id', embyItemId)
     try {
       const res = await apiGet(`/api/portal/trailers/resolve?${params.toString()}`)
-      return res?.trailer || null
+      // Tolerate the legacy single-trailer response shape too.
+      return res?.candidates || (res?.trailer ? [res.trailer] : [])
     } catch {
-      return null
+      return []
     }
   }
 
+  function applyList(list) {
+    candidates.value = list
+    trailer.value = list[0] || null
+  }
+
   /**
-   * Resolve a trailer for the given media.
+   * Resolve trailers for the given media.
    * @param {('movie'|'tv')} mediaType
    * @param {number} tmdbId
    * @param {string=} embyItemId  Optional, enables the Emby LocalTrailers step.
    */
   async function resolve(mediaType, tmdbId, embyItemId = null) {
     if (!mediaType || !tmdbId) {
-      trailer.value = null
+      applyList([])
       return null
     }
     const key = cacheKey(mediaType, tmdbId, embyItemId)
     if (trailerCache.has(key)) {
-      trailer.value = trailerCache.get(key)
+      applyList(trailerCache.get(key))
       return trailer.value
     }
     loading.value = true
     try {
-      const result = await fetchFromApi(mediaType, tmdbId, embyItemId)
-      trailerCache.set(key, result)
-      trailer.value = result
+      const list = await fetchFromApi(mediaType, tmdbId, embyItemId)
+      trailerCache.set(key, list)
+      applyList(list)
     } finally {
       loading.value = false
     }
@@ -77,33 +88,31 @@ export function useTrailer() {
   }
 
   /**
-   * Fire-and-forget prefetch: resolves the trailer URL and fills the
-   * module cache but never touches ``trailer`` so the current playback
-   * state stays intact.
+   * Fire-and-forget prefetch: fills the module cache but never touches the
+   * reactive refs, so the current playback state stays intact.
    */
   async function prefetch(mediaType, tmdbId, embyItemId = null) {
     if (!mediaType || !tmdbId) return
     const key = cacheKey(mediaType, tmdbId, embyItemId)
     if (trailerCache.has(key)) return
-    const result = await fetchFromApi(mediaType, tmdbId, embyItemId)
-    trailerCache.set(key, result)
+    trailerCache.set(key, await fetchFromApi(mediaType, tmdbId, embyItemId))
   }
 
   /**
-   * Synchronous cache peek. Returns ``undefined`` when the key has
-   * never been resolved, or the cached value (possibly ``null`` when
-   * the item is known to have no trailer).
+   * Synchronous cache peek of the best trailer. Returns ``undefined`` when
+   * the key has never been resolved, the best descriptor otherwise (or
+   * ``null`` when the item is known to have no trailer).
    */
   function peek(mediaType, tmdbId, embyItemId = null) {
     if (!mediaType || !tmdbId) return undefined
     const key = cacheKey(mediaType, tmdbId, embyItemId)
     if (!trailerCache.has(key)) return undefined
-    return trailerCache.get(key)
+    return trailerCache.get(key)[0] || null
   }
 
   function clear() {
-    trailer.value = null
+    applyList([])
   }
 
-  return { trailer, loading, resolve, prefetch, peek, clear }
+  return { trailer, candidates, loading, resolve, prefetch, peek, clear }
 }

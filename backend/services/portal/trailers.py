@@ -79,6 +79,28 @@ async def resolve_trailer(
     return await _resolve_tmdb_trailer(db, media_type, tmdb_id, user_language)
 
 
+async def resolve_trailers(
+    db: AsyncSession,
+    media_type: str,
+    tmdb_id: int,
+    user_language: str = "en",
+    emby_item_id: Optional[str] = None,
+) -> list[dict]:
+    """Run the cascade and return ALL viable trailers, best first.
+
+    Same cascade and ranking as :func:`resolve_trailer`, but returns the
+    full ranked list (capped) so the frontend can fall back to another
+    candidate when the first one is region-blocked by the provider —
+    YouTube uploads can be blocked per-country, which TMDB never exposes.
+    The first entry equals what :func:`resolve_trailer` would return.
+    """
+    if emby_item_id:
+        local = await _resolve_emby_local_trailer(db, emby_item_id)
+        if local:
+            return [local]
+    return await _collect_tmdb_trailers(db, media_type, tmdb_id, user_language)
+
+
 # ---------------------------------------------------------------------------
 # Step 1 — Emby local trailers
 # ---------------------------------------------------------------------------
@@ -176,6 +198,8 @@ async def stream_emby_trailer(
 # ---------------------------------------------------------------------------
 
 _VALID_TYPES = ("Trailer", "Teaser")
+# Cap the fallback list so a chatty title can't return dozens of candidates.
+_MAX_CANDIDATES = 6
 
 # Name-quality heuristics: TMDB occasionally ships several videos in the
 # same ``iso_639_1`` bucket — a real publisher dub (``"Bande-annonce
@@ -305,25 +329,87 @@ async def _resolve_tmdb_trailer(
         return None
 
 
-def _pick_video(videos: list[dict], language: Optional[str]) -> Optional[dict]:
-    """
-    Pick the best video matching ``language``.
+async def _collect_tmdb_trailers(
+    db: AsyncSession, media_type: str, tmdb_id: int, user_language: str
+) -> list[dict]:
+    """Return every viable TMDB trailer, best first.
 
-    - ``language=None`` matches *any* video and is the final fallback step.
-    - We only consider YouTube and Vimeo (the two TMDB-supported providers).
+    Walks the same cascade as :func:`_resolve_tmdb_trailer` (user language
+    → en → original → any) but keeps every match instead of stopping at
+    the first, deduped by provider key. The cascade order doubles as the
+    candidate order, so ``[0]`` is the trailer :func:`resolve_trailer`
+    returns; the rest are fallbacks for region-blocked picks.
+    """
+    api_key = await _get_tmdb_key(db)
+    if not api_key:
+        return []
+    try:
+        client = get_external_client()
+        res = await client.get(
+            f"{TMDB_BASE}/{media_type}/{tmdb_id}",
+            params={
+                "language": user_language,
+                "append_to_response": "videos",
+                "include_video_language": f"{user_language},en,null",
+            },
+            headers=_tmdb_headers_sync(api_key),
+        )
+        if res.status_code != 200:
+            return []
+        data = res.json()
+        videos = list((data.get("videos") or {}).get("results") or [])
+        original_lang = data.get("original_language") or None
+        # Original-language videos sit outside the primary payload when they
+        # differ from user_language/en — pull them so they can be offered as
+        # fallbacks too.
+        if original_lang and original_lang not in (user_language, "en"):
+            try:
+                res_extra = await client.get(
+                    f"{TMDB_BASE}/{media_type}/{tmdb_id}/videos",
+                    params={"include_video_language": original_lang},
+                    headers=_tmdb_headers_sync(api_key),
+                )
+                if res_extra.status_code == 200:
+                    videos.extend(res_extra.json().get("results") or [])
+            except Exception as exc:
+                logger.debug(f"[TRAILERS] original-lang fallback failed: {exc}")
+
+        out: list[dict] = []
+        seen_keys: set[str] = set()
+        seen_langs: set[Optional[str]] = set()
+        for lang in (user_language, "en", original_lang, None):
+            if lang in seen_langs:
+                continue
+            seen_langs.add(lang)
+            for d in _rank_videos(videos, lang):
+                if d["key"] not in seen_keys:
+                    seen_keys.add(d["key"])
+                    out.append(d)
+            if len(out) >= _MAX_CANDIDATES:
+                break
+        return out[:_MAX_CANDIDATES]
+    except Exception as e:
+        logger.warning(f"[TRAILERS] TMDB lookup failed for {media_type}/{tmdb_id}: {e}")
+        return []
+
+
+def _rank_videos(videos: list[dict], language: Optional[str]) -> list[dict]:
+    """Ranked trailer descriptors matching ``language`` (``None`` = any).
+
+    - Only YouTube and Vimeo (the two TMDB-supported providers).
     - Ranking (most important first):
         1. ``Trailer`` before ``Teaser``;
         2. ``official=True`` before ``official=False`` — surfaces the
-           publisher's own French dub over fan-uploaded VOSTFR teasers;
+           publisher's own dub over fan-uploaded VOSTFR teasers;
         3. name heuristic (``+1`` for "officielle" / "official", ``-1``
            for "VOST" / "sous-titré") — TMDB occasionally tags a fan
            subtitled cut with ``iso_639_1=fr`` alongside the real dub,
            and the name is the only thing that separates them;
-        4. most recent ``published_at`` first — newer trailers usually
-           ship with the full localised dub instead of an early subtitled
-           promo cut.
+        4. most recent ``published_at`` first.
+    Shared by :func:`_pick_video` (first hit) and :func:`_collect_tmdb_trailers`
+    (full list).
     """
-    candidates = []
+    matched = []
     for v in videos:
         if v.get("site") not in ("YouTube", "Vimeo"):
             continue
@@ -331,28 +417,37 @@ def _pick_video(videos: list[dict], language: Optional[str]) -> Optional[dict]:
             continue
         if language is not None and (v.get("iso_639_1") or "") != language:
             continue
-        candidates.append(v)
+        matched.append(v)
 
-    if not candidates:
-        return None
+    if not matched:
+        return []
 
     # Python sort is stable: tie-break by published_at desc first, then
-    # re-sort by primary criteria so equal Trailer/official/name rows
-    # keep the newest-first order.
-    candidates.sort(key=lambda v: v.get("published_at") or "", reverse=True)
-    candidates.sort(key=lambda v: (
+    # re-sort by primary criteria so equal rows keep the newest-first order.
+    matched.sort(key=lambda v: v.get("published_at") or "", reverse=True)
+    matched.sort(key=lambda v: (
         0 if v.get("type") == "Trailer" else 1,
         0 if v.get("official") else 1,
         -_name_score(v.get("name", ""), language),
     ))
-    best = candidates[0]
-    site = best.get("site", "YouTube").lower()
+    return [_descriptor(v) for v in matched]
+
+
+def _pick_video(videos: list[dict], language: Optional[str]) -> Optional[dict]:
+    """Best single video matching ``language`` (``None`` = any), or ``None``."""
+    ranked = _rank_videos(videos, language)
+    return ranked[0] if ranked else None
+
+
+def _descriptor(v: dict) -> dict:
+    """Map a raw TMDB video to the uniform trailer descriptor."""
+    site = v.get("site", "YouTube").lower()
     return {
         "source": site,  # "youtube" or "vimeo"
-        "url": _embed_url(site, best["key"]),
-        "key": best["key"],
-        "language": best.get("iso_639_1") or None,
-        "name": best.get("name", ""),
+        "url": _embed_url(site, v["key"]),
+        "key": v["key"],
+        "language": v.get("iso_639_1") or None,
+        "name": v.get("name", ""),
     }
 
 

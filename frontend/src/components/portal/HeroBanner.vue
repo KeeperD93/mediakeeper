@@ -68,7 +68,11 @@
       </div>
     </div>
 
-    <TrailerLightbox v-if="lightboxOpen && trailer" :trailer="trailer" @close="closeLightbox" />
+    <TrailerLightbox
+      v-if="lightboxOpen && candidates.length"
+      :trailers="candidates"
+      @close="closeLightbox"
+    />
 
     <div v-if="totalItems > 1" class="pt-hero-dots">
       <span
@@ -110,7 +114,7 @@ const emit = defineEmits(['detail', 'goto', 'request', 'trailer-open', 'trailer-
 // opens the fullscreen lightbox where the actual <iframe> lives,
 // then tears it down on close. Eliminates every chance of the
 // YouTube centre play/pause overlay being painted over the hero.
-const { trailer, resolve: resolveTrailer, prefetch: prefetchTrailer } = useTrailer()
+const { trailer, candidates, resolve: resolveTrailer, prefetch: prefetchTrailer } = useTrailer()
 const { getStatus, checkStatus } = useRequestStatus()
 
 const heroRef = ref(null)
