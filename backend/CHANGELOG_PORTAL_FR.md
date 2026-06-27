@@ -38,6 +38,8 @@ utilisateurs.
 - Formulaires — champs aux coins plus nets, distincts des filtres arrondis.
 
 ### Fixed
+- Onglets et menu du bas — lettres de bord des libellés non rognées.
+- Fiche détail — halo blanc intermittent des onglets au défilement corrigé.
 - Invitations — les profils privés et les admins ne peuvent plus être invités.
 - Notifications — navigation clavier (Échap pour fermer) et fin des doublons au chargement.
 - Notifications — surbrillance des non-lues suit la couleur d'accent de votre thème.

@@ -36,6 +36,8 @@ This section intentionally has no date so it is not shown to users.
 - Forms — fields with sharper corners, distinct from rounded filters.
 
 ### Fixed
+- Tabs and bottom menu — label edge letters no longer clipped.
+- Media detail — fixed an intermittent white glow on tabs while scrolling.
 - Event invites — private profiles and admins can no longer be invited.
 - Notifications — keyboard navigation (Esc to close) and no duplicates on load.
 - Notifications — unread highlight now follows your theme accent colour.

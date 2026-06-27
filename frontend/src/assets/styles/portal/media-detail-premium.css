@@ -340,8 +340,14 @@
   z-index: 10;
   padding: 0.75rem 5%;
   background: rgb(10, 12, 19, 0.92);
-  backdrop-filter: blur(18px);
   border-bottom: 1px solid var(--portal-border-subtle);
+}
+/* The wrapper is 92% opaque, so its own blur added nothing but stacked
+   with the sticky TabStrip's blur into an intermittent white glow over
+   the bright hero during scroll (nested backdrop-filters can flicker).
+   Drop both here; the shared TabStrip keeps its glass on other pages. */
+.vmd2-tabs-wrap .mk-tabs-wrap {
+  backdrop-filter: none;
 }
 @media (min-width: 768px) {
   .vmd2-tabs-wrap {

@@ -42,6 +42,7 @@ This section intentionally has no date so it is not shown to users.
 - Configuration (admin) — screen reorganised into sections, global save bar.
 
 ### Fixed
+- Tabs — label edge letters no longer clipped.
 - Media manager — renaming a root folder can no longer move it outside the configured paths.
 - Dashboard — History tabs (Notifications, Duplicates): "Load more" button.
 - Dashboard — activity feed: plugin updates now shown in your language.
