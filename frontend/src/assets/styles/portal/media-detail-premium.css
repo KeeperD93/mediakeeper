@@ -1,9 +1,9 @@
 /* Premium media detail page — split into size-capped companions, @imported
-   in cascade order (base → hero → content → people → scrollers → mobile
-   overrides last). Each companion owns one region of the page. */
+   in cascade order (base → hero → content → people → scrollers). Each
+   companion is mobile-first: the base rules target the phone, with a
+   colocated @media (min-width: 768px) block for desktop. */
 @import url('./media-detail-premium-base.css');
 @import url('./media-detail-premium-hero.css');
 @import url('./media-detail-premium-content.css');
 @import url('./media-detail-premium-people.css');
 @import url('./media-detail-premium-scrollers.css');
-@import url('./media-detail-premium-mobile.css');

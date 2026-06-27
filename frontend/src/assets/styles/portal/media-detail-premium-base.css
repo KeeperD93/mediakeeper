@@ -69,8 +69,8 @@
   opacity: 1;
 }
 .vmd2-btn-emby {
-  width: 18px;
-  height: 18px;
+  width: 15px;
+  height: 15px;
   object-fit: contain;
 }
 
@@ -87,4 +87,11 @@
   text-align: center;
   color: var(--portal-text-muted);
   font-style: italic;
+}
+
+@media (min-width: 768px) {
+  .vmd2-btn-emby {
+    width: 18px;
+    height: 18px;
+  }
 }
