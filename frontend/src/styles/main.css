@@ -121,6 +121,11 @@ main#main-content:focus-visible {
   html.mk-admin-section .cinema-dash {
     max-height: calc((100vh - (var(--space-4) * 2)) / var(--mk-admin-scale));
   }
+  /* User drawer (admin → portal management) is full-height with a distinct
+     surface, so it would leave a band at the bottom under zoom too. */
+  html.mk-admin-section .ru-drawer {
+    height: calc(100vh / var(--mk-admin-scale));
+  }
 }
 
 /* ============================================
