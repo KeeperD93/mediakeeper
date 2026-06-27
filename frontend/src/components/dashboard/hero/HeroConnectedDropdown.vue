@@ -29,6 +29,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { rootZoom } from '@/utils/zoom'
 
 const props = defineProps({
   allSessions: { type: Array, default: () => [] },
@@ -61,11 +62,12 @@ function toggleDropdown() {
     return
   }
   if (connectedRef.value) {
+    const z = rootZoom() // admin zoom: divide the final position (utils/zoom)
     const rect = connectedRef.value.getBoundingClientRect()
     ddPos.value = {
       position: 'fixed',
-      top: rect.bottom + 8 + 'px',
-      right: window.innerWidth - rect.right + 'px',
+      top: (rect.bottom + 8) / z + 'px',
+      right: (window.innerWidth - rect.right) / z + 'px',
       zIndex: 9999,
     }
   }

@@ -1,4 +1,5 @@
 import { ref, computed } from 'vue'
+import { rootZoom } from '@/utils/zoom'
 
 export function useChartsHeatmap(dailyChart, locale) {
   function localeTag() {
@@ -79,11 +80,12 @@ export function useChartsHeatmap(dailyChart, locale) {
   const hmTip = ref({ visible: false, x: 0, y: 0, label: '', count: 0 })
   function hmTooltipShow(e, cell) {
     if (!cell.date) return
+    const z = rootZoom() // admin zoom: divide the final position (utils/zoom)
     const rect = e.target.getBoundingClientRect()
     hmTip.value = {
       visible: true,
-      x: rect.left + rect.width / 2,
-      y: rect.top - 8,
+      x: (rect.left + rect.width / 2) / z,
+      y: (rect.top - 8) / z,
       label: cell.label,
       count: cell.count,
     }

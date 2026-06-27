@@ -7,7 +7,7 @@
  * coordinates feed ``hitTest`` correctly, and ESC cancels by calling
  * ``onCancel`` without re-firing ``onSelect``.
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { afterEach, describe, it, expect, vi, beforeEach } from 'vitest'
 import { ref, nextTick, effectScope } from 'vue'
 import { useRectLasso } from '@/composables/useRectLasso'
 
@@ -60,6 +60,9 @@ describe('useRectLasso', () => {
   beforeEach(() => {
     scope = effectScope()
     document.body.innerHTML = ''
+  })
+  afterEach(() => {
+    delete document.documentElement.currentCSSZoom
   })
 
   it('initialises in non-dragging state with hidden style', () => {
@@ -209,6 +212,30 @@ describe('useRectLasso', () => {
       top: '20px',
       width: '50px',
       height: '50px',
+    })
+    scope.stop()
+  })
+
+  it('scales lasso coordinates by the admin zoom (pins the /z direction)', async () => {
+    // clientX/Y are unzoomed; the rectangle/hit-test work in the zoomed
+    // container space, so each coord maps through /0.5.
+    Object.defineProperty(document.documentElement, 'currentCSSZoom', { value: 0.5, configurable: true })
+    const el = makeContainer()
+    const container = ref(el)
+    let api
+    scope.run(() => {
+      api = useRectLasso({ container, hitTest: () => [], onSelect: () => {} })
+    })
+    await nextTick()
+
+    dispatch(el, 'mousedown', { clientX: 30, clientY: 20, target: el })
+    dispatch(el, 'mousemove', { clientX: 80, clientY: 70 })
+
+    expect(api.rectStyle.value).toMatchObject({
+      left: '60px',
+      top: '40px',
+      width: '100px',
+      height: '100px',
     })
     scope.stop()
   })

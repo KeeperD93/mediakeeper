@@ -164,6 +164,7 @@
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useMediaManager } from '@/composables/useMediaManager'
+import { rootZoom } from '@/utils/zoom'
 import { useMMRenamePanelUI } from '@/composables/useMMRenamePanelUI'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
@@ -219,7 +220,8 @@ function openRenameCtx(e, i) {
     document.removeEventListener('mousedown', _renameCtxClose)
     _renameCtxClose = null
   }
-  renameCtx.value = { show: true, x: e.clientX, y: e.clientY, idx: i }
+  const z = rootZoom() // admin zoom: divide the final position (utils/zoom)
+  renameCtx.value = { show: true, x: e.clientX / z, y: e.clientY / z, idx: i }
   _renameCtxClose = ev => {
     if (!ev.target.closest('.mm-ctx-menu')) {
       renameCtx.value.show = false

@@ -1,6 +1,7 @@
 import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useApi } from '@/composables/useApi'
+import { rootZoom } from '@/utils/zoom'
 import { parseActivityLog, parseActivityAlert } from './activityLog.js'
 
 export function useActivityTimeline(props) {
@@ -54,9 +55,10 @@ export function useActivityTimeline(props) {
      * hidden`` and render at its full size (otherwise the TMDB card
      * gets clipped at the widget border). Clamp horizontally to keep
      * the 340 px card inside the viewport on narrow screens. */
+    const z = rootZoom() // admin zoom: divide the final position (utils/zoom)
     const left = Math.max(8, Math.min(rect.left, window.innerWidth - 340 - 8))
     const top = rect.bottom + 8
-    popover.style = { left: left + 'px', top: top + 'px' }
+    popover.style = { left: left / z + 'px', top: top / z + 'px' }
     popover.visible = true
     popover.loading = true
     popover.error = ''

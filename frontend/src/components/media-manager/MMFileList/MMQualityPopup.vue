@@ -13,7 +13,7 @@
       <div v-if="qualityPopup.penalties.length" class="mm-qp-penalties">
         <div v-for="(p, i) in qualityPopup.penalties" :key="i" class="mm-qp-penalty">
           <span class="mm-qp-penalty-points">-{{ p.points }}</span>
-          {{ p.label }}
+          {{ $t('mediaManager.qualityPenalty.' + p.key) }}
         </div>
       </div>
       <div v-else class="mm-qp-perfect">{{ $t('mediaManager.qualityPerfect') }}</div>

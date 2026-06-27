@@ -141,4 +141,17 @@ router.beforeEach(async to => {
   return true
 })
 
+// Admin shell renders ~10% smaller on desktop: main.css drives
+// `html.mk-admin-section { zoom }`. Toggle the marker on every navigation,
+// keyed on the AppLayout root ('/'), so the portal and neutral routes
+// (login, not-found, dev posters) stay at 100%. Idempotent `toggle` keeps
+// it correct across keep-alive and the out-in route transition. This runs
+// on the initial navigation too — before the admin content first renders —
+// so no pre-paint seed (blocked anyway by the CSP `script-src 'self'`) is
+// needed.
+router.afterEach(to => {
+  const inAdmin = to.matched[0]?.path === '/'
+  document.documentElement.classList.toggle('mk-admin-section', inAdmin)
+})
+
 export default router

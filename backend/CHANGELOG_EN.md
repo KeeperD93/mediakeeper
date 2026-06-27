@@ -31,6 +31,7 @@ This section intentionally has no date so it is not shown to users.
 - Statistics — activity: resizable table columns, widths remembered per user.
 
 ### Changed
+- Interface (admin) — ~10% more compact on desktop displays.
 - Requests & lists (admin) — relative times show months and years for old entries.
 - Dashboard — 30 upcoming releases shown (was 20), titles in your language.
 - Dashboard — upcoming releases: same-day episodes grouped, labels clarified.
@@ -61,6 +62,7 @@ This section intentionally has no date so it is not shown to users.
 - Media library — track details no longer fail on a corrupted file.
 - Media Manager — undoing a batch rename no longer stops halfway (retry kept).
 - Media Manager — rename history labels follow the app language.
+- Media Manager — quality-score labels (popup) now follow the app language.
 - Media Manager — file info: track language/channels shown in your language.
 - Media Manager — file info: detected labels (resolution, source…) shown in your language.
 - Media Manager — file info: frame rate now displays correctly (NTSC).

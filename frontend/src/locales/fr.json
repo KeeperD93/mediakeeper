@@ -1065,6 +1065,17 @@
     "qualityScoreTitle": "Score qualité : {n}/100",
     "qualityPerfect": "Nom parfaitement formaté !",
     "qualityExample100": "Exemple de nom 100/100 :",
+    "qualityPenalty": {
+      "missingResolution": "Résolution manquante",
+      "missingYearEpisode": "Année/épisode manquant",
+      "tripleSeparators": "Séparateurs triples",
+      "doubleSpaces": "Espaces doubles",
+      "doubleUnderscores": "Underscores doubles",
+      "tooManyDots": "Trop de points",
+      "nameTooLong": "Nom trop long",
+      "missingVideoCodec": "Codec vidéo manquant",
+      "missingAudioCodec": "Codec audio manquant"
+    },
     "metadataTitle": "Métadonnées",
     "fileSection": "Fichier",
     "videoSection": "Vidéo",

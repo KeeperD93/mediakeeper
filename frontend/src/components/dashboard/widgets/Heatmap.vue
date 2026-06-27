@@ -36,6 +36,7 @@
 import { ref, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { localizedDate } from '@/utils/datetime'
+import { rootZoom } from '@/utils/zoom'
 
 const { apiGet } = useApi()
 const heatmapDays = ref([])
@@ -47,11 +48,12 @@ const tip = ref({ visible: false, x: 0, y: 0, label: '', count: 0 })
 const LEGEND_STEPS = [0, 1, 2, 3, 4]
 
 function showTip(e, day) {
+  const z = rootZoom() // admin zoom: divide the final position (utils/zoom)
   const rect = e.target.getBoundingClientRect()
   tip.value = {
     visible: true,
-    x: rect.left + rect.width / 2,
-    y: rect.top - 6,
+    x: (rect.left + rect.width / 2) / z,
+    y: (rect.top - 6) / z,
     label: day.label,
     count: day.count,
   }
