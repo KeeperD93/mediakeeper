@@ -38,6 +38,7 @@ utilisateurs.
 - Formulaires — champs aux coins plus nets, distincts des filtres arrondis.
 
 ### Fixed
+- Accueil — bande-annonce du visuel : carrousel en pause, reprise à la fermeture.
 - Onglets et menu du bas — lettres de bord des libellés non rognées.
 - Fiche détail — halo blanc intermittent des onglets au défilement corrigé.
 - Invitations — les profils privés et les admins ne peuvent plus être invités.

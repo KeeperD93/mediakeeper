@@ -8,13 +8,11 @@
       :total-items="heroItems.length"
       :rank="heroIndex >= featuredCount ? heroIndex - featuredCount + 1 : 0"
       :is-featured="heroIndex < featuredCount"
-      @play="showDetail(heroItems[heroIndex])"
       @request="handleRequest(heroItems[heroIndex])"
       @detail="showDetail(heroItems[heroIndex])"
       @goto="gotoHero"
-      @sound-on="heroPaused = true"
-      @sound-off="heroPaused = false"
-      @video-ended="nextHero"
+      @trailer-open="heroPaused = true"
+      @trailer-close="heroPaused = false"
     />
 
     <div class="pt-home-body">
@@ -218,7 +216,6 @@ const {
   heroIndex,
   heroPaused,
   featuredCount,
-  nextHero,
   gotoHero,
   loadAllData,
 } = usePortalHomeData()

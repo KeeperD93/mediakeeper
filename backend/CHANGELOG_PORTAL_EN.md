@@ -36,6 +36,7 @@ This section intentionally has no date so it is not shown to users.
 - Forms — fields with sharper corners, distinct from rounded filters.
 
 ### Fixed
+- Home — hero trailer pauses the carousel, resumes on close.
 - Tabs and bottom menu — label edge letters no longer clipped.
 - Media detail — fixed an intermittent white glow on tabs while scrolling.
 - Event invites — private profiles and admins can no longer be invited.

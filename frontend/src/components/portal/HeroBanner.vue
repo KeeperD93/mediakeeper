@@ -102,7 +102,7 @@ const props = defineProps({
   isFeatured: { type: Boolean, default: false },
 })
 
-defineEmits(['play', 'detail', 'goto', 'video-ended', 'request'])
+const emit = defineEmits(['detail', 'goto', 'request', 'trailer-open', 'trailer-close'])
 
 // Trailer-URL resolution only — never mounts a YouTube IFrame in the
 // hero itself. Resolving populates ``trailer`` so the "Bande-annonce"
@@ -152,9 +152,13 @@ function ensureStatusChecked() {
 function openLightbox() {
   if (!trailer.value) return
   lightboxOpen.value = true
+  // Pause the parent hero rotation so the open trailer stays on the
+  // chosen title instead of following the carousel to the next item.
+  emit('trailer-open')
 }
 function closeLightbox() {
   lightboxOpen.value = false
+  emit('trailer-close')
 }
 
 watch(
