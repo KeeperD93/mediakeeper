@@ -7,7 +7,7 @@
  * coordinates feed ``hitTest`` correctly, and ESC cancels by calling
  * ``onCancel`` without re-firing ``onSelect``.
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { afterEach, describe, it, expect, vi, beforeEach } from 'vitest'
 import { ref, nextTick, effectScope } from 'vue'
 import { useRectLasso } from '@/composables/useRectLasso'
 
@@ -60,6 +60,9 @@ describe('useRectLasso', () => {
   beforeEach(() => {
     scope = effectScope()
     document.body.innerHTML = ''
+  })
+  afterEach(() => {
+    delete document.documentElement.currentCSSZoom
   })
 
   it('initialises in non-dragging state with hidden style', () => {
@@ -234,7 +237,6 @@ describe('useRectLasso', () => {
       width: '100px',
       height: '100px',
     })
-    delete document.documentElement.currentCSSZoom
     scope.stop()
   })
 })

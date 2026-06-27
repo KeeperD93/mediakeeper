@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { afterEach, describe, it, expect, vi } from 'vitest'
 import { effectScope } from 'vue'
 
 // useColumnResize calls useApi() at construction; the resize maths under test
@@ -25,6 +25,10 @@ function drag({ startResize }, col, fromX, toX) {
 }
 
 describe('useColumnResize.onMove', () => {
+  afterEach(() => {
+    delete document.documentElement.currentCSSZoom
+  })
+
   it('is zero-sum against the next column on a normal drag', () => {
     const ctx = setup()
     drag(ctx, 0, 0, 20) // drag the boundary +20px
@@ -60,7 +64,6 @@ describe('useColumnResize.onMove', () => {
     drag(ctx, 0, 0, 20)
     expect(ctx.widths.value[0]).toBe(140)
     expect(ctx.widths.value[1]).toBe(60)
-    delete document.documentElement.currentCSSZoom
     ctx.scope.stop()
   })
 })

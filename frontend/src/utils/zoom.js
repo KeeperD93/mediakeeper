@@ -20,9 +20,9 @@ export function rootZoom() {
   if (typeof z === 'number' && z > 0) return z
   // Fallback for engines without Element.currentCSSZoom: derive the factor
   // from the viewport-vs-document width ratio. Exact because the admin shell
-  // keeps no root scrollbar (overflow-hidden on .mk-app-shell + body
-  // scrollbar-gutter:stable; scroll lives on inner .mk-app-content), and it
-  // reads 1 when the browser ignores `zoom` (document == viewport).
+  // never becomes a root scroll container (overflow-x:clip on .mk-app-shell +
+  // body scrollbar-gutter:stable reserving the vertical gutter; scroll lives on
+  // inner .mk-app-content), and it reads 1 when the browser ignores `zoom`.
   const cw = root.clientWidth
   return cw > 0 ? window.innerWidth / cw : 1
 }
