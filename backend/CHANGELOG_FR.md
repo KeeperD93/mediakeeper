@@ -62,6 +62,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Médiathèque — le détail des pistes n'échoue plus sur un fichier corrompu.
 - Média Manager — annuler un renommage en lot ne s'interrompt plus à mi-chemin (réessai possible).
 - Média Manager — libellés de l'historique de renommage suivent la langue de l'app.
+- Média Manager — libellés du score qualité (popup) suivent la langue de l'app.
 - Média Manager — infos fichier : langue/canaux des pistes dans votre langue.
 - Média Manager — infos fichier : libellés détectés (résolution, source…) dans votre langue.
 - Média Manager — infos fichier : images par seconde affichées correctement (NTSC).

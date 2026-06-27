@@ -1065,6 +1065,17 @@
     "qualityScoreTitle": "Quality score: {n}/100",
     "qualityPerfect": "Perfectly formatted name!",
     "qualityExample100": "Example of a 100/100 name:",
+    "qualityPenalty": {
+      "missingResolution": "Missing resolution",
+      "missingYearEpisode": "Missing year/episode",
+      "tripleSeparators": "Triple separators",
+      "doubleSpaces": "Double spaces",
+      "doubleUnderscores": "Double underscores",
+      "tooManyDots": "Too many dots",
+      "nameTooLong": "Name too long",
+      "missingVideoCodec": "Missing video codec",
+      "missingAudioCodec": "Missing audio codec"
+    },
     "metadataTitle": "Metadata",
     "fileSection": "File",
     "videoSection": "Video",
