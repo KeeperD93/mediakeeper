@@ -232,8 +232,8 @@ function positionDropdown(refEl, posRef, { fullWidthOnMobile = false } = {}) {
     }
     return
   }
-  // admin zoom: rect/innerWidth are in unzoomed viewport space; dividing the
-  // final position by the zoom places the fixed dropdown under its trigger.
+  // admin zoom: divide the final position by the factor so the fixed dropdown
+  // lands under its trigger (utils/zoom).
   const z = rootZoom()
   posRef.value = {
     position: 'fixed',

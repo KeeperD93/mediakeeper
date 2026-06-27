@@ -30,8 +30,8 @@ export function useStatsUI() {
   function showPreview(e, item, imgKey) {
     preview.img = '/api/emby/image/' + item[imgKey]
     preview.name = item.name || ''
-    // admin zoom: compute in unzoomed viewport space (clientX/innerWidth agree
-    // there), then map to the zoomed shell the fixed preview lives in (utils/zoom).
+    // admin zoom: clamp in viewport space, then divide the final position by
+    // the factor (utils/zoom).
     const z = rootZoom()
     let x = e.clientX + 16
     let y = e.clientY - 40
@@ -71,9 +71,8 @@ export function useStatsUI() {
       const rect = el.getBoundingClientRect()
       const popW = 640,
         popH = 450
-      // admin zoom: geometry is computed in unzoomed viewport space (rect,
-      // innerWidth agree there); the final position is divided by the zoom so
-      // the fixed popover lands under its trigger (utils/zoom).
+      // admin zoom: compute in viewport space, then divide the final position
+      // by the factor so the fixed popover lands under its trigger (utils/zoom).
       const z = rootZoom()
       const vw = window.innerWidth,
         vh = window.innerHeight

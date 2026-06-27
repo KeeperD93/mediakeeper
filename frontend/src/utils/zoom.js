@@ -2,12 +2,14 @@
  * Effective CSS zoom applied to the document root.
  *
  * The admin shell renders ~10% smaller on desktop via `zoom` on <html>
- * (see styles/main.css). Pointer coordinates (clientX/clientY) and
- * window.innerWidth/Height are reported in the UNZOOMED viewport space, while
- * elements positioned inside the zoomed tree — and getBoundingClientRect —
- * live in zoomed (document) space. JS that mixes the two misplaces fixed
- * elements by the zoom factor, so divide viewport coordinates by this value
- * (or read clientWidth/Height instead of innerWidth/Height).
+ * (see styles/main.css). `zoom` does not change DOM measurements: clientX/Y,
+ * innerWidth/Height and getBoundingClientRect all report in the same zoomed
+ * viewport space (they agree). It only changes paint — a `left`/`top` set on
+ * an element inside the zoomed subtree is taken in that element's own
+ * coordinates and then multiplied by the zoom when painted. So an element
+ * positioned from those measurements lands `zoom`× too close to the origin:
+ * divide the final position by this factor to compensate (and likewise scale
+ * an offset/delta that is consumed in the unzoomed content space).
  *
  * Returns 1 when no zoom is applied (portal, mobile/tablet, or a browser
  * without `zoom` support), so callers can divide unconditionally.

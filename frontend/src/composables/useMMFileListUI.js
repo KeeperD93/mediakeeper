@@ -5,6 +5,7 @@ import { useToast } from '@/composables/useToast'
 import { useRectLasso } from '@/composables/useRectLasso'
 import { TOAST_TYPE } from '@/constants/toast'
 import { useMediaManager } from '@/composables/useMediaManager'
+import { rootZoom } from '@/utils/zoom'
 
 /**
  * Groups all UI-only state/behaviour that would otherwise bloat
@@ -95,7 +96,9 @@ export function useMMFileListUI({ fileListRef, filtered, checked }) {
       document.removeEventListener('mousedown', _ctxCloseHandler)
       _ctxCloseHandler = null
     }
-    ctxMenu.value = { show: true, x: e.clientX, y: e.clientY, idx, file: f }
+    // admin zoom: divide the final position by the factor (utils/zoom).
+    const z = rootZoom()
+    ctxMenu.value = { show: true, x: e.clientX / z, y: e.clientY / z, idx, file: f }
     _ctxCloseHandler = ev => {
       if (!ev.target.closest('.mm-ctx-menu')) {
         ctxMenu.value.show = false
@@ -175,11 +178,14 @@ export function useMMFileListUI({ fileListRef, filtered, checked }) {
       penalties.push({ points: 5, label: 'Missing video codec' })
     if (!/\b(DTS|Atmos|TrueHD|EAC3|AC3|AAC|FLAC|MP3)\b/i.test(f.name))
       penalties.push({ points: 5, label: 'Codec audio manquant' })
+    // admin zoom: clamp in viewport space, then divide the final position by
+    // the factor (utils/zoom).
+    const z = rootZoom()
     let x = e.clientX - 120,
       y = e.clientY + 16
     if (x < 10) x = 10
     if (y + 180 > window.innerHeight) y = e.clientY - 180
-    qualityPopup.value = { visible: true, score, penalties, x, y }
+    qualityPopup.value = { visible: true, score, penalties, x: x / z, y: y / z }
   }
   function hideQualityPopup() {
     qualityPopup.value = { ...qualityPopup.value, visible: false }

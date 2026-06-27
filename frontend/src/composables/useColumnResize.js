@@ -56,8 +56,8 @@ export function useColumnResize(defaults, { min = 56, fixed = 0, persistKey = ''
 
   function onMove(e) {
     if (!drag) return
-    // admin zoom: convert the unzoomed pointer delta into the zoomed layout
-    // space the column widths live in, so the handle tracks the cursor.
+    // admin zoom: scale the pointer delta into the content space the column
+    // widths live in, so the handle tracks the cursor (utils/zoom).
     let d = (e.clientX - drag.x) / rootZoom()
     d = Math.max(d, min - drag.w) // left column stays >= min
     d = Math.min(d, drag.wNext - min) // right column stays >= min

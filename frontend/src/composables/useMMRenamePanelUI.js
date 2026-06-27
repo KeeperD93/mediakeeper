@@ -1,5 +1,6 @@
 import { ref, watch, nextTick } from 'vue'
 import { useRectLasso } from '@/composables/useRectLasso'
+import { rootZoom } from '@/utils/zoom'
 
 /**
  * Lasso + batch-delete wiring for the generated-names panel.
@@ -30,12 +31,15 @@ export function useMMRenamePanelUI({ rightListRef, newNames }) {
       // ``scrollTop`` in), so anchor row rects to the same origin: each
       // row's offsetTop relative to the container is its top edge in
       // that coordinate space, regardless of current scroll.
+      // admin zoom: getBoundingClientRect deltas are zoomed; scale them into the
+      // unzoomed content space the lasso now emits y1/y2 in (utils/zoom).
+      const z = rootZoom()
       const containerRect = el.getBoundingClientRect()
       const ids = []
       for (let i = 0; i < rows.length; i++) {
         const r = rows[i].getBoundingClientRect()
-        const top = r.top - containerRect.top + el.scrollTop
-        const bottom = top + r.height
+        const top = (r.top - containerRect.top) / z + el.scrollTop
+        const bottom = top + r.height / z
         if (bottom >= y1 && top <= y2) ids.push(i)
       }
       return ids
