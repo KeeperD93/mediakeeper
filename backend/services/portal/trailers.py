@@ -316,7 +316,7 @@ async def _resolve_tmdb_trailer(
                     if picked:
                         return picked
             except Exception as exc:
-                logger.debug(f"[TRAILERS] original-lang fallback failed: {exc}")
+                logger.debug("[TRAILERS] original-lang fallback failed: %s", exc)
         elif original_lang:
             picked = try_step(videos, original_lang, seen)
             if picked:
@@ -325,7 +325,7 @@ async def _resolve_tmdb_trailer(
         # Final step: any language-agnostic video from the primary call.
         return try_step(videos, None, seen)
     except Exception as e:
-        logger.warning(f"[TRAILERS] TMDB lookup failed for {media_type}/{tmdb_id}: {e}")
+        logger.warning("[TRAILERS] TMDB lookup failed for %s/%s: %s", media_type, tmdb_id, e)
         return None
 
 
@@ -372,7 +372,7 @@ async def _collect_tmdb_trailers(
                 if res_extra.status_code == 200:
                     videos.extend(res_extra.json().get("results") or [])
             except Exception as exc:
-                logger.debug(f"[TRAILERS] original-lang fallback failed: {exc}")
+                logger.debug("[TRAILERS] original-lang fallback failed: %s", exc)
 
         out: list[dict] = []
         seen_keys: set[str] = set()
@@ -389,7 +389,7 @@ async def _collect_tmdb_trailers(
                 break
         return out[:_MAX_CANDIDATES]
     except Exception as e:
-        logger.warning(f"[TRAILERS] TMDB lookup failed for {media_type}/{tmdb_id}: {e}")
+        logger.warning("[TRAILERS] TMDB lookup failed for %s/%s: %s", media_type, tmdb_id, e)
         return []
 
 
