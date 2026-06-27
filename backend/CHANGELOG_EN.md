@@ -31,6 +31,7 @@ This section intentionally has no date so it is not shown to users.
 - Statistics — activity: resizable table columns, widths remembered per user.
 
 ### Changed
+- Interface (admin) — ~10% more compact on desktop displays.
 - Requests & lists (admin) — relative times show months and years for old entries.
 - Dashboard — 30 upcoming releases shown (was 20), titles in your language.
 - Dashboard — upcoming releases: same-day episodes grouped, labels clarified.

@@ -97,6 +97,33 @@ main#main-content:focus-visible {
 }
 
 /* ============================================
+   ADMIN UI SCALE — desktop-only compaction
+   ============================================
+   The admin shell renders ~10% smaller on desktop so dense backoffice
+   pages sit comfortably on Full-HD. `zoom` (not `transform: scale`) is
+   deliberate: it reflows the flex shell and scales body-teleported admin
+   modals as one unit, matching a browser "Ctrl −". The class is toggled
+   per route by router/index.js (admin section only), so the member portal
+   stays at 100%. Gated ≥ 1024px to keep mobile/tablet touch targets at
+   full size. Value lives in --mk-admin-scale (tokens/_layout.css). */
+@media (min-width: 1024px) {
+  html.mk-admin-section {
+    zoom: var(--mk-admin-scale);
+  }
+  /* `100vh`-based heights resolve against the UNSCALED viewport, so under
+     zoom they fill only ~90% of the window and leave an empty band below.
+     The full-height admin containers are counter-scaled (length ÷ scale) so
+     they cover their intended space once zoom is applied. Kept next to the
+     zoom rule so the whole admin-scale mechanism lives in one place. */
+  html.mk-admin-section .mk-app-shell {
+    height: calc(100vh / var(--mk-admin-scale));
+  }
+  html.mk-admin-section .cinema-dash {
+    max-height: calc((100vh - (var(--space-4) * 2)) / var(--mk-admin-scale));
+  }
+}
+
+/* ============================================
    DEFAULT THEME (dark)
    Only one theme ships with v0.x. Alternate themes return in v1.0,
    rebuilt on top of the design tokens.
