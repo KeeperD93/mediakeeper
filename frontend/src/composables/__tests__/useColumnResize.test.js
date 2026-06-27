@@ -51,4 +51,16 @@ describe('useColumnResize.onMove', () => {
     expect(ctx.widths.value[0] + ctx.widths.value[1]).toBe(200)
     ctx.scope.stop()
   })
+
+  it('scales the drag delta by the admin zoom (pins the /z direction)', () => {
+    // Pointer coords are unzoomed; the column widths live in the zoomed layout,
+    // so a 20px unzoomed drag must move the boundary 20/0.5 = 40 layout px.
+    Object.defineProperty(document.documentElement, 'currentCSSZoom', { value: 0.5, configurable: true })
+    const ctx = setup()
+    drag(ctx, 0, 0, 20)
+    expect(ctx.widths.value[0]).toBe(140)
+    expect(ctx.widths.value[1]).toBe(60)
+    delete document.documentElement.currentCSSZoom
+    ctx.scope.stop()
+  })
 })

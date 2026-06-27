@@ -119,7 +119,9 @@ main#main-content:focus-visible {
     height: calc(100vh / var(--mk-admin-scale));
   }
   html.mk-admin-section .cinema-dash {
-    max-height: calc((100vh - (var(--space-4) * 2)) / var(--mk-admin-scale));
+    /* Only the 100vh term resolves against the unscaled viewport; the margin
+       term already scales with zoom on paint, so counter-scale just the vh. */
+    max-height: calc(100vh / var(--mk-admin-scale) - var(--space-4) * 2);
   }
   /* User drawer (admin → portal management) is full-height with a distinct
      surface, so it would leave a band at the bottom under zoom too. */
