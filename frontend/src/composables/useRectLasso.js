@@ -1,4 +1,5 @@
 import { ref, computed, watch, onScopeDispose } from 'vue'
+import { rootZoom } from '@/utils/zoom'
 
 /**
  * Reusable rectangle lasso for selecting items in a scrollable list.
@@ -47,8 +48,12 @@ export function useRectLasso({ container, hitTest, onSelect, onCancel, excludeSe
     const r = el.getBoundingClientRect()
     // Clamp to the container so a fast drag past the edges doesn't
     // produce a rectangle outside the visible scroll area.
-    const localX = Math.min(Math.max(e.clientX - r.left, 0), r.width)
-    const localY = Math.min(Math.max(e.clientY - r.top, 0), r.height)
+    // admin zoom: clientX/Y and getBoundingClientRect agree in unzoomed viewport
+    // space; the offset is then scaled into the zoomed container coords the lasso
+    // rect and hit-test work in (utils/zoom).
+    const z = rootZoom()
+    const localX = Math.min(Math.max(e.clientX - r.left, 0), r.width) / z
+    const localY = Math.min(Math.max(e.clientY - r.top, 0), r.height) / z
     return {
       x: localX + el.scrollLeft,
       y: localY + el.scrollTop,

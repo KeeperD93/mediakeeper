@@ -3,6 +3,7 @@ import { useApi } from '@/composables/useApi'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import { useI18n } from 'vue-i18n'
+import { rootZoom } from '@/utils/zoom'
 
 const activeTab = ref('general')
 const preview = reactive({ show: false, x: 0, y: 0, img: '', name: '' })
@@ -29,10 +30,15 @@ export function useStatsUI() {
   function showPreview(e, item, imgKey) {
     preview.img = '/api/emby/image/' + item[imgKey]
     preview.name = item.name || ''
-    preview.x = e.clientX + 16
-    preview.y = e.clientY - 40
-    if (preview.x + 140 > window.innerWidth) preview.x = e.clientX - 150
-    if (preview.y + 220 > window.innerHeight) preview.y = e.clientY - 220
+    // admin zoom: compute in unzoomed viewport space (clientX/innerWidth agree
+    // there), then map to the zoomed shell the fixed preview lives in (utils/zoom).
+    const z = rootZoom()
+    let x = e.clientX + 16
+    let y = e.clientY - 40
+    if (x + 140 > window.innerWidth) x = e.clientX - 150
+    if (y + 220 > window.innerHeight) y = e.clientY - 220
+    preview.x = x / z
+    preview.y = y / z
     preview.show = true
   }
   function hidePreview() {
@@ -65,6 +71,10 @@ export function useStatsUI() {
       const rect = el.getBoundingClientRect()
       const popW = 640,
         popH = 450
+      // admin zoom: geometry is computed in unzoomed viewport space (rect,
+      // innerWidth agree there); the final position is divided by the zoom so
+      // the fixed popover lands under its trigger (utils/zoom).
+      const z = rootZoom()
       const vw = window.innerWidth,
         vh = window.innerHeight
       const spaceBelow = vh - rect.bottom
@@ -73,7 +83,7 @@ export function useStatsUI() {
       let left = rect.left
       if (left + popW > vw - 12) left = vw - popW - 12
       if (left < 12) left = 12
-      profileStyle.value = { top: top + 'px', left: left + 'px' }
+      profileStyle.value = { top: top / z + 'px', left: left / z + 'px' }
     }
     profileOpen.value = true
     await fetchUserProfile(userId)

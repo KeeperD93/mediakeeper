@@ -164,6 +164,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/composables/useAuth'
 import { useTopbarAlerts } from '@/composables/useTopbarAlerts'
 import { useDonationConfig } from '@/composables/useDonationConfig'
+import { rootZoom } from '@/utils/zoom'
 import { Bell, ChevronDown, Heart, LayoutGrid, LogOut, Menu } from 'lucide-vue-next'
 import MkAvatar from '@/components/common/MkAvatar.vue'
 import DonationOverlay from '@/components/common/DonationOverlay.vue'
@@ -231,10 +232,13 @@ function positionDropdown(refEl, posRef, { fullWidthOnMobile = false } = {}) {
     }
     return
   }
+  // admin zoom: rect/innerWidth are in unzoomed viewport space; dividing the
+  // final position by the zoom places the fixed dropdown under its trigger.
+  const z = rootZoom()
   posRef.value = {
     position: 'fixed',
-    top: rect.bottom + 8 + 'px',
-    right: window.innerWidth - rect.right + 'px',
+    top: (rect.bottom + 8) / z + 'px',
+    right: (window.innerWidth - rect.right) / z + 'px',
     zIndex: 9999,
   }
 }

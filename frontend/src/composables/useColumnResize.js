@@ -1,5 +1,6 @@
 import { ref, onScopeDispose } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { rootZoom } from '@/utils/zoom'
 
 // Pointer-drag column resizing for a <table> with one <col> per column.
 // `init(containerPx)` lays the columns out to fill the container exactly (so the
@@ -55,7 +56,9 @@ export function useColumnResize(defaults, { min = 56, fixed = 0, persistKey = ''
 
   function onMove(e) {
     if (!drag) return
-    let d = e.clientX - drag.x
+    // admin zoom: convert the unzoomed pointer delta into the zoomed layout
+    // space the column widths live in, so the handle tracks the cursor.
+    let d = (e.clientX - drag.x) / rootZoom()
     d = Math.max(d, min - drag.w) // left column stays >= min
     d = Math.min(d, drag.wNext - min) // right column stays >= min
     widths.value[drag.i] = drag.w + d
