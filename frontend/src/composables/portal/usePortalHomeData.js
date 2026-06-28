@@ -12,12 +12,10 @@ import { useApi } from '@/composables/useApi'
 import { useAvailability } from '@/composables/portal/useAvailability'
 import { useRequestStatus } from '@/composables/portal/useRequestStatus'
 
-// Minimum dwell time between two hero items — covers the background
-// rotation interval AND the throttle applied to early ``video-ended``
-// events. Tuned at 45 s so the YouTube IFrame backend doesn't see a
-// barrage of ``player.loadVideoById`` calls when short trailers chain
-// together, which used to trip YouTube's anti-abuse cooldown on this
-// domain.
+// Hero rotation cadence (ms): the carousel advances one item per tick.
+// nextHero() also treats it as a floor so a manual jump (dot strip)
+// still gets a full window before the next auto-advance. Rotation pauses
+// while a trailer lightbox is open (heroPaused).
 const HERO_MIN_INTERVAL_MS = 10000
 
 export function usePortalHomeData() {
@@ -51,8 +49,8 @@ export function usePortalHomeData() {
   const heroIndex = ref(0)
   const heroPaused = ref(false)
   let heroTimer = null
-  // Tracks the last actual ``heroIndex`` switch so ``nextHero`` can
-  // delay an early ``video-ended`` to honour HERO_MIN_INTERVAL_MS.
+  // Tracks the last actual ``heroIndex`` switch so ``nextHero`` can delay
+  // the next auto-advance after a manual jump to honour HERO_MIN_INTERVAL_MS.
   let lastHeroSwitchTs = Date.now()
   let pendingNextHeroTimer = null
 
@@ -231,10 +229,7 @@ export function usePortalHomeData() {
     heroIndex,
     heroPaused,
     featuredCount,
-    nextHero,
     gotoHero,
-    startHeroRotation,
-    stopHeroRotation,
     // Loader
     loadAllData,
   }
