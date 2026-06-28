@@ -26,7 +26,8 @@ async def recommended_for_me(
     user, profile = up
     try:
         return {"items": await get_recommendations_for_user(db, user, profile, locale=locale)}
-    except Exception:
+    except Exception as e:
+        logger.error("[RECO] recommended-for-me failed: %s", e)
         return {"items": []}
 
 
@@ -129,7 +130,8 @@ async def recommendations_full(
             if merged_genres:
                 include_adult = not bool(profile.hide_adult)
                 extra_params = {
-                    "with_genres": ",".join(str(g) for g in merged_genres),
+                    # OR (``|``): ``,`` is AND and collapses to ~0 results past 2-3 genres.
+                    "with_genres": "|".join(str(g) for g in merged_genres),
                     "sort_by": "popularity.desc",
                     "vote_count.gte": "200",
                 }
@@ -177,7 +179,8 @@ async def because_you_watched(
         result = await get_because_you_watched(db, user, profile, media_type_filter=media_type)
         result["items"] = drop_adult(result.get("items"), bool(profile.hide_adult))
         return result
-    except Exception:
+    except Exception as e:
+        logger.error("[RECO] because-you-watched failed: %s", e)
         return {"pivot": None, "items": []}
 
 
@@ -193,7 +196,8 @@ async def preferences_based(
     user, profile = up
     try:
         return await get_preferences_based(db, profile, page=page, locale=locale)
-    except Exception:
+    except Exception as e:
+        logger.error("[RECO] preferences-based failed: %s", e)
         return {"items": [], "page": page, "has_more": False}
 
 
@@ -255,5 +259,6 @@ async def recommended_full_paginated(
         start = (page - 1) * PAGE_SIZE
         end = start + PAGE_SIZE
         return {"items": pool[start:end], "page": page, "has_more": len(pool) > end}
-    except Exception:
+    except Exception as e:
+        logger.error("[RECO] recommended-full failed: %s", e)
         return {"items": [], "page": page, "has_more": False}

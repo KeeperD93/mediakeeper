@@ -6,7 +6,7 @@ tickets, closest achievement, play-day streak). Leaf aggregators live
 in :mod:`daily_digest_sources` so this file stays focused on caching,
 dismissal and composition.
 
-The payload is cached in-memory for ~1h per (user_id, date) pair so a
+The payload is cached in-memory for ~1h per (user_id, date, lang) triple so a
 user re-opening the overlay — or navigating pages that remount the
 layout — doesn't trigger a full re-aggregation. Dismissal is stored in
 ``user_preferences.portal_daily_digest_dismissed_date`` as a
@@ -41,27 +41,30 @@ _CACHE_TTL_SEC = 3600
 _GRACE_HOURS = 24
 _MAX_LOOKBACK_DAYS = 30
 
-# Cache: (user_id, date_iso) -> (expires_at_epoch, payload)
-_digest_cache: dict[tuple[int, str], tuple[float, dict]] = {}
+# Cache: (user_id, date_iso, lang) -> (expires_at_epoch, payload). lang is part
+# of the key because the payload re-resolves media titles/synopsis per viewer
+# locale (#288); a lang-agnostic key would serve the first-cached language to all.
+_digest_cache: dict[tuple[int, str, str], tuple[float, dict]] = {}
 
 
 def _today_iso() -> str:
     return datetime.now(timezone.utc).date().isoformat()
 
 
-def _cache_get(user_id: int, date_iso: str) -> dict | None:
-    hit = _digest_cache.get((user_id, date_iso))
+def _cache_get(user_id: int, date_iso: str, lang: str) -> dict | None:
+    key = (user_id, date_iso, lang)
+    hit = _digest_cache.get(key)
     if not hit:
         return None
     expires_at, payload = hit
     if expires_at < time.time():
-        _digest_cache.pop((user_id, date_iso), None)
+        _digest_cache.pop(key, None)
         return None
     return payload
 
 
-def _cache_set(user_id: int, date_iso: str, payload: dict) -> None:
-    _digest_cache[(user_id, date_iso)] = (time.time() + _CACHE_TTL_SEC, payload)
+def _cache_set(user_id: int, date_iso: str, lang: str, payload: dict) -> None:
+    _digest_cache[(user_id, date_iso, lang)] = (time.time() + _CACHE_TTL_SEC, payload)
 
 
 def invalidate_cache(user_id: int) -> None:
@@ -153,7 +156,7 @@ async def build_digest(
     """
     date_iso = _today_iso()
     if use_cache:
-        cached = _cache_get(user.id, date_iso)
+        cached = _cache_get(user.id, date_iso, lang)
         if cached is not None:
             return cached
 
@@ -189,7 +192,7 @@ async def build_digest(
         "streak": streak,
         "next_achievement": next_ach,
     }
-    _cache_set(user.id, date_iso, payload)
+    _cache_set(user.id, date_iso, lang, payload)
     return payload
 
 

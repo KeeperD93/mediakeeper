@@ -5,6 +5,8 @@ only; surfaces that also need the per-season/episode *overview* in the viewer's
 language (e.g. Discord season/episode notifications) use these. English-cascade
 on a blank overview like ``get_media_detail`` so it never renders empty (#288).
 """
+from __future__ import annotations
+
 import logging
 
 from sqlalchemy.ext.asyncio import AsyncSession

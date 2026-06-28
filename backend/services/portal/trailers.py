@@ -50,8 +50,8 @@ async def resolve_trailer(
     media_type: str,
     tmdb_id: int,
     user_language: str,
-    emby_item_id: Optional[str] = None,
-) -> Optional[dict]:
+    emby_item_id: str | None = None,
+) -> dict | None:
     """
     Run the trailer cascade and return the first hit, or ``None``.
 
@@ -84,7 +84,7 @@ async def resolve_trailers(
     media_type: str,
     tmdb_id: int,
     user_language: str,
-    emby_item_id: Optional[str] = None,
+    emby_item_id: str | None = None,
 ) -> list[dict]:
     """Run the cascade and return ALL viable trailers, best first.
 

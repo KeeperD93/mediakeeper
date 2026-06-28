@@ -6,7 +6,6 @@ All functions in this module return a list of normalized dicts (or a
 single dict for `get_full_details`). Pagination is 1-indexed (TMDB caps
 at page 500).
 """
-import os
 import logging
 from datetime import date, timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,7 +17,6 @@ from services.portal.adult_filter import ADULT_KEYWORDS_CSV
 from services.portal.runtime_cache import resolve_runtimes
 
 logger = logging.getLogger("mediakeeper.portal.discover")
-LANGUAGE = os.getenv("TMDB_LANGUAGE", "fr-FR")
 _IMG_BASE = "https://image.tmdb.org/t/p"
 
 # TMDB list endpoints feed the home page; they change slowly (few times
@@ -241,10 +239,10 @@ async def _fetch_list_params(
     """
     Fetch a TMDB discover list with optional adult-content filtering.
 
-    ``language`` overrides the portal-wide default ``LANGUAGE`` so the
-    overviews and titles come back in the caller's preferred locale.
-    When ``None`` (callers that don't know the user yet), falls back to
-    the portal default.
+    ``language`` (a viewer locale) is normalized via ``tmdb_language`` so
+    overviews and titles come back in the caller's preferred locale. When
+    ``None`` (callers that don't know the user yet), it falls back to the
+    portal-wide default language.
 
     ``include_adult`` controls BOTH the TMDB query param AND the post-filter
     that drops adult items. When False (default, safe), adult content is

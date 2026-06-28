@@ -38,7 +38,7 @@ async def check_and_send_notifications():
         async with AsyncSession(engine) as db:
             await _process_notifications(db)
     except Exception as e:
-        logger.error(f"[NOTIFICATIONS] Error moteur: {e}", exc_info=True)
+        logger.error("[NOTIFICATIONS] Error moteur: %s", e, exc_info=True)
 
 
 async def _load_discord_config(db: AsyncSession):
@@ -156,7 +156,7 @@ def _group_episodes(ready_items: list[dict]) -> list[dict]:
                 "Overview":         f"A batch of {nb_ep} new episodes has been added for season {s_num} of {first.get('SeriesName', '')}.",
             }
             final_notifications.append(synthetic)
-            logger.info(f"[NOTIFICATIONS] Grouping {nb_ep} episodes → 1 notification Season")
+            logger.info("[NOTIFICATIONS] Grouping %s episodes → 1 notification Season", nb_ep)
         else:
             final_notifications.extend(group)
 
@@ -187,9 +187,9 @@ async def _send_item(db, item, webhooks, emby_url, emby_api_key, imgur_id, imgur
                     title=title,
                     message=item.get("Name", ""),
                 )
-                logger.info(f"[NOTIFICATIONS] History saved: {title} ({item_type})")
+                logger.info("[NOTIFICATIONS] History saved: %s (%s)", title, item_type)
             else:
-                logger.warning(f"[NOTIFICATIONS] Discord rejected delivery for {title} ({item_type})")
+                logger.warning("[NOTIFICATIONS] Discord rejected delivery for %s (%s)", title, item_type)
                 await log_failed(
                     db,
                     event_type=event_type,
@@ -199,7 +199,7 @@ async def _send_item(db, item, webhooks, emby_url, emby_api_key, imgur_id, imgur
                     error="discord_rejected",
                 )
         except Exception as e:
-            logger.error(f"[NOTIFICATIONS] Error envoi: {e}")
+            logger.error("[NOTIFICATIONS] Error envoi: %s", e)
             await log_failed(
                 db,
                 event_type=event_type,
@@ -235,7 +235,7 @@ async def _process_notifications(db: AsyncSession):
         queue.append({"queued_at": now.timestamp(), "item": item, "retries": 0})
 
     if new_items:
-        logger.info(f"[NOTIFICATIONS] {len(new_items)} new media en file queue")
+        logger.info("[NOTIFICATIONS] %s new media en file queue", len(new_items))
 
     delay_seconds = max(0, int(config.get("delay", 10)))
     ready_items: list[dict] = []
@@ -259,13 +259,15 @@ async def _process_notifications(db: AsyncSession):
         if _is_item_metadata_complete(item) or retries >= MAX_FETCH_RETRIES:
             if not _is_item_metadata_complete(item):
                 logger.warning(
-                    f"[NOTIFICATIONS] {item.get('Name')} sent with incomplete metadata after {retries} retries"
+                    "[NOTIFICATIONS] %s sent with incomplete metadata after %s retries",
+                    item.get("Name"), retries,
                 )
             ready_items.append(item)
             ready_queue_entries.append({**q, "item": item})
         else:
             logger.info(
-                f"[NOTIFICATIONS] {item.get('Name')} metadata incomplete — defer (retry {retries + 1}/{MAX_FETCH_RETRIES})"
+                "[NOTIFICATIONS] %s metadata incomplete — defer (retry %s/%s)",
+                item.get("Name"), retries + 1, MAX_FETCH_RETRIES,
             )
             remaining_queue.append({**q, "item": item, "retries": retries + 1})
 
@@ -278,7 +280,7 @@ async def _process_notifications(db: AsyncSession):
         except Exception as exc:
             # Auto-fulfill is a side-effect of the notif scan — a failure
             # here must never abort the Discord delivery loop.
-            logger.error(f"[NOTIFICATIONS] auto-fulfill error: {exc}")
+            logger.error("[NOTIFICATIONS] auto-fulfill error: %s", exc)
 
     if _is_dnd(rules):
         logger.info("[NOTIFICATIONS] DND active — media additions not sent")
