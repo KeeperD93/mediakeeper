@@ -85,7 +85,7 @@ async def _search_tmdb(media_type: str, query: str, db: AsyncSession | None = No
     title_key = "title" if media_type == TMDB_MEDIA_MOVIE else "name"
     date_key  = "release_date" if media_type == TMDB_MEDIA_MOVIE else "first_air_date"
     url_segment = TMDB_MEDIA_MOVIE if media_type == TMDB_MEDIA_MOVIE else TMDB_MEDIA_TV
-    lang = language or LANGUAGE
+    lang = tmdb_language(language)
 
     params: dict[str, str | int] = {"query": query, "language": lang, "page": 1}
     if year:
@@ -156,7 +156,7 @@ async def search_tv(query: str, db: AsyncSession | None = None, language: str | 
 async def get_tv_seasons(tmdb_id: int, db: AsyncSession | None = None, language: str | None = None) -> list[dict] | dict:
     """Fetch the seasons of a series."""
     api_key = await _get_tmdb_key(db)
-    lang = language or LANGUAGE
+    lang = tmdb_language(language)
     try:
         client = get_external_client()
         res = await client.get(
@@ -199,7 +199,7 @@ async def get_season_episodes(tmdb_id: int, season: int, db: AsyncSession | None
     showing an empty name or the placeholder in the request picker.
     """
     api_key = await _get_tmdb_key(db)
-    lang = language or LANGUAGE
+    lang = tmdb_language(language)
     try:
         client = get_external_client()
         res = await client.get(

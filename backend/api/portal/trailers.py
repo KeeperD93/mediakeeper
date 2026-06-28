@@ -16,9 +16,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
 from core.http_client import get_internal_client
+from core.i18n import get_request_locale
 from models.user import User
 from models.portal.profile import UserProfile
 from api.portal.deps import get_current_profile
+from services.portal.available_localize import localize_emby_items
 from services.portal.trailers import resolve_trailer, resolve_trailers, stream_emby_trailer
 
 router = APIRouter(prefix="/trailers", tags=["portal-trailers"])
@@ -35,6 +37,7 @@ async def random_trailers(
     limit: int = Query(10, ge=1, le=30),
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
+    locale: str = Depends(get_request_locale),
 ):
     """
     Random pool of trailer keys for the cinema room ambient screen.
@@ -42,11 +45,12 @@ async def random_trailers(
     Picks a handful of recently-added Emby items, runs the trailer
     cascade for each, and returns the YouTube keys (or Emby URLs) so
     the room can cycle through them while users wait for the show.
+    Titles and the trailer language follow the viewer's active locale
+    (X-MK-Locale).
     """
     from services.portal.available import get_recently_added
     items = await get_recently_added(db, limit=limit * 2)
-    _, profile = up
-    user_lang = (profile.language or "en").split("-")[0].lower()
+    items = await localize_emby_items(db, items, locale)
 
     # Resolve trailers concurrently — each call is an independent Emby +
     # TMDB cascade, so sequencing them used to cost ≈ n × ~300 ms. We
@@ -58,7 +62,7 @@ async def random_trailers(
         try:
             return await resolve_trailer(
                 db, it.get("media_type", "movie"), int(it["tmdb_id"]),
-                user_lang, emby_item_id=it.get("emby_item_id"),
+                locale, emby_item_id=it.get("emby_item_id"),
             )
         except Exception:
             return None
@@ -89,6 +93,7 @@ async def resolve(
     emby_item_id: str | None = Query(None, pattern="^[A-Za-z0-9]+$"),
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
+    locale: str = Depends(get_request_locale),
 ):
     """
     Resolve trailers for a given media using the cascade.
@@ -96,13 +101,11 @@ async def resolve(
     Returns the best trailer (``trailer``) plus the full ranked candidate
     list (``candidates``) so the player can fall back to another one when
     the first is region-blocked by the provider. ``candidates[0] == trailer``.
-    The user's preferred language is read from their Portal profile.
+    The trailer language follows the viewer's active locale (X-MK-Locale).
     """
-    _, profile = up
-    user_lang = (profile.language or "en").split("-")[0].lower()
     try:
         candidates = await resolve_trailers(
-            db, media_type, tmdb_id, user_lang, emby_item_id=emby_item_id
+            db, media_type, tmdb_id, locale, emby_item_id=emby_item_id
         )
     except Exception as e:
         logger.warning("[TRAILERS] resolve failed: %s", e)

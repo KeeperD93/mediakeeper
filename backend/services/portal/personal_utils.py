@@ -154,7 +154,7 @@ async def _get_indexed_tmdb_ids(
         res = await db.execute(stmt)
         return {int(x) for x in res.scalars().all() if x is not None}
     except Exception as e:
-        logger.debug(f"[PERSONAL] indexed tmdb ids fetch failed ({media_type}): {e}")
+        logger.debug("[PERSONAL] indexed tmdb ids fetch failed (%s): %s", media_type, e)
         return set()
 
 
@@ -168,5 +168,6 @@ async def _count_total_plays(
             .where(_playback_user_filter(user, profile))
         )
         return result.scalar() or 0
-    except Exception:
+    except Exception as e:
+        logger.debug("[PERSONAL] total plays count failed: %s", e)
         return 0

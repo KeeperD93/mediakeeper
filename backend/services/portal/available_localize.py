@@ -32,6 +32,11 @@ async def _localized_meta(
     entry = _meta_cache.get(key)
     if entry and time.time() - entry[0] < _CACHE_TTL_SEC:
         return entry[1]
+    # No lock on the miss path on purpose: two concurrent misses on the same key
+    # only do a redundant, idempotent TMDB fetch. A shared lock would serialise
+    # the surrounding asyncio.gather (killing its bounded concurrency); a per-key
+    # lock dict would leak locks unbounded. The rare duplicate call is the cheaper
+    # trade-off — and errors are deliberately never cached.
     detail = await get_media_detail(media_type, tmdb_id, db, locale)
     if detail.get("error"):
         return None

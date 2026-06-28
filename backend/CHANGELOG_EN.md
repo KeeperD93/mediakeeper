@@ -42,6 +42,7 @@ This section intentionally has no date so it is not shown to users.
 - Configuration (admin) — screen reorganised into sections, global save bar.
 
 ### Fixed
+- Recommendations — genre filter widened (OR) to fill the page past 2-3 favorite genres.
 - Media manager — renaming a root folder can no longer move it outside the configured paths.
 - Dashboard — History tabs (Notifications, Duplicates): "Load more" button.
 - Dashboard — activity feed: plugin updates now shown in your language.
@@ -76,6 +77,14 @@ This section intentionally has no date so it is not shown to users.
 - Dashboard — activity feed (logins, playback) now shown in your language.
 - Dashboard — activity feed: animations disabled when reduced motion is on.
 - Media library — TMDB detail pages now shown in your language (English fallback).
+- Discover — people, collections, lists and seasons in your language.
+- Discover — "For you" and "Based on your preferences" in your language.
+- Trailers — carousel shown in your language.
+- Top 20 of the month — titles shown in your language.
+- Notifications — request/ticket titles shown in your language.
+- Daily digest — new additions shown in your language.
+- Discord notifications — title, synopsis and link in the webhook's language.
+- Discord notifications — test preview in the webhook's language.
 - Watchlist — series, episodes and synopsis now shown in your language.
 - Watchlist — calendar movies now shown in your language.
 - Watchlist — calendar month and day names follow the app language.

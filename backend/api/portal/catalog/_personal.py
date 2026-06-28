@@ -20,12 +20,14 @@ router = APIRouter()
 async def recommended_for_me(
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
+    locale: str = Depends(get_request_locale),
 ):
     from services.portal.personal import get_recommendations_for_user
     user, profile = up
     try:
-        return {"items": await get_recommendations_for_user(db, user, profile)}
-    except Exception:
+        return {"items": await get_recommendations_for_user(db, user, profile, locale=locale)}
+    except Exception as e:
+        logger.error("[RECO] recommended-for-me failed: %s", e)
         return {"items": []}
 
 
@@ -41,7 +43,7 @@ async def watch_history(
     try:
         return await get_watch_history_paginated(db, user, profile, page=page)
     except Exception as e:
-        logger.error(f"[WATCH-HISTORY] error: {e}")
+        logger.error("[WATCH-HISTORY] error: %s", e)
         return {"items": [], "page": page, "has_more": False}
 
 
@@ -57,7 +59,7 @@ async def my_requests(
     try:
         return await get_my_requests_paginated(db, user, page=page)
     except Exception as e:
-        logger.error(f"[MY-REQUESTS] error: {e}")
+        logger.error("[MY-REQUESTS] error: %s", e)
         return {"items": [], "page": page, "has_more": False}
 
 
@@ -91,6 +93,7 @@ async def profile_full(
 async def recommendations_full(
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
+    locale: str = Depends(get_request_locale),
 ):
     """
     Premium recommendations page: reuses the proven home-page
@@ -104,7 +107,7 @@ async def recommendations_full(
     )
     user, profile = up
     try:
-        items = await get_recommendations_for_user(db, user, profile)
+        items = await get_recommendations_for_user(db, user, profile, locale=locale)
         logger.info("[RECO-FULL] user=%s got %s items from base engine", user.id, len(items))
 
         total_plays = await _count_total_plays(db, user, profile)
@@ -126,9 +129,9 @@ async def recommendations_full(
 
             if merged_genres:
                 include_adult = not bool(profile.hide_adult)
-                user_lang = (profile.language or "").split("-")[0].lower() or None
                 extra_params = {
-                    "with_genres": ",".join(str(g) for g in merged_genres),
+                    # OR (``|``): ``,`` is AND and collapses to ~0 results past 2-3 genres.
+                    "with_genres": "|".join(str(g) for g in merged_genres),
                     "sort_by": "popularity.desc",
                     "vote_count.gte": "200",
                 }
@@ -140,7 +143,7 @@ async def recommendations_full(
                     for mt, idx in [("/discover/movie", idx_m), ("/discover/tv", idx_t)]:
                         extra = await _fetch_list_params(
                             db, mt, page, extra_params,
-                            include_adult=include_adult, language=user_lang,
+                            include_adult=include_adult, language=locale,
                         )
                         for it in extra:
                             tid = it.get("tmdb_id")
@@ -176,7 +179,8 @@ async def because_you_watched(
         result = await get_because_you_watched(db, user, profile, media_type_filter=media_type)
         result["items"] = drop_adult(result.get("items"), bool(profile.hide_adult))
         return result
-    except Exception:
+    except Exception as e:
+        logger.error("[RECO] because-you-watched failed: %s", e)
         return {"pivot": None, "items": []}
 
 
@@ -185,13 +189,15 @@ async def preferences_based(
     page: int = Query(1, ge=1, le=50),
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
+    locale: str = Depends(get_request_locale),
 ):
     """TMDB discover mixed by the user's ticked favorite genres."""
     from services.portal.preferences_based import get_preferences_based
     user, profile = up
     try:
-        return await get_preferences_based(db, profile, page=page)
-    except Exception:
+        return await get_preferences_based(db, profile, page=page, locale=locale)
+    except Exception as e:
+        logger.error("[RECO] preferences-based failed: %s", e)
         return {"items": [], "page": page, "has_more": False}
 
 
@@ -200,6 +206,7 @@ async def recommended_full_paginated(
     page: int = Query(1, ge=1, le=50),
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
+    locale: str = Depends(get_request_locale),
 ):
     """Paginated view of the "Recommended for you" list — serves the
     dedicated category page opened from the profile carousel."""
@@ -208,7 +215,7 @@ async def recommended_full_paginated(
     user, profile = up
     PAGE_SIZE = 40
     try:
-        base = await get_recommendations_for_user(db, user, profile)
+        base = await get_recommendations_for_user(db, user, profile, locale=locale)
         if not base:
             return {"items": [], "page": page, "has_more": False}
         # Extend with popularity-ordered discover pages matching the
@@ -220,7 +227,6 @@ async def recommended_full_paginated(
         if not merged_genres:
             merged_genres = (base[0].get("genres") or [])[:3]
         include_adult = not bool(profile.hide_adult)
-        user_lang = (profile.language or "").split("-")[0].lower() or None
         seen = {it.get("tmdb_id") for it in base if it.get("tmdb_id")}
         pool = list(base)
         # Full browse page: we want the whole catalogue of matches so
@@ -241,7 +247,7 @@ async def recommended_full_paginated(
                 for mt in ("/discover/movie", "/discover/tv"):
                     extra = await _fetch_list_params(
                         db, mt, tp, extra_params,
-                        include_adult=include_adult, language=user_lang,
+                        include_adult=include_adult, language=locale,
                     )
                     for it in extra:
                         tid = it.get("tmdb_id")
@@ -253,5 +259,6 @@ async def recommended_full_paginated(
         start = (page - 1) * PAGE_SIZE
         end = start + PAGE_SIZE
         return {"items": pool[start:end], "page": page, "has_more": len(pool) > end}
-    except Exception:
+    except Exception as e:
+        logger.error("[RECO] recommended-full failed: %s", e)
         return {"items": [], "page": page, "has_more": False}

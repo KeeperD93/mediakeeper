@@ -20,11 +20,9 @@ from services.portal.personal_utils import (
     _coerce_int,
     _interleave,
     _get_indexed_tmdb_ids,
-    _count_total_plays,
 )
 from services.portal.personal_genres import (
     _infer_genres_from_history,
-    _infer_genres_from_history_full,
 )
 
 logger = logging.getLogger("mediakeeper.portal.personal")
@@ -32,6 +30,7 @@ logger = logging.getLogger("mediakeeper.portal.personal")
 
 async def get_recommendations_for_user(
     db: AsyncSession, user: User, profile: UserProfile,
+    *, locale: str | None = None,
 ) -> list[dict]:
     """
     Build "Recommended for you" row by:
@@ -65,13 +64,13 @@ async def get_recommendations_for_user(
 
     if not merged:
         logger.info(
-            f"[PERSONAL] recommended empty for user={user.username!r} "
-            f"profile={profile.display_name!r}: no declared genres and no inferred history"
+            "[PERSONAL] recommended empty for user_id=%s: "
+            "no declared genres and no inferred history",
+            user.id,
         )
         return []
 
     include_adult = not bool(profile.hide_adult)
-    user_lang = (profile.language or "").split("-")[0].lower() or None
     # OR semantics — TMDB ``,`` is AND (must contain ALL genres), which
     # collapses to nothing as soon as the merged top-3 spans
     # incompatible categories (e.g. War + Politics + Western for a user
@@ -86,11 +85,11 @@ async def get_recommendations_for_user(
     movies, tv, indexed_movies, indexed_tv = await asyncio.gather(
         _fetch_list_params(
             db, "/discover/movie", 1, discover_params,
-            include_adult=include_adult, language=user_lang,
+            include_adult=include_adult, language=locale,
         ),
         _fetch_list_params(
             db, "/discover/tv", 1, discover_params,
-            include_adult=include_adult, language=user_lang,
+            include_adult=include_adult, language=locale,
         ),
         _get_indexed_tmdb_ids(db, "movie"),
         _get_indexed_tmdb_ids(db, "tv"),
@@ -112,11 +111,11 @@ async def get_recommendations_for_user(
             break
         more_movies = await _fetch_list_params(
             db, "/discover/movie", page, discover_params,
-            include_adult=include_adult, language=user_lang,
+            include_adult=include_adult, language=locale,
         )
         more_tv = await _fetch_list_params(
             db, "/discover/tv", page, discover_params,
-            include_adult=include_adult, language=user_lang,
+            include_adult=include_adult, language=locale,
         )
         for m in more_movies:
             mid = m.get("tmdb_id")
@@ -130,96 +129,3 @@ async def get_recommendations_for_user(
                 seen_tv.add(tid)
 
     return _interleave(movies, tv, max_n=20)
-
-
-async def get_recommendations_premium(
-    db: AsyncSession, user: User, profile: UserProfile,
-) -> dict:
-    """
-    Enriched recommendations for the dedicated premium page.
-
-    Returns up to 60 items (3 pages from TMDB) plus playback stats so the
-    frontend can build a curated, genre-grouped experience. Items carry
-    their ``genres`` field (list of TMDB genre IDs) — the frontend groups
-    them by primary genre and labels each section via i18n mappings.
-    """
-    declared = [
-        gid for g in (profile.favorite_genres or [])
-        if (gid := _coerce_int(g)) is not None
-    ]
-    inferred_primary, inferred_all = await _infer_genres_from_history_full(db, user, profile)
-
-    merged: list[int] = []
-    for gid in (*declared, *inferred_primary):
-        if gid not in merged:
-            merged.append(gid)
-        if len(merged) >= 5:
-            break
-
-    total_plays = await _count_total_plays(db, user, profile)
-    total_weight = sum(inferred_all.values()) or 1
-    genre_stats = [
-        {"id": gid, "percentage": round(100 * w / total_weight)}
-        for gid, w in inferred_all.most_common(6)
-    ]
-
-    if not merged:
-        return {
-            "hero": None,
-            "stats": {"total_plays": total_plays, "top_genres": genre_stats},
-            "items": [],
-            "genre_ids": [],
-        }
-
-    include_adult = not bool(profile.hide_adult)
-    user_lang = (profile.language or "").split("-")[0].lower() or None
-    discover_params = {
-        "with_genres": ",".join(str(g) for g in merged),
-        "sort_by": "popularity.desc",
-        "vote_count.gte": "200",
-    }
-
-    # Page 1: same pattern as get_recommendations_for_user — 4 tasks
-    # sharing the DB session, proven to work.
-    movies, tv, idx_m, idx_t = await asyncio.gather(
-        _fetch_list_params(
-            db, "/discover/movie", 1, discover_params,
-            include_adult=include_adult, language=user_lang,
-        ),
-        _fetch_list_params(
-            db, "/discover/tv", 1, discover_params,
-            include_adult=include_adult, language=user_lang,
-        ),
-        _get_indexed_tmdb_ids(db, "movie"),
-        _get_indexed_tmdb_ids(db, "tv"),
-    )
-
-    movies = [m for m in movies if m.get("tmdb_id") not in idx_m]
-    tv = [t for t in tv if t.get("tmdb_id") not in idx_t]
-
-    # Pages 2-3: fetch sequentially to avoid concurrent DB session issues.
-    # (asyncio.gather with nested _fetch_list_params calls on the same
-    # session can break SQLAlchemy async.)
-    for page in (2, 3):
-        if len(movies) + len(tv) >= 60:
-            break
-        m2 = await _fetch_list_params(
-            db, "/discover/movie", page, discover_params,
-            include_adult=include_adult, language=user_lang,
-        )
-        t2 = await _fetch_list_params(
-            db, "/discover/tv", page, discover_params,
-            include_adult=include_adult, language=user_lang,
-        )
-        movies.extend(m for m in m2 if m.get("tmdb_id") not in idx_m)
-        tv.extend(t for t in t2 if t.get("tmdb_id") not in idx_t)
-
-    items = _interleave(movies, tv, max_n=60)
-    hero = items[0] if items else None
-
-    return {
-        "hero": hero,
-        "stats": {"total_plays": total_plays, "top_genres": genre_stats},
-        "items": items,
-        "genre_ids": merged,
-    }

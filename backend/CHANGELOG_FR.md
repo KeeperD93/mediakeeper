@@ -42,6 +42,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Configuration (admin) — écran réorganisé par sections, barre d'enregistrement globale.
 
 ### Fixed
+- Recommandations — filtre genres élargi (OU) pour remplir la page au-delà de 2-3 genres préférés.
 - Gestionnaire de médias — renommer un dossier racine ne peut plus le sortir des chemins configurés.
 - Tableau de bord — onglets Historique (Notifications, Doublons) : bouton « Charger plus ».
 - Tableau de bord — fil d'activité : mises à jour de plugin affichées dans votre langue.
@@ -76,6 +77,14 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Tableau de bord — fil d'activité (connexions, lectures) affiché dans votre langue.
 - Tableau de bord — fil d'activité : animations coupées si « réduire les animations » est actif.
 - Médiathèque — fiches détail TMDB affichées dans votre langue (repli anglais).
+- Découvrir — personnes, collections, listes et saisons dans votre langue.
+- Découvrir — « Pour vous » et « Basé sur vos préférences » dans votre langue.
+- Bandes-annonces — carrousel affiché dans votre langue.
+- Top 20 du mois — titres affichés dans votre langue.
+- Notifications — titres des demandes/tickets dans votre langue.
+- Récap du jour — nouveaux ajouts affichés dans votre langue.
+- Notifications Discord — titre, synopsis et lien dans la langue du webhook.
+- Notifications Discord — aperçu de test dans la langue du webhook.
 - Watchlist — séries, épisodes et synopsis affichés dans votre langue.
 - Watchlist — films du calendrier affichés dans votre langue.
 - Watchlist — mois et jours du calendrier suivent la langue de l'app.

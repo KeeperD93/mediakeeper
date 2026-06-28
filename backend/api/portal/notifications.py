@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
+from core.i18n import get_request_locale
 from models.user import User
 from models.portal.profile import UserProfile
 from api.portal.deps import get_current_profile
@@ -18,9 +19,10 @@ async def list_notifs(
     cursor: str | None = Query(None),
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
+    locale: str = Depends(get_request_locale),
 ):
     user, _ = up
-    return await notifs.list_for_user(db, user.id, unread_only, limit, cursor)
+    return await notifs.list_for_user(db, user.id, unread_only, limit, cursor, locale)
 
 
 @router.get("/count")

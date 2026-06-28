@@ -91,3 +91,22 @@ async def test_row_dedupes_titles_repeated_across_pages():
 
     ids = [r["tmdb_id"] for r in result]
     assert len(set(ids)) == len(ids)  # no duplicate despite the cross-page repeat
+
+
+@pytest.mark.asyncio
+async def test_passes_request_locale_to_discover():
+    """The engine queries TMDB in the viewer's locale, not profile.language."""
+    captured = {}
+
+    async def fetch(db, endpoint, page, params, **kw):
+        captured["language"] = kw.get("language")
+        return []
+
+    p1, p2, p3 = _patches(fetch=AsyncMock(side_effect=fetch), indexed=AsyncMock(return_value=set()))
+    with p1, p2, p3:
+        # profile.language is "fr"; locale="en" must win.
+        await personal_recos.get_recommendations_for_user(
+            _DB, User(username="u"), _profile(), locale="en",
+        )
+
+    assert captured["language"] == "en"

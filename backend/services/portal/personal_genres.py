@@ -47,7 +47,7 @@ async def _sample_latest_plays(
     try:
         rows = (await db.execute(stmt)).all()
     except Exception as e:
-        logger.debug(f"[PERSONAL] history query failed: {e}")
+        logger.debug("[PERSONAL] history query failed: %s", e)
         return {}
 
     latest_seen: dict[str, tuple[str, datetime]] = {}

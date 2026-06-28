@@ -8,7 +8,7 @@ Implementation is split across four modules to keep each file under 300 lines:
                            interleave, indexed-ids lookup, total plays count).
   - personal_genres.py  — genre inference from playback history (with and
                            without full counter for premium stats).
-  - personal_recos.py   — get_recommendations_for_user + get_recommendations_premium.
+  - personal_recos.py   — get_recommendations_for_user.
   - personal_watched.py — get_because_you_watched + series index resolver.
 
 Consumers import from this file, not the split modules, so the public API
@@ -29,14 +29,12 @@ from services.portal.personal_genres import (
 )
 from services.portal.personal_recos import (
     get_recommendations_for_user,
-    get_recommendations_premium,
 )
 from services.portal.personal_watched import get_because_you_watched
 
 __all__ = [
     # Public API
     "get_recommendations_for_user",
-    "get_recommendations_premium",
     "get_because_you_watched",
     # Helpers re-exported for profile_stats / api layers
     "_playback_user_filter",
