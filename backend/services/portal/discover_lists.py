@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.http_client import get_external_client
 from core.ttl_cache import cached_tmdb_list
-from services.tmdb import _get_tmdb_key, _tmdb_headers_sync, TMDB_BASE
+from services.tmdb import _get_tmdb_key, _tmdb_headers_sync, tmdb_language, TMDB_BASE
 from services.portal.adult_filter import ADULT_KEYWORDS_CSV
 from services.portal.runtime_cache import resolve_runtimes
 
@@ -205,7 +205,7 @@ async def get_media_videos(
         client = get_external_client()
         res = await client.get(
             f"{TMDB_BASE}/{media_type}/{tmdb_id}/videos",
-            params={"language": language or LANGUAGE},
+            params={"language": tmdb_language(language)},
             headers=_tmdb_headers_sync(api_key),
         )
         videos = []
@@ -255,7 +255,7 @@ async def _fetch_list_params(
     try:
         client = get_external_client()
         params = {
-            "language": language or LANGUAGE,
+            "language": tmdb_language(language),
             "page": page,
             "include_adult": "true" if include_adult else "false",
             **extra_params,

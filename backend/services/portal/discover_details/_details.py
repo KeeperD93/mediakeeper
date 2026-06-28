@@ -16,7 +16,7 @@ from services.portal.discover_lists import _IMG_BASE, _normalize
 from services.portal.runtime_cache import resolve_runtimes
 from services.tmdb import _get_tmdb_key, _tmdb_headers_sync, tmdb_language, TMDB_BASE
 
-from ._constants import LANGUAGE, logger
+from ._constants import logger
 
 
 async def get_full_details(
@@ -195,12 +195,12 @@ async def get_person_filmography(
         client = get_external_client()
         res_info = await client.get(
             f"{TMDB_BASE}/person/{person_id}",
-            params={"language": language or LANGUAGE},
+            params={"language": tmdb_language(language)},
             headers=_tmdb_headers_sync(api_key),
         )
         res_credits = await client.get(
             f"{TMDB_BASE}/person/{person_id}/combined_credits",
-            params={"language": language or LANGUAGE},
+            params={"language": tmdb_language(language)},
             headers=_tmdb_headers_sync(api_key),
         )
         info = res_info.json() if res_info.status_code == 200 else {}
@@ -248,7 +248,7 @@ async def get_collection(
         client = get_external_client()
         res = await client.get(
             f"{TMDB_BASE}/collection/{collection_id}",
-            params={"language": language or LANGUAGE},
+            params={"language": tmdb_language(language)},
             headers=_tmdb_headers_sync(api_key),
         )
         if res.status_code != 200:

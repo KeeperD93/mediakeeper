@@ -76,6 +76,7 @@ This section intentionally has no date so it is not shown to users.
 - Dashboard — activity feed (logins, playback) now shown in your language.
 - Dashboard — activity feed: animations disabled when reduced motion is on.
 - Media library — TMDB detail pages now shown in your language (English fallback).
+- Discover — people, collections, lists and seasons in your language.
 - Watchlist — series, episodes and synopsis now shown in your language.
 - Watchlist — calendar movies now shown in your language.
 - Watchlist — calendar month and day names follow the app language.
