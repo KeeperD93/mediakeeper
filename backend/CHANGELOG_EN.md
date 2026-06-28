@@ -83,6 +83,7 @@ This section intentionally has no date so it is not shown to users.
 - Notifications — request/ticket titles shown in your language.
 - Daily digest — new additions shown in your language.
 - Discord notifications — title, synopsis and link in the webhook's language.
+- Discord notifications — test preview in the webhook's language.
 - Watchlist — series, episodes and synopsis now shown in your language.
 - Watchlist — calendar movies now shown in your language.
 - Watchlist — calendar month and day names follow the app language.

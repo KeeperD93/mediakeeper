@@ -9,7 +9,7 @@ from core.webhooks import post_signed_with_retry, webhook_log_id
 
 from ._defaults import DEFAULT_COLORS, get_default_templates
 from ._render import _hex_to_int, _apply_vars, _add_aliases, _build_embed
-from ._samples import SAMPLE_DATA, SAMPLE_SYSTEM
+from ._samples import sample_data_for, sample_system_for
 from .payloads import _resolve_system_lang
 
 logger = logging.getLogger("mediakeeper.notifications.discord")
@@ -31,24 +31,25 @@ async def send_discord_test(
     templates = wh_config.get("templates", {}) or {}
     settings  = wh_config.get("settings",  {}) or {}
 
+    # Resolve the language like real notifications (instance default) so the
+    # test previews what users will receive in that webhook's language.
+    lang = wh_config.get("lang") or await _resolve_system_lang(db)
+    sample_data = sample_data_for(lang)
     # Map test_type → tpl_key + data
     type_map = {
-        "movie":   ("added_movie",   SAMPLE_DATA["movie"]),
-        "series":  ("added_series",  SAMPLE_DATA["series"]),
-        "season":  ("added_season",  SAMPLE_DATA["season"]),
-        "episode": ("added_episode", SAMPLE_DATA["episode"]),
+        "movie":   ("added_movie",   sample_data["movie"]),
+        "series":  ("added_series",  sample_data["series"]),
+        "season":  ("added_season",  sample_data["season"]),
+        "episode": ("added_episode", sample_data["episode"]),
     }
-    for syskey, sysdata in SAMPLE_SYSTEM.items():
+    for syskey, sysdata in sample_system_for(lang).items():
         type_map[syskey] = (syskey, sysdata)
 
     if test_type not in type_map:
         return {"error": f"Unknown test type: {test_type}"}
 
     tpl_key, vars_src = type_map[test_type]
-    vars_dict = dict(vars_src)  # copy so we don't mutate SAMPLE_DATA
-    # Resolve the language like real notifications (instance default) so the
-    # test previews what users will receive, not the admin's UI locale.
-    lang = wh_config.get("lang") or await _resolve_system_lang(db)
+    vars_dict = dict(vars_src)  # copy so we don't mutate the sample
     raw_tpl = templates.get(tpl_key) or get_default_templates(lang).get(tpl_key, "")
     tpl_settings = settings.get(tpl_key, {})
     color       = _hex_to_int(tpl_settings.get("color", DEFAULT_COLORS.get(tpl_key, 5763719)))

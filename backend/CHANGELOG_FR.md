@@ -83,6 +83,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Notifications — titres des demandes/tickets dans votre langue.
 - Récap du jour — nouveaux ajouts affichés dans votre langue.
 - Notifications Discord — titre, synopsis et lien dans la langue du webhook.
+- Notifications Discord — aperçu de test dans la langue du webhook.
 - Watchlist — séries, épisodes et synopsis affichés dans votre langue.
 - Watchlist — films du calendrier affichés dans votre langue.
 - Watchlist — mois et jours du calendrier suivent la langue de l'app.
