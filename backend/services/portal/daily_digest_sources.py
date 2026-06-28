@@ -92,8 +92,14 @@ async def recent_adds(
         for it in kept[:cap]
     ]
     # Titles come from Emby in the library language; re-resolve to the viewer
-    # locale (no-op for the default language).
-    return await localize_emby_items(db, out, lang)
+    # locale (no-op for the default language). Stay defensive like every other
+    # digest source: a TMDB/DB hiccup must degrade to the stored titles, never
+    # bubble up and 500 the whole digest.
+    try:
+        return await localize_emby_items(db, out, lang)
+    except Exception as e:  # noqa: BLE001
+        logger.debug("[DIGEST] recent adds localize failed: %s", e)
+        return out
 
 
 async def upcoming_events(db: AsyncSession, user_id: int) -> list[dict]:

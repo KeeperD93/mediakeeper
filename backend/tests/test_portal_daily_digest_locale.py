@@ -60,6 +60,28 @@ async def test_recent_adds_default_locale_noop(db_session, monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_recent_adds_degrades_on_localize_failure(db_session, monkeypatch):
+    """A TMDB/DB hiccup during localization degrades to the stored titles
+    rather than bubbling up and 500-ing the whole digest."""
+    async def _recent(db, limit=80):
+        return [{
+            "tmdb_id": 603, "media_type": "movie", "title": "Matrice",
+            "emby_item_id": "x", "year": "1999", "poster_url": "",
+            "date_created": "2099-01-01",
+        }]
+
+    async def _boom(db, items, locale):
+        raise RuntimeError("tmdb down")
+
+    monkeypatch.setattr("services.portal.daily_digest_sources.get_recently_added", _recent)
+    monkeypatch.setattr("services.portal.daily_digest_sources.localize_emby_items", _boom)
+
+    since = datetime(2000, 1, 1, tzinfo=timezone.utc)
+    result = await sources.recent_adds(db_session, since=since, lang="en")
+    assert result[0]["title"] == "Matrice"  # degraded to the stored title
+
+
+@pytest.mark.asyncio
 async def test_digest_endpoint_uses_request_locale(client, db_session, monkeypatch):
     user, _ = await make_portal_user(db_session, username="digest-i18n", display_name="V", role="viewer")
     client.cookies.set(PORTAL_COOKIE, portal_token(user.username))
