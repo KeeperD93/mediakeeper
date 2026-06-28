@@ -81,6 +81,7 @@ This section intentionally has no date so it is not shown to users.
 - Trailers — carousel shown in your language.
 - Top 20 of the month — titles shown in your language.
 - Notifications — request/ticket titles shown in your language.
+- Daily digest — new additions shown in your language.
 - Watchlist — series, episodes and synopsis now shown in your language.
 - Watchlist — calendar movies now shown in your language.
 - Watchlist — calendar month and day names follow the app language.

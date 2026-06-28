@@ -161,7 +161,7 @@ async def build_digest(
 
     prefs = await _load_prefs(db, user.id)
     cutoff = _recent_cutoff(prefs, datetime.now(timezone.utc))
-    recent_adds = await sources.recent_adds(db, since=cutoff)
+    recent_adds = await sources.recent_adds(db, since=cutoff, lang=lang)
     events = await sources.upcoming_events(db, user.id)
     ranking = await sources.ranking_snapshot(db, user, lang=lang)
     quota = await sources.quota_snapshot(db, user.id)

@@ -19,6 +19,7 @@ from models.user import User
 from models.portal.profile import UserProfile
 from models.portal.ticket import Ticket
 from services.portal.available import get_recently_added
+from services.portal.available_localize import localize_emby_items
 from services.portal.mk_events_crud import list_for_user as list_events_for_user
 from services.portal.profile_stats_ranking import (
     compute_ranking, title_for_level, tier_for_level,
@@ -53,7 +54,7 @@ def _parse_emby_iso(raw: str) -> datetime | None:
 
 
 async def recent_adds(
-    db: AsyncSession, *, since: datetime, cap: int = RECENT_ADDS_CAP
+    db: AsyncSession, *, since: datetime, cap: int = RECENT_ADDS_CAP, lang: str = "fr"
 ) -> list[dict]:
     """Emby items added since the viewer last caught up, newest first.
 
@@ -78,7 +79,7 @@ async def recent_adds(
         logger.debug("[DIGEST] recent adds failed: %s", e)
         return []
     kept = [it for it in items if _is_new(it)]
-    return [
+    out = [
         {
             "tmdb_id": it.get("tmdb_id"),
             "emby_item_id": it.get("emby_item_id"),
@@ -90,6 +91,9 @@ async def recent_adds(
         }
         for it in kept[:cap]
     ]
+    # Titles come from Emby in the library language; re-resolve to the viewer
+    # locale (no-op for the default language).
+    return await localize_emby_items(db, out, lang)
 
 
 async def upcoming_events(db: AsyncSession, user_id: int) -> list[dict]:
