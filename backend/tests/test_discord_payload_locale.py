@@ -41,6 +41,23 @@ async def test_localized_media_episode(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_localized_media_default_lang_keeps_emby(monkeypatch):
+    calls = {"n": 0}
+
+    async def _detail(mt, tid, db=None, locale=None):
+        calls["n"] += 1
+        return {"title": "TMDB title", "overview": "TMDB ov"}
+
+    monkeypatch.setattr(pl, "get_media_detail", _detail)
+    out = await pl._localized_media_text(
+        {"Name": "Inception", "Overview": "FR syn"}, "Movie", "27205", "movie", "fr", None,
+    )
+    # Default language -> stored Emby text, no TMDB round-trip.
+    assert out == {"name": "Inception", "series": "", "overview": "FR syn"}
+    assert calls["n"] == 0
+
+
+@pytest.mark.asyncio
 async def test_localized_media_no_tmdb_id():
     out = await pl._localized_media_text(
         {"Name": "X", "Overview": "FR"}, "Movie", None, "movie", "en", None,

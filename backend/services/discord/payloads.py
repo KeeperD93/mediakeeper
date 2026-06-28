@@ -1,6 +1,6 @@
 """Build Discord payloads (media + system)."""
 
-from services.tmdb import get_media_detail
+from services.tmdb import get_media_detail, tmdb_language, LANGUAGE
 from services.tmdb_episode import get_episode_detail, get_season_detail
 
 from ._defaults import DEFAULT_COLORS, get_default_templates
@@ -40,7 +40,9 @@ async def _localized_media_text(
         "series": item.get("SeriesName", ""),
         "overview": item.get("Overview", ""),
     }
-    if not tmdb_id:
+    # Default language: Emby already serves the text, so keep it and skip the
+    # TMDB round-trip — same short-circuit as localize_emby_items.
+    if not tmdb_id or tmdb_language(lang) == LANGUAGE:
         return out
     try:
         tid = int(tmdb_id)
