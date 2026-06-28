@@ -85,7 +85,7 @@ async def _search_tmdb(media_type: str, query: str, db: AsyncSession | None = No
     title_key = "title" if media_type == TMDB_MEDIA_MOVIE else "name"
     date_key  = "release_date" if media_type == TMDB_MEDIA_MOVIE else "first_air_date"
     url_segment = TMDB_MEDIA_MOVIE if media_type == TMDB_MEDIA_MOVIE else TMDB_MEDIA_TV
-    lang = language or LANGUAGE
+    lang = tmdb_language(language)
 
     params: dict[str, str | int] = {"query": query, "language": lang, "page": 1}
     if year:

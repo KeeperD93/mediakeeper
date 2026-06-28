@@ -98,6 +98,20 @@ async def test_region_expansion_maps_pt_to_br(monkeypatch, db_session):
 
 
 @pytest.mark.asyncio
+async def test_search_movie_expands_region(monkeypatch, db_session):
+    client = _wire(monkeypatch, tmdb, {"results": []})
+    await tmdb.search_movie("matrix", db_session, language="en")
+    assert client.langs == ["en-US"]
+
+
+@pytest.mark.asyncio
+async def test_search_tv_expands_region(monkeypatch, db_session):
+    client = _wire(monkeypatch, tmdb, {"results": []})
+    await tmdb.search_tv("dexter", db_session, language="en")
+    assert client.langs == ["en-US"]
+
+
+@pytest.mark.asyncio
 async def test_default_locale_stays_portal_language(monkeypatch, db_session):
     """No regression for the default: language=None -> fr-FR (unchanged)."""
     client = _wire(monkeypatch, discover_lists, {"results": []})
