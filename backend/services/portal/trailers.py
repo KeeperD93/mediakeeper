@@ -145,7 +145,7 @@ async def _resolve_emby_local_trailer(
             "name": first.get("Name", "Local trailer"),
         }
     except Exception as e:
-        logger.warning(f"[TRAILERS] LocalTrailers lookup failed for {emby_item_id}: {e}")
+        logger.warning("[TRAILERS] LocalTrailers lookup failed for %s: %s", emby_item_id, e)
         return None
 
 

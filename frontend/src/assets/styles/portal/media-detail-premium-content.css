@@ -203,7 +203,7 @@
 .vmd2-status-dot {
   width: 8px;
   height: 8px;
-  border-radius: 50%;
+  border-radius: var(--portal-radius-circle);
   flex-shrink: 0;
   background: var(--portal-color-neutral-dark);
 }

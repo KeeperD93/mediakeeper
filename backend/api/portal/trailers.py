@@ -105,7 +105,7 @@ async def resolve(
             db, media_type, tmdb_id, user_lang, emby_item_id=emby_item_id
         )
     except Exception as e:
-        logger.warning(f"[TRAILERS] resolve failed: {e}")
+        logger.warning("[TRAILERS] resolve failed: %s", e)
         candidates = []
     return {"trailer": candidates[0] if candidates else None, "candidates": candidates}
 

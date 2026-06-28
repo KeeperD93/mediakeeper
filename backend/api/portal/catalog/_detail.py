@@ -16,7 +16,7 @@ from services.tmdb import get_season_episodes, get_tv_seasons
 router = APIRouter()
 
 # Every endpoint below resolves its TMDB metadata language from the
-# viewer's active locale (the ``X-MK-Locale`` header via get_request_lang),
+# viewer's active locale (the ``X-MK-Locale`` header via get_request_locale),
 # matching the discover routes — not the stored profile language.
 
 
