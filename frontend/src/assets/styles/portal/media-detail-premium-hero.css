@@ -61,7 +61,7 @@
 .vmd2-poster {
   width: 100%;
   aspect-ratio: 2/3;
-  border-radius: var(--radius-card);
+  border-radius: var(--portal-radius-lg);
   box-shadow:
     0 30px 70px rgb(0, 0, 0, 0.65),
     0 0 0 1px var(--portal-border-subtle);
@@ -122,7 +122,7 @@
 .vmd2-cert {
   padding: 0.15rem 0.5rem;
   border: 1px solid rgb(255, 255, 255, 0.3);
-  border-radius: var(--radius-sm);
+  border-radius: var(--portal-radius-sm);
   font-size: var(--portal-text-2xs);
   font-weight: var(--portal-font-bold);
 }
@@ -137,7 +137,7 @@
   padding: 0.5rem 0.75rem;
   background: var(--portal-surface-2);
   border: 1px solid var(--portal-border-default);
-  border-radius: var(--radius-card);
+  border-radius: var(--portal-radius-lg);
   backdrop-filter: blur(10px);
   width: fit-content;
 }
@@ -208,7 +208,7 @@
   padding: 0.55rem 0.85rem;
   min-height: 44px;
   border: none;
-  border-radius: var(--radius-btn);
+  border-radius: var(--portal-radius-md);
   font-size: var(--portal-text-sm);
   font-weight: var(--portal-font-bold);
   cursor: pointer;
@@ -227,9 +227,9 @@
   box-shadow: 0 4px 20px rgb(255, 255, 255, 0.2);
 }
 .vmd2-btn--secondary {
-  background: rgb(var(--accent-rgb), 0.85);
+  background: rgb(var(--portal-accent-rgb), 0.85);
   color: var(--portal-text-primary);
-  box-shadow: 0 4px 20px rgb(var(--accent-rgb), 0.4);
+  box-shadow: 0 4px 20px rgb(var(--portal-accent-rgb), 0.4);
 }
 .vmd2-btn--ghost {
   background: var(--portal-surface-4);

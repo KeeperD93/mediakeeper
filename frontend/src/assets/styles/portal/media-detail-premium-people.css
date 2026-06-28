@@ -11,7 +11,7 @@
   width: 100%;
   aspect-ratio: 2/3;
   object-fit: cover;
-  border-radius: var(--radius-card);
+  border-radius: var(--portal-radius-lg);
   box-shadow: 0 6px 24px rgb(0, 0, 0, 0.4);
   transition: transform var(--portal-dur-base);
 }
@@ -40,7 +40,7 @@
   padding: 0.6rem 0.75rem;
   background: var(--portal-surface-2);
   border: 1px solid var(--portal-border-subtle);
-  border-radius: var(--radius-card);
+  border-radius: var(--portal-radius-lg);
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
@@ -49,7 +49,7 @@
   font-size: var(--portal-text-3xs);
   text-transform: uppercase;
   letter-spacing: var(--portal-tracking-caps);
-  color: var(--accent-300);
+  color: var(--portal-accent-light);
   font-weight: var(--portal-font-bold);
 }
 .vmd2-crew-name {
@@ -72,7 +72,7 @@
   padding: 0.85rem;
   background: var(--portal-surface-2);
   border: 1px solid var(--portal-border-subtle);
-  border-radius: var(--radius-card);
+  border-radius: var(--portal-radius-lg);
 }
 .vmd2-review header {
   display: flex;
@@ -111,7 +111,7 @@
   background: rgb(245, 197, 24, 0.15);
   border: 1px solid rgb(245, 197, 24, 0.4);
   color: #f5c518;
-  border-radius: var(--radius-sm);
+  border-radius: var(--portal-radius-sm);
   font-size: var(--portal-text-xs);
   font-weight: var(--portal-font-extrabold);
 }

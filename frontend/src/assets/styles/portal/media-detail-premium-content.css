@@ -40,7 +40,7 @@
   content: '';
   width: 4px;
   height: 18px;
-  background: var(--accent-500);
+  background: var(--portal-accent);
   border-radius: 2px;
 }
 .vmd2-section h3 {
@@ -93,7 +93,7 @@
   padding: 0.2rem 0.55rem;
   background: var(--portal-surface-2);
   border: 1px solid var(--portal-border-default);
-  border-radius: var(--radius-sm);
+  border-radius: var(--portal-radius-sm);
   font-size: var(--portal-text-2xs);
   color: var(--portal-text-body-muted);
   /* Static chips, no click target wired yet — keep cursor default so
@@ -110,7 +110,7 @@
 .vmd2-provider {
   width: 40px;
   height: 40px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--portal-radius-sm);
   background: #fff;
   display: flex;
   align-items: center;
@@ -128,7 +128,7 @@
 .vmd2-sidebar {
   background: var(--portal-surface-2);
   border: 1px solid var(--portal-border-subtle);
-  border-radius: var(--radius-card);
+  border-radius: var(--portal-radius-lg);
   padding: 0.85rem;
   height: fit-content;
 }
@@ -254,8 +254,8 @@
   padding: 0.3rem 0.55rem;
   background: var(--portal-surface-2);
   border: 1px solid var(--portal-border-default);
-  border-radius: var(--radius-sm);
-  color: var(--accent-300);
+  border-radius: var(--portal-radius-sm);
+  color: var(--portal-accent-light);
   font-size: var(--portal-text-xs);
   font-weight: var(--portal-font-medium);
   text-decoration: none;
@@ -263,7 +263,7 @@
 }
 @media (hover: hover) {
   .vmd2-external-links a:hover {
-    background: rgb(var(--accent-rgb), 0.15);
+    background: rgb(var(--portal-accent-rgb), 0.15);
   }
 }
 

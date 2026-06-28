@@ -36,6 +36,7 @@ utilisateurs.
 - Quoi de neuf — les nouveautés restent jusqu'à votre prochaine visite.
 - Notifications — marquées lues à la fermeture du panneau (surbrillance conservée à l'ouverture).
 - Formulaires — champs aux coins plus nets, distincts des filtres arrondis.
+- Fiche détail — accent et arrondis alignés sur la palette du portail.
 
 ### Fixed
 - Personne & saga — filmographie, biographie et collection affichées dans votre langue.
