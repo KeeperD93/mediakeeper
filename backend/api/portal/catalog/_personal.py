@@ -20,11 +20,12 @@ router = APIRouter()
 async def recommended_for_me(
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
+    locale: str = Depends(get_request_locale),
 ):
     from services.portal.personal import get_recommendations_for_user
     user, profile = up
     try:
-        return {"items": await get_recommendations_for_user(db, user, profile)}
+        return {"items": await get_recommendations_for_user(db, user, profile, locale=locale)}
     except Exception:
         return {"items": []}
 
@@ -91,6 +92,7 @@ async def profile_full(
 async def recommendations_full(
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
+    locale: str = Depends(get_request_locale),
 ):
     """
     Premium recommendations page: reuses the proven home-page
@@ -104,7 +106,7 @@ async def recommendations_full(
     )
     user, profile = up
     try:
-        items = await get_recommendations_for_user(db, user, profile)
+        items = await get_recommendations_for_user(db, user, profile, locale=locale)
         logger.info("[RECO-FULL] user=%s got %s items from base engine", user.id, len(items))
 
         total_plays = await _count_total_plays(db, user, profile)
@@ -126,7 +128,6 @@ async def recommendations_full(
 
             if merged_genres:
                 include_adult = not bool(profile.hide_adult)
-                user_lang = (profile.language or "").split("-")[0].lower() or None
                 extra_params = {
                     "with_genres": ",".join(str(g) for g in merged_genres),
                     "sort_by": "popularity.desc",
@@ -140,7 +141,7 @@ async def recommendations_full(
                     for mt, idx in [("/discover/movie", idx_m), ("/discover/tv", idx_t)]:
                         extra = await _fetch_list_params(
                             db, mt, page, extra_params,
-                            include_adult=include_adult, language=user_lang,
+                            include_adult=include_adult, language=locale,
                         )
                         for it in extra:
                             tid = it.get("tmdb_id")
@@ -185,12 +186,13 @@ async def preferences_based(
     page: int = Query(1, ge=1, le=50),
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
+    locale: str = Depends(get_request_locale),
 ):
     """TMDB discover mixed by the user's ticked favorite genres."""
     from services.portal.preferences_based import get_preferences_based
     user, profile = up
     try:
-        return await get_preferences_based(db, profile, page=page)
+        return await get_preferences_based(db, profile, page=page, locale=locale)
     except Exception:
         return {"items": [], "page": page, "has_more": False}
 
@@ -200,6 +202,7 @@ async def recommended_full_paginated(
     page: int = Query(1, ge=1, le=50),
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
+    locale: str = Depends(get_request_locale),
 ):
     """Paginated view of the "Recommended for you" list — serves the
     dedicated category page opened from the profile carousel."""
@@ -208,7 +211,7 @@ async def recommended_full_paginated(
     user, profile = up
     PAGE_SIZE = 40
     try:
-        base = await get_recommendations_for_user(db, user, profile)
+        base = await get_recommendations_for_user(db, user, profile, locale=locale)
         if not base:
             return {"items": [], "page": page, "has_more": False}
         # Extend with popularity-ordered discover pages matching the
@@ -220,7 +223,6 @@ async def recommended_full_paginated(
         if not merged_genres:
             merged_genres = (base[0].get("genres") or [])[:3]
         include_adult = not bool(profile.hide_adult)
-        user_lang = (profile.language or "").split("-")[0].lower() or None
         seen = {it.get("tmdb_id") for it in base if it.get("tmdb_id")}
         pool = list(base)
         # Full browse page: we want the whole catalogue of matches so
@@ -241,7 +243,7 @@ async def recommended_full_paginated(
                 for mt in ("/discover/movie", "/discover/tv"):
                     extra = await _fetch_list_params(
                         db, mt, tp, extra_params,
-                        include_adult=include_adult, language=user_lang,
+                        include_adult=include_adult, language=locale,
                     )
                     for it in extra:
                         tid = it.get("tmdb_id")

@@ -77,6 +77,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Tableau de bord — fil d'activité : animations coupées si « réduire les animations » est actif.
 - Médiathèque — fiches détail TMDB affichées dans votre langue (repli anglais).
 - Découvrir — personnes, collections, listes et saisons dans votre langue.
+- Découvrir — « Pour vous » et « Basé sur vos préférences » dans votre langue.
 - Watchlist — séries, épisodes et synopsis affichés dans votre langue.
 - Watchlist — films du calendrier affichés dans votre langue.
 - Watchlist — mois et jours du calendrier suivent la langue de l'app.

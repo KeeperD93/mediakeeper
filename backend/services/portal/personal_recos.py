@@ -32,6 +32,7 @@ logger = logging.getLogger("mediakeeper.portal.personal")
 
 async def get_recommendations_for_user(
     db: AsyncSession, user: User, profile: UserProfile,
+    *, locale: str | None = None,
 ) -> list[dict]:
     """
     Build "Recommended for you" row by:
@@ -71,7 +72,6 @@ async def get_recommendations_for_user(
         return []
 
     include_adult = not bool(profile.hide_adult)
-    user_lang = (profile.language or "").split("-")[0].lower() or None
     # OR semantics — TMDB ``,`` is AND (must contain ALL genres), which
     # collapses to nothing as soon as the merged top-3 spans
     # incompatible categories (e.g. War + Politics + Western for a user
@@ -86,11 +86,11 @@ async def get_recommendations_for_user(
     movies, tv, indexed_movies, indexed_tv = await asyncio.gather(
         _fetch_list_params(
             db, "/discover/movie", 1, discover_params,
-            include_adult=include_adult, language=user_lang,
+            include_adult=include_adult, language=locale,
         ),
         _fetch_list_params(
             db, "/discover/tv", 1, discover_params,
-            include_adult=include_adult, language=user_lang,
+            include_adult=include_adult, language=locale,
         ),
         _get_indexed_tmdb_ids(db, "movie"),
         _get_indexed_tmdb_ids(db, "tv"),
@@ -112,11 +112,11 @@ async def get_recommendations_for_user(
             break
         more_movies = await _fetch_list_params(
             db, "/discover/movie", page, discover_params,
-            include_adult=include_adult, language=user_lang,
+            include_adult=include_adult, language=locale,
         )
         more_tv = await _fetch_list_params(
             db, "/discover/tv", page, discover_params,
-            include_adult=include_adult, language=user_lang,
+            include_adult=include_adult, language=locale,
         )
         for m in more_movies:
             mid = m.get("tmdb_id")

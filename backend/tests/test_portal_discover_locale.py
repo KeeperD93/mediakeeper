@@ -2,6 +2,8 @@
 header) instead of the stored profile language."""
 from __future__ import annotations
 
+from collections import Counter
+
 import pytest
 
 from services.portal import media_title_localize as ml
@@ -179,3 +181,71 @@ async def test_videos_uses_request_locale(client, db_session, monkeypatch):
     r = await client.get("/api/portal/catalog/videos/movie/603", headers={"X-MK-Locale": "en"})
     assert r.status_code == 200, r.text
     assert captured["language"] == "en"
+
+
+@pytest.mark.asyncio
+async def test_recommended_for_me_uses_request_locale(client, db_session, monkeypatch):
+    await _auth(client, db_session)
+    captured = {}
+
+    async def _reco(db, user, profile, *, locale=None):
+        captured["locale"] = locale
+        return []
+
+    monkeypatch.setattr("services.portal.personal.get_recommendations_for_user", _reco)
+    r = await client.get("/api/portal/catalog/recommended-for-me", headers={"X-MK-Locale": "en"})
+    assert r.status_code == 200, r.text
+    assert captured["locale"] == "en"
+
+
+@pytest.mark.asyncio
+async def test_recommendations_full_uses_request_locale(client, db_session, monkeypatch):
+    await _auth(client, db_session)
+    captured = {}
+
+    async def _reco(db, user, profile, *, locale=None):
+        captured["locale"] = locale
+        return []
+
+    async def _zero(db, user, profile):
+        return 0
+
+    async def _infer(db, user, profile):
+        return [], Counter()
+
+    monkeypatch.setattr("services.portal.personal.get_recommendations_for_user", _reco)
+    monkeypatch.setattr("services.portal.personal._count_total_plays", _zero)
+    monkeypatch.setattr("services.portal.personal._infer_genres_from_history_full", _infer)
+    r = await client.get("/api/portal/catalog/recommendations-full", headers={"X-MK-Locale": "en"})
+    assert r.status_code == 200, r.text
+    assert captured["locale"] == "en"
+
+
+@pytest.mark.asyncio
+async def test_recommended_full_uses_request_locale(client, db_session, monkeypatch):
+    await _auth(client, db_session)
+    captured = {}
+
+    async def _reco(db, user, profile, *, locale=None):
+        captured["locale"] = locale
+        return []
+
+    monkeypatch.setattr("services.portal.personal.get_recommendations_for_user", _reco)
+    r = await client.get("/api/portal/catalog/recommended-full", headers={"X-MK-Locale": "en"})
+    assert r.status_code == 200, r.text
+    assert captured["locale"] == "en"
+
+
+@pytest.mark.asyncio
+async def test_preferences_based_uses_request_locale(client, db_session, monkeypatch):
+    await _auth(client, db_session)
+    captured = {}
+
+    async def _fake(db, profile, page=1, *, locale=None):
+        captured["locale"] = locale
+        return {"items": [], "page": page, "has_more": False}
+
+    monkeypatch.setattr("services.portal.preferences_based.get_preferences_based", _fake)
+    r = await client.get("/api/portal/catalog/preferences-based", headers={"X-MK-Locale": "en"})
+    assert r.status_code == 200, r.text
+    assert captured["locale"] == "en"
