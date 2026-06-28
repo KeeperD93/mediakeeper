@@ -14,7 +14,7 @@ from services.portal.discover_details_enrich import (
 from services.portal.adult_filter import has_adult_keyword
 from services.portal.discover_lists import _IMG_BASE, _normalize
 from services.portal.runtime_cache import resolve_runtimes
-from services.tmdb import _get_tmdb_key, _tmdb_headers_sync, TMDB_BASE
+from services.tmdb import _get_tmdb_key, _tmdb_headers_sync, tmdb_language, TMDB_BASE
 
 from ._constants import LANGUAGE, logger
 
@@ -24,13 +24,12 @@ async def get_full_details(
 ) -> dict | None:
     """
     Full media details: cast, crew, budget, runtime, etc.
-    ``language`` is an ISO 639-1 code (e.g. "fr"); expanded to "fr-FR" if needed.
+    ``language`` is an ISO 639-1 code (e.g. "fr"); mapped to a TMDB
+    ``xx-YY`` code via ``tmdb_language()`` (e.g. "en" -> "en-US"), the
+    same canonical helper the rest of the per-viewer i18n path uses.
     """
     api_key = await _get_tmdb_key(db)
-    if language:
-        lang = language if "-" in language else f"{language.lower()}-{language.upper()}"
-    else:
-        lang = LANGUAGE
+    lang = tmdb_language(language)
     try:
         client = get_external_client()
         ratings_field = "release_dates" if media_type == "movie" else "content_ratings"
