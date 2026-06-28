@@ -184,6 +184,7 @@ async def get_full_details(
 async def get_person_filmography(
     db: AsyncSession, person_id: int,
     role: str = "all", media_filter: str = "all",
+    *, language: str | None = None,
 ) -> dict:
     """Return a person's full filmography (as director or as cast).
 
@@ -195,12 +196,12 @@ async def get_person_filmography(
         client = get_external_client()
         res_info = await client.get(
             f"{TMDB_BASE}/person/{person_id}",
-            params={"language": LANGUAGE},
+            params={"language": language or LANGUAGE},
             headers=_tmdb_headers_sync(api_key),
         )
         res_credits = await client.get(
             f"{TMDB_BASE}/person/{person_id}/combined_credits",
-            params={"language": LANGUAGE},
+            params={"language": language or LANGUAGE},
             headers=_tmdb_headers_sync(api_key),
         )
         info = res_info.json() if res_info.status_code == 200 else {}
@@ -239,14 +240,16 @@ async def get_person_filmography(
         return {"person": None, "items": []}
 
 
-async def get_collection(db: AsyncSession, collection_id: int) -> dict:
+async def get_collection(
+    db: AsyncSession, collection_id: int, *, language: str | None = None,
+) -> dict:
     """Return the parts of a TMDB collection (franchise)."""
     api_key = await _get_tmdb_key(db)
     try:
         client = get_external_client()
         res = await client.get(
             f"{TMDB_BASE}/collection/{collection_id}",
-            params={"language": LANGUAGE},
+            params={"language": language or LANGUAGE},
             headers=_tmdb_headers_sync(api_key),
         )
         if res.status_code != 200:

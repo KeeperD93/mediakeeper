@@ -38,6 +38,7 @@ utilisateurs.
 - Formulaires — champs aux coins plus nets, distincts des filtres arrondis.
 
 ### Fixed
+- Personne & saga — filmographie, biographie et collection affichées dans votre langue.
 - Profil — titres des carrousels (vus récemment, à finir, mes demandes) dans votre langue.
 - Bandes-annonces — bouton « Essayer une autre » quand une vidéo est bloquée dans votre pays.
 - Accueil — bande-annonce du visuel : carrousel en pause, reprise à la fermeture.
