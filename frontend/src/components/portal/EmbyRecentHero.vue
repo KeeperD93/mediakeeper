@@ -107,7 +107,7 @@ import '@/assets/styles/portal/emby-recent-hero-row.css'
 const props = defineProps({
   items: { type: Array, default: () => [] },
 })
-const emit = defineEmits(['request', 'detail', 'add-watchlist', 'select'])
+const emit = defineEmits(['request', 'detail'])
 
 // Aligned with the main hero (10 s) — both heroes now ship as a
 // backdrop slideshow with on-demand trailer popups, so the cadence
