@@ -64,8 +64,9 @@ async def get_recommendations_for_user(
 
     if not merged:
         logger.info(
-            f"[PERSONAL] recommended empty for user={user.username!r} "
-            f"profile={profile.display_name!r}: no declared genres and no inferred history"
+            "[PERSONAL] recommended empty for user_id=%s: "
+            "no declared genres and no inferred history",
+            user.id,
         )
         return []
 

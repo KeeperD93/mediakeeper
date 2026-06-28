@@ -42,7 +42,7 @@ async def watch_history(
     try:
         return await get_watch_history_paginated(db, user, profile, page=page)
     except Exception as e:
-        logger.error(f"[WATCH-HISTORY] error: {e}")
+        logger.error("[WATCH-HISTORY] error: %s", e)
         return {"items": [], "page": page, "has_more": False}
 
 
@@ -58,7 +58,7 @@ async def my_requests(
     try:
         return await get_my_requests_paginated(db, user, page=page)
     except Exception as e:
-        logger.error(f"[MY-REQUESTS] error: {e}")
+        logger.error("[MY-REQUESTS] error: %s", e)
         return {"items": [], "page": page, "has_more": False}
 
 

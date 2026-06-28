@@ -36,7 +36,7 @@ async def create_ticket(
     db.add(ticket)
     await db.commit()
     await db.refresh(ticket)
-    logger.info(f"[TICKET] #{ticket.id} by user_id={user_id}")
+    logger.info("[TICKET] #%s by user_id=%s", ticket.id, user_id)
 
     await _notify_admins_new_ticket(db, ticket, requester_id=user_id)
     return {"success": True, "id": ticket.id}
@@ -76,7 +76,7 @@ async def _notify_admins_new_ticket(
         )
         await db.commit()
     except Exception as e:
-        logger.warning(f"[TICKETS] notif new ticket failed: {e}")
+        logger.warning("[TICKETS] notif new ticket failed: %s", e)
 
 
 async def list_tickets(
@@ -193,7 +193,7 @@ async def add_reply(
             })
             await db.commit()
         except Exception as e:
-            logger.warning(f"[TICKETS] notif reply failed: {e}")
+            logger.warning("[TICKETS] notif reply failed: %s", e)
 
     return {"success": True, "id": reply.id}
 
@@ -222,7 +222,7 @@ async def auto_close_resolved_tickets(
     closed = result.rowcount or 0
     if closed:
         await db.commit()
-        logger.info(f"[TICKET] auto-closed {closed} ticket(s) resolved >{after_days}d ago")
+        logger.info("[TICKET] auto-closed %s ticket(s) resolved >%sd ago", closed, after_days)
     return closed
 
 
@@ -259,7 +259,7 @@ async def update_ticket_status(
             })
             await db.commit()
         except Exception as e:
-            logger.warning(f"[TICKETS] notif status failed: {e}")
+            logger.warning("[TICKETS] notif status failed: %s", e)
 
     return {"success": True}
 

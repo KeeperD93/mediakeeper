@@ -61,7 +61,7 @@ async def _enrich_top20_meta(items: list[dict], db: AsyncSession) -> None:
         try:
             meta = await get_meta_cached(int(tid), mtype, db)
         except Exception as e:
-            logger.warning(f"[TOP20] meta enrich failed for {mtype}/{tid}: {e}")
+            logger.warning("[TOP20] meta enrich failed for %s/%s: %s", mtype, tid, e)
             continue
         if meta.get("runtime"):
             it["runtime"] = meta["runtime"]
@@ -257,7 +257,7 @@ async def get_top20(
                             except (TypeError, ValueError):
                                 pass
             except Exception as e:
-                logger.warning(f"[TOP20] tmdb resolve failed: {e}")
+                logger.warning("[TOP20] tmdb resolve failed: %s", e)
 
     # Backfill runtime + year so MediaCard can render the poster meta
     # line without a second round-trip on the client. Missing values
