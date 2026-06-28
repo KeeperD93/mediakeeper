@@ -117,6 +117,11 @@ function select(tab) {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  /* Breathing room so overflow:hidden doesn't shave the ink overhang of
+     the first/last glyph; the negative margin keeps the cell width (and
+     the ellipsis threshold) unchanged. */
+  padding-inline: 2px;
+  margin-inline: -2px;
 }
 
 .mk-tab-badge {

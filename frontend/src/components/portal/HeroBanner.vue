@@ -68,7 +68,11 @@
       </div>
     </div>
 
-    <TrailerLightbox v-if="lightboxOpen && trailer" :trailer="trailer" @close="closeLightbox" />
+    <TrailerLightbox
+      v-if="lightboxOpen && candidates.length"
+      :trailers="candidates"
+      @close="closeLightbox"
+    />
 
     <div v-if="totalItems > 1" class="pt-hero-dots">
       <span
@@ -102,7 +106,7 @@ const props = defineProps({
   isFeatured: { type: Boolean, default: false },
 })
 
-defineEmits(['play', 'detail', 'goto', 'video-ended', 'request'])
+const emit = defineEmits(['detail', 'goto', 'request', 'trailer-open', 'trailer-close'])
 
 // Trailer-URL resolution only — never mounts a YouTube IFrame in the
 // hero itself. Resolving populates ``trailer`` so the "Bande-annonce"
@@ -110,7 +114,7 @@ defineEmits(['play', 'detail', 'goto', 'video-ended', 'request'])
 // opens the fullscreen lightbox where the actual <iframe> lives,
 // then tears it down on close. Eliminates every chance of the
 // YouTube centre play/pause overlay being painted over the hero.
-const { trailer, resolve: resolveTrailer, prefetch: prefetchTrailer } = useTrailer()
+const { trailer, candidates, resolve: resolveTrailer, prefetch: prefetchTrailer } = useTrailer()
 const { getStatus, checkStatus } = useRequestStatus()
 
 const heroRef = ref(null)
@@ -152,9 +156,13 @@ function ensureStatusChecked() {
 function openLightbox() {
   if (!trailer.value) return
   lightboxOpen.value = true
+  // Pause the parent hero rotation so the open trailer stays on the
+  // chosen title instead of following the carousel to the next item.
+  emit('trailer-open')
 }
 function closeLightbox() {
   lightboxOpen.value = false
+  emit('trailer-close')
 }
 
 watch(

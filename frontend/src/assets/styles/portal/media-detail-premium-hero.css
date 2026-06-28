@@ -1,0 +1,300 @@
+/* ---------- Hero ---------- */
+.vmd2-hero {
+  position: relative;
+  min-height: 85vh;
+  padding: clamp(1rem, 4vw, 2.5rem) 5% 2rem;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+@media (min-width: 768px) {
+  .vmd2-hero {
+    padding: 2rem 4% 3rem;
+  }
+}
+.vmd2-hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-size: cover;
+  background-position: center 25%;
+  filter: saturate(1.1);
+}
+.vmd2-hero-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* Dark legibility scrim under the title + CTAs: a vertical fade (deeper
+     at top and bottom) plus a left-to-right fade, kept intentionally darker
+     than the page tint so white text stays readable over bright backdrops. */
+  background:
+    linear-gradient(
+      180deg,
+      rgb(10, 12, 19, 0.65) 0%,
+      rgb(10, 12, 19, 0.2) 30%,
+      rgb(10, 12, 19, 0.85) 80%,
+      #0a0c13 100%
+    ),
+    linear-gradient(90deg, rgb(10, 12, 19, 0.9) 0%, rgb(10, 12, 19, 0.3) 50%, transparent 100%);
+}
+.vmd2-hero-content {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  width: 100%;
+}
+@media (min-width: 768px) {
+  .vmd2-hero-content {
+    grid-template-columns: 260px 1fr;
+    gap: 2.5rem;
+    align-items: end;
+  }
+}
+
+.vmd2-poster-wrap {
+  position: relative;
+  width: clamp(140px, 35vw, 260px);
+  justify-self: start;
+}
+.vmd2-poster {
+  width: 100%;
+  aspect-ratio: 2/3;
+  border-radius: var(--portal-radius-lg);
+  box-shadow:
+    0 30px 70px rgb(0, 0, 0, 0.65),
+    0 0 0 1px var(--portal-border-subtle);
+  object-fit: cover;
+}
+/* Status ribbon + availability chip on the hero poster are now rendered
+   by `<PremiumRibbon>` and `.mk-poster__avail` (shared with PosterCard),
+   so the legacy `.vmd2-poster-status*` rules and the dot pastille are
+   gone. The poster wrapper just needs to host them. */
+.vmd2-poster-wrap > .mk-ribbon-wrap {
+  z-index: 4;
+}
+.vmd2-poster-wrap > .mk-poster__avail {
+  z-index: 4;
+}
+
+.vmd2-studios {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+  opacity: 0.85;
+}
+.vmd2-studio-logo {
+  height: 18px;
+  max-width: 90px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.vmd2-title {
+  font-size: clamp(1.4rem, 6vw, 1.9rem);
+  font-weight: var(--portal-font-black);
+  line-height: 1.05;
+  letter-spacing: var(--portal-tracking-tight);
+  margin: 0 0 0.35rem;
+  text-shadow: 0 2px 20px rgb(0, 0, 0, 0.5);
+}
+.vmd2-tagline {
+  font-style: italic;
+  color: var(--portal-text-body-muted);
+  margin: 0 0 0.75rem;
+  font-size: var(--portal-text-sm);
+}
+
+.vmd2-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  font-size: var(--portal-text-sm);
+  color: var(--portal-text-body-muted);
+  margin-bottom: 0.75rem;
+}
+.vmd2-facts > span {
+  display: inline-flex;
+  align-items: center;
+}
+.vmd2-cert {
+  padding: 0.15rem 0.5rem;
+  border: 1px solid rgb(255, 255, 255, 0.3);
+  border-radius: var(--portal-radius-sm);
+  font-size: var(--portal-text-2xs);
+  font-weight: var(--portal-font-bold);
+}
+
+/* --- Scores row --- */
+.vmd2-scores {
+  display: flex;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 0.85rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--portal-surface-2);
+  border: 1px solid var(--portal-border-default);
+  border-radius: var(--portal-radius-lg);
+  backdrop-filter: blur(10px);
+  width: fit-content;
+}
+.vmd2-score {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: var(--portal-text-xs);
+}
+.vmd2-score-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--portal-radius-circle);
+  background: currentColor;
+}
+.vmd2-score-value {
+  font-size: var(--portal-text-base);
+  font-weight: var(--portal-font-extrabold);
+  color: var(--portal-text-primary);
+}
+.vmd2-score-label {
+  font-size: var(--portal-text-3xs);
+  text-transform: uppercase;
+  letter-spacing: var(--portal-tracking-caps);
+  color: var(--portal-text-secondary);
+}
+.vmd2-score--tmdb {
+  color: var(--portal-color-rating);
+}
+.vmd2-score--rt {
+  color: #fa320a;
+}
+.vmd2-score--audience {
+  color: #faaa00;
+}
+.vmd2-score--imdb {
+  color: #f5c518;
+}
+/* Muted dot used for vote-count (neutral grey, not a percentage colour). */
+.vmd2-score-dot--muted {
+  color: var(--portal-text-muted);
+}
+
+.vmd2-genres {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.85rem;
+}
+.vmd2-genre {
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--portal-border-intense);
+  border-radius: var(--portal-radius-pill);
+  font-size: var(--portal-text-2xs);
+  background: var(--portal-surface-2);
+}
+
+.vmd2-actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.vmd2-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.55rem 0.85rem;
+  min-height: 44px;
+  border: none;
+  border-radius: var(--portal-radius-md);
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-bold);
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    transform 0.12s,
+    opacity var(--portal-dur-fast),
+    background var(--portal-dur-fast);
+}
+.vmd2-btn:active {
+  transform: scale(0.97);
+}
+.vmd2-btn--primary {
+  background: linear-gradient(135deg, #fff 0%, #e5e5e5 100%);
+  color: #141414;
+  box-shadow: 0 4px 20px rgb(255, 255, 255, 0.2);
+}
+.vmd2-btn--secondary {
+  background: rgb(var(--portal-accent-rgb), 0.85);
+  color: var(--portal-text-primary);
+  box-shadow: 0 4px 20px rgb(var(--portal-accent-rgb), 0.4);
+}
+.vmd2-btn--ghost {
+  background: var(--portal-surface-4);
+  color: var(--portal-text-primary);
+  border: 1px solid var(--portal-border-strong);
+  backdrop-filter: blur(10px);
+}
+.vmd2-btn--icon {
+  padding: 0.55rem;
+  min-width: 44px;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .vmd2-studio-logo {
+    height: 22px;
+    max-width: 120px;
+  }
+  .vmd2-title {
+    font-size: clamp(1.75rem, 5vw + 0.4rem, 3.6rem);
+  }
+  .vmd2-tagline {
+    margin-bottom: 1rem;
+    font-size: var(--portal-text-md);
+  }
+  .vmd2-facts {
+    gap: 0.5rem;
+    font-size: var(--portal-text-base);
+    margin-bottom: 1rem;
+  }
+  .vmd2-cert {
+    font-size: var(--portal-text-xs);
+  }
+  .vmd2-scores {
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+    padding: 0.75rem 1rem;
+  }
+  .vmd2-score {
+    gap: 0.4rem;
+    font-size: var(--portal-text-sm);
+  }
+  .vmd2-score-value {
+    font-size: var(--portal-text-lg);
+  }
+  .vmd2-score-label {
+    font-size: var(--portal-text-2xs);
+  }
+  .vmd2-genres {
+    gap: 0.4rem;
+    margin-bottom: 1.25rem;
+  }
+  .vmd2-genre {
+    padding: 0.3rem 0.75rem;
+    font-size: var(--portal-text-xs);
+  }
+  .vmd2-actions {
+    gap: 0.5rem;
+  }
+  .vmd2-btn {
+    gap: 0.5rem;
+    padding: 0.7rem 1.25rem;
+    font-size: var(--portal-text-base);
+  }
+  .vmd2-btn--icon {
+    padding: 0.7rem;
+  }
+}

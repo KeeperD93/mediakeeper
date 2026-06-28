@@ -34,8 +34,15 @@ This section intentionally has no date so it is not shown to users.
 - What's new — recent additions stay until your next visit.
 - Notifications — marked read when the panel closes (highlight kept while open).
 - Forms — fields with sharper corners, distinct from rounded filters.
+- Media detail — accent colour and corner radii aligned with the portal palette.
 
 ### Fixed
+- Person & saga — filmography, biography and collection shown in your language.
+- Profile — carousel titles (recently watched, to finish, my requests) shown in your language.
+- Trailers — "Try another" button when a video is region-blocked in your country.
+- Home — hero trailer pauses the carousel, resumes on close.
+- Tabs and bottom menu — label edge letters no longer clipped.
+- Media detail — fixed an intermittent white glow on tabs while scrolling.
 - Event invites — private profiles and admins can no longer be invited.
 - Notifications — keyboard navigation (Esc to close) and no duplicates on load.
 - Notifications — unread highlight now follows your theme accent colour.

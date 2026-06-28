@@ -331,3 +331,91 @@ async def test_resolve_rejects_non_alphanumeric_emby_item_id(client, db_session)
         params={"media_type": "movie", "tmdb_id": 1, "emby_item_id": "abc?x=y"},
     )
     assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_resolve_returns_candidates_and_best(client, db_session):
+    """The resolve endpoint returns the full candidate list plus the best
+    one (candidates[0]) so the player can fall back past a blocked trailer."""
+    await _seed_portal_viewer(client, db_session, "viewer_tr_cand")
+    cands = [
+        {"source": "youtube", "key": "AAA",
+         "url": "https://www.youtube-nocookie.com/embed/AAA",
+         "language": "fr", "name": "BA officielle"},
+        {"source": "youtube", "key": "BBB",
+         "url": "https://www.youtube-nocookie.com/embed/BBB",
+         "language": "en", "name": "Trailer"},
+    ]
+    with patch("api.portal.trailers.resolve_trailers", AsyncMock(return_value=cands)):
+        resp = await client.get(
+            "/api/portal/trailers/resolve",
+            params={"media_type": "movie", "tmdb_id": 42},
+        )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["candidates"] == cands
+    assert data["trailer"] == cands[0]
+
+
+@pytest.mark.asyncio
+async def test_resolve_empty_candidates_returns_null_trailer(client, db_session):
+    await _seed_portal_viewer(client, db_session, "viewer_tr_empty")
+    with patch("api.portal.trailers.resolve_trailers", AsyncMock(return_value=[])):
+        resp = await client.get(
+            "/api/portal/trailers/resolve",
+            params={"media_type": "movie", "tmdb_id": 43},
+        )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["trailer"] is None
+    assert data["candidates"] == []
+
+
+@pytest.mark.asyncio
+async def test_collect_tmdb_trailers_dedup_cap_and_cascade_order():
+    """_collect_tmdb_trailers dedups by provider key, caps at _MAX_CANDIDATES,
+    drops non-YouTube/Vimeo, walks the user language before English, and its
+    first entry equals what _pick_video (the single-best picker) returns."""
+    videos = [
+        {"key": "FR1", "site": "YouTube", "type": "Trailer", "official": True,
+         "iso_639_1": "fr", "published_at": "2024-01-01", "name": "Bande-annonce officielle"},
+        {"key": "FR1", "site": "YouTube", "type": "Trailer", "official": True,
+         "iso_639_1": "fr", "published_at": "2024-01-01", "name": "duplicate key"},
+        {"key": "EN1", "site": "YouTube", "type": "Trailer", "official": True,
+         "iso_639_1": "en", "published_at": "2024-01-01", "name": "Trailer"},
+        {"key": "FR2", "site": "YouTube", "type": "Trailer", "official": False,
+         "iso_639_1": "fr", "published_at": "2023-06-01", "name": "t2"},
+        {"key": "FR3", "site": "YouTube", "type": "Trailer", "official": False,
+         "iso_639_1": "fr", "published_at": "2023-05-01", "name": "t3"},
+        {"key": "FR4", "site": "YouTube", "type": "Trailer", "official": False,
+         "iso_639_1": "fr", "published_at": "2023-04-01", "name": "t4"},
+        {"key": "FR5", "site": "YouTube", "type": "Trailer", "official": False,
+         "iso_639_1": "fr", "published_at": "2023-03-01", "name": "t5"},
+        {"key": "FR6", "site": "YouTube", "type": "Trailer", "official": False,
+         "iso_639_1": "fr", "published_at": "2023-02-01", "name": "t6"},
+        {"key": "FR7", "site": "YouTube", "type": "Trailer", "official": False,
+         "iso_639_1": "fr", "published_at": "2023-01-01", "name": "t7"},
+        {"key": "FB", "site": "Facebook", "type": "Trailer", "official": True,
+         "iso_639_1": "fr", "name": "social only"},
+    ]
+    payload = SimpleNamespace(
+        status_code=200,
+        json=lambda: {"videos": {"results": videos}, "original_language": "fr"},
+    )
+    fake_client = SimpleNamespace(get=AsyncMock(return_value=payload))
+    with (
+        patch("services.portal.trailers._get_tmdb_key", AsyncMock(return_value="k")),
+        patch("services.portal.trailers.get_external_client", return_value=fake_client),
+    ):
+        out = await trailers_svc._collect_tmdb_trailers(None, "movie", 1, "fr")
+
+    keys = [d["key"] for d in out]
+    assert keys[0] == "FR1"                            # best = fr official studio dub
+    assert len(out) == trailers_svc._MAX_CANDIDATES    # capped
+    assert len(set(keys)) == len(keys)                 # deduped by provider key
+    assert "FB" not in keys                            # non-YouTube/Vimeo dropped
+    assert "EN1" not in keys                           # fr fills the cap before the en step
+    # candidates[0] is exactly what the single-best picker returns.
+    assert out[0]["key"] == trailers_svc._pick_video(videos, "fr")["key"]
+    # original_language == user_language → no second /videos round-trip.
+    assert fake_client.get.await_count == 1

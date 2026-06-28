@@ -36,8 +36,15 @@ utilisateurs.
 - Quoi de neuf — les nouveautés restent jusqu'à votre prochaine visite.
 - Notifications — marquées lues à la fermeture du panneau (surbrillance conservée à l'ouverture).
 - Formulaires — champs aux coins plus nets, distincts des filtres arrondis.
+- Fiche détail — accent et arrondis alignés sur la palette du portail.
 
 ### Fixed
+- Personne & saga — filmographie, biographie et collection affichées dans votre langue.
+- Profil — titres des carrousels (vus récemment, à finir, mes demandes) dans votre langue.
+- Bandes-annonces — bouton « Essayer une autre » quand une vidéo est bloquée dans votre pays.
+- Accueil — bande-annonce du visuel : carrousel en pause, reprise à la fermeture.
+- Onglets et menu du bas — lettres de bord des libellés non rognées.
+- Fiche détail — halo blanc intermittent des onglets au défilement corrigé.
 - Invitations — les profils privés et les admins ne peuvent plus être invités.
 - Notifications — navigation clavier (Échap pour fermer) et fin des doublons au chargement.
 - Notifications — surbrillance des non-lues suit la couleur d'accent de votre thème.

@@ -40,7 +40,7 @@
   min-height: 52px;
   padding: 6px 8px;
   border: none;
-  border-radius: var(--radius-input);
+  border-radius: var(--portal-radius-xs);
   background: transparent;
   color: rgb(255, 255, 255, 0.58);
   font-size: var(--portal-text-3xs);
@@ -64,10 +64,10 @@
   color: var(--portal-text-primary);
   background: linear-gradient(
     135deg,
-    rgb(var(--accent-rgb, 99, 102, 241), 0.28),
-    rgb(var(--accent-rgb, 99, 102, 241), 0.12)
+    rgb(var(--portal-accent-rgb), 0.28),
+    rgb(var(--portal-accent-rgb), 0.12)
   );
-  box-shadow: inset 0 0 0 1px rgb(var(--accent-rgb, 99, 102, 241), 0.32);
+  box-shadow: inset 0 0 0 1px rgb(var(--portal-accent-rgb), 0.32);
 }
 
 .pt-bottom-tab-icon {
@@ -85,6 +85,11 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   line-height: var(--portal-lh-display);
+  /* Breathing room so overflow:hidden doesn't shave the ink overhang of
+     the first/last glyph; the negative margin keeps the width (and the
+     ellipsis threshold) unchanged. */
+  padding-inline: 2px;
+  margin-inline: -2px;
 }
 
 .pt-bottom-tab-badge {

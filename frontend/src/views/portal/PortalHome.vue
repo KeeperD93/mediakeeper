@@ -8,13 +8,11 @@
       :total-items="heroItems.length"
       :rank="heroIndex >= featuredCount ? heroIndex - featuredCount + 1 : 0"
       :is-featured="heroIndex < featuredCount"
-      @play="showDetail(heroItems[heroIndex])"
       @request="handleRequest(heroItems[heroIndex])"
       @detail="showDetail(heroItems[heroIndex])"
       @goto="gotoHero"
-      @sound-on="heroPaused = true"
-      @sound-off="heroPaused = false"
-      @video-ended="nextHero"
+      @trailer-open="heroPaused = true"
+      @trailer-close="heroPaused = false"
     />
 
     <div class="pt-home-body">
@@ -93,7 +91,6 @@
         :items="recentEmby"
         @detail="showDetail"
         @request="handleRequest"
-        @add-watchlist="addToWatchlist"
       />
 
       <!-- 8. Prochainement -->
@@ -218,7 +215,6 @@ const {
   heroIndex,
   heroPaused,
   featuredCount,
-  nextHero,
   gotoHero,
   loadAllData,
 } = usePortalHomeData()
@@ -263,17 +259,6 @@ function goGenre(g) {
 function goPlatform(plat) {
   const slug = PROVIDER_ID_TO_SLUG[plat.providerId] || plat.key || 'netflix'
   router.push({ name: 'portal-provider', params: { slug } })
-}
-
-async function addToWatchlist(item) {
-  // Lightweight watchlist add — defers to the lists view if the user
-  // wants to organise further. We never block the UX waiting for this.
-  if (!item) return
-  await apiPost('/api/portal/social/lists/default/items', {
-    tmdb_id: item.tmdb_id || item.id,
-    media_type: item.media_type || MEDIA_TYPE.MOVIE,
-    title: item.title,
-  }).catch(() => null)
 }
 
 function onRequestDone(payload) {

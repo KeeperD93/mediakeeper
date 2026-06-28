@@ -5,8 +5,9 @@ import traceback
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.portal.deps import get_current_profile, get_request_lang
+from api.portal.deps import get_current_profile
 from core.database import get_db
+from core.i18n import get_request_locale
 from models.portal.profile import UserProfile
 from models.user import User
 from services.portal.adult_filter import drop_adult
@@ -64,11 +65,12 @@ async def my_requests(
 async def profile_full(
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
-    lang: str = Depends(get_request_lang),
+    lang: str = Depends(get_request_locale),
 ):
     """
     Aggregated profile page data: playback stats, genre radar, recent
-    watches, user requests — all in one call.
+    watches, user requests — all in one call. Metadata language follows
+    the viewer's active locale (X-MK-Locale).
     """
     from services.portal.profile_stats import get_profile_full
     user, profile = up

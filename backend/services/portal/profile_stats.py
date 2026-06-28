@@ -46,6 +46,7 @@ from services.portal.profile_stats_ranking import (
     tier_for_level,
 )
 from services.portal.profile_stats_next import fetch_next_to_finish
+from services.portal.media_title_localize import localize_titles
 
 logger = logging.getLogger("mediakeeper.portal.profile_stats")
 
@@ -98,6 +99,12 @@ async def get_profile_full(
     )
     total_plays, total_minutes = totals
     most_rewatched, most_rewatched_movie, most_rewatched_series = rewatched
+
+    # Re-resolve the media-carousel titles (frozen Emby / request names) to
+    # the viewer's locale; the default locale is served as-is (no TMDB call).
+    recent_watches = await localize_titles(db, recent_watches, lang)
+    next_to_finish = await localize_titles(db, next_to_finish, lang)
+    my_requests = await localize_titles(db, my_requests, lang)
 
     level = profile.level if profile else 1
 

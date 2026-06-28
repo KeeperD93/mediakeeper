@@ -9,7 +9,7 @@ the hero banner would otherwise stream silently.
 """
 from __future__ import annotations
 
-from services.portal.trailers import _pick_video
+from services.portal.trailers import _pick_video, _rank_videos
 
 
 def _video(
@@ -262,3 +262,26 @@ def test_pick_video_penalises_vostfr_against_dubbed_french():
     picked = _pick_video([vostfr, real_vf], "fr")
 
     assert picked["key"] == "OFFICIAL-VF"
+
+
+def test_rank_videos_returns_full_list_best_first():
+    """``_rank_videos`` returns every match, best first — the candidate
+    list the fallback player cycles through. ``_pick_video`` is just its
+    head."""
+    teaser = _video(key="OLD-TEASER", type_="Teaser")
+    trailer = _video(key="THE-TRAILER", type_="Trailer")
+
+    ranked = _rank_videos([teaser, trailer], "fr")
+
+    assert [r["key"] for r in ranked] == ["THE-TRAILER", "OLD-TEASER"]
+    assert _pick_video([teaser, trailer], "fr")["key"] == ranked[0]["key"]
+
+
+def test_rank_videos_drops_non_youtube_vimeo_and_wrong_type():
+    fb = _video(key="FB", site="Facebook")
+    clip = _video(key="CLIP", type_="Clip")
+    yt = _video(key="YT")
+
+    ranked = _rank_videos([fb, clip, yt], "fr")
+
+    assert [r["key"] for r in ranked] == ["YT"]
