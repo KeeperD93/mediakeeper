@@ -24,9 +24,9 @@
   content: '';
   position: absolute;
   inset: 0;
-  /* Fade the backdrop into the .vmd2-root tint (rgba(3,7,18,0.6) over
-     #141414 → ~#0a0c13). Using the same resolved RGB keeps the hero
-     seamless with the rest of the page. */
+  /* Dark legibility scrim under the title + CTAs: a vertical fade (deeper
+     at top and bottom) plus a left-to-right fade, kept intentionally darker
+     than the page tint so white text stays readable over bright backdrops. */
   background:
     linear-gradient(
       180deg,

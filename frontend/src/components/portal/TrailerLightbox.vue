@@ -177,9 +177,11 @@ useFocusTrap({
     opacity var(--portal-dur-base) ease,
     transform var(--portal-dur-base) ease;
 }
-.pt-tlb-close:hover {
-  background: rgb(0, 0, 0, 0.8);
-  transform: translateX(-50%) scale(1.08);
+@media (hover: hover) {
+  .pt-tlb-close:hover {
+    background: rgb(0, 0, 0, 0.8);
+    transform: translateX(-50%) scale(1.08);
+  }
 }
 /* "Try another" — same glass chrome as the close button (so the lightbox
    controls stay visually consistent). Top-left, out of the way of the
