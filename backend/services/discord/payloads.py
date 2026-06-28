@@ -1,5 +1,7 @@
 """Build Discord payloads (media + system)."""
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from services.tmdb import get_media_detail, tmdb_language, LANGUAGE
 from services.tmdb_episode import get_episode_detail, get_season_detail
 
@@ -26,7 +28,8 @@ async def _resolve_system_lang(db) -> str:
 
 
 async def _localized_media_text(
-    item: dict, item_type: str, tmdb_id, tmdb_type: str, lang: str, db,
+    item: dict, item_type: str, tmdb_id: str | None, tmdb_type: str,
+    lang: str, db: AsyncSession | None,
 ) -> dict:
     """Re-resolve an item's title + synopsis to ``lang`` via TMDB, per type.
 
