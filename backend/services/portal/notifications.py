@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.pagination import build_cursor_response, decode_cursor
 from models.portal.event import MKNotification
+from services.portal.media_title_localize import localize_titles
 
 logger = logging.getLogger("mediakeeper.portal.notifications")
 
@@ -75,6 +76,7 @@ async def list_for_user(
     unread_only: bool = False,
     limit: int = DEFAULT_PAGE_SIZE,
     cursor: str | None = None,
+    locale: str = "fr",
 ) -> dict:
     """Most recent first, keyset-paginated by id.
 
@@ -107,6 +109,15 @@ async def list_for_user(
         }
         for r in rows
     ]
+    # Media notifications (request_*/ticket_*) freeze the title in the author's
+    # language at creation; re-resolve it to the reader's locale here. The
+    # helper is a no-op for the default locale and leaves non-media payloads
+    # (events, chat, lists — no tmdb_id) untouched.
+    localized = await localize_titles(
+        db, [it["payload"] for it in items], locale, title_key="title"
+    )
+    for it, payload in zip(items, localized):
+        it["payload"] = payload
     return build_cursor_response(items, total, limit, cursor_field="id")
 
 

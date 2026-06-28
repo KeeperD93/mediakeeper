@@ -67,6 +67,8 @@ async def _notify_admins_new_ticket(
             {
                 "ticket_id": ticket.id,
                 "title": ticket.media_title,
+                "tmdb_id": ticket.tmdb_id,
+                "media_type": ticket.media_type,
                 "issue_type": ticket.issue_type,
                 "priority": ticket.priority,
                 "requester_id": requester_id,
@@ -186,6 +188,8 @@ async def add_reply(
             await notif_svc.create(db, ticket.user_id, NOTIF_TICKET_REPLIED, {
                 "ticket_id": ticket.id,
                 "title": ticket.media_title,
+                "tmdb_id": ticket.tmdb_id,
+                "media_type": ticket.media_type,
             })
             await db.commit()
         except Exception as e:
@@ -249,6 +253,8 @@ async def update_ticket_status(
             await notif_svc.create(db, ticket.user_id, NOTIF_TICKET_RESOLVED, {
                 "ticket_id": ticket.id,
                 "title": ticket.media_title,
+                "tmdb_id": ticket.tmdb_id,
+                "media_type": ticket.media_type,
                 "status": new_status,
             })
             await db.commit()
