@@ -35,6 +35,9 @@ async def _localized_title(
     entry = _title_cache.get(key)
     if entry and time.time() - entry[0] < _CACHE_TTL_SEC:
         return entry[1]
+    # No lock on the miss path on purpose (see available_localize._localized_meta):
+    # a rare concurrent miss does a redundant idempotent TMDB fetch, cheaper than
+    # serialising the gather or leaking per-key locks. Errors are never cached.
     detail = await get_media_detail(media_type, tmdb_id, db, locale)
     if detail.get("error"):
         return ""
