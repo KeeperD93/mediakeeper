@@ -159,7 +159,7 @@ async def test_top20_counts_series_once_per_user_month(db_session, now_in_month)
     ), patch(
         "api.portal.top20.build_emby_deep_link", return_value=""
     ):
-        result = await get_top20(up=(user, profile), db=db_session)
+        result = await get_top20(up=(user, profile), db=db_session, locale="fr")
 
     counts = {(it["title"], it["media_type"]): it["play_count"] for it in result["items"]}
     assert counts == {("Show A", "tv"): 1, ("Film B", "movie"): 1}
@@ -205,7 +205,7 @@ async def test_top20_skips_movie_under_85pct(db_session, now_in_month):
     ), patch(
         "api.portal.top20.build_emby_deep_link", return_value=""
     ):
-        result = await get_top20(up=(user, profile), db=db_session)
+        result = await get_top20(up=(user, profile), db=db_session, locale="fr")
 
     titles = [it["title"] for it in result["items"]]
     assert titles == ["Finished Film"]
@@ -261,7 +261,7 @@ async def test_top20_skips_episode_under_85pct(db_session, now_in_month):
     ), patch(
         "api.portal.top20.build_emby_deep_link", return_value=""
     ):
-        result = await get_top20(up=(user, profile), db=db_session)
+        result = await get_top20(up=(user, profile), db=db_session, locale="fr")
 
     counts = {(it["title"], it["media_type"]): it["play_count"] for it in result["items"]}
     assert counts == {("Show C", "tv"): 1}

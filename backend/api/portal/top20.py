@@ -13,11 +13,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
 from core.http_client import get_internal_client
+from core.i18n import get_request_locale
 from models.user import User
 from models.portal.profile import UserProfile
 from models.playback_stats import PlaybackSession
 from api.portal.deps import get_current_profile
 from services.portal._watch_threshold import watched_session_filter
+from services.portal.available_localize import localize_emby_items
 from services.tmdb import get_meta_cached
 from services.settings import (
     get_active_media_source,
@@ -34,9 +36,11 @@ _series_id_cache: dict[str, str] = {}
 # without bound over the process lifetime; drop it wholesale when full.
 _SERIES_ID_CACHE_MAX = 2000
 
-# The Top 20 is identical for every viewer (global "most played this month"),
-# so cache the whole payload briefly: repeated loads then skip the playback
-# aggregation + Emby/TMDB round-trips instead of recomputing per request.
+# The Top 20 ranking is identical for every viewer (global "most played this
+# month"), so cache the whole base payload briefly: repeated loads skip the
+# playback aggregation + Emby/TMDB round-trips. Per-viewer title/synopsis
+# localisation is layered on at read time (its own TMDB cache keeps that cheap),
+# so the shared base cache never leaks one viewer's language to another.
 _TOP20_TTL_SECONDS = 600
 _top20_result_cache: dict[str, object] = {"payload": None, "at": None}
 
@@ -100,6 +104,7 @@ async def _find_series_id(series_name: str, url: str, api_key: str) -> str | Non
 async def get_top20(
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
+    locale: str = Depends(get_request_locale),
 ):
     """Top 20 most played items this month (movies + series mixed).
 
@@ -117,7 +122,8 @@ async def get_top20(
         and cached_at is not None
         and (now - cached_at).total_seconds() < _TOP20_TTL_SECONDS
     ):
-        return _top20_result_cache["payload"]
+        base = _top20_result_cache["payload"]
+        return {"items": await localize_emby_items(db, base["items"], locale)}
 
     month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
@@ -259,7 +265,7 @@ async def get_top20(
     # showing an empty " · ".
     await _enrich_top20_meta(items, db)
 
-    result = {"items": items}
-    _top20_result_cache["payload"] = result
+    base = {"items": items}
+    _top20_result_cache["payload"] = base
     _top20_result_cache["at"] = now
-    return result
+    return {"items": await localize_emby_items(db, base["items"], locale)}
