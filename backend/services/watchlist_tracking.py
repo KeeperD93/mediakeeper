@@ -96,5 +96,5 @@ async def search_tmdb_multi(db: AsyncSession, query: str) -> list[dict]:
                     pass
         return results
     except Exception as e:
-        logger.error(f"search_tmdb_multi: {e}")
+        logger.error("search_tmdb_multi: %s", e)
         return []

@@ -58,7 +58,7 @@ async def full_scan(db: AsyncSession, library_id: str = "", progress_cb=None) ->
 
         await set_watchlist_data(db, "scan_results", json.dumps(data))
         _state.set_cache(data)
-        logger.info(f"[WATCHLIST] Scan complete : {len(results)} series, {total_m} missing, {total_u} upcoming")
+        logger.info("[WATCHLIST] Scan complete : %s series, %s missing, %s upcoming", len(results), total_m, total_u)
         _state.finish_scan()
         return data
     except Exception as exc:
@@ -156,7 +156,7 @@ async def incremental_scan(db: AsyncSession) -> dict:
                 if a:
                     updated_series.append(a)
             except Exception as e:
-                logger.error(f"Error analyzing new series TMDB#{tid}: {e}")
+                logger.error("Error analyzing new series TMDB#%s: %s", tid, e)
 
         updated_series = dedupe_by_tmdb(updated_series)
         updated_series.sort(key=lambda x: x["missing_count"], reverse=True)
@@ -169,7 +169,7 @@ async def incremental_scan(db: AsyncSession) -> dict:
         await set_watchlist_data(db, "scan_results", json.dumps(data))
         _state.set_cache(data)
 
-        logger.info(f"[WATCHLIST] Incremental: +{len(new_ids)} new, -{len(removed_ids)} removed, {total_m} missing")
+        logger.info("[WATCHLIST] Incremental: +%s new, -%s removed, %s missing", len(new_ids), len(removed_ids), total_m)
         _state.finish_scan()
         return data
     except Exception as exc:
@@ -188,4 +188,4 @@ async def run_background_scan():
             else:
                 await full_scan(db)
     except Exception as e:
-        logger.error(f"[WATCHLIST] Error scan background: {e}")
+        logger.error("[WATCHLIST] Error scan background: %s", e)
