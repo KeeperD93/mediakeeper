@@ -98,21 +98,9 @@ export function useTrailer() {
     trailerCache.set(key, await fetchFromApi(mediaType, tmdbId, embyItemId))
   }
 
-  /**
-   * Synchronous cache peek of the best trailer. Returns ``undefined`` when
-   * the key has never been resolved, the best descriptor otherwise (or
-   * ``null`` when the item is known to have no trailer).
-   */
-  function peek(mediaType, tmdbId, embyItemId = null) {
-    if (!mediaType || !tmdbId) return undefined
-    const key = cacheKey(mediaType, tmdbId, embyItemId)
-    if (!trailerCache.has(key)) return undefined
-    return trailerCache.get(key)[0] || null
-  }
-
   function clear() {
     applyList([])
   }
 
-  return { trailer, candidates, loading, resolve, prefetch, peek, clear }
+  return { trailer, candidates, loading, resolve, prefetch, clear }
 }
