@@ -116,6 +116,7 @@
       "quota_exceeded": "Quota dépassé",
       "invalid_credentials": "Identifiants incorrects.",
       "account_disabled": "Compte désactivé.",
+      "maintenance": "Le site est actuellement en maintenance.",
       "backoffice_forbidden": "Compte non autorisé pour le backoffice.",
       "password_mismatch": "Les mots de passe ne correspondent pas.",
       "current_password_invalid": "Mot de passe actuel incorrect.",

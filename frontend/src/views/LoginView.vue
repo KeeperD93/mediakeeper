@@ -59,6 +59,15 @@
         </div>
 
         <div class="login-form-wrap">
+          <div
+            v-if="maintenanceText"
+            class="login-info"
+            data-test="login-maintenance"
+            role="status"
+          >
+            <TriangleAlert :size="14" />
+            {{ maintenanceText }}
+          </div>
           <div v-if="loggedOutMsg" class="login-info" data-test="login-logged-out" role="status">
             <CircleCheck :size="14" />
             {{ loggedOutMsg }}
@@ -162,6 +171,7 @@ import { STORAGE_KEYS } from '@/constants/storage'
 import { useTheme } from '@/composables/useTheme'
 import { initLoginParticles } from '@/composables/useLoginParticles'
 import { useLoginRedirect } from '@/composables/useLoginRedirect'
+import { useMaintenance } from '@/composables/portal/useMaintenance'
 import {
   BookOpen,
   CircleCheck,
@@ -180,12 +190,14 @@ const { t } = useI18n()
 const router = useRouter()
 const { login } = useAuth()
 const { particlesEnabled } = useTheme()
+const { fetchMaintenanceState } = useMaintenance()
 
 const username = ref('')
 const password = ref('')
 const remember = ref(false)
 const errorMsg = ref('')
 const loggedOutMsg = ref('')
+const maintenanceText = ref('')
 const submitting = ref(false)
 const pageRef = ref(null)
 const canvasRef = ref(null)
@@ -216,6 +228,8 @@ const submitKey = computed(() => (isPortalLogin.value ? 'portalLogin.submit' : '
 onMounted(async () => {
   if (particlesEnabled.value) cleanupParticles = initLoginParticles(canvasRef.value, pageRef.value)
   await start()
+  const m = await fetchMaintenanceState()
+  maintenanceText.value = m?.enabled ? m.text || '' : ''
 })
 
 onUnmounted(() => {

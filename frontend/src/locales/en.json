@@ -116,6 +116,7 @@
       "quota_exceeded": "Quota exceeded",
       "invalid_credentials": "Invalid credentials.",
       "account_disabled": "Account disabled.",
+      "maintenance": "The site is currently under maintenance.",
       "backoffice_forbidden": "Account not allowed on the backoffice.",
       "password_mismatch": "Passwords do not match.",
       "current_password_invalid": "Current password is incorrect.",
