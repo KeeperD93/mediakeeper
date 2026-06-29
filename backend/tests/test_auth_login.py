@@ -353,3 +353,54 @@ async def test_login_unknown_user_still_runs_bcrypt(client):
 
     assert resp.status_code == 401
     spy.assert_called()
+
+
+@pytest.mark.asyncio
+async def test_portal_login_refuses_member_during_maintenance(client, db_session):
+    """Maintenance mode locks the portal to admins: a member with valid Emby
+    credentials is refused at login (maintenance code, no portal cookie)."""
+    from models.settings import Setting
+
+    user = User(
+        username="emby-maint-user",
+        hashed_password=hash_password(EXTERNAL_AUTH_PASSWORD_SENTINEL),
+        is_active=True,
+        must_change_password=False,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    db_session.add(UserProfile(
+        user_id=user.id, display_name="Maint User", role="viewer", account_active=True,
+    ))
+    db_session.add(Setting(key="maintenance.enabled", value="true"))
+    await db_session.commit()
+
+    with patch(
+        "api.auth.login.authenticate_emby_user",
+        new=AsyncMock(return_value={"token": "rq-x", "user": user, "profile": None}),
+    ):
+        resp = await client.post("/api/auth/portal-login", json={
+            "username": "emby-maint-user",
+            "password": "emby-password",
+        })
+
+    assert resp.status_code == 403
+    assert resp.json()["detail"] == "maintenance"
+    assert client.cookies.get("rq_token") is None
+
+
+@pytest.mark.asyncio
+async def test_portal_login_admin_allowed_during_maintenance(client, admin_user, db_session):
+    """Admins must still log in during maintenance to manage the site."""
+    from models.settings import Setting
+
+    db_session.add(Setting(key="maintenance.enabled", value="true"))
+    await db_session.commit()
+
+    resp = await client.post("/api/auth/portal-login", json={
+        "username": "admin",
+        "password": "TestPassword123!",
+    })
+    assert resp.status_code == 200
+    assert resp.json()["scope"] == "admin"

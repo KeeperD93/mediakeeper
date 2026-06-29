@@ -60,18 +60,6 @@ export function usePortalAuth() {
     }
   }
 
-  async function portalLogin(username, password) {
-    const res = await portalAuthFetch('/api/portal/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ username, password }),
-    })
-    if (res.ok && res.data?.success) {
-      setPortalAuth(res.data.profile, res.data.unread_news?.length || 0, res.data.ui)
-      return res.data
-    }
-    return null
-  }
-
   async function checkPortalAuth() {
     try {
       const res = await portalAuthFetch('/api/portal/auth/me')
@@ -121,7 +109,6 @@ export function usePortalAuth() {
     gdpr: readonly(gdpr),
     isPortalAuth: readonly(isPortalAuth),
     unreadNewsCount: readonly(unreadNewsCount),
-    portalLogin,
     checkPortalAuth,
     refreshAuth,
     updateProfile,

@@ -43,6 +43,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Formulaires — champs aux coins plus nets, distincts des filtres arrondis.
 - Configuration (admin) — écran réorganisé par sections, barre d'enregistrement globale.
 - Réglages (admin) — Sécurité épurée (sans violet), changement de mot de passe déplacé dans cet onglet.
+- Mode maintenance — message affiché sur la page de connexion ; membres non-admins refusés (admins OK).
 
 ### Fixed
 - Logs (admin) — le mode Debug applique enfin le niveau DEBUG au fichier de logs.

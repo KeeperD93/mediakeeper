@@ -20,6 +20,7 @@ from core.security import (
 from models.portal.profile import UserProfile
 from models.user import User
 from services.portal.emby_auth import authenticate_emby_user
+from services.portal.maintenance import is_maintenance_enabled
 from services.portal.profiles import resolve_admin_identity, serialize_profile
 
 from ._cookies import _set_portal_jwt_cookie, _set_jwt_cookie
@@ -263,11 +264,21 @@ async def portal_login(
             detail="invalid_credentials",
         )
 
+    portal_user = portal_session["user"]
+    # Maintenance mode locks the portal to admins: a member with valid
+    # credentials is refused at the door (already-connected members hit the
+    # holding page via the router guard). Admins still get in to manage.
+    if await is_maintenance_enabled(db) and not is_backoffice_admin(portal_user.username):
+        logger.info("[PORTAL_LOGIN] Refused (maintenance) for user_id=%s", portal_user.id)
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="maintenance",
+        )
+
     _set_portal_jwt_cookie(response, portal_session["token"], request)
     rotate_csrf_cookie(response, request)
     await record_attempt(db, client_ip, tracking_username, "portal", success=True, user_agent=user_agent)
 
-    portal_user = portal_session["user"]
     portal_profile = portal_session["profile"]
     portal_user_id = portal_user.id
     portal_username = portal_user.username

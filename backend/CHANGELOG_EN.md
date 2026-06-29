@@ -43,6 +43,7 @@ This section intentionally has no date so it is not shown to users.
 - Forms — fields with sharper corners, distinct from rounded filters.
 - Configuration (admin) — screen reorganised into sections, global save bar.
 - Settings (admin) — Security tab cleaned up (no purple), password change moved into it.
+- Maintenance mode — message on the login page; non-admin members refused (admins still allowed).
 
 ### Fixed
 - Logs (admin) — Debug mode now actually applies the DEBUG level to the log file.
