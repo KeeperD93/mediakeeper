@@ -89,7 +89,7 @@ def enable(ttl_seconds: int | None = None) -> None:
     _original_getaddrinfo = socket.getaddrinfo
     socket.getaddrinfo = _cached_getaddrinfo  # type: ignore[assignment]
     _enabled = True
-    logger.info(f"dns_cache: enabled (TTL={_ttl_seconds}s)")
+    logger.info("dns_cache: enabled (TTL=%ss)", _ttl_seconds)
 
 
 def disable() -> None:
@@ -122,7 +122,7 @@ async def refresh_from_settings(db: AsyncSession) -> bool:
             ttl_wanted = max(1, int(raw_ttl))
         except (TypeError, ValueError):
             logger.warning(
-                f"dns_cache: invalid TTL setting {raw_ttl!r}, keeping default"
+                "dns_cache: invalid TTL setting %r, keeping default", raw_ttl
             )
     if enabled_wanted:
         enable(ttl_seconds=ttl_wanted)

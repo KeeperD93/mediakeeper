@@ -41,11 +41,11 @@ async def authenticate_emby_user(
             },
         )
     except Exception as e:
-        logger.error(f"[EMBY_AUTH] Connection error: {e}")
+        logger.error("[EMBY_AUTH] Connection error: %s", e)
         return None
 
     if res.status_code != 200:
-        logger.warning(f"[EMBY_AUTH] Failed for user={username} (HTTP {res.status_code})")
+        logger.warning("[EMBY_AUTH] Failed for user=%s (HTTP %s)", username, res.status_code)
         return None
 
     emby_data = res.json()
@@ -66,7 +66,7 @@ async def authenticate_emby_user(
     )
     user = result.scalar_one_or_none()
     if not user:
-        logger.warning(f"[EMBY_AUTH] Login refused: {username} not imported")
+        logger.warning("[EMBY_AUTH] Login refused: %s not imported", username)
         return None
 
     prof_result = await db.execute(
@@ -74,11 +74,11 @@ async def authenticate_emby_user(
     )
     profile = prof_result.scalar_one_or_none()
     if not profile:
-        logger.warning(f"[EMBY_AUTH] Login refused: {username} has no profile")
+        logger.warning("[EMBY_AUTH] Login refused: %s has no profile", username)
         return None
 
     if not profile.account_active:
-        logger.warning(f"[EMBY_AUTH] Disabled account: {username}")
+        logger.warning("[EMBY_AUTH] Disabled account: %s", username)
         return None
 
     # Catch profiles whose access window has elapsed but that the
@@ -87,7 +87,7 @@ async def authenticate_emby_user(
     # by the ``account_active`` gate above.
     from .admin_users_expiration import expire_profile_if_due
     if await expire_profile_if_due(db, profile, user):
-        logger.warning(f"[EMBY_AUTH] Expired account: {username}")
+        logger.warning("[EMBY_AUTH] Expired account: %s", username)
         return None
 
     # Keep the avatar in sync with Emby on every successful login so
@@ -128,6 +128,6 @@ async def authenticate_emby_user(
     # Authenticated path: log the numeric user id instead of the
     # PII-bearing username. Failure branches above keep the username
     # clear on purpose for enumeration / brute-force diagnostics.
-    logger.info(f"[EMBY_AUTH] Success for user_id={user.id}")
+    logger.info("[EMBY_AUTH] Success for user_id=%s", user.id)
 
     return {"token": token, "user": user, "profile": profile}
