@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.playback_stats import PlaybackSession
 from models.portal.profile import UserProfile
 from services.portal._rank_tiers import tier_for_level
+from services.portal._watch_threshold import watched_session_filter
 from services.portal.avatars import avatar_public_url
 
 from ._helpers import _get_library_name_map, _normalize_library_name, _merge_by_name, _lang_display
@@ -101,6 +102,10 @@ async def get_playback_stats(db: AsyncSession, days: int = 30):
             return PlaybackSession.started_at >= since
         return True
 
+    # Rankings count only sessions past the watch threshold (a sampled launch
+    # never inflates them). Movies count each completed viewing (a full rewatch
+    # is a real +1); series count distinct viewers (a binge credits the user
+    # once, not per episode).
     top_movies_q = await db.execute(_apply_exc(
         select(
             PlaybackSession.item_name,
@@ -110,6 +115,7 @@ async def get_playback_stats(db: AsyncSession, days: int = 30):
         ).where(
             PlaybackSession.item_type == "Movie",
             _since_filter(),
+            watched_session_filter(),
         ).group_by(
             PlaybackSession.item_name, PlaybackSession.item_id
         ).order_by(desc("play_count")).limit(5)
@@ -121,7 +127,7 @@ async def get_playback_stats(db: AsyncSession, days: int = 30):
             PlaybackSession.item_name, PlaybackSession.item_id,
             func.count(distinct(PlaybackSession.user_id)).label("user_count"),
             func.count(PlaybackSession.id).label("play_count"),
-        ).where(PlaybackSession.item_type == "Movie", _since_filter(),
+        ).where(PlaybackSession.item_type == "Movie", _since_filter(), watched_session_filter(),
         ).group_by(PlaybackSession.item_name, PlaybackSession.item_id).order_by(desc("user_count")).limit(5)
     ))
     popular_movies = [{"name": r[0], "item_id": r[1], "users": r[2], "plays": r[3]} for r in popular_movies_q.all()]
@@ -130,7 +136,8 @@ async def get_playback_stats(db: AsyncSession, days: int = 30):
         select(PlaybackSession.series_name, func.count(PlaybackSession.id).label("play_count"),
             func.count(distinct(PlaybackSession.user_id)).label("user_count"),
         ).where(PlaybackSession.item_type == "Episode", PlaybackSession.series_name.isnot(None), _since_filter(),
-        ).group_by(PlaybackSession.series_name).order_by(desc("play_count")).limit(5)
+            watched_session_filter(),
+        ).group_by(PlaybackSession.series_name).order_by(desc("user_count")).limit(5)
     ))
     top_series = [{"name": r[0], "plays": r[1], "users": r[2]} for r in top_series_q.all()]
 
@@ -139,6 +146,7 @@ async def get_playback_stats(db: AsyncSession, days: int = 30):
             func.count(distinct(PlaybackSession.user_id)).label("user_count"),
             func.count(PlaybackSession.id).label("play_count"),
         ).where(PlaybackSession.item_type == "Episode", PlaybackSession.series_name.isnot(None), _since_filter(),
+            watched_session_filter(),
         ).group_by(PlaybackSession.series_name).order_by(desc("user_count")).limit(5)
     ))
     popular_series = [{"name": r[0], "users": r[1], "plays": r[2]} for r in popular_series_q.all()]

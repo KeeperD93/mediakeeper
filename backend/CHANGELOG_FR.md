@@ -111,6 +111,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Watchlist — suivre/ignorer un titre depuis deux actions simultanées n'échoue plus.
 - Recherche (admin) — les caractères spéciaux ne servent plus de jokers.
 - Tableau de bord — l'état des services (en ligne/hors ligne) suit la langue de l'app.
+- Statistiques (admin) — films comptés par visionnage complet, séries par spectateur (plus par épisode).
 
 ## [1.0.0-rc.4] - 2026-05-30
 
