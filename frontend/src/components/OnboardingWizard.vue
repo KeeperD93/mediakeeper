@@ -351,7 +351,6 @@ import ObFoldersStep from './onboarding/ObFoldersStep.vue'
 import { Captions, Check, ChevronLeft, ChevronRight, Folder, Zap } from 'lucide-vue-next'
 import '@/assets/styles/onboarding-wizard.css'
 
-const props = defineProps({ forceShow: { type: Boolean, default: false } })
 const emit = defineEmits(['done'])
 
 const {
@@ -384,7 +383,7 @@ const {
   skip,
   complete,
   checkAndShow,
-} = useOnboarding(props, emit)
+} = useOnboarding(emit)
 
 defineExpose({ checkAndShow })
 </script>

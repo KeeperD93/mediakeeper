@@ -27,7 +27,7 @@ const ICONS = {
   portal: markRaw(Users),
 }
 
-export function useOnboarding(props, emit) {
+export function useOnboarding(emit) {
   const { t } = useI18n()
   const { apiGet, apiFetch } = useApi()
   const { showToast } = useToast()
@@ -441,11 +441,6 @@ export function useOnboarding(props, emit) {
 
       const savedFolders = await apiGet('/api/settings/media-folders').catch(() => [])
       hydrateFolders(savedFolders)
-
-      if (props.forceShow) {
-        visible.value = true
-        return
-      }
 
       const status = await apiGet('/api/onboarding/status')
       if (status?.authenticated && !status?.onboarding_done) visible.value = true
