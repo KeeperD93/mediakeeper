@@ -42,6 +42,7 @@ This section intentionally has no date so it is not shown to users.
 - Statistics — activity: consecutive sessions of the same content grouped (expandable, segmented bar).
 - Forms — fields with sharper corners, distinct from rounded filters.
 - Configuration (admin) — screen reorganised into sections, global save bar.
+- Settings (admin) — Security tab cleaned up (no purple), password change moved into it.
 
 ### Fixed
 - Logs (admin) — Debug mode now actually applies the DEBUG level to the log file.
@@ -111,6 +112,7 @@ This section intentionally has no date so it is not shown to users.
 - Watchlist — tracking/ignoring a title from two simultaneous actions no longer fails.
 - Search (admin) — special characters no longer used as search wildcards.
 - Dashboard — service status (online/offline) now follows the app language.
+- Security (admin) — local addresses shown as "Local" instead of "::1".
 
 ## [1.0.0-rc.4] - 2026-05-30
 
