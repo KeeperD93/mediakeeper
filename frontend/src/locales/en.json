@@ -1412,6 +1412,7 @@
       "attemptsTitle": "Recent attempts",
       "addBlock": "Block IP / user",
       "ip": "IP address",
+      "localAddress": "Local",
       "username": "Username",
       "scope": "Scope",
       "kind": "Kind",

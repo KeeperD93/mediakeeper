@@ -42,6 +42,7 @@ This section intentionally has no date so it is not shown to users.
 - Statistics — activity: consecutive sessions of the same content grouped (expandable, segmented bar).
 - Forms — fields with sharper corners, distinct from rounded filters.
 - Configuration (admin) — screen reorganised into sections, global save bar.
+- Settings (admin) — Security tab cleaned up (no purple), password change moved into it.
 - Maintenance mode — message on the login page; non-admin members refused (admins still allowed).
 
 ### Fixed
@@ -112,6 +113,9 @@ This section intentionally has no date so it is not shown to users.
 - Watchlist — tracking/ignoring a title from two simultaneous actions no longer fails.
 - Search (admin) — special characters no longer used as search wildcards.
 - Dashboard — service status (online/offline) now follows the app language.
+- Statistics (admin) — films counted per full view, series per viewer (not per episode).
+- Portal users (admin) — quota audit now shows the value and delta of each change.
+- Security (admin) — local addresses shown as "Local" instead of "::1".
 
 ## [1.0.0-rc.4] - 2026-05-30
 

@@ -28,6 +28,7 @@ import { useI18n } from 'vue-i18n'
 import { usePortalAdminUsers } from '@/composables/portal/usePortalAdminUsers'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
+import { QUOTA_MODE } from '@/constants/portalAdminUsers'
 import { localizedDate, localizedDateTime } from '@/utils/datetime'
 import PortalLoadMore from '@/components/portal/PortalLoadMore.vue'
 
@@ -125,6 +126,33 @@ function tQuotaField(key) {
   return te(i18nKey) ? t(i18nKey) : key
 }
 
+function tQuotaMode(value) {
+  const key =
+    value === QUOTA_MODE.AUTO ? 'modeAuto' : value === QUOTA_MODE.MANUAL ? 'modeManual' : null
+  return key ? t(`requestsAdmin.users.drawer.quota.${key}`) : String(value)
+}
+
+function fmtQuotaValue(field, value) {
+  if (field === 'mode') return tQuotaMode(value)
+  if (typeof value === 'boolean') return value ? t('common.yes') : t('common.no')
+  return value
+}
+
+// Audit stores {from,to} per field; show the values plus a signed delta for
+// numbers so the trail reflects the actual change, not just the field name.
+function quotaFieldDetail(field, change) {
+  const label = tQuotaField(field)
+  if (!change || typeof change !== 'object' || !('from' in change && 'to' in change)) {
+    return label
+  }
+  const { from, to } = change
+  if (typeof from === 'number' && typeof to === 'number') {
+    const delta = to - from
+    return `${label} : ${from} → ${to} (${delta > 0 ? '+' : ''}${delta})`
+  }
+  return `${label} : ${fmtQuotaValue(field, from)} → ${fmtQuotaValue(field, to)}`
+}
+
 function fmtDate(value) {
   if (!value) return t('requestsAdmin.users.drawer.audit.noLimit')
   try {
@@ -180,7 +208,9 @@ function describe(entry) {
     return t('requestsAdmin.users.drawer.audit.notification', { title: p.title })
   }
   if (a === 'user.quota_changed' && p.changed) {
-    const fields = Object.keys(p.changed).map(tQuotaField).join(', ')
+    const fields = Object.entries(p.changed)
+      .map(([field, change]) => quotaFieldDetail(field, change))
+      .join(' · ')
     const key = p.source === 'auto' ? 'quotaAuto' : 'quotaChange'
     return t(`requestsAdmin.users.drawer.audit.${key}`, { fields })
   }
