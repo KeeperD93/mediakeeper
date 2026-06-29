@@ -111,6 +111,7 @@ This section intentionally has no date so it is not shown to users.
 - Watchlist — tracking/ignoring a title from two simultaneous actions no longer fails.
 - Search (admin) — special characters no longer used as search wildcards.
 - Dashboard — service status (online/offline) now follows the app language.
+- Statistics (admin) — films counted per full view, series per viewer (not per episode).
 - Portal users (admin) — quota audit now shows the value and delta of each change.
 
 ## [1.0.0-rc.4] - 2026-05-30
