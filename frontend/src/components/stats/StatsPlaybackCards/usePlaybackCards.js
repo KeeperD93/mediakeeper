@@ -26,9 +26,9 @@ export function usePlaybackCards(playback, t, ticksToHours) {
       id: 'top_series',
       type: 'rank',
       title: t('stats.topSeries'),
-      unit: t('common.plays'),
+      unit: t('stats.users'),
       items: playback.value.top_series,
-      valKey: 'plays',
+      valKey: 'users',
       imgKey: 'series_id',
     })
     cards.push({

@@ -17,6 +17,6 @@ QUOTA_AUTO_DEFAULTS: dict[str, int] = {
     "max": 15,
     "window_days": 30,
     "grace_days": 14,
-    "up_step": 2,
+    "up_step": 1,
     "down_step": 1,
 }
