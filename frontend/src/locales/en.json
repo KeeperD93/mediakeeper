@@ -3741,6 +3741,8 @@
           "homeDesc": "What shows on the portal home.",
           "events": "Events",
           "eventsDesc": "Capacity of rooms created by members.",
+          "chat": "Chat",
+          "chatDesc": "Community chat history retention.",
           "language": "Language",
           "languageDesc": "Default language for new members.",
           "maintenance": "Maintenance",
@@ -3761,6 +3763,10 @@
         "requestsCleanup": {
           "title": "Auto-cleanup of available requests",
           "desc": "Automatically deletes requests in the \"Available\" status after this many days. 0 = disabled."
+        },
+        "chatRetention": {
+          "title": "Chat message retention",
+          "desc": "Automatically deletes chat messages older than this many days. 0 = keep forever."
         },
         "eventCapacityMin": {
           "title": "Minimum event capacity",

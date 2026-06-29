@@ -133,6 +133,14 @@ class PortalSettingsUpdate(BaseModel):
         le=365,
         alias="requests.auto_cleanup_days",
     )
+    # Chat history retention, in days (0 = keep forever). Dotted ``chat.``
+    # namespace preserved via alias, like the requests cleanup above.
+    chat_retention_days: Optional[int] = Field(
+        default=None,
+        ge=0,
+        le=3650,
+        alias="chat.retention_days",
+    )
     # Cinema-room capacity bounds. The service-layer ``update_portal_
     # settings`` snaps both to a step-5 multiple and re-orders them if
     # the admin pushes ``min > max`` in a single PATCH, so the Pydantic
@@ -233,6 +241,8 @@ async def patch_settings(
         updates["portal.hero_trend_count"] = payload.hero_trend_count
     if payload.requests_auto_cleanup_days is not None:
         updates["requests.auto_cleanup_days"] = payload.requests_auto_cleanup_days
+    if payload.chat_retention_days is not None:
+        updates["chat.retention_days"] = payload.chat_retention_days
     if payload.events_max_participants_min is not None:
         updates["portal.events.max_participants_min"] = payload.events_max_participants_min
     if payload.events_max_participants_max is not None:

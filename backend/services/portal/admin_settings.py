@@ -49,6 +49,10 @@ PORTAL_SETTING_INTS: dict[str, tuple[int, int, int]] = {
     # days. 0 disables the hygiene job. The scheduler handler reads the
     # same key directly via ``requests_cleanup.get_cleanup_days``.
     "requests.auto_cleanup_days": (0, 0, 365),
+    # Chat history retention, in days. 0 disables the daily purge (full
+    # history kept). The background ``chat_purge`` loop reads this key
+    # each cycle via ``purge_chat_messages``.
+    "chat.retention_days": (365, 0, 3650),
     # Cinema-room capacity bounds for the event creator. The creator
     # picks ``MKEvent.max_participants`` from {5, 10, 15, 20} ∩ [min,
     # max]. Step is 5 (see ``PORTAL_EVENT_CAPACITY_STEP``). Defaults

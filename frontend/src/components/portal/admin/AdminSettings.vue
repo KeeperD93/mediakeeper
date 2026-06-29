@@ -4,6 +4,7 @@
     <AdminAutoQuotaSetting class="set-block" />
     <SettingsHome class="set-block" />
     <SettingsEvents class="set-block" />
+    <SettingsChat class="set-block" />
     <SettingsLanguage class="set-block" />
     <AdminDonationSetting class="set-block" />
     <SettingsMaintenance class="set-block" />
@@ -26,6 +27,7 @@ import SettingsSaveBar from './settings/SettingsSaveBar.vue'
 import SettingsRequests from './settings/panels/SettingsRequests.vue'
 import SettingsHome from './settings/panels/SettingsHome.vue'
 import SettingsEvents from './settings/panels/SettingsEvents.vue'
+import SettingsChat from './settings/panels/SettingsChat.vue'
 import SettingsLanguage from './settings/panels/SettingsLanguage.vue'
 import SettingsMaintenance from './settings/panels/SettingsMaintenance.vue'
 // Complex categories still render their existing self-contained components for
