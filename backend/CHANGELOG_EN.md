@@ -44,6 +44,7 @@ This section intentionally has no date so it is not shown to users.
 - Configuration (admin) — screen reorganised into sections, global save bar.
 
 ### Fixed
+- Logs (admin) — Debug mode now actually applies the DEBUG level to the log file.
 - Recommendations — genre filter widened (OR) to fill the page past 2-3 favorite genres.
 - Media manager — renaming a root folder can no longer move it outside the configured paths.
 - Dashboard — History tabs (Notifications, Duplicates): "Load more" button.
