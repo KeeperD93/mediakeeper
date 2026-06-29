@@ -41,7 +41,7 @@ def _seed_auto_quota(db_session, admin_user, **over):
         source="local", account_active=True,
     ))
     db_session.add(RequestQuota(
-        user_id=admin_user.id, month="2026-06", max_allowed=over.get("max_allowed", 5),
+        user_id=admin_user.id, month="2026-06", max_allowed=over.get("max_allowed", 2),
         mode="auto", unlimited=False, auto_min=2, auto_max=15,
     ))
 
@@ -53,7 +53,7 @@ async def test_recompute_grants_active_user(admin_user, db_session):
 
     _seed_auto_quota(db_session, admin_user)
     now = datetime.now(timezone.utc)
-    for i in range(16):  # capped at 15 -> login score 7.5 -> target 6 > 5
+    for i in range(16):  # capped at 15 -> login score 7.5 -> target 5 > 2
         db_session.add(UserLoginHistory(
             user_id=admin_user.id, username="active", source="portal",
             success=True, created_at=now - timedelta(days=i % 25),
@@ -66,7 +66,7 @@ async def test_recompute_grants_active_user(admin_user, db_session):
     refreshed = (await db_session.execute(
         select(RequestQuota).where(RequestQuota.user_id == admin_user.id)
     )).scalar_one()
-    assert refreshed.max_allowed == 7  # 5 + up_step
+    assert refreshed.max_allowed == 3  # 2 + up_step
     assert refreshed.last_recomputed_at is not None
 
 
@@ -99,9 +99,9 @@ async def test_recompute_records_system_audit_on_grant(admin_user, db_session):
     assert audit.admin_user_id is None  # system actor, not an admin
     assert audit.payload["source"] == "auto"
     assert audit.payload["direction"] == "grant"
-    assert audit.payload["changed"]["max_allowed"] == {"from": 5, "to": 7}
+    assert audit.payload["changed"]["max_allowed"] == {"from": 2, "to": 3}
     assert audit.payload["score"] == 7.5  # 16 logins capped at 15 * weight 0.5
-    assert audit.payload["target"] == 6   # score 7.5 mapped onto band [2, 15]
+    assert audit.payload["target"] == 5   # score 7.5 mapped onto band [2, 15]
 
 
 @pytest.mark.asyncio
@@ -126,7 +126,7 @@ async def test_recompute_is_idempotent_within_guard(admin_user, db_session):
     refreshed = (await db_session.execute(
         select(RequestQuota).where(RequestQuota.user_id == admin_user.id)
     )).scalar_one()
-    assert refreshed.max_allowed == 7  # unchanged by the skipped pass
+    assert refreshed.max_allowed == 3  # unchanged by the skipped pass
 
 
 @pytest.mark.asyncio

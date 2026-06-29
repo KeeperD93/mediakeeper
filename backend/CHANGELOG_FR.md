@@ -111,6 +111,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Watchlist — suivre/ignorer un titre depuis deux actions simultanées n'échoue plus.
 - Recherche (admin) — les caractères spéciaux ne servent plus de jokers.
 - Tableau de bord — l'état des services (en ligne/hors ligne) suit la langue de l'app.
+- Utilisateurs portail (admin) — l'audit affiche la valeur et l'écart d'un changement de quota.
 
 ## [1.0.0-rc.4] - 2026-05-30
 
