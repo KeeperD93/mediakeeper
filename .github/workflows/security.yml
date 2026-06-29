@@ -126,7 +126,10 @@ jobs:
     # SAST findings are advisory: surfaced for review but do not block.
     continue-on-error: true
     container:
-      image: semgrep/semgrep
+      # Pinned by digest (not the implicit mutable :latest) for a reproducible,
+      # tamper-evident scan container. Digest of semgrep/semgrep:latest as of
+      # this commit — bump deliberately when refreshing the rules engine.
+      image: semgrep/semgrep@sha256:06938c1f365d3f67b8cedd8bc117607ae64253f88a0e768e9da9408548927dd6
     steps:
       - uses: actions/checkout@v7
 
