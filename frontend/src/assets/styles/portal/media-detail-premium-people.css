@@ -15,8 +15,10 @@
   box-shadow: 0 6px 24px rgb(0, 0, 0, 0.4);
   transition: transform var(--portal-dur-base);
 }
-.vmd2-cast-card:hover .vmd2-cast-photo {
-  transform: scale(1.03);
+@media (hover: hover) {
+  .vmd2-cast-card:hover .vmd2-cast-photo {
+    transform: scale(1.03);
+  }
 }
 .vmd2-cast-name {
   display: block;

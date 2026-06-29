@@ -134,8 +134,10 @@
   opacity: 0;
   transition: opacity var(--portal-dur-base);
 }
-.vmd2-video-card:hover .vmd2-video-play {
-  opacity: 1;
+@media (hover: hover) {
+  .vmd2-video-card:hover .vmd2-video-play {
+    opacity: 1;
+  }
 }
 .vmd2-video-play svg {
   width: 56px;
