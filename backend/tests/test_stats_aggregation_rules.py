@@ -308,3 +308,51 @@ async def test_top_genre_counts_series_once(db_session, now_in_month):
     by_id = {row["id"]: row["count"] for row in stats}
     # Comedy = 35 (1 series + 1 movie), Drama = 18 (1 series only).
     assert by_id == {35: 2, 18: 1}
+
+
+# ---------------------------------------------------------------------------
+# Admin playback cards: completed views (movies) + distinct viewers (series)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_playback_cards_views_and_distinct_series_viewers(db_session, now_in_month):
+    """Films count completed viewings (a full rewatch = +1, a sub-threshold
+    launch = 0); series count distinct viewers (N episodes by one user = 1,
+    a half-episode viewer is excluded)."""
+    from services.stats_aggregator.playback import get_playback_stats
+
+    base = now_in_month
+    # Movie M: one user finishes it twice + samples it once below threshold.
+    db_session.add_all([
+        _movie(session_key="M-1", user_id="EMBY-A", user_name="ana",
+               item_id="MOV-M", item_name="Movie M", started_at=base, watched_pct=0.95),
+        _movie(session_key="M-2", user_id="EMBY-A", user_name="ana",
+               item_id="MOV-M", item_name="Movie M",
+               started_at=base + timedelta(hours=1), watched_pct=0.95),
+        _movie(session_key="M-3", user_id="EMBY-A", user_name="ana",
+               item_id="MOV-M", item_name="Movie M",
+               started_at=base + timedelta(hours=2), watched_pct=0.50),
+    ])
+    # Series S: one user watches 3 full episodes; another watches half of one.
+    db_session.add_all([
+        _episode(session_key=f"S-A-{i}", user_id="EMBY-A", user_name="ana",
+                 item_id=f"S-EP-{i}", item_name=f"E{i}", series_name="Series S",
+                 started_at=base + timedelta(minutes=i), watched_pct=0.95)
+        for i in range(3)
+    ])
+    db_session.add(_episode(
+        session_key="S-B-1", user_id="EMBY-B", user_name="bob",
+        item_id="S-EP-0", item_name="E0", series_name="Series S",
+        started_at=base + timedelta(minutes=30), watched_pct=0.50,
+    ))
+    await db_session.commit()
+
+    stats = await get_playback_stats(db_session, days=0)
+
+    movie = next(m for m in stats["top_movies"] if m["name"] == "Movie M")
+    assert movie["plays"] == 2  # two finished viewings; the 50% sample dropped
+    assert movie["users"] == 1  # one distinct viewer
+
+    series = next(s for s in stats["top_series"] if s["name"] == "Series S")
+    assert series["users"] == 1  # 3 episodes by one user = 1; half-episode excluded
