@@ -81,6 +81,30 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Build the amd64 image locally and scan it BEFORE the multi-arch push,
+      # so a vulnerable image is never published. The push step below reuses
+      # these layers from the gha cache (only arm64 is built fresh).
+      - name: Build amd64 image for vulnerability scan
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64
+          push: false
+          load: true
+          tags: mediakeeper:scan-candidate
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Scan image with Trivy — block release on fixable CRITICAL/HIGH
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: 'image'
+          image-ref: 'mediakeeper:scan-candidate'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'
+
       - name: Build and push multi-arch image
         uses: docker/build-push-action@v7
         with:
