@@ -29,7 +29,6 @@ const ParamsSchedulerTab = defineAsyncComponent(
 const ParamsNetworkTab = defineAsyncComponent(
   () => import('@/components/settings/ParamsNetworkTab.vue'),
 )
-const ParamsTestTab = defineAsyncComponent(() => import('@/components/settings/ParamsTestTab.vue'))
 const ParamsBackupTab = defineAsyncComponent(
   () => import('@/components/settings/ParamsBackupTab.vue'),
 )
@@ -47,7 +46,6 @@ const TAB_COMPONENTS = {
   config: ParamsConfigTab,
   scheduler: ParamsSchedulerTab,
   network: ParamsNetworkTab,
-  test: ParamsTestTab,
   backup: ParamsBackupTab,
   security: ParamsSecurityTab,
 }

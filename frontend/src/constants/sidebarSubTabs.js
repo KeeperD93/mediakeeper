@@ -33,7 +33,6 @@ import {
   Sliders,
   Palette,
   Archive,
-  TestTube,
   Shield,
   Newspaper,
   Star,
@@ -92,7 +91,6 @@ export const SIDEBAR_SUB_TABS = {
     { id: 'scheduler', labelKey: 'settings.tabScheduler', icon: markRaw(Clock) },
     { id: 'network', labelKey: 'settings.tabNetwork', icon: markRaw(Network) },
     { id: 'backup', labelKey: 'settings.tabBackup', icon: markRaw(Archive) },
-    { id: 'test', labelKey: 'settings.tabTest', icon: markRaw(TestTube) },
     { id: 'security', labelKey: 'settings.tabSecurity', icon: markRaw(Shield) },
   ],
   '/admin/portal': [

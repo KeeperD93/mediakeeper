@@ -1382,10 +1382,6 @@
     "saved": "Saved",
     "tabScheduler": "Scheduler",
     "dangerZone": "Danger zone",
-    "resetOnboarding": "Re-run setup wizard",
-    "resetOnboardingConfirm": "Re-run the wizard? The page will reload.",
-    "resetOnboardingDone": "Wizard reset",
-    "previewOnboarding": "Preview wizard",
     "tabBackup": "Backups",
     "tabNetwork": "Network",
     "network": {
@@ -1407,7 +1403,6 @@
     "generalDesc": "MediaKeeper general settings.",
     "languageLabel": "Language",
     "languageDesc": "Choose the interface language.",
-    "tabTest": "Test",
     "tabSecurity": "Security",
     "passwordTitle": "Password",
     "passwordDesc": "Change the admin account password.",
@@ -1434,20 +1429,7 @@
       "failure": "Failure",
       "noBlocks": "No active block.",
       "noAttempts": "No attempts to show."
-    },
-    "testDesc": "Test MediaKeeper components.",
-    "testToastTitle": "Toast notifications",
-    "testToastDesc": "Send a test notification to preview the rendering.",
-    "testToastOk": "Success",
-    "testToastErr": "Error",
-    "testToastWarn": "Warning",
-    "testToastMedia": "Media",
-    "testToastMsgOk": "Operation completed successfully",
-    "testToastMsgErr": "An error has occurred",
-    "testToastMsgWarn": "Warning, check your configuration",
-    "testToastMsgMedia": "New movie added to the library",
-    "testWizardTitle": "Setup wizard",
-    "testWizardDesc": "Preview or re-run the installation wizard."
+    }
   },
   "scheduler": {
     "title": "Scheduler",

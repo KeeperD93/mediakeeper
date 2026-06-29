@@ -1382,10 +1382,6 @@
     "saved": "Enregistré",
     "tabScheduler": "Planificateur",
     "dangerZone": "Zone dangereuse",
-    "resetOnboarding": "Relancer le wizard de configuration",
-    "resetOnboardingConfirm": "Relancer le wizard ? La page va se recharger.",
-    "resetOnboardingDone": "Wizard réinitialisé",
-    "previewOnboarding": "Prévisualiser le wizard",
     "tabBackup": "Sauvegardes",
     "tabNetwork": "Réseau",
     "network": {
@@ -1407,7 +1403,6 @@
     "generalDesc": "Paramètres généraux de MediaKeeper.",
     "languageLabel": "Langue",
     "languageDesc": "Choisissez la langue de l'interface.",
-    "tabTest": "Test",
     "tabSecurity": "Sécurité",
     "passwordTitle": "Mot de passe",
     "passwordDesc": "Modifiez le mot de passe du compte admin.",
@@ -1434,20 +1429,7 @@
       "failure": "Échec",
       "noBlocks": "Aucun blocage actif.",
       "noAttempts": "Aucune tentative à afficher."
-    },
-    "testDesc": "Testez les composants de MediaKeeper.",
-    "testToastTitle": "Notifications toast",
-    "testToastDesc": "Envoyez une notification de test pour prévisualiser le rendu.",
-    "testToastOk": "Succès",
-    "testToastErr": "Erreur",
-    "testToastWarn": "Avertissement",
-    "testToastMedia": "Média",
-    "testToastMsgOk": "Opération réussie avec succès",
-    "testToastMsgErr": "Une erreur est survenue",
-    "testToastMsgWarn": "Attention, vérifiez la configuration",
-    "testToastMsgMedia": "Nouveau film ajouté à la bibliothèque",
-    "testWizardTitle": "Wizard de configuration",
-    "testWizardDesc": "Prévisualisez ou relancez le wizard d'installation."
+    }
   },
   "scheduler": {
     "title": "Planificateur",
