@@ -37,9 +37,10 @@ logger = logging.getLogger("mediakeeper.portal.quota")
 # playback is the hardest signal to fake, so it weighs the most.
 _WEIGHTS = {"play": 1.0, "login": 0.5, "request": 0.4, "list": 0.6, "ticket": 0.3}
 _CAPS = {"play": 20, "login": 15, "request": 10, "list": 5, "ticket": 5}
-# Score at which a user reaches the top of their band — set well below the
-# theoretical max (36) so moderately-heavy use already maxes out.
-_SCORE_FULL = 24.0
+# Score at which a user reaches the top of their band. Set near the
+# theoretical max (36) so the band ceiling needs broad engagement across
+# signals, not heavy streaming alone — moderate use lands mid-band.
+_SCORE_FULL = 30.0
 # Cap a user lands on when an admin flips them to auto (clamped to the band);
 # the nightly job then drifts it from there. See admin.update_user_quota.
 START_CAP = 5
