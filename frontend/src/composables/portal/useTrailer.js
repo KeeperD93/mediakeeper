@@ -11,8 +11,8 @@
  *   4. TMDB videos in the media's original language
  *   5. TMDB videos in any language
  *
- * The backend reads the user's preferred language from their Portal
- * profile, so the caller doesn't have to pass it.
+ * The backend resolves the viewer's active locale from the request
+ * (the X-MK-Locale header), so the caller doesn't have to pass it.
  *
  * Exposes both ``trailer`` (the best descriptor — drives the button
  * visibility) and ``candidates`` (the full ranked list, best first) so the
