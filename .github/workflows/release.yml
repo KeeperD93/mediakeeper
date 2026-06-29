@@ -114,7 +114,11 @@ jobs:
           tags: ${{ steps.docker_tags.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          provenance: false
+          # SLSA provenance (max detail) + SBOM attestations for the public
+          # image. Safe here: the build declares no ARG/secrets, so mode=max
+          # leaks nothing. Attestations require a registry push (done above).
+          provenance: mode=max
+          sbom: true
 
       - name: Extract changelog sections for this version
         id: changelog
