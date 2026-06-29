@@ -29,6 +29,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Statistiques — activité : colonne de progression (vu/total) + durée par session.
 - Statistiques — activité : filtrer quels utilisateurs sont affichés (temporaire).
 - Statistiques — activité : colonnes du tableau redimensionnables, largeurs mémorisées par utilisateur.
+- Utilisateurs portail (admin) — email Emby (compte lié) repris automatiquement sur la fiche.
 
 ### Changed
 - Interface (admin) — ~10% plus compacte sur les écrans de bureau.

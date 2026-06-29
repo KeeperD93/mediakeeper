@@ -29,6 +29,7 @@ This section intentionally has no date so it is not shown to users.
 - Statistics — activity history: watch-progress column (position/total) + per-session duration.
 - Statistics — activity: filter which users' activity is shown (temporary).
 - Statistics — activity: resizable table columns, widths remembered per user.
+- Portal users (admin) — linked Emby account email auto-filled on the member profile.
 
 ### Changed
 - Interface (admin) — ~10% more compact on desktop displays.
