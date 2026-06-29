@@ -88,7 +88,7 @@ def _resolve_user_avatar(
 
 
 async def get_playback_stats(db: AsyncSession, days: int = 30):
-    """Statistiques de playback sur les N lasts jours. days=0 → tout l'history."""
+    """Statistiques de playback sur les N derniers jours. days=0 → tout l'historique."""
     since = datetime.now(timezone.utc) - timedelta(days=days) if days > 0 else None
     exc_filters = await _get_exclusion_filters(db)
 
