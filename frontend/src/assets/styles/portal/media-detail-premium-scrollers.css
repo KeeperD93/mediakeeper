@@ -14,52 +14,6 @@
 .vmd2-scroller::-webkit-scrollbar {
   display: none;
 }
-.vmd2-rec-card {
-  flex-shrink: 0;
-  width: clamp(110px, 30vw, 140px);
-  scroll-snap-align: start;
-  text-decoration: none;
-  color: inherit;
-}
-.vmd2-rec-poster {
-  width: 100%;
-  aspect-ratio: 2/3;
-  border-radius: var(--portal-radius-lg);
-  object-fit: cover;
-  transition: transform var(--portal-dur-base);
-  position: relative;
-}
-.vmd2-rec-card:hover .vmd2-rec-poster {
-  transform: scale(1.04);
-}
-.vmd2-rec-poster-wrap {
-  position: relative;
-}
-.vmd2-rec-score {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  padding: 0.15rem 0.35rem;
-  background: rgb(0, 0, 0, 0.8);
-  border: 1px solid #21d07a;
-  border-radius: var(--portal-radius-pill);
-  font-size: var(--portal-text-3xs);
-  font-weight: var(--portal-font-extrabold);
-  color: #21d07a;
-}
-.vmd2-rec-title {
-  display: block;
-  font-size: var(--portal-text-xs);
-  font-weight: var(--portal-font-bold);
-  margin-top: 0.5rem;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-.vmd2-rec-year {
-  font-size: var(--portal-text-2xs);
-  color: var(--portal-text-secondary);
-}
 
 /* --- Collection banner --- */
 .vmd2-collection {
@@ -164,39 +118,7 @@
   margin-top: 0.5rem;
 }
 
-/* --- Demo banner --- */
-.vmd2-demo-banner {
-  position: relative;
-  z-index: 3;
-  padding: 0.6rem 5%;
-  background: linear-gradient(
-    90deg,
-    rgb(var(--portal-accent-rgb), 0.25),
-    rgb(var(--portal-accent-rgb), 0.1)
-  );
-  border-bottom: 1px solid rgb(var(--portal-accent-rgb), 0.3);
-  font-size: var(--portal-text-sm);
-  text-align: center;
-  color: var(--portal-text-body);
-}
-.vmd2-demo-banner strong {
-  color: var(--portal-accent-light);
-}
-
 @media (min-width: 768px) {
-  .vmd2-rec-card {
-    width: clamp(140px, 22vw, 170px);
-  }
-  .vmd2-rec-score {
-    padding: 0.2rem 0.45rem;
-    font-size: var(--portal-text-2xs);
-  }
-  .vmd2-rec-title {
-    font-size: var(--portal-text-sm);
-  }
-  .vmd2-rec-year {
-    font-size: var(--portal-text-xs);
-  }
   .vmd2-collection {
     padding: 3rem 5%;
     margin: 2rem 5%;

@@ -1,8 +1,7 @@
 /* =======================================================================
-   Premium detail page styling. Shared by the demo route (fake data) and
-   the real viewer (live TMDB data). Information-dense layout inspired
-   by modern streaming catalogues, themed with the MediaKeeper accent
-   system and translated to our radius / mobile-first rules.
+   Premium media-detail page styling for the live viewer (TMDB data).
+   Information-dense layout themed with the portal accent system and our
+   radius / mobile-first rules.
    ======================================================================= */
 
 .vmd2-root {
