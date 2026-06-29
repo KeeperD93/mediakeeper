@@ -2051,7 +2051,7 @@
         "created": "Utilisateur créé",
         "bulkDone": "{count} action(s) appliquée(s)",
         "bulkNoChange": "Aucune modification appliquée",
-        "embyIdsSynced": "{updated} compte(s) liés à Emby, {already} déjà à jour, {unmatched} non trouvés",
+        "embyIdsSynced": "{updated} compte(s) liés à Emby, {already} déjà à jour, {unmatched} non trouvés, {emails} email(s) récupéré(s)",
         "forceLogoutDone": "Sessions invalidées",
         "displayNameResetDone": "Reset du pseudo programmé"
       },
@@ -3741,6 +3741,8 @@
           "homeDesc": "Ce qui s'affiche sur l'accueil du portail.",
           "events": "Événements",
           "eventsDesc": "Capacité des salles créées par les membres.",
+          "chat": "Chat",
+          "chatDesc": "Conservation de l'historique du chat communautaire.",
           "language": "Langue",
           "languageDesc": "Langue par défaut des nouveaux membres.",
           "maintenance": "Maintenance",
@@ -3761,6 +3763,10 @@
         "requestsCleanup": {
           "title": "Auto-nettoyage des demandes disponibles",
           "desc": "Supprime automatiquement les demandes en statut « Disponible » après ce nombre de jours. 0 = désactivé."
+        },
+        "chatRetention": {
+          "title": "Conservation des messages du chat",
+          "desc": "Supprime automatiquement les messages du chat plus vieux que ce nombre de jours. 0 = conserver indéfiniment."
         },
         "eventCapacityMin": {
           "title": "Capacité minimale d'un événement",

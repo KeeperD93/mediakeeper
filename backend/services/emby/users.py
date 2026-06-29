@@ -17,6 +17,29 @@ from .config import _get_emby_config
 logger = logging.getLogger("mediakeeper.emby.users")
 
 
+def _looks_like_email(value: str) -> bool:
+    """Minimal sanity gate (not RFC validation): exactly one ``@``, a
+    dotted domain, no whitespace, within the column width."""
+    if not value or len(value) > 254 or value.count("@") != 1:
+        return False
+    if any(ch.isspace() for ch in value):
+        return False
+    local, _, domain = value.partition("@")
+    return bool(local) and "." in domain and not domain.startswith(".") and not domain.endswith(".")
+
+
+def email_from_emby_user(emby_user: dict[str, Any]) -> str | None:
+    """Best-effort email for an Emby account.
+
+    Emby has no standalone email field — an address only exists once the
+    account is linked to Emby Connect, where it surfaces as
+    ``ConnectUserName``. That field historically also carried a plain
+    Connect username, so we keep the value only when it actually looks
+    like an email."""
+    raw = (emby_user.get("ConnectUserName") or "").strip()
+    return raw if _looks_like_email(raw) else None
+
+
 async def list_emby_users(db: AsyncSession) -> list[dict[str, Any]]:
     """Return the raw Emby ``/Users`` payload, or ``[]`` if not configured."""
     cfg = await _get_emby_config(db)

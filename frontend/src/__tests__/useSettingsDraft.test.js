@@ -19,6 +19,7 @@ const SETTINGS = {
   anonymize_requests: false,
   allow_adult_requests: false,
   'requests.auto_cleanup_days': 0,
+  'chat.retention_days': 365,
   hero_trend_count: 10,
   'events.max_participants_min': 5,
   'events.max_participants_max': 20,

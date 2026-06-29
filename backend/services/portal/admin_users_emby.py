@@ -23,7 +23,7 @@ from core.security import EXTERNAL_AUTH_PASSWORD_SENTINEL, hash_password
 from models.user import User
 from models.user_preferences import UserPreference
 from models.portal.profile import UserProfile
-from services.emby.users import list_emby_users
+from services.emby.users import email_from_emby_user, list_emby_users
 from services.portal.profiles import resolve_unique_display_name
 
 from .admin_users_audit import record_audit
@@ -129,12 +129,14 @@ async def backfill_emby_user_ids(db: AsyncSession) -> dict[str, Any]:
         by_username[name] = {
             "id": eid,
             "is_disabled": bool((eu.get("Policy") or {}).get("IsDisabled")),
+            "email": email_from_emby_user(eu),
         }
 
     updated = 0
     already = 0
     unmatched = 0
     disabled_synced = 0
+    emails_synced = 0
     for profile, user in rows:
         match = by_username.get((user.username or "").lower())
         if not match:
@@ -151,6 +153,11 @@ async def backfill_emby_user_ids(db: AsyncSession) -> dict[str, Any]:
             profile.emby_is_disabled = match["is_disabled"]
             dirty = True
             disabled_synced += 1
+        # Fill the email once; never overwrite an admin-entered address.
+        if not profile.email and match["email"]:
+            profile.email = match["email"]
+            dirty = True
+            emails_synced += 1
         if dirty:
             db.add(profile)
             updated += 1
@@ -164,6 +171,7 @@ async def backfill_emby_user_ids(db: AsyncSession) -> dict[str, Any]:
         "already_linked": already,
         "unmatched": unmatched,
         "disabled_synced": disabled_synced,
+        "emails_synced": emails_synced,
         "total_emby": len(emby_users),
     }
 
@@ -257,6 +265,7 @@ async def import_selected_emby_users(
             role="viewer",
             source=SOURCE_EMBY,
             emby_user_id=emby_id,
+            email=email_from_emby_user(eu),
             account_active=False,
             display_name_must_set=True,
         )

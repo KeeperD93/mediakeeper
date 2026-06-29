@@ -20,6 +20,24 @@ HEALTH_MONITOR_DB_TIMEOUT_SEC = 3.0
 HEALTH_MONITOR_FAILURES_BEFORE_ALERT = 2
 
 
+async def purge_chat_messages(db: AsyncSession) -> int | None:
+    """Delete chat messages past the admin-configured retention window.
+
+    Returns the number of rows removed, or ``None`` when retention is set
+    to 0 (purge disabled — the full history is kept). The caller commits,
+    mirroring ``notifications.delete_old``."""
+    from services.portal.admin_settings import get_portal_int
+
+    days = await get_portal_int(db, "chat.retention_days")
+    if days <= 0:
+        return None
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    result = await db.execute(
+        delete(ChatMessage).where(ChatMessage.created_at < cutoff)
+    )
+    return result.rowcount
+
+
 class BackgroundTaskManager:
     """Orchestrate background loops in a dedicated process."""
 
@@ -186,15 +204,13 @@ class BackgroundTaskManager:
         await asyncio.sleep(120)
         while True:
             try:
-                cutoff = datetime.now(timezone.utc) - timedelta(days=365)
                 async with AsyncSession(self._engine, expire_on_commit=False) as session:
-                    result = await session.execute(
-                        delete(ChatMessage).where(ChatMessage.created_at < cutoff)
-                    )
-                    await session.commit()
-                    logger.info(f"[CHAT_PURGE] Removed {result.rowcount} messages older than 1y")
+                    removed = await purge_chat_messages(session)
+                    if removed is not None:
+                        await session.commit()
+                        logger.info("[CHAT_PURGE] Removed %d message(s) past retention", removed)
             except Exception as e:
-                logger.error(f"[CHAT_PURGE] error: {e}")
+                logger.error("[CHAT_PURGE] error: %s", e)
             await asyncio.sleep(86400)
 
     async def _periodic_notification_purge(self):

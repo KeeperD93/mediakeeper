@@ -298,6 +298,7 @@ async function onSyncEmbyIds() {
         updated: res?.updated || 0,
         already: res?.already_linked || 0,
         unmatched: res?.unmatched || 0,
+        emails: res?.emails_synced || 0,
       }),
       TOAST_TYPE.OK,
     )

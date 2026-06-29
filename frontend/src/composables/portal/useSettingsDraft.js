@@ -15,6 +15,7 @@ const DEFAULTS = {
   anonymize_requests: false,
   allow_adult_requests: false,
   'requests.auto_cleanup_days': 0,
+  'chat.retention_days': 365,
   hero_trend_count: 10,
   'events.max_participants_min': 5,
   'events.max_participants_max': 20,
@@ -28,6 +29,7 @@ const KEYS = Object.keys(DEFAULTS)
 const NUMERIC_BOUNDS = {
   hero_trend_count: [0, 20],
   'requests.auto_cleanup_days': [0, 365],
+  'chat.retention_days': [0, 3650],
 }
 const isValidInt = (v, [lo, hi]) => Number.isInteger(v) && v >= lo && v <= hi
 
