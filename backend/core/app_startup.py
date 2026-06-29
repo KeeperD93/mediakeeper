@@ -46,6 +46,16 @@ def is_db_ready() -> bool:
     return _db_ready
 
 
+def apply_debug_level(enabled: bool) -> None:
+    """Move BOTH the ``mediakeeper`` logger and the file handler to the debug
+    level together. Setting only the logger level leaves the file handler
+    filtering DEBUG records out of the log file — the runtime-toggle bug."""
+    level = logging.DEBUG if enabled else logging.INFO
+    logging.getLogger("mediakeeper").setLevel(level)
+    if _file_handler is not None:
+        _file_handler.setLevel(level)
+
+
 def setup_logging() -> None:
     """Configure logging handlers (console + file) based on MK_DEBUG."""
     global _file_handler
@@ -211,15 +221,9 @@ async def apply_runtime_settings() -> None:
         if migrated["settings"] or migrated["notification_channels"]:
             logger.info("[startup] Encrypted legacy cleartext secrets: %s", migrated)
         debug_mode = await get_setting(session, "logs.debug_mode")
+        apply_debug_level(debug_mode == "true")
         if debug_mode == "true":
-            logging.getLogger("mediakeeper").setLevel(logging.DEBUG)
-            if _file_handler is not None:
-                _file_handler.setLevel(logging.DEBUG)
             logger.info("Debug mode enabled from configuration")
-        else:
-            logging.getLogger("mediakeeper").setLevel(logging.INFO)
-            if _file_handler is not None:
-                _file_handler.setLevel(logging.INFO)
 
     async with AsyncSession(engine) as session:
         from services.media_manager import load_categories

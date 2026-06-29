@@ -1,6 +1,6 @@
 /**
- * Scheduler task run-status, consumed by ParamsTestTab / NotificationsView
- * and the status dot in the scheduler list. Mirrors the `last_status`
+ * Scheduler task run-status, consumed by NotificationsView and the status
+ * dot in the scheduler list. Mirrors the `last_status`
  * column on the `scheduler_tasks` table.
  *
  * Note: `ok` and `error` are the canonical outcomes written by the task

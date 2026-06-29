@@ -44,6 +44,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Configuration (admin) — écran réorganisé par sections, barre d'enregistrement globale.
 
 ### Fixed
+- Logs (admin) — le mode Debug applique enfin le niveau DEBUG au fichier de logs.
 - Recommandations — filtre genres élargi (OU) pour remplir la page au-delà de 2-3 genres préférés.
 - Gestionnaire de médias — renommer un dossier racine ne peut plus le sortir des chemins configurés.
 - Tableau de bord — onglets Historique (Notifications, Doublons) : bouton « Charger plus ».

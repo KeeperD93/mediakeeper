@@ -84,13 +84,11 @@ async def set_debug_mode(
     """Enable or disable debug mode."""
     await set_setting(db, "logs.debug_mode", "true" if req.enabled else "false")
 
-    # Apply the log level immediately
-    root_logger = logging.getLogger("mediakeeper")
-    if req.enabled:
-        root_logger.setLevel(logging.DEBUG)
-        logger.info("Debug mode ENABLED — log level: DEBUG")
-    else:
-        root_logger.setLevel(logging.INFO)
-        logger.info("Debug mode DISABLED — log level: INFO")
+    # Apply the level to the mediakeeper logger AND the file handler so DEBUG
+    # lines actually reach the log file (not just the console). Shared with the
+    # startup path so the two can never drift out of sync again.
+    from core.app_startup import apply_debug_level
+    apply_debug_level(req.enabled)
+    logger.info("Debug mode %s", "ENABLED (DEBUG)" if req.enabled else "DISABLED (INFO)")
 
     return {"success": True, "enabled": req.enabled}
