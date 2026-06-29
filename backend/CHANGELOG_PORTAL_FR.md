@@ -37,6 +37,7 @@ utilisateurs.
 - Notifications — marquées lues à la fermeture du panneau (surbrillance conservée à l'ouverture).
 - Formulaires — champs aux coins plus nets, distincts des filtres arrondis.
 - Fiche détail — accent et arrondis alignés sur la palette du portail.
+- Navigation mobile — onglet actif teinté de l'accent du portail.
 
 ### Fixed
 - Personne & saga — filmographie, biographie et collection affichées dans votre langue.

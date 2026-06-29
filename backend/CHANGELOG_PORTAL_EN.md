@@ -35,6 +35,7 @@ This section intentionally has no date so it is not shown to users.
 - Notifications — marked read when the panel closes (highlight kept while open).
 - Forms — fields with sharper corners, distinct from rounded filters.
 - Media detail — accent colour and corner radii aligned with the portal palette.
+- Mobile nav — active tab tinted with the portal accent.
 
 ### Fixed
 - Person & saga — filmography, biography and collection shown in your language.
