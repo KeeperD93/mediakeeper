@@ -127,7 +127,7 @@ async def grant_xp(
             ))
             await db.flush()
     except IntegrityError:
-        logger.debug(f"[XP] duplicate blocked: user={user_id} action={action} ref={reference}")
+        logger.debug("[XP] duplicate blocked: user=%s action=%s ref=%s", user_id, action, reference)
         return None
 
     # --- Update profile XP + level (row-locked to prevent concurrent-grant loss) ---
@@ -154,7 +154,7 @@ async def grant_xp(
         "level": profile.level if profile else 1,
         "leveled_up": leveled_up,
     }
-    logger.info(f"[XP] granted {xp_amount} XP to user={user_id} for {action} ref={reference}")
+    logger.info("[XP] granted %s XP to user=%s for %s ref=%s", xp_amount, user_id, action, reference)
     return result
 
 
@@ -183,15 +183,16 @@ async def grant_watch_xp(
     # is a trivial farm vector.
     if item_type not in WATCH_XP_ITEM_TYPES:
         logger.debug(
-            f"[XP] item_type={item_type!r} not eligible: "
-            f"user={user_id} item={item_id} — XP skipped"
+            "[XP] item_type=%r not eligible: "
+            "user=%s item=%s — XP skipped",
+            item_type, user_id, item_id,
         )
         return None
 
     # --- Minimum watch check (85% of runtime, no fallback) ---
     if not runtime_ticks or runtime_ticks <= 0:
         logger.debug(
-            f"[XP] no runtime: user={user_id} item={item_id} — XP skipped"
+            "[XP] no runtime: user=%s item=%s — XP skipped", user_id, item_id
         )
         return None
     runtime_seconds = runtime_ticks / 10_000_000
@@ -202,8 +203,9 @@ async def grant_watch_xp(
     watch_percent = effective_duration / runtime_seconds
     if watch_percent < MIN_WATCH_PERCENT:
         logger.debug(
-            f"[XP] watch too short: user={user_id} item={item_id} "
-            f"{watch_percent:.0%} < {MIN_WATCH_PERCENT:.0%}"
+            "[XP] watch too short: user=%s item=%s "
+            "%.0f%% < %.0f%%",
+            user_id, item_id, watch_percent * 100, MIN_WATCH_PERCENT * 100,
         )
         return None
 
@@ -223,7 +225,7 @@ async def grant_watch_xp(
         .limit(1)
     )).scalar_one_or_none()
     if existing:
-        logger.debug(f"[XP] cooldown active: user={user_id} item={item_id}")
+        logger.debug("[XP] cooldown active: user=%s item=%s", user_id, item_id)
         return None
 
     # Use a time-bucketed reference so the unique constraint allows

@@ -186,7 +186,7 @@ async def _emby_items(db: AsyncSession, params: dict) -> list[dict]:
             return []
         return [_normalize_emby(item, public_url, server_id) for item in res.json().get("Items", [])]
     except Exception as e:
-        logger.error(f"[AVAILABLE] Error: {e}")
+        logger.error("[AVAILABLE] Error: %s", e)
         return []
 
 
