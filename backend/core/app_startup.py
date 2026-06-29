@@ -250,7 +250,7 @@ async def lifespan(app: FastAPI):
             await seed_achievements(seed_db)
         logger.info("[STARTUP] Achievement seed done")
     except Exception:
-        logger.error("[STARTUP] Achievement seed FAILED", exc_info=True)
+        logger.exception("[STARTUP] Achievement seed FAILED")
 
     try:
         from core.database import AsyncSessionLocal
@@ -260,7 +260,7 @@ async def lifespan(app: FastAPI):
             created = await ensure_help_seed(seed_db)
         logger.info("[STARTUP] Help seed done (created=%s)", created)
     except Exception:
-        logger.error("[STARTUP] Help seed FAILED", exc_info=True)
+        logger.exception("[STARTUP] Help seed FAILED")
 
     # Prime the image-cache enable flag so ``_normalize`` doesn't
     # silently default to OFF for the first 30 s while the cached
@@ -271,7 +271,7 @@ async def lifespan(app: FastAPI):
         async with AsyncSessionLocal() as seed_db:
             await refresh_enabled_flag(seed_db, force=True)
     except Exception:
-        logger.error("[STARTUP] Image cache flag prime FAILED", exc_info=True)
+        logger.exception("[STARTUP] Image cache flag prime FAILED")
 
     # Apply the DNS cache toggle right at startup so every outbound
     # call (TMDB, OpenSubtitles, Emby, …) inherits the resolver wrap
@@ -282,7 +282,7 @@ async def lifespan(app: FastAPI):
         async with AsyncSessionLocal() as seed_db:
             await dns_refresh(seed_db)
     except Exception:
-        logger.error("[STARTUP] DNS cache toggle apply FAILED", exc_info=True)
+        logger.exception("[STARTUP] DNS cache toggle apply FAILED")
 
     if _PROCESS_ROLE in _BACKGROUND_TASK_ROLES:
         background_manager = BackgroundTaskManager(engine)

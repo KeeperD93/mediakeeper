@@ -173,6 +173,6 @@ async def run_healthcheck(db: AsyncSession, progress_cb=None) -> dict:
     except Exception as e:
         if db.in_transaction():
             await db.rollback()
-        logger.error(f"[healthcheck] Error scan: {e}", exc_info=True)
+        logger.exception("[healthcheck] Error scan: %s", e)
         _scan_state.update(running=False, error=str(e)[:500])
         return {"error": str(e)[:500]}

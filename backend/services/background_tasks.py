@@ -54,9 +54,9 @@ class BackgroundTaskManager:
                 logger.info(f"Task {name} cancelled (shutdown)")
                 raise
             except Exception as e:
-                logger.error(
-                    f"Task {name} crashed: {e} — restarting in {restart_delay}s",
-                    exc_info=True,
+                logger.exception(
+                    "Task %s crashed: %s — restarting in %ss",
+                    name, e, restart_delay,
                 )
                 try:
                     from services.monitoring import AlertType, send_alert

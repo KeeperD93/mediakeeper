@@ -86,4 +86,4 @@ async def send_system_notification(
             await asyncio.sleep(0.5)
 
     except Exception as e:
-        logger.error("[NOTIFICATIONS] send_system_notification error: %s", e, exc_info=True)
+        logger.exception("[NOTIFICATIONS] send_system_notification error: %s", e)

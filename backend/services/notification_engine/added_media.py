@@ -38,7 +38,7 @@ async def check_and_send_notifications():
         async with AsyncSession(engine) as db:
             await _process_notifications(db)
     except Exception as e:
-        logger.error("[NOTIFICATIONS] Error moteur: %s", e, exc_info=True)
+        logger.exception("[NOTIFICATIONS] Error moteur: %s", e)
 
 
 async def _load_discord_config(db: AsyncSession):

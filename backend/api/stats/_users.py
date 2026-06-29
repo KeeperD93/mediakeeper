@@ -66,7 +66,7 @@ async def user_profile_query(
     try:
         return await get_user_profile(db, user_id=user_id)
     except Exception as e:
-        logger.error(f"Error fetching profile for user_id='{user_id}': {e}", exc_info=True)
+        logger.exception("Error fetching profile for user_id='%s': %s", user_id, e)
         raise HTTPException(status_code=500, detail="user_profile_failed")
 
 

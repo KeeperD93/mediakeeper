@@ -73,7 +73,7 @@ class Scheduler:
                 await defn["handler"](db)
         except Exception as e:
             error = str(e)
-            logger.error(f"[scheduler] Task error {key}: {e}", exc_info=True)
+            logger.exception("[scheduler] Task error %s: %s", key, e)
             try:
                 from services.monitoring import AlertType, send_alert
 
@@ -217,8 +217,8 @@ class Scheduler:
                     keys.append(row.key)
                 await db.commit()
         except Exception as e:  # noqa: BLE001 -- best-effort, log + skip
-            logger.error(
-                f"[scheduler] force-run poll failed: {e}", exc_info=True
+            logger.exception(
+                "[scheduler] force-run poll failed: %s", e
             )
             return
 
