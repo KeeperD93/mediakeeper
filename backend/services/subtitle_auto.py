@@ -68,7 +68,7 @@ async def check_and_download_new(db: AsyncSession) -> None:
         }, headers=headers, timeout=30.0)
 
         if res.status_code != 200:
-            logger.warning(f"[subtitle_auto] Emby returned {res.status_code}")
+            logger.warning("[subtitle_auto] Emby returned %s", res.status_code)
             return
 
         data = res.json()
@@ -78,7 +78,7 @@ async def check_and_download_new(db: AsyncSession) -> None:
             await set_setting(db, "subtitle_auto.last_check", now.isoformat())
             return
 
-        logger.info(f"[subtitle_auto] Found {len(items)} new items since {last_check}")
+        logger.info("[subtitle_auto] Found %s new items since %s", len(items), last_check)
 
         lang_map = {
             "fre": "fr", "eng": "en", "spa": "es", "ger": "de", "ita": "it", "por": "pt",
@@ -187,7 +187,7 @@ async def check_and_download_new(db: AsyncSession) -> None:
                             source="auto",
                         )
                     except Exception as e:
-                        logger.warning(f"[subtitle_auto] History error: {e}")
+                        logger.warning("[subtitle_auto] History error: %s", e)
 
                     # Refresh Emby item
                     try:
@@ -205,10 +205,10 @@ async def check_and_download_new(db: AsyncSession) -> None:
             import asyncio
             await asyncio.sleep(2)  # Rate limiting
 
-        logger.info(f"[subtitle_auto] Downloaded {downloaded} subtitles")
+        logger.info("[subtitle_auto] Downloaded %s subtitles", downloaded)
 
     except Exception as e:
-        logger.error(f"[subtitle_auto] Error: {e}")
+        logger.error("[subtitle_auto] Error: %s", e)
 
     # Mettre a jour le timestamp
     await set_setting(db, "subtitle_auto.last_check", now.isoformat())

@@ -55,7 +55,7 @@ async def cleanup_old_available_requests(
     await db.commit()
     deleted = int(result.rowcount or 0)
     logger.info(
-        f"[requests-cleanup] deleted={deleted} days={days} "
-        f"cutoff={cutoff.isoformat()}"
+        "[requests-cleanup] deleted=%s days=%s cutoff=%s",
+        deleted, days, cutoff.isoformat(),
     )
     return deleted

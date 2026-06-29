@@ -55,7 +55,7 @@ async def _fetch_tmdb_poster(tmdb_id: str | int, tmdb_type: str, db) -> str:
             return ""
         return f"https://image.tmdb.org/t/p/w500{poster_path}"
     except Exception as e:
-        logger.warning(f"[DISCORD] TMDB poster fetch failed: {e}")
+        logger.warning("[DISCORD] TMDB poster fetch failed: %s", e)
         return ""
 
 

@@ -69,7 +69,7 @@ async def create_profile(db: AsyncSession, data: dict) -> dict:
     db.add(profile)
     await db.commit()
     await db.refresh(profile)
-    logger.info(f"[PROFILES] Profil '{profile.name}' cree (id={profile.id})")
+    logger.info("[PROFILES] Profil '%s' cree (id=%s)", profile.name, profile.id)
     return _profile_to_dict(profile)
 
 
@@ -91,7 +91,7 @@ async def update_profile(db: AsyncSession, profile_id: int, data: dict) -> dict 
 
     await db.commit()
     await db.refresh(profile)
-    logger.info(f"[PROFILES] Profil '{profile.name}' mis a jour (id={profile.id})")
+    logger.info("[PROFILES] Profil '%s' mis a jour (id=%s)", profile.name, profile.id)
     return _profile_to_dict(profile)
 
 
@@ -105,7 +105,7 @@ async def delete_profile(db: AsyncSession, profile_id: int) -> bool:
     name = profile.name
     await db.delete(profile)
     await db.commit()
-    logger.info(f"[PROFILES] Profil '{name}' delete (id={profile_id})")
+    logger.info("[PROFILES] Profil '%s' delete (id=%s)", name, profile_id)
     return True
 
 

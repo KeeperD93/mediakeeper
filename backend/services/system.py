@@ -48,5 +48,5 @@ async def get_system_stats() -> dict:
     try:
         return await asyncio.to_thread(_collect_stats)
     except Exception as e:
-        logger.error(f"[SYSTEM] Error collecte stats: {e}")
+        logger.error("[SYSTEM] Error collecte stats: %s", e)
         return {"cpu": {}, "ram": {}, "storage": {}}

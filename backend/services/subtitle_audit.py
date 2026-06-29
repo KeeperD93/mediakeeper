@@ -216,14 +216,14 @@ async def run_audit(
                     })
 
     except Exception as e:
-        logger.error(f"[audit] Error: {e}")
+        logger.error("[audit] Error: %s", e)
         _audit_state["running"] = False
         return {"error": str(e)[:200]}
 
     _audit_state["running"] = False
     _audit_state["label"] = ""
 
-    logger.info(f"[audit] Complete: {len(results)} items with issues out of {total}")
+    logger.info("[audit] Complete: %s items with issues out of %s", len(results), total)
 
     return {
         "summary": summary,

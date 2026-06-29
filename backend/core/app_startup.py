@@ -116,7 +116,7 @@ async def init_db():
                     await conn.run_sync(_validate_registered_schema)
             break
         except Exception as e:
-            logger.warning(f"[init_db] DB not ready (attempt {attempt+1}/30): {e}")
+            logger.warning("[init_db] DB not ready (attempt %s/30): %s", attempt + 1, e)
             await asyncio.sleep(1)
     else:
         logger.error("[init_db] DB unreachable after 30s — aborting")
@@ -177,7 +177,7 @@ async def prime_watchlist_cache() -> None:
             await ensure_cache_loaded(session)
         logger.info("Watchlist cache loaded from DB")
     except Exception as e:
-        logger.warning(f"Watchlist cache unavailable at startup: {e}")
+        logger.warning("Watchlist cache unavailable at startup: %s", e)
 
 
 def _log_deployment_mode() -> None:

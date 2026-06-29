@@ -177,8 +177,8 @@ async def create_request(
     await db.commit()
     await db.refresh(req)
     logger.info(
-        f"[REQUEST] #{req.id} by user_id={user_id} "
-        f"(auto={auto}, retry={req.retry_count})"
+        "[REQUEST] #%s by user_id=%s (auto=%s, retry=%s)",
+        req.id, user_id, auto, req.retry_count,
     )
     quota_info = None
     if not is_admin and not quota.unlimited:

@@ -103,7 +103,7 @@ async def proxy_image(db: AsyncSession, item_id: str, image_type: str = "Primary
             max_entries=_IMAGE_CACHE_MAX,
         )
     except Exception as e:
-        logger.error(f"Error proxy_image: {e}")
+        logger.error("Error proxy_image: %s", e)
         return None
 
 
@@ -153,5 +153,5 @@ async def proxy_user_image(db: AsyncSession, user_id: str) -> tuple[bytes, str] 
             max_entries=_USER_IMAGE_CACHE_MAX,
         )
     except Exception as e:
-        logger.error(f"Error proxy_user_image: {e}")
+        logger.error("Error proxy_user_image: %s", e)
         return None

@@ -100,7 +100,7 @@ async def add_featured(
     db.add(hero)
     await db.commit()
     await db.refresh(hero)
-    logger.info(f"[FEATURED] Added #{hero.id} '{data.title}' by user_id={user.id}")
+    logger.info("[FEATURED] Added #%s '%s' by user_id=%s", hero.id, data.title, user.id)
     return {"success": True, "id": hero.id}
 
 
@@ -136,7 +136,7 @@ async def delete_featured(
         raise HTTPException(status_code=404, detail="not_found")
     await db.delete(hero)
     await db.commit()
-    logger.info(f"[FEATURED] Removed #{hero_id}")
+    logger.info("[FEATURED] Removed #%s", hero_id)
     return {"success": True}
 
 
