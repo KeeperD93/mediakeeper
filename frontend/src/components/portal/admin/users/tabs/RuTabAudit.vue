@@ -28,6 +28,7 @@ import { useI18n } from 'vue-i18n'
 import { usePortalAdminUsers } from '@/composables/portal/usePortalAdminUsers'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
+import { QUOTA_MODE } from '@/constants/portalAdminUsers'
 import { localizedDate, localizedDateTime } from '@/utils/datetime'
 import PortalLoadMore from '@/components/portal/PortalLoadMore.vue'
 
@@ -126,7 +127,8 @@ function tQuotaField(key) {
 }
 
 function tQuotaMode(value) {
-  const key = value === 'auto' ? 'modeAuto' : value === 'manual' ? 'modeManual' : null
+  const key =
+    value === QUOTA_MODE.AUTO ? 'modeAuto' : value === QUOTA_MODE.MANUAL ? 'modeManual' : null
   return key ? t(`requestsAdmin.users.drawer.quota.${key}`) : String(value)
 }
 
