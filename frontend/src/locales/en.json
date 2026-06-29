@@ -2051,7 +2051,7 @@
         "created": "User created",
         "bulkDone": "{count} action(s) applied",
         "bulkNoChange": "No changes applied",
-        "embyIdsSynced": "{updated} account(s) linked to Emby, {already} already up-to-date, {unmatched} unmatched",
+        "embyIdsSynced": "{updated} account(s) linked to Emby, {already} already up-to-date, {unmatched} unmatched, {emails} email(s) retrieved",
         "forceLogoutDone": "Sessions invalidated",
         "displayNameResetDone": "Display name reset scheduled"
       },

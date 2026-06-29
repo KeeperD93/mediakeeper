@@ -2051,7 +2051,7 @@
         "created": "Utilisateur créé",
         "bulkDone": "{count} action(s) appliquée(s)",
         "bulkNoChange": "Aucune modification appliquée",
-        "embyIdsSynced": "{updated} compte(s) liés à Emby, {already} déjà à jour, {unmatched} non trouvés",
+        "embyIdsSynced": "{updated} compte(s) liés à Emby, {already} déjà à jour, {unmatched} non trouvés, {emails} email(s) récupéré(s)",
         "forceLogoutDone": "Sessions invalidées",
         "displayNameResetDone": "Reset du pseudo programmé"
       },
