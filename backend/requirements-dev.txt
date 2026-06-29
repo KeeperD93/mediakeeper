@@ -1,0 +1,9 @@
+# Dev / CI-only dependencies — installed in CI (tests + coverage), NEVER
+# shipped in the production image. The Dockerfile installs requirements.txt
+# alone; CI installs this file, which pulls in the runtime set via ``-r``.
+-r requirements.txt
+pytest==9.1.1
+pytest-asyncio==1.4.0
+pytest-cov==7.1.0
+pytest-randomly==4.1.0
+aiosqlite==0.22.1
