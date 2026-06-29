@@ -118,11 +118,11 @@ async def collect_active_sessions(db: AsyncSession):
             if not row.library_name:
                 lib_name = await _session_library_name(np, item_id, url, api_key, library_aliases)
                 if lib_name:
-                    logger.info(f"Session {session_key}: library_name enrichi → {lib_name}")
+                    logger.info("Session %s: library_name enrichi → %s", session_key, lib_name)
                 row.library_name = lib_name
         else:
             lib_name = await _session_library_name(np, item_id, url, api_key, library_aliases)
-            logger.debug(f"New session {item_id}: library_name resolved = {lib_name}")
+            logger.debug("New session %s: library_name resolved = %s", item_id, lib_name)
             row = PlaybackSession(
                 session_key=session_key,
                 user_id=user_id,
@@ -353,4 +353,4 @@ async def _grant_post_session_xp(db: AsyncSession, closed_sessions: list):
                 db, user.id, sess.user_name, source="playback_close", silent=True,
             )
     except Exception as e:
-        logger.warning(f"[XP] post-session XP grant error: {e}", exc_info=True)
+        logger.warning("[XP] post-session XP grant error: %s", e, exc_info=True)

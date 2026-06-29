@@ -30,11 +30,11 @@ async def get_detailed_sessions(db: AsyncSession):
         client = get_internal_client()
         res = await client.get(f"{url}/Sessions", headers=headers)
         if res.status_code != 200:
-            logger.warning(f"get_detailed_sessions: Emby HTTP {res.status_code}")
+            logger.warning("get_detailed_sessions: Emby HTTP %s", res.status_code)
             return []
         sessions = res.json()
     except Exception as e:
-        logger.error(f"Error get_detailed_sessions: {e}")
+        logger.error("Error get_detailed_sessions: %s", e)
         return []
 
     # Batch-resolve MK profiles (avatar + level + tier) keyed by
