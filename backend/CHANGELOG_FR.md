@@ -112,6 +112,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Recherche (admin) — les caractères spéciaux ne servent plus de jokers.
 - Tableau de bord — l'état des services (en ligne/hors ligne) suit la langue de l'app.
 - Statistiques (admin) — films comptés par visionnage complet, séries par spectateur (plus par épisode).
+- Utilisateurs portail (admin) — l'audit affiche la valeur et l'écart d'un changement de quota.
 
 ## [1.0.0-rc.4] - 2026-05-30
 
