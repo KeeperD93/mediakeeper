@@ -31,7 +31,7 @@ async def log_sent(
         ))
         await db.commit()
     except Exception as le:
-        logger.error(f"[NOTIFICATIONS] Error write history: {le}", exc_info=True)
+        logger.error("[NOTIFICATIONS] Error write history: %s", le, exc_info=True)
         await db.rollback()
 
 
