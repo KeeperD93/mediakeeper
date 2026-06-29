@@ -10,13 +10,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.database import get_db
 from core.proxy import get_client_ip
 from core.rate_limit import ip_key, limiter
-from core.security import decode_access_token
+from core.security import decode_access_token, is_backoffice_admin
 from api.auth import PORTAL_COOKIE_NAME, _set_portal_jwt_cookie
 from api.auth._csrf import ensure_csrf_cookie, rotate_csrf_cookie
 from api.portal.deps import get_current_profile
 from models.user import User
 from models.portal.profile import UserProfile
 from services.portal.emby_auth import authenticate_emby_user
+from services.portal.maintenance import is_maintenance_enabled
 from services.portal.profiles import serialize_profile_with_effective_lang
 from services.portal.news import get_unread_news
 from services.portal.admin import get_donation_config, get_portal_flag
@@ -156,6 +157,16 @@ async def portal_login(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="invalid_credentials",
+        )
+
+    # Same maintenance gate as /api/auth/portal-login: members are refused
+    # while maintenance is on; admins still pass. Keeps both member-login
+    # paths consistent.
+    if await is_maintenance_enabled(db) and not is_backoffice_admin(result["user"].username):
+        logger.info("[PORTAL_LOGIN] Refused (maintenance) for user_id=%s", result["user"].id)
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="maintenance",
         )
 
     _set_portal_jwt_cookie(response, result["token"], request)

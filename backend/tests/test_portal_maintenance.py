@@ -78,3 +78,43 @@ async def test_update_maintenance_settings_persists(db_session):
     )
     assert refreshed["enabled"] is False
     assert refreshed["text_fr"] == "Custom FR"
+
+
+@pytest.mark.asyncio
+async def test_portal_module_login_refuses_member_during_maintenance(client, db_session):
+    """The Emby-only /api/portal/login enforces the same maintenance gate as
+    /api/auth/portal-login: a member is refused while maintenance is on."""
+    from unittest.mock import AsyncMock, patch
+
+    from core.security import EXTERNAL_AUTH_PASSWORD_SENTINEL, hash_password
+    from models.portal.profile import UserProfile
+    from models.user import User
+
+    user = User(
+        username="emby-portal-maint",
+        hashed_password=hash_password(EXTERNAL_AUTH_PASSWORD_SENTINEL),
+        is_active=True,
+        must_change_password=False,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    profile = UserProfile(
+        user_id=user.id, display_name="Portal Maint", role="viewer", account_active=True,
+    )
+    db_session.add(profile)
+    db_session.add(Setting(key="maintenance.enabled", value="true"))
+    await db_session.commit()
+    await db_session.refresh(profile)
+
+    with patch(
+        "api.portal.auth.authenticate_emby_user",
+        new=AsyncMock(return_value={"token": "t", "user": user, "profile": profile}),
+    ):
+        resp = await client.post("/api/portal/auth/login", json={
+            "username": "emby-portal-maint",
+            "password": "x",
+        })
+
+    assert resp.status_code == 403
+    assert resp.json()["detail"] == "maintenance"
