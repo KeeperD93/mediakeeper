@@ -1,7 +1,7 @@
 # Runtime dependencies — installed into the production image (Dockerfile).
 # Test-only tooling (pytest, aiosqlite) lives in requirements-dev.txt and is
 # installed in CI only, never shipped in the public image.
-fastapi==0.138.0
+fastapi==0.138.1
 uvicorn[standard]==0.49.0
 sqlalchemy==2.0.51
 asyncpg==0.31.0
@@ -13,7 +13,7 @@ bcrypt==5.0.0
 PyJWT[crypto]==2.13.0
 python-multipart==0.0.32
 aiofiles==25.1.0
-alembic==1.18.4
+alembic==1.18.5
 slowapi==0.1.10
 chardet==5.2.0
 cryptography==49.0.0
