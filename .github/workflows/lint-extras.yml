@@ -1,0 +1,51 @@
+name: Lint — Dockerfile (hadolint) + Markdown (markdownlint)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Dockerfile'
+      - '.hadolint.yaml'
+      - '**/*.md'
+      - '.markdownlint-cli2.yaml'
+      - '.github/workflows/lint-extras.yml'
+  pull_request:
+    paths:
+      - 'Dockerfile'
+      - '.hadolint.yaml'
+      - '**/*.md'
+      - '.markdownlint-cli2.yaml'
+      - '.github/workflows/lint-extras.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lint-extras-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  hadolint:
+    name: hadolint (Dockerfile, advisory)
+    runs-on: ubuntu-latest
+    # Advisory like bandit/semgrep in security.yml: findings are surfaced as
+    # PR annotations but do not block the merge yet. The config ignores
+    # DL3008/DL4006 (deliberate Dockerfile choices); flip continue-on-error
+    # off once a real run confirms the Dockerfile is otherwise clean.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: hadolint/hadolint-action@2332a7b74a6de0dda2e2221d575162eba76ba5e5 # v3.3.0
+        with:
+          dockerfile: Dockerfile
+          config: .hadolint.yaml
+
+  markdownlint:
+    name: markdownlint (docs)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: DavidAnson/markdownlint-cli2-action@ded1f9488f68a970bc66ea5619e13e9b52e601cd # v23.2.0
+        with:
+          globs: '**/*.md'

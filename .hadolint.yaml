@@ -1,0 +1,9 @@
+# hadolint configuration. Two warnings are intentionally ignored to
+# match the project's Dockerfile conventions:
+#   DL3008 — OS packages are not version-pinned (deliberate: pinning apt
+#            versions across Debian point releases is high-maintenance).
+#   DL4006 — pipefail for the single curl|gpg key-import pipe is not worth a
+#            global SHELL change to the build for one trusted pipe.
+ignored:
+  - DL3008
+  - DL4006
