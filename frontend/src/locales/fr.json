@@ -1411,6 +1411,7 @@
       "attemptsTitle": "Tentatives récentes",
       "addBlock": "Bloquer IP / utilisateur",
       "ip": "Adresse IP",
+      "localAddress": "Local",
       "username": "Utilisateur",
       "scope": "Périmètre",
       "kind": "Type",

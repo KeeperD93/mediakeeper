@@ -2,6 +2,48 @@
   <div class="params-security">
     <section class="sec-block">
       <header class="sec-hd">
+        <h3>{{ t('settings.passwordTitle') }}</h3>
+      </header>
+      <p class="sec-desc">{{ t('settings.passwordDesc') }}</p>
+      <form class="sec-pwd-form" @submit.prevent="submitPassword">
+        <label class="sec-pwd-field">
+          <span>{{ t('forcePassword.current') }}</span>
+          <input
+            v-model="current"
+            type="password"
+            autocomplete="current-password"
+            :disabled="savingPwd"
+          />
+        </label>
+        <label class="sec-pwd-field">
+          <span>{{ t('forcePassword.new') }}</span>
+          <input v-model="next" type="password" autocomplete="new-password" :disabled="savingPwd" />
+        </label>
+        <label class="sec-pwd-field">
+          <span>{{ t('forcePassword.confirm') }}</span>
+          <input
+            v-model="confirm"
+            type="password"
+            autocomplete="new-password"
+            :disabled="savingPwd"
+          />
+        </label>
+        <ul class="sec-pwd-rules">
+          <li>{{ t('forcePassword.rule12Chars') }}</li>
+          <li>{{ t('forcePassword.ruleUpper') }}</li>
+          <li>{{ t('forcePassword.ruleDigit') }}</li>
+          <li>{{ t('forcePassword.ruleSpecial') }}</li>
+        </ul>
+        <div class="sec-pwd-actions">
+          <button type="submit" class="sec-btn-primary" :disabled="!canSubmitPwd || savingPwd">
+            {{ savingPwd ? t('forcePassword.submitting') : t('forcePassword.submit') }}
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <section class="sec-block">
+      <header class="sec-hd">
         <h3>{{ t('settings.security.blocksTitle') }}</h3>
         <button class="sec-btn" @click="openBlockModal">
           {{ t('settings.security.addBlock') }}
@@ -23,7 +65,7 @@
           <tbody>
             <tr v-for="b in blocks" :key="b.id">
               <td :data-label="t('settings.security.target')">
-                <div v-if="b.ip" class="sec-target">IP — {{ b.ip }}</div>
+                <div v-if="b.ip" class="sec-target">IP — {{ displayIp(b.ip) }}</div>
                 <div v-if="b.username" class="sec-target">@{{ b.username }}</div>
               </td>
               <td :data-label="t('settings.security.scope')">{{ b.scope }}</td>
@@ -72,7 +114,7 @@
           <tbody>
             <tr v-for="a in attempts" :key="a.id" :class="{ 'is-fail': !a.success }">
               <td :data-label="t('settings.security.when')">{{ formatDate(a.created_at) }}</td>
-              <td :data-label="t('settings.security.ip')">{{ a.ip }}</td>
+              <td :data-label="t('settings.security.ip')">{{ displayIp(a.ip) }}</td>
               <td :data-label="t('settings.security.username')">{{ a.username || '—' }}</td>
               <td :data-label="t('settings.security.scope')">{{ a.scope }}</td>
               <td :data-label="t('settings.security.result')">
@@ -133,16 +175,64 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useApi } from '@/composables/useApi'
+import { useApi, resolveApiError } from '@/composables/useApi'
+import { useAuth } from '@/composables/useAuth'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import { localizedDateTime } from '@/utils/datetime'
 
 const { t } = useI18n()
 const { apiGet, apiPost, apiDelete } = useApi()
+const { changePassword } = useAuth()
 const { showToast } = useToast()
+
+// Loopback (the server itself) reads as "Local" instead of raw ::1 / 127.x.
+const LOOPBACK = new Set(['::1', '127.0.0.1', 'localhost', '::ffff:127.0.0.1'])
+function displayIp(ip) {
+  if (!ip) return '—'
+  const v = String(ip).trim().toLowerCase()
+  if (LOOPBACK.has(v) || v.startsWith('127.') || v.startsWith('::ffff:127.')) {
+    return t('settings.security.localAddress')
+  }
+  return ip
+}
+
+const current = ref('')
+const next = ref('')
+const confirm = ref('')
+const savingPwd = ref(false)
+const canSubmitPwd = computed(
+  () => current.value && next.value && confirm.value && next.value.length >= 12,
+)
+
+async function submitPassword() {
+  if (!canSubmitPwd.value) {
+    showToast(t('forcePassword.allRequired'), TOAST_TYPE.ERR)
+    return
+  }
+  if (next.value !== confirm.value) {
+    showToast(t('forcePassword.mismatch'), TOAST_TYPE.ERR)
+    return
+  }
+  if (next.value.length < 12) {
+    showToast(t('forcePassword.tooShort'), TOAST_TYPE.ERR)
+    return
+  }
+  savingPwd.value = true
+  try {
+    await changePassword(current.value, next.value)
+    showToast(t('forcePassword.success'), TOAST_TYPE.OK)
+    current.value = ''
+    next.value = ''
+    confirm.value = ''
+  } catch (e) {
+    showToast(resolveApiError(e.message), TOAST_TYPE.ERR)
+  } finally {
+    savingPwd.value = false
+  }
+}
 
 const blocks = ref([])
 const attempts = ref([])
@@ -225,9 +315,15 @@ onMounted(async () => {
   gap: 1.5rem;
 }
 .sec-block {
-  background: rgb(var(--accent-rgb), 0.04);
+  background: var(--surface-1);
+  border: 1px solid var(--border);
   border-radius: var(--radius-card);
   padding: 1rem;
+}
+.sec-desc {
+  margin: 0 0 0.75rem;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
 }
 .sec-hd {
   display: flex;
@@ -250,11 +346,11 @@ onMounted(async () => {
 .sec-table td {
   text-align: left;
   padding: 0.5rem 0.75rem;
-  border-bottom: 1px solid rgb(var(--accent-rgb), 0.1);
+  border-bottom: 1px solid var(--border);
 }
 .sec-table th {
   font-weight: var(--font-medium);
-  color: var(--accent-400);
+  color: var(--text-secondary);
 }
 .sec-table tr.is-fail td {
   color: inherit;
@@ -270,39 +366,84 @@ onMounted(async () => {
   font-size: var(--text-xs);
 }
 .sec-pill.is-ok {
-  background: rgb(34, 197, 94, 0.15);
-  color: rgb(34, 197, 94);
+  background: rgb(var(--color-success-rgb), 0.15);
+  color: var(--color-success);
 }
 .sec-pill.is-fail {
-  background: rgb(239, 68, 68, 0.15);
-  color: rgb(239, 68, 68);
+  background: rgb(var(--color-error-strong-rgb), 0.15);
+  color: var(--color-error-strong);
 }
 .sec-btn,
 .sec-btn-primary,
 .sec-btn-danger {
   cursor: pointer;
-  border: 0;
+  border: 1px solid var(--border);
   border-radius: var(--radius-btn);
   padding: 0.35rem 0.75rem;
   font-size: var(--text-sm);
 }
 .sec-btn {
-  background: rgb(var(--accent-rgb), 0.12);
-  color: var(--accent-400);
+  background: var(--surface-2);
+  color: var(--text-primary);
 }
 .sec-btn-primary {
-  background: var(--accent-500);
-  color: white;
+  background: var(--surface-3);
+  color: var(--text-primary);
+}
+.sec-btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 .sec-btn-danger {
-  background: rgb(239, 68, 68, 0.15);
-  color: rgb(239, 68, 68);
+  background: rgb(var(--color-error-strong-rgb), 0.15);
+  color: var(--color-error-strong);
+  border-color: transparent;
 }
 .sec-loading,
 .sec-empty {
   padding: 1rem;
-  color: rgb(var(--accent-rgb), 0.6);
+  color: var(--text-secondary);
   font-style: italic;
+}
+.sec-pwd-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  max-width: 420px;
+}
+.sec-pwd-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+.sec-pwd-field input {
+  padding: 9px 12px;
+  border-radius: var(--radius-input);
+  border: 0.5px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: var(--text-base);
+  font-family: inherit;
+}
+.sec-pwd-field input:focus {
+  outline: none;
+  border-color: var(--text-secondary);
+}
+.sec-pwd-rules {
+  list-style: disc inside;
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.1rem 0.8rem;
+}
+.sec-pwd-actions {
+  display: flex;
+  justify-content: flex-end;
 }
 .sec-check {
   display: inline-flex;
@@ -342,8 +483,8 @@ onMounted(async () => {
 .sec-modal select {
   padding: 0.5rem;
   border-radius: var(--radius-input);
-  border: 1px solid rgb(var(--accent-rgb), 0.2);
-  background: rgb(0, 0, 0, 0.2);
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
   color: inherit;
 }
 .sec-modal-actions {
