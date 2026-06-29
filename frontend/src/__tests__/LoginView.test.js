@@ -50,6 +50,18 @@ vi.mock('@/composables/portal/usePortalAuth', () => ({
   }),
 }))
 
+// Controllable maintenance state (vi.hoisted so the mock factory can read it
+// without tripping the real composable's module-level 30s cache).
+const { maintenanceState } = vi.hoisted(() => ({
+  maintenanceState: { value: { enabled: false, text: '' } },
+}))
+vi.mock('@/composables/portal/useMaintenance', () => ({
+  useMaintenance: () => ({
+    fetchMaintenanceState: () => Promise.resolve(maintenanceState.value),
+    refresh: () => {},
+  }),
+}))
+
 vi.mock('@/composables/useApi', () => ({
   fetchApiResponse: vi.fn().mockImplementation(url => {
     if (url === '/api/health') return Promise.resolve({ status: 200, ok: true })
@@ -188,5 +200,32 @@ describe('LoginView', () => {
     for (let i = 0; i < 10; i++) await flushPromises()
 
     expect(w.find('[data-test="login-logged-out"]').exists()).toBe(false)
+  })
+
+  it('shows the maintenance banner with the configured text when maintenance is on', async () => {
+    routeQuery.value = {}
+    maintenanceState.value = { enabled: true, text: 'Site en maintenance' }
+    const w = mount(LoginView, {
+      global: { stubs: { img: ImgStub } },
+    })
+    for (let i = 0; i < 10; i++) await flushPromises()
+
+    const banner = w.find('[data-test="login-maintenance"]')
+    expect(banner.exists()).toBe(true)
+    expect(banner.attributes('role')).toBe('status')
+    expect(banner.text()).toContain('Site en maintenance')
+    // The form stays usable — admins can still log in during maintenance.
+    expect(w.find('button.login-submit').exists()).toBe(true)
+  })
+
+  it('does not show the maintenance banner when maintenance is off', async () => {
+    routeQuery.value = {}
+    maintenanceState.value = { enabled: false, text: '' }
+    const w = mount(LoginView, {
+      global: { stubs: { img: ImgStub } },
+    })
+    for (let i = 0; i < 10; i++) await flushPromises()
+
+    expect(w.find('[data-test="login-maintenance"]').exists()).toBe(false)
   })
 })
