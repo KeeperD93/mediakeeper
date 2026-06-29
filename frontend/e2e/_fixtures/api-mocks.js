@@ -64,6 +64,19 @@ const DEFAULT_HANDLERS = [
         body: JSON.stringify({ detail: 'Unauthenticated' }),
       }),
   },
+  {
+    // LoginView checks maintenance state on mount. Stub it as "off" so the
+    // banner stays hidden and the call does not fall through to the strict
+    // catch-all (which would fail the unexpected-request assertion).
+    name: 'portal-maintenance-off',
+    match: url => url.pathname === '/api/portal/maintenance',
+    handler: route =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ enabled: false }),
+      }),
+  },
 ]
 
 /**
