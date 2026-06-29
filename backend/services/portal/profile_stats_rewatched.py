@@ -56,7 +56,7 @@ async def compute_most_rewatched(
             ).where(user_filter, *excl_filters)
         )).all()
     except Exception as e:
-        logger.debug(f"[PROFILE] most rewatched fetch error: {e}")
+        logger.debug("[PROFILE] most rewatched fetch error: %s", e)
         return None, None, None
 
     movie_rows = [r for r in rows if r.item_type == "Movie" and r.item_id]

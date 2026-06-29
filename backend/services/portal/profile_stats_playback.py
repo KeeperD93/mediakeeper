@@ -35,7 +35,7 @@ async def compute_totals(db: AsyncSession, user_filter, excl_filters: list) -> t
         )
         total_plays = result.scalar() or 0
     except Exception as e:
-        logger.debug(f"[PROFILE] total plays error: {e}")
+        logger.debug("[PROFILE] total plays error: %s", e)
 
     # Total watch time (minutes), from started_at → ended_at (fallback last_seen_at),
     # with duration_ticks as a last-resort fallback.
@@ -60,7 +60,7 @@ async def compute_totals(db: AsyncSession, user_filter, excl_filters: list) -> t
                 total_secs += int(row.duration_ticks / 10_000_000)
         total_minutes = total_secs // 60
     except Exception as e:
-        logger.debug(f"[PROFILE] total time error: {e}")
+        logger.debug("[PROFILE] total time error: %s", e)
 
     return total_plays, total_minutes
 
@@ -86,7 +86,7 @@ async def compute_streak(db: AsyncSession, user_filter, excl_filters: list) -> i
                         break
                 return streak
     except Exception as e:
-        logger.debug(f"[PROFILE] streak error: {e}")
+        logger.debug("[PROFILE] streak error: %s", e)
     return 0
 
 
@@ -108,7 +108,7 @@ async def compute_record_day(db: AsyncSession, user_filter, excl_filters: list) 
         if row:
             record_day = {"date": str(row.day), "count": row.cnt}
     except Exception as e:
-        logger.debug(f"[PROFILE] record error: {e}")
+        logger.debug("[PROFILE] record error: %s", e)
     return record_day
 
 
@@ -132,5 +132,5 @@ async def compute_record_month(
         if row and row.ym:
             record = {"month": row.ym, "count": row.cnt}
     except Exception as e:
-        logger.debug(f"[PROFILE] record month error: {e}")
+        logger.debug("[PROFILE] record month error: %s", e)
     return record

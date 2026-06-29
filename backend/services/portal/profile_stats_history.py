@@ -54,7 +54,7 @@ async def fetch_my_requests(db: AsyncSession, user: User) -> list[dict]:
                 "created_at": req.created_at.isoformat() if req.created_at else None,
             })
     except Exception as e:
-        logger.debug(f"[PROFILE] requests error: {e}")
+        logger.debug("[PROFILE] requests error: %s", e)
     return my_requests
 
 
