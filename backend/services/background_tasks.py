@@ -80,7 +80,7 @@ class BackgroundTaskManager:
                 async with AsyncSession(self._engine, expire_on_commit=False) as session:
                     await collect_active_sessions(session)
             except Exception as e:
-                logger.error("Error collecte stats: %s", e)
+                logger.error("Error collecting stats: %s", e)
             await asyncio.sleep(15)
 
     async def _periodic_library_cache(self):
@@ -240,7 +240,7 @@ class BackgroundTaskManager:
             async with AsyncSession(self._engine, expire_on_commit=False) as session:
                 await fetch_and_store_emby_logs(session)
         except Exception as e:
-            logger.error("Error collecte initiale logs Emby: %s", e)
+            logger.error("Error during initial Emby log collection: %s", e)
 
         self._tasks = [
             asyncio.create_task(self._supervised("scheduler", self._run_scheduler)),
