@@ -78,14 +78,12 @@
       <!-- 6. Categorys par genres — header non cliquable, cartes cliquables -->
       <CategoryCards :title="$t('portal.sections.genres')" :items="genres" @select="goGenre" />
 
-      <!-- 7. Recently added to Emby — scroll-triggered hero.
-             @select is intentionally NOT bound here. Clicking a poster
-             inside the mini hero must update the hero strip (handled
-             internally by EmbyRecentHero), not navigate. The
-             "Plus d'infos" button on the right of the hero emits
-             @detail which is the only thing routed to the detail page.
-             The 21st card is an Emby-branded "See more" shortcut to
-             the full paginated recently-added list. -->
+      <!-- 7. Recently added to Emby — scroll-triggered hero. Poster clicks
+             are handled internally (they move the hero strip), so the hero
+             exposes no navigation emit; the "Plus d'infos" button emits
+             @detail, the only thing routed to the detail page. The 21st card
+             is an Emby-branded "See more" shortcut to the full paginated
+             recently-added list. -->
       <EmbyRecentHero
         v-if="recentEmby.length"
         :items="recentEmby"

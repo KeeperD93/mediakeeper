@@ -11,8 +11,8 @@
  *   4. TMDB videos in the media's original language
  *   5. TMDB videos in any language
  *
- * The backend reads the user's preferred language from their Portal
- * profile, so the caller doesn't have to pass it.
+ * The backend resolves the viewer's active locale from the request
+ * (the X-MK-Locale header), so the caller doesn't have to pass it.
  *
  * Exposes both ``trailer`` (the best descriptor — drives the button
  * visibility) and ``candidates`` (the full ranked list, best first) so the
@@ -98,21 +98,9 @@ export function useTrailer() {
     trailerCache.set(key, await fetchFromApi(mediaType, tmdbId, embyItemId))
   }
 
-  /**
-   * Synchronous cache peek of the best trailer. Returns ``undefined`` when
-   * the key has never been resolved, the best descriptor otherwise (or
-   * ``null`` when the item is known to have no trailer).
-   */
-  function peek(mediaType, tmdbId, embyItemId = null) {
-    if (!mediaType || !tmdbId) return undefined
-    const key = cacheKey(mediaType, tmdbId, embyItemId)
-    if (!trailerCache.has(key)) return undefined
-    return trailerCache.get(key)[0] || null
-  }
-
   function clear() {
     applyList([])
   }
 
-  return { trailer, candidates, loading, resolve, prefetch, peek, clear }
+  return { trailer, candidates, loading, resolve, prefetch, clear }
 }

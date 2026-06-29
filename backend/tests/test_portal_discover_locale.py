@@ -184,6 +184,36 @@ async def test_videos_uses_request_locale(client, db_session, monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_media_detail_uses_request_locale(client, db_session, monkeypatch):
+    await _auth(client, db_session)
+    captured = {}
+
+    async def _fake(db, media_type, tmdb_id, *, language=None):
+        captured["language"] = language
+        return {"title": "X", "recommendations": []}
+
+    monkeypatch.setattr("services.portal.discover.get_full_details", _fake)
+    r = await client.get("/api/portal/catalog/detail/movie/603", headers={"X-MK-Locale": "en"})
+    assert r.status_code == 200, r.text
+    assert captured["language"] == "en"
+
+
+@pytest.mark.asyncio
+async def test_media_detail_defaults_without_header(client, db_session, monkeypatch):
+    await _auth(client, db_session)
+    captured = {}
+
+    async def _fake(db, media_type, tmdb_id, *, language=None):
+        captured["language"] = language
+        return {"title": "X", "recommendations": []}
+
+    monkeypatch.setattr("services.portal.discover.get_full_details", _fake)
+    r = await client.get("/api/portal/catalog/detail/movie/603")  # no header -> default locale
+    assert r.status_code == 200, r.text
+    assert captured["language"] == "fr"
+
+
+@pytest.mark.asyncio
 async def test_recommended_for_me_uses_request_locale(client, db_session, monkeypatch):
     await _auth(client, db_session)
     captured = {}
