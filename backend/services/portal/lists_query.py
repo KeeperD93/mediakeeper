@@ -195,12 +195,13 @@ async def _serialize_lists_batch(
     )).all())
 
     owners = {
-        uid: (name, must_set)
-        for uid, name, must_set in (await db.execute(
+        uid: (name, must_set, role)
+        for uid, name, must_set, role in (await db.execute(
             select(
                 UserProfile.user_id,
                 UserProfile.display_name,
                 UserProfile.display_name_must_set,
+                UserProfile.role,
             ).where(
                 UserProfile.user_id.in_(owner_ids),
                 UserProfile.account_active.is_(True),
@@ -258,14 +259,20 @@ async def _serialize_list(
     # comes back if the account is later restored).
     if owner is _UNSET:
         owner = (await db.execute(
-            select(UserProfile.display_name, UserProfile.display_name_must_set)
+            select(
+                UserProfile.display_name,
+                UserProfile.display_name_must_set,
+                UserProfile.role,
+            )
             .where(
                 UserProfile.user_id == lst.user_id,
                 UserProfile.account_active.is_(True),
                 UserProfile.deleted_at.is_(None),
             )
         )).first()
-    owner_display_name, owner_must_set = owner if owner else (None, True)
+    owner_display_name, owner_must_set, owner_role = (
+        owner if owner else (None, True, None)
+    )
     if posters is _UNSET:
         posters = (await db.execute(
             select(UserListItem.poster_url)
@@ -280,6 +287,7 @@ async def _serialize_list(
             None if owner_must_set else owner_display_name,
             lst.user_id,
             lang,
+            is_admin=owner_role == "admin",
         ),
         "is_owner": lst.user_id == user_id,
         "name": lst.name,

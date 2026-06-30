@@ -98,6 +98,7 @@ async def get_contributors(
             UserProfile.avatar_url,
             UserProfile.avatar_custom_path,
             UserProfile.level,
+            UserProfile.role,
         )
         .join(User, User.id == UserListContributor.user_id)
         .join(UserProfile, UserProfile.user_id == UserListContributor.user_id)
@@ -114,6 +115,7 @@ async def get_contributors(
             "user_id": c.user_id,
             "username": resolve_display_name(
                 None if must_set else display_name, c.user_id, lang,
+                is_admin=role == "admin",
             ),
             "avatar_url": resolve_avatar_url(avatar_url, avatar_custom_path),
             "level": level or 1,
@@ -121,7 +123,7 @@ async def get_contributors(
             "muted": c.muted,
             "added_at": c.added_at.isoformat() if c.added_at else None,
         }
-        for c, display_name, must_set, avatar_url, avatar_custom_path, level in rows
+        for c, display_name, must_set, avatar_url, avatar_custom_path, level, role in rows
     ]
 
 
@@ -152,6 +154,7 @@ async def get_history(
             UserListHistory,
             UserProfile.display_name,
             UserProfile.display_name_must_set,
+            UserProfile.role,
         )
         .outerjoin(UserProfile, UserProfile.user_id == UserListHistory.user_id)
         .where(UserListHistory.list_id == list_id)
@@ -166,13 +169,14 @@ async def get_history(
             "user_id": h.user_id,
             "username": (
                 resolve_display_name(
-                    None if must_set else display_name, h.user_id, lang
+                    None if must_set else display_name, h.user_id, lang,
+                    is_admin=role == "admin",
                 )
                 if h.user_id is not None else None
             ),
             "created_at": h.created_at.isoformat() if h.created_at else None,
         }
-        for h, display_name, must_set in rows
+        for h, display_name, must_set, role in rows
     ]
     return await localize_titles(db, items, locale)
 

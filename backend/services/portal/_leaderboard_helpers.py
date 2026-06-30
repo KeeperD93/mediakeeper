@@ -81,7 +81,9 @@ def build_entry(
     return {
         "rank": rank_idx + 1,
         "user_id": row.user_id,
-        "display_name": resolve_display_name(effective, row.user_id, lang),
+        "display_name": resolve_display_name(
+            effective, row.user_id, lang, is_admin=bool(prof) and prof.role == "admin"
+        ),
         "avatar_url": _resolve_avatar_url(prof) if prof else None,
         "level": p_level,
         "tier": tier_for_level(p_level),

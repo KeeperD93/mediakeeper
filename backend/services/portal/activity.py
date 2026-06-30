@@ -89,27 +89,18 @@ async def get_activity_feed(
     return feed[:limit]
 
 
-# Per-(user_id, lang) cache to avoid N+1 lookups across the three feed
-# queries above. Keyed by the locale too so an EN viewer never inherits
-# the FR alias resolved earlier in the same process.
-_name_cache: dict[tuple[int, str], str] = {}
-
-
 async def _get_display_name(
     db: AsyncSession, user_id: int, lang: str = "fr"
 ) -> str:
-    cache_key = (user_id, lang)
-    if cache_key in _name_cache:
-        return _name_cache[cache_key]
+    # No cache: the three feed queries cap at ~10 rows each, so a
+    # process-global cache would buy nothing while serving a stale name
+    # after a user edits their pseudo (and leaking state across tests).
     row = (await db.execute(
         select(UserProfile.display_name, UserProfile.display_name_must_set)
         .where(UserProfile.user_id == user_id)
     )).first()
     if row is None:
-        name = resolve_display_name(None, user_id, lang)
-    else:
-        display_name, must_set = row
-        effective = None if must_set else display_name
-        name = resolve_display_name(effective, user_id, lang)
-    _name_cache[cache_key] = name
-    return name
+        return resolve_display_name(None, user_id, lang)
+    display_name, must_set = row
+    effective = None if must_set else display_name
+    return resolve_display_name(effective, user_id, lang)

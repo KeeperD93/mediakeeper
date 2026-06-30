@@ -67,18 +67,23 @@ def is_expired(profile: UserProfile, *, ref: datetime | None = None) -> bool:
 def serialize_admin_user_row(profile: UserProfile, user: User) -> dict[str, Any]:
     """Compact payload used by the list view (no heavy detail fields).
 
-    ``display_name`` falls back to the same stable ``Utilisateur 1234``
-    alias the user-facing surfaces (leaderboard, chat, lists) show when
-    the operator hasn't picked their own portal pseudo yet — keeps the
-    same identity across every admin and user view. The Emby
-    ``username`` stays available in the dedicated field for operators
-    who need the raw identifier."""
+    ``display_name`` falls back to the same stable generated pseudo
+    (``Renard-Bleu-42`` / ``Blue-Fox-42``) the user-facing surfaces
+    (leaderboard, chat, lists) show when the operator hasn't picked their
+    own portal pseudo yet — keeps the same identity across every admin and
+    user view. The Emby ``username`` stays available in the dedicated field
+    for operators who need the raw identifier."""
     ref = now_utc()
     return {
         "id": profile.id,
         "user_id": user.id,
         "username": user.username,
-        "display_name": resolve_display_name(profile.display_name, user.id),
+        # FR-default: the operator locale is not plumbed into the admin
+        # endpoints, so the ``Administrateur`` label stays French in the
+        # backoffice list. User-facing surfaces localize per viewer.
+        "display_name": resolve_display_name(
+            profile.display_name, user.id, is_admin=profile.role == "admin"
+        ),
         "avatar_url": resolve_avatar_url(profile.avatar_url, profile.avatar_custom_path),
         "avatar_custom_path": profile.avatar_custom_path,
         "email": profile.email,

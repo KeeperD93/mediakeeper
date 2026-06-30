@@ -44,6 +44,7 @@ async def list_messages(
             MKEventMessage,
             UserProfile.display_name,
             UserProfile.display_name_must_set,
+            UserProfile.role,
         )
         .join(User, User.id == MKEventMessage.user_id, isouter=True)
         .join(UserProfile, UserProfile.user_id == User.id, isouter=True)
@@ -67,13 +68,14 @@ async def list_messages(
                     None if (must_set or display is None) else display,
                     m.user_id,
                     lang,
+                    is_admin=role == "admin",
                 )
             ),
             "user_deleted": m.user_id is None,
             "content": m.content,
             "sent_at": m.sent_at.isoformat() if m.sent_at else None,
         }
-        for m, display, must_set in rows
+        for m, display, must_set, role in rows
     ]}
 
 

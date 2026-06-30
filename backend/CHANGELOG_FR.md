@@ -9,6 +9,9 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+### Changed
+- Utilisateurs (admin) — pseudo aléatoire affiché pour les comptes sans pseudo choisi ; compte administrateur libellé « Administrateur ».
+
 ## [1.0.0-rc.5] - 2026-06-30
 
 ### Added

@@ -230,6 +230,7 @@ async def get_messages(
                     UserProfile.user_id,
                     UserProfile.display_name,
                     UserProfile.display_name_must_set,
+                    UserProfile.role,
                 )
                 .where(UserProfile.user_id.in_(user_ids))
             )
@@ -239,9 +240,9 @@ async def get_messages(
         # rather than leaking the auto-populated Emby username.
         resolved: dict[int, str] = {
             uid: resolve_display_name(
-                None if must_set else name, uid, lang
+                None if must_set else name, uid, lang, is_admin=role == "admin"
             )
-            for uid, name, must_set in prof_rows
+            for uid, name, must_set, role in prof_rows
         }
         # Backfill users without a profile row (rare — migration drift).
         for uid in user_ids:

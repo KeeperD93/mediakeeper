@@ -92,7 +92,9 @@ async def get_leaderboard(
         effective = None if p.display_name_must_set else p.display_name
         leaderboard.append({
             "user_id": p.user_id,
-            "display_name": resolve_display_name(effective, p.user_id, lang),
+            "display_name": resolve_display_name(
+                effective, p.user_id, lang, is_admin=p.role == "admin"
+            ),
             "avatar_url": _resolve_avatar_url(p),
             "level": p.level,
             "xp": p.xp,

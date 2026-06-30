@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import pytest
 
-from services.portal._display_name import stable_user_tag
+from services.portal._pseudo_words import generate_pseudo
 from tests._portal_profile_helpers import (
     PORTAL_COOKIE, make_portal_user, portal_token,
 )
@@ -17,8 +17,9 @@ from tests._portal_profile_helpers import (
 
 @pytest.mark.asyncio
 async def test_leaderboard_surfaces_alias_for_unset_pseudo(client, db_session):
-    """A user that has never picked a pseudo renders as ``Utilisateur 1234``
-    on the monthly leaderboard, never as the raw Emby username."""
+    """A user that has never picked a pseudo renders as a generated
+    ``Renard-Bleu-42`` pseudo on the monthly leaderboard, never the raw
+    Emby username."""
     me, mp = await make_portal_user(
         db_session,
         username="my_emby_login",  # value that MUST NOT leak
@@ -34,7 +35,7 @@ async def test_leaderboard_surfaces_alias_for_unset_pseudo(client, db_session):
     items = resp.json()["items"]
     target = next((it for it in items if it["user_id"] == me.id), None)
     assert target is not None
-    expected_alias = f"Utilisateur {stable_user_tag(me.id)}"
+    expected_alias = generate_pseudo(me.id, "fr")
     assert target["display_name"] == expected_alias
     assert target["display_name"] != "my_emby_login"
 
@@ -64,8 +65,8 @@ async def test_leaderboard_keeps_real_pseudo_when_set(client, db_session):
 
 @pytest.mark.asyncio
 async def test_leaderboard_alias_localizes_to_english(client, db_session):
-    """The viewer's ``Accept-Language`` header drives the alias prefix:
-    ``Utilisateur 1234`` in FR, ``User 1234`` in EN."""
+    """The viewer's ``Accept-Language`` header drives the pseudo language:
+    ``Renard-Bleu-42`` in FR, ``Blue-Fox-42`` in EN."""
     me, mp = await make_portal_user(
         db_session, username="my_emby_login", must_set=True,
     )
@@ -82,4 +83,4 @@ async def test_leaderboard_alias_localizes_to_english(client, db_session):
     items = resp.json()["items"]
     target = next((it for it in items if it["user_id"] == me.id), None)
     assert target is not None
-    assert target["display_name"] == f"User {stable_user_tag(me.id)}"
+    assert target["display_name"] == generate_pseudo(me.id, "en")

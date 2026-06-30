@@ -1,39 +1,46 @@
 """Anonymous display-name resolution for user-facing portal surfaces.
 
-Privacy boundary: user-facing endpoints must NEVER expose the
-raw Emby username when an account has not picked its own portal pseudo.
-Admin endpoints stay raw on purpose (operators need to see who hasn't
-set a name yet).
+Privacy boundary: user-facing endpoints must NEVER expose the raw Emby
+username when an account has not picked its own portal pseudo. Silent
+accounts render as a stable, friendly ``Renard-Bleu-42`` / ``Blue-Fox-42``
+pseudo derived from ``user_id`` (see :mod:`_pseudo_words`), localized to
+the viewer — so the same account renders identically across the chat, the
+leaderboard, the activity feed and any other user-to-user surface without
+revealing the underlying identifier. Admin endpoints keep the raw Emby
+``username`` in a dedicated field for operators who need it.
 
-The alias is deterministic (salted hash of ``user_id``) so the same
-silent account always renders as the same "Utilisateur 1234" across the
-chat, the leaderboard, the activity feed and any other user-to-user
-surface — without revealing the underlying identifier.
+The backoffice administrator never gets a random pseudo: it always renders
+as the localized ``Administrateur`` / ``Administrator`` label.
 """
 from __future__ import annotations
 
-import hashlib
+from services.portal._pseudo_words import generate_pseudo
 
-STABLE_USER_TAG_SALT = "mediakeeper-portal-pseudo-v1"
-STABLE_USER_TAG_MOD = 10_000
+_ADMIN_LABEL_FR = "Administrateur"
+_ADMIN_LABEL_EN = "Administrator"
 
 
-def stable_user_tag(user_id: int) -> str:
-    digest = hashlib.sha256(
-        f"{STABLE_USER_TAG_SALT}:{user_id}".encode("utf-8")
-    ).hexdigest()
-    return str(int(digest, 16) % STABLE_USER_TAG_MOD).zfill(4)
+def _is_en(lang: str | None) -> bool:
+    return (lang or "").lower().startswith("en")
 
 
 def resolve_display_name(
-    username: str | None, user_id: int, lang: str = "fr"
+    username: str | None,
+    user_id: int,
+    lang: str = "fr",
+    *,
+    is_admin: bool = False,
 ) -> str:
+    """Resolve the public name for a user.
+
+    Order: the admin label wins, then an explicitly-set pseudo, then the
+    generated anonymous pseudo for accounts that never picked one.
+    """
+    if is_admin:
+        return _ADMIN_LABEL_EN if _is_en(lang) else _ADMIN_LABEL_FR
     if username is not None and username.strip():
         return username.strip()
-    tag = stable_user_tag(user_id)
-    if (lang or "").lower().startswith("en"):
-        return f"User {tag}"
-    return f"Utilisateur {tag}"
+    return generate_pseudo(user_id, lang)
 
 
 def parse_accept_language(header: str | None) -> str:

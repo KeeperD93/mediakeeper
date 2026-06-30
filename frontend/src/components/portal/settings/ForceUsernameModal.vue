@@ -83,6 +83,7 @@ import '@/assets/styles/portal/settings-premium.css'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
+  initial: { type: String, default: '' },
 })
 const emit = defineEmits(['done'])
 
@@ -105,18 +106,19 @@ const usernameCheck = reactive({
 
 let timer = null
 
-// Always opens on an empty input so the viewer is nudged into typing a
-// fresh pseudo rather than tacitly confirming their imported Emby
-// username / admin-set placeholder. The check-username debounce + the
-// 3-char ``canSave`` floor still keep an empty / too-short save from
-// landing accidentally. ``v-if`` on the parent guarantees this
-// component only mounts when the picker MUST be visible.
+// Opens pre-filled with the viewer's generated pseudo (``initial``) so a
+// silent account can keep its anonymous ``Renard-Bleu-42`` by simply
+// confirming, or type over it. No Emby login can leak here — the stored
+// display name is already the generated pseudo, never the raw login.
+// onInput() runs immediately so the pre-filled pseudo (reason ``current``)
+// is savable without an edit; it also handles the empty / too-short cases.
 function arm() {
-  candidate.value = ''
+  candidate.value = (props.initial || '').trim()
   errorKey.value = null
   usernameCheck.available = null
   usernameCheck.reason = null
   usernameCheck.suggestions = []
+  onInput()
 }
 
 watch(
