@@ -194,3 +194,58 @@ async def test_metadata_route_reports_missing_file(authed_client, monkeypatch, t
 
     assert r.status_code == 200
     assert r.json() == {"error": "file_not_found"}
+
+
+# --- Categories reorder route (api/media/_categories.py) --------------------
+
+
+@pytest.mark.asyncio
+async def test_categories_reorder_persists_permutation(authed_client, monkeypatch):
+    cats = [
+        {"key": "films", "label": "Films", "path": "/m/films"},
+        {"key": "series", "label": "Series", "path": "/m/series"},
+        {"key": "telechargement", "label": "DL", "path": "/m/dl"},
+    ]
+    saved = {}
+
+    async def _get(_db):
+        return list(cats)
+
+    async def _save(_db, new_cats):
+        saved["cats"] = new_cats
+
+    monkeypatch.setattr("api.media._categories.get_categories", _get)
+    monkeypatch.setattr("api.media._categories.save_categories", _save)
+
+    r = await authed_client.put(
+        "/api/media/categories/order",
+        json={"keys": ["telechargement", "films", "series"]},
+    )
+
+    assert r.status_code == 200
+    assert [c["key"] for c in r.json()["categories"]] == ["telechargement", "films", "series"]
+    # The full dicts (label/path) are preserved, only reordered by key.
+    assert saved["cats"][0] == {"key": "telechargement", "label": "DL", "path": "/m/dl"}
+    assert [c["key"] for c in saved["cats"]] == ["telechargement", "films", "series"]
+
+
+@pytest.mark.asyncio
+async def test_categories_reorder_rejects_key_set_mismatch(authed_client, monkeypatch):
+    cats = [
+        {"key": "films", "label": "F", "path": "/m/f"},
+        {"key": "series", "label": "S", "path": "/m/s"},
+    ]
+    save = AsyncMock()
+
+    async def _get(_db):
+        return list(cats)
+
+    monkeypatch.setattr("api.media._categories.get_categories", _get)
+    monkeypatch.setattr("api.media._categories.save_categories", save)
+
+    # An unknown key (or a missing one) must be rejected and never persisted.
+    r = await authed_client.put("/api/media/categories/order", json={"keys": ["films", "ghost"]})
+
+    assert r.status_code == 200
+    assert r.json() == {"error": "category_set_mismatch"}
+    save.assert_not_called()

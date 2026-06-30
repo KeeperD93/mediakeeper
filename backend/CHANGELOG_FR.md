@@ -9,6 +9,9 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+### Added
+- Média Manager — réordonner les onglets par glisser-déposer.
+
 ### Changed
 - Utilisateurs (admin) — pseudo aléatoire affiché pour les comptes sans pseudo choisi ; compte administrateur libellé « Administrateur ».
 

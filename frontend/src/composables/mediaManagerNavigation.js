@@ -83,6 +83,31 @@ export async function removeCategory(key) {
     return false
   }
 }
+export async function reorderCategories(orderedKeys) {
+  const snapshot = CATS.value
+  // Optimistic: reflect the new order immediately; revert if the save fails.
+  const byKey = new Map(snapshot.map(c => [c.key, c]))
+  CATS.value = orderedKeys.map(k => byKey.get(k)).filter(Boolean)
+  try {
+    const res = await apiFetch('/api/media/categories/order', {
+      method: 'PUT',
+      body: JSON.stringify({ keys: orderedKeys }),
+    })
+    const data = await res.json()
+    if (data.error) {
+      console.error('[mediaManagerNavigation.reorderCategories] backend error', data.error)
+      showToast(_t('common.apiError.unknown', { status: '' }), TOAST_TYPE.ERR)
+      CATS.value = snapshot
+      return false
+    }
+    if (data.categories) CATS.value = data.categories
+    return true
+  } catch {
+    showToast(_t('common.networkError'), TOAST_TYPE.ERR)
+    CATS.value = snapshot
+    return false
+  }
+}
 
 // ─── COMPUTED ───
 export const breadcrumbs = computed(() =>

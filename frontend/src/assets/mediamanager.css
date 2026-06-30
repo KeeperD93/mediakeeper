@@ -311,6 +311,15 @@
   outline-offset: -2px;
   box-shadow: none;
 }
+.mm-tab--dragging {
+  opacity: 0.4;
+}
+.mm-tab.insert-before {
+  box-shadow: inset 2px 0 0 0 var(--accent-500);
+}
+.mm-tab.insert-after {
+  box-shadow: inset -2px 0 0 0 var(--accent-500);
+}
 .mm-tab .tab-icon {
   stroke-width: 1.8;
   flex-shrink: 0;
