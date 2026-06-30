@@ -92,7 +92,7 @@ async def get_or_create_profile(
     db.add(profile)
     await db.commit()
     await db.refresh(profile)
-    logger.info(f"[PROFILE] Created profile for user={user.username} name={unique_name}")
+    logger.info("[PROFILE] Created profile for user=%s name=%s", user.username, unique_name)
     return profile
 
 
@@ -276,7 +276,7 @@ async def add_xp(
     new_level = 1 + profile.xp // 100
     if new_level > profile.level:
         profile.level = new_level
-        logger.info(f"[PROFILE] user_id={profile.user_id} leveled up to {new_level}")
+        logger.info("[PROFILE] user_id=%s leveled up to %s", profile.user_id, new_level)
     db.add(profile)
     await db.commit()
     await db.refresh(profile)

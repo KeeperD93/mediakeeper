@@ -263,5 +263,5 @@ async def fetch_recent_watches(
             if len(recent_watches) >= 20:
                 break
     except Exception as e:
-        logger.debug(f"[PROFILE] recent watches error: {e}")
+        logger.debug("[PROFILE] recent watches error: %s", e)
     return recent_watches

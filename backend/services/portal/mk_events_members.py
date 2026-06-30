@@ -78,8 +78,9 @@ async def invite_user(
                 await db.flush()
         except IntegrityError:
             logger.debug(
-                f"[MKEVENT] invite race avoided event_id={event_id} "
-                f"invitee_user_id={invitee_user_id} — concurrent insert won"
+                "[MKEVENT] invite race avoided event_id=%s "
+                "invitee_user_id=%s — concurrent insert won",
+                event_id, invitee_user_id,
             )
             existing = await _load_invitation(db, event_id, invitee_user_id)
             if existing is None:
@@ -205,8 +206,9 @@ async def respond(
                 await db.flush()
         except IntegrityError:
             logger.debug(
-                f"[MKEVENT] respond race avoided event_id={event_id} "
-                f"user_id={user_id} — concurrent insert won"
+                "[MKEVENT] respond race avoided event_id=%s "
+                "user_id=%s — concurrent insert won",
+                event_id, user_id,
             )
             inv = await _load_invitation(db, event_id, user_id)
             if inv is None:

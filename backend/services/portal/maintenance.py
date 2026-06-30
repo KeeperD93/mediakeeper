@@ -116,5 +116,5 @@ async def update_maintenance_settings(
             db.add(Setting(key=key, value=val))
     if updates:
         await db.commit()
-        logger.info(f"[MAINTENANCE] updated keys={list(updates.keys())}")
+        logger.info("[MAINTENANCE] updated keys=%s", list(updates.keys()))
     return await get_maintenance_admin_settings(db)

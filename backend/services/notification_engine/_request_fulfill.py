@@ -115,7 +115,8 @@ async def try_auto_fulfill(item: dict, db: AsyncSession) -> int | None:
             )
 
     logger.info(
-        f"[NOTIFICATIONS] auto-fulfilled request_id={request_id} "
-        f"({media_type}:{tmdb_id})"
+        "[NOTIFICATIONS] auto-fulfilled request_id=%s "
+        "(%s:%s)",
+        request_id, media_type, tmdb_id,
     )
     return requester_id

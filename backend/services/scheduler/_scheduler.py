@@ -63,7 +63,7 @@ class Scheduler:
 
     async def _exec_task(self, key: str, defn: dict) -> None:
         """Actual execution of a task."""
-        logger.info(f"[scheduler] Starting task : {key}")
+        logger.info("[scheduler] Starting task : %s", key)
         update_progress(key, 0, 0, "starting")
         async with AsyncSession(self._engine, expire_on_commit=False) as db:
             await _mark_running(db, key)
@@ -73,7 +73,7 @@ class Scheduler:
                 await defn["handler"](db)
         except Exception as e:
             error = str(e)
-            logger.error(f"[scheduler] Task error {key}: {e}", exc_info=True)
+            logger.exception("[scheduler] Task error %s: %s", key, e)
             try:
                 from services.monitoring import AlertType, send_alert
 
@@ -86,7 +86,7 @@ class Scheduler:
         clear_progress(key)
         async with AsyncSession(self._engine, expire_on_commit=False) as db:
             await _mark_done(db, key, error)
-        logger.info(f"[scheduler] Task {key} done — {'OK' if not error else 'ERROR'}")
+        logger.info("[scheduler] Task %s done — %s", key, "OK" if not error else "ERROR")
 
     async def _reload_config(self) -> None:
         """Reload configuration from the DB."""
@@ -94,7 +94,7 @@ class Scheduler:
             async with AsyncSession(self._engine, expire_on_commit=False) as db:
                 self._config = await _load_tasks(db)
         except Exception as e:
-            logger.error(f"[scheduler] Error reloading config: {e}")
+            logger.error("[scheduler] Error reloading config: %s", e)
 
     async def _init_timers(self) -> None:
         """Initialize timers based on last_run in DB."""
@@ -116,18 +116,18 @@ class Scheduler:
             last_run = last_runs.get(key)
             if not last_run:
                 self._timers[key] = now + 60
-                logger.info(f"[scheduler] {key}: never executed, run in 60s")
+                logger.info("[scheduler] %s: never executed, run in 60s", key)
                 continue
             if last_run.tzinfo is None:
                 last_run = last_run.replace(tzinfo=timezone.utc)
             elapsed = (now_dt - last_run).total_seconds()
             if elapsed >= interval:
                 self._timers[key] = now + 60
-                logger.info(f"[scheduler] {key} : overdue by {elapsed/3600:.1f}h, run in 60s")
+                logger.info("[scheduler] %s : overdue by %.1fh, run in 60s", key, elapsed / 3600)
             else:
                 remaining = interval - elapsed
                 self._timers[key] = now + remaining
-                logger.info(f"[scheduler] {key} : next run in {remaining/3600:.1f}h")
+                logger.info("[scheduler] %s : next run in %.1fh", key, remaining / 3600)
 
     def _interval_due(self, key: str, now: float) -> bool:
         """The monotonic interval timer for ``key`` has elapsed."""
@@ -217,23 +217,23 @@ class Scheduler:
                     keys.append(row.key)
                 await db.commit()
         except Exception as e:  # noqa: BLE001 -- best-effort, log + skip
-            logger.error(
-                f"[scheduler] force-run poll failed: {e}", exc_info=True
+            logger.exception(
+                "[scheduler] force-run poll failed: %s", e
             )
             return
 
         for key in keys:
             if key not in TASK_DEFINITIONS:
                 logger.warning(
-                    f"[scheduler] force-run requested for unknown key: {key}"
+                    "[scheduler] force-run requested for unknown key: %s", key
                 )
                 continue
             if self.is_task_running(key):
                 logger.info(
-                    f"[scheduler] force-run skipped (already running): {key}"
+                    "[scheduler] force-run skipped (already running): %s", key
                 )
                 continue
-            logger.info(f"[scheduler] force-run launching: {key}")
+            logger.info("[scheduler] force-run launching: %s", key)
             asyncio.create_task(self._run_task(key))
 
 

@@ -190,7 +190,7 @@ async def batch_download(
                         source="opensubtitles",
                     )
                 except Exception as e:
-                    logger.warning(f"[batch] History record error: {e}")
+                    logger.warning("[batch] History record error: %s", e)
 
                 # Verifier quota restant
                 if dl.get("remaining", 1) <= 0:
@@ -208,7 +208,7 @@ async def batch_download(
                 })
 
         except Exception as e:
-            logger.error(f"[batch] Error for {item.get('media_name', '')}: {e}")
+            logger.error("[batch] Error for %s: %s", item.get('media_name', ''), e)
             _batch_state["failed"].append({
                 "item_id": item.get("emby_item_id", ""),
                 "media_name": item.get("media_name", ""),
@@ -222,9 +222,10 @@ async def batch_download(
     _batch_state["label"] = ""
 
     logger.info(
-        f"[batch] Complete: {len(_batch_state['completed'])} OK, "
-        f"{len(_batch_state['failed'])} failed, "
-        f"{len(_batch_state['skipped'])} skipped"
+        "[batch] Complete: %s OK, %s failed, %s skipped",
+        len(_batch_state['completed']),
+        len(_batch_state['failed']),
+        len(_batch_state['skipped']),
     )
 
     return {

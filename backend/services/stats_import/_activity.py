@@ -49,13 +49,13 @@ async def _import_playback_activity(
     now: datetime,
 ) -> None:
     """Iterate over jf_playback_activity and create the matching PlaybackSession rows."""
-    logger.info(f"Jellystats import: {len(jf_activity)} playback entries to process")
+    logger.info("Jellystats import: %s playback entries to process", len(jf_activity))
 
     if jf_activity:
         sample = jf_activity[0]
         date_fields = [k for k in sample.keys() if any(d in k.lower() for d in ("date", "time", "created", "insert"))]
-        logger.info(f"[import] Date fields detected in jf_playback_activity: {date_fields}")
-        logger.info(f"[import] Example: { {k: sample.get(k) for k in date_fields} }")
+        logger.info("[import] Date fields detected in jf_playback_activity: %s", date_fields)
+        logger.info("[import] Example: %s", {k: sample.get(k) for k in date_fields})
 
     batch: list[PlaybackSession] = []
 
@@ -159,7 +159,7 @@ async def _import_playback_activity(
                 batch = []
 
         except Exception as e:
-            logger.warning(f"Error importing Jellystats entry: {e}")
+            logger.warning("Error importing Jellystats entry: %s", e)
             report["playback_errors"] += 1
 
     if batch:

@@ -51,7 +51,7 @@ async def _import_plugin_reporting(
     if not jf_plugin:
         return
 
-    logger.info(f"Jellystats import: {len(jf_plugin)} plugin reporting entries to process")
+    logger.info("Jellystats import: %s plugin reporting entries to process", len(jf_plugin))
     batch: list[PlaybackSession] = []
 
     for entry in jf_plugin:
@@ -120,7 +120,7 @@ async def _import_plugin_reporting(
                 batch = []
 
         except Exception as e:
-            logger.warning(f"Error import plugin reporting: {e}")
+            logger.warning("Error import plugin reporting: %s", e)
             report["plugin_errors"] += 1
 
     if batch:

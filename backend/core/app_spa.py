@@ -59,7 +59,7 @@ def register_spa(app: FastAPI, dist_dir: Path | None = None) -> None:
 
     if dist_dir.is_dir() and (dist_dir / "index.html").is_file():
         frontend_dir = dist_dir
-        logger.info(f"Serving Vue 3 frontend from {frontend_dir}")
+        logger.info("Serving Vue 3 frontend from %s", frontend_dir)
     else:
         logger.warning("No frontend directory found!")
         return

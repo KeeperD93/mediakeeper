@@ -59,7 +59,7 @@ async def get_continue_watching(
             return []
         raw = res.json().get("Items", []) or []
     except Exception as e:
-        logger.error(f"[AVAILABLE] continue watching error: {e}")
+        logger.error("[AVAILABLE] continue watching error: %s", e)
         return []
 
     # Unique series ids for a single bulk fetch of series metadata.

@@ -94,7 +94,7 @@ async def refresh_library_cache(db: AsyncSession):
                 await db.delete(row)
 
         await db.commit()
-        logger.info(f"Library cache refreshed: {len(seen_ids)} libraries")
+        logger.info("Library cache refreshed: %s libraries", len(seen_ids))
 
         # Heal playback rows still on a sub-folder/slug library name (e.g. a
         # session whose Emby payload lacked LibraryName). Idempotent — only
@@ -103,7 +103,7 @@ async def refresh_library_cache(db: AsyncSession):
         await repair_library_names(db)
 
     except Exception as e:
-        logger.error(f"Error refresh_library_cache: {e}")
+        logger.error("Error refresh_library_cache: %s", e)
 
 
 async def _fetch_counts(client, url, headers, lib_id) -> tuple[int, dict]:
@@ -168,5 +168,5 @@ async def _fetch_size_and_runtime(client, url, headers, lib_id, lib_name) -> tup
             if start_index >= total_count or not items:
                 break
     except Exception as e:
-        logger.warning(f"Error calcul size {lib_name}: {e}")
+        logger.warning("Error calcul size %s: %s", lib_name, e)
     return lib_size_bytes, lib_runtime_ticks

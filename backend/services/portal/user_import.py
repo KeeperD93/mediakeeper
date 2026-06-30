@@ -102,6 +102,7 @@ async def ensure_user_for_emby_session(
     await db.refresh(user)
     logger.info(
         "[USER_IMPORT] lazy-provisioned user from Emby playback: "
-        f"username={emby_username} emby_id={emby_user_id}"
+        "username=%s emby_id=%s",
+        emby_username, emby_user_id,
     )
     return user

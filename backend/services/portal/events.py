@@ -103,13 +103,14 @@ async def update_event_progress(
             await db.commit()
             if completed_now:
                 logger.info(
-                    f"[EVENT] user_id={user_id} completed event #{event_id}"
+                    "[EVENT] user_id=%s completed event #%s", user_id, event_id
                 )
             return {"progress": increment, "completed": completed_now}
         except IntegrityError:
             logger.debug(
-                f"[EVENT] race avoided event_id={event_id} user_id={user_id} "
-                f"— concurrent insert won, falling back to atomic update"
+                "[EVENT] race avoided event_id=%s user_id=%s "
+                "— concurrent insert won, falling back to atomic update",
+                event_id, user_id,
             )
 
     # Atomic SQL increment — reading the ORM ``progress`` and writing it
@@ -145,7 +146,7 @@ async def update_event_progress(
     completed = bool(fresh.completed)
 
     if completed and (progress - increment) < target_count:
-        logger.info(f"[EVENT] user_id={user_id} completed event #{event_id}")
+        logger.info("[EVENT] user_id=%s completed event #%s", user_id, event_id)
 
     return {"progress": progress, "completed": completed}
 
@@ -261,8 +262,9 @@ async def join_party(
             await db.flush()
     except IntegrityError:
         logger.debug(
-            f"[PARTY] race avoided party_id={party_id} user_id={user_id} "
-            f"— concurrent insert won"
+            "[PARTY] race avoided party_id=%s user_id=%s "
+            "— concurrent insert won",
+            party_id, user_id,
         )
         # Savepoint is already rolled back, but the outer transaction
         # still owns the FOR UPDATE row lock — drop it before returning.

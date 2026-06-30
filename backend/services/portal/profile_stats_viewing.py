@@ -77,7 +77,7 @@ async def compute_genre_stats(
                 for gid, cnt in counter.most_common(8)
             ]
     except Exception as e:
-        logger.debug(f"[PROFILE] genre stats (DB column) error: {e}")
+        logger.debug("[PROFILE] genre stats (DB column) error: %s", e)
 
     # Fallback — legacy path using TMDB genres weighted by recency
     try:
@@ -88,7 +88,7 @@ async def compute_genre_stats(
             for gid, w in all_genres.most_common(8)
         ]
     except Exception as e:
-        logger.debug(f"[PROFILE] genre stats (TMDB fallback) error: {e}")
+        logger.debug("[PROFILE] genre stats (TMDB fallback) error: %s", e)
         return []
 
 
@@ -138,7 +138,7 @@ async def compute_longest_session(
                 longest_secs = chain_secs
         return longest_secs // 60
     except Exception as e:
-        logger.debug(f"[PROFILE] longest session error: {e}")
+        logger.debug("[PROFILE] longest session error: %s", e)
         return 0
 
 
@@ -176,7 +176,7 @@ async def compute_media_type_ratio(
                 result["series_plays"] += 1
                 result["series_minutes"] += secs // 60
     except Exception as e:
-        logger.debug(f"[PROFILE] media type ratio error: {e}")
+        logger.debug("[PROFILE] media type ratio error: %s", e)
     return result
 
 
@@ -207,7 +207,7 @@ async def compute_hour_buckets(
             else:
                 buckets["night"] += row.cnt
     except Exception as e:
-        logger.debug(f"[PROFILE] hour stats error: {e}")
+        logger.debug("[PROFILE] hour stats error: %s", e)
     return [{"bucket": k, "count": v} for k, v in buckets.items()]
 
 
@@ -229,5 +229,5 @@ async def compute_day_stats(db: AsyncSession, user_filter, excl_filters: list) -
             for i in range(7)
         ]
     except Exception as e:
-        logger.debug(f"[PROFILE] day stats error: {e}")
+        logger.debug("[PROFILE] day stats error: %s", e)
         return None

@@ -151,8 +151,9 @@ async def toggle_rating_like(
             await db.flush()
     except IntegrityError:
         logger.debug(
-            f"[LIKE] race avoided rating_id={rating_id} user_id={user_id} "
-            f"— concurrent insert won, idempotent add"
+            "[LIKE] race avoided rating_id=%s user_id=%s "
+            "— concurrent insert won, idempotent add",
+            rating_id, user_id,
         )
     await db.commit()
     return {"success": True, "action": "added"}

@@ -46,7 +46,7 @@ async def _resolve_by_imdb(tmdb_key: str, imdb_id: str, media_type: str) -> int 
             return None
         return _coerce_int(results[0].get("id"))
     except Exception as e:
-        logger.debug(f"[EMBY_INDEX] IMDB lookup failed for {imdb_id}: {e}")
+        logger.debug("[EMBY_INDEX] IMDB lookup failed for %s: %s", imdb_id, e)
         return None
 
 
@@ -96,5 +96,5 @@ async def _resolve_by_search(
                 return _coerce_int(candidate.get("id"))
         return None
     except Exception as e:
-        logger.debug(f"[EMBY_INDEX] search lookup failed for '{title}': {e}")
+        logger.debug("[EMBY_INDEX] search lookup failed for '%s': %s", title, e)
         return None

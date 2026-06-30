@@ -51,7 +51,7 @@ async def get_series_libraries(db: AsyncSession) -> list[dict]:
         return [{"id": f.get("ItemId", ""), "name": f.get("Name", ""), "collection_type": f.get("CollectionType", "")}
                 for f in r.json() if f.get("CollectionType", "") in ("tvshows", "")] if r.status_code == 200 else []
     except Exception as e:
-        logger.error(f"get_series_libraries: {e}")
+        logger.error("get_series_libraries: %s", e)
         return []
 
 
@@ -69,7 +69,7 @@ async def _get_all_emby_series(db: AsyncSession, library_id: str = "") -> list[d
         r = await get_internal_client().get(f"{url}/Items", params=params, headers={"X-Emby-Token": ak}, timeout=30.0)
         return r.json().get("Items", []) if r.status_code == 200 else []
     except Exception as e:
-        logger.error(f"_get_all_emby_series: {e}")
+        logger.error("_get_all_emby_series: %s", e)
         return []
 
 
@@ -102,5 +102,5 @@ async def _get_emby_episodes(
             out[(sn, en)] = _extract_audio_languages(ep.get("MediaStreams"))
         return out
     except Exception as e:
-        logger.error(f"_get_emby_episodes: {e}")
+        logger.error("_get_emby_episodes: %s", e)
         return {}

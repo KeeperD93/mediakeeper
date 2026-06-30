@@ -42,7 +42,7 @@ async def create_news(db: AsyncSession, author_id: int, data: dict) -> dict:
     db.add(article)
     await db.commit()
     await db.refresh(article)
-    logger.info(f"[NEWS] #{article.id} created by user_id={author_id}")
+    logger.info("[NEWS] #%s created by user_id=%s", article.id, author_id)
     return {"success": True, "id": article.id}
 
 
@@ -137,7 +137,7 @@ async def delete_news(db: AsyncSession, news_id: int) -> dict:
         return {"error": "not_found"}
     await db.delete(article)
     await db.commit()
-    logger.info(f"[NEWS] #{news_id} deleted")
+    logger.info("[NEWS] #%s deleted", news_id)
     return {"success": True}
 
 

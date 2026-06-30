@@ -42,8 +42,8 @@ async def record_download(db: AsyncSession, **kwargs) -> dict:
     await db.commit()
     await db.refresh(dl)
     logger.info(
-        f"[HISTORY] Enregistre: {dl.media_name} [{dl.language}] "
-        f"score={dl.quality_score} source={dl.source}"
+        "[HISTORY] Enregistre: %s [%s] score=%s source=%s",
+        dl.media_name, dl.language, dl.quality_score, dl.source,
     )
     return _download_to_dict(dl)
 

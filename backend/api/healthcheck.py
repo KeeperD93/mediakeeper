@@ -145,7 +145,7 @@ async def _run_scan_background():
         try:
             await run_healthcheck(db)
         except Exception as e:
-            logger.error(f"[healthcheck] Background scan error: {e}", exc_info=True)
+            logger.exception("[healthcheck] Background scan error: %s", e)
 
 
 @router.post("/scan")

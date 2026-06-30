@@ -28,7 +28,7 @@ async def _enrich_usernames(db: AsyncSession, jf_users: list) -> None:
             row.user_name = name
             updated_count += 1
     if updated_count:
-        logger.info(f"Enriched {updated_count} plugin entries with UserName from jf_users")
+        logger.info("Enriched %s plugin entries with UserName from jf_users", updated_count)
 
 
 async def _migrate_library_names(
@@ -61,5 +61,5 @@ async def _migrate_library_names(
             row.library_name = lib
             migrated += 1
     if migrated:
-        logger.info(f"Migrated library_name on {migrated} existing entries")
+        logger.info("Migrated library_name on %s existing entries", migrated)
         report["library_names_migrated"] = migrated

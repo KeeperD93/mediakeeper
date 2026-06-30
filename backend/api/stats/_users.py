@@ -62,11 +62,11 @@ async def user_profile_query(
     _: User = Depends(get_current_user),
 ):
     """Detailed user profile (via query param for special characters)."""
-    logger.debug(f"API Request: fetching profile for user_id='{user_id}'")
+    logger.debug("API Request: fetching profile for user_id='%s'", user_id)
     try:
         return await get_user_profile(db, user_id=user_id)
     except Exception as e:
-        logger.error(f"Error fetching profile for user_id='{user_id}': {e}", exc_info=True)
+        logger.exception("Error fetching profile for user_id='%s': %s", user_id, e)
         raise HTTPException(status_code=500, detail="user_profile_failed")
 
 
@@ -142,5 +142,5 @@ async def portal_monthly_leaderboard(
         result = await compute_leaderboard_only(db, limit=LEADERBOARD_VISIBLE)
         return {"leaderboard": result["items"]}
     except Exception as e:
-        logger.debug(f"[PORTAL-LEADERBOARD] error: {e}")
+        logger.debug("[PORTAL-LEADERBOARD] error: %s", e)
         return {"leaderboard": []}

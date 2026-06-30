@@ -26,7 +26,7 @@ async def promote_grouped_items(items: list[dict], db: AsyncSession) -> None:
         try:
             new_type = await classify_grouped(item, db)
         except Exception as exc:
-            logger.warning(f"[NOTIFICATIONS] classify failed: {exc}")
+            logger.warning("[NOTIFICATIONS] classify failed: %s", exc)
             continue
         if new_type == "Grouped":
             continue
@@ -102,7 +102,7 @@ async def enrich_promoted_item(item: dict, db: AsyncSession) -> None:
     try:
         details = await fetch_item_by_id(db, str(series_id))
     except Exception as exc:
-        logger.warning(f"[NOTIFICATIONS] series enrich failed: {exc}")
+        logger.warning("[NOTIFICATIONS] series enrich failed: %s", exc)
         return
     if not details:
         return

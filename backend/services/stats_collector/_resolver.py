@@ -52,7 +52,7 @@ async def _resolve_library_name(
                     _cache_lib(item_id, folder_name)
                     return folder_name
     except Exception as e:
-        logger.warning(f"Error _resolve_library_name({item_id}): {e}")
+        logger.warning("Error _resolve_library_name(%s): %s", item_id, e)
     return None
 
 

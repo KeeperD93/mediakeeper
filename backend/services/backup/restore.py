@@ -104,7 +104,7 @@ async def _run_restore_plan(
                 results[component] = "ok"
         return results
     except Exception as exc:
-        logger.error("[backup] Restore %s failed: %s", component, exc, exc_info=True)
+        logger.exception("[backup] Restore %s failed: %s", component, exc)
         results[component] = f"error:{type(exc).__name__}"
         if raise_on_error:
             raise BackupRestoreError(component, exc, results) from exc

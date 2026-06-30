@@ -81,7 +81,7 @@ async def search_movies_and_series(
         items = res.json().get("Items", [])
         return [_shape_search_hit(it) for it in items if it.get("Id")]
     except Exception as e:
-        logger.error(f"Error search_movies_and_series: {e}")
+        logger.error("Error search_movies_and_series: %s", e)
         return []
 
 
@@ -134,7 +134,7 @@ async def list_series_seasons(
         out.sort(key=lambda s: s["season_number"])
         return out
     except Exception as e:
-        logger.error(f"Error list_series_seasons({series_id}): {e}")
+        logger.error("Error list_series_seasons(%s): %s", series_id, e)
         return []
 
 
@@ -168,5 +168,5 @@ async def _list_season_episodes(
         episodes.sort(key=lambda e: e["episode_number"])
         return episodes
     except Exception as e:
-        logger.error(f"Error _list_season_episodes(series={series_id}, season={season_id}): {e}")
+        logger.error("Error _list_season_episodes(series=%s, season=%s): %s", series_id, season_id, e)
         return []

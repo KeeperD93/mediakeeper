@@ -54,7 +54,7 @@ async def import_jellystats_backup(db: AsyncSession, data: dict) -> dict:
     await _migrate_library_names(db, item_to_library, report)
 
     await db.commit()
-    logger.info(f"Jellystats import complete: {report}")
+    logger.info("Jellystats import complete: %s", report)
     return report
 
 
@@ -88,7 +88,7 @@ async def purge_jellystats_import(db: AsyncSession) -> dict:
 
     # library_cache is untouched: it is refreshed by the periodic task.
     await db.commit()
-    logger.info(f"Jellystats purge: {total_js} playback + {total_plugin} plugin removed")
+    logger.info("Jellystats purge: %s playback + %s plugin removed", total_js, total_plugin)
     return {
         "purged_playback": total_js,
         "purged_plugin": total_plugin,

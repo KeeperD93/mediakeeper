@@ -40,7 +40,7 @@ async def get_activity_feed(
                 "created_at": r.created_at.isoformat() if r.created_at else "",
             })
     except Exception as e:
-        logger.warning(f"[ACTIVITY] requests query failed: {e}")
+        logger.warning("[ACTIVITY] requests query failed: %s", e)
 
     try:
         ach_result = await db.execute(
@@ -62,7 +62,7 @@ async def get_activity_feed(
                 "created_at": ua.unlocked_at.isoformat() if ua.unlocked_at else "",
             })
     except Exception as e:
-        logger.warning(f"[ACTIVITY] achievements query failed: {e}")
+        logger.warning("[ACTIVITY] achievements query failed: %s", e)
 
     try:
         rating_result = await db.execute(
@@ -83,7 +83,7 @@ async def get_activity_feed(
                 "created_at": r.created_at.isoformat() if r.created_at else "",
             })
     except Exception as e:
-        logger.warning(f"[ACTIVITY] ratings query failed: {e}")
+        logger.warning("[ACTIVITY] ratings query failed: %s", e)
 
     feed.sort(key=lambda x: x.get("created_at") or "", reverse=True)
     return feed[:limit]

@@ -128,14 +128,16 @@ async def maybe_blacklist_media(
             await db.flush()
     except IntegrityError:
         logger.debug(
-            f"[BLACKLIST] race avoided for {req.media_type}:{req.tmdb_id} "
-            f"— concurrent insert won, snapshot dropped"
+            "[BLACKLIST] race avoided for %s:%s "
+            "— concurrent insert won, snapshot dropped",
+            req.media_type, req.tmdb_id,
         )
         return
 
     logger.info(
-        f"[BLACKLIST] {req.media_type}:{req.tmdb_id} auto-blocked after "
-        f"{count} rejections ({len(requesters)} unique requester(s))"
+        "[BLACKLIST] %s:%s auto-blocked after "
+        "%s rejections (%s unique requester(s))",
+        req.media_type, req.tmdb_id, count, len(requesters),
     )
 
 
@@ -178,5 +180,5 @@ async def unblock_media(db: AsyncSession, blacklist_id: int) -> dict:
         )
     )
     await db.commit()
-    logger.info(f"[BLACKLIST] unblocked {media_type}:{tmdb_id} (+ purged rejected history)")
+    logger.info("[BLACKLIST] unblocked %s:%s (+ purged rejected history)", media_type, tmdb_id)
     return {"success": True}

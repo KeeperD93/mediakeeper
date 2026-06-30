@@ -78,5 +78,5 @@ def _build_item_to_library(
         if ep_id_raw and lib_name:
             item_to_library[ep_id_raw] = lib_name
 
-    logger.info(f"Jellystats import: {len(item_to_library)} items mapped to a library")
+    logger.info("Jellystats import: %s items mapped to a library", len(item_to_library))
     return item_to_library

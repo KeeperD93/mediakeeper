@@ -42,7 +42,7 @@ async def send_system_notification(
             except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
                 pass
         if _is_dnd(rules):
-            logger.info(f"[NOTIFICATIONS] DND — notification {event_key} blocked")
+            logger.info("[NOTIFICATIONS] DND — notification %s blocked", event_key)
             return
 
         for wh in config.get("webhooks", []):
@@ -64,7 +64,7 @@ async def send_system_notification(
                         message=tpl_key,
                     )
                 else:
-                    logger.warning(f"[NOTIFICATIONS] Discord rejected system delivery for {event_key}")
+                    logger.warning("[NOTIFICATIONS] Discord rejected system delivery for %s", event_key)
                     await log_failed(
                         db,
                         event_type=event_key,
@@ -74,7 +74,7 @@ async def send_system_notification(
                         error="discord_rejected",
                     )
             except Exception as e:
-                logger.error(f"[NOTIFICATIONS] send_system_notification({event_key}): {e}")
+                logger.error("[NOTIFICATIONS] send_system_notification(%s): %s", event_key, e)
                 await log_failed(
                     db,
                     event_type=event_key,
@@ -86,4 +86,4 @@ async def send_system_notification(
             await asyncio.sleep(0.5)
 
     except Exception as e:
-        logger.error(f"[NOTIFICATIONS] send_system_notification error: {e}", exc_info=True)
+        logger.exception("[NOTIFICATIONS] send_system_notification error: %s", e)

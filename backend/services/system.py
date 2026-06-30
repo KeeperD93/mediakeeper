@@ -44,9 +44,9 @@ def _collect_stats() -> dict:
 
 
 async def get_system_stats() -> dict:
-    """Version async — execute la collecte in un thread for ne pas bloquer l'event loop."""
+    """Async wrapper — run the blocking collection in a thread to keep the event loop free."""
     try:
         return await asyncio.to_thread(_collect_stats)
     except Exception as e:
-        logger.error(f"[SYSTEM] Error collecte stats: {e}")
+        logger.error("[SYSTEM] Error collecting stats: %s", e)
         return {"cpu": {}, "ram": {}, "storage": {}}

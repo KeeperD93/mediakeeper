@@ -78,7 +78,7 @@ def _emit_bootstrap_admin_credentials(username: str, password: str) -> None:
     if not emitted:
         logger.warning("=" * 60)
         logger.warning("  ADMIN ACCOUNT CREATED")
-        logger.warning(f"  Username: {username}")
+        logger.warning("  Username: %s", username)
         logger.warning("  Initial password is only available on first startup.")
         logger.warning("  Lost it? See docs/operations/admin-recovery.md")
         logger.warning("=" * 60)

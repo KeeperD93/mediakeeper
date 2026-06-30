@@ -51,12 +51,12 @@ class BackgroundTaskManager:
             try:
                 await coro_fn()
             except asyncio.CancelledError:
-                logger.info(f"Task {name} cancelled (shutdown)")
+                logger.info("Task %s cancelled (shutdown)", name)
                 raise
             except Exception as e:
-                logger.error(
-                    f"Task {name} crashed: {e} — restarting in {restart_delay}s",
-                    exc_info=True,
+                logger.exception(
+                    "Task %s crashed: %s — restarting in %ss",
+                    name, e, restart_delay,
                 )
                 try:
                     from services.monitoring import AlertType, send_alert
@@ -80,7 +80,7 @@ class BackgroundTaskManager:
                 async with AsyncSession(self._engine, expire_on_commit=False) as session:
                     await collect_active_sessions(session)
             except Exception as e:
-                logger.error(f"Error collecte stats: {e}")
+                logger.error("Error collecting stats: %s", e)
             await asyncio.sleep(15)
 
     async def _periodic_library_cache(self):
@@ -89,7 +89,7 @@ class BackgroundTaskManager:
             async with AsyncSession(self._engine, expire_on_commit=False) as session:
                 await refresh_library_cache(session)
         except Exception as e:
-            logger.error(f"Error refresh initial library cache: {e}")
+            logger.error("Error refresh initial library cache: %s", e)
 
         while True:
             await asyncio.sleep(3600)
@@ -97,7 +97,7 @@ class BackgroundTaskManager:
                 async with AsyncSession(self._engine, expire_on_commit=False) as session:
                     await refresh_library_cache(session)
             except Exception as e:
-                logger.error(f"Error refresh library cache: {e}")
+                logger.error("Error refresh library cache: %s", e)
 
     async def _periodic_ticket_auto_close(self):
         await asyncio.sleep(180)
@@ -108,9 +108,9 @@ class BackgroundTaskManager:
                 async with AsyncSession(self._engine, expire_on_commit=False) as session:
                     closed = await auto_close_resolved_tickets(session)
                     if closed:
-                        logger.info(f"[TICKET_AUTO_CLOSE] Closed {closed} stale ticket(s)")
+                        logger.info("[TICKET_AUTO_CLOSE] Closed %s stale ticket(s)", closed)
             except Exception as e:
-                logger.error(f"[TICKET_AUTO_CLOSE] error: {e}")
+                logger.error("[TICKET_AUTO_CLOSE] error: %s", e)
             await asyncio.sleep(21600)  # every 6 hours
 
     async def _periodic_health_monitor(self):
@@ -240,7 +240,7 @@ class BackgroundTaskManager:
             async with AsyncSession(self._engine, expire_on_commit=False) as session:
                 await fetch_and_store_emby_logs(session)
         except Exception as e:
-            logger.error(f"Error collecte initiale logs Emby: {e}")
+            logger.error("Error during initial Emby log collection: %s", e)
 
         self._tasks = [
             asyncio.create_task(self._supervised("scheduler", self._run_scheduler)),

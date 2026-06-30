@@ -114,7 +114,7 @@ async def run_healthcheck(db: AsyncSession, progress_cb=None) -> dict:
             }, headers=headers, timeout=30.0)
 
             if res.status_code != 200:
-                logger.warning(f"[healthcheck] Emby returned {res.status_code} at offset {offset}")
+                logger.warning("[healthcheck] Emby returned %s at offset %s", res.status_code, offset)
                 continue
 
             items = res.json().get("Items", [])
@@ -167,12 +167,12 @@ async def run_healthcheck(db: AsyncSession, progress_cb=None) -> dict:
             finished_at=datetime.now(timezone.utc).isoformat(),
         )
 
-        logger.info(f"[healthcheck] Scan complete : {scanned} items, {total_issues} issues")
+        logger.info("[healthcheck] Scan complete : %s items, %s issues", scanned, total_issues)
         return {"scanned": scanned, "issues": total_issues}
 
     except Exception as e:
         if db.in_transaction():
             await db.rollback()
-        logger.error(f"[healthcheck] Error scan: {e}", exc_info=True)
+        logger.exception("[healthcheck] Error scan: %s", e)
         _scan_state.update(running=False, error=str(e)[:500])
         return {"error": str(e)[:500]}
