@@ -4,6 +4,11 @@ name: Release — build multi-arch image + publish GitHub Release
 # Stable tags push :vX.Y.Z, :X.Y (floating minor) and :latest.
 # Pre-release tags (any tag containing a hyphen) push :vX.Y.Z-... and :beta.
 #
+# It can also be run manually via workflow_dispatch with a `version` input,
+# for when a release tag is immutable (branch/tag ruleset) and the run must be
+# re-triggered after a workflow fix. That version's git tag and changelog
+# section must already exist; the GitHub Release is attached to the tag.
+#
 # The release body is extracted from the matching `## [X.Y.Z]` section of
 # backend/CHANGELOG_EN.md and backend/CHANGELOG_PORTAL_EN.md. The workflow
 # fails if neither file has a section for the version being released, which
@@ -13,6 +18,12 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to (re)release, e.g. 1.0.0-rc.5 (its git tag and changelog section must already exist)'
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -37,8 +48,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          tag="${GITHUB_REF#refs/tags/}"
-          version="${tag#v}"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            version="${{ inputs.version }}"
+            tag="v${version}"
+          else
+            tag="${GITHUB_REF#refs/tags/}"
+            version="${tag#v}"
+          fi
           is_prerelease=false
           if [[ "$version" == *-* ]]; then
             is_prerelease=true
