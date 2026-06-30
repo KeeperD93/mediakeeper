@@ -14,6 +14,7 @@ Provisioned profiles default to:
 """
 import logging
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.security import EXTERNAL_AUTH_PASSWORD_SENTINEL, hash_password
@@ -24,6 +25,27 @@ from services.portal._pseudo_words import generate_pseudo
 from services.portal.profiles import resolve_unique_display_name
 
 logger = logging.getLogger("mediakeeper.portal.user_import")
+
+
+async def _find_existing_emby_user(
+    db: AsyncSession, *, emby_username: str, emby_user_id: str | None,
+) -> User | None:
+    """Resolve an account already provisioned for this Emby identity,
+    preferring the stable Emby GUID over the mutable login name. Returns
+    ``None`` when no MediaKeeper account exists yet."""
+    if emby_user_id:
+        by_emby_id = (await db.execute(
+            select(User)
+            .join(UserProfile, UserProfile.user_id == User.id)
+            .where(UserProfile.emby_user_id == emby_user_id)
+            .order_by(UserProfile.account_active.desc(), User.id.asc())
+            .limit(1)
+        )).scalar_one_or_none()
+        if by_emby_id:
+            return by_emby_id
+    return (await db.execute(
+        select(User).where(func.lower(User.username) == emby_username.lower())
+    )).scalar_one_or_none()
 
 
 async def ensure_user_for_emby_session(
@@ -45,20 +67,9 @@ async def ensure_user_for_emby_session(
     if not emby_username:
         return None
 
-    if emby_user_id:
-        existing_by_emby_id = (await db.execute(
-            select(User)
-            .join(UserProfile, UserProfile.user_id == User.id)
-            .where(UserProfile.emby_user_id == emby_user_id)
-            .order_by(UserProfile.account_active.desc(), User.id.asc())
-            .limit(1)
-        )).scalar_one_or_none()
-        if existing_by_emby_id:
-            return existing_by_emby_id
-
-    existing = (await db.execute(
-        select(User).where(func.lower(User.username) == emby_username.lower())
-    )).scalar_one_or_none()
+    existing = await _find_existing_emby_user(
+        db, emby_username=emby_username, emby_user_id=emby_user_id,
+    )
     if existing:
         if emby_user_id:
             profile = (await db.execute(
@@ -74,14 +85,28 @@ async def ensure_user_for_emby_session(
                 await db.commit()
         return existing
 
-    user = User(
-        username=emby_username,
-        hashed_password=hash_password(EXTERNAL_AUTH_PASSWORD_SENTINEL),
-        is_active=True,
-        must_change_password=False,
-    )
-    db.add(user)
-    await db.flush()
+    # First sighting: create the account. The unique-username INSERT runs
+    # inside a SAVEPOINT so a concurrent observation that won the race trips
+    # a clean IntegrityError (recovered below) instead of poisoning the session.
+    try:
+        async with db.begin_nested():
+            user = User(
+                username=emby_username,
+                hashed_password=hash_password(EXTERNAL_AUTH_PASSWORD_SENTINEL),
+                is_active=True,
+                must_change_password=False,
+            )
+            db.add(user)
+            await db.flush()
+    except IntegrityError:
+        # The racing observation already created the row; hand it back.
+        logger.debug(
+            "[USER_IMPORT] concurrent lazy-provision blocked: username=%s",
+            emby_username,
+        )
+        return (await db.execute(
+            select(User).where(func.lower(User.username) == emby_username.lower())
+        )).scalar_one_or_none()
 
     avatar_url = f"/api/emby/user-image/{emby_user_id}" if emby_user_id else None
     # Anonymized pseudo as display name — never the Emby login (kept on

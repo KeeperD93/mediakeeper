@@ -144,3 +144,41 @@ async def test_ensure_user_stores_generated_pseudo_not_emby_login(db_session):
 async def test_ensure_user_returns_none_for_empty_username(db_session):
     assert await ensure_user_for_emby_session(db_session, emby_username="") is None
     assert await ensure_user_for_emby_session(db_session, emby_username=None) is None
+
+
+@pytest.mark.asyncio
+async def test_ensure_user_savepoint_swallows_concurrent_provision(db_session, monkeypatch):
+    """Two playback observations of the same Emby login can both pass the
+    existing-account lookup, then both INSERT the same username — one wins,
+    the other trips the unique constraint. Single-process we reproduce that
+    by pre-inserting the winner and monkeypatching the lookup to miss it
+    (the TOCTOU window). The losing call must recover the winner's row via
+    the SAVEPOINT rollback instead of poisoning the session.
+    """
+    from services.portal import user_import as ui_mod
+
+    winner = User(username="racer", hashed_password="x", is_active=True)
+    db_session.add(winner)
+    await db_session.commit()
+    await db_session.refresh(winner)
+
+    async def _pretend_absent(_db, *, emby_username, emby_user_id):
+        return None
+
+    monkeypatch.setattr(ui_mod, "_find_existing_emby_user", _pretend_absent)
+
+    result = await ensure_user_for_emby_session(
+        db_session, emby_username="racer", emby_user_id="EMBY-RACE",
+    )
+    assert result is not None
+    assert result.id == winner.id
+
+    # Sentinel write proves the outer transaction survived the savepoint
+    # rollback — without the SAVEPOINT this commit would explode.
+    db_session.add(User(username="sentinel", hashed_password="x", is_active=True))
+    await db_session.commit()
+
+    count = (await db_session.execute(
+        select(func.count(User.id)).where(func.lower(User.username) == "racer")
+    )).scalar_one()
+    assert count == 1
