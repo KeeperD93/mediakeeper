@@ -23,6 +23,11 @@ class CategoryRequest(BaseModel):
     path: str
 
 
+class CategoryOrderRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    keys: list[str]
+
+
 @router.get("/categories")
 async def list_categories(
     db: AsyncSession = Depends(get_db),
@@ -74,3 +79,21 @@ async def remove_category(
     await save_categories(db, new_cats)
     logger.info("Category deleted: %s by %s", cat_key, _.username)
     return {"ok": True, "categories": new_cats}
+
+
+@router.put("/categories/order")
+async def reorder_categories(
+    req: CategoryOrderRequest,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    """Persist a new tab order. The body must be a pure permutation of the
+    existing category keys — this endpoint never adds or removes a category."""
+    cats = await get_categories(db)
+    by_key = {c["key"]: c for c in cats}
+    if len(req.keys) != len(cats) or set(req.keys) != set(by_key):
+        return {"error": "category_set_mismatch"}
+    reordered = [by_key[k] for k in req.keys]
+    await save_categories(db, reordered)
+    logger.info("Categories reordered by %s", _.username)
+    return {"ok": True, "categories": reordered}

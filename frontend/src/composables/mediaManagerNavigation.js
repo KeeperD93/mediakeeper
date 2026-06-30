@@ -39,7 +39,9 @@ export async function loadCategories() {
     if (Array.isArray(data) && data.length) {
       CATS.value = data
       catsLoaded.value = true
-      if (!data.some(c => c.key === activeCat.value)) activeCat.value = data[0].key
+      // Always open on the leftmost tab: activeCat is module-scoped and would
+      // otherwise persist the previous tab across remounts.
+      activeCat.value = data[0].key
     }
   } catch {
     /* silent: categories fallback to existing state */
@@ -78,6 +80,31 @@ export async function removeCategory(key) {
     return true
   } catch {
     showToast(_t('common.networkError'), TOAST_TYPE.ERR)
+    return false
+  }
+}
+export async function reorderCategories(orderedKeys) {
+  const snapshot = CATS.value
+  // Optimistic: reflect the new order immediately; revert if the save fails.
+  const byKey = new Map(snapshot.map(c => [c.key, c]))
+  CATS.value = orderedKeys.map(k => byKey.get(k)).filter(Boolean)
+  try {
+    const res = await apiFetch('/api/media/categories/order', {
+      method: 'PUT',
+      body: JSON.stringify({ keys: orderedKeys }),
+    })
+    const data = await res.json()
+    if (data.error) {
+      console.error('[mediaManagerNavigation.reorderCategories] backend error', data.error)
+      showToast(_t('common.apiError.unknown', { status: '' }), TOAST_TYPE.ERR)
+      CATS.value = snapshot
+      return false
+    }
+    if (data.categories) CATS.value = data.categories
+    return true
+  } catch {
+    showToast(_t('common.networkError'), TOAST_TYPE.ERR)
+    CATS.value = snapshot
     return false
   }
 }
