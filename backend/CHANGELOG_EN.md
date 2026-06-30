@@ -12,6 +12,9 @@ This section intentionally has no date so it is not shown to users.
 ### Changed
 - Users (admin) — random pseudo shown for accounts without a chosen pseudo; admin account labelled "Administrator".
 
+### Fixed
+- Media Manager — always opens on the leftmost tab.
+
 ## [1.0.0-rc.5] - 2026-06-30
 
 ### Added

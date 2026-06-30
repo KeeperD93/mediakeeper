@@ -39,7 +39,9 @@ export async function loadCategories() {
     if (Array.isArray(data) && data.length) {
       CATS.value = data
       catsLoaded.value = true
-      if (!data.some(c => c.key === activeCat.value)) activeCat.value = data[0].key
+      // Always open on the leftmost tab: activeCat is module-scoped and would
+      // otherwise persist the previous tab across remounts.
+      activeCat.value = data[0].key
     }
   } catch {
     /* silent: categories fallback to existing state */
