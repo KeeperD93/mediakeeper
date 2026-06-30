@@ -83,6 +83,8 @@ def serialize_public_profile(profile: UserProfile, *, lang: str = "fr") -> dict:
     pseudo yet, render the localized anonymous alias instead of the
     auto-populated Emby username so other viewers can never derive it.
     """
+    # must_set False means a confirmed/chosen name: shown verbatim to every
+    # viewer (no per-viewer localization — see services.portal._display_name).
     effective = None if profile.display_name_must_set else profile.display_name
     return {
         "id": profile.id,
