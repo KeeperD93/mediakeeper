@@ -3,9 +3,10 @@
 - source_media: only one active at a time (Emby, Plex, Jellyfin)
 - tool         : independent complementary tools
 """
+from constants.tools import TOOL_EMBY, TOOL_OPENSUBTITLES, TOOL_TMDB
 
 TOOLS_DEFINITION = {
-    "emby": {
+    TOOL_EMBY: {
         "label":    "Emby",
         "type":     "source_media",
         "icon":     "emby.svg",
@@ -15,7 +16,7 @@ TOOLS_DEFINITION = {
             {"key": "api_key",    "label": "API key",                 "placeholder": "Dashboard -> Advanced -> Security"},
         ],
     },
-    "tmdb": {
+    TOOL_TMDB: {
         "label":    "TMDB",
         "type":     "api",
         "icon":     "tmdb.svg",
@@ -23,7 +24,7 @@ TOOLS_DEFINITION = {
             {"key": "api_key", "label": "API key (Bearer Token)", "placeholder": "https://www.themoviedb.org/settings/api"},
         ],
     },
-    "opensubtitles": {
+    TOOL_OPENSUBTITLES: {
         "label":    "OpenSubtitles",
         "type":     "api",
         "icon":     "",

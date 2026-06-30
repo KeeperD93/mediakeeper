@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict
 from core.database import get_db
 from core.http_client import get_internal_client, get_external_client
 from core.url_safety import safe_url
+from constants.tools import TOOL_EMBY, TOOL_OPENSUBTITLES, TOOL_TMDB
 from api.auth import get_current_user
 from models.user import User
 from services.settings import (
@@ -177,10 +178,10 @@ async def save_tool(
     )
 
     # Invalidate caches whenever the tool config changes
-    if tool_key == "tmdb":
+    if tool_key == TOOL_TMDB:
         from services.tmdb import invalidate_tmdb_key_cache
         invalidate_tmdb_key_cache()
-    if tool_key in ("emby", "plex", "jellyfin"):
+    if tool_key in (TOOL_EMBY, "plex", "jellyfin"):
         from services.emby import invalidate_emby_config_cache
         invalidate_emby_config_cache()
     return {"success": True, "tool": tool_key, "enabled": req.enabled}
@@ -273,7 +274,7 @@ async def ping_tool(
         return {"online": False, "reason": "disabled"}
 
     # Special case: OpenSubtitles (no URL, probe via API)
-    if tool_key == "opensubtitles":
+    if tool_key == TOOL_OPENSUBTITLES:
         api_key = cfg.get("api_key", "").strip()
         if not api_key:
             return {"online": False, "reason": "no_api_key"}
@@ -296,7 +297,7 @@ async def ping_tool(
             return {"online": False, "reason": "tool_ping_failed"}
 
     # Special case: TMDB (no URL, probe via API)
-    if tool_key == "tmdb":
+    if tool_key == TOOL_TMDB:
         api_key = cfg.get("api_key", "").strip()
         if not api_key:
             return {"online": False, "reason": "no_api_key"}
