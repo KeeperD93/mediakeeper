@@ -9,8 +9,14 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+### Added
+- Média Manager — réordonner les onglets par glisser-déposer.
+
 ### Changed
 - Utilisateurs (admin) — pseudo aléatoire affiché pour les comptes sans pseudo choisi ; compte administrateur libellé « Administrateur ».
+
+### Fixed
+- Média Manager — ouverture toujours sur l'onglet le plus à gauche.
 
 ## [1.0.0-rc.5] - 2026-06-30
 

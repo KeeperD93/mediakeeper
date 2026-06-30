@@ -20,10 +20,18 @@
         :class="{
           active: activeCat === c.key,
           'drop-hl': dragOverCat === c.key && draggedActive && activeCat !== c.key,
+          'mm-tab--dragging': draggingTabKey === c.key,
+          'insert-before': draggingTabKey && insertKey === c.key && insertSide === 'before',
+          'insert-after': draggingTabKey && insertKey === c.key && insertSide === 'after',
         }"
+        draggable="true"
+        aria-keyshortcuts="Alt+ArrowLeft Alt+ArrowRight"
         @click="setCat(c.key)"
         @contextmenu.prevent="openDeleteMenu($event, c.key)"
-        @dragover.prevent="onDragOverTab(c.key)"
+        @keydown="onTabKeydown($event, c.key)"
+        @dragstart="onTabDragStart($event, c.key)"
+        @dragend="onTabDragEnd"
+        @dragover.prevent="onDragOverTab($event, c.key)"
         @dragleave="onDragLeaveTab"
         @drop.prevent="onDropTab(c.key)"
       >
@@ -196,18 +204,73 @@ const {
   toggleMultiCat,
   addCategory,
   removeCategory,
+  reorderCategories,
 } = useMediaManager()
 const draggedActive = computed(() => dragOverCat.value !== null)
 
-function onDragOverTab(key) {
+// Tab reorder: drag a tab to reposition it. Distinct from dropping FILES on a
+// tab — a tab drag sets draggingTabKey up front so the drop handler tells the
+// two gestures apart.
+const draggingTabKey = ref(null)
+const insertKey = ref(null)
+const insertSide = ref('before')
+
+function onTabDragStart(e, key) {
+  draggingTabKey.value = key
+  e.dataTransfer.effectAllowed = 'move'
+  e.dataTransfer.setData('text/plain', key) // Firefox needs data to start a drag
+}
+function onTabDragEnd() {
+  draggingTabKey.value = null
+  insertKey.value = null
+  insertSide.value = 'before'
+}
+function onDragOverTab(e, key) {
+  if (draggingTabKey.value) {
+    const rect = e.currentTarget.getBoundingClientRect()
+    insertKey.value = key
+    insertSide.value = e.clientX - rect.left < rect.width / 2 ? 'before' : 'after'
+    return
+  }
   dragOverCat.value = key
 }
 function onDragLeaveTab() {
-  dragOverCat.value = null
+  if (!draggingTabKey.value) dragOverCat.value = null
 }
 function onDropTab(key) {
+  if (draggingTabKey.value) {
+    applyTabReorder()
+    return
+  }
   dragOverCat.value = null
   dropOnCat(key)
+}
+function applyTabReorder() {
+  const dragged = draggingTabKey.value
+  const target = insertKey.value
+  const side = insertSide.value
+  draggingTabKey.value = null
+  insertKey.value = null
+  if (!dragged || !target || dragged === target) return
+  const keys = CATS.value.map(c => c.key).filter(k => k !== dragged)
+  let idx = keys.indexOf(target)
+  if (idx === -1) return
+  if (side === 'after') idx += 1
+  keys.splice(idx, 0, dragged)
+  if (keys.some((k, i) => k !== CATS.value[i]?.key)) reorderCategories(keys)
+}
+// Keyboard reorder: Alt+ArrowLeft/Right moves the focused tab one slot, so
+// reordering is operable without a pointer (the drag gesture is desktop-only).
+function onTabKeydown(e, key) {
+  if (!e.altKey || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return
+  e.preventDefault()
+  const keys = CATS.value.map(c => c.key)
+  const from = keys.indexOf(key)
+  const to = e.key === 'ArrowLeft' ? from - 1 : from + 1
+  if (from === -1 || to < 0 || to >= keys.length) return
+  keys.splice(to, 0, keys.splice(from, 1)[0])
+  reorderCategories(keys)
+  nextTick(() => tabsRef.value?.querySelectorAll('.mm-tab:not(.mm-tab-all)')[to]?.focus())
 }
 
 // Add category

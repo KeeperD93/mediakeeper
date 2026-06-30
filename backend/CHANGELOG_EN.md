@@ -9,8 +9,14 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Added
+- Media Manager — reorder tabs by drag and drop.
+
 ### Changed
 - Users (admin) — random pseudo shown for accounts without a chosen pseudo; admin account labelled "Administrator".
+
+### Fixed
+- Media Manager — always opens on the leftmost tab.
 
 ## [1.0.0-rc.5] - 2026-06-30
 
