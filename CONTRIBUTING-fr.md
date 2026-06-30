@@ -262,6 +262,19 @@ Avant d'ajouter une dépendance :
 
 ---
 
+## Travailler sur le wiki
+
+Le wiki du projet vit dans un dépôt **séparé** (`mediakeeper.wiki.git`), cloné indépendamment de celui-ci. Un clone neuf du wiki **n'hérite pas** de la config git locale de ce dépôt : votre premier commit peut donc être attribué à la mauvaise identité. Réglez votre identité de commit dans le clone du wiki avant de committer :
+
+```sh
+git clone https://github.com/KeeperD93/mediakeeper.wiki.git
+cd mediakeeper.wiki
+git config user.name "<votre nom>"
+git config user.email "<votre email>"
+```
+
+---
+
 ## Processus de release
 
 Les releases sont taggées depuis `main` en CLI ; seul le mainteneur les déclenche. Les contributeurs ont juste à savoir que leurs PRs mergées s'accumulent dans les sections `[Unreleased]` des quatre changelogs (`backend/CHANGELOG_{EN,FR}.md`, `backend/CHANGELOG_PORTAL_{EN,FR}.md`) et seront livrées dans la prochaine release taggée.
