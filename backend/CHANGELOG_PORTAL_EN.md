@@ -14,6 +14,8 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+## [1.0.0-rc.5] - 2026-06-30
+
 ### Added
 - Posters — movie or series duration shown on hover everywhere.
 - Posters — TMDB rating (gold star) shown on hover.

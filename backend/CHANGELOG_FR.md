@@ -9,6 +9,8 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+## [1.0.0-rc.5] - 2026-06-30
+
 ### Added
 - Planificateur — scan d'index Emby (ajouts récents + complet), délai configurable.
 - Portail — langue par défaut du portail configurable (réglages admin).
