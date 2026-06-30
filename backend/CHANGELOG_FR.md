@@ -9,6 +9,8 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+## [1.0.0-rc.6] - 2026-06-30
+
 ### Added
 - Média Manager — réordonner les onglets par glisser-déposer.
 

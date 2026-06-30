@@ -16,6 +16,8 @@ utilisateurs.
 
 ## [Unreleased]
 
+## [1.0.0-rc.6] - 2026-06-30
+
 ### Changed
 - Confidentialité — pseudo aléatoire (« Renard-Bleu-42 ») au lieu de l'identifiant Emby pour les comptes sans pseudo.
 - Choix du pseudo — la modale 1ʳᵉ connexion pré-remplit le pseudo généré (à garder ou changer).
