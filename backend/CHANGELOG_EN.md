@@ -9,6 +9,8 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+## [1.0.0-rc.6] - 2026-06-30
+
 ### Added
 - Media Manager — reorder tabs by drag and drop.
 

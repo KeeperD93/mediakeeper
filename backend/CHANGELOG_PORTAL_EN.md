@@ -14,6 +14,8 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+## [1.0.0-rc.6] - 2026-06-30
+
 ### Changed
 - Privacy — random pseudo ("Blue-Fox-42") instead of the Emby login for accounts without a chosen pseudo.
 - Pseudo picker — the first-login modal pre-fills the generated pseudo (keep or change it).
