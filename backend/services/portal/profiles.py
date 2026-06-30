@@ -125,7 +125,11 @@ async def get_public_profile(
 async def is_display_name_taken(
     db: AsyncSession, candidate: str, *, exclude_user_id: int | None = None,
 ) -> bool:
-    """Case-insensitive existence check, optionally ignoring one user."""
+    """Case-insensitive existence check, optionally ignoring one user.
+
+    Unlocked read: callers tolerate the check-then-insert race — uniqueness
+    is best-effort (see ``resolve_unique_display_name``).
+    """
     if not candidate:
         return False
     stmt = select(UserProfile.user_id).where(
@@ -139,7 +143,17 @@ async def is_display_name_taken(
 async def resolve_unique_display_name(
     db: AsyncSession, base: str, *, exclude_user_id: int | None = None,
 ) -> str:
-    """Return ``base`` if free, otherwise ``base2``, ``base3``... until free."""
+    """Return ``base`` if free, otherwise ``base2``, ``base3``... until free.
+
+    Best-effort only: the check-then-insert window is not serialized and
+    there is no DB-level uniqueness constraint on ``display_name`` (only
+    ``user_id`` is unique). Two concurrent provisionings of the same base
+    can both read "free" and store the same name. Tolerated by design — a
+    duplicate is cosmetic (``user_id`` stays the identity), and for
+    unconfirmed accounts the stored value is not even shown (the per-viewer
+    pseudo is regenerated live). The user-set path (``update_profile``)
+    additionally rejects an already-taken name with a 409.
+    """
     candidate = (base or "").strip() or "user"
     if not await is_display_name_taken(db, candidate, exclude_user_id=exclude_user_id):
         return candidate

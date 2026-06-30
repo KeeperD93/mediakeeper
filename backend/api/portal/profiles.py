@@ -2,7 +2,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
-from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
@@ -27,15 +26,15 @@ class ProfileUpdate(BaseModel):
     # ``avatar_url`` is intentionally omitted: a custom MediaKeeper avatar is
     # uploaded via POST /me/avatar (see api/portal/profile_settings.py),
     # while the Emby-proxied URL is owned by the auth flow.
-    display_name: Optional[str] = Field(None, min_length=1, max_length=50)
-    bio: Optional[str] = Field(None, max_length=500)
-    favorite_genres: Optional[list[int]] = None
-    selected_badges: Optional[list[str]] = Field(None, max_length=5)
-    selected_title: Optional[str] = Field(None, max_length=100)
-    avatar_effect: Optional[str] = Field(None, max_length=50)
-    is_public: Optional[bool] = None
-    language: Optional[str] = Field(None, min_length=2, max_length=10)
-    hide_adult: Optional[bool] = None
+    display_name: str | None = Field(None, min_length=1, max_length=50)
+    bio: str | None = Field(None, max_length=500)
+    favorite_genres: list[int] | None = None
+    selected_badges: list[str] | None = Field(None, max_length=5)
+    selected_title: str | None = Field(None, max_length=100)
+    avatar_effect: str | None = Field(None, max_length=50)
+    is_public: bool | None = None
+    language: str | None = Field(None, min_length=2, max_length=10)
+    hide_adult: bool | None = None
 
 
 async def _user_unlocked_titles(db: AsyncSession, user_id: int) -> set[str]:

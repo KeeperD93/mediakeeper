@@ -1,6 +1,7 @@
 """Aggregate the tool config + detect the active media source."""
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.tools import TOOL_EMBY
 from ._emby_urls import get_emby_server_id
 from ._kv import get_all_settings
 from ._tools_def import TOOLS_DEFINITION
@@ -59,7 +60,7 @@ async def get_tools_config(
         # on the portal. Uses the raw url/api_key in this scope so
         # the /System/Info call still works when ``mask_secrets`` is
         # True for the caller.
-        if tool_key == "emby" and tool_config["enabled"]:
+        if tool_key == TOOL_EMBY and tool_config["enabled"]:
             tool_config["server_id"] = await get_emby_server_id({
                 "url":     all_settings.get(f"{tool_key}.url", ""),
                 "api_key": all_settings.get(f"{tool_key}.api_key", ""),
@@ -73,7 +74,7 @@ async def get_tools_config(
 async def get_active_media_source(db: AsyncSession) -> dict | None:
     """Return the active media source (emby/plex/jellyfin) or None."""
     config = await get_tools_config(db)
-    for key in ("emby",):
+    for key in (TOOL_EMBY,):
         if config.get(key, {}).get("enabled"):
             return {"source": key, **config[key]}
     return None

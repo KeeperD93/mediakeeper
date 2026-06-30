@@ -7,6 +7,13 @@ stable, friendly ``Renard-Bleu-42`` / ``Blue-Fox-42`` pseudo derived from
 its ``user_id`` — so the same account always renders identically across
 surfaces, localized to the viewer.
 
+Not a unique key: ~114k combinations (48 nouns, 24 adjectives, 99
+numbers), drawn independently per ``user_id``. By the birthday model a
+given account has only a ~0.4% chance of sharing its pseudo at 500
+users, yet the odds that *some* pair collides reach ~66% at 500 (~16%
+at 200). Harmless — a friendly label only; ``user_id`` stays the sole
+identity.
+
 French nouns/adjectives are kept masculine on purpose so the
 ``Noun Adjective`` pairing never breaks gender agreement. English flips to
 the natural ``Adjective Noun`` order. The two lists are index-aligned

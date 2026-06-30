@@ -262,6 +262,19 @@ Before adding any dependency:
 
 ---
 
+## Working on the wiki
+
+The project wiki lives in a **separate** repository (`mediakeeper.wiki.git`), cloned independently from this one. A fresh wiki clone does **not** inherit this repository's local git config, so your first commit there can be attributed to the wrong identity. Set your commit identity inside the wiki clone before committing:
+
+```sh
+git clone https://github.com/KeeperD93/mediakeeper.wiki.git
+cd mediakeeper.wiki
+git config user.name "<your name>"
+git config user.email "<your email>"
+```
+
+---
+
 ## Release process
 
 Releases are tagged from `main` via the CLI; the maintainer is the only person who triggers them. Contributors only need to know that their merged PRs accumulate in the `[Unreleased]` sections of the four changelogs (`backend/CHANGELOG_{EN,FR}.md`, `backend/CHANGELOG_PORTAL_{EN,FR}.md`) and will ship in the next tagged release.

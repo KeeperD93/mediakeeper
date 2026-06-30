@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.database import get_db
 from api.auth import get_current_user, resolve_valid_admin_session
 from models.user import User
+from constants.tools import TOOL_EMBY, TOOL_TMDB
 from services.settings import get_setting, set_setting, get_tools_config
 from services.media_manager import get_categories
 
@@ -40,15 +41,15 @@ async def get_status(
     done = await get_setting(db, ONBOARDING_KEY)
     config = await get_tools_config(db)
 
-    emby_cfg = config.get("emby", {})
-    tmdb_cfg = config.get("tmdb", {})
+    emby_cfg = config.get(TOOL_EMBY, {})
+    tmdb_cfg = config.get(TOOL_TMDB, {})
 
     return {
         "authenticated":    True,
         "onboarding_done":  done == "true",
         "steps": {
-            "emby":    bool(emby_cfg.get("url") and emby_cfg.get("api_key")),
-            "tmdb":    bool(tmdb_cfg.get("api_key")),
+            TOOL_EMBY: bool(emby_cfg.get("url") and emby_cfg.get("api_key")),
+            TOOL_TMDB: bool(tmdb_cfg.get("api_key")),
             "folders": await _check_folders_configured(db),
         },
     }
