@@ -1,26 +1,9 @@
 """Anonymous display-name helper — privacy boundary for user-facing surfaces."""
-import pytest
-
 from services.portal._display_name import (
     parse_accept_language,
     resolve_display_name,
-    stable_user_tag,
 )
-
-
-def test_stable_user_tag_returns_4_digit_string():
-    tag = stable_user_tag(42)
-    assert isinstance(tag, str)
-    assert len(tag) == 4
-    assert tag.isdigit()
-
-
-def test_stable_user_tag_is_deterministic():
-    assert stable_user_tag(42) == stable_user_tag(42)
-
-
-def test_stable_user_tag_distinguishes_neighbours():
-    assert stable_user_tag(42) != stable_user_tag(43)
+from services.portal._pseudo_words import generate_pseudo
 
 
 def test_resolve_returns_provided_pseudo_fr():
@@ -31,26 +14,34 @@ def test_resolve_returns_provided_pseudo_strips_whitespace():
     assert resolve_display_name("  Alice  ", 1, "fr") == "Alice"
 
 
-def test_resolve_returns_fr_alias_when_username_missing():
+def test_resolve_generates_fr_pseudo_when_username_missing():
     out = resolve_display_name(None, 1, "fr")
-    assert out.startswith("Utilisateur ")
-    assert out.split(" ")[-1] == stable_user_tag(1)
+    assert out == generate_pseudo(1, "fr")
+    assert " " not in out  # hyphen-joined word-word-number, never raw login
 
 
-def test_resolve_returns_en_alias_for_en_us_locale():
-    out = resolve_display_name(None, 1, "en-US")
-    assert out.startswith("User ")
-    assert out.split(" ")[-1] == stable_user_tag(1)
+def test_resolve_generates_en_pseudo_for_en_us_locale():
+    assert resolve_display_name(None, 1, "en-US") == generate_pseudo(1, "en")
 
 
 def test_resolve_empty_string_treated_as_missing():
-    out = resolve_display_name("", 1, "fr")
-    assert out.startswith("Utilisateur ")
+    assert resolve_display_name("", 1, "fr") == generate_pseudo(1, "fr")
 
 
 def test_resolve_whitespace_only_treated_as_missing():
-    out = resolve_display_name("   ", 1, "fr")
-    assert out.startswith("Utilisateur ")
+    assert resolve_display_name("   ", 1, "fr") == generate_pseudo(1, "fr")
+
+
+def test_resolve_admin_label_fr():
+    assert resolve_display_name("admin", 1, "fr", is_admin=True) == "Administrateur"
+
+
+def test_resolve_admin_label_en():
+    assert resolve_display_name("admin", 1, "en-US", is_admin=True) == "Administrator"
+
+
+def test_resolve_admin_label_wins_over_username_and_pseudo():
+    assert resolve_display_name("Bob", 99, "fr", is_admin=True) == "Administrateur"
 
 
 def test_parse_accept_language_picks_en_when_first():
@@ -67,8 +58,3 @@ def test_parse_accept_language_defaults_to_fr_when_empty():
 
 def test_parse_accept_language_returns_fr_when_no_english():
     assert parse_accept_language("fr-FR,fr;q=0.9,de;q=0.8") == "fr"
-
-
-@pytest.mark.parametrize("uid", [1, 17, 42, 99, 1024, 99999])
-def test_stable_user_tag_always_four_digits(uid):
-    assert len(stable_user_tag(uid)) == 4

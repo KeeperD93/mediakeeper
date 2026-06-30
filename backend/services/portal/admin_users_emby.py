@@ -24,6 +24,7 @@ from models.user import User
 from models.user_preferences import UserPreference
 from models.portal.profile import UserProfile
 from services.emby.users import email_from_emby_user, list_emby_users
+from services.portal._pseudo_words import generate_pseudo
 from services.portal.profiles import resolve_unique_display_name
 
 from .admin_users_audit import record_audit
@@ -254,8 +255,11 @@ async def import_selected_emby_users(
             skipped += 1
             continue
 
+        # Store an anonymized pseudo, never the Emby login — public
+        # surfaces must not be able to derive it. The raw login stays on
+        # ``User.username`` for operators.
         unique_name = await resolve_unique_display_name(
-            db, emby_name, exclude_user_id=user.id,
+            db, generate_pseudo(user.id, "fr"), exclude_user_id=user.id,
         )
         inserted = await _insert_profile_or_skip(
             db,

@@ -15,7 +15,7 @@ from models.portal.social import (
     UserList,
     UserListContributor,
 )
-from services.portal._display_name import stable_user_tag
+from services.portal._pseudo_words import generate_pseudo
 from tests._portal_profile_helpers import (
     PORTAL_COOKIE, make_portal_user, portal_token,
 )
@@ -60,7 +60,7 @@ async def test_contributor_without_pseudo_renders_anonymous_alias(client, db_ses
     contributors = resp.json().get("contributors") or []
     row = next((c for c in contributors if c["user_id"] == contributor.id), None)
     assert row is not None
-    expected = f"Utilisateur {stable_user_tag(contributor.id)}"
+    expected = generate_pseudo(contributor.id, "fr")
     assert row["username"] == expected
     assert row["username"] != "my_emby_login"
 
@@ -112,7 +112,7 @@ async def test_owner_without_pseudo_renders_anonymous_alias(client, db_session):
     resp = await client.get(f"/api/portal/lists/{lst.id}")
     assert resp.status_code == 200
     body = resp.json()
-    expected = f"Utilisateur {stable_user_tag(owner.id)}"
+    expected = generate_pseudo(owner.id, "fr")
     assert body["owner_username"] == expected
     assert body["owner_username"] != "lo_emby_login"
 
@@ -145,8 +145,8 @@ async def test_owner_with_pseudo_returns_real_value(client, db_session):
 
 @pytest.mark.asyncio
 async def test_contributor_alias_localizes_to_english(client, db_session):
-    """``Accept-Language`` drives the alias prefix: ``Utilisateur 1234``
-    in FR, ``User 1234`` in EN."""
+    """``Accept-Language`` drives the pseudo language: ``Renard-Bleu-42``
+    in FR, ``Blue-Fox-42`` in EN."""
     owner, contributor, lst = await _make_collab_list_with_contributor(
         db_session,
         owner_username="lc-owner-3",
@@ -163,4 +163,4 @@ async def test_contributor_alias_localizes_to_english(client, db_session):
     contributors = resp.json().get("contributors") or []
     row = next((c for c in contributors if c["user_id"] == contributor.id), None)
     assert row is not None
-    assert row["username"] == f"User {stable_user_tag(contributor.id)}"
+    assert row["username"] == generate_pseudo(contributor.id, "en")

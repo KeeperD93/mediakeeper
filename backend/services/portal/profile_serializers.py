@@ -87,7 +87,9 @@ def serialize_public_profile(profile: UserProfile, *, lang: str = "fr") -> dict:
     return {
         "id": profile.id,
         "user_id": profile.user_id,
-        "display_name": resolve_display_name(effective, profile.user_id, lang),
+        "display_name": resolve_display_name(
+            effective, profile.user_id, lang, is_admin=profile.role == "admin"
+        ),
         "avatar_url": _resolve_avatar_url(profile),
         "bio": profile.bio,
         "level": profile.level,
@@ -125,6 +127,8 @@ def build_private_placeholder(profile: UserProfile, *, lang: str) -> dict:
     return {
         "is_private": True,
         "user_id": profile.user_id,
-        "display_name": resolve_display_name(effective_name, profile.user_id, lang),
+        "display_name": resolve_display_name(
+            effective_name, profile.user_id, lang, is_admin=profile.role == "admin"
+        ),
         "avatar_url": _resolve_avatar_url(profile),
     }

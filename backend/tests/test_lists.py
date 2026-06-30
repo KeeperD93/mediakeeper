@@ -8,6 +8,7 @@ from models.portal.social import (
     UserList, PRIVACY_PUBLIC_READONLY, PRIVACY_COLLABORATIVE, PRIVACY_PRIVATE,
 )
 from models.user import User
+from services.portal._pseudo_words import generate_pseudo
 
 
 async def _bootstrap(db, username, role="viewer"):
@@ -365,13 +366,13 @@ async def test_public_list_owner_alias_localized_to_viewer(client, db_session):
         "/api/portal/lists/public", headers={"Accept-Language": "en"},
     )).json()
     row = next(r for r in en["items"] if r["owner_id"] == owner.id)
-    assert row["owner_username"].startswith("User ")
+    assert row["owner_username"] == generate_pseudo(owner.id, "en")
 
     fr = (await client.get(
         "/api/portal/lists/public", headers={"Accept-Language": "fr"},
     )).json()
     row = next(r for r in fr["items"] if r["owner_id"] == owner.id)
-    assert row["owner_username"].startswith("Utilisateur ")
+    assert row["owner_username"] == generate_pseudo(owner.id, "fr")
 
 
 @pytest.mark.asyncio
@@ -415,7 +416,7 @@ async def test_contributor_sees_alias_for_soft_deleted_owner(client, db_session)
         if r["id"] == list_id
     )
     assert row["owner_username"] != "RealOwner"
-    assert row["owner_username"].startswith("Utilisateur ")
+    assert row["owner_username"] == generate_pseudo(owner.id, "fr")
 
 
 @pytest.mark.asyncio

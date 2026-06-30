@@ -111,7 +111,6 @@ async def _gather_participant_progress(
         select(
             MKEventInvitation.user_id,
             MKEventInvitation.user_step,
-            User.username,
             UserProfile.display_name,
             UserProfile.display_name_must_set,
             UserProfile.emby_user_id,
@@ -127,7 +126,7 @@ async def _gather_participant_progress(
 
     participants: list[dict] = []
     ineligible = 0
-    for user_id, user_step, username, display, must_set, emby_user_id in rows:
+    for user_id, user_step, display, must_set, emby_user_id in rows:
         if not emby_user_id:
             ineligible += 1
             continue
@@ -176,9 +175,9 @@ async def _gather_participant_progress(
                 seconds_remaining = None
             meets = session_meets_threshold(pos, dur)
 
-        username_for_display = (
-            None if (must_set or display is None) else display
-        ) or username
+        # Silent accounts (must_set) resolve to the anonymous pseudo —
+        # never fall back to the raw Emby login (privacy boundary).
+        username_for_display = None if (must_set or display is None) else display
         participants.append({
             "user_id": user_id,
             "display_name": resolve_display_name(

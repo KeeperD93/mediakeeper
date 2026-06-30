@@ -14,6 +14,7 @@ build/
 *.whl
 .venv/
 .venv-audit/
+.venv-test/
 venv/
 env/
 

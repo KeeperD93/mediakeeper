@@ -82,7 +82,7 @@
          :open binding could race with profile arrival on a fresh F5). The
          backend ``display_name_must_set`` flag is the single source of
          truth and only flips back to false on a saved display name. -->
-    <ForceUsernameModal v-if="mustPickUsername" :open="true" />
+    <ForceUsernameModal v-if="mustPickUsername" :open="true" :initial="profile?.display_name || ''" />
   </div>
 </template>
 

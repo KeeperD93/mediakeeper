@@ -272,6 +272,35 @@ async def test_non_participant_gets_403(db_session):
     assert exc.value.detail == "not_member"
 
 
+@pytest.mark.asyncio
+async def test_marathon_participant_renders_pseudo_not_emby_login(db_session):
+    """Privacy boundary: a silent participant (never picked a pseudo,
+    display_name_must_set defaults True) surfaces the anonymous pseudo on
+    the cinema-room panel — never the raw Emby login."""
+    from services.portal._pseudo_words import generate_pseudo
+
+    creator = await _make_user(db_session, username="leak-creator")
+    silent = await _make_user(db_session, username="silent_emby_login")
+    event = await _make_event(
+        db_session, creator=creator,
+        tmdb_items=[
+            {"tmdb_id": 81, "media_type": "movie", "title": "A"},
+            {"tmdb_id": 82, "media_type": "movie", "title": "B"},
+        ],
+    )
+    await _accept_and_seat(db_session, event=event, user=silent, seat=0)
+    await _index_tmdb(db_session, emby_item_id="emby-81", tmdb_id=81)
+    duration = 6000 * TICKS
+    await _record_playback(
+        db_session, user=silent, emby_item_id="emby-81",
+        position_ticks=int(duration * 0.5), duration_ticks=duration,
+    )
+    result = await compute_marathon_progress(db_session, event.id, creator.id)
+    panel = next(p for p in result["participants"] if p["user_id"] == silent.id)
+    assert panel["display_name"] == generate_pseudo(silent.id, "fr")
+    assert panel["display_name"] != "silent_emby_login"
+
+
 # ─── advance_marathon_step ─────────────────────────────────────────────
 
 

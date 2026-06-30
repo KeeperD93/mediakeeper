@@ -20,6 +20,7 @@ from core.security import EXTERNAL_AUTH_PASSWORD_SENTINEL, hash_password
 from models.user import User
 from models.user_preferences import UserPreference
 from models.portal.profile import UserProfile
+from services.portal._pseudo_words import generate_pseudo
 from services.portal.profiles import resolve_unique_display_name
 
 logger = logging.getLogger("mediakeeper.portal.user_import")
@@ -83,8 +84,10 @@ async def ensure_user_for_emby_session(
     await db.flush()
 
     avatar_url = f"/api/emby/user-image/{emby_user_id}" if emby_user_id else None
+    # Anonymized pseudo as display name — never the Emby login (kept on
+    # ``User.username``). Public surfaces must not derive the identifier.
     unique_name = await resolve_unique_display_name(
-        db, emby_username, exclude_user_id=user.id,
+        db, generate_pseudo(user.id, "fr"), exclude_user_id=user.id,
     )
     profile = UserProfile(
         user_id=user.id,

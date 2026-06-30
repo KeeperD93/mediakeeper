@@ -77,4 +77,39 @@ describe('ForceUsernameModal — focus trap integration', () => {
 
     w.unmount()
   })
+
+  it('opens empty when no initial pseudo is provided (back-compat)', async () => {
+    const w = buildModal()
+    await flushPromises()
+    expect(w.get('#pt-force-uname-input').element.value).toBe('')
+    w.unmount()
+  })
+
+  it('pre-fills the generated pseudo (silent account never shows an Emby login)', async () => {
+    const w = buildModal({ initial: 'Renard-Bleu-42' })
+    await flushPromises()
+    expect(w.get('#pt-force-uname-input').element.value).toBe('Renard-Bleu-42')
+    w.unmount()
+  })
+
+  it('pre-filled pseudo is savable (reason=current) and confirm keeps it', async () => {
+    apiGet.mockResolvedValue({ available: true, reason: 'current' })
+    updateProfile.mockResolvedValue({})
+
+    const w = buildModal({ initial: 'Renard-Bleu-42' })
+    await flushPromises()
+    // Wait out the 300ms check-username debounce that arm() armed.
+    await new Promise(resolve => setTimeout(resolve, 350))
+    await flushPromises()
+    expect(apiGet).toHaveBeenCalledWith(expect.stringContaining('Renard-Bleu-42'))
+
+    const btn = w.get('.pt-settings-btn--primary')
+    expect(btn.attributes('disabled')).toBeUndefined()
+
+    await btn.trigger('click')
+    await flushPromises()
+    expect(updateProfile).toHaveBeenCalledWith({ display_name: 'Renard-Bleu-42' })
+    expect(w.emitted('done')).toBeTruthy()
+    w.unmount()
+  })
 })

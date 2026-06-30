@@ -11,6 +11,7 @@ from sqlalchemy import func, select
 
 from models.portal.profile import UserProfile
 from models.user import User
+from services.portal._pseudo_words import generate_pseudo
 from services.portal.user_import import ensure_user_for_emby_session
 
 
@@ -124,31 +125,19 @@ async def test_ensure_user_backfills_emby_id_for_existing_username(db_session):
 
 
 @pytest.mark.asyncio
-async def test_ensure_user_resolves_display_name_collision(db_session):
-    a = User(
-        username="reused",
-        hashed_password="x",
-        is_active=True,
-    )
-    db_session.add(a)
-    await db_session.commit()
-    await db_session.refresh(a)
-
-    db_session.add(UserProfile(
-        user_id=a.id,
-        display_name="reused",
-        role="viewer",
-        account_active=False,
-    ))
-    await db_session.commit()
-
-    new_user = await ensure_user_for_emby_session(
-        db_session, emby_username="reused2",
+async def test_ensure_user_stores_generated_pseudo_not_emby_login(db_session):
+    """The provisioned profile stores a generated pseudo, never the raw
+    Emby login — which stays on ``User.username`` for operators."""
+    user = await ensure_user_for_emby_session(
+        db_session, emby_username="secret_emby_login", emby_user_id="EMBY-555",
     )
     profile = (await db_session.execute(
-        select(UserProfile).where(UserProfile.user_id == new_user.id)
+        select(UserProfile).where(UserProfile.user_id == user.id)
     )).scalar_one()
-    assert profile.display_name == "reused2"
+    assert user.username == "secret_emby_login"  # login preserved for operators
+    assert profile.display_name == generate_pseudo(user.id, "fr")
+    assert profile.display_name != "secret_emby_login"
+    assert profile.display_name_must_set is True
 
 
 @pytest.mark.asyncio

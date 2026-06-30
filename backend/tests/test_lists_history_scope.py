@@ -11,7 +11,7 @@ from core.security import hash_password
 from models.user import User
 from models.portal.profile import UserProfile
 from models.portal.social import UserList, UserListContributor, UserListHistory
-from services.portal._display_name import stable_user_tag
+from services.portal._pseudo_words import generate_pseudo
 
 
 async def _make_user(db_session, *, username: str, password: str = "AnyPassword123!"):
@@ -182,13 +182,13 @@ async def test_history_anonymises_silent_account_to_fr_alias(client, admin_user,
     names = [it["username"] for it in r.json()["items"]]
     assert "silentlogin" not in names
     assert "StaleName" not in names
-    assert f"Utilisateur {stable_user_tag(silent.id)}" in names
+    assert generate_pseudo(silent.id, "fr") in names
 
 
 @pytest.mark.asyncio
 async def test_history_anonymous_alias_localises_to_en(client, admin_user, db_session, portal_login):
-    """Accept-Language: en must localize the anonymous alias to 'User {tag}'
-    (the same silent account that renders 'Utilisateur {tag}' in French)."""
+    """Accept-Language: en localizes the anonymous pseudo to Blue-Fox-NN
+    (the same silent account that renders Renard-Bleu-NN in French)."""
     await portal_login(client)
     lst, silent = await _seed_silent_actor_history(db_session, admin_user)
 
@@ -198,8 +198,8 @@ async def test_history_anonymous_alias_localises_to_en(client, admin_user, db_se
     )
     assert r.status_code == 200
     names = [it["username"] for it in r.json()["items"]]
-    assert f"User {stable_user_tag(silent.id)}" in names
-    assert f"Utilisateur {stable_user_tag(silent.id)}" not in names
+    assert generate_pseudo(silent.id, "en") in names
+    assert generate_pseudo(silent.id, "fr") not in names
 
 
 @pytest.mark.asyncio

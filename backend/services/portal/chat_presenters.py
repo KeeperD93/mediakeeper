@@ -18,15 +18,19 @@ async def chat_user_display_name(
     """
     row = (
         await db.execute(
-            select(UserProfile.display_name, UserProfile.display_name_must_set)
+            select(
+                UserProfile.display_name,
+                UserProfile.display_name_must_set,
+                UserProfile.role,
+            )
             .where(UserProfile.user_id == user_id)
         )
     ).first()
     if row is None:
         return resolve_display_name(None, user_id, lang)
-    display_name, must_set = row
+    display_name, must_set, role = row
     effective = None if must_set else display_name
-    return resolve_display_name(effective, user_id, lang)
+    return resolve_display_name(effective, user_id, lang, is_admin=role == "admin")
 
 
 def serialize_message(m: ChatMessage, user_name: str | None = None) -> dict:
