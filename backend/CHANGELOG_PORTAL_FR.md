@@ -16,6 +16,8 @@ utilisateurs.
 
 ## [Unreleased]
 
+## [1.0.0-rc.5] - 2026-06-30
+
 ### Added
 - Jaquettes — durée du film ou série affichée au survol partout.
 - Jaquettes — note TMDB (étoile dorée) affichée au survol.

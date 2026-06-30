@@ -9,6 +9,8 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+## [1.0.0-rc.5] - 2026-06-30
+
 ### Added
 - Scheduler — Emby index scan (recently-added + full), interval configurable.
 - Portal — configurable default portal language (admin settings).
