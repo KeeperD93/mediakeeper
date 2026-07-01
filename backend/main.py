@@ -40,6 +40,7 @@ from api.csp_report import router as csp_report_router
 from api.portal import router as portal_router
 from api.portal_changelog import router as portal_changelog_router
 from api.duplicates import router as duplicates_router
+from api.feedback import router as feedback_router
 from api.healthcheck import router as healthcheck_router
 from api.logs import router as logs_router
 from api.media import router as media_router
@@ -142,6 +143,7 @@ app.include_router(settings_router)
 app.include_router(alerts_router)
 app.include_router(logs_router)
 app.include_router(duplicates_router)
+app.include_router(feedback_router)
 app.include_router(notifications_router)
 app.include_router(watchlist_router)
 app.include_router(stats_router)

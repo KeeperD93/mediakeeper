@@ -70,6 +70,9 @@
     "unknownError": "Erreur inconnue",
     "apiError": {
       "not_configured": "Service non configuré",
+      "invalid_webhook": "Lien webhook Discord invalide",
+      "send_failed": "Impossible de joindre le webhook Discord.",
+      "invalid_platform": "Plateforme invalide",
       "no_download_link": "Lien de téléchargement indisponible",
       "emby_not_configured": "Emby non configuré",
       "item_not_found": "Élément introuvable",
@@ -331,6 +334,53 @@
     "language": "Langue",
     "notifications": "Notifications",
     "noNotifications": "Aucune notification"
+  },
+  "feedback": {
+    "menuEntry": "Signaler un bug ou une suggestion",
+    "config": {
+      "title": "Remontée de bugs",
+      "desc": "Envoyez bugs et suggestions vers un salon Discord. Une fois activée, l'entrée « Signaler un bug ou une suggestion » apparaît dans le menu de votre avatar, en haut à droite.",
+      "channel": "Discord",
+      "codeLabel": "Code de liaison",
+      "codeHint": "Collez uniquement le code transmis par le mainteneur du projet. Ne créez rien vous-même.",
+      "codePlaceholder": "Coller le code de liaison…",
+      "pseudoLabel": "Pseudo Discord",
+      "pseudoDesc": "Joint à chaque envoi pour que le mainteneur puisse vous contacter si nécessaire.",
+      "test": "Tester la liaison",
+      "saved": "Configuration enregistrée",
+      "testSent": "Ping envoyé — demandez au mainteneur s'il l'a reçu."
+    },
+    "modal": {
+      "title": "Signaler un bug ou une suggestion",
+      "type_bug": "Bug",
+      "type_suggestion": "Suggestion",
+      "titleField": "Titre",
+      "descField": "Description",
+      "reproField": "Comment reproduire",
+      "platform": "Plateforme",
+      "platform_desktop": "Ordinateur",
+      "platform_mobile": "Mobile",
+      "resolution": "Résolution",
+      "resolutionNone": "Non précisée",
+      "resolutionOther": "Autre…",
+      "resolutionPlaceholder": "ex. 1280x720",
+      "tags": "Étiquettes",
+      "anonymous": "Envoyer de façon anonyme",
+      "budget": "{used} / {max} caractères",
+      "submit": "Envoyer",
+      "sent": "Signalement effectué avec succès."
+    },
+    "tags": {
+      "urgent": "Urgent",
+      "crash": "Plantage",
+      "data_loss": "Perte de données",
+      "security": "Sécurité",
+      "visual": "Visuel",
+      "performance": "Performance",
+      "accessibility": "Accessibilité",
+      "translation": "Traduction",
+      "compatibility": "Compatibilité"
+    }
   },
   "deploymentBanner": {
     "encryptionKey": {

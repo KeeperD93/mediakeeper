@@ -54,6 +54,8 @@
         </div>
       </section>
     </template>
+
+    <FeedbackConfigSection />
   </div>
 </template>
 
@@ -64,6 +66,7 @@ import { useApi } from '@/composables/useApi'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import ToolCard from '@/components/settings/ToolCard.vue'
+import FeedbackConfigSection from '@/components/settings/FeedbackConfigSection.vue'
 
 const { t } = useI18n()
 const { apiGet, apiPost } = useApi()

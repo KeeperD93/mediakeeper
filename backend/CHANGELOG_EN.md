@@ -9,6 +9,9 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Added
+- Bug reporting — send bugs/suggestions to a Discord channel (admin settings).
+
 ## [1.0.0-rc.6] - 2026-06-30
 
 ### Added

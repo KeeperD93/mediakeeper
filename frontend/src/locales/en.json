@@ -70,6 +70,9 @@
     "unknownError": "Unknown error",
     "apiError": {
       "not_configured": "Service not configured",
+      "invalid_webhook": "Invalid Discord webhook link",
+      "send_failed": "Could not reach the Discord webhook.",
+      "invalid_platform": "Invalid platform",
       "no_download_link": "Download link unavailable",
       "emby_not_configured": "Emby not configured",
       "item_not_found": "Item not found",
@@ -331,6 +334,53 @@
     "language": "Language",
     "notifications": "Notifications",
     "noNotifications": "No notifications"
+  },
+  "feedback": {
+    "menuEntry": "Report a bug or suggestion",
+    "config": {
+      "title": "Bug reporting",
+      "desc": "Send bugs and suggestions to a Discord channel. Once enabled, the “Report a bug or suggestion” entry appears in your avatar menu, top-right.",
+      "channel": "Discord",
+      "codeLabel": "Link code",
+      "codeHint": "Paste only the code shared by the project maintainer. Do not create your own.",
+      "codePlaceholder": "Paste the link code…",
+      "pseudoLabel": "Discord handle",
+      "pseudoDesc": "Attached to each report so the maintainer can contact you if necessary.",
+      "test": "Test the link",
+      "saved": "Configuration saved",
+      "testSent": "Ping sent — ask the maintainer if it arrived."
+    },
+    "modal": {
+      "title": "Report a bug or suggestion",
+      "type_bug": "Bug",
+      "type_suggestion": "Suggestion",
+      "titleField": "Title",
+      "descField": "Description",
+      "reproField": "How to reproduce",
+      "platform": "Platform",
+      "platform_desktop": "Desktop",
+      "platform_mobile": "Mobile",
+      "resolution": "Resolution",
+      "resolutionNone": "Not specified",
+      "resolutionOther": "Other…",
+      "resolutionPlaceholder": "e.g. 1280x720",
+      "tags": "Tags",
+      "anonymous": "Send anonymously",
+      "budget": "{used} / {max} characters",
+      "submit": "Send",
+      "sent": "Report sent successfully."
+    },
+    "tags": {
+      "urgent": "Urgent",
+      "crash": "Crash",
+      "data_loss": "Data loss",
+      "security": "Security",
+      "visual": "Visual",
+      "performance": "Performance",
+      "accessibility": "Accessibility",
+      "translation": "Translation",
+      "compatibility": "Compatibility"
+    }
   },
   "deploymentBanner": {
     "encryptionKey": {

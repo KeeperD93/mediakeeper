@@ -138,6 +138,10 @@
                 </div>
               </div>
               <div class="tb-user-sep" />
+              <button v-if="canReportFeedback" class="tb-user-item" @click="openFeedback">
+                <Bug :size="16" :stroke-width="1.8" />
+                <span>{{ t('feedback.menuEntry') }}</span>
+              </button>
               <button class="tb-user-item" @click="handleLogout">
                 <LogOut :size="16" :stroke-width="1.8" />
                 <span>{{ t('topbar.logout') }}</span>
@@ -154,6 +158,7 @@
       :donation="donation"
       @close="donationOpen = false"
     />
+    <FeedbackModal :open="feedbackOpen" @close="feedbackOpen = false" />
   </header>
 </template>
 
@@ -164,10 +169,12 @@ import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/composables/useAuth'
 import { useTopbarAlerts } from '@/composables/useTopbarAlerts'
 import { useDonationConfig } from '@/composables/useDonationConfig'
+import { useFeedbackConfig } from '@/composables/useFeedbackConfig'
 import { rootZoom } from '@/utils/zoom'
-import { Bell, ChevronDown, Heart, LayoutGrid, LogOut, Menu } from 'lucide-vue-next'
+import { Bell, Bug, ChevronDown, Heart, LayoutGrid, LogOut, Menu } from 'lucide-vue-next'
 import MkAvatar from '@/components/common/MkAvatar.vue'
 import DonationOverlay from '@/components/common/DonationOverlay.vue'
+import FeedbackModal from '@/components/feedback/FeedbackModal.vue'
 import { DASHBOARD_EDIT_EVENT } from '@/constants/dashboardEvents'
 import '@/assets/styles/app-topbar.css'
 import '@/assets/styles/app-topbar-dropdowns.css'
@@ -193,6 +200,11 @@ const showNotifPanel = ref(false)
 const showUserMenu = ref(false)
 const donationOpen = ref(false)
 const { donation, loadDonation } = useDonationConfig()
+const feedbackOpen = ref(false)
+const { config: feedbackConfig, loadFeedbackConfig } = useFeedbackConfig()
+const canReportFeedback = computed(
+  () => !!(feedbackConfig.value?.enabled && feedbackConfig.value?.webhook_configured),
+)
 const notifRef = ref(null)
 const userRef = ref(null)
 const notifDdPos = ref({})
@@ -274,6 +286,7 @@ onMounted(() => {
   document.addEventListener('click', onClickOutside)
   document.addEventListener('keydown', onKeydown)
   loadDonation()
+  loadFeedbackConfig()
 })
 
 onUnmounted(() => {
@@ -286,6 +299,11 @@ function toggleNotifPanel() {
   // Opening the panel is the read action — clears the badge and
   // flags every listed alert on the server.
   if (showNotifPanel.value && alertCount.value > 0) markAllRead()
+}
+
+function openFeedback() {
+  showUserMenu.value = false
+  feedbackOpen.value = true
 }
 
 async function handleLogout() {

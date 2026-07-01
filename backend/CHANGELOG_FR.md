@@ -9,6 +9,9 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+### Added
+- Remontée de bugs — signalez bugs/suggestions vers un salon Discord (réglages admin).
+
 ## [1.0.0-rc.6] - 2026-06-30
 
 ### Added
