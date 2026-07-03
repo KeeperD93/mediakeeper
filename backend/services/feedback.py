@@ -4,6 +4,7 @@ Cycle 1: an admin sets a Discord webhook ("link code") + a pseudo, then reports
 are relayed straight to that webhook, pre-formatted as the tracker's
 ``=== BUG === … === END ===`` import block. No storage — pure relay.
 """
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from services.discord import send_discord_webhook
@@ -20,6 +21,14 @@ PLATFORMS = ("both", "desktop", "mobile")
 # Discord caps a webhook message at 2000 chars; the block is wrapped in a
 # ``` fence (8 chars), so the block itself must stay under this.
 _MAX_BLOCK = 1990
+# Per-field caps applied AFTER _defuse expansion so the assembled block can never
+# breach _MAX_BLOCK, even on adversarial "==="-laden input (which _defuse expands
+# ~1.6x). Legit values sit well under these; only forged/oversized fields clip.
+_CAP_TITLE = 120
+_CAP_LOC = 80  # zone / module / tab each
+_CAP_REPRO = 400
+_CAP_RESOLUTION = 60
+_CAP_PSEUDO = 100
 
 
 async def get_feedback_config(db: AsyncSession) -> dict:
@@ -68,25 +77,25 @@ def build_report_block(fields: dict, pseudo: str) -> str:
         platform = "both"
     head = (
         "=== BUG ===\n"
-        f"TITRE: {_oneline(fields.get('title', ''))}\n"
-        f"ZONE: {_oneline(fields.get('zone', '')) or '-'}\n"
-        f"MODULE: {_oneline(fields.get('module', '')) or '-'}\n"
-        f"ONGLET: {_oneline(fields.get('tab', '')) or '-'}\n"
+        f"TITRE: {_oneline(fields.get('title', ''))[:_CAP_TITLE]}\n"
+        f"ZONE: {_oneline(fields.get('zone', ''))[:_CAP_LOC] or '-'}\n"
+        f"MODULE: {_oneline(fields.get('module', ''))[:_CAP_LOC] or '-'}\n"
+        f"ONGLET: {_oneline(fields.get('tab', ''))[:_CAP_LOC] or '-'}\n"
         f"PLATEFORME: {platform}\n"
         "DESCRIPTION:\n"
     )
 
     extras: list[str] = []
-    repro = _defuse(fields.get("reproduction", "")).strip()
+    repro = _defuse(fields.get("reproduction", "")).strip()[:_CAP_REPRO]
     if repro:
         extras.append(f"Reproduction: {repro}")
-    resolution = _oneline(fields.get("resolution", ""))
+    resolution = _oneline(fields.get("resolution", ""))[:_CAP_RESOLUTION]
     if resolution:
         extras.append(f"Résolution: {resolution}")
     kind = "Suggestion" if fields.get("type") == "suggestion" else "Bug"
     tags = [s for s in (_oneline(t)[:30] for t in fields.get("tags", [])) if s]
     extras.append(f"Type: {kind}" + (f" · Étiquettes: {', '.join(tags)}" if tags else ""))
-    who = pseudo.strip() if pseudo and pseudo.strip() else "Anonyme"
+    who = (pseudo.strip() if pseudo and pseudo.strip() else "Anonyme")[:_CAP_PSEUDO]
     extras.append(f"Signalé par: {who} · MediaKeeper {APP_VERSION}")
     tail = "\n\n" + "\n".join(extras) + "\n=== END ==="
 
@@ -153,3 +162,94 @@ async def create_pending_report(
         )
     )
     await db.commit()
+
+
+def _serialize_report(row) -> dict:
+    return {
+        "id": row.id,
+        "reporter_name": row.reporter_name,
+        "type": row.type,
+        "title": row.title,
+        "description": row.description,
+        "reproduction": row.reproduction,
+        "zone": row.zone,
+        "module": row.module,
+        "tab": row.tab,
+        "platform": row.platform,
+        "resolution": row.resolution,
+        "tags": row.tags or [],
+        "anonymous": bool(row.anonymous),
+        "status": row.status,
+        "created_at": row.created_at.isoformat() if row.created_at else None,
+    }
+
+
+async def list_feedback_reports(db: AsyncSession, status: str = "pending") -> list[dict]:
+    from models.portal.feedback_report import FeedbackReport
+
+    stmt = (
+        select(FeedbackReport)
+        .where(FeedbackReport.status == status)
+        .order_by(FeedbackReport.created_at.desc())
+    )
+    rows = (await db.execute(stmt)).scalars().all()
+    return [_serialize_report(r) for r in rows]
+
+
+async def update_feedback_report(db: AsyncSession, report_id: int, updates: dict) -> bool:
+    """Edit a pending report in place. False if missing or already handled."""
+    from models.portal.feedback_report import FeedbackReport
+
+    row = await db.get(FeedbackReport, report_id)
+    if row is None or row.status != "pending":
+        return False
+    for key, value in updates.items():
+        setattr(row, key, value)
+    await db.commit()
+    return True
+
+
+async def validate_feedback_report(db: AsyncSession, report_id: int) -> str:
+    """Relay a pending report to Discord then delete it. Returns a status token:
+    ``sent`` | ``not_found`` | ``not_configured`` | ``send_failed``."""
+    from models.portal.feedback_report import FeedbackReport
+
+    row = await db.get(FeedbackReport, report_id)
+    if row is None or row.status != "pending":
+        return "not_found"
+    cfg = await get_feedback_config(db)
+    if not cfg["enabled"] or not cfg["webhook_url"]:
+        return "not_configured"
+    fields = {
+        "type": row.type,
+        "title": row.title,
+        "description": row.description,
+        "reproduction": row.reproduction or "",
+        "zone": row.zone or "",
+        "module": row.module or "",
+        "tab": row.tab or "",
+        "platform": row.platform or "both",
+        "resolution": row.resolution or "",
+        "tags": row.tags or [],
+        "anonymous": bool(row.anonymous),
+    }
+    if not await send_feedback_report(db, fields):
+        return "send_failed"
+    await db.delete(row)
+    await db.commit()
+    return "sent"
+
+
+async def reject_feedback_report(db: AsyncSession, report_id: int) -> bool:
+    """Mark a pending report rejected (kept 30 days). False if missing."""
+    from datetime import datetime, timezone
+
+    from models.portal.feedback_report import FeedbackReport
+
+    row = await db.get(FeedbackReport, report_id)
+    if row is None or row.status != "pending":
+        return False
+    row.status = "rejected"
+    row.rejected_at = datetime.now(timezone.utc)
+    await db.commit()
+    return True

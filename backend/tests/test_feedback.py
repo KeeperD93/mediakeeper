@@ -6,10 +6,12 @@ import pytest
 from sqlalchemy import select
 
 from core.encryption import ENCRYPTED_PREFIX
+from models.portal.feedback_report import FeedbackReport
 from models.settings import Setting
 from services.feedback import (
     KEY_WEBHOOK,
     build_report_block,
+    create_pending_report,
     get_feedback_config,
     save_feedback_config,
 )
@@ -57,6 +59,23 @@ def test_block_truncates_to_discord_budget():
     assert len(block) <= 1990
     assert block.rstrip().endswith("=== END ===")
     assert "…" in block
+
+
+def test_block_bounded_on_defuse_expanded_fields():
+    # Every field maxed with `===` runs (which _defuse expands ~1.6x) must still
+    # yield a block under Discord's cap with the trailing delimiter intact.
+    hostile = "=" * 400
+    block = build_report_block(
+        {
+            "title": hostile, "description": hostile, "reproduction": hostile,
+            "zone": hostile, "module": hostile, "tab": hostile,
+            "resolution": hostile, "platform": "desktop", "tags": ["=" * 40] * 12,
+        },
+        "=" * 200,
+    )
+    assert len(block) <= 1990
+    assert block.startswith("=== BUG ===")
+    assert block.rstrip().endswith("=== END ===")
 
 
 # --- HTTP: config masking + validation --------------------------------------
@@ -155,3 +174,138 @@ async def test_feedback_endpoints_require_admin_auth(client):
         await client.post("/api/feedback", json={"title": "x", "description": "y"})
     ).status_code == 401
     assert (await client.post("/api/feedback/test")).status_code == 401
+
+
+# --- HTTP: moderation queue (cycle 3b) --------------------------------------
+
+
+async def _seed_pending(db_session, **over):
+    fields = {
+        "type": "bug", "title": "Boom", "description": "it broke",
+        "platform": "desktop", "tags": ["Urgent"],
+    }
+    fields.update(over)
+    await create_pending_report(
+        db_session, reporter_user_id=None, reporter_name="Dan", fields=fields
+    )
+    return (
+        await db_session.execute(select(FeedbackReport).order_by(FeedbackReport.id.desc()))
+    ).scalars().first()
+
+
+async def _reload(db_session, report_id):
+    db_session.expire_all()  # drop identity-map cache: read what the endpoint committed
+    return (
+        await db_session.execute(select(FeedbackReport).where(FeedbackReport.id == report_id))
+    ).scalar_one_or_none()
+
+
+@pytest.mark.asyncio
+async def test_list_reports_returns_pending(authed_client, db_session):
+    await _seed_pending(db_session, title="First")
+    await _seed_pending(db_session, title="Second")
+    items = (await authed_client.get("/api/feedback/reports")).json()["items"]
+    assert {i["title"] for i in items} == {"First", "Second"}
+    assert all(i["status"] == "pending" for i in items)
+    assert (await authed_client.get("/api/feedback/reports?status=rejected")).json()["items"] == []
+
+
+@pytest.mark.asyncio
+async def test_list_reports_rejects_bad_status(authed_client):
+    r = await authed_client.get("/api/feedback/reports?status=bogus")
+    assert r.status_code == 422
+    assert r.json()["detail"] == "invalid_status"
+
+
+@pytest.mark.asyncio
+async def test_edit_report_updates_fields(authed_client, db_session):
+    row = await _seed_pending(db_session)
+    r = await authed_client.patch(
+        f"/api/feedback/reports/{row.id}", json={"title": "Fixed", "tags": ["Bug"]}
+    )
+    assert r.status_code == 200, r.text
+    reloaded = await _reload(db_session, row.id)
+    assert reloaded.title == "Fixed" and reloaded.tags == ["Bug"]
+
+
+@pytest.mark.asyncio
+async def test_edit_report_not_found(authed_client):
+    assert (
+        await authed_client.patch("/api/feedback/reports/999999", json={"title": "x"})
+    ).status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_edit_report_rejects_bad_platform(authed_client, db_session):
+    row = await _seed_pending(db_session)
+    r = await authed_client.patch(
+        f"/api/feedback/reports/{row.id}", json={"platform": "tablet"}
+    )
+    assert r.status_code == 422
+    assert r.json()["detail"] == "invalid_platform"
+
+
+@pytest.mark.asyncio
+async def test_edit_report_rejects_null_required_field(authed_client, db_session):
+    row = await _seed_pending(db_session)
+    for field in ("title", "description", "type"):
+        r = await authed_client.patch(
+            f"/api/feedback/reports/{row.id}", json={field: None}
+        )
+        assert r.status_code == 422, f"{field}: {r.text}"
+        assert r.json()["detail"] == "invalid_" + field
+
+
+@pytest.mark.asyncio
+async def test_validate_report_relays_and_deletes(authed_client, db_session, monkeypatch):
+    stub = AsyncMock(return_value=True)
+    monkeypatch.setattr("services.feedback.send_discord_webhook", stub)
+    await save_feedback_config(
+        db_session, enabled=True, discord_pseudo="Dan", webhook_url=_WEBHOOK
+    )
+    row = await _seed_pending(db_session, title="Ship it")
+    r = await authed_client.post(f"/api/feedback/reports/{row.id}/validate")
+    assert r.status_code == 200, r.text
+    assert "TITRE: Ship it" in stub.call_args.args[1]["content"]
+    assert await _reload(db_session, row.id) is None  # dropped from the queue after relay
+
+
+@pytest.mark.asyncio
+async def test_validate_report_keeps_pending_on_send_failure(authed_client, db_session, monkeypatch):
+    monkeypatch.setattr("services.feedback.send_discord_webhook", AsyncMock(return_value=False))
+    await save_feedback_config(db_session, enabled=True, webhook_url=_WEBHOOK)
+    row = await _seed_pending(db_session)
+    r = await authed_client.post(f"/api/feedback/reports/{row.id}/validate")
+    assert r.status_code == 502
+    assert r.json()["detail"] == "send_failed"
+    assert (await _reload(db_session, row.id)).status == "pending"  # not lost
+
+
+@pytest.mark.asyncio
+async def test_validate_report_requires_config(authed_client, db_session):
+    row = await _seed_pending(db_session)  # feature never configured
+    r = await authed_client.post(f"/api/feedback/reports/{row.id}/validate")
+    assert r.status_code == 400
+    assert r.json()["detail"] == "not_configured"
+
+
+@pytest.mark.asyncio
+async def test_reject_report_marks_rejected_then_unvalidatable(authed_client, db_session):
+    row = await _seed_pending(db_session)
+    assert (await authed_client.post(f"/api/feedback/reports/{row.id}/reject")).status_code == 200
+    reloaded = await _reload(db_session, row.id)
+    assert reloaded.status == "rejected" and reloaded.rejected_at is not None
+    # a rejected report is no longer a pending target
+    assert (
+        await authed_client.post(f"/api/feedback/reports/{row.id}/validate")
+    ).status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_moderation_endpoints_require_admin_auth(client):
+    assert (await client.get("/api/feedback/reports")).status_code == 401
+    assert (
+        await client.patch("/api/feedback/reports/1", json={"title": "x"})
+    ).status_code == 401
+    assert (await client.post("/api/feedback/reports/1/validate")).status_code == 401
+    assert (await client.post("/api/feedback/reports/1/reject")).status_code == 401
