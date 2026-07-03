@@ -19,6 +19,7 @@ PERMISSION_KEYS = (
     "can_problems",
     "can_lists",
     "can_earn_xp_offline",
+    "can_report_feedback",
 )
 
 # Default permission set applied when an admin switches a user's role.
@@ -30,6 +31,7 @@ ROLE_PRESETS: dict[str, dict[str, bool]] = {
         "can_problems": True,
         "can_lists": True,
         "can_earn_xp_offline": False,
+        "can_report_feedback": False,
     },
     ROLE_MODERATOR: {
         "can_chat": True,
@@ -37,6 +39,7 @@ ROLE_PRESETS: dict[str, dict[str, bool]] = {
         "can_problems": True,
         "can_lists": True,
         "can_earn_xp_offline": False,
+        "can_report_feedback": False,
     },
     ROLE_ADMIN: {
         "can_chat": True,
@@ -44,6 +47,7 @@ ROLE_PRESETS: dict[str, dict[str, bool]] = {
         "can_problems": True,
         "can_lists": True,
         "can_earn_xp_offline": True,
+        "can_report_feedback": False,
     },
 }
 

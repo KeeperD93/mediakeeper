@@ -2046,14 +2046,16 @@
         "can_portal": "Accès aux demandes",
         "can_problems": "Accès aux problèmes",
         "can_lists": "Accès aux listes",
-        "can_earn_xp_offline": "Gagne de l'XP même sans connexion"
+        "can_earn_xp_offline": "Gagne de l'XP même sans connexion",
+        "can_report_feedback": "Remonter des bugs au mainteneur"
       },
       "permissionsHelp": {
         "can_chat": "L'utilisateur peut écrire dans le salon de discussion.",
         "can_portal": "L'utilisateur voit le module Demandes et peut soumettre des requêtes.",
         "can_problems": "L'utilisateur peut signaler et suivre les problèmes.",
         "can_lists": "L'utilisateur peut créer et alimenter ses listes de lecture.",
-        "can_earn_xp_offline": "Une activité Emby détectée crédite de l'XP même sans connexion MK."
+        "can_earn_xp_offline": "Une activité Emby détectée crédite de l'XP même sans connexion MK.",
+        "can_report_feedback": "L'utilisateur peut envoyer des bugs et suggestions au mainteneur (soumis à votre validation)."
       },
       "bulk": {
         "selected": "{count} sélectionné(s)"
@@ -2703,6 +2705,7 @@
       "dailyDigest": "Quoi de neuf aujourd'hui ?",
       "help": "Aide",
       "whatsNew": "Changelog",
+      "feedback": "Signaler un bug ou une suggestion",
       "logout": "Déconnexion",
       "admin": "Administrateur",
       "user": "Utilisateur",

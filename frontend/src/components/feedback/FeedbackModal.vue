@@ -52,7 +52,7 @@
               <textarea v-model="reproduction" rows="2" maxlength="500" />
             </label>
 
-            <label class="fbk-field">
+            <label v-if="showLocation" class="fbk-field">
               <span class="fbk-flabel">{{ $t('feedback.modal.pageField') }}</span>
               <select v-model="pageRoute" class="fbk-select" @change="onPageChange">
                 <option value="">{{ $t('feedback.modal.locationNone') }}</option>
@@ -62,7 +62,7 @@
               </select>
             </label>
 
-            <label v-if="ongletOptions.length" class="fbk-field">
+            <label v-if="showLocation && ongletOptions.length" class="fbk-field">
               <span class="fbk-flabel">{{ $t('feedback.modal.ongletField') }}</span>
               <select v-model="tabId" class="fbk-select">
                 <option value="">{{ $t('feedback.modal.locationNone') }}</option>
@@ -168,7 +168,11 @@ import {
 } from '@/constants/feedback'
 import '@/assets/styles/feedback-modal.css'
 
-const props = defineProps({ open: { type: Boolean, default: false } })
+const props = defineProps({
+  open: { type: Boolean, default: false },
+  endpoint: { type: String, default: '/api/feedback' },
+  showLocation: { type: Boolean, default: true },
+})
 const emit = defineEmits(['close'])
 const titleId = useId()
 
@@ -266,11 +270,16 @@ function reset() {
   platforms.mobile = false
   selectedTags.value = new Set()
   anonymous.value = false
-  // Pre-fill the location from the page the admin is on + its active tab.
-  const match = FEEDBACK_PAGES.find(p => p.route === route.name)
-  pageRoute.value = match ? match.route : ''
-  const tabs = match?.tabsPath ? SIDEBAR_SUB_TABS[match.tabsPath] || [] : []
-  tabId.value = tabs.some(tb => tb.id === route.query.tab) ? String(route.query.tab) : ''
+  // Pre-fill the location from the page the admin is on + its active tab
+  // (admin surface only — the portal has no page/onglet taxonomy).
+  pageRoute.value = ''
+  tabId.value = ''
+  if (props.showLocation) {
+    const match = FEEDBACK_PAGES.find(p => p.route === route.name)
+    pageRoute.value = match ? match.route : ''
+    const tabs = match?.tabsPath ? SIDEBAR_SUB_TABS[match.tabsPath] || [] : []
+    tabId.value = tabs.some(tb => tb.id === route.query.tab) ? String(route.query.tab) : ''
+  }
   // Pre-fill the screen resolution.
   const r = detectResolution()
   resolutionChoice.value = r.choice
@@ -288,7 +297,7 @@ async function submit() {
   if (!canSubmit.value) return
   busy.value = true
   try {
-    await apiPost('/api/feedback', {
+    await apiPost(props.endpoint, {
       type: type.value,
       title: title.value.trim(),
       description: description.value.trim(),

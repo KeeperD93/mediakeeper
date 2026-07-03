@@ -2046,14 +2046,16 @@
         "can_portal": "Requests access",
         "can_problems": "Problems access",
         "can_lists": "Lists access",
-        "can_earn_xp_offline": "Earn XP without logging in"
+        "can_earn_xp_offline": "Earn XP without logging in",
+        "can_report_feedback": "Report bugs to the maintainer"
       },
       "permissionsHelp": {
         "can_chat": "User can post in the lounge.",
         "can_portal": "User sees the Requests module and can submit requests.",
         "can_problems": "User can report and follow problems.",
         "can_lists": "User can create and curate playlists.",
-        "can_earn_xp_offline": "Detected Emby activity grants XP even without a MK login."
+        "can_earn_xp_offline": "Detected Emby activity grants XP even without a MK login.",
+        "can_report_feedback": "The user can send bugs and suggestions to the maintainer (subject to your validation)."
       },
       "bulk": {
         "selected": "{count} selected"
@@ -2703,6 +2705,7 @@
       "dailyDigest": "Today's digest",
       "help": "Help",
       "whatsNew": "Changelog",
+      "feedback": "Report a bug or suggestion",
       "logout": "Log out",
       "admin": "Administrator",
       "user": "User",
