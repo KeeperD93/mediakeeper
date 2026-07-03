@@ -76,6 +76,9 @@
                   <div class="tb-notif-content">
                     <p class="tb-notif-text">
                       <span v-if="a.kind === 'chat_report'" class="tb-notif-pill">CHAT</span>
+                      <span v-else-if="a.kind === 'feedback_pending'" class="tb-notif-pill">
+                        {{ t('feedback.tracker.pill') }}
+                      </span>
                       {{ a.name }}
                     </p>
                     <p v-if="a.author_name" class="tb-notif-date">
@@ -92,6 +95,11 @@
                         @click.stop="deleteChatMessage(a)"
                       >
                         {{ $t('requestsAdmin.chatReport.delete') }}
+                      </button>
+                    </div>
+                    <div v-if="a.kind === 'feedback_pending'" class="tb-notif-actions">
+                      <button class="tb-notif-act" @click.stop="openTracker">
+                        {{ t('feedback.tracker.open') }}
                       </button>
                     </div>
                   </div>
@@ -218,6 +226,11 @@ const isOnDashboard = computed(() => route.name === 'dashboard')
 
 function dispatchDashboardEdit() {
   window.dispatchEvent(new Event(DASHBOARD_EDIT_EVENT))
+}
+
+function openTracker() {
+  showNotifPanel.value = false
+  router.push('/tracker')
 }
 
 const pageTitle = computed(() => {

@@ -170,14 +170,12 @@ const PAGES = computed(() => [
     subtitle: t('notifications.title'),
     icon: PAGE_ICONS['/notifications'],
   },
-  // Tracker module hidden from quick search until it is built out — kept as a
-  // simple uncomment to restore (pairs with the sidebarModules.js entry).
-  // {
-  //   path: '/tracker',
-  //   title: t('sidebar.tracker'),
-  //   subtitle: t('sidebar.tracker'),
-  //   icon: PAGE_ICONS['/tracker'],
-  // },
+  {
+    path: '/tracker',
+    title: t('sidebar.tracker'),
+    subtitle: t('pageMeta.tracker'),
+    icon: PAGE_ICONS['/tracker'],
+  },
   {
     path: '/portal',
     title: t('sidebar.requests'),
