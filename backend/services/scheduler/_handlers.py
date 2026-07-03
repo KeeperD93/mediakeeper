@@ -113,6 +113,17 @@ async def _handler_clear_image_cache(_db: AsyncSession) -> dict:
     return {"removed": removed}
 
 
+async def _handler_feedback_purge(db: AsyncSession) -> dict:
+    """Hard-delete feedback reports rejected more than 30 days ago.
+
+    No-op when the rejected bin is empty, so it is safe to leave on by
+    default — a report only lands here after an admin explicitly rejects it.
+    """
+    from services.feedback import purge_rejected_reports
+    removed = await purge_rejected_reports(db, older_than_days=30)
+    return {"removed": removed}
+
+
 async def _handler_cleanup_available_requests(db: AsyncSession) -> dict:
     """Drop ``available`` media requests older than the configured window.
 

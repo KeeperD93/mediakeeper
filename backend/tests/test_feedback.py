@@ -13,6 +13,7 @@ from services.feedback import (
     build_report_block,
     create_pending_report,
     get_feedback_config,
+    purge_rejected_reports,
     save_feedback_config,
 )
 
@@ -309,3 +310,37 @@ async def test_moderation_endpoints_require_admin_auth(client):
     ).status_code == 401
     assert (await client.post("/api/feedback/reports/1/validate")).status_code == 401
     assert (await client.post("/api/feedback/reports/1/reject")).status_code == 401
+
+
+# --- service: 30-day purge of rejected reports (cycle 3c) --------------------
+
+
+@pytest.mark.asyncio
+async def test_purge_rejected_reports_respects_retention(db_session):
+    from datetime import datetime, timedelta, timezone
+
+    async def _mk(title):
+        await create_pending_report(
+            db_session, reporter_user_id=None, reporter_name="X",
+            fields={"title": title, "description": "d"},
+        )
+        return (
+            await db_session.execute(select(FeedbackReport).order_by(FeedbackReport.id.desc()))
+        ).scalars().first()
+
+    old = await _mk("old")
+    old.status = "rejected"
+    old.rejected_at = datetime.now(timezone.utc) - timedelta(days=31)
+    recent = await _mk("recent")
+    recent.status = "rejected"
+    recent.rejected_at = datetime.now(timezone.utc) - timedelta(days=5)
+    await _mk("pending")  # still pending — never purged regardless of age
+    await db_session.commit()
+
+    removed = await purge_rejected_reports(db_session, older_than_days=30)
+    assert removed == 1
+    db_session.expire_all()
+    titles = {
+        r.title for r in (await db_session.execute(select(FeedbackReport))).scalars().all()
+    }
+    assert titles == {"recent", "pending"}

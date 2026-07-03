@@ -93,3 +93,18 @@ async def test_submit_portal_feedback_requires_config(client, admin_user, portal
     r = await client.post("/api/portal/feedback", json={"title": "x", "description": "y"})
     assert r.status_code == 400
     assert r.json()["detail"] == "not_configured"
+
+
+@pytest.mark.asyncio
+async def test_submit_portal_feedback_denied_without_permission(client, admin_user, portal_login, db_session):
+    # A non-admin portal user lacking can_report_feedback must be refused (admins
+    # always bypass require_permission, so demote the role to exercise the gate).
+    await portal_login(client)
+    prof = (await db_session.execute(select(UserProfile))).scalars().first()
+    prof.role = "viewer"
+    prof.can_report_feedback = False
+    await db_session.commit()
+    await save_feedback_config(db_session, enabled=True, webhook_url=_WEBHOOK)
+    r = await client.post("/api/portal/feedback", json={"title": "x", "description": "y"})
+    assert r.status_code == 403
+    assert r.json()["detail"] == "permission_denied:can_report_feedback"

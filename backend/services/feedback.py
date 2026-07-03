@@ -4,7 +4,7 @@ Cycle 1: an admin sets a Discord webhook ("link code") + a pseudo, then reports
 are relayed straight to that webhook, pre-formatted as the tracker's
 ``=== BUG === … === END ===`` import block. No storage — pure relay.
 """
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from services.discord import send_discord_webhook
@@ -253,3 +253,18 @@ async def reject_feedback_report(db: AsyncSession, report_id: int) -> bool:
     row.rejected_at = datetime.now(timezone.utc)
     await db.commit()
     return True
+
+
+async def purge_rejected_reports(db: AsyncSession, older_than_days: int = 30) -> int:
+    """Hard-delete rejected reports past the retention window. Returns the count."""
+    from datetime import datetime, timedelta, timezone
+
+    from models.portal.feedback_report import FeedbackReport
+
+    cutoff = datetime.now(timezone.utc) - timedelta(days=older_than_days)
+    stmt = delete(FeedbackReport).where(
+        FeedbackReport.status == "rejected", FeedbackReport.rejected_at < cutoff
+    )
+    result = await db.execute(stmt)
+    await db.commit()
+    return result.rowcount or 0
