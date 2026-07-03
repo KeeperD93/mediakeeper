@@ -221,8 +221,6 @@
       "nextPage": "Next page"
     },
     "showPerPage": "Show",
-    "moduleComingSoon": "This module is under development.",
-    "moduleComingSoonDesc": "It will be available in a future update.",
     "enter": "Enter",
     "noResultsFor": "No results for \"{query}\"",
     "unknown": "Unknown",
@@ -383,6 +381,25 @@
       "accessibility": "Accessibility",
       "translation": "Translation",
       "compatibility": "Compatibility"
+    },
+    "tracker": {
+      "title": "Report moderation",
+      "tabPending": "Pending",
+      "tabRejected": "Rejected",
+      "empty": "No reports awaiting review.",
+      "emptyRejected": "No rejected reports.",
+      "anonymous": "Anonymous",
+      "by": "Reported by {name}",
+      "reproduction": "Reproduction",
+      "platformBoth": "Desktop and mobile",
+      "edit": "Edit",
+      "cancel": "Cancel",
+      "save": "Save",
+      "validate": "Validate and send",
+      "reject": "Reject",
+      "saved": "Report updated.",
+      "validated": "Report sent to Discord.",
+      "rejected": "Report rejected."
     }
   },
   "deploymentBanner": {
@@ -2385,7 +2402,7 @@
     "health": "Media library health",
     "subtitles": "OpenSubtitles management",
     "notifications": "Discord and Telegram alerts",
-    "tracker": "Emby connection monitoring",
+    "tracker": "Approve or reject contributor reports",
     "requestsUsersTitle": "Requests users",
     "requestsUsers": "Requests module account management",
     "requestsAdminTitle": "Requests configuration",

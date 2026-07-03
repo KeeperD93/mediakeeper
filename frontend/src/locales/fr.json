@@ -222,8 +222,6 @@
       "nextPage": "Page suivante"
     },
     "showPerPage": "Afficher",
-    "moduleComingSoon": "Ce module est en cours de développement.",
-    "moduleComingSoonDesc": "Il sera disponible dans une prochaine mise à jour.",
     "enter": "Entrer",
     "unknown": "Inconnu",
     "edit": "Modifier",
@@ -383,6 +381,25 @@
       "accessibility": "Accessibilité",
       "translation": "Traduction",
       "compatibility": "Compatibilité"
+    },
+    "tracker": {
+      "title": "Modération des remontées",
+      "tabPending": "En attente",
+      "tabRejected": "Refusés",
+      "empty": "Aucune remontée en attente.",
+      "emptyRejected": "Aucune remontée refusée.",
+      "anonymous": "Anonyme",
+      "by": "Signalé par {name}",
+      "reproduction": "Reproduction",
+      "platformBoth": "Ordinateur et mobile",
+      "edit": "Éditer",
+      "cancel": "Annuler",
+      "save": "Enregistrer",
+      "validate": "Valider et envoyer",
+      "reject": "Refuser",
+      "saved": "Remontée mise à jour.",
+      "validated": "Remontée envoyée sur Discord.",
+      "rejected": "Remontée refusée."
     }
   },
   "deploymentBanner": {
@@ -2385,7 +2402,7 @@
     "health": "Santé de la bibliothèque média",
     "subtitles": "Gestion OpenSubtitles",
     "notifications": "Alertes Discord et Telegram",
-    "tracker": "Surveillance de la connexion Emby",
+    "tracker": "Validez ou refusez les remontées des contributeurs",
     "requestsUsersTitle": "Utilisateurs Demandes",
     "requestsUsers": "Gestion des comptes du module Demandes",
     "requestsAdminTitle": "Configuration Demandes",
