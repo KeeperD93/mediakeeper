@@ -119,3 +119,37 @@ async def send_feedback_handshake(webhook_url: str) -> bool:
         "allowed_mentions": {"parse": []},
     }
     return await send_discord_webhook(webhook_url, payload)
+
+
+async def create_pending_report(
+    db: AsyncSession,
+    *,
+    reporter_user_id: int | None,
+    reporter_name: str | None,
+    fields: dict,
+) -> None:
+    """Store a delegated portal user's report as ``pending`` for admin review."""
+    from models.portal.feedback_report import FeedbackReport  # lazy: avoid cycles
+
+    platform = fields.get("platform")
+    if platform not in PLATFORMS:
+        platform = "both"
+    db.add(
+        FeedbackReport(
+            reporter_user_id=reporter_user_id,
+            reporter_name=(reporter_name or "").strip()[:100] or None,
+            type="suggestion" if fields.get("type") == "suggestion" else "bug",
+            title=(fields.get("title") or "")[:200],
+            description=fields.get("description") or "",
+            reproduction=(fields.get("reproduction") or "").strip() or None,
+            zone=(fields.get("zone") or "").strip() or None,
+            module=(fields.get("module") or "").strip() or None,
+            tab=(fields.get("tab") or "").strip() or None,
+            platform=platform,
+            resolution=(fields.get("resolution") or "").strip() or None,
+            tags=[str(t)[:30] for t in (fields.get("tags") or [])][:12],
+            anonymous=bool(fields.get("anonymous")),
+            status="pending",
+        )
+    )
+    await db.commit()

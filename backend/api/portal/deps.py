@@ -110,6 +110,7 @@ async def require_admin(
 # very flag that locks them out.
 _PERMISSION_COLUMNS = (
     "can_chat", "can_portal", "can_problems", "can_lists", "can_earn_xp_offline",
+    "can_report_feedback",
 )
 
 

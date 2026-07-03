@@ -1,4 +1,5 @@
 from models.portal.profile import UserProfile
+from models.portal.feedback_report import FeedbackReport
 from models.portal.audit import AdminAuditLog
 from models.portal.login_history import UserLoginHistory
 from models.portal.emby_tmdb_index import EmbyTmdbIndex
@@ -23,7 +24,7 @@ from models.portal.help import HelpArticle, HelpArticleTranslation
 from models.portal.tmdb_runtime import TmdbRuntimeCache
 
 __all__ = [
-    "UserProfile", "AdminAuditLog", "UserLoginHistory", "EmbyTmdbIndex",
+    "UserProfile", "FeedbackReport", "AdminAuditLog", "UserLoginHistory", "EmbyTmdbIndex",
     "MediaRequest", "RequestBlacklist", "RequestQuota",
     "Ticket", "TicketReply",
     "News", "NewsRead",
