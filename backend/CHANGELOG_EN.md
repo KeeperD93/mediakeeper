@@ -11,6 +11,8 @@ This section intentionally has no date so it is not shown to users.
 
 ### Added
 - Bug reporting — send bugs/suggestions to a Discord channel (admin settings).
+- Feedback moderation — a queue to edit, validate or reject reports, with a pending bell and badge.
+- Scheduler — automatic purge of rejected feedback reports (configurable delay).
 
 ## [1.0.0-rc.6] - 2026-06-30
 
