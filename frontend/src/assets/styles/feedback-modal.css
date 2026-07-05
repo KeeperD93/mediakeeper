@@ -5,7 +5,7 @@
 .fbk-overlay {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: var(--z-modal);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -37,6 +37,10 @@
 }
 .fbk-close {
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
   padding: 4px;
   border: none;
   background: transparent;
@@ -111,6 +115,9 @@
   gap: 8px;
 }
 .fbk-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   padding: 7px 12px;
   border-radius: var(--radius-pill);
   border: 0.5px solid var(--border);
@@ -128,6 +135,7 @@
 .fbk-check {
   display: flex;
   align-items: center;
+  min-height: 44px;
   gap: 8px;
   font-size: var(--text-sm);
   color: var(--text-secondary);
@@ -195,7 +203,13 @@
   .fbk-body textarea,
   .fbk-select,
   .fbk-btn,
-  .fbk-seg-btn {
+  .fbk-seg-btn,
+  .fbk-chip,
+  .fbk-check {
+    min-height: 0;
+  }
+  .fbk-close {
+    min-width: 0;
     min-height: 0;
   }
   .fbk-body textarea {

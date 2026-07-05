@@ -27,6 +27,15 @@ export type FeedbackTag = (typeof FEEDBACK_TAGS)[number]
 // backend guard in services/feedback.py.
 export const FEEDBACK_MAX_CHARS = 2000
 
+// Per-field input caps — mirror backend/constants/feedback.py (must stay <= the
+// feedback_reports DB column widths).
+export const FEEDBACK_MAX = Object.freeze({
+  title: 120,
+  description: 1500,
+  reproduction: 500,
+  resolution: 40,
+})
+
 // Admin backoffice pages → tracker location. `zone`/`module` are the canonical
 // taxonomy values sent in the report; `titleKey` localizes the dropdown;
 // `tabsPath` links to SIDEBAR_SUB_TABS for the onglet options. Keyed by route

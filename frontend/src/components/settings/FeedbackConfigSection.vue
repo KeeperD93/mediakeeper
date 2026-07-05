@@ -110,11 +110,16 @@ const codeInputType = computed(() =>
 
 async function load() {
   loading.value = true
-  await loadFeedbackConfig()
-  pseudo.value = config.value?.discord_pseudo || ''
-  code.value = ''
-  codeEditing.value = false
-  loading.value = false
+  try {
+    await loadFeedbackConfig()
+    pseudo.value = config.value?.discord_pseudo || ''
+    code.value = ''
+    codeEditing.value = false
+  } catch (e) {
+    showToast(resolveApiError(e.message), TOAST_TYPE.ERR)
+  } finally {
+    loading.value = false
+  }
 }
 
 function onCodeFocus() {
@@ -237,6 +242,11 @@ onMounted(load)
 .fbc-switch {
   position: relative;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 44px;
+  min-height: 44px;
 }
 .fbc-switch input {
   position: absolute;
@@ -260,8 +270,8 @@ onMounted(load)
   left: 2px;
   width: 14px;
   height: 14px;
-  border-radius: 50%;
-  background: #fff;
+  border-radius: var(--radius-circle);
+  background: var(--color-on-accent);
   transition: all var(--duration-base);
 }
 .fbc-switch input:checked + .fbc-switch-track {
@@ -348,6 +358,10 @@ onMounted(load)
   .fbc-input,
   .fbc-save-btn,
   .fbc-ping-btn {
+    min-height: 0;
+  }
+  .fbc-switch {
+    min-width: 0;
     min-height: 0;
   }
 }
