@@ -114,13 +114,15 @@ async def _handler_clear_image_cache(_db: AsyncSession) -> dict:
 
 
 async def _handler_feedback_purge(db: AsyncSession) -> dict:
-    """Hard-delete feedback reports rejected more than 30 days ago.
+    """Hard-delete feedback reports rejected past the configured retention window.
 
     No-op when the rejected bin is empty, so it is safe to leave on by
     default — a report only lands here after an admin explicitly rejects it.
+    The window is tunable via the feedback settings (default 30 days).
     """
-    from services.feedback import purge_rejected_reports
-    removed = await purge_rejected_reports(db, older_than_days=30)
+    from services.feedback import get_feedback_config, purge_rejected_reports
+    cfg = await get_feedback_config(db)
+    removed = await purge_rejected_reports(db, older_than_days=cfg["reject_retention_days"])
     return {"removed": removed}
 
 

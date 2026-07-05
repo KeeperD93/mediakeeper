@@ -17,7 +17,7 @@ async def test_create_pending_report_stores_pending(db_session):
     await create_pending_report(
         db_session,
         reporter_user_id=None,
-        reporter_name="Dan",
+        reporter_name="Casey",
         fields={
             "type": "bug",
             "title": "Boom",
@@ -31,7 +31,7 @@ async def test_create_pending_report_stores_pending(db_session):
     row = (await db_session.execute(select(FeedbackReport))).scalar_one()
     assert row.status == "pending"
     assert row.title == "Boom"
-    assert row.reporter_name == "Dan"
+    assert row.reporter_name == "Casey"
     assert row.tags == ["Urgent"]
     assert row.rejected_at is None
 

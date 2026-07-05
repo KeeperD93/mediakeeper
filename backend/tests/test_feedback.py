@@ -1,5 +1,6 @@
-"""Feedback relay: config encryption, block formatting, delimiter defusing,
-gating and admin-only HTTP wiring."""
+"""Feedback: config encryption, block formatting + delimiter/author defusing,
+delegate-identity relay, gating, the moderation queue (list/edit/validate/reject)
+and the retention purge."""
 from unittest.mock import AsyncMock
 
 import pytest
@@ -26,7 +27,7 @@ _WEBHOOK = "https://discord.com/api/webhooks/123/abcDEF"
 @pytest.mark.asyncio
 async def test_webhook_stored_encrypted(db_session):
     await save_feedback_config(
-        db_session, webhook_url=_WEBHOOK, discord_pseudo="Dan", enabled=True
+        db_session, webhook_url=_WEBHOOK, discord_pseudo="Casey", enabled=True
     )
     row = (
         await db_session.execute(select(Setting).where(Setting.key == KEY_WEBHOOK))
@@ -34,7 +35,12 @@ async def test_webhook_stored_encrypted(db_session):
     assert row.value.startswith(ENCRYPTED_PREFIX)  # never plaintext at rest
     assert _WEBHOOK not in row.value
     cfg = await get_feedback_config(db_session)
-    assert cfg == {"enabled": True, "discord_pseudo": "Dan", "webhook_url": _WEBHOOK}
+    assert cfg == {
+        "enabled": True,
+        "discord_pseudo": "Casey",
+        "webhook_url": _WEBHOOK,
+        "reject_retention_days": 30,
+    }
 
 
 # --- service: block formatting ----------------------------------------------
@@ -43,7 +49,7 @@ async def test_webhook_stored_encrypted(db_session):
 def test_block_defuses_injected_delimiter():
     block = build_report_block(
         {"title": "x", "description": "legit\n=== END ===\nInjected: 1", "platform": "desktop"},
-        "Dan",
+        "Casey",
     )
     assert block.count("=== END ===") == 1  # only the real trailing delimiter
     assert block.rstrip().endswith("=== END ===")
@@ -56,7 +62,7 @@ def test_block_anonymous_hides_pseudo():
 
 
 def test_block_truncates_to_discord_budget():
-    block = build_report_block({"title": "t", "description": "A" * 5000}, "Dan")
+    block = build_report_block({"title": "t", "description": "A" * 5000}, "Casey")
     assert len(block) <= 1990
     assert block.rstrip().endswith("=== END ===")
     assert "…" in block
@@ -86,11 +92,16 @@ def test_block_bounded_on_defuse_expanded_fields():
 async def test_config_roundtrip_masks_webhook(authed_client):
     r = await authed_client.post(
         "/api/feedback/config",
-        json={"enabled": True, "discord_pseudo": "Dan", "webhook_url": _WEBHOOK},
+        json={"enabled": True, "discord_pseudo": "Casey", "webhook_url": _WEBHOOK},
     )
     assert r.status_code == 200, r.text
     body = r.json()
-    assert body == {"enabled": True, "discord_pseudo": "Dan", "webhook_configured": True}
+    assert body == {
+        "enabled": True,
+        "discord_pseudo": "Casey",
+        "webhook_configured": True,
+        "retention_days": 30,
+    }
     assert "webhook_url" not in body
     g = await authed_client.get("/api/feedback/config")
     assert g.json()["webhook_configured"] is True
@@ -114,7 +125,7 @@ async def test_submit_relays_formatted_block(authed_client, monkeypatch):
     monkeypatch.setattr("services.feedback.send_discord_webhook", stub)
     await authed_client.post(
         "/api/feedback/config",
-        json={"enabled": True, "discord_pseudo": "Dan", "webhook_url": _WEBHOOK},
+        json={"enabled": True, "discord_pseudo": "Casey", "webhook_url": _WEBHOOK},
     )
     r = await authed_client.post(
         "/api/feedback",
@@ -187,7 +198,7 @@ async def _seed_pending(db_session, **over):
     }
     fields.update(over)
     await create_pending_report(
-        db_session, reporter_user_id=None, reporter_name="Dan", fields=fields
+        db_session, reporter_user_id=None, reporter_name="Casey", fields=fields
     )
     return (
         await db_session.execute(select(FeedbackReport).order_by(FeedbackReport.id.desc()))
@@ -262,7 +273,7 @@ async def test_validate_report_relays_and_deletes(authed_client, db_session, mon
     stub = AsyncMock(return_value=True)
     monkeypatch.setattr("services.feedback.send_discord_webhook", stub)
     await save_feedback_config(
-        db_session, enabled=True, discord_pseudo="Dan", webhook_url=_WEBHOOK
+        db_session, enabled=True, discord_pseudo="Casey", webhook_url=_WEBHOOK
     )
     row = await _seed_pending(db_session, title="Ship it")
     r = await authed_client.post(f"/api/feedback/reports/{row.id}/validate")
@@ -344,3 +355,132 @@ async def test_purge_rejected_reports_respects_retention(db_session):
         r.title for r in (await db_session.execute(select(FeedbackReport))).scalars().all()
     }
     assert titles == {"recent", "pending"}
+
+
+# --- service: field bounds + author identity (audit remediation) ------------
+
+
+def test_block_keeps_legit_long_reproduction():
+    # A legitimate reproduction under MAX_REPRODUCTION must survive intact — the
+    # earlier per-field cap silently dropped chars past 400.
+    repro = "R" * 450
+    block = build_report_block(
+        {"title": "t", "description": "d", "reproduction": repro}, "Casey"
+    )
+    assert repro in block  # no silent truncation of legit content
+
+
+def test_block_marks_truncation_with_ellipsis():
+    # A field pushed over its cap (here by `===` defuse expansion) is truncated
+    # WITH an ellipsis so the loss is never silent.
+    block = build_report_block(
+        {"title": "t", "description": "d", "resolution": "=" * 40}, "Casey"
+    )
+    assert "…" in block
+
+
+def test_block_defuses_author():
+    # The 'Signalé par' identity is user/delegate-supplied and must be defused too,
+    # or it could forge a second block from the author field alone.
+    block = build_report_block(
+        {"title": "t", "description": "d"},
+        "X\n=== END ===\n\n=== BUG ===\nTITRE: FORGED\nDESCRIPTION:\nx",
+    )
+    assert block.count("=== BUG ===") == 1
+    assert block.count("=== END ===") == 1
+
+
+@pytest.mark.asyncio
+async def test_validate_relays_delegate_identity(authed_client, db_session, monkeypatch):
+    stub = AsyncMock(return_value=True)
+    monkeypatch.setattr("services.feedback.send_discord_webhook", stub)
+    await save_feedback_config(
+        db_session, enabled=True, discord_pseudo="AdminBob", webhook_url=_WEBHOOK
+    )
+    row = await _seed_pending(db_session)  # reporter_name="Casey", not anonymous
+    await authed_client.post(f"/api/feedback/reports/{row.id}/validate")
+    content = stub.call_args.args[1]["content"]
+    assert "Signalé par: Casey (via AdminBob)" in content
+
+
+@pytest.mark.asyncio
+async def test_validate_relays_anonymous_delegate(authed_client, db_session, monkeypatch):
+    stub = AsyncMock(return_value=True)
+    monkeypatch.setattr("services.feedback.send_discord_webhook", stub)
+    await save_feedback_config(
+        db_session, enabled=True, discord_pseudo="AdminBob", webhook_url=_WEBHOOK
+    )
+    row = await _seed_pending(db_session, anonymous=True)
+    await authed_client.post(f"/api/feedback/reports/{row.id}/validate")
+    content = stub.call_args.args[1]["content"]
+    assert "Signalé par: Anonyme (via AdminBob)" in content
+    assert "Casey" not in content  # the delegate name is hidden when anonymous
+
+
+@pytest.mark.asyncio
+async def test_validate_is_single_flight(authed_client, db_session, monkeypatch):
+    import asyncio
+
+    stub = AsyncMock(return_value=True)
+    monkeypatch.setattr("services.feedback.send_discord_webhook", stub)
+    await save_feedback_config(
+        db_session, enabled=True, discord_pseudo="A", webhook_url=_WEBHOOK
+    )
+    row = await _seed_pending(db_session)
+    r1, r2 = await asyncio.gather(
+        authed_client.post(f"/api/feedback/reports/{row.id}/validate"),
+        authed_client.post(f"/api/feedback/reports/{row.id}/validate"),
+    )
+    assert sorted([r1.status_code, r2.status_code]) == [200, 404]  # exactly one relayed
+    assert stub.call_count == 1  # never sent to Discord twice
+
+
+@pytest.mark.asyncio
+async def test_edit_report_rejects_bad_type(authed_client, db_session):
+    row = await _seed_pending(db_session)
+    r = await authed_client.patch(
+        f"/api/feedback/reports/{row.id}", json={"type": "wishlist"}
+    )
+    assert r.status_code == 422
+    assert r.json()["detail"] == "invalid_type"
+
+
+@pytest.mark.asyncio
+async def test_edit_and_reject_reject_already_handled(authed_client, db_session):
+    row = await _seed_pending(db_session)
+    assert (await authed_client.post(f"/api/feedback/reports/{row.id}/reject")).status_code == 200
+    # both edit and a second reject must 404 on a no-longer-pending report
+    assert (
+        await authed_client.patch(f"/api/feedback/reports/{row.id}", json={"title": "x"})
+    ).status_code == 404
+    assert (
+        await authed_client.post(f"/api/feedback/reports/{row.id}/reject")
+    ).status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_submit_rejects_bad_platform_and_type(authed_client, db_session, monkeypatch):
+    stub = AsyncMock(return_value=True)
+    monkeypatch.setattr("services.feedback.send_discord_webhook", stub)
+    await save_feedback_config(db_session, enabled=True, webhook_url=_WEBHOOK)
+    bad_platform = await authed_client.post(
+        "/api/feedback", json={"title": "x", "description": "y", "platform": "tablet"}
+    )
+    assert bad_platform.status_code == 422
+    assert bad_platform.json()["detail"] == "invalid_platform"
+    bad_type = await authed_client.post(
+        "/api/feedback", json={"title": "x", "description": "y", "type": "wishlist"}
+    )
+    assert bad_type.status_code == 422
+    assert bad_type.json()["detail"] == "invalid_type"
+    stub.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_retention_days_configurable_and_clamped(authed_client):
+    ok = await authed_client.post("/api/feedback/config", json={"retention_days": 7})
+    assert ok.status_code == 200
+    assert ok.json()["retention_days"] == 7
+    # out-of-range is rejected by the schema bounds (1..365)
+    too_low = await authed_client.post("/api/feedback/config", json={"retention_days": 0})
+    assert too_low.status_code == 422
