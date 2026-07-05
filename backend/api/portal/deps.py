@@ -105,7 +105,7 @@ async def require_admin(
     return user, profile
 
 
-# Granular permission keys mirrored on UserProfile (migration 035).
+# Granular permission keys mirrored on UserProfile (migrations 035 + 061).
 # Admins always pass — they would otherwise lose the ability to fix the
 # very flag that locks them out.
 _PERMISSION_COLUMNS = (

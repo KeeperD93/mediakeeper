@@ -1,8 +1,8 @@
 """Constants for the premium admin "Users" page.
 
 Centralised so that the API schema, the role preset application and
-the front constants stay in sync. Keys mirror the columns added by
-migration ``035_users_premium_management``.
+the front constants stay in sync. Keys mirror columns added by migration
+``035_users_premium_management`` (and ``can_report_feedback`` by 061).
 """
 
 ROLE_VIEWER = "viewer"
