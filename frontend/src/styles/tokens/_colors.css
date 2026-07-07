@@ -23,8 +23,13 @@
   --surface-2: rgb(255, 255, 255, 0.04); /* hover, secondary layer */
   --surface-3: rgb(255, 255, 255, 0.06); /* active / pressed / tertiary */
 
-  /* ─── Overlays — modals, dropdowns, backdrops ─── */
-  --overlay-bg: rgb(12, 16, 30, 0.96); /* modal / dropdown body */
+  /* ─── Overlays — modals, backdrops ─── */
+  --overlay-bg: color-mix(
+    in srgb,
+    var(--bg-primary) 96%,
+    transparent
+  ); /* modal / dropdown / toast body — theme-tinted frosted glass */
+
   --overlay-backdrop: rgb(0, 0, 0, 0.6); /* veil behind modals */
 
   /* ─── Borders — stroke color strength ─── */

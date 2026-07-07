@@ -15,7 +15,7 @@
 /* Base toast — uniform width */
 .mk-toast {
   width: 340px;
-  background: rgb(12, 16, 30, 0.95);
+  background: var(--overlay-bg);
   backdrop-filter: var(--blur-lg);
   -webkit-backdrop-filter: var(--blur-lg);
   border: 1px solid var(--border-strong);

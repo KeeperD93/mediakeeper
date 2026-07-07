@@ -139,7 +139,7 @@
       "backup_restore_failed": "Failed to restore the backup.",
       "backup_directory_invalid": "Invalid backup directory.",
       "user_profile_failed": "Could not load the user profile.",
-      "csrf_origin_mismatch": "Request rejected (bad origin).",
+      "csrf_origin_mismatch": "Request blocked: the page origin doesn't match the server (proxy/CORS misconfigured?).",
       "csrf_token_invalid": "Invalid security token.",
       "starting": "Service starting, please wait…",
       "unexpected": "Unexpected server response.",

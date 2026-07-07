@@ -139,7 +139,7 @@
       "backup_restore_failed": "Échec de la restauration de la sauvegarde.",
       "backup_directory_invalid": "Dossier de sauvegarde invalide.",
       "user_profile_failed": "Impossible de récupérer le profil utilisateur.",
-      "csrf_origin_mismatch": "Requête rejetée (origine invalide).",
+      "csrf_origin_mismatch": "Requête bloquée : l'origine de la page ne correspond pas au serveur (proxy/CORS mal configuré ?).",
       "csrf_token_invalid": "Jeton de sécurité invalide.",
       "starting": "Service en cours de démarrage, veuillez patienter…",
       "unexpected": "Réponse inattendue du serveur.",

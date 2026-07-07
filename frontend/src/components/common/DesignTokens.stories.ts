@@ -457,7 +457,7 @@ export const ColorsSurfaces: Story = {
         <div class="tk-section">
           <h2>Overlays</h2>
           <div class="tk-grid">
-            ${swatch('--overlay-bg', 'Corps de modale / dropdown')}
+            ${swatch('--overlay-bg', 'Corps de modale (verre teinté thème)')}
             ${swatch('--overlay-backdrop', 'Voile derrière les modales')}
           </div>
         </div>
