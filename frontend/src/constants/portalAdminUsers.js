@@ -31,6 +31,7 @@ export const PERMISSION_KEYS = Object.freeze([
   'can_problems',
   'can_lists',
   'can_earn_xp_offline',
+  'can_report_feedback',
 ])
 
 export const STATUS_FILTER = Object.freeze({

@@ -16,6 +16,9 @@ utilisateurs.
 
 ## [Unreleased]
 
+### Added
+- Remontées — signalez un bug ou une suggestion au mainteneur depuis le menu du compte (si autorisé).
+
 ## [1.0.0-rc.6] - 2026-06-30
 
 ### Changed

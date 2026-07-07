@@ -70,6 +70,13 @@
     "unknownError": "Erreur inconnue",
     "apiError": {
       "not_configured": "Service non configuré",
+      "invalid_webhook": "Lien webhook Discord invalide",
+      "send_failed": "Impossible de joindre le webhook Discord.",
+      "invalid_platform": "Plateforme invalide",
+      "invalid_status": "Statut invalide",
+      "invalid_type": "Type invalide",
+      "invalid_title": "Titre invalide",
+      "invalid_description": "Description invalide",
       "no_download_link": "Lien de téléchargement indisponible",
       "emby_not_configured": "Emby non configuré",
       "item_not_found": "Élément introuvable",
@@ -219,8 +226,6 @@
       "nextPage": "Page suivante"
     },
     "showPerPage": "Afficher",
-    "moduleComingSoon": "Ce module est en cours de développement.",
-    "moduleComingSoonDesc": "Il sera disponible dans une prochaine mise à jour.",
     "enter": "Entrer",
     "unknown": "Inconnu",
     "edit": "Modifier",
@@ -331,6 +336,78 @@
     "language": "Langue",
     "notifications": "Notifications",
     "noNotifications": "Aucune notification"
+  },
+  "feedback": {
+    "menuEntry": "Signaler un bug ou une suggestion",
+    "config": {
+      "title": "Remontée de bugs",
+      "desc": "Envoyez bugs et suggestions vers un salon Discord. Une fois activée, l'entrée « Signaler un bug ou une suggestion » apparaît dans le menu de votre avatar, en haut à droite.",
+      "channel": "Discord",
+      "codeLabel": "Code de liaison",
+      "codeHint": "Collez uniquement le code transmis par le mainteneur du projet. Ne créez rien vous-même.",
+      "codePlaceholder": "Coller le code de liaison…",
+      "pseudoLabel": "Pseudo Discord",
+      "pseudoDesc": "Joint à chaque envoi pour que le mainteneur puisse vous contacter si nécessaire.",
+      "test": "Tester la liaison",
+      "saved": "Configuration enregistrée",
+      "testSent": "Ping envoyé — demandez au mainteneur s'il l'a reçu."
+    },
+    "modal": {
+      "title": "Signaler un bug ou une suggestion",
+      "type_bug": "Bug",
+      "type_suggestion": "Suggestion",
+      "titleField": "Titre",
+      "descField": "Description",
+      "reproField": "Comment reproduire",
+      "pageField": "Page concernée",
+      "ongletField": "Onglet",
+      "locationNone": "— Non précisé —",
+      "platform": "Plateforme",
+      "platform_desktop": "Ordinateur",
+      "platform_mobile": "Mobile",
+      "resolution": "Résolution",
+      "resolutionNone": "Non précisée",
+      "resolutionOther": "Autre…",
+      "resolutionPlaceholder": "ex. 1280x720",
+      "tags": "Étiquettes",
+      "anonymous": "Envoyer de façon anonyme",
+      "budget": "{used} / {max} caractères",
+      "submit": "Envoyer",
+      "reset": "Réinitialiser",
+      "sent": "Signalement effectué avec succès."
+    },
+    "tags": {
+      "urgent": "Urgent",
+      "crash": "Plantage",
+      "data_loss": "Perte de données",
+      "security": "Sécurité",
+      "visual": "Visuel",
+      "performance": "Performance",
+      "accessibility": "Accessibilité",
+      "translation": "Traduction",
+      "compatibility": "Compatibilité"
+    },
+    "tracker": {
+      "title": "Modération des remontées",
+      "tabPending": "En attente",
+      "tabRejected": "Refusés",
+      "empty": "Aucune remontée en attente.",
+      "emptyRejected": "Aucune remontée refusée.",
+      "anonymous": "Anonyme",
+      "by": "Signalé par {name}",
+      "reproduction": "Reproduction",
+      "platformBoth": "Ordinateur et mobile",
+      "edit": "Éditer",
+      "cancel": "Annuler",
+      "save": "Enregistrer",
+      "validate": "Valider et envoyer",
+      "reject": "Refuser",
+      "saved": "Remontée mise à jour.",
+      "validated": "Remontée envoyée sur Discord.",
+      "rejected": "Remontée refusée.",
+      "open": "Ouvrir la modération",
+      "pill": "REMONTÉE"
+    }
   },
   "deploymentBanner": {
     "encryptionKey": {
@@ -1486,6 +1563,7 @@
       "healthcheck_scan": "Analyse santé de la médiathèque",
       "subtitle_auto": "Téléchargement automatique des sous-titres",
       "expire_users": "Expiration des comptes utilisateurs",
+      "feedback_purge": "Purge des remontées refusées",
       "gdpr_purge": "Purge RGPD des suppressions en attente",
       "quota_auto_recompute": "Recalcul auto des quotas de demandes",
       "clear_image_cache": "Vider le cache d'images"
@@ -1502,6 +1580,7 @@
     "subtitle_auto": "Télécharge automatiquement les sous-titres pour les nouveaux médias selon le profil par défaut.",
     "expire_users": "Désactive automatiquement les comptes (Emby + MediaKeeper) dont la période d'accès a expiré.",
     "cleanup_available_requests": "Nettoie automatiquement les demandes marquées disponibles après le délai configuré.",
+    "feedback_purge": "Supprime définitivement les remontées refusées depuis plus de 30 jours.",
     "gdpr_purge": "Supprime définitivement les comptes utilisateurs marqués pour purge RGPD.",
     "quota_auto_recompute": "Recalcul nocturne des quotas de demandes automatiques selon l'activité récente de chaque utilisateur.",
     "clear_image_cache": "Vide automatiquement le cache d'images sur disque (purge manuelle disponible côté cache).",
@@ -1993,14 +2072,16 @@
         "can_portal": "Accès aux demandes",
         "can_problems": "Accès aux problèmes",
         "can_lists": "Accès aux listes",
-        "can_earn_xp_offline": "Gagne de l'XP même sans connexion"
+        "can_earn_xp_offline": "Gagne de l'XP même sans connexion",
+        "can_report_feedback": "Remonter des bugs au mainteneur"
       },
       "permissionsHelp": {
         "can_chat": "L'utilisateur peut écrire dans le salon de discussion.",
         "can_portal": "L'utilisateur voit le module Demandes et peut soumettre des requêtes.",
         "can_problems": "L'utilisateur peut signaler et suivre les problèmes.",
         "can_lists": "L'utilisateur peut créer et alimenter ses listes de lecture.",
-        "can_earn_xp_offline": "Une activité Emby détectée crédite de l'XP même sans connexion MK."
+        "can_earn_xp_offline": "Une activité Emby détectée crédite de l'XP même sans connexion MK.",
+        "can_report_feedback": "L'utilisateur peut envoyer des bugs et suggestions au mainteneur (soumis à votre validation)."
       },
       "bulk": {
         "selected": "{count} sélectionné(s)"
@@ -2330,7 +2411,7 @@
     "health": "Santé de la bibliothèque média",
     "subtitles": "Gestion OpenSubtitles",
     "notifications": "Alertes Discord et Telegram",
-    "tracker": "Surveillance de la connexion Emby",
+    "tracker": "Validez ou refusez les remontées des contributeurs",
     "requestsUsersTitle": "Utilisateurs Demandes",
     "requestsUsers": "Gestion des comptes du module Demandes",
     "requestsAdminTitle": "Configuration Demandes",
@@ -2650,6 +2731,7 @@
       "dailyDigest": "Quoi de neuf aujourd'hui ?",
       "help": "Aide",
       "whatsNew": "Changelog",
+      "feedback": "Signaler un bug ou une suggestion",
       "logout": "Déconnexion",
       "admin": "Administrateur",
       "user": "Utilisateur",

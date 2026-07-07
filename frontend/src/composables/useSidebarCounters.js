@@ -13,6 +13,7 @@ const counters = reactive({
   duplicates: 0,
   watchlistMissing: 0,
   activeSessions: 0,
+  feedbackPending: 0,
 })
 
 // Raw shared data (reusable by other components)
@@ -37,11 +38,12 @@ async function fetchCounters(api) {
   if (!isAuthenticated.value) return
 
   try {
-    const [duplicates, watchlist, sessions, ignored] = await Promise.all([
+    const [duplicates, watchlist, sessions, ignored, feedback] = await Promise.all([
       api.apiGet('/api/duplicates').catch(() => null),
       api.apiGet('/api/watchlist/scan/status').catch(() => null),
       api.apiGet('/api/emby/sessions').catch(() => null),
       api.apiGet('/api/duplicates/ignored').catch(() => null),
+      api.apiGet('/api/feedback/reports?status=pending').catch(() => null),
     ])
 
     if (Array.isArray(duplicates)) {
@@ -56,6 +58,9 @@ async function fetchCounters(api) {
     if (Array.isArray(sessions)) {
       sharedData.sessions = sessions
       counters.activeSessions = sessions.filter(x => x.is_playing || x.is_paused).length
+    }
+    if (feedback) {
+      counters.feedbackPending = (feedback.items || []).length
     }
 
     try {

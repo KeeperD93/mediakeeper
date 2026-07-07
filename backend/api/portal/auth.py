@@ -20,6 +20,7 @@ from services.portal.emby_auth import authenticate_emby_user
 from services.portal.maintenance import is_maintenance_enabled
 from services.portal.profiles import serialize_profile_with_effective_lang
 from services.portal.news import get_unread_news
+from services.feedback import get_feedback_config
 from services.portal.admin import get_donation_config, get_portal_flag
 from services.security import (
     count_recent_failures,
@@ -50,10 +51,13 @@ async def _serialize_ui_flags(db: AsyncSession, profile: UserProfile) -> dict:
         db,
         "portal.allow_adult_requests",
     )
+    feedback = await get_feedback_config(db)
     return {
         "show_requests_tab": is_admin or not anonymize_requests,
         "allow_adult_requests": allow_adult_requests,
         "donation": await get_donation_config(db),
+        "feedback_enabled": bool(feedback["enabled"] and feedback["webhook_url"]),
+        "can_report": is_admin or bool(profile.can_report_feedback),
     }
 
 
@@ -72,6 +76,8 @@ async def _safe_serialize_ui_flags(db: AsyncSession, profile: UserProfile) -> di
             "show_requests_tab": True,
             "allow_adult_requests": False,
             "donation": {"enabled": False, "url": "", "message": "", "button_label": ""},
+            "feedback_enabled": False,
+            "can_report": False,
         }
 
 

@@ -8,6 +8,7 @@ from ._handlers import (
     _handler_emby_recent_scan,
     _handler_emby_refresh,
     _handler_expire_users,
+    _handler_feedback_purge,
     _handler_gdpr_purge,
     _handler_healthcheck,
     _handler_log_cleanup,
@@ -117,6 +118,15 @@ TASK_DEFINITIONS: dict[str, dict] = {
         "default_on":  True,    # Security-critical: ON by default.
         "handler":     _handler_expire_users,
         "description": "scheduler.expire_users",
+    },
+    "feedback_purge": {
+        "label":       "Purge rejected feedback",
+        "label_key":   "scheduler.tasks.feedback_purge",
+        "default_sec": 86400,   # 24h
+        "default_on":  True,    # No-op when the rejected bin is empty — a report
+                                # only lands there after an admin rejects it.
+        "handler":     _handler_feedback_purge,
+        "description": "scheduler.feedback_purge",
     },
     "gdpr_purge": {
         "label":       "GDPR purge of pending deletions",

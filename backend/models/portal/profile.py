@@ -52,6 +52,7 @@ class UserProfile(Base):
     can_problems    = Column(Boolean, server_default="true", nullable=False)
     can_lists       = Column(Boolean, server_default="true", nullable=False)
     can_earn_xp_offline = Column(Boolean, server_default="false", nullable=False)
+    can_report_feedback = Column(Boolean, server_default="false", nullable=False)
     emby_is_disabled = Column(Boolean, nullable=True)
     tokens_invalidated_at = Column(DateTime(timezone=True), nullable=True)
     deleted_at      = Column(DateTime(timezone=True), nullable=True, index=True)

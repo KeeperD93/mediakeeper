@@ -58,7 +58,7 @@ export const adminRoutes = [
   {
     path: 'tracker',
     name: 'tracker',
-    component: () => import('@/views/PlaceholderView.vue'),
+    component: () => import('@/views/TrackerView.vue'),
     meta: { titleKey: 'sidebar.tracker', subtitleKey: 'pageMeta.tracker' },
   },
   {

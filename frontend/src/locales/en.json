@@ -70,6 +70,13 @@
     "unknownError": "Unknown error",
     "apiError": {
       "not_configured": "Service not configured",
+      "invalid_webhook": "Invalid Discord webhook link",
+      "send_failed": "Could not reach the Discord webhook.",
+      "invalid_platform": "Invalid platform",
+      "invalid_status": "Invalid status",
+      "invalid_type": "Invalid type",
+      "invalid_title": "Invalid title",
+      "invalid_description": "Invalid description",
       "no_download_link": "Download link unavailable",
       "emby_not_configured": "Emby not configured",
       "item_not_found": "Item not found",
@@ -218,8 +225,6 @@
       "nextPage": "Next page"
     },
     "showPerPage": "Show",
-    "moduleComingSoon": "This module is under development.",
-    "moduleComingSoonDesc": "It will be available in a future update.",
     "enter": "Enter",
     "noResultsFor": "No results for \"{query}\"",
     "unknown": "Unknown",
@@ -331,6 +336,78 @@
     "language": "Language",
     "notifications": "Notifications",
     "noNotifications": "No notifications"
+  },
+  "feedback": {
+    "menuEntry": "Report a bug or suggestion",
+    "config": {
+      "title": "Bug reporting",
+      "desc": "Send bugs and suggestions to a Discord channel. Once enabled, the “Report a bug or suggestion” entry appears in your avatar menu, top-right.",
+      "channel": "Discord",
+      "codeLabel": "Link code",
+      "codeHint": "Paste only the code shared by the project maintainer. Do not create your own.",
+      "codePlaceholder": "Paste the link code…",
+      "pseudoLabel": "Discord handle",
+      "pseudoDesc": "Attached to each report so the maintainer can contact you if necessary.",
+      "test": "Test the link",
+      "saved": "Configuration saved",
+      "testSent": "Ping sent — ask the maintainer if it arrived."
+    },
+    "modal": {
+      "title": "Report a bug or suggestion",
+      "type_bug": "Bug",
+      "type_suggestion": "Suggestion",
+      "titleField": "Title",
+      "descField": "Description",
+      "reproField": "How to reproduce",
+      "pageField": "Affected page",
+      "ongletField": "Tab",
+      "locationNone": "— Not specified —",
+      "platform": "Platform",
+      "platform_desktop": "Desktop",
+      "platform_mobile": "Mobile",
+      "resolution": "Resolution",
+      "resolutionNone": "Not specified",
+      "resolutionOther": "Other…",
+      "resolutionPlaceholder": "e.g. 1280x720",
+      "tags": "Tags",
+      "anonymous": "Send anonymously",
+      "budget": "{used} / {max} characters",
+      "submit": "Send",
+      "reset": "Reset",
+      "sent": "Report sent successfully."
+    },
+    "tags": {
+      "urgent": "Urgent",
+      "crash": "Crash",
+      "data_loss": "Data loss",
+      "security": "Security",
+      "visual": "Visual",
+      "performance": "Performance",
+      "accessibility": "Accessibility",
+      "translation": "Translation",
+      "compatibility": "Compatibility"
+    },
+    "tracker": {
+      "title": "Report moderation",
+      "tabPending": "Pending",
+      "tabRejected": "Rejected",
+      "empty": "No reports awaiting review.",
+      "emptyRejected": "No rejected reports.",
+      "anonymous": "Anonymous",
+      "by": "Reported by {name}",
+      "reproduction": "Reproduction",
+      "platformBoth": "Desktop and mobile",
+      "edit": "Edit",
+      "cancel": "Cancel",
+      "save": "Save",
+      "validate": "Validate and send",
+      "reject": "Reject",
+      "saved": "Report updated.",
+      "validated": "Report sent to Discord.",
+      "rejected": "Report rejected.",
+      "open": "Open moderation",
+      "pill": "REPORT"
+    }
   },
   "deploymentBanner": {
     "encryptionKey": {
@@ -1486,6 +1563,7 @@
       "healthcheck_scan": "Library health scan",
       "subtitle_auto": "Auto-download subtitles",
       "expire_users": "Expire user accounts",
+      "feedback_purge": "Purge rejected feedback",
       "gdpr_purge": "GDPR purge of pending deletions",
       "quota_auto_recompute": "Auto request-quota recompute",
       "clear_image_cache": "Clear image cache"
@@ -1502,6 +1580,7 @@
     "subtitle_auto": "Automatically downloads subtitles for new media based on the default profile.",
     "expire_users": "Automatically disables accounts (Emby + MediaKeeper) whose access window has expired.",
     "cleanup_available_requests": "Automatically clears available requests after the configured grace period.",
+    "feedback_purge": "Permanently deletes feedback reports rejected more than 30 days ago.",
     "gdpr_purge": "Permanently removes user accounts marked for GDPR purge.",
     "quota_auto_recompute": "Nightly recompute of automatic request quotas from each user's recent activity.",
     "clear_image_cache": "Automatically clears the on-disk image cache (manual purge also available from the cache row).",
@@ -1993,14 +2072,16 @@
         "can_portal": "Requests access",
         "can_problems": "Problems access",
         "can_lists": "Lists access",
-        "can_earn_xp_offline": "Earn XP without logging in"
+        "can_earn_xp_offline": "Earn XP without logging in",
+        "can_report_feedback": "Report bugs to the maintainer"
       },
       "permissionsHelp": {
         "can_chat": "User can post in the lounge.",
         "can_portal": "User sees the Requests module and can submit requests.",
         "can_problems": "User can report and follow problems.",
         "can_lists": "User can create and curate playlists.",
-        "can_earn_xp_offline": "Detected Emby activity grants XP even without a MK login."
+        "can_earn_xp_offline": "Detected Emby activity grants XP even without a MK login.",
+        "can_report_feedback": "The user can send bugs and suggestions to the maintainer (subject to your validation)."
       },
       "bulk": {
         "selected": "{count} selected"
@@ -2330,7 +2411,7 @@
     "health": "Media library health",
     "subtitles": "OpenSubtitles management",
     "notifications": "Discord and Telegram alerts",
-    "tracker": "Emby connection monitoring",
+    "tracker": "Approve or reject contributor reports",
     "requestsUsersTitle": "Requests users",
     "requestsUsers": "Requests module account management",
     "requestsAdminTitle": "Requests configuration",
@@ -2650,6 +2731,7 @@
       "dailyDigest": "Today's digest",
       "help": "Help",
       "whatsNew": "Changelog",
+      "feedback": "Report a bug or suggestion",
       "logout": "Log out",
       "admin": "Administrator",
       "user": "User",

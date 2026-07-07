@@ -147,6 +147,15 @@
               </button>
 
               <button
+                v-if="ui.feedback_enabled && ui.can_report"
+                class="pt-avatar-pop-item"
+                type="button"
+                @click="openFeedback"
+              >
+                {{ $t('portal.avatar.feedback') }}
+              </button>
+
+              <button
                 class="pt-avatar-pop-item pt-avatar-pop-item--danger"
                 type="button"
                 @click="doLogout"
@@ -178,6 +187,12 @@
       :donation="donation"
       @close="donationOpen = false"
     />
+    <FeedbackModal
+      :open="feedbackOpen"
+      endpoint="/api/portal/feedback"
+      :show-location="false"
+      @close="feedbackOpen = false"
+    />
   </nav>
 </template>
 
@@ -188,8 +203,10 @@ import CalendarButton from './CalendarButton.vue'
 import PortalSearchBox from './PortalSearchBox.vue'
 import MkAvatar from '@/components/common/MkAvatar.vue'
 import DonationOverlay from '@/components/common/DonationOverlay.vue'
+import FeedbackModal from '@/components/feedback/FeedbackModal.vue'
 import { ChevronDown, Heart, Home, Library, Search } from 'lucide-vue-next'
 import { usePortalNav } from './usePortalNav.js'
+import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 import { PORTAL_TAB } from '@/constants/portal'
 
 import '@/assets/styles/portal/nav-base.css'
@@ -230,6 +247,13 @@ const {
 
 const calendarRef = ref(null)
 const donationOpen = ref(false)
+const feedbackOpen = ref(false)
+const { ui } = usePortalAuth()
+
+function openFeedback() {
+  menuOpen.value = false
+  feedbackOpen.value = true
+}
 
 // Mobile avatar-menu shortcut — the visible calendar button is hidden
 // on phones, so this is how users reach the events popup.

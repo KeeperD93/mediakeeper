@@ -9,6 +9,7 @@ from api.portal.profile_settings import (
 )
 from api.portal.requests import router as requests_router
 from api.portal.tickets import router as tickets_router
+from api.portal.feedback import router as feedback_router
 from api.portal.news import router as news_router
 from api.portal.achievements import router as achievements_router
 from api.portal.chat import router as chat_router
@@ -43,6 +44,7 @@ router.include_router(profile_settings_router)
 router.include_router(portal_avatar_router)
 router.include_router(requests_router)
 router.include_router(tickets_router)
+router.include_router(feedback_router)
 router.include_router(news_router)
 router.include_router(achievements_router)
 router.include_router(chat_router)

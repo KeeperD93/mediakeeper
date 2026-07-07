@@ -11,13 +11,17 @@ export function useTopbarAlerts() {
 
   async function loadAlertCount() {
     try {
-      const [alerts, seen, chatData] = await Promise.all([
+      const [alerts, seen, chatData, feedbackData] = await Promise.all([
         apiGet('/api/emby/alerts').catch(() => null),
         apiGet('/api/alerts/seen').catch(() => null),
         apiGet('/api/portal/admin/requests/chat/reports?only_open=true').catch(() => null),
+        apiGet('/api/feedback/reports?status=pending').catch(() => null),
       ])
-      if (!alerts || !seen) return
-      seenIds.value = new Set((seen.seen || []).map(String))
+      // Sources are independent: render whatever succeeded this tick instead of
+      // blanking the panel when one fetch fails. Only bail when every data
+      // source failed (transient blip) so the last panel stays put.
+      if (!alerts && !chatData && !feedbackData) return
+      if (seen) seenIds.value = new Set((seen.seen || []).map(String))
 
       const embyItems = (Array.isArray(alerts) ? alerts : []).slice(0, 10).map(a => ({
         kind: 'emby',
@@ -38,7 +42,15 @@ export function useTopbarAlerts() {
         author_name: r.message_author_name,
       }))
 
-      const merged = [...chatItems, ...embyItems]
+      const feedbackItems = ((feedbackData && feedbackData.items) || []).map(r => ({
+        kind: 'feedback_pending',
+        id: `feedback_${r.id}`,
+        name: r.title,
+        date: r.created_at,
+        report_id: r.id,
+      }))
+
+      const merged = [...chatItems, ...feedbackItems, ...embyItems]
         .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
         .slice(0, 10)
       recentAlerts.value = merged

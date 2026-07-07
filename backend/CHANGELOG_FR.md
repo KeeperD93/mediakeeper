@@ -9,6 +9,11 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+### Added
+- Remontée de bugs — signalez bugs/suggestions vers un salon Discord (réglages admin).
+- Modération des remontées — file pour éditer, valider ou refuser les signalements, avec cloche et badge « en attente ».
+- Planificateur — purge automatique des remontées refusées (délai configurable).
+
 ## [1.0.0-rc.6] - 2026-06-30
 
 ### Added

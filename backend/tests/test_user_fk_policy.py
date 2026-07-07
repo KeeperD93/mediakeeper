@@ -46,6 +46,7 @@ _EXPECTED: dict[tuple[str, str], str] = {
     ("user_list_items",    "added_by_user_id"):   "SET NULL",
     ("user_list_history",  "user_id"):            "SET NULL",
     ("security_blocks",    "created_by"):         "SET NULL",
+    ("feedback_reports",   "reporter_user_id"):   "SET NULL",
     # ── CASCADE: rows that die with the owner ──
     ("user_profiles",            "user_id"): "CASCADE",
     ("user_preferences",         "user_id"): "CASCADE",

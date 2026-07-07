@@ -14,6 +14,9 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Added
+- Feedback — report a bug or suggestion to the maintainer from the account menu (when allowed).
+
 ## [1.0.0-rc.6] - 2026-06-30
 
 ### Changed
