@@ -136,6 +136,14 @@
           </div>
 
           <footer class="fbk-footer">
+            <button
+              type="button"
+              class="fbk-btn fbk-btn--ghost fbk-btn--reset"
+              :disabled="busy"
+              @click="reset"
+            >
+              {{ $t('feedback.modal.reset') }}
+            </button>
             <button type="button" class="fbk-btn fbk-btn--ghost" @click="close">
               {{ $t('common.cancel') }}
             </button>
@@ -202,6 +210,7 @@ const resolutionCustom = ref('')
 const selectedTags = ref(new Set())
 const anonymous = ref(false)
 const busy = ref(false)
+const initialized = ref(false)
 const panelRef = ref(null)
 const closeBtnRef = ref(null)
 
@@ -289,7 +298,13 @@ function reset() {
 watch(
   () => props.open,
   v => {
-    if (v) reset()
+    // Draft mode: pre-fill (page location + resolution) only on the FIRST open,
+    // so a half-filled report survives being closed and reopened. Only an
+    // explicit "Réinitialiser" or a successful submit clears the draft.
+    if (v && !initialized.value) {
+      reset()
+      initialized.value = true
+    }
   },
 )
 
@@ -311,6 +326,7 @@ async function submit() {
       anonymous: anonymous.value,
     })
     showToast(t('feedback.modal.sent'), TOAST_TYPE.OK)
+    reset() // clear the sent draft; the next open starts fresh
     emit('close')
   } catch (e) {
     showToast(resolveApiError(e.message), TOAST_TYPE.ERR)

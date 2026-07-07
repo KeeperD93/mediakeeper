@@ -373,6 +373,7 @@
       "anonymous": "Envoyer de façon anonyme",
       "budget": "{used} / {max} caractères",
       "submit": "Envoyer",
+      "reset": "Réinitialiser",
       "sent": "Signalement effectué avec succès."
     },
     "tags": {

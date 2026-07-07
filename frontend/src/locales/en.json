@@ -373,6 +373,7 @@
       "anonymous": "Send anonymously",
       "budget": "{used} / {max} characters",
       "submit": "Send",
+      "reset": "Reset",
       "sent": "Report sent successfully."
     },
     "tags": {
