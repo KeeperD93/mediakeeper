@@ -31,6 +31,14 @@ export default defineConfig(({ mode }) => {
           xfwd: true,
           cookieDomainRewrite: 'localhost',
           configure: (proxy) => {
+            // Dev-only: rewrite the browser Origin (:5173) to the proxy target so
+            // the backend's same-origin CSRF guard sees a same-origin request.
+            // `changeOrigin` rewrites Host but NOT Origin — without this, every
+            // login / authenticated mutation from :5173 is 403 csrf_origin_mismatch.
+            const apiTarget = env.API_TARGET || 'http://localhost:8888'
+            proxy.on('proxyReq', (proxyReq) => {
+              proxyReq.setHeader('origin', apiTarget)
+            })
             proxy.on('proxyRes', (proxyRes) => {
               const setCookie = proxyRes.headers['set-cookie']
               if (setCookie) {

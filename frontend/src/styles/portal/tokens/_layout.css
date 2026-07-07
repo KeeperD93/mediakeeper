@@ -73,7 +73,10 @@
     0.92
   ); /* notification popup, chat aside, panel wrappers */
 
-  --portal-panel-bg-dark: rgb(12, 16, 30, 0.96); /* daily digest panel — stays dark by design */
+  --portal-panel-bg-dark: rgb(
+    var(--portal-chrome-bg-rgb),
+    0.96
+  ); /* daily digest panel — portal chrome tint */
 
   /* Z-index (portal layers) -------------------------------- */
   --portal-z-sticky: 200;
