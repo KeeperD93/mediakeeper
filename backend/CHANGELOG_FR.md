@@ -9,6 +9,8 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+## [1.0.0-rc.7] - 2026-07-07
+
 ### Added
 - Remontée de bugs — signalez bugs/suggestions vers un salon Discord (réglages admin).
 - Modération des remontées — file pour éditer, valider ou refuser les signalements, avec cloche et badge « en attente ».
