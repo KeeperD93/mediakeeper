@@ -10,6 +10,7 @@ This section intentionally has no date so it is not shown to users.
 ## [Unreleased]
 
 ### Fixed
+- Backups — retention limit now also applies right after a manual backup.
 - Dependencies — updated to patch third-party security advisories.
 
 ## [1.0.0-rc.7] - 2026-07-07

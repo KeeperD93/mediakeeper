@@ -10,6 +10,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 ## [Unreleased]
 
 ### Fixed
+- Sauvegardes — la limite de rétention s'applique aussi juste après une sauvegarde manuelle.
 - Dépendances — mises à jour pour corriger des vulnérabilités tierces.
 
 ## [1.0.0-rc.7] - 2026-07-07

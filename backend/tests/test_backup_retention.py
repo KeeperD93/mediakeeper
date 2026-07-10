@@ -8,8 +8,15 @@ policy the manual button already did.
 import os
 import time
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
+import pytest
+
+from api.backup import _crud
+from api.backup._schemas import BackupRequest
 from services.backup import apply_retention_for_setting
+from services.settings import set_setting
 
 
 def _make_backup(dir_: Path, name: str, age_days: float = 0) -> Path:
@@ -48,3 +55,31 @@ def test_zero_retention_is_noop(tmp_path):
 
     assert apply_retention_for_setting(0, tmp_path) == 0
     assert (tmp_path / "mediakeeper_backup_keep.zip").exists()
+
+
+@pytest.mark.asyncio
+async def test_manual_create_applies_retention(db_session, workspace_tmp_path, monkeypatch):
+    """The manual /create endpoint enforces retention immediately, like the
+    scheduled backup — otherwise manual backups pile up until the next auto run."""
+    backup_dir = Path(workspace_tmp_path)
+    await set_setting(db_session, "backup.retention_days", "-2")  # keep the 2 most recent
+
+    for name, age in (("old1", 3), ("old2", 2), ("old3", 1)):
+        _make_backup(backup_dir, name, age_days=age)
+
+    new = backup_dir / "mediakeeper_backup_new.zip"
+
+    async def _fake_create(db, components=None, label=""):
+        new.write_bytes(b"x")  # newest backup (mtime now)
+        return new
+
+    monkeypatch.setattr(_crud, "create_backup", _fake_create)
+    monkeypatch.setattr(_crud, "resolve_backup_dir", AsyncMock(return_value=backup_dir))
+
+    resp = await _crud.create_backup_endpoint(
+        BackupRequest(), db=db_session, _=SimpleNamespace(username="tester"),
+    )
+
+    assert resp["success"] is True
+    remaining = {p.name for p in backup_dir.glob("mediakeeper_backup_*.zip")}
+    assert remaining == {"mediakeeper_backup_new.zip", "mediakeeper_backup_old3.zip"}
