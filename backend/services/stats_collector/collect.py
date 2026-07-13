@@ -14,6 +14,10 @@ from ._resolver import _session_library_name
 
 logger = logging.getLogger("mediakeeper.stats.collector")
 
+# Non-catalogued playback we never track as a watch: Emby Cinema Mode intros
+# arrive as Type "Video" and pre-roll trailers as Type "Trailer".
+_UNTRACKED_ITEM_TYPES = frozenset({"Video", "Trailer"})
+
 
 async def collect_active_sessions(db: AsyncSession):
     """
@@ -49,6 +53,8 @@ async def collect_active_sessions(db: AsyncSession):
         np = s.get("NowPlayingItem")
         if not np or not s.get("UserName"):
             continue
+        if np.get("Type") in _UNTRACKED_ITEM_TYPES:
+            continue
         # A paused session keeps its existing PlaybackSession row alive
         # (added to ``active_keys``) so the stale-closure branch below
         # does not treat the pause as a definitive stop. We still skip
@@ -70,6 +76,8 @@ async def collect_active_sessions(db: AsyncSession):
     for s in sessions:
         np = s.get("NowPlayingItem")
         if not np or not s.get("UserName"):
+            continue
+        if np.get("Type") in _UNTRACKED_ITEM_TYPES:
             continue
 
         play_state = s.get("PlayState", {})
@@ -116,12 +124,12 @@ async def collect_active_sessions(db: AsyncSession):
             if not row.genres and genres_str:
                 row.genres = genres_str
             if not row.library_name:
-                lib_name = await _session_library_name(np, item_id, url, api_key, library_aliases)
+                lib_name = await _session_library_name(np, item_id, url, api_key, library_aliases, user_id)
                 if lib_name:
                     logger.info("Session %s: library_name enrichi → %s", session_key, lib_name)
                 row.library_name = lib_name
         else:
-            lib_name = await _session_library_name(np, item_id, url, api_key, library_aliases)
+            lib_name = await _session_library_name(np, item_id, url, api_key, library_aliases, user_id)
             logger.debug("New session %s: library_name resolved = %s", item_id, lib_name)
             row = PlaybackSession(
                 session_key=session_key,
@@ -212,6 +220,8 @@ async def _process_pause_events(db: AsyncSession, sessions: list, now: datetime)
     for s in sessions:
         np = s.get("NowPlayingItem")
         if not np or not s.get("UserName"):
+            continue
+        if np.get("Type") in _UNTRACKED_ITEM_TYPES:
             continue
         session_key = f"{s.get('UserId', '')}_{np.get('Id', '')}_{s.get('Id', '')}"
         if s.get("PlayState", {}).get("IsPaused", False):

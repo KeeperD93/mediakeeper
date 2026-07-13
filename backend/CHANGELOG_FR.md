@@ -9,8 +9,12 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+### Changed
+- Statistiques — la réparation ouvre un rapport détaillé (résolus, non résolus, erreurs).
+
 ### Fixed
 - Sauvegardes — la limite de rétention s'applique aussi juste après une sauvegarde manuelle.
+- Statistiques — noms de bibliothèque corrigés ; intros vidéo exclues du suivi.
 - Dépendances — mises à jour pour corriger des vulnérabilités tierces.
 
 ## [1.0.0-rc.7] - 2026-07-07

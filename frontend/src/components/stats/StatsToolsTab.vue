@@ -38,9 +38,6 @@
         <MkButton variant="primary" icon="refresh-cw" @click="migrateLibNames">
           {{ $t('stats.launch') }}
         </MkButton>
-        <div v-if="migrateStatus" class="tool-status" :class="migrateStatus.type">
-          {{ migrateStatus.text }}
-        </div>
       </div>
     </div>
     <div class="glass-card tool-card tool-card-excl">
@@ -77,6 +74,14 @@
         />
       </div>
     </div>
+
+    <StatsRepairOverlay
+      :open="repairOpen"
+      :running="repairRunning"
+      :result="repairResult"
+      :error="repairError"
+      @close="repairOpen = false"
+    />
   </div>
 </template>
 
@@ -87,6 +92,7 @@ import { useApi, resolveApiError } from '@/composables/useApi'
 import { useStats } from '@/composables/useStats'
 import { Ban, Plus, RefreshCw, Trash2, Upload } from 'lucide-vue-next'
 import MkButton from '@/components/common/MkButton.vue'
+import StatsRepairOverlay from '@/components/stats/StatsRepairOverlay.vue'
 import { useConfirm } from '@/composables/useConfirm'
 
 const mkConfirm = useConfirm()
@@ -97,7 +103,10 @@ const { loadTotals } = useStats()
 
 const importStatus = ref(null)
 const purgeStatus = ref(null)
-const migrateStatus = ref(null)
+const repairOpen = ref(false)
+const repairRunning = ref(false)
+const repairResult = ref(null)
+const repairError = ref('')
 const exclusions = ref([])
 const exclMode = ref('exact')
 const exclValue = ref('')
@@ -142,19 +151,20 @@ async function purgeJellystats() {
 }
 
 async function migrateLibNames() {
-  migrateStatus.value = { type: 'info', text: t('stats.migration') + '...' }
+  repairOpen.value = true
+  repairRunning.value = true
+  repairResult.value = null
+  repairError.value = ''
   try {
     const d = await apiPost('/api/stats/migrate/library-names')
-    if (d.error) {
-      migrateStatus.value = { type: 'err', text: d.error }
-      return
-    }
-    migrateStatus.value = {
-      type: 'ok',
-      text: `${d.migrated} ${t('stats.resolved')}, ${d.unresolved} ${t('stats.unresolved')}`,
-    }
+    if (d.error === 'no_active_media_source') repairError.value = t('stats.repair.errNoSource')
+    else if (d.error === 'missing_url_or_api_key') repairError.value = t('stats.repair.errNoConfig')
+    else if (d.error) repairError.value = t('common.error')
+    else repairResult.value = d
   } catch {
-    migrateStatus.value = { type: 'err', text: t('common.error') }
+    repairError.value = t('common.error')
+  } finally {
+    repairRunning.value = false
   }
 }
 
