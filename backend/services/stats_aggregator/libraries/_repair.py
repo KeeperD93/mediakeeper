@@ -98,6 +98,7 @@ async def repair_library_names(db: AsyncSession, collect_details: bool = False) 
                         ],
                     })
         except Exception:  # noqa: S112 -- best-effort per row, keep repairing the rest
+            logger.warning("Library-name repair failed for item %s", row.item_id, exc_info=True)
             errors += 1
             if collect_details:
                 details.append({

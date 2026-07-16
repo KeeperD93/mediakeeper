@@ -126,7 +126,7 @@ async def collect_active_sessions(db: AsyncSession):
             if not row.library_name:
                 lib_name = await _session_library_name(np, item_id, url, api_key, library_aliases, user_id)
                 if lib_name:
-                    logger.info("Session %s: library_name enrichi → %s", session_key, lib_name)
+                    logger.info("Session %s: library_name resolved → %s", session_key, lib_name)
                 row.library_name = lib_name
         else:
             lib_name = await _session_library_name(np, item_id, url, api_key, library_aliases, user_id)

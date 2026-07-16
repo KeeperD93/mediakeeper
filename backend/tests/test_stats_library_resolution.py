@@ -397,3 +397,24 @@ async def test_repair_details_report_migrated(db_session):
     assert result["details"][0]["library_name"] == "Movies"
     row = (await db_session.execute(select(PlaybackSession))).scalar_one()
     assert row.library_name == "Movies"
+
+
+@pytest.mark.asyncio
+async def test_repair_details_report_error(db_session):
+    """A per-row Emby failure is caught, counted as error, and surfaced in details."""
+    db_session.add(LibraryCache(lib_id="1", name="Movies", collection_type="movies"))
+    db_session.add(_session("k2", "i2", "Sub-folder"))
+    await db_session.commit()
+
+    with patch(
+        "services.stats_aggregator.libraries._repair.get_active_media_source",
+        AsyncMock(return_value={"source": "emby", "url": "http://emby", "api_key": "k"}),
+    ), patch(
+        "services.stats_collector._emby_admin_user_id", AsyncMock(return_value="admin-1"),
+    ), patch(
+        "services.stats_collector._fetch_ancestors", AsyncMock(side_effect=RuntimeError("boom")),
+    ):
+        result = await repair_library_names(db_session, collect_details=True)
+
+    assert result["errors"] == 1
+    assert result["details"][0]["status"] == "error"

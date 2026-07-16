@@ -42,12 +42,14 @@ function buildOverlay(props = {}) {
 }
 
 describe('StatsRepairOverlay — focus trap integration', () => {
-  it('moves initial focus onto the close button when the overlay opens', async () => {
-    const w = buildOverlay()
+  it('moves initial focus into the dialog even while running (close button disabled)', async () => {
+    // Real flow: the overlay always opens with running=true, so the close button
+    // is disabled — focus must land on the dialog panel, not stay outside.
+    const w = buildOverlay({ running: true, result: null })
     await flushPromises()
 
-    const closeBtn = document.querySelector('.rlo-close')
-    expect(document.activeElement).toBe(closeBtn)
+    const panel = document.querySelector('.rlo-modal')
+    expect(document.activeElement).toBe(panel)
 
     w.unmount()
   })

@@ -56,9 +56,13 @@ async def create_backup_endpoint(
         logger.error("[backup] Creation error: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail="backup_create_failed") from e
     # Enforce the retention policy right away, like the scheduled backup does,
-    # so manual backups don't pile up until the next automatic run.
-    retention = int(await get_setting(db, "backup.retention_days") or 30)
-    apply_retention_for_setting(retention, await resolve_backup_dir(db))
+    # so manual backups don't pile up until the next automatic run. A cleanup
+    # failure must not mask a successful backup — log it and still return success.
+    try:
+        retention = int(await get_setting(db, "backup.retention_days") or 30)
+        apply_retention_for_setting(retention, await resolve_backup_dir(db))
+    except Exception as e:
+        logger.warning("[backup] retention pass failed after manual backup: %s", e, exc_info=True)
     return {
         "success": True,
         "filename": dest.name,

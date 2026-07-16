@@ -24,9 +24,9 @@ async def _fetch_ancestors(
         return None
     try:
         client = get_internal_client()
-        query = f"{url}/Items/{item_id}/Ancestors"
+        query = f"{url}/Items/{quote(item_id, safe='')}/Ancestors"
         if user_id:
-            query += f"?UserId={quote(str(user_id))}"
+            query += f"?UserId={quote(user_id, safe='')}"
         res = await client.get(
             query,
             headers={"X-Emby-Token": api_key},

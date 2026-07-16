@@ -83,3 +83,29 @@ async def test_manual_create_applies_retention(db_session, workspace_tmp_path, m
     assert resp["success"] is True
     remaining = {p.name for p in backup_dir.glob("mediakeeper_backup_*.zip")}
     assert remaining == {"mediakeeper_backup_new.zip", "mediakeeper_backup_old3.zip"}
+
+
+@pytest.mark.asyncio
+async def test_manual_create_survives_retention_failure(db_session, workspace_tmp_path, monkeypatch):
+    """A retention cleanup failure after a successful backup is logged, not fatal —
+    the endpoint still reports success rather than a misleading 500."""
+    backup_dir = Path(workspace_tmp_path)
+    await set_setting(db_session, "backup.retention_days", "-2")
+    new = backup_dir / "mediakeeper_backup_new.zip"
+
+    async def _fake_create(db, components=None, label=""):
+        new.write_bytes(b"x")
+        return new
+
+    def _boom(*a, **k):
+        raise PermissionError("nas locked")
+
+    monkeypatch.setattr(_crud, "create_backup", _fake_create)
+    monkeypatch.setattr(_crud, "resolve_backup_dir", AsyncMock(return_value=backup_dir))
+    monkeypatch.setattr(_crud, "apply_retention_for_setting", _boom)
+
+    resp = await _crud.create_backup_endpoint(
+        BackupRequest(), db=db_session, _=SimpleNamespace(username="tester"),
+    )
+    assert resp["success"] is True
+    assert resp["filename"] == "mediakeeper_backup_new.zip"

@@ -120,7 +120,10 @@ function onClose() {
 useFocusTrap({
   active: isOpen,
   containerRef: panelRef,
-  initialFocusRef: closeBtnRef,
+  // Focus the dialog itself, not the close button: it is disabled while a repair
+  // runs (the overlay always opens with running=true), so targeting it would
+  // leave focus outside the modal.
+  initialFocusRef: panelRef,
   onEscape: onClose,
 })
 
