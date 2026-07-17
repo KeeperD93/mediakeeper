@@ -35,11 +35,7 @@
     <div id="tk-panel" role="tabpanel" :aria-labelledby="`tk-tab-${tab}`">
       <p v-if="loading" class="tk-empty">{{ t('common.loading') }}</p>
       <p v-else-if="!reports.length" class="tk-empty">
-        {{
-          tab === 'pending'
-            ? t('feedback.moderation.empty')
-            : t('feedback.moderation.emptyRejected')
-        }}
+        {{ emptyLabel }}
       </p>
 
       <ul v-else class="tk-list">
@@ -205,7 +201,7 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   FEEDBACK_TYPES,
@@ -236,6 +232,9 @@ const {
   reject,
 } = useFeedbackModeration()
 
+const emptyLabel = computed(() =>
+  t(tab.value === 'pending' ? 'feedback.moderation.empty' : 'feedback.moderation.emptyRejected'),
+)
 function reporterLabel(r) {
   if (r.anonymous || !r.reporter_name) return t('feedback.moderation.anonymous')
   return t('feedback.moderation.by', { name: r.reporter_name })
