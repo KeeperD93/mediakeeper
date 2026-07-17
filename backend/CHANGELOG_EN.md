@@ -10,6 +10,7 @@ This section intentionally has no date so it is not shown to users.
 ## [Unreleased]
 
 ### Changed
+- Feedback moderation — opened from the report dialog instead of a sidebar entry.
 - Stats — library repair opens a detailed report (resolved, unresolved, errors).
 
 ### Fixed

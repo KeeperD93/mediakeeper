@@ -56,10 +56,20 @@ export const adminRoutes = [
     meta: { titleKey: 'notifications.title', subtitleKey: 'pageMeta.notifications' },
   },
   {
+    // Reserved slot for the future Emby-connection-monitoring module.
+    // Placeholder until it is built out (hidden from the sidebar).
     path: 'tracker',
     name: 'tracker',
-    component: () => import('@/views/TrackerView.vue'),
+    component: () => import('@/views/PlaceholderView.vue'),
     meta: { titleKey: 'sidebar.tracker', subtitleKey: 'pageMeta.tracker' },
+  },
+  {
+    // Feedback moderation queue (delegate reports). Reached from the report
+    // modal's "view pending reports" button — no sidebar entry by design.
+    path: 'feedback',
+    name: 'feedback',
+    component: () => import('@/views/FeedbackModerationView.vue'),
+    meta: { titleKey: 'feedback.moderation.title', subtitleKey: 'pageMeta.feedback' },
   },
   {
     // Admin side of the Requests module lives under /admin/* so it

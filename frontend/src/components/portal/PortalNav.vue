@@ -191,6 +191,7 @@
       :open="feedbackOpen"
       endpoint="/api/portal/feedback"
       :show-location="false"
+      :can-moderate="hasBackofficeAccess"
       @close="feedbackOpen = false"
     />
   </nav>

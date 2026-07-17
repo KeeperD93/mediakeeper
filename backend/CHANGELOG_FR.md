@@ -10,6 +10,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 ## [Unreleased]
 
 ### Changed
+- Modération des remontées — ouverte depuis la fenêtre de signalement plutôt qu'une entrée de la barre latérale.
 - Statistiques — la réparation ouvre un rapport détaillé (résolus, non résolus, erreurs).
 
 ### Fixed

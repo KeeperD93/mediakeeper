@@ -137,6 +137,15 @@
 
           <footer class="fbk-footer">
             <button
+              v-if="canModerate"
+              type="button"
+              class="fbk-btn fbk-btn--ghost fbk-btn--moderate"
+              @click="goModerate"
+            >
+              <Inbox :size="16" />
+              {{ $t('feedback.modal.moderate') }}
+            </button>
+            <button
               type="button"
               class="fbk-btn fbk-btn--ghost fbk-btn--reset"
               :disabled="busy"
@@ -159,9 +168,9 @@
 
 <script setup>
 import { computed, reactive, ref, toRef, watch, useId } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { X } from 'lucide-vue-next'
+import { X, Inbox } from 'lucide-vue-next'
 import { useApi, resolveApiError } from '@/composables/useApi'
 import { useToast } from '@/composables/useToast'
 import { useFocusTrap } from '@/composables/useFocusTrap'
@@ -180,11 +189,15 @@ const props = defineProps({
   open: { type: Boolean, default: false },
   endpoint: { type: String, default: '/api/feedback' },
   showLocation: { type: Boolean, default: true },
+  // Reveals the "view pending reports" shortcut; gated on backoffice access
+  // by the caller, since moderation is admin-only server-side.
+  canModerate: { type: Boolean, default: false },
 })
 const emit = defineEmits(['close'])
 const titleId = useId()
 
 const route = useRoute()
+const router = useRouter()
 const { t } = useI18n()
 const { apiPost } = useApi()
 const { showToast } = useToast()
@@ -337,6 +350,11 @@ async function submit() {
 
 function close() {
   if (!busy.value) emit('close')
+}
+
+function goModerate() {
+  emit('close')
+  router.push('/feedback')
 }
 
 useFocusTrap({

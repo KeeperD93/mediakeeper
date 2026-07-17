@@ -159,7 +159,12 @@
   padding: 12px 18px;
   border-top: 0.5px solid var(--border);
 }
-/* "Réinitialiser" sits opposite the cancel/submit pair. */
+/* Moderation shortcut + "Réinitialiser" sit opposite the cancel/submit pair. */
+.fbk-btn--moderate {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
 .fbk-btn--reset {
   margin-right: auto;
 }

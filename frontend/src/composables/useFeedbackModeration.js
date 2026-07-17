@@ -23,7 +23,7 @@ function setToPlatform(set) {
 
 /**
  * Feedback moderation queue: state + the load / edit / validate / reject actions.
- * Extracted from TrackerView so the view only presents; ``busyIds`` is
+ * Extracted from the moderation view so it only presents; ``busyIds`` is
  * a per-report set — an action on one row never re-enables another row mid-flight.
  */
 export function useFeedbackModeration() {
@@ -117,7 +117,7 @@ export function useFeedbackModeration() {
           platform: setToPlatform(form.value.platforms),
           tags: form.value.tags,
         }),
-      'feedback.tracker.saved',
+      'feedback.moderation.saved',
     )
     if (ok) {
       cancelEdit()
@@ -129,7 +129,7 @@ export function useFeedbackModeration() {
     const ok = await _run(
       r.id,
       () => apiPost(`/api/feedback/reports/${r.id}/validate`),
-      'feedback.tracker.validated',
+      'feedback.moderation.validated',
     )
     if (ok) reports.value = reports.value.filter(x => x.id !== r.id)
   }
@@ -138,7 +138,7 @@ export function useFeedbackModeration() {
     const ok = await _run(
       r.id,
       () => apiPost(`/api/feedback/reports/${r.id}/reject`),
-      'feedback.tracker.rejected',
+      'feedback.moderation.rejected',
     )
     if (ok) reports.value = reports.value.filter(x => x.id !== r.id)
   }
