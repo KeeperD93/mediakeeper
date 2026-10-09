@@ -44,7 +44,9 @@ async def migrate_library_names(
     (a sub-folder / slug such as ``Archives``) via the Emby Ancestors API.
 
     Thin wrapper over the shared repair routine — the same repair also runs
-    automatically with the periodic library-cache refresh."""
+    automatically with the periodic library-cache refresh. Requests the per-row
+    ``details`` so the admin overlay can show migrated rows and the raw Emby
+    ancestry of unresolved ones."""
     from services.stats_aggregator.libraries import repair_library_names
 
-    return await repair_library_names(db)
+    return await repair_library_names(db, collect_details=True)

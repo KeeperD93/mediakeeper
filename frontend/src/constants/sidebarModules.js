@@ -31,11 +31,8 @@ export const SIDEBAR_MODULES = Object.freeze([
   Object.freeze({ to: '/health', icon: 'healthcheck', labelKey: 'sidebar.healthCheck' }),
   Object.freeze({ to: '/subtitles', icon: 'subtitles', labelKey: 'sidebar.subtitles' }),
   Object.freeze({ to: '/notifications', icon: 'notifications', labelKey: 'sidebar.notifications' }),
-  Object.freeze({
-    to: '/tracker',
-    icon: 'tracker',
-    labelKey: 'sidebar.tracker',
-    badgeKey: 'feedbackPending',
-    badgeColor: 'red',
-  }),
+  // "Traceur" is reserved for a future Emby-connection-monitoring module —
+  // hidden from the sidebar until it is built out (one-line uncomment to
+  // restore, pairs with the SearchModal.vue entry).
+  // Object.freeze({ to: '/tracker', icon: 'tracker', labelKey: 'sidebar.tracker' }),
 ])

@@ -7,17 +7,18 @@ library bug). MediaKeeper enforces a >= 32-byte JWT_SECRET_KEY at
 startup (core/security.py), but the runtime guard alone does not stop
 forgery attempts: ``decode_access_token`` must also refuse tokens
 signed with the wrong key, the wrong algorithm, "alg: none", a
-tampered signature, or past their ``exp``.
+tampered signature, or past their ``exp``. It must also fail closed
+(``None``) on malformed input instead of raising.
 
 If any of these tests start failing, the project IS exposed,
 regardless of what the advisory database says."""
 
 from __future__ import annotations
 
+import base64
 from datetime import datetime, timedelta, timezone
 
 import jwt
-import pytest
 
 from core.security import (
     ALGORITHM,
@@ -33,6 +34,10 @@ def _payload_with_exp(minutes: int = 10) -> dict:
         "iat": datetime.now(timezone.utc),
         "exp": datetime.now(timezone.utc) + timedelta(minutes=minutes),
     }
+
+
+def _b64url(raw: bytes) -> str:
+    return base64.urlsafe_b64encode(raw).rstrip(b"=").decode()
 
 
 def test_decode_accepts_valid_token():
@@ -73,11 +78,9 @@ def test_decode_rejects_tampered_signature():
     token."""
     valid = create_access_token({"sub": "alice"})
     header, payload, signature = valid.split(".")
-    # Flip a character in the middle of the signature. Flipping the LAST
-    # character is unreliable because base64url packs 32 bytes into 43 chars,
-    # where the trailing char carries only 4 data bits + 2 padding bits, so a
-    # naive swap can yield identical decoded bytes (the library discards the
-    # padding bits).
+    # Flip a middle character: the last one also carries 2 padding bits, so a
+    # swap there can leave the decoded bytes unchanged and only trip the
+    # decoder's canonical-encoding check instead of signature verification.
     middle = len(signature) // 2
     pivot = signature[middle]
     swapped = "B" if pivot != "B" else "C"
@@ -94,3 +97,13 @@ def test_decode_rejects_expired_token():
         expires_delta=timedelta(seconds=-1),
     )
     assert decode_access_token(token) is None
+
+
+def test_decode_rejects_deeply_nested_header():
+    """A header nested past the JSON parser's recursion limit must be refused
+    like any malformed token: PyJWT < 2.14 let the ``RecursionError`` escape,
+    so an unauthenticated cookie could turn any protected route into a 500."""
+    depth = 200_000  # well past CPython's limit on every supported platform
+    header = _b64url(b"[" * depth + b"]" * depth)
+    forged = f"{header}.{_b64url(b'{}')}.{_b64url(b'sig')}"
+    assert decode_access_token(forged) is None

@@ -77,7 +77,7 @@
                     <p class="tb-notif-text">
                       <span v-if="a.kind === 'chat_report'" class="tb-notif-pill">CHAT</span>
                       <span v-else-if="a.kind === 'feedback_pending'" class="tb-notif-pill">
-                        {{ t('feedback.tracker.pill') }}
+                        {{ t('feedback.moderation.pill') }}
                       </span>
                       {{ a.name }}
                     </p>
@@ -98,8 +98,8 @@
                       </button>
                     </div>
                     <div v-if="a.kind === 'feedback_pending'" class="tb-notif-actions">
-                      <button class="tb-notif-act" @click.stop="openTracker">
-                        {{ t('feedback.tracker.open') }}
+                      <button class="tb-notif-act" @click.stop="openModeration">
+                        {{ t('feedback.moderation.open') }}
                       </button>
                     </div>
                   </div>
@@ -166,7 +166,7 @@
       :donation="donation"
       @close="donationOpen = false"
     />
-    <FeedbackModal :open="feedbackOpen" @close="feedbackOpen = false" />
+    <FeedbackModal :open="feedbackOpen" :can-moderate="true" @close="feedbackOpen = false" />
   </header>
 </template>
 
@@ -228,9 +228,9 @@ function dispatchDashboardEdit() {
   window.dispatchEvent(new Event(DASHBOARD_EDIT_EVENT))
 }
 
-function openTracker() {
+function openModeration() {
   showNotifPanel.value = false
-  router.push('/tracker')
+  router.push('/feedback')
 }
 
 const pageTitle = computed(() => {

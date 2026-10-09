@@ -170,12 +170,14 @@ const PAGES = computed(() => [
     subtitle: t('notifications.title'),
     icon: PAGE_ICONS['/notifications'],
   },
-  {
-    path: '/tracker',
-    title: t('sidebar.tracker'),
-    subtitle: t('pageMeta.tracker'),
-    icon: PAGE_ICONS['/tracker'],
-  },
+  // "Traceur" (Emby-connection monitoring) is hidden until it is built out —
+  // restore this quick-search entry alongside the sidebar module.
+  // {
+  //   path: '/tracker',
+  //   title: t('sidebar.tracker'),
+  //   subtitle: t('pageMeta.tracker'),
+  //   icon: PAGE_ICONS['/tracker'],
+  // },
   {
     path: '/portal',
     title: t('sidebar.requests'),

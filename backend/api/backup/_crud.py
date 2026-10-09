@@ -8,6 +8,7 @@ from core.database import get_db
 from models.user import User
 from services.backup import (
     DEFAULT_COMPONENTS,
+    apply_retention_for_setting,
     create_backup,
     delete_backup,
     get_backup_path,
@@ -51,14 +52,22 @@ async def create_backup_endpoint(
     components = {**DEFAULT_COMPONENTS, **req.components}
     try:
         dest = await create_backup(db, components=components, label=req.label)
-        return {
-            "success": True,
-            "filename": dest.name,
-            "size_bytes": dest.stat().st_size,
-        }
     except Exception as e:
         logger.error("[backup] Creation error: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail="backup_create_failed") from e
+    # Enforce the retention policy right away, like the scheduled backup does,
+    # so manual backups don't pile up until the next automatic run. A cleanup
+    # failure must not mask a successful backup — log it and still return success.
+    try:
+        retention = int(await get_setting(db, "backup.retention_days") or 30)
+        apply_retention_for_setting(retention, await resolve_backup_dir(db))
+    except Exception as e:
+        logger.warning("[backup] retention pass failed after manual backup: %s", e, exc_info=True)
+    return {
+        "success": True,
+        "filename": dest.name,
+        "size_bytes": dest.stat().st_size,
+    }
 
 
 @router.get("/download/{filename}")

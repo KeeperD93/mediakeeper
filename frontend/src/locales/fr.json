@@ -226,6 +226,8 @@
       "nextPage": "Page suivante"
     },
     "showPerPage": "Afficher",
+    "moduleComingSoon": "Ce module est en cours de développement.",
+    "moduleComingSoonDesc": "Il sera disponible dans une prochaine mise à jour.",
     "enter": "Entrer",
     "unknown": "Inconnu",
     "edit": "Modifier",
@@ -374,6 +376,7 @@
       "budget": "{used} / {max} caractères",
       "submit": "Envoyer",
       "reset": "Réinitialiser",
+      "moderate": "Voir les remontées en attente",
       "sent": "Signalement effectué avec succès."
     },
     "tags": {
@@ -387,7 +390,7 @@
       "translation": "Traduction",
       "compatibility": "Compatibilité"
     },
-    "tracker": {
+    "moderation": {
       "title": "Modération des remontées",
       "tabPending": "En attente",
       "tabRejected": "Refusés",
@@ -726,8 +729,21 @@
     "imported": "importées",
     "duplicatesSkipped": "doublons",
     "purged": "supprimées",
-    "resolved": "résolus",
-    "unresolved": "non résolus",
+    "repair": {
+      "title": "Réparation des médiathèques",
+      "running": "Analyse en cours…",
+      "migrated": "résolus",
+      "unresolved": "non résolus",
+      "errors": "erreurs",
+      "migratedTitle": "Résolus",
+      "unresolvedTitle": "Non résolus",
+      "unresolvedHint": "Aucune médiathèque Emby trouvée pour ces éléments. Voici la chaîne de dossiers renvoyée par Emby :",
+      "errorsTitle": "Erreurs",
+      "empty": "Rien à réparer.",
+      "noAncestry": "(aucune arborescence renvoyée)",
+      "errNoSource": "Aucune source média active.",
+      "errNoConfig": "Configuration Emby incomplète."
+    },
     "video": "Vidéo",
     "audio": "Audio",
     "subtitles": "Sous-titres",
@@ -2411,7 +2427,8 @@
     "health": "Santé de la bibliothèque média",
     "subtitles": "Gestion OpenSubtitles",
     "notifications": "Alertes Discord et Telegram",
-    "tracker": "Validez ou refusez les remontées des contributeurs",
+    "tracker": "Surveillance de la connexion Emby",
+    "feedback": "Validez ou refusez les remontées des contributeurs",
     "requestsUsersTitle": "Utilisateurs Demandes",
     "requestsUsers": "Gestion des comptes du module Demandes",
     "requestsAdminTitle": "Configuration Demandes",

@@ -1,6 +1,6 @@
 <template>
   <div class="tk-page">
-    <div class="tk-tabs" role="tablist" :aria-label="t('feedback.tracker.title')">
+    <div class="tk-tabs" role="tablist" :aria-label="t('feedback.moderation.title')">
       <button
         id="tk-tab-pending"
         type="button"
@@ -12,7 +12,7 @@
         :class="{ 'tk-tab--on': tab === 'pending' }"
         @click="switchTab('pending')"
       >
-        {{ t('feedback.tracker.tabPending') }}
+        {{ t('feedback.moderation.tabPending') }}
         <span v-if="tab === 'pending' && reports.length" class="tk-badge">
           {{ reports.length }}
         </span>
@@ -28,14 +28,14 @@
         :class="{ 'tk-tab--on': tab === 'rejected' }"
         @click="switchTab('rejected')"
       >
-        {{ t('feedback.tracker.tabRejected') }}
+        {{ t('feedback.moderation.tabRejected') }}
       </button>
     </div>
 
     <div id="tk-panel" role="tabpanel" :aria-labelledby="`tk-tab-${tab}`">
       <p v-if="loading" class="tk-empty">{{ t('common.loading') }}</p>
       <p v-else-if="!reports.length" class="tk-empty">
-        {{ tab === 'pending' ? t('feedback.tracker.empty') : t('feedback.tracker.emptyRejected') }}
+        {{ emptyLabel }}
       </p>
 
       <ul v-else class="tk-list">
@@ -55,7 +55,7 @@
           <template v-if="editingId !== r.id">
             <p class="tk-desc">{{ r.description }}</p>
             <p v-if="r.reproduction" class="tk-repro">
-              <strong>{{ t('feedback.tracker.reproduction') }} :</strong>
+              <strong>{{ t('feedback.moderation.reproduction') }} :</strong>
               {{ r.reproduction }}
             </p>
             <ul v-if="r.tags && r.tags.length" class="tk-taglist">
@@ -64,7 +64,7 @@
 
             <div v-if="tab === 'pending'" class="tk-actions">
               <button type="button" class="tk-btn" :disabled="isBusy(r.id)" @click="startEdit(r)">
-                {{ t('feedback.tracker.edit') }}
+                {{ t('feedback.moderation.edit') }}
               </button>
               <button
                 type="button"
@@ -72,7 +72,7 @@
                 :disabled="isBusy(r.id)"
                 @click="validate(r)"
               >
-                {{ t('feedback.tracker.validate') }}
+                {{ t('feedback.moderation.validate') }}
               </button>
               <button
                 type="button"
@@ -80,7 +80,7 @@
                 :disabled="isBusy(r.id)"
                 @click="reject(r)"
               >
-                {{ t('feedback.tracker.reject') }}
+                {{ t('feedback.moderation.reject') }}
               </button>
             </div>
           </template>
@@ -183,14 +183,14 @@
                 :disabled="isBusy(editingId)"
                 @click="cancelEdit"
               >
-                {{ t('feedback.tracker.cancel') }}
+                {{ t('feedback.moderation.cancel') }}
               </button>
               <button
                 type="submit"
                 class="tk-btn tk-btn--go"
                 :disabled="!canSave || isBusy(editingId)"
               >
-                {{ t('feedback.tracker.save') }}
+                {{ t('feedback.moderation.save') }}
               </button>
             </div>
           </form>
@@ -201,7 +201,7 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   FEEDBACK_TYPES,
@@ -232,9 +232,12 @@ const {
   reject,
 } = useFeedbackModeration()
 
+const emptyLabel = computed(() =>
+  t(tab.value === 'pending' ? 'feedback.moderation.empty' : 'feedback.moderation.emptyRejected'),
+)
 function reporterLabel(r) {
-  if (r.anonymous || !r.reporter_name) return t('feedback.tracker.anonymous')
-  return t('feedback.tracker.by', { name: r.reporter_name })
+  if (r.anonymous || !r.reporter_name) return t('feedback.moderation.anonymous')
+  return t('feedback.moderation.by', { name: r.reporter_name })
 }
 
 function locationLabel(r) {
@@ -242,7 +245,7 @@ function locationLabel(r) {
 }
 
 function platformLabel(p) {
-  if (p === 'both') return t('feedback.tracker.platformBoth')
+  if (p === 'both') return t('feedback.moderation.platformBoth')
   return t(`feedback.modal.platform_${p}`)
 }
 
