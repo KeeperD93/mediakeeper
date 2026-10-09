@@ -9,7 +9,7 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
-### Security
+### Fixed
 - Dependencies — updated to patch third-party security advisories.
 
 ## [1.0.0-rc.7] - 2026-07-07
