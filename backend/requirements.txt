@@ -10,7 +10,7 @@ httpx==0.28.1
 python-dotenv==1.2.2
 psutil==5.9.8
 bcrypt==5.0.0
-PyJWT[crypto]==2.13.0
+PyJWT[crypto]==2.15.1
 python-multipart==0.0.32
 aiofiles==25.1.0
 alembic==1.19.0
