@@ -24,6 +24,7 @@ The list is built from `frontend/package.json` and `backend/requirements.txt`. T
 | `grid-layout-plus` | MIT | Draggable grid layout. |
 | `lucide-vue-next` | ISC | Lucide icon set, Vue 3 bindings. The Lucide icons themselves are published under the ISC licence. |
 | `@tiptap/core` and `@tiptap/extension-*`, `@tiptap/pm`, `@tiptap/starter-kit`, `@tiptap/vue-3` | MIT | Rich-text editor used in admin surfaces. |
+| `@floating-ui/dom` | MIT | Positioning engine required by the rich-text editor. |
 
 ## Frontend dev / tooling dependencies (`frontend/package.json` → `devDependencies`)
 

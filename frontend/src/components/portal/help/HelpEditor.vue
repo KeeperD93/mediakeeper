@@ -224,19 +224,12 @@
 
 <script setup>
 import { onBeforeUnmount, watch } from 'vue'
-import { Extension } from '@tiptap/core'
 import { Editor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
-import Underline from '@tiptap/extension-underline'
-import TextStyle from '@tiptap/extension-text-style'
-import Color from '@tiptap/extension-color'
+import { TextStyle, Color, FontSize } from '@tiptap/extension-text-style'
 import Highlight from '@tiptap/extension-highlight'
-import Link from '@tiptap/extension-link'
 import TextAlign from '@tiptap/extension-text-align'
-import Table from '@tiptap/extension-table'
-import TableRow from '@tiptap/extension-table-row'
-import TableCell from '@tiptap/extension-table-cell'
-import TableHeader from '@tiptap/extension-table-header'
+import { Table, TableRow, TableCell, TableHeader } from '@tiptap/extension-table'
 import {
   Bold,
   Italic,
@@ -275,30 +268,6 @@ const TEXT_COLORS = [
 ]
 const HIGHLIGHT_COLORS = ['#fde68a', '#fca5a5', '#bbf7d0', '#bfdbfe', '#ddd6fe']
 
-// Inline font-size mark — not part of stock Tiptap, so a tiny extension
-// reuses the textStyle node and stores ``font-size: ...`` on the <span>.
-// The backend bleach pass already whitelists this CSS property.
-const FontSize = Extension.create({
-  name: 'fontSize',
-  addOptions() {
-    return { types: ['textStyle'] }
-  },
-  addGlobalAttributes() {
-    return [
-      {
-        types: this.options.types,
-        attributes: {
-          fontSize: {
-            default: null,
-            parseHTML: el => el.style.fontSize || null,
-            renderHTML: attrs => (attrs.fontSize ? { style: `font-size: ${attrs.fontSize}` } : {}),
-          },
-        },
-      },
-    ]
-  },
-})
-
 // `isEmittingFromEditor` short-circuits the modelValue watcher when the
 // HTML coming back from the parent originates from this editor's own
 // `onUpdate`. Without it, TipTap's internal HTML serialisation may differ
@@ -310,13 +279,17 @@ let isEmittingFromEditor = false
 const editor = new Editor({
   content: props.modelValue || '',
   extensions: [
-    StarterKit,
-    Underline,
+    // StarterKit bundles Link and Underline since v3. The trailing empty
+    // paragraph it adds by default is disabled to keep the stored HTML unchanged.
+    StarterKit.configure({
+      link: { openOnClick: false, autolink: true, linkOnPaste: true },
+      trailingNode: false,
+    }),
     TextStyle,
     Color,
+    // The backend bleach pass already whitelists the font-size CSS property.
     FontSize,
     Highlight.configure({ multicolor: true }),
-    Link.configure({ openOnClick: false, autolink: true, linkOnPaste: true }),
     TextAlign.configure({ types: ['heading', 'paragraph'] }),
     Table.configure({ resizable: true }),
     TableRow,
@@ -331,8 +304,8 @@ const editor = new Editor({
 })
 
 function setFontSize(value) {
-  if (!value) editor.chain().focus().setMark('textStyle', { fontSize: null }).run()
-  else editor.chain().focus().setMark('textStyle', { fontSize: value }).run()
+  if (!value) editor.chain().focus().unsetFontSize().run()
+  else editor.chain().focus().setFontSize(value).run()
 }
 
 function setLink() {
@@ -356,7 +329,8 @@ watch(
       return
     }
     if (editor.getHTML() === next) return
-    editor.commands.setContent(next || '', false)
+    // v3 emits an update by default; a parent-driven reset must stay silent.
+    editor.commands.setContent(next || '', { emitUpdate: false })
   },
 )
 
