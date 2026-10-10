@@ -70,7 +70,7 @@
     "@tiptap/starter-kit": "^2.27.2",
     "@tiptap/vue-3": "^2.27.2",
     "chart.js": "^4.5.1",
-    "dompurify": "^3.4.13",
+    "dompurify": "^3.4.16",
     "grid-layout-plus": "^1.1.1",
     "lucide-vue-next": "^1.0.0",
     "primeicons": "^7.0.0",
