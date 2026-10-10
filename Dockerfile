@@ -86,6 +86,6 @@ RUN sed -i 's/\r$//' /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 EXPOSE 8888
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-    CMD curl -f "http://localhost:8888/api/health" || exit 1
+    CMD ["sh", "-c", "curl -f http://localhost:8888/api/health || exit 1"]
 
 ENTRYPOINT ["/app/entrypoint.sh"]

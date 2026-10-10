@@ -60,7 +60,6 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks(id) {
             if (!id.includes('node_modules')) return
-            if (id.includes('primevue') || id.includes('@primevue') || id.includes('primeicons')) return 'vendor-ui'
             if (id.includes('lucide-vue-next')) return 'vendor-icons'
             if (id.includes('grid-layout-plus')) return 'vendor-dashboard'
             if (id.includes('vue-i18n')) return 'vendor-i18n'

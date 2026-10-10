@@ -17,6 +17,8 @@ This section intentionally has no date so it is not shown to users.
 - Backups — retention limit now also applies right after a manual backup.
 - Stats — library names now resolved correctly; video intros excluded from tracking.
 - Dependencies — updated to patch third-party security advisories.
+- Interface — native controls (dropdowns, date pickers, scrollbars) now use the dark theme.
+- About — technology list corrected.
 
 ## [1.0.0-rc.7] - 2026-07-07
 

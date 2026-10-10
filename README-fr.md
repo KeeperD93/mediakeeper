@@ -291,7 +291,7 @@ MediaKeeper est développé avec l'aide de l'IA. Chaque modification est relue, 
 
 | Couche              | Tech                                                                                                |
 | ------------------- | --------------------------------------------------------------------------------------------------- |
-| **Frontend**        | Vue, Vue Router, vue-i18n, Vite, PrimeVue, Chart.js, lucide-vue-next, TipTap                        |
+| **Frontend**        | Vue, Vue Router, vue-i18n, Vite, Chart.js, lucide-vue-next, Tiptap                                  |
 | **Backend**         | FastAPI (Python), SQLAlchemy (async), Alembic, PyJWT, bcrypt, httpx, slowapi, cryptography, bleach  |
 | **Base de données** | PostgreSQL (embarqué dans l'image), SQLite (tests)                                                  |
 | **Qualité**         | ESLint, Prettier, Stylelint, Vitest, pytest, Husky + commitlint, ruff, bandit, semgrep, pip-audit, npm audit |

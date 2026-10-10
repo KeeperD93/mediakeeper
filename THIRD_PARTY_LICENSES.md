@@ -4,7 +4,7 @@ MediaKeeper is distributed under the **GNU General Public License v3.0 or later*
 
 This document lists the main third-party components shipped with or required by MediaKeeper, the licence each one is published under, and how they relate to the project. It is meant as a starting point for due-diligence reviews; for the authoritative licence text always consult the upstream project.
 
-The list is built from `frontend/package.json` and `backend/requirements.txt`. Transitive dependencies are not enumerated here — `npm ls` and `pip show` give the full tree on a given install.
+The list is built from `frontend/package.json`, `backend/requirements.txt` and `backend/requirements-dev.txt`. Transitive dependencies are not enumerated here — `npm ls` and `pip show` give the full tree on a given install.
 
 > **Note on licence identifiers.** SPDX identifiers below are the most commonly published licences for each project; some packages are dual-licensed or have evolved over time. When in doubt, check the upstream `LICENSE` file in the installed version.
 
@@ -17,13 +17,12 @@ The list is built from `frontend/package.json` and `backend/requirements.txt`. T
 | `vue` | MIT | Vue 3 framework. |
 | `vue-router` | MIT | Routing. |
 | `vue-i18n` | MIT | Internationalisation. |
-| `@primevue/themes` | MIT | PrimeVue theme system. |
-| `primevue` | MIT | PrimeVue components. |
-| `primeicons` | MIT | PrimeIcons icon font. |
 | `chart.js` | MIT | Charting library used in stats views. |
 | `grid-layout-plus` | MIT | Draggable grid layout. |
+| `dompurify` | MPL-2.0 OR Apache-2.0 | HTML sanitiser for rich content rendered in the browser. Dual-licensed; see upstream `LICENSE`. |
 | `lucide-vue-next` | ISC | Lucide icon set, Vue 3 bindings. The Lucide icons themselves are published under the ISC licence. |
 | `@tiptap/core` and `@tiptap/extension-*`, `@tiptap/pm`, `@tiptap/starter-kit`, `@tiptap/vue-3` | MIT | Rich-text editor used in admin surfaces. |
+| `@floating-ui/dom` | MIT | Positioning engine required by the rich-text editor. |
 
 ## Frontend dev / tooling dependencies (`frontend/package.json` → `devDependencies`)
 
@@ -31,6 +30,7 @@ The list is built from `frontend/package.json` and `backend/requirements.txt`. T
 |---|---|---|
 | `vite` | MIT | Build tool. |
 | `@vitejs/plugin-vue` | MIT | Vite plugin for Vue SFCs. |
+| `@intlify/unplugin-vue-i18n` | MIT | Precompiles the locale files at build time. |
 | `vitest` | MIT | Test runner. |
 | `@vitest/coverage-v8` | MIT | Coverage reporter (V8). |
 | `@vue/test-utils` | MIT | Vue testing utilities. |
@@ -40,20 +40,20 @@ The list is built from `frontend/package.json` and `backend/requirements.txt`. T
 | `prettier` | MIT | Code formatter. |
 | `stylelint` and `stylelint-config-recommended-vue`, `stylelint-config-standard` | MIT | Stylesheet linter and shared configs. |
 | `postcss`, `postcss-html` | MIT | CSS post-processor and HTML adapter. |
-| `autoprefixer` | MIT | Vendor-prefixing plugin. |
 | `tailwindcss` | MIT | Utility-first CSS framework (planned to be phased out in a post-1.0 frontend modernisation; see [`.github/dependabot.yml`](.github/dependabot.yml) for the deferred majors). |
+| `@tailwindcss/postcss` | MIT | Tailwind CSS plugin for PostCSS. |
 | `globals` | MIT | Globals reference data for ESLint. |
 | `husky` | MIT | Git hooks runner. |
 | `lint-staged` | MIT | Run linters on staged files. |
 | `jsdom` | MIT | DOM implementation used by Vitest. |
-| `depcheck` | MIT | Unused-dependency scanner. |
 | `openapi-typescript` | MIT | Generates TypeScript types from OpenAPI. |
 | `lighthouse` | Apache-2.0 | Performance audits. |
-| `@playwright/test` | Apache-2.0 | End-to-end test runner. |
+| `@playwright/test`, `playwright` | Apache-2.0 | End-to-end test runner and browser automation. |
 | `@axe-core/playwright` | MPL-2.0 | Accessibility testing engine, Playwright integration. |
 | `autocannon` | MIT | HTTP benchmarking tool. |
 | `@commitlint/cli`, `@commitlint/config-conventional` | MIT | Conventional Commits linter. |
 | `@types/node` | MIT | Node.js type definitions. |
+| `storybook` and `@storybook/addon-a11y`, `@storybook/addon-docs`, `@storybook/vue3-vite`, `eslint-plugin-storybook` | MIT | Component catalogue and its lint rules. |
 
 ## Backend runtime dependencies (`backend/requirements.txt`)
 
@@ -63,7 +63,6 @@ The list is built from `frontend/package.json` and `backend/requirements.txt`. T
 | `uvicorn[standard]` | BSD-3-Clause | ASGI server (the `[standard]` extras pull in additional libraries with their own licences). |
 | `sqlalchemy` | MIT | ORM and SQL toolkit. |
 | `asyncpg` | Apache-2.0 | Async PostgreSQL driver. |
-| `aiosqlite` | MIT | Async SQLite driver, used in the test suite. |
 | `pydantic` | MIT | Data validation and settings. |
 | `httpx` | BSD-3-Clause | HTTP client. |
 | `python-dotenv` | BSD-3-Clause | `.env` loader. |
@@ -74,12 +73,22 @@ The list is built from `frontend/package.json` and `backend/requirements.txt`. T
 | `aiofiles` | Apache-2.0 | Async file I/O. |
 | `alembic` | MIT | Database migration tool. |
 | `slowapi` | MIT | Rate limiting for FastAPI. |
-| `pytest` | MIT | Test framework. |
-| `pytest-asyncio` | Apache-2.0 | Async test support for pytest. |
-| `pytest-cov` | MIT | Coverage plugin for pytest. |
 | `chardet` | LGPL-2.1-or-later | Character-encoding detector (subtitles). |
 | `cryptography` | Apache-2.0 OR BSD-3-Clause | Cryptographic primitives (Fernet). Dual-licensed; see upstream `LICENSE`. |
 | `bleach[css]` | Apache-2.0 | HTML sanitiser. |
+| `cachetools` | MIT | In-memory caches with expiry. |
+
+## Backend test dependencies (`backend/requirements-dev.txt`)
+
+Installed in CI and for local test runs only, never shipped in the Docker image.
+
+| Package | SPDX licence | Notes |
+|---|---|---|
+| `pytest` | MIT | Test framework. |
+| `pytest-asyncio` | Apache-2.0 | Async test support for pytest. |
+| `pytest-cov` | MIT | Coverage plugin for pytest. |
+| `pytest-randomly` | MIT | Randomises test order to surface hidden coupling. |
+| `aiosqlite` | MIT | Async SQLite driver used by the test suite. |
 
 ---
 

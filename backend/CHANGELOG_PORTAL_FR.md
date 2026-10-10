@@ -16,6 +16,9 @@ utilisateurs.
 
 ## [Unreleased]
 
+### Fixed
+- Interface — contrôles natifs (listes, calendriers, défilement) affichés en thème sombre.
+
 ## [1.0.0-rc.7] - 2026-07-07
 
 ### Added
