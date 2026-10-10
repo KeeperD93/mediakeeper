@@ -17,9 +17,6 @@ The list is built from `frontend/package.json` and `backend/requirements.txt`. T
 | `vue` | MIT | Vue 3 framework. |
 | `vue-router` | MIT | Routing. |
 | `vue-i18n` | MIT | Internationalisation. |
-| `@primevue/themes` | MIT | PrimeVue theme system. |
-| `primevue` | MIT | PrimeVue components. |
-| `primeicons` | MIT | PrimeIcons icon font. |
 | `chart.js` | MIT | Charting library used in stats views. |
 | `grid-layout-plus` | MIT | Draggable grid layout. |
 | `lucide-vue-next` | ISC | Lucide icon set, Vue 3 bindings. The Lucide icons themselves are published under the ISC licence. |

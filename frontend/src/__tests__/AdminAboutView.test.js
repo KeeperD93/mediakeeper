@@ -16,7 +16,7 @@ describe('AdminAboutView', () => {
     })
     const stack = w.find('[data-test="ab-stack"]')
     expect(stack.exists()).toBe(true)
-    expect(stack.text()).toContain('Python 3.12')
+    expect(stack.text()).toContain('Python 3.14')
     expect(stack.text()).toContain('FastAPI')
     expect(stack.text()).toContain('Vue 3')
     expect(stack.text()).not.toContain('Docker')

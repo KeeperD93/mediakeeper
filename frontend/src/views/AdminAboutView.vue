@@ -58,8 +58,8 @@ const { t } = useI18n()
 const repoUrl = 'https://github.com/KeeperD93/mediakeeper'
 
 const stack = {
-  backend: 'Python 3.12, FastAPI, SQLAlchemy, asyncpg, PostgreSQL',
-  frontend: 'Vue 3, Vite, PrimeVue, Pinia',
+  backend: 'Python 3.14, FastAPI, SQLAlchemy, asyncpg, PostgreSQL',
+  frontend: 'Vue 3, Vite',
 }
 
 const links = {

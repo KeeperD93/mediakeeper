@@ -17,6 +17,8 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Sauvegardes — la limite de rétention s'applique aussi juste après une sauvegarde manuelle.
 - Statistiques — noms de bibliothèque corrigés ; intros vidéo exclues du suivi.
 - Dépendances — mises à jour pour corriger des vulnérabilités tierces.
+- Interface — contrôles natifs (listes, calendriers, défilement) affichés en thème sombre.
+- À propos — liste des technologies corrigée.
 
 ## [1.0.0-rc.7] - 2026-07-07
 

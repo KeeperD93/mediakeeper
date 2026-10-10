@@ -14,6 +14,9 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Fixed
+- Interface — native controls (dropdowns, date pickers, scrollbars) now use the dark theme.
+
 ## [1.0.0-rc.7] - 2026-07-07
 
 ### Added
