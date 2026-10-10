@@ -9,8 +9,10 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+## [1.0.0-rc.8] - 2026-10-11
+
 ### Changed
-- Modération des remontées — ouverte depuis la fenêtre de signalement plutôt qu'une entrée de la barre latérale.
+- Modération des remontées — accessible depuis la fenêtre de signalement.
 - Statistiques — la réparation ouvre un rapport détaillé (résolus, non résolus, erreurs).
 
 ### Fixed

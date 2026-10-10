@@ -9,8 +9,10 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+## [1.0.0-rc.8] - 2026-10-11
+
 ### Changed
-- Feedback moderation — opened from the report dialog instead of a sidebar entry.
+- Feedback moderation — opened from the report dialog.
 - Stats — library repair opens a detailed report (resolved, unresolved, errors).
 
 ### Fixed

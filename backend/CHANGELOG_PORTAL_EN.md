@@ -14,8 +14,11 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+## [1.0.0-rc.8] - 2026-10-11
+
 ### Fixed
 - Interface — native controls (dropdowns, date pickers, scrollbars) now use the dark theme.
+- Credits — the displayed version matches the installed version again.
 
 ## [1.0.0-rc.7] - 2026-07-07
 
