@@ -21,6 +21,7 @@ This section intentionally has no date so it is not shown to users.
 - Stats — library names now resolved correctly; video intros excluded from tracking.
 - Dependencies — updated to patch third-party security advisories.
 - Interface — native controls (dropdowns, date pickers, scrollbars) now use the dark theme.
+- Dialogs and menus — background matches the theme (bell, account, stats, media manager…).
 - About — technology list corrected.
 
 ## [1.0.0-rc.7] - 2026-07-07

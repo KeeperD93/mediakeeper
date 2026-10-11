@@ -138,7 +138,7 @@ watch(() => props.item, load, { immediate: true })
   position: fixed;
   inset: 0;
   z-index: 9990;
-  background: rgb(0, 0, 0, 0.7);
+  background: var(--overlay-backdrop);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -153,7 +153,7 @@ watch(() => props.item, load, { immediate: true })
   border-radius: 16px;
 }
 .so-solid {
-  background: var(--mk-chrome-bg);
+  background: var(--overlay-bg);
   border: 1px solid var(--border-strong);
   border-radius: 14px;
 }

@@ -21,6 +21,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Statistiques — noms de bibliothèque corrigés ; intros vidéo exclues du suivi.
 - Dépendances — mises à jour pour corriger des vulnérabilités tierces.
 - Interface — contrôles natifs (listes, calendriers, défilement) affichés en thème sombre.
+- Fenêtres et menus — fond aligné sur le thème (cloche, compte, statistiques, gestionnaire…).
 - À propos — liste des technologies corrigée.
 
 ## [1.0.0-rc.7] - 2026-07-07

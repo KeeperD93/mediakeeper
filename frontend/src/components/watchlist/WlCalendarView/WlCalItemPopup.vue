@@ -81,14 +81,14 @@ function formatFullDate(d) {
   position: fixed;
   z-index: 9999;
   width: 290px;
-  background: var(--mk-chrome-bg);
+  background: var(--overlay-bg);
   border: 0.5px solid var(--border-strong);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-lg);
   padding: 14px;
-  animation: pop-in 0.12s ease-out;
+  animation: wlcal-pop-in 0.12s ease-out;
 }
-@keyframes pop-in {
+@keyframes wlcal-pop-in {
   from {
     opacity: 0;
     transform: translateY(-4px);
@@ -96,6 +96,11 @@ function formatFullDate(d) {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wlcal-popup {
+    animation: none;
   }
 }
 .wlcal-popup-close {

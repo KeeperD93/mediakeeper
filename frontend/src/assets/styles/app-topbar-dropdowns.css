@@ -5,7 +5,7 @@
 .tb-notif-dropdown {
   width: auto;
   max-height: 400px;
-  background: var(--mk-chrome-bg);
+  background: var(--overlay-bg);
   backdrop-filter: var(--blur-lg);
   -webkit-backdrop-filter: var(--blur-lg);
   border: var(--border-width) solid var(--border-strong);
@@ -142,7 +142,7 @@
 /* User dropdown */
 .tb-user-dropdown {
   width: 220px;
-  background: var(--mk-chrome-bg);
+  background: var(--overlay-bg);
   backdrop-filter: var(--blur-lg);
   -webkit-backdrop-filter: var(--blur-lg);
   border: var(--border-width) solid var(--border-strong);

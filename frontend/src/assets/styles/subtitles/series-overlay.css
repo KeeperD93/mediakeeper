@@ -10,11 +10,11 @@
 .so-overlay {
   position: fixed;
   inset: 0;
-  background: rgb(0, 0, 0, 0.7);
+  background: var(--overlay-backdrop);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: var(--z-modal);
 }
 .so-overlay .so-modal {
   width: 680px;
@@ -395,7 +395,7 @@
 }
 
 .so-overlay .so-solid {
-  background: var(--mk-chrome-bg);
+  background: var(--overlay-bg);
   border: 1px solid var(--border-strong);
   border-radius: 14px;
 }
