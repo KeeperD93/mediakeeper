@@ -75,7 +75,7 @@ onMounted(loadUpdateStatus)
 }
 .params-lang-select {
   width: 100%;
-  padding: 9px 14px;
+  padding: 9px var(--space-3-5);
   border-radius: var(--radius-btn);
   border: 0.5px solid var(--border);
   background: var(--bg-secondary);
