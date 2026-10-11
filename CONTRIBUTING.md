@@ -285,7 +285,7 @@ Releases are tagged from `main` via the CLI; the maintainer is the only person w
    - `APP_VERSION` in [`backend/api/changelog.py`](backend/api/changelog.py)
    - `PORTAL_VERSION` in [`backend/api/portal_changelog.py`](backend/api/portal_changelog.py)
    - `version` in [`frontend/package.json`](frontend/package.json)
-2. Once that PR is merged, the maintainer pushes a `v*` tag locally (`git tag vX.Y.Z && git push --tags`).
+2. Once that PR is merged, the maintainer creates a signed `v*` tag locally and pushes only that tag (`git tag -s vX.Y.Z -m vX.Y.Z && git push origin vX.Y.Z`).
 3. The [`.github/workflows/release.yml`](.github/workflows/release.yml) workflow builds a multi-arch image (`linux/amd64` + `linux/arm64`), pushes it to GHCR, and creates the matching GitHub Release with a body extracted from the EN changelogs.
 
 ### Channels and GHCR tags

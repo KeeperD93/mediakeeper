@@ -285,7 +285,7 @@ Les releases sont taggées depuis `main` en CLI ; seul le mainteneur les déclen
    - `APP_VERSION` dans [`backend/api/changelog.py`](backend/api/changelog.py)
    - `PORTAL_VERSION` dans [`backend/api/portal_changelog.py`](backend/api/portal_changelog.py)
    - `version` dans [`frontend/package.json`](frontend/package.json)
-2. Une fois cette PR mergée, le mainteneur pousse un tag `v*` en local (`git tag vX.Y.Z && git push --tags`).
+2. Une fois cette PR mergée, le mainteneur crée un tag `v*` signé en local et pousse uniquement ce tag (`git tag -s vX.Y.Z -m vX.Y.Z && git push origin vX.Y.Z`).
 3. Le workflow [`.github/workflows/release.yml`](.github/workflows/release.yml) build une image multi-arch (`linux/amd64` + `linux/arm64`), la pousse sur GHCR, et crée la GitHub Release correspondante avec un body extrait des changelogs EN.
 
 ### Canaux et tags GHCR
