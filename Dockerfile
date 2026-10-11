@@ -44,13 +44,13 @@ RUN adduser --system --ingroup users --shell /bin/bash --home /home/mkuser mkuse
 WORKDIR /app
 
 COPY backend/requirements.txt .
-# gcc + python3-dev are installed transiently so that pip can compile
-# C extensions for the linux/arm64 multi-arch build (psutil, cryptography,
-# etc. ship aarch64 wheels for amd64 but not always for the slim image's
-# manylinux variant on arm64, forcing a source build). libffi-dev and
-# libssl-dev are added defensively for cryptography. All build tools are
-# purged in the same layer so they do not bloat the runtime image. pip goes
-# too: it is build-time only, and its vendored libraries fail the image scan.
+# gcc + python3-dev are installed transiently so that pip can compile C
+# extensions when a dependency has no prebuilt wheel for the target platform
+# (the linux/arm64 leg of the multi-arch build can fall back to a source
+# build). libffi-dev and libssl-dev are added defensively for cryptography.
+# All build tools are purged in the same layer so they do not bloat the
+# runtime image. pip goes too: it is build-time only, and its vendored
+# libraries fail the image scan.
 RUN apt-get update && apt-get install -y --no-install-recommends \
         gcc python3-dev libffi-dev libssl-dev \
     && pip install --no-cache-dir -r requirements.txt \
