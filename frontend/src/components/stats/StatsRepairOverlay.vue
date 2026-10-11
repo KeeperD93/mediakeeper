@@ -146,11 +146,11 @@ function ancestryText(d) {
   position: fixed;
   inset: 0;
   z-index: 9990;
-  background: rgb(0, 0, 0, 0.7);
+  background: var(--overlay-backdrop);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: var(--space-4);
 }
 .rlo-modal {
   position: relative;
@@ -160,7 +160,7 @@ function ancestryText(d) {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background: var(--mk-chrome-bg);
+  background: var(--overlay-bg);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-card);
 }

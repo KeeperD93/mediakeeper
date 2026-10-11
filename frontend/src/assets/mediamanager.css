@@ -1259,7 +1259,7 @@
   display: none;
   position: fixed;
   width: 240px;
-  background: rgb(17, 24, 39, 0.95);
+  background: var(--overlay-bg);
   backdrop-filter: blur(16px);
   border: 0.5px solid rgb(var(--accent-rgb), 0.25);
   border-radius: var(--radius-btn);
@@ -1291,12 +1291,12 @@
 .mm-overlay {
   position: fixed;
   inset: 0;
-  background: rgb(0, 0, 0, 0.6);
+  background: var(--overlay-backdrop);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: var(--z-modal);
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--duration-base);
@@ -1306,7 +1306,7 @@
   pointer-events: all;
 }
 .mm-modal {
-  background: rgb(17, 24, 39, 0.95);
+  background: var(--overlay-bg);
   backdrop-filter: blur(20px);
   border: 0.5px solid var(--border-strong);
   border-radius: var(--radius-card);

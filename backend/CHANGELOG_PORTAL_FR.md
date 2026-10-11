@@ -16,8 +16,11 @@ utilisateurs.
 
 ## [Unreleased]
 
+## [1.0.0-rc.8] - 2026-10-11
+
 ### Fixed
 - Interface — contrôles natifs (listes, calendriers, défilement) affichés en thème sombre.
+- Crédits — la version affichée correspond de nouveau à la version installée.
 
 ## [1.0.0-rc.7] - 2026-07-07
 

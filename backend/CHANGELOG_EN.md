@@ -3,14 +3,17 @@
 <!--
 [Unreleased] section: accumulate small changes here over time.
 When ready to ship, rename `[Unreleased]` to `[x.y.z] - YYYY-MM-DD`
-and update APP_VERSION in backend/api/changelog.py.
+and update APP_VERSION in backend/api/changelog.py and the version in
+frontend/package.json (a test checks that they match).
 This section intentionally has no date so it is not shown to users.
 -->
 
 ## [Unreleased]
 
+## [1.0.0-rc.8] - 2026-10-11
+
 ### Changed
-- Feedback moderation — opened from the report dialog instead of a sidebar entry.
+- Feedback moderation — opened from the report dialog.
 - Stats — library repair opens a detailed report (resolved, unresolved, errors).
 
 ### Fixed
@@ -18,6 +21,7 @@ This section intentionally has no date so it is not shown to users.
 - Stats — library names now resolved correctly; video intros excluded from tracking.
 - Dependencies — updated to patch third-party security advisories.
 - Interface — native controls (dropdowns, date pickers, scrollbars) now use the dark theme.
+- Dialogs and menus — background matches the theme (bell, account, stats, media manager…).
 - About — technology list corrected.
 
 ## [1.0.0-rc.7] - 2026-07-07
