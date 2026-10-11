@@ -3,7 +3,8 @@
 <!--
 [Unreleased] section: accumulate small changes here over time.
 When ready to ship, rename `[Unreleased]` to `[x.y.z] - YYYY-MM-DD`
-and update APP_VERSION in backend/api/changelog.py.
+and update APP_VERSION in backend/api/changelog.py and the version in
+frontend/package.json (a test checks that they match).
 This section intentionally has no date so it is not shown to users.
 -->
 

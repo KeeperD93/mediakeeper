@@ -3,7 +3,8 @@
 <!--
 Section [Unreleased] : on accumule ici les petites modifications au fil du temps.
 Quand on décide de publier, on remplace `[Unreleased]` par `[x.y.z] - YYYY-MM-DD`
-et on met à jour APP_VERSION dans backend/api/changelog.py.
+et on met à jour APP_VERSION dans backend/api/changelog.py ainsi que la version
+de frontend/package.json (un test vérifie qu'elles concordent).
 Cette section est volontairement sans date pour ne pas être affichée aux utilisateurs.
 -->
 
