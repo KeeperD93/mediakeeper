@@ -2,7 +2,8 @@ version: 2
 
 # Dependabot automatic dependency updates — MediaKeeper.
 # Groups patch + minor updates into weekly PRs to reduce noise.
-# Major bumps come in separate PRs (human review needed).
+# Major bumps come in separate PRs (human review needed), except for
+# packages that must share one version: their majors arrive together.
 # Major bumps for frameworks scheduled for the post-1.0 frontend roadmap
 # are ignored explicitly to keep the PR queue actionable.
 
@@ -24,6 +25,16 @@ updates:
         update-types: ["patch"]
       frontend-minor:
         update-types: ["minor"]
+      # A lone major bump fails `npm ci` on the exact peer version.
+      vitest-major:
+        patterns: ["vitest", "@vitest/*"]
+        update-types: ["major"]
+      storybook-major:
+        patterns: ["storybook", "@storybook/*", "eslint-plugin-storybook"]
+        update-types: ["major"]
+      playwright-major:
+        patterns: ["playwright", "@playwright/*"]
+        update-types: ["major"]
     ignore:
       # Held back for the post-1.0 frontend modernization wave.
       - dependency-name: "vite"
@@ -63,7 +74,7 @@ updates:
       - dependency-name: "chardet"
         update-types: ["version-update:semver-major"]
 
-  # Docker base images (multi-stage: node:20-alpine + python:3.14-slim)
+  # Docker base images (multi-stage: node:24-alpine + python:3.14-slim)
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
