@@ -7,20 +7,23 @@ import pytest
 
 from models.playback_stats import PlaybackSession
 from services.portal.profile_stats_playback import compute_totals
+from services.portal.profile_stats_viewing import compute_media_type_ratio
 
 _TICKS_PER_MINUTE = 60 * 10_000_000
 _START = datetime(2026, 1, 5, 20, 0, tzinfo=timezone.utc)
 _USER = PlaybackSession.user_id == "u-watch"
 
 
-def _session(key: str, *, wall: timedelta, position_min: int, runtime_min: int) -> PlaybackSession:
+def _session(
+    key: str, *, wall: timedelta, position_min: int, runtime_min: int, item_type: str = "Movie",
+) -> PlaybackSession:
     return PlaybackSession(
         session_key=key,
         user_id="u-watch",
         user_name="viewer",
         item_id=f"item-{key}",
         item_name="Sample title",
-        item_type="Movie",
+        item_type=item_type,
         started_at=_START,
         last_seen_at=_START + wall,
         ended_at=_START + wall,
@@ -69,3 +72,16 @@ async def test_sessions_add_up_and_no_session_means_zero(db_session):
         _session("b", wall=timedelta(days=1), position_min=45, runtime_min=45),
     )
     assert await _totals(db_session, *rows) == (2, 95)
+
+
+@pytest.mark.asyncio
+async def test_movie_series_split_ignores_pauses(db_session):
+    # A film left paused for three days must not outweigh the episodes watched.
+    db_session.add_all((
+        _session("a", wall=timedelta(days=3), position_min=30, runtime_min=120),
+        _session("b", wall=timedelta(minutes=45), position_min=45, runtime_min=45, item_type="Episode"),
+    ))
+    await db_session.commit()
+    assert await compute_media_type_ratio(db_session, _USER, []) == {
+        "movie_plays": 1, "movie_minutes": 30, "series_plays": 1, "series_minutes": 45,
+    }

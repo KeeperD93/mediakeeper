@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.playback_stats import PlaybackSession
 from services.portal._watch_threshold import session_meets_threshold
+from services.portal.achievements_utils import _session_duration_seconds
 from services.portal.personal import _infer_genres_from_history_full
 from services.portal.personal_utils import TMDB_GENRE_NAME_TO_ID
 
@@ -147,7 +148,8 @@ async def compute_media_type_ratio(
 ) -> dict:
     """Total playback time split between movies and series (Episodes).
     Returns counts + minutes for each bucket so the UI can show a ratio
-    donut and a 'X movies vs Y episodes' subtitle."""
+    donut and a 'X movies vs Y episodes' subtitle. Minutes use the same
+    per-session estimate as the profile total, so pauses don't skew the split."""
     result = {"movie_plays": 0, "movie_minutes": 0, "series_plays": 0, "series_minutes": 0}
     try:
         rows = await db.execute(
@@ -156,18 +158,12 @@ async def compute_media_type_ratio(
                 PlaybackSession.started_at,
                 PlaybackSession.ended_at,
                 PlaybackSession.last_seen_at,
+                PlaybackSession.position_ticks,
                 PlaybackSession.duration_ticks,
             ).where(user_filter, *excl_filters)
         )
         for row in rows.all():
-            secs = 0
-            if row.started_at:
-                ended = row.ended_at or row.last_seen_at
-                if ended and ended >= row.started_at:
-                    secs = int((ended - row.started_at).total_seconds())
-            if secs <= 0 and row.duration_ticks:
-                secs = int(row.duration_ticks / 10_000_000)
-
+            secs = _session_duration_seconds(row)
             kind = (row.item_type or "").lower()
             if kind == "movie":
                 result["movie_plays"] += 1

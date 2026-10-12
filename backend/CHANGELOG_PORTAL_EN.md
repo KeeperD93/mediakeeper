@@ -15,7 +15,7 @@ This section intentionally has no date so it is not shown to users.
 ## [Unreleased]
 
 ### Fixed
-- Profile — realistic watch time (pauses and resumed plays no longer inflate it).
+- Profile — realistic watch time and movie/series split (pauses and resumed plays no longer skew them).
 
 ## [1.0.0-rc.8] - 2026-10-11
 
