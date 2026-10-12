@@ -14,6 +14,9 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Fixed
+- Profile — realistic watch time (pauses and resumed plays no longer inflate it).
+
 ## [1.0.0-rc.8] - 2026-10-11
 
 ### Fixed

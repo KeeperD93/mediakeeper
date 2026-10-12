@@ -16,6 +16,9 @@ utilisateurs.
 
 ## [Unreleased]
 
+### Fixed
+- Profil — temps de visionnage réaliste (pauses et reprises ne le gonflent plus).
+
 ## [1.0.0-rc.8] - 2026-10-11
 
 ### Fixed
