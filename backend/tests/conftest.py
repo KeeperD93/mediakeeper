@@ -126,6 +126,16 @@ def _reset_top20_caches():
 
 
 @pytest.fixture(autouse=True)
+def _reset_update_check_cache():
+    """Drop the module-level GitHub release cache between tests so one
+    test's mocked release list never answers another test's lookup."""
+    from services import update_check as _uc
+    _uc._release_cache.update({"tags": None, "at": None})
+    yield
+    _uc._release_cache.update({"tags": None, "at": None})
+
+
+@pytest.fixture(autouse=True)
 def _reset_diagnostic_log_sentinels():
     """Restore the WARN-once cooldown sentinels to their module-init
     value (-inf) between tests. The CSRF middleware and the WS

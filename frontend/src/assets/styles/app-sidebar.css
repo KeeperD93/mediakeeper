@@ -68,9 +68,11 @@
   filter: drop-shadow(0 0 8px rgb(var(--accent-rgb), 0.3));
 }
 
-.sb-logo-img:hover {
-  filter: drop-shadow(0 0 14px rgb(var(--accent-rgb), 0.5));
-  transform: scale(1.08);
+@media (hover: hover) {
+  .sb-logo-img:hover {
+    filter: drop-shadow(0 0 14px rgb(var(--accent-rgb), 0.5));
+    transform: scale(1.08);
+  }
 }
 
 .sb-logo-img.sb-logo-sm {
@@ -117,14 +119,17 @@
   }
 }
 
+/* Not hover-gated: on touch screens the sticky hover is what reveals the button. */
 .mk-sidebar:hover .sb-collapse-btn {
   opacity: 1;
 }
 
-.sb-collapse-btn:hover {
-  background: rgb(var(--accent-rgb), 0.15);
-  border-color: rgb(var(--accent-rgb), 0.3);
-  color: var(--text-secondary);
+@media (hover: hover) {
+  .sb-collapse-btn:hover {
+    background: rgb(var(--accent-rgb), 0.15);
+    border-color: rgb(var(--accent-rgb), 0.3);
+    color: var(--text-secondary);
+  }
 }
 
 .sb-collapse-btn.rotated svg {
@@ -154,10 +159,12 @@
   z-index: 1;
 }
 
-.sb-search:hover {
-  background: var(--surface-2);
-  border-color: rgb(var(--accent-rgb), 0.15);
-  color: var(--text-faint);
+@media (hover: hover) {
+  .sb-search:hover {
+    background: var(--surface-2);
+    border-color: rgb(var(--accent-rgb), 0.15);
+    color: var(--text-faint);
+  }
 }
 
 .sb-search-text {
@@ -195,9 +202,11 @@
   z-index: 1;
 }
 
-.sb-search-icon:hover {
-  background: var(--surface-2);
-  color: var(--text-faint);
+@media (hover: hover) {
+  .sb-search-icon:hover {
+    background: var(--surface-2);
+    color: var(--text-faint);
+  }
 }
 
 /* Navigation */
@@ -300,11 +309,13 @@
     background var(--duration-fast),
     color var(--duration-fast);
 }
-.sb-version-link:hover {
-  background: var(--surface-2);
-}
-.sb-version-link:hover .sb-version {
-  color: var(--text-faint);
+@media (hover: hover) {
+  .sb-version-link:hover {
+    background: var(--surface-2);
+  }
+  .sb-version-link:hover .sb-version {
+    color: var(--text-faint);
+  }
 }
 
 .sb-version-dot {
@@ -325,6 +336,11 @@
     opacity: 0.5;
   }
 }
+@media (prefers-reduced-motion: reduce) {
+  .sb-version-dot {
+    animation: none;
+  }
+}
 
 .sb-about-link {
   display: block;
@@ -338,8 +354,10 @@
   border-radius: var(--radius-btn);
   transition: color var(--duration-fast);
 }
-.sb-about-link:hover {
-  color: var(--text-faint);
+@media (hover: hover) {
+  .sb-about-link:hover {
+    color: var(--text-faint);
+  }
 }
 
 /* Transitions */

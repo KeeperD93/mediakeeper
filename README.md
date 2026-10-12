@@ -168,6 +168,8 @@ docker compose -f docker-compose.prod.yml up -d
 
 The image is multi-arch (`linux/amd64` + `linux/arm64`) so it runs natively on Synology DSM, Raspberry Pi, traditional x86 servers, etc.
 
+Until the first stable release (v1.0.0), the compose file pulls the pre-release channel (`:beta`): `:latest` only exists from v1.0.0 on.
+
 <details>
 <summary>Image tags and building from source</summary>
 
@@ -221,6 +223,11 @@ Then open `http://<host>:8888`, sign in as `admin` with that password - a passwo
 **Need to customise?** Copy `.env.example` to `.env` and adjust the variables you need (e.g. `TMDB_API_KEY`, `FRONTEND_ORIGIN`, `MEDIAKEEPER_PATH_ROOTS`) before running `docker compose up -d`. Auto-generated values are respected on subsequent boots.
 
 The application runs database migrations automatically at boot.
+
+**Good to know:**
+
+- **Docker Desktop (macOS, Windows):** keep `/data` in the named volume of the compose file. Mapping it to a host folder (`./data:/data`) stops PostgreSQL from starting.
+- **Backups:** they need a destination outside the `mk_data` volume, i.e. a folder mounted from the host: set it in `BACKUP_PATH` (see [`docker-compose.override.example.yml`](docker-compose.override.example.yml)). Without a destination, backups fail.
 
 Updating an existing install? See [`docs/operations/updating.md`](docs/operations/updating.md).
 

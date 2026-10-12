@@ -59,6 +59,7 @@ from api.security import router as security_router
 from api.settings import router as settings_router
 from api.stats import router as stats_router
 from api.subtitles import router as subtitles_router
+from api.system import router as system_router
 from api.watchlist import router as watchlist_router
 from core.app_spa import register_spa
 from core.app_startup import is_db_ready, lifespan, setup_logging
@@ -164,6 +165,7 @@ app.include_router(portal_admin_users_feed_router)
 app.include_router(portal_admin_users_gdpr_router)
 app.include_router(portal_admin_gdpr_router)
 app.include_router(security_router)
+app.include_router(system_router)
 app.include_router(csp_report_router)
 app.include_router(core_router)
 

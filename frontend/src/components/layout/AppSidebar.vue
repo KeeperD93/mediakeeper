@@ -193,6 +193,7 @@
         </span>
         <span v-if="hasNewChangelog" class="sb-version-dot" />
       </router-link>
+      <SidebarUpdateNotice :collapsed="collapsed" />
       <router-link
         v-if="!collapsed"
         to="/about"
@@ -218,6 +219,7 @@ import { useI18n } from 'vue-i18n'
 import SidebarLink from './SidebarLink.vue'
 import SidebarSubLink from './SidebarSubLink.vue'
 import SidebarSection from './SidebarSection.vue'
+import SidebarUpdateNotice from './SidebarUpdateNotice.vue'
 import { useSidebarCounters } from '@/composables/useSidebarCounters'
 import { useAppSidebar } from '@/composables/useAppSidebar'
 import { useMobile } from '@/composables/useMobile'

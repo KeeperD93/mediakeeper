@@ -10,6 +10,12 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+### Added
+- Mises à jour — nouvelle version signalée dans la barre latérale (désactivable).
+
+### Fixed
+- Barre latérale — effets de survol corrigés sur écran tactile (animations réduites respectées).
+
 ## [1.0.0-rc.8] - 2026-10-11
 
 ### Changed

@@ -10,6 +10,12 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Added
+- Updates — new version flagged in the sidebar (can be turned off).
+
+### Fixed
+- Sidebar — hover effects fixed on touch screens (reduced motion respected).
+
 ## [1.0.0-rc.8] - 2026-10-11
 
 ### Changed

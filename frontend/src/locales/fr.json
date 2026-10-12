@@ -315,7 +315,9 @@
     "modules": "Modules",
     "scheduler": "Planificateur",
     "expand": "Étendre",
-    "collapse": "Réduire"
+    "collapse": "Réduire",
+    "updateAvailable": "v{version} disponible",
+    "updateAvailableTitle": "Nouvelle version v{version} disponible — voir les notes de version sur GitHub"
   },
   "toastModule": {
     "dashboard": "Tableau de bord",
@@ -1497,6 +1499,10 @@
     "generalDesc": "Paramètres généraux de MediaKeeper.",
     "languageLabel": "Langue",
     "languageDesc": "Choisissez la langue de l'interface.",
+    "updateCheckTitle": "Mises à jour",
+    "updateCheckDesc": "Signale dans la barre latérale la publication d'une nouvelle version.",
+    "updateCheckLabel": "Vérifier les nouvelles versions",
+    "updateCheckLocked": "Désactivé par la configuration du serveur (MK_DISABLE_UPDATE_CHECK).",
     "tabSecurity": "Sécurité",
     "passwordTitle": "Mot de passe",
     "passwordDesc": "Modifiez le mot de passe du compte admin.",

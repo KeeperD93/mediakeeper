@@ -18,6 +18,14 @@ MediaKeeper publishes four kinds of image tags:
 
 Choose your channel once, then update by pulling the same tag.
 
+## New-version notice
+
+When a newer release is published, the admin sidebar shows a notice under the version number; clicking it opens the release notes on GitHub. A stable install is told about newer stable releases only; a pre-release install (`-rc.N`, `-beta.N`) also hears about newer pre-releases.
+
+The server sends one anonymous request to the public GitHub releases API, at most once every six hours and only while an admin has the interface open. No instance identifier, account, usage data or version number is sent; GitHub only sees the server's public IP address, as with any web request.
+
+To turn it off, use **Settings → General → Updates**, or set `MK_DISABLE_UPDATE_CHECK=true` to disable it for the whole deployment (the admin switch then shows as locked).
+
 ## Updating a running instance
 
 The published image is consumed via `docker-compose.prod.yml`. The procedure is identical regardless of which floating tag you follow.

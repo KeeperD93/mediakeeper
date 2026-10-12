@@ -315,7 +315,9 @@
     "modules": "Modules",
     "scheduler": "Scheduler",
     "expand": "Expand",
-    "collapse": "Collapse"
+    "collapse": "Collapse",
+    "updateAvailable": "v{version} available",
+    "updateAvailableTitle": "New version v{version} available — view the release notes on GitHub"
   },
   "toastModule": {
     "dashboard": "Dashboard",
@@ -1497,6 +1499,10 @@
     "generalDesc": "MediaKeeper general settings.",
     "languageLabel": "Language",
     "languageDesc": "Choose the interface language.",
+    "updateCheckTitle": "Updates",
+    "updateCheckDesc": "Shows a notice in the sidebar when a new version is published.",
+    "updateCheckLabel": "Check for new versions",
+    "updateCheckLocked": "Disabled by the server configuration (MK_DISABLE_UPDATE_CHECK).",
     "tabSecurity": "Security",
     "passwordTitle": "Password",
     "passwordDesc": "Change the admin account password.",
