@@ -168,6 +168,8 @@ docker compose -f docker-compose.prod.yml up -d
 
 L'image est multi-arch (`linux/amd64` + `linux/arm64`), donc elle tourne nativement sur Synology DSM, Raspberry Pi, serveurs x86 traditionnels, etc.
 
+Tant que la première version stable (v1.0.0) n'est pas sortie, le fichier compose tire le canal pré-release (`:beta`) : `:latest` n'existe qu'à partir de la v1.0.0.
+
 <details>
 <summary>Tags d'image et build depuis les sources</summary>
 
@@ -221,6 +223,11 @@ Puis ouvrez `http://<hôte>:8888`, connectez-vous avec `admin` et ce mot de pass
 **Besoin de personnaliser ?** Copiez `.env.example` en `.env` et ajustez les variables nécessaires (par ex. `TMDB_API_KEY`, `FRONTEND_ORIGIN`, `MEDIAKEEPER_PATH_ROOTS`) avant de lancer `docker compose up -d`. Les valeurs auto-générées sont conservées aux démarrages suivants.
 
 L'application applique automatiquement les migrations de base de données au démarrage.
+
+**Bon à savoir :**
+
+- **Docker Desktop (macOS, Windows) :** gardez `/data` dans le volume nommé du fichier compose. Le rattacher à un dossier de l'hôte (`./data:/data`) empêche PostgreSQL de démarrer.
+- **Sauvegardes :** elles ont besoin d'une destination hors du volume `mk_data`, c'est-à-dire un dossier monté depuis l'hôte : renseignez-le dans `BACKUP_PATH` (voir [`docker-compose.override.example.yml`](docker-compose.override.example.yml)). Sans destination, les sauvegardes échouent.
 
 Vous voulez mettre à jour une installation existante ? Voir [`docs/operations/updating.md`](docs/operations/updating.md).
 

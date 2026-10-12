@@ -6,20 +6,23 @@
 #   docker compose -f docker-compose.prod.yml up -d
 #
 # Image tags available:
-#   :latest         — always the latest stable release (recommended)
-#   :beta           — always the latest beta release (early adopters)
+#   :beta           — always the latest pre-release (default until v1.0.0)
+#   :latest         — always the latest stable release (from v1.0.0 on)
 #   :vX.Y.Z         — pin to an exact release (immutable)
-#   :X.Y            — float on the X.Y patch series (e.g. 0.10)
+#   :X.Y            — float on the X.Y patch series (stable releases only)
 
 services:
   mediakeeper:
-    image: ghcr.io/keeperd93/mediakeeper:latest
+    image: ghcr.io/keeperd93/mediakeeper:beta
     container_name: mediakeeper
     restart: unless-stopped
     ports:
       - "8888:8888"
     volumes:
       - mk_data:/data
+      # Keep /data in this named volume: mapping it to a host folder
+      # (./data:/data) on Docker Desktop (macOS/Windows) or on a network
+      # share stops PostgreSQL from starting ("wrong ownership").
       # ── Media / backups: mount here every path MediaKeeper must see ──
       # Tip: keep the same path on the host and inside the container.
       #   Synology  : /volume1/medias:/volume1/medias
@@ -61,6 +64,8 @@ services:
       # - MEDIAKEEPER_PATH_ROOTS=/volume1/medias;/volume1/docker/mediakeeper/backups
       #
       # ── Backup directory ──
+      # Backups need a destination outside mk_data: a host folder mounted
+      # above. Without one, backups fail.
       # - BACKUP_PATH=/volume1/docker/mediakeeper/backups
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8888/api/health"]
