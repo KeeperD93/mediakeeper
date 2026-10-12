@@ -4,7 +4,7 @@ import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
 import { resolve } from 'path'
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, __dirname, '')
+  const env = loadEnv(mode, import.meta.dirname, '')
   return {
     plugins: [
       vue(),
@@ -14,12 +14,12 @@ export default defineConfig(({ mode }) => {
         fullInstall: false,
         jitCompilation: false,
         strictMessage: false,
-        include: [resolve(__dirname, 'src/locales/**')],
+        include: [resolve(import.meta.dirname, 'src/locales/**')],
       }),
     ],
     resolve: {
       alias: {
-        '@': resolve(__dirname, 'src'),
+        '@': resolve(import.meta.dirname, 'src'),
       },
     },
     server: {
