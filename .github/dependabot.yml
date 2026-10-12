@@ -25,7 +25,8 @@ updates:
         update-types: ["patch"]
       frontend-minor:
         update-types: ["minor"]
-      # A lone major bump fails `npm ci` on the exact peer version.
+      # These packages pin each other to one version: a lone major bump
+      # breaks `npm ci` (peer conflict) or the tests (mismatched copies).
       vitest-major:
         patterns: ["vitest", "@vitest/*"]
         update-types: ["major"]
