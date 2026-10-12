@@ -16,6 +16,9 @@ utilisateurs.
 
 ## [Unreleased]
 
+### Fixed
+- Profil — temps de visionnage et répartition films/séries réalistes (pauses et reprises ne les faussent plus).
+
 ## [1.0.0-rc.8] - 2026-10-11
 
 ### Fixed

@@ -12,6 +12,7 @@ from sqlalchemy import select, func, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.playback_stats import PlaybackSession
+from services.portal.achievements_utils import _session_duration_seconds
 
 # Re-exports — keep existing import path `from services.portal.profile_stats_playback import ...`
 from services.portal.profile_stats_rewatched import compute_most_rewatched  # noqa: F401
@@ -37,8 +38,8 @@ async def compute_totals(db: AsyncSession, user_filter, excl_filters: list) -> t
     except Exception as e:
         logger.debug("[PROFILE] total plays error: %s", e)
 
-    # Total watch time (minutes), from started_at → ended_at (fallback last_seen_at),
-    # with duration_ticks as a last-resort fallback.
+    # Per session, the tightest of wall clock, reached position and runtime (same
+    # estimate as the watch-time trophies): long pauses no longer inflate the total.
     total_minutes = 0
     try:
         result = await db.execute(
@@ -46,19 +47,11 @@ async def compute_totals(db: AsyncSession, user_filter, excl_filters: list) -> t
                 PlaybackSession.started_at,
                 PlaybackSession.ended_at,
                 PlaybackSession.last_seen_at,
+                PlaybackSession.position_ticks,
                 PlaybackSession.duration_ticks,
             ).where(user_filter, *excl_filters)
         )
-        total_secs = 0
-        for row in result.all():
-            if row.started_at:
-                ended = row.ended_at or row.last_seen_at
-                if ended and ended >= row.started_at:
-                    total_secs += int((ended - row.started_at).total_seconds())
-                    continue
-            if row.duration_ticks:
-                total_secs += int(row.duration_ticks / 10_000_000)
-        total_minutes = total_secs // 60
+        total_minutes = sum(_session_duration_seconds(row) for row in result.all()) // 60
     except Exception as e:
         logger.debug("[PROFILE] total time error: %s", e)
 
