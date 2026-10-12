@@ -1500,7 +1500,7 @@
     "languageLabel": "Langue",
     "languageDesc": "Choisissez la langue de l'interface.",
     "updateCheckTitle": "Mises à jour",
-    "updateCheckDesc": "Signale dans la barre latérale la publication d'une nouvelle version. MediaKeeper interroge GitHub au plus une fois toutes les 6 heures, sans transmettre de données sur votre installation.",
+    "updateCheckDesc": "Signale dans la barre latérale la publication d'une nouvelle version.",
     "updateCheckLabel": "Vérifier les nouvelles versions",
     "updateCheckLocked": "Désactivé par la configuration du serveur (MK_DISABLE_UPDATE_CHECK).",
     "tabSecurity": "Sécurité",
