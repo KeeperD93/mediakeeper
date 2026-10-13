@@ -60,6 +60,7 @@ async def _seed_active_session(
     np = payload["NowPlayingItem"]
     row = PlaybackSession(
         session_key=_session_key(payload),
+        emby_session_key=_session_key(payload),
         user_id=payload["UserId"],
         user_name=payload["UserName"],
         item_id=np["Id"],

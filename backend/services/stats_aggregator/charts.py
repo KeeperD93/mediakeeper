@@ -4,6 +4,7 @@ from datetime import datetime, timezone, timedelta
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.playback import TICKS_PER_SECOND
 from models.playback_stats import PlaybackSession
 
 from ._helpers import _apply_filters, _get_library_name_map, _normalize_library_name
@@ -18,16 +19,20 @@ async def get_daily_chart_data(db: AsyncSession, days: int = 30, group_by: str =
     since = datetime.now(timezone.utc) - timedelta(days=days)
     exc_filters = await _get_exclusion_filters(db)
 
+    # Per user: their watch time (video, concurrent devices once); per
+    # library: the time spent on its titles, music included.
     if group_by == "user":
         group_col = PlaybackSession.user_name
+        seconds_col = PlaybackSession.exclusive_seconds
     else:
         group_col = PlaybackSession.library_name
+        seconds_col = PlaybackSession.watched_seconds
 
     base_q = select(
             func.date(PlaybackSession.started_at).label("day"),
             group_col.label("group_name"),
             func.count(PlaybackSession.id).label("count"),
-            func.sum(PlaybackSession.position_ticks).label("duration"),
+            func.sum(seconds_col).label("duration"),
         ).where(
             PlaybackSession.started_at >= since,
             group_col.isnot(None),
@@ -51,13 +56,14 @@ async def get_daily_chart_data(db: AsyncSession, days: int = 30, group_by: str =
         groups.add(group_name)
         if day_str not in data:
             data[day_str] = {}
+        duration_ticks = (r[3] or 0) * TICKS_PER_SECOND
         if group_name in data[day_str]:
             data[day_str][group_name]["count"] += r[2]
-            data[day_str][group_name]["duration"] += (r[3] or 0)
+            data[day_str][group_name]["duration"] += duration_ticks
         else:
             data[day_str][group_name] = {
                 "count": r[2],
-                "duration": r[3] or 0,
+                "duration": duration_ticks,
             }
 
     all_days = []

@@ -4,6 +4,7 @@ from datetime import datetime, timezone, timedelta
 from sqlalchemy import select, func, desc, or_, nulls_last
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.playback import TICKS_PER_SECOND
 from core.pagination import build_cursor_response, decode_cursor, encode_cursor
 from models.playback_stats import PlaybackSession
 
@@ -163,12 +164,14 @@ async def get_activity_grouped(db: AsyncSession, limit: int = 25, cursor: str = 
 
 
 def _session_ticks(r) -> int:
-    """How long a session lasted, in Emby ticks, capped at the media runtime.
+    """How long a session really played, in Emby ticks.
 
-    The DB has no dedicated watch-time field; ``last_seen_at - started_at`` is
-    the active span. Capping at the runtime neutralises never-closed / live
-    sessions whose span can otherwise reach days.
+    Measured and backfilled rows carry it in ``watched_seconds``. A row
+    without it falls back to the active span ``last_seen_at - started_at``,
+    capped at the runtime so never-closed sessions don't reach days.
     """
+    if r.measured or r.watched_seconds:
+        return (r.watched_seconds or 0) * TICKS_PER_SECOND
     if not r.started_at or not r.last_seen_at:
         return 0
     span = (r.last_seen_at - r.started_at).total_seconds()

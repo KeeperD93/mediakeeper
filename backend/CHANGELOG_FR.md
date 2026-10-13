@@ -15,6 +15,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ### Fixed
 - Barre latérale — effets de survol corrigés sur écran tactile (animations réduites respectées).
+- Statistiques — temps de visionnage mesuré en continu, pauses et lecteurs inactifs exclus.
 
 ## [1.0.0-rc.8] - 2026-10-11
 

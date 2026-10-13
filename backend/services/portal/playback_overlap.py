@@ -2,7 +2,7 @@
 
 These helpers underpin the ``secret_lonely`` and ``secret_sync`` trophies,
 both of which need to know whether *another* user was watching at the
-same wall-clock window. The collector polls every ~15s and persists one
+same wall-clock window. The collector polls every few seconds and persists one
 row per session, so this module reads from the same table the rest of
 the achievements pipeline already trusts — no new data dependency.
 

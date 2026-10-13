@@ -3,6 +3,7 @@ Statistics service — periodic collection of Emby sessions.
 Package split into modules (Rule 9, <= 300 lines).
 """
 from ._cache import _item_lib_cache, _normalize_library_name
+from ._measure import POLL_INTERVAL_SECONDS, history_measure
 from ._resolver import (
     _emby_admin_user_id,
     _fetch_ancestors,
@@ -13,6 +14,7 @@ from ._resolver import (
 from .collect import collect_active_sessions
 
 __all__ = [
+    "POLL_INTERVAL_SECONDS",
     "_emby_admin_user_id",
     "_fetch_ancestors",
     "_item_lib_cache",
@@ -21,4 +23,5 @@ __all__ = [
     "_resolve_library_name",
     "_session_library_name",
     "collect_active_sessions",
+    "history_measure",
 ]

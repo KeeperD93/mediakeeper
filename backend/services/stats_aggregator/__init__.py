@@ -12,7 +12,7 @@ from .activity import (
     get_activity_users,
 )
 from .charts import get_daily_chart_data, get_weekly_heatmap
-from .exclusions import _get_exclusion_filters, add_exclusion, get_exclusions, remove_exclusion
+from .exclusions import add_exclusion, get_exclusions, remove_exclusion
 from .libraries import get_libraries_stats, refresh_library_cache
 from .playback import get_playback_stats
 from .profile import get_user_profile
@@ -21,8 +21,6 @@ from .sessions import get_detailed_sessions
 from .totals import get_global_totals
 from .users import get_users_stats
 from .users_admin import (
-    _get_hidden_users,
-    _set_hidden_users,
     delete_user_stats,
     hide_user,
     merge_user_stats,

@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from services.settings import get_setting, set_setting
-from models.playback_stats import PlaybackSession
+from models.playback_stats import PlaybackCompletion, PlaybackPauseEvent, PlaybackSession
 
 
 async def _get_hidden_users(db: AsyncSession) -> list[str]:
@@ -39,7 +39,12 @@ async def unhide_user(db: AsyncSession, user_id: str) -> list[str]:
 
 
 async def delete_user_stats(db: AsyncSession, user_id: str) -> int:
-    """Delete all stats for a user. Returns the number of rows removed."""
+    """Delete all stats for a user (watched titles go with their sessions).
+
+    Returns the number of sessions removed."""
+    await db.execute(
+        PlaybackPauseEvent.__table__.delete().where(PlaybackPauseEvent.user_id == user_id)
+    )
     result = await db.execute(
         PlaybackSession.__table__.delete().where(PlaybackSession.user_id == user_id)
     )
@@ -61,5 +66,13 @@ async def merge_user_stats(db: AsyncSession, source_user_id: str, target_user_id
         .where(PlaybackSession.user_id == source_user_id)
         .values(user_id=target_user_id, user_name=target_name)
     )
+    # Watched titles and pauses follow their sessions, or the merged user
+    # would lose them in the profile and the trophies.
+    for model in (PlaybackCompletion, PlaybackPauseEvent):
+        await db.execute(
+            model.__table__.update()
+            .where(model.user_id == source_user_id)
+            .values(user_id=target_user_id, user_name=target_name)
+        )
     await db.commit()
     return result.rowcount

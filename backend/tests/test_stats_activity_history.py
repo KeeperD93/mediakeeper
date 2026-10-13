@@ -53,6 +53,16 @@ def test_session_ticks_capped_at_runtime_for_never_closed_sessions():
     assert d["session_ticks"] == _ticks(60)  # capped at the media runtime
 
 
+def test_session_ticks_is_the_measured_time_when_there_is_one():
+    start = datetime(2026, 1, 1, 20, 0, tzinfo=timezone.utc)
+    d = _activity_row_to_dict(_row(
+        duration_ticks=_ticks(120), position_ticks=_ticks(60),
+        started_at=start, last_seen_at=start + timedelta(hours=3),  # a long pause inside
+        watched_seconds=40 * 60, measured=True,
+    ))
+    assert d["session_ticks"] == _ticks(40)
+
+
 def test_runtime_and_session_default_to_zero_when_unknown():
     d = _activity_row_to_dict(_row(duration_ticks=None, position_ticks=_ticks(5)))
     assert d["runtime_ticks"] == 0

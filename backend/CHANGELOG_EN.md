@@ -15,6 +15,7 @@ This section intentionally has no date so it is not shown to users.
 
 ### Fixed
 - Sidebar — hover effects fixed on touch screens (reduced motion respected).
+- Statistics — watch time measured continuously, pauses and idle players excluded.
 
 ## [1.0.0-rc.8] - 2026-10-11
 

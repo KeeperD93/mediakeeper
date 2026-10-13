@@ -4,6 +4,7 @@ from datetime import datetime, timezone, timedelta
 from sqlalchemy import select, func, distinct, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.playback import TICKS_PER_SECOND
 from models.playback_stats import PlaybackSession
 from models.portal.profile import UserProfile
 from services.portal._rank_tiers import tier_for_level
@@ -207,10 +208,12 @@ async def get_playback_stats(db: AsyncSession, days: int = 30):
 
     top_users_hours_q = await db.execute(_apply_exc(
         select(PlaybackSession.user_id,
-            func.sum(PlaybackSession.position_ticks).label("total_ticks"),
-        ).group_by(PlaybackSession.user_id).order_by(desc("total_ticks")).limit(5)
+            func.sum(PlaybackSession.exclusive_seconds).label("watched_seconds"),
+        ).group_by(PlaybackSession.user_id).order_by(desc("watched_seconds")).limit(5)
     ))
-    top_users_hours_raw = [{"user_id": r[0], "ticks": r[1] or 0} for r in top_users_hours_q.all()]
+    top_users_hours_raw = [
+        {"user_id": r[0], "ticks": (r[1] or 0) * TICKS_PER_SECOND} for r in top_users_hours_q.all()
+    ]
     names_h = await _resolve_names([u["user_id"] for u in top_users_hours_raw])
     mk_profiles_h = await _load_mk_profile_map(db, [u["user_id"] for u in top_users_hours_raw])
     top_users_hours = [
@@ -276,14 +279,14 @@ async def get_playback_stats(db: AsyncSession, days: int = 30):
         select(func.count(PlaybackSession.id)).where(_since_filter())
     ))
     total_duration_res = await db.execute(_apply_exc(
-        select(func.sum(PlaybackSession.position_ticks)).where(_since_filter())
+        select(func.sum(PlaybackSession.watched_seconds)).where(_since_filter())
     ))
     active_users_res = await db.execute(_apply_exc(
         select(func.count(distinct(PlaybackSession.user_id))).where(_since_filter())
     ))
 
     total_plays = total_plays_res.scalar() or 0
-    total_duration_ticks = total_duration_res.scalar() or 0
+    total_duration_ticks = (total_duration_res.scalar() or 0) * TICKS_PER_SECOND
     active_users = active_users_res.scalar() or 0
 
     transcode_count = sum(m["count"] for m in by_method if m["method"] == "Transcode")

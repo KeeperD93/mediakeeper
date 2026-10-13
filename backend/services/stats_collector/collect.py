@@ -1,16 +1,32 @@
-"""Periodic collection of Emby sessions (every ~15s)."""
+"""Periodic collection of Emby sessions (every ``POLL_INTERVAL_SECONDS``)."""
 import logging
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models.playback_stats import LibraryCache, PlaybackPauseEvent, PlaybackSession
+from constants.playback import WATCH_ITEM_TYPES
+from models.playback_stats import LibraryCache, PlaybackSession
 from services.emby import get_raw_sessions
 from services.settings import get_active_media_source
 
 from ._cache import _normalize_library_name
+from ._closure import _grant_post_session_xp
+from ._completions import record_completions
+from ._measure import (
+    RESUME_WINDOW,
+    add_to_hour,
+    client_is_alive,
+    exclusive_shares,
+    fresh_start_seconds,
+    player_confirms,
+    progress_seconds,
+)
+from ._metadata import genres, session_metadata
+from ._pauses import _process_pause_events
 from ._resolver import _session_library_name
+
+__all__ = ["_grant_post_session_xp", "_process_pause_events", "collect_active_sessions"]
 
 logger = logging.getLogger("mediakeeper.stats.collector")
 
@@ -19,10 +35,63 @@ logger = logging.getLogger("mediakeeper.stats.collector")
 _UNTRACKED_ITEM_TYPES = frozenset({"Video", "Trailer"})
 
 
-async def collect_active_sessions(db: AsyncSession):
-    """
-    Called every ~15s. Reuses the shared Emby /Sessions cache,
-    creates or updates PlaybackSession rows.
+def _tracked(session: dict) -> bool:
+    now_playing = session.get("NowPlayingItem")
+    return bool(now_playing and session.get("UserName")) and now_playing.get("Type") not in _UNTRACKED_ITEM_TYPES
+
+
+def _emby_key(session: dict) -> str:
+    """Identifies one Emby session playing one item (stable across polls)."""
+    return f"{session.get('UserId', '')}_{session['NowPlayingItem'].get('Id', '')}_{session.get('Id', '')}"
+
+
+async def _open_row(
+    db: AsyncSession, session: dict, key: str, position: int, now: datetime,
+    url: str, api_key: str, aliases: dict,
+) -> PlaybackSession:
+    """Start a new row: one per playback, even when the Emby session is reused."""
+    item_id = session["NowPlayingItem"].get("Id", "")
+    user_id = session.get("UserId", "")
+    library = await _session_library_name(session["NowPlayingItem"], item_id, url, api_key, aliases, user_id)
+    credit = fresh_start_seconds(position)
+    row = PlaybackSession(
+        session_key=f"{key}:{int(now.timestamp())}",
+        emby_session_key=key,
+        user_id=user_id,
+        item_id=item_id,
+        library_name=library,
+        position_ticks=position,
+        started_at=now - timedelta(seconds=credit),
+        last_seen_at=now,
+        is_active=True,
+        watched_seconds=credit,
+        last_tick_at=now,
+        last_tick_position_ticks=position,
+        measured=True,
+        **session_metadata(session),
+    )
+    db.add(row)
+    return row
+
+
+async def _refresh_metadata(
+    row: PlaybackSession, session: dict, url: str, api_key: str, aliases: dict,
+) -> None:
+    now_playing = session["NowPlayingItem"]
+    if not row.genres:
+        row.genres = genres(now_playing)
+    if not row.library_name:
+        row.library_name = await _session_library_name(
+            now_playing, row.item_id, url, api_key, aliases, row.user_id,
+        )
+        if row.library_name:
+            logger.info("Session %s: library_name resolved → %s", row.session_key, row.library_name)
+
+
+async def collect_active_sessions(db: AsyncSession, now: datetime | None = None):
+    """Measure every tracked Emby session and close the rows whose session is gone.
+
+    ``now`` defaults to the current time; tests pass it to replay a sequence of polls.
     """
     source = await get_active_media_source(db)
     if not source or source.get("source") not in ("emby", "jellyfin"):
@@ -33,150 +102,101 @@ async def collect_active_sessions(db: AsyncSession):
     if not url or not api_key:
         return
 
-    now = datetime.now(timezone.utc)
+    now = now or datetime.now(timezone.utc)
+    sessions = [s for s in (await get_raw_sessions(db) or []) if _tracked(s)]
 
-    sessions = await get_raw_sessions(db) or []
-
-    # Surface pause/resume events first so a paused session is recorded
-    # before the playback-row branch (which still skips paused sessions).
     await _process_pause_events(db, sessions, now)
 
-    active_keys = set()
-    candidate_session_keys = []
+    keys = {_emby_key(s) for s in sessions}
+    active: dict[str, PlaybackSession] = {}
+    if keys:
+        rows = (await db.execute(
+            select(PlaybackSession).where(
+                PlaybackSession.emby_session_key.in_(keys),
+                PlaybackSession.is_active.is_(True),
+            )
+        )).scalars().all()
+        active = {row.emby_session_key: row for row in rows}
+
+    # Rows closed moments ago by a pause that made Emby drop the session. A
+    # title already watched to the end is never resumed: playing it again is a
+    # new viewing.
+    resumable: dict[str, PlaybackSession] = {}
+    missing = [key for key in keys if key not in active]
+    if missing:
+        rows = (await db.execute(
+            select(PlaybackSession).where(
+                PlaybackSession.emby_session_key.in_(missing),
+                PlaybackSession.is_active.is_(False),
+                PlaybackSession.completed_at.is_(None),
+                PlaybackSession.last_seen_at >= now - RESUME_WINDOW,
+            ).order_by(PlaybackSession.last_seen_at)
+        )).scalars().all()
+        resumable = {row.emby_session_key: row for row in rows}
+
     library_rows = (await db.execute(select(LibraryCache.lib_id, LibraryCache.name))).all()
-    library_aliases = {
+    aliases = {
         "by_id": {str(row.lib_id): row.name for row in library_rows if row.lib_id and row.name},
         "by_name": {_normalize_library_name(row.name): row.name for row in library_rows if row.name},
     }
 
+    progress: list[tuple[PlaybackSession, str, int]] = []
     for s in sessions:
-        np = s.get("NowPlayingItem")
-        if not np or not s.get("UserName"):
+        key = _emby_key(s)
+        paused = s.get("PlayState", {}).get("IsPaused", False)
+        position = s.get("PlayState", {}).get("PositionTicks") or 0
+        row = active.get(key)
+        if row is None:
+            # Only a live, playing player opens a row: a session first seen
+            # paused or silent is a leftover, not a new playback.
+            if paused or not client_is_alive(s, now):
+                continue
+            row = resumable.get(key)
+            if row is None:
+                row = active[key] = await _open_row(db, s, key, position, now, url, api_key, aliases)
+                progress.append((row, row.user_id, row.watched_seconds))
+                continue
+            row.is_active, row.ended_at = True, None
+            active[key] = row
+
+        if not player_confirms(s, row.last_tick_at):
+            # Silent player: what Emby moves on its own is not counted, and the
+            # reference stays on the last confirmed poll, so what the player
+            # really played meanwhile (buffer during a network cut) counts once
+            # it reports again; nothing counts if it never comes back.
+            progress.append((row, row.user_id, 0))
             continue
-        if np.get("Type") in _UNTRACKED_ITEM_TYPES:
-            continue
-        # A paused session keeps its existing PlaybackSession row alive
-        # (added to ``active_keys``) so the stale-closure branch below
-        # does not treat the pause as a definitive stop. We still skip
-        # the create/update path for paused ticks — the row is updated
-        # on the next playing tick when the user resumes.
-        sess_key = f"{s.get('UserId', '')}_{np.get('Id', '')}_{s.get('Id', '')}"
-        if s.get("PlayState", {}).get("IsPaused", False):
-            active_keys.add(sess_key)
-            continue
-        candidate_session_keys.append(sess_key)
-
-    existing_rows = {}
-    if candidate_session_keys:
-        existing_res = await db.execute(
-            select(PlaybackSession).where(PlaybackSession.session_key.in_(candidate_session_keys))
-        )
-        existing_rows = {row.session_key: row for row in existing_res.scalars().all()}
-
-    for s in sessions:
-        np = s.get("NowPlayingItem")
-        if not np or not s.get("UserName"):
-            continue
-        if np.get("Type") in _UNTRACKED_ITEM_TYPES:
-            continue
-
-        play_state = s.get("PlayState", {})
-        if play_state.get("IsPaused", False):
-            continue
-
-        user_id = s.get("UserId", "")
-        item_id = np.get("Id", "")
-        session_key = f"{user_id}_{item_id}_{s.get('Id', '')}"
-        active_keys.add(session_key)
-
-        play_method = "DirectPlay"
-        transcode_reasons = s.get("TranscodingInfo", {})
-        if transcode_reasons:
-            play_method = "Transcode"
-        elif play_state.get("PlayMethod") == "DirectStream":
-            play_method = "DirectStream"
-        elif play_state.get("PlayMethod"):
-            play_method = play_state["PlayMethod"]
-
-        media_streams = np.get("MediaStreams", [])
-        video_stream = next((ms for ms in media_streams if ms.get("Type") == "Video"), {})
-        audio_stream = next((ms for ms in media_streams if ms.get("Type") == "Audio"), {})
-        subtitle_stream = next((ms for ms in media_streams if ms.get("Type") == "Subtitle" and ms.get("IsExternal", False) is False), None)
-        if not subtitle_stream:
-            subtitle_stream = next((ms for ms in media_streams if ms.get("Type") == "Subtitle"), None)
-
-        height = video_stream.get("Height", 0)
-        resolution = "4K" if height >= 2100 else "1080p" if height >= 1000 else "720p" if height >= 700 else "SD" if height > 0 else None
-
-        audio_language = audio_stream.get("Language") or audio_stream.get("DisplayLanguage") or None
-        subtitle_language = subtitle_stream.get("Language") or subtitle_stream.get("DisplayLanguage") if subtitle_stream else None
-        genres_list = np.get("Genres") or np.get("GenreItems") or []
-        if genres_list and isinstance(genres_list[0], dict):
-            genres_list = [g.get("Name", "") for g in genres_list]
-        genres_str = ",".join(g for g in genres_list if g) if genres_list else None
-
-        row = existing_rows.get(session_key)
-
-        if row:
+        seconds = progress_seconds(row.last_tick_position_ticks, row.last_tick_at, position, now)
+        row.last_tick_at = now
+        row.last_tick_position_ticks = position
+        row.position_ticks = position
+        row.watched_seconds = (row.watched_seconds or 0) + seconds
+        if not paused:
+            # The last confirmed playback: it becomes ``ended_at`` when the row
+            # closes, so a silent player never extends it.
             row.last_seen_at = now
-            row.position_ticks = play_state.get("PositionTicks", 0)
-            row.is_active = True
-            if not row.genres and genres_str:
-                row.genres = genres_str
-            if not row.library_name:
-                lib_name = await _session_library_name(np, item_id, url, api_key, library_aliases, user_id)
-                if lib_name:
-                    logger.info("Session %s: library_name resolved → %s", session_key, lib_name)
-                row.library_name = lib_name
-        else:
-            lib_name = await _session_library_name(np, item_id, url, api_key, library_aliases, user_id)
-            logger.debug("New session %s: library_name resolved = %s", item_id, lib_name)
-            row = PlaybackSession(
-                session_key=session_key,
-                user_id=user_id,
-                user_name=s.get("UserName", ""),
-                item_id=item_id,
-                item_name=np.get("Name", ""),
-                item_type=np.get("Type", ""),
-                series_name=np.get("SeriesName"),
-                season_number=np.get("ParentIndexNumber"),
-                episode_number=np.get("IndexNumber"),
-                library_name=lib_name,
-                client_name=s.get("Client", ""),
-                device_name=s.get("DeviceName", ""),
-                ip_address=s.get("RemoteEndPoint", ""),
-                play_method=play_method,
-                container=np.get("Container", ""),
-                video_codec=video_stream.get("Codec", "").upper() or None,
-                audio_codec=audio_stream.get("Codec", "").upper() or None,
-                resolution=resolution,
-                bitrate=np.get("Bitrate") or video_stream.get("BitRate"),
-                audio_language=audio_language,
-                subtitle_language=subtitle_language,
-                genres=genres_str,
-                duration_ticks=np.get("RunTimeTicks", 0),
-                position_ticks=play_state.get("PositionTicks", 0),
-                started_at=now,
-                last_seen_at=now,
-                is_active=True,
-            )
-            db.add(row)
-            existing_rows[session_key] = row
+            await _refresh_metadata(row, s, url, api_key, aliases)
+        progress.append((row, row.user_id, seconds))
 
-    stale_query = select(PlaybackSession).where(PlaybackSession.is_active == True)  # noqa: E712
-    if active_keys:
-        stale_query = stale_query.where(PlaybackSession.session_key.notin_(active_keys))
-    stale = await db.execute(stale_query)
+    video = [entry for entry in progress if entry[0].item_type in WATCH_ITEM_TYPES]
+    for row, seconds in exclusive_shares(video).items():
+        row.exclusive_seconds = (row.exclusive_seconds or 0) + seconds
+        row.watched_by_hour = add_to_hour(row.watched_by_hour, now, seconds)
+
+    await db.flush()
+    await record_completions(db, [row for row, _, _ in progress], now)
+
+    stale_query = select(PlaybackSession).where(PlaybackSession.is_active.is_(True))
+    if active:
+        stale_query = stale_query.where(or_(
+            PlaybackSession.emby_session_key.is_(None),
+            PlaybackSession.emby_session_key.notin_(list(active)),
+        ))
     closed_sessions = []
-    for row in stale.scalars().all():
+    for row in (await db.execute(stale_query)).scalars().all():
         row.is_active = False
-        # ``last_seen_at`` is bumped on every poll where the session was
-        # still present in Emby, so it's the most accurate signal of when
-        # the user actually stopped — much better than ``now``, which can
-        # be hours/days late if the collector was down or the container
-        # restarted (any session left ``is_active=True`` would otherwise
-        # gain that whole window of fake watch time, falsely unlocking
-        # the Marathon trophies).
+        # ``last_seen_at`` is the last poll where the session really played,
+        # far more accurate than ``now`` after a collector outage.
         row.ended_at = row.last_seen_at or now
         closed_sessions.append(row)
 
@@ -184,183 +204,3 @@ async def collect_active_sessions(db: AsyncSession):
 
     if closed_sessions:
         await _grant_post_session_xp(db, closed_sessions)
-
-
-_PAUSE_OPEN_PROOF_WINDOW = timedelta(seconds=90)
-
-
-async def _process_pause_events(db: AsyncSession, sessions: list, now: datetime):
-    """Detect pause/resume transitions on Emby ``/Sessions`` and persist
-    them to ``playback_pause_events``.
-
-    A pause event is opened when a session ticks paused with no other
-    open event for the same ``session_key``; it is closed (``resumed_at``
-    + ``duration_seconds``) when the same key ticks playing again. Both
-    sides are idempotent: re-emitted ticks in the same state are
-    no-ops, so the table cannot accumulate duplicates from a sticky
-    Emby session. Sessions that disappear without a resume tick stay
-    open and never become qualifying events.
-
-    Cold-start guard: opening a new event requires recent proof that the
-    session was actively playing — there must be a ``PlaybackSession``
-    row with ``is_active=True`` and a ``last_seen_at`` no older than
-    ``_PAUSE_OPEN_PROOF_WINDOW``. Without this guard a session that was
-    *already paused* when the collector restarted would have its pause
-    clock reset to ``now`` and could close inside the 2-5 minute
-    qualifying window even though the user never produced a fresh
-    pause/resume cycle. We prefer dropping that pause silently over
-    awarding a false positive.
-
-    ``now`` is taken from the caller so tests can drive the function
-    deterministically.
-    """
-    paused_pairs: list[tuple[str, dict]] = []
-    playing_keys: set[str] = set()
-
-    for s in sessions:
-        np = s.get("NowPlayingItem")
-        if not np or not s.get("UserName"):
-            continue
-        if np.get("Type") in _UNTRACKED_ITEM_TYPES:
-            continue
-        session_key = f"{s.get('UserId', '')}_{np.get('Id', '')}_{s.get('Id', '')}"
-        if s.get("PlayState", {}).get("IsPaused", False):
-            paused_pairs.append((session_key, s))
-        else:
-            playing_keys.add(session_key)
-
-    keys = [k for k, _ in paused_pairs] + list(playing_keys)
-    if not keys:
-        return
-
-    open_rows = (await db.execute(
-        select(PlaybackPauseEvent).where(
-            PlaybackPauseEvent.session_key.in_(keys),
-            PlaybackPauseEvent.resumed_at.is_(None),
-        )
-    )).scalars().all()
-    open_by_key: dict[str, PlaybackPauseEvent] = {ev.session_key: ev for ev in open_rows}
-
-    paused_keys = [k for k, _ in paused_pairs]
-    playing_proof: dict[str, PlaybackSession] = {}
-    if paused_keys:
-        proof_rows = (await db.execute(
-            select(PlaybackSession).where(PlaybackSession.session_key.in_(paused_keys))
-        )).scalars().all()
-        playing_proof = {row.session_key: row for row in proof_rows}
-
-    for session_key, s in paused_pairs:
-        if session_key in open_by_key:
-            continue
-        # Cold-start guard: only open an event when a recent playing
-        # tick has been observed for this session_key.
-        proof = playing_proof.get(session_key)
-        if proof is None or not proof.is_active or proof.last_seen_at is None:
-            continue
-        last_seen = proof.last_seen_at
-        if last_seen.tzinfo is None:
-            last_seen = last_seen.replace(tzinfo=timezone.utc)
-        if (now - last_seen) > _PAUSE_OPEN_PROOF_WINDOW:
-            continue
-        np = s.get("NowPlayingItem") or {}
-        ev = PlaybackPauseEvent(
-            session_key=session_key,
-            emby_session_id=s.get("Id", "") or None,
-            user_id=s.get("UserId", ""),
-            user_name=s.get("UserName", ""),
-            item_id=np.get("Id", ""),
-            item_name=np.get("Name", ""),
-            item_type=np.get("Type", ""),
-            pause_started_at=now,
-        )
-        db.add(ev)
-        open_by_key[session_key] = ev
-
-    for session_key in playing_keys:
-        ev = open_by_key.get(session_key)
-        if ev is None or ev.resumed_at is not None:
-            continue
-        ev.resumed_at = now
-        # SQLite returns naive datetimes even when written with tzinfo,
-        # so coerce both sides to UTC before subtracting.
-        started = ev.pause_started_at
-        if started is None:
-            delta = 0.0
-        else:
-            if started.tzinfo is None:
-                started = started.replace(tzinfo=timezone.utc)
-            delta = (now - started).total_seconds()
-        ev.duration_seconds = max(0, int(delta))
-
-
-async def _grant_post_session_xp(db: AsyncSession, closed_sessions: list):
-    """Grant XP for completed sessions (anti-abuse checks inside grant_watch_xp).
-
-    Two-stage gate:
-    - Lazy-provision: when the Emby username has no MediaKeeper row yet
-      we create one so the user is visible in the admin panel — initial
-      state is ``account_active=False`` (silent shadow account).
-    - XP gate: profiles with ``account_active=True`` always earn XP.
-      Profiles with ``account_active=False`` only earn when the admin
-      explicitly opted in via ``can_earn_xp_offline`` (migration 035) —
-      useful for tracking Emby activity of someone who never logs into
-      MK. Otherwise watches accumulate in ``playback_sessions`` only.
-    """
-    try:
-        from models.portal.profile import UserProfile
-        from services.portal.xp import grant_watch_xp
-        from services.portal.user_import import ensure_user_for_emby_session
-        from services.stats import get_exclusions
-
-        excl_list = await get_exclusions(db)
-        excluded_names = set()
-        for exc in excl_list:
-            if exc.get("mode") == "exact":
-                excluded_names.add(exc.get("value", ""))
-
-        for sess in closed_sessions:
-            if sess.item_name and sess.item_name in excluded_names:
-                continue
-
-            user = await ensure_user_for_emby_session(
-                db,
-                emby_username=sess.user_name,
-                emby_user_id=sess.user_id,
-            )
-            if not user:
-                continue
-
-            profile = (await db.execute(
-                select(UserProfile).where(UserProfile.user_id == user.id)
-            )).scalar_one_or_none()
-            if not profile:
-                continue
-            # XP gate: profiles with ``account_active=True`` always earn.
-            # Profiles with ``account_active=False`` only earn when the admin
-            # explicitly opted in via ``can_earn_xp_offline`` — useful for
-            # tracking Emby activity of someone who never logs into MK.
-            if not profile.account_active and not profile.can_earn_xp_offline:
-                continue
-
-            wall_duration = 0
-            if sess.started_at and sess.ended_at:
-                wall_duration = int(
-                    (sess.ended_at - sess.started_at).total_seconds()
-                )
-            position_duration = int((sess.position_ticks or 0) / 10_000_000)
-            duration = max(wall_duration, position_duration)
-            await grant_watch_xp(
-                db,
-                user_id=user.id,
-                item_id=sess.item_id or "",
-                item_type=sess.item_type or "Movie",
-                duration_seconds=duration,
-                runtime_ticks=sess.duration_ticks,
-            )
-
-            from services.portal.achievements import safe_check_all_achievements
-            await safe_check_all_achievements(
-                db, user.id, sess.user_name, source="playback_close", silent=True,
-            )
-    except Exception as e:
-        logger.warning("[XP] post-session XP grant error: %s", e, exc_info=True)
