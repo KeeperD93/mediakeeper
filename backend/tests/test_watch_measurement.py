@@ -153,6 +153,30 @@ async def test_a_pause_that_makes_emby_drop_the_session_keeps_one_row(db_session
 
 
 @pytest.mark.asyncio
+async def test_relaunching_a_finished_title_is_not_a_rewatch_until_watched_again(db_session):
+    full = [5 + 60 * i for i in range(11)]
+    finished = await _play(db_session, T0, full, timedelta(minutes=1), runtime_s=600)
+    await _poll(db_session, finished + timedelta(seconds=5))  # credits: the player closes
+    restart = finished + timedelta(minutes=2)
+    await _play(db_session, restart, [5, 10], timedelta(seconds=5), runtime_s=600)
+    first, second = await _rows(db_session)
+    assert first.completed_at is not None and first.is_active is False
+    assert second.is_active is True and second.watched_seconds == 10
+    # Relaunched and stopped: still watched once.
+    assert len(await _completions(db_session)) == 1
+
+
+@pytest.mark.asyncio
+async def test_a_title_watched_twice_to_the_end_counts_twice(db_session):
+    full = [5 + 60 * i for i in range(11)]
+    finished = await _play(db_session, T0, full, timedelta(minutes=1), runtime_s=600)
+    await _poll(db_session, finished + timedelta(seconds=5))
+    again = finished + timedelta(hours=1)
+    await _play(db_session, again, full, timedelta(minutes=1), runtime_s=600)
+    assert len(await _completions(db_session)) == 2
+
+
+@pytest.mark.asyncio
 async def test_two_devices_count_once_for_the_user(db_session):
     for i, (movie_pos, episode_pos) in enumerate([(5, 3), (10, 8), (15, 13)]):
         at = T0 + timedelta(seconds=5 * i)

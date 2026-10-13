@@ -117,7 +117,9 @@ async def collect_active_sessions(db: AsyncSession, now: datetime | None = None)
         )).scalars().all()
         active = {row.emby_session_key: row for row in rows}
 
-    # Rows closed moments ago by a pause that made Emby drop the session.
+    # Rows closed moments ago by a pause that made Emby drop the session. A
+    # title already watched to the end is never resumed: playing it again is a
+    # new viewing.
     resumable: dict[str, PlaybackSession] = {}
     missing = [key for key in keys if key not in active]
     if missing:
@@ -125,6 +127,7 @@ async def collect_active_sessions(db: AsyncSession, now: datetime | None = None)
             select(PlaybackSession).where(
                 PlaybackSession.emby_session_key.in_(missing),
                 PlaybackSession.is_active.is_(False),
+                PlaybackSession.completed_at.is_(None),
                 PlaybackSession.last_seen_at >= now - RESUME_WINDOW,
             ).order_by(PlaybackSession.last_seen_at)
         )).scalars().all()
