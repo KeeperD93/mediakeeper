@@ -14,6 +14,7 @@ from ._cache import _normalize_library_name
 from ._closure import _grant_post_session_xp
 from ._completions import record_completions
 from ._measure import (
+    RESUME_WINDOW,
     add_to_hour,
     client_is_alive,
     exclusive_shares,
@@ -116,6 +117,19 @@ async def collect_active_sessions(db: AsyncSession, now: datetime | None = None)
         )).scalars().all()
         active = {row.emby_session_key: row for row in rows}
 
+    # Rows closed moments ago by a pause that made Emby drop the session.
+    resumable: dict[str, PlaybackSession] = {}
+    missing = [key for key in keys if key not in active]
+    if missing:
+        rows = (await db.execute(
+            select(PlaybackSession).where(
+                PlaybackSession.emby_session_key.in_(missing),
+                PlaybackSession.is_active.is_(False),
+                PlaybackSession.last_seen_at >= now - RESUME_WINDOW,
+            ).order_by(PlaybackSession.last_seen_at)
+        )).scalars().all()
+        resumable = {row.emby_session_key: row for row in rows}
+
     library_rows = (await db.execute(select(LibraryCache.lib_id, LibraryCache.name))).all()
     aliases = {
         "by_id": {str(row.lib_id): row.name for row in library_rows if row.lib_id and row.name},
@@ -134,9 +148,13 @@ async def collect_active_sessions(db: AsyncSession, now: datetime | None = None)
             # paused or silent is a leftover, not a new playback.
             if paused or not alive:
                 continue
-            row = active[key] = await _open_row(db, s, key, position, now, url, api_key, aliases)
-            progress.append((row, row.user_id, row.watched_seconds))
-            continue
+            row = resumable.get(key)
+            if row is None:
+                row = active[key] = await _open_row(db, s, key, position, now, url, api_key, aliases)
+                progress.append((row, row.user_id, row.watched_seconds))
+                continue
+            row.is_active, row.ended_at = True, None
+            active[key] = row
 
         seconds = progress_seconds(row.last_tick_position_ticks, row.last_tick_at, position, now) if alive else 0
         # The reference always moves, so what Emby extrapolates while the

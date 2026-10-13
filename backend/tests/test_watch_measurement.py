@@ -76,12 +76,13 @@ async def _play(db, start: datetime, positions: list[float], step: timedelta, **
 
 @pytest.mark.asyncio
 async def test_real_playback_is_counted_poll_by_poll(db_session):
-    await _play(db_session, T0, [10, 15, 20, 25], timedelta(seconds=5))
+    # Players often report the start late: 25 s already played at the first poll.
+    await _play(db_session, T0, [25, 30, 35, 40], timedelta(seconds=5))
     (row,) = await _rows(db_session)
-    assert row.watched_seconds == 25 and row.exclusive_seconds == 25
+    assert row.watched_seconds == 40 and row.exclusive_seconds == 40
     assert row.measured is True
-    # The 10 s played before the first poll count, and the start is moved back.
-    assert as_utc(row.started_at) == T0 - timedelta(seconds=10)
+    # The seconds played before the first poll count, and the start is moved back.
+    assert as_utc(row.started_at) == T0 - timedelta(seconds=25)
 
 
 @pytest.mark.asyncio
@@ -136,6 +137,19 @@ async def test_a_new_row_is_opened_for_each_playback(db_session):
     assert first.session_key != second.session_key
     # The first row is not stretched over the 20 hours between the two plays.
     assert as_utc(first.ended_at) == T0 + timedelta(seconds=5)
+
+
+@pytest.mark.asyncio
+async def test_a_pause_that_makes_emby_drop_the_session_keeps_one_row(db_session):
+    await _play(db_session, T0, [5, 10], timedelta(seconds=5))
+    # Paused: this player makes Emby drop the session after about a minute.
+    for seconds in (10, 60, 120, 180):
+        await _poll(db_session, T0 + timedelta(seconds=seconds))
+    resume = T0 + timedelta(minutes=3, seconds=5)
+    await _poll(db_session, resume, _session(at=resume, position_s=15))
+    (row,) = await _rows(db_session)
+    assert row.is_active is True and row.ended_at is None
+    assert row.watched_seconds == 15  # 10 before the pause, 5 after, nothing during
 
 
 @pytest.mark.asyncio

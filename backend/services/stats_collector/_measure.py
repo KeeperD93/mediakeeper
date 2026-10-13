@@ -13,8 +13,12 @@ from constants.playback import TICKS_PER_SECOND, WATCH_ITEM_TYPES
 # Delay between two polls: the precision of every measured session.
 POLL_INTERVAL_SECONDS = 5
 # A first poll this close to the start of the title is a real start, not a
-# resume: those seconds were watched before the collector saw the session.
-FRESH_START_MAX_SECONDS = 15
+# resume: those seconds were watched before the collector saw the session
+# (players often report the start late, after buffering).
+FRESH_START_MAX_SECONDS = 30
+# Some players make Emby drop a paused session after about a minute: when the
+# same Emby session plays again within this delay, it is the same viewing.
+RESUME_WINDOW = timedelta(minutes=30)
 # Emby stops refreshing ``LastActivityDate`` once the player goes silent
 # (TV switched off, app killed). Past this delay the session is stalled.
 CLIENT_SILENCE_LIMIT = timedelta(minutes=2)
