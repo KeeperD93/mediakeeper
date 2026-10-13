@@ -19,6 +19,7 @@ from ._measure import (
     client_is_alive,
     exclusive_shares,
     fresh_start_seconds,
+    player_confirms,
     progress_seconds,
 )
 from ._metadata import genres, session_metadata
@@ -144,12 +145,11 @@ async def collect_active_sessions(db: AsyncSession, now: datetime | None = None)
         key = _emby_key(s)
         paused = s.get("PlayState", {}).get("IsPaused", False)
         position = s.get("PlayState", {}).get("PositionTicks") or 0
-        alive = client_is_alive(s, now)
         row = active.get(key)
         if row is None:
             # Only a live, playing player opens a row: a session first seen
             # paused or silent is a leftover, not a new playback.
-            if paused or not alive:
+            if paused or not client_is_alive(s, now):
                 continue
             row = resumable.get(key)
             if row is None:
@@ -159,17 +159,21 @@ async def collect_active_sessions(db: AsyncSession, now: datetime | None = None)
             row.is_active, row.ended_at = True, None
             active[key] = row
 
-        seconds = progress_seconds(row.last_tick_position_ticks, row.last_tick_at, position, now) if alive else 0
-        # The reference always moves, so what Emby extrapolates while the
-        # player is silent is never credited later.
+        if not player_confirms(s, row.last_tick_at):
+            # Silent player: what Emby moves on its own is not counted, and the
+            # reference stays on the last confirmed poll, so what the player
+            # really played meanwhile (buffer during a network cut) counts once
+            # it reports again; nothing counts if it never comes back.
+            progress.append((row, row.user_id, 0))
+            continue
+        seconds = progress_seconds(row.last_tick_position_ticks, row.last_tick_at, position, now)
         row.last_tick_at = now
         row.last_tick_position_ticks = position
+        row.position_ticks = position
         row.watched_seconds = (row.watched_seconds or 0) + seconds
-        if alive:
-            row.position_ticks = position
-        if alive and not paused:
-            # ``last_seen_at`` marks the last real playback: it becomes
-            # ``ended_at`` when the row closes, so a silent player never extends it.
+        if not paused:
+            # The last confirmed playback: it becomes ``ended_at`` when the row
+            # closes, so a silent player never extends it.
             row.last_seen_at = now
             await _refresh_metadata(row, s, url, api_key, aliases)
         progress.append((row, row.user_id, seconds))

@@ -118,11 +118,55 @@ async def test_silent_player_adds_nothing_even_if_emby_keeps_advancing(db_sessio
     assert as_utc(row.last_seen_at) == last_live
     assert row.position_ticks == 10 * TICK  # the extrapolated position is not "reached"
 
+    # Switched back on: the player reports its own position, where it stopped.
     back = last_live + timedelta(minutes=9, seconds=5)
-    await _poll(db_session, back, _session(at=back, position_s=10 + 540 + 5))
+    await _poll(db_session, back, _session(at=back, position_s=15))
     (row,) = await _rows(db_session)
     assert row.watched_seconds == 15
     assert as_utc(row.last_seen_at) == back
+
+
+@pytest.mark.asyncio
+async def test_a_player_lost_mid_playback_is_not_counted_while_emby_keeps_going(db_session):
+    # The network drops: Emby keeps the session and moves the position on its
+    # own, but the player sends nothing more until Emby drops the session.
+    last_live = await _play(db_session, T0, [5, 10, 15], timedelta(seconds=5))
+    for i in (1, 2, 3, 4):
+        at = last_live + timedelta(seconds=5 * i)
+        await _poll(db_session, at, _session(at=at, position_s=15 + 5 * i, silent_since=last_live))
+    await _poll(db_session, last_live + timedelta(seconds=25))
+    (row,) = await _rows(db_session)
+    assert row.watched_seconds == 15
+    assert row.is_active is False and as_utc(row.ended_at) == last_live
+
+
+@pytest.mark.asyncio
+async def test_what_a_player_played_from_its_buffer_counts_when_it_reports_again(db_session):
+    # Network cut: the player keeps playing its buffer while it cannot report,
+    # Emby moves the position on its own, then drops the session.
+    last_live = await _play(db_session, T0, [5, 10, 15], timedelta(seconds=5))
+    for i in range(1, 13):
+        at = last_live + timedelta(seconds=5 * i)
+        await _poll(db_session, at, _session(at=at, position_s=15 + 5 * i, silent_since=last_live))
+    await _poll(db_session, last_live + timedelta(seconds=65))
+    # Network back: the player reports where its buffer ran out, 90 s further.
+    back = last_live + timedelta(minutes=2, seconds=30)
+    await _poll(db_session, back, _session(at=back, position_s=105))
+    (row,) = await _rows(db_session)
+    assert row.watched_seconds == 15 + 90
+
+
+@pytest.mark.asyncio
+async def test_a_player_reporting_less_often_loses_nothing(db_session):
+    # This player reports every 15 s while the collector polls every 5 s.
+    last_report = T0
+    for i in range(7):
+        at = T0 + timedelta(seconds=5 * i)
+        if i % 3 == 0:
+            last_report = at
+        await _poll(db_session, at, _session(at=at, position_s=5 + 5 * i, silent_since=last_report))
+    (row,) = await _rows(db_session)
+    assert row.watched_seconds == 35
 
 
 @pytest.mark.asyncio

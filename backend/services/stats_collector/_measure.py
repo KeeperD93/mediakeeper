@@ -19,9 +19,9 @@ FRESH_START_MAX_SECONDS = 30
 # Some players make Emby drop a paused session after about a minute: when the
 # same Emby session plays again within this delay, it is the same viewing.
 RESUME_WINDOW = timedelta(minutes=30)
-# Emby stops refreshing ``LastActivityDate`` once the player goes silent
-# (TV switched off, app killed). Past this delay the session is stalled.
-CLIENT_SILENCE_LIMIT = timedelta(minutes=2)
+# A playing player refreshes ``LastActivityDate`` every few seconds. A session
+# first seen with an activity older than this is a leftover, not a playback.
+CLIENT_SILENCE_LIMIT = timedelta(seconds=60)
 
 _EXTRA_FRACTION_DIGITS = re.compile(r"(\.\d{6})\d+")
 
@@ -47,6 +47,18 @@ def client_is_alive(session: dict, now: datetime) -> bool:
     """False once the player has been silent for too long (unknown = alive)."""
     last_activity = parse_emby_date(session.get("LastActivityDate"))
     return last_activity is None or now - last_activity <= CLIENT_SILENCE_LIMIT
+
+
+def player_confirms(session: dict, since: datetime | None) -> bool:
+    """True if the player itself reported activity after ``since`` (or reports none).
+
+    While a player is silent (network lost, TV switched off, tab closed) Emby
+    may keep the session and move its position on its own: only the player
+    can tell how far it really played, once it reports again.
+    """
+    last_activity = parse_emby_date(session.get("LastActivityDate"))
+    since = as_utc(since)
+    return last_activity is None or since is None or last_activity > since
 
 
 def progress_seconds(
