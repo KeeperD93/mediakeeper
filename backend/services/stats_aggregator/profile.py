@@ -4,6 +4,7 @@ from datetime import datetime, timezone, timedelta
 from sqlalchemy import select, func, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.playback import TICKS_PER_SECOND
 from models.playback_stats import PlaybackSession
 
 from ._helpers import _get_library_name_map, _normalize_library_name, _merge_by_name
@@ -20,9 +21,10 @@ async def get_user_profile(db: AsyncSession, user_id: str):
     play_res = await db.execute(play_q)
     play_count = play_res.scalar() or 0
 
-    dur_q = select(func.sum(PlaybackSession.position_ticks)).where(*base_where)
+    # The user's watch time, identical to the portal profile.
+    dur_q = select(func.sum(PlaybackSession.exclusive_seconds)).where(*base_where)
     dur_res = await db.execute(dur_q)
-    total_ticks = dur_res.scalar() or 0
+    total_ticks = (dur_res.scalar() or 0) * TICKS_PER_SECOND
 
     last_q = select(
         PlaybackSession.item_name,

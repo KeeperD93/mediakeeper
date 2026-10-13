@@ -9,6 +9,7 @@ from models.portal.chat import ChatMessage
 from services.logs import fetch_and_store_emby_logs
 from services.scheduler import init_scheduler
 from services.stats import collect_active_sessions, refresh_library_cache
+from services.stats_collector import POLL_INTERVAL_SECONDS
 from services.watchlist import engine_ref as wl_engine_ref
 
 logger = logging.getLogger("mediakeeper")
@@ -81,7 +82,7 @@ class BackgroundTaskManager:
                     await collect_active_sessions(session)
             except Exception as e:
                 logger.error("Error collecting stats: %s", e)
-            await asyncio.sleep(15)
+            await asyncio.sleep(POLL_INTERVAL_SECONDS)
 
     async def _periodic_library_cache(self):
         await asyncio.sleep(20)

@@ -6,6 +6,7 @@ from core.http_client import get_internal_client
 from services.settings import get_active_media_source
 from services.portal._rank_tiers import tier_for_level
 from services.portal.avatars import avatar_public_url
+from constants.playback import TICKS_PER_SECOND
 from models.playback_stats import PlaybackSession
 from models.portal.profile import UserProfile
 
@@ -85,7 +86,7 @@ async def get_users_stats(db: AsyncSession, page: int = 1, per_page: int = 30,
                 select(
                     PlaybackSession.user_id.label("user_id"),
                     func.count(PlaybackSession.id).label("play_count"),
-                    func.sum(PlaybackSession.position_ticks).label("total_ticks"),
+                    func.sum(PlaybackSession.exclusive_seconds).label("watched_seconds"),
                 ).group_by(PlaybackSession.user_id),
                 exc_filters,
             )
@@ -94,7 +95,7 @@ async def get_users_stats(db: AsyncSession, page: int = 1, per_page: int = 30,
     user_stats_map = {
         row.user_id: {
             "play_count": row.play_count or 0,
-            "total_ticks": row.total_ticks or 0,
+            "total_ticks": (row.watched_seconds or 0) * TICKS_PER_SECOND,
         }
         for row in user_stats_rows
     }

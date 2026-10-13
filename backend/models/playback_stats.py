@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer, BigInteger, String, DateTime, Boolean, Index, UniqueConstraint
+from sqlalchemy import (
+    JSON, BigInteger, Boolean, Column, DateTime, ForeignKey, Index, Integer, String, UniqueConstraint,
+)
 from datetime import datetime, timezone
 from models.base import Base
 
@@ -68,6 +70,22 @@ class PlaybackSession(Base):
     ended_at      = Column(DateTime(timezone=True), nullable=True)
     is_active     = Column(Boolean, default=True)
 
+    # A new row is opened each time an Emby playback restarts after a stop;
+    # this groups the rows of one Emby session (``session_key`` stays unique).
+    emby_session_key = Column(String(200), nullable=True, index=True)
+
+    # Continuous measurement, in seconds (services.stats_collector._measure).
+    # ``watched_seconds`` is this title's real playback; ``exclusive_seconds``
+    # is what counts for the user (video only, concurrent devices once).
+    watched_seconds   = Column(Integer, nullable=False, default=0, server_default="0")
+    exclusive_seconds = Column(Integer, nullable=False, default=0, server_default="0")
+    watched_by_hour   = Column(JSON, nullable=True)  # {"YYYY-MM-DDTHH": seconds}, UTC hours
+    last_tick_at      = Column(DateTime(timezone=True), nullable=True)
+    last_tick_position_ticks = Column(BigInteger, nullable=True)
+    # False for rows rebuilt from the pre-measurement history (estimates).
+    measured          = Column(Boolean, nullable=False, default=False, server_default="false")
+    completed_at      = Column(DateTime(timezone=True), nullable=True)
+
     __table_args__ = (
         Index("ix_playback_started", "started_at"),
         Index("ix_playback_user_started", "user_id", "started_at"),
@@ -106,4 +124,37 @@ class PlaybackPauseEvent(Base):
     __table_args__ = (
         UniqueConstraint("session_key", "pause_started_at", name="uq_pause_session_started"),
         Index("ix_pause_user_started", "user_id", "pause_started_at"),
+    )
+
+
+class PlaybackCompletion(Base):
+    """A title counted as watched: its end was reached and enough of its
+    runtime was really watched, possibly over several sittings.
+
+    ``source`` is ``live`` when the collector measured it and ``history``
+    when it was rebuilt from the estimated pre-measurement sessions.
+    """
+    __tablename__ = "playback_completions"
+
+    id              = Column(Integer, primary_key=True, index=True)
+    session_id      = Column(
+        Integer, ForeignKey("playback_sessions.id", ondelete="CASCADE"), nullable=False, index=True,
+    )
+    user_id         = Column(String(100), nullable=False)
+    user_name       = Column(String(200), nullable=False)
+    item_id         = Column(String(100), nullable=False)
+    item_type       = Column(String(50), nullable=False)
+    item_name       = Column(String(500), nullable=False)
+    series_name     = Column(String(500), nullable=True)
+    season_number   = Column(Integer, nullable=True)
+    episode_number  = Column(Integer, nullable=True)
+    library_name    = Column(String(200), nullable=True)
+    runtime_seconds = Column(Integer, nullable=False)
+    watched_seconds = Column(Integer, nullable=False)
+    completed_at    = Column(DateTime(timezone=True), nullable=False)
+    source          = Column(String(16), nullable=False, default="live", server_default="live")
+
+    __table_args__ = (
+        Index("ix_completion_user_item", "user_id", "item_id", "completed_at"),
+        Index("ix_completion_completed", "completed_at"),
     )

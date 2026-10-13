@@ -10,7 +10,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.playback_stats import PlaybackSession
 from services.portal._watch_threshold import session_meets_threshold
-from services.portal.achievements_utils import _session_duration_seconds
 from services.portal.personal import _infer_genres_from_history_full
 from services.portal.personal_utils import TMDB_GENRE_NAME_TO_ID
 
@@ -148,29 +147,27 @@ async def compute_media_type_ratio(
 ) -> dict:
     """Total playback time split between movies and series (Episodes).
     Returns counts + minutes for each bucket so the UI can show a ratio
-    donut and a 'X movies vs Y episodes' subtitle. Minutes use the same
-    per-session estimate as the profile total, so pauses don't skew the split."""
+    donut and a 'X movies vs Y episodes' subtitle. Minutes are the measured
+    watch time, like the profile total, so pauses don't skew the split."""
     result = {"movie_plays": 0, "movie_minutes": 0, "series_plays": 0, "series_minutes": 0}
     try:
         rows = await db.execute(
             select(
                 PlaybackSession.item_type,
-                PlaybackSession.started_at,
-                PlaybackSession.ended_at,
-                PlaybackSession.last_seen_at,
-                PlaybackSession.position_ticks,
-                PlaybackSession.duration_ticks,
-            ).where(user_filter, *excl_filters)
+                func.count(PlaybackSession.id),
+                func.coalesce(func.sum(PlaybackSession.exclusive_seconds), 0),
+            )
+            .where(user_filter, *excl_filters)
+            .group_by(PlaybackSession.item_type)
         )
-        for row in rows.all():
-            secs = _session_duration_seconds(row)
-            kind = (row.item_type or "").lower()
+        for item_type, plays, seconds in rows.all():
+            kind = (item_type or "").lower()
             if kind == "movie":
-                result["movie_plays"] += 1
-                result["movie_minutes"] += secs // 60
+                result["movie_plays"] += plays
+                result["movie_minutes"] += seconds // 60
             elif kind == "episode":
-                result["series_plays"] += 1
-                result["series_minutes"] += secs // 60
+                result["series_plays"] += plays
+                result["series_minutes"] += seconds // 60
     except Exception as e:
         logger.debug("[PROFILE] media type ratio error: %s", e)
     return result

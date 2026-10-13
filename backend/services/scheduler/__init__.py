@@ -6,7 +6,7 @@ Each configurable task is defined in TASK_DEFINITIONS. The config
 recharge la config all les 60s.
 
 Tasks NOT handled here (hardcoded in main.py as critical):
-  - stats_collection : 15s
+  - stats_collection : POLL_INTERVAL_SECONDS (services.stats_collector._measure)
   - library_cache    : 3600s
 
 Package split into modules (Rule 9, <= 300 lines).

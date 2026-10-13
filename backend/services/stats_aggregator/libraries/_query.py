@@ -1,7 +1,8 @@
 """Playback/cache aggregation for the Statistics -> Libraries view."""
-from sqlalchemy import case, func, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.playback import TICKS_PER_SECOND
 from models.playback_stats import LibraryCache, PlaybackSession
 
 from .._helpers import _apply_filters, _get_library_name_map, _normalize_library_name
@@ -72,12 +73,7 @@ async def _aggregate_play_stats(db, exc_filters, lib_map) -> dict[str, dict]:
                 select(
                     PlaybackSession.library_name.label("library_name"),
                     func.count(PlaybackSession.id).label("play_count"),
-                    func.sum(
-                        case(
-                            (PlaybackSession.position_ticks.isnot(None), PlaybackSession.position_ticks),
-                            else_=0,
-                        )
-                    ).label("duration_ticks"),
+                    func.coalesce(func.sum(PlaybackSession.watched_seconds), 0).label("watched_seconds"),
                 ).where(
                     PlaybackSession.library_name.isnot(None),
                     PlaybackSession.library_name != "",
@@ -95,7 +91,7 @@ async def _aggregate_play_stats(db, exc_filters, lib_map) -> dict[str, dict]:
             {"total_plays": 0, "total_duration_ticks": 0},
         )
         entry["total_plays"] += row.play_count or 0
-        entry["total_duration_ticks"] += row.duration_ticks or 0
+        entry["total_duration_ticks"] += (row.watched_seconds or 0) * TICKS_PER_SECOND
     return out
 
 

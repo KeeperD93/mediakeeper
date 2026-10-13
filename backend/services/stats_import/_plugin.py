@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.playback_stats import PlaybackSession
+from services.stats_collector import history_measure
 
 from ._activity import _parse_date
 
@@ -70,6 +71,7 @@ async def _import_plugin_reporting(
             series_name, season_number, episode_number, item_name = _parse_plugin_name(
                 entry.get("ItemName", ""), item_type,
             )
+            item_type = item_type or ("Episode" if series_name else "Movie")
 
             duration_sec = int(entry.get("PlayDuration", 0) or 0)
             position_ticks = duration_sec * 10_000_000
@@ -85,7 +87,7 @@ async def _import_plugin_reporting(
                 user_name="",  # Plugin does not store UserName; enriched later via jf_users
                 item_id=entry.get("ItemId", ""),
                 item_name=item_name,
-                item_type=item_type or ("Episode" if series_name else "Movie"),
+                item_type=item_type,
                 series_name=series_name,
                 season_number=season_number,
                 episode_number=episode_number,
@@ -109,6 +111,7 @@ async def _import_plugin_reporting(
                 last_seen_at=ended_at,
                 ended_at=ended_at,
                 is_active=False,
+                **history_measure(session_key, item_type, started_at, duration_sec),
             )
             batch.append(row)
             existing_keys.add(session_key)

@@ -5,8 +5,9 @@ from datetime import date, datetime, timedelta, timezone
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.playback import WATCH_ITEM_TYPES
+from models.playback_stats import PlaybackPauseEvent, PlaybackSession
 from models.portal.profile import UserProfile
-from models.playback_stats import PlaybackSession, PlaybackPauseEvent
 
 
 async def _resolve_playback_user_names(
@@ -64,7 +65,21 @@ def _coerce_utc(value: datetime | None) -> datetime | None:
 
 
 def _session_duration_seconds(row: PlaybackSession) -> int:
-    """Best-effort estimate of how long the user actually watched.
+    """Seconds of this session that count as the user's watch time.
+
+    The collector measures it at every poll (``exclusive_seconds``: video
+    only, concurrent devices counted once); history rows carry the estimate
+    stored by migration 062 or by the import. A row with nothing stored falls
+    back to that same estimate."""
+    if row.measured or row.watched_seconds or row.exclusive_seconds:
+        return row.exclusive_seconds or 0
+    if row.item_type not in WATCH_ITEM_TYPES:
+        return 0
+    return _estimated_seconds(row)
+
+
+def _estimated_seconds(row: PlaybackSession) -> int:
+    """Best-effort estimate when no measurement exists.
 
     Three signals available, ranked by reliability:
       - ``position_ticks``: absolute position inside the media; bounds the

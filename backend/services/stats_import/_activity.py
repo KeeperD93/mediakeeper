@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.playback_stats import PlaybackSession
+from services.stats_collector import history_measure
 
 logger = logging.getLogger("mediakeeper.stats.import")
 
@@ -148,6 +149,7 @@ async def _import_playback_activity(
                 last_seen_at=ended_at,
                 ended_at=ended_at,
                 is_active=False,
+                **history_measure(session_key, item_type, started_at, duration_sec),
             )
             batch.append(row)
             existing_keys.add(session_key)

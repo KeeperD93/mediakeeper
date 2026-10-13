@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.http_client import get_internal_client
 from services.settings import get_active_media_source
+from constants.playback import TICKS_PER_SECOND
 from models.playback_stats import PlaybackSession, LibraryCache
 
 from .exclusions import _get_exclusion_filters
@@ -16,7 +17,7 @@ async def get_global_totals(db: AsyncSession):
     exc_filters = await _get_exclusion_filters(db)
 
     base_q = select(func.count(PlaybackSession.id))
-    dur_q = select(func.sum(PlaybackSession.position_ticks))
+    dur_q = select(func.sum(PlaybackSession.watched_seconds))
     usr_q = select(func.count(distinct(PlaybackSession.user_id))).where(
         PlaybackSession.started_at >= datetime.now(timezone.utc) - timedelta(hours=24)
     )
@@ -38,7 +39,7 @@ async def get_global_totals(db: AsyncSession):
     by_method = {r[0] or "Unknown": r[1] for r in by_method_q.all()}
 
     total_plays = total_plays_res.scalar() or 0
-    total_duration_ticks = total_duration_res.scalar() or 0
+    total_duration_ticks = (total_duration_res.scalar() or 0) * TICKS_PER_SECOND
     active_users_24h = active_users_24h_res.scalar() or 0
     transcode_count = by_method.get("Transcode", 0)
     transcode_pct = round((transcode_count / total_plays * 100), 1) if total_plays > 0 else 0
