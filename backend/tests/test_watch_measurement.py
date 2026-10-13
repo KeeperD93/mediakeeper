@@ -153,6 +153,25 @@ async def test_a_pause_that_makes_emby_drop_the_session_keeps_one_row(db_session
 
 
 @pytest.mark.asyncio
+async def test_relaunch_from_the_start_after_closing_the_player(db_session):
+    # 2 min, a 30 s pause, 30 s more, then the player is closed (Emby forgets
+    # positions under its resume threshold) and the title is relaunched from 0.
+    first = [5 + 5 * i for i in range(24)]                       # 0:05 -> 2:00
+    end_first = await _play(db_session, T0, first, timedelta(seconds=5))
+    pause_end = end_first + timedelta(seconds=30)
+    for at in (end_first + timedelta(seconds=10), end_first + timedelta(seconds=20), pause_end):
+        await _poll(db_session, at, _session(at=at, position_s=120, paused=True))
+    second_start = pause_end + timedelta(seconds=5)
+    end_second = await _play(db_session, second_start, [125 + 5 * i for i in range(6)], timedelta(seconds=5))
+    await _poll(db_session, end_second + timedelta(seconds=5))   # window closed
+    relaunch = end_second + timedelta(minutes=1, seconds=30)
+    await _play(db_session, relaunch, [20, 25, 30], timedelta(seconds=5))
+    (row,) = await _rows(db_session)
+    # 120 s + 30 s + 30 s really played; the pause adds nothing.
+    assert row.watched_seconds == 120 + 30 + 30
+
+
+@pytest.mark.asyncio
 async def test_relaunching_a_finished_title_is_not_a_rewatch_until_watched_again(db_session):
     full = [5 + 60 * i for i in range(11)]
     finished = await _play(db_session, T0, full, timedelta(minutes=1), runtime_s=600)
@@ -261,6 +280,13 @@ def test_unknown_activity_keeps_the_player_alive():
 
 def test_going_back_in_the_title_adds_nothing():
     assert progress_seconds(600 * TICK, T0, 300 * TICK, T0 + timedelta(seconds=5)) == 0
+
+
+def test_going_back_to_the_very_start_is_a_restart():
+    # Relaunched from the beginning two minutes later, first seen at 0:20.
+    assert progress_seconds(152 * TICK, T0, 20 * TICK, T0 + timedelta(minutes=2)) == 20
+    # Within a regular poll it can only credit the elapsed time.
+    assert progress_seconds(152 * TICK, T0, 20 * TICK, T0 + timedelta(seconds=5)) == 5
 
 
 def test_duration_only_history_is_laid_out_from_its_start():

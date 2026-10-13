@@ -60,8 +60,13 @@ def progress_seconds(
     if previous_at is None or previous_position_ticks is None:
         return 0
     elapsed = (now - previous_at).total_seconds()
-    progressed = ((position_ticks or 0) - previous_position_ticks) / TICKS_PER_SECOND
-    return max(0, int(min(elapsed, progressed)))
+    position = (position_ticks or 0) / TICKS_PER_SECOND
+    progressed = position - previous_position_ticks / TICKS_PER_SECOND
+    if progressed < 0:
+        # Back near the very start is a restart: what played since counts.
+        # Any other jump back adds nothing.
+        return int(min(elapsed, position)) if position <= FRESH_START_MAX_SECONDS else 0
+    return int(min(elapsed, progressed))
 
 
 def fresh_start_seconds(position_ticks: int | None) -> int:
