@@ -126,9 +126,8 @@ async def list_requests(
         across the whole set rather than just the loaded slice.
 
     When ``include_sensitive`` (admin path) is set, the response is
-    enriched with the requester's display_name + avatar_url and the
-    ``backdrop_url`` is backfilled live from TMDB for rows that were
-    created before the column existed.
+    enriched with the requester's display_name + avatar_url, and a missing
+    poster or backdrop is backfilled from TMDB.
     """
     query = select(MediaRequest)
     count_query = select(func.count(MediaRequest.id))
@@ -157,7 +156,7 @@ async def list_requests(
 
     requesters: dict[int, dict] = {}
     if include_sensitive and rows:
-        await _backfill_backdrops(db, rows)
+        await _backfill_images(db, rows)
         requesters = await _load_requester_profiles(
             db, {r.user_id for r in rows if r.user_id is not None},
         )
@@ -178,13 +177,13 @@ async def list_requests(
     return build_cursor_response(items, total, limit)
 
 
-async def _backfill_backdrops(
+async def _backfill_images(
     db: AsyncSession, rows: list[MediaRequest],
 ) -> None:
-    """Populate ``backdrop_url`` for rows that were created before the
-    column existed. One TMDB call per missing row — rate-limited by
-    Python's GIL + the short page size (max 100)."""
-    missing = [r for r in rows if not r.backdrop_url]
+    """Fill a missing poster or backdrop from TMDB: rows created before the
+    backdrop column existed, or whose image was dropped at creation. One TMDB
+    call per incomplete row, bounded by the page size (max 100)."""
+    missing = [r for r in rows if not r.poster_url or not r.backdrop_url]
     if not missing:
         return
     from services.tmdb import get_media_detail
@@ -192,12 +191,16 @@ async def _backfill_backdrops(
     for r in missing:
         try:
             detail = await get_media_detail(r.media_type, r.tmdb_id, db)
-            backdrop = detail.get("backdrop") if isinstance(detail, dict) else None
-            if backdrop:
-                r.backdrop_url = backdrop
-                changed = True
         except Exception:  # noqa: S112 -- intentional best-effort iteration, skip individual failure
             continue
+        if not isinstance(detail, dict):
+            continue
+        if not r.poster_url and detail.get("poster"):
+            r.poster_url = detail["poster"]
+            changed = True
+        if not r.backdrop_url and detail.get("backdrop"):
+            r.backdrop_url = detail["backdrop"]
+            changed = True
     if changed:
         await db.commit()
 

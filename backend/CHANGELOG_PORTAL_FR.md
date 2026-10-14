@@ -19,6 +19,7 @@ utilisateurs.
 ### Fixed
 - Profil — temps de visionnage et répartition films/séries réalistes (pauses et reprises ne les faussent plus).
 - Demandes — passage automatique en Disponible dès l'arrivée du contenu demandé.
+- Demandes — jaquette manquante rétablie (nouvelles demandes et demandes existantes).
 - Trophées — Ambassadeur compte aussi les demandes devenues disponibles.
 
 ## [1.0.0-rc.8] - 2026-10-11

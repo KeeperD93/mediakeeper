@@ -17,6 +17,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Barre latérale — effets de survol corrigés sur écran tactile (animations réduites respectées).
 - Statistiques — temps de visionnage mesuré en continu, pauses et lecteurs inactifs exclus.
 - Demandes — passage automatique en Disponible, même sans notifications Discord.
+- Demandes — jaquette manquante rétablie (nouvelles demandes et demandes existantes).
 
 ## [1.0.0-rc.8] - 2026-10-11
 

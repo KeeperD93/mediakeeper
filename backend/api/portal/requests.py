@@ -14,6 +14,7 @@ from api.portal.deps import require_admin, require_permission
 from services.portal import requests as req_svc
 from services.portal.achievements import safe_check_all_achievements_in_new_session
 from services.portal.admin import get_portal_flag
+from services.portal.image_cache import unproxied_url
 
 router = APIRouter(prefix="/requests", tags=["portal-requests"])
 
@@ -31,10 +32,12 @@ class CreateRequest(BaseModel):
 
     # Drop any non-http(s) image URL before it is stored and re-served to
     # the community list / admin queue (background-image / <img src> sinks).
+    # With the image cache on, cards send the local proxy URL: keep the TMDB
+    # URL behind it rather than dropping the image.
     @field_validator("poster_url", "backdrop_url")
     @classmethod
     def _safe_image_url(cls, v: Optional[str]) -> Optional[str]:
-        return safe_url(v, schemes={"http", "https"})
+        return safe_url(unproxied_url(v or ""), schemes={"http", "https"})
 
 
 class StatusUpdate(BaseModel):
