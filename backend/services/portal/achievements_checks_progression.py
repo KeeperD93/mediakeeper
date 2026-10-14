@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from sqlalchemy import select, func, distinct
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.requests import ACCEPTED_REQUEST_STATUSES
 from models.portal.achievement import Achievement
 from models.portal.profile import UserProfile
 from models.playback_stats import PlaybackSession
@@ -136,11 +137,14 @@ async def check_progression(
         total_secs = sum(_session_duration_seconds(r) for r in rows_for_hours)
         await _apply("total_watch_hours", total_secs // 3600)
 
-    # --- requests_approved: count approved requests ---
+    # --- requests_approved: requests accepted, including those already served ---
     if "requests_approved" in by_type:
         val = (await db.execute(
             select(func.count(MediaRequest.id))
-            .where(MediaRequest.user_id == user_id, MediaRequest.status == "approved")
+            .where(
+                MediaRequest.user_id == user_id,
+                MediaRequest.status.in_(ACCEPTED_REQUEST_STATUSES),
+            )
         )).scalar() or 0
         await _apply("requests_approved", val)
 

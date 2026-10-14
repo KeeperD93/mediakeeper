@@ -74,13 +74,14 @@ async def _get_all_emby_series(db: AsyncSession, library_id: str = "") -> list[d
 
 
 async def _get_emby_episodes(
-    db: AsyncSession, series_id: str
+    db: AsyncSession, series_id: str, *, present_only: bool = False,
 ) -> dict[tuple[int, int], list[str]]:
-    """Return ``{(season, episode): [audio_lang, …]}`` for present episodes.
+    """Return ``{(season, episode): [audio_lang, …]}`` for the series' episodes.
 
     Episodes without a resolvable season/episode index are skipped (no
     user-visible match anyway). The audio language list may be empty
-    when Emby returns no audio streams for that file.
+    when Emby returns no audio streams for that file. ``present_only``
+    also drops the placeholders Emby can list for missing episodes.
     """
     cfg = await _get_emby_config(db)
     if not cfg:
@@ -89,7 +90,7 @@ async def _get_emby_episodes(
     try:
         r = await get_internal_client().get(
             f"{url}/Shows/{series_id}/Episodes",
-            params={"Fields": "PremiereDate,ProviderIds,MediaStreams"},
+            params={"Fields": "PremiereDate,ProviderIds,MediaStreams,LocationType"},
             headers={"X-Emby-Token": ak}, timeout=20.0)
         if r.status_code != 200:
             return {}
@@ -98,6 +99,8 @@ async def _get_emby_episodes(
             sn = ep.get("ParentIndexNumber")
             en = ep.get("IndexNumber")
             if sn is None or en is None:
+                continue
+            if present_only and ep.get("LocationType") == "Virtual":
                 continue
             out[(sn, en)] = _extract_audio_languages(ep.get("MediaStreams"))
         return out

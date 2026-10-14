@@ -157,6 +157,26 @@ async def test_request_created_unlocks_requester_bronze(db_session):
     assert await _ach_unlocked(db_session, user.id, "requester_1")
 
 
+@pytest.mark.asyncio
+async def test_served_request_still_counts_for_ambassador(db_session):
+    """A request that became ``available`` stays accepted for Ambassador."""
+    user, _ = await _make_user_and_profile(db_session)
+    await seed_achievements(db_session)
+
+    db_session.add(MediaRequest(
+        user_id=user.id,
+        tmdb_id=4321,
+        media_type="movie",
+        title="Movie Y",
+        status="available",
+    ))
+    await db_session.commit()
+
+    await check_all_achievements(db_session, user.id, user.username)
+
+    assert await _ach_unlocked(db_session, user.id, "ambassador_1")
+
+
 # ── 4. Reporter family ──────────────────────────────────────────────────
 
 

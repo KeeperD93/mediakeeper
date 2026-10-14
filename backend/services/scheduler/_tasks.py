@@ -9,6 +9,7 @@ from ._handlers import (
     _handler_emby_refresh,
     _handler_expire_users,
     _handler_feedback_purge,
+    _handler_fulfill_requests,
     _handler_gdpr_purge,
     _handler_healthcheck,
     _handler_log_cleanup,
@@ -68,6 +69,15 @@ TASK_DEFINITIONS: dict[str, dict] = {
         "default_on":  False,
         "handler":     _handler_backup,
         "description": "scheduler.backup",
+    },
+    "fulfill_requests": {
+        "label":       "Mark fulfilled requests available",
+        "label_key":   "scheduler.tasks.fulfill_requests",
+        "default_sec": 300,     # 5 min, the pace of the recent Emby scan
+                                # that indexes new titles.
+        "default_on":  True,
+        "handler":     _handler_fulfill_requests,
+        "description": "scheduler.fulfill_requests",
     },
     "cleanup_available_requests": {
         "label":       "Auto-cleanup available requests",

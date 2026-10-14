@@ -126,6 +126,11 @@ async def _handler_feedback_purge(db: AsyncSession) -> dict:
     return {"removed": removed}
 
 
+async def _handler_fulfill_requests(db: AsyncSession) -> dict:
+    from services.portal.requests_fulfill import fulfill_open_requests
+    return {"fulfilled": await fulfill_open_requests(db)}
+
+
 async def _handler_cleanup_available_requests(db: AsyncSession) -> dict:
     """Drop ``available`` media requests older than the configured window.
 

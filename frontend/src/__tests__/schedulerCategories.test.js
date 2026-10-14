@@ -20,6 +20,7 @@ describe('schedulerCategories', () => {
   it('routes known task keys to their declared category', () => {
     expect(categoryForTaskKey('watchlist_scan')).toBe('media')
     expect(categoryForTaskKey('cleanup_available_requests')).toBe('portal')
+    expect(categoryForTaskKey('fulfill_requests')).toBe('portal')
     expect(categoryForTaskKey('expire_users')).toBe('users')
     expect(categoryForTaskKey('backup_auto')).toBe('system')
   })
