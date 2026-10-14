@@ -29,12 +29,19 @@
       <p class="pt-hero-overview">{{ viewItem?.overview }}</p>
 
       <div class="pt-hero-actions">
-        <!-- The hero is informational, not a launch CTA: when the title
-             is missing from Emby it surfaces a "Request" button, or a
-             muted "Pending" button when it was already requested. Items
-             already on Emby get no action button — the "Info" / trailer
-             affordances cover the rest. -->
-        <template v-if="!viewItem?.emby_url">
+        <!-- A title on Emby opens there; a missing one surfaces "Request",
+             or a muted "Pending" once it was requested. -->
+        <a
+          v-if="playUrl"
+          :href="playUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="pt-hero-btn pt-hero-btn--play"
+        >
+          <img src="/assets/icons/emby.svg" alt="" class="pt-hero-btn-emby" />
+          {{ $t('portal.hero.play') }}
+        </a>
+        <template v-else-if="!viewItem?.emby_url">
           <button
             v-if="isRequestPending"
             class="pt-hero-btn pt-hero-btn--pending"
@@ -93,6 +100,7 @@ import { useRequestStatus } from '@/composables/portal/useRequestStatus'
 import { REQUEST_STATUS } from '@/constants/requests'
 import TrailerLightbox from './TrailerLightbox.vue'
 import { isTv } from '@/constants/media'
+import { safeHref } from '@/utils/safeUrl'
 import { Clock, Info, Plus, Video } from 'lucide-vue-next'
 
 import '@/assets/styles/portal/hero-banner.css'
@@ -120,12 +128,12 @@ const { getStatus, checkStatus } = useRequestStatus()
 const heroRef = ref(null)
 const lightboxOpen = ref(false)
 const viewItem = computed(() => props.item)
+const playUrl = computed(() => safeHref(viewItem.value?.emby_url))
 
 // Request status for the current hero item, mirroring the poster cards:
 // an active request (pending/approved) swaps the "Request" CTA for a
-// muted "Pending" one. Rejected items aren't returned by the backend, so
-// they fall back to "Request" (re-request). Follows the rotation since it
-// derives from the current ``viewItem``.
+// muted "Pending" one; a rejected one falls back to "Request" (re-request).
+// Follows the rotation since it derives from the current ``viewItem``.
 const reqStatus = computed(() => {
   const id = viewItem.value?.tmdb_id || viewItem.value?.id
   return id ? getStatus(id) : null

@@ -1,8 +1,8 @@
 /**
- * Covers the HeroBanner request CTA: it must reflect the request status
- * (muted "Pending" when already requested), fall back to "Request"
- * otherwise, hide entirely for titles already on Emby, and prime the
- * status cache for the current item.
+ * Covers the HeroBanner CTA: it must reflect the request status (muted
+ * "Pending" when already requested), fall back to "Request" otherwise,
+ * offer "Play" for titles already on Emby, and prime the status cache for
+ * the current item.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ref } from 'vue'
@@ -87,8 +87,19 @@ describe('HeroBanner — request CTA reflects request status', () => {
     expect(w.find('.pt-hero-btn--pending').exists()).toBe(true)
   })
 
-  it('hides the request CTA entirely for a title already on Emby', () => {
-    const w = buildHero({ ...movieItem, emby_url: 'http://emby/x' })
+  it('offers Play, opening Emby in a new tab, for a title already on Emby', () => {
+    const w = buildHero({ ...movieItem, emby_url: 'http://emby.invalid/item' })
+    const play = w.get('a.pt-hero-btn--play')
+    expect(play.text()).toContain('portal.hero.play')
+    expect(play.attributes('href')).toBe('http://emby.invalid/item')
+    expect(play.attributes('target')).toBe('_blank')
+    expect(play.attributes('rel')).toBe('noopener noreferrer')
+    expect(w.find('button.pt-hero-btn--play').exists()).toBe(false)
+    expect(w.find('.pt-hero-btn--pending').exists()).toBe(false)
+  })
+
+  it('shows no button at all when the Emby link is unsafe', () => {
+    const w = buildHero({ ...movieItem, emby_url: 'javascript:alert(1)' })
     expect(w.find('.pt-hero-btn--play').exists()).toBe(false)
     expect(w.find('.pt-hero-btn--pending').exists()).toBe(false)
   })

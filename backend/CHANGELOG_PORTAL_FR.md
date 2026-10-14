@@ -16,6 +16,9 @@ utilisateurs.
 
 ## [Unreleased]
 
+### Added
+- Accueil — bouton Lecture sur les bandeaux pour les titres déjà dans Emby.
+
 ### Fixed
 - Profil — temps de visionnage et répartition films/séries réalistes (pauses et reprises ne les faussent plus).
 - Demandes — passage automatique en Disponible dès l'arrivée du contenu demandé.
