@@ -56,14 +56,14 @@ async def fulfill_open_requests(db: AsyncSession) -> int:
     requesters: set[int] = set()
     flipped = 0
     for req in rows:
-        series_ids = emby_ids.get((req.tmdb_id, req.media_type))
-        if not series_ids:
+        item_ids = emby_ids.get((req.tmdb_id, req.media_type))
+        if not item_ids:
             continue
         try:
             if req.media_type == TMDB_MEDIA_TV:
                 if ignored is None:
                     ignored = set(await get_ignored(db))
-                if not await _series_request_served(db, req, series_ids, ignored):
+                if not await _series_request_served(db, req, item_ids, ignored):
                     continue
             if await _mark_available(db, req):
                 flipped += 1
@@ -72,14 +72,14 @@ async def fulfill_open_requests(db: AsyncSession) -> int:
         except Exception:
             # One failing request must not block the others; it is retried next run.
             await db.rollback()
-            logger.exception("[REQUESTS] fulfilment failed for request_id=%s", req.id)
+            logger.exception("[REQUEST] fulfilment failed for request_id=%s", req.id)
 
     for user_id in requesters:
         await safe_check_all_achievements(
             db, user_id=user_id, user_name=None, source="request_status_change",
         )
     if flipped:
-        logger.info("[REQUESTS] %s request(s) marked available", flipped)
+        logger.info("[REQUEST] %s request(s) marked available", flipped)
     return flipped
 
 
