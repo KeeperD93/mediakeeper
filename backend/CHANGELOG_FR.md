@@ -18,6 +18,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Statistiques — temps de visionnage mesuré en continu, pauses et lecteurs inactifs exclus.
 - Demandes — passage automatique en Disponible, même sans notifications Discord.
 - Demandes — jaquette manquante rétablie (nouvelles demandes et demandes existantes).
+- Mise en avant — images conservées quand le cache d'images est activé.
 
 ## [1.0.0-rc.8] - 2026-10-11
 

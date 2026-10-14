@@ -18,6 +18,7 @@ This section intentionally has no date so it is not shown to users.
 - Statistics — watch time measured continuously, pauses and idle players excluded.
 - Requests — automatically marked Available, even without Discord notifications.
 - Requests — missing poster restored (new and existing requests).
+- Featured — images kept when the image cache is on.
 
 ## [1.0.0-rc.8] - 2026-10-11
 

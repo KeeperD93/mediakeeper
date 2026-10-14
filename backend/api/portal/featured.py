@@ -12,6 +12,7 @@ from models.user import User
 from models.portal.profile import UserProfile
 from models.portal.featured import FeaturedHero
 from api.portal.deps import get_current_profile, require_admin
+from services.portal.image_cache import unproxied_url
 
 router = APIRouter(prefix="/featured", tags=["portal-featured"])
 logger = logging.getLogger("mediakeeper.portal.featured")
@@ -30,10 +31,12 @@ class AddFeatured(BaseModel):
 
     # Drop any non-http(s) image URL (javascript:, data:, …) before it is
     # stored and re-served into a background-image / <img src> sink.
+    # With the image cache on, search results carry the local proxy URL:
+    # keep the TMDB URL behind it rather than dropping the image.
     @field_validator("poster_url", "backdrop")
     @classmethod
     def _safe_image_url(cls, v: Optional[str]) -> Optional[str]:
-        return safe_url(v, schemes={"http", "https"})
+        return safe_url(unproxied_url(v or ""), schemes={"http", "https"})
 
 
 class UpdateFeatured(BaseModel):

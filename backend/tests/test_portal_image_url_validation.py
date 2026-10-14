@@ -21,6 +21,19 @@ def test_featured_drops_unsafe_image_urls():
     assert f.backdrop == "https://image.tmdb.org/t/p/original/x.jpg"
 
 
+def test_featured_keeps_tmdb_url_behind_image_cache_url():
+    """With the image cache on, search results carry the local proxy URL."""
+    poster = "https://image.tmdb.org/t/p/w300/p.jpg"
+    backdrop = "https://image.tmdb.org/t/p/w1280/b.jpg"
+
+    f = AddFeatured(
+        tmdb_id=1, media_type="movie", title="X",
+        poster_url=proxied_url(poster), backdrop=proxied_url(backdrop),
+    )
+    assert f.poster_url == poster
+    assert f.backdrop == backdrop
+
+
 def test_request_drops_unsafe_image_urls():
     r = CreateRequest(
         tmdb_id=1, media_type="movie", title="X",
