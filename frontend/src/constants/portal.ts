@@ -27,3 +27,14 @@ export const PERSON_ROLE = Object.freeze({
 } as const)
 
 export type PersonRole = (typeof PERSON_ROLE)[keyof typeof PERSON_ROLE]
+
+/**
+ * Library availability of a title returned by the portal availability check:
+ * a series is `partial` while aired episodes are still missing from Emby.
+ */
+export const AVAILABILITY = Object.freeze({
+  FULL: 'full',
+  PARTIAL: 'partial',
+} as const)
+
+export type Availability = (typeof AVAILABILITY)[keyof typeof AVAILABILITY]

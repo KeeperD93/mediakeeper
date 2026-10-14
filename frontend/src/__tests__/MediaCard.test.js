@@ -164,6 +164,30 @@ describe('MediaCard — emits', () => {
     expect(w.emitted('request')).toBeUndefined()
   })
 
+  it('emits request for a served series that still misses episodes', async () => {
+    const w = mountCard(
+      { tmdb_id: 14, title: 'E', media_type: 'tv' },
+      baseState({
+        reqStatus: { status: 'available' },
+        availData: { emby_url: 'http://emby.invalid/item', availability: 'partial' },
+      }),
+    )
+    await w.find('.stub-request').trigger('click')
+    expect(w.emitted('request')).toHaveLength(1)
+  })
+
+  it('does NOT emit request for a served title that is complete', async () => {
+    const w = mountCard(
+      { tmdb_id: 15, title: 'F' },
+      baseState({
+        reqStatus: { status: 'available' },
+        availData: { emby_url: 'http://emby.invalid/item', availability: 'full' },
+      }),
+    )
+    await w.find('.stub-request').trigger('click')
+    expect(w.emitted('request')).toBeUndefined()
+  })
+
   it('emits addToList and opens the overlay when bookmark is clicked', async () => {
     const w = mountCard({ tmdb_id: 14, title: 'E' })
     expect(w.find('.stub-add-overlay').attributes('data-open')).toBe('false')

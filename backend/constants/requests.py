@@ -7,6 +7,7 @@ from typing import Final
 __all__ = [
     "REQUEST_PENDING",
     "REQUEST_APPROVED",
+    "REQUEST_REJECTED",
     "REQUEST_AVAILABLE",
     "OPEN_REQUEST_STATUSES",
     "ACCEPTED_REQUEST_STATUSES",
@@ -14,6 +15,7 @@ __all__ = [
 
 REQUEST_PENDING: Final[str] = "pending"
 REQUEST_APPROVED: Final[str] = "approved"
+REQUEST_REJECTED: Final[str] = "rejected"
 REQUEST_AVAILABLE: Final[str] = "available"
 
 # Requests still waiting for their content.

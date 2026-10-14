@@ -4015,6 +4015,7 @@
     },
     "detail": {
       "request": "Demander",
+      "reRequest": "Redemander",
       "addToList": "Ajouter à une liste",
       "remind": "Me rappeler",
       "communityRatings": "Avis de la communauté",

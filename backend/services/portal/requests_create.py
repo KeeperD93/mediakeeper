@@ -11,6 +11,14 @@ import zlib
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.requests import (
+    OPEN_REQUEST_STATUSES,
+    REQUEST_APPROVED,
+    REQUEST_AVAILABLE,
+    REQUEST_PENDING,
+    REQUEST_REJECTED,
+)
+from constants.tmdb_media import TMDB_MEDIA_TV
 from models.portal.request import MediaRequest
 from services.portal.requests_blacklist import (
     is_media_available,
@@ -58,12 +66,13 @@ async def create_request(
     """Create a media request after checking:
       - media already in Emby (→ `already_available`)
       - media blacklisted (3 rejects, admin-only unblock) (→ `media_blacklisted`)
-      - pending/approved request already open (→ `already_requested`)
+      - request still open or already served (→ `already_requested`); a
+        series season request is only blocked by an open one
       - user's monthly quota (→ `quota_exceeded`)
     """
     tmdb_id = data["tmdb_id"]
     media_type = data["media_type"]
-    requested_seasons = data.get("requested_seasons")
+    season_request = media_type == TMDB_MEDIA_TV and bool(data.get("requested_seasons"))
 
     # Block pornographic requests for non-admins unless the instance allows
     # them. The TMDB keyword lookup only runs when the policy is restrictive
@@ -89,7 +98,7 @@ async def create_request(
     # apart. When the request carries a season payload, trust the UI —
     # it only lets the user tick episodes the library doesn't already
     # have. Movies still hit the simple available check.
-    if not (media_type == "tv" and requested_seasons):
+    if not season_request:
         if await is_media_available(db, tmdb_id, media_type):
             return {"error": "already_available"}
 
@@ -98,14 +107,19 @@ async def create_request(
 
     await _acquire_request_creation_locks(db, user_id, tmdb_id, media_type)
 
-    existing_active = await db.execute(
-        select(MediaRequest).where(
+    # A served series can still miss seasons: its previous request must not
+    # block a new season request, only one still open does.
+    blocking = (
+        OPEN_REQUEST_STATUSES if season_request else (*OPEN_REQUEST_STATUSES, REQUEST_AVAILABLE)
+    )
+    existing_active = (await db.execute(
+        select(MediaRequest.id).where(
             MediaRequest.tmdb_id == tmdb_id,
             MediaRequest.media_type == media_type,
-            MediaRequest.status.in_(["pending", "approved", "available"]),
-        )
-    )
-    if existing_active.scalar_one_or_none():
+            MediaRequest.status.in_(blocking),
+        ).limit(1)
+    )).first()
+    if existing_active:
         # Release the advisory locks acquired above so Postgres doesn't
         # hold them for the rest of the request handler.
         await db.rollback()
@@ -120,7 +134,7 @@ async def create_request(
                 MediaRequest.user_id == user_id,
                 MediaRequest.tmdb_id == tmdb_id,
                 MediaRequest.media_type == media_type,
-                MediaRequest.status == "rejected",
+                MediaRequest.status == REQUEST_REJECTED,
             )
         )
     ).scalar_one_or_none()
@@ -141,7 +155,7 @@ async def create_request(
     auto = quota.auto_approve
 
     if rejected_own:
-        rejected_own.status = "approved" if auto else "pending"
+        rejected_own.status = REQUEST_APPROVED if auto else REQUEST_PENDING
         rejected_own.reject_reason = None
         rejected_own.auto_approved = auto
         rejected_own.retry_count = (rejected_own.retry_count or 0) + 1
@@ -161,7 +175,7 @@ async def create_request(
             year=data.get("year"),
             poster_url=data.get("poster_url"),
             backdrop_url=data.get("backdrop_url"),
-            status="approved" if auto else "pending",
+            status=REQUEST_APPROVED if auto else REQUEST_PENDING,
             auto_approved=auto,
             requested_seasons=data.get("requested_seasons"),
             requested_by_admin=data.get("requested_by_admin"),

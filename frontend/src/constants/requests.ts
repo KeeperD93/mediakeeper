@@ -8,6 +8,7 @@ export const REQUEST_STATUS = Object.freeze({
   PENDING: 'pending',
   APPROVED: 'approved',
   REJECTED: 'rejected',
+  AVAILABLE: 'available',
 } as const)
 
 export type RequestStatus = (typeof REQUEST_STATUS)[keyof typeof REQUEST_STATUS]

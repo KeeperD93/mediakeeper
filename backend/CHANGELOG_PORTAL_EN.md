@@ -18,6 +18,7 @@ This section intentionally has no date so it is not shown to users.
 - Profile — realistic watch time and movie/series split (pauses and resumed plays no longer skew them).
 - Requests — automatically marked Available once the requested content arrives.
 - Requests — missing poster restored (new and existing requests).
+- Requests — missing seasons and rejected titles can be requested again (detail page too).
 - Trophies — Ambassador also counts requests that became available.
 
 ## [1.0.0-rc.8] - 2026-10-11
