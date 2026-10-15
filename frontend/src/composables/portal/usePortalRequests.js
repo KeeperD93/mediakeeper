@@ -39,8 +39,12 @@ export function usePortalRequests() {
     return await apiPost('/api/portal/requests', data)
   }
 
-  async function updateRequestStatus(requestId, status, reason = null) {
-    const res = await apiPut(`/api/portal/requests/${requestId}/status`, { status, reason })
+  async function updateRequestStatus(requestId, status, reason = null, { force = false } = {}) {
+    const res = await apiPut(`/api/portal/requests/${requestId}/status`, {
+      status,
+      reason,
+      force,
+    })
     // Patch the batch-status cache so the home / profile grids reflect the
     // new state immediately rather than waiting for the 30 s TTL — fixes
     // the "statut desync accueil ↔ profil" bug.

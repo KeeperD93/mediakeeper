@@ -13,6 +13,8 @@ This section intentionally has no date so it is not shown to users.
 ### Added
 - Updates — new version flagged in the sidebar (can be turned off).
 - Requests — an approved request can be rejected too, with a reason.
+- Requests — confirmation before marking available a title not found in Emby.
+- Requests — availability can be undone (back to Approved, no new notification).
 
 ### Changed
 - Requests — available requests archived instead of deleted, manual ones included (totals kept).

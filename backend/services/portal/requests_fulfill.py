@@ -83,6 +83,21 @@ async def fulfill_open_requests(db: AsyncSession) -> int:
     return flipped
 
 
+async def is_request_in_library(db: AsyncSession, req: MediaRequest | Row) -> bool:
+    """Whether Emby holds what ``req`` asks for, by the rules of the automatic
+    flip above, so a manual "available" agrees with it."""
+    item_ids = list((await db.execute(
+        select(EmbyTmdbIndex.emby_item_id).where(
+            EmbyTmdbIndex.tmdb_id == req.tmdb_id, EmbyTmdbIndex.media_type == req.media_type,
+        )
+    )).scalars().all())
+    if not item_ids:
+        return False
+    if req.media_type != TMDB_MEDIA_TV:
+        return True
+    return await _series_request_served(db, req, item_ids, set(await get_ignored(db)))
+
+
 async def _mark_available(db: AsyncSession, req: Row) -> bool:
     """Flip one request and add the bell notification in the same commit.
 
@@ -110,7 +125,7 @@ async def _mark_available(db: AsyncSession, req: Row) -> bool:
 
 
 async def _series_request_served(
-    db: AsyncSession, req: Row, series_ids: list[str], ignored: set[str],
+    db: AsyncSession, req: MediaRequest | Row, series_ids: list[str], ignored: set[str],
 ) -> bool:
     """True when Emby holds every requested episode that has already aired.
 

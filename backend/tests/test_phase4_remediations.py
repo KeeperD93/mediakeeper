@@ -1,6 +1,7 @@
 import pytest
 
 from core.security import hash_password
+from models.portal.emby_tmdb_index import EmbyTmdbIndex
 from models.portal.request import MediaRequest
 from models.user import User
 from services.backup.restore import restore_json_backup
@@ -22,7 +23,9 @@ async def _create_user(db_session, username: str = "phase4-user") -> User:
 
 
 @pytest.mark.asyncio
-async def test_create_request_rejects_existing_available_request(db_session):
+async def test_create_request_rejects_a_landed_title(db_session):
+    """A title Emby holds is refused; its served request alone no longer
+    blocks (the title may have left Emby since)."""
     user = await _create_user(db_session, "phase4-available")
 
     existing = MediaRequest(
@@ -33,6 +36,7 @@ async def test_create_request_rejects_existing_available_request(db_session):
         status="available",
     )
     db_session.add(existing)
+    db_session.add(EmbyTmdbIndex(emby_item_id="EMBY-3131", tmdb_id=3131, media_type="movie"))
     await db_session.commit()
 
     result = await req_svc.create_request(
@@ -45,7 +49,7 @@ async def test_create_request_rejects_existing_available_request(db_session):
         },
     )
 
-    assert result == {"error": "already_requested"}
+    assert result == {"error": "already_available"}
 
 
 @pytest.mark.asyncio

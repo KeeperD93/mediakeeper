@@ -118,6 +118,17 @@
           <X :size="18" :stroke-width="2.5" />
         </button>
       </template>
+      <template v-else-if="req.status === REQUEST_STATUS.AVAILABLE">
+        <button
+          class="arr-action arr-action--icon arr-action--approve"
+          type="button"
+          :title="$t('portal.admin.req.undoAvailable')"
+          :aria-label="$t('portal.admin.req.undoAvailable')"
+          @click="$emit('action', REQUEST_STATUS.APPROVED)"
+        >
+          <Undo2 :size="18" :stroke-width="2.2" />
+        </button>
+      </template>
       <button
         class="arr-action arr-action--icon arr-action--reject"
         type="button"
@@ -134,7 +145,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Check, CircleCheck, Copy, Film, Trash2, X } from 'lucide-vue-next'
+import { Check, CircleCheck, Copy, Film, Trash2, Undo2, X } from 'lucide-vue-next'
 import { isTv } from '@/constants/media'
 import { REQUEST_STATUS } from '@/constants/requests'
 import MkAvatar from '@/components/common/MkAvatar.vue'

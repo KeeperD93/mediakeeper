@@ -10,6 +10,7 @@ import pytest
 from sqlalchemy import select
 
 from core.security import hash_password
+from models.portal.emby_tmdb_index import EmbyTmdbIndex
 from models.portal.request import MediaRequest, RequestBlacklist
 from models.user import User
 from services.portal.admin import get_admin_stats
@@ -136,6 +137,8 @@ async def test_marking_available_by_hand_starts_the_archive_delay(db_session):
     uid = await _user(db_session)
     admin_id = await _user(db_session, "admin")
     rid = await _request(db_session, uid, 1, "approved")
+    db_session.add(EmbyTmdbIndex(emby_item_id="EMBY-1", tmdb_id=1, media_type="movie"))
+    await db_session.commit()
 
     async def available_at():
         return (await db_session.execute(

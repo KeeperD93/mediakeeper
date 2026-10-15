@@ -14,7 +14,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from constants.requests import (
     OPEN_REQUEST_STATUSES,
     REQUEST_APPROVED,
-    REQUEST_AVAILABLE,
     REQUEST_PENDING,
     REQUEST_REJECTED,
 )
@@ -66,9 +65,7 @@ async def create_request(
     """Create a media request after checking:
       - media already in Emby (→ `already_available`)
       - media blacklisted (3 rejects, admin-only unblock) (→ `media_blacklisted`)
-      - request still open or already served (→ `already_requested`); a
-        series season request is only blocked by an open one, and an
-        archived request never blocks
+      - request still open (→ `already_requested`)
       - user's monthly quota (→ `quota_exceeded`)
     """
     tmdb_id = data["tmdb_id"]
@@ -108,17 +105,13 @@ async def create_request(
 
     await _acquire_request_creation_locks(db, user_id, tmdb_id, media_type)
 
-    # A served series can still miss seasons: its previous request must not
-    # block a new season request, only one still open does.
-    blocking = (
-        OPEN_REQUEST_STATUSES if season_request else (*OPEN_REQUEST_STATUSES, REQUEST_AVAILABLE)
-    )
+    # Only an open request blocks: a served one means missing seasons, or content
+    # gone from Emby (a title Emby holds was refused just above).
     existing_active = (await db.execute(
         select(MediaRequest.id).where(
             MediaRequest.tmdb_id == tmdb_id,
             MediaRequest.media_type == media_type,
-            MediaRequest.status.in_(blocking),
-            MediaRequest.archived_at.is_(None),
+            MediaRequest.status.in_(OPEN_REQUEST_STATUSES),
         ).limit(1)
     )).first()
     if existing_active:

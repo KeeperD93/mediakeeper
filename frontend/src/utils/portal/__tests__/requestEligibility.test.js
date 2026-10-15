@@ -20,9 +20,12 @@ describe('canRequest', () => {
     expect(canRequest('available', 'partial')).toBe(true)
   })
 
-  it('refuses a served title that is complete or not indexed', () => {
+  it('refuses a served title Emby fully holds', () => {
     expect(canRequest('available', 'full')).toBe(false)
-    expect(canRequest('available', null)).toBe(false)
+  })
+
+  it('allows a served title that is not in Emby (marked by mistake or removed)', () => {
+    expect(canRequest('available', null)).toBe(true)
   })
 
   it('refuses a blacklisted title', () => {

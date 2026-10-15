@@ -29,9 +29,12 @@ describe('AdminRequestsRow actions', () => {
     expect(action(w, 'portal.admin.approve').exists()).toBe(false)
   })
 
-  it('offers no status action once a request is available', () => {
+  it('lets an available request go back to approved, nothing else', async () => {
     const w = mountRow('available')
 
+    await action(w, 'portal.admin.req.undoAvailable').trigger('click')
+
+    expect(w.emitted('action')).toEqual([['approved']])
     expect(action(w, 'portal.admin.reject').exists()).toBe(false)
     expect(action(w, 'portal.admin.delete').exists()).toBe(true)
   })

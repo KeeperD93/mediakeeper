@@ -30,6 +30,7 @@ utilisateurs.
 - Demandes — jaquette manquante rétablie (nouvelles demandes et demandes existantes).
 - Demandes — redemande possible des saisons manquantes et des titres refusés (fiche comprise).
 - Demandes — demandes disponibles bien retirées de l'onglet après le délai choisi par l'admin.
+- Demandes — redemande possible d'un titre marqué disponible mais absent d'Emby.
 - Trophées — Demandeur et Ambassadeur comptent aussi les demandes disponibles ou archivées.
 
 ## [1.0.0-rc.8] - 2026-10-11

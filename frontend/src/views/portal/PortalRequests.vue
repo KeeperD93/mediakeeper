@@ -114,13 +114,14 @@ import { useI18n } from 'vue-i18n'
 import { usePortalRequests } from '@/composables/portal/usePortalRequests'
 import { usePortalAdmin } from '@/composables/portal/usePortalAdmin'
 import { useToast } from '@/composables/useToast'
+import { resolveApiError } from '@/composables/useApi'
 import { TOAST_TYPE } from '@/constants/toast'
 import AdminRequestsRow from '@/components/portal/admin/AdminRequestsRow.vue'
 import PortalPagination from '@/components/portal/PortalPagination.vue'
 import MkSpinner from '@/components/common/MkSpinner.vue'
 import { useConfirm } from '@/composables/useConfirm'
 import RejectReasonModal from '@/components/portal/admin/RejectReasonModal.vue'
-import { REQUEST_STATUS, REQUEST_SORT } from '@/constants/requests'
+import { REQUEST_LIBRARY_ERROR, REQUEST_STATUS, REQUEST_SORT } from '@/constants/requests'
 import { MEDIA_TYPE } from '@/constants/media'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
 
@@ -222,8 +223,23 @@ async function onAction(req, newStatus) {
   await applyStatus(req, newStatus, null)
 }
 
-async function applyStatus(req, newStatus, reason) {
-  const res = await updateRequestStatus(req.id, newStatus, reason)
+const LIBRARY_ERRORS = Object.values(REQUEST_LIBRARY_ERROR)
+
+async function applyStatus(req, newStatus, reason, force = false) {
+  let res
+  try {
+    res = await updateRequestStatus(req.id, newStatus, reason, { force })
+  } catch (e) {
+    // Emby does not (verifiably) hold the title: the admin may confirm anyway.
+    if (LIBRARY_ERRORS.includes(e.message)) {
+      if (await confirmAvailableAnyway(req, e.message)) {
+        await applyStatus(req, newStatus, reason, true)
+      }
+    } else {
+      showToast(resolveApiError(e.message), TOAST_TYPE.ERR)
+    }
+    return
+  }
   if (res?.success) {
     showToast(t('common.saved'), TOAST_TYPE.OK)
     // In-place update — a full list reload would flip `loading`, unmount
@@ -236,6 +252,19 @@ async function applyStatus(req, newStatus, reason) {
     }
     fetchStats()
   }
+}
+
+function confirmAvailableAnyway(req, code) {
+  const message =
+    code === REQUEST_LIBRARY_ERROR.CHECK_FAILED
+      ? 'portal.admin.req.libraryCheckFailed'
+      : 'portal.admin.req.notInLibrary'
+  return mkConfirm({
+    title: t('portal.admin.req.availabilityCheckTitle'),
+    message: t(message, { title: req.title }),
+    variant: 'warn',
+    confirmLabel: t('portal.admin.req.markAvailableAnyway'),
+  })
 }
 
 async function onRejectConfirm(reason) {

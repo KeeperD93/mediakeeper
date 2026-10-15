@@ -44,6 +44,8 @@ class StatusUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
     status: str = Field(..., pattern="^(approved|rejected|available)$")
     reason: Optional[str] = Field(None, max_length=500)
+    # Mark available even though Emby does not hold the content (admin confirmed).
+    force: bool = False
 
 
 @router.get("")
@@ -212,10 +214,12 @@ async def update_status(
 ):
     user, _ = admin
     result = await req_svc.update_request_status(
-        db, request_id, data.status, user.id, data.reason
+        db, request_id, data.status, user.id, data.reason, force=data.force
     )
     if "error" in result:
-        raise HTTPException(status_code=404, detail=result["error"])
+        # 409: the content is not (verifiably) in Emby, the admin may force it.
+        status_code = 404 if result["error"] == "not_found" else 409
+        raise HTTPException(status_code=status_code, detail=result["error"])
 
     # Status flips can unlock community trophies for the original requester
     # (e.g. ambassador on `approved`). Run in the background — the admin

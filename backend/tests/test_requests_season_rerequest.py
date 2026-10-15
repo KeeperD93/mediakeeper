@@ -1,12 +1,13 @@
-"""A served series can still miss seasons: a new season request goes through
-despite the previous, already-available request, while an open request (or a
-non-season request) is still refused as a duplicate."""
+"""A served request no longer blocks a new one: a series can still miss
+seasons, and a title gone from Emby can be asked again. Only an open request,
+or a title Emby holds, is refused."""
 from __future__ import annotations
 
 import pytest
 from sqlalchemy import select
 
 from core.security import hash_password
+from models.portal.emby_tmdb_index import EmbyTmdbIndex
 from models.portal.request import MediaRequest
 from models.user import User
 from services.portal.requests_create import create_request
@@ -65,19 +66,31 @@ async def test_season_request_still_blocked_by_an_open_request(db_session, statu
 
 
 @pytest.mark.asyncio
-async def test_whole_series_request_still_blocked_by_a_served_request(db_session):
+async def test_whole_series_request_goes_through_once_the_served_one_left_emby(db_session):
+    """Marked available by mistake, or removed from Emby since: the title can
+    be requested again."""
     user_id = await _viewer(db_session)
     await _existing(db_session, user_id, "available")
 
-    assert await create_request(db_session, user_id, _ask(None)) == {"error": "already_requested"}
+    assert (await create_request(db_session, user_id, _ask(None)))["success"] is True
+
+
+@pytest.mark.asyncio
+async def test_whole_series_request_refused_while_emby_holds_it(db_session):
+    user_id = await _viewer(db_session)
+    await _existing(db_session, user_id, "available")
+    db_session.add(EmbyTmdbIndex(emby_item_id="EMBY-SHOW", tmdb_id=SERIES, media_type="tv"))
+    await db_session.commit()
+
+    assert await create_request(db_session, user_id, _ask(None)) == {"error": "already_available"}
 
 
 @pytest.mark.asyncio
 async def test_duplicate_check_copes_with_several_matching_requests(db_session):
-    """A served request plus the open one asked afterwards both match a
-    non-season request: still a clean duplicate refusal, not a crash."""
+    """Two open requests both match a non-season request: still a clean
+    duplicate refusal, not a crash."""
     user_id = await _viewer(db_session)
-    await _existing(db_session, user_id, "available")
+    await _existing(db_session, user_id, "approved")
     await _existing(db_session, user_id, "pending")
 
     assert await create_request(db_session, user_id, _ask(None)) == {"error": "already_requested"}
