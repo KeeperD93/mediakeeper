@@ -19,6 +19,9 @@ utilisateurs.
 ### Added
 - Accueil — bouton Lecture sur les bandeaux pour les titres déjà dans Emby.
 
+### Changed
+- Accueil — repères de navigation du bandeau agrandis sur ordinateur.
+
 ### Fixed
 - Profil — temps de visionnage et répartition films/séries réalistes (pauses et reprises ne les faussent plus).
 - Demandes — passage automatique en Disponible dès l'arrivée du contenu demandé.

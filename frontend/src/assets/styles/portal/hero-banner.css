@@ -294,3 +294,13 @@
 .pt-hero-dot.active {
   background: #fff;
 }
+/* Bigger on desktop, where the dots sit on a much wider hero. */
+@media (min-width: 1024px) {
+  .pt-hero-dots {
+    gap: 6px;
+  }
+  .pt-hero-dot {
+    width: 24px;
+    height: 4px;
+  }
+}

@@ -17,6 +17,9 @@ This section intentionally has no date so it is not shown to users.
 ### Added
 - Home — Play button on the banners for titles already on Emby.
 
+### Changed
+- Home — larger banner navigation markers on desktop.
+
 ### Fixed
 - Profile — realistic watch time and movie/series split (pauses and resumed plays no longer skew them).
 - Requests — automatically marked Available once the requested content arrives.
