@@ -1,10 +1,13 @@
 """Scheduled task handlers — lazy imports to avoid cycles."""
 import asyncio
 import json
+import logging
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ._progress import update_progress
+
+logger = logging.getLogger("mediakeeper.scheduler")
 
 
 async def _handler_watchlist(db: AsyncSession) -> None:
@@ -51,7 +54,8 @@ async def _handler_backup(db: AsyncSession) -> None:
     components_raw = await get_setting(db, "backup.auto_components") or "{}"
     try:
         components = json.loads(components_raw)
-    except Exception:
+    except Exception as e:
+        logger.warning("[backup] unreadable backup.auto_components setting, using the defaults: %s", e)
         components = {}
     await create_backup(
         db,
