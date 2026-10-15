@@ -14,6 +14,7 @@ from api.portal.deps import require_admin, require_permission
 from services.portal import requests as req_svc
 from services.portal.achievements import safe_check_all_achievements_in_new_session
 from services.portal.admin import get_portal_flag
+from services.portal.image_cache import unproxied_url
 
 router = APIRouter(prefix="/requests", tags=["portal-requests"])
 
@@ -31,16 +32,20 @@ class CreateRequest(BaseModel):
 
     # Drop any non-http(s) image URL before it is stored and re-served to
     # the community list / admin queue (background-image / <img src> sinks).
+    # With the image cache on, cards send the local proxy URL: keep the TMDB
+    # URL behind it rather than dropping the image.
     @field_validator("poster_url", "backdrop_url")
     @classmethod
     def _safe_image_url(cls, v: Optional[str]) -> Optional[str]:
-        return safe_url(v, schemes={"http", "https"})
+        return safe_url(unproxied_url(v or ""), schemes={"http", "https"})
 
 
 class StatusUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
     status: str = Field(..., pattern="^(approved|rejected|available)$")
     reason: Optional[str] = Field(None, max_length=500)
+    # Mark available even though Emby does not hold the content (admin confirmed).
+    force: bool = False
 
 
 @router.get("")
@@ -69,6 +74,7 @@ async def list_requests_admin(
     per_page: int = Query(25, ge=1, le=100),
     sort: str = Query("recent", pattern="^(recent|oldest|title)$"),
     media_type: Optional[str] = Query(None, alias="type", pattern="^(movie|tv)$"),
+    hide_available: bool = False,
     locale: str = Depends(get_request_locale),
     _: tuple[User, UserProfile] = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
@@ -82,6 +88,7 @@ async def list_requests_admin(
         page=page,
         sort=sort,
         media_type=media_type,
+        hide_available=hide_available,
         include_sensitive=True,
         locale=locale,
     )
@@ -209,10 +216,12 @@ async def update_status(
 ):
     user, _ = admin
     result = await req_svc.update_request_status(
-        db, request_id, data.status, user.id, data.reason
+        db, request_id, data.status, user.id, data.reason, force=data.force
     )
     if "error" in result:
-        raise HTTPException(status_code=404, detail=result["error"])
+        # 409: the content is not (verifiably) in Emby, the admin may force it.
+        status_code = 404 if result["error"] == "not_found" else 409
+        raise HTTPException(status_code=status_code, detail=result["error"])
 
     # Status flips can unlock community trophies for the original requester
     # (e.g. ambassador on `approved`). Run in the background — the admin

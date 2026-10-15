@@ -23,10 +23,16 @@
         </div>
         <p v-if="currentItem?.overview" class="pt-eh-overview">{{ currentItem.overview }}</p>
         <div class="pt-eh-actions">
-          <!-- The hero is informational, not a launch CTA: posters in
-               the row below cover both "Lancer" (available) and
-               "Demander" (missing). Hero keeps the trailer popup +
-               info button. -->
+          <a
+            v-if="playUrl"
+            :href="playUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="pt-eh-btn pt-eh-btn--play"
+          >
+            <img src="/assets/icons/emby.svg" alt="" class="pt-eh-btn-emby" />
+            {{ $t('portal.hero.play') }}
+          </a>
           <button v-if="trailer" class="pt-eh-btn pt-eh-btn--trailer" @click="openLightbox">
             <Video :size="20" />
             {{ $t('portal.detail.watchTrailer') }}
@@ -99,6 +105,7 @@ import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import MediaCard from './MediaCard.vue'
 import TrailerLightbox from './TrailerLightbox.vue'
 import { useTrailer } from '@/composables/portal/useTrailer'
+import { safeHref } from '@/utils/safeUrl'
 import { ChevronLeft, ChevronRight, Info, Video } from 'lucide-vue-next'
 
 import '@/assets/styles/portal/emby-recent-hero-hero.css'
@@ -134,6 +141,7 @@ const visibleItems = computed(() => props.items.slice(0, MAX_VISIBLE))
 const showSeeMoreCard = computed(() => props.items.length > 0)
 const heroPool = computed(() => visibleItems.value)
 const currentItem = computed(() => heroPool.value[currentIndex.value] || null)
+const playUrl = computed(() => safeHref(currentItem.value?.emby_url))
 
 const bgStyle = computed(() => {
   const bg = currentItem.value?.backdrop || currentItem.value?.poster_url || ''

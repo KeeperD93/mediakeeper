@@ -60,6 +60,16 @@ describe('labelForNotification', () => {
     )
   })
 
+  it('shows the reason of a rejected request when the admin gave one', () => {
+    const notif = reason => ({ type: 'request_rejected', payload: { title: 'Dune', reason } })
+    expect(labelForNotification(notif('Not released yet'), t)).toBe(
+      'portal.notifications.tpl.requestRejectedReason|Dune,Not released yet',
+    )
+    expect(labelForNotification(notif(null), t)).toBe(
+      'portal.notifications.tpl.requestRejected|Dune',
+    )
+  })
+
   it('still falls back to the raw type for a genuinely unknown event', () => {
     expect(labelForNotification({ type: 'totally_unknown' }, t)).toBe('totally_unknown')
   })

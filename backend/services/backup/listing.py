@@ -1,4 +1,5 @@
 """List, manifest reading, deletion and retention of backups."""
+import asyncio
 import json
 import logging
 import os
@@ -6,6 +7,10 @@ import re
 import zipfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from ._state import get_retention_days, resolve_backup_dir
 
 logger = logging.getLogger("mediakeeper.backup")
 
@@ -98,10 +103,19 @@ def apply_retention_by_count(max_count: int, backup_dir: Path) -> int:
 
 
 def apply_retention_for_setting(retention: int, backup_dir: Path) -> int:
-    """Apply the configured ``backup.retention_days`` policy. A negative value
-    means "keep the N most recent" (count-based); a positive value means
-    "delete older than N days". The manual endpoint and the scheduled backup
-    handler both route through this so the two paths can't diverge."""
+    """Apply the ``backup.retention_days`` policy. A negative value means "keep
+    the N most recent" (count-based); a positive value means "delete older
+    than N days"."""
     if retention < 0:
         return apply_retention_by_count(abs(retention), backup_dir)
     return apply_retention(retention, backup_dir)
+
+
+async def apply_configured_retention(db: AsyncSession) -> int:
+    """Apply the configured policy to the backup directory, off the event loop
+    (globbing and deleting archives can stall on a slow NAS). Every caller
+    (manual backup, "apply now", scheduled backup) goes through here so the
+    paths can't diverge. Returns the number of backups removed."""
+    retention = await get_retention_days(db)
+    backup_dir = await resolve_backup_dir(db)
+    return await asyncio.to_thread(apply_retention_for_setting, retention, backup_dir)

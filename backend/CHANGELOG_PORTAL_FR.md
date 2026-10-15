@@ -16,8 +16,22 @@ utilisateurs.
 
 ## [Unreleased]
 
+### Added
+- Accueil — bouton Lecture sur les bandeaux pour les titres déjà dans Emby.
+- Notifications — refus d'une demande signalé dans la cloche, avec le motif.
+
+### Changed
+- Accueil — repères de navigation du bandeau agrandis sur ordinateur.
+
 ### Fixed
+- Accueil — boutons du bandeau plus faciles à toucher sur téléphone et tablette.
 - Profil — temps de visionnage et répartition films/séries réalistes (pauses et reprises ne les faussent plus).
+- Demandes — passage automatique en Disponible dès l'arrivée du contenu demandé.
+- Demandes — jaquette manquante rétablie (nouvelles demandes et demandes existantes).
+- Demandes — redemande possible des saisons manquantes et des titres refusés (fiche comprise).
+- Demandes — demandes disponibles bien retirées de l'onglet après le délai choisi par l'admin.
+- Demandes — redemande possible d'un titre marqué disponible mais absent d'Emby.
+- Trophées — Demandeur et Ambassadeur comptent aussi les demandes disponibles ou archivées.
 
 ## [1.0.0-rc.8] - 2026-10-11
 

@@ -36,8 +36,8 @@
       <div class="arr-stat arr-stat--available">
         <span class="arr-stat-value">{{ stats?.available_count ?? '—' }}</span>
         <span class="arr-stat-label">{{ $t('portal.admin.req.statAvailable') }}</span>
-        <span v-if="stats?.approved_total != null" class="arr-stat-total">
-          {{ $t('portal.admin.req.statTotalSince', { count: stats.approved_total }) }}
+        <span v-if="stats?.available_total != null" class="arr-stat-total">
+          {{ $t('portal.admin.req.statTotalSince', { count: stats.available_total }) }}
         </span>
       </div>
     </div>
@@ -66,6 +66,17 @@
         >
           {{ $t(tp.label) }}
         </button>
+        <template v-if="!filter">
+          <span class="arr-pills-sep" aria-hidden="true" />
+          <label class="arr-pill arr-switch">
+            {{ $t('portal.admin.req.hideAvailable') }}
+            <MkToggle
+              :model-value="hideAvailable"
+              :aria-label="$t('portal.admin.req.hideAvailable')"
+              @update:model-value="setHideAvailable"
+            />
+          </label>
+        </template>
       </div>
       <select v-model="sortKey" class="arr-sort" @change="onSortChange">
         <option :value="REQUEST_SORT.RECENT">{{ $t('portal.admin.req.sortRecent') }}</option>
@@ -109,18 +120,21 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { usePortalRequests } from '@/composables/portal/usePortalRequests'
 import { usePortalAdmin } from '@/composables/portal/usePortalAdmin'
 import { useToast } from '@/composables/useToast'
+import { resolveApiError } from '@/composables/useApi'
 import { TOAST_TYPE } from '@/constants/toast'
 import AdminRequestsRow from '@/components/portal/admin/AdminRequestsRow.vue'
 import PortalPagination from '@/components/portal/PortalPagination.vue'
 import MkSpinner from '@/components/common/MkSpinner.vue'
+import MkToggle from '@/components/common/MkToggle.vue'
 import { useConfirm } from '@/composables/useConfirm'
 import RejectReasonModal from '@/components/portal/admin/RejectReasonModal.vue'
-import { REQUEST_STATUS, REQUEST_SORT } from '@/constants/requests'
+import { REQUEST_LIBRARY_ERROR, REQUEST_STATUS, REQUEST_SORT } from '@/constants/requests'
+import { MEDIA_TYPE } from '@/constants/media'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
 
 import '@/assets/styles/portal/admin-rich-row-header.css'
@@ -142,18 +156,42 @@ const perPage = ref(DEFAULT_PAGE_SIZE)
 const loading = ref(false)
 const rejectTarget = ref(null)
 
+// Remembered across visits; it only applies to the all-statuses view, a
+// status filter always shows what it names.
+const HIDE_AVAILABLE_KEY = 'mk_admin_requests_hide_available'
+const hideAvailable = ref(readHideAvailable())
+const hidingAvailable = computed(() => !filter.value && hideAvailable.value)
+
+function readHideAvailable() {
+  try {
+    return localStorage.getItem(HIDE_AVAILABLE_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+function setHideAvailable(value) {
+  hideAvailable.value = value
+  try {
+    localStorage.setItem(HIDE_AVAILABLE_KEY, value ? '1' : '0')
+  } catch {
+    /* storage blocked (private mode): the choice lasts for this visit */
+  }
+  reload()
+}
+
 const filters = [
   { value: '', label: 'portal.requests.allStatus' },
-  { value: 'pending', label: 'portal.requests.pending' },
-  { value: 'approved', label: 'portal.requests.approved' },
-  { value: 'available', label: 'portal.requests.available' },
-  { value: 'rejected', label: 'portal.requests.rejected' },
+  { value: REQUEST_STATUS.PENDING, label: 'portal.requests.pending' },
+  { value: REQUEST_STATUS.APPROVED, label: 'portal.requests.approved' },
+  { value: REQUEST_STATUS.AVAILABLE, label: 'portal.requests.available' },
+  { value: REQUEST_STATUS.REJECTED, label: 'portal.requests.rejected' },
 ]
 
 const typeFilters = [
   { value: '', label: 'portal.admin.req.typeAll' },
-  { value: 'movie', label: 'portal.admin.req.typeMovies' },
-  { value: 'tv', label: 'portal.admin.req.typeSeries' },
+  { value: MEDIA_TYPE.MOVIE, label: 'portal.admin.req.typeMovies' },
+  { value: MEDIA_TYPE.TV, label: 'portal.admin.req.typeSeries' },
 ]
 
 async function loadRequests() {
@@ -165,6 +203,7 @@ async function loadRequests() {
       perPage: perPage.value,
       sort: sortKey.value,
       mediaType: typeFilter.value || null,
+      hideAvailable: hidingAvailable.value,
     })
   } finally {
     loading.value = false
@@ -221,15 +260,33 @@ async function onAction(req, newStatus) {
   await applyStatus(req, newStatus, null)
 }
 
-async function applyStatus(req, newStatus, reason) {
-  const res = await updateRequestStatus(req.id, newStatus, reason)
+const LIBRARY_ERRORS = Object.values(REQUEST_LIBRARY_ERROR)
+
+async function applyStatus(req, newStatus, reason, force = false) {
+  let res
+  try {
+    res = await updateRequestStatus(req.id, newStatus, reason, { force })
+  } catch (e) {
+    // Emby does not (verifiably) hold the title: the admin may confirm anyway.
+    if (LIBRARY_ERRORS.includes(e.message)) {
+      if (await confirmAvailableAnyway(req, e.message)) {
+        await applyStatus(req, newStatus, reason, true)
+      }
+    } else {
+      showToast(resolveApiError(e.message), TOAST_TYPE.ERR)
+    }
+    return
+  }
   if (res?.success) {
     showToast(t('common.saved'), TOAST_TYPE.OK)
     // In-place update — a full list reload would flip `loading`, unmount
     // the list DOM and reset the viewport scroll to the top of the page.
     req.status = newStatus
     if (reason != null) req.reject_reason = reason
-    if (filter.value && newStatus !== filter.value) {
+    const leavesView = filter.value
+      ? newStatus !== filter.value
+      : hidingAvailable.value && newStatus === REQUEST_STATUS.AVAILABLE
+    if (leavesView) {
       requests.value = requests.value.filter(r => r.id !== req.id)
       afterRowRemoved()
     }
@@ -237,11 +294,24 @@ async function applyStatus(req, newStatus, reason) {
   }
 }
 
+function confirmAvailableAnyway(req, code) {
+  const message =
+    code === REQUEST_LIBRARY_ERROR.CHECK_FAILED
+      ? 'portal.admin.req.libraryCheckFailed'
+      : 'portal.admin.req.notInLibrary'
+  return mkConfirm({
+    title: t('portal.admin.req.availabilityCheckTitle'),
+    message: t(message, { title: req.title }),
+    variant: 'warn',
+    confirmLabel: t('portal.admin.req.markAvailableAnyway'),
+  })
+}
+
 async function onRejectConfirm(reason) {
   const req = rejectTarget.value
   rejectTarget.value = null
   if (!req) return
-  await applyStatus(req, 'rejected', reason)
+  await applyStatus(req, REQUEST_STATUS.REJECTED, reason)
 }
 
 async function onDelete(req) {

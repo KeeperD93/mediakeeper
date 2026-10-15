@@ -118,10 +118,12 @@ import DetailExtras from '@/components/portal/detail/DetailExtras.vue'
 import TabStrip from '@/components/common/TabStrip.vue'
 import { useI18n } from 'vue-i18n'
 import { MEDIA_TYPE, isTv } from '@/constants/media'
+import { AVAILABILITY } from '@/constants/portal'
 import { REQUEST_STATUS } from '@/constants/requests'
 import { TRAILER_SOURCE } from '@/constants/trailers'
 import { USER_ROLE } from '@/constants/auth'
 import { formatDate } from '@/utils/format'
+import { canRequest } from '@/utils/portal/requestEligibility'
 
 import '@/assets/styles/portal/media-detail-premium.css'
 
@@ -209,8 +211,10 @@ const reqStatusTooltip = computed(() => {
 
 const showRequestBtn = computed(() => {
   if (!media.value) return false
-  if (!availInfo.value?.emby_url) return true
-  return availInfo.value?.availability === 'partial'
+  const info = availInfo.value
+  // Already in Emby: only a series still missing episodes can be requested.
+  if (info?.emby_url && info.availability !== AVAILABILITY.PARTIAL) return false
+  return canRequest(reqStatus.value, info?.availability)
 })
 
 // Adult titles stay requestable only if the admin allows it (the API enforces
@@ -222,9 +226,7 @@ const requestBlockedReason = computed(() =>
 )
 
 function onRequestClick() {
-  if (requestBlockedReason.value) return
-  if (reqStatus.value && reqStatus.value !== REQUEST_STATUS.REJECTED) return
-  if (!media.value) return
+  if (requestBlockedReason.value || !showRequestBtn.value) return
   requestItem.value = {
     ...media.value,
     poster_url: media.value.poster || media.value.poster_url || '',

@@ -6,11 +6,22 @@ management (creation, monthly reset, snapshot) lives in
 ``requests_quota.py``.
 """
 import logging
+from datetime import datetime, timezone
 
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants.notifications import NOTIF_REQUEST_APPROVED, NOTIF_REQUEST_AVAILABLE
+from constants.notifications import (
+    NOTIF_REQUEST_APPROVED,
+    NOTIF_REQUEST_AVAILABLE,
+    NOTIF_REQUEST_REJECTED,
+)
+from constants.requests import (
+    REQUEST_APPROVED,
+    REQUEST_AVAILABLE,
+    REQUEST_PENDING,
+    REQUEST_REJECTED,
+)
 from models.user import User
 from models.portal.request import MediaRequest
 from core.pagination import decode_cursor, build_cursor_response
@@ -57,22 +68,25 @@ async def get_batch_status(
     or moderated each request — only status and date stay visible. Used
     for non-admins when the Portal-wide ``anonymize_requests`` flag is
     on; admins always see the full payload to moderate.
+
+    Archived requests are left out, like in the Requests lists.
     """
     if not tmdb_ids:
         return {}
 
+    # Pick the "best" (highest priority) status per tmdb_id.
+    PRIO = {REQUEST_APPROVED: 3, REQUEST_PENDING: 2, REQUEST_AVAILABLE: 1, REQUEST_REJECTED: 0}
     rows = await db.execute(
         select(MediaRequest, User.username)
         .join(User, MediaRequest.user_id == User.id, isouter=True)
         .where(
             MediaRequest.tmdb_id.in_(tmdb_ids),
-            MediaRequest.status.in_(["pending", "approved", "available", "rejected"]),
+            MediaRequest.status.in_(list(PRIO)),
+            MediaRequest.archived_at.is_(None),
         )
         .order_by(MediaRequest.created_at.desc())
     )
 
-    # Pick the "best" (highest priority) status per tmdb_id.
-    PRIO = {"approved": 3, "pending": 2, "available": 1, "rejected": 0}
     out: dict[str, dict] = {}
     for req, username in rows.all():
         key = str(req.tmdb_id)
@@ -88,7 +102,7 @@ async def get_batch_status(
         }
         if not anonymize:
             entry["reject_reason"] = (
-                req.reject_reason if req.status == "rejected" else None
+                req.reject_reason if req.status == REQUEST_REJECTED else None
             )
             # ``user_id IS NULL`` after GDPR-purge (FK ``SET NULL`` since
             # migration 041). Flag it so the frontend renders an i18n
@@ -112,6 +126,7 @@ async def list_requests(
     page: int | None = None,
     sort: str = "recent",
     media_type: str | None = None,
+    hide_available: bool = False,
     include_sensitive: bool = False,
     locale: str | None = None,
 ) -> dict:
@@ -126,16 +141,22 @@ async def list_requests(
         across the whole set rather than just the loaded slice.
 
     When ``include_sensitive`` (admin path) is set, the response is
-    enriched with the requester's display_name + avatar_url and the
-    ``backdrop_url`` is backfilled live from TMDB for rows that were
-    created before the column existed.
+    enriched with the requester's display_name + avatar_url, and a missing
+    poster or backdrop is backfilled from TMDB.
+
+    Archived requests are left out: they only stay counted. ``hide_available``
+    drops served requests from the all-statuses view only: a status filter
+    always shows what it names.
     """
-    query = select(MediaRequest)
-    count_query = select(func.count(MediaRequest.id))
+    query = select(MediaRequest).where(MediaRequest.archived_at.is_(None))
+    count_query = select(func.count(MediaRequest.id)).where(MediaRequest.archived_at.is_(None))
 
     if status_filter:
         query = query.where(MediaRequest.status == status_filter)
         count_query = count_query.where(MediaRequest.status == status_filter)
+    elif hide_available:
+        query = query.where(MediaRequest.status != REQUEST_AVAILABLE)
+        count_query = count_query.where(MediaRequest.status != REQUEST_AVAILABLE)
     if media_type:
         query = query.where(MediaRequest.media_type == media_type)
         count_query = count_query.where(MediaRequest.media_type == media_type)
@@ -157,7 +178,7 @@ async def list_requests(
 
     requesters: dict[int, dict] = {}
     if include_sensitive and rows:
-        await _backfill_backdrops(db, rows)
+        await _backfill_images(db, rows)
         requesters = await _load_requester_profiles(
             db, {r.user_id for r in rows if r.user_id is not None},
         )
@@ -178,13 +199,13 @@ async def list_requests(
     return build_cursor_response(items, total, limit)
 
 
-async def _backfill_backdrops(
+async def _backfill_images(
     db: AsyncSession, rows: list[MediaRequest],
 ) -> None:
-    """Populate ``backdrop_url`` for rows that were created before the
-    column existed. One TMDB call per missing row — rate-limited by
-    Python's GIL + the short page size (max 100)."""
-    missing = [r for r in rows if not r.backdrop_url]
+    """Fill a missing poster or backdrop from TMDB: rows created before the
+    backdrop column existed, or whose image was dropped at creation. One TMDB
+    call per incomplete row, bounded by the page size (max 100)."""
+    missing = [r for r in rows if not r.poster_url or not r.backdrop_url]
     if not missing:
         return
     from services.tmdb import get_media_detail
@@ -192,12 +213,16 @@ async def _backfill_backdrops(
     for r in missing:
         try:
             detail = await get_media_detail(r.media_type, r.tmdb_id, db)
-            backdrop = detail.get("backdrop") if isinstance(detail, dict) else None
-            if backdrop:
-                r.backdrop_url = backdrop
-                changed = True
         except Exception:  # noqa: S112 -- intentional best-effort iteration, skip individual failure
             continue
+        if not isinstance(detail, dict):
+            continue
+        if not r.poster_url and detail.get("poster"):
+            r.poster_url = detail["poster"]
+            changed = True
+        if not r.backdrop_url and detail.get("backdrop"):
+            r.backdrop_url = detail["backdrop"]
+            changed = True
     if changed:
         await db.commit()
 
@@ -249,22 +274,39 @@ async def update_request_status(
     new_status: str,
     admin_id: int,
     reason: str | None = None,
+    *,
+    force: bool = False,
 ) -> dict:
     """Admin: approve/reject/mark-available a request.
     Side-effects:
-      - `approved` → DM notification to the original requester
-      - `available` → DM notification (media landed in Emby)
-      - `rejected` → if the media reaches BLACKLIST_REJECT_THRESHOLD total
+      - `approved` → DM notification to the original requester; from
+        `available` it silently undoes a wrong availability instead
+      - `available` → DM notification (media landed in Emby); refused with
+        ``not_in_library`` / ``library_check_failed`` while Emby does not
+        verifiably hold the content, unless ``force`` (admin confirmed)
+      - `rejected` (from pending or approved) → DM notification carrying the
+        reason; if the media reaches BLACKLIST_REJECT_THRESHOLD total
         rejections across all requests, it's auto-added to the blacklist
         (hidden from every user-facing list until an admin unblocks it).
     """
     req = await db.get(MediaRequest, request_id)
     if not req:
         return {"error": "not_found"}
+    undo_available = req.status == REQUEST_AVAILABLE and new_status == REQUEST_APPROVED
+    if new_status == REQUEST_AVAILABLE and req.status != REQUEST_AVAILABLE:
+        if not force:
+            error = await _library_check_error(db, req)
+            if error:
+                return {"error": error}
+        # Starts the auto-archive delay; re-marking an available request keeps it.
+        req.available_at = datetime.now(timezone.utc)
+    if undo_available:
+        # The automatic flip redoes it once Emby really holds the content.
+        req.available_at = None
     req.status = new_status
-    if new_status == "approved":
+    if new_status == REQUEST_APPROVED and not undo_available:
         req.approved_by = admin_id
-    if new_status == "rejected" and reason:
+    if new_status == REQUEST_REJECTED and reason:
         req.reject_reason = reason
     db.add(req)
     await db.flush()
@@ -281,17 +323,32 @@ async def update_request_status(
     # (FK ``SET NULL`` since migration 041): ``mk_notifications.user_id``
     # is NOT NULL, so an insert with ``None`` would crash. The admin
     # action itself still succeeds.
-    if new_status == "approved" and req.user_id is not None:
+    if new_status == REQUEST_APPROVED and not undo_available and req.user_id is not None:
         await notif_svc.create(db, req.user_id, NOTIF_REQUEST_APPROVED, payload)
-    elif new_status == "available" and req.user_id is not None:
+    elif new_status == REQUEST_AVAILABLE and req.user_id is not None:
         await notif_svc.create(db, req.user_id, NOTIF_REQUEST_AVAILABLE, payload)
-    elif new_status == "rejected":
+    elif new_status == REQUEST_REJECTED:
+        if req.user_id is not None:
+            await notif_svc.create(
+                db, req.user_id, NOTIF_REQUEST_REJECTED, {**payload, "reason": reason or None},
+            )
         await maybe_blacklist_media(db, req, admin_id)
 
     await db.commit()
     # Surface the requester so the API layer can trigger the achievement
     # runner for the original user (e.g. ambassador on `approved`).
     return {"success": True, "user_id": req.user_id}
+
+
+async def _library_check_error(db: AsyncSession, req: MediaRequest) -> str | None:
+    """Why ``req`` cannot be marked available yet, None when Emby holds it."""
+    from services.portal.requests_fulfill import is_request_in_library
+    try:
+        return None if await is_request_in_library(db, req) else "not_in_library"
+    except Exception:
+        # Emby or TMDB unreachable: the admin decides, as for a missing title.
+        logger.warning("[REQUEST] library check failed for request_id=%s", req.id, exc_info=True)
+        return "library_check_failed"
 
 
 def _serialize_request(

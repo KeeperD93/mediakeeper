@@ -14,8 +14,22 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Added
+- Home — Play button on the banners for titles already on Emby.
+- Notifications — rejected requests show up in the bell, with the reason.
+
+### Changed
+- Home — larger banner navigation markers on desktop.
+
 ### Fixed
+- Home — banner buttons easier to tap on phones and tablets.
 - Profile — realistic watch time and movie/series split (pauses and resumed plays no longer skew them).
+- Requests — automatically marked Available once the requested content arrives.
+- Requests — missing poster restored (new and existing requests).
+- Requests — missing seasons and rejected titles can be requested again (detail page too).
+- Requests — available requests now leave the tab after the delay set by the admin.
+- Requests — a title marked available but missing from Emby can be requested again.
+- Trophies — Requester and Ambassador also count available or archived requests.
 
 ## [1.0.0-rc.8] - 2026-10-11
 

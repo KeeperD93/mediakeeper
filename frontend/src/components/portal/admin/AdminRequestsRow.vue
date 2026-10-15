@@ -104,9 +104,29 @@
           type="button"
           :title="$t('portal.requests.available')"
           :aria-label="$t('portal.requests.available')"
-          @click="$emit('action', 'available')"
+          @click="$emit('action', REQUEST_STATUS.AVAILABLE)"
         >
           <CircleCheck :size="18" :stroke-width="2.2" />
+        </button>
+        <button
+          class="arr-action arr-action--icon arr-action--reject"
+          type="button"
+          :title="$t('portal.admin.reject')"
+          :aria-label="$t('portal.admin.reject')"
+          @click="$emit('action', REQUEST_STATUS.REJECTED)"
+        >
+          <X :size="18" :stroke-width="2.5" />
+        </button>
+      </template>
+      <template v-else-if="req.status === REQUEST_STATUS.AVAILABLE">
+        <button
+          class="arr-action arr-action--icon arr-action--approve"
+          type="button"
+          :title="$t('portal.admin.req.undoAvailable')"
+          :aria-label="$t('portal.admin.req.undoAvailable')"
+          @click="$emit('action', REQUEST_STATUS.APPROVED)"
+        >
+          <Undo2 :size="18" :stroke-width="2.2" />
         </button>
       </template>
       <button
@@ -125,7 +145,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Check, CircleCheck, Copy, Film, Trash2, X } from 'lucide-vue-next'
+import { Check, CircleCheck, Copy, Film, Trash2, Undo2, X } from 'lucide-vue-next'
 import { isTv } from '@/constants/media'
 import { REQUEST_STATUS } from '@/constants/requests'
 import MkAvatar from '@/components/common/MkAvatar.vue'
@@ -141,9 +161,7 @@ const { t } = useI18n()
 const formatAgo = input => formatAgoUtil(input, t, { style: 'verbose' })
 
 const copied = ref(false)
-const copyTitleLabel = computed(() =>
-  copied.value ? t('common.copied') || 'Copied!' : t('common.copy') || 'Copy',
-)
+const copyTitleLabel = computed(() => (copied.value ? t('common.copied') : t('common.copy')))
 
 async function copyTitle() {
   try {
@@ -174,8 +192,8 @@ const visibleSeasons = computed(() =>
 )
 const seasonLabel = computed(() =>
   (props.req.requested_seasons || []).length > 1
-    ? t('portal.admin.req.seasons') || 'Seasons'
-    : t('portal.admin.req.season') || 'Season',
+    ? t('portal.admin.req.seasons')
+    : t('portal.admin.req.season'),
 )
 
 const isFresh = computed(() => {

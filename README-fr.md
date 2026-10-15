@@ -69,7 +69,7 @@ La plupart des outils du domaine font une seule chose - la gestion des demandes,
 
 - **Trophées & XP** : débloquez 160+ trophées répartis en de nombreuses familles, montez en niveau via un système d'XP, et grimpez au classement mensuel.
 - **Soirées ciné partagées** : planifiez des événements dans une salle de cinéma virtuelle, avec mode marathon et présence temps réel.
-- **Portail de demandes** : les utilisateurs demandent films, séries ou saisons ; quotas, blacklist, auto-nettoyage et modération admin sont intégrés, pas un simple formulaire.
+- **Portail de demandes** : les utilisateurs demandent films, séries ou saisons ; quotas, blacklist, archivage automatique et modération admin sont intégrés, pas un simple formulaire.
 - **Container unique** : tout tourne depuis une seule image Docker avec PostgreSQL embarqué, sans base externe à provisionner ni à sauvegarder séparément.
 - **Profondeur admin** : tableau de bord live, détection de doublons, contrôles de santé de la bibliothèque, suivi des saisons manquantes et un gestionnaire de médias desktop.
 - **Gestion des utilisateurs** : donnez à chaque utilisateur une fenêtre d'accès Emby qui expire à une date choisie (ou jamais), avec prolongations en un clic et désactivation automatique optionnelle des comptes échus côté Emby et MediaKeeper ; plus rôles, suppression réversible et journal d'audit.
@@ -112,7 +112,7 @@ Les points forts ci-dessus sont la version courte. Voici l'étendue complète pa
 - **Gestionnaire de médias** (desktop) : parcourir, déplacer, renommer avec l'aide de TMDB, taguer et dédupliquer sur disque
 - **Sous-titres** : téléchargement par lot OpenSubtitles, et suppression de pistes non désirées sur disque
 - **Utilisateurs** : fenêtres d'accès Emby à expiration datée, rôles & permissions, quota de demandes, suppression réversible, journal d'audit et export RGPD par utilisateur
-- **Demandes** : modérez les demandes avec filtres, actions groupées et auto-nettoyage configurable
+- **Demandes** : modérez les demandes avec filtres, actions groupées et archivage automatique configurable
 - **Notifications** : envoi des notifications Discord pour plusieurs types d'informations. Plus de supports seront ajoutés par la suite.
 - **Configuration** : Un panel d'outils pour gérer/configurer votre portail utilisateur pour les demandes.
 

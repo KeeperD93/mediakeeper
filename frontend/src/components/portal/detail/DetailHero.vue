@@ -21,7 +21,7 @@
         >
           <span class="mk-poster__avail-dot" />
           {{
-            availability === 'full'
+            availability === AVAILABILITY.FULL
               ? $t('portal.posterCard.availFull')
               : $t('portal.posterCard.availPartial')
           }}
@@ -91,7 +91,7 @@
           </a>
 
           <button
-            v-if="showRequestBtn && !reqStatus"
+            v-if="showRequestBtn"
             class="vmd2-btn"
             :class="requestBtnClass"
             :disabled="!!requestBlockedReason"
@@ -100,7 +100,7 @@
             <component :is="requestBtnIcon" />
             {{ requestBtnLabel }}
           </button>
-          <p v-if="showRequestBtn && !reqStatus && requestBlockedReason" class="dh-request-blocked">
+          <p v-if="showRequestBtn && requestBlockedReason" class="dh-request-blocked">
             {{ requestBlockedReason }}
           </p>
 
@@ -125,8 +125,9 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { AVAILABILITY } from '@/constants/portal'
 import { REQUEST_STATUS } from '@/constants/requests'
-import { Bookmark, Plus, Video } from 'lucide-vue-next'
+import { Bookmark, Plus, RotateCcw, Video } from 'lucide-vue-next'
 import PremiumRibbon from '@/components/portal/PremiumRibbon.vue'
 import { formatCountry, formatLanguage } from '@/utils/formatIntlLabel'
 import { safeHref } from '@/utils/safeUrl'
@@ -139,6 +140,7 @@ const props = defineProps({
   // Precomputed date hint surfaced as the native `title` tooltip on the
   // hero status ribbon. Empty string keeps the attribute off the DOM.
   reqStatusTooltip: { type: String, default: '' },
+  // Computed by the page: the viewer may (re)request this title.
   showRequestBtn: { type: Boolean, default: false },
   // Non-empty when the viewer may NOT request this title (e.g. adult content
   // while the admin disallows adult requests): disables the button + shows why.
@@ -172,8 +174,12 @@ const runtimeLabel = computed(() => {
 const languageLabel = computed(() => formatLanguage(props.media.original_language, locale.value))
 const countryLabel = computed(() => formatCountry(props.media.country_codes?.[0], locale.value))
 
-const requestBtnLabel = computed(() => t('portal.detail.request'))
-const requestBtnIcon = computed(() => Plus)
+// After a rejection the button reads "request again", like the poster cards.
+const isRerequest = computed(() => props.reqStatus === REQUEST_STATUS.REJECTED)
+const requestBtnLabel = computed(() =>
+  t(isRerequest.value ? 'portal.detail.reRequest' : 'portal.detail.request'),
+)
+const requestBtnIcon = computed(() => (isRerequest.value ? RotateCcw : Plus))
 const requestBtnClass = computed(() =>
   props.availInfo?.emby_url ? 'vmd2-btn--ghost' : 'vmd2-btn--secondary',
 )
@@ -228,7 +234,7 @@ const statusRibbon = computed(() => {
 const availability = computed(() => {
   if (!props.availInfo?.emby_url) return null
   const a = props.availInfo.availability
-  return a === 'partial' ? 'partial' : 'full'
+  return a === AVAILABILITY.PARTIAL ? AVAILABILITY.PARTIAL : AVAILABILITY.FULL
 })
 </script>
 

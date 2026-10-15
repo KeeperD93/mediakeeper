@@ -1581,7 +1581,8 @@
       "emby_recent_scan": "Emby Recently Added Scan",
       "emby_full_scan": "Emby Full Library Scan",
       "backup_auto": "Automatic backup",
-      "cleanup_available_requests": "Auto-cleanup available requests",
+      "fulfill_requests": "Mark fulfilled requests available",
+      "cleanup_available_requests": "Auto-archive available requests",
       "healthcheck_scan": "Library health scan",
       "subtitle_auto": "Auto-download subtitles",
       "expire_users": "Expire user accounts",
@@ -1601,7 +1602,8 @@
     "healthcheck": "Analyzes media file health (codecs, resolution, subtitles…).",
     "subtitle_auto": "Automatically downloads subtitles for new media based on the default profile.",
     "expire_users": "Automatically disables accounts (Emby + MediaKeeper) whose access window has expired.",
-    "cleanup_available_requests": "Automatically clears available requests after the configured grace period.",
+    "fulfill_requests": "Marks requests available once their content is in Emby, and notifies the requester.",
+    "cleanup_available_requests": "Archives available requests after the configured delay; they still count in statistics.",
     "feedback_purge": "Permanently deletes feedback reports rejected more than 30 days ago.",
     "gdpr_purge": "Permanently removes user accounts marked for GDPR purge.",
     "quota_auto_recompute": "Nightly recompute of automatic request quotas from each user's recent activity.",
@@ -2936,6 +2938,8 @@
         "reminder": "Reminder: \"{title}\" is coming up",
         "requestApproved": "Your request \"{title}\" has been approved by an admin",
         "requestAvailable": "\"{title}\" is now available on Emby!",
+        "requestRejected": "Your request \"{title}\" has been rejected",
+        "requestRejectedReason": "Your request \"{title}\" has been rejected. Reason: {reason}",
         "ticketCreated": "New ticket: \"{title}\"",
         "ticketReplied": "An admin replied to your ticket \"{title}\"",
         "ticketResolved": "Your ticket \"{title}\" has been resolved",
@@ -3806,6 +3810,12 @@
         "season": "Season",
         "seasons": "Seasons",
         "confirmDelete": "Delete this request?",
+        "undoAvailable": "Undo availability",
+        "hideAvailable": "Hide available",
+        "availabilityCheckTitle": "Availability not verified",
+        "notInLibrary": "\"{title}\" was not found in Emby. If it was just added, it can take up to 5 minutes to be detected: try again shortly. Mark it available anyway? The requester will be notified.",
+        "libraryCheckFailed": "Could not check whether \"{title}\" is in Emby. Mark it available anyway? The requester will be notified.",
+        "markAvailableAnyway": "Mark available",
         "deletedReason": "Deleted by an administrator",
         "rejectReasonTitle": "Rejection reason",
         "rejectReasonLabel": "Reason",
@@ -3850,8 +3860,8 @@
           "desc": "Total number of items shown in the home hero banner (TMDB trending + manually featured). Featuring a movie takes one trending slot. Set to 0 to hide the hero entirely."
         },
         "requestsCleanup": {
-          "title": "Auto-cleanup of available requests",
-          "desc": "Automatically deletes requests in the \"Available\" status after this many days. 0 = disabled."
+          "title": "Auto-archive of available requests",
+          "desc": "Removes requests in the \"Available\" status from the Requests tab after this many days; they still count in totals, statistics and trophies. 0 = disabled."
         },
         "chatRetention": {
           "title": "Chat message retention",
@@ -4013,6 +4023,7 @@
     },
     "detail": {
       "request": "Request",
+      "reRequest": "Request again",
       "addToList": "Add to list",
       "remind": "Remind me",
       "communityRatings": "Community reviews",

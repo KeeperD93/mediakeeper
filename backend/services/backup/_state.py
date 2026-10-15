@@ -18,6 +18,13 @@ RETENTION_DAYS_KEY = "backup.retention_days"
 DEFAULT_RETENTION = 30
 
 
+async def get_retention_days(db: AsyncSession) -> int:
+    """The configured retention policy (see ``apply_retention_for_setting``)."""
+    from services.settings import get_setting
+
+    return int(await get_setting(db, RETENTION_DAYS_KEY) or DEFAULT_RETENTION)
+
+
 async def resolve_backup_dir(db: AsyncSession) -> Path:
     """Resolve the active backup directory from the DB setting (single source
     of truth), falling back to the env/default when unset.

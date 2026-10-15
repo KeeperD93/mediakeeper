@@ -1581,7 +1581,8 @@
       "emby_recent_scan": "Scan des ajouts récents Emby",
       "emby_full_scan": "Scan complet de la bibliothèque Emby",
       "backup_auto": "Sauvegarde automatique",
-      "cleanup_available_requests": "Nettoyage automatique des demandes disponibles",
+      "fulfill_requests": "Passage automatique des demandes en Disponible",
+      "cleanup_available_requests": "Archivage automatique des demandes disponibles",
       "healthcheck_scan": "Analyse santé de la médiathèque",
       "subtitle_auto": "Téléchargement automatique des sous-titres",
       "expire_users": "Expiration des comptes utilisateurs",
@@ -1601,7 +1602,8 @@
     "healthcheck": "Analyse la santé des fichiers médias (codecs, résolution, sous-titres…).",
     "subtitle_auto": "Télécharge automatiquement les sous-titres pour les nouveaux médias selon le profil par défaut.",
     "expire_users": "Désactive automatiquement les comptes (Emby + MediaKeeper) dont la période d'accès a expiré.",
-    "cleanup_available_requests": "Nettoie automatiquement les demandes marquées disponibles après le délai configuré.",
+    "fulfill_requests": "Passe en Disponible les demandes dont le contenu est arrivé dans Emby, et prévient le demandeur.",
+    "cleanup_available_requests": "Archive les demandes disponibles après le délai configuré ; elles restent comptées dans les statistiques.",
     "feedback_purge": "Supprime définitivement les remontées refusées depuis plus de 30 jours.",
     "gdpr_purge": "Supprime définitivement les comptes utilisateurs marqués pour purge RGPD.",
     "quota_auto_recompute": "Recalcul nocturne des quotas de demandes automatiques selon l'activité récente de chaque utilisateur.",
@@ -2936,6 +2938,8 @@
         "reminder": "Rappel : \"{title}\" arrive bientôt",
         "requestApproved": "Votre demande \"{title}\" a été approuvée par un admin",
         "requestAvailable": "\"{title}\" est maintenant disponible sur Emby !",
+        "requestRejected": "Votre demande \"{title}\" a été refusée",
+        "requestRejectedReason": "Votre demande \"{title}\" a été refusée. Motif : {reason}",
         "ticketCreated": "Nouveau ticket : \"{title}\"",
         "ticketReplied": "Un admin a répondu à votre ticket \"{title}\"",
         "ticketResolved": "Votre ticket \"{title}\" a été résolu",
@@ -3806,6 +3810,12 @@
         "season": "Saison",
         "seasons": "Saisons",
         "confirmDelete": "Supprimer cette demande ?",
+        "undoAvailable": "Annuler la disponibilité",
+        "hideAvailable": "Masquer les disponibles",
+        "availabilityCheckTitle": "Disponibilité non vérifiée",
+        "notInLibrary": "\"{title}\" est introuvable dans Emby. S'il vient d'être ajouté, il peut falloir jusqu'à 5 minutes pour qu'il soit détecté : réessayez un peu plus tard. Le marquer disponible quand même ? Le demandeur sera prévenu.",
+        "libraryCheckFailed": "Impossible de vérifier si \"{title}\" est dans Emby. Le marquer disponible quand même ? Le demandeur sera prévenu.",
+        "markAvailableAnyway": "Marquer disponible",
         "deletedReason": "Supprimée par un administrateur",
         "rejectReasonTitle": "Motif du rejet",
         "rejectReasonLabel": "Raison",
@@ -3850,8 +3860,8 @@
           "desc": "Nombre total d'éléments affichés dans la bannière héro de l'accueil (tendances TMDB + mises en avant). Si vous mettez en avant un film manuellement, il prend la place d'une tendance. 0 masque le héro complètement."
         },
         "requestsCleanup": {
-          "title": "Auto-nettoyage des demandes disponibles",
-          "desc": "Supprime automatiquement les demandes en statut « Disponible » après ce nombre de jours. 0 = désactivé."
+          "title": "Archivage automatique des demandes disponibles",
+          "desc": "Retire de l'onglet Demandes les demandes en statut « Disponible » après ce nombre de jours ; elles restent comptées dans les totaux, statistiques et trophées. 0 = désactivé."
         },
         "chatRetention": {
           "title": "Conservation des messages du chat",
@@ -4013,6 +4023,7 @@
     },
     "detail": {
       "request": "Demander",
+      "reRequest": "Redemander",
       "addToList": "Ajouter à une liste",
       "remind": "Me rappeler",
       "communityRatings": "Avis de la communauté",

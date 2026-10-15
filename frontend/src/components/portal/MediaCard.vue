@@ -37,6 +37,7 @@ import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 import { REQUEST_STATUS } from '@/constants/requests'
 import { USER_ROLE } from '@/constants/auth'
 import { formatRuntime } from '@/utils/format'
+import { canRequest } from '@/utils/portal/requestEligibility'
 import { safeHref } from '@/utils/safeUrl'
 
 const props = defineProps({
@@ -63,7 +64,6 @@ const isAdmin = computed(() => profile.value?.role === USER_ROLE.ADMIN)
 const {
   availData,
   reqStatus,
-  isRejected,
   retryCount,
   isNewOnEmby,
   displayedReqStatus,
@@ -153,10 +153,9 @@ function onPlay() {
 }
 
 function onRequest() {
-  // Mirror the previous MediaCard rule: a pending / approved request is
-  // frozen; only rejected items reach this emit (PosterCard already
-  // muted the button for pending / approved cases).
-  if (reqStatus.value && !isRejected.value) return
+  // Same rule as the detail page: a pending / approved request is frozen
+  // (PosterCard already mutes its button for those).
+  if (!canRequest(reqStatus.value?.status, availability.value)) return
   emit('request', props.item)
 }
 

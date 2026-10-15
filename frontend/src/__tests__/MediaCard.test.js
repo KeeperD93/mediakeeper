@@ -19,8 +19,6 @@ function baseState(overrides = {}) {
   const raw = {
     availData: null,
     reqStatus: null,
-    isRejected: false,
-    canResubmit: false,
     retryCount: 0,
     isNewOnEmby: false,
     displayedReqStatus: null,
@@ -113,7 +111,7 @@ describe('MediaCard — status mapping', () => {
   it('routes rejected and forwards retry count via the count prop', () => {
     const w = mountCard(
       { tmdb_id: 4, title: 'Bad' },
-      baseState({ reqStatus: { status: 'rejected' }, isRejected: true, retryCount: 2 }),
+      baseState({ reqStatus: { status: 'rejected' }, retryCount: 2 }),
     )
     const poster = w.find('.stub-poster')
     expect(poster.attributes('data-status')).toBe('rejected')
@@ -140,7 +138,7 @@ describe('MediaCard — emits', () => {
   it('does NOT emit select when a child button bubbles up', async () => {
     const w = mountCard(
       { tmdb_id: 11, title: 'B' },
-      baseState({ reqStatus: { status: 'rejected' }, isRejected: true }),
+      baseState({ reqStatus: { status: 'rejected' } }),
     )
     await w.find('.stub-request').trigger('click')
     expect(w.emitted('select')).toBeUndefined()
@@ -149,7 +147,7 @@ describe('MediaCard — emits', () => {
   it('emits request when PosterCard signals request and the request is not frozen', async () => {
     const w = mountCard(
       { tmdb_id: 12, title: 'C' },
-      baseState({ reqStatus: { status: 'rejected' }, isRejected: true }),
+      baseState({ reqStatus: { status: 'rejected' } }),
     )
     await w.find('.stub-request').trigger('click')
     expect(w.emitted('request')).toHaveLength(1)
@@ -158,7 +156,31 @@ describe('MediaCard — emits', () => {
   it('does NOT emit request when the existing request is pending', async () => {
     const w = mountCard(
       { tmdb_id: 13, title: 'D' },
-      baseState({ reqStatus: { status: 'pending' }, isRejected: false }),
+      baseState({ reqStatus: { status: 'pending' } }),
+    )
+    await w.find('.stub-request').trigger('click')
+    expect(w.emitted('request')).toBeUndefined()
+  })
+
+  it('emits request for a served series that still misses episodes', async () => {
+    const w = mountCard(
+      { tmdb_id: 14, title: 'E', media_type: 'tv' },
+      baseState({
+        reqStatus: { status: 'available' },
+        availData: { emby_url: 'http://emby.invalid/item', availability: 'partial' },
+      }),
+    )
+    await w.find('.stub-request').trigger('click')
+    expect(w.emitted('request')).toHaveLength(1)
+  })
+
+  it('does NOT emit request for a served title that is complete', async () => {
+    const w = mountCard(
+      { tmdb_id: 15, title: 'F' },
+      baseState({
+        reqStatus: { status: 'available' },
+        availData: { emby_url: 'http://emby.invalid/item', availability: 'full' },
+      }),
     )
     await w.find('.stub-request').trigger('click')
     expect(w.emitted('request')).toBeUndefined()
@@ -277,7 +299,6 @@ describe('MediaCard — tooltip dispatch', () => {
       { tmdb_id: 62, title: 'R' },
       baseState({
         reqStatus: { status: 'rejected' },
-        isRejected: true,
         reqStatusTooltip: 'Rejected on May 12',
       }),
     )

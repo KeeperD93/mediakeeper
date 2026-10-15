@@ -169,7 +169,11 @@ async function onClick(n) {
   if (!n.read) await markRead(n.id)
   const p = n.payload || {}
   // Request status notifs open the media detail page.
-  if (n.type === NOTIF_TYPE.REQUEST_APPROVED || n.type === NOTIF_TYPE.REQUEST_AVAILABLE) {
+  if (
+    n.type === NOTIF_TYPE.REQUEST_APPROVED ||
+    n.type === NOTIF_TYPE.REQUEST_AVAILABLE ||
+    n.type === NOTIF_TYPE.REQUEST_REJECTED
+  ) {
     if (p.tmdb_id && p.media_type) {
       close()
       router.push({

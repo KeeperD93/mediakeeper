@@ -1,7 +1,7 @@
 /**
  * Maps each scheduler task key to a thematic category surfaced in the
  * admin Settings → Scheduler panel. Categories let the panel group the
- * 11 visible tasks into 4 sections (vs a flat alphabetical list) so an
+ * visible tasks into 4 sections (vs a flat alphabetical list) so an
  * admin can scan all tasks without scrolling on desktop.
  *
  * Unknown task keys (e.g. a future task added backend-side before the
@@ -32,7 +32,12 @@ export const SCHEDULER_CATEGORIES: Readonly<Record<SchedulerCategoryKey, Schedul
     portal: Object.freeze({
       key: 'portal' as const,
       labelKey: 'scheduler.categories.portal',
-      tasks: Object.freeze(['cleanup_available_requests', 'emby_recent_scan', 'emby_full_scan']),
+      tasks: Object.freeze([
+        'fulfill_requests',
+        'cleanup_available_requests',
+        'emby_recent_scan',
+        'emby_full_scan',
+      ]),
     }),
     users: Object.freeze({
       key: 'users' as const,

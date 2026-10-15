@@ -67,8 +67,6 @@ export function useMediaCardState(props) {
     return null
   })
 
-  const isRejected = computed(() => reqStatus.value?.status === REQUEST_STATUS.REJECTED)
-  const canResubmit = computed(() => isRejected.value)
   const retryCount = computed(() => reqStatus.value?.retry_count || 0)
 
   // "New on Emby" ribbon — only items added to the Emby library within
@@ -143,8 +141,6 @@ export function useMediaCardState(props) {
   return {
     availData,
     reqStatus,
-    isRejected,
-    canResubmit,
     retryCount,
     isNewOnEmby,
     displayedReqStatus,
