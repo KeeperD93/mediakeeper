@@ -161,9 +161,7 @@ const { t } = useI18n()
 const formatAgo = input => formatAgoUtil(input, t, { style: 'verbose' })
 
 const copied = ref(false)
-const copyTitleLabel = computed(() =>
-  copied.value ? t('common.copied') || 'Copied!' : t('common.copy') || 'Copy',
-)
+const copyTitleLabel = computed(() => (copied.value ? t('common.copied') : t('common.copy')))
 
 async function copyTitle() {
   try {
@@ -194,8 +192,8 @@ const visibleSeasons = computed(() =>
 )
 const seasonLabel = computed(() =>
   (props.req.requested_seasons || []).length > 1
-    ? t('portal.admin.req.seasons') || 'Seasons'
-    : t('portal.admin.req.season') || 'Season',
+    ? t('portal.admin.req.seasons')
+    : t('portal.admin.req.season'),
 )
 
 const isFresh = computed(() => {
