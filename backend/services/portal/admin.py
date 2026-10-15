@@ -4,6 +4,12 @@ import logging
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.requests import (
+    ACCEPTED_REQUEST_STATUSES,
+    REQUEST_AVAILABLE,
+    REQUEST_PENDING,
+    REQUEST_REJECTED,
+)
 from models.portal.profile import UserProfile
 from services.portal.profiles import serialize_profile
 from services.portal.requests_quota import get_or_create_quota
@@ -160,7 +166,7 @@ async def get_admin_stats(db: AsyncSession) -> dict:
 
     pending_requests = (await db.execute(
         select(func.count(MediaRequest.id))
-        .where(MediaRequest.status == "pending")
+        .where(MediaRequest.status == REQUEST_PENDING)
     )).scalar() or 0
 
     open_tickets = (await db.execute(
@@ -172,7 +178,7 @@ async def get_admin_stats(db: AsyncSession) -> dict:
     approved_this_week = (await db.execute(
         select(func.count(MediaRequest.id))
         .where(
-            MediaRequest.status.in_(("approved", "available")),
+            MediaRequest.status.in_(ACCEPTED_REQUEST_STATUSES),
             MediaRequest.updated_at >= week_ago,
         )
     )).scalar() or 0
@@ -180,31 +186,37 @@ async def get_admin_stats(db: AsyncSession) -> dict:
     rejected_this_week = (await db.execute(
         select(func.count(MediaRequest.id))
         .where(
-            MediaRequest.status == "rejected",
+            MediaRequest.status == REQUEST_REJECTED,
             MediaRequest.updated_at >= week_ago,
         )
     )).scalar() or 0
 
+    # Live counter: what the queue still shows (archived requests left it).
     available_count = (await db.execute(
         select(func.count(MediaRequest.id))
-        .where(MediaRequest.status == "available")
+        .where(MediaRequest.status == REQUEST_AVAILABLE, MediaRequest.archived_at.is_(None))
     )).scalar() or 0
 
     # All-time totals — surfaced as the "since the beginning" sub-line
     # under each top-bar stat so admins see the cumulative volume next
-    # to the live/weekly counter.
+    # to the live/weekly counter. Archived requests are included.
     total_requests = (await db.execute(
         select(func.count(MediaRequest.id))
     )).scalar() or 0
 
     approved_total = (await db.execute(
         select(func.count(MediaRequest.id))
-        .where(MediaRequest.status.in_(("approved", "available")))
+        .where(MediaRequest.status.in_(ACCEPTED_REQUEST_STATUSES))
     )).scalar() or 0
 
     rejected_total = (await db.execute(
         select(func.count(MediaRequest.id))
-        .where(MediaRequest.status == "rejected")
+        .where(MediaRequest.status == REQUEST_REJECTED)
+    )).scalar() or 0
+
+    available_total = (await db.execute(
+        select(func.count(MediaRequest.id))
+        .where(MediaRequest.status == REQUEST_AVAILABLE)
     )).scalar() or 0
 
     return {
@@ -217,4 +229,5 @@ async def get_admin_stats(db: AsyncSession) -> dict:
         "total_requests": total_requests,
         "approved_total": approved_total,
         "rejected_total": rejected_total,
+        "available_total": available_total,
     }

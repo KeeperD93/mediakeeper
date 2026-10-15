@@ -80,7 +80,7 @@ TASK_DEFINITIONS: dict[str, dict] = {
         "description": "scheduler.fulfill_requests",
     },
     "cleanup_available_requests": {
-        "label":       "Auto-cleanup available requests",
+        "label":       "Auto-archive available requests",
         "label_key":   "scheduler.tasks.cleanup_available_requests",
         "default_sec": 86400,   # 24h
         "default_on":  True,    # Gated by ``requests.auto_cleanup_days``:

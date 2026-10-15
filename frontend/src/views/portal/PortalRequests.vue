@@ -36,8 +36,8 @@
       <div class="arr-stat arr-stat--available">
         <span class="arr-stat-value">{{ stats?.available_count ?? '—' }}</span>
         <span class="arr-stat-label">{{ $t('portal.admin.req.statAvailable') }}</span>
-        <span v-if="stats?.approved_total != null" class="arr-stat-total">
-          {{ $t('portal.admin.req.statTotalSince', { count: stats.approved_total }) }}
+        <span v-if="stats?.available_total != null" class="arr-stat-total">
+          {{ $t('portal.admin.req.statTotalSince', { count: stats.available_total }) }}
         </span>
       </div>
     </div>

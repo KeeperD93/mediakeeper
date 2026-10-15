@@ -1582,7 +1582,7 @@
       "emby_full_scan": "Scan complet de la bibliothèque Emby",
       "backup_auto": "Sauvegarde automatique",
       "fulfill_requests": "Passage automatique des demandes en Disponible",
-      "cleanup_available_requests": "Nettoyage automatique des demandes disponibles",
+      "cleanup_available_requests": "Archivage automatique des demandes disponibles",
       "healthcheck_scan": "Analyse santé de la médiathèque",
       "subtitle_auto": "Téléchargement automatique des sous-titres",
       "expire_users": "Expiration des comptes utilisateurs",
@@ -1603,7 +1603,7 @@
     "subtitle_auto": "Télécharge automatiquement les sous-titres pour les nouveaux médias selon le profil par défaut.",
     "expire_users": "Désactive automatiquement les comptes (Emby + MediaKeeper) dont la période d'accès a expiré.",
     "fulfill_requests": "Passe en Disponible les demandes dont le contenu est arrivé dans Emby, et prévient le demandeur.",
-    "cleanup_available_requests": "Nettoie automatiquement les demandes marquées disponibles après le délai configuré.",
+    "cleanup_available_requests": "Archive les demandes disponibles après le délai configuré ; elles restent comptées dans les statistiques.",
     "feedback_purge": "Supprime définitivement les remontées refusées depuis plus de 30 jours.",
     "gdpr_purge": "Supprime définitivement les comptes utilisateurs marqués pour purge RGPD.",
     "quota_auto_recompute": "Recalcul nocturne des quotas de demandes automatiques selon l'activité récente de chaque utilisateur.",
@@ -3852,8 +3852,8 @@
           "desc": "Nombre total d'éléments affichés dans la bannière héro de l'accueil (tendances TMDB + mises en avant). Si vous mettez en avant un film manuellement, il prend la place d'une tendance. 0 masque le héro complètement."
         },
         "requestsCleanup": {
-          "title": "Auto-nettoyage des demandes disponibles",
-          "desc": "Supprime automatiquement les demandes en statut « Disponible » après ce nombre de jours. 0 = désactivé."
+          "title": "Archivage automatique des demandes disponibles",
+          "desc": "Retire de l'onglet Demandes les demandes en statut « Disponible » après ce nombre de jours ; elles restent comptées dans les totaux, statistiques et trophées. 0 = désactivé."
         },
         "chatRetention": {
           "title": "Conservation des messages du chat",

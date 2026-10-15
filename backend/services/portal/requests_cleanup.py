@@ -1,15 +1,17 @@
-"""Hygiene job: drop ``available`` media requests older than N days.
+"""Hygiene job: archive ``available`` media requests older than N days.
 
-Gated by the ``requests.auto_cleanup_days`` setting (0 = disabled).
-The scheduler invokes :func:`cleanup_old_available_requests` once per
-day.
+Gated by the ``requests.auto_cleanup_days`` setting (0 = disabled). Archived
+requests leave the Requests lists but stay in the table, so every total,
+statistic and trophy keeps counting them. The scheduler invokes
+:func:`archive_old_available_requests` once per day.
 """
 import logging
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import delete
+from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.requests import REQUEST_AVAILABLE
 from models.portal.request import MediaRequest
 from services.settings import get_setting
 
@@ -29,33 +31,35 @@ async def get_cleanup_days(db: AsyncSession) -> int:
         return 0
 
 
-async def cleanup_old_available_requests(
+async def archive_old_available_requests(
     db: AsyncSession, *, days: int
 ) -> int:
-    """Delete ``available`` requests with ``available_at`` older than ``days``.
+    """Archive ``available`` requests with ``available_at`` older than ``days``.
 
-    Returns the number of rows removed. When ``days <= 0`` the function
-    is a no-op (disabled) — no query is issued. Rows whose
-    ``available_at`` is NULL (legacy, pre-backfill, or never stamped)
-    are explicitly skipped so the cleanup can never act on rows whose
-    age is unknown.
+    Returns the number of rows archived. When ``days <= 0`` the function
+    is a no-op (disabled) — no query is issued. Rows whose ``available_at``
+    is NULL are skipped (their age is unknown), and ``updated_at`` is kept
+    so archiving never shows up as activity in the weekly counters.
     """
     if days <= 0:
         return 0
-    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    now = datetime.now(timezone.utc)
+    cutoff = now - timedelta(days=days)
     result = await db.execute(
-        delete(MediaRequest)
+        update(MediaRequest)
         .where(
-            MediaRequest.status == "available",
+            MediaRequest.status == REQUEST_AVAILABLE,
+            MediaRequest.archived_at.is_(None),
             MediaRequest.available_at.is_not(None),
             MediaRequest.available_at < cutoff,
         )
+        .values(archived_at=now, updated_at=MediaRequest.updated_at)
         .execution_options(synchronize_session="fetch")
     )
     await db.commit()
-    deleted = int(result.rowcount or 0)
+    archived = int(result.rowcount or 0)
     logger.info(
-        "[requests-cleanup] deleted=%s days=%s cutoff=%s",
-        deleted, days, cutoff.isoformat(),
+        "[requests-cleanup] archived=%s days=%s cutoff=%s",
+        archived, days, cutoff.isoformat(),
     )
-    return deleted
+    return archived

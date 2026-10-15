@@ -177,6 +177,29 @@ async def test_served_request_still_counts_for_ambassador(db_session):
     assert await _ach_unlocked(db_session, user.id, "ambassador_1")
 
 
+@pytest.mark.asyncio
+async def test_archived_request_still_counts_for_request_trophies(db_session):
+    """Archiving only hides a request from the lists: Requester and
+    Ambassador keep counting it."""
+    user, _ = await _make_user_and_profile(db_session)
+    await seed_achievements(db_session)
+
+    db_session.add(MediaRequest(
+        user_id=user.id,
+        tmdb_id=5555,
+        media_type="movie",
+        title="Movie Z",
+        status="available",
+        archived_at=datetime.now(timezone.utc),
+    ))
+    await db_session.commit()
+
+    await check_all_achievements(db_session, user.id, user.username)
+
+    assert await _ach_unlocked(db_session, user.id, "requester_1")
+    assert await _ach_unlocked(db_session, user.id, "ambassador_1")
+
+
 # ── 4. Reporter family ──────────────────────────────────────────────────
 
 

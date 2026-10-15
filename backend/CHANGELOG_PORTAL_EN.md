@@ -26,7 +26,8 @@ This section intentionally has no date so it is not shown to users.
 - Requests — automatically marked Available once the requested content arrives.
 - Requests — missing poster restored (new and existing requests).
 - Requests — missing seasons and rejected titles can be requested again (detail page too).
-- Trophies — Ambassador also counts requests that became available.
+- Requests — available requests now leave the tab after the delay set by the admin.
+- Trophies — Requester and Ambassador also count available or archived requests.
 
 ## [1.0.0-rc.8] - 2026-10-11
 

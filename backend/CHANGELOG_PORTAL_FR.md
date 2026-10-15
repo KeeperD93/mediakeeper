@@ -28,7 +28,8 @@ utilisateurs.
 - Demandes — passage automatique en Disponible dès l'arrivée du contenu demandé.
 - Demandes — jaquette manquante rétablie (nouvelles demandes et demandes existantes).
 - Demandes — redemande possible des saisons manquantes et des titres refusés (fiche comprise).
-- Trophées — Ambassadeur compte aussi les demandes devenues disponibles.
+- Demandes — demandes disponibles bien retirées de l'onglet après le délai choisi par l'admin.
+- Trophées — Demandeur et Ambassadeur comptent aussi les demandes disponibles ou archivées.
 
 ## [1.0.0-rc.8] - 2026-10-11
 

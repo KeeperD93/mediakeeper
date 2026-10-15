@@ -6,11 +6,18 @@ management (creation, monthly reset, snapshot) lives in
 ``requests_quota.py``.
 """
 import logging
+from datetime import datetime, timezone
 
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants.notifications import NOTIF_REQUEST_APPROVED, NOTIF_REQUEST_AVAILABLE
+from constants.requests import (
+    REQUEST_APPROVED,
+    REQUEST_AVAILABLE,
+    REQUEST_PENDING,
+    REQUEST_REJECTED,
+)
 from models.user import User
 from models.portal.request import MediaRequest
 from core.pagination import decode_cursor, build_cursor_response
@@ -57,22 +64,25 @@ async def get_batch_status(
     or moderated each request — only status and date stay visible. Used
     for non-admins when the Portal-wide ``anonymize_requests`` flag is
     on; admins always see the full payload to moderate.
+
+    Archived requests are left out, like in the Requests lists.
     """
     if not tmdb_ids:
         return {}
 
+    # Pick the "best" (highest priority) status per tmdb_id.
+    PRIO = {REQUEST_APPROVED: 3, REQUEST_PENDING: 2, REQUEST_AVAILABLE: 1, REQUEST_REJECTED: 0}
     rows = await db.execute(
         select(MediaRequest, User.username)
         .join(User, MediaRequest.user_id == User.id, isouter=True)
         .where(
             MediaRequest.tmdb_id.in_(tmdb_ids),
-            MediaRequest.status.in_(["pending", "approved", "available", "rejected"]),
+            MediaRequest.status.in_(list(PRIO)),
+            MediaRequest.archived_at.is_(None),
         )
         .order_by(MediaRequest.created_at.desc())
     )
 
-    # Pick the "best" (highest priority) status per tmdb_id.
-    PRIO = {"approved": 3, "pending": 2, "available": 1, "rejected": 0}
     out: dict[str, dict] = {}
     for req, username in rows.all():
         key = str(req.tmdb_id)
@@ -88,7 +98,7 @@ async def get_batch_status(
         }
         if not anonymize:
             entry["reject_reason"] = (
-                req.reject_reason if req.status == "rejected" else None
+                req.reject_reason if req.status == REQUEST_REJECTED else None
             )
             # ``user_id IS NULL`` after GDPR-purge (FK ``SET NULL`` since
             # migration 041). Flag it so the frontend renders an i18n
@@ -128,9 +138,11 @@ async def list_requests(
     When ``include_sensitive`` (admin path) is set, the response is
     enriched with the requester's display_name + avatar_url, and a missing
     poster or backdrop is backfilled from TMDB.
+
+    Archived requests are left out: they only stay counted.
     """
-    query = select(MediaRequest)
-    count_query = select(func.count(MediaRequest.id))
+    query = select(MediaRequest).where(MediaRequest.archived_at.is_(None))
+    count_query = select(func.count(MediaRequest.id)).where(MediaRequest.archived_at.is_(None))
 
     if status_filter:
         query = query.where(MediaRequest.status == status_filter)
@@ -264,10 +276,13 @@ async def update_request_status(
     req = await db.get(MediaRequest, request_id)
     if not req:
         return {"error": "not_found"}
+    # Starts the auto-archive delay; re-marking an available request keeps it.
+    if new_status == REQUEST_AVAILABLE and req.status != REQUEST_AVAILABLE:
+        req.available_at = datetime.now(timezone.utc)
     req.status = new_status
-    if new_status == "approved":
+    if new_status == REQUEST_APPROVED:
         req.approved_by = admin_id
-    if new_status == "rejected" and reason:
+    if new_status == REQUEST_REJECTED and reason:
         req.reject_reason = reason
     db.add(req)
     await db.flush()
@@ -284,11 +299,11 @@ async def update_request_status(
     # (FK ``SET NULL`` since migration 041): ``mk_notifications.user_id``
     # is NOT NULL, so an insert with ``None`` would crash. The admin
     # action itself still succeeds.
-    if new_status == "approved" and req.user_id is not None:
+    if new_status == REQUEST_APPROVED and req.user_id is not None:
         await notif_svc.create(db, req.user_id, NOTIF_REQUEST_APPROVED, payload)
-    elif new_status == "available" and req.user_id is not None:
+    elif new_status == REQUEST_AVAILABLE and req.user_id is not None:
         await notif_svc.create(db, req.user_id, NOTIF_REQUEST_AVAILABLE, payload)
-    elif new_status == "rejected":
+    elif new_status == REQUEST_REJECTED:
         await maybe_blacklist_media(db, req, admin_id)
 
     await db.commit()

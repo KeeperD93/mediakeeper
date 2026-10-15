@@ -13,12 +13,17 @@ This section intentionally has no date so it is not shown to users.
 ### Added
 - Updates — new version flagged in the sidebar (can be turned off).
 
+### Changed
+- Requests — available requests archived instead of deleted, manual ones included (totals kept).
+- Blacklist — unblocking keeps rejections in the totals.
+
 ### Fixed
 - Sidebar — hover effects fixed on touch screens (reduced motion respected).
 - Statistics — watch time measured continuously, pauses and idle players excluded.
 - Requests — automatically marked Available, even without Discord notifications.
 - Requests — missing poster restored (new and existing requests).
 - Featured — images kept when the image cache is on.
+- Requests — Available card: since-the-beginning total fixed.
 
 ## [1.0.0-rc.8] - 2026-10-11
 
