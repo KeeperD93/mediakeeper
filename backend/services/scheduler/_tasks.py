@@ -79,6 +79,7 @@ TASK_DEFINITIONS: dict[str, dict] = {
         "handler":     _handler_fulfill_requests,
         "description": "scheduler.fulfill_requests",
     },
+    # Id from the former deletion job, kept: installs store it with their schedule.
     "cleanup_available_requests": {
         "label":       "Auto-archive available requests",
         "label_key":   "scheduler.tasks.cleanup_available_requests",

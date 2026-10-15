@@ -17,6 +17,7 @@ from services.settings import get_setting
 
 logger = logging.getLogger("mediakeeper.portal.requests_cleanup")
 
+# Named after the former deletion job; kept because every install stores it.
 REQUESTS_AUTO_CLEANUP_KEY = "requests.auto_cleanup_days"
 
 
