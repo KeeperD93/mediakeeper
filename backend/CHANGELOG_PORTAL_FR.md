@@ -23,6 +23,7 @@ utilisateurs.
 - Accueil — repères de navigation du bandeau agrandis sur ordinateur.
 
 ### Fixed
+- Accueil — boutons du bandeau plus faciles à toucher sur téléphone et tablette.
 - Profil — temps de visionnage et répartition films/séries réalistes (pauses et reprises ne les faussent plus).
 - Demandes — passage automatique en Disponible dès l'arrivée du contenu demandé.
 - Demandes — jaquette manquante rétablie (nouvelles demandes et demandes existantes).
