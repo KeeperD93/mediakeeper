@@ -121,6 +121,7 @@ import MkSpinner from '@/components/common/MkSpinner.vue'
 import { useConfirm } from '@/composables/useConfirm'
 import RejectReasonModal from '@/components/portal/admin/RejectReasonModal.vue'
 import { REQUEST_STATUS, REQUEST_SORT } from '@/constants/requests'
+import { MEDIA_TYPE } from '@/constants/media'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
 
 import '@/assets/styles/portal/admin-rich-row-header.css'
@@ -144,16 +145,16 @@ const rejectTarget = ref(null)
 
 const filters = [
   { value: '', label: 'portal.requests.allStatus' },
-  { value: 'pending', label: 'portal.requests.pending' },
-  { value: 'approved', label: 'portal.requests.approved' },
-  { value: 'available', label: 'portal.requests.available' },
-  { value: 'rejected', label: 'portal.requests.rejected' },
+  { value: REQUEST_STATUS.PENDING, label: 'portal.requests.pending' },
+  { value: REQUEST_STATUS.APPROVED, label: 'portal.requests.approved' },
+  { value: REQUEST_STATUS.AVAILABLE, label: 'portal.requests.available' },
+  { value: REQUEST_STATUS.REJECTED, label: 'portal.requests.rejected' },
 ]
 
 const typeFilters = [
   { value: '', label: 'portal.admin.req.typeAll' },
-  { value: 'movie', label: 'portal.admin.req.typeMovies' },
-  { value: 'tv', label: 'portal.admin.req.typeSeries' },
+  { value: MEDIA_TYPE.MOVIE, label: 'portal.admin.req.typeMovies' },
+  { value: MEDIA_TYPE.TV, label: 'portal.admin.req.typeSeries' },
 ]
 
 async function loadRequests() {
@@ -241,7 +242,7 @@ async function onRejectConfirm(reason) {
   const req = rejectTarget.value
   rejectTarget.value = null
   if (!req) return
-  await applyStatus(req, 'rejected', reason)
+  await applyStatus(req, REQUEST_STATUS.REJECTED, reason)
 }
 
 async function onDelete(req) {
