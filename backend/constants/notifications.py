@@ -15,6 +15,7 @@ __all__ = [
     "NOTIF_EVENT_REMOVED",
     "NOTIF_REQUEST_APPROVED",
     "NOTIF_REQUEST_AVAILABLE",
+    "NOTIF_REQUEST_REJECTED",
     "NOTIF_TICKET_REPLIED",
     "NOTIF_TICKET_RESOLVED",
 ]
@@ -27,5 +28,6 @@ NOTIF_EVENT_CANCELLED: Final[str] = "event_cancelled"
 NOTIF_EVENT_REMOVED: Final[str] = "event_removed"
 NOTIF_REQUEST_APPROVED: Final[str] = "request_approved"
 NOTIF_REQUEST_AVAILABLE: Final[str] = "request_available"
+NOTIF_REQUEST_REJECTED: Final[str] = "request_rejected"
 NOTIF_TICKET_REPLIED: Final[str] = "ticket_replied"
 NOTIF_TICKET_RESOLVED: Final[str] = "ticket_resolved"

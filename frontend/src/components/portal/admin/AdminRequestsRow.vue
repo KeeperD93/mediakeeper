@@ -104,9 +104,18 @@
           type="button"
           :title="$t('portal.requests.available')"
           :aria-label="$t('portal.requests.available')"
-          @click="$emit('action', 'available')"
+          @click="$emit('action', REQUEST_STATUS.AVAILABLE)"
         >
           <CircleCheck :size="18" :stroke-width="2.2" />
+        </button>
+        <button
+          class="arr-action arr-action--icon arr-action--reject"
+          type="button"
+          :title="$t('portal.admin.reject')"
+          :aria-label="$t('portal.admin.reject')"
+          @click="$emit('action', REQUEST_STATUS.REJECTED)"
+        >
+          <X :size="18" :stroke-width="2.5" />
         </button>
       </template>
       <button

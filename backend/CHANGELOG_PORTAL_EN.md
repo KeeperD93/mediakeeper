@@ -16,6 +16,7 @@ This section intentionally has no date so it is not shown to users.
 
 ### Added
 - Home — Play button on the banners for titles already on Emby.
+- Notifications — rejected requests show up in the bell, with the reason.
 
 ### Changed
 - Home — larger banner navigation markers on desktop.

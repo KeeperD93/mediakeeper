@@ -12,6 +12,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ### Added
 - Mises à jour — nouvelle version signalée dans la barre latérale (désactivable).
+- Demandes — refus possible d'une demande déjà approuvée, avec motif.
 
 ### Changed
 - Demandes — disponibles archivées au lieu d'être supprimées, passages manuels compris (totaux conservés).

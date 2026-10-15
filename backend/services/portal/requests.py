@@ -11,7 +11,11 @@ from datetime import datetime, timezone
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants.notifications import NOTIF_REQUEST_APPROVED, NOTIF_REQUEST_AVAILABLE
+from constants.notifications import (
+    NOTIF_REQUEST_APPROVED,
+    NOTIF_REQUEST_AVAILABLE,
+    NOTIF_REQUEST_REJECTED,
+)
 from constants.requests import (
     REQUEST_APPROVED,
     REQUEST_AVAILABLE,
@@ -269,7 +273,8 @@ async def update_request_status(
     Side-effects:
       - `approved` → DM notification to the original requester
       - `available` → DM notification (media landed in Emby)
-      - `rejected` → if the media reaches BLACKLIST_REJECT_THRESHOLD total
+      - `rejected` (from pending or approved) → DM notification carrying the
+        reason; if the media reaches BLACKLIST_REJECT_THRESHOLD total
         rejections across all requests, it's auto-added to the blacklist
         (hidden from every user-facing list until an admin unblocks it).
     """
@@ -304,6 +309,10 @@ async def update_request_status(
     elif new_status == REQUEST_AVAILABLE and req.user_id is not None:
         await notif_svc.create(db, req.user_id, NOTIF_REQUEST_AVAILABLE, payload)
     elif new_status == REQUEST_REJECTED:
+        if req.user_id is not None:
+            await notif_svc.create(
+                db, req.user_id, NOTIF_REQUEST_REJECTED, {**payload, "reason": reason or None},
+            )
         await maybe_blacklist_media(db, req, admin_id)
 
     await db.commit()

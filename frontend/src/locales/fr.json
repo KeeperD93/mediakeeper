@@ -2938,6 +2938,8 @@
         "reminder": "Rappel : \"{title}\" arrive bientôt",
         "requestApproved": "Votre demande \"{title}\" a été approuvée par un admin",
         "requestAvailable": "\"{title}\" est maintenant disponible sur Emby !",
+        "requestRejected": "Votre demande \"{title}\" a été refusée",
+        "requestRejectedReason": "Votre demande \"{title}\" a été refusée. Motif : {reason}",
         "ticketCreated": "Nouveau ticket : \"{title}\"",
         "ticketReplied": "Un admin a répondu à votre ticket \"{title}\"",
         "ticketResolved": "Votre ticket \"{title}\" a été résolu",

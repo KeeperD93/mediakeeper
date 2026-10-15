@@ -18,6 +18,7 @@ utilisateurs.
 
 ### Added
 - Accueil — bouton Lecture sur les bandeaux pour les titres déjà dans Emby.
+- Notifications — refus d'une demande signalé dans la cloche, avec le motif.
 
 ### Changed
 - Accueil — repères de navigation du bandeau agrandis sur ordinateur.

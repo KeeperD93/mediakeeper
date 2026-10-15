@@ -12,6 +12,7 @@ This section intentionally has no date so it is not shown to users.
 
 ### Added
 - Updates — new version flagged in the sidebar (can be turned off).
+- Requests — an approved request can be rejected too, with a reason.
 
 ### Changed
 - Requests — available requests archived instead of deleted, manual ones included (totals kept).
