@@ -1,5 +1,7 @@
 """Backup file endpoints act only on existing backup archives: anything else
 (missing backup, foreign file) is a 404 that leaves the directory untouched."""
+from __future__ import annotations
+
 import pytest
 
 BACKUP = "mediakeeper_backup_20260101_120000.zip"
@@ -32,3 +34,25 @@ async def test_delete_refuses_missing_or_foreign_files(authed_client, backup_dir
     assert resp.status_code == 404
     assert resp.json()["detail"] == "backup_not_found"
     assert (backup_dir / "notes.zip").exists()
+
+
+@pytest.mark.asyncio
+async def test_download_serves_the_backup(authed_client, backup_dir):
+    (backup_dir / BACKUP).write_bytes(b"zip-bytes")
+
+    resp = await authed_client.get(f"/api/backup/download/{BACKUP}")
+
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "application/zip"
+    assert resp.content == b"zip-bytes"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("filename", [BACKUP, "notes.zip"])
+async def test_download_refuses_missing_or_foreign_files(authed_client, backup_dir, filename):
+    (backup_dir / "notes.zip").write_bytes(b"x")
+
+    resp = await authed_client.get(f"/api/backup/download/{filename}")
+
+    assert resp.status_code == 404
+    assert resp.json()["detail"] == "backup_not_found"
