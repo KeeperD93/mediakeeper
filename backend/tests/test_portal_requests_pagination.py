@@ -105,3 +105,25 @@ async def test_invalid_pagination_params_return_422(client, admin_user, db_sessi
     for query in ("per_page=101", "per_page=0", "page=0", "sort=bogus", "type=anime"):
         resp = await client.get(f"/api/portal/requests/admin?{query}")
         assert resp.status_code == 422, query
+
+
+@pytest.mark.asyncio
+async def test_hide_available_only_trims_the_all_statuses_view(client, admin_user, db_session):
+    await _admin_cookie(client, admin_user, db_session)
+    db_session.add_all([
+        MediaRequest(
+            user_id=admin_user.id, tmdb_id=6000 + i, media_type="movie",
+            title=f"Req {i}", status=status,
+        )
+        for i, status in enumerate(["pending", "approved", "available", "available"])
+    ])
+    await db_session.commit()
+
+    everything = (await client.get("/api/portal/requests/admin")).json()
+    hidden = (await client.get("/api/portal/requests/admin?hide_available=true")).json()
+    served = (await client.get("/api/portal/requests/admin?status=available&hide_available=true")).json()
+
+    assert everything["total"] == 4
+    assert hidden["total"] == 2
+    assert {i["status"] for i in hidden["items"]} == {"pending", "approved"}
+    assert served["total"] == 2  # a status filter always shows what it names

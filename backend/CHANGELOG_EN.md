@@ -15,6 +15,7 @@ This section intentionally has no date so it is not shown to users.
 - Requests — an approved request can be rejected too, with a reason.
 - Requests — confirmation before marking available a title not found in Emby.
 - Requests — availability can be undone (back to Approved, no new notification).
+- Requests — switch to hide available requests under All statuses (remembered).
 
 ### Changed
 - Requests — available requests archived instead of deleted, manual ones included (totals kept).

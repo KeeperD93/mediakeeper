@@ -126,6 +126,7 @@ async def list_requests(
     page: int | None = None,
     sort: str = "recent",
     media_type: str | None = None,
+    hide_available: bool = False,
     include_sensitive: bool = False,
     locale: str | None = None,
 ) -> dict:
@@ -143,7 +144,9 @@ async def list_requests(
     enriched with the requester's display_name + avatar_url, and a missing
     poster or backdrop is backfilled from TMDB.
 
-    Archived requests are left out: they only stay counted.
+    Archived requests are left out: they only stay counted. ``hide_available``
+    drops served requests from the all-statuses view only: a status filter
+    always shows what it names.
     """
     query = select(MediaRequest).where(MediaRequest.archived_at.is_(None))
     count_query = select(func.count(MediaRequest.id)).where(MediaRequest.archived_at.is_(None))
@@ -151,6 +154,9 @@ async def list_requests(
     if status_filter:
         query = query.where(MediaRequest.status == status_filter)
         count_query = count_query.where(MediaRequest.status == status_filter)
+    elif hide_available:
+        query = query.where(MediaRequest.status != REQUEST_AVAILABLE)
+        count_query = count_query.where(MediaRequest.status != REQUEST_AVAILABLE)
     if media_type:
         query = query.where(MediaRequest.media_type == media_type)
         count_query = count_query.where(MediaRequest.media_type == media_type)

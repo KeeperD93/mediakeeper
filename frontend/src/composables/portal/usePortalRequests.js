@@ -19,10 +19,12 @@ export function usePortalRequests() {
     perPage = DEFAULT_PAGE_SIZE,
     sort = REQUEST_SORT.RECENT,
     mediaType = null,
+    hideAvailable = false,
   } = {}) {
     const params = new URLSearchParams({ page, per_page: perPage, sort })
     if (status) params.set('status', status)
     if (mediaType) params.set('type', mediaType)
+    if (hideAvailable) params.set('hide_available', 'true')
     try {
       const res = await apiGet(`/api/portal/requests/admin?${params}`)
       if (!res) return

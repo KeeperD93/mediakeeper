@@ -15,6 +15,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Demandes — refus possible d'une demande déjà approuvée, avec motif.
 - Demandes — confirmation avant de marquer disponible un titre introuvable dans Emby.
 - Demandes — disponibilité annulable (retour en Approuvée, sans nouvelle notification).
+- Demandes — interrupteur pour masquer les disponibles dans « Tous les statuts » (mémorisé).
 
 ### Changed
 - Demandes — disponibles archivées au lieu d'être supprimées, passages manuels compris (totaux conservés).

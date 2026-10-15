@@ -74,6 +74,7 @@ async def list_requests_admin(
     per_page: int = Query(25, ge=1, le=100),
     sort: str = Query("recent", pattern="^(recent|oldest|title)$"),
     media_type: Optional[str] = Query(None, alias="type", pattern="^(movie|tv)$"),
+    hide_available: bool = False,
     locale: str = Depends(get_request_locale),
     _: tuple[User, UserProfile] = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
@@ -87,6 +88,7 @@ async def list_requests_admin(
         page=page,
         sort=sort,
         media_type=media_type,
+        hide_available=hide_available,
         include_sensitive=True,
         locale=locale,
     )

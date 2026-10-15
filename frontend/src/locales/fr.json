@@ -3811,6 +3811,7 @@
         "seasons": "Saisons",
         "confirmDelete": "Supprimer cette demande ?",
         "undoAvailable": "Annuler la disponibilité",
+        "hideAvailable": "Masquer les disponibles",
         "availabilityCheckTitle": "Disponibilité non vérifiée",
         "notInLibrary": "\"{title}\" est introuvable dans Emby. S'il vient d'être ajouté, il peut falloir jusqu'à 5 minutes pour qu'il soit détecté : réessayez un peu plus tard. Le marquer disponible quand même ? Le demandeur sera prévenu.",
         "libraryCheckFailed": "Impossible de vérifier si \"{title}\" est dans Emby. Le marquer disponible quand même ? Le demandeur sera prévenu.",

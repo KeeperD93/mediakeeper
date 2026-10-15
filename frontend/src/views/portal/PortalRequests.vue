@@ -66,6 +66,17 @@
         >
           {{ $t(tp.label) }}
         </button>
+        <template v-if="!filter">
+          <span class="arr-pills-sep" aria-hidden="true" />
+          <label class="arr-pill arr-switch">
+            {{ $t('portal.admin.req.hideAvailable') }}
+            <MkToggle
+              :model-value="hideAvailable"
+              :aria-label="$t('portal.admin.req.hideAvailable')"
+              @update:model-value="setHideAvailable"
+            />
+          </label>
+        </template>
       </div>
       <select v-model="sortKey" class="arr-sort" @change="onSortChange">
         <option :value="REQUEST_SORT.RECENT">{{ $t('portal.admin.req.sortRecent') }}</option>
@@ -109,7 +120,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { usePortalRequests } from '@/composables/portal/usePortalRequests'
 import { usePortalAdmin } from '@/composables/portal/usePortalAdmin'
@@ -119,6 +130,7 @@ import { TOAST_TYPE } from '@/constants/toast'
 import AdminRequestsRow from '@/components/portal/admin/AdminRequestsRow.vue'
 import PortalPagination from '@/components/portal/PortalPagination.vue'
 import MkSpinner from '@/components/common/MkSpinner.vue'
+import MkToggle from '@/components/common/MkToggle.vue'
 import { useConfirm } from '@/composables/useConfirm'
 import RejectReasonModal from '@/components/portal/admin/RejectReasonModal.vue'
 import { REQUEST_LIBRARY_ERROR, REQUEST_STATUS, REQUEST_SORT } from '@/constants/requests'
@@ -144,6 +156,30 @@ const perPage = ref(DEFAULT_PAGE_SIZE)
 const loading = ref(false)
 const rejectTarget = ref(null)
 
+// Remembered across visits; it only applies to the all-statuses view, a
+// status filter always shows what it names.
+const HIDE_AVAILABLE_KEY = 'mk_admin_requests_hide_available'
+const hideAvailable = ref(readHideAvailable())
+const hidingAvailable = computed(() => !filter.value && hideAvailable.value)
+
+function readHideAvailable() {
+  try {
+    return localStorage.getItem(HIDE_AVAILABLE_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+function setHideAvailable(value) {
+  hideAvailable.value = value
+  try {
+    localStorage.setItem(HIDE_AVAILABLE_KEY, value ? '1' : '0')
+  } catch {
+    /* storage blocked (private mode): the choice lasts for this visit */
+  }
+  reload()
+}
+
 const filters = [
   { value: '', label: 'portal.requests.allStatus' },
   { value: REQUEST_STATUS.PENDING, label: 'portal.requests.pending' },
@@ -167,6 +203,7 @@ async function loadRequests() {
       perPage: perPage.value,
       sort: sortKey.value,
       mediaType: typeFilter.value || null,
+      hideAvailable: hidingAvailable.value,
     })
   } finally {
     loading.value = false
@@ -246,7 +283,10 @@ async function applyStatus(req, newStatus, reason, force = false) {
     // the list DOM and reset the viewport scroll to the top of the page.
     req.status = newStatus
     if (reason != null) req.reject_reason = reason
-    if (filter.value && newStatus !== filter.value) {
+    const leavesView = filter.value
+      ? newStatus !== filter.value
+      : hidingAvailable.value && newStatus === REQUEST_STATUS.AVAILABLE
+    if (leavesView) {
       requests.value = requests.value.filter(r => r.id !== req.id)
       afterRowRemoved()
     }

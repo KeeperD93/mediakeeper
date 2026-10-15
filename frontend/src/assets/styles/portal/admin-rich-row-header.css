@@ -188,6 +188,19 @@
     transform: translateY(-1px);
   }
 }
+/* A pill-shaped label holding an on/off switch; the whole pill toggles it.
+   Touch-sized on phones, aligned with the filter pills from tablets up. */
+.arr-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}
+@media (min-width: 768px) {
+  .arr-switch {
+    min-height: 36px;
+  }
+}
 
 .arr-sort {
   padding: 8px 12px;
