@@ -53,10 +53,10 @@ async def update_request_status(
       - `available` → bell notification (media landed in Emby); refused with
         ``not_in_library`` / ``library_check_failed`` while Emby does not
         verifiably hold the content, unless ``force`` (admin confirmed)
-      - `rejected` (from pending or approved) → bell notification carrying the
-        reason; if the media reaches BLACKLIST_REJECT_THRESHOLD total
-        rejections across all requests, it's auto-added to the blacklist
-        (hidden from every user-facing list until an admin unblocks it).
+      - `rejected` → bell notification carrying the reason; once the media's
+        live (non-archived) rejections reach BLACKLIST_REJECT_THRESHOLD, it's
+        auto-added to the blacklist (hidden from every user-facing list until
+        an admin unblocks it).
     Resending the status a request already has (from a stale queue, after
     the automatic flip for instance) changes and notifies nothing.
     """

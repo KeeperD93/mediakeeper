@@ -11,8 +11,9 @@ import pytest
 from api.portal.featured import AddFeatured
 from api.portal.requests import CreateRequest
 from constants.portal_paths import IMAGE_PROXY_PATH
+from core.security_headers import CSP_DIRECTIVES
 from services.portal.image_cache import proxied_url
-from services.portal.image_urls import safe_image_url
+from services.portal.image_urls import STORED_IMAGE_HOSTS, safe_image_url
 
 TMDB = "https://image.tmdb.org/t/p/w500/p.jpg"
 FOREIGN = "https://evil.example/pixel.gif"
@@ -107,3 +108,10 @@ def test_requests_and_featured_titles_refuse_foreign_or_plain_http_images():
     )
 
     assert (r.poster_url, r.backdrop_url, f.poster_url, f.backdrop) == (None, None, None, None)
+
+
+def test_stored_image_hosts_stay_allowed_by_the_csp():
+    """A stored poster on a host the CSP blocks would never show."""
+    img_src = next(d for d in CSP_DIRECTIVES.split("; ") if d.startswith("img-src "))
+    for host in STORED_IMAGE_HOSTS:
+        assert f"https://{host}" in img_src.split()

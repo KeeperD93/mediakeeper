@@ -5,7 +5,7 @@ from __future__ import annotations
 from core.url_safety import ALLOWED_IMAGE_HOST, safe_url
 from services.portal.image_cache import unproxied_url
 
-# Hosts a stored poster or backdrop may point to: the CSP ``img-src``
+# Hosts a stored poster or backdrop may point to: hosts of the CSP ``img-src``
 # whitelist (core/security_headers.py), so the portal can always show it.
 STORED_IMAGE_HOSTS = (ALLOWED_IMAGE_HOST, "i.imgur.com")
 

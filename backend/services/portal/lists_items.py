@@ -8,6 +8,7 @@ from sqlalchemy import select, func, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.tmdb_media import TMDB_MEDIA_TYPES
 from models.portal.social import (
     UserList, UserListItem, PRIVACY_COLLABORATIVE, PRIVACY_PRIVATE,
 )
@@ -47,7 +48,7 @@ async def add_items(
     for raw in items:
         tmdb_id = int(raw.get("tmdb_id") or 0)
         media_type = str(raw.get("media_type") or "").strip().lower()
-        if not tmdb_id or media_type not in ("movie", "tv"):
+        if not tmdb_id or media_type not in TMDB_MEDIA_TYPES:
             continue
         title = strip_tags_and_trim(raw.get("title"), 500) or None
         poster_url = safe_image_url(raw.get("poster_url"))

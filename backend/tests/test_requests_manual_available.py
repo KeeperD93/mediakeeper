@@ -169,6 +169,7 @@ async def test_resending_the_current_status_changes_nothing(db_session, status):
     rid = await _request(
         db_session, uid, status, approved_by=first_admin, reject_reason="First reason",
         available_at=datetime(2026, 1, 1, tzinfo=timezone.utc),
+        archived_at=datetime(2026, 2, 1, tzinfo=timezone.utc),  # stays archived too
     )
     before = await _row(db_session, rid)
 
