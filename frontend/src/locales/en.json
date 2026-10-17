@@ -1745,6 +1745,7 @@
     "history": "History",
     "empty": "No backups available",
     "created": "Backup created successfully",
+    "createdIncomplete": "Backup created, but without: {parts}. Check the logs.",
     "deleted": "Backup deleted",
     "deleteConfirm": "Delete this backup?",
     "restored": "Restore completed",

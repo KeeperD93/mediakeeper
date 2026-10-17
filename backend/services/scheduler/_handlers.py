@@ -59,12 +59,16 @@ async def _handler_backup(db: AsyncSession) -> None:
     except ValueError as e:  # JSONDecodeError included
         logger.warning("[backup] unreadable backup.auto_components setting, using the defaults: %s", e)
         components = {}
-    await create_backup(
+    result = await create_backup(
         db,
         components=components,
         label="auto",
         progress_cb=lambda c, t, label: update_progress("backup_auto", c, t, label),
     )
+    if result.failed:
+        # The task ends in error (and alerts) and the complete backups stay:
+        # retention waits for a complete one.
+        raise RuntimeError(f"{result.path.name} written without: {', '.join(result.failed)}")
     await apply_configured_retention(db)
 
 

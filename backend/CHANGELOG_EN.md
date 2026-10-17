@@ -20,6 +20,7 @@ This section intentionally has no date so it is not shown to users.
 ### Changed
 - Requests — available requests archived instead of deleted, manual ones included (totals kept).
 - Blacklist — unblocking keeps rejections in the totals.
+- Backups — database included by default in a manual backup.
 
 ### Fixed
 - Sidebar — hover effects fixed on touch screens (reduced motion respected).
@@ -35,6 +36,7 @@ This section intentionally has no date so it is not shown to users.
 - Backups — out-of-range retention refused (no more crash).
 - Backups — an accented label no longer makes a backup unreachable.
 - Backups — explicit errors: out-of-range retention explained, real cause of each failure.
+- Backups — a part that could not be saved is reported and no longer evicts complete backups.
 - Requests — a failed status change or deletion now gives its cause.
 - Errors — input refused by the server shows a readable message.
 

@@ -1,7 +1,8 @@
 /**
  * Backup settings errors: a retention value outside the screen's range is
- * explained before anything is sent, and a failed action gives the server's
- * reason, or else says which action failed (never a blanket network error).
+ * explained before anything is sent, a failed action gives the server's
+ * reason or else says which action failed (never a blanket network error),
+ * and a backup written without some parts names them.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { TOAST_TYPE } from '@/constants/toast'
@@ -80,6 +81,41 @@ describe('useParamsBackup — retention', () => {
     await b.saveRetention()
     expect(sentDays()).toBe(0)
     expect(lastToast()).toEqual(['backup.retentionSaved', TOAST_TYPE.OK])
+  })
+})
+
+describe('useParamsBackup — creating a backup', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('includes the database by default, like the scheduled backup', () => {
+    expect(useParamsBackup().selectedComponents.value.pg_dump).toBe(true)
+  })
+
+  it('lists the optional log files last', () => {
+    expect(Object.keys(useParamsBackup().selectedComponents.value).at(-1)).toBe('logs')
+  })
+
+  it('warns about a backup written without some parts, naming them', async () => {
+    mocks.apiFetch.mockResolvedValue({
+      json: async () => ({ success: true, failed_components: ['pg_dump'] }),
+    })
+
+    await useParamsBackup().createBackup()
+
+    expect(mocks.showToast).toHaveBeenCalledWith(
+      'backup.createdIncomplete{"parts":"backup.compPgDump"}',
+      TOAST_TYPE.WARN,
+    )
+  })
+
+  it('confirms a complete backup', async () => {
+    mocks.apiFetch.mockResolvedValue({
+      json: async () => ({ success: true, failed_components: [] }),
+    })
+
+    await useParamsBackup().createBackup()
+
+    expect(mocks.showToast).toHaveBeenCalledWith('backup.created', TOAST_TYPE.OK)
   })
 })
 

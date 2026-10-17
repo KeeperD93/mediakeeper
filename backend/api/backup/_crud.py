@@ -53,21 +53,27 @@ async def create_backup_endpoint(
     """Start an immediate backup with the selected components."""
     components = {**DEFAULT_COMPONENTS, **req.components}
     try:
-        dest = await create_backup(db, components=components, label=req.label)
+        result = await create_backup(db, components=components, label=req.label)
     except Exception as e:
         logger.error("[backup] Creation error: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail="backup_create_failed") from e
+    dest = result.path
     # Enforce the retention policy right away, like the scheduled backup does,
     # so manual backups don't pile up until the next automatic run. A cleanup
     # failure must not mask a successful backup — log it and still return success.
-    try:
-        await apply_configured_retention(db)
-    except Exception as e:
-        logger.warning("[backup] retention pass failed after manual backup: %s", e, exc_info=True)
+    # An incomplete backup must not push complete ones out: retention waits.
+    if result.failed:
+        logger.warning("[backup] retention skipped, %s is incomplete", dest.name)
+    else:
+        try:
+            await apply_configured_retention(db)
+        except Exception as e:
+            logger.warning("[backup] retention pass failed after manual backup: %s", e, exc_info=True)
     return {
         "success": True,
         "filename": dest.name,
         "size_bytes": dest.stat().st_size,
+        "failed_components": list(result.failed),
     }
 
 

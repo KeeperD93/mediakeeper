@@ -16,13 +16,15 @@ const backupDirInput = ref('/data/backups')
 const retentionMode = ref('days')
 const retentionDays = ref(30)
 const retentionCount = ref(10)
+// Same parts as the scheduled backup (DEFAULT_COMPONENTS on the server), in
+// the order the screen lists them: the optional log files last.
 const selectedComponents = ref({
   settings: true,
   preferences: true,
   scheduler: true,
   watchlist: true,
+  pg_dump: true,
   logs: false,
-  pg_dump: false,
 })
 const backupDirLocked = computed(() => !!backupInfo.value?.backup_dir_locked)
 let loadedOnce = false
@@ -152,7 +154,13 @@ export function useParamsBackup() {
       })
       const data = await res.json()
       if (data.success) {
-        showToast(t('backup.created'), TOAST_TYPE.OK)
+        // The archive exists but lacks the parts whose export failed: name them.
+        const missing = (data.failed_components || []).map(c => COMPONENT_LABELS.value[c] || c)
+        if (missing.length) {
+          showToast(t('backup.createdIncomplete', { parts: missing.join(', ') }), TOAST_TYPE.WARN)
+        } else {
+          showToast(t('backup.created'), TOAST_TYPE.OK)
+        }
         await loadBackupInfo()
       }
     } catch (e) {

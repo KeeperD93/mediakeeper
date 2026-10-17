@@ -1745,6 +1745,7 @@
     "history": "Historique",
     "empty": "Aucun backup disponible",
     "created": "Backup créé avec succès",
+    "createdIncomplete": "Sauvegarde créée, mais sans : {parts}. Consultez les journaux.",
     "deleted": "Backup supprimé",
     "deleteConfirm": "Supprimer ce backup ?",
     "restored": "Restauration effectuée",

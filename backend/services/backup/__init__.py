@@ -19,7 +19,7 @@ from ._state import (
     get_retention_days,
     resolve_backup_dir,
 )
-from .create import create_backup
+from .create import BackupResult, create_backup
 from .directory import list_available_backup_dirs, set_backup_directory
 from .listing import (
     apply_configured_retention,
@@ -36,6 +36,7 @@ __all__ = [
     "DEFAULT_COMPONENTS",
     "DEFAULT_RETENTION",
     "RETENTION_DAYS_KEY",
+    "BackupResult",
     "apply_configured_retention",
     "apply_retention",
     "apply_retention_by_count",

@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import zipfile
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import unquote, urlparse
@@ -40,13 +41,21 @@ _EPHEMERAL_KEY_WARNING = (
 )
 
 
+@dataclass(frozen=True)
+class BackupResult:
+    """The archive written, and the requested parts it lacks because their export failed."""
+
+    path: Path
+    failed: tuple[str, ...] = ()
+
+
 async def create_backup(
     db: AsyncSession,
     components: dict | None = None,
     label: str = "",
     progress_cb=None,
-) -> Path:
-    """Create a backup ZIP file. Returns the path of the created file."""
+) -> BackupResult:
+    """Create a backup ZIP file; a part whose export fails is left out and reported."""
     opts = {**DEFAULT_COMPONENTS, **(components or {})}
     backup_dir = await resolve_backup_dir(db)
     backup_dir.mkdir(parents=True, exist_ok=True)
@@ -62,6 +71,7 @@ async def create_backup(
 
     comp_names = ["settings", "preferences", "scheduler", "watchlist", "logs", "pg_dump"]
     enabled_comps = [c for c in comp_names if opts.get(c)]
+    failed: list[str] = []
     total_steps = len(enabled_comps) + 1  # +1 for the manifest
     step = 0
 
@@ -77,6 +87,7 @@ async def create_backup(
                 zf.writestr("settings.json", json.dumps(all_settings, ensure_ascii=False, indent=2))
             except Exception as e:
                 logger.error("[backup] settings: %s", e)
+                failed.append("settings")
 
         if opts.get("preferences"):
             step += 1
@@ -97,6 +108,7 @@ async def create_backup(
                 zf.writestr("preferences.json", json.dumps(prefs_data, ensure_ascii=False, indent=2))
             except Exception as e:
                 logger.error("[backup] preferences: %s", e)
+                failed.append("preferences")
 
         if opts.get("scheduler"):
             step += 1
@@ -120,6 +132,7 @@ async def create_backup(
                 zf.writestr("scheduler.json", json.dumps(tasks_data, ensure_ascii=False, indent=2))
             except Exception as e:
                 logger.error("[backup] scheduler: %s", e)
+                failed.append("scheduler")
 
         if opts.get("watchlist"):
             step += 1
@@ -133,6 +146,7 @@ async def create_backup(
                 zf.writestr("watchlist.json", json.dumps(scans_data, ensure_ascii=False, indent=2))
             except Exception as e:
                 logger.error("[backup] watchlist: %s", e)
+                failed.append("watchlist")
 
         if opts.get("logs"):
             step += 1
@@ -143,6 +157,7 @@ async def create_backup(
                     zf.write(log_file, f"logs/{log_file.name}")
             except Exception as e:
                 logger.error("[backup] logs: %s", e)
+                failed.append("logs")
 
         if opts.get("pg_dump"):
             step += 1
@@ -150,10 +165,12 @@ async def create_backup(
                 progress_cb(step, total_steps, "Database")
             try:
                 sql = await _pg_dump_async()
-                if sql:
-                    zf.writestr("pg_dump.sql", sql)
+                if not sql:  # _pg_dump_async logged why
+                    raise RuntimeError("no SQL produced")
+                zf.writestr("pg_dump.sql", sql)
             except Exception as e:
                 logger.error("[backup] pg_dump: %s", e)
+                failed.append("pg_dump")
 
         encryption_key_meta = _embed_encryption_key(zf)
 
@@ -161,7 +178,10 @@ async def create_backup(
             "version":    "1.1",
             "created_at": datetime.now(timezone.utc).isoformat(),
             "label":      label,
-            "components": opts,
+            # What the archive holds: a requested part whose export failed is
+            # false here and named under "failed".
+            "components": {c: bool(opts.get(c)) and c not in failed for c in comp_names},
+            "failed":     failed,
             "filename":   filename,
             "encryption_key": encryption_key_meta,
         }
@@ -170,7 +190,9 @@ async def create_backup(
     dest.write_bytes(buf.getvalue())
     size_kb = dest.stat().st_size // 1024
     logger.info("[backup] Created: %s (%s KB)", dest.name, size_kb)
-    return dest
+    if failed:
+        logger.warning("[backup] %s written without: %s", dest.name, ", ".join(failed))
+    return BackupResult(dest, tuple(failed))
 
 
 def _embed_encryption_key(zf: zipfile.ZipFile) -> dict:

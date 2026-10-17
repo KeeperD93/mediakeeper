@@ -17,7 +17,7 @@ import pytest
 
 from api.backup import _crud, _retention
 from api.backup._schemas import BackupRequest
-from services.backup import apply_retention_for_setting, get_retention_days
+from services.backup import BackupResult, apply_retention_for_setting, get_retention_days
 from services.scheduler._handlers import _handler_backup
 from services.settings import set_setting
 
@@ -111,7 +111,7 @@ async def test_manual_create_applies_retention(db_session, workspace_tmp_path, m
 
     async def _fake_create(db, components=None, label=""):
         new.write_bytes(b"x")  # newest backup (mtime now)
-        return new
+        return BackupResult(new)
 
     monkeypatch.setattr(_crud, "create_backup", _fake_create)
     monkeypatch.setenv("BACKUP_PATH", str(backup_dir))
@@ -130,7 +130,7 @@ async def test_manual_create_survives_retention_failure(db_session, workspace_tm
 
     async def _fake_create(db, components=None, label=""):
         new.write_bytes(b"x")
-        return new
+        return BackupResult(new)
 
     monkeypatch.setattr(_crud, "create_backup", _fake_create)
     monkeypatch.setattr(
@@ -142,6 +142,29 @@ async def test_manual_create_survives_retention_failure(db_session, workspace_tm
     assert resp["success"] is True
     assert resp["filename"] == "mediakeeper_backup_new.zip"
 
+
+
+@pytest.mark.asyncio
+async def test_incomplete_manual_backup_is_reported_and_keeps_older_ones(
+    db_session, workspace_tmp_path, monkeypatch,
+):
+    """A backup missing a part must not push complete ones out of a keep-N window."""
+    backup_dir = Path(workspace_tmp_path)
+    await set_setting(db_session, "backup.retention_days", "-1")
+    _make_backup(backup_dir, "complete", age_days=1)
+    new = backup_dir / "mediakeeper_backup_new.zip"
+
+    async def _fake_create(db, components=None, label=""):
+        new.write_bytes(b"x")
+        return BackupResult(new, ("pg_dump",))
+
+    monkeypatch.setattr(_crud, "create_backup", _fake_create)
+    monkeypatch.setenv("BACKUP_PATH", str(backup_dir))
+
+    resp = await _crud.create_backup_endpoint(BackupRequest(), db=db_session, _=ADMIN)
+
+    assert resp["failed_components"] == ["pg_dump"]
+    assert _remaining(backup_dir) == {"mediakeeper_backup_new.zip", "mediakeeper_backup_complete.zip"}
 
 @pytest.mark.asyncio
 async def test_apply_now_reports_the_backups_removed(db_session, workspace_tmp_path, monkeypatch):
@@ -166,7 +189,7 @@ async def test_scheduled_backup_applies_retention(db_session, workspace_tmp_path
 
     async def _fake_create(db, components=None, label="", progress_cb=None):
         new.write_bytes(b"x")
-        return new
+        return BackupResult(new)
 
     monkeypatch.setattr("services.backup.create_backup", _fake_create)
     monkeypatch.setenv("BACKUP_PATH", str(backup_dir))
@@ -176,13 +199,35 @@ async def test_scheduled_backup_applies_retention(db_session, workspace_tmp_path
     assert _remaining(backup_dir) == {"mediakeeper_backup_auto.zip"}
 
 
+
+@pytest.mark.asyncio
+async def test_incomplete_scheduled_backup_fails_the_task_and_keeps_older_ones(
+    db_session, workspace_tmp_path, monkeypatch,
+):
+    backup_dir = Path(workspace_tmp_path)
+    await set_setting(db_session, "backup.retention_days", "-1")
+    _make_backup(backup_dir, "complete", age_days=1)
+    new = backup_dir / "mediakeeper_backup_auto.zip"
+
+    async def _fake_create(db, components=None, label="", progress_cb=None):
+        new.write_bytes(b"x")
+        return BackupResult(new, ("pg_dump",))
+
+    monkeypatch.setattr("services.backup.create_backup", _fake_create)
+    monkeypatch.setenv("BACKUP_PATH", str(backup_dir))
+
+    with pytest.raises(RuntimeError, match="without: pg_dump"):
+        await _handler_backup(db_session)
+
+    assert _remaining(backup_dir) == {"mediakeeper_backup_auto.zip", "mediakeeper_backup_complete.zip"}
+
 @pytest.mark.asyncio
 @pytest.mark.parametrize("stored", ["{not json", "[1]"])
 async def test_scheduled_backup_falls_back_on_unreadable_components(
     db_session, monkeypatch, caplog, stored,
 ):
     await set_setting(db_session, "backup.auto_components", stored)
-    create = AsyncMock(return_value=Path("unused.zip"))
+    create = AsyncMock(return_value=BackupResult(Path("unused.zip")))
     monkeypatch.setattr("services.backup.create_backup", create)
     monkeypatch.setattr("services.backup.apply_configured_retention", AsyncMock(return_value=0))
 

@@ -20,6 +20,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 ### Changed
 - Demandes — disponibles archivées au lieu d'être supprimées, passages manuels compris (totaux conservés).
 - Blacklist — le déblocage conserve les refus dans les totaux.
+- Sauvegardes — base de données incluse par défaut dans une sauvegarde manuelle.
 
 ### Fixed
 - Barre latérale — effets de survol corrigés sur écran tactile (animations réduites respectées).
@@ -35,6 +36,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Sauvegardes — durée de conservation hors limites refusée (plus de plantage).
 - Sauvegardes — un libellé accentué ne rend plus la sauvegarde introuvable.
 - Sauvegardes — erreurs explicites : rétention hors limites expliquée, vraie cause de chaque échec.
+- Sauvegardes — une partie non sauvegardée est signalée et n'évince plus les sauvegardes complètes.
 - Demandes — un changement de statut ou une suppression qui échoue donne sa cause.
 - Erreurs — une saisie refusée par le serveur affiche un message lisible.
 

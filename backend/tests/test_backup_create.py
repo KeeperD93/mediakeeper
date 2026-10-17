@@ -47,7 +47,7 @@ async def test_create_backup_keeps_sensitive_settings_encrypted(
     await set_setting(db_session, "emby.api_key", "super-secret")
     await set_setting(db_session, "emby.url", "http://emby.local:8096")
 
-    backup_path = await create_backup(
+    backup_path = (await create_backup(
         db_session,
         components={
             "settings": True,
@@ -57,7 +57,7 @@ async def test_create_backup_keeps_sensitive_settings_encrypted(
             "logs": False,
             "pg_dump": False,
         },
-    )
+    )).path
 
     with zipfile.ZipFile(backup_path) as zf:
         settings = json.loads(zf.read("settings.json"))
@@ -81,7 +81,7 @@ async def test_create_backup_runs_pg_dump_with_default_components(
     embed the SQL output in the archive."""
     pg_mock, fake_sql = stub_pg_dump
 
-    backup_path = await create_backup(db_session)
+    backup_path = (await create_backup(db_session)).path
 
     pg_mock.assert_awaited_once()
     with zipfile.ZipFile(backup_path) as zf:
@@ -100,7 +100,7 @@ async def test_create_backup_embeds_persistent_key_from_env(
     env_key = Fernet.generate_key().decode("ascii")
     monkeypatch.setenv("MEDIAKEEPER_ENCRYPTION_KEY", env_key)
 
-    backup_path = await create_backup(
+    backup_path = (await create_backup(
         db_session,
         components={
             "settings": True,
@@ -110,7 +110,7 @@ async def test_create_backup_embeds_persistent_key_from_env(
             "logs": False,
             "pg_dump": False,
         },
-    )
+    )).path
 
     with zipfile.ZipFile(backup_path) as zf:
         assert ENCRYPTION_KEY_ARCHIVE_NAME in zf.namelist()
@@ -138,7 +138,7 @@ async def test_create_backup_embeds_persistent_key_from_file(
         (key_file,),
     )
 
-    backup_path = await create_backup(
+    backup_path = (await create_backup(
         db_session,
         components={
             "settings": True,
@@ -148,7 +148,7 @@ async def test_create_backup_embeds_persistent_key_from_file(
             "logs": False,
             "pg_dump": False,
         },
-    )
+    )).path
 
     with zipfile.ZipFile(backup_path) as zf:
         assert ENCRYPTION_KEY_ARCHIVE_NAME in zf.namelist()
@@ -171,7 +171,7 @@ async def test_create_backup_skips_key_when_only_ephemeral(
     )
 
     with caplog.at_level("WARNING", logger="mediakeeper.backup"):
-        backup_path = await create_backup(
+        backup_path = (await create_backup(
             db_session,
             components={
                 "settings": True,
@@ -181,7 +181,7 @@ async def test_create_backup_skips_key_when_only_ephemeral(
                 "logs": False,
                 "pg_dump": False,
             },
-        )
+        )).path
 
     with zipfile.ZipFile(backup_path) as zf:
         names = zf.namelist()
@@ -205,7 +205,7 @@ async def test_label_keeps_only_what_the_file_routes_accept(
 ):
     """An accented or symbol-only label used to name a backup that download,
     delete and restore then refused."""
-    backup_path = await create_backup(db_session, components=NO_COMPONENTS, label=label)
+    backup_path = (await create_backup(db_session, components=NO_COMPONENTS, label=label)).path
 
     assert backup_path.name.endswith(f"{suffix}.zip")
     assert get_backup_path(backup_path.name, patched_backup_dir) is not None
@@ -214,3 +214,39 @@ async def test_label_keeps_only_what_the_file_routes_accept(
 def test_label_is_capped_like_the_file_name():
     with pytest.raises(ValidationError):
         BackupRequest(label="x" * 41)
+
+
+@pytest.mark.asyncio
+async def test_a_failed_part_is_left_out_and_reported(db_session, patched_backup_dir, monkeypatch):
+    """A failed export used to leave a backup announced as complete, its
+    manifest still listing the missing part."""
+    monkeypatch.setattr("services.backup.create._pg_dump_async", AsyncMock(return_value=None))
+    monkeypatch.setattr(
+        "services.backup.create.get_all_settings", AsyncMock(side_effect=RuntimeError("db gone")),
+    )
+
+    result = await create_backup(db_session)
+
+    assert result.failed == ("settings", "pg_dump")
+    with zipfile.ZipFile(result.path) as zf:
+        names = zf.namelist()
+        manifest = json.loads(zf.read("manifest.json"))
+    assert "pg_dump.sql" not in names
+    assert "settings.json" not in names
+    assert "preferences.json" in names
+    assert manifest["failed"] == ["settings", "pg_dump"]
+    assert manifest["components"] == {
+        "settings": False, "preferences": True, "scheduler": True,
+        "watchlist": True, "logs": False, "pg_dump": False,
+    }
+
+
+@pytest.mark.asyncio
+async def test_a_complete_backup_reports_no_missing_part(db_session, patched_backup_dir, stub_pg_dump):
+    result = await create_backup(db_session)
+
+    assert result.failed == ()
+    with zipfile.ZipFile(result.path) as zf:
+        manifest = json.loads(zf.read("manifest.json"))
+    assert manifest["failed"] == []
+    assert manifest["components"]["pg_dump"] is True
