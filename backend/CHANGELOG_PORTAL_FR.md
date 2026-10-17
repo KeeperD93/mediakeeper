@@ -27,13 +27,13 @@ utilisateurs.
 - Accueil — boutons du bandeau plus faciles à toucher sur téléphone et tablette.
 - Accueil — le bandeau n'affiche plus « Demander » sur un titre déjà dans Emby.
 - Accueil — bandeaux immobiles quand l'appareil demande moins d'animations.
+- Accueil — les titres mis en avant gardent leur image (cache d'images activé).
 - Profil — temps de visionnage et répartition films/séries réalistes (pauses et reprises ne les faussent plus).
 - Demandes — passage automatique en Disponible dès l'arrivée du contenu demandé.
 - Demandes — jaquette manquante rétablie (nouvelles demandes et demandes existantes).
-- Demandes — redemande possible des saisons manquantes et des titres refusés (fiche comprise).
+- Demandes — redemande possible : saisons manquantes, titres refusés (fiche comprise) ou absents d'Emby.
 - Demandes — demandes disponibles bien retirées de l'onglet après le délai choisi par l'admin.
-- Demandes — redemande possible d'un titre marqué disponible mais absent d'Emby.
-- Trophées — Demandeur et Ambassadeur comptent aussi les demandes disponibles ou archivées.
+- Trophées — Ambassadeur compte les demandes disponibles ; Demandeur et Ambassadeur gardent les archivées.
 - Listes — page plus compacte sur téléphone.
 - Problèmes — filtres et tri à taille tactile sur téléphone, flèche des menus espacée.
 - Jaquettes — boutons « Demander » et « Redemander » correctement libellés.

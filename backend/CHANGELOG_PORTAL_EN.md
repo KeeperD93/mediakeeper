@@ -25,13 +25,13 @@ This section intentionally has no date so it is not shown to users.
 - Home — banner buttons easier to tap on phones and tablets.
 - Home — the banner no longer offers Request for a title already in Emby.
 - Home — banners stay still when the device asks for reduced motion.
+- Home — featured titles keep their image when the image cache is on.
 - Profile — realistic watch time and movie/series split (pauses and resumed plays no longer skew them).
 - Requests — automatically marked Available once the requested content arrives.
 - Requests — missing poster restored (new and existing requests).
-- Requests — missing seasons and rejected titles can be requested again (detail page too).
+- Requests — re-request missing seasons, rejected titles (detail page too) or titles gone from Emby.
 - Requests — available requests now leave the tab after the delay set by the admin.
-- Requests — a title marked available but missing from Emby can be requested again.
-- Trophies — Requester and Ambassador also count available or archived requests.
+- Trophies — Ambassador counts available requests; Requester and Ambassador keep archived ones.
 - Lists — more compact page on phones.
 - Issues — touch-sized filters and sort on phones, menu arrows clear of the edge.
 - Posters — Request and Re-request buttons correctly labelled in French.

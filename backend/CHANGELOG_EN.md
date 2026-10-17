@@ -27,7 +27,7 @@ This section intentionally has no date so it is not shown to users.
 - Requests — automatically marked Available, even without Discord notifications.
 - Requests — missing poster restored (new and existing requests).
 - Featured — images kept when the image cache is on.
-- Requests — Available card: since-the-beginning total fixed.
+- Requests — Available card: all-time total fixed.
 - Requests — weekly counters no longer skewed by restored images.
 - Requests — safer queue: double clicks ignored, errors shown.
 - Requests — compact phone layout with drop-down filters.
