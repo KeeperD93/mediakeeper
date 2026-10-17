@@ -172,7 +172,7 @@ async function loadRequests() {
       hideAvailable: hidingAvailable.value,
     })
   } catch (e) {
-    console.error('[PortalRequests] load failed', e)
+    console.error('[PortalRequests.loadRequests]', e)
     showToast(t('common.apiError.loadFailed'), TOAST_TYPE.ERR)
   } finally {
     loading.value = false

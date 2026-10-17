@@ -1,5 +1,5 @@
-/* Action buttons, fresh-glow animation, responsive. Split out of
-   admin-rich-row.css to keep each file under the 300-line cap. */
+/* Action buttons, title copy button and the tablets-up row layout, split
+   out of admin-rich-row.css to stay under the size target. */
 
 /* Phones: actions on their own line under the poster and info. */
 .arr-row-actions {

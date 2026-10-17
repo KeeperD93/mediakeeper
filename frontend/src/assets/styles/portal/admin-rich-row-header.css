@@ -4,11 +4,8 @@
 
 .arr-page {
   position: relative;
-  padding: clamp(1rem, 4vw, 1.75rem) clamp(0.75rem, 3vw, 1.25rem) clamp(2rem, 6.5vw, 3rem);
-  /* Flat base tint on the element itself. The mesh aurora lives on a
-     fixed-position overlay (see ::before) so it stays with the viewport
-     rather than the element — the bottom halo never clips against the
-     page edge when the list is short. */
+  /* Top, and bottom on phones, come from PortalLayout's nav clearance. */
+  padding: 1.75rem clamp(0.75rem, 3vw, 1.25rem) 3rem;
   background: var(--portal-veil-page);
   min-height: calc(100vh - 64px);
   /* Extend the flat tint beyond the padding box so any overflow of an
@@ -16,7 +13,6 @@
   box-shadow: 0 0 0 100vmax var(--portal-veil-page);
   clip-path: inset(-100vmax);
 }
-/* Halo/mesh aurora removed on request: flat background only. */
 
 .arr-head {
   display: flex;

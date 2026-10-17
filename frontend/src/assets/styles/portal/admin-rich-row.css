@@ -251,5 +251,5 @@
   color: var(--portal-text-disabled);
 }
 
-/* The info column lives in admin-rich-row-info.css; actions, the fresh
-   glow and the tablets-up layout in admin-rich-row-actions.css. */
+/* The info column lives in admin-rich-row-info.css; actions, the title
+   copy button and the tablets-up layout in admin-rich-row-actions.css. */
