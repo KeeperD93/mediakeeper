@@ -13,7 +13,9 @@ from core.security import hash_password
 from models.portal.profile import UserProfile
 from models.portal.request import MediaRequest
 from models.user import User
-from services.portal.requests_cleanup import archive_old_available_requests
+from services.portal.requests_cleanup import REQUESTS_AUTO_CLEANUP_KEY, archive_old_available_requests
+from services.scheduler._handlers import _handler_cleanup_available_requests
+from services.settings import set_setting
 
 
 async def _bootstrap_user(db, username: str) -> User:
@@ -86,13 +88,14 @@ async def test_archive_only_aged_available_rows(db_session):
         status="available",
         available_at=now - timedelta(days=2),
     )
+    # Served long ago, then rejected: the status alone keeps it out.
     row_c = MediaRequest(
         user_id=user.id,
         tmdb_id=12,
         media_type="movie",
-        title="C — pending, no stamp",
-        status="pending",
-        available_at=None,
+        title="C — rejected, old stamp",
+        status="rejected",
+        available_at=now - timedelta(days=10),
     )
     db_session.add_all([row_a, row_b, row_c])
     await db_session.commit()
@@ -152,3 +155,21 @@ async def test_archive_keeps_updated_at_and_earlier_archives(db_session):
     }
     assert rows[fresh_id].updated_at.replace(tzinfo=None) == then.replace(tzinfo=None)
     assert rows[done_id].archived_at.replace(tzinfo=None) == earlier.replace(tzinfo=None)
+
+
+@pytest.mark.asyncio
+async def test_scheduled_task_archives_only_once_a_delay_is_set(db_session):
+    """The task is on by default: until a delay is set it archives nothing."""
+    user = await _bootstrap_user(db_session, "owner_task")
+    db_session.add(MediaRequest(
+        user_id=user.id, tmdb_id=40, media_type="movie", title="Served",
+        status="available", available_at=_now() - timedelta(days=30),
+    ))
+    await db_session.commit()
+
+    assert await _handler_cleanup_available_requests(db_session) == {
+        "archived": 0, "skipped": "disabled",
+    }
+
+    await set_setting(db_session, REQUESTS_AUTO_CLEANUP_KEY, "7")
+    assert await _handler_cleanup_available_requests(db_session) == {"archived": 1, "days": 7}

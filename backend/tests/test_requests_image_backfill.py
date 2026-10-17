@@ -48,17 +48,24 @@ def _tmdb(monkeypatch, detail: dict) -> list[tuple[str, int]]:
 
 
 @pytest.mark.asyncio
-async def test_missing_poster_is_restored_and_stored(db_session, monkeypatch):
-    await _request(db_session, backdrop_url=BACKDROP)
-    calls = _tmdb(monkeypatch, {"poster": POSTER, "backdrop": "https://image.tmdb.org/t/p/w780/new.jpg"})
+@pytest.mark.parametrize(("stored", "missing", "column"), [
+    ({"backdrop_url": BACKDROP}, POSTER, "poster_url"),
+    ({"poster_url": POSTER}, BACKDROP, "backdrop_url"),
+])
+async def test_missing_image_is_restored_and_stored(db_session, monkeypatch, stored, missing, column):
+    await _request(db_session, **stored)
+    calls = _tmdb(monkeypatch, {
+        "poster": POSTER if column == "poster_url" else "https://image.tmdb.org/t/p/w300/new.jpg",
+        "backdrop": BACKDROP if column == "backdrop_url" else "https://image.tmdb.org/t/p/w780/new.jpg",
+    })
 
     out = await req_svc.list_requests(db_session, page=1, include_sensitive=True)
 
     assert calls == [("tv", 4242)]
     assert out["items"][0]["poster_url"] == POSTER
     assert out["items"][0]["backdrop_url"] == BACKDROP
-    stored = (await db_session.execute(select(MediaRequest.poster_url))).scalar_one()
-    assert stored == POSTER
+    row = (await db_session.execute(select(getattr(MediaRequest, column)))).scalar_one()
+    assert row == missing
 
 
 @pytest.mark.asyncio
@@ -93,9 +100,16 @@ async def test_complete_rows_do_not_call_tmdb(db_session, monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_tmdb_failure_leaves_the_row_unchanged(db_session, monkeypatch):
+@pytest.mark.parametrize("answer", ["error payload", "not a dict", "raises"])
+async def test_tmdb_failure_leaves_the_row_unchanged(db_session, monkeypatch, answer):
     await _request(db_session)
-    _tmdb(monkeypatch, {"error": "tmdb_detail_failed"})
+    if answer == "raises":
+        async def broken(*_args, **_kwargs):
+            raise RuntimeError("tmdb offline")
+
+        monkeypatch.setattr("services.tmdb.get_media_detail", broken)
+    else:
+        _tmdb(monkeypatch, {"error": "tmdb_detail_failed"} if answer == "error payload" else [])
 
     out = await req_svc.list_requests(db_session, page=1, include_sensitive=True)
 

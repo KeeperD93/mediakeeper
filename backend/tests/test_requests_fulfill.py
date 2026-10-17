@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from unittest.mock import patch
 
 import pytest
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from core.security import hash_password
 from models.portal.emby_tmdb_index import EmbyTmdbIndex
@@ -84,9 +84,10 @@ def checked(monkeypatch) -> list[int]:
 
 
 def _library(monkeypatch, *, seasons: dict[int, list[tuple[int, str | None]]],
-             present: set[tuple[int, int]], status: str = "Returning Series",
-             ignored: list[str] | None = None) -> None:
-    """Fake TMDB (season -> [(episode, air date)]) and the Emby episodes."""
+             present: set[tuple[int, int]] | dict[str, set[tuple[int, int]]],
+             status: str = "Returning Series", ignored: list[str] | None = None) -> None:
+    """Fake TMDB (season -> [(episode, air date)]) and the Emby episodes, the
+    same for every Emby series or per series id when ``present`` is a dict."""
     async def tmdb_series(_db, _tmdb_id):
         return {"status": status, "seasons": [{"season_number": n} for n in (0, *seasons)]}
 
@@ -96,9 +97,10 @@ def _library(monkeypatch, *, seasons: dict[int, list[tuple[int, str | None]]],
             return None
         return {"episodes": [{"episode_number": n, "air_date": d} for n, d in episodes]}
 
-    async def emby_episodes(_db, _series_id, *, present_only=False):
+    async def emby_episodes(_db, series_id, *, present_only=False):
         assert present_only
-        return {key: [] for key in present}
+        held = present.get(series_id, set()) if isinstance(present, dict) else present
+        return {key: [] for key in held}
 
     async def get_ignored(_db):
         return ignored or []
@@ -120,6 +122,7 @@ async def test_movie_in_library_is_served_and_notified(db_session, checked):
 
     before = datetime.now(timezone.utc)
     assert await fulfill.fulfill_open_requests(db_session) == 1
+    after = datetime.now(timezone.utc)
 
     row = (await db_session.execute(
         select(MediaRequest).where(MediaRequest.id == req.id)
@@ -129,7 +132,7 @@ async def test_movie_in_library_is_served_and_notified(db_session, checked):
     stamp = row.available_at
     if stamp.tzinfo is None:  # SQLite hands timezone-aware columns back naive.
         stamp = stamp.replace(tzinfo=timezone.utc)
-    assert stamp >= before.replace(microsecond=0)
+    assert before <= stamp <= after
     notifs = await _notifications(db_session, user.id)
     assert [n.type for n in notifs] == ["request_available"]
     assert notifs[0].payload["request_id"] == req.id
@@ -156,6 +159,19 @@ async def test_second_run_does_not_notify_again(db_session, checked):
     assert await fulfill.fulfill_open_requests(db_session) == 1
     assert await fulfill.fulfill_open_requests(db_session) == 0
     assert len(await _notifications(db_session, user.id)) == 1
+
+
+@pytest.mark.asyncio
+async def test_other_media_type_with_the_same_id_does_not_serve(db_session, checked):
+    """TMDB numbers movies and series apart: a series indexed under a
+    requested movie's id must not mark the movie available."""
+    user = await _user(db_session, "type_fan")
+    req = await _request(db_session, user.id, 6060, "movie", indexed=False)
+    db_session.add(EmbyTmdbIndex(emby_item_id="emby-show-6060", tmdb_id=6060, media_type="tv"))
+    await db_session.commit()
+
+    assert await fulfill.fulfill_open_requests(db_session) == 0
+    assert await fulfill.is_request_in_library(db_session, req) is False
 
 
 @pytest.mark.asyncio
@@ -244,6 +260,25 @@ async def test_whole_series_request_needs_every_aired_season(db_session, checked
 
 
 @pytest.mark.asyncio
+async def test_series_episodes_add_up_across_index_rows(db_session, checked, monkeypatch):
+    """A re-import can leave an orphan index row next to the new one: the
+    episodes held by both Emby items count together."""
+    user = await _user(db_session, "reimport_fan")
+    req = await _request(
+        db_session, user.id, 7350, "tv", seasons=[{"season": 1, "episodes": "all"}],
+    )
+    db_session.add(EmbyTmdbIndex(emby_item_id="emby-7350-new", tmdb_id=7350, media_type="tv"))
+    await db_session.commit()
+    _library(
+        monkeypatch, seasons={1: _aired(1, 2)},
+        present={"emby-7350": {(1, 1)}, "emby-7350-new": {(1, 2)}},
+    )
+
+    assert await fulfill.fulfill_open_requests(db_session) == 1
+    assert await _status(db_session, req.id) == "available"
+
+
+@pytest.mark.asyncio
 async def test_ended_series_awaits_episodes_without_air_date(db_session, checked, monkeypatch):
     user = await _user(db_session, "ended_fan")
     req = await _request(
@@ -287,6 +322,31 @@ async def test_unreachable_tmdb_keeps_series_request_open(db_session, checked, m
 
     assert await fulfill.fulfill_open_requests(db_session) == 0
     assert await _status(db_session, req.id) == "pending"
+
+
+@pytest.mark.asyncio
+async def test_request_moved_meanwhile_is_left_alone(db_session, checked, monkeypatch):
+    """An admin rejects the request while the run reads Emby: the flip must
+    not overwrite that decision nor notify."""
+    user = await _user(db_session, "moved_fan")
+    user_id = user.id
+    req_id = (await _request(db_session, user_id, 7700, "tv")).id
+    _library(monkeypatch, seasons={1: _aired(1)}, present={(1, 1)})
+    served = fulfill._series_request_served
+
+    async def rejected_meanwhile(db, row, series_ids, ignored):
+        await db.execute(
+            update(MediaRequest).where(MediaRequest.id == row.id).values(status="rejected")
+            .execution_options(synchronize_session="fetch")
+        )
+        await db.commit()
+        return await served(db, row, series_ids, ignored)
+
+    monkeypatch.setattr(fulfill, "_series_request_served", rejected_meanwhile)
+
+    assert await fulfill.fulfill_open_requests(db_session) == 0
+    assert await _status(db_session, req_id) == "rejected"
+    assert await _notifications(db_session, user_id) == []
 
 
 @pytest.mark.asyncio

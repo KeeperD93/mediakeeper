@@ -17,7 +17,7 @@ import pytest
 
 from api.backup import _crud, _retention
 from api.backup._schemas import BackupRequest
-from services.backup import apply_retention_for_setting, get_retention_days, listing
+from services.backup import apply_retention_for_setting, get_retention_days
 from services.scheduler._handlers import _handler_backup
 from services.settings import set_setting
 
@@ -114,7 +114,7 @@ async def test_manual_create_applies_retention(db_session, workspace_tmp_path, m
         return new
 
     monkeypatch.setattr(_crud, "create_backup", _fake_create)
-    monkeypatch.setattr(listing, "resolve_backup_dir", AsyncMock(return_value=backup_dir))
+    monkeypatch.setenv("BACKUP_PATH", str(backup_dir))
 
     resp = await _crud.create_backup_endpoint(BackupRequest(), db=db_session, _=ADMIN)
 
@@ -149,7 +149,7 @@ async def test_apply_now_reports_the_backups_removed(db_session, workspace_tmp_p
     await set_setting(db_session, "backup.retention_days", "-1")
     _make_backup(backup_dir, "older", age_days=2)
     _make_backup(backup_dir, "newer", age_days=1)
-    monkeypatch.setattr(listing, "resolve_backup_dir", AsyncMock(return_value=backup_dir))
+    monkeypatch.setenv("BACKUP_PATH", str(backup_dir))
 
     resp = await _retention.apply_retention_now(db=db_session, _=ADMIN)
 
@@ -169,7 +169,7 @@ async def test_scheduled_backup_applies_retention(db_session, workspace_tmp_path
         return new
 
     monkeypatch.setattr("services.backup.create_backup", _fake_create)
-    monkeypatch.setattr(listing, "resolve_backup_dir", AsyncMock(return_value=backup_dir))
+    monkeypatch.setenv("BACKUP_PATH", str(backup_dir))
 
     await _handler_backup(db_session)
 
@@ -197,7 +197,7 @@ async def test_scheduled_backup_falls_back_on_unreadable_components(
 async def test_info_lists_backups_with_the_configured_retention(db_session, workspace_tmp_path, monkeypatch):
     backup_dir = Path(workspace_tmp_path)
     _make_backup(backup_dir, "one")
-    monkeypatch.setattr(_crud, "resolve_backup_dir", AsyncMock(return_value=backup_dir))
+    monkeypatch.setenv("BACKUP_PATH", str(backup_dir))
 
     resp = await _crud.backup_info(db=db_session, _=ADMIN)
 

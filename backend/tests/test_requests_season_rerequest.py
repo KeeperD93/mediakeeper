@@ -1,6 +1,6 @@
 """A served request no longer blocks a new one: a series can still miss
 seasons, and a title gone from Emby can be asked again. Only an open request,
-or a title Emby holds, is refused."""
+or a whole-series request for a title Emby holds, is refused."""
 from __future__ import annotations
 
 import pytest
@@ -42,8 +42,12 @@ def _ask(seasons: list | None) -> dict:
 
 @pytest.mark.asyncio
 async def test_season_request_goes_through_after_a_served_request(db_session):
+    """Emby holds the series (its first season): the missing ones can still
+    be requested."""
     user_id = await _viewer(db_session)
     await _existing(db_session, user_id, "available")
+    db_session.add(EmbyTmdbIndex(emby_item_id="EMBY-SHOW", tmdb_id=SERIES, media_type="tv"))
+    await db_session.commit()
 
     result = await create_request(db_session, user_id, _ask(NEW_SEASONS))
 

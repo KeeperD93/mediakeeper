@@ -4,10 +4,10 @@ them, a blacklist unblock archives the media's rejections instead of
 deleting them, and a status change brings an archived request back."""
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import pytest
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from core.security import hash_password
 from models.portal.emby_tmdb_index import EmbyTmdbIndex
@@ -116,8 +116,17 @@ async def test_archived_rejection_stays_history(db_session):
 
 @pytest.mark.asyncio
 async def test_unblock_archives_rejections_and_restarts_the_count(db_session):
+    """Only the unblocked media's rejections are archived, and quietly: their
+    update date stays, so the weekly counters do not move."""
     uid = await _user(db_session)
     ids = [await _request(db_session, uid, 1, "rejected") for _ in range(3)]
+    await _request(db_session, uid, 1, "available")
+    await _request(db_session, uid, 2, "rejected")
+    month_ago = datetime.now(timezone.utc) - timedelta(days=30)
+    await db_session.execute(
+        update(MediaRequest).values(updated_at=month_ago)
+        .execution_options(synchronize_session="fetch")
+    )
     entry = RequestBlacklist(tmdb_id=1, media_type="movie", title="Title 1", reject_count=3)
     db_session.add(entry)
     await db_session.commit()
@@ -129,7 +138,9 @@ async def test_unblock_archives_rejections_and_restarts_the_count(db_session):
         select(MediaRequest.id).where(MediaRequest.archived_at.is_not(None))
     )).scalars().all()
     assert sorted(archived) == ids
-    assert (await get_admin_stats(db_session))["rejected_total"] == 3
+    stats = await get_admin_stats(db_session)
+    assert stats["rejected_total"] == 4
+    assert stats["rejected_this_week"] == 0
 
 
 @pytest.mark.asyncio

@@ -196,3 +196,14 @@ async def test_status_route_answers_409_until_forced(client, db_session):
     assert refused.status_code == 409
     assert refused.json()["detail"] == "not_in_library"
     assert forced.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_status_route_answers_404_for_an_unknown_request(client, db_session):
+    await _user(db_session, "boss", "admin")
+    client.cookies.set("rq_token", create_access_token({"sub": "boss", "scope": "portal"}))
+
+    resp = await client.put("/api/portal/requests/999999/status", json={"status": "approved"})
+
+    assert resp.status_code == 404
+    assert resp.json()["detail"] == "not_found"
