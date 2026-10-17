@@ -44,4 +44,15 @@ describe('DetailHero request button', () => {
     await requestButton(w).trigger('click')
     expect(w.emitted('request')).toHaveLength(1)
   })
+
+  it('disables the button and shows why when the request is blocked, whatever the status', () => {
+    const w = mountHero({
+      showRequestBtn: true,
+      reqStatus: 'rejected',
+      requestBlockedReason: 'Blocked',
+    })
+
+    expect(requestButton(w).attributes('disabled')).toBeDefined()
+    expect(w.find('.dh-request-blocked').text()).toBe('Blocked')
+  })
 })

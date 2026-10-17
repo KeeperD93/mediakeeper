@@ -25,6 +25,7 @@ function baseState(overrides = {}) {
     postitTooltip: '',
     watchedTooltip: '',
     reqStatusTooltip: '',
+    newRibbonTooltip: '',
     ...overrides,
   }
   const wrapped = {}

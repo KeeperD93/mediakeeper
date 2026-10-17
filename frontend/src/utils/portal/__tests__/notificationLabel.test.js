@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import {
   Bell,
   Film,
@@ -61,13 +61,23 @@ describe('labelForNotification', () => {
   })
 
   it('shows the reason of a rejected request when the admin gave one', () => {
-    const notif = reason => ({ type: 'request_rejected', payload: { title: 'Dune', reason } })
-    expect(labelForNotification(notif('Not released yet'), t)).toBe(
-      'portal.notifications.tpl.requestRejectedReason|Dune,Not released yet',
-    )
-    expect(labelForNotification(notif(null), t)).toBe(
-      'portal.notifications.tpl.requestRejected|Dune',
-    )
+    const spy = vi.fn(key => key)
+    const notif = reason => ({
+      type: 'request_rejected',
+      payload: { title: 'Test Movie', reason },
+    })
+
+    labelForNotification(notif('Not released yet'), spy)
+    labelForNotification(notif(null), spy)
+
+    // Exact parameter names: a misnamed one would leave the reason blank on screen.
+    expect(spy.mock.calls).toEqual([
+      [
+        'portal.notifications.tpl.requestRejectedReason',
+        { title: 'Test Movie', reason: 'Not released yet' },
+      ],
+      ['portal.notifications.tpl.requestRejected', { title: 'Test Movie' }],
+    ])
   })
 
   it('still falls back to the raw type for a genuinely unknown event', () => {
