@@ -95,4 +95,7 @@
   --portal-section-rhythm-top: 1.5rem; /* 24px — space above title */
   --portal-section-rhythm-bottom: 1rem; /* 16px — space below title */
   --portal-section-rhythm-track: 0.5rem; /* 8px — tight track padding */
+
+  /* Accessibility — minimum tap target (WCAG 2.5.5), mirrors the admin one. */
+  --portal-touch-target: 44px;
 }

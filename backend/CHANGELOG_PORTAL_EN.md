@@ -30,6 +30,8 @@ This section intentionally has no date so it is not shown to users.
 - Requests — available requests now leave the tab after the delay set by the admin.
 - Requests — a title marked available but missing from Emby can be requested again.
 - Trophies — Requester and Ambassador also count available or archived requests.
+- Lists — more compact page on phones.
+- Issues — touch-sized filters and sort on phones, menu arrows clear of the edge.
 
 ## [1.0.0-rc.8] - 2026-10-11
 

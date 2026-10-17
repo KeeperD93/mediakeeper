@@ -30,10 +30,11 @@ export function usePortalRequests() {
       if (!res) return
       requests.value = res.items || []
       total.value = res.total || 0
-    } catch {
-      // Backend may not be migrated yet — fail to an empty list.
+    } catch (e) {
+      // Never leave the previous filter's rows on screen; the caller reports it.
       requests.value = []
       total.value = 0
+      throw e
     }
   }
 

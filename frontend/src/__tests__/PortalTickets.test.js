@@ -73,6 +73,13 @@ describe('PortalTickets — refonte toolbar', () => {
     expect(sortOptions.map(o => o.attributes('value'))).toEqual(['newest', 'oldest'])
   })
 
+  it('gives both toolbar menus the shared chevron, clear of the right edge', async () => {
+    const w = mount(PortalTickets)
+    await flushPromises()
+    const chevrons = w.findAll('.ptl-toolbar-select').map(s => s.classes('mk-select-chevron'))
+    expect(chevrons).toEqual([true, true])
+  })
+
   it('renders the issue-type select with the "all" entry + 7 concrete types', async () => {
     const w = mount(PortalTickets)
     await flushPromises()

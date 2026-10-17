@@ -32,6 +32,8 @@ utilisateurs.
 - Demandes — demandes disponibles bien retirées de l'onglet après le délai choisi par l'admin.
 - Demandes — redemande possible d'un titre marqué disponible mais absent d'Emby.
 - Trophées — Demandeur et Ambassadeur comptent aussi les demandes disponibles ou archivées.
+- Listes — page plus compacte sur téléphone.
+- Problèmes — filtres et tri à taille tactile sur téléphone, flèche des menus espacée.
 
 ## [1.0.0-rc.8] - 2026-10-11
 

@@ -82,6 +82,7 @@
         <button
           class="arr-action arr-action--icon arr-action--approve"
           type="button"
+          :disabled="busy"
           :title="$t('portal.admin.approve')"
           :aria-label="$t('portal.admin.approve')"
           @click="$emit('action', REQUEST_STATUS.APPROVED)"
@@ -91,6 +92,7 @@
         <button
           class="arr-action arr-action--icon arr-action--reject"
           type="button"
+          :disabled="busy"
           :title="$t('portal.admin.reject')"
           :aria-label="$t('portal.admin.reject')"
           @click="$emit('action', REQUEST_STATUS.REJECTED)"
@@ -102,8 +104,9 @@
         <button
           class="arr-action arr-action--icon arr-action--available"
           type="button"
-          :title="$t('portal.requests.available')"
-          :aria-label="$t('portal.requests.available')"
+          :disabled="busy"
+          :title="$t('portal.admin.req.markAvailable')"
+          :aria-label="$t('portal.admin.req.markAvailable')"
           @click="$emit('action', REQUEST_STATUS.AVAILABLE)"
         >
           <CircleCheck :size="18" :stroke-width="2.2" />
@@ -111,6 +114,7 @@
         <button
           class="arr-action arr-action--icon arr-action--reject"
           type="button"
+          :disabled="busy"
           :title="$t('portal.admin.reject')"
           :aria-label="$t('portal.admin.reject')"
           @click="$emit('action', REQUEST_STATUS.REJECTED)"
@@ -122,6 +126,7 @@
         <button
           class="arr-action arr-action--icon arr-action--approve"
           type="button"
+          :disabled="busy"
           :title="$t('portal.admin.req.undoAvailable')"
           :aria-label="$t('portal.admin.req.undoAvailable')"
           @click="$emit('action', REQUEST_STATUS.APPROVED)"
@@ -132,6 +137,7 @@
       <button
         class="arr-action arr-action--icon arr-action--reject"
         type="button"
+        :disabled="busy"
         :title="$t('portal.admin.delete')"
         :aria-label="$t('portal.admin.delete')"
         @click="$emit('delete')"
@@ -154,6 +160,9 @@ import { formatAgo as formatAgoUtil } from '@/utils/formatAgo'
 const props = defineProps({
   req: { type: Object, required: true },
   index: { type: Number, default: null },
+  // A call on this row is running: a second click must not reach the
+  // button that replaces the first one (Available → Undo).
+  busy: { type: Boolean, default: false },
 })
 defineEmits(['action', 'delete'])
 

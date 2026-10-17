@@ -27,7 +27,7 @@
       <div class="ptl-toolbar-selects">
         <select
           v-model="issueFilter"
-          class="arr-sort ptl-toolbar-select"
+          class="arr-sort ptl-toolbar-select mk-select-chevron"
           :aria-label="$t('portal.tickets.issueType')"
           @change="onIssueChange"
         >
@@ -38,7 +38,7 @@
         </select>
         <select
           v-model="sortOrder"
-          class="arr-sort ptl-toolbar-select"
+          class="arr-sort ptl-toolbar-select mk-select-chevron"
           :aria-label="$t('portal.tickets.list.sortLabel')"
           @change="onSortChange"
         >

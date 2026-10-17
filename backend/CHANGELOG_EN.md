@@ -29,6 +29,9 @@ This section intentionally has no date so it is not shown to users.
 - Featured — images kept when the image cache is on.
 - Requests — Available card: since-the-beginning total fixed.
 - Requests — weekly counters no longer skewed by restored images.
+- Requests — safer queue: double clicks ignored, errors shown.
+- Requests — compact phone layout with drop-down filters.
+- Requests — filters and sort named for screen readers; "Mark available" button.
 - Backups — out-of-range retention refused (no more crash).
 - Backups — an accented label no longer makes a backup unreachable.
 

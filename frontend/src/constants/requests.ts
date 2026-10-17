@@ -25,6 +25,8 @@ export const REQUEST_LIBRARY_ERROR = Object.freeze({
   CHECK_FAILED: 'library_check_failed',
 } as const)
 
+export type RequestLibraryError = (typeof REQUEST_LIBRARY_ERROR)[keyof typeof REQUEST_LIBRARY_ERROR]
+
 /**
  * Max unique tmdb_ids the backend accepts per batch-status call (mirrors
  * `BATCH_STATUS_MAX_IDS` in backend/api/portal/requests.py). The frontend

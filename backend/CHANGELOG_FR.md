@@ -29,6 +29,9 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Mise en avant — images conservées quand le cache d'images est activé.
 - Demandes — carte Disponibles : total depuis le début corrigé.
 - Demandes — compteurs de la semaine non faussés par les images rétablies.
+- Demandes — file plus sûre : double clic sans effet, erreurs affichées.
+- Demandes — page compacte sur téléphone, filtres en listes déroulantes.
+- Demandes — filtres et tri nommés pour les lecteurs d'écran, bouton « Marquer disponible ».
 - Sauvegardes — durée de conservation hors limites refusée (plus de plantage).
 - Sauvegardes — un libellé accentué ne rend plus la sauvegarde introuvable.
 

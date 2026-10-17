@@ -96,6 +96,7 @@ import { Plus } from 'lucide-vue-next'
 
 import '@/assets/styles/portal/admin-rich-row-header.css'
 import '@/assets/styles/portal/admin-rich-row.css'
+import '@/assets/styles/portal/admin-rich-row-info.css'
 import '@/assets/styles/portal/admin-rich-row-actions.css'
 
 const { t } = useI18n()

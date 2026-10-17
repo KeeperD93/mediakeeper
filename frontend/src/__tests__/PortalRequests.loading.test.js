@@ -1,11 +1,14 @@
 /**
- * The "hide available" switch of the admin queue: only offered on the
- * all-statuses view, sent to the server there only, remembered across visits.
+ * Loading the admin queue: the "hide available" switch (only offered on the
+ * all-statuses view, sent to the server there only, remembered across
+ * visits), the phone filter menus, and a failed load reported instead of an
+ * empty queue.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
+import { TOAST_TYPE } from '@/constants/toast'
 
-const mocks = vi.hoisted(() => ({ fetchAdminRequests: vi.fn() }))
+const mocks = vi.hoisted(() => ({ fetchAdminRequests: vi.fn(), showToast: vi.fn() }))
 
 vi.mock('vue-i18n', async importOriginal => {
   const actual = await importOriginal()
@@ -29,7 +32,7 @@ vi.mock('@/composables/portal/usePortalAdmin', async () => {
   return { usePortalAdmin: () => ({ stats: ref(null), fetchStats: vi.fn() }) }
 })
 vi.mock('@/composables/useConfirm', () => ({ useConfirm: () => vi.fn() }))
-vi.mock('@/composables/useToast', () => ({ useToast: () => ({ showToast: vi.fn() }) }))
+vi.mock('@/composables/useToast', () => ({ useToast: () => ({ showToast: mocks.showToast }) }))
 
 import PortalRequests from '@/views/portal/PortalRequests.vue'
 
@@ -64,6 +67,17 @@ describe('PortalRequests — hide available', () => {
     expect(localStorage.getItem(KEY)).toBe('1')
   })
 
+  it('shows everything again once switched off', async () => {
+    localStorage.setItem(KEY, '1')
+    const w = await mountPage()
+
+    await toggle(w).trigger('click')
+    await flushPromises()
+
+    expect(lastLoad().hideAvailable).toBe(false)
+    expect(localStorage.getItem(KEY)).toBe('0')
+  })
+
   it('toggles from anywhere on its pill, not only the switch', async () => {
     const w = await mountPage()
 
@@ -94,5 +108,49 @@ describe('PortalRequests — hide available', () => {
 
     expect(toggle(w).exists()).toBe(false)
     expect(lastLoad()).toMatchObject({ status: 'available', hideAvailable: false })
+  })
+})
+
+describe('PortalRequests — phone filter menus', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    localStorage.clear()
+  })
+
+  it('reload the queue like the pills', async () => {
+    const w = await mountPage()
+
+    await w.find('select[aria-label="portal.admin.req.statusFilterLabel"]').setValue('pending')
+    await flushPromises()
+    expect(lastLoad()).toMatchObject({ status: 'pending', mediaType: null })
+
+    await w.find('select[aria-label="portal.admin.req.typeFilterLabel"]').setValue('movie')
+    await flushPromises()
+    expect(lastLoad()).toMatchObject({ status: 'pending', mediaType: 'movie', page: 1 })
+  })
+
+  it('give the sort menu the shared chevron too', async () => {
+    const w = await mountPage()
+
+    const sort = w.find('select[aria-label="portal.admin.req.sortLabel"]')
+    expect(sort.classes()).toContain('mk-select-chevron')
+  })
+})
+
+describe('PortalRequests — failed load', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+  })
+
+  it('reports it in an error toast and the console', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    mocks.fetchAdminRequests.mockRejectedValueOnce(new Error('http_500'))
+
+    const w = await mountPage()
+
+    expect(mocks.showToast).toHaveBeenCalledWith('common.apiError.loadFailed', TOAST_TYPE.ERR)
+    expect(consoleError).toHaveBeenCalledOnce()
+    expect(w.find('.arr-loading').exists()).toBe(false)
+    consoleError.mockRestore()
   })
 })

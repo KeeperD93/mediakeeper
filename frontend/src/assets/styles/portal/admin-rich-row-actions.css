@@ -1,14 +1,17 @@
 /* Action buttons, fresh-glow animation, responsive. Split out of
    admin-rich-row.css to keep each file under the 300-line cap. */
 
+/* Phones: actions on their own line under the poster and info. */
 .arr-row-actions {
-  grid-column: 4 / 5;
-  grid-row: 1 / 2;
+  grid-column: 1 / -1;
+  grid-row: 2 / 3;
   position: relative;
   z-index: 2;
-  padding: 20px 22px;
+  padding: 0 12px 10px;
   gap: 8px;
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   align-items: center;
 }
 .arr-action {
@@ -16,7 +19,7 @@
   min-height: 42px;
   border-radius: var(--portal-radius-md);
   border: 1px solid rgb(255, 255, 255, 0.1);
-  background: rgb(255, 255, 255, 0.05);
+  background: var(--portal-surface-2);
   color: var(--portal-text-body);
   font-size: var(--portal-text-xs);
   font-weight: var(--portal-font-extrabold);
@@ -26,18 +29,32 @@
   letter-spacing: var(--portal-tracking-wide);
   -webkit-tap-highlight-color: transparent;
   backdrop-filter: blur(10px);
-  transition: all var(--portal-dur-base) ease;
+  transition:
+    transform var(--portal-dur-base) ease,
+    border-color var(--portal-dur-base) ease,
+    color var(--portal-dur-base) ease,
+    background var(--portal-dur-base) ease,
+    box-shadow var(--portal-dur-base) ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
+/* Touch-sized on phones, compact from tablets up. */
 .arr-action--icon {
-  width: 42px;
-  height: 42px;
+  width: var(--portal-touch-target);
+  height: var(--portal-touch-target);
   padding: 0;
-  min-width: 42px;
-  min-height: 42px;
+  min-width: var(--portal-touch-target);
+  min-height: var(--portal-touch-target);
   border-radius: var(--portal-radius-pill);
+}
+@media (min-width: 768px) {
+  .arr-action--icon {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    min-height: 42px;
+  }
 }
 .arr-action--icon svg {
   display: block;
@@ -45,6 +62,7 @@
 
 /* Copy-title button (hover-revealed, next to .arr-row-title) */
 .arr-row-copy {
+  position: relative;
   flex-shrink: 0;
   width: 28px;
   height: 28px;
@@ -66,6 +84,21 @@
     color 0.18s ease,
     border-color 0.18s ease;
   -webkit-tap-highlight-color: transparent;
+}
+/* Phones: a touch-sized tap area centred on the button, which keeps its look. */
+.arr-row-copy::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--portal-touch-target);
+  height: var(--portal-touch-target);
+  transform: translate(-50%, -50%);
+}
+@media (min-width: 768px) {
+  .arr-row-copy::after {
+    content: none;
+  }
 }
 @media (hover: hover) {
   .arr-row:hover .arr-row-copy {
@@ -124,37 +157,52 @@
   }
 }
 
-/* Fresh-status glow retiré à la demande. */
+/* Fresh-status glow removed on request. */
 .arr-row--fresh {
   /* no-op */
 }
 
-/* Responsive */
-@media (max-width: 767px) {
+/* Tablets up: the full row, numbered, with a large poster and the actions
+   on the right. */
+@media (min-width: 768px) {
   .arr-row {
-    grid-template-columns: 40px 80px 1fr;
-    grid-template-rows: auto auto;
-    min-height: 140px;
+    grid-template-columns: 54px 130px 1fr auto;
+    grid-template-rows: 144px;
   }
   .arr-row-index {
-    font-size: var(--portal-text-sm);
+    display: flex;
   }
   .arr-row-poster {
-    width: 72px;
-    height: 108px;
-    margin-left: 8px;
+    grid-column: 2 / 3;
+    width: 100px;
+    height: 150px;
+    margin: 0 0 0 10px;
+    align-self: center;
   }
   .arr-row-info {
-    padding: 14px 14px 14px 18px;
+    grid-column: 3 / 4;
+    padding: 22px 22px 22px 28px;
+    gap: 8px;
+  }
+  .arr-row-meta-top {
+    flex-wrap: nowrap;
+    gap: 10px;
+  }
+  .arr-row-status {
+    padding: 4px 12px;
   }
   .arr-row-title {
-    font-size: var(--portal-text-md);
+    font-size: var(--portal-text-xl);
+  }
+  .arr-row-foot {
+    gap: 18px;
+    font-size: var(--portal-text-xs);
   }
   .arr-row-actions {
-    grid-column: 1 / -1;
-    grid-row: 2 / 3;
-    padding: 0 14px 14px;
-    justify-content: flex-end;
-    flex-wrap: wrap;
+    grid-column: 4 / 5;
+    grid-row: 1 / 2;
+    padding: 20px 22px;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
   }
 }
