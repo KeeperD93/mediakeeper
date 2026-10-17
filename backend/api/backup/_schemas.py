@@ -1,12 +1,14 @@
 """Pydantic models for the backup API."""
 from pydantic import BaseModel, ConfigDict, Field
 
+from constants.backup import BACKUP_LABEL_MAX_LENGTH
+
 
 class BackupRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     components: dict = Field(default_factory=dict)
-    label: str = Field("", max_length=40)  # same cap as the file name suffix built from it
+    label: str = Field("", max_length=BACKUP_LABEL_MAX_LENGTH)  # the file name suffix built from it
 
 
 class RestoreRequest(BaseModel):

@@ -129,3 +129,29 @@ def test_count_retention_skips_a_backup_removed_meanwhile(tmp_path, monkeypatch)
     assert listing.apply_retention_by_count(1, tmp_path) == 1
     assert not older.exists()
     assert newer.exists()
+
+
+def _removed_just_before(monkeypatch) -> None:
+    """The other process deletes each backup right before this one does."""
+    real_unlink = Path.unlink
+
+    def unlink(self, missing_ok=False):
+        real_unlink(self, missing_ok=True)
+        return real_unlink(self, missing_ok=missing_ok)
+
+    monkeypatch.setattr(Path, "unlink", unlink)
+
+
+@pytest.mark.parametrize(("operation", "expected"), [
+    ("delete", True),
+    ("retention by days", 2),
+    ("retention by count", 1),
+])
+def test_a_backup_removed_just_before_its_deletion_is_not_an_error(
+    tmp_path, monkeypatch, operation, expected,
+):
+    _backup(tmp_path, "20260101_120000", age_days=40)
+    _backup(tmp_path, "20260102_120000", age_days=41)
+    _removed_just_before(monkeypatch)
+
+    assert FILE_OPERATIONS[operation](tmp_path) == expected

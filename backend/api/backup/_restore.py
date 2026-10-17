@@ -67,6 +67,7 @@ def _validate_uploaded_backup_archive(zip_path: Path) -> None:
             status_code=400, detail="invalid_archive_format"
         ) from None
 
+
 _RESTORE_WARNING = "This restore does NOT replay pg_dump.sql; restore PostgreSQL relational data manually first — see docs/operations/backup-restore.md."
 
 router = APIRouter()

@@ -13,6 +13,7 @@ from urllib.parse import unquote, urlparse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.backup import BACKUP_LABEL_MAX_LENGTH
 from core.database import DATABASE_URL
 from core.encryption import get_persistent_fernet_key
 from models.scheduler_task import SchedulerTask
@@ -64,7 +65,8 @@ async def create_backup(
     # Only what the listing's file name check accepts (ASCII letters, digits,
     # - and _): any other name lists fine but cannot be downloaded, deleted
     # or restored.
-    safe_label = "".join(c for c in label if (c.isascii() and c.isalnum()) or c in "-_")[:40]
+    kept = "".join(c for c in label if (c.isascii() and c.isalnum()) or c in "-_")
+    safe_label = kept[:BACKUP_LABEL_MAX_LENGTH]
     suffix = f"_{safe_label}" if safe_label else ""
     filename = f"mediakeeper_backup_{ts}{suffix}.zip"
     dest = backup_dir / filename
@@ -86,7 +88,7 @@ async def create_backup(
                 all_settings = await get_all_settings(db, decrypt_sensitive=False)
                 zf.writestr("settings.json", json.dumps(all_settings, ensure_ascii=False, indent=2))
             except Exception as e:
-                logger.error("[backup] settings: %s", e)
+                logger.error("[backup] settings: %r", e)
                 failed.append("settings")
 
         if opts.get("preferences"):
@@ -107,7 +109,7 @@ async def create_backup(
                 ]
                 zf.writestr("preferences.json", json.dumps(prefs_data, ensure_ascii=False, indent=2))
             except Exception as e:
-                logger.error("[backup] preferences: %s", e)
+                logger.error("[backup] preferences: %r", e)
                 failed.append("preferences")
 
         if opts.get("scheduler"):
@@ -131,7 +133,7 @@ async def create_backup(
                 ]
                 zf.writestr("scheduler.json", json.dumps(tasks_data, ensure_ascii=False, indent=2))
             except Exception as e:
-                logger.error("[backup] scheduler: %s", e)
+                logger.error("[backup] scheduler: %r", e)
                 failed.append("scheduler")
 
         if opts.get("watchlist"):
@@ -145,7 +147,7 @@ async def create_backup(
                 scans_data = [{"scan_key": s.scan_key, "data": s.data} for s in scans]
                 zf.writestr("watchlist.json", json.dumps(scans_data, ensure_ascii=False, indent=2))
             except Exception as e:
-                logger.error("[backup] watchlist: %s", e)
+                logger.error("[backup] watchlist: %r", e)
                 failed.append("watchlist")
 
         if opts.get("logs"):
@@ -156,7 +158,7 @@ async def create_backup(
                 for log_file in LOG_DIR.glob("*.txt"):
                     zf.write(log_file, f"logs/{log_file.name}")
             except Exception as e:
-                logger.error("[backup] logs: %s", e)
+                logger.error("[backup] logs: %r", e)
                 failed.append("logs")
 
         if opts.get("pg_dump"):
@@ -169,7 +171,7 @@ async def create_backup(
                     raise RuntimeError("no SQL produced")
                 zf.writestr("pg_dump.sql", sql)
             except Exception as e:
-                logger.error("[backup] pg_dump: %s", e)
+                logger.error("[backup] pg_dump: %r", e)  # %r: a timeout carries no message
                 failed.append("pg_dump")
 
         encryption_key_meta = _embed_encryption_key(zf)

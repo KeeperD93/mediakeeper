@@ -143,7 +143,6 @@ async def test_manual_create_survives_retention_failure(db_session, workspace_tm
     assert resp["filename"] == "mediakeeper_backup_new.zip"
 
 
-
 @pytest.mark.asyncio
 async def test_incomplete_manual_backup_is_reported_and_keeps_older_ones(
     db_session, workspace_tmp_path, monkeypatch,
@@ -165,6 +164,7 @@ async def test_incomplete_manual_backup_is_reported_and_keeps_older_ones(
 
     assert resp["failed_components"] == ["pg_dump"]
     assert _remaining(backup_dir) == {"mediakeeper_backup_new.zip", "mediakeeper_backup_complete.zip"}
+
 
 @pytest.mark.asyncio
 async def test_apply_now_reports_the_backups_removed(db_session, workspace_tmp_path, monkeypatch):
@@ -199,7 +199,6 @@ async def test_scheduled_backup_applies_retention(db_session, workspace_tmp_path
     assert _remaining(backup_dir) == {"mediakeeper_backup_auto.zip"}
 
 
-
 @pytest.mark.asyncio
 async def test_incomplete_scheduled_backup_fails_the_task_and_keeps_older_ones(
     db_session, workspace_tmp_path, monkeypatch,
@@ -220,6 +219,7 @@ async def test_incomplete_scheduled_backup_fails_the_task_and_keeps_older_ones(
         await _handler_backup(db_session)
 
     assert _remaining(backup_dir) == {"mediakeeper_backup_auto.zip", "mediakeeper_backup_complete.zip"}
+
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("stored", ["{not json", "[1]"])

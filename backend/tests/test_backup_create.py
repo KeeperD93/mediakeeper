@@ -8,6 +8,7 @@ from cryptography.fernet import Fernet
 from pydantic import ValidationError
 
 from api.backup._schemas import BackupRequest
+from constants.backup import BACKUP_LABEL_MAX_LENGTH
 from core.encryption import ENCRYPTED_PREFIX
 from services.backup import DEFAULT_COMPONENTS, get_backup_path
 from services.backup.create import (
@@ -213,7 +214,19 @@ async def test_label_keeps_only_what_the_file_routes_accept(
 
 def test_label_is_capped_like_the_file_name():
     with pytest.raises(ValidationError):
-        BackupRequest(label="x" * 41)
+        BackupRequest(label="x" * (BACKUP_LABEL_MAX_LENGTH + 1))
+
+
+@pytest.mark.asyncio
+async def test_a_label_at_the_cap_still_names_a_reachable_backup(db_session, patched_backup_dir):
+    """The API cap, the archive writer and the file routes' name check agree."""
+    label = "x" * BACKUP_LABEL_MAX_LENGTH
+    BackupRequest(label=label)
+
+    backup_path = (await create_backup(db_session, components=NO_COMPONENTS, label=label)).path
+
+    assert backup_path.name.endswith(f"_{label}.zip")
+    assert get_backup_path(backup_path.name, patched_backup_dir) is not None
 
 
 @pytest.mark.asyncio

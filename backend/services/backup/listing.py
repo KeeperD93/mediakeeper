@@ -16,6 +16,7 @@ from ._state import get_retention_days, resolve_backup_dir
 
 logger = logging.getLogger("mediakeeper.backup")
 
+# The label part allows BACKUP_LABEL_MAX_LENGTH characters (constants/backup.py).
 _BACKUP_FILENAME_RE = re.compile(
     r"^mediakeeper_backup_\d{8}_\d{6}(?:_[A-Za-z0-9_-]{1,40})?\.zip$"
 )
