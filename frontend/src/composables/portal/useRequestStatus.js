@@ -31,9 +31,9 @@ export function useRequestStatus() {
    * skipped. Results are merged into the global cache so all MediaCards
    * refresh reactively.
    *
-   * The backend only returns active statuses (pending / approved /
-   * available) — rejected items are deliberately omitted so the user
-   * can re-request them, and missing entries simply mean "not requested".
+   * The backend returns pending / approved / available and rejected
+   * statuses (a rejected title is offered "Request again"); archived
+   * requests are left out, and missing entries simply mean "not requested".
    */
   async function checkStatus(items) {
     if (!items?.length) return

@@ -2,13 +2,14 @@
  * State derived from a single portal media item, consumed by MediaCard
  * (a thin wrapper around PosterCard). Returns the bits the wrapper still
  * needs to drive PosterCard props — availability cache, request status,
- * NEW-on-Emby flag, blacklist marker, and the three tooltips that the
+ * NEW-on-Emby flag, blacklist marker, and the four tooltips that the
  * legacy MediaCard surfaced on its diagonal ribbons.
  */
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAvailability } from '@/composables/portal/useAvailability'
 import { useRequestStatus } from '@/composables/portal/useRequestStatus'
+import { AVAILABILITY } from '@/constants/portal'
 import { REQUEST_STATUS } from '@/constants/requests'
 import { formatDate } from '@/utils/format'
 
@@ -34,7 +35,7 @@ export function useMediaCardState(props) {
     if (props.item?.emby_url || props.item?.availability) {
       return {
         emby_url: props.item.emby_url || '',
-        availability: props.item.availability || 'full',
+        availability: props.item.availability || AVAILABILITY.FULL,
       }
     }
     return null
