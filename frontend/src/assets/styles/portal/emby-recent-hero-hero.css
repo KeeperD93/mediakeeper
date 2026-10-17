@@ -209,10 +209,9 @@
   height: 20px;
 }
 
-/* ───────── Desktop overrides (≥ 1024px) ─────────
-   Wide screens push the text panel onto the left half so the
-   backdrop artwork keeps its presence on the right. Mobile uses a
-   stacked layout (backdrop top, text bottom). */
+/* Desktop overrides (≥ 1024px): wide screens push the text panel onto the
+   left half so the backdrop artwork keeps its presence on the right. Mobile
+   uses a stacked layout (backdrop top, text bottom). */
 @media (min-width: 1024px) {
   .pt-eh-hero {
     height: 74vh;

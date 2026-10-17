@@ -133,7 +133,7 @@ const lightboxOpen = ref(false)
 const reducedMotion = usePrefersReducedMotion()
 
 // Trailer-URL resolution only — never mounts a YouTube IFrame in the
-// hero itself. ``resolve`` populates ``trailer`` so the "Bande-annonce"
+// hero itself. ``resolve`` populates ``trailer`` so the trailer
 // button can show / hide based on availability; clicking the button
 // opens the fullscreen lightbox where the actual <iframe> finally
 // lives. Module-level cache keeps the per-item resolve to one request.
@@ -253,7 +253,7 @@ onMounted(() => {
   // Lazy lifecycle: the rotation + the trailer-URL resolve only run
   // while the section is on screen. The trailer subsystem stays
   // limited to a URL lookup — no YouTube IFrame is mounted until the
-  // user explicitly clicks the "Bande-annonce" button.
+  // user explicitly clicks the trailer button.
   if (sectionRef.value && typeof IntersectionObserver === 'function') {
     visibilityObs = new IntersectionObserver(
       ([entry]) => {

@@ -28,7 +28,7 @@
       >
         <span class="mk-poster__avail-dot" />
         {{
-          availability === 'full'
+          availability === AVAILABILITY.FULL
             ? $t('portal.posterCard.availFull')
             : $t('portal.posterCard.availPartial')
         }}
@@ -123,6 +123,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Bookmark, EyeOff, Plus, Clock, RotateCcw, Star } from 'lucide-vue-next'
 import PremiumRibbon from '@/components/portal/PremiumRibbon.vue'
+import { AVAILABILITY } from '@/constants/portal'
 
 import '@/assets/styles/portal/poster-card.css'
 
@@ -147,7 +148,7 @@ const props = defineProps({
   availability: {
     type: String,
     default: null,
-    validator: v => v == null || v === 'full' || v === 'partial',
+    validator: v => v == null || Object.values(AVAILABILITY).includes(v),
   },
   isNew: { type: Boolean, default: false },
   bookmarked: { type: Boolean, default: false },
@@ -199,7 +200,7 @@ const statusLabel = computed(() =>
 )
 
 const action = computed(() => {
-  if (props.availability === 'full') {
+  if (props.availability === AVAILABILITY.FULL) {
     return { label: t('portal.posterCard.actionPlay'), tone: 'play', icon: 'play' }
   }
   if (props.status === 'rejected') {

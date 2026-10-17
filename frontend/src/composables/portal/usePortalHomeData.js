@@ -156,16 +156,14 @@ export function usePortalHomeData() {
     const runRow = async (url, target, { isHeroList = false, extraApply } = {}) => {
       const data = await apiGet(url).catch(() => null)
       const items = data?.items || []
-      // A hero list waits for its availability: shown earlier, the banner
-      // would offer "Request" on a title Emby already holds.
+      // A hero list waits for its availability: shown earlier, the main banner would
+      // offer "Request" on a title Emby holds, the Emby row flip a series to partial.
       if (!isHeroList) target.value = items
       if (extraApply) extraApply(data)
       if (items.length) {
         await Promise.all([checkAvailability(items), checkRequestStatus(items)])
-        // Hero strips (featured / trending / recentEmby) embed the
-        // emby_url + availability on each item so the banner can render
-        // the "Regarder" CTA without going through the availability
-        // cache on each keypress. Other rows pull those fields on demand.
+        // Hero lists carry emby_url + availability on each item so the banners
+        // render Play without a cache lookup per render; other rows read the cache.
         if (isHeroList) stampAvailability(items)
       }
       if (isHeroList) target.value = items

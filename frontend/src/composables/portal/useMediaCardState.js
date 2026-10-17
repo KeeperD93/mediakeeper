@@ -41,11 +41,10 @@ export function useMediaCardState(props) {
     return null
   })
 
-  // Global "already requested" status for this tmdb_id. The backend
-  // returns null when no active request exists. Items served by the
-  // profile page may carry their own `_request_status` — honour it as a
-  // fallback so the badge stays visible even if the global cache wasn't
-  // primed for that item.
+  // Global request status for this tmdb_id (pending / approved / available /
+  // rejected), null when there is none. Items served by the profile page may
+  // carry their own `_request_status` — honour it as a fallback so the badge
+  // stays visible even if the global cache wasn't primed for that item.
   const reqStatus = computed(() => {
     const id = props.item?.tmdb_id || props.item?.id
     const cached = id ? getStatus(id) : null
@@ -99,9 +98,8 @@ export function useMediaCardState(props) {
     () => props.item?._request_status || reqStatus.value?.status || null,
   )
 
-  // ── Tooltips for the diagonal ribbon ────────────────────────────
-  // Each computed targets one ribbon flavour. MediaCard picks the
-  // matching one based on which status the card is currently showing.
+  // Tooltips for the diagonal ribbon: each computed targets one ribbon
+  // flavour, MediaCard picks the one matching the status the card shows.
 
   // Pending / approved — surfaces who requested it and when.
   const postitTooltip = computed(() => {
