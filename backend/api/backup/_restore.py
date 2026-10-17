@@ -4,7 +4,7 @@ import zipfile
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.auth import get_current_user
@@ -94,7 +94,7 @@ async def restore_backup_endpoint(
 @router.post("/upload-restore")
 async def upload_and_restore(
     file: UploadFile = File(...),
-    components: str = "{}",
+    components: str = Form("{}"),
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
@@ -126,7 +126,7 @@ async def upload_and_restore(
 @router.post("/upload-restore-json")
 async def upload_and_restore_json(
     file: UploadFile = File(...),
-    components: str = "{}",
+    components: str = Form("{}"),
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user),
 ):

@@ -37,6 +37,7 @@ This section intentionally has no date so it is not shown to users.
 - Backups — an accented label no longer makes a backup unreachable.
 - Backups — explicit errors: out-of-range retention explained, real cause of each failure.
 - Backups — a part that could not be saved is reported and no longer evicts complete backups.
+- Backups — file import: ticked parts restored (a .zip restored nothing).
 - Requests — a failed status change or deletion now gives its cause.
 - Errors — input refused by the server shows a readable message.
 

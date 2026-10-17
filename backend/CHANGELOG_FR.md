@@ -37,6 +37,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Sauvegardes — un libellé accentué ne rend plus la sauvegarde introuvable.
 - Sauvegardes — erreurs explicites : rétention hors limites expliquée, vraie cause de chaque échec.
 - Sauvegardes — une partie non sauvegardée est signalée et n'évince plus les sauvegardes complètes.
+- Sauvegardes — import de fichier : parties cochées restaurées (un .zip ne restaurait rien).
 - Demandes — un changement de statut ou une suppression qui échoue donne sa cause.
 - Erreurs — une saisie refusée par le serveur affiche un message lisible.
 
