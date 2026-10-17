@@ -2,7 +2,6 @@
 import logging
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field, field_validator
-from typing import Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,11 +20,11 @@ class AddFeatured(BaseModel):
     tmdb_id: int
     media_type: str = Field(..., pattern="^(movie|tv)$")
     title: str = Field(..., min_length=1, max_length=500)
-    overview: Optional[str] = Field(None, max_length=2000)
-    poster_url: Optional[str] = Field(None, max_length=500)
-    backdrop: Optional[str] = Field(None, max_length=500)
-    vote: Optional[float] = None
-    year: Optional[str] = Field(None, max_length=10)
+    overview: str | None = Field(None, max_length=2000)
+    poster_url: str | None = Field(None, max_length=500)
+    backdrop: str | None = Field(None, max_length=500)
+    vote: float | None = None
+    year: str | None = Field(None, max_length=10)
     sort_order: int = 0
 
     # Stored, then re-served into the home banner (background-image sink):
@@ -37,8 +36,8 @@ class AddFeatured(BaseModel):
 
 
 class UpdateFeatured(BaseModel):
-    sort_order: Optional[int] = None
-    active: Optional[bool] = None
+    sort_order: int | None = None
+    active: bool | None = None
 
 
 @router.get("")

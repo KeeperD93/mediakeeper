@@ -1,7 +1,6 @@
 """Portal media request endpoints."""
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
@@ -23,11 +22,11 @@ class CreateRequest(BaseModel):
     tmdb_id: int
     media_type: str = Field(..., pattern="^(movie|tv)$")
     title: str = Field(..., min_length=1, max_length=500)
-    year: Optional[int] = None
-    poster_url: Optional[str] = Field(None, max_length=500)
-    backdrop_url: Optional[str] = Field(None, max_length=500)
-    requested_seasons: Optional[list] = Field(default=None, max_length=100)
-    on_behalf_of: Optional[int] = None
+    year: int | None = None
+    poster_url: str | None = Field(None, max_length=500)
+    backdrop_url: str | None = Field(None, max_length=500)
+    requested_seasons: list | None = Field(default=None, max_length=100)
+    on_behalf_of: int | None = None
 
     # Stored, then re-served to the community list and the admin queue
     # (background-image / <img src> sinks): same rule as featured titles
@@ -41,15 +40,15 @@ class CreateRequest(BaseModel):
 class StatusUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
     status: str = Field(..., pattern="^(approved|rejected|available)$")
-    reason: Optional[str] = Field(None, max_length=500)
+    reason: str | None = Field(None, max_length=500)
     # Mark available even though Emby does not hold the content (admin confirmed).
     force: bool = False
 
 
 @router.get("")
 async def list_requests(
-    status_filter: Optional[str] = Query(None, alias="status"),
-    cursor: Optional[str] = None,
+    status_filter: str | None = Query(None, alias="status"),
+    cursor: str | None = None,
     limit: int = Query(25, ge=1, le=100),
     locale: str = Depends(get_request_locale),
     up: tuple[User, UserProfile] = Depends(require_permission("can_portal")),
