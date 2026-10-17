@@ -36,6 +36,7 @@ utilisateurs.
 - Trophées — Demandeur et Ambassadeur comptent aussi les demandes disponibles ou archivées.
 - Listes — page plus compacte sur téléphone.
 - Problèmes — filtres et tri à taille tactile sur téléphone, flèche des menus espacée.
+- Jaquettes — boutons « Demander » et « Redemander » correctement libellés.
 
 ## [1.0.0-rc.8] - 2026-10-11
 

@@ -34,6 +34,7 @@ This section intentionally has no date so it is not shown to users.
 - Trophies — Requester and Ambassador also count available or archived requests.
 - Lists — more compact page on phones.
 - Issues — touch-sized filters and sort on phones, menu arrows clear of the edge.
+- Posters — Request and Re-request buttons correctly labelled in French.
 
 ## [1.0.0-rc.8] - 2026-10-11
 
