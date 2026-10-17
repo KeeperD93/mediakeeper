@@ -123,11 +123,7 @@ export async function fetchApiResponse(
   // 401s — re-issue rq_token via the existing admin bypass and try
   // once more before giving up. Skip if the call IS /enter to avoid
   // infinite loops.
-  if (
-    retryRes.status === 401
-    && url.startsWith('/api/portal/')
-    && url !== PORTAL_ADMIN_ENTER_URL
-  ) {
+  if (retryRes.status === 401 && url.startsWith('/api/portal/') && url !== PORTAL_ADMIN_ENTER_URL) {
     const enterRes = await runFetch(PORTAL_ADMIN_ENTER_URL, { method: 'POST' })
     if (enterRes.ok) {
       const finalRes = await runFetch(url)
