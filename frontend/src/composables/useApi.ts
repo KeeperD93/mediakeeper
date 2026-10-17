@@ -46,8 +46,8 @@ export interface UseApiReturn {
 }
 
 /**
- * Composable for les calls API with management automatique
- * du cookie httpOnly JWT et redirection 401.
+ * API calls with the httpOnly JWT cookie sent automatically: a 401 renews
+ * the session once, then redirects to the login page.
  */
 export function useApi(): UseApiReturn {
   const loading = ref(false)
@@ -84,7 +84,7 @@ export function useApi(): UseApiReturn {
   }
 
   /**
-   * Raccourci GET JSON
+   * GET shortcut returning the parsed JSON.
    */
   async function apiGet<T = unknown>(url: string): Promise<T | null> {
     const res = await apiFetch(url)
@@ -92,7 +92,7 @@ export function useApi(): UseApiReturn {
   }
 
   /**
-   * Raccourci POST JSON
+   * POST shortcut with a JSON body.
    */
   async function apiPost<T = unknown, B = unknown>(url: string, body?: B): Promise<T | null> {
     const res = await apiFetch(url, {
@@ -103,7 +103,7 @@ export function useApi(): UseApiReturn {
   }
 
   /**
-   * Raccourci PUT JSON
+   * PUT shortcut with a JSON body.
    */
   async function apiPut<T = unknown, B = unknown>(url: string, body?: B): Promise<T | null> {
     const res = await apiFetch(url, {
@@ -114,7 +114,7 @@ export function useApi(): UseApiReturn {
   }
 
   /**
-   * Raccourci DELETE
+   * DELETE shortcut.
    */
   async function apiDelete<T = unknown>(url: string): Promise<T | null> {
     const res = await apiFetch(url, { method: 'DELETE' })
@@ -122,7 +122,7 @@ export function useApi(): UseApiReturn {
   }
 
   /**
-   * Raccourci PATCH JSON
+   * PATCH shortcut with a JSON body.
    */
   async function apiPatch<T = unknown, B = unknown>(url: string, body?: B): Promise<T | null> {
     const res = await apiFetch(url, {
