@@ -108,4 +108,24 @@ describe('usePortalHomeData', () => {
     expect(home.heroIndex.value).toBe(1)
     w.unmount()
   })
+
+  it('stops the rotation once reduced motion is switched on', async () => {
+    vi.useFakeTimers()
+    const mql = { matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn(() => mql),
+    )
+    const { w, home } = mountHome()
+    await home.loadAllData()
+
+    vi.advanceTimersByTime(10000)
+    expect(home.heroIndex.value).toBe(1)
+
+    mql.addEventListener.mock.calls[0][1]({ matches: true })
+    await nextTick()
+    vi.advanceTimersByTime(30000)
+    expect(home.heroIndex.value).toBe(1)
+    w.unmount()
+  })
 })

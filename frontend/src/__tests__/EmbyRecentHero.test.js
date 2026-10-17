@@ -89,4 +89,28 @@ describe('EmbyRecentHero — Play button', () => {
     expect(playHref()).toBe('http://emby.invalid/second')
     w.unmount()
   })
+
+  it('stops rotating once reduced motion is switched on', async () => {
+    const mql = { matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn(() => mql),
+    )
+    const w = mountHero(
+      { emby_url: 'http://emby.invalid/first' },
+      { emby_url: 'http://emby.invalid/second' },
+    )
+    const playHref = () => w.get('a.pt-eh-btn--play').attributes('href')
+
+    vi.advanceTimersByTime(10000)
+    await nextTick()
+    expect(playHref()).toBe('http://emby.invalid/second')
+
+    mql.addEventListener.mock.calls[0][1]({ matches: true })
+    await nextTick()
+    vi.advanceTimersByTime(30000)
+    await nextTick()
+    expect(playHref()).toBe('http://emby.invalid/second')
+    w.unmount()
+  })
 })
