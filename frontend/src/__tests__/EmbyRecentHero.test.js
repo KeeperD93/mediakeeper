@@ -1,9 +1,10 @@
 /**
  * Covers the "Play" button of the recently-added hero: it opens the current
- * title in Emby in a new tab, and never renders an unsafe link.
+ * title in Emby in a new tab, and never renders an unsafe link. The rotation
+ * stops while the device asks for reduced motion.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { ref } from 'vue'
+import { nextTick, ref } from 'vue'
 import { mount } from '@vue/test-utils'
 
 vi.mock('@/composables/portal/useTrailer', () => ({
@@ -12,9 +13,9 @@ vi.mock('@/composables/portal/useTrailer', () => ({
 
 import EmbyRecentHero from '@/components/portal/EmbyRecentHero.vue'
 
-function mountHero(item) {
+function mountHero(...items) {
   return mount(EmbyRecentHero, {
-    props: { items: [{ id: 1, title: 'Movie', ...item }] },
+    props: { items: items.map((item, i) => ({ id: i + 1, title: 'Movie', ...item })) },
     global: { stubs: { MediaCard: true, TrailerLightbox: true } },
   })
 }
@@ -46,9 +47,46 @@ describe('EmbyRecentHero — Play button', () => {
     w.unmount()
   })
 
+  it('follows the rotation to the title on screen', async () => {
+    const w = mountHero(
+      { emby_url: 'http://emby.invalid/first' },
+      { emby_url: 'http://emby.invalid/second' },
+    )
+
+    vi.advanceTimersByTime(10000)
+    await nextTick()
+
+    expect(w.get('a.pt-eh-btn--play').attributes('href')).toBe('http://emby.invalid/second')
+    w.unmount()
+  })
+
   it('shows no Play button without a safe Emby link', () => {
     const w = mountHero({ emby_url: 'javascript:alert(1)' })
     expect(w.find('.pt-eh-btn--play').exists()).toBe(false)
+    w.unmount()
+  })
+
+  it('holds still under reduced motion and resumes once it is switched off', async () => {
+    const mql = { matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() }
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn(() => mql),
+    )
+    const w = mountHero(
+      { emby_url: 'http://emby.invalid/first' },
+      { emby_url: 'http://emby.invalid/second' },
+    )
+    const playHref = () => w.get('a.pt-eh-btn--play').attributes('href')
+
+    vi.advanceTimersByTime(30000)
+    await nextTick()
+    expect(playHref()).toBe('http://emby.invalid/first')
+
+    mql.addEventListener.mock.calls[0][1]({ matches: false })
+    await nextTick()
+    vi.advanceTimersByTime(10000)
+    await nextTick()
+    expect(playHref()).toBe('http://emby.invalid/second')
     w.unmount()
   })
 })

@@ -7,21 +7,24 @@
  * This composable owns the state and the refresh cycle; the view stays
  * focused on layout + user interactions.
  */
-import { ref, computed, onUnmounted } from 'vue'
+import { ref, computed, watch, onUnmounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useAvailability } from '@/composables/portal/useAvailability'
 import { useRequestStatus } from '@/composables/portal/useRequestStatus'
+import { usePrefersReducedMotion } from '@/composables/usePrefersReducedMotion'
 
 // Hero rotation cadence (ms): the carousel advances one item per tick.
 // nextHero() also treats it as a floor so a manual jump (dot strip)
 // still gets a full window before the next auto-advance. Rotation pauses
-// while a trailer lightbox is open (heroPaused).
+// while a trailer lightbox is open (heroPaused) and does not run at all
+// when the device asks for reduced motion.
 const HERO_MIN_INTERVAL_MS = 10000
 
 export function usePortalHomeData() {
   const { apiGet } = useApi()
   const { checkAvailability, getAvailability } = useAvailability()
   const { checkStatus: checkRequestStatus, clearCache: clearRequestCache } = useRequestStatus()
+  const reducedMotion = usePrefersReducedMotion()
 
   // Carousel sources (one ref per row so Vue can react granularly
   // and we avoid re-rendering the whole page when any single endpoint
@@ -92,6 +95,7 @@ export function usePortalHomeData() {
 
   function startHeroRotation() {
     stopHeroRotation()
+    if (reducedMotion.value) return
     heroTimer = setInterval(() => {
       if (heroItems.value.length > 1 && !heroPaused.value) {
         nextHero()
@@ -119,6 +123,9 @@ export function usePortalHomeData() {
       pendingNextHeroTimer = setTimeout(advanceHero, delay)
     }
   }
+
+  // The setting can change while the page is open.
+  watch(reducedMotion, reduced => (reduced ? stopHeroRotation() : startHeroRotation()))
 
   // Back-fill emby_url / availability on a list after its availability
   // check has resolved. Hero strips read these fields directly instead
@@ -149,7 +156,9 @@ export function usePortalHomeData() {
     const runRow = async (url, target, { isHeroList = false, extraApply } = {}) => {
       const data = await apiGet(url).catch(() => null)
       const items = data?.items || []
-      target.value = items
+      // A hero list waits for its availability: shown earlier, the banner
+      // would offer "Request" on a title Emby already holds.
+      if (!isHeroList) target.value = items
       if (extraApply) extraApply(data)
       if (items.length) {
         await Promise.all([checkAvailability(items), checkRequestStatus(items)])
@@ -157,8 +166,9 @@ export function usePortalHomeData() {
         // emby_url + availability on each item so the banner can render
         // the "Regarder" CTA without going through the availability
         // cache on each keypress. Other rows pull those fields on demand.
-        if (isHeroList) stampAvailability(target.value)
+        if (isHeroList) stampAvailability(items)
       }
+      if (isHeroList) target.value = items
     }
 
     const tasks = [

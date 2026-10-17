@@ -88,6 +88,8 @@ describe('HeroBanner — request CTA reflects request status', () => {
   })
 
   it('offers Play, opening Emby in a new tab, for a title already on Emby', () => {
+    // Even with an open request, a title on Emby only offers Play.
+    getStatus.mockReturnValue({ status: REQUEST_STATUS.PENDING })
     const w = buildHero({ ...movieItem, emby_url: 'http://emby.invalid/item' })
     const play = w.get('a.pt-hero-btn--play')
     expect(play.text()).toContain('portal.hero.play')
@@ -99,6 +101,7 @@ describe('HeroBanner — request CTA reflects request status', () => {
   })
 
   it('shows no button at all when the Emby link is unsafe', () => {
+    getStatus.mockReturnValue({ status: REQUEST_STATUS.PENDING })
     const w = buildHero({ ...movieItem, emby_url: 'javascript:alert(1)' })
     expect(w.find('.pt-hero-btn--play').exists()).toBe(false)
     expect(w.find('.pt-hero-btn--pending').exists()).toBe(false)

@@ -41,6 +41,12 @@
 .pt-eh-bg-fade-leave-to {
   opacity: 0;
 }
+@media (prefers-reduced-motion: reduce) {
+  .pt-eh-bg-fade-enter-active,
+  .pt-eh-bg-fade-leave-active {
+    transition: none;
+  }
+}
 
 .pt-eh-gradient-top {
   position: absolute;

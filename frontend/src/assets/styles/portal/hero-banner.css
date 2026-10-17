@@ -51,6 +51,12 @@
 .pt-hero-bg-fade-leave-to {
   opacity: 0;
 }
+@media (prefers-reduced-motion: reduce) {
+  .pt-hero-bg-fade-enter-active,
+  .pt-hero-bg-fade-leave-active {
+    transition: none;
+  }
+}
 
 .pt-hero-vignette {
   position: absolute;

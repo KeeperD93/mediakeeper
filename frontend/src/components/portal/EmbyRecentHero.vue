@@ -105,6 +105,7 @@ import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import MediaCard from './MediaCard.vue'
 import TrailerLightbox from './TrailerLightbox.vue'
 import { useTrailer } from '@/composables/portal/useTrailer'
+import { usePrefersReducedMotion } from '@/composables/usePrefersReducedMotion'
 import { safeHref } from '@/utils/safeUrl'
 import { ChevronLeft, ChevronRight, Info, Video } from 'lucide-vue-next'
 
@@ -129,6 +130,7 @@ const canScrollLeft = ref(false)
 const canScrollRight = ref(false)
 const isVisible = ref(false)
 const lightboxOpen = ref(false)
+const reducedMotion = usePrefersReducedMotion()
 
 // Trailer-URL resolution only — never mounts a YouTube IFrame in the
 // hero itself. ``resolve`` populates ``trailer`` so the "Bande-annonce"
@@ -155,6 +157,7 @@ function nextItem() {
 }
 function startTimer() {
   stopTimer()
+  if (reducedMotion.value) return
   rotateTimer = setInterval(() => {
     if (heroPool.value.length > 1 && !lightboxOpen.value) nextItem()
   }, ROTATE_MS)
@@ -233,6 +236,11 @@ watch(
     nextTick(updateArrows)
   },
 )
+// The reduced-motion setting can change while the page is open.
+watch(reducedMotion, reduced => {
+  if (reduced) stopTimer()
+  else if (isVisible.value && !lightboxOpen.value) startTimer()
+})
 
 let resizeObs = null
 let visibilityObs = null
