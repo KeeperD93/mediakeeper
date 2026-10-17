@@ -48,30 +48,37 @@ async def update_request_status(
 ) -> dict:
     """Admin: approve/reject/mark-available a request.
     Side-effects:
-      - `approved` → DM notification to the original requester; from
+      - `approved` → bell notification to the original requester; from
         `available` it silently undoes a wrong availability instead
-      - `available` → DM notification (media landed in Emby); refused with
+      - `available` → bell notification (media landed in Emby); refused with
         ``not_in_library`` / ``library_check_failed`` while Emby does not
         verifiably hold the content, unless ``force`` (admin confirmed)
-      - `rejected` (from pending or approved) → DM notification carrying the
+      - `rejected` (from pending or approved) → bell notification carrying the
         reason; if the media reaches BLACKLIST_REJECT_THRESHOLD total
         rejections across all requests, it's auto-added to the blacklist
         (hidden from every user-facing list until an admin unblocks it).
+    Resending the status a request already has (from a stale queue, after
+    the automatic flip for instance) changes and notifies nothing.
     """
     req = await db.get(MediaRequest, request_id)
     if not req:
         return {"error": "not_found"}
+    if new_status == req.status:
+        return {"success": True, "user_id": req.user_id}
     undo_available = req.status == REQUEST_AVAILABLE and new_status == REQUEST_APPROVED
-    if new_status == REQUEST_AVAILABLE and req.status != REQUEST_AVAILABLE:
+    if new_status == REQUEST_AVAILABLE:
         if not force:
             error = await _library_check_error(db, req)
             if error:
                 return {"error": error}
-        # Starts the auto-archive delay; re-marking an available request keeps it.
+        # Starts the auto-archive delay.
         req.available_at = datetime.now(timezone.utc)
     if undo_available:
         # The automatic flip redoes it once Emby really holds the content.
         req.available_at = None
+    # A stale queue line can act on a request archived meanwhile: bring it
+    # back, it must not stay hidden while blocking new requests for the title.
+    req.archived_at = None
     req.status = new_status
     if new_status == REQUEST_APPROVED and not undo_available:
         req.approved_by = admin_id
@@ -115,6 +122,7 @@ async def _library_check_error(db: AsyncSession, req: MediaRequest) -> str | Non
     try:
         return None if await is_request_in_library(db, req) else "not_in_library"
     except Exception:
-        # Emby or TMDB unreachable: the admin decides, as for a missing title.
+        # Only an unexpected failure lands here: Emby or TMDB outages read as a
+        # title Emby does not hold. Either way the admin decides.
         logger.warning("[REQUEST] library check failed for request_id=%s", req.id, exc_info=True)
         return "library_check_failed"

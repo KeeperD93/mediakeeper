@@ -31,7 +31,7 @@ logger = logging.getLogger("mediakeeper.portal.requests")
 async def fulfill_open_requests(db: AsyncSession) -> int:
     """Flip every open request whose content is in Emby, notify each requester
     and re-check their trophies. Returns the number of requests flipped."""
-    # Plain rows, not ORM objects: the per-request commits and rollbacks would expire them.
+    # Plain rows, not ORM objects: the rollback after a failed request would expire them.
     rows = (await db.execute(
         select(
             MediaRequest.id, MediaRequest.user_id, MediaRequest.tmdb_id,
@@ -75,6 +75,9 @@ async def fulfill_open_requests(db: AsyncSession) -> int:
             logger.exception("[REQUEST] fulfilment failed for request_id=%s", req.id)
 
     for user_id in requesters:
+        # A check that fails keeps its error to itself but not its failed
+        # transaction: start each one on a clean session.
+        await db.rollback()
         await safe_check_all_achievements(
             db, user_id=user_id, user_name=None, source="request_status_change",
         )

@@ -130,12 +130,13 @@ async def _handler_feedback_purge(db: AsyncSession) -> dict:
 
 
 async def _handler_fulfill_requests(db: AsyncSession) -> dict:
+    """Mark the open requests available once Emby holds what they asked for."""
     from services.portal.requests_fulfill import fulfill_open_requests
     return {"fulfilled": await fulfill_open_requests(db)}
 
 
 async def _handler_cleanup_available_requests(db: AsyncSession) -> dict:
-    """Archive ``available`` media requests older than the configured window.
+    """Archive ``available`` media requests older than the configured delay.
 
     Early-returns when ``requests.auto_cleanup_days`` is 0 (or unset) so
     the task is harmless to leave on by default — flipping the setting

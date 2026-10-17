@@ -137,9 +137,9 @@ class MKEventMessage(Base):
 
 class MKNotification(Base):
     """
-    Universal bell for the Requests module. Not only for events:
-    future notifications such as request_approved, request_rejected, ticket_replied
-    will also flow through here.
+    Universal bell of the portal. Not only for events: request status changes
+    (request_approved, request_available, request_rejected), ticket replies
+    and list activity flow through here too.
     """
     __tablename__ = "mk_notifications"
 

@@ -42,8 +42,9 @@ class MediaRequest(Base):
     # job can window on that moment exclusively (``updated_at`` is bumped
     # on every status change).
     available_at    = Column(DateTime(timezone=True), nullable=True)
-    # Set by the auto-archive job: the request leaves the Requests lists but
-    # stays counted by every total, statistic and trophy.
+    # Set by the auto-archive job (served requests) and a blacklist unblock
+    # (rejected ones): the request leaves the Requests lists but stays in the
+    # totals, statistics and trophies, not in the blacklist rejection count.
     archived_at     = Column(DateTime(timezone=True), nullable=True, index=True)
 
 

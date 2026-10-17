@@ -8,6 +8,7 @@ management (creation, monthly reset, snapshot) lives in
 """
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm.attributes import flag_modified
 
 from constants.requests import (
     REQUEST_APPROVED,
@@ -198,7 +199,7 @@ async def _backfill_images(
 ) -> None:
     """Fill a missing poster or backdrop from TMDB: rows created before the
     backdrop column existed, or whose image was dropped at creation. One TMDB
-    call per incomplete row, bounded by the page size (max 100)."""
+    lookup per incomplete row, bounded by the page size (max 100)."""
     missing = [r for r in rows if not r.poster_url or not r.backdrop_url]
     if not missing:
         return
@@ -211,11 +212,15 @@ async def _backfill_images(
             continue
         if not isinstance(detail, dict):
             continue
+        images = (r.poster_url, r.backdrop_url)
         if not r.poster_url and detail.get("poster"):
             r.poster_url = detail["poster"]
-            changed = True
         if not r.backdrop_url and detail.get("backdrop"):
             r.backdrop_url = detail["backdrop"]
+        if (r.poster_url, r.backdrop_url) != images:
+            # Not an edit: keep updated_at, behind the "this week" counters
+            # and the "modified" mention of the admin queue.
+            flag_modified(r, "updated_at")
             changed = True
     if changed:
         await db.commit()

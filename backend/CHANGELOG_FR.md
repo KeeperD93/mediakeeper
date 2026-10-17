@@ -28,6 +28,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Demandes — jaquette manquante rétablie (nouvelles demandes et demandes existantes).
 - Mise en avant — images conservées quand le cache d'images est activé.
 - Demandes — carte Disponibles : total depuis le début corrigé.
+- Demandes — compteurs de la semaine non faussés par les images rétablies.
 
 ## [1.0.0-rc.8] - 2026-10-11
 

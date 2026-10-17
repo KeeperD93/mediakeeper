@@ -106,7 +106,7 @@ async def create_request(
     await _acquire_request_creation_locks(db, user_id, tmdb_id, media_type)
 
     # Only an open request blocks: a served one means missing seasons, or content
-    # gone from Emby (a title Emby holds was refused just above).
+    # gone from Emby (a whole title Emby holds was refused just above).
     existing_active = (await db.execute(
         select(MediaRequest.id).where(
             MediaRequest.tmdb_id == tmdb_id,

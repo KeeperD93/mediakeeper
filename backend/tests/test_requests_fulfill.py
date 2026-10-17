@@ -7,6 +7,7 @@ requested episode that has already aired is in Emby.
 """
 from __future__ import annotations
 
+from contextlib import suppress
 from datetime import datetime, timezone
 from unittest.mock import patch
 
@@ -313,6 +314,37 @@ async def test_failed_flip_rolls_back_and_others_still_go_through(db_session, ch
     assert await _status(db_session, first_id) == "pending"
     assert await _status(db_session, second_id) == "available"
     assert [n.payload["request_id"] for n in await _notifications(db_session, user_id)] == [second_id]
+
+
+@pytest.mark.asyncio
+async def test_failed_trophy_check_does_not_stop_the_next_ones(db_session, monkeypatch):
+    """The trophy wrapper keeps a failure to itself but not its failed
+    transaction: each requester's check must start on a clean session."""
+    for name, tmdb_id in (("first_fan", 8101), ("second_fan", 8102)):
+        user = await _user(db_session, name)
+        await _request(db_session, user.id, tmdb_id)
+    calls: list[int] = []
+    finished: list[int] = []
+
+    async def check(db, *, user_id, user_name, source):
+        calls.append(user_id)
+        with suppress(Exception):  # the real wrapper logs and swallows the same way
+            if len(calls) == 1:
+                # A duplicate username: the flush fails mid-transaction.
+                db.add(User(
+                    username="first_fan", hashed_password="x",
+                    is_active=True, must_change_password=False,
+                ))
+                await db.flush()
+            await db.execute(select(1))
+            finished.append(user_id)
+        return []
+
+    monkeypatch.setattr(fulfill, "safe_check_all_achievements", check)
+
+    assert await fulfill.fulfill_open_requests(db_session) == 2
+    assert len(calls) == 2
+    assert finished == calls[1:]
 
 
 @pytest.mark.parametrize(("raw", "expected"), [

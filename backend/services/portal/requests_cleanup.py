@@ -22,7 +22,7 @@ REQUESTS_AUTO_CLEANUP_KEY = "requests.auto_cleanup_days"
 
 
 async def get_cleanup_days(db: AsyncSession) -> int:
-    """Read the configured retention window. 0 (or invalid) = disabled."""
+    """Read the configured archive delay, in days. 0 (or invalid) = disabled."""
     raw = await get_setting(db, REQUESTS_AUTO_CLEANUP_KEY)
     if not raw:
         return 0

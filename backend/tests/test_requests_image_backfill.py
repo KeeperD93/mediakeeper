@@ -1,15 +1,19 @@
 """The admin request queue restores a missing poster or backdrop from TMDB
 (requests created before the backdrop column, or whose image was dropped at
-creation), keeps the images already stored and leaves complete rows alone."""
+creation), keeps the images already stored and the update date, and leaves
+complete rows alone."""
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
 import pytest
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from core.security import hash_password
 from models.portal.request import MediaRequest
 from models.user import User
 from services.portal import requests as req_svc
+from services.portal.admin import get_admin_stats
 
 POSTER = "https://image.tmdb.org/t/p/w300/p.jpg"
 BACKDROP = "https://image.tmdb.org/t/p/w780/b.jpg"
@@ -55,6 +59,27 @@ async def test_missing_poster_is_restored_and_stored(db_session, monkeypatch):
     assert out["items"][0]["backdrop_url"] == BACKDROP
     stored = (await db_session.execute(select(MediaRequest.poster_url))).scalar_one()
     assert stored == POSTER
+
+
+@pytest.mark.asyncio
+async def test_filling_an_image_keeps_the_update_date(db_session, monkeypatch):
+    """A filled-in image is not an edit: the queue's "this week" counters and
+    its "modified" mention read updated_at."""
+    req = await _request(db_session, backdrop_url=BACKDROP)
+    long_ago = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    await db_session.execute(
+        update(MediaRequest).where(MediaRequest.id == req.id).values(updated_at=long_ago)
+        .execution_options(synchronize_session="fetch")
+    )
+    await db_session.commit()
+    _tmdb(monkeypatch, {"poster": POSTER})
+
+    await req_svc.list_requests(db_session, page=1, include_sensitive=True)
+
+    row = (await db_session.execute(select(MediaRequest.poster_url, MediaRequest.updated_at))).one()
+    assert row.poster_url == POSTER
+    assert row.updated_at.replace(tzinfo=timezone.utc) == long_ago  # SQLite reads it back naive
+    assert (await get_admin_stats(db_session))["approved_this_week"] == 0
 
 
 @pytest.mark.asyncio

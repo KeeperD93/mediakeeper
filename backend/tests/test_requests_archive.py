@@ -1,7 +1,7 @@
 """Archived requests leave the Requests lists but stay counted: the lists, the
 poster status and the duplicate checks ignore them, the admin totals keep
-them, and a blacklist unblock archives the media's rejections instead of
-deleting them."""
+them, a blacklist unblock archives the media's rejections instead of
+deleting them, and a status change brings an archived request back."""
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -130,6 +130,21 @@ async def test_unblock_archives_rejections_and_restarts_the_count(db_session):
     )).scalars().all()
     assert sorted(archived) == ids
     assert (await get_admin_stats(db_session))["rejected_total"] == 3
+
+
+@pytest.mark.asyncio
+async def test_status_change_brings_an_archived_request_back(db_session):
+    """Undoing the availability from a queue line archived meanwhile: the
+    request comes back instead of hiding while it blocks the title."""
+    uid = await _user(db_session)
+    admin_id = await _user(db_session, "admin")
+    rid = await _request(db_session, uid, 1, "available", archived=True)
+
+    assert (await update_request_status(db_session, rid, "approved", admin_id))["success"] is True
+
+    queue = await list_requests(db_session, page=1)
+    assert [i["id"] for i in queue["items"]] == [rid]
+    assert set(await get_batch_status(db_session, [1])) == {"1"}
 
 
 @pytest.mark.asyncio

@@ -107,9 +107,7 @@ async def sync_index(
     return await sync_emby_tmdb_index(db)
 
 
-# ---------------------------------------------------------------------------
-# Portal-wide settings (flags). Exposed to admins only.
-# ---------------------------------------------------------------------------
+# Portal-wide settings (flags), exposed to admins only.
 
 class PortalSettingsUpdate(BaseModel):
     # Strict mode: any unknown key (e.g. a frontend typo or a stale field

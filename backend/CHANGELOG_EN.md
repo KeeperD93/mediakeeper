@@ -28,6 +28,7 @@ This section intentionally has no date so it is not shown to users.
 - Requests — missing poster restored (new and existing requests).
 - Featured — images kept when the image cache is on.
 - Requests — Available card: since-the-beginning total fixed.
+- Requests — weekly counters no longer skewed by restored images.
 
 ## [1.0.0-rc.8] - 2026-10-11
 

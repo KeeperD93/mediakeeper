@@ -1,6 +1,7 @@
 """Marking a request available by hand checks Emby first, with the rules of the
 automatic flip: a missing title is refused until the admin forces it, and a
-wrong availability can be undone without notifying the requester again."""
+wrong availability can be undone without notifying the requester again. A
+stale queue resending the current status changes nothing."""
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -53,6 +54,15 @@ async def _state(db, rid: int):
     return (await db.execute(
         select(MediaRequest.status, MediaRequest.available_at, MediaRequest.approved_by)
         .where(MediaRequest.id == rid)
+    )).one()
+
+
+async def _row(db, rid: int):
+    return (await db.execute(
+        select(
+            MediaRequest.status, MediaRequest.available_at, MediaRequest.approved_by,
+            MediaRequest.reject_reason, MediaRequest.updated_at, MediaRequest.archived_at,
+        ).where(MediaRequest.id == rid)
     )).one()
 
 
@@ -112,15 +122,17 @@ async def test_series_follow_the_episode_rule(db_session, monkeypatch, served, e
 
 
 @pytest.mark.asyncio
-async def test_failed_check_leaves_the_admin_to_decide(db_session, monkeypatch):
+async def test_unexpected_check_failure_leaves_the_admin_to_decide(db_session, monkeypatch):
+    """Emby or TMDB outages read as a missing title; only an unexpected error
+    in the check itself reports it as failed."""
     uid = await _user(db_session, "viewer")
     admin_id = await _user(db_session, "admin", "admin")
     rid = await _request(db_session, uid, "approved")
 
-    async def unreachable(db, req):
-        raise RuntimeError("emby down")
+    async def broken(db, req):
+        raise RuntimeError("unexpected failure")
 
-    monkeypatch.setattr(requests_fulfill, "is_request_in_library", unreachable)
+    monkeypatch.setattr(requests_fulfill, "is_request_in_library", broken)
 
     assert await update_request_status(db_session, rid, "available", admin_id) == {
         "error": "library_check_failed",
@@ -143,6 +155,29 @@ async def test_undoing_availability_goes_back_to_approved_silently(db_session):
     assert state.status == "approved"
     assert state.available_at is None
     assert state.approved_by == first_admin  # who approved it does not change
+    assert await _bell_types(db_session) == []
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("status", ["approved", "available", "rejected"])
+async def test_resending_the_current_status_changes_nothing(db_session, status):
+    """A stale queue line (the automatic flip got there first, another admin
+    acted) resends the status the request already has: no bell, no rewrite."""
+    uid = await _user(db_session, "viewer")
+    first_admin = await _user(db_session, "admin", "admin")
+    other_admin = await _user(db_session, "admin2", "admin")
+    rid = await _request(
+        db_session, uid, status, approved_by=first_admin, reject_reason="First reason",
+        available_at=datetime(2026, 1, 1, tzinfo=timezone.utc),
+    )
+    before = await _row(db_session, rid)
+
+    result = await update_request_status(
+        db_session, rid, status, other_admin, "Second reason", force=True,
+    )
+
+    assert result == {"success": True, "user_id": uid}
+    assert await _row(db_session, rid) == before
     assert await _bell_types(db_session) == []
 
 

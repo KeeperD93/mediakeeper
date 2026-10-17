@@ -1,10 +1,9 @@
 """
 Notifications service — universal bell for the Portal module.
 
-Used by the events flow today (invitation, accepted, declined, cancelled,
-modified, removed, room_open, reminder) and ready to host future
-demand-related notifs (request_approved, request_rejected, ticket_replied,
-…).
+Used by the events flow (invitation, accepted, declined, cancelled,
+modified, removed, room_open, reminder) and by requests, tickets and lists
+(request_approved, request_available, request_rejected, ticket_replied, …).
 """
 import logging
 from datetime import datetime, timedelta, timezone
