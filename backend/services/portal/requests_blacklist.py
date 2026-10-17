@@ -1,7 +1,7 @@
 """Request blacklist — 3-strike auto-block helpers + admin CRUD.
 
 Extracted from ``requests.py`` (file-size rule). The 3-strike rule fires
-from ``update_request_status`` in requests.py and delegates here.
+from ``update_request_status`` in requests_status.py and delegates here.
 """
 import logging
 from datetime import datetime, timezone
