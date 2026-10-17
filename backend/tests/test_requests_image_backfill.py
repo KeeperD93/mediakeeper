@@ -90,6 +90,31 @@ async def test_filling_an_image_keeps_the_update_date(db_session, monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_a_status_change_made_while_tmdb_answers_is_kept(db_session, monkeypatch):
+    """The queue page was loaded, then the request was rejected before the
+    images came back: filling them must not bring back the loaded date."""
+    req = await _request(db_session, backdrop_url=BACKDROP)
+    rows = list((await db_session.execute(select(MediaRequest))).scalars().all())
+    rejected_at = datetime(2026, 6, 1, tzinfo=timezone.utc)
+    await db_session.execute(
+        update(MediaRequest).where(MediaRequest.id == req.id)
+        .values(status="rejected", updated_at=rejected_at)
+        .execution_options(synchronize_session=False)  # the loaded row stays stale, as in another session
+    )
+    await db_session.commit()
+    _tmdb(monkeypatch, {"poster": POSTER})
+
+    await req_svc._backfill_images(db_session, rows)
+
+    row = (await db_session.execute(
+        select(MediaRequest.status, MediaRequest.poster_url, MediaRequest.updated_at)
+    )).one()
+    assert (row.status, row.poster_url) == ("rejected", POSTER)
+    assert row.updated_at.replace(tzinfo=timezone.utc) == rejected_at
+    assert rows[0].poster_url == POSTER
+
+
+@pytest.mark.asyncio
 async def test_complete_rows_do_not_call_tmdb(db_session, monkeypatch):
     await _request(db_session, poster_url=POSTER, backdrop_url=BACKDROP)
     calls = _tmdb(monkeypatch, {"poster": "unused", "backdrop": "unused"})

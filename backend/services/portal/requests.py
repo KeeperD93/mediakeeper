@@ -6,9 +6,9 @@ back-compat). Blacklist helpers live in ``requests_blacklist.py``, quota
 management (creation, monthly reset, snapshot) lives in
 ``requests_quota.py``.
 """
-from sqlalchemy import select, func
+from sqlalchemy import select, func, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm.attributes import flag_modified
+from sqlalchemy.orm.attributes import set_committed_value
 
 from constants.requests import (
     REQUEST_APPROVED,
@@ -204,7 +204,7 @@ async def _backfill_images(
     if not missing:
         return
     from services.tmdb import get_media_detail
-    changed = False
+    filled: list[tuple[MediaRequest, dict[str, str]]] = []
     for r in missing:
         try:
             detail = await get_media_detail(r.media_type, r.tmdb_id, db)
@@ -212,18 +212,27 @@ async def _backfill_images(
             continue
         if not isinstance(detail, dict):
             continue
-        images = (r.poster_url, r.backdrop_url)
+        images = {}
         if not r.poster_url and detail.get("poster"):
-            r.poster_url = detail["poster"]
+            images["poster_url"] = detail["poster"]
         if not r.backdrop_url and detail.get("backdrop"):
-            r.backdrop_url = detail["backdrop"]
-        if (r.poster_url, r.backdrop_url) != images:
-            # Not an edit: keep updated_at, behind the "this week" counters
-            # and the "modified" mention of the admin queue.
-            flag_modified(r, "updated_at")
-            changed = True
-    if changed:
-        await db.commit()
+            images["backdrop_url"] = detail["backdrop"]
+        if images:
+            filled.append((r, images))
+    if not filled:
+        return
+    # Not an edit: keep the stored updated_at ("this week" counters, "modified"
+    # mention), even one a status change wrote while TMDB was answering.
+    for r, images in filled:
+        await db.execute(
+            update(MediaRequest)
+            .where(MediaRequest.id == r.id)
+            .values(**images, updated_at=MediaRequest.updated_at)
+            .execution_options(synchronize_session=False)
+        )
+        for column, url in images.items():
+            set_committed_value(r, column, url)
+    await db.commit()
 
 
 async def _load_requester_profiles(
