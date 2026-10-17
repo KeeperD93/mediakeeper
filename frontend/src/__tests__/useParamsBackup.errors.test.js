@@ -5,6 +5,7 @@
  * and a backup written without some parts names them.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { BACKUP_RETENTION_MODE } from '@/constants/backup'
 import { TOAST_TYPE } from '@/constants/toast'
 
 const mocks = vi.hoisted(() => ({ apiFetch: vi.fn(), apiGet: vi.fn(), showToast: vi.fn() }))
@@ -13,6 +14,8 @@ const mocks = vi.hoisted(() => ({ apiFetch: vi.fn(), apiGet: vi.fn(), showToast:
 const MESSAGES = vi.hoisted(() => ({
   'common.apiError.backup_not_found': 'Backup not found.',
   'common.apiError.backup_create_failed': 'Could not create the backup.',
+  'common.apiError.backup_directory_invalid': 'Invalid backup directory.',
+  'common.apiError.file_must_be_zip': 'The file must be a .zip archive.',
 }))
 const t = (key, named) => key + (named ? JSON.stringify(named) : '')
 
@@ -43,7 +46,7 @@ describe('useParamsBackup — retention', () => {
 
   it('explains a period outside 1 to 365 days instead of sending it', async () => {
     const b = useParamsBackup()
-    b.retentionMode.value = 'days'
+    b.retentionMode.value = BACKUP_RETENTION_MODE.DAYS
 
     for (const value of [500, -5, 2.5]) {
       b.retentionDays.value = value
@@ -55,7 +58,7 @@ describe('useParamsBackup — retention', () => {
 
   it('explains a backup count outside 1 to 100', async () => {
     const b = useParamsBackup()
-    b.retentionMode.value = 'count'
+    b.retentionMode.value = BACKUP_RETENTION_MODE.COUNT
     b.retentionCount.value = 101
 
     await b.saveRetention()
@@ -67,17 +70,17 @@ describe('useParamsBackup — retention', () => {
   it('sends days, a negative count, or 0 when off', async () => {
     const b = useParamsBackup()
 
-    b.retentionMode.value = 'days'
+    b.retentionMode.value = BACKUP_RETENTION_MODE.DAYS
     b.retentionDays.value = 365
     await b.saveRetention()
     expect(sentDays()).toBe(365)
 
-    b.retentionMode.value = 'count'
+    b.retentionMode.value = BACKUP_RETENTION_MODE.COUNT
     b.retentionCount.value = 5
     await b.saveRetention()
     expect(sentDays()).toBe(-5)
 
-    b.retentionMode.value = 'off'
+    b.retentionMode.value = BACKUP_RETENTION_MODE.OFF
     await b.saveRetention()
     expect(sentDays()).toBe(0)
     expect(lastToast()).toEqual(['backup.retentionSaved', TOAST_TYPE.OK])
@@ -144,11 +147,67 @@ describe('useParamsBackup — failed actions', () => {
   it('says the retention policy was not saved, not a network error', async () => {
     mocks.apiFetch.mockRejectedValue(new Error('http_500'))
     const b = useParamsBackup()
-    b.retentionMode.value = 'days'
+    b.retentionMode.value = BACKUP_RETENTION_MODE.DAYS
     b.retentionDays.value = 30
 
     await b.saveRetention()
 
     expect(lastToast()).toEqual(['backup.retentionSaveFailed', TOAST_TYPE.ERR])
+  })
+
+  it('says the backups could not be loaded', async () => {
+    mocks.apiGet.mockRejectedValue(new Error('http_500'))
+    const b = useParamsBackup()
+
+    await b.loadBackupInfo()
+
+    expect(lastToast()).toEqual(['common.apiError.loadFailed', TOAST_TYPE.ERR])
+    expect(b.backupLoading.value).toBe(false)
+  })
+
+  it('logs a failed folder list without a toast', async () => {
+    mocks.apiGet.mockRejectedValue(new Error('http_500'))
+
+    await useParamsBackup().loadBackupDirs()
+
+    expect(console.error).toHaveBeenCalledWith(
+      '[useParamsBackup.loadBackupDirs]',
+      expect.any(Error),
+    )
+    expect(mocks.showToast).not.toHaveBeenCalled()
+  })
+
+  it('explains a directory locked by the configuration, names other reasons', async () => {
+    const b = useParamsBackup()
+    const cases = [
+      ['backup_directory_locked', 'backup.dirLocked'],
+      ['backup_directory_invalid', 'Invalid backup directory.'],
+      ['http_500', 'backup.dirChangeFailed'],
+    ]
+    for (const [code, message] of cases) {
+      mocks.apiFetch.mockRejectedValueOnce(new Error(code))
+      await b.changeBackupDir('/data/elsewhere')
+      expect(lastToast()).toEqual([message, TOAST_TYPE.ERR])
+    }
+  })
+
+  it('says a restore failed when the server gives no reason', async () => {
+    mocks.apiFetch.mockRejectedValue(new Error('http_500'))
+    const b = useParamsBackup()
+
+    await b.restoreBackup('mediakeeper_backup_x.zip')
+
+    expect(lastToast()).toEqual(['common.apiError.backup_restore_failed', TOAST_TYPE.ERR])
+    expect(b.backupRestoring.value).toBeNull()
+  })
+
+  it("names the server's reason for a refused upload and clears the file input", async () => {
+    mocks.apiFetch.mockRejectedValue(new Error('file_must_be_zip'))
+    const event = { target: { files: [new File(['x'], 'backup.tar')], value: 'backup.tar' } }
+
+    await useParamsBackup().uploadRestore(event)
+
+    expect(lastToast()).toEqual(['The file must be a .zip archive.', TOAST_TYPE.ERR])
+    expect(event.target.value).toBe('')
   })
 })
