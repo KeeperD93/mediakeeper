@@ -34,6 +34,9 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Demandes — filtres et tri nommés pour les lecteurs d'écran, bouton « Marquer disponible ».
 - Sauvegardes — durée de conservation hors limites refusée (plus de plantage).
 - Sauvegardes — un libellé accentué ne rend plus la sauvegarde introuvable.
+- Sauvegardes — erreurs explicites : rétention hors limites expliquée, vraie cause de chaque échec.
+- Demandes — un changement de statut ou une suppression qui échoue donne sa cause.
+- Erreurs — une saisie refusée par le serveur affiche un message lisible.
 
 ## [1.0.0-rc.8] - 2026-10-11
 

@@ -1,6 +1,6 @@
 import { ref, type Ref } from 'vue'
 import i18n from '@/i18n'
-import { fetchApiResponse, type ApiFetchOptions } from './apiClient'
+import { extractDetailCode, fetchApiResponse, type ApiFetchOptions } from './apiClient'
 import { showRateLimitToast } from './handle429'
 
 export { buildApiHeaders, fetchApiResponse, getCsrfToken } from './apiClient'
@@ -11,18 +11,27 @@ export type { ApiFetchOptions } from './apiClient'
  *
  * Backend endpoints return ``detail`` as a snake_case code
  * (``invalid_credentials``, ``backup_not_found``, …). When the code
- * exists under ``common.apiError.*`` we resolve it; otherwise we
- * surface the raw code so developers can spot gaps quickly.
+ * exists under ``common.apiError.*`` we resolve it. Otherwise the
+ * caller's own message names what failed (``fallbackKey``: "Could not
+ * create the backup"), whatever the cause: a status without a code, a
+ * request that never got an answer. Without one, a bare status
+ * (``http_502``) reads "Error 502" and any other code is surfaced raw
+ * so developers can spot gaps quickly.
  */
-export function resolveApiError(code?: string | null): string {
+export function resolveApiError(code?: string | null, fallbackKey?: string): string {
   // i18n.global.t has overloaded signatures — treat it as a narrow
   // (key: string, named?: Record<string, unknown>) => string shape
   // because that's the only form this module uses.
   const t = i18n.global.t as unknown as (key: string, named?: Record<string, unknown>) => string
+  if (code) {
+    const key = `common.apiError.${code}`
+    const localized = t(key)
+    if (localized !== key) return localized
+  }
+  if (fallbackKey) return t(fallbackKey)
   if (!code) return t('common.apiError.unknown', { status: '' })
-  const key = `common.apiError.${code}`
-  const localized = t(key)
-  return localized === key ? code : localized
+  const status = /^http_(\d{3})$/.exec(code)?.[1]
+  return status ? t('common.apiError.unknown', { status }) : code
 }
 
 export interface UseApiReturn {
@@ -62,7 +71,7 @@ export function useApi(): UseApiReturn {
           showRateLimitToast(res)
         }
         const data = await res.json().catch(() => ({}))
-        throw new Error(data.detail || `http_${res.status}`)
+        throw new Error(extractDetailCode(data, `http_${res.status}`))
       }
 
       return res

@@ -1,7 +1,8 @@
 import { ref, computed } from 'vue'
-import { useApi } from '@/composables/useApi'
+import { resolveApiError, useApi } from '@/composables/useApi'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
+import { BACKUP_RETENTION_MAX_COUNT, BACKUP_RETENTION_MAX_DAYS } from '@/constants/backup'
 import { useI18n } from 'vue-i18n'
 import { useConfirm } from '@/composables/useConfirm'
 import { localizedDateTime } from '@/utils/datetime'
@@ -56,6 +57,13 @@ export function useParamsBackup() {
     pg_dump: t('backup.compPgDump'),
   }))
 
+  // The server's code names the failure (backup not found, invalid archive…);
+  // without one (no answer, bare status), the action says what failed.
+  function showFailure(where, e, fallbackKey) {
+    console.error(`[useParamsBackup.${where}]`, e)
+    showToast(resolveApiError(e?.message, fallbackKey), TOAST_TYPE.ERR)
+  }
+
   async function loadBackupInfo() {
     backupLoading.value = true
     try {
@@ -72,8 +80,8 @@ export function useParamsBackup() {
           retentionDays.value = data.retention_days
         }
       }
-    } catch {
-      /* silent: backup info load, UI stays empty */
+    } catch (e) {
+      showFailure('loadBackupInfo', e, 'common.apiError.loadFailed')
     }
     backupLoading.value = false
   }
@@ -93,13 +101,23 @@ export function useParamsBackup() {
 
   async function saveRetention() {
     let days = 0
-    if (retentionMode.value === 'days') days = retentionDays.value || 30
-    else if (retentionMode.value === 'count') days = -(retentionCount.value || 10)
+    if (retentionMode.value !== 'off') {
+      // The server refuses anything outside the screen's range: say which one.
+      const byDays = retentionMode.value === 'days'
+      const value = byDays ? retentionDays.value || 30 : retentionCount.value || 10
+      const max = byDays ? BACKUP_RETENTION_MAX_DAYS : BACKUP_RETENTION_MAX_COUNT
+      if (!Number.isInteger(value) || value < 1 || value > max) {
+        const key = byDays ? 'backup.retentionDaysRange' : 'backup.retentionCountRange'
+        showToast(t(key, { max }), TOAST_TYPE.ERR)
+        return
+      }
+      days = byDays ? value : -value
+    }
     try {
       await apiFetch('/api/backup/retention', { method: 'POST', body: JSON.stringify({ days }) })
       showToast(t('backup.retentionSaved'), TOAST_TYPE.OK)
-    } catch {
-      showToast(t('common.networkError'), TOAST_TYPE.ERR)
+    } catch (e) {
+      showFailure('saveRetention', e, 'backup.retentionSaveFailed')
     }
   }
 
@@ -113,7 +131,7 @@ export function useParamsBackup() {
       if (data.success) {
         showToast(t('backup.dirChanged'), TOAST_TYPE.OK)
         await loadBackupInfo()
-      } else showToast(data.detail || t('common.networkError'), TOAST_TYPE.ERR)
+      } else showToast(resolveApiError(data.detail, 'backup.dirChangeFailed'), TOAST_TYPE.ERR)
     } catch (e) {
       // BACKUP_PATH lock returns a dedicated code — explain it rather than
       // surfacing a generic network error.
@@ -121,8 +139,7 @@ export function useParamsBackup() {
         showToast(t('backup.dirLocked'), TOAST_TYPE.ERR)
         return
       }
-      console.error('[useParamsBackup.changeBackupDir] failed to change backup directory', e)
-      showToast(t('common.networkError'), TOAST_TYPE.ERR)
+      showFailure('changeBackupDir', e, 'backup.dirChangeFailed')
     }
   }
 
@@ -138,8 +155,8 @@ export function useParamsBackup() {
         showToast(t('backup.created'), TOAST_TYPE.OK)
         await loadBackupInfo()
       }
-    } catch {
-      showToast(t('common.networkError'), TOAST_TYPE.ERR)
+    } catch (e) {
+      showFailure('createBackup', e, 'common.apiError.backup_create_failed')
     }
     backupCreating.value = false
   }
@@ -156,11 +173,15 @@ export function useParamsBackup() {
       confirmLabel: t('common.delete'),
     })
     if (!ok) return
-    const res = await apiFetch('/api/backup/' + filename, { method: 'DELETE' })
-    const data = await res.json()
-    if (data.success) {
-      showToast(t('backup.deleted'), TOAST_TYPE.OK)
-      await loadBackupInfo()
+    try {
+      const res = await apiFetch('/api/backup/' + filename, { method: 'DELETE' })
+      const data = await res.json()
+      if (data.success) {
+        showToast(t('backup.deleted'), TOAST_TYPE.OK)
+        await loadBackupInfo()
+      }
+    } catch (e) {
+      showFailure('deleteBackup', e, 'common.apiError.deleteFailed')
     }
   }
 
@@ -179,9 +200,9 @@ export function useParamsBackup() {
       })
       const data = await res.json()
       if (data.success) showToast(t('backup.restored'), TOAST_TYPE.OK)
-      else showToast(t('common.networkError'), TOAST_TYPE.ERR)
-    } catch {
-      showToast(t('common.networkError'), TOAST_TYPE.ERR)
+      else showToast(t('common.apiError.backup_restore_failed'), TOAST_TYPE.ERR)
+    } catch (e) {
+      showFailure('restoreBackup', e, 'common.apiError.backup_restore_failed')
     }
     backupRestoring.value = null
   }
@@ -200,9 +221,12 @@ export function useParamsBackup() {
       if (data?.success) {
         showToast(t('backup.restored'), TOAST_TYPE.OK)
         await loadBackupInfo()
-      } else showToast(data?.detail || t('common.networkError'), TOAST_TYPE.ERR)
-    } catch {
-      showToast(t('common.networkError'), TOAST_TYPE.ERR)
+      } else {
+        const message = resolveApiError(data?.detail, 'common.apiError.backup_restore_failed')
+        showToast(message, TOAST_TYPE.ERR)
+      }
+    } catch (err) {
+      showFailure('uploadRestore', err, 'common.apiError.backup_restore_failed')
     }
     e.target.value = ''
   }

@@ -34,6 +34,9 @@ This section intentionally has no date so it is not shown to users.
 - Requests — filters and sort named for screen readers; "Mark available" button.
 - Backups — out-of-range retention refused (no more crash).
 - Backups — an accented label no longer makes a backup unreachable.
+- Backups — explicit errors: out-of-range retention explained, real cause of each failure.
+- Requests — a failed status change or deletion now gives its cause.
+- Errors — input refused by the server shows a readable message.
 
 ## [1.0.0-rc.8] - 2026-10-11
 

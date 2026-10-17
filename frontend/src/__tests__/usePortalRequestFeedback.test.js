@@ -8,7 +8,7 @@ vi.mock('@/composables/useToast', () => ({ useToast: () => ({ showToast }) }))
 // Simulate vue-i18n: a key in MISSING echoes back (untranslated), any other
 // key gets a `#tr` suffix (or interpolated `used/max`) so the helper's
 // "key !== translation" missing-key guard can be exercised both ways.
-const MISSING = new Set(['portal.request.errors.http_500'])
+const MISSING = new Set(['portal.request.errors.http_500', 'portal.request.errors.rate_limited'])
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key, params) => {
@@ -17,6 +17,10 @@ vi.mock('vue-i18n', () => ({
     },
   }),
 }))
+
+// Shared error messages behind resolveApiError; an unknown key comes back unchanged.
+const SHARED = vi.hoisted(() => ({ 'common.apiError.rate_limited': 'Too many requests.' }))
+vi.mock('@/i18n', () => ({ default: { global: { t: key => SHARED[key] ?? key } } }))
 
 import { usePortalRequestFeedback } from '@/composables/portal/usePortalRequestFeedback'
 
@@ -51,14 +55,18 @@ describe('usePortalRequestFeedback', () => {
     )
   })
 
-  it('surfaces the raw code when no i18n entry exists', () => {
-    usePortalRequestFeedback().presentRequestResult(null, 'http_500')
-    expect(showToast).toHaveBeenCalledWith('http_500', TOAST_TYPE.ERR)
+  it('gives another known error its shared message', () => {
+    usePortalRequestFeedback().presentRequestResult(null, 'rate_limited')
+    expect(showToast).toHaveBeenCalledWith('Too many requests.', TOAST_TYPE.ERR)
   })
 
-  it('falls back to common.error when there is no code at all', () => {
+  it('says the request did not go out for an unknown error or no code at all', () => {
+    usePortalRequestFeedback().presentRequestResult(null, 'http_500')
     usePortalRequestFeedback().presentRequestResult(null, null)
-    expect(showToast).toHaveBeenCalledWith('common.error#tr', TOAST_TYPE.ERR)
+    expect(showToast.mock.calls).toEqual([
+      ['portal.request.errors.failed', TOAST_TYPE.ERR],
+      ['portal.request.errors.failed', TOAST_TYPE.ERR],
+    ])
   })
 
   it('prefers res.detail/error when no thrown errorCode is given', () => {

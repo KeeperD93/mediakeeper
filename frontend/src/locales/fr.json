@@ -1762,7 +1762,11 @@
     "retentionOff": "Désactivé",
     "retentionDaysUnit": "jours",
     "retentionCountUnit": "backups max",
-    "retentionSaved": "Politique de rétention enregistrée"
+    "retentionSaved": "Politique de rétention enregistrée",
+    "retentionDaysRange": "La durée de conservation doit être comprise entre 1 et {max} jours.",
+    "retentionCountRange": "Le nombre de sauvegardes conservées doit être compris entre 1 et {max}.",
+    "retentionSaveFailed": "Impossible d'enregistrer la politique de rétention.",
+    "dirChangeFailed": "Impossible de changer le dossier de sauvegarde."
   },
   "changelog": {
     "title": "Changelog",
@@ -2717,6 +2721,7 @@
       "ignoredTooltip": "Cet épisode a été marqué comme ignoré dans le module Suivi — il ne sera pas téléchargé et ne peut donc pas être demandé.",
       "selectAll": "Tout sélectionner",
       "errors": {
+        "failed": "La demande n'a pas pu être envoyée.",
         "already_requested": "Ce titre est déjà demandé et en attente de validation.",
         "already_available": "Ce titre est déjà disponible sur Emby, vous pouvez le regarder directement.",
         "media_blacklisted": "Ce titre a été bloqué par un administrateur et ne peut pas être redemandé.",
@@ -3819,6 +3824,7 @@
         "notInLibrary": "\"{title}\" est introuvable dans Emby. S'il vient d'être ajouté, il peut falloir jusqu'à 5 minutes pour qu'il soit détecté : réessayez un peu plus tard. Le marquer disponible quand même ? Le demandeur sera prévenu.",
         "libraryCheckFailed": "Impossible de vérifier si \"{title}\" est dans Emby. Le marquer disponible quand même ? Le demandeur sera prévenu.",
         "markAvailable": "Marquer disponible",
+        "statusFailed": "Impossible de modifier le statut de la demande.",
         "deletedReason": "Supprimée par un administrateur",
         "rejectReasonTitle": "Motif du rejet",
         "rejectReasonLabel": "Raison",

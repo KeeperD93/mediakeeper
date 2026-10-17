@@ -4,7 +4,7 @@
     <p class="params-section-desc">{{ $t('backup.retentionDesc') }}</p>
     <div class="backup-retention-row">
       <select
-        class="backup-retention-select"
+        class="backup-retention-select mk-select-chevron"
         :value="retentionMode"
         @change="emit('mode-change', $event.target.value)"
       >
@@ -17,7 +17,7 @@
           :value="retentionDays"
           type="number"
           min="1"
-          max="365"
+          :max="BACKUP_RETENTION_MAX_DAYS"
           class="backup-retention-input"
           @input="emit('update:retentionDays', Number($event.target.value))"
         />
@@ -28,7 +28,7 @@
           :value="retentionCount"
           type="number"
           min="1"
-          max="100"
+          :max="BACKUP_RETENTION_MAX_COUNT"
           class="backup-retention-input"
           @input="emit('update:retentionCount', Number($event.target.value))"
         />
@@ -42,6 +42,8 @@
 </template>
 
 <script setup>
+import { BACKUP_RETENTION_MAX_COUNT, BACKUP_RETENTION_MAX_DAYS } from '@/constants/backup'
+
 defineProps({
   retentionMode: { type: String, default: 'days' },
   retentionDays: { type: Number, default: 30 },
@@ -61,11 +63,13 @@ const emit = defineEmits(['mode-change', 'update:retentionDays', 'update:retenti
   border: 0.5px solid var(--border);
   border-radius: var(--radius-btn);
 }
+/* Longhands only: .mk-select-chevron owns the chevron image and padding-right. */
 .backup-retention-select {
-  padding: 7px 12px;
+  padding-block: 7px;
+  padding-left: 12px;
   border-radius: var(--radius-sm);
   border: 0.5px solid var(--border);
-  background: var(--bg-secondary);
+  background-color: var(--bg-secondary);
   color: var(--text-primary);
   font-size: var(--text-sm);
   font-family: inherit;

@@ -67,7 +67,7 @@ export function useAdminRequestActions({
         }
       } else {
         console.error('[PortalRequests] status update failed', e)
-        showToast(resolveApiError(e.message), TOAST_TYPE.ERR)
+        showToast(resolveApiError(e.message, 'portal.admin.req.statusFailed'), TOAST_TYPE.ERR)
       }
       return
     }
@@ -103,7 +103,7 @@ export function useAdminRequestActions({
         await deleteRequest(req.id)
       } catch (e) {
         console.error('[PortalRequests] delete failed', e)
-        showToast(t('common.apiError.deleteFailed'), TOAST_TYPE.ERR)
+        showToast(resolveApiError(e.message, 'common.apiError.deleteFailed'), TOAST_TYPE.ERR)
         return
       }
       onDeleted(req)

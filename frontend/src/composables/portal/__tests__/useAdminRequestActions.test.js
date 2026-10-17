@@ -1,16 +1,19 @@
 /**
  * Row actions of the admin requests queue: one call at a time per row,
- * rejection through the reason modal, deletion that reports its failure.
+ * rejection through the reason modal, failures that give their cause.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { TOAST_TYPE } from '@/constants/toast'
 
 const mocks = vi.hoisted(() => ({ confirm: vi.fn(), showToast: vi.fn() }))
+// Fake translations behind resolveApiError: an unknown key comes back unchanged.
+const MESSAGES = vi.hoisted(() => ({ 'common.apiError.forbidden': 'Forbidden.' }))
 
 vi.mock('vue-i18n', async importOriginal => ({
   ...(await importOriginal()),
   useI18n: () => ({ t: key => key }),
 }))
+vi.mock('@/i18n', () => ({ default: { global: { t: key => MESSAGES[key] ?? key } } }))
 vi.mock('@/composables/useConfirm', () => ({ useConfirm: () => mocks.confirm }))
 vi.mock('@/composables/useToast', () => ({ useToast: () => ({ showToast: mocks.showToast }) }))
 
@@ -110,5 +113,22 @@ describe('useAdminRequestActions', () => {
     expect(consoleError).toHaveBeenCalledOnce()
     expect(actions.busyIds.size).toBe(0)
     consoleError.mockRestore()
+  })
+
+  it("gives the server's reason for a failed status change, else says it failed", async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const { deps, actions } = setup()
+
+    deps.updateRequestStatus.mockRejectedValueOnce(new Error('forbidden'))
+    await actions.onAction(rowA, 'approved')
+    expect(mocks.showToast).toHaveBeenLastCalledWith('Forbidden.', TOAST_TYPE.ERR)
+
+    deps.updateRequestStatus.mockRejectedValueOnce(new Error('http_500'))
+    await actions.onAction(rowA, 'approved')
+    expect(mocks.showToast).toHaveBeenLastCalledWith(
+      'portal.admin.req.statusFailed',
+      TOAST_TYPE.ERR,
+    )
+    expect(deps.onStatusChanged).not.toHaveBeenCalled()
   })
 })

@@ -35,6 +35,8 @@ This section intentionally has no date so it is not shown to users.
 - Lists — more compact page on phones.
 - Issues — touch-sized filters and sort on phones, menu arrows clear of the edge.
 - Posters — Request and Re-request buttons correctly labelled in French.
+- Requests — a failed request shows its cause instead of a technical code.
+- Errors — input refused by the server shows a readable message.
 
 ## [1.0.0-rc.8] - 2026-10-11
 

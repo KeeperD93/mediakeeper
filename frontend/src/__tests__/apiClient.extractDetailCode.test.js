@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { extractDetailCode } from '@/composables/useAuth'
+import { extractDetailCode } from '@/composables/apiClient'
 
 describe('extractDetailCode', () => {
   it('returns a non-empty string detail as-is', () => {

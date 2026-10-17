@@ -1762,7 +1762,11 @@
     "retentionOff": "Disabled",
     "retentionDaysUnit": "days",
     "retentionCountUnit": "backups max",
-    "retentionSaved": "Retention policy saved"
+    "retentionSaved": "Retention policy saved",
+    "retentionDaysRange": "The retention period must be between 1 and {max} days.",
+    "retentionCountRange": "The number of backups kept must be between 1 and {max}.",
+    "retentionSaveFailed": "Could not save the retention policy.",
+    "dirChangeFailed": "Could not change the backup folder."
   },
   "changelog": {
     "title": "Changelog",
@@ -2717,6 +2721,7 @@
       "ignoredTooltip": "This episode has been marked as ignored in the Watchlist module — it won't be downloaded, so it can't be requested.",
       "selectAll": "Select all",
       "errors": {
+        "failed": "The request could not be sent.",
         "already_requested": "This title is already pending approval.",
         "already_available": "This title is already on Emby — play it directly.",
         "media_blacklisted": "This title has been blocked by an admin and can't be re-requested.",
@@ -3819,6 +3824,7 @@
         "notInLibrary": "\"{title}\" was not found in Emby. If it was just added, it can take up to 5 minutes to be detected: try again shortly. Mark it available anyway? The requester will be notified.",
         "libraryCheckFailed": "Could not check whether \"{title}\" is in Emby. Mark it available anyway? The requester will be notified.",
         "markAvailable": "Mark available",
+        "statusFailed": "Could not change the request status.",
         "deletedReason": "Deleted by an administrator",
         "rejectReasonTitle": "Rejection reason",
         "rejectReasonLabel": "Reason",
