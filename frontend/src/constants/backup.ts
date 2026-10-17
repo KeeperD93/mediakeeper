@@ -5,3 +5,12 @@
  */
 export const BACKUP_RETENTION_MAX_DAYS = 365
 export const BACKUP_RETENTION_MAX_COUNT = 100
+
+/** How the backups are pruned: by age, by number kept, or never. */
+export const BACKUP_RETENTION_MODE = Object.freeze({
+  DAYS: 'days',
+  COUNT: 'count',
+  OFF: 'off',
+} as const)
+
+export type BackupRetentionMode = (typeof BACKUP_RETENTION_MODE)[keyof typeof BACKUP_RETENTION_MODE]

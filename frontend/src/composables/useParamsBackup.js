@@ -2,7 +2,11 @@ import { ref, computed } from 'vue'
 import { resolveApiError, useApi } from '@/composables/useApi'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
-import { BACKUP_RETENTION_MAX_COUNT, BACKUP_RETENTION_MAX_DAYS } from '@/constants/backup'
+import {
+  BACKUP_RETENTION_MAX_COUNT,
+  BACKUP_RETENTION_MAX_DAYS,
+  BACKUP_RETENTION_MODE,
+} from '@/constants/backup'
 import { useI18n } from 'vue-i18n'
 import { useConfirm } from '@/composables/useConfirm'
 import { localizedDateTime } from '@/utils/datetime'
@@ -13,7 +17,7 @@ const backupCreating = ref(false)
 const backupRestoring = ref(null)
 const backupDirs = ref([])
 const backupDirInput = ref('/data/backups')
-const retentionMode = ref('days')
+const retentionMode = ref(BACKUP_RETENTION_MODE.DAYS)
 const retentionDays = ref(30)
 const retentionCount = ref(10)
 // Same parts as the scheduled backup (DEFAULT_COMPONENTS on the server), in
@@ -73,12 +77,12 @@ export function useParamsBackup() {
       if (data) {
         backupInfo.value = data
         backupDirInput.value = data.backup_dir || '/data/backups'
-        if (data.retention_days === 0) retentionMode.value = 'off'
+        if (data.retention_days === 0) retentionMode.value = BACKUP_RETENTION_MODE.OFF
         else if (data.retention_days < 0) {
-          retentionMode.value = 'count'
+          retentionMode.value = BACKUP_RETENTION_MODE.COUNT
           retentionCount.value = Math.abs(data.retention_days)
         } else {
-          retentionMode.value = 'days'
+          retentionMode.value = BACKUP_RETENTION_MODE.DAYS
           retentionDays.value = data.retention_days
         }
       }
@@ -92,8 +96,9 @@ export function useParamsBackup() {
     try {
       const data = await apiGet('/api/backup/directories')
       if (Array.isArray(data)) backupDirs.value = data
-    } catch {
-      /* silent: backup dirs load */
+    } catch (e) {
+      // Only the folder suggestions are missing: log it, no toast.
+      console.error('[useParamsBackup.loadBackupDirs]', e)
     }
   }
 
@@ -103,9 +108,9 @@ export function useParamsBackup() {
 
   async function saveRetention() {
     let days = 0
-    if (retentionMode.value !== 'off') {
+    if (retentionMode.value !== BACKUP_RETENTION_MODE.OFF) {
       // The server refuses anything outside the screen's range: say which one.
-      const byDays = retentionMode.value === 'days'
+      const byDays = retentionMode.value === BACKUP_RETENTION_MODE.DAYS
       const value = byDays ? retentionDays.value || 30 : retentionCount.value || 10
       const max = byDays ? BACKUP_RETENTION_MAX_DAYS : BACKUP_RETENTION_MAX_COUNT
       if (!Number.isInteger(value) || value < 1 || value > max) {
@@ -135,8 +140,8 @@ export function useParamsBackup() {
         await loadBackupInfo()
       } else showToast(resolveApiError(data.detail, 'backup.dirChangeFailed'), TOAST_TYPE.ERR)
     } catch (e) {
-      // BACKUP_PATH lock returns a dedicated code — explain it rather than
-      // surfacing a generic network error.
+      // BACKUP_PATH lock returns a dedicated code: say why the directory is
+      // locked rather than that the change failed.
       if (e?.message === 'backup_directory_locked') {
         showToast(t('backup.dirLocked'), TOAST_TYPE.ERR)
         return

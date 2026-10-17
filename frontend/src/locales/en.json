@@ -1767,7 +1767,7 @@
     "retentionDaysRange": "The retention period must be between 1 and {max} days.",
     "retentionCountRange": "The number of backups kept must be between 1 and {max}.",
     "retentionSaveFailed": "Could not save the retention policy.",
-    "dirChangeFailed": "Could not change the backup folder."
+    "dirChangeFailed": "Could not change the backup directory."
   },
   "changelog": {
     "title": "Changelog",

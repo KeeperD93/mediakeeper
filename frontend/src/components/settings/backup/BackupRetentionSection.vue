@@ -8,11 +8,11 @@
         :value="retentionMode"
         @change="emit('mode-change', $event.target.value)"
       >
-        <option value="days">{{ $t('backup.retentionByDays') }}</option>
-        <option value="count">{{ $t('backup.retentionByCount') }}</option>
-        <option value="off">{{ $t('backup.retentionOff') }}</option>
+        <option :value="BACKUP_RETENTION_MODE.DAYS">{{ $t('backup.retentionByDays') }}</option>
+        <option :value="BACKUP_RETENTION_MODE.COUNT">{{ $t('backup.retentionByCount') }}</option>
+        <option :value="BACKUP_RETENTION_MODE.OFF">{{ $t('backup.retentionOff') }}</option>
       </select>
-      <template v-if="retentionMode === 'days'">
+      <template v-if="retentionMode === BACKUP_RETENTION_MODE.DAYS">
         <input
           :value="retentionDays"
           type="number"
@@ -23,7 +23,7 @@
         />
         <span class="backup-retention-unit">{{ $t('backup.retentionDaysUnit') }}</span>
       </template>
-      <template v-if="retentionMode === 'count'">
+      <template v-if="retentionMode === BACKUP_RETENTION_MODE.COUNT">
         <input
           :value="retentionCount"
           type="number"
@@ -42,10 +42,14 @@
 </template>
 
 <script setup>
-import { BACKUP_RETENTION_MAX_COUNT, BACKUP_RETENTION_MAX_DAYS } from '@/constants/backup'
+import {
+  BACKUP_RETENTION_MAX_COUNT,
+  BACKUP_RETENTION_MAX_DAYS,
+  BACKUP_RETENTION_MODE,
+} from '@/constants/backup'
 
 defineProps({
-  retentionMode: { type: String, default: 'days' },
+  retentionMode: { type: String, default: BACKUP_RETENTION_MODE.DAYS },
   retentionDays: { type: Number, default: 30 },
   retentionCount: { type: Number, default: 10 },
 })

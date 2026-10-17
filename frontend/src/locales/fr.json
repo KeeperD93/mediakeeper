@@ -1767,7 +1767,7 @@
     "retentionDaysRange": "La durée de conservation doit être comprise entre 1 et {max} jours.",
     "retentionCountRange": "Le nombre de sauvegardes conservées doit être compris entre 1 et {max}.",
     "retentionSaveFailed": "Impossible d'enregistrer la politique de rétention.",
-    "dirChangeFailed": "Impossible de changer le dossier de sauvegarde."
+    "dirChangeFailed": "Impossible de changer le répertoire de sauvegarde."
   },
   "changelog": {
     "title": "Changelog",
