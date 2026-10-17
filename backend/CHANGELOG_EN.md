@@ -31,6 +31,7 @@ This section intentionally has no date so it is not shown to users.
 - Requests — Available card: all-time total fixed.
 - Requests — weekly counters no longer skewed by restored images.
 - Requests — safer queue: double clicks ignored, errors shown.
+- Requests — resending an unchanged status (stale queue) no longer notifies the requester.
 - Requests — compact phone layout with drop-down filters.
 - Requests — filters and sort named for screen readers; "Mark available" button.
 - Backups — out-of-range retention refused (no more crash).

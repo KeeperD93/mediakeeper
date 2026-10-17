@@ -31,6 +31,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Demandes — carte Disponibles : total cumulé corrigé.
 - Demandes — compteurs de la semaine non faussés par les images rétablies.
 - Demandes — file plus sûre : double clic sans effet, erreurs affichées.
+- Demandes — un statut renvoyé à l'identique (file périmée) ne notifie plus le demandeur.
 - Demandes — page compacte sur téléphone, filtres en listes déroulantes.
 - Demandes — filtres et tri nommés pour les lecteurs d'écran, bouton « Marquer disponible ».
 - Sauvegardes — durée de conservation hors limites refusée (plus de plantage).
