@@ -5,14 +5,18 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from cryptography.fernet import Fernet
+from pydantic import ValidationError
 
+from api.backup._schemas import BackupRequest
 from core.encryption import ENCRYPTED_PREFIX
-from services.backup import DEFAULT_COMPONENTS
+from services.backup import DEFAULT_COMPONENTS, get_backup_path
 from services.backup.create import (
     ENCRYPTION_KEY_ARCHIVE_NAME,
     create_backup,
 )
 from services.settings import set_setting
+
+NO_COMPONENTS = dict.fromkeys(DEFAULT_COMPONENTS, False)
 
 
 @pytest.fixture
@@ -192,3 +196,21 @@ async def test_create_backup_skips_key_when_only_ephemeral(
         "without secrets/.encryption_key" in record.message
         for record in caplog.records
     )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(("label", "suffix"), [("auto", "_auto"), ("Été 2026!", "_t2026"), ("!!!", "")])
+async def test_label_keeps_only_what_the_file_routes_accept(
+    db_session, patched_backup_dir, label, suffix,
+):
+    """An accented or symbol-only label used to name a backup that download,
+    delete and restore then refused."""
+    backup_path = await create_backup(db_session, components=NO_COMPONENTS, label=label)
+
+    assert backup_path.name.endswith(f"{suffix}.zip")
+    assert get_backup_path(backup_path.name, patched_backup_dir) is not None
+
+
+def test_label_is_capped_like_the_file_name():
+    with pytest.raises(ValidationError):
+        BackupRequest(label="x" * 41)

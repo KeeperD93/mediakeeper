@@ -3,8 +3,10 @@
 A negative ``backup.retention_days`` means "keep the N most recent" (count); a
 positive value means "delete older than N days". The manual backup, the "apply
 now" button and the scheduled auto-backup all go through
-``apply_configured_retention`` so they can't diverge.
+``apply_configured_retention`` so they can't diverge. The API only stores the
+values the settings screen offers.
 """
+import logging
 import os
 import time
 from pathlib import Path
@@ -61,6 +63,31 @@ def test_zero_retention_is_noop(tmp_path):
 
     assert apply_retention_for_setting(0, tmp_path) == 0
     assert (tmp_path / "mediakeeper_backup_keep.zip").exists()
+
+
+def test_absurd_day_count_keeps_everything(tmp_path):
+    """A value stored before the API had bounds must not crash the cleanup."""
+    _make_backup(tmp_path, "old", age_days=40)
+
+    assert apply_retention_for_setting(10**9, tmp_path) == 0
+    assert _remaining(tmp_path) == {"mediakeeper_backup_old.zip"}
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("days", [366, -101])
+async def test_retention_outside_the_screen_bounds_is_refused(authed_client, db_session, days):
+    resp = await authed_client.post("/api/backup/retention", json={"days": days})
+
+    assert resp.status_code == 422
+    assert await get_retention_days(db_session) == 30
+
+
+@pytest.mark.asyncio
+async def test_retention_is_stored_where_every_backup_path_reads_it(authed_client, db_session):
+    resp = await authed_client.post("/api/backup/retention", json={"days": -3})
+
+    assert resp.json() == {"success": True, "days": -3}
+    assert await get_retention_days(db_session) == -3
 
 
 @pytest.mark.asyncio
@@ -147,6 +174,23 @@ async def test_scheduled_backup_applies_retention(db_session, workspace_tmp_path
     await _handler_backup(db_session)
 
     assert _remaining(backup_dir) == {"mediakeeper_backup_auto.zip"}
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("stored", ["{not json", "[1]"])
+async def test_scheduled_backup_falls_back_on_unreadable_components(
+    db_session, monkeypatch, caplog, stored,
+):
+    await set_setting(db_session, "backup.auto_components", stored)
+    create = AsyncMock(return_value=Path("unused.zip"))
+    monkeypatch.setattr("services.backup.create_backup", create)
+    monkeypatch.setattr("services.backup.apply_configured_retention", AsyncMock(return_value=0))
+
+    with caplog.at_level(logging.WARNING, logger="mediakeeper.scheduler"):
+        await _handler_backup(db_session)
+
+    assert create.await_args.kwargs["components"] == {}
+    assert "unreadable backup.auto_components" in caplog.text
 
 
 @pytest.mark.asyncio

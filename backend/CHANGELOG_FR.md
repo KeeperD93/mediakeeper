@@ -29,6 +29,8 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Mise en avant — images conservées quand le cache d'images est activé.
 - Demandes — carte Disponibles : total depuis le début corrigé.
 - Demandes — compteurs de la semaine non faussés par les images rétablies.
+- Sauvegardes — durée de conservation hors limites refusée (plus de plantage).
+- Sauvegardes — un libellé accentué ne rend plus la sauvegarde introuvable.
 
 ## [1.0.0-rc.8] - 2026-10-11
 

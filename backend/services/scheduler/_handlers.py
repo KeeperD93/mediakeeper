@@ -54,7 +54,9 @@ async def _handler_backup(db: AsyncSession) -> None:
     components_raw = await get_setting(db, "backup.auto_components") or "{}"
     try:
         components = json.loads(components_raw)
-    except Exception as e:
+        if not isinstance(components, dict):
+            raise ValueError(f"expected an object, got {type(components).__name__}")
+    except ValueError as e:  # JSONDecodeError included
         logger.warning("[backup] unreadable backup.auto_components setting, using the defaults: %s", e)
         components = {}
     await create_backup(

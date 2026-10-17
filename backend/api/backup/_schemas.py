@@ -6,7 +6,7 @@ class BackupRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     components: dict = Field(default_factory=dict)
-    label: str = ""
+    label: str = Field("", max_length=40)  # same cap as the file name suffix built from it
 
 
 class RestoreRequest(BaseModel):
@@ -19,7 +19,9 @@ class RestoreRequest(BaseModel):
 class RetentionRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    days: int  # 0 = disabled, negative = max number of backups
+    # Days to keep (1-365), 0 = disabled, negative = number of backups to keep
+    # (1-100): the bounds of the settings screen.
+    days: int = Field(ge=-100, le=365)
 
 
 class SetDirectoryRequest(BaseModel):

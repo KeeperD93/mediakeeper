@@ -52,10 +52,12 @@ async def create_backup(
     backup_dir.mkdir(parents=True, exist_ok=True)
 
     ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-    filename = f"mediakeeper_backup_{ts}.zip"
-    if label:
-        safe_label = "".join(c for c in label if c.isalnum() or c in "-_")[:40]
-        filename = f"mediakeeper_backup_{ts}_{safe_label}.zip"
+    # Only what the listing's file name check accepts (ASCII letters, digits,
+    # - and _): any other name lists fine but cannot be downloaded, deleted
+    # or restored.
+    safe_label = "".join(c for c in label if (c.isascii() and c.isalnum()) or c in "-_")[:40]
+    suffix = f"_{safe_label}" if safe_label else ""
+    filename = f"mediakeeper_backup_{ts}{suffix}.zip"
     dest = backup_dir / filename
 
     comp_names = ["settings", "preferences", "scheduler", "watchlist", "logs", "pg_dump"]
