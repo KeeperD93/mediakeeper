@@ -7,12 +7,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
-from core.url_safety import safe_url
 from models.user import User
 from models.portal.profile import UserProfile
 from models.portal.featured import FeaturedHero
 from api.portal.deps import get_current_profile, require_admin
-from services.portal.image_cache import unproxied_url
+from services.portal.image_urls import safe_image_url
 
 router = APIRouter(prefix="/featured", tags=["portal-featured"])
 logger = logging.getLogger("mediakeeper.portal.featured")
@@ -29,14 +28,12 @@ class AddFeatured(BaseModel):
     year: Optional[str] = Field(None, max_length=10)
     sort_order: int = 0
 
-    # Drop any non-http(s) image URL (javascript:, data:, …) before it is
-    # stored and re-served into a background-image / <img src> sink.
-    # With the image cache on, search results carry the local proxy URL:
-    # keep the TMDB URL behind it rather than dropping the image.
+    # Stored, then re-served into the home banner (background-image sink):
+    # same rule as requests and lists.
     @field_validator("poster_url", "backdrop")
     @classmethod
-    def _safe_image_url(cls, v: Optional[str]) -> Optional[str]:
-        return safe_url(unproxied_url(v or ""), schemes={"http", "https"})
+    def _safe_image_url(cls, v: str | None) -> str | None:
+        return safe_image_url(v)
 
 
 class UpdateFeatured(BaseModel):

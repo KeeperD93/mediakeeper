@@ -1,14 +1,21 @@
-"""Image-URL scheme validation on featured + request payloads.
+"""Image-URL validation on featured, request and list payloads.
 
-Both payloads re-serve poster/backdrop URLs into background-image / <img
-src> sinks, so a non-http(s) scheme is normalised away at the schema edge.
+They all re-serve poster/backdrop URLs into background-image / <img src>
+sinks, so one rule applies at the edge: the image cache's proxy URL is
+undone, then only https on the hosts the CSP lets the portal load.
 """
 from urllib.parse import quote
+
+import pytest
 
 from api.portal.featured import AddFeatured
 from api.portal.requests import CreateRequest
 from constants.portal_paths import IMAGE_PROXY_PATH
 from services.portal.image_cache import proxied_url
+from services.portal.image_urls import safe_image_url
+
+TMDB = "https://image.tmdb.org/t/p/w500/p.jpg"
+FOREIGN = "https://evil.example/pixel.gif"
 
 
 def test_featured_drops_unsafe_image_urls():
@@ -72,3 +79,31 @@ def test_request_drops_unsafe_url_behind_image_cache_url():
         poster_url=f"{IMAGE_PROXY_PATH}?u={quote('javascript:alert(1)', safe='')}",
     )
     assert r.poster_url is None
+
+
+@pytest.mark.parametrize(("raw", "stored"), [
+    (TMDB, TMDB),
+    (proxied_url(TMDB), TMDB),
+    ("https://i.imgur.com/cover.png", "https://i.imgur.com/cover.png"),
+    ("http://image.tmdb.org/t/p/w500/p.jpg", None),
+    (FOREIGN, None),
+    (f"{IMAGE_PROXY_PATH}?u={quote(FOREIGN, safe='')}", None),
+    ("javascript:alert(1)", None),
+    ("", None),
+    (None, None),
+])
+def test_one_rule_for_every_stored_image(raw, stored):
+    assert safe_image_url(raw) == stored
+
+
+def test_requests_and_featured_titles_refuse_foreign_or_plain_http_images():
+    r = CreateRequest(
+        tmdb_id=1, media_type="movie", title="X",
+        poster_url=FOREIGN, backdrop_url="http://image.tmdb.org/t/p/w780/b.jpg",
+    )
+    f = AddFeatured(
+        tmdb_id=1, media_type="movie", title="X",
+        poster_url=FOREIGN, backdrop="http://image.tmdb.org/t/p/w780/b.jpg",
+    )
+
+    assert (r.poster_url, r.backdrop_url, f.poster_url, f.backdrop) == (None, None, None, None)

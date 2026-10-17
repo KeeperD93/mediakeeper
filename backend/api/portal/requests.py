@@ -5,7 +5,6 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
-from core.url_safety import safe_url
 from core.i18n import get_request_locale
 from core.rate_limit import limiter, portal_user_or_ip_key
 from models.user import User
@@ -14,7 +13,7 @@ from api.portal.deps import require_admin, require_permission
 from services.portal import requests as req_svc
 from services.portal.achievements import safe_check_all_achievements_in_new_session
 from services.portal.admin import get_portal_flag
-from services.portal.image_cache import unproxied_url
+from services.portal.image_urls import safe_image_url
 
 router = APIRouter(prefix="/requests", tags=["portal-requests"])
 
@@ -30,14 +29,13 @@ class CreateRequest(BaseModel):
     requested_seasons: Optional[list] = Field(default=None, max_length=100)
     on_behalf_of: Optional[int] = None
 
-    # Drop any non-http(s) image URL before it is stored and re-served to
-    # the community list / admin queue (background-image / <img src> sinks).
-    # With the image cache on, cards send the local proxy URL: keep the TMDB
-    # URL behind it rather than dropping the image.
+    # Stored, then re-served to the community list and the admin queue
+    # (background-image / <img src> sinks): same rule as featured titles
+    # and lists.
     @field_validator("poster_url", "backdrop_url")
     @classmethod
-    def _safe_image_url(cls, v: Optional[str]) -> Optional[str]:
-        return safe_url(unproxied_url(v or ""), schemes={"http", "https"})
+    def _safe_image_url(cls, v: str | None) -> str | None:
+        return safe_image_url(v)
 
 
 class StatusUpdate(BaseModel):
@@ -69,11 +67,11 @@ async def list_requests(
 
 @router.get("/admin")
 async def list_requests_admin(
-    status_filter: Optional[str] = Query(None, alias="status"),
+    status_filter: str | None = Query(None, alias="status"),
     page: int = Query(1, ge=1),
     per_page: int = Query(25, ge=1, le=100),
     sort: str = Query("recent", pattern="^(recent|oldest|title)$"),
-    media_type: Optional[str] = Query(None, alias="type", pattern="^(movie|tv)$"),
+    media_type: str | None = Query(None, alias="type", pattern="^(movie|tv)$"),
     hide_available: bool = False,
     locale: str = Depends(get_request_locale),
     _: tuple[User, UserProfile] = Depends(require_admin),
