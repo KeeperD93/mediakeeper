@@ -51,6 +51,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Notifications — menus : flèche dégagée du texte, plus de zoom sur téléphone.
 - Erreurs — messages lisibles et traduits (saisie refusée, démarrage, erreur serveur, limite de requêtes).
 - Confirmations — en file d'attente, sans validation involontaire (double clic, touche Entrée).
+- Remontées — envoi en échec : message clair au lieu du texte du navigateur.
 
 ## [1.0.0-rc.8] - 2026-10-11
 

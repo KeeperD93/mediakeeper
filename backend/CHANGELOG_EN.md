@@ -51,6 +51,7 @@ This section intentionally has no date so it is not shown to users.
 - Notifications — menus: arrow clear of the text, no more zoom on phones.
 - Errors — readable, translated messages (refused input, startup, server error, rate limit).
 - Confirmations — queued, no accidental acceptance (double click, Enter key).
+- Feedback — failed send: clear message instead of the browser's text.
 
 ## [1.0.0-rc.8] - 2026-10-11
 
