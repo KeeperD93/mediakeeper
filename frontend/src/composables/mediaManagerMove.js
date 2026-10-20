@@ -19,6 +19,7 @@ import {
   endProgress,
 } from './mediaManagerState'
 import { loadFiles } from './mediaManagerNavigation'
+import { resolveApiError } from './useApi'
 import { TOAST_TYPE } from '@/constants/toast'
 import { FILE_TYPE } from '@/constants/mediaManager'
 
@@ -149,17 +150,22 @@ export async function _execMoveFiles(filesToMove, dest, overwrite) {
   )
   setProgress(95)
   let ok = 0
+  let failed = 0
   const errors = []
   results.forEach((r, i) => {
-    if (r.status === 'fulfilled' && !r.value?.error) ok++
-    else {
-      const errMsg = r.value?.error || r.reason?.message || _t('common.unknownError')
-      errors.push(`${filesToMove[i]?.name || '?'} : ${errMsg}`)
+    if (r.status === 'fulfilled' && !r.value?.error) {
+      ok++
+      return
     }
+    failed++
+    // A rate limit's own toast already says it: its reason resolves to nothing.
+    const code = r.value?.error || r.reason?.message
+    const reason = code ? resolveApiError(code) : _t('common.unknownError')
+    if (reason) errors.push(`${filesToMove[i]?.name || '?'} : ${reason}`)
   })
   if (ok > 0) _recordMoveHistory(filesToMove, dest, results)
   endProgress()
-  if (errors.length === 0) {
+  if (failed === 0) {
     showToast(
       _t('mediaManager.filesMoved', { count: ok }) +
         (overwrite ? ' ' + _t('mediaManager.overwritten') : ''),
@@ -167,8 +173,7 @@ export async function _execMoveFiles(filesToMove, dest, overwrite) {
     )
   } else {
     errors.forEach(msg => showToast(msg, TOAST_TYPE.ERR, 8000))
-    if (ok > 0)
-      showToast(_t('mediaManager.partialResult', { ok, errors: errors.length }), TOAST_TYPE.WARN)
+    if (ok > 0) showToast(_t('mediaManager.partialResult', { ok, errors: failed }), TOAST_TYPE.WARN)
   }
   checked.value = new Set()
   loadFiles()

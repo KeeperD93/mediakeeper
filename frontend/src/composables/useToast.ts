@@ -63,6 +63,8 @@ export function useToast(): UseToastApi {
     duration = 5000,
     meta: ToastMeta | null = null,
   ): void {
+    // Nothing to say: the failure was already reported (a rate limit's own toast).
+    if (!message) return
     const id = ++toastId
     const path = _routerInstance?.currentRoute?.value?.path || '/'
     const module = ROUTE_MODULES[path] || 'toastModule.app'

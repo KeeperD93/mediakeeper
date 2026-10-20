@@ -21,9 +21,11 @@ vi.mock('@/composables/apiClient', async importOriginal => ({
   ...(await importOriginal()),
   fetchApiResponse: vi.fn(),
 }))
+vi.mock('@/composables/handle429', () => ({ rateLimitCode: vi.fn() }))
 
-import { fetchApiResponse } from '@/composables/apiClient'
-import { resolveApiError, useApi } from '@/composables/useApi'
+import { RATE_LIMITED_NOTIFIED, fetchApiResponse } from '@/composables/apiClient'
+import { rateLimitCode } from '@/composables/handle429'
+import { resolveApiError, resolveScopedError, useApi } from '@/composables/useApi'
 
 const answer = (status, body) => ({ ok: false, status, json: async () => body })
 
@@ -50,6 +52,23 @@ describe('apiFetch errors', () => {
       },
     })
     await expect(useApi().apiFetch('/api/x')).rejects.toThrow('http_502')
+  })
+
+  it('leaves a rate limit to the shared rule, which reads the answer', async () => {
+    const res = answer(429, { error: 'Rate limit exceeded' })
+    fetchApiResponse.mockResolvedValue(res)
+    rateLimitCode.mockReturnValue(RATE_LIMITED_NOTIFIED)
+
+    await expect(useApi().apiFetch('/api/x')).rejects.toThrow(RATE_LIMITED_NOTIFIED)
+    expect(rateLimitCode).toHaveBeenCalledWith(res, { error: 'Rate limit exceeded' })
+    expect(resolveApiError(RATE_LIMITED_NOTIFIED, 'common.apiError.deleteFailed')).toBe('')
+    expect(
+      resolveScopedError(
+        'portal.lists.errors',
+        RATE_LIMITED_NOTIFIED,
+        'common.apiError.deleteFailed',
+      ),
+    ).toBe('')
   })
 })
 

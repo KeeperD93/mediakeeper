@@ -16,6 +16,12 @@ vi.mock('@/composables/portal/useRooms', () => ({
 
 vi.mock('@/composables/useApi', () => ({
   useApi: () => ({ apiGet: vi.fn().mockImplementation(() => Promise.resolve(boundsRef.value)) }),
+  // The room's own reason when its scope words it, nothing over a rate limit
+  // (its toast says it), else the action that failed.
+  resolveScopedError: (scope, code, fallbackKey) => {
+    if (code === 'max_participants_out_of_range') return `${scope}.${code}`
+    return code === 'rate_limited_notified' ? '' : fallbackKey
+  },
 }))
 
 import { useEventCreateModal } from '@/components/portal/useEventCreateModal.js'
@@ -102,5 +108,33 @@ describe('useEventCreateModal — capacity', () => {
     for (let i = 1; i <= 12; i++) api.addUser({ id: i })
     expect(api.selectedUsers.value.length).toBe(9) // host + 9 = max 10
     app.unmount()
+  })
+})
+
+describe('useEventCreateModal — a failed creation', () => {
+  beforeEach(() => {
+    createMock.mockReset()
+    boundsRef.value = {}
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+  })
+
+  async function failWith(code) {
+    createMock.mockRejectedValueOnce(new Error(code))
+    const [api, app] = await mountModal()
+    fillValid(api)
+    await api.submit()
+    app.unmount()
+    return api.error.value
+  }
+
+  it("shows the room's own reason when the server gives one", async () => {
+    expect(await failWith('max_participants_out_of_range')).toBe(
+      'portal.mkEvents.errors.max_participants_out_of_range',
+    )
+  })
+
+  it('names the failed action otherwise, and says nothing over a rate limit', async () => {
+    expect(await failWith('http_500')).toBe('common.apiError.saveFailed')
+    expect(await failWith('rate_limited_notified')).toBe('')
   })
 })

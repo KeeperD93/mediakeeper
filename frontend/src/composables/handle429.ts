@@ -1,18 +1,19 @@
 /**
- * Shared 429 handler — surfaces the rate-limit response as a single
- * user-facing toast.
+ * Shared 429 handling: the server's own reason when it gives one, else one
+ * warning toast.
  *
- * Called from the three layers that hit the API:
- *   - ``useApi.apiFetch`` — every authenticated mutation / read
- *   - ``useAuth.login`` — admin login bootstrap (``fetchApiResponse`` direct)
- *   - ``usePortalAuth.portalAuthFetch`` — Emby portal login bootstrap
+ * Used where the app reads API answers itself:
+ *   - ``useApi.apiFetch`` — every authenticated call
+ *   - ``useAuth`` — sign-in and password change (``fetchApiResponse`` direct)
+ *   - ``usePortalAuth.portalAuthFetch`` — the portal session check
  *
- * Keeping the logic in one place avoids three near-identical
- * try-block branches drifting apart and makes the i18n contract
- * (``common.apiError.rate_limited`` / ``..._retry``) easy to grep.
+ * Keeping the logic in one place stops these branches drifting apart and
+ * keeps the i18n contract (``common.apiError.rate_limited`` / ``..._retry``)
+ * easy to grep.
  */
 import i18n from '@/i18n'
 import { TOAST_TYPE } from '@/constants/toast'
+import { RATE_LIMITED_NOTIFIED } from './apiClient'
 import { useToast } from './useToast'
 
 /**
@@ -57,49 +58,40 @@ export function buildRateLimitMessage(retryAfterSeconds: number | null): string 
   return t('common.apiError.rate_limited')
 }
 
+// Slightly longer than the default 5 s: the operator usually waits and
+// retries, and a too-fast dismiss steals the hint.
+const TOAST_MS = 8000
+
 /**
  * Surface a 429 response as a single warning toast.
  *
  * Caller responsibilities:
  *   - Only invoke when ``res.status === 429`` (no internal guard so
  *     the call site stays explicit).
- *   - Keep throwing / propagating the original error after this call —
- *     the toast is informational, not flow control.
+ *   - Prefer ``rateLimitCode``, which only shows this toast when the
+ *     server gave no reason of its own.
  *
- * If the user is not in a Vue component context (e.g. early bootstrap
- * before the toast subscriber mounts), the toast still queues into the
- * module-scoped store; ``GlobalToasts.vue`` flushes the backlog the
- * moment it mounts.
+ * Outside a Vue component (early bootstrap), the toast still lands in the
+ * module-scoped store, and ``App.vue`` shows it once mounted.
  */
-// Module-scoped dedupe — the Portal home can fire several 429s back-to-back
-// when a burst of parallel requests crosses the rate limit. Surfacing a
-// fresh toast each time stacks identical warnings on the user; we collapse
-// repeats of the *same* message inside a short cooldown window instead.
-const TOAST_COOLDOWN_MS = 10_000
-let lastToastTs = 0
-let lastToastMessage: string | null = null
-
-/** Test-only escape hatch — resets the module-scoped dedupe state so a
- *  test that asserts the cooldown does not bleed into the next one. */
-export function _resetRateLimitToastDedupe(): void {
-  lastToastTs = 0
-  lastToastMessage = null
+export function showRateLimitToast(res: Response): void {
+  const message = buildRateLimitMessage(parseRetryAfter(res.headers.get('Retry-After')))
+  const { toasts, showToast } = useToast()
+  // A burst of parallel calls (the portal home) crosses the limit at once:
+  // one toast while it is on screen, a new one once it has gone or was closed.
+  if (toasts.value.some(toast => toast.message === message)) return
+  showToast(message, TOAST_TYPE.WARN, TOAST_MS)
 }
 
-export function showRateLimitToast(res: Response): void {
-  const retry = parseRetryAfter(res.headers.get('Retry-After'))
-  const seconds = retry ?? null
-  const message = buildRateLimitMessage(seconds)
-
-  const now = Date.now()
-  if (lastToastMessage === message && now - lastToastTs < TOAST_COOLDOWN_MS) {
-    return
-  }
-  lastToastTs = now
-  lastToastMessage = message
-
-  const { showToast } = useToast()
-  // Slightly longer than the default 5 s — the operator usually waits
-  // and retries; a too-fast dismiss steals the hint.
-  showToast(message, TOAST_TYPE.WARN, 8000)
+/**
+ * The error code of a 429 answer. The server's own reason when it gives one
+ * (``login_blocked``, a list's ``rate_limited``) is the caller's to show;
+ * without one, the shared toast is the message and the caller gets
+ * ``RATE_LIMITED_NOTIFIED``, which ``resolveApiError`` turns into nothing.
+ */
+export function rateLimitCode(res: Response, data: unknown): string {
+  const detail = (data as { detail?: unknown } | null)?.detail
+  if (typeof detail === 'string' && detail) return detail
+  showRateLimitToast(res)
+  return RATE_LIMITED_NOTIFIED
 }

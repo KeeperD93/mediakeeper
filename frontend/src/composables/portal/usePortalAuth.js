@@ -1,6 +1,6 @@
 import { ref, readonly } from 'vue'
 import { fetchApiResponse, useApi } from '@/composables/useApi'
-import { showRateLimitToast } from '@/composables/handle429'
+import { rateLimitCode } from '@/composables/handle429'
 
 const profile = ref(null)
 const isPortalAuth = ref(false)
@@ -40,16 +40,14 @@ export function usePortalAuth() {
       })
       if (!res) return { ok: false, status: 0, data: null }
 
-      if (res.status === 429) {
-        showRateLimitToast(res)
-      }
-
       let data = null
       try {
         data = await res.json()
       } catch {
         data = null
       }
+      // The shared toast only when the server gave no reason of its own.
+      if (res.status === 429) rateLimitCode(res, data)
 
       return { ok: res.ok, status: res.status, data }
     } catch (e) {

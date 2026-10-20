@@ -6,6 +6,10 @@ const AUTH_REFRESH_URL = '/api/auth/refresh'
 const PORTAL_ADMIN_ENTER_URL = '/api/portal/admin/requests/enter'
 const CSRF_COOKIE = 'mk_csrf'
 
+// Thrown after a 429: the rate-limit toast already told the user, so the
+// caller's own failure message must stay silent (resolveApiError returns '').
+export const RATE_LIMITED_NOTIFIED = 'rate_limited_notified'
+
 export interface ApiFetchOptions extends RequestInit {
   retryOn401?: boolean
   redirectOn401?: boolean

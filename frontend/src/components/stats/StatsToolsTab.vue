@@ -126,9 +126,12 @@ async function importJellystats(e) {
     }
     loadTotals()
   } catch (err) {
+    console.error('[StatsToolsTab.importJellystats]', err)
     // apiFetch throws Error(detail) on a 4xx/413 — translate the backend
     // code to a user label (falls back to a generic message if unknown).
-    importStatus.value = { type: 'err', text: resolveApiError(err?.message) }
+    // A rate limit resolves to nothing: its own toast says it.
+    const text = resolveApiError(err?.message)
+    importStatus.value = text ? { type: 'err', text } : null
   }
   e.target.value = ''
 }

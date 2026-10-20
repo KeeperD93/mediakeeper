@@ -9,8 +9,10 @@
  *   2. ``buildRateLimitMessage`` — must pick the right i18n key based
  *      on whether ``Retry-After`` was parseable. Pinning the key
  *      names here catches a typo on either side of the locale file.
+ *
+ * Then the toast itself (one while it is on screen) and ``rateLimitCode``.
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 vi.mock('@/i18n', () => ({
   default: {
@@ -25,17 +27,23 @@ vi.mock('@/i18n', () => ({
   },
 }))
 
-const showToast = vi.fn()
+// The toasts on screen: showToast adds one, a timeout or a click removes it.
+const onScreen = { value: [] }
+const showToast = vi.fn((message, type, duration) =>
+  onScreen.value.push({ message, type, duration }),
+)
 vi.mock('@/composables/useToast', () => ({
-  useToast: () => ({ showToast }),
+  useToast: () => ({ toasts: onScreen, showToast }),
 }))
 
 import {
   parseRetryAfter,
   buildRateLimitMessage,
+  rateLimitCode,
   showRateLimitToast,
-  _resetRateLimitToastDedupe,
 } from '@/composables/handle429'
+import { RATE_LIMITED_NOTIFIED } from '@/composables/apiClient'
+import { TOAST_TYPE } from '@/constants/toast'
 
 describe('parseRetryAfter', () => {
   it('parses a positive integer of seconds', () => {
@@ -82,14 +90,10 @@ describe('buildRateLimitMessage', () => {
   })
 })
 
-describe('showRateLimitToast — 10 s dedupe window', () => {
+describe('showRateLimitToast — one toast while it is on screen', () => {
   beforeEach(() => {
-    showToast.mockReset()
-    _resetRateLimitToastDedupe()
-  })
-
-  afterEach(() => {
-    vi.useRealTimers()
+    showToast.mockClear()
+    onScreen.value = []
   })
 
   function buildResponse(retryAfter) {
@@ -98,23 +102,21 @@ describe('showRateLimitToast — 10 s dedupe window', () => {
     return new Response(null, { status: 429, headers })
   }
 
-  it('collapses identical bursts into a single toast', () => {
+  it('shows an 8 s warning, once for a burst', () => {
     const res = buildResponse()
     for (let i = 0; i < 5; i += 1) showRateLimitToast(res)
+
     expect(showToast).toHaveBeenCalledTimes(1)
+    expect(showToast).toHaveBeenCalledWith('common.apiError.rate_limited', TOAST_TYPE.WARN, 8000)
   })
 
-  it('re-arms once the cooldown window elapses', () => {
-    vi.useFakeTimers()
-    vi.setSystemTime(new Date('2026-05-15T10:00:00Z'))
-
+  it('shows a new one once the previous toast is gone, timed out or closed', () => {
     const res = buildResponse()
     showRateLimitToast(res)
-    expect(showToast).toHaveBeenCalledTimes(1)
+    onScreen.value = []
 
-    // 10 s + 1 ms later — past the cooldown threshold.
-    vi.setSystemTime(new Date('2026-05-15T10:00:10.001Z'))
     showRateLimitToast(res)
+
     expect(showToast).toHaveBeenCalledTimes(2)
   })
 
@@ -122,5 +124,27 @@ describe('showRateLimitToast — 10 s dedupe window', () => {
     showRateLimitToast(buildResponse(30))
     showRateLimitToast(buildResponse(60))
     expect(showToast).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('rateLimitCode', () => {
+  beforeEach(() => {
+    showToast.mockClear()
+    onScreen.value = []
+  })
+
+  it("keeps the server's own reason for the caller and shows no toast", () => {
+    const res = new Response(null, { status: 429 })
+
+    expect(rateLimitCode(res, { detail: 'login_blocked' })).toBe('login_blocked')
+    expect(showToast).not.toHaveBeenCalled()
+  })
+
+  it('shows the shared toast when the server gives no reason', () => {
+    const res = new Response(null, { status: 429 })
+
+    expect(rateLimitCode(res, { error: 'Rate limit exceeded' })).toBe(RATE_LIMITED_NOTIFIED)
+    expect(rateLimitCode(res, null)).toBe(RATE_LIMITED_NOTIFIED)
+    expect(showToast).toHaveBeenCalledTimes(1)
   })
 })

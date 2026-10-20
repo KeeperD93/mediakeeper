@@ -1,7 +1,12 @@
 import { ref, type Ref } from 'vue'
 import i18n from '@/i18n'
-import { extractDetailCode, fetchApiResponse, type ApiFetchOptions } from './apiClient'
-import { showRateLimitToast } from './handle429'
+import {
+  RATE_LIMITED_NOTIFIED,
+  extractDetailCode,
+  fetchApiResponse,
+  type ApiFetchOptions,
+} from './apiClient'
+import { rateLimitCode } from './handle429'
 
 export { buildApiHeaders, fetchApiResponse, getCsrfToken } from './apiClient'
 export type { ApiFetchOptions } from './apiClient'
@@ -19,13 +24,15 @@ const HTTP_STATUS_CODE = /^http_(\d{3})$/
  * create the backup"), whatever the cause: a status without a code, a
  * request that never got an answer. Without one, a bare status
  * (``http_502``) reads "Error 502" and any other code is surfaced raw
- * so developers can spot gaps quickly.
+ * so developers can spot gaps quickly. A rate limit, already shown by
+ * its own toast, resolves to '' (showToast then stays silent).
  */
 export function resolveApiError(code?: string | null, fallbackKey?: string): string {
   // i18n.global.t has overloaded signatures — treat it as a narrow
   // (key: string, named?: Record<string, unknown>) => string shape
   // because that's the only form this module uses.
   const t = i18n.global.t as unknown as (key: string, named?: Record<string, unknown>) => string
+  if (code === RATE_LIMITED_NOTIFIED) return ''
   if (code) {
     const key = `common.apiError.${code}`
     const localized = t(key)
@@ -86,13 +93,8 @@ export function useApi(): UseApiReturn {
       }
 
       if (!res.ok) {
-        if (res.status === 429) {
-          // Surface the rate-limit response as a friendly toast before
-          // the throw — the calling component can still react via its
-          // own catch block, but the user already has a visible hint.
-          showRateLimitToast(res)
-        }
         const data = await res.json().catch(() => ({}))
+        if (res.status === 429) throw new Error(rateLimitCode(res, data))
         throw new Error(extractDetailCode(data, `http_${res.status}`))
       }
 
