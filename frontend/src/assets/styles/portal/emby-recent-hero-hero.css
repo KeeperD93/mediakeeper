@@ -184,15 +184,15 @@
   }
 }
 .pt-eh-btn--play {
-  background: #fff;
-  color: #141414;
+  background: var(--portal-hero-btn-primary-bg);
+  color: var(--portal-hero-btn-primary-text);
 }
 .pt-eh-btn--trailer {
-  background: rgb(109, 109, 109, 0.7);
+  background: var(--portal-hero-btn-secondary-bg);
   color: var(--portal-text-primary);
 }
 .pt-eh-btn--info {
-  background: rgb(109, 109, 110, 0.7);
+  background: var(--portal-hero-btn-secondary-bg);
   color: var(--portal-text-primary);
 }
 /* Same shape strategy as HeroBanner: padding-driven sizing + aspect-ratio

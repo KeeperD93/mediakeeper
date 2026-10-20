@@ -251,22 +251,22 @@
   }
 }
 .pt-hero-btn--play {
-  background: #fff;
-  color: #141414;
+  background: var(--portal-hero-btn-primary-bg);
+  color: var(--portal-hero-btn-primary-text);
 }
 .pt-hero-btn--info {
-  background: rgb(109, 109, 110, 0.7);
+  background: var(--portal-hero-btn-secondary-bg);
   color: var(--portal-text-primary);
 }
 .pt-hero-btn--trailer {
-  background: rgb(109, 109, 110, 0.7);
+  background: var(--portal-hero-btn-secondary-bg);
   color: var(--portal-text-primary);
 }
 /* Muted "already requested" CTA — same neutral surface as the secondary
    buttons but with muted text + default cursor so it reads as a
    non-actionable status, mirroring the poster card's pending CTA. */
 .pt-hero-btn--pending {
-  background: rgb(109, 109, 110, 0.7);
+  background: var(--portal-hero-btn-secondary-bg);
   color: var(--portal-text-body-muted);
   cursor: default;
 }
@@ -317,7 +317,7 @@
   height: 3px;
   padding: 0;
   border: none;
-  background: rgb(255, 255, 255, 0.3);
+  background: var(--portal-hero-dot-bg);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition: background var(--portal-dur-slow);
@@ -335,7 +335,7 @@
   transform: translate(-50%, -50%);
 }
 .pt-hero-dot[aria-current='true'] {
-  background: #fff;
+  background: var(--portal-hero-dot-active-bg);
 }
 /* Bigger on desktop, where the dots sit on a much wider hero. */
 @media (min-width: 1024px) {
