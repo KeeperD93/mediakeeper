@@ -41,6 +41,7 @@
       class="arr-pill arr-pill--filter"
       :class="{ 'arr-pill--active': mediaType === tp.value }"
       :aria-pressed="mediaType === tp.value ? 'true' : 'false'"
+      :aria-label="tp.menuLabel ? $t(tp.menuLabel) : undefined"
       @click="emit('update:mediaType', tp.value)"
     >
       {{ $t(tp.label) }}

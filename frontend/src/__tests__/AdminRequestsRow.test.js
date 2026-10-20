@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
 
@@ -19,7 +19,17 @@ function mountRow(status, { busy = false } = {}) {
 const action = (w, label) => w.find(`button[aria-label="${label}"]`)
 const actionLabels = w => w.findAll('.arr-row-actions button').map(b => b.attributes('aria-label'))
 
+// jsdom has no clipboard API (like http on a LAN address): stub a secure context.
+function stubClipboard() {
+  const writeText = vi.fn().mockResolvedValue()
+  Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
+  return writeText
+}
+
 describe('AdminRequestsRow actions', () => {
+  beforeEach(() => stubClipboard())
+  afterEach(() => delete navigator.clipboard)
+
   it('lets a pending request be approved or rejected', async () => {
     const w = mountRow('pending')
 
@@ -72,6 +82,38 @@ describe('AdminRequestsRow actions', () => {
       expect(actions.length).toBeGreaterThan(1)
       expect(actions.every(b => b.attributes('disabled') !== undefined)).toBe(true)
       expect(w.find('.arr-row-copy').attributes('disabled')).toBeUndefined()
+      expect(w.find('article').attributes('aria-busy')).toBe('true')
     },
   )
+
+  it('drops the second click of a double click', () => {
+    const w = mountRow('approved')
+    // trigger() cannot set the click count: dispatch a real second click.
+    const secondClick = () => new MouseEvent('click', { detail: 2, bubbles: true })
+
+    action(w, 'portal.admin.req.markAvailable').element.dispatchEvent(secondClick())
+    action(w, 'portal.admin.delete').element.dispatchEvent(secondClick())
+
+    expect(w.emitted('action')).toBeUndefined()
+    expect(w.emitted('delete')).toBeUndefined()
+  })
+})
+
+describe('AdminRequestsRow title copy', () => {
+  afterEach(() => delete navigator.clipboard)
+
+  it('copies the title, then says it is copied', async () => {
+    const writeText = stubClipboard()
+    const w = mountRow('pending')
+
+    await w.find('.arr-row-copy').trigger('click')
+    await Promise.resolve()
+
+    expect(writeText).toHaveBeenCalledWith('Sample')
+    expect(w.find('.arr-row-copy').attributes('aria-label')).toBe('common.copied')
+  })
+
+  it('offers no copy button without a clipboard (not a secure context)', () => {
+    expect(mountRow('pending').find('.arr-row-copy').exists()).toBe(false)
+  })
 })

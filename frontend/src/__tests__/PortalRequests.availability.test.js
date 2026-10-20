@@ -5,6 +5,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
+import { STORAGE_KEYS } from '@/constants/storage'
 import { TOAST_TYPE } from '@/constants/toast'
 
 const mocks = vi.hoisted(() => ({
@@ -44,7 +45,7 @@ vi.mock('@/composables/useToast', () => ({ useToast: () => ({ showToast: mocks.s
 import PortalRequests from '@/views/portal/PortalRequests.vue'
 import AdminRequestsRow from '@/components/portal/admin/AdminRequestsRow.vue'
 
-const HIDE_AVAILABLE_KEY = 'mk_admin_requests_hide_available'
+const HIDE_AVAILABLE_KEY = STORAGE_KEYS.ADMIN_REQUESTS_HIDE_AVAILABLE
 
 async function mountQueue() {
   const w = mount(PortalRequests, {

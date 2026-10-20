@@ -77,6 +77,8 @@
 .arr-toolbar > .arr-pills {
   display: contents;
 }
+/* The sort shows before the switch while the tab order keeps the DOM's
+   (switch, then sort): accepted, both stay one Tab apart. */
 .arr-filter-menus > .arr-sort,
 .arr-toolbar > .arr-sort {
   order: -1;
@@ -204,6 +206,13 @@
 @media (min-width: 768px) {
   .arr-sort {
     min-height: 36px;
+  }
+}
+/* iOS zooms the page into a field under 16px it focuses: 16px there only,
+   other devices keep the compact menus. */
+@supports (-webkit-touch-callout: none) {
+  .arr-sort {
+    font-size: var(--portal-text-md);
   }
 }
 .arr-sort:focus {

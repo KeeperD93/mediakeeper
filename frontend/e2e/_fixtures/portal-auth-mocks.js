@@ -35,6 +35,14 @@ export const DEFAULT_VIEWER_PROFILE = Object.freeze({
   favorite_genres: [],
 })
 
+// Fictional portal admin, for the admin-only pages (requests queue).
+export const ADMIN_VIEWER_PROFILE = Object.freeze({
+  ...DEFAULT_VIEWER_PROFILE,
+  username: 'e2e.admin',
+  display_name: 'E2E Admin',
+  role: 'admin',
+})
+
 const DEFAULT_GDPR = Object.freeze({
   enabled: false,
   deletion_requested_at: null,
@@ -148,27 +156,45 @@ export function portalTicketsHandlers() {
   ]
 }
 
+/** Handlers for the admin requests queue (/portal/requests), empty. */
+export function portalRequestsQueueHandlers() {
+  return [
+    pathHandler('portal-requests-admin', '/api/portal/requests/admin', {
+      items: [],
+      total: 0,
+      page: 1,
+      per_page: 25,
+    }),
+    pathHandler('portal-admin-stats', '/api/portal/admin/stats', {
+      pending_requests: 0,
+      total_requests: 0,
+      approved_this_week: 0,
+      approved_total: 0,
+      rejected_this_week: 0,
+      rejected_total: 0,
+      available_count: 0,
+      available_total: 0,
+    }),
+  ]
+}
+
 /** Handlers for the dedicated /portal/leaderboard page. */
 export function portalLeaderboardHandlers() {
   return [
-    pathHandler(
-      'portal-leaderboard-monthly',
-      '/api/portal/achievements/leaderboard/monthly',
-      {
-        items: [],
-        viewer_rank: null,
-        viewer_entry: null,
-        stats: {
-          month_label: '',
-          total_players: 0,
-          total_xp_month: 0,
-          days_remaining: 0,
-          my_xp_month: null,
-          my_delta_week: null,
-          projected_end_rank: null,
-        },
+    pathHandler('portal-leaderboard-monthly', '/api/portal/achievements/leaderboard/monthly', {
+      items: [],
+      viewer_rank: null,
+      viewer_entry: null,
+      stats: {
+        month_label: '',
+        total_players: 0,
+        total_xp_month: 0,
+        days_remaining: 0,
+        my_xp_month: null,
+        my_delta_week: null,
+        projected_end_rank: null,
       },
-    ),
+    }),
   ]
 }
 

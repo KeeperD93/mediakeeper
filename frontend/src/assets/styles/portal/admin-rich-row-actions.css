@@ -39,6 +39,11 @@
   align-items: center;
   justify-content: center;
 }
+/* A call in progress on the row: the buttons wait, without a hover lift. */
+.arr-action:disabled {
+  opacity: var(--portal-opacity-disabled);
+  cursor: default;
+}
 /* Touch-sized on phones, compact from tablets up. */
 .arr-action--icon {
   width: var(--portal-touch-target);
@@ -117,8 +122,13 @@
     transform: none;
   }
 }
+/* Reached with the keyboard: shown, like on hover. */
+.arr-row-copy:focus-visible {
+  opacity: 1;
+  transform: none;
+}
 @media (hover: hover) {
-  .arr-action:hover {
+  .arr-action:not(:disabled):hover {
     transform: translateY(-2px);
     border-color: var(--portal-text-disabled);
     color: var(--portal-text-primary);
@@ -140,26 +150,21 @@
   background: linear-gradient(135deg, rgb(34, 211, 238, 0.16), rgb(34, 211, 238, 0.05));
 }
 @media (hover: hover) {
-  .arr-action--approve:hover {
+  .arr-action--approve:not(:disabled):hover {
     background: linear-gradient(135deg, rgb(74, 222, 128, 0.28), rgb(74, 222, 128, 0.12));
     border-color: rgb(74, 222, 128, 0.7);
     box-shadow: 0 8px 24px rgb(74, 222, 128, 0.3);
   }
-  .arr-action--reject:hover {
+  .arr-action--reject:not(:disabled):hover {
     background: linear-gradient(135deg, rgb(248, 113, 113, 0.28), rgb(248, 113, 113, 0.12));
     border-color: rgb(248, 113, 113, 0.7);
     box-shadow: 0 8px 24px rgb(248, 113, 113, 0.3);
   }
-  .arr-action--available:hover {
+  .arr-action--available:not(:disabled):hover {
     background: linear-gradient(135deg, rgb(34, 211, 238, 0.28), rgb(34, 211, 238, 0.12));
     border-color: rgb(34, 211, 238, 0.7);
     box-shadow: 0 8px 24px rgb(34, 211, 238, 0.3);
   }
-}
-
-/* Fresh-status glow removed on request. */
-.arr-row--fresh {
-  /* no-op */
 }
 
 /* Tablets up: the full row, numbered, with a large poster and the actions

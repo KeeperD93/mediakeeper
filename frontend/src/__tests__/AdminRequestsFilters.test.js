@@ -39,7 +39,10 @@ describe('AdminRequestsFilters', () => {
     const w = mountFilters()
 
     expect(menu(w, TYPE_MENU).find('option').text()).toBe('portal.admin.req.allTypes')
-    expect(pill(w, 'portal.admin.req.typeAll').exists()).toBe(true)
+    // A screen reader hears "All types" too, not a second bare "All".
+    expect(pill(w, 'portal.admin.req.typeAll').attributes('aria-label')).toBe(
+      'portal.admin.req.allTypes',
+    )
   })
 
   it('emits the choice made in a menu', async () => {

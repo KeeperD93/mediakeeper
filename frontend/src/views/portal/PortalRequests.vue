@@ -2,10 +2,10 @@
   <div class="arr-page">
     <header class="arr-head">
       <div>
-        <h2 class="arr-title">
+        <h1 class="arr-title">
           <span class="arr-title-accent" aria-hidden="true" />
           {{ $t('portal.admin.req.title') }}
-        </h2>
+        </h1>
         <p class="arr-sub">{{ $t('portal.admin.req.subtitle') }}</p>
       </div>
     </header>
@@ -114,6 +114,7 @@ import MkSpinner from '@/components/common/MkSpinner.vue'
 import RejectReasonModal from '@/components/portal/admin/RejectReasonModal.vue'
 import { REQUEST_STATUS, REQUEST_SORT } from '@/constants/requests'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
+import { STORAGE_KEYS } from '@/constants/storage'
 
 import '@/assets/styles/portal/admin-rich-row-header.css'
 import '@/assets/styles/portal/admin-rich-row-stats.css'
@@ -138,13 +139,12 @@ const loading = ref(false)
 
 // Remembered across visits; it only applies to the all-statuses view, a
 // status filter always shows what it names.
-const HIDE_AVAILABLE_KEY = 'mk_admin_requests_hide_available'
 const hideAvailable = ref(readHideAvailable())
 const hidingAvailable = computed(() => !filter.value && hideAvailable.value)
 
 function readHideAvailable() {
   try {
-    return localStorage.getItem(HIDE_AVAILABLE_KEY) === '1'
+    return localStorage.getItem(STORAGE_KEYS.ADMIN_REQUESTS_HIDE_AVAILABLE) === '1'
   } catch {
     return false
   }
@@ -153,7 +153,7 @@ function readHideAvailable() {
 function setHideAvailable(value) {
   hideAvailable.value = value
   try {
-    localStorage.setItem(HIDE_AVAILABLE_KEY, value ? '1' : '0')
+    localStorage.setItem(STORAGE_KEYS.ADMIN_REQUESTS_HIDE_AVAILABLE, value ? '1' : '0')
   } catch {
     /* storage blocked (private mode): the choice lasts for this visit */
   }

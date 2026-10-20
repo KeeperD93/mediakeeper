@@ -6,6 +6,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
+import { STORAGE_KEYS } from '@/constants/storage'
 import { TOAST_TYPE } from '@/constants/toast'
 
 const mocks = vi.hoisted(() => ({ fetchAdminRequests: vi.fn(), showToast: vi.fn() }))
@@ -36,7 +37,7 @@ vi.mock('@/composables/useToast', () => ({ useToast: () => ({ showToast: mocks.s
 
 import PortalRequests from '@/views/portal/PortalRequests.vue'
 
-const KEY = 'mk_admin_requests_hide_available'
+const KEY = STORAGE_KEYS.ADMIN_REQUESTS_HIDE_AVAILABLE
 
 async function mountPage() {
   const w = mount(PortalRequests, {
@@ -48,6 +49,17 @@ async function mountPage() {
 
 const toggle = w => w.find('button[role="switch"]')
 const lastLoad = () => mocks.fetchAdminRequests.mock.calls.at(-1)[0]
+
+describe('PortalRequests — page', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('titles the page with its one h1, like the other portal pages', async () => {
+    const w = await mountPage()
+
+    expect(w.findAll('h1')).toHaveLength(1)
+    expect(w.find('h1').classes()).toContain('arr-title')
+  })
+})
 
 describe('PortalRequests — hide available', () => {
   beforeEach(() => {
