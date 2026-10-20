@@ -6,23 +6,9 @@ from __future__ import annotations
 import pytest
 from sqlalchemy import select
 
-from core.security import hash_password
 from models.portal.event import MKNotification
 from models.portal.request import MediaRequest
-from models.user import User
 from services.portal.requests import update_request_status
-
-
-async def _user(db, username: str) -> int:
-    user = User(
-        username=username,
-        hashed_password=hash_password("Irrelevant123!"),
-        is_active=True,
-        must_change_password=False,
-    )
-    db.add(user)
-    await db.commit()
-    return user.id
 
 
 async def _request(db, user_id: int | None, status: str) -> int:
@@ -40,9 +26,9 @@ async def _bell(db) -> list[MKNotification]:
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(("status", "reason"), [("approved", "Not on any service"), ("pending", None)])
-async def test_rejection_notifies_the_requester_with_the_reason(db_session, status, reason):
-    uid = await _user(db_session, "viewer")
-    admin_id = await _user(db_session, "admin")
+async def test_rejection_notifies_the_requester_with_the_reason(db_session, status, reason, make_user):
+    uid = (await make_user("viewer")).id
+    admin_id = (await make_user("admin")).id
     rid = await _request(db_session, uid, status)
 
     result = await update_request_status(db_session, rid, "rejected", admin_id, reason)
@@ -57,8 +43,8 @@ async def test_rejection_notifies_the_requester_with_the_reason(db_session, stat
 
 
 @pytest.mark.asyncio
-async def test_rejection_of_a_purged_requester_skips_the_bell(db_session):
-    admin_id = await _user(db_session, "admin")
+async def test_rejection_of_a_purged_requester_skips_the_bell(db_session, make_user):
+    admin_id = (await make_user("admin")).id
     rid = await _request(db_session, None, "approved")
 
     result = await update_request_status(db_session, rid, "rejected", admin_id, "Duplicate")

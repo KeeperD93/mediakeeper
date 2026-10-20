@@ -9,30 +9,14 @@ from datetime import datetime, timezone
 import pytest
 from sqlalchemy import select
 
-from core.security import create_access_token, hash_password
+from core.security import create_access_token
 from models.portal.emby_tmdb_index import EmbyTmdbIndex
 from models.portal.event import MKNotification
-from models.portal.profile import UserProfile
 from models.portal.request import MediaRequest
-from models.user import User
 from services.portal import requests_fulfill
 from services.portal.requests import update_request_status
 
 TMDB_ID = 42
-
-
-async def _user(db, username: str, role: str = "viewer") -> int:
-    user = User(
-        username=username,
-        hashed_password=hash_password("Irrelevant123!"),
-        is_active=True,
-        must_change_password=False,
-    )
-    db.add(user)
-    await db.commit()
-    db.add(UserProfile(user_id=user.id, display_name=username, role=role, account_active=True))
-    await db.commit()
-    return user.id
 
 
 async def _request(db, user_id: int, status: str, media_type: str = "movie", **extra) -> int:
@@ -71,9 +55,9 @@ async def _bell_types(db) -> list[str]:
 
 
 @pytest.mark.asyncio
-async def test_missing_title_is_refused_until_forced(db_session):
-    uid = await _user(db_session, "viewer")
-    admin_id = await _user(db_session, "admin", "admin")
+async def test_missing_title_is_refused_until_forced(db_session, make_user):
+    uid = (await make_user("viewer", role="viewer")).id
+    admin_id = (await make_user("admin", role="admin")).id
     rid = await _request(db_session, uid, "approved")
 
     assert await update_request_status(db_session, rid, "available", admin_id) == {
@@ -92,9 +76,9 @@ async def test_missing_title_is_refused_until_forced(db_session):
 
 
 @pytest.mark.asyncio
-async def test_title_in_emby_is_marked_without_confirmation(db_session):
-    uid = await _user(db_session, "viewer")
-    admin_id = await _user(db_session, "admin", "admin")
+async def test_title_in_emby_is_marked_without_confirmation(db_session, make_user):
+    uid = (await make_user("viewer", role="viewer")).id
+    admin_id = (await make_user("admin", role="admin")).id
     rid = await _request(db_session, uid, "approved")
     await _in_emby(db_session)
 
@@ -104,9 +88,9 @@ async def test_title_in_emby_is_marked_without_confirmation(db_session):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(("served", "expected"), [(False, "not_in_library"), (True, None)])
-async def test_series_follow_the_episode_rule(db_session, monkeypatch, served, expected):
-    uid = await _user(db_session, "viewer")
-    admin_id = await _user(db_session, "admin", "admin")
+async def test_series_follow_the_episode_rule(db_session, monkeypatch, served, expected, make_user):
+    uid = (await make_user("viewer", role="viewer")).id
+    admin_id = (await make_user("admin", role="admin")).id
     rid = await _request(db_session, uid, "approved", media_type="tv")
     await _in_emby(db_session, "tv")
 
@@ -122,11 +106,11 @@ async def test_series_follow_the_episode_rule(db_session, monkeypatch, served, e
 
 
 @pytest.mark.asyncio
-async def test_unexpected_check_failure_leaves_the_admin_to_decide(db_session, monkeypatch):
+async def test_unexpected_check_failure_leaves_the_admin_to_decide(db_session, monkeypatch, make_user):
     """Emby or TMDB outages read as a missing title; only an unexpected error
     in the check itself reports it as failed."""
-    uid = await _user(db_session, "viewer")
-    admin_id = await _user(db_session, "admin", "admin")
+    uid = (await make_user("viewer", role="viewer")).id
+    admin_id = (await make_user("admin", role="admin")).id
     rid = await _request(db_session, uid, "approved")
 
     async def broken(db, req):
@@ -140,10 +124,10 @@ async def test_unexpected_check_failure_leaves_the_admin_to_decide(db_session, m
 
 
 @pytest.mark.asyncio
-async def test_undoing_availability_goes_back_to_approved_silently(db_session):
-    uid = await _user(db_session, "viewer")
-    first_admin = await _user(db_session, "admin", "admin")
-    other_admin = await _user(db_session, "admin2", "admin")
+async def test_undoing_availability_goes_back_to_approved_silently(db_session, make_user):
+    uid = (await make_user("viewer", role="viewer")).id
+    first_admin = (await make_user("admin", role="admin")).id
+    other_admin = (await make_user("admin2", role="admin")).id
     rid = await _request(
         db_session, uid, "available",
         approved_by=first_admin, available_at=datetime.now(timezone.utc),
@@ -160,12 +144,12 @@ async def test_undoing_availability_goes_back_to_approved_silently(db_session):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("status", ["approved", "available", "rejected"])
-async def test_resending_the_current_status_changes_nothing(db_session, status):
+async def test_resending_the_current_status_changes_nothing(db_session, status, make_user):
     """A stale queue line (the automatic flip got there first, another admin
     acted) resends the status the request already has: no bell, no rewrite."""
-    uid = await _user(db_session, "viewer")
-    first_admin = await _user(db_session, "admin", "admin")
-    other_admin = await _user(db_session, "admin2", "admin")
+    uid = (await make_user("viewer", role="viewer")).id
+    first_admin = (await make_user("admin", role="admin")).id
+    other_admin = (await make_user("admin2", role="admin")).id
     rid = await _request(
         db_session, uid, status, approved_by=first_admin, reject_reason="First reason",
         available_at=datetime(2026, 1, 1, tzinfo=timezone.utc),
@@ -183,9 +167,9 @@ async def test_resending_the_current_status_changes_nothing(db_session, status):
 
 
 @pytest.mark.asyncio
-async def test_status_route_answers_409_until_forced(client, db_session):
-    uid = await _user(db_session, "viewer")
-    await _user(db_session, "boss", "admin")
+async def test_status_route_answers_409_until_forced(client, db_session, make_user):
+    uid = (await make_user("viewer", role="viewer")).id
+    await make_user("boss", role="admin")
     rid = await _request(db_session, uid, "approved")
     client.cookies.set("rq_token", create_access_token({"sub": "boss", "scope": "portal"}))
 
@@ -200,8 +184,8 @@ async def test_status_route_answers_409_until_forced(client, db_session):
 
 
 @pytest.mark.asyncio
-async def test_status_route_answers_404_for_an_unknown_request(client, db_session):
-    await _user(db_session, "boss", "admin")
+async def test_status_route_answers_404_for_an_unknown_request(client, db_session, make_user):
+    await make_user("boss", role="admin")
     client.cookies.set("rq_token", create_access_token({"sub": "boss", "scope": "portal"}))
 
     resp = await client.put("/api/portal/requests/999999/status", json={"status": "approved"})

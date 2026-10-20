@@ -9,9 +9,7 @@ from datetime import datetime, timezone
 import pytest
 from sqlalchemy import select, update
 
-from core.security import hash_password
 from models.portal.request import MediaRequest
-from models.user import User
 from services.portal import requests as req_svc
 from services.portal.admin import get_admin_stats
 
@@ -19,15 +17,8 @@ POSTER = "https://image.tmdb.org/t/p/w300/p.jpg"
 BACKDROP = "https://image.tmdb.org/t/p/w780/b.jpg"
 
 
-async def _request(db, **images) -> MediaRequest:
-    user = User(
-        username="requester",
-        hashed_password=hash_password("Irrelevant123!"),
-        is_active=True,
-        must_change_password=False,
-    )
-    db.add(user)
-    await db.commit()
+async def _request(db, make_user, **images) -> MediaRequest:
+    user = await make_user("requester")
     req = MediaRequest(
         user_id=user.id, tmdb_id=4242, media_type="tv", title="Show", status="approved", **images,
     )
@@ -52,8 +43,8 @@ def _tmdb(monkeypatch, detail: dict) -> list[tuple[str, int]]:
     ({"backdrop_url": BACKDROP}, POSTER, "poster_url"),
     ({"poster_url": POSTER}, BACKDROP, "backdrop_url"),
 ])
-async def test_missing_image_is_restored_and_stored(db_session, monkeypatch, stored, missing, column):
-    await _request(db_session, **stored)
+async def test_missing_image_is_restored_and_stored(db_session, monkeypatch, stored, missing, column, make_user):
+    await _request(db_session, make_user, **stored)
     calls = _tmdb(monkeypatch, {
         "poster": POSTER if column == "poster_url" else "https://image.tmdb.org/t/p/w300/new.jpg",
         "backdrop": BACKDROP if column == "backdrop_url" else "https://image.tmdb.org/t/p/w780/new.jpg",
@@ -69,10 +60,10 @@ async def test_missing_image_is_restored_and_stored(db_session, monkeypatch, sto
 
 
 @pytest.mark.asyncio
-async def test_filling_an_image_keeps_the_update_date(db_session, monkeypatch):
+async def test_filling_an_image_keeps_the_update_date(db_session, monkeypatch, make_user):
     """A filled-in image is not an edit: the queue's "this week" counters and
     its "modified" mention read updated_at."""
-    req = await _request(db_session, backdrop_url=BACKDROP)
+    req = await _request(db_session, make_user, backdrop_url=BACKDROP)
     long_ago = datetime(2026, 1, 1, tzinfo=timezone.utc)
     await db_session.execute(
         update(MediaRequest).where(MediaRequest.id == req.id).values(updated_at=long_ago)
@@ -90,10 +81,10 @@ async def test_filling_an_image_keeps_the_update_date(db_session, monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_a_status_change_made_while_tmdb_answers_is_kept(db_session, monkeypatch):
+async def test_a_status_change_made_while_tmdb_answers_is_kept(db_session, monkeypatch, make_user):
     """The queue page was loaded, then the request was rejected before the
     images came back: filling them must not bring back the loaded date."""
-    req = await _request(db_session, backdrop_url=BACKDROP)
+    req = await _request(db_session, make_user, backdrop_url=BACKDROP)
     rows = list((await db_session.execute(select(MediaRequest))).scalars().all())
     rejected_at = datetime(2026, 6, 1, tzinfo=timezone.utc)
     await db_session.execute(
@@ -115,8 +106,8 @@ async def test_a_status_change_made_while_tmdb_answers_is_kept(db_session, monke
 
 
 @pytest.mark.asyncio
-async def test_complete_rows_do_not_call_tmdb(db_session, monkeypatch):
-    await _request(db_session, poster_url=POSTER, backdrop_url=BACKDROP)
+async def test_complete_rows_do_not_call_tmdb(db_session, monkeypatch, make_user):
+    await _request(db_session, make_user, poster_url=POSTER, backdrop_url=BACKDROP)
     calls = _tmdb(monkeypatch, {"poster": "unused", "backdrop": "unused"})
 
     await req_svc.list_requests(db_session, page=1, include_sensitive=True)
@@ -126,8 +117,8 @@ async def test_complete_rows_do_not_call_tmdb(db_session, monkeypatch):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("answer", ["error payload", "not a dict", "raises"])
-async def test_tmdb_failure_leaves_the_row_unchanged(db_session, monkeypatch, answer):
-    await _request(db_session)
+async def test_tmdb_failure_leaves_the_row_unchanged(db_session, monkeypatch, answer, make_user):
+    await _request(db_session, make_user)
     if answer == "raises":
         async def broken(*_args, **_kwargs):
             raise RuntimeError("tmdb offline")

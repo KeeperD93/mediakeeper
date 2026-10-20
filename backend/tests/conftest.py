@@ -33,6 +33,7 @@ import models  # noqa: F401, E402  # Ensure every model is registered in Base.me
 # because ``models/__init__.py`` only re-exports the portal submodule.
 import main  # noqa: F401, E402
 from models.base import Base  # noqa: E402
+from models.portal.profile import UserProfile  # noqa: E402
 from models.user import User  # noqa: E402
 from core.security import hash_password  # noqa: E402
 
@@ -181,6 +182,34 @@ async def admin_user(db_session: AsyncSession):
     await db_session.commit()
     await db_session.refresh(user)
     return user
+
+
+@pytest.fixture(scope="session")
+def placeholder_password_hash() -> str:
+    """Hashed once per run (bcrypt costs ~0.25 s): ``make_user`` users never log in with it."""
+    return hash_password("Irrelevant123!")
+
+
+@pytest.fixture
+def make_user(db_session: AsyncSession, placeholder_password_hash: str):
+    """Return an async factory for an active user; with ``role``, the user also
+    gets a portal profile with that role."""
+    async def _make(username: str, *, role: str | None = None) -> User:
+        user = User(
+            username=username,
+            hashed_password=placeholder_password_hash,
+            is_active=True,
+            must_change_password=False,
+        )
+        db_session.add(user)
+        await db_session.commit()
+        if role is not None:
+            db_session.add(UserProfile(
+                user_id=user.id, display_name=username, role=role, account_active=True,
+            ))
+            await db_session.commit()
+        return user
+    return _make
 
 
 @pytest.fixture

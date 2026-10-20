@@ -14,10 +14,8 @@ from unittest.mock import patch
 import pytest
 from sqlalchemy import select, update
 
-from core.security import hash_password
 from models.portal.emby_tmdb_index import EmbyTmdbIndex
 from models.portal.event import MKNotification
-from models.portal.profile import UserProfile
 from models.portal.request import MediaRequest
 from models.user import User
 from services.portal import requests_fulfill as fulfill
@@ -27,20 +25,6 @@ from services.watchlist_scanner import _emby
 
 AIRED = "2020-01-01"
 UPCOMING = "2999-01-01"
-
-
-async def _user(db, username: str) -> User:
-    user = User(
-        username=username,
-        hashed_password=hash_password("Irrelevant123!"),
-        is_active=True,
-        must_change_password=False,
-    )
-    db.add(user)
-    await db.commit()
-    db.add(UserProfile(user_id=user.id, display_name=username, role="viewer", account_active=True))
-    await db.commit()
-    return user
 
 
 async def _request(
@@ -116,8 +100,8 @@ def _aired(*numbers: int) -> list[tuple[int, str]]:
 
 
 @pytest.mark.asyncio
-async def test_movie_in_library_is_served_and_notified(db_session, checked):
-    user = await _user(db_session, "movie_fan")
+async def test_movie_in_library_is_served_and_notified(db_session, checked, make_user):
+    user = await make_user("movie_fan", role="viewer")
     req = await _request(db_session, user.id, 4242)
 
     before = datetime.now(timezone.utc)
@@ -141,8 +125,8 @@ async def test_movie_in_library_is_served_and_notified(db_session, checked):
 
 
 @pytest.mark.asyncio
-async def test_movie_missing_from_library_stays_open(db_session, checked):
-    user = await _user(db_session, "waiting_fan")
+async def test_movie_missing_from_library_stays_open(db_session, checked, make_user):
+    user = await make_user("waiting_fan", role="viewer")
     req = await _request(db_session, user.id, 1111, indexed=False)
 
     assert await fulfill.fulfill_open_requests(db_session) == 0
@@ -152,8 +136,8 @@ async def test_movie_missing_from_library_stays_open(db_session, checked):
 
 
 @pytest.mark.asyncio
-async def test_second_run_does_not_notify_again(db_session, checked):
-    user = await _user(db_session, "repeat_fan")
+async def test_second_run_does_not_notify_again(db_session, checked, make_user):
+    user = await make_user("repeat_fan", role="viewer")
     await _request(db_session, user.id, 2020, status="approved")
 
     assert await fulfill.fulfill_open_requests(db_session) == 1
@@ -162,10 +146,10 @@ async def test_second_run_does_not_notify_again(db_session, checked):
 
 
 @pytest.mark.asyncio
-async def test_other_media_type_with_the_same_id_does_not_serve(db_session, checked):
+async def test_other_media_type_with_the_same_id_does_not_serve(db_session, checked, make_user):
     """TMDB numbers movies and series apart: a series indexed under a
     requested movie's id must not mark the movie available."""
-    user = await _user(db_session, "type_fan")
+    user = await make_user("type_fan", role="viewer")
     req = await _request(db_session, user.id, 6060, "movie", indexed=False)
     db_session.add(EmbyTmdbIndex(emby_item_id="emby-show-6060", tmdb_id=6060, media_type="tv"))
     await db_session.commit()
@@ -175,8 +159,8 @@ async def test_other_media_type_with_the_same_id_does_not_serve(db_session, chec
 
 
 @pytest.mark.asyncio
-async def test_closed_requests_are_left_alone(db_session, checked):
-    user = await _user(db_session, "closed_fan")
+async def test_closed_requests_are_left_alone(db_session, checked, make_user):
+    user = await make_user("closed_fan", role="viewer")
     rejected = await _request(db_session, user.id, 3001, status="rejected")
     served = await _request(db_session, user.id, 3002, status="available")
 
@@ -197,8 +181,8 @@ async def test_purged_requester_is_served_without_notification(db_session, check
 
 
 @pytest.mark.asyncio
-async def test_episode_request_waits_for_every_requested_episode(db_session, checked, monkeypatch):
-    user = await _user(db_session, "episode_fan")
+async def test_episode_request_waits_for_every_requested_episode(db_session, checked, monkeypatch, make_user):
+    user = await make_user("episode_fan", role="viewer")
     req = await _request(
         db_session, user.id, 7000, "tv", status="approved",
         seasons=[{"season": 2, "episodes": [8, 9, 10]}],
@@ -216,8 +200,8 @@ async def test_episode_request_waits_for_every_requested_episode(db_session, che
 
 
 @pytest.mark.asyncio
-async def test_episodes_not_aired_yet_are_not_awaited(db_session, checked, monkeypatch):
-    user = await _user(db_session, "airing_fan")
+async def test_episodes_not_aired_yet_are_not_awaited(db_session, checked, monkeypatch, make_user):
+    user = await make_user("airing_fan", role="viewer")
     req = await _request(
         db_session, user.id, 7100, "tv", seasons=[{"season": 3, "episodes": "all"}],
     )
@@ -232,8 +216,8 @@ async def test_episodes_not_aired_yet_are_not_awaited(db_session, checked, monke
 
 
 @pytest.mark.asyncio
-async def test_season_with_nothing_aired_stays_open(db_session, checked, monkeypatch):
-    user = await _user(db_session, "early_fan")
+async def test_season_with_nothing_aired_stays_open(db_session, checked, monkeypatch, make_user):
+    user = await make_user("early_fan", role="viewer")
     req = await _request(
         db_session, user.id, 7200, "tv", seasons=[{"season": 4, "episodes": "all"}],
     )
@@ -244,10 +228,10 @@ async def test_season_with_nothing_aired_stays_open(db_session, checked, monkeyp
 
 
 @pytest.mark.asyncio
-async def test_whole_series_request_needs_every_aired_season(db_session, checked, monkeypatch):
+async def test_whole_series_request_needs_every_aired_season(db_session, checked, monkeypatch, make_user):
     """No season detail means the whole series; the specials season is skipped
     (the fake has no TMDB data for it, so reading it would block the flip)."""
-    user = await _user(db_session, "series_fan")
+    user = await make_user("series_fan", role="viewer")
     req = await _request(db_session, user.id, 7300, "tv")
     seasons = {1: _aired(1, 2), 2: _aired(1, 2)}
 
@@ -260,10 +244,10 @@ async def test_whole_series_request_needs_every_aired_season(db_session, checked
 
 
 @pytest.mark.asyncio
-async def test_series_episodes_add_up_across_index_rows(db_session, checked, monkeypatch):
+async def test_series_episodes_add_up_across_index_rows(db_session, checked, monkeypatch, make_user):
     """A re-import can leave an orphan index row next to the new one: the
     episodes held by both Emby items count together."""
-    user = await _user(db_session, "reimport_fan")
+    user = await make_user("reimport_fan", role="viewer")
     req = await _request(
         db_session, user.id, 7350, "tv", seasons=[{"season": 1, "episodes": "all"}],
     )
@@ -279,8 +263,8 @@ async def test_series_episodes_add_up_across_index_rows(db_session, checked, mon
 
 
 @pytest.mark.asyncio
-async def test_ended_series_awaits_episodes_without_air_date(db_session, checked, monkeypatch):
-    user = await _user(db_session, "ended_fan")
+async def test_ended_series_awaits_episodes_without_air_date(db_session, checked, monkeypatch, make_user):
+    user = await make_user("ended_fan", role="viewer")
     req = await _request(
         db_session, user.id, 7400, "tv", seasons=[{"season": 1, "episodes": "all"}],
     )
@@ -295,8 +279,8 @@ async def test_ended_series_awaits_episodes_without_air_date(db_session, checked
 
 
 @pytest.mark.asyncio
-async def test_watchlist_ignored_episodes_count_as_present(db_session, checked, monkeypatch):
-    user = await _user(db_session, "ignore_fan")
+async def test_watchlist_ignored_episodes_count_as_present(db_session, checked, monkeypatch, make_user):
+    user = await make_user("ignore_fan", role="viewer")
     req = await _request(
         db_session, user.id, 7500, "tv", seasons=[{"season": 1, "episodes": "all"}],
     )
@@ -310,8 +294,8 @@ async def test_watchlist_ignored_episodes_count_as_present(db_session, checked, 
 
 
 @pytest.mark.asyncio
-async def test_unreachable_tmdb_keeps_series_request_open(db_session, checked, monkeypatch):
-    user = await _user(db_session, "offline_fan")
+async def test_unreachable_tmdb_keeps_series_request_open(db_session, checked, monkeypatch, make_user):
+    user = await make_user("offline_fan", role="viewer")
     req = await _request(db_session, user.id, 7600, "tv")
     _library(monkeypatch, seasons={1: _aired(1)}, present={(1, 1)})
 
@@ -325,10 +309,10 @@ async def test_unreachable_tmdb_keeps_series_request_open(db_session, checked, m
 
 
 @pytest.mark.asyncio
-async def test_request_moved_meanwhile_is_left_alone(db_session, checked, monkeypatch):
+async def test_request_moved_meanwhile_is_left_alone(db_session, checked, monkeypatch, make_user):
     """An admin rejects the request while the run reads Emby: the flip must
     not overwrite that decision nor notify."""
-    user = await _user(db_session, "moved_fan")
+    user = await make_user("moved_fan", role="viewer")
     user_id = user.id
     req_id = (await _request(db_session, user_id, 7700, "tv")).id
     _library(monkeypatch, seasons={1: _aired(1)}, present={(1, 1)})
@@ -350,10 +334,10 @@ async def test_request_moved_meanwhile_is_left_alone(db_session, checked, monkey
 
 
 @pytest.mark.asyncio
-async def test_failed_flip_rolls_back_and_others_still_go_through(db_session, checked):
+async def test_failed_flip_rolls_back_and_others_still_go_through(db_session, checked, make_user):
     """A notification failure undoes that flip only; the request is retried on
     the next run while the following ones are still served."""
-    user = await _user(db_session, "atomic_fan")
+    user = await make_user("atomic_fan", role="viewer")
     # Plain ids: the rollback expires the ORM objects of the test session.
     user_id = user.id
     first_id = (await _request(db_session, user_id, 8001)).id
@@ -377,11 +361,11 @@ async def test_failed_flip_rolls_back_and_others_still_go_through(db_session, ch
 
 
 @pytest.mark.asyncio
-async def test_failed_trophy_check_does_not_stop_the_next_ones(db_session, monkeypatch):
+async def test_failed_trophy_check_does_not_stop_the_next_ones(db_session, monkeypatch, make_user):
     """The trophy wrapper keeps a failure to itself but not its failed
     transaction: each requester's check must start on a clean session."""
     for name, tmdb_id in (("first_fan", 8101), ("second_fan", 8102)):
-        user = await _user(db_session, name)
+        user = await make_user(name, role="viewer")
         await _request(db_session, user.id, tmdb_id)
     calls: list[int] = []
     finished: list[int] = []
