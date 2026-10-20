@@ -17,6 +17,7 @@ from services.portal.avatars import resolve_avatar_url
 from .admin_users_constants import (
     ONLINE_WINDOW_SECONDS,
     PERMISSION_KEYS,
+    ROLE_ADMIN,
     SOURCE_EMBY,
     SOURCE_LOCAL,
 )
@@ -82,7 +83,7 @@ def serialize_admin_user_row(profile: UserProfile, user: User) -> dict[str, Any]
         # endpoints, so the ``Administrateur`` label stays French in the
         # backoffice list. User-facing surfaces localize per viewer.
         "display_name": resolve_display_name(
-            profile.display_name, user.id, is_admin=profile.role == "admin"
+            profile.display_name, user.id, is_admin=profile.role == ROLE_ADMIN
         ),
         "avatar_url": resolve_avatar_url(profile.avatar_url, profile.avatar_custom_path),
         "avatar_custom_path": profile.avatar_custom_path,

@@ -26,6 +26,7 @@ from services.portal.lists import (
     _log, _contributor_row, can_view, can_manage,
 )
 from services.portal.media_title_localize import localize_titles
+from services.portal.admin_users_constants import ROLE_ADMIN
 
 logger = logging.getLogger("mediakeeper.portal.lists_admin")
 
@@ -115,7 +116,7 @@ async def get_contributors(
             "user_id": c.user_id,
             "username": resolve_display_name(
                 None if must_set else display_name, c.user_id, lang,
-                is_admin=role == "admin",
+                is_admin=role == ROLE_ADMIN,
             ),
             "avatar_url": resolve_avatar_url(avatar_url, avatar_custom_path),
             "level": level or 1,
@@ -170,7 +171,7 @@ async def get_history(
             "username": (
                 resolve_display_name(
                     None if must_set else display_name, h.user_id, lang,
-                    is_admin=role == "admin",
+                    is_admin=role == ROLE_ADMIN,
                 )
                 if h.user_id is not None else None
             ),

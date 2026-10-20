@@ -18,6 +18,7 @@ from services.portal.lists import (
     DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, can_view,
 )
 from services.portal.media_title_localize import localize_titles
+from services.portal.admin_users_constants import ROLE_ADMIN
 
 
 # Sentinel: lets a batched caller hand _serialize_list ready values
@@ -287,7 +288,7 @@ async def _serialize_list(
             None if owner_must_set else owner_display_name,
             lst.user_id,
             lang,
-            is_admin=owner_role == "admin",
+            is_admin=owner_role == ROLE_ADMIN,
         ),
         "is_owner": lst.user_id == user_id,
         "name": lst.name,

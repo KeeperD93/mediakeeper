@@ -10,6 +10,7 @@ from services.portal.achievements_utils import (
     _load_user_achievement_map,
 )
 from services.portal.profile_serializers import _resolve_avatar_url
+from services.portal.admin_users_constants import ROLE_ADMIN
 
 
 async def pin_badge(db: AsyncSession, user_id: int, achievement_id: str) -> bool:
@@ -75,7 +76,7 @@ async def get_leaderboard(
         .where(
             UserProfile.account_active == True,  # noqa: E712
             UserProfile.is_public == True,  # noqa: E712
-            UserProfile.role != "admin",
+            UserProfile.role != ROLE_ADMIN,
         )
         .order_by(UserProfile.xp.desc())
         .limit(limit)
@@ -93,7 +94,7 @@ async def get_leaderboard(
         leaderboard.append({
             "user_id": p.user_id,
             "display_name": resolve_display_name(
-                effective, p.user_id, lang, is_admin=p.role == "admin"
+                effective, p.user_id, lang, is_admin=p.role == ROLE_ADMIN
             ),
             "avatar_url": _resolve_avatar_url(p),
             "level": p.level,

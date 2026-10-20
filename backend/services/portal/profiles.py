@@ -16,6 +16,7 @@ from services.portal.profile_serializers import (
     serialize_public_profile as _serialize_public,
 )
 from services.settings import get_portal_default_language
+from services.portal.admin_users_constants import ROLE_ADMIN, ROLE_VIEWER
 
 logger = logging.getLogger("mediakeeper.portal.profiles")
 
@@ -84,7 +85,7 @@ async def get_or_create_profile(
     profile = UserProfile(
         user_id=user.id,
         display_name=unique_name,
-        role="admin" if is_admin else "viewer",
+        role=ROLE_ADMIN if is_admin else ROLE_VIEWER,
         # The admin account never needs to pick a public username — it is
         # invisible in the leaderboard and not consultable as a profile.
         display_name_must_set=not is_admin,
@@ -216,7 +217,7 @@ async def update_profile(
                     profile.display_name_must_set = False
                     profile.display_name_changed_at = datetime.now(timezone.utc)
                 continue
-            if profile.role != "admin" and is_reserved_display_name(cleaned):
+            if profile.role != ROLE_ADMIN and is_reserved_display_name(cleaned):
                 raise HTTPException(status_code=409, detail="display_name_reserved")
             if (
                 not admin_override
@@ -273,7 +274,7 @@ async def get_leaderboard(
         .where(
             UserProfile.account_active == True,  # noqa: E712
             UserProfile.is_public == True,  # noqa: E712
-            UserProfile.role != "admin",
+            UserProfile.role != ROLE_ADMIN,
         )
         .order_by(UserProfile.xp.desc())
         .limit(limit)

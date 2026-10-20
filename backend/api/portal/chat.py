@@ -25,6 +25,7 @@ from api.portal.deps import get_request_lang, require_permission
 from services.portal import chat as chat_svc
 from services.portal.achievements import safe_check_all_achievements_in_new_session
 from services.portal.profiles import get_or_create_profile
+from services.portal.admin_users_constants import ROLE_ADMIN
 
 router = APIRouter(prefix="/chat", tags=["portal-chat"])
 logger = logging.getLogger("mediakeeper.portal.chat")
@@ -229,7 +230,7 @@ async def delete_message(
 ):
     user, profile = up
     result = await chat_svc.delete_message(
-        db, message_id, user.id, is_admin=(profile.role == "admin")
+        db, message_id, user.id, is_admin=(profile.role == ROLE_ADMIN)
     )
     if "error" in result:
         code = 404 if result["error"] == "not_found" else 403

@@ -4,10 +4,11 @@ import pytest
 from sqlalchemy import select
 
 from api.portal.auth import _serialize_ui_flags
-from api.portal.deps import _PERMISSION_COLUMNS, require_permission
+from api.portal.deps import require_permission
 from models.portal.feedback_report import FeedbackReport
 from models.portal.profile import UserProfile
 from services.feedback import create_pending_report, save_feedback_config
+from services.portal.admin_users_constants import PERMISSION_KEYS
 
 _WEBHOOK = "https://discord.com/api/webhooks/123/abcDEF"
 
@@ -56,7 +57,7 @@ async def test_ui_flags_gate_feedback(db_session):
 
 
 def test_can_report_feedback_permission_registered():
-    assert "can_report_feedback" in _PERMISSION_COLUMNS
+    assert "can_report_feedback" in PERMISSION_KEYS
     require_permission("can_report_feedback")  # must not raise ValueError
 
 

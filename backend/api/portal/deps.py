@@ -9,6 +9,7 @@ from api.auth import PORTAL_COOKIE_NAME
 from models.user import User
 from models.portal.profile import UserProfile
 from services.portal._display_name import parse_accept_language
+from services.portal.admin_users_constants import PERMISSION_KEYS, ROLE_ADMIN
 
 
 async def get_request_lang(
@@ -97,21 +98,12 @@ async def require_admin(
 ) -> tuple[User, UserProfile]:
     """Requires admin role."""
     user, profile = user_profile
-    if profile.role != "admin":
+    if profile.role != ROLE_ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="admin_required",
         )
     return user, profile
-
-
-# Granular permission keys mirrored on UserProfile (migrations 035 + 061).
-# Admins always pass — they would otherwise lose the ability to fix the
-# very flag that locks them out.
-_PERMISSION_COLUMNS = (
-    "can_chat", "can_portal", "can_problems", "can_lists", "can_earn_xp_offline",
-    "can_report_feedback",
-)
 
 
 def require_permission(key: str):
@@ -123,16 +115,17 @@ def require_permission(key: str):
         @router.post("", dependencies=[Depends(require_permission("can_portal"))])
 
     Raises 403 with detail ``permission_denied:<key>`` when the flag is
-    off. Admins always pass.
+    off. Admins always pass: they would otherwise lose the ability to fix
+    the very flag that locks them out.
     """
-    if key not in _PERMISSION_COLUMNS:
+    if key not in PERMISSION_KEYS:
         raise ValueError(f"Unknown permission key: {key}")
 
     async def _check(
         user_profile: tuple[User, UserProfile] = Depends(get_current_profile),
     ) -> tuple[User, UserProfile]:
         user, profile = user_profile
-        if profile.role == "admin":
+        if profile.role == ROLE_ADMIN:
             return user, profile
         if not bool(getattr(profile, key, False)):
             raise HTTPException(

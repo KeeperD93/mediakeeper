@@ -13,6 +13,7 @@ from services.portal import requests as req_svc
 from services.portal.achievements import safe_check_all_achievements_in_new_session
 from services.portal.admin import get_portal_flag
 from services.portal.image_urls import safe_image_url
+from services.portal.admin_users_constants import ROLE_ADMIN
 
 router = APIRouter(prefix="/requests", tags=["portal-requests"])
 
@@ -154,7 +155,7 @@ async def batch_status(
         raise HTTPException(status_code=422, detail="too_many_tmdb_ids")
 
     _, profile = up
-    is_admin = profile.role == "admin"
+    is_admin = profile.role == ROLE_ADMIN
     anonymize = False
     if not is_admin:
         anonymize = await get_portal_flag(db, "portal.anonymize_requests")
@@ -175,13 +176,13 @@ async def create_request(
     req_data = data.model_dump()
 
     # Admin creating on behalf of a user
-    if data.on_behalf_of and profile.role == "admin":
+    if data.on_behalf_of and profile.role == ROLE_ADMIN:
         target_user_id = data.on_behalf_of
         req_data["requested_by_admin"] = user.id
     else:
         target_user_id = user.id
 
-    is_admin = profile.role == "admin"
+    is_admin = profile.role == ROLE_ADMIN
     result = await req_svc.create_request(db, target_user_id, req_data, is_admin=is_admin)
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
@@ -254,7 +255,7 @@ async def get_quota(
 ):
     user, profile = up
     result = await req_svc.get_user_quota(db, user.id)
-    if profile.role == "admin":
+    if profile.role == ROLE_ADMIN:
         result["unlimited"] = True
     return result
 

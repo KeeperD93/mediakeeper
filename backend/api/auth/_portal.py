@@ -9,6 +9,7 @@ from core.security import create_access_token
 from models.portal.profile import UserProfile
 from models.user import User
 from services.portal.admin import get_portal_flag
+from services.portal.admin_users_constants import ROLE_ADMIN
 from services.portal.news import get_unread_news
 
 from ._cookies import _set_portal_jwt_cookie
@@ -20,7 +21,7 @@ async def _serialize_portal_ui_flags(
     db: AsyncSession,
     profile: UserProfile,
 ) -> dict:
-    is_admin = profile.role == "admin"
+    is_admin = profile.role == ROLE_ADMIN
     anonymize_requests = False if is_admin else await get_portal_flag(
         db,
         "portal.anonymize_requests",
@@ -73,7 +74,7 @@ async def ensure_portal_admin_profile(
         profile = UserProfile(
             user_id=current.id,
             display_name=current.username,
-            role="admin",
+            role=ROLE_ADMIN,
             account_active=True,
             source="local",
         )
@@ -83,8 +84,8 @@ async def ensure_portal_admin_profile(
         return profile
 
     touched = False
-    if profile.role != "admin":
-        profile.role = "admin"
+    if profile.role != ROLE_ADMIN:
+        profile.role = ROLE_ADMIN
         touched = True
     if not profile.account_active:
         profile.account_active = True

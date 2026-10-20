@@ -37,6 +37,7 @@ from services.portal.admin_users_actions import (
 from services.portal.admin_users_audit import list_audit_for_user
 from services.portal.admin_users_constants import (
     PERMISSION_KEYS,
+    ROLE_PATTERN,
     ROLE_PRESETS,
     ROLES,
     SOURCES,
@@ -62,7 +63,7 @@ async def role_presets(_: User = Depends(get_current_user)):
 async def list_users(
     search: str | None = Query(None, max_length=100),
     source: str | None = Query(None, pattern="^(emby|local)$"),
-    role: str | None = Query(None, pattern="^(viewer|moderator|admin)$"),
+    role: str | None = Query(None, pattern=ROLE_PATTERN),
     status: str | None = Query(None, pattern="^(active|inactive|expired|never_logged_in)$"),
     expires_within: int | None = Query(None, ge=1, le=365),
     include_deleted: bool = Query(False),
@@ -173,7 +174,7 @@ async def patch_identity(
 
 class RoleUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    role: str = Field(..., pattern="^(viewer|moderator|admin)$")
+    role: str = Field(..., pattern=ROLE_PATTERN)
 
 
 @router.patch("/{profile_id}/role")

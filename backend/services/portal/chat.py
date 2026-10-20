@@ -11,6 +11,7 @@ from services.portal import strip_tags_and_trim
 from services.portal.chat_mutes import is_muted
 from services.portal._display_name import resolve_display_name
 from services.portal.chat_presenters import chat_user_display_name, serialize_message
+from services.portal.admin_users_constants import ROLE_ADMIN, ROLE_MODERATOR
 
 logger = logging.getLogger("mediakeeper.portal.chat")
 
@@ -240,7 +241,7 @@ async def get_messages(
         # rather than leaking the auto-populated Emby username.
         resolved: dict[int, str] = {
             uid: resolve_display_name(
-                None if must_set else name, uid, lang, is_admin=role == "admin"
+                None if must_set else name, uid, lang, is_admin=role == ROLE_ADMIN
             )
             for uid, name, must_set, role in prof_rows
         }
@@ -340,7 +341,7 @@ async def report_message(
     ).scalar_one_or_none()
     mod_ids_q = await db.execute(
         select(UserProfile.user_id).where(
-            UserProfile.role.in_(("admin", "moderator")),
+            UserProfile.role.in_((ROLE_ADMIN, ROLE_MODERATOR)),
             UserProfile.account_active.is_(True),
         )
     )
