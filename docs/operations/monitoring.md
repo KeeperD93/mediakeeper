@@ -19,9 +19,9 @@ unrelated alerts.
 |---|---|---|
 | `db_unavailable` | The internal liveness probe failed twice in a row (~10 minutes) | Critical |
 | `db_recovered` | The probe succeeded after a previous outage | Recovery |
-| `scheduler_task_crashed` | A scheduler handler raised an unhandled exception | Critical |
+| `scheduler_task_crashed` | A scheduler handler raised an unhandled exception (including an automatic backup missing a part other than its log files) | Critical |
 | `background_loop_crashed` | A supervised background loop (`stats_collection`, `library_cache`, `health_monitor`, …) crashed and is being restarted | Critical |
-| `backup_failed` | `pg_dump` returned a non-zero exit code while building an automatic backup | Warning |
+| `backup_failed` | `pg_dump` returned a non-zero exit code while building a backup, manual or automatic | Warning |
 | `pool_saturated` | The async DB connection pool stayed at full capacity for two consecutive checks (~10 minutes) | Warning |
 
 Out of scope on purpose:

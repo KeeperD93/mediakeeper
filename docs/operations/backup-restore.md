@@ -68,6 +68,10 @@ Look for:
 
 - `version` → must be `"1.1"` for this runbook.
 - `components.pg_dump` → must be `true` if you expect database data.
+- `failed` → parts that could not be exported; `[]` for a complete
+  backup, `["logs"]` when only the log files are missing (the backup
+  still counts as complete). Older archives don't have this field: check
+  that `unzip -l` lists `pg_dump.sql`.
 - `encryption_key.status` → `"included"` or `"absent"`.
 
 ---
@@ -148,6 +152,10 @@ cat ./drill/<filename>/manifest.json | jq .
 
 - `encryption_key.status` should be `"included"`.
 - `secrets/.encryption_key` should exist and be exactly **44 bytes**.
+- `failed` should not contain `pg_dump`. On an older archive without
+  this field, check that `pg_dump.sql` exists and is not empty.
+- Otherwise, delete `./drill/<filename>/` and go back to 4.1 with an
+  older ZIP.
 
 ### 4.3 Spin up an ephemeral PostgreSQL container
 
