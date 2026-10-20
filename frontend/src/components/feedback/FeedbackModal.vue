@@ -238,10 +238,12 @@ watch(
   },
 )
 
-async function send() {
-  if (!(await submit())) return
-  emit('close') // same tick as reset(): the window fades out showing what was sent
-  reset()
+// Close and clear while still sending: the window fades out exactly as it was sent.
+function send() {
+  submit(() => {
+    emit('close')
+    reset()
+  })
 }
 
 function close() {

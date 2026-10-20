@@ -133,9 +133,9 @@ export function useFeedbackForm({ endpoint, showLocation }) {
     initialized = true
   }
 
-  // True once sent; the modal then closes before calling reset().
-  async function submit() {
-    if (!canSubmit.value) return false
+  // `onSent` runs while still busy, so the window can close looking as it was sent.
+  async function submit(onSent) {
+    if (!canSubmit.value) return
     busy.value = true
     try {
       await apiPost(endpoint(), {
@@ -152,10 +152,9 @@ export function useFeedbackForm({ endpoint, showLocation }) {
         anonymous: anonymous.value,
       })
       showToast(t('feedback.modal.sent'), TOAST_TYPE.OK)
-      return true
+      onSent()
     } catch (e) {
       showToast(resolveApiError(e.message), TOAST_TYPE.ERR)
-      return false
     } finally {
       busy.value = false
     }

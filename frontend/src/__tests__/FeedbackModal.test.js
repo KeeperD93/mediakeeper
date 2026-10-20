@@ -154,13 +154,17 @@ describe('FeedbackModal — sending', () => {
 
   it('closes while still showing the sent report, so it fades out unchanged', async () => {
     h.apiPost.mockResolvedValueOnce({ ok: true })
-    let titleAtClose
+    let atClose
     const w = await openModal({
-      onClose: () => (titleAtClose = titleInput(wrapper).element.value),
+      onClose: () =>
+        (atClose = {
+          title: titleInput(wrapper).element.value,
+          sending: wrapper.find('button[type="submit"]').attributes('disabled') !== undefined,
+        }),
     })
     await fillRequired(w)
     await send(w)
-    expect(titleAtClose).toBe('Sample title')
+    expect(atClose).toEqual({ title: 'Sample title', sending: true })
   })
 
   it('sends portal reports to the portal endpoint without a location', async () => {
