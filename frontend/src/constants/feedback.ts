@@ -36,6 +36,15 @@ export const FEEDBACK_MAX = Object.freeze({
   resolution: 40,
 })
 
+// Screen resolutions offered by the report form; FEEDBACK_RES_CUSTOM is the
+// menu value for a size typed in the free field.
+export const FEEDBACK_RES_PRESETS = Object.freeze([
+  { label: 'Full HD', value: '1920x1080' },
+  { label: '2K', value: '2560x1440' },
+  { label: '4K', value: '3840x2160' },
+] as const)
+export const FEEDBACK_RES_CUSTOM = '__custom__'
+
 // Admin backoffice pages → tracker location. `zone`/`module` are the canonical
 // taxonomy values sent in the report; `titleKey` localizes the dropdown;
 // `tabsPath` links to SIDEBAR_SUB_TABS for the onglet options. Keyed by route
