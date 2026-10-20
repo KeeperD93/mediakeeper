@@ -1,6 +1,7 @@
 """A served request no longer blocks a new one: a series can still miss
 seasons, and a title gone from Emby can be asked again. Only an open request,
-or a whole-series request for a title Emby holds, is refused."""
+or a whole-series request for a title Emby holds, is refused. A re-request
+reuses the latest live rejection and keeps its poster when none is sent."""
 from __future__ import annotations
 
 import pytest
@@ -84,3 +85,35 @@ async def test_duplicate_check_copes_with_several_matching_requests(db_session, 
     await _existing(db_session, user_id, "pending")
 
     assert await create_request(db_session, user_id, _ask(None)) == {"error": "already_requested"}
+
+
+@pytest.mark.asyncio
+async def test_re_request_with_two_live_rejections_reuses_the_latest(db_session, make_user):
+    """Rejecting a served request can leave two live rejections for one title:
+    the re-request reuses the latest one instead of crashing."""
+    user_id = (await make_user("viewer")).id
+    await _existing(db_session, user_id, "rejected")
+    await _existing(db_session, user_id, "rejected")
+
+    result = await create_request(db_session, user_id, _ask(None))
+
+    assert result["success"] is True
+    rows = (await db_session.execute(
+        select(MediaRequest.id, MediaRequest.status, MediaRequest.retry_count).order_by(MediaRequest.id)
+    )).all()
+    assert rows[0].status == "rejected"
+    assert (rows[1].id, rows[1].retry_count) == (result["id"], 1)
+
+
+@pytest.mark.asyncio
+async def test_re_request_without_a_poster_keeps_the_stored_one(db_session, make_user):
+    poster = "https://image.tmdb.org/t/p/w300/p.jpg"
+    user_id = (await make_user("viewer")).id
+    db_session.add(MediaRequest(
+        user_id=user_id, tmdb_id=SERIES, media_type="tv", title="Show", status="rejected",
+        poster_url=poster,
+    ))
+    await db_session.commit()
+
+    assert (await create_request(db_session, user_id, _ask(None)))["success"] is True
+    assert (await db_session.execute(select(MediaRequest.poster_url))).scalar_one() == poster

@@ -63,6 +63,8 @@ async def create_request(
     db: AsyncSession, user_id: int, data: dict, *, is_admin: bool = False
 ) -> dict:
     """Create a media request after checking:
+      - adult content policy for non-admins (→ `adult_requests_disabled`,
+        `adult_check_unavailable`)
       - media already in Emby (→ `already_available`)
       - media blacklisted (3 rejects, admin-only unblock) (→ `media_blacklisted`)
       - request still open (→ `already_requested`)
@@ -124,6 +126,7 @@ async def create_request(
     # for this item. Reuse the row, increment retry_count, reset status to
     # pending. Quota still charges on resubmit (it's a new ask). A rejection
     # archived by a blacklist unblock stays history: a fresh row is created.
+    # Rejecting a served request can leave two live rejections: reuse the latest.
     rejected_own = (
         await db.execute(
             select(MediaRequest).where(
@@ -132,9 +135,9 @@ async def create_request(
                 MediaRequest.media_type == media_type,
                 MediaRequest.status == REQUEST_REJECTED,
                 MediaRequest.archived_at.is_(None),
-            )
+            ).order_by(MediaRequest.id.desc()).limit(1)
         )
-    ).scalar_one_or_none()
+    ).scalars().first()
 
     quota = await _get_or_create_quota(db, user_id, commit=False, lock_row=True)
     current_month = _current_month()
@@ -159,7 +162,7 @@ async def create_request(
         rejected_own.requested_seasons = data.get("requested_seasons")
         rejected_own.title = data["title"]
         rejected_own.year = data.get("year")
-        rejected_own.poster_url = data.get("poster_url")
+        rejected_own.poster_url = data.get("poster_url") or rejected_own.poster_url
         rejected_own.backdrop_url = data.get("backdrop_url") or rejected_own.backdrop_url
         db.add(rejected_own)
         req = rejected_own
