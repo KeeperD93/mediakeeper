@@ -21,6 +21,7 @@ This section intentionally has no date so it is not shown to users.
 - Requests — available requests archived instead of deleted, manual ones included (totals kept).
 - Blacklist — unblocking keeps rejections in the totals.
 - Backups — database included by default in a manual backup.
+- Requests — compact phone layout with drop-down filters.
 
 ### Fixed
 - Sidebar — hover effects fixed on touch screens (reduced motion respected).
@@ -30,17 +31,26 @@ This section intentionally has no date so it is not shown to users.
 - Featured — images kept when the image cache is on.
 - Requests — Available card: all-time total fixed.
 - Requests — weekly counters no longer skewed by restored images.
-- Requests — safer queue: double clicks ignored, errors shown.
+- Requests — safer queue: action in progress shown, double clicks ignored, failures reported.
 - Requests — resending an unchanged status (stale queue) no longer notifies the requester.
-- Requests — compact phone layout with drop-down filters.
 - Requests — filters and sort named for screen readers; "Mark available" button.
-- Backups — out-of-range retention refused (no more crash).
+- Requests — no more zoom when opening the menus on phones.
+- Requests — title copy: shown on keyboard focus, hidden when the browser forbids it.
+- Requests — queue keeps the portal colours after login (glowing active pills).
+- Backups — out-of-range retention refused with an explanation (no more crash).
 - Backups — an accented label no longer makes a backup unreachable.
-- Backups — explicit errors: out-of-range retention explained, real cause of each failure.
-- Backups — a part that could not be saved is reported and no longer evicts complete backups.
-- Backups — file import: ticked parts restored (a .zip restored nothing).
-- Requests — a failed status change or deletion now gives its cause.
-- Errors — input refused by the server shows a readable message.
+- Backups — each failure named, no more generic "Network error" message.
+- Backups — incomplete backup flagged, without purging complete backups.
+- Backups — restore: ticked parts restored, from a file too, then listed.
+- Backups — screen reloads properly after a first failed load.
+- Backups — retention setting touch-sized and named for screen readers.
+- Backups — the app stays responsive during a backup or a restore.
+- Backups — an interrupted backup no longer leaves a truncated archive.
+- Backups — temporary files of an interrupted backup removed automatically after 24 h.
+- Backups — the list no longer fails when a backup disappears meanwhile.
+- Notifications — menus: arrow clear of the text, no more zoom on phones.
+- Errors — readable, translated messages (refused input, startup, server error, rate limit).
+- Confirmations — queued, no accidental acceptance (double click, Enter key).
 
 ## [1.0.0-rc.8] - 2026-10-11
 

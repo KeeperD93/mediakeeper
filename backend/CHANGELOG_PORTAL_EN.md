@@ -20,23 +20,32 @@ This section intentionally has no date so it is not shown to users.
 
 ### Changed
 - Home — larger banner navigation markers on desktop.
+- Lists — more compact page on phones.
 
 ### Fixed
-- Home — banner buttons easier to tap on phones and tablets.
+- Home — banner buttons easier to tap (phones, tablets), no sticky hover.
 - Home — the banner no longer offers Request for a title already in Emby.
-- Home — banners stay still when the device asks for reduced motion.
+- Home — reduced motion: banners stay still, recently added row stops sliding.
+- Home — banner markers usable with the keyboard and easier to tap.
 - Home — featured titles keep their image when the image cache is on.
 - Profile — realistic watch time and movie/series split (pauses and resumed plays no longer skew them).
 - Requests — automatically marked Available once the requested content arrives.
 - Requests — missing poster restored (new and existing requests).
-- Requests — re-request missing seasons, rejected titles (detail page too) or titles gone from Emby.
+- Requests — re-request missing seasons, rejected titles (detail page, banner) or titles gone from Emby.
 - Requests — available requests now leave the tab after the delay set by the admin.
 - Trophies — Ambassador counts available requests; Requester and Ambassador keep archived ones.
-- Lists — more compact page on phones.
 - Issues — touch-sized filters and sort on phones, menu arrows clear of the edge.
+- Issues — no more zoom on fields and menus on phones.
+- Issues — report form and filters usable with the keyboard and screen readers.
+- Issues — failed report: clear message, typed text kept.
+- Lists — your failed actions are reported (no more generic "Network error").
+- Lists — create buttons without sticky hover on touch screens.
+- Lists — a double click on Save no longer creates two lists.
+- Issues and Lists — portal colours kept after login (glowing active pills).
 - Posters — Request and Re-request buttons correctly labelled in French.
-- Requests — a failed request shows its cause instead of a technical code.
-- Errors — input refused by the server shows a readable message.
+- Requests — failed request: clear message instead of a technical code.
+- Errors — readable, translated messages (refused input, startup, server error, rate limit).
+- Confirmations — queued, no accidental acceptance (double click, Enter key).
 
 ## [1.0.0-rc.8] - 2026-10-11
 
