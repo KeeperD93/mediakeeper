@@ -1,10 +1,13 @@
 """Constants, logger and helpers shared across sub-routers."""
-import json
+import asyncio
 import logging
 import os
 from pathlib import Path
 
 from fastapi import HTTPException, UploadFile
+from pydantic import ValidationError
+
+from services.backup import COMPONENTS_ADAPTER
 
 logger = logging.getLogger("mediakeeper.backup_api")
 
@@ -36,26 +39,21 @@ BACKUP_ARCHIVE_ALLOWED_PREFIXES = ("logs/",)
 
 def _parse_components_payload(components: str) -> dict:
     try:
-        payload = json.loads(components or "{}")
-    except json.JSONDecodeError as exc:
+        return COMPONENTS_ADAPTER.validate_json(components or "{}")
+    except ValidationError as exc:
         raise HTTPException(status_code=400, detail="backup_components_invalid") from exc
-    if not isinstance(payload, dict):
-        raise HTTPException(status_code=400, detail="backup_components_invalid")
-    return payload
 
 
 async def _save_upload_to_path(file: UploadFile, destination: Path) -> int:
+    """Copy the upload to ``destination``, the disk writes off the event loop."""
     total = 0
-    with destination.open("wb") as handle:
-        while True:
-            chunk = await file.read(UPLOAD_CHUNK_SIZE)
-            if not chunk:
-                break
+    handle = await asyncio.to_thread(destination.open, "wb")
+    try:
+        while chunk := await file.read(UPLOAD_CHUNK_SIZE):
             total += len(chunk)
             if total > MAX_BACKUP_UPLOAD_BYTES:
-                raise HTTPException(
-                    status_code=413,
-                    detail="file_too_large",
-                )
-            handle.write(chunk)
+                raise HTTPException(status_code=413, detail="file_too_large")
+            await asyncio.to_thread(handle.write, chunk)
+    finally:
+        await asyncio.to_thread(handle.close)
     return total

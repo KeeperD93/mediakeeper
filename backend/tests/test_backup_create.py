@@ -1,16 +1,23 @@
 import json
+import logging
+import os
+import time
 import zipfile
 from pathlib import Path
-from unittest.mock import AsyncMock, patch
+from typing import get_args
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from cryptography.fernet import Fernet
+from fastapi import HTTPException
 from pydantic import ValidationError
 
-from api.backup._schemas import BackupRequest
+from api.backup._schemas import BackupRequest, RestoreRequest
+from api.backup._shared import _parse_components_payload
 from constants.backup import BACKUP_LABEL_MAX_LENGTH
 from core.encryption import ENCRYPTED_PREFIX
-from services.backup import DEFAULT_COMPONENTS, get_backup_path
+from services.backup import DEFAULT_COMPONENTS, ComponentName, get_backup_path
+from services.backup import create as backup_create
 from services.backup.create import (
     ENCRYPTION_KEY_ARCHIVE_NAME,
     create_backup,
@@ -35,7 +42,7 @@ def stub_pg_dump():
     backup test suite never spawns Postgres binaries in CI."""
     fake_sql = "-- mocked pg_dump --\nSELECT 1;\n"
     with patch(
-        "services.backup.create._pg_dump_async",
+        "services.backup.create.dump_database",
         new=AsyncMock(return_value=fake_sql),
     ) as mocked:
         yield mocked, fake_sql
@@ -233,7 +240,7 @@ async def test_a_label_at_the_cap_still_names_a_reachable_backup(db_session, pat
 async def test_a_failed_part_is_left_out_and_reported(db_session, patched_backup_dir, monkeypatch):
     """A failed export used to leave a backup announced as complete, its
     manifest still listing the missing part."""
-    monkeypatch.setattr("services.backup.create._pg_dump_async", AsyncMock(return_value=None))
+    monkeypatch.setattr("services.backup.create.dump_database", AsyncMock(return_value=None))
     monkeypatch.setattr(
         "services.backup.create.get_all_settings", AsyncMock(side_effect=RuntimeError("db gone")),
     )
@@ -263,3 +270,121 @@ async def test_a_complete_backup_reports_no_missing_part(db_session, patched_bac
         manifest = json.loads(zf.read("manifest.json"))
     assert manifest["failed"] == []
     assert manifest["components"]["pg_dump"] is True
+
+
+@pytest.mark.asyncio
+async def test_the_archive_takes_its_name_only_once_complete(db_session, patched_backup_dir, monkeypatch):
+    """Written under a temporary name, then moved in place: the listing never
+    meets a half-written backup."""
+    real_embed = backup_create._embed_encryption_key
+    during_write = []
+
+    def embed(zf):
+        during_write.append(sorted(p.name for p in Path(patched_backup_dir).iterdir()))
+        return real_embed(zf)
+
+    monkeypatch.setattr(backup_create, "_embed_encryption_key", embed)
+
+    backup_path = (await create_backup(db_session, components=NO_COMPONENTS)).path
+
+    [[tmp_name]] = during_write
+    assert tmp_name.startswith(backup_path.name + ".") and tmp_name.endswith(".part")
+    assert sorted(p.name for p in Path(patched_backup_dir).iterdir()) == [backup_path.name]
+
+
+def test_two_writes_of_one_archive_use_their_own_temporary_file(tmp_path, monkeypatch):
+    """Two backups started in the same second share their final name: each one
+    writes its own temporary file, so neither can corrupt the other."""
+    monkeypatch.setattr(backup_create, "_embed_encryption_key", lambda zf: {"status": "absent"})
+    real_zipfile = backup_create.zipfile.ZipFile
+    written = []
+
+    def zipfile_spy(path, *args, **kwargs):
+        written.append(Path(path).name)
+        return real_zipfile(path, *args, **kwargs)
+
+    monkeypatch.setattr(backup_create.zipfile, "ZipFile", zipfile_spy)
+    dest = tmp_path / "mediakeeper_backup_20260101_000000.zip"
+
+    backup_create._write_archive(dest, [], {}, "", [])
+    backup_create._write_archive(dest, [], {}, "", [])
+
+    assert len(written) == 2 and written[0] != written[1]
+    assert sorted(p.name for p in tmp_path.iterdir()) == [dest.name]
+
+
+@pytest.mark.asyncio
+async def test_a_write_cut_short_leaves_no_archive_behind(db_session, patched_backup_dir, monkeypatch):
+    """A failure while writing (full disk) leaves neither a truncated backup
+    nor the temporary file."""
+    monkeypatch.setattr(
+        backup_create, "_embed_encryption_key", MagicMock(side_effect=OSError("disk full")),
+    )
+
+    with pytest.raises(OSError, match="disk full"):
+        await create_backup(db_session, components=NO_COMPONENTS)
+
+    assert list(Path(patched_backup_dir).iterdir()) == []
+
+
+def _age_past_cutoff(*files):
+    """Date files back to just over a day: what a crash left behind long ago."""
+    then = time.time() - backup_create.STALE_TEMP_AGE_S - 60
+    for f in files:
+        os.utime(f, (then, then))
+
+
+def test_old_temporary_archives_are_removed(tmp_path):
+    """A write cut short (crash, restart) leaves its temporary file: once a day
+    old it goes. A younger one may belong to a backup still running, and a file
+    that is not a backup's own is none of our business: both stay."""
+    old = tmp_path / "mediakeeper_backup_20260101_000000.zip.0a1b2c.part"
+    young = tmp_path / "mediakeeper_backup_20260102_000000.zip.3d4e5f.part"
+    other = tmp_path / "notes.part"
+    for f in (old, young, other):
+        f.write_bytes(b"x")
+    _age_past_cutoff(old, other)
+
+    backup_create._remove_stale_temp_archives(tmp_path)
+
+    assert sorted(p.name for p in tmp_path.iterdir()) == [young.name, other.name]
+
+
+@pytest.mark.asyncio
+async def test_a_backup_clears_old_temporary_archives_first(db_session, patched_backup_dir):
+    leftover = Path(patched_backup_dir) / "mediakeeper_backup_20260101_000000.zip.0a1b2c.part"
+    leftover.write_bytes(b"x")
+    _age_past_cutoff(leftover)
+
+    backup_path = (await create_backup(db_session, components=NO_COMPONENTS)).path
+
+    assert sorted(p.name for p in Path(patched_backup_dir).iterdir()) == [backup_path.name]
+
+
+def test_a_temporary_archive_that_will_not_go_never_stops_a_backup(tmp_path, monkeypatch, caplog):
+    leftover = tmp_path / "mediakeeper_backup_20260101_000000.zip.0a1b2c.part"
+    leftover.write_bytes(b"x")
+    _age_past_cutoff(leftover)
+    monkeypatch.setattr(Path, "unlink", MagicMock(side_effect=PermissionError("locked")))
+
+    with caplog.at_level(logging.WARNING, logger="mediakeeper.backup"):
+        backup_create._remove_stale_temp_archives(tmp_path)
+
+    assert leftover.exists()
+    assert "Could not remove" in caplog.text
+
+
+def test_component_names_match_the_backup_parts():
+    assert set(get_args(ComponentName)) == set(DEFAULT_COMPONENTS)
+
+
+@pytest.mark.parametrize("components", [{"settings": "false"}, {"settings": 1}, {"secrets": True}])
+def test_a_component_selection_takes_known_parts_and_booleans_only(components):
+    """``{"settings": "false"}`` used to export the settings anyway."""
+    with pytest.raises(ValidationError):
+        BackupRequest(components=components)
+    with pytest.raises(ValidationError):
+        RestoreRequest(filename="mediakeeper_backup_x.zip", components=components)
+    with pytest.raises(HTTPException) as refused:
+        _parse_components_payload(json.dumps(components))
+    assert refused.value.detail == "backup_components_invalid"

@@ -62,8 +62,8 @@ async def create_backup_endpoint(
     # so manual backups don't pile up until the next automatic run. A cleanup
     # failure must not mask a successful backup — log it and still return success.
     # An incomplete backup must not push complete ones out: retention waits.
-    if result.failed:
-        logger.warning("[backup] retention skipped, %s is incomplete", dest.name)
+    if not result.complete:
+        logger.warning("[backup] retention suspended until a complete backup: %s is incomplete", dest.name)
     else:
         try:
             await apply_configured_retention(db)
@@ -74,6 +74,7 @@ async def create_backup_endpoint(
         "filename": dest.name,
         "size_bytes": dest.stat().st_size,
         "failed_components": list(result.failed),
+        "retention_skipped": not result.complete,
     }
 
 

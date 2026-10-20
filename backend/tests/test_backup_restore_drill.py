@@ -41,7 +41,7 @@ def drill_backup_dir(workspace_tmp_path, monkeypatch):
 def drill_pg_dump_stub():
     fake_sql = "-- mocked pg_dump for smoke drill --\nSELECT 1;\n"
     with patch(
-        "services.backup.create._pg_dump_async",
+        "services.backup.create.dump_database",
         new=AsyncMock(return_value=fake_sql),
     ) as mocked:
         yield mocked, fake_sql

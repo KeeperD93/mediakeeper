@@ -1,4 +1,5 @@
 """Restore a backup ZIP or a single JSON."""
+import asyncio
 import json
 import logging
 import zipfile
@@ -145,6 +146,28 @@ def _inspect_encryption_key(zf: zipfile.ZipFile) -> dict:
     }
 
 
+def _read_restore_plan(zip_path: Path, opts: dict) -> tuple[list[tuple[str, object, object]], dict]:
+    """The selected parts the archive holds (``<part>.json``), read and parsed,
+    with their handler, and the archive's key status."""
+    handlers = {
+        "settings": _restore_settings,
+        "preferences": _restore_preferences,
+        "scheduler": _restore_scheduler,
+        "watchlist": _restore_watchlist,
+    }
+    try:
+        with zipfile.ZipFile(zip_path) as zf:
+            names = zf.namelist()
+            plan = [
+                (part, json.loads(zf.read(f"{part}.json")), handler)
+                for part, handler in handlers.items()
+                if opts.get(part) and f"{part}.json" in names
+            ]
+            return plan, _inspect_encryption_key(zf)
+    except zipfile.BadZipFile:
+        raise InvalidBackupArchiveError("invalid_or_corrupted_zip") from None
+
+
 async def restore_backup(
     db: AsyncSession,
     zip_path: Path,
@@ -160,58 +183,14 @@ async def restore_backup(
         "scheduler": "skipped",
         "watchlist": "skipped",
     }
-    opts = components or {}
-    restore_plan: list[tuple[str, object, object]] = []
-    encryption_key_info: dict | None = None
-
-    try:
-        with zipfile.ZipFile(zip_path) as zf:
-            names = zf.namelist()
-
-            if opts.get("settings") and "settings.json" in names:
-                restore_plan.append(
-                    (
-                        "settings",
-                        json.loads(zf.read("settings.json")),
-                        _restore_settings,
-                    )
-                )
-
-            if opts.get("preferences") and "preferences.json" in names:
-                restore_plan.append(
-                    (
-                        "preferences",
-                        json.loads(zf.read("preferences.json")),
-                        _restore_preferences,
-                    )
-                )
-
-            if opts.get("scheduler") and "scheduler.json" in names:
-                restore_plan.append(
-                    (
-                        "scheduler",
-                        json.loads(zf.read("scheduler.json")),
-                        _restore_scheduler,
-                    )
-                )
-
-            if opts.get("watchlist") and "watchlist.json" in names:
-                restore_plan.append(
-                    (
-                        "watchlist",
-                        json.loads(zf.read("watchlist.json")),
-                        _restore_watchlist,
-                    )
-                )
-
-            encryption_key_info = _inspect_encryption_key(zf)
-    except zipfile.BadZipFile:
-        raise InvalidBackupArchiveError("invalid_or_corrupted_zip") from None
+    # Reading the archive is file work: off the event loop.
+    restore_plan, encryption_key_info = await asyncio.to_thread(
+        _read_restore_plan, zip_path, components or {},
+    )
 
     await _run_restore_plan(db, restore_plan, results, raise_on_error=True)
 
-    if encryption_key_info is not None:
-        results["encryption_key"] = encryption_key_info
+    results["encryption_key"] = encryption_key_info
 
     logger.info("[backup] Restore complete: %s", results)
     return results

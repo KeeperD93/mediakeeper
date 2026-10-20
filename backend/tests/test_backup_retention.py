@@ -83,6 +83,16 @@ async def test_retention_outside_the_screen_bounds_is_refused(authed_client, db_
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("days", [True, "30"])
+async def test_retention_must_be_a_plain_number(authed_client, db_session, days):
+    """``true`` would be read as 1 day and purge every older backup."""
+    resp = await authed_client.post("/api/backup/retention", json={"days": days})
+
+    assert resp.status_code == 422
+    assert await get_retention_days(db_session) == 30
+
+
+@pytest.mark.asyncio
 async def test_retention_is_stored_where_every_backup_path_reads_it(authed_client, db_session):
     resp = await authed_client.post("/api/backup/retention", json={"days": -3})
 
@@ -163,6 +173,7 @@ async def test_incomplete_manual_backup_is_reported_and_keeps_older_ones(
     resp = await _crud.create_backup_endpoint(BackupRequest(), db=db_session, _=ADMIN)
 
     assert resp["failed_components"] == ["pg_dump"]
+    assert resp["retention_skipped"] is True
     assert _remaining(backup_dir) == {"mediakeeper_backup_new.zip", "mediakeeper_backup_complete.zip"}
 
 
@@ -222,7 +233,8 @@ async def test_incomplete_scheduled_backup_fails_the_task_and_keeps_older_ones(
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("stored", ["{not json", "[1]"])
+# An unknown part or a non-boolean value makes the whole selection unreadable.
+@pytest.mark.parametrize("stored", ["{not json", "[1]", '{"secrets": true}', '{"settings": "false"}'])
 async def test_scheduled_backup_falls_back_on_unreadable_components(
     db_session, monkeypatch, caplog, stored,
 ):
@@ -248,3 +260,57 @@ async def test_info_lists_backups_with_the_configured_retention(db_session, work
 
     assert resp["retention_days"] == 30
     assert [b["filename"] for b in resp["backups"]] == ["mediakeeper_backup_one.zip"]
+
+
+@pytest.mark.asyncio
+async def test_a_manual_backup_missing_only_its_log_files_keeps_retention(
+    db_session, workspace_tmp_path, monkeypatch,
+):
+    """The log files are optional and never restored: their failure is reported
+    but must not hold retention up for good."""
+    backup_dir = Path(workspace_tmp_path)
+    await set_setting(db_session, "backup.retention_days", "-1")
+    _make_backup(backup_dir, "older", age_days=1)
+    new = backup_dir / "mediakeeper_backup_new.zip"
+
+    async def _fake_create(db, components=None, label=""):
+        new.write_bytes(b"x")
+        return BackupResult(new, ("logs",))
+
+    monkeypatch.setattr(_crud, "create_backup", _fake_create)
+    monkeypatch.setenv("BACKUP_PATH", str(backup_dir))
+
+    resp = await _crud.create_backup_endpoint(BackupRequest(), db=db_session, _=ADMIN)
+
+    assert (resp["failed_components"], resp["retention_skipped"]) == (["logs"], False)
+    assert _remaining(backup_dir) == {"mediakeeper_backup_new.zip"}
+
+
+@pytest.mark.asyncio
+async def test_a_scheduled_backup_missing_only_its_log_files_still_succeeds(
+    db_session, workspace_tmp_path, monkeypatch, caplog,
+):
+    backup_dir = Path(workspace_tmp_path)
+    await set_setting(db_session, "backup.retention_days", "-1")
+    _make_backup(backup_dir, "older", age_days=1)
+    new = backup_dir / "mediakeeper_backup_auto.zip"
+
+    async def _fake_create(db, components=None, label="", progress_cb=None):
+        new.write_bytes(b"x")
+        return BackupResult(new, ("logs",))
+
+    monkeypatch.setattr("services.backup.create_backup", _fake_create)
+    monkeypatch.setenv("BACKUP_PATH", str(backup_dir))
+
+    with caplog.at_level(logging.WARNING, logger="mediakeeper.scheduler"):
+        await _handler_backup(db_session)
+
+    assert "without its log files" in caplog.text
+    assert _remaining(backup_dir) == {"mediakeeper_backup_auto.zip"}
+
+
+@pytest.mark.parametrize(("failed", "complete"), [
+    ((), True), (("logs",), True), (("pg_dump",), False), (("logs", "settings"), False),
+])
+def test_only_the_log_files_may_be_missing_from_a_complete_backup(failed, complete):
+    assert BackupResult(Path("unused.zip"), failed).complete is complete

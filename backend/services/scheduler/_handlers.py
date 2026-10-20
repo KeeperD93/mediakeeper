@@ -1,6 +1,5 @@
 """Scheduled task handlers — lazy imports to avoid cycles."""
 import asyncio
-import json
 import logging
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -48,15 +47,15 @@ async def _handler_notifications(db: AsyncSession) -> None:
 
 
 async def _handler_backup(db: AsyncSession) -> None:
-    from services.backup import apply_configured_retention, create_backup
+    from pydantic import ValidationError
+
+    from services.backup import COMPONENTS_ADAPTER, apply_configured_retention, create_backup
     from services.settings import get_setting
 
     components_raw = await get_setting(db, "backup.auto_components") or "{}"
     try:
-        components = json.loads(components_raw)
-        if not isinstance(components, dict):
-            raise ValueError(f"expected an object, got {type(components).__name__}")
-    except ValueError as e:  # JSONDecodeError included
+        components = COMPONENTS_ADAPTER.validate_json(components_raw)
+    except ValidationError as e:
         logger.warning("[backup] unreadable backup.auto_components setting, using the defaults: %s", e)
         components = {}
     result = await create_backup(
@@ -65,10 +64,15 @@ async def _handler_backup(db: AsyncSession) -> None:
         label="auto",
         progress_cb=lambda c, t, label: update_progress("backup_auto", c, t, label),
     )
-    if result.failed:
+    if not result.complete:
         # The task ends in error (and alerts) and the complete backups stay:
         # retention waits for a complete one.
-        raise RuntimeError(f"{result.path.name} written without: {', '.join(result.failed)}")
+        raise RuntimeError(
+            f"{result.path.name} written without: {', '.join(result.failed)}; "
+            "retention suspended until a complete backup"
+        )
+    if result.failed:  # only the optional log files are missing
+        logger.warning("[backup] %s written without its log files", result.path.name)
     await apply_configured_retention(db)
 
 

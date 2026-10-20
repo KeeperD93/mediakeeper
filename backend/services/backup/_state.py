@@ -1,6 +1,8 @@
 """Constants + backup destination directory resolution."""
 from pathlib import Path
+from typing import Literal
 
+from pydantic import StrictBool, TypeAdapter
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from services.path_config import get_backup_dir, is_backup_dir_locked
@@ -13,6 +15,11 @@ DEFAULT_COMPONENTS = {
     "logs":        False,  # log files
     "pg_dump":     True,   # full PostgreSQL dump
 }
+
+# The parts a backup can hold (the keys above): a selection naming another
+# part, or giving anything but a boolean, is refused wherever it comes in.
+ComponentName = Literal["settings", "preferences", "scheduler", "watchlist", "logs", "pg_dump"]
+COMPONENTS_ADAPTER = TypeAdapter(dict[ComponentName, StrictBool])
 
 RETENTION_DAYS_KEY = "backup.retention_days"
 DEFAULT_RETENTION = 30
