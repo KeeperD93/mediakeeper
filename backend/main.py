@@ -96,10 +96,8 @@ app = FastAPI(
 class _StartupMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         if not is_db_ready() and request.url.path.startswith("/api/") and request.url.path != "/api/health":
-            return _JSONResponse(
-                status_code=503,
-                content={"detail": "Service starting up, please wait..."},
-            )
+            # A code, like every other error detail: the screens translate it.
+            return _JSONResponse(status_code=503, content={"detail": "starting"})
         return await call_next(request)
 
 
@@ -187,10 +185,8 @@ async def global_exception_handler(request: Request, exc: Exception):
         request.method, safe_request_url(request), exc,
         exc_info=True,
     )
-    return JSONResponse(
-        status_code=500,
-        content={"detail": "Internal server error"},
-    )
+    # No ``detail`` code: each screen then names the action that failed.
+    return JSONResponse(status_code=500, content={"error": "internal_error"})
 
 
 # SPA served via a 404 exception handler (see app_spa.register_spa): it leaves
