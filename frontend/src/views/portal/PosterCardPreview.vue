@@ -20,10 +20,11 @@
 <script setup>
 import PosterCard from '@/components/portal/PosterCard.vue'
 
-const SAMPLE_TITLE_A = 'Le Comte de Monte-Cristo'
-const SAMPLE_TITLE_B = 'Dune: Prophecy'
-const SAMPLE_TITLE_C = 'Severance'
-const SAMPLE_TITLE_D = 'The Bear'
+// Synthetic titles, of the lengths real ones come in.
+const SAMPLE_TITLE_A = 'The Sample Movie of the Year'
+const SAMPLE_TITLE_B = 'Sample Saga: Part Two'
+const SAMPLE_TITLE_C = 'Sample Show'
+const SAMPLE_TITLE_D = 'The Sample'
 
 function poster(overrides) {
   return {

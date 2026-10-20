@@ -28,16 +28,16 @@ const SAMPLE_SEASONS = [
     name: 'Saison 1',
     episodes: [
       { id: 'e1', episode_number: 1, name: 'Pilot' },
-      { id: 'e2', episode_number: 2, name: 'Half Loop' },
-      { id: 'e3', episode_number: 3, name: 'In Perpetuity' },
+      { id: 'e2', episode_number: 2, name: 'Second Episode' },
+      { id: 'e3', episode_number: 3, name: 'Third Episode' },
     ],
   },
   {
     season_number: 2,
     name: 'Saison 2',
     episodes: [
-      { id: 'e4', episode_number: 1, name: 'Hello, Ms. Cobel' },
-      { id: 'e5', episode_number: 2, name: 'Goodbye, Mrs. Selvig' },
+      { id: 'e4', episode_number: 1, name: 'Season Two Opener' },
+      { id: 'e5', episode_number: 2, name: 'Season Two Follow-up' },
     ],
   },
 ]
