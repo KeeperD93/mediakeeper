@@ -178,8 +178,10 @@
   text-decoration: none;
   transition: opacity var(--portal-dur-base);
 }
-.pt-eh-btn:hover {
-  opacity: 0.85;
+@media (hover: hover) {
+  .pt-eh-btn:hover {
+    opacity: 0.85;
+  }
 }
 .pt-eh-btn--play {
   background: #fff;

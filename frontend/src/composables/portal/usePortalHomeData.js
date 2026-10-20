@@ -56,6 +56,9 @@ export function usePortalHomeData() {
   // the next auto-advance after a manual jump to honour HERO_MIN_INTERVAL_MS.
   let lastHeroSwitchTs = Date.now()
   let pendingNextHeroTimer = null
+  // Set when the page is left: a banner source that loads afterwards must
+  // not start a rotation that nothing would stop.
+  let disposed = false
 
   // Hero: manual featured first, then trending. `heroTrendCount` caps
   // the total items. Featured items take priority and eat into the
@@ -95,7 +98,7 @@ export function usePortalHomeData() {
 
   function startHeroRotation() {
     stopHeroRotation()
-    if (reducedMotion.value) return
+    if (disposed || reducedMotion.value) return
     heroTimer = setInterval(() => {
       if (heroItems.value.length > 1 && !heroPaused.value) {
         nextHero()
@@ -214,7 +217,10 @@ export function usePortalHomeData() {
     }
   }
 
-  onUnmounted(stopHeroRotation)
+  onUnmounted(() => {
+    disposed = true
+    stopHeroRotation()
+  })
 
   return {
     // Carousels

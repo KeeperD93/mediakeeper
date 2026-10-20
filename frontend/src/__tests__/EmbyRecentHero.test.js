@@ -1,7 +1,8 @@
 /**
  * Covers the "Play" button of the recently-added hero: it opens the current
  * title in Emby in a new tab, and never renders an unsafe link. The rotation
- * stops while the device asks for reduced motion.
+ * stops while the device asks for reduced motion, and the arrows leave the
+ * scroll motion to the stylesheet (instant under reduced motion).
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { nextTick, ref } from 'vue'
@@ -111,6 +112,18 @@ describe('EmbyRecentHero — Play button', () => {
     vi.advanceTimersByTime(30000)
     await nextTick()
     expect(playHref()).toBe('http://emby.invalid/second')
+    w.unmount()
+  })
+
+  it('scrolls the row without forcing a smooth motion', async () => {
+    const w = mountHero({ emby_url: 'http://emby.invalid/first' })
+    const track = w.get('.pt-eh-track').element
+    track.scrollBy = vi.fn()
+
+    await w.get('.pt-carousel-arrow--right').trigger('click')
+
+    expect(track.scrollBy).toHaveBeenCalledTimes(1)
+    expect(track.scrollBy.mock.calls[0][0]).not.toHaveProperty('behavior')
     w.unmount()
   })
 })

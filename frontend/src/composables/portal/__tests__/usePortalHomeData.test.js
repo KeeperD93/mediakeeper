@@ -1,7 +1,8 @@
 /**
  * Home data: a hero list is shown only once its availability is stamped (the
  * banner would otherwise offer "Request" on a title Emby holds), ordinary
- * rows do not wait, and the hero does not rotate under reduced motion.
+ * rows do not wait, and the hero does not rotate under reduced motion nor
+ * once the page is left.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { defineComponent, h, nextTick } from 'vue'
@@ -127,5 +128,23 @@ describe('usePortalHomeData', () => {
     vi.advanceTimersByTime(30000)
     expect(home.heroIndex.value).toBe(1)
     w.unmount()
+  })
+
+  it('starts no rotation once the page is left before the banner loads', async () => {
+    vi.useFakeTimers()
+    let release
+    mocks.checkAvailability.mockReturnValue(
+      new Promise(resolve => {
+        release = resolve
+      }),
+    )
+    const { w, home } = mountHome()
+    const loading = home.loadAllData()
+
+    w.unmount()
+    release()
+    await loading
+
+    expect(vi.getTimerCount()).toBe(0)
   })
 })

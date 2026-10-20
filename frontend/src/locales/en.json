@@ -2693,7 +2693,8 @@
       "series": "SERIES",
       "topRank": "#{rank} Trending Today",
       "featured": "Featured on Emby",
-      "play": "Play"
+      "play": "Play",
+      "goTo": "Show title {n} of {total}"
     },
     "mood": {
       "title": "How are you feeling?",

@@ -33,12 +33,18 @@
             <img src="/assets/icons/emby.svg" alt="" class="pt-eh-btn-emby" />
             {{ $t('portal.hero.play') }}
           </a>
-          <button v-if="trailer" class="pt-eh-btn pt-eh-btn--trailer" @click="openLightbox">
+          <button
+            v-if="trailer"
+            class="pt-eh-btn pt-eh-btn--trailer"
+            type="button"
+            @click="openLightbox"
+          >
             <Video :size="20" />
             {{ $t('portal.detail.watchTrailer') }}
           </button>
           <button
             class="pt-eh-btn pt-eh-btn--info pt-eh-btn--icon"
+            type="button"
             :aria-label="$t('portal.moreInfo')"
             @click="emit('detail', currentItem)"
           >
@@ -63,6 +69,7 @@
         <button
           v-if="showSeeMoreCard"
           class="pt-eh-seemore"
+          type="button"
           @click="$router.push({ name: 'portal-category', params: { type: 'recently-added' } })"
         >
           <img src="/assets/icons/emby.svg" alt="" class="pt-eh-seemore-logo" />
@@ -82,6 +89,7 @@
 
       <button
         class="pt-carousel-arrow pt-carousel-arrow--left"
+        type="button"
         :class="{ 'pt-carousel-arrow--visible': canScrollLeft }"
         :aria-label="$t('common.previous')"
         @click="scrollTrack(-1)"
@@ -90,6 +98,7 @@
       </button>
       <button
         class="pt-carousel-arrow pt-carousel-arrow--right"
+        type="button"
         :class="{ 'pt-carousel-arrow--visible': canScrollRight }"
         :aria-label="$t('common.next')"
         @click="scrollTrack(1)"
@@ -221,7 +230,9 @@ function scrollTrack(dir) {
   if (step <= 0) return
 
   const visible = Math.max(1, Math.floor(trackRect.width / step))
-  el.scrollBy({ left: dir * visible * step, behavior: 'smooth' })
+  // No behavior: the track's stylesheet picks it (smooth, instant under
+  // reduced motion).
+  el.scrollBy({ left: dir * visible * step })
 }
 
 watch(

@@ -2693,7 +2693,8 @@
       "series": "SÉRIES",
       "topRank": "N°{rank} des tendances aujourd'hui",
       "featured": "Mis en avant sur Emby",
-      "play": "Lecture"
+      "play": "Lecture",
+      "goTo": "Afficher le titre {n} sur {total}"
     },
     "mood": {
       "title": "Comment vous sentez-vous ?",
