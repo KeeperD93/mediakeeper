@@ -1,5 +1,5 @@
 /**
- * Report form (FeedbackModal): resolution pre-fill, the payload it
+ * Report form (FeedbackModal): menus, resolution pre-fill, the payload it
  * sends, a failed send, and the reset button. The affected page and its
  * shortcut are in FeedbackModal.location.test.js.
  */
@@ -73,6 +73,14 @@ beforeEach(() => {
 afterEach(() => {
   wrapper?.unmount()
   vi.unstubAllGlobals()
+})
+
+describe('FeedbackModal — menus', () => {
+  it('give every menu the shared arrow', async () => {
+    const menus = selects(await openModal())
+    expect(menus).toHaveLength(3) // page, tab, resolution
+    for (const menu of menus) expect(menu.classes()).toContain('mk-select-chevron')
+  })
 })
 
 describe('FeedbackModal — resolution', () => {

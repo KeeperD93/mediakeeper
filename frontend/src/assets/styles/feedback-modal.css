@@ -1,15 +1,19 @@
-/* Feedback (bug/suggestion) modal — admin surface. Classes are prefixed `fbk-`
-   because this file is imported (not scoped). Mobile-first: base = bottom sheet,
-   min-width upgrades to a centered dialog. */
+/* Feedback (bug/suggestion) modal, shown on admin and portal pages: the window
+   here, its form in feedback-modal-form.css, values from the --fbk-* of
+   feedback-modal-theme.css (one look per side). Classes are prefixed `fbk-`
+   because these files are imported (not scoped). Mobile-first: base = bottom
+   sheet, min-width upgrades to a centered dialog. */
 
 .fbk-overlay {
   position: fixed;
   inset: 0;
-  z-index: var(--z-modal);
+  z-index: var(--fbk-layer);
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  background: var(--overlay-backdrop);
+  background: var(--fbk-veil);
+  -webkit-backdrop-filter: var(--fbk-veil-blur);
+  backdrop-filter: var(--fbk-veil-blur);
 }
 .fbk-panel {
   display: flex;
@@ -17,9 +21,9 @@
   width: 100%;
   max-height: 92vh;
   overflow: hidden;
-  background: var(--overlay-bg);
-  border: 0.5px solid var(--border);
-  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  background: var(--fbk-bg);
+  border: 0.5px solid var(--fbk-line);
+  border-radius: var(--fbk-radius) var(--fbk-radius) 0 0;
 }
 .fbk-header {
   display: flex;
@@ -27,26 +31,26 @@
   justify-content: space-between;
   gap: 12px;
   padding: 14px 18px;
-  border-bottom: 0.5px solid var(--border);
+  border-bottom: 0.5px solid var(--fbk-line);
 }
 .fbk-title {
   margin: 0;
-  font-size: var(--text-base);
-  font-weight: var(--font-bold);
-  color: var(--text-primary);
+  font-size: var(--fbk-fs-base);
+  font-weight: var(--fbk-bold);
+  color: var(--fbk-text);
 }
 .fbk-close {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 44px;
-  min-height: 44px;
+  min-width: var(--fbk-touch);
+  min-height: var(--fbk-touch);
   padding: 4px;
   border: none;
   background: transparent;
-  color: var(--text-muted);
+  color: var(--fbk-text-muted);
   cursor: pointer;
-  border-radius: var(--radius-sm);
+  border-radius: var(--fbk-radius-sm);
 }
 .fbk-body {
   display: flex;
@@ -55,137 +59,6 @@
   padding: 16px 18px;
   overflow-y: auto;
 }
-.fbk-field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.fbk-flabel {
-  font-size: var(--text-sm);
-  font-weight: var(--font-bold);
-  color: var(--text-secondary);
-}
-/* The row keeps the "current page" chip's height, so nothing moves when it
-   shows; an invisible band gives the chip a 44px touch target. */
-.fbk-label-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-height: 24px;
-}
-.fbk-here {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  height: 24px;
-  padding: 0 10px;
-  border-radius: var(--radius-pill);
-  border: 0.5px solid var(--border);
-  background: var(--surface-2);
-  color: var(--text-secondary);
-  font-size: var(--text-xs);
-  font-family: inherit;
-  cursor: pointer;
-}
-.fbk-here::after {
-  content: '';
-  position: absolute;
-  inset-inline: 0;
-  top: 50%;
-  height: var(--touch-target);
-  transform: translateY(-50%);
-}
-.fbk-body input[type='text'],
-.fbk-body textarea,
-.fbk-select {
-  width: 100%;
-  min-height: 44px;
-  padding: 8px 11px;
-  border-radius: var(--radius-sm);
-  border: 0.5px solid var(--border);
-  background: var(--surface-2);
-  color: var(--text-primary);
-  font-size: var(--text-sm);
-  font-family: inherit;
-}
-.fbk-body textarea {
-  resize: vertical;
-  min-height: 64px;
-}
-/* Stacks above the "current page" chip's touch band where the two meet. */
-.fbk-select {
-  position: relative;
-}
-.fbk-body input:focus,
-.fbk-body textarea:focus,
-.fbk-select:focus {
-  outline: none;
-  border-color: var(--accent-500);
-}
-.fbk-seg {
-  display: flex;
-  gap: 8px;
-}
-.fbk-seg-btn {
-  flex: 1;
-  min-height: 44px;
-  padding: 8px 12px;
-  border-radius: var(--radius-btn);
-  border: 0.5px solid var(--border);
-  background: var(--surface-2);
-  color: var(--text-secondary);
-  font-size: var(--text-sm);
-  font-family: inherit;
-  cursor: pointer;
-}
-.fbk-seg-btn.active {
-  border-color: var(--accent-500);
-  background: rgb(var(--accent-rgb), 0.12);
-  color: var(--text-primary);
-}
-.fbk-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.fbk-chip {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 7px 12px;
-  border-radius: var(--radius-pill);
-  border: 0.5px solid var(--border);
-  background: var(--surface-2);
-  color: var(--text-secondary);
-  font-size: var(--text-xs);
-  font-family: inherit;
-  cursor: pointer;
-}
-.fbk-chip.active {
-  border-color: var(--accent-500);
-  background: rgb(var(--accent-rgb), 0.14);
-  color: var(--text-primary);
-}
-.fbk-check {
-  display: flex;
-  align-items: center;
-  min-height: 44px;
-  gap: 8px;
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
-  cursor: pointer;
-}
-.fbk-budget {
-  margin: 0;
-  font-size: var(--text-2xs);
-  color: var(--text-muted);
-  text-align: right;
-}
-.fbk-budget.over {
-  color: var(--color-error);
-}
 .fbk-footer {
   display: flex;
   flex-wrap: wrap;
@@ -193,9 +66,9 @@
   justify-content: flex-end;
   gap: 10px;
   padding: 12px 18px;
-  border-top: 0.5px solid var(--border);
+  border-top: 0.5px solid var(--fbk-line);
 }
-/* Moderation shortcut + "Réinitialiser" sit opposite the cancel/submit pair. */
+/* Moderation shortcut + Reset sit opposite the cancel/submit pair. */
 .fbk-btn--moderate {
   display: inline-flex;
   align-items: center;
@@ -205,31 +78,31 @@
   margin-right: auto;
 }
 .fbk-btn {
-  min-height: 44px;
+  min-height: var(--fbk-touch);
   padding: 8px 18px;
-  border-radius: var(--radius-btn);
-  border: 0.5px solid var(--border);
-  font-size: var(--text-sm);
-  font-weight: var(--font-bold);
+  border-radius: var(--fbk-radius-btn);
+  border: 0.5px solid var(--fbk-line);
+  font-size: var(--fbk-fs-sm);
+  font-weight: var(--fbk-bold);
   font-family: inherit;
   cursor: pointer;
 }
 .fbk-btn:disabled {
-  opacity: 0.5;
+  opacity: var(--fbk-disabled);
   cursor: not-allowed;
 }
 .fbk-btn--ghost {
-  background: var(--surface-2);
-  color: var(--text-secondary);
+  background: var(--fbk-fill);
+  color: var(--fbk-text-soft);
 }
 .fbk-btn--primary {
-  background: var(--accent-500);
-  border-color: var(--accent-500);
-  color: var(--color-on-accent);
+  background: var(--fbk-accent);
+  border-color: var(--fbk-accent);
+  color: var(--fbk-on-accent);
 }
 .fbk-fade-enter-active,
 .fbk-fade-leave-active {
-  transition: opacity var(--duration-base);
+  transition: opacity var(--fbk-dur);
 }
 .fbk-fade-enter-from,
 .fbk-fade-leave-to {
@@ -244,35 +117,20 @@
   .fbk-panel {
     max-width: 520px;
     max-height: 90vh;
-    border-radius: var(--radius-card);
+    border-radius: var(--fbk-radius);
   }
-  .fbk-body input[type='text'],
-  .fbk-body textarea,
-  .fbk-select,
-  .fbk-btn,
-  .fbk-seg-btn,
-  .fbk-chip,
-  .fbk-check {
+  .fbk-btn {
     min-height: 0;
   }
   .fbk-close {
     min-width: 0;
     min-height: 0;
   }
-  .fbk-body textarea {
-    min-height: 64px;
-  }
 }
 
 @media (hover: hover) {
-  .fbk-close:hover,
-  .fbk-here:hover {
-    color: var(--text-primary);
-  }
-  .fbk-seg-btn:hover,
-  .fbk-chip:hover,
-  .fbk-here:hover {
-    border-color: var(--border-hover);
+  .fbk-close:hover {
+    color: var(--fbk-text);
   }
   .fbk-btn--primary:hover:not(:disabled) {
     filter: brightness(1.08);

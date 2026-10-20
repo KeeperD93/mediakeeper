@@ -1,0 +1,175 @@
+/* Feedback modal — the form inside the window (see feedback-modal.css). */
+
+.fbk-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.fbk-flabel {
+  font-size: var(--fbk-fs-sm);
+  font-weight: var(--fbk-bold);
+  color: var(--fbk-text-soft);
+}
+/* The row keeps the "current page" chip's height, so nothing moves when it
+   shows; an invisible band gives the chip a 44px touch target. */
+.fbk-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 24px;
+}
+.fbk-here {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: var(--fbk-radius-pill);
+  border: 0.5px solid var(--fbk-line);
+  background: var(--fbk-fill);
+  color: var(--fbk-text-soft);
+  font-size: var(--fbk-fs-xs);
+  font-family: inherit;
+  cursor: pointer;
+}
+.fbk-here::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: var(--fbk-touch);
+  transform: translateY(-50%);
+}
+.fbk-body input[type='text'],
+.fbk-body textarea,
+.fbk-select {
+  width: 100%;
+  min-height: var(--fbk-touch);
+  padding-block: 8px;
+  border-radius: var(--fbk-radius-sm);
+  border: 0.5px solid var(--fbk-line);
+  color: var(--fbk-text);
+  font-size: var(--fbk-fs-sm);
+  font-family: inherit;
+}
+.fbk-body input[type='text'],
+.fbk-body textarea {
+  padding-inline: 11px;
+  background: var(--fbk-fill);
+}
+.fbk-body textarea {
+  resize: vertical;
+  min-height: 64px;
+}
+/* Native menus: mk-select-chevron owns the arrow and the right padding, so
+   longhands only here. Relative: stacks above the chip's touch band. */
+.fbk-select {
+  position: relative;
+  padding-left: 12px;
+  background-color: var(--fbk-select-bg);
+  color: var(--fbk-select-text);
+}
+/* iOS zooms into a field under 16px it focuses: 16px on iOS only, other
+   devices keep the compact fields. */
+@supports (-webkit-touch-callout: none) {
+  .fbk-body input[type='text'],
+  .fbk-body textarea,
+  .fbk-select {
+    font-size: var(--fbk-fs-ios);
+  }
+}
+.fbk-body input[type='text']:focus,
+.fbk-body textarea:focus,
+.fbk-select:focus {
+  outline: none;
+  border-color: var(--fbk-accent);
+}
+.fbk-seg {
+  display: flex;
+  gap: 8px;
+}
+.fbk-seg-btn {
+  flex: 1;
+  min-height: var(--fbk-touch);
+  padding: 8px 12px;
+  border-radius: var(--fbk-radius-btn);
+  border: 0.5px solid var(--fbk-line);
+  background: var(--fbk-fill);
+  color: var(--fbk-text-soft);
+  font-size: var(--fbk-fs-sm);
+  font-family: inherit;
+  cursor: pointer;
+}
+.fbk-seg-btn.active {
+  border-color: var(--fbk-accent);
+  background: rgb(var(--fbk-accent-rgb), 0.12);
+  color: var(--fbk-text);
+}
+.fbk-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.fbk-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--fbk-touch);
+  padding: 7px 12px;
+  border-radius: var(--fbk-radius-pill);
+  border: 0.5px solid var(--fbk-line);
+  background: var(--fbk-fill);
+  color: var(--fbk-text-soft);
+  font-size: var(--fbk-fs-xs);
+  font-family: inherit;
+  cursor: pointer;
+}
+.fbk-chip.active {
+  border-color: var(--fbk-accent);
+  background: rgb(var(--fbk-accent-rgb), 0.14);
+  color: var(--fbk-text);
+}
+.fbk-check {
+  display: flex;
+  align-items: center;
+  min-height: var(--fbk-touch);
+  gap: 8px;
+  font-size: var(--fbk-fs-sm);
+  color: var(--fbk-text-soft);
+  cursor: pointer;
+}
+.fbk-budget {
+  margin: 0;
+  font-size: var(--fbk-fs-2xs);
+  color: var(--fbk-text-muted);
+  text-align: right;
+}
+.fbk-budget.over {
+  color: var(--fbk-error);
+}
+
+@media (min-width: 768px) {
+  .fbk-body input[type='text'],
+  .fbk-body textarea,
+  .fbk-select,
+  .fbk-seg-btn,
+  .fbk-chip,
+  .fbk-check {
+    min-height: 0;
+  }
+  .fbk-body textarea {
+    min-height: 64px;
+  }
+}
+
+@media (hover: hover) {
+  .fbk-here:hover {
+    color: var(--fbk-text);
+  }
+  .fbk-seg-btn:hover,
+  .fbk-chip:hover,
+  .fbk-here:hover {
+    border-color: var(--fbk-line-hover);
+  }
+}

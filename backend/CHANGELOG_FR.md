@@ -53,6 +53,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Confirmations — en file d'attente, sans validation involontaire (double clic, touche Entrée).
 - Remontées — envoi en échec : message clair au lieu du texte du navigateur.
 - Remontées — la page concernée suit la page en cours (bouton « Page actuelle », liste revue).
+- Remontées — plus de zoom sur téléphone, flèche des menus espacée du bord.
 
 ## [1.0.0-rc.8] - 2026-10-11
 

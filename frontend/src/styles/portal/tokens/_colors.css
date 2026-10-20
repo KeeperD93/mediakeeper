@@ -39,7 +39,7 @@
   --portal-border-strong: rgb(255, 255, 255, 0.12);
   --portal-border-intense: rgb(255, 255, 255, 0.18);
 
-  /* Text shades (white alphas, then one solid slate) ------- */
+  /* Text shades (white alphas, then solid admin mirrors) -- */
   --portal-text-primary: rgb(255, 255, 255, 0.92);
   --portal-text-body: rgb(255, 255, 255, 0.85);
   --portal-text-body-muted: rgb(255, 255, 255, 0.7);
@@ -47,6 +47,8 @@
   --portal-text-muted: rgb(255, 255, 255, 0.4);
   --portal-text-disabled: rgb(255, 255, 255, 0.25);
   --portal-text-muted-solid: #a8b2c2; /* slate, empty states — mirrors admin --text-muted */
+  --portal-text-primary-solid: #fff; /* opaque white — mirrors admin --text-primary */
+  --portal-text-secondary-solid: #dde2eb; /* light slate — mirrors admin --text-secondary */
 
   /* Semantic colors (cohérent avec MK admin) -------------- */
   --portal-color-success: #22c55e;

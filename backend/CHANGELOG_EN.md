@@ -53,6 +53,7 @@ This section intentionally has no date so it is not shown to users.
 - Confirmations — queued, no accidental acceptance (double click, Enter key).
 - Feedback — failed send: clear message instead of the browser's text.
 - Feedback — the affected page follows the current page ("Current page" button, list updated).
+- Feedback — no more zoom on phones, menu arrows clear of the edge.
 
 ## [1.0.0-rc.8] - 2026-10-11
 

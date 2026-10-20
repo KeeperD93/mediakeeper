@@ -1,0 +1,68 @@
+/* Report window looks, one per side. The window shows on admin and portal
+   pages and the two token families never mix: the admin look is the base,
+   the portal one applies outside the admin pages (the router marks those
+   with html.mk-admin-section). feedback-modal(-form).css read only these --fbk-*. */
+
+.fbk-overlay {
+  --fbk-layer: var(--z-modal);
+  --fbk-veil: var(--overlay-backdrop);
+  --fbk-veil-blur: none;
+  --fbk-bg: var(--overlay-bg);
+  --fbk-radius: var(--radius-card);
+  --fbk-radius-btn: var(--radius-btn);
+  --fbk-radius-sm: var(--radius-sm);
+  --fbk-radius-pill: var(--radius-pill);
+  --fbk-line: var(--border);
+  --fbk-line-hover: var(--border-hover);
+  --fbk-fill: var(--surface-2);
+  --fbk-text: var(--text-primary);
+  --fbk-text-soft: var(--text-secondary);
+  --fbk-text-muted: var(--text-muted);
+  --fbk-error: var(--color-error);
+  --fbk-accent: var(--accent-500);
+  --fbk-accent-rgb: var(--accent-rgb);
+  --fbk-on-accent: var(--color-on-accent);
+  --fbk-select-bg: var(--bg-tertiary);
+  --fbk-select-text: var(--text-primary);
+  --fbk-fs-2xs: var(--text-2xs);
+  --fbk-fs-xs: var(--text-xs);
+  --fbk-fs-sm: var(--text-sm);
+  --fbk-fs-base: var(--text-base);
+  --fbk-fs-ios: var(--text-md);
+  --fbk-bold: var(--font-bold);
+  --fbk-dur: var(--duration-base);
+  --fbk-touch: var(--touch-target);
+  --fbk-disabled: var(--opacity-disabled);
+}
+
+html:not(.mk-admin-section) .fbk-overlay {
+  --fbk-layer: var(--portal-z-modal);
+  --fbk-veil: var(--portal-overlay-modal);
+  --fbk-veil-blur: var(--portal-blur-sm);
+  --fbk-bg: var(--portal-panel-bg);
+  --fbk-radius: var(--portal-radius-lg);
+  --fbk-radius-btn: var(--portal-radius-btn);
+  --fbk-radius-sm: var(--portal-radius-sm);
+  --fbk-radius-pill: var(--portal-radius-pill);
+  --fbk-line: var(--portal-border-default);
+  --fbk-line-hover: var(--portal-border-strong);
+  --fbk-fill: var(--portal-surface-2);
+  --fbk-text: var(--portal-text-primary-solid);
+  --fbk-text-soft: var(--portal-text-secondary-solid);
+  --fbk-text-muted: var(--portal-text-muted-solid);
+  --fbk-error: var(--portal-color-error-light);
+  --fbk-accent: var(--portal-accent-500);
+  --fbk-accent-rgb: var(--portal-accent-500-rgb);
+  --fbk-on-accent: var(--portal-text-primary-solid);
+  --fbk-select-bg: var(--portal-surface-3);
+  --fbk-select-text: var(--portal-text-primary);
+  --fbk-fs-2xs: var(--portal-text-2xs);
+  --fbk-fs-xs: var(--portal-text-xs);
+  --fbk-fs-sm: var(--portal-text-sm);
+  --fbk-fs-base: var(--portal-text-base);
+  --fbk-fs-ios: var(--portal-text-md);
+  --fbk-bold: var(--portal-font-bold);
+  --fbk-dur: var(--portal-dur-base);
+  --fbk-touch: var(--portal-touch-target);
+  --fbk-disabled: var(--portal-opacity-disabled);
+}

@@ -77,7 +77,7 @@
                 :id="pageSelectId"
                 ref="pageSelectRef"
                 v-model="pageRoute"
-                class="fbk-select"
+                class="fbk-select mk-select-chevron"
                 @change="onPageChange"
               >
                 <option value="">{{ $t('feedback.modal.locationNone') }}</option>
@@ -89,7 +89,7 @@
 
             <label v-if="showLocation && tabOptions.length" class="fbk-field">
               <span class="fbk-flabel">{{ $t('feedback.modal.ongletField') }}</span>
-              <select v-model="tabId" class="fbk-select" @change="onTabChange">
+              <select v-model="tabId" class="fbk-select mk-select-chevron" @change="onTabChange">
                 <option value="">{{ $t('feedback.modal.locationNone') }}</option>
                 <option v-for="tb in tabOptions" :key="tb.id" :value="tb.id">
                   {{ $t(tb.labelKey) }}
@@ -116,7 +116,7 @@
 
             <label class="fbk-field">
               <span class="fbk-flabel">{{ $t('feedback.modal.resolution') }}</span>
-              <select v-model="resolutionChoice" class="fbk-select">
+              <select v-model="resolutionChoice" class="fbk-select mk-select-chevron">
                 <option value="">{{ $t('feedback.modal.resolutionNone') }}</option>
                 <option v-for="r in FEEDBACK_RES_PRESETS" :key="r.value" :value="r.value">
                   {{ r.label }}
@@ -209,7 +209,9 @@ import {
   FEEDBACK_RES_CUSTOM,
   FEEDBACK_RES_PRESETS,
 } from '@/constants/feedback'
+import '@/assets/styles/feedback-modal-theme.css'
 import '@/assets/styles/feedback-modal.css'
+import '@/assets/styles/feedback-modal-form.css'
 
 const props = defineProps({
   open: { type: Boolean, default: false },

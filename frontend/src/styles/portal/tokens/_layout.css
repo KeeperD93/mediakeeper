@@ -6,6 +6,7 @@
   /* Radius */
   --portal-radius-xs: 4px; /* tags, micro chips */
   --portal-radius-sm: 6px; /* small pills, meta */
+  --portal-radius-btn: 8px; /* buttons — mirrors admin --radius-btn (default theme) */
   --portal-radius-md: 10px; /* admin rows, posters */
   --portal-radius-lg: 14px; /* cards, chat, modals */
   --portal-radius-xl: 20px; /* trophy modal, avatar pop, panels */
