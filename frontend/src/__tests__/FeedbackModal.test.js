@@ -136,6 +136,13 @@ describe('FeedbackModal — resolution', () => {
 })
 
 describe('FeedbackModal — sending', () => {
+  // A failed send logs its error: keep the expected ones out of the test output.
+  let consoleError
+  beforeEach(() => {
+    consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+  })
+  afterEach(() => consoleError.mockRestore())
+
   it('posts the report with its location, then closes and clears the form', async () => {
     h.apiPost.mockResolvedValueOnce({ ok: true })
     const w = await openModal()
@@ -203,7 +210,8 @@ describe('FeedbackModal — sending', () => {
   it('counts the report against the Discord budget and blocks an oversized one', async () => {
     const w = await openModal()
     const budget = () => w.find('.fbk-budget')
-    // 170 of fixed block + zone, module and tab label of Statistiques > Utilisateurs.
+    // Fixed block (170) + zone and module of Statistiques + the tab label (t() returns
+    // keys in these tests, so "stats.users"); no resolution under jsdom.
     expect(budget().text()).toContain('"used":224')
     await w.findAll('.fbk-chips')[1].find('.fbk-chip').trigger('click')
     expect(budget().text()).toContain('"used":230')
@@ -242,7 +250,6 @@ describe('FeedbackModal — sending', () => {
   })
 
   it('names a failed send that got no answer and logs it', async () => {
-    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
     h.apiPost.mockRejectedValueOnce(new TypeError('Failed to fetch'))
     const w = await openModal()
     await fillRequired(w)
@@ -253,7 +260,6 @@ describe('FeedbackModal — sending', () => {
       TOAST_TYPE.ERR,
     )
     expect(consoleError).toHaveBeenCalledWith('[useFeedbackForm.submit]', expect.any(TypeError))
-    consoleError.mockRestore()
   })
 
   it('cannot be sent without a title and a description', async () => {
