@@ -1,7 +1,7 @@
 """Featured heroes: admin manages, public reads."""
 import logging
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,13 +17,15 @@ logger = logging.getLogger("mediakeeper.portal.featured")
 
 
 class AddFeatured(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     tmdb_id: int
     media_type: str = Field(..., pattern="^(movie|tv)$")
     title: str = Field(..., min_length=1, max_length=500)
     overview: str | None = Field(None, max_length=2000)
     poster_url: str | None = Field(None, max_length=500)
     backdrop: str | None = Field(None, max_length=500)
-    vote: float | None = None
+    vote: float | None = Field(None, ge=0, le=10)  # TMDB score; refuses NaN
     year: str | None = Field(None, max_length=10)
     sort_order: int = 0
 
@@ -36,6 +38,8 @@ class AddFeatured(BaseModel):
 
 
 class UpdateFeatured(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     sort_order: int | None = None
     active: bool | None = None
 

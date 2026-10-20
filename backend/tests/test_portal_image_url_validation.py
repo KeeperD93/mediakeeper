@@ -7,8 +7,9 @@ undone, then only https on the hosts the CSP lets the portal load.
 from urllib.parse import quote
 
 import pytest
+from pydantic import ValidationError
 
-from api.portal.featured import AddFeatured
+from api.portal.featured import AddFeatured, UpdateFeatured
 from api.portal.requests import CreateRequest
 from constants.portal_paths import IMAGE_PROXY_PATH
 from core.security_headers import CSP_DIRECTIVES
@@ -115,3 +116,19 @@ def test_stored_image_hosts_stay_allowed_by_the_csp():
     img_src = next(d for d in CSP_DIRECTIVES.split("; ") if d.startswith("img-src "))
     for host in STORED_IMAGE_HOSTS:
         assert f"https://{host}" in img_src.split()
+
+
+@pytest.mark.parametrize("vote", [float("nan"), float("inf"), -1, 10.5])
+def test_featured_vote_stays_a_tmdb_score(vote):
+    """A NaN vote would be stored, then break the JSON of the featured lists."""
+    with pytest.raises(ValidationError):
+        AddFeatured(tmdb_id=1, media_type="movie", title="X", vote=vote)
+
+
+@pytest.mark.parametrize("schema, payload", [
+    (AddFeatured, {"tmdb_id": 1, "media_type": "movie", "title": "X", "added_by": 7}),
+    (UpdateFeatured, {"active": True, "tmdb_id": 2}),
+])
+def test_featured_schemas_refuse_unknown_fields(schema, payload):
+    with pytest.raises(ValidationError):
+        schema(**payload)
