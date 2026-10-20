@@ -53,12 +53,12 @@ export function useFeedbackForm({ endpoint, showLocation }) {
   let initialized = false
 
   const selectedPage = computed(() => FEEDBACK_PAGES.find(p => p.route === pageRoute.value) || null)
-  const ongletOptions = computed(() => {
+  const tabOptions = computed(() => {
     const tp = selectedPage.value?.tabsPath
     return tp ? SIDEBAR_SUB_TABS[tp] || [] : []
   })
-  const ongletLabel = computed(() => {
-    const tab = ongletOptions.value.find(tb => tb.id === tabId.value)
+  const tabLabel = computed(() => {
+    const tab = tabOptions.value.find(tb => tb.id === tabId.value)
     return tab ? t(tab.labelKey) : ''
   })
   const resolution = computed(() =>
@@ -81,7 +81,7 @@ export function useFeedbackForm({ endpoint, showLocation }) {
       resolution.value.length +
       (selectedPage.value?.zone.length || 0) +
       (selectedPage.value?.module.length || 0) +
-      ongletLabel.value.length +
+      tabLabel.value.length +
       [...selectedTags.value].join(', ').length,
   )
   const canSubmit = computed(
@@ -109,7 +109,7 @@ export function useFeedbackForm({ endpoint, showLocation }) {
     selectedTags.value = new Set()
     anonymous.value = false
     // Pre-fill the location from the page the admin is on + its active tab
-    // (admin surface only — the portal has no page/onglet taxonomy).
+    // (admin surface only — the portal has no page/tab taxonomy).
     pageRoute.value = ''
     tabId.value = ''
     if (showLocation()) {
@@ -125,8 +125,8 @@ export function useFeedbackForm({ endpoint, showLocation }) {
   }
 
   // Draft mode: pre-fill (page location + resolution) only on the FIRST open,
-  // so a half-filled report survives being closed and reopened. Only an
-  // explicit "Réinitialiser" or a successful submit clears the draft.
+  // so a half-filled report survives being closed and reopened. Only the
+  // Reset button or a successful send clears the draft.
   function prefill() {
     if (initialized) return
     reset()
@@ -145,7 +145,7 @@ export function useFeedbackForm({ endpoint, showLocation }) {
         reproduction: reproduction.value.trim(),
         zone: selectedPage.value?.zone || '',
         module: selectedPage.value?.module || '',
-        tab: ongletLabel.value,
+        tab: tabLabel.value,
         platform: platform.value,
         resolution: resolution.value,
         tags: [...selectedTags.value],
@@ -174,7 +174,7 @@ export function useFeedbackForm({ endpoint, showLocation }) {
     selectedTags,
     anonymous,
     busy,
-    ongletOptions,
+    tabOptions,
     used,
     canSubmit,
     toggleTag,

@@ -67,11 +67,11 @@
               </select>
             </label>
 
-            <label v-if="showLocation && ongletOptions.length" class="fbk-field">
+            <label v-if="showLocation && tabOptions.length" class="fbk-field">
               <span class="fbk-flabel">{{ $t('feedback.modal.ongletField') }}</span>
               <select v-model="tabId" class="fbk-select">
                 <option value="">{{ $t('feedback.modal.locationNone') }}</option>
-                <option v-for="tb in ongletOptions" :key="tb.id" :value="tb.id">
+                <option v-for="tb in tabOptions" :key="tb.id" :value="tb.id">
                   {{ $t(tb.labelKey) }}
                 </option>
               </select>
@@ -216,7 +216,7 @@ const {
   selectedTags,
   anonymous,
   busy,
-  ongletOptions,
+  tabOptions,
   used,
   canSubmit,
   toggleTag,

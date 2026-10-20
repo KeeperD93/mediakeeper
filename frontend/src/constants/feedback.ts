@@ -47,7 +47,7 @@ export const FEEDBACK_RES_CUSTOM = '__custom__'
 
 // Admin backoffice pages → tracker location. `zone`/`module` are the canonical
 // taxonomy values sent in the report; `titleKey` localizes the dropdown;
-// `tabsPath` links to SIDEBAR_SUB_TABS for the onglet options. Keyed by route
+// `tabsPath` links to SIDEBAR_SUB_TABS for the tab options. Keyed by route
 // name so the modal can pre-fill from the page the admin is on.
 const ZONE_ADMIN = 'Tableau de bord (admin général)'
 const ZONE_PORTAL_ADMIN = 'Admin du Portail'

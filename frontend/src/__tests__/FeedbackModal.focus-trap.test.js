@@ -3,7 +3,7 @@
  * button, Escape routed through the close handler, and no Escape close while
  * a report is being sent.
  */
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 
 const h = vi.hoisted(() => ({ apiPost: vi.fn() }))
@@ -21,12 +21,17 @@ vi.mock('@/composables/useApi', () => ({
 
 import FeedbackModal from '@/components/feedback/FeedbackModal.vue'
 
+let wrapper
+
 async function buildModal() {
-  const w = mount(FeedbackModal, { props: { open: false }, attachTo: document.body })
-  await w.setProps({ open: true })
+  wrapper = mount(FeedbackModal, { props: { open: false }, attachTo: document.body })
+  await wrapper.setProps({ open: true })
   await flushPromises()
-  return w
+  return wrapper
 }
+
+// The trap listens on document while open: unmount even when an assertion fails.
+afterEach(() => wrapper?.unmount())
 
 const pressEscape = () =>
   document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
@@ -35,7 +40,6 @@ describe('FeedbackModal — focus trap integration', () => {
   it('moves initial focus onto the close button when the dialog opens', async () => {
     const w = await buildModal()
     expect(document.activeElement).toBe(w.get('.fbk-close').element)
-    w.unmount()
   })
 
   it('routes Escape to the close handler and emits close exactly once', async () => {
@@ -43,7 +47,6 @@ describe('FeedbackModal — focus trap integration', () => {
     pressEscape()
     await flushPromises()
     expect(w.emitted('close')).toHaveLength(1)
-    w.unmount()
   })
 
   it('ignores Escape while a report is being sent', async () => {
@@ -61,6 +64,5 @@ describe('FeedbackModal — focus trap integration', () => {
     finishSend({ ok: true })
     await flushPromises()
     expect(w.emitted('close')).toHaveLength(1) // closed by the send, not by Escape
-    w.unmount()
   })
 })

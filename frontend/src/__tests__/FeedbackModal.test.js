@@ -5,6 +5,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { ref } from 'vue'
+import { FEEDBACK_MAX } from '@/constants/feedback'
 import { TOAST_TYPE } from '@/constants/toast'
 
 const h = vi.hoisted(() => ({ apiPost: vi.fn(), showToast: vi.fn(), push: vi.fn() }))
@@ -52,7 +53,7 @@ function navigate(name, tab) {
 }
 
 const selects = w => w.findAll('select')
-const location = w => {
+const formLocation = w => {
   const [page, tab] = selects(w)
   return { page: page.element.value, tab: tab?.element.value }
 }
@@ -80,7 +81,7 @@ afterEach(() => {
 
 describe('FeedbackModal — location', () => {
   it('fills the page and the tab the admin is on', async () => {
-    expect(location(await openModal())).toEqual({ page: 'stats', tab: 'users' })
+    expect(formLocation(await openModal())).toEqual({ page: 'stats', tab: 'users' })
   })
 
   it('leaves the location empty on a page outside the list', async () => {
@@ -95,7 +96,14 @@ describe('FeedbackModal — location', () => {
     await reopen(w)
 
     expect(titleInput(w).element.value).toBe('Sample title')
-    expect(location(w)).toEqual({ page: 'stats', tab: 'users' })
+    expect(formLocation(w)).toEqual({ page: 'stats', tab: 'users' })
+  })
+
+  it('clears the tab when another page is picked', async () => {
+    navigate('logs', 'config')
+    const w = await openModal()
+    await selects(w)[0].setValue('settings') // Settings also has a "config" tab
+    expect(formLocation(w)).toEqual({ page: 'settings', tab: '' })
   })
 
   it('shows no location fields on the portal', async () => {
@@ -167,6 +175,46 @@ describe('FeedbackModal — sending', () => {
     expect(atClose).toEqual({ title: 'Sample title', sending: true })
   })
 
+  it('sends the chosen type, platform, tags and anonymity', async () => {
+    h.apiPost.mockResolvedValueOnce({ ok: true })
+    const w = await openModal()
+    await w.findAll('.fbk-seg-btn')[1].trigger('click') // suggestion
+    const [platformChips, tagChips] = w.findAll('.fbk-chips')
+    await platformChips.findAll('.fbk-chip')[0].trigger('click') // desktop
+    const tags = tagChips.findAll('.fbk-chip')
+    await tags[0].trigger('click')
+    await tags[1].trigger('click')
+    await tags[1].trigger('click') // second tag off again
+    await w.find('input[type="checkbox"]').setValue(true)
+    await fillRequired(w)
+    await send(w)
+
+    expect(h.apiPost).toHaveBeenCalledWith(
+      '/api/feedback',
+      expect.objectContaining({
+        type: 'suggestion',
+        platform: 'desktop',
+        tags: ['urgent'],
+        anonymous: true,
+      }),
+    )
+  })
+
+  it('counts the report against the Discord budget and blocks an oversized one', async () => {
+    const w = await openModal()
+    const budget = () => w.find('.fbk-budget')
+    // 170 of fixed block + zone, module and tab label of Statistiques > Utilisateurs.
+    expect(budget().text()).toContain('"used":224')
+    await w.findAll('.fbk-chips')[1].find('.fbk-chip').trigger('click')
+    expect(budget().text()).toContain('"used":230')
+
+    await titleInput(w).setValue('Sample title')
+    await w.findAll('textarea')[0].setValue('x'.repeat(FEEDBACK_MAX.description))
+    await w.findAll('textarea')[1].setValue('x'.repeat(FEEDBACK_MAX.reproduction))
+    expect(budget().classes()).toContain('over')
+    expect(w.find('button[type="submit"]').attributes('disabled')).toBeDefined()
+  })
+
   it('sends portal reports to the portal endpoint without a location', async () => {
     h.apiPost.mockResolvedValueOnce({ ok: true })
     const w = await openModal({ showLocation: false, endpoint: '/api/portal/feedback' })
@@ -224,6 +272,6 @@ describe('FeedbackModal — reset', () => {
     await w.find('.fbk-btn--reset').trigger('click')
 
     expect(titleInput(w).element.value).toBe('')
-    expect(location(w)).toEqual({ page: 'logs', tab: 'config' })
+    expect(formLocation(w)).toEqual({ page: 'logs', tab: 'config' })
   })
 })
