@@ -26,7 +26,7 @@ vi.mock('vue-router', () => ({
 vi.mock('@/composables/useToast', () => ({ useToast: () => ({ showToast: h.showToast }) }))
 vi.mock('@/composables/useApi', () => ({
   useApi: () => ({ apiPost: h.apiPost }),
-  resolveApiError: code => `error:${code}`,
+  resolveApiError: (code, fallbackKey) => `error:${code}|${fallbackKey}`,
 }))
 
 import FeedbackModal from '@/components/feedback/FeedbackModal.vue'
@@ -185,9 +185,27 @@ describe('FeedbackModal — sending', () => {
     await fillRequired(w)
     await send(w)
 
-    expect(h.showToast).toHaveBeenCalledWith('error:send_failed', TOAST_TYPE.ERR)
+    expect(h.showToast).toHaveBeenCalledWith(
+      'error:send_failed|common.apiError.submitFailed',
+      TOAST_TYPE.ERR,
+    )
     expect(w.emitted('close')).toBeUndefined()
     expect(titleInput(w).element.value).toBe('Sample title')
+  })
+
+  it('names a failed send that got no answer and logs it', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    h.apiPost.mockRejectedValueOnce(new TypeError('Failed to fetch'))
+    const w = await openModal()
+    await fillRequired(w)
+    await send(w)
+
+    expect(h.showToast).toHaveBeenCalledWith(
+      'error:Failed to fetch|common.apiError.submitFailed',
+      TOAST_TYPE.ERR,
+    )
+    expect(consoleError).toHaveBeenCalledWith('[useFeedbackForm.submit]', expect.any(TypeError))
+    consoleError.mockRestore()
   })
 
   it('cannot be sent without a title and a description', async () => {

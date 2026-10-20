@@ -154,7 +154,8 @@ export function useFeedbackForm({ endpoint, showLocation }) {
       showToast(t('feedback.modal.sent'), TOAST_TYPE.OK)
       onSent()
     } catch (e) {
-      showToast(resolveApiError(e.message), TOAST_TYPE.ERR)
+      console.error('[useFeedbackForm.submit]', e)
+      showToast(resolveApiError(e.message, 'common.apiError.submitFailed'), TOAST_TYPE.ERR)
     } finally {
       busy.value = false
     }
