@@ -57,10 +57,18 @@ function onKey(e) {
   if (e.key === 'Escape') {
     e.preventDefault()
     cancel()
-  } else if (e.key === 'Enter') {
-    e.preventDefault()
-    accept()
+    return
   }
+  if (e.key !== 'Enter') return
+  // A held key repeats: it never answers a prompt (a queued one included).
+  if (e.repeat) {
+    e.preventDefault()
+    return
+  }
+  // A focused dialog button answers for itself: Enter on Cancel cancels.
+  if (e.target instanceof HTMLButtonElement && e.target.closest('.mk-confirm-panel')) return
+  e.preventDefault()
+  accept()
 }
 
 watch(
