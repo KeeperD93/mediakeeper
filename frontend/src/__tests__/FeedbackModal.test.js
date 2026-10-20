@@ -1,6 +1,7 @@
 /**
- * Report form (FeedbackModal): location pre-filled from the admin page, the
- * resolution pre-fill, the payload it sends, a failed send, and the reset button.
+ * Report form (FeedbackModal): resolution pre-fill, the payload it
+ * sends, a failed send, and the reset button. The affected page and its
+ * shortcut are in FeedbackModal.location.test.js.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
@@ -42,11 +43,6 @@ async function openModal(props = {}) {
   return wrapper
 }
 
-async function reopen(w) {
-  await w.setProps({ open: false })
-  await w.setProps({ open: true })
-}
-
 function navigate(name, tab) {
   routeName.value = name
   routeTab.value = tab
@@ -77,39 +73,6 @@ beforeEach(() => {
 afterEach(() => {
   wrapper?.unmount()
   vi.unstubAllGlobals()
-})
-
-describe('FeedbackModal — location', () => {
-  it('fills the page and the tab the admin is on', async () => {
-    expect(formLocation(await openModal())).toEqual({ page: 'stats', tab: 'users' })
-  })
-
-  it('leaves the location empty on a page outside the list', async () => {
-    navigate('portal-home', undefined)
-    expect(selects(await openModal())[0].element.value).toBe('')
-  })
-
-  it('keeps a started report, location included, when closed and reopened', async () => {
-    const w = await openModal()
-    await fillRequired(w)
-    navigate('logs', 'config')
-    await reopen(w)
-
-    expect(titleInput(w).element.value).toBe('Sample title')
-    expect(formLocation(w)).toEqual({ page: 'stats', tab: 'users' })
-  })
-
-  it('clears the tab when another page is picked', async () => {
-    navigate('logs', 'config')
-    const w = await openModal()
-    await selects(w)[0].setValue('settings') // Settings also has a "config" tab
-    expect(formLocation(w)).toEqual({ page: 'settings', tab: '' })
-  })
-
-  it('shows no location fields on the portal', async () => {
-    const w = await openModal({ showLocation: false, endpoint: '/api/portal/feedback' })
-    expect(selects(w)).toHaveLength(1) // resolution only
-  })
 })
 
 describe('FeedbackModal — resolution', () => {

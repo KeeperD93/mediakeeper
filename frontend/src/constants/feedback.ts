@@ -139,11 +139,20 @@ export const FEEDBACK_PAGES: readonly FeedbackPage[] = Object.freeze([
     titleKey: 'attribution.about.title',
     tabsPath: null,
   },
+  // "Traceur" (Emby-connection monitoring) is hidden until it is built out —
+  // restore this report location alongside the sidebar module.
+  // {
+  //   route: 'tracker',
+  //   zone: ZONE_ADMIN,
+  //   module: 'Tracker',
+  //   titleKey: 'sidebar.tracker',
+  //   tabsPath: null,
+  // },
   {
-    route: 'tracker',
+    route: 'feedback',
     zone: ZONE_ADMIN,
-    module: 'Tracker',
-    titleKey: 'sidebar.tracker',
+    module: 'Modération des remontées',
+    titleKey: 'feedback.moderation.title',
     tabsPath: null,
   },
   {

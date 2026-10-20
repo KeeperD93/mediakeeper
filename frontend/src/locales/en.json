@@ -366,6 +366,8 @@
       "pageField": "Affected page",
       "ongletField": "Tab",
       "locationNone": "— Not specified —",
+      "useCurrentPage": "Current page",
+      "useCurrentPageLabel": "Use the current page",
       "platform": "Platform",
       "platform_desktop": "Desktop",
       "platform_mobile": "Mobile",

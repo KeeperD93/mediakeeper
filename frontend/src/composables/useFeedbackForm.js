@@ -11,6 +11,7 @@ import {
   FEEDBACK_RES_CUSTOM,
   FEEDBACK_RES_PRESETS,
 } from '@/constants/feedback'
+import { locationFromRoute } from '@/utils/feedbackLocation'
 
 // Roughly the fixed block overhead (delimiters + labels + meta line) so the
 // counter stays conservative vs the backend's 2000-char truncation.
@@ -51,6 +52,7 @@ export function useFeedbackForm({ endpoint, showLocation }) {
   const anonymous = ref(false)
   const busy = ref(false)
   let initialized = false
+  let locationPicked = false // page or tab chosen by hand
 
   const selectedPage = computed(() => FEEDBACK_PAGES.find(p => p.route === pageRoute.value) || null)
   const tabOptions = computed(() => {
@@ -87,6 +89,19 @@ export function useFeedbackForm({ endpoint, showLocation }) {
   const canSubmit = computed(
     () => !!title.value.trim() && !!description.value.trim() && used.value <= FEEDBACK_MAX_CHARS,
   )
+  // Where the admin is now; the portal form has no location.
+  const currentLocation = computed(() =>
+    showLocation() ? locationFromRoute(route.name, route.query.tab) : null,
+  )
+  // Offered when the form points away from a page the list knows.
+  const canUseCurrentPage = computed(() => {
+    const here = currentLocation.value
+    return !!here?.pageRoute && (here.pageRoute !== pageRoute.value || here.tabId !== tabId.value)
+  })
+
+  // A report in progress keeps its location: typed text or a hand-picked page.
+  const hasDraft = () =>
+    locationPicked || [title, description, reproduction].some(field => field.value.trim())
 
   function toggleTag(tag) {
     const next = new Set(selectedTags.value)
@@ -97,6 +112,18 @@ export function useFeedbackForm({ endpoint, showLocation }) {
 
   function onPageChange() {
     tabId.value = '' // the previous page's active tab no longer applies
+    locationPicked = true
+  }
+
+  function onTabChange() {
+    locationPicked = true
+  }
+
+  function refreshLocation() {
+    const here = currentLocation.value
+    pageRoute.value = here?.pageRoute ?? ''
+    tabId.value = here?.tabId ?? ''
+    locationPicked = false
   }
 
   function reset() {
@@ -108,29 +135,21 @@ export function useFeedbackForm({ endpoint, showLocation }) {
     platforms.mobile = false
     selectedTags.value = new Set()
     anonymous.value = false
-    // Pre-fill the location from the page the admin is on + its active tab
-    // (admin surface only — the portal has no page/tab taxonomy).
-    pageRoute.value = ''
-    tabId.value = ''
-    if (showLocation()) {
-      const match = FEEDBACK_PAGES.find(p => p.route === route.name)
-      pageRoute.value = match ? match.route : ''
-      const tabs = match?.tabsPath ? SIDEBAR_SUB_TABS[match.tabsPath] || [] : []
-      tabId.value = tabs.some(tb => tb.id === route.query.tab) ? String(route.query.tab) : ''
-    }
-    // Pre-fill the screen resolution.
+    refreshLocation()
     const r = detectResolution()
     resolutionChoice.value = r.choice
     resolutionCustom.value = r.custom
   }
 
-  // Draft mode: pre-fill (page location + resolution) only on the FIRST open,
-  // so a half-filled report survives being closed and reopened. Only the
-  // Reset button or a successful send clears the draft.
-  function prefill() {
-    if (initialized) return
-    reset()
-    initialized = true
+  // The first open fills everything in; later ones move the location to the
+  // current page unless a report is in progress (the rest of the form stays).
+  function onOpen() {
+    if (!initialized) {
+      reset()
+      initialized = true
+    } else if (!hasDraft()) {
+      refreshLocation()
+    }
   }
 
   // `onSent` runs while still busy, so the window can close looking as it was sent.
@@ -177,10 +196,13 @@ export function useFeedbackForm({ endpoint, showLocation }) {
     tabOptions,
     used,
     canSubmit,
+    canUseCurrentPage,
     toggleTag,
     onPageChange,
+    onTabChange,
+    refreshLocation,
     reset,
-    prefill,
+    onOpen,
     submit,
   }
 }

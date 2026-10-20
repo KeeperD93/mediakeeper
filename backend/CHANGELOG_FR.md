@@ -52,6 +52,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Erreurs — messages lisibles et traduits (saisie refusée, démarrage, erreur serveur, limite de requêtes).
 - Confirmations — en file d'attente, sans validation involontaire (double clic, touche Entrée).
 - Remontées — envoi en échec : message clair au lieu du texte du navigateur.
+- Remontées — la page concernée suit la page en cours (bouton « Page actuelle », liste revue).
 
 ## [1.0.0-rc.8] - 2026-10-11
 

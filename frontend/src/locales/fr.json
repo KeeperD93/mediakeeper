@@ -366,6 +366,8 @@
       "pageField": "Page concernée",
       "ongletField": "Onglet",
       "locationNone": "— Non précisé —",
+      "useCurrentPage": "Page actuelle",
+      "useCurrentPageLabel": "Utiliser la page actuelle",
       "platform": "Plateforme",
       "platform_desktop": "Ordinateur",
       "platform_mobile": "Mobile",

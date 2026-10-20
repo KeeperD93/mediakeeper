@@ -57,19 +57,39 @@
               <textarea v-model="reproduction" rows="2" :maxlength="FEEDBACK_MAX.reproduction" />
             </label>
 
-            <label v-if="showLocation" class="fbk-field">
-              <span class="fbk-flabel">{{ $t('feedback.modal.pageField') }}</span>
-              <select v-model="pageRoute" class="fbk-select" @change="onPageChange">
+            <div v-if="showLocation" class="fbk-field">
+              <div class="fbk-label-row">
+                <label :for="pageSelectId" class="fbk-flabel">
+                  {{ $t('feedback.modal.pageField') }}
+                </label>
+                <button
+                  v-if="canUseCurrentPage"
+                  type="button"
+                  class="fbk-here"
+                  :aria-label="$t('feedback.modal.useCurrentPageLabel')"
+                  @click="applyCurrentPage"
+                >
+                  <RefreshCw :size="14" />
+                  {{ $t('feedback.modal.useCurrentPage') }}
+                </button>
+              </div>
+              <select
+                :id="pageSelectId"
+                ref="pageSelectRef"
+                v-model="pageRoute"
+                class="fbk-select"
+                @change="onPageChange"
+              >
                 <option value="">{{ $t('feedback.modal.locationNone') }}</option>
                 <option v-for="p in FEEDBACK_PAGES" :key="p.route" :value="p.route">
                   {{ $t(p.titleKey) }}
                 </option>
               </select>
-            </label>
+            </div>
 
             <label v-if="showLocation && tabOptions.length" class="fbk-field">
               <span class="fbk-flabel">{{ $t('feedback.modal.ongletField') }}</span>
-              <select v-model="tabId" class="fbk-select">
+              <select v-model="tabId" class="fbk-select" @change="onTabChange">
                 <option value="">{{ $t('feedback.modal.locationNone') }}</option>
                 <option v-for="tb in tabOptions" :key="tb.id" :value="tb.id">
                   {{ $t(tb.labelKey) }}
@@ -176,7 +196,7 @@
 <script setup>
 import { ref, toRef, watch, useId } from 'vue'
 import { useRouter } from 'vue-router'
-import { X, Inbox } from 'lucide-vue-next'
+import { Inbox, RefreshCw, X } from 'lucide-vue-next'
 import { useFocusTrap } from '@/composables/useFocusTrap'
 import { useFeedbackForm } from '@/composables/useFeedbackForm'
 import {
@@ -219,24 +239,38 @@ const {
   tabOptions,
   used,
   canSubmit,
+  canUseCurrentPage,
   toggleTag,
   onPageChange,
+  onTabChange,
+  refreshLocation,
   reset,
-  prefill,
+  onOpen,
   submit,
 } = useFeedbackForm({
   endpoint: () => props.endpoint,
   showLocation: () => props.showLocation,
 })
+const pageSelectId = useId()
 const panelRef = ref(null)
 const closeBtnRef = ref(null)
+const pageSelectRef = ref(null)
 
 watch(
   () => props.open,
   v => {
-    if (v) prefill()
+    if (v) onOpen()
   },
 )
+
+// The button disappears once used: keep keyboard focus on the field it filled.
+// Only when it held focus: a tap leaves it unfocused, and focusing the menu
+// from a tap opens its picker on iOS.
+function applyCurrentPage(event) {
+  const hadFocus = document.activeElement === event.currentTarget
+  refreshLocation()
+  if (hadFocus) pageSelectRef.value?.focus()
+}
 
 // Close and clear while still sending: the window fades out exactly as it was sent.
 function send() {

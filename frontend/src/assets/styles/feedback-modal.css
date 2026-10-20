@@ -65,6 +65,38 @@
   font-weight: var(--font-bold);
   color: var(--text-secondary);
 }
+/* The row keeps the "current page" chip's height, so nothing moves when it
+   shows; an invisible band gives the chip a 44px touch target. */
+.fbk-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 24px;
+}
+.fbk-here {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: var(--radius-pill);
+  border: 0.5px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  font-family: inherit;
+  cursor: pointer;
+}
+.fbk-here::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: var(--touch-target);
+  transform: translateY(-50%);
+}
 .fbk-body input[type='text'],
 .fbk-body textarea,
 .fbk-select {
@@ -81,6 +113,10 @@
 .fbk-body textarea {
   resize: vertical;
   min-height: 64px;
+}
+/* Stacks above the "current page" chip's touch band where the two meet. */
+.fbk-select {
+  position: relative;
 }
 .fbk-body input:focus,
 .fbk-body textarea:focus,
@@ -229,11 +265,13 @@
 }
 
 @media (hover: hover) {
-  .fbk-close:hover {
+  .fbk-close:hover,
+  .fbk-here:hover {
     color: var(--text-primary);
   }
   .fbk-seg-btn:hover,
-  .fbk-chip:hover {
+  .fbk-chip:hover,
+  .fbk-here:hover {
     border-color: var(--border-hover);
   }
   .fbk-btn--primary:hover:not(:disabled) {
