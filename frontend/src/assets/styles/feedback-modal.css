@@ -24,6 +24,7 @@
   background: var(--fbk-bg);
   border: 0.5px solid var(--fbk-line);
   border-radius: var(--fbk-radius) var(--fbk-radius) 0 0;
+  padding-bottom: env(safe-area-inset-bottom, 0);
 }
 .fbk-header {
   display: flex;
@@ -108,6 +109,12 @@
 .fbk-fade-leave-to {
   opacity: 0;
 }
+@media (prefers-reduced-motion: reduce) {
+  .fbk-fade-enter-active,
+  .fbk-fade-leave-active {
+    transition: none;
+  }
+}
 
 @media (min-width: 768px) {
   .fbk-overlay {
@@ -118,6 +125,7 @@
     max-width: 520px;
     max-height: 90vh;
     border-radius: var(--fbk-radius);
+    padding-bottom: 0;
   }
   .fbk-btn {
     min-height: 0;

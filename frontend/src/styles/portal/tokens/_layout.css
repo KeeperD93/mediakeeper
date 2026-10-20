@@ -1,6 +1,6 @@
 /* PORTAL DESIGN TOKENS — LAYOUT
    Radius, blurs, shadows, gradients, overlays, z-index, section rhythm,
-   touch target and disabled opacity. Namespace: --portal-* */
+   touch target, focus ring and disabled opacity. Namespace: --portal-* */
 
 :root {
   /* Radius */
@@ -100,6 +100,8 @@
 
   /* Accessibility — minimum tap target (WCAG 2.5.5), mirrors the admin one. */
   --portal-touch-target: 44px;
+  /* Keyboard focus ring — mirrors admin --focus-ring, in the portal accent. */
+  --portal-focus-ring: 2px solid var(--portal-accent-500);
 
   /* A control that cannot be used right now (busy, out of range). */
   --portal-opacity-disabled: 0.4;

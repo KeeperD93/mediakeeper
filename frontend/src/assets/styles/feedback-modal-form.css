@@ -83,8 +83,14 @@
 .fbk-body input[type='text']:focus,
 .fbk-body textarea:focus,
 .fbk-select:focus {
-  outline: none;
   border-color: var(--fbk-accent);
+}
+/* The thin accent border alone barely showed the field in use. */
+.fbk-body input:focus-visible,
+.fbk-body textarea:focus-visible,
+.fbk-select:focus-visible {
+  outline: var(--fbk-focus);
+  outline-offset: 1px;
 }
 .fbk-seg {
   display: flex;

@@ -22,6 +22,7 @@
   --fbk-accent: var(--accent-500);
   --fbk-accent-rgb: var(--accent-rgb);
   --fbk-on-accent: var(--color-on-accent);
+  --fbk-focus: var(--focus-ring);
   --fbk-select-bg: var(--bg-tertiary);
   --fbk-select-text: var(--text-primary);
   --fbk-fs-2xs: var(--text-2xs);
@@ -54,6 +55,7 @@ html:not(.mk-admin-section) .fbk-overlay {
   --fbk-accent: var(--portal-accent-500);
   --fbk-accent-rgb: var(--portal-accent-500-rgb);
   --fbk-on-accent: var(--portal-text-primary-solid);
+  --fbk-focus: var(--portal-focus-ring);
   --fbk-select-bg: var(--portal-surface-3);
   --fbk-select-text: var(--portal-text-primary);
   --fbk-fs-2xs: var(--portal-text-2xs);
