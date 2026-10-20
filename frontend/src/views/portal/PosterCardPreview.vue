@@ -19,6 +19,7 @@
 
 <script setup>
 import PosterCard from '@/components/portal/PosterCard.vue'
+import { AVAILABILITY, POSTER_STATUS } from '@/constants/portal'
 
 // Synthetic titles, of the lengths real ones come in.
 const SAMPLE_TITLE_A = 'The Sample Movie of the Year'
@@ -40,24 +41,33 @@ const groups = [
   {
     title: 'Availability',
     items: [
-      { caption: 'Available', props: poster({ availability: 'full' }) },
-      { caption: 'Available + New', props: poster({ availability: 'full', isNew: true }) },
+      { caption: 'Available', props: poster({ availability: AVAILABILITY.FULL }) },
+      {
+        caption: 'Available + New',
+        props: poster({ availability: AVAILABILITY.FULL, isNew: true }),
+      },
       {
         caption: 'Partial',
-        props: poster({ title: SAMPLE_TITLE_B, year: 2024, availability: 'partial' }),
+        props: poster({ title: SAMPLE_TITLE_B, year: 2024, availability: AVAILABILITY.PARTIAL }),
       },
     ],
   },
   {
     title: 'Request lifecycle',
     items: [
-      { caption: 'Pending', props: poster({ title: SAMPLE_TITLE_C, status: 'pending' }) },
-      { caption: 'Approved', props: poster({ title: SAMPLE_TITLE_C, status: 'approved' }) },
+      {
+        caption: 'Pending',
+        props: poster({ title: SAMPLE_TITLE_C, status: POSTER_STATUS.PENDING }),
+      },
+      {
+        caption: 'Approved',
+        props: poster({ title: SAMPLE_TITLE_C, status: POSTER_STATUS.APPROVED }),
+      },
       {
         caption: 'Rejected ×3',
-        props: poster({ title: SAMPLE_TITLE_D, status: 'rejected', count: 3 }),
+        props: poster({ title: SAMPLE_TITLE_D, status: POSTER_STATUS.REJECTED, count: 3 }),
       },
-      { caption: 'Blacklisted', props: poster({ status: 'blacklisted' }) },
+      { caption: 'Blacklisted', props: poster({ status: POSTER_STATUS.BLACKLISTED }) },
     ],
   },
   {
@@ -65,9 +75,12 @@ const groups = [
     items: [
       {
         caption: 'In progress',
-        props: poster({ title: SAMPLE_TITLE_C, status: 'in_progress' }),
+        props: poster({ title: SAMPLE_TITLE_C, status: POSTER_STATUS.IN_PROGRESS }),
       },
-      { caption: 'Watched', props: poster({ title: SAMPLE_TITLE_D, status: 'watched' }) },
+      {
+        caption: 'Watched',
+        props: poster({ title: SAMPLE_TITLE_D, status: POSTER_STATUS.WATCHED }),
+      },
     ],
   },
   {
@@ -78,18 +91,18 @@ const groups = [
         caption: 'Available + Bookmarked + Watched',
         props: poster({
           title: SAMPLE_TITLE_B,
-          availability: 'full',
+          availability: AVAILABILITY.FULL,
           bookmarked: true,
-          status: 'watched',
+          status: POSTER_STATUS.WATCHED,
         }),
       },
       {
         caption: 'Partial + In progress + Bookmarked',
         props: poster({
           title: SAMPLE_TITLE_C,
-          availability: 'partial',
+          availability: AVAILABILITY.PARTIAL,
           bookmarked: true,
-          status: 'in_progress',
+          status: POSTER_STATUS.IN_PROGRESS,
         }),
       },
       {
@@ -97,7 +110,7 @@ const groups = [
         props: poster({
           title: 'A movie with a very long title that should clamp at two lines',
           image: null,
-          availability: 'full',
+          availability: AVAILABILITY.FULL,
         }),
       },
     ],

@@ -34,6 +34,7 @@ import PosterCard from '@/components/portal/PosterCard.vue'
 import AddToListOverlay from '@/components/portal/lists/AddToListOverlay.vue'
 import { useMediaCardState } from '@/composables/portal/useMediaCardState'
 import { usePortalAuth } from '@/composables/portal/usePortalAuth'
+import { POSTER_STATUS, WATCH_STATUS } from '@/constants/portal'
 import { REQUEST_STATUS } from '@/constants/requests'
 import { USER_ROLE } from '@/constants/auth'
 import { formatRuntime } from '@/utils/format'
@@ -96,7 +97,7 @@ const duration = computed(() => formatRuntime(props.item?.runtime || props.item?
 // as ``vote``. PosterCard renders it as a star + percentage on hover.
 const rating = computed(() => props.item?.vote || 0)
 
-const isBlacklisted = computed(() => displayedReqStatus.value === 'blacklisted')
+const isBlacklisted = computed(() => displayedReqStatus.value === POSTER_STATUS.BLACKLISTED)
 
 const availability = computed(() => availData.value?.availability || null)
 
@@ -107,18 +108,18 @@ const availability = computed(() => availData.value?.availability || null)
 // Anything else yields null and PosterCard shows no ribbon.
 const status = computed(() => {
   const it = props.item
-  if (it?.watch_status === 'in_progress') return 'in_progress'
-  if (it?.watched_at && it?.watch_status !== 'in_progress') return 'watched'
+  if (it?.watch_status === WATCH_STATUS.IN_PROGRESS) return POSTER_STATUS.IN_PROGRESS
+  if (it?.watched_at) return POSTER_STATUS.WATCHED
   const rs = reqStatus.value?.status
-  if (rs === REQUEST_STATUS.REJECTED) return 'rejected'
-  if (rs === REQUEST_STATUS.PENDING) return 'pending'
-  if (rs === REQUEST_STATUS.APPROVED) return 'approved'
-  if (isBlacklisted.value) return 'blacklisted'
+  if (rs === REQUEST_STATUS.REJECTED) return POSTER_STATUS.REJECTED
+  if (rs === REQUEST_STATUS.PENDING) return POSTER_STATUS.PENDING
+  if (rs === REQUEST_STATUS.APPROVED) return POSTER_STATUS.APPROVED
+  if (isBlacklisted.value) return POSTER_STATUS.BLACKLISTED
   return null
 })
 
 const count = computed(() => {
-  if (status.value === 'rejected' || status.value === 'pending') {
+  if (status.value === POSTER_STATUS.REJECTED || status.value === POSTER_STATUS.PENDING) {
     return (retryCount.value || 0) + 1
   }
   return 1
@@ -132,9 +133,14 @@ const count = computed(() => {
 const tooltip = computed(() => {
   if (isNewOnEmby.value) return newRibbonTooltip.value
   const s = status.value
-  if (s === 'watched' || s === 'in_progress') return watchedTooltip.value
-  if (s === 'pending') return postitTooltip.value
-  if (s === 'approved' || s === 'rejected' || s === 'blacklisted') return reqStatusTooltip.value
+  if (s === POSTER_STATUS.WATCHED || s === POSTER_STATUS.IN_PROGRESS) return watchedTooltip.value
+  if (s === POSTER_STATUS.PENDING) return postitTooltip.value
+  if (
+    s === POSTER_STATUS.APPROVED ||
+    s === POSTER_STATUS.REJECTED ||
+    s === POSTER_STATUS.BLACKLISTED
+  )
+    return reqStatusTooltip.value
   return ''
 })
 

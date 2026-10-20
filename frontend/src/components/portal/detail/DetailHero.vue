@@ -125,7 +125,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { AVAILABILITY } from '@/constants/portal'
+import { AVAILABILITY, POSTER_STATUS_RIBBON } from '@/constants/portal'
 import { REQUEST_STATUS } from '@/constants/requests'
 import { Bookmark, Plus, RotateCcw, Video } from 'lucide-vue-next'
 import PremiumRibbon from '@/components/portal/PremiumRibbon.vue'
@@ -184,49 +184,16 @@ const requestBtnClass = computed(() =>
   props.availInfo?.emby_url ? 'vmd2-btn--ghost' : 'vmd2-btn--secondary',
 )
 
-// Single status descriptor that drives the PremiumRibbon on the hero
-// poster. Reuses the same colour tokens and i18n keys as PosterCard so
-// the detail page and the grid speak the same visual language.
-const STATUS_COLOR = {
-  pending: 'var(--portal-color-warning)',
-  approved: 'var(--portal-color-success)',
-  rejected: 'var(--portal-color-error)',
-  blacklisted: 'var(--portal-color-neutral-dark)',
-}
-const STATUS_LABEL_KEY = {
-  pending: 'portal.posterCard.statusPending',
-  approved: 'portal.posterCard.statusApproved',
-  rejected: 'portal.posterCard.statusRejected',
-  blacklisted: 'portal.posterCard.statusBlacklisted',
-}
+// The ribbon on the hero poster, with the poster cards' colours and labels:
+// a request status or the blacklist marker ("available" shows none).
 const statusRibbon = computed(() => {
-  const s = props.reqStatus
-  if (!s) return null
-  if (s === REQUEST_STATUS.PENDING)
-    return {
-      label: t(STATUS_LABEL_KEY.pending).toUpperCase(),
-      color: STATUS_COLOR.pending,
-      tooltip: props.reqStatusTooltip,
-    }
-  if (s === REQUEST_STATUS.APPROVED)
-    return {
-      label: t(STATUS_LABEL_KEY.approved).toUpperCase(),
-      color: STATUS_COLOR.approved,
-      tooltip: props.reqStatusTooltip,
-    }
-  if (s === REQUEST_STATUS.REJECTED)
-    return {
-      label: t(STATUS_LABEL_KEY.rejected).toUpperCase(),
-      color: STATUS_COLOR.rejected,
-      tooltip: props.reqStatusTooltip,
-    }
-  if (s === 'blacklisted')
-    return {
-      label: t(STATUS_LABEL_KEY.blacklisted).toUpperCase(),
-      color: STATUS_COLOR.blacklisted,
-      tooltip: props.reqStatusTooltip,
-    }
-  return null
+  const look = props.reqStatus ? POSTER_STATUS_RIBBON[props.reqStatus] : null
+  if (!look) return null
+  return {
+    label: t(look.labelKey).toUpperCase(),
+    color: look.color,
+    tooltip: props.reqStatusTooltip,
+  }
 })
 
 // Availability chip for the hero poster — reuses the same markup +

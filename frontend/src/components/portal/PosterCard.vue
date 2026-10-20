@@ -90,7 +90,7 @@
             v-if="showBlacklist"
             type="button"
             class="mk-iconbtn"
-            :class="{ 'mk-iconbtn--red': blacklisted || status === 'blacklisted' }"
+            :class="{ 'mk-iconbtn--red': blacklisted || status === POSTER_STATUS.BLACKLISTED }"
             :title="$t('portal.posterCard.btnBlacklist')"
             :aria-label="$t('portal.posterCard.btnBlacklist')"
             @click="emit('toggle-blacklist')"
@@ -123,7 +123,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Bookmark, EyeOff, Plus, Clock, RotateCcw, Star } from 'lucide-vue-next'
 import PremiumRibbon from '@/components/portal/PremiumRibbon.vue'
-import { AVAILABILITY } from '@/constants/portal'
+import { AVAILABILITY, POSTER_STATUS, POSTER_STATUS_RIBBON } from '@/constants/portal'
 
 import '@/assets/styles/portal/poster-card.css'
 
@@ -135,14 +135,11 @@ const props = defineProps({
   // TMDB vote_average (0-10). Rendered as a gold star + percentage on the
   // hover overlay, mirroring the detail page. 0 / falsy hides it.
   rating: { type: Number, default: 0 },
-  // REST-aligned keys — mirror the request lifecycle + watch status used
-  // across the portal API. Null = no status decoration.
+  // One of POSTER_STATUS (request, blacklist or playback); null shows no ribbon.
   status: {
     type: String,
     default: null,
-    validator: v =>
-      v == null ||
-      ['pending', 'approved', 'rejected', 'blacklisted', 'watched', 'in_progress'].includes(v),
+    validator: v => v == null || Object.values(POSTER_STATUS).includes(v),
   },
   count: { type: Number, default: 1 },
   availability: {
@@ -176,37 +173,18 @@ const { t } = useI18n()
 // TMDB 0-10 score → 0-100 percentage, same transform as the detail hero.
 const ratingPct = computed(() => Math.round((props.rating || 0) * 10))
 
-const STATUS_COLOR = {
-  pending: 'var(--portal-color-warning)',
-  approved: 'var(--portal-color-success)',
-  rejected: 'var(--portal-color-error)',
-  blacklisted: 'var(--portal-color-neutral-dark)',
-  watched: 'var(--portal-color-premium)',
-  in_progress: 'var(--portal-color-info)',
-}
-
-const STATUS_LABEL_KEY = {
-  pending: 'portal.posterCard.statusPending',
-  approved: 'portal.posterCard.statusApproved',
-  rejected: 'portal.posterCard.statusRejected',
-  blacklisted: 'portal.posterCard.statusBlacklisted',
-  watched: 'portal.posterCard.statusWatched',
-  in_progress: 'portal.posterCard.statusInProgress',
-}
-
-const statusColor = computed(() => (props.status ? STATUS_COLOR[props.status] : null))
-const statusLabel = computed(() =>
-  props.status ? t(STATUS_LABEL_KEY[props.status]).toUpperCase() : '',
-)
+const ribbon = computed(() => (props.status ? POSTER_STATUS_RIBBON[props.status] : null))
+const statusColor = computed(() => ribbon.value?.color ?? null)
+const statusLabel = computed(() => (ribbon.value ? t(ribbon.value.labelKey).toUpperCase() : ''))
 
 const action = computed(() => {
   if (props.availability === AVAILABILITY.FULL) {
     return { label: t('portal.posterCard.actionPlay'), tone: 'play', icon: 'play' }
   }
-  if (props.status === 'rejected') {
+  if (props.status === POSTER_STATUS.REJECTED) {
     return { label: t('portal.posterCard.actionReRequest'), tone: 'request', icon: 'rotate' }
   }
-  if (props.status === 'pending' || props.status === 'approved') {
+  if (props.status === POSTER_STATUS.PENDING || props.status === POSTER_STATUS.APPROVED) {
     return { label: t('portal.posterCard.actionPending'), tone: 'muted', icon: 'clock' }
   }
   return { label: t('portal.posterCard.actionRequest'), tone: 'request', icon: 'plus' }

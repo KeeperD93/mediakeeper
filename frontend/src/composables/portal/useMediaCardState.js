@@ -9,7 +9,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAvailability } from '@/composables/portal/useAvailability'
 import { useRequestStatus } from '@/composables/portal/useRequestStatus'
-import { AVAILABILITY } from '@/constants/portal'
+import { AVAILABILITY, POSTER_STATUS, WATCH_STATUS } from '@/constants/portal'
 import { REQUEST_STATUS } from '@/constants/requests'
 import { formatDate } from '@/utils/format'
 
@@ -116,7 +116,7 @@ export function useMediaCardState(props) {
     if (!props.item?.watched_at) return ''
     const date = formatDate(props.item.watched_at, locale.value)
     if (!date) return ''
-    return props.item.watch_status === 'in_progress'
+    return props.item.watch_status === WATCH_STATUS.IN_PROGRESS
       ? t('portal.card.tooltipInProgressSince', { date })
       : t('portal.card.tooltipWatchedOn', { date })
   })
@@ -133,7 +133,7 @@ export function useMediaCardState(props) {
     if (!date) return ''
     if (status === REQUEST_STATUS.APPROVED) return t('portal.card.tooltipApprovedOn', { date })
     if (status === REQUEST_STATUS.REJECTED) return t('portal.card.tooltipRejectedOn', { date })
-    if (status === 'blacklisted') return t('portal.card.tooltipBlacklistedOn', { date })
+    if (status === POSTER_STATUS.BLACKLISTED) return t('portal.card.tooltipBlacklistedOn', { date })
     return ''
   })
 

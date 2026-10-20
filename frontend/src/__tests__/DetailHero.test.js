@@ -8,6 +8,8 @@ vi.mock('vue-i18n', async importOriginal => {
 })
 
 import DetailHero from '@/components/portal/detail/DetailHero.vue'
+import PremiumRibbon from '@/components/portal/PremiumRibbon.vue'
+import { REQUEST_STATUS } from '@/constants/requests'
 
 function mountHero(props) {
   return mount(DetailHero, {
@@ -54,5 +56,30 @@ describe('DetailHero request button', () => {
 
     expect(requestButton(w).attributes('disabled')).toBeDefined()
     expect(w.find('.dh-request-blocked').text()).toBe('Blocked')
+  })
+})
+
+describe('DetailHero status ribbon', () => {
+  // The ribbon sits on the poster: give the title one.
+  const withPoster = props =>
+    mountHero({ media: { title: 'Show', media_type: 'tv', poster: '/poster.jpg' }, ...props })
+  const ribbon = w => w.findComponent(PremiumRibbon)
+
+  it("shows a refused request with the poster cards' colour and label", () => {
+    const w = withPoster({
+      reqStatus: REQUEST_STATUS.REJECTED,
+      reqStatusTooltip: 'Refused on day one',
+    })
+
+    expect(ribbon(w).props()).toMatchObject({
+      label: 'PORTAL.POSTERCARD.STATUSREJECTED',
+      bg: 'var(--portal-color-error)',
+      title: 'Refused on day one',
+    })
+  })
+
+  it('shows no ribbon once the title is available, nor without a request', () => {
+    expect(ribbon(withPoster({ reqStatus: REQUEST_STATUS.AVAILABLE })).exists()).toBe(false)
+    expect(ribbon(withPoster({})).exists()).toBe(false)
   })
 })

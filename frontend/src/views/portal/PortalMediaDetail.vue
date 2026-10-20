@@ -118,7 +118,7 @@ import DetailExtras from '@/components/portal/detail/DetailExtras.vue'
 import TabStrip from '@/components/common/TabStrip.vue'
 import { useI18n } from 'vue-i18n'
 import { MEDIA_TYPE, isTv } from '@/constants/media'
-import { AVAILABILITY } from '@/constants/portal'
+import { AVAILABILITY, POSTER_STATUS } from '@/constants/portal'
 import { REQUEST_STATUS } from '@/constants/requests'
 import { TRAILER_SOURCE } from '@/constants/trailers'
 import { USER_ROLE } from '@/constants/auth'
@@ -205,7 +205,7 @@ const reqStatusTooltip = computed(() => {
     const user = r.requester_username || r.requester || r.requested_by || ''
     return t('portal.card.tooltipRequestedBy', { user, date })
   }
-  if (r.status === 'blacklisted') return t('portal.card.tooltipBlacklistedOn', { date })
+  if (r.status === POSTER_STATUS.BLACKLISTED) return t('portal.card.tooltipBlacklistedOn', { date })
   return ''
 })
 
