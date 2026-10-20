@@ -1,6 +1,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useApi } from '@/composables/useApi'
+import { resolveScopedError, useApi } from '@/composables/useApi'
 import { useRooms } from '@/composables/portal/useRooms'
 import { EVENT_KIND } from '@/constants/events'
 import { MEDIA_TYPE } from '@/constants/media'
@@ -196,7 +196,13 @@ export function useEventCreateModal(emit) {
       emit('created', res)
       emit('close')
     } catch (e) {
-      error.value = String(e?.message || e)
+      console.error('[useEventCreateModal.submit]', e)
+      // The room's own reason when the server gave one, else the action that failed.
+      error.value = resolveScopedError(
+        'portal.mkEvents.errors',
+        e?.message,
+        'common.apiError.saveFailed',
+      )
     } finally {
       submitting.value = false
     }

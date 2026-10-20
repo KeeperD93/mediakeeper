@@ -20,6 +20,7 @@ from services.portal._rank_tiers import (
     title_for_level,
 )
 from services.portal.profile_serializers import _resolve_avatar_url
+from services.portal.admin_users_constants import ROLE_ADMIN
 
 
 MONTH_LABELS_FR = [
@@ -82,7 +83,7 @@ def build_entry(
         "rank": rank_idx + 1,
         "user_id": row.user_id,
         "display_name": resolve_display_name(
-            effective, row.user_id, lang, is_admin=bool(prof) and prof.role == "admin"
+            effective, row.user_id, lang, is_admin=bool(prof) and prof.role == ROLE_ADMIN
         ),
         "avatar_url": _resolve_avatar_url(prof) if prof else None,
         "level": p_level,

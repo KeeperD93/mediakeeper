@@ -5,11 +5,12 @@ import { nextTick } from 'vue'
 const patchIdentity = vi.fn()
 const resetDisplayName = vi.fn()
 const confirmMock = vi.fn()
+const showToast = vi.fn()
 
 vi.mock('@/i18n', () => ({ getLocale: () => 'fr' }))
 
 vi.mock('vue-i18n', () => ({
-  useI18n: () => ({ t: (k, p) => (p ? `${k}:${JSON.stringify(p)}` : k), te: () => false }),
+  useI18n: () => ({ t: (k, p) => (p ? `${k}:${JSON.stringify(p)}` : k) }),
 }))
 
 vi.mock('@/composables/portal/usePortalAdminUsers', () => ({
@@ -17,7 +18,16 @@ vi.mock('@/composables/portal/usePortalAdminUsers', () => ({
 }))
 
 vi.mock('@/composables/useToast', () => ({
-  useToast: () => ({ showToast: vi.fn() }),
+  useToast: () => ({ showToast }),
+}))
+
+// The screen's own reason when its scope words it, nothing over a rate limit
+// (its toast says it), else the given fallback.
+vi.mock('@/composables/useApi', () => ({
+  resolveScopedError: (scope, code, fallbackKey) => {
+    if (code === 'display_name_empty') return `${scope}.${code}`
+    return code === 'rate_limited_notified' ? '' : fallbackKey
+  },
 }))
 
 vi.mock('@/composables/useConfirm', () => ({
@@ -123,5 +133,53 @@ describe('RuTabIdentity', () => {
       .findAll('button[type="button"]')
       .find(b => b.text().includes('displayNameResetAction'))
     expect(resetBtn.attributes('disabled')).toBeDefined()
+  })
+
+  describe('a failed save', () => {
+    async function saveFails(code) {
+      showToast.mockClear()
+      patchIdentity.mockRejectedValueOnce(new Error(code))
+      const w = mount(RuTabIdentity, { props: { user: mkUser() } })
+      await w.find('form').trigger('submit.prevent')
+      await flushPromises()
+      return showToast.mock.calls.map(([message]) => message)
+    }
+
+    it('shows the identity error the server gave', async () => {
+      expect(await saveFails('display_name_empty')).toEqual([
+        'requestsAdmin.users.errors.display_name_empty',
+      ])
+    })
+
+    it('falls back to the generic error otherwise', async () => {
+      expect(await saveFails('http_500')).toEqual(['common.error'])
+    })
+
+    it('adds nothing to the rate-limit toast', async () => {
+      expect(await saveFails('rate_limited_notified')).toEqual([])
+    })
+  })
+
+  describe('a failed display-name reset', () => {
+    async function resetFails(code) {
+      showToast.mockClear()
+      confirmMock.mockResolvedValueOnce(true)
+      resetDisplayName.mockRejectedValueOnce(new Error(code))
+      const w = mount(RuTabIdentity, { props: { user: mkUser() } })
+      const resetBtn = w
+        .findAll('button[type="button"]')
+        .find(b => b.text().includes('displayNameResetAction'))
+      await resetBtn.trigger('click')
+      await flushPromises()
+      return showToast.mock.calls.map(([message]) => message)
+    }
+
+    it('says it failed instead of staying silent', async () => {
+      expect(await resetFails('http_500')).toEqual(['common.error'])
+    })
+
+    it('adds nothing to the rate-limit toast', async () => {
+      expect(await resetFails('rate_limited_notified')).toEqual([])
+    })
   })
 })

@@ -8,20 +8,16 @@ from sqlalchemy import select, func, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.url_safety import safe_url
+from constants.tmdb_media import TMDB_MEDIA_TYPES
 from models.portal.social import (
     UserList, UserListItem, PRIVACY_COLLABORATIVE, PRIVACY_PRIVATE,
 )
 from services.portal import strip_tags_and_trim
-from services.portal.image_cache import unproxied_url
+from services.portal.image_urls import safe_image_url
 from services.portal.lists import (
     MAX_ITEMS_PER_LIST, MAX_NAME_LEN,
     can_view, can_edit_items, _log, _rate_limited,
 )
-
-# Mirrors the CSP ``img-src`` whitelist so the persisted poster URL can
-# always be rendered without bumping into the page's content policy.
-_POSTER_ALLOWED_HOSTS = ("image.tmdb.org", "i.imgur.com")
 
 logger = logging.getLogger("mediakeeper.portal.lists_items")
 
@@ -52,16 +48,10 @@ async def add_items(
     for raw in items:
         tmdb_id = int(raw.get("tmdb_id") or 0)
         media_type = str(raw.get("media_type") or "").strip().lower()
-        if not tmdb_id or media_type not in ("movie", "tv"):
+        if not tmdb_id or media_type not in TMDB_MEDIA_TYPES:
             continue
         title = strip_tags_and_trim(raw.get("title"), 500) or None
-        # Cards hand us the cache-proxy URL when the image cache is on;
-        # recover the canonical TMDB URL behind it so the poster survives
-        # the TMDB-only host whitelist instead of being dropped to NULL.
-        poster_url = safe_url(
-            unproxied_url(raw.get("poster_url") or ""),
-            allowed_hosts=_POSTER_ALLOWED_HOSTS,
-        )
+        poster_url = safe_image_url(raw.get("poster_url"))
         year_raw = raw.get("year")
         try:
             year = int(year_raw) if year_raw not in (None, "") else None

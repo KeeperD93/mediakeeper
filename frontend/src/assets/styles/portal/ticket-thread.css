@@ -193,6 +193,12 @@
   font-family: inherit;
   resize: vertical;
 }
+/* iOS zooms the page into a field under 16px it focuses: 16px on iOS only. */
+@supports (-webkit-touch-callout: none) {
+  .tth-input {
+    font-size: var(--portal-text-md);
+  }
+}
 .tth-btn {
   align-self: flex-end;
   padding: 10px 18px;

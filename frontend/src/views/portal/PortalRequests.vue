@@ -2,10 +2,10 @@
   <div class="arr-page">
     <header class="arr-head">
       <div>
-        <h2 class="arr-title">
+        <h1 class="arr-title">
           <span class="arr-title-accent" aria-hidden="true" />
           {{ $t('portal.admin.req.title') }}
-        </h2>
+        </h1>
         <p class="arr-sub">{{ $t('portal.admin.req.subtitle') }}</p>
       </div>
     </header>
@@ -36,38 +36,28 @@
       <div class="arr-stat arr-stat--available">
         <span class="arr-stat-value">{{ stats?.available_count ?? '—' }}</span>
         <span class="arr-stat-label">{{ $t('portal.admin.req.statAvailable') }}</span>
-        <span v-if="stats?.approved_total != null" class="arr-stat-total">
-          {{ $t('portal.admin.req.statTotalSince', { count: stats.approved_total }) }}
+        <span v-if="stats?.available_total != null" class="arr-stat-total">
+          {{ $t('portal.admin.req.statTotalSince', { count: stats.available_total }) }}
         </span>
       </div>
     </div>
 
     <!-- Toolbar -->
     <div class="arr-toolbar">
-      <div class="arr-pills">
-        <button
-          v-for="st in filters"
-          :key="st.value"
-          type="button"
-          class="arr-pill"
-          :class="{ 'arr-pill--active': filter === st.value }"
-          @click="setFilter(st.value)"
-        >
-          {{ $t(st.label) }}
-        </button>
-        <span class="arr-pills-sep" aria-hidden="true" />
-        <button
-          v-for="tp in typeFilters"
-          :key="tp.value || 'all'"
-          type="button"
-          class="arr-pill"
-          :class="{ 'arr-pill--active': typeFilter === tp.value }"
-          @click="onTypeFilter(tp.value)"
-        >
-          {{ $t(tp.label) }}
-        </button>
-      </div>
-      <select v-model="sortKey" class="arr-sort" @change="onSortChange">
+      <AdminRequestsFilters
+        :status="filter"
+        :media-type="typeFilter"
+        :hide-available="hideAvailable"
+        @update:status="setFilter"
+        @update:media-type="onTypeFilter"
+        @update:hide-available="setHideAvailable"
+      />
+      <select
+        v-model="sortKey"
+        class="arr-sort mk-select-chevron"
+        :aria-label="$t('portal.admin.req.sortLabel')"
+        @change="onSortChange"
+      >
         <option :value="REQUEST_SORT.RECENT">{{ $t('portal.admin.req.sortRecent') }}</option>
         <option :value="REQUEST_SORT.OLDEST">{{ $t('portal.admin.req.sortOldest') }}</option>
         <option :value="REQUEST_SORT.TITLE">{{ $t('portal.admin.req.sortTitle') }}</option>
@@ -94,6 +84,7 @@
         :key="req.id"
         :req="req"
         :index="(page - 1) * perPage + idx + 1"
+        :busy="busyIds.has(req.id)"
         @action="onAction(req, $event)"
         @delete="onDelete(req)"
       />
@@ -103,36 +94,41 @@
       :open="!!rejectTarget"
       :media-title="rejectTarget?.title || ''"
       @confirm="onRejectConfirm"
-      @cancel="rejectTarget = null"
+      @cancel="cancelReject"
     />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { usePortalRequests } from '@/composables/portal/usePortalRequests'
 import { usePortalAdmin } from '@/composables/portal/usePortalAdmin'
+import { useAdminRequestActions } from '@/composables/portal/useAdminRequestActions'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
+import AdminRequestsFilters from '@/components/portal/admin/AdminRequestsFilters.vue'
 import AdminRequestsRow from '@/components/portal/admin/AdminRequestsRow.vue'
 import PortalPagination from '@/components/portal/PortalPagination.vue'
 import MkSpinner from '@/components/common/MkSpinner.vue'
-import { useConfirm } from '@/composables/useConfirm'
 import RejectReasonModal from '@/components/portal/admin/RejectReasonModal.vue'
 import { REQUEST_STATUS, REQUEST_SORT } from '@/constants/requests'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
+import { STORAGE_KEYS } from '@/constants/storage'
 
 import '@/assets/styles/portal/admin-rich-row-header.css'
+import '@/assets/styles/portal/admin-rich-row-stats.css'
 import '@/assets/styles/portal/admin-rich-row.css'
+import '@/assets/styles/portal/admin-rich-row-info.css'
 import '@/assets/styles/portal/admin-rich-row-actions.css'
 
 const { t } = useI18n()
-const mkConfirm = useConfirm()
 const { showToast } = useToast()
 const { requests, total, fetchAdminRequests, updateRequestStatus, deleteRequest } =
   usePortalRequests()
 const { stats, fetchStats } = usePortalAdmin()
+const { busyIds, rejectTarget, onAction, onRejectConfirm, cancelReject, onDelete } =
+  useAdminRequestActions({ updateRequestStatus, deleteRequest, onStatusChanged, onDeleted })
 
 const filter = ref('')
 const typeFilter = ref('')
@@ -140,21 +136,29 @@ const sortKey = ref(REQUEST_SORT.RECENT)
 const page = ref(1)
 const perPage = ref(DEFAULT_PAGE_SIZE)
 const loading = ref(false)
-const rejectTarget = ref(null)
 
-const filters = [
-  { value: '', label: 'portal.requests.allStatus' },
-  { value: 'pending', label: 'portal.requests.pending' },
-  { value: 'approved', label: 'portal.requests.approved' },
-  { value: 'available', label: 'portal.requests.available' },
-  { value: 'rejected', label: 'portal.requests.rejected' },
-]
+// Remembered across visits; it only applies to the all-statuses view, a
+// status filter always shows what it names.
+const hideAvailable = ref(readHideAvailable())
+const hidingAvailable = computed(() => !filter.value && hideAvailable.value)
 
-const typeFilters = [
-  { value: '', label: 'portal.admin.req.typeAll' },
-  { value: 'movie', label: 'portal.admin.req.typeMovies' },
-  { value: 'tv', label: 'portal.admin.req.typeSeries' },
-]
+function readHideAvailable() {
+  try {
+    return localStorage.getItem(STORAGE_KEYS.ADMIN_REQUESTS_HIDE_AVAILABLE) === '1'
+  } catch {
+    return false
+  }
+}
+
+function setHideAvailable(value) {
+  hideAvailable.value = value
+  try {
+    localStorage.setItem(STORAGE_KEYS.ADMIN_REQUESTS_HIDE_AVAILABLE, value ? '1' : '0')
+  } catch {
+    /* storage blocked (private mode): the choice lasts for this visit */
+  }
+  reload()
+}
 
 async function loadRequests() {
   loading.value = true
@@ -165,7 +169,11 @@ async function loadRequests() {
       perPage: perPage.value,
       sort: sortKey.value,
       mediaType: typeFilter.value || null,
+      hideAvailable: hidingAvailable.value,
     })
+  } catch (e) {
+    console.error('[PortalRequests.loadRequests]', e)
+    showToast(t('common.apiError.loadFailed'), TOAST_TYPE.ERR)
   } finally {
     loading.value = false
   }
@@ -213,46 +221,22 @@ function afterRowRemoved() {
   }
 }
 
-async function onAction(req, newStatus) {
-  if (newStatus === REQUEST_STATUS.REJECTED) {
-    rejectTarget.value = req
-    return
+function onStatusChanged(req, newStatus, reason) {
+  // In-place update — a full list reload would flip `loading`, unmount
+  // the list DOM and reset the viewport scroll to the top of the page.
+  req.status = newStatus
+  if (reason != null) req.reject_reason = reason
+  const leavesView = filter.value
+    ? newStatus !== filter.value
+    : hidingAvailable.value && newStatus === REQUEST_STATUS.AVAILABLE
+  if (leavesView) {
+    requests.value = requests.value.filter(r => r.id !== req.id)
+    afterRowRemoved()
   }
-  await applyStatus(req, newStatus, null)
+  fetchStats()
 }
 
-async function applyStatus(req, newStatus, reason) {
-  const res = await updateRequestStatus(req.id, newStatus, reason)
-  if (res?.success) {
-    showToast(t('common.saved'), TOAST_TYPE.OK)
-    // In-place update — a full list reload would flip `loading`, unmount
-    // the list DOM and reset the viewport scroll to the top of the page.
-    req.status = newStatus
-    if (reason != null) req.reject_reason = reason
-    if (filter.value && newStatus !== filter.value) {
-      requests.value = requests.value.filter(r => r.id !== req.id)
-      afterRowRemoved()
-    }
-    fetchStats()
-  }
-}
-
-async function onRejectConfirm(reason) {
-  const req = rejectTarget.value
-  rejectTarget.value = null
-  if (!req) return
-  await applyStatus(req, 'rejected', reason)
-}
-
-async function onDelete(req) {
-  const ok = await mkConfirm({
-    title: t('common.confirmTitle.delete'),
-    message: t('portal.admin.req.confirmDelete'),
-    variant: 'danger',
-    confirmLabel: t('common.delete'),
-  })
-  if (!ok) return
-  await deleteRequest(req.id)
+function onDeleted() {
   afterRowRemoved()
   fetchStats()
 }

@@ -91,6 +91,7 @@
 import { reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RotateCcw } from 'lucide-vue-next'
+import { resolveScopedError } from '@/composables/useApi'
 import { useToast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
 import { TOAST_TYPE } from '@/constants/toast'
@@ -127,6 +128,15 @@ hydrate(props.user)
 
 watch(() => props.user, hydrate, { immediate: true })
 
+// A failed save or reset says why, in this screen's words when it has them.
+// A rate limit already has its own toast: the helper gives nothing then.
+function reportFailure(where, e) {
+  console.error(`[RuTabIdentity.${where}]`, e)
+  const detail = e instanceof Error ? e.message : ''
+  const message = resolveScopedError('requestsAdmin.users.errors', detail, 'common.error')
+  if (message) showToast(message, TOAST_TYPE.ERR)
+}
+
 async function onResetDisplayName() {
   const ok = await confirm({
     title: t('requestsAdmin.users.drawer.identity.displayNameResetConfirmTitle'),
@@ -145,6 +155,8 @@ async function onResetDisplayName() {
     }
     showToast(t('requestsAdmin.users.toasts.displayNameResetDone'), TOAST_TYPE.OK)
     emit('changed')
+  } catch (e) {
+    reportFailure('onResetDisplayName', e)
   } finally {
     resetting.value = false
   }
@@ -170,8 +182,7 @@ async function save() {
     showToast(t('requestsAdmin.users.toasts.saved'), TOAST_TYPE.OK)
     emit('changed')
   } catch (e) {
-    const detail = e instanceof Error ? e.message : ''
-    showToast(t(`requestsAdmin.users.errors.${detail}`, t('common.error')), TOAST_TYPE.ERR)
+    reportFailure('save', e)
   } finally {
     saving.value = false
   }

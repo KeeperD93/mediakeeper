@@ -31,9 +31,9 @@ export function useRequestStatus() {
    * skipped. Results are merged into the global cache so all MediaCards
    * refresh reactively.
    *
-   * The backend only returns active statuses (pending / approved /
-   * available) — rejected items are deliberately omitted so the user
-   * can re-request them, and missing entries simply mean "not requested".
+   * The backend returns pending / approved / available and rejected
+   * statuses (a rejected title is offered "Re-request"); archived
+   * requests are left out, and missing entries simply mean "not requested".
    */
   async function checkStatus(items) {
     if (!items?.length) return
@@ -79,8 +79,8 @@ export function useRequestStatus() {
           cache[key] = val ? { ...val, _ts: now } : null
         }
       }
-      // Stamp this chunk's misses (no active request) so they aren't
-      // re-queried until the TTL lapses — same shape as populated entries.
+      // Stamp this chunk's misses (no request, or only archived ones) so they
+      // aren't re-queried until the TTL lapses — same shape as populated entries.
       for (const id of chunks[i]) {
         const key = String(id)
         if (!(key in cache) || cache[key] === null) {
@@ -93,8 +93,9 @@ export function useRequestStatus() {
   /**
    * Lookup the cached status for a single tmdb_id. Returns null if
    * not yet checked, if the cached entry is stale, or if the item has
-   * never been requested. Returns an object { status, requested_at,
-   * requested_by?, request_id } for items with an active request.
+   * no request left (none, or only archived ones). Otherwise returns
+   * { status, requested_at, requested_by?, request_id }, the status being
+   * pending / approved / available / rejected.
    *
    * ``requested_by`` is optional: when the admin has enabled
    * ``anonymize_requests``, the backend strips it from the response.

@@ -22,6 +22,9 @@ vi.mock('vue-i18n', () => ({
     t: (key, params) => (params ? `${key}:${JSON.stringify(params)}` : key),
   }),
 }))
+vi.mock('@/composables/useApi', () => ({
+  resolveScopedError: (_scope, _code, fallbackKey) => fallbackKey,
+}))
 
 vi.mock('@/composables/portal/usePortalAuth', () => ({
   usePortalAuth: () => ({ profile: profileRef }),
@@ -96,6 +99,7 @@ vi.mock('@/components/common/MkSpinner.vue', () => ({
 
 vi.mock('@/assets/styles/portal/admin-rich-row-header.css', () => ({}))
 vi.mock('@/assets/styles/portal/admin-rich-row.css', () => ({}))
+vi.mock('@/assets/styles/portal/admin-rich-row-info.css', () => ({}))
 vi.mock('@/assets/styles/portal/admin-rich-row-actions.css', () => ({}))
 
 import PortalLists from '@/views/portal/PortalLists.vue'

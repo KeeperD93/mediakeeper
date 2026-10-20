@@ -41,7 +41,7 @@ def drill_backup_dir(workspace_tmp_path, monkeypatch):
 def drill_pg_dump_stub():
     fake_sql = "-- mocked pg_dump for smoke drill --\nSELECT 1;\n"
     with patch(
-        "services.backup.create._pg_dump_async",
+        "services.backup.create.dump_database",
         new=AsyncMock(return_value=fake_sql),
     ) as mocked:
         yield mocked, fake_sql
@@ -53,7 +53,7 @@ async def test_restore_round_trip_keeps_kv_layer(
 ):
     await set_setting(db_session, "drill.smoke", "before")
 
-    backup_path = await create_backup(db_session)
+    backup_path = (await create_backup(db_session)).path
 
     with zipfile.ZipFile(backup_path) as zf:
         names = zf.namelist()
@@ -90,7 +90,7 @@ async def test_restore_round_trip_keeps_table_columns(
         db_session, admin_user.id,
         table_columns=json.dumps({"stats.activity": [40, 120, 200]}),
     )
-    backup_path = await create_backup(db_session)
+    backup_path = (await create_backup(db_session)).path
 
     await upsert_user_preferences(db_session, admin_user.id, table_columns="{}")
     await restore_backup(db_session, backup_path, components={"preferences": True})

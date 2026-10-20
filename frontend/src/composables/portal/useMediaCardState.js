@@ -2,13 +2,14 @@
  * State derived from a single portal media item, consumed by MediaCard
  * (a thin wrapper around PosterCard). Returns the bits the wrapper still
  * needs to drive PosterCard props — availability cache, request status,
- * NEW-on-Emby flag, blacklist marker, and the three tooltips that the
+ * NEW-on-Emby flag, blacklist marker, and the four tooltips that the
  * legacy MediaCard surfaced on its diagonal ribbons.
  */
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAvailability } from '@/composables/portal/useAvailability'
 import { useRequestStatus } from '@/composables/portal/useRequestStatus'
+import { AVAILABILITY, POSTER_STATUS, WATCH_STATUS } from '@/constants/portal'
 import { REQUEST_STATUS } from '@/constants/requests'
 import { formatDate } from '@/utils/format'
 
@@ -34,17 +35,16 @@ export function useMediaCardState(props) {
     if (props.item?.emby_url || props.item?.availability) {
       return {
         emby_url: props.item.emby_url || '',
-        availability: props.item.availability || 'full',
+        availability: props.item.availability || AVAILABILITY.FULL,
       }
     }
     return null
   })
 
-  // Global "already requested" status for this tmdb_id. The backend
-  // returns null when no active request exists. Items served by the
-  // profile page may carry their own `_request_status` — honour it as a
-  // fallback so the badge stays visible even if the global cache wasn't
-  // primed for that item.
+  // Global request status for this tmdb_id (pending / approved / available /
+  // rejected), null when there is none. Items served by the profile page may
+  // carry their own `_request_status` — honour it as a fallback so the badge
+  // stays visible even if the global cache wasn't primed for that item.
   const reqStatus = computed(() => {
     const id = props.item?.tmdb_id || props.item?.id
     const cached = id ? getStatus(id) : null
@@ -67,8 +67,6 @@ export function useMediaCardState(props) {
     return null
   })
 
-  const isRejected = computed(() => reqStatus.value?.status === REQUEST_STATUS.REJECTED)
-  const canResubmit = computed(() => isRejected.value)
   const retryCount = computed(() => reqStatus.value?.retry_count || 0)
 
   // "New on Emby" ribbon — only items added to the Emby library within
@@ -100,9 +98,8 @@ export function useMediaCardState(props) {
     () => props.item?._request_status || reqStatus.value?.status || null,
   )
 
-  // ── Tooltips for the diagonal ribbon ────────────────────────────
-  // Each computed targets one ribbon flavour. MediaCard picks the
-  // matching one based on which status the card is currently showing.
+  // Tooltips for the diagonal ribbon: each computed targets one ribbon
+  // flavour, MediaCard picks the one matching the status the card shows.
 
   // Pending / approved — surfaces who requested it and when.
   const postitTooltip = computed(() => {
@@ -119,7 +116,7 @@ export function useMediaCardState(props) {
     if (!props.item?.watched_at) return ''
     const date = formatDate(props.item.watched_at, locale.value)
     if (!date) return ''
-    return props.item.watch_status === 'in_progress'
+    return props.item.watch_status === WATCH_STATUS.IN_PROGRESS
       ? t('portal.card.tooltipInProgressSince', { date })
       : t('portal.card.tooltipWatchedOn', { date })
   })
@@ -136,15 +133,13 @@ export function useMediaCardState(props) {
     if (!date) return ''
     if (status === REQUEST_STATUS.APPROVED) return t('portal.card.tooltipApprovedOn', { date })
     if (status === REQUEST_STATUS.REJECTED) return t('portal.card.tooltipRejectedOn', { date })
-    if (status === 'blacklisted') return t('portal.card.tooltipBlacklistedOn', { date })
+    if (status === POSTER_STATUS.BLACKLISTED) return t('portal.card.tooltipBlacklistedOn', { date })
     return ''
   })
 
   return {
     availData,
     reqStatus,
-    isRejected,
-    canResubmit,
     retryCount,
     isNewOnEmby,
     displayedReqStatus,

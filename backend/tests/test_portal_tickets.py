@@ -42,7 +42,7 @@ async def test_create_movie_ticket_persists_emby_anchor(client, db_session):
 
     resp = await client.post("/api/portal/tickets", json={
         "emby_item_id": "emby-mov-1",
-        "media_title": "Interstellar",
+        "media_title": "Sample Movie",
         "media_type": "movie",
         "issue_type": "audio",
         "description": "Audio désynchronisé après 30min",
@@ -261,7 +261,7 @@ async def test_create_series_ticket_with_selected_seasons(client, db_session):
 
     resp = await client.post("/api/portal/tickets", json={
         "series_emby_id": "emby-ser-42",
-        "media_title": "Severance",
+        "media_title": "Sample Series",
         "media_type": "series",
         "selected_seasons": [
             {"season_number": 1, "episodes": [1, 2]},
@@ -354,17 +354,17 @@ async def test_emby_search_returns_shaped_hits(client, db_session):
             {
                 "Id": "emby-mov-1",
                 "Type": "Movie",
-                "Name": "Interstellar",
-                "OriginalTitle": "Interstellar",
+                "Name": "Sample Movie",
+                "OriginalTitle": "Sample Movie",
                 "ProductionYear": 2014,
-                "ProviderIds": {"Tmdb": "157336"},
+                "ProviderIds": {"Tmdb": "900001"},
             },
             {
                 "Id": "emby-ser-42",
                 "Type": "Series",
-                "Name": "Severance",
-                "PremiereDate": "2022-02-18T00:00:00Z",
-                "ProviderIds": {"Tmdb": "95396"},
+                "Name": "Sample Series",
+                "PremiereDate": "2020-01-01T00:00:00Z",
+                "ProviderIds": {"Tmdb": "900002"},
             },
         ]},
     )))
@@ -372,7 +372,7 @@ async def test_emby_search_returns_shaped_hits(client, db_session):
     with patch("services.emby.search._get_emby_config", new=AsyncMock(
         return_value=("http://emby.test", "secret"),
     )), patch("services.emby.search.get_internal_client", return_value=fake_client):
-        resp = await client.get("/api/portal/tickets/emby/search?q=inter")
+        resp = await client.get("/api/portal/tickets/emby/search?q=sample")
 
     assert resp.status_code == 200, resp.text
     items = resp.json()["items"]
@@ -380,14 +380,14 @@ async def test_emby_search_returns_shaped_hits(client, db_session):
 
     movie = items[0]
     assert movie["type"] == "movie"
-    assert movie["title"] == "Interstellar"
+    assert movie["title"] == "Sample Movie"
     assert movie["year"] == "2014"
-    assert movie["tmdb_id"] == "157336"
+    assert movie["tmdb_id"] == "900001"
     assert movie["poster_id"] == "emby-mov-1"
 
     series = items[1]
     assert series["type"] == "series"
-    assert series["year"] == "2022"
+    assert series["year"] == "2020"
 
 
 @pytest.mark.asyncio
@@ -426,11 +426,11 @@ async def test_series_seasons_returns_episode_tree(client, db_session):
         # /Shows/{series_id}/Episodes for season 1
         _fake_response(payload={"Items": [
             {"Id": "ep-101", "IndexNumber": 1, "Name": "Pilot"},
-            {"Id": "ep-102", "IndexNumber": 2, "Name": "Half Loop"},
+            {"Id": "ep-102", "IndexNumber": 2, "Name": "Second Episode"},
         ]}),
         # /Shows/{series_id}/Episodes for season 2
         _fake_response(payload={"Items": [
-            {"Id": "ep-201", "IndexNumber": 1, "Name": "Hello, Ms. Cobel"},
+            {"Id": "ep-201", "IndexNumber": 1, "Name": "Season Two Opener"},
         ]}),
     ]))
 
@@ -443,7 +443,7 @@ async def test_series_seasons_returns_episode_tree(client, db_session):
     seasons = resp.json()["seasons"]
     assert [s["season_number"] for s in seasons] == [1, 2]
     assert seasons[0]["episodes"][0]["episode_number"] == 1
-    assert seasons[0]["episodes"][1]["name"] == "Half Loop"
+    assert seasons[0]["episodes"][1]["name"] == "Second Episode"
     assert len(seasons[1]["episodes"]) == 1
 
 

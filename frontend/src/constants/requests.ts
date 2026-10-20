@@ -8,11 +8,24 @@ export const REQUEST_STATUS = Object.freeze({
   PENDING: 'pending',
   APPROVED: 'approved',
   REJECTED: 'rejected',
+  AVAILABLE: 'available',
 } as const)
 
 export type RequestStatus = (typeof REQUEST_STATUS)[keyof typeof REQUEST_STATUS]
 
 export const ACTIONABLE_REQUEST_STATUSES: readonly RequestStatus[] = [REQUEST_STATUS.PENDING]
+
+/**
+ * Codes the status endpoint answers (409) when an admin marks a request
+ * available while Emby does not, or cannot be checked to, hold the title.
+ * Resending with `force` confirms it anyway.
+ */
+export const REQUEST_LIBRARY_ERROR = Object.freeze({
+  NOT_IN_LIBRARY: 'not_in_library',
+  CHECK_FAILED: 'library_check_failed',
+} as const)
+
+export type RequestLibraryError = (typeof REQUEST_LIBRARY_ERROR)[keyof typeof REQUEST_LIBRARY_ERROR]
 
 /**
  * Max unique tmdb_ids the backend accepts per batch-status call (mirrors

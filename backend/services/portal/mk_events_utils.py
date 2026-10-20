@@ -10,6 +10,7 @@ from models.portal.event import EventStatus, InvitationStatus, MKEvent, MKEventI
 from models.portal.profile import UserProfile
 from services.portal._rank_tiers import tier_for_level
 from services.portal.avatars import avatar_public_url
+from services.portal.admin_users_constants import ROLE_ADMIN
 
 logger = logging.getLogger("mediakeeper.portal.mk_events")
 
@@ -135,7 +136,7 @@ async def is_invitable(db: AsyncSession, user_id: int) -> bool:
         return False
     return (
         bool(row.is_public)
-        and row.role != "admin"
+        and row.role != ROLE_ADMIN
         and bool(row.account_active)
         and row.deleted_at is None
     )

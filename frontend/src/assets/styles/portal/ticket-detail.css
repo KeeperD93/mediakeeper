@@ -182,15 +182,24 @@
   font-size: var(--portal-text-xs);
   color: var(--text-muted);
 }
+/* Longhands only: .mk-select-chevron owns the chevron and padding-right. */
 .ptd-status-select {
   flex: 1;
-  background: var(--bg-tertiary);
+  background-color: var(--portal-surface-3);
   border: 1px solid var(--portal-border-default);
   border-radius: var(--radius-input);
-  color: var(--text-primary);
-  padding: 8px 10px;
+  color: var(--portal-text-primary);
+  padding-block: 8px;
+  padding-left: 12px;
   min-height: 44px;
   font-size: var(--portal-text-sm);
+  font-family: inherit;
+}
+/* iOS zooms the page into a field under 16px it focuses: 16px on iOS only. */
+@supports (-webkit-touch-callout: none) {
+  .ptd-status-select {
+    font-size: var(--portal-text-md);
+  }
 }
 
 .ptd-loading {
@@ -245,7 +254,7 @@
   }
   .ptd-status-select {
     flex: 0 0 auto;
-    padding: 6px 10px;
+    padding-block: 6px;
     min-height: auto;
   }
 }

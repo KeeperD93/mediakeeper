@@ -19,6 +19,7 @@ import {
   endProgress,
 } from './mediaManagerState'
 import { loadFiles, applyRenameInPlace } from './mediaManagerNavigation'
+import { resolveApiError } from './useApi'
 import { FILE_TYPE } from '@/constants/mediaManager'
 import { TOAST_TYPE } from '@/constants/toast'
 import { useConfirm } from '@/composables/useConfirm'
@@ -123,12 +124,12 @@ export async function execRename() {
       }
     } catch (e) {
       fileRenameStatus.value = { ...fileRenameStatus.value, [n.path]: 'error' }
-      errors.push({
-        oldName: n.oldName,
-        newName: n.name,
-        path: n.path,
-        reason: e?.message || _t('common.networkError'),
-      })
+      // A rate limit resolves to nothing (its toast says it), but each file in
+      // the error list still needs a reason.
+      const reason = e?.message
+        ? resolveApiError(e.message) || _t('common.apiError.rate_limited')
+        : _t('common.networkError')
+      errors.push({ oldName: n.oldName, newName: n.name, path: n.path, reason })
       errCount++
     }
   }

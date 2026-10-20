@@ -29,6 +29,7 @@ from services.portal._watch_threshold import (
     session_meets_threshold,
 )
 from services.portal.mk_events_utils import _serialize_event, is_currently_in_room
+from services.portal.admin_users_constants import ROLE_ADMIN
 
 logger = logging.getLogger("mediakeeper.portal.mk_events.marathon")
 
@@ -55,7 +56,7 @@ async def _participation_gate(
     viewer_profile = (await db.execute(
         select(UserProfile).where(UserProfile.user_id == viewer_user_id)
     )).scalar_one_or_none()
-    if viewer_profile and viewer_profile.role == "admin":
+    if viewer_profile and viewer_profile.role == ROLE_ADMIN:
         return
     inv = (await db.execute(
         select(MKEventInvitation).where(

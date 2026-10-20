@@ -18,6 +18,12 @@
   --portal-accent: #4338ca; /* brand accent — mirrors the admin accent hex, portal namespace self-contained */
   --portal-accent-light: #a5b4fc; /* light accent (eyebrows on dark heroes) — mirrors admin --accent-300 */
   --portal-accent-rgb: 67, 56, 202; /* accent triplet for focus rings / alpha fills */
+  /* Indigo scale of the rich rows (requests, issues, lists…) — mirrors admin
+     --accent-400/500/600 and --accent-rgb (declared values, not useTheme's). */
+  --portal-accent-400: #818cf8;
+  --portal-accent-500: #6366f1;
+  --portal-accent-500-rgb: 99, 102, 241;
+  --portal-accent-600: #4f46e5;
 
   /* Surfaces (background layers) --------------------------- */
   --portal-surface-1: rgb(255, 255, 255, 0.02); /* subtle tint */
@@ -33,13 +39,14 @@
   --portal-border-strong: rgb(255, 255, 255, 0.12);
   --portal-border-intense: rgb(255, 255, 255, 0.18);
 
-  /* Text shades (white alphas) ----------------------------- */
+  /* Text shades (white alphas, then one solid slate) ------- */
   --portal-text-primary: rgb(255, 255, 255, 0.92);
   --portal-text-body: rgb(255, 255, 255, 0.85);
   --portal-text-body-muted: rgb(255, 255, 255, 0.7);
   --portal-text-secondary: rgb(255, 255, 255, 0.55);
   --portal-text-muted: rgb(255, 255, 255, 0.4);
   --portal-text-disabled: rgb(255, 255, 255, 0.25);
+  --portal-text-muted-solid: #a8b2c2; /* slate, empty states — mirrors admin --text-muted */
 
   /* Semantic colors (cohérent avec MK admin) -------------- */
   --portal-color-success: #22c55e;
@@ -82,4 +89,11 @@
   --portal-poster-bg: #0e1320; /* dark backdrop behind poster artwork */
   --portal-color-neutral-dark: #374151; /* slate — distinct from error red */
   --portal-color-neutral-dark-rgb: 55, 65, 81;
+
+  /* Home hero banners (HeroBanner + EmbyRecentHero) ------ */
+  --portal-hero-btn-primary-bg: #fff; /* Play / Request button */
+  --portal-hero-btn-primary-text: #141414;
+  --portal-hero-btn-secondary-bg: rgb(109, 109, 110, 0.7); /* trailer, info, pending */
+  --portal-hero-dot-bg: rgb(255, 255, 255, 0.3); /* slide picker dots */
+  --portal-hero-dot-active-bg: #fff;
 }

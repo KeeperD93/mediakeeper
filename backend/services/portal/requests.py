@@ -1,31 +1,37 @@
-"""Media request system: list, vote, update status, serialize.
+"""Media request system: lists, batch status, serialization.
 
-``create_request`` lives in ``requests_create.py`` (re-exported here for
+``create_request`` lives in ``requests_create.py``, the admin status
+changes and hard delete in ``requests_status.py`` (all re-exported here for
 back-compat). Blacklist helpers live in ``requests_blacklist.py``, quota
 management (creation, monthly reset, snapshot) lives in
 ``requests_quota.py``.
 """
-import logging
-
-from sqlalchemy import select, func
+from sqlalchemy import select, func, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm.attributes import set_committed_value
 
-from constants.notifications import NOTIF_REQUEST_APPROVED, NOTIF_REQUEST_AVAILABLE
+from constants.requests import (
+    REQUEST_APPROVED,
+    REQUEST_AVAILABLE,
+    REQUEST_PENDING,
+    REQUEST_REJECTED,
+)
 from models.user import User
 from models.portal.request import MediaRequest
 from core.pagination import decode_cursor, build_cursor_response
 from services.portal._rank_tiers import tier_for_level
 from services.portal.profile_serializers import _resolve_avatar_url
-from services.portal.requests_blacklist import maybe_blacklist_media
 from services.portal.requests_quota import (
     current_month as _current_month,  # noqa: F401 — re-exported
     get_or_create_quota as _get_or_create_quota,  # noqa: F401 — re-exported
     get_user_quota,  # noqa: F401 — re-exported
 )
 from services.portal.requests_create import create_request  # noqa: F401
+from services.portal.requests_status import (  # noqa: F401 — re-exported
+    delete_request,
+    update_request_status,
+)
 from services.portal.media_title_localize import localize_titles
-
-logger = logging.getLogger("mediakeeper.portal.requests")
 
 # Sort keys accepted by the admin queue (offset mode), mapped to ORDER BY
 # clauses. Mirrors REQUEST_SORT in frontend/src/constants/requests.ts.
@@ -57,22 +63,25 @@ async def get_batch_status(
     or moderated each request — only status and date stay visible. Used
     for non-admins when the Portal-wide ``anonymize_requests`` flag is
     on; admins always see the full payload to moderate.
+
+    Archived requests are left out, like in the Requests lists.
     """
     if not tmdb_ids:
         return {}
 
+    # Pick the "best" (highest priority) status per tmdb_id.
+    PRIO = {REQUEST_APPROVED: 3, REQUEST_PENDING: 2, REQUEST_AVAILABLE: 1, REQUEST_REJECTED: 0}
     rows = await db.execute(
         select(MediaRequest, User.username)
         .join(User, MediaRequest.user_id == User.id, isouter=True)
         .where(
             MediaRequest.tmdb_id.in_(tmdb_ids),
-            MediaRequest.status.in_(["pending", "approved", "available", "rejected"]),
+            MediaRequest.status.in_(list(PRIO)),
+            MediaRequest.archived_at.is_(None),
         )
         .order_by(MediaRequest.created_at.desc())
     )
 
-    # Pick the "best" (highest priority) status per tmdb_id.
-    PRIO = {"approved": 3, "pending": 2, "available": 1, "rejected": 0}
     out: dict[str, dict] = {}
     for req, username in rows.all():
         key = str(req.tmdb_id)
@@ -88,7 +97,7 @@ async def get_batch_status(
         }
         if not anonymize:
             entry["reject_reason"] = (
-                req.reject_reason if req.status == "rejected" else None
+                req.reject_reason if req.status == REQUEST_REJECTED else None
             )
             # ``user_id IS NULL`` after GDPR-purge (FK ``SET NULL`` since
             # migration 041). Flag it so the frontend renders an i18n
@@ -112,6 +121,7 @@ async def list_requests(
     page: int | None = None,
     sort: str = "recent",
     media_type: str | None = None,
+    hide_available: bool = False,
     include_sensitive: bool = False,
     locale: str | None = None,
 ) -> dict:
@@ -126,16 +136,22 @@ async def list_requests(
         across the whole set rather than just the loaded slice.
 
     When ``include_sensitive`` (admin path) is set, the response is
-    enriched with the requester's display_name + avatar_url and the
-    ``backdrop_url`` is backfilled live from TMDB for rows that were
-    created before the column existed.
+    enriched with the requester's display_name + avatar_url, and a missing
+    poster or backdrop is backfilled from TMDB.
+
+    Archived requests are left out: they only stay counted. ``hide_available``
+    drops served requests from the all-statuses view only: a status filter
+    always shows what it names.
     """
-    query = select(MediaRequest)
-    count_query = select(func.count(MediaRequest.id))
+    query = select(MediaRequest).where(MediaRequest.archived_at.is_(None))
+    count_query = select(func.count(MediaRequest.id)).where(MediaRequest.archived_at.is_(None))
 
     if status_filter:
         query = query.where(MediaRequest.status == status_filter)
         count_query = count_query.where(MediaRequest.status == status_filter)
+    elif hide_available:
+        query = query.where(MediaRequest.status != REQUEST_AVAILABLE)
+        count_query = count_query.where(MediaRequest.status != REQUEST_AVAILABLE)
     if media_type:
         query = query.where(MediaRequest.media_type == media_type)
         count_query = count_query.where(MediaRequest.media_type == media_type)
@@ -157,7 +173,7 @@ async def list_requests(
 
     requesters: dict[int, dict] = {}
     if include_sensitive and rows:
-        await _backfill_backdrops(db, rows)
+        await _backfill_images(db, rows)
         requesters = await _load_requester_profiles(
             db, {r.user_id for r in rows if r.user_id is not None},
         )
@@ -178,28 +194,45 @@ async def list_requests(
     return build_cursor_response(items, total, limit)
 
 
-async def _backfill_backdrops(
+async def _backfill_images(
     db: AsyncSession, rows: list[MediaRequest],
 ) -> None:
-    """Populate ``backdrop_url`` for rows that were created before the
-    column existed. One TMDB call per missing row — rate-limited by
-    Python's GIL + the short page size (max 100)."""
-    missing = [r for r in rows if not r.backdrop_url]
+    """Fill a missing poster or backdrop from TMDB: rows created before the
+    backdrop column existed, or whose image was dropped at creation. One TMDB
+    lookup per incomplete row, bounded by the page size (max 100)."""
+    missing = [r for r in rows if not r.poster_url or not r.backdrop_url]
     if not missing:
         return
     from services.tmdb import get_media_detail
-    changed = False
+    filled: list[tuple[MediaRequest, dict[str, str]]] = []
     for r in missing:
         try:
             detail = await get_media_detail(r.media_type, r.tmdb_id, db)
-            backdrop = detail.get("backdrop") if isinstance(detail, dict) else None
-            if backdrop:
-                r.backdrop_url = backdrop
-                changed = True
         except Exception:  # noqa: S112 -- intentional best-effort iteration, skip individual failure
             continue
-    if changed:
-        await db.commit()
+        if not isinstance(detail, dict):
+            continue
+        images = {}
+        if not r.poster_url and detail.get("poster"):
+            images["poster_url"] = detail["poster"]
+        if not r.backdrop_url and detail.get("backdrop"):
+            images["backdrop_url"] = detail["backdrop"]
+        if images:
+            filled.append((r, images))
+    if not filled:
+        return
+    # Not an edit: keep the stored updated_at ("this week" counters, "modified"
+    # mention), even one a status change wrote while TMDB was answering.
+    for r, images in filled:
+        await db.execute(
+            update(MediaRequest)
+            .where(MediaRequest.id == r.id)
+            .values(**images, updated_at=MediaRequest.updated_at)
+            .execution_options(synchronize_session=False)
+        )
+        for column, url in images.items():
+            set_committed_value(r, column, url)
+    await db.commit()
 
 
 async def _load_requester_profiles(
@@ -225,73 +258,6 @@ async def _load_requester_profiles(
             "tier": tier_for_level(level),
         }
     return out
-
-
-async def delete_request(db: AsyncSession, request_id: int) -> dict:
-    """Admin: hard-delete a request entirely (no trace).
-
-    Different from ``update_request_status(..., "rejected")`` — that one
-    keeps the row and logs a reject reason. Hard-delete wipes the row so
-    the original requester can re-submit freely and the item disappears
-    from every admin queue. Irreversible.
-    """
-    req = await db.get(MediaRequest, request_id)
-    if not req:
-        return {"error": "not_found"}
-    await db.delete(req)
-    await db.commit()
-    return {"success": True}
-
-
-async def update_request_status(
-    db: AsyncSession,
-    request_id: int,
-    new_status: str,
-    admin_id: int,
-    reason: str | None = None,
-) -> dict:
-    """Admin: approve/reject/mark-available a request.
-    Side-effects:
-      - `approved` → DM notification to the original requester
-      - `available` → DM notification (media landed in Emby)
-      - `rejected` → if the media reaches BLACKLIST_REJECT_THRESHOLD total
-        rejections across all requests, it's auto-added to the blacklist
-        (hidden from every user-facing list until an admin unblocks it).
-    """
-    req = await db.get(MediaRequest, request_id)
-    if not req:
-        return {"error": "not_found"}
-    req.status = new_status
-    if new_status == "approved":
-        req.approved_by = admin_id
-    if new_status == "rejected" and reason:
-        req.reject_reason = reason
-    db.add(req)
-    await db.flush()
-
-    from services.portal import notifications as notif_svc
-    payload = {
-        "tmdb_id": req.tmdb_id,
-        "media_type": req.media_type,
-        "title": req.title,
-        "poster_url": req.poster_url,
-        "request_id": req.id,
-    }
-    # Skip the user-bound bell when the requester has been GDPR-purged
-    # (FK ``SET NULL`` since migration 041): ``mk_notifications.user_id``
-    # is NOT NULL, so an insert with ``None`` would crash. The admin
-    # action itself still succeeds.
-    if new_status == "approved" and req.user_id is not None:
-        await notif_svc.create(db, req.user_id, NOTIF_REQUEST_APPROVED, payload)
-    elif new_status == "available" and req.user_id is not None:
-        await notif_svc.create(db, req.user_id, NOTIF_REQUEST_AVAILABLE, payload)
-    elif new_status == "rejected":
-        await maybe_blacklist_media(db, req, admin_id)
-
-    await db.commit()
-    # Surface the requester so the API layer can trigger the achievement
-    # runner for the original user (e.g. ambassador on `approved`).
-    return {"success": True, "user_id": req.user_id}
 
 
 def _serialize_request(

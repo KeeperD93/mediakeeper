@@ -1,6 +1,6 @@
 /* HeroBanner — full-bleed hero strip with backdrop slideshow,
    gradients, title, CTA buttons (incl. on-demand trailer popup), and
-   the manual rotation dots. */
+   the dot buttons that pick a title. */
 
 .pt-hero {
   position: relative;
@@ -51,6 +51,12 @@
 .pt-hero-bg-fade-leave-to {
   opacity: 0;
 }
+@media (prefers-reduced-motion: reduce) {
+  .pt-hero-bg-fade-enter-active,
+  .pt-hero-bg-fade-leave-active {
+    transition: none;
+  }
+}
 
 .pt-hero-vignette {
   position: absolute;
@@ -89,10 +95,24 @@
 }
 
 .pt-hero-content {
-  position: relative;
-  z-index: 4;
   max-width: 760px;
   padding: 0 5% 15%;
+}
+/* The text sits over the gradients and under the dots; the action buttons
+   go over the dots, so where the two meet (many titles) a tap reaches the
+   button. */
+.pt-hero-content > * {
+  position: relative;
+  z-index: 4;
+}
+.pt-hero-content > .pt-hero-actions {
+  z-index: 6;
+  /* Only the buttons take taps: the gaps and the rest of the row let
+     them through to the dots. */
+  pointer-events: none;
+}
+.pt-hero-actions > * {
+  pointer-events: auto;
 }
 @media (min-width: 640px) {
   /* Content sits close to the hero's bottom edge on desktop so the
@@ -209,6 +229,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  min-height: 44px;
   padding: 0.5rem 1.2rem;
   border: none;
   border-radius: var(--portal-radius-xs);
@@ -217,34 +238,37 @@
   cursor: pointer;
   transition: opacity var(--portal-dur-base);
 }
-.pt-hero-btn:hover {
-  opacity: 0.85;
+/* Touch-sized up to tablets; desktop keeps its compact buttons. */
+@media (min-width: 1024px) {
+  .pt-hero-btn {
+    min-height: 0;
+  }
+}
+/* The muted "already requested" CTA does not react to the pointer. */
+@media (hover: hover) {
+  .pt-hero-btn:not(.pt-hero-btn--pending):hover {
+    opacity: 0.85;
+  }
 }
 .pt-hero-btn--play {
-  background: #fff;
-  color: #141414;
+  background: var(--portal-hero-btn-primary-bg);
+  color: var(--portal-hero-btn-primary-text);
 }
 .pt-hero-btn--info {
-  background: rgb(109, 109, 110, 0.7);
+  background: var(--portal-hero-btn-secondary-bg);
   color: var(--portal-text-primary);
 }
 .pt-hero-btn--trailer {
-  background: rgb(109, 109, 110, 0.7);
+  background: var(--portal-hero-btn-secondary-bg);
   color: var(--portal-text-primary);
 }
 /* Muted "already requested" CTA — same neutral surface as the secondary
    buttons but with muted text + default cursor so it reads as a
    non-actionable status, mirroring the poster card's pending CTA. */
 .pt-hero-btn--pending {
-  background: rgb(109, 109, 110, 0.7);
+  background: var(--portal-hero-btn-secondary-bg);
   color: var(--portal-text-body-muted);
   cursor: default;
-}
-/* Neutralise the generic ``.pt-hero-btn:hover`` opacity shift for the
-   muted state on every device (incl. sticky touch hover) — kept ungated
-   on purpose so it cancels the effect on touch, not only on desktop. */
-.pt-hero-btn--pending:hover {
-  opacity: 1;
 }
 .pt-hero-btn--icon {
   padding: 0.6rem;
@@ -283,14 +307,46 @@
   z-index: 5;
   display: flex;
   gap: 4px;
+  /* Many titles on a narrow phone: the dots narrow instead of running off
+     the left edge. */
+  max-width: 92%;
 }
 .pt-hero-dot {
+  position: relative;
   width: 12px;
   height: 3px;
-  background: rgb(255, 255, 255, 0.3);
+  padding: 0;
+  border: none;
+  background: var(--portal-hero-dot-bg);
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   transition: background var(--portal-dur-slow);
 }
-.pt-hero-dot.active {
-  background: #fff;
+/* Invisible tap band: the touch height, and as wide as the dot plus half
+   of each gap, so the bar keeps its look and a tap between two dots
+   still lands on one. */
+.pt-hero-dot::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(100% + 4px);
+  height: var(--portal-touch-target);
+  transform: translate(-50%, -50%);
+}
+.pt-hero-dot[aria-current='true'] {
+  background: var(--portal-hero-dot-active-bg);
+}
+/* Bigger on desktop, where the dots sit on a much wider hero. */
+@media (min-width: 1024px) {
+  .pt-hero-dots {
+    gap: 6px;
+  }
+  .pt-hero-dot {
+    width: 24px;
+    height: 4px;
+  }
+  .pt-hero-dot::after {
+    width: calc(100% + 6px);
+  }
 }

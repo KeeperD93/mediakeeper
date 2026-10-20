@@ -1,4 +1,6 @@
 """Endpoints : info, create, download, delete."""
+import asyncio
+
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,15 +10,15 @@ from core.database import get_db
 from models.user import User
 from services.backup import (
     DEFAULT_COMPONENTS,
-    apply_retention_for_setting,
+    apply_configured_retention,
     create_backup,
     delete_backup,
     get_backup_path,
+    get_retention_days,
     list_backups,
     resolve_backup_dir,
 )
 from services.path_config import is_backup_dir_locked
-from services.settings import get_setting
 
 from ._schemas import BackupRequest
 from ._shared import logger
@@ -30,15 +32,15 @@ async def backup_info(
     _: User = Depends(get_current_user),
 ):
     """Return the backup config and the list of existing backups."""
-    retention = int(await get_setting(db, "backup.retention_days") or 30)
     backup_dir = await resolve_backup_dir(db)
 
     return {
         "backup_dir": str(backup_dir),
         "backup_dir_locked": is_backup_dir_locked(),
-        "retention_days": retention,
+        "retention_days": await get_retention_days(db),
         "default_components": DEFAULT_COMPONENTS,
-        "backups": list_backups(backup_dir),
+        # Off the event loop: listing opens every archive to read its manifest.
+        "backups": await asyncio.to_thread(list_backups, backup_dir),
     }
 
 
@@ -51,22 +53,28 @@ async def create_backup_endpoint(
     """Start an immediate backup with the selected components."""
     components = {**DEFAULT_COMPONENTS, **req.components}
     try:
-        dest = await create_backup(db, components=components, label=req.label)
+        result = await create_backup(db, components=components, label=req.label)
     except Exception as e:
         logger.error("[backup] Creation error: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail="backup_create_failed") from e
+    dest = result.path
     # Enforce the retention policy right away, like the scheduled backup does,
     # so manual backups don't pile up until the next automatic run. A cleanup
     # failure must not mask a successful backup — log it and still return success.
-    try:
-        retention = int(await get_setting(db, "backup.retention_days") or 30)
-        apply_retention_for_setting(retention, await resolve_backup_dir(db))
-    except Exception as e:
-        logger.warning("[backup] retention pass failed after manual backup: %s", e, exc_info=True)
+    # An incomplete backup must not push complete ones out: retention waits.
+    if not result.complete:
+        logger.warning("[backup] retention suspended until a complete backup: %s is incomplete", dest.name)
+    else:
+        try:
+            await apply_configured_retention(db)
+        except Exception as e:
+            logger.warning("[backup] retention pass failed after manual backup: %s", e, exc_info=True)
     return {
         "success": True,
         "filename": dest.name,
         "size_bytes": dest.stat().st_size,
+        "failed_components": list(result.failed),
+        "retention_skipped": not result.complete,
     }
 
 
@@ -92,6 +100,7 @@ async def delete_backup_endpoint(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    if delete_backup(filename, await resolve_backup_dir(db)):
+    backup_dir = await resolve_backup_dir(db)
+    if await asyncio.to_thread(delete_backup, filename, backup_dir):
         return {"success": True}
     raise HTTPException(status_code=404, detail="backup_not_found")

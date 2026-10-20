@@ -41,6 +41,12 @@
 .pt-eh-bg-fade-leave-to {
   opacity: 0;
 }
+@media (prefers-reduced-motion: reduce) {
+  .pt-eh-bg-fade-enter-active,
+  .pt-eh-bg-fade-leave-active {
+    transition: none;
+  }
+}
 
 .pt-eh-gradient-top {
   position: absolute;
@@ -172,19 +178,21 @@
   text-decoration: none;
   transition: opacity var(--portal-dur-base);
 }
-.pt-eh-btn:hover {
-  opacity: 0.85;
+@media (hover: hover) {
+  .pt-eh-btn:hover {
+    opacity: 0.85;
+  }
 }
 .pt-eh-btn--play {
-  background: #fff;
-  color: #141414;
+  background: var(--portal-hero-btn-primary-bg);
+  color: var(--portal-hero-btn-primary-text);
 }
 .pt-eh-btn--trailer {
-  background: rgb(109, 109, 109, 0.7);
+  background: var(--portal-hero-btn-secondary-bg);
   color: var(--portal-text-primary);
 }
 .pt-eh-btn--info {
-  background: rgb(109, 109, 110, 0.7);
+  background: var(--portal-hero-btn-secondary-bg);
   color: var(--portal-text-primary);
 }
 /* Same shape strategy as HeroBanner: padding-driven sizing + aspect-ratio
@@ -203,10 +211,9 @@
   height: 20px;
 }
 
-/* ───────── Desktop overrides (≥ 1024px) ─────────
-   Wide screens push the text panel onto the left half so the
-   backdrop artwork keeps its presence on the right. Mobile uses a
-   stacked layout (backdrop top, text bottom). */
+/* Desktop overrides (≥ 1024px): wide screens push the text panel onto the
+   left half so the backdrop artwork keeps its presence on the right. Mobile
+   uses a stacked layout (backdrop top, text bottom). */
 @media (min-width: 1024px) {
   .pt-eh-hero {
     height: 74vh;

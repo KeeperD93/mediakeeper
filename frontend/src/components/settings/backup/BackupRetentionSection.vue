@@ -4,37 +4,40 @@
     <p class="params-section-desc">{{ $t('backup.retentionDesc') }}</p>
     <div class="backup-retention-row">
       <select
-        class="backup-retention-select"
+        class="backup-retention-select mk-select-chevron"
         :value="retentionMode"
+        :aria-label="$t('backup.retentionModeLabel')"
         @change="emit('mode-change', $event.target.value)"
       >
-        <option value="days">{{ $t('backup.retentionByDays') }}</option>
-        <option value="count">{{ $t('backup.retentionByCount') }}</option>
-        <option value="off">{{ $t('backup.retentionOff') }}</option>
+        <option :value="BACKUP_RETENTION_MODE.DAYS">{{ $t('backup.retentionByDays') }}</option>
+        <option :value="BACKUP_RETENTION_MODE.COUNT">{{ $t('backup.retentionByCount') }}</option>
+        <option :value="BACKUP_RETENTION_MODE.OFF">{{ $t('backup.retentionOff') }}</option>
       </select>
-      <template v-if="retentionMode === 'days'">
+      <template v-if="retentionMode === BACKUP_RETENTION_MODE.DAYS">
         <input
           :value="retentionDays"
           type="number"
           min="1"
-          max="365"
+          :max="BACKUP_RETENTION_MAX_DAYS"
           class="backup-retention-input"
+          :aria-label="$t('backup.retentionDaysLabel')"
           @input="emit('update:retentionDays', Number($event.target.value))"
         />
         <span class="backup-retention-unit">{{ $t('backup.retentionDaysUnit') }}</span>
       </template>
-      <template v-if="retentionMode === 'count'">
+      <template v-if="retentionMode === BACKUP_RETENTION_MODE.COUNT">
         <input
           :value="retentionCount"
           type="number"
           min="1"
-          max="100"
+          :max="BACKUP_RETENTION_MAX_COUNT"
           class="backup-retention-input"
+          :aria-label="$t('backup.retentionCountLabel')"
           @input="emit('update:retentionCount', Number($event.target.value))"
         />
         <span class="backup-retention-unit">{{ $t('backup.retentionCountUnit') }}</span>
       </template>
-      <button class="backup-retention-save" @click="emit('save')">
+      <button type="button" class="backup-retention-save" @click="emit('save')">
         {{ $t('common.save') }}
       </button>
     </div>
@@ -42,8 +45,14 @@
 </template>
 
 <script setup>
+import {
+  BACKUP_RETENTION_MAX_COUNT,
+  BACKUP_RETENTION_MAX_DAYS,
+  BACKUP_RETENTION_MODE,
+} from '@/constants/backup'
+
 defineProps({
-  retentionMode: { type: String, default: 'days' },
+  retentionMode: { type: String, default: BACKUP_RETENTION_MODE.DAYS },
   retentionDays: { type: Number, default: 30 },
   retentionCount: { type: Number, default: 10 },
 })
@@ -61,11 +70,26 @@ const emit = defineEmits(['mode-change', 'update:retentionDays', 'update:retenti
   border: 0.5px solid var(--border);
   border-radius: var(--radius-btn);
 }
+/* Touch-sized on phones, compact from tablets up. */
+.backup-retention-select,
+.backup-retention-input,
+.backup-retention-save {
+  min-height: var(--touch-target);
+}
+@media (min-width: 768px) {
+  .backup-retention-select,
+  .backup-retention-input,
+  .backup-retention-save {
+    min-height: auto;
+  }
+}
+/* Longhands only: .mk-select-chevron owns the chevron image and padding-right. */
 .backup-retention-select {
-  padding: 7px 12px;
-  border-radius: var(--radius-sm);
+  padding-block: 7px;
+  padding-left: 12px;
+  border-radius: var(--radius-input);
   border: 0.5px solid var(--border);
-  background: var(--bg-secondary);
+  background-color: var(--bg-tertiary);
   color: var(--text-primary);
   font-size: var(--text-sm);
   font-family: inherit;
@@ -74,9 +98,9 @@ const emit = defineEmits(['mode-change', 'update:retentionDays', 'update:retenti
 .backup-retention-input {
   width: 70px;
   padding: 7px 10px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-input);
   border: 0.5px solid var(--border);
-  background: var(--bg-secondary);
+  background: var(--bg-tertiary);
   color: var(--text-primary);
   font-size: var(--text-sm);
   font-family: inherit;
@@ -92,9 +116,9 @@ const emit = defineEmits(['mode-change', 'update:retentionDays', 'update:retenti
 }
 .backup-retention-save {
   padding: 7px 16px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-btn);
   background: var(--accent-600);
-  color: var(--text-primary);
+  color: var(--color-on-accent);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   border: none;
@@ -102,7 +126,9 @@ const emit = defineEmits(['mode-change', 'update:retentionDays', 'update:retenti
   font-family: inherit;
   margin-left: auto;
 }
-.backup-retention-save:hover {
-  background: var(--accent-500);
+@media (hover: hover) {
+  .backup-retention-save:hover {
+    background: var(--accent-500);
+  }
 }
 </style>

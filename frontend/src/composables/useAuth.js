@@ -1,6 +1,7 @@
 import { ref, readonly } from 'vue'
 import { fetchApiResponse } from '@/composables/useApi'
-import { showRateLimitToast } from '@/composables/handle429'
+import { extractDetailCode } from '@/composables/apiClient'
+import { rateLimitCode } from '@/composables/handle429'
 import { STORAGE_KEYS } from '@/constants/storage'
 
 const user = ref(null)
@@ -8,24 +9,6 @@ const isAuthenticated = ref(false)
 const mustChangePassword = ref(false)
 
 let refreshInterval = null
-
-/**
- * Normalise the FastAPI `detail` payload into a stable code that
- * resolveApiError() can map to an i18n string.
- *
- * - Pydantic 422 returns `detail` as an array of validation entries
- *   ({ type, loc, msg, input }). `new Error([{...}])` would stringify
- *   the array to "[object Object]" and surface that to the user — see
- *   common.apiError.validation_failed for the i18n target instead.
- * - 4xx/5xx with a string `detail` keep the existing contract
- *   (account_disabled, current_password_invalid, ...).
- */
-export function extractDetailCode(data, fallback) {
-  const detail = data?.detail
-  if (typeof detail === 'string' && detail) return detail
-  if (Array.isArray(detail) && detail.length > 0) return 'validation_failed'
-  return fallback
-}
 
 /**
  * Authentication composable.
@@ -80,11 +63,14 @@ export function useAuth() {
     }
 
     if (res.status === 429) {
-      showRateLimitToast(res)
+      // A blocked sign-in keeps its reason; a plain rate limit is the toast.
+      throw new Error(rateLimitCode(res, data))
     }
 
     if (!res.ok) {
-      throw new Error(extractDetailCode(data, 'invalid_credentials'))
+      // A server failure is not a wrong password.
+      const fallback = res.status >= 500 ? `http_${res.status}` : 'invalid_credentials'
+      throw new Error(extractDetailCode(data, fallback))
     }
 
     if (data.scope === 'admin') {
@@ -198,12 +184,12 @@ export function useAuth() {
       redirectOn401: false,
     })
 
-    if (res.status === 429) {
-      showRateLimitToast(res)
-    }
-
-    const data = await res.json()
-    if (!res.ok) throw new Error(extractDetailCode(data, 'unknown'))
+    // A proxy page is not JSON: as an error it reads as its bare status, and
+    // as a "success" it proves nothing, so it is not one.
+    const data = await res.json().catch(() => null)
+    if (res.status === 429) throw new Error(rateLimitCode(res, data))
+    if (!res.ok) throw new Error(extractDetailCode(data, `http_${res.status}`))
+    if (!data) throw new Error('unexpected')
 
     mustChangePassword.value = false
     return data

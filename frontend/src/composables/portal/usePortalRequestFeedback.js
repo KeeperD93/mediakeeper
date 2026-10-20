@@ -1,4 +1,5 @@
 import { useI18n } from 'vue-i18n'
+import { resolveApiError } from '@/composables/useApi'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 
@@ -31,10 +32,14 @@ export function usePortalRequestFeedback() {
       }
       return
     }
-    // errorCode (thrown by apiFetch) wins over res.detail/error.
+    // errorCode (thrown by apiFetch) wins over res.detail/error. A refusal of
+    // the portal gets its own words, another known error the shared ones;
+    // anything else (no answer, bare status) says the request did not go out.
     const code = errorCode || result?.detail || result?.error
     const key = code ? `portal.request.errors.${code}` : null
-    showToast(key && t(key) !== key ? t(key) : code || t('common.error'), TOAST_TYPE.ERR)
+    const message =
+      key && t(key) !== key ? t(key) : resolveApiError(code, 'portal.request.errors.failed')
+    showToast(message, TOAST_TYPE.ERR)
   }
 
   return { presentRequestResult }

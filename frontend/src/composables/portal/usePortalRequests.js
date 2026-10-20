@@ -19,19 +19,22 @@ export function usePortalRequests() {
     perPage = DEFAULT_PAGE_SIZE,
     sort = REQUEST_SORT.RECENT,
     mediaType = null,
+    hideAvailable = false,
   } = {}) {
     const params = new URLSearchParams({ page, per_page: perPage, sort })
     if (status) params.set('status', status)
     if (mediaType) params.set('type', mediaType)
+    if (hideAvailable) params.set('hide_available', 'true')
     try {
       const res = await apiGet(`/api/portal/requests/admin?${params}`)
       if (!res) return
       requests.value = res.items || []
       total.value = res.total || 0
-    } catch {
-      // Backend may not be migrated yet — fail to an empty list.
+    } catch (e) {
+      // Never leave the previous filter's rows on screen; the caller reports it.
       requests.value = []
       total.value = 0
+      throw e
     }
   }
 
@@ -39,8 +42,12 @@ export function usePortalRequests() {
     return await apiPost('/api/portal/requests', data)
   }
 
-  async function updateRequestStatus(requestId, status, reason = null) {
-    const res = await apiPut(`/api/portal/requests/${requestId}/status`, { status, reason })
+  async function updateRequestStatus(requestId, status, reason = null, { force = false } = {}) {
+    const res = await apiPut(`/api/portal/requests/${requestId}/status`, {
+      status,
+      reason,
+      force,
+    })
     // Patch the batch-status cache so the home / profile grids reflect the
     // new state immediately rather than waiting for the 30 s TTL — fixes
     // the "statut desync accueil ↔ profil" bug.

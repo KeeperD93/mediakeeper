@@ -28,16 +28,16 @@ const SAMPLE_SEASONS = [
     name: 'Saison 1',
     episodes: [
       { id: 'e1', episode_number: 1, name: 'Pilot' },
-      { id: 'e2', episode_number: 2, name: 'Half Loop' },
-      { id: 'e3', episode_number: 3, name: 'In Perpetuity' },
+      { id: 'e2', episode_number: 2, name: 'Second Episode' },
+      { id: 'e3', episode_number: 3, name: 'Third Episode' },
     ],
   },
   {
     season_number: 2,
     name: 'Saison 2',
     episodes: [
-      { id: 'e4', episode_number: 1, name: 'Hello, Ms. Cobel' },
-      { id: 'e5', episode_number: 2, name: 'Goodbye, Mrs. Selvig' },
+      { id: 'e4', episode_number: 1, name: 'Season Two Opener' },
+      { id: 'e5', episode_number: 2, name: 'Season Two Follow-up' },
     ],
   },
 ]
@@ -101,5 +101,18 @@ describe('TicketSeasonPicker', () => {
     const w = mount(TicketSeasonPicker, { props: { seriesId: 'no-such-series' } })
     await flushPromises()
     expect(w.text()).toContain('portal.tickets.seasonPicker.empty')
+  })
+
+  it('names each season checkbox and opens its episodes from the keyboard', async () => {
+    const w = await mountPicker()
+    const toggle = () => w.findAll('button.tsp-chevron')[0]
+
+    expect(w.findAll('.tsp-season-header input')[0].attributes('aria-label')).toBe('Saison 1')
+    expect(toggle().attributes('aria-expanded')).toBe('false')
+
+    await toggle().trigger('click')
+
+    expect(toggle().attributes('aria-expanded')).toBe('true')
+    expect(w.findAll('.tsp-episode')).toHaveLength(3)
   })
 })

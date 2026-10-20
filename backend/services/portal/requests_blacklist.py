@@ -1,13 +1,16 @@
 """Request blacklist — 3-strike auto-block helpers + admin CRUD.
 
 Extracted from ``requests.py`` (file-size rule). The 3-strike rule fires
-from ``update_request_status`` in requests.py and delegates here.
+from ``update_request_status`` in requests_status.py and delegates here.
 """
 import logging
-from sqlalchemy import select, func
+from datetime import datetime, timezone
+
+from sqlalchemy import select, func, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.requests import REQUEST_REJECTED
 from models.user import User
 from models.portal.profile import UserProfile
 from models.portal.request import MediaRequest, RequestBlacklist
@@ -60,11 +63,13 @@ async def blacklisted_tmdb_ids(
 async def reject_count(
     db: AsyncSession, tmdb_id: int, media_type: str,
 ) -> int:
+    """Rejections still in play: those archived by an unblock no longer count."""
     row = await db.execute(
         select(func.count(MediaRequest.id)).where(
             MediaRequest.tmdb_id == tmdb_id,
             MediaRequest.media_type == media_type,
-            MediaRequest.status == "rejected",
+            MediaRequest.status == REQUEST_REJECTED,
+            MediaRequest.archived_at.is_(None),
         )
     )
     return int(row.scalar() or 0)
@@ -167,18 +172,20 @@ async def unblock_media(db: AsyncSession, blacklist_id: int) -> dict:
         return {"error": "not_found"}
     tmdb_id, media_type = bl.tmdb_id, bl.media_type
     await db.delete(bl)
-    # Reset existing rejected rows so the 3-strike counter restarts.
-    # We flag them as ``rejected_cleared`` by nulling the reject_reason; the
-    # status stays rejected for history but reject_count() still totals them.
-    # Simpler: purge the rejected rows so the media gets a clean slate.
-    from sqlalchemy import delete
+    # Archive the media's rejections: the 3-strike counter restarts from a
+    # clean slate while totals and statistics keep them. ``updated_at`` is
+    # kept so the unblock doesn't count as this week's rejections.
     await db.execute(
-        delete(MediaRequest).where(
+        update(MediaRequest)
+        .where(
             MediaRequest.tmdb_id == tmdb_id,
             MediaRequest.media_type == media_type,
-            MediaRequest.status == "rejected",
+            MediaRequest.status == REQUEST_REJECTED,
+            MediaRequest.archived_at.is_(None),
         )
+        .values(archived_at=datetime.now(timezone.utc), updated_at=MediaRequest.updated_at)
+        .execution_options(synchronize_session="fetch")
     )
     await db.commit()
-    logger.info("[BLACKLIST] unblocked %s:%s (+ purged rejected history)", media_type, tmdb_id)
+    logger.info("[BLACKLIST] unblocked %s:%s (+ archived rejected history)", media_type, tmdb_id)
     return {"success": True}

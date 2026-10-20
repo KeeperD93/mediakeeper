@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.portal.chat import ChatMessage
 from models.portal.profile import UserProfile
 from services.portal._display_name import resolve_display_name
+from services.portal.admin_users_constants import ROLE_ADMIN
 
 
 async def chat_user_display_name(
@@ -30,7 +31,7 @@ async def chat_user_display_name(
         return resolve_display_name(None, user_id, lang)
     display_name, must_set, role = row
     effective = None if must_set else display_name
-    return resolve_display_name(effective, user_id, lang, is_admin=role == "admin")
+    return resolve_display_name(effective, user_id, lang, is_admin=role == ROLE_ADMIN)
 
 
 def serialize_message(m: ChatMessage, user_name: str | None = None) -> dict:

@@ -17,6 +17,7 @@ from services.portal.avatars import resolve_avatar_url
 from services.portal.profiles import (
     update_profile, serialize_profile_with_effective_lang,
 )
+from services.portal.admin_users_constants import ROLE_ADMIN
 
 router = APIRouter(prefix="/profiles", tags=["portal-profiles"])
 
@@ -233,7 +234,7 @@ async def search_users(
         .where(UserProfile.account_active.is_(True))
         .where(UserProfile.deleted_at.is_(None))
         .where(UserProfile.is_public.is_(True))
-        .where(UserProfile.role != "admin")
+        .where(UserProfile.role != ROLE_ADMIN)
     )
     if needle:
         stmt = stmt.where(or_(
@@ -271,7 +272,7 @@ async def get_profile(
             UserProfile.id == profile_id,
             UserProfile.is_public.is_(True),
             UserProfile.account_active.is_(True),
-            UserProfile.role != "admin",
+            UserProfile.role != ROLE_ADMIN,
         )
     )).scalar_one_or_none()
     if not row:

@@ -77,7 +77,7 @@
             <button
               type="button"
               class="lfm-btn lfm-btn--primary"
-              :disabled="!canSubmit"
+              :disabled="!canSubmit || busy"
               @click="submit"
             >
               {{ $t('portal.lists.form.save') }}
@@ -100,6 +100,8 @@ const props = defineProps({
   open: { type: Boolean, default: false },
   initial: { type: Object, default: () => ({}) },
   mode: { type: String, default: 'create' },
+  // The page is saving: no second send (a double click made two lists).
+  busy: { type: Boolean, default: false },
 })
 const emit = defineEmits(['close', 'submit'])
 
@@ -142,7 +144,8 @@ function close() {
 }
 
 function submit() {
-  if (!canSubmit.value) return
+  // A click during the closing fade, after a fast save, must not send again.
+  if (!props.open || !canSubmit.value) return
   emit('submit', { ...local })
 }
 

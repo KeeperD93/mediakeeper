@@ -23,16 +23,28 @@
         </div>
         <p v-if="currentItem?.overview" class="pt-eh-overview">{{ currentItem.overview }}</p>
         <div class="pt-eh-actions">
-          <!-- The hero is informational, not a launch CTA: posters in
-               the row below cover both "Lancer" (available) and
-               "Demander" (missing). Hero keeps the trailer popup +
-               info button. -->
-          <button v-if="trailer" class="pt-eh-btn pt-eh-btn--trailer" @click="openLightbox">
+          <a
+            v-if="playUrl"
+            :href="playUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="pt-eh-btn pt-eh-btn--play"
+          >
+            <img src="/assets/icons/emby.svg" alt="" class="pt-eh-btn-emby" />
+            {{ $t('portal.hero.play') }}
+          </a>
+          <button
+            v-if="trailer"
+            class="pt-eh-btn pt-eh-btn--trailer"
+            type="button"
+            @click="openLightbox"
+          >
             <Video :size="20" />
             {{ $t('portal.detail.watchTrailer') }}
           </button>
           <button
             class="pt-eh-btn pt-eh-btn--info pt-eh-btn--icon"
+            type="button"
             :aria-label="$t('portal.moreInfo')"
             @click="emit('detail', currentItem)"
           >
@@ -57,6 +69,7 @@
         <button
           v-if="showSeeMoreCard"
           class="pt-eh-seemore"
+          type="button"
           @click="$router.push({ name: 'portal-category', params: { type: 'recently-added' } })"
         >
           <img src="/assets/icons/emby.svg" alt="" class="pt-eh-seemore-logo" />
@@ -76,6 +89,7 @@
 
       <button
         class="pt-carousel-arrow pt-carousel-arrow--left"
+        type="button"
         :class="{ 'pt-carousel-arrow--visible': canScrollLeft }"
         :aria-label="$t('common.previous')"
         @click="scrollTrack(-1)"
@@ -84,6 +98,7 @@
       </button>
       <button
         class="pt-carousel-arrow pt-carousel-arrow--right"
+        type="button"
         :class="{ 'pt-carousel-arrow--visible': canScrollRight }"
         :aria-label="$t('common.next')"
         @click="scrollTrack(1)"
@@ -99,6 +114,8 @@ import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import MediaCard from './MediaCard.vue'
 import TrailerLightbox from './TrailerLightbox.vue'
 import { useTrailer } from '@/composables/portal/useTrailer'
+import { usePrefersReducedMotion } from '@/composables/usePrefersReducedMotion'
+import { safeHref } from '@/utils/safeUrl'
 import { ChevronLeft, ChevronRight, Info, Video } from 'lucide-vue-next'
 
 import '@/assets/styles/portal/emby-recent-hero-hero.css'
@@ -122,9 +139,10 @@ const canScrollLeft = ref(false)
 const canScrollRight = ref(false)
 const isVisible = ref(false)
 const lightboxOpen = ref(false)
+const reducedMotion = usePrefersReducedMotion()
 
 // Trailer-URL resolution only — never mounts a YouTube IFrame in the
-// hero itself. ``resolve`` populates ``trailer`` so the "Bande-annonce"
+// hero itself. ``resolve`` populates ``trailer`` so the trailer
 // button can show / hide based on availability; clicking the button
 // opens the fullscreen lightbox where the actual <iframe> finally
 // lives. Module-level cache keeps the per-item resolve to one request.
@@ -134,6 +152,7 @@ const visibleItems = computed(() => props.items.slice(0, MAX_VISIBLE))
 const showSeeMoreCard = computed(() => props.items.length > 0)
 const heroPool = computed(() => visibleItems.value)
 const currentItem = computed(() => heroPool.value[currentIndex.value] || null)
+const playUrl = computed(() => safeHref(currentItem.value?.emby_url))
 
 const bgStyle = computed(() => {
   const bg = currentItem.value?.backdrop || currentItem.value?.poster_url || ''
@@ -147,6 +166,7 @@ function nextItem() {
 }
 function startTimer() {
   stopTimer()
+  if (reducedMotion.value) return
   rotateTimer = setInterval(() => {
     if (heroPool.value.length > 1 && !lightboxOpen.value) nextItem()
   }, ROTATE_MS)
@@ -210,7 +230,9 @@ function scrollTrack(dir) {
   if (step <= 0) return
 
   const visible = Math.max(1, Math.floor(trackRect.width / step))
-  el.scrollBy({ left: dir * visible * step, behavior: 'smooth' })
+  // No behavior: the track's stylesheet picks it (smooth, instant under
+  // reduced motion).
+  el.scrollBy({ left: dir * visible * step })
 }
 
 watch(
@@ -225,6 +247,11 @@ watch(
     nextTick(updateArrows)
   },
 )
+// The reduced-motion setting can change while the page is open.
+watch(reducedMotion, reduced => {
+  if (reduced) stopTimer()
+  else if (isVisible.value && !lightboxOpen.value) startTimer()
+})
 
 let resizeObs = null
 let visibilityObs = null
@@ -237,7 +264,7 @@ onMounted(() => {
   // Lazy lifecycle: the rotation + the trailer-URL resolve only run
   // while the section is on screen. The trailer subsystem stays
   // limited to a URL lookup — no YouTube IFrame is mounted until the
-  // user explicitly clicks the "Bande-annonce" button.
+  // user explicitly clicks the trailer button.
   if (sectionRef.value && typeof IntersectionObserver === 'function') {
     visibilityObs = new IntersectionObserver(
       ([entry]) => {

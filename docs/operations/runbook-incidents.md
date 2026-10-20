@@ -88,10 +88,12 @@ mix scenarios.
 3. **Identify the most recent valid backup ZIP**. Check the manifest
    first (does not extract the secret material):
    ```bash
-   unzip -p <backup>.zip manifest.json | jq '.version, .components.pg_dump, .encryption_key.status'
+   unzip -p <backup>.zip manifest.json | jq '.version, .components.pg_dump, .failed, .encryption_key.status'
    ```
-   Expect `"1.1"`, `true`, `"included"`. If any of those are wrong,
-   pick the previous ZIP and try again.
+   Expect `"1.1"`, `true`, `[]` (or `["logs"]`) and `"included"`. On an
+   older archive `.failed` prints `null`: check that
+   `unzip -l <backup>.zip` lists `pg_dump.sql`. If any of those are
+   wrong, pick the previous ZIP and try again.
 
 ### 2.3 Recovery procedure
 

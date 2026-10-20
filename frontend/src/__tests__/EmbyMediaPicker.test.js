@@ -29,31 +29,46 @@ describe('EmbyMediaPicker', () => {
     expect(w.find('.emp-selected').exists()).toBe(false)
   })
 
+  // The report form leaves Escape to an open combobox: the picker must say so.
+  it('is a combobox that says when its list is open, and Escape closes it', async () => {
+    const w = mount(EmbyMediaPicker, { props: { modelValue: null } })
+    const input = w.find('.emp-input')
+    expect(input.attributes('role')).toBe('combobox')
+
+    await input.trigger('focus')
+    expect(input.attributes('aria-expanded')).toBe('true')
+
+    await input.trigger('keydown', { key: 'Escape' })
+    expect(input.attributes('aria-expanded')).toBe('false')
+  })
+
   it('renders the selected hit summary when modelValue is set', () => {
     const w = mount(EmbyMediaPicker, {
       props: {
         modelValue: {
           id: 'emby-1',
           type: 'movie',
-          title: 'Interstellar',
+          title: 'Sample Movie',
           poster_id: 'emby-1',
-          year: '2014',
+          year: '2020',
         },
       },
     })
     expect(w.find('.emp-selected').exists()).toBe(true)
-    expect(w.text()).toContain('Interstellar')
-    expect(w.text()).toContain('2014')
+    expect(w.text()).toContain('Sample Movie')
+    expect(w.text()).toContain('2020')
   })
 
   it('debounces the search and calls the autocomplete endpoint', async () => {
     apiGet.mockResolvedValueOnce({
-      items: [{ id: 'mov-1', type: 'movie', title: 'Inception', poster_id: 'mov-1', year: '2010' }],
+      items: [
+        { id: 'mov-1', type: 'movie', title: 'Sample Film', poster_id: 'mov-1', year: '2019' },
+      ],
     })
 
     const w = mount(EmbyMediaPicker, { props: { modelValue: null } })
     const input = w.find('.emp-input')
-    await input.setValue('inc')
+    await input.setValue('sam')
 
     // The debounce window must elapse before the request fires.
     expect(apiGet).not.toHaveBeenCalled()
@@ -62,16 +77,18 @@ describe('EmbyMediaPicker', () => {
 
     expect(apiGet).toHaveBeenCalledOnce()
     expect(apiGet.mock.calls[0][0]).toContain('/api/portal/tickets/emby/search')
-    expect(apiGet.mock.calls[0][0]).toContain('q=inc')
+    expect(apiGet.mock.calls[0][0]).toContain('q=sam')
   })
 
   it('emits update:modelValue with the picked hit on click', async () => {
     apiGet.mockResolvedValueOnce({
-      items: [{ id: 'mov-1', type: 'movie', title: 'Inception', poster_id: 'mov-1', year: '2010' }],
+      items: [
+        { id: 'mov-1', type: 'movie', title: 'Sample Film', poster_id: 'mov-1', year: '2019' },
+      ],
     })
 
     const w = mount(EmbyMediaPicker, { props: { modelValue: null } })
-    await w.find('.emp-input').setValue('inc')
+    await w.find('.emp-input').setValue('sam')
     vi.advanceTimersByTime(260)
     await flushPromises()
 
@@ -122,13 +139,15 @@ describe('EmbyMediaPicker', () => {
 
   it('still selects the hit when mousedown lands on a suggestion', async () => {
     apiGet.mockResolvedValueOnce({
-      items: [{ id: 'mov-1', type: 'movie', title: 'Inception', poster_id: 'mov-1', year: '2010' }],
+      items: [
+        { id: 'mov-1', type: 'movie', title: 'Sample Film', poster_id: 'mov-1', year: '2019' },
+      ],
     })
     const w = mount(EmbyMediaPicker, {
       props: { modelValue: null },
       attachTo: document.body,
     })
-    await w.find('.emp-input').setValue('inc')
+    await w.find('.emp-input').setValue('sam')
     vi.advanceTimersByTime(260)
     await flushPromises()
 

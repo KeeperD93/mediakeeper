@@ -69,7 +69,7 @@ Most tools in this space do one job - request management, library stats, or medi
 
 - **Achievements & XP**: earn 160+ trophies across many families, level up an XP system, and compete on a monthly leaderboard.
 - **Shared movie nights**: schedule events in a virtual cinema room, with marathon mode and realtime presence.
-- **Request Portal**: viewers ask for films, shows or seasons; quotas, blacklist, auto-cleanup and admin moderation are wired in, not a bare contact form.
+- **Request Portal**: viewers ask for films, shows or seasons; quotas, blacklist, auto-archiving and admin moderation are wired in, not a bare contact form.
 - **Single container**: everything runs from one Docker image with embedded PostgreSQL, no external database to provision or back up separately.
 - **Admin depth**: live dashboard, duplicate detection, library health checks, a missing-season watchlist and a desktop Media Manager.
 - **User management**: give each user an Emby access window that expires on a date you choose (or never), with one-click extensions and optional auto-disable of lapsed accounts on both Emby and MediaKeeper; plus roles, soft-delete and an audit log.
@@ -112,7 +112,7 @@ The highlights are the short version. Here is the full scope by surface - the fi
 - **Media Manager** (desktop): browse, move, rename with TMDB help, tag and dedupe on disk
 - **Subtitles**: OpenSubtitles batch download, plus removal of unwanted tracks on disk
 - **Users**: Emby access windows with dated expiry, roles & permissions, requests quota, soft-delete, audit log and per-user GDPR export
-- **Requests**: moderate viewer requests with filters, bulk actions and configurable auto-cleanup
+- **Requests**: moderate viewer requests with filters, bulk actions and configurable auto-archiving
 - **Notifications**: Discord notifications for several kinds of events. More integrations will be added later.
 - **Configuration**: a panel of tools to manage/configure your user request portal.
 

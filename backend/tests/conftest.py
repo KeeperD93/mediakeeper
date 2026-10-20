@@ -12,7 +12,7 @@ import pytest_asyncio
 from unittest.mock import AsyncMock, patch
 from pathlib import Path
 
-# Forcer les variables d'env AVANT tout import applicatif
+# Set the environment BEFORE any application import.
 os.environ["JWT_SECRET_KEY"] = "test-secret-key-for-pytest-only-012345"
 os.environ["JWT_EXPIRE_MINUTES"] = "60"
 os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
@@ -21,20 +21,21 @@ BACKEND_ROOT = Path(__file__).resolve().parent.parent
 if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
-from httpx import AsyncClient, ASGITransport
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker
+from httpx import AsyncClient, ASGITransport  # noqa: E402
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession  # noqa: E402
+from sqlalchemy.orm import sessionmaker  # noqa: E402
 
-import models  # noqa: F401  # Ensure every model is registered in Base.metadata
+import models  # noqa: F401, E402  # Ensure every model is registered in Base.metadata
 # Importing ``main`` at conftest load time guarantees that every top-level
 # model file (security, healthcheck, scheduler…) is imported before
 # ``setup_db`` runs ``Base.metadata.create_all``. Without this, isolated
 # test runs (``pytest -k single_test``) hit ``no such table`` errors
 # because ``models/__init__.py`` only re-exports the portal submodule.
 import main  # noqa: F401, E402
-from models.base import Base
-from models.user import User
-from core.security import hash_password
+from models.base import Base  # noqa: E402
+from models.portal.profile import UserProfile  # noqa: E402
+from models.user import User  # noqa: E402
+from core.security import hash_password  # noqa: E402
 
 
 # Engine SQLite async for tests.
@@ -98,6 +99,15 @@ def _reset_rate_limiter():
     limiter.reset()
     yield
     limiter.reset()
+
+
+@pytest.fixture(autouse=True)
+def _isolate_tmdb_key(monkeypatch):
+    """No TMDB key unless a test sets one: a key in the environment, or one
+    cached by an earlier test, would switch on the TMDB calls (and the adult
+    filter of request creation) for every test."""
+    monkeypatch.delenv("TMDB_API_KEY", raising=False)
+    monkeypatch.setattr("services.tmdb._cached_key", "")
 
 
 @pytest.fixture(autouse=True)
@@ -172,6 +182,34 @@ async def admin_user(db_session: AsyncSession):
     await db_session.commit()
     await db_session.refresh(user)
     return user
+
+
+@pytest.fixture(scope="session")
+def placeholder_password_hash() -> str:
+    """Hashed once per run (bcrypt costs ~0.25 s): ``make_user`` users never log in with it."""
+    return hash_password("Irrelevant123!")
+
+
+@pytest.fixture
+def make_user(db_session: AsyncSession, placeholder_password_hash: str):
+    """Return an async factory for an active user; with ``role``, the user also
+    gets a portal profile with that role."""
+    async def _make(username: str, *, role: str | None = None) -> User:
+        user = User(
+            username=username,
+            hashed_password=placeholder_password_hash,
+            is_active=True,
+            must_change_password=False,
+        )
+        db_session.add(user)
+        await db_session.commit()
+        if role is not None:
+            db_session.add(UserProfile(
+                user_id=user.id, display_name=username, role=role, account_active=True,
+            ))
+            await db_session.commit()
+        return user
+    return _make
 
 
 @pytest.fixture

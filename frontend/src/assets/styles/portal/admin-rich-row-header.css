@@ -1,13 +1,11 @@
-/* Header + stats + toolbar for the premium "admin rich row" pages.
-   Row styles live in admin-rich-row.css. Namespace: .arr. */
+/* Header + toolbar for the premium "admin rich row" pages; the stats bar
+   and the rows have their own sheets. Namespace: .arr.
+   Mobile-first: phones get a denser layout, tablets up the full one. */
 
 .arr-page {
   position: relative;
-  padding: 1.75rem 1.25rem 3rem;
-  /* Flat base tint on the element itself. The mesh aurora lives on a
-     fixed-position overlay (see ::before) so it stays with the viewport
-     rather than the element — the bottom halo never clips against the
-     page edge when the list is short. */
+  /* Top, and bottom on phones, come from PortalLayout's nav clearance. */
+  padding: 1.75rem clamp(0.75rem, 3vw, 1.25rem) 3rem;
   background: var(--portal-veil-page);
   min-height: calc(100vh - 64px);
   /* Extend the flat tint beyond the padding box so any overflow of an
@@ -15,18 +13,17 @@
   box-shadow: 0 0 0 100vmax var(--portal-veil-page);
   clip-path: inset(-100vmax);
 }
-/* Halo/mesh aurora retiré à la demande — fond plat uniquement. */
 
 .arr-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.75rem;
   flex-wrap: wrap;
 }
 .arr-title {
-  font-size: var(--portal-text-2xl);
+  font-size: clamp(var(--portal-text-xl), 2.5vw + 0.5rem, var(--portal-text-2xl));
   font-weight: var(--portal-font-black);
   margin: 0;
   letter-spacing: var(--portal-tracking-tight);
@@ -40,131 +37,107 @@
   width: 8px;
   height: 26px;
   border-radius: 2px;
-  background: linear-gradient(180deg, var(--accent-400), var(--accent-600));
-  box-shadow: 0 0 18px color-mix(in srgb, var(--accent-500) 60%, transparent);
+  background: linear-gradient(180deg, var(--portal-accent-400), var(--portal-accent-600));
+  box-shadow: 0 0 18px color-mix(in srgb, var(--portal-accent-500) 60%, transparent);
 }
 .arr-sub {
-  font-size: var(--portal-text-sm);
+  font-size: var(--portal-text-xs);
   color: rgb(255, 255, 255, 0.52);
-  margin: 10px 0 0;
+  margin: 4px 0 0;
   max-width: 60ch;
 }
-
-/* ── Top stats bar ─────────────────────────────────────────── */
-.arr-stats {
-  display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  margin-bottom: 1.5rem;
-}
-.arr-stat {
-  position: relative;
-  overflow: hidden;
-  padding: 16px 18px;
-  background: linear-gradient(135deg, rgb(255, 255, 255, 0.03), rgb(255, 255, 255, 0.015));
-  border: 1px solid var(--portal-border-subtle);
-  border-radius: var(--portal-radius-lg);
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  transition:
-    transform 0.22s ease,
-    border-color 0.22s ease;
-}
-.arr-stat::before {
-  content: '';
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 4px;
-  background: linear-gradient(
-    to bottom,
-    currentColor,
-    color-mix(in srgb, currentColor 50%, transparent)
-  );
-  box-shadow: 0 0 16px currentColor;
-  opacity: 0.85;
-}
-.arr-stat::after {
-  content: '';
-  position: absolute;
-  inset: 0 0 0 50%;
-  background: radial-gradient(
-    ellipse at top right,
-    color-mix(in srgb, currentColor 18%, transparent),
-    transparent 60%
-  );
-  pointer-events: none;
-}
-@media (hover: hover) {
-  .arr-stat:hover {
-    transform: translateY(-2px);
-    border-color: color-mix(in srgb, currentColor 40%, transparent);
+@media (min-width: 768px) {
+  .arr-head {
+    margin-bottom: 1.5rem;
+  }
+  .arr-sub {
+    font-size: var(--portal-text-sm);
+    margin-top: 10px;
   }
 }
-.arr-stat--pending {
-  color: #818cf8;
-}
-.arr-stat--approved {
-  color: var(--portal-color-success-light);
-}
-.arr-stat--available {
-  color: #22d3ee;
-}
-.arr-stat--rejected {
-  color: var(--portal-color-error-light);
-}
-.arr-stat-value {
-  font-size: var(--portal-text-2xl);
-  font-weight: var(--portal-font-black);
-  color: var(--portal-text-primary);
-  font-family: var(--portal-font-display);
-  line-height: var(--portal-lh-tight);
-  letter-spacing: var(--portal-tracking-tight);
-}
-.arr-stat-label {
-  font-size: var(--portal-text-3xs);
-  font-weight: var(--portal-font-extrabold);
-  text-transform: uppercase;
-  letter-spacing: var(--portal-tracking-eyebrow);
-  color: currentColor;
-  margin-top: 6px;
-}
-.arr-stat-total {
-  font-size: var(--portal-text-2xs);
-  font-weight: var(--portal-font-medium);
-  color: rgb(255, 255, 255, 0.42);
-  margin-top: 4px;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.01em;
-}
 
-/* ── Toolbar: filter pills + sort ───────────────────────────── */
+/* Toolbar: filters + sort */
 .arr-toolbar {
   display: flex;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+@media (min-width: 768px) {
+  .arr-toolbar {
+    margin-bottom: 1.25rem;
+  }
+}
+/* Phones: the queue's three menus (status, type, sort) at their natural
+   width, wrapping as needed, then the "hide available" switch on a line of
+   its own. Tablets up: the pills, the switch among them, the sort on the
+   right. */
+.arr-filter-menus,
+.arr-toolbar > .arr-pills {
+  display: contents;
+}
+/* The sort shows before the switch while the tab order keeps the DOM's
+   (switch, then sort): accepted, both stay one Tab apart. */
+.arr-filter-menus > .arr-sort,
+.arr-toolbar > .arr-sort {
+  order: -1;
+}
+.arr-switch-line {
+  flex: 1 1 100%;
+  display: flex;
+}
+.arr-pill--filter {
+  display: none;
+}
+@media (min-width: 768px) {
+  .arr-filter-menus {
+    display: none;
+  }
+  .arr-toolbar > .arr-pills {
+    display: flex;
+  }
+  .arr-toolbar > .arr-sort {
+    order: 0;
+  }
+  .arr-switch-line {
+    display: contents;
+  }
+  .arr-pill--filter {
+    display: inline-block;
+  }
 }
 .arr-pills {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px 6px;
   flex: 1;
   align-items: center;
 }
+/* Thin divider between the pill groups, tablets up. */
 .arr-pills-sep {
-  display: inline-block;
-  width: 1px;
-  height: 22px;
-  background: var(--portal-surface-5);
-  margin: 0 4px;
+  display: none;
 }
+@media (min-width: 768px) {
+  .arr-pills {
+    gap: 6px;
+  }
+  .arr-pills-sep {
+    display: block;
+    width: 1px;
+    height: 22px;
+    background: var(--portal-surface-5);
+    margin: 0 4px;
+  }
+}
+/* Compact everywhere; on phones an invisible touch-sized strip centred on
+   each pill widens its tap area (pill rows are 8px apart for it). */
 .arr-pill {
+  position: relative;
   padding: 7px 14px;
   min-height: 36px;
   border-radius: var(--portal-radius-pill);
-  background: rgb(255, 255, 255, 0.03);
+  background: var(--portal-surface-1);
   border: 1px solid var(--portal-border-default);
   color: rgb(255, 255, 255, 0.6);
   font-size: var(--portal-text-xs);
@@ -172,14 +145,36 @@
   letter-spacing: var(--portal-tracking-wide);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: all 0.18s;
+  transition:
+    background 0.18s,
+    border-color 0.18s,
+    color 0.18s,
+    box-shadow 0.18s,
+    transform 0.18s;
   backdrop-filter: var(--portal-blur-xs);
 }
+.arr-pill::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: var(--portal-touch-target);
+  transform: translateY(-50%);
+}
+@media (min-width: 768px) {
+  .arr-pill::after {
+    content: none;
+  }
+}
 .arr-pill--active {
-  background: linear-gradient(135deg, rgb(var(--accent-rgb), 0.22), rgb(var(--accent-rgb), 0.1));
-  border-color: var(--accent-500);
+  background: linear-gradient(
+    135deg,
+    rgb(var(--portal-accent-500-rgb), 0.22),
+    rgb(var(--portal-accent-500-rgb), 0.1)
+  );
+  border-color: var(--portal-accent-500);
   color: var(--portal-text-primary);
-  box-shadow: var(--mk-pill-shadow);
+  box-shadow: var(--portal-shadow-pill);
 }
 @media (hover: hover) {
   .arr-pill:hover:not(.arr-pill--active) {
@@ -188,22 +183,45 @@
     transform: translateY(-1px);
   }
 }
+/* A pill-shaped label holding an on/off switch; the whole pill toggles it. */
+.arr-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
 
+/* Menus, with .mk-select-chevron: the look of the per-page menu. The chevron
+   utility owns padding-right and the background image, hence padding-left
+   and background-color only here. A native menu takes no invisible tap
+   area: touch-sized on phones, compact from tablets up. */
 .arr-sort {
-  padding: 8px 12px;
-  min-height: 36px;
-  background: rgb(255, 255, 255, 0.03);
+  padding-block: 8px;
+  padding-left: 12px;
+  min-height: var(--portal-touch-target);
+  background-color: var(--portal-surface-3);
   border: 1px solid var(--portal-border-default);
-  border-radius: var(--radius-input);
-  color: rgb(255, 255, 255, 0.72);
+  /* main.css overrides this on every select (admin input radius, !important). */
+  border-radius: var(--portal-radius-xs);
+  color: var(--portal-text-primary);
   font-size: var(--portal-text-xs);
   font-weight: var(--portal-font-bold);
   cursor: pointer;
   font-family: inherit;
-  backdrop-filter: var(--portal-blur-xs);
+}
+@media (min-width: 768px) {
+  .arr-sort {
+    min-height: 36px;
+  }
+}
+/* iOS zooms the page into a field under 16px it focuses: 16px there only,
+   other devices keep the compact menus. */
+@supports (-webkit-touch-callout: none) {
+  .arr-sort {
+    font-size: var(--portal-text-md);
+  }
 }
 .arr-sort:focus {
-  outline: 2px solid rgb(var(--accent-rgb), 0.4);
+  outline: 2px solid rgb(var(--portal-accent-500-rgb), 0.4);
   outline-offset: 1px;
 }
 /* Native <option> dropdown list (browsers ignore most styles here, but
@@ -217,7 +235,7 @@
 .arr-empty {
   text-align: center;
   padding: 4rem 1rem;
-  color: var(--text-muted);
+  color: var(--portal-text-muted-solid);
   font-size: var(--portal-text-base);
 }
 .arr-loading {

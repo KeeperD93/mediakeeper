@@ -1,11 +1,9 @@
 """Portal media request endpoints."""
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
-from core.url_safety import safe_url
 from core.i18n import get_request_locale
 from core.rate_limit import limiter, portal_user_or_ip_key
 from models.user import User
@@ -14,6 +12,8 @@ from api.portal.deps import require_admin, require_permission
 from services.portal import requests as req_svc
 from services.portal.achievements import safe_check_all_achievements_in_new_session
 from services.portal.admin import get_portal_flag
+from services.portal.image_urls import safe_image_url
+from services.portal.admin_users_constants import ROLE_ADMIN
 
 router = APIRouter(prefix="/requests", tags=["portal-requests"])
 
@@ -23,30 +23,33 @@ class CreateRequest(BaseModel):
     tmdb_id: int
     media_type: str = Field(..., pattern="^(movie|tv)$")
     title: str = Field(..., min_length=1, max_length=500)
-    year: Optional[int] = None
-    poster_url: Optional[str] = Field(None, max_length=500)
-    backdrop_url: Optional[str] = Field(None, max_length=500)
-    requested_seasons: Optional[list] = Field(default=None, max_length=100)
-    on_behalf_of: Optional[int] = None
+    year: int | None = None
+    poster_url: str | None = Field(None, max_length=500)
+    backdrop_url: str | None = Field(None, max_length=500)
+    requested_seasons: list | None = Field(default=None, max_length=100)
+    on_behalf_of: int | None = None
 
-    # Drop any non-http(s) image URL before it is stored and re-served to
-    # the community list / admin queue (background-image / <img src> sinks).
+    # Stored, then re-served to the community list and the admin queue
+    # (background-image / <img src> sinks): same rule as featured titles
+    # and lists.
     @field_validator("poster_url", "backdrop_url")
     @classmethod
-    def _safe_image_url(cls, v: Optional[str]) -> Optional[str]:
-        return safe_url(v, schemes={"http", "https"})
+    def _safe_image_url(cls, v: str | None) -> str | None:
+        return safe_image_url(v)
 
 
 class StatusUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
     status: str = Field(..., pattern="^(approved|rejected|available)$")
-    reason: Optional[str] = Field(None, max_length=500)
+    reason: str | None = Field(None, max_length=500)
+    # Mark available even though Emby does not hold the content (admin confirmed).
+    force: bool = False
 
 
 @router.get("")
 async def list_requests(
-    status_filter: Optional[str] = Query(None, alias="status"),
-    cursor: Optional[str] = None,
+    status_filter: str | None = Query(None, alias="status"),
+    cursor: str | None = None,
     limit: int = Query(25, ge=1, le=100),
     locale: str = Depends(get_request_locale),
     up: tuple[User, UserProfile] = Depends(require_permission("can_portal")),
@@ -64,11 +67,12 @@ async def list_requests(
 
 @router.get("/admin")
 async def list_requests_admin(
-    status_filter: Optional[str] = Query(None, alias="status"),
+    status_filter: str | None = Query(None, alias="status"),
     page: int = Query(1, ge=1),
     per_page: int = Query(25, ge=1, le=100),
     sort: str = Query("recent", pattern="^(recent|oldest|title)$"),
-    media_type: Optional[str] = Query(None, alias="type", pattern="^(movie|tv)$"),
+    media_type: str | None = Query(None, alias="type", pattern="^(movie|tv)$"),
+    hide_available: bool = False,
     locale: str = Depends(get_request_locale),
     _: tuple[User, UserProfile] = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
@@ -82,6 +86,7 @@ async def list_requests_admin(
         page=page,
         sort=sort,
         media_type=media_type,
+        hide_available=hide_available,
         include_sensitive=True,
         locale=locale,
     )
@@ -150,7 +155,7 @@ async def batch_status(
         raise HTTPException(status_code=422, detail="too_many_tmdb_ids")
 
     _, profile = up
-    is_admin = profile.role == "admin"
+    is_admin = profile.role == ROLE_ADMIN
     anonymize = False
     if not is_admin:
         anonymize = await get_portal_flag(db, "portal.anonymize_requests")
@@ -171,13 +176,13 @@ async def create_request(
     req_data = data.model_dump()
 
     # Admin creating on behalf of a user
-    if data.on_behalf_of and profile.role == "admin":
+    if data.on_behalf_of and profile.role == ROLE_ADMIN:
         target_user_id = data.on_behalf_of
         req_data["requested_by_admin"] = user.id
     else:
         target_user_id = user.id
 
-    is_admin = profile.role == "admin"
+    is_admin = profile.role == ROLE_ADMIN
     result = await req_svc.create_request(db, target_user_id, req_data, is_admin=is_admin)
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
@@ -209,10 +214,12 @@ async def update_status(
 ):
     user, _ = admin
     result = await req_svc.update_request_status(
-        db, request_id, data.status, user.id, data.reason
+        db, request_id, data.status, user.id, data.reason, force=data.force
     )
     if "error" in result:
-        raise HTTPException(status_code=404, detail=result["error"])
+        # 409: the content is not (verifiably) in Emby, the admin may force it.
+        status_code = 404 if result["error"] == "not_found" else 409
+        raise HTTPException(status_code=status_code, detail=result["error"])
 
     # Status flips can unlock community trophies for the original requester
     # (e.g. ambassador on `approved`). Run in the background — the admin
@@ -248,7 +255,7 @@ async def get_quota(
 ):
     user, profile = up
     result = await req_svc.get_user_quota(db, user.id)
-    if profile.role == "admin":
+    if profile.role == ROLE_ADMIN:
         result["unlimited"] = True
     return result
 

@@ -32,6 +32,7 @@ vi.mock('lucide-vue-next', () => ({
   Clock: { name: 'ClockStub', template: '<i />' },
   Info: { name: 'InfoStub', template: '<i />' },
   Plus: { name: 'PlusStub', template: '<i />' },
+  RotateCcw: { name: 'RotateCcwStub', template: '<i />' },
   Video: { name: 'VideoStub', template: '<i />' },
 }))
 

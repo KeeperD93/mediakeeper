@@ -12,10 +12,45 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ### Added
 - Mises à jour — nouvelle version signalée dans la barre latérale (désactivable).
+- Demandes — refus possible d'une demande déjà approuvée, avec motif.
+- Demandes — confirmation avant de marquer disponible un titre introuvable dans Emby.
+- Demandes — disponibilité annulable (retour en Approuvée, sans nouvelle notification).
+- Demandes — interrupteur pour masquer les disponibles dans « Tous les statuts » (mémorisé).
+
+### Changed
+- Demandes — disponibles archivées au lieu d'être supprimées, passages manuels compris (totaux conservés).
+- Blacklist — le déblocage conserve les refus dans les totaux.
+- Sauvegardes — base de données incluse par défaut dans une sauvegarde manuelle.
+- Demandes — page compacte sur téléphone, filtres en listes déroulantes.
 
 ### Fixed
 - Barre latérale — effets de survol corrigés sur écran tactile (animations réduites respectées).
 - Statistiques — temps de visionnage mesuré en continu, pauses et lecteurs inactifs exclus.
+- Demandes — passage automatique en Disponible, même sans notifications Discord.
+- Demandes — jaquette manquante rétablie (nouvelles demandes et demandes existantes).
+- Mise en avant — images conservées quand le cache d'images est activé.
+- Demandes — carte Disponibles : total cumulé corrigé.
+- Demandes — compteurs de la semaine non faussés par les images rétablies.
+- Demandes — file plus sûre : action en cours visible, double clic ignoré, échecs signalés.
+- Demandes — un statut renvoyé à l'identique (file périmée) ne notifie plus le demandeur.
+- Demandes — filtres et tri nommés pour les lecteurs d'écran, bouton « Marquer disponible ».
+- Demandes — plus de zoom à l'ouverture des menus sur téléphone.
+- Demandes — copie du titre : visible au clavier, masquée quand le navigateur l'interdit.
+- Demandes — file aux couleurs du portail après connexion (pastilles actives avec halo).
+- Sauvegardes — rétention hors limites refusée avec explication (plus de plantage).
+- Sauvegardes — un libellé accentué ne rend plus la sauvegarde introuvable.
+- Sauvegardes — chaque échec nommé, plus de message « Erreur réseau » générique.
+- Sauvegardes — sauvegarde incomplète signalée, sans purge des sauvegardes complètes.
+- Sauvegardes — restauration : parties cochées restaurées, même depuis un fichier, puis listées.
+- Sauvegardes — écran rechargé correctement après un premier chargement en échec.
+- Sauvegardes — réglage de rétention à taille tactile et nommé pour les lecteurs d'écran.
+- Sauvegardes — l'application reste réactive pendant une sauvegarde ou une restauration.
+- Sauvegardes — une sauvegarde interrompue ne laisse plus d'archive tronquée.
+- Sauvegardes — fichiers temporaires d'une sauvegarde interrompue effacés automatiquement après 24 h.
+- Sauvegardes — la liste ne plante plus si une sauvegarde disparaît entre-temps.
+- Notifications — menus : flèche dégagée du texte, plus de zoom sur téléphone.
+- Erreurs — messages lisibles et traduits (saisie refusée, démarrage, erreur serveur, limite de requêtes).
+- Confirmations — en file d'attente, sans validation involontaire (double clic, touche Entrée).
 
 ## [1.0.0-rc.8] - 2026-10-11
 

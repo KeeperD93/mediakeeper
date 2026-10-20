@@ -107,9 +107,7 @@ async def sync_index(
     return await sync_emby_tmdb_index(db)
 
 
-# ---------------------------------------------------------------------------
-# Portal-wide settings (flags). Exposed to admins only.
-# ---------------------------------------------------------------------------
+# Portal-wide settings (flags), exposed to admins only.
 
 class PortalSettingsUpdate(BaseModel):
     # Strict mode: any unknown key (e.g. a frontend typo or a stale field
@@ -134,7 +132,7 @@ class PortalSettingsUpdate(BaseModel):
         alias="requests.auto_cleanup_days",
     )
     # Chat history retention, in days (0 = keep forever). Dotted ``chat.``
-    # namespace preserved via alias, like the requests cleanup above.
+    # namespace preserved via alias, like the requests auto-archive above.
     chat_retention_days: Optional[int] = Field(
         default=None,
         ge=0,

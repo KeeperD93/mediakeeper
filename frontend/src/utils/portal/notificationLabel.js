@@ -59,6 +59,13 @@ export function labelForNotification(n, t) {
       return t('portal.notifications.tpl.requestApproved', { title: p.title || '' })
     case NOTIF_TYPE.REQUEST_AVAILABLE:
       return t('portal.notifications.tpl.requestAvailable', { title: p.title || '' })
+    case NOTIF_TYPE.REQUEST_REJECTED:
+      return p.reason
+        ? t('portal.notifications.tpl.requestRejectedReason', {
+            title: p.title || '',
+            reason: p.reason,
+          })
+        : t('portal.notifications.tpl.requestRejected', { title: p.title || '' })
     case NOTIF_TYPE.TICKET_CREATED:
       return t('portal.notifications.tpl.ticketCreated', { title: p.title || '' })
     case NOTIF_TYPE.TICKET_REPLIED:

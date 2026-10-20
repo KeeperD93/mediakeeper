@@ -1,8 +1,9 @@
 /**
- * Covers the HeroBanner request CTA: it must reflect the request status
- * (muted "Pending" when already requested), fall back to "Request"
- * otherwise, hide entirely for titles already on Emby, and prime the
- * status cache for the current item.
+ * Covers the HeroBanner CTA: it must reflect the request status (muted
+ * "Pending" when already requested, "Request again" once refused), fall
+ * back to "Request" otherwise, offer "Play" for titles already on Emby, and
+ * prime the status cache for the current item. The dots that pick a title
+ * are labelled buttons.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ref } from 'vue'
@@ -32,6 +33,7 @@ vi.mock('lucide-vue-next', () => ({
   Clock: { name: 'ClockStub', template: '<i />' },
   Info: { name: 'InfoStub', template: '<i />' },
   Plus: { name: 'PlusStub', template: '<i />' },
+  RotateCcw: { name: 'RotateCcwStub', template: '<i />' },
   Video: { name: 'VideoStub', template: '<i />' },
 }))
 
@@ -46,8 +48,8 @@ const movieItem = {
   // no emby_url → the request CTA is surfaced
 }
 
-function buildHero(item = movieItem) {
-  return mount(HeroBanner, { props: { item } })
+function buildHero(item = movieItem, props = {}) {
+  return mount(HeroBanner, { props: { item, ...props } })
 }
 
 describe('HeroBanner — request CTA reflects request status', () => {
@@ -87,14 +89,65 @@ describe('HeroBanner — request CTA reflects request status', () => {
     expect(w.find('.pt-hero-btn--pending').exists()).toBe(true)
   })
 
-  it('hides the request CTA entirely for a title already on Emby', () => {
-    const w = buildHero({ ...movieItem, emby_url: 'http://emby/x' })
+  it('offers Play, opening Emby in a new tab, for a title already on Emby', () => {
+    // Even with an open request, a title on Emby only offers Play.
+    getStatus.mockReturnValue({ status: REQUEST_STATUS.PENDING })
+    const w = buildHero({ ...movieItem, emby_url: 'http://emby.invalid/item' })
+    const play = w.get('a.pt-hero-btn--play')
+    expect(play.text()).toContain('portal.hero.play')
+    expect(play.attributes('href')).toBe('http://emby.invalid/item')
+    expect(play.attributes('target')).toBe('_blank')
+    expect(play.attributes('rel')).toBe('noopener noreferrer')
+    expect(w.find('button.pt-hero-btn--play').exists()).toBe(false)
+    expect(w.find('.pt-hero-btn--pending').exists()).toBe(false)
+  })
+
+  it('shows no button at all when the Emby link is unsafe', () => {
+    getStatus.mockReturnValue({ status: REQUEST_STATUS.PENDING })
+    const w = buildHero({ ...movieItem, emby_url: 'javascript:alert(1)' })
     expect(w.find('.pt-hero-btn--play').exists()).toBe(false)
     expect(w.find('.pt-hero-btn--pending').exists()).toBe(false)
+  })
+
+  it('offers Request again for a refused title', async () => {
+    getStatus.mockReturnValue({ status: REQUEST_STATUS.REJECTED })
+    const w = buildHero()
+
+    const btn = w.get('button.pt-hero-btn--play')
+    expect(btn.text()).toContain('portal.detail.reRequest')
+    expect(btn.findComponent({ name: 'RotateCcwStub' }).exists()).toBe(true)
+    expect(btn.findComponent({ name: 'PlusStub' }).exists()).toBe(false)
+
+    await btn.trigger('click')
+    expect(w.emitted('request')).toEqual([[movieItem]])
   })
 
   it('primes the request-status cache for the current item on mount', () => {
     buildHero()
     expect(checkStatus).toHaveBeenCalled()
+  })
+})
+
+describe('HeroBanner — dots', () => {
+  beforeEach(() => {
+    getStatus.mockReturnValue(null)
+  })
+
+  it('names each dot, marks the current one and jumps to the one clicked', async () => {
+    const w = buildHero(movieItem, { currentIndex: 1, totalItems: 3 })
+
+    const dots = w.findAll('.pt-hero-dot')
+    expect(dots.map(d => d.element.tagName)).toEqual(['BUTTON', 'BUTTON', 'BUTTON'])
+    expect(dots[0].attributes('type')).toBe('button')
+    expect(dots[0].attributes('aria-label')).toBe('portal.hero.goTo:{"n":1,"total":3}')
+    expect(dots.map(d => d.attributes('aria-current'))).toEqual([undefined, 'true', undefined])
+
+    await dots[2].trigger('click')
+    expect(w.emitted('goto')).toEqual([[2]])
+  })
+
+  it('shows no dots for a single title', () => {
+    const w = buildHero(movieItem, { totalItems: 1 })
+    expect(w.find('.pt-hero-dots').exists()).toBe(false)
   })
 })

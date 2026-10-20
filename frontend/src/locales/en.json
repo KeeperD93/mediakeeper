@@ -1581,7 +1581,8 @@
       "emby_recent_scan": "Emby Recently Added Scan",
       "emby_full_scan": "Emby Full Library Scan",
       "backup_auto": "Automatic backup",
-      "cleanup_available_requests": "Auto-cleanup available requests",
+      "fulfill_requests": "Mark fulfilled requests available",
+      "cleanup_available_requests": "Auto-archive available requests",
       "healthcheck_scan": "Library health scan",
       "subtitle_auto": "Auto-download subtitles",
       "expire_users": "Expire user accounts",
@@ -1601,7 +1602,8 @@
     "healthcheck": "Analyzes media file health (codecs, resolution, subtitles…).",
     "subtitle_auto": "Automatically downloads subtitles for new media based on the default profile.",
     "expire_users": "Automatically disables accounts (Emby + MediaKeeper) whose access window has expired.",
-    "cleanup_available_requests": "Automatically clears available requests after the configured grace period.",
+    "fulfill_requests": "Marks requests available once their content is in Emby, and notifies the requester.",
+    "cleanup_available_requests": "Archives available requests after the configured delay; they still count in statistics.",
     "feedback_purge": "Permanently deletes feedback reports rejected more than 30 days ago.",
     "gdpr_purge": "Permanently removes user accounts marked for GDPR purge.",
     "quota_auto_recompute": "Nightly recompute of automatic request quotas from each user's recent activity.",
@@ -1743,9 +1745,13 @@
     "history": "History",
     "empty": "No backups available",
     "created": "Backup created successfully",
+    "createdIncomplete": "Backup created, but without: {parts}. Check the logs.",
+    "createdIncompleteNoRetention": "Backup created, but without: {parts}. Retention waits for a complete backup; check the logs.",
     "deleted": "Backup deleted",
     "deleteConfirm": "Delete this backup?",
-    "restored": "Restore completed",
+    "restoredParts": "Restore completed: {parts}.",
+    "restoredNothing": "Nothing was restored from the ticked parts.",
+    "restoreNoDatabase": "The database is not restored here: follow the manual procedure described in the documentation.",
     "restoreConfirm": "Restore this backup? Current data will be overwritten.",
     "destinationTitle": "Backup destination",
     "destinationDesc": "Directory where backup files are stored.",
@@ -1758,9 +1764,16 @@
     "retentionByDays": "By duration",
     "retentionByCount": "By count",
     "retentionOff": "Disabled",
+    "retentionModeLabel": "Retention mode",
+    "retentionDaysLabel": "Number of days to keep",
+    "retentionCountLabel": "Number of backups to keep",
     "retentionDaysUnit": "days",
     "retentionCountUnit": "backups max",
-    "retentionSaved": "Retention policy saved"
+    "retentionSaved": "Retention policy saved",
+    "retentionDaysRange": "The retention period must be between 1 and {max} days.",
+    "retentionCountRange": "The number of backups kept must be between 1 and {max}.",
+    "retentionSaveFailed": "Could not save the retention policy.",
+    "dirChangeFailed": "Could not change the backup directory."
   },
   "changelog": {
     "title": "Changelog",
@@ -2680,7 +2693,8 @@
       "series": "SERIES",
       "topRank": "#{rank} Trending Today",
       "featured": "Featured on Emby",
-      "play": "Play"
+      "play": "Play",
+      "goTo": "Show title {n} of {total}"
     },
     "mood": {
       "title": "How are you feeling?",
@@ -2715,6 +2729,7 @@
       "ignoredTooltip": "This episode has been marked as ignored in the Watchlist module — it won't be downloaded, so it can't be requested.",
       "selectAll": "Select all",
       "errors": {
+        "failed": "The request could not be sent.",
         "already_requested": "This title is already pending approval.",
         "already_available": "This title is already on Emby — play it directly.",
         "media_blacklisted": "This title has been blocked by an admin and can't be re-requested.",
@@ -2936,6 +2951,8 @@
         "reminder": "Reminder: \"{title}\" is coming up",
         "requestApproved": "Your request \"{title}\" has been approved by an admin",
         "requestAvailable": "\"{title}\" is now available on Emby!",
+        "requestRejected": "Your request \"{title}\" has been rejected",
+        "requestRejectedReason": "Your request \"{title}\" has been rejected. Reason: {reason}",
         "ticketCreated": "New ticket: \"{title}\"",
         "ticketReplied": "An admin replied to your ticket \"{title}\"",
         "ticketResolved": "Your ticket \"{title}\" has been resolved",
@@ -3064,6 +3081,7 @@
       "subtitle": "Report a bug related to Emby or Mediakeeper",
       "create": "Report an issue",
       "mediaTitle": "Media title",
+      "createFailed": "The issue could not be reported.",
       "mediaType": "Media type",
       "movie": "Movie",
       "episode": "Episode",
@@ -3111,7 +3129,8 @@
         "summaryWhole": "Ticket on the whole series",
         "summarySeasons": "{n} season selected | {n} seasons selected",
         "summaryEpisodes": "{n} episode selected | {n} episodes selected",
-        "summaryMixed": "{s} season(s) + {e} episode(s) targeted"
+        "summaryMixed": "{s} season(s) + {e} episode(s) targeted",
+        "showEpisodes": "Show the episodes of {season}"
       },
       "detail": {
         "openedAt": "Opened on",
@@ -3806,12 +3825,23 @@
         "season": "Season",
         "seasons": "Seasons",
         "confirmDelete": "Delete this request?",
+        "undoAvailable": "Undo availability",
+        "hideAvailable": "Hide available",
+        "sortLabel": "Sort requests",
+        "statusFilterLabel": "Filter by status",
+        "typeFilterLabel": "Filter by type",
+        "availabilityCheckTitle": "Availability not verified",
+        "notInLibrary": "\"{title}\" was not found in Emby. If it was just added, it can take up to 5 minutes to be detected: try again shortly. Mark it available anyway? The requester will be notified.",
+        "libraryCheckFailed": "Could not check whether \"{title}\" is in Emby. Mark it available anyway? The requester will be notified.",
+        "markAvailable": "Mark available",
+        "statusFailed": "Could not change the request status.",
         "deletedReason": "Deleted by an administrator",
         "rejectReasonTitle": "Rejection reason",
         "rejectReasonLabel": "Reason",
         "rejectReasonPlaceholder": "E.g. Already available, rights unavailable, duplicate…",
         "rejectReasonHint": "Optional — empty means rejected without a stated reason.",
         "openDetail": "Open media detail",
+        "allTypes": "All types",
         "typeAll": "All",
         "typeMovies": "Movies",
         "typeSeries": "Series"
@@ -3850,8 +3880,8 @@
           "desc": "Total number of items shown in the home hero banner (TMDB trending + manually featured). Featuring a movie takes one trending slot. Set to 0 to hide the hero entirely."
         },
         "requestsCleanup": {
-          "title": "Auto-cleanup of available requests",
-          "desc": "Automatically deletes requests in the \"Available\" status after this many days. 0 = disabled."
+          "title": "Auto-archive of available requests",
+          "desc": "Removes requests in the \"Available\" status from the Requests tab after this many days; they still count in totals, statistics and trophies. 0 = disabled."
         },
         "chatRetention": {
           "title": "Chat message retention",
@@ -4013,6 +4043,7 @@
     },
     "detail": {
       "request": "Request",
+      "reRequest": "Request again",
       "addToList": "Add to list",
       "remind": "Remind me",
       "communityRatings": "Community reviews",

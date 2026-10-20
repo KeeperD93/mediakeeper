@@ -46,7 +46,7 @@ async def classify_grouped(item: dict, db: AsyncSession) -> str:
     back to ``"Grouped"`` whenever Emby cannot be queried or the data
     is ambiguous.
 
-    Promotion rules (asymmetric with auto-fulfill — see request module):
+    Promotion rules:
       - All episodes Emby holds for this series come from the batch
         → ``"Series"`` (the show is brand new in the library).
       - All episodes Emby holds for this season come from the batch

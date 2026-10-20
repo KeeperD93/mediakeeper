@@ -1,0 +1,195 @@
+/* Info column of the rich rows (meta, title, footer, status chip), split
+   out of admin-rich-row.css to keep each file under the size target. */
+
+/* Inline requester avatar, living in the foot next to the "by X — 2h ago" text
+   (replaces the old floating avatar that overlapped the poster corner). */
+.arr-row-by {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.arr-row-by-avatar {
+  box-shadow: 0 0 10px rgb(var(--portal-accent-500-rgb), 0.35);
+}
+
+.arr-row-retry {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  background: linear-gradient(135deg, var(--portal-color-error) 0%, #dc2626 100%);
+  color: var(--portal-text-primary);
+  font-size: var(--portal-text-2xs);
+  font-weight: var(--portal-font-black);
+  padding: 3px 9px;
+  border-radius: var(--portal-radius-pill);
+  border: 2px solid #0a0d15;
+  z-index: 6;
+  box-shadow:
+    0 3px 12px rgb(var(--portal-color-error-rgb), 0.6),
+    0 0 22px rgb(var(--portal-color-error-rgb), 0.4);
+  letter-spacing: var(--portal-tracking-wide);
+}
+/* Inline variant — lives next to the status tag inside .arr-row-meta-top
+   instead of floating on the poster corner. Smaller, flatter, no ring. */
+.arr-row-retry--inline {
+  position: static;
+  padding: 2px 7px;
+  font-size: var(--portal-text-3xs);
+  font-weight: var(--portal-font-extrabold);
+  border: 1px solid rgb(var(--portal-color-error-rgb), 0.45);
+  box-shadow: none;
+  letter-spacing: var(--portal-tracking-caps);
+}
+
+.arr-row-info {
+  grid-column: 2 / 3;
+  grid-row: 1 / 2;
+  position: relative;
+  z-index: 2;
+  padding: 12px 12px 4px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+}
+.arr-row-meta-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--portal-text-xs);
+  color: var(--portal-text-secondary);
+  letter-spacing: var(--portal-tracking-wide);
+}
+.arr-row-year {
+  font-weight: var(--portal-font-black);
+  color: var(--portal-accent-light);
+  font-family: var(--portal-font-display);
+  font-size: var(--portal-text-sm);
+}
+.arr-row-type {
+  font-size: var(--portal-text-3xs);
+  font-weight: var(--portal-font-black);
+  padding: 3px 9px;
+  border-radius: var(--portal-radius-sm);
+  background: rgb(255, 255, 255, 0.1);
+  color: var(--portal-text-primary);
+  text-transform: uppercase;
+  letter-spacing: var(--portal-tracking-eyebrow);
+  backdrop-filter: var(--portal-blur-xs);
+  border: 1px solid var(--portal-border-default);
+}
+.arr-row-title {
+  font-size: var(--portal-text-base);
+  font-weight: var(--portal-font-black);
+  color: var(--portal-text-primary);
+  line-height: 1.18;
+  letter-spacing: var(--portal-tracking-tight);
+  margin: 0;
+  text-shadow: 0 3px 18px rgb(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.arr-row-title-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+/* .arr-row-copy styles live in admin-rich-row-actions.css. */
+.arr-row-foot {
+  display: flex;
+  align-items: center;
+  gap: 4px 12px;
+  font-size: var(--portal-text-2xs);
+  color: rgb(255, 255, 255, 0.52);
+  flex-wrap: wrap;
+}
+.arr-row-foot strong {
+  color: rgb(255, 255, 255, 0.82);
+  font-weight: var(--portal-font-bold);
+}
+.arr-row-foot .arr-who {
+  color: var(--portal-text-primary);
+  font-weight: var(--portal-font-extrabold);
+  text-shadow: 0 0 10px color-mix(in srgb, var(--portal-accent-500) 55%, transparent);
+}
+.arr-row-foot .arr-who--deleted {
+  color: var(--portal-text-secondary);
+  font-style: italic;
+  text-shadow: none;
+  font-weight: var(--portal-font-medium);
+}
+.arr-row-by--anon {
+  opacity: 0.78;
+}
+
+.arr-row-seasons {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.arr-row-seasons-label {
+  font-size: var(--portal-text-3xs);
+  font-weight: var(--portal-font-black);
+  color: rgb(255, 255, 255, 0.38);
+  text-transform: uppercase;
+  letter-spacing: var(--portal-tracking-eyebrow);
+}
+.arr-row-season-pill {
+  display: inline-block;
+  min-width: 22px;
+  padding: 3px 9px;
+  border-radius: var(--portal-radius-pill);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--portal-accent-500) 38%, transparent),
+    color-mix(in srgb, var(--portal-accent-500) 22%, transparent)
+  );
+  color: var(--portal-text-primary);
+  font-size: var(--portal-text-3xs);
+  font-weight: var(--portal-font-black);
+  text-align: center;
+  border: 1px solid color-mix(in srgb, var(--portal-accent-500) 50%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--portal-accent-500) 20%, transparent);
+}
+
+/* Status chip */
+.arr-row-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: var(--portal-radius-pill);
+  font-size: var(--portal-text-3xs);
+  font-weight: var(--portal-font-black);
+  text-transform: uppercase;
+  letter-spacing: var(--portal-tracking-eyebrow);
+  background: color-mix(in srgb, var(--arr-bar) 18%, transparent);
+  color: var(--arr-bar);
+  border: 1px solid color-mix(in srgb, var(--arr-bar) 55%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--arr-bar) 28%, transparent);
+}
+.arr-row-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--portal-radius-circle);
+  background: currentColor;
+  box-shadow: 0 0 10px currentColor;
+  animation: arr-dot-pulse 2.5s ease-in-out infinite;
+}
+@keyframes arr-dot-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.55;
+    transform: scale(1.15);
+  }
+}

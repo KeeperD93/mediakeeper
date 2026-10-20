@@ -9,6 +9,8 @@ ROLE_VIEWER = "viewer"
 ROLE_MODERATOR = "moderator"
 ROLE_ADMIN = "admin"
 ROLES = (ROLE_VIEWER, ROLE_MODERATOR, ROLE_ADMIN)
+# Pydantic ``pattern`` accepting exactly the roles above.
+ROLE_PATTERN = f"^({'|'.join(ROLES)})$"
 
 # Granular permission flag names — every entry maps to a column on
 # ``UserProfile``. Adding one means: 1) new column in a migration,

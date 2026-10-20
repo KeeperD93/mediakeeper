@@ -6,6 +6,7 @@ from models.portal.profile import UserProfile
 from models.user import User
 from services.portal._display_name import resolve_display_name
 from services.portal._rank_tiers import tier_for_level
+from services.portal.admin_users_constants import ROLE_ADMIN
 from services.portal.avatars import resolve_avatar_url
 
 DISPLAY_NAME_LOCK_DAYS = 30 * 6  # 6 months
@@ -38,7 +39,7 @@ def serialize_profile(profile: UserProfile, *, user: User | None = None) -> dict
                     title_tier = ach_def.get("tier", 1)
                 break
     locked_until = display_name_locked_until(profile)
-    must_set = bool(profile.display_name_must_set) and profile.role != "admin"
+    must_set = bool(profile.display_name_must_set) and profile.role != ROLE_ADMIN
     return {
         "id": profile.id,
         "user_id": profile.user_id,
@@ -90,7 +91,7 @@ def serialize_public_profile(profile: UserProfile, *, lang: str = "fr") -> dict:
         "id": profile.id,
         "user_id": profile.user_id,
         "display_name": resolve_display_name(
-            effective, profile.user_id, lang, is_admin=profile.role == "admin"
+            effective, profile.user_id, lang, is_admin=profile.role == ROLE_ADMIN
         ),
         "avatar_url": _resolve_avatar_url(profile),
         "bio": profile.bio,
@@ -130,7 +131,7 @@ def build_private_placeholder(profile: UserProfile, *, lang: str) -> dict:
         "is_private": True,
         "user_id": profile.user_id,
         "display_name": resolve_display_name(
-            effective_name, profile.user_id, lang, is_admin=profile.role == "admin"
+            effective_name, profile.user_id, lang, is_admin=profile.role == ROLE_ADMIN
         ),
         "avatar_url": _resolve_avatar_url(profile),
     }

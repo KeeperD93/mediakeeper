@@ -40,6 +40,12 @@ describe('useMediaCardState — availData fallback chain', () => {
     expect(availData.value.emby_url).toBe('/inline')
   })
 
+  it('reads an inline emby_url without availability as fully available', () => {
+    const item = { tmdb_id: 42, emby_url: '/inline' }
+    const { availData } = useMediaCardState({ item })
+    expect(availData.value).toEqual({ emby_url: '/inline', availability: 'full' })
+  })
+
   it('returns null when neither cache nor inline data is present', () => {
     mockAvailability.value = null
     const item = { tmdb_id: 42 }

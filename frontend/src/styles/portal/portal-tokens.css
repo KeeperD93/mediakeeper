@@ -1,6 +1,5 @@
-/* ============================================
-   PORTAL DESIGN TOKENS — ENTRY POINT
-   ============================================
+/* PORTAL DESIGN TOKENS — ENTRY POINT
+
    Portal is a project-within-the-project: its own
    design system independent of MediaKeeper admin,
    namespaced `--portal-*`.
@@ -14,12 +13,11 @@
 
    Structure:
      tokens/_motion.css     — durations, easings
-     tokens/_layout.css     — radius, shadows, blurs, gradients, z-index
+     tokens/_layout.css     — radius, shadows, blurs, gradients, z-index, touch target
      tokens/_typography.css — font sizes, weights, tracking, line-height
      tokens/_colors.css     — surfaces, borders, text, semantic
      tokens/_tiers.css      — rank tier palette (bronze → legendary)
-     tokens/_rarity.css     — trophy rarity palette (common → mythic)
-   ============================================ */
+     tokens/_rarity.css     — trophy rarity palette (common → mythic) */
 
 @import url('./tokens/_motion.css');
 @import url('./tokens/_layout.css');

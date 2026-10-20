@@ -12,6 +12,7 @@ from models.portal.event import (
 from models.portal.profile import UserProfile
 from services.portal import strip_tags_and_trim
 from services.portal._display_name import resolve_display_name
+from services.portal.admin_users_constants import ROLE_ADMIN
 
 
 async def list_messages(
@@ -68,7 +69,7 @@ async def list_messages(
                     None if (must_set or display is None) else display,
                     m.user_id,
                     lang,
-                    is_admin=role == "admin",
+                    is_admin=role == ROLE_ADMIN,
                 )
             ),
             "user_deleted": m.user_id is None,

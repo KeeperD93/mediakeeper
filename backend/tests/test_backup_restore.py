@@ -1,3 +1,4 @@
+import io
 import json
 import zipfile
 from pathlib import Path
@@ -141,3 +142,53 @@ async def test_restore_endpoint_returns_error_on_partial_restore(client, admin_u
 
     assert resp.status_code == 500
     assert resp.json()["detail"] == "backup_restore_failed"
+
+
+def _as_admin(client, admin_user):
+    client.cookies.set(
+        "mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}),
+    )
+
+
+@pytest.mark.asyncio
+async def test_upload_restore_applies_the_parts_ticked_on_screen(
+    client, admin_user, db_session, workspace_tmp_path, monkeypatch,
+):
+    """The settings screen sends its ticked parts in the upload form, next to
+    the file: they must reach the restore instead of being read as none."""
+    monkeypatch.setenv("BACKUP_PATH", str(workspace_tmp_path))
+    _as_admin(client, admin_user)
+    archive = io.BytesIO()
+    with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("manifest.json", json.dumps({"version": "1.1"}))
+        zf.writestr("settings.json", json.dumps({"restore.key": "after"}))
+    await set_setting(db_session, "restore.key", "before")
+
+    resp = await client.post(
+        "/api/backup/upload-restore",
+        files={"file": ("backup.zip", archive.getvalue(), "application/zip")},
+        data={"components": json.dumps({"settings": True})},
+    )
+
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["results"]["settings"] == "ok"
+    assert await get_setting(db_session, "restore.key") == "after"
+
+
+@pytest.mark.asyncio
+async def test_upload_restore_json_leaves_an_unticked_part_alone(
+    client, admin_user, db_session, workspace_tmp_path, monkeypatch,
+):
+    monkeypatch.setenv("BACKUP_PATH", str(workspace_tmp_path))
+    _as_admin(client, admin_user)
+    await set_setting(db_session, "restore.key", "before")
+
+    resp = await client.post(
+        "/api/backup/upload-restore-json",
+        files={"file": ("settings.json", json.dumps({"restore.key": "after"}), "application/json")},
+        data={"components": json.dumps({"settings": False})},
+    )
+
+    assert resp.status_code == 200, resp.text
+    assert "settings" not in resp.json()["results"]
+    assert await get_setting(db_session, "restore.key") == "before"

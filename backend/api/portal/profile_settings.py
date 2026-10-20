@@ -34,6 +34,7 @@ from services.portal.profiles import (
     is_display_name_locked, is_display_name_taken, is_reserved_display_name,
     suggest_display_names,
 )
+from services.portal.admin_users_constants import ROLE_ADMIN
 
 
 router = APIRouter(prefix="/profiles", tags=["portal-profile-settings"])
@@ -90,7 +91,7 @@ async def check_username(
             "locked_until": locked_iso, "suggestions": [],
         }
 
-    if profile.role != "admin" and is_reserved_display_name(cleaned):
+    if profile.role != ROLE_ADMIN and is_reserved_display_name(cleaned):
         return {
             "available": False, "reason": "reserved",
             "locked_until": locked_iso, "suggestions": [],
@@ -238,7 +239,7 @@ async def public_profile_by_user(
     # the page without triggering a dead end — the response simply
     # carries an ``admin_preview`` flag the UI can use to show "your
     # profile is not visible to others".
-    if row.role == "admin" and not is_self:
+    if row.role == ROLE_ADMIN and not is_self:
         raise HTTPException(status_code=404, detail="profile_not_found")
 
     if not is_self and not row.is_public:
@@ -284,7 +285,7 @@ async def public_profile_by_user(
     return {
         **base,
         "is_self": is_self,
-        "admin_preview": row.role == "admin" and is_self,
+        "admin_preview": row.role == ROLE_ADMIN and is_self,
         "achievements": {
             "unlocked": unlocked_count,
             "total": PUBLIC_TOTAL_ACHIEVEMENTS,

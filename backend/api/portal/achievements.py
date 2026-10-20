@@ -14,6 +14,7 @@ from services.portal.profile_stats_ranking import (
     LEADERBOARD_FULL_DEFAULT,
     compute_leaderboard_only,
 )
+from services.portal.admin_users_constants import ROLE_ADMIN
 
 router = APIRouter(prefix="/achievements", tags=["portal-achievements"])
 
@@ -61,7 +62,7 @@ async def user_achievements(
     if not target or not target.account_active:
         raise HTTPException(status_code=404, detail="profile_not_found")
     is_self = me.id == user_id
-    if target.role == "admin" and not is_self:
+    if target.role == ROLE_ADMIN and not is_self:
         raise HTTPException(status_code=404, detail="profile_not_found")
     if not is_self and not target.is_public:
         # Same fail-closed shape as the public profile endpoint: 404

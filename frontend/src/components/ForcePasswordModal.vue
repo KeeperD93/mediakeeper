@@ -82,6 +82,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import { resolveApiError } from '@/composables/useApi'
 import { useAuth } from '@/composables/useAuth'
 import { useI18n } from 'vue-i18n'
 import { useToast } from '@/composables/useToast'
@@ -119,7 +120,7 @@ async function submit() {
     await changePassword(currentPwd.value, newPwd.value)
     showToast(t('forcePassword.success'), TOAST_TYPE.OK)
   } catch (e) {
-    errorMsg.value = e.message
+    errorMsg.value = resolveApiError(e.message, 'common.apiError.saveFailed')
   } finally {
     submitting.value = false
   }

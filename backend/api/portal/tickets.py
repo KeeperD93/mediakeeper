@@ -12,6 +12,7 @@ from api.portal.deps import require_admin, require_permission
 from services.portal import tickets as ticket_svc
 from services.portal.achievements import safe_check_all_achievements_in_new_session
 from services.emby import search as emby_search
+from services.portal.admin_users_constants import ROLE_ADMIN
 
 router = APIRouter(prefix="/tickets", tags=["portal-tickets"])
 
@@ -72,7 +73,7 @@ async def list_tickets(
     locale: str = Depends(get_request_locale),
 ):
     user, profile = up
-    user_id = None if profile.role == "admin" else user.id
+    user_id = None if profile.role == ROLE_ADMIN else user.id
     issue_types = _split_csv(issue_type, VALID_ISSUE_TYPES)
     # Ticket lists use numbered pages (offset) when ``page`` is given; the
     # cursor path stays as a fallback for any other caller.
@@ -160,7 +161,7 @@ async def get_ticket(
     user, profile = up
     # A ticket the caller doesn't own is invisible: 404, not 403, so its
     # existence is never leaked to a third party.
-    if result["user_id"] != user.id and profile.role != "admin":
+    if result["user_id"] != user.id and profile.role != ROLE_ADMIN:
         raise HTTPException(status_code=404, detail="ticket_not_found")
     return result
 
@@ -178,7 +179,7 @@ async def reply_ticket(
         ticket_id,
         user.id,
         data.content,
-        is_admin=profile.role == "admin",
+        is_admin=profile.role == ROLE_ADMIN,
     )
     # Both "not_found" and "forbidden" collapse to 404 so a non-owner can't
     # tell an existing ticket apart from a missing one.

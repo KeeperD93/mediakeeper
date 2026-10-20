@@ -1,17 +1,36 @@
 """List, manifest reading, deletion and retention of backups."""
+import asyncio
 import json
 import logging
 import os
 import re
+import threading
+import time
 import zipfile
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from pathlib import Path
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from ._state import get_retention_days, resolve_backup_dir
 
 logger = logging.getLogger("mediakeeper.backup")
 
+# The label part allows BACKUP_LABEL_MAX_LENGTH characters (constants/backup.py).
 _BACKUP_FILENAME_RE = re.compile(
     r"^mediakeeper_backup_\d{8}_\d{6}(?:_[A-Za-z0-9_-]{1,40})?\.zip$"
 )
+
+# Listing, deletion and retention run in worker threads (asyncio.to_thread):
+# one lock keeps them from tripping over a file another one just removed.
+_FILES_LOCK = threading.Lock()
+
+
+def _mtime(f: Path) -> float | None:
+    try:
+        return f.stat().st_mtime
+    except FileNotFoundError:  # removed meanwhile by the other process (web / worker)
+        return None
 
 
 def _read_manifest(zip_path: Path) -> dict:
@@ -32,16 +51,20 @@ def list_backups(backup_dir: Path) -> list[dict]:
         logger.warning("[backup] Directory unreachable for backup listing: %s (%s)", backup_dir, e)
         return []
     backups = []
-    for f in sorted(backup_dir.glob("mediakeeper_backup_*.zip"), reverse=True):
-        stat = f.stat()
-        manifest = _read_manifest(f)
-        backups.append({
-            "filename":   f.name,
-            "size_bytes": stat.st_size,
-            "created_at": datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc).isoformat(),
-            "label":      manifest.get("label", ""),
-            "components": manifest.get("components", {}),
-        })
+    with _FILES_LOCK:
+        for f in sorted(backup_dir.glob("mediakeeper_backup_*.zip"), reverse=True):
+            try:
+                stat = f.stat()
+            except FileNotFoundError:  # removed meanwhile by the other process (web / worker)
+                continue
+            manifest = _read_manifest(f)
+            backups.append({
+                "filename":   f.name,
+                "size_bytes": stat.st_size,
+                "created_at": datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc).isoformat(),
+                "label":      manifest.get("label", ""),
+                "components": manifest.get("components", {}),
+            })
     return backups
 
 
@@ -62,23 +85,27 @@ def get_backup_path(filename: str, backup_dir: Path) -> Path | None:
 
 
 def delete_backup(filename: str, backup_dir: Path) -> bool:
-    path = get_backup_path(filename, backup_dir)
-    if path:
-        path.unlink()
+    with _FILES_LOCK:
+        path = get_backup_path(filename, backup_dir)
+        if not path:
+            return False
+        path.unlink(missing_ok=True)
         return True
-    return False
 
 
 def apply_retention(retention_days: int, backup_dir: Path) -> int:
     """Delete backups older than retention_days. Returns the number removed."""
     if retention_days <= 0:
         return 0
-    cutoff = datetime.now(timezone.utc) - timedelta(days=retention_days)
+    # Plain timestamps: an absurd number of days cannot overflow a date.
+    cutoff = time.time() - retention_days * 86400
     removed = 0
-    for f in backup_dir.glob("mediakeeper_backup_*.zip"):
-        mtime = datetime.fromtimestamp(f.stat().st_mtime, tz=timezone.utc)
-        if mtime < cutoff:
-            f.unlink()
+    with _FILES_LOCK:
+        for f in backup_dir.glob("mediakeeper_backup_*.zip"):
+            mtime = _mtime(f)
+            if mtime is None or mtime >= cutoff:
+                continue
+            f.unlink(missing_ok=True)
             removed += 1
             logger.info("[backup] Retention: removed %s", f.name)
     return removed
@@ -88,20 +115,31 @@ def apply_retention_by_count(max_count: int, backup_dir: Path) -> int:
     """Keep only the N most recent backups. Returns the number removed."""
     if max_count <= 0:
         return 0
-    files = sorted(backup_dir.glob("mediakeeper_backup_*.zip"), key=lambda f: f.stat().st_mtime, reverse=True)
     removed = 0
-    for f in files[max_count:]:
-        f.unlink()
-        removed += 1
-        logger.info("[backup] Count retention: removed %s", f.name)
+    with _FILES_LOCK:
+        dated = [(m, f) for f in backup_dir.glob("mediakeeper_backup_*.zip") if (m := _mtime(f)) is not None]
+        dated.sort(key=lambda pair: pair[0], reverse=True)
+        for _, f in dated[max_count:]:
+            f.unlink(missing_ok=True)
+            removed += 1
+            logger.info("[backup] Count retention: removed %s", f.name)
     return removed
 
 
 def apply_retention_for_setting(retention: int, backup_dir: Path) -> int:
-    """Apply the configured ``backup.retention_days`` policy. A negative value
-    means "keep the N most recent" (count-based); a positive value means
-    "delete older than N days". The manual endpoint and the scheduled backup
-    handler both route through this so the two paths can't diverge."""
+    """Apply the ``backup.retention_days`` policy. A negative value means "keep
+    the N most recent" (count-based); a positive value means "delete older
+    than N days"."""
     if retention < 0:
         return apply_retention_by_count(abs(retention), backup_dir)
     return apply_retention(retention, backup_dir)
+
+
+async def apply_configured_retention(db: AsyncSession) -> int:
+    """Apply the configured policy to the backup directory, off the event loop
+    (globbing and deleting archives can stall on a slow NAS). Every caller
+    (manual backup, "apply now", scheduled backup) goes through here so the
+    paths can't diverge. Returns the number of backups removed."""
+    retention = await get_retention_days(db)
+    backup_dir = await resolve_backup_dir(db)
+    return await asyncio.to_thread(apply_retention_for_setting, retention, backup_dir)

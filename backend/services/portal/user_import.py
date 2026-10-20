@@ -23,6 +23,7 @@ from models.user_preferences import UserPreference
 from models.portal.profile import UserProfile
 from services.portal._pseudo_words import generate_pseudo
 from services.portal.profiles import resolve_unique_display_name
+from services.portal.admin_users_constants import ROLE_VIEWER
 
 logger = logging.getLogger("mediakeeper.portal.user_import")
 
@@ -118,7 +119,7 @@ async def ensure_user_for_emby_session(
         user_id=user.id,
         display_name=unique_name,
         avatar_url=avatar_url,
-        role="viewer",
+        role=ROLE_VIEWER,
         source="emby",
         emby_user_id=emby_user_id or None,
         account_active=False,

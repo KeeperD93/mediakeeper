@@ -84,9 +84,15 @@
   font-size: var(--portal-text-2xs);
   color: var(--text-muted);
 }
+/* The expand toggle (a button, for the keyboard; the whole header also takes a click). */
 .tsp-chevron {
+  padding: 0;
+  border: none;
+  background: none;
   color: var(--text-muted);
+  font-family: inherit;
   font-size: var(--portal-text-sm);
+  cursor: pointer;
   transition: transform var(--portal-dur-base) var(--portal-ease-emphasis);
 }
 .tsp-chevron--open {

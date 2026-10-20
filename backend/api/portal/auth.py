@@ -28,6 +28,7 @@ from services.security import (
     record_attempt,
     record_failure,
 )
+from services.portal.admin_users_constants import ROLE_ADMIN
 
 EMBY_SHADOW_SKIP_THRESHOLD = 1
 
@@ -42,7 +43,7 @@ class PortalLoginRequest(BaseModel):
 
 
 async def _serialize_ui_flags(db: AsyncSession, profile: UserProfile) -> dict:
-    is_admin = profile.role == "admin"
+    is_admin = profile.role == ROLE_ADMIN
     anonymize_requests = False if is_admin else await get_portal_flag(
         db,
         "portal.anonymize_requests",

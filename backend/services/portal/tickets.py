@@ -14,6 +14,7 @@ from services.portal import strip_tags_and_trim
 from services.portal._rank_tiers import tier_for_level
 from services.portal.avatars import avatar_public_url
 from services.portal.media_title_localize import localize_titles
+from services.portal.admin_users_constants import ROLE_ADMIN, ROLE_VIEWER
 
 logger = logging.getLogger("mediakeeper.portal.tickets")
 
@@ -55,7 +56,7 @@ async def _notify_admins_new_ticket(
     try:
         result = await db.execute(
             select(UserProfile.user_id)
-            .where(UserProfile.role == "admin")
+            .where(UserProfile.role == ROLE_ADMIN)
             .where(UserProfile.account_active.is_(True))
             .where(UserProfile.user_id != requester_id)
         )
@@ -309,7 +310,7 @@ async def _load_user_summaries(
             "username": user.username,
             "display_name": (profile.display_name if profile else None) or user.username,
             "avatar_url": avatar,
-            "role": profile.role if profile else "viewer",
+            "role": profile.role if profile else ROLE_VIEWER,
             "level": level,
             "tier": tier_for_level(level),
         }

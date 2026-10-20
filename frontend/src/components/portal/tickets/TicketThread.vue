@@ -51,7 +51,7 @@
 
     <!-- Status footer when the ticket reaches a terminal state -->
     <div
-      v-if="ticket.status === 'resolved' || ticket.status === 'closed'"
+      v-if="ticket.status === TICKET_STATUS.RESOLVED || ticket.status === TICKET_STATUS.CLOSED"
       class="tth-status-footer"
       :class="`tth-status-footer--${ticket.status}`"
     >
@@ -59,7 +59,7 @@
     </div>
 
     <!-- Reply form -->
-    <form v-if="ticket.status !== 'closed'" class="tth-form" @submit.prevent="onSubmit">
+    <form v-if="ticket.status !== TICKET_STATUS.CLOSED" class="tth-form" @submit.prevent="onSubmit">
       <textarea
         v-model="text"
         class="tth-input"
@@ -80,6 +80,7 @@ import { useI18n } from 'vue-i18n'
 import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 import { MessageSquare } from 'lucide-vue-next'
 import MkAvatar from '@/components/common/MkAvatar.vue'
+import { TICKET_STATUS } from '@/constants/tickets'
 import { localizedDateTime } from '@/utils/datetime'
 
 import '@/assets/styles/portal/ticket-thread.css'

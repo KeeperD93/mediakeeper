@@ -16,8 +16,38 @@ utilisateurs.
 
 ## [Unreleased]
 
+### Added
+- Accueil — bouton Lecture sur les bandeaux pour les titres déjà dans Emby.
+- Notifications — refus d'une demande signalé dans la cloche, avec le motif.
+
+### Changed
+- Accueil — repères de navigation du bandeau agrandis sur ordinateur.
+- Listes — page plus compacte sur téléphone.
+
 ### Fixed
+- Accueil — boutons des bandeaux plus faciles à toucher (téléphone, tablette), sans survol collant.
+- Accueil — le bandeau n'affiche plus « Demander » sur un titre déjà dans Emby.
+- Accueil — moins d'animations : bandeaux immobiles, ajouts récents sans glissement.
+- Accueil — repères du bandeau utilisables au clavier et plus faciles à toucher.
+- Accueil — les titres mis en avant gardent leur image (cache d'images activé).
 - Profil — temps de visionnage et répartition films/séries réalistes (pauses et reprises ne les faussent plus).
+- Demandes — passage automatique en Disponible dès l'arrivée du contenu demandé.
+- Demandes — jaquette manquante rétablie (nouvelles demandes et demandes existantes).
+- Demandes — redemande possible : saisons manquantes, titres refusés (fiche, bandeau) ou absents d'Emby.
+- Demandes — demandes disponibles bien retirées de l'onglet après le délai choisi par l'admin.
+- Trophées — Ambassadeur compte les demandes disponibles ; Demandeur et Ambassadeur gardent les archivées.
+- Problèmes — filtres et tri à taille tactile sur téléphone, flèche des menus espacée.
+- Problèmes — plus de zoom sur les champs et menus sur téléphone.
+- Problèmes — formulaire de signalement et filtres accessibles au clavier et aux lecteurs d'écran.
+- Problèmes — signalement en échec : message clair, saisie conservée.
+- Listes — vos actions en échec sont signalées (plus d'« Erreur réseau » générique).
+- Listes — boutons de création sans survol collant sur écran tactile.
+- Listes — un double clic sur Enregistrer ne crée plus deux listes.
+- Problèmes et Listes — couleurs du portail conservées après connexion (pastilles actives avec halo).
+- Jaquettes — boutons « Demander » et « Redemander » correctement libellés.
+- Demandes — envoi en échec : message clair au lieu d'un code technique.
+- Erreurs — messages lisibles et traduits (saisie refusée, démarrage, erreur serveur, limite de requêtes).
+- Confirmations — en file d'attente, sans validation involontaire (double clic, touche Entrée).
 
 ## [1.0.0-rc.8] - 2026-10-11
 

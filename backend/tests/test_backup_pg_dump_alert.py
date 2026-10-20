@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from services.backup.create import _parse_pg_dsn, _pg_dump_async
+from services.backup.pg_dump import dump_database, parse_pg_dsn
 from services.monitoring import AlertType, reset_debounce_state
 
 
@@ -11,7 +11,7 @@ def test_parse_pg_dsn_percent_decodes_credentials():
     """asyncpg/SQLAlchemy require reserved chars in the DSN to be
     percent-encoded; pg_dump must receive the *decoded* values, otherwise auth
     fails and the archive silently ships without the database dump."""
-    dsn = _parse_pg_dsn("postgresql+asyncpg://u%24er:p%40ss%2Fword@db.host:6543/my%2Ddb")
+    dsn = parse_pg_dsn("postgresql+asyncpg://u%24er:p%40ss%2Fword@db.host:6543/my%2Ddb")
     assert dsn["user"] == "u$er"
     assert dsn["password"] == "p@ss/word"
     assert dsn["host"] == "db.host"
@@ -20,7 +20,7 @@ def test_parse_pg_dsn_percent_decodes_credentials():
 
 
 def test_parse_pg_dsn_falls_back_to_defaults():
-    dsn = _parse_pg_dsn("postgresql://")
+    dsn = parse_pg_dsn("postgresql://")
     assert dsn == {
         "host": "127.0.0.1",
         "port": "5432",
@@ -58,7 +58,7 @@ async def test_pg_dump_failure_triggers_backup_alert(monkeypatch):
     with patch("asyncio.create_subprocess_exec", new=_fake_create_subprocess), patch(
         "services.monitoring.send_alert", new=AsyncMock(return_value=True)
     ) as alert_mock:
-        result = await _pg_dump_async()
+        result = await dump_database()
 
     assert result is None
     alert_mock.assert_awaited_once()
@@ -66,3 +66,33 @@ async def test_pg_dump_failure_triggers_backup_alert(monkeypatch):
     assert args[0] is AlertType.BACKUP_FAILED
     assert args[1]["component"] == "pg_dump"
     assert args[1]["returncode"] == 2
+
+
+class _HungProc:
+    returncode = None
+
+    def __init__(self):
+        self.killed = False
+
+    async def communicate(self):
+        raise TimeoutError
+
+    def kill(self):
+        self.killed = True
+
+    async def wait(self):
+        return -9
+
+
+@pytest.mark.asyncio
+async def test_a_pg_dump_past_its_timeout_is_killed():
+    """The backup gives up on a hung pg_dump: the process must not keep running."""
+    proc = _HungProc()
+
+    async def _fake_create_subprocess(*_args, **_kwargs):
+        return proc
+
+    with patch("asyncio.create_subprocess_exec", new=_fake_create_subprocess), pytest.raises(TimeoutError):
+        await dump_database()
+
+    assert proc.killed

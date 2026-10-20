@@ -1,28 +1,66 @@
 import { ref, type Ref } from 'vue'
 import i18n from '@/i18n'
-import { fetchApiResponse, type ApiFetchOptions } from './apiClient'
-import { showRateLimitToast } from './handle429'
+import {
+  RATE_LIMITED_NOTIFIED,
+  extractDetailCode,
+  fetchApiResponse,
+  type ApiFetchOptions,
+} from './apiClient'
+import { rateLimitCode } from './handle429'
 
 export { buildApiHeaders, fetchApiResponse, getCsrfToken } from './apiClient'
 export type { ApiFetchOptions } from './apiClient'
+
+// A bare HTTP status, kept when an answer carried no code (``http_502``).
+const HTTP_STATUS_CODE = /^http_(\d{3})$/
 
 /**
  * Translate a backend error code into a user-facing string.
  *
  * Backend endpoints return ``detail`` as a snake_case code
  * (``invalid_credentials``, ``backup_not_found``, …). When the code
- * exists under ``common.apiError.*`` we resolve it; otherwise we
- * surface the raw code so developers can spot gaps quickly.
+ * exists under ``common.apiError.*`` we resolve it. Otherwise the
+ * caller's own message names what failed (``fallbackKey``: "Could not
+ * create the backup"), whatever the cause: a status without a code, a
+ * request that never got an answer. Without one, a bare status
+ * (``http_502``) reads "Error 502" and any other code is surfaced raw
+ * so developers can spot gaps quickly. A rate limit, already shown by
+ * its own toast, resolves to '' (showToast then stays silent).
  */
-export function resolveApiError(code?: string | null): string {
+export function resolveApiError(code?: string | null, fallbackKey?: string): string {
   // i18n.global.t has overloaded signatures — treat it as a narrow
   // (key: string, named?: Record<string, unknown>) => string shape
   // because that's the only form this module uses.
   const t = i18n.global.t as unknown as (key: string, named?: Record<string, unknown>) => string
+  if (code === RATE_LIMITED_NOTIFIED) return ''
+  if (code) {
+    const key = `common.apiError.${code}`
+    const localized = t(key)
+    if (localized !== key) return localized
+  }
+  if (fallbackKey) return t(fallbackKey)
   if (!code) return t('common.apiError.unknown', { status: '' })
-  const key = `common.apiError.${code}`
-  const localized = t(key)
-  return localized === key ? code : localized
+  const status = HTTP_STATUS_CODE.exec(code)?.[1]
+  return status ? t('common.apiError.unknown', { status }) : code
+}
+
+/**
+ * A screen's own message for an error code (``portal.lists.errors.list_full``)
+ * when its locale scope has one, else ``resolveApiError``. Bare statuses skip
+ * the scope: where one words them, it is about another service (Emby).
+ */
+export function resolveScopedError(
+  scope: string,
+  code?: string | null,
+  fallbackKey?: string,
+): string {
+  const t = i18n.global.t as unknown as (key: string) => string
+  if (code && !HTTP_STATUS_CODE.test(code)) {
+    const key = `${scope}.${code}`
+    const localized = t(key)
+    if (localized !== key) return localized
+  }
+  return resolveApiError(code, fallbackKey)
 }
 
 export interface UseApiReturn {
@@ -37,8 +75,8 @@ export interface UseApiReturn {
 }
 
 /**
- * Composable for les calls API with management automatique
- * du cookie httpOnly JWT et redirection 401.
+ * API calls with the httpOnly JWT cookie sent automatically: a 401 renews
+ * the session once, then redirects to the login page.
  */
 export function useApi(): UseApiReturn {
   const loading = ref(false)
@@ -55,14 +93,9 @@ export function useApi(): UseApiReturn {
       }
 
       if (!res.ok) {
-        if (res.status === 429) {
-          // Surface the rate-limit response as a friendly toast before
-          // the throw — the calling component can still react via its
-          // own catch block, but the user already has a visible hint.
-          showRateLimitToast(res)
-        }
         const data = await res.json().catch(() => ({}))
-        throw new Error(data.detail || `http_${res.status}`)
+        if (res.status === 429) throw new Error(rateLimitCode(res, data))
+        throw new Error(extractDetailCode(data, `http_${res.status}`))
       }
 
       return res
@@ -75,7 +108,7 @@ export function useApi(): UseApiReturn {
   }
 
   /**
-   * Raccourci GET JSON
+   * GET shortcut returning the parsed JSON.
    */
   async function apiGet<T = unknown>(url: string): Promise<T | null> {
     const res = await apiFetch(url)
@@ -83,7 +116,7 @@ export function useApi(): UseApiReturn {
   }
 
   /**
-   * Raccourci POST JSON
+   * POST shortcut with a JSON body.
    */
   async function apiPost<T = unknown, B = unknown>(url: string, body?: B): Promise<T | null> {
     const res = await apiFetch(url, {
@@ -94,7 +127,7 @@ export function useApi(): UseApiReturn {
   }
 
   /**
-   * Raccourci PUT JSON
+   * PUT shortcut with a JSON body.
    */
   async function apiPut<T = unknown, B = unknown>(url: string, body?: B): Promise<T | null> {
     const res = await apiFetch(url, {
@@ -105,7 +138,7 @@ export function useApi(): UseApiReturn {
   }
 
   /**
-   * Raccourci DELETE
+   * DELETE shortcut.
    */
   async function apiDelete<T = unknown>(url: string): Promise<T | null> {
     const res = await apiFetch(url, { method: 'DELETE' })
@@ -113,7 +146,7 @@ export function useApi(): UseApiReturn {
   }
 
   /**
-   * Raccourci PATCH JSON
+   * PATCH shortcut with a JSON body.
    */
   async function apiPatch<T = unknown, B = unknown>(url: string, body?: B): Promise<T | null> {
     const res = await apiFetch(url, {

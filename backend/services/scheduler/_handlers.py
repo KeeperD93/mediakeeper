@@ -1,10 +1,12 @@
 """Scheduled task handlers — lazy imports to avoid cycles."""
 import asyncio
-import json
+import logging
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ._progress import update_progress
+
+logger = logging.getLogger("mediakeeper.scheduler")
 
 
 async def _handler_watchlist(db: AsyncSession) -> None:
@@ -45,22 +47,33 @@ async def _handler_notifications(db: AsyncSession) -> None:
 
 
 async def _handler_backup(db: AsyncSession) -> None:
-    from services.backup import apply_retention_for_setting, create_backup, resolve_backup_dir
+    from pydantic import ValidationError
+
+    from services.backup import COMPONENTS_ADAPTER, apply_configured_retention, create_backup
     from services.settings import get_setting
 
     components_raw = await get_setting(db, "backup.auto_components") or "{}"
     try:
-        components = json.loads(components_raw)
-    except Exception:
+        components = COMPONENTS_ADAPTER.validate_json(components_raw)
+    except ValidationError as e:
+        logger.warning("[backup] unreadable backup.auto_components setting, using the defaults: %s", e)
         components = {}
-    await create_backup(
+    result = await create_backup(
         db,
         components=components,
         label="auto",
         progress_cb=lambda c, t, label: update_progress("backup_auto", c, t, label),
     )
-    retention = int(await get_setting(db, "backup.retention_days") or 30)
-    apply_retention_for_setting(retention, await resolve_backup_dir(db))
+    if not result.complete:
+        # The task ends in error (and alerts) and the complete backups stay:
+        # retention waits for a complete one.
+        raise RuntimeError(
+            f"{result.path.name} written without: {', '.join(result.failed)}; "
+            "retention suspended until a complete backup"
+        )
+    if result.failed:  # only the optional log files are missing
+        logger.warning("[backup] %s written without its log files", result.path.name)
+    await apply_configured_retention(db)
 
 
 async def _handler_healthcheck(db: AsyncSession) -> None:
@@ -126,18 +139,24 @@ async def _handler_feedback_purge(db: AsyncSession) -> dict:
     return {"removed": removed}
 
 
+async def _handler_fulfill_requests(db: AsyncSession) -> dict:
+    """Mark the open requests available once Emby holds what they asked for."""
+    from services.portal.requests_fulfill import fulfill_open_requests
+    return {"fulfilled": await fulfill_open_requests(db)}
+
+
 async def _handler_cleanup_available_requests(db: AsyncSession) -> dict:
-    """Drop ``available`` media requests older than the configured window.
+    """Archive ``available`` media requests older than the configured delay.
 
     Early-returns when ``requests.auto_cleanup_days`` is 0 (or unset) so
     the task is harmless to leave on by default — flipping the setting
-    to a positive value is the only way for rows to actually be removed.
+    to a positive value is the only way for rows to actually be archived.
     """
     from services.portal import requests_cleanup
     days = await requests_cleanup.get_cleanup_days(db)
     if days <= 0:
-        return {"deleted": 0, "skipped": "disabled"}
-    deleted = await requests_cleanup.cleanup_old_available_requests(db, days=days)
-    return {"deleted": deleted, "days": days}
+        return {"archived": 0, "skipped": "disabled"}
+    archived = await requests_cleanup.archive_old_available_requests(db, days=days)
+    return {"archived": archived, "days": days}
 
 

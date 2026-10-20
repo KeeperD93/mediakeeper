@@ -18,7 +18,7 @@ from models.portal.profile import UserProfile
 from models.user import User
 from services.portal import admin_debug
 from services.portal.admin_users_audit import record_audit
-from services.portal.admin_users_constants import ACTION_DEBUG_ACHIEVEMENT_RECHECK_ALL
+from services.portal.admin_users_constants import ACTION_DEBUG_ACHIEVEMENT_RECHECK_ALL, ROLE_VIEWER
 from services.portal.achievement_defs import (
     ACHIEVEMENT_DEFS,
     META_TARGET_CATEGORY,
@@ -78,7 +78,7 @@ async def debug_list_users(
                 "display_name": r[2] or r[1],
                 "level": r[3] or 0,
                 "xp": r[4] or 0,
-                "role": r[5] or "viewer",
+                "role": r[5] or ROLE_VIEWER,
                 "account_active": bool(r[6]),
             }
             for r in rows

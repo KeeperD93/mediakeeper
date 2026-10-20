@@ -1,33 +1,100 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+/**
+ * One confirmation on screen at a time: another one asked meanwhile waits
+ * its turn instead of cancelling it, and the same one asked again (a double
+ * click) is answered "no" at once. A waiting prompt cannot be accepted the
+ * instant it appears, so a double click never answers it unread.
+ */
+import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import { nextTick } from 'vue'
-import { useConfirm } from '@/composables/useConfirm'
+import { QUEUED_PROMPT_GUARD_MS, useConfirm, _useConfirmState } from '@/composables/useConfirm'
+
+const confirm = useConfirm()
+const { state, accept, cancel } = _useConfirmState()
+
+// Shows the waiting prompt and lets its guard run out.
+async function showNext() {
+  await nextTick()
+  vi.advanceTimersByTime(QUEUED_PROMPT_GUARD_MS)
+}
 
 describe('useConfirm', () => {
-  let confirm
-
   beforeEach(() => {
-    confirm = useConfirm()
+    vi.useFakeTimers()
   })
-
   afterEach(async () => {
-    // Ensure any pending prompt resolves before the next test.
+    while (state.value.open) {
+      cancel()
+      await nextTick()
+    }
+    vi.useRealTimers()
+  })
+
+  it('returns a promise', () => {
+    const prompt = confirm({ title: 'Anything?' })
+
+    expect(prompt).toBeInstanceOf(Promise)
+  })
+
+  it('lets a second prompt wait for the first to be answered', async () => {
+    const deleteRowB = confirm({ title: 'Delete B?', variant: 'danger' })
+    const forceRowA = confirm({ title: 'Mark A available anyway?', variant: 'warn' })
+    expect(state.value.title).toBe('Delete B?')
+
+    accept()
+    expect(await deleteRowB).toBe(true)
+    await showNext()
+    expect(state.value).toMatchObject({ open: true, title: 'Mark A available anyway?' })
+
+    cancel()
+    expect(await forceRowA).toBe(false)
+    expect(state.value.open).toBe(false)
+  })
+
+  it('answers "no" at once to the same prompt asked twice', async () => {
+    const first = confirm({ title: 'Delete?', variant: 'danger' })
+    expect(await confirm({ title: 'Delete?', variant: 'danger' })).toBe(false)
+
+    accept()
+    expect(await first).toBe(true)
+  })
+
+  it('ignores a double click that would accept the waiting prompt unread', async () => {
+    const first = confirm({ title: 'Delete B?', variant: 'danger' })
+    let secondAnswer = null
+    confirm({ title: 'Mark A available anyway?', variant: 'warn' }).then(v => {
+      secondAnswer = v
+    })
+
+    accept()
+    await first
     await nextTick()
+    accept() // second click of the double click
+    await nextTick()
+
+    expect(state.value).toMatchObject({ open: true, title: 'Mark A available anyway?' })
+    expect(secondAnswer).toBeNull()
+
+    vi.advanceTimersByTime(QUEUED_PROMPT_GUARD_MS)
+    accept()
+    await nextTick()
+    expect(secondAnswer).toBe(true)
   })
 
-  it('returns a function', () => {
-    expect(typeof confirm).toBe('function')
-  })
+  it('queues a prompt asked by the caller that was just answered', async () => {
+    const first = confirm({ title: 'First?' })
+    const second = confirm({ title: 'Second?' })
 
-  it('resolves to the value returned by the MkConfirmDialog response', async () => {
-    // We cannot drive the actual dialog UI from here (it lives in App.vue),
-    // but we can verify the promise interface and that calling twice
-    // supersedes any pending prompt.
-    const first = confirm({ title: 't', message: 'm' })
-    expect(first).toBeInstanceOf(Promise)
+    accept()
+    await first
+    const third = confirm({ title: 'Third?' })
+    await showNext()
+    expect(state.value.title).toBe('Second?')
 
-    const second = confirm({ title: 't2', message: 'm2' })
-    // The first promise must resolve (to false) when a new prompt replaces it.
-    await expect(first).resolves.toBe(false)
-    expect(second).toBeInstanceOf(Promise)
+    accept()
+    expect(await second).toBe(true)
+    await showNext()
+    expect(state.value.title).toBe('Third?')
+    accept()
+    expect(await third).toBe(true)
   })
 })

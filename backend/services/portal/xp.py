@@ -115,8 +115,8 @@ async def grant_xp(
     # --- Insert (dedup via unique constraint) ---
     # The INSERT runs inside a SAVEPOINT so a duplicate (user_id, action,
     # reference) trips the unique constraint without invalidating the
-    # outer transaction — callers (e.g. ``update_request_status``) keep
-    # the work they had pending in the same session.
+    # outer transaction — callers keep the work they had pending in the
+    # same session.
     try:
         async with db.begin_nested():
             db.add(XpLedger(

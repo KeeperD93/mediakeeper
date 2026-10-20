@@ -1,7 +1,12 @@
 import { ref, computed } from 'vue'
-import { useApi } from '@/composables/useApi'
+import { resolveApiError, useApi } from '@/composables/useApi'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
+import {
+  BACKUP_RETENTION_MAX_COUNT,
+  BACKUP_RETENTION_MAX_DAYS,
+  BACKUP_RETENTION_MODE,
+} from '@/constants/backup'
 import { useI18n } from 'vue-i18n'
 import { useConfirm } from '@/composables/useConfirm'
 import { localizedDateTime } from '@/utils/datetime'
@@ -12,19 +17,23 @@ const backupCreating = ref(false)
 const backupRestoring = ref(null)
 const backupDirs = ref([])
 const backupDirInput = ref('/data/backups')
-const retentionMode = ref('days')
+const retentionMode = ref(BACKUP_RETENTION_MODE.DAYS)
 const retentionDays = ref(30)
 const retentionCount = ref(10)
+// Same parts as the scheduled backup (DEFAULT_COMPONENTS on the server), in
+// the order the screen lists them: the optional log files last.
 const selectedComponents = ref({
   settings: true,
   preferences: true,
   scheduler: true,
   watchlist: true,
+  pg_dump: true,
   logs: false,
-  pg_dump: false,
 })
 const backupDirLocked = computed(() => !!backupInfo.value?.backup_dir_locked)
 let loadedOnce = false
+// Long enough to read the database restore notice and its pointer to the docs.
+const RESTORE_NOTICE_MS = 10000
 
 function formatSize(bytes) {
   if (bytes < 1024) return bytes + ' B'
@@ -56,34 +65,45 @@ export function useParamsBackup() {
     pg_dump: t('backup.compPgDump'),
   }))
 
+  // The server's code names the failure (backup not found, invalid archive…);
+  // without one (no answer, bare status), the action says what failed.
+  function showFailure(where, e, fallbackKey) {
+    console.error(`[useParamsBackup.${where}]`, e)
+    showToast(resolveApiError(e?.message, fallbackKey), TOAST_TYPE.ERR)
+  }
+
+  // True once the backups and their settings are on screen.
   async function loadBackupInfo() {
     backupLoading.value = true
     try {
       const data = await apiGet('/api/backup/info')
-      if (data) {
-        backupInfo.value = data
-        backupDirInput.value = data.backup_dir || '/data/backups'
-        if (data.retention_days === 0) retentionMode.value = 'off'
-        else if (data.retention_days < 0) {
-          retentionMode.value = 'count'
-          retentionCount.value = Math.abs(data.retention_days)
-        } else {
-          retentionMode.value = 'days'
-          retentionDays.value = data.retention_days
-        }
+      if (!data) return false
+      backupInfo.value = data
+      backupDirInput.value = data.backup_dir || '/data/backups'
+      if (data.retention_days === 0) retentionMode.value = BACKUP_RETENTION_MODE.OFF
+      else if (data.retention_days < 0) {
+        retentionMode.value = BACKUP_RETENTION_MODE.COUNT
+        retentionCount.value = Math.abs(data.retention_days)
+      } else {
+        retentionMode.value = BACKUP_RETENTION_MODE.DAYS
+        retentionDays.value = data.retention_days
       }
-    } catch {
-      /* silent: backup info load, UI stays empty */
+      return true
+    } catch (e) {
+      showFailure('loadBackupInfo', e, 'common.apiError.loadFailed')
+      return false
+    } finally {
+      backupLoading.value = false
     }
-    backupLoading.value = false
   }
 
   async function loadBackupDirs() {
     try {
       const data = await apiGet('/api/backup/directories')
       if (Array.isArray(data)) backupDirs.value = data
-    } catch {
-      /* silent: backup dirs load */
+    } catch (e) {
+      // Only the folder suggestions are missing: log it, no toast.
+      console.error('[useParamsBackup.loadBackupDirs]', e)
     }
   }
 
@@ -93,13 +113,26 @@ export function useParamsBackup() {
 
   async function saveRetention() {
     let days = 0
-    if (retentionMode.value === 'days') days = retentionDays.value || 30
-    else if (retentionMode.value === 'count') days = -(retentionCount.value || 10)
+    if (retentionMode.value !== BACKUP_RETENTION_MODE.OFF) {
+      // The server refuses anything outside the screen's range: say which one.
+      const byDays = retentionMode.value === BACKUP_RETENTION_MODE.DAYS
+      const value = byDays ? retentionDays.value : retentionCount.value
+      const max = byDays ? BACKUP_RETENTION_MAX_DAYS : BACKUP_RETENTION_MAX_COUNT
+      if (!Number.isInteger(value) || value < 1 || value > max) {
+        const key = byDays ? 'backup.retentionDaysRange' : 'backup.retentionCountRange'
+        showToast(t(key, { max }), TOAST_TYPE.ERR)
+        return
+      }
+      days = byDays ? value : -value
+    }
     try {
-      await apiFetch('/api/backup/retention', { method: 'POST', body: JSON.stringify({ days }) })
-      showToast(t('backup.retentionSaved'), TOAST_TYPE.OK)
-    } catch {
-      showToast(t('common.networkError'), TOAST_TYPE.ERR)
+      const res = await apiFetch('/api/backup/retention', {
+        method: 'POST',
+        body: JSON.stringify({ days }),
+      })
+      if (res) showToast(t('backup.retentionSaved'), TOAST_TYPE.OK)
+    } catch (e) {
+      showFailure('saveRetention', e, 'backup.retentionSaveFailed')
     }
   }
 
@@ -109,20 +142,17 @@ export function useParamsBackup() {
         method: 'POST',
         body: JSON.stringify({ path: dir }),
       })
-      const data = await res.json()
-      if (data.success) {
-        showToast(t('backup.dirChanged'), TOAST_TYPE.OK)
-        await loadBackupInfo()
-      } else showToast(data.detail || t('common.networkError'), TOAST_TYPE.ERR)
+      if (!res) return
+      showToast(t('backup.dirChanged'), TOAST_TYPE.OK)
+      await loadBackupInfo()
     } catch (e) {
-      // BACKUP_PATH lock returns a dedicated code — explain it rather than
-      // surfacing a generic network error.
+      // BACKUP_PATH lock returns a dedicated code: say why the directory is
+      // locked rather than that the change failed.
       if (e?.message === 'backup_directory_locked') {
         showToast(t('backup.dirLocked'), TOAST_TYPE.ERR)
         return
       }
-      console.error('[useParamsBackup.changeBackupDir] failed to change backup directory', e)
-      showToast(t('common.networkError'), TOAST_TYPE.ERR)
+      showFailure('changeBackupDir', e, 'backup.dirChangeFailed')
     }
   }
 
@@ -133,15 +163,25 @@ export function useParamsBackup() {
         method: 'POST',
         body: JSON.stringify({ components: selectedComponents.value, label: '' }),
       })
+      if (!res) return
       const data = await res.json()
-      if (data.success) {
+      // The archive exists but lacks the parts whose export failed: name them,
+      // and say when retention now waits for a complete backup.
+      const missing = (data.failed_components || []).map(c => COMPONENT_LABELS.value[c] || c)
+      if (missing.length) {
+        const key = data.retention_skipped
+          ? 'backup.createdIncompleteNoRetention'
+          : 'backup.createdIncomplete'
+        showToast(t(key, { parts: missing.join(', ') }), TOAST_TYPE.WARN)
+      } else {
         showToast(t('backup.created'), TOAST_TYPE.OK)
-        await loadBackupInfo()
       }
-    } catch {
-      showToast(t('common.networkError'), TOAST_TYPE.ERR)
+      await loadBackupInfo()
+    } catch (e) {
+      showFailure('createBackup', e, 'common.apiError.backup_create_failed')
+    } finally {
+      backupCreating.value = false
     }
-    backupCreating.value = false
   }
 
   function downloadBackup(filename) {
@@ -156,11 +196,13 @@ export function useParamsBackup() {
       confirmLabel: t('common.delete'),
     })
     if (!ok) return
-    const res = await apiFetch('/api/backup/' + filename, { method: 'DELETE' })
-    const data = await res.json()
-    if (data.success) {
+    try {
+      const res = await apiFetch('/api/backup/' + filename, { method: 'DELETE' })
+      if (!res) return
       showToast(t('backup.deleted'), TOAST_TYPE.OK)
       await loadBackupInfo()
+    } catch (e) {
+      showFailure('deleteBackup', e, 'common.apiError.deleteFailed')
     }
   }
 
@@ -177,13 +219,12 @@ export function useParamsBackup() {
         method: 'POST',
         body: JSON.stringify({ filename, components: selectedComponents.value }),
       })
-      const data = await res.json()
-      if (data.success) showToast(t('backup.restored'), TOAST_TYPE.OK)
-      else showToast(t('common.networkError'), TOAST_TYPE.ERR)
-    } catch {
-      showToast(t('common.networkError'), TOAST_TYPE.ERR)
+      if (res) showRestoreResult((await res.json()).results)
+    } catch (e) {
+      showFailure('restoreBackup', e, 'common.apiError.backup_restore_failed')
+    } finally {
+      backupRestoring.value = null
     }
-    backupRestoring.value = null
   }
 
   async function uploadRestore(e) {
@@ -196,21 +237,38 @@ export function useParamsBackup() {
     try {
       const endpoint = isJson ? '/api/backup/upload-restore-json' : '/api/backup/upload-restore'
       const res = await apiFetch(endpoint, { method: 'POST', body: fd })
-      const data = res ? await res.json() : null
-      if (data?.success) {
-        showToast(t('backup.restored'), TOAST_TYPE.OK)
-        await loadBackupInfo()
-      } else showToast(data?.detail || t('common.networkError'), TOAST_TYPE.ERR)
-    } catch {
-      showToast(t('common.networkError'), TOAST_TYPE.ERR)
+      if (!res) return
+      showRestoreResult((await res.json()).results)
+      await loadBackupInfo()
+    } catch (err) {
+      showFailure('uploadRestore', err, 'common.apiError.backup_restore_failed')
+    } finally {
+      e.target.value = ''
     }
-    e.target.value = ''
+  }
+
+  // Name what the restore brought back: a ticked part the archive does not
+  // hold is skipped. The database is never replayed here (manual procedure).
+  function showRestoreResult(results) {
+    const restored = Object.entries(results || {})
+      .filter(([, status]) => status === 'ok')
+      .map(([part]) => COMPONENT_LABELS.value[part] || part)
+    if (restored.length) {
+      showToast(t('backup.restoredParts', { parts: restored.join(', ') }), TOAST_TYPE.OK)
+    } else {
+      showToast(t('backup.restoredNothing'), TOAST_TYPE.WARN)
+    }
+    if (selectedComponents.value.pg_dump) {
+      showToast(t('backup.restoreNoDatabase'), TOAST_TYPE.WARN, RESTORE_NOTICE_MS)
+    }
   }
 
   async function ensureLoaded() {
     if (loadedOnce) return
     loadedOnce = true
-    await Promise.all([loadBackupInfo(), loadBackupDirs()])
+    const [loaded] = await Promise.all([loadBackupInfo(), loadBackupDirs()])
+    // A failed first load must not stick: the next visit tries again.
+    if (!loaded) loadedOnce = false
   }
 
   return {

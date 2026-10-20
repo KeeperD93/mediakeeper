@@ -1,7 +1,8 @@
 // Authenticated-Portal smoke baseline.
 //
-// Drives /portal/lists, /portal/settings#appearance, and /portal/tickets
-// with a fully fictional viewer profile served by a strict mock layer
+// Drives /portal/lists, /portal/settings#appearance and /portal/tickets
+// with a fully fictional viewer profile, and the /portal/requests admin
+// queue with a fictional admin, served by a strict mock layer
 // (see _fixtures/portal-auth-mocks.js). No real backend, no real session,
 // no real account — every /api/** call is either mocked or fails the test
 // via the strict catch-all in api-mocks.js.
@@ -20,8 +21,10 @@
 
 import { test, expect } from '@playwright/test'
 import {
+  ADMIN_VIEWER_PROFILE,
   mockAuthenticatedPortal,
   portalListsHandlers,
+  portalRequestsQueueHandlers,
   portalSettingsHandlers,
   portalTicketsHandlers,
 } from './_fixtures/portal-auth-mocks.js'
@@ -112,6 +115,26 @@ test.describe('Portal authenticated smoke — responsive shell', () => {
 
     await expect(page.locator('main#main-content')).toBeVisible()
     await expect(page.getByRole('heading', { level: 1, name: 'My lists' })).toBeVisible()
+
+    expect(tracker.unexpected).toEqual([])
+  })
+})
+
+test.describe('Portal authenticated smoke — admin requests queue', () => {
+  test('/portal/requests renders the empty admin queue', async ({ page }) => {
+    await forceEnglishLocale(page)
+    const tracker = await mockAuthenticatedPortal(page, {
+      profile: ADMIN_VIEWER_PROFILE,
+      ui: { show_requests_tab: true },
+      pageHandlers: portalRequestsQueueHandlers(),
+    })
+
+    await page.goto('/portal/requests')
+
+    await expect(page).toHaveURL(/\/portal\/requests$/)
+    await expect(page.locator('main#main-content')).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: 'Requests' })).toBeVisible()
+    await expect(page.locator('.arr-empty')).toBeVisible()
 
     expect(tracker.unexpected).toEqual([])
   })

@@ -6,6 +6,10 @@ const AUTH_REFRESH_URL = '/api/auth/refresh'
 const PORTAL_ADMIN_ENTER_URL = '/api/portal/admin/requests/enter'
 const CSRF_COOKIE = 'mk_csrf'
 
+// Thrown after a 429: the rate-limit toast already told the user, so the
+// caller's own failure message must stay silent (resolveApiError returns '').
+export const RATE_LIMITED_NOTIFIED = 'rate_limited_notified'
+
 export interface ApiFetchOptions extends RequestInit {
   retryOn401?: boolean
   redirectOn401?: boolean
@@ -49,6 +53,24 @@ export function buildApiHeaders(options: ApiFetchOptions = {}): Headers {
   }
 
   return headers
+}
+
+/**
+ * Normalise the FastAPI `detail` payload into a stable code that
+ * resolveApiError() can map to an i18n string.
+ *
+ * - Pydantic 422 returns `detail` as an array of validation entries
+ *   ({ type, loc, msg, input }). `new Error([{...}])` would stringify
+ *   the array to "[object Object]" and surface that to the user — see
+ *   common.apiError.validation_failed for the i18n target instead.
+ * - 4xx/5xx with a string `detail` keep the existing contract
+ *   (account_disabled, current_password_invalid, ...).
+ */
+export function extractDetailCode(data: unknown, fallback: string): string {
+  const detail = (data as { detail?: unknown } | null | undefined)?.detail
+  if (typeof detail === 'string' && detail) return detail
+  if (Array.isArray(detail) && detail.length > 0) return 'validation_failed'
+  return fallback
 }
 
 function redirectToLogin(): null {
@@ -105,11 +127,7 @@ export async function fetchApiResponse(
   // 401s — re-issue rq_token via the existing admin bypass and try
   // once more before giving up. Skip if the call IS /enter to avoid
   // infinite loops.
-  if (
-    retryRes.status === 401
-    && url.startsWith('/api/portal/')
-    && url !== PORTAL_ADMIN_ENTER_URL
-  ) {
+  if (retryRes.status === 401 && url.startsWith('/api/portal/') && url !== PORTAL_ADMIN_ENTER_URL) {
     const enterRes = await runFetch(PORTAL_ADMIN_ENTER_URL, { method: 'POST' })
     if (enterRes.ok) {
       const finalRes = await runFetch(url)

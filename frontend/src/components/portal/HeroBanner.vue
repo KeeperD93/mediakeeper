@@ -1,5 +1,5 @@
 <template>
-  <div ref="heroRef" class="pt-hero">
+  <div class="pt-hero">
     <Transition name="pt-hero-bg-fade">
       <div :key="viewItem?.id" class="pt-hero-bg" :style="bgStyle" />
     </Transition>
@@ -29,12 +29,20 @@
       <p class="pt-hero-overview">{{ viewItem?.overview }}</p>
 
       <div class="pt-hero-actions">
-        <!-- The hero is informational, not a launch CTA: when the title
-             is missing from Emby it surfaces a "Request" button, or a
-             muted "Pending" button when it was already requested. Items
-             already on Emby get no action button — the "Info" / trailer
-             affordances cover the rest. -->
-        <template v-if="!viewItem?.emby_url">
+        <!-- A title on Emby opens there; a missing one surfaces "Request"
+             ("Request again" once refused), or a muted "Pending" while a
+             request is open. -->
+        <a
+          v-if="playUrl"
+          :href="playUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="pt-hero-btn pt-hero-btn--play"
+        >
+          <img src="/assets/icons/emby.svg" alt="" class="pt-hero-btn-emby" />
+          {{ $t('portal.hero.play') }}
+        </a>
+        <template v-else-if="!viewItem?.emby_url">
           <button
             v-if="isRequestPending"
             class="pt-hero-btn pt-hero-btn--pending"
@@ -50,16 +58,23 @@
             type="button"
             @click="$emit('request', viewItem)"
           >
-            <Plus :size="22" :stroke-width="2.5" />
-            {{ $t('portal.card.requestBtn') }}
+            <RotateCcw v-if="isRerequest" :size="22" :stroke-width="2.5" />
+            <Plus v-else :size="22" :stroke-width="2.5" />
+            {{ $t(isRerequest ? 'portal.detail.reRequest' : 'portal.card.requestBtn') }}
           </button>
         </template>
-        <button v-if="trailer" class="pt-hero-btn pt-hero-btn--trailer" @click="openLightbox">
+        <button
+          v-if="trailer"
+          class="pt-hero-btn pt-hero-btn--trailer"
+          type="button"
+          @click="openLightbox"
+        >
           <Video :size="22" />
           {{ $t('portal.detail.watchTrailer') }}
         </button>
         <button
           class="pt-hero-btn pt-hero-btn--info pt-hero-btn--icon"
+          type="button"
           :aria-label="$t('portal.moreInfo')"
           @click="$emit('detail', viewItem)"
         >
@@ -74,12 +89,16 @@
       @close="closeLightbox"
     />
 
+    <!-- The only way to the other titles when the rotation is off
+         (reduced motion): real buttons, reachable with the keyboard. -->
     <div v-if="totalItems > 1" class="pt-hero-dots">
-      <span
+      <button
         v-for="i in totalItems"
         :key="i"
+        type="button"
         class="pt-hero-dot"
-        :class="{ active: currentIndex === i - 1 }"
+        :aria-label="$t('portal.hero.goTo', { n: i, total: totalItems })"
+        :aria-current="currentIndex === i - 1 ? 'true' : undefined"
         @click="$emit('goto', i - 1)"
       />
     </div>
@@ -93,7 +112,8 @@ import { useRequestStatus } from '@/composables/portal/useRequestStatus'
 import { REQUEST_STATUS } from '@/constants/requests'
 import TrailerLightbox from './TrailerLightbox.vue'
 import { isTv } from '@/constants/media'
-import { Clock, Info, Plus, Video } from 'lucide-vue-next'
+import { safeHref } from '@/utils/safeUrl'
+import { Clock, Info, Plus, RotateCcw, Video } from 'lucide-vue-next'
 
 import '@/assets/styles/portal/hero-banner.css'
 
@@ -109,23 +129,22 @@ const props = defineProps({
 const emit = defineEmits(['detail', 'goto', 'request', 'trailer-open', 'trailer-close'])
 
 // Trailer-URL resolution only — never mounts a YouTube IFrame in the
-// hero itself. Resolving populates ``trailer`` so the "Bande-annonce"
-// button can show / hide based on availability; clicking the button
+// hero itself. Resolving populates ``trailer`` so the trailer button
+// can show / hide based on availability; clicking the button
 // opens the fullscreen lightbox where the actual <iframe> lives,
 // then tears it down on close. Eliminates every chance of the
 // YouTube centre play/pause overlay being painted over the hero.
 const { trailer, candidates, resolve: resolveTrailer, prefetch: prefetchTrailer } = useTrailer()
 const { getStatus, checkStatus } = useRequestStatus()
 
-const heroRef = ref(null)
 const lightboxOpen = ref(false)
 const viewItem = computed(() => props.item)
+const playUrl = computed(() => safeHref(viewItem.value?.emby_url))
 
 // Request status for the current hero item, mirroring the poster cards:
 // an active request (pending/approved) swaps the "Request" CTA for a
-// muted "Pending" one. Rejected items aren't returned by the backend, so
-// they fall back to "Request" (re-request). Follows the rotation since it
-// derives from the current ``viewItem``.
+// muted "Pending" one; a refused one offers "Request again", as its card
+// and its page do. Follows the rotation since it derives from ``viewItem``.
 const reqStatus = computed(() => {
   const id = viewItem.value?.tmdb_id || viewItem.value?.id
   return id ? getStatus(id) : null
@@ -134,6 +153,7 @@ const isRequestPending = computed(() => {
   const s = reqStatus.value?.status
   return s === REQUEST_STATUS.PENDING || s === REQUEST_STATUS.APPROVED
 })
+const isRerequest = computed(() => reqStatus.value?.status === REQUEST_STATUS.REJECTED)
 
 const bgStyle = computed(() => {
   const it = viewItem.value

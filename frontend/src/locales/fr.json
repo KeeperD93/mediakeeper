@@ -1581,7 +1581,8 @@
       "emby_recent_scan": "Scan des ajouts récents Emby",
       "emby_full_scan": "Scan complet de la bibliothèque Emby",
       "backup_auto": "Sauvegarde automatique",
-      "cleanup_available_requests": "Nettoyage automatique des demandes disponibles",
+      "fulfill_requests": "Passage automatique des demandes en Disponible",
+      "cleanup_available_requests": "Archivage automatique des demandes disponibles",
       "healthcheck_scan": "Analyse santé de la médiathèque",
       "subtitle_auto": "Téléchargement automatique des sous-titres",
       "expire_users": "Expiration des comptes utilisateurs",
@@ -1601,7 +1602,8 @@
     "healthcheck": "Analyse la santé des fichiers médias (codecs, résolution, sous-titres…).",
     "subtitle_auto": "Télécharge automatiquement les sous-titres pour les nouveaux médias selon le profil par défaut.",
     "expire_users": "Désactive automatiquement les comptes (Emby + MediaKeeper) dont la période d'accès a expiré.",
-    "cleanup_available_requests": "Nettoie automatiquement les demandes marquées disponibles après le délai configuré.",
+    "fulfill_requests": "Passe en Disponible les demandes dont le contenu est arrivé dans Emby, et prévient le demandeur.",
+    "cleanup_available_requests": "Archive les demandes disponibles après le délai configuré ; elles restent comptées dans les statistiques.",
     "feedback_purge": "Supprime définitivement les remontées refusées depuis plus de 30 jours.",
     "gdpr_purge": "Supprime définitivement les comptes utilisateurs marqués pour purge RGPD.",
     "quota_auto_recompute": "Recalcul nocturne des quotas de demandes automatiques selon l'activité récente de chaque utilisateur.",
@@ -1743,9 +1745,13 @@
     "history": "Historique",
     "empty": "Aucun backup disponible",
     "created": "Backup créé avec succès",
+    "createdIncomplete": "Sauvegarde créée, mais sans : {parts}. Consultez les journaux.",
+    "createdIncompleteNoRetention": "Sauvegarde créée, mais sans : {parts}. La rétention attend une sauvegarde complète ; consultez les journaux.",
     "deleted": "Backup supprimé",
     "deleteConfirm": "Supprimer ce backup ?",
-    "restored": "Restauration effectuée",
+    "restoredParts": "Restauration effectuée : {parts}.",
+    "restoredNothing": "Rien n'a été restauré parmi les parties cochées.",
+    "restoreNoDatabase": "La base de données ne se restaure pas ici : suivez la procédure manuelle décrite dans la documentation.",
     "restoreConfirm": "Restaurer ce backup ? Les données actuelles seront écrasées.",
     "destinationTitle": "Destination des sauvegardes",
     "destinationDesc": "Répertoire où les fichiers de backup sont stockés.",
@@ -1758,9 +1764,16 @@
     "retentionByDays": "Par durée",
     "retentionByCount": "Par nombre",
     "retentionOff": "Désactivé",
+    "retentionModeLabel": "Mode de rétention",
+    "retentionDaysLabel": "Nombre de jours à conserver",
+    "retentionCountLabel": "Nombre de sauvegardes à conserver",
     "retentionDaysUnit": "jours",
     "retentionCountUnit": "backups max",
-    "retentionSaved": "Politique de rétention enregistrée"
+    "retentionSaved": "Politique de rétention enregistrée",
+    "retentionDaysRange": "La durée de conservation doit être comprise entre 1 et {max} jours.",
+    "retentionCountRange": "Le nombre de sauvegardes conservées doit être compris entre 1 et {max}.",
+    "retentionSaveFailed": "Impossible d'enregistrer la politique de rétention.",
+    "dirChangeFailed": "Impossible de changer le répertoire de sauvegarde."
   },
   "changelog": {
     "title": "Changelog",
@@ -2576,8 +2589,8 @@
       "availFull": "DISPO",
       "availPartial": "PARTIEL",
       "actionPlay": "LECTURE",
-      "actionRequest": "DEMANDÉ",
-      "actionReRequest": "RE-DEMANDÉ",
+      "actionRequest": "DEMANDER",
+      "actionReRequest": "REDEMANDER",
       "actionPending": "EN ATTENTE",
       "btnBookmark": "Ajouter à une liste",
       "btnBlacklist": "Blacklister",
@@ -2680,7 +2693,8 @@
       "series": "SÉRIES",
       "topRank": "N°{rank} des tendances aujourd'hui",
       "featured": "Mis en avant sur Emby",
-      "play": "Lecture"
+      "play": "Lecture",
+      "goTo": "Afficher le titre {n} sur {total}"
     },
     "mood": {
       "title": "Comment vous sentez-vous ?",
@@ -2715,6 +2729,7 @@
       "ignoredTooltip": "Cet épisode a été marqué comme ignoré dans le module Suivi — il ne sera pas téléchargé et ne peut donc pas être demandé.",
       "selectAll": "Tout sélectionner",
       "errors": {
+        "failed": "La demande n'a pas pu être envoyée.",
         "already_requested": "Ce titre est déjà demandé et en attente de validation.",
         "already_available": "Ce titre est déjà disponible sur Emby, vous pouvez le regarder directement.",
         "media_blacklisted": "Ce titre a été bloqué par un administrateur et ne peut pas être redemandé.",
@@ -2936,6 +2951,8 @@
         "reminder": "Rappel : \"{title}\" arrive bientôt",
         "requestApproved": "Votre demande \"{title}\" a été approuvée par un admin",
         "requestAvailable": "\"{title}\" est maintenant disponible sur Emby !",
+        "requestRejected": "Votre demande \"{title}\" a été refusée",
+        "requestRejectedReason": "Votre demande \"{title}\" a été refusée. Motif : {reason}",
         "ticketCreated": "Nouveau ticket : \"{title}\"",
         "ticketReplied": "Un admin a répondu à votre ticket \"{title}\"",
         "ticketResolved": "Votre ticket \"{title}\" a été résolu",
@@ -3064,6 +3081,7 @@
       "subtitle": "Signalez un bug concernant Emby ou Mediakeeper",
       "create": "Signaler un problème",
       "mediaTitle": "Titre du média",
+      "createFailed": "Le problème n'a pas pu être signalé.",
       "mediaType": "Type de média",
       "movie": "Film",
       "episode": "Épisode",
@@ -3111,7 +3129,8 @@
         "summaryWhole": "Ticket sur la série complète",
         "summarySeasons": "{n} saison sélectionnée | {n} saisons sélectionnées",
         "summaryEpisodes": "{n} épisode sélectionné | {n} épisodes sélectionnés",
-        "summaryMixed": "{s} saison(s) + {e} épisode(s) ciblés"
+        "summaryMixed": "{s} saison(s) + {e} épisode(s) ciblés",
+        "showEpisodes": "Afficher les épisodes de {season}"
       },
       "detail": {
         "openedAt": "Ouvert le",
@@ -3806,12 +3825,23 @@
         "season": "Saison",
         "seasons": "Saisons",
         "confirmDelete": "Supprimer cette demande ?",
+        "undoAvailable": "Annuler la disponibilité",
+        "hideAvailable": "Masquer les disponibles",
+        "sortLabel": "Trier les demandes",
+        "statusFilterLabel": "Filtrer par statut",
+        "typeFilterLabel": "Filtrer par type",
+        "availabilityCheckTitle": "Disponibilité non vérifiée",
+        "notInLibrary": "\"{title}\" est introuvable dans Emby. S'il vient d'être ajouté, il peut falloir jusqu'à 5 minutes pour qu'il soit détecté : réessayez un peu plus tard. Le marquer disponible quand même ? Le demandeur sera prévenu.",
+        "libraryCheckFailed": "Impossible de vérifier si \"{title}\" est dans Emby. Le marquer disponible quand même ? Le demandeur sera prévenu.",
+        "markAvailable": "Marquer disponible",
+        "statusFailed": "Impossible de modifier le statut de la demande.",
         "deletedReason": "Supprimée par un administrateur",
         "rejectReasonTitle": "Motif du rejet",
         "rejectReasonLabel": "Raison",
         "rejectReasonPlaceholder": "Ex. Contenu déjà disponible, droits indisponibles, doublon…",
         "rejectReasonHint": "Optionnel — vide signifie rejet sans raison précisée.",
         "openDetail": "Ouvrir la fiche du média",
+        "allTypes": "Tous les types",
         "typeAll": "Tous",
         "typeMovies": "Films",
         "typeSeries": "Séries"
@@ -3850,8 +3880,8 @@
           "desc": "Nombre total d'éléments affichés dans la bannière héro de l'accueil (tendances TMDB + mises en avant). Si vous mettez en avant un film manuellement, il prend la place d'une tendance. 0 masque le héro complètement."
         },
         "requestsCleanup": {
-          "title": "Auto-nettoyage des demandes disponibles",
-          "desc": "Supprime automatiquement les demandes en statut « Disponible » après ce nombre de jours. 0 = désactivé."
+          "title": "Archivage automatique des demandes disponibles",
+          "desc": "Retire de l'onglet Demandes les demandes en statut « Disponible » après ce nombre de jours ; elles restent comptées dans les totaux, statistiques et trophées. 0 = désactivé."
         },
         "chatRetention": {
           "title": "Conservation des messages du chat",
@@ -4013,6 +4043,7 @@
     },
     "detail": {
       "request": "Demander",
+      "reRequest": "Redemander",
       "addToList": "Ajouter à une liste",
       "remind": "Me rappeler",
       "communityRatings": "Avis de la communauté",

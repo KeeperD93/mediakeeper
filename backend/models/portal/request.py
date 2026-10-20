@@ -38,10 +38,14 @@ class MediaRequest(Base):
     updated_at      = Column(DateTime(timezone=True),
                              default=lambda: datetime.now(timezone.utc),
                              onupdate=lambda: datetime.now(timezone.utc))
-    # Stamped when the row flips to ``available`` so the auto-cleanup
-    # job can window deletions on that moment exclusively (``updated_at``
-    # is bumped on every status change).
+    # Stamped when the row flips to ``available`` so the auto-archive
+    # job can window on that moment exclusively (``updated_at`` is bumped
+    # on every status change).
     available_at    = Column(DateTime(timezone=True), nullable=True)
+    # Set by the auto-archive job (served requests) and a blacklist unblock
+    # (rejected ones): the request leaves the Requests lists but stays in the
+    # totals, statistics and trophies, not in the blacklist rejection count.
+    archived_at     = Column(DateTime(timezone=True), nullable=True, index=True)
 
 
 class RequestBlacklist(Base):

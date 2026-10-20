@@ -1,5 +1,5 @@
 <template>
-  <article class="arr-row" :class="[`arr-row--${req.status}`, { 'arr-row--fresh': isFresh }]">
+  <article class="arr-row" :class="`arr-row--${req.status}`" :aria-busy="busy ? 'true' : null">
     <div class="arr-row-backdrop" :style="backdropStyle" />
     <div class="arr-row-bar" />
 
@@ -37,6 +37,7 @@
       <h3 class="arr-row-title">
         <span class="arr-row-title-text">{{ req.title }}</span>
         <button
+          v-if="canCopy"
           class="arr-row-copy"
           type="button"
           :title="copyTitleLabel"
@@ -82,18 +83,20 @@
         <button
           class="arr-action arr-action--icon arr-action--approve"
           type="button"
+          :disabled="busy"
           :title="$t('portal.admin.approve')"
           :aria-label="$t('portal.admin.approve')"
-          @click="$emit('action', REQUEST_STATUS.APPROVED)"
+          @click="act($event, REQUEST_STATUS.APPROVED)"
         >
           <Check :size="18" :stroke-width="2.5" />
         </button>
         <button
           class="arr-action arr-action--icon arr-action--reject"
           type="button"
+          :disabled="busy"
           :title="$t('portal.admin.reject')"
           :aria-label="$t('portal.admin.reject')"
-          @click="$emit('action', REQUEST_STATUS.REJECTED)"
+          @click="act($event, REQUEST_STATUS.REJECTED)"
         >
           <X :size="18" :stroke-width="2.5" />
         </button>
@@ -102,19 +105,43 @@
         <button
           class="arr-action arr-action--icon arr-action--available"
           type="button"
-          :title="$t('portal.requests.available')"
-          :aria-label="$t('portal.requests.available')"
-          @click="$emit('action', 'available')"
+          :disabled="busy"
+          :title="$t('portal.admin.req.markAvailable')"
+          :aria-label="$t('portal.admin.req.markAvailable')"
+          @click="act($event, REQUEST_STATUS.AVAILABLE)"
         >
           <CircleCheck :size="18" :stroke-width="2.2" />
+        </button>
+        <button
+          class="arr-action arr-action--icon arr-action--reject"
+          type="button"
+          :disabled="busy"
+          :title="$t('portal.admin.reject')"
+          :aria-label="$t('portal.admin.reject')"
+          @click="act($event, REQUEST_STATUS.REJECTED)"
+        >
+          <X :size="18" :stroke-width="2.5" />
+        </button>
+      </template>
+      <template v-else-if="req.status === REQUEST_STATUS.AVAILABLE">
+        <button
+          class="arr-action arr-action--icon arr-action--approve"
+          type="button"
+          :disabled="busy"
+          :title="$t('portal.admin.req.undoAvailable')"
+          :aria-label="$t('portal.admin.req.undoAvailable')"
+          @click="act($event, REQUEST_STATUS.APPROVED)"
+        >
+          <Undo2 :size="18" :stroke-width="2.2" />
         </button>
       </template>
       <button
         class="arr-action arr-action--icon arr-action--reject"
         type="button"
+        :disabled="busy"
         :title="$t('portal.admin.delete')"
         :aria-label="$t('portal.admin.delete')"
-        @click="$emit('delete')"
+        @click="remove"
       >
         <Trash2 :size="18" />
       </button>
@@ -125,7 +152,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Check, CircleCheck, Copy, Film, Trash2, X } from 'lucide-vue-next'
+import { Check, CircleCheck, Copy, Film, Trash2, Undo2, X } from 'lucide-vue-next'
 import { isTv } from '@/constants/media'
 import { REQUEST_STATUS } from '@/constants/requests'
 import MkAvatar from '@/components/common/MkAvatar.vue'
@@ -134,27 +161,39 @@ import { formatAgo as formatAgoUtil } from '@/utils/formatAgo'
 const props = defineProps({
   req: { type: Object, required: true },
   index: { type: Number, default: null },
+  // A call on this row is running: its buttons wait.
+  busy: { type: Boolean, default: false },
 })
-defineEmits(['action', 'delete'])
+const emit = defineEmits(['action', 'delete'])
+
+// The second click of a double click is dropped: the first one may already
+// have swapped this button for the next action (Approve → Mark available).
+function act(event, status) {
+  if (event.detail < 2) emit('action', status)
+}
+function remove(event) {
+  if (event.detail < 2) emit('delete')
+}
 
 const { t } = useI18n()
 const formatAgo = input => formatAgoUtil(input, t, { style: 'verbose' })
 
+// No clipboard API outside a secure context (http on a LAN address): no button.
+const canCopy = !!globalThis.navigator?.clipboard
 const copied = ref(false)
-const copyTitleLabel = computed(() =>
-  copied.value ? t('common.copied') || 'Copied!' : t('common.copy') || 'Copy',
-)
+const copyTitleLabel = computed(() => (copied.value ? t('common.copied') : t('common.copy')))
 
 async function copyTitle() {
   try {
-    await navigator.clipboard?.writeText(props.req.title || '')
-    copied.value = true
-    setTimeout(() => {
-      copied.value = false
-    }, 1600)
-  } catch {
-    /* clipboard blocked (http, old browser) — silent */
+    await navigator.clipboard.writeText(props.req.title || '')
+  } catch (e) {
+    console.error('[AdminRequestsRow.copyTitle]', e) // permission refused
+    return
   }
+  copied.value = true
+  setTimeout(() => {
+    copied.value = false
+  }, 1600)
 }
 
 const backdropStyle = computed(() => ({
@@ -174,14 +213,7 @@ const visibleSeasons = computed(() =>
 )
 const seasonLabel = computed(() =>
   (props.req.requested_seasons || []).length > 1
-    ? t('portal.admin.req.seasons') || 'Seasons'
-    : t('portal.admin.req.season') || 'Season',
+    ? t('portal.admin.req.seasons')
+    : t('portal.admin.req.season'),
 )
-
-const isFresh = computed(() => {
-  const ts = props.req.updated_at || props.req.created_at
-  if (!ts) return false
-  const ageMs = Date.now() - new Date(ts).getTime()
-  return ageMs < 3600_000 && props.req.status !== REQUEST_STATUS.PENDING
-})
 </script>

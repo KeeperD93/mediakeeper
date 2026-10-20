@@ -1,10 +1,14 @@
-"""Endpoints: restore from an existing file, ZIP upload-restore, and JSON."""
+"""Endpoints: restore from an existing file, ZIP upload-restore, and JSON.
+
+File work (upload copy, archive checks, reads) runs off the event loop.
+"""
+import asyncio
 import json
 import zipfile
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.auth import get_current_user
@@ -67,6 +71,7 @@ def _validate_uploaded_backup_archive(zip_path: Path) -> None:
             status_code=400, detail="invalid_archive_format"
         ) from None
 
+
 _RESTORE_WARNING = "This restore does NOT replay pg_dump.sql; restore PostgreSQL relational data manually first — see docs/operations/backup-restore.md."
 
 router = APIRouter()
@@ -81,7 +86,7 @@ async def restore_backup_endpoint(
     path = get_backup_path(req.filename, await resolve_backup_dir(db))
     if not path:
         raise HTTPException(status_code=404, detail="backup_not_found")
-    _validate_uploaded_backup_archive(path)
+    await asyncio.to_thread(_validate_uploaded_backup_archive, path)
     try:
         results = await restore_backup(db, path, components=req.components)
     except InvalidBackupArchiveError as exc:
@@ -94,7 +99,7 @@ async def restore_backup_endpoint(
 @router.post("/upload-restore")
 async def upload_and_restore(
     file: UploadFile = File(...),
-    components: str = "{}",
+    components: str = Form("{}"),
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
@@ -105,10 +110,10 @@ async def upload_and_restore(
 
     backup_dir = await resolve_backup_dir(db)
     tmp = backup_dir / f"__upload_{uuid4().hex}.zip"
-    backup_dir.mkdir(parents=True, exist_ok=True)
+    await asyncio.to_thread(backup_dir.mkdir, parents=True, exist_ok=True)
     try:
         await _save_upload_to_path(file, tmp)
-        _validate_uploaded_backup_archive(tmp)
+        await asyncio.to_thread(_validate_uploaded_backup_archive, tmp)
         opts = _parse_components_payload(components)
         try:
             results = await restore_backup(db, tmp, components=opts)
@@ -119,14 +124,13 @@ async def upload_and_restore(
         return {"success": True, "results": results, "warning": _RESTORE_WARNING}
     finally:
         await file.close()
-        if tmp.exists():
-            tmp.unlink()
+        await asyncio.to_thread(tmp.unlink, missing_ok=True)
 
 
 @router.post("/upload-restore-json")
 async def upload_and_restore_json(
     file: UploadFile = File(...),
-    components: str = "{}",
+    components: str = Form("{}"),
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
@@ -137,10 +141,11 @@ async def upload_and_restore_json(
 
     backup_dir = await resolve_backup_dir(db)
     tmp = backup_dir / f"__upload_{uuid4().hex}.json"
-    backup_dir.mkdir(parents=True, exist_ok=True)
+    await asyncio.to_thread(backup_dir.mkdir, parents=True, exist_ok=True)
     try:
         await _save_upload_to_path(file, tmp)
-        data = json.loads(tmp.read_text(encoding="utf-8"))
+        # Read and parse in a worker thread: an upload can weigh hundreds of MB.
+        data = await asyncio.to_thread(lambda: json.loads(tmp.read_text(encoding="utf-8")))
         opts = _parse_components_payload(components)
         try:
             results = await restore_json_backup(db, data, components=opts)
@@ -158,5 +163,4 @@ async def upload_and_restore_json(
         raise HTTPException(status_code=500, detail="backup_restore_failed") from e
     finally:
         await file.close()
-        if tmp.exists():
-            tmp.unlink()
+        await asyncio.to_thread(tmp.unlink, missing_ok=True)

@@ -18,6 +18,7 @@ from models.user import User
 from api.auth import get_current_user, require_csrf
 
 from api._portal_admin_users_helpers import client_ip, client_ua
+from services.portal.admin_users_constants import ROLE_PATTERN, ROLE_VIEWER
 from services.portal.admin_users_emby import (
     backfill_emby_user_ids,
     create_local_user,
@@ -79,7 +80,7 @@ class LocalUserCreate(BaseModel):
     email: str | None = Field(None, max_length=255)
     first_name: str | None = Field(None, max_length=100)
     last_name: str | None = Field(None, max_length=100)
-    role: str = Field("viewer", pattern="^(viewer|moderator|admin)$")
+    role: str = Field(ROLE_VIEWER, pattern=ROLE_PATTERN)
     account_active: bool = True
 
     @field_validator("password")

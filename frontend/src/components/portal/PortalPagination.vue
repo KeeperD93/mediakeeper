@@ -125,6 +125,13 @@ function onSize(e) {
   font-weight: var(--portal-font-bold);
   cursor: pointer;
 }
+/* iOS zooms the page into a field under 16px it focuses: 16px there only,
+   other devices keep the compact menu. */
+@supports (-webkit-touch-callout: none) {
+  .rqp-size-select {
+    font-size: var(--portal-text-md);
+  }
+}
 .rqp-size-select option {
   background: var(--portal-chrome-bg);
   color: var(--portal-text-primary);
@@ -166,7 +173,7 @@ function onSize(e) {
   color: var(--portal-text-body-muted);
 }
 .rqp-btn:disabled {
-  opacity: 0.4;
+  opacity: var(--portal-opacity-disabled);
   cursor: default;
 }
 .rqp-info {

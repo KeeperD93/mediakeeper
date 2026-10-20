@@ -31,6 +31,7 @@
     <!-- Search input + dropdown when no selection -->
     <div v-else class="emp-search">
       <input
+        :id="inputId"
         ref="inputEl"
         v-model="query"
         type="text"
@@ -100,6 +101,8 @@ import { usePortalTicketEmby } from '@/composables/portal/usePortalTicketEmby'
 defineProps({
   /** Currently selected hit, or null. Shape matches the Emby search response. */
   modelValue: { type: Object, default: null },
+  /** id of the search field, for a <label for> outside the picker. */
+  inputId: { type: String, default: undefined },
 })
 const emit = defineEmits(['update:modelValue'])
 
@@ -262,6 +265,12 @@ function onClear() {
   outline: none;
   border-color: var(--accent);
   box-shadow: var(--mk-pill-shadow-sm);
+}
+/* iOS zooms the page into a field under 16px it focuses: 16px on iOS only. */
+@supports (-webkit-touch-callout: none) {
+  .emp-input {
+    font-size: var(--portal-text-md);
+  }
 }
 
 .emp-spinner {

@@ -1,7 +1,8 @@
 // Authenticated-Portal a11y baseline.
 //
 // Targets the same routes covered by portal-authenticated-smoke.spec.js
-// (/portal/lists, /portal/settings#appearance, /portal/tickets) and runs
+// (/portal/lists, /portal/settings#appearance, /portal/tickets and the
+// /portal/requests admin queue) and runs
 // a deliberately narrow axe pass — only the WCAG quick-win blockers
 // already covered on /login (landmark-one-main, region,
 // page-has-heading-one). No global axe sweep, no new dependency, no
@@ -15,8 +16,10 @@
 import { test, expect } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
 import {
+  ADMIN_VIEWER_PROFILE,
   mockAuthenticatedPortal,
   portalListsHandlers,
+  portalRequestsQueueHandlers,
   portalSettingsHandlers,
   portalTicketsHandlers,
 } from './_fixtures/portal-auth-mocks.js'
@@ -89,6 +92,22 @@ test.describe('Portal authenticated — targeted a11y baseline', () => {
     await page.goto('/portal/tickets')
 
     await expect(page.getByRole('heading', { level: 1, name: 'Issues' })).toBeVisible()
+    await assertSinglePortalShell(page)
+    await runTargetedAxe(page)
+
+    expect(tracker.unexpected).toEqual([])
+  })
+  test('/portal/requests exposes the expected landmarks and single h1', async ({ page }) => {
+    await forceEnglishLocale(page)
+    const tracker = await mockAuthenticatedPortal(page, {
+      profile: ADMIN_VIEWER_PROFILE,
+      ui: { show_requests_tab: true },
+      pageHandlers: portalRequestsQueueHandlers(),
+    })
+
+    await page.goto('/portal/requests')
+
+    await expect(page.getByRole('heading', { level: 1, name: 'Requests' })).toBeVisible()
     await assertSinglePortalShell(page)
     await runTargetedAxe(page)
 

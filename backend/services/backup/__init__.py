@@ -13,14 +13,18 @@ Backup structure:
   └── logs/                  — log files (optional)
 """
 from ._state import (
+    COMPONENTS_ADAPTER,
     DEFAULT_COMPONENTS,
     DEFAULT_RETENTION,
     RETENTION_DAYS_KEY,
+    ComponentName,
+    get_retention_days,
     resolve_backup_dir,
 )
-from .create import create_backup
+from .create import BackupResult, create_backup
 from .directory import list_available_backup_dirs, set_backup_directory
 from .listing import (
+    apply_configured_retention,
     apply_retention,
     apply_retention_by_count,
     apply_retention_for_setting,
@@ -31,15 +35,20 @@ from .listing import (
 from .restore import restore_backup, restore_json_backup
 
 __all__ = [
+    "COMPONENTS_ADAPTER",
     "DEFAULT_COMPONENTS",
     "DEFAULT_RETENTION",
     "RETENTION_DAYS_KEY",
+    "BackupResult",
+    "ComponentName",
+    "apply_configured_retention",
     "apply_retention",
     "apply_retention_by_count",
     "apply_retention_for_setting",
     "create_backup",
     "delete_backup",
     "get_backup_path",
+    "get_retention_days",
     "list_available_backup_dirs",
     "list_backups",
     "resolve_backup_dir",
