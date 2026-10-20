@@ -56,6 +56,22 @@ describe('useParamsBackup — retention', () => {
     expect(mocks.apiFetch).not.toHaveBeenCalled()
   })
 
+  it('refuses 0 or an emptied field instead of saving the default', async () => {
+    const b = useParamsBackup()
+    for (const mode of [BACKUP_RETENTION_MODE.DAYS, BACKUP_RETENTION_MODE.COUNT]) {
+      b.retentionMode.value = mode
+      b.retentionDays.value = 0
+      b.retentionCount.value = 0
+      await b.saveRetention()
+    }
+
+    expect(mocks.showToast.mock.calls.map(call => call[0])).toEqual([
+      'backup.retentionDaysRange{"max":365}',
+      'backup.retentionCountRange{"max":100}',
+    ])
+    expect(mocks.apiFetch).not.toHaveBeenCalled()
+  })
+
   it('explains a backup count outside 1 to 100', async () => {
     const b = useParamsBackup()
     b.retentionMode.value = BACKUP_RETENTION_MODE.COUNT
@@ -96,6 +112,23 @@ describe('useParamsBackup — creating a backup', () => {
 
   it('lists the optional log files last', () => {
     expect(Object.keys(useParamsBackup().selectedComponents.value).at(-1)).toBe('logs')
+  })
+
+  it('says when retention now waits for a complete backup', async () => {
+    mocks.apiFetch.mockResolvedValue({
+      json: async () => ({
+        success: true,
+        failed_components: ['pg_dump'],
+        retention_skipped: true,
+      }),
+    })
+
+    await useParamsBackup().createBackup()
+
+    expect(mocks.showToast).toHaveBeenCalledWith(
+      'backup.createdIncompleteNoRetention{"parts":"backup.compPgDump"}',
+      TOAST_TYPE.WARN,
+    )
   })
 
   it('warns about a backup written without some parts, naming them', async () => {
@@ -209,5 +242,87 @@ describe('useParamsBackup — failed actions', () => {
 
     expect(lastToast()).toEqual(['The file must be a .zip archive.', TOAST_TYPE.ERR])
     expect(event.target.value).toBe('')
+  })
+})
+
+describe('useParamsBackup — restore results', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mocks.apiGet.mockResolvedValue(null) // the reload after an upload
+  })
+
+  const restored = results => ({ json: async () => ({ success: true, results }) })
+
+  it('names the parts brought back, and says the database is not restored here', async () => {
+    mocks.apiFetch.mockResolvedValue(
+      restored({ settings: 'ok', preferences: 'skipped', scheduler: 'ok', watchlist: 'skipped' }),
+    )
+
+    await useParamsBackup().restoreBackup('mediakeeper_backup_x.zip')
+
+    expect(mocks.showToast.mock.calls).toEqual([
+      ['backup.restoredParts{"parts":"backup.compSettings, backup.compScheduler"}', TOAST_TYPE.OK],
+      ['backup.restoreNoDatabase', TOAST_TYPE.WARN, 10000],
+    ])
+  })
+
+  it('warns when the archive held none of the ticked parts', async () => {
+    const b = useParamsBackup()
+    b.selectedComponents.value.pg_dump = false
+    mocks.apiFetch.mockResolvedValue(restored({ settings: 'skipped' }))
+    const event = { target: { files: [new File(['x'], 'backup.zip')], value: 'backup.zip' } }
+
+    try {
+      await b.uploadRestore(event)
+    } finally {
+      b.selectedComponents.value.pg_dump = true
+    }
+
+    expect(mocks.showToast.mock.calls).toEqual([['backup.restoredNothing', TOAST_TYPE.WARN]])
+  })
+})
+
+describe('useParamsBackup — session expired (no answer)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mocks.apiFetch.mockResolvedValue(null)
+  })
+
+  it('shows no success nor failure while the login page opens', async () => {
+    const b = useParamsBackup()
+    b.retentionMode.value = BACKUP_RETENTION_MODE.DAYS
+    b.retentionDays.value = 30
+    const event = { target: { files: [new File(['x'], 'backup.zip')], value: 'backup.zip' } }
+
+    await b.saveRetention()
+    await b.changeBackupDir('/data/elsewhere')
+    await b.createBackup()
+    await b.deleteBackup('mediakeeper_backup_x.zip')
+    await b.restoreBackup('mediakeeper_backup_x.zip')
+    await b.uploadRestore(event)
+
+    expect(mocks.showToast).not.toHaveBeenCalled()
+    expect(b.backupCreating.value).toBe(false)
+    expect(event.target.value).toBe('')
+  })
+})
+
+describe('useParamsBackup — first load', () => {
+  it('tries again on the next visit after a failed first load', async () => {
+    vi.clearAllMocks()
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    let infoFails = true
+    mocks.apiGet.mockImplementation(async url => {
+      if (url !== '/api/backup/info') return []
+      if (infoFails) throw new Error('http_500')
+      return { backup_dir: '/data/backups', retention_days: 7, backups: [] }
+    })
+    const b = useParamsBackup()
+
+    await b.ensureLoaded()
+    infoFails = false
+    await b.ensureLoaded()
+
+    expect(b.retentionDays.value).toBe(7)
   })
 })
