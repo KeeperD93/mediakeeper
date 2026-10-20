@@ -86,6 +86,7 @@
     <ListFormModal
       :open="showCreate"
       mode="create"
+      :busy="busy"
       @close="showCreate = false"
       @submit="onCreate"
     />
@@ -97,6 +98,7 @@ import { ref, computed, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { X } from 'lucide-vue-next'
 import { usePortalLists } from '@/composables/portal/usePortalLists'
+import { resolveScopedError } from '@/composables/useApi'
 import { useFocusTrap } from '@/composables/useFocusTrap'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
@@ -154,8 +156,15 @@ function inList(id) {
 watch(
   () => props.open,
   async v => {
-    if (v) await Promise.all([svc.fetchMyLists(), svc.fetchPublicLists()])
-    else picked.value = []
+    if (!v) {
+      picked.value = []
+      return
+    }
+    try {
+      await Promise.all([svc.fetchMyLists(), svc.fetchPublicLists()])
+    } catch (e) {
+      reportFailure('load', e, 'common.apiError.loadFailed')
+    }
   },
   { immediate: false },
 )
@@ -179,6 +188,18 @@ async function addMediaToList(listId) {
   return await svc.addItems(listId, payload)
 }
 
+// A failed action says why: the list code the server gave when known (muted,
+// list full, too many edits…), else the action that failed.
+function reportFailure(where, e, fallbackKey = 'common.apiError.saveFailed') {
+  console.error(`[AddToListOverlay.${where}]`, e)
+  showToast(resolveScopedError('portal.lists.errors', e?.message, fallbackKey), TOAST_TYPE.ERR)
+}
+
+// The list counts after a change: a failed refresh is not a failed add.
+function refreshMine() {
+  svc.fetchMyLists().catch(e => console.error('[AddToListOverlay.refresh]', e))
+}
+
 async function pickList(lst) {
   if (busy.value) return
   busy.value = true
@@ -191,23 +212,30 @@ async function pickList(lst) {
       } else {
         showToast(t('portal.lists.addTo.added', { name: lst.name }), TOAST_TYPE.OK)
       }
-      await svc.fetchMyLists()
+      refreshMine()
     }
+  } catch (e) {
+    reportFailure('pickList', e)
   } finally {
     busy.value = false
   }
 }
 
 async function onCreate(data) {
+  if (busy.value) return
   busy.value = true
   try {
     const created = await svc.createList(data)
-    if (created?.success) {
-      showCreate.value = false
-      await svc.fetchMyLists()
-      await addMediaToList(created.id)
+    if (!created?.success) return
+    showCreate.value = false
+    // The new list shows up in the overlay whether the add works or not.
+    const res = await addMediaToList(created.id).finally(refreshMine)
+    if (res?.success) {
+      picked.value = [...picked.value, created.id]
       showToast(t('portal.lists.addTo.added', { name: data.name }), TOAST_TYPE.OK)
     }
+  } catch (e) {
+    reportFailure('onCreate', e)
   } finally {
     busy.value = false
   }

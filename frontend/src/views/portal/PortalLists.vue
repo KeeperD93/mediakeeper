@@ -70,6 +70,7 @@
       :open="formOpen"
       :initial="formInitial"
       :mode="formMode"
+      :busy="saving"
       @close="formOpen = false"
       @submit="onSubmitForm"
     />
@@ -80,6 +81,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { usePortalLists } from '@/composables/portal/usePortalLists'
+import { resolveScopedError } from '@/composables/useApi'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import ListFormModal from '@/components/portal/lists/ListFormModal.vue'
@@ -120,6 +122,7 @@ const listsTabs = computed(() => {
 })
 const expandedId = ref(null)
 const formOpen = ref(false)
+const saving = ref(false)
 const formMode = ref('create')
 const formInitial = ref({})
 const loading = ref(false)
@@ -131,34 +134,33 @@ const currentTabLists = computed(() =>
 )
 const publicHasMore = computed(() => activeTab.value === 'public' && svc.publicHasMore.value)
 
+// A failed action says why: the list code the server gave when known
+// (muted, list full…), else the action that failed. Gives null.
+async function attempt(where, fallbackKey, action) {
+  try {
+    return await action()
+  } catch (e) {
+    console.error(`[PortalLists.${where}]`, e)
+    showToast(resolveScopedError('portal.lists.errors', e?.message, fallbackKey), TOAST_TYPE.ERR)
+    return null
+  }
+}
+
 async function loadTab(tab) {
   loading.value = true
-  try {
-    if (tab === 'mine') await svc.fetchMyLists()
-    else await svc.fetchPublicLists({ limit: PUBLIC_PAGE })
-  } catch (e) {
-    console.error('[PortalLists.loadTab] failed', e)
-    showToast(t('common.networkError'), TOAST_TYPE.ERR)
-  } finally {
-    loading.value = false
-  }
+  await attempt('loadTab', 'common.apiError.loadFailed', () =>
+    tab === 'mine' ? svc.fetchMyLists() : svc.fetchPublicLists({ limit: PUBLIC_PAGE }),
+  )
+  loading.value = false
 }
 
 async function loadMorePublic() {
   if (loadingMorePublic.value || !publicHasMore.value) return
   loadingMorePublic.value = true
-  try {
-    await svc.fetchPublicLists({
-      limit: PUBLIC_PAGE,
-      cursor: svc.publicCursor.value,
-      append: true,
-    })
-  } catch (e) {
-    console.error('[PortalLists.loadMorePublic] failed', e)
-    showToast(t('common.networkError'), TOAST_TYPE.ERR)
-  } finally {
-    loadingMorePublic.value = false
-  }
+  await attempt('loadMorePublic', 'common.apiError.loadFailed', () =>
+    svc.fetchPublicLists({ limit: PUBLIC_PAGE, cursor: svc.publicCursor.value, append: true }),
+  )
+  loadingMorePublic.value = false
 }
 
 async function switchTab(tab) {
@@ -193,10 +195,12 @@ function openEdit(lst) {
 }
 
 async function onSubmitForm(data) {
-  const res =
-    formMode.value === 'create'
-      ? await svc.createList(data)
-      : await svc.updateList(formInitial.value.id, data)
+  if (saving.value) return
+  saving.value = true
+  const res = await attempt('onSubmitForm', 'common.apiError.saveFailed', () =>
+    formMode.value === 'create' ? svc.createList(data) : svc.updateList(formInitial.value.id, data),
+  )
+  saving.value = false
   if (res?.success) {
     formOpen.value = false
     showToast(t('common.success'), TOAST_TYPE.OK)
@@ -212,7 +216,7 @@ async function remove(lst) {
     confirmLabel: t('common.delete'),
   })
   if (!ok) return
-  const res = await svc.deleteList(lst.id)
+  const res = await attempt('remove', 'common.apiError.deleteFailed', () => svc.deleteList(lst.id))
   if (res?.success) {
     expandedId.value = null
     await loadTab(activeTab.value)
@@ -220,7 +224,7 @@ async function remove(lst) {
 }
 
 async function copy(lst) {
-  const res = await svc.copyList(lst.id)
+  const res = await attempt('copy', 'common.apiError.saveFailed', () => svc.copyList(lst.id))
   if (res?.success) {
     showToast(t('common.success'), TOAST_TYPE.OK)
     if (activeTab.value === 'mine') await loadTab('mine')
@@ -228,7 +232,9 @@ async function copy(lst) {
 }
 
 async function onRemoveItem(lst, itemId) {
-  const res = await svc.removeItems(lst.id, { item_ids: [itemId] })
+  const res = await attempt('onRemoveItem', 'common.apiError.deleteFailed', () =>
+    svc.removeItems(lst.id, { item_ids: [itemId] }),
+  )
   if (res?.success) {
     showToast(t('common.success'), TOAST_TYPE.OK)
     await svc.fetchList(lst.id)
@@ -236,7 +242,9 @@ async function onRemoveItem(lst, itemId) {
 }
 
 async function onRemoveContributor(lst, userId) {
-  const res = await svc.removeContributor(lst.id, userId)
+  const res = await attempt('onRemoveContributor', 'common.apiError.deleteFailed', () =>
+    svc.removeContributor(lst.id, userId),
+  )
   if (res?.success) {
     showToast(t('common.success'), TOAST_TYPE.OK)
     await loadTab(activeTab.value)
@@ -247,34 +255,8 @@ onMounted(() => loadTab('mine'))
 </script>
 
 <style scoped>
-.arr-create-btn {
-  padding: 10px 18px;
-  min-height: 44px;
-  border-radius: var(--radius-btn);
-  border: none;
-  background: var(--portal-gradient-accent);
-  color: var(--portal-text-primary);
-  font-weight: var(--portal-font-extrabold);
-  cursor: pointer;
-  font-size: var(--portal-text-sm);
-  letter-spacing: var(--portal-tracking-wide);
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  box-shadow: var(--portal-shadow-accent);
-  -webkit-tap-highlight-color: transparent;
-  transition:
-    transform 0.18s,
-    box-shadow 0.18s;
-}
-.arr-create-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--portal-shadow-accent-strong);
-}
-
-.arr-empty-text {
-  margin: 0 0 1.25rem;
-}
+/* The create buttons: in the header and in the empty state. */
+.arr-create-btn,
 .arr-empty-cta {
   padding: 10px 18px;
   min-height: 44px;
@@ -292,16 +274,22 @@ onMounted(() => loadTab('mine'))
   box-shadow: var(--portal-shadow-accent);
   -webkit-tap-highlight-color: transparent;
   transition:
-    transform 0.18s,
-    box-shadow 0.18s;
+    transform var(--portal-dur-base),
+    box-shadow var(--portal-dur-base);
 }
 @media (hover: hover) {
+  .arr-create-btn:hover,
   .arr-empty-cta:hover {
     transform: translateY(-2px);
     box-shadow: var(--portal-shadow-accent-strong);
   }
 }
+.arr-create-btn:active,
 .arr-empty-cta:active {
   transform: scale(0.97);
+}
+
+.arr-empty-text {
+  margin: 0 0 1.25rem;
 }
 </style>

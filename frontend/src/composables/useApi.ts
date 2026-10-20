@@ -6,6 +6,9 @@ import { showRateLimitToast } from './handle429'
 export { buildApiHeaders, fetchApiResponse, getCsrfToken } from './apiClient'
 export type { ApiFetchOptions } from './apiClient'
 
+// A bare HTTP status, kept when an answer carried no code (``http_502``).
+const HTTP_STATUS_CODE = /^http_(\d{3})$/
+
 /**
  * Translate a backend error code into a user-facing string.
  *
@@ -30,8 +33,27 @@ export function resolveApiError(code?: string | null, fallbackKey?: string): str
   }
   if (fallbackKey) return t(fallbackKey)
   if (!code) return t('common.apiError.unknown', { status: '' })
-  const status = /^http_(\d{3})$/.exec(code)?.[1]
+  const status = HTTP_STATUS_CODE.exec(code)?.[1]
   return status ? t('common.apiError.unknown', { status }) : code
+}
+
+/**
+ * A screen's own message for an error code (``portal.lists.errors.list_full``)
+ * when its locale scope has one, else ``resolveApiError``. Bare statuses skip
+ * the scope: where one words them, it is about another service (Emby).
+ */
+export function resolveScopedError(
+  scope: string,
+  code?: string | null,
+  fallbackKey?: string,
+): string {
+  const t = i18n.global.t as unknown as (key: string) => string
+  if (code && !HTTP_STATUS_CODE.test(code)) {
+    const key = `${scope}.${code}`
+    const localized = t(key)
+    if (localized !== key) return localized
+  }
+  return resolveApiError(code, fallbackKey)
 }
 
 export interface UseApiReturn {
