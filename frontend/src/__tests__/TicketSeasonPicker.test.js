@@ -102,4 +102,17 @@ describe('TicketSeasonPicker', () => {
     await flushPromises()
     expect(w.text()).toContain('portal.tickets.seasonPicker.empty')
   })
+
+  it('names each season checkbox and opens its episodes from the keyboard', async () => {
+    const w = await mountPicker()
+    const toggle = () => w.findAll('button.tsp-chevron')[0]
+
+    expect(w.findAll('.tsp-season-header input')[0].attributes('aria-label')).toBe('Saison 1')
+    expect(toggle().attributes('aria-expanded')).toBe('false')
+
+    await toggle().trigger('click')
+
+    expect(toggle().attributes('aria-expanded')).toBe('true')
+    expect(w.findAll('.tsp-episode')).toHaveLength(3)
+  })
 })

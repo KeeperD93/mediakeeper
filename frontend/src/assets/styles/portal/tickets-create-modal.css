@@ -1,7 +1,7 @@
-/* PortalTickets create modal — bottom-sheet on mobile, centered popup ≥768px.
-   Extracted from the SFC to keep the file size manageable.
-   Every selector is prefixed `.pt-popup` / `.pt-mode-pill` / `.pt-input` /
-   `.pt-btn` so leakage is impossible. */
+/* Ticket creation form (TicketCreateModal) — bottom-sheet on mobile, centered
+   popup ≥768px. Global stylesheet: once loaded, its generic class names
+   (`.pt-popup*`, `.pt-input`, `.pt-btn`) also match the other popups and
+   forms that reuse them. */
 
 .pt-popup-overlay {
   position: fixed;
@@ -52,7 +52,8 @@
   flex: 1 1 auto;
   min-height: 0;
 }
-.pt-popup-body label {
+.pt-popup-body label,
+.pt-popup-label {
   display: block;
   font-size: var(--portal-text-xs);
   color: var(--text-muted);
@@ -63,7 +64,7 @@
   gap: 6px;
   padding: 4px;
   background: var(--bg-tertiary);
-  border-radius: 999px;
+  border-radius: var(--portal-radius-pill);
   margin-bottom: 4px;
 }
 .pt-mode-pill {
@@ -72,7 +73,7 @@
   min-height: 44px;
   border: none;
   background: transparent;
-  border-radius: 999px;
+  border-radius: var(--portal-radius-pill);
   font-size: var(--portal-text-xs);
   font-weight: var(--portal-font-medium);
   color: var(--text-muted);
@@ -99,6 +100,31 @@
   padding: 8px 12px;
   font-size: var(--portal-text-sm);
   font-family: inherit;
+}
+/* The form's menu, with .mk-select-chevron (which owns the chevron and
+   padding-right): longhands only, the look of the per-page menu. */
+.pt-popup-select {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding-block: 8px;
+  padding-left: 12px;
+  background-color: var(--portal-surface-3);
+  border: 1px solid var(--portal-border-default);
+  /* main.css overrides this on every select (admin input radius, !important). */
+  border-radius: var(--portal-radius-xs);
+  color: var(--portal-text-primary);
+  font-size: var(--portal-text-sm);
+  font-family: inherit;
+  cursor: pointer;
+}
+/* iOS zooms the page into a field under 16px it focuses: 16px on iOS only,
+   other devices keep the compact fields. */
+@supports (-webkit-touch-callout: none) {
+  .pt-popup--ticket .pt-input,
+  .pt-popup--ticket .pt-popup-select {
+    font-size: var(--portal-text-md);
+  }
 }
 .pt-popup-footer {
   padding: 14px 18px;
@@ -134,7 +160,7 @@
   transform: scale(0.97);
 }
 .pt-btn:disabled {
-  opacity: 0.5;
+  opacity: var(--portal-opacity-disabled);
   cursor: not-allowed;
 }
 

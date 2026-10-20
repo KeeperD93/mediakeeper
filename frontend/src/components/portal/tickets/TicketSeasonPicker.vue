@@ -20,6 +20,7 @@
             <input
               type="checkbox"
               class="tsp-chk"
+              :aria-label="s.name"
               :checked="isSeasonFullySelected(s.season_number)"
               :indeterminate.prop="isSeasonPartiallySelected(s.season_number)"
               @click.stop
@@ -29,13 +30,16 @@
             <span class="tsp-season-meta">
               {{ s.episodes.length }} {{ $t('portal.tickets.seasonPicker.episodes') }}
             </span>
-            <span
+            <button
+              type="button"
               class="tsp-chevron"
               :class="{ 'tsp-chevron--open': expanded.has(s.season_number) }"
-              aria-hidden="true"
+              :aria-expanded="expanded.has(s.season_number) ? 'true' : 'false'"
+              :aria-label="t('portal.tickets.seasonPicker.showEpisodes', { season: s.name })"
+              @click.stop="toggleExpanded(s.season_number)"
             >
               ▾
-            </span>
+            </button>
           </div>
 
           <div v-if="expanded.has(s.season_number)" class="tsp-episodes">

@@ -70,8 +70,15 @@
         </span>
       </div>
       <div v-if="isAdmin" class="ptd-status-control">
-        <label class="ptd-status-label">{{ $t('portal.tickets.detail.changeStatus') }}</label>
-        <select class="ptd-status-select" :value="currentTicket.status" @change="onStatusChange">
+        <label class="ptd-status-label" :for="statusSelectId">
+          {{ $t('portal.tickets.detail.changeStatus') }}
+        </label>
+        <select
+          :id="statusSelectId"
+          class="ptd-status-select mk-select-chevron"
+          :value="currentTicket.status"
+          @change="onStatusChange"
+        >
           <option v-for="s in statusOptions" :key="s" :value="s">
             {{ $t(`portal.tickets.status.${s}`) }}
           </option>
@@ -86,7 +93,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, useId } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { usePortalTickets } from '@/composables/portal/usePortalTickets'
@@ -94,6 +101,7 @@ import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import { USER_ROLE } from '@/constants/auth'
+import { TICKET_STATUS } from '@/constants/tickets'
 import TicketThread from '@/components/portal/tickets/TicketThread.vue'
 import { localizedDateTime } from '@/utils/datetime'
 
@@ -105,7 +113,8 @@ const { profile } = usePortalAuth()
 const { currentTicket, fetchTicket, replyTicket, updateStatus } = usePortalTickets()
 const { showToast } = useToast()
 
-const statusOptions = ['open', 'in_progress', 'resolved', 'closed']
+const statusOptions = Object.values(TICKET_STATUS)
+const statusSelectId = useId()
 
 const isAdmin = computed(() => profile.value?.role === USER_ROLE.ADMIN)
 

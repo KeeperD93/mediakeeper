@@ -3080,6 +3080,7 @@
       "subtitle": "Report a bug related to Emby or Mediakeeper",
       "create": "Report an issue",
       "mediaTitle": "Media title",
+      "createFailed": "The issue could not be reported.",
       "mediaType": "Media type",
       "movie": "Movie",
       "episode": "Episode",
@@ -3127,7 +3128,8 @@
         "summaryWhole": "Ticket on the whole series",
         "summarySeasons": "{n} season selected | {n} seasons selected",
         "summaryEpisodes": "{n} episode selected | {n} episodes selected",
-        "summaryMixed": "{s} season(s) + {e} episode(s) targeted"
+        "summaryMixed": "{s} season(s) + {e} episode(s) targeted",
+        "showEpisodes": "Show the episodes of {season}"
       },
       "detail": {
         "openedAt": "Opened on",

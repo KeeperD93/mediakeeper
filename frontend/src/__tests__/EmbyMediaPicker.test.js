@@ -29,6 +29,19 @@ describe('EmbyMediaPicker', () => {
     expect(w.find('.emp-selected').exists()).toBe(false)
   })
 
+  // The report form leaves Escape to an open combobox: the picker must say so.
+  it('is a combobox that says when its list is open, and Escape closes it', async () => {
+    const w = mount(EmbyMediaPicker, { props: { modelValue: null } })
+    const input = w.find('.emp-input')
+    expect(input.attributes('role')).toBe('combobox')
+
+    await input.trigger('focus')
+    expect(input.attributes('aria-expanded')).toBe('true')
+
+    await input.trigger('keydown', { key: 'Escape' })
+    expect(input.attributes('aria-expanded')).toBe('false')
+  })
+
   it('renders the selected hit summary when modelValue is set', () => {
     const w = mount(EmbyMediaPicker, {
       props: {

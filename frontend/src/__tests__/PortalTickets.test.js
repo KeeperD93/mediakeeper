@@ -26,8 +26,12 @@ vi.mock('@/composables/portal/usePortalTickets', () => ({
   }),
 }))
 
+const showToast = vi.fn()
 vi.mock('@/composables/useToast', () => ({
-  useToast: () => ({ showToast: vi.fn() }),
+  useToast: () => ({ showToast }),
+}))
+vi.mock('@/composables/useApi', () => ({
+  resolveApiError: (code, fallbackKey) => fallbackKey,
 }))
 
 vi.mock('@/components/portal/tickets/TicketCard.vue', () => ({
@@ -42,7 +46,7 @@ vi.mock('@/components/portal/tickets/TicketSeasonPicker.vue', () => ({
 
 import PortalTickets from '@/views/portal/PortalTickets.vue'
 
-describe('PortalTickets — refonte toolbar', () => {
+describe('PortalTickets — toolbar', () => {
   beforeEach(() => {
     tickets.value = []
     fetchTickets.mockClear()
@@ -105,5 +109,41 @@ describe('PortalTickets — refonte toolbar', () => {
     const sortSelect = w.findAll('.ptl-toolbar-select')[1]
     await sortSelect.setValue('oldest')
     expect(fetchTickets).toHaveBeenCalledWith(expect.objectContaining({ sort: 'oldest' }))
+  })
+})
+
+describe('PortalTickets — status pills and reporting', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+  })
+
+  it('marks the active status pill as pressed', async () => {
+    const w = mount(PortalTickets)
+    await flushPromises()
+    const pills = w.findAll('.ptl-toolbar-pills .arr-pill')
+
+    await pills[1].trigger('click')
+
+    expect(pills.map(p => p.attributes('aria-pressed'))).toEqual([
+      'false',
+      'true',
+      'false',
+      'false',
+      'false',
+    ])
+  })
+
+  it('keeps the form open and says the report could not be sent', async () => {
+    createTicket.mockRejectedValueOnce(new Error('http_500'))
+    const w = mount(PortalTickets, { global: { stubs: { TicketCreateModal: true } } })
+    await flushPromises()
+
+    await w.find('.ptl-create').trigger('click')
+    w.findComponent({ name: 'TicketCreateModal' }).vm.$emit('submit', { description: 'x' })
+    await flushPromises()
+
+    expect(showToast).toHaveBeenCalledWith('portal.tickets.createFailed', 'err')
+    expect(w.findComponent({ name: 'TicketCreateModal' }).exists()).toBe(true)
   })
 })
