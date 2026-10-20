@@ -32,6 +32,10 @@
   --portal-shadow-fab: 0 8px 28px rgb(var(--portal-accent-rgb), 0.45), 0 4px 12px rgb(0, 0, 0, 0.3);
   --portal-shadow-accent: 0 6px 18px rgb(var(--portal-accent-rgb), 0.35);
   --portal-shadow-accent-strong: 0 10px 24px rgb(var(--portal-accent-rgb), 0.45);
+  /* Active pill halo — mirrors admin --mk-pill-shadow at --mk-glow: 1. */
+  --portal-shadow-pill:
+    0 0 0 3px rgb(var(--portal-accent-500-rgb), 0.12),
+    0 0 18px rgb(var(--portal-accent-500-rgb), 0.25);
   --portal-shadow-gold: 0 12px 32px rgb(251, 191, 36, 0.4);
 
   /* Gradients */

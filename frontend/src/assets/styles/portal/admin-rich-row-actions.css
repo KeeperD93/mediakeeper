@@ -111,8 +111,8 @@
     transform: translateX(0);
   }
   .arr-row-copy:hover {
-    background: rgb(var(--accent-rgb), 0.2);
-    border-color: var(--accent-500);
+    background: rgb(var(--portal-accent-500-rgb), 0.2);
+    border-color: var(--portal-accent-500);
     color: var(--portal-text-primary);
   }
 }

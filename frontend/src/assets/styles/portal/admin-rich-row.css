@@ -62,11 +62,11 @@
 @media (hover: hover) {
   .arr-row:hover {
     transform: translateY(-3px);
-    border-color: color-mix(in srgb, var(--arr-bar, var(--accent-500)) 45%, transparent);
+    border-color: color-mix(in srgb, var(--arr-bar, var(--portal-accent-500)) 45%, transparent);
     box-shadow:
       0 18px 50px -12px rgb(0, 0, 0, 0.75),
-      0 0 0 1px color-mix(in srgb, var(--arr-bar, var(--accent-500)) 35%, transparent),
-      0 0 40px -10px color-mix(in srgb, var(--arr-bar, var(--accent-500)) 35%, transparent);
+      0 0 0 1px color-mix(in srgb, var(--arr-bar, var(--portal-accent-500)) 35%, transparent),
+      0 0 40px -10px color-mix(in srgb, var(--arr-bar, var(--portal-accent-500)) 35%, transparent);
   }
   .arr-row:hover::after {
     opacity: 1;
@@ -75,8 +75,8 @@
     transform: scale(1.04);
     box-shadow:
       0 12px 38px rgb(0, 0, 0, 0.75),
-      0 0 0 2px color-mix(in srgb, var(--arr-bar, var(--accent-500)) 55%, transparent),
-      0 0 28px color-mix(in srgb, var(--arr-bar, var(--accent-500)) 40%, transparent);
+      0 0 0 2px color-mix(in srgb, var(--arr-bar, var(--portal-accent-500)) 55%, transparent),
+      0 0 28px color-mix(in srgb, var(--arr-bar, var(--portal-accent-500)) 40%, transparent);
   }
   .arr-row:hover .arr-row-backdrop {
     transform: scale(1.04);
@@ -84,8 +84,8 @@
   }
   .arr-row:hover .arr-row-bar {
     box-shadow:
-      0 0 26px var(--arr-bar, var(--accent-500)),
-      0 0 70px color-mix(in srgb, var(--arr-bar, var(--accent-500)) 30%, transparent);
+      0 0 26px var(--arr-bar, var(--portal-accent-500)),
+      0 0 70px color-mix(in srgb, var(--arr-bar, var(--portal-accent-500)) 30%, transparent);
   }
 }
 
@@ -153,10 +153,10 @@
   width: 6px;
   background: linear-gradient(
     to bottom,
-    var(--arr-bar, var(--accent-500)) 0%,
-    color-mix(in srgb, var(--arr-bar, var(--accent-500)) 65%, transparent) 100%
+    var(--arr-bar, var(--portal-accent-500)) 0%,
+    color-mix(in srgb, var(--arr-bar, var(--portal-accent-500)) 65%, transparent) 100%
   );
-  box-shadow: 0 0 16px var(--arr-bar, var(--accent-500));
+  box-shadow: 0 0 16px var(--arr-bar, var(--portal-accent-500));
   z-index: 5;
   transition: box-shadow 0.25s;
   overflow: hidden;
@@ -212,7 +212,7 @@
   box-shadow:
     0 8px 32px rgb(0, 0, 0, 0.65),
     0 0 0 1px rgb(255, 255, 255, 0.05),
-    0 0 0 2px color-mix(in srgb, var(--arr-bar, var(--accent-500)) 22%, transparent);
+    0 0 0 2px color-mix(in srgb, var(--arr-bar, var(--portal-accent-500)) 22%, transparent);
   background: var(--portal-surface-2);
   transition:
     transform 0.28s ease,
