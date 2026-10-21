@@ -55,6 +55,7 @@ This section intentionally has no date so it is not shown to users.
 - Feedback — the affected page follows the current page ("Current page" button, list updated).
 - Feedback — no more zoom on phones, menu arrows clear of the edge.
 - Feedback — more accessible window (visible active field, bottom clear on phones, reduced motion).
+- Feedback — your reports from the portal go straight out, without review.
 
 ## [1.0.0-rc.8] - 2026-10-11
 
