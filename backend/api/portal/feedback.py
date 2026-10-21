@@ -9,6 +9,9 @@ from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants.feedback import (
+    ERR_INVALID_PLATFORM,
+    ERR_INVALID_TYPE,
+    ERR_NOT_CONFIGURED,
     FEEDBACK_TYPES,
     MAX_DESCRIPTION,
     MAX_LOCATION,
@@ -54,11 +57,11 @@ async def submit_portal_feedback(
 ):
     cfg = await get_feedback_config(db)
     if not cfg["enabled"] or not cfg["webhook_url"]:
-        raise HTTPException(status_code=400, detail="not_configured")
+        raise HTTPException(status_code=400, detail=ERR_NOT_CONFIGURED)
     if req.platform not in PLATFORMS:
-        raise HTTPException(status_code=422, detail="invalid_platform")
+        raise HTTPException(status_code=422, detail=ERR_INVALID_PLATFORM)
     if req.type not in FEEDBACK_TYPES:
-        raise HTTPException(status_code=422, detail="invalid_type")
+        raise HTTPException(status_code=422, detail=ERR_INVALID_TYPE)
     user, profile = up
     await create_pending_report(
         db,
