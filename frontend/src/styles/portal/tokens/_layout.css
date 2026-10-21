@@ -1,6 +1,7 @@
 /* PORTAL DESIGN TOKENS — LAYOUT
-   Radius, blurs, shadows, gradients, overlays, z-index, section rhythm,
-   touch target, focus ring and disabled opacity. Namespace: --portal-* */
+   Radius, border width, blurs, shadows, gradients, overlays, z-index,
+   section rhythm, touch target, focus ring and disabled opacity.
+   Namespace: --portal-* */
 
 :root {
   /* Radius */
@@ -13,6 +14,9 @@
   --portal-radius-2xl: 24px; /* person hero bottom corners */
   --portal-radius-pill: 999px; /* pill shape (60+ usages) */
   --portal-radius-circle: 50%; /* avatars, close buttons, dots */
+
+  /* Border width — mirrors admin --border-width-thin (cards, sub-dividers). */
+  --portal-border-width-thin: 0.5px;
 
   /* Blurs (portal goes deeper than admin for cinema feel) */
   --portal-blur-xs: blur(6px);

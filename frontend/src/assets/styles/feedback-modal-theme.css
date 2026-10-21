@@ -14,6 +14,7 @@
   --fbk-radius-pill: var(--radius-pill);
   --fbk-line: var(--border);
   --fbk-line-hover: var(--border-hover);
+  --fbk-line-width: var(--border-width-thin);
   --fbk-fill: var(--surface-2);
   --fbk-text: var(--text-primary);
   --fbk-text-soft: var(--text-secondary);
@@ -47,6 +48,7 @@ html:not(.mk-admin-section) .fbk-overlay {
   --fbk-radius-pill: var(--portal-radius-pill);
   --fbk-line: var(--portal-border-default);
   --fbk-line-hover: var(--portal-border-strong);
+  --fbk-line-width: var(--portal-border-width-thin);
   --fbk-fill: var(--portal-surface-2);
   --fbk-text: var(--portal-text-primary-solid);
   --fbk-text-soft: var(--portal-text-secondary-solid);

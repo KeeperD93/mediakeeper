@@ -22,7 +22,7 @@
   max-height: 92vh;
   overflow: hidden;
   background: var(--fbk-bg);
-  border: 0.5px solid var(--fbk-line);
+  border: var(--fbk-line-width) solid var(--fbk-line);
   border-radius: var(--fbk-radius) var(--fbk-radius) 0 0;
   padding-bottom: env(safe-area-inset-bottom, 0);
 }
@@ -32,7 +32,7 @@
   justify-content: space-between;
   gap: 12px;
   padding: 14px 18px;
-  border-bottom: 0.5px solid var(--fbk-line);
+  border-bottom: var(--fbk-line-width) solid var(--fbk-line);
 }
 .fbk-title {
   margin: 0;
@@ -67,7 +67,7 @@
   justify-content: flex-end;
   gap: 10px;
   padding: 12px 18px;
-  border-top: 0.5px solid var(--fbk-line);
+  border-top: var(--fbk-line-width) solid var(--fbk-line);
 }
 /* Moderation shortcut + Reset sit opposite the cancel/submit pair. */
 .fbk-btn--moderate {
@@ -82,7 +82,7 @@
   min-height: var(--fbk-touch);
   padding: 8px 18px;
   border-radius: var(--fbk-radius-btn);
-  border: 0.5px solid var(--fbk-line);
+  border: var(--fbk-line-width) solid var(--fbk-line);
   font-size: var(--fbk-fs-sm);
   font-weight: var(--fbk-bold);
   font-family: inherit;
