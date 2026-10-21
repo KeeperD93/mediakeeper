@@ -17,7 +17,7 @@
     <template v-else>
       <p class="fbm-desc">{{ report.description }}</p>
       <p v-if="report.reproduction" class="fbm-repro">
-        <strong>{{ t('feedback.moderation.reproduction') }} :</strong>
+        <strong>{{ t('feedback.moderation.reproduction') }}</strong>
         {{ report.reproduction }}
       </p>
       <ul v-if="report.tags?.length" class="fbm-taglist">

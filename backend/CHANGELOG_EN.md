@@ -57,6 +57,7 @@ This section intentionally has no date so it is not shown to users.
 - Feedback — more accessible window (visible active field, bottom clear on phones, reduced motion).
 - Feedback — your reports from the portal go straight out, without review.
 - Feedback moderation — clear errors, and a "Try again" button when the list fails.
+- Feedback moderation — English punctuation fixed ("Reproduction" label).
 
 ## [1.0.0-rc.8] - 2026-10-11
 

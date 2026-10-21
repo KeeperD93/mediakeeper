@@ -404,7 +404,7 @@
       "retry": "Try again",
       "anonymous": "Anonymous",
       "by": "Reported by {name}",
-      "reproduction": "Reproduction",
+      "reproduction": "Reproduction:",
       "platformBoth": "Desktop and mobile",
       "edit": "Edit",
       "cancel": "Cancel",

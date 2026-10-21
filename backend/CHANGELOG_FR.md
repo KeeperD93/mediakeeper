@@ -57,6 +57,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Remontées — fenêtre plus accessible (champ actif visible, bas dégagé sur téléphone, animations réduites).
 - Remontées — vos signalements depuis le portail partent directement, sans validation.
 - Modération des remontées — erreurs claires, bouton « Réessayer » si la liste échoue.
+- Modération des remontées — ponctuation corrigée en anglais (libellé « Reproduction »).
 
 ## [1.0.0-rc.8] - 2026-10-11
 

@@ -81,6 +81,8 @@ describe('FeedbackModerationView — list', () => {
     )
     expect(card.find('.fbm-loc').text()).toBe('Sample zone · Sample module · Sample tab')
     expect(card.find('.fbm-repro').text()).toContain('Sample steps')
+    // The label's punctuation comes from the translations.
+    expect(card.find('.fbm-repro strong').text()).toBe('feedback.moderation.reproduction')
     expect(card.find('time').attributes('datetime')).toBe('2026-01-02T03:04:05Z')
     // A known tag is translated, an unknown one shows as sent.
     expect(card.findAll('.fbm-tag').map(t => t.text())).toEqual(['Urgent', 'sample_tag'])
