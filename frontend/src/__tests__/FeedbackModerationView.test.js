@@ -1,6 +1,6 @@
 /**
  * Feedback moderation page: the list per tab, the validate / reject actions
- * and the inline edit form.
+ * and the inline edit form. Failures are in FeedbackModerationView.errors.test.js.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
@@ -119,6 +119,21 @@ describe('FeedbackModerationView — list', () => {
     expect(cards(w)).toHaveLength(1)
     expect(w.find('.fbm-actions').exists()).toBe(false)
     expect(w.find('.fbm-badge').exists()).toBe(false)
+  })
+
+  it('keeps the tab on screen when the previous tab answers late', async () => {
+    let answerPending
+    h.apiGet
+      .mockReturnValueOnce(new Promise(resolve => (answerPending = resolve)))
+      .mockResolvedValueOnce({ items: [] })
+    wrapper = mount(FeedbackModerationView)
+    await button(wrapper, 'feedback.moderation.tabRejected').trigger('click')
+    await flushPromises()
+
+    answerPending({ items: [report()] })
+    await flushPromises()
+    expect(cards(wrapper)).toHaveLength(0)
+    expect(wrapper.find('.fbm-empty').text()).toBe('feedback.moderation.emptyRejected')
   })
 })
 

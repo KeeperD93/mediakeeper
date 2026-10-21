@@ -400,6 +400,8 @@
       "tabRejected": "Rejected",
       "empty": "No reports awaiting review.",
       "emptyRejected": "No rejected reports.",
+      "loadError": "Couldn't load the reports.",
+      "retry": "Try again",
       "anonymous": "Anonymous",
       "by": "Reported by {name}",
       "reproduction": "Reproduction",

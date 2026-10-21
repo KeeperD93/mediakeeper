@@ -23,6 +23,12 @@
 
     <div id="fbm-panel" role="tabpanel" :aria-labelledby="`fbm-tab-${tab}`">
       <p v-if="loading" class="fbm-empty">{{ t('common.loading') }}</p>
+      <div v-else-if="loadFailed" class="fbm-empty">
+        <p class="fbm-error">{{ t('feedback.moderation.loadError') }}</p>
+        <button type="button" class="fbm-btn" @click="load">
+          {{ t('feedback.moderation.retry') }}
+        </button>
+      </div>
       <p v-else-if="!reports.length" class="fbm-empty">
         {{ emptyLabel }}
       </p>
@@ -84,6 +90,7 @@ const {
   tab,
   reports,
   loading,
+  loadFailed,
   editingId,
   form,
   canSave,

@@ -400,6 +400,8 @@
       "tabRejected": "Refusés",
       "empty": "Aucune remontée en attente.",
       "emptyRejected": "Aucune remontée refusée.",
+      "loadError": "Impossible de charger les remontées.",
+      "retry": "Réessayer",
       "anonymous": "Anonyme",
       "by": "Signalé par {name}",
       "reproduction": "Reproduction",

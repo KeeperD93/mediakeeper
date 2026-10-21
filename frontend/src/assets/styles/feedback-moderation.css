@@ -42,6 +42,9 @@
   text-align: center;
   padding: 3rem var(--space-4);
 }
+.fbm-error {
+  margin: 0 0 var(--space-3);
+}
 
 .fbm-list {
   display: flex;
