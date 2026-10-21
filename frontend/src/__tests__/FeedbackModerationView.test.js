@@ -215,6 +215,37 @@ describe('FeedbackModerationView — edit', () => {
     expect(w.find('form').exists()).toBe(false)
   })
 
+  it.each([
+    ['both chips on', 'both', []],
+    ['both chips off', 'mobile', ['feedback.modal.platform_mobile']],
+  ])('saves "both" with %s', async (_, platform, clicks) => {
+    h.apiPatch.mockResolvedValue({ ok: true })
+    const w = await openEdit({ platform })
+    const card = cards(w)[0]
+    for (const label of clicks) await chip(card, label).trigger('click')
+
+    await card.find('form').trigger('submit')
+    await flushPromises()
+
+    expect(h.apiPatch.mock.calls[0][1].platform).toBe('both')
+  })
+
+  it.each([
+    ['desktop', 'true', 'false'],
+    ['mobile', 'false', 'true'],
+  ])('keeps a %s-only report on its platform', async (platform, desktopOn, mobileOn) => {
+    h.apiPatch.mockResolvedValue({ ok: true })
+    const w = await openEdit({ platform })
+    const card = cards(w)[0]
+    expect(chip(card, 'feedback.modal.platform_desktop').attributes('aria-pressed')).toBe(desktopOn)
+    expect(chip(card, 'feedback.modal.platform_mobile').attributes('aria-pressed')).toBe(mobileOn)
+
+    await card.find('form').trigger('submit')
+    await flushPromises()
+
+    expect(h.apiPatch.mock.calls[0][1].platform).toBe(platform)
+  })
+
   it('locks the form while the save runs', async () => {
     let finish
     h.apiPatch.mockReturnValue(new Promise(resolve => (finish = resolve)))

@@ -1,6 +1,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { localizedDateTime } from '@/utils/datetime'
+import { FEEDBACK_STATUS } from '@/constants/feedback'
 
 export function useTopbarAlerts() {
   const { apiGet, apiPost, apiDelete } = useApi()
@@ -15,7 +16,7 @@ export function useTopbarAlerts() {
         apiGet('/api/emby/alerts').catch(() => null),
         apiGet('/api/alerts/seen').catch(() => null),
         apiGet('/api/portal/admin/requests/chat/reports?only_open=true').catch(() => null),
-        apiGet('/api/feedback/reports?status=pending').catch(() => null),
+        apiGet(`/api/feedback/reports?status=${FEEDBACK_STATUS.PENDING}`).catch(() => null),
       ])
       // Sources are independent: render whatever succeeded this tick instead of
       // blanking the panel when one fetch fails. Only bail when every data

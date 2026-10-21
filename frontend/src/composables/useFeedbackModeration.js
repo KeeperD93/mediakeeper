@@ -3,22 +3,14 @@ import { useI18n } from 'vue-i18n'
 import { useApi, resolveApiError } from '@/composables/useApi'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
-import { FEEDBACK_PLATFORMS } from '@/constants/feedback'
+import { FEEDBACK_PLATFORMS, FEEDBACK_PLATFORM_BOTH, FEEDBACK_STATUS } from '@/constants/feedback'
 
-const DESKTOP = 'desktop'
-const MOBILE = 'mobile'
-const BOTH = 'both'
-
-// Stored platform slug <-> the two-checkbox set used in the edit form.
+// Stored platform slug <-> the two-chip set used in the edit form.
 function platformToSet(p) {
-  return p === DESKTOP || p === MOBILE ? [p] : [...FEEDBACK_PLATFORMS]
+  return FEEDBACK_PLATFORMS.includes(p) ? [p] : [...FEEDBACK_PLATFORMS]
 }
 function setToPlatform(set) {
-  const d = set.includes(DESKTOP)
-  const m = set.includes(MOBILE)
-  if (d && !m) return DESKTOP
-  if (m && !d) return MOBILE
-  return BOTH
+  return set.length === 1 ? set[0] : FEEDBACK_PLATFORM_BOTH
 }
 
 /**
@@ -31,7 +23,7 @@ export function useFeedbackModeration() {
   const { apiGet, apiPatch, apiPost } = useApi()
   const { showToast } = useToast()
 
-  const tab = ref('pending')
+  const tab = ref(FEEDBACK_STATUS.PENDING)
   const reports = ref([])
   const loading = ref(false)
   const editingId = ref(null)

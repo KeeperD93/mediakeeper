@@ -4,9 +4,14 @@
 export const FEEDBACK_TYPES = Object.freeze(['bug', 'suggestion'] as const)
 export type FeedbackType = (typeof FEEDBACK_TYPES)[number]
 
-// Platform checkboxes; both ticked resolves to the tracker's "both".
+// Platform checkboxes; both ticked (or none) resolves to the tracker's "both".
 export const FEEDBACK_PLATFORMS = Object.freeze(['desktop', 'mobile'] as const)
 export type FeedbackPlatform = (typeof FEEDBACK_PLATFORMS)[number]
+export const FEEDBACK_PLATFORM_BOTH = 'both'
+
+// Moderation queue states a delegate report can be listed under.
+export const FEEDBACK_STATUS = Object.freeze({ PENDING: 'pending', REJECTED: 'rejected' } as const)
+export type FeedbackStatus = (typeof FEEDBACK_STATUS)[keyof typeof FEEDBACK_STATUS]
 
 // Ordered severity → nature. Labels resolve under feedback.tags.<key>.
 export const FEEDBACK_TAGS = Object.freeze([

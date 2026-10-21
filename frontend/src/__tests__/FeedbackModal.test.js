@@ -178,6 +178,28 @@ describe('FeedbackModal — sending', () => {
     )
   })
 
+  it('sends "both" when the two platforms are ticked', async () => {
+    h.apiPost.mockResolvedValueOnce({ ok: true })
+    const w = await openModal()
+    for (const platformChip of w.findAll('.fbk-chips')[0].findAll('.fbk-chip')) {
+      await platformChip.trigger('click')
+    }
+    await fillRequired(w)
+    await send(w)
+
+    expect(h.apiPost.mock.calls[0][1].platform).toBe('both')
+  })
+
+  it('sends "mobile" when only the mobile platform is ticked', async () => {
+    h.apiPost.mockResolvedValueOnce({ ok: true })
+    const w = await openModal()
+    await w.findAll('.fbk-chips')[0].findAll('.fbk-chip')[1].trigger('click') // mobile
+    await fillRequired(w)
+    await send(w)
+
+    expect(h.apiPost.mock.calls[0][1].platform).toBe('mobile')
+  })
+
   it('counts the report against the Discord budget and blocks an oversized one', async () => {
     const w = await openModal()
     const budget = () => w.find('.fbk-budget')

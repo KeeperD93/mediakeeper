@@ -48,6 +48,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { localizedDateTime } from '@/utils/datetime'
+import { FEEDBACK_PLATFORM_BOTH } from '@/constants/feedback'
 import '@/assets/styles/feedback-moderation.css'
 
 const props = defineProps({
@@ -78,7 +79,7 @@ const metaLine = computed(() => {
 })
 
 function platformLabel(p) {
-  if (p === 'both') return t('feedback.moderation.platformBoth')
+  if (p === FEEDBACK_PLATFORM_BOTH) return t('feedback.moderation.platformBoth')
   return t(`feedback.modal.platform_${p}`)
 }
 

@@ -8,6 +8,8 @@ import { SIDEBAR_SUB_TABS } from '@/constants/sidebarSubTabs'
 import {
   FEEDBACK_MAX_CHARS,
   FEEDBACK_PAGES,
+  FEEDBACK_PLATFORMS,
+  FEEDBACK_PLATFORM_BOTH,
   FEEDBACK_RES_CUSTOM,
   FEEDBACK_RES_PRESETS,
 } from '@/constants/feedback'
@@ -69,10 +71,8 @@ export function useFeedbackForm({ endpoint, showLocation }) {
       : resolutionChoice.value,
   )
   const platform = computed(() => {
-    if (platforms.desktop && platforms.mobile) return 'both'
-    if (platforms.desktop) return 'desktop'
-    if (platforms.mobile) return 'mobile'
-    return 'both'
+    const picked = FEEDBACK_PLATFORMS.filter(p => platforms[p])
+    return picked.length === 1 ? picked[0] : FEEDBACK_PLATFORM_BOTH
   })
   const used = computed(
     () =>

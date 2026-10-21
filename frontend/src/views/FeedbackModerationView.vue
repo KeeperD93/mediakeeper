@@ -2,33 +2,22 @@
   <div class="fbm-page mk-page-root">
     <div class="fbm-tabs" role="tablist" :aria-label="t('feedback.moderation.title')">
       <button
-        id="fbm-tab-pending"
+        v-for="tb in TABS"
+        :id="`fbm-tab-${tb.status}`"
+        :key="tb.status"
         type="button"
         role="tab"
         aria-controls="fbm-panel"
-        :aria-selected="tab === 'pending'"
-        :tabindex="tab === 'pending' ? 0 : -1"
+        :aria-selected="tab === tb.status"
+        :tabindex="tab === tb.status ? 0 : -1"
         class="fbm-tab"
-        :class="{ 'fbm-tab--on': tab === 'pending' }"
-        @click="switchTab('pending')"
+        :class="{ 'fbm-tab--on': tab === tb.status }"
+        @click="switchTab(tb.status)"
       >
-        {{ t('feedback.moderation.tabPending') }}
-        <span v-if="tab === 'pending' && reports.length" class="fbm-badge">
+        {{ t(tb.labelKey) }}
+        <span v-if="tb.counted && tab === tb.status && reports.length" class="fbm-badge">
           {{ reports.length }}
         </span>
-      </button>
-      <button
-        id="fbm-tab-rejected"
-        type="button"
-        role="tab"
-        aria-controls="fbm-panel"
-        :aria-selected="tab === 'rejected'"
-        :tabindex="tab === 'rejected' ? 0 : -1"
-        class="fbm-tab"
-        :class="{ 'fbm-tab--on': tab === 'rejected' }"
-        @click="switchTab('rejected')"
-      >
-        {{ t('feedback.moderation.tabRejected') }}
       </button>
     </div>
 
@@ -44,7 +33,7 @@
           :key="r.id"
           :report="r"
           :editing="editingId === r.id"
-          :actions="tab === 'pending'"
+          :actions="tab === FEEDBACK_STATUS.PENDING"
           :busy="isBusy(r.id)"
           @edit="startEdit(r)"
           @validate="validate(r)"
@@ -71,7 +60,24 @@ import { useI18n } from 'vue-i18n'
 import FeedbackReportCard from '@/components/feedback/FeedbackReportCard.vue'
 import FeedbackReportForm from '@/components/feedback/FeedbackReportForm.vue'
 import { useFeedbackModeration } from '@/composables/useFeedbackModeration'
+import { FEEDBACK_STATUS } from '@/constants/feedback'
 import '@/assets/styles/feedback-moderation.css'
+
+// The queue tabs; only the pending one counts its reports.
+const TABS = [
+  {
+    status: FEEDBACK_STATUS.PENDING,
+    labelKey: 'feedback.moderation.tabPending',
+    emptyKey: 'feedback.moderation.empty',
+    counted: true,
+  },
+  {
+    status: FEEDBACK_STATUS.REJECTED,
+    labelKey: 'feedback.moderation.tabRejected',
+    emptyKey: 'feedback.moderation.emptyRejected',
+    counted: false,
+  },
+]
 
 const { t } = useI18n()
 const {
@@ -93,9 +99,7 @@ const {
   reject,
 } = useFeedbackModeration()
 
-const emptyLabel = computed(() =>
-  t(tab.value === 'pending' ? 'feedback.moderation.empty' : 'feedback.moderation.emptyRejected'),
-)
+const emptyLabel = computed(() => t(TABS.find(tb => tb.status === tab.value).emptyKey))
 
 onMounted(load)
 </script>
