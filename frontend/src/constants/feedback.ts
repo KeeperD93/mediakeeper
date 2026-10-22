@@ -4,9 +4,14 @@
 export const FEEDBACK_TYPES = Object.freeze(['bug', 'suggestion'] as const)
 export type FeedbackType = (typeof FEEDBACK_TYPES)[number]
 
-// Platform checkboxes; both ticked resolves to the tracker's "both".
+// Platform checkboxes; both ticked (or none) resolves to the tracker's "both".
 export const FEEDBACK_PLATFORMS = Object.freeze(['desktop', 'mobile'] as const)
 export type FeedbackPlatform = (typeof FEEDBACK_PLATFORMS)[number]
+export const FEEDBACK_PLATFORM_BOTH = 'both'
+
+// Moderation queue states a delegate report can be listed under.
+export const FEEDBACK_STATUS = Object.freeze({ PENDING: 'pending', REJECTED: 'rejected' } as const)
+export type FeedbackStatus = (typeof FEEDBACK_STATUS)[keyof typeof FEEDBACK_STATUS]
 
 // Ordered severity → nature. Labels resolve under feedback.tags.<key>.
 export const FEEDBACK_TAGS = Object.freeze([
@@ -36,9 +41,18 @@ export const FEEDBACK_MAX = Object.freeze({
   resolution: 40,
 })
 
+// Screen resolutions offered by the report form; FEEDBACK_RES_CUSTOM is the
+// menu value for a size typed in the free field.
+export const FEEDBACK_RES_PRESETS = Object.freeze([
+  { label: 'Full HD', value: '1920x1080' },
+  { label: '2K', value: '2560x1440' },
+  { label: '4K', value: '3840x2160' },
+] as const)
+export const FEEDBACK_RES_CUSTOM = '__custom__'
+
 // Admin backoffice pages → tracker location. `zone`/`module` are the canonical
 // taxonomy values sent in the report; `titleKey` localizes the dropdown;
-// `tabsPath` links to SIDEBAR_SUB_TABS for the onglet options. Keyed by route
+// `tabsPath` links to SIDEBAR_SUB_TABS for the tab options. Keyed by route
 // name so the modal can pre-fill from the page the admin is on.
 const ZONE_ADMIN = 'Tableau de bord (admin général)'
 const ZONE_PORTAL_ADMIN = 'Admin du Portail'
@@ -130,11 +144,20 @@ export const FEEDBACK_PAGES: readonly FeedbackPage[] = Object.freeze([
     titleKey: 'attribution.about.title',
     tabsPath: null,
   },
+  // "Traceur" (Emby-connection monitoring) is hidden until it is built out —
+  // restore this report location alongside the sidebar module.
+  // {
+  //   route: 'tracker',
+  //   zone: ZONE_ADMIN,
+  //   module: 'Tracker',
+  //   titleKey: 'sidebar.tracker',
+  //   tabsPath: null,
+  // },
   {
-    route: 'tracker',
+    route: 'feedback',
     zone: ZONE_ADMIN,
-    module: 'Tracker',
-    titleKey: 'sidebar.tracker',
+    module: 'Modération des remontées',
+    titleKey: 'feedback.moderation.title',
     tabsPath: null,
   },
   {

@@ -1,14 +1,20 @@
 """Portal feedback submission.
 
 Delegated portal users (``can_report_feedback``) file a bug/suggestion that
-lands in the admin moderation queue as ``pending``. The admin-gated direct relay
-lives in backend/api/feedback.py; this route never sends to Discord itself.
+lands in the admin moderation queue as ``pending``. An account with back-office
+access runs that queue itself, so its reports relay straight to Discord, as from
+the admin side (backend/api/feedback.py).
 """
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.portal.deps import require_permission
 from constants.feedback import (
+    ERR_INVALID_PLATFORM,
+    ERR_INVALID_TYPE,
+    ERR_NOT_CONFIGURED,
+    ERR_SEND_FAILED,
     FEEDBACK_TYPES,
     MAX_DESCRIPTION,
     MAX_LOCATION,
@@ -21,10 +27,15 @@ from constants.feedback import (
 )
 from core.database import get_db
 from core.rate_limit import limiter, portal_user_or_ip_key
-from api.portal.deps import require_permission
+from core.security import has_backoffice_access
 from models.portal.profile import UserProfile
 from models.user import User
-from services.feedback import PLATFORMS, create_pending_report, get_feedback_config
+from services.feedback import (
+    PLATFORMS,
+    create_pending_report,
+    get_feedback_config,
+    send_feedback_report,
+)
 
 router = APIRouter(prefix="/feedback", tags=["portal-feedback"])
 
@@ -54,16 +65,23 @@ async def submit_portal_feedback(
 ):
     cfg = await get_feedback_config(db)
     if not cfg["enabled"] or not cfg["webhook_url"]:
-        raise HTTPException(status_code=400, detail="not_configured")
+        raise HTTPException(status_code=400, detail=ERR_NOT_CONFIGURED)
     if req.platform not in PLATFORMS:
-        raise HTTPException(status_code=422, detail="invalid_platform")
+        raise HTTPException(status_code=422, detail=ERR_INVALID_PLATFORM)
     if req.type not in FEEDBACK_TYPES:
-        raise HTTPException(status_code=422, detail="invalid_type")
+        raise HTTPException(status_code=422, detail=ERR_INVALID_TYPE)
     user, profile = up
+    fields = req.model_dump()
+    if has_backoffice_access(user.username, user.hashed_password, is_active=user.is_active):
+        # A failed relay is reported, never queued: the admin would only be
+        # asked to approve their own report.
+        if not await send_feedback_report(db, fields):
+            raise HTTPException(status_code=502, detail=ERR_SEND_FAILED)
+        return {"ok": True}
     await create_pending_report(
         db,
         reporter_user_id=user.id,
         reporter_name=profile.display_name,
-        fields=req.model_dump(),
+        fields=fields,
     )
     return {"ok": True}

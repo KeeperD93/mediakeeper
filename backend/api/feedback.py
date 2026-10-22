@@ -1,5 +1,5 @@
-"""Bug/suggestion feedback endpoints: admin config + direct relay (cycle 1) and
-the delegate moderation queue — list / edit / validate / reject (cycle 3b).
+"""Bug/suggestion feedback endpoints: admin config + direct relay, and the
+delegate moderation queue — list / edit / validate / reject.
 
 Reports are relayed to a maintainer-provided Discord webhook. Admin-gated and
 rate-limited; CSRF is enforced globally by ``CsrfMiddleware`` on every mutation.
@@ -10,6 +10,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.auth import get_current_user
 from constants.feedback import (
+    ERR_INVALID_PLATFORM,
+    ERR_INVALID_TYPE,
+    ERR_INVALID_WEBHOOK,
+    ERR_NOT_CONFIGURED,
+    ERR_NOT_FOUND,
+    ERR_SEND_FAILED,
     FEEDBACK_STATUSES,
     FEEDBACK_TYPES,
     MAX_DESCRIPTION,
@@ -22,7 +28,9 @@ from constants.feedback import (
     PLATFORM_BOTH,
     RETENTION_MAX_DAYS,
     RETENTION_MIN_DAYS,
+    STATUS_PENDING,
     TYPE_BUG,
+    VALIDATE_SENT,
 )
 from core.database import get_db
 from core.rate_limit import admin_user_or_ip_key, limiter
@@ -82,7 +90,7 @@ class FeedbackReportUpdate(BaseModel):
     tags: list[str] | None = Field(default=None, max_length=MAX_TAGS)
 
 
-_VALIDATE_ERRORS = {"not_found": 404, "not_configured": 400, "send_failed": 502}
+_VALIDATE_ERRORS = {ERR_NOT_FOUND: 404, ERR_NOT_CONFIGURED: 400, ERR_SEND_FAILED: 502}
 
 
 def _public_config(cfg: dict) -> dict:
@@ -110,7 +118,7 @@ async def write_config(
     _: User = Depends(get_current_user),
 ):
     if req.webhook_url and not is_discord_webhook_url(req.webhook_url):
-        raise HTTPException(status_code=422, detail="invalid_webhook")
+        raise HTTPException(status_code=422, detail=ERR_INVALID_WEBHOOK)
     await save_feedback_config(
         db,
         enabled=req.enabled,
@@ -130,9 +138,9 @@ async def test_link(
 ):
     cfg = await get_feedback_config(db)
     if not cfg["webhook_url"]:
-        raise HTTPException(status_code=400, detail="not_configured")
+        raise HTTPException(status_code=400, detail=ERR_NOT_CONFIGURED)
     if not await send_feedback_handshake(cfg["webhook_url"]):
-        raise HTTPException(status_code=502, detail="send_failed")
+        raise HTTPException(status_code=502, detail=ERR_SEND_FAILED)
     return {"ok": True}
 
 
@@ -146,19 +154,19 @@ async def submit_report(
 ):
     cfg = await get_feedback_config(db)
     if not cfg["enabled"] or not cfg["webhook_url"]:
-        raise HTTPException(status_code=400, detail="not_configured")
+        raise HTTPException(status_code=400, detail=ERR_NOT_CONFIGURED)
     if req.platform not in PLATFORMS:
-        raise HTTPException(status_code=422, detail="invalid_platform")
+        raise HTTPException(status_code=422, detail=ERR_INVALID_PLATFORM)
     if req.type not in FEEDBACK_TYPES:
-        raise HTTPException(status_code=422, detail="invalid_type")
+        raise HTTPException(status_code=422, detail=ERR_INVALID_TYPE)
     if not await send_feedback_report(db, req.model_dump()):
-        raise HTTPException(status_code=502, detail="send_failed")
+        raise HTTPException(status_code=502, detail=ERR_SEND_FAILED)
     return {"ok": True}
 
 
 @router.get("/reports")
 async def list_reports(
-    status: str = "pending",
+    status: str = STATUS_PENDING,
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
@@ -177,7 +185,7 @@ async def edit_report(
 ):
     updates = req.model_dump(exclude_unset=True)
     if "platform" in updates and updates["platform"] not in PLATFORMS:
-        raise HTTPException(status_code=422, detail="invalid_platform")
+        raise HTTPException(status_code=422, detail=ERR_INVALID_PLATFORM)
     # title/description/type are NOT NULL: an explicit JSON null passes the
     # str|None schema but would 500 on the UPDATE — reject it at the boundary.
     for key in ("title", "description", "type"):
@@ -186,9 +194,9 @@ async def edit_report(
     # type is unbounded in the schema (str|None); reject an out-of-enum value so a
     # typo can't be written to the VARCHAR(20) column (would 500 on Postgres).
     if "type" in updates and updates["type"] not in FEEDBACK_TYPES:
-        raise HTTPException(status_code=422, detail="invalid_type")
+        raise HTTPException(status_code=422, detail=ERR_INVALID_TYPE)
     if not await update_feedback_report(db, report_id, updates):
-        raise HTTPException(status_code=404, detail="not_found")
+        raise HTTPException(status_code=404, detail=ERR_NOT_FOUND)
     return {"ok": True}
 
 
@@ -202,7 +210,7 @@ async def validate_report(
 ):
     """Relay a pending report to Discord, then drop it from the queue."""
     result = await validate_feedback_report(db, report_id)
-    if result != "sent":
+    if result != VALIDATE_SENT:
         raise HTTPException(status_code=_VALIDATE_ERRORS[result], detail=result)
     return {"ok": True}
 
@@ -215,5 +223,5 @@ async def reject_report(
 ):
     """Reject a pending report — kept for the retention window, then purged."""
     if not await reject_feedback_report(db, report_id):
-        raise HTTPException(status_code=404, detail="not_found")
+        raise HTTPException(status_code=404, detail=ERR_NOT_FOUND)
     return {"ok": True}

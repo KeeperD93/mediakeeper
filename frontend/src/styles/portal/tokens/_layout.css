@@ -1,17 +1,22 @@
 /* PORTAL DESIGN TOKENS — LAYOUT
-   Radius, blurs, shadows, gradients, overlays, z-index, section rhythm,
-   touch target and disabled opacity. Namespace: --portal-* */
+   Radius, border width, blurs, shadows, gradients, overlays, z-index,
+   section rhythm, touch target, focus ring and disabled opacity.
+   Namespace: --portal-* */
 
 :root {
   /* Radius */
   --portal-radius-xs: 4px; /* tags, micro chips */
   --portal-radius-sm: 6px; /* small pills, meta */
+  --portal-radius-btn: 8px; /* buttons — mirrors admin --radius-btn (default theme) */
   --portal-radius-md: 10px; /* admin rows, posters */
   --portal-radius-lg: 14px; /* cards, chat, modals */
   --portal-radius-xl: 20px; /* trophy modal, avatar pop, panels */
   --portal-radius-2xl: 24px; /* person hero bottom corners */
   --portal-radius-pill: 999px; /* pill shape (60+ usages) */
   --portal-radius-circle: 50%; /* avatars, close buttons, dots */
+
+  /* Border width — mirrors admin --border-width-thin (cards, sub-dividers). */
+  --portal-border-width-thin: 0.5px;
 
   /* Blurs (portal goes deeper than admin for cinema feel) */
   --portal-blur-xs: blur(6px);
@@ -99,6 +104,8 @@
 
   /* Accessibility — minimum tap target (WCAG 2.5.5), mirrors the admin one. */
   --portal-touch-target: 44px;
+  /* Keyboard focus ring — mirrors admin --focus-ring, in the portal accent. */
+  --portal-focus-ring: 2px solid var(--portal-accent-500);
 
   /* A control that cannot be used right now (busy, out of range). */
   --portal-opacity-disabled: 0.4;
