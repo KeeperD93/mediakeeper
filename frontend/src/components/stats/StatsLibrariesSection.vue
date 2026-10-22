@@ -105,16 +105,13 @@
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useStats } from '@/composables/useStats'
-import { useApi } from '@/composables/useApi'
 import { Calendar, Copy, X } from 'lucide-vue-next'
 import MkEmptyState from '@/components/common/MkEmptyState.vue'
-import { useConfirm } from '@/composables/useConfirm'
-
-const mkConfirm = useConfirm()
+import { useStatsLibraryDelete } from '@/composables/useStatsLibraryDelete'
 
 const { t } = useI18n()
-const { libraries, loadingLibraries, loadLibraries, fmtSize, timeAgo } = useStats()
-const { apiDelete } = useApi()
+const { libraries, loadingLibraries, fmtSize, timeAgo } = useStats()
+const { deleteLibrary } = useStatsLibraryDelete()
 
 const compareMode = ref(false)
 const compareA = ref(null)
@@ -176,22 +173,6 @@ const libTypeNames = computed(() => ({
 }))
 function libTypeName(tp) {
   return libTypeNames.value[tp] || tp || t('stats.other')
-}
-
-async function deleteLibrary(id, nm) {
-  const ok = await mkConfirm({
-    title: t('common.confirmTitle.delete'),
-    message: t('stats.deleteLibConfirm', { name: nm }),
-    variant: 'danger',
-    confirmLabel: t('common.delete'),
-  })
-  if (!ok) return
-  try {
-    await apiDelete(`/api/stats/libraries/${encodeURIComponent(id)}`)
-    loadLibraries()
-  } catch (e) {
-    console.error('[StatsLibrariesSection.deleteLibrary] failed to delete library', e)
-  }
 }
 </script>
 

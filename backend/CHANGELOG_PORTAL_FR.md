@@ -39,6 +39,7 @@ utilisateurs.
 - Problèmes — filtres et tri à taille tactile sur téléphone, flèche des menus espacée.
 - Problèmes — plus de zoom sur les champs et menus sur téléphone.
 - Problèmes — formulaire de signalement et filtres accessibles au clavier et aux lecteurs d'écran.
+- Fenêtres — Maj+Tab reste dans la fenêtre ouverte.
 - Problèmes — signalement en échec : message clair, saisie conservée.
 - Listes — vos actions en échec sont signalées (plus d'« Erreur réseau » générique).
 - Listes — boutons de création sans survol collant sur écran tactile.

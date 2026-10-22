@@ -22,10 +22,23 @@ This section intentionally has no date so it is not shown to users.
 - Blacklist — unblocking keeps rejections in the totals.
 - Backups — database included by default in a manual backup.
 - Requests — compact phone layout with drop-down filters.
+- Statistics — library repair: window opens as a bottom panel on phones (reduced motion respected).
+- About — larger title on tablets and computers, easier-to-read links.
 
 ### Fixed
 - Sidebar — hover effects fixed on touch screens (reduced motion respected).
 - Statistics — watch time measured continuously, pauses and idle players excluded.
+- Statistics — sort arrows in white (Users, Activity).
+- Statistics — Tools: clear errors, "Try again" for exclusions, proper plurals.
+- Statistics — library removal: a failure is now reported.
+- Statistics — Tools: buttons at the bottom of cards, touch-sized, keyboard import.
+- Statistics — Tools, exclusions: consistent fields, visible keyboard focus, no more zoom on phones.
+- Statistics — Tools, exclusions: menu and field named for screen readers.
+- Statistics — library repair: result list scrolls with the keyboard.
+- Dialogs — Shift+Tab stays inside the open dialog.
+- Statistics — most watched ranked by watch time, popular by number of viewers.
+- Statistics — "Top watchers" follows the selected period.
+- Statistics — period buttons translated (7d instead of 7j).
 - Requests — automatically marked Available, even without Discord notifications.
 - Requests — missing poster restored (new and existing requests).
 - Featured — images kept when the image cache is on.

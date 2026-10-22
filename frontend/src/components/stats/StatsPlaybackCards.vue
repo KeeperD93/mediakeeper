@@ -10,7 +10,7 @@
           :class="{ active: playbackDays === d }"
           @click="changePlaybackDays(d)"
         >
-          {{ d }}j
+          {{ d }}{{ $t('stats.daysShort') }}
         </button>
         <button class="pill" :class="{ active: playbackDays === 0 }" @click="changePlaybackDays(0)">
           {{ $t('common.all') }}
@@ -87,9 +87,17 @@ function changePlaybackDays(d) {
 async function loadPlaybackAndResolve(days) {
   await loadPlayback(days)
   if (!playback.value) return
-  for (const k of ['top_series', 'popular_series'])
-    for (const it of playback.value[k] || [])
-      if (it.name && !it.series_id) it.series_id = await resolveSeriesImageId(it.name)
+  // Looked up side by side; a series in both lists is looked up once.
+  const lookups = new Map()
+  const series = ['top_series', 'popular_series'].flatMap(k => playback.value[k] || [])
+  await Promise.all(
+    series
+      .filter(it => it.name && !it.series_id)
+      .map(async it => {
+        if (!lookups.has(it.name)) lookups.set(it.name, resolveSeriesImageId(it.name))
+        it.series_id = await lookups.get(it.name)
+      }),
+  )
 }
 // Initial load triggered from parent GeneralTab
 defineExpose({ loadPlaybackAndResolve })

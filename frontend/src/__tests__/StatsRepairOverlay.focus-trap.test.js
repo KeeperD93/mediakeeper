@@ -1,6 +1,8 @@
 /**
- * Covers useFocusTrap wired into StatsRepairOverlay: initial focus onto the
- * close button, Escape closing the dialog, and the "no close mid-run" guard.
+ * Covers useFocusTrap wired into StatsRepairOverlay (initial focus on the dialog
+ * panel, Escape, no close mid-run, the result list in the Tab cycle) and the
+ * shared bottom sheet it opens in (dialog on the sheet panel, backdrop click
+ * guard, progress bar).
  */
 import { describe, it, expect, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
@@ -75,6 +77,82 @@ describe('StatsRepairOverlay — focus trap integration', () => {
 
     expect(w.emitted('close')).toBeFalsy()
 
+    w.unmount()
+  })
+
+  it('puts the result list in the Tab cycle, so the keys can scroll it', async () => {
+    const w = buildOverlay()
+    await flushPromises()
+    const close = document.querySelector('.rlo-close')
+    const list = document.querySelector('.rlo-body')
+    expect(list.getAttribute('role')).toBe('region')
+    expect(list.getAttribute('aria-labelledby')).toBe(document.querySelector('h2').id)
+
+    close.focus()
+    const tab = shiftKey => new KeyboardEvent('keydown', { key: 'Tab', shiftKey, bubbles: true })
+    document.dispatchEvent(tab(true))
+    expect(document.activeElement).toBe(list)
+    document.dispatchEvent(tab(false))
+    expect(document.activeElement).toBe(close)
+
+    w.unmount()
+  })
+
+  it('keeps Shift+Tab inside the window while a run is in progress', async () => {
+    const w = buildOverlay({ running: true, result: null })
+    await flushPromises()
+    const panel = document.querySelector('.rlo-modal')
+    const shiftTab = new KeyboardEvent('keydown', {
+      key: 'Tab',
+      shiftKey: true,
+      bubbles: true,
+      cancelable: true,
+    })
+    document.dispatchEvent(shiftTab)
+    expect(shiftTab.defaultPrevented).toBe(true)
+    expect(panel.contains(document.activeElement)).toBe(true)
+
+    w.unmount()
+  })
+})
+
+describe('StatsRepairOverlay — shared bottom sheet', () => {
+  it('renders the dialog as the panel of the shared sheet', () => {
+    const w = buildOverlay()
+    const panel = w.find('.mk-modal-sheet > .mk-modal-sheet-panel')
+    expect(panel.exists()).toBe(true)
+    expect(panel.attributes('role')).toBe('dialog')
+    expect(panel.attributes('aria-modal')).toBe('true')
+    expect(panel.attributes('aria-labelledby')).toBe(w.find('h2').attributes('id'))
+    w.unmount()
+  })
+
+  it('closes on a backdrop click once the run is over', async () => {
+    const w = buildOverlay()
+    await w.find('.mk-modal-sheet').trigger('click')
+    expect(w.emitted('close')).toHaveLength(1)
+    w.unmount()
+  })
+
+  it('ignores a backdrop click while a run is in progress', async () => {
+    const w = buildOverlay({ running: true, result: null })
+    await w.find('.mk-modal-sheet').trigger('click')
+    expect(w.emitted('close')).toBeFalsy()
+    w.unmount()
+  })
+
+  it('ignores a click inside the panel', async () => {
+    const w = buildOverlay()
+    await w.find('.mk-modal-sheet-panel').trigger('click')
+    expect(w.emitted('close')).toBeFalsy()
+    w.unmount()
+  })
+
+  it('shows the progress bar only while running', async () => {
+    const w = buildOverlay({ running: true, result: null })
+    expect(w.find('[role="progressbar"]').exists()).toBe(true)
+    await w.setProps({ running: false, result: RESULT })
+    expect(w.find('[role="progressbar"]').exists()).toBe(false)
     w.unmount()
   })
 })

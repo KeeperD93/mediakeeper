@@ -120,11 +120,13 @@
     opacity: 1;
   }
 }
-/* Drag handle — a small pill at the top of the sheet on mobile only,
-   signalling it can be dismissed with a swipe. */
+/* Drag handle — a small pill at the top of the sheet on mobile only (a visual
+   cue: no sheet implements swipe-to-dismiss). It never shrinks, so a
+   flex-column panel with a long list keeps it at full size. */
 .mk-modal-sheet-panel::before {
   content: '';
   display: block;
+  flex-shrink: 0;
   width: 38px;
   height: 4px;
   margin: 10px auto 0;

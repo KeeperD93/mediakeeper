@@ -1,10 +1,10 @@
 <template>
   <Teleport to="body">
     <transition name="sub-fade">
-      <div v-if="open" class="rlo-overlay" @click.self="onClose">
+      <div v-if="open" class="mk-modal-sheet" @click.self="onClose">
         <div
           ref="panelRef"
-          class="rlo-modal"
+          class="rlo-modal mk-modal-sheet-panel"
           role="dialog"
           aria-modal="true"
           :aria-labelledby="titleId"
@@ -33,7 +33,13 @@
             </button>
           </div>
 
-          <div class="rlo-body">
+          <!-- Out of the Tab order during a run: the trap then holds focus on the window. -->
+          <div
+            class="rlo-body"
+            :tabindex="running ? -1 : 0"
+            role="region"
+            :aria-labelledby="titleId"
+          >
             <p v-if="running" class="rlo-note">{{ $t('stats.repair.running') }}</p>
             <p v-else-if="error" class="rlo-note rlo-err-note">{{ error }}</p>
 
@@ -142,33 +148,22 @@ function ancestryText(d) {
 </script>
 
 <style scoped>
-.rlo-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9990;
-  background: var(--overlay-backdrop);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-4);
-}
+/* Placement, size, background and motion come from .mk-modal-sheet(-panel). Scoped rules
+   outrank that layered helper, so of these only the 640px desktop width is redeclared. */
 .rlo-modal {
   position: relative;
-  width: 640px;
-  max-width: 100%;
-  max-height: 85vh;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
-  background: var(--overlay-bg);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-card);
+  overflow: hidden; /* header stays put, only .rlo-body scrolls */
+  border: var(--border-width) solid var(--border-strong);
 }
+/* Pinned to the top edge: no layout shift when the run ends. */
 .rlo-progress {
+  position: absolute;
+  inset: 0 0 auto;
   height: 3px;
   background: rgb(var(--accent-rgb), 0.15);
   overflow: hidden;
-  flex-shrink: 0;
 }
 .rlo-progress-bar {
   display: block;
@@ -197,6 +192,14 @@ function ancestryText(d) {
 .rlo-ico {
   color: var(--accent-500);
   flex-shrink: 0;
+}
+.rlo-spin {
+  animation: rlo-spin 1s linear infinite;
+}
+@keyframes rlo-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 .rlo-title {
   flex: 1;
@@ -227,6 +230,12 @@ function ancestryText(d) {
 .rlo-body {
   padding: 14px 18px 18px;
   overflow-y: auto;
+}
+/* A Tab stop so the keys can scroll the list, which holds no control; the ring
+   sits inside because the panel's overflow: hidden clips an outer one. */
+.rlo-body:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: calc(-1 * var(--focus-ring-width));
 }
 .rlo-note {
   font-size: var(--text-sm);
@@ -340,6 +349,9 @@ function ancestryText(d) {
   opacity: 0;
 }
 @media (min-width: 768px) {
+  .rlo-modal {
+    width: min(640px, 90vw);
+  }
   .rlo-close {
     width: 32px;
     height: 32px;
@@ -352,6 +364,10 @@ function ancestryText(d) {
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .sub-fade-enter-active,
+  .sub-fade-leave-active {
+    transition: none;
+  }
   .rlo-progress-bar {
     animation: none;
     width: 100%;
@@ -359,14 +375,6 @@ function ancestryText(d) {
   }
   .rlo-spin {
     animation: none;
-  }
-}
-.rlo-spin {
-  animation: rlo-spin 1s linear infinite;
-}
-@keyframes rlo-spin {
-  to {
-    transform: rotate(360deg);
   }
 }
 </style>

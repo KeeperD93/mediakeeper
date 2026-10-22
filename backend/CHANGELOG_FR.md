@@ -22,10 +22,23 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Blacklist — le déblocage conserve les refus dans les totaux.
 - Sauvegardes — base de données incluse par défaut dans une sauvegarde manuelle.
 - Demandes — page compacte sur téléphone, filtres en listes déroulantes.
+- Statistiques — réparation des médiathèques : fenêtre en panneau du bas sur téléphone (animations réduites respectées).
+- À propos — titre plus grand sur tablette et ordinateur, liens plus lisibles.
 
 ### Fixed
 - Barre latérale — effets de survol corrigés sur écran tactile (animations réduites respectées).
 - Statistiques — temps de visionnage mesuré en continu, pauses et lecteurs inactifs exclus.
+- Statistiques — flèches de tri en blanc (Utilisateurs, Activité).
+- Statistiques — Outils : erreurs claires, « Réessayer » pour les exclusions, accords au pluriel.
+- Statistiques — suppression d'une médiathèque : un échec est désormais signalé.
+- Statistiques — Outils : boutons en bas des cartes, taille tactile, import au clavier.
+- Statistiques — Outils, exclusions : champs harmonisés, focus clavier visible, plus de zoom sur téléphone.
+- Statistiques — Outils, exclusions : menu et champ nommés pour les lecteurs d'écran.
+- Statistiques — réparation des médiathèques : liste des résultats défilable au clavier.
+- Fenêtres — Maj+Tab reste dans la fenêtre ouverte.
+- Statistiques — « plus vus » classés au temps de visionnage, « populaires » au nombre de spectateurs.
+- Statistiques — « Top visionnage » suit la période choisie.
+- Statistiques — boutons de période traduits en anglais (7d au lieu de 7j).
 - Demandes — passage automatique en Disponible, même sans notifications Discord.
 - Demandes — jaquette manquante rétablie (nouvelles demandes et demandes existantes).
 - Mise en avant — images conservées quand le cache d'images est activé.

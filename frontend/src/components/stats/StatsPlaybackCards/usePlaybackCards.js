@@ -8,9 +8,9 @@ export function usePlaybackCards(playback, t, ticksToHours) {
       id: 'top_movies',
       type: 'rank',
       title: t('stats.topMovies'),
-      unit: t('common.plays'),
+      unit: t('common.hours'),
       items: playback.value.top_movies,
-      valKey: 'plays',
+      valFn: it => ticksToHours(it.ticks),
       imgKey: 'item_id',
     })
     cards.push({
@@ -26,9 +26,9 @@ export function usePlaybackCards(playback, t, ticksToHours) {
       id: 'top_series',
       type: 'rank',
       title: t('stats.topSeries'),
-      unit: t('stats.users'),
+      unit: t('common.hours'),
       items: playback.value.top_series,
-      valKey: 'users',
+      valFn: it => ticksToHours(it.ticks),
       imgKey: 'series_id',
     })
     cards.push({

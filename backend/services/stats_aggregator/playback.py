@@ -8,10 +8,10 @@ from constants.playback import TICKS_PER_SECOND
 from models.playback_stats import PlaybackSession
 from models.portal.profile import UserProfile
 from services.portal._rank_tiers import tier_for_level
-from services.portal._watch_threshold import watched_session_filter
 from services.portal.avatars import avatar_public_url
 
 from ._helpers import _get_library_name_map, _normalize_library_name, _merge_by_name, _lang_display
+from ._titles import title_rankings
 from .exclusions import _get_exclusion_filters
 
 
@@ -89,7 +89,7 @@ def _resolve_user_avatar(
 
 
 async def get_playback_stats(db: AsyncSession, days: int = 30):
-    """Statistiques de playback sur les N derniers jours. days=0 → tout l'historique."""
+    """Playback statistics over the last N days (days=0: the whole history)."""
     since = datetime.now(timezone.utc) - timedelta(days=days) if days > 0 else None
     exc_filters = await _get_exclusion_filters(db)
 
@@ -103,54 +103,8 @@ async def get_playback_stats(db: AsyncSession, days: int = 30):
             return PlaybackSession.started_at >= since
         return True
 
-    # Rankings count only sessions past the watch threshold (a sampled launch
-    # never inflates them). Movies count each completed viewing (a full rewatch
-    # is a real +1); series count distinct viewers (a binge credits the user
-    # once, not per episode).
-    top_movies_q = await db.execute(_apply_exc(
-        select(
-            PlaybackSession.item_name,
-            PlaybackSession.item_id,
-            func.count(PlaybackSession.id).label("play_count"),
-            func.count(distinct(PlaybackSession.user_id)).label("user_count"),
-        ).where(
-            PlaybackSession.item_type == "Movie",
-            _since_filter(),
-            watched_session_filter(),
-        ).group_by(
-            PlaybackSession.item_name, PlaybackSession.item_id
-        ).order_by(desc("play_count")).limit(5)
-    ))
-    top_movies = [{"name": r[0], "item_id": r[1], "plays": r[2], "users": r[3]} for r in top_movies_q.all()]
-
-    popular_movies_q = await db.execute(_apply_exc(
-        select(
-            PlaybackSession.item_name, PlaybackSession.item_id,
-            func.count(distinct(PlaybackSession.user_id)).label("user_count"),
-            func.count(PlaybackSession.id).label("play_count"),
-        ).where(PlaybackSession.item_type == "Movie", _since_filter(), watched_session_filter(),
-        ).group_by(PlaybackSession.item_name, PlaybackSession.item_id).order_by(desc("user_count")).limit(5)
-    ))
-    popular_movies = [{"name": r[0], "item_id": r[1], "users": r[2], "plays": r[3]} for r in popular_movies_q.all()]
-
-    top_series_q = await db.execute(_apply_exc(
-        select(PlaybackSession.series_name, func.count(PlaybackSession.id).label("play_count"),
-            func.count(distinct(PlaybackSession.user_id)).label("user_count"),
-        ).where(PlaybackSession.item_type == "Episode", PlaybackSession.series_name.isnot(None), _since_filter(),
-            watched_session_filter(),
-        ).group_by(PlaybackSession.series_name).order_by(desc("user_count")).limit(5)
-    ))
-    top_series = [{"name": r[0], "plays": r[1], "users": r[2]} for r in top_series_q.all()]
-
-    popular_series_q = await db.execute(_apply_exc(
-        select(PlaybackSession.series_name,
-            func.count(distinct(PlaybackSession.user_id)).label("user_count"),
-            func.count(PlaybackSession.id).label("play_count"),
-        ).where(PlaybackSession.item_type == "Episode", PlaybackSession.series_name.isnot(None), _since_filter(),
-            watched_session_filter(),
-        ).group_by(PlaybackSession.series_name).order_by(desc("user_count")).limit(5)
-    ))
-    popular_series = [{"name": r[0], "users": r[1], "plays": r[2]} for r in popular_series_q.all()]
+    period = [PlaybackSession.started_at >= since] if since is not None else []
+    titles = await title_rankings(db, [*exc_filters, *period])
 
     by_library_q = await db.execute(_apply_exc(
         select(PlaybackSession.library_name, func.count(PlaybackSession.id).label("play_count"),
@@ -206,10 +160,13 @@ async def get_playback_stats(db: AsyncSession, days: int = 30):
         for u in top_users_raw
     ]
 
+    # Music and live TV add no watch time: a user without any is no top watcher.
+    watched = func.sum(PlaybackSession.exclusive_seconds)
     top_users_hours_q = await db.execute(_apply_exc(
-        select(PlaybackSession.user_id,
-            func.sum(PlaybackSession.exclusive_seconds).label("watched_seconds"),
-        ).group_by(PlaybackSession.user_id).order_by(desc("watched_seconds")).limit(5)
+        select(PlaybackSession.user_id, watched.label("watched_seconds"),
+        ).where(_since_filter(),
+        ).group_by(PlaybackSession.user_id).having(watched > 0,
+        ).order_by(desc("watched_seconds")).limit(5)
     ))
     top_users_hours_raw = [
         {"user_id": r[0], "ticks": (r[1] or 0) * TICKS_PER_SECOND} for r in top_users_hours_q.all()
@@ -318,10 +275,7 @@ async def get_playback_stats(db: AsyncSession, days: int = 30):
         "total_duration_ticks": total_duration_ticks,
         "active_users": active_users,
         "transcode_pct": transcode_pct,
-        "top_movies": top_movies,
-        "popular_movies": popular_movies,
-        "top_series": top_series,
-        "popular_series": popular_series,
+        **titles,
         "by_library": by_library,
         "by_client": by_client,
         "top_users": top_users,
