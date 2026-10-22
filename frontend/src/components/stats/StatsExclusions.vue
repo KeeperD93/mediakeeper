@@ -1,7 +1,11 @@
 <template>
   <div>
     <div class="excl-add">
-      <select v-model="exclMode" class="excl-sel mk-select-chevron">
+      <select
+        v-model="exclMode"
+        class="excl-sel mk-select-chevron"
+        :aria-label="$t('stats.exclusionModeLabel')"
+      >
         <option :value="STATS_EXCLUSION_MODE.EXACT">{{ $t('stats.exact') }}</option>
         <option :value="STATS_EXCLUSION_MODE.CONTAINS">{{ $t('stats.contains') }}</option>
       </select>
@@ -9,6 +13,7 @@
         v-model="exclValue"
         class="excl-input"
         :placeholder="$t('stats.titlePlaceholder')"
+        :aria-label="$t('stats.exclusionTitleLabel')"
         @keydown.enter="addExclusion"
       />
       <MkButton variant="icon" icon="plus" :aria-label="$t('common.add')" @click="addExclusion" />

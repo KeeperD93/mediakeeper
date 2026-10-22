@@ -727,6 +727,8 @@
     "contains": "Contient",
     "noExclusions": "Aucune exclusion",
     "titlePlaceholder": "Titre...",
+    "exclusionModeLabel": "Type de correspondance",
+    "exclusionTitleLabel": "Titre à exclure",
     "exclusionsLoadError": "Impossible de charger les exclusions.",
     "retry": "Réessayer",
     "importing": "Import en cours…",

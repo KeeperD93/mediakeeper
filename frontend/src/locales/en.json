@@ -727,6 +727,8 @@
     "contains": "Contains",
     "noExclusions": "No exclusions",
     "titlePlaceholder": "Title...",
+    "exclusionModeLabel": "Match type",
+    "exclusionTitleLabel": "Title to exclude",
     "exclusionsLoadError": "Couldn't load the exclusions.",
     "retry": "Try again",
     "importing": "Importing…",

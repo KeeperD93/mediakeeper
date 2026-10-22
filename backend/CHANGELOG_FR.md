@@ -33,6 +33,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Statistiques — suppression d'une médiathèque : un échec est désormais signalé.
 - Statistiques — Outils : boutons en bas des cartes, taille tactile, import au clavier.
 - Statistiques — Outils, exclusions : champs harmonisés, focus clavier visible, plus de zoom sur téléphone.
+- Statistiques — Outils, exclusions : menu et champ nommés pour les lecteurs d'écran.
 - Statistiques — « plus vus » classés au temps de visionnage, « populaires » au nombre de spectateurs.
 - Statistiques — « Top visionnage » suit la période choisie.
 - Statistiques — boutons de période traduits en anglais (7d au lieu de 7j).

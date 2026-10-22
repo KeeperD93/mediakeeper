@@ -1,6 +1,7 @@
 /**
- * Statistics → Tools exclusions: a list that failed to load offers a retry
- * instead of "no exclusions", then shows the list.
+ * Statistics → Tools exclusions: both fields are named for screen readers, and
+ * a list that failed to load offers a retry instead of "no exclusions", then
+ * shows the list.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
@@ -30,6 +31,19 @@ afterEach(() => {
 })
 
 describe('StatsExclusions', () => {
+  it('names the match type menu and the title field for screen readers', async () => {
+    h.apiGet.mockResolvedValueOnce([])
+    wrapper = mount(StatsExclusions)
+    await flushPromises()
+
+    expect(wrapper.find('select.excl-sel').attributes('aria-label')).toBe(
+      'stats.exclusionModeLabel',
+    )
+    expect(wrapper.find('input.excl-input').attributes('aria-label')).toBe(
+      'stats.exclusionTitleLabel',
+    )
+  })
+
   it('offers a retry when the list fails to load, then shows the list', async () => {
     h.apiGet
       .mockRejectedValueOnce(new TypeError('Failed to fetch'))
