@@ -10,7 +10,7 @@
         <label class="tool-btn-accent">
           <Plus :size="14" />
           {{ $t('stats.chooseFile') }}
-          <input type="file" accept=".json" class="tool-file-hidden" @change="importJellystats" />
+          <input type="file" accept=".json" class="tool-file-hidden" @change="onFilePicked" />
         </label>
         <div v-if="importStatus" class="tool-status" :class="importStatus.type">
           {{ importStatus.text }}
@@ -35,7 +35,7 @@
           <h3 class="tool-title">{{ $t('stats.migration') }}</h3>
         </div>
         <p class="tool-desc">{{ $t('stats.migrationDesc') }}</p>
-        <MkButton variant="primary" icon="refresh-cw" @click="migrateLibNames">
+        <MkButton variant="primary" icon="refresh-cw" @click="repairLibraryNames">
           {{ $t('stats.launch') }}
         </MkButton>
       </div>
@@ -48,8 +48,8 @@
       <p class="tool-desc">{{ $t('stats.exclusionsDesc') }}</p>
       <div class="excl-add">
         <select v-model="exclMode" class="excl-sel mk-select-chevron">
-          <option value="exact">{{ $t('stats.exact') }}</option>
-          <option value="contains">{{ $t('stats.contains') }}</option>
+          <option :value="STATS_EXCLUSION_MODE.EXACT">{{ $t('stats.exact') }}</option>
+          <option :value="STATS_EXCLUSION_MODE.CONTAINS">{{ $t('stats.contains') }}</option>
         </select>
         <input
           v-model="exclValue"
@@ -59,10 +59,16 @@
         />
         <MkButton variant="icon" icon="plus" :aria-label="$t('common.add')" @click="addExclusion" />
       </div>
-      <div v-if="!exclusions.length" class="excl-empty">{{ $t('stats.noExclusions') }}</div>
+      <div v-if="exclusionsFailed && !exclusions.length" class="excl-empty">
+        {{ $t('stats.exclusionsLoadError') }}
+        <MkButton variant="link" size="sm" class="mk-touch-mobile" @click="loadExclusions">
+          {{ $t('stats.retry') }}
+        </MkButton>
+      </div>
+      <div v-else-if="!exclusions.length" class="excl-empty">{{ $t('stats.noExclusions') }}</div>
       <div v-for="(exc, i) in exclusions" :key="i" class="excl-item">
         <span class="excl-badge">
-          {{ exc.mode === 'exact' ? $t('stats.exact') : $t('stats.contains') }}
+          {{ exc.mode === STATS_EXCLUSION_MODE.EXACT ? $t('stats.exact') : $t('stats.contains') }}
         </span>
         <span class="excl-val">{{ exc.value }}</span>
         <MkButton
@@ -86,126 +92,41 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useApi, resolveApiError } from '@/composables/useApi'
-import { useStats } from '@/composables/useStats'
+import { onMounted } from 'vue'
 import { Ban, Plus, RefreshCw, Trash2, Upload } from 'lucide-vue-next'
 import MkButton from '@/components/common/MkButton.vue'
 import StatsRepairOverlay from '@/components/stats/StatsRepairOverlay.vue'
-import { useConfirm } from '@/composables/useConfirm'
+import { useStatsTools } from '@/composables/useStatsTools'
+import { STATS_EXCLUSION_MODE } from '@/constants/stats'
 
-const mkConfirm = useConfirm()
+const {
+  importStatus,
+  purgeStatus,
+  repairOpen,
+  repairRunning,
+  repairResult,
+  repairError,
+  exclusions,
+  exclusionsFailed,
+  exclMode,
+  exclValue,
+  importJellystats,
+  purgeJellystats,
+  repairLibraryNames,
+  loadExclusions,
+  addExclusion,
+  removeExclusion,
+} = useStatsTools()
 
-const { t } = useI18n()
-const { apiFetch, apiGet, apiPost, apiDelete } = useApi()
-const { loadTotals } = useStats()
-
-const importStatus = ref(null)
-const purgeStatus = ref(null)
-const repairOpen = ref(false)
-const repairRunning = ref(false)
-const repairResult = ref(null)
-const repairError = ref('')
-const exclusions = ref([])
-const exclMode = ref('exact')
-const exclValue = ref('')
-
-async function importJellystats(e) {
-  const f = e.target.files[0]
-  if (!f) return
-  importStatus.value = { type: 'info', text: t('stats.import') + '...' }
-  try {
-    const fd = new FormData()
-    fd.append('file', f)
-    const r = await apiFetch('/api/stats/import/jellystats', { method: 'POST', body: fd })
-    const d = r ? await r.json() : {}
-    importStatus.value = {
-      type: 'ok',
-      text: `${d.playback_imported} ${t('stats.imported')}, ${d.playback_skipped} ${t('stats.duplicatesSkipped')}`,
-    }
-    loadTotals()
-  } catch (err) {
-    console.error('[StatsToolsTab.importJellystats]', err)
-    // apiFetch throws Error(detail) on a 4xx/413 — translate the backend
-    // code to a user label (falls back to a generic message if unknown).
-    // A rate limit resolves to nothing: its own toast says it.
-    const text = resolveApiError(err?.message)
-    importStatus.value = text ? { type: 'err', text } : null
-  }
+// Cleared once the import ends: the same file can then be imported again, but
+// picking it again mid-upload starts no second import.
+async function onFilePicked(e) {
+  const file = e.target.files[0]
+  if (file) await importJellystats(file)
   e.target.value = ''
 }
 
-async function purgeJellystats() {
-  const ok = await mkConfirm({
-    title: t('common.confirmTitle.delete'),
-    message: t('stats.purgeConfirm'),
-    variant: 'danger',
-  })
-  if (!ok) return
-  purgeStatus.value = { type: 'info', text: t('stats.purgeBtn') + '...' }
-  try {
-    const d = await apiPost('/api/stats/import/jellystats/purge')
-    purgeStatus.value = { type: 'ok', text: `${d.total_purged} ${t('stats.purged')}` }
-    loadTotals()
-  } catch {
-    purgeStatus.value = { type: 'err', text: t('common.error') }
-  }
-}
-
-async function migrateLibNames() {
-  repairOpen.value = true
-  repairRunning.value = true
-  repairResult.value = null
-  repairError.value = ''
-  try {
-    const d = await apiPost('/api/stats/migrate/library-names')
-    if (d.error === 'no_active_media_source') repairError.value = t('stats.repair.errNoSource')
-    else if (d.error === 'missing_url_or_api_key') repairError.value = t('stats.repair.errNoConfig')
-    else if (d.error) repairError.value = t('common.error')
-    else repairResult.value = d
-  } catch {
-    repairError.value = t('common.error')
-  } finally {
-    repairRunning.value = false
-  }
-}
-
-async function loadExclusions() {
-  try {
-    const d = await apiGet('/api/stats/exclusions')
-    if (Array.isArray(d)) exclusions.value = d
-  } catch {
-    /* silent: exclusions fetch */
-  }
-}
-
-async function addExclusion() {
-  const v = exclValue.value.trim()
-  if (!v) return
-  try {
-    await apiPost('/api/stats/exclusions', { mode: exclMode.value, value: v })
-    exclValue.value = ''
-    loadExclusions()
-    loadTotals()
-  } catch (e) {
-    console.error('[StatsToolsTab.addExclusion] failed to add exclusion', e)
-  }
-}
-
-async function removeExclusion(i) {
-  try {
-    await apiDelete(`/api/stats/exclusions/${i}`)
-    loadExclusions()
-    loadTotals()
-  } catch (e) {
-    console.error('[StatsToolsTab.removeExclusion] failed to remove exclusion', e)
-  }
-}
-
-onMounted(() => {
-  if (!exclusions.value.length) loadExclusions()
-})
+onMounted(loadExclusions)
 </script>
 
 <style scoped>
