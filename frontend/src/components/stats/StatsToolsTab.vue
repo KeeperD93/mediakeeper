@@ -7,14 +7,16 @@
           <h3 class="tool-title">{{ $t('stats.importJellystats') }}</h3>
         </div>
         <p class="tool-desc">{{ $t('stats.importBackupDesc') }}</p>
-        <label class="tool-btn-accent">
+        <div role="status">
+          <div v-if="importStatus" class="tool-status" :class="importStatus.type">
+            {{ importStatus.text }}
+          </div>
+        </div>
+        <label class="tool-btn-accent tool-action">
           <Plus :size="14" />
           {{ $t('stats.chooseFile') }}
-          <input type="file" accept=".json" class="tool-file-hidden" @change="onFilePicked" />
+          <input type="file" accept=".json" class="sr-only" @change="onFilePicked" />
         </label>
-        <div v-if="importStatus" class="tool-status" :class="importStatus.type">
-          {{ importStatus.text }}
-        </div>
       </div>
       <div class="glass-card tool-card">
         <div class="tool-head">
@@ -22,12 +24,14 @@
           <h3 class="tool-title">{{ $t('stats.purge') }}</h3>
         </div>
         <p class="tool-desc">{{ $t('stats.purgeDesc') }}</p>
-        <MkButton variant="danger" icon="trash-2" @click="purgeJellystats">
+        <div role="status">
+          <div v-if="purgeStatus" class="tool-status" :class="purgeStatus.type">
+            {{ purgeStatus.text }}
+          </div>
+        </div>
+        <MkButton class="tool-action" variant="danger" icon="trash-2" @click="purgeJellystats">
           {{ $t('stats.purgeBtn') }}
         </MkButton>
-        <div v-if="purgeStatus" class="tool-status" :class="purgeStatus.type">
-          {{ purgeStatus.text }}
-        </div>
       </div>
       <div class="glass-card tool-card">
         <div class="tool-head">
@@ -35,7 +39,12 @@
           <h3 class="tool-title">{{ $t('stats.migration') }}</h3>
         </div>
         <p class="tool-desc">{{ $t('stats.migrationDesc') }}</p>
-        <MkButton variant="primary" icon="refresh-cw" @click="repairLibraryNames">
+        <MkButton
+          class="tool-action"
+          variant="primary"
+          icon="refresh-cw"
+          @click="repairLibraryNames"
+        >
           {{ $t('stats.launch') }}
         </MkButton>
       </div>
@@ -138,6 +147,18 @@ onMounted(loadExclusions)
 .tool-card {
   padding: 18px 20px;
 }
+/* Grid cards share a row height; the text takes the spare room so the
+   status and the action sit at the bottom-left. */
+.tools-grid > .tool-card {
+  display: flex;
+  flex-direction: column;
+}
+.tools-grid > .tool-card > .tool-desc {
+  flex-grow: 1;
+}
+.tool-action {
+  align-self: flex-start;
+}
 .glass-card {
   background: var(--surface-1);
   backdrop-filter: blur(16px);
@@ -159,7 +180,7 @@ onMounted(loadExclusions)
 .tool-desc {
   font-size: var(--text-2xs);
   color: var(--text-secondary);
-  margin-bottom: 14px;
+  margin-bottom: var(--space-5);
   line-height: var(--lh-normal);
 }
 .tool-btn-accent {
@@ -174,10 +195,15 @@ onMounted(loadExclusions)
   color: var(--accent-400);
   border: 0.5px solid rgb(var(--accent-rgb), 0.2);
   cursor: pointer;
-  transition: all var(--duration-fast);
+  transition: var(--transition-bg);
+}
+/* The file input is visually hidden but focusable: the label shows its focus. */
+.tool-btn-accent:has(:focus-visible) {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
 }
 .tool-status {
-  margin-top: 10px;
+  margin-bottom: 10px;
   font-size: var(--text-2xs);
   padding: 6px 10px;
   border-radius: var(--radius-sm);
@@ -269,9 +295,6 @@ onMounted(loadExclusions)
 .tool-ico-danger {
   color: var(--color-error);
 }
-.tool-file-hidden {
-  display: none;
-}
 .tool-card-excl {
   margin-top: 14px;
 }
@@ -285,12 +308,12 @@ onMounted(loadExclusions)
     grid-template-columns: 1fr;
   }
 }
-/* Touch targets ≥ 44px on mobile for the exclusion controls + file picker. */
+/* Touch targets ≥ 44px on mobile for the exclusion controls + tool actions. */
 @media (max-width: 767px) {
   .excl-sel,
   .excl-input,
-  .tool-btn-accent {
-    min-height: 44px;
+  .tool-action {
+    min-height: var(--touch-target);
   }
 }
 @media (hover: hover) {

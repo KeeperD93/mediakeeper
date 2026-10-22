@@ -29,6 +29,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Statistiques — flèches de tri en blanc (Utilisateurs, Activité).
 - Statistiques — Outils : erreurs claires, « Réessayer » pour les exclusions, accords au pluriel.
 - Statistiques — suppression d'une médiathèque : un échec est désormais signalé.
+- Statistiques — Outils : boutons en bas des cartes, taille tactile, import au clavier.
 - Demandes — passage automatique en Disponible, même sans notifications Discord.
 - Demandes — jaquette manquante rétablie (nouvelles demandes et demandes existantes).
 - Mise en avant — images conservées quand le cache d'images est activé.
