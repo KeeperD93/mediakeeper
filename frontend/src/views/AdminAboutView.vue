@@ -69,7 +69,7 @@ const links = {
 
 <style scoped>
 .ab-root {
-  padding: 24px 24px 48px;
+  padding: var(--space-6) var(--space-6) calc(var(--space-6) * 2);
 }
 
 .ab-inner {
@@ -77,35 +77,35 @@ const links = {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: var(--space-6);
 }
 
 .ab-header {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-2);
 }
 
 .ab-title {
   margin: 0;
-  font-size: var(--text-2xl, 24px);
+  font-size: var(--text-xl);
   color: var(--text-primary);
-  font-weight: var(--font-semibold, 600);
+  font-weight: var(--font-medium);
 }
 
 .ab-subtitle {
   margin: 0;
   color: var(--text-secondary);
-  font-size: var(--text-sm, 14px);
+  font-size: var(--text-sm);
 }
 
 .ab-section {
   background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card, 12px);
-  padding: 20px 22px;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-card);
+  padding: var(--space-5);
   color: var(--text-secondary);
-  line-height: 1.55;
+  line-height: var(--lh-normal);
 }
 
 .ab-section p {
@@ -113,26 +113,27 @@ const links = {
 }
 
 .ab-section p + p {
-  margin-top: 10px;
+  margin-top: var(--space-2-5);
 }
 
 .ab-h2 {
-  margin: 0 0 12px;
-  font-size: var(--text-lg, 17px);
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-lg);
   color: var(--text-primary);
-  font-weight: var(--font-semibold, 600);
+  font-weight: var(--font-medium);
 }
 
 .ab-list {
   margin: 0;
-  padding-left: 20px;
+  padding-left: var(--space-5);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-2);
 }
 
+/* The lighter accent shade keeps the links readable on the dark card. */
 .ab-section a {
-  color: var(--accent-500);
+  color: var(--accent-300);
   text-decoration: underline;
   text-underline-offset: 2px;
 }

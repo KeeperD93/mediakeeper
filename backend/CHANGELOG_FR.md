@@ -23,6 +23,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Sauvegardes — base de données incluse par défaut dans une sauvegarde manuelle.
 - Demandes — page compacte sur téléphone, filtres en listes déroulantes.
 - Statistiques — réparation des médiathèques : fenêtre en panneau du bas sur téléphone (animations réduites respectées).
+- À propos — titre plus grand sur tablette et ordinateur, liens plus lisibles.
 
 ### Fixed
 - Barre latérale — effets de survol corrigés sur écran tactile (animations réduites respectées).
