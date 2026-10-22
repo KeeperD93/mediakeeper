@@ -142,10 +142,10 @@ onMounted(loadExclusions)
 .tools-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: var(--space-3);
 }
 .tool-card {
-  padding: 18px 20px;
+  padding: var(--space-5);
 }
 /* Grid cards share a row height; the text takes the spare room so the
    status and the action sit at the bottom-left. */
@@ -162,14 +162,14 @@ onMounted(loadExclusions)
 .glass-card {
   background: var(--surface-1);
   backdrop-filter: blur(16px);
-  border: 0.5px solid var(--border-default);
+  border: var(--border-width-thin) solid var(--border-default);
   border-radius: var(--radius-card);
 }
 .tool-head {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: var(--space-2-5);
+  margin-bottom: var(--space-2-5);
 }
 .tool-title {
   font-size: var(--text-sm);
@@ -186,14 +186,14 @@ onMounted(loadExclusions)
 .tool-btn-accent {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3-5);
   border-radius: var(--radius-btn);
   font-size: var(--text-xs);
   font-weight: var(--font-regular);
   background: rgb(var(--accent-rgb), 0.15);
   color: var(--accent-400);
-  border: 0.5px solid rgb(var(--accent-rgb), 0.2);
+  border: var(--border-width-thin) solid rgb(var(--accent-rgb), 0.2);
   cursor: pointer;
   transition: var(--transition-bg);
 }
@@ -203,9 +203,9 @@ onMounted(loadExclusions)
   outline-offset: var(--focus-ring-offset);
 }
 .tool-status {
-  margin-bottom: 10px;
+  margin-bottom: var(--space-2-5);
   font-size: var(--text-2xs);
-  padding: 6px 10px;
+  padding: var(--space-2) var(--space-2-5);
   border-radius: var(--radius-sm);
 }
 .tool-status.info {
@@ -223,16 +223,20 @@ onMounted(loadExclusions)
 
 .excl-add {
   display: flex;
-  gap: 6px;
-  margin-bottom: 12px;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
 }
+/* Background and border of the admin reference menus (Notifications). */
 .excl-sel {
   height: 32px;
-  width: 90px;
-  padding: 0 28px 0 10px;
-  border: 0.5px solid var(--border-strong);
+  /* Fits its longest option, 90px at least: no font cuts a label. */
+  width: auto;
+  min-width: 90px;
+  padding-block: 0;
+  padding-left: var(--space-3);
+  border: var(--border-width) solid var(--border);
   border-radius: var(--radius-btn);
-  background-color: var(--surface-2);
+  background-color: var(--bg-tertiary);
   font-size: var(--text-2xs);
   font-family: inherit;
   color: var(--text-primary);
@@ -247,10 +251,10 @@ onMounted(loadExclusions)
 .excl-input {
   flex: 1;
   min-width: 0;
-  background: var(--surface-2);
-  border: 0.5px solid var(--border-strong);
+  background: var(--bg-tertiary);
+  border: var(--border-width) solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 5px 10px;
+  padding: var(--space-1) var(--space-2-5);
   font-size: var(--text-2xs);
   color: var(--text-primary);
   outline: none;
@@ -258,16 +262,28 @@ onMounted(loadExclusions)
 .excl-input:focus {
   border-color: var(--accent-500);
 }
+.excl-sel:focus-visible,
+.excl-input:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+/* iOS zooms into a field under 16px it focuses: 16px there only. */
+@supports (-webkit-touch-callout: none) {
+  .excl-sel,
+  .excl-input {
+    font-size: var(--text-md);
+  }
+}
 .excl-empty {
   font-size: var(--text-2xs);
   color: var(--text-muted);
-  padding: 4px 0;
+  padding: var(--space-1) 0;
 }
 .excl-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 5px 6px;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-sm);
 }
 .excl-badge {
@@ -275,7 +291,7 @@ onMounted(loadExclusions)
      (--text-3xs 0.62rem, --radius-sm floor); deliberately fixed for this
      micro mode-badge, kept raw per the rule of 3 — not an oversight. */
   font-size: 0.58rem;
-  padding: 2px 6px;
+  padding: var(--space-half) var(--space-2);
   border-radius: 4px;
   background: var(--surface-2);
   color: var(--text-muted);
@@ -296,7 +312,7 @@ onMounted(loadExclusions)
   color: var(--color-error);
 }
 .tool-card-excl {
-  margin-top: 14px;
+  margin-top: var(--space-3-5);
 }
 @media (max-width: 1280px) {
   .tools-grid {
@@ -305,7 +321,7 @@ onMounted(loadExclusions)
 }
 @media (max-width: 768px) {
   .tools-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 /* Touch targets ≥ 44px on mobile for the exclusion controls + tool actions. */
