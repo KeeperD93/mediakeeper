@@ -33,7 +33,13 @@
             </button>
           </div>
 
-          <div class="rlo-body">
+          <!-- Out of the Tab order during a run: the trap then holds focus on the window. -->
+          <div
+            class="rlo-body"
+            :tabindex="running ? -1 : 0"
+            role="region"
+            :aria-labelledby="titleId"
+          >
             <p v-if="running" class="rlo-note">{{ $t('stats.repair.running') }}</p>
             <p v-else-if="error" class="rlo-note rlo-err-note">{{ error }}</p>
 
@@ -224,6 +230,12 @@ function ancestryText(d) {
 .rlo-body {
   padding: 14px 18px 18px;
   overflow-y: auto;
+}
+/* A Tab stop so the keys can scroll the list, which holds no control; the ring
+   sits inside because the panel's overflow: hidden clips an outer one. */
+.rlo-body:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: calc(-1 * var(--focus-ring-width));
 }
 .rlo-note {
   font-size: var(--text-sm);

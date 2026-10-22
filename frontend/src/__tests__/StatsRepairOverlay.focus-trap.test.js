@@ -1,7 +1,8 @@
 /**
  * Covers useFocusTrap wired into StatsRepairOverlay (initial focus on the dialog
- * panel, Escape, no close mid-run) and the shared bottom sheet it opens in
- * (dialog on the sheet panel, backdrop click guard, progress bar).
+ * panel, Escape, no close mid-run, the result list in the Tab cycle) and the
+ * shared bottom sheet it opens in (dialog on the sheet panel, backdrop click
+ * guard, progress bar).
  */
 import { describe, it, expect, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
@@ -75,6 +76,41 @@ describe('StatsRepairOverlay — focus trap integration', () => {
     await flushPromises()
 
     expect(w.emitted('close')).toBeFalsy()
+
+    w.unmount()
+  })
+
+  it('puts the result list in the Tab cycle, so the keys can scroll it', async () => {
+    const w = buildOverlay()
+    await flushPromises()
+    const close = document.querySelector('.rlo-close')
+    const list = document.querySelector('.rlo-body')
+    expect(list.getAttribute('role')).toBe('region')
+    expect(list.getAttribute('aria-labelledby')).toBe(document.querySelector('h2').id)
+
+    close.focus()
+    const tab = shiftKey => new KeyboardEvent('keydown', { key: 'Tab', shiftKey, bubbles: true })
+    document.dispatchEvent(tab(true))
+    expect(document.activeElement).toBe(list)
+    document.dispatchEvent(tab(false))
+    expect(document.activeElement).toBe(close)
+
+    w.unmount()
+  })
+
+  it('keeps Shift+Tab inside the window while a run is in progress', async () => {
+    const w = buildOverlay({ running: true, result: null })
+    await flushPromises()
+    const panel = document.querySelector('.rlo-modal')
+    const shiftTab = new KeyboardEvent('keydown', {
+      key: 'Tab',
+      shiftKey: true,
+      bubbles: true,
+      cancelable: true,
+    })
+    document.dispatchEvent(shiftTab)
+    expect(shiftTab.defaultPrevented).toBe(true)
+    expect(panel.contains(document.activeElement)).toBe(true)
 
     w.unmount()
   })
