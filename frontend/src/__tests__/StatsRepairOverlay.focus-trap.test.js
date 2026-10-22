@@ -1,6 +1,7 @@
 /**
- * Covers useFocusTrap wired into StatsRepairOverlay: initial focus onto the
- * close button, Escape closing the dialog, and the "no close mid-run" guard.
+ * Covers useFocusTrap wired into StatsRepairOverlay (initial focus on the dialog
+ * panel, Escape, no close mid-run) and the shared bottom sheet it opens in
+ * (dialog on the sheet panel, backdrop click guard, progress bar).
  */
 import { describe, it, expect, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
@@ -75,6 +76,47 @@ describe('StatsRepairOverlay — focus trap integration', () => {
 
     expect(w.emitted('close')).toBeFalsy()
 
+    w.unmount()
+  })
+})
+
+describe('StatsRepairOverlay — shared bottom sheet', () => {
+  it('renders the dialog as the panel of the shared sheet', () => {
+    const w = buildOverlay()
+    const panel = w.find('.mk-modal-sheet > .mk-modal-sheet-panel')
+    expect(panel.exists()).toBe(true)
+    expect(panel.attributes('role')).toBe('dialog')
+    expect(panel.attributes('aria-modal')).toBe('true')
+    expect(panel.attributes('aria-labelledby')).toBe(w.find('h2').attributes('id'))
+    w.unmount()
+  })
+
+  it('closes on a backdrop click once the run is over', async () => {
+    const w = buildOverlay()
+    await w.find('.mk-modal-sheet').trigger('click')
+    expect(w.emitted('close')).toHaveLength(1)
+    w.unmount()
+  })
+
+  it('ignores a backdrop click while a run is in progress', async () => {
+    const w = buildOverlay({ running: true, result: null })
+    await w.find('.mk-modal-sheet').trigger('click')
+    expect(w.emitted('close')).toBeFalsy()
+    w.unmount()
+  })
+
+  it('ignores a click inside the panel', async () => {
+    const w = buildOverlay()
+    await w.find('.mk-modal-sheet-panel').trigger('click')
+    expect(w.emitted('close')).toBeFalsy()
+    w.unmount()
+  })
+
+  it('shows the progress bar only while running', async () => {
+    const w = buildOverlay({ running: true, result: null })
+    expect(w.find('[role="progressbar"]').exists()).toBe(true)
+    await w.setProps({ running: false, result: RESULT })
+    expect(w.find('[role="progressbar"]').exists()).toBe(false)
     w.unmount()
   })
 })

@@ -22,6 +22,7 @@ This section intentionally has no date so it is not shown to users.
 - Blacklist — unblocking keeps rejections in the totals.
 - Backups — database included by default in a manual backup.
 - Requests — compact phone layout with drop-down filters.
+- Statistics — library repair: window opens as a bottom panel on phones (reduced motion respected).
 
 ### Fixed
 - Sidebar — hover effects fixed on touch screens (reduced motion respected).
