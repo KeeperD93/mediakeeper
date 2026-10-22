@@ -2,6 +2,7 @@
  * Each tool card ends with its action, so the button sits at the card's
  * bottom-left; a result renders just above that button, in a region screen
  * readers announce, and the file input stays reachable with the keyboard.
+ * The exclusion list keeps its own card, below the tools.
  */
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
@@ -25,6 +26,7 @@ vi.mock('@/components/stats/StatsRepairOverlay.vue', () => ({
   default: { name: 'StatsRepairOverlay', template: '<div />' },
 }))
 
+import StatsExclusions from '@/components/stats/StatsExclusions.vue'
 import StatsToolsTab from '@/components/stats/StatsToolsTab.vue'
 
 let wrapper
@@ -65,5 +67,12 @@ describe('StatsToolsTab — tool card layout', () => {
 
     expect(input.classes()).toContain('sr-only')
     expect(input.attributes('tabindex')).toBeUndefined()
+  })
+
+  it('keeps the exclusion list in its own card, below the tools', () => {
+    wrapper = mount(StatsToolsTab)
+
+    expect(wrapper.find('.tools-grid').findComponent(StatsExclusions).exists()).toBe(false)
+    expect(wrapper.find('.tool-card-excl').findComponent(StatsExclusions).exists()).toBe(true)
   })
 })

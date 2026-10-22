@@ -3,8 +3,6 @@ import { useI18n } from 'vue-i18n'
 import { resolveApiError, useApi } from '@/composables/useApi'
 import { useConfirm } from '@/composables/useConfirm'
 import { useStats } from '@/composables/useStats'
-import { useToast } from '@/composables/useToast'
-import { STATS_EXCLUSION_MODE } from '@/constants/stats'
 import { TOAST_TYPE } from '@/constants/toast'
 
 // Codes the library repair answers with (200) when it cannot start.
@@ -14,13 +12,12 @@ const REPAIR_ERROR_KEYS = {
 }
 
 /**
- * Statistics → Tools tab: history import and purge, library-name repair and
- * the exclusion list. The tab only renders the state returned here.
+ * Statistics → Tools tab: history import and purge, and the library-name
+ * repair. The tab only renders the state returned here.
  */
 export function useStatsTools() {
   const { t } = useI18n()
-  const { apiFetch, apiGet, apiPost, apiDelete } = useApi()
-  const { showToast } = useToast()
+  const { apiFetch, apiPost } = useApi()
   const mkConfirm = useConfirm()
   const { loadTotals } = useStats()
 
@@ -30,10 +27,6 @@ export function useStatsTools() {
   const repairRunning = ref(false)
   const repairResult = ref(null)
   const repairError = ref('')
-  const exclusions = ref([])
-  const exclusionsFailed = ref(false)
-  const exclMode = ref(STATS_EXCLUSION_MODE.EXACT)
-  const exclValue = ref('')
 
   // The server's code names the failure; without one (lost connection, bare
   // status) the action's own message does. A rate limit resolves to '' (own toast).
@@ -102,44 +95,6 @@ export function useStatsTools() {
     }
   }
 
-  // Add and remove answer with the whole list, so no second fetch.
-  function setExclusions(list) {
-    if (!Array.isArray(list)) return false
-    exclusions.value = list
-    exclusionsFailed.value = false
-    return true
-  }
-
-  async function loadExclusions() {
-    try {
-      setExclusions(await apiGet('/api/stats/exclusions'))
-    } catch (e) {
-      exclusionsFailed.value = true
-      showToast(failure('loadExclusions', e, 'common.apiError.loadFailed'), TOAST_TYPE.ERR)
-    }
-  }
-
-  async function addExclusion() {
-    const value = exclValue.value.trim()
-    if (!value) return
-    try {
-      if (!setExclusions(await apiPost('/api/stats/exclusions', { mode: exclMode.value, value })))
-        return
-      exclValue.value = ''
-      loadTotals()
-    } catch (e) {
-      showToast(failure('addExclusion', e, 'common.apiError.saveFailed'), TOAST_TYPE.ERR)
-    }
-  }
-
-  async function removeExclusion(index) {
-    try {
-      if (setExclusions(await apiDelete(`/api/stats/exclusions/${index}`))) loadTotals()
-    } catch (e) {
-      showToast(failure('removeExclusion', e, 'common.apiError.deleteFailed'), TOAST_TYPE.ERR)
-    }
-  }
-
   return {
     importStatus,
     purgeStatus,
@@ -147,15 +102,8 @@ export function useStatsTools() {
     repairRunning,
     repairResult,
     repairError,
-    exclusions,
-    exclusionsFailed,
-    exclMode,
-    exclValue,
     importJellystats,
     purgeJellystats,
     repairLibraryNames,
-    loadExclusions,
-    addExclusion,
-    removeExclusion,
   }
 }

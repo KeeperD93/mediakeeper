@@ -1,18 +1,14 @@
 /**
  * Statistics tools: each action reports its own result, a failure gives the
  * server's reason or else says which action failed (never the browser's own
- * text), a rate limit leaves only its toast, and the exclusion list is taken
- * from the add / remove answers.
+ * text), and a rate limit leaves only its toast.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { TOAST_TYPE } from '@/constants/toast'
 
 const m = vi.hoisted(() => ({
   apiFetch: vi.fn(),
-  apiGet: vi.fn(),
   apiPost: vi.fn(),
-  apiDelete: vi.fn(),
-  showToast: vi.fn(),
   loadTotals: vi.fn(),
   confirm: vi.fn(),
 }))
@@ -36,12 +32,9 @@ vi.mock('@/composables/useApi', async importOriginal => ({
   ...(await importOriginal()),
   useApi: () => ({
     apiFetch: m.apiFetch,
-    apiGet: m.apiGet,
     apiPost: m.apiPost,
-    apiDelete: m.apiDelete,
   }),
 }))
-vi.mock('@/composables/useToast', () => ({ useToast: () => ({ showToast: m.showToast }) }))
 vi.mock('@/composables/useConfirm', () => ({ useConfirm: () => m.confirm }))
 vi.mock('@/composables/useStats', () => ({ useStats: () => ({ loadTotals: m.loadTotals }) }))
 
@@ -183,87 +176,5 @@ describe('useStatsTools — library repair', () => {
       '[useStatsTools.repairLibraryNames]',
       expect.any(Error),
     )
-  })
-})
-
-describe('useStatsTools — exclusions', () => {
-  const LIST = [{ mode: 'contains', value: 'Trailer' }]
-
-  it('loads the list', async () => {
-    m.apiGet.mockResolvedValue(LIST)
-    const s = useStatsTools()
-    await s.loadExclusions()
-    expect(s.exclusions.value).toEqual(LIST)
-    expect(s.exclusionsFailed.value).toBe(false)
-  })
-
-  it('flags a list that failed to load, says so, and clears the flag on a retry', async () => {
-    const s = useStatsTools()
-    m.apiGet.mockRejectedValueOnce(lostConnection())
-    await s.loadExclusions()
-    expect(s.exclusionsFailed.value).toBe(true)
-    expect(m.showToast).toHaveBeenCalledWith('common.apiError.loadFailed', TOAST_TYPE.ERR)
-
-    m.apiGet.mockResolvedValueOnce(LIST)
-    await s.loadExclusions()
-    expect(s.exclusionsFailed.value).toBe(false)
-    expect(s.exclusions.value).toEqual(LIST)
-  })
-
-  it('adds a trimmed title and takes the list from the answer', async () => {
-    m.apiPost.mockResolvedValue(LIST)
-    const s = useStatsTools()
-    s.exclMode.value = 'contains'
-    s.exclValue.value = '  Trailer '
-    await s.addExclusion()
-    expect(m.apiPost).toHaveBeenCalledWith('/api/stats/exclusions', {
-      mode: 'contains',
-      value: 'Trailer',
-    })
-    expect(m.apiGet).not.toHaveBeenCalled()
-    expect(s.exclusions.value).toEqual(LIST)
-    expect(s.exclValue.value).toBe('')
-    expect(m.loadTotals).toHaveBeenCalledOnce()
-  })
-
-  it('ignores a blank title', async () => {
-    const s = useStatsTools()
-    s.exclValue.value = '   '
-    await s.addExclusion()
-    expect(m.apiPost).not.toHaveBeenCalled()
-  })
-
-  it('changes nothing when the session expired (no answer)', async () => {
-    m.apiPost.mockResolvedValue(null)
-    m.apiDelete.mockResolvedValue(null)
-    const s = useStatsTools()
-    s.exclValue.value = 'Trailer'
-    await s.addExclusion()
-    await s.removeExclusion(0)
-    expect(s.exclusions.value).toEqual([])
-    expect(s.exclValue.value).toBe('Trailer')
-    expect(m.loadTotals).not.toHaveBeenCalled()
-  })
-
-  it('keeps the typed title and says the add failed', async () => {
-    m.apiPost.mockRejectedValue(lostConnection())
-    const s = useStatsTools()
-    s.exclValue.value = 'Trailer'
-    await s.addExclusion()
-    expect(s.exclValue.value).toBe('Trailer')
-    expect(m.showToast).toHaveBeenCalledWith('common.apiError.saveFailed', TOAST_TYPE.ERR)
-  })
-
-  it('removes by position and says when it failed', async () => {
-    const s = useStatsTools()
-    m.apiDelete.mockResolvedValueOnce([])
-    await s.removeExclusion(0)
-    expect(m.apiDelete).toHaveBeenCalledWith('/api/stats/exclusions/0')
-    expect(s.exclusions.value).toEqual([])
-    expect(m.loadTotals).toHaveBeenCalledOnce()
-
-    m.apiDelete.mockRejectedValueOnce(lostConnection())
-    await s.removeExclusion(0)
-    expect(m.showToast).toHaveBeenCalledWith('common.apiError.deleteFailed', TOAST_TYPE.ERR)
   })
 })

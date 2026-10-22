@@ -1,8 +1,7 @@
 /**
  * Statistics → Tools tab wiring: a failed history import shows its reason in
- * the card (a rate limit leaves no empty strip, its own toast says it), the
- * picked file is cleared only once the import ends, and an exclusion list that
- * failed to load offers a retry instead of "no exclusions".
+ * the card (a rate limit leaves no empty strip, its own toast says it), and
+ * the picked file is cleared only once the import ends.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
@@ -88,24 +87,5 @@ describe('StatsToolsTab — file input', () => {
     finish(null)
     await flushPromises()
     expect(setValue).toHaveBeenCalledWith('')
-  })
-})
-
-describe('StatsToolsTab — exclusions', () => {
-  it('offers a retry when the list fails to load, then shows the list', async () => {
-    h.apiGet
-      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
-      .mockResolvedValueOnce([{ mode: 'exact', value: 'Sample title' }])
-    wrapper = mount(StatsToolsTab)
-    await flushPromises()
-
-    const empty = wrapper.find('.excl-empty')
-    expect(empty.text()).toContain('stats.exclusionsLoadError')
-    expect(empty.text()).not.toContain('stats.noExclusions')
-
-    await empty.find('button').trigger('click')
-    await flushPromises()
-    expect(wrapper.find('.excl-empty').exists()).toBe(false)
-    expect(wrapper.find('.excl-val').text()).toBe('Sample title')
   })
 })
