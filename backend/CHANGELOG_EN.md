@@ -26,6 +26,7 @@ This section intentionally has no date so it is not shown to users.
 ### Fixed
 - Sidebar — hover effects fixed on touch screens (reduced motion respected).
 - Statistics — watch time measured continuously, pauses and idle players excluded.
+- Statistics — sort arrows in white (Users, Activity).
 - Requests — automatically marked Available, even without Discord notifications.
 - Requests — missing poster restored (new and existing requests).
 - Featured — images kept when the image cache is on.

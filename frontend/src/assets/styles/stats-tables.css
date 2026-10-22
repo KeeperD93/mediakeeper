@@ -6,8 +6,9 @@
 .cinema-stats .stats-sort-arrow--idle {
   opacity: 0.3;
 }
+/* Neutral, not the accent: the sorted column reads by its ▲/▼ shape and brightness. */
 .cinema-stats .stats-sort-arrow--active {
-  color: var(--accent-500);
+  color: var(--text-primary);
 }
 
 .cinema-stats .tbl-wrap {
@@ -255,7 +256,7 @@
   cursor: pointer;
 }
 .cinema-stats .act-row-selected {
-  background: rgb(99, 102, 241, 0.08) !important;
+  background: rgb(var(--accent-rgb), 0.08) !important;
 }
 .cinema-stats .act-flat-note {
   margin: 0;

@@ -1,5 +1,19 @@
 import { describe, it, expect } from 'vitest'
-import { watchedPct } from '@/components/stats/statsTableUtils'
+import { sortArrow, sortArrowClass, watchedPct } from '@/components/stats/statsTableUtils'
+
+// The sorted column is told apart by its glyph, not only by the arrow's colour.
+describe('sort arrows', () => {
+  it('shows ↕ on an unsorted column and ▼ / ▲ on the sorted one', () => {
+    expect(sortArrow('name', 'date', 'desc')).toBe('↕')
+    expect(sortArrow('date', 'date', 'desc')).toBe('▼')
+    expect(sortArrow('date', 'date', 'asc')).toBe('▲')
+  })
+
+  it('marks only the sorted column as active', () => {
+    expect(sortArrowClass('date', 'date')).toBe('stats-sort-arrow stats-sort-arrow--active')
+    expect(sortArrowClass('name', 'date')).toBe('stats-sort-arrow stats-sort-arrow--idle')
+  })
+})
 
 describe('watchedPct', () => {
   it('computes the real watched percentage (no threshold snap)', () => {
