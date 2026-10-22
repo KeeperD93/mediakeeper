@@ -37,6 +37,7 @@ This section intentionally has no date so it is not shown to users.
 - Issues — touch-sized filters and sort on phones, menu arrows clear of the edge.
 - Issues — no more zoom on fields and menus on phones.
 - Issues — report form and filters usable with the keyboard and screen readers.
+- Dialogs — Shift+Tab stays inside the open dialog.
 - Issues — failed report: clear message, typed text kept.
 - Lists — your failed actions are reported (no more generic "Network error").
 - Lists — create buttons without sticky hover on touch screens.

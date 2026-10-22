@@ -7,7 +7,7 @@ interface HarnessRefs {
   active: Ref<boolean>
 }
 
-function buildHarness({ useInitial = false } = {}) {
+function buildHarness({ useInitial = false, focusable = true } = {}) {
   const onEscape = vi.fn()
   const refs = {} as HarnessRefs
   const Harness = defineComponent({
@@ -27,7 +27,7 @@ function buildHarness({ useInitial = false } = {}) {
     render() {
       return h(
         'div',
-        { ref: 'containerRef', tabindex: -1, 'data-testid': 'container' },
+        { ref: 'containerRef', tabindex: focusable ? -1 : undefined, 'data-testid': 'container' },
         [
           h(
             'button',
@@ -119,6 +119,34 @@ describe('useFocusTrap', () => {
       new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true }),
     )
     expect(document.activeElement).toBe(last)
+    wrapper.unmount()
+  })
+
+  it('wraps Shift+Tab from the container itself to the last focusable', async () => {
+    const { wrapper, refs } = buildHarness()
+    refs.active.value = true
+    await flushPromises()
+    const last = wrapper.find('[data-testid="last"]').element as HTMLButtonElement
+    expect(document.activeElement).toBe(wrapper.find('[data-testid="container"]').element)
+    const shiftTab = new KeyboardEvent('keydown', {
+      key: 'Tab',
+      shiftKey: true,
+      bubbles: true,
+      cancelable: true,
+    })
+    document.dispatchEvent(shiftTab)
+    expect(shiftTab.defaultPrevented).toBe(true)
+    expect(document.activeElement).toBe(last)
+    wrapper.unmount()
+  })
+
+  it('makes a container without tabindex focusable, out of the Tab order', async () => {
+    const { wrapper, refs } = buildHarness({ useInitial: true, focusable: false })
+    const container = wrapper.find('[data-testid="container"]').element
+    expect(container.hasAttribute('tabindex')).toBe(false)
+    refs.active.value = true
+    await flushPromises()
+    expect(container.getAttribute('tabindex')).toBe('-1')
     wrapper.unmount()
   })
 

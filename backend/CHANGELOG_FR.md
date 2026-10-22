@@ -35,6 +35,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Statistiques — Outils, exclusions : champs harmonisés, focus clavier visible, plus de zoom sur téléphone.
 - Statistiques — Outils, exclusions : menu et champ nommés pour les lecteurs d'écran.
 - Statistiques — réparation des médiathèques : liste des résultats défilable au clavier.
+- Fenêtres — Maj+Tab reste dans la fenêtre ouverte.
 - Statistiques — « plus vus » classés au temps de visionnage, « populaires » au nombre de spectateurs.
 - Statistiques — « Top visionnage » suit la période choisie.
 - Statistiques — boutons de période traduits en anglais (7d au lieu de 7j).

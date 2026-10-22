@@ -61,7 +61,9 @@ export function useFocusTrap(options: UseFocusTrapOptions): void {
     const first = focusables[0]
     const last = focusables[focusables.length - 1]
     const current = document.activeElement as HTMLElement | null
-    if (event.shiftKey && current === first) {
+    // The container itself (its initial focus without initialFocusRef, or a
+    // click on the panel's text) counts as the start of the cycle.
+    if (event.shiftKey && (current === first || current === container)) {
       event.preventDefault()
       last.focus()
     } else if (!event.shiftKey && current === last) {
@@ -87,7 +89,11 @@ export function useFocusTrap(options: UseFocusTrapOptions): void {
     attach()
     void nextTick(() => {
       if (!options.active.value) return
-      const target = options.initialFocusRef?.value ?? options.containerRef.value
+      const container = options.containerRef.value
+      // Focusable but out of the Tab order: a click on the panel's text then
+      // lands on the panel, not on <body>, so Shift+Tab still wraps.
+      if (container && !container.hasAttribute('tabindex')) container.tabIndex = -1
+      const target = options.initialFocusRef?.value ?? container
       target?.focus?.()
     })
   }

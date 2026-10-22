@@ -35,6 +35,7 @@ This section intentionally has no date so it is not shown to users.
 - Statistics — Tools, exclusions: consistent fields, visible keyboard focus, no more zoom on phones.
 - Statistics — Tools, exclusions: menu and field named for screen readers.
 - Statistics — library repair: result list scrolls with the keyboard.
+- Dialogs — Shift+Tab stays inside the open dialog.
 - Statistics — most watched ranked by watch time, popular by number of viewers.
 - Statistics — "Top watchers" follows the selected period.
 - Statistics — period buttons translated (7d instead of 7j).
