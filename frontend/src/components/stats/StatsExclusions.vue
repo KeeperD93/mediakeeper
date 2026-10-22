@@ -127,9 +127,9 @@ onMounted(loadExclusions)
   border-radius: var(--radius-sm);
 }
 .excl-badge {
-  /* 0.58rem / 4px sit below the smallest text + radius tokens
-     (--text-3xs 0.62rem, --radius-sm floor); deliberately fixed for this
-     micro mode-badge, kept raw per the rule of 3 — not an oversight. */
+  /* Deliberately fixed for this micro mode-badge, not an oversight: 0.58rem
+     is below the smallest text token (--text-3xs 0.62rem), and the radius
+     stays 4px while --radius-input / --radius-sm follow the radius slider. */
   font-size: 0.58rem;
   padding: var(--space-half) var(--space-2);
   border-radius: 4px;

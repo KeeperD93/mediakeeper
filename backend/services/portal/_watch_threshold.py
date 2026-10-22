@@ -10,8 +10,9 @@ and-replace exercise and let the surfaces drift apart.
 Two flavours of rows live in ``playback_sessions``:
 
   - **Live rows** (``stats_collector``): ``duration_ticks`` is the
-    media's RunTimeTicks and ``position_ticks`` is the highest position
-    reached. ``ratio = position / duration`` is the canonical signal.
+    media's RunTimeTicks and ``position_ticks`` is the last position the
+    player confirmed (a seek back lowers it). ``ratio = position /
+    duration`` is the canonical signal.
   - **Legacy rows** (``stats_import`` from Emby Playback Reporting):
     ``duration_ticks`` is ``0`` / ``NULL`` because the plugin only
     records play time, not media runtime. ``position_ticks`` is then a

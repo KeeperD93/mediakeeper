@@ -155,7 +155,7 @@ function ancestryText(d) {
   display: flex;
   flex-direction: column;
   overflow: hidden; /* header stays put, only .rlo-body scrolls */
-  border: 1px solid var(--border-strong);
+  border: var(--border-width) solid var(--border-strong);
 }
 /* Pinned to the top edge: no layout shift when the run ends. */
 .rlo-progress {

@@ -4,8 +4,8 @@ progress stats.
 The DB carries two flavours of rows:
 
   - **Live rows** (``stats_collector``): ``duration_ticks`` is the
-    media's RunTimeTicks, ``position_ticks`` is the highest position
-    reached during the session.
+    media's RunTimeTicks, ``position_ticks`` is the last position the
+    player confirmed (a seek back lowers it).
   - **Legacy rows** (``stats_import`` from Emby's Playback Reporting
     plugin): ``duration_ticks = 0``, ``position_ticks`` is the play
     DURATION (how many seconds the user watched, converted to ticks).
