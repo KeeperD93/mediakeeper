@@ -31,6 +31,9 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Statistiques — Outils : erreurs claires, « Réessayer » pour les exclusions, accords au pluriel.
 - Statistiques — suppression d'une médiathèque : un échec est désormais signalé.
 - Statistiques — Outils : boutons en bas des cartes, taille tactile, import au clavier.
+- Statistiques — « plus vus » classés au temps de visionnage, « populaires » au nombre de spectateurs.
+- Statistiques — « Top visionnage » suit la période choisie.
+- Statistiques — boutons de période traduits en anglais (7d au lieu de 7j).
 - Demandes — passage automatique en Disponible, même sans notifications Discord.
 - Demandes — jaquette manquante rétablie (nouvelles demandes et demandes existantes).
 - Mise en avant — images conservées quand le cache d'images est activé.

@@ -31,6 +31,9 @@ This section intentionally has no date so it is not shown to users.
 - Statistics — Tools: clear errors, "Try again" for exclusions, proper plurals.
 - Statistics — library removal: a failure is now reported.
 - Statistics — Tools: buttons at the bottom of cards, touch-sized, keyboard import.
+- Statistics — most watched ranked by watch time, popular by number of viewers.
+- Statistics — "Top watchers" follows the selected period.
+- Statistics — period buttons translated (7d instead of 7j).
 - Requests — automatically marked Available, even without Discord notifications.
 - Requests — missing poster restored (new and existing requests).
 - Featured — images kept when the image cache is on.
