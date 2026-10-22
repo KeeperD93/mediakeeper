@@ -46,6 +46,9 @@ This section intentionally has no date so it is not shown to users.
 - Requests — failed request: clear message instead of a technical code.
 - Errors — readable, translated messages (refused input, startup, server error, rate limit).
 - Confirmations — queued, no accidental acceptance (double click, Enter key).
+- Feedback — failed send: clear message instead of the browser's text.
+- Feedback — window in the portal colours (menu arrow clear of the edge, no zoom on phones).
+- Feedback — more accessible window (visible active field, bottom clear on phones, reduced motion).
 
 ## [1.0.0-rc.8] - 2026-10-11
 

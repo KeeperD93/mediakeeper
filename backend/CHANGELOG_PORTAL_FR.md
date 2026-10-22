@@ -48,6 +48,9 @@ utilisateurs.
 - Demandes — envoi en échec : message clair au lieu d'un code technique.
 - Erreurs — messages lisibles et traduits (saisie refusée, démarrage, erreur serveur, limite de requêtes).
 - Confirmations — en file d'attente, sans validation involontaire (double clic, touche Entrée).
+- Remontées — envoi en échec : message clair au lieu du texte du navigateur.
+- Remontées — fenêtre aux couleurs du portail (flèche du menu espacée, sans zoom sur téléphone).
+- Remontées — fenêtre plus accessible (champ actif visible, bas dégagé sur téléphone, animations réduites).
 
 ## [1.0.0-rc.8] - 2026-10-11
 

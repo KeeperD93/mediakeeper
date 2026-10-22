@@ -28,6 +28,13 @@ __all__ = [
     "RETENTION_DEFAULT_DAYS",
     "RETENTION_MIN_DAYS",
     "RETENTION_MAX_DAYS",
+    "VALIDATE_SENT",
+    "ERR_NOT_FOUND",
+    "ERR_NOT_CONFIGURED",
+    "ERR_SEND_FAILED",
+    "ERR_INVALID_PLATFORM",
+    "ERR_INVALID_TYPE",
+    "ERR_INVALID_WEBHOOK",
 ]
 
 #: Moderation-queue states for a stored delegate report.
@@ -61,3 +68,13 @@ MAX_TAG_LEN: Final[int] = 30
 RETENTION_DEFAULT_DAYS: Final[int] = 30
 RETENTION_MIN_DAYS: Final[int] = 1
 RETENTION_MAX_DAYS: Final[int] = 365
+
+#: Outcome of relaying a queued report, and the shared error codes the feedback
+#: routes return (the frontend translates them under ``common.apiError``).
+VALIDATE_SENT: Final[str] = "sent"
+ERR_NOT_FOUND: Final[str] = "not_found"
+ERR_NOT_CONFIGURED: Final[str] = "not_configured"
+ERR_SEND_FAILED: Final[str] = "send_failed"
+ERR_INVALID_PLATFORM: Final[str] = "invalid_platform"
+ERR_INVALID_TYPE: Final[str] = "invalid_type"
+ERR_INVALID_WEBHOOK: Final[str] = "invalid_webhook"

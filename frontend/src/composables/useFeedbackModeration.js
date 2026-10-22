@@ -3,22 +3,14 @@ import { useI18n } from 'vue-i18n'
 import { useApi, resolveApiError } from '@/composables/useApi'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
-import { FEEDBACK_PLATFORMS } from '@/constants/feedback'
+import { FEEDBACK_PLATFORMS, FEEDBACK_PLATFORM_BOTH, FEEDBACK_STATUS } from '@/constants/feedback'
 
-const DESKTOP = 'desktop'
-const MOBILE = 'mobile'
-const BOTH = 'both'
-
-// Stored platform slug <-> the two-checkbox set used in the edit form.
+// Stored platform slug <-> the two-chip set used in the edit form.
 function platformToSet(p) {
-  return p === DESKTOP || p === MOBILE ? [p] : [...FEEDBACK_PLATFORMS]
+  return FEEDBACK_PLATFORMS.includes(p) ? [p] : [...FEEDBACK_PLATFORMS]
 }
 function setToPlatform(set) {
-  const d = set.includes(DESKTOP)
-  const m = set.includes(MOBILE)
-  if (d && !m) return DESKTOP
-  if (m && !d) return MOBILE
-  return BOTH
+  return set.length === 1 ? set[0] : FEEDBACK_PLATFORM_BOTH
 }
 
 /**
@@ -31,12 +23,14 @@ export function useFeedbackModeration() {
   const { apiGet, apiPatch, apiPost } = useApi()
   const { showToast } = useToast()
 
-  const tab = ref('pending')
+  const tab = ref(FEEDBACK_STATUS.PENDING)
   const reports = ref([])
   const loading = ref(false)
+  const loadFailed = ref(false)
   const editingId = ref(null)
   const form = ref(null)
   const busyIds = reactive(new Set())
+  let loadSeq = 0
 
   const canSave = computed(
     () => !!(form.value && form.value.title.trim() && form.value.description.trim()),
@@ -44,14 +38,22 @@ export function useFeedbackModeration() {
   const isBusy = id => busyIds.has(id)
 
   async function load() {
+    // Only the latest load writes: a slower one from the previous tab must not
+    // fill or clear the tab now on screen.
+    const seq = ++loadSeq
     loading.value = true
+    loadFailed.value = false
     try {
       const data = await apiGet(`/api/feedback/reports?status=${tab.value}`)
-      reports.value = data?.items ?? []
+      if (seq === loadSeq) reports.value = data?.items ?? []
     } catch (e) {
-      showToast(resolveApiError(e.message), TOAST_TYPE.ERR)
+      console.error('[useFeedbackModeration.load]', e)
+      if (seq !== loadSeq) return
+      reports.value = [] // no stale list or pending count beside the error
+      loadFailed.value = true
+      showToast(resolveApiError(e.message, 'common.apiError.loadFailed'), TOAST_TYPE.ERR)
     } finally {
-      loading.value = false
+      if (seq === loadSeq) loading.value = false
     }
   }
 
@@ -88,14 +90,17 @@ export function useFeedbackModeration() {
   const togglePlatform = p => toggleIn(form.value.platforms, p)
   const toggleTag = tag => toggleIn(form.value.tags, tag)
 
-  async function _run(id, action, okKey) {
+  // One call on report `id`; `name` labels its log, `failKey` names a failure
+  // that has no message of its own (a lost connection, for one).
+  async function _run(id, { name, call, okKey, failKey }) {
     busyIds.add(id)
     try {
-      await action()
+      await call()
       showToast(t(okKey), TOAST_TYPE.OK)
       return true
     } catch (e) {
-      showToast(resolveApiError(e.message), TOAST_TYPE.ERR)
+      console.error(`[useFeedbackModeration.${name}]`, e)
+      showToast(resolveApiError(e.message, failKey), TOAST_TYPE.ERR)
       return false
     } finally {
       busyIds.delete(id)
@@ -105,9 +110,9 @@ export function useFeedbackModeration() {
   async function save() {
     if (!canSave.value) return
     const id = editingId.value
-    const ok = await _run(
-      id,
-      () =>
+    const ok = await _run(id, {
+      name: 'save',
+      call: () =>
         apiPatch(`/api/feedback/reports/${id}`, {
           type: form.value.type,
           title: form.value.title.trim(),
@@ -117,8 +122,9 @@ export function useFeedbackModeration() {
           platform: setToPlatform(form.value.platforms),
           tags: form.value.tags,
         }),
-      'feedback.moderation.saved',
-    )
+      okKey: 'feedback.moderation.saved',
+      failKey: 'common.apiError.saveFailed',
+    })
     if (ok) {
       cancelEdit()
       await load()
@@ -126,20 +132,22 @@ export function useFeedbackModeration() {
   }
 
   async function validate(r) {
-    const ok = await _run(
-      r.id,
-      () => apiPost(`/api/feedback/reports/${r.id}/validate`),
-      'feedback.moderation.validated',
-    )
+    const ok = await _run(r.id, {
+      name: 'validate',
+      call: () => apiPost(`/api/feedback/reports/${r.id}/validate`),
+      okKey: 'feedback.moderation.validated',
+      failKey: 'common.apiError.submitFailed',
+    })
     if (ok) reports.value = reports.value.filter(x => x.id !== r.id)
   }
 
   async function reject(r) {
-    const ok = await _run(
-      r.id,
-      () => apiPost(`/api/feedback/reports/${r.id}/reject`),
-      'feedback.moderation.rejected',
-    )
+    const ok = await _run(r.id, {
+      name: 'reject',
+      call: () => apiPost(`/api/feedback/reports/${r.id}/reject`),
+      okKey: 'feedback.moderation.rejected',
+      failKey: 'common.apiError.saveFailed',
+    })
     if (ok) reports.value = reports.value.filter(x => x.id !== r.id)
   }
 
@@ -147,6 +155,7 @@ export function useFeedbackModeration() {
     tab,
     reports,
     loading,
+    loadFailed,
     editingId,
     form,
     canSave,

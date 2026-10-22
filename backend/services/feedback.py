@@ -1,16 +1,20 @@
 """Bug/suggestion feedback: config, Discord relay, and the delegate moderation queue.
 
-An admin sets a Discord webhook ("link code") + a pseudo (cycle 1); their own
-reports relay straight to that webhook, pre-formatted as the tracker's
+An admin sets a Discord webhook ("link code") + a pseudo; their own reports
+relay straight to that webhook, pre-formatted as the tracker's
 ``=== BUG === … === END ===`` import block. Delegated portal users file reports
-that are stored ``pending`` (cycle 3b) for the admin to edit / validate (relay)
-/ reject on the tracker page; rejected reports are purged after a tunable
-retention window (cycle 3c).
+that are stored ``pending`` for the admin to edit / validate (relay) / reject on
+the moderation page; rejected reports are purged after a tunable retention
+window.
 """
 from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants.feedback import (
+    ERR_INVALID_WEBHOOK,
+    ERR_NOT_CONFIGURED,
+    ERR_NOT_FOUND,
+    ERR_SEND_FAILED,
     FEEDBACK_PLATFORMS,
     MAX_LOCATION,
     MAX_PSEUDO,
@@ -27,6 +31,7 @@ from constants.feedback import (
     STATUS_REJECTED,
     TYPE_BUG,
     TYPE_SUGGESTION,
+    VALIDATE_SENT,
 )
 from core.url_safety import is_discord_webhook_url
 from services.discord import send_discord_webhook
@@ -83,7 +88,7 @@ async def save_feedback_config(
     """Persist the feedback config. ``webhook_url`` is validated as a Discord
     webhook here too (defence in depth — the HTTP layer checks it first)."""
     if webhook_url and not is_discord_webhook_url(webhook_url.strip()):
-        raise ValueError("invalid_webhook")
+        raise ValueError(ERR_INVALID_WEBHOOK)
     updates: dict[str, str] = {}
     if enabled is not None:
         updates[KEY_ENABLED] = "true" if enabled else "false"
@@ -314,13 +319,13 @@ async def validate_feedback_report(db: AsyncSession, report_id: int) -> str:
     )
     if (claim.rowcount or 0) != 1:
         await db.rollback()
-        return "not_found"
+        return ERR_NOT_FOUND
     await db.commit()
 
     cfg = await get_feedback_config(db)
     if not cfg["enabled"] or not cfg["webhook_url"]:
         await _release_claim(db, report_id)
-        return "not_configured"
+        return ERR_NOT_CONFIGURED
 
     row = await db.get(FeedbackReport, report_id)
     fields = {
@@ -339,10 +344,10 @@ async def validate_feedback_report(db: AsyncSession, report_id: int) -> str:
     }
     if not await send_feedback_report(db, fields):
         await _release_claim(db, report_id)
-        return "send_failed"
+        return ERR_SEND_FAILED
     await db.execute(delete(FeedbackReport).where(FeedbackReport.id == report_id))
     await db.commit()
-    return "sent"
+    return VALIDATE_SENT
 
 
 async def reject_feedback_report(db: AsyncSession, report_id: int) -> bool:
