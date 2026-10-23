@@ -16,6 +16,8 @@ utilisateurs.
 
 ## [Unreleased]
 
+## [1.0.0-rc.9] - 2026-10-23
+
 ### Added
 - Accueil — bouton Lecture sur les bandeaux pour les titres déjà dans Emby.
 - Notifications — refus d'une demande signalé dans la cloche, avec le motif.
@@ -25,36 +27,29 @@ utilisateurs.
 - Listes — page plus compacte sur téléphone.
 
 ### Fixed
-- Accueil — boutons des bandeaux plus faciles à toucher (téléphone, tablette), sans survol collant.
+- Accueil — bandeaux plus faciles à toucher, utilisables au clavier, sans survol collant.
 - Accueil — le bandeau n'affiche plus « Demander » sur un titre déjà dans Emby.
-- Accueil — moins d'animations : bandeaux immobiles, ajouts récents sans glissement.
-- Accueil — repères du bandeau utilisables au clavier et plus faciles à toucher.
+- Accueil — animations réduites respectées : bandeaux immobiles, ajouts récents sans glissement.
 - Accueil — les titres mis en avant gardent leur image (cache d'images activé).
 - Profil — temps de visionnage et répartition films/séries réalistes (pauses et reprises ne les faussent plus).
 - Demandes — passage automatique en Disponible dès l'arrivée du contenu demandé.
-- Demandes — jaquette manquante rétablie (nouvelles demandes et demandes existantes).
 - Demandes — redemande possible : saisons manquantes, titres refusés (fiche, bandeau) ou absents d'Emby.
-- Demandes — demandes disponibles bien retirées de l'onglet après le délai choisi par l'admin.
-- Trophées — Ambassadeur compte les demandes disponibles ; Demandeur et Ambassadeur gardent les archivées.
-- Problèmes — filtres et tri à taille tactile sur téléphone, flèche des menus espacée.
-- Problèmes — plus de zoom sur les champs et menus sur téléphone.
-- Problèmes — formulaire de signalement et filtres accessibles au clavier et aux lecteurs d'écran.
-- Fenêtres — Maj+Tab reste dans la fenêtre ouverte.
-- Problèmes — signalement en échec : message clair, saisie conservée.
-- Listes — vos actions en échec sont signalées (plus d'« Erreur réseau » générique).
-- Listes — boutons de création sans survol collant sur écran tactile.
-- Listes — un double clic sur Enregistrer ne crée plus deux listes.
-- Problèmes et Listes — couleurs du portail conservées après connexion (pastilles actives avec halo).
-- Jaquettes — boutons « Demander » et « Redemander » correctement libellés.
+- Demandes — jaquette manquante rétablie (nouvelles demandes et demandes existantes).
+- Demandes — disponibles bien retirées de l'onglet après le délai choisi par l'admin.
 - Demandes — envoi en échec : message clair au lieu d'un code technique.
-- Erreurs — messages lisibles et traduits (saisie refusée, démarrage, erreur serveur, limite de requêtes).
-- Confirmations — en file d'attente, sans validation involontaire (double clic, touche Entrée).
-- Remontées — envoi en échec : message clair au lieu du texte du navigateur.
-- Remontées — fenêtre aux couleurs du portail (flèche du menu espacée, sans zoom sur téléphone).
-- Remontées — fenêtre plus accessible (champ actif visible, bas dégagé sur téléphone, animations réduites).
+- Jaquettes — boutons « Demander » et « Redemander » correctement libellés.
+- Trophées — Ambassadeur compte les demandes disponibles ; Demandeur et Ambassadeur gardent les archivées.
+- Problèmes — formulaire de signalement et filtres accessibles (clavier, lecteurs d'écran, téléphone).
+- Problèmes — signalement en échec : message clair, saisie conservée.
+- Listes — échecs expliqués, plus de liste créée deux fois, sans survol collant.
+- Problèmes et Listes — couleurs du portail conservées après connexion (pastilles actives avec halo).
+- Remontées — fenêtre aux couleurs du portail, plus accessible, échecs expliqués, plus de zoom sur téléphone.
 - Chat — messages en temps réel sur chaque onglet et appareil, sans perte à la reconnexion.
 - Chat — un appareil figé ne bloque plus les messages des autres.
 - Chat — non-lus exacts : seuls les messages réellement affichés sont marqués lus.
+- Erreurs — messages lisibles et traduits (saisie refusée, démarrage, erreur serveur, trop de tentatives).
+- Confirmations — en file d'attente, sans validation involontaire (double clic, touche Entrée).
+- Fenêtres — Maj+Tab reste dans la fenêtre ouverte.
 
 ## [1.0.0-rc.8] - 2026-10-11
 
