@@ -1,12 +1,13 @@
 """Tests for the automatic deactivation of expired user accounts."""
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock
 
 import pytest
 
-from core.security import hash_password
+from core.security import hash_password, is_token_valid_for_revocation_pivot
 from models.portal.audit import AdminAuditLog
 from models.portal.profile import UserProfile
 from models.user import User
@@ -65,6 +66,8 @@ async def test_expire_due_users_deactivates_emby_and_mk(db_session, monkeypatch)
     assert profile.account_active is False
     assert profile.emby_is_disabled is True
     assert profile.tokens_invalidated_at is not None
+    # A backoffice session minted before the expiry stays dead after a re-activation.
+    assert user.tokens_invalidated_at == profile.tokens_invalidated_at
     assert user.is_active is False
 
     audit = (await db_session.execute(
@@ -74,6 +77,23 @@ async def test_expire_due_users_deactivates_emby_and_mk(db_session, monkeypatch)
     )).first()
     assert audit is not None
     assert audit.action == "user.access_expired"
+
+
+@pytest.mark.asyncio
+async def test_expiry_revokes_a_session_renewed_during_the_emby_calls(db_session, monkeypatch):
+    user, _ = await _make(db_session, username="carol", end_days=-1)
+    renewed = {}
+
+    async def _slow_emby(*_args, **_kwargs):
+        renewed["iat"] = datetime.now(timezone.utc).timestamp()  # a refresh lands mid-call
+        await asyncio.sleep(0.05)  # Emby answers later
+        return {"ok": True}
+
+    monkeypatch.setattr(admin_users_expiration, "set_emby_user_enabled", _slow_emby)
+    await admin_users_expiration.expire_due_users(db_session)
+
+    await db_session.refresh(user)
+    assert not is_token_valid_for_revocation_pivot(renewed["iat"], user.tokens_invalidated_at)
 
 
 @pytest.mark.asyncio

@@ -59,7 +59,6 @@ async def _deactivate_one(
     profile: UserProfile,
     user: User,
     *,
-    ref: datetime,
     reason: str,
 ) -> dict[str, Any]:
     """Disable Emby (best-effort) + MediaKeeper, audit, no commit.
@@ -77,7 +76,9 @@ async def _deactivate_one(
 
     profile.account_active = False
     user.is_active = False
-    profile.tokens_invalidated_at = ref
+    # Both pivots, stamped once the Emby calls are done: re-activation must not
+    # revive a backoffice session minted before the deactivation.
+    profile.tokens_invalidated_at = user.tokens_invalidated_at = now_utc()
     db.add(profile)
     db.add(user)
 
@@ -125,9 +126,7 @@ async def expire_due_users(db: AsyncSession) -> dict[str, Any]:
 
     for profile, user in due:
         try:
-            res = await _deactivate_one(
-                db, profile, user, ref=ref, reason="scheduler"
-            )
+            res = await _deactivate_one(db, profile, user, reason="scheduler")
             processed += 1
             if res["emby_disabled"]:
                 emby_disabled += 1
@@ -173,9 +172,7 @@ async def expire_profile_if_due(
         # needs to know the account is expired.
         return True
     try:
-        await _deactivate_one(
-            db, profile, user, ref=ref, reason="login_gate"
-        )
+        await _deactivate_one(db, profile, user, reason="login_gate")
         logger.info(
             "[EXPIRE] just-in-time deactivation user_id=%s username=%s",
             user.id, user.username,

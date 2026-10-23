@@ -183,7 +183,9 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
     to_encode = data.copy()
     now = datetime.now(timezone.utc)
     expire = now + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
-    to_encode.update({"exp": expire, "iat": now})
+    # iat keeps its fraction (RFC 7519 allows it): a token renewed in the same
+    # second as a revocation must still fall before the pivot.
+    to_encode.update({"exp": expire, "iat": now.timestamp()})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
@@ -217,7 +219,7 @@ def is_token_valid_for_revocation_pivot(payload_iat, revocation_pivot) -> bool:
     if payload_iat is None:
         return False
     try:
-        issued = datetime.fromtimestamp(int(payload_iat), tz=timezone.utc)
+        issued = datetime.fromtimestamp(float(payload_iat), tz=timezone.utc)
     except (TypeError, ValueError):
         return False
     pivot = revocation_pivot

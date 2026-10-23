@@ -7,8 +7,8 @@ rotates. This script is the supported recovery path: it generates a
 fresh random password, writes it to ``stdout`` only (never logged,
 never persisted), forces ``must_change_password=True`` so the next
 login still requires picking a real password, and stamps
-``tokens_invalidated_at`` to revoke every JWT issued under the old
-credentials.
+``tokens_invalidated_at`` (account and portal profile) to revoke every
+JWT issued under the old credentials.
 
 Usage (from the host running the container):
 
@@ -31,10 +31,11 @@ import secrets
 import sys
 from datetime import datetime, timezone
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from core.database import AsyncSessionLocal
 from core.security import hash_password, is_backoffice_admin
+from models.portal.profile import UserProfile
 from models.user import User
 
 logger = logging.getLogger("mediakeeper.scripts.reset_admin")
@@ -89,7 +90,15 @@ async def _reset(username: str, *, session_factory=None) -> int:
         new_password = secrets.token_urlsafe(32)
         user.hashed_password = hash_password(new_password)
         user.must_change_password = True
-        user.tokens_invalidated_at = datetime.now(timezone.utc)
+        revoked_at = datetime.now(timezone.utc)
+        user.tokens_invalidated_at = revoked_at
+        # Portal sessions (checked against the profile) end too.
+        await session.execute(
+            update(UserProfile)
+            .where(UserProfile.user_id == user.id)
+            .values(tokens_invalidated_at=revoked_at)
+            .execution_options(synchronize_session="fetch")
+        )
         await session.commit()
 
     _emit_credentials(username, new_password)

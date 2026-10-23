@@ -5,8 +5,10 @@
   plain password so the admin can hand it over once. The user is
   flagged ``must_change_password=True`` so they have to change it on
   first sign-in.
-- ``force_logout`` stamps ``tokens_invalidated_at`` on the profile —
-  ``api/portal/deps.py`` rejects every JWT issued before that timestamp.
+- ``force_logout`` stamps ``tokens_invalidated_at`` on the user and the
+  profile — the admin and portal auth deps reject every JWT issued before
+  that timestamp.
+- Both refuse to target the acting admin's own account.
 - ``list_user_login_history`` reads the append-only
   ``user_login_history`` table for the Security tab feed.
 """
@@ -30,6 +32,7 @@ from .admin_users_constants import (
     ACTION_USER_DISPLAY_NAME_RESET,
     ACTION_USER_FORCE_LOGOUT,
     ACTION_USER_PASSWORD_RESET,
+    ERR_SELF_ACTION_FORBIDDEN,
     SOURCE_LOCAL,
 )
 from .admin_users_serialize import now_utc
@@ -51,15 +54,19 @@ async def reset_local_password(
     ip: str | None = None,
     user_agent: str | None = None,
 ) -> dict[str, Any]:
+    # Resetting their own password would sign the admin out on the spot,
+    # holding only a password shown once.
+    if admin_user_id is not None and admin_user_id == user.id:
+        return {"error": ERR_SELF_ACTION_FORBIDDEN}
     if (profile.source or "") != SOURCE_LOCAL:
         return {"error": "not_local"}
     new_password = _generate_password()
     user.hashed_password = hash_password(new_password)
     user.must_change_password = True
+    # Force every active session out at the same time, admin and portal, so
+    # the old password can never be re-used from a stale tab.
+    profile.tokens_invalidated_at = user.tokens_invalidated_at = now_utc()
     db.add(user)
-    # Force every active session out at the same time so the old
-    # password can never be re-used from a stale tab.
-    profile.tokens_invalidated_at = now_utc()
     db.add(profile)
     await record_audit(
         db,
@@ -77,13 +84,18 @@ async def reset_local_password(
 async def force_logout(
     db: AsyncSession,
     profile: UserProfile,
+    user: User,
     *,
     admin_user_id: int | None,
     ip: str | None = None,
     user_agent: str | None = None,
 ) -> dict[str, Any]:
-    profile.tokens_invalidated_at = now_utc()
+    if admin_user_id is not None and admin_user_id == user.id:
+        return {"error": ERR_SELF_ACTION_FORBIDDEN}
+    # Both pivots: an admin target loses the backoffice too, not only the portal.
+    profile.tokens_invalidated_at = user.tokens_invalidated_at = now_utc()
     db.add(profile)
+    db.add(user)
     await record_audit(
         db,
         admin_user_id=admin_user_id,
