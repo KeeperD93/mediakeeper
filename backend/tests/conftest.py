@@ -86,8 +86,14 @@ async def setup_db():
     async with _test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
-    async with _test_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+    try:
+        async with _test_engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+    finally:
+        # A fresh connection for the next test: SQLAlchemy's async adapter lock binds
+        # to the first event loop that waits on it, which breaks any later test with
+        # concurrent queries.
+        await _test_engine.dispose()
 
 
 @pytest.fixture(autouse=True)
@@ -160,6 +166,7 @@ def _reset_diagnostic_log_sentinels():
     yield
     _mw._last_origin_mismatch_log = float("-inf")
     _chat._last_ws_upgrade_log = float("-inf")
+
 
 
 @pytest_asyncio.fixture
