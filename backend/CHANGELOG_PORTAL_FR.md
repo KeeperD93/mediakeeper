@@ -52,6 +52,9 @@ utilisateurs.
 - Remontées — envoi en échec : message clair au lieu du texte du navigateur.
 - Remontées — fenêtre aux couleurs du portail (flèche du menu espacée, sans zoom sur téléphone).
 - Remontées — fenêtre plus accessible (champ actif visible, bas dégagé sur téléphone, animations réduites).
+- Chat — messages en temps réel sur chaque onglet et appareil, sans perte à la reconnexion.
+- Chat — un appareil figé ne bloque plus les messages des autres.
+- Chat — non-lus exacts : seuls les messages réellement affichés sont marqués lus.
 
 ## [1.0.0-rc.8] - 2026-10-11
 

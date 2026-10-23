@@ -3,9 +3,11 @@ WebSocket origin enforcement, and idempotent Emby import."""
 from __future__ import annotations
 
 import asyncio
+import time
 from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, patch
 
+import jwt
 import pytest
 from sqlalchemy import select
 
@@ -18,9 +20,7 @@ from models.user import User
 from models.portal.profile import UserProfile
 
 
-# ---------------------------------------------------------------------------
-# Phase 1A — helper + column default
-# ---------------------------------------------------------------------------
+# Helper + column default
 
 
 @pytest.mark.asyncio
@@ -54,9 +54,26 @@ def test_is_token_valid_for_revocation_pivot_new_token_passes():
     assert is_token_valid_for_revocation_pivot(iat, pivot) is True
 
 
-# ---------------------------------------------------------------------------
-# Phase 1D — Bearer fallback removed on admin routes
-# ---------------------------------------------------------------------------
+def test_is_token_valid_for_revocation_pivot_compares_fractions_of_a_second():
+    pivot = datetime(2026, 1, 1, 12, 0, 0, 500_000, tzinfo=timezone.utc)
+    assert is_token_valid_for_revocation_pivot(pivot.timestamp() - 0.2, pivot) is False
+    assert is_token_valid_for_revocation_pivot(pivot.timestamp() + 0.2, pivot) is True
+
+
+def test_tokens_carry_a_sub_second_iat(monkeypatch):
+    minted = datetime(2026, 1, 1, 12, 0, 0, 250_000, tzinfo=timezone.utc)
+
+    class _FrozenClock(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return minted
+
+    monkeypatch.setattr("core.security.datetime", _FrozenClock)
+    token = create_access_token({"sub": "alice", "scope": "admin"})
+    assert jwt.decode(token, options={"verify_signature": False})["iat"] == minted.timestamp()
+
+
+# Bearer fallback removed on admin routes
 
 
 @pytest.mark.asyncio
@@ -70,9 +87,7 @@ async def test_admin_bearer_rejected(client, admin_user):
     assert resp.status_code == 401
 
 
-# ---------------------------------------------------------------------------
-# Phase 1E — strict scope claim
-# ---------------------------------------------------------------------------
+# Strict scope claim
 
 
 @pytest.mark.asyncio
@@ -107,25 +122,16 @@ async def test_media_proxy_rejects_token_without_scope(client):
     assert resp.status_code == 401
 
 
-# ---------------------------------------------------------------------------
-# Phase 1B + 1C — change-password revocation
-# ---------------------------------------------------------------------------
+# Change-password revocation
 
 
 @pytest.mark.asyncio
 async def test_change_password_revokes_old_sessions(client, admin_user, db_session):
     """A password change must reject every JWT issued earlier on other
-    devices, while the new cookie keeps working.
-
-    JWT ``iat`` is encoded with second resolution, so the test waits one
-    second between the original login and the password change to make
-    sure the old token's ``iat`` is strictly older than the revocation
-    pivot.
-    """
+    devices, while the new cookie keeps working."""
     old_token = create_access_token({"sub": admin_user.username, "scope": "admin"})
     client.cookies.set("mk_token", old_token)
     await client.get("/api/auth/me")  # bootstrap CSRF
-    await asyncio.sleep(1.1)
 
     change = await client.post(
         "/api/auth/change-password",
@@ -162,6 +168,62 @@ async def test_change_password_revokes_old_sessions(client, admin_user, db_sessi
 
 
 @pytest.mark.asyncio
+async def test_change_password_also_ends_the_admin_portal_sessions(client, admin_user, db_session):
+    """The admin's portal sessions on other devices end too: ``rq_token`` is
+    checked against the profile pivot, not the account one."""
+    db_session.add(UserProfile(
+        user_id=admin_user.id, display_name="Admin", role="admin", account_active=True,
+    ))
+    await db_session.commit()
+    old_portal_token = create_access_token({"sub": admin_user.username, "scope": "portal"})
+    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
+
+    change = await client.post(
+        "/api/auth/change-password",
+        json={
+            "current_password": "TestPassword123!",
+            "new_password": "BrandNewPassw0rd!",
+            "confirm_password": "BrandNewPassw0rd!",
+        },
+    )
+    assert change.status_code == 200
+
+    client.cookies.clear()
+    client.cookies.set("rq_token", old_portal_token)
+    blocked = await client.get("/api/portal/auth/me")
+    assert blocked.status_code == 401
+    assert blocked.json()["detail"] == "session_revoked"
+
+
+@pytest.mark.asyncio
+async def test_a_cookie_renewed_in_the_same_second_does_not_outlive_a_password_change(
+    client, admin_user,
+):
+    """A stolen cookie renewed just before the change, within the same second,
+    must still fall before the new pivot."""
+    victim = create_access_token({"sub": admin_user.username, "scope": "admin"})
+    await asyncio.sleep(1 - time.time() % 1 + 0.01)  # just past a whole second
+    stolen = create_access_token({"sub": admin_user.username, "scope": "admin"})
+    client.cookies.set("mk_token", victim)
+
+    change = await client.post(
+        "/api/auth/change-password",
+        json={
+            "current_password": "TestPassword123!",
+            "new_password": "BrandNewPassw0rd!",
+            "confirm_password": "BrandNewPassw0rd!",
+        },
+    )
+    assert change.status_code == 200
+
+    client.cookies.clear()
+    client.cookies.set("mk_token", stolen)
+    blocked = await client.get("/api/auth/me")
+    assert blocked.status_code == 401
+    assert blocked.json()["detail"] == "session_revoked"
+
+
+@pytest.mark.asyncio
 async def test_admin_session_rejected_after_revocation(client, admin_user, db_session):
     """Stamping ``users.tokens_invalidated_at`` directly must lock out
     every JWT issued before that timestamp."""
@@ -182,9 +244,7 @@ async def test_admin_session_rejected_after_revocation(client, admin_user, db_se
     assert blocked.json()["detail"] == "session_revoked"
 
 
-# ---------------------------------------------------------------------------
-# Phase 1F — portal_logout server-side revocation
-# ---------------------------------------------------------------------------
+# Server-side revocation on portal logout
 
 
 @pytest.mark.asyncio
@@ -210,9 +270,7 @@ async def test_portal_logout_revokes_server_side(client, admin_user, db_session)
     assert refreshed.tokens_invalidated_at is not None
 
 
-# ---------------------------------------------------------------------------
-# Phase 1I — daily-digest + changelog/* gated by revocation
-# ---------------------------------------------------------------------------
+# Daily-digest + changelog/* gated by revocation
 
 
 @pytest.mark.asyncio
@@ -262,9 +320,7 @@ async def test_changelog_current_remains_public(client):
     assert "version" in resp.json()
 
 
-# ---------------------------------------------------------------------------
-# Phase 1G — WebSocket origin + revocation sweep
-# ---------------------------------------------------------------------------
+# WebSocket origin (live session rechecks: test_chat_ws_lifecycle.py)
 
 
 def test_ws_origin_blocked_when_origin_missing(monkeypatch):
@@ -287,53 +343,7 @@ def test_ws_origin_allowed_for_frontend_origin(monkeypatch):
     assert _origin_is_allowed("https://lan.example") is True
 
 
-@pytest.mark.asyncio
-async def test_ws_revocation_kick(db_session, admin_user):
-    """``prune_revoked_ws_sessions`` must close sockets whose ``iat`` is
-    older than the user's revocation pivot, leaving fresh sockets alone."""
-    from api.portal import chat as chat_mod
-
-    profile = UserProfile(
-        user_id=admin_user.id,
-        display_name="Admin",
-        role="admin",
-        account_active=True,
-        tokens_invalidated_at=datetime.now(timezone.utc),
-    )
-    db_session.add(profile)
-    await db_session.commit()
-
-    closed_calls: list[int] = []
-
-    class FakeWS:
-        def __init__(self, label: int):
-            self.label = label
-
-        async def close(self, code: int = 4001):
-            closed_calls.append(self.label)
-
-    stale_ws = FakeWS(1)
-    fresh_ws = FakeWS(2)
-    stale_iat = profile.tokens_invalidated_at - timedelta(minutes=5)
-    fresh_iat = profile.tokens_invalidated_at + timedelta(minutes=5)
-    chat_mod._ws_rooms.clear()
-    chat_mod._ws_rooms[42] = {
-        admin_user.id: (stale_ws, stale_iat),
-        99: (fresh_ws, fresh_iat),
-    }
-
-    closed = await chat_mod.prune_revoked_ws_sessions(db_session)
-
-    assert closed == 1
-    assert closed_calls == [1]
-    assert admin_user.id not in chat_mod._ws_rooms.get(42, {})
-    assert 99 in chat_mod._ws_rooms[42]
-    chat_mod._ws_rooms.clear()
-
-
-# ---------------------------------------------------------------------------
-# Phase 1H — Emby import idempotent under races
-# ---------------------------------------------------------------------------
+# Emby import idempotent under races
 
 
 @pytest.mark.asyncio

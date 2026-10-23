@@ -159,9 +159,14 @@ shutdown_all() {
     su - postgres -c "$PG_BIN/pg_ctl -D $PG_DATA stop -m fast" >/dev/null 2>&1 || true
 }
 
+# A chat WebSocket frame holds one message, ~24 KB at most. Refuse anything bigger
+# before it is inflated: uvicorn's default (16 MiB) lets a small compressed frame
+# freeze the server.
+WS_MAX_SIZE=65536
+
 if [ "$MK_DEBUG" = "true" ]; then
     echo ">> DEBUG mode enabled (reload + verbose logs)"
-    exec su -s /bin/bash mkuser -c "cd /app/backend && exec env MK_PROCESS_ROLE=combined uvicorn main:app --host 0.0.0.0 --port 8888 --reload --log-level debug"
+    exec su -s /bin/bash mkuser -c "cd /app/backend && exec env MK_PROCESS_ROLE=combined uvicorn main:app --host 0.0.0.0 --port 8888 --ws-max-size $WS_MAX_SIZE --reload --log-level debug"
 else
     if [ "$MK_SEPARATE_BACKGROUND_WORKER" = "true" ]; then
         echo ">> Production mode: web API / background tasks split"
@@ -170,7 +175,7 @@ else
         su -s /bin/bash mkuser -c "cd /app/backend && exec env MK_PROCESS_ROLE=worker python run_worker.py" &
         WORKER_PID=$!
 
-        su -s /bin/bash mkuser -c "cd /app/backend && exec env MK_PROCESS_ROLE=web uvicorn main:app --host 0.0.0.0 --port 8888 --workers 1" &
+        su -s /bin/bash mkuser -c "cd /app/backend && exec env MK_PROCESS_ROLE=web uvicorn main:app --host 0.0.0.0 --port 8888 --ws-max-size $WS_MAX_SIZE --workers 1" &
         WEB_PID=$!
 
         wait -n "$WEB_PID" "$WORKER_PID"
@@ -179,5 +184,5 @@ else
         exit "$STATUS"
     fi
 
-    exec su -s /bin/bash mkuser -c "cd /app/backend && exec env MK_PROCESS_ROLE=combined uvicorn main:app --host 0.0.0.0 --port 8888 --workers 1"
+    exec su -s /bin/bash mkuser -c "cd /app/backend && exec env MK_PROCESS_ROLE=combined uvicorn main:app --host 0.0.0.0 --port 8888 --ws-max-size $WS_MAX_SIZE --workers 1"
 fi

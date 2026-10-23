@@ -29,23 +29,31 @@ export default defineConfig(({ mode }) => {
           target: env.API_TARGET || 'http://localhost:8888',
           changeOrigin: true,
           xfwd: true,
+          // Chat WebSocket: proxied too (see the Origin rewrite below).
+          ws: true,
           cookieDomainRewrite: 'localhost',
-          configure: (proxy) => {
+          configure: proxy => {
             // Dev-only: rewrite the browser Origin (:5173) to the proxy target so
             // the backend's same-origin CSRF guard sees a same-origin request.
             // `changeOrigin` rewrites Host but NOT Origin — without this, every
             // login / authenticated mutation from :5173 is 403 csrf_origin_mismatch.
             const apiTarget = env.API_TARGET || 'http://localhost:8888'
-            proxy.on('proxyReq', (proxyReq) => {
+            proxy.on('proxyReq', proxyReq => {
               proxyReq.setHeader('origin', apiTarget)
             })
-            proxy.on('proxyRes', (proxyRes) => {
+            // Same for the chat socket, but only from pages this dev server serves: the
+            // Origin check is the socket's only guard, and any other localhost port is
+            // same-site. The dev backend leaves FRONTEND_ORIGIN unset or lists API_TARGET.
+            proxy.on('proxyReqWs', (proxyReq, req) => {
+              if (req.headers.origin === `http://${req.headers.host}`) {
+                proxyReq.setHeader('origin', apiTarget)
+              }
+            })
+            proxy.on('proxyRes', proxyRes => {
               const setCookie = proxyRes.headers['set-cookie']
               if (setCookie) {
                 proxyRes.headers['set-cookie'] = setCookie.map(cookie =>
-                  cookie
-                    .replace(/;\s*Secure/gi, '')
-                    .replace(/;\s*Domain=[^;]*/gi, '')
+                  cookie.replace(/;\s*Secure/gi, '').replace(/;\s*Domain=[^;]*/gi, ''),
                 )
               }
             })

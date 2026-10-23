@@ -239,8 +239,8 @@ async function switchRoom() {
   // Pull the full history (drains the cursor pagination) so the user
   // can scroll all the way back without an extra "load more" gesture.
   // The realtime websocket is owned by the portal layout, so we don't
-  // touch it here — new incoming messages are pushed straight into
-  // ``messages`` by the global handler.
+  // touch it here — the global handler pushes the new messages of the
+  // room shown here straight into ``messages``.
   await fetchAllMessages(roomSel.value)
   scrollBottom()
 }
@@ -250,12 +250,11 @@ async function send() {
   if (!content || !roomSel.value) return
   // REST POST is used (instead of the websocket frame) so the message
   // round-trips through the database and comes back with its real id /
-  // timestamp / display name in a single response. We push it locally
-  // straight away — the websocket handler skips own-id messages to
-  // avoid the duplicate echo.
+  // timestamp / display name in a single response. Its broadcast can reach
+  // the socket first: add it only once.
   const res = await sendMessage(roomSel.value, content)
   if (!res?.message) return // keep the draft so the user can retry
-  messages.value.push(res.message)
+  if (!messages.value.some(m => m.id === res.message.id)) messages.value.push(res.message)
   draft.value = ''
   scrollBottom()
 }

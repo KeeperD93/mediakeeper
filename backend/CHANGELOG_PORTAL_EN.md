@@ -50,6 +50,9 @@ This section intentionally has no date so it is not shown to users.
 - Feedback — failed send: clear message instead of the browser's text.
 - Feedback — window in the portal colours (menu arrow clear of the edge, no zoom on phones).
 - Feedback — more accessible window (visible active field, bottom clear on phones, reduced motion).
+- Chat — real-time messages on every tab and device, no loss on reconnection.
+- Chat — a frozen device no longer holds up others' messages.
+- Chat — accurate unread count: only messages actually shown are marked read.
 
 ## [1.0.0-rc.8] - 2026-10-11
 

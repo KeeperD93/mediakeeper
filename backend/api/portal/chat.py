@@ -1,4 +1,5 @@
 """Portal chat endpoints (REST + WebSocket)."""
+import asyncio
 import json
 import logging
 import os
@@ -10,7 +11,7 @@ from urllib.parse import urlsplit
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, ConfigDict, Field
+from fastapi.websockets import WebSocketState
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,6 +22,7 @@ from core.security import decode_access_token, is_token_valid_for_revocation_piv
 from models.user import User
 from models.portal.profile import UserProfile
 from api.auth import PORTAL_COOKIE_NAME
+from api.portal._chat_schemas import MarkRead, ReportMessage, SendMessage, is_storable
 from api.portal.deps import get_request_lang, require_permission
 from services.portal import chat as chat_svc
 from services.portal.achievements import safe_check_all_achievements_in_new_session
@@ -30,34 +32,34 @@ from services.portal.admin_users_constants import ROLE_ADMIN
 router = APIRouter(prefix="/chat", tags=["portal-chat"])
 logger = logging.getLogger("mediakeeper.portal.chat")
 
-# Cadence used by the background task that prunes WebSocket sessions whose
-# JWT was revoked while the connection was idle. Exposed as a module-level
-# constant so an operator can tune the interval without touching the loop.
-WS_REVOCATION_CHECK_INTERVAL_SEC = 300
-
 # Close codes — kept in one place for the test suite.
 WS_CLOSE_AUTH_FAILED = 4001
 WS_CLOSE_ORIGIN_REJECTED = 4003
+WS_CLOSE_TOO_MANY_SOCKETS = 4029
+# Dropped by a broadcast it could not take in time; the client reconnects and catches up.
+WS_CLOSE_STALLED = 4008
 
-# Per-connection WebSocket message throttle — the socket path bypasses the
-# HTTP limiter on POST /messages, so it mirrors that 30/min ceiling here.
+# WebSocket message throttle, per connection: the socket path bypasses the HTTP
+# limiter on POST /messages, so each socket gets that 30/min ceiling here.
 WS_MSG_LIMIT = 30
 WS_MSG_WINDOW_SEC = 60
-# How often the receive loop re-validates chat permission + token revocation,
-# so a kicked user stops within seconds instead of only at the periodic sweep.
+# How often each open socket re-validates the session and chat permission,
+# whether or not the client ever sends a frame (the portal client only listens).
 WS_PERM_RECHECK_INTERVAL_SEC = 30
+# Sockets one account may hold at once (tabs and devices): each is rechecked
+# every 30 s and receives every broadcast.
+WS_MAX_SOCKETS_PER_USER = 10
+# A peer that cannot take a message within this delay has stopped reading: it is
+# dropped instead of holding up the room.
+WS_SEND_TIMEOUT_SEC = 5
 
 
-class SendMessage(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    content: str = Field(..., min_length=1, max_length=2000)
-
-
-# Active WebSocket connections: {room_id: {user_id: (websocket, jwt_iat)}}.
-# The iat is stored alongside the socket so the periodic revocation sweep
-# can compare it to ``UserProfile.tokens_invalidated_at`` without decoding
-# the JWT a second time.
-_ws_rooms: dict[int, dict[int, tuple[WebSocket, datetime]]] = {}
+# Active WebSocket connections: {room_id: {websocket: user_id}}. One entry per
+# connection, so a second tab or device never evicts the first.
+_ws_rooms: dict[int, dict[WebSocket, int]] = {}
+# Open sockets per account, counted from the handshake so that concurrent
+# handshakes cannot slip past WS_MAX_SOCKETS_PER_USER.
+_ws_per_user: dict[int, int] = {}
 
 
 def _allowed_origins() -> list[str]:
@@ -129,11 +131,12 @@ def _origin_is_allowed(origin: str | None, websocket: WebSocket | None = None) -
     return False
 
 
-def _coerce_iat(payload_iat) -> datetime | None:
-    if payload_iat is None:
+def _coerce_epoch(value) -> datetime | None:
+    if value is None:
         return None
     try:
-        return datetime.fromtimestamp(int(payload_iat), tz=timezone.utc)
+        # float: iat carries a fraction, and a pivot can fall inside the same second.
+        return datetime.fromtimestamp(float(value), tz=timezone.utc)
     except (TypeError, ValueError):
         return None
 
@@ -171,12 +174,14 @@ async def get_unread(
 
 @router.post("/mark-read")
 async def mark_read(
+    data: MarkRead | None = None,
     up: tuple[User, UserProfile] = Depends(require_permission("can_chat")),
     db: AsyncSession = Depends(get_db),
 ):
-    """Snap the user's read pointer to the latest chat message."""
+    """Move the user's read pointer up to the newest message the panel displayed,
+    or to the latest chat message when the client names none."""
     user, _ = up
-    return await chat_svc.mark_room_read(db, user.id)
+    return await chat_svc.mark_room_read(db, user.id, up_to=data.up_to if data else None)
 
 
 @router.get("/rooms/{room_id}/messages")
@@ -212,6 +217,9 @@ async def send_message(
     result = await chat_svc.send_message(db, room_id, user.id, data.content, lang=lang)
     if "error" in result:
         raise HTTPException(status_code=403, detail=result["error"])
+    # End the read transaction send_message leaves open: a slow peer must never
+    # pin a pooled DB connection during the fan-out.
+    await db.commit()
     await _broadcast(room_id, result["message"])
     background_tasks.add_task(
         safe_check_all_achievements_in_new_session,
@@ -236,11 +244,6 @@ async def delete_message(
         code = 404 if result["error"] == "not_found" else 403
         raise HTTPException(status_code=code, detail=result["error"])
     return result
-
-
-class ReportMessage(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    reason: Optional[str] = Field(None, max_length=500)
 
 
 @router.post("/messages/{message_id}/report")
@@ -315,7 +318,7 @@ async def websocket_chat(websocket: WebSocket, room_id: int):
     if not auth:
         await websocket.close(code=WS_CLOSE_AUTH_FAILED)
         return
-    user_id, jwt_iat = auth
+    user_id, jwt_iat, jwt_exp = auth
 
     # Hand-shake membership gate: refuse the connection if the user is
     # not allowed in this room. Without this, an attacker who knows a
@@ -325,20 +328,30 @@ async def websocket_chat(websocket: WebSocket, room_id: int):
             await websocket.close(code=WS_CLOSE_AUTH_FAILED)
             return
 
-    await websocket.accept()
+    if _ws_per_user.get(user_id, 0) >= WS_MAX_SOCKETS_PER_USER:
+        await websocket.close(code=WS_CLOSE_TOO_MANY_SOCKETS)
+        return
+    _ws_per_user[user_id] = _ws_per_user.get(user_id, 0) + 1
 
-    if room_id not in _ws_rooms:
-        _ws_rooms[room_id] = {}
-    _ws_rooms[room_id][user_id] = (websocket, jwt_iat)
-
+    watchdog = None
     msg_times: deque = deque()
-    last_perm_check = time.monotonic()
     try:
+        await websocket.accept()
+        _ws_rooms.setdefault(room_id, {})[websocket] = user_id
+        watchdog = asyncio.create_task(_ws_watchdog(websocket, room_id, user_id, jwt_iat, jwt_exp))
         while True:
-            raw = await websocket.receive_text()
+            message = await websocket.receive()
+            # The watchdog may have closed the socket from its own task: a frame
+            # read after that is not posted.
+            if (message["type"] == "websocket.disconnect"
+                    or websocket.application_state != WebSocketState.CONNECTED):
+                break
+            raw = message.get("text")
+            if raw is None:
+                continue  # binary frame: the chat speaks text only
             try:
                 data = json.loads(raw)
-            except json.JSONDecodeError:
+            except (ValueError, RecursionError):  # malformed, nested too deep or a huge number
                 continue
             if not isinstance(data, dict):
                 continue
@@ -347,41 +360,39 @@ async def websocket_chat(websocket: WebSocket, room_id: int):
             if not isinstance(content, str):
                 continue
             content = content.strip()
-            if not content or len(content) > 2000:
+            if not content or len(content) > 2000 or not is_storable(content):
                 continue
 
-            now = time.monotonic()
             # Anti-spam: the socket bypasses the HTTP limiter, so throttle here.
-            if _over_rate_limit(msg_times, now):
+            if _over_rate_limit(msg_times, time.monotonic()):
                 continue
-
-            # Re-validate permission / revocation periodically so a kicked user
-            # stops within seconds, not only at the next sweep.
-            if now - last_perm_check >= WS_PERM_RECHECK_INTERVAL_SEC:
-                last_perm_check = now
-                async with AsyncSessionLocal() as db:
-                    if not await _ws_still_authorized(db, user_id, jwt_iat):
-                        await websocket.close(code=WS_CLOSE_AUTH_FAILED)
-                        break
 
             async with AsyncSessionLocal() as db:
                 result = await chat_svc.send_message(db, room_id, user_id, content)
-                if "error" not in result:
-                    await _broadcast(room_id, result["message"])
+            # Session closed first: a slow peer must never pin a pooled DB connection.
+            if "error" not in result:
+                await _broadcast(room_id, result["message"])
     except WebSocketDisconnect:
         pass
     finally:
-        _ws_rooms.get(room_id, {}).pop(user_id, None)
+        _ws_rooms.get(room_id, {}).pop(websocket, None)
         if room_id in _ws_rooms and not _ws_rooms[room_id]:
             del _ws_rooms[room_id]
+        if _ws_per_user[user_id] > 1:
+            _ws_per_user[user_id] -= 1
+        else:
+            del _ws_per_user[user_id]
+        if watchdog:
+            # Let a recheck caught mid-query unwind before the handler returns.
+            watchdog.cancel()
+            await asyncio.gather(watchdog, return_exceptions=True)
 
 
-async def _authenticate_ws(websocket: WebSocket) -> tuple[int, datetime] | None:
+async def _authenticate_ws(websocket: WebSocket) -> tuple[int, datetime, datetime] | None:
     """Authenticate WebSocket via the Portal-specific cookie.
 
-    Returns ``(user_id, jwt_iat_datetime)`` on success — the ``iat`` is
-    surfaced to the caller so the connection can be tracked alongside
-    the timestamp used by the periodic revocation sweep.
+    Returns ``(user_id, jwt_iat, jwt_exp)`` on success: the watchdog needs both
+    timestamps to enforce revocation and expiry for the life of the connection.
     """
     token = websocket.cookies.get(PORTAL_COOKIE_NAME)
     if not token:
@@ -392,8 +403,9 @@ async def _authenticate_ws(websocket: WebSocket) -> tuple[int, datetime] | None:
     username = payload.get("sub")
     if not username:
         return None
-    iat = _coerce_iat(payload.get("iat"))
-    if iat is None:
+    iat = _coerce_epoch(payload.get("iat"))
+    exp = _coerce_epoch(payload.get("exp"))
+    if iat is None or exp is None:
         return None
 
     async with AsyncSessionLocal() as db:
@@ -408,82 +420,71 @@ async def _authenticate_ws(websocket: WebSocket) -> tuple[int, datetime] | None:
             return None
         if not is_token_valid_for_revocation_pivot(payload.get("iat"), profile.tokens_invalidated_at):
             return None
-        return user.id, iat
+        return user.id, iat, exp
 
 
 async def _ws_still_authorized(db: AsyncSession, user_id: int, jwt_iat: datetime) -> bool:
     """Re-check, mid-session, that the user may still chat: active account,
     chat permission not revoked, and JWT not invalidated since the handshake.
-    Lets a permission change take effect within seconds (loop recheck) instead
-    of only at the next prune_revoked_ws_sessions sweep — without a global
-    token bump that would log the user out everywhere."""
-    profile = (await db.execute(
-        select(UserProfile).where(UserProfile.user_id == user_id)
-    )).scalar_one_or_none()
-    if not profile:
+    Lets a permission change take effect within one watchdog tick, without a
+    global token bump that would log the user out everywhere."""
+    row = (await db.execute(
+        select(
+            UserProfile.chat_enabled,
+            UserProfile.can_chat,
+            UserProfile.account_active,
+            UserProfile.tokens_invalidated_at,
+        ).where(UserProfile.user_id == user_id)
+    )).first()
+    if not row:
         return False
-    if not profile.chat_enabled or not profile.can_chat or not profile.account_active:
+    if not row.chat_enabled or not row.can_chat or not row.account_active:
         return False
-    if not is_token_valid_for_revocation_pivot(int(jwt_iat.timestamp()), profile.tokens_invalidated_at):
-        return False
-    return True
+    return is_token_valid_for_revocation_pivot(jwt_iat.timestamp(), row.tokens_invalidated_at)
+
+
+async def _ws_watchdog(
+    websocket: WebSocket, room_id: int, user_id: int, jwt_iat: datetime, jwt_exp: datetime,
+) -> None:
+    """Close the socket at token expiry, once a periodic recheck finds the session
+    revoked or chat access removed, or once a broadcast dropped it for not reading,
+    even if the client never sends a frame."""
+    code = WS_CLOSE_AUTH_FAILED
+    while (remaining := (jwt_exp - datetime.now(timezone.utc)).total_seconds()) > 0:
+        await asyncio.sleep(min(remaining, WS_PERM_RECHECK_INTERVAL_SEC))
+        if datetime.now(timezone.utc) >= jwt_exp:
+            break
+        if websocket not in _ws_rooms.get(room_id, {}):
+            # Left behind by _send_or_drop: closing it makes the client reconnect and catch up.
+            code = WS_CLOSE_STALLED
+            break
+        try:
+            async with AsyncSessionLocal() as db:
+                if not await _ws_still_authorized(db, user_id, jwt_iat):
+                    break
+        except Exception as exc:
+            # A DB hiccup must not drop every socket; expiry stays enforced.
+            logger.warning("[CHAT_WS] recheck failed for user_id=%s: %s", user_id, exc)
+    try:
+        await websocket.close(code=code)
+    except Exception:  # noqa: S110 -- the peer may already be gone
+        pass
 
 
 async def _broadcast(room_id: int, message: dict):
     """Broadcast message to all connected WebSocket clients in a room."""
     room = _ws_rooms.get(room_id, {})
     payload = json.dumps({"type": "message", "data": message})
-    disconnected = []
-    for uid, (ws, _iat) in room.items():
-        try:
-            await ws.send_text(payload)
-        except Exception:
-            disconnected.append(uid)
-    for uid in disconnected:
-        room.pop(uid, None)
+    # All peers at once, each within a deadline: a client that stops reading
+    # must not hold up the room. Works on a snapshot, as peers come and go.
+    await asyncio.gather(*(_send_or_drop(room, ws, payload) for ws in list(room)))
 
 
-def _snapshot_connections() -> list[tuple[int, int, WebSocket, datetime]]:
-    """Return a flat snapshot ``(room_id, user_id, ws, iat)`` for the sweep."""
-    items: list[tuple[int, int, WebSocket, datetime]] = []
-    for room_id, members in _ws_rooms.items():
-        for user_id, (ws, iat) in members.items():
-            items.append((room_id, user_id, ws, iat))
-    return items
-
-
-async def prune_revoked_ws_sessions(db: AsyncSession) -> int:
-    """Close every chat WebSocket whose JWT was revoked since handshake.
-
-    Returns the number of sockets closed. Safe to call from a background
-    loop — exceptions on individual close calls are swallowed so one
-    misbehaving socket never blocks the whole sweep.
-    """
-    snapshot = _snapshot_connections()
-    if not snapshot:
-        return 0
-
-    user_ids = list({user_id for _, user_id, _, _ in snapshot})
-    rows = (
-        await db.execute(
-            select(UserProfile.user_id, UserProfile.tokens_invalidated_at).where(
-                UserProfile.user_id.in_(user_ids)
-            )
-        )
-    ).all()
-    pivots: dict[int, datetime | None] = {uid: ts for uid, ts in rows}
-
-    closed = 0
-    for room_id, user_id, ws, iat in snapshot:
-        pivot = pivots.get(user_id)
-        if is_token_valid_for_revocation_pivot(int(iat.timestamp()), pivot):
-            continue
-        try:
-            await ws.close(code=WS_CLOSE_AUTH_FAILED)
-        except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
-            pass
-        _ws_rooms.get(room_id, {}).pop(user_id, None)
-        if room_id in _ws_rooms and not _ws_rooms[room_id]:
-            del _ws_rooms[room_id]
-        closed += 1
-    return closed
+async def _send_or_drop(room: dict[WebSocket, int], ws: WebSocket, payload: str) -> None:
+    try:
+        await asyncio.wait_for(ws.send_text(payload), WS_SEND_TIMEOUT_SEC)
+    except Exception as exc:
+        # Peer gone or stalled: drop it from the room. A gone peer's handler cleans
+        # up; the watchdog closes a stalled one at its next tick.
+        if (user_id := room.pop(ws, None)) is not None:
+            logger.info("[CHAT_WS] user_id=%s dropped from the room: %r", user_id, exc)

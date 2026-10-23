@@ -108,6 +108,9 @@ BULK_ACTIONS = (
     BULK_SET_ROLE, BULK_SET_PERMISSIONS, BULK_SET_QUOTA, BULK_EXPORT,
 )
 
+# Refusal code for an action an admin may not run on their own account.
+ERR_SELF_ACTION_FORBIDDEN = "self_action_forbidden"
+
 # Number of days before access_end_date that should surface a warning
 # in the list ("expires soon" filter + visual badge on the row).
 ACCESS_EXPIRY_WARNING_DAYS = 7

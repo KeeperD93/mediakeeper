@@ -8,7 +8,9 @@ startup (core/security.py), but the runtime guard alone does not stop
 forgery attempts: ``decode_access_token`` must also refuse tokens
 signed with the wrong key, the wrong algorithm, "alg: none", a
 tampered signature, or past their ``exp``. It must also fail closed
-(``None``) on malformed input instead of raising.
+(``None``) on malformed input instead of raising, refuse a token missing
+one of the claims MediaKeeper always sets, and refuse an oversized one
+before parsing it.
 
 If any of these tests start failing, the project IS exposed,
 regardless of what the advisory database says."""
@@ -19,9 +21,11 @@ import base64
 from datetime import datetime, timedelta, timezone
 
 import jwt
+import pytest
 
 from core.security import (
     ALGORITHM,
+    MAX_TOKEN_LENGTH,
     SECRET_KEY,
     create_access_token,
     decode_access_token,
@@ -102,8 +106,52 @@ def test_decode_rejects_expired_token():
 def test_decode_rejects_deeply_nested_header():
     """A header nested past the JSON parser's recursion limit must be refused
     like any malformed token: PyJWT < 2.14 let the ``RecursionError`` escape,
-    so an unauthenticated cookie could turn any protected route into a 500."""
+    so an unauthenticated cookie could turn any protected route into a 500.
+    Such a header is now far over the length cap, refused before parsing."""
     depth = 200_000  # well past CPython's limit on every supported platform
     header = _b64url(b"[" * depth + b"]" * depth)
     forged = f"{header}.{_b64url(b'{}')}.{_b64url(b'sig')}"
     assert decode_access_token(forged) is None
+
+
+@pytest.mark.parametrize("missing", ["exp", "iat", "sub"])
+def test_decode_requires_exp_iat_and_sub(missing):
+    """Every token MediaKeeper mints carries the three claims: a signed token
+    lacking one is refused (a token without ``exp`` would never expire)."""
+    claims = {k: v for k, v in _payload_with_exp().items() if k != missing}
+    token = jwt.encode(claims, SECRET_KEY, algorithm=ALGORITHM)
+    assert decode_access_token(token) is None
+
+
+def test_decode_refuses_oversized_token_before_parsing(monkeypatch):
+    """A value over the cap is forged: PyJWT must not even see it."""
+    calls = []
+    monkeypatch.setattr(jwt, "decode", lambda *a, **k: calls.append(1))
+    assert decode_access_token("A" * (MAX_TOKEN_LENGTH + 1)) is None
+    assert calls == []
+
+
+def test_decode_refuses_genuine_but_oversized_token():
+    padded = create_access_token({"sub": "alice", "pad": "x" * MAX_TOKEN_LENGTH})
+    assert decode_access_token(padded) is None
+
+
+def test_longest_realistic_token_fits_under_the_cap():
+    """``User.username`` holds 50 characters; emoji are the worst case
+    (JSON-escaped to 12 bytes each before base64)."""
+    username = "\U0001f600" * 50
+    token = create_access_token({"sub": username, "scope": "portal"})
+    assert len(token) < MAX_TOKEN_LENGTH
+    assert decode_access_token(token)["sub"] == username
+
+
+@pytest.mark.asyncio
+async def test_oversized_cookie_gets_401_without_parsing(client, monkeypatch):
+    calls = []
+    real_decode = jwt.decode
+    monkeypatch.setattr(jwt, "decode", lambda *a, **k: calls.append(1) or real_decode(*a, **k))
+    client.cookies.set("mk_token", "A" * 300_000)
+    resp = await client.get("/api/auth/me")
+    assert resp.status_code == 401
+    assert resp.json()["detail"] == "token_invalid"
+    assert calls == []

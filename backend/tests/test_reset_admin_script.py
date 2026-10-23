@@ -8,8 +8,8 @@ It must:
 * Re-hash and persist a fresh random password for the named user.
 * Force ``must_change_password=True`` so the next interactive login
   still requires the operator to pick a real password.
-* Stamp ``tokens_invalidated_at`` so every JWT issued under the old
-  credentials is treated as revoked by the auth middleware.
+* Stamp ``tokens_invalidated_at`` (account and portal profile) so every
+  JWT issued under the old credentials is treated as revoked.
 * Print the new credentials on stdout once and never log them.
 * Refuse to reset a non-admin account and exit with a distinct code.
 """
@@ -19,9 +19,9 @@ from datetime import datetime, timezone
 
 import pytest
 import pytest_asyncio
-from sqlalchemy import select
 
 from core.security import hash_password, verify_password
+from models.portal.profile import UserProfile
 from models.user import User
 from scripts import reset_admin as reset_admin_module
 
@@ -104,6 +104,26 @@ async def test_resets_password_and_invalidates_tokens(
     if ti.tzinfo is None:
         ti = ti.replace(tzinfo=timezone.utc)
     assert ti >= before
+
+
+@pytest.mark.asyncio
+async def test_reset_also_ends_the_portal_sessions(seeded_admin, db_session, monkeypatch):
+    monkeypatch.setenv("MK_ADMIN_USERS", "admin")
+    profile = UserProfile(
+        user_id=seeded_admin.id, display_name="Admin", role="admin", account_active=True,
+    )
+    db_session.add(profile)
+    await db_session.commit()
+
+    exit_code = await reset_admin_module._reset(
+        "admin", session_factory=_shared_session_factory(db_session)
+    )
+
+    assert exit_code == 0
+    await db_session.refresh(profile)
+    await db_session.refresh(seeded_admin)
+    assert profile.tokens_invalidated_at is not None
+    assert profile.tokens_invalidated_at == seeded_admin.tokens_invalidated_at
 
 
 @pytest.mark.asyncio

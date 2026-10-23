@@ -4,13 +4,14 @@ import logging
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
 from core.proxy import get_client_ip
 from core.rate_limit import admin_user_or_ip_key, limiter
 from core.security import create_access_token, hash_password, verify_password
+from models.portal.profile import UserProfile
 from models.user import User
 from services.security import ensure_not_blocked, record_attempt, record_failure
 
@@ -86,10 +87,16 @@ async def change_password(
     user.must_change_password = False
     # Stamp the revocation pivot before issuing the new token so every JWT
     # already minted for this account on other devices is rejected on the
-    # next request, while the new token (iat == now) stays valid. The
-    # pivot is floored to whole seconds because JWT ``iat`` is encoded
-    # with second resolution.
-    user.tokens_invalidated_at = datetime.now(timezone.utc).replace(microsecond=0)
+    # next request, while the new token (minted after the pivot) stays valid.
+    revoked_at = datetime.now(timezone.utc)
+    user.tokens_invalidated_at = revoked_at
+    # The admin's portal sessions end too: rq_token is checked against the profile.
+    await db.execute(
+        update(UserProfile)
+        .where(UserProfile.user_id == user.id)
+        .values(tokens_invalidated_at=revoked_at)
+        .execution_options(synchronize_session="fetch")
+    )
     db.add(user)
     await db.commit()
     await db.refresh(user)

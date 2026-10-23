@@ -1,7 +1,7 @@
 """Chat system: rooms, messages, mutes."""
 import logging
 from datetime import datetime, timezone
-from sqlalchemy import select, func
+from sqlalchemy import select, func, or_, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.chat import ChatRoom, ChatMessage
@@ -133,28 +133,37 @@ async def get_unread_count(db: AsyncSession, user_id: int) -> dict:
     return {"unread": int(unread), "latest_message_id": int(latest_id)}
 
 
-async def mark_room_read(db: AsyncSession, user_id: int) -> dict:
-    """Persist the latest message id as read for ``user_id``.
+async def mark_room_read(db: AsyncSession, user_id: int, up_to: int | None = None) -> dict:
+    """Move ``user_id``'s read pointer forward, never back.
 
-    We snap to the current ``MAX(chat_messages.id)`` rather than to the
-    last id the client knows about — keeps the implementation simple
-    while staying race-safe (a message that lands during the round trip
-    will simply count as unread, and the next poll catches it).
+    ``up_to`` is the newest message the chat panel displayed: anything later
+    stays unread, even if it landed before this call. Without it the pointer
+    snaps to the current ``MAX(chat_messages.id)``.
     """
     latest_id = (
         await db.execute(select(func.max(ChatMessage.id)))
     ).scalar() or 0
 
-    profile = (
-        await db.execute(
-            select(UserProfile).where(UserProfile.user_id == user_id)
-        )
+    has_profile = (
+        await db.execute(select(UserProfile.id).where(UserProfile.user_id == user_id))
     ).scalar_one_or_none()
-    if not profile:
+    if has_profile is None:
         return {"success": False, "error": "profile_not_found"}
 
-    profile.chat_last_read_message_id = int(latest_id)
-    db.add(profile)
+    target = int(latest_id if up_to is None else min(up_to, latest_id))
+    # One conditional statement: two calls racing can never move the pointer back.
+    await db.execute(
+        update(UserProfile)
+        .where(
+            UserProfile.user_id == user_id,
+            or_(
+                UserProfile.chat_last_read_message_id.is_(None),
+                UserProfile.chat_last_read_message_id < target,
+            ),
+        )
+        .values(chat_last_read_message_id=target)
+        .execution_options(synchronize_session="fetch")
+    )
     await db.commit()
     return {"success": True, "latest_message_id": int(latest_id)}
 

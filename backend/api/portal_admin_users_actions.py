@@ -304,9 +304,9 @@ async def post_force_logout(
     admin: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    profile, _user = await resolve_profile(profile_id, db)
+    profile, user = await resolve_profile(profile_id, db)
     return await svc_force_logout(
-        db, profile, admin_user_id=admin.id,
+        db, profile, user, admin_user_id=admin.id,
         ip=client_ip(request), user_agent=client_ua(request),
     )
 
