@@ -42,6 +42,10 @@ EXTERNAL_AUTH_PASSWORD_SENTINEL = "__emby_auth__"  # noqa: S105 -- sentinel mark
 # layer rather than duplicating the magic number.
 MAX_BCRYPT_PASSWORD_BYTES = 72
 
+# Server-issued tokens stay under ~1 KB and browsers cap a cookie at ~4 KB:
+# anything longer is forged, refused before PyJWT spends CPU parsing it.
+MAX_TOKEN_LENGTH = 4096
+
 
 class PasswordTooLongError(ValueError):
     """Raised by :func:`hash_password` when input exceeds the bcrypt limit."""
@@ -184,10 +188,17 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
 
 
 def decode_access_token(token: str) -> dict | None:
-    """Decode and verify a JWT. Return None if invalid or expired."""
+    """Decode and verify a JWT. Return None if invalid, expired or oversized."""
+    if len(token) > MAX_TOKEN_LENGTH:
+        return None
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        return payload
+        return jwt.decode(
+            token,
+            SECRET_KEY,
+            algorithms=[ALGORITHM],
+            # Every token MediaKeeper mints carries these claims: refuse one that lacks any.
+            options={"require": ["exp", "iat", "sub"]},
+        )
     except jwt.PyJWTError:
         return None
 
