@@ -71,9 +71,12 @@ This section intentionally has no date so it is not shown to users.
 - Feedback — your reports from the portal go straight out, without review.
 - Feedback moderation — clear errors, and a "Try again" button when the list fails.
 - Feedback moderation — English punctuation fixed ("Reproduction" label).
+- Chat — forced logout, session end or removed access: no more messages received (30 s max).
+- Chat — a frozen device no longer holds up others' messages or the server.
 - Users — forced logout and new password now also end admin access (refused on your own account).
 - Password — changing it also signs out the portal on your other devices.
 - Security — abnormally long sign-in cookies rejected without being parsed.
+- Security — chat: 10 simultaneous connections max per account, oversized sends refused.
 - Security — sessions reliably revoked on password change and access expiry.
 
 ## [1.0.0-rc.8] - 2026-10-11

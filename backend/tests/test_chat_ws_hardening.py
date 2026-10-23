@@ -1,7 +1,9 @@
-"""Chat WebSocket hardening (#406): a per-connection message throttle (the
-socket path bypasses the HTTP limiter) and a mid-session permission /
-revocation recheck so a kicked user stops within seconds instead of only at
-the next prune_revoked_ws_sessions sweep.
+"""Chat WebSocket hardening, pure helpers: the per-connection message
+throttle (the socket path bypasses the HTTP limiter), the permission /
+revocation recheck the per-connection watchdog runs, and the check that keeps
+content the database cannot store out of both send paths. The handler wiring
+is covered end to end in test_chat_ws_lifecycle.py (rechecks, frames) and
+test_chat_ws_fanout.py (throttle).
 """
 from __future__ import annotations
 
@@ -9,17 +11,20 @@ from collections import deque
 from datetime import datetime, timedelta, timezone
 
 import pytest
+from pydantic import ValidationError
 
 from api.portal.chat import (
     WS_MSG_LIMIT,
     WS_MSG_WINDOW_SEC,
+    SendMessage,
     _over_rate_limit,
     _ws_still_authorized,
+    is_storable,
 )
 from models.portal.profile import UserProfile
 
 
-# --- Sliding-window throttle (pure) ---
+# Sliding-window throttle (pure)
 
 def test_over_rate_limit_allows_up_to_limit_then_drops():
     times: deque = deque()
@@ -39,7 +44,7 @@ def test_over_rate_limit_window_slides():
     assert _over_rate_limit(times, base + WS_MSG_WINDOW_SEC + 1) is False
 
 
-# --- Mid-session permission / revocation recheck ---
+# Mid-session permission / revocation recheck
 
 def _profile(user_id: int, **overrides) -> UserProfile:
     fields = dict(
@@ -84,3 +89,18 @@ async def test_still_authorized_honours_token_revocation_pivot(db_session, admin
     # token issued after the pivot → still valid
     fresh = await _ws_still_authorized(db_session, admin_user.id, pivot + timedelta(minutes=5))
     assert fresh is True
+
+
+# Content the database can store
+
+
+@pytest.mark.parametrize("text", ["a\x00b", "\ud800"])
+def test_content_the_database_cannot_store_is_refused(text):
+    assert not is_storable(text)
+    with pytest.raises(ValidationError):
+        SendMessage(content=text)
+
+
+def test_ordinary_content_is_storable():
+    assert is_storable("hello 👋 — ça va")
+    assert SendMessage(content="hello 👋").content == "hello 👋"

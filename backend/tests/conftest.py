@@ -168,6 +168,17 @@ def _reset_diagnostic_log_sentinels():
     _chat._last_ws_upgrade_log = float("-inf")
 
 
+@pytest.fixture(autouse=True)
+def _reset_chat_ws_registries():
+    """Empty the chat WebSocket registries between tests, so a socket test that
+    fails midway never leaves connections or per-account counts behind."""
+    import api.portal.chat as _chat
+    _chat._ws_rooms.clear()
+    _chat._ws_per_user.clear()
+    yield
+    _chat._ws_rooms.clear()
+    _chat._ws_per_user.clear()
+
 
 @pytest_asyncio.fixture
 async def db_session():

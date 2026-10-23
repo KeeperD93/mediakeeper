@@ -320,7 +320,7 @@ async def test_changelog_current_remains_public(client):
     assert "version" in resp.json()
 
 
-# WebSocket origin + revocation sweep
+# WebSocket origin (live session rechecks: test_chat_ws_lifecycle.py)
 
 
 def test_ws_origin_blocked_when_origin_missing(monkeypatch):
@@ -341,49 +341,6 @@ def test_ws_origin_allowed_for_frontend_origin(monkeypatch):
     monkeypatch.setenv("FRONTEND_ORIGIN", "https://app.example,https://lan.example")
     assert _origin_is_allowed("https://app.example") is True
     assert _origin_is_allowed("https://lan.example") is True
-
-@pytest.mark.asyncio
-async def test_ws_revocation_kick(db_session, admin_user):
-    """``prune_revoked_ws_sessions`` must close sockets whose ``iat`` is
-    older than the user's revocation pivot, leaving fresh sockets alone."""
-    from api.portal import chat as chat_mod
-
-    profile = UserProfile(
-        user_id=admin_user.id,
-        display_name="Admin",
-        role="admin",
-        account_active=True,
-        tokens_invalidated_at=datetime.now(timezone.utc),
-    )
-    db_session.add(profile)
-    await db_session.commit()
-
-    closed_calls: list[int] = []
-
-    class FakeWS:
-        def __init__(self, label: int):
-            self.label = label
-
-        async def close(self, code: int = 4001):
-            closed_calls.append(self.label)
-
-    stale_ws = FakeWS(1)
-    fresh_ws = FakeWS(2)
-    stale_iat = profile.tokens_invalidated_at - timedelta(minutes=5)
-    fresh_iat = profile.tokens_invalidated_at + timedelta(minutes=5)
-    chat_mod._ws_rooms.clear()
-    chat_mod._ws_rooms[42] = {
-        admin_user.id: (stale_ws, stale_iat),
-        99: (fresh_ws, fresh_iat),
-    }
-
-    closed = await chat_mod.prune_revoked_ws_sessions(db_session)
-
-    assert closed == 1
-    assert closed_calls == [1]
-    assert admin_user.id not in chat_mod._ws_rooms.get(42, {})
-    assert 99 in chat_mod._ws_rooms[42]
-    chat_mod._ws_rooms.clear()
 
 
 # Emby import idempotent under races
