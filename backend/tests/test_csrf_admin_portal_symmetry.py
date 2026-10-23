@@ -56,6 +56,18 @@ async def test_admin_mutation_with_mismatched_csrf_token_returns_403(raw_client,
 
 
 @pytest.mark.asyncio
+async def test_admin_mutation_guarded_by_the_middleware_alone_returns_403(raw_client, admin_user):
+    """Most admin routes have no ``require_csrf``: the middleware must spot
+    the admin cookie by itself."""
+    await _admin_login(raw_client)
+    raw_client.cookies.delete("mk_csrf")
+
+    r = await raw_client.post("/api/changelog/seen", json={"version": "0.0.0"})
+    assert r.status_code == 403
+    assert r.json()["detail"] == "csrf_token_invalid"
+
+
+@pytest.mark.asyncio
 async def test_portal_mutation_without_csrf_header_returns_403(raw_client, admin_user, db_session, portal_login):
     """Same shape on the portal cookie. Without the header the mutation
     is refused before the route handler runs — proving the global

@@ -25,8 +25,7 @@ import time
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
-from api.auth._cookies import COOKIE_NAME, PORTAL_COOKIE_NAME
-from api.auth._csrf import CSRF_COOKIE_NAME
+from constants.auth import COOKIE_NAME, CSRF_COOKIE_NAME, PORTAL_COOKIE_NAME
 from core.csrf_helpers import request_origin, same_origin
 
 logger = logging.getLogger("mediakeeper.csrf")
