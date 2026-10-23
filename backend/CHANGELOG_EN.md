@@ -10,67 +10,54 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+## [1.0.0-rc.9] - 2026-10-23
+
 ### Added
 - Updates — new version flagged in the sidebar (can be turned off).
 - Requests — an approved request can be rejected too, with a reason.
-- Requests — confirmation before marking available a title not found in Emby.
+- Requests — confirmation before marking a title missing from Emby as available.
 - Requests — availability can be undone (back to Approved, no new notification).
 - Requests — switch to hide available requests under All statuses (remembered).
 
 ### Changed
 - Requests — available requests archived instead of deleted, manual ones included (totals kept).
+- Requests — compact phone layout with drop-down filters.
 - Blacklist — unblocking keeps rejections in the totals.
 - Backups — database included by default in a manual backup.
-- Requests — compact phone layout with drop-down filters.
-- Statistics — library repair: window opens as a bottom panel on phones (reduced motion respected).
+- Statistics — watch time measured continuously, pauses and idle players excluded (history recalculated).
+- Statistics — music no longer counts toward users' watch time.
+- Statistics — library repair opens as a bottom panel on phones.
 - About — larger title on tablets and computers, easier-to-read links.
 
 ### Fixed
-- Sidebar — hover effects fixed on touch screens (reduced motion respected).
-- Statistics — watch time measured continuously, pauses and idle players excluded.
-- Statistics — sort arrows in white (Users, Activity).
-- Statistics — Tools: clear errors, "Try again" for exclusions, proper plurals.
-- Statistics — library removal: a failure is now reported.
-- Statistics — Tools: buttons at the bottom of cards, touch-sized, keyboard import.
-- Statistics — Tools, exclusions: consistent fields, visible keyboard focus, no more zoom on phones.
-- Statistics — Tools, exclusions: menu and field named for screen readers.
-- Statistics — library repair: result list scrolls with the keyboard.
-- Dialogs — Shift+Tab stays inside the open dialog.
-- Statistics — most watched ranked by watch time, popular by number of viewers.
-- Statistics — "Top watchers" follows the selected period.
-- Statistics — period buttons translated (7d instead of 7j).
 - Requests — automatically marked Available, even without Discord notifications.
-- Requests — missing poster restored (new and existing requests).
-- Featured — images kept when the image cache is on.
+- Requests — missing posters restored without skewing the weekly counters.
 - Requests — Available card: all-time total fixed.
-- Requests — weekly counters no longer skewed by restored images.
 - Requests — safer queue: action in progress shown, double clicks ignored, failures reported.
-- Requests — resending an unchanged status (stale queue) no longer notifies the requester.
+- Requests — resending an unchanged status no longer notifies the requester.
 - Requests — filters and sort named for screen readers; "Mark available" button.
 - Requests — no more zoom when opening the menus on phones.
-- Requests — title copy: shown on keyboard focus, hidden when the browser forbids it.
+- Requests — title copying: shown to keyboard users, hidden when the browser forbids it.
 - Requests — queue keeps the portal colours after login (glowing active pills).
-- Backups — out-of-range retention refused with an explanation (no more crash).
-- Backups — an accented label no longer makes a backup unreachable.
-- Backups — each failure named, no more generic "Network error" message.
-- Backups — incomplete backup flagged, without purging complete backups.
+- Featured — images kept when the image cache is on.
 - Backups — restore: ticked parts restored, from a file too, then listed.
-- Backups — screen reloads properly after a first failed load.
-- Backups — retention setting touch-sized and named for screen readers.
+- Backups — incomplete backup flagged, without purging complete backups.
+- Backups — interrupted backup: no truncated archive, temporary files removed after 24 h.
 - Backups — the app stays responsive during a backup or a restore.
-- Backups — an interrupted backup no longer leaves a truncated archive.
-- Backups — temporary files of an interrupted backup removed automatically after 24 h.
-- Backups — the list no longer fails when a backup disappears meanwhile.
-- Notifications — menus: arrow clear of the text, no more zoom on phones.
-- Errors — readable, translated messages (refused input, startup, server error, rate limit).
-- Confirmations — queued, no accidental acceptance (double click, Enter key).
-- Feedback — failed send: clear message instead of the browser's text.
-- Feedback — the affected page follows the current page ("Current page" button, list updated).
-- Feedback — no more zoom on phones, menu arrows clear of the edge.
-- Feedback — more accessible window (visible active field, bottom clear on phones, reduced motion).
+- Backups — an accented label no longer makes a backup unreachable.
+- Backups — failures explained, out-of-range retention refused, no more generic "Network error".
+- Backups — reliable screen and list (reload after a failure, backup gone meanwhile).
+- Backups — retention setting touch-sized and named for screen readers.
+- Statistics — most watched ranked by watch time, popular by number of viewers.
+- Statistics — "Top watchers" follows the selected period.
+- Statistics — Tools: clear errors, "Try again" for exclusions, buttons at the bottom of cards.
+- Statistics — Tools and repair more accessible (keyboard, screen readers, phones, reduced motion).
+- Statistics — library removal: a failure is now reported.
+- Statistics — sort arrows in white, period buttons translated (7d instead of 7j).
 - Feedback — your reports from the portal go straight out, without review.
+- Feedback — the affected page follows the current page ("Current page" button).
+- Feedback — more accessible window, failures explained, no more zoom on phones.
 - Feedback moderation — clear errors, and a "Try again" button when the list fails.
-- Feedback moderation — English punctuation fixed ("Reproduction" label).
 - Chat — forced logout, session end or removed access: no more messages received (30 s max).
 - Chat — a frozen device no longer holds up others' messages or the server.
 - Users — forced logout and new password now also end admin access (refused on your own account).
@@ -78,6 +65,11 @@ This section intentionally has no date so it is not shown to users.
 - Security — abnormally long sign-in cookies rejected without being parsed.
 - Security — chat: 10 simultaneous connections max per account, oversized sends refused.
 - Security — sessions reliably revoked on password change and access expiry.
+- Errors — readable, translated messages (refused input, startup, server error, too many requests).
+- Confirmations — queued, no accidental acceptance (double click, Enter key).
+- Dialogs — Shift+Tab stays inside the open dialog.
+- Notifications — menus: arrow clear of the text, no more zoom on phones.
+- Sidebar — hover effects fixed on touch screens (reduced motion respected).
 
 ## [1.0.0-rc.8] - 2026-10-11
 
