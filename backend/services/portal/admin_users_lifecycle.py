@@ -29,6 +29,7 @@ from .admin_users_constants import (
     BULK_SET_PERMISSIONS,
     BULK_SET_QUOTA,
     BULK_SET_ROLE,
+    ERR_SELF_ACTION_FORBIDDEN,
     PERMISSION_KEYS,
     ROLES,
 )
@@ -97,7 +98,7 @@ async def soft_delete_user(
     # Self-deletion would lock the admin out of MK with no recovery
     # path. Refuse explicitly so the UI can surface a clear error.
     if admin_user_id is not None and admin_user_id == user.id:
-        return {"error": "self_action_forbidden"}
+        return {"error": ERR_SELF_ACTION_FORBIDDEN}
     if profile.deleted_at is not None:
         return {"error": "already_deleted"}
     profile.deleted_at = now_utc()
@@ -267,7 +268,7 @@ async def run_bulk_action(
         if admin_user_id is not None and admin_user_id == user.id and action in (
             BULK_DEACTIVATE, BULK_DELETE,
         ):
-            skipped.append({"id": profile.id, "reason": "self_action_forbidden"})
+            skipped.append({"id": profile.id, "reason": ERR_SELF_ACTION_FORBIDDEN})
             continue
         result: dict[str, Any] | None = None
         if action == BULK_ACTIVATE:

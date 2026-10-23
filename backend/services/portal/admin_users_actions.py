@@ -23,6 +23,7 @@ from .admin_users_constants import (
     ACTION_USER_EMBY_ENABLED,
     ACTION_USER_PERMISSIONS_CHANGED,
     ACTION_USER_ROLE_CHANGED,
+    ERR_SELF_ACTION_FORBIDDEN,
     PERMISSION_KEYS,
     ROLE_PRESETS,
     ROLES,
@@ -186,7 +187,7 @@ async def set_account_active(
     # An admin cannot deactivate their own account: the next request
     # would 401 and they would be locked out of MK with no escape hatch.
     if not active and admin_user_id is not None and admin_user_id == user.id:
-        return {"error": "self_action_forbidden"}
+        return {"error": ERR_SELF_ACTION_FORBIDDEN}
     profile.account_active = active
     user.is_active = active
     if not active:
