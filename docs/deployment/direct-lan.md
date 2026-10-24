@@ -23,9 +23,9 @@ docker run -d \
 
 `/etc/mediakeeper.env` carries your settings. It must exist but can stay
 empty: the container generates its secrets on first start and keeps
-them in `/data`. After changing it, remove the container
-(`docker rm -f mediakeeper`) and run it again: `docker restart` keeps
-the old values.
+them in `/data`. After changing it, stop and remove the container
+(`docker stop mediakeeper`, then `docker rm mediakeeper`) and run it
+again: `docker restart` keeps the old values.
 
 ## 2. Environment
 

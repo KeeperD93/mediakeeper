@@ -10,7 +10,7 @@ Design notes:
   restart, which is acceptable: a restart is itself a strong signal and
   the typical container uptime exceeds the debounce window.
 - Failures of the webhook itself (timeout, HTTP error, exception) are
-  logged once and swallowed. We never re-trigger an alert from inside
+  logged and swallowed. We never re-trigger an alert from inside
   the alert path, otherwise a flapping webhook would create an infinite
   loop.
 """

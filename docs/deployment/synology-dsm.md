@@ -92,8 +92,8 @@ origin to silence it:
 rejected until FRONTEND_ORIGIN is set to the public URL …
 ```
 
-Run `docker compose up -d` again: it recreates the container with the
-new values.
+Run `docker compose up -d` again (with `-f docker-compose.prod.yml` for
+a quickstart install): it recreates the container with the new values.
 
 ### Persistent encryption key
 

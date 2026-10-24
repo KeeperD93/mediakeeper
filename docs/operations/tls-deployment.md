@@ -274,7 +274,8 @@ forwards the connection over TLS to the container, rare) or the
 **`X-Forwarded-Host` ignored / CSRF rejecting same-origin requests.**
 The CSRF middleware computes the canonical origin from
 `X-Forwarded-Host` only when the proxy is in `TRUSTED_PROXIES`. Add
-the proxy's address to the list, then run `docker compose up -d` again.
+the proxy's address to the list, then run `docker compose up -d` again
+(with `-f docker-compose.prod.yml` for a quickstart install).
 
 **Healthcheck failing after enabling TLS.**
 The Docker healthcheck is `curl -f http://localhost:8888/api/health`,
