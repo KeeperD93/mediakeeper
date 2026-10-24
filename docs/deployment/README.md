@@ -38,5 +38,5 @@ If your stack is not listed, the contract is identical to the others:
    preflights need it even though CSRF auto-derives).
 
 The TLS deployment guide at [../operations/tls-deployment.md](../operations/tls-deployment.md)
-covers cross-cutting concerns (HSTS, certificate renewal, CSP mode)
-that apply across every stack.
+covers cross-cutting concerns (HSTS, Secure cookies, CSP mode) that
+apply across every stack.

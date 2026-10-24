@@ -69,7 +69,7 @@ Then from a client on the same LAN:
 
 ```bash
 # Health endpoint — must return 200 with security headers.
-curl -I http://192.0.2.10:8888/api/health
+curl -i http://192.0.2.10:8888/api/health
 
 # Login — must return 200 with Set-Cookie.
 curl -i -X POST http://192.0.2.10:8888/api/auth/login \

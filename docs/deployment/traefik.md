@@ -33,7 +33,7 @@ Restart the stack: `docker compose up -d --force-recreate mediakeeper`.
 ## 2. MediaKeeper environment
 
 ```dotenv
-# Traefik's IP on the `public` network. List Traefik's IPs, one line
+# Traefik's IP on the `public` network. Print Traefik's IPs, one line
 # per network, with
 #   docker inspect <traefik-container> --format '{{range $net, $cfg := .NetworkSettings.Networks}}{{$net}} {{$cfg.IPAddress}}{{println}}{{end}}'
 TRUSTED_PROXIES=172.18.0.2
@@ -51,7 +51,7 @@ DSM's reverse proxy ([synology-dsm.md](synology-dsm.md)).
 ## 3. Verify your setup
 
 ```bash
-curl -I https://mediakeeper.your-domain.example/api/health
+curl -i https://mediakeeper.your-domain.example/api/health
 # → HTTP/2 200, HSTS + Content-Security-Policy
 ```
 
@@ -68,7 +68,7 @@ Boot logs from MediaKeeper should mention Mode B with the matching
   the container is healthy.
 - **Missing entrypoint** → `traefik.http.routers.mediakeeper.entrypoints`
   must match what your static config exposes (`websecure` is the
-  Traefik default for HTTPS).
+  usual name for HTTPS).
 - **Multiple Docker networks** → MediaKeeper must be on the same
   network as Traefik; the `networks: [public]` line in the compose
   attaches it.
@@ -79,7 +79,7 @@ Boot logs from MediaKeeper should mention Mode B with the matching
   settings → `TRUSTED_PROXIES` does not match Traefik's address, or
   Docker relays your visitors to Traefik (section 2). Three wrong
   passwords would then block everyone.
-- **WebSocket failing** → check the LAN-side `docker logs traefik`
-  output; if you see HTTP/1.1 101 with the right headers, the issue
-  is downstream (CSRF / Origin guard, see [direct-lan.md](direct-lan.md)
+- **WebSocket failing** → turn on Traefik's access log: a `101` status
+  on `/api/portal/chat/ws/` means Traefik forwarded the upgrade, and the
+  issue is downstream (CSRF / Origin guard, see [direct-lan.md](direct-lan.md)
   for the verification curl commands).

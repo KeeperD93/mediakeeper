@@ -41,16 +41,16 @@ gateway (IPv6 visitors, and every visitor on Synology). Publish
 MediaKeeper on the loopback only (`127.0.0.1:8888:8888` in the compose
 file), which is all Caddy on the host needs.
 
-A Caddy container needs no port mapping on MediaKeeper. Docker relays
-visitors to Caddy's own ports the same way, though: they show up as the
-gateway, IPv6 ones unless the network has IPv6 enabled, and all of them
-on Synology. There, use DSM's reverse proxy
-([synology-dsm.md](synology-dsm.md)).
+With a Caddy container, drop MediaKeeper's `8888:8888` port mapping:
+Caddy reaches it by its service name. Docker relays visitors to Caddy's
+own ports the same way, though: they show up as the gateway, IPv6 ones
+unless the network has IPv6 enabled, and all of them on Synology.
+There, use DSM's reverse proxy ([synology-dsm.md](synology-dsm.md)).
 
 ## 3. Verify your setup
 
 ```bash
-curl -I https://mediakeeper.your-domain.example/api/health
+curl -i https://mediakeeper.your-domain.example/api/health
 # → HTTP/2 200, HSTS + CSP + X-Frame-Options DENY
 ```
 
@@ -60,12 +60,14 @@ WebSocket handshake check from any chat-capable client:
 # wscat is the simplest way to test from a shell.
 npm i -g wscat
 wscat -c "wss://mediakeeper.your-domain.example/api/portal/chat/ws/1" \
+      -o https://mediakeeper.your-domain.example \
       -H "Cookie: rq_token=<a-valid-token>"
 ```
 
-A 426 (or a connection refused) on the wscat call means the upstream
-is not actually MediaKeeper or the Caddy `reverse_proxy` directive is
-misconfigured.
+`Connected` means the chat WebSocket works. A 426 means the upgrade
+headers did not reach MediaKeeper, a 502 that Caddy cannot reach it,
+and a 403 that the origin, the token or the room was refused (room 1
+exists once someone has opened the chat).
 
 ## 4. Common pitfalls
 

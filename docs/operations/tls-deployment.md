@@ -47,10 +47,9 @@ mediakeeper.example.com {
 ```
 
 Caddy provisions a Let's Encrypt certificate on first start, redirects
-HTTP → HTTPS and renews the certificate transparently. Run as a
-container, it forwards to `mediakeeper:8888` on a network shared with
-MediaKeeper instead of `127.0.0.1:8888`, and you list the container's
-own IP (section 3).
+HTTP → HTTPS and renews the certificate transparently. As a container,
+point it at `mediakeeper:8888` on a network shared with MediaKeeper
+instead of `127.0.0.1:8888`, and list its own IP (section 3).
 
 ### 2.2 Nginx (Let's Encrypt via certbot)
 
@@ -64,7 +63,9 @@ map $http_upgrade $connection_upgrade {
 server {
     listen 80;
     server_name mediakeeper.example.com;
-    return 301 https://$host$request_uri;
+    location / {
+        return 301 https://$host$request_uri;
+    }
 }
 
 server {
@@ -87,9 +88,11 @@ server {
 }
 ```
 
-Run `certbot --nginx -d mediakeeper.example.com` to issue and renew
-the certificate. The HTTP→HTTPS redirect is set up by the first
-`server` block above.
+nginx refuses to load the 443 block until the certificate exists. On a
+new host, start with the port-80 block alone, run
+`certbot certonly --nginx -d mediakeeper.example.com`, then add the 443
+block. certbot renews the certificate on its own: the redirect sits in
+`location /` so its challenge path still answers over HTTP.
 
 ### 2.3 Self-signed certificate for LAN-only use
 
@@ -137,8 +140,10 @@ Typical values:
 - The proxy container's own IP when it shares a network with
   MediaKeeper, pinned with `ipv4_address` (on a network created with a
   fixed subnet). Not the whole network: it contains the gateway.
-- `<LAN_GATEWAY>` — the router's address, when the proxy runs on the
-  router itself.
+  Visitors that Docker relays to the proxy container show up as the
+  gateway: IPv6 ones unless the network has IPv6 enabled, and all of
+  them on Synology. There, use DSM's reverse proxy
+  ([synology-dsm.md](../deployment/synology-dsm.md)).
 
 Set both variables in the same `.env` file used by `docker compose`:
 
@@ -182,7 +187,7 @@ Once both sides are configured, verify the result with `curl`. Replace
 the placeholder hostname with your own.
 
 ```sh
-curl -I https://mediakeeper.example.com/api/health
+curl -i https://mediakeeper.example.com/api/health
 ```
 
 Expected response headers (order may vary):
@@ -242,9 +247,10 @@ the LAN: an HTTP MITM there can replay session cookies.
 
 **Browser blocks scripts/styles/images with a Content-Security-Policy
 violation.**
-The shipped policy allows: `'self'` plus the YouTube IFrame API for
-scripts, `'self'` plus Google Fonts for styles and `'self'` plus
-TMDB/Imgur for images. If you deploy a customisation that loads other
+The shipped policy allows `'self'` plus: the YouTube IFrame API for
+scripts, Google Fonts for styles and fonts, TMDB, Imgur and YouTube
+thumbnails for images (with `data:` and `blob:`), and YouTube and Vimeo
+embeds for frames. If you deploy a customisation that loads other
 origins, switch to `MK_CSP_MODE=report-only` for a transition window,
 observe the violations in the browser console, and add the missing
 origins to a custom policy before going back to enforce mode.

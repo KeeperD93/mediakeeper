@@ -49,7 +49,7 @@ first address, read from the right, that is not a listed proxy.
 ## 3. MediaKeeper environment
 
 ```dotenv
-# NPM's IP on the network it shares with MediaKeeper. List NPM's IPs,
+# NPM's IP on the network it shares with MediaKeeper. Print NPM's IPs,
 # one line per network, with
 #   docker inspect <npm-container> --format '{{range $net, $cfg := .NetworkSettings.Networks}}{{$net}} {{$cfg.IPAddress}}{{println}}{{end}}'
 TRUSTED_PROXIES=172.18.0.5
@@ -65,21 +65,23 @@ survives a restart. Relayed visitors show up as that gateway: IPv6
 ones unless the network has IPv6 enabled, and all of them on Synology.
 There, use DSM's reverse proxy ([synology-dsm.md](synology-dsm.md)).
 
-NPM reaches MediaKeeper by its service name, so drop MediaKeeper's
-`8888:8888` port mapping: NPM does not need it. Do not forward to the
-host's IP instead. MediaKeeper would then see its own network gateway,
-which other containers on the host also connect from, and on Synology
-every LAN device too: any of them could choose the address MediaKeeper
-records.
+NPM reaches MediaKeeper by its service name once both containers share
+a Docker network: an external network that both compose files join, as
+in [traefik.md](traefik.md). Drop MediaKeeper's `8888:8888` port
+mapping: NPM does not need it. Do not forward to the host's IP instead:
+MediaKeeper would then see its own network gateway, and listing it would
+let other containers on the host, and every LAN device on Synology,
+choose the address MediaKeeper records.
 
 ## 4. Verify your setup
 
 ```bash
-curl -I https://mediakeeper.your-domain.example/api/health
+curl -i https://mediakeeper.your-domain.example/api/health
 # → HTTP/2 200 with HSTS + security headers
 ```
 
-From a browser DevTools console, on the public origin:
+From a browser DevTools console, on the public origin, signed in to the
+portal (room 1 exists once someone has opened the chat):
 
 ```js
 const ws = new WebSocket("wss://mediakeeper.your-domain.example/api/portal/chat/ws/1");
@@ -87,7 +89,7 @@ ws.onopen = () => console.log("upgraded ✔");
 ws.onerror = e => console.error("upgrade failed", e);
 ```
 
-A failed handshake means the Websockets toggle in NPM is off.
+A failed handshake then means the Websockets toggle in NPM is off.
 
 ## 5. Common pitfalls
 

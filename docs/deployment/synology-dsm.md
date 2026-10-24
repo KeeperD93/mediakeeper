@@ -55,18 +55,23 @@ every connection to a published port from the gateway: with the port
 open to the LAN, any device could choose the address MediaKeeper
 records.
 
-The gateway can change if the Compose network is recreated. Docker's
-usual private range is a wider alternative:
+The gateway can change if the Compose network is recreated. To keep
+it, give the network a fixed subnet in the compose file (any range no
+other Docker network uses):
 
-```dotenv
-TRUSTED_PROXIES=172.16.0.0/12
+```yaml
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+          gateway: 172.30.0.1
 ```
 
-It also trusts every container on MediaKeeper's network, and every LAN
-device if your LAN uses that range: any of them could then choose the
-address MediaKeeper records. Do not use a LAN range such as
-`192.168.0.0/16`: DSM never connects from it, so every visitor would
-share one address.
+Then set `TRUSTED_PROXIES=172.30.0.1`. Do not list a range instead:
+Docker's `172.16.0.0/12` would let containers on the NAS choose the
+address MediaKeeper records, and a LAN range such as `192.168.0.0/16`
+misses DSM's address, so every visitor would share one.
 
 If MediaKeeper boots with `TRUSTED_PROXIES` set but `FRONTEND_ORIGIN`
 left empty, you will see this WARN once at startup — set the public
@@ -111,7 +116,7 @@ Boot logs should print:
 From any machine on the LAN:
 
 ```bash
-curl -I https://mediakeeper.your-domain.example/api/health
+curl -i https://mediakeeper.your-domain.example/api/health
 # → HTTP/2 200, with security headers + HSTS
 
 curl -i \
