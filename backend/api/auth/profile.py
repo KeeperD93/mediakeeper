@@ -65,14 +65,16 @@ async def change_password(
 ):
     client_ip = get_client_ip(request) or UNKNOWN_CLIENT_IP
     user_agent = request.headers.get("user-agent")
-    await ensure_not_blocked(db, client_ip, current_user.username, PASSWORD_CHANGE_SCOPE)
+    # Lower-cased like the sign-in routes, so blocks and attempts carry one form of the name.
+    tracking_username = current_user.username.lower()
+    await ensure_not_blocked(db, client_ip, tracking_username, PASSWORD_CHANGE_SCOPE)
 
     if req.new_password != req.confirm_password:
         raise HTTPException(status_code=400, detail="password_mismatch")
 
     if not verify_password(req.current_password, current_user.hashed_password):
         await record_failure(
-            db, client_ip, current_user.username, PASSWORD_CHANGE_SCOPE, user_agent,
+            db, client_ip, tracking_username, PASSWORD_CHANGE_SCOPE, user_agent,
         )
         raise HTTPException(status_code=400, detail="current_password_invalid")
 
@@ -103,7 +105,7 @@ async def change_password(
     await db.refresh(user)
 
     await record_attempt(
-        db, client_ip, user.username, PASSWORD_CHANGE_SCOPE, success=True, user_agent=user_agent,
+        db, client_ip, tracking_username, PASSWORD_CHANGE_SCOPE, success=True, user_agent=user_agent,
     )
     new_token = create_access_token({"sub": user.username, "scope": "admin"})
     _set_jwt_cookie(response, new_token, request)

@@ -1,5 +1,6 @@
 """Login-security marker and the security dashboard API's error codes, shared by
-the sign-in and password-change routes, the rate-limit keys and the dashboard."""
+the sign-in and password-change routes, the rate-limit keys, the CSP report log
+and the dashboard."""
 from typing import Final
 
 __all__ = [

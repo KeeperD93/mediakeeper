@@ -33,14 +33,17 @@ class BlockRequest(BaseModel):
     blocked_until: datetime | None = None
     reason: str | None = Field(default=None, max_length=200)
 
-    @field_validator("username")
+    @field_validator("username", mode="before")
     @classmethod
-    def _normalize_username(cls, value: str | None) -> str | None:
-        # Stored in the trimmed, lower-cased form the sign-ins are matched with.
-        return (value or "").strip().lower() or None
+    def _normalize_username(cls, value: object) -> object:
+        # Stored in the trimmed, lower-cased form the sign-ins are matched with. Runs
+        # before max_length: lower() can lengthen a name ("İ" becomes two characters).
+        if isinstance(value, str):
+            return value.strip().lower() or None
+        return value
 
     @model_validator(mode="after")
-    def _at_least_one_target(self):
+    def _check_target_and_scope(self) -> "BlockRequest":
         if not self.ip and not self.username:
             raise ValueError(BLOCK_REQUIRES_IP_OR_USERNAME)
         if self.scope not in VALID_SCOPES:
@@ -93,7 +96,7 @@ async def post_block(
     # Refuse self-block: a block on the operator's own username or current IP
     # locks them out of the backoffice once their JWT expires (hard to recover
     # on a single-admin instance).
-    if payload.username and payload.username == (admin.username or "").strip().lower():
+    if payload.username and payload.username == admin.username.lower():
         raise HTTPException(status_code=400, detail=SELF_BLOCK_FORBIDDEN)
     # An IP is stored in the canonical form it is matched against; any other value as typed.
     ip = normalize_ip(payload.ip) or payload.ip

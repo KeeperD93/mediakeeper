@@ -91,7 +91,7 @@ async def login(req: LoginRequest, request: Request, response: Response, db: Asy
     # Normalize input for brute-force tracking so casing variants resolve to a
     # single rate-limit bucket. Raw req.username is kept for failure logs to
     # preserve the enumeration signal an operator can grep.
-    tracking_username = (req.username or "").strip().lower()
+    tracking_username = req.username.strip().lower()
     await ensure_not_blocked(db, client_ip, tracking_username, "admin")
 
     result = await db.execute(
@@ -168,13 +168,13 @@ async def portal_login(
     # Same normalization as /login: lower() for brute-force tracking, raw
     # input preserved for logs and for downstream Emby auth which keeps
     # its own casing semantics.
-    tracking_username = (req.username or "").strip().lower()
+    tracking_username = req.username.strip().lower()
     # Only gate on the admin scope here. The portal scope is gated later,
     # in the cascade branch, so a brute-force attempt on the portal doesn't
     # collaterally lock the admin login from the same IP.
     await ensure_not_blocked(db, client_ip, tracking_username, "admin")
 
-    username = (req.username or "").strip()
+    username = req.username.strip()
     result = await db.execute(
         select(User).where(func.lower(User.username) == tracking_username)
     )

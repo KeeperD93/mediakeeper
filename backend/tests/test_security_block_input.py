@@ -1,6 +1,8 @@
-"""Manual blocks: username normalization and the request schema's guards."""
+"""Security dashboard input: manual-block names, the block schema's guards and the attempts filter."""
 import pytest
 
+from core.security import hash_password
+from models.user import User
 from services.security import create_block, is_blocked
 
 
@@ -23,17 +25,38 @@ async def test_username_blocks_apply_whatever_the_case(authed_client, db_session
         assert await is_blocked(db_session, "198.51.100.3", name, "admin")
 
 
-@pytest.mark.parametrize("body, code", [
+@pytest.mark.asyncio
+async def test_self_block_is_refused_whatever_the_case(client, db_session, monkeypatch):
+    """Both sides are compared lower-cased: the typed name and the admin's stored name."""
+    monkeypatch.setenv("MK_ADMIN_USERS", "Keeper")
+    db_session.add(User(
+        username="Keeper",
+        hashed_password=hash_password("TestPassword123!"),
+        is_active=True,
+        must_change_password=False,
+    ))
+    await db_session.commit()
+    login = await client.post("/api/auth/login", json={"username": "keeper", "password": "TestPassword123!"})
+    assert login.status_code == 200, login.text
+
+    resp = await client.post("/api/security/blocks", json={"username": " KEEPER ", "scope": "all"})
+    assert resp.status_code == 400
+    assert resp.json()["detail"] == "self_block_forbidden"
+
+
+@pytest.mark.parametrize("body, expected", [
     ({"scope": "all"}, "block_requires_ip_or_username"),
     ({"ip": "", "username": "  ", "scope": "all"}, "block_requires_ip_or_username"),
     ({"ip": "203.0.113.9", "scope": "bogus"}, "invalid_scope"),
+    # Lower-casing turns each "İ" into two characters: the limit applies to the stored form.
+    ({"username": "İ" * 60, "scope": "all"}, "at most 100 characters"),
 ])
 @pytest.mark.asyncio
-async def test_post_block_schema_rejects_bad_input(authed_client, body, code):
+async def test_post_block_schema_rejects_bad_input(authed_client, body, expected):
     """The request schema is the only guard in front of create_block."""
     resp = await authed_client.post("/api/security/blocks", json=body)
     assert resp.status_code == 422
-    assert code in resp.json()["detail"][0]["msg"]
+    assert expected in resp.json()["detail"][0]["msg"]
 
 
 @pytest.mark.asyncio

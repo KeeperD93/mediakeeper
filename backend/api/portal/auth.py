@@ -108,7 +108,7 @@ async def _log_login(
         from models.portal.login_history import UserLoginHistory
         db.add(UserLoginHistory(
             user_id=user_id,
-            username=(username or "")[:100] or None,
+            username=username,
             source=source,
             success=success,
             ip=ip,
@@ -139,7 +139,7 @@ async def portal_login(
     # single rate-limit bucket (mirrors api.auth.login). Raw req.username is
     # kept for Emby auth (its own casing semantics), the enumeration warning
     # log and the login-history row.
-    tracking_username = (req.username or "").strip().lower()
+    tracking_username = req.username.strip().lower()
     await ensure_not_blocked(db, client_ip, tracking_username, "portal")
 
     # Shadow-skip Emby once we already recorded a recent failure, so Emby's
