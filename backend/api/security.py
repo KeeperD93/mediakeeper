@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.security import BLOCK_REQUIRES_IP_OR_USERNAME, INVALID_SCOPE, SELF_BLOCK_FORBIDDEN
 from core.database import get_db
 from core.proxy import get_client_ip, normalize_ip
 from models.user import User
@@ -35,9 +36,9 @@ class BlockRequest(BaseModel):
     @model_validator(mode="after")
     def _at_least_one_target(self):
         if not self.ip and not self.username:
-            raise ValueError("block_requires_ip_or_username")
+            raise ValueError(BLOCK_REQUIRES_IP_OR_USERNAME)
         if self.scope not in VALID_SCOPES:
-            raise ValueError("invalid_scope")
+            raise ValueError(INVALID_SCOPE)
         return self
 
 
@@ -50,7 +51,7 @@ async def get_attempts(
     _: User = Depends(get_current_user),
 ):
     if scope and scope not in VALID_SCOPES:
-        raise HTTPException(status_code=400, detail="invalid_scope")
+        raise HTTPException(status_code=400, detail=INVALID_SCOPE)
     return {
         "items": await list_recent_attempts(
             db, limit=limit, scope=scope, only_failures=only_failures,
@@ -87,24 +88,21 @@ async def post_block(
     # locks them out of the backoffice once their JWT expires (hard to recover
     # on a single-admin instance).
     if payload.username and payload.username.strip().lower() == (admin.username or "").strip().lower():
-        raise HTTPException(status_code=400, detail="self_block_forbidden")
-    # Stored in the canonical form of the client IPs it is matched against.
+        raise HTTPException(status_code=400, detail=SELF_BLOCK_FORBIDDEN)
+    # An IP is stored in the canonical form it is matched against; any other value as typed.
     ip = normalize_ip(payload.ip) or payload.ip
     if ip and ip == get_client_ip(request):
-        raise HTTPException(status_code=400, detail="self_block_forbidden")
-    try:
-        block_id = await create_block(
-            db,
-            admin_id=admin.id,
-            ip=ip,
-            username=payload.username,
-            scope=payload.scope,
-            permanent=payload.permanent,
-            blocked_until=blocked_until,
-            reason=payload.reason,
-        )
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
+        raise HTTPException(status_code=400, detail=SELF_BLOCK_FORBIDDEN)
+    block_id = await create_block(
+        db,
+        admin_id=admin.id,
+        ip=ip,
+        username=payload.username,
+        scope=payload.scope,
+        permanent=payload.permanent,
+        blocked_until=blocked_until,
+        reason=payload.reason,
+    )
     return {"id": block_id}
 
 

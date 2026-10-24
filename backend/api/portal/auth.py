@@ -1,12 +1,13 @@
 """Portal authentication via Emby."""
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response, status
 from sqlalchemy import select, update
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.security import UNKNOWN_CLIENT_IP
 from core.database import get_db
 from core.proxy import get_client_ip
 from core.rate_limit import ip_key, limiter
@@ -110,7 +111,7 @@ async def _log_login(
             username=(username or "")[:100] or None,
             source=source,
             success=success,
-            ip=(ip or "")[:64] or None,
+            ip=ip or None,
             user_agent=(user_agent or "")[:255] or None,
         ))
         await db.commit()
@@ -132,7 +133,7 @@ async def portal_login(
     db: AsyncSession = Depends(get_db),
 ):
     """Authenticate via Emby and issue JWT cookie."""
-    client_ip = get_client_ip(request) or "unknown"
+    client_ip = get_client_ip(request) or UNKNOWN_CLIENT_IP
     user_agent = request.headers.get("user-agent")
     # Normalize input for brute-force tracking so casing variants resolve to a
     # single rate-limit bucket (mirrors api.auth.login). Raw req.username is
@@ -187,10 +188,9 @@ async def portal_login(
     # Stamp the profile with login metadata so the admin "Users" page
     # can surface online state, last IP and last user-agent.
     try:
-        from datetime import datetime, timezone
         profile.last_login_at = datetime.now(timezone.utc)
         profile.last_seen_at = profile.last_login_at
-        profile.last_login_ip = (client_ip or "")[:64] or None
+        profile.last_login_ip = client_ip or None
         profile.last_login_user_agent = (user_agent or "")[:255] or None
         db.add(profile)
         await db.commit()
@@ -250,7 +250,6 @@ async def portal_me(
     # indicator. We only re-write when the previous bump is older than
     # 30s to avoid hammering the DB on a noisy /me poll.
     try:
-        from datetime import datetime, timezone, timedelta
         now = datetime.now(timezone.utc)
         previous = profile.last_seen_at
         if previous is None or previous.tzinfo is None or (now - previous) > timedelta(seconds=30):

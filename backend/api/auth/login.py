@@ -1,4 +1,4 @@
-"""Endpoints /login et /portal-login."""
+"""Endpoints /login and /portal-login."""
 import logging
 import secrets
 from datetime import datetime, timezone
@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.security import UNKNOWN_CLIENT_IP
 from core.database import get_db
 from core.proxy import get_client_ip
 from core.rate_limit import ip_key, limiter
@@ -65,7 +66,7 @@ async def _stamp_admin_login(
         now = datetime.now(timezone.utc)
         profile.last_login_at = now
         profile.last_seen_at = now
-        profile.last_login_ip = (client_ip or "")[:64] or None
+        profile.last_login_ip = client_ip or None
         profile.last_login_user_agent = (user_agent or "")[:255] or None
         db.add(profile)
         await db.commit()
@@ -85,7 +86,7 @@ router = APIRouter()
 @limiter.limit("5/minute", key_func=ip_key)
 async def login(req: LoginRequest, request: Request, response: Response, db: AsyncSession = Depends(get_db)):
     """Authenticate and place the admin JWT in an httpOnly cookie."""
-    client_ip = get_client_ip(request) or "unknown"
+    client_ip = get_client_ip(request) or UNKNOWN_CLIENT_IP
     user_agent = request.headers.get("user-agent")
     # Normalize input for brute-force tracking so casing variants resolve to a
     # single rate-limit bucket. Raw req.username is kept for failure logs to
@@ -162,7 +163,7 @@ async def portal_login(
     - Imported Emby/Jellyfin accounts only receive rq_token and
       are redirected to the portal on the frontend.
     """
-    client_ip = get_client_ip(request) or "unknown"
+    client_ip = get_client_ip(request) or UNKNOWN_CLIENT_IP
     user_agent = request.headers.get("user-agent")
     # Same normalization as /login: lower() for brute-force tracking, raw
     # input preserved for logs and for downstream Emby auth which keeps

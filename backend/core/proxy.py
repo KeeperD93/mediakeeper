@@ -102,7 +102,8 @@ def _forwarded_client(header_values: list[str], peer: str, networks: list[_Netwo
 
     Each proxy appends the address it received the request from, so only the
     hops added by trusted proxies are believed; anything further left was
-    written by the client. A malformed hop ends the walk on the last good one.
+    written by the client. A malformed hop ends the walk on the last good one,
+    and when every hop is trusted the leftmost is kept.
     """
     client = peer
     hops = [hop for value in header_values for hop in value.split(",") if hop.strip()]
@@ -144,7 +145,7 @@ class ProxyHeadersMiddleware(BaseHTTPMiddleware):
         if self._networks and is_trusted_proxy_host(client_host, self._networks):
             forwarded = request.headers.getlist("x-forwarded-for")
             if forwarded and client is not None:
-                xff_ip = _forwarded_client(forwarded, client_host, self._networks)
+                xff_ip = _forwarded_client(forwarded, client[0], self._networks)
                 scope["client"] = (xff_ip, client[1])
 
             xfp = request.headers.get("x-forwarded-proto", "").split(",", 1)[0].strip().lower()

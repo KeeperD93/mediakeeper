@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.security import BLOCK_REQUIRES_IP_OR_USERNAME
 from models.security import SecurityAttempt, SecurityBlock
 
 
@@ -35,7 +36,7 @@ async def list_active_blocks(db: AsyncSession) -> list[dict]:
 async def create_block(
     db: AsyncSession,
     *,
-    admin_id: int,
+    admin_id: int | None,
     ip: str | None,
     username: str | None,
     scope: str,
@@ -44,7 +45,7 @@ async def create_block(
     reason: str | None = None,
 ) -> int:
     if not ip and not username:
-        raise ValueError("block_requires_ip_or_username")
+        raise ValueError(BLOCK_REQUIRES_IP_OR_USERNAME)
     row = SecurityBlock(
         ip=ip or None,
         username=username or None,

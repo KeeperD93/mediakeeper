@@ -1,4 +1,4 @@
-"""Endpoints profil current : /me, /change-password, /refresh, /logout, /preferences."""
+"""Current-account endpoints: profile, password change, session refresh and logout, preferences."""
 import json
 import logging
 from datetime import datetime, timezone
@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.security import UNKNOWN_CLIENT_IP
 from core.database import get_db
 from core.proxy import get_client_ip
 from core.rate_limit import admin_user_or_ip_key, limiter
@@ -62,7 +63,7 @@ async def change_password(
     current_user: User = Depends(get_current_user),
     db:           AsyncSession = Depends(get_db),
 ):
-    client_ip = get_client_ip(request) or "unknown"
+    client_ip = get_client_ip(request) or UNKNOWN_CLIENT_IP
     user_agent = request.headers.get("user-agent")
     await ensure_not_blocked(db, client_ip, current_user.username, PASSWORD_CHANGE_SCOPE)
 
