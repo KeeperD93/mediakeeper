@@ -21,8 +21,9 @@ docker run -d \
   ghcr.io/keeperd93/mediakeeper:beta
 ```
 
-`/etc/mediakeeper.env` carries the secrets (`JWT_SECRET_KEY` is
-mandatory, the rest is optional).
+`/etc/mediakeeper.env` carries your settings, all optional: the
+container generates its secrets on first start and keeps them in
+`/data`.
 
 ## 2. Environment
 
@@ -37,25 +38,28 @@ COOKIE_SECURE=false
 
 Empty `FRONTEND_ORIGIN` opts the chat WebSocket into the auto-derive
 guard (Origin compared against the `Host` header). MediaKeeper writes
-one WARN line at boot reminding you to lock this down once you settle
-on a permanent hostname.
+one WARN line at the first chat connection reminding you to lock this
+down once you settle on a permanent hostname.
 
 If you reach the UI over HTTPS via a self-signed certificate or VPN,
 flip `COOKIE_SECURE=true` so session cookies stop downgrading.
 
 ### Persistent encryption key
 
-Even on a direct-LAN deployment, set `MEDIAKEEPER_ENCRYPTION_KEY`
-**before the first `docker compose up`** so encrypted secrets
-(integration tokens, Discord URLs…) survive a container restart:
+On first start the container generates the key that encrypts stored
+secrets (integration tokens, Discord URLs…) and keeps it in
+`/data/.encryption_key`, on the volume mounted above. To manage it
+yourself, set `MEDIAKEEPER_ENCRYPTION_KEY` **before the first start**,
+or to the value already in that file: the variable wins over the file,
+and secrets stored under another key become unreadable.
 
 ```dotenv
 MEDIAKEEPER_ENCRYPTION_KEY=<paste your fernet key here>
 ```
 
-Without it, MediaKeeper boots on an in-memory key and the admin UI
-shows a persistent red banner; values written under that key become
-unreadable as soon as the container restarts.
+Without the variable or that file, MediaKeeper boots on an in-memory
+key and the admin UI shows a persistent red banner; values written
+under that key become unreadable as soon as the container restarts.
 
 ## 3. Verify your setup
 

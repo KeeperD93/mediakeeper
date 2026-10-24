@@ -21,7 +21,7 @@ if not SECRET_KEY:
 if not SECRET_KEY:
     raise RuntimeError(
         "JWT_SECRET_KEY is not set and /data/.jwt_secret was not found. "
-        "Set JWT_SECRET_KEY in .env or let the container generate it automatically."
+        "Set JWT_SECRET_KEY or let the container generate it automatically."
     )
 if SECRET_KEY == _ENV_EXAMPLE_PLACEHOLDER:
     raise RuntimeError(

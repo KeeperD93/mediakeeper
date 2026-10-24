@@ -112,12 +112,13 @@ add the certificate to the device trust store to silence the warning.
 
 ## 3. MediaKeeper configuration
 
-Two environment variables drive the proxy integration on MediaKeeper's
-side. Both are read at container startup.
+Three environment variables drive the proxy integration on MediaKeeper's
+side. All are read at container startup.
 
 | Variable | Default | Purpose |
 |---|---|---|
 | `TRUSTED_PROXIES` | empty | CSV of CIDR/IPs allowed to set `X-Forwarded-*`. When empty the headers are ignored entirely (failsafe). |
+| `FRONTEND_ORIGIN` | empty | Public origin of the site, e.g. `https://mediakeeper.example.com`. Makes the chat WebSocket check strict; left empty behind a proxy, it triggers a startup warning. |
 | `COOKIE_SECURE` | unset | Force `Secure` on session cookies regardless of detection. Set to `true` once TLS is in place. |
 
 `TRUSTED_PROXIES` accepts bare IPs and CIDRs, comma-separated:
@@ -145,15 +146,18 @@ Typical values:
   them on Synology. There, use DSM's reverse proxy
   ([synology-dsm.md](../deployment/synology-dsm.md)).
 
-Set both variables in the same `.env` file used by `docker compose`:
+Set the three variables in the `environment:` section of MediaKeeper's
+compose file:
 
-```env
-COOKIE_SECURE=true
-TRUSTED_PROXIES=172.18.0.1
+```yaml
+environment:
+  - COOKIE_SECURE=true
+  - FRONTEND_ORIGIN=https://mediakeeper.example.com
+  - TRUSTED_PROXIES=172.18.0.1
 ```
 
-Restart the container (`docker compose up -d`) for the new values to
-take effect.
+Run `docker compose up -d` again: it recreates the container with the
+new values.
 
 ---
 
@@ -220,7 +224,7 @@ The presence of `Secure` proves that MediaKeeper detected the
 
 **Boot log shows `COOKIE_HTTPS_FLAG=` instead of `COOKIE_SECURE=`.**
 The boot log label `COOKIE_HTTPS_FLAG=` corresponds to the env var
-`COOKIE_SECURE` you configure in your `.env`. The log label avoids
+`COOKIE_SECURE`. The log label avoids
 the `SECURE` substring to keep static analysis (CodeQL) from
 misclassifying the log line as a sensitive-data leak. You keep
 configuring the env var under its own name (`COOKIE_SECURE=true`,
@@ -239,7 +243,7 @@ that override always wins.
 If you intentionally run MediaKeeper over plain HTTP on a LAN you
 trust (no public exposure, no reverse proxy, no Internet route),
 the startup warning above is informational and expected. Setting
-`COOKIE_SECURE=false` in your `.env` acknowledges the trade-off
+`COOKIE_SECURE=false` acknowledges the trade-off
 and silences the warning at every subsequent boot — the cookies
 remain non-Secure, which is the only behaviour HTTP-only can
 support. Do **not** use this on any host reachable from outside

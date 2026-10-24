@@ -32,7 +32,8 @@ better Vue bundle delivery.
 
 ## 2. MediaKeeper environment
 
-Drop these lines in `/etc/mediakeeper.env`:
+Set these variables in the `environment:` section of MediaKeeper's
+compose file:
 
 ```dotenv
 # DSM's reverse proxy reaches the container through the Docker network
@@ -83,14 +84,18 @@ origin to silence it:
 rejected until FRONTEND_ORIGIN is set to the public URL …
 ```
 
-Restart the container so the new env takes effect.
+Run `docker compose up -d` again: it recreates the container with the
+new values.
 
 ### Persistent encryption key
 
-Set `MEDIAKEEPER_ENCRYPTION_KEY` (any 32-byte url-safe base64 value)
-**before the first `docker compose up`** so every encrypted secret
-written from then on (Discord webhooks, Imgur secret, Emby tokens…)
-survives a container restart:
+On first boot the container generates the key that encrypts stored
+secrets (Discord webhooks, Imgur secret, Emby tokens…) and keeps it in
+`/data/.encryption_key`. To manage it yourself, set
+`MEDIAKEEPER_ENCRYPTION_KEY` (any 32-byte url-safe base64 value)
+**before the first `docker compose up`**, or to the value already in
+that file: the variable wins over the file, and secrets stored under
+another key become unreadable.
 
 ```dotenv
 # Generate once and keep safe — losing it makes encrypted DB rows unreadable.

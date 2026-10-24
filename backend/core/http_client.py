@@ -1,7 +1,7 @@
 """
 Shared HTTP client (httpx).
 - A single connection pool for the whole application.
-- SSL configurable via VERIFY_SSL in .env.
+- SSL verification configurable via the VERIFY_SSL environment variable.
 - The external client routes through a DNS-pinned transport
   (:mod:`core.safe_http`) so server-side notifiers can never be
   redirected to private addresses via DNS rebinding (SSRF).

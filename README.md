@@ -200,7 +200,7 @@ This uses `docker-compose.yml` (with `build: .`) and compiles a fresh image from
 
 ### First boot
 
-**No `.env` required for a first boot**. MediaKeeper auto-generates everything sensitive on first startup and persists it under `/data/`:
+**Nothing to configure for a first boot**. MediaKeeper auto-generates everything sensitive on first startup and persists it under `/data/`:
 
 - the PostgreSQL password,
 - the JWT secret,
@@ -220,7 +220,7 @@ docker compose logs mediakeeper | grep -A 6 "ADMIN ACCOUNT CREATED"
 
 Then open `http://<host>:8888`, sign in as `admin` with that password - a password change is forced on first connection.
 
-**Need to customise?** Copy `.env.example` to `.env` and adjust the variables you need (e.g. `TMDB_API_KEY`, `FRONTEND_ORIGIN`, `MEDIAKEEPER_PATH_ROOTS`) before running `docker compose up -d`. Auto-generated values are respected on subsequent boots.
+**Need to customise?** Add the variables you need (e.g. `TMDB_API_KEY`, `FRONTEND_ORIGIN`, `MEDIAKEEPER_PATH_ROOTS`) to the `environment:` section of your compose file, then run `docker compose up -d` again. `.env.example` describes them all. Auto-generated values are respected on subsequent boots.
 
 The application runs database migrations automatically at boot.
 
