@@ -3,25 +3,21 @@
 Caddy is the easiest TLS-terminating reverse proxy for MediaKeeper:
 automatic Let's Encrypt issuance, native WebSocket forwarding, no
 configuration boilerplate. The whole reverse-proxy contract fits in
-six lines of `Caddyfile`.
+four lines of `Caddyfile`.
 
 ## 1. Caddyfile
 
 ```caddy
 mediakeeper.your-domain.example {
     encode gzip zstd
-
-    reverse_proxy 127.0.0.1:8888 {
-        header_up X-Forwarded-Proto {scheme}
-        header_up X-Forwarded-Host  {host}
-    }
+    reverse_proxy 127.0.0.1:8888
 }
 ```
 
 Caddy preserves the `Upgrade` / `Connection` headers by default, so
 the chat WebSocket works without an explicit toggle. It also sets
-`X-Forwarded-For` to the visitor's address by itself; do not override
-it with a `header_up` line.
+`X-Forwarded-For`, `X-Forwarded-Proto` and `X-Forwarded-Host` by
+itself; do not override them with `header_up` lines.
 
 If Caddy and MediaKeeper run in the same Docker Compose network,
 swap `127.0.0.1:8888` for the service name (`mediakeeper:8888`).
@@ -32,15 +28,17 @@ swap `127.0.0.1:8888` for the service name (`mediakeeper:8888`).
 # Caddy on the host reaches the container through the Docker network
 # gateway, not 127.0.0.1. Read it with `docker network inspect
 # <project>_default` (Gateway field). If Caddy runs in the same
-# Compose network, use the Caddy container's IP instead.
+# Compose network, use the Caddy container's IP instead and pin it
+# with `ipv4_address` so it survives a restart.
 TRUSTED_PROXIES=172.18.0.1
 FRONTEND_ORIGIN=https://mediakeeper.your-domain.example
 COOKIE_SECURE=true
 ```
 
-Docker relays some connections to a published port (IPv6 visitors)
-from that same gateway. Publish MediaKeeper on the loopback only
-(`127.0.0.1:8888:8888` in the compose file), which is all Caddy needs.
+Docker can relay other connections to a published port from that same
+gateway (IPv6 visitors, and every visitor on Synology). Publish
+MediaKeeper on the loopback only (`127.0.0.1:8888:8888` in the compose
+file), which is all Caddy needs.
 
 ## 3. Verify your setup
 

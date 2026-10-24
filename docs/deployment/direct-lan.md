@@ -86,10 +86,13 @@ Move to a reverse proxy when any of these become true:
 - The service is reachable from the public Internet.
 - You want browser-trusted TLS without ad-hoc certificate management.
 - You expose a friendly hostname (`mediakeeper.lan`) instead of an IP.
+- The Security tab of the settings shows the same address for every
+  visitor. On Synology, Docker relays every connection from its
+  network gateway, so three wrong passwords block everyone.
 
 The matching guides — [synology-dsm.md](synology-dsm.md),
 [nginx-proxy-manager.md](nginx-proxy-manager.md),
 [caddy.md](caddy.md), [traefik.md](traefik.md) — share the same Mode B
-contract: set `TRUSTED_PROXIES` to the proxy IP or CIDR, set
-`FRONTEND_ORIGIN` to the public origin, and forward the WebSocket
+contract: set `TRUSTED_PROXIES` to the address the proxy connects from,
+set `FRONTEND_ORIGIN` to the public origin, and forward the WebSocket
 upgrade headers.

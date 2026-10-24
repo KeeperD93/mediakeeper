@@ -42,11 +42,7 @@ on MediaKeeper's side.
 ```caddy
 mediakeeper.example.com {
     encode gzip
-
-    reverse_proxy 127.0.0.1:8888 {
-        header_up X-Forwarded-Proto {scheme}
-        header_up X-Forwarded-Host  {host}
-    }
+    reverse_proxy 127.0.0.1:8888
 }
 ```
 
@@ -111,21 +107,24 @@ side. Both are read at container startup.
 | `TRUSTED_PROXIES` | empty | CSV of CIDR/IPs allowed to set `X-Forwarded-*`. When empty the headers are ignored entirely (failsafe). |
 | `COOKIE_SECURE` | unset | Force `Secure` on session cookies regardless of detection. Set to `true` once TLS is in place. |
 
-`TRUSTED_PROXIES` accepts both bare IPs and CIDRs:
+`TRUSTED_PROXIES` accepts bare IPs and CIDRs, comma-separated:
 
 ```env
 TRUSTED_PROXIES=172.18.0.1
-TRUSTED_PROXIES=172.18.0.1,<TRUSTED_CIDR>
+TRUSTED_PROXIES=172.18.0.1,<CDN_CIDR>
 ```
 
-Use the CIDR of the network the proxy lives on. Typical values:
+List the address each proxy connects from, never a whole LAN range.
+Typical values:
 
 - The Docker network gateway (`docker network inspect`, Gateway
-  field), e.g. `172.18.0.1` — proxy on the same host as the
+  field), e.g. `172.18.0.1`, for a proxy on the same host as the
   container: Docker relays its connections from that address, not
-  from `127.0.0.1`.
-- A `/16` Docker bridge network when the proxy runs as a sibling
-  container, e.g. `<TRUSTED_CIDR>` such as `172.18.0.0/16`.
+  from `127.0.0.1`. It can relay other connections to a published
+  port from there too (IPv6 visitors, and every visitor on Synology),
+  so publish the port on the loopback only (`127.0.0.1:8888:8888`).
+- The proxy container's own IP when it shares a network with
+  MediaKeeper. Not the whole network: it contains the gateway.
 - `<LAN_GATEWAY>` — the gateway address of a small home LAN where
   the proxy is the only TLS-terminating box.
 
@@ -133,7 +132,7 @@ Set both variables in the same `.env` file used by `docker compose`:
 
 ```env
 COOKIE_SECURE=true
-TRUSTED_PROXIES=172.18.0.1,<TRUSTED_CIDR>
+TRUSTED_PROXIES=172.18.0.1
 ```
 
 Restart the container (`docker compose up -d`) for the new values to
@@ -150,7 +149,8 @@ networks in `TRUSTED_PROXIES`:
   is not in `TRUSTED_PROXIES` becomes the request client IP, used by
   the audit log, the rate limiter and the security blocklist. Anything
   further left was written by the client and is ignored; a value that
-  is not an IP keeps the proxy's address.
+  is not an IP stops the reading on the last valid address, a trusted
+  proxy's.
 - `X-Forwarded-Proto` is honoured: a value of `https` activates the
   `Secure` flag on session cookies and triggers the HSTS header.
 - `X-Forwarded-Host` is honoured by the CSRF Origin/Referer check, so
@@ -210,8 +210,8 @@ configuring the env var under its own name (`COOKIE_SECURE=true`,
 etc.) — only the log label differs.
 
 **Cookies still emitted without `Secure` after configuring TLS.**
-Check that the proxy IP belongs to one of the CIDRs declared in
-`TRUSTED_PROXIES`. The container logs print one warning at startup
+Check that `TRUSTED_PROXIES` lists the address the proxy connects
+from. The container logs print one warning at startup
 when no trust source is configured:
 `COOKIE_SECURE is unset and TRUSTED_PROXIES is empty in
 production-like mode`.
@@ -246,7 +246,7 @@ forwards the connection over TLS to the container, rare) or the
 **`X-Forwarded-Host` ignored / CSRF rejecting same-origin requests.**
 The CSRF middleware computes the canonical origin from
 `X-Forwarded-Host` only when the proxy is in `TRUSTED_PROXIES`. Add
-the proxy CIDR to the list, then restart the container.
+the proxy's address to the list, then restart the container.
 
 **Healthcheck failing after enabling TLS.**
 The Docker healthcheck is `curl -f http://localhost:8888/api/health`,

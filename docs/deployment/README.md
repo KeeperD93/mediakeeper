@@ -20,15 +20,18 @@ If your stack is not listed, the contract is identical to the others:
 2. Forward the WebSocket `Upgrade` and `Connection` headers (chat
    WebSocket lives at `/api/portal/chat/ws/<room_id>`).
 3. List every proxy between the visitor and MediaKeeper in
-   `TRUSTED_PROXIES`, a CDN or a tunnel included. Each one must append
-   to `X-Forwarded-For`: MediaKeeper reads that header from the right
-   and keeps the first address that is not a listed proxy. A proxy on
-   the Docker host connects from the Docker network gateway
-   (`docker network inspect`), not from `127.0.0.1` or the host's LAN
-   address. Do not trust a whole LAN range: any device on it could
-   then choose the address MediaKeeper records. After a wrong
-   password, the Security tab of the settings should show your own
-   address, not the proxy's.
+   `TRUSTED_PROXIES`, a CDN or a tunnel included. List the address
+   each one connects from, never a whole LAN range: any device on it
+   could then choose the address MediaKeeper records. MediaKeeper reads
+   `X-Forwarded-For` from the right and keeps the first address that is
+   not a listed proxy, so a proxy behind another one must append to it.
+   A proxy on the Docker host connects from the Docker network gateway
+   (`docker network inspect <project>_default`), not from `127.0.0.1`.
+   Docker can relay other connections to a published port from that
+   gateway too (IPv6 visitors, and every visitor on Synology), so
+   publish MediaKeeper on the loopback only (`127.0.0.1:8888:8888`).
+   After a wrong password, the Security tab of the settings should
+   show your own address, not the proxy's.
 4. Set `FRONTEND_ORIGIN` to the public origin so the chat WebSocket
    guard switches to strict-allowlist mode. Leaving it empty in Mode B
    triggers a one-shot startup WARN reminding you to set it (CORS

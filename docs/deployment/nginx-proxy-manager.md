@@ -33,8 +33,9 @@ WebSocket path`.
 NPM appends the visitor's address to `X-Forwarded-For`, which is what
 MediaKeeper expects. By default it also replaces that address with the
 request's own `X-Real-IP` header when the connection comes from a
-private or CDN address, so any device on your LAN could choose the
-address MediaKeeper records. Paste this line in the proxy host's
+private or CDN address. LAN devices, and the visitors Docker relays to
+NPM, connect from such addresses and could choose the address
+MediaKeeper records. Paste this line in the proxy host's
 **Advanced** tab to turn that off:
 
 ```nginx
@@ -48,20 +49,26 @@ first address, read from the right, that is not a listed proxy.
 ## 3. MediaKeeper environment
 
 ```dotenv
-# 172.17.0.1 is the default Docker bridge gateway as seen from inside
-# the MediaKeeper container; substitute the actual NPM container IP
-# (or its CIDR) on your network.
-TRUSTED_PROXIES=172.17.0.0/16
+# NPM's IP on the network it shares with MediaKeeper. Read it with
+#   docker inspect <npm-container> --format '{{range .NetworkSettings.Networks}}{{.IPAddress}} {{end}}'
+TRUSTED_PROXIES=172.18.0.5
 FRONTEND_ORIGIN=https://mediakeeper.your-domain.example
 COOKIE_SECURE=true
 ```
 
-`TRUSTED_PROXIES` accepts a CIDR so you don't have to update it every
-time NPM's container restarts on a different IP. Limit the CIDR as
-narrowly as your network design allows. If NPM reaches MediaKeeper by
-its service name, also drop MediaKeeper's `8888:8888` port mapping:
-Docker relays some connections to a published port (IPv6 visitors,
-processes on the host) from the gateway, which this range trusts.
+List NPM's own address, not its network: Docker can relay visitors to
+NPM from that network's gateway, and a range that includes it would
+let them choose the address MediaKeeper records. Pin the address with
+`ipv4_address` (on a network created with a fixed subnet) so it
+survives a restart. Relayed visitors show up as that gateway: IPv6
+ones unless the network has IPv6 enabled, and all of them on Synology.
+There, use DSM's reverse proxy ([synology-dsm.md](synology-dsm.md)).
+
+If NPM reaches MediaKeeper by its service name, drop MediaKeeper's
+`8888:8888` port mapping: NPM does not need it. If it forwards to the
+host's IP instead, MediaKeeper sees its own network gateway: list
+that, and bind the port to the host's IPv4 address
+(`192.0.2.10:8888:8888`).
 
 ## 4. Verify your setup
 
@@ -90,3 +97,6 @@ A failed handshake means the Websockets toggle in NPM is off.
 - **Multiple domains** pointing at the same proxy host → list every
   one in `FRONTEND_ORIGIN` (CSV) so chat WS handshakes from the
   alternate hostname pass the allowlist.
+- **Every visitor shows the same address** in the Security tab of the
+  settings → `TRUSTED_PROXIES` does not match the address NPM connects
+  from. Three wrong passwords would then block everyone.

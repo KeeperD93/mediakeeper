@@ -15,17 +15,12 @@ Create a new entry pointing at the container:
 | Source — Hostname | `mediakeeper.your-domain.example` |
 | Source — Port | 443 |
 | Destination — Protocol | HTTP |
-| Destination — Hostname | `localhost` (or container hostname) |
+| Destination — Hostname | `127.0.0.1` |
 | Destination — Port | 8888 |
 
-In the **Custom Header** tab, append three rows so MediaKeeper sees
-the real client metadata:
-
-```
-X-Forwarded-Host   $host
-X-Forwarded-Proto  https
-X-Forwarded-For    $remote_addr
-```
+DSM 7 already forwards `Host`, `X-Forwarded-For` and
+`X-Forwarded-Proto` to the container: no custom header row is needed
+for them.
 
 In the **WebSocket** tab, tick **Enable WebSocket**. Without this DSM
 strips the Upgrade header and the chat handshake degrades into a 426
@@ -54,19 +49,22 @@ strict allowlist; `COOKIE_SECURE=true` is redundant once HTTPS is
 detected, but explicit is better when DSM ever swaps to a non-stable
 intermediate hop.
 
-The gateway changes if the Compose network is recreated. The Docker
-private range is a wider alternative:
+Publish the port on the loopback only (`127.0.0.1:8888:8888` in the
+compose file). DSM reaches it through `127.0.0.1`, and Docker on DSM
+relays every connection to a published port from that same gateway:
+with the port open to the LAN, any device could choose its address.
+
+The gateway can change if the Compose network is recreated. Docker's
+usual private range is a wider alternative:
 
 ```dotenv
 TRUSTED_PROXIES=172.16.0.0/12
 ```
 
-It also trusts every other container on the NAS. With either value,
-connections that Docker relays to the published port (IPv6 visitors)
-arrive from the gateway too, so keep that port closed to outside IPv6
-traffic. Do not use a LAN range such as `192.168.0.0/16`: DSM does not
-connect from it, and any LAN device could then choose the address
-MediaKeeper records.
+It also trusts every container on MediaKeeper's network, which could
+then choose the address MediaKeeper records. Do not use a LAN range
+such as `192.168.0.0/16`: DSM does not connect from it, and any LAN
+device could choose that address.
 
 If MediaKeeper boots with `TRUSTED_PROXIES` set but `FRONTEND_ORIGIN`
 left empty, you will see this WARN once at startup — set the public
@@ -130,13 +128,9 @@ DSM is off.
 
 - **WebSocket toggle disabled** → chat fails to connect, MediaKeeper
   logs the operator hint.
-- **Custom Header tab empty** → MediaKeeper sees the Docker gateway
-  as the client, cookies do not gain the `Secure` flag, the CSRF Origin
-  check rejects requests because `Host` is the LAN name instead of
-  the public hostname.
 - **Every visitor shows the same address** in the Security tab of the
   settings → `TRUSTED_PROXIES` does not match the address DSM connects
   from. Three wrong passwords would then block everyone.
-- **A CDN in front of DSM** → set the `X-Forwarded-For` row to
-  `$proxy_add_x_forwarded_for` so DSM keeps the CDN's header, and list
-  the CDN's ranges in `TRUSTED_PROXIES`.
+- **A CDN in front of DSM** → list the CDN's ranges in
+  `TRUSTED_PROXIES`. DSM already appends to the CDN's
+  `X-Forwarded-For`.
