@@ -5,18 +5,24 @@ import ipaddress
 
 import pytest
 from httpx import AsyncClient, ASGITransport
+from sqlalchemy import select
 from starlette.applications import Starlette
+from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.routing import Route
 
 from core.proxy import (
     ProxyHeadersMiddleware,
+    get_client_ip,
     is_request_from_trusted_proxy,
     is_request_secure,
     is_trusted_proxy_host,
+    normalize_ip,
     parse_trusted_proxies,
     trusted_forwarded_host,
 )
+from models.security import SecurityAttempt
+from services.security import FAIL_BLOCK_THRESHOLD, is_blocked, record_failure
 
 
 def _build_app(trusted: list):
@@ -116,16 +122,93 @@ async def test_xff_honoured_when_proxy_in_whitelist():
     assert body["fwd_host"] == "mediakeeper.example.com"
 
 
+@pytest.mark.parametrize("raw, expected", [
+    ("203.0.113.7", "203.0.113.7"),
+    (" 203.0.113.7 ", "203.0.113.7"),
+    ("203.0.113.7:51234", "203.0.113.7"),
+    ("[2001:db8::1]:443", "2001:db8::1"),
+    ("2001:DB8:0:0:0:0:0:1", "2001:db8::1"),
+    ("fe80::1%eth0", "fe80::1"),
+    ("fe80::1%" + "x" * 200, "fe80::1"),
+    ("::ffff:203.0.113.7", "203.0.113.7"),
+    ("unknown", None),
+    ("1.2.3.4.5", None),
+    ("x" * 200, None),
+    ("", None),
+    (None, None),
+])
+def test_normalize_ip(raw, expected):
+    assert normalize_ip(raw) == expected
+
+
+@pytest.mark.parametrize("xff, trusted, expected", [
+    # The client writes what it wants on the left; the proxy appends the real peer.
+    ("6.6.6.6, 203.0.113.7", "127.0.0.1", "203.0.113.7"),
+    ("1.2.3.4, 10.0.0.5, 172.18.0.1", "127.0.0.1", "172.18.0.1"),
+    # Inner hops that are trusted proxies themselves are skipped...
+    ("6.6.6.6, 203.0.113.7, 172.18.0.5", "127.0.0.1, 172.18.0.0/16", "203.0.113.7"),
+    # ...and when every hop is trusted, the leftmost one is kept.
+    ("10.0.0.7, 10.0.0.9", "127.0.0.1, 10.0.0.0/8", "10.0.0.7"),
+    # A hop that is not an IP stops the walk on the proxy's own address.
+    ("x" * 200, "127.0.0.1", "127.0.0.1"),
+    ("203.0.113.7, unknown", "127.0.0.1", "127.0.0.1"),
+    # Ports, zone ids and empty entries are tolerated.
+    ("203.0.113.7:51234", "127.0.0.1", "203.0.113.7"),
+    ("fe80::1%" + "x" * 200, "127.0.0.1", "fe80::1"),
+    ("203.0.113.7, ", "127.0.0.1", "203.0.113.7"),
+])
 @pytest.mark.asyncio
-async def test_xff_takes_leftmost_ip_in_chain():
-    app = _build_app(trusted=parse_trusted_proxies("127.0.0.1"))
+async def test_xff_takes_the_rightmost_hop_that_is_not_a_trusted_proxy(xff, trusted, expected):
+    app = _build_app(trusted=parse_trusted_proxies(trusted))
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        r = await ac.get("/echo", headers={"X-Forwarded-For": xff})
+    assert r.json()["client"] == expected
+
+
+@pytest.mark.asyncio
+async def test_xff_header_lines_are_read_in_order():
+    app = _build_app(trusted=parse_trusted_proxies("127.0.0.1, 172.18.0.0/16"))
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         r = await ac.get(
             "/echo",
-            headers={"X-Forwarded-For": "1.2.3.4, 10.0.0.5, 172.18.0.1"},
+            headers=[
+                ("X-Forwarded-For", "6.6.6.6"),
+                ("X-Forwarded-For", "203.0.113.7"),
+                ("X-Forwarded-For", "172.18.0.5"),
+            ],
         )
-    assert r.json()["client"] == "1.2.3.4"
+    assert r.json()["client"] == "203.0.113.7"
+
+
+def test_get_client_ip_normalises_what_the_server_put_in_scope():
+    def ip_of(host):
+        return get_client_ip(Request({"type": "http", "client": (host, 0), "headers": []}))
+
+    assert ip_of("::ffff:203.0.113.7") == "203.0.113.7"
+    assert ip_of("x" * 200) is None
+
+
+@pytest.mark.asyncio
+async def test_a_forged_forwarded_value_cannot_switch_off_the_lockout(db_session):
+    """Each failure is stored under the real, bounded client IP (SQLite does
+    not enforce VARCHAR(64), so the stored value is checked explicitly)."""
+    async def attempt(request):
+        await record_failure(db_session, get_client_ip(request) or "unknown", "victim", "admin")
+        return JSONResponse({})
+
+    app = Starlette(routes=[Route("/attempt", attempt, methods=["POST"])])
+    app.add_middleware(ProxyHeadersMiddleware, networks=parse_trusted_proxies("127.0.0.1"))
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        for i in range(FAIL_BLOCK_THRESHOLD):
+            forged = f"{'x' * 100}{i}, fe80::1%{'y' * 100}"
+            await ac.post("/attempt", headers={"X-Forwarded-For": forged})
+
+    ips = (await db_session.execute(select(SecurityAttempt.ip))).scalars().all()
+    assert ips == ["fe80::1"] * FAIL_BLOCK_THRESHOLD
+    # No username given: only the IP block can match.
+    assert await is_blocked(db_session, "fe80::1", None, "admin")
 
 
 @pytest.mark.asyncio

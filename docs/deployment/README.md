@@ -19,10 +19,16 @@ If your stack is not listed, the contract is identical to the others:
    to MediaKeeper on port `8888`.
 2. Forward the WebSocket `Upgrade` and `Connection` headers (chat
    WebSocket lives at `/api/portal/chat/ws/<room_id>`).
-3. List the proxy IP or CIDR in `TRUSTED_PROXIES` so MediaKeeper
-   honours the forwarded headers. A private-LAN default
-   (`192.168.0.0/16`) is acceptable on a trusted home network — pin
-   the exact proxy IP when the LAN is shared with untrusted hosts.
+3. List every proxy between the visitor and MediaKeeper in
+   `TRUSTED_PROXIES`, a CDN or a tunnel included. Each one must append
+   to `X-Forwarded-For`: MediaKeeper reads that header from the right
+   and keeps the first address that is not a listed proxy. A proxy on
+   the Docker host connects from the Docker network gateway
+   (`docker network inspect`), not from `127.0.0.1` or the host's LAN
+   address. Do not trust a whole LAN range: any device on it could
+   then choose the address MediaKeeper records. After a wrong
+   password, the Security tab of the settings should show your own
+   address, not the proxy's.
 4. Set `FRONTEND_ORIGIN` to the public origin so the chat WebSocket
    guard switches to strict-allowlist mode. Leaving it empty in Mode B
    triggers a one-shot startup WARN reminding you to set it (CORS

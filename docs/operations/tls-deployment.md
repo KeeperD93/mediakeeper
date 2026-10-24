@@ -45,7 +45,6 @@ mediakeeper.example.com {
 
     reverse_proxy 127.0.0.1:8888 {
         header_up X-Forwarded-Proto {scheme}
-        header_up X-Forwarded-For   {remote}
         header_up X-Forwarded-Host  {host}
     }
 }
@@ -115,13 +114,16 @@ side. Both are read at container startup.
 `TRUSTED_PROXIES` accepts both bare IPs and CIDRs:
 
 ```env
-TRUSTED_PROXIES=127.0.0.1
-TRUSTED_PROXIES=127.0.0.1,<TRUSTED_CIDR>
+TRUSTED_PROXIES=172.18.0.1
+TRUSTED_PROXIES=172.18.0.1,<TRUSTED_CIDR>
 ```
 
 Use the CIDR of the network the proxy lives on. Typical values:
 
-- `127.0.0.1` — proxy and container on the same host (loopback).
+- The Docker network gateway (`docker network inspect`, Gateway
+  field), e.g. `172.18.0.1` — proxy on the same host as the
+  container: Docker relays its connections from that address, not
+  from `127.0.0.1`.
 - A `/16` Docker bridge network when the proxy runs as a sibling
   container, e.g. `<TRUSTED_CIDR>` such as `172.18.0.0/16`.
 - `<LAN_GATEWAY>` — the gateway address of a small home LAN where
@@ -131,7 +133,7 @@ Set both variables in the same `.env` file used by `docker compose`:
 
 ```env
 COOKIE_SECURE=true
-TRUSTED_PROXIES=127.0.0.1,<TRUSTED_CIDR>
+TRUSTED_PROXIES=172.18.0.1,<TRUSTED_CIDR>
 ```
 
 Restart the container (`docker compose up -d`) for the new values to
@@ -144,9 +146,11 @@ take effect.
 When the direct TCP client of an incoming request matches one of the
 networks in `TRUSTED_PROXIES`:
 
-- `X-Forwarded-For` is honoured: the leftmost IP becomes the request
-  client IP, used by the audit log, the rate limiter and the security
-  blocklist.
+- `X-Forwarded-For` is honoured: read from the right, the first IP that
+  is not in `TRUSTED_PROXIES` becomes the request client IP, used by
+  the audit log, the rate limiter and the security blocklist. Anything
+  further left was written by the client and is ignored; a value that
+  is not an IP keeps the proxy's address.
 - `X-Forwarded-Proto` is honoured: a value of `https` activates the
   `Secure` flag on session cookies and triggers the HSTS header.
 - `X-Forwarded-Host` is honoured by the CSRF Origin/Referer check, so

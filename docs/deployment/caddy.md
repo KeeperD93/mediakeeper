@@ -13,14 +13,15 @@ mediakeeper.your-domain.example {
 
     reverse_proxy 127.0.0.1:8888 {
         header_up X-Forwarded-Proto {scheme}
-        header_up X-Forwarded-For   {remote}
         header_up X-Forwarded-Host  {host}
     }
 }
 ```
 
 Caddy preserves the `Upgrade` / `Connection` headers by default, so
-the chat WebSocket works without an explicit toggle.
+the chat WebSocket works without an explicit toggle. It also sets
+`X-Forwarded-For` to the visitor's address by itself; do not override
+it with a `header_up` line.
 
 If Caddy and MediaKeeper run in the same Docker Compose network,
 swap `127.0.0.1:8888` for the service name (`mediakeeper:8888`).
@@ -28,13 +29,18 @@ swap `127.0.0.1:8888` for the service name (`mediakeeper:8888`).
 ## 2. MediaKeeper environment
 
 ```dotenv
-# 127.0.0.1 because Caddy and MediaKeeper share the host loopback in
-# the example above. Adjust to the Caddy container IP / CIDR if you
-# run them in separate networks.
-TRUSTED_PROXIES=127.0.0.1
+# Caddy on the host reaches the container through the Docker network
+# gateway, not 127.0.0.1. Read it with `docker network inspect
+# <project>_default` (Gateway field). If Caddy runs in the same
+# Compose network, use the Caddy container's IP instead.
+TRUSTED_PROXIES=172.18.0.1
 FRONTEND_ORIGIN=https://mediakeeper.your-domain.example
 COOKIE_SECURE=true
 ```
+
+Docker relays some connections to a published port (IPv6 visitors)
+from that same gateway. Publish MediaKeeper on the loopback only
+(`127.0.0.1:8888:8888` in the compose file), which is all Caddy needs.
 
 ## 3. Verify your setup
 
@@ -63,6 +69,11 @@ directive is misconfigured.
   guard rejects valid handshakes.
 - **HTTP/3 enabled** — fine, MediaKeeper does not depend on the
   underlying transport version.
-- **Caddy in front of another proxy** (e.g., a CDN) — list every hop
-  in `TRUSTED_PROXIES`; the leftmost `X-Forwarded-For` value wins so
-  the upstream proxy must rewrite it correctly.
+- **Caddy behind a CDN** — add the CDN's address ranges to Caddy's
+  global `servers { trusted_proxies static … }` option, so Caddy keeps
+  the CDN's `X-Forwarded-For` and appends to it, then list the same
+  ranges in `TRUSTED_PROXIES`. MediaKeeper reads the header from the
+  right and keeps the first address that is not a listed proxy.
+- **Every visitor shows the same address** in the Security tab of the
+  settings → `TRUSTED_PROXIES` does not match the address Caddy
+  connects from. Three wrong passwords would then block everyone.

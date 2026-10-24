@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
-from core.proxy import get_client_ip
+from core.proxy import get_client_ip, normalize_ip
 from models.user import User
 from services.security import (
     create_block,
@@ -88,13 +88,15 @@ async def post_block(
     # on a single-admin instance).
     if payload.username and payload.username.strip().lower() == (admin.username or "").strip().lower():
         raise HTTPException(status_code=400, detail="self_block_forbidden")
-    if payload.ip and payload.ip == get_client_ip(request):
+    # Stored in the canonical form of the client IPs it is matched against.
+    ip = normalize_ip(payload.ip) or payload.ip
+    if ip and ip == get_client_ip(request):
         raise HTTPException(status_code=400, detail="self_block_forbidden")
     try:
         block_id = await create_block(
             db,
             admin_id=admin.id,
-            ip=payload.ip,
+            ip=ip,
             username=payload.username,
             scope=payload.scope,
             permanent=payload.permanent,

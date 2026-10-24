@@ -74,18 +74,54 @@ def is_trusted_proxy_host(
     return any(ip in net for net in pool)
 
 
-def _first_xff(value: str | None) -> str | None:
-    if not value:
+def normalize_ip(raw: str | None) -> str | None:
+    """Return ``raw`` as a canonical IP string, or ``None`` if it is not one.
+
+    Accepts what proxies write in ``X-Forwarded-For``: a bare address,
+    ``IPv4:port`` or ``[IPv6]:port``. The zone id is dropped and an
+    IPv4-mapped address becomes IPv4, so one client always gets the same
+    key and the result fits the 64-character IP columns.
+    """
+    value = (raw or "").strip()
+    if value.startswith("["):
+        value = value[1:].split("]", 1)[0]
+    elif value.count(":") == 1:
+        value = value.split(":", 1)[0]
+    value = value.split("%", 1)[0]
+    try:
+        ip = ipaddress.ip_address(value)
+    except ValueError:
         return None
-    first = value.split(",", 1)[0].strip()
-    return first or None
+    if isinstance(ip, ipaddress.IPv6Address) and ip.ipv4_mapped:
+        ip = ip.ipv4_mapped
+    return str(ip)
+
+
+def _forwarded_client(header_values: list[str], peer: str, networks: list[_Network]) -> str:
+    """Return the rightmost ``X-Forwarded-For`` hop that is not a trusted proxy.
+
+    Each proxy appends the address it received the request from, so only the
+    hops added by trusted proxies are believed; anything further left was
+    written by the client. A malformed hop ends the walk on the last good one.
+    """
+    client = peer
+    hops = [hop for value in header_values for hop in value.split(",") if hop.strip()]
+    for hop in reversed(hops):
+        ip = normalize_ip(hop)
+        if ip is None:
+            break
+        client = ip
+        if not is_trusted_proxy_host(ip, networks):
+            break
+    return client
 
 
 class ProxyHeadersMiddleware(BaseHTTPMiddleware):
     """Honour ``X-Forwarded-*`` only when the direct TCP client is whitelisted.
 
     When the proxy is trusted:
-      - ``request.client.host`` becomes the leftmost ``X-Forwarded-For`` IP.
+      - ``request.client.host`` becomes the rightmost ``X-Forwarded-For`` IP
+        that is not itself a trusted proxy (see ``_forwarded_client``).
       - ``request.url.scheme`` becomes the ``X-Forwarded-Proto`` value.
       - ``request.state.from_trusted_proxy`` is set to ``True``.
 
@@ -106,8 +142,9 @@ class ProxyHeadersMiddleware(BaseHTTPMiddleware):
         client_host = client[0] if client else None
 
         if self._networks and is_trusted_proxy_host(client_host, self._networks):
-            xff_ip = _first_xff(request.headers.get("x-forwarded-for"))
-            if xff_ip and client is not None:
+            forwarded = request.headers.getlist("x-forwarded-for")
+            if forwarded and client is not None:
+                xff_ip = _forwarded_client(forwarded, client_host, self._networks)
                 scope["client"] = (xff_ip, client[1])
 
             xfp = request.headers.get("x-forwarded-proto", "").split(",", 1)[0].strip().lower()
@@ -126,11 +163,15 @@ def is_request_from_trusted_proxy(request: Request) -> bool:
 
 
 def get_client_ip(request: Request) -> str | None:
-    """Return the best-known client IP — already rewritten by middleware."""
+    """Return the best-known client IP — already rewritten by middleware.
+
+    Normalised here as well: the ASGI server may have rewritten the client
+    itself (uvicorn ``FORWARDED_ALLOW_IPS``), and callers store the value.
+    """
     client = request.scope.get("client")
     if not client:
         return None
-    return client[0] or None
+    return normalize_ip(client[0])
 
 
 def is_request_secure(request: Request) -> bool:

@@ -40,9 +40,10 @@ better Vue bundle delivery.
 Drop these lines in `/etc/mediakeeper.env`:
 
 ```dotenv
-# DSM listens on 192.0.2.10 in this example, replace with the LAN IP
-# of your NAS as seen from the container's network namespace.
-TRUSTED_PROXIES=192.0.2.10
+# DSM's reverse proxy reaches the container through the Docker network
+# gateway, not through the NAS's LAN IP. Read it with
+# `docker network inspect <project>_default` (Gateway field).
+TRUSTED_PROXIES=172.18.0.1
 FRONTEND_ORIGIN=https://mediakeeper.your-domain.example
 COOKIE_SECURE=true
 ```
@@ -53,17 +54,19 @@ strict allowlist; `COOKIE_SECURE=true` is redundant once HTTPS is
 detected, but explicit is better when DSM ever swaps to a non-stable
 intermediate hop.
 
-If pinning a single DSM IP is awkward (DHCP, dual-stack, multiple
-NAS), a private LAN range works as a safe wider default:
+The gateway changes if the Compose network is recreated. The Docker
+private range is a wider alternative:
 
 ```dotenv
-TRUSTED_PROXIES=192.168.0.0/16
+TRUSTED_PROXIES=172.16.0.0/12
 ```
 
-Trade-off: any host on the same LAN that can reach port `8888`
-directly will then have its `X-Forwarded-Host` honoured — fine for a
-home network, less appropriate for a co-tenanted VLAN. Pin the exact
-proxy IP when the LAN is shared with untrusted hosts.
+It also trusts every other container on the NAS. With either value,
+connections that Docker relays to the published port (IPv6 visitors)
+arrive from the gateway too, so keep that port closed to outside IPv6
+traffic. Do not use a LAN range such as `192.168.0.0/16`: DSM does not
+connect from it, and any LAN device could then choose the address
+MediaKeeper records.
 
 If MediaKeeper boots with `TRUSTED_PROXIES` set but `FRONTEND_ORIGIN`
 left empty, you will see this WARN once at startup — set the public
@@ -102,7 +105,7 @@ ZIP) so a restored archive keeps the secrets readable.
 Boot logs should print:
 
 ```
-[startup] deployment mode=B (reverse proxy) | TRUSTED_PROXIES=192.0.2.10 | FRONTEND_ORIGIN=https://mediakeeper.your-domain.example | COOKIE_HTTPS_FLAG=true
+[startup] deployment mode=B (reverse proxy) | TRUSTED_PROXIES=172.18.0.1 | FRONTEND_ORIGIN=https://mediakeeper.your-domain.example | COOKIE_HTTPS_FLAG=true
 ```
 
 From any browser on the LAN:
@@ -127,9 +130,13 @@ DSM is off.
 
 - **WebSocket toggle disabled** → chat fails to connect, MediaKeeper
   logs the operator hint.
-- **Custom Header tab empty** → MediaKeeper sees DSM's loopback IP as
-  the client, cookies do not gain the `Secure` flag, the CSRF Origin
+- **Custom Header tab empty** → MediaKeeper sees the Docker gateway
+  as the client, cookies do not gain the `Secure` flag, the CSRF Origin
   check rejects requests because `Host` is the LAN name instead of
   the public hostname.
-- **Multiple reverse-proxy hops** (DSM → CDN) → list every
-  intermediate IP / CIDR in `TRUSTED_PROXIES` (CSV).
+- **Every visitor shows the same address** in the Security tab of the
+  settings → `TRUSTED_PROXIES` does not match the address DSM connects
+  from. Three wrong passwords would then block everyone.
+- **A CDN in front of DSM** → set the `X-Forwarded-For` row to
+  `$proxy_add_x_forwarded_for` so DSM keeps the CDN's header, and list
+  the CDN's ranges in `TRUSTED_PROXIES`.

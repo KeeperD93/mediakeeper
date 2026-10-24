@@ -65,6 +65,9 @@ Boot logs from MediaKeeper should mention Mode B with the matching
 - **Multiple Docker networks** → MediaKeeper must be on the same
   network as Traefik; the `networks: [public]` line in the compose
   attaches it.
+- **Traefik behind a CDN** → list the CDN's ranges both in Traefik's
+  `entryPoints.<name>.forwardedHeaders.trustedIPs` (otherwise Traefik
+  drops the CDN's `X-Forwarded-For`) and in `TRUSTED_PROXIES`.
 - **WebSocket failing** → check the LAN-side `docker logs traefik`
   output; if you see HTTP/1.1 101 with the right headers, the issue
   is downstream (CSRF / Origin guard, see [direct-lan.md](direct-lan.md)

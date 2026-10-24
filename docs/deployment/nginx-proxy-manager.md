@@ -28,12 +28,22 @@ The Websockets toggle is what enables NPM to forward the
 back to HTTP and MediaKeeper logs `received an HTTP GET on the chat
 WebSocket path`.
 
-## 2. Custom locations / advanced (optional)
+## 2. Advanced tab
 
-If you ever need to add headers manually, the **Advanced** tab accepts
-raw nginx directives. The default location block already forwards the
-forwarded headers — you only need to add a custom block when running
-behind another proxy upstream of NPM (Cloudflare, Tailscale Funnel…).
+NPM appends the visitor's address to `X-Forwarded-For`, which is what
+MediaKeeper expects. By default it also replaces that address with the
+request's own `X-Real-IP` header when the connection comes from a
+private or CDN address, so any device on your LAN could choose the
+address MediaKeeper records. Paste this line in the proxy host's
+**Advanced** tab to turn that off:
+
+```nginx
+set_real_ip_from 127.0.0.1;
+```
+
+Behind another proxy upstream of NPM (Cloudflare, Tailscale Funnel…),
+also list its addresses in `TRUSTED_PROXIES`: MediaKeeper keeps the
+first address, read from the right, that is not a listed proxy.
 
 ## 3. MediaKeeper environment
 
@@ -48,7 +58,10 @@ COOKIE_SECURE=true
 
 `TRUSTED_PROXIES` accepts a CIDR so you don't have to update it every
 time NPM's container restarts on a different IP. Limit the CIDR as
-narrowly as your network design allows.
+narrowly as your network design allows. If NPM reaches MediaKeeper by
+its service name, also drop MediaKeeper's `8888:8888` port mapping:
+Docker relays some connections to a published port (IPv6 visitors,
+processes on the host) from the gateway, which this range trusts.
 
 ## 4. Verify your setup
 

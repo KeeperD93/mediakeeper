@@ -13,7 +13,6 @@ from __future__ import annotations
 
 from fastapi import Request
 from slowapi import Limiter
-from slowapi.util import get_remote_address
 
 from constants.auth import COOKIE_NAME, PORTAL_COOKIE_NAME
 from core.proxy import get_client_ip
@@ -22,7 +21,7 @@ from core.security import decode_access_token
 
 def ip_key(request: Request) -> str:
     """Slowapi default key — real client IP after proxy header rewrite."""
-    return get_client_ip(request) or get_remote_address(request)
+    return get_client_ip(request) or "unknown"
 
 
 def admin_user_or_ip_key(request: Request) -> str:

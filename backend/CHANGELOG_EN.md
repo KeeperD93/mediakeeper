@@ -10,6 +10,9 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Fixed
+- Security — IP behind a proxy: visitor-supplied address ignored (list every proxy).
+
 ## [1.0.0-rc.9] - 2026-10-23
 
 ### Added

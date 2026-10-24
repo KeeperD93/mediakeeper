@@ -239,6 +239,25 @@ async def test_post_block_refuses_self_block_by_username(client, db_session):
 
 
 @pytest.mark.asyncio
+async def test_post_block_stores_the_ip_in_canonical_form(client, admin_user, db_session):
+    """Blocks are matched against normalised client IPs: another spelling of
+    the same address must still match, including the operator's own one."""
+    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
+
+    own = await client.post("/api/security/blocks", json={
+        "ip": "::ffff:127.0.0.1", "scope": "all", "permanent": True,
+    })
+    assert own.status_code == 400
+    assert own.json()["detail"] == "self_block_forbidden"
+
+    ok = await client.post("/api/security/blocks", json={
+        "ip": "2001:DB8:0:0:0:0:0:1", "scope": "all", "permanent": True,
+    })
+    assert ok.status_code == 200
+    assert await is_blocked(db_session, "2001:db8::1", None, "admin")
+
+
+@pytest.mark.asyncio
 async def test_login_endpoint_blocks_after_failures(client, db_session):
     # Prime: create admin user so the /login path exercises the real failure flow
     admin = User(
