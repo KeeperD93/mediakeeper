@@ -186,9 +186,8 @@ def _log_deployment_mode() -> None:
 
     The line surfaces three env vars: ``TRUSTED_PROXIES`` (Mode A vs
     Mode B), ``FRONTEND_ORIGIN`` (chat WS allowlist) and the
-    cookie-hardening flag. All three are read fresh from the
-    environment at startup so a config reload via container restart
-    shows up here.
+    cookie-hardening flag. All three are read from the environment at
+    startup, so new values show up here once the container is recreated.
 
     See ``docs/operations/tls-deployment.md`` for the mapping between
     env var names and the log labels.

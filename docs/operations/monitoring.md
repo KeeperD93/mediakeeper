@@ -40,18 +40,18 @@ Out of scope on purpose:
 1. Create an incoming webhook on the destination service (Discord is the
    default target; the embed payload is also accepted by Slack and
    Mattermost via their Discord-compatible adapters).
-2. Set `MK_DISCORD_ALERT_WEBHOOK` in your environment file to the
-   webhook URL. An empty value disables the feature.
-3. Restart the container (or `docker compose up -d` to apply the new
-   environment).
+2. Set `MK_DISCORD_ALERT_WEBHOOK` to the webhook URL in the
+   `environment:` section of MediaKeeper's compose file (or an env file
+   the deployment loads). An empty value disables the feature.
+3. Run `docker compose up -d` again: it recreates the container with the
+   new value.
 
 `docker-compose.override.example.yml` ships a commented example next to
-`BACKUP_PATH`. `.env.example` lists the variable in the optional
-section.
+`BACKUP_PATH`. `.env.example` lists the variable under Monitoring.
 
-The variable is read on every send, so rotating the URL only requires
-updating the environment and waiting for the next event — no restart
-needed for the new value to apply.
+A running container keeps the environment it was created with: rotating
+the URL means changing the variable and running `docker compose up -d`
+again.
 
 > ⚠️ The webhook URL is a secret. Treat it as you would an API token:
 > never commit it to the repository, never paste it in screenshots and

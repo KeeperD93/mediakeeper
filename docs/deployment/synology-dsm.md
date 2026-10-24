@@ -35,13 +35,14 @@ better Vue bundle delivery.
 Set these variables in the `environment:` section of MediaKeeper's
 compose file:
 
-```dotenv
-# DSM's reverse proxy reaches the container through the Docker network
-# gateway, not through the NAS's LAN IP. Read it with
-# `docker network inspect <project>_default` (Gateway field).
-TRUSTED_PROXIES=172.18.0.1
-FRONTEND_ORIGIN=https://mediakeeper.your-domain.example
-COOKIE_SECURE=true
+```yaml
+environment:
+  # DSM's reverse proxy reaches the container through the Docker network
+  # gateway, not through the NAS's LAN IP. Read it with
+  # `docker network inspect <project>_default` (Gateway field).
+  - TRUSTED_PROXIES=172.18.0.1
+  - FRONTEND_ORIGIN=https://mediakeeper.your-domain.example
+  - COOKIE_SECURE=true
 ```
 
 `TRUSTED_PROXIES` is what unlocks `X-Forwarded-*` honouring;
@@ -103,9 +104,10 @@ secrets (Discord webhooks, Imgur secret, Emby tokens…) and keeps it in
 that file: the variable wins over the file, and secrets stored under
 another key become unreadable.
 
-```dotenv
-# Generate once and keep safe — losing it makes encrypted DB rows unreadable.
-MEDIAKEEPER_ENCRYPTION_KEY=<paste your fernet key here>
+```yaml
+environment:
+  # Generate once and keep safe — losing it makes encrypted DB rows unreadable.
+  - MEDIAKEEPER_ENCRYPTION_KEY=<paste your fernet key here>
 ```
 
 If neither the env var nor `/data/.encryption_key` is provided,

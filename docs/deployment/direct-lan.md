@@ -21,9 +21,9 @@ docker run -d \
   ghcr.io/keeperd93/mediakeeper:beta
 ```
 
-`/etc/mediakeeper.env` carries your settings, all optional: the
-container generates its secrets on first start and keeps them in
-`/data`.
+`/etc/mediakeeper.env` carries your settings. It must exist but can stay
+empty: the container generates its secrets on first start and keeps
+them in `/data`.
 
 ## 2. Environment
 

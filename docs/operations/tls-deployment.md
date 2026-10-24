@@ -258,9 +258,11 @@ scripts, inline styles and Google Fonts for styles, Google Fonts for
 fonts, TMDB, Imgur and YouTube thumbnails for images (with `data:` and
 `blob:`), and YouTube and Vimeo embeds for frames. If you deploy a
 customisation that loads other origins, switch to
-`MK_CSP_MODE=report-only` for a transition window, observe the
-violations in the browser console, and add the missing origins to a
-custom policy before going back to enforce mode.
+`MK_CSP_MODE=report-only` for a transition window and observe the
+violations in the browser console. The policy is fixed in the image
+(`CSP_DIRECTIVES` in `backend/core/security_headers.py`): add the
+missing origins there and build your own image before going back to
+enforce mode. A policy added at the proxy only restricts further.
 
 **HSTS header is missing.**
 HSTS is emitted only when MediaKeeper sees the request as HTTPS.
@@ -271,7 +273,7 @@ forwards the connection over TLS to the container, rare) or the
 **`X-Forwarded-Host` ignored / CSRF rejecting same-origin requests.**
 The CSRF middleware computes the canonical origin from
 `X-Forwarded-Host` only when the proxy is in `TRUSTED_PROXIES`. Add
-the proxy's address to the list, then restart the container.
+the proxy's address to the list, then run `docker compose up -d` again.
 
 **Healthcheck failing after enabling TLS.**
 The Docker healthcheck is `curl -f http://localhost:8888/api/health`,

@@ -220,7 +220,7 @@ docker compose logs mediakeeper | grep -A 6 "ADMIN ACCOUNT CREATED"
 
 Then open `http://<host>:8888`, sign in as `admin` with that password - a password change is forced on first connection.
 
-**Need to customise?** Add the variables you need (e.g. `TMDB_API_KEY`, `FRONTEND_ORIGIN`, `MEDIAKEEPER_PATH_ROOTS`) to the `environment:` section of your compose file, then run `docker compose up -d` again. `.env.example` describes them all. Auto-generated values are respected on subsequent boots.
+**Need to customise?** Add the variables you need (e.g. `TMDB_API_KEY`, `FRONTEND_ORIGIN`, `MEDIAKEEPER_PATH_ROOTS`) to the `environment:` section of your compose file, then run `docker compose up -d` again (with `-f docker-compose.prod.yml` if you started from the quickstart). `.env.example` describes them all. Auto-generated values are respected on subsequent boots.
 
 The application runs database migrations automatically at boot.
 

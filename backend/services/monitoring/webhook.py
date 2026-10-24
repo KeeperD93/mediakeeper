@@ -2,10 +2,9 @@
 
 Design notes:
 
-- The webhook URL is read from ``MK_DISCORD_ALERT_WEBHOOK`` at every send
-  so operators can rotate it without restarting the container. When the
-  variable is unset (or empty), :func:`send_alert` returns silently — the
-  feature is fully opt-in.
+- The webhook URL is read from ``MK_DISCORD_ALERT_WEBHOOK`` at every send.
+  When the variable is unset (or empty), :func:`send_alert` returns
+  silently — the feature is fully opt-in.
 - A small in-memory dict tracks the last send timestamp per alert type
   and suppresses duplicates inside the debounce window. State is lost on
   restart, which is acceptable: a restart is itself a strong signal and
