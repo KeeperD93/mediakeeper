@@ -53,9 +53,9 @@ def test_parse_trusted_proxies_handles_csv_with_cidr_and_ip():
 def test_parse_trusted_proxies_drops_invalid_entries(caplog):
     with caplog.at_level(logging.WARNING, logger="mediakeeper"):
         nets = parse_trusted_proxies("127.0.0.1, not-an-ip, 10.0.0.0/8")
-    # 2 valid entries kept; the garbage is dropped with a warning.
     assert len(nets) == 2
-    assert "Ignoring invalid TRUSTED_PROXIES entry: 'not-an-ip'" in caplog.text
+    messages = [r.getMessage() for r in caplog.records if r.levelno == logging.WARNING]
+    assert messages == ["Ignoring invalid TRUSTED_PROXIES entry: 'not-an-ip'"]
 
 
 def test_parse_trusted_proxies_empty_yields_empty_list():
@@ -69,10 +69,10 @@ def test_parse_trusted_proxies_warns_on_overly_broad_cidr(caplog):
 
     # All three are still accepted — the warning is advisory, not a reject.
     assert len(nets) == 3
-    warnings = " ".join(r.message for r in caplog.records if r.levelno == logging.WARNING)
-    assert "very broad" in warnings
+    messages = " ".join(r.getMessage() for r in caplog.records if r.levelno == logging.WARNING)
+    assert "very broad" in messages
     # A tight /32 host must never be flagged.
-    assert "198.51.100.10/32" not in warnings
+    assert "198.51.100.10/32" not in messages
 
 
 def test_is_trusted_proxy_host_matches_cidr():
@@ -84,7 +84,7 @@ def test_is_trusted_proxy_host_matches_cidr():
 
 
 @pytest.mark.asyncio
-async def test_xff_ignored_when_trusted_proxies_empty():
+async def test_forwarded_headers_ignored_when_trusted_proxies_empty():
     body = await _echo("", {
         "X-Forwarded-For": "198.51.100.4",
         "X-Forwarded-Proto": "https",
@@ -98,7 +98,7 @@ async def test_xff_ignored_when_trusted_proxies_empty():
 
 
 @pytest.mark.asyncio
-async def test_xff_honoured_when_proxy_in_whitelist():
+async def test_forwarded_headers_honoured_when_proxy_in_whitelist():
     body = await _echo("127.0.0.1", {
         "X-Forwarded-For": "198.51.100.4",
         "X-Forwarded-Proto": "https",
@@ -133,7 +133,7 @@ def test_normalize_ip(raw, expected):
 @pytest.mark.parametrize("xff, trusted, expected", [
     # The client writes what it wants on the left; the proxy appends the real peer.
     ("198.51.100.66, 203.0.113.7", "127.0.0.1", "203.0.113.7"),
-    ("198.51.100.66,203.0.113.7", "127.0.0.1", "203.0.113.7"),
+    pytest.param("198.51.100.66,203.0.113.7", "127.0.0.1", "203.0.113.7", id="comma-only"),
     ("198.51.100.4, 10.0.0.5, 172.18.0.1", "127.0.0.1", "172.18.0.1"),
     # Inner hops that are trusted proxies themselves are skipped, once normalized.
     ("198.51.100.66, 203.0.113.7, 172.18.0.5", "127.0.0.1, 172.18.0.0/16", "203.0.113.7"),
@@ -145,7 +145,8 @@ def test_normalize_ip(raw, expected):
 ])
 @pytest.mark.asyncio
 async def test_xff_takes_the_rightmost_hop_that_is_not_a_trusted_proxy(xff, trusted, expected):
-    assert (await _echo(trusted, {"X-Forwarded-For": xff}))["client"] == expected
+    body = await _echo(trusted, {"X-Forwarded-For": xff})
+    assert body["client"] == expected
 
 
 @pytest.mark.parametrize("xff, trusted, expected", [
@@ -158,7 +159,8 @@ async def test_xff_takes_the_rightmost_hop_that_is_not_a_trusted_proxy(xff, trus
 ])
 @pytest.mark.asyncio
 async def test_xff_falls_back_to_a_trusted_address_when_no_client_hop_is_reached(xff, trusted, expected):
-    assert (await _echo(trusted, {"X-Forwarded-For": xff}))["client"] == expected
+    body = await _echo(trusted, {"X-Forwarded-For": xff})
+    assert body["client"] == expected
 
 
 @pytest.mark.asyncio
@@ -201,8 +203,10 @@ async def test_a_forged_forwarded_value_cannot_switch_off_the_lockout(db_session
 
 
 @pytest.mark.asyncio
-async def test_xff_proto_invalid_value_is_ignored():
-    assert (await _echo("127.0.0.1", {"X-Forwarded-Proto": "ftp"}))["scheme"] == "http"
+async def test_forwarded_proto_invalid_value_is_ignored():
+    body = await _echo("127.0.0.1", {"X-Forwarded-Proto": "ftp"})
+    assert body["from_trusted_proxy"] is True
+    assert body["scheme"] == "http"
 
 
 @pytest.mark.asyncio

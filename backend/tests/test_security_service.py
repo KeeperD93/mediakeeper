@@ -3,11 +3,14 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 from fastapi import HTTPException
+from httpx import AsyncClient
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.security import create_access_token
 from models.security import SecurityAttempt, SecurityBlock
+from models.user import User
 from services.security import (
     ALERT_THRESHOLD,
     FAIL_BLOCK_THRESHOLD,
@@ -21,10 +24,16 @@ from services.security import (
 )
 
 
-def _auth_admin(client, admin_user) -> None:
+def _auth_admin(client: AsyncClient, admin_user: User) -> None:
     client.cookies.set(
         "mk_token",
         create_access_token({"sub": admin_user.username, "scope": "admin"}),
+    )
+
+
+async def _block_ip(db_session: AsyncSession, ip: str, scope: str) -> int:
+    return await create_block(
+        db_session, admin_id=None, ip=ip, username=None, scope=scope, permanent=True,
     )
 
 
@@ -68,14 +77,7 @@ def test_alert_threshold_is_at_most_the_block_threshold():
 
 @pytest.mark.asyncio
 async def test_ensure_not_blocked_raises_429_when_blocked(db_session):
-    await create_block(
-        db_session,
-        admin_id=None,
-        ip="198.51.100.9",
-        username=None,
-        scope="admin",
-        permanent=True,
-    )
+    await _block_ip(db_session, "198.51.100.9", "admin")
     with pytest.raises(HTTPException) as excinfo:
         await ensure_not_blocked(db_session, "198.51.100.9", "anyone", "admin")
     assert excinfo.value.status_code == 429
@@ -102,36 +104,22 @@ async def test_security_block_permanent_rejects_non_boolean(db_session):
 
 @pytest.mark.asyncio
 async def test_ensure_not_blocked_passes_when_scope_differs(db_session):
-    await create_block(
-        db_session,
-        admin_id=None,
-        ip="198.51.100.8",
-        username=None,
-        scope="portal",
-        permanent=True,
-    )
+    await _block_ip(db_session, "198.51.100.8", "portal")
     # Same IP but different scope → must pass.
     await ensure_not_blocked(db_session, "198.51.100.8", None, "admin")
 
 
 @pytest.mark.asyncio
 async def test_delete_block_removes_row(db_session):
-    block_id = await create_block(
-        db_session,
-        admin_id=None,
-        ip="198.51.100.7",
-        username=None,
-        scope="all",
-        permanent=True,
-    )
+    block_id = await _block_ip(db_session, "198.51.100.7", "all")
     assert await delete_block(db_session, block_id) is True
     assert await delete_block(db_session, block_id) is False
 
 
 @pytest.mark.asyncio
-async def test_purge_old_attempts_keeps_recent(db_session):
+async def test_purge_old_attempts_drops_only_rows_past_retention(db_session):
     now = datetime.now(timezone.utc)
-    ages = {"recent": 0, "inside": RETENTION_DAYS - 1, "ancient": RETENTION_DAYS + 10}
+    ages = {"recent": 0, "inside": RETENTION_DAYS - 1, "ancient": RETENTION_DAYS + 1}
     db_session.add_all([
         SecurityAttempt(
             ip="198.51.100.5", username=name, scope="admin", success=0,
@@ -147,9 +135,17 @@ async def test_purge_old_attempts_keeps_recent(db_session):
     assert sorted(remaining) == ["inside", "recent"]
 
 
+@pytest.mark.parametrize("method, path", [
+    ("GET", "/api/security/attempts"),
+    ("GET", "/api/security/blocks"),
+    ("POST", "/api/security/blocks"),
+    ("DELETE", "/api/security/blocks/1"),
+    ("POST", "/api/security/attempts/purge"),
+])
 @pytest.mark.asyncio
-async def test_admin_endpoints_require_auth(client):
-    resp = await client.get("/api/security/attempts")
+async def test_admin_endpoints_require_auth(client, method, path):
+    body = {"ip": "198.51.100.1", "scope": "all"} if method == "POST" else None
+    resp = await client.request(method, path, json=body)
     assert resp.status_code == 401
 
 

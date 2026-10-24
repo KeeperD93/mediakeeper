@@ -1,6 +1,6 @@
 """Rate-limit keys: the IP key is the normalized client IP, or one shared bucket
 without a usable IP; per-account budgets read the right session cookie and fall
-back to the client IP when it is missing or unusable. Synthetic users only."""
+back to the client IP when the cookie is missing or unusable. Synthetic users only."""
 from __future__ import annotations
 
 from starlette.requests import Request

@@ -1,16 +1,17 @@
 """
-Fixtures pytest for Mediakeeper.
+Pytest fixtures for MediaKeeper.
 Uses an async in-memory SQLite DB for tests (no PostgreSQL required).
 """
 
 import os
-import sys
 import shutil
+import sys
 import tempfile
+from pathlib import Path
+from unittest.mock import AsyncMock, patch
+
 import pytest
 import pytest_asyncio
-from unittest.mock import AsyncMock, patch
-from pathlib import Path
 
 # Set the environment BEFORE any application import.
 os.environ["JWT_SECRET_KEY"] = "test-secret-key-for-pytest-only-012345"
@@ -21,8 +22,8 @@ BACKEND_ROOT = Path(__file__).resolve().parent.parent
 if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
-from httpx import AsyncClient, ASGITransport  # noqa: E402
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession  # noqa: E402
+from httpx import ASGITransport, AsyncClient  # noqa: E402
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine  # noqa: E402
 from sqlalchemy.orm import sessionmaker  # noqa: E402
 
 import models  # noqa: F401, E402  # Ensure every model is registered in Base.metadata
@@ -38,7 +39,7 @@ from models.user import User  # noqa: E402
 from core.security import hash_password  # noqa: E402
 
 
-# Engine SQLite async for tests.
+# Async in-memory SQLite engine for tests.
 _test_engine = create_async_engine(
     "sqlite+aiosqlite:///:memory:",
     echo=False,
@@ -182,7 +183,7 @@ def _reset_chat_ws_registries():
 
 @pytest_asyncio.fixture
 async def db_session():
-    """Fournit une session DB de test."""
+    """Test database session."""
     async with _TestSession() as session:
         yield session
 
