@@ -89,15 +89,18 @@ ws.onopen = () => console.log("upgraded ✔");
 ws.onerror = e => console.error("upgrade failed", e);
 ```
 
-A failed handshake then means the Websockets toggle in NPM is off.
+If it fails, the Network tab shows why: a 426 means the Websockets
+toggle in NPM is off, a 403 that MediaKeeper refused the origin, the
+token or the room.
 
 ## 5. Common pitfalls
 
 - **HSTS toggled on in NPM** → both NPM and MediaKeeper emit the
   header; pick one (MediaKeeper is recommended because the value
   matches the rest of the security headers).
-- **Block Common Exploits on with a custom CSP** → harmless but
-  duplicates MediaKeeper's CSP.
+- **A custom CSP in NPM's Advanced tab** → browsers apply it on top of
+  MediaKeeper's, so whatever either one blocks stays blocked; keep only
+  MediaKeeper's.
 - **Multiple domains** pointing at the same proxy host → list every
   one in `FRONTEND_ORIGIN` (CSV) so chat WS handshakes from the
   alternate hostname pass the allowlist.

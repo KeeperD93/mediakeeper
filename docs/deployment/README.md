@@ -1,7 +1,7 @@
 # Deployment guides
 
 Pick the guide that matches your reverse-proxy stack. Every guide
-keeps to a single page, ends with a "Verify your setup" section, and
+keeps to a single page, has a "Verify your setup" section, and
 relies on the same three environment variables on the MediaKeeper
 side: `TRUSTED_PROXIES`, `FRONTEND_ORIGIN`, `COOKIE_SECURE`. Set them in
 the `environment:` section of MediaKeeper's compose file, or in an env

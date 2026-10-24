@@ -39,7 +39,9 @@ COOKIE_SECURE=true
 Docker can relay other connections to a published port from that same
 gateway (IPv6 visitors, and every visitor on Synology). Publish
 MediaKeeper on the loopback only (`127.0.0.1:8888:8888` in the compose
-file), which is all Caddy on the host needs.
+file), which is all Caddy on the host needs. The gateway can change when
+the Compose network is recreated: pin it with a fixed subnet, as shown
+in [synology-dsm.md](synology-dsm.md).
 
 With a Caddy container, drop MediaKeeper's `8888:8888` port mapping:
 Caddy reaches it by its service name. Docker relays visitors to Caddy's

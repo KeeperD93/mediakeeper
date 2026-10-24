@@ -47,9 +47,9 @@ mediakeeper.example.com {
 ```
 
 Caddy provisions a Let's Encrypt certificate on first start, redirects
-HTTP → HTTPS and renews the certificate transparently. As a container,
-point it at `mediakeeper:8888` on a network shared with MediaKeeper
-instead of `127.0.0.1:8888`, and list its own IP (section 3).
+HTTP → HTTPS and renews the certificate transparently. When Caddy runs
+as a container, point it at `mediakeeper:8888` on a network shared with
+MediaKeeper instead of `127.0.0.1:8888`, and list its own IP (section 3).
 
 ### 2.2 Nginx (Let's Encrypt via certbot)
 
@@ -92,7 +92,7 @@ nginx refuses to load the 443 block until the certificate exists. On a
 new host, start with the port-80 block alone, run
 `certbot certonly --nginx -d mediakeeper.example.com`, then add the 443
 block. certbot renews the certificate on its own: the redirect sits in
-`location /` so its challenge path still answers over HTTP.
+`location /` so certbot's challenge path still answers over HTTP.
 
 ### 2.3 Self-signed certificate for LAN-only use
 
@@ -137,7 +137,9 @@ Typical values:
   connections from that address, not from `127.0.0.1`. It can relay
   other connections to a published port from there too (IPv6 visitors,
   and every visitor on Synology), so publish the port on the loopback
-  only (`127.0.0.1:8888:8888`).
+  only (`127.0.0.1:8888:8888`). The gateway can change when the Compose
+  network is recreated: pin it with a fixed subnet, as shown in
+  [synology-dsm.md](../deployment/synology-dsm.md).
 - The proxy container's own IP when it shares a network with
   MediaKeeper, pinned with `ipv4_address` (on a network created with a
   fixed subnet). Not the whole network: it contains the gateway.
@@ -252,12 +254,13 @@ the LAN: an HTTP MITM there can replay session cookies.
 **Browser blocks scripts/styles/images with a Content-Security-Policy
 violation.**
 The shipped policy allows `'self'` plus: the YouTube IFrame API for
-scripts, Google Fonts for styles and fonts, TMDB, Imgur and YouTube
-thumbnails for images (with `data:` and `blob:`), and YouTube and Vimeo
-embeds for frames. If you deploy a customisation that loads other
-origins, switch to `MK_CSP_MODE=report-only` for a transition window,
-observe the violations in the browser console, and add the missing
-origins to a custom policy before going back to enforce mode.
+scripts, inline styles and Google Fonts for styles, Google Fonts for
+fonts, TMDB, Imgur and YouTube thumbnails for images (with `data:` and
+`blob:`), and YouTube and Vimeo embeds for frames. If you deploy a
+customisation that loads other origins, switch to
+`MK_CSP_MODE=report-only` for a transition window, observe the
+violations in the browser console, and add the missing origins to a
+custom policy before going back to enforce mode.
 
 **HSTS header is missing.**
 HSTS is emitted only when MediaKeeper sees the request as HTTPS.

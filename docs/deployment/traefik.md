@@ -79,7 +79,8 @@ Boot logs from MediaKeeper should mention Mode B with the matching
   settings → `TRUSTED_PROXIES` does not match Traefik's address, or
   Docker relays your visitors to Traefik (section 2). Three wrong
   passwords would then block everyone.
-- **WebSocket failing** → turn on Traefik's access log: a `101` status
-  on `/api/portal/chat/ws/` means Traefik forwarded the upgrade, and the
-  issue is downstream (CSRF / Origin guard, see [direct-lan.md](direct-lan.md)
-  for the verification curl commands).
+- **WebSocket failing** → turn on Traefik's access log and read the
+  status on `/api/portal/chat/ws/`: `101` means the handshake worked,
+  `403` that MediaKeeper refused the origin, the token or the room
+  (check `FRONTEND_ORIGIN`), `426` that the upgrade headers did not
+  reach it, `502` that Traefik cannot reach it.

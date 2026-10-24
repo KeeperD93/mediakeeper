@@ -47,7 +47,7 @@ COOKIE_SECURE=true
 `TRUSTED_PROXIES` is what unlocks `X-Forwarded-*` honouring;
 `FRONTEND_ORIGIN` switches the chat WS guard from auto-derive to a
 strict allowlist; `COOKIE_SECURE=true` is redundant once HTTPS is
-detected, but explicit is better when DSM ever swaps to a non-stable
+detected, but explicit is better if DSM ever swaps to a non-stable
 intermediate hop.
 
 Publish the port on the loopback only (`127.0.0.1:8888:8888` in the
@@ -57,8 +57,8 @@ open to the LAN, any device could choose the address MediaKeeper
 records.
 
 The gateway can change if the Compose network is recreated. To keep
-it, give the network a fixed subnet in the compose file (any range no
-other Docker network uses):
+it, give the network a fixed subnet in the compose file (any range that
+no other Docker network, nor your LAN or VPN, uses):
 
 ```yaml
 networks:
@@ -69,10 +69,16 @@ networks:
           gateway: 172.30.0.1
 ```
 
-Then set `TRUSTED_PROXIES=172.30.0.1`. Do not list a range instead:
-Docker's `172.16.0.0/12` would let containers on the NAS choose the
-address MediaKeeper records, and a LAN range such as `192.168.0.0/16`
-misses DSM's address, so every visitor would share one.
+Set `TRUSTED_PROXIES=172.30.0.1`, recreate the project so the network
+takes the subnet (`docker compose down`, then `docker compose up -d`;
+the data volume is kept), and check that
+`docker network inspect <project>_default` shows `172.30.0.1` as
+Gateway.
+
+Do not list a range instead: Docker's `172.16.0.0/12` would let
+containers on the NAS choose the address MediaKeeper records, and a LAN
+range such as `192.168.0.0/16` misses DSM's address, so every visitor
+would share one.
 
 If MediaKeeper boots with `TRUSTED_PROXIES` set but `FRONTEND_ORIGIN`
 left empty, you will see this WARN once at startup — set the public
