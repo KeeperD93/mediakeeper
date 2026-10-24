@@ -5,7 +5,8 @@ keeps to a single page, has a "Verify your setup" section, and
 relies on the same three environment variables on the MediaKeeper
 side: `TRUSTED_PROXIES`, `FRONTEND_ORIGIN`, `COOKIE_SECURE`. Set them in
 the `environment:` section of MediaKeeper's compose file, or in an env
-file it loads (`env_file:`, or `docker run --env-file`).
+file the deployment loads (`env_file:` in the compose file, or
+`docker run --env-file`).
 
 | Stack | Guide | When to pick |
 |---|---|---|

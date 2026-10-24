@@ -74,7 +74,8 @@ Set `TRUSTED_PROXIES=172.30.0.1`, recreate the project so the network
 takes the subnet (`docker compose down`, then `docker compose up -d`;
 the data volume is kept), and check that
 `docker network inspect <project>_default` shows `172.30.0.1` as
-Gateway.
+Gateway. For a quickstart install, add `-f docker-compose.prod.yml`
+before `down` and `up`.
 
 Do not list a range instead: Docker's `172.16.0.0/12` would let
 containers on the NAS choose the address MediaKeeper records, and a LAN
@@ -99,10 +100,10 @@ new values.
 On first boot the container generates the key that encrypts stored
 secrets (Discord webhooks, Imgur secret, Emby tokens…) and keeps it in
 `/data/.encryption_key`. To manage it yourself, set
-`MEDIAKEEPER_ENCRYPTION_KEY` (any 32-byte url-safe base64 value)
-**before the first `docker compose up`**, or to the value already in
-that file: the variable wins over the file, and secrets stored under
-another key become unreadable.
+`MEDIAKEEPER_ENCRYPTION_KEY` (a Fernet key: 32 bytes in url-safe base64,
+44 characters) **before the first `docker compose up`**, or to the value
+already in that file: the variable wins over the file, and secrets
+stored under another key become unreadable.
 
 ```yaml
 environment:

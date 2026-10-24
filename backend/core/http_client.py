@@ -1,6 +1,6 @@
 """
 Shared HTTP client (httpx).
-- A single connection pool for the whole application.
+- Two shared clients (internal, external), each with its own connection pool.
 - SSL verification of the internal client configurable via the VERIFY_SSL
   environment variable; the external client always verifies.
 - The external client routes through a DNS-pinned transport

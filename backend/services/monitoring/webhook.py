@@ -1,4 +1,4 @@
-"""Send runtime alerts to a Discord-compatible webhook with in-memory debounce.
+"""Send runtime alerts to a Discord webhook with in-memory debounce.
 
 Design notes:
 

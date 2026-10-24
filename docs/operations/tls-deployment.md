@@ -158,8 +158,9 @@ environment:
   - TRUSTED_PROXIES=172.18.0.1
 ```
 
-Run `docker compose up -d` again: it recreates the container with the
-new values.
+Run `docker compose up -d` again
+(`docker compose -f docker-compose.prod.yml up -d` for a quickstart
+install): it recreates the container with the new values.
 
 ---
 
