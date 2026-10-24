@@ -99,7 +99,7 @@ async def _log_login(
     username: str,
     source: str,
     success: bool,
-    ip: str | None,
+    ip: str,
     user_agent: str | None,
 ) -> None:
     """Best-effort write to the login history table — never blocks the
@@ -111,7 +111,7 @@ async def _log_login(
             username=(username or "")[:100] or None,
             source=source,
             success=success,
-            ip=ip or None,
+            ip=ip,
             user_agent=(user_agent or "")[:255] or None,
         ))
         await db.commit()
@@ -190,7 +190,7 @@ async def portal_login(
     try:
         profile.last_login_at = datetime.now(timezone.utc)
         profile.last_seen_at = profile.last_login_at
-        profile.last_login_ip = client_ip or None
+        profile.last_login_ip = client_ip
         profile.last_login_user_agent = (user_agent or "")[:255] or None
         db.add(profile)
         await db.commit()

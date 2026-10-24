@@ -94,7 +94,8 @@ async def is_blocked(
     conditions = [SecurityBlock.scope.in_([scope, "all"])]
     ip_or_user = [SecurityBlock.ip == ip]
     if username:
-        ip_or_user.append(SecurityBlock.username == username)
+        # Blocks stored before names were lower-cased may still carry capitals.
+        ip_or_user.append(func.lower(SecurityBlock.username) == username.lower())
     conditions.append(or_(*ip_or_user))
     active = or_(
         SecurityBlock.permanent == 1,

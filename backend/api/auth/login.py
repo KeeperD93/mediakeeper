@@ -49,7 +49,7 @@ async def _stamp_admin_login(
     db: AsyncSession,
     user: User,
     *,
-    client_ip: str | None,
+    client_ip: str,
     user_agent: str | None,
 ) -> None:
     """Mirror what the portal login does: stamp the UserProfile so the
@@ -66,7 +66,7 @@ async def _stamp_admin_login(
         now = datetime.now(timezone.utc)
         profile.last_login_at = now
         profile.last_seen_at = now
-        profile.last_login_ip = client_ip or None
+        profile.last_login_ip = client_ip
         profile.last_login_user_agent = (user_agent or "")[:255] or None
         db.add(profile)
         await db.commit()
