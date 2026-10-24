@@ -2,13 +2,16 @@
 from datetime import datetime, timedelta, timezone
 
 import pytest
+from fastapi import HTTPException
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 
 from core.security import create_access_token
 from models.security import SecurityAttempt, SecurityBlock
 from services.security import (
     ALERT_THRESHOLD,
     FAIL_BLOCK_THRESHOLD,
+    RETENTION_DAYS,
     create_block,
     delete_block,
     ensure_not_blocked,
@@ -16,6 +19,13 @@ from services.security import (
     purge_old_attempts,
     record_failure,
 )
+
+
+def _auth_admin(client, admin_user) -> None:
+    client.cookies.set(
+        "mk_token",
+        create_access_token({"sub": admin_user.username, "scope": "admin"}),
+    )
 
 
 @pytest.mark.asyncio
@@ -51,8 +61,7 @@ async def test_record_failure_logs_row_and_auto_blocks_after_threshold(db_sessio
     assert block_other is None
 
 
-@pytest.mark.asyncio
-async def test_alert_threshold_is_lower_or_equal_than_block_threshold():
+def test_alert_threshold_is_at_most_the_block_threshold():
     # Alert fires at or before the block kicks in.
     assert ALERT_THRESHOLD <= FAIL_BLOCK_THRESHOLD
 
@@ -67,7 +76,6 @@ async def test_ensure_not_blocked_raises_429_when_blocked(db_session):
         scope="admin",
         permanent=True,
     )
-    from fastapi import HTTPException
     with pytest.raises(HTTPException) as excinfo:
         await ensure_not_blocked(db_session, "198.51.100.9", "anyone", "admin")
     assert excinfo.value.status_code == 429
@@ -77,7 +85,6 @@ async def test_ensure_not_blocked_raises_429_when_blocked(db_session):
 @pytest.mark.asyncio
 async def test_security_attempt_success_rejects_non_boolean(db_session):
     """The CHECK(0/1) guard refuses a success value outside the boolean range."""
-    from sqlalchemy.exc import IntegrityError
     db_session.add(SecurityAttempt(ip="198.51.100.2", scope="admin", success=2))
     with pytest.raises(IntegrityError):
         await db_session.flush()
@@ -87,7 +94,6 @@ async def test_security_attempt_success_rejects_non_boolean(db_session):
 @pytest.mark.asyncio
 async def test_security_block_permanent_rejects_non_boolean(db_session):
     """The CHECK(0/1) guard refuses a permanent value outside the boolean range."""
-    from sqlalchemy.exc import IntegrityError
     db_session.add(SecurityBlock(scope="admin", permanent=5))
     with pytest.raises(IntegrityError):
         await db_session.flush()
@@ -124,22 +130,21 @@ async def test_delete_block_removes_row(db_session):
 
 @pytest.mark.asyncio
 async def test_purge_old_attempts_keeps_recent(db_session):
-    recent = SecurityAttempt(
-        ip="198.51.100.5", username="u", scope="admin", success=0,
-        created_at=datetime.now(timezone.utc),
-    )
-    ancient = SecurityAttempt(
-        ip="198.51.100.5", username="u", scope="admin", success=0,
-        created_at=datetime.now(timezone.utc) - timedelta(days=100),
-    )
-    db_session.add_all([recent, ancient])
+    now = datetime.now(timezone.utc)
+    ages = {"recent": 0, "inside": RETENTION_DAYS - 1, "ancient": RETENTION_DAYS + 10}
+    db_session.add_all([
+        SecurityAttempt(
+            ip="198.51.100.5", username=name, scope="admin", success=0,
+            created_at=now - timedelta(days=days),
+        )
+        for name, days in ages.items()
+    ])
     await db_session.commit()
 
-    deleted = await purge_old_attempts(db_session)
-    assert deleted == 1
+    assert await purge_old_attempts(db_session) == 1
 
-    remaining = (await db_session.execute(select(SecurityAttempt))).scalars().all()
-    assert len(remaining) == 1
+    remaining = (await db_session.execute(select(SecurityAttempt.username))).scalars().all()
+    assert sorted(remaining) == ["inside", "recent"]
 
 
 @pytest.mark.asyncio
@@ -150,7 +155,7 @@ async def test_admin_endpoints_require_auth(client):
 
 @pytest.mark.asyncio
 async def test_admin_can_list_and_manage_blocks(client, admin_user):
-    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
+    _auth_admin(client, admin_user)
 
     resp = await client.post("/api/security/blocks", json={
         "ip": "10.0.0.1",
@@ -174,8 +179,8 @@ async def test_admin_can_list_and_manage_blocks(client, admin_user):
 async def test_post_block_rejects_inert_non_permanent_block(client, admin_user):
     """A non-permanent block with no future expiry is inert (never active,
     hidden from the list); the API must reject it (400) instead of silently
-    storing a dead row (#395)."""
-    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
+    storing a dead row."""
+    _auth_admin(client, admin_user)
 
     no_expiry = await client.post("/api/security/blocks", json={
         "ip": "203.0.113.5", "scope": "all", "permanent": False,
@@ -188,6 +193,7 @@ async def test_post_block_rejects_inert_non_permanent_block(client, admin_user):
         "blocked_until": "2000-01-01T00:00:00+00:00",
     })
     assert past.status_code == 400
+    assert past.json()["detail"] == "block_requires_future_expiry"
 
     future = (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
     ok = await client.post("/api/security/blocks", json={
@@ -200,8 +206,8 @@ async def test_post_block_rejects_inert_non_permanent_block(client, admin_user):
 @pytest.mark.asyncio
 async def test_post_block_refuses_self_block_by_username(client, admin_user):
     """Blocking the operator's own username would lock them out of the
-    backoffice after JWT expiry; the API must refuse it (#396)."""
-    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
+    backoffice after JWT expiry; the API must refuse it."""
+    _auth_admin(client, admin_user)
 
     own = await client.post("/api/security/blocks", json={
         "username": admin_user.username, "scope": "all", "permanent": True,
@@ -219,7 +225,7 @@ async def test_post_block_refuses_self_block_by_username(client, admin_user):
 async def test_post_block_stores_the_ip_in_canonical_form(client, admin_user, db_session):
     """Blocks are matched against normalized client IPs: another spelling of
     the same address must still match, including the operator's own one."""
-    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
+    _auth_admin(client, admin_user)
 
     own = await client.post("/api/security/blocks", json={
         "ip": "::ffff:127.0.0.1", "scope": "all", "permanent": True,
@@ -235,10 +241,10 @@ async def test_post_block_stores_the_ip_in_canonical_form(client, admin_user, db
 
 
 @pytest.mark.asyncio
-async def test_post_block_keeps_a_non_ip_value_as_typed(client, admin_user, db_session):
+async def test_post_block_keeps_the_unknown_marker_as_typed(client, admin_user, db_session):
     """The quick block of an attempt without a usable IP sends "unknown": it is
     stored as typed, so it matches the sign-ins recorded under that marker."""
-    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
+    _auth_admin(client, admin_user)
 
     resp = await client.post("/api/security/blocks", json={
         "ip": "unknown", "scope": "admin", "permanent": True,
@@ -249,7 +255,7 @@ async def test_post_block_keeps_a_non_ip_value_as_typed(client, admin_user, db_s
 
 @pytest.mark.asyncio
 async def test_login_endpoint_blocks_after_failures(client, admin_user):
-    # A real account, so /login runs the real failure flow.
+    # A real account, so the last attempt can use the correct password.
     for _ in range(FAIL_BLOCK_THRESHOLD):
         await client.post("/api/auth/login", json={
             "username": admin_user.username, "password": "wrong-password"
