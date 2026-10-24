@@ -20,7 +20,7 @@ the proxy as trusted.
   this guide we use `mediakeeper.example.com` as a placeholder —
   replace it with the name you actually own.
 - The MediaKeeper container reachable from the proxy on port `8888`
-  (loopback, Docker bridge network or any other private interface).
+  (published on the loopback, or over a shared Docker network).
 - A TLS certificate. Two paths are documented below:
   - automatic Let's Encrypt issuance (Caddy or Nginx with certbot);
   - a self-signed certificate for purely local LAN use.
@@ -47,13 +47,20 @@ mediakeeper.example.com {
 ```
 
 Caddy provisions a Let's Encrypt certificate on first start, redirects
-HTTP → HTTPS and renews the certificate transparently. Run it as a
-container or as a system service — both work the same way against the
-backend.
+HTTP → HTTPS and renews the certificate transparently. Run as a
+container, it forwards to `mediakeeper:8888` on a network shared with
+MediaKeeper instead of `127.0.0.1:8888`, and you list the container's
+own IP (section 3).
 
 ### 2.2 Nginx (Let's Encrypt via certbot)
 
 ```nginx
+# Close the upstream connection unless the client asks for a WebSocket.
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
 server {
     listen 80;
     server_name mediakeeper.example.com;
@@ -69,8 +76,11 @@ server {
 
     location / {
         proxy_pass         http://127.0.0.1:8888;
+        proxy_http_version 1.1;
+        proxy_set_header   Upgrade           $http_upgrade;
+        proxy_set_header   Connection        $connection_upgrade;
         proxy_set_header   Host              $host;
-        proxy_set_header   X-Forwarded-For   $remote_addr;
+        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
         proxy_set_header   X-Forwarded-Proto $scheme;
         proxy_set_header   X-Forwarded-Host  $host;
     }
@@ -117,16 +127,18 @@ TRUSTED_PROXIES=172.18.0.1,<CDN_CIDR>
 List the address each proxy connects from, never a whole LAN range.
 Typical values:
 
-- The Docker network gateway (`docker network inspect`, Gateway
-  field), e.g. `172.18.0.1`, for a proxy on the same host as the
-  container: Docker relays its connections from that address, not
-  from `127.0.0.1`. It can relay other connections to a published
-  port from there too (IPv6 visitors, and every visitor on Synology),
-  so publish the port on the loopback only (`127.0.0.1:8888:8888`).
+- The Docker network gateway (Gateway field of
+  `docker network inspect <project>_default`), e.g. `172.18.0.1`, for
+  a proxy on the same host as the container: Docker relays its
+  connections from that address, not from `127.0.0.1`. It can relay
+  other connections to a published port from there too (IPv6 visitors,
+  and every visitor on Synology), so publish the port on the loopback
+  only (`127.0.0.1:8888:8888`).
 - The proxy container's own IP when it shares a network with
-  MediaKeeper. Not the whole network: it contains the gateway.
-- `<LAN_GATEWAY>` — the gateway address of a small home LAN where
-  the proxy is the only TLS-terminating box.
+  MediaKeeper, pinned with `ipv4_address` (on a network created with a
+  fixed subnet). Not the whole network: it contains the gateway.
+- `<LAN_GATEWAY>` — the router's address, when the proxy runs on the
+  router itself.
 
 Set both variables in the same `.env` file used by `docker compose`:
 

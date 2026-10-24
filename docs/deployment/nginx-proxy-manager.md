@@ -13,7 +13,7 @@ Create a new **Proxy Host** with the following:
 |---|---|---|
 | Details | Domain Names | `mediakeeper.your-domain.example` |
 | Details | Scheme | `http` |
-| Details | Forward Hostname / IP | `mediakeeper` (Docker service name) or `192.0.2.10` |
+| Details | Forward Hostname / IP | `mediakeeper` (Docker service name) |
 | Details | Forward Port | `8888` |
 | Details | Cache Assets | off (Vue bundle is hash-named already) |
 | Details | Block Common Exploits | on |
@@ -49,8 +49,9 @@ first address, read from the right, that is not a listed proxy.
 ## 3. MediaKeeper environment
 
 ```dotenv
-# NPM's IP on the network it shares with MediaKeeper. Read it with
-#   docker inspect <npm-container> --format '{{range .NetworkSettings.Networks}}{{.IPAddress}} {{end}}'
+# NPM's IP on the network it shares with MediaKeeper. List NPM's IPs,
+# one line per network, with
+#   docker inspect <npm-container> --format '{{range $net, $cfg := .NetworkSettings.Networks}}{{$net}} {{$cfg.IPAddress}}{{println}}{{end}}'
 TRUSTED_PROXIES=172.18.0.5
 FRONTEND_ORIGIN=https://mediakeeper.your-domain.example
 COOKIE_SECURE=true
@@ -64,11 +65,12 @@ survives a restart. Relayed visitors show up as that gateway: IPv6
 ones unless the network has IPv6 enabled, and all of them on Synology.
 There, use DSM's reverse proxy ([synology-dsm.md](synology-dsm.md)).
 
-If NPM reaches MediaKeeper by its service name, drop MediaKeeper's
-`8888:8888` port mapping: NPM does not need it. If it forwards to the
-host's IP instead, MediaKeeper sees its own network gateway: list
-that, and bind the port to the host's IPv4 address
-(`192.0.2.10:8888:8888`).
+NPM reaches MediaKeeper by its service name, so drop MediaKeeper's
+`8888:8888` port mapping: NPM does not need it. Do not forward to the
+host's IP instead. MediaKeeper would then see its own network gateway,
+which other containers on the host also connect from, and on Synology
+every LAN device too: any of them could choose the address MediaKeeper
+records.
 
 ## 4. Verify your setup
 
@@ -98,5 +100,8 @@ A failed handshake means the Websockets toggle in NPM is off.
   one in `FRONTEND_ORIGIN` (CSV) so chat WS handshakes from the
   alternate hostname pass the allowlist.
 - **Every visitor shows the same address** in the Security tab of the
-  settings → `TRUSTED_PROXIES` does not match the address NPM connects
-  from. Three wrong passwords would then block everyone.
+  settings → `TRUSTED_PROXIES` does not match NPM's address, or Docker
+  relays your visitors to NPM (section 3). Three wrong passwords would
+  then block everyone. Do not add Docker's gateway to `TRUSTED_PROXIES`
+  to work around it: NPM keeps the `X-Forwarded-For` a visitor sends, so
+  visitors could then choose the address MediaKeeper records.

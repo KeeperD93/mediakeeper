@@ -29,7 +29,8 @@ swap `127.0.0.1:8888` for the service name (`mediakeeper:8888`).
 # gateway, not 127.0.0.1. Read it with `docker network inspect
 # <project>_default` (Gateway field). If Caddy runs in the same
 # Compose network, use the Caddy container's IP instead and pin it
-# with `ipv4_address` so it survives a restart.
+# with `ipv4_address` (on a network created with a fixed subnet) so it
+# survives a restart.
 TRUSTED_PROXIES=172.18.0.1
 FRONTEND_ORIGIN=https://mediakeeper.your-domain.example
 COOKIE_SECURE=true
@@ -38,7 +39,13 @@ COOKIE_SECURE=true
 Docker can relay other connections to a published port from that same
 gateway (IPv6 visitors, and every visitor on Synology). Publish
 MediaKeeper on the loopback only (`127.0.0.1:8888:8888` in the compose
-file), which is all Caddy needs.
+file), which is all Caddy on the host needs.
+
+A Caddy container needs no port mapping on MediaKeeper. Docker relays
+visitors to Caddy's own ports the same way, though: they show up as the
+gateway, IPv6 ones unless the network has IPv6 enabled, and all of them
+on Synology. There, use DSM's reverse proxy
+([synology-dsm.md](synology-dsm.md)).
 
 ## 3. Verify your setup
 
@@ -56,9 +63,9 @@ wscat -c "wss://mediakeeper.your-domain.example/api/portal/chat/ws/1" \
       -H "Cookie: rq_token=<a-valid-token>"
 ```
 
-A 426 in the curl output (or a connection refused on the wscat call)
-means the upstream is not actually MediaKeeper or the Caddy `reverse_proxy`
-directive is misconfigured.
+A 426 (or a connection refused) on the wscat call means the upstream
+is not actually MediaKeeper or the Caddy `reverse_proxy` directive is
+misconfigured.
 
 ## 4. Common pitfalls
 
@@ -73,5 +80,6 @@ directive is misconfigured.
   ranges in `TRUSTED_PROXIES`. MediaKeeper reads the header from the
   right and keeps the first address that is not a listed proxy.
 - **Every visitor shows the same address** in the Security tab of the
-  settings → `TRUSTED_PROXIES` does not match the address Caddy
-  connects from. Three wrong passwords would then block everyone.
+  settings — `TRUSTED_PROXIES` does not match the address Caddy
+  connects from, or Docker relays your visitors to a Caddy container
+  (section 2). Three wrong passwords would then block everyone.

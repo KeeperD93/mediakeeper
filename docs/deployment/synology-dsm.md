@@ -50,9 +50,10 @@ detected, but explicit is better when DSM ever swaps to a non-stable
 intermediate hop.
 
 Publish the port on the loopback only (`127.0.0.1:8888:8888` in the
-compose file). DSM reaches it through `127.0.0.1`, and Docker on DSM
-relays every connection to a published port from that same gateway:
-with the port open to the LAN, any device could choose its address.
+compose file). DSM connects to `127.0.0.1`, and Docker on DSM relays
+every connection to a published port from the gateway: with the port
+open to the LAN, any device could choose the address MediaKeeper
+records.
 
 The gateway can change if the Compose network is recreated. Docker's
 usual private range is a wider alternative:
@@ -61,10 +62,11 @@ usual private range is a wider alternative:
 TRUSTED_PROXIES=172.16.0.0/12
 ```
 
-It also trusts every container on MediaKeeper's network, which could
-then choose the address MediaKeeper records. Do not use a LAN range
-such as `192.168.0.0/16`: DSM does not connect from it, and any LAN
-device could choose that address.
+It also trusts every container on MediaKeeper's network, and every LAN
+device if your LAN uses that range: any of them could then choose the
+address MediaKeeper records. Do not use a LAN range such as
+`192.168.0.0/16`: DSM never connects from it, so every visitor would
+share one address.
 
 If MediaKeeper boots with `TRUSTED_PROXIES` set but `FRONTEND_ORIGIN`
 left empty, you will see this WARN once at startup — set the public
@@ -106,7 +108,7 @@ Boot logs should print:
 [startup] deployment mode=B (reverse proxy) | TRUSTED_PROXIES=172.18.0.1 | FRONTEND_ORIGIN=https://mediakeeper.your-domain.example | COOKIE_HTTPS_FLAG=true
 ```
 
-From any browser on the LAN:
+From any machine on the LAN:
 
 ```bash
 curl -I https://mediakeeper.your-domain.example/api/health

@@ -15,8 +15,8 @@ side: `TRUSTED_PROXIES`, `FRONTEND_ORIGIN`, `COOKIE_SECURE`.
 
 If your stack is not listed, the contract is identical to the others:
 
-1. Forward `X-Forwarded-Proto`, `X-Forwarded-For`, `X-Forwarded-Host`
-   to MediaKeeper on port `8888`.
+1. Forward `X-Forwarded-Proto`, `X-Forwarded-For` and the public
+   `Host` (or `X-Forwarded-Host`) to MediaKeeper on port `8888`.
 2. Forward the WebSocket `Upgrade` and `Connection` headers (chat
    WebSocket lives at `/api/portal/chat/ws/<room_id>`).
 3. List every proxy between the visitor and MediaKeeper in
@@ -38,5 +38,5 @@ If your stack is not listed, the contract is identical to the others:
    preflights need it even though CSRF auto-derives).
 
 The TLS deployment guide at [../operations/tls-deployment.md](../operations/tls-deployment.md)
-covers cross-cutting concerns (HSTS, certificate rotation, CSP report
-endpoint) that apply across every stack.
+covers cross-cutting concerns (HSTS, certificate renewal, CSP mode)
+that apply across every stack.

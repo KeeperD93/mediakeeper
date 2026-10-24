@@ -33,8 +33,9 @@ Restart the stack: `docker compose up -d --force-recreate mediakeeper`.
 ## 2. MediaKeeper environment
 
 ```dotenv
-# Traefik's IP on the `public` network. Read it with
-#   docker inspect <traefik-container> --format '{{range .NetworkSettings.Networks}}{{.IPAddress}} {{end}}'
+# Traefik's IP on the `public` network. List Traefik's IPs, one line
+# per network, with
+#   docker inspect <traefik-container> --format '{{range $net, $cfg := .NetworkSettings.Networks}}{{$net}} {{$cfg.IPAddress}}{{println}}{{end}}'
 TRUSTED_PROXIES=172.18.0.2
 FRONTEND_ORIGIN=https://mediakeeper.your-domain.example
 COOKIE_SECURE=true
@@ -75,8 +76,9 @@ Boot logs from MediaKeeper should mention Mode B with the matching
   `entryPoints.<name>.forwardedHeaders.trustedIPs` (otherwise Traefik
   drops the CDN's `X-Forwarded-For`) and in `TRUSTED_PROXIES`.
 - **Every visitor shows the same address** in the Security tab of the
-  settings → `TRUSTED_PROXIES` does not match Traefik's address. Three
-  wrong passwords would then block everyone.
+  settings → `TRUSTED_PROXIES` does not match Traefik's address, or
+  Docker relays your visitors to Traefik (section 2). Three wrong
+  passwords would then block everyone.
 - **WebSocket failing** → check the LAN-side `docker logs traefik`
   output; if you see HTTP/1.1 101 with the right headers, the issue
   is downstream (CSRF / Origin guard, see [direct-lan.md](direct-lan.md)
