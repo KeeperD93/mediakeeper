@@ -1,6 +1,6 @@
 """A PUID change, or its removal, must not cut the app off its own files: the
-secrets and data dirs go back to the runtime user at every start, without root
-ever following a link the app user could plant in /data, and a store that
+secrets and the data dirs re-owned here go back to the runtime user at every
+start, without root following a link planted in their place, and a store that
 ignores ownership changes stops the start with a message that says why."""
 import re
 from pathlib import Path

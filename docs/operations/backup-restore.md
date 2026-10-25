@@ -99,7 +99,7 @@ Before starting the restore, confirm you have:
   you're restoring data, not reconfiguring authentication).
 - **A staging area** that is gitignored and isolated from production.
   In this project, the convention is `drill/` at the repository root
-  (already in `.gitignore` since `b0ded2c`).
+  (already in `.gitignore`).
 
 > ⚠️ **Treat the ZIP as a secret.** It contains the active Fernet
 > key. Anyone with the ZIP can decrypt every API key, webhook,
@@ -420,10 +420,9 @@ mediakeeper_db` first.
 If the dump comes from a deployment whose Alembic head is *newer*
 than the code currently deployed on the target, the SQL will
 introduce columns or tables the application does not know about.
-The application will still start, but the audit cluster (`13-db-
-schema-data`) recommends keeping deploys aligned: if you must
-proceed, run the migrations missing from the *new* code after the
-restore.
+The application will still start, but keep deploys aligned: if you
+must proceed, run the migrations missing from the *new* code after
+the restore.
 
 ### Encrypted settings come back as empty strings
 
@@ -460,11 +459,11 @@ locale because the application uses explicit `LOWER()` casts and
 ICU-independent collations, but if you want a 100% production-faithful
 drill add `-e LANG=C -e LC_ALL=C` to the `docker run` command.
 
-### Table count differs from earlier audits
+### Table count differs from an earlier count
 
 `SELECT count(*) FROM information_schema.tables WHERE table_schema =
-'public'` includes `alembic_version`. Earlier audits sometimes report
-table counts that exclude it; a one-row delta between sources is
+'public'` includes `alembic_version`. Other counts sometimes leave
+it out; a one-row delta between sources is
 typically the version table being counted differently, not real
 schema drift. Compare actual table names rather than counts when in
 doubt.

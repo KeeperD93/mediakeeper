@@ -193,8 +193,8 @@ relevant.
 - `alembic upgrade head` fails at boot with a schema mismatch error
   (often when `MK_DB_SCHEMA_MODE=validate` rejects the schema).
 - A user-facing feature regressed visibly.
-- The Fernet warning in the docstring of `restore_backup` was not
-  followed during a partial restore (see
+- A partial restore was run without putting the encryption key
+  back: a restore never writes it (see
   [`backup-restore.md` §1](backup-restore.md)).
 
 ### 4.2 Immediate mitigation
