@@ -420,9 +420,9 @@ mediakeeper_db` first.
 If the dump comes from a deployment whose Alembic head is *newer*
 than the code currently deployed on the target, the SQL will
 introduce columns or tables the application does not know about.
-The application will still start, but keep deploys aligned: if you
-must proceed, run the migrations missing from the *new* code after
-the restore.
+The next start then stops at the migration step, because this code
+does not know the dump's revision, and the container exits: deploy
+the version the dump came from, or a newer one, before starting it.
 
 ### Encrypted settings come back as empty strings
 
