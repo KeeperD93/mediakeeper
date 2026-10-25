@@ -187,8 +187,8 @@ This is the safe default for a container exposed directly on a LAN
 without a proxy in front.
 
 uvicorn's own `FORWARDED_ALLOW_IPS` and `UVICORN_FORWARDED_ALLOW_IPS`
-variables are ignored: the container limits uvicorn's proxy trust to
-loopback, so list your proxies in `TRUSTED_PROXIES`.
+variables are ignored: the container limits uvicorn's proxy trust to its
+own loopback, so list your proxies in `TRUSTED_PROXIES`.
 
 ---
 

@@ -1,8 +1,9 @@
 #!/bin/bash
 set -e
 
-# MediaKeeper single-container entrypoint: remap the runtime user, create the
-# data dirs and secrets, start PostgreSQL, apply the migrations, launch uvicorn.
+# MediaKeeper single-container entrypoint: remap the runtime user, create the data
+# dirs and secrets, start PostgreSQL (initialised on first launch), apply the
+# migrations, then run uvicorn and the background tasks.
 
 DATA_DIR="/data"
 PG_DATA="$DATA_DIR/pg"
@@ -10,7 +11,7 @@ PG_PWD_FILE="$DATA_DIR/.pg_password"
 PG_LOG="$DATA_DIR/logs/postgresql.log"
 PG_BIN="/usr/lib/postgresql/16/bin"
 
-# 0. Remap mkuser UID/GID if PUID/PGID are set
+# 0. Remap mkuser to PUID/PGID when PUID is set
 PUID=${PUID:-0}
 PGID=${PGID:-0}
 if [ "$PUID" -ne 0 ]; then
@@ -123,10 +124,8 @@ export DATABASE_URL="postgresql://mediakeeper:${PG_PASSWORD}@127.0.0.1:5432/medi
 chown -R mkuser:users /data/logs /data/backups
 
 # 4b. Apply Alembic migrations (idempotent)
-# Each Alembic migration is written as a no-op when its target table/column
-# already exists (``if ... not in tables`` guards), so re-running
-# ``upgrade head`` on every boot is safe and guarantees that any newly
-# shipped migration is picked up at the next rebuild.
+# Alembic records each applied revision in ``alembic_version``, so running
+# ``upgrade head`` on every boot only applies the migrations shipped since.
 echo ">> Applying Alembic migrations..."
 su -s /bin/bash mkuser -c "cd /app/backend && alembic upgrade head" || {
     echo ">> ⚠  Alembic migrations failed — aborting."
@@ -159,8 +158,8 @@ shutdown_all() {
 # freeze the server.
 WS_MAX_SIZE=65536
 
-# uvicorn's own default, pinned: FORWARDED_ALLOW_IPS must never let uvicorn rewrite
-# the client address from X-Forwarded-For before MediaKeeper reads it.
+# uvicorn's own default, pinned: FORWARDED_ALLOW_IPS (or UVICORN_FORWARDED_ALLOW_IPS) must
+# never let uvicorn take the client address from X-Forwarded-For before MediaKeeper reads it.
 UVICORN_FORWARDED_IPS="127.0.0.1,::1"
 
 if [ "$MK_DEBUG" = "true" ]; then
