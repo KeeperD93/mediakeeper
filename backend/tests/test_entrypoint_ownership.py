@@ -1,6 +1,7 @@
 """A PUID change, or its removal, must not cut the app off its own files: the
-secrets go back to the runtime user at every start, and a store that ignores
-ownership changes stops the start with a message that says why."""
+secrets and data dirs go back to the runtime user at every start, without root
+ever following a link the app user could plant in /data, and a store that
+ignores ownership changes stops the start with a message that says why."""
 import re
 from pathlib import Path
 
@@ -45,7 +46,8 @@ def test_postgres_data_dir_ownership_is_checked_before_any_secret_is_written():
     # When /data cannot be written, mkdir's own error is the real cause: keep it visible.
     assert "2>/dev/null" not in code[mkdir]
     # `|| true`: a refused chown must reach the explanation, not stop on `set -e`.
-    assert code[check - 2] == 'chown postgres:postgres "$PG_DATA" 2>/dev/null || true'
+    # -h: a link planted at /data/pg must not hand its target to postgres.
+    assert code[check - 2] == 'chown -h postgres:postgres "$PG_DATA" 2>/dev/null || true'
     # -L like PostgreSQL, which checks the directory a link points to.
     assert code[check - 1] == 'PG_DATA_OWNER=$(stat -L -c %u "$PG_DATA")'
     body = [line.strip() for line in code[check:code.index("fi", check)]]
@@ -53,11 +55,17 @@ def test_postgres_data_dir_ownership_is_checked_before_any_secret_is_written():
     assert body[-1] == "exit 1"
 
 
-def test_image_cache_dirs_go_back_to_the_runtime_user_at_every_start():
+def test_data_dirs_go_back_to_the_runtime_user_without_following_links():
     code = _code()
-    mkdir = next(line for line in code if line.startswith("mkdir -p ") and "/data/pg" in line.split())
-    assert "/data/cache/images" in mkdir.split()
-    chown = next(i for i, line in enumerate(code) if line.startswith("chown mkuser:users ") and "/data/cache" in line.split())
-    assert chown > _remap_end(code)
-    assert {"/data/cache", "/data/cache/images"} <= set(code[chown].split())
-    assert "-R" not in code[chown].split()  # the cache can be large: no walk
+    mkdir = next(i for i, line in enumerate(code) if line.startswith("mkdir -p ") and "/data/avatars" in line.split())
+    avatars = code.index("chown -h mkuser:users /data/avatars 2>/dev/null || true")
+    assert _remap_end(code) < mkdir < avatars
+    # chmod has no -h: it must skip a link instead.
+    assert code[avatars + 1] == "[ -L /data/avatars ] || chmod 750 /data/avatars 2>/dev/null || true"
+    guard = code.index("if [ ! -L /data/cache ]; then")
+    assert guard > _remap_end(code)
+    # Created, then re-owned without a walk: the cache can be large.
+    assert [line.strip() for line in code[guard + 1:code.index("fi", guard)]] == [
+        "mkdir -p /data/cache/images || true",
+        "chown -h mkuser:users /data/cache /data/cache/images 2>/dev/null || true",
+    ]

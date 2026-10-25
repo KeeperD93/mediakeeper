@@ -46,14 +46,19 @@ done
 # volume OR a bind-mount to an empty host dir — has them on boot, without a
 # manual ``docker exec mkdir`` from the operator. pg is re-owned to postgres
 # and logs/backups to mkuser by the steps further down; initdb sets pg's mode.
-# The image cache dirs are re-owned without a walk: the cache can be large.
-mkdir -p /data/avatars /data/pg /data/logs /data/backups /data/cache/images || true
-chown mkuser:users /data/avatars /data/cache /data/cache/images 2>/dev/null || true
-chmod 750 /data/avatars 2>/dev/null || true
+mkdir -p /data/avatars /data/pg /data/logs /data/backups || true
+# The app user owns /data: root never follows a link it could plant there (-h, link
+# checks). The image cache is re-owned without a walk: it can be large.
+chown -h mkuser:users /data/avatars 2>/dev/null || true
+[ -L /data/avatars ] || chmod 750 /data/avatars 2>/dev/null || true
+if [ ! -L /data/cache ]; then
+    mkdir -p /data/cache/images || true
+    chown -h mkuser:users /data/cache /data/cache/images 2>/dev/null || true
+fi
 
 # 0c. PostgreSQL refuses a data dir it does not own: check the storage before any secret
 # is written (NFS, SMB and Docker Desktop host folders ignore or refuse ownership changes).
-chown postgres:postgres "$PG_DATA" 2>/dev/null || true
+chown -h postgres:postgres "$PG_DATA" 2>/dev/null || true
 PG_DATA_OWNER=$(stat -L -c %u "$PG_DATA")
 if [ "$PG_DATA_OWNER" != "$(id -u postgres)" ]; then
     echo ">> ⚠  $PG_DATA still belongs to UID $PG_DATA_OWNER after chown: the storage behind /data ignores ownership changes. Put /data on a Docker volume or a local disk (media can stay on a network share)."
