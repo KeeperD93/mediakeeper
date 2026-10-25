@@ -121,6 +121,7 @@ async function submit() {
     await changePassword(currentPwd.value, newPwd.value)
     showToast(t('forcePassword.success'), TOAST_TYPE.OK)
   } catch (e) {
+    console.error('[ForcePasswordModal.submit]', e)
     errorMsg.value = resolveApiError(e.message, 'common.apiError.saveFailed')
   } finally {
     submitting.value = false

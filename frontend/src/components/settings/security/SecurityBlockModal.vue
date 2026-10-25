@@ -116,6 +116,7 @@ useFocusTrap({
   font-size: var(--text-sm);
 }
 .sec-modal input {
+  min-height: var(--touch-target);
   padding: var(--space-2);
   border-radius: var(--radius-input);
   border: var(--border-width) solid var(--border);
@@ -132,8 +133,11 @@ useFocusTrap({
   color: var(--text-primary);
 }
 @media (min-width: 768px) {
+  .sec-modal input,
   .sec-select {
     min-height: 0;
+  }
+  .sec-select {
     padding-block: var(--space-2);
   }
 }

@@ -58,6 +58,7 @@ export function useParamsSecurity() {
   })
   const busy = ref(false)
   let pendingRefreshes = 0
+  let latestRefresh = 0
   let failureShown = false
   let timer = null
 
@@ -97,10 +98,18 @@ export function useParamsSecurity() {
   }
 
   async function refresh({ silent = false } = {}) {
+    const run = ++latestRefresh
     pendingRefreshes++
     const results = await Promise.allSettled([blockList.load(), attemptList.load()])
     pendingRefreshes--
     const failure = results.find(r => r.status === 'rejected')
+    // A newer refresh speaks for the lists: this one's outcome would mislead.
+    if (run !== latestRefresh) {
+      if (failure) {
+        console.error('[useParamsSecurity.refresh] superseded run failed', failure.reason)
+      }
+      return
+    }
     if (!failure) {
       failureShown = false
       return
@@ -133,7 +142,7 @@ export function useParamsSecurity() {
       await request()
       return true
     } catch (e) {
-      // Already done elsewhere (another admin, an expiry): the reload shows it.
+      // Already removed elsewhere (another admin or tab): the reload shows it.
       if (doneCode && e?.message === doneCode) return true
       showFailure(where, e, resolveScopedError(ERRORS_SCOPE, e?.message, fallbackKey))
       return false

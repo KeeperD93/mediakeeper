@@ -52,6 +52,17 @@ describe('SecurityBlockModal — focus trap integration', () => {
     w.unmount()
   })
 
+  it('wraps Shift+Tab from the IP field to Save', async () => {
+    const w = buildModal()
+    await flushPromises()
+
+    document.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true }),
+    )
+    expect(document.activeElement).toBe(w.get('button[type="submit"]').element)
+    w.unmount()
+  })
+
   it('routes Escape to close exactly once', async () => {
     const w = buildModal()
     await flushPromises()
@@ -59,6 +70,20 @@ describe('SecurityBlockModal — focus trap integration', () => {
     escape()
     expect(w.emitted('close')).toHaveLength(1)
     w.unmount()
+  })
+
+  it('gives focus back to the control that opened it', async () => {
+    const opener = document.createElement('button')
+    document.body.appendChild(opener)
+    opener.focus()
+    const w = buildModal()
+    await flushPromises()
+    expect(document.activeElement).not.toBe(opener)
+
+    w.unmount()
+    await flushPromises()
+    expect(document.activeElement).toBe(opener)
+    opener.remove()
   })
 
   it('ignores Escape, Cancel and the backdrop while a save is on its way', async () => {

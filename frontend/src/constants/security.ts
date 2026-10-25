@@ -42,3 +42,5 @@ export const BLOCK_FIELD_MAX = Object.freeze({
 export const SECURITY_ERROR = Object.freeze({
   BLOCK_NOT_FOUND: 'block_not_found',
 } as const)
+
+export type SecurityError = (typeof SECURITY_ERROR)[keyof typeof SECURITY_ERROR]

@@ -1,4 +1,5 @@
-"""Security dashboard input: manual-block names, the block schema's guards and the attempts filter."""
+"""Security dashboard input: manual-block names and addresses, the block schema's guards,
+unblocking and the attempts filter."""
 import pytest
 
 from core.security import hash_password
@@ -83,6 +84,14 @@ async def test_unknown_marker_is_a_self_block_when_the_operator_ip_is_unreadable
     resp = await authed_client.post("/api/security/blocks", json={"ip": "unknown", "scope": "all"})
     assert resp.status_code == 400
     assert resp.json()["detail"] == "self_block_forbidden"
+
+
+@pytest.mark.asyncio
+async def test_unblocking_a_block_already_removed_says_block_not_found(authed_client):
+    """The Security tab treats this code as an unblock already done elsewhere."""
+    resp = await authed_client.delete("/api/security/blocks/999999")
+    assert resp.status_code == 404
+    assert resp.json()["detail"] == "block_not_found"
 
 
 @pytest.mark.asyncio

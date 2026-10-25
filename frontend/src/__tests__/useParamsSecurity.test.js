@@ -115,6 +115,42 @@ describe('useParamsSecurity', () => {
     expect(s.blocksFailed.value).toBe(true)
   })
 
+  it('ignores a refresh that a newer one replaced, then still reports an outage', async () => {
+    const s = useParamsSecurity()
+    const rejects = []
+    mocks.apiGet.mockImplementation(
+      () => new Promise((_, reject) => rejects.push(() => reject(new Error('http_504')))),
+    )
+    const older = s.refresh({ silent: true })
+    answerLists()
+    await s.refresh()
+    rejects.forEach(reject => reject())
+    await older
+
+    expect(mocks.showToast).not.toHaveBeenCalled()
+    expect(s.blocksFailed.value || s.attemptsFailed.value).toBe(false)
+
+    mocks.apiGet.mockRejectedValue(new Error('http_504'))
+    await s.refresh({ silent: true })
+    expect(mocks.showToast).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not repeat an outage when an older refresh succeeds late', async () => {
+    const s = useParamsSecurity()
+    const resolves = []
+    mocks.apiGet.mockImplementation(
+      () => new Promise(resolve => resolves.push(() => resolve({ items: [] }))),
+    )
+    const older = s.refresh({ silent: true })
+    mocks.apiGet.mockRejectedValue(new Error('http_504'))
+    await s.refresh({ silent: true })
+    resolves.forEach(resolve => resolve())
+    await older
+    await s.refresh({ silent: true })
+
+    expect(mocks.showToast).toHaveBeenCalledTimes(1)
+  })
+
   it('marks a list unavailable when its first load fails', async () => {
     mocks.apiGet.mockRejectedValue(new Error('http_502'))
     const s = useParamsSecurity()
@@ -216,5 +252,8 @@ describe('useParamsSecurity', () => {
     expect(s.reasonLabel('manual_from_attempts')).toBe('settings.security.reasons.fromAttempts')
     expect(s.reasonLabel('scanner seen on the router')).toBe('scanner seen on the router')
     expect(s.reasonLabel(null)).toBe('—')
+    expect(s.displayIp('unknown')).toBe('settings.security.unknownAddress')
+    expect(s.displayIp('::1')).toBe('settings.security.localAddress')
+    expect(s.displayIp('203.0.113.5')).toBe('203.0.113.5')
   })
 })
