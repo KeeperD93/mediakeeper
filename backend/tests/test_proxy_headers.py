@@ -26,8 +26,8 @@ from models.security import SecurityAttempt
 from services.security import FAIL_BLOCK_THRESHOLD, is_blocked, record_failure
 
 
-async def _echo(trusted: str, headers: dict[str, str] | list[tuple[str, str]] | None = None) -> dict:
-    """GET /echo behind ProxyHeadersMiddleware trusting ``trusted``; return what the app saw."""
+async def _echo(proxies: str, headers: dict[str, str] | list[tuple[str, str]] | None = None) -> dict:
+    """GET /echo behind ProxyHeadersMiddleware trusting ``proxies``; return what the app saw."""
     async def echo(request):
         return JSONResponse({
             "client": request.client.host if request.client else None,
@@ -38,7 +38,7 @@ async def _echo(trusted: str, headers: dict[str, str] | list[tuple[str, str]] | 
         })
 
     app = Starlette(routes=[Route("/echo", echo)])
-    app.add_middleware(ProxyHeadersMiddleware, networks=parse_trusted_proxies(trusted))
+    app.add_middleware(ProxyHeadersMiddleware, networks=parse_trusted_proxies(proxies))
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         return (await ac.get("/echo", headers=headers)).json()
 
@@ -130,7 +130,7 @@ def test_normalize_ip(raw, expected):
     assert normalize_ip(raw) == expected
 
 
-@pytest.mark.parametrize("xff, trusted, expected", [
+@pytest.mark.parametrize("xff, proxies, expected", [
     # The client writes what it wants on the left; the proxy appends the real peer.
     ("198.51.100.66, 203.0.113.7", "127.0.0.1", "203.0.113.7"),
     pytest.param("198.51.100.66,203.0.113.7", "127.0.0.1", "203.0.113.7", id="comma-only"),
@@ -144,12 +144,12 @@ def test_normalize_ip(raw, expected):
     ("203.0.113.7, ", "127.0.0.1", "203.0.113.7"),
 ])
 @pytest.mark.asyncio
-async def test_xff_takes_the_rightmost_hop_that_is_not_a_trusted_proxy(xff, trusted, expected):
-    body = await _echo(trusted, {"X-Forwarded-For": xff})
+async def test_xff_takes_the_rightmost_hop_that_is_not_a_trusted_proxy(xff, proxies, expected):
+    body = await _echo(proxies, {"X-Forwarded-For": xff})
     assert body["client"] == expected
 
 
-@pytest.mark.parametrize("xff, trusted, expected", [
+@pytest.mark.parametrize("xff, proxies, expected", [
     # Every hop is a trusted proxy: the leftmost one is kept.
     ("10.0.0.7, 10.0.0.9", "127.0.0.1, 10.0.0.0/8", "10.0.0.7"),
     # A hop that is not an IP ends the walk on the last good address, a proxy's.
@@ -158,8 +158,8 @@ async def test_xff_takes_the_rightmost_hop_that_is_not_a_trusted_proxy(xff, trus
     ("unknown, 172.18.0.5", "127.0.0.1, 172.18.0.0/16", "172.18.0.5"),
 ])
 @pytest.mark.asyncio
-async def test_xff_falls_back_to_a_trusted_address_when_no_client_hop_is_reached(xff, trusted, expected):
-    body = await _echo(trusted, {"X-Forwarded-For": xff})
+async def test_xff_falls_back_to_a_trusted_address_when_no_client_hop_is_reached(xff, proxies, expected):
+    body = await _echo(proxies, {"X-Forwarded-For": xff})
     assert body["client"] == expected
 
 
