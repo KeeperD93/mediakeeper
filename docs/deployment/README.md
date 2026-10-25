@@ -40,6 +40,11 @@ If your stack is not listed, the contract is identical to the others:
    triggers a one-shot startup WARN reminding you to set it (CORS
    preflights need it even though CSRF auto-derives).
 
+Whatever the stack, keep `/data` on a Docker volume or a local disk:
+network shares (NFS, SMB) and host folders under Docker Desktop ignore
+ownership changes, and PostgreSQL then refuses to start. Media folders
+can stay on a share.
+
 The TLS deployment guide at [../operations/tls-deployment.md](../operations/tls-deployment.md)
 covers cross-cutting concerns (HSTS, Secure cookies, CSP mode) that
 apply across every stack.

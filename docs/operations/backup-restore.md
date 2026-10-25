@@ -99,7 +99,7 @@ Before starting the restore, confirm you have:
   you're restoring data, not reconfiguring authentication).
 - **A staging area** that is gitignored and isolated from production.
   In this project, the convention is `drill/` at the repository root
-  (already in `.gitignore` since `b0ded2c`).
+  (already in `.gitignore`).
 
 > ⚠️ **Treat the ZIP as a secret.** It contains the active Fernet
 > key. Anyone with the ZIP can decrypt every API key, webhook,
@@ -333,7 +333,9 @@ MediaKeeper deployment differs in two important ways:
    pre-populate the file:
 
    ```bash
-   # On the target host, BEFORE the first `docker compose up -d`:
+   # On the target host, BEFORE the first `docker compose up -d`.
+   # The first command stops here if the archive holds no key.
+   unzip -l mediakeeper_backup_YYYYMMDD_HHMMSS.zip secrets/.encryption_key >/dev/null &&
    unzip -p mediakeeper_backup_YYYYMMDD_HHMMSS.zip secrets/.encryption_key \
      | install -m 600 -o <puid> -g <pgid> /dev/stdin /<data-volume>/.encryption_key
    ```
@@ -418,27 +420,36 @@ mediakeeper_db` first.
 If the dump comes from a deployment whose Alembic head is *newer*
 than the code currently deployed on the target, the SQL will
 introduce columns or tables the application does not know about.
-The application will still start, but the audit cluster (`13-db-
-schema-data`) recommends keeping deploys aligned: if you must
-proceed, run the migrations missing from the *new* code after the
-restore.
+The next start then stops at the migration step, because this code
+does not know the dump's revision, and the container exits: deploy
+the version the dump came from, or a newer one, before starting it.
 
 ### Encrypted settings come back as empty strings
 
 `[ENCRYPTION] Failed to decrypt a value` in the logs means the
 Fernet key the application is using does not match the key the
-dump was encrypted with. Two common causes:
+dump was encrypted with. Three common causes:
 
 - The container booted before the key file was placed under
   `/data/.encryption_key`, so `entrypoint.sh` generated a fresh
   key and pinned it.
 - The key was rotated on the source instance after the backup was
   taken.
+- The key file is there but the application cannot use it. On an
+  image older than 1.0.0-rc.10 this typically follows a `PUID`
+  change, and the log only says
+  `[ENCRYPTION] No persistent key found (env/file absent)`: update
+  the image, whose entrypoint gives the file back to the `PUID`
+  account at every start. Newer images name the cause:
+  `[ENCRYPTION] Cannot read the key file` (a symbolic link or a
+  read-only mount, left as is: fix its owner by hand) or
+  `[ENCRYPTION] A key file exists but holds no key` (put the key
+  back from the backup, as in §5).
 
-Recovery: stop the application, replace `/data/.encryption_key`
-with the value embedded in the ZIP under `secrets/.encryption_key`,
-restart. Encrypted settings recover transparently without re-running
-the dump.
+Recovery for the first two causes: stop the application, replace
+`/data/.encryption_key` with the value embedded in the ZIP under
+`secrets/.encryption_key`, restart. Encrypted settings recover
+transparently without re-running the dump.
 
 ### Container locale mismatch
 
@@ -448,11 +459,11 @@ locale because the application uses explicit `LOWER()` casts and
 ICU-independent collations, but if you want a 100% production-faithful
 drill add `-e LANG=C -e LC_ALL=C` to the `docker run` command.
 
-### Table count differs from earlier audits
+### Table count differs from an earlier count
 
 `SELECT count(*) FROM information_schema.tables WHERE table_schema =
-'public'` includes `alembic_version`. Earlier audits sometimes report
-table counts that exclude it; a one-row delta between sources is
+'public'` includes `alembic_version`. Other counts sometimes leave
+it out; a one-row delta between sources is
 typically the version table being counted differently, not real
 schema drift. Compare actual table names rather than counts when in
 doubt.

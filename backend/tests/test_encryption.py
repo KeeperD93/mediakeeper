@@ -11,8 +11,8 @@ from core.encryption import (
     get_persistent_fernet_key,
     is_sensitive_key,
 )
-from models.settings import Setting
 from models.notification_channels import NotificationChannel
+from models.settings import Setting
 from services.settings import (
     encrypt_legacy_sensitive_values,
     get_notification_channel,
@@ -81,6 +81,49 @@ def test_get_persistent_fernet_key_returns_none_when_ephemeral(monkeypatch, tmp_
     monkeypatch.setattr("core.encryption._KEY_FILE_PATHS", (tmp_path / "missing",))
 
     assert get_persistent_fernet_key() is None
+
+
+def test_get_persistent_fernet_key_logs_an_unreadable_file_and_tries_the_next(
+    monkeypatch, tmp_path, caplog,
+):
+    unreadable = tmp_path / "encryption_key"
+    unreadable.mkdir()  # reading a directory fails on every OS, even as root
+    readable = tmp_path / "other_key"
+    readable.write_text("file-key", encoding="ascii")
+    monkeypatch.delenv("MEDIAKEEPER_ENCRYPTION_KEY", raising=False)
+    monkeypatch.setattr("core.encryption._KEY_FILE_PATHS", (unreadable, readable))
+
+    with caplog.at_level("DEBUG", logger="mediakeeper.encryption"):
+        resolved = get_persistent_fernet_key()
+
+    assert resolved is not None
+    assert resolved.path == str(readable)
+    errors = [r.getMessage() for r in caplog.records if r.levelname == "ERROR"]
+    assert len(errors) == 1
+    logged_path, _, reason = errors[0].rpartition(": ")
+    assert logged_path == f"[ENCRYPTION] Cannot read the key file {unreadable}"
+    assert reason not in ("", "None")  # "Is a directory" on Linux, "Permission denied" on Windows
+    assert "file-key" not in caplog.text
+
+
+def test_get_persistent_fernet_key_logs_an_empty_key_file_and_tries_the_next(
+    monkeypatch, tmp_path, caplog,
+):
+    empty = tmp_path / "encryption_key"
+    empty.write_text("\n", encoding="ascii")
+    readable = tmp_path / "other_key"
+    readable.write_text("file-key", encoding="ascii")
+    monkeypatch.delenv("MEDIAKEEPER_ENCRYPTION_KEY", raising=False)
+    monkeypatch.setattr("core.encryption._KEY_FILE_PATHS", (empty, readable))
+
+    with caplog.at_level("DEBUG", logger="mediakeeper.encryption"):
+        resolved = get_persistent_fernet_key()
+
+    assert resolved is not None
+    assert resolved.path == str(readable)
+    errors = [r.getMessage() for r in caplog.records if r.levelname == "ERROR"]
+    assert errors == ["[ENCRYPTION] A key file exists but holds no key"]
+    assert "file-key" not in caplog.text
 
 
 def test_encrypt_idempotent_on_already_encrypted():

@@ -1,0 +1,73 @@
+"""A PUID change, or its removal, must not cut the app off its own files: the
+secrets and the data dirs re-owned here go back to the runtime user at every
+start, without root following a link planted in their place, and a store that
+ignores ownership changes stops the start with a message that says why."""
+import re
+from pathlib import Path
+
+_ENTRYPOINT = Path(__file__).resolve().parents[2] / "entrypoint.sh"
+# The secrets are the files the script writes with a single `>`.
+_SECRET_WRITE = re.compile(r'(?<!>)>\s*"\$(\w+)"')
+
+
+def _code() -> list[str]:
+    script = _ENTRYPOINT.read_text(encoding="utf-8")
+    return [line for line in script.splitlines() if line.strip() and not line.lstrip().startswith("#")]
+
+
+def _remap_end(code: list[str]) -> int:
+    remap = next(i for i, line in enumerate(code) if line.startswith('if [ "$PUID" -ne 0 ]'))
+    return code.index("fi", remap)
+
+
+def test_every_generated_secret_goes_back_to_the_runtime_user_whatever_puid():
+    code = _code()
+    written = {name for line in code for name in _SECRET_WRITE.findall(line)}
+    assert written
+    loops = [i for i, line in enumerate(code) if line.startswith("for secret in ")]
+    assert len(loops) == 1
+    assert written <= set(re.findall(r'"\$(\w+)"', code[loops[0]]))
+    # After the remap block closes, so the loop also runs when PUID is unset.
+    assert loops[0] > _remap_end(code)
+    body = [line.strip() for line in code[loops[0]:code.index("done", loops[0])]]
+    guard = body.index('if [ -f "$secret" ] && [ ! -L "$secret" ]; then')
+    chown = body.index('chown mkuser:users "$secret" 2>/dev/null || true')
+    chmod = body.index('chmod 600 "$secret" 2>/dev/null || true')
+    assert guard < chown < chmod < body.index("fi", guard)
+
+
+def test_postgres_data_dir_ownership_is_checked_before_any_secret_is_written():
+    code = _code()
+    check = code.index('if [ "$PG_DATA_OWNER" != "$(id -u postgres)" ]; then')
+    assert _remap_end(code) < check
+    # After the mkdir that creates /data/pg, before the first secret write.
+    mkdir = next(i for i, line in enumerate(code) if line.startswith("mkdir -p ") and "/data/pg" in line.split())
+    assert mkdir < check < next(i for i, line in enumerate(code) if _SECRET_WRITE.search(line))
+    # When /data cannot be written, mkdir's own error is the real cause: keep it visible.
+    assert "2>/dev/null" not in code[mkdir]
+    # `|| true`: a refused chown must reach the explanation, not stop on `set -e`.
+    # -h: a link planted at /data/pg must not hand its target to postgres.
+    assert code[check - 2] == 'chown -h postgres:postgres "$PG_DATA" 2>/dev/null || true'
+    # -L like PostgreSQL, which checks the directory a link points to.
+    assert code[check - 1] == 'PG_DATA_OWNER=$(stat -L -c %u "$PG_DATA")'
+    body = [line.strip() for line in code[check:code.index("fi", check)]]
+    assert body[-2].startswith('echo ">> ⚠  $PG_DATA still belongs to UID')
+    assert body[-1] == "exit 1"
+
+
+def test_data_dirs_go_back_to_the_runtime_user_without_following_links():
+    code = _code()
+    mkdir = next(i for i, line in enumerate(code) if line.startswith("mkdir -p ") and "/data/avatars" in line.split())
+    avatars = code.index("chown -h mkuser:users /data/avatars 2>/dev/null || true")
+    assert _remap_end(code) < mkdir < avatars
+    # The cache dirs are only created in the link-guarded block below.
+    assert "/data/cache/images" not in code[mkdir].split()
+    # A link is skipped: a plain chmod would change its target.
+    assert code[avatars + 1] == "[ -L /data/avatars ] || chmod 750 /data/avatars 2>/dev/null || true"
+    guard = code.index("if [ ! -L /data/cache ]; then")
+    assert guard > _remap_end(code)
+    # Created, then re-owned without a walk: the cache can be large.
+    assert [line.strip() for line in code[guard + 1:code.index("fi", guard)]] == [
+        "mkdir -p /data/cache/images || true",
+        "chown -h mkuser:users /data/cache /data/cache/images 2>/dev/null || true",
+    ]

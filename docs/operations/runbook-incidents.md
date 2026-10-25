@@ -67,13 +67,18 @@ mix scenarios.
 
 ### 2.1 Symptoms
 
-- Application container fails to boot (exit code ≠ 0 on `docker logs`).
+- Application container fails to boot (non-zero exit code in `docker ps -a`).
 - `alembic upgrade head` errors with schema-level messages.
 - `[ENCRYPTION] Failed to decrypt a value` floods the logs.
 - `/api/health` returns 5xx persistently; Docker healthcheck flips
   the container to **UNHEALTHY**.
 - `psql: FATAL: database "mediakeeper_db" does not exist` or
   `relation "users" does not exist`.
+
+If the database itself looks healthy (the app starts, `/api/health`
+answers), a flood of `[ENCRYPTION] Failed to decrypt a value` points to
+the encryption key, not to corruption: read
+[`backup-restore.md` §7](backup-restore.md) before restoring anything.
 
 ### 2.2 Immediate mitigation
 
@@ -188,8 +193,8 @@ relevant.
 - `alembic upgrade head` fails at boot with a schema mismatch error
   (often when `MK_DB_SCHEMA_MODE=validate` rejects the schema).
 - A user-facing feature regressed visibly.
-- The Fernet warning in the docstring of `restore_backup` was not
-  followed during a partial restore (see
+- A partial restore was run without putting the encryption key
+  back: a restore never writes it (see
   [`backup-restore.md` §1](backup-restore.md)).
 
 ### 4.2 Immediate mitigation
