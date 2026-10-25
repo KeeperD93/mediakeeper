@@ -67,7 +67,7 @@ mix scenarios.
 
 ### 2.1 Symptoms
 
-- Application container fails to boot (exit code ≠ 0 on `docker logs`).
+- Application container fails to boot (non-zero exit code in `docker ps -a`).
 - `alembic upgrade head` errors with schema-level messages.
 - `[ENCRYPTION] Failed to decrypt a value` floods the logs.
 - `/api/health` returns 5xx persistently; Docker healthcheck flips

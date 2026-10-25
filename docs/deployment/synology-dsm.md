@@ -116,8 +116,9 @@ MediaKeeper falls back to a process-local key. The admin UI shows a
 persistent red banner on every page until a persistent key can be read;
 the same condition is exposed at `GET /api/health/encryption`
 (`source: "ephemeral"`, `warning: true`). Backups bundle the active
-persistent key automatically (under `secrets/.encryption_key` in the
-ZIP) so a restored archive keeps the secrets readable.
+persistent key (under `secrets/.encryption_key` in the ZIP), but a
+restore does not put it back on its own: see
+[`backup-restore.md` §5](../operations/backup-restore.md).
 
 ## 3. Verify your setup
 

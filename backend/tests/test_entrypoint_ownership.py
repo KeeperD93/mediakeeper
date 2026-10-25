@@ -39,9 +39,15 @@ def test_postgres_data_dir_ownership_is_checked_before_any_secret_is_written():
     code = _code()
     check = code.index('if [ "$PG_DATA_OWNER" != "$(id -u postgres)" ]; then')
     assert _remap_end(code) < check
-    assert check < next(i for i, line in enumerate(code) if _SECRET_WRITE.search(line))
+    # After the mkdir that creates /data/pg, before the first secret write.
+    mkdir = next(i for i, line in enumerate(code) if line.startswith("mkdir -p ") and "/data/pg" in line.split())
+    assert mkdir < check < next(i for i, line in enumerate(code) if _SECRET_WRITE.search(line))
+    # When /data cannot be written, mkdir's own error is the real cause: keep it visible.
+    assert "2>/dev/null" not in code[mkdir]
     # `|| true`: a refused chown must reach the explanation, not stop on `set -e`.
     assert code[check - 2] == 'chown postgres:postgres "$PG_DATA" 2>/dev/null || true'
     # -L like PostgreSQL, which checks the directory a link points to.
     assert code[check - 1] == 'PG_DATA_OWNER=$(stat -L -c %u "$PG_DATA")'
-    assert "exit 1" in [line.strip() for line in code[check:code.index("fi", check)]]
+    body = [line.strip() for line in code[check:code.index("fi", check)]]
+    assert body[-2].startswith('echo ">> ⚠  $PG_DATA still belongs to UID')
+    assert body[-1] == "exit 1"

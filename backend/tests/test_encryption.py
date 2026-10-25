@@ -102,7 +102,7 @@ def test_get_persistent_fernet_key_logs_an_unreadable_file_and_tries_the_next(
     assert len(errors) == 1
     logged_path, _, reason = errors[0].rpartition(": ")
     assert logged_path == f"[ENCRYPTION] Cannot read the key file {unreadable}"
-    assert reason  # "Is a directory" on Linux, "Permission denied" on Windows
+    assert reason not in ("", "None")  # "Is a directory" on Linux, "Permission denied" on Windows
     assert "file-key" not in caplog.text
 
 

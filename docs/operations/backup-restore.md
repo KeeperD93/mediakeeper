@@ -436,12 +436,16 @@ dump was encrypted with. Three common causes:
   key and pinned it.
 - The key was rotated on the source instance after the backup was
   taken.
-- The key file is there but the application cannot read it (the log
-  also shows `[ENCRYPTION] Cannot read the key file`), typically after
-  a `PUID` change on an image older than 1.0.0-rc.10: update the image.
-  Since then the entrypoint gives the file back to the `PUID` account
-  at every start; a symbolic link or a read-only mount is left as is,
-  so fix its owner by hand.
+- The key file is there but the application cannot use it. On an
+  image older than 1.0.0-rc.10 this typically follows a `PUID`
+  change, and the log only says
+  `[ENCRYPTION] No persistent key found (env/file absent)`: update
+  the image, whose entrypoint gives the file back to the `PUID`
+  account at every start. Newer images name the cause:
+  `[ENCRYPTION] Cannot read the key file` (a symbolic link or a
+  read-only mount, left as is: fix its owner by hand) or
+  `[ENCRYPTION] A key file exists but holds no key` (put the key
+  back from the backup, as in §5).
 
 Recovery for the first two causes: stop the application, replace
 `/data/.encryption_key` with the value embedded in the ZIP under
