@@ -1,0 +1,75 @@
+/* Settings > Security — styles shared by the tab's sections.
+   Section rules sit under the tab root to keep the weight they had when
+   scoped (the mobile card mode of .mk-table must not win). Button rules
+   keep the bare sec- prefix, unique to this tab: the add-block dialog
+   uses them too.  */
+
+.params-security .sec-block {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 1rem;
+}
+.params-security .sec-hd {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.params-security .sec-hd h3 {
+  margin: 0;
+  font-size: clamp(0.95rem, 1.5vw, 1.15rem);
+}
+.params-security .sec-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+.params-security .sec-table th,
+.params-security .sec-table td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+.params-security .sec-table th {
+  font-weight: var(--font-medium);
+  color: var(--text-secondary);
+}
+.params-security .sec-table tr.is-fail td {
+  color: inherit;
+}
+.params-security .sec-loading,
+.params-security .sec-empty {
+  padding: 1rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.sec-btn,
+.sec-btn-primary,
+.sec-btn-danger {
+  cursor: pointer;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-btn);
+  padding: 0.35rem 0.75rem;
+  font-size: var(--text-sm);
+}
+.sec-btn {
+  background: var(--surface-2);
+  color: var(--text-primary);
+}
+.sec-btn-primary {
+  background: var(--surface-3);
+  color: var(--text-primary);
+}
+.sec-btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.sec-btn-danger {
+  background: rgb(var(--color-error-strong-rgb), 0.15);
+  color: var(--color-error-strong);
+  border-color: transparent;
+}
