@@ -6,11 +6,10 @@ When the direct TCP client matches a trusted proxy, we honour the
 ignore the headers entirely (failsafe for direct LAN exposure).
 
 A custom middleware is used instead of ``uvicorn.middleware.proxy_headers``
-(pinned to loopback in ``entrypoint.sh``) to validate every
-``X-Forwarded-For`` hop, to honour ``X-Forwarded-Host`` (uvicorn does not
-rewrite the Host header) and to set an explicit
-``request.state.from_trusted_proxy`` flag consulted by downstream helpers
-(cookie Secure check, CSRF Origin check).
+(pinned to loopback in ``entrypoint.sh``) to validate each
+``X-Forwarded-For`` hop it reads, to honour ``X-Forwarded-Host`` (uvicorn
+does not rewrite the Host header) and to set an explicit
+``request.state.from_trusted_proxy`` flag, read by the CSRF Origin check.
 """
 from __future__ import annotations
 

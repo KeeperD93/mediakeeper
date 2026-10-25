@@ -1,5 +1,5 @@
-"""uvicorn never takes the client address from X-Forwarded-For on its own: every
-launch path pins its trusted list to loopback, whatever FORWARDED_ALLOW_IPS says."""
+"""uvicorn takes the client address from X-Forwarded-For only for a loopback peer:
+every launch path pins its trusted list, whatever FORWARDED_ALLOW_IPS says."""
 import re
 from pathlib import Path
 
@@ -8,8 +8,13 @@ _ENTRYPOINT = Path(__file__).resolve().parents[2] / "entrypoint.sh"
 
 def test_every_uvicorn_launch_pins_the_forwarded_allow_list():
     script = _ENTRYPOINT.read_text(encoding="utf-8")
-    launches = [line for line in script.splitlines() if "uvicorn main:app" in line]
+    launches = [
+        line for line in script.splitlines()
+        if not line.lstrip().startswith("#") and re.search(r"\buvicorn\b.*\bmain:app\b", line)
+    ]
     assert launches
-    assert all("--forwarded-allow-ips $UVICORN_FORWARDED_IPS" in line for line in launches)
-    pinned = re.search(r'^UVICORN_FORWARDED_IPS="([^"]*)"$', script, re.MULTILINE).group(1)
-    assert pinned == "127.0.0.1,::1"
+    for line in launches:
+        # Exactly one flag, from the pinned variable: click keeps the last value given.
+        assert re.findall(r'--forwarded-allow-ips[ =]+([^\s"]+)', line) == ["$UVICORN_FORWARDED_IPS"]
+    assigned = re.findall(r"^\s*(?:export\s+)?UVICORN_FORWARDED_IPS=(.*)$", script, re.MULTILINE)
+    assert assigned == ['"127.0.0.1,::1"']
