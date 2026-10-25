@@ -1,4 +1,4 @@
-"""Endpoints /login et /portal-login."""
+"""Endpoints /login and /portal-login."""
 import logging
 import secrets
 from datetime import datetime, timezone
@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.security import UNKNOWN_CLIENT_IP
 from core.database import get_db
 from core.proxy import get_client_ip
 from core.rate_limit import ip_key, limiter
@@ -48,7 +49,7 @@ async def _stamp_admin_login(
     db: AsyncSession,
     user: User,
     *,
-    client_ip: str | None,
+    client_ip: str,
     user_agent: str | None,
 ) -> None:
     """Mirror what the portal login does: stamp the UserProfile so the
@@ -65,7 +66,7 @@ async def _stamp_admin_login(
         now = datetime.now(timezone.utc)
         profile.last_login_at = now
         profile.last_seen_at = now
-        profile.last_login_ip = (client_ip or "")[:64] or None
+        profile.last_login_ip = client_ip
         profile.last_login_user_agent = (user_agent or "")[:255] or None
         db.add(profile)
         await db.commit()
@@ -85,12 +86,12 @@ router = APIRouter()
 @limiter.limit("5/minute", key_func=ip_key)
 async def login(req: LoginRequest, request: Request, response: Response, db: AsyncSession = Depends(get_db)):
     """Authenticate and place the admin JWT in an httpOnly cookie."""
-    client_ip = get_client_ip(request) or "unknown"
+    client_ip = get_client_ip(request) or UNKNOWN_CLIENT_IP
     user_agent = request.headers.get("user-agent")
     # Normalize input for brute-force tracking so casing variants resolve to a
     # single rate-limit bucket. Raw req.username is kept for failure logs to
     # preserve the enumeration signal an operator can grep.
-    tracking_username = (req.username or "").strip().lower()
+    tracking_username = req.username.strip().lower()
     await ensure_not_blocked(db, client_ip, tracking_username, "admin")
 
     result = await db.execute(
@@ -162,18 +163,18 @@ async def portal_login(
     - Imported Emby/Jellyfin accounts only receive rq_token and
       are redirected to the portal on the frontend.
     """
-    client_ip = get_client_ip(request) or "unknown"
+    client_ip = get_client_ip(request) or UNKNOWN_CLIENT_IP
     user_agent = request.headers.get("user-agent")
-    # Same normalization as /login: lower() for brute-force tracking, raw
-    # input preserved for logs and for downstream Emby auth which keeps
-    # its own casing semantics.
-    tracking_username = (req.username or "").strip().lower()
+    # Same normalization as /login: lower() for brute-force tracking; the
+    # trimmed name keeps its letter case for logs and for downstream Emby
+    # auth, which has its own casing semantics.
+    tracking_username = req.username.strip().lower()
     # Only gate on the admin scope here. The portal scope is gated later,
     # in the cascade branch, so a brute-force attempt on the portal doesn't
     # collaterally lock the admin login from the same IP.
     await ensure_not_blocked(db, client_ip, tracking_username, "admin")
 
-    username = (req.username or "").strip()
+    username = req.username.strip()
     result = await db.execute(
         select(User).where(func.lower(User.username) == tracking_username)
     )
@@ -181,7 +182,7 @@ async def portal_login(
 
     # Use canonical username (DB) when the lookup matched so the
     # backoffice gate honours MK_ADMIN_USERS regardless of the casing
-    # the user typed. Falls back to the raw input when no DB row
+    # the user typed. Falls back to the typed name when no DB row
     # matched — keeps the existing Emby cascade behaviour.
     if is_backoffice_admin(user.username if user else username):
         if user:
@@ -237,10 +238,10 @@ async def portal_login(
     # the Emby cascade are subject to portal brute-force blocks.
     await ensure_not_blocked(db, client_ip, tracking_username, "portal")
 
-    # Shadow-skip the Emby call once the caller already has one recent
-    # failure on this IP/username pair. Emby maintains its own lockout
-    # counter on the target account — forwarding every failed attempt
-    # would trigger it before our own block kicks in.
+    # Shadow-skip the Emby call once more than EMBY_SHADOW_SKIP_THRESHOLD recent
+    # failures are on record for this username (or, with none, this IP). Emby
+    # maintains its own lockout counter on the target account — forwarding every
+    # failed attempt would trigger it before our own block kicks in.
     recent_portal_fails = await count_recent_failures(
         db, client_ip, tracking_username, "portal",
     )

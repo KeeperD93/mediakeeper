@@ -25,6 +25,7 @@ import logging
 from fastapi import APIRouter, Request
 from fastapi.responses import Response
 
+from constants.security import UNKNOWN_CLIENT_IP
 from core.proxy import get_client_ip
 from core.rate_limit import ip_key, limiter
 
@@ -75,7 +76,7 @@ async def csp_violation_report(request: Request) -> Response:
     raw_body = await _read_capped_body(request)
     payload = _safe_decode(raw_body)
     content_type = request.headers.get("content-type", "").split(";", 1)[0].strip().lower()
-    client = get_client_ip(request) or "unknown"
+    client = get_client_ip(request) or UNKNOWN_CLIENT_IP
     logger.info(
         "[CSP_VIOLATION] from=%s content-type=%s payload=%s",
         client,

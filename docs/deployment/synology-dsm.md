@@ -15,17 +15,12 @@ Create a new entry pointing at the container:
 | Source — Hostname | `mediakeeper.your-domain.example` |
 | Source — Port | 443 |
 | Destination — Protocol | HTTP |
-| Destination — Hostname | `localhost` (or container hostname) |
+| Destination — Hostname | `127.0.0.1` |
 | Destination — Port | 8888 |
 
-In the **Custom Header** tab, append three rows so MediaKeeper sees
-the real client metadata:
-
-```
-X-Forwarded-Host   $host
-X-Forwarded-Proto  https
-X-Forwarded-For    $remote_addr
-```
+DSM 7 already forwards `Host`, `X-Forwarded-For` and
+`X-Forwarded-Proto` to the container: no custom header row is needed
+for them.
 
 In the **WebSocket** tab, tick **Enable WebSocket**. Without this DSM
 strips the Upgrade header and the chat handshake degrades into a 426
@@ -37,33 +32,55 @@ better Vue bundle delivery.
 
 ## 2. MediaKeeper environment
 
-Drop these lines in `/etc/mediakeeper.env`:
+Set these variables in the `environment:` section of MediaKeeper's
+compose file:
 
-```dotenv
-# DSM listens on 192.0.2.10 in this example, replace with the LAN IP
-# of your NAS as seen from the container's network namespace.
-TRUSTED_PROXIES=192.0.2.10
-FRONTEND_ORIGIN=https://mediakeeper.your-domain.example
-COOKIE_SECURE=true
+```yaml
+environment:
+  # DSM's reverse proxy reaches the container through the Docker network
+  # gateway, not through the NAS's LAN IP. Read it with
+  # `docker network inspect <project>_default` (Gateway field).
+  - TRUSTED_PROXIES=172.18.0.1
+  - FRONTEND_ORIGIN=https://mediakeeper.your-domain.example
+  - COOKIE_SECURE=true
 ```
 
 `TRUSTED_PROXIES` is what unlocks `X-Forwarded-*` honouring;
 `FRONTEND_ORIGIN` switches the chat WS guard from auto-derive to a
 strict allowlist; `COOKIE_SECURE=true` is redundant once HTTPS is
-detected, but explicit is better when DSM ever swaps to a non-stable
+detected, but explicit is better if DSM ever swaps to a non-stable
 intermediate hop.
 
-If pinning a single DSM IP is awkward (DHCP, dual-stack, multiple
-NAS), a private LAN range works as a safe wider default:
+Publish the port on the loopback only (`127.0.0.1:8888:8888` in the
+compose file). DSM connects to `127.0.0.1`, and Docker on DSM relays
+every connection to a published port from the gateway: with the port
+open to the LAN, any device could choose the address MediaKeeper
+records.
 
-```dotenv
-TRUSTED_PROXIES=192.168.0.0/16
+The gateway can change if the Compose network is recreated. To keep
+it, give the network a fixed subnet in the compose file (any range that
+no other Docker network, nor your LAN or VPN, uses):
+
+```yaml
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+          gateway: 172.30.0.1
 ```
 
-Trade-off: any host on the same LAN that can reach port `8888`
-directly will then have its `X-Forwarded-Host` honoured — fine for a
-home network, less appropriate for a co-tenanted VLAN. Pin the exact
-proxy IP when the LAN is shared with untrusted hosts.
+Set `TRUSTED_PROXIES=172.30.0.1`, recreate the project so the network
+takes the subnet (`docker compose down`, then `docker compose up -d`;
+the data volume is kept), and check that
+`docker network inspect <project>_default` shows `172.30.0.1` as
+Gateway. For a quickstart install, add `-f docker-compose.prod.yml`
+before `down` and `up`.
+
+Do not list a range instead: Docker's `172.16.0.0/12` would let
+containers on the NAS choose the address MediaKeeper records, and a LAN
+range such as `192.168.0.0/16` misses DSM's address, so every visitor
+would share one.
 
 If MediaKeeper boots with `TRUSTED_PROXIES` set but `FRONTEND_ORIGIN`
 left empty, you will see this WARN once at startup — set the public
@@ -75,18 +92,23 @@ origin to silence it:
 rejected until FRONTEND_ORIGIN is set to the public URL …
 ```
 
-Restart the container so the new env takes effect.
+Run `docker compose up -d` again (with `-f docker-compose.prod.yml` for
+a quickstart install): it recreates the container with the new values.
 
 ### Persistent encryption key
 
-Set `MEDIAKEEPER_ENCRYPTION_KEY` (any 32-byte url-safe base64 value)
-**before the first `docker compose up`** so every encrypted secret
-written from then on (Discord webhooks, Imgur secret, Emby tokens…)
-survives a container restart:
+On first boot the container generates the key that encrypts stored
+secrets (Discord webhooks, Imgur secret, Emby tokens…) and keeps it in
+`/data/.encryption_key`. To manage it yourself, set
+`MEDIAKEEPER_ENCRYPTION_KEY` (a Fernet key: 32 bytes in url-safe base64,
+44 characters) **before the first `docker compose up`**, or to the value
+already in that file: the variable wins over the file, and secrets
+stored under another key become unreadable.
 
-```dotenv
-# Generate once and keep safe — losing it makes encrypted DB rows unreadable.
-MEDIAKEEPER_ENCRYPTION_KEY=<paste your fernet key here>
+```yaml
+environment:
+  # Generate once and keep safe — losing it makes encrypted DB rows unreadable.
+  - MEDIAKEEPER_ENCRYPTION_KEY=<paste your fernet key here>
 ```
 
 If neither the env var nor `/data/.encryption_key` is provided,
@@ -102,13 +124,13 @@ ZIP) so a restored archive keeps the secrets readable.
 Boot logs should print:
 
 ```
-[startup] deployment mode=B (reverse proxy) | TRUSTED_PROXIES=192.0.2.10 | FRONTEND_ORIGIN=https://mediakeeper.your-domain.example | COOKIE_HTTPS_FLAG=true
+[startup] deployment mode=B (reverse proxy) | TRUSTED_PROXIES=172.18.0.1 | FRONTEND_ORIGIN=https://mediakeeper.your-domain.example | COOKIE_HTTPS_FLAG=true
 ```
 
-From any browser on the LAN:
+From any machine on the LAN:
 
 ```bash
-curl -I https://mediakeeper.your-domain.example/api/health
+curl -i https://mediakeeper.your-domain.example/api/health
 # → HTTP/2 200, with security headers + HSTS
 
 curl -i \
@@ -127,9 +149,9 @@ DSM is off.
 
 - **WebSocket toggle disabled** → chat fails to connect, MediaKeeper
   logs the operator hint.
-- **Custom Header tab empty** → MediaKeeper sees DSM's loopback IP as
-  the client, cookies do not gain the `Secure` flag, the CSRF Origin
-  check rejects requests because `Host` is the LAN name instead of
-  the public hostname.
-- **Multiple reverse-proxy hops** (DSM → CDN) → list every
-  intermediate IP / CIDR in `TRUSTED_PROXIES` (CSV).
+- **Every visitor shows the same address** in the Security tab of the
+  settings → `TRUSTED_PROXIES` does not match the address DSM connects
+  from. Three wrong passwords would then block everyone.
+- **A CDN in front of DSM** → list the CDN's ranges in
+  `TRUSTED_PROXIES`. DSM already appends to the CDN's
+  `X-Forwarded-For`.

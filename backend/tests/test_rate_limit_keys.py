@@ -1,23 +1,24 @@
-"""Rate-limit keys: per-account budgets read the right session cookie and fall
-back to the client IP when it is missing or unusable. Synthetic users only."""
+"""Rate-limit keys: the IP key is the normalized client IP, or one shared bucket
+without a usable IP; per-account budgets read the right session cookie and fall
+back to the client IP when the cookie is missing or unusable. Synthetic users only."""
 from __future__ import annotations
 
 from starlette.requests import Request
 
-from core.rate_limit import admin_user_or_ip_key, portal_user_or_ip_key
+from core.rate_limit import admin_user_or_ip_key, ip_key, portal_user_or_ip_key
 from core.security import MAX_TOKEN_LENGTH, create_access_token
 
 CLIENT_IP = "203.0.113.5"
 
 
-def _request(**cookies: str) -> Request:
+def _request(*, client: tuple[str, int] | None = (CLIENT_IP, 1234), **cookies: str) -> Request:
     cookie_header = "; ".join(f"{name}={value}" for name, value in cookies.items())
     return Request({
         "type": "http",
         "method": "POST",
         "path": "/",
         "headers": [(b"cookie", cookie_header.encode())] if cookies else [],
-        "client": (CLIENT_IP, 1234),
+        "client": client,
     })
 
 
@@ -41,3 +42,10 @@ def test_keys_fall_back_to_the_ip_for_an_unusable_cookie():
     oversized = create_access_token({"sub": "alice", "scope": "admin", "pad": "x" * MAX_TOKEN_LENGTH})
     assert admin_user_or_ip_key(_request(mk_token=oversized)) == f"ip:{CLIENT_IP}"
     assert portal_user_or_ip_key(_request(rq_token="not-a-jwt")) == f"ip:{CLIENT_IP}"
+
+
+def test_ip_key_is_the_normalized_client_ip_or_one_fixed_bucket():
+    assert ip_key(_request(client=(f"::ffff:{CLIENT_IP}", 1234))) == CLIENT_IP
+    # Without a usable client IP every request shares one bucket the client cannot vary.
+    assert ip_key(_request(client=None)) == "unknown"
+    assert ip_key(_request(client=("x" * 200, 1234))) == "unknown"

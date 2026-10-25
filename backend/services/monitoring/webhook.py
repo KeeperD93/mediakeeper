@@ -1,17 +1,16 @@
-"""Send runtime alerts to a Discord-compatible webhook with in-memory debounce.
+"""Send runtime alerts to a Discord webhook with in-memory debounce.
 
 Design notes:
 
-- The webhook URL is read from ``MK_DISCORD_ALERT_WEBHOOK`` at every send
-  so operators can rotate it without restarting the container. When the
-  variable is unset (or empty), :func:`send_alert` returns silently — the
-  feature is fully opt-in.
+- The webhook URL is read from ``MK_DISCORD_ALERT_WEBHOOK`` at every send.
+  When the variable is unset (or empty), :func:`send_alert` returns
+  silently — the feature is fully opt-in.
 - A small in-memory dict tracks the last send timestamp per alert type
   and suppresses duplicates inside the debounce window. State is lost on
   restart, which is acceptable: a restart is itself a strong signal and
   the typical container uptime exceeds the debounce window.
 - Failures of the webhook itself (timeout, HTTP error, exception) are
-  logged once and swallowed. We never re-trigger an alert from inside
+  logged and swallowed. We never re-trigger an alert from inside
   the alert path, otherwise a flapping webhook would create an infinite
   loop.
 """

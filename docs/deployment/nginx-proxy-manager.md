@@ -13,7 +13,7 @@ Create a new **Proxy Host** with the following:
 |---|---|---|
 | Details | Domain Names | `mediakeeper.your-domain.example` |
 | Details | Scheme | `http` |
-| Details | Forward Hostname / IP | `mediakeeper` (Docker service name) or `192.0.2.10` |
+| Details | Forward Hostname / IP | `mediakeeper` (Docker service name) |
 | Details | Forward Port | `8888` |
 | Details | Cache Assets | off (Vue bundle is hash-named already) |
 | Details | Block Common Exploits | on |
@@ -28,36 +28,60 @@ The Websockets toggle is what enables NPM to forward the
 back to HTTP and MediaKeeper logs `received an HTTP GET on the chat
 WebSocket path`.
 
-## 2. Custom locations / advanced (optional)
+## 2. Advanced tab
 
-If you ever need to add headers manually, the **Advanced** tab accepts
-raw nginx directives. The default location block already forwards the
-forwarded headers — you only need to add a custom block when running
-behind another proxy upstream of NPM (Cloudflare, Tailscale Funnel…).
+NPM appends the visitor's address to `X-Forwarded-For`, which is what
+MediaKeeper expects. By default it also replaces that address with the
+request's own `X-Real-IP` header when the connection comes from a
+private or CDN address. LAN devices, and the visitors Docker relays to
+NPM, connect from such addresses and could choose the address
+MediaKeeper records. Paste this line in the proxy host's
+**Advanced** tab to turn that off:
+
+```nginx
+set_real_ip_from 127.0.0.1;
+```
+
+Behind another proxy upstream of NPM (Cloudflare, Tailscale Funnel…),
+also list its addresses in `TRUSTED_PROXIES`: MediaKeeper keeps the
+first address, read from the right, that is not a listed proxy.
 
 ## 3. MediaKeeper environment
 
 ```dotenv
-# 172.17.0.1 is the default Docker bridge gateway as seen from inside
-# the MediaKeeper container; substitute the actual NPM container IP
-# (or its CIDR) on your network.
-TRUSTED_PROXIES=172.17.0.0/16
+# NPM's IP on the network it shares with MediaKeeper. Print NPM's IPs,
+# one line per network, with
+#   docker inspect <npm-container> --format '{{range $net, $cfg := .NetworkSettings.Networks}}{{$net}} {{$cfg.IPAddress}}{{println}}{{end}}'
+TRUSTED_PROXIES=172.18.0.5
 FRONTEND_ORIGIN=https://mediakeeper.your-domain.example
 COOKIE_SECURE=true
 ```
 
-`TRUSTED_PROXIES` accepts a CIDR so you don't have to update it every
-time NPM's container restarts on a different IP. Limit the CIDR as
-narrowly as your network design allows.
+List NPM's own address, not its network: Docker can relay visitors to
+NPM from that network's gateway, and a range that includes it would
+let them choose the address MediaKeeper records. Pin the address with
+`ipv4_address` (on a network created with a fixed subnet) so it
+survives a restart. Relayed visitors show up as that gateway: IPv6
+ones unless the network has IPv6 enabled, and all of them on Synology.
+There, use DSM's reverse proxy ([synology-dsm.md](synology-dsm.md)).
+
+NPM reaches MediaKeeper by its service name once both containers share
+a Docker network: an external network that both compose files join, as
+in [traefik.md](traefik.md). Drop MediaKeeper's `8888:8888` port
+mapping: NPM does not need it. Do not forward to the host's IP instead:
+MediaKeeper would then see its own network gateway, and listing it would
+let other containers on the host, and every LAN device on Synology,
+choose the address MediaKeeper records.
 
 ## 4. Verify your setup
 
 ```bash
-curl -I https://mediakeeper.your-domain.example/api/health
+curl -i https://mediakeeper.your-domain.example/api/health
 # → HTTP/2 200 with HSTS + security headers
 ```
 
-From a browser DevTools console, on the public origin:
+From a browser DevTools console, on the public origin, signed in to the
+portal (room 1 exists once someone has opened the chat):
 
 ```js
 const ws = new WebSocket("wss://mediakeeper.your-domain.example/api/portal/chat/ws/1");
@@ -65,15 +89,24 @@ ws.onopen = () => console.log("upgraded ✔");
 ws.onerror = e => console.error("upgrade failed", e);
 ```
 
-A failed handshake means the Websockets toggle in NPM is off.
+If it fails, the Network tab shows why: a 426 means the Websockets
+toggle in NPM is off, a 403 that MediaKeeper refused the origin, the
+token or the room.
 
 ## 5. Common pitfalls
 
 - **HSTS toggled on in NPM** → both NPM and MediaKeeper emit the
   header; pick one (MediaKeeper is recommended because the value
   matches the rest of the security headers).
-- **Block Common Exploits on with a custom CSP** → harmless but
-  duplicates MediaKeeper's CSP.
+- **A custom CSP in NPM's Advanced tab** → browsers apply it on top of
+  MediaKeeper's, so whatever either one blocks stays blocked; keep only
+  MediaKeeper's.
 - **Multiple domains** pointing at the same proxy host → list every
   one in `FRONTEND_ORIGIN` (CSV) so chat WS handshakes from the
   alternate hostname pass the allowlist.
+- **Every visitor shows the same address** in the Security tab of the
+  settings → `TRUSTED_PROXIES` does not match NPM's address, or Docker
+  relays your visitors to NPM (section 3). Three wrong passwords would
+  then block everyone. Do not add Docker's gateway to `TRUSTED_PROXIES`
+  to work around it: NPM keeps the `X-Forwarded-For` a visitor sends, so
+  visitors could then choose the address MediaKeeper records.

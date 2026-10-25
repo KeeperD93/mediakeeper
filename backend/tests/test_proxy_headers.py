@@ -1,25 +1,33 @@
-"""Unit tests for core.proxy — TRUSTED_PROXIES whitelist + middleware."""
+"""Tests for core.proxy — TRUSTED_PROXIES whitelist, middleware and the client IP."""
 from __future__ import annotations
 
 import ipaddress
+import logging
 
 import pytest
-from httpx import AsyncClient, ASGITransport
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy import select
 from starlette.applications import Starlette
+from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.routing import Route
 
 from core.proxy import (
     ProxyHeadersMiddleware,
+    get_client_ip,
     is_request_from_trusted_proxy,
     is_request_secure,
     is_trusted_proxy_host,
+    normalize_ip,
     parse_trusted_proxies,
     trusted_forwarded_host,
 )
+from models.security import SecurityAttempt
+from services.security import FAIL_BLOCK_THRESHOLD, is_blocked, record_failure
 
 
-def _build_app(trusted: list):
+async def _echo(proxies: str, headers: dict[str, str] | list[tuple[str, str]] | None = None) -> dict:
+    """GET /echo behind ProxyHeadersMiddleware trusting ``proxies``; return what the app saw."""
     async def echo(request):
         return JSONResponse({
             "client": request.client.host if request.client else None,
@@ -30,8 +38,9 @@ def _build_app(trusted: list):
         })
 
     app = Starlette(routes=[Route("/echo", echo)])
-    app.add_middleware(ProxyHeadersMiddleware, networks=trusted)
-    return app
+    app.add_middleware(ProxyHeadersMiddleware, networks=parse_trusted_proxies(proxies))
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        return (await ac.get("/echo", headers=headers)).json()
 
 
 def test_parse_trusted_proxies_handles_csv_with_cidr_and_ip():
@@ -41,10 +50,12 @@ def test_parse_trusted_proxies_handles_csv_with_cidr_and_ip():
     assert ipaddress.ip_address("10.255.0.1") in nets[2]
 
 
-def test_parse_trusted_proxies_drops_invalid_entries():
-    nets = parse_trusted_proxies("127.0.0.1, not-an-ip, 10.0.0.0/8")
-    # 2 valid entries kept, the garbage is silently dropped.
+def test_parse_trusted_proxies_drops_invalid_entries(caplog):
+    with caplog.at_level(logging.WARNING, logger="mediakeeper"):
+        nets = parse_trusted_proxies("127.0.0.1, not-an-ip, 10.0.0.0/8")
     assert len(nets) == 2
+    messages = [r.getMessage() for r in caplog.records if r.levelno == logging.WARNING]
+    assert messages == ["Ignoring invalid TRUSTED_PROXIES entry: 'not-an-ip'"]
 
 
 def test_parse_trusted_proxies_empty_yields_empty_list():
@@ -53,17 +64,15 @@ def test_parse_trusted_proxies_empty_yields_empty_list():
 
 
 def test_parse_trusted_proxies_warns_on_overly_broad_cidr(caplog):
-    import logging
-
     with caplog.at_level(logging.WARNING, logger="mediakeeper"):
         nets = parse_trusted_proxies("0.0.0.0/0, 10.0.0.0/8, 198.51.100.10/32")
 
     # All three are still accepted — the warning is advisory, not a reject.
     assert len(nets) == 3
-    warnings = " ".join(r.message for r in caplog.records if r.levelno == logging.WARNING)
-    assert "very broad" in warnings
+    messages = " ".join(r.getMessage() for r in caplog.records if r.levelno == logging.WARNING)
+    assert "very broad" in messages
     # A tight /32 host must never be flagged.
-    assert "198.51.100.10/32" not in warnings
+    assert "198.51.100.10/32" not in messages
 
 
 def test_is_trusted_proxy_host_matches_cidr():
@@ -75,19 +84,12 @@ def test_is_trusted_proxy_host_matches_cidr():
 
 
 @pytest.mark.asyncio
-async def test_xff_ignored_when_trusted_proxies_empty():
-    app = _build_app(trusted=[])
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        r = await ac.get(
-            "/echo",
-            headers={
-                "X-Forwarded-For": "1.2.3.4",
-                "X-Forwarded-Proto": "https",
-                "X-Forwarded-Host": "evil.example",
-            },
-        )
-    body = r.json()
+async def test_forwarded_headers_ignored_when_trusted_proxies_empty():
+    body = await _echo("", {
+        "X-Forwarded-For": "198.51.100.4",
+        "X-Forwarded-Proto": "https",
+        "X-Forwarded-Host": "evil.example",
+    })
     assert body["client"] == "127.0.0.1"  # original ASGI client preserved
     assert body["scheme"] == "http"
     assert body["from_trusted_proxy"] is False
@@ -96,54 +98,120 @@ async def test_xff_ignored_when_trusted_proxies_empty():
 
 
 @pytest.mark.asyncio
-async def test_xff_honoured_when_proxy_in_whitelist():
-    app = _build_app(trusted=parse_trusted_proxies("127.0.0.1"))
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        r = await ac.get(
-            "/echo",
-            headers={
-                "X-Forwarded-For": "1.2.3.4",
-                "X-Forwarded-Proto": "https",
-                "X-Forwarded-Host": "mediakeeper.example.com",
-            },
-        )
-    body = r.json()
-    assert body["client"] == "1.2.3.4"
+async def test_forwarded_headers_honoured_when_proxy_in_whitelist():
+    body = await _echo("127.0.0.1", {
+        "X-Forwarded-For": "198.51.100.4",
+        "X-Forwarded-Proto": "https",
+        "X-Forwarded-Host": "mediakeeper.example.com",
+    })
+    assert body["client"] == "198.51.100.4"
     assert body["scheme"] == "https"
     assert body["from_trusted_proxy"] is True
     assert body["secure"] is True
     assert body["fwd_host"] == "mediakeeper.example.com"
 
 
+@pytest.mark.parametrize("raw, expected", [
+    ("203.0.113.7", "203.0.113.7"),
+    (" 203.0.113.7 ", "203.0.113.7"),
+    ("203.0.113.7:51234", "203.0.113.7"),
+    ("[2001:db8::1]:443", "2001:db8::1"),
+    ("2001:DB8:0:0:0:0:0:1", "2001:db8::1"),
+    ("fe80::1%eth0", "fe80::1"),
+    pytest.param("fe80::1%" + "x" * 200, "fe80::1", id="long-zone-id"),
+    ("::ffff:203.0.113.7", "203.0.113.7"),
+    ("unknown", None),
+    ("198.51.100.4.5", None),
+    pytest.param("x" * 200, None, id="long-garbage"),
+    ("", None),
+    (None, None),
+])
+def test_normalize_ip(raw, expected):
+    assert normalize_ip(raw) == expected
+
+
+@pytest.mark.parametrize("xff, proxies, expected", [
+    # The client writes what it wants on the left; the proxy appends the real peer.
+    ("198.51.100.66, 203.0.113.7", "127.0.0.1", "203.0.113.7"),
+    pytest.param("198.51.100.66,203.0.113.7", "127.0.0.1", "203.0.113.7", id="comma-only"),
+    ("198.51.100.4, 10.0.0.5, 172.18.0.1", "127.0.0.1", "172.18.0.1"),
+    # Inner hops that are trusted proxies themselves are skipped, once normalized.
+    ("198.51.100.66, 203.0.113.7, 172.18.0.5", "127.0.0.1, 172.18.0.0/16", "203.0.113.7"),
+    ("203.0.113.7, ::ffff:172.18.0.5", "127.0.0.1, 172.18.0.0/16", "203.0.113.7"),
+    # Ports, zone ids and empty entries are tolerated.
+    ("203.0.113.7:51234", "127.0.0.1", "203.0.113.7"),
+    pytest.param("fe80::1%" + "x" * 200, "127.0.0.1", "fe80::1", id="long-zone-id"),
+    ("203.0.113.7, ", "127.0.0.1", "203.0.113.7"),
+])
 @pytest.mark.asyncio
-async def test_xff_takes_leftmost_ip_in_chain():
-    app = _build_app(trusted=parse_trusted_proxies("127.0.0.1"))
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        r = await ac.get(
-            "/echo",
-            headers={"X-Forwarded-For": "1.2.3.4, 10.0.0.5, 172.18.0.1"},
-        )
-    assert r.json()["client"] == "1.2.3.4"
+async def test_xff_takes_the_rightmost_hop_that_is_not_a_trusted_proxy(xff, proxies, expected):
+    body = await _echo(proxies, {"X-Forwarded-For": xff})
+    assert body["client"] == expected
+
+
+@pytest.mark.parametrize("xff, proxies, expected", [
+    # Every hop is a trusted proxy: the leftmost one is kept.
+    ("10.0.0.7, 10.0.0.9", "127.0.0.1, 10.0.0.0/8", "10.0.0.7"),
+    # A hop that is not an IP ends the walk on the last good address, a proxy's.
+    pytest.param("x" * 200, "127.0.0.1", "127.0.0.1", id="long-garbage"),
+    ("203.0.113.7, unknown", "127.0.0.1", "127.0.0.1"),
+    ("unknown, 172.18.0.5", "127.0.0.1, 172.18.0.0/16", "172.18.0.5"),
+])
+@pytest.mark.asyncio
+async def test_xff_falls_back_to_a_trusted_address_when_no_client_hop_is_reached(xff, proxies, expected):
+    body = await _echo(proxies, {"X-Forwarded-For": xff})
+    assert body["client"] == expected
 
 
 @pytest.mark.asyncio
-async def test_xff_proto_invalid_value_is_ignored():
-    app = _build_app(trusted=parse_trusted_proxies("127.0.0.1"))
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        r = await ac.get("/echo", headers={"X-Forwarded-Proto": "ftp"})
-    assert r.json()["scheme"] == "http"
+async def test_xff_header_lines_are_read_in_order():
+    body = await _echo("127.0.0.1, 172.18.0.0/16", [
+        ("X-Forwarded-For", "198.51.100.66"),
+        ("X-Forwarded-For", "203.0.113.7"),
+        ("X-Forwarded-For", "172.18.0.5"),
+    ])
+    assert body["client"] == "203.0.113.7"
+
+
+def test_get_client_ip_normalizes_what_the_server_put_in_scope():
+    def ip_of(host):
+        return get_client_ip(Request({"type": "http", "client": (host, 0), "headers": []}))
+
+    assert ip_of("::ffff:203.0.113.7") == "203.0.113.7"
+    assert ip_of("x" * 200) is None
+
+
+@pytest.mark.asyncio
+async def test_a_forged_forwarded_value_cannot_switch_off_the_lockout(db_session):
+    """Each failure is stored under the real, bounded client IP (SQLite does
+    not enforce VARCHAR(64), so the stored value is checked explicitly)."""
+    async def attempt(request):
+        await record_failure(db_session, get_client_ip(request) or "unknown", "victim", "admin")
+        return JSONResponse({})
+
+    app = Starlette(routes=[Route("/attempt", attempt, methods=["POST"])])
+    app.add_middleware(ProxyHeadersMiddleware, networks=parse_trusted_proxies("127.0.0.1"))
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        for i in range(FAIL_BLOCK_THRESHOLD):
+            forged = f"{'x' * 100}{i}, fe80::1%{'y' * 100}"
+            await ac.post("/attempt", headers={"X-Forwarded-For": forged})
+
+    ips = (await db_session.execute(select(SecurityAttempt.ip))).scalars().all()
+    assert ips == ["fe80::1"] * FAIL_BLOCK_THRESHOLD
+    # No username given: only the IP block can match.
+    assert await is_blocked(db_session, "fe80::1", None, "admin")
+
+
+@pytest.mark.asyncio
+async def test_forwarded_proto_invalid_value_is_ignored():
+    body = await _echo("127.0.0.1", {"X-Forwarded-Proto": "ftp"})
+    assert body["from_trusted_proxy"] is True
+    assert body["scheme"] == "http"
 
 
 @pytest.mark.asyncio
 async def test_no_xff_keeps_original_request():
-    app = _build_app(trusted=parse_trusted_proxies("127.0.0.1"))
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        r = await ac.get("/echo")
-    body = r.json()
+    body = await _echo("127.0.0.1")
     assert body["client"] == "127.0.0.1"
     assert body["scheme"] == "http"
     assert body["from_trusted_proxy"] is True

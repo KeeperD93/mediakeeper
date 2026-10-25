@@ -33,18 +33,25 @@ Restart the stack: `docker compose up -d --force-recreate mediakeeper`.
 ## 2. MediaKeeper environment
 
 ```dotenv
-# Traefik's container IP / CIDR as seen from MediaKeeper. The default
-# Docker network gateway is usually 172.17.0.0/16; check yours with:
-#   docker inspect mediakeeper --format='{{ .NetworkSettings.Networks }}'
-TRUSTED_PROXIES=172.17.0.0/16
+# Traefik's IP on the `public` network. Print Traefik's IPs, one line
+# per network, with
+#   docker inspect <traefik-container> --format '{{range $net, $cfg := .NetworkSettings.Networks}}{{$net}} {{$cfg.IPAddress}}{{println}}{{end}}'
+TRUSTED_PROXIES=172.18.0.2
 FRONTEND_ORIGIN=https://mediakeeper.your-domain.example
 COOKIE_SECURE=true
 ```
 
+List Traefik's own address, not the `public` network: every container
+on it would be trusted too. Pin it with `ipv4_address` (on a network
+created with a fixed subnet) so it survives a restart. Visitors that
+Docker relays show up as the network gateway: IPv6 ones unless the
+network has IPv6 enabled, and all of them on Synology. There, use
+DSM's reverse proxy ([synology-dsm.md](synology-dsm.md)).
+
 ## 3. Verify your setup
 
 ```bash
-curl -I https://mediakeeper.your-domain.example/api/health
+curl -i https://mediakeeper.your-domain.example/api/health
 # → HTTP/2 200, HSTS + Content-Security-Policy
 ```
 
@@ -52,7 +59,7 @@ Boot logs from MediaKeeper should mention Mode B with the matching
 `TRUSTED_PROXIES` / `FRONTEND_ORIGIN`.
 
 ```text
-[startup] deployment mode=B (reverse proxy) | TRUSTED_PROXIES=172.17.0.0/16 | FRONTEND_ORIGIN=https://mediakeeper.your-domain.example | COOKIE_HTTPS_FLAG=true
+[startup] deployment mode=B (reverse proxy) | TRUSTED_PROXIES=172.18.0.2 | FRONTEND_ORIGIN=https://mediakeeper.your-domain.example | COOKIE_HTTPS_FLAG=true
 ```
 
 ## 4. Common pitfalls
@@ -61,11 +68,19 @@ Boot logs from MediaKeeper should mention Mode B with the matching
   the container is healthy.
 - **Missing entrypoint** → `traefik.http.routers.mediakeeper.entrypoints`
   must match what your static config exposes (`websecure` is the
-  Traefik default for HTTPS).
+  usual name for HTTPS).
 - **Multiple Docker networks** → MediaKeeper must be on the same
   network as Traefik; the `networks: [public]` line in the compose
   attaches it.
-- **WebSocket failing** → check the LAN-side `docker logs traefik`
-  output; if you see HTTP/1.1 101 with the right headers, the issue
-  is downstream (CSRF / Origin guard, see [direct-lan.md](direct-lan.md)
-  for the verification curl commands).
+- **Traefik behind a CDN** → list the CDN's ranges both in Traefik's
+  `entryPoints.<name>.forwardedHeaders.trustedIPs` (otherwise Traefik
+  drops the CDN's `X-Forwarded-For`) and in `TRUSTED_PROXIES`.
+- **Every visitor shows the same address** in the Security tab of the
+  settings → `TRUSTED_PROXIES` does not match Traefik's address, or
+  Docker relays your visitors to Traefik (section 2). Three wrong
+  passwords would then block everyone.
+- **WebSocket failing** → turn on Traefik's access log and read the
+  status on `/api/portal/chat/ws/`: `101` means the handshake worked,
+  `403` that MediaKeeper refused the origin, the token or the room
+  (check `FRONTEND_ORIGIN`), `426` that the upgrade headers did not
+  reach it, `502` that Traefik cannot reach it.

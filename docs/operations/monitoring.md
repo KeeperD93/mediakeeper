@@ -37,21 +37,23 @@ Out of scope on purpose:
 
 ## 2. Enable the webhook
 
-1. Create an incoming webhook on the destination service (Discord is the
-   default target; the embed payload is also accepted by Slack and
-   Mattermost via their Discord-compatible adapters).
-2. Set `MK_DISCORD_ALERT_WEBHOOK` in your environment file to the
-   webhook URL. An empty value disables the feature.
-3. Restart the container (or `docker compose up -d` to apply the new
-   environment).
+1. Create a webhook in a Discord text channel. MediaKeeper only posts to
+   Discord webhook URLs (`https://discord.com/api/webhooks/...`); any
+   other URL is refused before sending.
+2. Set `MK_DISCORD_ALERT_WEBHOOK` to the webhook URL in the
+   `environment:` section of MediaKeeper's compose file (or an env file
+   the deployment loads). An empty value disables the feature.
+3. Run `docker compose up -d` again
+   (`docker compose -f docker-compose.prod.yml up -d` for a quickstart
+   install): it recreates the container with the new value. A
+   `docker run` install stops, removes and runs the container again.
 
 `docker-compose.override.example.yml` ships a commented example next to
-`BACKUP_PATH`. `.env.example` lists the variable in the optional
-section.
+`BACKUP_PATH`. `.env.example` lists the variable under Monitoring.
 
-The variable is read on every send, so rotating the URL only requires
-updating the environment and waiting for the next event — no restart
-needed for the new value to apply.
+A running container keeps the environment it was created with: rotating
+the URL means changing the variable and recreating the container, as in
+step 3.
 
 > ⚠️ The webhook URL is a secret. Treat it as you would an API token:
 > never commit it to the repository, never paste it in screenshots and
@@ -102,15 +104,17 @@ tries to clear the debounce state.
 ### No alert arrives during a known incident
 
 1. Confirm `MK_DISCORD_ALERT_WEBHOOK` is set and not empty inside the
-   container: `docker compose exec mediakeeper printenv MK_DISCORD_ALERT_WEBHOOK`
+   container: `docker exec mediakeeper printenv MK_DISCORD_ALERT_WEBHOOK`
    should print the URL.
 2. Check the debounce window: an earlier alert of the same category in
    the last 30 minutes will suppress the new one. Restart the container
    to clear state for an end-to-end test.
 3. Look for `mediakeeper.monitoring` lines in the application log. A
    delivery failure is logged as a warning.
-4. Verify the destination accepts the payload. Some receivers reject
-   embed-only messages; switch to a Discord-compatible endpoint.
+4. Check the URL: only Discord webhooks over https (`discord.com` or
+   `discordapp.com`, path `/api/webhooks/`) are accepted. A
+   `[monitoring] webhook rejected delivery` line with no `[discord]` line
+   just before it means MediaKeeper refused the URL itself.
 
 ### The webhook is being spammed
 
@@ -126,11 +130,11 @@ one alert per category per 30 minutes:
 
 ### The webhook URL is down
 
-A 5-second HTTP timeout is enforced and the response is captured
-silently — no retry, no second alert about the failed alert. The event
-is dropped from the operator's point of view, but the consecutive
-counters keep running so a still-broken DB will eventually retry on the
-next cycle.
+A 5-second limit covers each delivery: a failure is logged as a warning
+and never triggers a second alert, and only an HTTP 429 is retried once
+within that limit. The alert is not sent again: the failed attempt still
+starts the category's 30-minute debounce, and a database that stays down
+does not alert again until it has recovered.
 
 ---
 

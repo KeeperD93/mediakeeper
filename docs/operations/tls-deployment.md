@@ -20,7 +20,7 @@ the proxy as trusted.
   this guide we use `mediakeeper.example.com` as a placeholder —
   replace it with the name you actually own.
 - The MediaKeeper container reachable from the proxy on port `8888`
-  (loopback, Docker bridge network or any other private interface).
+  (published on the loopback, or over a shared Docker network).
 - A TLS certificate. Two paths are documented below:
   - automatic Let's Encrypt issuance (Caddy or Nginx with certbot);
   - a self-signed certificate for purely local LAN use.
@@ -42,27 +42,30 @@ on MediaKeeper's side.
 ```caddy
 mediakeeper.example.com {
     encode gzip
-
-    reverse_proxy 127.0.0.1:8888 {
-        header_up X-Forwarded-Proto {scheme}
-        header_up X-Forwarded-For   {remote}
-        header_up X-Forwarded-Host  {host}
-    }
+    reverse_proxy 127.0.0.1:8888
 }
 ```
 
 Caddy provisions a Let's Encrypt certificate on first start, redirects
-HTTP → HTTPS and renews the certificate transparently. Run it as a
-container or as a system service — both work the same way against the
-backend.
+HTTP → HTTPS and renews the certificate transparently. When Caddy runs
+as a container, point it at `mediakeeper:8888` on a network shared with
+MediaKeeper instead of `127.0.0.1:8888`, and list its own IP (section 3).
 
 ### 2.2 Nginx (Let's Encrypt via certbot)
 
 ```nginx
+# Close the upstream connection unless the client asks for a WebSocket.
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
 server {
     listen 80;
     server_name mediakeeper.example.com;
-    return 301 https://$host$request_uri;
+    location / {
+        return 301 https://$host$request_uri;
+    }
 }
 
 server {
@@ -74,17 +77,22 @@ server {
 
     location / {
         proxy_pass         http://127.0.0.1:8888;
+        proxy_http_version 1.1;
+        proxy_set_header   Upgrade           $http_upgrade;
+        proxy_set_header   Connection        $connection_upgrade;
         proxy_set_header   Host              $host;
-        proxy_set_header   X-Forwarded-For   $remote_addr;
+        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
         proxy_set_header   X-Forwarded-Proto $scheme;
         proxy_set_header   X-Forwarded-Host  $host;
     }
 }
 ```
 
-Run `certbot --nginx -d mediakeeper.example.com` to issue and renew
-the certificate. The HTTP→HTTPS redirect is set up by the first
-`server` block above.
+nginx refuses to load the 443 block until the certificate exists. On a
+new host, start with the port-80 block alone, run
+`certbot certonly --nginx -d mediakeeper.example.com`, then add the 443
+block. certbot renews the certificate on its own: the redirect sits in
+`location /` so certbot's challenge path still answers over HTTP.
 
 ### 2.3 Self-signed certificate for LAN-only use
 
@@ -104,38 +112,55 @@ add the certificate to the device trust store to silence the warning.
 
 ## 3. MediaKeeper configuration
 
-Two environment variables drive the proxy integration on MediaKeeper's
-side. Both are read at container startup.
+Three environment variables drive the proxy integration on MediaKeeper's
+side. All are read at container startup.
 
 | Variable | Default | Purpose |
 |---|---|---|
 | `TRUSTED_PROXIES` | empty | CSV of CIDR/IPs allowed to set `X-Forwarded-*`. When empty the headers are ignored entirely (failsafe). |
+| `FRONTEND_ORIGIN` | empty | Public origin of the site, e.g. `https://mediakeeper.example.com`. Makes the chat WebSocket check strict; left empty behind a proxy, it triggers a startup warning. |
 | `COOKIE_SECURE` | unset | Force `Secure` on session cookies regardless of detection. Set to `true` once TLS is in place. |
 
-`TRUSTED_PROXIES` accepts both bare IPs and CIDRs:
+`TRUSTED_PROXIES` accepts bare IPs and CIDRs, comma-separated:
 
 ```env
-TRUSTED_PROXIES=127.0.0.1
-TRUSTED_PROXIES=127.0.0.1,<TRUSTED_CIDR>
+TRUSTED_PROXIES=172.18.0.1
+TRUSTED_PROXIES=172.18.0.1,<CDN_CIDR>
 ```
 
-Use the CIDR of the network the proxy lives on. Typical values:
+List the address each proxy connects from, never a whole LAN range.
+Typical values:
 
-- `127.0.0.1` — proxy and container on the same host (loopback).
-- A `/16` Docker bridge network when the proxy runs as a sibling
-  container, e.g. `<TRUSTED_CIDR>` such as `172.18.0.0/16`.
-- `<LAN_GATEWAY>` — the gateway address of a small home LAN where
-  the proxy is the only TLS-terminating box.
+- The Docker network gateway (Gateway field of
+  `docker network inspect <project>_default`), e.g. `172.18.0.1`, for
+  a proxy on the same host as the container: Docker relays its
+  connections from that address, not from `127.0.0.1`. It can relay
+  other connections to a published port from there too (IPv6 visitors,
+  and every visitor on Synology), so publish the port on the loopback
+  only (`127.0.0.1:8888:8888`). The gateway can change when the Compose
+  network is recreated: pin it with a fixed subnet, as shown in
+  [synology-dsm.md](../deployment/synology-dsm.md).
+- The proxy container's own IP when it shares a network with
+  MediaKeeper, pinned with `ipv4_address` (on a network created with a
+  fixed subnet). Not the whole network: it contains the gateway.
+  Visitors that Docker relays to the proxy container show up as the
+  gateway: IPv6 ones unless the network has IPv6 enabled, and all of
+  them on Synology. There, use DSM's reverse proxy
+  ([synology-dsm.md](../deployment/synology-dsm.md)).
 
-Set both variables in the same `.env` file used by `docker compose`:
+Set the three variables in the `environment:` section of MediaKeeper's
+compose file:
 
-```env
-COOKIE_SECURE=true
-TRUSTED_PROXIES=127.0.0.1,<TRUSTED_CIDR>
+```yaml
+environment:
+  - COOKIE_SECURE=true
+  - FRONTEND_ORIGIN=https://mediakeeper.example.com
+  - TRUSTED_PROXIES=172.18.0.1
 ```
 
-Restart the container (`docker compose up -d`) for the new values to
-take effect.
+Run `docker compose up -d` again
+(`docker compose -f docker-compose.prod.yml up -d` for a quickstart
+install): it recreates the container with the new values.
 
 ---
 
@@ -144,9 +169,12 @@ take effect.
 When the direct TCP client of an incoming request matches one of the
 networks in `TRUSTED_PROXIES`:
 
-- `X-Forwarded-For` is honoured: the leftmost IP becomes the request
-  client IP, used by the audit log, the rate limiter and the security
-  blocklist.
+- `X-Forwarded-For` is honoured: read from the right, the first IP that
+  is not in `TRUSTED_PROXIES` becomes the request client IP, used by
+  the audit log, the rate limiter and the security blocklist. Anything
+  further left was written by the client and is ignored; a value that
+  is not an IP stops the reading on the last valid address, a trusted
+  proxy's.
 - `X-Forwarded-Proto` is honoured: a value of `https` activates the
   `Secure` flag on session cookies and triggers the HSTS header.
 - `X-Forwarded-Host` is honoured by the CSRF Origin/Referer check, so
@@ -158,6 +186,10 @@ list is empty) the headers are ignored regardless of their content.
 This is the safe default for a container exposed directly on a LAN
 without a proxy in front.
 
+uvicorn's own `FORWARDED_ALLOW_IPS` and `UVICORN_FORWARDED_ALLOW_IPS`
+variables are ignored: the container limits uvicorn's proxy trust to its
+own loopback, so list your proxies in `TRUSTED_PROXIES`.
+
 ---
 
 ## 5. Validate the deployment
@@ -166,7 +198,7 @@ Once both sides are configured, verify the result with `curl`. Replace
 the placeholder hostname with your own.
 
 ```sh
-curl -I https://mediakeeper.example.com/api/health
+curl -i https://mediakeeper.example.com/api/health
 ```
 
 Expected response headers (order may vary):
@@ -199,15 +231,15 @@ The presence of `Secure` proves that MediaKeeper detected the
 
 **Boot log shows `COOKIE_HTTPS_FLAG=` instead of `COOKIE_SECURE=`.**
 The boot log label `COOKIE_HTTPS_FLAG=` corresponds to the env var
-`COOKIE_SECURE` you configure in your `.env`. The log label avoids
+`COOKIE_SECURE`. The log label avoids
 the `SECURE` substring to keep static analysis (CodeQL) from
 misclassifying the log line as a sensitive-data leak. You keep
 configuring the env var under its own name (`COOKIE_SECURE=true`,
 etc.) — only the log label differs.
 
 **Cookies still emitted without `Secure` after configuring TLS.**
-Check that the proxy IP belongs to one of the CIDRs declared in
-`TRUSTED_PROXIES`. The container logs print one warning at startup
+Check that `TRUSTED_PROXIES` lists the address the proxy connects
+from. The container logs print one warning at startup
 when no trust source is configured:
 `COOKIE_SECURE is unset and TRUSTED_PROXIES is empty in
 production-like mode`.
@@ -218,7 +250,7 @@ that override always wins.
 If you intentionally run MediaKeeper over plain HTTP on a LAN you
 trust (no public exposure, no reverse proxy, no Internet route),
 the startup warning above is informational and expected. Setting
-`COOKIE_SECURE=false` in your `.env` acknowledges the trade-off
+`COOKIE_SECURE=false` acknowledges the trade-off
 and silences the warning at every subsequent boot — the cookies
 remain non-Secure, which is the only behaviour HTTP-only can
 support. Do **not** use this on any host reachable from outside
@@ -226,12 +258,16 @@ the LAN: an HTTP MITM there can replay session cookies.
 
 **Browser blocks scripts/styles/images with a Content-Security-Policy
 violation.**
-The shipped policy allows: `'self'` plus the YouTube IFrame API for
-scripts, `'self'` plus Google Fonts for styles and `'self'` plus
-TMDB/Imgur for images. If you deploy a customisation that loads other
-origins, switch to `MK_CSP_MODE=report-only` for a transition window,
-observe the violations in the browser console, and add the missing
-origins to a custom policy before going back to enforce mode.
+The shipped policy allows `'self'` plus: the YouTube IFrame API for
+scripts, inline styles and Google Fonts for styles, Google Fonts for
+fonts, TMDB, Imgur and YouTube thumbnails for images (with `data:` and
+`blob:`), and YouTube and Vimeo embeds for frames. If you deploy a
+customisation that loads other origins, switch to
+`MK_CSP_MODE=report-only` for a transition window and observe the
+violations in the browser console. The policy is fixed in the image
+(`CSP_DIRECTIVES` in `backend/core/security_headers.py`): add the
+missing origins there and build your own image before going back to
+enforce mode. A policy added at the proxy only restricts further.
 
 **HSTS header is missing.**
 HSTS is emitted only when MediaKeeper sees the request as HTTPS.
@@ -242,7 +278,8 @@ forwards the connection over TLS to the container, rare) or the
 **`X-Forwarded-Host` ignored / CSRF rejecting same-origin requests.**
 The CSRF middleware computes the canonical origin from
 `X-Forwarded-Host` only when the proxy is in `TRUSTED_PROXIES`. Add
-the proxy CIDR to the list, then restart the container.
+the proxy's address to the list, then run `docker compose up -d` again
+(with `-f docker-compose.prod.yml` for a quickstart install).
 
 **Healthcheck failing after enabling TLS.**
 The Docker healthcheck is `curl -f http://localhost:8888/api/health`,

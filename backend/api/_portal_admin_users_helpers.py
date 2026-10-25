@@ -18,8 +18,7 @@ from services.portal.admin_users import get_admin_user
 
 
 def client_ip(request: Request) -> str | None:
-    ip = get_client_ip(request)
-    return ip[:64] if ip else None
+    return get_client_ip(request)
 
 
 def client_ua(request: Request) -> str | None:

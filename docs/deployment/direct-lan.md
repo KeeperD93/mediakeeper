@@ -21,8 +21,11 @@ docker run -d \
   ghcr.io/keeperd93/mediakeeper:beta
 ```
 
-`/etc/mediakeeper.env` carries the secrets (`JWT_SECRET_KEY` is
-mandatory, the rest is optional).
+`/etc/mediakeeper.env` carries your settings. It must exist but can stay
+empty: the container generates its secrets on first start and keeps
+them in `/data`. After changing it, stop and remove the container
+(`docker stop mediakeeper`, then `docker rm mediakeeper`) and run it
+again: `docker restart` keeps the old values.
 
 ## 2. Environment
 
@@ -37,39 +40,42 @@ COOKIE_SECURE=false
 
 Empty `FRONTEND_ORIGIN` opts the chat WebSocket into the auto-derive
 guard (Origin compared against the `Host` header). MediaKeeper writes
-one WARN line at boot reminding you to lock this down once you settle
-on a permanent hostname.
+one WARN line at the first chat connection reminding you to lock this
+down once you settle on a permanent hostname.
 
 If you reach the UI over HTTPS via a self-signed certificate or VPN,
 flip `COOKIE_SECURE=true` so session cookies stop downgrading.
 
 ### Persistent encryption key
 
-Even on a direct-LAN deployment, set `MEDIAKEEPER_ENCRYPTION_KEY`
-**before the first `docker compose up`** so encrypted secrets
-(integration tokens, Discord URLs…) survive a container restart:
+On first start the container generates the key that encrypts stored
+secrets (integration tokens, Discord URLs…) and keeps it in
+`/data/.encryption_key`, on the volume mounted above. To manage it
+yourself, set `MEDIAKEEPER_ENCRYPTION_KEY` **before the first start**,
+or to the value already in that file: the variable wins over the file,
+and secrets stored under another key become unreadable.
 
 ```dotenv
 MEDIAKEEPER_ENCRYPTION_KEY=<paste your fernet key here>
 ```
 
-Without it, MediaKeeper boots on an in-memory key and the admin UI
-shows a persistent red banner; values written under that key become
-unreadable as soon as the container restarts.
+Without the variable or that file, MediaKeeper boots on an in-memory
+key and the admin UI shows a persistent red banner; values written
+under that key become unreadable as soon as the container restarts.
 
 ## 3. Verify your setup
 
 After boot, the container logs should show:
 
 ```
-[startup] deployment mode=A (direct LAN) | TRUSTED_PROXIES=(empty) | FRONTEND_ORIGIN=auto-derived | COOKIE_HTTPS_FLAG=auto
+[startup] deployment mode=A (direct LAN) | TRUSTED_PROXIES=(empty) | FRONTEND_ORIGIN=auto-derived | COOKIE_HTTPS_FLAG=false
 ```
 
 Then from a client on the same LAN:
 
 ```bash
 # Health endpoint — must return 200 with security headers.
-curl -I http://192.0.2.10:8888/api/health
+curl -i http://192.0.2.10:8888/api/health
 
 # Login — must return 200 with Set-Cookie.
 curl -i -X POST http://192.0.2.10:8888/api/auth/login \
@@ -86,10 +92,13 @@ Move to a reverse proxy when any of these become true:
 - The service is reachable from the public Internet.
 - You want browser-trusted TLS without ad-hoc certificate management.
 - You expose a friendly hostname (`mediakeeper.lan`) instead of an IP.
+- The Security tab of the settings shows the same address for every
+  visitor. On Synology, Docker relays every connection from its
+  network gateway, so three wrong passwords block everyone.
 
 The matching guides — [synology-dsm.md](synology-dsm.md),
 [nginx-proxy-manager.md](nginx-proxy-manager.md),
 [caddy.md](caddy.md), [traefik.md](traefik.md) — share the same Mode B
-contract: set `TRUSTED_PROXIES` to the proxy IP or CIDR, set
-`FRONTEND_ORIGIN` to the public origin, and forward the WebSocket
+contract: set `TRUSTED_PROXIES` to the address the proxy connects from,
+set `FRONTEND_ORIGIN` to the public origin, and forward the WebSocket
 upgrade headers.

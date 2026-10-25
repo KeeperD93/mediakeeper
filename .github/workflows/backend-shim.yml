@@ -9,6 +9,7 @@ on:
   pull_request:
     paths-ignore:
       - 'backend/**'
+      - 'entrypoint.sh'
       - 'pytest.ini'
       - '.github/workflows/backend.yml'
 

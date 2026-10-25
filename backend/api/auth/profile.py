@@ -1,4 +1,4 @@
-"""Endpoints profil current : /me, /change-password, /refresh, /logout, /preferences."""
+"""Current-account endpoints: profile, password change, session refresh and logout, preferences."""
 import json
 import logging
 from datetime import datetime, timezone
@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.security import UNKNOWN_CLIENT_IP
 from core.database import get_db
 from core.proxy import get_client_ip
 from core.rate_limit import admin_user_or_ip_key, limiter
@@ -62,16 +63,18 @@ async def change_password(
     current_user: User = Depends(get_current_user),
     db:           AsyncSession = Depends(get_db),
 ):
-    client_ip = get_client_ip(request) or "unknown"
+    client_ip = get_client_ip(request) or UNKNOWN_CLIENT_IP
     user_agent = request.headers.get("user-agent")
-    await ensure_not_blocked(db, client_ip, current_user.username, PASSWORD_CHANGE_SCOPE)
+    # Lower-cased like the sign-in routes, so blocks and attempts carry one form of the name.
+    tracking_username = current_user.username.lower()
+    await ensure_not_blocked(db, client_ip, tracking_username, PASSWORD_CHANGE_SCOPE)
 
     if req.new_password != req.confirm_password:
         raise HTTPException(status_code=400, detail="password_mismatch")
 
     if not verify_password(req.current_password, current_user.hashed_password):
         await record_failure(
-            db, client_ip, current_user.username, PASSWORD_CHANGE_SCOPE, user_agent,
+            db, client_ip, tracking_username, PASSWORD_CHANGE_SCOPE, user_agent,
         )
         raise HTTPException(status_code=400, detail="current_password_invalid")
 
@@ -102,12 +105,12 @@ async def change_password(
     await db.refresh(user)
 
     await record_attempt(
-        db, client_ip, user.username, PASSWORD_CHANGE_SCOPE, success=True, user_agent=user_agent,
+        db, client_ip, tracking_username, PASSWORD_CHANGE_SCOPE, success=True, user_agent=user_agent,
     )
     new_token = create_access_token({"sub": user.username, "scope": "admin"})
     _set_jwt_cookie(response, new_token, request)
     rotate_csrf_cookie(response, request)
-    logger.info("[PASSWORD] Password changed for user=%s", user.username)
+    logger.info("[PASSWORD] Password changed for user_id=%s", user.id)
     return {"success": True}
 
 

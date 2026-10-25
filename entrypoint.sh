@@ -1,13 +1,9 @@
 #!/bin/bash
 set -e
 
-# ============================================
-# MEDIAKEEPER — Single Container Entrypoint
-# 1. Generate the PG password on first launch
-# 2. Initialise the PG cluster if needed
-# 3. Start PostgreSQL
-# 4. Launch Uvicorn (FastAPI + static files)
-# ============================================
+# MediaKeeper single-container entrypoint: remap the runtime user, create the data
+# dirs and secrets, start PostgreSQL (initialised on first launch), apply the
+# migrations, then run uvicorn and the background tasks.
 
 DATA_DIR="/data"
 PG_DATA="$DATA_DIR/pg"
@@ -15,7 +11,7 @@ PG_PWD_FILE="$DATA_DIR/.pg_password"
 PG_LOG="$DATA_DIR/logs/postgresql.log"
 PG_BIN="/usr/lib/postgresql/16/bin"
 
-# ---- 0. Remap mkuser UID/GID if PUID/PGID are set ----
+# 0. Remap mkuser to PUID/PGID when PUID is non-zero
 PUID=${PUID:-0}
 PGID=${PGID:-0}
 if [ "$PUID" -ne 0 ]; then
@@ -37,7 +33,7 @@ if [ "$PUID" -ne 0 ]; then
     chown -R mkuser:users /data/logs /data/backups 2>/dev/null || true
 fi
 
-# ---- 0b. Persistent dirs that must exist before first use ----
+# 0b. Persistent dirs that must exist before first use
 # Created here (not only in the Dockerfile) so a fresh /data — a named
 # volume OR a bind-mount to an empty host dir — has them on boot, without a
 # manual ``docker exec mkdir`` from the operator. pg is re-owned to postgres
@@ -46,7 +42,7 @@ mkdir -p /data/avatars /data/pg /data/logs /data/backups 2>/dev/null || true
 chown mkuser:users /data/avatars 2>/dev/null || true
 chmod 750 /data/avatars 2>/dev/null || true
 
-# ---- 1. Auto-generated PostgreSQL password ----
+# 1. Auto-generated PostgreSQL password
 if [ ! -f "$PG_PWD_FILE" ]; then
     echo ">> First launch: generating the PostgreSQL password..."
     PG_PASSWORD=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")
@@ -57,7 +53,7 @@ fi
 
 PG_PASSWORD=$(cat "$PG_PWD_FILE")
 
-# ---- 1b. Auto-generated JWT secret if none is provided ----
+# 1b. Auto-generated JWT secret if none is provided
 JWT_SECRET_FILE="$DATA_DIR/.jwt_secret"
 if [ -z "$JWT_SECRET_KEY" ] && [ ! -f "$JWT_SECRET_FILE" ]; then
     echo ">> Auto-generating the JWT secret..."
@@ -66,7 +62,7 @@ if [ -z "$JWT_SECRET_KEY" ] && [ ! -f "$JWT_SECRET_FILE" ]; then
     chown mkuser:users "$JWT_SECRET_FILE"
 fi
 
-# ---- 1c. Fernet key for sensitive settings (API keys, webhooks) ----
+# 1c. Fernet key for sensitive settings (API keys, webhooks)
 ENCRYPTION_KEY_FILE="$DATA_DIR/.encryption_key"
 if [ -z "$MEDIAKEEPER_ENCRYPTION_KEY" ] && [ ! -f "$ENCRYPTION_KEY_FILE" ]; then
     echo ">> Auto-generating the Fernet encryption key..."
@@ -75,7 +71,7 @@ if [ -z "$MEDIAKEEPER_ENCRYPTION_KEY" ] && [ ! -f "$ENCRYPTION_KEY_FILE" ]; then
     chown mkuser:users "$ENCRYPTION_KEY_FILE"
 fi
 
-# ---- 2. Initialise the PG cluster if missing ----
+# 2. Initialise the PG cluster if missing
 if [ ! -f "$PG_DATA/PG_VERSION" ]; then
     echo ">> Initialising the PostgreSQL cluster..."
     chown -R postgres:postgres "$PG_DATA"
@@ -102,7 +98,7 @@ if [ ! -f "$PG_DATA/PG_VERSION" ]; then
     echo ">> PostgreSQL cluster initialised."
 fi
 
-# ---- 3. Start PostgreSQL ----
+# 3. Start PostgreSQL
 chown -R postgres:postgres "$PG_DATA"
 # Clean up any leftover PID file (previous crash)
 rm -f "$PG_DATA/postmaster.pid"
@@ -121,24 +117,22 @@ for i in $(seq 1 30); do
     sleep 1
 done
 
-# ---- 4. Environment variables for FastAPI ----
+# 4. Environment variables for FastAPI
 export DATABASE_URL="postgresql://mediakeeper:${PG_PASSWORD}@127.0.0.1:5432/mediakeeper_db"
 
-# Logs dir permissions
+# Logs and backups dir permissions
 chown -R mkuser:users /data/logs /data/backups
 
-# ---- 4b. Apply Alembic migrations (idempotent) ----
-# Each Alembic migration is written as a no-op when its target table/column
-# already exists (``if ... not in tables`` guards), so re-running
-# ``upgrade head`` on every boot is safe and guarantees that any newly
-# shipped migration is picked up at the next rebuild.
+# 4b. Apply Alembic migrations (idempotent)
+# Alembic stores the current revision in ``alembic_version``, so running
+# ``upgrade head`` on every boot only applies newer migrations.
 echo ">> Applying Alembic migrations..."
 su -s /bin/bash mkuser -c "cd /app/backend && alembic upgrade head" || {
     echo ">> ⚠  Alembic migrations failed — aborting."
     exit 1
 }
 
-# ---- 5. Launch Uvicorn ----
+# 5. Launch uvicorn and the background tasks
 echo ">> Starting MediaKeeper..."
 MK_DEBUG="${MK_DEBUG:-false}"
 MK_SEPARATE_BACKGROUND_WORKER="${MK_SEPARATE_BACKGROUND_WORKER:-true}"
@@ -164,9 +158,13 @@ shutdown_all() {
 # freeze the server.
 WS_MAX_SIZE=65536
 
+# uvicorn's own default, pinned: FORWARDED_ALLOW_IPS (or UVICORN_FORWARDED_ALLOW_IPS) must
+# never let uvicorn take the client address from X-Forwarded-For before MediaKeeper reads it.
+UVICORN_FORWARDED_IPS="127.0.0.1,::1"
+
 if [ "$MK_DEBUG" = "true" ]; then
     echo ">> DEBUG mode enabled (reload + verbose logs)"
-    exec su -s /bin/bash mkuser -c "cd /app/backend && exec env MK_PROCESS_ROLE=combined uvicorn main:app --host 0.0.0.0 --port 8888 --ws-max-size $WS_MAX_SIZE --reload --log-level debug"
+    exec su -s /bin/bash mkuser -c "cd /app/backend && exec env MK_PROCESS_ROLE=combined uvicorn main:app --host 0.0.0.0 --port 8888 --ws-max-size $WS_MAX_SIZE --forwarded-allow-ips $UVICORN_FORWARDED_IPS --reload --log-level debug"
 else
     if [ "$MK_SEPARATE_BACKGROUND_WORKER" = "true" ]; then
         echo ">> Production mode: web API / background tasks split"
@@ -175,7 +173,7 @@ else
         su -s /bin/bash mkuser -c "cd /app/backend && exec env MK_PROCESS_ROLE=worker python run_worker.py" &
         WORKER_PID=$!
 
-        su -s /bin/bash mkuser -c "cd /app/backend && exec env MK_PROCESS_ROLE=web uvicorn main:app --host 0.0.0.0 --port 8888 --ws-max-size $WS_MAX_SIZE --workers 1" &
+        su -s /bin/bash mkuser -c "cd /app/backend && exec env MK_PROCESS_ROLE=web uvicorn main:app --host 0.0.0.0 --port 8888 --ws-max-size $WS_MAX_SIZE --forwarded-allow-ips $UVICORN_FORWARDED_IPS --workers 1" &
         WEB_PID=$!
 
         wait -n "$WEB_PID" "$WORKER_PID"
@@ -184,5 +182,5 @@ else
         exit "$STATUS"
     fi
 
-    exec su -s /bin/bash mkuser -c "cd /app/backend && exec env MK_PROCESS_ROLE=combined uvicorn main:app --host 0.0.0.0 --port 8888 --ws-max-size $WS_MAX_SIZE --workers 1"
+    exec su -s /bin/bash mkuser -c "cd /app/backend && exec env MK_PROCESS_ROLE=combined uvicorn main:app --host 0.0.0.0 --port 8888 --ws-max-size $WS_MAX_SIZE --forwarded-allow-ips $UVICORN_FORWARDED_IPS --workers 1"
 fi

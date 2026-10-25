@@ -1,16 +1,17 @@
 """
-Fixtures pytest for Mediakeeper.
+Pytest fixtures for MediaKeeper.
 Uses an async in-memory SQLite DB for tests (no PostgreSQL required).
 """
 
 import os
-import sys
 import shutil
+import sys
 import tempfile
+from pathlib import Path
+from unittest.mock import AsyncMock, patch
+
 import pytest
 import pytest_asyncio
-from unittest.mock import AsyncMock, patch
-from pathlib import Path
 
 # Set the environment BEFORE any application import.
 os.environ["JWT_SECRET_KEY"] = "test-secret-key-for-pytest-only-012345"
@@ -21,24 +22,24 @@ BACKEND_ROOT = Path(__file__).resolve().parent.parent
 if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
-from httpx import AsyncClient, ASGITransport  # noqa: E402
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession  # noqa: E402
+from httpx import ASGITransport, AsyncClient  # noqa: E402
+from sqlalchemy import event as _sa_event  # noqa: E402
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine  # noqa: E402
 from sqlalchemy.orm import sessionmaker  # noqa: E402
 
-import models  # noqa: F401, E402  # Ensure every model is registered in Base.metadata
 # Importing ``main`` at conftest load time guarantees that every top-level
 # model file (security, healthcheck, scheduler…) is imported before
 # ``setup_db`` runs ``Base.metadata.create_all``. Without this, isolated
 # test runs (``pytest -k single_test``) hit ``no such table`` errors
 # because ``models/__init__.py`` only re-exports the portal submodule.
-import main  # noqa: F401, E402
+import main  # noqa: E402
+from core.security import hash_password  # noqa: E402
 from models.base import Base  # noqa: E402
 from models.portal.profile import UserProfile  # noqa: E402
 from models.user import User  # noqa: E402
-from core.security import hash_password  # noqa: E402
 
 
-# Engine SQLite async for tests.
+# Async in-memory SQLite engine for tests.
 _test_engine = create_async_engine(
     "sqlite+aiosqlite:///:memory:",
     echo=False,
@@ -50,9 +51,6 @@ _test_engine = create_async_engine(
 # the pragma on every connection lets ``ON DELETE CASCADE`` /
 # ``ON DELETE SET NULL`` behave like Postgres in production and exposes
 # missing-FK bugs early.
-from sqlalchemy import event as _sa_event  # noqa: E402
-
-
 @_sa_event.listens_for(_test_engine.sync_engine, "connect")
 def _sqlite_enable_foreign_keys(dbapi_conn, _record):
     cursor = dbapi_conn.cursor()
@@ -60,6 +58,7 @@ def _sqlite_enable_foreign_keys(dbapi_conn, _record):
         cursor.execute("PRAGMA foreign_keys = ON")
     finally:
         cursor.close()
+
 
 _TestSession = sessionmaker(
     bind=_test_engine,
@@ -182,7 +181,7 @@ def _reset_chat_ws_registries():
 
 @pytest_asyncio.fixture
 async def db_session():
-    """Fournit une session DB de test."""
+    """Test database session."""
     async with _TestSession() as session:
         yield session
 
@@ -247,10 +246,9 @@ def portal_login():
 
 async def _build_client(seed_csrf: bool):
     """Shared factory for the test HTTP client — see the two fixtures below."""
-    from core.database import get_db
     from core import app_startup
-    import main as main_module
-    app = main_module.app
+    from core.database import get_db
+    app = main.app
 
     async def _override_get_db():
         async with _TestSession() as session:

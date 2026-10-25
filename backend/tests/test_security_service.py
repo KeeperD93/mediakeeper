@@ -2,14 +2,19 @@
 from datetime import datetime, timedelta, timezone
 
 import pytest
+from fastapi import HTTPException
+from httpx import AsyncClient
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.security import create_access_token, hash_password
+from core.security import create_access_token
 from models.security import SecurityAttempt, SecurityBlock
 from models.user import User
 from services.security import (
     ALERT_THRESHOLD,
     FAIL_BLOCK_THRESHOLD,
+    RETENTION_DAYS,
     create_block,
     delete_block,
     ensure_not_blocked,
@@ -19,13 +24,26 @@ from services.security import (
 )
 
 
+def _auth_admin(client: AsyncClient, admin_user: User) -> None:
+    client.cookies.set(
+        "mk_token",
+        create_access_token({"sub": admin_user.username, "scope": "admin"}),
+    )
+
+
+async def _block_ip(db_session: AsyncSession, ip: str, scope: str) -> int:
+    return await create_block(
+        db_session, admin_id=None, ip=ip, username=None, scope=scope, permanent=True,
+    )
+
+
 @pytest.mark.asyncio
 async def test_record_failure_logs_row_and_auto_blocks_after_threshold(db_session):
     for _ in range(FAIL_BLOCK_THRESHOLD):
-        await record_failure(db_session, "1.2.3.4", "victim", "admin")
+        await record_failure(db_session, "198.51.100.4", "victim", "admin")
 
     attempts = (
-        await db_session.execute(select(SecurityAttempt).where(SecurityAttempt.ip == "1.2.3.4"))
+        await db_session.execute(select(SecurityAttempt).where(SecurityAttempt.ip == "198.51.100.4"))
     ).scalars().all()
     assert len(attempts) == FAIL_BLOCK_THRESHOLD
     assert all(a.success == 0 for a in attempts)
@@ -41,36 +59,27 @@ async def test_record_failure_logs_row_and_auto_blocks_after_threshold(db_sessio
         "auto_block_bruteforce_username:admin",
     }
 
-    block = await is_blocked(db_session, "1.2.3.4", "victim", "admin")
+    block = await is_blocked(db_session, "198.51.100.4", "victim", "admin")
     assert block is not None
     assert block.permanent == 0
     assert block.scope == "admin"
     assert block.reason.startswith("auto_block_bruteforce_")
 
     # Same IP, different scope → must not be blocked automatically.
-    block_other = await is_blocked(db_session, "1.2.3.4", "victim", "portal")
+    block_other = await is_blocked(db_session, "198.51.100.4", "victim", "portal")
     assert block_other is None
 
 
-@pytest.mark.asyncio
-async def test_alert_threshold_is_lower_or_equal_than_block_threshold():
+def test_alert_threshold_is_at_most_the_block_threshold():
     # Alert fires at or before the block kicks in.
     assert ALERT_THRESHOLD <= FAIL_BLOCK_THRESHOLD
 
 
 @pytest.mark.asyncio
 async def test_ensure_not_blocked_raises_429_when_blocked(db_session):
-    await create_block(
-        db_session,
-        admin_id=None,
-        ip="9.9.9.9",
-        username=None,
-        scope="admin",
-        permanent=True,
-    )
-    from fastapi import HTTPException
+    await _block_ip(db_session, "198.51.100.9", "admin")
     with pytest.raises(HTTPException) as excinfo:
-        await ensure_not_blocked(db_session, "9.9.9.9", "anyone", "admin")
+        await ensure_not_blocked(db_session, "198.51.100.9", "anyone", "admin")
     assert excinfo.value.status_code == 429
     assert excinfo.value.detail == "login_blocked"
 
@@ -78,8 +87,7 @@ async def test_ensure_not_blocked_raises_429_when_blocked(db_session):
 @pytest.mark.asyncio
 async def test_security_attempt_success_rejects_non_boolean(db_session):
     """The CHECK(0/1) guard refuses a success value outside the boolean range."""
-    from sqlalchemy.exc import IntegrityError
-    db_session.add(SecurityAttempt(ip="2.2.2.2", scope="admin", success=2))
+    db_session.add(SecurityAttempt(ip="198.51.100.2", scope="admin", success=2))
     with pytest.raises(IntegrityError):
         await db_session.flush()
     await db_session.rollback()
@@ -88,7 +96,6 @@ async def test_security_attempt_success_rejects_non_boolean(db_session):
 @pytest.mark.asyncio
 async def test_security_block_permanent_rejects_non_boolean(db_session):
     """The CHECK(0/1) guard refuses a permanent value outside the boolean range."""
-    from sqlalchemy.exc import IntegrityError
     db_session.add(SecurityBlock(scope="admin", permanent=5))
     with pytest.raises(IntegrityError):
         await db_session.flush()
@@ -97,71 +104,54 @@ async def test_security_block_permanent_rejects_non_boolean(db_session):
 
 @pytest.mark.asyncio
 async def test_ensure_not_blocked_passes_when_scope_differs(db_session):
-    await create_block(
-        db_session,
-        admin_id=None,
-        ip="8.8.8.8",
-        username=None,
-        scope="portal",
-        permanent=True,
-    )
+    await _block_ip(db_session, "198.51.100.8", "portal")
     # Same IP but different scope → must pass.
-    await ensure_not_blocked(db_session, "8.8.8.8", None, "admin")
+    await ensure_not_blocked(db_session, "198.51.100.8", None, "admin")
 
 
 @pytest.mark.asyncio
 async def test_delete_block_removes_row(db_session):
-    block_id = await create_block(
-        db_session,
-        admin_id=None,
-        ip="7.7.7.7",
-        username=None,
-        scope="all",
-        permanent=True,
-    )
+    block_id = await _block_ip(db_session, "198.51.100.7", "all")
     assert await delete_block(db_session, block_id) is True
     assert await delete_block(db_session, block_id) is False
 
 
 @pytest.mark.asyncio
-async def test_purge_old_attempts_keeps_recent(db_session):
-    recent = SecurityAttempt(
-        ip="5.5.5.5", username="u", scope="admin", success=0,
-        created_at=datetime.now(timezone.utc),
-    )
-    ancient = SecurityAttempt(
-        ip="5.5.5.5", username="u", scope="admin", success=0,
-        created_at=datetime.now(timezone.utc) - timedelta(days=100),
-    )
-    db_session.add_all([recent, ancient])
+async def test_purge_old_attempts_drops_only_rows_past_retention(db_session):
+    now = datetime.now(timezone.utc)
+    ages = {"recent": 0, "inside": RETENTION_DAYS - 1, "ancient": RETENTION_DAYS + 1}
+    db_session.add_all([
+        SecurityAttempt(
+            ip="198.51.100.5", username=name, scope="admin", success=0,
+            created_at=now - timedelta(days=days),
+        )
+        for name, days in ages.items()
+    ])
     await db_session.commit()
 
-    deleted = await purge_old_attempts(db_session)
-    assert deleted == 1
+    assert await purge_old_attempts(db_session) == 1
 
-    remaining = (await db_session.execute(select(SecurityAttempt))).scalars().all()
-    assert len(remaining) == 1
+    remaining = (await db_session.execute(select(SecurityAttempt.username))).scalars().all()
+    assert sorted(remaining) == ["inside", "recent"]
 
 
+@pytest.mark.parametrize("method, path", [
+    ("GET", "/api/security/attempts"),
+    ("GET", "/api/security/blocks"),
+    ("POST", "/api/security/blocks"),
+    ("DELETE", "/api/security/blocks/1"),
+    ("POST", "/api/security/attempts/purge"),
+])
 @pytest.mark.asyncio
-async def test_admin_endpoints_require_auth(client):
-    resp = await client.get("/api/security/attempts")
+async def test_admin_endpoints_require_auth(client, method, path):
+    body = {"ip": "198.51.100.1", "scope": "all"} if method == "POST" else None
+    resp = await client.request(method, path, json=body)
     assert resp.status_code == 401
 
 
 @pytest.mark.asyncio
-async def test_admin_can_list_and_manage_blocks(client, db_session):
-    admin = User(
-        username="admin",
-        hashed_password=hash_password("TestPassword123!"),
-        is_active=True,
-        must_change_password=False,
-    )
-    db_session.add(admin)
-    await db_session.commit()
-    await db_session.refresh(admin)
-
-    client.cookies.set("mk_token", create_access_token({"sub": admin.username, "scope": "admin"}))
+async def test_admin_can_list_and_manage_blocks(client, admin_user):
+    _auth_admin(client, admin_user)
 
     resp = await client.post("/api/security/blocks", json={
         "ip": "10.0.0.1",
@@ -182,17 +172,11 @@ async def test_admin_can_list_and_manage_blocks(client, db_session):
 
 
 @pytest.mark.asyncio
-async def test_post_block_rejects_inert_non_permanent_block(client, db_session):
+async def test_post_block_rejects_inert_non_permanent_block(client, admin_user):
     """A non-permanent block with no future expiry is inert (never active,
     hidden from the list); the API must reject it (400) instead of silently
-    storing a dead row (#395)."""
-    admin = User(
-        username="admin", hashed_password=hash_password("TestPassword123!"),
-        is_active=True, must_change_password=False,
-    )
-    db_session.add(admin)
-    await db_session.commit()
-    client.cookies.set("mk_token", create_access_token({"sub": "admin", "scope": "admin"}))
+    storing a dead row."""
+    _auth_admin(client, admin_user)
 
     no_expiry = await client.post("/api/security/blocks", json={
         "ip": "203.0.113.5", "scope": "all", "permanent": False,
@@ -205,6 +189,7 @@ async def test_post_block_rejects_inert_non_permanent_block(client, db_session):
         "blocked_until": "2000-01-01T00:00:00+00:00",
     })
     assert past.status_code == 400
+    assert past.json()["detail"] == "block_requires_future_expiry"
 
     future = (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
     ok = await client.post("/api/security/blocks", json={
@@ -215,19 +200,13 @@ async def test_post_block_rejects_inert_non_permanent_block(client, db_session):
 
 
 @pytest.mark.asyncio
-async def test_post_block_refuses_self_block_by_username(client, db_session):
+async def test_post_block_refuses_self_block_by_username(client, admin_user):
     """Blocking the operator's own username would lock them out of the
-    backoffice after JWT expiry; the API must refuse it (#396)."""
-    admin = User(
-        username="admin", hashed_password=hash_password("TestPassword123!"),
-        is_active=True, must_change_password=False,
-    )
-    db_session.add(admin)
-    await db_session.commit()
-    client.cookies.set("mk_token", create_access_token({"sub": "admin", "scope": "admin"}))
+    backoffice after JWT expiry; the API must refuse it."""
+    _auth_admin(client, admin_user)
 
     own = await client.post("/api/security/blocks", json={
-        "username": "admin", "scope": "all", "permanent": True,
+        "username": admin_user.username, "scope": "all", "permanent": True,
     })
     assert own.status_code == 400
     assert own.json()["detail"] == "self_block_forbidden"
@@ -239,25 +218,48 @@ async def test_post_block_refuses_self_block_by_username(client, db_session):
 
 
 @pytest.mark.asyncio
-async def test_login_endpoint_blocks_after_failures(client, db_session):
-    # Prime: create admin user so the /login path exercises the real failure flow
-    admin = User(
-        username="admin",
-        hashed_password=hash_password("GoodPassword123!"),
-        is_active=True,
-        must_change_password=False,
-    )
-    db_session.add(admin)
-    await db_session.commit()
+async def test_post_block_stores_the_ip_in_canonical_form(client, admin_user, db_session):
+    """Blocks are matched against normalized client IPs: another spelling of
+    the same address must still match, including the operator's own one."""
+    _auth_admin(client, admin_user)
 
+    own = await client.post("/api/security/blocks", json={
+        "ip": "::ffff:127.0.0.1", "scope": "all", "permanent": True,
+    })
+    assert own.status_code == 400
+    assert own.json()["detail"] == "self_block_forbidden"
+
+    ok = await client.post("/api/security/blocks", json={
+        "ip": "2001:DB8:0:0:0:0:0:1", "scope": "all", "permanent": True,
+    })
+    assert ok.status_code == 200
+    assert await is_blocked(db_session, "2001:db8::1", None, "admin")
+
+
+@pytest.mark.asyncio
+async def test_post_block_keeps_the_unknown_marker_as_typed(client, admin_user, db_session):
+    """The quick block of an attempt without a usable IP sends "unknown": it is
+    stored as typed, so it matches the sign-ins recorded under that marker."""
+    _auth_admin(client, admin_user)
+
+    resp = await client.post("/api/security/blocks", json={
+        "ip": "unknown", "scope": "admin", "permanent": True,
+    })
+    assert resp.status_code == 200
+    assert await is_blocked(db_session, "unknown", None, "admin")
+
+
+@pytest.mark.asyncio
+async def test_login_endpoint_blocks_after_failures(client, admin_user):
+    # A real account, so the last attempt can use the correct password.
     for _ in range(FAIL_BLOCK_THRESHOLD):
         await client.post("/api/auth/login", json={
-            "username": "admin", "password": "wrong-password"
+            "username": admin_user.username, "password": "wrong-password"
         })
 
     # The next attempt (even with the correct password) is blocked.
     resp = await client.post("/api/auth/login", json={
-        "username": "admin", "password": "GoodPassword123!"
+        "username": admin_user.username, "password": "TestPassword123!"
     })
     assert resp.status_code == 429
     assert resp.json()["detail"] == "login_blocked"

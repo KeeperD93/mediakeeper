@@ -31,7 +31,7 @@ services:
       # validate   : refuses to start if the expected schema is not present.
       # create_all : only for one-off bootstrap/dev, never for a stable release.
       - MK_DB_SCHEMA_MODE=validate
-      # ── Sensitive / network variables (load via an .env file) ──
+      # ── Sensitive / network variables (uncomment to set) ──
       # - JWT_SECRET_KEY=change-me-with-at-least-32-random-bytes
       # - MK_ADMIN_USERS=admin
       # - FRONTEND_ORIGIN=https://mediakeeper.example.com
@@ -39,9 +39,11 @@ services:
       # - COOKIE_SAMESITE=lax
       # ── Reverse-proxy whitelist (CSV of CIDR/IPs) ──
       # Empty by default = X-Forwarded-* headers ignored. Set to the
-      # CIDR of your reverse proxy to enable HTTPS detection and real
-      # client IP recovery. See docs/operations/tls-deployment.md.
-      # - TRUSTED_PROXIES=127.0.0.1,172.18.0.0/16
+      # address your reverse proxy connects from to enable HTTPS
+      # detection and real client IP recovery. Proxy on the Docker host:
+      # the network gateway, with "127.0.0.1:8888:8888" as the port
+      # mapping above. See docs/deployment/.
+      # - TRUSTED_PROXIES=172.18.0.1
       # - VERIFY_SSL=true
       # - TMDB_API_KEY=tmdb-api-key
       # ── Roots visible to the application (browser, media manager, subtitles) ──
