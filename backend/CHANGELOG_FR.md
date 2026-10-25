@@ -10,6 +10,9 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+### Changed
+- Sécurité — FORWARDED_ALLOW_IPS d'uvicorn désormais ignoré : déclarer les proxys dans TRUSTED_PROXIES.
+
 ### Fixed
 - Sécurité — IP derrière un proxy : adresse envoyée par le visiteur ignorée (déclarer chaque proxy).
 - Sécurité — blocage manuel d'un nom : appliqué quelle que soit la casse.

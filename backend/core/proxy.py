@@ -6,10 +6,11 @@ When the direct TCP client matches a trusted proxy, we honour the
 ignore the headers entirely (failsafe for direct LAN exposure).
 
 A custom middleware is used instead of ``uvicorn.middleware.proxy_headers``
-to gain three properties: explicit CIDR support, validation of
-``X-Forwarded-Host`` (uvicorn does not rewrite the Host header), and an
-explicit ``request.state.from_trusted_proxy`` flag consulted by
-downstream helpers (cookie Secure check, CSRF Origin check).
+(pinned to loopback in ``entrypoint.sh``) to validate every
+``X-Forwarded-For`` hop, to honour ``X-Forwarded-Host`` (uvicorn does not
+rewrite the Host header) and to set an explicit
+``request.state.from_trusted_proxy`` flag consulted by downstream helpers
+(cookie Secure check, CSRF Origin check).
 """
 from __future__ import annotations
 
@@ -166,8 +167,8 @@ def is_request_from_trusted_proxy(request: Request) -> bool:
 def get_client_ip(request: Request) -> str | None:
     """Return the best-known client IP — already rewritten by middleware.
 
-    Normalised here as well: the ASGI server may have rewritten the client
-    itself (uvicorn ``FORWARDED_ALLOW_IPS``), and callers store the value.
+    Normalized here as well: uvicorn may have rewritten the client itself
+    for a loopback peer, and callers store the value.
     """
     client = request.scope.get("client")
     if not client:

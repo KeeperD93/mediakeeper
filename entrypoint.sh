@@ -164,9 +164,13 @@ shutdown_all() {
 # freeze the server.
 WS_MAX_SIZE=65536
 
+# uvicorn's own default, pinned: FORWARDED_ALLOW_IPS must never let uvicorn rewrite
+# the client address from X-Forwarded-For before MediaKeeper reads it.
+UVICORN_FORWARDED_IPS="127.0.0.1,::1"
+
 if [ "$MK_DEBUG" = "true" ]; then
     echo ">> DEBUG mode enabled (reload + verbose logs)"
-    exec su -s /bin/bash mkuser -c "cd /app/backend && exec env MK_PROCESS_ROLE=combined uvicorn main:app --host 0.0.0.0 --port 8888 --ws-max-size $WS_MAX_SIZE --reload --log-level debug"
+    exec su -s /bin/bash mkuser -c "cd /app/backend && exec env MK_PROCESS_ROLE=combined uvicorn main:app --host 0.0.0.0 --port 8888 --ws-max-size $WS_MAX_SIZE --forwarded-allow-ips $UVICORN_FORWARDED_IPS --reload --log-level debug"
 else
     if [ "$MK_SEPARATE_BACKGROUND_WORKER" = "true" ]; then
         echo ">> Production mode: web API / background tasks split"
@@ -175,7 +179,7 @@ else
         su -s /bin/bash mkuser -c "cd /app/backend && exec env MK_PROCESS_ROLE=worker python run_worker.py" &
         WORKER_PID=$!
 
-        su -s /bin/bash mkuser -c "cd /app/backend && exec env MK_PROCESS_ROLE=web uvicorn main:app --host 0.0.0.0 --port 8888 --ws-max-size $WS_MAX_SIZE --workers 1" &
+        su -s /bin/bash mkuser -c "cd /app/backend && exec env MK_PROCESS_ROLE=web uvicorn main:app --host 0.0.0.0 --port 8888 --ws-max-size $WS_MAX_SIZE --forwarded-allow-ips $UVICORN_FORWARDED_IPS --workers 1" &
         WEB_PID=$!
 
         wait -n "$WEB_PID" "$WORKER_PID"
@@ -184,5 +188,5 @@ else
         exit "$STATUS"
     fi
 
-    exec su -s /bin/bash mkuser -c "cd /app/backend && exec env MK_PROCESS_ROLE=combined uvicorn main:app --host 0.0.0.0 --port 8888 --ws-max-size $WS_MAX_SIZE --workers 1"
+    exec su -s /bin/bash mkuser -c "cd /app/backend && exec env MK_PROCESS_ROLE=combined uvicorn main:app --host 0.0.0.0 --port 8888 --ws-max-size $WS_MAX_SIZE --forwarded-allow-ips $UVICORN_FORWARDED_IPS --workers 1"
 fi

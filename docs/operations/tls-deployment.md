@@ -186,6 +186,9 @@ list is empty) the headers are ignored regardless of their content.
 This is the safe default for a container exposed directly on a LAN
 without a proxy in front.
 
+uvicorn's own `FORWARDED_ALLOW_IPS` variable is ignored: the container
+pins uvicorn to loopback, so list your proxies in `TRUSTED_PROXIES`.
+
 ---
 
 ## 5. Validate the deployment

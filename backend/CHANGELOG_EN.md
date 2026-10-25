@@ -10,6 +10,9 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Changed
+- Security — uvicorn's FORWARDED_ALLOW_IPS is now ignored: list proxies in TRUSTED_PROXIES.
+
 ### Fixed
 - Security — IP behind a proxy: visitor-supplied address ignored (list every proxy).
 - Security — manual username block: applied whatever the letter case.
