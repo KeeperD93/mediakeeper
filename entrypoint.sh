@@ -11,7 +11,7 @@ PG_PWD_FILE="$DATA_DIR/.pg_password"
 PG_LOG="$DATA_DIR/logs/postgresql.log"
 PG_BIN="/usr/lib/postgresql/16/bin"
 
-# 0. Remap mkuser to PUID/PGID when PUID is set
+# 0. Remap mkuser to PUID/PGID when PUID is non-zero
 PUID=${PUID:-0}
 PGID=${PGID:-0}
 if [ "$PUID" -ne 0 ]; then
@@ -120,19 +120,19 @@ done
 # 4. Environment variables for FastAPI
 export DATABASE_URL="postgresql://mediakeeper:${PG_PASSWORD}@127.0.0.1:5432/mediakeeper_db"
 
-# Logs dir permissions
+# Logs and backups dir permissions
 chown -R mkuser:users /data/logs /data/backups
 
 # 4b. Apply Alembic migrations (idempotent)
-# Alembic records each applied revision in ``alembic_version``, so running
-# ``upgrade head`` on every boot only applies the migrations shipped since.
+# Alembic stores the current revision in ``alembic_version``, so running
+# ``upgrade head`` on every boot only applies newer migrations.
 echo ">> Applying Alembic migrations..."
 su -s /bin/bash mkuser -c "cd /app/backend && alembic upgrade head" || {
     echo ">> ⚠  Alembic migrations failed — aborting."
     exit 1
 }
 
-# 5. Launch Uvicorn
+# 5. Launch uvicorn and the background tasks
 echo ">> Starting MediaKeeper..."
 MK_DEBUG="${MK_DEBUG:-false}"
 MK_SEPARATE_BACKGROUND_WORKER="${MK_SEPARATE_BACKGROUND_WORKER:-true}"

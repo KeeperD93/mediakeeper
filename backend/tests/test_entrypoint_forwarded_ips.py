@@ -1,6 +1,6 @@
 """uvicorn takes the client address from X-Forwarded-For only for a loopback peer:
 every launch path pins its trusted list, whatever FORWARDED_ALLOW_IPS or
-UVICORN_FORWARDED_ALLOW_IPS say."""
+UVICORN_FORWARDED_ALLOW_IPS says."""
 import re
 from pathlib import Path
 
