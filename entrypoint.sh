@@ -46,8 +46,9 @@ done
 # volume OR a bind-mount to an empty host dir — has them on boot, without a
 # manual ``docker exec mkdir`` from the operator. pg is re-owned to postgres
 # and logs/backups to mkuser by the steps further down; initdb sets pg's mode.
-mkdir -p /data/avatars /data/pg /data/logs /data/backups || true
-chown mkuser:users /data/avatars 2>/dev/null || true
+# The image cache dirs are re-owned without a walk: the cache can be large.
+mkdir -p /data/avatars /data/pg /data/logs /data/backups /data/cache/images || true
+chown mkuser:users /data/avatars /data/cache /data/cache/images 2>/dev/null || true
 chmod 750 /data/avatars 2>/dev/null || true
 
 # 0c. PostgreSQL refuses a data dir it does not own: check the storage before any secret

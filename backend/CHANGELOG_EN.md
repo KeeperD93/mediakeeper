@@ -18,6 +18,7 @@ This section intentionally has no date so it is not shown to users.
 - Security — manual username block: applied whatever the letter case.
 - Security — encryption key readable again after a PUID change.
 - Startup — clear message if /data refuses ownership changes.
+- Posters — image cache usable after a PUID change.
 
 ## [1.0.0-rc.9] - 2026-10-23
 

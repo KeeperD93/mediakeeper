@@ -51,3 +51,13 @@ def test_postgres_data_dir_ownership_is_checked_before_any_secret_is_written():
     body = [line.strip() for line in code[check:code.index("fi", check)]]
     assert body[-2].startswith('echo ">> ⚠  $PG_DATA still belongs to UID')
     assert body[-1] == "exit 1"
+
+
+def test_image_cache_dirs_go_back_to_the_runtime_user_at_every_start():
+    code = _code()
+    mkdir = next(line for line in code if line.startswith("mkdir -p ") and "/data/pg" in line.split())
+    assert "/data/cache/images" in mkdir.split()
+    chown = next(i for i, line in enumerate(code) if line.startswith("chown mkuser:users ") and "/data/cache" in line.split())
+    assert chown > _remap_end(code)
+    assert {"/data/cache", "/data/cache/images"} <= set(code[chown].split())
+    assert "-R" not in code[chown].split()  # the cache can be large: no walk
