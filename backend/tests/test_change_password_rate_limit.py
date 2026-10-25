@@ -12,11 +12,11 @@ Two layers must be wired in concert:
 from __future__ import annotations
 
 import pytest
+from sqlalchemy import select
 
 from core.security import hash_password
 from models.security import SecurityAttempt
 from models.user import User
-from sqlalchemy import select
 
 
 async def _login(client) -> None:
@@ -76,15 +76,15 @@ async def test_change_password_records_success_on_valid_swap(client, admin_user,
 async def test_change_password_tracks_the_lower_cased_name(client, db_session, monkeypatch):
     """An account created with capitals is tracked under its lower-cased name, like
     the sign-in routes, so its blocks and attempts carry one form of the name."""
-    monkeypatch.setenv("MK_ADMIN_USERS", "Keeper")
+    monkeypatch.setenv("MK_ADMIN_USERS", "AdminUser")
     db_session.add(User(
-        username="Keeper",
+        username="AdminUser",
         hashed_password=hash_password("TestPassword123!"),
         is_active=True,
         must_change_password=False,
     ))
     await db_session.commit()
-    r = await client.post("/api/auth/login", json={"username": "keeper", "password": "TestPassword123!"})
+    r = await client.post("/api/auth/login", json={"username": "adminuser", "password": "TestPassword123!"})
     assert r.status_code == 200, r.text
 
     statuses = []
@@ -102,7 +102,7 @@ async def test_change_password_tracks_the_lower_cased_name(client, db_session, m
         .where(SecurityAttempt.scope == "admin_password")
         .order_by(SecurityAttempt.id)
     )).all()
-    assert [tuple(row) for row in rows] == [("keeper", 0), ("keeper", 1)]
+    assert [tuple(row) for row in rows] == [("adminuser", 0), ("adminuser", 1)]
 
 
 @pytest.mark.asyncio

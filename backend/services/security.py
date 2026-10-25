@@ -89,7 +89,7 @@ async def _count_recent_username_failures(
 async def is_blocked(
     db: AsyncSession, ip: str, username: str | None, scope: str
 ) -> SecurityBlock | None:
-    """Return the matching block row if the caller is currently blocked (names match whatever their case)."""
+    """Return the matching block row if the caller is currently blocked (names are compared lower-cased)."""
     now = datetime.now(timezone.utc)
     conditions = [SecurityBlock.scope.in_([scope, "all"])]
     ip_or_user = [SecurityBlock.ip == ip]

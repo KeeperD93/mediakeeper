@@ -69,7 +69,7 @@ async def _safe_serialize_ui_flags(db: AsyncSession, profile: UserProfile) -> di
     except Exception as exc:
         logger.warning(
             "[PORTAL_AUTH] UI flags fallback for user_id=%s: %s",
-            getattr(profile, "user_id", "unknown"), exc,
+            profile.user_id, exc,
         )
         # Mirror the full success shape so the frontend never reads an absent
         # flag on the degraded path (fail-closed: the request button stays
@@ -142,8 +142,8 @@ async def portal_login(
     tracking_username = req.username.strip().lower()
     await ensure_not_blocked(db, client_ip, tracking_username, "portal")
 
-    # Shadow-skip Emby once we already recorded a recent failure, so Emby's
-    # own lockout on the user account doesn't trip before our block does.
+    # Shadow-skip Emby once more than EMBY_SHADOW_SKIP_THRESHOLD recent failures
+    # are on record, so Emby's own lockout on the account doesn't trip before our block does.
     recent_fails = await count_recent_failures(
         db, client_ip, tracking_username, "portal",
     )
@@ -286,8 +286,8 @@ async def _safe_serialize_gdpr(db: AsyncSession, user: User) -> dict:
             "[PORTAL_AUTH] GDPR flags fallback for user_id=%s: %s", user.id, exc,
         )
         enabled = False
-    pending = getattr(user, "pending_deletion_at", None)
-    requested = getattr(user, "deletion_requested_at", None)
+    pending = user.pending_deletion_at
+    requested = user.deletion_requested_at
     return {
         "enabled": bool(enabled),
         "deletion_requested_at": requested.isoformat() if requested else None,

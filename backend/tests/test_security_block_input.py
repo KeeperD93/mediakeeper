@@ -28,18 +28,18 @@ async def test_username_blocks_apply_whatever_the_case(authed_client, db_session
 @pytest.mark.asyncio
 async def test_self_block_is_refused_whatever_the_case(client, db_session, monkeypatch):
     """Both sides are compared lower-cased: the typed name and the admin's stored name."""
-    monkeypatch.setenv("MK_ADMIN_USERS", "Keeper")
+    monkeypatch.setenv("MK_ADMIN_USERS", "AdminUser")
     db_session.add(User(
-        username="Keeper",
+        username="AdminUser",
         hashed_password=hash_password("TestPassword123!"),
         is_active=True,
         must_change_password=False,
     ))
     await db_session.commit()
-    login = await client.post("/api/auth/login", json={"username": "keeper", "password": "TestPassword123!"})
+    login = await client.post("/api/auth/login", json={"username": "adminuser", "password": "TestPassword123!"})
     assert login.status_code == 200, login.text
 
-    resp = await client.post("/api/security/blocks", json={"username": " KEEPER ", "scope": "all"})
+    resp = await client.post("/api/security/blocks", json={"username": " ADMINUSER ", "scope": "all"})
     assert resp.status_code == 400
     assert resp.json()["detail"] == "self_block_forbidden"
 

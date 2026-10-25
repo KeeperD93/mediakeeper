@@ -165,9 +165,9 @@ async def portal_login(
     """
     client_ip = get_client_ip(request) or UNKNOWN_CLIENT_IP
     user_agent = request.headers.get("user-agent")
-    # Same normalization as /login: lower() for brute-force tracking, raw
-    # input preserved for logs and for downstream Emby auth which keeps
-    # its own casing semantics.
+    # Same normalization as /login: lower() for brute-force tracking; the
+    # trimmed name keeps its letter case for logs and for downstream Emby
+    # auth, which has its own casing semantics.
     tracking_username = req.username.strip().lower()
     # Only gate on the admin scope here. The portal scope is gated later,
     # in the cascade branch, so a brute-force attempt on the portal doesn't
@@ -182,7 +182,7 @@ async def portal_login(
 
     # Use canonical username (DB) when the lookup matched so the
     # backoffice gate honours MK_ADMIN_USERS regardless of the casing
-    # the user typed. Falls back to the raw input when no DB row
+    # the user typed. Falls back to the typed name when no DB row
     # matched — keeps the existing Emby cascade behaviour.
     if is_backoffice_admin(user.username if user else username):
         if user:
@@ -238,10 +238,10 @@ async def portal_login(
     # the Emby cascade are subject to portal brute-force blocks.
     await ensure_not_blocked(db, client_ip, tracking_username, "portal")
 
-    # Shadow-skip the Emby call once the caller already has one recent
-    # failure on this IP/username pair. Emby maintains its own lockout
-    # counter on the target account — forwarding every failed attempt
-    # would trigger it before our own block kicks in.
+    # Shadow-skip the Emby call once more than EMBY_SHADOW_SKIP_THRESHOLD recent
+    # failures are on record for this username (or, with none, this IP). Emby
+    # maintains its own lockout counter on the target account — forwarding every
+    # failed attempt would trigger it before our own block kicks in.
     recent_portal_fails = await count_recent_failures(
         db, client_ip, tracking_username, "portal",
     )
