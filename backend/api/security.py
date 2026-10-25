@@ -5,7 +5,13 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants.security import BLOCK_REQUIRES_IP_OR_USERNAME, INVALID_SCOPE, SELF_BLOCK_FORBIDDEN
+from constants.security import (
+    BLOCK_REQUIRES_IP_OR_USERNAME,
+    INVALID_IP,
+    INVALID_SCOPE,
+    SELF_BLOCK_FORBIDDEN,
+    UNKNOWN_CLIENT_IP,
+)
 from core.database import get_db
 from core.proxy import get_client_ip, normalize_ip
 from models.user import User
@@ -98,9 +104,17 @@ async def post_block(
     # on a single-admin instance).
     if payload.username and payload.username == admin.username.lower():
         raise HTTPException(status_code=400, detail=SELF_BLOCK_FORBIDDEN)
-    # An IP is stored in the canonical form it is matched against; any other value as typed.
-    ip = normalize_ip(payload.ip) or payload.ip
-    if ip and ip == get_client_ip(request):
+    ip = None
+    if payload.ip:
+        # Stored in the canonical form sign-ins are matched with. A range or a typo
+        # would never match anyone, so only an address or the unknown marker passes.
+        ip = normalize_ip(payload.ip)
+        if ip is None and payload.ip.strip().lower() == UNKNOWN_CLIENT_IP:
+            ip = UNKNOWN_CLIENT_IP
+        if ip is None:
+            raise HTTPException(status_code=400, detail=INVALID_IP)
+    # An operator whose own address cannot be read signs in under the unknown marker.
+    if ip and ip == (get_client_ip(request) or UNKNOWN_CLIENT_IP):
         raise HTTPException(status_code=400, detail=SELF_BLOCK_FORBIDDEN)
     block_id = await create_block(
         db,

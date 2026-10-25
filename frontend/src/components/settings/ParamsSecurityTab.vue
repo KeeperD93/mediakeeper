@@ -1,32 +1,45 @@
 <template>
   <div class="params-security">
-    <SecurityPasswordForm />
+    <SecurityPasswordForm @attempted="refresh()" />
 
     <SecurityBlocksSection
       :blocks="blocks"
-      :loading="loadingBlocks"
+      :loaded="blocksLoaded"
+      :failed="blocksFailed"
+      :busy="busy"
       :display-ip="displayIp"
       :format-date="formatDate"
+      :scope-label="scopeLabel"
+      :reason-label="reasonLabel"
+      @refresh="refresh()"
       @add="modalOpen = true"
-      @unblock="removeBlock"
+      @unblock="unblock"
     />
 
     <SecurityAttemptsSection
       v-model:only-failures="onlyFailures"
       :attempts="attempts"
-      :loading="loadingAttempts"
+      :loaded="attemptsLoaded"
+      :failed="attemptsFailed"
+      :busy="busy"
       :display-ip="displayIp"
       :format-date="formatDate"
-      @filter-change="loadAttempts"
-      @block-ip="quickBlockIp"
+      :scope-label="scopeLabel"
+      @block-ip="blockAttemptIp"
     />
 
-    <SecurityBlockModal v-if="modalOpen" @close="modalOpen = false" @submit="submitBlock" />
+    <SecurityBlockModal
+      v-if="modalOpen"
+      :busy="busy"
+      :scope-label="scopeLabel"
+      @close="modalOpen = false"
+      @submit="submitBlock"
+    />
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onActivated, onDeactivated, onUnmounted, ref } from 'vue'
 import { useParamsSecurity } from '@/composables/useParamsSecurity'
 import SecurityPasswordForm from './security/SecurityPasswordForm.vue'
 import SecurityBlocksSection from './security/SecurityBlocksSection.vue'
@@ -36,36 +49,48 @@ import '@/assets/styles/settings/params-security.css'
 
 const {
   blocks,
+  blocksLoaded,
+  blocksFailed,
   attempts,
-  loadingBlocks,
-  loadingAttempts,
+  attemptsLoaded,
+  attemptsFailed,
   onlyFailures,
+  busy,
   displayIp,
   formatDate,
-  loadBlocks,
-  loadAttempts,
+  scopeLabel,
+  reasonLabel,
+  refresh,
+  startAutoRefresh,
+  stopAutoRefresh,
   addBlock,
-  removeBlock,
-  quickBlockIp,
+  unblock,
+  blockAttemptIp,
 } = useParamsSecurity()
 
 const modalOpen = ref(false)
 
 async function submitBlock(payload) {
-  await addBlock(payload)
-  modalOpen.value = false
-  await loadBlocks()
+  if (await addBlock(payload)) modalOpen.value = false
 }
 
-onMounted(async () => {
-  await Promise.all([loadBlocks(), loadAttempts()])
+// The tab lives in SettingsView's KeepAlive: onActivated also runs on the first
+// mount. The dialog sits on <body>, so it must close when the tab is switched.
+onActivated(() => {
+  refresh()
+  startAutoRefresh()
 })
+onDeactivated(() => {
+  modalOpen.value = false
+  stopAutoRefresh()
+})
+onUnmounted(stopAutoRefresh)
 </script>
 
 <style scoped>
 .params-security {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: var(--space-6);
 }
 </style>

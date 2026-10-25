@@ -16,6 +16,11 @@ This section intentionally has no date so it is not shown to users.
 ### Fixed
 - Security — IP behind a proxy: visitor-supplied address ignored (list every proxy).
 - Security — manual username block: applied whatever the letter case.
+- Security — lists always up to date (Refresh button) and errors shown.
+- Security — manual block: address checked, confirmation before "Block IP".
+- Security — the browser keeps the new password after a change.
+- Security — block window opens as a bottom panel on phones.
+- Security — full password rules shown (12 different characters).
 - Security — encryption key readable again after a PUID change.
 - Security — startup: links planted in place of /data folders ignored.
 - Startup — clear message if /data refuses ownership changes.

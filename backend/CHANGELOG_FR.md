@@ -16,6 +16,11 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 ### Fixed
 - Sécurité — IP derrière un proxy : adresse envoyée par le visiteur ignorée (déclarer chaque proxy).
 - Sécurité — blocage manuel d'un nom : appliqué quelle que soit la casse.
+- Sécurité — listes toujours à jour (bouton Actualiser) et erreurs affichées.
+- Sécurité — blocage manuel : adresse vérifiée, confirmation avant « Bloquer IP ».
+- Sécurité — le navigateur retient le nouveau mot de passe après un changement.
+- Sécurité — fenêtre de blocage en panneau du bas sur téléphone.
+- Sécurité — règles du mot de passe complètes (12 caractères différents).
 - Sécurité — clé de chiffrement de nouveau lisible après un changement de PUID.
 - Sécurité — démarrage : lien piégé à la place d'un dossier de /data ignoré.
 - Démarrage — message clair si /data refuse les changements de propriétaire.

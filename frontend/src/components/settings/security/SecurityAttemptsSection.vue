@@ -3,11 +3,12 @@
     <header class="sec-hd">
       <h3>{{ t('settings.security.attemptsTitle') }}</h3>
       <label class="sec-check">
-        <input v-model="onlyFailures" type="checkbox" @change="emit('filter-change')" />
+        <input v-model="onlyFailures" type="checkbox" />
         {{ t('settings.security.onlyFailures') }}
       </label>
     </header>
-    <div v-if="loading" class="sec-loading">{{ t('common.loading') }}</div>
+    <div v-if="!loaded && !failed" class="sec-loading">{{ t('common.loading') }}</div>
+    <div v-else-if="!loaded" class="sec-empty">{{ t('settings.security.listUnavailable') }}</div>
     <div v-else-if="attempts.length" class="mk-table-wrap">
       <table class="sec-table mk-table">
         <thead>
@@ -21,18 +22,25 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="a in attempts" :key="a.id" :class="{ 'is-fail': !a.success }">
+          <tr v-for="a in attempts" :key="a.id">
             <td :data-label="t('settings.security.when')">{{ formatDate(a.created_at) }}</td>
             <td :data-label="t('settings.security.ip')">{{ displayIp(a.ip) }}</td>
             <td :data-label="t('settings.security.username')">{{ a.username || '—' }}</td>
-            <td :data-label="t('settings.security.scope')">{{ a.scope }}</td>
+            <td :data-label="t('settings.security.scope')">{{ scopeLabel(a.scope) }}</td>
             <td :data-label="t('settings.security.result')">
               <span class="sec-pill" :class="a.success ? 'is-ok' : 'is-fail'">
                 {{ a.success ? t('settings.security.success') : t('settings.security.failure') }}
               </span>
             </td>
             <td>
-              <button class="sec-btn" @click="emit('block-ip', a)">
+              <!-- Blocking the unknown marker would lock out every unreadable address. -->
+              <button
+                v-if="a.ip !== UNKNOWN_CLIENT_IP"
+                type="button"
+                class="sec-btn"
+                :disabled="busy"
+                @click="emit('block-ip', a)"
+              >
                 {{ t('settings.security.blockIp') }}
               </button>
             </td>
@@ -46,15 +54,19 @@
 
 <script setup>
 import { useI18n } from 'vue-i18n'
+import { UNKNOWN_CLIENT_IP } from '@/constants/security'
 
 const onlyFailures = defineModel('onlyFailures', { type: Boolean, required: true })
 defineProps({
   attempts: { type: Array, required: true },
-  loading: { type: Boolean, default: false },
+  loaded: { type: Boolean, required: true },
+  failed: { type: Boolean, required: true },
+  busy: { type: Boolean, required: true },
   displayIp: { type: Function, required: true },
   formatDate: { type: Function, required: true },
+  scopeLabel: { type: Function, required: true },
 })
-const emit = defineEmits(['filter-change', 'block-ip'])
+const emit = defineEmits(['block-ip'])
 
 const { t } = useI18n()
 </script>
@@ -62,7 +74,7 @@ const { t } = useI18n()
 <style scoped>
 .sec-pill {
   display: inline-block;
-  padding: 2px 8px;
+  padding: var(--space-half) var(--space-2);
   border-radius: var(--radius-btn);
   font-size: var(--text-xs);
 }
@@ -75,9 +87,24 @@ const { t } = useI18n()
   color: var(--color-error-strong);
 }
 .sec-check {
+  position: relative;
   display: inline-flex;
-  gap: 0.5rem;
+  gap: var(--space-2);
   align-items: center;
   font-size: var(--text-sm);
+}
+/* A 44 px touch band on phones; the label keeps its look. */
+.sec-check::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: var(--touch-target);
+  transform: translateY(-50%);
+}
+@media (min-width: 768px) {
+  .sec-check::after {
+    content: none;
+  }
 }
 </style>

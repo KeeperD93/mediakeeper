@@ -86,6 +86,7 @@ import { resolveApiError } from '@/composables/useApi'
 import { useAuth } from '@/composables/useAuth'
 import { useI18n } from 'vue-i18n'
 import { useToast } from '@/composables/useToast'
+import { PASSWORD_MIN_LENGTH } from '@/constants/auth'
 import { TOAST_TYPE } from '@/constants/toast'
 import { Lock } from 'lucide-vue-next'
 
@@ -110,7 +111,7 @@ async function submit() {
     errorMsg.value = t('forcePassword.mismatch')
     return
   }
-  if (newPwd.value.length < 12) {
+  if (newPwd.value.length < PASSWORD_MIN_LENGTH) {
     errorMsg.value = t('forcePassword.tooShort')
     return
   }

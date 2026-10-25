@@ -8,3 +8,6 @@ export const USER_ROLE = Object.freeze({
 } as const)
 
 export type UserRole = (typeof USER_ROLE)[keyof typeof USER_ROLE]
+
+/** Shortest new password the server accepts (`ChangePasswordRequest` in `api/auth/_schemas.py`). */
+export const PASSWORD_MIN_LENGTH = 12

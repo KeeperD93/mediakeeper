@@ -4,11 +4,21 @@
       <h3>{{ t('settings.passwordTitle') }}</h3>
     </header>
     <p class="sec-desc">{{ t('settings.passwordDesc') }}</p>
-    <form class="sec-pwd-form" @submit.prevent="submitPassword">
+    <!-- A new form after a change: password managers take the old one's removal
+         as the end of the change and offer to update the saved password. -->
+    <form :key="formKey" class="sec-pwd-form" @submit.prevent="submitPassword">
+      <input
+        type="text"
+        name="username"
+        autocomplete="username"
+        :value="user?.username || ''"
+        readonly
+        hidden
+      />
       <label class="sec-pwd-field">
         <span>{{ t('forcePassword.current') }}</span>
         <input
-          v-model="current"
+          v-model="currentPwd"
           type="password"
           autocomplete="current-password"
           :disabled="savingPwd"
@@ -16,12 +26,12 @@
       </label>
       <label class="sec-pwd-field">
         <span>{{ t('forcePassword.new') }}</span>
-        <input v-model="next" type="password" autocomplete="new-password" :disabled="savingPwd" />
+        <input v-model="newPwd" type="password" autocomplete="new-password" :disabled="savingPwd" />
       </label>
       <label class="sec-pwd-field">
         <span>{{ t('forcePassword.confirm') }}</span>
         <input
-          v-model="confirm"
+          v-model="confirmPwd"
           type="password"
           autocomplete="new-password"
           :disabled="savingPwd"
@@ -29,6 +39,7 @@
       </label>
       <ul class="sec-pwd-rules">
         <li>{{ t('forcePassword.rule12Chars') }}</li>
+        <li>{{ t('forcePassword.rule12Unique') }}</li>
         <li>{{ t('forcePassword.ruleUpper') }}</li>
         <li>{{ t('forcePassword.ruleDigit') }}</li>
         <li>{{ t('forcePassword.ruleSpecial') }}</li>
@@ -48,51 +59,56 @@ import { useI18n } from 'vue-i18n'
 import { resolveApiError } from '@/composables/useApi'
 import { useAuth } from '@/composables/useAuth'
 import { useToast } from '@/composables/useToast'
+import { PASSWORD_MIN_LENGTH } from '@/constants/auth'
 import { TOAST_TYPE } from '@/constants/toast'
 
+// Emitted after every try: a password change, right or wrong, shows in "Recent attempts".
+const emit = defineEmits(['attempted'])
+
 const { t } = useI18n()
-const { changePassword } = useAuth()
+const { user, changePassword } = useAuth()
 const { showToast } = useToast()
 
-const current = ref('')
-const next = ref('')
-const confirm = ref('')
+const currentPwd = ref('')
+const newPwd = ref('')
+const confirmPwd = ref('')
 const savingPwd = ref(false)
+const formKey = ref(0)
+// The button stays disabled until every field is filled and the new one is long enough.
 const canSubmitPwd = computed(
-  () => current.value && next.value && confirm.value && next.value.length >= 12,
+  () =>
+    currentPwd.value &&
+    newPwd.value &&
+    confirmPwd.value &&
+    newPwd.value.length >= PASSWORD_MIN_LENGTH,
 )
 
 async function submitPassword() {
-  if (!canSubmitPwd.value) {
-    showToast(t('forcePassword.allRequired'), TOAST_TYPE.ERR)
-    return
-  }
-  if (next.value !== confirm.value) {
+  if (newPwd.value !== confirmPwd.value) {
     showToast(t('forcePassword.mismatch'), TOAST_TYPE.ERR)
-    return
-  }
-  if (next.value.length < 12) {
-    showToast(t('forcePassword.tooShort'), TOAST_TYPE.ERR)
     return
   }
   savingPwd.value = true
   try {
-    await changePassword(current.value, next.value)
+    await changePassword(currentPwd.value, newPwd.value)
     showToast(t('forcePassword.success'), TOAST_TYPE.OK)
-    current.value = ''
-    next.value = ''
-    confirm.value = ''
+    currentPwd.value = ''
+    newPwd.value = ''
+    confirmPwd.value = ''
+    formKey.value++
   } catch (e) {
-    showToast(resolveApiError(e.message), TOAST_TYPE.ERR)
+    console.error('[SecurityPasswordForm.submitPassword]', e)
+    showToast(resolveApiError(e.message, 'common.apiError.saveFailed'), TOAST_TYPE.ERR)
   } finally {
     savingPwd.value = false
+    emit('attempted')
   }
 }
 </script>
 
 <style scoped>
 .sec-desc {
-  margin: 0 0 0.75rem;
+  margin: 0 0 var(--space-3);
   font-size: var(--text-sm);
   color: var(--text-secondary);
 }
@@ -110,9 +126,9 @@ async function submitPassword() {
   color: var(--text-secondary);
 }
 .sec-pwd-field input {
-  padding: 9px 12px;
+  padding: 9px var(--space-3);
   border-radius: var(--radius-input);
-  border: 0.5px solid var(--border);
+  border: var(--border-width-thin) solid var(--border);
   background: var(--bg-secondary);
   color: var(--text-primary);
   font-size: var(--text-base);
@@ -121,6 +137,16 @@ async function submitPassword() {
 .sec-pwd-field input:focus {
   outline: none;
   border-color: var(--text-secondary);
+}
+.sec-pwd-field input:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+/* iOS zooms into a field under 16px it focuses: 16px there only. */
+@supports (-webkit-touch-callout: none) {
+  .sec-pwd-field input {
+    font-size: var(--text-md);
+  }
 }
 .sec-pwd-rules {
   list-style: disc inside;
