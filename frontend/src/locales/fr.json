@@ -420,8 +420,8 @@
   },
   "deploymentBanner": {
     "encryptionKey": {
-      "title": "Clé de chiffrement éphémère",
-      "text": "MediaKeeper utilise une clé temporaire en mémoire. Tout secret enregistré maintenant sera illisible après un redémarrage du conteneur. Définissez MEDIAKEEPER_ENCRYPTION_KEY (ou montez /data/.encryption_key) puis redémarrez le service."
+      "title": "Clé de chiffrement indisponible",
+      "text": "MediaKeeper n'a pas pu lire sa clé de chiffrement et utilise une clé temporaire : les secrets enregistrés (jetons, webhooks) paraissent vides. N'enregistrez aucun réglage qui contient un secret avant d'avoir corrigé : la valeur enregistrée serait écrasée. Vérifiez que /data/.encryption_key existe et que le compte de l'appli (PUID) peut le lire, ou définissez MEDIAKEEPER_ENCRYPTION_KEY, puis redémarrez le conteneur."
     }
   },
   "search": {

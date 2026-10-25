@@ -226,7 +226,7 @@ L'application applique automatiquement les migrations de base de données au dé
 
 **Bon à savoir :**
 
-- **Docker Desktop (macOS, Windows) :** gardez `/data` dans le volume nommé du fichier compose. Le rattacher à un dossier de l'hôte (`./data:/data`) empêche PostgreSQL de démarrer.
+- **Stockage de `/data` :** gardez `/data` sur un volume Docker ou un disque local : les partages réseau (NFS, SMB) et les dossiers de l'hôte sous Docker Desktop (`./data:/data`) ignorent les changements de propriétaire, et PostgreSQL refuse alors de démarrer. Les dossiers de médias peuvent rester sur un partage.
 - **Sauvegardes :** elles ont besoin d'une destination hors du volume `mk_data`, c'est-à-dire un dossier monté depuis l'hôte : renseignez-le dans `BACKUP_PATH` (voir [`docker-compose.override.example.yml`](docker-compose.override.example.yml)). Sans destination, les sauvegardes échouent.
 
 Vous voulez mettre à jour une installation existante ? Voir [`docs/operations/updating.md`](docs/operations/updating.md).

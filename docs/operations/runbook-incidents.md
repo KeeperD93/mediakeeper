@@ -75,6 +75,11 @@ mix scenarios.
 - `psql: FATAL: database "mediakeeper_db" does not exist` or
   `relation "users" does not exist`.
 
+If the database itself looks healthy (the app starts, `/api/health`
+answers), a flood of `[ENCRYPTION] Failed to decrypt a value` points to
+the encryption key, not to corruption: read
+[`backup-restore.md` §7](backup-restore.md) before restoring anything.
+
 ### 2.2 Immediate mitigation
 
 1. **Stop the container** (no auto-restart loop):

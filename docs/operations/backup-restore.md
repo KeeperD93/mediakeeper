@@ -333,7 +333,9 @@ MediaKeeper deployment differs in two important ways:
    pre-populate the file:
 
    ```bash
-   # On the target host, BEFORE the first `docker compose up -d`:
+   # On the target host, BEFORE the first `docker compose up -d`.
+   # The first command stops here if the archive holds no key.
+   unzip -l mediakeeper_backup_YYYYMMDD_HHMMSS.zip secrets/.encryption_key >/dev/null &&
    unzip -p mediakeeper_backup_YYYYMMDD_HHMMSS.zip secrets/.encryption_key \
      | install -m 600 -o <puid> -g <pgid> /dev/stdin /<data-volume>/.encryption_key
    ```
@@ -427,18 +429,24 @@ restore.
 
 `[ENCRYPTION] Failed to decrypt a value` in the logs means the
 Fernet key the application is using does not match the key the
-dump was encrypted with. Two common causes:
+dump was encrypted with. Three common causes:
 
 - The container booted before the key file was placed under
   `/data/.encryption_key`, so `entrypoint.sh` generated a fresh
   key and pinned it.
 - The key was rotated on the source instance after the backup was
   taken.
+- The key file is there but the application cannot read it (the log
+  also shows `[ENCRYPTION] Cannot read the key file`), typically after
+  a `PUID` change on an image older than 1.0.0-rc.10: update the image.
+  Since then the entrypoint gives the file back to the `PUID` account
+  at every start; a symbolic link or a read-only mount is left as is,
+  so fix its owner by hand.
 
-Recovery: stop the application, replace `/data/.encryption_key`
-with the value embedded in the ZIP under `secrets/.encryption_key`,
-restart. Encrypted settings recover transparently without re-running
-the dump.
+Recovery for the first two causes: stop the application, replace
+`/data/.encryption_key` with the value embedded in the ZIP under
+`secrets/.encryption_key`, restart. Encrypted settings recover
+transparently without re-running the dump.
 
 ### Container locale mismatch
 

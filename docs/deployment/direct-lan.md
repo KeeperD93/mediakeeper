@@ -59,7 +59,7 @@ and secrets stored under another key become unreadable.
 MEDIAKEEPER_ENCRYPTION_KEY=<paste your fernet key here>
 ```
 
-Without the variable or that file, MediaKeeper boots on an in-memory
+Without the variable or a readable file, MediaKeeper boots on an in-memory
 key and the admin UI shows a persistent red banner; values written
 under that key become unreadable as soon as the container restarts.
 

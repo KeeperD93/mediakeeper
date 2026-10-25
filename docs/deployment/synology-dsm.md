@@ -111,9 +111,9 @@ environment:
   - MEDIAKEEPER_ENCRYPTION_KEY=<paste your fernet key here>
 ```
 
-If neither the env var nor `/data/.encryption_key` is provided,
+If neither the env var nor a readable `/data/.encryption_key` is available,
 MediaKeeper falls back to a process-local key. The admin UI shows a
-persistent red banner on every page until the key is made persistent;
+persistent red banner on every page until a persistent key can be read;
 the same condition is exposed at `GET /api/health/encryption`
 (`source: "ephemeral"`, `warning: true`). Backups bundle the active
 persistent key automatically (under `secrets/.encryption_key` in the

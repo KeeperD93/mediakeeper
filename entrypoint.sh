@@ -8,6 +8,8 @@ set -e
 DATA_DIR="/data"
 PG_DATA="$DATA_DIR/pg"
 PG_PWD_FILE="$DATA_DIR/.pg_password"
+JWT_SECRET_FILE="$DATA_DIR/.jwt_secret"
+ENCRYPTION_KEY_FILE="$DATA_DIR/.encryption_key"
 PG_LOG="$DATA_DIR/logs/postgresql.log"
 PG_BIN="/usr/lib/postgresql/16/bin"
 
@@ -24,14 +26,20 @@ if [ "$PUID" -ne 0 ]; then
     ACTUAL_UID=$(id -u mkuser 2>/dev/null || echo "?")
     echo ">> mkuser effective UID: $ACTUAL_UID (expected: $PUID)"
     chown -R mkuser:users /app/backend 2>/dev/null || true
-    # Fix permissions on /data files still owned by the old UID
-    chown mkuser:users /data/.jwt_secret /data/.pg_password 2>/dev/null || true
-    chmod 600 /data/.jwt_secret /data/.pg_password 2>/dev/null || true
     # Re-chown the /data root so mkuser can create new subdirs (avatars,
     # future /data/* targets). /data/pg is re-chowned to postgres below.
     chown mkuser:users /data 2>/dev/null || true
     chown -R mkuser:users /data/logs /data/backups 2>/dev/null || true
 fi
+
+# 0a. Secrets kept from an earlier launch follow the runtime user, even when PUID
+# changes or is unset. Links are skipped: chown and chmod would act on their target.
+for secret in "$PG_PWD_FILE" "$JWT_SECRET_FILE" "$ENCRYPTION_KEY_FILE"; do
+    if [ -f "$secret" ] && [ ! -L "$secret" ]; then
+        chown mkuser:users "$secret" 2>/dev/null || true
+        chmod 600 "$secret" 2>/dev/null || true
+    fi
+done
 
 # 0b. Persistent dirs that must exist before first use
 # Created here (not only in the Dockerfile) so a fresh /data — a named
@@ -41,6 +49,15 @@ fi
 mkdir -p /data/avatars /data/pg /data/logs /data/backups 2>/dev/null || true
 chown mkuser:users /data/avatars 2>/dev/null || true
 chmod 750 /data/avatars 2>/dev/null || true
+
+# 0c. PostgreSQL refuses a data dir it does not own: check the storage before any secret
+# is written (NFS, SMB and Docker Desktop host folders ignore or refuse ownership changes).
+chown postgres:postgres "$PG_DATA" 2>/dev/null || true
+PG_DATA_OWNER=$(stat -L -c %u "$PG_DATA")
+if [ "$PG_DATA_OWNER" != "$(id -u postgres)" ]; then
+    echo ">> ⚠  $PG_DATA still belongs to UID $PG_DATA_OWNER after chown: the storage behind /data ignores ownership changes. Put /data on a Docker volume or a local disk (media can stay on a network share)."
+    exit 1
+fi
 
 # 1. Auto-generated PostgreSQL password
 if [ ! -f "$PG_PWD_FILE" ]; then
@@ -54,7 +71,6 @@ fi
 PG_PASSWORD=$(cat "$PG_PWD_FILE")
 
 # 1b. Auto-generated JWT secret if none is provided
-JWT_SECRET_FILE="$DATA_DIR/.jwt_secret"
 if [ -z "$JWT_SECRET_KEY" ] && [ ! -f "$JWT_SECRET_FILE" ]; then
     echo ">> Auto-generating the JWT secret..."
     python3 -c "import secrets; print(secrets.token_urlsafe(64))" > "$JWT_SECRET_FILE"
@@ -63,7 +79,6 @@ if [ -z "$JWT_SECRET_KEY" ] && [ ! -f "$JWT_SECRET_FILE" ]; then
 fi
 
 # 1c. Fernet key for sensitive settings (API keys, webhooks)
-ENCRYPTION_KEY_FILE="$DATA_DIR/.encryption_key"
 if [ -z "$MEDIAKEEPER_ENCRYPTION_KEY" ] && [ ! -f "$ENCRYPTION_KEY_FILE" ]; then
     echo ">> Auto-generating the Fernet encryption key..."
     python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())" > "$ENCRYPTION_KEY_FILE"

@@ -226,7 +226,7 @@ The application runs database migrations automatically at boot.
 
 **Good to know:**
 
-- **Docker Desktop (macOS, Windows):** keep `/data` in the named volume of the compose file. Mapping it to a host folder (`./data:/data`) stops PostgreSQL from starting.
+- **Storage for `/data`:** keep `/data` on a Docker volume or a local disk: network shares (NFS, SMB) and host folders under Docker Desktop (`./data:/data`) ignore ownership changes, and PostgreSQL then refuses to start. Media folders can stay on a share.
 - **Backups:** they need a destination outside the `mk_data` volume, i.e. a folder mounted from the host: set it in `BACKUP_PATH` (see [`docker-compose.override.example.yml`](docker-compose.override.example.yml)). Without a destination, backups fail.
 
 Updating an existing install? See [`docs/operations/updating.md`](docs/operations/updating.md).

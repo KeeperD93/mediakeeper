@@ -16,6 +16,8 @@ This section intentionally has no date so it is not shown to users.
 ### Fixed
 - Security — IP behind a proxy: visitor-supplied address ignored (list every proxy).
 - Security — manual username block: applied whatever the letter case.
+- Security — encryption key readable again after a PUID change.
+- Startup — clear message if /data refuses ownership changes.
 
 ## [1.0.0-rc.9] - 2026-10-23
 
