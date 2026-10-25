@@ -60,7 +60,9 @@ def test_data_dirs_go_back_to_the_runtime_user_without_following_links():
     mkdir = next(i for i, line in enumerate(code) if line.startswith("mkdir -p ") and "/data/avatars" in line.split())
     avatars = code.index("chown -h mkuser:users /data/avatars 2>/dev/null || true")
     assert _remap_end(code) < mkdir < avatars
-    # chmod has no -h: it must skip a link instead.
+    # The cache dirs are only created in the link-guarded block below.
+    assert "/data/cache/images" not in code[mkdir].split()
+    # A link is skipped: a plain chmod would change its target.
     assert code[avatars + 1] == "[ -L /data/avatars ] || chmod 750 /data/avatars 2>/dev/null || true"
     guard = code.index("if [ ! -L /data/cache ]; then")
     assert guard > _remap_end(code)
