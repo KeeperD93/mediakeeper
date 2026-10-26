@@ -1,8 +1,8 @@
 """Migration 064: ``security_attempts.cleared_at`` + ``security_blocks.automatic``.
 
-Bootstraps a fresh SQLite DB from the current metadata, stamps it at 063,
-seeds blocks of every kind, then runs the 064 upgrade, its downgrade and the
-upgrade again.
+Bootstraps a fresh SQLite DB from the current metadata and stamps it at 063.
+The backfill test steps down to 063 first, so the upgrade adds the marker to
+blocks already stored, as in production.
 """
 from __future__ import annotations
 
@@ -46,35 +46,49 @@ def alembic_db(workspace_tmp_path, monkeypatch):
 
 
 def test_upgrade_marks_only_the_automatic_blocks(alembic_db):
+    """The production path: blocks stored before 064, then the upgrade adds the
+    marker (server default 0) and marks only the blocks set after failures."""
     cfg, engine = alembic_db
-    table = Base.metadata.tables["security_blocks"]
+    command.upgrade(cfg, REVISION)
+    command.downgrade(cfg, PREVIOUS)
     with engine.begin() as conn:
-        # Same keys in every row: an executemany only inserts the first row's columns.
-        conn.execute(sa.insert(table), [
-            {"ip": "198.51.100.31", "username": None, "scope": "portal", "permanent": 0,
-             "blocked_until": UNTIL, "reason": "auto_block_bruteforce_ip:portal", "created_by": None},
-            {"ip": None, "username": "member-a", "scope": "admin", "permanent": 0,
-             "blocked_until": UNTIL, "reason": "auto_block_bruteforce_username:admin", "created_by": None},
+        conn.execute(sa.insert(Base.metadata.tables["users"]), {
+            "username": "admin-a", "hashed_password": "x", "is_active": True, "must_change_password": False,
+        })
+        admin_id = conn.execute(sa.text("SELECT id FROM users WHERE username = 'admin-a'")).scalar_one()
+        rows = [
+            ("198.51.100.31", None, "portal", 0, "auto_block_bruteforce_ip:portal", None),
+            (None, "member-a", "admin", 0, "auto_block_bruteforce_username:admin", None),
             # A manual block whose admin was deleted: no creator left, its own reason.
-            {"ip": None, "username": "member-b", "scope": "portal", "permanent": 0,
-             "blocked_until": UNTIL, "reason": "seen on the router", "created_by": None},
-            {"ip": "198.51.100.32", "username": None, "scope": "all", "permanent": 1,
-             "blocked_until": None, "reason": "manual_from_attempts", "created_by": None},
+            (None, "member-b", "portal", 0, "seen on the router", None),
+            ("198.51.100.32", None, "all", 1, "manual_from_attempts", None),
             # Look-alike reason: '_' must not act as a wildcard.
-            {"ip": "198.51.100.33", "username": None, "scope": "portal", "permanent": 0,
-             "blocked_until": UNTIL, "reason": "autoXblockXbruteforceXip:portal", "created_by": None},
-        ])
+            ("198.51.100.33", None, "portal", 0, "autoXblockXbruteforceXip:portal", None),
+            # Typed by an admin who still exists: manual, whatever its reason.
+            ("198.51.100.35", None, "admin", 0, "auto_block_bruteforce_ip:admin", admin_id),
+            # Permanent: automatic blocks never are.
+            (None, "member-f", "portal", 1, "auto_block_bruteforce_username:portal", None),
+        ]
+        for ip, username, scope, permanent, reason, created_by in rows:
+            conn.execute(sa.text(
+                "INSERT INTO security_blocks (ip, username, scope, permanent, blocked_until, reason, "
+                "created_by, created_at) VALUES (:ip, :username, :scope, :permanent, :until, :reason, "
+                ":created_by, CURRENT_TIMESTAMP)"
+            ), {"ip": ip, "username": username, "scope": scope, "permanent": permanent,
+                "until": None if permanent else UNTIL, "reason": reason, "created_by": created_by})
 
     command.upgrade(cfg, REVISION)
 
     with engine.connect() as conn:
-        marks = dict(conn.execute(sa.select(table.c.reason, table.c.automatic)).all())
+        marks = dict(conn.execute(sa.text("SELECT reason, automatic FROM security_blocks")).all())
     assert marks == {
         "auto_block_bruteforce_ip:portal": 1,
         "auto_block_bruteforce_username:admin": 1,
         "seen on the router": 0,
         "manual_from_attempts": 0,
         "autoXblockXbruteforceXip:portal": 0,
+        "auto_block_bruteforce_ip:admin": 0,
+        "auto_block_bruteforce_username:portal": 0,
     }
 
 

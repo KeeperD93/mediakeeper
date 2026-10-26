@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from models.security import SecurityBlock
-from services.security import FAIL_BLOCK_THRESHOLD, record_failure
+from services.security import FAIL_BLOCK_THRESHOLD, is_blocked, record_failure
 
 
 @pytest.mark.asyncio
@@ -44,6 +44,29 @@ async def test_auto_block_leaves_an_admins_temporary_block_alone(db_session):
     )).scalars().all()
     assert len(names) == 1
     assert names[0].reason == "auto_block_bruteforce_username:portal"
+
+
+@pytest.mark.asyncio
+async def test_failed_sign_ins_reuse_an_earlier_automatic_block(db_session):
+    """An expired automatic block on the same name comes back instead of a second row."""
+    earlier = SecurityBlock(
+        username="member-d", scope="portal", permanent=0, automatic=1,
+        blocked_until=datetime.now(timezone.utc) - timedelta(minutes=1),
+        reason="auto_block_bruteforce_username:portal",
+    )
+    db_session.add(earlier)
+    await db_session.commit()
+
+    for _ in range(FAIL_BLOCK_THRESHOLD):
+        await record_failure(db_session, "198.51.100.23", "member-d", "portal")
+
+    rows = (await db_session.execute(
+        select(SecurityBlock).where(SecurityBlock.username == "member-d")
+    )).scalars().all()
+    assert [row.id for row in rows] == [earlier.id]
+    # SQLite hands the date back without its time zone.
+    assert rows[0].blocked_until.replace(tzinfo=timezone.utc) > datetime.now(timezone.utc)
+    assert await is_blocked(db_session, "203.0.113.99", "member-d", "portal") is not None
 
 
 @pytest.mark.asyncio
