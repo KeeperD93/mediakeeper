@@ -19,7 +19,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Sécurité — listes toujours à jour (bouton Actualiser) et erreurs affichées.
 - Sécurité — blocage manuel : adresse vérifiée, confirmation avant « Bloquer IP ».
 - Sécurité — le navigateur retient le nouveau mot de passe après un changement.
-- Sécurité — fenêtre de blocage en panneau du bas sur téléphone.
+- Sécurité — sur téléphone : fenêtre de blocage en panneau du bas, champs à taille tactile.
 - Sécurité — règles du mot de passe complètes (12 caractères différents).
 - Sécurité — clé de chiffrement de nouveau lisible après un changement de PUID.
 - Sécurité — démarrage : lien piégé à la place d'un dossier de /data ignoré.
