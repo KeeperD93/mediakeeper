@@ -145,12 +145,15 @@ async def _auto_block(
     scope: str,
     reason_suffix: str,
 ) -> None:
-    """Auto-block after ``FAIL_BLOCK_THRESHOLD`` failures on one identity."""
+    """Auto-block after ``FAIL_BLOCK_THRESHOLD`` failures on one identity.
+
+    Only an earlier automatic block is reused: an admin's own temporary block on
+    the same identity keeps its end and reason.
+    """
     until = datetime.now(timezone.utc) + timedelta(seconds=TEMP_BLOCK_SECONDS)
     filters = [
         SecurityBlock.scope == scope,
-        SecurityBlock.permanent == 0,
-        SecurityBlock.created_by.is_(None),
+        SecurityBlock.automatic == 1,
         SecurityBlock.ip.is_(ip) if ip is None else SecurityBlock.ip == ip,
         SecurityBlock.username.is_(username) if username is None else SecurityBlock.username == username,
     ]
@@ -159,8 +162,6 @@ async def _auto_block(
     )).scalars().first()
     if existing:
         existing.blocked_until = until
-        existing.username = username
-        existing.ip = ip
         existing.reason = f"auto_block_bruteforce_{reason_suffix}:{scope}"
     else:
         db.add(SecurityBlock(
@@ -168,6 +169,7 @@ async def _auto_block(
             username=username,
             scope=scope,
             permanent=0,
+            automatic=1,
             blocked_until=until,
             reason=f"auto_block_bruteforce_{reason_suffix}:{scope}",
         ))

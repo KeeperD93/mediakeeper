@@ -18,6 +18,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Sécurité — blocage manuel d'un nom : appliqué quelle que soit la casse.
 - Sécurité — listes toujours à jour (bouton Actualiser) et erreurs affichées.
 - Sécurité — blocage manuel : adresse vérifiée, confirmation avant « Bloquer IP ».
+- Sécurité — un blocage manuel n'est plus écrasé par un blocage automatique.
 - Sécurité — le navigateur retient le nouveau mot de passe après un changement.
 - Sécurité — sur téléphone : fenêtre de blocage en panneau du bas, champs à taille tactile.
 - Sécurité — règles du mot de passe complètes (12 caractères différents).
