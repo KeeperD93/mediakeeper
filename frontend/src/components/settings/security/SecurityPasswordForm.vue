@@ -126,6 +126,7 @@ async function submitPassword() {
   color: var(--text-secondary);
 }
 .sec-pwd-field input {
+  min-height: var(--touch-target);
   padding: 9px var(--space-3);
   border-radius: var(--radius-input);
   border: var(--border-width-thin) solid var(--border);
@@ -133,6 +134,11 @@ async function submitPassword() {
   color: var(--text-primary);
   font-size: var(--text-base);
   font-family: inherit;
+}
+@media (min-width: 768px) {
+  .sec-pwd-field input {
+    min-height: 0;
+  }
 }
 .sec-pwd-field input:focus {
   outline: none;
