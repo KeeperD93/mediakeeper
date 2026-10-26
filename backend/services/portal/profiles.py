@@ -26,7 +26,7 @@ async def serialize_profile_with_effective_lang(
 ) -> dict:
     """``serialize_profile`` plus ``effective_language``: the nullable raw
     ``language`` resolved against the instance default. Used by the owner-facing
-    surfaces that drive the portal locale (auth /login + /me, profiles /me)."""
+    surfaces that drive the portal locale (portal /me, profiles /me)."""
     result = serialize_profile(profile, user=user)
     result["effective_language"] = profile.language or await get_portal_default_language(db)
     return result

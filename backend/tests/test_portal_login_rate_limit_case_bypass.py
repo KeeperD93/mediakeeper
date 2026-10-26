@@ -11,9 +11,9 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from sqlalchemy import select
+from sqlalchemy import delete, select
 
-from models.security import SecurityAttempt
+from models.security import SecurityAttempt, SecurityBlock
 
 
 @pytest.mark.asyncio
@@ -66,6 +66,10 @@ async def test_portal_4th_attempt_is_blocked_regardless_of_casing(
                 "password": "WrongPassword!",
             })
             assert resp.status_code == 401
+
+        # Only the name block may refuse now: the three failures also blocked the address.
+        await db_session.execute(delete(SecurityBlock).where(SecurityBlock.username.is_(None)))
+        await db_session.commit()
 
         resp = await client.post("/api/auth/portal-login", json={
             "username": "PoRtAlUsEr",

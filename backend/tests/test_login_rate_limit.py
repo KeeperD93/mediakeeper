@@ -30,10 +30,8 @@ async def test_admin_login_caps_at_five_per_minute(client, admin_user):
 
 @pytest.mark.asyncio
 async def test_portal_login_admin_endpoint_caps_at_five_per_minute(client, admin_user):
-    """Same 5/min cap on /api/auth/portal-login (cascade login). The
-    CSRF-seeded ``client`` is used because the cascade endpoint is not
-    on EXEMPT_PATHS — once the first call sets the auth cookies, every
-    subsequent call must carry the CSRF header anyway."""
+    """Same 5/min cap on /api/auth/portal-login (cascade login). The limit
+    is per route, so the branch taken does not matter."""
     seen_codes: list[int] = []
     for _ in range(7):
         r = await client.post("/api/auth/portal-login", json={
@@ -44,4 +42,3 @@ async def test_portal_login_admin_endpoint_caps_at_five_per_minute(client, admin
         if r.status_code == 429:
             break
     assert 429 in seen_codes, f"expected slowapi 429 within 7 calls, saw {seen_codes}"
-

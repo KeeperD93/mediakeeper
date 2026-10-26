@@ -78,4 +78,3 @@ async def test_update_maintenance_settings_persists(db_session):
     )
     assert refreshed["enabled"] is False
     assert refreshed["text_fr"] == "Custom FR"
-
