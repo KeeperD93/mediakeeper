@@ -1,7 +1,6 @@
 """Endpoints /login and /portal-login."""
 import logging
 import secrets
-from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import func, select
@@ -18,7 +17,6 @@ from core.security import (
     is_external_auth_only_password,
     verify_password,
 )
-from models.portal.profile import UserProfile
 from models.user import User
 from services.portal.emby_auth import authenticate_emby_user
 from services.portal.maintenance import is_maintenance_enabled
@@ -29,6 +27,7 @@ from ._csrf import rotate_csrf_cookie
 from ._portal import (
     _safe_get_unread_news_count,
     _safe_serialize_portal_ui_flags,
+    _stamp_admin_login,
     grant_portal_admin_session,
 )
 from ._schemas import LoginRequest
@@ -44,35 +43,6 @@ from services.security import (
 # time whether or not the account exists, closing the timing oracle (CWE-208).
 _DUMMY_PASSWORD_HASH = hash_password(secrets.token_urlsafe(16))
 
-
-async def _stamp_admin_login(
-    db: AsyncSession,
-    user: User,
-    *,
-    client_ip: str,
-    user_agent: str | None,
-) -> None:
-    """Mirror what the portal login does: stamp the UserProfile so the
-    admin "Users" page can surface a real "last login" entry for local
-    backoffice admins (otherwise the profile only sees /me pings)."""
-    try:
-        profile = (
-            await db.execute(
-                select(UserProfile).where(UserProfile.user_id == user.id)
-            )
-        ).scalar_one_or_none()
-        if not profile:
-            return
-        now = datetime.now(timezone.utc)
-        profile.last_login_at = now
-        profile.last_seen_at = now
-        profile.last_login_ip = client_ip
-        profile.last_login_user_agent = (user_agent or "")[:255] or None
-        db.add(profile)
-        await db.commit()
-    except Exception:
-        logger.exception("[LOGIN] Profile stamp failed for user_id=%s", user.id)
-        await db.rollback()
 
 # Above this many recent portal failures, we stop forwarding the attempt to
 # Emby to avoid triggering Emby's own lockout on the target user account.

@@ -27,14 +27,13 @@ async def test_admin_login_rejects_cross_origin_request(raw_client, admin_user):
 
 
 @pytest.mark.asyncio
-async def test_portal_login_rejects_cross_origin_request(raw_client, admin_user):
+async def test_retired_portal_login_path_is_gone(raw_client, admin_user):
+    """Members sign in through /api/auth/portal-login only."""
     r = await raw_client.post(
         "/api/portal/auth/login",
-        headers={"Origin": "https://evil.example.com"},
         json={"username": "admin", "password": "TestPassword123!"},
     )
-    assert r.status_code == 403
-    assert r.json()["detail"] == "csrf_origin_mismatch"
+    assert r.status_code == 404
 
 
 @pytest.mark.asyncio

@@ -6,7 +6,7 @@ skipped for safe methods, for the public ``/api/health`` endpoint, and for
 requests without any authentication cookie (those will be rejected downstream
 by the auth dependencies).
 
-Login endpoints (``/api/auth/login``, ``/api/portal/auth/login``) bootstrap
+Login endpoints (``/api/auth/login``, ``/api/auth/portal-login``) bootstrap
 the CSRF cookie themselves so the double-submit token cannot be checked on
 the very first call — but Origin / Referer **is** still verified when
 present, which is enough to block cross-site forced-login flows ("login
@@ -68,7 +68,6 @@ EXEMPT_PATHS = {
 LOGIN_PATHS = {
     "/api/auth/login",
     "/api/auth/portal-login",
-    "/api/portal/auth/login",
 }
 
 

@@ -45,20 +45,3 @@ async def test_portal_login_admin_endpoint_caps_at_five_per_minute(client, admin
             break
     assert 429 in seen_codes, f"expected slowapi 429 within 7 calls, saw {seen_codes}"
 
-
-@pytest.mark.asyncio
-async def test_portal_emby_login_caps_at_five_per_minute(raw_client):
-    """The Emby cascade (POST /api/portal/auth/login) is also capped —
-    even when the Emby backend is unreachable and every call fails fast,
-    we still want a per-IP ceiling so a brute-force loop hits 429 by the
-    sixth attempt."""
-    seen_codes: list[int] = []
-    for _ in range(7):
-        r = await raw_client.post("/api/portal/auth/login", json={
-            "username": "ghost",
-            "password": "wrong",
-        })
-        seen_codes.append(r.status_code)
-        if r.status_code == 429:
-            break
-    assert 429 in seen_codes, f"expected slowapi 429 within 7 calls, saw {seen_codes}"
