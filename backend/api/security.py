@@ -146,6 +146,7 @@ async def purge_attempts(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    """Admin-triggered purge. Normally runs via the scheduler."""
+    """Admin-triggered purge of the attempts older than the retention period;
+    nothing schedules it."""
     deleted = await purge_old_attempts(db)
     return {"deleted": deleted}

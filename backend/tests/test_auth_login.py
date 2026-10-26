@@ -38,7 +38,7 @@ async def test_login_admin_success(client, admin_user):
 
 @pytest.mark.asyncio
 async def test_login_imported_emby_user_is_blocked(client, db_session):
-    """Le mot de passe sentinelle Emby ne doit never open le backoffice."""
+    """The public placeholder of imported accounts reads like any wrong password."""
     db_session.add(User(
         username="emby-user",
         hashed_password=hash_password(EXTERNAL_AUTH_PASSWORD_SENTINEL),
@@ -51,7 +51,7 @@ async def test_login_imported_emby_user_is_blocked(client, db_session):
         "username": "emby-user",
         "password": EXTERNAL_AUTH_PASSWORD_SENTINEL,
     })
-    assert resp.status_code == 403
+    assert (resp.status_code, resp.json()["detail"]) == (401, "invalid_credentials")
 
 
 @pytest.mark.asyncio
