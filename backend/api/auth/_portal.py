@@ -67,13 +67,16 @@ async def _stamp_admin_login(
     client_ip: str,
     user_agent: str | None,
 ) -> None:
-    """Mirror what the portal login does: stamp the UserProfile so the
-    admin "Users" page can surface a real "last login" entry for local
-    backoffice admins (otherwise the profile only sees /me pings)."""
+    """Stamp the UserProfile with this sign-in so the admin "Users" page
+    can surface a real "last login" entry for local backoffice admins
+    (otherwise the profile only sees /me pings). Best effort: a failure is
+    logged and rolled back, the sign-in goes on."""
+    # Read first: a commit that fails in its flush expires every loaded object.
+    user_id = user.id
     try:
         profile = (
             await db.execute(
-                select(UserProfile).where(UserProfile.user_id == user.id)
+                select(UserProfile).where(UserProfile.user_id == user_id)
             )
         ).scalar_one_or_none()
         if not profile:
@@ -86,7 +89,7 @@ async def _stamp_admin_login(
         db.add(profile)
         await db.commit()
     except Exception:
-        logger.exception("[LOGIN] Profile stamp failed for user_id=%s", user.id)
+        logger.exception("[LOGIN] Profile stamp failed for user_id=%s", user_id)
         await db.rollback()
 
 

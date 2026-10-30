@@ -189,6 +189,7 @@ async def portal_login(
     if admin_listed:
         if _local_password_ok(req.password, user):
             if not user.is_active:
+                logger.warning("[PORTAL_LOGIN] Account disabled for user=%r from %s", username, client_ip)
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="account_disabled",
@@ -206,9 +207,11 @@ async def portal_login(
     # A refused try at an admin's local password counts in the admin scope, which
     # only a local success clears: knowing the Emby password must not reset it.
     # An imported account has no local password, only its Emby one to protect.
-    local_password_guessed = bool(
-        admin_listed and user and not is_external_auth_only_password(user.hashed_password)
+    # The dummy hash stands in for a missing account: same bcrypt time either way.
+    imported = admin_listed and is_external_auth_only_password(
+        user.hashed_password if user else _DUMMY_PASSWORD_HASH
     )
+    local_password_guessed = bool(admin_listed and user and not imported)
     failure_scope = "admin" if local_password_guessed else "portal"
     try:
         # Only callers falling into the Emby cascade face portal blocks.

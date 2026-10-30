@@ -1,9 +1,11 @@
 """Sign-in refusals: nothing about an account shows before its password is
 checked, only wrong passwords count, and odd input is refused up front."""
-from unittest.mock import AsyncMock, patch
+import logging
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import bcrypt
 import pytest
-from sqlalchemy import select
+from sqlalchemy import event, select
 
 from core.security import EXTERNAL_AUTH_PASSWORD_SENTINEL, hash_password
 from models.portal.profile import UserProfile
@@ -55,11 +57,13 @@ async def test_a_right_password_refused_by_the_admin_list_is_not_counted(client,
 
 
 @pytest.mark.asyncio
-async def test_a_disabled_admin_account_is_told_so_only_after_its_password(client, db_session, monkeypatch):
+async def test_a_disabled_admin_account_is_told_so_only_after_its_password(client, db_session, monkeypatch, caplog):
+    """The right password of a disabled admin is refused, and leaves a trace."""
     monkeypatch.setenv("MK_ADMIN_USERS", "admin,old-admin")
     await _add_user(db_session, "old-admin", "Old-Synthetic-1!", active=False)
 
-    with patch("api.auth.login.authenticate_emby_user", new=AsyncMock(return_value=None)):
+    with patch("api.auth.login.authenticate_emby_user", new=AsyncMock(return_value=None)), \
+         caplog.at_level(logging.WARNING, logger="mediakeeper.api.auth"):
         wrong = await client.post("/api/auth/portal-login", json={"username": "old-admin", "password": "nope"})
         right = await client.post("/api/auth/portal-login", json={
             "username": "old-admin", "password": "Old-Synthetic-1!",
@@ -67,6 +71,7 @@ async def test_a_disabled_admin_account_is_told_so_only_after_its_password(clien
 
     assert (wrong.status_code, wrong.json()["detail"]) == (401, "invalid_credentials")
     assert (right.status_code, right.json()["detail"]) == (403, "account_disabled")
+    assert any("[PORTAL_LOGIN] Account disabled for user='old-admin'" in r.getMessage() for r in caplog.records)
 
 
 @pytest.mark.asyncio
@@ -121,19 +126,47 @@ async def test_a_name_that_still_fits_once_lower_cased_is_checked(client, db_ses
 
 @pytest.mark.parametrize("path", ["/api/auth/login", "/api/auth/portal-login"])
 @pytest.mark.asyncio
-async def test_admin_sign_in_survives_a_failed_profile_stamp(client, admin_user, path):
-    """A failed stamp rolls the session back: the answer must not read the
-    expired account afterwards."""
-    async def _fail(db, user, **_kwargs):
-        # Like a stamp whose commit fails: the rollback expires every loaded object.
-        await db.execute(select(UserProfile).where(UserProfile.user_id == user.id))
-        await db.rollback()
+async def test_admin_sign_in_survives_a_failed_profile_stamp(client, admin_user, db_session, path):
+    """The stamp's commit fails in its flush, which expires every loaded object:
+    the sign-in must still answer without reading them again."""
+    db_session.add(UserProfile(user_id=admin_user.id, display_name="admin", role="admin",
+                               account_active=True, source="local"))
+    await db_session.commit()
+    engine = db_session.get_bind()
+    failed = []
 
-    with patch("api.auth.login._stamp_admin_login", new=AsyncMock(side_effect=_fail)), patch(
-        "api.auth._portal.get_unread_news", new=AsyncMock(return_value=[]),
-    ):
-        resp = await client.post(path, json={"username": "admin", "password": ADMIN_PASSWORD})
+    def _fail_stamp(conn, cursor, statement, *_args):
+        if statement.startswith("UPDATE user_profiles") and "last_login_ip" in statement:
+            failed.append(statement)
+            raise RuntimeError("simulated failure of the stamp's UPDATE")
 
+    event.listen(engine, "before_cursor_execute", _fail_stamp)
+    try:
+        with patch("api.auth._portal.get_unread_news", new=AsyncMock(return_value=[])):
+            resp = await client.post(path, json={"username": "admin", "password": ADMIN_PASSWORD})
+    finally:
+        event.remove(engine, "before_cursor_execute", _fail_stamp)
+
+    assert failed, "the stamp never reached its UPDATE"
     assert resp.status_code == 200, resp.text
     assert resp.json()["username"] == "admin"
     assert resp.json()["must_change_password"] is False
+
+
+@pytest.mark.asyncio
+async def test_an_admin_name_costs_the_same_with_or_without_an_account(client, admin_user, monkeypatch):
+    """Two bcrypt rounds either way: the time a refused try takes must not tell
+    whether a listed admin name has an account."""
+    monkeypatch.setenv("MK_ADMIN_USERS", "admin,ghost-admin")
+    rounds = {}
+    with patch("api.auth.login.authenticate_emby_user", new=AsyncMock(return_value=None)):
+        for name in ("admin", "ghost-admin"):
+            checkpw = MagicMock(wraps=bcrypt.checkpw)
+            with patch.object(bcrypt, "checkpw", checkpw):
+                resp = await client.post("/api/auth/portal-login", json={
+                    "username": name, "password": "Wrong-Synthetic-1!",
+                })
+            assert resp.status_code == 401
+            rounds[name] = checkpw.call_count
+
+    assert rounds == {"admin": 2, "ghost-admin": 2}
