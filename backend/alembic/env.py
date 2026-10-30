@@ -97,7 +97,11 @@ def run_migrations_offline() -> None:
 
 
 def _install_offline_inspector() -> None:
-    """Let idempotent migrations inspect Alembic's offline mock connection."""
+    """Let idempotent migrations inspect Alembic's offline mock connection.
+
+    It reports an empty schema: an offline upgrade renders every guarded
+    step, an offline downgrade skips them.
+    """
     from sqlalchemy.engine.mock import MockConnection
     from sqlalchemy.inspection import _inspects
 
@@ -106,6 +110,9 @@ def _install_offline_inspector() -> None:
             return []
 
         def get_columns(self, *args, **kwargs):
+            return []
+
+        def get_check_constraints(self, *args, **kwargs):
             return []
 
         def get_indexes(self, *args, **kwargs):
@@ -126,7 +133,6 @@ def _install_offline_inspector() -> None:
 
 
 def do_run_migrations(connection):
-    # ──────────────────────────────────────────────────────────────
     # Self-healing ``alembic_version.version_num`` on Postgres.
     #
     # Alembic defaults ``version_num`` to ``VARCHAR(32)``, which trips
@@ -142,7 +148,6 @@ def do_run_migrations(connection):
     #
     # SQLite is skipped: it ignores ``VARCHAR`` length, so local tests
     # and dev DBs are unaffected.
-    # ──────────────────────────────────────────────────────────────
     if connection.dialect.name == "postgresql":
         connection.execute(text(
             "CREATE TABLE IF NOT EXISTS alembic_version ("
