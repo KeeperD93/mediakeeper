@@ -13,6 +13,7 @@ from core.rate_limit import ip_key, limiter
 from core.security import (
     EXTERNAL_AUTH_PASSWORD_SENTINEL,
     create_access_token,
+    get_backoffice_admin_usernames,
     hash_password,
     is_backoffice_admin,
     is_external_auth_only_password,
@@ -181,11 +182,13 @@ async def portal_login(
     )
     user = result.scalar_one_or_none()
 
-    # Use canonical username (DB) when the lookup matched so the
-    # backoffice gate honours MK_ADMIN_USERS regardless of the casing
-    # the user typed. Falls back to the typed name when no DB row
-    # matched — keeps the existing Emby cascade behaviour.
-    admin_listed = is_backoffice_admin(user.username if user else username)
+    # An account is checked by its canonical name, so MK_ADMIN_USERS holds in
+    # any casing typed. With no account the name is compared case-blind, like
+    # the lookup: a listed name then costs the same bcrypt time either way.
+    admin_listed = (
+        is_backoffice_admin(user.username) if user
+        else tracking_username in {name.lower() for name in get_backoffice_admin_usernames()}
+    )
     if admin_listed:
         if _local_password_ok(req.password, user):
             if not user.is_active:

@@ -155,12 +155,12 @@ async def test_admin_sign_in_survives_a_failed_profile_stamp(client, admin_user,
 
 @pytest.mark.asyncio
 async def test_an_admin_name_costs_the_same_with_or_without_an_account(client, admin_user, monkeypatch):
-    """Two bcrypt rounds either way: the time a refused try takes must not tell
-    whether a listed admin name has an account."""
+    """Two bcrypt rounds either way, in any casing: the time a refused try takes
+    must not tell whether a listed admin name has an account."""
     monkeypatch.setenv("MK_ADMIN_USERS", "admin,ghost-admin")
     rounds = {}
     with patch("api.auth.login.authenticate_emby_user", new=AsyncMock(return_value=None)):
-        for name in ("admin", "ghost-admin"):
+        for name in ("admin", "ADMIN", "ghost-admin", "GHOST-ADMIN"):
             checkpw = MagicMock(wraps=bcrypt.checkpw)
             with patch.object(bcrypt, "checkpw", checkpw):
                 resp = await client.post("/api/auth/portal-login", json={
@@ -169,4 +169,4 @@ async def test_an_admin_name_costs_the_same_with_or_without_an_account(client, a
             assert resp.status_code == 401
             rounds[name] = checkpw.call_count
 
-    assert rounds == {"admin": 2, "ghost-admin": 2}
+    assert rounds == {"admin": 2, "ADMIN": 2, "ghost-admin": 2, "GHOST-ADMIN": 2}
