@@ -8,8 +8,7 @@ on env var names that match the upstream classifier's heuristic.
 Scope is intentionally limited to env vars actually read by
 ``backend/core/app_startup.py`` and the update check
 (``backend/services/update_check.py``). A wider centralisation across the
-whole backend is tracked separately in the bug-tracker as a tech-debt
-cycle.
+whole backend is left to a later clean-up.
 """
 from typing import Final
 
