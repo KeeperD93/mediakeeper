@@ -209,12 +209,13 @@ async def portal_login(
 
     # A refused try at an admin's local password counts in the admin scope, which
     # only a local success clears: knowing the Emby password must not reset it.
+    # A listed name with no account counts there too, at the same bcrypt time
+    # (dummy hash), so neither the delay nor the blocks tell whether it exists.
     # An imported account has no local password, only its Emby one to protect.
-    # The dummy hash stands in for a missing account: same bcrypt time either way.
     imported = admin_listed and is_external_auth_only_password(
         user.hashed_password if user else _DUMMY_PASSWORD_HASH
     )
-    local_password_guessed = bool(admin_listed and user and not imported)
+    local_password_guessed = admin_listed and not imported
     failure_scope = "admin" if local_password_guessed else "portal"
     try:
         # Only callers falling into the Emby cascade face portal blocks.

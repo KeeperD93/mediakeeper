@@ -124,6 +124,21 @@ async def test_a_portal_block_does_not_hide_admin_password_misses(client, admin_
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("name", ["admin", "ghost-admin"])
+async def test_the_blocks_do_not_tell_whether_an_admin_name_has_an_account(
+    client, admin_user, members, db_session, monkeypatch, name,
+):
+    """A listed name with no account counts its misses like one with a local
+    password: the admin sign-in then refuses this address either way."""
+    monkeypatch.setenv("MK_ADMIN_USERS", "admin,ghost-admin")
+    assert [await _sign_in(client, name, WRONG) for _ in range(3)] == [401, 401, 401]
+
+    resp = await client.post("/api/auth/login", json={"username": "someone-else", "password": WRONG})
+    assert resp.status_code == 429
+    assert [f.username for f in await _failures(db_session, "admin")] == [name] * 3
+
+
+@pytest.mark.asyncio
 async def test_an_emby_success_neither_counts_nor_clears_the_admin_misses(client, admin_user, db_session):
     """An admin who signs in with the media-server password gets the portal; it
     adds no failure on the local password and clears none: only a local

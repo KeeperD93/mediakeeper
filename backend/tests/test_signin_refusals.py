@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import bcrypt
 import pytest
-from sqlalchemy import event, select
+from sqlalchemy import delete, event, select
 
 from core.security import EXTERNAL_AUTH_PASSWORD_SENTINEL, hash_password
 from models.portal.profile import UserProfile
@@ -171,13 +171,19 @@ async def test_admin_sign_in_survives_a_failed_profile_stamp(client, admin_user,
 
 
 @pytest.mark.asyncio
-async def test_an_admin_name_costs_the_same_with_or_without_an_account(client, admin_user, monkeypatch):
+async def test_an_admin_name_costs_the_same_with_or_without_an_account(
+    client, admin_user, db_session, monkeypatch,
+):
     """Two bcrypt rounds either way, in any casing: the time a refused try takes
     must not tell whether a listed admin name has an account."""
     monkeypatch.setenv("MK_ADMIN_USERS", "admin,ghost-admin")
     rounds = {}
     with patch("api.auth.login.authenticate_emby_user", new=AsyncMock(return_value=None)):
         for name in ("admin", "ADMIN", "ghost-admin", "GHOST-ADMIN"):
+            # Every try starts with no failure on record, so no block cuts it short.
+            await db_session.execute(delete(SecurityAttempt))
+            await db_session.execute(delete(SecurityBlock))
+            await db_session.commit()
             checkpw = MagicMock(wraps=bcrypt.checkpw)
             with patch.object(bcrypt, "checkpw", checkpw):
                 resp = await client.post("/api/auth/portal-login", json={
