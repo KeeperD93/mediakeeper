@@ -8,7 +8,7 @@ counting, and an admin name's refused tries count against its local password.
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from sqlalchemy import select
+from sqlalchemy import delete, select
 
 from core.security import EXTERNAL_AUTH_PASSWORD_SENTINEL, hash_password
 from models.portal.profile import UserProfile
@@ -55,6 +55,12 @@ async def _failures(db_session, scope: str) -> list[SecurityAttempt]:
     )).scalars().all()
 
 
+async def _drop_address_blocks(db_session) -> None:
+    """Keep only the name blocks: the one that follows an attacker who changes address."""
+    await db_session.execute(delete(SecurityBlock).where(SecurityBlock.username.is_(None)))
+    await db_session.commit()
+
+
 @pytest.mark.asyncio
 async def test_right_password_on_the_third_try_is_accepted(client, members):
     add, emby = members
@@ -98,9 +104,10 @@ async def test_admin_password_misses_count_against_the_admin_name(client, admin_
     """On the page everyone uses, three wrong passwords for an admin name block
     it like on the admin sign-in: the right local password then waits too."""
     assert [await _sign_in(client, "admin", WRONG) for _ in range(3)] == [401, 401, 401]
+    await _drop_address_blocks(db_session)
     assert await _sign_in(client, "admin", ADMIN_PASSWORD) == 429
 
-    assert len(await _failures(db_session, "admin")) == 3
+    assert [f.username for f in await _failures(db_session, "admin")] == ["admin"] * 3
     assert await _failures(db_session, "portal") == []
 
 
@@ -111,14 +118,16 @@ async def test_a_portal_block_does_not_hide_admin_password_misses(client, admin_
     await create_block(db_session, admin_id=None, ip=None, username="admin", scope="portal", permanent=True)
 
     assert [await _sign_in(client, "admin", WRONG) for _ in range(3)] == [429, 429, 429]
+    await _drop_address_blocks(db_session)
     assert await _sign_in(client, "admin", ADMIN_PASSWORD) == 429
-    assert len(await _failures(db_session, "admin")) == 3
+    assert [f.username for f in await _failures(db_session, "admin")] == ["admin"] * 3
 
 
 @pytest.mark.asyncio
-async def test_an_emby_success_does_not_count_against_the_admin_name(client, admin_user, members, db_session):
-    """An admin who signs in with the media-server password gets the portal and
-    leaves no failure on the local password."""
+async def test_an_emby_success_neither_counts_nor_clears_the_admin_misses(client, admin_user, db_session):
+    """An admin who signs in with the media-server password gets the portal; it
+    adds no failure on the local password and clears none: only a local
+    success does, so knowing the Emby password never resets the count."""
     db_session.add(UserProfile(user_id=admin_user.id, display_name="admin", role="admin", account_active=True))
     await db_session.commit()
     profile = (await db_session.execute(
@@ -126,12 +135,19 @@ async def test_an_emby_success_does_not_count_against_the_admin_name(client, adm
     )).scalar_one()
     emby_session = {"token": "rq-admin", "user": admin_user, "profile": profile}
 
-    with patch("api.auth.login.authenticate_emby_user", new=AsyncMock(return_value=emby_session)):
-        resp = await client.post("/api/auth/portal-login", json={"username": "admin", "password": RIGHT})
+    async def _emby(db, username, password):
+        return emby_session if password == RIGHT else None
 
-    assert resp.status_code == 200
-    assert resp.json()["scope"] == "portal"
-    assert await _failures(db_session, "admin") == []
+    with patch("api.auth.login.authenticate_emby_user", new=AsyncMock(side_effect=_emby)):
+        codes = [await _sign_in(client, "admin", p) for p in (WRONG, WRONG)]
+        emby = await client.post("/api/auth/portal-login", json={"username": "admin", "password": RIGHT})
+        codes += [emby.status_code, await _sign_in(client, "admin", WRONG)]
+        await _drop_address_blocks(db_session)
+        codes.append(await _sign_in(client, "admin", ADMIN_PASSWORD))
+
+    assert codes == [401, 401, 200, 401, 429]
+    assert emby.json()["scope"] == "portal"
+    assert [f.cleared_at for f in await _failures(db_session, "admin")] == [None, None, None]
 
 
 @pytest.mark.asyncio

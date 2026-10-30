@@ -45,6 +45,23 @@ async def test_the_public_placeholder_is_a_wrong_password(client, db_session):
 
 
 @pytest.mark.asyncio
+async def test_the_placeholder_opens_no_admin_session_on_the_common_page(client, db_session, monkeypatch):
+    """An imported account listed as admin: its public placeholder, typed on the
+    page everyone uses, is a wrong password, never an admin session."""
+    monkeypatch.setenv("MK_ADMIN_USERS", "admin,member-e")
+    await _add_user(db_session, "member-e", EXTERNAL_AUTH_PASSWORD_SENTINEL)
+
+    with patch("api.auth.login.authenticate_emby_user", new=AsyncMock(return_value=None)):
+        resp = await client.post("/api/auth/portal-login", json={
+            "username": "member-e", "password": EXTERNAL_AUTH_PASSWORD_SENTINEL,
+        })
+
+    assert (resp.status_code, resp.json()["detail"]) == (401, "invalid_credentials")
+    assert "mk_token" not in resp.cookies
+    assert [f.scope for f in await _failures(db_session)] == ["portal"]
+
+
+@pytest.mark.asyncio
 async def test_a_right_password_refused_by_the_admin_list_is_not_counted(client, db_session):
     await _add_user(db_session, "local-b", "Local-Synthetic-1!")
 
