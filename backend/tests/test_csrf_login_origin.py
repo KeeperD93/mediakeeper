@@ -27,14 +27,13 @@ async def test_admin_login_rejects_cross_origin_request(raw_client, admin_user):
 
 
 @pytest.mark.asyncio
-async def test_portal_login_rejects_cross_origin_request(raw_client, admin_user):
+async def test_retired_portal_login_path_is_gone(raw_client):
+    """Members sign in through /api/auth/portal-login only."""
     r = await raw_client.post(
         "/api/portal/auth/login",
-        headers={"Origin": "https://evil.example.com"},
         json={"username": "admin", "password": "TestPassword123!"},
     )
-    assert r.status_code == 403
-    assert r.json()["detail"] == "csrf_origin_mismatch"
+    assert r.status_code == 404
 
 
 @pytest.mark.asyncio
@@ -62,8 +61,8 @@ async def test_login_accepts_request_without_origin_header(raw_client, admin_use
 
 @pytest.mark.asyncio
 async def test_backoffice_portal_login_rejects_cross_origin_request(raw_client, admin_user):
-    """The /api/auth/portal-login bootstrap endpoint now runs the same
-    Origin guard as its sibling logins (#385)."""
+    """The /api/auth/portal-login bootstrap endpoint runs the same Origin
+    guard as the admin login."""
     r = await raw_client.post(
         "/api/auth/portal-login",
         headers={"Origin": "https://evil.example.com"},

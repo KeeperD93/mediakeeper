@@ -1,46 +1,29 @@
-"""Portal authentication via Emby."""
+"""Portal session: the signed-in member (/me) and sign-out (/logout).
+
+Signing in goes through /api/auth/portal-login.
+"""
 import logging
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, Depends, Request, Response
 from sqlalchemy import select, update
-from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants.security import UNKNOWN_CLIENT_IP
 from core.database import get_db
-from core.proxy import get_client_ip
-from core.rate_limit import ip_key, limiter
-from core.security import decode_access_token, is_backoffice_admin
-from api.auth import PORTAL_COOKIE_NAME, _set_portal_jwt_cookie
-from api.auth._csrf import ensure_csrf_cookie, rotate_csrf_cookie
+from core.security import decode_access_token
+from api.auth import PORTAL_COOKIE_NAME
+from api.auth._csrf import ensure_csrf_cookie
 from api.portal.deps import get_current_profile
 from models.user import User
 from models.portal.profile import UserProfile
-from services.portal.emby_auth import authenticate_emby_user
-from services.portal.maintenance import is_maintenance_enabled
 from services.portal.profiles import serialize_profile_with_effective_lang
 from services.portal.news import get_unread_news
 from services.feedback import get_feedback_config
 from services.portal.admin import get_donation_config, get_portal_flag
-from services.security import (
-    count_recent_failures,
-    ensure_not_blocked,
-    record_attempt,
-    record_failure,
-)
 from services.portal.admin_users_constants import ROLE_ADMIN
-
-EMBY_SHADOW_SKIP_THRESHOLD = 1
 
 logger = logging.getLogger("mediakeeper.portal.auth")
 router = APIRouter(prefix="/auth", tags=["portal-auth"])
-
-
-class PortalLoginRequest(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    username: str = Field(..., min_length=1, max_length=100)
-    password: str = Field(..., min_length=1, max_length=500)
 
 
 async def _serialize_ui_flags(db: AsyncSession, profile: UserProfile) -> dict:
@@ -91,148 +74,6 @@ async def _safe_get_unread_news(db: AsyncSession, user_id: int) -> list[dict]:
             "[PORTAL_AUTH] unread news fallback for user_id=%s: %s", user_id, exc,
         )
         return []
-
-
-async def _log_login(
-    db: AsyncSession,
-    user_id: int | None,
-    username: str,
-    source: str,
-    success: bool,
-    ip: str,
-    user_agent: str | None,
-) -> None:
-    """Best-effort write to the login history table — never blocks the
-    auth flow, the audit signal is informational only."""
-    try:
-        from models.portal.login_history import UserLoginHistory
-        db.add(UserLoginHistory(
-            user_id=user_id,
-            username=username,
-            source=source,
-            success=success,
-            ip=ip,
-            user_agent=(user_agent or "")[:255] or None,
-        ))
-        await db.commit()
-    except Exception as exc:
-        logger.warning(
-            "[PORTAL_AUTH] login-history write failed for user_id=%s: %s",
-            user_id, exc,
-        )
-        await db.rollback()
-
-
-@router.post("/login")
-@limiter.limit("5/minute", key_func=ip_key)
-async def portal_login(
-    req: PortalLoginRequest,
-    request: Request,
-    response: Response,
-    background_tasks: BackgroundTasks,
-    db: AsyncSession = Depends(get_db),
-):
-    """Authenticate via Emby and issue JWT cookie."""
-    client_ip = get_client_ip(request) or UNKNOWN_CLIENT_IP
-    user_agent = request.headers.get("user-agent")
-    # Normalize input for brute-force tracking so casing variants resolve to a
-    # single rate-limit bucket (mirrors api.auth.login). Raw req.username is
-    # kept for Emby auth (its own casing semantics), the enumeration warning
-    # log and the login-history row.
-    tracking_username = req.username.strip().lower()
-    await ensure_not_blocked(db, client_ip, tracking_username, "portal")
-
-    # Shadow-skip Emby once more than EMBY_SHADOW_SKIP_THRESHOLD recent failures
-    # are on record, so Emby's own lockout on the account doesn't trip before our block does.
-    recent_fails = await count_recent_failures(
-        db, client_ip, tracking_username, "portal",
-    )
-    if recent_fails > EMBY_SHADOW_SKIP_THRESHOLD:
-        await record_failure(db, client_ip, tracking_username, "portal", user_agent)
-        logger.warning(
-            "[PORTAL_LOGIN] Shadow-skip Emby for user=%s ip=%s (fails=%s)",
-            req.username, client_ip, recent_fails,
-        )
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="invalid_credentials",
-        )
-
-    result = await authenticate_emby_user(db, req.username, req.password)
-    if not result:
-        await record_failure(db, client_ip, tracking_username, "portal", user_agent)
-        await _log_login(db, None, req.username, "portal", False, client_ip, user_agent)
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="invalid_credentials",
-        )
-
-    # Same maintenance gate as /api/auth/portal-login: members are refused
-    # while maintenance is on; admins still pass. Keeps both member-login
-    # paths consistent.
-    if await is_maintenance_enabled(db) and not is_backoffice_admin(result["user"].username):
-        logger.info("[PORTAL_LOGIN] Refused (maintenance) for user_id=%s", result["user"].id)
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="maintenance",
-        )
-
-    _set_portal_jwt_cookie(response, result["token"], request)
-    rotate_csrf_cookie(response, request)
-    await record_attempt(db, client_ip, tracking_username, "portal", success=True, user_agent=user_agent)
-    await _log_login(db, result["user"].id, req.username, "portal", True, client_ip, user_agent)
-
-    user = result["user"]
-    profile = result["profile"]
-
-    # Stamp the profile with login metadata so the admin "Users" page
-    # can surface online state, last IP and last user-agent.
-    try:
-        profile.last_login_at = datetime.now(timezone.utc)
-        profile.last_seen_at = profile.last_login_at
-        profile.last_login_ip = client_ip
-        profile.last_login_user_agent = (user_agent or "")[:255] or None
-        db.add(profile)
-        await db.commit()
-    except Exception as exc:
-        logger.warning(
-            "[PORTAL_LOGIN] profile stamp failed for user_id=%s: %s",
-            user.id, exc,
-        )
-        await db.rollback()
-    user_id = user.id
-    username = user.username
-    profile_payload = await serialize_profile_with_effective_lang(db, profile, user=user)
-    unread = await _safe_get_unread_news(db, user_id)
-    ui_flags = await _safe_serialize_ui_flags(db, profile)
-
-    # Daily login XP (best-effort, 1x per calendar day)
-    try:
-        from services.portal.xp import grant_daily_login_xp
-        await grant_daily_login_xp(db, user_id)
-    except Exception as exc:
-        logger.warning(
-            "[PORTAL_LOGIN] daily XP grant failed for user_id=%s: %s", user_id, exc,
-        )
-
-    # Check achievements on login — fire-and-forget so the response is not
-    # blocked by an inherently slow scan (5 passes + playback queries). The
-    # background task opens its own DB session, which is critical because
-    # the request-scoped one is closed once login returns.
-    from services.portal.achievements import safe_check_all_achievements_in_new_session
-    background_tasks.add_task(
-        safe_check_all_achievements_in_new_session,
-        user_id,
-        username,
-        "login",
-    )
-
-    return {
-        "success": True,
-        "profile": profile_payload,
-        "unread_news": unread,
-        "ui": ui_flags,
-    }
 
 
 @router.get("/me")

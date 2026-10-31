@@ -1,7 +1,7 @@
 /**
  * Covers useFocusTrap wired into RuBulkPermsModal (the unified bulk-edit
  * overlay): initial focus on the close button and Escape routing through the
- * close handler. Mirrors the sibling modal focus-trap suites (§23.6).
+ * close handler. Mirrors the sibling modal focus-trap suites.
  */
 import { describe, it, expect, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'

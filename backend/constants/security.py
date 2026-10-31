@@ -8,6 +8,7 @@ __all__ = [
     "SELF_BLOCK_FORBIDDEN",
     "INVALID_SCOPE",
     "BLOCK_REQUIRES_IP_OR_USERNAME",
+    "INVALID_IP",
 ]
 
 #: Stands in for a client IP that cannot be read: stored and matched like an
@@ -19,3 +20,4 @@ UNKNOWN_CLIENT_IP: Final[str] = "unknown"
 SELF_BLOCK_FORBIDDEN: Final[str] = "self_block_forbidden"
 INVALID_SCOPE: Final[str] = "invalid_scope"
 BLOCK_REQUIRES_IP_OR_USERNAME: Final[str] = "block_requires_ip_or_username"
+INVALID_IP: Final[str] = "invalid_ip"

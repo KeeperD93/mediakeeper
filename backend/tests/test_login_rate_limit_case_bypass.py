@@ -7,18 +7,17 @@ under ``FAIL_BLOCK_THRESHOLD`` on every individual key, defeating the
 DB-backed lockout. The IP counter still fired from a single source, but
 a distributed attack (botnet / proxy rotator) would have bypassed both.
 
-The fix normalises ``req.username`` (strip + lower) before every call
-to ``ensure_not_blocked`` / ``record_failure`` / ``record_attempt`` /
-``count_recent_failures`` in ``backend.api.auth.login``, so all casing
+The fix normalises ``req.username`` (strip + lower) before every
+brute-force check and record in ``backend.api.auth.login``, so all casing
 variants now resolve to a single rate-limit bucket.
 """
 from __future__ import annotations
 
 import pytest
-from sqlalchemy import select
+from sqlalchemy import delete, select
 
 from core.security import hash_password
-from models.security import SecurityAttempt
+from models.security import SecurityAttempt, SecurityBlock
 from models.user import User
 
 
@@ -80,6 +79,10 @@ async def test_4th_attempt_is_blocked_regardless_of_casing(
             "password": "WrongPassword!",
         })
         assert resp.status_code == 401
+
+    # Only the name block may refuse now: the three failures also blocked the address.
+    await db_session.execute(delete(SecurityBlock).where(SecurityBlock.username.is_(None)))
+    await db_session.commit()
 
     resp = await client.post("/api/auth/login", json={
         "username": "AdMiNuSeR",
