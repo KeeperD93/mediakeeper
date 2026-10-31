@@ -1,5 +1,6 @@
 """Pydantic schemas for the authentication endpoints."""
 import re
+import unicodedata
 
 from pydantic import BaseModel, ConfigDict, Field, StrictInt, field_validator
 
@@ -16,6 +17,18 @@ class LoginRequest(BaseModel):
 
     username: str = Field(..., min_length=1, max_length=100)
     password: str = Field(..., min_length=1, max_length=500)
+
+    @field_validator("username")
+    @classmethod
+    def _username_fits_the_records(cls, value: str) -> str:
+        # A blank name escapes the per-name counter, a control character forges log
+        # lines or breaks the database query, and lower-casing can lengthen a name
+        # ("İ" becomes two characters) past the 100 characters sign-in records keep.
+        if not value.strip() or any(unicodedata.category(char) == "Cc" for char in value):
+            raise ValueError("username_invalid")
+        if len(value.strip().lower()) > 100:
+            raise ValueError("username_too_long")
+        return value
 
 
 class ChangePasswordRequest(BaseModel):

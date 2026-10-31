@@ -16,6 +16,16 @@ This section intentionally has no date so it is not shown to users.
 ### Fixed
 - Security — IP behind a proxy: visitor-supplied address ignored (list every proxy).
 - Security — manual username block: applied whatever the letter case.
+- Security — lists always up to date (Refresh button) and errors shown.
+- Security — manual block: address checked, confirmation before "Block IP".
+- Security — a manual block is no longer overwritten by an automatic one.
+- Sign-in — three real tries per name, reset after a successful sign-in.
+- Security — sign-in page: 3 wrong admin passwords block that account for 10 min.
+- Security — sign-in: nothing about an account shown before its password is checked.
+- Sign-in — no more server error when recording the sign-in fails.
+- Security — the browser keeps the new password after a change.
+- Security — on phones: block window as a bottom panel, touch-sized fields.
+- Security — full password rules shown (12 different characters).
 - Security — encryption key readable again after a PUID change.
 - Security — startup: links planted in place of /data folders ignored.
 - Startup — clear message if /data refuses ownership changes.

@@ -1,4 +1,4 @@
-"""Detail payload exposes ISO codes so the frontend can localise labels (bug #95).
+"""Detail payload exposes ISO codes so the frontend can localise labels.
 
 TMDB does not consistently translate language and country names, so the
 backend now ships ``original_language`` (ISO 639-1) and ``country_codes``

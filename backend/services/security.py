@@ -1,16 +1,19 @@
 """Security service: login attempts log, rate-limit, manual blocks, alerts.
 
-Replaces the in-memory ``_login_attempts`` dict. Every login attempt (success
-or failure) is persisted so an admin can audit abuse, manually unban or
-permanently block an IP or username.
+Every login attempt (success or failure) is persisted so an admin can audit
+abuse, manually unban or permanently block an IP or username.
 
 Thresholds:
   - ``FAIL_BLOCK_THRESHOLD`` (3) failed attempts within ``FAIL_WINDOW_SECONDS``
-    (5 min) → automatic temporary block for ``TEMP_BLOCK_SECONDS`` (10 min).
-  - ``ALERT_THRESHOLD`` (3) failed attempts in the same window → fire an
-    admin alert via the notification engine (best-effort, never fatal).
+    (5 min), from one address or on one name → automatic temporary block for
+    ``TEMP_BLOCK_SECONDS`` (10 min).
+  - ``ALERT_THRESHOLD`` (3) failed attempts in the same window → a structured
+    warning line for log pipelines.
 
-Retention: ``RETENTION_DAYS`` (90). Purged by the scheduler.
+A neutralised failure (``cleared_at`` set) is kept but no counter counts it: a
+successful sign-in neutralises its name's recent failures in the same scope.
+
+Retention: ``RETENTION_DAYS`` (90), dropped by the admin purge.
 """
 from __future__ import annotations
 
@@ -18,7 +21,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 
 from fastapi import HTTPException, status
-from sqlalchemy import and_, delete, func, or_, select
+from sqlalchemy import and_, delete, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.security import SecurityAttempt, SecurityBlock
@@ -38,50 +41,29 @@ TEMP_BLOCK_SECONDS = 600
 RETENTION_DAYS = 90
 
 
-async def count_recent_failures(
-    db: AsyncSession,
-    ip: str,
-    username: str | None,
-    scope: str,
-    within_seconds: int = FAIL_WINDOW_SECONDS,
-) -> int:
-    """Return the username-specific counter when available, otherwise the IP counter."""
-    username_failures = await _count_recent_username_failures(
-        db, username, scope, within_seconds,
+def _counted_failures(scope: str) -> tuple:
+    """The failures of ``scope`` that still count: recent and not neutralised."""
+    cutoff = datetime.now(timezone.utc) - timedelta(seconds=FAIL_WINDOW_SECONDS)
+    return (
+        SecurityAttempt.success == 0,
+        SecurityAttempt.scope == scope,
+        SecurityAttempt.created_at >= cutoff,
+        SecurityAttempt.cleared_at.is_(None),
     )
-    if username and username_failures:
-        return username_failures
-    return await _count_recent_ip_failures(db, ip, scope, within_seconds)
 
 
-async def _count_recent_ip_failures(
-    db: AsyncSession, ip: str, scope: str, within_seconds: int,
-) -> int:
-    cutoff = datetime.now(timezone.utc) - timedelta(seconds=within_seconds)
+async def _count_recent_ip_failures(db: AsyncSession, ip: str, scope: str) -> int:
     stmt = select(func.count()).select_from(SecurityAttempt).where(
-        and_(
-            SecurityAttempt.success == 0,
-            SecurityAttempt.scope == scope,
-            SecurityAttempt.created_at >= cutoff,
-            SecurityAttempt.ip == ip,
-        )
+        *_counted_failures(scope), SecurityAttempt.ip == ip,
     )
     return (await db.execute(stmt)).scalar() or 0
 
 
-async def _count_recent_username_failures(
-    db: AsyncSession, username: str | None, scope: str, within_seconds: int,
-) -> int:
+async def _count_recent_username_failures(db: AsyncSession, username: str | None, scope: str) -> int:
     if not username:
         return 0
-    cutoff = datetime.now(timezone.utc) - timedelta(seconds=within_seconds)
     stmt = select(func.count()).select_from(SecurityAttempt).where(
-        and_(
-            SecurityAttempt.success == 0,
-            SecurityAttempt.scope == scope,
-            SecurityAttempt.created_at >= cutoff,
-            SecurityAttempt.username == username,
-        )
+        *_counted_failures(scope), SecurityAttempt.username == username,
     )
     return (await db.execute(stmt)).scalar() or 0
 
@@ -126,7 +108,8 @@ async def record_attempt(
     success: bool,
     user_agent: str | None = None,
 ) -> None:
-    """Persist an attempt row. Failures may trigger auto-block / alert below."""
+    """Persist an attempt row. Failures may trigger auto-block / alert below;
+    a success goes through ``record_success``."""
     db.add(SecurityAttempt(
         ip=ip,
         username=username,
@@ -134,6 +117,36 @@ async def record_attempt(
         success=1 if success else 0,
         user_agent=(user_agent or "")[:300] or None,
     ))
+    await db.commit()
+
+
+async def record_success(
+    db: AsyncSession,
+    ip: str,
+    username: str | None,
+    scope: str,
+    user_agent: str | None = None,
+) -> None:
+    """Log a successful sign-in: the name's recent failures in this scope stop counting.
+
+    Keyed on the name and the scope only: someone else signing in from the same
+    address never clears a victim's failures, and an Emby success never clears
+    the admin password's.
+    """
+    db.add(SecurityAttempt(
+        ip=ip,
+        username=username,
+        scope=scope,
+        success=1,
+        user_agent=(user_agent or "")[:300] or None,
+    ))
+    if username:
+        await db.execute(
+            update(SecurityAttempt)
+            .where(*_counted_failures(scope), SecurityAttempt.username == username)
+            .values(cleared_at=datetime.now(timezone.utc))
+            .execution_options(synchronize_session="fetch")
+        )
     await db.commit()
 
 
@@ -145,12 +158,16 @@ async def _auto_block(
     scope: str,
     reason_suffix: str,
 ) -> None:
-    """Auto-block after ``FAIL_BLOCK_THRESHOLD`` failures on one identity."""
+    """Auto-block after ``FAIL_BLOCK_THRESHOLD`` failures on one identity.
+
+    Only an earlier automatic block is reused: an admin's own temporary block on
+    the same identity keeps its end and reason.
+    """
     until = datetime.now(timezone.utc) + timedelta(seconds=TEMP_BLOCK_SECONDS)
+    reason = f"auto_block_bruteforce_{reason_suffix}:{scope}"
     filters = [
         SecurityBlock.scope == scope,
-        SecurityBlock.permanent == 0,
-        SecurityBlock.created_by.is_(None),
+        SecurityBlock.automatic == 1,
         SecurityBlock.ip.is_(ip) if ip is None else SecurityBlock.ip == ip,
         SecurityBlock.username.is_(username) if username is None else SecurityBlock.username == username,
     ]
@@ -159,21 +176,20 @@ async def _auto_block(
     )).scalars().first()
     if existing:
         existing.blocked_until = until
-        existing.username = username
-        existing.ip = ip
-        existing.reason = f"auto_block_bruteforce_{reason_suffix}:{scope}"
+        existing.reason = reason
     else:
         db.add(SecurityBlock(
             ip=ip,
             username=username,
             scope=scope,
             permanent=0,
+            automatic=1,
             blocked_until=until,
-            reason=f"auto_block_bruteforce_{reason_suffix}:{scope}",
+            reason=reason,
         ))
     await db.commit()
     logger.warning(
-        "[SECURITY] auto-block scope=%s ip=%s user=%s reason=%s",
+        "[SECURITY] auto-block scope=%s ip=%s user=%r reason=%s",
         scope,
         ip,
         username,
@@ -199,7 +215,7 @@ async def _maybe_alert(
     if ip_failures != ALERT_THRESHOLD and username_failures != ALERT_THRESHOLD:
         return
     logger.warning(
-        "[SECURITY_ALERT] scope=%s ip=%s ip_failures=%d user=%s user_failures=%d",
+        "[SECURITY_ALERT] scope=%s ip=%s ip_failures=%d user=%r user_failures=%d",
         scope,
         ip,
         ip_failures,
@@ -217,10 +233,8 @@ async def record_failure(
 ) -> None:
     """Log a failed attempt, then decide whether to alert or auto-block."""
     await record_attempt(db, ip, username, scope, success=False, user_agent=user_agent)
-    ip_failures = await _count_recent_ip_failures(db, ip, scope, FAIL_WINDOW_SECONDS)
-    username_failures = await _count_recent_username_failures(
-        db, username, scope, FAIL_WINDOW_SECONDS,
-    )
+    ip_failures = await _count_recent_ip_failures(db, ip, scope)
+    username_failures = await _count_recent_username_failures(db, username, scope)
     if ip_failures >= FAIL_BLOCK_THRESHOLD:
         await _auto_block(
             db,
@@ -241,7 +255,7 @@ async def record_failure(
 
 
 async def purge_old_attempts(db: AsyncSession) -> int:
-    """Called by the scheduler. Drops rows older than ``RETENTION_DAYS``."""
+    """Called by the admin purge. Drops rows older than ``RETENTION_DAYS``."""
     cutoff = datetime.now(timezone.utc) - timedelta(days=RETENTION_DAYS)
     result = await db.execute(
         delete(SecurityAttempt).where(SecurityAttempt.created_at < cutoff)

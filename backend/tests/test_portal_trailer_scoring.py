@@ -1,4 +1,4 @@
-"""Scoring rules used by ``_pick_video`` (portal trailers cascade, bug #99).
+"""Scoring rules used by ``_pick_video`` (portal trailers cascade).
 
 The hero banner picks the trailer language via a cascade
 ``user_language → en → original → null`` (see ``_resolve_tmdb_trailer``),

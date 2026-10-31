@@ -1522,6 +1522,8 @@
       "addBlock": "Block IP / user",
       "ip": "IP address",
       "localAddress": "Local",
+      "unknownAddress": "Unknown",
+      "targetIp": "IP — {ip}",
       "username": "Username",
       "scope": "Scope",
       "kind": "Kind",
@@ -1539,7 +1541,29 @@
       "success": "Success",
       "failure": "Failure",
       "noBlocks": "No active block.",
-      "noAttempts": "No attempts to show."
+      "noAttempts": "No attempts to show.",
+      "loadFailed": "Couldn't load the blocks and attempts.",
+      "listUnavailable": "List unavailable. Try again with \"Refresh\".",
+      "unblockFailed": "Unblocking failed.",
+      "blockFailed": "Blocking failed.",
+      "blockIpConfirmTitle": "Block this address?",
+      "blockIpConfirmMessage": "{ip} will be blocked for good ({scope}). You can unblock it under \"Active blocks\".",
+      "permanentHint": "The block is permanent: lift it under \"Active blocks\".",
+      "errors": {
+        "self_block_forbidden": "You can't block your own account or your current address.",
+        "invalid_ip": "This isn't a valid IP address."
+      },
+      "scopes": {
+        "all": "All sign-ins",
+        "admin": "Admin sign-in",
+        "admin_password": "Password change",
+        "portal": "Portal sign-in"
+      },
+      "reasons": {
+        "autoIp": "Automatic (address)",
+        "autoName": "Automatic (name)",
+        "fromAttempts": "From recent attempts"
+      }
     }
   },
   "scheduler": {
