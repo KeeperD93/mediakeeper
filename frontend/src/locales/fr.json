@@ -1522,6 +1522,8 @@
       "addBlock": "Bloquer IP / utilisateur",
       "ip": "Adresse IP",
       "localAddress": "Local",
+      "unknownAddress": "Inconnue",
+      "targetIp": "IP — {ip}",
       "username": "Utilisateur",
       "scope": "Périmètre",
       "kind": "Type",
@@ -1539,7 +1541,29 @@
       "success": "Succès",
       "failure": "Échec",
       "noBlocks": "Aucun blocage actif.",
-      "noAttempts": "Aucune tentative à afficher."
+      "noAttempts": "Aucune tentative à afficher.",
+      "loadFailed": "Impossible de charger les blocages et les tentatives.",
+      "listUnavailable": "Liste indisponible. Réessayez avec « Actualiser ».",
+      "unblockFailed": "Le déblocage a échoué.",
+      "blockFailed": "Le blocage a échoué.",
+      "blockIpConfirmTitle": "Bloquer cette adresse ?",
+      "blockIpConfirmMessage": "{ip} sera bloquée définitivement ({scope}). Vous pourrez la débloquer dans « Blocages actifs ».",
+      "permanentHint": "Le blocage est permanent : levez-le depuis « Blocages actifs ».",
+      "errors": {
+        "self_block_forbidden": "Impossible de bloquer votre propre compte ou votre adresse actuelle.",
+        "invalid_ip": "Ce n'est pas une adresse IP valide."
+      },
+      "scopes": {
+        "all": "Toutes les connexions",
+        "admin": "Connexion admin",
+        "admin_password": "Changement de mot de passe",
+        "portal": "Connexion au portail"
+      },
+      "reasons": {
+        "autoIp": "Automatique (adresse)",
+        "autoName": "Automatique (nom)",
+        "fromAttempts": "Depuis les tentatives"
+      }
     }
   },
   "scheduler": {

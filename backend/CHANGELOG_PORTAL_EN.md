@@ -14,6 +14,9 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Fixed
+- Sign-in — three real tries, counter reset after a successful sign-in.
+
 ## [1.0.0-rc.9] - 2026-10-23
 
 ### Added

@@ -45,7 +45,7 @@ async def authenticate_emby_user(
         return None
 
     if res.status_code != 200:
-        logger.warning("[EMBY_AUTH] Failed for user=%s (HTTP %s)", username, res.status_code)
+        logger.warning("[EMBY_AUTH] Failed for user=%r (HTTP %s)", username, res.status_code)
         return None
 
     emby_data = res.json()
@@ -66,7 +66,7 @@ async def authenticate_emby_user(
     )
     user = result.scalar_one_or_none()
     if not user:
-        logger.warning("[EMBY_AUTH] Login refused: %s not imported", username)
+        logger.warning("[EMBY_AUTH] Login refused: %r not imported", username)
         return None
 
     prof_result = await db.execute(
@@ -74,11 +74,12 @@ async def authenticate_emby_user(
     )
     profile = prof_result.scalar_one_or_none()
     if not profile:
-        logger.warning("[EMBY_AUTH] Login refused: %s has no profile", username)
+        logger.warning("[EMBY_AUTH] Login refused: %r has no profile", username)
         return None
 
-    if not profile.account_active:
-        logger.warning("[EMBY_AUTH] Disabled account: %s", username)
+    # Emby may still accept the password of an account disabled here.
+    if not user.is_active or not profile.account_active:
+        logger.warning("[EMBY_AUTH] Disabled account: %r", username)
         return None
 
     # Catch profiles whose access window has elapsed but that the
@@ -87,7 +88,7 @@ async def authenticate_emby_user(
     # by the ``account_active`` gate above.
     from .admin_users_expiration import expire_profile_if_due
     if await expire_profile_if_due(db, profile, user):
-        logger.warning("[EMBY_AUTH] Expired account: %s", username)
+        logger.warning("[EMBY_AUTH] Expired account: %r", username)
         return None
 
     # Keep the avatar in sync with Emby on every successful login so

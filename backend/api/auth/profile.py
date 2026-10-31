@@ -14,7 +14,7 @@ from core.rate_limit import admin_user_or_ip_key, limiter
 from core.security import create_access_token, hash_password, verify_password
 from models.portal.profile import UserProfile
 from models.user import User
-from services.security import ensure_not_blocked, record_attempt, record_failure
+from services.security import ensure_not_blocked, record_failure, record_success
 
 from ._cookies import PORTAL_COOKIE_NAME, _clear_jwt_cookie, _set_jwt_cookie
 from ._csrf import clear_csrf_cookie, ensure_csrf_cookie, require_csrf, rotate_csrf_cookie
@@ -104,9 +104,7 @@ async def change_password(
     await db.commit()
     await db.refresh(user)
 
-    await record_attempt(
-        db, client_ip, tracking_username, PASSWORD_CHANGE_SCOPE, success=True, user_agent=user_agent,
-    )
+    await record_success(db, client_ip, tracking_username, PASSWORD_CHANGE_SCOPE, user_agent)
     new_token = create_access_token({"sub": user.username, "scope": "admin"})
     _set_jwt_cookie(response, new_token, request)
     rotate_csrf_cookie(response, request)
