@@ -237,9 +237,9 @@ async def test_post_block_stores_the_ip_in_canonical_form(client, admin_user, db
 
 
 @pytest.mark.asyncio
-async def test_post_block_keeps_the_unknown_marker_as_typed(client, admin_user, db_session):
-    """The quick block of an attempt without a usable IP sends "unknown": it is
-    stored as typed, so it matches the sign-ins recorded under that marker."""
+async def test_post_block_accepts_the_unknown_marker(client, admin_user, db_session):
+    """An operator whose own address is readable may block the marker by hand:
+    it matches the sign-ins recorded under it."""
     _auth_admin(client, admin_user)
 
     resp = await client.post("/api/security/blocks", json={

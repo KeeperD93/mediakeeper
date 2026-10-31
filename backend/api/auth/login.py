@@ -1,7 +1,6 @@
 """Endpoints /login and /portal-login."""
 import logging
 import secrets
-from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import func, select
@@ -12,13 +11,14 @@ from core.database import get_db
 from core.proxy import get_client_ip
 from core.rate_limit import ip_key, limiter
 from core.security import (
+    EXTERNAL_AUTH_PASSWORD_SENTINEL,
     create_access_token,
+    get_backoffice_admin_usernames,
     hash_password,
     is_backoffice_admin,
     is_external_auth_only_password,
     verify_password,
 )
-from models.portal.profile import UserProfile
 from models.user import User
 from services.portal.emby_auth import authenticate_emby_user
 from services.portal.maintenance import is_maintenance_enabled
@@ -29,14 +29,14 @@ from ._csrf import rotate_csrf_cookie
 from ._portal import (
     _safe_get_unread_news_count,
     _safe_serialize_portal_ui_flags,
+    _stamp_admin_login,
     grant_portal_admin_session,
 )
 from ._schemas import LoginRequest
 from services.security import (
-    count_recent_failures,
     ensure_not_blocked,
-    record_attempt,
     record_failure,
+    record_success,
 )
 
 # Pre-hashed throwaway password. Verifying an attacker's input against it when
@@ -44,42 +44,17 @@ from services.security import (
 # time whether or not the account exists, closing the timing oracle (CWE-208).
 _DUMMY_PASSWORD_HASH = hash_password(secrets.token_urlsafe(16))
 
-
-async def _stamp_admin_login(
-    db: AsyncSession,
-    user: User,
-    *,
-    client_ip: str,
-    user_agent: str | None,
-) -> None:
-    """Mirror what the portal login does: stamp the UserProfile so the
-    admin "Users" page can surface a real "last login" entry for local
-    backoffice admins (otherwise the profile only sees /me pings)."""
-    try:
-        profile = (
-            await db.execute(
-                select(UserProfile).where(UserProfile.user_id == user.id)
-            )
-        ).scalar_one_or_none()
-        if not profile:
-            return
-        now = datetime.now(timezone.utc)
-        profile.last_login_at = now
-        profile.last_seen_at = now
-        profile.last_login_ip = client_ip
-        profile.last_login_user_agent = (user_agent or "")[:255] or None
-        db.add(profile)
-        await db.commit()
-    except Exception:
-        logger.exception("[LOGIN] Profile stamp failed for user_id=%s", user.id)
-        await db.rollback()
-
-# Above this many recent portal failures, we stop forwarding the attempt to
-# Emby to avoid triggering Emby's own lockout on the target user account.
-EMBY_SHADOW_SKIP_THRESHOLD = 1
-
 logger = logging.getLogger("mediakeeper.api.auth")
 router = APIRouter()
+
+
+def _local_password_ok(password: str, user: User | None) -> bool:
+    """The local password check, with bcrypt run even for an unknown name. The
+    placeholder of imported accounts is public: typed, it is a wrong password."""
+    if user is None:
+        verify_password(password, _DUMMY_PASSWORD_HASH)
+        return False
+    return verify_password(password, user.hashed_password) and password != EXTERNAL_AUTH_PASSWORD_SENTINEL
 
 
 @router.post("/login")
@@ -99,14 +74,7 @@ async def login(req: LoginRequest, request: Request, response: Response, db: Asy
     )
     user   = result.scalar_one_or_none()
 
-    if user:
-        password_ok = verify_password(req.password, user.hashed_password)
-    else:
-        # No such user: still run bcrypt so the response time can't reveal it.
-        verify_password(req.password, _DUMMY_PASSWORD_HASH)
-        password_ok = False
-
-    if not password_ok:
+    if not _local_password_ok(req.password, user):
         await record_failure(db, client_ip, tracking_username, "admin", user_agent)
         logger.warning("[LOGIN] Failure for user=%r from %s", req.username, client_ip)
         raise HTTPException(
@@ -115,35 +83,69 @@ async def login(req: LoginRequest, request: Request, response: Response, db: Asy
         )
 
     if not user.is_active:
-        logger.warning("[LOGIN] Account disabled: %s", req.username)
+        logger.warning("[LOGIN] Account disabled: %r", req.username)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="account_disabled",
         )
-    if not is_backoffice_admin(user.username) or is_external_auth_only_password(user.hashed_password):
-        await record_failure(db, client_ip, tracking_username, "admin", user_agent)
+    # The password is right: refusing the backoffice is no guess to count.
+    if not is_backoffice_admin(user.username):
         logger.warning("[LOGIN] Backoffice refused for user=%r from %s", req.username, client_ip)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="backoffice_forbidden",
         )
 
-    token = create_access_token({"sub": user.username, "scope": "admin"})
+    # Read before the profile stamp: a failed stamp rolls the session back.
+    user_id, username, must_change = user.id, user.username, user.must_change_password
+    token = create_access_token({"sub": username, "scope": "admin"})
     _set_jwt_cookie(response, token, request)
     rotate_csrf_cookie(response, request)
-    await record_attempt(db, client_ip, tracking_username, "admin", success=True, user_agent=user_agent)
+    await record_success(db, client_ip, tracking_username, "admin", user_agent)
     await _stamp_admin_login(db, user, client_ip=client_ip, user_agent=user_agent)
     # Once authenticated, identify the actor by numeric id rather than
     # username: a successful login no longer needs the PII handle in
     # logs, and an admin can resolve the id from the users table. The
     # FAILURE branches above keep the username clear on purpose so an
     # operator can still spot enumeration / brute-force patterns.
-    logger.info("[LOGIN] Success for user_id=%s", user.id)
+    logger.info("[LOGIN] Success for user_id=%s", user_id)
 
     return {
         "success":              True,
-        "must_change_password":  user.must_change_password,
-        "username":              user.username,
+        "must_change_password":  must_change,
+        "username":              username,
+    }
+
+
+async def _admin_signed_in(
+    request: Request,
+    response: Response,
+    db: AsyncSession,
+    user: User,
+    *,
+    client_ip: str,
+    tracking_username: str,
+    user_agent: str | None,
+) -> dict:
+    """Backoffice and portal sessions for an admin whose local password matched."""
+    # Read before the profile stamp: a failed stamp rolls the session back.
+    user_id, username, must_change = user.id, user.username, user.must_change_password
+    token = create_access_token({"sub": username, "scope": "admin"})
+    _set_jwt_cookie(response, token, request)
+    rotate_csrf_cookie(response, request)
+    await grant_portal_admin_session(request, response, user, db)
+    await record_success(db, client_ip, tracking_username, "admin", user_agent)
+    await _stamp_admin_login(db, user, client_ip=client_ip, user_agent=user_agent)
+    logger.info("[PORTAL_LOGIN] Admin success for user_id=%s", user_id)
+    # Same avatar/level/tier as /auth/me so the topbar rank ring renders on
+    # login instead of falling back to bronze until the next /me (page refresh).
+    identity = await resolve_admin_identity(db, user_id)
+    return {
+        "success": True,
+        "scope": "admin",
+        "must_change_password": must_change,
+        "username": username,
+        **identity,
     }
 
 
@@ -180,85 +182,52 @@ async def portal_login(
     )
     user = result.scalar_one_or_none()
 
-    # Use canonical username (DB) when the lookup matched so the
-    # backoffice gate honours MK_ADMIN_USERS regardless of the casing
-    # the user typed. Falls back to the typed name when no DB row
-    # matched — keeps the existing Emby cascade behaviour.
-    if is_backoffice_admin(user.username if user else username):
-        if user:
-            local_admin_ok = bool(
-                verify_password(req.password, user.hashed_password)
-                and not is_external_auth_only_password(user.hashed_password)
+    # An account is checked by its canonical name, so MK_ADMIN_USERS holds in
+    # any casing typed. With no account the name is compared case-blind, like
+    # the lookup: a listed name then costs the same bcrypt time either way.
+    admin_listed = (
+        is_backoffice_admin(user.username) if user
+        else tracking_username in {name.lower() for name in get_backoffice_admin_usernames()}
+    )
+    if admin_listed:
+        if _local_password_ok(req.password, user):
+            if not user.is_active:
+                logger.warning("[PORTAL_LOGIN] Account disabled for user=%r from %s", username, client_ip)
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="account_disabled",
+                )
+            return await _admin_signed_in(
+                request, response, db, user,
+                client_ip=client_ip, tracking_username=tracking_username, user_agent=user_agent,
             )
-        else:
-            # Admin-listed username with no account row: run bcrypt anyway so
-            # the timing matches a real account with a wrong password.
-            verify_password(req.password, _DUMMY_PASSWORD_HASH)
-            local_admin_ok = False
-
-        if user and not user.is_active:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="account_disabled",
-            )
-
-        if local_admin_ok:
-            token = create_access_token({"sub": user.username, "scope": "admin"})
-            _set_jwt_cookie(response, token, request)
-            rotate_csrf_cookie(response, request)
-            await grant_portal_admin_session(request, response, user, db)
-            await record_attempt(db, client_ip, tracking_username, "admin", success=True, user_agent=user_agent)
-            await _stamp_admin_login(db, user, client_ip=client_ip, user_agent=user_agent)
-            logger.info("[PORTAL_LOGIN] Admin success for user_id=%s", user.id)
-            # Same avatar/level/tier as /auth/me so the topbar rank ring
-            # renders on login instead of falling back to bronze until the
-            # next /me (page refresh).
-            identity = await resolve_admin_identity(db, user.id)
-            return {
-                "success": True,
-                "scope": "admin",
-                "must_change_password": user.must_change_password,
-                "username": user.username,
-                **identity,
-            }
-
         logger.info(
             "[PORTAL_LOGIN] Emby fallback for user=%r "
             "(backoffice credentials invalid or external-only account)",
             username,
         )
 
-    if user and not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="account_disabled",
-        )
-
-    # Gate the portal scope here — only callers actually falling into
-    # the Emby cascade are subject to portal brute-force blocks.
-    await ensure_not_blocked(db, client_ip, tracking_username, "portal")
-
-    # Shadow-skip the Emby call once more than EMBY_SHADOW_SKIP_THRESHOLD recent
-    # failures are on record for this username (or, with none, this IP). Emby
-    # maintains its own lockout counter on the target account — forwarding every
-    # failed attempt would trigger it before our own block kicks in.
-    recent_portal_fails = await count_recent_failures(
-        db, client_ip, tracking_username, "portal",
+    # A refused try at an admin's local password counts in the admin scope, which
+    # only a local success clears: knowing the Emby password must not reset it.
+    # A listed name with no account counts there too, at the same bcrypt time
+    # (dummy hash), so neither the delay nor the blocks tell whether it exists.
+    # An imported account has no local password, only its Emby one to protect.
+    imported = admin_listed and is_external_auth_only_password(
+        user.hashed_password if user else _DUMMY_PASSWORD_HASH
     )
-    if recent_portal_fails > EMBY_SHADOW_SKIP_THRESHOLD:
-        await record_failure(db, client_ip, tracking_username, "portal", user_agent)
-        logger.warning(
-            "[PORTAL_LOGIN] Shadow-skip Emby call for user=%s ip=%s (fails=%s)",
-            username, client_ip, recent_portal_fails,
-        )
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="invalid_credentials",
-        )
+    local_password_guessed = admin_listed and not imported
+    failure_scope = "admin" if local_password_guessed else "portal"
+    try:
+        # Only callers falling into the Emby cascade face portal blocks.
+        await ensure_not_blocked(db, client_ip, tracking_username, "portal")
+    except HTTPException:
+        if local_password_guessed:
+            await record_failure(db, client_ip, tracking_username, "admin", user_agent)
+        raise
 
     portal_session = await authenticate_emby_user(db, username, req.password)
     if not portal_session:
-        await record_failure(db, client_ip, tracking_username, "portal", user_agent)
+        await record_failure(db, client_ip, tracking_username, failure_scope, user_agent)
         logger.warning("[PORTAL_LOGIN] Requests failure for user=%r from %s", username, client_ip)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -278,7 +247,7 @@ async def portal_login(
 
     _set_portal_jwt_cookie(response, portal_session["token"], request)
     rotate_csrf_cookie(response, request)
-    await record_attempt(db, client_ip, tracking_username, "portal", success=True, user_agent=user_agent)
+    await record_success(db, client_ip, tracking_username, "portal", user_agent)
 
     portal_profile = portal_session["profile"]
     portal_user_id = portal_user.id

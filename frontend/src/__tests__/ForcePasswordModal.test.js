@@ -39,12 +39,16 @@ async function changeFails(code) {
 }
 
 describe('ForcePasswordModal — a failed change', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+  })
 
-  it("shows the server's reason", async () => {
+  it("shows the server's reason and logs the error", async () => {
     expect((await changeFails('current_password_invalid')).text()).toBe(
       'message:current_password_invalid',
     )
+    expect(console.error).toHaveBeenCalledWith('[ForcePasswordModal.submit]', expect.any(Error))
   })
 
   it('names the failed action for an unknown answer', async () => {

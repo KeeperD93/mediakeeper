@@ -1,11 +1,11 @@
 """Counting rules for Top 20, Top genre and the 85% watch threshold.
 
 Covers:
-  - Bug #7  — Top 20: a series watched as N episodes by a single user
-              must contribute 1, not N (count distinct viewers).
-  - Bug #12 — Sub-85% sessions never qualify (movies and episodes).
-  - Bug #16 — Top genre: a series binged by one user counts +1 per
-              genre, not +N where N is the number of episodes.
+  - Top 20: a series watched as N episodes by a single user
+    must contribute 1, not N (count distinct viewers).
+  - Sub-85% sessions never qualify (movies and episodes).
+  - Top genre: a series binged by one user counts +1 per
+    genre, not +N where N is the number of episodes.
 """
 from __future__ import annotations
 
@@ -117,9 +117,7 @@ def now_in_month():
     return now.replace(day=1, hour=12, minute=0, second=0, microsecond=0) + timedelta(hours=1)
 
 
-# ---------------------------------------------------------------------------
-# Bug #7 — distinct counting in Top 20
-# ---------------------------------------------------------------------------
+# Distinct counting in Top 20
 
 
 @pytest.mark.asyncio
@@ -165,9 +163,7 @@ async def test_top20_counts_series_once_per_user_month(db_session, now_in_month)
     assert counts == {("Show A", "tv"): 1, ("Film B", "movie"): 1}
 
 
-# ---------------------------------------------------------------------------
-# Bug #12 — sub-85% sessions are dropped (movies + episodes)
-# ---------------------------------------------------------------------------
+# Sub-85% sessions are dropped (movies + episodes)
 
 
 @pytest.mark.asyncio
@@ -267,9 +263,7 @@ async def test_top20_skips_episode_under_85pct(db_session, now_in_month):
     assert counts == {("Show C", "tv"): 1}
 
 
-# ---------------------------------------------------------------------------
-# Bug #16 — genres credited once per (user × media), not per session
-# ---------------------------------------------------------------------------
+# Genres credited once per (user × media), not per session
 
 
 @pytest.mark.asyncio

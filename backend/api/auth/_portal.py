@@ -1,5 +1,6 @@
 """Requests admin session: auto-provisioned profile + rq_token issuance."""
 import logging
+from datetime import datetime, timezone
 
 from fastapi import Request, Response
 from sqlalchemy import select
@@ -57,6 +58,39 @@ async def _safe_get_unread_news_count(db: AsyncSession, user_id: int) -> int:
             exc,
         )
         return 0
+
+
+async def _stamp_admin_login(
+    db: AsyncSession,
+    user: User,
+    *,
+    client_ip: str,
+    user_agent: str | None,
+) -> None:
+    """Stamp the UserProfile with this sign-in so the admin "Users" page
+    can surface a real "last login" entry for local backoffice admins
+    (otherwise the profile only sees /me pings). Best effort: a failure is
+    logged and rolled back, the sign-in goes on."""
+    # Read first: a commit that fails in its flush expires every loaded object.
+    user_id = user.id
+    try:
+        profile = (
+            await db.execute(
+                select(UserProfile).where(UserProfile.user_id == user_id)
+            )
+        ).scalar_one_or_none()
+        if not profile:
+            return
+        now = datetime.now(timezone.utc)
+        profile.last_login_at = now
+        profile.last_seen_at = now
+        profile.last_login_ip = client_ip
+        profile.last_login_user_agent = (user_agent or "")[:255] or None
+        db.add(profile)
+        await db.commit()
+    except Exception:
+        logger.exception("[LOGIN] Profile stamp failed for user_id=%s", user_id)
+        await db.rollback()
 
 
 async def ensure_portal_admin_profile(

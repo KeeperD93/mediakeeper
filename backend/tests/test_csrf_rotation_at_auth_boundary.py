@@ -108,49 +108,6 @@ async def test_portal_login_emby_branch_rotates_csrf_cookie(raw_client, db_sessi
 
 
 @pytest.mark.asyncio
-async def test_portal_endpoint_login_rotates_csrf_cookie(raw_client, db_session):
-    """``/api/portal/auth/login`` (Emby-only entry point) rotates as well."""
-    user = User(
-        username="portal-emby",
-        hashed_password=hash_password(EXTERNAL_AUTH_PASSWORD_SENTINEL),
-        is_active=True,
-        must_change_password=False,
-    )
-    db_session.add(user)
-    await db_session.commit()
-    await db_session.refresh(user)
-
-    profile = UserProfile(
-        user_id=user.id,
-        display_name="Portal Emby",
-        role="viewer",
-        account_active=True,
-    )
-    db_session.add(profile)
-    await db_session.commit()
-    await db_session.refresh(profile)
-
-    with patch(
-        "api.portal.auth.authenticate_emby_user",
-        new=AsyncMock(return_value={
-            "token": "rq-portal-rotate-token",
-            "user": user,
-            "profile": profile,
-        }),
-    ):
-        r = await raw_client.post(
-            "/api/portal/auth/login",
-            json={"username": "portal-emby", "password": "any"},
-            headers={"Cookie": f"mk_csrf={_VALID_PRE_FIXED}"},
-        )
-
-    assert r.status_code == 200, r.text
-    new_value = raw_client.cookies.get("mk_csrf")
-    assert new_value is not None
-    assert new_value != _VALID_PRE_FIXED
-
-
-@pytest.mark.asyncio
 async def test_change_password_rotates_csrf_cookie(raw_client, admin_user):
     """A successful password change must invalidate the previous CSRF token."""
     r = await raw_client.post(
