@@ -446,6 +446,7 @@
     "justLoggedOut": "Vous avez été déconnecté.",
     "sessionExpired": "Session expirée, veuillez vous reconnecter.",
     "errors": {
+      "failed": "Connexion impossible pour le moment. Réessayez.",
       "login_blocked": "Connexion bloquée pour le moment. Réessayez plus tard ou contactez l'administrateur.",
       "blockedWait": "Connexion bloquée pour le moment. Réessayez dans {wait}.",
       "login_rate_limited": "Trop de tentatives en peu de temps. Réessayez dans un instant.",

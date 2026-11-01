@@ -83,6 +83,20 @@ describe('signInErrorMessage', () => {
     expect(message('invalid_credentials', 42)).toBe('Identifiants incorrects.')
   })
 
+  it.each([
+    'Failed to fetch',
+    'NetworkError when attempting to fetch resource.',
+    'Load failed',
+    'http_502',
+    'a_code_nobody_translated',
+  ])('never shows %s as it is', code => {
+    expect(message(code)).toBe('Connexion impossible pour le moment. Réessayez.')
+  })
+
+  it('keeps the shared text of a known code', () => {
+    expect(message('starting')).toBe('Service en cours de démarrage, veuillez patienter…')
+  })
+
   it('stays silent when the shared toast already spoke', () => {
     expect(message('rate_limited_notified', null)).toBe('')
   })
@@ -127,6 +141,19 @@ describe('a refusal from the server to the sign-in page', () => {
 
     expect(signInErrorMessage(await signIn())).toBe(
       "Ce compte n'est plus actif. Contactez l'administrateur.",
+    )
+  })
+
+  it('reads a real network cut as the page message', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw new TypeError('Failed to fetch')
+      }),
+    )
+
+    expect(signInErrorMessage(await signIn())).toBe(
+      'Connexion impossible pour le moment. Réessayez.',
     )
   })
 

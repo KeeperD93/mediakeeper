@@ -19,6 +19,8 @@ export interface SignInFailure {
  * The sign-in page's text for a failed sign-in: the wait when the server gave
  * one, rounded up to the minute past 60 s. Past an hour it no longer helps to
  * count, and the text without a wait tells the person who to contact instead.
+ * A failure with no known code (a network cut, a proxy's error page) gets the
+ * page's own message rather than the browser's raw English text.
  */
 export function signInErrorMessage({ message, retryAfter }: SignInFailure): string {
   const t = i18n.global.t as unknown as (key: string, named?: Record<string, unknown>) => string
@@ -30,5 +32,5 @@ export function signInErrorMessage({ message, retryAfter }: SignInFailure): stri
         : t('common.duration.min', { n: Math.ceil(retryAfter / SECONDS_PER_MINUTE) })
     return t(waitMessage, { wait })
   }
-  return resolveScopedError('login.errors', message)
+  return resolveScopedError('login.errors', message, 'login.errors.failed')
 }

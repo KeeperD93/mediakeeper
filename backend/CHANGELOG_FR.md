@@ -22,6 +22,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Sécurité — « Débloquer » libère vraiment la personne, adresse liée comprise.
 - Connexion — trois vrais essais par nom, remis à zéro après une connexion réussie.
 - Connexion — messages clairs : attente affichée, serveur média injoignable, compte inactif.
+- Connexion — double appui ou Entrée maintenue : un seul essai compté.
 - Sécurité — page de connexion : 3 erreurs sur un compte admin le bloquent 10 min.
 - Sécurité — connexion : rien n'est révélé sur un compte avant son mot de passe.
 - Connexion — erreur serveur évitée quand l'enregistrement de la connexion échoue.

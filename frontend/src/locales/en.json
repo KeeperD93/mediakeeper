@@ -446,6 +446,7 @@
     "justLoggedOut": "You have been signed out.",
     "sessionExpired": "Session expired, please log in again.",
     "errors": {
+      "failed": "Couldn't sign in right now. Please try again.",
       "login_blocked": "Sign-in is blocked for now. Try again later or contact the administrator.",
       "blockedWait": "Sign-in is blocked for now. Try again in {wait}.",
       "login_rate_limited": "Too many attempts in a short time. Try again in a moment.",

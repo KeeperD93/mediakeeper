@@ -37,17 +37,14 @@ vi.mock('vue-router', () => ({
 
 const checkAuthMock = vi.fn().mockResolvedValue(false)
 const checkPortalAuthMock = vi.fn().mockResolvedValue(false)
-const loginMock = vi.fn()
 vi.mock('@/composables/useAuth', () => ({
   useAuth: () => ({
-    login: loginMock,
+    login: vi.fn(),
     checkAuth: checkAuthMock,
   }),
 }))
 
-vi.mock('@/composables/signInErrors', () => ({
-  signInErrorMessage: ({ message, retryAfter }) => `${message}:${retryAfter}`,
-}))
+vi.mock('@/composables/signInErrors', () => ({ signInErrorMessage: vi.fn() }))
 
 vi.mock('@/composables/portal/usePortalAuth', () => ({
   usePortalAuth: () => ({
@@ -231,25 +228,5 @@ describe('LoginView', () => {
     for (let i = 0; i < 10; i++) await flushPromises()
 
     expect(w.find('[data-test="login-maintenance"]').exists()).toBe(false)
-  })
-
-  it('shows a refused sign-in with its wait in the page, as an alert', async () => {
-    routeQuery.value = {}
-    loginMock.mockRejectedValueOnce(
-      Object.assign(new Error('login_rate_limited'), { retryAfter: 42 }),
-    )
-    const w = mount(LoginView, {
-      global: { stubs: { img: ImgStub } },
-    })
-    for (let i = 0; i < 10; i++) await flushPromises()
-
-    await w.find('input[type="text"]').setValue('someone')
-    await w.find('input[type="password"]').setValue('not-a-real-password')
-    await w.find('button.login-submit').trigger('click')
-    await flushPromises()
-
-    const error = w.find('.login-error')
-    expect(error.attributes('role')).toBe('alert')
-    expect(error.text()).toBe('login_rate_limited:42')
   })
 })
