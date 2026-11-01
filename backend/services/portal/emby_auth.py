@@ -57,9 +57,17 @@ async def _imported_account(
         select(User, UserProfile)
         .join(UserProfile, UserProfile.user_id == User.id)
         .where(UserProfile.emby_user_id == emby_user_id)
-    )).first()
+    )).all()
+    if len(by_id) == 1:
+        return by_id[0][0], by_id[0][1]
     if by_id:
-        return by_id[0], by_id[1]
+        # A rename followed by the id sync can link two profiles to one server
+        # account: only the name typed can tell which, never a guess.
+        for user, profile in by_id:
+            if user.username.lower() == username.lower():
+                return user, profile
+        logger.warning("[EMBY_AUTH] Login refused: %r matches none of a shared id's profiles", username)
+        return None
 
     # Lookup case-insensitive so a user typing any casing matches the
     # canonical username stored in the DB (Emby itself is case-insensitive
@@ -88,8 +96,9 @@ async def authenticate_emby_user(
     """
     Authenticate against Emby API.
     Returns {"token": jwt, "user": User, "profile": UserProfile}, or None for a
-    refused password or an account never imported, which must read the same.
-    Raises MediaServerUnavailable or AccountInactive for the cases told apart.
+    refused password or an account never imported or never activated, which must
+    read the same. Raises MediaServerUnavailable or AccountInactive for the cases
+    told apart.
     """
     source = await get_active_media_source(db) or {}
     url = source.get("url", "").rstrip("/")
@@ -108,7 +117,8 @@ async def authenticate_emby_user(
                 "Content-Type": "application/json",
             },
         )
-    except (httpx.RequestError, httpx.InvalidURL) as e:
+    except Exception as e:
+        # Whatever stopped the call (network, a bad address or key), nothing judged the password.
         logger.error("[EMBY_AUTH] Connection error: %s", e)
         raise MediaServerUnavailable(MEDIA_SERVER_UNREACHABLE) from e
 
@@ -138,6 +148,12 @@ async def authenticate_emby_user(
 
     # Emby may still accept the password of an account disabled here.
     if not user.is_active or not profile.account_active:
+        # Seen watching or imported, but never let in: told apart, the page would
+        # confirm the password of anyone on the media server. Switching an account
+        # off stamps this date.
+        if profile.tokens_invalidated_at is None:
+            logger.warning("[EMBY_AUTH] Login refused: %r never activated", username)
+            return None
         logger.warning("[EMBY_AUTH] Disabled account: %r", username)
         raise AccountInactive
 

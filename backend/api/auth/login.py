@@ -254,6 +254,9 @@ async def portal_login(
         )
 
     portal_user = portal_session["user"]
+    # The media server may know this account by another name: its blocks still apply.
+    for scope in ("admin", "portal"):
+        await ensure_not_blocked(db, client_ip, portal_user.username.lower(), scope)
     # Maintenance mode locks the portal to admins: a member with valid
     # credentials is refused at the door (already-connected members hit the
     # holding page via the router guard). Admins still get in to manage.

@@ -154,6 +154,21 @@ describe('LoginView — signing in', () => {
     expect(loginMock).toHaveBeenCalledTimes(2)
   })
 
+  it('does not count a held Enter on the button as new tries', async () => {
+    loginMock.mockRejectedValue(wrongPassword())
+    const w = await filledForm()
+    const button = w.find('button.login-submit')
+
+    await button.trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+    vi.setSystemTime(Date.now() + PAUSE_OVER)
+    await button.trigger('keydown', { key: 'Enter', repeat: true })
+    await button.trigger('keydown', { key: 'Enter', repeat: true })
+    await flushPromises()
+
+    expect(loginMock).toHaveBeenCalledTimes(1)
+  })
+
   it('does not hold back a first try, nor one after a form left incomplete', async () => {
     loginMock.mockRejectedValue(wrongPassword())
     const w = await filledForm()

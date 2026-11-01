@@ -117,7 +117,12 @@
               <span>{{ $t('login.remember') }}</span>
             </label>
 
-            <button class="login-submit" :disabled="submitting" @click="doLogin">
+            <button
+              class="login-submit"
+              :disabled="submitting"
+              @click="doLogin"
+              @keydown.enter.prevent="onEnter"
+            >
               <MkSpinner v-if="submitting" size="sm" inline />
               <template v-else>
                 <LogIn :size="15" />

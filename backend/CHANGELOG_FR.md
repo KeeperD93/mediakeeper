@@ -26,6 +26,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Sécurité — page de connexion : 3 erreurs sur un compte admin le bloquent 10 min.
 - Sécurité — connexion : rien n'est révélé sur un compte avant son mot de passe.
 - Connexion — erreur serveur évitée quand l'enregistrement de la connexion échoue.
+- Connexion — erreur serveur évitée quand l'expiration d'un compte échoue.
 - Sécurité — le navigateur retient le nouveau mot de passe après un changement.
 - Sécurité — sur téléphone : fenêtre de blocage en panneau du bas, champs à taille tactile.
 - Sécurité — règles du mot de passe complètes (12 caractères différents).
