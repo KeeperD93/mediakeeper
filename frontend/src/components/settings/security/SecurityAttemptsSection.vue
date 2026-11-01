@@ -28,8 +28,13 @@
             <td :data-label="t('settings.security.username')">{{ a.username || '—' }}</td>
             <td :data-label="t('settings.security.scope')">{{ scopeLabel(a.scope) }}</td>
             <td :data-label="t('settings.security.result')">
-              <span class="sec-pill" :class="a.success ? 'is-ok' : 'is-fail'">
-                {{ a.success ? t('settings.security.success') : t('settings.security.failure') }}
+              <span class="sec-result">
+                <span class="sec-pill" :class="a.success ? 'is-ok' : 'is-fail'">
+                  {{ a.success ? t('settings.security.success') : t('settings.security.failure') }}
+                </span>
+                <span v-if="a.cleared_at" class="sec-pill is-cleared">
+                  {{ t('settings.security.cleared') }}
+                </span>
               </span>
             </td>
             <td>
@@ -72,6 +77,11 @@ const { t } = useI18n()
 </script>
 
 <style scoped>
+.sec-result {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
 .sec-pill {
   display: inline-block;
   padding: var(--space-half) var(--space-2);
@@ -85,6 +95,10 @@ const { t } = useI18n()
 .sec-pill.is-fail {
   background: rgb(var(--color-error-strong-rgb), 0.15);
   color: var(--color-error-strong);
+}
+.sec-pill.is-cleared {
+  background: var(--surface-2);
+  color: var(--text-muted);
 }
 .sec-check {
   position: relative;

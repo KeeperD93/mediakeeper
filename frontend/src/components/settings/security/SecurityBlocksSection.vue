@@ -42,7 +42,7 @@
             <td :data-label="t('settings.security.until')">
               {{ b.blocked_until ? formatDate(b.blocked_until) : '—' }}
             </td>
-            <td :data-label="t('settings.security.reason')">{{ reasonLabel(b.reason) }}</td>
+            <td :data-label="t('settings.security.reason')">{{ reasonLabel(b) }}</td>
             <td>
               <button
                 type="button"

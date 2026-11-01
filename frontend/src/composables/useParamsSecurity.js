@@ -82,14 +82,15 @@ export function useParamsSecurity() {
     return te(key) ? t(key) : scope
   }
 
-  function reasonLabel(reason) {
-    if (!reason) return '—'
-    if (reason.startsWith(BLOCK_REASON.AUTO_IP_PREFIX)) return t('settings.security.reasons.autoIp')
-    if (reason.startsWith(BLOCK_REASON.AUTO_NAME_PREFIX)) {
-      return t('settings.security.reasons.autoName')
+  function reasonLabel(block) {
+    if (block.automatic) {
+      return t(block.ip ? 'settings.security.reasons.autoIp' : 'settings.security.reasons.autoName')
     }
-    if (reason === BLOCK_REASON.FROM_ATTEMPTS) return t('settings.security.reasons.fromAttempts')
-    return reason
+    if (!block.reason) return '—'
+    if (block.reason === BLOCK_REASON.FROM_ATTEMPTS) {
+      return t('settings.security.reasons.fromAttempts')
+    }
+    return block.reason
   }
 
   function showFailure(where, e, message) {
@@ -163,7 +164,11 @@ export function useParamsSecurity() {
   function unblock(block) {
     return runAction(
       'unblock',
-      () => apiDelete(`/api/security/blocks/${block.id}`),
+      async () => {
+        const res = await apiDelete(`/api/security/blocks/${block.id}`)
+        // No answer: the session ended and the sign-in page is taking over.
+        if (res) showToast(t('settings.security.unblocked', res.linked_addresses), TOAST_TYPE.OK)
+      },
       'settings.security.unblockFailed',
       SECURITY_ERROR.BLOCK_NOT_FOUND,
     )

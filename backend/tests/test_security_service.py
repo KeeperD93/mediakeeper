@@ -16,11 +16,11 @@ from services.security import (
     FAIL_BLOCK_THRESHOLD,
     RETENTION_DAYS,
     create_block,
-    delete_block,
     ensure_not_blocked,
     is_blocked,
     purge_old_attempts,
     record_failure,
+    release_block,
 )
 
 
@@ -110,10 +110,12 @@ async def test_ensure_not_blocked_passes_when_scope_differs(db_session):
 
 
 @pytest.mark.asyncio
-async def test_delete_block_removes_row(db_session):
+async def test_release_block_removes_row(db_session):
     block_id = await _block_ip(db_session, "198.51.100.7", "all")
-    assert await delete_block(db_session, block_id) is True
-    assert await delete_block(db_session, block_id) is False
+    assert (await release_block(db_session, block_id))["removed"] == [
+        {"id": block_id, "ip": "198.51.100.7", "username": None},
+    ]
+    assert await release_block(db_session, block_id) is None
 
 
 @pytest.mark.asyncio

@@ -19,6 +19,7 @@ This section intentionally has no date so it is not shown to users.
 - Security — lists always up to date (Refresh button) and errors shown.
 - Security — manual block: address checked, confirmation before "Block IP".
 - Security — a manual block is no longer overwritten by an automatic one.
+- Security — "Unblock" now really frees the person, linked address included.
 - Sign-in — three real tries per name, reset after a successful sign-in.
 - Security — sign-in page: 3 wrong admin passwords block that account for 10 min.
 - Security — sign-in: nothing about an account shown before its password is checked.

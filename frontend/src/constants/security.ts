@@ -1,7 +1,7 @@
 /**
  * Sign-in security dashboard (Settings > Security), mirrored from the backend:
- * the scopes of `VALID_SCOPES` in `api/security.py`, the reasons written by
- * `services/security.py` and the tab, and the error codes the tab acts on.
+ * the scopes of `VALID_SCOPES` in `api/security.py` and the error codes the tab
+ * acts on, plus the reason the tab writes on a block.
  */
 
 /** What a block or an attempt applies to. */
@@ -21,10 +21,8 @@ export const MANUAL_BLOCK_SCOPES: readonly SecurityScope[] = Object.freeze([
   SECURITY_SCOPE.PORTAL,
 ])
 
-/** Reasons the server or the tab writes on a block; any other one was typed by an admin. */
+/** The reason the tab writes on a block; any other manual one was typed by an admin. */
 export const BLOCK_REASON = Object.freeze({
-  AUTO_IP_PREFIX: 'auto_block_bruteforce_ip:',
-  AUTO_NAME_PREFIX: 'auto_block_bruteforce_username:',
   FROM_ATTEMPTS: 'manual_from_attempts',
 } as const)
 

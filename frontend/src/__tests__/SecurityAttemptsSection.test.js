@@ -1,7 +1,8 @@
 /**
  * Recent attempts in Settings > Security: "Block IP" is never offered for the
  * marker of unreadable addresses (it would lock out every one of them), stays
- * disabled while an action runs, and a list that never loaded says so.
+ * disabled while an action runs, a neutralised failure says it no longer counts,
+ * and a list that never loaded says so.
  */
 import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
@@ -41,6 +42,20 @@ describe('SecurityAttemptsSection', () => {
   it('disables "Block IP" while an action runs', () => {
     const w = buildSection({ busy: true })
     expect(w.get('tbody button').attributes('disabled')).toBeDefined()
+  })
+
+  it('keeps a neutralised failure listed and says it no longer counts', () => {
+    const w = buildSection({
+      attempts: [
+        { ...ATTEMPTS[0], cleared_at: '2026-11-01T10:00:00+00:00' },
+        { ...ATTEMPTS[0], id: 3, cleared_at: null },
+      ],
+    })
+    const [neutralised, counting] = w.findAll('tbody tr')
+
+    expect(neutralised.text()).toContain('settings.security.failure')
+    expect(neutralised.find('.is-cleared').text()).toBe('settings.security.cleared')
+    expect(counting.find('.is-cleared').exists()).toBe(false)
   })
 
   it('says the list is unavailable when its first load failed', () => {
