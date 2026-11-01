@@ -1591,6 +1591,12 @@
     "runNow": "Run now",
     "reset": "Default",
     "resetDefault": "Reset to {v}",
+    "durationShort": {
+      "s": "{n}s",
+      "m": "{n}min",
+      "h": "{n}h",
+      "d": "{n}d"
+    },
     "resetDone": "Reset to default values",
     "enable": "Enable",
     "disable": "Disable",

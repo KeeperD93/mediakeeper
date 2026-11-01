@@ -1591,6 +1591,12 @@
     "runNow": "Lancer",
     "reset": "Défaut",
     "resetDefault": "Remettre à {v}",
+    "durationShort": {
+      "s": "{n}s",
+      "m": "{n}min",
+      "h": "{n}h",
+      "d": "{n}j"
+    },
     "resetDone": "Remis aux valeurs par défaut",
     "enable": "Activer",
     "disable": "Désactiver",

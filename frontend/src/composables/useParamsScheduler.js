@@ -37,12 +37,6 @@ function intervalToAmount(sec, unit) {
 function toSeconds(amount, unit) {
   return amount * UNITS[unit]
 }
-function formatSeconds(sec) {
-  if (sec >= 86400 && sec % 86400 === 0) return `${sec / 86400}j`
-  if (sec >= 3600 && sec % 3600 === 0) return `${sec / 3600}h`
-  if (sec >= 60 && sec % 60 === 0) return `${sec / 60}min`
-  return `${sec}s`
-}
 function formatRunDate(iso) {
   if (!iso) return '—'
   return localizedDateTime(new Date(iso), {
@@ -69,6 +63,11 @@ export function useParamsScheduler() {
   const { apiGet, apiFetch } = useApi()
   const { showToast } = useToast()
   const { t } = useI18n()
+
+  function formatSeconds(sec) {
+    const unit = bestUnit(sec)
+    return t(`scheduler.durationShort.${unit}`, { n: intervalToAmount(sec, unit) })
+  }
 
   async function loadSched() {
     schedLoading.value = true
