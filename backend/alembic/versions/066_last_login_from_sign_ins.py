@@ -1,12 +1,12 @@
 """Last sign-in taken from the attempts log where it holds one
 
-``security_attempts`` keeps every successful sign-in with its address and
-browser. A profile never really stamped (no address) gets its latest one in place
-of the visit copied by 065. The log is keyed by name and outlives an account: only
-rows from the profile's lifetime count, so a name reused by a new account does not
-inherit the old one's sign-ins. Password changes are logged under their own scope
-and are not sign-ins. Irreversible: the replaced dates are gone, so ``downgrade``
-is a no-op.
+``security_attempts`` keeps successful sign-ins with their address and, when
+sent, their browser, until an admin purge drops those over 90 days old. A profile
+never really stamped (no address) gets its latest one in place of the visit copied
+by 065. The log is keyed by name and outlives an account: only rows from the
+profile's lifetime count, so a name reused by a new account does not inherit the
+old one's sign-ins. Password changes are logged under their own scope and are not
+sign-ins. Irreversible: the replaced dates are gone, so ``downgrade`` is a no-op.
 
 Revision ID: 066_last_login_from_sign_ins
 Revises: 065_last_login_from_last_seen
