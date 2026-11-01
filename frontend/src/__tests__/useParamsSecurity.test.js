@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   apiDelete: vi.fn(),
   showToast: vi.fn(),
   confirm: vi.fn(),
+  t: vi.fn((key, named) => key + (named ? JSON.stringify(named) : '')),
 }))
 // Fake translations behind resolveApiError / resolveScopedError: an unknown key
 // comes back unchanged, as with vue-i18n.
@@ -22,12 +23,13 @@ const MESSAGES = vi.hoisted(() => ({
   'settings.security.blockFailed': 'Blocking failed.',
   'settings.security.loadFailed': 'Could not load.',
 }))
-const t = (key, named) => key + (named ? JSON.stringify(named) : '')
 
 vi.mock('@/i18n', () => ({
   default: { global: { t: key => MESSAGES[key] ?? key } },
 }))
-vi.mock('vue-i18n', () => ({ useI18n: () => ({ t, te: key => key.includes('.scopes.') }) }))
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({ t: mocks.t, te: key => key.includes('.scopes.') }),
+}))
 vi.mock('@/composables/useApi', async importOriginal => ({
   ...(await importOriginal()),
   useApi: () => ({ apiGet: mocks.apiGet, apiPost: mocks.apiPost, apiDelete: mocks.apiDelete }),
@@ -53,7 +55,7 @@ describe('useParamsSecurity', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
     answerLists()
     mocks.apiPost.mockResolvedValue({ id: 9 })
-    mocks.apiDelete.mockResolvedValue({ success: true })
+    mocks.apiDelete.mockResolvedValue({ success: true, removed: [], linked_addresses: 0 })
     mocks.confirm.mockResolvedValue(true)
   })
   afterEach(() => vi.useRealTimers())
@@ -172,6 +174,30 @@ describe('useParamsSecurity', () => {
     expect(s.busy.value).toBe(false)
   })
 
+  it('confirms an unblock and counts the addresses freed with it', async () => {
+    const s = useParamsSecurity()
+    mocks.apiDelete.mockResolvedValueOnce({ linked_addresses: 0 })
+    await s.unblock({ id: 7 })
+    mocks.apiDelete.mockResolvedValueOnce({ linked_addresses: 2 })
+    await s.unblock({ id: 8 })
+
+    expect(mocks.t.mock.calls).toEqual(
+      expect.arrayContaining([
+        ['settings.security.unblocked', 0],
+        ['settings.security.unblocked', 2],
+      ]),
+    )
+    expect(mocks.showToast.mock.calls.map(call => call[1])).toEqual([TOAST_TYPE.OK, TOAST_TYPE.OK])
+  })
+
+  it('confirms nothing when the session ended during the unblock', async () => {
+    mocks.apiDelete.mockResolvedValue(null)
+    const s = useParamsSecurity()
+    await s.unblock({ id: 7 })
+
+    expect(mocks.showToast).not.toHaveBeenCalled()
+  })
+
   it('treats a block already gone as done, without an error', async () => {
     mocks.apiDelete.mockRejectedValue(new Error('block_not_found'))
     const s = useParamsSecurity()
@@ -243,15 +269,23 @@ describe('useParamsSecurity', () => {
   it('labels scopes and reasons, and keeps a typed reason as is', () => {
     const s = useParamsSecurity()
     expect(s.scopeLabel('portal')).toBe('settings.security.scopes.portal')
-    expect(s.reasonLabel('auto_block_bruteforce_ip:portal')).toBe(
+    expect(s.reasonLabel({ automatic: true, ip: '203.0.113.5' })).toBe(
       'settings.security.reasons.autoIp',
     )
-    expect(s.reasonLabel('auto_block_bruteforce_username:admin')).toBe(
+    expect(s.reasonLabel({ automatic: true, ip: null, username: 'member-a' })).toBe(
       'settings.security.reasons.autoName',
     )
-    expect(s.reasonLabel('manual_from_attempts')).toBe('settings.security.reasons.fromAttempts')
-    expect(s.reasonLabel('scanner seen on the router')).toBe('scanner seen on the router')
-    expect(s.reasonLabel(null)).toBe('—')
+    expect(s.reasonLabel({ automatic: false, reason: 'manual_from_attempts' })).toBe(
+      'settings.security.reasons.fromAttempts',
+    )
+    // The marker decides, not the text: an admin may type anything.
+    expect(s.reasonLabel({ automatic: false, reason: 'auto_block_bruteforce_ip:portal' })).toBe(
+      'auto_block_bruteforce_ip:portal',
+    )
+    expect(s.reasonLabel({ automatic: false, reason: 'scanner seen on the router' })).toBe(
+      'scanner seen on the router',
+    )
+    expect(s.reasonLabel({ automatic: false, reason: null })).toBe('—')
     expect(s.displayIp('unknown')).toBe('settings.security.unknownAddress')
     expect(s.displayIp('::1')).toBe('settings.security.localAddress')
     expect(s.displayIp('203.0.113.5')).toBe('203.0.113.5')

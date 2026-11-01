@@ -19,10 +19,17 @@ This section intentionally has no date so it is not shown to users.
 - Security — lists always up to date (Refresh button) and errors shown.
 - Security — manual block: address checked, confirmation before "Block IP".
 - Security — a manual block is no longer overwritten by an automatic one.
+- Security — "Unblock" now really frees the person, linked address included.
+- Security — cancelled failures: "No effect" label, explained by a tooltip.
 - Sign-in — three real tries per name, reset after a successful sign-in.
+- Sign-in — clear messages: wait shown, media server unreachable, inactive account.
+- Sign-in — double press or held Enter: only one try counted.
 - Security — sign-in page: 3 wrong admin passwords block that account for 10 min.
 - Security — sign-in: nothing about an account shown before its password is checked.
 - Sign-in — no more server error when recording the sign-in fails.
+- Sign-in — no more server error when an account's expiry fails.
+- Security — sign-in: a tampered request no longer fills the log.
+- Logs (admin) — a line with an invalid character is no longer lost.
 - Security — the browser keeps the new password after a change.
 - Security — on phones: block window as a bottom panel, touch-sized fields.
 - Security — full password rules shown (12 different characters).
@@ -30,6 +37,9 @@ This section intentionally has no date so it is not shown to users.
 - Security — startup: links planted in place of /data folders ignored.
 - Startup — clear message if /data refuses ownership changes.
 - Posters — image cache usable after a PUID change.
+- Users — "Never logged in" no longer lists members who have visited.
+- Scheduler — tasks and cache up to date when returning to the tab.
+- Scheduler — "Default" button: duration translated in its tooltip.
 
 ## [1.0.0-rc.9] - 2026-10-23
 

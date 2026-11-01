@@ -124,7 +124,8 @@ async def expire_due_users(db: AsyncSession) -> dict[str, Any]:
     emby_disabled = 0
     errors: list[dict[str, Any]] = []
 
-    for profile, user in due:
+    # Ids read now: the rollback after a failure expires every loaded row.
+    for profile, user, user_id in [(p, u, u.id) for p, u in due]:
         try:
             res = await _deactivate_one(db, profile, user, reason="scheduler")
             processed += 1
@@ -142,9 +143,9 @@ async def expire_due_users(db: AsyncSession) -> dict[str, Any]:
         except Exception as e:
             await db.rollback()
             logger.exception(
-                "[EXPIRE] failed for user_id=%s: %s", user.id, e
+                "[EXPIRE] failed for user_id=%s: %s", user_id, e
             )
-            errors.append({"user_id": user.id, "error": str(e)})
+            errors.append({"user_id": user_id, "error": str(e)})
 
     return {
         "processed": processed,
@@ -171,15 +172,17 @@ async def expire_profile_if_due(
         # Already deactivated, nothing left to do but the caller still
         # needs to know the account is expired.
         return True
+    # Read now: the rollback after a failure expires every loaded row.
+    user_id, username = user.id, user.username
     try:
         await _deactivate_one(db, profile, user, reason="login_gate")
         logger.info(
             "[EXPIRE] just-in-time deactivation user_id=%s username=%s",
-            user.id, user.username,
+            user_id, username,
         )
     except Exception as e:
         await db.rollback()
         logger.exception(
-            "[EXPIRE] just-in-time failed for user_id=%s: %s", user.id, e
+            "[EXPIRE] just-in-time failed for user_id=%s: %s", user_id, e
         )
     return True

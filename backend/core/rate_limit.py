@@ -11,11 +11,16 @@ process only.
 """
 from __future__ import annotations
 
+import time
+from math import ceil
+
 from fastapi import Request
-from slowapi import Limiter
+from fastapi.responses import JSONResponse, Response
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from constants.auth import COOKIE_NAME, PORTAL_COOKIE_NAME
-from constants.security import UNKNOWN_CLIENT_IP
+from constants.security import LOGIN_RATE_LIMITED, UNKNOWN_CLIENT_IP
 from core.proxy import get_client_ip
 from core.security import decode_access_token
 
@@ -57,3 +62,17 @@ def portal_user_or_ip_key(request: Request) -> str:
 
 
 limiter = Limiter(key_func=ip_key, default_limits=["120/minute"])
+
+
+def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> Response:
+    """The sign-in limit gives its code and its wait, for the sign-in page to show.
+    Any other 429 keeps slowapi's body, which the shared toast speaks for."""
+    if exc.detail != LOGIN_RATE_LIMITED:
+        return _rate_limit_exceeded_handler(request, exc)
+    item, keys = request.state.view_rate_limit
+    reset_at = limiter.limiter.get_window_stats(item, *keys).reset_time
+    return JSONResponse(
+        {"detail": LOGIN_RATE_LIMITED},
+        status_code=429,
+        headers={"Retry-After": str(max(1, ceil(reset_at - time.time())))},
+    )

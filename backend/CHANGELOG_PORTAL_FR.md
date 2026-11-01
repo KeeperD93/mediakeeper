@@ -18,6 +18,9 @@ utilisateurs.
 
 ### Fixed
 - Connexion — trois vrais essais, compteur remis à zéro après une connexion réussie.
+- Connexion — messages clairs : attente affichée, serveur média injoignable, compte inactif.
+- Connexion — double appui ou Entrée maintenue : un seul essai compté.
+- Données personnelles — l'export inclut les connexions réussies et les informations du compte.
 
 ## [1.0.0-rc.9] - 2026-10-23
 

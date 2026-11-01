@@ -132,21 +132,20 @@ async def test_change_password_auto_blocks_after_three_failures(client, admin_us
 
 @pytest.mark.asyncio
 async def test_change_password_slowapi_caps_at_five_per_minute(client, admin_user):
-    """The slowapi decorator caps the endpoint at 5 calls/minute even
-    if every call is blocked at validation time. The 6th call returns
-    429 from slowapi (different message than the DB block)."""
+    """A mismatch records no failure, so only slowapi can answer 429 here. Its
+    429 keeps the plain body, with no code and no wait: the shared toast speaks
+    for it, unlike the sign-in routes."""
     await _login(client)
 
     seen = []
     for _ in range(6):
         r = await client.post("/api/auth/change-password", json={
-            "current_password": "WrongPassword!",
+            "current_password": "TestPassword123!",
             "new_password": "NewPassword123!",
-            "confirm_password": "NewPassword123!",
+            "confirm_password": "OtherPassword123!",
         })
         seen.append(r.status_code)
 
-    # First 3 fail validation (400) then DB auto-block kicks in (429),
-    # so slowapi may also fire 429 once we cross 5 hits within a minute.
-    # We assert the final state: at least one 429 by request 6.
-    assert 429 in seen, f"expected a 429 within 6 calls, saw {seen}"
+    assert seen == [400] * 5 + [429]
+    assert "detail" not in r.json()
+    assert "Retry-After" not in r.headers

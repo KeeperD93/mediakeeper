@@ -60,19 +60,18 @@ async def _safe_get_unread_news_count(db: AsyncSession, user_id: int) -> int:
         return 0
 
 
-async def _stamp_admin_login(
+async def _stamp_login(
     db: AsyncSession,
-    user: User,
+    user_id: int,
     *,
     client_ip: str,
     user_agent: str | None,
 ) -> None:
-    """Stamp the UserProfile with this sign-in so the admin "Users" page
-    can surface a real "last login" entry for local backoffice admins
-    (otherwise the profile only sees /me pings). Best effort: a failure is
-    logged and rolled back, the sign-in goes on."""
-    # Read first: a commit that fails in its flush expires every loaded object.
-    user_id = user.id
+    """Stamp the UserProfile with this sign-in, admin or member, so the admin
+    "Users" page shows a real last sign-in (otherwise the profile only sees /me
+    pings). Takes an id, not the account: a commit that fails in its flush
+    expires every loaded object, which the failure log could not read back.
+    Best effort: a failure is logged and rolled back, the sign-in goes on."""
     try:
         profile = (
             await db.execute(

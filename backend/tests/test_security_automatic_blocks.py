@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from models.security import SecurityBlock
-from services.security import FAIL_BLOCK_THRESHOLD, is_blocked, record_failure
+from services.security import FAIL_BLOCK_THRESHOLD, active_blocks, record_failure
 
 
 @pytest.mark.asyncio
@@ -66,7 +66,7 @@ async def test_failed_sign_ins_reuse_an_earlier_automatic_block(db_session):
     assert [row.id for row in rows] == [earlier.id]
     # SQLite hands the date back without its time zone.
     assert rows[0].blocked_until.replace(tzinfo=timezone.utc) > datetime.now(timezone.utc)
-    assert await is_blocked(db_session, "203.0.113.99", "member-d", "portal") is not None
+    assert await active_blocks(db_session, "203.0.113.99", "member-d", "portal")
 
 
 @pytest.mark.asyncio

@@ -1,4 +1,5 @@
 """Admin security dashboard API — read login attempts, manage blocks."""
+import logging
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -17,14 +18,15 @@ from core.proxy import get_client_ip, normalize_ip
 from models.user import User
 from services.security import (
     create_block,
-    delete_block,
     list_active_blocks,
     list_recent_attempts,
     purge_old_attempts,
+    release_block,
 )
 
 from api.auth import get_current_user
 
+logger = logging.getLogger("mediakeeper.api.security")
 router = APIRouter(prefix="/api/security", tags=["security"])
 
 VALID_SCOPES = {"admin", "admin_password", "portal", "all"}
@@ -133,12 +135,14 @@ async def post_block(
 async def remove_block(
     block_id: int,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    admin: User = Depends(get_current_user),
 ):
-    removed = await delete_block(db, block_id)
-    if not removed:
+    released = await release_block(db, block_id)
+    if released is None:
         raise HTTPException(status_code=404, detail="block_not_found")
-    return {"success": True}
+    # The rows are gone: this line is the only trace of who lifted what.
+    logger.info("[SECURITY] unblock admin_id=%s removed=%r", admin.id, released["removed"])
+    return {"success": True, **released}
 
 
 @router.post("/attempts/purge")

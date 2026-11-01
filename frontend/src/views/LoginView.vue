@@ -92,7 +92,7 @@
                   autocapitalize="off"
                   spellcheck="false"
                   class="login-input"
-                  @keydown.enter="doLogin"
+                  @keydown.enter="onEnter"
                 />
               </div>
             </div>
@@ -107,7 +107,7 @@
                   :placeholder="t(passwordKey)"
                   autocomplete="new-password"
                   class="login-input"
-                  @keydown.enter="doLogin"
+                  @keydown.enter="onEnter"
                 />
               </div>
             </div>
@@ -117,7 +117,12 @@
               <span>{{ $t('login.remember') }}</span>
             </label>
 
-            <button class="login-submit" :disabled="submitting" @click="doLogin">
+            <button
+              class="login-submit"
+              :disabled="submitting"
+              @click="doLogin"
+              @keydown.enter.prevent="onEnter"
+            >
               <MkSpinner v-if="submitting" size="sm" inline />
               <template v-else>
                 <LogIn :size="15" />
@@ -166,7 +171,7 @@ import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/composables/useAuth'
-import { resolveApiError } from '@/composables/useApi'
+import { signInErrorMessage } from '@/composables/signInErrors'
 import { STORAGE_KEYS } from '@/constants/storage'
 import { useTheme } from '@/composables/useTheme'
 import { initLoginParticles } from '@/composables/useLoginParticles'
@@ -202,6 +207,8 @@ const submitting = ref(false)
 const pageRef = ref(null)
 const canvasRef = ref(null)
 let cleanupParticles = null
+const RETRY_PAUSE_MS = 1000
+let refusedAt = 0
 
 const { backendReady, appVersion, getRedirectTarget, start, dispose } = useLoginRedirect({
   username,
@@ -237,7 +244,15 @@ onUnmounted(() => {
   dispose()
 })
 
+// A held key repeats: each quick refusal would let the next repeat use up a try.
+function onEnter(event) {
+  if (!event.repeat) doLogin()
+}
+
 async function doLogin() {
+  // Enter still fires while the button is disabled: one sign-in at a time. A refusal
+  // comes back fast, so a double press would otherwise reach the server twice.
+  if (submitting.value || Date.now() - refusedAt < RETRY_PAUSE_MS) return
   errorMsg.value = ''
 
   if (!username.value.trim() || !password.value) {
@@ -265,7 +280,9 @@ async function doLogin() {
       router.push(redirect || '/')
     }
   } catch (e) {
-    errorMsg.value = resolveApiError(e.message)
+    console.error('[LoginView.doLogin]', e)
+    refusedAt = Date.now()
+    errorMsg.value = signInErrorMessage(e)
   } finally {
     submitting.value = false
   }

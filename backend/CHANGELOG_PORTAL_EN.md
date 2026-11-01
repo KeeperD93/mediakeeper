@@ -16,6 +16,9 @@ This section intentionally has no date so it is not shown to users.
 
 ### Fixed
 - Sign-in — three real tries, counter reset after a successful sign-in.
+- Sign-in — clear messages: wait shown, media server unreachable, inactive account.
+- Sign-in — double press or held Enter: only one try counted.
+- Personal data — the export includes successful sign-ins and account details.
 
 ## [1.0.0-rc.9] - 2026-10-23
 

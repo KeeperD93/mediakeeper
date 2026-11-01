@@ -7,7 +7,7 @@ infer that the GDPR plumbing exists at all.
 
 Mounted under ``/api/portal``:
 
-* ``GET    /me/export``           — ZIP archive of every user-bound row
+* ``GET    /me/export``           — ZIP archive of the account's data
 * ``GET    /me/privacy-text``     — privacy policy HTML for the user's locale
 * ``POST   /me/deletion-request`` — schedule grace-period deletion
 * ``DELETE /me/deletion-request`` — cancel an active request
@@ -53,9 +53,6 @@ def _not_found() -> HTTPException:
     )
 
 
-# ─────────────────────────── Export ───────────────────────────
-
-
 @router.get("/export")
 @limiter.limit("1/hour", key_func=portal_user_or_ip_key)
 async def export_my_data(
@@ -63,11 +60,12 @@ async def export_my_data(
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):
-    """Return a ZIP archive of every row stored about the current user.
+    """Return a ZIP archive of the current user's data. Its README says what
+    is excluded on purpose and what is not exported yet.
 
     Rate-limited to one call per hour per portal account: building the
-    archive walks 12 tables and a malicious or buggy client should not
-    be able to flood the worker.
+    archive walks a dozen tables and a malicious or buggy client should
+    not be able to flood the worker.
     """
     if not await is_gdpr_enabled(db):
         raise _not_found()
@@ -75,7 +73,7 @@ async def export_my_data(
     user, profile = up
     try:
         data, filename = await build_export_zip(db, user, profile)
-    except OverflowError:
+    except OverflowError as exc:
         logger.warning(
             "[GDPR] export bytes over cap for user_id=%s — answered 413",
             user.id,
@@ -83,7 +81,7 @@ async def export_my_data(
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             detail="export_too_large",
-        )
+        ) from exc
 
     return Response(
         content=data,
@@ -93,9 +91,6 @@ async def export_my_data(
             "Content-Length": str(len(data)),
         },
     )
-
-
-# ─────────────────────────── Deletion request ───────────────────────────
 
 
 @router.post("/deletion-request")
@@ -155,9 +150,6 @@ async def delete_deletion_request(
             detail="no_pending_request",
         )
     return {"status": "cancelled"}
-
-
-# ─────────────────────────── Privacy text ───────────────────────────
 
 
 _VALID_LANGS = ("fr", "en")

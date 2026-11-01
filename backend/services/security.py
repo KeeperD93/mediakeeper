@@ -11,7 +11,8 @@ Thresholds:
     warning line for log pipelines.
 
 A neutralised failure (``cleared_at`` set) is kept but no counter counts it: a
-successful sign-in neutralises its name's recent failures in the same scope.
+successful sign-in neutralises its name's recent failures in the same scope, and
+lifting an automatic block those behind it (``release_block``).
 
 Retention: ``RETENTION_DAYS`` (90), dropped by the admin purge.
 """
@@ -19,25 +20,25 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta, timezone
+from math import ceil
 
 from fastapi import HTTPException, status
 from sqlalchemy import and_, delete, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.security import FAIL_WINDOW_SECONDS, LOGIN_BLOCKED, TEMP_BLOCK_SECONDS
 from models.security import SecurityAttempt, SecurityBlock
 from services.security_admin import (
     create_block as create_block,
-    delete_block as delete_block,
     list_active_blocks as list_active_blocks,
     list_recent_attempts as list_recent_attempts,
+    release_block as release_block,
 )
 
 logger = logging.getLogger("mediakeeper.security")
 
 FAIL_BLOCK_THRESHOLD = 3
 ALERT_THRESHOLD = 3
-FAIL_WINDOW_SECONDS = 300
-TEMP_BLOCK_SECONDS = 600
 RETENTION_DAYS = 90
 
 
@@ -68,10 +69,10 @@ async def _count_recent_username_failures(db: AsyncSession, username: str | None
     return (await db.execute(stmt)).scalar() or 0
 
 
-async def is_blocked(
+async def active_blocks(
     db: AsyncSession, ip: str, username: str | None, scope: str
-) -> SecurityBlock | None:
-    """Return the matching block row if the caller is currently blocked (names are compared lower-cased)."""
+) -> list[SecurityBlock]:
+    """The block rows currently refusing the caller (names are compared lower-cased)."""
     now = datetime.now(timezone.utc)
     conditions = [SecurityBlock.scope.in_([scope, "all"])]
     ip_or_user = [SecurityBlock.ip == ip]
@@ -84,37 +85,47 @@ async def is_blocked(
         SecurityBlock.blocked_until > now,
     )
     stmt = select(SecurityBlock).where(and_(*conditions, active))
-    return (await db.execute(stmt)).scalars().first()
+    return list((await db.execute(stmt)).scalars().all())
+
+
+def _retry_after(blocks: list[SecurityBlock]) -> dict[str, str] | None:
+    """The wait until the last of these blocks ends; none when one never does."""
+    if any(block.permanent for block in blocks):
+        return None
+    # SQLite hands dates back without their time zone.
+    ends = [b.blocked_until.replace(tzinfo=b.blocked_until.tzinfo or timezone.utc) for b in blocks]
+    seconds = ceil((max(ends) - datetime.now(timezone.utc)).total_seconds())
+    return {"Retry-After": str(max(1, seconds))}
 
 
 async def ensure_not_blocked(
     db: AsyncSession, ip: str, username: str | None, scope: str
 ) -> None:
-    """Raise 429 if the caller is currently blocked. Call before auth."""
-    block = await is_blocked(db, ip, username, scope)
-    if block is None:
+    """Raise 429 if the caller is currently blocked, with the wait when it has an
+    end. Call before auth."""
+    blocks = await active_blocks(db, ip, username, scope)
+    if not blocks:
         return
     raise HTTPException(
         status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-        detail="login_blocked",
+        detail=LOGIN_BLOCKED,
+        headers=_retry_after(blocks),
     )
 
 
-async def record_attempt(
+async def _record_failed_attempt(
     db: AsyncSession,
     ip: str,
     username: str | None,
     scope: str,
-    success: bool,
     user_agent: str | None = None,
 ) -> None:
-    """Persist an attempt row. Failures may trigger auto-block / alert below;
-    a success goes through ``record_success``."""
+    """Persist a failed attempt row; ``record_failure`` then counts it."""
     db.add(SecurityAttempt(
         ip=ip,
         username=username,
         scope=scope,
-        success=1 if success else 0,
+        success=0,
         user_agent=(user_agent or "")[:300] or None,
     ))
     await db.commit()
@@ -171,12 +182,17 @@ async def _auto_block(
         SecurityBlock.ip.is_(ip) if ip is None else SecurityBlock.ip == ip,
         SecurityBlock.username.is_(username) if username is None else SecurityBlock.username == username,
     ]
-    existing = (await db.execute(
-        select(SecurityBlock).where(and_(*filters))
+    existing_id = (await db.execute(
+        select(SecurityBlock.id).where(and_(*filters))
     )).scalars().first()
-    if existing:
-        existing.blocked_until = until
-        existing.reason = reason
+    if existing_id is not None:
+        # By id, not on a loaded row: an admin lifting it right now must not fail this sign-in.
+        await db.execute(
+            update(SecurityBlock)
+            .where(SecurityBlock.id == existing_id)
+            .values(blocked_until=until, reason=reason)
+            .execution_options(synchronize_session="fetch")
+        )
     else:
         db.add(SecurityBlock(
             ip=ip,
@@ -232,7 +248,7 @@ async def record_failure(
     user_agent: str | None = None,
 ) -> None:
     """Log a failed attempt, then decide whether to alert or auto-block."""
-    await record_attempt(db, ip, username, scope, success=False, user_agent=user_agent)
+    await _record_failed_attempt(db, ip, username, scope, user_agent)
     ip_failures = await _count_recent_ip_failures(db, ip, scope)
     username_failures = await _count_recent_username_failures(db, username, scope)
     if ip_failures >= FAIL_BLOCK_THRESHOLD:

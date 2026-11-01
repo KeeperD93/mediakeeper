@@ -29,7 +29,7 @@
 </template>
 
 <script setup>
-import { onMounted, onDeactivated, onUnmounted } from 'vue'
+import { onActivated, onDeactivated, onUnmounted } from 'vue'
 import { useParamsScheduler } from '@/composables/useParamsScheduler'
 import SchedulerTaskList from '@/components/settings/SchedulerTaskList.vue'
 import SchedulerCacheList from '@/components/settings/SchedulerCacheList.vue'
@@ -45,7 +45,7 @@ const {
   formatRunDate,
   schedStatusDot,
   schedIsDirty,
-  ensureLoaded,
+  resumePolling,
   stopPolling,
   schedToggle,
   schedSaveInterval,
@@ -56,7 +56,8 @@ const {
   schedOnUnitChange,
 } = useParamsScheduler()
 
-onMounted(ensureLoaded)
+// The tab lives in SettingsView's KeepAlive: onActivated also runs on the first mount.
+onActivated(resumePolling)
 onDeactivated(stopPolling)
 onUnmounted(stopPolling)
 </script>

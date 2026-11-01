@@ -6,16 +6,20 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-vi.mock('@/composables/handle429', () => ({ rateLimitCode: vi.fn() }))
+vi.mock('@/composables/handle429', async importOriginal => ({
+  parseRetryAfter: (await importOriginal()).parseRetryAfter,
+  rateLimitCode: vi.fn(),
+}))
 vi.mock('@/composables/useApi', () => ({ fetchApiResponse: vi.fn() }))
 
 import { rateLimitCode } from '@/composables/handle429'
 import { fetchApiResponse } from '@/composables/useApi'
 import { useAuth } from '@/composables/useAuth'
 
-const answer = (status, body) => ({
+const answer = (status, body, headers = {}) => ({
   ok: false,
   status,
+  headers: new Headers(headers),
   text: async () => JSON.stringify(body),
   json: async () => body,
 })
@@ -30,6 +34,28 @@ describe('useAuth — failures', () => {
 
     await expect(useAuth().login('someone', 'not-a-real-password')).rejects.toThrow('login_blocked')
     expect(rateLimitCode).toHaveBeenCalledWith(res, { detail: 'login_blocked' })
+  })
+
+  it('a refused sign-in carries the wait the server gave', async () => {
+    fetchApiResponse.mockResolvedValue(
+      answer(429, { detail: 'login_rate_limited' }, { 'Retry-After': '42' }),
+    )
+    rateLimitCode.mockReturnValue('login_rate_limited')
+
+    await expect(useAuth().login('someone', 'not-a-real-password')).rejects.toMatchObject({
+      message: 'login_rate_limited',
+      retryAfter: 42,
+    })
+  })
+
+  it('a refused sign-in without a wait carries none', async () => {
+    fetchApiResponse.mockResolvedValue(answer(429, { detail: 'login_blocked' }))
+    rateLimitCode.mockReturnValue('login_blocked')
+
+    await expect(useAuth().login('someone', 'not-a-real-password')).rejects.toMatchObject({
+      message: 'login_blocked',
+      retryAfter: null,
+    })
   })
 
   it('a server failure at sign-in is not read as wrong credentials', async () => {

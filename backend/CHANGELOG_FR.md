@@ -19,10 +19,17 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Sécurité — listes toujours à jour (bouton Actualiser) et erreurs affichées.
 - Sécurité — blocage manuel : adresse vérifiée, confirmation avant « Bloquer IP ».
 - Sécurité — un blocage manuel n'est plus écrasé par un blocage automatique.
+- Sécurité — « Débloquer » libère vraiment la personne, adresse liée comprise.
+- Sécurité — échecs annulés : étiquette « Sans effet », expliquée par une infobulle.
 - Connexion — trois vrais essais par nom, remis à zéro après une connexion réussie.
+- Connexion — messages clairs : attente affichée, serveur média injoignable, compte inactif.
+- Connexion — double appui ou Entrée maintenue : un seul essai compté.
 - Sécurité — page de connexion : 3 erreurs sur un compte admin le bloquent 10 min.
 - Sécurité — connexion : rien n'est révélé sur un compte avant son mot de passe.
 - Connexion — erreur serveur évitée quand l'enregistrement de la connexion échoue.
+- Connexion — erreur serveur évitée quand l'expiration d'un compte échoue.
+- Sécurité — connexion : une requête trafiquée ne remplit plus le journal.
+- Logs (admin) — une ligne avec un caractère invalide n'est plus perdue.
 - Sécurité — le navigateur retient le nouveau mot de passe après un changement.
 - Sécurité — sur téléphone : fenêtre de blocage en panneau du bas, champs à taille tactile.
 - Sécurité — règles du mot de passe complètes (12 caractères différents).
@@ -30,6 +37,9 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Sécurité — démarrage : lien piégé à la place d'un dossier de /data ignoré.
 - Démarrage — message clair si /data refuse les changements de propriétaire.
 - Affiches — cache d'images utilisable après un changement de PUID.
+- Utilisateurs — « Jamais connectés » ne liste plus les membres déjà venus.
+- Planificateur — tâches et cache à jour au retour sur l'onglet.
+- Planificateur — bouton « Défaut » : durée traduite dans l'infobulle.
 
 ## [1.0.0-rc.9] - 2026-10-23
 

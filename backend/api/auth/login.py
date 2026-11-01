@@ -6,7 +6,12 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants.security import UNKNOWN_CLIENT_IP
+from constants.security import (
+    ACCOUNT_DISABLED,
+    INVALID_CREDENTIALS,
+    LOGIN_RATE_LIMITED,
+    UNKNOWN_CLIENT_IP,
+)
 from core.database import get_db
 from core.proxy import get_client_ip
 from core.rate_limit import ip_key, limiter
@@ -20,7 +25,11 @@ from core.security import (
     verify_password,
 )
 from models.user import User
-from services.portal.emby_auth import authenticate_emby_user
+from services.portal.emby_auth import (
+    AccountInactive,
+    MediaServerUnavailable,
+    authenticate_emby_user,
+)
 from services.portal.maintenance import is_maintenance_enabled
 from services.portal.profiles import resolve_admin_identity, serialize_profile
 
@@ -29,7 +38,7 @@ from ._csrf import rotate_csrf_cookie
 from ._portal import (
     _safe_get_unread_news_count,
     _safe_serialize_portal_ui_flags,
-    _stamp_admin_login,
+    _stamp_login,
     grant_portal_admin_session,
 )
 from ._schemas import LoginRequest
@@ -58,7 +67,7 @@ def _local_password_ok(password: str, user: User | None) -> bool:
 
 
 @router.post("/login")
-@limiter.limit("5/minute", key_func=ip_key)
+@limiter.limit("5/minute", key_func=ip_key, error_message=LOGIN_RATE_LIMITED)
 async def login(req: LoginRequest, request: Request, response: Response, db: AsyncSession = Depends(get_db)):
     """Authenticate and place the admin JWT in an httpOnly cookie."""
     client_ip = get_client_ip(request) or UNKNOWN_CLIENT_IP
@@ -79,14 +88,14 @@ async def login(req: LoginRequest, request: Request, response: Response, db: Asy
         logger.warning("[LOGIN] Failure for user=%r from %s", req.username, client_ip)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="invalid_credentials",
+            detail=INVALID_CREDENTIALS,
         )
 
     if not user.is_active:
         logger.warning("[LOGIN] Account disabled: %r", req.username)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="account_disabled",
+            detail=ACCOUNT_DISABLED,
         )
     # The password is right: refusing the backoffice is no guess to count.
     if not is_backoffice_admin(user.username):
@@ -102,7 +111,7 @@ async def login(req: LoginRequest, request: Request, response: Response, db: Asy
     _set_jwt_cookie(response, token, request)
     rotate_csrf_cookie(response, request)
     await record_success(db, client_ip, tracking_username, "admin", user_agent)
-    await _stamp_admin_login(db, user, client_ip=client_ip, user_agent=user_agent)
+    await _stamp_login(db, user_id, client_ip=client_ip, user_agent=user_agent)
     # Once authenticated, identify the actor by numeric id rather than
     # username: a successful login no longer needs the PII handle in
     # logs, and an admin can resolve the id from the users table. The
@@ -135,7 +144,7 @@ async def _admin_signed_in(
     rotate_csrf_cookie(response, request)
     await grant_portal_admin_session(request, response, user, db)
     await record_success(db, client_ip, tracking_username, "admin", user_agent)
-    await _stamp_admin_login(db, user, client_ip=client_ip, user_agent=user_agent)
+    await _stamp_login(db, user_id, client_ip=client_ip, user_agent=user_agent)
     logger.info("[PORTAL_LOGIN] Admin success for user_id=%s", user_id)
     # Same avatar/level/tier as /auth/me so the topbar rank ring renders on
     # login instead of falling back to bronze until the next /me (page refresh).
@@ -150,7 +159,7 @@ async def _admin_signed_in(
 
 
 @router.post("/portal-login")
-@limiter.limit("5/minute", key_func=ip_key)
+@limiter.limit("5/minute", key_func=ip_key, error_message=LOGIN_RATE_LIMITED)
 async def portal_login(
     req: LoginRequest,
     request: Request,
@@ -195,7 +204,7 @@ async def portal_login(
                 logger.warning("[PORTAL_LOGIN] Account disabled for user=%r from %s", username, client_ip)
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail="account_disabled",
+                    detail=ACCOUNT_DISABLED,
                 )
             return await _admin_signed_in(
                 request, response, db, user,
@@ -225,16 +234,29 @@ async def portal_login(
             await record_failure(db, client_ip, tracking_username, "admin", user_agent)
         raise
 
-    portal_session = await authenticate_emby_user(db, username, req.password)
+    try:
+        portal_session = await authenticate_emby_user(db, username, req.password)
+    except AccountInactive as exc:
+        logger.warning("[PORTAL_LOGIN] Inactive account for user=%r from %s", username, client_ip)
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ACCOUNT_DISABLED) from exc
+    except MediaServerUnavailable as exc:
+        if not local_password_guessed:
+            logger.warning("[PORTAL_LOGIN] %s for user=%r from %s", exc.code, username, client_ip)
+            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=exc.code) from exc
+        # The local password was wrong, and no media server vouched for this try.
+        portal_session = None
     if not portal_session:
         await record_failure(db, client_ip, tracking_username, failure_scope, user_agent)
         logger.warning("[PORTAL_LOGIN] Requests failure for user=%r from %s", username, client_ip)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="invalid_credentials",
+            detail=INVALID_CREDENTIALS,
         )
 
     portal_user = portal_session["user"]
+    # The media server may know this account by another name: its blocks still apply.
+    for scope in ("admin", "portal"):
+        await ensure_not_blocked(db, client_ip, portal_user.username.lower(), scope)
     # Maintenance mode locks the portal to admins: a member with valid
     # credentials is refused at the door (already-connected members hit the
     # holding page via the router guard). Admins still get in to manage.
@@ -259,9 +281,13 @@ async def portal_login(
     try:
         from services.portal.xp import grant_daily_login_xp
         await grant_daily_login_xp(db, portal_user_id)
-    except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
-        pass
+    except Exception:
+        # Best effort, but a failed flush would also take the stamp below down.
+        logger.exception("[PORTAL_LOGIN] Daily XP failed for user_id=%s", portal_user_id)
+        await db.rollback()
 
+    # Last: a failed stamp rolls the session back, so nothing is read after it.
+    await _stamp_login(db, portal_user_id, client_ip=client_ip, user_agent=user_agent)
     logger.info("[PORTAL_LOGIN] Requests success for user_id=%s", portal_user_id)
     return {
         "success": True,

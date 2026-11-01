@@ -8,6 +8,7 @@ Covers:
 * 50 MB guard (synthetic blow-up via monkeypatch).
 """
 import io
+import json
 import zipfile
 
 import pytest
@@ -92,8 +93,26 @@ async def test_export_returns_zip_with_readme_and_json_tables(client, db_session
             "media_requests",
             "watch_party_participants",
             "user_login_history",
+            "security_attempts",
         ):
             assert f"{tbl}.json" in names
+
+
+@pytest.mark.asyncio
+async def test_export_holds_the_last_sign_in_address_and_browser(client, db_session):
+    await _enable_gdpr(db_session)
+    _, profile = await _seed_user(client, db_session, username="sign-in-details")
+    profile.last_login_ip = "198.51.100.50"
+    profile.last_login_user_agent = "TestBrowser/1.2.3"
+    await db_session.commit()
+
+    resp = await client.get("/api/portal/me/export")
+
+    assert resp.status_code == 200, resp.text
+    with zipfile.ZipFile(io.BytesIO(resp.content)) as zf:
+        exported = json.loads(zf.read("user_profile.json"))
+    assert exported["last_login_ip"] == "198.51.100.50"
+    assert exported["last_login_user_agent"] == "TestBrowser/1.2.3"
 
 
 @pytest.mark.asyncio

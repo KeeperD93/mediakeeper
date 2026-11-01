@@ -78,7 +78,11 @@ def setup_logging() -> None:
     logging.basicConfig(level=initial_level, format=log_format, datefmt=log_datefmt)
 
     try:
-        _file_handler = logging.FileHandler(str(LOG_DIR / MEDIAKEEPER_LOG), encoding="utf-8")
+        # Escaped as on stderr: strict encoding loses a line holding a lone surrogate
+        # and prints a long logging error for it, from routes open to anyone.
+        _file_handler = logging.FileHandler(
+            str(LOG_DIR / MEDIAKEEPER_LOG), encoding="utf-8", errors="backslashreplace",
+        )
     except OSError as exc:
         _file_handler = None
         logging.getLogger("mediakeeper").warning(

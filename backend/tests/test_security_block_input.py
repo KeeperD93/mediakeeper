@@ -4,7 +4,7 @@ import pytest
 
 from core.security import hash_password
 from models.user import User
-from services.security import create_block, is_blocked
+from services.security import active_blocks, create_block
 
 
 @pytest.mark.asyncio
@@ -23,7 +23,7 @@ async def test_username_blocks_apply_whatever_the_case(authed_client, db_session
 
     await create_block(db_session, admin_id=None, ip=None, username="Bob", scope="all", permanent=True)
     for name in ("bob", "BOB"):
-        assert await is_blocked(db_session, "198.51.100.3", name, "admin")
+        assert await active_blocks(db_session, "198.51.100.3", name, "admin")
 
 
 @pytest.mark.asyncio
@@ -74,7 +74,7 @@ async def test_post_block_refuses_a_value_that_is_not_an_address(authed_client, 
 async def test_post_block_stores_the_unknown_marker_lower_cased(authed_client, db_session):
     resp = await authed_client.post("/api/security/blocks", json={"ip": " Unknown ", "scope": "admin"})
     assert resp.status_code == 200
-    assert await is_blocked(db_session, "unknown", None, "admin")
+    assert await active_blocks(db_session, "unknown", None, "admin")
 
 
 @pytest.mark.asyncio

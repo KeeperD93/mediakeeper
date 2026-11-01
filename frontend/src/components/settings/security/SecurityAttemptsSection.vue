@@ -28,8 +28,11 @@
             <td :data-label="t('settings.security.username')">{{ a.username || '—' }}</td>
             <td :data-label="t('settings.security.scope')">{{ scopeLabel(a.scope) }}</td>
             <td :data-label="t('settings.security.result')">
-              <span class="sec-pill" :class="a.success ? 'is-ok' : 'is-fail'">
-                {{ a.success ? t('settings.security.success') : t('settings.security.failure') }}
+              <span class="sec-result">
+                <span class="sec-pill" :class="a.success ? 'is-ok' : 'is-fail'">
+                  {{ a.success ? t('settings.security.success') : t('settings.security.failure') }}
+                </span>
+                <SecurityClearedPill v-if="a.cleared_at" />
               </span>
             </td>
             <td>
@@ -55,6 +58,7 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
 import { UNKNOWN_CLIENT_IP } from '@/constants/security'
+import SecurityClearedPill from './SecurityClearedPill.vue'
 
 const onlyFailures = defineModel('onlyFailures', { type: Boolean, required: true })
 defineProps({
@@ -72,6 +76,11 @@ const { t } = useI18n()
 </script>
 
 <style scoped>
+.sec-result {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
 .sec-pill {
   display: inline-block;
   padding: var(--space-half) var(--space-2);

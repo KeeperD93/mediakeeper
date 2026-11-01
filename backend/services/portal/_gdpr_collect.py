@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.achievement import Achievement, UserAchievement
@@ -25,6 +25,7 @@ from models.portal.social import (
     UserListItem,
     UserRating,
 )
+from models.security import SecurityAttempt
 from models.user import User
 from models.user_preferences import UserPreference
 
@@ -36,15 +37,18 @@ def _iso(dt: datetime | None) -> str | None:
 def _profile_to_dict(profile: UserProfile) -> dict[str, Any]:
     """Serialise a profile for the export.
 
-    ``admin_notes`` and ``tags`` are stripped on purpose (V-11-1
-    Option C): they are admin curation artefacts, not user-generated
-    content, and the user has no expectation to see them in their own
-    GDPR export.
+    ``admin_notes`` and ``tags`` are stripped on purpose: they are admin
+    curation artefacts, not user-generated content, and the user has no
+    expectation to see them in their own GDPR export. ``deleted_at`` and
+    ``deleted_by_user_id`` are left out too: a deleted account cannot sign
+    in to ask for an export, so they would always be empty.
     """
     return {
         "id": profile.id,
         "user_id": profile.user_id,
         "display_name": profile.display_name,
+        "display_name_must_set": profile.display_name_must_set,
+        "display_name_changed_at": _iso(profile.display_name_changed_at),
         "avatar_url": profile.avatar_url,
         "avatar_custom_path": profile.avatar_custom_path,
         "bio": profile.bio,
@@ -58,9 +62,14 @@ def _profile_to_dict(profile: UserProfile) -> dict[str, Any]:
         "role": profile.role,
         "language": profile.language,
         "chat_enabled": profile.chat_enabled,
+        "chat_muted_until": _iso(profile.chat_muted_until),
+        "chat_last_read_message_id": profile.chat_last_read_message_id,
         "hide_adult": profile.hide_adult,
+        "account_active": profile.account_active,
+        "forced_public": profile.forced_public,
         "source": profile.source,
         "emby_user_id": profile.emby_user_id,
+        "emby_is_disabled": profile.emby_is_disabled,
         "first_name": profile.first_name,
         "last_name": profile.last_name,
         "email": profile.email,
@@ -68,6 +77,15 @@ def _profile_to_dict(profile: UserProfile) -> dict[str, Any]:
         "access_end_date": _iso(profile.access_end_date),
         "last_seen_at": _iso(profile.last_seen_at),
         "last_login_at": _iso(profile.last_login_at),
+        "last_login_ip": profile.last_login_ip,
+        "last_login_user_agent": profile.last_login_user_agent,
+        "can_chat": profile.can_chat,
+        "can_portal": profile.can_portal,
+        "can_problems": profile.can_problems,
+        "can_lists": profile.can_lists,
+        "can_earn_xp_offline": profile.can_earn_xp_offline,
+        "can_report_feedback": profile.can_report_feedback,
+        "tokens_invalidated_at": _iso(profile.tokens_invalidated_at),
         "created_at": _iso(profile.created_at),
         "updated_at": _iso(profile.updated_at),
     }
@@ -76,15 +94,8 @@ def _profile_to_dict(profile: UserProfile) -> dict[str, Any]:
 async def collect_full_user_data(
     db: AsyncSession, user: User, profile: UserProfile,
 ) -> dict[str, Any]:
-    """Snapshot every user-bound row across the 12 tables in scope.
-
-    Excluded on purpose: ``user_profiles.admin_notes`` and
-    ``user_profiles.tags`` (admin curation, not user-generated). The
-    ``watchlists`` label from the kickoff spec resolves to
-    ``user_lists`` (already included) — MediaKeeper has no separate
-    watchlist table; the ``WatchlistScan`` cache is keyed by scan-key
-    and not user-bound.
-    """
+    """Snapshot the user's rows in the tables in scope. The archive's README
+    says what is excluded on purpose and what is not exported yet."""
     uid = user.id
     out: dict[str, Any] = {
         "metadata": {
@@ -260,6 +271,30 @@ async def collect_full_user_data(
             "created_at": _iso(h.created_at),
         }
         for h in history
+    ]
+
+    # The log holds the name typed, not an account id: lower-cased in Python, which the
+    # database may not match on accented capitals, or as typed in older rows. Older than
+    # the account, a row is a past holder's. A failure may carry a stranger's address.
+    sign_ins = (await db.execute(
+        select(SecurityAttempt).where(
+            or_(
+                SecurityAttempt.username == user.username.lower(),
+                func.lower(SecurityAttempt.username) == func.lower(user.username),
+            ),
+            SecurityAttempt.success == 1,
+            SecurityAttempt.created_at >= user.created_at,
+        ).order_by(SecurityAttempt.id)
+    )).scalars().all()
+    out["security_attempts"] = [
+        {
+            "id": a.id,
+            "scope": a.scope,
+            "ip": a.ip,
+            "user_agent": a.user_agent,
+            "created_at": _iso(a.created_at),
+        }
+        for a in sign_ins
     ]
 
     return out

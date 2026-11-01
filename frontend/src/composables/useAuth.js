@@ -1,7 +1,7 @@
 import { ref, readonly } from 'vue'
 import { fetchApiResponse } from '@/composables/useApi'
 import { extractDetailCode } from '@/composables/apiClient'
-import { rateLimitCode } from '@/composables/handle429'
+import { parseRetryAfter, rateLimitCode } from '@/composables/handle429'
 import { STORAGE_KEYS } from '@/constants/storage'
 
 const user = ref(null)
@@ -63,8 +63,10 @@ export function useAuth() {
     }
 
     if (res.status === 429) {
-      // A blocked sign-in keeps its reason; a plain rate limit is the toast.
-      throw new Error(rateLimitCode(res, data))
+      // A refused sign-in keeps its reason and its wait; anything else is the toast.
+      const refused = new Error(rateLimitCode(res, data))
+      refused.retryAfter = parseRetryAfter(res.headers.get('Retry-After'))
+      throw refused
     }
 
     if (!res.ok) {

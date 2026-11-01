@@ -56,5 +56,8 @@ async def test_slowapi_returns_429_when_default_limit_exceeded(client):
     # Defence-in-depth: 429 responses still carry the security headers.
     assert last_response is not None
     assert last_response.status_code == 429
+    # No code and no wait: only the sign-in routes have their own message.
+    assert "detail" not in last_response.json()
+    assert "Retry-After" not in last_response.headers
     assert last_response.headers.get("X-Frame-Options") == "DENY"
     assert last_response.headers.get("X-Content-Type-Options") == "nosniff"

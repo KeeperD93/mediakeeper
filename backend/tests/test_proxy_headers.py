@@ -23,7 +23,7 @@ from core.proxy import (
     trusted_forwarded_host,
 )
 from models.security import SecurityAttempt
-from services.security import FAIL_BLOCK_THRESHOLD, is_blocked, record_failure
+from services.security import FAIL_BLOCK_THRESHOLD, active_blocks, record_failure
 
 
 async def _echo(proxies: str, headers: dict[str, str] | list[tuple[str, str]] | None = None) -> dict:
@@ -199,7 +199,7 @@ async def test_a_forged_forwarded_value_cannot_switch_off_the_lockout(db_session
     ips = (await db_session.execute(select(SecurityAttempt.ip))).scalars().all()
     assert ips == ["fe80::1"] * FAIL_BLOCK_THRESHOLD
     # No username given: only the IP block can match.
-    assert await is_blocked(db_session, "fe80::1", None, "admin")
+    assert await active_blocks(db_session, "fe80::1", None, "admin")
 
 
 @pytest.mark.asyncio

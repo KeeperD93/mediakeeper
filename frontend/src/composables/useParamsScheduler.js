@@ -13,13 +13,16 @@ const schedCachesLoading = ref(false)
 const schedEditValues = reactive({})
 let pollTimer = null
 let cachesPollTimer = null
-let loadedOnce = false
-let cachesLoadedOnce = false
+let tabShown = false
 
 // Cache stats refresh cadence. Short enough that the admin sees
 // counters move as searches happen on the portal, long enough not
 // to spam the API for a panel that's mostly observational.
 const CACHES_POLL_MS = 5000
+const TASKS_POLL_MS = 2000
+const LAUNCH_RELOAD_DELAY_MS = 1500
+const RUN_BUTTON_BUSY_MS = 4000
+const MIN_INTERVAL_SEC = 10
 
 const UNITS = { s: 1, m: 60, h: 3600, d: 86400 }
 function bestUnit(sec) {
@@ -33,12 +36,6 @@ function intervalToAmount(sec, unit) {
 }
 function toSeconds(amount, unit) {
   return amount * UNITS[unit]
-}
-function formatSeconds(sec) {
-  if (sec >= 86400 && sec % 86400 === 0) return `${sec / 86400}j`
-  if (sec >= 3600 && sec % 3600 === 0) return `${sec / 3600}h`
-  if (sec >= 60 && sec % 60 === 0) return `${sec / 60}min`
-  return `${sec}s`
 }
 function formatRunDate(iso) {
   if (!iso) return '—'
@@ -66,6 +63,11 @@ export function useParamsScheduler() {
   const { apiGet, apiFetch } = useApi()
   const { showToast } = useToast()
   const { t } = useI18n()
+
+  function formatSeconds(sec) {
+    const unit = bestUnit(sec)
+    return t(`scheduler.durationShort.${unit}`, { n: intervalToAmount(sec, unit) })
+  }
 
   async function loadSched() {
     schedLoading.value = true
@@ -95,24 +97,28 @@ export function useParamsScheduler() {
       /* silent: scheduler poll, retries on next tick */
     }
     schedLoading.value = false
-    loadedOnce = true
   }
 
   function startPolling() {
-    if (pollTimer) return
+    // A load answered, or a launch timer firing, after the tab was left must not wake it up.
+    if (pollTimer || !tabShown) return
     pollTimer = setInterval(async () => {
       await loadSched()
       const anyRunning = schedTasks.value.some(
         task => task.last_status === TASK_STATUS.RUNNING || task.progress,
       )
-      if (!anyRunning) stopPolling()
-    }, 2000)
+      if (!anyRunning) stopTaskPolling()
+    }, TASKS_POLL_MS)
   }
-  function stopPolling() {
+  function stopTaskPolling() {
     if (pollTimer) {
       clearInterval(pollTimer)
       pollTimer = null
     }
+  }
+  function stopPolling() {
+    tabShown = false
+    stopTaskPolling()
     if (cachesPollTimer) {
       clearInterval(cachesPollTimer)
       cachesPollTimer = null
@@ -141,7 +147,7 @@ export function useParamsScheduler() {
     const ev = schedEditValues[task.key]
     if (!ev) return
     const sec = toSeconds(ev.amount, ev.unit)
-    if (sec < 10) {
+    if (sec < MIN_INTERVAL_SEC) {
       showToast(t('scheduler.minInterval'), TOAST_TYPE.ERR)
       return
     }
@@ -183,7 +189,7 @@ export function useParamsScheduler() {
         setTimeout(() => {
           loadSched()
           startPolling()
-        }, 1500)
+        }, LAUNCH_RELOAD_DELAY_MS)
       }
     } catch (e) {
       console.error('[useParamsScheduler.schedRunNow] failed to trigger task', e)
@@ -191,7 +197,7 @@ export function useParamsScheduler() {
     }
     setTimeout(() => {
       task._running = false
-    }, 4000)
+    }, RUN_BUTTON_BUSY_MS)
   }
 
   function schedOnAmountChange(key, val) {
@@ -205,20 +211,19 @@ export function useParamsScheduler() {
     ev.amount = intervalToAmount(oldSec, unit) || 1
   }
 
-  function ensureLoaded() {
-    if (!loadedOnce) loadSched()
-    if (!cachesLoadedOnce) loadCaches()
-    // Keep the cache readout fresh while the tab is mounted — the
+  // Each time the tab is shown: what it displayed may be long out of date, and a
+  // load that finds a task running goes back to following it.
+  function resumePolling() {
+    tabShown = true
+    loadSched()
+    loadCaches()
+    // Keep the cache readout fresh while the tab is shown — the
     // setInterval is cleared on unmount/deactivate via stopPolling().
     startCachesPolling()
   }
 
-  // ── Caches ────────────────────────────────────────────────────────
-  //
   // The admin panel renders one row per in-memory cache the backend
-  // exposes via /api/scheduler/caches. Phase B = TMDB only. Phase C
-  // will add image + DNS without changing the contract.
-
+  // exposes via /api/scheduler/caches.
   async function loadCaches() {
     schedCachesLoading.value = true
     try {
@@ -228,7 +233,6 @@ export function useParamsScheduler() {
       /* silent — admin readout, no toast spam */
     }
     schedCachesLoading.value = false
-    cachesLoadedOnce = true
   }
 
   async function schedClearCache(cache) {
@@ -258,7 +262,7 @@ export function useParamsScheduler() {
     schedIsDirty,
     loadSched,
     loadCaches,
-    ensureLoaded,
+    resumePolling,
     startPolling,
     stopPolling,
     schedToggle,

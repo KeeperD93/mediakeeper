@@ -44,6 +44,8 @@ vi.mock('@/composables/useAuth', () => ({
   }),
 }))
 
+vi.mock('@/composables/signInErrors', () => ({ signInErrorMessage: vi.fn() }))
+
 vi.mock('@/composables/portal/usePortalAuth', () => ({
   usePortalAuth: () => ({
     checkPortalAuth: checkPortalAuthMock,
@@ -73,7 +75,6 @@ vi.mock('@/composables/useApi', () => ({
     }
     return Promise.resolve({ status: 200, ok: true, json: () => Promise.resolve({}) })
   }),
-  resolveApiError: vi.fn(),
 }))
 
 vi.mock('@/composables/useTheme', () => ({
