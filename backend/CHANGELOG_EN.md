@@ -36,6 +36,7 @@ This section intentionally has no date so it is not shown to users.
 - Startup — clear message if /data refuses ownership changes.
 - Posters — image cache usable after a PUID change.
 - Users — "Never logged in" no longer lists members who have visited.
+- Scheduler — tasks and cache up to date when returning to the tab.
 
 ## [1.0.0-rc.9] - 2026-10-23
 

@@ -13,8 +13,7 @@ const schedCachesLoading = ref(false)
 const schedEditValues = reactive({})
 let pollTimer = null
 let cachesPollTimer = null
-let loadedOnce = false
-let cachesLoadedOnce = false
+let tabShown = false
 
 // Cache stats refresh cadence. Short enough that the admin sees
 // counters move as searches happen on the portal, long enough not
@@ -95,24 +94,28 @@ export function useParamsScheduler() {
       /* silent: scheduler poll, retries on next tick */
     }
     schedLoading.value = false
-    loadedOnce = true
   }
 
   function startPolling() {
-    if (pollTimer) return
+    // A load answered, or a launch timer firing, after the tab was left must not wake it up.
+    if (pollTimer || !tabShown) return
     pollTimer = setInterval(async () => {
       await loadSched()
       const anyRunning = schedTasks.value.some(
         task => task.last_status === TASK_STATUS.RUNNING || task.progress,
       )
-      if (!anyRunning) stopPolling()
+      if (!anyRunning) stopTaskPolling()
     }, 2000)
   }
-  function stopPolling() {
+  function stopTaskPolling() {
     if (pollTimer) {
       clearInterval(pollTimer)
       pollTimer = null
     }
+  }
+  function stopPolling() {
+    tabShown = false
+    stopTaskPolling()
     if (cachesPollTimer) {
       clearInterval(cachesPollTimer)
       cachesPollTimer = null
@@ -205,10 +208,13 @@ export function useParamsScheduler() {
     ev.amount = intervalToAmount(oldSec, unit) || 1
   }
 
-  function ensureLoaded() {
-    if (!loadedOnce) loadSched()
-    if (!cachesLoadedOnce) loadCaches()
-    // Keep the cache readout fresh while the tab is mounted — the
+  // Each time the tab is shown: what it displayed may be long out of date, and a
+  // load that finds a task running goes back to following it.
+  function resumePolling() {
+    tabShown = true
+    loadSched()
+    loadCaches()
+    // Keep the cache readout fresh while the tab is shown — the
     // setInterval is cleared on unmount/deactivate via stopPolling().
     startCachesPolling()
   }
@@ -228,7 +234,6 @@ export function useParamsScheduler() {
       /* silent — admin readout, no toast spam */
     }
     schedCachesLoading.value = false
-    cachesLoadedOnce = true
   }
 
   async function schedClearCache(cache) {
@@ -258,7 +263,7 @@ export function useParamsScheduler() {
     schedIsDirty,
     loadSched,
     loadCaches,
-    ensureLoaded,
+    resumePolling,
     startPolling,
     stopPolling,
     schedToggle,
