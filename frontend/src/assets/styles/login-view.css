@@ -268,6 +268,12 @@
   font-size: var(--text-sm);
 }
 
+/* A message on two lines must not squeeze its icon. */
+.login-error svg,
+.login-info svg {
+  flex-shrink: 0;
+}
+
 .login-fields {
   display: flex;
   flex-direction: column;

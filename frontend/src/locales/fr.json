@@ -133,8 +133,8 @@
       "token_invalid": "Session expirée, reconnectez-vous.",
       "must_change_password": "Vous devez changer votre mot de passe avant de continuer.",
       "login_blocked": "Trop de tentatives. Réessayez plus tard.",
-      "rate_limited": "Trop de tentatives, réessayez dans quelques instants.",
-      "rate_limited_retry": "Trop de tentatives, réessayez dans {seconds} secondes.",
+      "rate_limited": "Trop d'actions en peu de temps. Patientez un instant.",
+      "rate_limited_retry": "Trop d'actions en peu de temps. Réessayez dans {seconds} s.",
       "backup_create_failed": "Échec de la création de la sauvegarde.",
       "backup_restore_failed": "Échec de la restauration de la sauvegarde.",
       "backup_directory_invalid": "Dossier de sauvegarde invalide.",
@@ -244,6 +244,7 @@
       "months": "il y a {n} mois"
     },
     "duration": {
+      "sec": "{n} s",
       "min": "{n} min",
       "hMin": "{h}h {m}min",
       "dH": "{d}j {h}h",
@@ -443,7 +444,13 @@
     "reconnecting": "Reconnexion au serveur…",
     "officialSite": "Site officiel",
     "justLoggedOut": "Vous avez été déconnecté.",
-    "sessionExpired": "Session expirée, veuillez vous reconnecter."
+    "sessionExpired": "Session expirée, veuillez vous reconnecter.",
+    "errors": {
+      "login_blocked": "Connexion bloquée pour le moment. Réessayez plus tard ou contactez l'administrateur.",
+      "blockedWait": "Connexion bloquée pour le moment. Réessayez dans {wait}.",
+      "login_rate_limited": "Trop de tentatives en peu de temps. Réessayez dans un instant.",
+      "rateLimitedWait": "Trop de tentatives en peu de temps. Réessayez dans {wait}."
+    }
   },
   "forcePassword": {
     "title": "Changement de mot de passe requis",

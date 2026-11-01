@@ -166,7 +166,7 @@ import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/composables/useAuth'
-import { resolveApiError } from '@/composables/useApi'
+import { signInErrorMessage } from '@/composables/signInErrors'
 import { STORAGE_KEYS } from '@/constants/storage'
 import { useTheme } from '@/composables/useTheme'
 import { initLoginParticles } from '@/composables/useLoginParticles'
@@ -265,7 +265,7 @@ async function doLogin() {
       router.push(redirect || '/')
     }
   } catch (e) {
-    errorMsg.value = resolveApiError(e.message)
+    errorMsg.value = signInErrorMessage(e)
   } finally {
     submitting.value = false
   }

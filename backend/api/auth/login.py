@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants.security import UNKNOWN_CLIENT_IP
+from constants.security import LOGIN_RATE_LIMITED, UNKNOWN_CLIENT_IP
 from core.database import get_db
 from core.proxy import get_client_ip
 from core.rate_limit import ip_key, limiter
@@ -58,7 +58,7 @@ def _local_password_ok(password: str, user: User | None) -> bool:
 
 
 @router.post("/login")
-@limiter.limit("5/minute", key_func=ip_key)
+@limiter.limit("5/minute", key_func=ip_key, error_message=LOGIN_RATE_LIMITED)
 async def login(req: LoginRequest, request: Request, response: Response, db: AsyncSession = Depends(get_db)):
     """Authenticate and place the admin JWT in an httpOnly cookie."""
     client_ip = get_client_ip(request) or UNKNOWN_CLIENT_IP
@@ -150,7 +150,7 @@ async def _admin_signed_in(
 
 
 @router.post("/portal-login")
-@limiter.limit("5/minute", key_func=ip_key)
+@limiter.limit("5/minute", key_func=ip_key, error_message=LOGIN_RATE_LIMITED)
 async def portal_login(
     req: LoginRequest,
     request: Request,

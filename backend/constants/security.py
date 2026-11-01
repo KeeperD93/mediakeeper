@@ -1,12 +1,14 @@
-"""Login-security marker, block timings and the security dashboard API's error
-codes, shared by the sign-in and password-change routes, the rate-limit keys, the
-CSP report log and the dashboard."""
+"""Login-security marker, block timings, sign-in refusal codes and the security
+dashboard API's error codes, shared by the sign-in and password-change routes, the
+rate-limit keys, the CSP report log and the dashboard."""
 from typing import Final
 
 __all__ = [
     "UNKNOWN_CLIENT_IP",
     "FAIL_WINDOW_SECONDS",
     "TEMP_BLOCK_SECONDS",
+    "LOGIN_BLOCKED",
+    "LOGIN_RATE_LIMITED",
     "SELF_BLOCK_FORBIDDEN",
     "INVALID_SCOPE",
     "BLOCK_REQUIRES_IP_OR_USERNAME",
@@ -21,6 +23,11 @@ UNKNOWN_CLIENT_IP: Final[str] = "unknown"
 #: How long a failed attempt counts, and how long the automatic block it can set lasts.
 FAIL_WINDOW_SECONDS: Final[int] = 300
 TEMP_BLOCK_SECONDS: Final[int] = 600
+
+#: Sign-in refusals that come with a wait, read by the sign-in page: a block in
+#: force, and the per-minute limit on the two sign-in routes.
+LOGIN_BLOCKED: Final[str] = "login_blocked"
+LOGIN_RATE_LIMITED: Final[str] = "login_rate_limited"
 
 #: Error codes of the security dashboard API (manual blocks, attempts filter).
 SELF_BLOCK_FORBIDDEN: Final[str] = "self_block_forbidden"

@@ -5,7 +5,6 @@ import os
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -66,7 +65,7 @@ from core.app_startup import is_db_ready, lifespan, setup_logging
 from core.csrf_middleware import CsrfMiddleware
 from core.log_redaction import safe_request_url
 from core.proxy import ProxyHeadersMiddleware
-from core.rate_limit import limiter
+from core.rate_limit import limiter, rate_limit_exceeded_handler
 from core.security_headers import SecurityHeadersMiddleware
 
 setup_logging()
@@ -102,7 +101,7 @@ class _StartupMiddleware(BaseHTTPMiddleware):
 
 
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
 
 app.add_middleware(_StartupMiddleware)
 app.add_middleware(CsrfMiddleware)
@@ -120,6 +119,7 @@ if MK_DEBUG:
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
+        expose_headers=["Retry-After"],
     )
 else:
     _cors_origin = os.getenv("FRONTEND_ORIGIN", "")
@@ -130,6 +130,7 @@ else:
             allow_credentials=True,
             allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
             allow_headers=["Content-Type", "X-CSRF-Token"],
+            expose_headers=["Retry-After"],
         )
 
 # Outermost: rewrite scope before any other middleware reads request.client

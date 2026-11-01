@@ -20,12 +20,13 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta, timezone
+from math import ceil
 
 from fastapi import HTTPException, status
 from sqlalchemy import and_, delete, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants.security import FAIL_WINDOW_SECONDS, TEMP_BLOCK_SECONDS
+from constants.security import FAIL_WINDOW_SECONDS, LOGIN_BLOCKED, TEMP_BLOCK_SECONDS
 from models.security import SecurityAttempt, SecurityBlock
 from services.security_admin import (
     create_block as create_block,
@@ -68,10 +69,10 @@ async def _count_recent_username_failures(db: AsyncSession, username: str | None
     return (await db.execute(stmt)).scalar() or 0
 
 
-async def is_blocked(
+async def _active_blocks(
     db: AsyncSession, ip: str, username: str | None, scope: str
-) -> SecurityBlock | None:
-    """Return the matching block row if the caller is currently blocked (names are compared lower-cased)."""
+) -> list[SecurityBlock]:
+    """The block rows currently refusing the caller (names are compared lower-cased)."""
     now = datetime.now(timezone.utc)
     conditions = [SecurityBlock.scope.in_([scope, "all"])]
     ip_or_user = [SecurityBlock.ip == ip]
@@ -84,19 +85,39 @@ async def is_blocked(
         SecurityBlock.blocked_until > now,
     )
     stmt = select(SecurityBlock).where(and_(*conditions, active))
-    return (await db.execute(stmt)).scalars().first()
+    return list((await db.execute(stmt)).scalars().all())
+
+
+async def is_blocked(
+    db: AsyncSession, ip: str, username: str | None, scope: str
+) -> SecurityBlock | None:
+    """Return a matching block row if the caller is currently blocked."""
+    blocks = await _active_blocks(db, ip, username, scope)
+    return blocks[0] if blocks else None
+
+
+def _retry_after(blocks: list[SecurityBlock]) -> dict[str, str] | None:
+    """The wait until the last of these blocks ends; none when one never does."""
+    if any(block.permanent for block in blocks):
+        return None
+    # SQLite hands dates back without their time zone.
+    ends = [b.blocked_until.replace(tzinfo=b.blocked_until.tzinfo or timezone.utc) for b in blocks]
+    seconds = ceil((max(ends) - datetime.now(timezone.utc)).total_seconds())
+    return {"Retry-After": str(max(1, seconds))}
 
 
 async def ensure_not_blocked(
     db: AsyncSession, ip: str, username: str | None, scope: str
 ) -> None:
-    """Raise 429 if the caller is currently blocked. Call before auth."""
-    block = await is_blocked(db, ip, username, scope)
-    if block is None:
+    """Raise 429 if the caller is currently blocked, with the wait when it has an
+    end. Call before auth."""
+    blocks = await _active_blocks(db, ip, username, scope)
+    if not blocks:
         return
     raise HTTPException(
         status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-        detail="login_blocked",
+        detail=LOGIN_BLOCKED,
+        headers=_retry_after(blocks),
     )
 
 
