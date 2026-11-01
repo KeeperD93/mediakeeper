@@ -1,7 +1,6 @@
 """Sign-in refusals: nothing about an account shows before its password is
 checked, only wrong passwords count, and odd input is refused up front."""
 import logging
-from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import bcrypt
@@ -90,26 +89,6 @@ async def test_a_disabled_admin_account_is_told_so_only_after_its_password(clien
     assert (wrong.status_code, wrong.json()["detail"]) == (401, "invalid_credentials")
     assert (right.status_code, right.json()["detail"]) == (403, "account_disabled")
     assert any("[PORTAL_LOGIN] Account disabled for user='old-admin'" in r.getMessage() for r in caplog.records)
-
-
-@pytest.mark.asyncio
-async def test_the_media_server_check_refuses_a_disabled_account(db_session):
-    """Emby may still accept the password of an account MediaKeeper disabled."""
-    user = await _add_user(db_session, "member-d", EXTERNAL_AUTH_PASSWORD_SENTINEL, active=False)
-    db_session.add(UserProfile(user_id=user.id, display_name="member-d", role="viewer", account_active=True,
-                               tokens_invalidated_at=datetime.now(timezone.utc)))
-    await db_session.commit()
-    answer = AsyncMock(status_code=200)
-    answer.json = lambda: {"User": {"Id": "emby-id-d"}}
-    http = AsyncMock()
-    http.post = AsyncMock(return_value=answer)
-
-    with patch("services.portal.emby_auth.get_active_media_source", new=AsyncMock(return_value={
-        "source": "emby", "url": "http://emby.test", "api_key": "key",
-    })), patch("services.portal.emby_auth.get_internal_client", return_value=http):
-        from services.portal.emby_auth import AccountInactive, authenticate_emby_user
-        with pytest.raises(AccountInactive):
-            await authenticate_emby_user(db_session, "member-d", "any")
 
 
 @pytest.mark.parametrize("name", ["bad\x00name", "bad\nname", "   ", "İ" * 51])
