@@ -45,6 +45,12 @@ network shares (NFS, SMB) and host folders under Docker Desktop ignore
 ownership changes, and PostgreSQL then refuses to start. Media folders
 can stay on a share.
 
+MediaKeeper checks member passwords against Emby, so each wrong try it
+lets through also counts on Emby. MediaKeeper blocks a name for 10
+minutes after 3 failures in 5 minutes. Emby also locks an account by
+itself after a few failures, for about a minute: during that time even
+the right password is refused. No setting needs changing.
+
 The TLS deployment guide at [../operations/tls-deployment.md](../operations/tls-deployment.md)
 covers cross-cutting concerns (HSTS, Secure cookies, CSP mode) that
 apply across every stack.
