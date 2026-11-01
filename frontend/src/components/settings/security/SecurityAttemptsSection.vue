@@ -32,9 +32,7 @@
                 <span class="sec-pill" :class="a.success ? 'is-ok' : 'is-fail'">
                   {{ a.success ? t('settings.security.success') : t('settings.security.failure') }}
                 </span>
-                <span v-if="a.cleared_at" class="sec-pill is-cleared">
-                  {{ t('settings.security.cleared') }}
-                </span>
+                <SecurityClearedPill v-if="a.cleared_at" />
               </span>
             </td>
             <td>
@@ -60,6 +58,7 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
 import { UNKNOWN_CLIENT_IP } from '@/constants/security'
+import SecurityClearedPill from './SecurityClearedPill.vue'
 
 const onlyFailures = defineModel('onlyFailures', { type: Boolean, required: true })
 defineProps({
@@ -95,10 +94,6 @@ const { t } = useI18n()
 .sec-pill.is-fail {
   background: rgb(var(--color-error-strong-rgb), 0.15);
   color: var(--color-error-strong);
-}
-.sec-pill.is-cleared {
-  background: var(--surface-2);
-  color: var(--text-muted);
 }
 .sec-check {
   position: relative;

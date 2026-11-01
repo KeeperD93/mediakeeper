@@ -20,6 +20,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Sécurité — blocage manuel : adresse vérifiée, confirmation avant « Bloquer IP ».
 - Sécurité — un blocage manuel n'est plus écrasé par un blocage automatique.
 - Sécurité — « Débloquer » libère vraiment la personne, adresse liée comprise.
+- Sécurité — échecs annulés : étiquette « Sans effet », expliquée par une infobulle.
 - Connexion — trois vrais essais par nom, remis à zéro après une connexion réussie.
 - Connexion — messages clairs : attente affichée, serveur média injoignable, compte inactif.
 - Connexion — double appui ou Entrée maintenue : un seul essai compté.
