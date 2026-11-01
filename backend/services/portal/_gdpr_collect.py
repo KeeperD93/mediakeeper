@@ -36,10 +36,9 @@ def _iso(dt: datetime | None) -> str | None:
 def _profile_to_dict(profile: UserProfile) -> dict[str, Any]:
     """Serialise a profile for the export.
 
-    ``admin_notes`` and ``tags`` are stripped on purpose (V-11-1
-    Option C): they are admin curation artefacts, not user-generated
-    content, and the user has no expectation to see them in their own
-    GDPR export.
+    ``admin_notes`` and ``tags`` are stripped on purpose: they are admin
+    curation artefacts, not user-generated content, and the user has no
+    expectation to see them in their own GDPR export.
     """
     return {
         "id": profile.id,
