@@ -1,10 +1,12 @@
 """Mediakeeper FastAPI entry point — logging, middleware, routers, frontend."""
+import json
 import logging
 import os
 
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -169,6 +171,16 @@ app.include_router(csp_report_router)
 app.include_router(core_router)
 
 register_health_route(app, APP_VERSION, is_db_ready)
+
+
+@app.exception_handler(RequestValidationError)
+async def request_validation_handler(_request: Request, exc: RequestValidationError) -> Response:
+    """Refuse a request without repeating what it sent: that may be a password, and
+    a value that cannot be encoded would turn the refusal into a 500 and a logged
+    trace, on routes whose rate limit only runs once the request is valid."""
+    errors = [{key: error[key] for key in ("type", "loc", "msg")} for error in exc.errors()]
+    # json.dumps escapes a lone surrogate, which a field name in ``loc`` can still carry.
+    return Response(json.dumps({"detail": errors}), status_code=422, media_type="application/json")
 
 
 @app.exception_handler(Exception)
