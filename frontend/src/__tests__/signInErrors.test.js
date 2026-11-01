@@ -2,7 +2,7 @@
  * The sign-in page's messages, through the real locale files: the texts below
  * were validated as written, and a wrong placeholder would only show on screen.
  */
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 
 vi.mock('@/i18n', async () => {
   const { createI18n } = await import('vue-i18n')
@@ -11,6 +11,8 @@ vi.mock('@/i18n', async () => {
 })
 
 import { signInErrorMessage } from '@/composables/signInErrors'
+import { useAuth } from '@/composables/useAuth'
+import { useToast } from '@/composables/useToast'
 
 const message = (code, retryAfter) => signInErrorMessage({ message: code, retryAfter })
 
@@ -68,5 +70,41 @@ describe('signInErrorMessage', () => {
 
   it('stays silent when the shared toast already spoke', () => {
     expect(message('rate_limited_notified', null)).toBe('')
+  })
+})
+
+describe('a 429 from the server to the sign-in page', () => {
+  const answered = (body, headers) =>
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(JSON.stringify(body), { status: 429, headers })),
+    )
+  const signIn = () =>
+    useAuth()
+      .login('someone', 'not-a-real-password')
+      .catch(failure => failure)
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    const { toasts, removeToast } = useToast()
+    toasts.value.forEach(toast => removeToast(toast.id))
+  })
+
+  it('reaches the page with its wait, and no toast', async () => {
+    answered({ detail: 'login_rate_limited' }, { 'Retry-After': '42' })
+
+    expect(signInErrorMessage(await signIn())).toBe(
+      'Trop de tentatives en peu de temps. Réessayez dans 42 s.',
+    )
+    expect(useToast().toasts.value).toEqual([])
+  })
+
+  it('without a reason, stays the shared toast and leaves the page silent', async () => {
+    answered({ error: 'Rate limit exceeded' })
+
+    expect(signInErrorMessage(await signIn())).toBe('')
+    expect(useToast().toasts.value.map(toast => toast.message)).toEqual([
+      "Trop d'actions en peu de temps. Patientez un instant.",
+    ])
   })
 })

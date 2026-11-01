@@ -10,7 +10,11 @@ Every call here succeeds, so no block can answer 429 in the limiter's place.
 """
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 import pytest
+
+from core import rate_limit
 
 MAX_WAIT_SECONDS = 60
 
@@ -35,15 +39,14 @@ async def test_sign_in_routes_cap_at_five_per_minute_and_say_how_long(client, ad
 
 @pytest.mark.asyncio
 async def test_the_wait_counts_down_to_the_end_of_the_window(client, admin_user, monkeypatch):
-    """The wait is what is left of the minute, never a flat 60 s."""
-    from core import rate_limit
-
+    """The wait is what is left of the minute, never a flat 60 s. Only the wait's
+    clock moves on 30 s: the limiter's window stays where it is."""
     for _ in range(5):
         await client.post("/api/auth/login", json={"username": "admin", "password": "TestPassword123!"})
-    now = rate_limit.time.time()
-    monkeypatch.setattr(rate_limit.time, "time", lambda: now + 45)
+    later = rate_limit.time.time() + 30
+    monkeypatch.setattr(rate_limit, "time", SimpleNamespace(time=lambda: later))
 
     refused = await client.post("/api/auth/login", json={"username": "admin", "password": "TestPassword123!"})
 
     assert refused.status_code == 429
-    assert 1 <= int(refused.headers["Retry-After"]) <= 15
+    assert 1 <= int(refused.headers["Retry-After"]) <= 30

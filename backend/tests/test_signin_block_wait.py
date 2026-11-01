@@ -10,7 +10,8 @@ import pytest
 from fastapi import HTTPException
 
 from constants.security import TEMP_BLOCK_SECONDS
-from services.security import create_block, ensure_not_blocked
+from models.security import SecurityBlock
+from services.security import _retry_after, create_block, ensure_not_blocked
 
 HOME = "198.51.100.7"
 BACKEND_ROOT = Path(__file__).resolve().parent.parent
@@ -81,12 +82,23 @@ async def test_an_ended_block_and_another_scope_do_not_lengthen_the_wait(db_sess
     assert 50 <= int((await _refusal_headers(db_session))["Retry-After"]) <= 60
 
 
-@pytest.mark.asyncio
-async def test_the_wait_never_reads_zero(db_session):
-    """A block ending right now is still in force: the page must not say "0 s"."""
-    await _block_until(db_session, seconds=0.2, username="member-a")
+def test_the_wait_never_reads_zero():
+    """A block found in force can end before its wait is worked out: the page must
+    not say "0 s"."""
+    ended_just_now = SecurityBlock(permanent=0, blocked_until=datetime.now(timezone.utc))
 
-    assert int((await _refusal_headers(db_session))["Retry-After"]) >= 1
+    assert _retry_after([ended_just_now]) == {"Retry-After": "1"}
+
+
+@pytest.mark.asyncio
+async def test_an_admin_miss_refused_at_the_portal_gate_keeps_the_wait(client, admin_user, db_session):
+    """The refusal is caught there to count the miss, then raised again as it was."""
+    await _block_until(db_session, seconds=540, username="admin")
+
+    resp = await client.post("/api/auth/portal-login", json={"username": "admin", "password": "Wrong-Synthetic-1!"})
+
+    assert (resp.status_code, resp.json()["detail"]) == (429, "login_blocked")
+    assert 530 <= int(resp.headers["Retry-After"]) <= 540
 
 
 @pytest.mark.parametrize("env", [
@@ -102,7 +114,7 @@ def test_a_page_served_from_another_origin_can_read_the_wait(env):
     )
     result = subprocess.run(
         [sys.executable, "-c", code],
-        cwd=BACKEND_ROOT, env={**os.environ, **env}, capture_output=True, text=True,
+        cwd=BACKEND_ROOT, env={**os.environ, **env}, capture_output=True, text=True, check=False,
     )
 
     assert result.returncode == 0, result.stderr

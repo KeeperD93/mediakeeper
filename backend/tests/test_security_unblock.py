@@ -7,7 +7,7 @@ import pytest
 from sqlalchemy import select
 
 from models.portal.profile import UserProfile
-from services.security import FAIL_BLOCK_THRESHOLD, is_blocked, release_block
+from services.security import FAIL_BLOCK_THRESHOLD, active_blocks, release_block
 from tests._security_unblock_helpers import (
     AWAY,
     HOME,
@@ -85,7 +85,7 @@ async def test_an_unblocked_name_gets_exactly_three_new_tries(db_session):
     await release_block(db_session, await find_block(db_session, username="member-a"))
 
     await fail(db_session, HOME, "member-a", times=FAIL_BLOCK_THRESHOLD - 1)
-    assert await is_blocked(db_session, HOME, "member-a", "portal") is None
+    assert await active_blocks(db_session, HOME, "member-a", "portal") == []
 
     await fail(db_session, HOME, "member-a", times=1)
     assert await remaining_blocks(db_session) == {(None, "member-a", "portal"), (HOME, None, "portal")}
@@ -128,8 +128,8 @@ async def test_unblocking_an_address_keeps_the_name_blocked(db_session):
 
     assert released["linked_addresses"] == 0
     assert await remaining_blocks(db_session) == {(None, "member-a", "portal")}
-    assert await is_blocked(db_session, HOME, "member-b", "portal") is None
-    assert await is_blocked(db_session, OTHER, "member-a", "portal") is not None
+    assert await active_blocks(db_session, HOME, "member-b", "portal") == []
+    assert await active_blocks(db_session, OTHER, "member-a", "portal")
     assert await still_counting(db_session) == [(AWAY, "member-a")]
 
 

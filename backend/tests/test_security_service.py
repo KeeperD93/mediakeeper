@@ -15,9 +15,9 @@ from services.security import (
     ALERT_THRESHOLD,
     FAIL_BLOCK_THRESHOLD,
     RETENTION_DAYS,
+    active_blocks,
     create_block,
     ensure_not_blocked,
-    is_blocked,
     purge_old_attempts,
     record_failure,
     release_block,
@@ -59,15 +59,12 @@ async def test_record_failure_logs_row_and_auto_blocks_after_threshold(db_sessio
         "auto_block_bruteforce_username:admin",
     }
 
-    block = await is_blocked(db_session, "198.51.100.4", "victim", "admin")
-    assert block is not None
-    assert block.permanent == 0
-    assert block.scope == "admin"
-    assert block.reason.startswith("auto_block_bruteforce_")
+    refusing = await active_blocks(db_session, "198.51.100.4", "victim", "admin")
+    assert {b.id for b in refusing} == {b.id for b in blocks}
+    assert all(b.permanent == 0 for b in refusing)
 
     # Same IP, different scope → must not be blocked automatically.
-    block_other = await is_blocked(db_session, "198.51.100.4", "victim", "portal")
-    assert block_other is None
+    assert await active_blocks(db_session, "198.51.100.4", "victim", "portal") == []
 
 
 def test_alert_threshold_is_at_most_the_block_threshold():
@@ -235,7 +232,7 @@ async def test_post_block_stores_the_ip_in_canonical_form(client, admin_user, db
         "ip": "2001:DB8:0:0:0:0:0:1", "scope": "all", "permanent": True,
     })
     assert ok.status_code == 200
-    assert await is_blocked(db_session, "2001:db8::1", None, "admin")
+    assert await active_blocks(db_session, "2001:db8::1", None, "admin")
 
 
 @pytest.mark.asyncio
@@ -248,7 +245,7 @@ async def test_post_block_accepts_the_unknown_marker(client, admin_user, db_sess
         "ip": "unknown", "scope": "admin", "permanent": True,
     })
     assert resp.status_code == 200
-    assert await is_blocked(db_session, "unknown", None, "admin")
+    assert await active_blocks(db_session, "unknown", None, "admin")
 
 
 @pytest.mark.asyncio

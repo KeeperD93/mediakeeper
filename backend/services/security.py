@@ -69,7 +69,7 @@ async def _count_recent_username_failures(db: AsyncSession, username: str | None
     return (await db.execute(stmt)).scalar() or 0
 
 
-async def _active_blocks(
+async def active_blocks(
     db: AsyncSession, ip: str, username: str | None, scope: str
 ) -> list[SecurityBlock]:
     """The block rows currently refusing the caller (names are compared lower-cased)."""
@@ -88,14 +88,6 @@ async def _active_blocks(
     return list((await db.execute(stmt)).scalars().all())
 
 
-async def is_blocked(
-    db: AsyncSession, ip: str, username: str | None, scope: str
-) -> SecurityBlock | None:
-    """Return a matching block row if the caller is currently blocked."""
-    blocks = await _active_blocks(db, ip, username, scope)
-    return blocks[0] if blocks else None
-
-
 def _retry_after(blocks: list[SecurityBlock]) -> dict[str, str] | None:
     """The wait until the last of these blocks ends; none when one never does."""
     if any(block.permanent for block in blocks):
@@ -111,7 +103,7 @@ async def ensure_not_blocked(
 ) -> None:
     """Raise 429 if the caller is currently blocked, with the wait when it has an
     end. Call before auth."""
-    blocks = await _active_blocks(db, ip, username, scope)
+    blocks = await active_blocks(db, ip, username, scope)
     if not blocks:
         return
     raise HTTPException(
