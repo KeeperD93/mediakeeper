@@ -21,7 +21,7 @@ This section intentionally has no date so it is not shown to users.
 - Security — a manual block is no longer overwritten by an automatic one.
 - Security — "Unblock" now really frees the person, linked address included.
 - Sign-in — three real tries per name, reset after a successful sign-in.
-- Sign-in — clear messages: wait shown.
+- Sign-in — clear messages: wait shown, media server unreachable, inactive account.
 - Security — sign-in page: 3 wrong admin passwords block that account for 10 min.
 - Security — sign-in: nothing about an account shown before its password is checked.
 - Sign-in — no more server error when recording the sign-in fails.

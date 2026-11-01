@@ -5,6 +5,7 @@ import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from fastapi import HTTPException
@@ -36,11 +37,12 @@ async def _refusal_headers(db_session, scope: str = "portal") -> dict:
 @pytest.mark.asyncio
 async def test_a_failed_tries_block_answers_with_its_wait(client, path):
     """Stored without a time zone by the test database, read back as UTC."""
-    for _ in range(3):
-        resp = await client.post(path, json={"username": "member-a", "password": "Wrong-Synthetic-1!"})
-        assert resp.status_code == 401
+    with patch("api.auth.login.authenticate_emby_user", new=AsyncMock(return_value=None)):
+        for _ in range(3):
+            resp = await client.post(path, json={"username": "member-a", "password": "Wrong-Synthetic-1!"})
+            assert resp.status_code == 401
 
-    resp = await client.post(path, json={"username": "member-a", "password": "Wrong-Synthetic-1!"})
+        resp = await client.post(path, json={"username": "member-a", "password": "Wrong-Synthetic-1!"})
 
     assert (resp.status_code, resp.json()["detail"]) == (429, "login_blocked")
     assert 1 <= int(resp.headers["Retry-After"]) <= TEMP_BLOCK_SECONDS

@@ -449,7 +449,10 @@
       "login_blocked": "Sign-in is blocked for now. Try again later or contact the administrator.",
       "blockedWait": "Sign-in is blocked for now. Try again in {wait}.",
       "login_rate_limited": "Too many attempts in a short time. Try again in a moment.",
-      "rateLimitedWait": "Too many attempts in a short time. Try again in {wait}."
+      "rateLimitedWait": "Too many attempts in a short time. Try again in {wait}.",
+      "account_disabled": "This account is no longer active. Contact the administrator.",
+      "media_server_not_configured": "Member sign-in is unavailable: no media server is set up.",
+      "media_server_unreachable": "The media server isn't responding. Try again in a few minutes."
     }
   },
   "forcePassword": {

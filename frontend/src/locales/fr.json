@@ -449,7 +449,10 @@
       "login_blocked": "Connexion bloquée pour le moment. Réessayez plus tard ou contactez l'administrateur.",
       "blockedWait": "Connexion bloquée pour le moment. Réessayez dans {wait}.",
       "login_rate_limited": "Trop de tentatives en peu de temps. Réessayez dans un instant.",
-      "rateLimitedWait": "Trop de tentatives en peu de temps. Réessayez dans {wait}."
+      "rateLimitedWait": "Trop de tentatives en peu de temps. Réessayez dans {wait}.",
+      "account_disabled": "Ce compte n'est plus actif. Contactez l'administrateur.",
+      "media_server_not_configured": "Connexion des membres indisponible : aucun serveur média n'est configuré.",
+      "media_server_unreachable": "Le serveur média ne répond pas. Réessayez dans quelques minutes."
     }
   },
   "forcePassword": {

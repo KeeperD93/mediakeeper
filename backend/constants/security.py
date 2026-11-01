@@ -9,6 +9,10 @@ __all__ = [
     "TEMP_BLOCK_SECONDS",
     "LOGIN_BLOCKED",
     "LOGIN_RATE_LIMITED",
+    "INVALID_CREDENTIALS",
+    "ACCOUNT_DISABLED",
+    "MEDIA_SERVER_NOT_CONFIGURED",
+    "MEDIA_SERVER_UNREACHABLE",
     "SELF_BLOCK_FORBIDDEN",
     "INVALID_SCOPE",
     "BLOCK_REQUIRES_IP_OR_USERNAME",
@@ -28,6 +32,14 @@ TEMP_BLOCK_SECONDS: Final[int] = 600
 #: force, and the per-minute limit on the two sign-in routes.
 LOGIN_BLOCKED: Final[str] = "login_blocked"
 LOGIN_RATE_LIMITED: Final[str] = "login_rate_limited"
+
+#: Other sign-in refusals. Only a wrong password counts as a failure: an inactive
+#: account is told so once its password is accepted, and a media server that cannot
+#: judge the password leaves nothing to count.
+INVALID_CREDENTIALS: Final[str] = "invalid_credentials"
+ACCOUNT_DISABLED: Final[str] = "account_disabled"
+MEDIA_SERVER_NOT_CONFIGURED: Final[str] = "media_server_not_configured"
+MEDIA_SERVER_UNREACHABLE: Final[str] = "media_server_unreachable"
 
 #: Error codes of the security dashboard API (manual blocks, attempts filter).
 SELF_BLOCK_FORBIDDEN: Final[str] = "self_block_forbidden"

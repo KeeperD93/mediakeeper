@@ -64,6 +64,21 @@ describe('signInErrorMessage', () => {
     )
   })
 
+  it('says when the media server cannot judge the password', () => {
+    expect(message('media_server_unreachable')).toBe(
+      'Le serveur média ne répond pas. Réessayez dans quelques minutes.',
+    )
+    expect(message('media_server_not_configured')).toBe(
+      "Connexion des membres indisponible : aucun serveur média n'est configuré.",
+    )
+  })
+
+  it('says an account is no longer active, on this page only', () => {
+    expect(message('account_disabled')).toBe(
+      "Ce compte n'est plus actif. Contactez l'administrateur.",
+    )
+  })
+
   it('ignores a wait on any other refusal', () => {
     expect(message('invalid_credentials', 42)).toBe('Identifiants incorrects.')
   })
@@ -73,11 +88,11 @@ describe('signInErrorMessage', () => {
   })
 })
 
-describe('a 429 from the server to the sign-in page', () => {
-  const answered = (body, headers) =>
+describe('a refusal from the server to the sign-in page', () => {
+  const answered = (body, headers, status = 429) =>
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () => new Response(JSON.stringify(body), { status: 429, headers })),
+      vi.fn(async () => new Response(JSON.stringify(body), { status, headers })),
     )
   const signIn = () =>
     useAuth()
@@ -97,6 +112,22 @@ describe('a 429 from the server to the sign-in page', () => {
       'Trop de tentatives en peu de temps. Réessayez dans 42 s.',
     )
     expect(useToast().toasts.value).toEqual([])
+  })
+
+  it('names an unreachable media server, not a startup', async () => {
+    answered({ detail: 'media_server_unreachable' }, {}, 503)
+
+    expect(signInErrorMessage(await signIn())).toBe(
+      'Le serveur média ne répond pas. Réessayez dans quelques minutes.',
+    )
+  })
+
+  it('names an inactive account', async () => {
+    answered({ detail: 'account_disabled' }, {}, 403)
+
+    expect(signInErrorMessage(await signIn())).toBe(
+      "Ce compte n'est plus actif. Contactez l'administrateur.",
+    )
   })
 
   it('without a reason, stays the shared toast and leaves the page silent', async () => {

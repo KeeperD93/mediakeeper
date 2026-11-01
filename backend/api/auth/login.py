@@ -6,7 +6,12 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants.security import LOGIN_RATE_LIMITED, UNKNOWN_CLIENT_IP
+from constants.security import (
+    ACCOUNT_DISABLED,
+    INVALID_CREDENTIALS,
+    LOGIN_RATE_LIMITED,
+    UNKNOWN_CLIENT_IP,
+)
 from core.database import get_db
 from core.proxy import get_client_ip
 from core.rate_limit import ip_key, limiter
@@ -20,7 +25,11 @@ from core.security import (
     verify_password,
 )
 from models.user import User
-from services.portal.emby_auth import authenticate_emby_user
+from services.portal.emby_auth import (
+    AccountInactive,
+    MediaServerUnavailable,
+    authenticate_emby_user,
+)
 from services.portal.maintenance import is_maintenance_enabled
 from services.portal.profiles import resolve_admin_identity, serialize_profile
 
@@ -79,14 +88,14 @@ async def login(req: LoginRequest, request: Request, response: Response, db: Asy
         logger.warning("[LOGIN] Failure for user=%r from %s", req.username, client_ip)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="invalid_credentials",
+            detail=INVALID_CREDENTIALS,
         )
 
     if not user.is_active:
         logger.warning("[LOGIN] Account disabled: %r", req.username)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="account_disabled",
+            detail=ACCOUNT_DISABLED,
         )
     # The password is right: refusing the backoffice is no guess to count.
     if not is_backoffice_admin(user.username):
@@ -195,7 +204,7 @@ async def portal_login(
                 logger.warning("[PORTAL_LOGIN] Account disabled for user=%r from %s", username, client_ip)
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail="account_disabled",
+                    detail=ACCOUNT_DISABLED,
                 )
             return await _admin_signed_in(
                 request, response, db, user,
@@ -225,13 +234,23 @@ async def portal_login(
             await record_failure(db, client_ip, tracking_username, "admin", user_agent)
         raise
 
-    portal_session = await authenticate_emby_user(db, username, req.password)
+    try:
+        portal_session = await authenticate_emby_user(db, username, req.password)
+    except AccountInactive as exc:
+        logger.warning("[PORTAL_LOGIN] Inactive account for user=%r from %s", username, client_ip)
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ACCOUNT_DISABLED) from exc
+    except MediaServerUnavailable as exc:
+        if not local_password_guessed:
+            logger.warning("[PORTAL_LOGIN] %s for user=%r from %s", exc.code, username, client_ip)
+            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=exc.code) from exc
+        # The local password was wrong, and no media server vouched for this try.
+        portal_session = None
     if not portal_session:
         await record_failure(db, client_ip, tracking_username, failure_scope, user_agent)
         logger.warning("[PORTAL_LOGIN] Requests failure for user=%r from %s", username, client_ip)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="invalid_credentials",
+            detail=INVALID_CREDENTIALS,
         )
 
     portal_user = portal_session["user"]

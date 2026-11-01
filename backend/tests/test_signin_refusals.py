@@ -115,8 +115,9 @@ async def test_the_media_server_check_refuses_a_disabled_account(db_session):
     with patch("services.portal.emby_auth.get_active_media_source", new=AsyncMock(return_value={
         "source": "emby", "url": "http://emby.test", "api_key": "key",
     })), patch("services.portal.emby_auth.get_internal_client", return_value=http):
-        from services.portal.emby_auth import authenticate_emby_user
-        assert await authenticate_emby_user(db_session, "member-d", "any") is None
+        from services.portal.emby_auth import AccountInactive, authenticate_emby_user
+        with pytest.raises(AccountInactive):
+            await authenticate_emby_user(db_session, "member-d", "any")
 
 
 @pytest.mark.parametrize("name", ["bad\x00name", "bad\nname", "   ", "İ" * 51])

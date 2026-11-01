@@ -82,7 +82,9 @@ async def test_portal_admin_success_logs_user_id_not_username(
 @pytest.mark.asyncio
 async def test_portal_login_failure_keeps_username_clear(client, caplog):
     """Failure on the portal-login Emby branch keeps the username clear."""
-    with caplog.at_level(logging.WARNING, logger="mediakeeper.api.auth"):
+    with patch(
+        "api.auth.login.authenticate_emby_user", new=AsyncMock(return_value=None)
+    ), caplog.at_level(logging.WARNING, logger="mediakeeper.api.auth"):
         resp = await client.post(
             "/api/auth/portal-login",
             json={"username": "ghost", "password": "wrong"},
@@ -94,6 +96,6 @@ async def test_portal_login_failure_keeps_username_clear(client, caplog):
         if "[PORTAL_LOGIN]" in r.getMessage()
         and "Requests failure" in r.getMessage()
     ]
-    if failure_lines:
-        for line in failure_lines:
-            assert "ghost" in line
+    assert failure_lines
+    for line in failure_lines:
+        assert "ghost" in line
