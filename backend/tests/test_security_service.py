@@ -113,7 +113,7 @@ async def test_ensure_not_blocked_passes_when_scope_differs(db_session):
 async def test_release_block_removes_row(db_session):
     block_id = await _block_ip(db_session, "198.51.100.7", "all")
     assert (await release_block(db_session, block_id))["removed"] == [
-        {"id": block_id, "ip": "198.51.100.7", "username": None},
+        {"id": block_id, "ip": "198.51.100.7", "username": None, "scope": "all"},
     ]
     assert await release_block(db_session, block_id) is None
 

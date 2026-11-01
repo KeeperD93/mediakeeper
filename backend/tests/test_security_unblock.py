@@ -181,6 +181,7 @@ async def test_the_lists_say_what_was_neutralised_and_what_is_automatic(authed_c
     assert f"admin_id={admin_user.id}" in caplog.text
     assert HOME in caplog.text
     assert "member-a" in caplog.text
+    assert "'scope': 'portal'" in caplog.text
 
     attempts = (await client.get(failures_url)).json()["items"]
     assert len(attempts) == FAIL_BLOCK_THRESHOLD

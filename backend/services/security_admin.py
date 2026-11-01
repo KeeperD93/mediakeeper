@@ -86,10 +86,11 @@ async def release_block(db: AsyncSession, block_id: int) -> dict | None:
     if row.automatic:
         released = await _release_automatic(db, row)
     summary = {
-        "removed": [{"id": b.id, "ip": b.ip, "username": b.username} for b in released],
+        "removed": [
+            {"id": b.id, "ip": b.ip, "username": b.username, "scope": b.scope} for b in released
+        ],
         "linked_addresses": len({b.ip for b in released if b.ip and b.ip != row.ip}),
     }
-    # In bulk: a second admin lifting the same rows must not fail this one.
     await db.execute(
         delete(SecurityBlock)
         .where(SecurityBlock.id.in_([b.id for b in released]))
