@@ -30,6 +30,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Sécurité — démarrage : lien piégé à la place d'un dossier de /data ignoré.
 - Démarrage — message clair si /data refuse les changements de propriétaire.
 - Affiches — cache d'images utilisable après un changement de PUID.
+- Utilisateurs — « Jamais connectés » ne liste plus les membres déjà venus.
 
 ## [1.0.0-rc.9] - 2026-10-23
 

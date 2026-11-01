@@ -29,7 +29,7 @@ from ._csrf import rotate_csrf_cookie
 from ._portal import (
     _safe_get_unread_news_count,
     _safe_serialize_portal_ui_flags,
-    _stamp_admin_login,
+    _stamp_login,
     grant_portal_admin_session,
 )
 from ._schemas import LoginRequest
@@ -102,7 +102,7 @@ async def login(req: LoginRequest, request: Request, response: Response, db: Asy
     _set_jwt_cookie(response, token, request)
     rotate_csrf_cookie(response, request)
     await record_success(db, client_ip, tracking_username, "admin", user_agent)
-    await _stamp_admin_login(db, user, client_ip=client_ip, user_agent=user_agent)
+    await _stamp_login(db, user_id, client_ip=client_ip, user_agent=user_agent)
     # Once authenticated, identify the actor by numeric id rather than
     # username: a successful login no longer needs the PII handle in
     # logs, and an admin can resolve the id from the users table. The
@@ -135,7 +135,7 @@ async def _admin_signed_in(
     rotate_csrf_cookie(response, request)
     await grant_portal_admin_session(request, response, user, db)
     await record_success(db, client_ip, tracking_username, "admin", user_agent)
-    await _stamp_admin_login(db, user, client_ip=client_ip, user_agent=user_agent)
+    await _stamp_login(db, user_id, client_ip=client_ip, user_agent=user_agent)
     logger.info("[PORTAL_LOGIN] Admin success for user_id=%s", user_id)
     # Same avatar/level/tier as /auth/me so the topbar rank ring renders on
     # login instead of falling back to bronze until the next /me (page refresh).
@@ -262,6 +262,8 @@ async def portal_login(
     except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
         pass
 
+    # Last: a failed stamp rolls the session back, so nothing is read after it.
+    await _stamp_login(db, portal_user_id, client_ip=client_ip, user_agent=user_agent)
     logger.info("[PORTAL_LOGIN] Requests success for user_id=%s", portal_user_id)
     return {
         "success": True,
