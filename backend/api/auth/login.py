@@ -259,8 +259,10 @@ async def portal_login(
     try:
         from services.portal.xp import grant_daily_login_xp
         await grant_daily_login_xp(db, portal_user_id)
-    except Exception:  # noqa: S110 -- intentional best-effort fallback, silently degrades to default behaviour
-        pass
+    except Exception:
+        # Best effort, but a failed flush would also take the stamp below down.
+        logger.exception("[PORTAL_LOGIN] Daily XP failed for user_id=%s", portal_user_id)
+        await db.rollback()
 
     # Last: a failed stamp rolls the session back, so nothing is read after it.
     await _stamp_login(db, portal_user_id, client_ip=client_ip, user_agent=user_agent)

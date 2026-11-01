@@ -68,6 +68,8 @@ def _profile_to_dict(profile: UserProfile) -> dict[str, Any]:
         "access_end_date": _iso(profile.access_end_date),
         "last_seen_at": _iso(profile.last_seen_at),
         "last_login_at": _iso(profile.last_login_at),
+        "last_login_ip": profile.last_login_ip,
+        "last_login_user_agent": profile.last_login_user_agent,
         "created_at": _iso(profile.created_at),
         "updated_at": _iso(profile.updated_at),
     }

@@ -18,6 +18,7 @@ utilisateurs.
 
 ### Fixed
 - Connexion — trois vrais essais, compteur remis à zéro après une connexion réussie.
+- Données personnelles — l'export inclut l'adresse et l'appareil de la dernière connexion.
 
 ## [1.0.0-rc.9] - 2026-10-23
 

@@ -41,7 +41,7 @@ def _sign_ins(engine) -> dict[str, tuple]:
 
 
 def test_upgrade_copies_the_last_visit_only_where_no_sign_in_is_on_record(alembic_db):
-    """Address and browser stay empty: nothing on record says where the visit came from."""
+    """Address and browser stay empty: a visit records neither."""
     cfg, engine = alembic_db
     with engine.begin() as conn:
         _add_profile(conn, "member-a", seen=SEEN, signed_in=None)

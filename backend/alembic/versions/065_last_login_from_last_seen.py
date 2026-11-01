@@ -1,10 +1,11 @@
 """Members' last sign-in filled in from their last visit
 
 Only admins had their sign-ins stamped, so the admin "Users" page listed
-members who do sign in as never signed in. A profile with no sign-in on record
-but a visit gets that visit as its last sign-in, the closest value known; its
-address and browser stay empty until the next sign-in. Irreversible: the copied
-dates cannot be told from real sign-ins, so ``downgrade`` is a no-op.
+members who do sign in as never signed in. A profile with no sign-in stamped but
+a visit gets that visit as its last sign-in; its address and browser stay empty.
+Migration 066 then replaces it with the sign-in the attempts log holds, if any.
+Irreversible: the copied dates cannot be told from real sign-ins, so
+``downgrade`` is a no-op.
 
 Revision ID: 065_last_login_from_last_seen
 Revises: 064_security_cleared_and_automatic
