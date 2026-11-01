@@ -29,6 +29,7 @@ This section intentionally has no date so it is not shown to users.
 - Sign-in — no more server error when recording the sign-in fails.
 - Sign-in — no more server error when an account's expiry fails.
 - Security — sign-in: a tampered request no longer fills the log.
+- Logs (admin) — a line with an invalid character is no longer lost.
 - Security — the browser keeps the new password after a change.
 - Security — on phones: block window as a bottom panel, touch-sized fields.
 - Security — full password rules shown (12 different characters).

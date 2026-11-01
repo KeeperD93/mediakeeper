@@ -1,6 +1,6 @@
 """Coverage for the CSP exhaustive whitelist + report endpoint.
 
-Three contracts:
+Four contracts:
 
 * The CSP header carries every third-party host the codebase relies on.
   Adding a new host to ``CSP_DIRECTIVES`` without updating this list
@@ -10,6 +10,7 @@ Three contracts:
   ``application/reports+json`` Reporting API payload, returning 204.
 * The same endpoint is rate-limited at 60/min/IP so a broken
   extension cannot flood the log pipeline.
+* A report the log file cannot encode as sent still reaches that file.
 """
 from __future__ import annotations
 
@@ -17,6 +18,8 @@ import logging
 
 import pytest
 
+from core import app_startup
+from services.logs import MEDIAKEEPER_LOG
 
 _EXPECTED_DOMAINS = [
     # script-src
@@ -156,3 +159,26 @@ async def test_report_endpoint_caps_oversized_body_in_log(raw_client, caplog):
     assert records, "expected a CSP_VIOLATION log record"
     # The payload is the last positional arg of the lazy log call.
     assert len(records[-1].args[-1]) <= _MAX_LOG_CHARS
+
+
+@pytest.mark.asyncio
+async def test_report_the_log_file_cannot_encode_still_reaches_it(raw_client, caplog, capsys, tmp_path, monkeypatch):
+    """A lone surrogate used to lose the line and print a long logging error
+    on the console, once per report."""
+    monkeypatch.setattr(app_startup, "LOG_DIR", tmp_path)
+    monkeypatch.setattr(app_startup, "_file_handler", None)
+    app_startup.setup_logging()
+    try:
+        with caplog.at_level(logging.INFO, logger="mediakeeper.csp"):
+            r = await raw_client.post(
+                "/api/csp-violation-report",
+                headers={"Content-Type": "application/csp-report"},
+                content=rb'{"csp-report":"a\ud800"}',
+            )
+    finally:
+        logging.getLogger().removeHandler(app_startup._file_handler)
+        app_startup._file_handler.close()
+
+    assert r.status_code == 204
+    assert "--- Logging error ---" not in capsys.readouterr().err
+    assert r"a\ud800" in (tmp_path / MEDIAKEEPER_LOG).read_text(encoding="utf-8")
