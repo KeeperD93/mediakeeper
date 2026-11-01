@@ -93,6 +93,7 @@ async def test_export_returns_zip_with_readme_and_json_tables(client, db_session
             "media_requests",
             "watch_party_participants",
             "user_login_history",
+            "security_attempts",
         ):
             assert f"{tbl}.json" in names
 

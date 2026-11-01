@@ -59,6 +59,7 @@ async def test_collect_returns_every_table_promised_in_kickoff(db_session):
         "media_requests",
         "watch_party_participants",
         "user_login_history",
+        "security_attempts",
     }
     assert expected_keys.issubset(set(out.keys()))
 

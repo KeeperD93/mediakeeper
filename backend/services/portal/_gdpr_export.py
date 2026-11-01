@@ -36,13 +36,27 @@ Username : {username}
 User ID  : {user_id}
 Exported : {exported_at}
 
-This archive contains every row stored in MediaKeeper that is bound to
-your account. Each ``*.json`` file mirrors one source table.
+This archive contains your account's rows from the tables listed below.
+Each ``*.json`` file mirrors one source table.
 
 Excluded on purpose:
   - admin_notes / tags         (admin curation, not your data)
   - third-party Emby data      (lives on the Emby server, not here)
   - request blacklist          (admin moderation tool)
+  - failed sign-ins            (the address is that of whoever typed your
+                                name, not necessarily yours)
+
+Not in this archive yet (ask the operator of this instance if you need them):
+  - support tickets and their replies, feedback reports, chat reports
+  - XP history, seasonal progress, request quotas, notifications
+  - playback history
+  - events with their invitations and messages, watch parties you hosted
+  - list contributions and history, rating likes, news read, alerts seen
+  - chat mutes, admin actions on your account, blocks on your name
+
+security_attempts.json lists your successful sign-ins and password changes.
+It is matched by name: sign-ins made under another name on the media server
+are not in it.
 
 Included tables ({table_count}):
 {table_list}
