@@ -1,6 +1,6 @@
 // Look of the leaderboard: the crown sits in the corner of its card, nothing glows
-// around the cards, and the icons of the figures bar stand out without looking
-// like its text.
+// around the cards, the icons of the figures bar stand out without looking like
+// its text, and the trophies won are gold, next to a green lead without an icon.
 
 import { test, expect } from '@playwright/test'
 import { LEADERBOARD, openLeaderboard, viewerInList } from './_fixtures/portal-leaderboard-page.js'
@@ -71,6 +71,31 @@ async function expectStatsIconsVisible(page) {
   expect(colors.text).not.toBe(colors.expected)
 }
 
+async function expectTrophiesGold(page) {
+  const look = await page.evaluate(() => {
+    const swatch = document.createElement('span')
+    swatch.style.color = 'var(--portal-color-warning)'
+    document.body.append(swatch)
+    const gold = getComputedStyle(swatch).color
+    swatch.remove()
+    const hero = document.querySelector('.lb-hero')
+    return {
+      gold,
+      trophies: [...document.querySelectorAll('.lb-trophies')].map(
+        chip => getComputedStyle(chip).color,
+      ),
+      leadColor: getComputedStyle(hero.querySelector('.lb-hero-lead')).color,
+      leadIcon: !!hero.querySelector('.lb-hero-lead svg'),
+      heroTrophyIcon: !!hero.querySelector('.lb-trophies svg'),
+    }
+  })
+  expect(look.trophies.length).toBeGreaterThan(0)
+  expect(new Set(look.trophies)).toEqual(new Set([look.gold]))
+  expect(look.leadColor).not.toBe(look.gold)
+  expect(look.leadIcon).toBe(false)
+  expect(look.heroTrophyIcon).toBe(true)
+}
+
 test.describe('Look of the leaderboard on a large screen', () => {
   test.skip(({ isMobile }) => isMobile, 'large screen layout only')
 
@@ -79,6 +104,7 @@ test.describe('Look of the leaderboard on a large screen', () => {
     await expectCrownInCorner(page)
     await expectNoHalo(page)
     await expectStatsIconsVisible(page)
+    await expectTrophiesGold(page)
     expect(tracker.unexpected).toEqual([])
   })
 })
@@ -92,6 +118,7 @@ test.describe('Look of the leaderboard on a phone', () => {
       await expectCrownInCorner(page)
       await expectNoHalo(page)
       await expectStatsIconsVisible(page)
+      await expectTrophiesGold(page)
       expect(tracker.unexpected).toEqual([])
     })
 

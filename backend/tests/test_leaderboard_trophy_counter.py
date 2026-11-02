@@ -124,15 +124,15 @@ async def _three_players_with_trophies(db_session) -> tuple:
         db_session.add(
             XpLedger(user_id=user.id, action="watch_movie", reference=user.username, xp=xp)
         )
-    now = datetime.now(timezone.utc)
-    await _add_trophy(db_session, alice.id, "first", unlocked_at=now)
+    this_month = _month_start() + timedelta(seconds=1)
+    await _add_trophy(db_session, alice.id, "first", unlocked_at=this_month)
     await _add_trophy(db_session, alice.id, "second", unlocked_at=_month_start())
     await _add_trophy(
         db_session, alice.id, "last_month",
         unlocked_at=_month_start() - timedelta(seconds=1),
     )
     await _add_trophy(db_session, alice.id, "in_progress", unlocked_at=None)
-    await _add_trophy(db_session, bob.id, "first", unlocked_at=now)
+    await _add_trophy(db_session, bob.id, "first", unlocked_at=this_month)
     return alice, bob, carol
 
 

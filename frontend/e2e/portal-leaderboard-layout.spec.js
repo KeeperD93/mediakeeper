@@ -63,6 +63,35 @@ async function expectTrophiesApart(page) {
   expect(collisions).toEqual([])
 }
 
+// On a phone the trophies go under the XP of their row, aligned with it.
+async function expectTrophiesUnderXp(page) {
+  const rows = await page.evaluate(() => {
+    const out = []
+    for (const [rowSelector, xpSelector] of [
+      ['.lb-top-row', '.lb-top-row-xp'],
+      ['.lb-rest .gc-lb-row', '.gc-lb-v'],
+    ]) {
+      for (const row of document.querySelectorAll(rowSelector)) {
+        const trophies = row.querySelector('.lb-trophies')?.getBoundingClientRect()
+        if (!trophies) continue
+        const xp = row.querySelector(xpSelector).getBoundingClientRect()
+        out.push({
+          top: trophies.top,
+          right: trophies.right,
+          xpBottom: xp.bottom,
+          xpRight: xp.right,
+        })
+      }
+    }
+    return out
+  })
+  expect(rows.length).toBeGreaterThan(0)
+  for (const row of rows) {
+    expect(row.top).toBeGreaterThanOrEqual(row.xpBottom - 1)
+    expect(Math.abs(row.right - row.xpRight)).toBeLessThanOrEqual(1)
+  }
+}
+
 // The viewer with the long name, in each list of the page.
 const VIEWER_ROWS = {
   'in the top ten': {
@@ -185,6 +214,7 @@ test.describe('Portal leaderboard on a phone', () => {
     test(`fits a ${width}px screen, every figure included`, async ({ page }) => {
       const tracker = await openLeaderboard(page, width, LEADERBOARD)
       await expectTrophiesApart(page)
+      if (width <= 640) await expectTrophiesUnderXp(page)
 
       const overflowing = await page.evaluate(selectors => {
         const screenWidth = document.documentElement.clientWidth
