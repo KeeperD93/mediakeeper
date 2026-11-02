@@ -2,17 +2,18 @@
 
 Kept separate from :mod:`profile_stats_ranking` so the orchestrators
 (``compute_ranking``, ``compute_leaderboard_only``) stay well under the
-300-line file budget while sharing the exclusion query, the row →
-entry builder and the month-label formatter.
+300-line file budget while sharing the exclusion query, the activity XP
+query, the row → entry builder and the month-label formatter.
 """
 from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import select
+from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.profile import UserProfile
+from models.portal.xp_ledger import XpLedger
 from services.portal._display_name import resolve_display_name
 from services.portal._rank_tiers import (
     tier_for_level,
@@ -21,6 +22,7 @@ from services.portal._rank_tiers import (
 )
 from services.portal.profile_serializers import _resolve_avatar_url
 from services.portal.admin_users_constants import ROLE_ADMIN
+from services.portal.xp import ACTIVITY_XP_ACTIONS
 
 
 MONTH_LABELS_FR = [
@@ -52,6 +54,32 @@ async def excluded_from_leaderboard(db: AsyncSession) -> list[int]:
         )
     )).scalars().all()
     return list(rows)
+
+
+async def activity_xp_by_user(
+    db: AsyncSession,
+    excluded_ids: list[int],
+    start: datetime,
+    end: datetime | None = None,
+) -> list:
+    """Return ``(user_id, total_xp)`` rows from ``start`` to ``end``, highest first.
+
+    Only activity counts: a trophy reward would feed the ranking that earned it,
+    and a 0 XP Surprise row would add a player. Ties are common at these amounts,
+    so they follow ``user_id`` to keep ranks stable between two displays.
+    """
+    stmt = select(XpLedger.user_id, func.sum(XpLedger.xp).label("total_xp")).where(
+        XpLedger.action.in_(ACTIVITY_XP_ACTIONS),
+        XpLedger.created_at >= start,
+    )
+    if end is not None:
+        stmt = stmt.where(XpLedger.created_at < end)
+    if excluded_ids:
+        stmt = stmt.where(~XpLedger.user_id.in_(excluded_ids))
+    result = await db.execute(
+        stmt.group_by(XpLedger.user_id).order_by(desc("total_xp"), XpLedger.user_id)
+    )
+    return result.all()
 
 
 def month_label(now: datetime, lang: str) -> str:
@@ -89,7 +117,7 @@ def build_entry(
         "level": p_level,
         "tier": tier_for_level(p_level),
         "title_key": title_for_level(p_level),
-        "month_xp": row.month_xp or 0,
+        "month_xp": row.total_xp,
         "selected_title": prof.selected_title if prof else None,
         "title_tier": tier_for_title(prof.selected_title if prof else None),
         "is_current_user": (

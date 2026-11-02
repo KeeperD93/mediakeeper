@@ -14,6 +14,9 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Changed
+- Monthly leaderboard — only activity counts (views, sign-ins, requests), no longer trophies.
+
 ### Fixed
 - Sign-in — three real tries, counter reset after a successful sign-in.
 - Sign-in — clear messages: wait shown, media server unreachable, inactive account.

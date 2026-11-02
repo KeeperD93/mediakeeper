@@ -16,6 +16,9 @@ utilisateurs.
 
 ## [Unreleased]
 
+### Changed
+- Classement du mois — seule l'activité compte (visionnages, connexions, demandes), plus les trophées.
+
 ### Fixed
 - Connexion — trois vrais essais, compteur remis à zéro après une connexion réussie.
 - Connexion — messages clairs : attente affichée, serveur média injoignable, compte inactif.

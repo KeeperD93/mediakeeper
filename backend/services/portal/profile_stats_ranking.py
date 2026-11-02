@@ -1,6 +1,6 @@
 """Ranking + user title + rank tier + mini-leaderboard for the profile page.
 
-Ranking is based on XP earned during the current calendar month. The
+Ranking is based on activity XP earned during the current calendar month. The
 premium /portal/leaderboard page consumes the richer
 :func:`compute_leaderboard_only` payload that embeds viewer-aware stats
 (rank when out of top-N, monthly totals, weekly delta, end-of-month
@@ -8,13 +8,13 @@ projection).
 """
 import logging
 from datetime import datetime, timezone, timedelta
-from sqlalchemy import select, func, desc
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.user import User
 from models.portal.profile import UserProfile
-from models.portal.xp_ledger import XpLedger
 from services.portal._leaderboard_helpers import (
+    activity_xp_by_user,
     build_entry,
     empty_payload,
     excluded_from_leaderboard,
@@ -64,19 +64,10 @@ async def compute_leaderboard_only(
 
         excluded_ids = await excluded_from_leaderboard(db)
 
-        current_stmt = (
-            select(XpLedger.user_id, func.sum(XpLedger.xp).label("month_xp"))
-            .where(XpLedger.created_at >= month_start)
-        )
-        if excluded_ids:
-            current_stmt = current_stmt.where(~XpLedger.user_id.in_(excluded_ids))
-        current_q = await db.execute(
-            current_stmt.group_by(XpLedger.user_id).order_by(desc("month_xp"))
-        )
-        all_users = current_q.all()
+        all_users = await activity_xp_by_user(db, excluded_ids, month_start)
 
         total_players = len(all_users)
-        total_xp_month = sum((r.month_xp or 0) for r in all_users)
+        total_xp_month = sum(r.total_xp for r in all_users)
         leaders = all_users[:limit]
 
         if not leaders:
@@ -86,20 +77,9 @@ async def compute_leaderboard_only(
             payload["stats"]["days_remaining"] = days_remaining
             return payload
 
-        prev_stmt = (
-            select(XpLedger.user_id, func.sum(XpLedger.xp).label("month_xp"))
-            .where(
-                XpLedger.created_at >= prev_start,
-                XpLedger.created_at < month_start,
-            )
-        )
-        if excluded_ids:
-            prev_stmt = prev_stmt.where(~XpLedger.user_id.in_(excluded_ids))
-        prev_q = await db.execute(
-            prev_stmt.group_by(XpLedger.user_id).order_by(desc("month_xp"))
-        )
+        prev_rows = await activity_xp_by_user(db, excluded_ids, prev_start, month_start)
         prev_rank_by_user: dict[int, int] = {
-            row.user_id: idx + 1 for idx, row in enumerate(prev_q.all())
+            row.user_id: idx + 1 for idx, row in enumerate(prev_rows)
         }
 
         leader_ids = [row.user_id for row in leaders]
@@ -134,23 +114,15 @@ async def compute_leaderboard_only(
                     viewer_entry = build_entry(idx, row, **entry_kwargs)
                     break
 
-        week_stmt = (
-            select(XpLedger.user_id, func.sum(XpLedger.xp).label("week_xp"))
-            .where(XpLedger.created_at >= week_start)
-        )
-        if excluded_ids:
-            week_stmt = week_stmt.where(~XpLedger.user_id.in_(excluded_ids))
-        week_q = await db.execute(week_stmt.group_by(XpLedger.user_id))
-        week_by_user: dict[int, int] = {
-            row.user_id: row.week_xp or 0 for row in week_q.all()
-        }
+        week_rows = await activity_xp_by_user(db, excluded_ids, week_start)
+        week_by_user: dict[int, int] = {row.user_id: row.total_xp for row in week_rows}
 
         my_xp_month: int | None = None
         my_delta_week: int | None = None
         projected_end_rank: int | None = None
         if viewer_user_id is not None:
             my_xp_month = next(
-                ((r.month_xp or 0) for r in all_users if r.user_id == viewer_user_id),
+                (r.total_xp for r in all_users if r.user_id == viewer_user_id),
                 0,
             )
             my_delta_week = week_by_user.get(viewer_user_id, 0)
@@ -164,7 +136,7 @@ async def compute_leaderboard_only(
                     1
                     for r in all_users
                     if r.user_id != viewer_user_id
-                    and _projected(r.user_id, r.month_xp or 0) > my_proj
+                    and _projected(r.user_id, r.total_xp) > my_proj
                 )
                 projected_end_rank = better + 1
 
@@ -215,16 +187,7 @@ async def compute_ranking(
 
         excluded_ids = await excluded_from_leaderboard(db)
 
-        all_stmt = (
-            select(XpLedger.user_id, func.sum(XpLedger.xp).label("month_xp"))
-            .where(XpLedger.created_at >= month_start)
-        )
-        if excluded_ids:
-            all_stmt = all_stmt.where(~XpLedger.user_id.in_(excluded_ids))
-        all_users_q = await db.execute(
-            all_stmt.group_by(XpLedger.user_id).order_by(desc("month_xp"))
-        )
-        all_users = all_users_q.all()
+        all_users = await activity_xp_by_user(db, excluded_ids, month_start)
         rank_total = len(all_users)
 
         for idx, row in enumerate(all_users):
@@ -236,20 +199,9 @@ async def compute_ranking(
             rank_percentile = max(1, round(100 * rank_position / rank_total))
 
         prev_start = (month_start - timedelta(days=1)).replace(day=1)
-        prev_stmt = (
-            select(XpLedger.user_id, func.sum(XpLedger.xp).label("month_xp"))
-            .where(
-                XpLedger.created_at >= prev_start,
-                XpLedger.created_at < month_start,
-            )
-        )
-        if excluded_ids:
-            prev_stmt = prev_stmt.where(~XpLedger.user_id.in_(excluded_ids))
-        prev_users_q = await db.execute(
-            prev_stmt.group_by(XpLedger.user_id).order_by(desc("month_xp"))
-        )
+        prev_rows = await activity_xp_by_user(db, excluded_ids, prev_start, month_start)
         prev_rank_by_user: dict[int, int] = {
-            row.user_id: idx + 1 for idx, row in enumerate(prev_users_q.all())
+            row.user_id: idx + 1 for idx, row in enumerate(prev_rows)
         }
         prev_position = prev_rank_by_user.get(user.id, 0)
         if prev_position > 0 and rank_position > 0:

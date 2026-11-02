@@ -14,6 +14,7 @@
       <p class="pt-lb-subtitle">
         {{ $t('portal.leaderboard.subtitle', { n: entries.length || 0 }) }}
       </p>
+      <p class="pt-lb-note">{{ $t('portal.leaderboard.scoringNote') }}</p>
     </header>
 
     <p v-if="loading" class="pt-lb-state">{{ $t('common.loading') }}</p>

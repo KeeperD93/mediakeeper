@@ -59,6 +59,11 @@ XP_TABLE = {
     "request_created": 5,
 }
 
+# What ranks a player on the monthly leaderboard: what they did, not what they
+# were rewarded. Listed by hand so a future reward never joins the ranking by
+# default; trophy and admin XP still count towards the level.
+ACTIVITY_XP_ACTIONS = ("watch_movie", "watch_episode", "daily_login", "request_created")
+
 
 def xp_for_level(level: int) -> int:
     """Total cumulative XP needed to reach a given level."""

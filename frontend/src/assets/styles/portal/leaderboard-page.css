@@ -158,6 +158,11 @@
   text-transform: uppercase;
   letter-spacing: var(--portal-tracking-caps);
 }
+.pt-leaderboard .pt-lb-note {
+  margin-top: 4px;
+  font-size: var(--portal-text-xs);
+  color: var(--portal-text-secondary);
+}
 .pt-leaderboard .pt-lb-state {
   text-align: center;
   color: var(--portal-text-muted);

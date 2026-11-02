@@ -127,6 +127,12 @@ describe('PortalLeaderboard.vue', () => {
     expect(wrapper.find('.gc-lb-row').exists()).toBe(false)
   })
 
+  it('says what counts in the ranking, even before anyone is ranked', async () => {
+    const wrapper = await mountPage({ entries: [] })
+    await flushPromises()
+    expect(wrapper.find('.pt-lb-note').text()).toBe('portal.leaderboard.scoringNote')
+  })
+
   it('renders the my-rank card when the viewer is outside the top via viewerEntry', async () => {
     const viewerEntry = {
       rank: 42,
