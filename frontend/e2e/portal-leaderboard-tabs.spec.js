@@ -216,6 +216,47 @@ test.describe('Each tab brings its own figures', () => {
   })
 })
 
+test.describe('The page keeps one width on a large screen', () => {
+  test.skip(({ isMobile }) => isMobile, 'large screen')
+
+  // A short name here, the longest ones on the other tabs.
+  const byPeriod = {
+    ...BY_PERIOD,
+    today: {
+      ...BY_PERIOD.today,
+      items: BY_PERIOD.today.items.map(entry => ({
+        ...entry,
+        display_name: 'Bob',
+        selected_title: null,
+      })),
+    },
+  }
+
+  for (const width of [1024, 1280, 1366, 1920]) {
+    test(`at ${width}px, a click moves neither the page nor the tabs`, async ({ page }) => {
+      await openPage(page, { width, byPeriod })
+      const facts = {}
+      for (const period of Object.keys(LABELS)) {
+        await tab(page, period).click()
+        await expect(tab(page, period)).toHaveAttribute('aria-selected', 'true')
+        await expect(page.locator('.lb-hero')).toBeVisible()
+        facts[period] = await page.evaluate(() => ({
+          page: document.querySelector('.pt-leaderboard').getBoundingClientRect().toJSON(),
+          firstTab: document.querySelector('.lb-period-tab').getBoundingClientRect().left,
+          note: document.querySelector('.pt-lb-note').getBoundingClientRect().height,
+        }))
+      }
+      for (const fact of Object.values(facts)) {
+        expect(fact.page.width).toBe(880)
+        expect(fact.page.left).toBe(facts.month.page.left)
+        expect(fact.firstTab).toBe(facts.month.firstTab)
+        // The longest note stays on one line, like the shortest.
+        expect(fact.note).toBe(facts.today.note)
+      }
+    })
+  }
+})
+
 test.describe('The row holds on a phone', () => {
   test.skip(({ isMobile }) => !isMobile, 'phone')
 

@@ -14,9 +14,9 @@
 .pt-leaderboard {
   position: relative;
   isolation: isolate;
-  /* Auto margins make this flex item as wide as its content: the 100% keeps a
-     long name or a large total from pushing the page past a small screen. */
-  max-width: min(100%, 1080px);
+  /* One width whatever the tab: as wide as its content, the centered page would
+     move the tabs under the pointer. 880 px keep the longest note on one line. */
+  width: min(100%, 880px);
   margin: 0 auto;
   padding: 24px 20px;
 }

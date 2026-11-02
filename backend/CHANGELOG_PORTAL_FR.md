@@ -27,6 +27,7 @@ utilisateurs.
 - Trophée Compétiteur — calculé sur le classement, une fois le mois terminé (2 joueurs minimum).
 - Classement du mois — votre ligne remplace la barre du haut, avec un lien « Voir ma place ».
 - Classement du mois — page épurée : sans halos, couronne en coin, icônes du bandeau plus visibles.
+- Classement — page à largeur fixe sur ordinateur, plus de décalage entre onglets.
 
 ### Fixed
 - Connexion — trois vrais essais, compteur remis à zéro après une connexion réussie.
