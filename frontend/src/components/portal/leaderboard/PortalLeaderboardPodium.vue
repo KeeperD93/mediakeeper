@@ -28,6 +28,7 @@
         <span class="pt-lb-podium-level">{{ $t('portal.level') }} {{ entry.level }}</span>
         <span class="pt-lb-podium-title">
           {{ $t(`portal.profile.titles.${entry.title_key || 'spectator'}`) }}
+          <LeaderboardChosenTitle :entry="entry" />
         </span>
       </div>
       <div class="pt-lb-podium-xp">{{ (entry.month_xp || 0).toLocaleString() }} XP</div>
@@ -49,6 +50,7 @@
 import { useI18n } from 'vue-i18n'
 import { Award, ChevronDown, ChevronUp, Medal } from 'lucide-vue-next'
 import MkAvatar from '@/components/common/MkAvatar.vue'
+import LeaderboardChosenTitle from '@/components/portal/leaderboard/LeaderboardChosenTitle.vue'
 
 defineProps({
   entries: { type: Array, default: () => [] },
@@ -185,6 +187,7 @@ function moveTooltip(movement) {
   gap: 2px;
   font-size: var(--portal-text-3xs);
   color: var(--portal-text-muted);
+  text-align: center;
   text-transform: uppercase;
   letter-spacing: var(--portal-tracking-caps);
 }

@@ -27,6 +27,7 @@ This section intentionally has no date so it is not shown to users.
 - Sign-in — double press or held Enter: only one try counted.
 - Personal data — the export includes successful sign-ins and account details.
 - Monthly leaderboard — singular respected ("Top 1 player", "1 ranked player", "1 day remaining").
+- Monthly leaderboard — chosen title also shown from 2nd to 13th place.
 
 ## [1.0.0-rc.9] - 2026-10-23
 

@@ -25,6 +25,7 @@
       </span>
       <span class="lb-top-row-title">
         {{ $t(`portal.profile.titles.${entry.title_key || 'spectator'}`) }}
+        <LeaderboardChosenTitle :entry="entry" />
       </span>
     </div>
     <span
@@ -46,6 +47,7 @@ import { useI18n } from 'vue-i18n'
 import { ChevronDown, ChevronUp } from 'lucide-vue-next'
 
 import MkAvatar from '@/components/common/MkAvatar.vue'
+import LeaderboardChosenTitle from '@/components/portal/leaderboard/LeaderboardChosenTitle.vue'
 
 defineProps({
   entry: { type: Object, default: null },

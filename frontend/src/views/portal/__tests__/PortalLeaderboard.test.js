@@ -191,6 +191,17 @@ describe('PortalLeaderboard.vue', () => {
     expect(wrapper.html()).not.toContain('myProgress')
   })
 
+  it('shows a chosen title on a rest row, in the color of its rarity', async () => {
+    const entries = buildEntries(15)
+    entries[14] = { ...entries[14], selected_title: 'portal.titles.testTitle', title_tier: 6 }
+    const wrapper = await mountPage({ entries, stats: buildStats() })
+    await flushPromises()
+    const titles = wrapper.findAll('.gc-lb-custom-title')
+    expect(titles).toHaveLength(1)
+    expect(titles[0].text()).toContain('portal.titles.testTitle')
+    expect(titles[0].classes()).toContain('gc-lb-custom-title--rarity-mythic')
+  })
+
   it('points each rest row at /portal/u/:id', async () => {
     const wrapper = await mountPage({ entries: buildEntries(15), stats: buildStats() })
     await flushPromises()

@@ -38,17 +38,7 @@
           <span class="gc-lb-n">{{ entry.display_name }}</span>
           <span class="gc-lb-tier">
             {{ $t(`portal.profile.titles.${entry.title_key || 'spectator'}`) }}
-            <em
-              v-if="entry.selected_title"
-              class="gc-lb-custom-title"
-              :class="
-                entry.title_tier
-                  ? `gc-lb-custom-title--rarity-${tierToRarity(entry.title_tier)}`
-                  : ''
-              "
-            >
-              · {{ $t(entry.selected_title) }}
-            </em>
+            <LeaderboardChosenTitle :entry="entry" />
           </span>
         </div>
         <span
@@ -71,6 +61,7 @@
 import { useI18n } from 'vue-i18n'
 import { ChevronDown, ChevronRight, ChevronUp } from 'lucide-vue-next'
 import MkAvatar from '@/components/common/MkAvatar.vue'
+import LeaderboardChosenTitle from '@/components/portal/leaderboard/LeaderboardChosenTitle.vue'
 
 defineProps({
   entries: { type: Array, default: () => [] },
@@ -78,18 +69,6 @@ defineProps({
 })
 
 const { t } = useI18n()
-
-const RARITY_BY_TIER = {
-  1: 'common',
-  2: 'uncommon',
-  3: 'rare',
-  4: 'epic',
-  5: 'legendary',
-  6: 'mythic',
-}
-function tierToRarity(tier) {
-  return RARITY_BY_TIER[tier] || 'common'
-}
 
 function moveClass(movement) {
   if (!movement) return 'gc-lb-move--flat'
