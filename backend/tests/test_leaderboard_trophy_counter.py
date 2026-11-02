@@ -1,4 +1,4 @@
-"""The monthly stats count the trophies unlocked this month by ranked accounts."""
+"""The monthly stats count the trophies unlocked this month, excluded accounts left out."""
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone

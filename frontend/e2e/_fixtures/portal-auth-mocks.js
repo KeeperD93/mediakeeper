@@ -189,6 +189,7 @@ export function portalLeaderboardHandlers() {
         month_label: '',
         total_players: 0,
         total_xp_month: 0,
+        total_trophies_month: 0,
         days_remaining: 0,
         my_xp_month: null,
         my_delta_week: null,
