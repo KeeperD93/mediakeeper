@@ -4,8 +4,8 @@ Nothing is stored: a past month always follows the current rules and the
 current exclusions, like the live leaderboard it must agree with.
 """
 from collections import defaultdict
+from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import NamedTuple
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,7 +16,8 @@ from services.portal.achievements_utils import _coerce_utc
 from services.portal.xp import ACTIVITY_XP_ACTIONS
 
 
-class MonthlyEntry(NamedTuple):
+@dataclass(frozen=True)
+class MonthlyEntry:
     user_id: int
     xp: int
     rank: int
