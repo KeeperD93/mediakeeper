@@ -100,37 +100,22 @@ function moveTooltip(movement) {
   border-radius: var(--portal-radius-lg);
   text-decoration: none;
   color: var(--portal-text-primary);
+  background: var(--portal-surface-1);
   transition:
     transform var(--portal-dur-med) var(--portal-ease-emphasis),
     box-shadow var(--portal-dur-med) var(--portal-ease-emphasis),
     border-color var(--portal-dur-med) var(--portal-ease-emphasis);
 }
 .pt-lb-podium-card--2 {
-  background:
-    linear-gradient(135deg, rgb(192, 192, 192, 0.08), transparent 70%), var(--portal-surface-1);
   border: 1px solid rgb(192, 192, 192, 0.3);
-  box-shadow: 0 4px 24px rgb(192, 192, 192, 0.1);
 }
 .pt-lb-podium-card--3 {
-  background:
-    linear-gradient(135deg, rgb(205, 127, 50, 0.08), transparent 70%), var(--portal-surface-1);
   border: 1px solid rgb(205, 127, 50, 0.3);
-  box-shadow: 0 4px 24px rgb(205, 127, 50, 0.1);
 }
 @media (hover: hover) {
   .pt-lb-podium-card:hover {
     transform: translateY(-4px);
     box-shadow: var(--portal-shadow-popup);
-  }
-  .pt-lb-podium-card--2:hover {
-    box-shadow:
-      0 10px 30px rgb(192, 192, 192, 0.22),
-      var(--portal-shadow-popup);
-  }
-  .pt-lb-podium-card--3:hover {
-    box-shadow:
-      0 10px 30px rgb(205, 127, 50, 0.22),
-      var(--portal-shadow-popup);
   }
 }
 .pt-lb-podium-medal {

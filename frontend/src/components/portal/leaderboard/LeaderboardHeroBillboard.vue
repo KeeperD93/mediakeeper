@@ -4,6 +4,7 @@
     :to="{ name: 'portal-user-profile', params: { id: entry.user_id } }"
     class="lb-hero"
   >
+    <Crown :size="32" :stroke-width="2.5" class="lb-hero-crown" aria-hidden="true" />
     <div class="lb-hero-avatar">
       <div class="lb-hero-avatar-inner">
         <MkAvatar
@@ -18,7 +19,6 @@
     <div class="lb-hero-body">
       <div class="lb-hero-rank">
         <span class="lb-hero-rank-num">#1</span>
-        <Crown :size="32" :stroke-width="2.5" class="lb-hero-crown" aria-hidden="true" />
         <LeaderboardMePill v-if="entry.is_current_user" />
       </div>
       <div class="lb-hero-name">{{ entry.display_name }}</div>
@@ -92,24 +92,10 @@ const { displayed: displayedXp } = useCountUp(targetXp.value, { duration: 1400 }
   border-radius: var(--portal-radius-lg);
   text-decoration: none;
   color: var(--portal-text-primary);
-  background:
-    radial-gradient(
-      ellipse at center,
-      rgb(var(--portal-color-warning-rgb), 0.18) 0%,
-      transparent 70%
-    ),
-    var(--portal-surface-2);
+  background: var(--portal-surface-2);
   border: 1px solid rgb(var(--portal-color-warning-rgb), 0.35);
-  box-shadow: 0 8px 30px rgb(var(--portal-color-warning-rgb), 0.12);
   position: relative;
   overflow: hidden;
-}
-.lb-hero::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at center, transparent 55%, rgb(0, 0, 0, 0.32));
-  pointer-events: none;
 }
 .lb-hero-avatar {
   width: 140px;
@@ -120,8 +106,6 @@ const { displayed: displayedXp } = useCountUp(targetXp.value, { duration: 1400 }
      spinning legendary rainbow) is drawn by MkAvatar itself via the
      universal :tier prop, so the #1 champion matches every other
      leaderboard surface instead of a static bespoke ring. */
-  position: relative;
-  z-index: 1;
 }
 .lb-hero-avatar-inner {
   width: 100%;
@@ -151,14 +135,11 @@ const { displayed: displayedXp } = useCountUp(targetXp.value, { duration: 1400 }
   display: flex;
   flex-direction: column;
   gap: 6px;
-  position: relative;
-  z-index: 1;
 }
 .lb-hero-rank {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  position: relative;
 }
 .lb-hero-rank-num {
   font-family: var(--portal-font-display);
@@ -166,12 +147,13 @@ const { displayed: displayedXp } = useCountUp(targetXp.value, { duration: 1400 }
   font-size: clamp(4rem, 8vw, 6rem);
   line-height: 1;
   color: var(--portal-color-warning);
-  text-shadow: 0 4px 24px rgb(var(--portal-color-warning-rgb), 0.45);
   letter-spacing: var(--portal-tracking-tight);
 }
 .lb-hero-crown {
+  position: absolute;
+  top: 14px;
+  right: 14px;
   color: var(--portal-color-warning);
-  filter: drop-shadow(0 2px 4px rgb(0, 0, 0, 0.3));
 }
 .lb-hero-name {
   font-size: clamp(1.5rem, 3vw, 2rem);
@@ -257,10 +239,14 @@ const { displayed: displayedXp } = useCountUp(targetXp.value, { duration: 1400 }
     font-size: var(--portal-text-2xl);
   }
   .lb-hero-crown {
+    top: 10px;
+    right: 10px;
     width: 18px;
     height: 18px;
   }
+  /* The name shares its line with the crown: a long one stops before it. */
   .lb-hero-name {
+    padding-right: 20px;
     font-size: var(--portal-text-md);
   }
   .lb-hero-meta {

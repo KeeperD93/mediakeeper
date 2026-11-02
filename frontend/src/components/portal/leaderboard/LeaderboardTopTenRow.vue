@@ -87,7 +87,7 @@ function moveTooltip(movement) {
 @media (hover: hover) {
   .lb-top-row:hover {
     transform: translateY(-2px);
-    box-shadow: var(--portal-shadow-accent);
+    box-shadow: var(--portal-shadow-sm);
   }
 }
 .lb-top-row-rank {

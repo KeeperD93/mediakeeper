@@ -133,7 +133,7 @@ const monthElapsedPct = computed(() => {
   font-variant-numeric: tabular-nums;
 }
 .lb-stats-chip svg:not(.lb-stats-progress) {
-  color: var(--accent);
+  color: var(--portal-accent-400);
 }
 /* Chips wrap below 1024px, where a separator could end up alone at a line end. */
 .lb-stats-sep {
@@ -149,12 +149,12 @@ const monthElapsedPct = computed(() => {
 }
 .lb-stats-progress-track {
   fill: none;
-  stroke: rgb(255, 255, 255, 0.1);
+  stroke: var(--portal-border-intense);
   stroke-width: 3;
 }
 .lb-stats-progress-fill {
   fill: none;
-  stroke: var(--accent-500);
+  stroke: var(--portal-accent-400);
   stroke-width: 3;
   stroke-linecap: round;
   transition: stroke-dashoffset var(--portal-dur-slow) var(--portal-ease-emphasis);

@@ -55,12 +55,11 @@ defineProps({
   padding: 14px 18px;
   margin: 16px 0 24px;
   border-radius: var(--portal-radius-lg);
-  background:
-    linear-gradient(135deg, rgb(var(--accent-rgb), 0.1), transparent 70%), var(--portal-surface-1);
+  background: var(--portal-surface-1);
   border-left: 4px solid var(--accent-500);
-  border-top: 1px solid rgb(255, 255, 255, 0.06);
-  border-right: 1px solid rgb(255, 255, 255, 0.06);
-  border-bottom: 1px solid rgb(255, 255, 255, 0.06);
+  border-top: 1px solid var(--portal-border-subtle);
+  border-right: 1px solid var(--portal-border-subtle);
+  border-bottom: 1px solid var(--portal-border-subtle);
   color: var(--portal-text-primary);
 }
 .lb-my-rank-label {

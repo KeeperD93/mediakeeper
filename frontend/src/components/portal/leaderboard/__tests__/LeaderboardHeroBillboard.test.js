@@ -70,6 +70,20 @@ describe('LeaderboardHeroBillboard.vue', () => {
     expect(wrapper.text()).toContain('portal.leaderboard.hero.leadOverSecond')
   })
 
+  it('puts the crown on the card, apart from the rank', () => {
+    const wrapper = mount(LeaderboardHeroBillboard, {
+      props: { entry: buildEntry() },
+      global: {
+        stubs: {
+          'router-link': RouterLinkStub,
+          MkAvatar: { template: '<div class="mk-avatar-stub" />' },
+        },
+      },
+    })
+    expect(wrapper.find('a > .lb-hero-crown').exists()).toBe(true)
+    expect(wrapper.find('.lb-hero-rank .lb-hero-crown').exists()).toBe(false)
+  })
+
   it('lets a screen reader read the whole card, not a label in its place', () => {
     const wrapper = mount(LeaderboardHeroBillboard, {
       props: { entry: buildEntry() },
