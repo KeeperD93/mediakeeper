@@ -21,6 +21,7 @@ utilisateurs.
 
 ### Changed
 - Classement du mois — seule l'activité compte (visionnages, connexions, demandes), plus les trophées.
+- Trophée Compétiteur — calculé sur le classement, une fois le mois terminé (2 joueurs minimum).
 
 ### Fixed
 - Connexion — trois vrais essais, compteur remis à zéro après une connexion réussie.

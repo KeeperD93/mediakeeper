@@ -24,6 +24,16 @@ from services.portal.achievements_utils import (
     _coerce_utc,
     _session_duration_seconds,
 )
+from services.portal.monthly_ranking import finished_month_rankings
+
+COMPETITOR_POSITIONS = (
+    ("leaderboard_top10", 10),
+    ("leaderboard_top5", 5),
+    ("leaderboard_top3", 3),
+    ("leaderboard_first", 1),
+)
+# A month played alone is no competition, even though its ranking still exists.
+COMPETITOR_MIN_PLAYERS = 2
 
 
 async def check_progression(
@@ -58,44 +68,22 @@ async def check_progression(
             select(UserProfile).where(UserProfile.user_id == user_id)
         )).scalar_one_or_none()
 
-    # --- leaderboard_top10 / top5 / top3 / first ---
-    for lb_type, max_pos in (
-        ("leaderboard_top10", 10),
-        ("leaderboard_top5", 5),
-        ("leaderboard_top3", 3),
-        ("leaderboard_first", 1),
+    # --- leaderboard_top10 / top5 / top3 / first: finished months only ---
+    if any(
+        ach.id not in unlocked_ids
+        for lb_type, _ in COMPETITOR_POSITIONS
+        for ach in by_type.get(lb_type, [])
     ):
-        if lb_type in by_type:
-            monthly_rank_sub = (
-                select(
-                    XpLedger.user_id,
-                    func.extract("year", XpLedger.created_at).label("yr"),
-                    func.extract("month", XpLedger.created_at).label("mo"),
-                    func.sum(XpLedger.xp).label("total_xp"),
-                    func.rank().over(
-                        partition_by=[
-                            func.extract("year", XpLedger.created_at),
-                            func.extract("month", XpLedger.created_at),
-                        ],
-                        order_by=func.sum(XpLedger.xp).desc(),
-                    ).label("pos"),
-                )
-                .group_by(
-                    XpLedger.user_id,
-                    func.extract("year", XpLedger.created_at),
-                    func.extract("month", XpLedger.created_at),
-                )
-                .subquery()
-            )
-            val = (await db.execute(
-                select(func.count())
-                .select_from(monthly_rank_sub)
-                .where(
-                    monthly_rank_sub.c.user_id == user_id,
-                    monthly_rank_sub.c.pos <= max_pos,
-                )
-            )).scalar() or 0
-            await _apply(lb_type, val)
+        rankings = await finished_month_rankings(db)
+        my_ranks = [
+            entry.rank
+            for entries in rankings.values()
+            if len(entries) >= COMPETITOR_MIN_PLAYERS
+            for entry in entries
+            if entry.user_id == user_id
+        ]
+        for lb_type, max_pos in COMPETITOR_POSITIONS:
+            await _apply(lb_type, sum(rank <= max_pos for rank in my_ranks))
 
     # --- achievements_unlocked: count unlocked achievements ---
     if "achievements_unlocked" in by_type:
