@@ -2519,7 +2519,7 @@
     },
     "leaderboard": {
       "title": "Monthly leaderboard",
-      "subtitle": "Top {n} players · live updates",
+      "subtitle": "Top {n} player · live updates | Top {n} players · live updates",
       "scoringNote": "Only this month's activity counts: movies and episodes watched, sign-ins and requests. Trophy XP raises your level, not your rank.",
       "emptyState": "No ranked players this month.",
       "topTen": "Top 10",

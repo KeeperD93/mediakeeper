@@ -26,7 +26,7 @@ This section intentionally has no date so it is not shown to users.
 - Sign-in — clear messages: wait shown, media server unreachable, inactive account.
 - Sign-in — double press or held Enter: only one try counted.
 - Personal data — the export includes successful sign-ins and account details.
-- Monthly leaderboard — "1 ranked player" and "1 day remaining" written in the singular.
+- Monthly leaderboard — singular respected ("Top 1 player", "1 ranked player", "1 day remaining").
 
 ## [1.0.0-rc.9] - 2026-10-23
 

@@ -2519,7 +2519,7 @@
     },
     "leaderboard": {
       "title": "Classement du mois",
-      "subtitle": "Top {n} joueurs · mis à jour en continu",
+      "subtitle": "Top {n} joueur · mis à jour en continu | Top {n} joueurs · mis à jour en continu",
       "scoringNote": "Seule l'activité du mois compte : films et épisodes vus, connexions et demandes. Les XP des trophées font monter ton niveau, pas ton classement.",
       "emptyState": "Aucun joueur classé ce mois.",
       "topTen": "Top 10",

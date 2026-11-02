@@ -12,7 +12,7 @@
     <header class="pt-lb-header">
       <h1>{{ $t('portal.leaderboard.title') }}</h1>
       <p class="pt-lb-subtitle">
-        {{ $t('portal.leaderboard.subtitle', { n: entries.length || 0 }) }}
+        {{ $t('portal.leaderboard.subtitle', { n: entries.length }, entries.length) }}
       </p>
       <p class="pt-lb-note">{{ $t('portal.leaderboard.scoringNote') }}</p>
     </header>

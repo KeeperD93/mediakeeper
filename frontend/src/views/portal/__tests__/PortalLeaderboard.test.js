@@ -15,6 +15,9 @@ import { describe, it, expect, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { ref } from 'vue'
 
+import en from '@/locales/en.json'
+import fr from '@/locales/fr.json'
+
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: key => key }),
 }))
@@ -67,7 +70,13 @@ const RouterLinkStub = {
   template: '<a :data-to="JSON.stringify(to)"><slot /></a>',
 }
 
-async function mountPage({ entries, stats = null, viewerRank = null, viewerEntry = null } = {}) {
+async function mountPage({
+  entries,
+  stats = null,
+  viewerRank = null,
+  viewerEntry = null,
+  $t,
+} = {}) {
   composableState.entries.value = entries
   composableState.stats.value = stats
   composableState.viewerRank.value = viewerRank
@@ -76,6 +85,7 @@ async function mountPage({ entries, stats = null, viewerRank = null, viewerEntry
   const PortalLeaderboard = (await import('@/views/portal/PortalLeaderboard.vue')).default
   return mount(PortalLeaderboard, {
     global: {
+      mocks: $t ? { $t } : {},
       stubs: {
         'router-link': RouterLinkStub,
         MkAvatar: { template: '<div class="mk-avatar-stub" />' },
@@ -131,6 +141,21 @@ describe('PortalLeaderboard.vue', () => {
     const wrapper = await mountPage({ entries: [] })
     await flushPromises()
     expect(wrapper.find('.pt-lb-note').text()).toBe('portal.leaderboard.scoringNote')
+  })
+
+  it('agrees the subtitle with the number of players, in French and in English', async () => {
+    const { createI18n } = await vi.importActual('vue-i18n')
+    const subtitles = {
+      fr: { 1: 'Top 1 joueur ·', 8: 'Top 8 joueurs ·' },
+      en: { 1: 'Top 1 player ·', 8: 'Top 8 players ·' },
+    }
+    for (const [locale, byCount] of Object.entries(subtitles)) {
+      const { t } = createI18n({ legacy: false, locale, messages: { fr, en } }).global
+      for (const [count, subtitle] of Object.entries(byCount)) {
+        const wrapper = await mountPage({ entries: buildEntries(Number(count)), $t: t })
+        expect(wrapper.find('.pt-lb-subtitle').text()).toContain(subtitle)
+      }
+    }
   })
 
   it('renders the my-rank card when the viewer is outside the top via viewerEntry', async () => {
