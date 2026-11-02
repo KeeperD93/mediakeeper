@@ -197,6 +197,19 @@ async def test_ranking_snapshot_keeps_the_level_of_each_row(db_session):
     assert [row["level"] for row in snapshot["top3"]] == [39, 38, 37, 12]
 
 
+@pytest.mark.asyncio
+async def test_ranking_snapshot_keeps_the_trophies_of_each_row(db_session):
+    """The digest shows the trophies won, and a row without any stays at zero."""
+    rows = [
+        {"rank": 1, "trophies_won": 3, "is_current_user": False},
+        {"rank": 2, "is_current_user": True},
+    ]
+    ranking = {"position": 2, "total": 2, "movement": 0, "leaderboard": rows}
+    with patch.object(dd_sources, "compute_ranking", AsyncMock(return_value=ranking)):
+        snapshot = await dd_sources.ranking_snapshot(db_session, User(username="alice"))
+    assert [row["trophies_won"] for row in snapshot["top3"]] == [3, 0]
+
+
 def _fake_adds(count: int) -> list[dict]:
     """``count`` items dated day-0..day-(count-1), newest first (Emby DESC)."""
     today = datetime.now(timezone.utc).date()

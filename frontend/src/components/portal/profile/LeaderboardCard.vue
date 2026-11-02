@@ -41,6 +41,7 @@
           </span>
         </div>
         <span class="gc-lb-figures">
+          <LeaderboardTrophies :count="entry.trophies_won" />
           <span
             class="gc-lb-move"
             :class="moveClass(entry.movement)"
@@ -63,6 +64,7 @@ import { useI18n } from 'vue-i18n'
 import { ChevronDown, ChevronRight, ChevronUp } from 'lucide-vue-next'
 import MkAvatar from '@/components/common/MkAvatar.vue'
 import LeaderboardLevelTitle from '@/components/portal/leaderboard/LeaderboardLevelTitle.vue'
+import LeaderboardTrophies from '@/components/portal/leaderboard/LeaderboardTrophies.vue'
 
 defineProps({
   entries: { type: Array, default: () => [] },

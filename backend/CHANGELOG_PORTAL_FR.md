@@ -19,6 +19,7 @@ utilisateurs.
 ### Added
 - Classement du mois — compteur des trophées distribués dans le mois.
 - Classement du mois — niveau de chaque joueur affiché sur toutes les lignes.
+- Classement du mois — trophées gagnés dans le mois affichés sur chaque ligne.
 
 ### Changed
 - Classement du mois — seule l'activité compte (visionnages, connexions, demandes), plus les trophées.

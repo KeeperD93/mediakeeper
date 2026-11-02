@@ -2524,6 +2524,7 @@
       "emptyState": "Aucun joueur classé ce mois.",
       "topTen": "Top 10",
       "rest": "Place 14 et suivantes",
+      "trophiesWon": "{n} trophée gagné sur cette période | {n} trophées gagnés sur cette période",
       "hero": {
         "levelTitle": "Niveau {level} · {title}",
         "leadOverSecond": "+{n} XP devant le #2"

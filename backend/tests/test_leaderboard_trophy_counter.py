@@ -1,4 +1,5 @@
-"""The monthly stats count the trophies unlocked this month, excluded accounts left out."""
+"""The monthly stats count the trophies unlocked this month, excluded accounts left out,
+and each row of the ranking carries the trophies its player won this month."""
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
@@ -7,6 +8,8 @@ import pytest
 
 from models.portal.achievement import Achievement, UserAchievement
 from models.portal.xp_ledger import XpLedger
+from services.portal._leaderboard_helpers import trophies_by_user_since
+from services.portal.profile_stats_ranking import compute_ranking
 from tests._portal_profile_helpers import (
     PORTAL_COOKIE, make_portal_user, portal_token,
 )
@@ -111,3 +114,63 @@ async def test_empty_ranking_keeps_the_count(client, db_session):
 
     assert stats["total_players"] == 0
     assert stats["total_trophies_month"] == 1
+
+
+async def _three_players_with_trophies(db_session) -> tuple:
+    alice, _ = await make_portal_user(db_session, username="alice")
+    bob, _ = await make_portal_user(db_session, username="bob")
+    carol, _ = await make_portal_user(db_session, username="carol")
+    for user, xp in ((alice, 30), (bob, 20), (carol, 10)):
+        db_session.add(
+            XpLedger(user_id=user.id, action="watch_movie", reference=user.username, xp=xp)
+        )
+    now = datetime.now(timezone.utc)
+    await _add_trophy(db_session, alice.id, "first", unlocked_at=now)
+    await _add_trophy(db_session, alice.id, "second", unlocked_at=_month_start())
+    await _add_trophy(
+        db_session, alice.id, "last_month",
+        unlocked_at=_month_start() - timedelta(seconds=1),
+    )
+    await _add_trophy(db_session, alice.id, "in_progress", unlocked_at=None)
+    await _add_trophy(db_session, bob.id, "first", unlocked_at=now)
+    return alice, bob, carol
+
+
+@pytest.mark.asyncio
+async def test_each_row_carries_the_trophies_its_player_won_this_month(client, db_session):
+    alice, bob, carol = await _three_players_with_trophies(db_session)
+
+    client.cookies.set(PORTAL_COOKIE, portal_token(alice.username))
+    resp = await client.get(MONTHLY_URL)
+
+    assert resp.status_code == 200
+    won = {row["user_id"]: row["trophies_won"] for row in resp.json()["items"]}
+    assert won == {alice.id: 2, bob.id: 1, carol.id: 0}
+
+
+@pytest.mark.asyncio
+async def test_a_viewer_outside_the_list_keeps_their_trophies(client, db_session):
+    alice, bob, _ = await _three_players_with_trophies(db_session)
+
+    client.cookies.set(PORTAL_COOKIE, portal_token(bob.username))
+    resp = await client.get(f"{MONTHLY_URL}?limit=1")
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert [row["user_id"] for row in body["items"]] == [alice.id]
+    assert body["viewer_entry"]["trophies_won"] == 1
+
+
+@pytest.mark.asyncio
+async def test_my_profile_rows_carry_the_trophies_too(db_session):
+    alice, bob, carol = await _three_players_with_trophies(db_session)
+
+    ranking = await compute_ranking(db_session, carol)
+
+    won = {row["user_id"]: row["trophies_won"] for row in ranking["leaderboard"]}
+    assert won == {alice.id: 2, bob.id: 1, carol.id: 0}
+
+
+@pytest.mark.asyncio
+async def test_no_player_means_no_trophy_query(db_session):
+    assert await trophies_by_user_since(db_session, [], _month_start()) == {}

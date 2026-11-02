@@ -189,4 +189,13 @@
     grid-column: 3 / -1;
     white-space: normal;
   }
+  /* The trophies go under the XP: next to the name, they would squeeze it. */
+  .pt-leaderboard .lb-rest .lb-rest-trophies {
+    grid-row: 2;
+    grid-column: 4 / -1;
+    place-self: start end;
+  }
+  .pt-leaderboard .lb-rest .gc-lb-row--trophies .gc-lb-tier {
+    grid-column: 3;
+  }
 }

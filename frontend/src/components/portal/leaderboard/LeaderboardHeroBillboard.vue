@@ -43,9 +43,11 @@
         <span class="lb-hero-xp-value">{{ displayedXp.toLocaleString() }}</span>
         <span class="lb-hero-xp-unit">XP</span>
       </div>
-      <div v-if="leadOver2 > 0" class="lb-hero-lead">
-        <Trophy :size="14" :stroke-width="2.5" aria-hidden="true" />
-        {{ $t('portal.leaderboard.hero.leadOverSecond', { n: leadOver2.toLocaleString() }) }}
+      <div v-if="leadOver2 > 0 || entry.trophies_won > 0" class="lb-hero-chips">
+        <div v-if="leadOver2 > 0" class="lb-hero-lead">
+          {{ $t('portal.leaderboard.hero.leadOverSecond', { n: leadOver2.toLocaleString() }) }}
+        </div>
+        <LeaderboardTrophies :count="entry.trophies_won" large />
       </div>
     </div>
   </router-link>
@@ -53,10 +55,11 @@
 
 <script setup>
 import { computed, toRef } from 'vue'
-import { Crown, Trophy } from 'lucide-vue-next'
+import { Crown } from 'lucide-vue-next'
 
 import MkAvatar from '@/components/common/MkAvatar.vue'
 import LeaderboardMePill from '@/components/portal/leaderboard/LeaderboardMePill.vue'
+import LeaderboardTrophies from '@/components/portal/leaderboard/LeaderboardTrophies.vue'
 import { useCountUp } from '@/composables/portal/useCountUp'
 
 const props = defineProps({
@@ -194,18 +197,20 @@ const { displayed: displayedXp } = useCountUp(targetXp.value, { duration: 1400 }
   color: var(--portal-color-warning);
   opacity: 0.85;
 }
-.lb-hero-lead {
-  align-self: flex-start;
-  display: inline-flex;
+.lb-hero-chips {
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
+  margin-top: 4px;
+}
+.lb-hero-lead {
   padding: 4px 12px;
   border-radius: var(--portal-radius-pill);
   background: rgb(var(--portal-color-success-rgb), 0.18);
   color: var(--portal-color-success);
   font-size: var(--portal-text-xs);
   font-weight: var(--portal-font-bold);
-  margin-top: 4px;
 }
 @media (max-width: 640px) {
   /* A compact banner on a phone: the ranking must start within the first screen. */
@@ -232,7 +237,7 @@ const { displayed: displayedXp } = useCountUp(targetXp.value, { duration: 1400 }
   }
   .lb-hero-meta,
   .lb-hero-xp,
-  .lb-hero-lead {
+  .lb-hero-chips {
     grid-column: 1 / -1;
   }
   .lb-hero-rank-num {
@@ -258,10 +263,11 @@ const { displayed: displayedXp } = useCountUp(targetXp.value, { duration: 1400 }
   .lb-hero-xp-unit {
     font-size: var(--portal-text-sm);
   }
-  .lb-hero-lead {
-    justify-self: start;
-    padding: 2px 8px;
+  .lb-hero-chips {
     margin-top: 2px;
+  }
+  .lb-hero-lead {
+    padding: 2px 8px;
     font-size: var(--portal-text-3xs);
   }
 }

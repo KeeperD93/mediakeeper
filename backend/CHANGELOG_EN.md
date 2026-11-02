@@ -13,7 +13,7 @@ This section intentionally has no date so it is not shown to users.
 ### Changed
 - Security — uvicorn's FORWARDED_ALLOW_IPS is now ignored: list proxies in TRUSTED_PROXIES.
 - Portal leaderboard — only activity counts: trophies and admin XP changes left out.
-- Dashboard — Leaderboard widget: each player's level shown.
+- Dashboard — Leaderboard widget: each player's level and trophies of the month shown.
 
 ### Fixed
 - Security — IP behind a proxy: visitor-supplied address ignored (list every proxy).

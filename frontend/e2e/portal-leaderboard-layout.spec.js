@@ -24,7 +24,44 @@ const FIGURES = [
   '.lb-my-rank-rank',
   '.lb-top-row-xp',
   '.gc-lb-v',
+  '.lb-trophies',
 ]
+
+// On each kind of row, what the trophies must not cover.
+const TROPHY_NEIGHBOURS = {
+  '.lb-top-row': ['.lb-top-row-name', '.lb-top-row-title', '.lb-top-row-move', '.lb-top-row-xp'],
+  '.lb-rest .gc-lb-row': ['.gc-lb-n', '.gc-lb-tier', '.gc-lb-move', '.gc-lb-v'],
+}
+
+async function expectTrophiesApart(page) {
+  const collisions = await page.evaluate(neighbours => {
+    const visible = rect => rect.width > 0 && rect.height > 0
+    const overlap = (a, b) =>
+      visible(a) &&
+      visible(b) &&
+      a.left < b.right &&
+      b.left < a.right &&
+      a.top < b.bottom &&
+      b.top < a.bottom
+    const out = []
+    for (const [rowSelector, selectors] of Object.entries(neighbours)) {
+      const rows = [...document.querySelectorAll(rowSelector)]
+      const withTrophies = rows.filter(row => row.querySelector('.lb-trophies'))
+      if (!withTrophies.length) out.push(`${rowSelector} shows no trophies`)
+      for (const row of withTrophies) {
+        const trophies = row.querySelector('.lb-trophies').getBoundingClientRect()
+        if (trophies.right > row.getBoundingClientRect().right) out.push(`${rowSelector} overflows`)
+        for (const selector of selectors) {
+          if (overlap(trophies, row.querySelector(selector).getBoundingClientRect())) {
+            out.push(`${rowSelector} covers ${selector}`)
+          }
+        }
+      }
+    }
+    return out
+  }, TROPHY_NEIGHBOURS)
+  expect(collisions).toEqual([])
+}
 
 // The viewer with the long name, in each list of the page.
 const VIEWER_ROWS = {
@@ -98,6 +135,12 @@ test.describe('Portal leaderboard on a large screen', () => {
     })
   }
 
+  test('keeps the trophies apart from the rest of a row', async ({ page }) => {
+    const tracker = await openLeaderboard(page, 1280, LEADERBOARD)
+    await expectTrophiesApart(page)
+    expect(tracker.unexpected).toEqual([])
+  })
+
   test('leads a viewer below the top ten to their row', async ({ page }) => {
     const tracker = await openLeaderboard(page, 1280, VIEWER_ROWS['below the top ten'].body)
     await expectLinkReachesMyRow(page)
@@ -141,6 +184,7 @@ test.describe('Portal leaderboard on a phone', () => {
 
     test(`fits a ${width}px screen, every figure included`, async ({ page }) => {
       const tracker = await openLeaderboard(page, width, LEADERBOARD)
+      await expectTrophiesApart(page)
 
       const overflowing = await page.evaluate(selectors => {
         const screenWidth = document.documentElement.clientWidth

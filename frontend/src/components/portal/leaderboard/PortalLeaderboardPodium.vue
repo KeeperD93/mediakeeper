@@ -33,16 +33,19 @@
         </span>
       </div>
       <div class="pt-lb-podium-xp">{{ (entry.month_xp || 0).toLocaleString() }} XP</div>
-      <span
-        class="gc-lb-move pt-lb-podium-move"
-        :class="moveClass(entry.movement)"
-        :title="moveTooltip(entry.movement)"
-      >
-        <ChevronUp v-if="entry.movement > 0" :size="11" :stroke-width="3.5" />
-        <ChevronDown v-else-if="entry.movement < 0" :size="11" :stroke-width="3.5" />
-        <span v-else>—</span>
-        <span v-if="entry.movement">{{ Math.abs(entry.movement) }}</span>
-      </span>
+      <div class="pt-lb-podium-figures">
+        <LeaderboardTrophies :count="entry.trophies_won" />
+        <span
+          class="gc-lb-move pt-lb-podium-move"
+          :class="moveClass(entry.movement)"
+          :title="moveTooltip(entry.movement)"
+        >
+          <ChevronUp v-if="entry.movement > 0" :size="11" :stroke-width="3.5" />
+          <ChevronDown v-else-if="entry.movement < 0" :size="11" :stroke-width="3.5" />
+          <span v-else>—</span>
+          <span v-if="entry.movement">{{ Math.abs(entry.movement) }}</span>
+        </span>
+      </div>
     </router-link>
   </div>
 </template>
@@ -53,6 +56,7 @@ import { Award, ChevronDown, ChevronUp, Medal } from 'lucide-vue-next'
 import MkAvatar from '@/components/common/MkAvatar.vue'
 import LeaderboardChosenTitle from '@/components/portal/leaderboard/LeaderboardChosenTitle.vue'
 import LeaderboardMePill from '@/components/portal/leaderboard/LeaderboardMePill.vue'
+import LeaderboardTrophies from '@/components/portal/leaderboard/LeaderboardTrophies.vue'
 
 defineProps({
   entries: { type: Array, default: () => [] },
@@ -188,6 +192,11 @@ function moveTooltip(movement) {
 }
 .pt-lb-podium-card--3 .pt-lb-podium-xp {
   color: #cd7f32;
+}
+.pt-lb-podium-figures {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .pt-lb-podium-move {
   min-width: 36px;

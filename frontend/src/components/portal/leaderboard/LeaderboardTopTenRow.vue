@@ -3,7 +3,10 @@
     v-if="entry"
     :to="entry.user_id ? { name: 'portal-user-profile', params: { id: entry.user_id } } : ''"
     class="lb-top-row"
-    :class="{ 'lb-top-row--me': entry.is_current_user }"
+    :class="{
+      'lb-top-row--me': entry.is_current_user,
+      'lb-top-row--trophies': entry.trophies_won > 0,
+    }"
   >
     <span class="lb-top-row-rank">{{ entry.rank }}</span>
     <div class="gc-lb-av lb-top-row-av">
@@ -23,15 +26,18 @@
         <LeaderboardLevelTitle :entry="entry" />
       </span>
     </div>
-    <span
-      class="gc-lb-move lb-top-row-move"
-      :class="moveClass(entry.movement)"
-      :title="moveTooltip(entry.movement)"
-    >
-      <ChevronUp v-if="entry.movement > 0" :size="10" :stroke-width="3.5" />
-      <ChevronDown v-else-if="entry.movement < 0" :size="10" :stroke-width="3.5" />
-      <span v-else>—</span>
-      <span v-if="entry.movement">{{ Math.abs(entry.movement) }}</span>
+    <span class="lb-top-row-figures">
+      <LeaderboardTrophies :count="entry.trophies_won" />
+      <span
+        class="gc-lb-move lb-top-row-move"
+        :class="moveClass(entry.movement)"
+        :title="moveTooltip(entry.movement)"
+      >
+        <ChevronUp v-if="entry.movement > 0" :size="10" :stroke-width="3.5" />
+        <ChevronDown v-else-if="entry.movement < 0" :size="10" :stroke-width="3.5" />
+        <span v-else>—</span>
+        <span v-if="entry.movement">{{ Math.abs(entry.movement) }}</span>
+      </span>
     </span>
     <span class="lb-top-row-xp">{{ (entry.month_xp || 0).toLocaleString() }} XP</span>
   </router-link>
@@ -44,6 +50,7 @@ import { ChevronDown, ChevronUp } from 'lucide-vue-next'
 import MkAvatar from '@/components/common/MkAvatar.vue'
 import LeaderboardLevelTitle from '@/components/portal/leaderboard/LeaderboardLevelTitle.vue'
 import LeaderboardMePill from '@/components/portal/leaderboard/LeaderboardMePill.vue'
+import LeaderboardTrophies from '@/components/portal/leaderboard/LeaderboardTrophies.vue'
 
 defineProps({
   entry: { type: Object, default: null },
@@ -136,6 +143,11 @@ function moveTooltip(movement) {
   letter-spacing: var(--portal-tracking-caps);
   color: var(--portal-text-muted);
 }
+.lb-top-row-figures {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
 .lb-top-row-move {
   min-width: 36px;
 }
@@ -181,6 +193,15 @@ function moveTooltip(movement) {
   .lb-top-row-title {
     grid-row: 2;
     grid-column: 3 / -1;
+  }
+  /* The trophies go under the XP: next to the name, they would squeeze it. */
+  .lb-top-row-figures {
+    grid-row: 2;
+    grid-column: 4;
+    place-self: start end;
+  }
+  .lb-top-row--trophies .lb-top-row-title {
+    grid-column: 3;
   }
 }
 </style>

@@ -119,6 +119,19 @@ describe('PortalLeaderboard.vue', () => {
     expect(wrapper.findAll('.gc-lb-row')).toHaveLength(7)
   })
 
+  it('shows the trophies won on the rows below the top ten', async () => {
+    const entries = buildEntries(15).map((entry, index) =>
+      index === 13 ? { ...entry, trophies_won: 4 } : entry,
+    )
+    const wrapper = await mountPage({ entries, stats: buildStats() })
+    await flushPromises()
+    const [withTrophies, without] = wrapper.findAll('.gc-lb-row')
+    expect(withTrophies.classes()).toContain('gc-lb-row--trophies')
+    expect(withTrophies.find('.lb-trophies').text()).toBe('+4')
+    expect(without.classes()).not.toContain('gc-lb-row--trophies')
+    expect(without.find('.lb-trophies').exists()).toBe(false)
+  })
+
   it('keeps the 100-entry payload split: hero + 2 podium + 10 top + 87 rest rows', async () => {
     const wrapper = await mountPage({ entries: buildEntries(100), stats: buildStats() })
     await flushPromises()

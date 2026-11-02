@@ -3,7 +3,7 @@
 Kept separate from :mod:`profile_stats_ranking` so the orchestrators
 (``compute_ranking``, ``compute_leaderboard_only``) stay well under the
 300-line file budget while sharing the exclusion query, the activity XP
-query, the row → entry builder and the month-label formatter.
+and trophy queries, the row → entry builder and the month-label formatter.
 """
 from __future__ import annotations
 
@@ -96,6 +96,27 @@ async def trophies_unlocked_since(
     return (await db.execute(stmt)).scalar_one()
 
 
+async def trophies_by_user_since(
+    db: AsyncSession, user_ids: list[int], start: datetime
+) -> dict[int, int]:
+    """Count the trophies each of ``user_ids`` unlocked since ``start``.
+
+    A player without any is absent from the result.
+    """
+    if not user_ids:
+        return {}
+    rows = await db.execute(
+        select(UserAchievement.user_id, func.count(UserAchievement.id))
+        .where(
+            UserAchievement.user_id.in_(user_ids),
+            UserAchievement.unlocked.is_(True),
+            UserAchievement.unlocked_at >= start,
+        )
+        .group_by(UserAchievement.user_id)
+    )
+    return {user_id: count for user_id, count in rows.all()}
+
+
 def month_label(now: datetime, lang: str) -> str:
     """Format ``now`` as ``Mai 2026`` (FR) or ``May 2026`` (EN)."""
     table = MONTH_LABELS_FR if (lang or "fr").startswith("fr") else MONTH_LABELS_EN
@@ -108,6 +129,7 @@ def build_entry(
     *,
     prof_by_id: dict,
     prev_rank_by_user: dict,
+    trophies_by_user: dict[int, int],
     viewer_user_id: int | None,
     lang: str,
 ) -> dict:
@@ -138,6 +160,7 @@ def build_entry(
             viewer_user_id is not None and row.user_id == viewer_user_id
         ),
         "movement": movement,
+        "trophies_won": trophies_by_user.get(row.user_id, 0),
     }
 
 

@@ -12,6 +12,7 @@
     <div class="lb-my-rank-pseudo">{{ viewerEntry.display_name }}</div>
     <div class="lb-my-rank-rank">#{{ viewerRank }}</div>
     <div class="lb-my-rank-stats">
+      <LeaderboardTrophies :count="viewerEntry.trophies_won" />
       <div class="lb-my-rank-stat">
         <span class="lb-my-rank-stat-label">{{ $t('portal.leaderboard.myRank.xpThisMonth') }}</span>
         <span class="lb-my-rank-stat-value">{{ (stats?.my_xp_month || 0).toLocaleString() }}</span>
@@ -37,6 +38,7 @@
 
 <script setup>
 import MkAvatar from '@/components/common/MkAvatar.vue'
+import LeaderboardTrophies from '@/components/portal/leaderboard/LeaderboardTrophies.vue'
 
 defineProps({
   viewerRank: { type: Number, default: null },

@@ -1,5 +1,6 @@
 // Ranking of "My profile": however narrow its column, each row keeps room for the
-// name and the level, and the movement and the XP stay together inside the card.
+// name and the level, and the trophies, the movement and the XP stay together
+// inside the card.
 
 import { test, expect } from '@playwright/test'
 import { jsonResponse } from './_fixtures/api-mocks.js'
@@ -24,6 +25,7 @@ const LEADERBOARD = Array.from({ length: 16 }, (_, index) => ({
   title_tier: 6,
   is_current_user: index === 5,
   movement: 2,
+  trophies_won: index % 2 ? 0 : 123,
 }))
 
 async function expectRowsReadable(page, width) {
@@ -73,6 +75,9 @@ async function expectRowsReadable(page, width) {
         xpTop: box('.gc-lb-v').top,
         xpRight: box('.gc-lb-v').right,
         cardRight: card.right,
+        cardLeft: card.left,
+        moveLeft: box('.gc-lb-move').left,
+        trophies: row.querySelector('.lb-trophies')?.getBoundingClientRect().toJSON() ?? null,
       }
     }),
   )
@@ -80,7 +85,14 @@ async function expectRowsReadable(page, width) {
     expect(row.nameWidth).toBeGreaterThanOrEqual(MIN_NAME_WIDTH)
     expect(row.xpTop).toBeLessThan(row.moveBottom)
     expect(row.xpRight).toBeLessThanOrEqual(row.cardRight)
+    if (row.trophies) {
+      // On the same line as the movement and the XP, before them, inside the card.
+      expect(row.trophies.top).toBeLessThan(row.moveBottom)
+      expect(row.trophies.right).toBeLessThanOrEqual(row.moveLeft)
+      expect(row.trophies.left).toBeGreaterThanOrEqual(row.cardLeft)
+    }
   }
+  expect(rows.filter(row => row.trophies)).toHaveLength(8)
   expect(tracker.unexpected).toEqual([])
 }
 

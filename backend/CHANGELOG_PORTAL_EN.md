@@ -17,6 +17,7 @@ This section intentionally has no date so it is not shown to users.
 ### Added
 - Monthly leaderboard — counter of trophies awarded this month.
 - Monthly leaderboard — each player's level shown on every row.
+- Monthly leaderboard — trophies won this month shown on every row.
 
 ### Changed
 - Monthly leaderboard — only activity counts (views, sign-ins, requests), no longer trophies.

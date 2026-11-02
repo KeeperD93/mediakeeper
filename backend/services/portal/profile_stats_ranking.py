@@ -19,6 +19,7 @@ from services.portal._leaderboard_helpers import (
     empty_payload,
     excluded_from_leaderboard,
     month_label,
+    trophies_by_user_since,
     trophies_unlocked_since,
 )
 # Re-exported for backward-compat with existing imports
@@ -100,6 +101,7 @@ async def compute_leaderboard_only(
         entry_kwargs = dict(
             prof_by_id=prof_by_id,
             prev_rank_by_user=prev_rank_by_user,
+            trophies_by_user=await trophies_by_user_since(db, lookup_ids, month_start),
             viewer_user_id=viewer_user_id,
             lang=lang,
         )
@@ -227,6 +229,7 @@ async def compute_ranking(
         entry_kwargs = dict(
             prof_by_id=prof_by_id,
             prev_rank_by_user=prev_rank_by_user,
+            trophies_by_user=await trophies_by_user_since(db, lookup_ids, month_start),
             viewer_user_id=user.id,
             lang=lang,
         )

@@ -26,6 +26,7 @@ function buildEntry(index) {
     title_tier: 6,
     is_current_user: false,
     movement: 2,
+    trophies_won: index % 2 ? 0 : 123,
   }
 }
 

@@ -83,6 +83,7 @@
               :class="{
                 'gc-lb-row--me': entry.is_current_user,
                 'gc-lb-row--linkable': !!entry.user_id,
+                'gc-lb-row--trophies': entry.trophies_won > 0,
               }"
             >
               <span class="gc-lb-pos">{{ entry.rank }}</span>
@@ -103,6 +104,7 @@
                   <LeaderboardLevelTitle :entry="entry" />
                 </span>
               </div>
+              <LeaderboardTrophies class="lb-rest-trophies" :count="entry.trophies_won" />
               <span
                 class="gc-lb-move"
                 :class="moveClass(entry.movement)"
@@ -135,6 +137,7 @@ import LeaderboardStatsBar from '@/components/portal/leaderboard/LeaderboardStat
 import PortalLeaderboardPodium from '@/components/portal/leaderboard/PortalLeaderboardPodium.vue'
 import LeaderboardMyRankCard from '@/components/portal/leaderboard/LeaderboardMyRankCard.vue'
 import LeaderboardTopTenRow from '@/components/portal/leaderboard/LeaderboardTopTenRow.vue'
+import LeaderboardTrophies from '@/components/portal/leaderboard/LeaderboardTrophies.vue'
 import { useMonthlyLeaderboard } from '@/composables/portal/useMonthlyLeaderboard'
 
 const MY_ROW_ID = 'lb-my-row'
