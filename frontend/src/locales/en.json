@@ -2530,10 +2530,10 @@
         "leadOverSecond": "+{n} XP ahead of #2"
       },
       "stats": {
-        "playersRanked": "{n} ranked players",
+        "playersRanked": "{n} ranked player | {n} ranked players",
         "activityXp": "{n} activity XP",
         "trophiesDistributed": "{n} trophy awarded | {n} trophies awarded",
-        "daysRemaining": "{n} days remaining"
+        "daysRemaining": "{n} day remaining | {n} days remaining"
       },
       "myRank": {
         "label": "YOU",

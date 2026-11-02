@@ -28,6 +28,7 @@ utilisateurs.
 - Connexion — messages clairs : attente affichée, serveur média injoignable, compte inactif.
 - Connexion — double appui ou Entrée maintenue : un seul essai compté.
 - Données personnelles — l'export inclut les connexions réussies et les informations du compte.
+- Classement du mois — « 1 joueur classé » et « 1 jour restant » écrits au singulier.
 
 ## [1.0.0-rc.9] - 2026-10-23
 

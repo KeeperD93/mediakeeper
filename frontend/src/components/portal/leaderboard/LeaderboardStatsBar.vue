@@ -9,9 +9,11 @@
       <Users :size="14" :stroke-width="2.2" aria-hidden="true" />
       <span class="lb-stats-chip-text">
         {{
-          $t('portal.leaderboard.stats.playersRanked', {
-            n: displayedPlayers.toLocaleString(),
-          })
+          $t(
+            'portal.leaderboard.stats.playersRanked',
+            { n: displayedPlayers.toLocaleString() },
+            totalPlayers,
+          )
         }}
       </span>
     </span>
@@ -44,7 +46,13 @@
       <svg
         class="lb-stats-progress"
         viewBox="0 0 24 24"
-        :aria-label="$t('portal.leaderboard.stats.daysRemaining', { n: stats.days_remaining })"
+        :aria-label="
+          $t(
+            'portal.leaderboard.stats.daysRemaining',
+            { n: stats.days_remaining },
+            stats.days_remaining,
+          )
+        "
       >
         <circle class="lb-stats-progress-track" cx="12" cy="12" r="10" />
         <circle
@@ -57,7 +65,13 @@
         />
       </svg>
       <span class="lb-stats-chip-text">
-        {{ $t('portal.leaderboard.stats.daysRemaining', { n: stats.days_remaining }) }}
+        {{
+          $t(
+            'portal.leaderboard.stats.daysRemaining',
+            { n: stats.days_remaining },
+            stats.days_remaining,
+          )
+        }}
       </span>
     </span>
   </div>
