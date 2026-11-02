@@ -28,45 +28,23 @@
     </div>
     <span class="lb-top-row-figures">
       <LeaderboardTrophies :count="entry.trophies_won" />
-      <span
-        class="gc-lb-move lb-top-row-move"
-        :class="moveClass(entry.movement)"
-        :title="moveTooltip(entry.movement)"
-      >
-        <ChevronUp v-if="entry.movement > 0" :size="10" :stroke-width="3.5" />
-        <ChevronDown v-else-if="entry.movement < 0" :size="10" :stroke-width="3.5" />
-        <span v-else>—</span>
-        <span v-if="entry.movement">{{ Math.abs(entry.movement) }}</span>
-      </span>
+      <LeaderboardMove class="lb-top-row-move" :movement="entry.movement" :size="10" />
     </span>
     <span class="lb-top-row-xp">{{ (entry.period_xp || 0).toLocaleString() }} XP</span>
   </router-link>
 </template>
 
 <script setup>
-import { useI18n } from 'vue-i18n'
-import { ChevronDown, ChevronUp } from 'lucide-vue-next'
-
 import MkAvatar from '@/components/common/MkAvatar.vue'
 import LeaderboardLevelTitle from '@/components/portal/leaderboard/LeaderboardLevelTitle.vue'
 import LeaderboardMePill from '@/components/portal/leaderboard/LeaderboardMePill.vue'
+import LeaderboardMove from '@/components/portal/leaderboard/LeaderboardMove.vue'
 import LeaderboardTrophies from '@/components/portal/leaderboard/LeaderboardTrophies.vue'
 
 defineProps({
   entry: { type: Object, default: null },
   index: { type: Number, default: 0 },
 })
-
-const { t } = useI18n()
-function moveClass(movement) {
-  if (!movement) return 'gc-lb-move--flat'
-  return movement > 0 ? 'gc-lb-move--up' : 'gc-lb-move--down'
-}
-function moveTooltip(movement) {
-  if (!movement) return t('portal.profile.rankStable')
-  const key = movement > 0 ? 'portal.profile.rankUp' : 'portal.profile.rankDown'
-  return t(key, { n: Math.abs(movement) })
-}
 </script>
 
 <style scoped>

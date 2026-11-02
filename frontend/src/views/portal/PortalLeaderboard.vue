@@ -105,16 +105,7 @@
                 </span>
               </div>
               <LeaderboardTrophies class="lb-rest-trophies" :count="entry.trophies_won" />
-              <span
-                class="gc-lb-move"
-                :class="moveClass(entry.movement)"
-                :title="moveTooltip(entry.movement)"
-              >
-                <ChevronUp v-if="entry.movement > 0" :size="9" :stroke-width="3.5" />
-                <ChevronDown v-else-if="entry.movement < 0" :size="9" :stroke-width="3.5" />
-                <span v-else>—</span>
-                <span v-if="entry.movement">{{ Math.abs(entry.movement) }}</span>
-              </span>
+              <LeaderboardMove :movement="entry.movement" />
               <span class="gc-lb-v">{{ (entry.period_xp || 0).toLocaleString() }} XP</span>
             </component>
           </div>
@@ -126,13 +117,13 @@
 
 <script setup>
 import { computed, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { ChevronDown, ChevronUp } from 'lucide-vue-next'
+import { ChevronDown } from 'lucide-vue-next'
 
 import MkAvatar from '@/components/common/MkAvatar.vue'
 import LeaderboardHeroBillboard from '@/components/portal/leaderboard/LeaderboardHeroBillboard.vue'
 import LeaderboardLevelTitle from '@/components/portal/leaderboard/LeaderboardLevelTitle.vue'
 import LeaderboardMePill from '@/components/portal/leaderboard/LeaderboardMePill.vue'
+import LeaderboardMove from '@/components/portal/leaderboard/LeaderboardMove.vue'
 import LeaderboardStatsBar from '@/components/portal/leaderboard/LeaderboardStatsBar.vue'
 import PortalLeaderboardPodium from '@/components/portal/leaderboard/PortalLeaderboardPodium.vue'
 import LeaderboardMyRankCard from '@/components/portal/leaderboard/LeaderboardMyRankCard.vue'
@@ -142,7 +133,6 @@ import { useActivityLeaderboard } from '@/composables/portal/useActivityLeaderbo
 
 const MY_ROW_ID = 'lb-my-row'
 
-const { t } = useI18n()
 const { entries, stats, viewerRank, viewerEntry, loading, fetchTop } = useActivityLeaderboard()
 
 const hero = computed(() => {
@@ -178,16 +168,6 @@ const particles = computed(() => {
     },
   }))
 })
-
-function moveClass(movement) {
-  if (!movement) return 'gc-lb-move--flat'
-  return movement > 0 ? 'gc-lb-move--up' : 'gc-lb-move--down'
-}
-function moveTooltip(movement) {
-  if (!movement) return t('portal.profile.rankStable')
-  const key = movement > 0 ? 'portal.profile.rankUp' : 'portal.profile.rankDown'
-  return t(key, { n: Math.abs(movement) })
-}
 
 onMounted(() => fetchTop(100))
 </script>

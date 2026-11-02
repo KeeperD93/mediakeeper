@@ -35,34 +35,23 @@
       <div class="pt-lb-podium-xp">{{ (entry.period_xp || 0).toLocaleString() }} XP</div>
       <div class="pt-lb-podium-figures">
         <LeaderboardTrophies :count="entry.trophies_won" />
-        <span
-          class="gc-lb-move pt-lb-podium-move"
-          :class="moveClass(entry.movement)"
-          :title="moveTooltip(entry.movement)"
-        >
-          <ChevronUp v-if="entry.movement > 0" :size="11" :stroke-width="3.5" />
-          <ChevronDown v-else-if="entry.movement < 0" :size="11" :stroke-width="3.5" />
-          <span v-else>—</span>
-          <span v-if="entry.movement">{{ Math.abs(entry.movement) }}</span>
-        </span>
+        <LeaderboardMove class="pt-lb-podium-move" :movement="entry.movement" :size="11" />
       </div>
     </router-link>
   </div>
 </template>
 
 <script setup>
-import { useI18n } from 'vue-i18n'
-import { Award, ChevronDown, ChevronUp, Medal } from 'lucide-vue-next'
+import { Award, Medal } from 'lucide-vue-next'
 import MkAvatar from '@/components/common/MkAvatar.vue'
 import LeaderboardChosenTitle from '@/components/portal/leaderboard/LeaderboardChosenTitle.vue'
 import LeaderboardMePill from '@/components/portal/leaderboard/LeaderboardMePill.vue'
+import LeaderboardMove from '@/components/portal/leaderboard/LeaderboardMove.vue'
 import LeaderboardTrophies from '@/components/portal/leaderboard/LeaderboardTrophies.vue'
 
 defineProps({
   entries: { type: Array, default: () => [] },
 })
-
-const { t } = useI18n()
 
 // Parent slices ``items.slice(1, 3)``: idx 0 → rank 2, idx 1 → rank 3.
 function rankFor(idx) {
@@ -70,15 +59,6 @@ function rankFor(idx) {
 }
 function medalFor(idx) {
   return idx === 0 ? Award : Medal
-}
-function moveClass(movement) {
-  if (!movement) return 'gc-lb-move--flat'
-  return movement > 0 ? 'gc-lb-move--up' : 'gc-lb-move--down'
-}
-function moveTooltip(movement) {
-  if (!movement) return t('portal.profile.rankStable')
-  const key = movement > 0 ? 'portal.profile.rankUp' : 'portal.profile.rankDown'
-  return t(key, { n: Math.abs(movement) })
 }
 </script>
 
