@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from models.portal.achievement import UserAchievement
 from models.portal.profile import UserProfile
 from models.portal.xp_ledger import XpLedger
 from services.portal._display_name import resolve_display_name
@@ -82,6 +83,19 @@ async def activity_xp_by_user(
     return result.all()
 
 
+async def trophies_unlocked_since(
+    db: AsyncSession, excluded_ids: list[int], start: datetime
+) -> int:
+    """Count the trophies unlocked since ``start``, excluded accounts left out."""
+    stmt = select(func.count(UserAchievement.id)).where(
+        UserAchievement.unlocked.is_(True),
+        UserAchievement.unlocked_at >= start,
+    )
+    if excluded_ids:
+        stmt = stmt.where(~UserAchievement.user_id.in_(excluded_ids))
+    return (await db.execute(stmt)).scalar_one()
+
+
 def month_label(now: datetime, lang: str) -> str:
     """Format ``now`` as ``Mai 2026`` (FR) or ``May 2026`` (EN)."""
     table = MONTH_LABELS_FR if (lang or "fr").startswith("fr") else MONTH_LABELS_EN
@@ -133,6 +147,7 @@ def empty_stats(lang: str) -> dict:
         "month_label": month_label(datetime.now(timezone.utc), lang),
         "total_players": 0,
         "total_xp_month": 0,
+        "total_trophies_month": 0,
         "days_remaining": 0,
         "my_xp_month": None,
         "my_delta_week": None,

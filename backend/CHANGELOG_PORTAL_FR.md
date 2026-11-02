@@ -16,6 +16,9 @@ utilisateurs.
 
 ## [Unreleased]
 
+### Added
+- Classement du mois — compteur des trophées distribués dans le mois.
+
 ### Changed
 - Classement du mois — seule l'activité compte (visionnages, connexions, demandes), plus les trophées.
 

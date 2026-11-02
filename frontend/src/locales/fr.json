@@ -2531,7 +2531,8 @@
       },
       "stats": {
         "playersRanked": "{n} joueurs classés",
-        "xpDistributed": "{n} XP distribués",
+        "activityXp": "{n} XP d'activité",
+        "trophiesDistributed": "{n} trophée distribué | {n} trophées distribués",
         "daysRemaining": "{n} jours restants"
       },
       "myRank": {

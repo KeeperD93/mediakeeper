@@ -19,6 +19,7 @@ from services.portal._leaderboard_helpers import (
     empty_payload,
     excluded_from_leaderboard,
     month_label,
+    trophies_unlocked_since,
 )
 # Re-exported for backward-compat with existing imports
 # (services/portal/profile_stats.py + daily_digest_sources.py).
@@ -46,8 +47,8 @@ async def compute_leaderboard_only(
 
     Output dict: ``items`` (gc-lb-* rows), ``viewer_rank`` /
     ``viewer_entry`` (set when viewer is out of top-N) and ``stats``
-    (month_label, total_players, total_xp_month, days_remaining,
-    my_xp_month, my_delta_week, projected_end_rank).
+    (month_label, total_players, total_xp_month, total_trophies_month,
+    days_remaining, my_xp_month, my_delta_week, projected_end_rank).
     """
     try:
         now = datetime.now(timezone.utc)
@@ -68,12 +69,14 @@ async def compute_leaderboard_only(
 
         total_players = len(all_users)
         total_xp_month = sum(r.total_xp for r in all_users)
+        total_trophies_month = await trophies_unlocked_since(db, excluded_ids, month_start)
         leaders = all_users[:limit]
 
         if not leaders:
             payload = empty_payload(lang)
             payload["stats"]["total_players"] = total_players
             payload["stats"]["total_xp_month"] = total_xp_month
+            payload["stats"]["total_trophies_month"] = total_trophies_month
             payload["stats"]["days_remaining"] = days_remaining
             return payload
 
@@ -144,6 +147,7 @@ async def compute_leaderboard_only(
             "month_label": month_label(now, lang),
             "total_players": total_players,
             "total_xp_month": total_xp_month,
+            "total_trophies_month": total_trophies_month,
             "days_remaining": days_remaining,
             "my_xp_month": my_xp_month,
             "my_delta_week": my_delta_week,

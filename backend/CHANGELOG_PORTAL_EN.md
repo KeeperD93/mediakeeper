@@ -14,6 +14,9 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Added
+- Monthly leaderboard — counter of trophies awarded this month.
+
 ### Changed
 - Monthly leaderboard — only activity counts (views, sign-ins, requests), no longer trophies.
 

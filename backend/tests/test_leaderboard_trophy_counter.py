@@ -1,0 +1,113 @@
+"""The monthly stats count the trophies unlocked this month by ranked accounts."""
+from __future__ import annotations
+
+from datetime import datetime, timedelta, timezone
+
+import pytest
+
+from models.portal.achievement import Achievement, UserAchievement
+from models.portal.xp_ledger import XpLedger
+from tests._portal_profile_helpers import (
+    PORTAL_COOKIE, make_portal_user, portal_token,
+)
+
+MONTHLY_URL = "/api/portal/achievements/leaderboard/monthly"
+
+
+def _month_start() -> datetime:
+    return datetime.now(timezone.utc).replace(
+        day=1, hour=0, minute=0, second=0, microsecond=0
+    )
+
+
+async def _add_trophy(
+    db_session,
+    user_id: int,
+    achievement_id: str,
+    *,
+    unlocked_at: datetime | None,
+) -> None:
+    if await db_session.get(Achievement, achievement_id) is None:
+        db_session.add(Achievement(
+            id=achievement_id,
+            category="test",
+            name_key="portal.achievements.test",
+            description_key="portal.achievements.test_desc",
+            icon="Trophy",
+            condition_type="test",
+        ))
+    db_session.add(UserAchievement(
+        user_id=user_id,
+        achievement_id=achievement_id,
+        progress=1,
+        unlocked=unlocked_at is not None,
+        unlocked_at=unlocked_at,
+        notified=False,
+    ))
+    await db_session.commit()
+
+
+async def _get_stats(client, viewer) -> dict:
+    client.cookies.set(PORTAL_COOKIE, portal_token(viewer.username))
+    resp = await client.get(MONTHLY_URL)
+    assert resp.status_code == 200
+    return resp.json()["stats"]
+
+
+@pytest.mark.asyncio
+async def test_counts_only_trophies_unlocked_this_month(client, db_session):
+    alice, _ = await make_portal_user(db_session, username="alice")
+    db_session.add(XpLedger(user_id=alice.id, action="watch_movie", reference="a", xp=10))
+    now = datetime.now(timezone.utc)
+    await _add_trophy(db_session, alice.id, "this_month_a", unlocked_at=now)
+    await _add_trophy(db_session, alice.id, "this_month_b", unlocked_at=_month_start())
+    await _add_trophy(
+        db_session, alice.id, "last_month",
+        unlocked_at=_month_start() - timedelta(seconds=1),
+    )
+    await _add_trophy(db_session, alice.id, "in_progress", unlocked_at=None)
+
+    stats = await _get_stats(client, alice)
+
+    assert stats["total_trophies_month"] == 2
+
+
+@pytest.mark.asyncio
+async def test_excluded_accounts_do_not_count(client, db_session):
+    alice, _ = await make_portal_user(db_session, username="alice")
+    db_session.add(XpLedger(user_id=alice.id, action="watch_movie", reference="a", xp=10))
+    gone, gone_profile = await make_portal_user(db_session, username="gone")
+    gone_profile.account_active = False
+    db_session.add(gone_profile)
+    now = datetime.now(timezone.utc)
+    await _add_trophy(db_session, alice.id, "kept", unlocked_at=now)
+    await _add_trophy(db_session, gone.id, "left_out", unlocked_at=now)
+
+    stats = await _get_stats(client, alice)
+
+    assert stats["total_trophies_month"] == 1
+
+
+@pytest.mark.asyncio
+async def test_a_player_without_activity_still_adds_their_trophy(client, db_session):
+    """They are not ranked, yet the trophy was handed out this month."""
+    alice, _ = await make_portal_user(db_session, username="alice")
+    bob, _ = await make_portal_user(db_session, username="bob")
+    db_session.add(XpLedger(user_id=alice.id, action="watch_movie", reference="a", xp=10))
+    await _add_trophy(db_session, bob.id, "trophy", unlocked_at=datetime.now(timezone.utc))
+
+    stats = await _get_stats(client, alice)
+
+    assert stats["total_players"] == 1
+    assert stats["total_trophies_month"] == 1
+
+
+@pytest.mark.asyncio
+async def test_empty_ranking_keeps_the_count(client, db_session):
+    alice, _ = await make_portal_user(db_session, username="alice")
+    await _add_trophy(db_session, alice.id, "trophy", unlocked_at=datetime.now(timezone.utc))
+
+    stats = await _get_stats(client, alice)
+
+    assert stats["total_players"] == 0
+    assert stats["total_trophies_month"] == 1

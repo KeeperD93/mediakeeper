@@ -20,9 +20,22 @@
       <Zap :size="14" :stroke-width="2.2" aria-hidden="true" />
       <span class="lb-stats-chip-text">
         {{
-          $t('portal.leaderboard.stats.xpDistributed', {
+          $t('portal.leaderboard.stats.activityXp', {
             n: displayedXp.toLocaleString(),
           })
+        }}
+      </span>
+    </span>
+    <span class="lb-stats-sep">·</span>
+    <span class="lb-stats-chip">
+      <Trophy :size="14" :stroke-width="2.2" aria-hidden="true" />
+      <span class="lb-stats-chip-text">
+        {{
+          $t(
+            'portal.leaderboard.stats.trophiesDistributed',
+            { n: displayedTrophies.toLocaleString() },
+            totalTrophies,
+          )
         }}
       </span>
     </span>
@@ -52,7 +65,7 @@
 
 <script setup>
 import { computed, toRef } from 'vue'
-import { CalendarDays, Users, Zap } from 'lucide-vue-next'
+import { CalendarDays, Trophy, Users, Zap } from 'lucide-vue-next'
 
 import { useCountUp } from '@/composables/portal/useCountUp'
 
@@ -63,9 +76,11 @@ const props = defineProps({
 const statsRef = toRef(props, 'stats')
 const totalPlayers = computed(() => statsRef.value?.total_players || 0)
 const totalXp = computed(() => statsRef.value?.total_xp_month || 0)
+const totalTrophies = computed(() => statsRef.value?.total_trophies_month || 0)
 
 const { displayed: displayedPlayers } = useCountUp(totalPlayers.value, { duration: 1100 })
 const { displayed: displayedXp } = useCountUp(totalXp.value, { duration: 1500 })
+const { displayed: displayedTrophies } = useCountUp(totalTrophies.value, { duration: 1100 })
 
 const circ = 2 * Math.PI * 10
 const monthElapsedPct = computed(() => {
