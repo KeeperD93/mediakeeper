@@ -34,6 +34,7 @@ utilisateurs.
 - Classement du mois — page compacte sur téléphone, plus rien de coupé à droite.
 - Classement du mois — XP du Top 10 lisibles, couleur du niveau sur l'avatar seul.
 - Classement du mois — étiquette « VOUS » traduite et toujours entière, vos XP restent visibles.
+- Classement du mois — carte du 1er lue en entier par les lecteurs d'écran.
 
 ## [1.0.0-rc.9] - 2026-10-23
 

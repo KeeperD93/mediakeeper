@@ -3,7 +3,6 @@
     v-if="entry"
     :to="{ name: 'portal-user-profile', params: { id: entry.user_id } }"
     class="lb-hero"
-    :aria-label="$t('portal.leaderboard.hero.rankBadge')"
   >
     <div class="lb-hero-avatar">
       <div class="lb-hero-avatar-inner">

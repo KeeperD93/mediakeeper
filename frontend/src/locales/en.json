@@ -2525,7 +2525,6 @@
       "topTen": "Top 10",
       "rest": "Rank 14 and beyond",
       "hero": {
-        "rankBadge": "Player of the month",
         "levelTitle": "Level {level} · {title}",
         "leadOverSecond": "+{n} XP ahead of #2"
       },

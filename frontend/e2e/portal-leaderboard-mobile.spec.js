@@ -137,6 +137,7 @@ async function expectViewerRowReadable(page, { row: rowSelector, xp }) {
 // The label stays inside the card, and the top bar does not repeat the viewer.
 async function expectViewerCardLabelled(page, { card }) {
   await expect(page.locator(`${card} .lb-me-pill`)).toHaveText('VOUS')
+  await expect(page.locator(card)).toHaveAccessibleName(/VOUS/)
   await expect(page.locator('.lb-my-rank')).toHaveCount(0)
   const boxes = await page.locator(card).evaluate(el => ({
     pillRight: el.querySelector('.lb-me-pill').getBoundingClientRect().right,

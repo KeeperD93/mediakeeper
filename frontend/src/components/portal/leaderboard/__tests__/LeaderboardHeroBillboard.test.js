@@ -70,6 +70,19 @@ describe('LeaderboardHeroBillboard.vue', () => {
     expect(wrapper.text()).toContain('portal.leaderboard.hero.leadOverSecond')
   })
 
+  it('lets a screen reader read the whole card, not a label in its place', () => {
+    const wrapper = mount(LeaderboardHeroBillboard, {
+      props: { entry: buildEntry() },
+      global: {
+        stubs: {
+          'router-link': RouterLinkStub,
+          MkAvatar: { template: '<div class="mk-avatar-stub" />' },
+        },
+      },
+    })
+    expect(wrapper.find('a').attributes('aria-label')).toBeUndefined()
+  })
+
   it('reaches the target XP at the end of the count-up animation', async () => {
     vi.useFakeTimers({
       toFake: ['performance', 'requestAnimationFrame', 'cancelAnimationFrame'],

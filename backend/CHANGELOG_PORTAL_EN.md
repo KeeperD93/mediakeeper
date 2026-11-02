@@ -32,6 +32,7 @@ This section intentionally has no date so it is not shown to users.
 - Monthly leaderboard — compact page on phones, nothing cut off on the right.
 - Monthly leaderboard — readable top ten XP, level color on the avatar only.
 - Monthly leaderboard — translated "YOU" label, always whole, your XP stays visible.
+- Monthly leaderboard — first-place card fully read by screen readers.
 
 ## [1.0.0-rc.9] - 2026-10-23
 
