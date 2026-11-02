@@ -49,15 +49,3 @@ def resolve_display_name(
     if username is not None and username.strip():
         return username.strip()
     return generate_pseudo(user_id, lang)
-
-
-def parse_accept_language(header: str | None) -> str:
-    if not header:
-        return "fr"
-    # Cheap scan — we only care whether English appears anywhere in the
-    # preference list (q-weights and regions are ignored on purpose).
-    for token in header.split(","):
-        primary = token.split(";", 1)[0].strip().lower()
-        if primary.startswith("en"):
-            return "en"
-    return "fr"

@@ -11,9 +11,12 @@ also embeds viewer-aware stats (``viewer_rank``, ``viewer_entry``,
 """
 from __future__ import annotations
 
+from datetime import UTC, datetime
+
 import pytest
 
 from models.portal.xp_ledger import XpLedger
+from services.portal._leaderboard_helpers import MONTH_LABELS_EN, MONTH_LABELS_FR
 from tests._portal_profile_helpers import (
     PORTAL_COOKIE, make_portal_user, portal_token,
 )
@@ -197,3 +200,29 @@ async def test_monthly_leaderboard_stats_schema(client, db_session):
     # Fresh XpLedger rows fall inside the 7-day window → delta matches XP.
     assert stats["my_delta_week"] == 800
     assert stats["projected_end_rank"] == 1
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(("headers", "labels"), [
+    # A French browser that also lists English, as browsers commonly do.
+    ({"Accept-Language": "fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7"}, MONTH_LABELS_FR),
+    ({"X-MK-Locale": "fr", "Accept-Language": "en-US,en;q=0.9"}, MONTH_LABELS_FR),
+    ({"X-MK-Locale": "en", "Accept-Language": "fr-FR,fr;q=0.9"}, MONTH_LABELS_EN),
+    ({"Accept-Language": "en-US,en;q=0.9,fr;q=0.8"}, MONTH_LABELS_EN),
+    ({}, MONTH_LABELS_FR),
+    # A language the server does not write, and a header that is not a language.
+    ({"X-MK-Locale": "de"}, MONTH_LABELS_FR),
+    ({"X-MK-Locale": "<script>", "Accept-Language": "en"}, MONTH_LABELS_EN),
+])
+async def test_monthly_leaderboard_month_follows_the_app_language(
+    client, db_session, headers, labels,
+):
+    me, _ = await make_portal_user(db_session, username="alice")
+    await _grant_month_xp(db_session, me.id, 100, "month-alice")
+
+    client.cookies.set(PORTAL_COOKIE, portal_token(me.username))
+    resp = await client.get("/api/portal/achievements/leaderboard/monthly", headers=headers)
+
+    assert resp.status_code == 200
+    now = datetime.now(UTC)
+    assert resp.json()["stats"]["month_label"] == f"{labels[now.month]} {now.year}"

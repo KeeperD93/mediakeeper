@@ -84,3 +84,26 @@ async def test_leaderboard_alias_localizes_to_english(client, db_session):
     target = next((it for it in items if it["user_id"] == me.id), None)
     assert target is not None
     assert target["display_name"] == generate_pseudo(me.id, "en")
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(("headers", "lang"), [
+    ({"accept-language": "fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7"}, "fr"),
+    ({"x-mk-locale": "fr", "accept-language": "en-US,en;q=0.9"}, "fr"),
+    ({"x-mk-locale": "en", "accept-language": "fr-FR,fr;q=0.9"}, "en"),
+])
+async def test_leaderboard_alias_follows_the_app_language(client, db_session, headers, lang):
+    """English further down a browser's list changes nothing, and the language
+    of the app wins over the browser's."""
+    me, mp = await make_portal_user(
+        db_session, username="my_emby_login", must_set=True,
+    )
+    mp.xp = 100
+    db_session.add(mp)
+    await db_session.commit()
+
+    client.cookies.set(PORTAL_COOKIE, portal_token(me.username))
+    resp = await client.get("/api/portal/achievements/leaderboard?limit=20", headers=headers)
+    assert resp.status_code == 200
+    target = next(it for it in resp.json()["items"] if it["user_id"] == me.id)
+    assert target["display_name"] == generate_pseudo(me.id, lang)
