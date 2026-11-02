@@ -65,8 +65,8 @@ async def activity_xp_by_user(
     """Return ``(user_id, total_xp)`` rows from ``start`` to ``end``, highest first.
 
     Only activity counts: a trophy reward would feed the ranking that earned it,
-    and a 0 XP Surprise row would add a player. Ties are common at these amounts,
-    so they follow ``user_id`` to keep ranks stable between two displays.
+    and a 0 XP Surprise row would add a player. Ties follow ``user_id`` to keep
+    ranks stable between two displays.
     """
     stmt = select(XpLedger.user_id, func.sum(XpLedger.xp).label("total_xp")).where(
         XpLedger.action.in_(ACTIVITY_XP_ACTIONS),

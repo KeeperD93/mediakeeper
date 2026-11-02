@@ -10,7 +10,9 @@ from datetime import datetime, timedelta, timezone
 import pytest
 
 from models.portal.xp_ledger import XpLedger
+from services.portal.admin_debug import admin_grant_xp
 from services.portal.profile_stats_ranking import compute_ranking
+from services.portal.xp import grant_xp
 from tests._portal_profile_helpers import (
     PORTAL_COOKIE, make_portal_user, portal_token,
 )
@@ -127,6 +129,24 @@ async def test_admin_removal_does_not_lower_the_month(client, db_session):
 
     assert body["items"][0]["month_xp"] == 100
     assert body["stats"]["my_delta_week"] == 100
+
+
+@pytest.mark.asyncio
+async def test_trophy_and_admin_xp_raise_the_level_not_the_month(client, db_session):
+    """The promise the leaderboard page makes to its players."""
+    alice, profile = await make_portal_user(db_session, username="alice")
+    await _add(db_session, _row(alice.id, "watch_movie", 10))
+
+    await grant_xp(
+        db_session, alice.id, "achievement_unlocked", "ach:test", xp_override=500
+    )
+    await admin_grant_xp(db_session, alice.id, 1000)
+
+    await db_session.refresh(profile)
+    assert profile.xp == 1500
+    assert profile.level == 5
+    body = await _get_monthly(client, alice)
+    assert body["items"][0]["month_xp"] == 10
 
 
 @pytest.mark.asyncio
