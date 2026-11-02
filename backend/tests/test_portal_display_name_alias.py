@@ -65,8 +65,8 @@ async def test_leaderboard_keeps_real_pseudo_when_set(client, db_session):
 
 @pytest.mark.asyncio
 async def test_leaderboard_alias_localizes_to_english(client, db_session):
-    """The viewer's ``Accept-Language`` header drives the pseudo language:
-    ``Renard-Bleu-42`` in FR, ``Blue-Fox-42`` in EN."""
+    """Without the app's language, the browser's first language drives the
+    pseudo: ``Renard-Bleu-42`` in FR, ``Blue-Fox-42`` in EN."""
     me, mp = await make_portal_user(
         db_session, username="my_emby_login", must_set=True,
     )

@@ -145,8 +145,8 @@ async def test_owner_with_pseudo_returns_real_value(client, db_session):
 
 @pytest.mark.asyncio
 async def test_contributor_alias_localizes_to_english(client, db_session):
-    """``Accept-Language`` drives the pseudo language: ``Renard-Bleu-42``
-    in FR, ``Blue-Fox-42`` in EN."""
+    """Without the app's language, the browser's first language drives the
+    pseudo: ``Renard-Bleu-42`` in FR, ``Blue-Fox-42`` in EN."""
     owner, contributor, lst = await _make_collab_list_with_contributor(
         db_session,
         owner_username="lc-owner-3",
