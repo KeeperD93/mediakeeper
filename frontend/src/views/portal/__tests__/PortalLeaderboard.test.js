@@ -202,6 +202,20 @@ describe('PortalLeaderboard.vue', () => {
     expect(titles[0].classes()).toContain('gc-lb-custom-title--rarity-mythic')
   })
 
+  it('labels only the viewer among the rest rows, in the language of the reader', async () => {
+    const { createI18n } = await vi.importActual('vue-i18n')
+    for (const [locale, label] of Object.entries({ fr: 'VOUS', en: 'YOU' })) {
+      const { t } = createI18n({ legacy: false, locale, messages: { fr, en } }).global
+      const entries = buildEntries(16)
+      entries[15] = { ...entries[15], is_current_user: true }
+      const wrapper = await mountPage({ entries, stats: buildStats(), $t: t })
+      await flushPromises()
+      const pills = wrapper.findAll('.gc-lb-row').map(row => row.find('.lb-me-pill'))
+      expect(pills.map(pill => pill.exists())).toEqual([false, false, true])
+      expect(pills[2].text()).toBe(label)
+    }
+  })
+
   it('points each rest row at /portal/u/:id', async () => {
     const wrapper = await mountPage({ entries: buildEntries(15), stats: buildStats() })
     await flushPromises()

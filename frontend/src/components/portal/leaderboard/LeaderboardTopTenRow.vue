@@ -16,10 +16,8 @@
     </div>
     <div class="lb-top-row-info">
       <span class="lb-top-row-pseudo">
-        {{ entry.display_name }}
-        <span v-if="entry.is_current_user" class="lb-top-row-me-pill">
-          {{ $t('portal.leaderboard.myRank.label') }}
-        </span>
+        <span class="lb-top-row-name">{{ entry.display_name }}</span>
+        <LeaderboardMePill v-if="entry.is_current_user" />
       </span>
       <span class="lb-top-row-title">
         {{ $t(`portal.profile.titles.${entry.title_key || 'spectator'}`) }}
@@ -46,6 +44,7 @@ import { ChevronDown, ChevronUp } from 'lucide-vue-next'
 
 import MkAvatar from '@/components/common/MkAvatar.vue'
 import LeaderboardChosenTitle from '@/components/portal/leaderboard/LeaderboardChosenTitle.vue'
+import LeaderboardMePill from '@/components/portal/leaderboard/LeaderboardMePill.vue'
 
 defineProps({
   entry: { type: Object, default: null },
@@ -114,26 +113,23 @@ function moveTooltip(movement) {
   flex-direction: column;
   min-width: 0;
 }
+/* The label goes under a name that needs the room, and only the name can be
+   cut: the label and the XP stay whole. */
 .lb-top-row-pseudo {
-  display: inline-flex;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
+  gap: 2px 6px;
+  min-width: 0;
   font-size: var(--portal-text-base);
   font-weight: var(--portal-font-medium);
   color: var(--portal-text-primary);
+}
+.lb-top-row-name {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-.lb-top-row-me-pill {
-  font-size: var(--portal-text-3xs);
-  font-weight: var(--portal-font-bold);
-  text-transform: uppercase;
-  letter-spacing: var(--portal-tracking-widest);
-  padding: 2px 6px;
-  border-radius: var(--portal-radius-pill);
-  background: var(--accent-500);
-  color: var(--portal-text-primary);
 }
 .lb-top-row-title {
   font-size: var(--portal-text-3xs);

@@ -91,7 +91,10 @@
                 />
               </div>
               <div class="gc-lb-info">
-                <span class="gc-lb-n">{{ entry.display_name }}</span>
+                <span class="lb-rest-name">
+                  <span class="gc-lb-n">{{ entry.display_name }}</span>
+                  <LeaderboardMePill v-if="entry.is_current_user" />
+                </span>
                 <span class="gc-lb-tier">
                   {{ $t(`portal.profile.titles.${entry.title_key || 'spectator'}`) }}
                   <LeaderboardChosenTitle :entry="entry" />
@@ -124,6 +127,7 @@ import { ChevronDown, ChevronUp } from 'lucide-vue-next'
 import MkAvatar from '@/components/common/MkAvatar.vue'
 import LeaderboardChosenTitle from '@/components/portal/leaderboard/LeaderboardChosenTitle.vue'
 import LeaderboardHeroBillboard from '@/components/portal/leaderboard/LeaderboardHeroBillboard.vue'
+import LeaderboardMePill from '@/components/portal/leaderboard/LeaderboardMePill.vue'
 import LeaderboardStatsBar from '@/components/portal/leaderboard/LeaderboardStatsBar.vue'
 import PortalLeaderboardPodium from '@/components/portal/leaderboard/PortalLeaderboardPodium.vue'
 import LeaderboardMyRankCard from '@/components/portal/leaderboard/LeaderboardMyRankCard.vue'

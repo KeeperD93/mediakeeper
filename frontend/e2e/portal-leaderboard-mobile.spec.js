@@ -1,6 +1,8 @@
 // Leaderboard on a phone: the page stays as wide as the screen, whatever the
 // names and totals of the fictional players, no figure is cut off, and the
 // longest level title next to the longest chosen title stays inside its card.
+// On every screen, the label of the viewer's row stays whole and leaves their XP
+// readable.
 
 import { test, expect } from '@playwright/test'
 import {
@@ -65,23 +67,93 @@ const LEADERBOARD = {
   },
 }
 
+function viewerInList(viewerIndex) {
+  return {
+    ...LEADERBOARD,
+    items: LEADERBOARD.items.map((entry, index) => ({
+      ...entry,
+      is_current_user: index === viewerIndex,
+    })),
+    viewer_rank: null,
+    viewer_entry: null,
+  }
+}
+
+// The viewer with the long name, in each list of the page.
+const VIEWER_ROWS = {
+  'in the top ten': {
+    body: viewerInList(6),
+    row: '.lb-top-row--me',
+    xp: '.lb-top-row-xp',
+  },
+  'below the top ten': {
+    body: viewerInList(16),
+    row: '.lb-rest .gc-lb-row--me',
+    xp: '.gc-lb-v',
+  },
+}
+
+async function openLeaderboard(page, width, body) {
+  await page.setViewportSize({ width, height: 800 })
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.addInitScript(() => {
+    window.localStorage.setItem('mediakeeper_locale', 'fr')
+  })
+  const tracker = await mockAuthenticatedPortal(page, {
+    profile: { ...DEFAULT_VIEWER_PROFILE, language: 'fr' },
+    pageHandlers: portalLeaderboardHandlers(body),
+  })
+  await page.goto('/portal/leaderboard')
+  await expect(page.locator('.lb-hero')).toBeVisible()
+  return tracker
+}
+
+// The label sits before the XP, and nothing leaves its row or the screen.
+async function expectViewerRowReadable(page, { row: rowSelector, xp }) {
+  const row = page.locator(rowSelector)
+  await expect(row.locator('.lb-me-pill')).toHaveText('VOUS')
+  const boxes = await row.evaluate((el, xpSelector) => {
+    const pill = el.querySelector('.lb-me-pill').getBoundingClientRect()
+    const figure = el.querySelector(xpSelector).getBoundingClientRect()
+    return {
+      pillRight: pill.right,
+      xpLeft: figure.left,
+      xpRight: figure.right,
+      rowRight: el.getBoundingClientRect().right,
+      screenRight: document.documentElement.clientWidth,
+    }
+  }, xp)
+  expect(boxes.pillRight).toBeLessThanOrEqual(boxes.xpLeft)
+  expect(boxes.xpRight).toBeLessThanOrEqual(boxes.rowRight)
+  expect(boxes.rowRight).toBeLessThanOrEqual(boxes.screenRight)
+}
+
+test.describe('Portal leaderboard on a large screen', () => {
+  test.skip(({ isMobile }) => isMobile, 'large screen layout only')
+
+  for (const [where, viewerRow] of Object.entries(VIEWER_ROWS)) {
+    test(`keeps the XP of a viewer ${where} readable`, async ({ page }) => {
+      const tracker = await openLeaderboard(page, 1280, viewerRow.body)
+      await expectViewerRowReadable(page, viewerRow)
+      expect(tracker.unexpected).toEqual([])
+    })
+  }
+})
+
 test.describe('Portal leaderboard on a phone', () => {
   test.skip(({ isMobile }) => !isMobile, 'phone layout only')
 
   for (const width of [320, 375, 430, 767]) {
-    test(`fits a ${width}px screen, every figure included`, async ({ page }) => {
-      await page.setViewportSize({ width, height: 800 })
-      await page.emulateMedia({ reducedMotion: 'reduce' })
-      await page.addInitScript(() => {
-        window.localStorage.setItem('mediakeeper_locale', 'fr')
+    for (const [where, viewerRow] of Object.entries(VIEWER_ROWS)) {
+      test(`keeps the XP of a viewer ${where} readable at ${width}px`, async ({ page }) => {
+        const tracker = await openLeaderboard(page, width, viewerRow.body)
+        await expectViewerRowReadable(page, viewerRow)
+        expect(tracker.unexpected).toEqual([])
       })
-      const tracker = await mockAuthenticatedPortal(page, {
-        profile: { ...DEFAULT_VIEWER_PROFILE, language: 'fr' },
-        pageHandlers: portalLeaderboardHandlers(LEADERBOARD),
-      })
+    }
 
-      await page.goto('/portal/leaderboard')
-      await expect(page.locator('.lb-hero')).toBeVisible()
+    test(`fits a ${width}px screen, every figure included`, async ({ page }) => {
+      const tracker = await openLeaderboard(page, width, LEADERBOARD)
 
       const overflowing = await page.evaluate(selectors => {
         const screenWidth = document.documentElement.clientWidth

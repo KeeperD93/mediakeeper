@@ -39,4 +39,14 @@ describe('LeaderboardTopTenRow.vue', () => {
       expect(wrapper.findComponent(MkAvatar).props('tier')).toBe(tier)
     },
   )
+
+  it('labels the viewer only, next to a name that can be cut on its own', () => {
+    const other = mount(LeaderboardTopTenRow, { props: { entry: buildEntry('gold') } })
+    expect(other.find('.lb-me-pill').exists()).toBe(false)
+
+    const entry = { ...buildEntry('gold'), is_current_user: true }
+    const viewer = mount(LeaderboardTopTenRow, { props: { entry } })
+    expect(viewer.find('.lb-top-row-name').text()).toBe('Alice')
+    expect(viewer.find('.lb-top-row-pseudo .lb-me-pill').exists()).toBe(true)
+  })
 })
