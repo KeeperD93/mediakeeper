@@ -42,8 +42,7 @@ document.documentElement.lang = i18n.global.locale.value
 
 export default i18n
 
-async function ensureLocaleMessages(locale) {
-  if (loadedLocales.has(locale)) return true
+async function loadLocaleMessages(locale) {
   const loader = LOCALE_LOADERS[locale]
   if (!loader) return false
   const module = await loader()
@@ -55,8 +54,12 @@ async function ensureLocaleMessages(locale) {
 async function switchLocale(locale, { persist = false } = {}) {
   if (!SUPPORTED_CODES.includes(locale)) return false
   const requestId = ++localeRequestId
-  const available = await ensureLocaleMessages(locale)
-  if (!available || requestId !== localeRequestId) return false
+  // No await once the messages are there: the page mounted right after this call
+  // would render and send its first requests in the previous language.
+  if (!loadedLocales.has(locale)) {
+    const available = await loadLocaleMessages(locale)
+    if (!available || requestId !== localeRequestId) return false
+  }
   i18n.global.locale.value = locale
   if (persist) {
     localStorage.setItem('mediakeeper_locale', locale)
