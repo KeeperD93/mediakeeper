@@ -1,21 +1,11 @@
-// Leaderboard on a phone: the page stays as wide as the screen, whatever the
-// names and totals of the fictional players, no figure is cut off, and the
-// longest level title next to the longest chosen title stays inside its card.
-// On every screen, the viewer appears once, with a label that stays whole and
-// leaves their XP readable, and a link leads to a row far down the page. The
-// crown sits in the corner of its card, nothing glows around the cards, and the
-// icons of the figures bar stand out without looking like its text.
+// Layout of the leaderboard: on a phone, the page stays as wide as the screen,
+// whatever the names and totals of the fictional players, no figure is cut off,
+// and the longest level title next to the longest chosen title stays inside its
+// card. On every screen, the viewer appears once, with a label that stays whole
+// and leaves their XP readable, and a link leads to a row far down the page.
 
 import { test, expect } from '@playwright/test'
-import {
-  DEFAULT_VIEWER_PROFILE,
-  mockAuthenticatedPortal,
-  portalLeaderboardHandlers,
-} from './_fixtures/portal-auth-mocks.js'
-
-const LONG_NAME = 'Alice-with-a-rather-long-display-name'
-const LONGEST_LEVEL_TITLE = 'spectator'
-const LONGEST_CHOSEN_TITLE = 'portal.titles.supremeCollector'
+import { LEADERBOARD, openLeaderboard, viewerInList } from './_fixtures/portal-leaderboard-page.js'
 
 // Each card of the page, with the titles it must keep inside.
 const TITLES_BY_CARD = {
@@ -36,51 +26,6 @@ const FIGURES = [
   '.gc-lb-v',
 ]
 
-function buildEntry(index) {
-  return {
-    rank: index + 1,
-    user_id: 1000 + index,
-    display_name: index % 2 ? `Player ${index}` : LONG_NAME,
-    avatar_url: null,
-    level: 50,
-    tier: 'gold',
-    title_key: LONGEST_LEVEL_TITLE,
-    month_xp: 1234567 - index * 1000,
-    selected_title: LONGEST_CHOSEN_TITLE,
-    title_tier: 6,
-    is_current_user: false,
-    movement: 2,
-  }
-}
-
-const LEADERBOARD = {
-  items: Array.from({ length: 20 }, (_, index) => buildEntry(index)),
-  viewer_rank: 120,
-  viewer_entry: { ...buildEntry(119), is_current_user: true },
-  stats: {
-    month_label: 'Novembre 2026',
-    total_players: 1234,
-    total_xp_month: 1234567,
-    total_trophies_month: 1234,
-    days_remaining: 28,
-    my_xp_month: 1234,
-    my_delta_week: 123,
-    projected_end_rank: 12,
-  },
-}
-
-function viewerInList(viewerIndex) {
-  return {
-    ...LEADERBOARD,
-    items: LEADERBOARD.items.map((entry, index) => ({
-      ...entry,
-      is_current_user: index === viewerIndex,
-    })),
-    viewer_rank: null,
-    viewer_entry: null,
-  }
-}
-
 // The viewer with the long name, in each list of the page.
 const VIEWER_ROWS = {
   'in the top ten': {
@@ -99,21 +44,6 @@ const VIEWER_ROWS = {
 const VIEWER_CARDS = {
   first: { body: viewerInList(0), card: '.lb-hero' },
   third: { body: viewerInList(2), card: '.pt-lb-podium-card--3' },
-}
-
-async function openLeaderboard(page, width, body) {
-  await page.setViewportSize({ width, height: 800 })
-  await page.emulateMedia({ reducedMotion: 'reduce' })
-  await page.addInitScript(() => {
-    window.localStorage.setItem('mediakeeper_locale', 'fr')
-  })
-  const tracker = await mockAuthenticatedPortal(page, {
-    profile: { ...DEFAULT_VIEWER_PROFILE, language: 'fr' },
-    pageHandlers: portalLeaderboardHandlers(body),
-  })
-  await page.goto('/portal/leaderboard')
-  await expect(page.locator('.lb-hero')).toBeVisible()
-  return tracker
 }
 
 // The label sits before the XP, and nothing leaves its row or the screen.
@@ -157,82 +87,8 @@ async function expectLinkReachesMyRow(page) {
   await expect(page.locator('#lb-my-row')).toBeFocused()
 }
 
-// In the corner of the card, like the medals of the podium, and clear of a long name.
-async function expectCrownInCorner(page) {
-  const boxes = await page.locator('.lb-hero').evaluate(card => {
-    const name = card.querySelector('.lb-hero-name')
-    const nameBox = name.getBoundingClientRect()
-    return {
-      crown: card.querySelector('.lb-hero-crown').getBoundingClientRect().toJSON(),
-      card: card.getBoundingClientRect().toJSON(),
-      nameTop: nameBox.top,
-      // A long name is cut at the end of its content box, padding excluded.
-      nameEnd: nameBox.right - parseFloat(getComputedStyle(name).paddingRight),
-    }
-  })
-  expect(boxes.crown.top - boxes.card.top).toBeLessThanOrEqual(15)
-  expect(boxes.card.right - boxes.crown.right).toBeLessThanOrEqual(15)
-  expect(boxes.crown.right).toBeLessThanOrEqual(boxes.card.right)
-  if (boxes.nameTop < boxes.crown.bottom) {
-    expect(boxes.nameEnd).toBeLessThanOrEqual(boxes.crown.left)
-  }
-}
-
-async function expectNoHalo(page) {
-  const styles = await page.evaluate(() => {
-    const root = document.querySelector('.pt-leaderboard')
-    const hero = document.querySelector('.lb-hero')
-    return {
-      backdrop: ['::before', '::after'].map(part => getComputedStyle(root, part).content),
-      heroVeil: getComputedStyle(hero, '::after').content,
-      rankGlow: getComputedStyle(document.querySelector('.lb-hero-rank-num')).textShadow,
-      cards: [...document.querySelectorAll('.lb-hero, .pt-lb-podium-card')].map(card => {
-        const style = getComputedStyle(card)
-        return [style.boxShadow, style.backgroundImage]
-      }),
-    }
-  })
-  expect(styles.backdrop).toEqual(['none', 'none'])
-  expect(styles.heroVeil).toBe('none')
-  expect(styles.rankGlow).toBe('none')
-  expect(styles.cards).toHaveLength(3)
-  for (const card of styles.cards) expect(card).toEqual(['none', 'none'])
-}
-
-// The light indigo of the portal on every icon of the bar, set apart from its text.
-async function expectStatsIconsVisible(page) {
-  const colors = await page.evaluate(() => {
-    const swatch = document.createElement('span')
-    swatch.style.color = 'var(--portal-accent-400)'
-    document.body.append(swatch)
-    const expected = getComputedStyle(swatch).color
-    swatch.remove()
-    const bar = document.querySelector('.lb-stats-bar')
-    return {
-      expected,
-      text: getComputedStyle(bar.querySelector('.lb-stats-chip-text')).color,
-      icons: [...bar.querySelectorAll('.lb-stats-chip > svg:not(.lb-stats-progress)')].map(
-        icon => getComputedStyle(icon).color,
-      ),
-      ring: getComputedStyle(bar.querySelector('.lb-stats-progress-fill')).stroke,
-    }
-  })
-  expect(colors.icons).toHaveLength(4)
-  expect(new Set(colors.icons)).toEqual(new Set([colors.expected]))
-  expect(colors.ring).toBe(colors.expected)
-  expect(colors.text).not.toBe(colors.expected)
-}
-
 test.describe('Portal leaderboard on a large screen', () => {
   test.skip(({ isMobile }) => isMobile, 'large screen layout only')
-
-  test('stays sober and readable', async ({ page }) => {
-    const tracker = await openLeaderboard(page, 1280, LEADERBOARD)
-    await expectCrownInCorner(page)
-    await expectNoHalo(page)
-    await expectStatsIconsVisible(page)
-    expect(tracker.unexpected).toEqual([])
-  })
 
   for (const [place, viewerCard] of Object.entries(VIEWER_CARDS)) {
     test(`labels a ${place} viewer on their card`, async ({ page }) => {
@@ -261,20 +117,6 @@ test.describe('Portal leaderboard on a phone', () => {
   test.skip(({ isMobile }) => !isMobile, 'phone layout only')
 
   for (const width of [320, 375, 430, 767]) {
-    test(`stays sober and readable at ${width}px`, async ({ page }) => {
-      const tracker = await openLeaderboard(page, width, LEADERBOARD)
-      await expectCrownInCorner(page)
-      await expectNoHalo(page)
-      await expectStatsIconsVisible(page)
-      expect(tracker.unexpected).toEqual([])
-    })
-
-    test(`keeps the crown clear of a first-place viewer at ${width}px`, async ({ page }) => {
-      const tracker = await openLeaderboard(page, width, viewerInList(0))
-      await expectCrownInCorner(page)
-      expect(tracker.unexpected).toEqual([])
-    })
-
     for (const [place, viewerCard] of Object.entries(VIEWER_CARDS)) {
       test(`labels a ${place} viewer on their card at ${width}px`, async ({ page }) => {
         const tracker = await openLeaderboard(page, width, viewerCard.body)
