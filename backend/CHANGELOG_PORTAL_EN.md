@@ -28,6 +28,7 @@ This section intentionally has no date so it is not shown to users.
 - Personal data — the export includes successful sign-ins and account details.
 - Monthly leaderboard — singular respected ("Top 1 player", "1 ranked player", "1 day remaining").
 - Monthly leaderboard — chosen title also shown from 2nd to 13th place.
+- Monthly leaderboard — compact page on phones, nothing cut off on the right.
 
 ## [1.0.0-rc.9] - 2026-10-23
 

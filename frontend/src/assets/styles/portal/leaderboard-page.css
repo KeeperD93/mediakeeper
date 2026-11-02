@@ -15,7 +15,9 @@
 .pt-leaderboard {
   position: relative;
   isolation: isolate;
-  max-width: 1080px;
+  /* Auto margins make this flex item as wide as its content: the 100% keeps a
+     long name or a large total from pushing the page past a small screen. */
+  max-width: min(100%, 1080px);
   margin: 0 auto;
   padding: 24px 20px;
 }
@@ -172,5 +174,24 @@
 @media (max-width: 640px) {
   .pt-leaderboard {
     padding: 16px 12px;
+  }
+  /* The titles take their own line, the full width of the row: next to the XP,
+     a long one would not fit on a small phone. */
+  .pt-leaderboard .lb-rest .gc-lb-row {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr) auto auto;
+    row-gap: 0;
+  }
+  .pt-leaderboard .lb-rest .gc-lb-pos,
+  .pt-leaderboard .lb-rest .gc-lb-av {
+    grid-row: 1 / span 2;
+  }
+  .pt-leaderboard .lb-rest .gc-lb-info {
+    display: contents;
+  }
+  .pt-leaderboard .lb-rest .gc-lb-tier {
+    grid-row: 2;
+    grid-column: 3 / -1;
+    white-space: normal;
   }
 }

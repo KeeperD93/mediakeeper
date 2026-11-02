@@ -167,18 +167,31 @@ function scrollToHero() {
   .lb-my-rank {
     grid-template-columns: auto auto 1fr;
     grid-template-rows: auto auto;
-    gap: 8px 10px;
-    padding: 12px 14px;
+    gap: 6px 10px;
+    padding: 10px 12px;
+    margin: 12px 0 16px;
   }
   .lb-my-rank-rank {
     grid-row: 1;
     grid-column: 4 / -1;
     justify-self: end;
+    font-size: var(--portal-text-xl);
   }
   .lb-my-rank-stats,
   .lb-my-rank-podium-msg {
     grid-column: 1 / -1;
     flex-wrap: wrap;
+  }
+  .lb-my-rank-stats {
+    gap: 2px 12px;
+  }
+  .lb-my-rank-stat {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 4px;
+  }
+  .lb-my-rank-stat-value {
+    font-size: var(--portal-text-sm);
   }
 }
 </style>

@@ -178,24 +178,26 @@ export function portalRequestsQueueHandlers() {
   ]
 }
 
-/** Handlers for the dedicated /portal/leaderboard page. */
-export function portalLeaderboardHandlers() {
+const EMPTY_LEADERBOARD = Object.freeze({
+  items: [],
+  viewer_rank: null,
+  viewer_entry: null,
+  stats: {
+    month_label: '',
+    total_players: 0,
+    total_xp_month: 0,
+    total_trophies_month: 0,
+    days_remaining: 0,
+    my_xp_month: null,
+    my_delta_week: null,
+    projected_end_rank: null,
+  },
+})
+
+/** Handlers for the dedicated /portal/leaderboard page, empty by default. */
+export function portalLeaderboardHandlers(body = EMPTY_LEADERBOARD) {
   return [
-    pathHandler('portal-leaderboard-monthly', '/api/portal/achievements/leaderboard/monthly', {
-      items: [],
-      viewer_rank: null,
-      viewer_entry: null,
-      stats: {
-        month_label: '',
-        total_players: 0,
-        total_xp_month: 0,
-        total_trophies_month: 0,
-        days_remaining: 0,
-        my_xp_month: null,
-        my_delta_week: null,
-        projected_end_rank: null,
-      },
-    }),
+    pathHandler('portal-leaderboard-monthly', '/api/portal/achievements/leaderboard/monthly', body),
   ]
 }
 

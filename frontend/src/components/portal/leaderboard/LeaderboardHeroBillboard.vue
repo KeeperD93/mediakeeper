@@ -127,10 +127,7 @@ const { displayed: displayedXp } = useCountUp(targetXp.value, { duration: 1400 }
   height: 100%;
   border-radius: var(--portal-radius-circle);
   /* Transparent so the page bg shows through MkAvatar's hollow tier
-     ring (the ring is a border on MkAvatar itself). Clipping is mobile-
-     only (see media query): on desktop it would cut MkAvatar's tier
-     halo box-shadow and the #1 champion would lose the glow the other
-     leaderboard surfaces show. */
+     ring (the ring is a border on MkAvatar itself). */
   background: transparent;
   display: flex;
   align-items: center;
@@ -228,18 +225,57 @@ const { displayed: displayedXp } = useCountUp(targetXp.value, { duration: 1400 }
   margin-top: 4px;
 }
 @media (max-width: 640px) {
+  /* A compact banner on a phone: the ranking must start within the first screen. */
   .lb-hero {
-    gap: 16px;
-    padding: 18px;
-    min-height: 240px;
+    gap: 12px;
+    padding: 12px 14px;
+    min-height: 0;
   }
   .lb-hero-avatar {
-    width: 96px;
-    height: 96px;
+    width: 64px;
+    height: 64px;
   }
-  /* Crop the fixed 140 px MkAvatar into the smaller mobile slot. */
-  .lb-hero-avatar-inner {
-    overflow: hidden;
+  /* Scale the fixed 140 px MkAvatar into the smaller slot: cropping it would
+     cut its tier ring and halo. */
+  .lb-hero-avatar :deep(.mk-avatar) {
+    flex-shrink: 0;
+    transform: scale(calc(64 / 140));
+  }
+  .lb-hero-body {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 2px 8px;
+  }
+  .lb-hero-meta,
+  .lb-hero-xp,
+  .lb-hero-lead {
+    grid-column: 1 / -1;
+  }
+  .lb-hero-rank-num {
+    font-size: var(--portal-text-2xl);
+  }
+  .lb-hero-crown {
+    width: 18px;
+    height: 18px;
+  }
+  .lb-hero-name {
+    font-size: var(--portal-text-md);
+  }
+  .lb-hero-meta {
+    font-size: var(--portal-text-3xs);
+  }
+  .lb-hero-xp-value {
+    font-size: var(--portal-text-xl);
+  }
+  .lb-hero-xp-unit {
+    font-size: var(--portal-text-sm);
+  }
+  .lb-hero-lead {
+    justify-self: start;
+    padding: 2px 8px;
+    margin-top: 2px;
+    font-size: var(--portal-text-3xs);
   }
 }
 .lb-hero-custom-title--rarity-common {

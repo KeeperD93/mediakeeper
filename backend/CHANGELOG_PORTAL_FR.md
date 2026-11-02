@@ -30,6 +30,7 @@ utilisateurs.
 - Données personnelles — l'export inclut les connexions réussies et les informations du compte.
 - Classement du mois — singulier respecté (« Top 1 joueur », « 1 joueur classé », « 1 jour restant »).
 - Classement du mois — titre choisi affiché aussi de la 2e à la 13e place.
+- Classement du mois — page compacte sur téléphone, plus rien de coupé à droite.
 
 ## [1.0.0-rc.9] - 2026-10-23
 

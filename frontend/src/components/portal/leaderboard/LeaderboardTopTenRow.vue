@@ -169,17 +169,38 @@ function moveTooltip(movement) {
 }
 @media (max-width: 640px) {
   .lb-top-row {
-    grid-template-columns: 36px 36px minmax(0, 1fr) 90px;
-    gap: 8px;
+    grid-template-columns: 36px 36px minmax(0, 1fr) auto;
+    gap: 0 8px;
     padding: 8px 12px;
     min-height: 56px;
   }
   .lb-top-row-move {
     display: none;
   }
+  .lb-top-row-rank,
+  .lb-top-row-av {
+    grid-row: 1 / span 2;
+  }
   .lb-top-row-av {
     width: 36px;
     height: 36px;
+  }
+  /* The titles take their own line, the full width of the row: next to the XP,
+     a long one would not fit on a small phone. */
+  .lb-top-row-info {
+    display: contents;
+  }
+  .lb-top-row-pseudo {
+    grid-row: 1;
+    grid-column: 3;
+  }
+  .lb-top-row-xp {
+    grid-row: 1;
+    grid-column: 4;
+  }
+  .lb-top-row-title {
+    grid-row: 2;
+    grid-column: 3 / -1;
   }
 }
 </style>

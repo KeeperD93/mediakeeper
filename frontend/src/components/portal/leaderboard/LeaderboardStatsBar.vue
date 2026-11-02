@@ -110,6 +110,7 @@ const monthElapsedPct = computed(() => {
   top: 0;
   z-index: 10;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 12px;
   padding: 12px 18px;
@@ -118,12 +119,6 @@ const monthElapsedPct = computed(() => {
   background: rgb(var(--accent-rgb), 0.04);
   backdrop-filter: blur(12px);
   border: 1px solid var(--portal-border-default);
-  overflow-x: auto;
-  scrollbar-width: none;
-  white-space: nowrap;
-}
-.lb-stats-bar::-webkit-scrollbar {
-  display: none;
 }
 .lb-stats-chip {
   display: inline-flex;
@@ -132,6 +127,7 @@ const monthElapsedPct = computed(() => {
   font-size: var(--portal-text-xs);
   color: var(--portal-text-body);
   font-weight: var(--portal-font-medium);
+  white-space: nowrap;
 }
 .lb-stats-chip-text {
   font-variant-numeric: tabular-nums;
@@ -139,7 +135,9 @@ const monthElapsedPct = computed(() => {
 .lb-stats-chip svg:not(.lb-stats-progress) {
   color: var(--accent);
 }
+/* Chips wrap below 1024px, where a separator could end up alone at a line end. */
 .lb-stats-sep {
+  display: none;
   color: var(--portal-text-muted);
   opacity: 0.5;
   font-size: var(--portal-text-xs);
@@ -161,10 +159,21 @@ const monthElapsedPct = computed(() => {
   stroke-linecap: round;
   transition: stroke-dashoffset var(--portal-dur-slow) var(--portal-ease-emphasis);
 }
+@media (min-width: 1024px) {
+  .lb-stats-sep {
+    display: inline;
+  }
+}
 @media (max-width: 640px) {
+  /* Several lines here: stuck to the top, they would hide the ranking. */
   .lb-stats-bar {
-    padding: 10px 14px;
-    gap: 10px;
+    position: static;
+    padding: 8px 12px;
+    margin: 12px 0 16px;
+    gap: 6px 12px;
+  }
+  .lb-stats-chip {
+    font-size: var(--portal-text-2xs);
   }
 }
 </style>

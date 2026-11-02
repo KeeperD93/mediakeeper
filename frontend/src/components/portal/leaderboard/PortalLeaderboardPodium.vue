@@ -206,12 +206,41 @@ function moveTooltip(movement) {
   min-width: 36px;
 }
 @media (max-width: 640px) {
+  /* Two small cards side by side: the ranking must start within the first screen. */
   .pt-lb-podium {
-    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
   }
   .pt-lb-podium-card {
-    min-height: 200px;
-    padding: 18px 14px;
+    gap: 4px;
+    min-height: 0;
+    padding: 12px 8px 10px;
+  }
+  .pt-lb-podium-rank {
+    position: absolute;
+    top: 10px;
+    left: 12px;
+    font-size: var(--portal-text-lg);
+  }
+  .pt-lb-podium-medal {
+    top: 10px;
+    right: 10px;
+    width: 16px;
+    height: 16px;
+  }
+  .pt-lb-podium-card :deep(.gc-lb-av) {
+    width: 48px;
+    height: 48px;
+  }
+  .pt-lb-podium-card :deep(.mk-avatar) {
+    flex-shrink: 0;
+    transform: scale(calc(48 / 84));
+  }
+  .pt-lb-podium-name {
+    font-size: var(--portal-text-sm);
+  }
+  .pt-lb-podium-xp {
+    font-size: var(--portal-text-md);
   }
 }
 </style>
