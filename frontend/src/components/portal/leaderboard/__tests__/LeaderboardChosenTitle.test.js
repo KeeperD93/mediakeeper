@@ -25,7 +25,7 @@ function buildEntry(overrides = {}) {
     level: 10,
     tier: 'gold',
     title_key: 'regular',
-    month_xp: 100,
+    period_xp: 100,
     selected_title: TITLE,
     title_tier: 4,
     is_current_user: false,

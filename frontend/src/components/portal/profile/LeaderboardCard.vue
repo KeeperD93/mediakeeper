@@ -52,7 +52,7 @@
             <span v-else>—</span>
             <span v-if="entry.movement">{{ Math.abs(entry.movement) }}</span>
           </span>
-          <span class="gc-lb-v">{{ (entry.month_xp || 0).toLocaleString() }} XP</span>
+          <span class="gc-lb-v">{{ (entry.period_xp || 0).toLocaleString() }} XP</span>
         </span>
       </component>
     </div>

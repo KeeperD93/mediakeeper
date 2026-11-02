@@ -39,7 +39,7 @@
         <span v-if="entry.movement">{{ Math.abs(entry.movement) }}</span>
       </span>
     </span>
-    <span class="lb-top-row-xp">{{ (entry.month_xp || 0).toLocaleString() }} XP</span>
+    <span class="lb-top-row-xp">{{ (entry.period_xp || 0).toLocaleString() }} XP</span>
   </router-link>
 </template>
 

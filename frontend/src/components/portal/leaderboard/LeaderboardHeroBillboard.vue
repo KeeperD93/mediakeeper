@@ -79,7 +79,7 @@ function tierToRarity(tier) {
 }
 
 const entryRef = toRef(props, 'entry')
-const targetXp = computed(() => entryRef.value?.month_xp || 0)
+const targetXp = computed(() => entryRef.value?.period_xp || 0)
 const leadOver2 = computed(() => Math.max(0, entryRef.value?.lead_over_2 || 0))
 
 const { displayed: displayedXp } = useCountUp(targetXp.value, { duration: 1400 })

@@ -15,7 +15,7 @@
       <LeaderboardTrophies :count="viewerEntry.trophies_won" />
       <div class="lb-my-rank-stat">
         <span class="lb-my-rank-stat-label">{{ $t('portal.leaderboard.myRank.xpThisMonth') }}</span>
-        <span class="lb-my-rank-stat-value">{{ (stats?.my_xp_month || 0).toLocaleString() }}</span>
+        <span class="lb-my-rank-stat-value">{{ (stats?.my_xp || 0).toLocaleString() }}</span>
       </div>
       <div class="lb-my-rank-stat">
         <span class="lb-my-rank-stat-label">

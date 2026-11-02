@@ -14,7 +14,7 @@ from tests._portal_profile_helpers import (
     PORTAL_COOKIE, make_portal_user, portal_token,
 )
 
-MONTHLY_URL = "/api/portal/achievements/leaderboard/monthly"
+MONTHLY_URL = "/api/portal/achievements/leaderboard/activity"
 
 
 def _month_start() -> datetime:
@@ -72,7 +72,7 @@ async def test_counts_only_trophies_unlocked_this_month(client, db_session):
 
     stats = await _get_stats(client, alice)
 
-    assert stats["total_trophies_month"] == 2
+    assert stats["total_trophies"] == 2
 
 
 @pytest.mark.asyncio
@@ -88,7 +88,7 @@ async def test_excluded_accounts_do_not_count(client, db_session):
 
     stats = await _get_stats(client, alice)
 
-    assert stats["total_trophies_month"] == 1
+    assert stats["total_trophies"] == 1
 
 
 @pytest.mark.asyncio
@@ -102,7 +102,7 @@ async def test_a_player_without_activity_still_adds_their_trophy(client, db_sess
     stats = await _get_stats(client, alice)
 
     assert stats["total_players"] == 1
-    assert stats["total_trophies_month"] == 1
+    assert stats["total_trophies"] == 1
 
 
 @pytest.mark.asyncio
@@ -113,7 +113,7 @@ async def test_empty_ranking_keeps_the_count(client, db_session):
     stats = await _get_stats(client, alice)
 
     assert stats["total_players"] == 0
-    assert stats["total_trophies_month"] == 1
+    assert stats["total_trophies"] == 1
 
 
 async def _three_players_with_trophies(db_session) -> tuple:

@@ -1,5 +1,5 @@
 /**
- * Monthly leaderboard — fetch with a small SWR cache.
+ * Activity leaderboard — fetch with a small SWR cache.
  *
  * The dedicated /portal/leaderboard page fetches the top-100 ranking
  * for the current month plus the viewer-aware payload that powers the
@@ -9,7 +9,7 @@
  *
  * Each entry mirrors the schema returned by /api/portal/profiles/me
  * mini-leaderboard (rank, user_id, display_name, avatar_url, level,
- * tier, title_key, month_xp, selected_title, title_tier,
+ * tier, title_key, period_xp, selected_title, title_tier,
  * is_current_user, movement) so the gc-lb-* CSS classes from
  * leaderboard-card.css apply without translation.
  *
@@ -34,7 +34,7 @@ function emptyPayload() {
   }
 }
 
-export function useMonthlyLeaderboard() {
+export function useActivityLeaderboard() {
   const { apiGet } = useApi()
   const entries = ref([])
   const viewerRank = ref(null)
@@ -65,7 +65,7 @@ export function useMonthlyLeaderboard() {
     error.value = null
     inflight = (async () => {
       try {
-        const res = await apiGet(`/api/portal/achievements/leaderboard/monthly?limit=${limit}`)
+        const res = await apiGet(`/api/portal/achievements/leaderboard/activity?limit=${limit}`)
         const payload = {
           items: res?.items || [],
           viewer_rank: res?.viewer_rank ?? null,

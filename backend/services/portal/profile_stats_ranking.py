@@ -48,8 +48,8 @@ async def compute_leaderboard_only(
 
     Output dict: ``items`` (gc-lb-* rows), ``viewer_rank`` /
     ``viewer_entry`` (set when viewer is out of top-N) and ``stats``
-    (month_label, total_players, total_xp_month, total_trophies_month,
-    days_remaining, my_xp_month, my_delta_week, projected_end_rank).
+    (period_label, total_players, total_xp, total_trophies,
+    days_remaining, my_xp, my_delta_week, projected_end_rank).
     """
     try:
         now = datetime.now(timezone.utc)
@@ -69,15 +69,15 @@ async def compute_leaderboard_only(
         all_users = await activity_xp_by_user(db, excluded_ids, month_start)
 
         total_players = len(all_users)
-        total_xp_month = sum(r.total_xp for r in all_users)
-        total_trophies_month = await trophies_unlocked_since(db, excluded_ids, month_start)
+        total_xp = sum(r.total_xp for r in all_users)
+        total_trophies = await trophies_unlocked_since(db, excluded_ids, month_start)
         leaders = all_users[:limit]
 
         if not leaders:
             payload = empty_payload(lang)
             payload["stats"]["total_players"] = total_players
-            payload["stats"]["total_xp_month"] = total_xp_month
-            payload["stats"]["total_trophies_month"] = total_trophies_month
+            payload["stats"]["total_xp"] = total_xp
+            payload["stats"]["total_trophies"] = total_trophies
             payload["stats"]["days_remaining"] = days_remaining
             return payload
 
@@ -122,11 +122,11 @@ async def compute_leaderboard_only(
         week_rows = await activity_xp_by_user(db, excluded_ids, week_start)
         week_by_user: dict[int, int] = {row.user_id: row.total_xp for row in week_rows}
 
-        my_xp_month: int | None = None
+        my_xp: int | None = None
         my_delta_week: int | None = None
         projected_end_rank: int | None = None
         if viewer_user_id is not None:
-            my_xp_month = next(
+            my_xp = next(
                 (r.total_xp for r in all_users if r.user_id == viewer_user_id),
                 0,
             )
@@ -136,7 +136,7 @@ async def compute_leaderboard_only(
                     rate = (week_by_user.get(uid, 0) or 0) / 7
                     return float(base_xp or 0) + rate * days_remaining
 
-                my_proj = _projected(viewer_user_id, my_xp_month or 0)
+                my_proj = _projected(viewer_user_id, my_xp or 0)
                 better = sum(
                     1
                     for r in all_users
@@ -146,12 +146,12 @@ async def compute_leaderboard_only(
                 projected_end_rank = better + 1
 
         stats = {
-            "month_label": month_label(now, lang),
+            "period_label": month_label(now, lang),
             "total_players": total_players,
-            "total_xp_month": total_xp_month,
-            "total_trophies_month": total_trophies_month,
+            "total_xp": total_xp,
+            "total_trophies": total_trophies,
             "days_remaining": days_remaining,
-            "my_xp_month": my_xp_month,
+            "my_xp": my_xp,
             "my_delta_week": my_delta_week,
             "projected_end_rank": projected_end_rank,
         }

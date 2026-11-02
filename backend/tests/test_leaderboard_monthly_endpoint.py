@@ -1,7 +1,7 @@
 """Coverage for the dedicated /portal/leaderboard page endpoint.
 
-``GET /api/portal/achievements/leaderboard/monthly`` returns the
-top-N players by monthly XP — the source of truth for the premium
+``GET /api/portal/achievements/leaderboard/activity`` returns the
+top-N players by monthly XP by default — the source of truth for the premium
 hero billboard + podium + ranks 4-100 table on /portal/leaderboard.
 The endpoint shares its trust boundary with the profile mini-
 leaderboard: any authenticated portal user can view it, while admin
@@ -35,16 +35,16 @@ async def test_monthly_leaderboard_returns_items(client, db_session):
     await _grant_month_xp(db_session, other.id, 800, "month-bob")
 
     client.cookies.set(PORTAL_COOKIE, portal_token(me.username))
-    resp = await client.get("/api/portal/achievements/leaderboard/monthly")
+    resp = await client.get("/api/portal/achievements/leaderboard/activity")
     assert resp.status_code == 200
     body = resp.json()
     assert "items" in body
     user_ids = [it["user_id"] for it in body["items"]]
     assert me.id in user_ids
     assert other.id in user_ids
-    # Entries carry the leaderboard-card schema (rank + tier + month_xp).
+    # Entries carry the leaderboard-card schema (rank + tier + period_xp).
     first = body["items"][0]
-    for key in ("rank", "user_id", "display_name", "level", "tier", "title_key", "month_xp"):
+    for key in ("rank", "user_id", "display_name", "level", "tier", "title_key", "period_xp"):
         assert key in first
     # Premium payload exposes viewer-aware fields + stats.
     assert "viewer_rank" in body
@@ -62,7 +62,7 @@ async def test_monthly_leaderboard_respects_limit(client, db_session):
         await _grant_month_xp(db_session, other.id, 200 + i, f"month-bob{i}")
 
     client.cookies.set(PORTAL_COOKIE, portal_token(me.username))
-    resp = await client.get("/api/portal/achievements/leaderboard/monthly?limit=3")
+    resp = await client.get("/api/portal/achievements/leaderboard/activity?limit=3")
     assert resp.status_code == 200
     assert len(resp.json()["items"]) == 3
 
@@ -72,7 +72,7 @@ async def test_monthly_leaderboard_rejects_overshoot_limit(client, db_session):
     me, _ = await make_portal_user(db_session, username="alice")
     client.cookies.set(PORTAL_COOKIE, portal_token(me.username))
 
-    resp = await client.get("/api/portal/achievements/leaderboard/monthly?limit=500")
+    resp = await client.get("/api/portal/achievements/leaderboard/activity?limit=500")
     # FastAPI's Query(le=100) gates the upper bound — 500 is rejected
     # before the service runs.
     assert resp.status_code == 422
@@ -104,7 +104,7 @@ async def test_monthly_leaderboard_excludes_local_admin_and_deactivated(client, 
     await _grant_month_xp(db_session, dead.id, 5000, "month-zombie")
 
     client.cookies.set(PORTAL_COOKIE, portal_token(me.username))
-    resp = await client.get("/api/portal/achievements/leaderboard/monthly")
+    resp = await client.get("/api/portal/achievements/leaderboard/activity")
     assert resp.status_code == 200
     user_ids = [it["user_id"] for it in resp.json()["items"]]
     assert me.id in user_ids
@@ -116,7 +116,7 @@ async def test_monthly_leaderboard_excludes_local_admin_and_deactivated(client, 
 async def test_monthly_leaderboard_requires_portal_auth(client, db_session):
     """No cookie → 401, even though the data is "public" for users."""
     client.cookies.clear()
-    resp = await client.get("/api/portal/achievements/leaderboard/monthly")
+    resp = await client.get("/api/portal/achievements/leaderboard/activity")
     assert resp.status_code == 401
 
 
@@ -130,7 +130,7 @@ async def test_monthly_leaderboard_viewer_in_top_marks_row(client, db_session):
     await _grant_month_xp(db_session, other.id, 500, "month-bob")
 
     client.cookies.set(PORTAL_COOKIE, portal_token(me.username))
-    resp = await client.get("/api/portal/achievements/leaderboard/monthly")
+    resp = await client.get("/api/portal/achievements/leaderboard/activity")
     assert resp.status_code == 200
     body = resp.json()
 
@@ -153,7 +153,7 @@ async def test_monthly_leaderboard_viewer_outside_top_returns_entry(client, db_s
         await _grant_month_xp(db_session, other.id, 1000 + i * 10, f"month-bob{i}")
 
     client.cookies.set(PORTAL_COOKIE, portal_token(me.username))
-    resp = await client.get("/api/portal/achievements/leaderboard/monthly?limit=2")
+    resp = await client.get("/api/portal/achievements/leaderboard/activity?limit=2")
     assert resp.status_code == 200
     body = resp.json()
 
@@ -163,40 +163,40 @@ async def test_monthly_leaderboard_viewer_outside_top_returns_entry(client, db_s
     assert body["viewer_rank"] == 4  # 3 bobs ahead, me at #4
     assert body["viewer_entry"] is not None
     assert body["viewer_entry"]["user_id"] == me.id
-    assert body["viewer_entry"]["month_xp"] == 50
+    assert body["viewer_entry"]["period_xp"] == 50
     assert body["viewer_entry"]["is_current_user"] is True
 
 
 @pytest.mark.asyncio
 async def test_monthly_leaderboard_stats_schema(client, db_session):
     """Stats payload exposes the seven keys consumed by the live bar
-    + viewer-aware tail (my_xp_month, my_delta_week, projected_end_rank)."""
+    + viewer-aware tail (my_xp, my_delta_week, projected_end_rank)."""
     me, _ = await make_portal_user(db_session, username="alice")
     other, _ = await make_portal_user(db_session, username="bob")
     await _grant_month_xp(db_session, me.id, 800, "month-alice")
     await _grant_month_xp(db_session, other.id, 400, "month-bob")
 
     client.cookies.set(PORTAL_COOKIE, portal_token(me.username))
-    resp = await client.get("/api/portal/achievements/leaderboard/monthly")
+    resp = await client.get("/api/portal/achievements/leaderboard/activity")
     assert resp.status_code == 200
     stats = resp.json()["stats"]
 
     for key in (
-        "month_label",
+        "period_label",
         "total_players",
-        "total_xp_month",
+        "total_xp",
         "days_remaining",
-        "my_xp_month",
+        "my_xp",
         "my_delta_week",
         "projected_end_rank",
     ):
         assert key in stats
 
-    assert isinstance(stats["month_label"], str) and stats["month_label"]
+    assert isinstance(stats["period_label"], str) and stats["period_label"]
     assert stats["total_players"] == 2
-    assert stats["total_xp_month"] == 1200
+    assert stats["total_xp"] == 1200
     assert isinstance(stats["days_remaining"], int)
-    assert stats["my_xp_month"] == 800
+    assert stats["my_xp"] == 800
     # Fresh XpLedger rows fall inside the 7-day window → delta matches XP.
     assert stats["my_delta_week"] == 800
     assert stats["projected_end_rank"] == 1
@@ -221,8 +221,8 @@ async def test_monthly_leaderboard_month_follows_the_app_language(
     await _grant_month_xp(db_session, me.id, 100, "month-alice")
 
     client.cookies.set(PORTAL_COOKIE, portal_token(me.username))
-    resp = await client.get("/api/portal/achievements/leaderboard/monthly", headers=headers)
+    resp = await client.get("/api/portal/achievements/leaderboard/activity", headers=headers)
 
     assert resp.status_code == 200
     now = datetime.now(UTC)
-    assert resp.json()["stats"]["month_label"] == f"{labels[now.month]} {now.year}"
+    assert resp.json()["stats"]["period_label"] == f"{labels[now.month]} {now.year}"

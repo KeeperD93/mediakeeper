@@ -153,7 +153,7 @@ def build_entry(
         "level": p_level,
         "tier": tier_for_level(p_level),
         "title_key": title_for_level(p_level),
-        "month_xp": row.total_xp,
+        "period_xp": row.total_xp,
         "selected_title": prof.selected_title if prof else None,
         "title_tier": tier_for_title(prof.selected_title if prof else None),
         "is_current_user": (
@@ -167,12 +167,12 @@ def build_entry(
 def empty_stats(lang: str) -> dict:
     """Stats payload returned when the leaderboard is empty or errored."""
     return {
-        "month_label": month_label(datetime.now(timezone.utc), lang),
+        "period_label": month_label(datetime.now(timezone.utc), lang),
         "total_players": 0,
-        "total_xp_month": 0,
-        "total_trophies_month": 0,
+        "total_xp": 0,
+        "total_trophies": 0,
         "days_remaining": 0,
-        "my_xp_month": None,
+        "my_xp": None,
         "my_delta_week": None,
         "projected_end_rank": None,
     }

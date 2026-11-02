@@ -132,9 +132,9 @@ async def leaderboard(
     return {"items": await ach_svc.get_leaderboard(db, limit, lang=lang)}
 
 
-@router.get("/leaderboard/monthly")
+@router.get("/leaderboard/activity")
 @limiter.limit("60/minute", key_func=portal_user_or_ip_key)
-async def monthly_leaderboard(
+async def activity_leaderboard(
     request: Request,
     limit: int = Query(LEADERBOARD_FULL_DEFAULT, ge=1, le=LEADERBOARD_FULL_DEFAULT),
     up: tuple[User, UserProfile] = Depends(get_current_profile),

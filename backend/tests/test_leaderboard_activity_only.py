@@ -17,7 +17,7 @@ from tests._portal_profile_helpers import (
     PORTAL_COOKIE, make_portal_user, portal_token,
 )
 
-MONTHLY_URL = "/api/portal/achievements/leaderboard/monthly"
+MONTHLY_URL = "/api/portal/achievements/leaderboard/activity"
 
 
 def _previous_month() -> datetime:
@@ -67,14 +67,14 @@ async def test_every_figure_counts_each_activity_and_nothing_else(client, db_ses
 
     body = await _get_monthly(client, alice)
 
-    assert [(e["user_id"], e["rank"], e["month_xp"]) for e in body["items"]] == [
+    assert [(e["user_id"], e["rank"], e["period_xp"]) for e in body["items"]] == [
         (bob.id, 1, 100),
         (alice.id, 2, 15),
     ]
     stats = body["stats"]
     assert stats["total_players"] == 2
-    assert stats["total_xp_month"] == 115
-    assert stats["my_xp_month"] == 15
+    assert stats["total_xp"] == 115
+    assert stats["my_xp"] == 15
     assert stats["my_delta_week"] == 15
     assert stats["projected_end_rank"] == 2
 
@@ -97,8 +97,8 @@ async def test_rows_without_activity_do_not_make_a_player(client, db_session):
 
     assert [e["user_id"] for e in body["items"]] == [alice.id]
     assert body["stats"]["total_players"] == 1
-    assert body["stats"]["total_xp_month"] == 10
-    assert body["stats"]["my_xp_month"] == 0
+    assert body["stats"]["total_xp"] == 10
+    assert body["stats"]["my_xp"] == 0
     assert body["stats"]["my_delta_week"] == 0
     assert body["viewer_rank"] is None
     assert body["viewer_entry"] is None
@@ -113,7 +113,7 @@ async def test_month_with_only_trophies_leaves_an_empty_ranking(client, db_sessi
 
     assert body["items"] == []
     assert body["stats"]["total_players"] == 0
-    assert body["stats"]["total_xp_month"] == 0
+    assert body["stats"]["total_xp"] == 0
 
 
 @pytest.mark.asyncio
@@ -127,7 +127,7 @@ async def test_admin_removal_does_not_lower_the_month(client, db_session):
 
     body = await _get_monthly(client, alice)
 
-    assert body["items"][0]["month_xp"] == 100
+    assert body["items"][0]["period_xp"] == 100
     assert body["stats"]["my_delta_week"] == 100
 
 
@@ -146,7 +146,7 @@ async def test_trophy_and_admin_xp_raise_the_level_not_the_month(client, db_sess
     assert profile.xp == 1500
     assert profile.level == 5
     body = await _get_monthly(client, alice)
-    assert body["items"][0]["month_xp"] == 10
+    assert body["items"][0]["period_xp"] == 10
 
 
 @pytest.mark.asyncio
@@ -181,7 +181,7 @@ async def test_last_month_rows_stay_out_of_the_month_total(client, db_session):
 
     body = await _get_monthly(client, alice)
 
-    assert body["items"][0]["month_xp"] == 30
+    assert body["items"][0]["period_xp"] == 30
 
 
 @pytest.mark.asyncio
@@ -220,7 +220,7 @@ async def test_profile_ranking_follows_the_same_rule(db_session):
     assert ranking["total"] == 2
     assert ranking["percentile"] == 100
     assert ranking["movement"] == -1
-    assert [(e["user_id"], e["month_xp"]) for e in ranking["leaderboard"]] == [
+    assert [(e["user_id"], e["period_xp"]) for e in ranking["leaderboard"]] == [
         (bob.id, 200),
         (alice.id, 100),
     ]

@@ -28,7 +28,7 @@ function buildEntry(overrides = {}) {
     level: 25,
     tier: 'gold',
     title_key: 'regular',
-    month_xp: 2500,
+    period_xp: 2500,
     movement: 1,
     selected_title: null,
     title_tier: null,
@@ -102,7 +102,7 @@ describe('LeaderboardHeroBillboard.vue', () => {
       toFake: ['performance', 'requestAnimationFrame', 'cancelAnimationFrame'],
     })
     const wrapper = mount(LeaderboardHeroBillboard, {
-      props: { entry: buildEntry({ month_xp: 1500 }) },
+      props: { entry: buildEntry({ period_xp: 1500 }) },
       global: {
         stubs: {
           'router-link': RouterLinkStub,

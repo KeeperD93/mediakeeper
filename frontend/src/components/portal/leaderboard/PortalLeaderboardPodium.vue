@@ -32,7 +32,7 @@
           <LeaderboardChosenTitle :entry="entry" />
         </span>
       </div>
-      <div class="pt-lb-podium-xp">{{ (entry.month_xp || 0).toLocaleString() }} XP</div>
+      <div class="pt-lb-podium-xp">{{ (entry.period_xp || 0).toLocaleString() }} XP</div>
       <div class="pt-lb-podium-figures">
         <LeaderboardTrophies :count="entry.trophies_won" />
         <span

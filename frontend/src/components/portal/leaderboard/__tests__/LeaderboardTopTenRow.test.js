@@ -20,7 +20,7 @@ function buildEntry(tier) {
     level: 10,
     tier,
     title_key: 'regular',
-    month_xp: 100,
+    period_xp: 100,
     selected_title: null,
     title_tier: null,
     is_current_user: false,

@@ -115,7 +115,7 @@
                 <span v-else>—</span>
                 <span v-if="entry.movement">{{ Math.abs(entry.movement) }}</span>
               </span>
-              <span class="gc-lb-v">{{ (entry.month_xp || 0).toLocaleString() }} XP</span>
+              <span class="gc-lb-v">{{ (entry.period_xp || 0).toLocaleString() }} XP</span>
             </component>
           </div>
         </div>
@@ -138,12 +138,12 @@ import PortalLeaderboardPodium from '@/components/portal/leaderboard/PortalLeade
 import LeaderboardMyRankCard from '@/components/portal/leaderboard/LeaderboardMyRankCard.vue'
 import LeaderboardTopTenRow from '@/components/portal/leaderboard/LeaderboardTopTenRow.vue'
 import LeaderboardTrophies from '@/components/portal/leaderboard/LeaderboardTrophies.vue'
-import { useMonthlyLeaderboard } from '@/composables/portal/useMonthlyLeaderboard'
+import { useActivityLeaderboard } from '@/composables/portal/useActivityLeaderboard'
 
 const MY_ROW_ID = 'lb-my-row'
 
 const { t } = useI18n()
-const { entries, stats, viewerRank, viewerEntry, loading, fetchTop } = useMonthlyLeaderboard()
+const { entries, stats, viewerRank, viewerEntry, loading, fetchTop } = useActivityLeaderboard()
 
 const hero = computed(() => {
   const head = entries.value[0]
@@ -151,7 +151,7 @@ const hero = computed(() => {
   const second = entries.value[1]
   return {
     ...head,
-    lead_over_2: second ? (head.month_xp || 0) - (second.month_xp || 0) : 0,
+    lead_over_2: second ? (head.period_xp || 0) - (second.period_xp || 0) : 0,
   }
 })
 

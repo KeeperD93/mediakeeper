@@ -20,7 +20,7 @@ function buildEntry(overrides = {}) {
     level: 12,
     tier: 'silver',
     title_key: 'regular',
-    month_xp: 600,
+    period_xp: 600,
     movement: 0,
     selected_title: null,
     title_tier: null,
@@ -31,7 +31,7 @@ function buildEntry(overrides = {}) {
 
 function buildStats(overrides = {}) {
   return {
-    my_xp_month: 600,
+    my_xp: 600,
     my_delta_week: 100,
     projected_end_rank: 5,
     ...overrides,

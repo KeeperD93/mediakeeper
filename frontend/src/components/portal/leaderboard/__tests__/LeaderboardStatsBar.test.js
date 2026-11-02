@@ -17,10 +17,10 @@ async function mountBar(locale, stats) {
   const wrapper = mount(LeaderboardStatsBar, {
     props: {
       stats: {
-        month_label: 'Mai 2026',
+        period_label: 'Mai 2026',
         total_players: 3,
-        total_xp_month: 900,
-        total_trophies_month: 7,
+        total_xp: 900,
+        total_trophies: 7,
         days_remaining: 12,
         ...stats,
       },
@@ -53,12 +53,12 @@ describe('LeaderboardStatsBar.vue', () => {
   it('counts the trophies of the month, with the right plural form', async () => {
     expect(await barText('fr')).toContain('7 trophées distribués')
     expect(await barText('en')).toContain('7 trophies awarded')
-    expect(await barText('fr', { total_trophies_month: 1 })).toContain('1 trophée distribué')
-    expect(await barText('en', { total_trophies_month: 1 })).toContain('1 trophy awarded')
+    expect(await barText('fr', { total_trophies: 1 })).toContain('1 trophée distribué')
+    expect(await barText('en', { total_trophies: 1 })).toContain('1 trophy awarded')
   })
 
   it('shows zero trophies when the payload has none', async () => {
-    expect(await barText('en', { total_trophies_month: 0 })).toContain('0 trophies awarded')
+    expect(await barText('en', { total_trophies: 0 })).toContain('0 trophies awarded')
   })
 
   it('agrees the ranked players with their number', async () => {

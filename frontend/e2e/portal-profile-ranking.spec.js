@@ -20,7 +20,7 @@ const LEADERBOARD = Array.from({ length: 16 }, (_, index) => ({
   level: 50 - index,
   tier: 'gold',
   title_key: 'spectator',
-  month_xp: 12345 - index,
+  period_xp: 12345 - index,
   selected_title: 'portal.titles.supremeCollector',
   title_tier: 6,
   is_current_user: index === 5,

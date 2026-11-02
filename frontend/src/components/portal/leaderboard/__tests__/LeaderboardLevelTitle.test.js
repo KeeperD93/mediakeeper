@@ -24,7 +24,7 @@ function buildEntry() {
     level: 12,
     tier: 'gold',
     title_key: 'regular',
-    month_xp: 100,
+    period_xp: 100,
     selected_title: 'portal.titles.supremeCollector',
     title_tier: 6,
     is_current_user: false,

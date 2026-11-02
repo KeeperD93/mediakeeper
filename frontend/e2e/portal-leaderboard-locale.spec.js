@@ -9,7 +9,7 @@ import {
 } from './_fixtures/portal-auth-mocks.js'
 import { LEADERBOARD } from './_fixtures/portal-leaderboard-page.js'
 
-const ROUTE = '/api/portal/achievements/leaderboard/monthly'
+const ROUTE = '/api/portal/achievements/leaderboard/activity'
 
 for (const [deviceLocale, portalLocale] of [
   ['en', 'fr'],

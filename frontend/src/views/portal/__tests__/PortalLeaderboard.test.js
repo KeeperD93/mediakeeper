@@ -31,7 +31,7 @@ function buildEntries(count, { offsetRank = 1 } = {}) {
     level: 10 + i,
     tier: 'gold',
     title_key: 'regular',
-    month_xp: 1000 - i * 10,
+    period_xp: 1000 - i * 10,
     selected_title: null,
     title_tier: null,
     is_current_user: false,
@@ -41,11 +41,11 @@ function buildEntries(count, { offsetRank = 1 } = {}) {
 
 function buildStats(overrides = {}) {
   return {
-    month_label: 'Mai 2026',
+    period_label: 'Mai 2026',
     total_players: 42,
-    total_xp_month: 100000,
+    total_xp: 100000,
     days_remaining: 12,
-    my_xp_month: 500,
+    my_xp: 500,
     my_delta_week: 100,
     projected_end_rank: 5,
     ...overrides,
@@ -61,8 +61,8 @@ const composableState = {
   fetchTop: vi.fn(() => Promise.resolve(composableState.entries.value)),
 }
 
-vi.mock('@/composables/portal/useMonthlyLeaderboard', () => ({
-  useMonthlyLeaderboard: () => composableState,
+vi.mock('@/composables/portal/useActivityLeaderboard', () => ({
+  useActivityLeaderboard: () => composableState,
 }))
 
 const RouterLinkStub = {
@@ -180,7 +180,7 @@ describe('PortalLeaderboard.vue', () => {
       level: 3,
       tier: 'bronze',
       title_key: 'spectator',
-      month_xp: 80,
+      period_xp: 80,
       selected_title: null,
       title_tier: null,
       is_current_user: true,

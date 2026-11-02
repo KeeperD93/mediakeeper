@@ -202,7 +202,7 @@ async def ranking_snapshot(
             "selected_title": entry.get("selected_title"),
             "title_tier": entry.get("title_tier"),
             "movement": entry.get("movement") or 0,
-            "month_xp": entry.get("month_xp") or 0,
+            "period_xp": entry.get("period_xp") or 0,
             "trophies_won": entry.get("trophies_won") or 0,
             "is_current_user": entry.get("is_current_user") or False,
         }
