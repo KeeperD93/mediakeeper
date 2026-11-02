@@ -20,6 +20,7 @@
       <div class="lb-hero-rank">
         <span class="lb-hero-rank-num">#1</span>
         <Crown :size="32" :stroke-width="2.5" class="lb-hero-crown" aria-hidden="true" />
+        <LeaderboardMePill v-if="entry.is_current_user" />
       </div>
       <div class="lb-hero-name">{{ entry.display_name }}</div>
       <div class="lb-hero-meta">
@@ -56,6 +57,7 @@ import { computed, toRef } from 'vue'
 import { Crown, Trophy } from 'lucide-vue-next'
 
 import MkAvatar from '@/components/common/MkAvatar.vue'
+import LeaderboardMePill from '@/components/portal/leaderboard/LeaderboardMePill.vue'
 import { useCountUp } from '@/composables/portal/useCountUp'
 
 const props = defineProps({

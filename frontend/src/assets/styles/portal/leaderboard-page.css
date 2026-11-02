@@ -163,6 +163,28 @@
   font-size: var(--portal-text-xs);
   color: var(--portal-text-secondary);
 }
+.pt-leaderboard .pt-lb-my-place {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: var(--portal-touch-target);
+  padding: 0;
+  background: none;
+  border: none;
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-bold);
+  color: var(--portal-accent-light);
+  cursor: pointer;
+}
+.pt-leaderboard .pt-lb-my-place:focus-visible {
+  outline: var(--portal-focus-ring);
+  outline-offset: 2px;
+}
+@media (hover: hover) {
+  .pt-leaderboard .pt-lb-my-place:hover {
+    text-decoration: underline;
+  }
+}
 .pt-leaderboard .pt-lb-state {
   text-align: center;
   color: var(--portal-text-muted);

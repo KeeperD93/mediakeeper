@@ -15,6 +15,10 @@
         {{ $t('portal.leaderboard.subtitle', { n: entries.length }, entries.length) }}
       </p>
       <p class="pt-lb-note">{{ $t('portal.leaderboard.scoringNote') }}</p>
+      <button v-if="myRestEntry" type="button" class="pt-lb-my-place" @click="scrollToMyRow">
+        {{ $t('portal.leaderboard.myRank.seeMyPlace', { rank: myRestEntry.rank }) }}
+        <ChevronDown :size="14" :stroke-width="2.5" aria-hidden="true" />
+      </button>
     </header>
 
     <p v-if="loading" class="pt-lb-state">{{ $t('common.loading') }}</p>
@@ -25,7 +29,7 @@
 
     <template v-else>
       <Transition name="lb-fade" appear>
-        <div v-if="hero" id="lb-hero">
+        <div v-if="hero">
           <LeaderboardHeroBillboard :entry="hero" />
         </div>
       </Transition>
@@ -35,17 +39,16 @@
       </Transition>
 
       <Transition name="lb-fade" appear>
-        <div v-if="podium.length" id="lb-podium">
+        <div v-if="podium.length">
           <PortalLeaderboardPodium :entries="podium" />
         </div>
       </Transition>
 
       <Transition name="lb-fade" appear>
         <LeaderboardMyRankCard
-          v-if="myRankProps"
-          :viewer-rank="myRankProps.viewerRank"
-          :viewer-entry="myRankProps.viewerEntry"
-          :in-list-entry="myRankProps.inListEntry"
+          v-if="viewerRank && viewerEntry"
+          :viewer-rank="viewerRank"
+          :viewer-entry="viewerEntry"
           :stats="stats"
         />
       </Transition>
@@ -69,6 +72,7 @@
             <component
               :is="entry.user_id ? 'router-link' : 'div'"
               v-for="entry in rest"
+              :id="entry.is_current_user ? MY_ROW_ID : undefined"
               :key="entry.rank"
               :to="
                 entry.user_id
@@ -134,6 +138,8 @@ import LeaderboardMyRankCard from '@/components/portal/leaderboard/LeaderboardMy
 import LeaderboardTopTenRow from '@/components/portal/leaderboard/LeaderboardTopTenRow.vue'
 import { useMonthlyLeaderboard } from '@/composables/portal/useMonthlyLeaderboard'
 
+const MY_ROW_ID = 'lb-my-row'
+
 const { t } = useI18n()
 const { entries, stats, viewerRank, viewerEntry, loading, fetchTop } = useMonthlyLeaderboard()
 
@@ -151,20 +157,14 @@ const podium = computed(() => entries.value.slice(1, 3))
 const topTen = computed(() => entries.value.slice(3, 13))
 const rest = computed(() => entries.value.slice(13))
 
-const inListEntry = computed(() => entries.value.find(e => e.is_current_user) || null)
-const myRankProps = computed(() => {
-  if (inListEntry.value) {
-    return { viewerRank: null, viewerEntry: null, inListEntry: inListEntry.value }
-  }
-  if (viewerEntry.value && viewerRank.value) {
-    return {
-      viewerRank: viewerRank.value,
-      viewerEntry: viewerEntry.value,
-      inListEntry: null,
-    }
-  }
-  return null
-})
+// Below the top ten, a viewer's row is far down the page: the link leads to it.
+const myRestEntry = computed(() => rest.value.find(e => e.is_current_user) || null)
+
+function scrollToMyRow() {
+  const row = document.getElementById(MY_ROW_ID)
+  row.scrollIntoView({ block: 'center' })
+  row.focus({ preventScroll: true })
+}
 
 const particles = computed(() => {
   return Array.from({ length: 20 }, (_, i) => ({

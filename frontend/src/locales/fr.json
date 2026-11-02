@@ -2540,7 +2540,7 @@
         "xpThisMonth": "XP ce mois",
         "deltaWeek": "+{n} XP cette semaine",
         "projectedEnd": "Projection fin de mois",
-        "onPodium": "Vous êtes sur le podium !"
+        "seeMyPlace": "Voir ma place (#{rank})"
       }
     },
     "maintenance": {

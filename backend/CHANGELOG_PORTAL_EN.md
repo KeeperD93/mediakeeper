@@ -20,6 +20,7 @@ This section intentionally has no date so it is not shown to users.
 ### Changed
 - Monthly leaderboard — only activity counts (views, sign-ins, requests), no longer trophies.
 - Competitor trophy — based on the leaderboard, once the month is over (2 players minimum).
+- Monthly leaderboard — your row replaces the top bar, with a "See my place" link.
 
 ### Fixed
 - Sign-in — three real tries, counter reset after a successful sign-in.

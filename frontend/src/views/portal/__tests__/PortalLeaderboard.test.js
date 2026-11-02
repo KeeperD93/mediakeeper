@@ -4,8 +4,8 @@
  * Stubs the composable so we drive the page deterministically with a
  * fixture array of entries. The page must:
  *   - render the hero billboard for rank #1, the two-card podium
- *     (ranks #2 + #3), the my-rank card, the top-10 block (ranks 4-13)
- *     and the rest table (ranks 14+).
+ *     (ranks #2 + #3), the top-10 block (ranks 4-13) and the rest table
+ *     (ranks 14+), with the my-rank card for a viewer outside the list.
  *   - surface the emptyState message when the API returns nothing.
  *   - NOT mount the legacy ``AchievementBadge`` grid (regression
  *     guard — that block belonged to the old design).
@@ -103,7 +103,7 @@ async function mountPage({
 }
 
 describe('PortalLeaderboard.vue', () => {
-  it('renders hero + 2-card podium + my-rank + top-10 + rest sections for a full payload', async () => {
+  it('renders hero + 2-card podium + top-10 + rest sections for a full payload', async () => {
     const wrapper = await mountPage({
       entries: buildEntries(20),
       stats: buildStats(),
@@ -181,6 +181,36 @@ describe('PortalLeaderboard.vue', () => {
     })
     await flushPromises()
     expect(wrapper.find('.lb-my-rank-stub').exists()).toBe(true)
+    expect(wrapper.find('.pt-lb-my-place').exists()).toBe(false)
+  })
+
+  it.each([1, 2, 7, 16])('shows rank %i once: no my-rank card beside the row', async rank => {
+    const entries = buildEntries(20)
+    entries[rank - 1] = { ...entries[rank - 1], is_current_user: true }
+    const wrapper = await mountPage({ entries, stats: buildStats() })
+    await flushPromises()
+    expect(wrapper.find('.lb-my-rank-stub').exists()).toBe(false)
+  })
+
+  it('links to the row of the viewer from the 14th place only', async () => {
+    const { createI18n } = await vi.importActual('vue-i18n')
+    const { t } = createI18n({ legacy: false, locale: 'en', messages: { fr, en } }).global
+    const withViewerAt = rank => {
+      const entries = buildEntries(20)
+      entries[rank - 1] = { ...entries[rank - 1], is_current_user: true }
+      return mountPage({ entries, stats: buildStats(), $t: t })
+    }
+
+    const inTopTen = await withViewerAt(13)
+    await flushPromises()
+    expect(inTopTen.find('.pt-lb-my-place').exists()).toBe(false)
+
+    const below = await withViewerAt(14)
+    await flushPromises()
+    expect(below.find('.pt-lb-my-place').text()).toBe('See my place (#14)')
+    const rows = below.findAll('.gc-lb-row')
+    expect(rows[0].attributes('id')).toBe('lb-my-row')
+    expect(rows[1].attributes('id')).toBeUndefined()
   })
 
   it('never mounts the legacy AchievementBadge grid (regression guard)', async () => {

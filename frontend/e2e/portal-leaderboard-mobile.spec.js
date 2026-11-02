@@ -1,8 +1,8 @@
 // Leaderboard on a phone: the page stays as wide as the screen, whatever the
 // names and totals of the fictional players, no figure is cut off, and the
 // longest level title next to the longest chosen title stays inside its card.
-// On every screen, the label of the viewer's row stays whole and leaves their XP
-// readable.
+// On every screen, the viewer appears once, with a label that stays whole and
+// leaves their XP readable, and a link leads to a row far down the page.
 
 import { test, expect } from '@playwright/test'
 import {
@@ -93,6 +93,12 @@ const VIEWER_ROWS = {
   },
 }
 
+// Each card of the podium, where the label stands apart from the XP.
+const VIEWER_CARDS = {
+  first: { body: viewerInList(0), card: '.lb-hero' },
+  third: { body: viewerInList(2), card: '.pt-lb-podium-card--3' },
+}
+
 async function openLeaderboard(page, width, body) {
   await page.setViewportSize({ width, height: 800 })
   await page.emulateMedia({ reducedMotion: 'reduce' })
@@ -128,8 +134,42 @@ async function expectViewerRowReadable(page, { row: rowSelector, xp }) {
   expect(boxes.rowRight).toBeLessThanOrEqual(boxes.screenRight)
 }
 
+// The label stays inside the card, and the top bar does not repeat the viewer.
+async function expectViewerCardLabelled(page, { card }) {
+  await expect(page.locator(`${card} .lb-me-pill`)).toHaveText('VOUS')
+  await expect(page.locator('.lb-my-rank')).toHaveCount(0)
+  const boxes = await page.locator(card).evaluate(el => ({
+    pillRight: el.querySelector('.lb-me-pill').getBoundingClientRect().right,
+    cardRight: el.getBoundingClientRect().right,
+  }))
+  expect(boxes.pillRight).toBeLessThanOrEqual(boxes.cardRight)
+}
+
+async function expectLinkReachesMyRow(page) {
+  await expect(page.locator('.lb-my-rank')).toHaveCount(0)
+  const link = page.locator('.pt-lb-my-place')
+  await expect(link).toHaveText('Voir ma place (#17)')
+  await link.click()
+  await expect(page.locator('#lb-my-row')).toBeInViewport()
+  await expect(page.locator('#lb-my-row')).toBeFocused()
+}
+
 test.describe('Portal leaderboard on a large screen', () => {
   test.skip(({ isMobile }) => isMobile, 'large screen layout only')
+
+  for (const [place, viewerCard] of Object.entries(VIEWER_CARDS)) {
+    test(`labels a ${place} viewer on their card`, async ({ page }) => {
+      const tracker = await openLeaderboard(page, 1280, viewerCard.body)
+      await expectViewerCardLabelled(page, viewerCard)
+      expect(tracker.unexpected).toEqual([])
+    })
+  }
+
+  test('leads a viewer below the top ten to their row', async ({ page }) => {
+    const tracker = await openLeaderboard(page, 1280, VIEWER_ROWS['below the top ten'].body)
+    await expectLinkReachesMyRow(page)
+    expect(tracker.unexpected).toEqual([])
+  })
 
   for (const [where, viewerRow] of Object.entries(VIEWER_ROWS)) {
     test(`keeps the XP of a viewer ${where} readable`, async ({ page }) => {
@@ -144,6 +184,20 @@ test.describe('Portal leaderboard on a phone', () => {
   test.skip(({ isMobile }) => !isMobile, 'phone layout only')
 
   for (const width of [320, 375, 430, 767]) {
+    for (const [place, viewerCard] of Object.entries(VIEWER_CARDS)) {
+      test(`labels a ${place} viewer on their card at ${width}px`, async ({ page }) => {
+        const tracker = await openLeaderboard(page, width, viewerCard.body)
+        await expectViewerCardLabelled(page, viewerCard)
+        expect(tracker.unexpected).toEqual([])
+      })
+    }
+
+    test(`leads a viewer below the top ten to their row at ${width}px`, async ({ page }) => {
+      const tracker = await openLeaderboard(page, width, VIEWER_ROWS['below the top ten'].body)
+      await expectLinkReachesMyRow(page)
+      expect(tracker.unexpected).toEqual([])
+    })
+
     for (const [where, viewerRow] of Object.entries(VIEWER_ROWS)) {
       test(`keeps the XP of a viewer ${where} readable at ${width}px`, async ({ page }) => {
         const tracker = await openLeaderboard(page, width, viewerRow.body)

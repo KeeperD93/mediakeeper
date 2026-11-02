@@ -24,6 +24,7 @@
         />
       </div>
       <div class="pt-lb-podium-name">{{ entry.display_name }}</div>
+      <LeaderboardMePill v-if="entry.is_current_user" />
       <div class="pt-lb-podium-meta">
         <span class="pt-lb-podium-level">{{ $t('portal.level') }} {{ entry.level }}</span>
         <span class="pt-lb-podium-title">
@@ -51,6 +52,7 @@ import { useI18n } from 'vue-i18n'
 import { Award, ChevronDown, ChevronUp, Medal } from 'lucide-vue-next'
 import MkAvatar from '@/components/common/MkAvatar.vue'
 import LeaderboardChosenTitle from '@/components/portal/leaderboard/LeaderboardChosenTitle.vue'
+import LeaderboardMePill from '@/components/portal/leaderboard/LeaderboardMePill.vue'
 
 defineProps({
   entries: { type: Array, default: () => [] },
