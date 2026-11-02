@@ -9,7 +9,7 @@ Three rows in the generic ``settings`` table back the feature:
 
 The router guard on the SPA checks ``is_maintenance_enabled`` before
 every navigation; ``get_maintenance_text`` resolves the locale-specific
-string from an ``Accept-Language`` hint, defaulting to French.
+string from the viewer's language, defaulting to French.
 """
 from __future__ import annotations
 

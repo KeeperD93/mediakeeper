@@ -59,6 +59,24 @@ async def test_get_maintenance_state_via_accept_language(client, db_session):
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(("headers", "expected"), [
+    ({"X-MK-Locale": "en", "Accept-Language": "fr-FR,fr;q=0.9"}, "EN"),
+    ({"X-MK-Locale": "fr", "Accept-Language": "en-US,en;q=0.9"}, "FR"),
+    # English further down a browser's list changes nothing.
+    ({"Accept-Language": "fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7"}, "FR"),
+])
+async def test_get_maintenance_text_follows_the_app_language(client, db_session, headers, expected):
+    db_session.add(Setting(key="maintenance.text_fr", value="FR"))
+    db_session.add(Setting(key="maintenance.text_en", value="EN"))
+    await db_session.commit()
+
+    response = await client.get("/api/portal/maintenance", headers=headers)
+
+    assert response.status_code == 200
+    assert response.json()["text"] == expected
+
+
+@pytest.mark.asyncio
 async def test_update_maintenance_settings_persists(db_session):
     refreshed = await maintenance_svc.update_maintenance_settings(
         db_session,
