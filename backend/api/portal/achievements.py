@@ -90,7 +90,6 @@ async def pin_badge(
     user, _ = up
     ok = await ach_svc.pin_badge(db, user.id, body.achievement_id)
     if not ok:
-        from fastapi import HTTPException
         raise HTTPException(400, "Cannot pin: not unlocked or max 5 reached")
     return {"ok": True}
 

@@ -284,7 +284,9 @@ async def test_no_period_means_the_month(client, db_session):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("value", ["", "MONTH", " month", "year", "month;drop", "é" * 300, "0"])
+@pytest.mark.parametrize("value", [
+    "", "MONTH", " month", "year", "month;drop", "0", pytest.param("é" * 300, id="very-long"),
+])
 async def test_an_unknown_period_is_refused(client, db_session, value):
     alice, _ = await make_portal_user(db_session, username="alice")
 
