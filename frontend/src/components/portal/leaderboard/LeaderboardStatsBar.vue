@@ -41,39 +41,41 @@
         }}
       </span>
     </span>
-    <span class="lb-stats-sep">·</span>
-    <span class="lb-stats-chip">
-      <svg
-        class="lb-stats-progress"
-        viewBox="0 0 24 24"
-        :aria-label="
-          $t(
-            'portal.leaderboard.stats.daysRemaining',
-            { n: stats.days_remaining },
-            stats.days_remaining,
-          )
-        "
-      >
-        <circle class="lb-stats-progress-track" cx="12" cy="12" r="10" />
-        <circle
-          class="lb-stats-progress-fill"
-          cx="12"
-          cy="12"
-          r="10"
-          :stroke-dasharray="circ"
-          :stroke-dashoffset="circ * (1 - monthElapsedPct)"
-        />
-      </svg>
-      <span class="lb-stats-chip-text">
-        {{
-          $t(
-            'portal.leaderboard.stats.daysRemaining',
-            { n: stats.days_remaining },
-            stats.days_remaining,
-          )
-        }}
+    <template v-if="stats.days_remaining !== null">
+      <span class="lb-stats-sep">·</span>
+      <span class="lb-stats-chip">
+        <svg
+          class="lb-stats-progress"
+          viewBox="0 0 24 24"
+          :aria-label="
+            $t(
+              'portal.leaderboard.stats.daysRemaining',
+              { n: stats.days_remaining },
+              stats.days_remaining,
+            )
+          "
+        >
+          <circle class="lb-stats-progress-track" cx="12" cy="12" r="10" />
+          <circle
+            class="lb-stats-progress-fill"
+            cx="12"
+            cy="12"
+            r="10"
+            :stroke-dasharray="circ"
+            :stroke-dashoffset="circ * (1 - monthElapsedPct)"
+          />
+        </svg>
+        <span class="lb-stats-chip-text">
+          {{
+            $t(
+              'portal.leaderboard.stats.daysRemaining',
+              { n: stats.days_remaining },
+              stats.days_remaining,
+            )
+          }}
+        </span>
       </span>
-    </span>
+    </template>
   </div>
 </template>
 

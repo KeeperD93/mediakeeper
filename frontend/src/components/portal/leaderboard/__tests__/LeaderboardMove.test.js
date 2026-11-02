@@ -43,4 +43,27 @@ describe('LeaderboardMove.vue', () => {
     const move = mountMove({ movement: 1, size: 11 })
     expect(move.find('svg').attributes('width')).toBe('11')
   })
+
+  it('shows nothing at all when the period has no previous one', () => {
+    const move = mountMove({ movement: null, period: 'all' })
+    expect(move.find('.gc-lb-move').exists()).toBe(false)
+  })
+
+  it.each([
+    ['today', 2, '+2 place(s) depuis hier'],
+    ['today', -2, '-2 place(s) depuis hier'],
+    ['today', 0, "Même rang qu'hier"],
+    ['week', 1, '+1 place(s) depuis la semaine dernière'],
+    ['week', -1, '-1 place(s) depuis la semaine dernière'],
+    ['week', 0, 'Même rang que la semaine dernière'],
+    ['month', 4, '+4 place(s) depuis le mois dernier'],
+    ['month', -4, '-4 place(s) depuis le mois dernier'],
+    ['month', 0, 'Même rang que le mois dernier'],
+  ])('on %s, %i reads "%s"', (period, movement, tooltip) => {
+    expect(mountMove({ movement, period }).attributes('title')).toBe(tooltip)
+  })
+
+  it('compares with last month where no period is given', () => {
+    expect(mountMove({ movement: 0 }).attributes('title')).toBe('Même rang que le mois dernier')
+  })
 })

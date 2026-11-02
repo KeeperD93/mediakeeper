@@ -59,9 +59,26 @@ describe('LeaderboardMyRankCard.vue', () => {
     expect(wrapper.find('.lb-my-rank-rank').text()).toBe('#142')
     expect(wrapper.find('.lb-my-rank-stats').exists()).toBe(true)
     expect(wrapper.text()).toContain('Me142')
-    expect(wrapper.text()).toContain('portal.leaderboard.myRank.xpThisMonth')
+    expect(wrapper.text()).toContain('portal.leaderboard.myRank.xp.month')
+    expect(wrapper.text()).toContain('portal.leaderboard.myRank.deltaWeek')
     expect(wrapper.text()).toContain('portal.leaderboard.myRank.projectedEnd')
   })
+
+  it.each(['today', 'week', 'all'])(
+    'on %s, names the XP of the period and leaves the month outlook out',
+    period => {
+      const wrapper = mountCard({
+        viewerRank: 142,
+        viewerEntry: buildEntry({ rank: 142 }),
+        stats: buildStats({ my_delta_week: null, projected_end_rank: null }),
+        period,
+      })
+      expect(wrapper.text()).toContain(`portal.leaderboard.myRank.xp.${period}`)
+      expect(wrapper.find('.lb-my-rank-stat-value').text()).toBe('600')
+      expect(wrapper.text()).not.toContain('portal.leaderboard.myRank.deltaWeek')
+      expect(wrapper.text()).not.toContain('portal.leaderboard.myRank.projectedEnd')
+    },
+  )
 
   it('shows nothing without a viewer outside the list', () => {
     const wrapper = mountCard({ viewerRank: null, viewerEntry: null, stats: buildStats() })

@@ -69,6 +69,16 @@ describe('LeaderboardStatsBar.vue', () => {
     expect(await barText('fr', { total_players: 0 })).toContain('0 joueurs classés')
   })
 
+  it('leaves out the days left on a period that does not end with the month', async () => {
+    const bar = await mountBar('fr', { days_remaining: null, period_label: 'Du 2 au 8 novembre' })
+    expect(bar.text()).toContain('Du 2 au 8 novembre')
+    expect(bar.text()).toContain('3 joueurs classés')
+    expect(bar.text()).not.toContain('restant')
+    expect(bar.find('.lb-stats-progress').exists()).toBe(false)
+    expect(bar.findAll('.lb-stats-chip')).toHaveLength(4)
+    expect(bar.findAll('.lb-stats-sep')).toHaveLength(3)
+  })
+
   it('agrees the days left with their number, for the screen reader too', async () => {
     const dayLabels = {
       fr: { 12: '12 jours restants', 1: '1 jour restant', 0: '0 jours restants' },

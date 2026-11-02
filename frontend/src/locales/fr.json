@@ -2518,10 +2518,32 @@
       "deletedUser": "Utilisateur supprimé"
     },
     "leaderboard": {
-      "title": "Classement du mois",
+      "title": {
+        "today": "Classement du jour",
+        "week": "Classement de la semaine",
+        "month": "Classement du mois",
+        "all": "Classement de tous les temps"
+      },
+      "periods": {
+        "today": "Aujourd'hui",
+        "week": "Semaine",
+        "month": "Mois",
+        "all": "Tout temps"
+      },
+      "periodsLabel": "Période du classement",
       "subtitle": "Top {n} joueur · mis à jour en continu | Top {n} joueurs · mis à jour en continu",
-      "scoringNote": "Seule l'activité du mois compte : films et épisodes vus, connexions et demandes. Les XP des trophées font monter ton niveau, pas ton classement.",
-      "emptyState": "Aucun joueur classé ce mois.",
+      "scoringNote": {
+        "today": "Seule l'activité du jour compte : films et épisodes vus, connexions et demandes. Les XP des trophées font monter ton niveau, pas ton classement.",
+        "week": "Seule l'activité de la semaine compte : films et épisodes vus, connexions et demandes. Les XP des trophées font monter ton niveau, pas ton classement.",
+        "month": "Seule l'activité du mois compte : films et épisodes vus, connexions et demandes. Les XP des trophées font monter ton niveau, pas ton classement.",
+        "all": "Seule l'activité compte, depuis le début : films et épisodes vus, connexions et demandes. Les XP des trophées font monter ton niveau, pas ce classement."
+      },
+      "emptyState": {
+        "today": "Aucun joueur classé aujourd'hui.",
+        "week": "Aucun joueur classé cette semaine.",
+        "month": "Aucun joueur classé ce mois.",
+        "all": "Aucun joueur classé pour l'instant."
+      },
       "topTen": "Top 10",
       "rest": "Place 14 et suivantes",
       "trophiesWon": "{n} trophée gagné sur cette période | {n} trophées gagnés sur cette période",
@@ -2535,9 +2557,31 @@
         "trophiesDistributed": "{n} trophée distribué | {n} trophées distribués",
         "daysRemaining": "{n} jour restant | {n} jours restants"
       },
+      "move": {
+        "today": {
+          "up": "+{n} place(s) depuis hier",
+          "down": "-{n} place(s) depuis hier",
+          "stable": "Même rang qu'hier"
+        },
+        "week": {
+          "up": "+{n} place(s) depuis la semaine dernière",
+          "down": "-{n} place(s) depuis la semaine dernière",
+          "stable": "Même rang que la semaine dernière"
+        },
+        "month": {
+          "up": "+{n} place(s) depuis le mois dernier",
+          "down": "-{n} place(s) depuis le mois dernier",
+          "stable": "Même rang que le mois dernier"
+        }
+      },
       "myRank": {
         "label": "VOUS",
-        "xpThisMonth": "XP ce mois",
+        "xp": {
+          "today": "XP aujourd'hui",
+          "week": "XP cette semaine",
+          "month": "XP ce mois",
+          "all": "XP au total"
+        },
         "deltaWeek": "+{n} XP cette semaine",
         "projectedEnd": "Projection fin de mois",
         "seeMyPlace": "Voir ma place (#{rank})"
@@ -3552,9 +3596,6 @@
         "title": "Profil privé",
         "desc": "{name} n'a pas activé son profil public. Sa progression reste confidentielle."
       },
-      "rankUp": "+{n} place(s) depuis le mois dernier",
-      "rankDown": "-{n} place(s) depuis le mois dernier",
-      "rankStable": "Même rang que le mois dernier",
       "thisMonth": "ce mois",
       "memberSince": "Membre depuis {months} mois",
       "favoriteDay": "Jour favori",

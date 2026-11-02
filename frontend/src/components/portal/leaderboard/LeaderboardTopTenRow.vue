@@ -28,7 +28,12 @@
     </div>
     <span class="lb-top-row-figures">
       <LeaderboardTrophies :count="entry.trophies_won" />
-      <LeaderboardMove class="lb-top-row-move" :movement="entry.movement" :size="10" />
+      <LeaderboardMove
+        class="lb-top-row-move"
+        :movement="entry.movement"
+        :period="period"
+        :size="10"
+      />
     </span>
     <span class="lb-top-row-xp">{{ (entry.period_xp || 0).toLocaleString() }} XP</span>
   </router-link>
@@ -40,10 +45,12 @@ import LeaderboardLevelTitle from '@/components/portal/leaderboard/LeaderboardLe
 import LeaderboardMePill from '@/components/portal/leaderboard/LeaderboardMePill.vue'
 import LeaderboardMove from '@/components/portal/leaderboard/LeaderboardMove.vue'
 import LeaderboardTrophies from '@/components/portal/leaderboard/LeaderboardTrophies.vue'
+import { LEADERBOARD_PERIOD } from '@/constants/leaderboard'
 
 defineProps({
   entry: { type: Object, default: null },
   index: { type: Number, default: 0 },
+  period: { type: String, default: LEADERBOARD_PERIOD.MONTH },
 })
 </script>
 

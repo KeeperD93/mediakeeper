@@ -126,6 +126,9 @@
   color: var(--portal-text-primary);
   margin: 0;
 }
+.pt-leaderboard .lb-period-tabs {
+  margin: 10px 0 12px;
+}
 .pt-leaderboard .pt-lb-subtitle {
   margin-top: 4px;
   font-size: var(--portal-text-xs);

@@ -15,6 +15,7 @@ This section intentionally has no date so it is not shown to users.
 ## [Unreleased]
 
 ### Added
+- Leaderboard — Today, Week, Month and All time tabs.
 - Monthly leaderboard — counter of trophies awarded this month.
 - Monthly leaderboard — each player's level shown on every row.
 - Monthly leaderboard — trophies won this month shown on every row.

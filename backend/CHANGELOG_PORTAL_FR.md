@@ -17,6 +17,7 @@ utilisateurs.
 ## [Unreleased]
 
 ### Added
+- Classement — onglets Aujourd'hui, Semaine, Mois et Tout temps.
 - Classement du mois — compteur des trophées distribués dans le mois.
 - Classement du mois — niveau de chaque joueur affiché sur toutes les lignes.
 - Classement du mois — trophées gagnés dans le mois affichés sur chaque ligne.

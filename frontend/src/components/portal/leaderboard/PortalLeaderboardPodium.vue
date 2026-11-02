@@ -35,7 +35,12 @@
       <div class="pt-lb-podium-xp">{{ (entry.period_xp || 0).toLocaleString() }} XP</div>
       <div class="pt-lb-podium-figures">
         <LeaderboardTrophies :count="entry.trophies_won" />
-        <LeaderboardMove class="pt-lb-podium-move" :movement="entry.movement" :size="11" />
+        <LeaderboardMove
+          class="pt-lb-podium-move"
+          :movement="entry.movement"
+          :period="period"
+          :size="11"
+        />
       </div>
     </router-link>
   </div>
@@ -48,9 +53,11 @@ import LeaderboardChosenTitle from '@/components/portal/leaderboard/LeaderboardC
 import LeaderboardMePill from '@/components/portal/leaderboard/LeaderboardMePill.vue'
 import LeaderboardMove from '@/components/portal/leaderboard/LeaderboardMove.vue'
 import LeaderboardTrophies from '@/components/portal/leaderboard/LeaderboardTrophies.vue'
+import { LEADERBOARD_PERIOD } from '@/constants/leaderboard'
 
 defineProps({
   entries: { type: Array, default: () => [] },
+  period: { type: String, default: LEADERBOARD_PERIOD.MONTH },
 })
 
 // Parent slices ``items.slice(1, 3)``: idx 0 → rank 2, idx 1 → rank 3.

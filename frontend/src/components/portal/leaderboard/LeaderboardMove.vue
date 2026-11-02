@@ -1,5 +1,5 @@
 <template>
-  <span class="gc-lb-move" :class="moveClass" :title="tooltip">
+  <span v-if="movement !== null" class="gc-lb-move" :class="moveClass" :title="tooltip">
     <ChevronUp v-if="movement > 0" :size="size" :stroke-width="3.5" />
     <ChevronDown v-else-if="movement < 0" :size="size" :stroke-width="3.5" />
     <span v-else>—</span>
@@ -12,8 +12,12 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ChevronDown, ChevronUp } from 'lucide-vue-next'
 
+import { LEADERBOARD_PERIOD } from '@/constants/leaderboard'
+
 const props = defineProps({
+  // Null when the period has no previous one to compare with: no badge at all.
   movement: { type: Number, default: 0 },
+  period: { type: String, default: LEADERBOARD_PERIOD.MONTH },
   size: { type: Number, default: 9 },
 })
 
@@ -25,8 +29,8 @@ const moveClass = computed(() => {
 })
 
 const tooltip = computed(() => {
-  if (!props.movement) return t('portal.profile.rankStable')
-  const key = props.movement > 0 ? 'portal.profile.rankUp' : 'portal.profile.rankDown'
-  return t(key, { n: Math.abs(props.movement) })
+  const prefix = `portal.leaderboard.move.${props.period}`
+  if (!props.movement) return t(`${prefix}.stable`)
+  return t(`${prefix}.${props.movement > 0 ? 'up' : 'down'}`, { n: Math.abs(props.movement) })
 })
 </script>

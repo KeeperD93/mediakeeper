@@ -12,95 +12,20 @@
  *   - point each rest row at /portal/u/:id.
  */
 import { describe, it, expect, vi } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
-import { ref } from 'vue'
+import { flushPromises } from '@vue/test-utils'
 
 import en from '@/locales/en.json'
 import fr from '@/locales/fr.json'
+import { buildEntries, buildStats, mountPage } from './portalLeaderboardHarness'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: key => key }),
 }))
 
-function buildEntries(count, { offsetRank = 1 } = {}) {
-  return Array.from({ length: count }, (_, i) => ({
-    rank: offsetRank + i,
-    user_id: 1000 + i,
-    display_name: `User ${offsetRank + i}`,
-    avatar_url: null,
-    level: 10 + i,
-    tier: 'gold',
-    title_key: 'regular',
-    period_xp: 1000 - i * 10,
-    selected_title: null,
-    title_tier: null,
-    is_current_user: false,
-    movement: 0,
-  }))
-}
-
-function buildStats(overrides = {}) {
-  return {
-    period_label: 'Mai 2026',
-    total_players: 42,
-    total_xp: 100000,
-    days_remaining: 12,
-    my_xp: 500,
-    my_delta_week: 100,
-    projected_end_rank: 5,
-    ...overrides,
-  }
-}
-
-const composableState = {
-  entries: ref([]),
-  stats: ref(null),
-  viewerRank: ref(null),
-  viewerEntry: ref(null),
-  loading: ref(false),
-  fetchTop: vi.fn(() => Promise.resolve(composableState.entries.value)),
-}
-
-vi.mock('@/composables/portal/useActivityLeaderboard', () => ({
-  useActivityLeaderboard: () => composableState,
-}))
-
-const RouterLinkStub = {
-  props: ['to'],
-  template: '<a :data-to="JSON.stringify(to)"><slot /></a>',
-}
-
-async function mountPage({
-  entries,
-  stats = null,
-  viewerRank = null,
-  viewerEntry = null,
-  $t,
-} = {}) {
-  composableState.entries.value = entries
-  composableState.stats.value = stats
-  composableState.viewerRank.value = viewerRank
-  composableState.viewerEntry.value = viewerEntry
-  composableState.loading.value = false
-  const PortalLeaderboard = (await import('@/views/portal/PortalLeaderboard.vue')).default
-  return mount(PortalLeaderboard, {
-    global: {
-      mocks: $t ? { $t } : {},
-      stubs: {
-        'router-link': RouterLinkStub,
-        MkAvatar: { template: '<div class="mk-avatar-stub" />' },
-        LeaderboardHeroBillboard: { template: '<div class="lb-hero-stub" />' },
-        LeaderboardStatsBar: { template: '<div class="lb-stats-stub" />' },
-        LeaderboardMyRankCard: { template: '<div class="lb-my-rank-stub" />' },
-        LeaderboardTopTenRow: { template: '<div class="lb-top-row-stub" />' },
-        PortalLeaderboardPodium: {
-          props: ['entries'],
-          template: '<div class="pt-lb-podium-stub" :data-count="entries.length" />',
-        },
-      },
-    },
-  })
-}
+vi.mock('@/composables/portal/useActivityLeaderboard', async () => {
+  const { composableState } = await import('./portalLeaderboardHarness')
+  return { useActivityLeaderboard: () => composableState }
+})
 
 describe('PortalLeaderboard.vue', () => {
   it('renders hero + 2-card podium + top-10 + rest sections for a full payload', async () => {
@@ -144,7 +69,7 @@ describe('PortalLeaderboard.vue', () => {
   it('renders the empty-state message when the API returns nothing', async () => {
     const wrapper = await mountPage({ entries: [] })
     await flushPromises()
-    expect(wrapper.text()).toContain('portal.leaderboard.emptyState')
+    expect(wrapper.text()).toContain('portal.leaderboard.emptyState.month')
     expect(wrapper.find('.lb-hero-stub').exists()).toBe(false)
     expect(wrapper.find('.pt-lb-podium-stub').exists()).toBe(false)
     expect(wrapper.find('.gc-lb-row').exists()).toBe(false)
@@ -153,7 +78,7 @@ describe('PortalLeaderboard.vue', () => {
   it('says what counts in the ranking, even before anyone is ranked', async () => {
     const wrapper = await mountPage({ entries: [] })
     await flushPromises()
-    expect(wrapper.find('.pt-lb-note').text()).toBe('portal.leaderboard.scoringNote')
+    expect(wrapper.find('.pt-lb-note').text()).toBe('portal.leaderboard.scoringNote.month')
   })
 
   it('agrees the subtitle with the number of players, in French and in English', async () => {

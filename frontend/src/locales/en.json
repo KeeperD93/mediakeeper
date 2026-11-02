@@ -2518,10 +2518,32 @@
       "deletedUser": "Deleted user"
     },
     "leaderboard": {
-      "title": "Monthly leaderboard",
+      "title": {
+        "today": "Daily leaderboard",
+        "week": "Weekly leaderboard",
+        "month": "Monthly leaderboard",
+        "all": "All-time leaderboard"
+      },
+      "periods": {
+        "today": "Today",
+        "week": "Week",
+        "month": "Month",
+        "all": "All time"
+      },
+      "periodsLabel": "Ranking period",
       "subtitle": "Top {n} player · live updates | Top {n} players · live updates",
-      "scoringNote": "Only this month's activity counts: movies and episodes watched, sign-ins and requests. Trophy XP raises your level, not your rank.",
-      "emptyState": "No ranked players this month.",
+      "scoringNote": {
+        "today": "Only today's activity counts: movies and episodes watched, sign-ins and requests. Trophy XP raises your level, not your rank.",
+        "week": "Only this week's activity counts: movies and episodes watched, sign-ins and requests. Trophy XP raises your level, not your rank.",
+        "month": "Only this month's activity counts: movies and episodes watched, sign-ins and requests. Trophy XP raises your level, not your rank.",
+        "all": "Only activity counts, since the beginning: movies and episodes watched, sign-ins and requests. Trophy XP raises your level, not this ranking."
+      },
+      "emptyState": {
+        "today": "No ranked players today.",
+        "week": "No ranked players this week.",
+        "month": "No ranked players this month.",
+        "all": "No ranked players yet."
+      },
       "topTen": "Top 10",
       "rest": "Rank 14 and beyond",
       "trophiesWon": "{n} trophy won in this period | {n} trophies won in this period",
@@ -2535,9 +2557,31 @@
         "trophiesDistributed": "{n} trophy awarded | {n} trophies awarded",
         "daysRemaining": "{n} day remaining | {n} days remaining"
       },
+      "move": {
+        "today": {
+          "up": "+{n} rank(s) since yesterday",
+          "down": "-{n} rank(s) since yesterday",
+          "stable": "Same rank as yesterday"
+        },
+        "week": {
+          "up": "+{n} rank(s) since last week",
+          "down": "-{n} rank(s) since last week",
+          "stable": "Same rank as last week"
+        },
+        "month": {
+          "up": "+{n} rank(s) since last month",
+          "down": "-{n} rank(s) since last month",
+          "stable": "Same rank as last month"
+        }
+      },
       "myRank": {
         "label": "YOU",
-        "xpThisMonth": "XP this month",
+        "xp": {
+          "today": "XP today",
+          "week": "XP this week",
+          "month": "XP this month",
+          "all": "Total XP"
+        },
         "deltaWeek": "+{n} XP this week",
         "projectedEnd": "End-of-month projection",
         "seeMyPlace": "See my place (#{rank})"
@@ -3552,9 +3596,6 @@
         "title": "Private profile",
         "desc": "{name} hasn't enabled their public profile. Their progress stays private."
       },
-      "rankUp": "+{n} rank(s) since last month",
-      "rankDown": "-{n} rank(s) since last month",
-      "rankStable": "Same rank as last month",
       "thisMonth": "this month",
       "memberSince": "Member for {months} months",
       "favoriteDay": "Favorite day",
