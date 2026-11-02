@@ -232,6 +232,15 @@ describe('PortalLeaderboard.vue', () => {
     expect(titles[0].classes()).toContain('gc-lb-custom-title--rarity-mythic')
   })
 
+  it('shows the level of each player on a rest row', async () => {
+    const wrapper = await mountPage({ entries: buildEntries(15), stats: buildStats() })
+    await flushPromises()
+    // buildEntries gives rank 14 level 23 and rank 15 level 24.
+    const tiers = wrapper.findAll('.gc-lb-row .gc-lb-tier').map(tier => tier.text())
+    expect(tiers[0]).toContain('"level":23')
+    expect(tiers[1]).toContain('"level":24')
+  })
+
   it('labels only the viewer among the rest rows, in the language of the reader', async () => {
     const { createI18n } = await vi.importActual('vue-i18n')
     for (const [locale, label] of Object.entries({ fr: 'VOUS', en: 'YOU' })) {

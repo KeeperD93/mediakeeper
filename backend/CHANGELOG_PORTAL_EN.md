@@ -16,6 +16,7 @@ This section intentionally has no date so it is not shown to users.
 
 ### Added
 - Monthly leaderboard — counter of trophies awarded this month.
+- Monthly leaderboard — each player's level shown on every row.
 
 ### Changed
 - Monthly leaderboard — only activity counts (views, sign-ins, requests), no longer trophies.
@@ -33,6 +34,7 @@ This section intentionally has no date so it is not shown to users.
 - Monthly leaderboard — readable top ten XP, level color on the avatar only.
 - Monthly leaderboard — translated "YOU" label, always whole, your XP stays visible.
 - Monthly leaderboard — first-place card fully read by screen readers.
+- My profile — ranking readable on laptops: names and levels no longer hidden.
 
 ## [1.0.0-rc.9] - 2026-10-23
 

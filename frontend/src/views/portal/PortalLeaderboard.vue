@@ -100,8 +100,7 @@
                   <LeaderboardMePill v-if="entry.is_current_user" />
                 </span>
                 <span class="gc-lb-tier">
-                  {{ $t(`portal.profile.titles.${entry.title_key || 'spectator'}`) }}
-                  <LeaderboardChosenTitle :entry="entry" />
+                  <LeaderboardLevelTitle :entry="entry" />
                 </span>
               </div>
               <span
@@ -129,8 +128,8 @@ import { useI18n } from 'vue-i18n'
 import { ChevronDown, ChevronUp } from 'lucide-vue-next'
 
 import MkAvatar from '@/components/common/MkAvatar.vue'
-import LeaderboardChosenTitle from '@/components/portal/leaderboard/LeaderboardChosenTitle.vue'
 import LeaderboardHeroBillboard from '@/components/portal/leaderboard/LeaderboardHeroBillboard.vue'
+import LeaderboardLevelTitle from '@/components/portal/leaderboard/LeaderboardLevelTitle.vue'
 import LeaderboardMePill from '@/components/portal/leaderboard/LeaderboardMePill.vue'
 import LeaderboardStatsBar from '@/components/portal/leaderboard/LeaderboardStatsBar.vue'
 import PortalLeaderboardPodium from '@/components/portal/leaderboard/PortalLeaderboardPodium.vue'

@@ -83,6 +83,22 @@
   border: 1px solid rgb(var(--accent-rgb), 0.15);
 }
 
+/* In a narrow card (a laptop's "My profile" column, a phone), the movement and
+   the XP go under the name rather than squeezing it out of sight. */
+.gc-lb-box .gc-lb-row {
+  flex-wrap: wrap;
+  row-gap: 2px;
+}
+.gc-lb-box .gc-lb-info {
+  flex: 1 1 100px;
+}
+.gc-lb-figures {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-left: auto;
+}
+
 /* Movement arrow + delta (green up / red down, grey dash when flat). */
 .gc-lb-move {
   display: inline-flex;

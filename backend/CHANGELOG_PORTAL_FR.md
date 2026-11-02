@@ -18,6 +18,7 @@ utilisateurs.
 
 ### Added
 - Classement du mois — compteur des trophées distribués dans le mois.
+- Classement du mois — niveau de chaque joueur affiché sur toutes les lignes.
 
 ### Changed
 - Classement du mois — seule l'activité compte (visionnages, connexions, demandes), plus les trophées.
@@ -35,6 +36,7 @@ utilisateurs.
 - Classement du mois — XP du Top 10 lisibles, couleur du niveau sur l'avatar seul.
 - Classement du mois — étiquette « VOUS » traduite et toujours entière, vos XP restent visibles.
 - Classement du mois — carte du 1er lue en entier par les lecteurs d'écran.
+- Mon profil — classement lisible sur ordinateur portable : pseudos et niveaux ne sont plus masqués.
 
 ## [1.0.0-rc.9] - 2026-10-23
 

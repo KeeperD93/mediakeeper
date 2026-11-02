@@ -196,6 +196,7 @@ async def ranking_snapshot(
             "user_id": entry.get("user_id"),
             "display_name": entry.get("display_name"),
             "avatar_url": entry.get("avatar_url"),
+            "level": entry.get("level"),
             "tier": entry.get("tier"),
             "title_key": entry.get("title_key"),
             "selected_title": entry.get("selected_title"),

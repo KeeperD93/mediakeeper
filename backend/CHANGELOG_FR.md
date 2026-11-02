@@ -13,6 +13,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 ### Changed
 - Sécurité — FORWARDED_ALLOW_IPS d'uvicorn désormais ignoré : déclarer les proxys dans TRUSTED_PROXIES.
 - Classement du portail — seule l'activité compte : trophées et ajouts ou retraits d'XP admin exclus.
+- Tableau de bord — widget Classement : niveau de chaque joueur affiché.
 
 ### Fixed
 - Sécurité — IP derrière un proxy : adresse envoyée par le visiteur ignorée (déclarer chaque proxy).

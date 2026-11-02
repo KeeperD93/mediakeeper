@@ -186,6 +186,17 @@ def test_level_info_at_max_level_is_full_and_capped():
     assert info["xp_next_level"] == info["xp_current_level"] == xp_for_level(MAX_LEVEL)
 
 
+@pytest.mark.asyncio
+async def test_ranking_snapshot_keeps_the_level_of_each_row(db_session):
+    """The digest writes each player's level, the viewer's fourth row included."""
+    rows = [{"rank": rank, "level": 40 - rank, "is_current_user": False} for rank in (1, 2, 3)]
+    rows.append({"rank": 8, "level": 12, "is_current_user": True})
+    ranking = {"position": 8, "total": 8, "movement": 0, "leaderboard": rows}
+    with patch.object(dd_sources, "compute_ranking", AsyncMock(return_value=ranking)):
+        snapshot = await dd_sources.ranking_snapshot(db_session, User(username="alice"))
+    assert [row["level"] for row in snapshot["top3"]] == [39, 38, 37, 12]
+
+
 def _fake_adds(count: int) -> list[dict]:
     """``count`` items dated day-0..day-(count-1), newest first (Emby DESC)."""
     today = datetime.now(timezone.utc).date()

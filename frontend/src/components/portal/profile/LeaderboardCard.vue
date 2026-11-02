@@ -37,21 +37,22 @@
         <div class="gc-lb-info">
           <span class="gc-lb-n">{{ entry.display_name }}</span>
           <span class="gc-lb-tier">
-            {{ $t(`portal.profile.titles.${entry.title_key || 'spectator'}`) }}
-            <LeaderboardChosenTitle :entry="entry" />
+            <LeaderboardLevelTitle :entry="entry" />
           </span>
         </div>
-        <span
-          class="gc-lb-move"
-          :class="moveClass(entry.movement)"
-          :title="moveTooltip(entry.movement)"
-        >
-          <ChevronUp v-if="entry.movement > 0" :size="9" :stroke-width="3.5" />
-          <ChevronDown v-else-if="entry.movement < 0" :size="9" :stroke-width="3.5" />
-          <span v-else>—</span>
-          <span v-if="entry.movement">{{ Math.abs(entry.movement) }}</span>
+        <span class="gc-lb-figures">
+          <span
+            class="gc-lb-move"
+            :class="moveClass(entry.movement)"
+            :title="moveTooltip(entry.movement)"
+          >
+            <ChevronUp v-if="entry.movement > 0" :size="9" :stroke-width="3.5" />
+            <ChevronDown v-else-if="entry.movement < 0" :size="9" :stroke-width="3.5" />
+            <span v-else>—</span>
+            <span v-if="entry.movement">{{ Math.abs(entry.movement) }}</span>
+          </span>
+          <span class="gc-lb-v">{{ (entry.month_xp || 0).toLocaleString() }} XP</span>
         </span>
-        <span class="gc-lb-v">{{ (entry.month_xp || 0).toLocaleString() }} XP</span>
       </component>
     </div>
   </div>
@@ -61,7 +62,7 @@
 import { useI18n } from 'vue-i18n'
 import { ChevronDown, ChevronRight, ChevronUp } from 'lucide-vue-next'
 import MkAvatar from '@/components/common/MkAvatar.vue'
-import LeaderboardChosenTitle from '@/components/portal/leaderboard/LeaderboardChosenTitle.vue'
+import LeaderboardLevelTitle from '@/components/portal/leaderboard/LeaderboardLevelTitle.vue'
 
 defineProps({
   entries: { type: Array, default: () => [] },
