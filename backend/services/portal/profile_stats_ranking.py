@@ -161,7 +161,7 @@ async def compute_leaderboard_only(
             "stats": stats,
         }
     except Exception as e:
-        logger.debug("[LEADERBOARD-ONLY] error: %s", e)
+        logger.error("[LEADERBOARD-ONLY] failed: %s", e)
         return empty_payload(lang)
 
 
@@ -240,7 +240,7 @@ async def compute_ranking(
                     leaderboard.append(build_entry(idx, row, **entry_kwargs))
                     break
     except Exception as e:
-        logger.debug("[PROFILE] ranking error: %s", e)
+        logger.error("[PROFILE] ranking failed: %s", e)
 
     return {
         "position": rank_position,
