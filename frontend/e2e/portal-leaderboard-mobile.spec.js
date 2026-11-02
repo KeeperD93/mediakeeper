@@ -113,8 +113,16 @@ test.describe('Portal leaderboard on a phone', () => {
         return out
       }, TITLES_BY_CARD)
 
+      const figureColors = await page.evaluate(() =>
+        ['.gc-lb-v', '.lb-top-row-xp', '.lb-my-rank-rank'].map(
+          selector => getComputedStyle(document.querySelector(selector)).color,
+        ),
+      )
+
       expect(overflowing).toEqual([])
       expect(titlesOutOfCard).toEqual([])
+      // The same readable blue everywhere, whatever the accent color of the theme.
+      expect(new Set(figureColors).size).toBe(1)
       expect(tracker.unexpected).toEqual([])
     })
   }

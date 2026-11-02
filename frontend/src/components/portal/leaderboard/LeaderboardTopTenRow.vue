@@ -5,9 +5,7 @@
     class="lb-top-row"
     :class="{ 'lb-top-row--me': entry.is_current_user }"
   >
-    <span class="lb-top-row-rank" :class="`lb-top-row-rank--${entry.tier || 'bronze'}`">
-      {{ entry.rank }}
-    </span>
+    <span class="lb-top-row-rank">{{ entry.rank }}</span>
     <div class="gc-lb-av lb-top-row-av">
       <MkAvatar
         :name="entry.display_name || ''"
@@ -107,20 +105,6 @@ function moveTooltip(movement) {
   font-variant-numeric: tabular-nums;
   min-width: 36px;
 }
-.lb-top-row-rank--gold {
-  background: rgb(var(--portal-color-warning-rgb), 0.18);
-  color: var(--portal-color-warning);
-}
-.lb-top-row-rank--platinum {
-  background: rgb(var(--portal-color-cinema-rgb), 0.18);
-  color: var(--portal-color-cinema);
-}
-.lb-top-row-rank--diamond,
-.lb-top-row-rank--master,
-.lb-top-row-rank--legendary {
-  background: rgb(var(--portal-color-premium-rgb), 0.18);
-  color: var(--portal-color-premium);
-}
 .lb-top-row-av {
   width: 40px;
   height: 40px;
@@ -161,9 +145,10 @@ function moveTooltip(movement) {
   min-width: 36px;
 }
 .lb-top-row-xp {
-  font-family: 'Roboto Mono', monospace;
+  font-family: var(--portal-font-display);
   font-size: var(--portal-text-base);
-  color: var(--accent);
+  font-weight: var(--portal-font-bold);
+  color: var(--portal-color-info-light);
   text-align: right;
   font-variant-numeric: tabular-nums;
 }

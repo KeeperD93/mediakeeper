@@ -29,6 +29,7 @@ This section intentionally has no date so it is not shown to users.
 - Monthly leaderboard — singular respected ("Top 1 player", "1 ranked player", "1 day remaining").
 - Monthly leaderboard — chosen title also shown from 2nd to 13th place.
 - Monthly leaderboard — compact page on phones, nothing cut off on the right.
+- Monthly leaderboard — readable top ten XP, level color on the avatar only.
 
 ## [1.0.0-rc.9] - 2026-10-23
 

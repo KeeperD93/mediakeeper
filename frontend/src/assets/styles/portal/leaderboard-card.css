@@ -215,12 +215,9 @@
 .gc-lb-v {
   font-size: var(--portal-text-xs);
   font-weight: var(--portal-font-bold);
-  /* Intentional exception to the "no accent on text" rule: the monthly
-     XP total is the principal data point of the leaderboard card and
-     gets a saturated blue emphasis on purpose. Promote to a dedicated
-     ``--portal-color-xp`` token if a future palette tweak needs to
-     repaint it independently of the semantic info colour. */
-  color: var(--color-info);
+  /* The XP total is the principal figure of a row: a saturated blue on purpose,
+     which stays readable whatever the accent color of the theme. */
+  color: var(--portal-color-info-light);
   font-family: var(--portal-font-display);
   flex-shrink: 0;
 }

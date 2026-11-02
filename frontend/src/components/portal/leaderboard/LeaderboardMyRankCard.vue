@@ -127,7 +127,7 @@ function scrollToHero() {
   font-size: clamp(2rem, 4vw, 3rem);
   font-weight: var(--portal-font-black);
   line-height: 1;
-  color: var(--accent);
+  color: var(--portal-color-info-light);
   font-variant-numeric: tabular-nums;
 }
 .lb-my-rank--podium .lb-my-rank-rank {
