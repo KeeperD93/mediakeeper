@@ -4,17 +4,18 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.portal.deps import get_current_profile, get_request_lang
+from constants.leaderboard import LeaderboardPeriod
 from core.database import get_db
 from core.rate_limit import limiter, portal_user_or_ip_key
-from models.user import User
 from models.portal.profile import UserProfile
-from api.portal.deps import get_current_profile, get_request_lang
+from models.user import User
 from services.portal import achievements as ach_svc
+from services.portal.admin_users_constants import ROLE_ADMIN
 from services.portal.profile_stats_ranking import (
     LEADERBOARD_FULL_DEFAULT,
     compute_leaderboard_only,
 )
-from services.portal.admin_users_constants import ROLE_ADMIN
 
 router = APIRouter(prefix="/achievements", tags=["portal-achievements"])
 
@@ -136,12 +137,13 @@ async def leaderboard(
 @limiter.limit("60/minute", key_func=portal_user_or_ip_key)
 async def activity_leaderboard(
     request: Request,
+    period: LeaderboardPeriod = Query(LeaderboardPeriod.MONTH),
     limit: int = Query(LEADERBOARD_FULL_DEFAULT, ge=1, le=LEADERBOARD_FULL_DEFAULT),
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
     lang: str = Depends(get_request_lang),
 ):
-    """Top players by *monthly* XP — feeds the dedicated /portal/leaderboard page.
+    """Top players by activity XP over ``period`` — feeds the /portal/leaderboard page.
 
     Shares its trust boundary with the profile mini-leaderboard: any
     authenticated portal user can view the full ranking, the excluded
@@ -152,5 +154,5 @@ async def activity_leaderboard(
     """
     user, _ = up
     return await compute_leaderboard_only(
-        db, limit=limit, viewer_user_id=user.id, lang=lang,
+        db, period=period, limit=limit, viewer_user_id=user.id, lang=lang,
     )

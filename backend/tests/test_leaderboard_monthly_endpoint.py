@@ -16,7 +16,7 @@ from datetime import UTC, datetime
 import pytest
 
 from models.portal.xp_ledger import XpLedger
-from services.portal._leaderboard_helpers import MONTH_LABELS_EN, MONTH_LABELS_FR
+from services.portal._leaderboard_periods import MONTH_LABELS_EN, MONTH_LABELS_FR
 from tests._portal_profile_helpers import (
     PORTAL_COOKIE, make_portal_user, portal_token,
 )

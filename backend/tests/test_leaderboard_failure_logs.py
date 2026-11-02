@@ -3,6 +3,7 @@ import logging
 
 import pytest
 
+from constants.leaderboard import LeaderboardPeriod
 from services.portal import profile_stats_ranking
 from services.portal._leaderboard_helpers import empty_payload
 from services.portal.profile_stats_ranking import (
@@ -35,6 +36,14 @@ async def test_a_failed_leaderboard_is_logged_and_stays_empty(
 
     assert payload == empty_payload("en")
     assert _logged(caplog) == [("ERROR", "[LEADERBOARD-ONLY] failed: database down")]
+
+
+@pytest.mark.asyncio
+async def test_a_failed_leaderboard_still_names_the_period_asked(db_session, broken_ranking):
+    payload = await compute_leaderboard_only(db_session, period=LeaderboardPeriod.ALL, lang="en")
+
+    assert payload == empty_payload("en", LeaderboardPeriod.ALL)
+    assert payload["stats"]["period_label"] == "Since the beginning"
 
 
 @pytest.mark.asyncio
