@@ -10,6 +10,12 @@ import {
   viewerInList,
 } from './_fixtures/portal-leaderboard-page.js'
 
+// All time has no previous period: no row shows an arrow.
+const WITHOUT_ARROWS = {
+  ...LEADERBOARD,
+  items: LEADERBOARD.items.map(entry => ({ ...entry, movement: null })),
+}
+
 // In the corner of the card, like the medals of the podium, and clear of a long name.
 async function expectCrownInCorner(page) {
   const boxes = await page.locator('.lb-hero').evaluate(card => {
@@ -222,17 +228,24 @@ test.describe('Look of the leaderboard on a phone', () => {
     })
 
     if (width <= 640) {
-      test(`centers the XP and the trophies in their row at ${width}px`, async ({ page }) => {
-        await openLeaderboard(page, width, LEADERBOARD)
-        for (const [rows, xp] of [
-          ['.lb-top-row', '.lb-top-row-xp'],
-          ['.lb-rest .gc-lb-row', '.gc-lb-v'],
-        ]) {
-          const room = await roomAroundFigures(page, rows, xp)
-          expect(room.length).toBeGreaterThan(0)
-          for (const row of room) expect(Math.abs(row.above - row.under)).toBeLessThanOrEqual(1)
-        }
-      })
+      for (const [tab, body] of [
+        ['with arrows', LEADERBOARD],
+        ['without arrows', WITHOUT_ARROWS],
+      ]) {
+        test(`centers the XP and the trophies in their row ${tab} at ${width}px`, async ({
+          page,
+        }) => {
+          await openLeaderboard(page, width, body)
+          for (const [rows, xp] of [
+            ['.lb-top-row', '.lb-top-row-xp'],
+            ['.lb-rest .gc-lb-row', '.gc-lb-v'],
+          ]) {
+            const room = await roomAroundFigures(page, rows, xp)
+            expect(room.length).toBeGreaterThan(0)
+            for (const row of room) expect(Math.abs(row.above - row.under)).toBeLessThanOrEqual(1)
+          }
+        })
+      }
     }
 
     test(`keeps the crown clear of a first-place viewer at ${width}px`, async ({ page }) => {

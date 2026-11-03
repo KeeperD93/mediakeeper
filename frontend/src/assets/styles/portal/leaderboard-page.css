@@ -223,7 +223,7 @@
 
 /* The XP in a column of its own, as in the top ten: the arrows and the trophies before
    it line up from row to row, whatever the length of the number. */
-@media (min-width: 641px) {
+@media (min-width: 640px) {
   .pt-leaderboard .lb-rest .gc-lb-v {
     width: var(--portal-leaderboard-xp-width);
     text-align: right;
