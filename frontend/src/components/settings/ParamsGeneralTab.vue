@@ -8,7 +8,7 @@
       <p class="params-section-desc">{{ $t('settings.languageDesc') }}</p>
       <div class="params-lang-select-wrap">
         <select
-          class="params-lang-select"
+          class="params-control mk-select-chevron"
           :value="currentLocale"
           @change="onLocaleChange($event.target.value)"
         >
@@ -18,6 +18,8 @@
         </select>
       </div>
     </section>
+
+    <ParamsTimezoneSection />
 
     <section class="params-section">
       <h3 class="params-section-title">{{ $t('settings.updateCheckTitle') }}</h3>
@@ -47,6 +49,7 @@ import { computed, onMounted, ref } from 'vue'
 import { setLocale, getLocale, AVAILABLE_LOCALES } from '@/i18n'
 import { useUpdateCheck } from '@/composables/useUpdateCheck'
 import MkToggle from '@/components/common/MkToggle.vue'
+import ParamsTimezoneSection from '@/components/settings/ParamsTimezoneSection.vue'
 
 const currentLocale = ref(getLocale())
 const { status: updateStatus, load: loadUpdateStatus, setEnabled } = useUpdateCheck()
@@ -72,22 +75,6 @@ onMounted(loadUpdateStatus)
 <style scoped>
 .params-lang-select-wrap {
   max-width: 260px;
-}
-.params-lang-select {
-  width: 100%;
-  padding: 9px var(--space-3-5);
-  border-radius: var(--radius-btn);
-  border: 0.5px solid var(--border);
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  font-size: var(--text-sm);
-  font-family: inherit;
-  cursor: pointer;
-  appearance: auto;
-}
-.params-lang-select:focus {
-  outline: none;
-  border-color: var(--accent-500);
 }
 .params-update-row {
   display: flex;

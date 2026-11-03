@@ -10,6 +10,9 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+### Added
+- Paramètres — fuseau horaire de l'instance, prérempli avec celui du navigateur.
+
 ### Changed
 - Sécurité — FORWARDED_ALLOW_IPS d'uvicorn désormais ignoré : déclarer les proxys dans TRUSTED_PROXIES.
 - Classement du portail — seule l'activité compte : trophées et ajouts ou retraits d'XP admin exclus.

@@ -10,6 +10,9 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Added
+- Settings — time zone of the instance, pre-filled from the browser.
+
 ### Changed
 - Security — uvicorn's FORWARDED_ALLOW_IPS is now ignored: list proxies in TRUSTED_PROXIES.
 - Portal leaderboard — only activity counts: trophies and admin XP changes left out.
