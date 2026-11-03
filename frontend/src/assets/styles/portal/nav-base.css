@@ -149,9 +149,6 @@
   gap: 0.55rem;
 }
 
-/* Compact-mode search trigger — hidden by default; revealed by the
-   responsive rules in nav-avatar.css when the full search input can't
-   fit the grid anymore. */
 .pt-nav-icon {
   display: inline-flex;
   align-items: center;
@@ -170,7 +167,7 @@
     transform 0.18s ease;
 }
 
-/* Compact-mode search trigger — hidden by default (wins specifherety over
+/* Compact-mode search trigger — hidden by default (wins specificity over
    the generic .pt-nav-icon display rule above). Revealed by the responsive
    @media blocks in nav-avatar.css when the full search input can't fit. */
 .pt-nav-icon.pt-nav-search-trigger {

@@ -242,13 +242,11 @@
   }
 }
 
-/* ≤768px: tabs row moves to the fixed bottom nav (PortalBottomNav).
- * Mobile top-bar is minimal — brand + search + bell + avatar only.
- * Everything else (Dashboard, Lists, Calendar, Admin) slides into the
- * avatar popup as "mobile-only" entries. Pattern borrowed from
- * Instagram / LinkedIn / GitHub mobile: the top bar keeps only
- * identity + time-sensitive alerts (notifications), and the rest is one
- * extra tap away via the account menu. */
+/* Below 768px the tabs move to the fixed bottom nav (PortalBottomNav).
+ * The top bar is minimal: brand + search + bell + avatar only. Everything
+ * else (Dashboard, Lists, Calendar, Admin) slides into the avatar popup as
+ * "mobile-only" entries: the bar keeps identity and time-sensitive alerts,
+ * the rest is one extra tap away via the account menu. */
 @media (max-width: 767px) {
   .pt-nav-inner {
     display: flex;
