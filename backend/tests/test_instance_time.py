@@ -1,6 +1,7 @@
 """Time zone of the instance: reading it, converting to it, and its admin endpoints."""
 import logging
 import re
+import zoneinfo
 from datetime import UTC, date, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -87,6 +88,8 @@ async def test_only_real_places_can_be_chosen(name, known):
 
 WINTER = date(2026, 1, 15)
 SUMMER = date(2026, 7, 15)
+# After the rule changes of 2026: the lines describe the year that follows.
+_LIST_DAY = date(2026, 11, 4)
 
 
 def _group_of(zone: str, day: date) -> dict:
@@ -138,14 +141,30 @@ def test_zones_that_part_ways_during_the_year_stay_apart(zone, other):
     assert other not in _group_of(zone, WINTER)["zones"]
 
 
+def _reset_zone_caches():
+    ZoneInfo.clear_cache()
+    instance_time._load_zones.cache_clear()
+    instance_time._zone_groups.cache_clear()
+
+
+@pytest.fixture
+def pinned_zone_data():
+    """The pinned tzdata package, not the machine's data: a country changing its rules
+    must fail this when the package is bumped, not on any unrelated change."""
+    zoneinfo.reset_tzpath(to=[])
+    _reset_zone_caches()
+    yield
+    zoneinfo.reset_tzpath()
+    _reset_zone_caches()
+
+
+@pytest.mark.usefixtures("pinned_zone_data")
 def test_the_zones_of_a_line_of_the_list_count_days_alike():
-    """From today, as the real list: zones that have changed their rules agree from then on."""
-    today = datetime.now(UTC).date()
     lines = re.findall(r"zones: \[([^\]]+)\]", _LIST_LINES.read_text(encoding="utf-8"))
     assert len(lines) > 20
     for line in lines:
         zones = re.findall(r"'([^']+)'", line)
-        groups = [_group_of(zone, today)["zones"] for zone in zones]
+        groups = [_group_of(zone, _LIST_DAY)["zones"] for zone in zones]
         assert all(group == groups[0] for group in groups), zones
 
 
