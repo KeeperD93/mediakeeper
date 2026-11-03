@@ -94,9 +94,9 @@ const totalPlayers = computed(() => statsRef.value?.total_players || 0)
 const totalXp = computed(() => statsRef.value?.total_xp || 0)
 const totalTrophies = computed(() => statsRef.value?.total_trophies || 0)
 
-const { displayed: displayedPlayers } = useCountUp(totalPlayers.value, { duration: 1100 })
-const { displayed: displayedXp } = useCountUp(totalXp.value, { duration: 1500 })
-const { displayed: displayedTrophies } = useCountUp(totalTrophies.value, { duration: 1100 })
+const { displayed: displayedPlayers } = useCountUp(totalPlayers, { duration: 1100 })
+const { displayed: displayedXp } = useCountUp(totalXp, { duration: 1500 })
+const { displayed: displayedTrophies } = useCountUp(totalTrophies, { duration: 1100 })
 
 const circ = 2 * Math.PI * 10
 const monthElapsedPct = computed(() => {

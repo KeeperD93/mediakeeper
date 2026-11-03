@@ -32,12 +32,12 @@
       <template v-else>
         <Transition name="lb-fade" appear>
           <div v-if="hero">
-            <LeaderboardHeroBillboard :key="period" :entry="hero" />
+            <LeaderboardHeroBillboard :entry="hero" />
           </div>
         </Transition>
 
         <Transition name="lb-fade" appear>
-          <LeaderboardStatsBar v-if="stats" :key="period" :stats="stats" />
+          <LeaderboardStatsBar v-if="stats" :stats="stats" />
         </Transition>
 
         <Transition name="lb-fade" appear>

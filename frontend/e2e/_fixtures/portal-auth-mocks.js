@@ -194,15 +194,11 @@ const EMPTY_LEADERBOARD = Object.freeze({
   },
 })
 
+export const LEADERBOARD_ROUTE = '/api/portal/achievements/leaderboard/activity'
+
 /** Handlers for the dedicated /portal/leaderboard page, empty by default. */
 export function portalLeaderboardHandlers(body = EMPTY_LEADERBOARD) {
-  return [
-    pathHandler(
-      'portal-leaderboard-activity',
-      '/api/portal/achievements/leaderboard/activity',
-      body,
-    ),
-  ]
+  return [pathHandler('portal-leaderboard-activity', LEADERBOARD_ROUTE, body)]
 }
 
 /**

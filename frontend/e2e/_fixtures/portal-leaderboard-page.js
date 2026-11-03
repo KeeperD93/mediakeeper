@@ -30,8 +30,6 @@ function buildEntry(index) {
   }
 }
 
-export const LEADERBOARD_ROUTE = '/api/portal/achievements/leaderboard/activity'
-
 export const LEADERBOARD = {
   items: Array.from({ length: 20 }, (_, index) => buildEntry(index)),
   viewer_rank: 120,

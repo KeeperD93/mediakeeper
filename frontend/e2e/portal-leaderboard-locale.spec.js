@@ -4,12 +4,11 @@
 import { test, expect } from '@playwright/test'
 import {
   DEFAULT_VIEWER_PROFILE,
+  LEADERBOARD_ROUTE,
   mockAuthenticatedPortal,
   portalLeaderboardHandlers,
 } from './_fixtures/portal-auth-mocks.js'
 import { LEADERBOARD } from './_fixtures/portal-leaderboard-page.js'
-
-const ROUTE = '/api/portal/achievements/leaderboard/activity'
 
 for (const [deviceLocale, portalLocale] of [
   ['en', 'fr'],
@@ -30,7 +29,9 @@ for (const [deviceLocale, portalLocale] of [
       pageHandlers: portalLeaderboardHandlers(LEADERBOARD),
     })
 
-    const ranking = page.waitForRequest(request => new URL(request.url()).pathname === ROUTE)
+    const ranking = page.waitForRequest(
+      request => new URL(request.url()).pathname === LEADERBOARD_ROUTE,
+    )
     await page.goto('/portal/leaderboard')
 
     expect((await ranking).headers()['x-mk-locale']).toBe(portalLocale)

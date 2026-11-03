@@ -82,7 +82,7 @@ const entryRef = toRef(props, 'entry')
 const targetXp = computed(() => entryRef.value?.period_xp || 0)
 const leadOver2 = computed(() => Math.max(0, entryRef.value?.lead_over_2 || 0))
 
-const { displayed: displayedXp } = useCountUp(targetXp.value, { duration: 1400 })
+const { displayed: displayedXp } = useCountUp(targetXp, { duration: 1400 })
 </script>
 
 <style scoped>

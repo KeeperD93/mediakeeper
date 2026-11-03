@@ -6,9 +6,10 @@
  * 3. With a real duration, the displayed value lands strictly between
  *    zero and the target at mid-progress and exactly on the target
  *    when the duration elapses.
+ * 4. A ref target counts again each time it changes.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent, h, nextTick } from 'vue'
+import { defineComponent, h, nextTick, ref } from 'vue'
 import { mount } from '@vue/test-utils'
 
 import { useCountUp } from '@/composables/portal/useCountUp'
@@ -83,5 +84,62 @@ describe('useCountUp', () => {
     // End of animation: displayed equals the target exactly.
     vi.advanceTimersByTime(800)
     expect(host.displayed).toBe(1000)
+  })
+
+  it('counts again from zero when a ref target changes', async () => {
+    vi.useFakeTimers({ toFake: ['performance', 'requestAnimationFrame', 'cancelAnimationFrame'] })
+    const target = ref(1000)
+    const host = makeHost(target, { duration: 1200 })
+    await nextTick()
+    vi.advanceTimersByTime(1400)
+    expect(host.displayed).toBe(1000)
+
+    target.value = 200
+    await nextTick()
+    expect(host.displayed).toBe(0)
+
+    vi.advanceTimersByTime(1400)
+    expect(host.displayed).toBe(200)
+  })
+
+  it('leaves the first count for the new target when it changes midway', async () => {
+    vi.useFakeTimers({ toFake: ['performance', 'requestAnimationFrame', 'cancelAnimationFrame'] })
+    const target = ref(1000)
+    const host = makeHost(target, { duration: 1200 })
+    await nextTick()
+    vi.advanceTimersByTime(600)
+
+    target.value = 50
+    await nextTick()
+    vi.advanceTimersByTime(1400)
+
+    expect(host.displayed).toBe(50)
+  })
+
+  it('snaps to a new target when prefers-reduced-motion is on', async () => {
+    stubMatchMedia(true)
+    const target = ref(750)
+    const host = makeHost(target, { duration: 1200 })
+    await nextTick()
+
+    target.value = 20
+    await nextTick()
+
+    expect(host.displayed).toBe(20)
+  })
+
+  it('stops counting once its component is gone', async () => {
+    vi.useFakeTimers({ toFake: ['performance', 'requestAnimationFrame', 'cancelAnimationFrame'] })
+    const target = ref(1000)
+    const host = makeHost(target, { duration: 1200 })
+    await nextTick()
+    vi.advanceTimersByTime(600)
+    const atRemoval = host.displayed
+
+    host.wrapper.unmount()
+    target.value = 5
+    vi.advanceTimersByTime(1400)
+
+    expect(host.displayed).toBe(atRemoval)
   })
 })
