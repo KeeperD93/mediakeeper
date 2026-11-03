@@ -38,6 +38,7 @@ utilisateurs.
 - Connexion — double appui ou Entrée maintenue : un seul essai compté.
 - Données personnelles — l'export inclut les connexions réussies et les informations du compte.
 - Classement du mois — singulier respecté (« Top 1 joueur », « 1 joueur classé », « 1 jour restant »).
+- Barre du haut — une seule ligne sur tablette, onglets défilants si besoin.
 - Classement du mois — titre choisi affiché aussi de la 2e à la 13e place.
 - Classement du mois — page compacte sur téléphone, plus rien de coupé à droite.
 - Classement du mois — XP du Top 10 lisibles, couleur du niveau sur l'avatar seul.

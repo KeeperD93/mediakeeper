@@ -36,6 +36,7 @@ This section intentionally has no date so it is not shown to users.
 - Sign-in — double press or held Enter: only one try counted.
 - Personal data — the export includes successful sign-ins and account details.
 - Monthly leaderboard — singular respected ("Top 1 player", "1 ranked player", "1 day remaining").
+- Top bar — one row on tablets, tabs scroll when needed.
 - Monthly leaderboard — chosen title also shown from 2nd to 13th place.
 - Monthly leaderboard — compact page on phones, nothing cut off on the right.
 - Monthly leaderboard — readable top ten XP, level color on the avatar only.

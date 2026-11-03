@@ -153,9 +153,20 @@ export function usePortalNav(props, emit) {
     scrolled.value = hero.getBoundingClientRect().bottom <= navHeight - 8
   }
 
+  // On a tablet the tabs can overflow their row: keep the current one in view.
+  function revealActiveTab() {
+    navRef.value
+      ?.querySelector('.pt-tab--active')
+      ?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+  }
+
   watch(
     () => props.activeTab,
-    () => nextTick(onScroll),
+    () =>
+      nextTick(() => {
+        onScroll()
+        revealActiveTab()
+      }),
   )
 
   let heroWatchTimer = null
@@ -164,6 +175,7 @@ export function usePortalNav(props, emit) {
     document.addEventListener('mousedown', handleDocumentClick)
     window.addEventListener('scroll', onScroll, { passive: true })
     nextTick(onScroll)
+    nextTick(revealActiveTab)
 
     let tries = 0
     heroWatchTimer = setInterval(() => {

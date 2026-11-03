@@ -82,7 +82,11 @@
          :open binding could race with profile arrival on a fresh F5). The
          backend ``display_name_must_set`` flag is the single source of
          truth and only flips back to false on a saved display name. -->
-    <ForceUsernameModal v-if="mustPickUsername" :open="true" :initial="profile?.display_name || ''" />
+    <ForceUsernameModal
+      v-if="mustPickUsername"
+      :open="true"
+      :initial="profile?.display_name || ''"
+    />
   </div>
 </template>
 
@@ -268,18 +272,6 @@ onMounted(async () => {
   .pt-main > :deep(.vmd2-root) {
     padding-top: 0;
     padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
-  }
-}
-
-/* Legacy narrow-desktop layout (tabs wrap to 2nd row in top bar) */
-@media (min-width: 768px) and (max-width: 920px) {
-  .pt-main > :deep(*) {
-    padding-top: 168px;
-  }
-
-  .pt-main > :deep(.pt-home),
-  .pt-main > :deep(.vmd2-root) {
-    padding-top: 0;
   }
 }
 
