@@ -26,6 +26,7 @@ This section intentionally has no date so it is not shown to users.
 - Monthly leaderboard — your row replaces the top bar, with a "See my place" link.
 - Monthly leaderboard — cleaner page: no glows, crown in the corner, more visible bar icons.
 - Leaderboard — fixed page width on desktop, tabs no longer shift between clicks.
+- Leaderboard — Top 10 positions without bubbles, smaller "YOU" label.
 
 ### Fixed
 - Sign-in — three real tries, counter reset after a successful sign-in.

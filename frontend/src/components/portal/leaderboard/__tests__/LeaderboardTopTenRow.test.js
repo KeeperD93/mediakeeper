@@ -34,7 +34,8 @@ describe('LeaderboardTopTenRow.vue', () => {
     tier => {
       const wrapper = mount(LeaderboardTopTenRow, { props: { entry: buildEntry(tier) } })
       const position = wrapper.find('.lb-top-row-rank')
-      expect(position.classes()).toEqual(['lb-top-row-rank'])
+      // The look of the positions of the other rows, and nothing else.
+      expect(position.classes()).toEqual(['gc-lb-pos', 'lb-top-row-rank'])
       expect(position.text()).toBe('4')
       expect(wrapper.findComponent(MkAvatar).props('tier')).toBe(tier)
     },

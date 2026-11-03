@@ -54,20 +54,20 @@ function onKeydown(event) {
 .lb-period-tabs {
   display: flex;
   flex-wrap: wrap;
-  /* 14 px between two lines keeps their touch bands apart. */
-  gap: 14px clamp(4px, 2vw, 8px);
+  /* This gap between two lines keeps their touch bands apart. */
+  gap: var(--portal-space-3-5) clamp(var(--portal-space-1), 2vw, var(--portal-space-2));
 }
 .lb-period-tab {
   position: relative;
-  padding: 0.4rem clamp(0.4rem, 3.75vw - 0.3rem, 0.9rem);
+  padding: var(--portal-space-1-5)
+    clamp(var(--portal-space-1), 3.5vw - var(--portal-space-1), var(--portal-space-3-5));
   font-family: inherit;
   font-size: var(--portal-text-xs);
   font-weight: var(--portal-font-medium);
   white-space: nowrap;
   color: var(--portal-text-body-muted);
   background: var(--portal-surface-2);
-  border: 1px solid var(--portal-border-default);
-  border-radius: var(--portal-radius-pill);
+  border: var(--portal-border-width) solid var(--portal-border-default);
   cursor: pointer;
   transition:
     color var(--portal-dur-fast) var(--portal-ease-default),
@@ -91,7 +91,7 @@ function onKeydown(event) {
 }
 .lb-period-tab:focus-visible {
   outline: var(--portal-focus-ring);
-  outline-offset: 2px;
+  outline-offset: var(--portal-focus-ring-offset);
 }
 @media (hover: hover) {
   .lb-period-tab:not(.lb-period-tab--on):hover {

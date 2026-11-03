@@ -204,8 +204,12 @@ const { displayed: displayedXp } = useCountUp(targetXp, { duration: 1400 })
   gap: 6px;
   margin-top: 4px;
 }
+/* The bubble overhangs on the left: its "+" falls under the first digit of the XP. */
 .lb-hero-lead {
-  padding: 4px 12px;
+  --lb-lead-side: var(--portal-space-3);
+
+  margin-left: calc(-1 * var(--lb-lead-side));
+  padding: var(--portal-space-1) var(--lb-lead-side);
   border-radius: var(--portal-radius-pill);
   background: rgb(var(--portal-color-success-rgb), 0.18);
   color: var(--portal-color-success);
@@ -267,7 +271,9 @@ const { displayed: displayedXp } = useCountUp(targetXp, { duration: 1400 })
     margin-top: 2px;
   }
   .lb-hero-lead {
-    padding: 2px 8px;
+    --lb-lead-side: var(--portal-space-2);
+
+    padding-block: var(--portal-space-0-5);
     font-size: var(--portal-text-3xs);
   }
 }

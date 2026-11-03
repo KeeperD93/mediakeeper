@@ -3,7 +3,12 @@
 // its text, and the trophies won are gold, next to a green lead without an icon.
 
 import { test, expect } from '@playwright/test'
-import { LEADERBOARD, openLeaderboard, viewerInList } from './_fixtures/portal-leaderboard-page.js'
+import {
+  LEADERBOARD,
+  openLeaderboard,
+  roomAroundFigures,
+  viewerInList,
+} from './_fixtures/portal-leaderboard-page.js'
 
 // In the corner of the card, like the medals of the podium, and clear of a long name.
 async function expectCrownInCorner(page) {
@@ -96,6 +101,83 @@ async function expectTrophiesGold(page) {
   expect(look.heroTrophyIcon).toBe(true)
 }
 
+// The positions of the top ten read like those of the rows below: no bubble, same type,
+// same color. The first three keep their large figures.
+async function expectPlainPositions(page) {
+  const look = await page.evaluate(() => {
+    const read = element => {
+      const style = getComputedStyle(element)
+      return {
+        family: style.fontFamily,
+        size: style.fontSize,
+        weight: style.fontWeight,
+        color: style.color,
+        background: style.backgroundColor,
+        padding: style.paddingLeft,
+      }
+    }
+    return {
+      topTen: [...document.querySelectorAll('.lb-top-row-rank')].map(read),
+      below: read(document.querySelector('.lb-rest .gc-lb-pos')),
+      first: parseFloat(getComputedStyle(document.querySelector('.lb-hero-rank-num')).fontSize),
+      podium: [...document.querySelectorAll('.pt-lb-podium-rank')].map(rank =>
+        parseFloat(getComputedStyle(rank).fontSize),
+      ),
+    }
+  })
+  expect(look.topTen).toHaveLength(10)
+  for (const position of look.topTen) expect(position).toEqual(look.below)
+  expect(look.below.background).toBe('rgba(0, 0, 0, 0)')
+  const plain = parseFloat(look.below.size)
+  expect(look.first).toBeGreaterThan(plain)
+  expect(look.podium).toHaveLength(2)
+  for (const size of look.podium) expect(size).toBeGreaterThan(plain)
+}
+
+// The text of the green bubble starts under the first digit, not the bubble itself,
+// and the bubble stays clear of the avatar.
+async function expectLeadUnderDigits(page, margins) {
+  const facts = await page.locator('.lb-hero').evaluate(card => {
+    const textLeft = element => {
+      const range = document.createRange()
+      range.selectNodeContents(element)
+      return range.getBoundingClientRect().left
+    }
+    const lead = card.querySelector('.lb-hero-lead')
+    const style = getComputedStyle(lead)
+    return {
+      lead: textLeft(lead),
+      digits: textLeft(card.querySelector('.lb-hero-xp-value')),
+      bubble: lead.getBoundingClientRect().left,
+      avatar: card.querySelector('.lb-hero-avatar').getBoundingClientRect().right,
+      margins: { side: style.paddingLeft, top: style.paddingTop },
+    }
+  })
+  expect(Math.abs(facts.lead - facts.digits)).toBeLessThanOrEqual(1)
+  expect(facts.bubble).toBeLessThan(facts.digits)
+  expect(facts.bubble).toBeGreaterThanOrEqual(facts.avatar)
+  expect(facts.margins).toEqual(margins)
+}
+
+// As wide as its word, wherever the viewer stands, without the separator of the digest.
+async function expectSmallLabel(page, rowSelector) {
+  const row = page.locator(rowSelector)
+  await expect(row.locator('.lb-me-pill')).toHaveText('VOUS')
+  const facts = await row.evaluate(element => {
+    const pill = element.querySelector('.lb-me-pill')
+    const text = document.createRange()
+    text.selectNodeContents(pill)
+    return {
+      height: pill.getBoundingClientRect().height,
+      margin: pill.getBoundingClientRect().width - text.getBoundingClientRect().width,
+      dashes: getComputedStyle(element, '::before').content,
+    }
+  })
+  expect(facts.height).toBeLessThanOrEqual(12)
+  expect(facts.margin).toBeLessThanOrEqual(10)
+  expect(facts.dashes).toBe('none')
+}
+
 test.describe('Look of the leaderboard on a large screen', () => {
   test.skip(({ isMobile }) => isMobile, 'large screen layout only')
 
@@ -105,8 +187,20 @@ test.describe('Look of the leaderboard on a large screen', () => {
     await expectNoHalo(page)
     await expectStatsIconsVisible(page)
     await expectTrophiesGold(page)
+    await expectPlainPositions(page)
+    await expectLeadUnderDigits(page, { side: '12px', top: '4px' })
     expect(tracker.unexpected).toEqual([])
   })
+
+  for (const [where, index, row] of [
+    ['top ten', 6, '.lb-top-row--me'],
+    ['rows below', 16, '.lb-rest .gc-lb-row--me'],
+  ]) {
+    test(`keeps the label of the viewer small in the ${where}`, async ({ page }) => {
+      await openLeaderboard(page, 1280, viewerInList(index))
+      await expectSmallLabel(page, row)
+    })
+  }
 })
 
 test.describe('Look of the leaderboard on a phone', () => {
@@ -119,8 +213,27 @@ test.describe('Look of the leaderboard on a phone', () => {
       await expectNoHalo(page)
       await expectStatsIconsVisible(page)
       await expectTrophiesGold(page)
+      await expectPlainPositions(page)
+      await expectLeadUnderDigits(
+        page,
+        width <= 640 ? { side: '8px', top: '2px' } : { side: '12px', top: '4px' },
+      )
       expect(tracker.unexpected).toEqual([])
     })
+
+    if (width <= 640) {
+      test(`centers the XP and the trophies in their row at ${width}px`, async ({ page }) => {
+        await openLeaderboard(page, width, LEADERBOARD)
+        for (const [rows, xp] of [
+          ['.lb-top-row', '.lb-top-row-xp'],
+          ['.lb-rest .gc-lb-row', '.gc-lb-v'],
+        ]) {
+          const room = await roomAroundFigures(page, rows, xp)
+          expect(room.length).toBeGreaterThan(0)
+          for (const row of room) expect(Math.abs(row.above - row.under)).toBeLessThanOrEqual(1)
+        }
+      })
+    }
 
     test(`keeps the crown clear of a first-place viewer at ${width}px`, async ({ page }) => {
       const tracker = await openLeaderboard(page, width, viewerInList(0))

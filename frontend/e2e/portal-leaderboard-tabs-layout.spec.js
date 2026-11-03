@@ -45,6 +45,59 @@ test.describe('The page keeps one width on a large screen', () => {
   }
 })
 
+test.describe('The figures line up on a large screen', () => {
+  test.skip(({ isMobile }) => isMobile, 'large screen')
+
+  // Numbers of every length, the longest included, and badges of every length.
+  const XP = [7, 64, 133, 12345, 1234567]
+  const mixed = Object.fromEntries(
+    Object.entries(BY_PERIOD).map(([period, body]) => [
+      period,
+      {
+        ...body,
+        items: body.items.map((entry, index) => ({
+          ...entry,
+          period_xp: XP[index % XP.length],
+          trophies_won: [3, 14, 123][index % 3],
+        })),
+      },
+    ]),
+  )
+
+  for (const period of ['month', 'all']) {
+    test(`on ${period}, from place 14 the arrows and the trophies fall in columns`, async ({
+      page,
+    }) => {
+      await openTabs(page, { byPeriod: mixed })
+      await tab(page, period).click()
+      await expect(page.locator('.lb-rest .gc-lb-row').first()).toBeVisible()
+      const rows = await page.locator('.lb-rest .gc-lb-row').evaluateAll(items =>
+        items.map(row => {
+          const right = selector => row.querySelector(selector)?.getBoundingClientRect().right
+          const text = document.createRange()
+          text.selectNodeContents(row.querySelector('.gc-lb-v'))
+          return {
+            xp: text.getBoundingClientRect().right,
+            xpLeft: row.querySelector('.gc-lb-v').getBoundingClientRect().left,
+            xpClipped:
+              row.querySelector('.gc-lb-v').scrollWidth > row.querySelector('.gc-lb-v').clientWidth,
+            arrow: right('.gc-lb-move'),
+            trophies: right('.lb-trophies'),
+          }
+        }),
+      )
+      expect(rows.length).toBeGreaterThan(1)
+      const spread = values => Math.max(...values) - Math.min(...values)
+      expect(spread(rows.map(row => row.xp))).toBeLessThanOrEqual(1)
+      expect(spread(rows.map(row => row.xpLeft))).toBeLessThanOrEqual(1)
+      expect(spread(rows.map(row => row.trophies))).toBeLessThanOrEqual(1)
+      if (period === 'all') expect(rows.every(row => row.arrow === undefined)).toBe(true)
+      else expect(spread(rows.map(row => row.arrow))).toBeLessThanOrEqual(1)
+      expect(rows.filter(row => row.xpClipped)).toEqual([])
+    })
+  }
+})
+
 test.describe('The row holds on a phone', () => {
   test.skip(({ isMobile }) => !isMobile, 'phone')
 
@@ -64,6 +117,59 @@ test.describe('The row holds on a phone', () => {
         expect(facts.right).toBeLessThanOrEqual(width)
         expect(facts.clipped).toBe(0)
         expect(facts.page).toBeLessThanOrEqual(width)
+      }
+    })
+  }
+
+  // Short XP under a wider badge, and a tab without arrows: the worst case of a row.
+  const shortFigures = Object.fromEntries(
+    Object.entries(BY_PERIOD).map(([period, body]) => [
+      period,
+      {
+        ...body,
+        items: body.items.map((entry, index) => ({
+          ...entry,
+          period_xp: index % 2 ? 64 : 133,
+          trophies_won: index % 3 ? 14 : 0,
+        })),
+      },
+    ]),
+  )
+
+  for (const width of [320, 375, 640]) {
+    test(`at ${width}px, XP and trophies stay one under the other on each tab`, async ({
+      page,
+    }) => {
+      await openTabs(page, { width, byPeriod: shortFigures })
+      for (const period of Object.keys(LABELS)) {
+        await tab(page, period).click()
+        await expect(tab(page, period)).toHaveAttribute('aria-selected', 'true')
+        await expect(page.locator('.lb-rest .gc-lb-row').first()).toBeVisible()
+        const lists = await page.evaluate(() => {
+          // The text itself: the box of the XP can be wider than what it shows.
+          const textRight = element => {
+            const range = document.createRange()
+            range.selectNodeContents(element)
+            return range.getBoundingClientRect().right
+          }
+          return [
+            ['.lb-top-row', '.lb-top-row-xp'],
+            ['.lb-rest .gc-lb-row', '.gc-lb-v'],
+          ].map(([rowSelector, xpSelector]) =>
+            [...document.querySelectorAll(rowSelector)].map(row => ({
+              xp: textRight(row.querySelector(xpSelector)),
+              trophies: row.querySelector('.lb-trophies')?.getBoundingClientRect().right ?? null,
+            })),
+          )
+        })
+        for (const rows of lists) {
+          expect(rows.length).toBeGreaterThan(0)
+          const edges = rows.map(row => row.xp)
+          expect(Math.max(...edges) - Math.min(...edges)).toBeLessThanOrEqual(1)
+          for (const row of rows.filter(item => item.trophies !== null)) {
+            expect(Math.abs(row.xp - row.trophies)).toBeLessThanOrEqual(1)
+          }
+        }
       }
     })
   }

@@ -28,6 +28,7 @@ utilisateurs.
 - Classement du mois — votre ligne remplace la barre du haut, avec un lien « Voir ma place ».
 - Classement du mois — page épurée : sans halos, couronne en coin, icônes du bandeau plus visibles.
 - Classement — page à largeur fixe sur ordinateur, plus de décalage entre onglets.
+- Classement — positions du Top 10 sans bulle, étiquette « VOUS » plus petite.
 
 ### Fixed
 - Connexion — trois vrais essais, compteur remis à zéro après une connexion réussie.

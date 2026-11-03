@@ -8,7 +8,7 @@
       'lb-top-row--trophies': entry.trophies_won > 0,
     }"
   >
-    <span class="lb-top-row-rank">{{ entry.rank }}</span>
+    <span class="gc-lb-pos lb-top-row-rank">{{ entry.rank }}</span>
     <div class="gc-lb-av lb-top-row-av">
       <MkAvatar
         :name="entry.display_name || ''"
@@ -57,7 +57,7 @@ defineProps({
 <style scoped>
 .lb-top-row {
   display: grid;
-  grid-template-columns: 36px 40px minmax(0, 1fr) auto 110px;
+  grid-template-columns: 36px 40px minmax(0, 1fr) auto var(--portal-leaderboard-xp-width);
   align-items: center;
   gap: 12px;
   padding: 10px 14px;
@@ -73,27 +73,14 @@ defineProps({
     border-color var(--portal-dur-base) var(--portal-ease-emphasis);
 }
 .lb-top-row--me {
-  background: rgb(var(--accent-rgb), 0.08);
-  border-left: 3px solid var(--accent-500);
+  background: var(--portal-row-me-bg);
+  border-left: var(--portal-border-width-accent) solid var(--portal-accent-500);
 }
 @media (hover: hover) {
   .lb-top-row:hover {
     transform: translateY(-2px);
     box-shadow: var(--portal-shadow-sm);
   }
-}
-.lb-top-row-rank {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px 8px;
-  border-radius: var(--portal-radius-pill);
-  font-size: var(--portal-text-xs);
-  font-weight: var(--portal-font-bold);
-  background: var(--portal-surface-3);
-  color: var(--portal-text-body);
-  font-variant-numeric: tabular-nums;
-  min-width: 36px;
 }
 .lb-top-row-av {
   width: 40px;
@@ -187,6 +174,16 @@ defineProps({
   }
   .lb-top-row--trophies .lb-top-row-title {
     grid-column: 3;
+  }
+  /* The XP against the top and the trophies against the bottom, without the space a
+     line of text keeps above its digits: the same room on both sides of the row. */
+  .lb-top-row--trophies .lb-top-row-xp {
+    align-self: start;
+    line-height: var(--portal-lh-tight);
+    text-box: trim-both cap alphabetic;
+  }
+  .lb-top-row--trophies .lb-top-row-figures {
+    place-self: end;
   }
 }
 </style>

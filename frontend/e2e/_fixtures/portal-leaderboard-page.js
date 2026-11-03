@@ -58,6 +58,33 @@ export function viewerInList(viewerIndex) {
   }
 }
 
+/**
+ * On rows with trophies, the room above the digits of the XP and under the trophy badge:
+ * what the eye reads, so from the ink of the text and not from its box.
+ */
+export function roomAroundFigures(page, rowSelector, xpSelector) {
+  return page.locator(rowSelector).evaluateAll((rows, xp) => {
+    const canvas = document.createElement('canvas').getContext('2d')
+    return rows
+      .filter(row => row.querySelector('.lb-trophies'))
+      .map(row => {
+        const element = row.querySelector(xp)
+        const style = getComputedStyle(element)
+        canvas.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`
+        const metrics = canvas.measureText(element.textContent.trim())
+        const text = document.createRange()
+        text.selectNodeContents(element)
+        const ink =
+          text.getBoundingClientRect().top +
+          metrics.fontBoundingBoxAscent -
+          metrics.actualBoundingBoxAscent
+        const box = row.getBoundingClientRect()
+        const badge = row.querySelector('.lb-trophies').getBoundingClientRect()
+        return { above: ink - box.top, under: box.bottom - badge.bottom }
+      })
+  }, xpSelector)
+}
+
 export async function openLeaderboard(page, width, body) {
   await page.setViewportSize({ width, height: 800 })
   await page.emulateMedia({ reducedMotion: 'reduce' })

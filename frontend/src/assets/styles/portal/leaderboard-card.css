@@ -1,4 +1,4 @@
-/* Leaderboard card — monthly XP ranking list with tier-colored avatars.
+/* Leaderboard card — XP ranking list with tier-colored avatars.
  * Used by LeaderboardCard.vue. Global styles. */
 
 .gc-lb-box {
@@ -55,14 +55,14 @@
   min-height: 0;
 }
 
-/* Separator above the "you" row when the current user is listed after
-   the visible top N — makes it obvious that the leader list ends
-   there and the extra entry is the user's own rank. */
-.gc-lb-rows > .gc-lb-row--me:not(:first-child) {
+/* Separator above the "you" row when the daily digest lists the user after
+   its top 3 — makes it obvious that the leader list ends there and the
+   extra entry is the user's own rank. */
+.gc-lb-box--widget .gc-lb-rows > .gc-lb-row--me:not(:first-child) {
   margin-top: 0.45rem;
   position: relative;
 }
-.gc-lb-rows > .gc-lb-row--me:not(:first-child)::before {
+.gc-lb-box--widget .gc-lb-rows > .gc-lb-row--me:not(:first-child)::before {
   content: '';
   position: absolute;
   top: -0.3rem;
