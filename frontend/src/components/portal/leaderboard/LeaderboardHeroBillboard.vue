@@ -2,7 +2,7 @@
   <router-link
     v-if="entry"
     :to="{ name: 'portal-user-profile', params: { id: entry.user_id } }"
-    class="lb-hero"
+    class="lb-hero lb-metal lb-metal--gold"
   >
     <Crown :size="32" :stroke-width="2.5" class="lb-hero-crown" aria-hidden="true" />
     <div class="lb-hero-avatar">
@@ -18,7 +18,7 @@
 
     <div class="lb-hero-body">
       <div class="lb-hero-rank">
-        <span class="lb-hero-rank-num">#1</span>
+        <span class="lb-hero-rank-num lb-metal-digits">#1</span>
         <LeaderboardMePill v-if="entry.is_current_user" />
       </div>
       <div class="lb-hero-name">{{ entry.display_name }}</div>
@@ -95,8 +95,6 @@ const { displayed: displayedXp } = useCountUp(targetXp, { duration: 1400 })
   border-radius: var(--portal-radius-lg);
   text-decoration: none;
   color: var(--portal-text-primary);
-  background: var(--portal-surface-2);
-  border: 1px solid rgb(var(--portal-color-warning-rgb), 0.35);
   position: relative;
   overflow: hidden;
 }
@@ -149,13 +147,12 @@ const { displayed: displayedXp } = useCountUp(targetXp, { duration: 1400 })
   font-weight: var(--portal-font-black);
   font-size: clamp(4rem, 8vw, 6rem);
   line-height: 1;
-  color: var(--portal-color-warning);
   letter-spacing: var(--portal-tracking-tight);
 }
 .lb-hero-crown {
   position: absolute;
-  top: 14px;
-  right: 14px;
+  top: var(--portal-space-3);
+  right: var(--portal-space-3);
   color: var(--portal-color-warning);
 }
 .lb-hero-name {
@@ -248,8 +245,8 @@ const { displayed: displayedXp } = useCountUp(targetXp, { duration: 1400 })
     font-size: var(--portal-text-2xl);
   }
   .lb-hero-crown {
-    top: 10px;
-    right: 10px;
+    top: var(--portal-space-2);
+    right: var(--portal-space-2);
     width: 18px;
     height: 18px;
   }

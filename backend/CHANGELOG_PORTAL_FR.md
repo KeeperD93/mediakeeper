@@ -29,6 +29,7 @@ utilisateurs.
 - Classement du mois — page épurée : sans halos, couronne en coin, icônes du bandeau plus visibles.
 - Classement — page à largeur fixe sur ordinateur, plus de décalage entre onglets.
 - Classement — positions du Top 10 sans bulle, étiquette « VOUS » plus petite.
+- Classement — podium : cadre de métal avec un éclat qui tourne.
 - Mon profil — classement : votre ligne comme sur la page Classement, XP et trophées alignés.
 
 ### Fixed

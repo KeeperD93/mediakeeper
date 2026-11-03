@@ -29,6 +29,7 @@
   --portal-border-width-thin: 0.5px;
   --portal-border-width: 1px;
   --portal-border-width-accent: 3px; /* colored edge of a highlighted row */
+  --portal-border-width-metal: 2px; /* metal frame of the first three places */
 
   /* Column of the XP in a ranking row: the figures before it line up from row to row. */
   --portal-leaderboard-xp-width: 110px;

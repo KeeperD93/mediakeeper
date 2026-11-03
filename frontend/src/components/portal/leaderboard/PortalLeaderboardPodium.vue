@@ -4,10 +4,10 @@
       v-for="(entry, idx) in entries"
       :key="entry.user_id"
       :to="{ name: 'portal-user-profile', params: { id: entry.user_id } }"
-      class="pt-lb-podium-card"
-      :class="`pt-lb-podium-card--${rankFor(idx)}`"
+      class="pt-lb-podium-card lb-metal"
+      :class="`lb-metal--${metalFor(idx)}`"
     >
-      <div class="pt-lb-podium-rank">#{{ rankFor(idx) }}</div>
+      <div class="pt-lb-podium-rank lb-metal-digits">#{{ rankFor(idx) }}</div>
       <component
         :is="medalFor(idx)"
         :size="22"
@@ -67,6 +67,9 @@ function rankFor(idx) {
 function medalFor(idx) {
   return idx === 0 ? Award : Medal
 }
+function metalFor(idx) {
+  return idx === 0 ? 'silver' : 'bronze'
+}
 </script>
 
 <style scoped>
@@ -91,46 +94,18 @@ function medalFor(idx) {
   border-radius: var(--portal-radius-lg);
   text-decoration: none;
   color: var(--portal-text-primary);
-  background: var(--portal-surface-1);
-  transition:
-    transform var(--portal-dur-med) var(--portal-ease-emphasis),
-    box-shadow var(--portal-dur-med) var(--portal-ease-emphasis),
-    border-color var(--portal-dur-med) var(--portal-ease-emphasis);
-}
-.pt-lb-podium-card--2 {
-  border: 1px solid rgb(192, 192, 192, 0.3);
-}
-.pt-lb-podium-card--3 {
-  border: 1px solid rgb(205, 127, 50, 0.3);
-}
-@media (hover: hover) {
-  .pt-lb-podium-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--portal-shadow-popup);
-  }
 }
 .pt-lb-podium-medal {
   position: absolute;
-  top: 14px;
-  right: 14px;
-}
-.pt-lb-podium-card--2 .pt-lb-podium-medal {
-  color: #c0c0c0;
-}
-.pt-lb-podium-card--3 .pt-lb-podium-medal {
-  color: #cd7f32;
+  top: var(--portal-space-3);
+  right: var(--portal-space-3);
+  color: var(--lb-metal-light);
 }
 .pt-lb-podium-rank {
-  font-size: var(--portal-text-2xl);
+  font-size: var(--portal-text-3xl);
   font-weight: var(--portal-font-black);
   font-family: var(--portal-font-display);
   line-height: 1;
-}
-.pt-lb-podium-card--2 .pt-lb-podium-rank {
-  color: #c0c0c0;
-}
-.pt-lb-podium-card--3 .pt-lb-podium-rank {
-  color: #cd7f32;
 }
 .pt-lb-podium-card :deep(.gc-lb-av) {
   width: 84px;
@@ -173,12 +148,7 @@ function medalFor(idx) {
   font-size: var(--portal-text-xl);
   font-weight: var(--portal-font-extrabold);
   font-family: var(--portal-font-display);
-}
-.pt-lb-podium-card--2 .pt-lb-podium-xp {
-  color: #c0c0c0;
-}
-.pt-lb-podium-card--3 .pt-lb-podium-xp {
-  color: #cd7f32;
+  color: var(--lb-metal-light);
 }
 .pt-lb-podium-figures {
   display: flex;
@@ -203,11 +173,11 @@ function medalFor(idx) {
     position: absolute;
     top: 10px;
     left: 12px;
-    font-size: var(--portal-text-lg);
+    font-size: var(--portal-text-xl);
   }
   .pt-lb-podium-medal {
-    top: 10px;
-    right: 10px;
+    top: var(--portal-space-2);
+    right: var(--portal-space-2);
     width: 16px;
     height: 16px;
   }

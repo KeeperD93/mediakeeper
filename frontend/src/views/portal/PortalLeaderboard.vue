@@ -187,4 +187,5 @@ watch(period, loadPeriod)
 <style>
 @import url('@/assets/styles/portal/leaderboard-card.css');
 @import url('@/assets/styles/portal/leaderboard-page.css');
+@import url('@/assets/styles/portal/leaderboard-metal.css');
 </style>

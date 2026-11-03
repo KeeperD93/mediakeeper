@@ -109,7 +109,7 @@ const VIEWER_ROWS = {
 // Each card of the podium, where the label stands apart from the XP.
 const VIEWER_CARDS = {
   first: { body: viewerInList(0), card: '.lb-hero' },
-  third: { body: viewerInList(2), card: '.pt-lb-podium-card--3' },
+  third: { body: viewerInList(2), card: '.pt-lb-podium-card.lb-metal--bronze' },
 }
 
 // The label sits before the XP, and nothing leaves its row or the screen.

@@ -13,18 +13,22 @@
   --portal-tier-bronze-c2: #a0622a;
   --portal-tier-bronze-c3: #8b5e3c;
   --portal-tier-bronze-glow: rgb(205, 127, 50, 0.4);
+  --portal-tier-bronze-light: #e6a768; /* reflection on a bronze frame */
+  --portal-tier-bronze-rgb: 205, 127, 50;
 
   /* Silver --------------------------------------------------- */
   --portal-tier-silver-c1: #e8e8e8;
   --portal-tier-silver-c2: #c0c0c0;
   --portal-tier-silver-c3: #808080;
   --portal-tier-silver-glow: rgb(200, 200, 200, 0.4);
+  --portal-tier-silver-rgb: 200, 200, 200;
 
   /* Gold ----------------------------------------------------- */
   --portal-tier-gold-c1: #fde68a;
   --portal-tier-gold-c2: #fbbf24;
   --portal-tier-gold-c3: #b8860b;
   --portal-tier-gold-glow: rgb(251, 191, 36, 0.45);
+  --portal-tier-gold-rgb: 251, 191, 36;
 
   /* Platinum ------------------------------------------------- */
   --portal-tier-platinum-c1: #e0f2fe;
@@ -49,4 +53,8 @@
   --portal-tier-legendary-c2: #f97316;
   --portal-tier-legendary-c3: #b45309;
   --portal-tier-legendary-glow: rgb(249, 115, 22, 0.55);
+
+  /* Metal frames: how much of the metal tints the top of the card, then its middle */
+  --portal-metal-tint-top: 0.16;
+  --portal-metal-tint-middle: 0.04;
 }

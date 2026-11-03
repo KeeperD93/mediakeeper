@@ -55,7 +55,11 @@ async function expectNoHalo(page) {
   expect(styles.heroVeil).toBe('none')
   expect(styles.rankGlow).toBe('none')
   expect(styles.cards).toHaveLength(3)
-  for (const card of styles.cards) expect(card).toEqual(['none', 'none'])
+  // The frames are metal, on the card itself: nothing shines around it, nothing radiates.
+  for (const [shadow, image] of styles.cards) {
+    expect(shadow).toBe('none')
+    expect(image).not.toContain('radial-gradient')
+  }
 }
 
 // The light indigo of the portal on every icon of the bar, set apart from its text.
