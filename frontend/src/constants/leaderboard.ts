@@ -17,3 +17,6 @@ export const LEADERBOARD_PERIODS: LeaderboardPeriod[] = [
 ]
 
 export const LEADERBOARD_PAGE_LIMIT = 100
+
+/** Rows of the ranking card of "My profile", as many as the month the profile brings. */
+export const LEADERBOARD_PROFILE_LIMIT = 15

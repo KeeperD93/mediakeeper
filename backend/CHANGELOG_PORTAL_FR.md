@@ -17,7 +17,7 @@ utilisateurs.
 ## [Unreleased]
 
 ### Added
-- Classement — onglets Aujourd'hui, Semaine, Mois et Tout temps.
+- Classement — onglets Aujourd'hui, Semaine, Mois et Tout temps, aussi sur Mon profil.
 - Classement du mois — compteur des trophées distribués dans le mois.
 - Classement du mois — niveau de chaque joueur affiché sur toutes les lignes.
 - Classement du mois — trophées gagnés dans le mois affichés sur chaque ligne.
@@ -29,6 +29,7 @@ utilisateurs.
 - Classement du mois — page épurée : sans halos, couronne en coin, icônes du bandeau plus visibles.
 - Classement — page à largeur fixe sur ordinateur, plus de décalage entre onglets.
 - Classement — positions du Top 10 sans bulle, étiquette « VOUS » plus petite.
+- Mon profil — classement : votre ligne comme sur la page Classement, XP et trophées alignés.
 
 ### Fixed
 - Connexion — trois vrais essais, compteur remis à zéro après une connexion réussie.

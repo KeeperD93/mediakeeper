@@ -15,7 +15,7 @@ This section intentionally has no date so it is not shown to users.
 ## [Unreleased]
 
 ### Added
-- Leaderboard — Today, Week, Month and All time tabs.
+- Leaderboard — Today, Week, Month and All time tabs, also on My profile.
 - Monthly leaderboard — counter of trophies awarded this month.
 - Monthly leaderboard — each player's level shown on every row.
 - Monthly leaderboard — trophies won this month shown on every row.
@@ -27,6 +27,7 @@ This section intentionally has no date so it is not shown to users.
 - Monthly leaderboard — cleaner page: no glows, crown in the corner, more visible bar icons.
 - Leaderboard — fixed page width on desktop, tabs no longer shift between clicks.
 - Leaderboard — Top 10 positions without bubbles, smaller "YOU" label.
+- My profile — ranking: your row as on the Leaderboard page, XP and trophies aligned.
 
 ### Fixed
 - Sign-in — three real tries, counter reset after a successful sign-in.

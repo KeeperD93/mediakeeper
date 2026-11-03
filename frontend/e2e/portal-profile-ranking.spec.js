@@ -1,6 +1,5 @@
 // Ranking of "My profile": however narrow its column, each row keeps room for the
-// name and the level, and the trophies, the movement and the XP stay together
-// inside the card.
+// name and the level, and the trophies stay under the XP, inside the card.
 
 import { test, expect } from '@playwright/test'
 import { jsonResponse } from './_fixtures/api-mocks.js'
@@ -73,10 +72,10 @@ async function expectRowsReadable(page, width) {
         nameWidth: box('.gc-lb-info').width,
         moveBottom: box('.gc-lb-move').bottom,
         xpTop: box('.gc-lb-v').top,
+        xpBottom: box('.gc-lb-v').bottom,
         xpRight: box('.gc-lb-v').right,
         cardRight: card.right,
         cardLeft: card.left,
-        moveLeft: box('.gc-lb-move').left,
         trophies: row.querySelector('.lb-trophies')?.getBoundingClientRect().toJSON() ?? null,
       }
     }),
@@ -86,9 +85,9 @@ async function expectRowsReadable(page, width) {
     expect(row.xpTop).toBeLessThan(row.moveBottom)
     expect(row.xpRight).toBeLessThanOrEqual(row.cardRight)
     if (row.trophies) {
-      // On the same line as the movement and the XP, before them, inside the card.
-      expect(row.trophies.top).toBeLessThan(row.moveBottom)
-      expect(row.trophies.right).toBeLessThanOrEqual(row.moveLeft)
+      // Under the XP, against the same edge, inside the card.
+      expect(row.trophies.top).toBeGreaterThanOrEqual(row.xpBottom - 1)
+      expect(Math.abs(row.trophies.right - row.xpRight)).toBeLessThanOrEqual(1)
       expect(row.trophies.left).toBeGreaterThanOrEqual(row.cardLeft)
     }
   }
