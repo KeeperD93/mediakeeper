@@ -19,6 +19,7 @@ This section intentionally has no date so it is not shown to users.
 - Dashboard — Leaderboard widget: each player's level and trophies of the month shown.
 
 ### Fixed
+- Settings — language menu named for screen readers.
 - Security — IP behind a proxy: visitor-supplied address ignored (list every proxy).
 - Security — manual username block: applied whatever the letter case.
 - Security — lists always up to date (Refresh button) and errors shown.

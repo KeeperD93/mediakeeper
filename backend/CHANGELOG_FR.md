@@ -19,6 +19,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Tableau de bord — widget Classement : niveau et trophées du mois de chaque joueur affichés.
 
 ### Fixed
+- Paramètres — menu Langue nommé pour les lecteurs d'écran.
 - Sécurité — IP derrière un proxy : adresse envoyée par le visiteur ignorée (déclarer chaque proxy).
 - Sécurité — blocage manuel d'un nom : appliqué quelle que soit la casse.
 - Sécurité — listes toujours à jour (bouton Actualiser) et erreurs affichées.

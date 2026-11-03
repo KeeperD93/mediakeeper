@@ -28,6 +28,12 @@ describe('ParamsGeneralTab — language', () => {
     const w = mount(ParamsGeneralTab)
     expect(w.get('select').classes()).toContain('mk-select-chevron')
   })
+
+  it('names the menu for assistive technology', () => {
+    status.value = { enabled: true, locked: false }
+    const w = mount(ParamsGeneralTab)
+    expect(w.get('select').attributes('aria-label')).toBe('settings.languageLabel')
+  })
 })
 
 describe('ParamsGeneralTab — update check', () => {

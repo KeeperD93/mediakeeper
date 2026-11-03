@@ -10,6 +10,7 @@
         <select
           class="params-control mk-select-chevron"
           :value="currentLocale"
+          :aria-label="$t('settings.languageLabel')"
           @change="onLocaleChange($event.target.value)"
         >
           <option v-for="loc in AVAILABLE_LOCALES" :key="loc.code" :value="loc.code">
