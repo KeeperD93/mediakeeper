@@ -136,10 +136,13 @@ async def grant_xp(
         return None
 
     # --- Update profile XP + level (row-locked to prevent concurrent-grant loss) ---
+    # populate_existing: the caller often holds this profile already, and the
+    # lock alone would leave its older XP in place to be overwritten.
     profile = (await db.execute(
         select(UserProfile)
         .where(UserProfile.user_id == user_id)
         .with_for_update()
+        .execution_options(populate_existing=True)
     )).scalar_one_or_none()
 
     leveled_up = False
