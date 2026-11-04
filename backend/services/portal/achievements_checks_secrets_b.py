@@ -20,8 +20,8 @@ from services.portal.playback_algorithms import (
     has_24h_in_48h_window,
     has_12_consecutive_top1_months,
     has_all_night_chain,
-    is_first_viewer_of_fresh_content,
 )
+from services.portal.playback_pilot import is_first_viewer_of_fresh_content
 
 _EIGHT_HOURS_SECONDS = 8 * 3600
 _TWENTY_FOUR_HOURS_SECONDS = 24 * 3600

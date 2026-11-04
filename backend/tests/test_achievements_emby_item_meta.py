@@ -38,7 +38,7 @@ from services.portal.achievements import (
     check_all_achievements,
     seed_achievements,
 )
-from services.portal.playback_algorithms import PILOT_FRESHNESS_DAYS
+from services.portal.playback_pilot import PILOT_FRESHNESS_DAYS
 
 
 # ── Shared helpers ──────────────────────────────────────────────────────
