@@ -147,9 +147,11 @@ async def test_the_month_starts_and_counts_down_in_the_saved_zone(db_session, mo
     after = await compute_leaderboard_only(db_session, period=Period.MONTH)
 
     assert before["stats"]["days_remaining"] == 0
+    assert before["stats"]["days_in_month"] == 31
     assert before["stats"]["period_label"] == "Octobre 2026"
     assert _xp(after["items"]) == [(alice.id, 10)]
     assert after["stats"]["days_remaining"] == 29
+    assert after["stats"]["days_in_month"] == 30
     assert after["stats"]["period_label"] == "Novembre 2026"
 
 
@@ -175,13 +177,13 @@ async def test_the_last_seven_days_stay_a_duration_across_a_clock_change(db_sess
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize(("period", "label", "days"), [
-    (Period.TODAY, "Mercredi 4 novembre", None),
-    (Period.WEEK, "Du 2 au 8 novembre", None),
-    (Period.MONTH, "Novembre 2026", 26),
+@pytest.mark.parametrize(("period", "label", "days", "month_length"), [
+    (Period.TODAY, "Mercredi 4 novembre", None, None),
+    (Period.WEEK, "Du 2 au 8 novembre", None, None),
+    (Period.MONTH, "Novembre 2026", 26, 30),
 ])
 async def test_a_period_without_activity_is_named_in_the_saved_zone(
-    db_session, monkeypatch, period, label, days,
+    db_session, monkeypatch, period, label, days, month_length,
 ):
     await set_setting(db_session, INSTANCE_TIMEZONE_KEY, "Europe/Paris")
     _freeze(monkeypatch, JUST_AFTER_PARIS_MIDNIGHT)
@@ -191,6 +193,7 @@ async def test_a_period_without_activity_is_named_in_the_saved_zone(
     assert body["items"] == []
     assert body["stats"]["period_label"] == label
     assert body["stats"]["days_remaining"] == days
+    assert body["stats"]["days_in_month"] == month_length
 
 
 @pytest.mark.asyncio

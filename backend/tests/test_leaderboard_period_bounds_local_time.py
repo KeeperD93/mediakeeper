@@ -7,6 +7,7 @@ import pytest
 from constants.leaderboard import LeaderboardPeriod as Period
 from services.instance_time import to_local
 from services.portal._leaderboard_periods import (
+    days_in_month,
     days_left_in_month,
     period_bounds,
     period_label,
@@ -80,6 +81,18 @@ def test_all_time_has_no_bounds_in_any_zone():
 ])
 def test_days_left_on_the_calendar_of_the_zone(zone, now, days):
     assert days_left_in_month(to_local(now, zone)) == days
+
+
+@pytest.mark.parametrize(("zone", "now", "days"), [
+    # Already November in Paris, still October in UTC and in New York.
+    (PARIS, _utc(2026, 10, 31, 23, 30), 30),
+    (UTC, _utc(2026, 10, 31, 23, 30), 31),
+    (NEW_YORK, _utc(2026, 11, 1, 2), 31),
+    (PARIS, _utc(2028, 2, 10, 12), 29),
+    (PARIS, _utc(2027, 2, 10, 12), 28),
+])
+def test_days_in_the_month_of_the_zone(zone, now, days):
+    assert days_in_month(to_local(now, zone)) == days
 
 
 @pytest.mark.parametrize(("zone", "now", "period", "french", "english"), [

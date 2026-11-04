@@ -40,6 +40,7 @@ export const LEADERBOARD = {
     total_xp: 1234567,
     total_trophies: 1234,
     days_remaining: 28,
+    days_in_month: 30,
     my_xp: 1234,
     my_delta_week: 123,
     projected_end_rank: 12,

@@ -188,6 +188,7 @@ const EMPTY_LEADERBOARD = Object.freeze({
     total_xp: 0,
     total_trophies: 0,
     days_remaining: 0,
+    days_in_month: 30,
     my_xp: null,
     my_delta_week: null,
     projected_end_rank: null,

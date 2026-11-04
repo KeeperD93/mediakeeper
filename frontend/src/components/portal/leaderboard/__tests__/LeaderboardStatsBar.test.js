@@ -22,6 +22,7 @@ async function mountBar(locale, stats) {
         total_xp: 900,
         total_trophies: 7,
         days_remaining: 12,
+        days_in_month: 31,
         ...stats,
       },
     },
@@ -91,5 +92,39 @@ describe('LeaderboardStatsBar.vue', () => {
         expect(bar.find('.lb-stats-progress').attributes('aria-label')).toBe(label)
       }
     }
+  })
+
+  describe('month ring', () => {
+    const CIRCUMFERENCE = 2 * Math.PI * 10
+
+    async function ringOffset(stats) {
+      const bar = await mountBar('fr', stats)
+      return Number(bar.find('.lb-stats-progress-fill').attributes('stroke-dashoffset'))
+    }
+
+    beforeEach(() => {
+      // The last day of a month in this browser: the ring must not read it.
+      vi.useFakeTimers({ toFake: ['Date'], now: new Date(2026, 9, 31, 19, 30) })
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it('follows the days the server counts, whatever the date of the browser', async () => {
+      const firstDay = await ringOffset({ days_remaining: 29, days_in_month: 30 })
+      expect(firstDay).toBeCloseTo(CIRCUMFERENCE * (1 - 1 / 30))
+    })
+
+    it('fills halfway through the month and entirely on its last day', async () => {
+      expect(await ringOffset({ days_remaining: 15, days_in_month: 30 })).toBeCloseTo(
+        CIRCUMFERENCE / 2,
+      )
+      expect(await ringOffset({ days_remaining: 0, days_in_month: 30 })).toBeCloseTo(0)
+    })
+
+    it('stays empty when the month length is missing', async () => {
+      expect(await ringOffset({ days_in_month: null })).toBeCloseTo(CIRCUMFERENCE)
+    })
   })
 })

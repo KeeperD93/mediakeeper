@@ -3,6 +3,7 @@
 Everything reads the calendar of the ``now`` it receives, on the clock of the
 instance. Bounds come out in UTC: SQLite would drop any other offset.
 """
+from calendar import monthrange
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
@@ -58,6 +59,11 @@ def days_left_in_month(now: datetime) -> int:
     """Whole days left before the next month starts."""
     first = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     return ((first + timedelta(days=32)).replace(day=1) - now).days
+
+
+def days_in_month(now: datetime) -> int:
+    """How many days the month of ``now`` holds."""
+    return monthrange(now.year, now.month)[1]
 
 
 def _day_fr(moment: datetime) -> str:

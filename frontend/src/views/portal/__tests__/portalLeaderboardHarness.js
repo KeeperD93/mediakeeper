@@ -27,6 +27,7 @@ export function buildStats(overrides = {}) {
     total_players: 42,
     total_xp: 100000,
     days_remaining: 12,
+    days_in_month: 31,
     my_xp: 500,
     my_delta_week: 100,
     projected_end_rank: 5,

@@ -99,10 +99,11 @@ const { displayed: displayedXp } = useCountUp(totalXp, { duration: 1500 })
 const { displayed: displayedTrophies } = useCountUp(totalTrophies, { duration: 1100 })
 
 const circ = 2 * Math.PI * 10
+// The calendar of the days left beside it, the server's: the browser may be elsewhere.
 const monthElapsedPct = computed(() => {
-  const now = new Date()
-  const totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
-  return Math.min(1, Math.max(0, now.getDate() / totalDays))
+  const totalDays = statsRef.value?.days_in_month
+  if (!totalDays) return 0
+  return Math.min(1, Math.max(0, (totalDays - statsRef.value.days_remaining) / totalDays))
 })
 </script>
 

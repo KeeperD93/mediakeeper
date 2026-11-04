@@ -169,6 +169,7 @@ async def test_the_outlook_of_the_month_stays_on_the_month(client, db_session, p
     stats = (await _get(client, alice, period))["stats"]
 
     assert stats["days_remaining"] is None
+    assert stats["days_in_month"] is None
     assert stats["my_delta_week"] is None
     assert stats["projected_end_rank"] is None
     assert stats["my_xp"] == 10
@@ -182,6 +183,7 @@ async def test_the_month_keeps_its_outlook(client, db_session):
     stats = (await _get(client, alice, Period.MONTH))["stats"]
 
     assert isinstance(stats["days_remaining"], int)
+    assert stats["days_in_month"] in (28, 29, 30, 31)
     assert stats["my_delta_week"] == 10
     assert stats["projected_end_rank"] == 1
 
@@ -265,6 +267,7 @@ async def test_a_period_without_activity_stays_empty_and_named(client, db_sessio
     assert body["stats"]["period_label"] == period_label(period, datetime.now(UTC), "fr")
     assert body["stats"]["total_players"] == 0
     assert body["stats"]["days_remaining"] is None
+    assert body["stats"]["days_in_month"] is None
 
 
 @pytest.mark.asyncio

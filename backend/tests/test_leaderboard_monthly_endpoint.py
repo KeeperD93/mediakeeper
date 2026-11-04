@@ -186,6 +186,7 @@ async def test_monthly_leaderboard_stats_schema(client, db_session):
         "total_players",
         "total_xp",
         "days_remaining",
+        "days_in_month",
         "my_xp",
         "my_delta_week",
         "projected_end_rank",

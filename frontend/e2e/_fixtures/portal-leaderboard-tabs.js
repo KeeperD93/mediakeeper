@@ -18,7 +18,12 @@ const withLeaderXp = (xp, stats, movement = 2) => ({
   stats: { ...LEADERBOARD.stats, total_xp: xp * 10, ...stats },
 })
 
-const SHORT_PERIOD = { days_remaining: null, my_delta_week: null, projected_end_rank: null }
+const SHORT_PERIOD = {
+  days_remaining: null,
+  days_in_month: null,
+  my_delta_week: null,
+  projected_end_rank: null,
+}
 
 export const BY_PERIOD = {
   today: withLeaderXp(111, { period_label: 'Lundi 2 novembre', ...SHORT_PERIOD }),

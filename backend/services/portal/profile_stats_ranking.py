@@ -25,6 +25,7 @@ from services.portal._leaderboard_helpers import (
     trophies_unlocked_since,
 )
 from services.portal._leaderboard_periods import (
+    days_in_month,
     days_left_in_month,
     period_bounds,
     period_label,
@@ -85,8 +86,8 @@ async def compute_leaderboard_only(
     Output dict: ``items`` (gc-lb-* rows), ``viewer_rank`` /
     ``viewer_entry`` (set when viewer is out of top-N) and ``stats``
     (period_label, total_players, total_xp, total_trophies, my_xp, and
-    days_remaining, my_delta_week, projected_end_rank on the month only,
-    None on the other periods).
+    days_remaining, days_in_month, my_delta_week, projected_end_rank on the
+    month only, None on the other periods).
     """
     now = datetime.now(UTC)
     # In UTC until the zone is read: the error path still has to name the period.
@@ -94,9 +95,9 @@ async def compute_leaderboard_only(
     try:
         local_now = to_local(now, await get_instance_zone(db))
         bounds = period_bounds(period, local_now)
-        days_remaining = (
-            days_left_in_month(local_now) if period == LeaderboardPeriod.MONTH else None
-        )
+        is_month = period == LeaderboardPeriod.MONTH
+        days_remaining = days_left_in_month(local_now) if is_month else None
+        month_length = days_in_month(local_now) if is_month else None
 
         excluded_ids = await excluded_from_leaderboard(db)
 
@@ -113,6 +114,7 @@ async def compute_leaderboard_only(
             payload["stats"]["total_xp"] = total_xp
             payload["stats"]["total_trophies"] = total_trophies
             payload["stats"]["days_remaining"] = days_remaining
+            payload["stats"]["days_in_month"] = month_length
             return payload
 
         prev_rank_by_user: dict[int, int] | None = None
@@ -174,6 +176,7 @@ async def compute_leaderboard_only(
             "total_xp": total_xp,
             "total_trophies": total_trophies,
             "days_remaining": days_remaining,
+            "days_in_month": month_length,
             "my_xp": my_xp,
             "my_delta_week": my_delta_week,
             "projected_end_rank": projected_end_rank,

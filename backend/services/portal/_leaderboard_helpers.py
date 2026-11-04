@@ -165,6 +165,7 @@ def empty_stats(lang: str, period: LeaderboardPeriod, now: datetime) -> dict:
         "total_xp": 0,
         "total_trophies": 0,
         "days_remaining": None,
+        "days_in_month": None,
         "my_xp": None,
         "my_delta_week": None,
         "projected_end_rank": None,
