@@ -38,13 +38,30 @@ async def test_the_saved_zone_is_used(db_session):
 @pytest.mark.asyncio
 @pytest.mark.parametrize("stored", ["Mars/Olympus", "../etc/passwd", "Europe"])
 async def test_a_saved_zone_this_server_cannot_load_falls_back_to_utc(db_session, stored, caplog):
-    instance_time._load_zone.cache_clear()
+    instance_time._warned_zones.clear()
     await set_setting(db_session, INSTANCE_TIMEZONE_KEY, stored)
     with caplog.at_level(logging.WARNING, logger="mediakeeper.instance_time"):
         assert await get_instance_zone(db_session) is UTC
         assert await get_instance_zone(db_session) is UTC
     warnings = [r for r in caplog.records if r.name == "mediakeeper.instance_time"]
     assert len(warnings) == 1, "one warning per value, not one per read"
+
+
+@pytest.mark.asyncio
+async def test_a_zone_that_failed_to_load_once_is_read_again(db_session, monkeypatch):
+    """The disk can fail for a moment: the instance must not stay in UTC until it restarts."""
+    instance_time._warned_zones.clear()
+    await set_setting(db_session, INSTANCE_TIMEZONE_KEY, "Europe/Paris")
+
+    def fail(_name):
+        raise OSError("Test error")
+
+    with monkeypatch.context() as patch:
+        patch.setattr(instance_time, "ZoneInfo", fail)
+        assert await get_instance_zone(db_session) is UTC
+
+    assert (await get_instance_zone(db_session)).key == "Europe/Paris"
+    instance_time._warned_zones.clear()
 
 
 @pytest.mark.parametrize(
@@ -148,8 +165,6 @@ def test_zones_that_part_ways_during_the_year_stay_apart(zone, other):
 
 def _reset_zone_caches():
     ZoneInfo.clear_cache()
-    # Two copies of a zone never compare equal: every kept copy goes with the cache above.
-    instance_time._load_zone.cache_clear()
     instance_time._load_zones.cache_clear()
     instance_time._zone_groups.cache_clear()
 

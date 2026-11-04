@@ -21,6 +21,8 @@ INSTANCE_TIMEZONE_KEY = "system.timezone"
 # In the time zone database, but no place anyone would pick.
 _UNLISTED_ZONES = frozenset({"Factory", "localtime"})
 _DAYS_COMPARED = 366
+# One warning per value, not one per read.
+_warned_zones: set[str] = set()
 
 
 @lru_cache(maxsize=1)
@@ -57,13 +59,18 @@ def _zone_groups(day: date) -> list[dict]:
     return sorted(groups, key=lambda group: group["offset"])
 
 
-@lru_cache(maxsize=8)
 def _load_zone(name: str) -> tzinfo:
-    """``name`` as a zone, or UTC when this server cannot load it (backup restored elsewhere)."""
+    """``name`` as a zone, or UTC when this server cannot load it (backup restored elsewhere).
+
+    A failure is not kept, as the disk can be its cause and a trophy won on the wrong clock
+    is final. ZoneInfo keeps the zones it could load.
+    """
     try:
         return ZoneInfo(name)
     except (ZoneInfoNotFoundError, ValueError, OSError) as exc:
-        logger.warning("[TIMEZONE] saved zone %s cannot be loaded, using UTC: %s", name, exc)
+        if name not in _warned_zones:
+            _warned_zones.add(name)
+            logger.warning("[TIMEZONE] saved zone %s cannot be loaded, using UTC: %s", name, exc)
         return UTC
 
 
