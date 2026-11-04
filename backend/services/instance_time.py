@@ -73,13 +73,22 @@ async def get_instance_zone(db: AsyncSession) -> tzinfo:
     return _load_zone(name) if name else UTC
 
 
+def zone_is_chosen(zone: tzinfo) -> bool:
+    """Whether ``zone`` is a saved one: the fallback is the UTC constant, a saved UTC a ZoneInfo."""
+    return zone is not UTC
+
+
 def to_local(moment: datetime | None, zone: tzinfo) -> datetime | None:
     """``moment`` on the clock of ``zone``. A naive value is UTC: SQLite drops the offset."""
     if moment is None:
         return None
     if moment.tzinfo is None:
         moment = moment.replace(tzinfo=UTC)
-    return moment.astimezone(zone)
+    try:
+        return moment.astimezone(zone)
+    except OverflowError:
+        # A date at the edge of the calendar (year 1, from an import) cannot shift.
+        return moment
 
 
 async def get_timezone_status(db: AsyncSession) -> dict:

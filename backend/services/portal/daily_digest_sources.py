@@ -18,6 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.user import User
 from models.portal.profile import UserProfile
 from models.portal.ticket import Ticket
+from services.instance_time import get_instance_zone
 from services.portal.available import get_recently_added
 from services.portal.available_localize import localize_emby_items
 from services.portal.mk_events_crud import list_for_user as list_events_for_user
@@ -172,7 +173,8 @@ async def current_streak(db: AsyncSession, user: User, profile: UserProfile) -> 
     try:
         excl_filters = await get_exclusion_filters(db)
         user_filter = _playback_user_filter(user, profile)
-        return int(await compute_streak(db, user_filter, excl_filters) or 0)
+        zone = await get_instance_zone(db)
+        return int(await compute_streak(db, user_filter, excl_filters, zone) or 0)
     except Exception as e:  # noqa: BLE001
         logger.debug("[DIGEST] streak failed: %s", e)
         return 0

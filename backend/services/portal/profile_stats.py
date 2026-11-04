@@ -12,7 +12,6 @@ Public API (re-exported):
   - get_profile_full(db, user, profile) → full dashboard dict
   - get_watch_history_paginated(...)
   - get_my_requests_paginated(...)
-  - _compute_streak(...)  — kept for the achievement system (checks_standard).
 """
 import asyncio
 import logging
@@ -20,6 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.user import User
 from models.portal.profile import UserProfile
+from services.instance_time import get_instance_zone
 from services.portal.personal import _playback_user_filter
 from services.portal.exclusions import get_exclusion_filters
 from services.portal.profile_stats_playback import (
@@ -62,6 +62,8 @@ async def get_profile_full(
     # Load exclusion filters once — same blacklist as the Statistics module
     # (theme songs, intros, test content). Applied to all PlaybackSession queries.
     excl_filters = await get_exclusion_filters(db)
+    # Read before the fan-out, which shares one session.
+    zone = await get_instance_zone(db)
 
     # Fan out the independent aggregation queries. Each coroutine only
     # reads ``db`` and the two filter tuples, so running them concurrently
@@ -83,7 +85,7 @@ async def get_profile_full(
         ranking,
     ) = await asyncio.gather(
         compute_totals(db, user_filter, excl_filters),
-        _compute_streak(db, user_filter, excl_filters),
+        _compute_streak(db, user_filter, excl_filters, zone),
         compute_record_day(db, user_filter, excl_filters),
         compute_most_rewatched(db, user_filter, excl_filters),
         compute_genre_stats(db, user, profile, user_filter, excl_filters),
@@ -137,5 +139,4 @@ __all__ = [
     "get_profile_full",
     "get_watch_history_paginated",
     "get_my_requests_paginated",
-    "_compute_streak",
 ]

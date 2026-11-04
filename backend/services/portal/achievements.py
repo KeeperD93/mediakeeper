@@ -12,6 +12,8 @@ The implementation is split across specialized modules to keep each file under 3
   - achievements_checks_progression.py  — leaderboard, level, tickets, events, etc.
   - achievements_checks_secrets_a.py    — first half of secret checks
   - achievements_checks_secrets_b.py    — second half + ultimate collector + placeholders
+  - achievements_checks_local_time.py   — rules that read the local clock of the instance
+  - achievements_local_time.py          — those rules, as pure functions
 
 Consumers import from this file, not the split files, to keep the public API stable.
 """
@@ -22,6 +24,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.achievement import Achievement
 from models.playback_stats import PlaybackSession
+from services.instance_time import get_instance_zone
 from services.portal.exclusions import (
     get_exclusion_filters,
     get_pause_event_exclusion_filters,
@@ -37,6 +40,10 @@ from services.portal.achievements_utils import (
 from services.portal.achievements_seed import seed_achievements
 from services.portal.achievements_profile import get_achievements_for_profile
 from services.portal.achievements_badges import pin_badge, unpin_badge, get_leaderboard
+from services.portal.achievements_checks_local_time import (
+    LOCAL_TIME_CONDITIONS,
+    check_local_time,
+)
 from services.portal.achievements_checks_standard import check_standard
 from services.portal.achievements_checks_progression import check_progression
 from services.portal.achievements_checks_secrets_a import check_secrets_a
@@ -60,9 +67,9 @@ __all__ = [
 
 # condition_types that scan all PlaybackSession rows; load them once.
 _BULK_PLAYBACK_CONDITIONS = (
-    "marathon_hours", "weekend_plays", "season_binge", "library_explorer",
-    "total_watch_hours", "secret_indecisive", "secret_sunday",
-    "secret_bgNoise", "secret_ultramarathon", "secret_butterfly",
+    "season_binge", "library_explorer", "total_watch_hours",
+    "secret_bgNoise", "secret_ultramarathon",
+    *LOCAL_TIME_CONDITIONS,
 )
 
 
@@ -81,7 +88,7 @@ async def check_all_achievements(
     """
     Compute current stats from PlaybackSession and update all achievements.
     Returns list of newly unlocked achievements (for notification).
-    Called after watch session closes, on login, on request creation, etc.
+    Called after a watch session closes, on request creation, etc.; never on login.
     """
     excl_filters = await get_exclusion_filters(db)
     pause_excl_filters = await get_pause_event_exclusion_filters(db)
@@ -90,6 +97,7 @@ async def check_all_achievements(
     if user_filter is None:
         return []
     pause_user_filter = await _build_pause_user_filter(db, user_id, user_name)
+    zone = await get_instance_zone(db)
 
     all_achs = (await db.execute(select(Achievement))).scalars().all()
     by_type: dict[str, list[Achievement]] = {}
@@ -126,6 +134,18 @@ async def check_all_achievements(
     )
 
     unlocks.extend(await _safe_pass("standard", check_standard(db, **common_kwargs)))
+    unlocks.extend(await _safe_pass(
+        "local_time",
+        check_local_time(
+            db,
+            by_type=by_type,
+            user_id=user_id,
+            ua_map=ua_map,
+            unlocked_ids=unlocked_ids,
+            rows=playback_rows or [],
+            zone=zone,
+        ),
+    ))
     unlocks.extend(await _safe_pass("progression", check_progression(db, **common_kwargs)))
     unlocks.extend(await _safe_pass("secrets_a", check_secrets_a(db, **common_kwargs)))
     unlocks.extend(await _safe_pass(
@@ -135,6 +155,7 @@ async def check_all_achievements(
             all_achs=all_achs,
             pause_user_filter=pause_user_filter,
             pause_excl_filters=pause_excl_filters,
+            zone=zone,
             **common_kwargs,
         ),
     ))
@@ -166,7 +187,7 @@ async def safe_check_all_achievements(
     break the originating endpoint.
 
     ``source`` is a free-form label; conventional values include
-    ``"login"``, ``"playback_close"``, ``"chat_message"``,
+    ``"playback_close"``, ``"chat_message"``,
     ``"request_created"``, ``"request_status_change"``, ``"ticket_created"``,
     ``"avatar_changed"``, ``"event_created"``, ``"list_created"``,
     ``"list_privacy_changed"``, ``"list_items_added"``,

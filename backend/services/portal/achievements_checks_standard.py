@@ -1,4 +1,4 @@
-"""Standard (tiered) achievement checks: watching, languages, genres, community, marathon, binge."""
+"""Standard (tiered) achievement checks: watching, languages, genres, community, season binge."""
 from sqlalchemy import select, func, distinct
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -8,8 +8,6 @@ from models.portal.chat import ChatMessage
 from models.portal.request import MediaRequest
 from services.portal.achievements_utils import (
     update_progress,
-    _count_marathon_days,
-    _count_max_weekend_plays,
     _count_season_binges,
     _normalize_library_name,
 )
@@ -54,17 +52,6 @@ async def check_standard(
                    PlaybackSession.series_name.isnot(None), *excl_filters)
         )).scalar() or 0
         await _apply("watch_series", val)
-
-    # --- night_watch: plays started between 00:00-05:00 ---
-    if "night_watch" in by_type:
-        val = (await db.execute(
-            select(func.count(PlaybackSession.id))
-            .where(
-                user_filter, *excl_filters,
-                func.extract("hour", PlaybackSession.started_at) < 5,
-            )
-        )).scalar() or 0
-        await _apply("night_watch", val)
 
     # --- audio_languages: distinct audio languages ---
     if "audio_languages" in by_type:
@@ -126,20 +113,6 @@ async def check_standard(
             .where(ChatMessage.user_id == user_id)
         )).scalar() or 0
         await _apply("chat_messages", val)
-
-    # --- marathon_hours: days with 8h+ watched ---
-    if "marathon_hours" in by_type:
-        await _apply("marathon_hours", _count_marathon_days(playback_rows or []))
-
-    # --- streak_days: handled by profile_stats streak calculation ---
-    if "streak_days" in by_type:
-        from services.portal.profile_stats import _compute_streak
-        streak = await _compute_streak(db, user_filter, excl_filters)
-        await _apply("streak_days", streak)
-
-    # --- weekend_plays: max plays across a single Saturday+Sunday pair ---
-    if "weekend_plays" in by_type:
-        await _apply("weekend_plays", _count_max_weekend_plays(playback_rows or []))
 
     # --- season_binge: contiguous season episodes watched within 24h ---
     if "season_binge" in by_type:

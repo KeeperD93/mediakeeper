@@ -1,6 +1,6 @@
-"""Aggregators sur PlaybackSession : marathons, weekends, season binges, etc."""
+"""Helpers over PlaybackSession: user filters, watch time, season binges."""
 from collections import defaultdict
-from datetime import date, datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -105,30 +105,6 @@ def _estimated_seconds(row: PlaybackSession) -> int:
     if not candidates:
         return 0
     return min(candidates)
-
-
-def _count_marathon_days(rows: list[PlaybackSession]) -> int:
-    by_day: dict[date, int] = defaultdict(int)
-    for row in rows:
-        started = _coerce_utc(row.started_at)
-        if not started:
-            continue
-        by_day[started.date()] += _session_duration_seconds(row)
-    return sum(1 for seconds in by_day.values() if seconds >= 8 * 3600)
-
-
-def _count_max_weekend_plays(rows: list[PlaybackSession]) -> int:
-    by_weekend: dict[date, int] = defaultdict(int)
-    for row in rows:
-        started = _coerce_utc(row.started_at)
-        if not started:
-            continue
-        weekday = started.weekday()
-        if weekday not in (5, 6):
-            continue
-        weekend_start = started.date() if weekday == 5 else started.date() - timedelta(days=1)
-        by_weekend[weekend_start] += 1
-    return max(by_weekend.values(), default=0)
 
 
 def _count_season_binges(rows: list[PlaybackSession]) -> int:

@@ -14,10 +14,12 @@ Conventions:
 
 * All timestamps are normalised to UTC via :func:`_as_utc` before any
   comparison; naive datetimes are assumed UTC.
+* The night of ``secret_allnight`` and the months of ``secret_king`` start
+  on the clock of the instance zone; durations stay real seconds.
 * ``PlaybackSession.user_id`` stores the **Emby user_id string**, not
   the MK ``users.id``. Callers resolve the matching Emby IDs upstream
-  (the secrets-b module already does this for ``secret_lonely`` /
-  ``secret_sync``) and pass them down via ``emby_user_ids``.
+  (the secrets-b module already does this for ``secret_sync``) and pass
+  them down via ``emby_user_ids``.
 * ``secret_king`` enforces an **N >= 2 distinct active users per month**
   guard: a month with a single active user is *skipped* (it does not
   break the consecutive chain, but it does not count toward it either).
@@ -25,20 +27,21 @@ Conventions:
   ``secret_sync`` — a single-user instance must not unlock a leaderboard
   trophy by default.
 * ``secret_allnight`` allows up to 5-minute gaps between consecutive
-  sessions (and a 40-minute cumulative budget across the 8-hour
-  window) to absorb very short pauses (toilet breaks, device handoff)
-  without invalidating an otherwise-continuous all-nighter.
+  sessions (and a 40-minute cumulative budget across the night) to
+  absorb very short pauses (toilet breaks, device handoff) without
+  invalidating an otherwise-continuous all-nighter.
 """
 from __future__ import annotations
 
 from collections import defaultdict
-from datetime import datetime, time, timedelta, timezone
+from datetime import UTC, date, datetime, time, timedelta, tzinfo
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.playback_stats import PlaybackSession
 from models.portal.emby_tmdb_index import EmbyTmdbIndex
+from services.instance_time import to_local
 from services.portal.playback_overlap import (
     OPEN_SESSION_FALLBACK,
     _as_utc,
@@ -67,8 +70,8 @@ PILOT_FRESHNESS_DAYS = 30
 # discoverable from tests and the docstrings above stay authoritative.
 ALL_NIGHT_MAX_GAP = timedelta(minutes=5)
 ALL_NIGHT_TOTAL_GAP_BUDGET = timedelta(minutes=40)
-ALL_NIGHT_WINDOW_START_HOUR = 22  # inclusive (UTC)
-ALL_NIGHT_WINDOW_END_HOUR = 6     # inclusive (UTC, on day J+1)
+ALL_NIGHT_WINDOW_START_HOUR = 22  # inclusive (local clock)
+ALL_NIGHT_WINDOW_END_HOUR = 6     # inclusive (local clock, on day J+1)
 
 NO_LIFE_WINDOW = timedelta(hours=48)
 NO_LIFE_TARGET_SECONDS = 24 * 3600
@@ -103,17 +106,17 @@ async def _load_user_sessions(
 
 
 async def has_all_night_chain(
-    db: AsyncSession, emby_user_ids: list[str]
+    db: AsyncSession, emby_user_ids: list[str], zone: tzinfo
 ) -> bool:
-    """``True`` iff a continuous chain of sessions covers 22:00 → 06:00 UTC.
+    """``True`` iff a continuous chain of sessions covers 22:00 → 06:00 in ``zone``.
 
     Definition of "chain": consecutive sessions are part of the same chain
     when ``next.start - prev.end <= ALL_NIGHT_MAX_GAP`` AND the cumulative
     gap budget of the chain stays under ``ALL_NIGHT_TOTAL_GAP_BUDGET``.
-    The window spans ``[22:00 UTC day J, 06:00 UTC day J+1]`` and a chain
-    is considered to "cover" it iff
-    ``chain_start <= 22:00 UTC`` and ``chain_end >= 06:00 UTC`` for some
-    anchor day ``J`` derived from the chain's own time range.
+    The window spans ``[22:00 day J, 06:00 day J+1]`` on the clock of ``zone``
+    and a chain is considered to "cover" it iff ``chain_start <= 22:00`` and
+    ``chain_end >= 06:00`` for some anchor day ``J`` derived from the chain's
+    own time range.
     """
     sessions = await _load_user_sessions(db, emby_user_ids)
     if not sessions:
@@ -142,33 +145,39 @@ async def has_all_night_chain(
     chains.append((chain_start, chain_end))
 
     for cs, ce in chains:
-        if _chain_covers_all_night(cs, ce):
+        if _chain_covers_all_night(cs, ce, zone):
             return True
     return False
 
 
-def _chain_covers_all_night(chain_start: datetime, chain_end: datetime) -> bool:
-    """A chain covers an all-nighter iff some anchor day ``J`` exists with
-    ``chain_start <= 22:00 UTC of J`` and ``chain_end >= 06:00 UTC of J+1``."""
-    # The chain must span at least 8 hours: cheap reject before iterating.
-    if chain_end - chain_start < timedelta(hours=8):
-        return False
+def _clock_moment(day: date, hour: int, zone: tzinfo) -> datetime:
+    """``hour`` o'clock of ``day`` on the clock of ``zone``, as a UTC moment."""
+    return datetime.combine(day, time(hour), tzinfo=zone).astimezone(UTC)
 
-    # Candidate anchor days range from (chain_start.date() - 1) up to
-    # chain_end.date(); any anchor outside that interval cannot match.
-    first_day = chain_start.date() - timedelta(days=1)
-    last_day = chain_end.date()
-    day = first_day
-    while day <= last_day:
-        anchor_22 = datetime.combine(day, time(ALL_NIGHT_WINDOW_START_HOUR), tzinfo=timezone.utc)
-        anchor_06 = datetime.combine(
-            day + timedelta(days=1),
-            time(ALL_NIGHT_WINDOW_END_HOUR),
-            tzinfo=timezone.utc,
-        )
-        if chain_start <= anchor_22 and chain_end >= anchor_06:
-            return True
-        day += timedelta(days=1)
+
+def _chain_covers_all_night(
+    chain_start: datetime, chain_end: datetime, zone: tzinfo
+) -> bool:
+    """A chain covers an all-nighter iff some anchor day ``J`` exists with
+    ``chain_start <= 22:00 of J`` and ``chain_end >= 06:00 of J+1`` in ``zone``.
+
+    The night follows the clock: it is shorter when the clocks go forward and
+    longer when they go back. A chain at the edge of the calendar (year 1, from
+    an import) has no night around it.
+    """
+    try:
+        # Candidate anchor days range from the day before the local start up to
+        # the local end; any anchor outside that interval cannot match.
+        day = to_local(chain_start, zone).date() - timedelta(days=1)
+        last_day = to_local(chain_end, zone).date()
+        while day <= last_day:
+            anchor_22 = _clock_moment(day, ALL_NIGHT_WINDOW_START_HOUR, zone)
+            anchor_06 = _clock_moment(day + timedelta(days=1), ALL_NIGHT_WINDOW_END_HOUR, zone)
+            if chain_start <= anchor_22 and chain_end >= anchor_06:
+                return True
+            day += timedelta(days=1)
+    except OverflowError:
+        return False
     return False
 
 
@@ -214,10 +223,10 @@ async def has_24h_in_48h_window(
 
 
 async def has_12_consecutive_top1_months(
-    db: AsyncSession, emby_user_ids: list[str]
+    db: AsyncSession, emby_user_ids: list[str], zone: tzinfo
 ) -> bool:
     """``True`` iff the observed user holds the monthly #1 spot for at
-    least 12 consecutive *qualifying* months.
+    least 12 consecutive *qualifying* months of the calendar of ``zone``.
 
     A month qualifies iff ``>= 2`` distinct Emby users have at least one
     session starting in that month (anti-trivial guard). Months that do
@@ -245,7 +254,8 @@ async def has_12_consecutive_top1_months(
         if start is None:
             continue
         end = _effective_end(start, _as_utc(ended_at))
-        bucket = (start.year, start.month)
+        local_start = to_local(start, zone)
+        bucket = (local_start.year, local_start.month)
         seconds = (end - start).total_seconds()
         monthly_totals[bucket][user_id] = monthly_totals[bucket].get(user_id, 0.0) + seconds
 

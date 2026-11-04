@@ -3,8 +3,6 @@ from ._playback import (
     _build_pause_user_filter,
     _build_playback_user_filter,
     _coerce_utc,
-    _count_marathon_days,
-    _count_max_weekend_plays,
     _count_season_binges,
     _normalize_library_name,
     _resolve_playback_user_names,
@@ -31,8 +29,6 @@ __all__ = [
     "_resolve_playback_user_names",
     "_coerce_utc",
     "_session_duration_seconds",
-    "_count_marathon_days",
-    "_count_max_weekend_plays",
     "_count_season_binges",
     "_normalize_library_name",
 ]

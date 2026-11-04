@@ -1,6 +1,5 @@
-"""Secret achievement checks — part A (first_play, early_bird, seasonal, content-based)."""
-from collections import defaultdict
-from datetime import datetime, date
+"""Secret achievement checks — part A (first_play, content-based)."""
+from datetime import datetime
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,7 +9,6 @@ from models.portal.emby_tmdb_index import EmbyTmdbIndex
 from services.portal.achievements_utils import (
     update_progress,
     _coerce_utc,
-    _session_duration_seconds,
 )
 
 
@@ -24,7 +22,10 @@ async def check_secrets_a(
     excl_filters: list,
     playback_rows: list | None,
 ) -> list[dict]:
-    """Run first half of secret checks (first_play..4k). Returns newly unlocked list."""
+    """Run first half of secret checks (first_play..4k). Returns newly unlocked list.
+
+    ``playback_rows`` goes unused here: it comes with the arguments the passes share.
+    """
     unlocks: list[dict] = []
 
     async def _apply(cond_type: str, value: int):
@@ -37,18 +38,6 @@ async def check_secrets_a(
             if r:
                 unlocks.append(r)
 
-    # --- secret_early_bird: play before 6am ---
-    if "secret_early_bird" in by_type:
-        val = (await db.execute(
-            select(func.count(PlaybackSession.id))
-            .where(
-                user_filter, *excl_filters,
-                func.extract("hour", PlaybackSession.started_at) < 6,
-                func.extract("hour", PlaybackSession.started_at) >= 5,
-            )
-        )).scalar() or 0
-        await _apply("secret_early_bird", min(val, 1))
-
     # --- secret_first_play: 1 if user has any playback session ---
     if "secret_first_play" in by_type:
         val = (await db.execute(
@@ -57,19 +46,6 @@ async def check_secrets_a(
             .limit(1)
         )).scalar() or 0
         await _apply("secret_first_play", 1 if val > 0 else 0)
-
-    # --- secret_newyear: play on Jan 1 before 1am ---
-    if "secret_newyear" in by_type:
-        val = (await db.execute(
-            select(func.count(PlaybackSession.id))
-            .where(
-                user_filter, *excl_filters,
-                func.extract("month", PlaybackSession.started_at) == 1,
-                func.extract("day", PlaybackSession.started_at) == 1,
-                func.extract("hour", PlaybackSession.started_at) < 1,
-            )
-        )).scalar() or 0
-        await _apply("secret_newyear", 1 if val > 0 else 0)
 
     # --- secret_classic: any session on a title released before 1970 ---
     # Lifetime, threshold = 1; cap to 1 so an ever-growing classics run
@@ -89,71 +65,6 @@ async def check_secrets_a(
             )
         )).scalar() or 0
         await _apply("secret_classic", min(val, 1))
-
-    # --- secret_friday13: horror content on Friday the 13th ---
-    if "secret_friday13" in by_type:
-        fri13_rows = (await db.execute(
-            select(PlaybackSession.started_at, PlaybackSession.genres)
-            .where(
-                user_filter, *excl_filters,
-                func.extract("day", PlaybackSession.started_at) == 13,
-                PlaybackSession.genres.isnot(None),
-            )
-        )).all()
-        val = 0
-        for row in fri13_rows:
-            started = _coerce_utc(row.started_at)
-            if started and started.weekday() == 4:
-                genres_str = row.genres or ""
-                if any(g.strip().lower() in ("horror", "horreur")
-                       for g in genres_str.split(",")):
-                    val = 1
-                    break
-        await _apply("secret_friday13", val)
-
-    # --- secret_indecisive: 10+ items started in one day, none > 30min ---
-    if "secret_indecisive" in by_type:
-        rows_for_indecisive = playback_rows if playback_rows is not None else (
-            await db.execute(
-                select(PlaybackSession).where(user_filter, *excl_filters)
-            )
-        ).scalars().all()
-        by_day_items: dict[date, list[tuple[str, int]]] = defaultdict(list)
-        for row in rows_for_indecisive:
-            started = _coerce_utc(row.started_at)
-            if not started:
-                continue
-            dur = _session_duration_seconds(row)
-            by_day_items[started.date()].append((row.item_id, dur))
-        val = 0
-        for items in by_day_items.values():
-            unique_items = set()
-            max_dur = 0
-            for item_id, dur in items:
-                unique_items.add(item_id)
-                max_dur = max(max_dur, dur)
-            if len(unique_items) >= 10 and max_dur < 1800:
-                val = 1
-                break
-        await _apply("secret_indecisive", val)
-
-    # --- secret_summer: July/August play with adventure/action genre ---
-    if "secret_summer" in by_type:
-        summer_rows = (await db.execute(
-            select(PlaybackSession.genres)
-            .where(
-                user_filter, *excl_filters,
-                func.extract("month", PlaybackSession.started_at).in_([7, 8]),
-                PlaybackSession.genres.isnot(None),
-            )
-        )).scalars().all()
-        val = 0
-        for g_str in summer_rows:
-            genres_lower = [g.strip().lower() for g in (g_str or "").split(",")]
-            if any(g in ("adventure", "aventure", "action") for g in genres_lower):
-                val = 1
-                break
-        await _apply("secret_summer", val)
 
     # --- secret_nostalgia: rewatched same item 6+ months later ---
     if "secret_nostalgia" in by_type:
@@ -176,19 +87,6 @@ async def check_secrets_a(
             else:
                 item_first_seen[row.item_id] = started
         await _apply("secret_nostalgia", val)
-
-    # --- secret_ghost: simplified — any session between 1am-4am ---
-    if "secret_ghost" in by_type:
-        val = (await db.execute(
-            select(func.count(PlaybackSession.id))
-            .where(
-                user_filter, *excl_filters,
-                func.extract("hour", PlaybackSession.started_at) >= 1,
-                func.extract("hour", PlaybackSession.started_at) < 4,
-            )
-            .limit(1)
-        )).scalar() or 0
-        await _apply("secret_ghost", 1 if val > 0 else 0)
 
     # --- secret_double: 2 movies ending/starting within 5 min ---
     if "secret_double" in by_type:

@@ -95,12 +95,16 @@ Pick the right check module depending on the domain:
 
 | Module                                  | Domain                                              |
 |-----------------------------------------|-----------------------------------------------------|
-| `achievements_checks_standard.py`       | Emby sessions (movies, series, languages, marathons). |
+| `achievements_checks_standard.py`       | Emby sessions (movies, series, languages). |
+| `achievements_local_time.py`            | Anything that reads an hour, a day or a weekday: a pure rule, listed in `LOCAL_TIME_RULES`. |
 | `achievements_checks_progression.py`    | Leaderboard, level, profile, community, lists.      |
 | `achievements_checks_secrets_a/b.py`    | Secrets tied to specific conditions.                |
 | `achievements_checks_meta.py`           | Special case `condition_type="meta"` only.          |
 
-Add a branch like:
+A rule on the calendar never reads `started_at` in SQL: it follows the time zone of
+the instance, which only the Python side knows.
+
+Elsewhere, add a branch like:
 
 ```python
 if "lists_public_created" in by_type:

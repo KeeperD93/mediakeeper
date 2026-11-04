@@ -6,12 +6,14 @@ existing callers keep a single import surface:
 - ``profile_stats_viewing`` — genres, marathon, media-type ratio, hour/day buckets
 """
 import logging
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, tzinfo
 
 from sqlalchemy import select, func, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.playback_stats import PlaybackSession
+from services.instance_time import to_local
+from services.portal.play_streak import current_streak
 
 # Re-exports — keep existing import path `from services.portal.profile_stats_playback import ...`
 from services.portal.profile_stats_rewatched import compute_most_rewatched  # noqa: F401
@@ -52,26 +54,16 @@ async def compute_totals(db: AsyncSession, user_filter, excl_filters: list) -> t
     return total_plays, total_minutes
 
 
-async def compute_streak(db: AsyncSession, user_filter, excl_filters: list) -> int:
-    """Consecutive days with at least 1 play. Shared with achievements."""
+async def compute_streak(
+    db: AsyncSession, user_filter, excl_filters: list, zone: tzinfo,
+) -> int:
+    """Consecutive days with at least 1 play, on the calendar of ``zone``."""
     try:
         result = await db.execute(
-            select(func.date(PlaybackSession.started_at))
-            .where(user_filter, *excl_filters)
-            .group_by(func.date(PlaybackSession.started_at))
-            .order_by(desc(func.date(PlaybackSession.started_at)))
+            select(PlaybackSession.started_at).where(user_filter, *excl_filters)
         )
-        dates = [r[0] for r in result.all()]
-        if dates:
-            today = datetime.now(timezone.utc).date()
-            if dates[0] == today or dates[0] == today - timedelta(days=1):
-                streak = 1
-                for i in range(1, len(dates)):
-                    if dates[i] == dates[i - 1] - timedelta(days=1):
-                        streak += 1
-                    else:
-                        break
-                return streak
+        days = {to_local(started, zone).date() for started in result.scalars() if started}
+        return current_streak(days, to_local(datetime.now(UTC), zone).date())
     except Exception as e:
         logger.debug("[PROFILE] streak error: %s", e)
     return 0

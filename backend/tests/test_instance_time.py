@@ -70,6 +70,11 @@ def test_to_local_of_nothing_is_nothing():
     assert to_local(None, UTC) is None
 
 
+def test_to_local_keeps_a_date_it_cannot_shift():
+    year_1 = datetime(1, 1, 1, tzinfo=UTC)
+    assert to_local(year_1, ZoneInfo("America/New_York")) == year_1
+
+
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     ("name", "known"),
@@ -143,6 +148,8 @@ def test_zones_that_part_ways_during_the_year_stay_apart(zone, other):
 
 def _reset_zone_caches():
     ZoneInfo.clear_cache()
+    # Two copies of a zone never compare equal: every kept copy goes with the cache above.
+    instance_time._load_zone.cache_clear()
     instance_time._load_zones.cache_clear()
     instance_time._zone_groups.cache_clear()
 

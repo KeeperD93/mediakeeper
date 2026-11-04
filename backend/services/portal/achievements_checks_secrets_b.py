@@ -1,7 +1,6 @@
-"""Secret achievement checks — part B (time-window, bilingual, ultra, zapper, ultimate, placeholders)."""
-from collections import defaultdict
-from datetime import date, timedelta
-from sqlalchemy import select, func, distinct, and_, or_
+"""Secret achievement checks — part B (bilingual, ultra, zapper, ultimate, cross-user, placeholders)."""
+from datetime import timedelta, tzinfo
+from sqlalchemy import select, func, distinct
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.achievement import Achievement
@@ -14,7 +13,6 @@ from services.portal.achievements_utils import (
 )
 from services.portal.iso_lang_map import audio_matches_original
 from services.portal.playback_overlap import (
-    find_concurrent_other_user_session,
     has_distinct_user_universe,
     has_same_item_other_user_overlap,
 )
@@ -25,7 +23,6 @@ from services.portal.playback_algorithms import (
     is_first_viewer_of_fresh_content,
 )
 
-_SIX_HOURS_SECONDS = 6 * 3600
 _EIGHT_HOURS_SECONDS = 8 * 3600
 _TWENTY_FOUR_HOURS_SECONDS = 24 * 3600
 
@@ -40,6 +37,7 @@ async def check_secrets_b(
     excl_filters: list,
     playback_rows: list | None,
     all_achs: list,
+    zone: tzinfo,
     pause_user_filter=None,
     pause_excl_filters: list | None = None,
 ) -> list[dict]:
@@ -55,43 +53,6 @@ async def check_secrets_b(
             r = await update_progress(db, user_id, ach.id, new_value=value, ua_map=ua_map)
             if r:
                 unlocks.append(r)
-
-    # --- secret_countdown: play started between 23:59 and 00:01 ---
-    if "secret_countdown" in by_type:
-        val = (await db.execute(
-            select(func.count(PlaybackSession.id))
-            .where(
-                user_filter, *excl_filters,
-                or_(
-                    and_(
-                        func.extract("hour", PlaybackSession.started_at) == 23,
-                        func.extract("minute", PlaybackSession.started_at) == 59,
-                    ),
-                    and_(
-                        func.extract("hour", PlaybackSession.started_at) == 0,
-                        func.extract("minute", PlaybackSession.started_at) <= 1,
-                    ),
-                ),
-            )
-        )).scalar() or 0
-        await _apply("secret_countdown", 1 if val > 0 else 0)
-
-    # --- secret_sunday: 6h+ watched on a single Sunday ---
-    if "secret_sunday" in by_type:
-        rows_for_sunday = playback_rows if playback_rows is not None else (
-            await db.execute(
-                select(PlaybackSession).where(user_filter, *excl_filters)
-            )
-        ).scalars().all()
-        sunday_hours: dict[date, int] = defaultdict(int)
-        for row in rows_for_sunday:
-            started = _coerce_utc(row.started_at)
-            if not started:
-                continue
-            if started.weekday() == 6:
-                sunday_hours[started.date()] += _session_duration_seconds(row)
-        val = 1 if any(secs >= _SIX_HOURS_SECONDS for secs in sunday_hours.values()) else 0
-        await _apply("secret_sunday", val)
 
     # --- secret_bilingual: same item with 2+ distinct audio languages ---
     if "secret_bilingual" in by_type:
@@ -133,35 +94,6 @@ async def check_secrets_b(
         ) else 0
         await _apply("secret_ultramarathon", val)
 
-    # --- secret_butterfly: 5 different genres in one day ---
-    if "secret_butterfly" in by_type:
-        butterfly_rows = playback_rows if playback_rows is not None else (
-            await db.execute(select(PlaybackSession).where(user_filter, *excl_filters))
-        ).scalars().all()
-        by_day_genres: dict[date, set] = defaultdict(set)
-        for row in butterfly_rows:
-            started = _coerce_utc(row.started_at)
-            if not started or not row.genres:
-                continue
-            for g in row.genres.split(","):
-                g = g.strip()
-                if g:
-                    by_day_genres[started.date()].add(g)
-        val = 1 if any(len(gs) >= 5 for gs in by_day_genres.values()) else 0
-        await _apply("secret_butterfly", val)
-
-    # --- secret_triple: 3 movies watched in one day ---
-    if "secret_triple" in by_type:
-        triple_sub = (
-            select(func.date(PlaybackSession.started_at).label("d"))
-            .where(user_filter, *excl_filters, PlaybackSession.item_type == "Movie")
-            .group_by(func.date(PlaybackSession.started_at))
-            .having(func.count(distinct(PlaybackSession.item_id)) >= 3)
-            .subquery()
-        )
-        val = (await db.execute(select(func.count()).select_from(triple_sub))).scalar() or 0
-        await _apply("secret_triple", 1 if val > 0 else 0)
-
     # --- secret_zapper: 5+ different items started in 30 min window ---
     if "secret_zapper" in by_type:
         zapper_rows = (await db.execute(
@@ -185,31 +117,6 @@ async def check_secrets_b(
                 val = 1
                 break
         await _apply("secret_zapper", val)
-
-    # --- secret_gourmet: noon play every day for 7 consecutive days ---
-    if "secret_gourmet" in by_type:
-        lunch_rows = (await db.execute(
-            select(func.date(PlaybackSession.started_at).label("d"))
-            .where(
-                user_filter, *excl_filters,
-                func.extract("hour", PlaybackSession.started_at) == 12,
-            )
-            .group_by(func.date(PlaybackSession.started_at))
-            .order_by(func.date(PlaybackSession.started_at))
-        )).all()
-        val = 0
-        if len(lunch_rows) >= 7:
-            dates_list = [r.d for r in lunch_rows]
-            streak_count = 1
-            for i in range(1, len(dates_list)):
-                if dates_list[i] == dates_list[i - 1] + timedelta(days=1):
-                    streak_count += 1
-                    if streak_count >= 7:
-                        val = 7
-                        break
-                else:
-                    streak_count = 1
-        await _apply("secret_gourmet", val)
 
     # --- secret_ultimate_collector: all OTHER trophies unlocked ---
     if "secret_ultimate_collector" in by_type:
@@ -260,44 +167,7 @@ async def check_secrets_b(
                 hit = await has_same_item_other_user_overlap(db, list(emby_uids))
                 await _apply("secret_sync", 1 if hit else 0)
 
-    # --- secret_lonely: a NYE session (Dec 31 / Jan 1 UTC) with no
-    # overlapping session from any other user. Same anti-trivial guard
-    # as secret_sync — single-user instances skip the check entirely.
-    if "secret_lonely" in by_type:
-        if not await has_distinct_user_universe(db):
-            await _apply("secret_lonely", 0)
-        else:
-            candidate_rows = (await db.execute(
-                select(PlaybackSession).where(
-                    user_filter,
-                    or_(
-                        and_(
-                            func.extract("month", PlaybackSession.started_at) == 12,
-                            func.extract("day", PlaybackSession.started_at) == 31,
-                        ),
-                        and_(
-                            func.extract("month", PlaybackSession.started_at) == 1,
-                            func.extract("day", PlaybackSession.started_at) == 1,
-                        ),
-                    ),
-                    *excl_filters,
-                )
-            )).scalars().all()
-
-            unlocked = False
-            for row in candidate_rows:
-                if await find_concurrent_other_user_session(
-                    db,
-                    user_id=row.user_id,
-                    started_at=row.started_at,
-                    ended_at=row.ended_at,
-                ):
-                    continue
-                unlocked = True
-                break
-            await _apply("secret_lonely", 1 if unlocked else 0)
-
-    # --- secret_allnight: chain of sessions covers 22:00 → 06:00 UTC ---
+    # --- secret_allnight: chain of sessions covers 22:00 → 06:00 on the local clock ---
     if "secret_allnight" in by_type:
         emby_uids = (await db.execute(
             select(distinct(PlaybackSession.user_id)).where(user_filter)
@@ -305,7 +175,7 @@ async def check_secrets_b(
         if not emby_uids:
             await _apply("secret_allnight", 0)
         else:
-            hit = await has_all_night_chain(db, list(emby_uids))
+            hit = await has_all_night_chain(db, list(emby_uids), zone)
             await _apply("secret_allnight", 1 if hit else 0)
 
     # --- secret_no_life: 24h cumulative within a 48h sliding window ---
@@ -331,7 +201,7 @@ async def check_secrets_b(
             if not emby_uids:
                 await _apply("secret_king", 0)
             else:
-                hit = await has_12_consecutive_top1_months(db, list(emby_uids))
+                hit = await has_12_consecutive_top1_months(db, list(emby_uids), zone)
                 await _apply("secret_king", 12 if hit else 0)
 
     # --- secret_pilot: first viewer on freshly-added content. Anti-trivial

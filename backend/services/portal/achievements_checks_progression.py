@@ -136,46 +136,6 @@ async def check_progression(
         )).scalar() or 0
         await _apply("requests_approved", val)
 
-    # --- speed_runner: days where user watched 5+ distinct movies ---
-    if "speed_runner" in by_type:
-        speed_sub = (
-            select(
-                func.date(PlaybackSession.started_at).label("play_date"),
-            )
-            .where(
-                user_filter, *excl_filters,
-                PlaybackSession.item_type == "Movie",
-            )
-            .group_by(func.date(PlaybackSession.started_at))
-            .having(func.count(distinct(PlaybackSession.item_id)) >= 5)
-            .subquery()
-        )
-        val = (await db.execute(
-            select(func.count()).select_from(speed_sub)
-        )).scalar() or 0
-        await _apply("speed_runner", val)
-
-    # --- binge_session: 10+ episodes of same series in one day ---
-    if "binge_session" in by_type:
-        binge_sub = (
-            select(
-                func.date(PlaybackSession.started_at).label("play_date"),
-                PlaybackSession.series_name,
-            )
-            .where(
-                user_filter, *excl_filters,
-                PlaybackSession.item_type == "Episode",
-                PlaybackSession.series_name.isnot(None),
-            )
-            .group_by(func.date(PlaybackSession.started_at), PlaybackSession.series_name)
-            .having(func.count(distinct(PlaybackSession.item_id)) >= 10)
-            .subquery()
-        )
-        val = (await db.execute(
-            select(func.count()).select_from(binge_sub)
-        )).scalar() or 0
-        await _apply("binge_session", val)
-
     # --- genre_master: genres with 100+ plays ---
     if "genre_master" in by_type:
         genre_rows_all = (await db.execute(
