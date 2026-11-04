@@ -74,20 +74,19 @@ async def test_the_profile_reads_the_saved_zone_before_its_fan_out(db_session):
     user, profile = await _viewer(db_session)
     await set_setting(db_session, INSTANCE_TIMEZONE_KEY, "Europe/Paris")
     streak = AsyncMock(return_value=4)
+    calendar = AsyncMock(return_value={"record_day": {"date": "2026-10-16", "count": 3}})
+    ranking = AsyncMock(return_value={})
     empty = AsyncMock(return_value=[])
     with patch.multiple(
         profile_stats,
         _compute_streak=streak,
         compute_totals=AsyncMock(return_value=(0, 0)),
-        compute_record_day=AsyncMock(return_value={}),
+        compute_calendar_stats=calendar,
         compute_most_rewatched=AsyncMock(return_value=(None, None, None)),
         compute_genre_stats=empty,
-        compute_day_stats=AsyncMock(return_value=None),
         compute_longest_session=AsyncMock(return_value=0),
         compute_media_type_ratio=AsyncMock(return_value={}),
-        compute_hour_buckets=empty,
-        compute_record_month=AsyncMock(return_value={}),
-        compute_ranking=AsyncMock(return_value={}),
+        compute_ranking=ranking,
         fetch_recent_watches=empty,
         fetch_next_to_finish=empty,
         fetch_my_requests=empty,
@@ -95,7 +94,10 @@ async def test_the_profile_reads_the_saved_zone_before_its_fan_out(db_session):
         out = await profile_stats.get_profile_full(db_session, user, profile)
 
     assert out["stats"]["streak"] == 4
+    assert out["stats"]["record_day"] == {"date": "2026-10-16", "count": 3}
     assert streak.await_args.args[3].key == "Europe/Paris"
+    assert calendar.await_args.args[3].key == "Europe/Paris"
+    assert ranking.await_args.kwargs["zone"].key == "Europe/Paris"
 
 
 @pytest.mark.asyncio

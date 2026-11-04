@@ -101,8 +101,9 @@ Pick the right check module depending on the domain:
 | `achievements_checks_secrets_a/b.py`    | Secrets tied to specific conditions.                |
 | `achievements_checks_meta.py`           | Special case `condition_type="meta"` only.          |
 
-A rule on the calendar never reads `started_at` in SQL: it follows the time zone of
-the instance, which only the Python side knows.
+A rule that unlocks a trophy on the calendar never reads `started_at` in SQL: it follows
+the time zone of the instance, which only the Python side knows. The finished months behind Competitor
+are cut the same way, so changing the zone can reorder a past month.
 
 Elsewhere, add a branch like:
 

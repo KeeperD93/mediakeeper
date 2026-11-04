@@ -2,7 +2,7 @@
 and each row of the ranking carries the trophies its player won this month."""
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 
 import pytest
 
@@ -165,7 +165,7 @@ async def test_a_viewer_outside_the_list_keeps_their_trophies(client, db_session
 async def test_my_profile_rows_carry_the_trophies_too(db_session):
     alice, bob, carol = await _three_players_with_trophies(db_session)
 
-    ranking = await compute_ranking(db_session, carol)
+    ranking = await compute_ranking(db_session, carol, zone=UTC)
 
     won = {row["user_id"]: row["trophies_won"] for row in ranking["leaderboard"]}
     assert won == {alice.id: 2, bob.id: 1, carol.id: 0}

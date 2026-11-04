@@ -7,7 +7,7 @@ stats (rank when out of top-N, totals and, on the month, weekly delta and
 end-of-month projection).
 """
 import logging
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, timedelta, tzinfo
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from constants.leaderboard import LeaderboardPeriod
 from models.portal.profile import UserProfile
 from models.user import User
+from services.instance_time import get_instance_zone, to_local
 from services.portal._leaderboard_helpers import (
     activity_xp_by_user,
     build_entry,
@@ -52,7 +53,10 @@ async def _month_outlook(
     now: datetime,
     days_remaining: int,
 ) -> tuple[int, int]:
-    """Return the viewer's XP of the last 7 days and their projected end-of-month rank."""
+    """Return the viewer's XP of the last 7 days and their projected end-of-month rank.
+
+    ``now`` is in UTC: those 7 days are a duration, which a clock change must not bend.
+    """
     week_rows = await activity_xp_by_user(db, excluded_ids, now - timedelta(days=7))
     week_by_user: dict[int, int] = {row.user_id: row.total_xp for row in week_rows}
 
@@ -84,11 +88,14 @@ async def compute_leaderboard_only(
     days_remaining, my_delta_week, projected_end_rank on the month only,
     None on the other periods).
     """
+    now = datetime.now(UTC)
+    # In UTC until the zone is read: the error path still has to name the period.
+    local_now = now
     try:
-        now = datetime.now(UTC)
-        bounds = period_bounds(period, now)
+        local_now = to_local(now, await get_instance_zone(db))
+        bounds = period_bounds(period, local_now)
         days_remaining = (
-            days_left_in_month(now) if period == LeaderboardPeriod.MONTH else None
+            days_left_in_month(local_now) if period == LeaderboardPeriod.MONTH else None
         )
 
         excluded_ids = await excluded_from_leaderboard(db)
@@ -101,7 +108,7 @@ async def compute_leaderboard_only(
         leaders = all_users[:limit]
 
         if not leaders:
-            payload = empty_payload(lang, period)
+            payload = empty_payload(lang, period, local_now)
             payload["stats"]["total_players"] = total_players
             payload["stats"]["total_xp"] = total_xp
             payload["stats"]["total_trophies"] = total_trophies
@@ -162,7 +169,7 @@ async def compute_leaderboard_only(
                 )
 
         stats = {
-            "period_label": period_label(period, now, lang),
+            "period_label": period_label(period, local_now, lang),
             "total_players": total_players,
             "total_xp": total_xp,
             "total_trophies": total_trophies,
@@ -180,11 +187,11 @@ async def compute_leaderboard_only(
         }
     except Exception as e:
         logger.error("[LEADERBOARD-ONLY] failed: %s", e)
-        return empty_payload(lang, period)
+        return empty_payload(lang, period, local_now)
 
 
 async def compute_ranking(
-    db: AsyncSession, user: User, *, lang: str = "fr"
+    db: AsyncSession, user: User, *, zone: tzinfo, lang: str = "fr"
 ) -> dict:
     """Compute the viewer's monthly XP ranking + percentile + movement vs
     last month + a mini-leaderboard of the top ``LEADERBOARD_VISIBLE``
@@ -195,6 +202,8 @@ async def compute_ranking(
     leaders (with their real rank). Each entry carries its own
     ``movement`` field so the UI can draw a green/red arrow + delta.
 
+    ``zone`` comes from the caller: the profile page reads it before its fan-out.
+
     Returns ``{position, total, percentile, movement, leaderboard}``.
     """
     rank_position = 0
@@ -204,7 +213,7 @@ async def compute_ranking(
     leaderboard: list[dict] = []
 
     try:
-        month = period_bounds(LeaderboardPeriod.MONTH, datetime.now(UTC))
+        month = period_bounds(LeaderboardPeriod.MONTH, to_local(datetime.now(UTC), zone))
 
         excluded_ids = await excluded_from_leaderboard(db)
 

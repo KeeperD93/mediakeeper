@@ -29,7 +29,7 @@ This section intentionally has no date so it is not shown to users.
 - Leaderboard — Top 10 positions without bubbles, smaller "YOU" label.
 - Leaderboard — podium: metal frame with a turning shine.
 - My profile — ranking: your row as on the Leaderboard page, XP and trophies aligned.
-- Trophies and day streaks — counted in the time zone of the instance.
+- Trophies, leaderboard, My profile and What's new today — counted in the time zone of the instance.
 - Regular and Faithful trophies — unlocked on the longest streak, not only the current one.
 
 ### Fixed

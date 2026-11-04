@@ -1,10 +1,10 @@
 """Bounds and labels of the leaderboard periods.
 
-Periods are cut in UTC, like the XP ledger and the finished months: a day
-starts at 1 or 2 am in France.
+Everything reads the calendar of the ``now`` it receives, on the clock of the
+instance. Bounds come out in UTC: SQLite would drop any other offset.
 """
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from constants.leaderboard import LeaderboardPeriod
 
@@ -30,18 +30,26 @@ class PeriodBounds:
     previous_start: datetime | None
 
 
+def _in_utc(start: datetime, previous_start: datetime) -> PeriodBounds:
+    return PeriodBounds(start.astimezone(UTC), previous_start.astimezone(UTC))
+
+
 def period_bounds(period: LeaderboardPeriod, now: datetime) -> PeriodBounds:
-    """Return where ``period`` starts around ``now``, and where the one before it starts."""
-    midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    """Return where ``period`` starts around ``now``, and where the one before it starts.
+
+    Python moves a date along its own clock, so a week holds 7 days across a clock change.
+    ``fold=0`` takes the first midnight of a night where the clocks go back at that hour.
+    """
+    midnight = now.replace(hour=0, minute=0, second=0, microsecond=0, fold=0)
     match period:
         case LeaderboardPeriod.TODAY:
-            return PeriodBounds(midnight, midnight - timedelta(days=1))
+            return _in_utc(midnight, midnight - timedelta(days=1))
         case LeaderboardPeriod.WEEK:
             monday = midnight - timedelta(days=midnight.weekday())
-            return PeriodBounds(monday, monday - timedelta(days=7))
+            return _in_utc(monday, monday - timedelta(days=7))
         case LeaderboardPeriod.MONTH:
             first = midnight.replace(day=1)
-            return PeriodBounds(first, (first - timedelta(days=1)).replace(day=1))
+            return _in_utc(first, (first - timedelta(days=1)).replace(day=1))
         case LeaderboardPeriod.ALL:
             return PeriodBounds(None, None)
 

@@ -1,5 +1,6 @@
 """A ranking that fails stays empty on screen, and must reach the normal logs."""
 import logging
+from datetime import UTC, datetime
 
 import pytest
 
@@ -34,7 +35,7 @@ async def test_a_failed_leaderboard_is_logged_and_stays_empty(
     with caplog.at_level(logging.INFO, logger=LOGGER):
         payload = await compute_leaderboard_only(db_session, lang="en")
 
-    assert payload == empty_payload("en")
+    assert payload == empty_payload("en", LeaderboardPeriod.MONTH, datetime.now(UTC))
     assert _logged(caplog) == [("ERROR", "[LEADERBOARD-ONLY] failed: database down")]
 
 
@@ -42,7 +43,7 @@ async def test_a_failed_leaderboard_is_logged_and_stays_empty(
 async def test_a_failed_leaderboard_still_names_the_period_asked(db_session, broken_ranking):
     payload = await compute_leaderboard_only(db_session, period=LeaderboardPeriod.ALL, lang="en")
 
-    assert payload == empty_payload("en", LeaderboardPeriod.ALL)
+    assert payload == empty_payload("en", LeaderboardPeriod.ALL, datetime.now(UTC))
     assert payload["stats"]["period_label"] == "Since the beginning"
 
 
@@ -53,7 +54,7 @@ async def test_a_failed_profile_ranking_is_logged_and_stays_empty(
     alice, _ = await make_portal_user(db_session, username="alice")
 
     with caplog.at_level(logging.INFO, logger=LOGGER):
-        ranking = await compute_ranking(db_session, alice)
+        ranking = await compute_ranking(db_session, alice, zone=UTC)
 
     assert ranking == {
         "position": 0,

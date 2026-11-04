@@ -7,7 +7,7 @@ and trophy queries, the row → entry builder and the empty payload.
 """
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import datetime
 
 from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -154,10 +154,13 @@ def build_entry(
     }
 
 
-def empty_stats(lang: str, period: LeaderboardPeriod) -> dict:
-    """Stats payload returned when the leaderboard is empty or errored."""
+def empty_stats(lang: str, period: LeaderboardPeriod, now: datetime) -> dict:
+    """Stats payload returned when the leaderboard is empty or errored.
+
+    ``now`` is on the clock of the instance: a failed query leaves no session to read it with.
+    """
     return {
-        "period_label": period_label(period, datetime.now(UTC), lang),
+        "period_label": period_label(period, now, lang),
         "total_players": 0,
         "total_xp": 0,
         "total_trophies": 0,
@@ -168,11 +171,11 @@ def empty_stats(lang: str, period: LeaderboardPeriod) -> dict:
     }
 
 
-def empty_payload(lang: str, period: LeaderboardPeriod = LeaderboardPeriod.MONTH) -> dict:
+def empty_payload(lang: str, period: LeaderboardPeriod, now: datetime) -> dict:
     """Full empty payload — used by error paths and zero-leader runs."""
     return {
         "items": [],
         "viewer_rank": None,
         "viewer_entry": None,
-        "stats": empty_stats(lang, period),
+        "stats": empty_stats(lang, period, now),
     }

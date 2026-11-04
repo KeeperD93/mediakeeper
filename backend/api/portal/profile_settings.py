@@ -21,6 +21,7 @@ from models.portal.achievement import UserAchievement
 from models.portal.profile import UserProfile
 from models.user import User
 from api.portal.deps import get_current_profile, get_request_lang
+from services.instance_time import get_instance_zone
 from services.portal.achievement_defs import ACHIEVEMENT_DEFS
 from services.portal.achievements import safe_check_all_achievements_in_new_session
 from services.portal.avatars import (
@@ -268,7 +269,10 @@ async def public_profile_by_user(
     target_user = (await db.execute(
         select(User).where(User.id == user_id)
     )).scalar_one_or_none()
-    monthly = await compute_ranking(db, target_user, lang=lang) if target_user else {}
+    monthly = (
+        await compute_ranking(db, target_user, zone=await get_instance_zone(db), lang=lang)
+        if target_user else {}
+    )
     rank_position = monthly.get("position") or 0
     rank_total = monthly.get("total") or 0
     rank_percentile = monthly.get("percentile") or 0

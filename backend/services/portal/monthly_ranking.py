@@ -1,18 +1,20 @@
 """Final ranking of every finished month, rebuilt from the XP ledger.
 
-Nothing is stored: a past month always follows the current rules and the
-current exclusions, like the live leaderboard it must agree with.
+Nothing is stored: a past month always follows the current rules, the current
+exclusions and the current time zone, like the live leaderboard it must agree with.
 """
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.leaderboard import LeaderboardPeriod
 from models.portal.xp_ledger import XpLedger
+from services.instance_time import get_instance_zone, to_local
 from services.portal._leaderboard_helpers import excluded_from_leaderboard
-from services.portal.achievements_utils import _coerce_utc
+from services.portal._leaderboard_periods import period_bounds
 from services.portal.xp import ACTIVITY_XP_ACTIONS
 
 
@@ -38,12 +40,11 @@ async def finished_month_rankings(
 ) -> dict[tuple[int, int], list[MonthlyEntry]]:
     """Return ``{(year, month): entries}`` for every month before the current one.
 
-    Months are cut in UTC here, like the live leaderboard: a SQL ``extract()``
-    would follow the time zone of the PostgreSQL session.
+    Months are cut on the calendar of the instance, here like on the live leaderboard:
+    a SQL ``extract()`` would follow the time zone of the PostgreSQL session.
     """
-    month_start = datetime.now(timezone.utc).replace(
-        day=1, hour=0, minute=0, second=0, microsecond=0
-    )
+    zone = await get_instance_zone(db)
+    month_start = period_bounds(LeaderboardPeriod.MONTH, to_local(datetime.now(UTC), zone)).start
     stmt = select(XpLedger.user_id, XpLedger.created_at, XpLedger.xp).where(
         XpLedger.action.in_(ACTIVITY_XP_ACTIONS),
         XpLedger.created_at < month_start,
@@ -54,6 +55,6 @@ async def finished_month_rankings(
 
     totals: dict[tuple[int, int], dict[int, int]] = defaultdict(lambda: defaultdict(int))
     for user_id, created_at, xp in (await db.execute(stmt)).all():
-        moment = _coerce_utc(created_at)
+        moment = to_local(created_at, zone)
         totals[(moment.year, moment.month)][user_id] += xp
     return {month: _ranked(xp_by_user) for month, xp_by_user in totals.items()}

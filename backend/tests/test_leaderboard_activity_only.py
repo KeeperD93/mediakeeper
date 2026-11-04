@@ -5,7 +5,7 @@ total, the player count, the weekly delta, the projection and the arrows.
 """
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 
 import pytest
 
@@ -214,7 +214,7 @@ async def test_profile_ranking_follows_the_same_rule(db_session):
         _row(trophy.id, "achievement_unlocked", 500),
     )
 
-    ranking = await compute_ranking(db_session, alice)
+    ranking = await compute_ranking(db_session, alice, zone=UTC)
 
     assert ranking["position"] == 2
     assert ranking["total"] == 2
@@ -225,7 +225,7 @@ async def test_profile_ranking_follows_the_same_rule(db_session):
         (alice.id, 100),
     ]
 
-    outside = await compute_ranking(db_session, trophy)
+    outside = await compute_ranking(db_session, trophy, zone=UTC)
 
     assert outside["position"] == 0
     assert outside["percentile"] == 0

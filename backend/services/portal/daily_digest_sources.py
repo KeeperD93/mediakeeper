@@ -185,7 +185,7 @@ async def ranking_snapshot(
 ) -> dict:
     """Rank + slimmed top-3 slice for the digest's mini-leaderboard widget."""
     try:
-        r = await compute_ranking(db, user, lang=lang)
+        r = await compute_ranking(db, user, zone=await get_instance_zone(db), lang=lang)
     except Exception as e:  # noqa: BLE001
         logger.debug("[DIGEST] ranking failed: %s", e)
         return {"position": 0, "total": 0, "movement": 0, "top3": []}

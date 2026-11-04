@@ -27,14 +27,11 @@ def _trivial_stats():
     return dict(
         compute_totals=AsyncMock(return_value=(0, 0)),
         _compute_streak=AsyncMock(return_value=0),
-        compute_record_day=AsyncMock(return_value={}),
+        compute_calendar_stats=AsyncMock(return_value={}),
         compute_most_rewatched=AsyncMock(return_value=(None, None, None)),
         compute_genre_stats=AsyncMock(return_value=[]),
-        compute_day_stats=AsyncMock(return_value=None),
         compute_longest_session=AsyncMock(return_value=0),
         compute_media_type_ratio=AsyncMock(return_value={}),
-        compute_hour_buckets=AsyncMock(return_value=[]),
-        compute_record_month=AsyncMock(return_value={}),
         compute_ranking=AsyncMock(return_value={}),
     )
 

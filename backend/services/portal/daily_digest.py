@@ -27,6 +27,7 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.user import User
+from services.instance_time import get_instance_zone, to_local
 from services.settings import get_user_preferences, upsert_user_preferences
 from services.portal.profile_serializers import _resolve_avatar_url
 from services.portal.profiles import get_or_create_profile
@@ -47,8 +48,10 @@ _MAX_LOOKBACK_DAYS = 30
 _digest_cache: dict[tuple[int, str, str], tuple[float, dict]] = {}
 
 
-def _today_iso() -> str:
-    return datetime.now(timezone.utc).date().isoformat()
+async def _today_iso(db: AsyncSession) -> str:
+    """Today on the calendar of the instance: the overlay comes back at its midnight."""
+    zone = await get_instance_zone(db)
+    return to_local(datetime.now(timezone.utc), zone).date().isoformat()
 
 
 def _cache_get(user_id: int, date_iso: str, lang: str) -> dict | None:
@@ -87,7 +90,7 @@ async def _load_prefs(db: AsyncSession, user_id: int) -> dict:
 
 async def is_dismissed_today(db: AsyncSession, user_id: int) -> bool:
     prefs = await _load_prefs(db, user_id)
-    return prefs.get(_PREF_KEY_DISMISSED_DATE) == _today_iso()
+    return prefs.get(_PREF_KEY_DISMISSED_DATE) == await _today_iso(db)
 
 
 def _parse_dt(raw: str | None) -> datetime | None:
@@ -138,7 +141,7 @@ async def mark_dismissed(db: AsyncSession, user_id: int) -> str:
     if prev and now - prev >= timedelta(hours=_GRACE_HOURS):
         seen = _parse_dt(prefs.get(_PREF_KEY_SEEN_AT))
         prefs[_PREF_KEY_SEEN_AT] = (max(seen, prev) if seen else prev).isoformat()
-    today = now.date().isoformat()
+    today = await _today_iso(db)
     prefs[_PREF_KEY_DISMISSED_DATE] = today
     prefs[_PREF_KEY_DISMISSED_AT] = now.isoformat()
     await upsert_user_preferences(db, user_id, preferences=json.dumps(prefs))
@@ -154,7 +157,7 @@ async def build_digest(
     ``use_cache`` lets the manual-open flow (avatar menu) bypass the
     1h cache when the user explicitly asks for a fresh view.
     """
-    date_iso = _today_iso()
+    date_iso = await _today_iso(db)
     if use_cache:
         cached = _cache_get(user.id, date_iso, lang)
         if cached is not None:

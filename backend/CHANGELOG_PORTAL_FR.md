@@ -31,7 +31,7 @@ utilisateurs.
 - Classement — positions du Top 10 sans bulle, étiquette « VOUS » plus petite.
 - Classement — podium : cadre de métal avec un éclat qui tourne.
 - Mon profil — classement : votre ligne comme sur la page Classement, XP et trophées alignés.
-- Trophées et jours d'affilée — comptés dans le fuseau horaire de l'instance.
+- Trophées, classement, Mon profil et Quoi de neuf — comptés dans le fuseau horaire de l'instance.
 - Trophées Régulier et Fidèle — débloqués sur la plus longue série, pas seulement l'actuelle.
 
 ### Fixed
