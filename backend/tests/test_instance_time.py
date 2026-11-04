@@ -158,14 +158,30 @@ def pinned_zone_data():
     _reset_zone_caches()
 
 
+def _list_lines() -> list[list[str]]:
+    lines = re.findall(r"zones: \[([^\]]+)\]", _LIST_LINES.read_text(encoding="utf-8"))
+    return [re.findall(r"'([^']+)'", line) for line in lines]
+
+
 @pytest.mark.usefixtures("pinned_zone_data")
 def test_the_zones_of_a_line_of_the_list_count_days_alike():
-    lines = re.findall(r"zones: \[([^\]]+)\]", _LIST_LINES.read_text(encoding="utf-8"))
+    lines = _list_lines()
     assert len(lines) > 20
-    for line in lines:
-        zones = re.findall(r"'([^']+)'", line)
+    for zones in lines:
         groups = [_group_of(zone, _LIST_DAY)["zones"] for zone in zones]
         assert all(group == groups[0] for group in groups), zones
+
+
+@pytest.mark.usefixtures("pinned_zone_data")
+def test_every_way_of_counting_days_has_a_line_of_the_list():
+    """The list is the only way to choose a zone; a group on no line would show raw zone names."""
+    on_a_line = {zone for zones in _list_lines() for zone in zones}
+    without_a_line = [
+        group["zones"]
+        for group in instance_time._zone_groups(_LIST_DAY)
+        if group["zones"] != ["UTC"] and not on_a_line.intersection(group["zones"])
+    ]
+    assert without_a_line == []
 
 
 def test_groups_go_from_the_smallest_offset_to_the_largest():

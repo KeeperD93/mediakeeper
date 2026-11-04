@@ -32,7 +32,6 @@ function minorRow({ offset }, zones) {
     offset,
     zones,
     isUtc: false,
-    isMain: false,
     label: rowLabel(offset, cities.join(', ')),
   }
 }
@@ -41,7 +40,8 @@ function minorRow({ offset }, zones) {
  * Rows of the list, from the smallest offset to the largest, UTC first among equals:
  * ``(UTC+01:00) Bruxelles, Copenhague, Madrid, Paris``. ``lineName`` names a line of the list.
  * A zone that no longer counts days like the rest of its line leaves it. The other zones
- * of a group stay findable under its first line, or get a row when it has no line.
+ * of a group stay under its first line, which gives a saved zone or the browser's its row.
+ * A group without a line gets a row of its own, named after its zones.
  */
 export function buildRows(groups, { lineName, utcName, locale }) {
   const groupOf = new Map(groups.flatMap(group => group.zones.map(zone => [zone, group])))
@@ -58,7 +58,6 @@ export function buildRows(groups, { lineName, utcName, locale }) {
       offset,
       zones,
       isUtc: false,
-      isMain: true,
       label: rowLabel(offset, lineName(line.key)),
     }
     rows.push(row)
@@ -74,7 +73,6 @@ export function buildRows(groups, { lineName, utcName, locale }) {
         offset: 0,
         zones: ['UTC'],
         isUtc: true,
-        isMain: true,
         label: `(UTC) ${utcName}`,
       })
     } else if (row) {
@@ -89,18 +87,6 @@ export function buildRows(groups, { lineName, utcName, locale }) {
       Number(b.isUtc) - Number(a.isUtc) ||
       a.label.localeCompare(b.label, locale),
   )
-}
-
-const searchable = text =>
-  readable(text)
-    .normalize('NFD')
-    .replace(/\p{Diacritic}/gu, '')
-    .toLowerCase()
-
-/** Rows whose label or zones contain ``query``, ignoring case, accents and underscores. */
-export function matchRows(rows, query) {
-  const needle = searchable(query.trim())
-  return rows.filter(row => searchable(`${row.label} ${row.zones.join(' ')}`).includes(needle))
 }
 
 /** The row holding the first of ``zones`` that has one. */

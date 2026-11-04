@@ -1,7 +1,8 @@
 /**
- * Lines of the time zone list, each a few places that count days alike. Zones on no line
- * stay reachable through the search. Each line has its name in the locales, under
- * ``settings.timezoneLine``; names may hold places without a zone of their own.
+ * Lines of the time zone list, each a few places that count days alike. Every way of
+ * counting days has a line: the list is the only way to choose a zone. Each line has its
+ * name in the locales, under ``settings.timezoneLine``; names may hold places without a
+ * zone of their own.
  */
 export interface TimezoneLine {
   key: string
@@ -9,9 +10,14 @@ export interface TimezoneLine {
 }
 
 export const TIMEZONE_LINES: readonly TimezoneLine[] = [
+  { key: 'DateLineWest', zones: ['Etc/GMT+12'] },
   { key: 'Midway', zones: ['Pacific/Midway', 'Pacific/Pago_Pago'] },
   { key: 'Hawaii', zones: ['Pacific/Honolulu'] },
+  { key: 'Aleutian', zones: ['America/Adak'] },
+  { key: 'Marquesas', zones: ['Pacific/Marquesas'] },
   { key: 'Alaska', zones: ['America/Anchorage'] },
+  { key: 'Gambier', zones: ['Pacific/Gambier'] },
+  { key: 'Pitcairn', zones: ['Pacific/Pitcairn'] },
   { key: 'Pacific', zones: ['America/Los_Angeles', 'America/Tijuana'] },
   { key: 'Arizona', zones: ['America/Phoenix', 'America/Vancouver'] },
   { key: 'Mountain', zones: ['America/Denver'] },
@@ -20,6 +26,7 @@ export const TIMEZONE_LINES: readonly TimezoneLine[] = [
   { key: 'Guatemala', zones: ['America/Guatemala'] },
   { key: 'MexicoCity', zones: ['America/Mexico_City'] },
   { key: 'Saskatchewan', zones: ['America/Regina'] },
+  { key: 'Easter', zones: ['Pacific/Easter'] },
   {
     key: 'Bogota',
     zones: ['America/Bogota', 'America/Lima', 'America/Guayaquil', 'America/Rio_Branco'],
@@ -35,6 +42,7 @@ export const TIMEZONE_LINES: readonly TimezoneLine[] = [
   { key: 'Brasilia', zones: ['America/Sao_Paulo'] },
   { key: 'BuenosAires', zones: ['America/Argentina/Buenos_Aires'] },
   { key: 'Montevideo', zones: ['America/Montevideo'] },
+  { key: 'Miquelon', zones: ['America/Miquelon'] },
   { key: 'Greenland', zones: ['America/Nuuk'] },
   { key: 'SouthGeorgia', zones: ['Atlantic/South_Georgia'] },
   { key: 'Azores', zones: ['Atlantic/Azores'] },
@@ -42,6 +50,7 @@ export const TIMEZONE_LINES: readonly TimezoneLine[] = [
   { key: 'Dublin', zones: ['Europe/Dublin', 'Europe/Lisbon'] },
   { key: 'London', zones: ['Europe/London'] },
   { key: 'Monrovia', zones: ['Africa/Monrovia', 'Atlantic/Reykjavik'] },
+  { key: 'Troll', zones: ['Antarctica/Troll'] },
   {
     key: 'Amsterdam',
     zones: [
@@ -70,6 +79,7 @@ export const TIMEZONE_LINES: readonly TimezoneLine[] = [
   { key: 'Beirut', zones: ['Asia/Beirut'] },
   { key: 'CentralAfrica', zones: ['Africa/Lubumbashi', 'Africa/Maputo'] },
   { key: 'Egypt', zones: ['Africa/Cairo'] },
+  { key: 'Gaza', zones: ['Asia/Gaza', 'Asia/Hebron'] },
   { key: 'Harare', zones: ['Africa/Harare', 'Africa/Johannesburg'] },
   {
     key: 'Helsinki',
@@ -114,6 +124,7 @@ export const TIMEZONE_LINES: readonly TimezoneLine[] = [
   { key: 'Perth', zones: ['Australia/Perth'] },
   { key: 'Singapore', zones: ['Asia/Kuala_Lumpur', 'Asia/Singapore'] },
   { key: 'Ulaanbaatar', zones: ['Asia/Ulaanbaatar'] },
+  { key: 'Eucla', zones: ['Australia/Eucla'] },
   { key: 'Seoul', zones: ['Asia/Seoul'] },
   { key: 'Tokyo', zones: ['Asia/Tokyo'] },
   { key: 'Yakutsk', zones: ['Asia/Yakutsk'] },
@@ -123,12 +134,16 @@ export const TIMEZONE_LINES: readonly TimezoneLine[] = [
   { key: 'Guam', zones: ['Pacific/Guam', 'Pacific/Port_Moresby'] },
   { key: 'Melbourne', zones: ['Australia/Melbourne', 'Australia/Sydney'] },
   { key: 'Tasmania', zones: ['Australia/Hobart'] },
+  { key: 'LordHowe', zones: ['Australia/Lord_Howe'] },
   { key: 'Vladivostok', zones: ['Asia/Vladivostok'] },
   { key: 'Magadan', zones: ['Asia/Magadan', 'Pacific/Guadalcanal'] },
   { key: 'NewCaledonia', zones: ['Pacific/Noumea'] },
+  { key: 'Norfolk', zones: ['Pacific/Norfolk'] },
   { key: 'Auckland', zones: ['Pacific/Auckland'] },
   { key: 'Fiji', zones: ['Pacific/Fiji'] },
   { key: 'Kamchatka', zones: ['Asia/Kamchatka', 'Pacific/Majuro'] },
   { key: 'Kwajalein', zones: ['Pacific/Kwajalein'] },
   { key: 'Apia', zones: ['Pacific/Apia'] },
+  { key: 'Chatham', zones: ['Pacific/Chatham'] },
+  { key: 'Kiritimati', zones: ['Pacific/Kiritimati'] },
 ]

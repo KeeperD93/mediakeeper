@@ -7,7 +7,6 @@ import {
   clockAt,
   formatOffset,
   lineKey,
-  matchRows,
   rowOfFirst,
   zoneToSave,
 } from '@/utils/instanceTimezone'
@@ -22,8 +21,8 @@ const GROUPS = [
     zones: ['Europe/Berlin', 'Europe/Madrid', 'Europe/Paris', 'Europe/Tirane', 'Europe/Warsaw'],
   },
   { offset: 345, zones: ['Asia/Kathmandu', 'Asia/Katmandu'] },
-  { offset: 660, zones: ['Pacific/Norfolk'] },
-  { offset: -720, zones: ['Etc/GMT+12'] },
+  { offset: 240, zones: ['Indian/Reunion'] },
+  { offset: -660, zones: ['Etc/GMT+11'] },
 ]
 const NAMES = { Eastern: 'Eastern Time', Sarajevo: 'Sarajevo, Varsovie' }
 const rowsOf = groups =>
@@ -73,7 +72,7 @@ describe('formatOffset', () => {
 describe('buildRows', () => {
   it('goes from the negative offsets to the positive ones, UTC first among equals', () => {
     expect(rows().map(({ label }) => label)).toEqual([
-      '(UTC-12:00) Etc/GMT+12',
+      '(UTC-11:00) Etc/GMT+11',
       '(UTC-05:00) Bogota',
       '(UTC-05:00) Eastern Time',
       '(UTC) Universal time',
@@ -81,8 +80,8 @@ describe('buildRows', () => {
       '(UTC+01:00) Amsterdam',
       '(UTC+01:00) Brussels',
       '(UTC+01:00) Sarajevo, Varsovie',
+      '(UTC+04:00) Reunion',
       '(UTC+05:45) Kathmandu',
-      '(UTC+11:00) Norfolk',
     ])
   })
 
@@ -93,7 +92,7 @@ describe('buildRows', () => {
     expect(row('Europe/Warsaw').label).toBe('(UTC+01:00) Sarajevo, Varsovie')
   })
 
-  it('keeps the zones on no line findable under the first line of their group', () => {
+  it('keeps the zones on no line under the first line of their group', () => {
     expect(row('Europe/Tirane').label).toBe('(UTC+01:00) Amsterdam')
     expect(row('US/Eastern').label).toBe('(UTC-05:00) Eastern Time')
     expect(row('Etc/UTC').label).toBe('(UTC+00:00) Monrovia')
@@ -107,7 +106,6 @@ describe('buildRows', () => {
     ])
     expect(madrid.label).toBe('(UTC+01:00) Brussels')
     expect(paris.label).toBe('(UTC+02:00) Paris')
-    expect(paris.isMain).toBe(false)
   })
 
   it('limits a row of a group without a line to a few names', () => {
@@ -121,44 +119,6 @@ describe('buildRows', () => {
     expect(rowsOf([{ offset: 780, zones }])[0].label).toBe(
       '(UTC+13:00) Enderbury, Fakaofo, Kanton, Tongatapu',
     )
-  })
-
-  it('marks as main the lines of the list and UTC, not the other rows', () => {
-    const others = rows().filter(({ isMain }) => !isMain)
-    expect(others.map(({ key }) => key)).toEqual(['Etc/GMT+12', 'Pacific/Norfolk'])
-    expect(rows().find(({ isUtc }) => isUtc).isMain).toBe(true)
-  })
-})
-
-describe('matchRows', () => {
-  const found = query => matchRows(rows(), query).map(({ key }) => key)
-
-  it.each([
-    ['brussels', ['Brussels']],
-    ['BRUSSELS', ['Brussels']],
-    ['  brussels  ', ['Brussels']],
-    ['paris', ['Brussels']],
-    ['varsovie', ['Sarajevo']],
-    ['warsaw', ['Sarajevo']],
-    ['new york', ['Eastern']],
-    ['new_york', ['Eastern']],
-    ['tirane', ['Amsterdam']],
-    ['katmandu', ['Kathmandu']],
-    ['norfolk', ['Pacific/Norfolk']],
-    ['+01:00', ['Amsterdam', 'Brussels', 'Sarajevo']],
-    ['atlantis', []],
-  ])('finds %s', (query, expected) => {
-    expect(found(query)).toEqual(expected)
-  })
-
-  it('ignores accents', () => {
-    const list = buildRows([{ offset: -180, zones: ['America/Sao_Paulo'] }], {
-      lineName: () => 'Brasília',
-      utcName: '',
-      locale: 'fr',
-    })
-    expect(matchRows(list, 'brasilia')).toHaveLength(1)
-    expect(matchRows(list, 'são')).toHaveLength(1)
   })
 })
 
@@ -181,7 +141,7 @@ describe('zoneToSave', () => {
   it('otherwise takes the first zone of the row', () => {
     expect(zoneToSave(row('Europe/Paris'), 'Asia/Tokyo')).toBe('Europe/Madrid')
     expect(zoneToSave(row('US/Eastern'), 'Asia/Tokyo')).toBe('America/New_York')
-    expect(zoneToSave(row('Pacific/Norfolk'), 'Asia/Tokyo')).toBe('Pacific/Norfolk')
+    expect(zoneToSave(row('Indian/Reunion'), 'Asia/Tokyo')).toBe('Indian/Reunion')
   })
 
   it('saves UTC as UTC', () => {

@@ -53,7 +53,7 @@
   color: var(--text-muted);
   margin-bottom: 12px;
 }
-/* Text fields and menus of a settings section. */
+/* Menus of a settings section. */
 .cinema-params .params-control {
   width: 100%;
   min-height: var(--touch-target);
@@ -66,8 +66,6 @@
   color: var(--text-primary);
   font-size: var(--text-sm);
   font-family: inherit;
-}
-.cinema-params select.params-control {
   cursor: pointer;
 }
 .cinema-params .params-control:focus-visible {

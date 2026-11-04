@@ -3,31 +3,15 @@
     <h3 class="params-section-title">{{ $t('settings.timezoneTitle') }}</h3>
     <p class="params-section-desc">{{ $t('settings.timezoneDesc') }}</p>
     <template v-if="status">
-      <p class="params-tz-state">
-        {{
-          status.timezone
-            ? $t('settings.timezoneCurrent', { zone: currentLabel })
-            : $t('settings.timezoneNotSet')
-        }}
-      </p>
+      <p v-if="!savedRow" class="params-tz-state">{{ $t('settings.timezoneNotSet') }}</p>
       <div class="params-tz-form">
-        <input
-          v-model="search"
-          type="search"
-          class="params-control params-tz-search"
-          :placeholder="$t('settings.timezoneSearch')"
-          :aria-label="$t('settings.timezoneSearch')"
-        />
         <select
           v-model="selectedKey"
           class="params-control mk-select-chevron"
           :aria-label="$t('settings.timezoneTitle')"
         >
-          <option v-for="row in listedRows" :key="row.key" :value="row.key">{{ row.label }}</option>
+          <option v-for="row in rows" :key="row.key" :value="row.key">{{ row.label }}</option>
         </select>
-        <p v-if="matches && !matches.length" class="params-tz-hint">
-          {{ $t('settings.timezoneNoMatch') }}
-        </p>
         <div class="params-tz-actions">
           <MkButton class="mk-touch-mobile" :disabled="!canSave" :loading="saving" @click="onSave">
             {{ $t('common.save') }}
@@ -55,7 +39,6 @@ import {
   buildRows,
   clockAt,
   lineKey,
-  matchRows,
   rowOfFirst,
   zoneToSave,
 } from '@/utils/instanceTimezone'
@@ -68,7 +51,6 @@ const { showToast } = useToast()
 const { status, load, save } = useInstanceTimezone()
 
 const selectedKey = ref('')
-const search = ref('')
 const saving = ref(false)
 const now = ref(new Date())
 const clockTimer = setInterval(() => {
@@ -82,19 +64,8 @@ const rows = computed(() =>
     locale: getLocale(),
   }),
 )
-const currentLabel = computed(
-  () => rowOfFirst(rows.value, [status.value?.effective])?.label ?? status.value?.effective,
-)
 const selectedRow = computed(() => rows.value.find(row => row.key === selectedKey.value))
 const savedRow = computed(() => rowOfFirst(rows.value, [status.value?.timezone]))
-const matches = computed(() => (search.value.trim() ? matchRows(rows.value, search.value) : null))
-const listedRows = computed(() => {
-  const listed = matches.value ?? rows.value.filter(row => row.isMain)
-  // A select cannot show a value it has no option for.
-  return !selectedRow.value || listed.includes(selectedRow.value)
-    ? listed
-    : [selectedRow.value, ...listed]
-})
 const canSave = computed(() => Boolean(selectedRow.value) && selectedRow.value !== savedRow.value)
 const clock = computed(() =>
   selectedRow.value ? clockAt(selectedRow.value.offset, getLocale(), now.value) : '',
@@ -112,10 +83,7 @@ async function onSave() {
   saving.value = true
   const saved = await save(zoneToSave(selectedRow.value, browserZone()))
   saving.value = false
-  if (saved) {
-    search.value = ''
-    showToast(t('settings.timezoneSaved'), TOAST_TYPE.OK)
-  }
+  if (saved) showToast(t('settings.timezoneSaved'), TOAST_TYPE.OK)
 }
 
 onMounted(async () => {
@@ -139,12 +107,9 @@ onBeforeUnmount(() => clearInterval(clockTimer))
 }
 .params-tz-form {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  /* As wide as the longest line of the list, and never wider than the page. */
+  grid-template-columns: minmax(0, max-content);
   gap: var(--space-2);
-  max-width: var(--container-narrow);
-}
-.params-tz-search {
-  padding-right: var(--space-3);
 }
 .params-tz-actions {
   display: flex;

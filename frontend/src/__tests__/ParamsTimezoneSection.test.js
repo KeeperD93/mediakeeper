@@ -1,7 +1,6 @@
 /**
  * Settings → General → time zone: one list from the negative offsets to the positive
- * ones, pre-selected from the saved zone or the browser, search in every zone, saved
- * only after a confirmation.
+ * ones, pre-selected from the saved zone or the browser, saved only after a confirmation.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
@@ -39,6 +38,7 @@ const GROUPS = [
   { offset: -300, zones: ['America/New_York', 'America/Toronto'] },
   { offset: 0, zones: ['UTC'] },
   { offset: 60, zones: ['Europe/Berlin', 'Europe/Paris', 'Europe/Tirane'] },
+  { offset: 240, zones: ['Indian/Reunion'] },
   { offset: 345, zones: ['Asia/Kathmandu'] },
   { offset: 540, zones: ['Asia/Seoul', 'Asia/Tokyo'] },
   { offset: 660, zones: ['Pacific/Norfolk'] },
@@ -51,6 +51,7 @@ const LABELS = {
   utc: '(UTC) settings.timezoneUtc',
   amsterdam: '(UTC+01:00) Amsterdam',
   brussels: '(UTC+01:00) Brussels',
+  reunion: '(UTC+04:00) Reunion',
   kathmandu: '(UTC+05:45) Kathmandu',
   seoul: '(UTC+09:00) Seoul',
   tokyo: '(UTC+09:00) Tokyo',
@@ -83,7 +84,6 @@ const shownLabels = w =>
     .findAll('option')
     .map(option => option.text())
 const selectedLabel = w => menu(w).element.selectedOptions[0]?.text
-const search = (w, text) => w.get('input[type="search"]').setValue(text)
 
 describe('ParamsTimezoneSection', () => {
   beforeEach(() => {
@@ -94,19 +94,26 @@ describe('ParamsTimezoneSection', () => {
     showToast.mockClear()
   })
 
-  it('lists the lines of the list, from the negative offsets to the positive', async () => {
+  it('lists every row, from the negative offsets to the positive', async () => {
     const w = await mountWith(NOT_SAVED)
     expect(shownLabels(w)).toEqual([
       LABELS.eastern,
       LABELS.utc,
       LABELS.amsterdam,
       LABELS.brussels,
+      LABELS.reunion,
       LABELS.kathmandu,
       LABELS.seoul,
       LABELS.tokyo,
+      LABELS.norfolk,
       LABELS.fiji,
     ])
     expect(w.findAll('optgroup')).toHaveLength(0)
+  })
+
+  it('chooses through the list alone, with no text field', async () => {
+    const w = await mountWith(NOT_SAVED)
+    expect(w.find('input').exists()).toBe(false)
   })
 
   it('uses the shared menu arrow', async () => {
@@ -124,9 +131,15 @@ describe('ParamsTimezoneSection', () => {
   it('starts on the row of the saved zone, with nothing to save', async () => {
     const w = await mountWith(SAVED)
     expect(selectedLabel(w)).toBe(LABELS.brussels)
-    expect(w.text()).toContain('settings.timezoneCurrent')
-    expect(w.text()).toContain(LABELS.brussels)
+    expect(w.text()).not.toContain('settings.timezoneNotSet')
     expect(w.get('button').attributes('disabled')).toBeDefined()
+  })
+
+  it('says nothing is saved when the server can no longer read the saved zone', async () => {
+    const w = await mountWith({ ...SAVED, timezone: 'Mars/Olympus', effective: 'UTC' })
+    expect(w.text()).toContain('settings.timezoneNotSet')
+    expect(selectedLabel(w)).toBe(LABELS.tokyo)
+    expect(w.get('button').attributes('disabled')).toBeUndefined()
   })
 
   it('starts on the first line of its group for a saved zone on no line', async () => {
@@ -135,44 +148,12 @@ describe('ParamsTimezoneSection', () => {
     expect(w.get('button').attributes('disabled')).toBeDefined()
   })
 
-  it('keeps a saved row on no line in the list', async () => {
-    const norfolk = 'Pacific/Norfolk'
-    const w = await mountWith({ ...SAVED, timezone: norfolk, effective: norfolk })
-    expect(selectedLabel(w)).toBe(LABELS.norfolk)
-    expect(shownLabels(w)[0]).toBe(LABELS.norfolk)
-  })
-
-  it('searches every zone, also those no row names, and keeps the selection', async () => {
-    const w = await mountWith(SAVED)
-    await search(w, 'fiji')
-    expect(shownLabels(w)).toEqual([LABELS.brussels, LABELS.fiji])
-    expect(selectedLabel(w)).toBe(LABELS.brussels)
-    await search(w, 'tirane')
-    expect(shownLabels(w)).toEqual([LABELS.brussels, LABELS.amsterdam])
-    await search(w, 'norfolk')
-    expect(shownLabels(w)).toEqual([LABELS.brussels, LABELS.norfolk])
-  })
-
-  it('sorts the search results by offset too', async () => {
-    const w = await mountWith(SAVED)
-    await search(w, 'a')
-    expect(shownLabels(w)).toEqual([
-      LABELS.eastern,
-      LABELS.amsterdam,
-      LABELS.brussels,
-      LABELS.kathmandu,
-      LABELS.seoul,
-      LABELS.tokyo,
-      LABELS.norfolk,
-      LABELS.fiji,
-    ])
-  })
-
-  it('says when no zone matches the search', async () => {
-    const w = await mountWith(SAVED)
-    await search(w, 'atlantis')
-    expect(w.text()).toContain('settings.timezoneNoMatch')
-    expect(shownLabels(w)).toEqual([LABELS.brussels])
+  it('starts on the row of a saved zone whose group has no line, shown once', async () => {
+    const reunion = 'Indian/Reunion'
+    const w = await mountWith({ ...SAVED, timezone: reunion, effective: reunion })
+    expect(selectedLabel(w)).toBe(LABELS.reunion)
+    expect(shownLabels(w).filter(label => label === LABELS.reunion)).toHaveLength(1)
+    expect(w.get('button').attributes('disabled')).toBeDefined()
   })
 
   it('shows the time in the selected row', async () => {
@@ -194,12 +175,32 @@ describe('ParamsTimezoneSection', () => {
     expect(showToast).toHaveBeenCalledWith('settings.timezoneSaved', TOAST_TYPE.OK)
   })
 
+  it('stops saying nothing is saved once a zone is saved', async () => {
+    save.mockImplementation(async zone => {
+      status.value = { ...NOT_SAVED, timezone: zone, effective: zone }
+      return true
+    })
+    const w = await mountWith(NOT_SAVED)
+    await w.get('button').trigger('click')
+    await flushPromises()
+    expect(w.text()).not.toContain('settings.timezoneNotSet')
+    expect(w.get('button').attributes('disabled')).toBeDefined()
+  })
+
   it('saves the first zone of another row', async () => {
     const w = await mountWith(NOT_SAVED)
     await menu(w).setValue('Amsterdam')
     await w.get('button').trigger('click')
     await flushPromises()
     expect(save).toHaveBeenCalledWith('Europe/Berlin')
+  })
+
+  it('saves the zone of a group without a line', async () => {
+    const w = await mountWith(NOT_SAVED)
+    await menu(w).setValue('Indian/Reunion')
+    await w.get('button').trigger('click')
+    await flushPromises()
+    expect(save).toHaveBeenCalledWith('Indian/Reunion')
   })
 
   it('saves nothing when the confirmation is refused', async () => {
