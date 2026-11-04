@@ -1,8 +1,13 @@
-"""Runs of consecutive days with at least one play."""
-from collections.abc import Iterable
+"""Runs of consecutive days with at least one play, and the busiest moment."""
+from collections.abc import Iterable, Mapping
 from datetime import date, timedelta
 
 _ONE_DAY = timedelta(days=1)
+
+
+def most_played[K](counts: Mapping[K, int]) -> K:
+    """The key with the most plays. The earliest stays on a tie: equalling is not beating."""
+    return min(counts, key=lambda key: (-counts[key], key))
 
 
 def current_streak(days: Iterable[date], today: date) -> int:

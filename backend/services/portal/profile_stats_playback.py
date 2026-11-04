@@ -10,12 +10,12 @@ from collections import Counter
 from collections.abc import Iterable
 from datetime import UTC, datetime, tzinfo
 
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.playback_stats import PlaybackSession
 from services.instance_time import to_local
-from services.portal.play_streak import current_streak
+from services.portal.play_streak import current_streak, most_played
 
 # Re-exports — keep existing import path `from services.portal.profile_stats_playback import ...`
 from services.portal.profile_stats_rewatched import compute_most_rewatched  # noqa: F401
@@ -87,11 +87,11 @@ async def compute_streak(
 
 
 def _record(keys: Iterable[str], label: str) -> dict:
-    """The most frequent of ``keys``, ISO dates. The earliest stays on a tie: equalling is not beating."""
+    """The most frequent of ``keys``, ISO dates, which sort by date."""
     counts = Counter(keys)
     if not counts:
         return {label: None, "count": 0}
-    best = min(counts, key=lambda key: (-counts[key], key))
+    best = most_played(counts)
     return {label: best, "count": counts[best]}
 
 

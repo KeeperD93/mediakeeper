@@ -1,11 +1,15 @@
-"""Charts: daily data and weekly heatmap."""
-from datetime import datetime, timezone, timedelta
+"""Charts: daily data and weekly heatmap, on the clock of the instance.
 
-from sqlalchemy import select, func
+Rows are grouped here and not in SQL, which only knows the zone of its session.
+"""
+from datetime import UTC, datetime, timedelta
+
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants.playback import TICKS_PER_SECOND
 from models.playback_stats import PlaybackSession
+from services.instance_time import get_instance_zone, to_local
 
 from ._helpers import _apply_filters, _get_library_name_map, _normalize_library_name
 from .exclusions import _get_exclusion_filters
@@ -16,8 +20,10 @@ async def get_daily_chart_data(db: AsyncSession, days: int = 30, group_by: str =
     Data for daily activity charts.
     group_by: "library" ou "user"
     """
-    since = datetime.now(timezone.utc) - timedelta(days=days)
+    now = datetime.now(UTC)
+    since = now - timedelta(days=days)
     exc_filters = await _get_exclusion_filters(db)
+    zone = await get_instance_zone(db)
 
     # Per user: their watch time (video, concurrent devices once); per
     # library: the time spent on its titles, music included.
@@ -29,19 +35,15 @@ async def get_daily_chart_data(db: AsyncSession, days: int = 30, group_by: str =
         seconds_col = PlaybackSession.watched_seconds
 
     base_q = select(
-            func.date(PlaybackSession.started_at).label("day"),
+            PlaybackSession.started_at,
             group_col.label("group_name"),
-            func.count(PlaybackSession.id).label("count"),
-            func.sum(seconds_col).label("duration"),
+            seconds_col.label("seconds"),
         ).where(
             PlaybackSession.started_at >= since,
             group_col.isnot(None),
-        ).group_by("day", "group_name").order_by("day")
+        )
 
-    for f in exc_filters:
-        base_q = base_q.where(f)
-
-    q = await db.execute(base_q)
+    q = await db.execute(_apply_filters(base_q, exc_filters))
     rows = q.all()
 
     lib_map = {}
@@ -50,25 +52,17 @@ async def get_daily_chart_data(db: AsyncSession, days: int = 30, group_by: str =
 
     data = {}
     groups = set()
-    for r in rows:
-        day_str = str(r[0])
-        group_name = _normalize_library_name(r[1], lib_map) if lib_map else r[1]
+    for started_at, raw_name, seconds in rows:
+        day_str = to_local(started_at, zone).date().isoformat()
+        group_name = _normalize_library_name(raw_name, lib_map) if lib_map else raw_name
         groups.add(group_name)
-        if day_str not in data:
-            data[day_str] = {}
-        duration_ticks = (r[3] or 0) * TICKS_PER_SECOND
-        if group_name in data[day_str]:
-            data[day_str][group_name]["count"] += r[2]
-            data[day_str][group_name]["duration"] += duration_ticks
-        else:
-            data[day_str][group_name] = {
-                "count": r[2],
-                "duration": duration_ticks,
-            }
+        totals = data.setdefault(day_str, {}).setdefault(group_name, {"count": 0, "duration": 0})
+        totals["count"] += 1
+        totals["duration"] += (seconds or 0) * TICKS_PER_SECOND
 
     all_days = []
-    current = since.date()
-    end = datetime.now(timezone.utc).date()
+    current = to_local(since, zone).date()
+    end = to_local(now, zone).date()
     while current <= end:
         day_str = str(current)
         all_days.append(day_str)
@@ -85,27 +79,22 @@ async def get_daily_chart_data(db: AsyncSession, days: int = 30, group_by: str =
 
 async def get_weekly_heatmap(db: AsyncSession, days: int = 90):
     """Heatmap jour/heure des playbacks sur les N lasts jours."""
-    since = datetime.now(timezone.utc) - timedelta(days=days)
+    since = datetime.now(UTC) - timedelta(days=days)
     exc_filters = await _get_exclusion_filters(db)
+    zone = await get_instance_zone(db)
 
     q = await db.execute(
         _apply_filters(
-            select(
-                func.extract("dow", PlaybackSession.started_at).label("dow"),
-                func.extract("hour", PlaybackSession.started_at).label("hour"),
-                func.count(PlaybackSession.id).label("count"),
-            ).where(
-                PlaybackSession.started_at >= since,
-            ).group_by("dow", "hour"),
+            select(PlaybackSession.started_at).where(PlaybackSession.started_at >= since),
             exc_filters,
         )
     )
 
     grid = [[0] * 24 for _ in range(7)]
-    for r in q.all():
-        dow = int(r[0])
-        hour = int(r[1])
-        grid[dow][hour] = r[2]
+    for started_at in q.scalars():
+        local = to_local(started_at, zone)
+        # Sunday first, like the labels below.
+        grid[local.isoweekday() % 7][local.hour] += 1
 
     return {
         "grid": grid,

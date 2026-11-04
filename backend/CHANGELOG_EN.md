@@ -17,6 +17,8 @@ This section intentionally has no date so it is not shown to users.
 - Security — uvicorn's FORWARDED_ALLOW_IPS is now ignored: list proxies in TRUSTED_PROXIES.
 - Portal leaderboard — only activity counts: trophies and admin XP changes left out.
 - Dashboard — Leaderboard widget: each player's level and trophies of the month shown.
+- Statistics — days, hours and records counted in the time zone of the instance.
+- Statistics — Streak: the run holds as long as yesterday counts, no more 0 in the morning.
 
 ### Fixed
 - Settings — language menu named for screen readers.

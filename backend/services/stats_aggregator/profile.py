@@ -1,13 +1,15 @@
 """Detailed user profile."""
-from datetime import datetime, timezone, timedelta
+from collections import Counter
+from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import select, func, desc
+from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants.playback import TICKS_PER_SECOND
 from models.playback_stats import PlaybackSession
+from services.instance_time import get_instance_zone, to_local
 
-from ._helpers import _get_library_name_map, _normalize_library_name, _merge_by_name
+from ._helpers import _get_library_name_map, _merge_by_name, _normalize_library_name
 from .exclusions import _get_exclusion_filters
 
 
@@ -58,24 +60,21 @@ async def get_user_profile(db: AsyncSession, user_id: str):
     series_res = await db.execute(series_q)
     top_series = [{"name": r[0], "plays": r[1]} for r in series_res.all()]
 
-    since = datetime.now(timezone.utc) - timedelta(days=30)
-    daily_q = select(
-        func.date(PlaybackSession.started_at).label("day"),
-        func.count(PlaybackSession.id).label("count"),
-    ).where(
+    # Days on the clock of the instance: SQL only knows the zone of its session.
+    zone = await get_instance_zone(db)
+    now = datetime.now(UTC)
+    daily_q = select(PlaybackSession.started_at).where(
         *base_where,
-        PlaybackSession.started_at >= since,
-    ).group_by("day").order_by("day")
+        PlaybackSession.started_at >= now - timedelta(days=30),
+    )
     daily_res = await db.execute(daily_q)
-    daily_map = {}
-    for r in daily_res.all():
-        if r[0]:
-            daily_map[str(r[0])] = r[1]
+    plays_per_day = Counter(to_local(started_at, zone).date() for started_at in daily_res.scalars())
 
+    today = to_local(now, zone).date()
     daily = []
     for i in range(30):
-        d = (datetime.now(timezone.utc) - timedelta(days=29 - i)).strftime("%Y-%m-%d")
-        daily.append({"date": d, "count": daily_map.get(d, 0)})
+        day = today - timedelta(days=29 - i)
+        daily.append({"date": day.isoformat(), "count": plays_per_day[day]})
 
     method_q = select(
         PlaybackSession.play_method.label("method"),

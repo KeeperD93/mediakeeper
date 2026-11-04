@@ -17,6 +17,8 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Sécurité — FORWARDED_ALLOW_IPS d'uvicorn désormais ignoré : déclarer les proxys dans TRUSTED_PROXIES.
 - Classement du portail — seule l'activité compte : trophées et ajouts ou retraits d'XP admin exclus.
 - Tableau de bord — widget Classement : niveau et trophées du mois de chaque joueur affichés.
+- Statistiques — jours, heures et records comptés dans le fuseau horaire de l'instance.
+- Statistiques — Streak : la série tient tant que la veille compte, plus de 0 le matin.
 
 ### Fixed
 - Paramètres — menu Langue nommé pour les lecteurs d'écran.
