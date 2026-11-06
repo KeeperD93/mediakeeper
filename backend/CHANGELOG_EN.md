@@ -12,6 +12,7 @@ This section intentionally has no date so it is not shown to users.
 
 ### Added
 - Settings — time zone of the instance, pre-filled from the browser.
+- Debug tools — take back trophies counted in UTC before the time zone was chosen.
 
 ### Changed
 - Security — uvicorn's FORWARDED_ALLOW_IPS is now ignored: list proxies in TRUSTED_PROXIES.

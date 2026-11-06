@@ -19,5 +19,9 @@ export function usePortalAdminDebug() {
     resetAchievementForAll: achievementId =>
       apiPost(`${BASE}/reset-achievement-for-all`, { achievement_id: achievementId }),
     recheckAllAchievements: () => apiPost(`${BASE}/recheck-all-achievements`, {}),
+    simulateZoneCorrection: () => apiGet(`${BASE}/zone-correction/simulate`),
+    // The zone and the plan of the simulation the admin saw: the server refuses any other.
+    applyZoneCorrection: (timezone, plan) =>
+      apiPost(`${BASE}/zone-correction/apply`, { timezone, plan }),
   }
 }

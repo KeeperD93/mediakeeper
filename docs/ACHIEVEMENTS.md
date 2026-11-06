@@ -105,6 +105,11 @@ A rule that unlocks a trophy on the calendar never reads `started_at` in SQL: it
 the time zone of the instance, which only the Python side knows. The finished months behind Competitor
 are cut the same way, so changing the zone can reorder a past month.
 
+Saving a zone does not take back what the UTC clock gave. On an instance that ran without one,
+the debug tools of the portal offer a fix: run the recheck of every trophy until nothing new comes,
+simulate, then apply. Only the trophies of the hour unlocked before the zone was first saved are
+judged, and a backup is made just before.
+
 Elsewhere, add a branch like:
 
 ```python

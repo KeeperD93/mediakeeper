@@ -3,6 +3,7 @@
     <p class="pt-debug-hint">{{ $t('portal.admin.debug.hint') }}</p>
 
     <AdminDebugBulkTools :achievements="achievements" @changed="loadUsers" />
+    <AdminDebugZoneCorrection @changed="loadUsers" />
 
     <!-- User picker -->
     <section class="pt-debug-card">
@@ -133,6 +134,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import AdminDebugBulkTools from '@/components/portal/admin/AdminDebugBulkTools.vue'
+import AdminDebugZoneCorrection from '@/components/portal/admin/AdminDebugZoneCorrection.vue'
 import { useToast } from '@/composables/useToast'
 import { usePortalAdminDebug } from '@/composables/portal/usePortalAdminDebug'
 import { USER_ROLE } from '@/constants/auth'

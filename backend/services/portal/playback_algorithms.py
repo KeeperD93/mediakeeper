@@ -34,6 +34,7 @@ Conventions:
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Iterable
 from datetime import UTC, date, datetime, time, timedelta, tzinfo
 
 from sqlalchemy import select
@@ -50,9 +51,14 @@ from services.portal.playback_overlap import (
 
 __all__ = [
     "OPEN_SESSION_FALLBACK",
+    "all_night_chain_in",
     "has_all_night_chain",
     "has_24h_in_48h_window",
     "has_12_consecutive_top1_months",
+    "holds_12_consecutive_top1_months",
+    "king_month_leaders",
+    "king_monthly_totals",
+    "session_spans",
 ]
 
 
@@ -80,7 +86,13 @@ async def _load_user_sessions(
         select(PlaybackSession.started_at, PlaybackSession.ended_at)
         .where(PlaybackSession.user_id.in_(emby_user_ids))
     )).all()
+    return session_spans(rows)
 
+
+def session_spans(
+    rows: Iterable[tuple[datetime | None, datetime | None]],
+) -> list[tuple[datetime, datetime]]:
+    """``(started_at, ended_at)`` pairs as UTC spans sorted by start; NULL ends bounded."""
     sessions: list[tuple[datetime, datetime]] = []
     for started_at, ended_at in rows:
         start = _as_utc(started_at)
@@ -108,7 +120,11 @@ async def has_all_night_chain(
     ``chain_end >= 06:00`` for some anchor day ``J`` derived from the chain's
     own time range.
     """
-    sessions = await _load_user_sessions(db, emby_user_ids)
+    return all_night_chain_in(await _load_user_sessions(db, emby_user_ids), zone)
+
+
+def all_night_chain_in(sessions: list[tuple[datetime, datetime]], zone: tzinfo) -> bool:
+    """The test of :func:`has_all_night_chain` on spans from :func:`session_spans`."""
     if not sessions:
         return False
 
@@ -232,10 +248,14 @@ async def has_12_consecutive_top1_months(
     rows = (await db.execute(
         select(PlaybackSession.user_id, PlaybackSession.started_at, PlaybackSession.ended_at)
     )).all()
-    if not rows:
-        return False
+    leaders = king_month_leaders(king_monthly_totals(rows, zone))
+    return holds_12_consecutive_top1_months(leaders, emby_user_ids)
 
-    # Aggregate per (year, month, user_id) → total seconds.
+
+def king_monthly_totals(
+    rows: Iterable[tuple[str | None, datetime | None, datetime | None]], zone: tzinfo,
+) -> dict[tuple[int, int], dict[str, float]]:
+    """Seconds watched per Emby user in each month of the calendar of ``zone``."""
     monthly_totals: dict[tuple[int, int], dict[str, float]] = defaultdict(dict)
     for user_id, started_at, ended_at in rows:
         if user_id is None:
@@ -248,29 +268,31 @@ async def has_12_consecutive_top1_months(
         bucket = (local_start.year, local_start.month)
         seconds = (end - start).total_seconds()
         monthly_totals[bucket][user_id] = monthly_totals[bucket].get(user_id, 0.0) + seconds
+    return monthly_totals
 
-    if not monthly_totals:
-        return False
 
-    observed = set(emby_user_ids)
-    months_sorted = sorted(monthly_totals.keys())
-    streak = 0
-    for ym in months_sorted:
-        per_user = monthly_totals[ym]
+def king_month_leaders(
+    monthly_totals: dict[tuple[int, int], dict[str, float]],
+) -> dict[tuple[int, int], str | None]:
+    """The strict #1 of each qualifying month; ``None`` when the top is tied."""
+    leaders: dict[tuple[int, int], str | None] = {}
+    for ym, per_user in monthly_totals.items():
         if len(per_user) < KING_MIN_DISTINCT_USERS_PER_MONTH:
-            # Month is not eligible; skip without breaking the streak.
             continue
         ranked = sorted(per_user.items(), key=lambda kv: kv[1], reverse=True)
         top_user, top_seconds = ranked[0]
-        runner_seconds = ranked[1][1]
-        if top_seconds <= runner_seconds:
-            # Strict #1 required; tie at the top does not satisfy the trophy.
-            streak = 0
-            continue
-        if top_user in observed:
-            streak += 1
-            if streak >= KING_REQUIRED_CONSECUTIVE_MONTHS:
-                return True
-        else:
-            streak = 0
+        leaders[ym] = top_user if top_seconds > ranked[1][1] else None
+    return leaders
+
+
+def holds_12_consecutive_top1_months(
+    leaders: dict[tuple[int, int], str | None], emby_user_ids: Iterable[str],
+) -> bool:
+    """Whether ``emby_user_ids`` lead 12 qualifying months in a row; a tie or another leader resets."""
+    observed = set(emby_user_ids)
+    streak = 0
+    for ym in sorted(leaders):
+        streak = streak + 1 if leaders[ym] in observed else 0
+        if streak >= KING_REQUIRED_CONSECUTIVE_MONTHS:
+            return True
     return False

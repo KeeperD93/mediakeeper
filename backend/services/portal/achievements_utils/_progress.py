@@ -6,7 +6,7 @@ from sqlalchemy import desc, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.achievement import Achievement, UserAchievement
-from services.portal.xp import grant_xp
+from services.portal.xp import ACHIEVEMENT_XP_ACTION, achievement_xp_reference, grant_xp
 
 logger = logging.getLogger("mediakeeper.portal.achievements")
 
@@ -87,8 +87,8 @@ async def _grant_xp(
     await grant_xp(
         db,
         user_id,
-        "achievement_unlocked",
-        f"ach:{achievement_id}",
+        ACHIEVEMENT_XP_ACTION,
+        achievement_xp_reference(achievement_id),
         xp_override=amount,
     )
 

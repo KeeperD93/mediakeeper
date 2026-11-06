@@ -5,7 +5,7 @@ exclusions and the current time zone, like the live leaderboard it must agree wi
 """
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, tzinfo
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -45,9 +45,16 @@ async def finished_month_rankings(
     """
     zone = await get_instance_zone(db)
     month_start = period_bounds(LeaderboardPeriod.MONTH, to_local(datetime.now(UTC), zone)).start
+    return await month_rankings(db, zone, month_start)
+
+
+async def month_rankings(
+    db: AsyncSession, zone: tzinfo, before: datetime,
+) -> dict[tuple[int, int], list[MonthlyEntry]]:
+    """Ranking of each month of ``zone`` from the activity earned before ``before`` (UTC)."""
     stmt = select(XpLedger.user_id, XpLedger.created_at, XpLedger.xp).where(
         XpLedger.action.in_(ACTIVITY_XP_ACTIONS),
-        XpLedger.created_at < month_start,
+        XpLedger.created_at < before,
     )
     excluded_ids = await excluded_from_leaderboard(db)
     if excluded_ids:

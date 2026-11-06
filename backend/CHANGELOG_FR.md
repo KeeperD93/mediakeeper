@@ -12,6 +12,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ### Added
 - Paramètres — fuseau horaire de l'instance, prérempli avec celui du navigateur.
+- Outils de debug — retrait des trophées comptés en UTC avant le choix du fuseau.
 
 ### Changed
 - Sécurité — FORWARDED_ALLOW_IPS d'uvicorn désormais ignoré : déclarer les proxys dans TRUSTED_PROXIES.

@@ -27,7 +27,7 @@ const USERS = [
 
 async function mountPage() {
   const wrapper = mount(AdminDebug, {
-    global: { stubs: { AdminDebugBulkTools: true } },
+    global: { stubs: { AdminDebugBulkTools: true, AdminDebugZoneCorrection: true } },
   })
   await flushPromises()
   return wrapper

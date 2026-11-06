@@ -38,6 +38,26 @@ async def _resolve_playback_user_names(
     return names
 
 
+async def _resolve_every_playback_user_name(db: AsyncSession, user_id: int) -> list[str]:
+    """Every name a check pass can match this user with, whoever ran it: the names of
+    :func:`_resolve_playback_user_names` plus each Emby name on the sessions of their
+    own Emby account, the name the end of a playback passes in."""
+    names = await _resolve_playback_user_names(db, user_id, None)
+    emby_user_id = (await db.execute(
+        select(UserProfile.emby_user_id).where(UserProfile.user_id == user_id)
+    )).scalar_one_or_none()
+    if emby_user_id:
+        emby_names = (await db.execute(
+            select(PlaybackSession.user_name).distinct()
+            .where(PlaybackSession.user_id == emby_user_id)
+        )).scalars().all()
+        for candidate in sorted(emby_names):
+            candidate = (candidate or "").strip()
+            if candidate and candidate not in names:
+                names.append(candidate)
+    return names
+
+
 async def _build_playback_user_filter(
     db: AsyncSession, user_id: int, user_name: str | None
 ):

@@ -64,6 +64,13 @@ XP_TABLE = {
 # default; trophy and admin XP still count towards the level.
 ACTIVITY_XP_ACTIONS = ("watch_movie", "watch_episode", "daily_login", "request_created")
 
+# A trophy adds one ledger row, found again under this action and its reference.
+ACHIEVEMENT_XP_ACTION = "achievement_unlocked"
+
+
+def achievement_xp_reference(achievement_id: str) -> str:
+    return f"ach:{achievement_id}"
+
 
 def xp_for_level(level: int) -> int:
     """Total cumulative XP needed to reach a given level."""
