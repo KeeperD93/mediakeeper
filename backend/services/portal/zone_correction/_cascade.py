@@ -1,13 +1,14 @@
 """Trophies earned by holding others: Collector, Veteran, the Masters, the Ultimate collector.
 
-A held tier goes when the pass gave it, and would not give it once the trophies of the hour
-are gone. "Gave it" is judged without the tier itself: Collector does not count itself, and
-Veteran reads the level without its own XP, so two tiers cannot hold each other up. The
-tiers kept are rebuilt from the bottom, adding each tier the pass would grant on what the
-player still holds, until none is added; the order does not change the outcome, as holding
-more never makes a tier harder to reach.
+A held tier goes when the pass would grant it, from the bottom, with the trophies of the
+hour, and no longer once they are gone. "Grant" is judged without the tier itself:
+Collector does not count itself, and Veteran reads the level without its own XP. Tiers
+that only hold each other up were not granted by the hour: they stay, and count for the
+others. Each set is rebuilt adding every tier the pass would grant on it until none is
+added; the order does not change the outcome, as holding more never makes a tier harder
+to reach.
 """
-from collections.abc import Mapping
+from collections.abc import Collection, Mapping
 from dataclasses import dataclass
 
 from services.portal.achievement_defs import (
@@ -60,6 +61,17 @@ def _met(tier: AchievementInfo, owned: set[str], holdings: Holdings) -> bool:
     return _value(tier, owned, holdings) >= tier.threshold
 
 
+def _granted(owned: set[str], tiers: Collection[str], holdings: Holdings) -> set[str]:
+    """The ``tiers`` the pass would grant, one after the other, on top of ``owned``."""
+    granted: set[str] = set()
+    while added := {
+        a for a in tiers
+        if a not in granted and _met(holdings.achievements[a], owned | granted, holdings)
+    }:
+        granted |= added
+    return granted
+
+
 def cascade(holdings: Holdings, removed: set[str], gifts: set[str]) -> CascadeOutcome:
     """The tiers to take back once ``removed`` go, each with the value the pass would store."""
     tiers = sorted(
@@ -70,16 +82,13 @@ def cascade(holdings: Holdings, removed: set[str], gifts: set[str]) -> CascadeOu
         a for a in tiers
         if a not in gifts and _met(holdings.achievements[a], set(holdings.held), holdings)
     ]
-    owned = set(holdings.held) - removed - set(judged)
-    added = True
-    while added:
-        added = False
-        for tier_id in judged:
-            if tier_id not in owned and _met(holdings.achievements[tier_id], owned, holdings):
-                owned.add(tier_id)
-                added = True
+    base = set(holdings.held) - set(judged)
+    reachable = _granted(base, judged, holdings)
+    stays = (base - removed) | (set(judged) - reachable)
+    owned = stays | _granted(stays, reachable, holdings)
+    lost = reachable - owned
     return CascadeOutcome(
-        removed={a: _value(holdings.achievements[a], owned, holdings) for a in judged if a not in owned},
-        kept_nowhere=[a for a in tiers if a not in gifts and a not in judged],
+        removed={a: _value(holdings.achievements[a], owned, holdings) for a in judged if a in lost},
+        kept_nowhere=[a for a in tiers if a not in gifts and a not in reachable],
         kept_gifts=[a for a in tiers if a in gifts],
     )

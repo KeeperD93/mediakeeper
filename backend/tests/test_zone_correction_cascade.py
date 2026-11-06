@@ -55,6 +55,23 @@ def test_two_tiers_cannot_hold_each_other_up():
     assert outcome.removed == {"collector": 2, "veteran": 1}
 
 
+def test_two_tiers_holding_each_other_up_without_the_hour_stay():
+    # Same pair, no trophy of the hour: something else than the clock made them.
+    outcome = cascade(_holdings({"collector", "veteran", "t1", "t2"}, 350), set(), set())
+    assert outcome.removed == {} and outcome.kept_nowhere == ["collector", "veteran"]
+
+
+def test_tiers_kept_that_hold_each_other_up_still_count_for_the_others():
+    # "big" needs four others: the dawn before, the pair that stays after.
+    catalogue = {
+        **CATALOGUE,
+        **_catalogue(collector=("achievements_unlocked", 6), big=("achievements_unlocked", 4)),
+    }
+    held = {"collector", "veteran", "big", "dawn", "t1", "t2", "t3"}
+    outcome = cascade(Holdings(frozenset(held), 400, LEDGER, catalogue), {"dawn"}, set())
+    assert outcome.removed == {} and outcome.kept_nowhere == ["collector", "veteran"]
+
+
 def test_a_tier_earned_on_its_own_brings_back_the_one_above():
     held = {"collector", "veteran", "dawn", "t1", "t2"}
     outcome = cascade(_holdings(held, 1000), {"dawn"}, set())
