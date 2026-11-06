@@ -17,14 +17,16 @@ from core.database import get_db
 from models.portal.profile import UserProfile
 from models.user import User
 from services.portal import admin_debug
-from services.portal.admin_users_audit import record_audit
-from services.portal.admin_users_constants import ACTION_DEBUG_ACHIEVEMENT_RECHECK_ALL, ROLE_VIEWER
 from services.portal.achievement_defs import (
     ACHIEVEMENT_DEFS,
     META_TARGET_CATEGORY,
     achievements_for_category,
 )
-
+from services.portal.admin_users_audit import record_audit
+from services.portal.admin_users_constants import (
+    ACTION_DEBUG_ACHIEVEMENT_RECHECK_ALL,
+    ROLE_VIEWER,
+)
 
 router = APIRouter(prefix="/admin/debug", tags=["portal-admin-debug"])
 

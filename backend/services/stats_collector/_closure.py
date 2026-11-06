@@ -16,8 +16,8 @@ async def _grant_post_session_xp(db: AsyncSession, closed_sessions: list):
     """
     try:
         from models.portal.profile import UserProfile
-        from services.portal.xp import grant_watch_xp
         from services.portal.user_import import ensure_user_for_emby_session
+        from services.portal.xp import grant_watch_xp
         from services.stats import get_exclusions
 
         excl_list = await get_exclusions(db)

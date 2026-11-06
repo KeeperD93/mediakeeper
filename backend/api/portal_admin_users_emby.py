@@ -13,13 +13,12 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api._portal_admin_users_helpers import client_ip, client_ua
+from api.auth import get_current_user, require_csrf
 from core.database import get_db
 from core.security import MAX_BCRYPT_PASSWORD_BYTES, password_byte_length
 from models.portal.profile import UserProfile
 from models.user import User
-from api.auth import get_current_user, require_csrf
-
-from api._portal_admin_users_helpers import client_ip, client_ua
 from services.portal.achievements import safe_check_all_achievements_in_new_session
 from services.portal.admin_users_constants import ROLE_PATTERN, ROLE_VIEWER
 from services.portal.admin_users_emby import (

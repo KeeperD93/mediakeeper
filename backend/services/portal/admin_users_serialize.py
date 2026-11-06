@@ -8,8 +8,8 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
-from models.user import User
 from models.portal.profile import UserProfile
+from models.user import User
 from services.portal._display_name import resolve_display_name
 from services.portal._rank_tiers import tier_for_level
 from services.portal.avatars import resolve_avatar_url
