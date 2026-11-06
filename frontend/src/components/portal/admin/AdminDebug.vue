@@ -11,9 +11,7 @@
       <select v-model.number="selectedUserId" class="pt-debug-select mk-select-chevron">
         <option :value="null" disabled>—</option>
         <option v-for="u in users" :key="u.user_id" :value="u.user_id">
-          {{ u.display_name }}
-          <span v-if="u.role === 'admin'">· admin</span>
-          · L{{ u.level }} · {{ u.xp.toLocaleString() }} XP
+          {{ userLabel(u) }}
         </option>
       </select>
       <p v-if="!selectedUserId" class="pt-debug-warn">
@@ -137,7 +135,9 @@ import { useI18n } from 'vue-i18n'
 import AdminDebugBulkTools from '@/components/portal/admin/AdminDebugBulkTools.vue'
 import { useToast } from '@/composables/useToast'
 import { usePortalAdminDebug } from '@/composables/portal/usePortalAdminDebug'
+import { USER_ROLE } from '@/constants/auth'
 import { TOAST_TYPE } from '@/constants/toast'
+import { getLocale } from '@/i18n'
 
 import '@/assets/styles/portal/admin-debug.css'
 
@@ -169,12 +169,33 @@ const filteredAchievements = computed(() => {
   })
 })
 
+function userLabel(u) {
+  return [
+    u.display_name,
+    u.role === USER_ROLE.ADMIN && t('common.administrator'),
+    t('portal.admin.debug.level', { n: u.level }),
+    t('portal.admin.debug.xp', { n: u.xp.toLocaleString(getLocale()) }),
+  ]
+    .filter(Boolean)
+    .join(' · ')
+}
+
 async function loadUsers() {
-  users.value = await debugApi.listUsers()
+  try {
+    users.value = await debugApi.listUsers()
+  } catch (err) {
+    console.error('[AdminDebug.loadUsers]', err)
+    showToast(t('portal.admin.debug.errorGeneric'), TOAST_TYPE.ERR)
+  }
 }
 
 async function loadAchievements() {
-  achievements.value = await debugApi.listAchievements()
+  try {
+    achievements.value = await debugApi.listAchievements()
+  } catch (err) {
+    console.error('[AdminDebug.loadAchievements]', err)
+    showToast(t('portal.admin.debug.errorGeneric'), TOAST_TYPE.ERR)
+  }
 }
 
 function syncSelectedFromResponse(body) {

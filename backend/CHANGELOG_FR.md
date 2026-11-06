@@ -21,6 +21,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Statistiques — Streak : la série tient tant que la veille compte, plus de 0 le matin.
 
 ### Fixed
+- Outils de debug — liste des joueurs traduite, échec de chargement signalé.
 - Paramètres — menu Langue nommé pour les lecteurs d'écran.
 - Sécurité — IP derrière un proxy : adresse envoyée par le visiteur ignorée (déclarer chaque proxy).
 - Sécurité — blocage manuel d'un nom : appliqué quelle que soit la casse.

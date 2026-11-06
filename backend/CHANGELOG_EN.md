@@ -21,6 +21,7 @@ This section intentionally has no date so it is not shown to users.
 - Statistics — Streak: the run holds as long as yesterday counts, no more 0 in the morning.
 
 ### Fixed
+- Debug tools — player list translated, a failed load is reported.
 - Settings — language menu named for screen readers.
 - Security — IP behind a proxy: visitor-supplied address ignored (list every proxy).
 - Security — manual username block: applied whatever the letter case.
