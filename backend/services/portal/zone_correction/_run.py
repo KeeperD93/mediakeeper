@@ -22,7 +22,11 @@ from services.portal.admin_users_constants import (
     ACTION_DEBUG_ZONE_CORRECTION_PLAYER,
 )
 from services.portal.daily_digest import invalidate_cache
-from services.portal.xp import ACHIEVEMENT_XP_ACTION, achievement_xp_reference, level_from_xp
+from services.portal.xp import (
+    ACHIEVEMENT_XP_ACTION,
+    achievement_xp_reference,
+    level_from_xp,
+)
 
 from ._context import Context, ZoneCorrectionRefused, build_context
 from ._plan import PlayerPlan, plan_all, plan_player

@@ -10,7 +10,10 @@ more never makes a tier harder to reach.
 from collections.abc import Mapping
 from dataclasses import dataclass
 
-from services.portal.achievement_defs import META_TARGET_CATEGORY, achievements_for_category
+from services.portal.achievement_defs import (
+    META_TARGET_CATEGORY,
+    achievements_for_category,
+)
 from services.portal.achievement_defs_constants import PLACEHOLDER_IDS
 from services.portal.xp import level_from_xp
 

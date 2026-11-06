@@ -13,7 +13,10 @@ from services.portal.admin_users_constants import (
     ACTION_DEBUG_ACHIEVEMENT_UNLOCKED,
     ACTION_SYSTEM_TIMEZONE_CHANGED,
 )
-from services.portal.zone_correction import ZoneCorrectionRefused, simulate_zone_correction
+from services.portal.zone_correction import (
+    ZoneCorrectionRefused,
+    simulate_zone_correction,
+)
 from services.settings import set_setting
 from tests._zone_correction_helpers import (
     DAWN_IN_PARIS,

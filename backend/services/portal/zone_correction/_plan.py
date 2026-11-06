@@ -15,10 +15,17 @@ from models.portal.achievement import UserAchievement
 from models.portal.profile import UserProfile
 from models.portal.xp_ledger import XpLedger
 from services.portal.achievement_defs_constants import PLACEHOLDER_IDS
-from services.portal.achievements_utils import _coerce_utc, _resolve_every_playback_user_name
+from services.portal.achievements_utils import (
+    _coerce_utc,
+    _resolve_every_playback_user_name,
+)
 from services.portal.playback_algorithms import session_spans
 from services.portal.profile_decorations import stale_decoration_updates
-from services.portal.xp import ACHIEVEMENT_XP_ACTION, achievement_xp_reference, level_from_xp
+from services.portal.xp import (
+    ACHIEVEMENT_XP_ACTION,
+    achievement_xp_reference,
+    level_from_xp,
+)
 
 from ._cascade import Holdings, cascade
 from ._context import AchievementInfo, Context, is_imported

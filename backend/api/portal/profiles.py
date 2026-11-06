@@ -1,15 +1,17 @@
 """Portal profile endpoints."""
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.database import get_db
-from models.user import User
-from models.portal.profile import UserProfile
 from api.portal.deps import get_current_profile, get_request_lang
+from core.database import get_db
+from models.portal.profile import UserProfile
+from models.user import User
 from services.portal._display_name import resolve_display_name
 from services.portal._rank_tiers import tier_for_level
+from services.portal.achievement_defs import ACHIEVEMENT_DEFS, TITLE_REWARDS
+from services.portal.admin_users_constants import ROLE_ADMIN
 from services.portal.avatars import resolve_avatar_url
 from services.portal.profile_decorations import (
     avatar_effects_from,
@@ -18,9 +20,9 @@ from services.portal.profile_decorations import (
     unlocked_achievement_ids,
 )
 from services.portal.profiles import (
-    update_profile, serialize_profile_with_effective_lang,
+    serialize_profile_with_effective_lang,
+    update_profile,
 )
-from services.portal.admin_users_constants import ROLE_ADMIN
 
 router = APIRouter(prefix="/profiles", tags=["portal-profiles"])
 
@@ -75,7 +77,6 @@ async def list_my_titles(
     """List title keys unlocked by the current user, plus the currently equipped
     one and the full catalogue (title → source achievement) so the UI can show
     a "how to unlock" panel."""
-    from services.portal.achievement_defs import TITLE_REWARDS, ACHIEVEMENT_DEFS
     user, profile = up
     unlocked = titles_from(await unlocked_achievement_ids(db, user.id))
     catalogue = []
@@ -159,7 +160,6 @@ async def search_users(
     is never returned to the caller — accounts that haven't picked a
     portal pseudo render as the localized anonymous alias instead.
     """
-    from sqlalchemy import select, or_
     me, _ = up
     needle = (q or "").strip().lower()
     # Inner-join on UserProfile so soft-deleted accounts can never leak
