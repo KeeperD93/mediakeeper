@@ -91,6 +91,8 @@ def serialize_admin_user_row(profile: UserProfile, user: User) -> dict[str, Any]
         "source": profile.source or (SOURCE_EMBY if profile.emby_user_id else SOURCE_LOCAL),
         "role": profile.role,
         "account_active": bool(profile.account_active and user.is_active),
+        # Deactivated, expired or deleted: tells such an account from one never activated.
+        "deactivated": not user.is_active,
         "emby_is_disabled": profile.emby_is_disabled,
         "level": profile.level,
         "tier": tier_for_level(profile.level or 1),
