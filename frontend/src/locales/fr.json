@@ -4019,6 +4019,7 @@
         "zoneErrors": {
           "zone_not_chosen": "Aucun fuseau horaire n'est enregistré (Paramètres → Général).",
           "zone_saved_at_unknown": "La date d'enregistrement du fuseau est introuvable : correction impossible.",
+          "month_turning": "Le mois n'est pas encore le même en UTC et à l'heure de l'instance : réessayez dans quelques heures.",
           "plan_changed": "Les données ont changé depuis la simulation : simulez de nouveau.",
           "already_running": "Une correction est déjà en cours.",
           "backup_incomplete": "La sauvegarde est incomplète : rien n'a été modifié."

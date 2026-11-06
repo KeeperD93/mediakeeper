@@ -11,7 +11,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants.leaderboard import LeaderboardPeriod
 from constants.playback import IMPORTED_SESSION_KEY_PREFIXES
-from constants.zone_correction import ZONE_NOT_CHOSEN, ZONE_SAVED_AT_UNKNOWN
+from constants.zone_correction import (
+    MONTH_TURNING,
+    ZONE_NOT_CHOSEN,
+    ZONE_SAVED_AT_UNKNOWN,
+)
 from models.playback_stats import PlaybackSession
 from models.portal.achievement import Achievement
 from models.portal.audit import AdminAuditLog
@@ -151,14 +155,18 @@ async def build_context(db: AsyncSession) -> Context:
     if zone_saved_at is None:
         raise ZoneCorrectionRefused(ZONE_SAVED_AT_UNKNOWN)
 
-    # Both clocks stop at the earlier month start, so they rank the same ledger rows.
+    # Each clock ranks the months it has finished, as the pass on it does. Until both are
+    # in the same month, one of them has a month more to rank.
     now = datetime.now(UTC)
-    before = min(
-        period_bounds(LeaderboardPeriod.MONTH, now).start,
-        period_bounds(LeaderboardPeriod.MONTH, to_local(now, zone)).start,
-    )
-    contested_utc = _contested(await month_rankings(db, UTC, before))
-    contested_local = _contested(await month_rankings(db, zone, before))
+    local_now = to_local(now, zone)
+    if (local_now.year, local_now.month) != (now.year, now.month):
+        raise ZoneCorrectionRefused(MONTH_TURNING)
+    contested_utc = _contested(await month_rankings(
+        db, UTC, period_bounds(LeaderboardPeriod.MONTH, now).start,
+    ))
+    contested_local = _contested(await month_rankings(
+        db, zone, period_bounds(LeaderboardPeriod.MONTH, local_now).start,
+    ))
 
     sessions = (await db.execute(select(
         PlaybackSession.user_id, PlaybackSession.started_at,

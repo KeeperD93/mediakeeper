@@ -11,9 +11,12 @@ from models.portal.xp_ledger import XpLedger
 from services.instance_time import INSTANCE_TIMEZONE_KEY
 from services.portal.admin_users_constants import ACTION_SYSTEM_TIMEZONE_CHANGED
 from services.portal.xp import ACHIEVEMENT_XP_ACTION, achievement_xp_reference
+from services.portal.zone_correction import _context
 from services.settings import set_setting
 from tests._portal_profile_helpers import make_portal_user
 
+# The same month on every clock the tests use: at the turn of a month the tool refuses.
+MID_MONTH = datetime(2026, 6, 15, 12, tzinfo=UTC)
 # Winter: Paris is UTC+1. The zone is saved on the first of February.
 ZONE_SAVED_AT = datetime(2026, 2, 1, 12, tzinfo=UTC)
 BEFORE_SAVE = datetime(2026, 1, 20, tzinfo=UTC)
@@ -25,6 +28,16 @@ DAWN_IN_PARIS = datetime(2026, 1, 6, 4, 30, tzinfo=UTC)
 
 def at(*parts: int) -> datetime:
     return datetime(*parts, tzinfo=UTC)
+
+
+def freeze(monkeypatch, moment: datetime = MID_MONTH) -> None:
+    """The clock the tool reads the current month from."""
+    class _Frozen(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return moment
+
+    monkeypatch.setattr(_context, "datetime", _Frozen)
 
 
 async def save_zone(db, name: str = "Europe/Paris", saved_at: datetime = ZONE_SAVED_AT) -> None:

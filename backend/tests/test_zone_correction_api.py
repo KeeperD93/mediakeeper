@@ -18,6 +18,7 @@ from services.portal.zone_correction import _run
 from tests._portal_profile_helpers import PORTAL_COOKIE, make_portal_user, portal_token
 from tests._zone_correction_helpers import (
     DAWN_UTC_ONLY,
+    freeze,
     hold,
     play,
     player,
@@ -30,6 +31,11 @@ SIMULATE = "/api/portal/admin/debug/zone-correction/simulate"
 APPLY = "/api/portal/admin/debug/zone-correction/apply"
 EARLY = "secret_early_bird"
 ARCHIVE = "mediakeeper_backup_20260201_120000_zone_correction.zip"
+
+
+@pytest.fixture(autouse=True)
+def _mid_month(monkeypatch):
+    freeze(monkeypatch)
 
 
 @pytest.fixture

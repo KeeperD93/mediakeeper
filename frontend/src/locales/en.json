@@ -4019,6 +4019,7 @@
         "zoneErrors": {
           "zone_not_chosen": "No time zone is saved (Settings → General).",
           "zone_saved_at_unknown": "The date the time zone was saved cannot be found: no fix possible.",
+          "month_turning": "UTC and the instance's time are not in the same month yet: try again in a few hours.",
           "plan_changed": "The data changed since the simulation: simulate again.",
           "already_running": "A fix is already running.",
           "backup_incomplete": "The backup is incomplete: nothing was changed."

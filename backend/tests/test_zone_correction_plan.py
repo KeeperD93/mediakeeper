@@ -23,6 +23,7 @@ from tests._zone_correction_helpers import (
     DAWN_UTC_ONLY,
     ZONE_SAVED_AT,
     at,
+    freeze,
     hold,
     play,
     player,
@@ -32,6 +33,11 @@ from tests._zone_correction_helpers import (
 )
 
 EARLY = "secret_early_bird"
+
+
+@pytest.fixture(autouse=True)
+def _mid_month(monkeypatch):
+    freeze(monkeypatch)
 
 
 def _removed(summary: dict) -> dict[str, tuple[int, int]]:
@@ -220,6 +226,46 @@ async def test_a_month_only_the_zone_has_is_counted(db_session):
     summary = await simulate_zone_correction(db_session)
     assert summary["removals"] == []
     assert summary["competitor_months"] == {"changed": 2, "created": 1}
+
+
+@pytest.mark.parametrize(("zone", "moment"), [
+    # 00:30 on 1 December in Paris, still November in UTC.
+    ("Europe/Paris", at(2026, 11, 30, 23, 30)),
+    # 02:00 on 1 December in UTC, still November in New York.
+    ("America/New_York", at(2026, 12, 1, 2)),
+])
+@pytest.mark.asyncio
+async def test_refused_while_utc_and_the_zone_are_in_different_months(db_session, monkeypatch, zone, moment):
+    await seed_achievements(db_session)
+    await save_zone(db_session, zone)
+    freeze(monkeypatch, moment)
+    with pytest.raises(ZoneCorrectionRefused) as refused:
+        await simulate_zone_correction(db_session)
+    assert refused.value.code == "month_turning"
+
+
+@pytest.mark.asyncio
+async def test_competitor_given_by_the_last_hour_of_a_utc_month_is_taken_back(db_session, monkeypatch):
+    # 23:30 UTC on 30 November is December in Paris, where November had one player.
+    await seed_achievements(db_session)
+    await save_zone(db_session)
+    alice, bob = await player(db_session, "alice"), await player(db_session, "bob")
+    await _activity(db_session, (alice, at(2026, 11, 30, 23, 30)), (bob, at(2026, 11, 15)))
+    await hold(db_session, alice, "competitor_1")
+    freeze(monkeypatch, at(2026, 12, 10))
+    assert _removed(await simulate_zone_correction(db_session)) == {"competitor_1": (1, 0)}
+
+
+@pytest.mark.asyncio
+async def test_competitor_reads_the_last_hours_of_a_month_west_of_utc(db_session, monkeypatch):
+    # 02:00 UTC on the first is the evening before in New York: Alice plays in both Novembers.
+    alice, bob = await _alice_and_bob_in_new_york(db_session)
+    await _activity(
+        db_session, (alice, at(2026, 11, 1, 2)), (alice, at(2026, 12, 1, 2)), (bob, at(2026, 11, 15)),
+    )
+    await hold(db_session, alice, "competitor_1")
+    freeze(monkeypatch, at(2026, 12, 10))
+    assert (await simulate_zone_correction(db_session))["removals"] == []
 
 
 @pytest.mark.asyncio

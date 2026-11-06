@@ -3,6 +3,7 @@ from typing import Final
 
 ZONE_NOT_CHOSEN: Final[str] = "zone_not_chosen"
 ZONE_SAVED_AT_UNKNOWN: Final[str] = "zone_saved_at_unknown"
+MONTH_TURNING: Final[str] = "month_turning"
 PLAN_CHANGED: Final[str] = "plan_changed"
 ALREADY_RUNNING: Final[str] = "already_running"
 BACKUP_INCOMPLETE: Final[str] = "backup_incomplete"
