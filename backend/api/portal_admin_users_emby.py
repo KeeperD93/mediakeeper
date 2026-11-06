@@ -3,21 +3,24 @@
 Routes mounted at ``/api/portal/admin/users``:
 
 - ``GET    /emby/unimported``         — list every Emby user without a MK account yet
-- ``POST   /emby/import``             — import a selection of Emby user ids
+- ``POST   /emby/import``             — import a selection of Emby user ids, then check their trophies
 - ``POST   /local``                   — provision a brand-new local-only account
 """
 import logging
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, Request
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
 from core.security import MAX_BCRYPT_PASSWORD_BYTES, password_byte_length
+from models.portal.profile import UserProfile
 from models.user import User
 from api.auth import get_current_user, require_csrf
 
 from api._portal_admin_users_helpers import client_ip, client_ua
+from services.portal.achievements import safe_check_all_achievements_in_new_session
 from services.portal.admin_users_constants import ROLE_PATTERN, ROLE_VIEWER
 from services.portal.admin_users_emby import (
     backfill_emby_user_ids,
@@ -59,17 +62,31 @@ class EmbyImportSelection(BaseModel):
 async def post_emby_import(
     data: EmbyImportSelection,
     request: Request,
+    background_tasks: BackgroundTasks,
     _csrf: None = Depends(require_csrf),
     admin: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    return await import_selected_emby_users(
+    result = await import_selected_emby_users(
         db,
         emby_user_ids=data.emby_user_ids,
         admin_user_id=admin.id,
         ip=client_ip(request),
         user_agent=client_ua(request),
     )
+    if result.get("created"):
+        # An imported account earns at once: its trophies come from its whole Emby
+        # history now, not at its next play. A deactivated account is left alone.
+        accounts = (await db.execute(
+            select(User.id, User.username)
+            .join(UserProfile, UserProfile.user_id == User.id)
+            .where(UserProfile.emby_user_id.in_(data.emby_user_ids), User.is_active.is_(True))
+        )).all()
+        for user_id, username in accounts:
+            background_tasks.add_task(
+                safe_check_all_achievements_in_new_session, user_id, username, "emby_import",
+            )
+    return result
 
 
 class LocalUserCreate(BaseModel):
