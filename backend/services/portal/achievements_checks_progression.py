@@ -64,8 +64,10 @@ async def check_progression(
     if any(k in by_type for k in (
         "profile_level", "avatar_changed", "member_years", "title_equipped",
     )):
+        # The session may hold this profile from before another session changed its level.
         profile = (await db.execute(
             select(UserProfile).where(UserProfile.user_id == user_id)
+            .execution_options(populate_existing=True)
         )).scalar_one_or_none()
 
     # --- leaderboard_top10 / top5 / top3 / first: finished months only ---
