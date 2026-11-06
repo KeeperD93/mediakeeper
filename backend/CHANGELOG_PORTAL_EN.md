@@ -31,6 +31,7 @@ This section intentionally has no date so it is not shown to users.
 - My profile — ranking: your row as on the Leaderboard page, XP and trophies aligned.
 - Trophies, leaderboard, My profile and What's new today — counted in the time zone of the instance.
 - Regular and Faithful trophies — unlocked on the longest streak, not only the current one.
+- XP and trophies — earned from the first Emby play, even before signing in.
 
 ### Fixed
 - Sign-in — three real tries, counter reset after a successful sign-in.

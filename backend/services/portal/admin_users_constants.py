@@ -20,7 +20,6 @@ PERMISSION_KEYS = (
     "can_portal",
     "can_problems",
     "can_lists",
-    "can_earn_xp_offline",
     "can_report_feedback",
 )
 
@@ -32,7 +31,6 @@ ROLE_PRESETS: dict[str, dict[str, bool]] = {
         "can_portal": True,
         "can_problems": True,
         "can_lists": True,
-        "can_earn_xp_offline": False,
         "can_report_feedback": False,
     },
     ROLE_MODERATOR: {
@@ -40,7 +38,6 @@ ROLE_PRESETS: dict[str, dict[str, bool]] = {
         "can_portal": True,
         "can_problems": True,
         "can_lists": True,
-        "can_earn_xp_offline": False,
         "can_report_feedback": False,
     },
     ROLE_ADMIN: {
@@ -48,7 +45,6 @@ ROLE_PRESETS: dict[str, dict[str, bool]] = {
         "can_portal": True,
         "can_problems": True,
         "can_lists": True,
-        "can_earn_xp_offline": True,
         "can_report_feedback": False,
     },
 }

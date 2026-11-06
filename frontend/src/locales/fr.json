@@ -2287,7 +2287,6 @@
         "can_portal": "L'utilisateur voit le module Demandes et peut soumettre des requêtes.",
         "can_problems": "L'utilisateur peut signaler et suivre les problèmes.",
         "can_lists": "L'utilisateur peut créer et alimenter ses listes de lecture.",
-        "can_earn_xp_offline": "Une activité Emby détectée crédite de l'XP même sans connexion MK.",
         "can_report_feedback": "L'utilisateur peut envoyer des bugs et suggestions au mainteneur (soumis à votre validation)."
       },
       "bulk": {

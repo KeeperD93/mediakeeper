@@ -41,3 +41,8 @@ def test_offline_sql_renders_064():
     assert "ALTER TABLE security_blocks ADD COLUMN automatic INTEGER DEFAULT '0' NOT NULL" in sql
     assert "ADD CONSTRAINT ck_security_blocks_automatic_bool CHECK (automatic IN (0, 1))" in sql
     assert "UPDATE security_blocks SET automatic = 1" in sql
+
+
+def test_offline_sql_renders_067():
+    sql = _render("066_last_login_from_sign_ins:067_drop_can_earn_xp_offline")
+    assert "ALTER TABLE user_profiles DROP COLUMN can_earn_xp_offline" in sql

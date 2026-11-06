@@ -214,7 +214,8 @@ async def debug_recheck_all_achievements(
     admin: tuple[User, UserProfile] = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    """Run ``check_all_achievements`` for every active profile.
+    """Run ``check_all_achievements`` for every account that earns: all but those
+    deactivated, expired or deleted, signed in or not.
 
     Used to backfill trophies after a bug that prevented the post-session
     pipeline from running (the collector usually triggers the check, but
@@ -227,7 +228,7 @@ async def debug_recheck_all_achievements(
     profiles = (await db.execute(
         select(UserProfile, User.username)
         .join(User, User.id == UserProfile.user_id)
-        .where(UserProfile.account_active.is_(True))
+        .where(User.is_active.is_(True))
     )).all()
 
     summary = []
@@ -244,7 +245,7 @@ async def debug_recheck_all_achievements(
                 "newly_unlocked": len(unlocks),
                 "achievement_ids": [u["achievement_id"] for u in unlocks],
             })
-    # Mass mutation (unlocks + XP across every active user) → no single
+    # Mass mutation (unlocks + XP across every account that earns) → no single
     # target; the counts bound the blast radius for after-the-fact review.
     await record_audit(
         db, admin_user_id=admin[0].id, target_user_id=None,
