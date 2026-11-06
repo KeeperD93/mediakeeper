@@ -39,6 +39,7 @@ from sqlalchemy.exc import IntegrityError
 
 from models.portal.xp_ledger import XpLedger
 from models.portal.profile import UserProfile
+from models.user import User
 from services.portal._watch_threshold import WATCHED_THRESHOLD
 
 logger = logging.getLogger("mediakeeper.portal.xp")
@@ -94,7 +95,8 @@ async def grant_xp(
 ) -> dict | None:
     """
     Attempt to grant XP for an action. Returns the grant details if
-    successful, or None if blocked by anti-abuse rules.
+    successful, or None if the account is deactivated or the grant is
+    blocked by anti-abuse rules.
 
     The unique constraint (user_id, action, reference) is the primary
     dedup mechanism — if the exact same grant was already recorded,
@@ -102,6 +104,10 @@ async def grant_xp(
     """
     base_xp = xp_override if xp_override is not None else XP_TABLE.get(action, 0)
     if base_xp <= 0:
+        return None
+    # Same rule as the trophy check: a deactivated account earns nothing,
+    # including from a request an admin files on its behalf.
+    if not await db.scalar(select(User.is_active).where(User.id == user_id)):
         return None
 
     # --- Apply active XP boost multipliers (Christmas, Halloween, etc.) ---

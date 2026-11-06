@@ -24,6 +24,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.achievement import Achievement
 from models.playback_stats import PlaybackSession
+from models.user import User
 from services.instance_time import get_instance_zone
 from services.portal.exclusions import (
     get_exclusion_filters,
@@ -90,6 +91,11 @@ async def check_all_achievements(
     Returns list of newly unlocked achievements (for notification).
     Called after a watch session closes, on request creation, etc.; never on login.
     """
+    # Deactivating, expiring or deleting an account clears ``is_active``: from
+    # then on it earns nothing, whoever or whatever triggers the check.
+    if not await db.scalar(select(User.is_active).where(User.id == user_id)):
+        return []
+
     excl_filters = await get_exclusion_filters(db)
     pause_excl_filters = await get_pause_event_exclusion_filters(db)
 
