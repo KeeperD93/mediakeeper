@@ -1,28 +1,29 @@
 """Progression-type achievement checks: leaderboard, level, tickets, watch hours, events, etc."""
 from collections import defaultdict
 from datetime import datetime, timezone
-from sqlalchemy import select, func, distinct
+
+from sqlalchemy import distinct, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants.requests import ACCEPTED_REQUEST_STATUSES
-from models.portal.achievement import Achievement
-from models.portal.profile import UserProfile
 from models.playback_stats import PlaybackSession
+from models.portal.achievement import Achievement
 from models.portal.emby_tmdb_index import EmbyTmdbIndex
-from models.portal.request import MediaRequest
-from models.portal.ticket import Ticket
 from models.portal.event import MKEvent
+from models.portal.profile import UserProfile
+from models.portal.request import MediaRequest
 from models.portal.social import (
+    PRIVACY_COLLABORATIVE,
+    PRIVACY_PUBLIC_READONLY,
     UserList,
     UserListItem,
-    PRIVACY_PUBLIC_READONLY,
-    PRIVACY_COLLABORATIVE,
 )
+from models.portal.ticket import Ticket
 from models.portal.xp_ledger import XpLedger
 from services.portal.achievements_utils import (
-    update_progress,
     _coerce_utc,
     _session_duration_seconds,
+    update_progress,
 )
 from services.portal.monthly_ranking import finished_month_rankings
 
