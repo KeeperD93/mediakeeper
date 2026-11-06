@@ -1,5 +1,5 @@
 <template>
-  <!-- ─── Recheck all achievements ───────────────────────────── -->
+  <!-- Recheck all achievements -->
   <section class="pt-debug-card">
     <h3 class="pt-debug-title">{{ $t('portal.admin.debug.recheckSection') }}</h3>
     <p class="pt-debug-sub">{{ $t('portal.admin.debug.recheckHint') }}</p>
@@ -28,7 +28,7 @@
     </p>
   </section>
 
-  <!-- ─── Reset achievement for all ───────────────────────────── -->
+  <!-- Reset achievement for all -->
   <section class="pt-debug-card">
     <h3 class="pt-debug-title">{{ $t('portal.admin.debug.resetForAllSection') }}</h3>
     <p class="pt-debug-sub">{{ $t('portal.admin.debug.resetForAllHint') }}</p>

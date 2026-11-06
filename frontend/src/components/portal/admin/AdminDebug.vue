@@ -4,7 +4,7 @@
 
     <AdminDebugBulkTools :achievements="achievements" @changed="loadUsers" />
 
-    <!-- ─── User picker ─────────────────────────────────────────── -->
+    <!-- User picker -->
     <section class="pt-debug-card">
       <h3 class="pt-debug-title">{{ $t('portal.admin.debug.userPicker') }}</h3>
       <p class="pt-debug-sub">{{ $t('portal.admin.debug.userPickerHint') }}</p>
@@ -19,7 +19,7 @@
       </p>
     </section>
 
-    <!-- ─── XP grant ────────────────────────────────────────────── -->
+    <!-- XP grant -->
     <section class="pt-debug-card" :class="{ 'pt-debug-card--disabled': !selectedUserId }">
       <h3 class="pt-debug-title">{{ $t('portal.admin.debug.xpSection') }}</h3>
       <p class="pt-debug-sub">{{ $t('portal.admin.debug.xpHint') }}</p>
@@ -50,7 +50,7 @@
       </div>
     </section>
 
-    <!-- ─── Level ────────────────────────────────────────────────── -->
+    <!-- Level -->
     <section class="pt-debug-card" :class="{ 'pt-debug-card--disabled': !selectedUserId }">
       <h3 class="pt-debug-title">{{ $t('portal.admin.debug.levelSection') }}</h3>
       <p class="pt-debug-sub">{{ $t('portal.admin.debug.levelHint') }}</p>
@@ -75,7 +75,7 @@
       </div>
     </section>
 
-    <!-- ─── Achievements ─────────────────────────────────────────── -->
+    <!-- Achievements -->
     <section class="pt-debug-card" :class="{ 'pt-debug-card--disabled': !selectedUserId }">
       <h3 class="pt-debug-title">{{ $t('portal.admin.debug.achievementSection') }}</h3>
       <p class="pt-debug-sub">{{ $t('portal.admin.debug.achievementHint') }}</p>
