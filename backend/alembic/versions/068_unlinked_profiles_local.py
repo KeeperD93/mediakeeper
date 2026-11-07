@@ -3,7 +3,9 @@
 ``user_profiles.source`` came with migration 035, set to ``emby`` on every
 profile already there, the backoffice admin's included. Only a profile holding
 an Emby id is linked, as the leaderboard and the earning rule tell: the others
-are relabelled ``local`` so the users list stops calling them Emby.
+are relabelled ``local`` so the users list stops calling them Emby. A player
+from before 035 who has neither signed in nor played since would be relabelled
+too and stay local: no public release predates 035.
 Irreversible: the relabelled profiles cannot be told apart afterwards, so
 ``downgrade`` is a no-op.
 
