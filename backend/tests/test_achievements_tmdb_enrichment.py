@@ -51,6 +51,7 @@ async def _make_viewer(db, username: str = "tmdb-viewer") -> User:
         display_name=username.title(),
         role="viewer",
         account_active=True,
+        emby_user_id="emby-viewer",
     ))
     await db.commit()
     return user

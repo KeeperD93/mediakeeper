@@ -41,7 +41,7 @@ from models.portal.profile import UserProfile
 from models.portal.xp_ledger import XpLedger
 from models.user import User
 from services.portal._watch_threshold import WATCHED_THRESHOLD
-from services.portal.admin_users_constants import SOURCE_LOCAL
+from services.portal.admin_users_constants import SOURCE_EMBY
 
 logger = logging.getLogger("mediakeeper.portal.xp")
 
@@ -90,15 +90,17 @@ def level_from_xp(total_xp: int) -> int:
 async def account_earns(db: AsyncSession, user_id: int) -> bool:
     """Whether an account may earn XP and trophies, whatever triggers the grant.
 
-    Deactivating, expiring or deleting an account clears ``is_active``. A local
-    account, made in MediaKeeper for its administration, is no player either.
+    Only an active player does. Deactivating, expiring or deleting an account
+    clears ``is_active``. A player's profile is linked to a media-server user,
+    tested as on the leaderboard: a local account, made in MediaKeeper for its
+    administration, or a profile never linked earns nothing.
     """
     row = (await db.execute(
-        select(User.is_active, UserProfile.source)
-        .outerjoin(UserProfile, UserProfile.user_id == User.id)
+        select(User.is_active, UserProfile.source, UserProfile.emby_user_id)
+        .join(UserProfile, UserProfile.user_id == User.id)
         .where(User.id == user_id)
     )).first()
-    return bool(row and row.is_active and row.source != SOURCE_LOCAL)
+    return bool(row and row.is_active and row.source == SOURCE_EMBY and row.emby_user_id)
 
 
 async def grant_xp(

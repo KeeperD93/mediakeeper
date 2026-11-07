@@ -33,7 +33,10 @@ async def _viewer(db, username: str = "alice") -> User:
     db.add(user)
     await db.commit()
     await db.refresh(user)
-    db.add(UserProfile(user_id=user.id, display_name=username, role="viewer", account_active=True))
+    db.add(UserProfile(
+        user_id=user.id, display_name=username, role="viewer", account_active=True,
+        emby_user_id=f"emby-{username}",
+    ))
     await db.commit()
     return user
 

@@ -3,8 +3,8 @@
 A deactivated account earns nothing, whatever path triggers the grant: a
 served request, an admin's status change, a request filed on its behalf,
 items added to its shared list. Nor does a local account, made in MediaKeeper
-for its administration. Each case runs against an account that may earn too,
-so the trigger is shown to pay."""
+for its administration, or a profile never linked to a media-server user. Each
+case runs against an account that may earn too, so the trigger is shown to pay."""
 import pytest
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -27,13 +27,14 @@ ACTIVE = pytest.mark.parametrize("active", [True, False], ids=["active", "deacti
 
 
 async def _account(
-    db, name: str, *, active: bool, role: str = "viewer", source: str = "emby",
+    db, name: str, *, active: bool, role: str = "viewer", source: str = "emby", linked: bool = True,
 ) -> int:
     user = User(username=name, hashed_password="x", is_active=active, must_change_password=False)
     db.add(user)
     await db.flush()
     db.add(UserProfile(
         user_id=user.id, display_name=name, role=role, account_active=active, source=source,
+        emby_user_id=f"emby-{name}" if linked else None,
     ))
     await db.commit()
     return user.id
@@ -70,26 +71,30 @@ def background_on_test_db(monkeypatch, db_session):
     )
 
 
-@pytest.mark.parametrize(("active", "source", "earns"), [
-    (True, "emby", True),
-    (False, "emby", False),
-    (True, "local", False),
-    (False, "local", False),
+@pytest.mark.parametrize(("active", "source", "linked", "earns"), [
+    (True, "emby", True, True),
+    (False, "emby", True, False),
+    # Labelled "emby" by the column default, never linked: the old admin profile.
+    (True, "emby", False, False),
+    (True, "local", False, False),
+    # Linked by its name, still local.
+    (True, "local", True, False),
+    (False, "local", False, False),
 ])
 @pytest.mark.asyncio
-async def test_only_an_active_media_server_account_earns(db_session, active, source, earns):
-    alice = await _account(db_session, "alice", active=active, source=source)
+async def test_only_an_active_linked_media_server_account_earns(db_session, active, source, linked, earns):
+    alice = await _account(db_session, "alice", active=active, source=source, linked=linked)
 
     assert await account_earns(db_session, alice) is earns
 
 
 @pytest.mark.asyncio
-async def test_an_account_without_portal_profile_is_judged_by_its_activity(db_session):
+async def test_an_account_without_portal_profile_earns_nothing(db_session):
     user = User(username="bob", hashed_password="x", is_active=True, must_change_password=False)
     db_session.add(user)
     await db_session.commit()
 
-    assert await account_earns(db_session, user.id) is True
+    assert await account_earns(db_session, user.id) is False
     assert await account_earns(db_session, 12345) is False
 
 
@@ -201,13 +206,17 @@ async def test_items_added_to_a_shared_list_pay_only_an_active_owner(db_session,
     _assert_paid(await _earned(db_session, alice), active)
 
 
-@pytest.mark.parametrize(("source", "earns"), [("emby", True), ("local", False)])
+@pytest.mark.parametrize(("source", "linked", "earns"), [
+    ("emby", True, True),
+    ("emby", False, False),
+    ("local", False, False),
+])
 @pytest.mark.asyncio
 async def test_a_request_pays_its_author_only_if_linked_to_the_media_server(
-    client, db_session, background_on_test_db, source, earns,
+    client, db_session, background_on_test_db, source, linked, earns,
 ):
     await seed_achievements(db_session)
-    admin = await _account(db_session, "admin_dm", active=True, role="admin", source=source)
+    admin = await _account(db_session, "admin_dm", active=True, role="admin", source=source, linked=linked)
 
     _sign_in(client, "admin_dm")
     resp = await client.post("/api/portal/requests", json={

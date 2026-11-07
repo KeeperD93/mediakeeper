@@ -59,6 +59,7 @@ async def _make_viewer(db, username: str) -> User:
         display_name=username.title(),
         role="viewer",
         account_active=True,
+        emby_user_id=f"emby-{username}",
     ))
     await db.commit()
     return user

@@ -68,6 +68,7 @@ async def _make_profile(
         display_name=username,
         role=role,
         account_active=True,
+        emby_user_id=f"emby-{username}",
         xp=xp,
         level=level,
     )

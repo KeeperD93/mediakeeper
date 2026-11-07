@@ -14,7 +14,9 @@ async def _make_profile(db: AsyncSession) -> UserProfile:
     db.add(user)
     await db.commit()
     await db.refresh(user)
-    profile = UserProfile(user_id=user.id, display_name="Alice", role="viewer", account_active=True)
+    profile = UserProfile(
+        user_id=user.id, display_name="Alice", role="viewer", account_active=True, emby_user_id="emby-alice",
+    )
     db.add(profile)
     await db.commit()
     await db.refresh(profile)

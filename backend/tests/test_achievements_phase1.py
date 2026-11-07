@@ -63,6 +63,7 @@ async def _make_user_and_profile(
         display_name=username.title(),
         role=role,
         account_active=True,
+        emby_user_id=f"emby-{username}",
     )
     db.add(profile)
     await db.commit()
