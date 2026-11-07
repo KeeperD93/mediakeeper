@@ -52,6 +52,7 @@ This section intentionally has no date so it is not shown to users.
 - Users — "Never logged in" no longer lists members who have visited.
 - Scheduler — tasks and cache up to date when returning to the tab.
 - Scheduler — "Default" button: duration translated in its tooltip.
+- Users — "Sync Emby IDs" no longer links a local account.
 
 ## [1.0.0-rc.9] - 2026-10-23
 

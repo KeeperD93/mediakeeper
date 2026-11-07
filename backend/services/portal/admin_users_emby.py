@@ -106,11 +106,12 @@ async def _insert_profile_or_skip(db: AsyncSession, **values: Any) -> bool:
 
 
 async def backfill_emby_user_ids(db: AsyncSession) -> dict[str, Any]:
-    """Reconcile every MK profile with its Emby counterpart in one pass:
-    stamp ``emby_user_id`` (was empty pre-035), force ``source="emby"``
-    on matches (some legacy profiles inherited ``local``), and mirror
+    """Reconcile every Emby profile with its Emby counterpart in one pass:
+    stamp ``emby_user_id`` (was empty pre-035) and mirror
     ``Policy.IsDisabled`` into ``emby_is_disabled`` so the list can flag
-    upstream-blocked accounts without a per-row Emby round-trip."""
+    upstream-blocked accounts without a per-row Emby round-trip. A local
+    account is left out even when an Emby user bears its name: it serves
+    administration only and is never linked."""
     emby_users = await list_emby_users(db)
     if not emby_users:
         return {"error": "no_source"}
@@ -118,6 +119,7 @@ async def backfill_emby_user_ids(db: AsyncSession) -> dict[str, Any]:
     rows = (await db.execute(
         select(UserProfile, User)
         .join(User, User.id == UserProfile.user_id)
+        .where(UserProfile.source != SOURCE_LOCAL)
     )).all()
 
     # Build a lookup that carries the Emby id + the disabled flag.
@@ -146,9 +148,6 @@ async def backfill_emby_user_ids(db: AsyncSession) -> dict[str, Any]:
         dirty = False
         if profile.emby_user_id != match["id"]:
             profile.emby_user_id = match["id"]
-            dirty = True
-        if profile.source != SOURCE_EMBY:
-            profile.source = SOURCE_EMBY
             dirty = True
         if profile.emby_is_disabled != match["is_disabled"]:
             profile.emby_is_disabled = match["is_disabled"]

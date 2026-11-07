@@ -52,6 +52,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Utilisateurs — « Jamais connectés » ne liste plus les membres déjà venus.
 - Planificateur — tâches et cache à jour au retour sur l'onglet.
 - Planificateur — bouton « Défaut » : durée traduite dans l'infobulle.
+- Utilisateurs — « Synchroniser les ID Emby » ne relie plus un compte local.
 
 ## [1.0.0-rc.9] - 2026-10-23
 
