@@ -13,7 +13,7 @@ Provisioned profiles default to:
 - avatar mirrored from Emby    — for the admin UI
 """
 import logging
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -24,6 +24,7 @@ from models.portal.profile import UserProfile
 from services.portal._pseudo_words import generate_pseudo
 from services.portal.profiles import resolve_unique_display_name
 from services.portal.admin_users_constants import ROLE_VIEWER
+from services.portal.xp import EARNING_ACCOUNT
 
 logger = logging.getLogger("mediakeeper.portal.user_import")
 
@@ -33,13 +34,21 @@ async def _find_existing_emby_user(
 ) -> User | None:
     """Resolve an account already provisioned for this Emby identity,
     preferring the stable Emby GUID over the mutable login name. Returns
-    ``None`` when no MediaKeeper account exists yet."""
+    ``None`` when no MediaKeeper account exists yet.
+
+    Several accounts can share one Emby GUID (an old deactivated one and a
+    newer one, say): the account that may earn comes first, so the player's
+    watch time is credited to the account they actually use."""
     if emby_user_id:
         by_emby_id = (await db.execute(
             select(User)
             .join(UserProfile, UserProfile.user_id == User.id)
             .where(UserProfile.emby_user_id == emby_user_id)
-            .order_by(UserProfile.account_active.desc(), User.id.asc())
+            .order_by(
+                case((EARNING_ACCOUNT, 0), else_=1),
+                UserProfile.account_active.desc(),
+                User.id.asc(),
+            )
             .limit(1)
         )).scalar_one_or_none()
         if by_emby_id:

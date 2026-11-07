@@ -12,7 +12,9 @@ from sqlalchemy import func, select
 from models.portal.profile import UserProfile
 from models.user import User
 from services.portal._pseudo_words import generate_pseudo
+from services.portal.admin_users_constants import SOURCE_EMBY
 from services.portal.user_import import ensure_user_for_emby_session
+from services.portal.xp import account_earns
 
 
 @pytest.mark.asyncio
@@ -89,6 +91,65 @@ async def test_ensure_user_prefers_stable_emby_id_over_session_name(db_session):
         select(func.count(User.id))
     )).scalar_one()
     assert user_count == 1
+
+
+async def _add_emby_account(
+    db, *, username: str, is_active: bool, account_active: bool, emby_user_id: str,
+) -> int:
+    user = User(username=username, hashed_password="x", is_active=is_active)
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+    db.add(UserProfile(
+        user_id=user.id,
+        display_name=username,
+        role="viewer",
+        source=SOURCE_EMBY,
+        account_active=account_active,
+        emby_user_id=emby_user_id,
+    ))
+    await db.commit()
+    return user.id
+
+
+@pytest.mark.asyncio
+async def test_ensure_user_picks_the_account_that_earns_on_a_shared_emby_id(db_session):
+    """An old deactivated account (portal access still on) and a newer one
+    never activated share one Emby GUID: only the newer one may earn, so the
+    collector must pay it, whatever the ids and portal access say."""
+    await _add_emby_account(
+        db_session, username="alice-old", is_active=False,
+        account_active=True, emby_user_id="EMBY-SHARED",
+    )
+    new_id = await _add_emby_account(
+        db_session, username="alice-new", is_active=True,
+        account_active=False, emby_user_id="EMBY-SHARED",
+    )
+
+    found = await ensure_user_for_emby_session(
+        db_session, emby_username="alice", emby_user_id="EMBY-SHARED",
+    )
+
+    assert found.id == new_id
+    assert await account_earns(db_session, found.id)
+
+
+@pytest.mark.asyncio
+async def test_ensure_user_breaks_ties_between_earning_accounts_on_portal_access(db_session):
+    await _add_emby_account(
+        db_session, username="bob-first", is_active=True,
+        account_active=False, emby_user_id="EMBY-TWIN",
+    )
+    activated_id = await _add_emby_account(
+        db_session, username="bob-second", is_active=True,
+        account_active=True, emby_user_id="EMBY-TWIN",
+    )
+
+    found = await ensure_user_for_emby_session(
+        db_session, emby_username="bob", emby_user_id="EMBY-TWIN",
+    )
+
+    assert found.id == activated_id
 
 
 @pytest.mark.asyncio

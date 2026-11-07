@@ -44,6 +44,7 @@ utilisateurs.
 - Barre du haut — une seule ligne sur tablette, onglets défilants si besoin.
 - XP — un gain simultané n'écrase plus celui qui vient d'être attribué.
 - XP — un échec des trophées d'un joueur ne prive plus les autres de leur XP de visionnage.
+- XP — versée au compte utilisé quand deux comptes partagent le même compte Emby.
 - Listes — créer une liste ou changer sa visibilité ne signale plus d'erreur à tort.
 - Trophées — débloqués même quand deux vérifications du même joueur se croisent.
 - Classement du mois — titre choisi affiché aussi de la 2e à la 13e place.
