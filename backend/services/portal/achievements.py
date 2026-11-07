@@ -19,51 +19,52 @@ Consumers import from this file, not the split files, to keep the public API sta
 """
 import logging
 import time
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models.portal.achievement import Achievement
 from models.playback_stats import PlaybackSession
+from models.portal.achievement import Achievement
 from models.user import User
 from services.instance_time import get_instance_zone
-from services.portal.exclusions import (
-    get_exclusion_filters,
-    get_pause_event_exclusion_filters,
-)
 from services.portal.achievement_defs_constants import PLACEHOLDER_IDS
-from services.portal.achievements_utils import (
-    MAX_PINNED_BADGES,
-    update_progress,
-    _load_user_achievement_map,
-    _build_pause_user_filter,
-    _build_playback_user_filter,
-)
-from services.portal.achievements_seed import seed_achievements
-from services.portal.achievements_profile import get_achievements_for_profile
-from services.portal.achievements_badges import pin_badge, unpin_badge, get_leaderboard
+from services.portal.achievements_badges import get_leaderboard, pin_badge, unpin_badge
 from services.portal.achievements_checks_local_time import (
     LOCAL_TIME_CONDITIONS,
     check_local_time,
 )
-from services.portal.achievements_checks_standard import check_standard
+from services.portal.achievements_checks_meta import check_meta
 from services.portal.achievements_checks_progression import check_progression
 from services.portal.achievements_checks_secrets_a import check_secrets_a
 from services.portal.achievements_checks_secrets_b import check_secrets_b
-from services.portal.achievements_checks_meta import check_meta
+from services.portal.achievements_checks_standard import check_standard
+from services.portal.achievements_profile import get_achievements_for_profile
+from services.portal.achievements_seed import seed_achievements
+from services.portal.achievements_utils import (
+    MAX_PINNED_BADGES,
+    _build_pause_user_filter,
+    _build_playback_user_filter,
+    _load_user_achievement_map,
+    update_progress,
+)
+from services.portal.exclusions import (
+    get_exclusion_filters,
+    get_pause_event_exclusion_filters,
+)
 
 logger = logging.getLogger("mediakeeper.portal.achievements")
 
 __all__ = [
-    "seed_achievements",
-    "get_achievements_for_profile",
+    "MAX_PINNED_BADGES",
     "check_all_achievements",
+    "get_achievements_for_profile",
+    "get_leaderboard",
+    "pin_badge",
     "safe_check_all_achievements",
     "safe_check_all_achievements_in_new_session",
-    "update_progress",
-    "pin_badge",
+    "seed_achievements",
     "unpin_badge",
-    "get_leaderboard",
-    "MAX_PINNED_BADGES",
+    "update_progress",
 ]
 
 # condition_types that scan all PlaybackSession rows; load them once.
@@ -129,15 +130,15 @@ async def check_all_achievements(
         )).scalars().all()
 
     unlocks: list[dict] = []
-    common_kwargs = dict(
-        by_type=by_type,
-        user_id=user_id,
-        ua_map=ua_map,
-        unlocked_ids=unlocked_ids,
-        user_filter=user_filter,
-        excl_filters=excl_filters,
-        playback_rows=playback_rows,
-    )
+    common_kwargs = {
+        "by_type": by_type,
+        "user_id": user_id,
+        "ua_map": ua_map,
+        "unlocked_ids": unlocked_ids,
+        "user_filter": user_filter,
+        "excl_filters": excl_filters,
+        "playback_rows": playback_rows,
+    }
 
     unlocks.extend(await _safe_pass("standard", check_standard(db, **common_kwargs)))
     unlocks.extend(await _safe_pass(

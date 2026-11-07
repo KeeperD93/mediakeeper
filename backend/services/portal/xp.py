@@ -31,14 +31,14 @@ Level curve (quadratic):
   Level 50  =   127,500 XP  (~5 years, max)
 """
 import logging
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import select, func, or_
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import func, or_, select
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from models.portal.xp_ledger import XpLedger
 from models.portal.profile import UserProfile
+from models.portal.xp_ledger import XpLedger
 from models.user import User
 from services.portal._watch_threshold import WATCHED_THRESHOLD
 
@@ -113,10 +113,10 @@ async def grant_xp(
     # --- Apply active XP boost multipliers (Christmas, Halloween, etc.) ---
     from services.portal.xp_boost import get_active_multiplier
     multiplier = await get_active_multiplier(db, action)
-    xp_amount = int(round(base_xp * multiplier)) if multiplier != 1.0 else base_xp
+    xp_amount = round(base_xp * multiplier) if multiplier != 1.0 else base_xp
 
     # --- Daily caps ---
-    today_start = datetime.now(timezone.utc).replace(
+    today_start = datetime.now(UTC).replace(
         hour=0, minute=0, second=0, microsecond=0
     )
 
@@ -231,7 +231,7 @@ async def grant_watch_xp(
         return None
 
     # --- 24h cooldown per item ---
-    cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
+    cutoff = datetime.now(UTC) - timedelta(hours=24)
     action = "watch_movie" if item_type == "Movie" else "watch_episode"
     existing = (await db.execute(
         select(XpLedger.id).where(
@@ -251,7 +251,7 @@ async def grant_watch_xp(
 
     # Use a time-bucketed reference so the unique constraint allows
     # the same item after 24h: "item_id:YYYY-MM-DD"
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    today = datetime.now(UTC).strftime("%Y-%m-%d")
     reference = f"{item_id}:{today}"
 
     return await grant_xp(db, user_id, action, reference)
@@ -261,7 +261,7 @@ async def grant_daily_login_xp(
     db: AsyncSession, user_id: int
 ) -> dict | None:
     """Grant daily login XP (max 1 per calendar day)."""
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    today = datetime.now(UTC).strftime("%Y-%m-%d")
     return await grant_xp(db, user_id, "daily_login", today)
 
 
