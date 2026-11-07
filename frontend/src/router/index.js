@@ -114,8 +114,11 @@ router.beforeEach(async to => {
     let ok = await checkPortalAuth()
     if (ok) return true
 
-    const { checkAuth, isAuthenticated } = useAuth()
+    const { checkAuth, isAuthenticated, mustChangePassword } = useAuth()
     const isAdmin = isAuthenticated.value || (await checkAuth())
+    // A temporary password is changed in the admin shell first: sent to the
+    // sign-in, the admin would come straight back here, in a loop.
+    if (isAdmin && mustChangePassword.value) return { path: '/' }
     if (isAdmin) {
       try {
         const res = await fetchApiResponse('/api/portal/admin/requests/enter', {

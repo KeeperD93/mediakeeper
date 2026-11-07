@@ -50,7 +50,7 @@ ROLE_PRESETS: dict[str, dict[str, bool]] = {
 }
 
 # Source of an account: imported from Emby, or created locally in
-# MediaKeeper for an administrator (never linked to Emby).
+# MediaKeeper for an administrator, meant to stay unlinked from Emby.
 SOURCE_EMBY = "emby"
 SOURCE_LOCAL = "local"
 SOURCES = (SOURCE_EMBY, SOURCE_LOCAL)

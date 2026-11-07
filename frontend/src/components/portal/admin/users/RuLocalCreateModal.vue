@@ -34,14 +34,7 @@
             <p :id="helpId" class="ru-help">{{ $t('requestsAdmin.users.drawerLocal.help') }}</p>
             <label>
               <span>{{ $t('requestsAdmin.users.drawerLocal.username') }} *</span>
-              <input
-                v-model="form.username"
-                type="text"
-                minlength="3"
-                maxlength="50"
-                required
-                autofocus
-              />
+              <input v-model="form.username" type="text" minlength="3" maxlength="50" required />
             </label>
             <label>
               <span>{{ $t('requestsAdmin.users.drawerLocal.password') }} *</span>

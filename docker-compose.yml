@@ -35,8 +35,9 @@ services:
       # - JWT_SECRET_KEY=change-me-with-at-least-32-random-bytes
       # MK_ADMIN_USERS: accounts allowed to sign in to the administration,
       # comma-separated and spelled exactly like the account name. For a
-      # second administrator: add the name, restart, then create the account
-      # under Users > "Create an administrator".
+      # second administrator: add the name, run docker compose up -d again (a
+      # plain restart keeps the old value), then create the account under
+      # Users > "Create an administrator".
       # - MK_ADMIN_USERS=admin
       # - FRONTEND_ORIGIN=https://mediakeeper.example.com
       # - COOKIE_SECURE=true

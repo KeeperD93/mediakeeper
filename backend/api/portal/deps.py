@@ -62,7 +62,8 @@ async def get_current_profile(
     current_user: User = Depends(get_portal_user),
     db: AsyncSession = Depends(get_db),
 ) -> tuple[User, UserProfile]:
-    """Returns (User, UserProfile). Refuses if missing, disabled or revoked."""
+    """Returns (User, UserProfile). Refuses if missing, disabled or revoked, and
+    until a temporary password is changed."""
     result = await db.execute(
         select(UserProfile).where(UserProfile.user_id == current_user.id)
     )
@@ -88,6 +89,10 @@ async def get_current_profile(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="session_revoked",
             )
+    # As in the backoffice, once the session is known valid: a temporary password
+    # opens nothing until it is changed.
+    if current_user.must_change_password:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="must_change_password")
     return current_user, profile
 
 

@@ -1,7 +1,9 @@
 """Users page, "Create an administrator": the local account it makes is for a
 name declared in MK_ADMIN_USERS, can sign in, and must change its password
-first. Synthetic users only."""
+before anything else. Synthetic users only."""
 from __future__ import annotations
+
+import unicodedata
 
 import pytest
 from sqlalchemy import func, select
@@ -14,6 +16,7 @@ from models.user import User
 
 NEW_ADMIN = "second-admin"
 PASSWORD = "Test-Pass-12345"
+NEW_PASSWORD = "Fresh-Pass-67890!"
 URL = "/api/portal/admin/users/local"
 
 
@@ -96,28 +99,84 @@ async def test_name_must_be_spelled_as_declared(client, admin_user, db_session, 
 
 
 @pytest.mark.asyncio
-async def test_refuses_an_accented_capital(client, admin_user, db_session, monkeypatch):
-    """The database lower() leaves an accented capital as it is (SQLite here,
-    PostgreSQL in the C locale): such an account could never sign in."""
-    monkeypatch.setenv("MK_ADMIN_USERS", "admin,Élodie,élodie")
-    assert await _create(client, admin_user, "Élodie") == {"error": "username_accented_capital"}
-    assert await _accounts_named(db_session, "Élodie") == 0
+@pytest.mark.parametrize("username", [
+    "Élodie",  # the database lower() leaves a capital outside A-Z as it is
+    "Дмитрий",
+    unicodedata.normalize("NFD", "élodie"),  # pasted decomposed: never equals the name typed
+])
+async def test_refuses_a_name_that_could_never_sign_in(
+    client, admin_user, db_session, monkeypatch, username,
+):
+    """SQLite here, PostgreSQL in the C locale in production."""
+    monkeypatch.setenv("MK_ADMIN_USERS", f"admin,{username}")
+    assert await _create(client, admin_user, username) == {"error": "username_unmatchable"}
+    assert await _accounts_named(db_session, username) == 0
 
-    body = await _create(client, admin_user, "élodie")
-    assert body["ok"] is True
+
+@pytest.mark.asyncio
+async def test_a_lowercase_accented_name_signs_in_typed_with_a_capital(
+    client, admin_user, monkeypatch,
+):
+    monkeypatch.setenv("MK_ADMIN_USERS", "admin,élodie")
+    assert (await _create(client, admin_user, "élodie"))["ok"] is True
     resp = await client.post("/api/auth/login", json={"username": "Élodie", "password": PASSWORD})
     assert resp.status_code == 200, resp.text
     assert resp.json()["must_change_password"] is True
 
 
 @pytest.mark.asyncio
-async def test_refuses_an_emby_namesake(client, admin_user, db_session, monkeypatch, emby_users):
+async def test_refuses_a_name_already_taken_in_another_case(client, admin_user, db_session, monkeypatch):
+    monkeypatch.setenv("MK_ADMIN_USERS", "admin,Admin")
+    assert await _create(client, admin_user, "Admin") == {"error": "username_taken"}
+    assert await _accounts_named(db_session, "Admin") == 0
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("emby_name", [
+    "Second-Admin",
+    "  SECOND-ADMIN  ",
+    "ſecond-admin",  # meets "second-admin" through capitals only
+])
+async def test_refuses_an_emby_namesake(
+    client, admin_user, db_session, monkeypatch, emby_users, emby_name,
+):
     """The Emby sign-in finds an account by name: an Emby user of the same name
     would enter the admin account with their Emby password."""
     monkeypatch.setenv("MK_ADMIN_USERS", f"admin,{NEW_ADMIN}")
-    emby_users.append({"Name": "Second-Admin", "Id": "emby-1"})
+    emby_users.append({"Name": emby_name, "Id": "emby-1"})
     assert await _create(client, admin_user, NEW_ADMIN) == {"error": "username_on_emby"}
     assert await _accounts_named(db_session, NEW_ADMIN) == 0
+
+
+@pytest.mark.asyncio
+async def test_portal_stays_closed_until_the_temporary_password_is_changed(
+    client, admin_user, monkeypatch,
+):
+    """Signed in with the password the creating admin chose, the new admin may
+    only change it: the portal, admin pages included, opens afterwards."""
+    monkeypatch.setenv("MK_ADMIN_USERS", f"admin,{NEW_ADMIN}")
+    await _create(client, admin_user, NEW_ADMIN)
+    resp = await client.post(
+        "/api/auth/portal-login", json={"username": NEW_ADMIN, "password": PASSWORD},
+    )
+    assert resp.status_code == 200, resp.text
+
+    for resp in (
+        await client.get("/api/portal/auth/me"),
+        await client.get("/api/portal/admin/stats"),
+        await client.patch("/api/portal/admin/maintenance", json={"enabled": True}),
+        await client.post("/api/portal/admin/requests/enter"),
+    ):
+        assert (resp.status_code, resp.json()["detail"]) == (403, "must_change_password")
+
+    resp = await client.post("/api/auth/change-password", json={
+        "current_password": PASSWORD,
+        "new_password": NEW_PASSWORD,
+        "confirm_password": NEW_PASSWORD,
+    })
+    assert resp.status_code == 200, resp.text
+    assert (await client.post("/api/portal/admin/requests/enter")).status_code == 200
+    assert (await client.get("/api/portal/admin/stats")).status_code == 200
 
 
 @pytest.mark.asyncio

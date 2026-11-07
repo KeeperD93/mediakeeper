@@ -11,6 +11,7 @@ produce a ``User`` + ``UserProfile`` pair with the right ``source`` flag.
 """
 from __future__ import annotations
 
+import unicodedata
 from typing import Any, Iterable
 
 from sqlalchemy import func, literal, select
@@ -326,11 +327,14 @@ async def create_local_user(
     if not password or len(password) < 8:
         return {"error": "invalid_password"}
     lowered = cleaned_username.lower()
-    # Sign-in matches names through the database lower(), which may leave an
-    # accented capital as it is: such a name could never sign in.
+    # Such names could never sign in: a name pasted in decomposed form never
+    # equals the same name typed, and sign-in matches names through the database
+    # lower(), which may leave a capital outside A-Z as it is.
+    if unicodedata.normalize("NFC", cleaned_username) != cleaned_username:
+        return {"error": "username_unmatchable"}
     db_lower = (await db.execute(select(func.lower(literal(cleaned_username))))).scalar_one()
     if db_lower != lowered:
-        return {"error": "username_accented_capital"}
+        return {"error": "username_unmatchable"}
     if not is_backoffice_admin(cleaned_username):
         return {"error": "not_admin_name"}
 
@@ -342,11 +346,14 @@ async def create_local_user(
     if existing:
         return {"error": "username_taken"}
     # The Emby sign-in finds an account by the name typed: an Emby user of the
-    # same name would enter this one with their Emby password. Not checked
-    # when Emby cannot be reached (the listing is then empty).
-    emby_names = {(eu.get("Name") or "").strip().lower() for eu in await list_emby_users(db)}
-    if lowered in emby_names:
-        return {"error": "username_on_emby"}
+    # same name would enter this one with their Emby password. Compared through
+    # capitals too, where "ſ" meets "s". Not checked when Emby cannot be reached
+    # (the listing is then empty).
+    raised = cleaned_username.upper()
+    for emby_user in await list_emby_users(db):
+        emby_name = (emby_user.get("Name") or "").strip()
+        if emby_name.lower() == lowered or emby_name.upper() == raised:
+            return {"error": "username_on_emby"}
 
     user = User(
         username=cleaned_username,
@@ -367,9 +374,9 @@ async def create_local_user(
         source=SOURCE_LOCAL,
         account_active=account_active,
         display_name_must_set=False,
-        first_name=(first_name or None) or None,
-        last_name=(last_name or None) or None,
-        email=(email or None) or None,
+        first_name=first_name or None,
+        last_name=last_name or None,
+        email=email or None,
         **ROLE_PRESETS[ROLE_ADMIN],
     )
     db.add(profile)
