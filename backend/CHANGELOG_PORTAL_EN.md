@@ -43,6 +43,7 @@ This section intentionally has no date so it is not shown to users.
 - XP — a simultaneous gain no longer overwrites the one just granted.
 - XP — one player's failed trophy check no longer costs the others their watch XP.
 - Lists — creating a list or changing its visibility no longer shows a false error.
+- Trophies — unlocked even when two checks of the same player overlap.
 - Monthly leaderboard — chosen title also shown from 2nd to 13th place.
 - Monthly leaderboard — compact page on phones, nothing cut off on the right.
 - Monthly leaderboard — readable top ten XP, level color on the avatar only.
