@@ -132,20 +132,21 @@ async def test_refuses_a_name_already_taken_in_another_case(client, admin_user, 
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("emby_name", [
-    "Second-Admin",
-    "  SECOND-ADMIN  ",
-    "ſecond-admin",  # meets "second-admin" through capitals only
+@pytest.mark.parametrize(("username", "emby_name"), [
+    (NEW_ADMIN, "Second-Admin"),
+    (NEW_ADMIN, "  SECOND-ADMIN  "),
+    (NEW_ADMIN, "ſecond-admin"),  # "ſ" meets "s" through capitals only
+    ("kris", "Kriſ"),  # Kelvin sign through small letters, "ſ" through capitals
 ])
 async def test_refuses_an_emby_namesake(
-    client, admin_user, db_session, monkeypatch, emby_users, emby_name,
+    client, admin_user, db_session, monkeypatch, emby_users, username, emby_name,
 ):
     """The Emby sign-in finds an account by name: an Emby user of the same name
     would enter the admin account with their Emby password."""
-    monkeypatch.setenv("MK_ADMIN_USERS", f"admin,{NEW_ADMIN}")
+    monkeypatch.setenv("MK_ADMIN_USERS", f"admin,{username}")
     emby_users.append({"Name": emby_name, "Id": "emby-1"})
-    assert await _create(client, admin_user, NEW_ADMIN) == {"error": "username_on_emby"}
-    assert await _accounts_named(db_session, NEW_ADMIN) == 0
+    assert await _create(client, admin_user, username) == {"error": "username_on_emby"}
+    assert await _accounts_named(db_session, username) == 0
 
 
 @pytest.mark.asyncio

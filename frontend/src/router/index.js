@@ -97,7 +97,14 @@ router.beforeEach(async to => {
       }
       const role = portalAuth.profile.value?.role
       if (role !== 'admin') {
-        return { name: 'portal-maintenance' }
+        // An admin with a temporary password has no portal session yet: the admin
+        // shell asks for the change, as outside maintenance.
+        const { checkAuth, isAuthenticated, mustChangePassword } = useAuth()
+        const pendingAdmin =
+          !portalAuth.isPortalAuth.value &&
+          (isAuthenticated.value || (await checkAuth())) &&
+          mustChangePassword.value
+        return pendingAdmin ? { path: '/' } : { name: 'portal-maintenance' }
       }
     }
   }

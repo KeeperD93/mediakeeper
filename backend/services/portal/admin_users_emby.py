@@ -346,13 +346,14 @@ async def create_local_user(
     if existing:
         return {"error": "username_taken"}
     # The Emby sign-in finds an account by the name typed: an Emby user of the
-    # same name would enter this one with their Emby password. Compared through
-    # capitals too, where "ſ" meets "s". Not checked when Emby cannot be reached
-    # (the listing is then empty).
-    raised = cleaned_username.upper()
+    # same name would enter this one with their Emby password. Also compared
+    # through capitals then small letters, where look-alikes meet ("ſ" and "s",
+    # the Kelvin sign and "k"), even mixed in one name. Not checked when Emby
+    # cannot be reached (the listing is then empty).
+    folded = cleaned_username.upper().lower()
     for emby_user in await list_emby_users(db):
         emby_name = (emby_user.get("Name") or "").strip()
-        if emby_name.lower() == lowered or emby_name.upper() == raised:
+        if emby_name.lower() == lowered or emby_name.upper().lower() == folded:
             return {"error": "username_on_emby"}
 
     user = User(

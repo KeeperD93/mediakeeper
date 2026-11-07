@@ -3,6 +3,14 @@ from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.auth import (
+    MUST_CHANGE_PASSWORD,
+    NOT_AUTHENTICATED,
+    SESSION_REVOKED,
+    TOKEN_INVALID,
+    USER_NOT_FOUND,
+)
+from constants.security import ACCOUNT_DISABLED
 from core.database import get_db
 from core.i18n import get_request_locale
 from core.security import decode_access_token, is_token_valid_for_revocation_pivot
@@ -40,20 +48,20 @@ async def get_portal_user(
     """
     token = request.cookies.get(PORTAL_COOKIE_NAME)
     if not token:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not_authenticated")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=NOT_AUTHENTICATED)
 
     payload = decode_access_token(token)
     if not payload or payload.get("scope") != "portal":
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="token_invalid")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=TOKEN_INVALID)
 
     username = payload.get("sub")
     if not username:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="token_invalid")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=TOKEN_INVALID)
 
     result = await db.execute(select(User).where(User.username == username))
     user = result.scalar_one_or_none()
     if not user or not user.is_active:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="user_not_found")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=USER_NOT_FOUND)
     return user
 
 
@@ -76,7 +84,7 @@ async def get_current_profile(
     if not profile.account_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="account_disabled",
+            detail=ACCOUNT_DISABLED,
         )
     # Force-logout: every JWT issued before ``tokens_invalidated_at`` is
     # rejected so the admin can kick a session in one click.
@@ -87,12 +95,12 @@ async def get_current_profile(
         if not is_token_valid_for_revocation_pivot(iat, profile.tokens_invalidated_at):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="session_revoked",
+                detail=SESSION_REVOKED,
             )
     # As in the backoffice, once the session is known valid: a temporary password
     # opens nothing until it is changed.
     if current_user.must_change_password:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="must_change_password")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=MUST_CHANGE_PASSWORD)
     return current_user, profile
 
 
