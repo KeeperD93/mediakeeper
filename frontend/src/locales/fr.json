@@ -3986,7 +3986,7 @@
         "secretLabel": "Secret",
         "tierLabel": "Palier",
         "recheckSection": "Re-vérifier tous les trophées",
-        "recheckHint": "Recalcule les trophées de chaque compte Emby non désactivé depuis l'historique de visionnage (un compte local n'en gagne pas). Idempotent : aucun XP en double.",
+        "recheckHint": "Recalcule, depuis l'historique de visionnage, les trophées de chaque compte Emby non désactivé (un compte local n'en gagne pas). Idempotent : aucun XP en double.",
         "recheckApply": "Lancer la vérification",
         "recheckRunning": "Vérification en cours…",
         "recheckDone": "{unlocks} nouveau(x) trophée(s) débloqué(s)",

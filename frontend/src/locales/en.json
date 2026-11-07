@@ -3986,7 +3986,7 @@
         "secretLabel": "Secret",
         "tierLabel": "Tier",
         "recheckSection": "Recheck all trophies",
-        "recheckHint": "Recomputes the trophies of every Emby account not deactivated from its watch history (a local account earns none). Idempotent — no duplicate XP.",
+        "recheckHint": "Recomputes every non-deactivated Emby account's trophies from its watch history (a local account earns none). Idempotent — no duplicate XP.",
         "recheckApply": "Run recheck",
         "recheckRunning": "Rechecking…",
         "recheckDone": "{unlocks} new trophy unlock(s)",
