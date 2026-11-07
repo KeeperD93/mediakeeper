@@ -111,7 +111,7 @@ async def backfill_emby_user_ids(db: AsyncSession) -> dict[str, Any]:
     ``Policy.IsDisabled`` into ``emby_is_disabled`` so the list can flag
     upstream-blocked accounts without a per-row Emby round-trip. A local
     account is left out even when an Emby user bears its name: it serves
-    administration only and is never linked."""
+    administration only and must not be linked."""
     emby_users = await list_emby_users(db)
     if not emby_users:
         return {"error": "no_source"}
