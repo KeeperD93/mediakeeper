@@ -75,9 +75,6 @@ async def fulfill_open_requests(db: AsyncSession) -> int:
             logger.exception("[REQUEST] fulfilment failed for request_id=%s", req.id)
 
     for user_id in requesters:
-        # A check that fails keeps its error to itself but not its failed
-        # transaction: start each one on a clean session.
-        await db.rollback()
         await safe_check_all_achievements(
             db, user_id=user_id, user_name=None, source="request_status_change",
         )

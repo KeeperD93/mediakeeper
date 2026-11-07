@@ -192,6 +192,11 @@ async def safe_check_all_achievements(
     fired from request handlers) so a regression in one check pass cannot
     break the originating endpoint.
 
+    A failure rolls the session back so the caller can go on with it: nothing
+    the session had not committed survives, and every instance it holds is
+    expired. Callers commit their own work first and touch no ORM object
+    loaded before the call.
+
     ``source`` is a free-form label; conventional values include
     ``"playback_close"``, ``"chat_message"``,
     ``"request_created"``, ``"request_status_change"``, ``"ticket_created"``,
@@ -208,6 +213,13 @@ async def safe_check_all_achievements(
             "achievements run failed",
             extra={"user_id": user_id, "source": source},
         )
+        try:
+            await db.rollback()
+        except Exception:
+            logger.exception(
+                "achievements run rollback failed",
+                extra={"user_id": user_id, "source": source},
+            )
         if not silent:
             raise
     finally:

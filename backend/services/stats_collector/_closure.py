@@ -15,6 +15,7 @@ async def _grant_post_session_xp(db: AsyncSession, closed_sessions: list):
     plays, signed in or not, until it is deactivated, expires or is deleted.
     """
     try:
+        from models.playback_stats import PlaybackSession
         from models.portal.profile import UserProfile
         from services.portal.user_import import ensure_user_for_emby_session
         from services.portal.xp import grant_watch_xp
@@ -26,8 +27,11 @@ async def _grant_post_session_xp(db: AsyncSession, closed_sessions: list):
             if exc.get("mode") == "exact":
                 excluded_names.add(exc.get("value", ""))
 
-        for sess in closed_sessions:
-            if sess.item_name and sess.item_name in excluded_names:
+        # By id: a failed trophy check rolls the session back, which expires the
+        # rows still to come; ``get`` reloads them (None once deleted meanwhile).
+        for sess_id in [sess.id for sess in closed_sessions]:
+            sess = await db.get(PlaybackSession, sess_id)
+            if sess is None or (sess.item_name and sess.item_name in excluded_names):
                 continue
 
             user = await ensure_user_for_emby_session(

@@ -41,6 +41,8 @@ This section intentionally has no date so it is not shown to users.
 - Monthly leaderboard — singular respected ("Top 1 player", "1 ranked player", "1 day remaining").
 - Top bar — one row on tablets, tabs scroll when needed.
 - XP — a simultaneous gain no longer overwrites the one just granted.
+- XP — one player's failed trophy check no longer costs the others their watch XP.
+- Lists — creating a list or changing its visibility no longer shows a false error.
 - Monthly leaderboard — chosen title also shown from 2nd to 13th place.
 - Monthly leaderboard — compact page on phones, nothing cut off on the right.
 - Monthly leaderboard — readable top ten XP, level color on the avatar only.
