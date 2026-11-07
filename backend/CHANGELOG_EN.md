@@ -22,6 +22,7 @@ This section intentionally has no date so it is not shown to users.
 - Statistics — Streak: the run holds as long as yesterday counts, no more 0 in the morning.
 - Users — every Emby account earns XP and trophies from import until deactivated ("without logging in" box removed).
 - Users — "Never activated" or "Deactivated" status instead of "Inactive".
+- Users — "Create an administrator" replaces "Create user" (temporary password).
 
 ### Fixed
 - Debug tools — player list translated, a failed load is reported.

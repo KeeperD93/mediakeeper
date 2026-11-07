@@ -22,6 +22,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Statistiques — Streak : la série tient tant que la veille compte, plus de 0 le matin.
 - Utilisateurs — tout compte Emby gagne XP et trophées de l'import à sa désactivation (case « sans connexion » retirée).
 - Utilisateurs — statut « Jamais activé » ou « Désactivé » au lieu de « Inactif ».
+- Utilisateurs — « Créer un administrateur » remplace « Créer un utilisateur » (mot de passe provisoire).
 
 ### Fixed
 - Outils de debug — liste des joueurs traduite, échec de chargement signalé.

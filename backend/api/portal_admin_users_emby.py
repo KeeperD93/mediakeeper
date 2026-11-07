@@ -4,7 +4,7 @@ Routes mounted at ``/api/portal/admin/users``:
 
 - ``GET    /emby/unimported``         — list every Emby user without a MK account yet
 - ``POST   /emby/import``             — import a selection of Emby user ids, then check their trophies
-- ``POST   /local``                   — provision a brand-new local-only account
+- ``POST   /local``                   — provision an administrator's local account
 """
 import logging
 
@@ -20,7 +20,6 @@ from core.security import MAX_BCRYPT_PASSWORD_BYTES, password_byte_length
 from models.portal.profile import UserProfile
 from models.user import User
 from services.portal.achievements import safe_check_all_achievements_in_new_session
-from services.portal.admin_users_constants import ROLE_PATTERN, ROLE_VIEWER
 from services.portal.admin_users_emby import (
     backfill_emby_user_ids,
     create_local_user,
@@ -96,7 +95,6 @@ class LocalUserCreate(BaseModel):
     email: str | None = Field(None, max_length=255)
     first_name: str | None = Field(None, max_length=100)
     last_name: str | None = Field(None, max_length=100)
-    role: str = Field(ROLE_VIEWER, pattern=ROLE_PATTERN)
     account_active: bool = True
 
     @field_validator("password")
@@ -125,7 +123,6 @@ async def post_create_local(
         email=data.email,
         first_name=data.first_name,
         last_name=data.last_name,
-        role=data.role,
         account_active=data.account_active,
         admin_user_id=admin.id,
         ip=client_ip(request),

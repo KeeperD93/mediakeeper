@@ -49,9 +49,8 @@ ROLE_PRESETS: dict[str, dict[str, bool]] = {
     },
 }
 
-# Source of an account: imported from Emby/Jellyfin or created locally
-# in MediaKeeper for someone without a streaming account (a partner, a
-# beta tester…).
+# Source of an account: imported from Emby, or created locally in
+# MediaKeeper for an administrator (never linked to Emby).
 SOURCE_EMBY = "emby"
 SOURCE_LOCAL = "local"
 SOURCES = (SOURCE_EMBY, SOURCE_LOCAL)
