@@ -1,7 +1,10 @@
-"""A deactivated account earns no trophy and no XP, whatever path triggers the
-grant: a served request, an admin's status change, a request filed on its
-behalf, items added to its shared list. Each case runs against an active
-account too, so the trigger is shown to pay when the account may earn."""
+"""Who earns trophies and XP: an active account linked to the media server.
+
+A deactivated account earns nothing, whatever path triggers the grant: a
+served request, an admin's status change, a request filed on its behalf,
+items added to its shared list. Nor does a local account, made in MediaKeeper
+for its administration. Each case runs against an account that may earn too,
+so the trigger is shown to pay."""
 import pytest
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,16 +21,20 @@ from services.portal import lists as lists_svc
 from services.portal import lists_items
 from services.portal.achievements import check_all_achievements, seed_achievements
 from services.portal.requests_fulfill import fulfill_open_requests
-from services.portal.xp import grant_xp
+from services.portal.xp import account_earns, grant_xp
 
 ACTIVE = pytest.mark.parametrize("active", [True, False], ids=["active", "deactivated"])
 
 
-async def _account(db, name: str, *, active: bool, role: str = "viewer") -> int:
+async def _account(
+    db, name: str, *, active: bool, role: str = "viewer", source: str = "emby",
+) -> int:
     user = User(username=name, hashed_password="x", is_active=active, must_change_password=False)
     db.add(user)
     await db.flush()
-    db.add(UserProfile(user_id=user.id, display_name=name, role=role, account_active=active))
+    db.add(UserProfile(
+        user_id=user.id, display_name=name, role=role, account_active=active, source=source,
+    ))
     await db.commit()
     return user.id
 
@@ -42,9 +49,9 @@ async def _earned(db, user_id: int) -> tuple[int, int]:
     return trophies, grants
 
 
-def _assert_paid(earned: tuple[int, int], active: bool) -> None:
+def _assert_paid(earned: tuple[int, int], earns: bool) -> None:
     trophies, grants = earned
-    if active:
+    if earns:
         assert trophies > 0 and grants > 0
     else:
         assert (trophies, grants) == (0, 0)
@@ -61,6 +68,29 @@ def background_on_test_db(monkeypatch, db_session):
         "core.database.AsyncSessionLocal",
         lambda: AsyncSession(db_session.bind, expire_on_commit=False),
     )
+
+
+@pytest.mark.parametrize(("active", "source", "earns"), [
+    (True, "emby", True),
+    (False, "emby", False),
+    (True, "local", False),
+    (False, "local", False),
+])
+@pytest.mark.asyncio
+async def test_only_an_active_media_server_account_earns(db_session, active, source, earns):
+    alice = await _account(db_session, "alice", active=active, source=source)
+
+    assert await account_earns(db_session, alice) is earns
+
+
+@pytest.mark.asyncio
+async def test_an_account_without_portal_profile_is_judged_by_its_activity(db_session):
+    user = User(username="bob", hashed_password="x", is_active=True, must_change_password=False)
+    db_session.add(user)
+    await db_session.commit()
+
+    assert await account_earns(db_session, user.id) is True
+    assert await account_earns(db_session, 12345) is False
 
 
 @ACTIVE
@@ -169,3 +199,20 @@ async def test_items_added_to_a_shared_list_pay_only_an_active_owner(db_session,
 
     assert result["added"] == 10
     _assert_paid(await _earned(db_session, alice), active)
+
+
+@pytest.mark.parametrize(("source", "earns"), [("emby", True), ("local", False)])
+@pytest.mark.asyncio
+async def test_a_request_pays_its_author_only_if_linked_to_the_media_server(
+    client, db_session, background_on_test_db, source, earns,
+):
+    await seed_achievements(db_session)
+    admin = await _account(db_session, "admin_dm", active=True, role="admin", source=source)
+
+    _sign_in(client, "admin_dm")
+    resp = await client.post("/api/portal/requests", json={
+        "tmdb_id": 12345, "media_type": "movie", "title": "Test Movie",
+    })
+
+    assert resp.status_code == 200, resp.text
+    _assert_paid(await _earned(db_session, admin), earns)

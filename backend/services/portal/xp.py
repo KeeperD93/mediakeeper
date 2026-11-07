@@ -41,6 +41,7 @@ from models.portal.profile import UserProfile
 from models.portal.xp_ledger import XpLedger
 from models.user import User
 from services.portal._watch_threshold import WATCHED_THRESHOLD
+from services.portal.admin_users_constants import SOURCE_LOCAL
 
 logger = logging.getLogger("mediakeeper.portal.xp")
 
@@ -86,6 +87,20 @@ def level_from_xp(total_xp: int) -> int:
     return level
 
 
+async def account_earns(db: AsyncSession, user_id: int) -> bool:
+    """Whether an account may earn XP and trophies, whatever triggers the grant.
+
+    Deactivating, expiring or deleting an account clears ``is_active``. A local
+    account, made in MediaKeeper for its administration, is no player either.
+    """
+    row = (await db.execute(
+        select(User.is_active, UserProfile.source)
+        .outerjoin(UserProfile, UserProfile.user_id == User.id)
+        .where(User.id == user_id)
+    )).first()
+    return bool(row and row.is_active and row.source != SOURCE_LOCAL)
+
+
 async def grant_xp(
     db: AsyncSession,
     user_id: int,
@@ -95,8 +110,8 @@ async def grant_xp(
 ) -> dict | None:
     """
     Attempt to grant XP for an action. Returns the grant details if
-    successful, or None if the account is deactivated or the grant is
-    blocked by anti-abuse rules.
+    successful, or None if the account may not earn (``account_earns``) or
+    the grant is blocked by anti-abuse rules.
 
     The unique constraint (user_id, action, reference) is the primary
     dedup mechanism — if the exact same grant was already recorded,
@@ -105,9 +120,9 @@ async def grant_xp(
     base_xp = xp_override if xp_override is not None else XP_TABLE.get(action, 0)
     if base_xp <= 0:
         return None
-    # Same rule as the trophy check: a deactivated account earns nothing,
-    # including from a request an admin files on its behalf.
-    if not await db.scalar(select(User.is_active).where(User.id == user_id)):
+    # Same rule as the trophy check, including for a request an admin files
+    # on another account's behalf.
+    if not await account_earns(db, user_id):
         return None
 
     # --- Apply active XP boost multipliers (Christmas, Halloween, etc.) ---

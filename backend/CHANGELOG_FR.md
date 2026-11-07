@@ -20,7 +20,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Tableau de bord — widget Classement : niveau et trophées du mois de chaque joueur affichés.
 - Statistiques — jours, heures et records comptés dans le fuseau horaire de l'instance.
 - Statistiques — Streak : la série tient tant que la veille compte, plus de 0 le matin.
-- Utilisateurs — tout compte gagne XP et trophées de l'import à sa désactivation (case « sans connexion » retirée).
+- Utilisateurs — tout compte Emby gagne XP et trophées de l'import à sa désactivation (case « sans connexion » retirée).
 - Utilisateurs — statut « Jamais activé » ou « Désactivé » au lieu de « Inactif ».
 
 ### Fixed

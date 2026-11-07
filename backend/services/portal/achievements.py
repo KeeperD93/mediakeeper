@@ -25,7 +25,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.playback_stats import PlaybackSession
 from models.portal.achievement import Achievement
-from models.user import User
 from services.instance_time import get_instance_zone
 from services.portal.achievement_defs_constants import PLACEHOLDER_IDS
 from services.portal.achievements_badges import get_leaderboard, pin_badge, unpin_badge
@@ -51,6 +50,7 @@ from services.portal.exclusions import (
     get_exclusion_filters,
     get_pause_event_exclusion_filters,
 )
+from services.portal.xp import account_earns
 
 logger = logging.getLogger("mediakeeper.portal.achievements")
 
@@ -92,9 +92,8 @@ async def check_all_achievements(
     Returns list of newly unlocked achievements (for notification).
     Called after a watch session closes, on request creation, etc.; never on login.
     """
-    # Deactivating, expiring or deleting an account clears ``is_active``: from
-    # then on it earns nothing, whoever or whatever triggers the check.
-    if not await db.scalar(select(User.is_active).where(User.id == user_id)):
+    # Whoever or whatever triggers the check, an account that may not earn gets nothing.
+    if not await account_earns(db, user_id):
         return []
 
     excl_filters = await get_exclusion_filters(db)
