@@ -135,8 +135,8 @@ async def test_refuses_a_name_already_taken_in_another_case(client, admin_user, 
 @pytest.mark.parametrize(("username", "emby_name"), [
     (NEW_ADMIN, "Second-Admin"),
     (NEW_ADMIN, "  SECOND-ADMIN  "),
-    (NEW_ADMIN, "ſecond-admin"),  # "ſ" meets "s" through capitals only
-    ("kris", "Kriſ"),  # Kelvin sign through small letters, "ſ" through capitals
+    (NEW_ADMIN, "\u017fecond-admin"),  # "ſ" meets "s" through capitals only
+    ("kris", "\u212ari\u017f"),  # Kelvin sign through small letters, "ſ" through capitals
 ])
 async def test_refuses_an_emby_namesake(
     client, admin_user, db_session, monkeypatch, emby_users, username, emby_name,
