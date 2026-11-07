@@ -27,6 +27,7 @@ from services.portal.admin_users_constants import (
     ACTION_DEBUG_ACHIEVEMENT_RECHECK_ALL,
     ROLE_VIEWER,
 )
+from services.portal.xp import EARNING_ACCOUNT
 
 router = APIRouter(prefix="/admin/debug", tags=["portal-admin-debug"])
 
@@ -216,8 +217,8 @@ async def debug_recheck_all_achievements(
     admin: tuple[User, UserProfile] = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    """Run ``check_all_achievements`` for every account that earns: all but those
-    deactivated, expired or deleted, signed in or not.
+    """Run ``check_all_achievements`` for each account that earns (``EARNING_ACCOUNT``),
+    signed in or not; ``users_processed`` counts those accounts only.
 
     Used to backfill trophies after a bug that prevented the post-session
     pipeline from running (the collector usually triggers the check, but
@@ -230,7 +231,7 @@ async def debug_recheck_all_achievements(
     profiles = (await db.execute(
         select(UserProfile, User.username)
         .join(User, User.id == UserProfile.user_id)
-        .where(User.is_active.is_(True))
+        .where(EARNING_ACCOUNT)
     )).all()
 
     summary = []

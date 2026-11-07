@@ -33,7 +33,7 @@ Level curve (quadratic):
 import logging
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -87,20 +87,21 @@ def level_from_xp(total_xp: int) -> int:
     return level
 
 
-async def account_earns(db: AsyncSession, user_id: int) -> bool:
-    """Whether an account may earn XP and trophies, whatever triggers the grant.
+# Who earns XP and trophies, whatever triggers the grant: an active player (deactivating,
+# expiring or deleting an account clears ``is_active``) linked to a media-server user;
+# neither a local account nor a never-linked profile. Select User joined to UserProfile.
+EARNING_ACCOUNT = and_(
+    User.is_active.is_(True),
+    UserProfile.source == SOURCE_EMBY,
+    UserProfile.emby_user_id.is_not(None),
+    UserProfile.emby_user_id != "",
+)
 
-    Only an active player does. Deactivating, expiring or deleting an account
-    clears ``is_active``. A player's profile is linked to a media-server user,
-    tested as on the leaderboard: a local account, made in MediaKeeper for its
-    administration, or a profile never linked earns nothing.
-    """
-    row = (await db.execute(
-        select(User.is_active, UserProfile.source, UserProfile.emby_user_id)
-        .join(UserProfile, UserProfile.user_id == User.id)
-        .where(User.id == user_id)
-    )).first()
-    return bool(row and row.is_active and row.source == SOURCE_EMBY and row.emby_user_id)
+
+async def account_earns(db: AsyncSession, user_id: int) -> bool:
+    """Whether an account may earn XP and trophies (``EARNING_ACCOUNT``)."""
+    stmt = select(User.id).join(UserProfile, UserProfile.user_id == User.id)
+    return await db.scalar(stmt.where(User.id == user_id, EARNING_ACCOUNT)) is not None
 
 
 async def grant_xp(

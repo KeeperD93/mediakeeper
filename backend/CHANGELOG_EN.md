@@ -26,6 +26,7 @@ This section intentionally has no date so it is not shown to users.
 
 ### Fixed
 - Debug tools — player list translated, a failed load is reported.
+- Debug tools — "Run recheck" skips local and unlinked accounts.
 - Settings — language menu named for screen readers.
 - Security — IP behind a proxy: visitor-supplied address ignored (list every proxy).
 - Security — manual username block: applied whatever the letter case.
