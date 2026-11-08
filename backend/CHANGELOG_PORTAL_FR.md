@@ -58,6 +58,7 @@ utilisateurs.
 - Classement — un profil privé n'y apparaît plus, comme promis dans les réglages.
 - Mon profil — plus de pourcentage ni de barre sans place au classement.
 - Portail — mois du classement, pseudos de remplacement et message de maintenance dans la langue de l'application.
+- Première connexion — plus de fenêtres enchaînées après le choix du pseudo.
 
 ## [1.0.0-rc.9] - 2026-10-23
 

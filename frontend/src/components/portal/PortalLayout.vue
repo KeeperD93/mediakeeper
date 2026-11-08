@@ -35,13 +35,13 @@
 
     <SurpriseOverlay v-if="surpriseOpen" @close="surpriseOpen = false" />
 
-    <!-- Auto-opening overlays are gated behind ``mustPickUsername``: when
-         the admin reset a viewer's display name, ForceUsernameModal must
-         stay the topmost layer until they pick a new one, otherwise the
-         What's-new and Daily-digest popups (whose z-index is higher than
-         the portal overlay token) paint over the picker and trap them. -->
+    <!-- Auto-opening overlays wait for the picker: when the admin reset a
+         viewer's display name, ForceUsernameModal must stay the topmost
+         layer until they pick a new one, otherwise the What's-new and
+         Daily-digest popups (whose z-index is higher than the portal
+         overlay token) paint over the picker and trap them. -->
     <NewsPopup
-      v-if="showNewsPopup && !mustPickUsername && !isMaintenancePage"
+      v-if="showNewsPopup && !pickerShownThisVisit && !isMaintenancePage"
       :items="unreadNews"
       @dismiss="dismissNews"
     />
@@ -59,6 +59,7 @@
     <PortalWhatsNewModal
       v-if="!mustPickUsername && !isMaintenancePage"
       :open="whatsNewOpen"
+      :auto="!pickerShownThisVisit"
       @close="whatsNewOpen = false"
     />
 
@@ -67,6 +68,7 @@
     <PortalDailyDigestOverlay
       v-if="!mustPickUsername && !isMaintenancePage"
       :open="dailyDigestOpen"
+      :auto="!pickerShownThisVisit"
       @close="dailyDigestOpen = false"
     />
 
@@ -172,6 +174,12 @@ const isAdmin = computed(() => profile.value?.role === USER_ROLE.ADMIN)
 // they can use anything else. Drives both the blocking ForceUsernameModal
 // and the v-if guards on the auto-popping overlays / FAB.
 const mustPickUsername = computed(() => !isAdmin.value && !!profile.value?.display_name_must_set)
+// After the picker, the page comes first: what opens by itself waits for the
+// next portal load. The avatar menu still opens it on demand.
+const pickerShownThisVisit = ref(mustPickUsername.value)
+watch(mustPickUsername, must => {
+  if (must) pickerShownThisVisit.value = true
+})
 // Maintenance lockdown: non-admins are redirected here by the router guard.
 // Hide the whole portal chrome (nav, FAB, banners, auto-popping overlays) so
 // only the holding page — and the first-login username picker — remain.
@@ -210,7 +218,7 @@ async function dismissNews() {
 onMounted(async () => {
   await checkPortalAuth()
   await fetchUnread()
-  if (unreadNews.value.length > 0 && !mustPickUsername.value) {
+  if (unreadNews.value.length > 0 && !pickerShownThisVisit.value) {
     showNewsPopup.value = true
   }
 })
