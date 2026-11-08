@@ -51,6 +51,7 @@ This section intentionally has no date so it is not shown to users.
 - Monthly leaderboard — translated "YOU" label, always whole, your XP stays visible.
 - Monthly leaderboard — first-place card fully read by screen readers.
 - My profile — ranking readable on laptops: names and levels no longer hidden.
+- My profile — trophies sorted by true rarity, without deactivated or local accounts.
 - Portal — leaderboard month, replacement names and maintenance message in the app language.
 
 ## [1.0.0-rc.9] - 2026-10-23
