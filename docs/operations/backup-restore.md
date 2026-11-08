@@ -44,7 +44,7 @@ in place, then restart; the `MEDIAKEEPER_ENCRYPTION_KEY` variable, when
 set, takes precedence over the file. Secrets saved with the current key
 and absent from the backup, such as notification channels, then become
 unreadable and must be entered again. If only some secrets of a backup
-are unreadable, they are skipped: the current values stay in place and
+are unreadable, they are skipped: those settings are left unchanged and
 the rest is restored.
 
 In a real incident (database corruption, full host wipe, fresh
