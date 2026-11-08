@@ -30,5 +30,5 @@ def check_restored_secrets(plan: list[tuple[str, object, object]], results: dict
         logger.warning("[backup] Restore refused: the active key reads none of its %d secrets", len(secrets))
         raise BackupKeyMismatchError
     if unreadable:
-        logger.warning("[backup] Restore skips %d unreadable secret(s), current values kept", unreadable)
+        logger.warning("[backup] Restore skips %d unreadable secret(s), current values left unchanged", unreadable)
         results["secrets_skipped"] = unreadable

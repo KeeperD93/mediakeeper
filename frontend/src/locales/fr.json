@@ -1924,7 +1924,7 @@
     "deleteConfirm": "Supprimer ce backup ?",
     "restoredParts": "Restauration effectuée : {parts}.",
     "restoredNothing": "Rien n'a été restauré parmi les parties cochées.",
-    "restoreSecretsSkipped": "1 secret illisible n'a pas été restauré : la valeur actuelle est conservée. | {n} secrets illisibles n'ont pas été restaurés : les valeurs actuelles sont conservées.",
+    "restoreSecretsSkipped": "1 secret illisible n'a pas été restauré : la valeur actuelle reste inchangée. | {n} secrets illisibles n'ont pas été restaurés : les valeurs actuelles restent inchangées.",
     "restoreNoDatabase": "La base de données ne se restaure pas ici : suivez la procédure manuelle décrite dans la documentation.",
     "restoreConfirm": "Restaurer ce backup ? Les données actuelles seront écrasées.",
     "destinationTitle": "Destination des sauvegardes",

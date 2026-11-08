@@ -81,22 +81,6 @@
   outline-offset: var(--focus-ring-offset);
 }
 
-.mk-toast-close::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: var(--touch-target);
-  height: var(--touch-target);
-  transform: translate(-50%, -50%);
-}
-
-@media (min-width: 768px) {
-  .mk-toast-close::after {
-    content: none;
-  }
-}
-
 /* Divider */
 .mk-toast-divider {
   height: 1px;

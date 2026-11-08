@@ -59,7 +59,7 @@ This section intentionally has no date so it is not shown to users.
 - Dashboard — portal leaderboard without private profiles.
 - Users — Audit tab: debug actions shown in plain words.
 - Backups — restore really saved, settings put back as they were in the backup.
-- Backups — restore refused when its secrets are unreadable (nothing changes).
+- Backups — restore refused when its secrets are unreadable, skipped secrets reported.
 
 ## [1.0.0-rc.9] - 2026-10-23
 
