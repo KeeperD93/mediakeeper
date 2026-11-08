@@ -61,7 +61,7 @@ async def test_a_successful_restore_is_saved(db_session, workspace_tmp_path, tra
         await get_setting(db_session, "restore.key")
         assert db_session.in_transaction()
 
-    with patch.object(restore_module, "_apply_restored_settings", new=AsyncMock()):
+    with patch.object(restore_module, "apply_restored_settings", new=AsyncMock()):
         results = await restore_module.restore_backup(db_session, backup_path, components={"settings": True})
 
     assert results["settings"] == "ok"
@@ -74,7 +74,7 @@ async def test_a_successful_json_restore_is_saved(db_session):
     await set_setting(db_session, "restore.key", "before")
     await get_setting(db_session, "restore.key")
 
-    with patch.object(restore_module, "_apply_restored_settings", new=AsyncMock()):
+    with patch.object(restore_module, "apply_restored_settings", new=AsyncMock()):
         results = await restore_module.restore_json_backup(db_session, {"restore.key": "after"})
 
     assert results["settings"] == "ok"

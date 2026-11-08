@@ -25,10 +25,18 @@ restores the **applicative key/value layer**: `settings`,
 `pg_dump.sql` and never writes the embedded Fernet key on disk.
 
 A ZIP restore replaces the settings: one the archive does not hold goes
-back to its default. Four values tied to the installation are left
-alone: the date of the last media announcement, the last subtitle check,
-the setup wizard state and the backup folder. A single JSON file only
-writes the settings it holds.
+back to its default. Two kinds of values never change, whatever the
+archive holds:
+
+- those tied to the installation: the date of the last media
+  announcement, the last subtitle check, the setup wizard state and the
+  backup folder;
+- how long backups, chat messages and rejected reports are kept, because
+  a shorter delay would delete what the current one protects.
+
+A single JSON file only writes the settings it holds, apart from these
+values. If a restore turns GDPR back on, every pending deletion request
+starts a full new delay, as it does from the GDPR screen.
 
 In a real incident (database corruption, full host wipe, fresh
 install), that endpoint alone is **not enough**: the relational tables

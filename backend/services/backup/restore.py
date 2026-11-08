@@ -10,15 +10,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.scheduler_task import SchedulerTask
 from models.settings import Setting
+from models.user import User
+
+from ._restore_memory import apply_restored_settings, apply_restored_watchlist
 
 logger = logging.getLogger("mediakeeper.backup")
 
 ENCRYPTION_KEY_ARCHIVE_NAME = "secrets/.encryption_key"
 
-# Tied to this installation, not to the configuration a backup carries: putting an
-# old announcement date back would announce already announced media again.
+# Not the configuration a backup carries: an old announcement date would announce
+# already announced media again, an old retention would delete what today's one keeps.
 SETTINGS_KEPT_ON_RESTORE = frozenset({
     "backup.directory",
+    "backup.retention_days",
+    "bug_report.reject_retention_days",
+    "chat.retention_days",
     "notifications.last_emby_date",
     "setup.onboarding_done",
     "subtitle_auto.last_check",
@@ -58,9 +64,19 @@ class BackupRestoreError(Exception):
 
 
 async def _restore_settings(db: AsyncSession, data: dict) -> str:
+    from services.portal.gdpr import (
+        get_purge_delay_days,
+        is_gdpr_enabled,
+        refresh_pending_grace,
+    )
     from services.settings import set_settings_map
+
+    gdpr_was_off = not await is_gdpr_enabled(db)
     restored = {key: value for key, value in data.items() if key not in SETTINGS_KEPT_ON_RESTORE}
     await set_settings_map(db, restored, commit=False)
+    # As on the GDPR screen: a deletion frozen while GDPR was off gets a fresh delay.
+    if gdpr_was_off and await is_gdpr_enabled(db):
+        await refresh_pending_grace(db, delay_days=await get_purge_delay_days(db), commit=False)
     return "ok"
 
 
@@ -77,27 +93,17 @@ async def _replace_settings(db: AsyncSession, data: dict) -> str:
     return "ok"
 
 
-async def _apply_restored_settings(db: AsyncSession) -> None:
-    """Some settings are held in memory: align them, as saving each on its screen does.
-    The restore is already saved, so a failure here is only logged."""
-    from core.app_startup import apply_debug_level
-    from services.media_manager import load_categories
-    from services.portal.dns_cache import refresh_from_settings
-    from services.portal.image_cache import refresh_enabled_flag
-    from services.settings import get_setting
-
-    try:
-        apply_debug_level(await get_setting(db, "logs.debug_mode") == "true")
-        await load_categories(db)
-        await refresh_from_settings(db)
-        await refresh_enabled_flag(db, force=True)
-    except Exception:
-        logger.exception("[backup] Restored settings saved, not all applied until the next start")
-
-
 async def _restore_preferences(db: AsyncSession, data: list) -> str:
     from services.settings import upsert_user_preferences
+
+    user_ids = list({pref["user_id"] for pref in data})
+    known = set((await db.execute(select(User.id).where(User.id.in_(user_ids)))).scalars())
+    # An account deleted since the backup has nothing left to restore to.
+    if len(known) < len(user_ids):
+        logger.info("[backup] Preferences of %d deleted account(s) skipped", len(user_ids) - len(known))
     for pref in data:
+        if pref["user_id"] not in known:
+            continue
         await upsert_user_preferences(
             db,
             pref["user_id"],
@@ -152,8 +158,11 @@ async def _run_restore_plan(
         if raise_on_error:
             raise BackupRestoreError(component, exc, results) from exc
         return results
-    if any(part == "settings" for part, _, _ in plan):
-        await _apply_restored_settings(db)
+    parts = {part for part, _, _ in plan}
+    if "settings" in parts:
+        await apply_restored_settings(db)
+    if "watchlist" in parts:
+        await apply_restored_watchlist(db)
     return results
 
 
