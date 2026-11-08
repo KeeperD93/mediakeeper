@@ -1800,6 +1800,9 @@
   "onboarding": {
     "subtitle": "Configurer votre espace média personnel",
     "stepWelcome": "Bienvenue",
+    "stepLocale": "Langue et fuseau",
+    "localeTitle": "Langue et fuseau horaire",
+    "localeDesc": "Choisissez la langue de l'interface et le fuseau de votre instance. Vous pourrez les changer à tout moment dans Paramètres, onglet Général.",
     "stepFolders": "Dossiers",
     "stepTour": "Tour",
     "stepDone": "Terminé",

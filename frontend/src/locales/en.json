@@ -1800,6 +1800,9 @@
   "onboarding": {
     "subtitle": "Set up your personal media space",
     "stepWelcome": "Welcome",
+    "stepLocale": "Language and time zone",
+    "localeTitle": "Language and time zone",
+    "localeDesc": "Choose the interface language and the time zone of your instance. You can change both at any time in Settings, General tab.",
     "stepFolders": "Folders",
     "stepTour": "Tour",
     "stepDone": "Done",

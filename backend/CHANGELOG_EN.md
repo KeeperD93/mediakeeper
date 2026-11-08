@@ -12,6 +12,7 @@ This section intentionally has no date so it is not shown to users.
 
 ### Added
 - Settings — time zone of the instance, pre-filled from the browser.
+- Setup wizard — language and time zone chosen first.
 - Debug tools — take back trophies counted in UTC before the time zone was chosen.
 
 ### Changed

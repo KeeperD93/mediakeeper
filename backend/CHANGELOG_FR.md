@@ -12,6 +12,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ### Added
 - Paramètres — fuseau horaire de l'instance, prérempli avec celui du navigateur.
+- Assistant d'installation — langue et fuseau horaire choisis en premier.
 - Outils de debug — retrait des trophées comptés en UTC avant le choix du fuseau.
 
 ### Changed

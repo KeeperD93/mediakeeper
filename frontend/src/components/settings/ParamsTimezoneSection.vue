@@ -26,77 +26,39 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import MkButton from '@/components/common/MkButton.vue'
-import { useConfirm } from '@/composables/useConfirm'
-import { useInstanceTimezone } from '@/composables/useInstanceTimezone'
+import { useTimezoneChoice, useTimezoneClock } from '@/composables/useTimezoneChoice'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
-import { getLocale } from '@/i18n'
-import {
-  browserZone,
-  buildRows,
-  clockAt,
-  lineKey,
-  rowOfFirst,
-  zoneToSave,
-} from '@/utils/instanceTimezone'
-
-const CLOCK_REFRESH_MS = 30_000
 
 const { t } = useI18n()
-const confirm = useConfirm()
 const { showToast } = useToast()
-const { status, load, save } = useInstanceTimezone()
+const {
+  status,
+  selectedKey,
+  rows,
+  selectedRow,
+  savedRow,
+  canSave,
+  loadChoice,
+  confirmChoice,
+  saveChoice,
+} = useTimezoneChoice()
+const clock = useTimezoneClock(selectedRow)
 
-const selectedKey = ref('')
 const saving = ref(false)
-const now = ref(new Date())
-const clockTimer = setInterval(() => {
-  now.value = new Date()
-}, CLOCK_REFRESH_MS)
-
-const rows = computed(() =>
-  buildRows(status.value?.groups ?? [], {
-    lineName: key => t(lineKey(key)),
-    utcName: t('settings.timezoneUtc'),
-    locale: getLocale(),
-  }),
-)
-const selectedRow = computed(() => rows.value.find(row => row.key === selectedKey.value))
-const savedRow = computed(() => rowOfFirst(rows.value, [status.value?.timezone]))
-const canSave = computed(() => Boolean(selectedRow.value) && selectedRow.value !== savedRow.value)
-const clock = computed(() =>
-  selectedRow.value ? clockAt(selectedRow.value.offset, getLocale(), now.value) : '',
-)
 
 async function onSave() {
-  const confirmed = await confirm({
-    title: t('settings.timezoneConfirmTitle'),
-    message: t('settings.timezoneConfirmMessage', { zone: selectedRow.value.label }),
-    variant: 'warn',
-    confirmLabel: t('common.save'),
-    cancelLabel: t('common.cancel'),
-  })
-  if (!confirmed) return
+  if (!(await confirmChoice())) return
   saving.value = true
-  const saved = await save(zoneToSave(selectedRow.value, browserZone()))
+  const saved = await saveChoice()
   saving.value = false
   if (saved) showToast(t('settings.timezoneSaved'), TOAST_TYPE.OK)
 }
 
-onMounted(async () => {
-  await load()
-  if (!status.value) return
-  const first = rowOfFirst(rows.value, [
-    status.value.timezone,
-    browserZone(),
-    status.value.effective,
-  ])
-  selectedKey.value = first?.key ?? ''
-})
-onBeforeUnmount(() => clearInterval(clockTimer))
+onMounted(loadChoice)
 </script>
 
 <style scoped>
