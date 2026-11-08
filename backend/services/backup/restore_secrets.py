@@ -15,16 +15,20 @@ def is_unreadable_secret(value: object) -> bool:
     return isinstance(value, str) and not can_decrypt(value)
 
 
-def refuse_unreadable_secrets(plan: list[tuple[str, object, object]]) -> None:
+def check_restored_secrets(plan: list[tuple[str, object, object]], results: dict) -> None:
     """Refuse a settings part when none of its secrets reads with the active key.
 
-    One that reads shows the backup was made with this key: the others were already
-    dead then, so they are skipped (see ``is_unreadable_secret``) and the restore goes on.
+    A value that reads makes a key mismatch unlikely, not impossible: the unreadable
+    ones are skipped either way (see ``is_unreadable_secret``) and counted in ``results``.
     """
     settings = next((payload for part, payload, _ in plan if part == "settings"), None)
     if not isinstance(settings, dict):
         return  # its handler reports a malformed part
     secrets = [v for v in settings.values() if isinstance(v, str) and v.startswith(ENCRYPTED_PREFIX)]
-    if secrets and all(is_unreadable_secret(v) for v in secrets):
+    unreadable = sum(is_unreadable_secret(v) for v in secrets)
+    if secrets and unreadable == len(secrets):
         logger.warning("[backup] Restore refused: the active key reads none of its %d secrets", len(secrets))
         raise BackupKeyMismatchError
+    if unreadable:
+        logger.warning("[backup] Restore skips %d unreadable secret(s), current values kept", unreadable)
+        results["secrets_skipped"] = unreadable

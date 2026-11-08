@@ -15,7 +15,7 @@ from services.backup import restore as restore_module
 from services.backup.restore import BackupRestoreError
 from services.backup.restore_secrets import (
     BackupKeyMismatchError,
-    refuse_unreadable_secrets,
+    check_restored_secrets,
 )
 from services.settings import get_setting, get_watchlist_data, set_setting
 
@@ -96,8 +96,24 @@ async def test_an_own_archive_restores_its_secrets(db_session, workspace_tmp_pat
     results = await _restore(db_session, path)
 
     assert results["settings"] == "ok"
+    assert "secrets_skipped" not in results
     assert await get_setting(db_session, "emby.api_key") == "restored-secret"
     assert await get_setting(db_session, "restore.key") == "after"
+
+
+@pytest.mark.asyncio
+async def test_a_skipped_secret_is_counted_and_logged_without_its_value(
+    db_session, workspace_tmp_path, installed, caplog,
+):
+    foreign = _foreign()
+    path = _archive(workspace_tmp_path, {"emby.api_key": encrypt_value("restored-secret"), "tmdb.api_key": foreign})
+
+    with caplog.at_level(logging.WARNING, logger="mediakeeper.backup"):
+        results = await _restore(db_session, path)
+
+    assert results["secrets_skipped"] == 1
+    assert "skips 1 unreadable" in caplog.text
+    assert foreign not in caplog.text
 
 
 @pytest.mark.asyncio
@@ -166,6 +182,7 @@ async def test_a_single_json_file_skips_a_dead_value(db_session, installed):
     })
 
     assert results["settings"] == "ok"
+    assert results["secrets_skipped"] == 1
     assert await get_setting(db_session, "emby.api_key") == WORKING
     assert await get_setting(db_session, "tmdb.api_key") == "tmdb-restored"
 
@@ -178,12 +195,14 @@ async def test_a_settings_part_that_is_no_object_stays_a_failed_restore(db_sessi
 
 @pytest.mark.parametrize("value", [1, None, True, ["fernet:v1:x"], {"a": "fernet:v1:x"}, ""])
 def test_only_text_can_be_a_secret(value):
-    refuse_unreadable_secrets([("settings", {"some.key": value}, None)])
+    results = {}
+    check_restored_secrets([("settings", {"some.key": value}, None)], results)
+    assert results == {}
 
 
 def test_a_malformed_token_counts_as_unreadable():
     with pytest.raises(BackupKeyMismatchError):
-        refuse_unreadable_secrets([("settings", {"emby.api_key": f"{ENCRYPTED_PREFIX}é"}, None)])
+        check_restored_secrets([("settings", {"emby.api_key": f"{ENCRYPTED_PREFIX}é"}, None)], {})
 
 
 def _as_admin(client, admin_user) -> None:

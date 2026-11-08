@@ -248,6 +248,14 @@ export function useParamsBackup() {
     } else {
       showToast(t('backup.restoredNothing'), TOAST_TYPE.WARN)
     }
+    const skipped = results?.secrets_skipped
+    if (skipped) {
+      showToast(
+        t('backup.restoreSecretsSkipped', { n: skipped }, skipped),
+        TOAST_TYPE.WARN,
+        RESTORE_NOTICE_MS,
+      )
+    }
     if (selectedComponents.value.pg_dump) {
       showToast(t('backup.restoreNoDatabase'), TOAST_TYPE.WARN, RESTORE_NOTICE_MS)
     }

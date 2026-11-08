@@ -13,7 +13,7 @@ from models.settings import Setting
 from models.user import User
 
 from ._restore_memory import apply_restored_settings, apply_restored_watchlist
-from .restore_secrets import is_unreadable_secret, refuse_unreadable_secrets
+from .restore_secrets import check_restored_secrets, is_unreadable_secret
 
 logger = logging.getLogger("mediakeeper.backup")
 
@@ -146,7 +146,7 @@ async def _run_restore_plan(
 ) -> dict:
     if not plan:
         return results
-    refuse_unreadable_secrets(plan)
+    check_restored_secrets(plan, results)
     component = plan[0][0]
     try:
         async with db.begin_nested():

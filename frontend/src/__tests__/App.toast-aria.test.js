@@ -86,4 +86,28 @@ describe('App.vue — toast ARIA live region (WCAG 2.2 SC 4.1.3)', () => {
     expect(toast.attributes('aria-live')).toBe('assertive')
     wrapper.unmount()
   })
+
+  it('gives a toast that stays a real close button and no countdown', async () => {
+    toasts.value = [baseToast({ id: 30, type: 'err', persistent: true })]
+    const wrapper = mount(App)
+    const close = wrapper.find('.mk-toast .mk-toast-close')
+
+    expect(close.element.tagName).toBe('BUTTON')
+    expect(close.attributes('type')).toBe('button')
+    expect(close.attributes('aria-label')).toBe('common.close')
+    expect(wrapper.find('.mk-toast-progress').exists()).toBe(false)
+
+    await close.trigger('click')
+    expect(toasts.value).toEqual([])
+    wrapper.unmount()
+  })
+
+  it('leaves a toast on a timer its countdown and no button', () => {
+    toasts.value = [baseToast({ id: 31, persistent: false })]
+    const wrapper = mount(App)
+
+    expect(wrapper.find('.mk-toast-close').exists()).toBe(false)
+    expect(wrapper.find('.mk-toast-progress').exists()).toBe(true)
+    wrapper.unmount()
+  })
 })

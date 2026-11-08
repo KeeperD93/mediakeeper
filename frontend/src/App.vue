@@ -40,6 +40,15 @@
         <!-- Header: module name -->
         <div class="mk-toast-header">
           <span class="mk-toast-module">{{ t(toast.module) }}</span>
+          <button
+            v-if="toast.persistent"
+            type="button"
+            class="mk-toast-close"
+            :aria-label="t('common.close')"
+            @click.stop="removeToast(toast.id)"
+          >
+            <X :size="14" :stroke-width="2.5" aria-hidden="true" />
+          </button>
         </div>
         <div class="mk-toast-divider" />
 
@@ -64,7 +73,7 @@
           </div>
         </div>
 
-        <div class="mk-toast-progress" />
+        <div v-if="!toast.persistent" class="mk-toast-progress" />
       </div>
     </TransitionGroup>
   </Teleport>

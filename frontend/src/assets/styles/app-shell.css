@@ -62,6 +62,41 @@
   color: var(--toast-accent);
 }
 
+/* Close button of a toast that stays until dismissed */
+.mk-toast-close {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-2);
+  display: flex;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--toast-accent);
+  cursor: pointer;
+}
+
+.mk-toast-close:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.mk-toast-close::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  transform: translate(-50%, -50%);
+}
+
+@media (min-width: 768px) {
+  .mk-toast-close::after {
+    content: none;
+  }
+}
+
 /* Divider */
 .mk-toast-divider {
   height: 1px;

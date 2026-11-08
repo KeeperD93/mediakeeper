@@ -1924,6 +1924,7 @@
     "deleteConfirm": "Delete this backup?",
     "restoredParts": "Restore completed: {parts}.",
     "restoredNothing": "Nothing was restored from the ticked parts.",
+    "restoreSecretsSkipped": "1 unreadable secret was not restored: the current value is kept. | {n} unreadable secrets were not restored: the current values are kept.",
     "restoreNoDatabase": "The database is not restored here: follow the manual procedure described in the documentation.",
     "restoreConfirm": "Restore this backup? Current data will be overwritten.",
     "destinationTitle": "Backup destination",
