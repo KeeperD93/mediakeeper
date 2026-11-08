@@ -107,7 +107,7 @@ jobs:
           python-version: '3.14'
 
       - name: Install ruff
-        # The version pinned for development, so both report the same issues.
+        # The version pinned for development, so both move together.
         run: python -m pip install --upgrade pip "$(grep '^ruff==' backend/requirements-dev.txt)"
 
       - name: Run ruff with security rules

@@ -3,7 +3,7 @@
 target-version = "py314"
 # Backend modules import each other as top-level packages ("from services ...").
 src = ["backend"]
-# Applied migrations must not change; tests are out of scope for now.
+# Migrations cannot be fixed once applied, so none are checked; tests are out of scope for now.
 extend-exclude = ["backend/tests", "backend/alembic/versions"]
 # The commit hook passes explicit paths, which would otherwise bypass the exclusions.
 force-exclude = true
@@ -12,6 +12,8 @@ force-exclude = true
 select = [
   "F",       # unused imports and variables, undefined names
   "E402",    # imports below module code
+  "E902",    # a file ruff cannot read must fail, not pass unseen
+  "PGH004",  # "noqa" without a rule code
   "I",       # import order
   "B",       # likely bugs, including exceptions raised without "from"
   "UP006",   # native generics (list, dict)

@@ -1,15 +1,18 @@
 """Fail when ruff reports more issues than the committed baseline allows.
 
 Issues that predate the ruff configuration are counted per file and per rule
-in ``ruff-baseline.json``: they block nobody, while any new one does. Counting
-instead of pinning line numbers keeps the baseline valid when code moves.
+in ``ruff-baseline.json`` and tolerated. The check fails as soon as a file's
+count for a rule goes up, so fixing an old issue in the same change can hide a
+new one of that rule. Counting instead of pinning line numbers keeps the
+baseline valid when code moves within a file.
 
     python backend/scripts/ruff_baseline.py            # whole backend (CI)
     python backend/scripts/ruff_baseline.py FILE...    # those files (commit hook)
     python backend/scripts/ruff_baseline.py --update   # rewrite the baseline
 
-Run ``--update`` after fixing old issues, so they cannot come back, or after
-changing a rule or the ruff version. An increase in its diff means new debt.
+Run ``--update`` after fixing old issues, so they cannot come back, after moving
+or splitting a file, whose path is its key here, or after changing a rule or the
+ruff version. An increase in its diff that no move explains means new debt.
 """
 import argparse
 import json
@@ -27,6 +30,7 @@ def run_ruff(paths: list[str]) -> list[dict]:
         [sys.executable, "-m", "ruff", "check", "--no-cache", "--output-format=json", *paths],
         cwd=REPO_ROOT,
         capture_output=True,
+        check=False,
         text=True,
         encoding="utf-8",
     )
@@ -66,7 +70,8 @@ def check(paths: list[str]) -> int:
         print("[ruff] OK - no new issue.")
         return 0
 
-    print("[ruff] FAIL - new issues. For each file and rule below, fix the new ones:")
+    print("[ruff] FAIL - more issues than the baseline allows. Fix the new ones listed below.")
+    print("  Import order: python -m ruff check --fix --select I FILE. Moved file: run with --update.")
     for issue in issues:
         path, code = _key(issue)
         if (path, code) in over_baseline:

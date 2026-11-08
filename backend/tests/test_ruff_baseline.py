@@ -1,4 +1,4 @@
-"""The ruff baseline lets old issues through and stops every new one."""
+"""The ruff baseline tolerates old issues and stops any increase."""
 import json
 import subprocess
 
@@ -33,6 +33,7 @@ def fake_ruff(monkeypatch):
     class FakeRuff:
         def __init__(self):
             self.commands = []
+            self.kwargs = {}
             self.result = subprocess.CompletedProcess([], 0, stdout="[]", stderr="")
 
         def report(self, *issues: dict) -> None:
@@ -40,6 +41,7 @@ def fake_ruff(monkeypatch):
 
         def __call__(self, command, **kwargs):
             self.commands.append(command)
+            self.kwargs = kwargs
             return self.result
 
     fake = FakeRuff()
@@ -91,6 +93,14 @@ def test_a_file_absent_from_the_baseline_fails(baseline, fake_ruff):
     _write(baseline, {EXAMPLE: {"B904": 1}})
     fake_ruff.report(_issue(OTHER, "B904"))
     assert ruff_baseline.main([]) == 1
+
+
+def test_ruff_runs_from_the_repo_root_and_returns_json(baseline, fake_ruff):
+    _write(baseline, {})
+    ruff_baseline.main([])
+    assert fake_ruff.commands[0][1:] == ["-m", "ruff", "check", "--no-cache", "--output-format=json", "backend"]
+    assert fake_ruff.kwargs["cwd"] == ruff_baseline.REPO_ROOT
+    assert fake_ruff.kwargs["encoding"] == "utf-8"
 
 
 def test_no_argument_checks_the_whole_backend(baseline, fake_ruff):

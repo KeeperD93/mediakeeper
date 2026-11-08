@@ -159,9 +159,9 @@ pip install -r backend/requirements-dev.txt
 python backend/scripts/ruff_baseline.py   # ruff, against the frozen issues
 ```
 
-Issues that predate these checks are frozen in `ruff-baseline.json` and block nobody; a new one fails the commit hook and CI. After fixing old issues, run the script with `--update` and commit the smaller baseline.
+Issues that predate these checks are counted in `ruff-baseline.json` and tolerated; the commit hook and CI fail as soon as a file's count for a rule goes up. After fixing old issues, or moving or splitting a file, run the script with `--update` and commit the updated baseline. To sort the imports of a file: `python -m ruff check --fix --select I <file>`.
 
-Once Husky hooks are active (see _Initial setup_), `git commit` triggers `lint-staged` automatically on staged files. Committing Python files needs the development dependencies above.
+Once Husky hooks are active (see _Initial setup_), `git commit` triggers `lint-staged` automatically on staged files. Committing Python files needs the development dependencies above, in the environment that `python` points to.
 
 ### 4. Tests
 
