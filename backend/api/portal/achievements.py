@@ -48,13 +48,10 @@ async def user_achievements(
 ):
     """Get another user's achievements (only unlocked shown).
 
-    Visibility mirrors the public profile rules in
-    ``profile_settings.public_profile_by_user``: 404 when the target
-    profile is missing, deactivated, or admin (unless the caller is
-    looking at themselves), and 403 when the target keeps their
-    profile private. Without this gate an attacker could enumerate the
-    admin account's trophies even when ``role=admin`` profiles are
-    hidden everywhere else.
+    404 when the target profile is missing, deactivated, private or
+    admin (unless the caller is looking at themselves). Without this
+    gate an attacker could enumerate the admin account's trophies even
+    when ``role=admin`` profiles are hidden everywhere else.
     """
     me, _ = up
     target = (await db.execute(
@@ -66,9 +63,8 @@ async def user_achievements(
     if target.role == ROLE_ADMIN and not is_self:
         raise HTTPException(status_code=404, detail="profile_not_found")
     if not is_self and not target.is_public:
-        # Same fail-closed shape as the public profile endpoint: 404
-        # for any account the caller cannot read, regardless of the
-        # underlying reason.
+        # Fail-closed: 404 for any account the caller cannot read,
+        # regardless of the underlying reason.
         raise HTTPException(status_code=404, detail="profile_not_found")
 
     data = await ach_svc.get_achievements_for_profile(db, user_id)

@@ -25,7 +25,7 @@ function makeWrapper(profileData, overrides = {}) {
             '<div class="mk-avatar-stub" :data-src="src" :data-name="name" :data-size="size"></div>',
         },
       },
-      mocks: { $t: key => key },
+      mocks: { $t: (key, params) => (params ? `${key} ${JSON.stringify(params)}` : key) },
     },
   })
 }
@@ -67,7 +67,7 @@ describe('RankSidebarCard ranking block', () => {
     expect(w.find('.gc-ranking-pos').text()).toBe('#12')
     expect(w.find('.gc-ranking-move').exists()).toBe(true)
     expect(w.find('.gc-ranking-pct-bar').exists()).toBe(true)
-    expect(w.find('.gc-ranking-pct-text').text()).toBe('Top 30%')
+    expect(w.find('.gc-ranking-pct-text').text()).toBe('portal.profile.topPercent {"percent":30}')
   })
 
   it('shows neither movement nor percentile without a place', () => {

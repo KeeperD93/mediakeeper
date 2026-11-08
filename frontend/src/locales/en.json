@@ -3713,6 +3713,7 @@
       "yourGenres": "Your genres",
       "ranking": "This month's ranking",
       "rankingShort": "Ranking",
+      "topPercent": "Top {percent}%",
       "viewFullLeaderboard": "See the full leaderboard",
       "privateProfile": {
         "title": "Private profile",

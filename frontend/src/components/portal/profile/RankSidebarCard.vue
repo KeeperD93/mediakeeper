@@ -92,13 +92,12 @@
           <div v-else class="gc-ranking-move gc-ranking-move--same">=</div>
           <div class="gc-ranking-pct-row">
             <div class="gc-ranking-pct-bar">
-              <div
-                class="gc-ranking-pct-fill"
-                :style="{ width: 100 - (ranking.percentile || 50) + '%' }"
-              />
+              <div class="gc-ranking-pct-fill" :style="{ width: 100 - ranking.percentile + '%' }" />
             </div>
           </div>
-          <div class="gc-ranking-pct-text">Top {{ ranking.percentile || '—' }}%</div>
+          <div class="gc-ranking-pct-text">
+            {{ $t('portal.profile.topPercent', { percent: ranking.percentile }) }}
+          </div>
         </template>
       </div>
       <div class="gc-member-since">

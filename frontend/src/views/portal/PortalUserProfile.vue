@@ -83,7 +83,9 @@
               <dt>{{ $t('portal.profile.ranking') }}</dt>
               <dd>
                 #{{ data.ranking?.position || '—' }}
-                <small v-if="data.ranking?.position">· top {{ data.ranking.percentile }}%</small>
+                <small v-if="data.ranking?.position">
+                  · {{ $t('portal.profile.topPercent', { percent: data.ranking.percentile }) }}
+                </small>
               </dd>
             </div>
             <div class="pt-up-stat">
@@ -194,7 +196,7 @@ const titleTierName = computed(() => rankTier.value)
 
 const rankingShape = computed(() => ({
   position: data.value?.ranking?.position || 0,
-  percentile: data.value?.ranking?.percentile || 50,
+  percentile: data.value?.ranking?.percentile || 0,
   movement: 0,
 }))
 
