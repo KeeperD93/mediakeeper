@@ -5,14 +5,24 @@ import logging
 import zipfile
 from pathlib import Path
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.scheduler_task import SchedulerTask
+from models.settings import Setting
 
 logger = logging.getLogger("mediakeeper.backup")
 
 ENCRYPTION_KEY_ARCHIVE_NAME = "secrets/.encryption_key"
+
+# Tied to this installation, not to the configuration a backup carries: putting an
+# old announcement date back would announce already announced media again.
+SETTINGS_KEPT_ON_RESTORE = frozenset({
+    "backup.directory",
+    "notifications.last_emby_date",
+    "setup.onboarding_done",
+    "subtitle_auto.last_check",
+})
 
 # Restore never writes the Fernet key automatically: an operator must extract
 # it consciously and place it where the next process will pick it up. The
@@ -49,8 +59,40 @@ class BackupRestoreError(Exception):
 
 async def _restore_settings(db: AsyncSession, data: dict) -> str:
     from services.settings import set_settings_map
-    await set_settings_map(db, data, commit=False)
+    restored = {key: value for key, value in data.items() if key not in SETTINGS_KEPT_ON_RESTORE}
+    await set_settings_map(db, restored, commit=False)
     return "ok"
+
+
+async def _replace_settings(db: AsyncSession, data: dict) -> str:
+    """A ZIP holds the whole configuration of its moment: a setting it lacks was still
+    at its default, so it goes back there. An empty file says nothing and removes nothing."""
+    await _restore_settings(db, data)
+    if data:
+        await db.execute(
+            delete(Setting)
+            .where(Setting.key.not_in([*data, *SETTINGS_KEPT_ON_RESTORE]))
+            .execution_options(synchronize_session="fetch")
+        )
+    return "ok"
+
+
+async def _apply_restored_settings(db: AsyncSession) -> None:
+    """Some settings are held in memory: align them, as saving each on its screen does.
+    The restore is already saved, so a failure here is only logged."""
+    from core.app_startup import apply_debug_level
+    from services.media_manager import load_categories
+    from services.portal.dns_cache import refresh_from_settings
+    from services.portal.image_cache import refresh_enabled_flag
+    from services.settings import get_setting
+
+    try:
+        apply_debug_level(await get_setting(db, "logs.debug_mode") == "true")
+        await load_categories(db)
+        await refresh_from_settings(db)
+        await refresh_enabled_flag(db, force=True)
+    except Exception:
+        logger.exception("[backup] Restored settings saved, not all applied until the next start")
 
 
 async def _restore_preferences(db: AsyncSession, data: list) -> str:
@@ -97,19 +139,22 @@ async def _run_restore_plan(
     if not plan:
         return results
     component = plan[0][0]
-    transaction = db.begin_nested() if db.in_transaction() else db.begin()
     try:
-        async with transaction:
+        async with db.begin_nested():
             for component, payload, handler in plan:
                 await handler(db, payload)
                 results[component] = "ok"
-        return results
+        # The routes have already read through this session: only a commit saves the savepoint.
+        await db.commit()
     except Exception as exc:
         logger.exception("[backup] Restore %s failed: %s", component, exc)
         results[component] = f"error:{type(exc).__name__}"
         if raise_on_error:
             raise BackupRestoreError(component, exc, results) from exc
         return results
+    if any(part == "settings" for part, _, _ in plan):
+        await _apply_restored_settings(db)
+    return results
 
 
 def _inspect_encryption_key(zf: zipfile.ZipFile) -> dict:
@@ -150,7 +195,7 @@ def _read_restore_plan(zip_path: Path, opts: dict) -> tuple[list[tuple[str, obje
     """The selected parts the archive holds (``<part>.json``), read and parsed,
     with their handler, and the archive's key status."""
     handlers = {
-        "settings": _restore_settings,
+        "settings": _replace_settings,
         "preferences": _restore_preferences,
         "scheduler": _restore_scheduler,
         "watchlist": _restore_watchlist,

@@ -41,6 +41,71 @@ async def test_restore_backup_rolls_back_all_components_on_failure(
     assert await get_setting(db_session, "restore.key") == "before"
 
 
+def _write_settings_archive(path: Path) -> None:
+    with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("settings.json", json.dumps({"restore.key": "after"}))
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("transaction_already_open", [True, False])
+async def test_a_successful_restore_is_saved(db_session, workspace_tmp_path, transaction_already_open):
+    """The routes read the settings first, so a transaction is open: the restore must end it.
+
+    SQLite saves on releasing the outermost savepoint, PostgreSQL only on a commit: a
+    transaction left open is the one sign of a lost restore that shows on both.
+    """
+    backup_path = Path(workspace_tmp_path) / "restore.zip"
+    _write_settings_archive(backup_path)
+    await set_setting(db_session, "restore.key", "before")
+    if transaction_already_open:
+        await get_setting(db_session, "restore.key")
+        assert db_session.in_transaction()
+
+    with patch.object(restore_module, "_apply_restored_settings", new=AsyncMock()):
+        results = await restore_module.restore_backup(db_session, backup_path, components={"settings": True})
+
+    assert results["settings"] == "ok"
+    assert not db_session.in_transaction()
+    assert await get_setting(db_session, "restore.key") == "after"
+
+
+@pytest.mark.asyncio
+async def test_a_successful_json_restore_is_saved(db_session):
+    await set_setting(db_session, "restore.key", "before")
+    await get_setting(db_session, "restore.key")
+
+    with patch.object(restore_module, "_apply_restored_settings", new=AsyncMock()):
+        results = await restore_module.restore_json_backup(db_session, {"restore.key": "after"})
+
+    assert results["settings"] == "ok"
+    assert not db_session.in_transaction()
+    assert await get_setting(db_session, "restore.key") == "after"
+
+
+@pytest.mark.asyncio
+async def test_a_failed_restore_commits_nothing(db_session):
+    await set_setting(db_session, "restore.key", "before")
+    await get_setting(db_session, "restore.key")
+
+    with patch.object(db_session, "commit", new=AsyncMock()) as commit:
+        results = await restore_module.restore_json_backup(db_session, [{"scan_key": "missing-data"}])
+
+    assert results["watchlist"].startswith("error:")
+    commit.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_a_refused_commit_is_reported_as_a_failure(db_session, workspace_tmp_path):
+    backup_path = Path(workspace_tmp_path) / "restore.zip"
+    _write_settings_archive(backup_path)
+
+    with (
+        patch.object(db_session, "commit", new=AsyncMock(side_effect=RuntimeError("disk full"))),
+        pytest.raises(BackupRestoreError),
+    ):
+        await restore_module.restore_backup(db_session, backup_path, components={"settings": True})
+
+
 @pytest.mark.asyncio
 async def test_restore_reports_embedded_key_without_writing_it(
     db_session, workspace_tmp_path, tmp_path, monkeypatch,

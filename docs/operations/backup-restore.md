@@ -24,6 +24,12 @@ restores the **applicative key/value layer**: `settings`,
 `preferences`, `scheduler`, `watchlist`. It deliberately ignores
 `pg_dump.sql` and never writes the embedded Fernet key on disk.
 
+A ZIP restore replaces the settings: one the archive does not hold goes
+back to its default. Four values tied to the installation are left
+alone: the date of the last media announcement, the last subtitle check,
+the setup wizard state and the backup folder. A single JSON file only
+writes the settings it holds.
+
 In a real incident (database corruption, full host wipe, fresh
 install), that endpoint alone is **not enough**: the relational tables
 must be re-created from the SQL dump *first*, and the Fernet key must
