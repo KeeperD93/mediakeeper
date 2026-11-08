@@ -57,7 +57,7 @@ This section intentionally has no date so it is not shown to users.
 - My profile — no percentage or bar without a place in the ranking.
 - Portal — leaderboard month, replacement names and maintenance message in the app language.
 - First sign-in — no more popups in a row after choosing a name.
-- My profile and trophies — plays tied to the Emby account, no longer the username.
+- My profile and trophies — plays tied to the Emby account, no longer the chosen name.
 
 ## [1.0.0-rc.9] - 2026-10-23
 

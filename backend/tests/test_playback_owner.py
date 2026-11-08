@@ -150,6 +150,37 @@ async def test_the_login_claims_only_an_emby_account_linked_to_nobody(db_session
 
 
 @pytest.mark.asyncio
+async def test_a_shared_emby_id_only_gives_each_profile_its_own_name(db_session):
+    # A rename on Emby then the id sync put Bob's account on Carl's profile too.
+    bob, bob_profile = await make_portal_user(db_session, username="Bob", emby_user_id="emby-bob")
+    carl, carl_profile = await make_portal_user(db_session, username="Carl", emby_user_id="emby-bob")
+    _play(db_session, "emby-bob", "Bob", "bob-history")
+    _play(db_session, "emby-bob", "Carl", "after-rename", CHRISTMAS + timedelta(days=1))
+    _play(db_session, "emby-carl-gone", "Carl", "carl-own", CHRISTMAS + timedelta(days=2))
+    _pause(db_session, "emby-bob", "Bob", "bob-history")
+    _pause(db_session, "emby-bob", "Carl", "after-rename")
+    await db_session.commit()
+
+    assert await _keys(db_session, _playback_user_filter(carl, carl_profile)) == {"after-rename", "carl-own"}
+    assert await _keys(db_session, _playback_user_filter(bob, bob_profile)) == {"bob-history"}
+    paused = await _build_pause_user_filter(db_session, carl.id)
+    assert await _keys(db_session, paused, PlaybackPauseEvent) == {"after-rename"}
+    plays = await _player_plays(db_session, NO_EXCLUSION, carl.id)
+    assert {row.session_key for row in plays.rows} == {"after-rename", "carl-own"}
+
+
+@pytest.mark.asyncio
+async def test_profiles_without_an_id_do_not_make_an_id_shared(db_session):
+    await make_portal_user(db_session, username="Dana", emby_user_id=None)
+    await make_portal_user(db_session, username="Erin", emby_user_id=None)
+    bob, profile = await make_portal_user(db_session, username="Bob", emby_user_id="emby-bob")
+    _play(db_session, "emby-bob", "Robert", "renamed")
+    await db_session.commit()
+
+    assert await _keys(db_session, _playback_user_filter(bob, profile)) == {"renamed"}
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize("emby_name", ["bob", "BOB"])
 async def test_the_login_claim_ignores_case_like_the_collector(db_session, emby_name):
     bob, profile = await make_portal_user(db_session, username="Bob", emby_user_id="emby-old")

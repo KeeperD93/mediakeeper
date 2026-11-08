@@ -51,33 +51,17 @@ async def test_a_local_account_bearing_an_emby_name_is_never_linked(db_session):
 
 
 @pytest.mark.asyncio
-async def test_an_emby_id_held_by_another_profile_is_never_given(db_session):
-    # Bob's Emby account now bears Carl's name: by name alone, Carl would get it too.
-    carl = await _profile(db_session, "Carl", source="emby", emby_user_id="emby-gone")
-    bob = await _profile(db_session, "Bob", source="emby", emby_user_id="emby-bob")
-    renamed = [{"Id": "emby-bob", "Name": "Carl", "Policy": {"IsDisabled": True}}]
-
-    with patch("services.portal.admin_users_emby.list_emby_users", new=AsyncMock(return_value=renamed)):
-        result = await backfill_emby_user_ids(db_session)
-
-    assert (result["updated"], result["already_linked"], result["unmatched"]) == (0, 0, 2)
-    carl_link = await _link(db_session, carl)
-    assert (carl_link.emby_user_id, carl_link.emby_is_disabled) == ("emby-gone", None)
-    assert (await _link(db_session, bob)).emby_user_id == "emby-bob"
-
-
-@pytest.mark.asyncio
-async def test_one_pass_never_gives_the_same_emby_id_twice(db_session):
-    first = await _profile(db_session, "Bob", source="emby")
-    second = await _profile(db_session, "bob", source="emby")
-    emby = [{"Id": "emby-bob", "Name": "bob", "Policy": {}}]
+async def test_a_profile_nobody_uses_does_not_block_the_real_one(db_session):
+    # Emby reinstalled, the account first named Alice2: the collector made a profile for it.
+    alice = await _profile(db_session, "Alice", source="emby", emby_user_id="emby-old")
+    await _profile(db_session, "Alice2", source="emby", emby_user_id="emby-new")
+    emby = [{"Id": "emby-new", "Name": "Alice", "Policy": {}}]
 
     with patch("services.portal.admin_users_emby.list_emby_users", new=AsyncMock(return_value=emby)):
         result = await backfill_emby_user_ids(db_session)
 
     assert (result["updated"], result["unmatched"]) == (1, 1)
-    linked = {(await _link(db_session, user_id)).emby_user_id for user_id in (first, second)}
-    assert linked == {"emby-bob", None}
+    assert (await _link(db_session, alice)).emby_user_id == "emby-new"
 
 
 @pytest.mark.asyncio

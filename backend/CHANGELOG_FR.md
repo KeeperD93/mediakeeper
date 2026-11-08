@@ -54,7 +54,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Utilisateurs — « Jamais connectés » ne liste plus les membres déjà venus.
 - Planificateur — tâches et cache à jour au retour sur l'onglet.
 - Planificateur — bouton « Défaut » : durée traduite dans l'infobulle.
-- Utilisateurs — « Synchroniser les ID Emby » ne relie plus un compte local ni un compte Emby déjà pris.
+- Utilisateurs — « Synchroniser les ID Emby » ne relie plus un compte local.
 - Sécurité — mot de passe provisoire : portail et chat fermés jusqu'à son changement.
 - Tableau de bord — classement du portail sans les profils privés.
 - Utilisateurs — onglet Audit : actions de debug affichées en clair.

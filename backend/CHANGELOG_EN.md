@@ -54,7 +54,7 @@ This section intentionally has no date so it is not shown to users.
 - Users — "Never logged in" no longer lists members who have visited.
 - Scheduler — tasks and cache up to date when returning to the tab.
 - Scheduler — "Default" button: duration translated in its tooltip.
-- Users — "Sync Emby IDs" no longer links a local account or an Emby account already taken.
+- Users — "Sync Emby IDs" no longer links a local account.
 - Security — temporary password: portal and chat stay closed until it is changed.
 - Dashboard — portal leaderboard without private profiles.
 - Users — Audit tab: debug actions shown in plain words.
