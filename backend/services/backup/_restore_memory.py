@@ -10,7 +10,6 @@ async def apply_restored_settings(db: AsyncSession) -> None:
     """Some settings are held in memory: align them, as saving each on its screen does.
     The restore is already saved, so a failure here is only logged."""
     from core.app_startup import apply_debug_level
-
     from services.emby import invalidate_emby_config_cache
     from services.media_manager import load_categories
     from services.portal.dns_cache import refresh_from_settings

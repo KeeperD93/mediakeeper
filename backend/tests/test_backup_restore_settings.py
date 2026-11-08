@@ -17,7 +17,12 @@ from services.emby import config as emby_config
 from services.feedback import KEY_RETENTION
 from services.portal import dns_cache
 from services.portal.gdpr import purge_pending_deletions
-from services.settings import get_setting, get_user_preferences, get_watchlist_data, set_setting
+from services.settings import (
+    get_setting,
+    get_user_preferences,
+    get_watchlist_data,
+    set_setting,
+)
 from services.watchlist_scanner import _state as watchlist_state
 
 ARCHIVE_SETTINGS = {"restore.key": "after"}
