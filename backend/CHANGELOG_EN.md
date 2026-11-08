@@ -57,6 +57,7 @@ This section intentionally has no date so it is not shown to users.
 - Users — "Sync Emby IDs" no longer links a local account.
 - Security — temporary password: portal and chat stay closed until it is changed.
 - Dashboard — portal leaderboard without private profiles.
+- Users — Audit tab: debug actions shown in plain words.
 
 ## [1.0.0-rc.9] - 2026-10-23
 

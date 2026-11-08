@@ -2608,6 +2608,13 @@
           "display_name_reset": "Nom d'affichage réinitialisé",
           "access_expired": "Accès expiré",
           "deletion_request_cancelled": "Demande de suppression annulée"
+        },
+        "debug": {
+          "xp_granted": "XP modifié",
+          "level_set": "Niveau modifié",
+          "achievement_unlocked": "Trophée débloqué",
+          "achievement_locked": "Trophée retiré",
+          "zone_correction_player": "Trophées corrigés (fuseau horaire)"
         }
       }
     }

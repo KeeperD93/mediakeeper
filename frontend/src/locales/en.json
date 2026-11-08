@@ -2608,6 +2608,13 @@
           "display_name_reset": "Display name reset",
           "access_expired": "Access expired",
           "deletion_request_cancelled": "Deletion request cancelled"
+        },
+        "debug": {
+          "xp_granted": "XP updated",
+          "level_set": "Level updated",
+          "achievement_unlocked": "Trophy unlocked",
+          "achievement_locked": "Trophy removed",
+          "zone_correction_player": "Trophies corrected (time zone)"
         }
       }
     }
