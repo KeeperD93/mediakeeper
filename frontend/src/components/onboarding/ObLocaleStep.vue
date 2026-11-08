@@ -72,10 +72,11 @@ async function onLocaleChange(code) {
   padding-block: var(--space-2);
   padding-left: var(--space-3);
   border: var(--border-width-thin) solid var(--border);
-  background-color: var(--bg-primary);
+  background-color: var(--bg-tertiary);
   color: var(--text-primary);
   font-size: var(--text-sm);
   font-family: inherit;
+  cursor: pointer;
   transition: var(--transition-border);
 }
 .ob-select:focus-visible {

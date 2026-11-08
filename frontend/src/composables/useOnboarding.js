@@ -169,7 +169,7 @@ export function useOnboarding(emit) {
   /** False keeps the wizard on the step: the change was refused, or its failure already shown. */
   async function saveTimezone() {
     if (!timezone.canSave.value) return true
-    // A first choice has nothing to shift; changing a saved zone can move trophies.
+    // The warning is about changing a saved zone: a first choice on a new install needs none.
     if (timezone.savedRow.value && !(await timezone.confirmChoice())) return false
     return timezone.saveChoice()
   }
