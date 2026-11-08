@@ -29,6 +29,7 @@ This section intentionally has no date so it is not shown to users.
 - Debug tools — player list translated, a failed load is reported.
 - Debug tools — "Run recheck" skips local and unlinked accounts, runs to the end despite an error.
 - Settings — language menu named for screen readers.
+- Notifications — Do Not Disturb follows the chosen time zone.
 - Security — IP behind a proxy: visitor-supplied address ignored (list every proxy).
 - Security — manual username block: applied whatever the letter case.
 - Security — lists always up to date (Refresh button) and errors shown.

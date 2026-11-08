@@ -29,6 +29,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Outils de debug — liste des joueurs traduite, échec de chargement signalé.
 - Outils de debug — « Lancer la vérification » ignore les comptes locaux et non reliés, va au bout malgré une erreur.
 - Paramètres — menu Langue nommé pour les lecteurs d'écran.
+- Notifications — « Ne pas déranger » suit le fuseau horaire choisi.
 - Sécurité — IP derrière un proxy : adresse envoyée par le visiteur ignorée (déclarer chaque proxy).
 - Sécurité — blocage manuel d'un nom : appliqué quelle que soit la casse.
 - Sécurité — listes toujours à jour (bouton Actualiser) et erreurs affichées.
