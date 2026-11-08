@@ -107,10 +107,12 @@ jobs:
           python-version: '3.14'
 
       - name: Install ruff
-        run: python -m pip install --upgrade pip ruff
+        # The version pinned for development, so both report the same issues.
+        run: python -m pip install --upgrade pip "$(grep '^ruff==' backend/requirements-dev.txt)"
 
       - name: Run ruff with security rules
-        run: ruff check backend --select S --exclude backend/tests --output-format=github
+        # --isolated: ruff.toml narrows the scope for code style, not for this scan.
+        run: ruff check backend --isolated --select S --exclude backend/tests --output-format=github
 
   semgrep:
     name: semgrep (p/security-audit, advisory)

@@ -17,7 +17,9 @@ git config core.hooksPath .husky
 That's it. From then on:
 
 - **pre-commit** runs `lint-staged` on the staged files: ESLint + Prettier +
-  stylelint auto-fix. A violation that cannot be auto-fixed blocks the commit.
+  stylelint auto-fix for the frontend, import sorting and the ruff baseline
+  check for the backend. A violation that cannot be auto-fixed blocks the
+  commit. Committing Python files needs `backend/requirements-dev.txt`.
 - **commit-msg** validates the commit message against the Conventional Commits
   spec (`feat`, `fix`, `refactor`, etc.) — see `commitlint.config.js` at repo
   root.

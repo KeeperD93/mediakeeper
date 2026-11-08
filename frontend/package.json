@@ -40,6 +40,10 @@
     ],
     "*.{json,md}": [
       "prettier --write"
+    ],
+    "../backend/**/*.py": [
+      "python -m ruff check --no-cache --fix --select I",
+      "python ../backend/scripts/ruff_baseline.py"
     ]
   },
   "overrides": {
