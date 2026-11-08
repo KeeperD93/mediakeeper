@@ -34,6 +34,7 @@ utilisateurs.
 - Trophées, classement, Mon profil et Quoi de neuf — comptés dans le fuseau horaire de l'instance.
 - Trophées Régulier et Fidèle — débloqués sur la plus longue série, pas seulement l'actuelle.
 - XP et trophées — gagnés dès la première lecture Emby, même avant toute connexion.
+- Profil privé — page dédiée « Ce profil est privé », sans pseudo ni avatar.
 
 ### Fixed
 - Connexion — trois vrais essais, compteur remis à zéro après une connexion réussie.

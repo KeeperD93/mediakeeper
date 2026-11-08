@@ -45,9 +45,8 @@ async def test_public_profile_includes_achievements_ratio(client, db_session):
 
 @pytest.mark.asyncio
 async def test_public_profile_private_returns_placeholder(client, db_session):
-    """Private profile fetched by a stranger returns 200 with a minimal
-    placeholder (``is_private=True`` + name + avatar): a link to it can
-    outlive the player's place in the ranking."""
+    """Private profile fetched by a stranger returns 200 and says nothing about
+    its owner: a link to it can outlive the player's place in the ranking."""
     me, _ = await make_portal_user(db_session, username="alice")
     target, _ = await make_portal_user(
         db_session, username="bob", display_name="Bob", is_public=False,
@@ -56,15 +55,7 @@ async def test_public_profile_private_returns_placeholder(client, db_session):
 
     resp = await client.get(f"/api/portal/profiles/by-user-id/{target.id}/public")
     assert resp.status_code == 200
-    body = resp.json()
-    assert body["is_private"] is True
-    assert body["user_id"] == target.id
-    assert body["display_name"] == "Bob"
-    # Sensitive bits never leak in the placeholder shape.
-    assert "bio" not in body
-    assert "level" not in body
-    assert "ranking" not in body
-    assert "achievements" not in body
+    assert resp.json() == {"is_private": True}
 
 
 @pytest.mark.asyncio

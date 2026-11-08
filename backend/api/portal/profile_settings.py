@@ -27,7 +27,6 @@ from services.portal.achievements import safe_check_all_achievements_in_new_sess
 from services.portal.avatars import (
     avatar_path_for, avatar_public_url, delete_avatar, save_avatar,
 )
-from services.portal.profile_serializers import build_private_placeholder
 from services.portal.profile_stats_ranking import compute_ranking
 from services.portal import strip_tags_and_trim
 from services.portal.profiles import (
@@ -245,10 +244,11 @@ async def public_profile_by_user(
 
     if not is_self and not row.is_public:
         # A link to a player who went private can outlive their place in
-        # the ranking (shared URL, page left open): a polite "this profile
-        # is private" landing rather than a dead 404. The admin branch
-        # above keeps its 404: admin accounts are never enumerated anywhere.
-        return build_private_placeholder(row, lang=lang)
+        # the ranking (shared URL, page left open): the page says the
+        # profile is private rather than a dead 404, with nothing about its
+        # owner. The admin branch above keeps its 404: admin accounts are
+        # never enumerated anywhere.
+        return {"is_private": True}
 
     base = _serialize_public(row, lang=lang)
 

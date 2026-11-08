@@ -6,17 +6,12 @@
     </div>
 
     <section v-else-if="isPrivate" class="pt-up-private">
-      <MkAvatar
-        :name="data.display_name || ''"
-        :src="data.avatar_url || null"
-        :size="96"
-        class="pt-up-private-avatar"
-      />
-      <Lock :size="48" :stroke-width="1.5" class="pt-up-private-icon" />
+      <!-- The lock holds the place of the illustration to come. -->
+      <div class="pt-up-private-art" aria-hidden="true">
+        <Lock :size="96" :stroke-width="1" />
+      </div>
       <h1>{{ $t('portal.profile.privateProfile.title') }}</h1>
-      <p>
-        {{ $t('portal.profile.privateProfile.desc', { name: data.display_name || '—' }) }}
-      </p>
+      <p>{{ $t('portal.profile.privateProfile.desc') }}</p>
     </section>
 
     <div v-else-if="error === 'profile_not_found'" class="pt-up-empty">
@@ -133,7 +128,6 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Link2, Lock, Settings, UserX, HelpCircle } from 'lucide-vue-next'
 
-import MkAvatar from '@/components/common/MkAvatar.vue'
 import MkSpinner from '@/components/common/MkSpinner.vue'
 import RankSidebarCard from '@/components/portal/profile/RankSidebarCard.vue'
 import { GENRE_LOOKUP } from '@/utils/portal/genreLookup'
@@ -158,10 +152,10 @@ const copied = ref(false)
 
 const userId = computed(() => Number(route.params.id))
 
-// Backend returns a minimal ``{is_private, user_id, display_name,
-// avatar_url}`` payload (status 200) when a non-owner reaches a
-// private account: a link to it can outlive the player's place in the
-// ranking, so the SPA surfaces a dedicated landing instead of a generic 404.
+// A non-owner reaching a private account gets ``{is_private: true}``
+// (status 200) and nothing about its owner: a link to it can outlive the
+// player's place in the ranking, so the SPA surfaces a dedicated landing
+// instead of a generic 404.
 const isPrivate = computed(() => !!data.value?.is_private)
 
 const cardProfile = computed(() =>
@@ -269,25 +263,31 @@ onMounted(load)
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.85rem;
-  padding: 3rem 1.5rem;
+  gap: var(--portal-space-3-5);
+  padding: var(--portal-space-6);
   text-align: center;
+}
+.pt-up-private-art {
+  display: grid;
+  place-items: center;
+  width: min(100%, var(--portal-illustration-size));
+  aspect-ratio: var(--portal-aspect-square);
+  border: var(--portal-border-width) solid var(--portal-border-subtle);
+  border-radius: var(--portal-radius-xl);
+  background: var(--portal-surface-1);
+  color: var(--portal-text-muted-solid);
 }
 .pt-up-private h1 {
   margin: 0;
-  font-size: var(--portal-text-xl);
+  font-size: var(--portal-text-2xl);
   font-weight: var(--portal-font-extrabold);
-  color: var(--text-primary);
+  color: var(--portal-text-primary-solid);
 }
 .pt-up-private p {
   margin: 0;
-  font-size: var(--portal-text-sm);
-  color: var(--text-muted);
-  max-width: 32rem;
-}
-.pt-up-private-icon {
-  color: var(--text-muted);
-  opacity: 0.7;
+  max-width: var(--portal-illustration-size);
+  font-size: var(--portal-text-base);
+  color: var(--portal-text-muted-solid);
 }
 </style>
 

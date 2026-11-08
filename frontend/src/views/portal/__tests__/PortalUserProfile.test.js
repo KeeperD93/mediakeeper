@@ -53,3 +53,16 @@ describe('PortalUserProfile.vue, ranking stat', () => {
     expect(wrapper.find('.pt-up-stats small').exists()).toBe(false)
   })
 })
+
+describe('PortalUserProfile.vue, private profile', () => {
+  beforeEach(() => apiGet.mockReset())
+
+  it('shows the illustration zone and the message instead of the profile', async () => {
+    const wrapper = await mountWith({ is_private: true })
+
+    expect(wrapper.find('.pt-up-private-art').exists()).toBe(true)
+    expect(wrapper.find('h1').text()).toBe('portal.profile.privateProfile.title')
+    expect(wrapper.find('.pt-up-private p').text()).toBe('portal.profile.privateProfile.desc')
+    expect(wrapper.find('.pt-up-hero').exists()).toBe(false)
+  })
+})

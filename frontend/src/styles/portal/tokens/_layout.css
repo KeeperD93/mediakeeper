@@ -34,6 +34,10 @@
   /* Column of the XP in a ranking row: the figures before it line up from row to row. */
   --portal-leaderboard-xp-width: 110px;
 
+  /* Square of a full-page illustration. */
+  --portal-illustration-size: 20rem;
+  --portal-aspect-square: 1 / 1; /* mirrors admin --aspect-square */
+
   /* Blurs (portal goes deeper than admin for cinema feel) */
   --portal-blur-xs: blur(6px);
   --portal-blur-sm: blur(8px);

@@ -3716,8 +3716,8 @@
       "topPercent": "Top {percent}%",
       "viewFullLeaderboard": "See the full leaderboard",
       "privateProfile": {
-        "title": "Private profile",
-        "desc": "{name} hasn't enabled their public profile. Their progress stays private."
+        "title": "This profile is private",
+        "desc": "Its owner has chosen to keep it to themselves."
       },
       "thisMonth": "this month",
       "memberSince": "Member for {months} months",

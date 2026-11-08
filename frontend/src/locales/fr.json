@@ -3716,8 +3716,8 @@
       "topPercent": "Top {percent}%",
       "viewFullLeaderboard": "Voir le classement complet",
       "privateProfile": {
-        "title": "Profil privé",
-        "desc": "{name} n'a pas activé son profil public. Sa progression reste confidentielle."
+        "title": "Ce profil est privé",
+        "desc": "Son propriétaire a choisi de le garder pour lui."
       },
       "thisMonth": "ce mois",
       "memberSince": "Membre depuis {months} mois",
