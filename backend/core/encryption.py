@@ -138,16 +138,29 @@ def encrypt_value(value: str) -> str:
     return f"{ENCRYPTED_PREFIX}{token}"
 
 
+def _decrypted(value: str) -> str | None:
+    """The plain text of a prefixed value, ``None`` when the active key cannot read it."""
+    fernet = _load_fernet()
+    token = value[len(ENCRYPTED_PREFIX):]
+    try:
+        return fernet.decrypt(token.encode("ascii")).decode("utf-8")
+    except (InvalidToken, UnicodeError):
+        return None
+
+
 def decrypt_value(value: str) -> str:
     """Decrypt a stored value. Plaintext (no prefix) is returned as-is so
     this function is safe to call on every read, even on legacy cleartext
     rows written before encryption was enabled."""
     if not value or not value.startswith(ENCRYPTED_PREFIX):
         return value
-    fernet = _load_fernet()
-    token = value[len(ENCRYPTED_PREFIX):]
-    try:
-        return fernet.decrypt(token.encode("ascii")).decode("utf-8")
-    except InvalidToken:
+    plain = _decrypted(value)
+    if plain is None:
         logger.error("[ENCRYPTION] Failed to decrypt a value (key rotated?). Returning empty string.")
         return ""
+    return plain
+
+
+def can_decrypt(value: str) -> bool:
+    """Whether the active key reads ``value``, without logging. Plaintext always reads."""
+    return not value.startswith(ENCRYPTED_PREFIX) or _decrypted(value) is not None

@@ -59,6 +59,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Tableau de bord — classement du portail sans les profils privés.
 - Utilisateurs — onglet Audit : actions de debug affichées en clair.
 - Sauvegardes — restauration vraiment enregistrée, réglages remis comme à la sauvegarde.
+- Sauvegardes — restauration refusée si ses secrets sont illisibles (rien n'est modifié).
 
 ## [1.0.0-rc.9] - 2026-10-23
 

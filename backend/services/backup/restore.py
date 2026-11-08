@@ -13,6 +13,7 @@ from models.settings import Setting
 from models.user import User
 
 from ._restore_memory import apply_restored_settings, apply_restored_watchlist
+from .restore_secrets import is_unreadable_secret, refuse_unreadable_secrets
 
 logger = logging.getLogger("mediakeeper.backup")
 
@@ -43,9 +44,8 @@ _ENCRYPTION_KEY_MANUAL_HINT = (
 )
 _ENCRYPTION_KEY_MISSING_HINT = (
     "No encryption key found in this backup. Encrypted settings inside the "
-    "archive will only be decryptable by the instance that produced it. "
-    "Provide the original key on the target host before starting the "
-    "application or expect encrypted values to read back as empty strings."
+    "archive will only be decryptable by the instance that produced it: "
+    "without its key on the target host, they are not restored."
 )
 
 
@@ -72,7 +72,9 @@ async def _restore_settings(db: AsyncSession, data: dict) -> str:
     from services.settings import set_settings_map
 
     gdpr_was_off = not await is_gdpr_enabled(db)
-    restored = {key: value for key, value in data.items() if key not in SETTINGS_KEPT_ON_RESTORE}
+    restored = {
+        k: v for k, v in data.items() if k not in SETTINGS_KEPT_ON_RESTORE and not is_unreadable_secret(v)
+    }
     await set_settings_map(db, restored, commit=False)
     # As on the GDPR screen: a deletion frozen while GDPR was off gets a fresh delay.
     if gdpr_was_off and await is_gdpr_enabled(db):
@@ -144,6 +146,7 @@ async def _run_restore_plan(
 ) -> dict:
     if not plan:
         return results
+    refuse_unreadable_secrets(plan)
     component = plan[0][0]
     try:
         async with db.begin_nested():

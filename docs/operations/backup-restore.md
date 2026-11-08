@@ -38,6 +38,15 @@ A single JSON file only writes the settings it holds, apart from these
 values. If a restore turns GDPR back on, every pending deletion request
 starts a full new delay, as it does from the GDPR screen.
 
+A backup none of whose secrets can be read with the current key is
+refused, and nothing changes. If you have its original key, put it back
+in place, then restart; the `MEDIAKEEPER_ENCRYPTION_KEY` variable, when
+set, takes precedence over the file. Secrets saved with the current key
+and absent from the backup, such as notification channels, then become
+unreadable and must be entered again. If only some secrets of a backup
+are unreadable, they are skipped: the current values stay in place and
+the rest is restored.
+
 In a real incident (database corruption, full host wipe, fresh
 install), that endpoint alone is **not enough**: the relational tables
 must be re-created from the SQL dump *first*, and the Fernet key must

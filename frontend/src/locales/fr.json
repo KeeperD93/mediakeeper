@@ -138,6 +138,7 @@
       "rate_limited_retry": "Trop d'actions en peu de temps. Réessayez dans {seconds} s.",
       "backup_create_failed": "Échec de la création de la sauvegarde.",
       "backup_restore_failed": "Échec de la restauration de la sauvegarde.",
+      "backup_key_mismatch": "Restauration annulée, rien n'a été modifié. Les secrets de cette sauvegarde ne peuvent pas être lus avec la clé de chiffrement actuelle de cette installation. Si vous avez sa clé d'origine, remettez-la en place et redémarrez, comme l'explique la documentation. Sinon, décochez « Configuration des outils » pour restaurer le reste d'une archive, puis recochez-la pour vos prochaines sauvegardes.",
       "backup_directory_invalid": "Dossier de sauvegarde invalide.",
       "user_profile_failed": "Impossible de récupérer le profil utilisateur.",
       "csrf_origin_mismatch": "Requête bloquée : l'origine de la page ne correspond pas au serveur (proxy/CORS mal configuré ?).",

@@ -138,6 +138,7 @@
       "rate_limited_retry": "Too many actions in a short time. Try again in {seconds}s.",
       "backup_create_failed": "Failed to create the backup.",
       "backup_restore_failed": "Failed to restore the backup.",
+      "backup_key_mismatch": "Restore cancelled, nothing was changed. This backup's secrets cannot be read with this installation's current encryption key. If you have its original key, put it back in place and restart, as the documentation explains. Otherwise, untick \"Tool configuration\" to restore the rest of an archive, then tick it again for your next backups.",
       "backup_directory_invalid": "Invalid backup directory.",
       "user_profile_failed": "Could not load the user profile.",
       "csrf_origin_mismatch": "Request blocked: the page origin doesn't match the server (proxy/CORS misconfigured?).",
