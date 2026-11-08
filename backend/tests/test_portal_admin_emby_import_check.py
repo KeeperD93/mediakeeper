@@ -14,11 +14,11 @@ EMBY_USERS = [{"Id": "emby-alice", "Name": "alice"}, {"Id": "emby-bob", "Name": 
 
 
 @pytest.fixture
-def checks(monkeypatch) -> list[tuple[int, str, str]]:
-    done: list[tuple[int, str, str]] = []
+def checks(monkeypatch) -> list[tuple[int, str]]:
+    done: list[tuple[int, str]] = []
 
-    async def spy(user_id, user_name, source):
-        done.append((user_id, user_name, source))
+    async def spy(user_id, source):
+        done.append((user_id, source))
         return []
 
     monkeypatch.setattr(route, "safe_check_all_achievements_in_new_session", spy)
@@ -40,7 +40,7 @@ async def test_each_imported_account_is_checked(client, admin_user, db_session, 
     resp = await _import(client, admin_user, ["emby-alice", "emby-bob"])
     assert resp.status_code == 200, resp.text
     assert resp.json()["created"] == 2
-    expected = [(await _user_id(db_session, name), name, "emby_import") for name in ("alice", "bob")]
+    expected = [(await _user_id(db_session, name), "emby_import") for name in ("alice", "bob")]
     assert sorted(checks) == sorted(expected)
 
 
@@ -54,7 +54,7 @@ async def test_a_deactivated_account_named_in_an_import_is_not_checked(client, a
 
     resp = await _import(client, admin_user, ["emby-alice", "emby-bob"])
     assert resp.json()["created"] == 1
-    assert checks == [(await _user_id(db_session, "alice"), "alice", "emby_import")]
+    assert checks == [(await _user_id(db_session, "alice"), "emby_import")]
 
 
 @pytest.mark.asyncio

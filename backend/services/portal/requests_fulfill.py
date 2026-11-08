@@ -76,7 +76,7 @@ async def fulfill_open_requests(db: AsyncSession) -> int:
 
     for user_id in requesters:
         await safe_check_all_achievements(
-            db, user_id=user_id, user_name=None, source="request_status_change",
+            db, user_id=user_id, source="request_status_change",
         )
     if flipped:
         logger.info("[REQUEST] %s request(s) marked available", flipped)

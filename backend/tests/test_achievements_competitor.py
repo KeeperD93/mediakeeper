@@ -59,7 +59,7 @@ async def _players(db_session, *names: str) -> list:
 
 async def _tiers(db_session, user) -> set[str]:
     """Run the real check, then return the Competitor tiers the player holds."""
-    await check_all_achievements(db_session, user.id, user.username)
+    await check_all_achievements(db_session, user.id)
     rows = (await db_session.execute(
         select(UserAchievement.achievement_id).where(
             UserAchievement.user_id == user.id,
@@ -276,7 +276,7 @@ async def test_the_ranking_is_built_once_and_only_when_a_tier_is_left(db_session
     monkeypatch.setattr(achievements_checks_progression, "finished_month_rankings", spy)
     alice, = await _players(db_session, "alice")
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert calls == 1
 
     rows = (await db_session.execute(
@@ -291,5 +291,5 @@ async def test_the_ranking_is_built_once_and_only_when_a_tier_is_left(db_session
         row.unlocked_at = _last_month()
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert calls == 1

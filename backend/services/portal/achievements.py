@@ -84,14 +84,11 @@ async def _safe_pass(label: str, coro) -> list[dict]:
         return []
 
 
-async def check_all_achievements(
-    db: AsyncSession, user_id: int, user_name: str | None = None
-) -> list[dict]:
+async def check_all_achievements(db: AsyncSession, user_id: int) -> list[dict]:
     """
     Compute current stats from PlaybackSession and update all achievements.
     Returns list of newly unlocked achievements (for notification).
     Called after a watch session closes, on request creation, etc.; never on login.
-    ``user_name`` no longer selects the rows: see ``played_by``.
     """
     # Whoever or whatever triggers the check, an account that may not earn gets nothing.
     if not await account_earns(db, user_id):
@@ -180,7 +177,6 @@ async def check_all_achievements(
 async def safe_check_all_achievements(
     db: AsyncSession,
     user_id: int,
-    user_name: str | None,
     source: str,
     *,
     silent: bool = True,
@@ -208,7 +204,7 @@ async def safe_check_all_achievements(
     started = time.perf_counter()
     unlocks: list[dict] = []
     try:
-        unlocks = await check_all_achievements(db, user_id=user_id, user_name=user_name)
+        unlocks = await check_all_achievements(db, user_id=user_id)
     except Exception:
         logger.exception(
             "achievements run failed",
@@ -239,7 +235,6 @@ async def safe_check_all_achievements(
 
 async def safe_check_all_achievements_in_new_session(
     user_id: int,
-    user_name: str | None,
     source: str,
 ) -> list[dict]:
     """Convenience wrapper for FastAPI ``BackgroundTasks``: opens a fresh
@@ -249,5 +244,5 @@ async def safe_check_all_achievements_in_new_session(
     from core.database import AsyncSessionLocal
     async with AsyncSessionLocal() as db:
         return await safe_check_all_achievements(
-            db, user_id=user_id, user_name=user_name, source=source, silent=True,
+            db, user_id=user_id, source=source, silent=True,
         )

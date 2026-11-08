@@ -64,11 +64,11 @@ async def _closed_play(db, name: str, item: str) -> PlaybackSession:
 async def test_the_session_stays_usable_after_a_failed_check(db_session, checks_fail, silent):
     [alice_id] = await _ids(db_session, "alice")
     if silent:
-        assert await achievements.safe_check_all_achievements(db_session, alice_id, "alice", "test") == []
+        assert await achievements.safe_check_all_achievements(db_session, alice_id, "test") == []
     else:
         with pytest.raises(SQLAlchemyError):
             await achievements.safe_check_all_achievements(
-                db_session, alice_id, "alice", "test", silent=False,
+                db_session, alice_id, "test", silent=False,
             )
 
     await db_session.execute(update(UserProfile).where(UserProfile.user_id == alice_id).values(xp=7))
@@ -89,12 +89,12 @@ async def test_a_failed_rollback_keeps_the_outcome_of_the_check(db_session, chec
 
     with patch.object(db_session, "rollback", new=rollback_then_fail):
         if silent:
-            assert await achievements.safe_check_all_achievements(db_session, alice_id, "alice", "test") == []
+            assert await achievements.safe_check_all_achievements(db_session, alice_id, "test") == []
         else:
             # The check's own error, not the rollback's.
             with pytest.raises(SQLAlchemyError):
                 await achievements.safe_check_all_achievements(
-                    db_session, alice_id, "alice", "test", silent=False,
+                    db_session, alice_id, "test", silent=False,
                 )
 
 

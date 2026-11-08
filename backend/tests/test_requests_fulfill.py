@@ -57,7 +57,7 @@ def checked(monkeypatch) -> list[int]:
     """Record the trophy re-checks instead of running the whole catalogue."""
     calls: list[int] = []
 
-    async def fake_check(_db, *, user_id, user_name, source):
+    async def fake_check(_db, *, user_id, source):
         calls.append(user_id)
         return []
 

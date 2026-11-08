@@ -151,7 +151,6 @@ async def upload_avatar(
     background_tasks.add_task(
         safe_check_all_achievements_in_new_session,
         user.id,
-        user.username,
         "avatar_changed",
     )
     return {

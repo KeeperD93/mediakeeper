@@ -75,14 +75,14 @@ async def post_emby_import(
     if result.get("created"):
         # An imported account earns at once: its trophies come from its whole Emby
         # history now, not at its next play. A deactivated account is left alone.
-        accounts = (await db.execute(
-            select(User.id, User.username)
+        user_ids = (await db.execute(
+            select(User.id)
             .join(UserProfile, UserProfile.user_id == User.id)
             .where(UserProfile.emby_user_id.in_(data.emby_user_ids), User.is_active.is_(True))
-        )).all()
-        for user_id, username in accounts:
+        )).scalars().all()
+        for user_id in user_ids:
             background_tasks.add_task(
-                safe_check_all_achievements_in_new_session, user_id, username, "emby_import",
+                safe_check_all_achievements_in_new_session, user_id, "emby_import",
             )
     return result
 

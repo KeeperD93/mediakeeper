@@ -72,7 +72,7 @@ TMDB_GENRE_NAME_TO_ID: dict[str, int] = {
 }
 
 
-def _playback_user_filter(user: User, profile: UserProfile):
+def _playback_user_filter(user: User | None, profile: UserProfile | None):
     """WHERE filter mapping a Portal account to its ``PlaybackSession`` rows."""
     clause = played_by(
         PlaybackSession,

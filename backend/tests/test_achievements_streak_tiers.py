@@ -93,7 +93,7 @@ async def test_a_past_run_earns_its_tier_and_the_bar_shows_the_run_in_progress(
     await db_session.commit()
     _freeze(monkeypatch, achievements_checks_local_time, now)
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
 
     assert await _unlocked(db_session, alice, "regular_1")
     next_tier = await _progress(db_session, alice, "regular_2")
@@ -117,12 +117,12 @@ async def _with_a_past_run(db, monkeypatch) -> User:
 async def test_a_past_run_earns_nothing_until_a_zone_is_chosen(db_session, monkeypatch):
     alice = await _with_a_past_run(db_session, monkeypatch)
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     tier = await _progress(db_session, alice, "regular_1")
     assert (tier.unlocked, tier.progress) == (False, 0)
 
     await set_setting(db_session, INSTANCE_TIMEZONE_KEY, "Europe/Paris")
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert await _unlocked(db_session, alice, "regular_1")
 
 
@@ -131,7 +131,7 @@ async def test_utc_chosen_on_purpose_is_a_chosen_zone(db_session, monkeypatch):
     alice = await _with_a_past_run(db_session, monkeypatch)
     await set_setting(db_session, INSTANCE_TIMEZONE_KEY, "UTC")
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert await _unlocked(db_session, alice, "regular_1")
 
 
@@ -140,7 +140,7 @@ async def test_a_zone_that_cannot_be_loaded_is_not_a_chosen_zone(db_session, mon
     alice = await _with_a_past_run(db_session, monkeypatch)
     await set_setting(db_session, INSTANCE_TIMEZONE_KEY, "Mars/Olympus")
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _unlocked(db_session, alice, "regular_1")
 
 
@@ -155,7 +155,7 @@ async def test_a_play_dated_tomorrow_earns_no_tier(db_session, monkeypatch):
     await db_session.commit()
     _freeze(monkeypatch, achievements_checks_local_time, now)
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
 
     tier = await _progress(db_session, alice, "regular_1")
     assert (tier.unlocked, tier.progress) == (False, 2)
@@ -172,11 +172,11 @@ async def test_the_day_streak_tier_follows_the_saved_zone(db_session, monkeypatc
     await db_session.commit()
     _freeze(monkeypatch, achievements_checks_local_time, _at(2026, 10, 17, 18))
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _unlocked(db_session, alice, "regular_1")
 
     await set_setting(db_session, INSTANCE_TIMEZONE_KEY, "Europe/Paris")
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert await _unlocked(db_session, alice, "regular_1")
 
 
@@ -191,6 +191,6 @@ async def test_today_of_the_day_streak_follows_the_saved_zone(db_session, monkey
     await db_session.commit()
     _freeze(monkeypatch, achievements_checks_local_time, _at(2026, 10, 16, 18))
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
 
     assert (await _progress(db_session, alice, "regular_1")).progress == 0

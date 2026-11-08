@@ -29,7 +29,7 @@ async def test_veteran_reads_a_level_lowered_after_the_session_loaded_it(db_sess
     await db_session.commit()
     assert profile.level == 5
 
-    await check_all_achievements(db_session, user.id, "alice")
+    await check_all_achievements(db_session, user.id)
     assert not await _veteran_unlocked(db_session, user.id)
 
 
@@ -40,5 +40,5 @@ async def test_veteran_is_granted_on_the_level_stored(db_session):
     profile.level = 5
     await db_session.commit()
 
-    await check_all_achievements(db_session, user.id, "bob")
+    await check_all_achievements(db_session, user.id)
     assert await _veteran_unlocked(db_session, user.id)

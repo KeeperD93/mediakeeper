@@ -124,7 +124,7 @@ async def test_secret_lonely_unlocks_when_alone_on_nye(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert await _ach_unlocked(db_session, alice.id, "secret_lonely")
 
 
@@ -157,7 +157,7 @@ async def test_secret_lonely_blocked_when_overlap_exists(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _ach_unlocked(db_session, alice.id, "secret_lonely")
 
 
@@ -191,7 +191,7 @@ async def test_secret_lonely_blocked_outside_nye_dates(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _ach_unlocked(db_session, alice.id, "secret_lonely")
 
 
@@ -214,7 +214,7 @@ async def test_secret_lonely_blocked_when_single_user_universe(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _ach_unlocked(db_session, alice.id, "secret_lonely")
 
 
@@ -246,7 +246,7 @@ async def test_secret_sync_unlocks_with_overlap_other_user(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert await _ach_unlocked(db_session, alice.id, "secret_sync")
 
 
@@ -277,7 +277,7 @@ async def test_secret_sync_blocked_without_overlap(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _ach_unlocked(db_session, alice.id, "secret_sync")
 
 
@@ -300,7 +300,7 @@ async def test_secret_sync_blocked_when_single_user_universe(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _ach_unlocked(db_session, alice.id, "secret_sync")
 
 
@@ -359,7 +359,7 @@ async def test_secret_sync_blocked_when_same_user_self_join(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _ach_unlocked(db_session, alice.id, "secret_sync")
 
 

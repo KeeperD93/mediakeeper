@@ -241,7 +241,7 @@ async def debug_recheck_all_achievements(
     total_unlocks = 0
     for user_id, username in accounts:
         unlocks = await safe_check_all_achievements(
-            db, user_id, username, source="admin_recheck", silent=True,
+            db, user_id, source="admin_recheck", silent=True,
         )
         if unlocks:
             total_unlocks += len(unlocks)

@@ -224,7 +224,6 @@ async def send_message(
     background_tasks.add_task(
         safe_check_all_achievements_in_new_session,
         user.id,
-        user.username,
         "chat_message",
     )
     return result

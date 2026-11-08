@@ -108,7 +108,7 @@ async def test_the_trophy_check_pays_only_an_active_account(db_session, active):
     ))
     await db_session.commit()
 
-    unlocks = await check_all_achievements(db_session, alice, "alice")
+    unlocks = await check_all_achievements(db_session, alice)
 
     assert bool(unlocks) is active
     _assert_paid(await _earned(db_session, alice), active)

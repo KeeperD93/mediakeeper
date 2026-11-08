@@ -13,7 +13,7 @@ def checked(monkeypatch) -> list[int]:
     """Ids of the accounts the check ran on."""
     ids: list[int] = []
 
-    async def spy(db, user_id, user_name, **kwargs):
+    async def spy(db, user_id, **kwargs):
         ids.append(user_id)
         return []
 

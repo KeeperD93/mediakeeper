@@ -3,7 +3,7 @@
 Two surprise clicks in the same second hit the ``uq_xp_user_action_ref``
 unique constraint and trip an IntegrityError → rollback. The rollback
 expires the ``user`` ORM instance even with ``expire_on_commit=False``;
-post-fix the endpoint caches the id + username before any commit so
+post-fix the endpoint caches the id before any commit so
 the background task can be scheduled without re-touching the session.
 """
 from __future__ import annotations
@@ -46,16 +46,16 @@ async def test_surprise_two_rapid_clicks_both_succeed(client, db_session):
 
 @pytest.mark.asyncio
 async def test_surprise_schedules_background_task_with_scalar_args(client, db_session):
-    """The background task must receive plain ``viewer_id`` /
-    ``viewer_username`` values cached BEFORE the commit — never the
-    ORM instance itself, which can be expired by the rollback path."""
+    """The background task must receive a plain ``viewer_id`` cached
+    BEFORE the commit — never the ORM instance itself, which can be
+    expired by the rollback path."""
     username = await _seed_user(db_session)
     _auth(client, username)
 
     called_args = []
 
-    def _capture(uid, uname, action):
-        called_args.append((uid, uname, action))
+    def _capture(uid, action):
+        called_args.append((uid, action))
 
     with patch("services.portal.available.get_surprise_pool", return_value=[]), \
          patch(
@@ -66,9 +66,8 @@ async def test_surprise_schedules_background_task_with_scalar_args(client, db_se
         assert resp.status_code == 200, resp.text
 
     assert len(called_args) == 1
-    uid, uname, action = called_args[0]
+    uid, action = called_args[0]
     assert isinstance(uid, int) and uid > 0
-    assert uname == username
     assert action == "surprise_used"
 
 

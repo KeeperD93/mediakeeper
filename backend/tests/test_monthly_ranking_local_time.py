@@ -53,7 +53,7 @@ async def _two_players(db) -> tuple:
 
 
 async def _competitor_tiers(db, user) -> set[str]:
-    await check_all_achievements(db, user.id, user.username)
+    await check_all_achievements(db, user.id)
     rows = (await db.execute(
         select(UserAchievement.achievement_id).where(
             UserAchievement.user_id == user.id,

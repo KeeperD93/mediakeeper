@@ -101,7 +101,7 @@ async def test_trophies_do_not_count_the_plays_of_another_player(db_session):
     await db_session.commit()
 
     await update_profile(db_session, profile, {"display_name": "Bob"})
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert await _movies_counted(db_session, alice.id) == 1
 
 
@@ -116,7 +116,7 @@ async def test_a_player_renamed_in_emby_keeps_all_their_plays(db_session):
     await db_session.commit()
 
     assert await _count_total_plays(db_session, bob, profile) == 5
-    await check_all_achievements(db_session, bob.id, bob.username)
+    await check_all_achievements(db_session, bob.id)
     assert await _movies_counted(db_session, bob.id) == 5
 
 

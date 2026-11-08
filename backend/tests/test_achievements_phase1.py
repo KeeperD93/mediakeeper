@@ -131,7 +131,7 @@ async def test_ten_movie_plays_unlock_movie_buff_bronze(db_session):
     ])
     await db_session.commit()
 
-    unlocks = await check_all_achievements(db_session, user.id, user.username)
+    unlocks = await check_all_achievements(db_session, user.id)
 
     assert "movie_buff_1" in {u["achievement_id"] for u in unlocks}
 
@@ -153,7 +153,7 @@ async def test_request_created_unlocks_requester_bronze(db_session):
     ))
     await db_session.commit()
 
-    await check_all_achievements(db_session, user.id, user.username)
+    await check_all_achievements(db_session, user.id)
 
     assert await _ach_unlocked(db_session, user.id, "requester_1")
 
@@ -173,7 +173,7 @@ async def test_served_request_still_counts_for_ambassador(db_session):
     ))
     await db_session.commit()
 
-    await check_all_achievements(db_session, user.id, user.username)
+    await check_all_achievements(db_session, user.id)
 
     assert await _ach_unlocked(db_session, user.id, "ambassador_1")
 
@@ -195,7 +195,7 @@ async def test_archived_request_still_counts_for_request_trophies(db_session):
     ))
     await db_session.commit()
 
-    await check_all_achievements(db_session, user.id, user.username)
+    await check_all_achievements(db_session, user.id)
 
     assert await _ach_unlocked(db_session, user.id, "requester_1")
     assert await _ach_unlocked(db_session, user.id, "ambassador_1")
@@ -218,7 +218,7 @@ async def test_ticket_created_unlocks_reporter_bronze(db_session):
     ))
     await db_session.commit()
 
-    await check_all_achievements(db_session, user.id, user.username)
+    await check_all_achievements(db_session, user.id)
 
     assert await _ach_unlocked(db_session, user.id, "reporter_1")
 
@@ -238,7 +238,7 @@ async def test_fifty_chat_messages_unlock_chatty_bronze(db_session):
     ])
     await db_session.commit()
 
-    await check_all_achievements(db_session, user.id, user.username)
+    await check_all_achievements(db_session, user.id)
 
     assert await _ach_unlocked(db_session, user.id, "chatty_1")
 
@@ -255,7 +255,7 @@ async def test_avatar_set_unlocks_photogenic(db_session):
     db_session.add(profile)
     await db_session.commit()
 
-    await check_all_achievements(db_session, user.id, user.username)
+    await check_all_achievements(db_session, user.id)
 
     assert await _ach_unlocked(db_session, user.id, "photogenic_1")
 
@@ -278,7 +278,7 @@ async def test_event_created_unlocks_organizer_bronze(db_session):
     ))
     await db_session.commit()
 
-    await check_all_achievements(db_session, user.id, user.username)
+    await check_all_achievements(db_session, user.id)
 
     assert await _ach_unlocked(db_session, user.id, "organizer_1")
 
@@ -338,7 +338,7 @@ async def test_librarian_tracks_peak_per_list_not_total(db_session):
             ],
         )
 
-    await check_all_achievements(db_session, user.id, user.username)
+    await check_all_achievements(db_session, user.id)
 
     assert not await _ach_unlocked(db_session, user.id, "librarian_1")
 
@@ -412,7 +412,7 @@ async def test_safe_wrapper_runs_check_with_source_label(db_session):
     await seed_achievements(db_session)
 
     unlocks = await safe_check_all_achievements(
-        db_session, user.id, user.username, source="manual_check", silent=False,
+        db_session, user.id, source="manual_check", silent=False,
     )
 
     assert unlocks == []  # No data → no unlocks; no exception either.

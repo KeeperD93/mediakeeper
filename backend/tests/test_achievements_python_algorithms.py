@@ -110,7 +110,7 @@ async def test_allnight_unlocks_with_continuous_session_22_to_06(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert await _ach_unlocked(db_session, alice.id, "secret_allnight")
 
 
@@ -152,7 +152,7 @@ async def test_allnight_unlocks_with_chain_of_sessions_with_short_gaps(db_sessio
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert await _ach_unlocked(db_session, alice.id, "secret_allnight")
 
 
@@ -183,7 +183,7 @@ async def test_allnight_blocked_when_gap_exceeds_5min(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _ach_unlocked(db_session, alice.id, "secret_allnight")
 
 
@@ -204,7 +204,7 @@ async def test_allnight_blocked_when_window_incomplete(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _ach_unlocked(db_session, alice.id, "secret_allnight")
 
 
@@ -225,7 +225,7 @@ async def test_allnight_blocked_outside_22_06_window(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _ach_unlocked(db_session, alice.id, "secret_allnight")
 
 
@@ -252,7 +252,7 @@ async def test_no_life_unlocks_with_24h_in_48h_sliding_window(db_session):
         )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert await _ach_unlocked(db_session, alice.id, "secret_no_life")
 
 
@@ -285,7 +285,7 @@ async def test_no_life_blocked_with_23h_55min_in_48h(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _ach_unlocked(db_session, alice.id, "secret_no_life")
 
 
@@ -310,7 +310,7 @@ async def test_no_life_blocked_when_24h_spread_over_72h(db_session):
         )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _ach_unlocked(db_session, alice.id, "secret_no_life")
 
 
@@ -404,7 +404,7 @@ async def test_king_unlocks_with_12_consecutive_top1_months(db_session):
         _seed_alice_top_month(db_session, alice.username, year, month)
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert await _ach_unlocked(db_session, alice.id, "secret_king")
 
 
@@ -418,7 +418,7 @@ async def test_king_blocked_with_11_consecutive_months(db_session):
         _seed_alice_top_month(db_session, alice.username, year, month)
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _ach_unlocked(db_session, alice.id, "secret_king")
 
 
@@ -439,7 +439,7 @@ async def test_king_blocked_when_overtaken_one_month(db_session):
         _seed_alice_top_month(db_session, alice.username, year, month)
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _ach_unlocked(db_session, alice.id, "secret_king")
 
 
@@ -454,7 +454,7 @@ async def test_king_blocked_when_single_user_universe(db_session):
         _seed_alice_only_month(db_session, alice.username, year, month)
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _ach_unlocked(db_session, alice.id, "secret_king")
 
 
@@ -475,7 +475,7 @@ async def test_king_chain_continues_through_months_skipped_by_n2_rule(db_session
         _seed_alice_top_month(db_session, alice.username, year, month)
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert await _ach_unlocked(db_session, alice.id, "secret_king")
 
 

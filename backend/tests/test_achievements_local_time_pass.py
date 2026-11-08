@@ -95,7 +95,7 @@ async def test_a_local_rule_alone_in_the_catalogue_still_gets_its_rows(db_sessio
         _session(db_session, _at(2026, 1, 15, 12), item=item)
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert await _unlocked(db_session, alice, "secret_triple")
 
 
@@ -109,7 +109,7 @@ async def test_excluded_titles_count_for_no_local_rule(db_session):
     _session(db_session, _at(2026, 1, 15, 2), item_name="Test Intro")
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _unlocked(db_session, alice, _first_tier("night_watch"))
 
 
@@ -123,7 +123,7 @@ async def test_a_date_at_the_edge_of_the_calendar_loses_no_pass(db_session, capl
     await db_session.commit()
 
     with caplog.at_level(logging.ERROR, logger="mediakeeper.portal.achievements"):
-        await check_all_achievements(db_session, alice.id, alice.username)
+        await check_all_achievements(db_session, alice.id)
 
     assert "check pass failed" not in caplog.text
     assert await _unlocked(db_session, alice, _first_tier("night_watch"))
@@ -147,11 +147,11 @@ async def test_a_trophy_follows_the_saved_zone(db_session, condition, moment):
     await db_session.commit()
     achievement = _first_tier(condition)
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _unlocked(db_session, alice, achievement)
 
     await set_setting(db_session, INSTANCE_TIMEZONE_KEY, "Europe/Paris")
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert await _unlocked(db_session, alice, achievement)
 
 
@@ -165,11 +165,11 @@ async def test_lonely_new_year_follows_the_local_calendar(db_session):
     _session(db_session, _at(2026, 6, 1, 12), user="bob")
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _unlocked(db_session, alice, "secret_lonely")
 
     await set_setting(db_session, INSTANCE_TIMEZONE_KEY, "Europe/Paris")
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert await _unlocked(db_session, alice, "secret_lonely")
 
 
@@ -182,19 +182,19 @@ async def test_lonely_needs_nobody_else_watching_and_a_second_player(db_session)
     _session(db_session, moment)
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _unlocked(db_session, alice, "secret_lonely")
 
     await _viewer(db_session, "bob")
     _session(db_session, moment, user="bob")
     await db_session.commit()
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _unlocked(db_session, alice, "secret_lonely")
 
     # One new year session alone is enough, even with company on another.
     _session(db_session, _at(2026, 12, 31, 18))
     await db_session.commit()
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert await _unlocked(db_session, alice, "secret_lonely")
 
 
@@ -207,11 +207,11 @@ async def test_the_all_nighter_trophy_receives_the_saved_zone(db_session):
     _session(db_session, start, ended_at=start + timedelta(hours=7))
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _unlocked(db_session, alice, "secret_allnight")
 
     await set_setting(db_session, INSTANCE_TIMEZONE_KEY, "Europe/Paris")
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert await _unlocked(db_session, alice, "secret_allnight")
 
 
@@ -229,9 +229,9 @@ async def test_the_king_trophy_receives_the_saved_zone(db_session):
     _session(db_session, moment, user="bob", ended_at=moment + timedelta(hours=10))
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _unlocked(db_session, alice, "secret_king")
 
     await set_setting(db_session, INSTANCE_TIMEZONE_KEY, "Europe/Paris")
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert await _unlocked(db_session, alice, "secret_king")

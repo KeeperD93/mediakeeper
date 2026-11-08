@@ -144,7 +144,7 @@ Identify the service that mutates the data (create a list, send a message,
   ```python
   background_tasks.add_task(
       safe_check_all_achievements_in_new_session,
-      user.id, user.username, "list_created",
+      user.id, "list_created",
   )
   ```
 
@@ -152,7 +152,7 @@ Identify the service that mutates the data (create a list, send a message,
   the wrapper is silent by default:
 
   ```python
-  await safe_check_all_achievements(db, user_id, None, source="list_created")
+  await safe_check_all_achievements(db, user_id, source="list_created")
   ```
 
 No duplication: one trigger per operation. If several trophies depend on
