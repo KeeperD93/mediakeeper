@@ -15,6 +15,7 @@ from services.portal.achievements_utils import (
 )
 from services.portal.personal_utils import _count_total_plays, _playback_user_filter
 from services.portal.profiles import update_profile
+from services.portal.user_import import ensure_user_for_emby_session
 from services.portal.zone_correction._plan import _player_plays
 from tests._portal_profile_helpers import make_portal_user
 
@@ -146,6 +147,20 @@ async def test_the_login_claims_only_an_emby_account_linked_to_nobody(db_session
     assert await _keys(db_session, _playback_user_filter(bob, profile)) == {
         "before-reinstall", "after-reinstall",
     }
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("emby_name", ["bob", "BOB"])
+async def test_the_login_claim_ignores_case_like_the_collector(db_session, emby_name):
+    bob, profile = await make_portal_user(db_session, username="Bob", emby_user_id="emby-old")
+    _play(db_session, "emby-new", emby_name, "after-reinstall")
+    await db_session.commit()
+
+    resolved = await ensure_user_for_emby_session(
+        db_session, emby_username=emby_name, emby_user_id="emby-new",
+    )
+    assert resolved.id == bob.id
+    assert await _keys(db_session, _playback_user_filter(bob, profile)) == {"after-reinstall"}
 
 
 @pytest.mark.asyncio

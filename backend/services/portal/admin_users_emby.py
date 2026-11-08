@@ -112,7 +112,9 @@ async def backfill_emby_user_ids(db: AsyncSession) -> dict[str, Any]:
     ``Policy.IsDisabled`` into ``emby_is_disabled`` so the list can flag
     upstream-blocked accounts without a per-row Emby round-trip. A local
     account is left out even when an Emby user bears its name: it serves
-    administration only and must not be linked."""
+    administration only and must not be linked. So is a profile whose match
+    holds an id another profile already has: a rename on Emby must not hand
+    one player's account, and its history, to another."""
     emby_users = await list_emby_users(db)
     if not emby_users:
         return {"error": "no_source"}
@@ -122,6 +124,9 @@ async def backfill_emby_user_ids(db: AsyncSession) -> dict[str, Any]:
         .join(User, User.id == UserProfile.user_id)
         .where(UserProfile.source != SOURCE_LOCAL)
     )).all()
+    held_ids = set((await db.execute(
+        select(UserProfile.emby_user_id).where(UserProfile.emby_user_id.is_not(None))
+    )).scalars())
 
     # Build a lookup that carries the Emby id + the disabled flag.
     by_username: dict[str, dict[str, Any]] = {}
@@ -143,11 +148,12 @@ async def backfill_emby_user_ids(db: AsyncSession) -> dict[str, Any]:
     emails_synced = 0
     for profile, user in rows:
         match = by_username.get((user.username or "").lower())
-        if not match:
+        if not match or (match["id"] != profile.emby_user_id and match["id"] in held_ids):
             unmatched += 1
             continue
         dirty = False
         if profile.emby_user_id != match["id"]:
+            held_ids.add(match["id"])
             profile.emby_user_id = match["id"]
             dirty = True
         if profile.emby_is_disabled != match["is_disabled"]:
