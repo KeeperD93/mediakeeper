@@ -70,7 +70,7 @@ def check(paths: list[str]) -> int:
         print("[ruff] OK - no new issue.")
         return 0
 
-    print("[ruff] FAIL - more issues than the baseline allows. Fix the new ones listed below.")
+    print("[ruff] FAIL - more issues than the baseline allows. Fix the new ones among those listed below.")
     print("  Import order: python -m ruff check --fix --select I FILE. Moved file: run with --update.")
     for issue in issues:
         path, code = _key(issue)

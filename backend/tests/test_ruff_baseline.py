@@ -79,6 +79,9 @@ def test_one_more_issue_fails_and_names_it(baseline, fake_ruff, capsys):
     output = capsys.readouterr().out
     assert f"{EXAMPLE}:9:5: B904 Test message for B904" in output
     assert f"{EXAMPLE} B904: 2 found, 1 allowed" in output
+    assert "the new ones among those listed" in output
+    assert "python -m ruff check --fix --select I FILE" in output
+    assert "run with --update" in output
 
 
 def test_a_rule_new_to_the_file_fails(baseline, fake_ruff, capsys):
