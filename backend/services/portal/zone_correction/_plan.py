@@ -16,8 +16,8 @@ from models.portal.profile import UserProfile
 from models.portal.xp_ledger import XpLedger
 from services.portal.achievement_defs_constants import PLACEHOLDER_IDS
 from services.portal.achievements_utils import (
+    _build_playback_user_filter,
     _coerce_utc,
-    _resolve_every_playback_user_name,
 )
 from services.portal.playback_algorithms import session_spans
 from services.portal.profile_decorations import stale_decoration_updates
@@ -62,13 +62,12 @@ class PlayerPlan:
 
 
 async def _player_plays(db: AsyncSession, ctx: Context, user_id: int) -> PlayerPlays:
-    names = await _resolve_every_playback_user_name(db, user_id)
-    by_name = PlaybackSession.user_name.in_(names)
+    played = await _build_playback_user_filter(db, user_id)
     rows = (await db.execute(
-        select(PlaybackSession).where(by_name, *ctx.excl_filters)
+        select(PlaybackSession).where(played, *ctx.excl_filters)
     )).scalars().all()
     emby_ids = sorted((await db.execute(
-        select(PlaybackSession.user_id).distinct().where(by_name)
+        select(PlaybackSession.user_id).distinct().where(played)
     )).scalars().all())
     sessions = (await db.execute(
         select(PlaybackSession.started_at, PlaybackSession.ended_at, PlaybackSession.session_key)

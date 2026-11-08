@@ -5,8 +5,6 @@ from ._playback import (
     _coerce_utc,
     _count_season_binges,
     _normalize_library_name,
-    _resolve_every_playback_user_name,
-    _resolve_playback_user_names,
     _session_duration_seconds,
 )
 from ._progress import (
@@ -27,8 +25,6 @@ __all__ = [
     "_enforce_user_achievement_uniqueness",
     "_build_playback_user_filter",
     "_build_pause_user_filter",
-    "_resolve_playback_user_names",
-    "_resolve_every_playback_user_name",
     "_coerce_utc",
     "_session_duration_seconds",
     "_count_season_binges",

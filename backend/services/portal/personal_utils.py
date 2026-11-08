@@ -17,6 +17,7 @@ from models.user import User
 from models.playback_stats import PlaybackSession
 from models.portal.profile import UserProfile
 from models.portal.emby_tmdb_index import EmbyTmdbIndex
+from services.portal.playback_owner import played_by
 
 logger = logging.getLogger("mediakeeper.portal.personal")
 
@@ -72,26 +73,15 @@ TMDB_GENRE_NAME_TO_ID: dict[str, int] = {
 
 
 def _playback_user_filter(user: User, profile: UserProfile):
-    """
-    Build the WHERE filter that maps a Portal profile to its rows in
-    ``PlaybackSession``. We match on BOTH ``user.username`` (the Emby
-    login, stable) and ``profile.display_name`` (the Portal nickname,
-    user-editable) to cover:
-    - fresh users where both strings are still equal;
-    - users who renamed their Portal profile after having history;
-    - edge cases where the stats collector stored the Emby "Name" field
-      which may differ from the login in unusual Emby setups.
-    """
-    names: list[str] = []
-    if user and user.username:
-        names.append(user.username)
-    if profile and profile.display_name and profile.display_name not in names:
-        names.append(profile.display_name)
-    if not names:
-        # Poison value so the caller still gets a valid SQL clause that
-        # returns zero rows instead of crashing.
-        return PlaybackSession.user_name == "__no_user__"
-    return PlaybackSession.user_name.in_(names)
+    """WHERE filter mapping a Portal account to its ``PlaybackSession`` rows."""
+    clause = played_by(
+        PlaybackSession,
+        profile.emby_user_id if profile else None,
+        user.username if user else None,
+    )
+    # Poison value so the caller still gets a valid SQL clause that
+    # returns zero rows instead of crashing.
+    return clause if clause is not None else PlaybackSession.user_name == "__no_user__"
 
 
 def _weight_for_age(now: datetime, started_at: Optional[datetime]) -> int:

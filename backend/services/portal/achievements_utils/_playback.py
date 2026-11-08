@@ -8,72 +8,27 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from constants.playback import WATCH_ITEM_TYPES
 from models.playback_stats import PlaybackPauseEvent, PlaybackSession
 from models.portal.profile import UserProfile
+from models.user import User
+from services.portal.playback_owner import played_by
 
 
-async def _resolve_playback_user_names(
-    db: AsyncSession, user_id: int, user_name: str | None
-) -> list[str]:
-    """Resolve the candidate user_name strings used to match Emby rows.
-
-    Returns the deduplicated list of non-empty names that may identify
-    the user across the Emby integration: explicit override, MK
-    ``users.username``, and ``user_profiles.display_name``.
-    """
-    from models.user import User
-
-    profile = (await db.execute(
-        select(UserProfile).where(UserProfile.user_id == user_id)
-    )).scalar_one_or_none()
-    user_obj = await db.get(User, user_id)
-
-    names: list[str] = []
-    for candidate in (
-        user_name,
-        user_obj.username if user_obj else None,
-        profile.display_name if profile else None,
-    ):
-        candidate = (candidate or "").strip()
-        if candidate and candidate not in names:
-            names.append(candidate)
-    return names
+async def _player_identity(db: AsyncSession, user_id: int) -> tuple[str | None, str | None]:
+    """The Emby id and the login :func:`played_by` needs, ``(None, None)`` for no account."""
+    row = (await db.execute(
+        select(UserProfile.emby_user_id, User.username)
+        .select_from(User)
+        .outerjoin(UserProfile, UserProfile.user_id == User.id)
+        .where(User.id == user_id)
+    )).first()
+    return (row.emby_user_id, row.username) if row else (None, None)
 
 
-async def _resolve_every_playback_user_name(db: AsyncSession, user_id: int) -> list[str]:
-    """Every name a check pass can match this user with, whoever ran it: the names of
-    :func:`_resolve_playback_user_names` plus each Emby name on the sessions of their
-    own Emby account, the name the end of a playback passes in."""
-    names = await _resolve_playback_user_names(db, user_id, None)
-    emby_user_id = (await db.execute(
-        select(UserProfile.emby_user_id).where(UserProfile.user_id == user_id)
-    )).scalar_one_or_none()
-    if emby_user_id:
-        emby_names = (await db.execute(
-            select(PlaybackSession.user_name).distinct()
-            .where(PlaybackSession.user_id == emby_user_id)
-        )).scalars().all()
-        for candidate in sorted(emby_names):
-            candidate = (candidate or "").strip()
-            if candidate and candidate not in names:
-                names.append(candidate)
-    return names
+async def _build_playback_user_filter(db: AsyncSession, user_id: int):
+    return played_by(PlaybackSession, *await _player_identity(db, user_id))
 
 
-async def _build_playback_user_filter(
-    db: AsyncSession, user_id: int, user_name: str | None
-):
-    names = await _resolve_playback_user_names(db, user_id, user_name)
-    if not names:
-        return None
-    return PlaybackSession.user_name.in_(names)
-
-
-async def _build_pause_user_filter(
-    db: AsyncSession, user_id: int, user_name: str | None
-):
-    names = await _resolve_playback_user_names(db, user_id, user_name)
-    if not names:
-        return None
-    return PlaybackPauseEvent.user_name.in_(names)
+async def _build_pause_user_filter(db: AsyncSession, user_id: int):
+    return played_by(PlaybackPauseEvent, *await _player_identity(db, user_id))
 
 
 def _coerce_utc(value: datetime | None) -> datetime | None:

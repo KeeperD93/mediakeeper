@@ -91,6 +91,7 @@ async def check_all_achievements(
     Compute current stats from PlaybackSession and update all achievements.
     Returns list of newly unlocked achievements (for notification).
     Called after a watch session closes, on request creation, etc.; never on login.
+    ``user_name`` no longer selects the rows: see ``played_by``.
     """
     # Whoever or whatever triggers the check, an account that may not earn gets nothing.
     if not await account_earns(db, user_id):
@@ -99,10 +100,10 @@ async def check_all_achievements(
     excl_filters = await get_exclusion_filters(db)
     pause_excl_filters = await get_pause_event_exclusion_filters(db)
 
-    user_filter = await _build_playback_user_filter(db, user_id, user_name)
+    user_filter = await _build_playback_user_filter(db, user_id)
     if user_filter is None:
         return []
-    pause_user_filter = await _build_pause_user_filter(db, user_id, user_name)
+    pause_user_filter = await _build_pause_user_filter(db, user_id)
     zone = await get_instance_zone(db)
 
     all_achs = (await db.execute(select(Achievement))).scalars().all()

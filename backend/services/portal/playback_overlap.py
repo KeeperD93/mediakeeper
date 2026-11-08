@@ -11,7 +11,7 @@ Two notes on the design:
 * ``PlaybackSession.user_id`` stores the **Emby user_id string**, not
   the internal MediaKeeper ``users.id``. Callers that translate from
   MK to Emby must do it before invoking these helpers (the achievements
-  runner only knows the MK user via ``user_filter`` on ``user_name``,
+  runner only knows the MK user via ``user_filter``,
   so the secrets-b module resolves the matching Emby IDs once and
   passes them down).
 
