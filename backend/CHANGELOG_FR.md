@@ -56,6 +56,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Planificateur — bouton « Défaut » : durée traduite dans l'infobulle.
 - Utilisateurs — « Synchroniser les ID Emby » ne relie plus un compte local.
 - Sécurité — mot de passe provisoire : portail et chat fermés jusqu'à son changement.
+- Tableau de bord — classement du portail sans les profils privés.
 
 ## [1.0.0-rc.9] - 2026-10-23
 

@@ -7,10 +7,8 @@ Three cases coexist:
   are never exposed by any other public surface, so masking them as
   "not found" prevents enumeration.
 * Private profile viewed by a non-owner → 200 with a minimal
-  ``{is_private, user_id, display_name, avatar_url}`` placeholder.
-  The leaderboard already exposes ``user_id`` for every ranked
-  player (both public and private), so 404-masking here would
-  break the UX without gaining any privacy.
+  ``{is_private, user_id, display_name, avatar_url}`` placeholder:
+  a link to it can outlive the player's place in the ranking.
 * Public profile → 200 with the full payload.
 """
 from __future__ import annotations

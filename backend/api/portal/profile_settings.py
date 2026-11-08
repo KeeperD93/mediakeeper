@@ -244,14 +244,10 @@ async def public_profile_by_user(
         raise HTTPException(status_code=404, detail="profile_not_found")
 
     if not is_self and not row.is_public:
-        # Private-profile UX: the leaderboard already exposes the
-        # ``user_id`` of every ranked player (both public and private),
-        # so masking a private account as 404 here gains nothing
-        # privacy-wise — the caller already knows the id exists. Surface
-        # a minimal placeholder instead so the SPA can render a polite
-        # "this profile is private" landing rather than a dead 404. The
-        # admin branch above keeps its 404 because admin accounts are a
-        # true privacy boundary (never enumerated anywhere).
+        # A link to a player who went private can outlive their place in
+        # the ranking (shared URL, page left open): a polite "this profile
+        # is private" landing rather than a dead 404. The admin branch
+        # above keeps its 404: admin accounts are never enumerated anywhere.
         return build_private_placeholder(row, lang=lang)
 
     base = _serialize_public(row, lang=lang)

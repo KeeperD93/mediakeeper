@@ -2,14 +2,14 @@
 
 Kept separate from :mod:`profile_stats_ranking` so the orchestrators
 (``compute_ranking``, ``compute_leaderboard_only``) stay well under the
-300-line file budget while sharing the exclusion query, the activity XP
+300-line file budget while sharing the exclusion queries, the activity XP
 and trophy queries, the row → entry builder and the empty payload.
 """
 from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import desc, func, select
+from sqlalchemy import ColumnElement, desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants.leaderboard import LeaderboardPeriod
@@ -23,30 +23,36 @@ from services.portal._rank_tiers import (
     tier_for_title,
     title_for_level,
 )
-from services.portal.admin_users_constants import ROLE_ADMIN
+from services.portal.admin_users_constants import ROLE_ADMIN, SOURCE_EMBY
 from services.portal.profile_serializers import _resolve_avatar_url
 from services.portal.xp import ACTIVITY_XP_ACTIONS
 
+# Local-only profiles (like the backoffice admin), deactivated and soft-deleted accounts.
+_NOT_A_PLAYER = or_(
+    UserProfile.source != SOURCE_EMBY,
+    UserProfile.emby_user_id.is_(None),
+    UserProfile.account_active.is_(False),
+    UserProfile.deleted_at.isnot(None),
+)
+
+
+async def _user_ids_where(db: AsyncSession, condition: ColumnElement[bool]) -> list[int]:
+    rows = await db.execute(select(UserProfile.user_id).where(condition))
+    return list(rows.scalars().all())
+
+
+async def excluded_from_trophy_counter(db: AsyncSession) -> list[int]:
+    """Return user_ids left out of the page's trophy counter, which keeps private profiles."""
+    return await _user_ids_where(db, _NOT_A_PLAYER)
+
 
 async def excluded_from_leaderboard(db: AsyncSession) -> list[int]:
-    """Return user_ids that must never appear in the public ranking:
-
-    - Non-Emby accounts (local-only profiles like the backoffice admin).
-    - Deactivated MediaKeeper accounts (``account_active = False``).
-    - Soft-deleted accounts (``deleted_at`` set).
+    """Return user_ids that must never appear in the ranking: non-players and private profiles.
 
     Emby admins and moderators DO appear: the ranking is open to every
     Emby user regardless of their MediaKeeper role.
     """
-    rows = (await db.execute(
-        select(UserProfile.user_id).where(
-            (UserProfile.source != "emby")
-            | (UserProfile.emby_user_id.is_(None))
-            | (UserProfile.account_active.is_(False))
-            | (UserProfile.deleted_at.isnot(None))
-        )
-    )).scalars().all()
-    return list(rows)
+    return await _user_ids_where(db, or_(_NOT_A_PLAYER, UserProfile.is_public.is_(False)))
 
 
 async def activity_xp_by_user(

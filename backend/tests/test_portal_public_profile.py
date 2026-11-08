@@ -45,10 +45,9 @@ async def test_public_profile_includes_achievements_ratio(client, db_session):
 
 @pytest.mark.asyncio
 async def test_public_profile_private_returns_placeholder(client, db_session):
-    """Private profile fetched by a stranger now returns 200 with a
-    minimal placeholder (``is_private=True`` + name + avatar). The
-    leaderboard already exposes the user_id so masking as 404 here
-    would only break the SPA's UX without gaining privacy."""
+    """Private profile fetched by a stranger returns 200 with a minimal
+    placeholder (``is_private=True`` + name + avatar): a link to it can
+    outlive the player's place in the ranking."""
     me, _ = await make_portal_user(db_session, username="alice")
     target, _ = await make_portal_user(
         db_session, username="bob", display_name="Bob", is_public=False,

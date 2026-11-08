@@ -54,6 +54,8 @@ utilisateurs.
 - Classement du mois — carte du 1er lue en entier par les lecteurs d'écran.
 - Mon profil — classement lisible sur ordinateur portable : pseudos et niveaux ne sont plus masqués.
 - Mon profil — trophées rangés par rareté réelle, sans les comptes désactivés ou locaux.
+- Classement — un profil privé n'y apparaît plus, comme promis dans les réglages.
+- Mon profil — plus de pourcentage ni de barre sans place au classement.
 - Portail — mois du classement, pseudos de remplacement et message de maintenance dans la langue de l'application.
 
 ## [1.0.0-rc.9] - 2026-10-23

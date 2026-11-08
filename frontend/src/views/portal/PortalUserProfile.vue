@@ -83,7 +83,7 @@
               <dt>{{ $t('portal.profile.ranking') }}</dt>
               <dd>
                 #{{ data.ranking?.position || '—' }}
-                <small>· top {{ data.ranking?.percentile || '—' }}%</small>
+                <small v-if="data.ranking?.position">· top {{ data.ranking.percentile }}%</small>
               </dd>
             </div>
             <div class="pt-up-stat">
@@ -158,8 +158,8 @@ const userId = computed(() => Number(route.params.id))
 
 // Backend returns a minimal ``{is_private, user_id, display_name,
 // avatar_url}`` payload (status 200) when a non-owner reaches a
-// private account — the user_id is already exposed by the leaderboard
-// so the SPA surfaces a dedicated landing instead of a generic 404.
+// private account: a link to it can outlive the player's place in the
+// ranking, so the SPA surfaces a dedicated landing instead of a generic 404.
 const isPrivate = computed(() => !!data.value?.is_private)
 
 const cardProfile = computed(() =>

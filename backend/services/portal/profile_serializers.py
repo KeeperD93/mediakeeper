@@ -115,12 +115,10 @@ def _resolve_avatar_url(profile: UserProfile) -> str | None:
 def build_private_placeholder(profile: UserProfile, *, lang: str) -> dict:
     """Minimal payload returned when a non-owner reaches a private profile.
 
-    The leaderboard exposes ``user_id`` for every ranked player (public
-    *and* private accounts), so the dedicated /portal/leaderboard page
-    can — and will — link to a private profile. Surfacing a polite
-    "this profile is private" landing keeps the click meaningful;
-    masking it as 404 would only confuse the user without gaining any
-    privacy (the id is already known).
+    Private accounts leave the leaderboard, but a link to one can outlive
+    its place there (shared URL, page left open). A polite "this profile
+    is private" landing keeps that visit meaningful where a 404 would
+    only confuse the user.
 
     The payload deliberately carries only the safe identity bits
     (anonymised display name + avatar) plus ``is_private=True`` so the

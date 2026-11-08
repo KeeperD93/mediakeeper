@@ -21,6 +21,7 @@ from services.portal._leaderboard_helpers import (
     build_entry,
     empty_payload,
     excluded_from_leaderboard,
+    excluded_from_trophy_counter,
     trophies_by_user_since,
     trophies_unlocked_since,
 )
@@ -105,7 +106,9 @@ async def compute_leaderboard_only(
 
         total_players = len(all_users)
         total_xp = sum(r.total_xp for r in all_users)
-        total_trophies = await trophies_unlocked_since(db, excluded_ids, bounds.start)
+        total_trophies = await trophies_unlocked_since(
+            db, await excluded_from_trophy_counter(db), bounds.start
+        )
         leaders = all_users[:limit]
 
         if not leaders:

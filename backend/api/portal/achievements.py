@@ -146,7 +146,7 @@ async def activity_leaderboard(
 
     Shares its trust boundary with the profile mini-leaderboard: any
     authenticated portal user can view the full ranking, the excluded
-    users (admin, soft-deleted, deactivated) are filtered out by
+    users (local accounts, soft-deleted, deactivated, private) are filtered out by
     :func:`compute_leaderboard_only` itself. The payload bundles
     ``items`` (gc-lb-* rows), ``viewer_rank`` / ``viewer_entry`` when
     the caller is out of top-N, and ``stats`` for the live bar.

@@ -56,6 +56,7 @@ This section intentionally has no date so it is not shown to users.
 - Scheduler — "Default" button: duration translated in its tooltip.
 - Users — "Sync Emby IDs" no longer links a local account.
 - Security — temporary password: portal and chat stay closed until it is changed.
+- Dashboard — portal leaderboard without private profiles.
 
 ## [1.0.0-rc.9] - 2026-10-23
 
