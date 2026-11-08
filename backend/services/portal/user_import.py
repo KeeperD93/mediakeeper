@@ -13,17 +13,18 @@ Provisioned profiles default to:
 - avatar mirrored from Emby    — for the admin UI
 """
 import logging
+
 from sqlalchemy import case, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.security import EXTERNAL_AUTH_PASSWORD_SENTINEL, hash_password
+from models.portal.profile import UserProfile
 from models.user import User
 from models.user_preferences import UserPreference
-from models.portal.profile import UserProfile
 from services.portal._pseudo_words import generate_pseudo
+from services.portal.admin_users_constants import ROLE_VIEWER, SOURCE_EMBY
 from services.portal.profiles import resolve_unique_display_name
-from services.portal.admin_users_constants import ROLE_VIEWER
 from services.portal.xp import EARNING_ACCOUNT
 
 logger = logging.getLogger("mediakeeper.portal.user_import")
@@ -90,7 +91,7 @@ async def ensure_user_for_emby_session(
                 if not profile.avatar_url:
                     profile.avatar_url = f"/api/emby/user-image/{emby_user_id}"
                 if not profile.source:
-                    profile.source = "emby"
+                    profile.source = SOURCE_EMBY
                 db.add(profile)
                 await db.commit()
         return existing
@@ -129,7 +130,7 @@ async def ensure_user_for_emby_session(
         display_name=unique_name,
         avatar_url=avatar_url,
         role=ROLE_VIEWER,
-        source="emby",
+        source=SOURCE_EMBY,
         emby_user_id=emby_user_id or None,
         account_active=False,
         display_name_must_set=True,
