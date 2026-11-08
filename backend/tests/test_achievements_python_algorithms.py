@@ -64,8 +64,8 @@ def _make_session(
     suffix: str = "",
 ) -> None:
     """Insert one ``PlaybackSession`` row with the minimum fields the
-    Python-algo helpers need. ``user_id`` is the **Emby user_id string**;
-    ``user_name`` is what ``user_filter`` keys off."""
+    Python-algo helpers need. ``user_id`` is the **Emby user_id string**,
+    which is what ``user_filter`` keys off."""
     db.add(PlaybackSession(
         session_key=f"sess-{user_name}-{item_id}-{int(started_at.timestamp())}-{suffix}",
         user_id=emby_user_id,
