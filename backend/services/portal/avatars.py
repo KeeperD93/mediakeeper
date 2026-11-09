@@ -19,9 +19,8 @@ from typing import Final
 
 from fastapi import HTTPException, UploadFile
 
-from services.portal import strip_tags_and_trim  # noqa: F401  (kept for future hooks)
 from services.path_config import DATA_ROOT
-
+from services.portal import strip_tags_and_trim  # noqa: F401  (kept for future hooks)
 
 logger = logging.getLogger("mediakeeper.portal.avatars")
 
