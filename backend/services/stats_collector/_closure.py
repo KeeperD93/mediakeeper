@@ -10,9 +10,10 @@ logger = logging.getLogger("mediakeeper.stats.collector")
 async def _grant_post_session_xp(db: AsyncSession, closed_sessions: list):
     """Grant XP for completed sessions (anti-abuse checks inside grant_watch_xp).
 
-    An Emby user seen without a MediaKeeper account gets one, which cannot sign
-    in until the admin activates it. Every account linked to Emby earns from its
-    plays, signed in or not, until it is deactivated, expires or is deleted.
+    An Emby user seen without a MediaKeeper account gets one, unless erased at
+    their request; it cannot sign in until the admin activates it. Every account
+    linked to Emby earns from its plays, signed in or not, until it is deactivated,
+    expires or is deleted.
     """
     try:
         from models.playback_stats import PlaybackSession

@@ -26,6 +26,7 @@ This section intentionally has no date so it is not shown to users.
 - Users — "Create an administrator" replaces "Create user" (temporary password).
 
 ### Fixed
+- GDPR — erased account never recreated, its plays no longer recorded (update your privacy text).
 - Debug tools — player list translated, a failed load is reported.
 - Debug tools — "Run recheck" skips local and unlinked accounts, runs to the end despite an error.
 - Settings — language menu named for screen readers.

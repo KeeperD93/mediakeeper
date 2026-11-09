@@ -24,6 +24,7 @@ from models.user import User
 from models.user_preferences import UserPreference
 from services.portal._pseudo_words import generate_pseudo
 from services.portal.admin_users_constants import ROLE_VIEWER, SOURCE_EMBY
+from services.portal.gdpr_erased import is_erased, load_erased_identities
 from services.portal.profiles import resolve_unique_display_name
 from services.portal.xp import EARNING_ACCOUNT
 
@@ -73,7 +74,8 @@ async def ensure_user_for_emby_session(
     Created users land with ``account_active=False`` (the admin still has
     to flip the switch to allow portal login) and ``must_set=True`` so
     the first-login modal asks them for a real display name. Returns the
-    user row or ``None`` when the input is malformed.
+    user row, or ``None`` when the input is malformed or the person was
+    erased at their request.
     """
     if not emby_username:
         return None
@@ -95,6 +97,10 @@ async def ensure_user_for_emby_session(
                 db.add(profile)
                 await db.commit()
         return existing
+
+    if is_erased(await load_erased_identities(db), emby_user_id, emby_username):
+        logger.info("[USER_IMPORT] no account for an identity erased at its request")
+        return None
 
     # First sighting: create the account. The unique-username INSERT runs
     # inside a SAVEPOINT so a concurrent observation that won the race trips

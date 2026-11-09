@@ -26,6 +26,7 @@ from models.user_preferences import UserPreference
 from models.portal.profile import UserProfile
 from services.emby.users import email_from_emby_user, list_emby_users
 from services.portal._pseudo_words import generate_pseudo
+from services.portal.gdpr_erased import is_erased, load_erased_identities
 from services.portal.profiles import resolve_unique_display_name
 
 from .admin_users_audit import record_audit
@@ -178,7 +179,7 @@ async def backfill_emby_user_ids(db: AsyncSession) -> dict[str, Any]:
 
 
 async def list_unimported_emby_users(db: AsyncSession) -> dict[str, Any]:
-    """Return the Emby users that have no MediaKeeper account yet.
+    """Return the Emby users that have no MediaKeeper account yet and were not erased.
 
     Match is by lowercase ``Name`` against ``User.username`` and by Emby
     GUID against ``UserProfile.emby_user_id`` so a user that lost their
@@ -198,6 +199,7 @@ async def list_unimported_emby_users(db: AsyncSession) -> dict[str, Any]:
             )
         ).scalars().all()
     }
+    erased = await load_erased_identities(db)
 
     items = []
     for eu in emby_users:
@@ -207,7 +209,7 @@ async def list_unimported_emby_users(db: AsyncSession) -> dict[str, Any]:
             continue
         if name.lower() in existing_usernames:
             continue
-        if emby_id and emby_id in existing_emby_ids:
+        if (emby_id and emby_id in existing_emby_ids) or is_erased(erased, emby_id, name):
             continue
         items.append({
             "emby_user_id": emby_id,
@@ -242,10 +244,11 @@ async def import_selected_emby_users(
 
     created = 0
     skipped = 0
+    erased = await load_erased_identities(db)
     for eu in selected:
         emby_id = eu.get("Id") or ""
         emby_name = (eu.get("Name") or "").strip()
-        if not emby_id or not emby_name:
+        if not emby_id or not emby_name or is_erased(erased, emby_id, emby_name):
             skipped += 1
             continue
 

@@ -37,6 +37,7 @@ utilisateurs.
 - Profil privé — page dédiée « Ce profil est privé », sans pseudo ni avatar.
 
 ### Fixed
+- Suppression du compte — la fenêtre dit ce qui reste conservé.
 - Connexion — trois vrais essais, compteur remis à zéro après une connexion réussie.
 - Connexion — messages clairs : attente affichée, serveur média injoignable, compte inactif.
 - Connexion — double appui ou Entrée maintenue : un seul essai compté.

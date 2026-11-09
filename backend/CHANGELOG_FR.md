@@ -26,6 +26,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Utilisateurs — « Créer un administrateur » remplace « Créer un utilisateur » (mot de passe provisoire).
 
 ### Fixed
+- RGPD — compte effacé jamais recréé, visionnages plus enregistrés (texte de confidentialité à adapter).
 - Outils de debug — liste des joueurs traduite, échec de chargement signalé.
 - Outils de debug — « Lancer la vérification » ignore les comptes locaux et non reliés, va au bout malgré une erreur.
 - Paramètres — menu Langue nommé pour les lecteurs d'écran.

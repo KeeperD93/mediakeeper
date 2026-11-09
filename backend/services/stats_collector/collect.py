@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from constants.playback import WATCH_ITEM_TYPES
 from models.playback_stats import LibraryCache, PlaybackSession
 from services.emby import get_raw_sessions
+from services.portal.gdpr_erased import is_erased, load_erased_identities
 from services.settings import get_active_media_source
 
 from ._cache import _normalize_library_name
@@ -103,7 +104,13 @@ async def collect_active_sessions(db: AsyncSession, now: datetime | None = None)
         return
 
     now = now or datetime.now(timezone.utc)
-    sessions = [s for s in (await get_raw_sessions(db) or []) if _tracked(s)]
+    # Someone erased at their request is no longer recorded. By Emby id alone: a
+    # namesake is refused an account, but still counts in the statistics.
+    erased = await load_erased_identities(db)
+    sessions = [
+        s for s in (await get_raw_sessions(db) or [])
+        if _tracked(s) and not is_erased(erased, s.get("UserId"), None)
+    ]
 
     await _process_pause_events(db, sessions, now)
 

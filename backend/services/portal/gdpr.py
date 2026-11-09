@@ -13,6 +13,7 @@ seeded by migration 040:
 * ``gdpr.privacy_text_fr``          HTML, preset
 * ``gdpr.privacy_text_en``          HTML, preset
 * ``gdpr.dpo_contact``              free-form string, default empty
+* ``gdpr.erased.<fingerprint>``     who was purged (``gdpr_erased.py``)
 
 The deletion timestamps live on the ``users`` row
 (``deletion_requested_at`` + ``pending_deletion_at``).
@@ -32,16 +33,12 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.user import User
+from services.portal.gdpr_erased import remember_erased_identity
 from services.settings import get_setting
 
 # Public re-exports — keep the import surface stable for callers/tests.
-from ._gdpr_collect import (  # noqa: F401
-    collect_full_user_data as _collect_full_user_data,
-)
-from ._gdpr_export import (  # noqa: F401
-    EXPORT_MAX_BYTES,
-    build_export_zip,
-)
+from ._gdpr_collect import collect_full_user_data as _collect_full_user_data  # noqa: F401
+from ._gdpr_export import EXPORT_MAX_BYTES, build_export_zip  # noqa: F401
 
 logger = logging.getLogger("mediakeeper.portal.gdpr")
 
@@ -228,7 +225,8 @@ async def purge_pending_deletions(db: AsyncSession) -> int:
     ``mk_event`` of the leaving user is moved to ``cancelled`` so it
     doesn't become a zombie nobody can edit. Failures of that side
     effect are logged and **must not** abort the purge — GDPR
-    compliance prevails.
+    compliance prevails. Failing to remember the person does abort it:
+    forgotten, they would get an account back from the collector.
     """
     if not await is_gdpr_enabled(db):
         return 0
@@ -243,10 +241,12 @@ async def purge_pending_deletions(db: AsyncSession) -> int:
     for user in rows:
         await _cancel_scheduled_mk_events(db, user.id)
         logger.info(
-            "[GDPR] purging user_id=%s username=%s scheduled_at=%s",
-            user.id, user.username,
+            "[GDPR] purging user_id=%s scheduled_at=%s",
+            user.id,
             user.pending_deletion_at.isoformat() if user.pending_deletion_at else None,
         )
+        # After the cancel above, which commits: the fingerprint leaves with this deletion.
+        await remember_erased_identity(db, user)
         await db.delete(user)
         purged += 1
 

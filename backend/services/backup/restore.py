@@ -8,6 +8,7 @@ from pathlib import Path
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.gdpr import GDPR_ERASED_KEY_PREFIX
 from models.scheduler_task import SchedulerTask
 from models.settings import Setting
 from models.user import User
@@ -64,32 +65,30 @@ class BackupRestoreError(Exception):
 
 
 async def _restore_settings(db: AsyncSession, data: dict) -> str:
-    from services.portal.gdpr import (
-        get_purge_delay_days,
-        is_gdpr_enabled,
-        refresh_pending_grace,
-    )
+    from services.portal import gdpr
     from services.settings import set_settings_map
 
-    gdpr_was_off = not await is_gdpr_enabled(db)
+    gdpr_was_off = not await gdpr.is_gdpr_enabled(db)
     restored = {
         k: v for k, v in data.items() if k not in SETTINGS_KEPT_ON_RESTORE and not is_unreadable_secret(v)
     }
     await set_settings_map(db, restored, commit=False)
     # As on the GDPR screen: a deletion frozen while GDPR was off gets a fresh delay.
-    if gdpr_was_off and await is_gdpr_enabled(db):
-        await refresh_pending_grace(db, delay_days=await get_purge_delay_days(db), commit=False)
+    if gdpr_was_off and await gdpr.is_gdpr_enabled(db):
+        await gdpr.refresh_pending_grace(db, delay_days=await gdpr.get_purge_delay_days(db), commit=False)
     return "ok"
 
 
 async def _replace_settings(db: AsyncSession, data: dict) -> str:
     """A ZIP holds the whole configuration of its moment: a setting it lacks was still
-    at its default, so it goes back there. An empty file says nothing and removes nothing."""
+    at its default, so it goes back there. An empty file says nothing and removes nothing.
+    People erased since the archive stay remembered."""
     await _restore_settings(db, data)
     if data:
         await db.execute(
             delete(Setting)
             .where(Setting.key.not_in([*data, *SETTINGS_KEPT_ON_RESTORE]))
+            .where(Setting.key.not_like(f"{GDPR_ERASED_KEY_PREFIX}%"))
             .execution_options(synchronize_session="fetch")
         )
     return "ok"

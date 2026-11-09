@@ -3942,7 +3942,7 @@
       "embyNotice": "Your MediaKeeper account is linked to Emby. Deleting it here does not affect your Emby account.",
       "deleteModal": {
         "title": "Delete your account?",
-        "warning": "This schedules the permanent deletion of your MediaKeeper account and all associated data. You can cancel the request during the grace period shown on the portal banner.",
+        "warning": "This schedules the permanent deletion of your MediaKeeper account and the data linked to it. Kept: your messages and requests, without your name; your viewing history already recorded and the sign-in security log; a fingerprint of your Emby account, so that no account is created for you again. You can cancel the request during the grace period shown on the portal banner.",
         "magicWord": "DELETE",
         "confirmLabel": "To confirm, type {word} below.",
         "confirm": "Confirm deletion",
@@ -4248,7 +4248,7 @@
           },
           "pending": {
             "title": "Accounts pending deletion",
-            "desc": "Users who requested account deletion. You can cancel the request from each row.",
+            "desc": "Users who requested account deletion. You can cancel the request from each row. After the deletion, no account is created for that person again and they no longer appear in the Emby import. A newcomer with the same name is treated the same way: change their name on Emby.",
             "empty": "No pending deletion requests.",
             "colUsername": "User",
             "colRequestedAt": "Requested at",

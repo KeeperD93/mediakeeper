@@ -35,6 +35,7 @@ This section intentionally has no date so it is not shown to users.
 - Private profile — dedicated "This profile is private" page, without name or avatar.
 
 ### Fixed
+- Account deletion — the dialog says what is kept.
 - Sign-in — three real tries, counter reset after a successful sign-in.
 - Sign-in — clear messages: wait shown, media server unreachable, inactive account.
 - Sign-in — double press or held Enter: only one try counted.

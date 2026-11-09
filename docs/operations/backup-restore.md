@@ -34,6 +34,9 @@ archive holds:
 - how long backups, chat messages and rejected reports are kept, because
   a shorter delay would delete what the current one protects.
 
+Fingerprints of people erased at their request are never removed, so a
+restore cannot give them an account back.
+
 A single JSON file only writes the settings it holds, apart from these
 values. If a restore turns GDPR back on, every pending deletion request
 starts a full new delay, as it does from the GDPR screen.
@@ -390,6 +393,10 @@ SQL dump already contains those rows, so this step is redundant
 after a full SQL restore. It is mostly useful when you want to
 re-apply a *partial* backup (settings-only, etc.) on top of an
 otherwise healthy database.
+
+A full database restore goes back to the date of the backup: a person
+erased since then gets their account back, and their deletion has to be
+done again.
 
 ---
 
