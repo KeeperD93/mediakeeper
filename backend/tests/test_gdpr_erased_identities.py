@@ -9,11 +9,10 @@ import pytest
 from sqlalchemy import select
 
 from models.playback_stats import PlaybackSession
-from models.portal.profile import UserProfile
 from models.user import User
 from services.backup import restore as restore_module
 from services.portal import gdpr as gdpr_module
-from services.portal.admin_users_constants import SOURCE_EMBY, SOURCE_LOCAL
+from services.portal.admin_users_constants import SOURCE_LOCAL
 from services.portal.admin_users_emby import (
     import_selected_emby_users,
     list_unimported_emby_users,
@@ -27,38 +26,12 @@ from services.portal.gdpr_erased import (
 from services.portal.user_import import ensure_user_for_emby_session
 from services.settings import get_all_settings, set_setting
 from services.stats_collector.collect import _grant_post_session_xp
+from tests._gdpr_erased_helpers import GUID, gdpr_on, member, purged
 
 pytestmark = pytest.mark.asyncio
 
 TICK = 10_000_000
-GUID = "EMBY-ALICE"
 EMBY_USERS = [{"Id": GUID, "Name": "alice"}, {"Id": "EMBY-BOB", "Name": "bob"}]
-
-
-async def _gdpr_on(db) -> None:
-    await set_setting(db, "gdpr.enabled", "true")
-
-
-async def _member(db, name="alice", *, guid=GUID, source=SOURCE_EMBY, overdue=True) -> User:
-    past = datetime.now(UTC) - timedelta(hours=1) if overdue else None
-    user = User(
-        username=name, hashed_password="x", is_active=True, must_change_password=False,
-        deletion_requested_at=past, pending_deletion_at=past,
-    )
-    db.add(user)
-    await db.flush()
-    db.add(UserProfile(
-        user_id=user.id, display_name=name, role="viewer", source=source,
-        account_active=True, emby_user_id=guid,
-    ))
-    await db.commit()
-    return user
-
-
-async def _purged(db, name="alice", *, guid=GUID, source=SOURCE_EMBY) -> None:
-    await _gdpr_on(db)
-    await _member(db, name, guid=guid, source=source)
-    assert await purge_pending_deletions(db) == 1
 
 
 async def _names(db) -> list[str]:
@@ -77,7 +50,7 @@ def _archive(folder, settings: dict):
 
 
 async def test_an_erased_person_who_keeps_watching_gets_no_account_and_earns_nothing(db_session):
-    await _purged(db_session)
+    await purged(db_session)
     now = datetime.now(UTC)
     play = PlaybackSession(
         session_key=f"{GUID}_1", user_id=GUID, user_name="alice", item_id="movie-1", item_name="Test Movie",
@@ -102,80 +75,111 @@ async def test_an_erased_person_who_keeps_watching_gets_no_account_and_earns_not
     ("alice", None),
 ])
 async def test_the_emby_id_or_the_name_is_enough_to_recognise_them(db_session, name, guid):
-    await _purged(db_session)
+    await purged(db_session)
     assert await _see(db_session, name, guid) is None
     assert await _names(db_session) == []
 
 
 async def test_a_profile_without_an_emby_id_is_remembered_by_its_name(db_session):
-    await _purged(db_session, guid=None)
+    await purged(db_session, guid=None)
     assert await _see(db_session, "Alice", "EMBY-ANY") is None
 
 
 async def test_a_local_account_leaves_nothing_to_remember(db_session):
-    await _purged(db_session, "dave", guid=None, source=SOURCE_LOCAL)
+    await purged(db_session, "dave", guid=None, source=SOURCE_LOCAL)
     assert await load_erased_identities(db_session) == frozenset()
     assert await _see(db_session, "dave", "EMBY-DAVE") is not None
 
 
 async def test_a_local_account_linked_to_emby_is_remembered(db_session):
-    await _purged(db_session, "dave", guid="EMBY-DAVE", source=SOURCE_LOCAL)
+    await purged(db_session, "dave", guid="EMBY-DAVE", source=SOURCE_LOCAL)
     assert await _see(db_session, "dave", "EMBY-DAVE") is None
 
 
 async def test_someone_else_still_gets_an_account(db_session):
-    await _purged(db_session)
+    await purged(db_session)
     assert (await _see(db_session, "bob", "EMBY-BOB")).username == "bob"
 
 
 async def test_the_other_profile_of_a_shared_emby_id_keeps_its_account(db_session):
-    await _gdpr_on(db_session)
-    await _member(db_session, "alice-old")
-    kept = await _member(db_session, "alice-new", overdue=False)
+    await gdpr_on(db_session)
+    await member(db_session, "alice-old")
+    kept = await member(db_session, "alice-new", overdue=False)
     assert await purge_pending_deletions(db_session) == 1
     assert (await _see(db_session, "alice", GUID)).id == kept.id
 
 
 async def test_turning_the_privacy_mode_off_forgets_nobody(db_session):
-    await _purged(db_session)
+    await purged(db_session)
     await set_setting(db_session, "gdpr.enabled", "false")
     assert await _see(db_session, "alice", GUID) is None
 
 
 async def test_a_cancelled_request_remembers_nothing(db_session):
-    await _gdpr_on(db_session)
-    await cancel_deletion_request(db_session, await _member(db_session))
+    await gdpr_on(db_session)
+    await cancel_deletion_request(db_session, await member(db_session))
     assert await purge_pending_deletions(db_session) == 0
     assert await load_erased_identities(db_session) == frozenset()
 
 
 async def test_nothing_is_remembered_while_the_privacy_mode_is_off(db_session):
-    await _member(db_session)
+    await member(db_session)
     assert await purge_pending_deletions(db_session) == 0
     assert await load_erased_identities(db_session) == frozenset()
 
 
 async def test_two_people_erased_in_one_run_are_both_remembered(db_session):
-    await _gdpr_on(db_session)
-    await _member(db_session, "alice", guid="EMBY-A")
-    await _member(db_session, "bob", guid="EMBY-B")
+    await gdpr_on(db_session)
+    await member(db_session, "alice", guid="EMBY-A")
+    await member(db_session, "bob", guid="EMBY-B")
     assert await purge_pending_deletions(db_session) == 2
     erased = await load_erased_identities(db_session)
     assert is_erased(erased, "EMBY-A", None) and is_erased(erased, "EMBY-B", None)
 
 
 async def test_two_profiles_of_one_emby_id_can_be_purged_together(db_session):
-    await _gdpr_on(db_session)
-    await _member(db_session, "alice")
-    await _member(db_session, "alice-bis")
+    await gdpr_on(db_session)
+    await member(db_session, "alice")
+    await member(db_session, "alice-bis")
     assert await purge_pending_deletions(db_session) == 2
     assert is_erased(await load_erased_identities(db_session), GUID, None)
 
 
+async def test_an_id_someone_else_still_uses_is_not_remembered(db_session):
+    await gdpr_on(db_session)
+    await member(db_session, "alice-old")
+    await member(db_session, "alice-new", overdue=False)
+    assert await purge_pending_deletions(db_session) == 1
+    erased = await load_erased_identities(db_session)
+    assert not is_erased(erased, GUID, None) and is_erased(erased, None, "alice-old")
+
+
+async def test_the_last_profile_of_a_shared_id_remembers_it(db_session):
+    await gdpr_on(db_session)
+    await member(db_session, "alice-old")
+    last = await member(db_session, "alice-new", overdue=False)
+    await purge_pending_deletions(db_session)
+    last.pending_deletion_at = datetime.now(UTC) - timedelta(hours=1)
+    await db_session.commit()
+    assert await purge_pending_deletions(db_session) == 1
+    assert is_erased(await load_erased_identities(db_session), GUID, None)
+
+
+async def test_a_failed_deletion_remembers_nothing(db_session):
+    await gdpr_on(db_session)
+    await member(db_session)
+    with patch.object(db_session, "delete", new=AsyncMock(side_effect=RuntimeError("boom"))), \
+         pytest.raises(RuntimeError):
+        await purge_pending_deletions(db_session)
+    await db_session.rollback()
+    assert await load_erased_identities(db_session) == frozenset()
+    assert await _names(db_session) == ["alice"]
+
+
 async def test_a_person_who_cannot_be_remembered_is_not_purged(db_session):
-    await _gdpr_on(db_session)
-    await _member(db_session)
-    with patch.object(gdpr_module, "remember_erased_identity", new=AsyncMock(side_effect=RuntimeError("boom"))), \
+    await gdpr_on(db_session)
+    await member(db_session)
+    with patch.object(gdpr_module, "prepare_erasure", new=AsyncMock(side_effect=RuntimeError("boom"))), \
          pytest.raises(RuntimeError):
         await purge_pending_deletions(db_session)
     await db_session.rollback()
@@ -183,10 +187,10 @@ async def test_a_person_who_cannot_be_remembered_is_not_purged(db_session):
 
 
 async def test_a_commit_between_two_people_keeps_each_fingerprint_with_its_deletion(db_session):
-    await _gdpr_on(db_session)
-    await _member(db_session, "alice", guid="EMBY-A")
-    await _member(db_session, "bob", guid="EMBY-B")
-    remember = gdpr_module.remember_erased_identity
+    await gdpr_on(db_session)
+    await member(db_session, "alice", guid="EMBY-A")
+    await member(db_session, "bob", guid="EMBY-B")
+    prepare = gdpr_module.prepare_erasure
 
     async def commits(session, _user_id):
         await session.commit()
@@ -194,10 +198,10 @@ async def test_a_commit_between_two_people_keeps_each_fingerprint_with_its_delet
     async def fails_for_bob(session, user):
         if user.username == "bob":
             raise RuntimeError("boom")
-        await remember(session, user)
+        await prepare(session, user)
 
     with patch.object(gdpr_module, "_cancel_scheduled_mk_events", new=commits), \
-         patch.object(gdpr_module, "remember_erased_identity", new=fails_for_bob), \
+         patch.object(gdpr_module, "prepare_erasure", new=fails_for_bob), \
          pytest.raises(RuntimeError):
         await purge_pending_deletions(db_session)
     await db_session.rollback()
@@ -208,7 +212,7 @@ async def test_a_commit_between_two_people_keeps_each_fingerprint_with_its_delet
 
 
 async def test_the_import_window_leaves_them_out(db_session):
-    await _purged(db_session)
+    await purged(db_session)
     with patch("services.portal.admin_users_emby.list_emby_users", new=AsyncMock(return_value=EMBY_USERS)):
         result = await list_unimported_emby_users(db_session)
     assert [item["username"] for item in result["items"]] == ["bob"]
@@ -216,7 +220,7 @@ async def test_the_import_window_leaves_them_out(db_session):
 
 
 async def test_an_import_naming_them_skips_them(db_session):
-    await _purged(db_session)
+    await purged(db_session)
     with patch("services.portal.admin_users_emby.list_emby_users", new=AsyncMock(return_value=EMBY_USERS)):
         result = await import_selected_emby_users(
             db_session, emby_user_ids=[GUID, "EMBY-BOB"], admin_user_id=None,
@@ -226,7 +230,7 @@ async def test_an_import_naming_them_skips_them(db_session):
 
 
 async def test_a_restore_forgets_nobody(db_session, workspace_tmp_path):
-    await _purged(db_session)
+    await purged(db_session)
     before = await load_erased_identities(db_session)
     path = _archive(workspace_tmp_path, {"restore.key": "after"})
 
@@ -254,7 +258,7 @@ async def test_capitals_outside_a_to_z_are_folded():
 
 
 async def test_the_settings_hold_neither_name_nor_emby_id(db_session):
-    await _purged(db_session)
+    await purged(db_session)
     dumped = json.dumps(await get_all_settings(db_session))
     assert "gdpr.erased." in dumped
     assert "alice" not in dumped and GUID not in dumped
@@ -262,6 +266,6 @@ async def test_the_settings_hold_neither_name_nor_emby_id(db_session):
 
 async def test_the_purge_log_names_nobody(db_session, caplog):
     with caplog.at_level(logging.INFO, logger="mediakeeper.portal.gdpr"):
-        await _purged(db_session)
+        await purged(db_session)
     assert "purging" in caplog.text
     assert "alice" not in caplog.text

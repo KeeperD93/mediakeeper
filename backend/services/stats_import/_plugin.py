@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.playback_stats import PlaybackSession
+from services.portal.gdpr_erased import is_erased
 from services.stats_collector import history_measure
 
 from ._activity import _parse_date
@@ -40,6 +41,7 @@ async def _import_plugin_reporting(
     db: AsyncSession,
     jf_plugin: list,
     existing_keys: set[str],
+    erased: frozenset[str],
     item_to_library: dict,
     report: dict,
     now: datetime,
@@ -66,6 +68,9 @@ async def _import_plugin_reporting(
             if session_key in existing_keys:
                 report["plugin_skipped"] += 1
                 continue
+
+            if is_erased(erased, entry.get("UserId"), None):
+                continue  # not a duplicate: the report counts those
 
             item_type = entry.get("ItemType", "")
             series_name, season_number, episode_number, item_name = _parse_plugin_name(

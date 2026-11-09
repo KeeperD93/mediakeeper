@@ -7,14 +7,16 @@ from sqlalchemy import select
 
 from models.playback_stats import PlaybackSession
 from models.user import User
+from services.portal.gdpr import purge_pending_deletions
 from services.portal.gdpr_erased import _identity_keys
 from services.settings import set_setting
+from services.stats import import_jellystats_backup
 from services.stats_collector.collect import collect_active_sessions
+from tests._gdpr_erased_helpers import GUID, gdpr_on, member, purged
 
 pytestmark = pytest.mark.asyncio
 
 TICK = 10_000_000
-GUID = "EMBY-ALICE"
 T0 = datetime(2026, 3, 7, 20, 0, tzinfo=UTC)
 
 
@@ -55,6 +57,39 @@ async def test_a_namesake_still_counts_in_the_statistics(db_session):
     await _erase_alice(db_session)
     await _poll(db_session, T0, _session("alice", "EMBY-NEW", T0))
     assert [row.user_id for row in await _rows(db_session)] == ["EMBY-NEW"]
+
+
+async def test_the_other_profile_of_a_shared_emby_id_keeps_being_recorded(db_session):
+    await gdpr_on(db_session)
+    await member(db_session, "alice-old")
+    await member(db_session, "alice-new", overdue=False)
+    assert await purge_pending_deletions(db_session) == 1
+
+    await _poll(db_session, T0, _session("alice-new", GUID, T0))
+
+    assert [row.user_name for row in await _rows(db_session)] == ["alice-new"]
+
+
+def _played(number: int, guid: str) -> dict:
+    return {
+        "Id": f"JS-{number}", "rowid": number, "UserId": guid, "UserName": "Test User",
+        "NowPlayingItemId": "MOVIE-1", "NowPlayingItemName": "Test Movie", "PlaybackDuration": 600,
+        "ItemId": "MOVIE-1", "ItemName": "Test Movie", "ItemType": "Movie", "PlayDuration": 600,
+        "ActivityDateInserted": "2026-03-07T20:00:00Z", "DateCreated": "2026-03-07T20:00:00Z",
+    }
+
+
+async def test_a_statistics_import_leaves_out_an_erased_id(db_session):
+    await purged(db_session)
+
+    report = await import_jellystats_backup(db_session, {
+        "jf_playback_activity": [_played(1, GUID), _played(2, "EMBY-BOB")],
+        "jf_playback_reporting_plugin_data": [_played(3, GUID), _played(4, "EMBY-BOB")],
+    })
+
+    assert sorted(row.session_key for row in await _rows(db_session)) == ["js_JS-2", "jsplugin_4"]
+    assert (report["playback_imported"], report["playback_skipped"]) == (1, 0)
+    assert (report["plugin_imported"], report["plugin_skipped"]) == (1, 0)
 
 
 async def test_a_play_open_when_they_are_erased_closes_without_an_account(db_session):

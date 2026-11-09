@@ -3942,7 +3942,7 @@
       "embyNotice": "Votre compte MediaKeeper est lié à Emby. La suppression ici n'affecte pas votre compte Emby.",
       "deleteModal": {
         "title": "Supprimer mon compte ?",
-        "warning": "Cette action programme la suppression définitive de votre compte MediaKeeper et des données qui y sont liées. Restent conservés : vos messages et demandes, sans votre nom ; votre historique de visionnage déjà enregistré et le journal de sécurité des connexions ; une empreinte de votre compte Emby, pour qu'aucun compte ne vous soit recréé. Vous pourrez annuler la demande pendant le délai de grâce affiché en haut du portail.",
+        "warning": "Cette action programme la suppression définitive de votre compte MediaKeeper et des données qui y sont liées. Restent conservés : vos messages et demandes, sans votre nom ; votre historique de visionnage déjà enregistré ; le journal de sécurité des connexions et celui des actions d'administration, qui peuvent citer votre nom ; les notifications déjà reçues par d'autres membres, pendant six mois au plus ; si votre compte est relié à Emby, une empreinte de ce compte, pour qu'aucun compte ne vous soit recréé. Vous pourrez annuler la demande pendant le délai de grâce affiché en haut du portail.",
         "magicWord": "SUPPRIMER",
         "confirmLabel": "Pour confirmer, tapez {word} ci-dessous.",
         "confirm": "Confirmer la suppression",

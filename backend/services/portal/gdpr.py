@@ -33,7 +33,7 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.user import User
-from services.portal.gdpr_erased import remember_erased_identity
+from services.portal.gdpr_erased import prepare_erasure
 from services.settings import get_setting
 
 # Public re-exports — keep the import surface stable for callers/tests.
@@ -225,8 +225,8 @@ async def purge_pending_deletions(db: AsyncSession) -> int:
     ``mk_event`` of the leaving user is moved to ``cancelled`` so it
     doesn't become a zombie nobody can edit. Failures of that side
     effect are logged and **must not** abort the purge — GDPR
-    compliance prevails. Failing to remember the person does abort it:
-    forgotten, they would get an account back from the collector.
+    compliance prevails. A failed ``prepare_erasure`` does abort it:
+    forgotten, the person would get an account back from the collector.
     """
     if not await is_gdpr_enabled(db):
         return 0
@@ -245,8 +245,8 @@ async def purge_pending_deletions(db: AsyncSession) -> int:
             user.id,
             user.pending_deletion_at.isoformat() if user.pending_deletion_at else None,
         )
-        # After the cancel above, which commits: the fingerprint leaves with this deletion.
-        await remember_erased_identity(db, user)
+        # After the cancel above, which commits: what this writes leaves with this deletion.
+        await prepare_erasure(db, user)
         await db.delete(user)
         purged += 1
 

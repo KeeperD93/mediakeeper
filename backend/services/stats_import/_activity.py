@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.playback_stats import PlaybackSession
+from services.portal.gdpr_erased import is_erased
 from services.stats_collector import history_measure
 
 logger = logging.getLogger("mediakeeper.stats.import")
@@ -45,6 +46,7 @@ async def _import_playback_activity(
     db: AsyncSession,
     jf_activity: list,
     existing_keys: set[str],
+    erased: frozenset[str],
     item_to_library: dict,
     report: dict,
     now: datetime,
@@ -71,6 +73,9 @@ async def _import_playback_activity(
             if session_key in existing_keys:
                 report["playback_skipped"] += 1
                 continue
+
+            if is_erased(erased, entry.get("UserId"), None):
+                continue  # not a duplicate: the report counts those
 
             series_name = entry.get("SeriesName")
             item_type = "Episode" if series_name else "Movie"
