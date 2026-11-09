@@ -33,14 +33,23 @@ _ON_HOLD_AFTER = timedelta(seconds=2 * POLL_INTERVAL_SECONDS + MAX_CARRY_SECONDS
 # means the player never reported from there.
 _ZERO_MIN_RUNTIME_TICKS = 3600 * TICKS_PER_SECOND
 _ZERO_MIN_SHARE = 0.10
-# Small steps of the saved position needed in a row: a single one can be a seek.
+# A real report moves the saved position like the clock, give or take one poll and its jitter.
+_MAX_CLOCK_GAP_SECONDS = POLL_INTERVAL_SECONDS + 2
+# Such moves needed in a row: a single one can be a seek.
 _STEPS_TO_TRUST = 2
+
+
+@dataclass
+class _LastStored:
+    ticks: int
+    changed_at: datetime
+    small_steps: int = 0
+
 
 # (client, library) seen saving its position while playing: the others keep the
 # activity rule. Learned again after a restart from the first reports it sees.
 _writers: set[tuple[str, str]] = set()
-_last_stored: dict[str, int] = {}
-_small_steps: dict[str, int] = {}
+_last_stored: dict[str, _LastStored] = {}
 
 
 @dataclass(frozen=True)
@@ -118,16 +127,25 @@ def _runs_alone(position: int, stored: StoredPosition, row: PlaybackSession | No
     return not stored.played and runtime_ticks >= _ZERO_MIN_RUNTIME_TICKS and position >= runtime_ticks * _ZERO_MIN_SHARE
 
 
-def _learn(key: str, client: str, library: str | None, position: int, stored: StoredPosition) -> None:
-    before = _last_stored.get(key)
-    _last_stored[key] = stored.ticks
-    if before is None or before == stored.ticks:
+def _moves_like_the_clock(last: _LastStored, ticks: int, now: datetime) -> bool:
+    moved = (ticks - last.ticks) / TICKS_PER_SECOND
+    return moved > 0 and abs(moved - (now - last.changed_at).total_seconds()) <= _MAX_CLOCK_GAP_SECONDS
+
+
+def _learn(key: str, client: str, library: str | None, position: int, stored: StoredPosition, now: datetime) -> None:
+    last = _last_stored.get(key)
+    if last is None:
+        _last_stored[key] = _LastStored(stored.ticks, now)
         return
-    if stored.ticks == 0 or _far(before, stored.ticks) or _far(position, stored.ticks):
-        _small_steps.pop(key, None)
+    if last.ticks == stored.ticks:
         return
-    _small_steps[key] = _small_steps.get(key, 0) + 1
-    if _small_steps[key] >= _STEPS_TO_TRUST and library and (client, library) not in _writers:
+    reported = (
+        _moves_like_the_clock(last, stored.ticks, now)
+        and not _far(last.ticks, stored.ticks) and not _far(position, stored.ticks)
+    )
+    last.small_steps = last.small_steps + 1 if reported else 0
+    last.ticks, last.changed_at = stored.ticks, now
+    if last.small_steps >= _STEPS_TO_TRUST and library and (client, library) not in _writers:
         _writers.add((client, library))
         logger.info("Playback reports confirmed: client %s saves its position in library %s", client, library)
 
@@ -148,7 +166,7 @@ def player_is_lost(
     item = session["NowPlayingItem"]
     play_state = session.get("PlayState", {})
     if play_state.get("IsPaused", False) or item.get("Type") not in WATCH_ITEM_TYPES:
-        _forget(key)  # what a pause saves says nothing of the playback
+        _last_stored.pop(key, None)  # what a pause saves says nothing of the playback
         return False
     reference = row or previous_row
     library = reference.library_name if reference else None
@@ -160,17 +178,13 @@ def player_is_lost(
         # and a leftover does not open one thanks to a failed read.
         if row is not None:
             return known and _on_hold(row, now)
-        return known and _far(position, _last_stored.get(key, position))
+        last = _last_stored.get(key)
+        return known and last is not None and _far(position, last.ticks)
     lost = known and _runs_alone(position, stored, row, item.get("RunTimeTicks") or 0)
-    _learn(key, client, library, position, stored)
+    _learn(key, client, library, position, stored, now)
     return lost
-
-
-def _forget(key: str) -> None:
-    _last_stored.pop(key, None)
-    _small_steps.pop(key, None)
 
 
 def forget_other_sessions(keys: set[str]) -> None:
     for key in _last_stored.keys() - keys:
-        _forget(key)
+        del _last_stored[key]

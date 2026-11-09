@@ -27,11 +27,23 @@ pytestmark = pytest.mark.asyncio
 def _reset_player_reports():
     reports._writers.clear()
     reports._last_stored.clear()
-    reports._small_steps.clear()
     yield
     reports._writers.clear()
     reports._last_stored.clear()
-    reports._small_steps.clear()
+
+
+async def _known_application(db) -> None:
+    await play_reporting(db, 1000, 6, item="OTHER", session="S-0")
+    assert reports._writers
+
+
+async def _play_saves(db, saves: tuple[int, ...]) -> None:
+    """Two polls per save, 5 s apart, the session right next to it."""
+    at = T0
+    for save in saves:
+        for played in (0, 5):
+            await poll(db, at, emby_session(at=at, position_s=save + played), stored=saved(save))
+            at += STEP
 
 
 async def test_a_lost_player_stops_counting(db_session):
@@ -54,10 +66,10 @@ async def test_what_the_buffer_played_counts_when_the_player_is_back(db_session)
 
 
 async def test_an_application_that_never_saves_keeps_the_activity_rule(db_session):
-    # Saved position frozen where the viewing started: nothing proves this application reports it.
+    # Saved position frozen at a point the viewing goes past: nothing proves this application reports it.
     for i in range(120):
         at = T0 + STEP * i
-        await poll(db_session, at, emby_session(at=at, position_s=2880 + 5 * i), stored=saved(2880))
+        await poll(db_session, at, emby_session(at=at, position_s=2825 + 5 * i), stored=saved(2880))
     (row,) = await rows(db_session)
     assert row.watched_seconds == 595
     assert not reports._writers
@@ -65,7 +77,7 @@ async def test_an_application_that_never_saves_keeps_the_activity_rule(db_sessio
 
 async def test_a_saved_position_that_stays_out_of_reach_proves_nothing(db_session):
     # Known application, new title, saved position left far away by an earlier viewing.
-    await play_reporting(db_session, 1000, 6, item="OTHER", session="S-0")
+    await _known_application(db_session)
     for i in range(60):
         at = T0 + timedelta(hours=1) + STEP * i
         await poll(db_session, at, emby_session(at=at, position_s=2000 + 5 * i), stored=saved(5000))
@@ -75,7 +87,7 @@ async def test_a_saved_position_that_stays_out_of_reach_proves_nothing(db_sessio
 
 async def test_a_young_row_is_not_judged_on_an_old_saved_position(db_session):
     # Known application, a saved position 20 s ahead that this viewing has not rewritten yet.
-    await play_reporting(db_session, 1000, 6, item="OTHER", session="S-0")
+    await _known_application(db_session)
     for i in range(30):
         at = T0 + timedelta(hours=1) + STEP * i
         await poll(db_session, at, emby_session(at=at, position_s=2000 + 5 * i), stored=saved(2020))
@@ -117,7 +129,7 @@ async def test_a_failed_read_during_normal_playback_loses_nothing(db_session):
 
 
 async def test_saved_at_zero_far_into_a_film_means_the_player_is_lost(db_session):
-    await play_reporting(db_session, 1000, 6, item="OTHER", session="S-0")
+    await _known_application(db_session)
     start = T0 + timedelta(hours=1)
     for i in range(8):
         at = start + STEP * i
@@ -132,7 +144,7 @@ async def test_saved_at_zero_far_into_a_film_means_the_player_is_lost(db_session
     (7200, True, 35),   # at 0 and marked played: past the end of the resume zone
 ])
 async def test_saved_at_zero_proves_nothing_elsewhere(db_session, runtime, played, expected):
-    await play_reporting(db_session, 1000, 6, item="OTHER", session="S-0")
+    await _known_application(db_session)
     start = T0 + timedelta(hours=1)
     for i in range(8):
         at = start + STEP * i
@@ -147,17 +159,38 @@ async def test_an_application_is_known_per_library(db_session):
 
 
 @pytest.mark.parametrize("saves", [
-    pytest.param((0, 990, 1005), id="two rewinds"),
-    pytest.param((0, 1000, 1010, 2000, 2010), id="a seek between two saves"),
+    pytest.param((0, 990, 1005), id="one small step after a far save"),
+    pytest.param((0, 1000, 1010, 2000, 2010), id="a seek between two steps"),
     pytest.param((20, 0, 10), id="back to the start"),
+    pytest.param((2000, 2004, 1999), id="a rewind after a small step"),
+    pytest.param((1510, 1506, 1501), id="two rewinds in a row"),
 ])
 async def test_saves_that_are_not_two_small_steps_in_a_row_prove_nothing(db_session, saves):
     # Each save sits right next to the session: only their sequence can tell.
-    at = T0
-    for save in saves:
-        for played in (0, 5):
-            await poll(db_session, at, emby_session(at=at, position_s=save + played), stored=saved(save))
-            at += STEP
+    await _play_saves(db_session, saves)
+    assert not reports._writers
+
+
+@pytest.mark.parametrize("step, trusted", [(17, True), (18, False), (3, True), (2, False)])
+async def test_saves_must_move_like_the_clock(db_session, step, trusted):
+    # Each save stays 10 s: within 7 s of that it looks like a player reporting, past it like a seek.
+    await _play_saves(db_session, (2000, 2000 + step, 2000 + 2 * step))
+    assert bool(reports._writers) is trusted
+
+
+async def test_an_application_saving_too_rarely_is_not_learned(db_session):
+    # Saves 60 s apart move like the clock, but a real session runs too far from them in between.
+    for i, save in enumerate((2000, 2060, 2120, 2180)):
+        at = T0 + timedelta(seconds=60 * i)
+        await poll(db_session, at, emby_session(at=at, position_s=save + 1), stored=saved(save))
+    assert not reports._writers
+
+
+async def test_a_small_step_back_is_not_a_report(db_session):
+    # Back by 1 s between two polls is within the tolerance of the clock, but no player reports backwards.
+    for i, save in enumerate((2000, 2005, 2004)):
+        at = T0 + STEP * i
+        await poll(db_session, at, emby_session(at=at, position_s=save + 1), stored=saved(save))
     assert not reports._writers
 
 
@@ -171,6 +204,14 @@ async def test_a_pause_starts_the_proof_over(db_session):
             await poll(db_session, at, emby_session(at=at, position_s=save + 1), stored=saved(save))
         at += STEP
     assert not reports._writers
+
+
+async def test_a_failed_read_does_not_start_the_proof_over(db_session):
+    at = T0
+    for save, position in ((2000, 2001), (2010, 2011), (None, 2016), (2020, 2021)):
+        await poll(db_session, at, emby_session(at=at, position_s=position), stored=None if save is None else saved(save))
+        at += STEP
+    assert reports._writers == {("Web", "Films")}
 
 
 async def test_a_first_read_proves_nothing(db_session):
@@ -189,7 +230,7 @@ async def test_a_failed_read_does_not_block_a_new_row_without_proof(known, remem
     if known:
         reports._writers.add(("Web", "Films"))
     if remembered is not None:
-        reports._last_stored["k"] = remembered * TICK
+        reports._last_stored["k"] = reports._LastStored(remembered * TICK, T0)
     closed = SimpleNamespace(library_name="Films")
     assert player_is_lost(emby_session(at=T0, position_s=5000), "k", None, closed, None, T0) is False
 
@@ -203,11 +244,17 @@ async def test_an_application_is_only_trusted_in_the_library_where_it_was_seen()
     assert player_is_lost(far_session, "k", row("Series"), None, StoredPosition(2000 * TICK, False), T0) is False
 
 
-async def test_an_application_is_not_learned_without_its_library():
+async def test_an_application_is_learned_only_once_its_library_is_known():
     row = SimpleNamespace(library_name=None)
-    for save in (2000, 2010, 2020):
-        player_is_lost(emby_session(at=T0, position_s=save + 1), "k", row, None, StoredPosition(save * TICK, False), T0)
+    def report(step):
+        at, save = T0 + STEP * 2 * step, 2000 + 10 * step
+        player_is_lost(emby_session(at=at, position_s=save + 1), "k", row, None, StoredPosition(save * TICK, False), at)
+    for step in range(3):
+        report(step)
     assert not reports._writers
+    row.library_name = "Films"
+    report(3)
+    assert reports._writers == {("Web", "Films")}
 
 
 async def test_a_title_marked_watched_needs_real_viewing(db_session):
@@ -220,6 +267,6 @@ async def test_a_title_marked_watched_needs_real_viewing(db_session):
 
 async def test_saved_positions_are_forgotten_with_their_session(db_session):
     last, *_ = await play_reporting(db_session, 2000, 3)
-    assert reports._last_stored and reports._small_steps
+    assert reports._last_stored
     await poll(db_session, last + STEP)
-    assert not reports._last_stored and not reports._small_steps
+    assert not reports._last_stored
