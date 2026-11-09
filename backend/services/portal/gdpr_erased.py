@@ -1,12 +1,13 @@
 """What a GDPR purge does just before an account goes.
 
 Who left is remembered, so that Emby identity is never given an account again: one
-``settings`` row per fingerprint, no migration, nothing to lock, and a restore can
+``settings`` row per fingerprint, no migration, nothing to lock, and a ZIP restore can
 only add to them. A fingerprint keeps a name out of sight, not out of reach: whoever
 holds the playback rows can compute it.
 
-Their name also comes off the rows that outlive the account.
+Their name comes off the rows that outlive the account, and their photo is deleted.
 """
+import asyncio
 import hashlib
 
 from sqlalchemy import select, update
@@ -19,6 +20,7 @@ from models.portal.request import RequestBlacklist
 from models.settings import Setting
 from models.user import User
 from services.portal.admin_users_constants import SOURCE_LOCAL
+from services.portal.avatars import delete_avatar
 from services.settings import set_settings_map
 
 
@@ -92,8 +94,18 @@ async def _remove_name_from_kept_rows(db: AsyncSession, user_id: int) -> None:
             row.requesters = kept
 
 
+async def _delete_photo(db: AsyncSession, user_id: int) -> None:
+    """A file cannot be rolled back, so it goes before the commit: a purge that fails is
+    retried, whereas a photo left by a crash after the commit could never be found again."""
+    stored = (await db.execute(
+        select(UserProfile.avatar_custom_path).where(UserProfile.user_id == user_id)
+    )).scalar_one_or_none()
+    await asyncio.to_thread(delete_avatar, stored)
+
+
 async def prepare_erasure(db: AsyncSession, user: User) -> None:
-    """Call just before deleting ``user``. Everything stays in the caller's transaction:
-    it leaves with the deletion, or not at all."""
+    """Call just before deleting ``user``. The database writes stay in the caller's
+    transaction: they leave with the deletion, or not at all. The photo goes last."""
     await _remember_identity(db, user)
     await _remove_name_from_kept_rows(db, user.id)
+    await _delete_photo(db, user.id)

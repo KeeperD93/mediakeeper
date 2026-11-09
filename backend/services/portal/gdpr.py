@@ -224,8 +224,8 @@ async def purge_pending_deletions(db: AsyncSession) -> int:
     Before the FK ``SET NULL`` strips the link, every still-``scheduled``
     ``mk_event`` of the leaving user is moved to ``cancelled`` so it
     doesn't become a zombie nobody can edit. Failures of that side
-    effect are logged and **must not** abort the purge — GDPR
-    compliance prevails. A failed ``prepare_erasure`` does abort it:
+    effect are logged and do not abort the purge, short of a database
+    error. A failed ``prepare_erasure`` does abort it:
     forgotten, the person would get an account back from the collector.
     """
     if not await is_gdpr_enabled(db):
@@ -259,8 +259,8 @@ async def purge_pending_deletions(db: AsyncSession) -> int:
 async def _cancel_scheduled_mk_events(db: AsyncSession, user_id: int) -> None:
     """Cancel every ``scheduled`` ``mk_event`` created by ``user_id``
     so the FK ``SET NULL`` doesn't leave them un-actionable. Failures
-    here are logged and swallowed — they must not block the upstream
-    purge."""
+    are logged and swallowed; a database error still stops the purge,
+    because the session cannot be used after it."""
     # Local imports to avoid a circular dependency: ``mk_events_crud``
     # transitively imports ``services.portal.notifications`` which can
     # touch this module during startup wiring.

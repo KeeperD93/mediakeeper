@@ -92,6 +92,23 @@ async def test_a_statistics_import_leaves_out_an_erased_id(db_session):
     assert (report["plugin_imported"], report["plugin_skipped"]) == (1, 0)
 
 
+async def test_a_statistics_import_does_not_write_an_erased_name_back(db_session):
+    await purged(db_session)
+    for number, guid in ((1, GUID), (2, "EMBY-BOB")):
+        db_session.add(PlaybackSession(
+            session_key=f"jsplugin_{number}", user_id=guid, user_name="", item_id="MOVIE-1",
+            item_name="Test Movie", item_type="Movie", duration_ticks=0, position_ticks=0,
+            started_at=T0, ended_at=T0, is_active=False,
+        ))
+    await db_session.commit()
+
+    await import_jellystats_backup(db_session, {
+        "jf_users": [{"Id": GUID, "Name": "alice"}, {"Id": "EMBY-BOB", "Name": "bob"}],
+    })
+
+    assert {row.user_id: row.user_name for row in await _rows(db_session)} == {GUID: "", "EMBY-BOB": "bob"}
+
+
 async def test_a_play_open_when_they_are_erased_closes_without_an_account(db_session):
     await _poll(db_session, T0, _session("alice", GUID, T0))
     await _erase_alice(db_session)

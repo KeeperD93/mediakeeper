@@ -5,16 +5,20 @@ from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.playback_stats import PlaybackSession
+from services.portal.gdpr_erased import is_erased
 
 logger = logging.getLogger("mediakeeper.stats.import")
 
 
-async def _enrich_usernames(db: AsyncSession, jf_users: list) -> None:
+async def _enrich_usernames(db: AsyncSession, jf_users: list, erased: frozenset[str]) -> None:
     """Update plugin PlaybackSession rows that lack UserName by looking up jf_users."""
     if not jf_users:
         return
 
-    user_map = {u.get("Id", ""): u.get("Name", "") for u in jf_users if u.get("Id")}
+    user_map = {
+        u.get("Id", ""): u.get("Name", "") for u in jf_users
+        if u.get("Id") and not is_erased(erased, u.get("Id"), None)
+    }
     empty_name_rows = await db.execute(
         select(PlaybackSession).where(
             PlaybackSession.user_name == "",

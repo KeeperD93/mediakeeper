@@ -395,8 +395,10 @@ re-apply a *partial* backup (settings-only, etc.) on top of an
 otherwise healthy database.
 
 A full database restore goes back to the date of the backup: a person
-erased since then gets their account back. No administrator screen
-schedules a deletion: only that person can request it again.
+erased since then gets their account back. If the backup still holds
+their deletion request, the purge erases them again when its delay
+ends. Otherwise no administrator screen schedules a deletion: only
+that person can request it again.
 
 ---
 

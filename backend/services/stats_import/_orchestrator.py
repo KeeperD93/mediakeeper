@@ -52,7 +52,7 @@ async def import_jellystats_backup(db: AsyncSession, data: dict) -> dict:
     await _import_plugin_reporting(db, jf_plugin, existing_keys, erased, item_to_library, report, now)
 
     jf_users = _extract_blocks(data, "jf_users")
-    await _enrich_usernames(db, jf_users)
+    await _enrich_usernames(db, jf_users, erased)
     await _migrate_library_names(db, item_to_library, report)
 
     await db.commit()
