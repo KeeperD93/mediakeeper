@@ -60,12 +60,14 @@ async def test_all_their_photos_are_deleted_and_nobody_elses(db_session, workspa
     kept = await _photo(db_session, workspace_tmp_path, bob)
     id_starting_with_hers = workspace_tmp_path / f"{alice.id}0_1.png"
     id_starting_with_hers.write_bytes(b"test")
+    id_ending_like_alices = workspace_tmp_path / f"2{alice.id}_1.png"
+    id_ending_like_alices.write_bytes(b"test")
 
     with patch("services.portal.avatars.AVATAR_DIR", workspace_tmp_path):
         assert await purge_pending_deletions(db_session) == 1
 
     assert not gone.exists() and not left_by_a_failed_upload.exists()
-    assert kept.exists() and id_starting_with_hers.exists()
+    assert kept.exists() and id_starting_with_hers.exists() and id_ending_like_alices.exists()
 
 
 async def test_a_photo_that_cannot_be_deleted_stops_the_purge_until_it_can(db_session, workspace_tmp_path):
