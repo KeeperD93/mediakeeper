@@ -3,7 +3,8 @@
 Simulating plans every player in a read-only transaction, then rolls it back. Applying
 plans the same way, refuses a plan the admin has not seen, backs up, then plans each
 player again in their own transaction, under the lock of their profile, and writes that
-plan: a player is corrected entirely or not at all, and a second run finds nothing left.
+plan unless it takes a trophy the admin was not shown: a player is corrected entirely or
+not at all, and a second run finds nothing left.
 """
 import asyncio
 import logging
@@ -39,6 +40,10 @@ BACKUP_LABEL = "zone_correction"
 _apply_lock = asyncio.Lock()
 
 
+class _PlanGrew(Exception):
+    """Under the lock, a player's plan takes a trophy the admin was not shown."""
+
+
 def _is_postgres(db: AsyncSession) -> bool:
     return db.get_bind().dialect.name == "postgresql"
 
@@ -61,9 +66,12 @@ async def simulate_zone_correction(db: AsyncSession) -> dict:
 
 
 async def _apply_player(
-    db: AsyncSession, ctx: Context, user_id: int, audit: dict,
+    db: AsyncSession, ctx: Context, user_id: int, confirmed: set[str], audit: dict,
 ) -> PlayerPlan | None:
-    """Plan and write one player in one transaction; ``None`` when nothing was left to take."""
+    """Plan and write one player in one transaction; ``None`` when nothing was left to take.
+
+    Raises ``_PlanGrew``, the player untouched, when the plan goes beyond ``confirmed``.
+    """
     stmt = (
         select(UserProfile).where(UserProfile.user_id == user_id)
         .execution_options(populate_existing=True)
@@ -75,6 +83,9 @@ async def _apply_player(
     if plan is None or not plan.removed:
         await db.rollback()
         return None
+    if plan.removed.keys() - confirmed:
+        await db.rollback()
+        raise _PlanGrew
 
     for achievement_id, progress in plan.removed.items():
         await db.execute(
@@ -124,9 +135,11 @@ async def apply_zone_correction(
         summary = summarize(ctx, plans, failed)
         if (timezone, plan) != (summary["timezone"], summary["plan"]):
             raise ZoneCorrectionRefused(PLAN_CHANGED)
-        targets = [p.user_id for p in plans if p.removed]
-        if not targets:
-            return {**summary, "backup": None, "applied": {"players": 0, "removed": 0, "xp_removed": 0, "failed": 0}}
+        # The plan just matched the one the admin saw: nothing beyond it may be taken.
+        confirmed = {p.user_id: set(p.removed) for p in plans if p.removed}
+        if not confirmed:
+            nothing = {"players": 0, "removed": 0, "xp_removed": 0, "failed": 0, "changed": 0}
+            return {**summary, "backup": None, "applied": nothing}
 
         backup = await create_backup(db, label=BACKUP_LABEL)
         if not backup.complete:
@@ -135,11 +148,14 @@ async def apply_zone_correction(
 
         audit = {"admin_user_id": admin_user_id, "ip": ip, "user_agent": user_agent}
         done: list[PlayerPlan] = []
-        errors = 0
-        for user_id in targets:
+        errors = changed = 0
+        for user_id, shown in confirmed.items():
             try:
-                if applied := await _apply_player(db, ctx, user_id, audit):
+                if applied := await _apply_player(db, ctx, user_id, shown, audit):
                     done.append(applied)
+            except _PlanGrew:
+                logger.warning("[ZONE_CORRECTION] player changed since the plan", extra={"user_id": user_id})
+                changed += 1
             except Exception:
                 await db.rollback()
                 logger.exception("[ZONE_CORRECTION] player not corrected", extra={"user_id": user_id})
@@ -149,6 +165,7 @@ async def apply_zone_correction(
             "removed": sum(len(p.removed) for p in done),
             "xp_removed": sum(p.xp - p.xp_after for p in done),
             "failed": errors,
+            "changed": changed,
         }
         await record_audit(
             db, target_user_id=None, action=ACTION_DEBUG_ZONE_CORRECTION,

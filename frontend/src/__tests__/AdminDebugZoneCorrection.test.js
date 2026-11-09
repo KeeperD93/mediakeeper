@@ -53,7 +53,7 @@ const SUMMARY = {
 const APPLIED = {
   ...SUMMARY,
   backup: 'mediakeeper_backup_20260201_120000_zone_correction.zip',
-  applied: { players: 7, removed: 8, xp_removed: 350, failed: 0 },
+  applied: { players: 7, removed: 8, xp_removed: 350, failed: 0, changed: 0 },
 }
 
 const button = (wrapper, label) => wrapper.findAll('button').find(b => b.text() === label)
@@ -90,7 +90,21 @@ describe('AdminDebugZoneCorrection', () => {
     await flushPromises()
     expect(applyZoneCorrection).toHaveBeenCalledWith('Europe/Paris', '0123456789abcdef')
     expect(wrapper.text()).toContain(APPLIED.backup)
+    expect(wrapper.text()).not.toContain('zoneAppliedChanged')
     expect(wrapper.emitted('changed')).toHaveLength(1)
+  })
+
+  it('says how many players were left as they were', async () => {
+    const wrapper = await simulated()
+    confirm.mockResolvedValue(true)
+    applyZoneCorrection.mockResolvedValue({
+      ...APPLIED,
+      applied: { ...APPLIED.applied, changed: 2 },
+    })
+    await button(wrapper, 'portal.admin.debug.zoneApply').trigger('click')
+    await flushPromises()
+    expect(wrapper.text()).toContain('zoneAppliedChanged')
+    expect(wrapper.text()).toContain('"n":2')
   })
 
   it('writes nothing when the admin backs out', async () => {

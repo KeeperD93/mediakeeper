@@ -4032,6 +4032,7 @@
         "zoneApplied": "{removed} trophée(s) retiré(s) chez {players} joueur(s) · {xp} XP",
         "zoneBackup": "Sauvegarde faite juste avant : {name}. Téléchargez-la depuis Paramètres → Sauvegardes : elle sera supprimée avec les anciennes.",
         "zoneAppliedFailed": "{n} joueur(s) non corrigé(s) : voir les journaux, puis simuler de nouveau",
+        "zoneAppliedChanged": "{n} joueur(s) laissé(s) tel(s) quel(s) : leurs données ont changé pendant la correction, simuler de nouveau",
         "zoneErrors": {
           "zone_not_chosen": "Aucun fuseau horaire n'est enregistré (Paramètres → Général).",
           "zone_saved_at_unknown": "La date d'enregistrement du fuseau est introuvable : correction impossible.",

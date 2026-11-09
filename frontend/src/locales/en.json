@@ -4032,6 +4032,7 @@
         "zoneApplied": "{removed} trophy(ies) taken back from {players} player(s) · {xp} XP",
         "zoneBackup": "Backup made right before: {name}. Download it from Settings → Backups: it will be deleted along with older ones.",
         "zoneAppliedFailed": "{n} player(s) not fixed: see the logs, then simulate again",
+        "zoneAppliedChanged": "{n} player(s) left untouched: their data changed during the fix, simulate again",
         "zoneErrors": {
           "zone_not_chosen": "No time zone is saved (Settings → General).",
           "zone_saved_at_unknown": "The date the time zone was saved cannot be found: no fix possible.",

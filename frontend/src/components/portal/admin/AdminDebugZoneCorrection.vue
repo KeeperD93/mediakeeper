@@ -80,6 +80,9 @@
       <li v-if="applied.applied.failed" class="pt-debug-warn">
         {{ $t('portal.admin.debug.zoneAppliedFailed', { n: applied.applied.failed }) }}
       </li>
+      <li v-if="applied.applied.changed" class="pt-debug-warn">
+        {{ $t('portal.admin.debug.zoneAppliedChanged', { n: applied.applied.changed }) }}
+      </li>
     </ul>
   </section>
 </template>

@@ -9,14 +9,17 @@ from models.portal.audit import AdminAuditLog
 from models.portal.xp_ledger import XpLedger
 from services.backup.create import BackupResult
 from services.portal import daily_digest
+from services.portal.achievement_defs import ACHIEVEMENT_DEFS
 from services.portal.achievements import seed_achievements
 from services.portal.admin_users_constants import (
     ACTION_DEBUG_ZONE_CORRECTION,
     ACTION_DEBUG_ZONE_CORRECTION_PLAYER,
 )
 from services.portal.zone_correction import _run
+from services.portal.zone_correction._context import build_context
 from tests._portal_profile_helpers import PORTAL_COOKIE, make_portal_user, portal_token
 from tests._zone_correction_helpers import (
+    DAWN_IN_PARIS,
     DAWN_UTC_ONLY,
     freeze,
     hold,
@@ -30,7 +33,9 @@ from tests._zone_correction_helpers import (
 SIMULATE = "/api/portal/admin/debug/zone-correction/simulate"
 APPLY = "/api/portal/admin/debug/zone-correction/apply"
 EARLY = "secret_early_bird"
-ARCHIVE = "mediakeeper_backup_20260201_120000_zone_correction.zip"
+COLLECTOR = "collector_1"
+MOVIES = [d["id"] for d in ACHIEVEMENT_DEFS if d["condition_type"] == "watch_movies"]
+ARCHIVE ="mediakeeper_backup_20260201_120000_zone_correction.zip"
 
 
 @pytest.fixture(autouse=True)
@@ -73,6 +78,27 @@ async def _confirmation(client) -> dict:
     return {"timezone": body["timezone"], "plan": body["plan"]}
 
 
+def _while_backing_up(monkeypatch, change) -> None:
+    """Runs ``change`` between the plan the admin confirmed and the writing."""
+    async def backup(db, label=""):
+        await change(db)
+        return BackupResult(Path(ARCHIVE), ())
+
+    monkeypatch.setattr(_run, "create_backup", backup)
+
+
+async def _hold_all(db, user_id: int, *achievement_ids: str) -> None:
+    for achievement_id in achievement_ids:
+        await hold(db, user_id, achievement_id, xp=0)
+
+
+async def _player_audits(db) -> list[AdminAuditLog]:
+    db.expire_all()
+    return (await db.execute(
+        select(AdminAuditLog).where(AdminAuditLog.action == ACTION_DEBUG_ZONE_CORRECTION_PLAYER)
+    )).scalars().all()
+
+
 @pytest.mark.asyncio
 async def test_a_viewer_reaches_neither_endpoint(client, db_session):
     await _as(client, db_session, "bob", "viewer")
@@ -101,7 +127,7 @@ async def test_apply_takes_back_the_trophy_its_xp_and_its_badge(client, db_sessi
     resp = await client.post(APPLY, json={"timezone": simulated["timezone"], "plan": simulated["plan"]})
     assert resp.status_code == 200, resp.text
     body = resp.json()
-    assert body["applied"] == {"players": 1, "removed": 1, "xp_removed": 40, "failed": 0}
+    assert body["applied"] == {"players": 1, "removed": 1, "xp_removed": 40, "failed": 0, "changed": 0}
     assert (body["backup"], backups[0]) == (ARCHIVE, ["zone_correction"])
 
     assert await unlocked(db_session, alice) == set()
@@ -173,10 +199,77 @@ async def test_a_player_whose_writing_fails_is_left_whole(client, db_session, ba
 
     monkeypatch.setattr(_run, "record_audit", failing_for_players)
     resp = await client.post(APPLY, json=await _confirmation(client))
-    assert resp.json()["applied"] == {"players": 0, "removed": 0, "xp_removed": 0, "failed": 1}
+    assert resp.json()["applied"] == {"players": 0, "removed": 0, "xp_removed": 0, "failed": 1, "changed": 0}
     assert await unlocked(db_session, alice) == {EARLY}
     assert (await profile_of(db_session, alice)).xp == 110
     assert (await db_session.execute(select(XpLedger).where(XpLedger.user_id == alice))).first()
+
+
+@pytest.mark.asyncio
+async def test_a_player_who_would_lose_a_trophy_not_shown_is_left_whole(client, db_session, monkeypatch):
+    alice = await _alice(client, db_session)
+    await _hold_all(db_session, alice, *MOVIES[:4])
+    bob = await player(db_session, "bob", xp=10)
+    play(db_session, "bob", DAWN_UTC_ONLY)
+    await hold(db_session, bob, EARLY)
+    confirmation = await _confirmation(client)
+
+    # Five trophies once the early bird is counted: Collector rests on it, and was not in the plan.
+    _while_backing_up(monkeypatch, lambda db: _hold_all(db, alice, COLLECTOR))
+    resp = await client.post(APPLY, json=confirmation)
+
+    assert resp.json()["applied"] == {"players": 1, "removed": 1, "xp_removed": 40, "failed": 0, "changed": 1}
+    assert await unlocked(db_session, alice) == {EARLY, COLLECTOR, *MOVIES[:4]}
+    assert (await profile_of(db_session, alice)).xp == 110
+    assert (await db_session.execute(select(XpLedger).where(XpLedger.user_id == alice))).first()
+    assert await unlocked(db_session, bob) == set()
+    assert [row.target_user_id for row in await _player_audits(db_session)] == [bob]
+    run = (await db_session.execute(
+        select(AdminAuditLog).where(AdminAuditLog.action == ACTION_DEBUG_ZONE_CORRECTION)
+    )).scalar_one()
+    assert run.payload["changed"] == 1
+
+
+@pytest.mark.asyncio
+async def test_a_player_left_whole_does_not_keep_the_transaction_open(client, db_session):
+    alice = await _alice(client, db_session)
+    ctx = await build_context(db_session)
+    with pytest.raises(_run._PlanGrew):
+        await _run._apply_player(db_session, ctx, alice, set(), {})
+    assert not db_session.in_transaction()
+
+
+@pytest.mark.asyncio
+async def test_a_player_who_would_lose_less_than_shown_is_still_corrected(client, db_session, monkeypatch):
+    alice = await _alice(client, db_session)
+    await _hold_all(db_session, alice, *MOVIES[:4], COLLECTOR)
+    simulated = (await client.get(SIMULATE)).json()
+    assert simulated["removed_total"] == 2
+    confirmation = {"timezone": simulated["timezone"], "plan": simulated["plan"]}
+
+    # A fifth trophy besides the early bird: Collector no longer rests on it.
+    _while_backing_up(monkeypatch, lambda db: _hold_all(db, alice, MOVIES[4]))
+    resp = await client.post(APPLY, json=confirmation)
+
+    assert resp.json()["applied"] == {"players": 1, "removed": 1, "xp_removed": 40, "failed": 0, "changed": 0}
+    assert await unlocked(db_session, alice) == {COLLECTOR, *MOVIES[:5]}
+
+
+@pytest.mark.asyncio
+async def test_a_player_with_nothing_left_to_take_is_not_counted_as_changed(client, db_session, monkeypatch):
+    alice = await _alice(client, db_session)
+    confirmation = await _confirmation(client)
+
+    async def dawn_in_the_zone(db):
+        play(db, "alice", DAWN_IN_PARIS)
+        await db.commit()
+
+    _while_backing_up(monkeypatch, dawn_in_the_zone)
+    resp = await client.post(APPLY, json=confirmation)
+
+    assert resp.json()["applied"] == {"players": 0, "removed": 0, "xp_removed": 0, "failed": 0, "changed": 0}
+    assert await unlocked(db_session, alice) == {EARLY}
+    assert await _player_audits(db_session) == []
 
 
 @pytest.mark.asyncio
