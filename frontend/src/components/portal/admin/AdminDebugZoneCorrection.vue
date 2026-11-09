@@ -174,13 +174,14 @@ async function apply() {
   try {
     applied.value = await debugApi.applyZoneCorrection(plan.timezone, plan.plan)
     summary.value = null
+    const result = applied.value.applied
     showToast(
       t('portal.admin.debug.zoneApplied', {
-        removed: applied.value.applied.removed,
-        players: applied.value.applied.players,
-        xp: applied.value.applied.xp_removed,
+        removed: result.removed,
+        players: result.players,
+        xp: result.xp_removed,
       }),
-      TOAST_TYPE.OK,
+      result.failed || result.changed ? TOAST_TYPE.WARN : TOAST_TYPE.OK,
     )
     emit('changed')
   } catch (err) {

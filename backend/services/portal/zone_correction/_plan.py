@@ -152,6 +152,6 @@ async def plan_all(db: AsyncSession, ctx: Context) -> tuple[list[PlayerPlan], in
             async with db.begin_nested():
                 plans.append(await plan_player(db, ctx, profile))
         except Exception:
-            logger.exception("[ZONE_CORRECTION] planning failed", extra={"user_id": user_id})
+            logger.exception("[ZONE_CORRECTION] planning failed for player %s", user_id)
             failed += 1
     return plans, failed

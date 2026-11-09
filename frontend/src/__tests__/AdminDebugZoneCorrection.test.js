@@ -92,6 +92,7 @@ describe('AdminDebugZoneCorrection', () => {
     expect(wrapper.text()).toContain(APPLIED.backup)
     expect(wrapper.text()).not.toContain('zoneAppliedChanged')
     expect(wrapper.emitted('changed')).toHaveLength(1)
+    expect(showToast).toHaveBeenCalledWith('portal.admin.debug.zoneApplied', TOAST_TYPE.OK)
   })
 
   it('says how many players were left as they were', async () => {
@@ -105,6 +106,18 @@ describe('AdminDebugZoneCorrection', () => {
     await flushPromises()
     expect(wrapper.text()).toContain('zoneAppliedChanged')
     expect(wrapper.text()).toContain('"n":2')
+  })
+
+  it.each(['failed', 'changed'])('does not call it a success with %s players', async field => {
+    const wrapper = await simulated()
+    confirm.mockResolvedValue(true)
+    applyZoneCorrection.mockResolvedValue({
+      ...APPLIED,
+      applied: { ...APPLIED.applied, [field]: 1 },
+    })
+    await button(wrapper, 'portal.admin.debug.zoneApply').trigger('click')
+    await flushPromises()
+    expect(showToast).toHaveBeenCalledWith('portal.admin.debug.zoneApplied', TOAST_TYPE.WARN)
   })
 
   it('writes nothing when the admin backs out', async () => {

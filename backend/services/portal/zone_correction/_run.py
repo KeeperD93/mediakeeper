@@ -154,11 +154,11 @@ async def apply_zone_correction(
                 if applied := await _apply_player(db, ctx, user_id, shown, audit):
                     done.append(applied)
             except _PlanGrew:
-                logger.warning("[ZONE_CORRECTION] player changed since the plan", extra={"user_id": user_id})
+                logger.warning("[ZONE_CORRECTION] player %s changed since the plan: left as is", user_id)
                 changed += 1
             except Exception:
                 await db.rollback()
-                logger.exception("[ZONE_CORRECTION] player not corrected", extra={"user_id": user_id})
+                logger.exception("[ZONE_CORRECTION] player %s not corrected", user_id)
                 errors += 1
         applied = {
             "players": len(done),

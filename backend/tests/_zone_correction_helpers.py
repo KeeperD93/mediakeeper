@@ -9,12 +9,17 @@ from models.portal.audit import AdminAuditLog
 from models.portal.profile import UserProfile
 from models.portal.xp_ledger import XpLedger
 from services.instance_time import INSTANCE_TIMEZONE_KEY
+from services.portal.achievements import seed_achievements
 from services.portal.admin_users_constants import ACTION_SYSTEM_TIMEZONE_CHANGED
 from services.portal.xp import ACHIEVEMENT_XP_ACTION, achievement_xp_reference
 from services.portal.zone_correction import _context
 from services.settings import set_setting
-from tests._portal_profile_helpers import make_portal_user
+from tests._portal_profile_helpers import PORTAL_COOKIE, make_portal_user, portal_token
 
+SIMULATE = "/api/portal/admin/debug/zone-correction/simulate"
+APPLY = "/api/portal/admin/debug/zone-correction/apply"
+ARCHIVE = "mediakeeper_backup_20260201_120000_zone_correction.zip"
+EARLY = "secret_early_bird"
 # The same month on every clock the tests use: at the turn of a month the tool refuses.
 MID_MONTH = datetime(2026, 6, 15, 12, tzinfo=UTC)
 # Winter: Paris is UTC+1. The zone is saved on the first of February.
@@ -88,6 +93,27 @@ async def hold(db, user_id: int, achievement_id: str, xp: int = 40, unlocked_at:
     profile = (await db.execute(select(UserProfile).where(UserProfile.user_id == user_id))).scalar_one()
     profile.xp = (profile.xp or 0) + xp
     await db.commit()
+
+
+async def sign_in_as(client, db, name: str, role: str) -> None:
+    user, _ = await make_portal_user(db, username=name, role=role)
+    client.cookies.set(PORTAL_COOKIE, portal_token(user.username))
+
+
+async def alice_with_early_bird(client, db) -> int:
+    """Alice holds the early bird of a dawn that is one in UTC only; 70 XP of her own."""
+    await seed_achievements(db)
+    await save_zone(db)
+    await sign_in_as(client, db, "admin", "admin")
+    alice = await player(db, "alice", xp=70)
+    play(db, "alice", DAWN_UTC_ONLY)
+    await hold(db, alice, EARLY)
+    return alice
+
+
+async def confirmation(client) -> dict:
+    body = (await client.get(SIMULATE)).json()
+    return {"timezone": body["timezone"], "plan": body["plan"]}
 
 
 async def unlocked(db, user_id: int) -> set[str]:
