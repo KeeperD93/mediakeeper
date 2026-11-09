@@ -25,9 +25,11 @@ pytestmark = pytest.mark.asyncio
 def _reset_player_reports():
     reports._writers.clear()
     reports._last_stored.clear()
+    reports._small_steps.clear()
     yield
     reports._writers.clear()
     reports._last_stored.clear()
+    reports._small_steps.clear()
 
 
 async def test_a_row_ends_at_its_last_real_second_after_thirty_minutes(db_session):

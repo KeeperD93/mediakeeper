@@ -33,11 +33,14 @@ _ON_HOLD_AFTER = timedelta(seconds=2 * POLL_INTERVAL_SECONDS + MAX_CARRY_SECONDS
 # means the player never reported from there.
 _ZERO_MIN_RUNTIME_TICKS = 3600 * TICKS_PER_SECOND
 _ZERO_MIN_SHARE = 0.10
+# Small steps of the saved position needed in a row: a single one can be a seek.
+_STEPS_TO_TRUST = 2
 
 # (client, library) seen saving its position while playing: the others keep the
 # activity rule. Learned again after a restart from the first reports it sees.
 _writers: set[tuple[str, str]] = set()
 _last_stored: dict[str, int] = {}
+_small_steps: dict[str, int] = {}
 
 
 @dataclass(frozen=True)
@@ -118,12 +121,13 @@ def _runs_alone(position: int, stored: StoredPosition, row: PlaybackSession | No
 def _learn(key: str, client: str, library: str | None, position: int, stored: StoredPosition) -> None:
     before = _last_stored.get(key)
     _last_stored[key] = stored.ticks
-    # Regular small steps next to the session: one save at a seek proves nothing.
-    saving = (
-        stored.ticks > 0 and before is not None and before != stored.ticks
-        and not _far(before, stored.ticks) and not _far(position, stored.ticks)
-    )
-    if saving and library and (client, library) not in _writers:
+    if before is None or before == stored.ticks:
+        return
+    if stored.ticks == 0 or _far(before, stored.ticks) or _far(position, stored.ticks):
+        _small_steps.pop(key, None)
+        return
+    _small_steps[key] = _small_steps.get(key, 0) + 1
+    if _small_steps[key] >= _STEPS_TO_TRUST and library and (client, library) not in _writers:
         _writers.add((client, library))
         logger.info("Playback reports confirmed: client %s saves its position in library %s", client, library)
 
@@ -144,7 +148,7 @@ def player_is_lost(
     item = session["NowPlayingItem"]
     play_state = session.get("PlayState", {})
     if play_state.get("IsPaused", False) or item.get("Type") not in WATCH_ITEM_TYPES:
-        _last_stored.pop(key, None)  # what a pause saves says nothing of the playback
+        _forget(key)  # what a pause saves says nothing of the playback
         return False
     reference = row or previous_row
     library = reference.library_name if reference else None
@@ -162,6 +166,11 @@ def player_is_lost(
     return lost
 
 
+def _forget(key: str) -> None:
+    _last_stored.pop(key, None)
+    _small_steps.pop(key, None)
+
+
 def forget_other_sessions(keys: set[str]) -> None:
     for key in _last_stored.keys() - keys:
-        del _last_stored[key]
+        _forget(key)
