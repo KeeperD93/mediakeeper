@@ -35,7 +35,7 @@ This section intentionally has no date so it is not shown to users.
 - Private profile — dedicated "This profile is private" page, without name or avatar.
 
 ### Fixed
-- Watch time, XP and trophies — only time really watched counts.
+- Watch time — only time really watched counts.
 - Account deletion — the dialog says what is kept.
 - Sign-in — three real tries, counter reset after a successful sign-in.
 - Sign-in — clear messages: wait shown, media server unreachable, inactive account.

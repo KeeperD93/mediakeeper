@@ -5,15 +5,24 @@ from datetime import timedelta
 import pytest
 
 from services.stats_collector._measure import exclusive_shares, measure_progress
-from tests._watch_measurement_helpers import STEP, T0, TICK, play, poll, rows, session
+from tests._watch_measurement_helpers import (
+    STEP,
+    T0,
+    TICK,
+    emby_session,
+    play,
+    poll,
+    rows,
+)
 
 
 @pytest.mark.asyncio
-async def test_a_jerky_position_is_counted_in_full(db_session):
-    # Steps of 3 and 7 s for polls 5 s apart: the excess of one poll makes up for the next.
+@pytest.mark.parametrize("first_step, second_step", [(7, 3), (3, 7)])
+async def test_a_jerky_position_is_counted_in_full(db_session, first_step, second_step):
+    # Polls 5 s apart: the excess of one poll, of time or of position, makes up for the next.
     positions = [100.0]
     for i in range(40):
-        positions.append(positions[-1] + (3 if i % 2 else 7))
+        positions.append(positions[-1] + (second_step if i % 2 else first_step))
     await play(db_session, T0, positions, STEP)
     (row,) = await rows(db_session)
     assert row.watched_seconds == 200
@@ -34,6 +43,22 @@ async def test_a_seek_forward_still_counts_only_the_time_spent(db_session):
 
 
 @pytest.mark.asyncio
+async def test_a_seek_leaves_no_more_than_the_carry_behind(db_session):
+    # After the seek the position freezes: only what the carry kept can still be credited.
+    await play(db_session, T0, [100, 105, 2000] + [2000] * 7, STEP)
+    (row,) = await rows(db_session)
+    assert row.watched_seconds == 20
+
+
+@pytest.mark.asyncio
+async def test_a_stall_leaves_no_more_than_the_carry_behind(db_session):
+    # 30 s without progress, then a jump: only the last poll and the carry can be credited.
+    await play(db_session, T0, [100] * 7 + [300], STEP)
+    (row,) = await rows(db_session)
+    assert row.watched_seconds == 15
+
+
+@pytest.mark.asyncio
 async def test_a_stuck_player_is_not_credited_for_its_oscillation(db_session):
     # Each report takes it back to 258 s, Emby lifts it to 262 s in between.
     await play(db_session, T0, [258 + (4 if i % 2 else 0) for i in range(60)], STEP)
@@ -45,11 +70,11 @@ async def test_a_stuck_player_is_not_credited_for_its_oscillation(db_session):
 async def test_a_pause_leaves_nothing_to_make_up(db_session):
     await play(db_session, T0, [100, 103], STEP)  # 2 s not credited yet
     paused_at = T0 + STEP * 2
-    await poll(db_session, paused_at, session(at=paused_at, position_s=103, paused=True))
+    await poll(db_session, paused_at, emby_session(at=paused_at, position_s=103, paused=True))
     resumed = paused_at + STEP
-    await poll(db_session, resumed, session(at=resumed, position_s=108))
+    await poll(db_session, resumed, emby_session(at=resumed, position_s=110))
     (row,) = await rows(db_session)
-    assert row.watched_seconds == 8
+    assert row.watched_seconds == 3 + 5  # the 7 s jump after the pause only earns the 5 s spent
 
 
 def test_the_credit_never_exceeds_the_time_spent():
@@ -87,7 +112,7 @@ async def test_two_devices_with_jerky_positions_count_the_time_once(db_session):
         at = T0 + STEP * i
         await poll(
             db_session, at,
-            session(at=at, position_s=100 + 10 * (i // 2) + 3 * (i % 2)),
-            session(at=at, position_s=500 + 10 * ((i + 1) // 2) - 3 * ((i + 1) % 2), item="EP-1", item_type="Episode", session="S-2"),
+            emby_session(at=at, position_s=100 + 10 * (i // 2) + 3 * (i % 2)),
+            emby_session(at=at, position_s=500 + 10 * ((i + 1) // 2) - 3 * ((i + 1) % 2), item="EP-1", item_type="Episode", session="S-2"),
         )
     assert sum(row.exclusive_seconds for row in await rows(db_session)) == 300

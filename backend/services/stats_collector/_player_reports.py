@@ -1,9 +1,10 @@
 """What the player itself reported, as opposed to what Emby extrapolates.
 
 Emby moves a session's position and refreshes its activity on its own between
-two reports of the player, and keeps doing so once the player is gone. The
-resume position saved for the user only changes on a real report (about every
-10 s): a session running away from it no longer has a player behind it.
+two reports of the player, and keeps doing so once the player is gone. While
+it plays, the resume position saved for the user only changes on a real report
+(about every 10 s): a session running away from it no longer has a player
+behind it.
 """
 import asyncio
 import logging
@@ -103,15 +104,13 @@ def _on_hold(row: PlaybackSession, now: datetime) -> bool:
     return reference is not None and now - reference > _ON_HOLD_AFTER
 
 
-def _runs_alone(
-    position: int, stored: StoredPosition, reference: PlaybackSession | None, runtime_ticks: int,
-) -> bool:
+def _runs_alone(position: int, stored: StoredPosition, row: PlaybackSession | None, runtime_ticks: int) -> bool:
     if stored.ticks > 0:
-        return (
-            reference is not None
-            and (reference.watched_seconds or 0) >= _MIN_WATCHED_SECONDS
-            and _far(position, stored.ticks)
-            and not _far(reference.position_ticks or 0, stored.ticks)
+        if not _far(position, stored.ticks):
+            return False
+        # Without a row, a known application only opens one next to what it saved.
+        return row is None or (
+            (row.watched_seconds or 0) >= _MIN_WATCHED_SECONDS and not _far(row.position_ticks or 0, stored.ticks)
         )
     return not stored.played and runtime_ticks >= _ZERO_MIN_RUNTIME_TICKS and position >= runtime_ticks * _ZERO_MIN_SHARE
 
@@ -119,7 +118,11 @@ def _runs_alone(
 def _learn(key: str, client: str, library: str | None, position: int, stored: StoredPosition) -> None:
     before = _last_stored.get(key)
     _last_stored[key] = stored.ticks
-    saving = stored.ticks > 0 and before is not None and before != stored.ticks and not _far(position, stored.ticks)
+    # Regular small steps next to the session: one save at a seek proves nothing.
+    saving = (
+        stored.ticks > 0 and before is not None and before != stored.ticks
+        and not _far(before, stored.ticks) and not _far(position, stored.ticks)
+    )
     if saving and library and (client, library) not in _writers:
         _writers.add((client, library))
         logger.info("Playback reports confirmed: client %s saves its position in library %s", client, library)
@@ -141,16 +144,20 @@ def player_is_lost(
     item = session["NowPlayingItem"]
     play_state = session.get("PlayState", {})
     if play_state.get("IsPaused", False) or item.get("Type") not in WATCH_ITEM_TYPES:
+        _last_stored.pop(key, None)  # what a pause saves says nothing of the playback
         return False
     reference = row or previous_row
     library = reference.library_name if reference else None
     client = session.get("Client", "")
     known = (client, library) in _writers
-    if stored is None:
-        # Nothing read this time proves nothing: a row on hold stays on hold.
-        return known and row is not None and _on_hold(row, now)
     position = play_state.get("PositionTicks") or 0
-    lost = known and _runs_alone(position, stored, reference, item.get("RunTimeTicks") or 0)
+    if stored is None:
+        # Nothing read this time proves nothing: a row on hold stays on hold,
+        # and a leftover does not open one thanks to a failed read.
+        if row is not None:
+            return known and _on_hold(row, now)
+        return known and _far(position, _last_stored.get(key, position))
+    lost = known and _runs_alone(position, stored, row, item.get("RunTimeTicks") or 0)
     _learn(key, client, library, position, stored)
     return lost
 

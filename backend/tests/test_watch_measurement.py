@@ -16,10 +16,10 @@ from services.stats_collector._measure import (
 )
 from tests._watch_measurement_helpers import T0, TICK
 from tests._watch_measurement_helpers import completions as _completions
+from tests._watch_measurement_helpers import emby_session as _session
 from tests._watch_measurement_helpers import play as _play
 from tests._watch_measurement_helpers import poll as _poll
 from tests._watch_measurement_helpers import rows as _rows
-from tests._watch_measurement_helpers import session as _session
 
 
 @pytest.mark.asyncio

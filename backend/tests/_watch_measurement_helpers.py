@@ -18,7 +18,7 @@ def _emby_date(at: datetime) -> str:
     return at.strftime("%Y-%m-%dT%H:%M:%S.%f") + "0Z"
 
 
-def session(
+def emby_session(
     *, at: datetime, position_s: float, paused: bool = False, item: str = "MOVIE-1",
     item_type: str = "Movie", runtime_s: int = 6000, user: str = "EMBY-1",
     session: str = "S-1", silent_since: datetime | None = None, client: str = "Web",
@@ -66,5 +66,22 @@ async def play(db, start: datetime, positions: list[float], step: timedelta, **k
     at = start
     for i, position in enumerate(positions):
         at = start + step * i
-        await poll(db, at, session(at=at, position_s=position, **kw))
+        await poll(db, at, emby_session(at=at, position_s=position, **kw))
     return at
+
+
+async def play_reporting(db, first_position: float, count: int, **kw):
+    """``count`` polls of a player reporting every 10 s. Returns (last poll, position, saved position)."""
+    item = kw.get("item", "MOVIE-1")
+    for i in range(count):
+        at, position, position_saved = T0 + STEP * i, first_position + 5 * i, first_position + 10 * (i // 2)
+        await poll(db, at, emby_session(at=at, position_s=position, **kw), stored=saved(position_saved, item=item))
+    return at, position, position_saved
+
+
+async def emby_alone(db, last, position: float, position_saved: float, count: int, **kw):
+    """The player is gone: Emby moves the position alone, the saved position stays. Returns (last poll, position)."""
+    for i in range(1, count + 1):
+        at, moved = last + STEP * i, position + 4.5 * i
+        await poll(db, at, emby_session(at=at, position_s=moved, **kw), stored=saved(position_saved))
+    return at, moved
