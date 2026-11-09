@@ -26,6 +26,7 @@ This section intentionally has no date so it is not shown to users.
 - Users — "Create an administrator" replaces "Create user" (temporary password).
 
 ### Fixed
+- Statistics — accurate watch time: cut-off playback not counted, no more undercounting.
 - GDPR — erased account never recreated, plays of its Emby id no longer recorded (update your privacy text).
 - GDPR — erased account: profile photo deleted, name removed from reports and the blacklist.
 - Debug tools — player list translated, a failed load is reported.

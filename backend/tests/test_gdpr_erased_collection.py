@@ -33,6 +33,7 @@ async def _poll(db, at: datetime, *sessions: dict) -> None:
     source = {"source": "emby", "url": "http://emby.test", "api_key": "k"}
     with patch("services.stats_collector.collect.get_active_media_source", new=AsyncMock(return_value=source)), \
          patch("services.stats_collector.collect.get_raw_sessions", new=AsyncMock(return_value=list(sessions))), \
+         patch("services.stats_collector.collect.fetch_stored_positions", new=AsyncMock(return_value={})), \
          patch("services.stats_collector.collect._session_library_name", new=AsyncMock(return_value="Films")):
         await collect_active_sessions(db, now=at)
 

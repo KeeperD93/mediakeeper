@@ -287,6 +287,9 @@ async def test_collect_skips_intro_and_trailer_types(db_session):
         "services.stats_collector.collect.get_raw_sessions",
         new=AsyncMock(return_value=sessions),
     ), patch(
+        "services.stats_collector.collect.fetch_stored_positions",
+        new=AsyncMock(return_value={}),
+    ), patch(
         "services.stats_collector.collect._session_library_name",
         new=AsyncMock(side_effect=_lib),
     ), patch(

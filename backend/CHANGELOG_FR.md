@@ -26,6 +26,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Utilisateurs — « Créer un administrateur » remplace « Créer un utilisateur » (mot de passe provisoire).
 
 ### Fixed
+- Statistiques — temps de visionnage juste : lecture coupée non comptée, plus de sous-comptage.
 - RGPD — compte effacé jamais recréé, visionnages de son identifiant Emby plus enregistrés (texte de confidentialité à adapter).
 - RGPD — compte effacé : photo de profil supprimée, nom retiré des remontées et de la blacklist.
 - Outils de debug — liste des joueurs traduite, échec de chargement signalé.
