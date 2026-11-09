@@ -33,7 +33,7 @@ _ON_HOLD_AFTER = timedelta(seconds=2 * POLL_INTERVAL_SECONDS + MAX_CARRY_SECONDS
 # means the player never reported from there.
 _ZERO_MIN_RUNTIME_TICKS = 3600 * TICKS_PER_SECOND
 _ZERO_MIN_SHARE = 0.10
-# A real report moves the saved position like the clock, give or take one poll and its jitter.
+# At normal speed a real report moves the saved position like the clock, give or take one poll and its jitter.
 _MAX_CLOCK_GAP_SECONDS = POLL_INTERVAL_SECONDS + 2
 # Such moves needed in a row: a single one can be a seek.
 _STEPS_TO_TRUST = 2

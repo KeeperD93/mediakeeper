@@ -164,6 +164,8 @@ async def test_an_application_is_known_per_library(db_session):
     pytest.param((20, 0, 10), id="back to the start"),
     pytest.param((2000, 2004, 1999), id="a rewind after a small step"),
     pytest.param((1510, 1506, 1501), id="two rewinds in a row"),
+    pytest.param((2000, 2018, 2028), id="only the second step keeps the pace"),
+    pytest.param((2000, 2010, 2028), id="only the first step keeps the pace"),
 ])
 async def test_saves_that_are_not_two_small_steps_in_a_row_prove_nothing(db_session, saves):
     # Each save sits right next to the session: only their sequence can tell.
@@ -186,9 +188,15 @@ async def test_an_application_saving_too_rarely_is_not_learned(db_session):
     assert not reports._writers
 
 
-async def test_a_small_step_back_is_not_a_report(db_session):
+async def test_a_refused_step_only_starts_the_count_over(db_session):
+    await _play_saves(db_session, (2000, 3000, 3010, 3020))
+    assert reports._writers == {("Web", "Films")}
+
+
+@pytest.mark.parametrize("saves", [(2000, 2005, 2004), (2000, 1999, 2004)])
+async def test_a_small_step_back_is_not_a_report(db_session, saves):
     # Back by 1 s between two polls is within the tolerance of the clock, but no player reports backwards.
-    for i, save in enumerate((2000, 2005, 2004)):
+    for i, save in enumerate(saves):
         at = T0 + STEP * i
         await poll(db_session, at, emby_session(at=at, position_s=save + 1), stored=saved(save))
     assert not reports._writers
@@ -206,9 +214,10 @@ async def test_a_pause_starts_the_proof_over(db_session):
     assert not reports._writers
 
 
-async def test_a_failed_read_does_not_start_the_proof_over(db_session):
+async def test_failed_reads_do_not_start_the_proof_over(db_session):
+    # The next change is measured across them: 20 s of playback for 20 s of clock.
     at = T0
-    for save, position in ((2000, 2001), (2010, 2011), (None, 2016), (2020, 2021)):
+    for save, position in ((2000, 2001), (2010, 2011), (None, 2016), (None, 2021), (None, 2026), (2030, 2031)):
         await poll(db_session, at, emby_session(at=at, position_s=position), stored=None if save is None else saved(save))
         at += STEP
     assert reports._writers == {("Web", "Films")}
