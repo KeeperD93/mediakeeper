@@ -1,4 +1,5 @@
 """The correction endpoints: admin only, the plan the admin has seen, a full backup first."""
+import logging
 from pathlib import Path
 
 import pytest
@@ -14,7 +15,7 @@ from services.portal.admin_users_constants import (
     ACTION_DEBUG_ZONE_CORRECTION,
     ACTION_DEBUG_ZONE_CORRECTION_PLAYER,
 )
-from services.portal.zone_correction import _run
+from services.portal.zone_correction import _plan, _run
 from tests._zone_correction_helpers import (
     APPLY,
     ARCHIVE,
@@ -137,7 +138,24 @@ async def test_a_second_apply_is_refused_while_one_runs(client, db_session, back
 
 
 @pytest.mark.asyncio
-async def test_a_player_whose_writing_fails_is_left_whole(client, db_session, backups, monkeypatch):
+async def test_a_player_whose_planning_fails_is_counted_and_named(client, db_session, monkeypatch, caplog):
+    alice = await alice_with_early_bird(client, db_session)
+    real = _plan.plan_player
+
+    async def failing_for_alice(db, ctx, profile):
+        if profile.user_id == alice:
+            raise RuntimeError("planning failed")
+        return await real(db, ctx, profile)
+
+    monkeypatch.setattr(_plan, "plan_player", failing_for_alice)
+    with caplog.at_level(logging.ERROR, logger=_plan.logger.name):
+        body = (await client.get(SIMULATE)).json()
+    assert body["players_failed"] == 1
+    assert f"planning failed for player {alice}" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_a_player_whose_writing_fails_is_left_whole(client, db_session, backups, monkeypatch, caplog):
     alice = await alice_with_early_bird(client, db_session)
     record = _run.record_audit
 
@@ -147,8 +165,10 @@ async def test_a_player_whose_writing_fails_is_left_whole(client, db_session, ba
         return await record(db, **kwargs)
 
     monkeypatch.setattr(_run, "record_audit", failing_for_players)
-    resp = await client.post(APPLY, json=await confirmation(client))
+    with caplog.at_level(logging.ERROR, logger=_run.logger.name):
+        resp = await client.post(APPLY, json=await confirmation(client))
     assert resp.json()["applied"] == {"players": 0, "removed": 0, "xp_removed": 0, "failed": 1, "changed": 0}
+    assert f"player {alice} not corrected" in caplog.text
     assert await unlocked(db_session, alice) == {EARLY}
     assert (await profile_of(db_session, alice)).xp == 110
     assert (await db_session.execute(select(XpLedger).where(XpLedger.user_id == alice))).first()

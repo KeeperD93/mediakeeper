@@ -1,4 +1,5 @@
 """An apply when players change between the plan the admin confirmed and the writing."""
+import logging
 from pathlib import Path
 
 import pytest
@@ -70,7 +71,7 @@ async def _player_audits(db) -> list[AdminAuditLog]:
 
 
 @pytest.mark.asyncio
-async def test_a_player_who_would_lose_a_trophy_not_shown_is_left_whole(client, db_session, monkeypatch):
+async def test_a_player_who_would_lose_a_trophy_not_shown_is_left_whole(client, db_session, monkeypatch, caplog):
     alice = await alice_with_early_bird(client, db_session)
     await _hold_all(db_session, alice, *MOVIES[:4])
     bob = await _dawn_player(db_session, "bob")
@@ -78,9 +79,11 @@ async def test_a_player_who_would_lose_a_trophy_not_shown_is_left_whole(client, 
 
     # Five trophies once the early bird is counted: Collector rests on it, and was not in the plan.
     _while_backing_up(monkeypatch, lambda db: _hold_all(db, alice, COLLECTOR))
-    resp = await client.post(APPLY, json=confirmed)
+    with caplog.at_level(logging.WARNING, logger=_run.logger.name):
+        resp = await client.post(APPLY, json=confirmed)
 
     assert resp.json()["applied"] == {"players": 1, "removed": 1, "xp_removed": 40, "failed": 0, "changed": 1}
+    assert f"player {alice} changed" in caplog.text
     assert await unlocked(db_session, alice) == {EARLY, COLLECTOR, *MOVIES[:4]}
     assert (await profile_of(db_session, alice)).xp == 110
     assert (await db_session.execute(select(XpLedger).where(XpLedger.user_id == alice))).first()
