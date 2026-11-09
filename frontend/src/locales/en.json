@@ -3942,7 +3942,7 @@
       "embyNotice": "Your MediaKeeper account is linked to Emby. Deleting it here does not affect your Emby account.",
       "deleteModal": {
         "title": "Delete your account?",
-        "warning": "This schedules the permanent deletion of your MediaKeeper account and the data linked to it. Kept: your messages and requests, without your name; your viewing history already recorded, with your Emby name, IP address and device; the sign-in security log and the administration actions log, which may mention your name; notifications other members have already received, for six months at most; if your account is linked to Emby, a fingerprint of that account, so that no account is created for you again. You can cancel the request during the grace period shown on the portal banner.",
+        "warning": "This schedules the permanent deletion of your MediaKeeper account and the data linked to it. Kept: your messages and requests, without your name; your viewing history already recorded, with your Emby name and ID, your IP address and device; the sign-in security log and the administration actions log, which may mention your name; the server's technical logs, for about ten weeks; notifications other members have already received, for six months at most; if your account is linked to Emby, a fingerprint of that account, so that no account is created for you again. You can cancel the request during the grace period shown on the portal banner.",
         "magicWord": "DELETE",
         "confirmLabel": "To confirm, type {word} below.",
         "confirm": "Confirm deletion",

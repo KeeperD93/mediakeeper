@@ -116,6 +116,12 @@ def _isolate_tmdb_key(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _isolate_avatar_dir(monkeypatch):
+    """A purge deletes every photo of a user id: never in a real folder."""
+    monkeypatch.setattr("services.portal.avatars.AVATAR_DIR", BACKEND_ROOT / ".pytest-temp" / "no-avatars")
+
+
+@pytest.fixture(autouse=True)
 def _reset_media_categories_cache():
     """Drop the module-level media-categories cache between tests.
     Without this, a test that triggers load_categories/save_categories

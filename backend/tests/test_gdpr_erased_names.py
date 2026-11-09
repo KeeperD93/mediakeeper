@@ -50,16 +50,36 @@ async def _photo(db, folder, user):
     return path
 
 
-async def test_their_photo_is_deleted_and_nobody_elses(db_session, workspace_tmp_path):
+async def test_all_their_photos_are_deleted_and_nobody_elses(db_session, workspace_tmp_path):
     await gdpr_on(db_session)
-    gone = await _photo(db_session, workspace_tmp_path, await member(db_session))
+    alice = await member(db_session)
+    gone = await _photo(db_session, workspace_tmp_path, alice)
+    left_by_a_failed_upload = workspace_tmp_path / f"{alice.id}_2.png"
+    left_by_a_failed_upload.write_bytes(b"test")
     bob = await member(db_session, "bob", guid="EMBY-BOB", overdue=False)
     kept = await _photo(db_session, workspace_tmp_path, bob)
+    id_starting_with_hers = workspace_tmp_path / f"{alice.id}0_1.png"
+    id_starting_with_hers.write_bytes(b"test")
 
     with patch("services.portal.avatars.AVATAR_DIR", workspace_tmp_path):
         assert await purge_pending_deletions(db_session) == 1
 
-    assert not gone.exists() and kept.exists()
+    assert not gone.exists() and not left_by_a_failed_upload.exists()
+    assert kept.exists() and id_starting_with_hers.exists()
+
+
+async def test_a_photo_that_cannot_be_deleted_stops_the_purge_until_it_can(db_session, workspace_tmp_path):
+    await gdpr_on(db_session)
+    photo = await _photo(db_session, workspace_tmp_path, await member(db_session))
+
+    with patch("services.portal.avatars.AVATAR_DIR", workspace_tmp_path):
+        with patch("services.portal.avatars.Path.unlink", side_effect=PermissionError("locked")), \
+             pytest.raises(PermissionError):
+            await purge_pending_deletions(db_session)
+        await db_session.rollback()
+        assert photo.exists()
+        assert await purge_pending_deletions(db_session) == 1
+    assert not photo.exists()
 
 
 async def test_the_photo_stays_when_a_database_step_fails_first(db_session, workspace_tmp_path):

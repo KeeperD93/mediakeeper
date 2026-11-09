@@ -1,8 +1,8 @@
 """Custom avatar upload service for portal user profiles.
 
-Files are written under ``/data/avatars/<user_id>_<timestamp>.<ext>`` so a
-single user can only ever own one avatar at a time (older one is removed
-on replace) and HTTP cache busts naturally because the filename changes.
+Files are written under ``/data/avatars/<user_id>_<timestamp>.<ext>``: the
+previous file is removed on replace, and HTTP cache busts naturally because
+the filename changes.
 
 The file is served back through ``GET /api/portal/avatars/{filename}``
 (see ``api/portal/profile_settings.py``). We deliberately do NOT mount
@@ -147,6 +147,16 @@ def delete_avatar(stored_name: str | None) -> None:
             target.unlink()
         except OSError as exc:
             logger.warning("[AVATAR] delete failed name=%s: %s", stored_name, exc)
+
+
+def delete_all_avatars(user_id: int) -> None:
+    """Every photo of an account, the current one and any left by a failed upload.
+
+    A failure raises, unlike :func:`delete_avatar`: with the account gone, nothing
+    could find the file again.
+    """
+    for path in AVATAR_DIR.glob(f"{user_id}_*"):
+        path.unlink(missing_ok=True)
 
 
 def avatar_public_url(stored_name: str | None) -> str | None:
