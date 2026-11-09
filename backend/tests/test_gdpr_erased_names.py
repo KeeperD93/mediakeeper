@@ -82,6 +82,18 @@ async def test_a_photo_that_cannot_be_deleted_stops_the_purge_until_it_can(db_se
     assert not photo.exists()
 
 
+async def test_a_folder_that_cannot_be_read_stops_the_purge_until_it_can(db_session, workspace_tmp_path):
+    await gdpr_on(db_session)
+    photo = await _photo(db_session, workspace_tmp_path, await member(db_session))
+
+    with patch("services.portal.avatars.AVATAR_DIR", workspace_tmp_path):
+        with patch("os.scandir", side_effect=PermissionError("denied")), pytest.raises(PermissionError):
+            await purge_pending_deletions(db_session)
+        await db_session.rollback()
+        assert await purge_pending_deletions(db_session) == 1
+    assert not photo.exists()
+
+
 async def test_the_photo_stays_when_a_database_step_fails_first(db_session, workspace_tmp_path):
     await gdpr_on(db_session)
     photo = await _photo(db_session, workspace_tmp_path, await member(db_session))

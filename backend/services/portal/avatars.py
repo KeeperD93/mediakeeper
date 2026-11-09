@@ -153,10 +153,16 @@ def delete_all_avatars(user_id: int) -> None:
     """Every photo of an account, the current one and any left by a failed upload.
 
     A failure raises, unlike :func:`delete_avatar`: with the account gone, nothing
-    could find the file again.
+    could find the file again. Not ``glob``, which hides a folder it cannot read.
     """
-    for path in AVATAR_DIR.glob(f"{user_id}_*"):
-        path.unlink(missing_ok=True)
+    try:
+        entries = list(AVATAR_DIR.iterdir())
+    except FileNotFoundError:
+        return
+    prefix = f"{user_id}_"
+    for path in entries:
+        if path.name.startswith(prefix):
+            path.unlink(missing_ok=True)
 
 
 def avatar_public_url(stored_name: str | None) -> str | None:
