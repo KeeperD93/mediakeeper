@@ -1,5 +1,6 @@
 """The correction endpoints: admin only, the plan the admin has seen, a full backup first."""
 import logging
+from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -15,10 +16,12 @@ from services.portal.admin_users_constants import (
     ACTION_DEBUG_ZONE_CORRECTION,
     ACTION_DEBUG_ZONE_CORRECTION_PLAYER,
 )
+from services.portal.xp import achievement_xp_reference
 from services.portal.zone_correction import _plan, _run
 from tests._zone_correction_helpers import (
     APPLY,
     ARCHIVE,
+    BEFORE_SAVE,
     EARLY,
     SIMULATE,
     alice_with_early_bird,
@@ -96,6 +99,44 @@ async def test_apply_takes_back_the_trophy_its_xp_and_its_badge(client, db_sessi
     assert audits[ACTION_DEBUG_ZONE_CORRECTION_PLAYER]["removed"] == [EARLY]
     assert audits[ACTION_DEBUG_ZONE_CORRECTION_PLAYER]["level"] == [1, 0]
     assert audits[ACTION_DEBUG_ZONE_CORRECTION]["backup"] == ARCHIVE
+
+
+async def _player_audit(db) -> dict:
+    return (await db.execute(
+        select(AdminAuditLog).where(AdminAuditLog.action == ACTION_DEBUG_ZONE_CORRECTION_PLAYER)
+    )).scalar_one().payload
+
+
+@pytest.mark.asyncio
+async def test_the_audit_keeps_what_undoing_a_player_needs(client, db_session, backups):
+    alice = await alice_with_early_bird(client, db_session)
+    profile = await profile_of(db_session, alice)
+    profile.level, profile.selected_badges, profile.selected_title = 1, [EARLY], "Test Title"
+    await db_session.commit()
+
+    assert (await client.post(APPLY, json=await confirmation(client))).status_code == 200
+
+    audit = await _player_audit(db_session)
+    assert (audit["xp"], audit["level"]) == ([110, 70], [1, 0])
+    undo = audit["undo"]
+    assert undo["trophies"] == {EARLY: {"unlocked_at": BEFORE_SAVE.isoformat(), "progress": 1}}
+    assert undo["decorations"] == {"selected_badges": [EARLY], "selected_title": "Test Title"}
+    assert [(row["reference"], row["xp"]) for row in undo["ledger"]] == [(achievement_xp_reference(EARLY), 40)]
+    assert datetime.fromisoformat(undo["ledger"][0]["created_at"]).tzinfo is not None
+
+
+@pytest.mark.asyncio
+async def test_the_audit_tells_the_xp_floor_from_the_xp_of_the_trophy(client, db_session, backups):
+    alice = await alice_with_early_bird(client, db_session)
+    profile = await profile_of(db_session, alice)
+    profile.xp = 15  # drifted below the trophy's own 40
+    await db_session.commit()
+
+    assert (await client.post(APPLY, json=await confirmation(client))).status_code == 200
+
+    audit = await _player_audit(db_session)
+    assert (audit["xp"], audit["xp_removed"]) == ([15, 0], 15)
+    assert [row["xp"] for row in audit["undo"]["ledger"]] == [40]
 
 
 @pytest.mark.asyncio

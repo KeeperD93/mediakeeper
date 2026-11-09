@@ -135,6 +135,9 @@ async def test_a_trophy_lost_by_knock_on_and_shown_is_taken(client, db_session, 
 
     assert resp.json()["applied"] == {"players": 1, "removed": 2, "xp_removed": 40, "failed": 0, "changed": 0}
     assert await unlocked(db_session, alice) == set(MOVIES[:4])
+    undo = (await _player_audits(db_session))[0].payload["undo"]
+    assert set(undo["trophies"]) == {EARLY, COLLECTOR}
+    assert [row["xp"] for row in undo["ledger"]] == [40]  # Collector was held without a ledger row
 
 
 @pytest.mark.asyncio

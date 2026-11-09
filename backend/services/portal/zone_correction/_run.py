@@ -4,10 +4,12 @@ Simulating plans every player in a read-only transaction, then rolls it back. Ap
 plans the same way, refuses a plan the admin has not seen, backs up, then plans each
 player again in their own transaction, under the lock of their profile, and writes that
 plan unless it takes a trophy the admin was not shown: a player is corrected entirely or
-not at all, and a second run finds nothing left.
+not at all, and a second run finds nothing left. The audit row of each player keeps what
+undoing them would need.
 """
 import asyncio
 import logging
+from datetime import datetime
 
 from sqlalchemy import delete, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,6 +19,7 @@ from models.portal.achievement import UserAchievement
 from models.portal.profile import UserProfile
 from models.portal.xp_ledger import XpLedger
 from services.backup.create import create_backup
+from services.portal.achievements_utils import _coerce_utc
 from services.portal.admin_users_audit import record_audit
 from services.portal.admin_users_constants import (
     ACTION_DEBUG_ZONE_CORRECTION,
@@ -65,6 +68,24 @@ async def simulate_zone_correction(db: AsyncSession) -> dict:
     return summarize(ctx, plans, failed)
 
 
+def _iso(moment: datetime | None) -> str | None:
+    utc = _coerce_utc(moment)
+    return utc.isoformat() if utc else None
+
+
+async def _trophies_before(db: AsyncSession, user_id: int, trophies: list[str]) -> dict[str, dict]:
+    """What the writing is about to erase from these trophies."""
+    stmt = select(UserAchievement.achievement_id, UserAchievement.unlocked_at, UserAchievement.progress).where(
+        UserAchievement.user_id == user_id, UserAchievement.achievement_id.in_(trophies),
+    )
+    if _is_postgres(db):
+        stmt = stmt.with_for_update()
+    return {
+        row.achievement_id: {"unlocked_at": _iso(row.unlocked_at), "progress": row.progress}
+        for row in await db.execute(stmt)
+    }
+
+
 async def _apply_player(
     db: AsyncSession, ctx: Context, user_id: int, confirmed: set[str], audit: dict,
 ) -> PlayerPlan | None:
@@ -87,6 +108,10 @@ async def _apply_player(
         await db.rollback()
         raise _PlanGrew
 
+    undo = {
+        "trophies": await _trophies_before(db, user_id, list(plan.removed)),
+        "decorations": {column: getattr(profile, column) for column in plan.decorations},
+    }
     for achievement_id, progress in plan.removed.items():
         await db.execute(
             update(UserAchievement)
@@ -95,15 +120,20 @@ async def _apply_player(
             .execution_options(synchronize_session="fetch")
         )
     # What the deletion really took, not what was read before the lock.
-    plan.xp_removed = sum((await db.execute(
+    taken = (await db.execute(
         delete(XpLedger)
         .where(
             XpLedger.user_id == user_id,
             XpLedger.action == ACHIEVEMENT_XP_ACTION,
             XpLedger.reference.in_([achievement_xp_reference(a) for a in plan.removed]),
         )
-        .returning(XpLedger.xp)
-    )).scalars().all())
+        .returning(XpLedger.reference, XpLedger.xp, XpLedger.created_at)
+    )).all()
+    plan.xp_removed = sum(row.xp for row in taken)
+    undo["ledger"] = [
+        {"reference": row.reference, "xp": row.xp, "created_at": _iso(row.created_at)}
+        for row in sorted(taken, key=lambda row: row.reference)
+    ]
     profile.xp = plan.xp_after
     profile.level = level_from_xp(profile.xp)
     for column, value in plan.decorations.items():
@@ -114,8 +144,10 @@ async def _apply_player(
             "removed": sorted(plan.direct),
             "cascade": sorted(plan.cascade),
             "xp_removed": plan.xp - plan.xp_after,
+            "xp": [plan.xp, plan.xp_after],
             "level": [plan.level, profile.level],
             "decorations": sorted(plan.decorations),
+            "undo": undo,
         },
         commit=False, **audit,
     )
