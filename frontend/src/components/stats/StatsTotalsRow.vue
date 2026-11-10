@@ -108,7 +108,9 @@
         <span class="rec-label has-tooltip" :data-tooltip="$t('stats.peakHourTooltip')">
           {{ $t('stats.peakHour') }}
         </span>
-        <span class="rec-value">{{ records.peak_hour }}h</span>
+        <span class="rec-value">
+          {{ records.peak_hour === null ? '—' : `${records.peak_hour}h` }}
+        </span>
         <span class="rec-sub">{{ records.peak_hour_count }} {{ $t('stats.plays_unit') }}</span>
       </div>
     </div>
