@@ -2,7 +2,7 @@
 
 Read once per run and free of ORM objects, so it outlives the read-only transaction it
 comes from and serves each per-player transaction of an apply, which reads that player's
-gifts again under their lock.
+gifts again just before planning them.
 """
 from dataclasses import dataclass
 from datetime import UTC, datetime, tzinfo

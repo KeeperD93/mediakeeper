@@ -103,7 +103,8 @@ async def _apply_player(
     profile = (await db.execute(stmt)).scalar_one_or_none()
     plan = None
     if profile:
-        # The run read the gifts before its backup: one given back by hand since stays given.
+        # The gifts were read before the backup, which takes time: a trophy given back by
+        # hand meanwhile must stay. A hand unlock takes no lock, so the last instants remain.
         gifts = await load_admin_gifts(db, user_id)
         plan = await plan_player(db, replace(ctx, admin_gifts=gifts), profile)
     if plan is None or not plan.removed:
