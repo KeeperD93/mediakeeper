@@ -1,6 +1,6 @@
 """The correction endpoints: admin only, the plan the admin has seen, a full backup first."""
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -113,6 +113,7 @@ async def test_the_audit_keeps_what_undoing_a_player_needs(client, db_session, b
     profile = await profile_of(db_session, alice)
     profile.level, profile.selected_badges, profile.selected_title = 1, [EARLY], "Test Title"
     await db_session.commit()
+    ledger_id = (await db_session.execute(select(XpLedger.id).where(XpLedger.user_id == alice))).scalar_one()
 
     assert (await client.post(APPLY, json=await confirmation(client))).status_code == 200
 
@@ -121,8 +122,19 @@ async def test_the_audit_keeps_what_undoing_a_player_needs(client, db_session, b
     undo = audit["undo"]
     assert undo["trophies"] == {EARLY: {"unlocked_at": BEFORE_SAVE.isoformat(), "progress": 1}}
     assert undo["decorations"] == {"selected_badges": [EARLY], "selected_title": "Test Title"}
-    assert [(row["reference"], row["xp"]) for row in undo["ledger"]] == [(achievement_xp_reference(EARLY), 40)]
+    assert [(row["id"], row["reference"], row["xp"]) for row in undo["ledger"]] == [
+        (ledger_id, achievement_xp_reference(EARLY), 40),
+    ]
     assert datetime.fromisoformat(undo["ledger"][0]["created_at"]).tzinfo is not None
+
+
+@pytest.mark.parametrize(("moment", "expected"), [
+    (None, None),
+    (datetime(2026, 1, 20, 8), "2026-01-20T08:00:00+00:00"),  # naive: how SQLite hands it back
+    (datetime(2026, 1, 20, 9, tzinfo=timezone(timedelta(hours=1))), "2026-01-20T08:00:00+00:00"),
+])
+def test_the_dates_of_the_audit_are_in_utc(moment, expected):
+    assert _run._iso(moment) == expected
 
 
 @pytest.mark.asyncio

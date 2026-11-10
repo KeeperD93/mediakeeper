@@ -127,11 +127,11 @@ async def _apply_player(
             XpLedger.action == ACHIEVEMENT_XP_ACTION,
             XpLedger.reference.in_([achievement_xp_reference(a) for a in plan.removed]),
         )
-        .returning(XpLedger.reference, XpLedger.xp, XpLedger.created_at)
+        .returning(XpLedger.id, XpLedger.reference, XpLedger.xp, XpLedger.created_at)
     )).all()
     plan.xp_removed = sum(row.xp for row in taken)
     undo["ledger"] = [
-        {"reference": row.reference, "xp": row.xp, "created_at": _iso(row.created_at)}
+        {"id": row.id, "reference": row.reference, "xp": row.xp, "created_at": _iso(row.created_at)}
         for row in sorted(taken, key=lambda row: row.reference)
     ]
     profile.xp = plan.xp_after
