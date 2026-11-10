@@ -37,6 +37,7 @@ utilisateurs.
 - Profil privé — page dédiée « Ce profil est privé », sans pseudo ni avatar.
 
 ### Fixed
+- Mes listes — ordre stable, même après la modification d'une liste.
 - Temps de visionnage — seul le temps vraiment regardé compte.
 - Suppression du compte — la fenêtre dit ce qui reste conservé.
 - Connexion — trois vrais essais, compteur remis à zéro après une connexion réussie.
