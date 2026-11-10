@@ -79,13 +79,14 @@ export function useParamsScheduler() {
           _running: task.last_status === TASK_STATUS.RUNNING,
         }))
         schedTasks.value.forEach(task => {
-          if (!schedEditValues[task.key]) {
-            const unit = bestUnit(task.interval_sec)
-            schedEditValues[task.key] = {
-              unit,
-              amount: intervalToAmount(task.interval_sec, unit),
-              savedSec: task.interval_sec,
-            }
+          const ev = schedEditValues[task.key]
+          // Changed elsewhere: the field follows, unless the admin is typing in it.
+          if (ev && (ev.savedSec === task.interval_sec || schedIsDirty(task))) return
+          const unit = bestUnit(task.interval_sec)
+          schedEditValues[task.key] = {
+            unit,
+            amount: intervalToAmount(task.interval_sec, unit),
+            savedSec: task.interval_sec,
           }
         })
         if (

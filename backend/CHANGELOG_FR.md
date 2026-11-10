@@ -34,6 +34,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Statistiques — sessions interrogées seulement quand la page est affichée.
 - Statistiques — import d'historique : nouvel import et purge bloqués pendant l'envoi.
 - Planificateur — un changement qui échoue affiche sa raison.
+- Planificateur — intervalle modifié ailleurs repris au retour sur l'onglet.
 - RGPD — compte effacé jamais recréé, visionnages de son identifiant Emby plus enregistrés (texte de confidentialité à adapter).
 - RGPD — compte effacé : photo de profil supprimée, nom retiré des remontées, de la blacklist et du journal admin.
 - Outils de debug — liste des joueurs traduite, échec de chargement signalé.

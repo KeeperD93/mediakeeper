@@ -34,6 +34,7 @@ This section intentionally has no date so it is not shown to users.
 - Statistics — sessions polled only while the page is on screen.
 - Statistics — history import: another import and the purge locked during the upload.
 - Scheduler — a change that fails now says why.
+- Scheduler — an interval changed elsewhere shows up when back on the tab.
 - GDPR — erased account never recreated, plays of its Emby id no longer recorded (update your privacy text).
 - GDPR — erased account: profile photo deleted, name removed from reports, the blacklist and the admin log.
 - Debug tools — player list translated, a failed load is reported.
