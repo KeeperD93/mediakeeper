@@ -94,7 +94,7 @@ function formatDate(dateStr) {
 }
 
 function categoryIcon(cat) {
-  const map = { Added: '✨', Fixed: '🔧', Changed: '🔄', Removed: '🗑️' }
+  const map = { Action: '⚠️', Added: '✨', Fixed: '🔧', Changed: '🔄', Removed: '🗑️' }
   return map[cat] || '📋'
 }
 
@@ -298,6 +298,7 @@ function nonEmptySurfaces(version) {
 .cat-fixed {
   color: var(--color-info);
 }
+.cat-action,
 .cat-changed {
   color: var(--color-warning);
 }

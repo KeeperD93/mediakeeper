@@ -320,9 +320,11 @@ function handleModalKeydown(event) {
 .wn-cat-fixed {
   color: var(--color-info);
 }
+.wn-cat-action .wn-cat-dot,
 .wn-cat-changed .wn-cat-dot {
   background: var(--color-warning);
 }
+.wn-cat-action,
 .wn-cat-changed {
   color: var(--color-warning);
 }

@@ -1961,6 +1961,7 @@
     "gotIt": "Compris !",
     "andMore": "+ {count} autres modifications",
     "cat": {
+      "action": "Action requise",
       "added": "Ajout",
       "fixed": "Correction",
       "changed": "Modification",

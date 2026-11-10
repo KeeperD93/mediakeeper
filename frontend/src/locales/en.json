@@ -1961,6 +1961,7 @@
     "gotIt": "Got it!",
     "andMore": "+ {count} more changes",
     "cat": {
+      "action": "Action required",
       "added": "Added",
       "fixed": "Fixed",
       "changed": "Changed",

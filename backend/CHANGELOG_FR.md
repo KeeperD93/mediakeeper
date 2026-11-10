@@ -10,13 +10,16 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+### Action
+- Fuseau horaire — à choisir dans Paramètres → Général, sinon les heures restent décalées.
+- Proxy inverse — réglage des proxys à refaire, voir le guide de déploiement.
+
 ### Added
 - Paramètres — fuseau horaire de l'instance, prérempli avec celui du navigateur.
 - Assistant d'installation — langue et fuseau horaire choisis en premier.
-- Outils de debug — retrait des trophées comptés en UTC avant le choix du fuseau.
+- Outils de debug — retrait des trophées comptés à la mauvaise heure avant le choix du fuseau.
 
 ### Changed
-- Sécurité — FORWARDED_ALLOW_IPS d'uvicorn désormais ignoré : déclarer les proxys dans TRUSTED_PROXIES.
 - Classement du portail — seule l'activité compte : trophées et ajouts ou retraits d'XP admin exclus.
 - Tableau de bord — widget Classement : niveau et trophées du mois de chaque joueur affichés.
 - Statistiques — jours, heures et records comptés dans le fuseau horaire de l'instance.

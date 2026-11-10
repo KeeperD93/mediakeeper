@@ -10,13 +10,16 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Action
+- Time zone — choose it in Settings → General, or hours stay off.
+- Reverse proxy — proxy setting to redo, see the deployment guide.
+
 ### Added
 - Settings — time zone of the instance, pre-filled from the browser.
 - Setup wizard — language and time zone chosen first.
-- Debug tools — take back trophies counted in UTC before the time zone was chosen.
+- Debug tools — take back trophies counted at the wrong hour before the time zone was chosen.
 
 ### Changed
-- Security — uvicorn's FORWARDED_ALLOW_IPS is now ignored: list proxies in TRUSTED_PROXIES.
 - Portal leaderboard — only activity counts: trophies and admin XP changes left out.
 - Dashboard — Leaderboard widget: each player's level and trophies of the month shown.
 - Statistics — days, hours and records counted in the time zone of the instance.
