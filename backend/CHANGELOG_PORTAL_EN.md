@@ -36,6 +36,7 @@ This section intentionally has no date so it is not shown to users.
 
 ### Fixed
 - My lists — stable order, even after a list is edited.
+- Movie nights — seats left and capacity shown as numbers.
 - Watch time — only time really watched counts.
 - Account deletion — the dialog says what is kept.
 - Sign-in — three real tries, counter reset after a successful sign-in.
