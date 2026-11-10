@@ -5,7 +5,8 @@ Who left is remembered, so that Emby identity is never given an account again: o
 only add to them. A fingerprint keeps a name out of sight, not out of reach: whoever
 holds the playback rows can compute it.
 
-Their name comes off the rows that outlive the account, and their photos are deleted.
+Their name comes off the rows that outlive the account, the audit trail included, and
+their photos are deleted.
 """
 import asyncio
 import hashlib
@@ -14,14 +15,33 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants.gdpr import GDPR_ERASED_KEY_PREFIX
+from models.portal.audit import AdminAuditLog
 from models.portal.feedback_report import FeedbackReport
 from models.portal.profile import UserProfile
 from models.portal.request import RequestBlacklist
 from models.settings import Setting
 from models.user import User
-from services.portal.admin_users_constants import SOURCE_LOCAL
+from services.portal.admin_users_constants import (
+    ACTION_DEBUG_XP_GRANTED,
+    ACTION_DEBUG_ZONE_CORRECTION_PLAYER,
+    ACTION_USER_CREATED,
+    ACTION_USER_IMPORTED,
+    ACTION_USER_NOTIFICATION_SENT,
+    ACTION_USER_TAGS_UPDATED,
+    SOURCE_LOCAL,
+)
 from services.portal.avatars import delete_all_avatars
 from services.settings import set_settings_map
+
+# What a row about the person copied from them or from their account; the row itself stays.
+_PERSONAL_AUDIT_KEYS: dict[str, frozenset[str]] = {
+    ACTION_DEBUG_XP_GRANTED: frozenset({"note"}),
+    ACTION_DEBUG_ZONE_CORRECTION_PLAYER: frozenset({"undo"}),
+    ACTION_USER_CREATED: frozenset({"username"}),
+    ACTION_USER_IMPORTED: frozenset({"emby_user_id", "username"}),
+    ACTION_USER_NOTIFICATION_SENT: frozenset({"title"}),
+    ACTION_USER_TAGS_UPDATED: frozenset({"tags"}),
+}
 
 
 def _key(kind: str, value: str) -> str:
@@ -94,6 +114,24 @@ async def _remove_name_from_kept_rows(db: AsyncSession, user_id: int) -> None:
             row.requesters = kept
 
 
+async def _remove_person_from_audit(db: AsyncSession, user_id: int) -> None:
+    """The trail outlives the account, what it copied about the person does not. The
+    profile lock makes a correction writing their trace finish first, or find nobody."""
+    await db.execute(select(UserProfile.id).where(UserProfile.user_id == user_id).with_for_update())
+    rows = await db.execute(
+        select(AdminAuditLog).where(
+            AdminAuditLog.target_user_id == user_id,
+            AdminAuditLog.action.in_(_PERSONAL_AUDIT_KEYS),
+        )
+    )
+    for row in rows.scalars():
+        personal = _PERSONAL_AUDIT_KEYS[row.action]
+        if personal & (row.payload or {}).keys():
+            # A new dict: a JSON value changed in place would not be written.
+            row.payload = {key: value for key, value in row.payload.items() if key not in personal}
+    await db.flush()
+
+
 async def prepare_erasure(db: AsyncSession, user: User) -> None:
     """Call just before deleting ``user``. The database writes stay in the caller's
     transaction: they leave with the deletion, or not at all.
@@ -103,4 +141,5 @@ async def prepare_erasure(db: AsyncSession, user: User) -> None:
     be found again."""
     await _remember_identity(db, user)
     await _remove_name_from_kept_rows(db, user.id)
+    await _remove_person_from_audit(db, user.id)
     await asyncio.to_thread(delete_all_avatars, user.id)

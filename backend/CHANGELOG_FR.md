@@ -28,7 +28,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 ### Fixed
 - Statistiques — temps de visionnage juste : lecture coupée non comptée, plus de sous-comptage.
 - RGPD — compte effacé jamais recréé, visionnages de son identifiant Emby plus enregistrés (texte de confidentialité à adapter).
-- RGPD — compte effacé : photo de profil supprimée, nom retiré des remontées et de la blacklist.
+- RGPD — compte effacé : photo de profil supprimée, nom retiré des remontées, de la blacklist et du journal admin.
 - Outils de debug — liste des joueurs traduite, échec de chargement signalé.
 - Outils de debug — « Lancer la vérification » ignore les comptes locaux et non reliés, va au bout malgré une erreur.
 - Paramètres — menu Langue nommé pour les lecteurs d'écran.

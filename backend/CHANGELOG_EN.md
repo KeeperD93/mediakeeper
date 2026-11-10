@@ -28,7 +28,7 @@ This section intentionally has no date so it is not shown to users.
 ### Fixed
 - Statistics — accurate watch time: cut-off playback not counted, no more undercounting.
 - GDPR — erased account never recreated, plays of its Emby id no longer recorded (update your privacy text).
-- GDPR — erased account: profile photo deleted, name removed from reports and the blacklist.
+- GDPR — erased account: profile photo deleted, name removed from reports, the blacklist and the admin log.
 - Debug tools — player list translated, a failed load is reported.
 - Debug tools — "Run recheck" skips local and unlinked accounts, runs to the end despite an error.
 - Settings — language menu named for screen readers.
