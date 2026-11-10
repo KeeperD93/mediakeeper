@@ -14,7 +14,7 @@
 
 <script setup>
 defineOptions({ name: 'StatsView' })
-import { computed, defineAsyncComponent, onDeactivated, onMounted, onUnmounted, watch } from 'vue'
+import { computed, defineAsyncComponent, onActivated, onDeactivated, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStats } from '@/composables/useStats'
 import { useStatsUI } from '@/composables/useStatsUI'
@@ -66,12 +66,8 @@ watch(activeTab, tab => {
   router.replace({ path: '/stats', query: { ...route.query, tab } })
 })
 
-onMounted(() => {
-  startSessionPolling()
-})
-onUnmounted(() => {
-  stopSessionPolling()
-})
+// The view stays alive once left: polling runs only while it is on screen.
+onActivated(startSessionPolling)
 
 // Close stats overlays (merge modal + user profile popup) when the
 // user navigates away. Both states live module-level in useStatsUI
@@ -80,6 +76,7 @@ onUnmounted(() => {
 // Pattern identical to the ``selected.clear()`` hook in
 // StatsUsersTab.vue:446-448 for bulk checkbox selection.
 onDeactivated(() => {
+  stopSessionPolling()
   mergeModal.open = false
   profileOpen.value = false
 })
