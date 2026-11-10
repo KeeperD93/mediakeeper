@@ -1,12 +1,13 @@
 """What every player of a correction run shares: the clocks, the months, the admin's gifts.
 
 Read once per run and free of ORM objects, so it outlives the read-only transaction it
-comes from and serves each per-player transaction of an apply.
+comes from and serves each per-player transaction of an apply, which reads that player's
+gifts again under their lock.
 """
 from dataclasses import dataclass
 from datetime import UTC, datetime, tzinfo
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants.leaderboard import LeaderboardPeriod
@@ -99,9 +100,10 @@ async def _zone_saved_at(db: AsyncSession) -> datetime | None:
     return None
 
 
-async def _admin_gifts(db: AsyncSession) -> frozenset[tuple[int, str]]:
-    """``(user_id, achievement_id)`` whose last admin event is a hand unlock."""
-    rows = (await db.execute(
+async def load_admin_gifts(db: AsyncSession, user_id: int | None = None) -> frozenset[tuple[int, str]]:
+    """``(user_id, achievement_id)`` whose last admin event is a hand unlock, for one player
+    when ``user_id`` is given."""
+    stmt = (
         select(AdminAuditLog.action, AdminAuditLog.target_user_id, AdminAuditLog.payload)
         .where(AdminAuditLog.action.in_((
             ACTION_DEBUG_ACHIEVEMENT_UNLOCKED,
@@ -109,16 +111,22 @@ async def _admin_gifts(db: AsyncSession) -> frozenset[tuple[int, str]]:
             ACTION_DEBUG_ACHIEVEMENT_RESET_ALL,
         )))
         .order_by(AdminAuditLog.id)
-    )).all()
+    )
+    if user_id is not None:
+        stmt = stmt.where(or_(
+            AdminAuditLog.target_user_id == user_id,
+            AdminAuditLog.action == ACTION_DEBUG_ACHIEVEMENT_RESET_ALL,
+        ))
+    rows = (await db.execute(stmt)).all()
     gifts: set[tuple[int, str]] = set()
-    for action, user_id, payload in rows:
+    for action, target, payload in rows:
         achievement_id = (payload or {}).get("achievement_id")
         if action == ACTION_DEBUG_ACHIEVEMENT_RESET_ALL:
             gifts = {gift for gift in gifts if gift[1] != achievement_id}
         elif action == ACTION_DEBUG_ACHIEVEMENT_UNLOCKED:
-            gifts.add((user_id, achievement_id))
+            gifts.add((target, achievement_id))
         else:
-            gifts.discard((user_id, achievement_id))
+            gifts.discard((target, achievement_id))
     return frozenset(gifts)
 
 
@@ -189,7 +197,7 @@ async def build_context(db: AsyncSession) -> Context:
         local=Side(zone, _ranks_by_user(contested_local), king_local),
         king_leaders_native=king_month_leaders(king_monthly_totals(native, UTC)),
         universe=await has_distinct_user_universe(db),
-        admin_gifts=await _admin_gifts(db),
+        admin_gifts=await load_admin_gifts(db),
         excl_filters=await get_exclusion_filters(db),
         competitor_months=_month_differences(contested_utc, contested_local),
         king_months=_month_differences(king_utc, king_local),

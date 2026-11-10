@@ -9,6 +9,7 @@ undoing them would need.
 """
 import asyncio
 import logging
+from dataclasses import replace
 from datetime import datetime
 
 from sqlalchemy import delete, select, text, update
@@ -32,7 +33,7 @@ from services.portal.xp import (
     level_from_xp,
 )
 
-from ._context import Context, ZoneCorrectionRefused, build_context
+from ._context import Context, ZoneCorrectionRefused, build_context, load_admin_gifts
 from ._plan import PlayerPlan, plan_all, plan_player
 from ._summary import summarize
 
@@ -100,7 +101,11 @@ async def _apply_player(
     if _is_postgres(db):
         stmt = stmt.with_for_update()
     profile = (await db.execute(stmt)).scalar_one_or_none()
-    plan = await plan_player(db, ctx, profile) if profile else None
+    plan = None
+    if profile:
+        # The run read the gifts before its backup: one given back by hand since stays given.
+        gifts = await load_admin_gifts(db, user_id)
+        plan = await plan_player(db, replace(ctx, admin_gifts=gifts), profile)
     if plan is None or not plan.removed:
         await db.rollback()
         return None
