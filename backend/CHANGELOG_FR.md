@@ -32,6 +32,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Statistiques — temps de visionnage juste : lecture coupée non comptée, plus de sous-comptage.
 - Statistiques — Pic : « — » au lieu d'un « h » seul sans aucune lecture.
 - Statistiques — sessions interrogées seulement quand la page est affichée.
+- Statistiques — import d'historique : nouvel import et purge bloqués pendant l'envoi.
 - RGPD — compte effacé jamais recréé, visionnages de son identifiant Emby plus enregistrés (texte de confidentialité à adapter).
 - RGPD — compte effacé : photo de profil supprimée, nom retiré des remontées, de la blacklist et du journal admin.
 - Outils de debug — liste des joueurs traduite, échec de chargement signalé.
