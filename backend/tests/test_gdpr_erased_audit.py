@@ -3,6 +3,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from sqlalchemy import select
+from sqlalchemy.dialects import postgresql
 
 from models.portal.audit import AdminAuditLog
 from services.portal import admin_users_constants as constants
@@ -142,18 +143,47 @@ async def test_the_trail_reaches_the_database_before_the_photos_go(db_session):
     await gdpr_on(db_session)
     alice = await member(db_session)
     await _trail(db_session, alice, "EMBY-ALICE")
-    pending = []
+    order, pending = [], []
+    real = gdpr_erased._remove_person_from_audit
 
-    with patch.object(gdpr_erased, "delete_all_avatars", side_effect=lambda _: pending.extend(db_session.dirty)):
+    async def trail(db, user_id):
+        await real(db, user_id)
+        order.append("trail")
+
+    def photos(_):
+        order.append("photos")
+        pending.extend(db_session.dirty)
+
+    with patch.object(gdpr_erased, "_remove_person_from_audit", new=trail), \
+         patch.object(gdpr_erased, "delete_all_avatars", side_effect=photos):
         assert await purge_pending_deletions(db_session) == 1
 
+    assert order == ["trail", "photos"]
     assert pending == []
+
+
+async def test_the_profile_is_locked_before_the_trail_is_read(db_session):
+    statements = []
+    real = db_session.execute
+
+    async def spying(statement, *args, **kwargs):
+        statements.append(str(statement.compile(dialect=postgresql.dialect())))
+        return await real(statement, *args, **kwargs)
+
+    with patch.object(db_session, "execute", new=spying):
+        await gdpr_erased._remove_person_from_audit(db_session, 1)
+
+    lock, trail = statements
+    assert "user_profiles" in lock and lock.rstrip().endswith("FOR UPDATE")
+    assert "admin_audit_log" in trail
 
 
 async def test_every_audit_action_is_classified():
     """A new action that copies something about the person must join the purge's table."""
+    personal = set(gdpr_erased._PERSONAL_AUDIT_KEYS)
     actions = {value for name, value in vars(constants).items() if name.startswith("ACTION_")}
-    assert actions == set(gdpr_erased._PERSONAL_AUDIT_KEYS) | NOTHING_PERSONAL
+    assert actions == personal | NOTHING_PERSONAL
+    assert not personal & NOTHING_PERSONAL
 
 
 async def test_a_row_without_payload_stays_empty(db_session):
