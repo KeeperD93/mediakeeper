@@ -162,7 +162,7 @@ async def check_secrets_b(
             await _apply("secret_sync", 0)
         else:
             emby_uids = (await db.execute(
-                select(distinct(PlaybackSession.user_id)).where(user_filter)
+                select(PlaybackSession.user_id).where(user_filter).distinct()
             )).scalars().all()
             if not emby_uids:
                 await _apply("secret_sync", 0)
@@ -173,7 +173,7 @@ async def check_secrets_b(
     # --- secret_allnight: chain of sessions covers 22:00 → 06:00 on the local clock ---
     if "secret_allnight" in by_type:
         emby_uids = (await db.execute(
-            select(distinct(PlaybackSession.user_id)).where(user_filter)
+            select(PlaybackSession.user_id).where(user_filter).distinct()
         )).scalars().all()
         if not emby_uids:
             await _apply("secret_allnight", 0)
@@ -184,7 +184,7 @@ async def check_secrets_b(
     # --- secret_no_life: 24h cumulative within a 48h sliding window ---
     if "secret_no_life" in by_type:
         emby_uids = (await db.execute(
-            select(distinct(PlaybackSession.user_id)).where(user_filter)
+            select(PlaybackSession.user_id).where(user_filter).distinct()
         )).scalars().all()
         if not emby_uids:
             await _apply("secret_no_life", 0)
@@ -199,7 +199,7 @@ async def check_secrets_b(
             await _apply("secret_king", 0)
         else:
             emby_uids = (await db.execute(
-                select(distinct(PlaybackSession.user_id)).where(user_filter)
+                select(PlaybackSession.user_id).where(user_filter).distinct()
             )).scalars().all()
             if not emby_uids:
                 await _apply("secret_king", 0)
@@ -215,7 +215,7 @@ async def check_secrets_b(
             await _apply("secret_pilot", 0)
         else:
             emby_uids = list((await db.execute(
-                select(distinct(PlaybackSession.user_id)).where(user_filter)
+                select(PlaybackSession.user_id).where(user_filter).distinct()
             )).scalars().all())
             hit = (
                 await is_first_viewer_of_fresh_content(db, emby_uids)
