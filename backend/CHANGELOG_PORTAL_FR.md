@@ -19,6 +19,7 @@ utilisateurs.
 ### Fixed
 - Badges épinglés — deux épinglages rapprochés ne s'écrasent plus.
 - Mon profil — jours de la semaine et durées dans la langue de l'application.
+- Mon profil — « Jour favori » : toujours 7 barres après un changement de langue.
 
 ## [1.0.0-rc.10] - 2026-11-11
 
