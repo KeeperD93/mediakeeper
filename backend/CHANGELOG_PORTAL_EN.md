@@ -16,6 +16,7 @@ This section intentionally has no date so it is not shown to users.
 
 ### Fixed
 - Sign-in — the browser fills in the saved username and password.
+- Sign-in — animations stop with "Reduce motion".
 
 ## [1.0.0-rc.10] - 2026-11-11
 

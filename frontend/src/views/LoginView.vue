@@ -171,7 +171,7 @@ import { useAuth } from '@/composables/useAuth'
 import { signInErrorMessage } from '@/composables/signInErrors'
 import { STORAGE_KEYS } from '@/constants/storage'
 import { useTheme } from '@/composables/useTheme'
-import { initLoginParticles } from '@/composables/useLoginParticles'
+import { useLoginParticles } from '@/composables/useLoginParticles'
 import { useLoginRedirect } from '@/composables/useLoginRedirect'
 import { useMaintenance } from '@/composables/portal/useMaintenance'
 import {
@@ -205,7 +205,7 @@ const pageRef = ref(null)
 const canvasRef = ref(null)
 const usernameId = useId()
 const passwordId = useId()
-let cleanupParticles = null
+useLoginParticles(canvasRef, pageRef, particlesEnabled)
 const RETRY_PAUSE_MS = 1000
 let refusedAt = 0
 
@@ -232,14 +232,12 @@ const passwordKey = computed(() =>
 const submitKey = computed(() => (isPortalLogin.value ? 'portalLogin.submit' : 'login.submit'))
 
 onMounted(async () => {
-  if (particlesEnabled.value) cleanupParticles = initLoginParticles(canvasRef.value, pageRef.value)
   await start()
   const m = await fetchMaintenanceState()
   maintenanceText.value = m?.enabled ? m.text || '' : ''
 })
 
 onUnmounted(() => {
-  if (cleanupParticles) cleanupParticles()
   dispose()
 })
 

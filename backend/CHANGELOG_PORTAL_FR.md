@@ -18,6 +18,7 @@ utilisateurs.
 
 ### Fixed
 - Connexion — le navigateur remplit le nom et le mot de passe enregistrés.
+- Connexion — animations coupées avec « Réduire les animations ».
 
 ## [1.0.0-rc.10] - 2026-11-11
 

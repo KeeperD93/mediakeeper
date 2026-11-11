@@ -42,7 +42,7 @@ vi.mock('@/composables/useTheme', () => ({
 }))
 
 vi.mock('@/composables/useLoginParticles', () => ({
-  initLoginParticles: () => () => {},
+  useLoginParticles: () => {},
 }))
 
 vi.mock('@/components/icons/IconDiscord.vue', () => ({
