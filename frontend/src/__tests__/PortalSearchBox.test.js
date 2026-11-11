@@ -86,13 +86,13 @@ describe('PortalSearchBox — submit', () => {
     await flushPromises()
 
     const input = w.get('.pt-search-input')
-    await input.setValue('  Inception  ')
+    await input.setValue('  Sample Movie  ')
     await w.get('form').trigger('submit')
     await flushPromises()
 
     expect(routerPush).toHaveBeenCalledWith({
       name: 'portal-search',
-      query: { q: 'Inception' },
+      query: { q: 'Sample Movie' },
     })
     w.unmount()
   })
@@ -104,13 +104,13 @@ describe('PortalSearchBox — submit', () => {
     await flushPromises()
 
     const input = w.get('.pt-search-input')
-    await input.setValue('matrix')
+    await input.setValue('sample')
     await w.get('form').trigger('submit')
     await flushPromises()
 
     expect(routerReplace).toHaveBeenCalledWith({
       name: 'portal-search',
-      query: { q: 'matrix' },
+      query: { q: 'sample' },
     })
     expect(routerPush).not.toHaveBeenCalled()
     w.unmount()
@@ -160,7 +160,7 @@ describe('PortalSearchBox — recent searches', () => {
     await flushPromises()
 
     const input = w.get('.pt-search-input')
-    await input.setValue('inception')
+    await input.setValue('sample movie')
     await w.get('form').trigger('submit')
     await flushPromises()
 
@@ -213,18 +213,18 @@ describe('PortalSearchBox — suggestions', () => {
     const input = w.get('.pt-search-input')
     await input.trigger('focus')
 
-    await input.setValue('inc')
+    await input.setValue('sam')
     await vi.advanceTimersByTimeAsync(100)
-    await input.setValue('ince')
+    await input.setValue('samp')
     await vi.advanceTimersByTimeAsync(100)
-    await input.setValue('incep')
+    await input.setValue('sampl')
     expect(apiGet).not.toHaveBeenCalled()
 
     await vi.advanceTimersByTimeAsync(260)
     await flushPromises()
 
     expect(apiGet).toHaveBeenCalledTimes(1)
-    expect(apiGet.mock.calls[0][0]).toBe('/api/portal/catalog/search?q=incep&page=1')
+    expect(apiGet.mock.calls[0][0]).toBe('/api/portal/catalog/search?q=sampl&page=1')
     w.unmount()
   })
 

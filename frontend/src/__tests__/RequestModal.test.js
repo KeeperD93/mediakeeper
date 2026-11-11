@@ -43,10 +43,10 @@ vi.mock('@/composables/portal/usePortalAuth', () => ({
 import RequestModal from '@/components/portal/RequestModal.vue'
 
 const movieItem = {
-  id: 27205,
-  tmdb_id: 27205,
-  title: 'Inception',
-  year: 2010,
+  id: 900001,
+  tmdb_id: 900001,
+  title: 'Sample Movie',
+  year: 2020,
   media_type: 'movie',
   poster_url: '',
   backdrop_url: '',

@@ -1,8 +1,8 @@
 """Path-traversal attack coverage for every central path validator.
 
 CodeQL flags 70 ``py/path-injection`` sinks across the backend because
-it cannot trace validation through helper functions. The audit
-(2026-05-22) confirmed each one is in fact gated by one of:
+it cannot trace validation through helper functions. Each one is in
+fact gated by one of:
 
 * :func:`services.path_config.validate_path_in_roots`
 * :func:`services.media_manager._paths._validate_path`

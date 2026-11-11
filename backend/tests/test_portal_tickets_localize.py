@@ -33,14 +33,14 @@ async def test_title_key_and_series_alias(monkeypatch):
 
     _patch(monkeypatch, _detail)
     items = [
-        {"tmdb_id": 1399, "media_type": "series", "media_title": "Trône"},  # series -> tv
-        {"tmdb_id": 603, "media_type": "movie", "media_title": "Matrice"},
+        {"tmdb_id": 900002, "media_type": "series", "media_title": "Série Exemple"},  # series -> tv
+        {"tmdb_id": 900001, "media_type": "movie", "media_title": "Film Exemple"},
         {"tmdb_id": None, "media_type": "season", "media_title": "S1"},  # no tmdb_id -> skip
         {"tmdb_id": 5, "media_type": "other", "media_title": "Off-library"},  # unmapped -> skip
     ]
     out = await ml.localize_titles(None, items, "en", title_key="media_title")
-    assert out[0]["media_title"] == "T1399 [tv]"  # series mapped to the TMDB tv type
-    assert out[1]["media_title"] == "T603 [movie]"
+    assert out[0]["media_title"] == "T900002 [tv]"  # series mapped to the TMDB tv type
+    assert out[1]["media_title"] == "T900001 [movie]"
     assert out[2]["media_title"] == "S1"  # no tmdb_id -> untouched
     assert out[3]["media_title"] == "Off-library"  # "other" not a TMDB type -> untouched
 
@@ -57,7 +57,7 @@ async def test_list_tickets_localizes_media_title(db_session, monkeypatch):
     await db_session.commit()
     await db_session.refresh(user)
     db_session.add(Ticket(
-        user_id=user.id, tmdb_id=1399, media_title="Trône", media_type="series",
+        user_id=user.id, tmdb_id=900002, media_title="Série Exemple", media_type="series",
         issue_type="video", description="x",
     ))
     await db_session.commit()
@@ -67,11 +67,11 @@ async def test_list_tickets_localizes_media_title(db_session, monkeypatch):
 
     _patch(monkeypatch, _detail)
     res = await ticket_svc.list_tickets(db_session, user.id, page=1, locale="en")
-    assert any(it["media_title"] == "T1399 [en]" for it in res["items"])
+    assert any(it["media_title"] == "T900002 [en]" for it in res["items"])
 
     ml._title_cache.clear()
     res_fr = await ticket_svc.list_tickets(db_session, user.id, page=1, locale="fr")  # default -> as-is
-    assert any(it["media_title"] == "Trône" for it in res_fr["items"])
+    assert any(it["media_title"] == "Série Exemple" for it in res_fr["items"])
 
 
 @pytest.mark.asyncio
@@ -95,7 +95,7 @@ async def test_admin_drawer_tickets_localizes(db_session, monkeypatch):
     await db_session.commit()
     await db_session.refresh(user)
     db_session.add(Ticket(
-        user_id=user.id, tmdb_id=1399, media_title="Trône", media_type="series",
+        user_id=user.id, tmdb_id=900002, media_title="Série Exemple", media_type="series",
         issue_type="video", description="x",
     ))
     await db_session.commit()
@@ -105,4 +105,4 @@ async def test_admin_drawer_tickets_localizes(db_session, monkeypatch):
 
     _patch(monkeypatch, _detail)
     res = await admin_users_feed.list_user_tickets(db_session, user.id, locale="en")
-    assert any(it["title"] == "T1399 [tv/en]" for it in res["items"])  # series -> tv
+    assert any(it["title"] == "T900002 [tv/en]" for it in res["items"])  # series -> tv

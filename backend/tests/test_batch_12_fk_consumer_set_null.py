@@ -248,7 +248,7 @@ async def test_media_requests_user_id_set_null_on_user_delete(db_session):
         user_id=requester.id,
         tmdb_id=42,
         media_type="movie",
-        title="Inception",
+        title="Sample Movie",
     )
     db_session.add(req)
     await db_session.commit()
@@ -261,7 +261,7 @@ async def test_media_requests_user_id_set_null_on_user_delete(db_session):
     survivor = await _expire_and_get(db_session, MediaRequest, req_id)
     assert survivor is not None
     assert survivor.user_id is None
-    assert survivor.title == "Inception"
+    assert survivor.title == "Sample Movie"
 
 
 @pytest.mark.asyncio

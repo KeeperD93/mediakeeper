@@ -51,7 +51,7 @@ function setTicket(payload) {
     id: 1,
     user_id: 17,
     media_type: 'movie',
-    media_title: 'Interstellar',
+    media_title: 'Sample Movie',
     issue_type: 'audio',
     priority: 'minor',
     status: 'open',
@@ -78,7 +78,7 @@ describe('PortalTicketDetail', () => {
     await flushPromises()
     expect(w.find('.ptd-hero').exists()).toBe(true)
     expect(w.find('.ptd-hero-poster').attributes('src')).toContain('/api/emby/image/emby-mov-1')
-    expect(w.text()).toContain('Interstellar')
+    expect(w.text()).toContain('Sample Movie')
   })
 
   it('uses the compact header for "other" tickets — no hero', async () => {
@@ -98,7 +98,7 @@ describe('PortalTicketDetail', () => {
   it('renders the scope label for a season-targeted series ticket', async () => {
     setTicket({
       media_type: 'season',
-      media_title: 'Severance',
+      media_title: 'Sample Show',
       emby_item_id: null,
       series_emby_id: 'emby-ser-42',
       selected_seasons: [{ season_number: 2 }],
@@ -111,7 +111,7 @@ describe('PortalTicketDetail', () => {
   it('renders the episodes scope label for episode-targeted tickets', async () => {
     setTicket({
       media_type: 'episode',
-      media_title: 'Severance',
+      media_title: 'Sample Show',
       emby_item_id: null,
       series_emby_id: 'emby-ser-42',
       selected_seasons: [{ season_number: 1, episodes: [1, 3, 5] }],

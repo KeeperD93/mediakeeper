@@ -67,7 +67,7 @@ def test_sanitize_name_whitespace_only():
 
 def test_sanitize_name_real_world_movie_title():
     # Regression anchor — actual movie title format the admin renamer hits.
-    assert _sanitize_name("Star Wars: Episode IV - A New Hope") == "Star Wars - Episode IV - A New Hope"
+    assert _sanitize_name("Sample Saga: Part IV - A New Test") == "Sample Saga - Part IV - A New Test"
 
 
 def test_sanitize_name_redos_guard_pathological_spaces():
@@ -114,15 +114,15 @@ def test_sanitize_filename_redos_guard_pathological_spaces():
 def test_build_movie_name_with_year_quality_ext():
     # ``sanitize_filename`` is invoked at the end — make sure the public
     # contract is preserved for the most common admin call site.
-    assert build_movie_name("Inception", "2010", "1080p", ".mkv") == "Inception (2010) [1080p].mkv"
+    assert build_movie_name("Sample Movie", "2020", "1080p", ".mkv") == "Sample Movie (2020) [1080p].mkv"
 
 
 def test_build_movie_name_with_colon_in_title():
-    assert build_movie_name("Star Wars: A New Hope", "1977") == "Star Wars - A New Hope (1977)"
+    assert build_movie_name("Sample Saga: A New Test", "1980") == "Sample Saga - A New Test (1980)"
 
 
 def test_build_episode_name_basic():
-    assert build_episode_name("Breaking Bad", 1, 1, "Pilot", ".mkv") == "Breaking Bad - S01E01 - Pilot.mkv"
+    assert build_episode_name("Sample Show", 1, 1, "Pilot", ".mkv") == "Sample Show - S01E01 - Pilot.mkv"
 
 
 def test_build_episode_name_with_colon_in_episode_title():

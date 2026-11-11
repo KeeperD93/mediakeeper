@@ -12,7 +12,7 @@ import TicketCard from '@/components/portal/tickets/TicketCard.vue'
 const MOVIE_TICKET = {
   id: 7,
   media_type: 'movie',
-  media_title: 'Interstellar',
+  media_title: 'Sample Movie',
   emby_item_id: 'emby-mov-1',
   series_emby_id: null,
   selected_seasons: null,

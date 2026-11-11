@@ -1,7 +1,7 @@
 """Sanity + ReDoS guard tests for ``_expand_symbol_words``.
 
 The helper expands ``&`` and ``+`` into their word-form so a search
-query like ``"Lilo & Stitch"`` or ``"Naruto+Boruto"`` matches the
+query like ``"Alice & Bob"`` or ``"Alpha+Beta"`` matches the
 underlying title naturally. CodeQL flagged its ``re.sub(r"\\s*\\+\\s*",
 ...)`` pattern as polynomial-degree (py/polynomial-redos #144). The
 rewrite uses ``str.split`` + ``str.join`` for guaranteed O(n) timing
@@ -20,19 +20,19 @@ from services.portal.discover_details._query_variants import _expand_symbol_word
 
 
 def test_expand_basic_plus():
-    assert _expand_symbol_words("Naruto+Boruto") == "Naruto Boruto"
+    assert _expand_symbol_words("Alpha+Beta") == "Alpha Beta"
 
 
 def test_expand_plus_with_spaces():
-    assert _expand_symbol_words("Naruto + Boruto") == "Naruto Boruto"
+    assert _expand_symbol_words("Alpha + Beta") == "Alpha Beta"
 
 
 def test_expand_ampersand():
-    assert _expand_symbol_words("Lilo & Stitch") == "Lilo and Stitch"
+    assert _expand_symbol_words("Alice & Bob") == "Alice and Bob"
 
 
 def test_expand_ampersand_and_plus_together():
-    assert _expand_symbol_words("Lilo & Stitch + Frozen") == "Lilo and Stitch Frozen"
+    assert _expand_symbol_words("Alice & Bob + Carol") == "Alice and Bob Carol"
 
 
 def test_expand_multiple_plus():
@@ -41,7 +41,7 @@ def test_expand_multiple_plus():
 
 def test_expand_double_plus_collapses():
     # `++` between two words must not leave a stranded empty token.
-    assert _expand_symbol_words("Naruto ++ Boruto") == "Naruto Boruto"
+    assert _expand_symbol_words("Alpha ++ Beta") == "Alpha Beta"
 
 
 def test_expand_no_symbols_passthrough():

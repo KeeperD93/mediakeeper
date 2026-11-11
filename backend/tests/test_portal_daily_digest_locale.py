@@ -30,8 +30,8 @@ def _patch_localize(monkeypatch):
 async def test_recent_adds_localizes_titles(db_session, monkeypatch):
     async def _recent(db, limit=80):
         return [{
-            "tmdb_id": 603, "media_type": "movie", "title": "Matrice",
-            "emby_item_id": "x", "year": "1999", "poster_url": "",
+            "tmdb_id": 900001, "media_type": "movie", "title": "Film Exemple",
+            "emby_item_id": "x", "year": "2001", "poster_url": "",
             "date_created": "2099-01-01",
         }]
 
@@ -40,15 +40,15 @@ async def test_recent_adds_localizes_titles(db_session, monkeypatch):
 
     since = datetime(2000, 1, 1, tzinfo=timezone.utc)
     result = await sources.recent_adds(db_session, since=since, lang="en")
-    assert result[0]["title"] == "T603 [en]"
+    assert result[0]["title"] == "T900001 [en]"
 
 
 @pytest.mark.asyncio
 async def test_recent_adds_default_locale_noop(db_session, monkeypatch):
     async def _recent(db, limit=80):
         return [{
-            "tmdb_id": 603, "media_type": "movie", "title": "Matrice",
-            "emby_item_id": "x", "year": "1999", "poster_url": "",
+            "tmdb_id": 900001, "media_type": "movie", "title": "Film Exemple",
+            "emby_item_id": "x", "year": "2001", "poster_url": "",
             "date_created": "2099-01-01",
         }]
 
@@ -57,7 +57,7 @@ async def test_recent_adds_default_locale_noop(db_session, monkeypatch):
 
     since = datetime(2000, 1, 1, tzinfo=timezone.utc)
     result = await sources.recent_adds(db_session, since=since, lang="fr")
-    assert result[0]["title"] == "Matrice"
+    assert result[0]["title"] == "Film Exemple"
 
 
 @pytest.mark.asyncio
@@ -66,8 +66,8 @@ async def test_recent_adds_degrades_on_localize_failure(db_session, monkeypatch)
     rather than bubbling up and 500-ing the whole digest."""
     async def _recent(db, limit=80):
         return [{
-            "tmdb_id": 603, "media_type": "movie", "title": "Matrice",
-            "emby_item_id": "x", "year": "1999", "poster_url": "",
+            "tmdb_id": 900001, "media_type": "movie", "title": "Film Exemple",
+            "emby_item_id": "x", "year": "2001", "poster_url": "",
             "date_created": "2099-01-01",
         }]
 
@@ -79,7 +79,7 @@ async def test_recent_adds_degrades_on_localize_failure(db_session, monkeypatch)
 
     since = datetime(2000, 1, 1, tzinfo=timezone.utc)
     result = await sources.recent_adds(db_session, since=since, lang="en")
-    assert result[0]["title"] == "Matrice"  # degraded to the stored title
+    assert result[0]["title"] == "Film Exemple"  # degraded to the stored title
 
 
 @pytest.mark.asyncio

@@ -270,7 +270,7 @@ async def test_collect_skips_intro_and_trailer_types(db_session):
         {"UserId": "U1", "UserName": "Alice", "Id": "S2", "PlayState": {},
          "NowPlayingItem": {"Id": "TRAILER-1", "Name": "Pre-roll", "Type": "Trailer"}},
         {"UserId": "U9", "UserName": "Bob", "Id": "S3", "PlayState": {},
-         "NowPlayingItem": {"Id": "MOVIE-1", "Name": "Coco", "Type": "Movie"}},
+         "NowPlayingItem": {"Id": "MOVIE-1", "Name": "Sample Movie", "Type": "Movie"}},
         {"UserId": "U9", "UserName": "Bob", "Id": "S4", "PlayState": {},
          "NowPlayingItem": {"Id": "EP-1", "Name": "S01E01", "Type": "Episode"}},
     ]

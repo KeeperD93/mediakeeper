@@ -193,13 +193,13 @@ async def test_flat_sort_by_user_orders_the_whole_set(db_session):
 @pytest.mark.asyncio
 async def test_flat_sort_by_title_coalesces_series_name(db_session):
     db_session.add_all([
-        _row(id=1, session_key="s1", item_id="m1", item_name="Zodiac"),
-        _row(id=2, session_key="s2", item_id="e1", item_name="Pilot", series_name="Andor"),
+        _row(id=1, session_key="s1", item_id="m1", item_name="Zeta Movie"),
+        _row(id=2, session_key="s2", item_id="e1", item_name="Pilot", series_name="Alpha Show"),
     ])
     await db_session.commit()
     asc = await get_activity_history(db_session, sort_by="title", sort_order="asc")
-    # Sort key = coalesce(series_name, item_name): "Andor" < "Zodiac".
-    assert [it["title"] for it in asc["items"]] == ["Andor - Pilot", "Zodiac"]
+    # Sort key = coalesce(series_name, item_name): "Alpha Show" < "Zeta Movie".
+    assert [it["title"] for it in asc["items"]] == ["Alpha Show - Pilot", "Zeta Movie"]
 
 
 @pytest.mark.asyncio

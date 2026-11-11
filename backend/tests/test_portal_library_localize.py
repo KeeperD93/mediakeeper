@@ -15,8 +15,8 @@ from tests._portal_profile_helpers import PORTAL_COOKIE, portal_token, make_port
 
 def _items() -> list[dict]:
     return [
-        {"tmdb_id": 603, "media_type": "movie", "title": "Matrice", "overview": "fr o", "poster_url": "/p1"},
-        {"tmdb_id": 1399, "media_type": "tv", "title": "Trone", "overview": "fr t", "poster_url": "/p2"},
+        {"tmdb_id": 900001, "media_type": "movie", "title": "Film Exemple", "overview": "fr o", "poster_url": "/p1"},
+        {"tmdb_id": 900002, "media_type": "tv", "title": "Serie Exemple", "overview": "fr t", "poster_url": "/p2"},
         {"tmdb_id": None, "media_type": "movie", "title": "No TMDB", "overview": "keep", "poster_url": "/p3"},
     ]
 
@@ -53,10 +53,10 @@ async def test_localizes_to_viewer_language(monkeypatch):
 
     _patch(monkeypatch, _detail)
     out = await al.localize_emby_items(None, _items(), "en")
-    assert out[0]["title"] == "T603 [en]"
-    assert out[0]["overview"] == "O603 [en]"
+    assert out[0]["title"] == "T900001 [en]"
+    assert out[0]["overview"] == "O900001 [en]"
     assert out[0]["poster_url"] == "/p1"  # non-localized fields preserved
-    assert out[1]["title"] == "T1399 [en]"
+    assert out[1]["title"] == "T900002 [en]"
     # Item without tmdb_id is left untouched.
     assert out[2]["title"] == "No TMDB"
     assert out[2]["overview"] == "keep"
@@ -70,7 +70,7 @@ async def test_does_not_mutate_input(monkeypatch):
     _patch(monkeypatch, _detail)
     items = _items()
     await al.localize_emby_items(None, items, "en")
-    assert items[0]["title"] == "Matrice"
+    assert items[0]["title"] == "Film Exemple"
     assert items[0]["overview"] == "fr o"
 
 
@@ -81,7 +81,7 @@ async def test_blank_tmdb_values_fall_back_to_source(monkeypatch):
 
     _patch(monkeypatch, _detail)
     out = await al.localize_emby_items(None, _items(), "en")
-    assert out[0]["title"] == "Matrice"  # blank TMDB title -> keep Emby title
+    assert out[0]["title"] == "Film Exemple"  # blank TMDB title -> keep Emby title
     assert out[0]["overview"] == "fr o"
 
 
@@ -92,7 +92,7 @@ async def test_tmdb_error_keeps_source(monkeypatch):
 
     _patch(monkeypatch, _detail)
     out = await al.localize_emby_items(None, _items(), "en")
-    assert out[0]["title"] == "Matrice"
+    assert out[0]["title"] == "Film Exemple"
 
 
 @pytest.mark.asyncio
@@ -127,7 +127,7 @@ async def test_cache_avoids_second_tmdb_call(monkeypatch):
     await al.localize_emby_items(None, _items(), "en")
     await al.localize_emby_items(None, _items(), "en")
     # 2 items carry a tmdb_id; each resolved once despite two passes.
-    assert sorted(calls) == [603, 1399]
+    assert sorted(calls) == [900001, 900002]
 
 
 @pytest.mark.asyncio
@@ -139,7 +139,7 @@ async def test_recent_endpoint_localizes(client, db_session, monkeypatch):
     al._meta_cache.clear()
 
     async def _fake_recent(db, limit, enrich_rating=False):
-        return [{"tmdb_id": 603, "media_type": "movie", "title": "Matrice", "overview": "fr"}]
+        return [{"tmdb_id": 900001, "media_type": "movie", "title": "Film Exemple", "overview": "fr"}]
 
     async def _detail(mt, tid, db=None, locale=None):
         return {"title": f"T{tid} [{locale}]", "overview": f"O{tid} [{locale}]"}
@@ -151,5 +151,5 @@ async def test_recent_endpoint_localizes(client, db_session, monkeypatch):
     r = await client.get("/api/portal/library/recent", headers={"X-MK-Locale": "en"})
     assert r.status_code == 200, r.text
     item = r.json()["items"][0]
-    assert item["title"] == "T603 [en]"
-    assert item["overview"] == "O603 [en]"
+    assert item["title"] == "T900001 [en]"
+    assert item["overview"] == "O900001 [en]"

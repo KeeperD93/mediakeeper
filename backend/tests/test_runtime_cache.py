@@ -57,12 +57,12 @@ def _mock_tmdb(monkeypatch, db_session, client):
 
 @pytest.mark.asyncio
 async def test_resolve_runtimes_stamps_from_cache(db_session, monkeypatch):
-    db_session.add(TmdbRuntimeCache(tmdb_id=603, media_type="movie", runtime=136))
+    db_session.add(TmdbRuntimeCache(tmdb_id=900001, media_type="movie", runtime=136))
     await db_session.commit()
     monkeypatch.setattr(rc, "AsyncSessionLocal", _factory(db_session))
 
     items = [
-        {"tmdb_id": 603, "media_type": "movie", "title": "Cached Movie"},
+        {"tmdb_id": 900001, "media_type": "movie", "title": "Cached Movie"},
         {"tmdb_id": 1, "media_type": "tv", "title": "Already", "runtime": 42},
         {"tmdb_id": None, "media_type": "movie", "title": "No id"},
     ]
@@ -77,12 +77,12 @@ async def test_resolve_runtimes_stamps_from_cache(db_session, monkeypatch):
 async def test_resolve_runtimes_fetches_and_persists_on_miss(db_session, monkeypatch):
     _mock_tmdb(monkeypatch, db_session, _FakeClient({"runtime": 148}))
 
-    items = [{"tmdb_id": 27205, "media_type": "movie", "title": "Miss Movie"}]
+    items = [{"tmdb_id": 900002, "media_type": "movie", "title": "Miss Movie"}]
     await rc.resolve_runtimes(items)
 
     assert items[0]["runtime"] == 148
     row = (await db_session.execute(
-        select(TmdbRuntimeCache).where(TmdbRuntimeCache.tmdb_id == 27205)
+        select(TmdbRuntimeCache).where(TmdbRuntimeCache.tmdb_id == 900002)
     )).scalar_one()
     assert row.runtime == 148
 
@@ -91,7 +91,7 @@ async def test_resolve_runtimes_fetches_and_persists_on_miss(db_session, monkeyp
 async def test_resolve_runtimes_tv_uses_first_episode_run_time(db_session, monkeypatch):
     _mock_tmdb(monkeypatch, db_session, _FakeClient({"episode_run_time": [52, 48]}))
 
-    items = [{"tmdb_id": 1399, "media_type": "tv", "title": "Series"}]
+    items = [{"tmdb_id": 900003, "media_type": "tv", "title": "Series"}]
     await rc.resolve_runtimes(items)
 
     assert items[0]["runtime"] == 52  # first episode_run_time entry

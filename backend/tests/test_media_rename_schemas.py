@@ -77,8 +77,8 @@ def test_rename_batch_request_rejects_extra_field():
 
 
 def test_movie_name_request_accepts_typical_payload():
-    req = MovieNameRequest(title="Inception", year="2010", quality="1080p", ext=".mkv")
-    assert req.title == "Inception"
+    req = MovieNameRequest(title="Sample Movie", year="2020", quality="1080p", ext=".mkv")
+    assert req.title == "Sample Movie"
 
 
 def test_movie_name_request_rejects_oversized_title():
@@ -128,8 +128,8 @@ def test_episode_name_request_rejects_extra_field():
 
 
 def test_rename_folder_request_accepts_typical_payload():
-    req = RenameFolderRequest(cat="films", subpath="Action/Inception", new_name="Inception (2010)")
-    assert req.new_name == "Inception (2010)"
+    req = RenameFolderRequest(cat="films", subpath="Action/Sample Movie", new_name="Sample Movie (2020)")
+    assert req.new_name == "Sample Movie (2020)"
 
 
 def test_rename_folder_request_rejects_oversized_subpath():

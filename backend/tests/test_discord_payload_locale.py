@@ -14,29 +14,29 @@ async def test_localized_media_movie(monkeypatch):
 
     monkeypatch.setattr(pl, "get_media_detail", _detail)
     out = await pl._localized_media_text(
-        {"Name": "Inception", "Overview": "FR"}, "Movie", "27205", "movie", "en", None,
+        {"Name": "Sample Movie", "Overview": "FR"}, "Movie", "900001", "movie", "en", None,
     )
-    assert out["name"] == "M27205"
+    assert out["name"] == "M900001"
     assert out["overview"] == "ov[en]"
 
 
 @pytest.mark.asyncio
 async def test_localized_media_episode(monkeypatch):
     async def _detail(mt, tid, db=None, locale=None):
-        return {"title": "Breaking Bad", "overview": "series ov"}
+        return {"title": "Sample Show", "overview": "series ov"}
 
     async def _ep(tid, s, e, db=None, locale=None):
-        return {"name": "Ozymandias", "overview": "ep ov"}
+        return {"name": "Sample Episode", "overview": "ep ov"}
 
     monkeypatch.setattr(pl, "get_media_detail", _detail)
     monkeypatch.setattr(pl, "get_episode_detail", _ep)
     out = await pl._localized_media_text(
         {"Name": "old", "SeriesName": "oldS", "Overview": "FR",
          "ParentIndexNumber": 5, "IndexNumber": 14},
-        "Episode", "1396", "tv", "en", None,
+        "Episode", "900002", "tv", "en", None,
     )
-    assert out["series"] == "Breaking Bad"   # series title localized
-    assert out["name"] == "Ozymandias"       # episode title localized
+    assert out["series"] == "Sample Show"    # series title localized
+    assert out["name"] == "Sample Episode"   # episode title localized
     assert out["overview"] == "ep ov"        # episode synopsis localized
 
 
@@ -50,10 +50,10 @@ async def test_localized_media_default_lang_keeps_emby(monkeypatch):
 
     monkeypatch.setattr(pl, "get_media_detail", _detail)
     out = await pl._localized_media_text(
-        {"Name": "Inception", "Overview": "FR syn"}, "Movie", "27205", "movie", "fr", None,
+        {"Name": "Sample Movie", "Overview": "FR syn"}, "Movie", "900001", "movie", "fr", None,
     )
     # Default language -> stored Emby text, no TMDB round-trip.
-    assert out == {"name": "Inception", "series": "", "overview": "FR syn"}
+    assert out == {"name": "Sample Movie", "series": "", "overview": "FR syn"}
     assert calls["n"] == 0
 
 
@@ -68,14 +68,14 @@ async def test_localized_media_no_tmdb_id():
 @pytest.mark.asyncio
 async def test_payload_label_localized_en(monkeypatch):
     async def _detail(mt, tid, db=None, locale=None):
-        return {"title": "Inception", "overview": "ov"}
+        return {"title": "Sample Movie", "overview": "ov"}
 
     async def _img(*a, **k):
         return ""
 
     monkeypatch.setattr(pl, "get_media_detail", _detail)
     monkeypatch.setattr(pl, "_get_image_url", _img)
-    item = {"Type": "Movie", "Name": "Inception", "ProviderIds": {"Tmdb": "27205"}, "ProductionYear": 2010}
+    item = {"Type": "Movie", "Name": "Sample Movie", "ProviderIds": {"Tmdb": "900001"}, "ProductionYear": 2020}
     payload = await pl.build_discord_payload(item, {"lang": "en"}, "", "", db=None)
     blob = payload["content"] + str(payload["embeds"])
     assert "TMDB page" in blob
@@ -85,14 +85,14 @@ async def test_payload_label_localized_en(monkeypatch):
 @pytest.mark.asyncio
 async def test_payload_label_default_fr(monkeypatch):
     async def _detail(mt, tid, db=None, locale=None):
-        return {"title": "Inception", "overview": "ov"}
+        return {"title": "Sample Movie", "overview": "ov"}
 
     async def _img(*a, **k):
         return ""
 
     monkeypatch.setattr(pl, "get_media_detail", _detail)
     monkeypatch.setattr(pl, "_get_image_url", _img)
-    item = {"Type": "Movie", "Name": "Inception", "ProviderIds": {"Tmdb": "27205"}, "ProductionYear": 2010}
+    item = {"Type": "Movie", "Name": "Sample Movie", "ProviderIds": {"Tmdb": "900001"}, "ProductionYear": 2020}
     payload = await pl.build_discord_payload(item, {"lang": "fr"}, "", "", db=None)
     blob = payload["content"] + str(payload["embeds"])
     assert "Fiche TMDB" in blob
