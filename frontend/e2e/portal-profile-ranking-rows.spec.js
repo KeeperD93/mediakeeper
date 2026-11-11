@@ -137,6 +137,45 @@ async function expectViewerRow(page) {
   return facts
 }
 
+// The top 3 of the month and the viewer after it: the rows of the profile, label included.
+async function expectDigestLikeProfile(page, width) {
+  const month = withViewer(5)
+  const top3 = [...month.slice(0, 3), month[5]]
+  const digest = { empty: false, ranking: { top3 }, recent_adds: [], events: [] }
+  await openProfile(page, { width, month, digest })
+  const digestRows = page.locator('.ddd-section--leaderboard .gc-lb-row')
+  await expect(digestRows).toHaveCount(top3.length)
+  await expect(digestRows.last().locator('.lb-me-pill')).toHaveText('VOUS')
+  const look = rows =>
+    rows.evaluateAll(items =>
+      items.map(row => {
+        const style = (selector, ...names) => {
+          const element = selector ? row.querySelector(selector) : row
+          const computed = getComputedStyle(element)
+          return names.map(name => computed[name])
+        }
+        // Without an edge, its color is only the default one of the page.
+        const [edgeWidth, edgeColor] = style(null, 'borderLeftWidth', 'borderLeftColor')
+        return [
+          row.querySelector('.gc-lb-pos').textContent,
+          ...style(null, 'paddingLeft', 'columnGap', 'borderRadius', 'backgroundColor'),
+          ...style(null, 'backgroundImage'),
+          edgeWidth === '0px' ? 'none' : `${edgeWidth} ${edgeColor}`,
+          ...style('.gc-lb-pos', 'fontSize', 'color'),
+          ...style('.gc-lb-av', 'width'),
+          ...style('.gc-lb-n', 'fontSize'),
+          ...style('.gc-lb-tier', 'fontSize'),
+          ...style('.gc-lb-v', 'fontSize', 'color'),
+          row.querySelector('.lb-me-pill')?.textContent ?? null,
+          getComputedStyle(row, '::before').content,
+        ]
+      }),
+    )
+  const ranks = new Set(top3.map(entry => String(entry.rank)))
+  const profile = (await look(card(page).locator('.gc-lb-row'))).filter(row => ranks.has(row[0]))
+  expect(await look(digestRows)).toEqual(profile)
+}
+
 test.describe('On a large screen', () => {
   test.skip(({ isMobile }) => isMobile, 'large screen')
 
@@ -184,15 +223,11 @@ test.describe('On a large screen', () => {
     )
   })
 
-  test('the daily digest keeps its separator above a viewer after its top 3', async ({ page }) => {
-    await openProfile(page, { width: 1280, month: withViewer(5) })
-    const separator = await card(page).evaluate(box => {
-      box.classList.add('gc-lb-box--widget')
-      const style = getComputedStyle(box.querySelector('.gc-lb-row--me'), '::before')
-      return { content: style.content, border: style.borderTopStyle }
+  for (const width of [768, 1440]) {
+    test(`at ${width}px, the daily digest draws its top 3 as the profile`, async ({ page }) => {
+      await expectDigestLikeProfile(page, width)
     })
-    expect(separator).toEqual({ content: '""', border: 'dashed' })
-  })
+  }
 
   test('a viewer on the podium keeps the look of the viewer, not of the medal', async ({
     page,
@@ -224,4 +259,8 @@ test.describe('On a phone', () => {
       await expectViewerRow(page)
     })
   }
+
+  test('at 375px, the daily digest draws its top 3 as the profile', async ({ page }) => {
+    await expectDigestLikeProfile(page, 375)
+  })
 })

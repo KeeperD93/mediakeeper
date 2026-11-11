@@ -4,61 +4,10 @@
  * original file). */
 
 /* ---- TOP 3 LEADERBOARD ----
- * Top-3 monthly ranking reuses the shared LeaderboardCard component
- * (same one as the dashboard widget) so the layout stays in visual
- * sync. The dashboard widget is sized for a tight 1×1 grid cell —
- * here we sit in a wide overlay alongside larger sections, so the
- * scoped overrides below scale paddings and typography up to match
- * the surrounding digest cards. The widget's own internal title is
- * hidden because the section already has its own h3. */
+ * The rows are those of "My profile" (LeaderboardCard): only the card's
+ * frame follows the other digest sections. */
 .ddd-section--leaderboard .gc-lb-box {
-  margin: 0;
   padding: 18px 20px;
-}
-.ddd-section--leaderboard .gc-lb-widget-title {
-  display: none;
-}
-.ddd-section--leaderboard .gc-lb-rows {
-  gap: 0.55rem;
-}
-.ddd-section--leaderboard .gc-lb-row {
-  padding: 12px 14px;
-  gap: 0.85rem;
-  border-radius: var(--portal-radius-lg);
-}
-.ddd-section--leaderboard .gc-lb-pos {
-  font-size: var(--portal-text-md);
-  min-width: 28px;
-}
-.ddd-section--leaderboard .gc-lb-row--1 .gc-lb-pos {
-  font-size: var(--portal-text-xl);
-}
-.ddd-section--leaderboard .gc-lb-av {
-  width: 40px;
-  height: 40px;
-
-  --mk-avatar-ring-width: 3px;
-}
-/* MkAvatar fills the larger daily-digest wrapper at all viewports so
-   the tier ring (drawn by MkAvatar's CSS border) sits at the wrapper's
-   outer edge rather than inset around an oversized chip. */
-.ddd-section--leaderboard .gc-lb-av-mk {
-  width: 100% !important;
-  height: 100% !important;
-}
-.ddd-section--leaderboard .gc-lb-n {
-  font-size: var(--portal-text-base);
-}
-.ddd-section--leaderboard .gc-lb-tier {
-  font-size: var(--portal-text-3xs);
-  margin-top: 2px;
-}
-.ddd-section--leaderboard .gc-lb-v {
-  font-size: var(--portal-text-sm);
-}
-.ddd-section--leaderboard .gc-lb-move {
-  font-size: var(--portal-text-2xs);
-  min-width: 36px;
 }
 
 /* ---- SECTION HEADERS (used by recent adds and any future list section) ---- */
