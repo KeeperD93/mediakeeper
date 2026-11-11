@@ -6,7 +6,12 @@ the tie is settled, which PostgreSQL does not do on its own once a row has been 
 import pytest
 from sqlalchemy import event
 
-from models.portal.social import PRIVACY_COLLABORATIVE, PRIVACY_PRIVATE, UserList, UserListContributor
+from models.portal.social import (
+    PRIVACY_COLLABORATIVE,
+    PRIVACY_PRIVATE,
+    UserList,
+    UserListContributor,
+)
 from services.portal.lists_query import get_user_lists
 from tests._portal_profile_helpers import make_portal_user
 
