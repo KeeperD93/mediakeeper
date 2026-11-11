@@ -155,7 +155,8 @@ jobs:
           # Extract the section that matches the released version, flatten the
           # `### Added / Changed / Fixed` sub-headers, keep only the bullets,
           # and prefix each surface (Admin app, Portal) with a single H3 so
-          # the reader knows which app is concerned.
+          # the reader knows which app is concerned. Only `### Action` keeps a
+          # heading: what an admin must do after updating has to stand out.
           extract_section() {
             local file="$1"
             local title="$2"
@@ -164,7 +165,8 @@ jobs:
             section="$(awk -v v="$version" '
               $0 ~ "^## \\[" v "\\]" {capture=1; next}
               capture && /^## \[/ {exit}
-              capture && /^### / {next}
+              capture && /^### Action/ {print "#### Action required"; action=1; next}
+              capture && /^### / {if (action) {print ""; print "#### Changes"; action=0}; next}
               capture {print}
             ' "$file" | awk 'NF || prev_nonblank {print; prev_nonblank=NF}')"
             if [[ -n "$(printf '%s' "$section" | tr -d '[:space:]')" ]]; then
