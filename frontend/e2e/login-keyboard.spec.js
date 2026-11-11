@@ -73,6 +73,14 @@ test.describe('Login — keyboard sign-in', () => {
     await expectNoReload(page, state)
   })
 
+  test('Enter on the focused button sends one try', async ({ page }) => {
+    const state = await openRefusingLoginPage(page)
+
+    await page.locator('button.login-submit').press('Enter')
+    await expect.poll(() => state.tries).toBe(1)
+    await expectNoReload(page, state)
+  })
+
   test('Enter held on the focused button sends no new try', async ({ page }) => {
     const state = await openRefusingLoginPage(page)
 
