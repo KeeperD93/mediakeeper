@@ -16,6 +16,8 @@ export interface ToastItem {
   meta: ToastMeta | null
   module: string
   persistent: boolean
+  // Auto-dismiss delay in ms, also the length of the countdown bar.
+  duration: number
 }
 
 const toasts = ref<ToastItem[]>([])
@@ -69,7 +71,7 @@ export function useToast(): UseToastApi {
     const id = ++toastId
     const path = _routerInstance?.currentRoute?.value?.path || '/'
     const module = ROUTE_MODULES[path] || 'toastModule.app'
-    toasts.value.push({ id, message, type, meta, module, persistent: duration <= 0 })
+    toasts.value.push({ id, message, type, meta, module, persistent: duration <= 0, duration })
 
     if (duration > 0) {
       setTimeout(() => {

@@ -10,6 +10,9 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Fixed
+- Notifications — progress bar matches each message's actual duration.
+
 ## [1.0.0-rc.10] - 2026-11-11
 
 ### Action

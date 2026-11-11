@@ -16,6 +16,9 @@ utilisateurs.
 
 ## [Unreleased]
 
+### Fixed
+- Notifications — barre de progression à la durée réelle de chaque message.
+
 ## [1.0.0-rc.10] - 2026-11-11
 
 ### Added

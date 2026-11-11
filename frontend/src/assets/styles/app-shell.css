@@ -150,7 +150,7 @@
   text-overflow: ellipsis;
 }
 
-/* Progress bar */
+/* Progress bar — --toast-duration is each toast's own auto-dismiss delay, set in App.vue */
 .mk-toast-progress {
   position: absolute;
   bottom: 0;
@@ -158,7 +158,7 @@
   height: 2px;
   background: linear-gradient(90deg, var(--toast-accent), transparent);
   border-radius: 0 0 0 var(--radius-card);
-  animation: mk-toast-progress 5s linear forwards;
+  animation: mk-toast-progress var(--toast-duration) linear forwards;
 }
 
 @keyframes mk-toast-progress {
