@@ -244,9 +244,9 @@ Delete the corresponding entry from `*_DEFS`. At the next boot:
 3. Boot-time validation passes (the `id` no longer exists, so no orphan
    reference).
 
-> Before the v1.0 release, the DB is disposable (cf. project policy) — no
-> Alembic migration is needed for a removal. Post-v1.0, removals must go
-> through an explicit migration if history matters.
+> The seed owns the catalogue: adding, changing or removing a trophy needs
+> no Alembic migration. Any change to the database schema (a new table or
+> column for a check) goes through an Alembic migration.
 
 ---
 
@@ -334,5 +334,4 @@ When a placeholder is implemented for real:
   `condition_type`.
 - **Modifying a seed already applied**: `seed_achievements` is
   re-entrant; you change the definitions, you re-run, that is all. No
-  dedicated Alembic migration as long as the DB is disposable
-  (pre-v1.0).
+  Alembic migration for catalogue data; only a schema change needs one.
