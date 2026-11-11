@@ -38,7 +38,8 @@
   gap: 2px;
   min-width: 0;
   min-height: 52px;
-  padding: 6px 8px;
+  /* Narrow sides: at 320px five labels need nearly the whole tab width. */
+  padding: var(--portal-space-1-5) var(--portal-space-1);
   border: none;
   border-radius: var(--portal-radius-xs);
   background: transparent;
@@ -86,10 +87,11 @@
   white-space: nowrap;
   line-height: var(--portal-lh-display);
   /* Breathing room so overflow:hidden doesn't shave the ink overhang of
-     the first/last glyph; the negative margin keeps the width (and the
-     ellipsis threshold) unchanged. */
-  padding-inline: 2px;
-  margin-inline: -2px;
+     the first/last glyph. content-box keeps that padding out of max-width,
+     and the negative margin cancels it, so the text gets the full tab width. */
+  box-sizing: content-box;
+  padding-inline: var(--portal-space-0-5);
+  margin-inline: calc(-1 * var(--portal-space-0-5));
 }
 
 .pt-bottom-tab-badge {

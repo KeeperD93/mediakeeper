@@ -18,6 +18,7 @@ utilisateurs.
 
 ### Fixed
 - Bouton « + » — annoncé par les lecteurs d'écran (ouvert ou fermé, messages non lus).
+- Barre d'onglets sur téléphone — libellés entiers sur les petits écrans.
 
 ## [1.0.0-rc.10] - 2026-11-11
 
