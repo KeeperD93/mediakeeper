@@ -10,6 +10,9 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Fixed
+- Carousels and scrolling — instant with "Reduce motion".
+
 ## [1.0.0-rc.10] - 2026-11-11
 
 ### Action

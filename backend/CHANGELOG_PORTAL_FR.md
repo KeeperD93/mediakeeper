@@ -16,6 +16,9 @@ utilisateurs.
 
 ## [Unreleased]
 
+### Fixed
+- Carrousels et défilements — instantanés avec « Réduire les animations ».
+
 ## [1.0.0-rc.10] - 2026-11-11
 
 ### Added

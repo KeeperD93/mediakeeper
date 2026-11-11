@@ -95,12 +95,19 @@
   overflow-x: auto;
   padding: 4px 4px 12px;
   scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
   margin: 0 -4px;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
 .ddd-posters::-webkit-scrollbar {
   display: none;
+}
+/* Reduced motion: the arrows jump instead of sliding. */
+@media (prefers-reduced-motion: reduce) {
+  .ddd-posters {
+    scroll-behavior: auto;
+  }
 }
 .ddd-posters-arrow {
   position: absolute;

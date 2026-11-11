@@ -241,6 +241,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useHealthCheck } from '@/composables/useHealthCheck'
+import { usePrefersReducedMotion } from '@/composables/usePrefersReducedMotion'
 import { useTabSync } from '@/composables/useTabSync'
 import { SIDEBAR_SUB_TABS } from '@/constants/sidebarSubTabs'
 import HealthCheckConfig from '@/components/healthcheck/HealthCheckConfig.vue'
@@ -290,6 +291,7 @@ const selectedIssue = ref(null)
 // Scroll to top
 const rootRef = ref(null)
 const showScrollTop = ref(false)
+const reducedMotion = usePrefersReducedMotion()
 let scrollContainer = null
 
 function getScrollContainer(el) {
@@ -309,11 +311,8 @@ function onScroll() {
   }
 }
 function scrollToTop() {
-  if (scrollContainer && scrollContainer !== window) {
-    scrollContainer.scrollTo({ top: 0, behavior: 'smooth' })
-  } else {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
+  const target = scrollContainer || window
+  target.scrollTo({ top: 0, behavior: reducedMotion.value ? 'auto' : 'smooth' })
 }
 
 // Infinite scroll
