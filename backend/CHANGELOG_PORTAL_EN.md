@@ -31,7 +31,7 @@ This section intentionally has no date so it is not shown to users.
 - Leaderboard — Top 10 positions without bubbles, smaller "YOU" label.
 - Leaderboard — podium: metal frame with a turning shine.
 - My profile — ranking matches the Leaderboard page.
-- Trophies, leaderboard, My profile, What's new today — in the instance time zone.
+- Trophies, leaderboard, My profile, Today's digest — in the instance time zone.
 - Regular and Faithful trophies — unlocked on the longest streak, not only the current one.
 - XP and trophies — earned from the first Emby play, even before signing in.
 - Private profile — dedicated "This profile is private" page, without name or avatar.

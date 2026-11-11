@@ -33,7 +33,7 @@ utilisateurs.
 - Classement — positions du Top 10 sans bulle, étiquette « VOUS » plus petite.
 - Classement — podium : cadre de métal avec un éclat qui tourne.
 - Mon profil — classement aligné sur la page Classement.
-- Trophées, classement, Mon profil, Quoi de neuf — au fuseau de l'instance.
+- Trophées, classement, Mon profil, Quoi de neuf aujourd'hui — au fuseau de l'instance.
 - Trophées Régulier et Fidèle — débloqués sur la plus longue série, pas seulement l'actuelle.
 - XP et trophées — gagnés dès la première lecture Emby, même avant toute connexion.
 - Profil privé — page dédiée « Ce profil est privé », sans pseudo ni avatar.

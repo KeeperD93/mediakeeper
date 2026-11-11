@@ -15,19 +15,19 @@ This section intentionally has no date so it is not shown to users.
 ### Action
 - Time zone — choose it in Settings → General, or hours stay off.
 - Reverse proxy — proxy setting to redo, see the deployment guide.
-- Privacy — GDPR mode: review your privacy text (what is kept after a deletion).
+- Privacy mode — review your privacy policy (what is kept after a deletion).
 
 ### Added
 - Settings — time zone of the instance, pre-filled from the browser.
 - Setup wizard — language and time zone chosen first.
-- Debug tools — take back trophies counted at the wrong hour.
+- Debug tools — take back trophies counted in UTC.
 
 ### Changed
-- Portal leaderboard — activity only: trophies and admin XP left out.
+- Portal leaderboard — activity only: trophies and admin-granted XP left out.
 - Dashboard — Leaderboard widget: level and trophies of the month.
 - Statistics — days, hours and records counted in the time zone of the instance.
 - Statistics — Streak: no longer back to 0 in the morning.
-- Users — every Emby account earns XP and trophies until deactivated.
+- Users — every Emby account earns XP and trophies until deactivated ("without logging in" box removed).
 - Users — "Never activated" or "Deactivated" status instead of "Inactive".
 - Users — "Create an administrator" replaces "Create user" (temporary password).
 

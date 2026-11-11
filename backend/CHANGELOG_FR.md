@@ -15,19 +15,19 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 ### Action
 - Fuseau horaire — à choisir dans Paramètres → Général, sinon les heures restent décalées.
 - Proxy inverse — réglage des proxys à refaire, voir le guide de déploiement.
-- Confidentialité — mode RGPD : texte à relire (ce qui reste après une suppression).
+- Mode Confidentialité — politique à relire (ce qui reste après une suppression).
 
 ### Added
 - Paramètres — fuseau horaire de l'instance, prérempli avec celui du navigateur.
 - Assistant d'installation — langue et fuseau horaire choisis en premier.
-- Outils de debug — retrait des trophées comptés à la mauvaise heure.
+- Outils de debug — retrait des trophées comptés en UTC.
 
 ### Changed
-- Classement du portail — activité seule : trophées et XP admin exclus.
+- Classement du portail — activité seule : trophées et XP donnée par un admin exclus.
 - Tableau de bord — widget Classement : niveau et trophées du mois.
 - Statistiques — jours, heures et records comptés dans le fuseau horaire de l'instance.
 - Statistiques — Streak : plus remis à 0 le matin.
-- Utilisateurs — tout compte Emby gagne XP et trophées jusqu'à sa désactivation.
+- Utilisateurs — tout compte Emby gagne XP et trophées jusqu'à sa désactivation (case « sans connexion » retirée).
 - Utilisateurs — statut « Jamais activé » ou « Désactivé » au lieu de « Inactif ».
 - Utilisateurs — « Créer un administrateur » remplace « Créer un utilisateur » (mot de passe provisoire).
 
@@ -61,7 +61,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Sécurité — connexion : une requête trafiquée ne remplit plus le journal.
 - Logs (admin) — une ligne avec un caractère invalide n'est plus perdue.
 - Sécurité — le navigateur retient le nouveau mot de passe après un changement.
-- Sécurité — sur téléphone : fenêtre de blocage en bas, champs tactiles.
+- Sécurité — sur téléphone : fenêtre de blocage en bas, champs à taille tactile.
 - Sécurité — règles du mot de passe complètes (12 caractères différents).
 - Sécurité — clé de chiffrement de nouveau lisible après un changement de PUID.
 - Sécurité — démarrage : lien piégé à la place d'un dossier de /data ignoré.
