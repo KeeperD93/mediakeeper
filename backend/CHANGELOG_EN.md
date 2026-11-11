@@ -12,6 +12,7 @@ This section intentionally has no date so it is not shown to users.
 
 ### Fixed
 - Notifications — progress bar matches each message's actual duration.
+- Notifications — message fully visible on small phones.
 
 ## [1.0.0-rc.10] - 2026-11-11
 
