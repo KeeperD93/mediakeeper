@@ -118,7 +118,7 @@ async def test_a_failed_check_still_returns_the_trophies_granted_before(db_sessi
     assert "achievements run failed" in caplog.text
     returned = {u["achievement_id"] for u in unlocks}
     assert "secret_first_play" in returned
-    # Each one survived the rollback: its XP grant had committed it.
+    # Each one survived the rollback: its first XP grant had committed it.
     unlocked = set((await db_session.execute(
         select(UserAchievement.achievement_id).where(
             UserAchievement.user_id == alice_id, UserAchievement.unlocked.is_(True),
