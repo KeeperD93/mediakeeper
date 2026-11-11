@@ -1,4 +1,6 @@
-"""A failed trophy check costs its caller nothing: the shared session stays usable."""
+"""A failed trophy check costs its caller nothing: the shared session stays usable,
+and the trophies granted before the failure are still reported."""
+import logging
 from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
 
@@ -96,6 +98,33 @@ async def test_a_failed_rollback_keeps_the_outcome_of_the_check(db_session, chec
                 await achievements.safe_check_all_achievements(
                     db_session, alice_id, "test", silent=False,
                 )
+
+
+@pytest.mark.asyncio
+async def test_a_failed_check_still_returns_the_trophies_granted_before(db_session, monkeypatch, caplog):
+    """The last pass breaks the session, so the check itself fails at its final commit."""
+    [alice_id] = await _ids(db_session, "alice")
+    await achievements.seed_achievements(db_session)
+    await _closed_play(db_session, "alice", "movie-1")
+
+    async def meta(db, *, user_id, **_kwargs):
+        db.add(UserAchievement(user_id=user_id, achievement_id=None))  # a NOT NULL column
+        await db.flush()
+
+    monkeypatch.setattr(achievements, "check_meta", meta)
+    with caplog.at_level(logging.ERROR, logger="mediakeeper.portal.achievements"):
+        unlocks = await achievements.safe_check_all_achievements(db_session, alice_id, "test")
+
+    assert "achievements run failed" in caplog.text
+    returned = {u["achievement_id"] for u in unlocks}
+    assert "secret_first_play" in returned
+    # Each one survived the rollback: its XP grant had committed it.
+    unlocked = set((await db_session.execute(
+        select(UserAchievement.achievement_id).where(
+            UserAchievement.user_id == alice_id, UserAchievement.unlocked.is_(True),
+        )
+    )).scalars())
+    assert returned <= unlocked
 
 
 @pytest.mark.asyncio

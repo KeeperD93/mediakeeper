@@ -43,9 +43,9 @@ async def check_local_time(
     unlocked_ids: set[str],
     rows: list[PlaybackSession],
     zone: tzinfo,
-) -> list[dict]:
-    """Run every rule on the clock of ``zone``. Returns the newly unlocked list."""
-    unlocks: list[dict] = []
+    unlocks: list[dict],
+) -> None:
+    """Run every rule on the clock of ``zone``. Appends each new unlock to ``unlocks``."""
 
     async def _apply(ach: Achievement, value: int) -> None:
         if ach.id in unlocked_ids:
@@ -77,5 +77,3 @@ async def check_local_time(
         value = int(await _is_lonely(db, new_year_rows(plays)))
         for ach in by_type[_LONELY]:
             await _apply(ach, value)
-
-    return unlocks

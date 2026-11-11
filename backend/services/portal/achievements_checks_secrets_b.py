@@ -38,11 +38,14 @@ async def check_secrets_b(
     playback_rows: list | None,
     all_achs: list,
     zone: tzinfo,
+    unlocks: list[dict],
     pause_user_filter=None,
     pause_excl_filters: list | None = None,
-) -> list[dict]:
-    """Run second half of secret checks + ultimate_collector. Returns newly unlocked list."""
-    unlocks: list[dict] = []
+) -> None:
+    """Run second half of secret checks + ultimate_collector.
+
+    Appends each new unlock to ``unlocks``.
+    """
 
     async def _apply(cond_type: str, value: int):
         if cond_type not in by_type:
@@ -265,5 +268,3 @@ async def check_secrets_b(
                 hit = True
                 break
         await _apply("secret_late", 1 if hit else 0)
-
-    return unlocks
