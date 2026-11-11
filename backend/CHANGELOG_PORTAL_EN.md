@@ -14,6 +14,9 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Fixed
+- Sign-in — the browser fills in the saved username and password.
+
 ## [1.0.0-rc.10] - 2026-11-11
 
 ### Added

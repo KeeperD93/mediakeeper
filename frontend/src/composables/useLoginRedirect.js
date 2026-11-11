@@ -60,12 +60,13 @@ export function useLoginRedirect({ username, remember, errorMsg, loggedOutMsg })
     }
   }
 
+  // Runs after the network checks: a password manager may have filled the field
+  // meanwhile, and overwriting only its name would pair it with the wrong password.
   function prefillSavedUsername() {
     const saved = localStorage.getItem(STORAGE_KEYS.SAVED_USERNAME)
-    if (saved) {
-      username.value = saved
-      remember.value = true
-    }
+    if (!saved) return
+    remember.value = true
+    if (!username.value) username.value = saved
   }
 
   async function resolveSession() {

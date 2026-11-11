@@ -78,36 +78,38 @@
             {{ errorMsg }}
           </div>
 
-          <div class="login-fields">
+          <!-- The fields have no name: even a native submission could not put
+               them in the URL. Password managers go by autocomplete and type. -->
+          <form class="login-fields" @submit.prevent="doLogin" @keydown.enter="ignoreHeldEnter">
             <div class="login-field">
-              <label class="login-label">{{ t(usernameKey) }}</label>
+              <label class="login-label" :for="usernameId">{{ t(usernameKey) }}</label>
               <div class="login-input-wrap">
                 <User class="login-input-icon" :size="15" :stroke-width="1.8" />
                 <input
+                  :id="usernameId"
                   v-model="username"
                   type="text"
                   :placeholder="t(usernameKey)"
-                  autocomplete="off"
+                  autocomplete="username"
                   autocorrect="off"
                   autocapitalize="off"
                   spellcheck="false"
                   class="login-input"
-                  @keydown.enter="onEnter"
                 />
               </div>
             </div>
 
             <div class="login-field">
-              <label class="login-label">{{ t(passwordKey) }}</label>
+              <label class="login-label" :for="passwordId">{{ t(passwordKey) }}</label>
               <div class="login-input-wrap">
                 <LockKeyhole class="login-input-icon" :size="15" :stroke-width="1.8" />
                 <input
+                  :id="passwordId"
                   v-model="password"
                   type="password"
                   :placeholder="t(passwordKey)"
-                  autocomplete="new-password"
+                  autocomplete="current-password"
                   class="login-input"
-                  @keydown.enter="onEnter"
                 />
               </div>
             </div>
@@ -117,19 +119,14 @@
               <span>{{ $t('login.remember') }}</span>
             </label>
 
-            <button
-              class="login-submit"
-              :disabled="submitting"
-              @click="doLogin"
-              @keydown.enter.prevent="onEnter"
-            >
+            <button type="submit" class="login-submit" :disabled="submitting">
               <MkSpinner v-if="submitting" size="sm" inline />
               <template v-else>
                 <LogIn :size="15" />
               </template>
               {{ submitting ? t('common.loading') : t(submitKey) }}
             </button>
-          </div>
+          </form>
 
           <div class="login-links">
             <a href="https://discord.gg/A2hyNUUn6a" target="_blank" rel="noopener" title="Discord">
@@ -167,7 +164,7 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted, useId } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/composables/useAuth'
@@ -206,6 +203,8 @@ const maintenanceText = ref('')
 const submitting = ref(false)
 const pageRef = ref(null)
 const canvasRef = ref(null)
+const usernameId = useId()
+const passwordId = useId()
 let cleanupParticles = null
 const RETRY_PAUSE_MS = 1000
 let refusedAt = 0
@@ -245,13 +244,14 @@ onUnmounted(() => {
 })
 
 // A held key repeats: each quick refusal would let the next repeat use up a try.
-function onEnter(event) {
-  if (!event.repeat) doLogin()
+// Cancelling the repeat stops both the form's implicit submission and the button press.
+function ignoreHeldEnter(event) {
+  if (event.repeat) event.preventDefault()
 }
 
 async function doLogin() {
-  // Enter still fires while the button is disabled: one sign-in at a time. A refusal
-  // comes back fast, so a double press would otherwise reach the server twice.
+  // One sign-in at a time. A refusal comes back fast, so a double press would
+  // otherwise reach the server twice.
   if (submitting.value || Date.now() - refusedAt < RETRY_PAUSE_MS) return
   errorMsg.value = ''
 

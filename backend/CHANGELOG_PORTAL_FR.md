@@ -16,6 +16,9 @@ utilisateurs.
 
 ## [Unreleased]
 
+### Fixed
+- Connexion — le navigateur remplit le nom et le mot de passe enregistrés.
+
 ## [1.0.0-rc.10] - 2026-11-11
 
 ### Added

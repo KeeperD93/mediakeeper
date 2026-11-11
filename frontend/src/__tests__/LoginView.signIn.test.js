@@ -1,6 +1,6 @@
 /**
- * Signing in from the page: the refusal it shows, and one try at a time whatever
- * the Enter key does.
+ * Signing in from the page: the form the browser and password managers see, the
+ * refusal it shows, and one try at a time whatever the Enter key does.
  */
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
@@ -59,26 +59,99 @@ import LoginView from '@/views/LoginView.vue'
 
 const wrongPassword = () => new Error('invalid_credentials')
 const PAUSE_OVER = 1000
+const NAME = 'input[autocomplete="username"]'
+const PASSWORD = 'input[autocomplete="current-password"]'
 
-async function filledForm() {
+async function mountPage() {
   const w = mount(LoginView)
   for (let i = 0; i < 10; i++) await flushPromises()
-  await w.find('input[type="text"]').setValue('someone')
-  await w.find('input[type="password"]').setValue('not-a-real-password')
   return w
 }
 
-describe('LoginView — signing in', () => {
-  let consoleError
+async function filledForm() {
+  const w = await mountPage()
+  await w.find(NAME).setValue('someone')
+  await w.find(PASSWORD).setValue('not-a-real-password')
+  return w
+}
 
+// What a real browser fires on Enter in a field or a press of the button; the
+// test DOM fires neither, the e2e specs cover that part.
+const submit = w => w.find('form').trigger('submit')
+
+function keydownEnter(element, { repeat = false } = {}) {
+  const event = new KeyboardEvent('keydown', {
+    key: 'Enter',
+    repeat,
+    bubbles: true,
+    cancelable: true,
+  })
+  element.dispatchEvent(event)
+  return event
+}
+
+let consoleError
+
+beforeEach(() => {
+  loginMock.mockReset()
+  consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+})
+
+afterEach(() => {
+  consoleError.mockRestore()
+})
+
+describe('LoginView — the form browsers fill', () => {
+  it('names the saved-login fields and keeps them in one form with its button', async () => {
+    const w = await mountPage()
+    const form = w.find('form').element
+    const name = w.find(NAME)
+    const password = w.find(PASSWORD)
+    const button = w.find('button.login-submit')
+
+    expect(name.attributes('type')).toBe('text')
+    expect(password.attributes('type')).toBe('password')
+    expect(button.attributes('type')).toBe('submit')
+    for (const control of [name, password, w.find('.login-checkbox'), button]) {
+      expect(control.element.form).toBe(form)
+    }
+  })
+
+  it('ties each label to its field', async () => {
+    const w = await mountPage()
+    const targets = w
+      .findAll('label.login-label')
+      .map(label => w.find(`[id="${label.attributes('for')}"]`).attributes('autocomplete'))
+
+    expect(targets).toEqual(['username', 'current-password'])
+  })
+
+  it('gives the fields no name, so no native submission can carry them', async () => {
+    const w = await mountPage()
+
+    expect(w.find(NAME).attributes('name')).toBeUndefined()
+    expect(w.find(PASSWORD).attributes('name')).toBeUndefined()
+  })
+
+  it('cancels the native submission of the form', async () => {
+    const w = await filledForm()
+    loginMock.mockRejectedValueOnce(wrongPassword())
+    const event = new Event('submit', { bubbles: true, cancelable: true })
+
+    w.find('form').element.dispatchEvent(event)
+    await flushPromises()
+
+    expect(event.defaultPrevented).toBe(true)
+    expect(loginMock).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('LoginView — signing in', () => {
   beforeEach(() => {
-    loginMock.mockReset()
-    consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
     vi.useFakeTimers({ toFake: ['Date'] })
   })
 
   afterEach(() => {
-    consoleError.mockRestore()
     vi.useRealTimers()
   })
 
@@ -87,7 +160,7 @@ describe('LoginView — signing in', () => {
     loginMock.mockRejectedValueOnce(refusal)
     const w = await filledForm()
 
-    await w.find('button.login-submit').trigger('click')
+    await submit(w)
     await flushPromises()
 
     const error = w.find('.login-error')
@@ -96,20 +169,17 @@ describe('LoginView — signing in', () => {
     expect(consoleError).toHaveBeenCalledWith('[LoginView.doLogin]', refusal)
   })
 
-  it.each(['input[type="text"]', 'input[type="password"]'])(
-    'sends one try with Enter in %s',
-    async field => {
-      loginMock.mockRejectedValue(wrongPassword())
-      const w = await filledForm()
+  it('sends one try when the form is submitted', async () => {
+    loginMock.mockRejectedValue(wrongPassword())
+    const w = await filledForm()
 
-      await w.find(field).trigger('keydown', { key: 'Enter' })
-      await flushPromises()
+    await submit(w)
+    await flushPromises()
 
-      expect(loginMock).toHaveBeenCalledTimes(1)
-    },
-  )
+    expect(loginMock).toHaveBeenCalledExactlyOnceWith('someone', 'not-a-real-password')
+  })
 
-  it('ignores Enter while a sign-in is running, then listens again', async () => {
+  it('ignores a submission while a sign-in is running, then listens again', async () => {
     let refuse
     loginMock.mockReturnValueOnce(
       new Promise((_, reject) => {
@@ -117,86 +187,61 @@ describe('LoginView — signing in', () => {
       }),
     )
     const w = await filledForm()
-    const field = w.find('input[type="password"]')
 
-    await field.trigger('keydown', { key: 'Enter' })
-    await field.trigger('keydown', { key: 'Enter' })
-    await w.find('input[type="text"]').trigger('keydown', { key: 'Enter' })
+    await submit(w)
+    await submit(w)
     expect(loginMock).toHaveBeenCalledTimes(1)
 
     refuse(wrongPassword())
     await flushPromises()
     vi.setSystemTime(Date.now() + PAUSE_OVER)
     loginMock.mockRejectedValueOnce(wrongPassword())
-    await field.trigger('keydown', { key: 'Enter' })
+    await submit(w)
     await flushPromises()
 
     expect(loginMock).toHaveBeenCalledTimes(2)
   })
 
-  it.each([
-    ['Enter', w => w.find('input[type="password"]').trigger('keydown', { key: 'Enter' })],
-    ['the button', w => w.find('button.login-submit').trigger('click')],
-  ])('counts a second press of %s right after a refusal as the same try', async (_, press) => {
+  it('counts a second press right after a refusal as the same try', async () => {
     loginMock.mockRejectedValue(wrongPassword())
     const w = await filledForm()
 
-    await press(w)
+    await submit(w)
     await flushPromises()
     vi.setSystemTime(Date.now() + PAUSE_OVER - 2)
-    await press(w)
+    await submit(w)
     await flushPromises()
     expect(loginMock).toHaveBeenCalledTimes(1)
 
     vi.setSystemTime(Date.now() + 2)
-    await press(w)
+    await submit(w)
     await flushPromises()
     expect(loginMock).toHaveBeenCalledTimes(2)
   })
 
-  it('does not count a held Enter on the button as new tries', async () => {
-    loginMock.mockRejectedValue(wrongPassword())
-    const w = await filledForm()
-    const button = w.find('button.login-submit')
+  it.each([NAME, PASSWORD, '.login-checkbox', 'button.login-submit'])(
+    'cancels a held Enter on %s, never the first press',
+    async selector => {
+      const w = await filledForm()
+      const element = w.find(selector).element
 
-    await button.trigger('keydown', { key: 'Enter' })
-    await flushPromises()
-    vi.setSystemTime(Date.now() + PAUSE_OVER)
-    await button.trigger('keydown', { key: 'Enter', repeat: true })
-    await button.trigger('keydown', { key: 'Enter', repeat: true })
-    await flushPromises()
-
-    expect(loginMock).toHaveBeenCalledTimes(1)
-  })
+      expect(keydownEnter(element).defaultPrevented).toBe(false)
+      expect(keydownEnter(element, { repeat: true }).defaultPrevented).toBe(true)
+    },
+  )
 
   it('does not hold back a first try, nor one after a form left incomplete', async () => {
     loginMock.mockRejectedValue(wrongPassword())
     const w = await filledForm()
-    const password = w.find('input[type="password"]')
 
-    await password.setValue('')
-    await password.trigger('keydown', { key: 'Enter' })
+    await w.find(PASSWORD).setValue('')
+    await submit(w)
     expect(w.find('.login-error').text()).toBe('login.allRequired')
     expect(loginMock).not.toHaveBeenCalled()
 
-    await password.setValue('not-a-real-password')
-    await password.trigger('keydown', { key: 'Enter' })
+    await w.find(PASSWORD).setValue('not-a-real-password')
+    await submit(w)
     await flushPromises()
-    expect(loginMock).toHaveBeenCalledTimes(1)
-  })
-
-  it('does not count a held Enter as new tries, however long it is held', async () => {
-    loginMock.mockRejectedValue(wrongPassword())
-    const w = await filledForm()
-    const field = w.find('input[type="password"]')
-
-    await field.trigger('keydown', { key: 'Enter' })
-    await flushPromises()
-    vi.setSystemTime(Date.now() + PAUSE_OVER)
-    await field.trigger('keydown', { key: 'Enter', repeat: true })
-    await field.trigger('keydown', { key: 'Enter', repeat: true })
-    await flushPromises()
-
     expect(loginMock).toHaveBeenCalledTimes(1)
   })
 })
