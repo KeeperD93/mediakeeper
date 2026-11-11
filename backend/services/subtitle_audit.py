@@ -52,7 +52,7 @@ async def run_audit(
 
     # External subtitle paths come straight from the (trusted-but-fallible)
     # media server. Validate them against the media roots before reading so a
-    # compromised server can't make us read arbitrary files (#401).
+    # compromised server can't make us read arbitrary files.
     media_roots = get_existing_media_path_roots()
 
     cfg = await _get_emby_config(db)

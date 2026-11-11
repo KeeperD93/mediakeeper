@@ -1,5 +1,5 @@
 """Localized TMDB season/episode detail helpers: region-expand the locale and
-cascade to English on a blank overview (#288 Discord notifications)."""
+cascade to English on a blank overview (used by Discord notifications)."""
 from __future__ import annotations
 
 import pytest

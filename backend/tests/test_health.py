@@ -47,7 +47,7 @@ async def test_health_contains_version(client):
 @pytest.mark.asyncio
 async def test_health_full_checks_configured_media_source(client):
     """GET /api/health?full=1 should probe the configured media source
-    when called by an authenticated admin (#388)."""
+    when called by an authenticated admin."""
     client.cookies.set("mk_token", create_access_token({"sub": "admin", "scope": "admin"}))
     fake_client = SimpleNamespace(
         get=AsyncMock(return_value=SimpleNamespace(is_success=True, status_code=200)),
@@ -99,7 +99,7 @@ async def test_health_full_returns_503_when_configured_media_source_is_down(clie
 @pytest.mark.asyncio
 async def test_health_full_without_admin_falls_back_to_basic(client):
     """An unauthenticated ?full=1 must not expose media_source nor probe the
-    upstream — it degrades to the public basic payload (#388)."""
+    upstream — it degrades to the public basic payload."""
     fake_client = SimpleNamespace(get=AsyncMock())
 
     with (

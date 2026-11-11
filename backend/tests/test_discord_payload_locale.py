@@ -1,5 +1,5 @@
 """Discord media payloads re-resolve title/synopsis to the webhook language and
-localize the TMDB link label (#288). Emby values are the per-field fallback."""
+localize the TMDB link label. Emby values are the per-field fallback."""
 from __future__ import annotations
 
 import pytest

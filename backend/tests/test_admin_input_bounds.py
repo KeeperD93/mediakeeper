@@ -1,4 +1,4 @@
-"""Bounds on admin/internal write surfaces (#383): oversized, negative or
+"""Bounds on admin/internal write surfaces: oversized, negative or
 out-of-domain input is rejected at validation time (422) instead of
 crashing the request or being stored unbounded. Endpoints sit behind the
 backoffice auth, so this is defence-in-depth, not a public guard.
@@ -99,7 +99,7 @@ def test_stats_schemas_reject_unknown_fields():
 
 def test_exclusion_request_validates_mode_and_value():
     """Bad mode / blank value are rejected at the schema (422 at the route)
-    instead of the old 200 + {"error": ...} contract (#381)."""
+    instead of the old 200 + {"error": ...} contract."""
     with pytest.raises(ValidationError):
         ExclusionRequest(mode="bogus", value="x")
     with pytest.raises(ValidationError):

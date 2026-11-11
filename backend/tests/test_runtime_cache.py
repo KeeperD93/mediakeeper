@@ -1,6 +1,6 @@
 """TMDB runtime cache resolver (services/portal/runtime_cache.py).
 
-Covers the paths #104 relies on:
+Covers the paths the poster runtime badge relies on:
   * cache hit       → runtime stamped from the DB, no TMDB call
   * cache miss      → one TMDB detail call, runtime persisted + stamped
   * TV series       → runtime taken from the first ``episode_run_time``

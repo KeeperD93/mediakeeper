@@ -324,7 +324,7 @@ async def test_proxy_emby_trailer_truncates_at_cap(client, db_session, monkeypat
 @pytest.mark.asyncio
 async def test_resolve_rejects_non_alphanumeric_emby_item_id(client, db_session):
     """A malformed emby_item_id is rejected (422) before it reaches the
-    upstream Emby URL builder in resolve_trailer (#420)."""
+    upstream Emby URL builder in resolve_trailer."""
     await _seed_portal_viewer(client, db_session, "viewer_tr_guard")
     resp = await client.get(
         "/api/portal/trailers/resolve",

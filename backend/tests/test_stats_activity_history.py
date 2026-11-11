@@ -96,7 +96,7 @@ async def test_get_activity_history_ignores_empty_exclude(db_session):
 
 @pytest.mark.asyncio
 async def test_search_matches_like_wildcards_literally(db_session):
-    # #341: the search box must treat % and _ as literal characters, not SQL
+    # The search box must treat % and _ as literal characters, not SQL
     # LIKE wildcards. autoescape emits an ESCAPE clause so this holds on SQLite
     # too (Postgres defaults to backslash; SQLite has no default escape).
     db_session.add_all([
@@ -177,7 +177,7 @@ async def test_grouped_respects_user_filter(db_session):
 
 @pytest.mark.asyncio
 async def test_flat_sort_by_user_orders_the_whole_set(db_session):
-    # #327: sorting must apply server-side across all pages, not per-page.
+    # Sorting must apply server-side across all pages, not per-page.
     db_session.add_all([
         _row(id=1, session_key="s1", user_id="C", user_name="Charlie"),
         _row(id=2, session_key="s2", user_id="A", user_name="Alice"),

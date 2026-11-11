@@ -1,6 +1,6 @@
 """Trailer endpoints follow the viewer's active locale (X-MK-Locale), not the
 stored profile language: the random carousel localizes its item titles and
-both endpoints query the trailer cascade in the viewer's language (#288)."""
+both endpoints query the trailer cascade in the viewer's language."""
 from __future__ import annotations
 
 import pytest

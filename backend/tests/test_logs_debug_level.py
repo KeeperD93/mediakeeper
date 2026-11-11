@@ -1,4 +1,4 @@
-"""apply_debug_level moves BOTH the logger and the file handler (#484).
+"""apply_debug_level moves BOTH the logger and the file handler.
 
 The admin "Debug mode" toggle previously set only the logger level, leaving the
 file handler filtering DEBUG records out of the log file. The shared helper now

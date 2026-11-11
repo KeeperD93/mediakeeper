@@ -1,6 +1,6 @@
 """The daily digest follows the viewer's active locale (X-MK-Locale): the
 recent-additions block re-resolves Emby titles, and the endpoint reads the
-canonical locale channel instead of Accept-Language only (#288)."""
+canonical locale channel instead of Accept-Language only."""
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -107,7 +107,7 @@ async def test_digest_endpoint_uses_request_locale(client, db_session, monkeypat
 async def test_build_digest_caches_per_lang(db_session, monkeypatch):
     """The 1h cache key includes the viewer locale: two languages produce two
     distinct entries, so an `en` viewer is never served the `fr` payload cached
-    moments earlier by another locale (regression introduced with #288)."""
+    moments earlier by another locale (a regression once titles became per-viewer)."""
     user, _ = await make_portal_user(db_session, username="digest-cache", display_name="V", role="viewer")
     dd._digest_cache.clear()
 

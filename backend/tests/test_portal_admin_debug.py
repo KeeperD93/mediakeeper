@@ -244,7 +244,7 @@ async def test_debug_achievements_catalogue(client, db_session):
         assert key in sample
 
 
-# ─── audit trail (#418) ────────────────────────────────────────────────
+# ─── audit trail ───────────────────────────────────────────────────────
 
 
 @pytest.mark.asyncio

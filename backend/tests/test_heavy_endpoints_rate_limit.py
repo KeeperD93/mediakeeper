@@ -53,7 +53,7 @@ async def test_chat_send_caps_at_thirty_per_minute(client, admin_user, db_sessio
 @pytest.mark.asyncio
 async def test_achievements_check_caps_at_six_per_minute(client, admin_user, db_session, portal_login):
     """POST /achievements/check scans achievements + playback each call, so it
-    carries a dedicated 6/min cap below the 120/min floor (#382)."""
+    carries a dedicated 6/min cap below the 120/min floor."""
     await portal_login(client)
     profile = await get_or_create_profile(db_session, admin_user)
     profile.role = "admin"
@@ -73,7 +73,7 @@ async def test_achievements_check_caps_at_six_per_minute(client, admin_user, db_
 @pytest.mark.asyncio
 async def test_event_party_creation_caps_at_ten_per_minute(client, admin_user, db_session, portal_login):
     """Creating a watch party fans a notification out to every user, so the
-    POST is capped at 10/min/account (#408)."""
+    POST is capped at 10/min/account."""
     await portal_login(client)
     profile = await get_or_create_profile(db_session, admin_user)
     profile.role = "admin"
@@ -96,7 +96,7 @@ async def test_event_party_creation_caps_at_ten_per_minute(client, admin_user, d
 @pytest.mark.asyncio
 async def test_event_room_creation_caps_at_ten_per_minute(client, admin_user, db_session, portal_login):
     """create_mk_event (POST /events/rooms) shares the 10/min/account cap of
-    its sibling party endpoint (#408)."""
+    its sibling party endpoint."""
     await portal_login(client)
     profile = await get_or_create_profile(db_session, admin_user)
     profile.role = "admin"
@@ -122,7 +122,7 @@ async def test_event_room_creation_caps_at_ten_per_minute(client, admin_user, db
 
 @pytest.mark.asyncio
 async def test_daily_digest_caps_at_twenty_per_minute(client, admin_user, db_session, portal_login):
-    """The new 20/min cap on the daily-digest read endpoint is pinned (#382)."""
+    """The 20/min cap on the daily-digest read endpoint is pinned."""
     await portal_login(client)
     profile = await get_or_create_profile(db_session, admin_user)
     profile.account_active = True

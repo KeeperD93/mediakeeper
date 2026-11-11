@@ -1,5 +1,5 @@
 """Bell notifications re-resolve media titles (request_*/ticket_*) to the
-reader's locale at read time; non-media notifs (events) are left untouched (#288)."""
+reader's locale at read time; non-media notifs (events) are left untouched."""
 from __future__ import annotations
 
 import pytest

@@ -4,7 +4,7 @@
 
 Companion to ``test_portal_discover_locale`` (which checks the right locale
 reaches the service) — these go one layer deeper and assert the exact
-``language`` value sent to TMDB (#288).
+``language`` value sent to TMDB.
 """
 from __future__ import annotations
 

@@ -450,7 +450,7 @@ async def test_series_seasons_returns_episode_tree(client, db_session):
 @pytest.mark.asyncio
 async def test_series_seasons_rejects_non_alphanumeric_series_id(client, db_session):
     """A series_id carrying query-injection chars is rejected at the boundary
-    (422) before it can be interpolated into the upstream Emby URL (#420)."""
+    (422) before it can be interpolated into the upstream Emby URL."""
     await _seed(client, db_session)
     resp = await client.get(
         "/api/portal/tickets/emby/series/abc%3Fx%3Dy/seasons"
@@ -459,7 +459,7 @@ async def test_series_seasons_rejects_non_alphanumeric_series_id(client, db_sess
 
 
 # ---------------------------------------------------------------------------
-# Ticket ownership visibility (#422) — a non-owner gets 404, never 403
+# Ticket ownership visibility — a non-owner gets 404, never 403
 # ---------------------------------------------------------------------------
 
 

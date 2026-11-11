@@ -123,7 +123,7 @@ def test_validate_rejects_double_dot_inside_resolved_path(monkeypatch):
 
 def test_browse_surface_excludes_backup_zone(monkeypatch):
     """The folder browser never exposes the backup zone, even when it lives
-    inside a media root (#399)."""
+    inside a media root."""
     workspace = _make_workspace_tmp("_attack_browse")
     try:
         media_root = workspace / "media"

@@ -117,7 +117,7 @@ async def test_serialize_falls_back_to_default_lang(db_session):
 
 
 # ---------------------------------------------------------------------------
-# Admin payload bounds (#412) — body_html is capped to keep a Text column
+# Admin payload bounds — body_html is capped to keep a Text column
 # and the response payload from growing without limit.
 # ---------------------------------------------------------------------------
 

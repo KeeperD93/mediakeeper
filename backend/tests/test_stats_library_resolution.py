@@ -1,4 +1,4 @@
-"""Library-name resolution: collector precedence + repair routine (#269)."""
+"""Library-name resolution: collector precedence + repair routine."""
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 

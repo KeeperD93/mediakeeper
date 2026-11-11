@@ -3,7 +3,7 @@
 The catalog ``get_season_episodes`` / ``get_tv_seasons`` helpers return names
 only; surfaces that also need the per-season/episode *overview* in the viewer's
 language (e.g. Discord season/episode notifications) use these. English-cascade
-on a blank overview like ``get_media_detail`` so it never renders empty (#288).
+on a blank overview like ``get_media_detail`` so it never renders empty.
 """
 from __future__ import annotations
 
