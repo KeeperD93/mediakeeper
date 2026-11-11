@@ -196,10 +196,7 @@ const capacityLabel = computed(() => {
   const accepted = Number(event.value?.accepted_count ?? 0)
   const remaining = Math.max(0, max - accepted)
   if (event.value?.is_full) return t('portal.mkEvents.detail.full')
-  return t('portal.mkEvents.detail.remaining', remaining, {
-    remaining,
-    total: max,
-  })
+  return t('portal.mkEvents.detail.remaining', { remaining, total: max }, remaining)
 })
 
 // Tick every second so the room button appears the moment T-15 hits.

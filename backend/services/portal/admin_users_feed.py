@@ -12,10 +12,10 @@ from sqlalchemy import select, desc, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.pagination import build_cursor_response, decode_cursor
+from services.portal.achievement_defs import TIER_NAMES
 from services.portal.media_title_localize import localize_titles
 
 
-_TIER_NAMES = {1: "bronze", 2: "silver", 3: "gold", 4: "platinum", 5: "diamond", 6: "mythic"}
 _RARITY_LABELS = {
     1: "common",
     2: "uncommon",
@@ -53,7 +53,7 @@ async def list_user_trophies(db: AsyncSession, user_id: int) -> dict[str, Any]:
             "progress": ua.progress,
             "threshold": ach.threshold,
             "tier": ach.tier,
-            "tier_name": _TIER_NAMES.get(ach.tier, "bronze"),
+            "tier_name": TIER_NAMES.get(ach.tier, "bronze"),
             "rarity": _RARITY_LABELS.get(ach.tier, "common"),
             "xp_reward": ach.xp_reward,
             "secret": bool(ach.secret),

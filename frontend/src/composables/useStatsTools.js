@@ -21,6 +21,7 @@ export function useStatsTools() {
   const mkConfirm = useConfirm()
   const { loadTotals } = useStats()
 
+  const importing = ref(false)
   const importStatus = ref(null)
   const purgeStatus = ref(null)
   const repairOpen = ref(false)
@@ -37,6 +38,7 @@ export function useStatsTools() {
   const errStatus = text => (text ? { type: TOAST_TYPE.ERR, text } : null)
 
   async function importJellystats(file) {
+    importing.value = true
     importStatus.value = { type: TOAST_TYPE.INFO, text: t('stats.importing') }
     try {
       const fd = new FormData()
@@ -55,6 +57,8 @@ export function useStatsTools() {
       importStatus.value = errStatus(
         failure('importJellystats', e, 'common.apiError.import_failed'),
       )
+    } finally {
+      importing.value = false
     }
   }
 
@@ -96,6 +100,7 @@ export function useStatsTools() {
   }
 
   return {
+    importing,
     importStatus,
     purgeStatus,
     repairOpen,

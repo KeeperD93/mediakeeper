@@ -1,5 +1,5 @@
 import { ref, reactive } from 'vue'
-import { useApi } from '@/composables/useApi'
+import { resolveApiError, useApi } from '@/composables/useApi'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import { TASK_STATUS } from '@/constants/scheduler'
@@ -79,13 +79,14 @@ export function useParamsScheduler() {
           _running: task.last_status === TASK_STATUS.RUNNING,
         }))
         schedTasks.value.forEach(task => {
-          if (!schedEditValues[task.key]) {
-            const unit = bestUnit(task.interval_sec)
-            schedEditValues[task.key] = {
-              unit,
-              amount: intervalToAmount(task.interval_sec, unit),
-              savedSec: task.interval_sec,
-            }
+          const ev = schedEditValues[task.key]
+          // Changed elsewhere: the field follows, unless the admin is typing in it.
+          if (ev && (ev.savedSec === task.interval_sec || schedIsDirty(task))) return
+          const unit = bestUnit(task.interval_sec)
+          schedEditValues[task.key] = {
+            unit,
+            amount: intervalToAmount(task.interval_sec, unit),
+            savedSec: task.interval_sec,
           }
         })
         if (
@@ -130,14 +131,26 @@ export function useParamsScheduler() {
     cachesPollTimer = setInterval(loadCaches, CACHES_POLL_MS)
   }
 
+  // Null when the change failed (the reason is shown) or the session expired (login follows).
+  async function schedSave(url, options) {
+    try {
+      const res = await apiFetch(url, options)
+      return res && (await res.json())
+    } catch (e) {
+      console.error('[useParamsScheduler.schedSave]', e)
+      const text = resolveApiError(e?.message, 'common.apiError.saveFailed')
+      if (text) showToast(text, TOAST_TYPE.ERR)
+      return null
+    }
+  }
+
   async function schedToggle(task) {
     const newVal = !task.enabled
-    const res = await apiFetch(`/api/scheduler/tasks/${task.key}`, {
+    const data = await schedSave(`/api/scheduler/tasks/${task.key}`, {
       method: 'PATCH',
       body: JSON.stringify({ enabled: newVal }),
     })
-    const data = await res.json()
-    if (data.success) {
+    if (data?.success) {
       task.enabled = newVal
       showToast(newVal ? t('scheduler.enabled') : t('scheduler.disabled'), TOAST_TYPE.OK)
     }
@@ -151,12 +164,11 @@ export function useParamsScheduler() {
       showToast(t('scheduler.minInterval'), TOAST_TYPE.ERR)
       return
     }
-    const res = await apiFetch(`/api/scheduler/tasks/${task.key}`, {
+    const data = await schedSave(`/api/scheduler/tasks/${task.key}`, {
       method: 'PATCH',
       body: JSON.stringify({ interval_sec: sec }),
     })
-    const data = await res.json()
-    if (data.success) {
+    if (data?.success) {
       task.interval_sec = sec
       ev.savedSec = sec
       showToast(t('scheduler.intervalSaved'), TOAST_TYPE.OK)
@@ -164,9 +176,8 @@ export function useParamsScheduler() {
   }
 
   async function schedReset(task) {
-    const res = await apiFetch(`/api/scheduler/tasks/${task.key}/reset`, { method: 'POST' })
-    const data = await res.json()
-    if (data.success) {
+    const data = await schedSave(`/api/scheduler/tasks/${task.key}/reset`, { method: 'POST' })
+    if (data?.success) {
       task.interval_sec = data.interval_sec
       const unit = bestUnit(data.interval_sec)
       schedEditValues[task.key] = {

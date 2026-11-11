@@ -15,7 +15,13 @@
         <label class="tool-btn-accent tool-action">
           <Plus :size="14" />
           {{ $t('stats.chooseFile') }}
-          <input type="file" accept=".json" class="sr-only" @change="onFilePicked" />
+          <input
+            type="file"
+            accept=".json"
+            class="sr-only"
+            :disabled="importing"
+            @change="onFilePicked"
+          />
         </label>
       </div>
       <div class="glass-card tool-card">
@@ -29,7 +35,13 @@
             {{ purgeStatus.text }}
           </div>
         </div>
-        <MkButton class="tool-action" variant="danger" icon="trash-2" @click="purgeJellystats">
+        <MkButton
+          class="tool-action"
+          variant="danger"
+          icon="trash-2"
+          :disabled="importing"
+          @click="purgeJellystats"
+        >
           {{ $t('stats.purgeBtn') }}
         </MkButton>
       </div>
@@ -76,6 +88,7 @@ import StatsRepairOverlay from '@/components/stats/StatsRepairOverlay.vue'
 import { useStatsTools } from '@/composables/useStatsTools'
 
 const {
+  importing,
   importStatus,
   purgeStatus,
   repairOpen,
@@ -160,6 +173,10 @@ async function onFilePicked(e) {
   outline: var(--focus-ring);
   outline-offset: var(--focus-ring-offset);
 }
+.tool-btn-accent:has(:disabled) {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
 .tool-status {
   margin-bottom: var(--space-2-5);
   font-size: var(--text-2xs);
@@ -205,7 +222,7 @@ async function onFilePicked(e) {
   }
 }
 @media (hover: hover) {
-  .tool-btn-accent:hover {
+  .tool-btn-accent:hover:not(:has(:disabled)) {
     background: rgb(var(--accent-rgb), 0.25);
   }
 }

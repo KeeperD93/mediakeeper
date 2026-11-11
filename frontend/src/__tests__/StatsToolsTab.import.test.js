@@ -69,6 +69,34 @@ describe('StatsToolsTab — import failure', () => {
 })
 
 describe('StatsToolsTab — file input', () => {
+  it('blocks another import and the purge while one is running', async () => {
+    let finish
+    h.apiFetch.mockReturnValueOnce(
+      new Promise(resolve => {
+        finish = resolve
+      }),
+    )
+    wrapper = mount(StatsToolsTab)
+    const input = wrapper.find('input[type="file"]')
+    const purge = wrapper.findAll('button').find(b => b.text().includes('stats.purgeBtn'))
+    Object.defineProperty(input.element, 'files', { value: [new File(['{}'], 'history.json')] })
+    expect(input.attributes('disabled')).toBeUndefined()
+
+    await input.trigger('change')
+    expect(input.attributes('disabled')).toBeDefined()
+    expect(purge.attributes('disabled')).toBeDefined()
+
+    finish(null)
+    await flushPromises()
+    expect(input.attributes('disabled')).toBeUndefined()
+    expect(purge.attributes('disabled')).toBeUndefined()
+  })
+
+  it('unblocks them after a failed import', async () => {
+    await importFails('file_too_large')
+    expect(wrapper.find('input[type="file"]').attributes('disabled')).toBeUndefined()
+  })
+
   it('clears the picked file only once the import ends', async () => {
     let finish
     h.apiFetch.mockReturnValueOnce(

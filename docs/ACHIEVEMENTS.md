@@ -82,7 +82,7 @@ Conventions:
 | `name_key`       | `portal.achievements.<camelCase>` (one per family).      |
 | `description_key`| `portal.achievements.<camelCase>_desc`.                  |
 | `icon`           | Lucide name (`Bookmark`, `Library`, `Star`, …).          |
-| `tier`           | 1 (Bronze) → 6 (Mythic). Tier 6 is reserved for "finale" families. |
+| `tier`           | 1 (Bronze) → 6 (Supreme). Tier 6 is reserved for "finale" families. |
 | `xp_reward`      | Standard scale `20 / 50 / 110 / 220 / 500 / 1200`.       |
 | `threshold`      | Strictly increasing along the chain (except whitelisted exception — `competitor`). |
 | `condition_type` | A logical identifier shared by every tier of a family.   |
@@ -258,7 +258,7 @@ Delete the corresponding entry from `*_DEFS`. At the next boot:
 | i18n                       | `portal.achievements.<camelCase>` + `_desc` twin.         |
 | Standard XP scale          | `20 / 50 / 110 / 220 / 500 / 1200`.                       |
 | `sort_order`               | Block of 10 per family for headroom.                      |
-| Max tier                   | 6 (Mythic) — reserved for "finale" families.              |
+| Max tier                   | 6 (Supreme) — reserved for "finale" families.              |
 | Increasing thresholds      | Strict, except whitelist `_NON_MONOTONIC_FAMILIES`.       |
 | Trigger source label       | Short, `snake_case` (`chat_message`, `list_created`).     |
 

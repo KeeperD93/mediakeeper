@@ -65,7 +65,7 @@ async def get_user_lists(
     owned = (await db.execute(
         select(UserList)
         .where(UserList.user_id == user_id, UserList.is_deleted.is_(False))
-        .order_by(UserList.sort_order)
+        .order_by(UserList.sort_order, UserList.id)
     )).scalars().all()
 
     contrib_rows: list[UserList] = []
@@ -77,7 +77,7 @@ async def get_user_lists(
                 UserListContributor.user_id == user_id,
                 UserList.is_deleted.is_(False),
             )
-            .order_by(UserList.updated_at.desc())
+            .order_by(UserList.updated_at.desc(), UserList.id.desc())
         )
         contrib_rows = (await db.execute(q)).scalars().all()
 
