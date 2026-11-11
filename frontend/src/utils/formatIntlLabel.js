@@ -24,7 +24,7 @@ function getRegionNames(locale) {
   return REGION_NAMES_CACHE.get(locale)
 }
 
-function capitalize(value) {
+export function capitalize(value) {
   if (!value) return value
   return value.charAt(0).toLocaleUpperCase() + value.slice(1)
 }

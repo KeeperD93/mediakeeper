@@ -16,6 +16,7 @@ This section intentionally has no date so it is not shown to users.
 
 ### Fixed
 - Pinned badges — two pins in quick succession no longer overwrite each other.
+- My profile — weekdays and durations in the app's language.
 
 ## [1.0.0-rc.10] - 2026-11-11
 
