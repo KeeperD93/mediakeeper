@@ -21,12 +21,12 @@ from models.portal.achievement import UserAchievement
 from models.portal.profile import UserProfile
 from models.user import User
 from api.portal.deps import get_current_profile, get_request_lang
+from services.instance_time import get_instance_zone
 from services.portal.achievement_defs import ACHIEVEMENT_DEFS
 from services.portal.achievements import safe_check_all_achievements_in_new_session
 from services.portal.avatars import (
     avatar_path_for, avatar_public_url, delete_avatar, save_avatar,
 )
-from services.portal.profile_serializers import build_private_placeholder
 from services.portal.profile_stats_ranking import compute_ranking
 from services.portal import strip_tags_and_trim
 from services.portal.profiles import (
@@ -151,7 +151,6 @@ async def upload_avatar(
     background_tasks.add_task(
         safe_check_all_achievements_in_new_session,
         user.id,
-        user.username,
         "avatar_changed",
     )
     return {
@@ -243,15 +242,12 @@ async def public_profile_by_user(
         raise HTTPException(status_code=404, detail="profile_not_found")
 
     if not is_self and not row.is_public:
-        # Private-profile UX: the leaderboard already exposes the
-        # ``user_id`` of every ranked player (both public and private),
-        # so masking a private account as 404 here gains nothing
-        # privacy-wise — the caller already knows the id exists. Surface
-        # a minimal placeholder instead so the SPA can render a polite
-        # "this profile is private" landing rather than a dead 404. The
-        # admin branch above keeps its 404 because admin accounts are a
-        # true privacy boundary (never enumerated anywhere).
-        return build_private_placeholder(row, lang=lang)
+        # A link to a player who went private can outlive their place in
+        # the ranking (shared URL, page left open): the page says the
+        # profile is private rather than a dead 404, with nothing about its
+        # owner. The admin branch above keeps its 404: admin accounts are
+        # never enumerated anywhere.
+        return {"is_private": True}
 
     base = _serialize_public(row, lang=lang)
 
@@ -268,7 +264,10 @@ async def public_profile_by_user(
     target_user = (await db.execute(
         select(User).where(User.id == user_id)
     )).scalar_one_or_none()
-    monthly = await compute_ranking(db, target_user, lang=lang) if target_user else {}
+    monthly = (
+        await compute_ranking(db, target_user, zone=await get_instance_zone(db), lang=lang)
+        if target_user else {}
+    )
     rank_position = monthly.get("position") or 0
     rank_total = monthly.get("total") or 0
     rank_percentile = monthly.get("percentile") or 0

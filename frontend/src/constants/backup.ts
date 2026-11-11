@@ -14,3 +14,6 @@ export const BACKUP_RETENTION_MODE = Object.freeze({
 } as const)
 
 export type BackupRetentionMode = (typeof BACKUP_RETENTION_MODE)[keyof typeof BACKUP_RETENTION_MODE]
+
+/** Refusal code of a restore whose secrets this installation's key cannot read. */
+export const BACKUP_KEY_MISMATCH = 'backup_key_mismatch'

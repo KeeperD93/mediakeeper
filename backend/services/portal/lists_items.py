@@ -101,7 +101,7 @@ async def add_items(
     if added > 0:
         from services.portal.achievements import safe_check_all_achievements
         await safe_check_all_achievements(
-            db, lst.user_id, None, source="list_items_added",
+            db, lst.user_id, source="list_items_added",
         )
     return {"success": True, "added": added, "duplicates": duplicates}
 

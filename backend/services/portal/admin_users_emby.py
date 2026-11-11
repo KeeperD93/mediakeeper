@@ -1,4 +1,4 @@
-"""Selective Emby import + manual local user creation.
+"""Selective Emby import + creation of an administrator's local account.
 
 The import UI is a two-step flow:
 
@@ -6,32 +6,34 @@ The import UI is a two-step flow:
    ticks the users they want).
 2. ``import_selected_emby_users`` materialises only the selection.
 
-Manual creation lands here too because both flows ultimately produce a
-``User`` + ``UserProfile`` pair with the right ``source`` flag.
+Local account creation lands here too because both flows ultimately
+produce a ``User`` + ``UserProfile`` pair with the right ``source`` flag.
 """
 from __future__ import annotations
 
+import unicodedata
 from typing import Any, Iterable
 
-from sqlalchemy import func, select
+from sqlalchemy import func, literal, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.security import EXTERNAL_AUTH_PASSWORD_SENTINEL, hash_password
+from core.security import EXTERNAL_AUTH_PASSWORD_SENTINEL, hash_password, is_backoffice_admin
 from models.user import User
 from models.user_preferences import UserPreference
 from models.portal.profile import UserProfile
 from services.emby.users import email_from_emby_user, list_emby_users
 from services.portal._pseudo_words import generate_pseudo
+from services.portal.gdpr_erased import is_erased, load_erased_identities
 from services.portal.profiles import resolve_unique_display_name
 
 from .admin_users_audit import record_audit
 from .admin_users_constants import (
     ACTION_USER_CREATED,
     ACTION_USER_IMPORTED,
-    ROLES,
+    ROLE_ADMIN,
     ROLE_PRESETS,
     ROLE_VIEWER,
     SOURCE_EMBY,
@@ -106,11 +108,12 @@ async def _insert_profile_or_skip(db: AsyncSession, **values: Any) -> bool:
 
 
 async def backfill_emby_user_ids(db: AsyncSession) -> dict[str, Any]:
-    """Reconcile every MK profile with its Emby counterpart in one pass:
-    stamp ``emby_user_id`` (was empty pre-035), force ``source="emby"``
-    on matches (some legacy profiles inherited ``local``), and mirror
+    """Reconcile every Emby profile with its Emby counterpart in one pass:
+    stamp ``emby_user_id`` (was empty pre-035) and mirror
     ``Policy.IsDisabled`` into ``emby_is_disabled`` so the list can flag
-    upstream-blocked accounts without a per-row Emby round-trip."""
+    upstream-blocked accounts without a per-row Emby round-trip. A local
+    account is left out even when an Emby user bears its name: it serves
+    administration only and must not be linked."""
     emby_users = await list_emby_users(db)
     if not emby_users:
         return {"error": "no_source"}
@@ -118,6 +121,7 @@ async def backfill_emby_user_ids(db: AsyncSession) -> dict[str, Any]:
     rows = (await db.execute(
         select(UserProfile, User)
         .join(User, User.id == UserProfile.user_id)
+        .where(UserProfile.source != SOURCE_LOCAL)
     )).all()
 
     # Build a lookup that carries the Emby id + the disabled flag.
@@ -147,9 +151,6 @@ async def backfill_emby_user_ids(db: AsyncSession) -> dict[str, Any]:
         if profile.emby_user_id != match["id"]:
             profile.emby_user_id = match["id"]
             dirty = True
-        if profile.source != SOURCE_EMBY:
-            profile.source = SOURCE_EMBY
-            dirty = True
         if profile.emby_is_disabled != match["is_disabled"]:
             profile.emby_is_disabled = match["is_disabled"]
             dirty = True
@@ -178,7 +179,7 @@ async def backfill_emby_user_ids(db: AsyncSession) -> dict[str, Any]:
 
 
 async def list_unimported_emby_users(db: AsyncSession) -> dict[str, Any]:
-    """Return the Emby users that have no MediaKeeper account yet.
+    """Return the Emby users that have no MediaKeeper account yet and were not erased.
 
     Match is by lowercase ``Name`` against ``User.username`` and by Emby
     GUID against ``UserProfile.emby_user_id`` so a user that lost their
@@ -198,6 +199,7 @@ async def list_unimported_emby_users(db: AsyncSession) -> dict[str, Any]:
             )
         ).scalars().all()
     }
+    erased = await load_erased_identities(db)
 
     items = []
     for eu in emby_users:
@@ -207,7 +209,7 @@ async def list_unimported_emby_users(db: AsyncSession) -> dict[str, Any]:
             continue
         if name.lower() in existing_usernames:
             continue
-        if emby_id and emby_id in existing_emby_ids:
+        if (emby_id and emby_id in existing_emby_ids) or is_erased(erased, emby_id, name):
             continue
         items.append({
             "emby_user_id": emby_id,
@@ -242,10 +244,11 @@ async def import_selected_emby_users(
 
     created = 0
     skipped = 0
+    erased = await load_erased_identities(db)
     for eu in selected:
         emby_id = eu.get("Id") or ""
         emby_name = (eu.get("Name") or "").strip()
-        if not emby_id or not emby_name:
+        if not emby_id or not emby_name or is_erased(erased, emby_id, emby_name):
             skipped += 1
             continue
 
@@ -309,39 +312,58 @@ async def create_local_user(
     email: str | None = None,
     first_name: str | None = None,
     last_name: str | None = None,
-    role: str = ROLE_VIEWER,
     account_active: bool = True,
     admin_user_id: int | None,
     ip: str | None = None,
     user_agent: str | None = None,
 ) -> dict[str, Any]:
-    """Provision a brand-new MediaKeeper-only account.
+    """Provision the local account of a MediaKeeper administrator.
 
-    Used when the admin wants to grant access to someone who has no
-    Emby account at all — the partner of a streamer, a beta tester,
-    etc. They authenticate via ``username`` + ``password`` like any
-    other MK user; ``source=local`` distinguishes them from imported
-    profiles in the list view.
+    Both sign-ins check a local password only for names listed in
+    ``MK_ADMIN_USERS``: any other name would make an account that can never
+    sign in. The creating admin knows the password, so it must be changed at
+    first sign-in, as after a reset.
     """
     cleaned_username = (username or "").strip()
     if not cleaned_username or len(cleaned_username) < 3:
         return {"error": "invalid_username"}
     if not password or len(password) < 8:
         return {"error": "invalid_password"}
+    lowered = cleaned_username.lower()
+    # Such names could never sign in: a name pasted in decomposed form never
+    # equals the same name typed, and sign-in matches names through the database
+    # lower(), which may leave a capital outside A-Z as it is.
+    if unicodedata.normalize("NFC", cleaned_username) != cleaned_username:
+        return {"error": "username_unmatchable"}
+    db_lower = (await db.execute(select(func.lower(literal(cleaned_username))))).scalar_one()
+    if db_lower != lowered:
+        return {"error": "username_unmatchable"}
+    if not is_backoffice_admin(cleaned_username):
+        return {"error": "not_admin_name"}
 
     # Case-insensitive uniqueness: prevent two rows like "Alice" and
     # "alice" that would later cause silent lookup failures during login.
     existing = (await db.execute(
-        select(User).where(func.lower(User.username) == cleaned_username.lower())
+        select(User).where(func.lower(User.username) == lowered)
     )).scalar_one_or_none()
     if existing:
         return {"error": "username_taken"}
+    # The Emby sign-in finds an account by the name typed: an Emby user of the
+    # same name would enter this one with their Emby password. Also compared
+    # through capitals then small letters, where look-alikes meet ("ſ" and "s",
+    # the Kelvin sign and "k"), even mixed in one name. Not checked when Emby
+    # cannot be reached (the listing is then empty).
+    folded = cleaned_username.upper().lower()
+    for emby_user in await list_emby_users(db):
+        emby_name = (emby_user.get("Name") or "").strip()
+        if emby_name.lower() == lowered or emby_name.upper().lower() == folded:
+            return {"error": "username_on_emby"}
 
     user = User(
         username=cleaned_username,
         hashed_password=hash_password(password),
         is_active=account_active,
-        must_change_password=False,
+        must_change_password=True,
     )
     db.add(user)
     await db.flush()
@@ -349,19 +371,17 @@ async def create_local_user(
     unique_name = await resolve_unique_display_name(
         db, (display_name or cleaned_username), exclude_user_id=user.id,
     )
-    final_role = role if role in ROLES else ROLE_VIEWER
-    preset = ROLE_PRESETS.get(final_role, {})
     profile = UserProfile(
         user_id=user.id,
         display_name=unique_name,
-        role=final_role,
+        role=ROLE_ADMIN,
         source=SOURCE_LOCAL,
         account_active=account_active,
         display_name_must_set=False,
-        first_name=(first_name or None) or None,
-        last_name=(last_name or None) or None,
-        email=(email or None) or None,
-        **preset,
+        first_name=first_name or None,
+        last_name=last_name or None,
+        email=email or None,
+        **ROLE_PRESETS[ROLE_ADMIN],
     )
     db.add(profile)
     db.add(UserPreference(user_id=user.id))
@@ -370,7 +390,7 @@ async def create_local_user(
         admin_user_id=admin_user_id,
         target_user_id=user.id,
         action=ACTION_USER_CREATED,
-        payload={"username": cleaned_username, "source": SOURCE_LOCAL, "role": role},
+        payload={"username": cleaned_username, "source": SOURCE_LOCAL, "role": ROLE_ADMIN},
         ip=ip,
         user_agent=user_agent,
         commit=False,

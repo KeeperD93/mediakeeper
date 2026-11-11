@@ -24,6 +24,32 @@ restores the **applicative key/value layer**: `settings`,
 `preferences`, `scheduler`, `watchlist`. It deliberately ignores
 `pg_dump.sql` and never writes the embedded Fernet key on disk.
 
+A ZIP restore replaces the settings: one the archive does not hold goes
+back to its default. Two kinds of values never change, whatever the
+archive holds:
+
+- those tied to the installation: the date of the last media
+  announcement, the last subtitle check, the setup wizard state and the
+  backup folder;
+- how long backups, chat messages and rejected reports are kept, because
+  a shorter delay would delete what the current one protects.
+
+Fingerprints of people erased at their request are never removed, so a
+restore cannot give them an account back.
+
+A single JSON file only writes the settings it holds, apart from these
+values. If a restore turns GDPR back on, every pending deletion request
+starts a full new delay, as it does from the GDPR screen.
+
+A backup none of whose secrets can be read with the current key is
+refused, and nothing changes. If you have its original key, put it back
+in place, then restart; the `MEDIAKEEPER_ENCRYPTION_KEY` variable, when
+set, takes precedence over the file. Secrets saved with the current key
+and absent from the backup, such as notification channels, then become
+unreadable and must be entered again. If only some secrets of a backup
+are unreadable, they are skipped: those settings are left unchanged and
+the rest is restored.
+
 In a real incident (database corruption, full host wipe, fresh
 install), that endpoint alone is **not enough**: the relational tables
 must be re-created from the SQL dump *first*, and the Fernet key must
@@ -367,6 +393,12 @@ SQL dump already contains those rows, so this step is redundant
 after a full SQL restore. It is mostly useful when you want to
 re-apply a *partial* backup (settings-only, etc.) on top of an
 otherwise healthy database.
+
+A full database restore goes back to the date of the backup: a person
+erased since then gets their account back. If the backup still holds
+their deletion request, the purge erases them again when its delay
+ends. Otherwise no administrator screen schedules a deletion: only
+that person can request it again.
 
 ---
 

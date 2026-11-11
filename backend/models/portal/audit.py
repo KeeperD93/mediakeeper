@@ -1,8 +1,10 @@
 """Admin audit log: every action taken on a user profile is appended here.
 
-Stays append-only: rows are never updated nor deleted, even when the
-target user is removed (we keep ``target_user_id`` as a plain integer
-without an FK so the trail survives soft-delete and hard-delete).
+Stays append-only: rows are never deleted, even when the target user is
+removed (we keep ``target_user_id`` as a plain integer without an FK so
+the trail survives soft-delete and hard-delete). The one update is a GDPR
+purge, which takes out what a row copied about the person
+(``services.portal.gdpr_erased``).
 """
 from sqlalchemy import Column, Integer, String, JSON, DateTime
 from datetime import datetime, timezone

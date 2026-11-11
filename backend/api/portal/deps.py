@@ -1,26 +1,32 @@
 """Portal auth dependencies: profile loading and role checks."""
-from fastapi import Depends, Header, HTTPException, Request, status
+from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.auth import (
+    MUST_CHANGE_PASSWORD,
+    NOT_AUTHENTICATED,
+    SESSION_REVOKED,
+    TOKEN_INVALID,
+    USER_NOT_FOUND,
+)
+from constants.security import ACCOUNT_DISABLED
 from core.database import get_db
+from core.i18n import get_request_locale
 from core.security import decode_access_token, is_token_valid_for_revocation_pivot
 from api.auth import PORTAL_COOKIE_NAME
 from models.user import User
 from models.portal.profile import UserProfile
-from services.portal._display_name import parse_accept_language
 from services.portal.admin_users_constants import PERMISSION_KEYS, ROLE_ADMIN
 
 
-async def get_request_lang(
-    accept_language: str | None = Header(default=None, alias="accept-language"),
-) -> str:
-    """Resolve the viewer's display locale from the Accept-Language header.
+async def get_request_lang(locale: str = Depends(get_request_locale)) -> str:
+    """Reduce the viewer's locale to ``"fr"`` or ``"en"``.
 
-    Returns ``"fr"`` or ``"en"`` — the only two locales the portal
-    surfaces today. Drives the anonymous-pseudo alias localization.
+    The server writes its own texts in these two languages only: generated
+    pseudos, the admin label and the month names of the ranking.
     """
-    return parse_accept_language(accept_language)
+    return "en" if locale == "en" else "fr"
 
 
 async def get_portal_user(
@@ -42,20 +48,20 @@ async def get_portal_user(
     """
     token = request.cookies.get(PORTAL_COOKIE_NAME)
     if not token:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not_authenticated")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=NOT_AUTHENTICATED)
 
     payload = decode_access_token(token)
     if not payload or payload.get("scope") != "portal":
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="token_invalid")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=TOKEN_INVALID)
 
     username = payload.get("sub")
     if not username:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="token_invalid")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=TOKEN_INVALID)
 
     result = await db.execute(select(User).where(User.username == username))
     user = result.scalar_one_or_none()
     if not user or not user.is_active:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="user_not_found")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=USER_NOT_FOUND)
     return user
 
 
@@ -64,7 +70,8 @@ async def get_current_profile(
     current_user: User = Depends(get_portal_user),
     db: AsyncSession = Depends(get_db),
 ) -> tuple[User, UserProfile]:
-    """Returns (User, UserProfile). Refuses if missing, disabled or revoked."""
+    """Returns (User, UserProfile). Refuses if missing, disabled or revoked, and
+    until a temporary password is changed."""
     result = await db.execute(
         select(UserProfile).where(UserProfile.user_id == current_user.id)
     )
@@ -77,7 +84,7 @@ async def get_current_profile(
     if not profile.account_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="account_disabled",
+            detail=ACCOUNT_DISABLED,
         )
     # Force-logout: every JWT issued before ``tokens_invalidated_at`` is
     # rejected so the admin can kick a session in one click.
@@ -88,8 +95,12 @@ async def get_current_profile(
         if not is_token_valid_for_revocation_pivot(iat, profile.tokens_invalidated_at):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="session_revoked",
+                detail=SESSION_REVOKED,
             )
+    # As in the backoffice, once the session is known valid: a temporary password
+    # opens nothing until it is changed.
+    if current_user.must_change_password:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=MUST_CHANGE_PASSWORD)
     return current_user, profile
 
 

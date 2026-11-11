@@ -1,11 +1,13 @@
 """Fernet encryption for sensitive settings."""
 
 import pytest
+from cryptography.fernet import Fernet
 from sqlalchemy import select
 
 from core.encryption import (
     ENCRYPTED_PREFIX,
     PersistentFernetKey,
+    can_decrypt,
     decrypt_value,
     encrypt_value,
     get_persistent_fernet_key,
@@ -48,6 +50,44 @@ def test_decrypt_passthrough_on_plaintext():
 
 def test_encrypt_empty_stays_empty():
     assert encrypt_value("") == ""
+
+
+def _other_key_value() -> str:
+    return f"{ENCRYPTED_PREFIX}{Fernet(Fernet.generate_key()).encrypt(b'other-secret').decode()}"
+
+
+def test_can_decrypt_says_what_the_active_key_reads():
+    assert can_decrypt(encrypt_value("secret"))
+    assert can_decrypt("plain-value")
+    assert can_decrypt("")
+    assert not can_decrypt(_other_key_value())
+
+
+@pytest.mark.parametrize("token", ["not-a-token", "é", ""])
+def test_can_decrypt_refuses_a_malformed_value(token):
+    assert not can_decrypt(f"{ENCRYPTED_PREFIX}{token}")
+
+
+def test_can_decrypt_logs_nothing(caplog):
+    value = _other_key_value()
+    encrypt_value("loads the key, whose first use can log a warning")
+    caplog.clear()
+
+    with caplog.at_level("DEBUG", logger="mediakeeper.encryption"):
+        can_decrypt(value)
+
+    assert caplog.text == ""
+
+
+def test_decrypt_value_reads_an_unreadable_value_as_empty_and_logs_it(caplog):
+    with caplog.at_level("ERROR", logger="mediakeeper.encryption"):
+        assert decrypt_value(_other_key_value()) == ""
+
+    assert "Failed to decrypt" in caplog.text
+
+
+def test_decrypt_value_reads_a_malformed_value_as_empty():
+    assert decrypt_value(f"{ENCRYPTED_PREFIX}é") == ""
 
 
 def test_get_persistent_fernet_key_prefers_env(monkeypatch, tmp_path):

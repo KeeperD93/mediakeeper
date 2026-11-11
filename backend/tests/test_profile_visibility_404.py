@@ -6,11 +6,9 @@ Three cases coexist:
 * Missing profile (or admin viewed by a non-admin) → 404. These IDs
   are never exposed by any other public surface, so masking them as
   "not found" prevents enumeration.
-* Private profile viewed by a non-owner → 200 with a minimal
-  ``{is_private, user_id, display_name, avatar_url}`` placeholder.
-  The leaderboard already exposes ``user_id`` for every ranked
-  player (both public and private), so 404-masking here would
-  break the UX without gaining any privacy.
+* Private profile viewed by a non-owner → 200 with ``{is_private}``
+  and nothing about its owner: a link to it can outlive the player's
+  place in the ranking.
 * Public profile → 200 with the full payload.
 """
 from __future__ import annotations
@@ -46,18 +44,12 @@ async def _make_user(db_session, *, username: str, is_public: bool):
 
 @pytest.mark.asyncio
 async def test_private_profile_returns_placeholder(client, admin_user, db_session, portal_login):
-    """Private profile reached by a non-owner → 200 + placeholder."""
+    """Private profile reached by a non-owner → 200, nothing about its owner."""
     await portal_login(client)
     user, _ = await _make_user(db_session, username="private", is_public=False)
     r = await client.get(f"/api/portal/profiles/by-user-id/{user.id}/public")
     assert r.status_code == 200
-    body = r.json()
-    assert body["is_private"] is True
-    assert body["user_id"] == user.id
-    assert "display_name" in body
-    # Sensitive fields stay out of the placeholder.
-    assert "bio" not in body
-    assert "ranking" not in body
+    assert r.json() == {"is_private": True}
 
 
 @pytest.mark.asyncio

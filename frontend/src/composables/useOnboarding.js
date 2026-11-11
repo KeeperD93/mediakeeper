@@ -1,36 +1,16 @@
-import { ref, computed, markRaw, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useApi } from '@/composables/useApi'
+import { useTimezoneChoice } from '@/composables/useTimezoneChoice'
 import { useToast } from '@/composables/useToast'
+import { ONBOARDING_STEP as STEP } from '@/constants/onboarding'
 import { TOAST_TYPE } from '@/constants/toast'
-import {
-  BarChart3,
-  Bell,
-  Captions,
-  ClipboardCheck,
-  Copy,
-  Film,
-  Home,
-  ShieldCheck,
-  Users,
-} from 'lucide-vue-next'
-
-const ICONS = {
-  dashboard: markRaw(Home),
-  stats: markRaw(BarChart3),
-  watchlist: markRaw(ClipboardCheck),
-  media: markRaw(Film),
-  duplicates: markRaw(Copy),
-  health: markRaw(ShieldCheck),
-  subtitles: markRaw(Captions),
-  notifications: markRaw(Bell),
-  portal: markRaw(Users),
-}
 
 export function useOnboarding(emit) {
   const { t } = useI18n()
   const { apiGet, apiFetch } = useApi()
   const { showToast } = useToast()
+  const timezone = useTimezoneChoice()
 
   const visible = ref(false)
   const currentStep = ref(0)
@@ -38,200 +18,17 @@ export function useOnboarding(emit) {
   const tourActive = ref(0)
 
   const steps = computed(() => [
-    { id: 'welcome', label: t('onboarding.stepWelcome') },
-    { id: 'emby', label: 'Emby' },
-    { id: 'tmdb', label: 'TMDB' },
-    { id: 'opensubtitles', label: 'OpenSubtitles' },
-    { id: 'folders', label: t('onboarding.stepFolders') },
-    { id: 'tour', label: t('onboarding.stepTour') },
-    { id: 'done', label: t('onboarding.stepDone') },
+    { id: STEP.WELCOME, label: t('onboarding.stepWelcome') },
+    { id: STEP.LOCALE, label: t('onboarding.stepLocale') },
+    { id: STEP.EMBY, label: 'Emby' },
+    { id: STEP.TMDB, label: 'TMDB' },
+    { id: STEP.OPENSUBTITLES, label: 'OpenSubtitles' },
+    { id: STEP.FOLDERS, label: t('onboarding.stepFolders') },
+    { id: STEP.TOUR, label: t('onboarding.stepTour') },
+    { id: STEP.DONE, label: t('onboarding.stepDone') },
   ])
-
-  const features = computed(() => [
-    {
-      id: 'dash',
-      bg: 'rgba(99,102,241,.12)',
-      name: t('sidebar.dashboard'),
-      desc: t('onboarding.modDashboard'),
-      icon: ICONS.dashboard,
-    },
-    {
-      id: 'stats',
-      bg: 'rgba(16,185,129,.1)',
-      name: t('sidebar.statistics'),
-      desc: t('onboarding.modStats'),
-      icon: ICONS.stats,
-    },
-    {
-      id: 'wl',
-      bg: 'rgba(139,92,246,.12)',
-      name: t('sidebar.watchlist'),
-      desc: t('onboarding.modWatchlist'),
-      icon: ICONS.watchlist,
-    },
-    {
-      id: 'media',
-      bg: 'rgba(6,182,212,.1)',
-      name: t('sidebar.mediaManager'),
-      desc: t('onboarding.modMedia'),
-      icon: ICONS.media,
-    },
-    {
-      id: 'doub',
-      bg: 'rgba(245,158,11,.1)',
-      name: t('sidebar.duplicates'),
-      desc: t('onboarding.modDoublons'),
-      icon: ICONS.duplicates,
-    },
-    {
-      id: 'health',
-      bg: 'rgba(234,179,8,.1)',
-      name: t('sidebar.healthCheck'),
-      desc: t('onboarding.modHealth'),
-      icon: ICONS.health,
-    },
-    {
-      id: 'subs',
-      bg: 'rgba(168,85,247,.1)',
-      name: t('sidebar.subtitles'),
-      desc: t('onboarding.modSubtitles'),
-      icon: ICONS.subtitles,
-    },
-    {
-      id: 'notif',
-      bg: 'rgba(244,63,94,.1)',
-      name: t('sidebar.notifications'),
-      desc: t('onboarding.modNotifs'),
-      icon: ICONS.notifications,
-    },
-    {
-      id: 'portal',
-      bg: 'rgba(59,130,246,.12)',
-      name: t('sidebar.requests'),
-      desc: t('onboarding.modPortal'),
-      icon: ICONS.portal,
-    },
-  ])
-
-  const modules = computed(() => [
-    {
-      id: 'dashboard',
-      name: t('sidebar.dashboard'),
-      bg: 'rgba(99,102,241,.12)',
-      desc: t('onboarding.modDashboard'),
-      icon: ICONS.dashboard,
-      features: [
-        t('onboarding.featSessions'),
-        t('onboarding.featStats'),
-        t('onboarding.featAlerts'),
-        t('onboarding.featWidgets'),
-      ],
-    },
-    {
-      id: 'stats',
-      name: t('sidebar.statistics'),
-      bg: 'rgba(16,185,129,.1)',
-      desc: t('onboarding.modStats'),
-      icon: ICONS.stats,
-      features: [
-        t('onboarding.featHistory'),
-        t('onboarding.featTopUsers'),
-        t('onboarding.featLibraries'),
-        t('onboarding.featHeatmap'),
-      ],
-    },
-    {
-      id: 'watchlist',
-      name: t('sidebar.watchlist'),
-      bg: 'rgba(139,92,246,.12)',
-      desc: t('onboarding.modWatchlist'),
-      icon: ICONS.watchlist,
-      features: [
-        t('onboarding.featMissing'),
-        t('onboarding.featCalendar'),
-        t('onboarding.featTimeline'),
-        t('onboarding.featTracking'),
-      ],
-    },
-    {
-      id: 'media',
-      name: t('sidebar.mediaManager'),
-      bg: 'rgba(6,182,212,.1)',
-      desc: t('onboarding.modMedia'),
-      icon: ICONS.media,
-      features: [
-        t('onboarding.featTmdbRename'),
-        t('onboarding.featBatchRename'),
-        t('onboarding.featMove'),
-        t('onboarding.featFolders'),
-      ],
-    },
-    {
-      id: 'duplicates',
-      name: t('sidebar.duplicates'),
-      bg: 'rgba(245,158,11,.1)',
-      desc: t('onboarding.modDoublons'),
-      icon: ICONS.duplicates,
-      features: [
-        t('onboarding.featDetect'),
-        t('onboarding.featCompare'),
-        t('onboarding.featAutoClean'),
-        t('onboarding.featIgnore'),
-      ],
-    },
-    {
-      id: 'health',
-      name: t('sidebar.healthCheck'),
-      bg: 'rgba(234,179,8,.1)',
-      desc: t('onboarding.modHealth'),
-      icon: ICONS.health,
-      features: [
-        t('onboarding.featHealthCodecs'),
-        t('onboarding.featHealthResolution'),
-        t('onboarding.featHealthSubtitles'),
-        t('onboarding.featHealthRules'),
-      ],
-    },
-    {
-      id: 'subtitles',
-      name: t('sidebar.subtitles'),
-      bg: 'rgba(168,85,247,.1)',
-      desc: t('onboarding.modSubtitles'),
-      icon: ICONS.subtitles,
-      features: [
-        t('onboarding.featSubSearch'),
-        t('onboarding.featSubProfiles'),
-        t('onboarding.featSubAuto'),
-        t('onboarding.featSubAudit'),
-      ],
-    },
-    {
-      id: 'notifs',
-      name: t('sidebar.notifications'),
-      bg: 'rgba(244,63,94,.1)',
-      desc: t('onboarding.modNotifs'),
-      icon: ICONS.notifications,
-      features: [
-        t('onboarding.featDiscord'),
-        t('onboarding.featDnd'),
-        t('onboarding.featTemplates'),
-        t('onboarding.featFilters'),
-      ],
-    },
-    {
-      id: 'portal',
-      name: t('sidebar.requests'),
-      bg: 'rgba(59,130,246,.12)',
-      desc: t('onboarding.modPortal'),
-      icon: ICONS.portal,
-      features: [
-        t('onboarding.featPortalRequests'),
-        t('onboarding.featPortalTickets'),
-        t('onboarding.featPortalProfile'),
-        t('onboarding.featPortalAchievements'),
-      ],
-    },
-  ])
+  const currentStepId = computed(() => steps.value[currentStep.value].id)
+  const zoneSaved = computed(() => Boolean(timezone.savedRow.value))
 
   const emby = ref({
     url: '',
@@ -354,7 +151,7 @@ export function useOnboarding(emit) {
   async function next() {
     if (saving.value) return
     try {
-      await saveCurrentStep()
+      if (!(await saveCurrentStep())) return
     } catch (e) {
       console.error('[useOnboarding.next] failed to save current step', e)
       showToast(t('common.apiError.saveFailed'), TOAST_TYPE.ERR)
@@ -369,35 +166,41 @@ export function useOnboarding(emit) {
     currentStep.value++
   }
 
+  /** False keeps the wizard on the step: the change was refused, or its failure already shown. */
+  async function saveTimezone() {
+    if (!timezone.canSave.value) return true
+    // The warning is about changing a saved zone: a first choice on a new install needs none.
+    if (timezone.savedRow.value && !(await timezone.confirmChoice())) return false
+    return timezone.saveChoice()
+  }
+
   async function saveCurrentStep() {
     saving.value = true
     try {
-      if (
-        currentStep.value === 1 &&
-        emby.value.url &&
-        (emby.value.api_key || emby.value._configured)
-      ) {
+      const step = currentStepId.value
+      if (step === STEP.LOCALE) return await saveTimezone()
+      if (step === STEP.EMBY && emby.value.url && (emby.value.api_key || emby.value._configured)) {
         await apiFetch('/api/settings/tools/emby', {
           method: 'POST',
           body: JSON.stringify(buildToolPayload(emby.value, { url: emby.value.url })),
         })
         emby.value._configured = true
       }
-      if (currentStep.value === 2 && (tmdb.value.api_key || tmdb.value._configured)) {
+      if (step === STEP.TMDB && (tmdb.value.api_key || tmdb.value._configured)) {
         await apiFetch('/api/settings/tools/tmdb', {
           method: 'POST',
           body: JSON.stringify(buildToolPayload(tmdb.value)),
         })
         tmdb.value._configured = true
       }
-      if (currentStep.value === 3 && (openSubs.value.api_key || openSubs.value._configured)) {
+      if (step === STEP.OPENSUBTITLES && (openSubs.value.api_key || openSubs.value._configured)) {
         await apiFetch('/api/settings/tools/opensubtitles', {
           method: 'POST',
           body: JSON.stringify(buildToolPayload(openSubs.value)),
         })
         openSubs.value._configured = true
       }
-      if (currentStep.value === 4 && hasFolders.value) {
+      if (step === STEP.FOLDERS && hasFolders.value) {
         const payload = folders.value
           .filter(f => f.path.trim())
           .map(f => ({ key: f.key, label: f.label, path: f.path.trim() }))
@@ -406,6 +209,7 @@ export function useOnboarding(emit) {
           body: JSON.stringify({ folders: payload }),
         })
       }
+      return true
     } finally {
       saving.value = false
     }
@@ -443,7 +247,10 @@ export function useOnboarding(emit) {
       hydrateFolders(savedFolders)
 
       const status = await apiGet('/api/onboarding/status')
-      if (status?.authenticated && !status?.onboarding_done) visible.value = true
+      if (status?.authenticated && !status?.onboarding_done) {
+        await timezone.loadChoice()
+        visible.value = true
+      }
     } catch {
       /* silent: onboarding check is best-effort, modal stays hidden */
     }
@@ -454,11 +261,14 @@ export function useOnboarding(emit) {
   return {
     visible,
     currentStep,
+    currentStepId,
     saving,
     tourActive,
     steps,
-    features,
-    modules,
+    zoneRows: timezone.rows,
+    zoneKey: timezone.selectedKey,
+    zoneRow: timezone.selectedRow,
+    zoneSaved,
     emby,
     tmdb,
     openSubs,

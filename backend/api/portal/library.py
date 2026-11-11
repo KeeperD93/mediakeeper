@@ -81,14 +81,13 @@ async def surprise_pool(
     time the overlay opens so the pick feels genuinely random.
     """
     user, _ = up
-    # Cache scalar attributes BEFORE any commit/rollback. The
+    # Cache ``user.id`` BEFORE any commit/rollback. The
     # IntegrityError path that catches duplicate surprise clicks in
     # the same second rolls back the session, which expires the
     # ``user`` instance even when expire_on_commit=False. Accessing
-    # ``user.id`` / ``user.username`` post-rollback then triggers a
-    # sync lazy reload from the async session → greenlet_spawn.
+    # ``user.id`` post-rollback then triggers a sync lazy reload from
+    # the async session → greenlet_spawn.
     viewer_id = user.id
-    viewer_username = user.username
 
     items = await avail_svc.get_surprise_pool(db, kind, limit)
 
@@ -113,7 +112,6 @@ async def surprise_pool(
     background_tasks.add_task(
         safe_check_all_achievements_in_new_session,
         viewer_id,
-        viewer_username,
         "surprise_used",
     )
     return {"items": items}

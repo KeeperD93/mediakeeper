@@ -1,10 +1,6 @@
 /**
- * My-rank card — the three rendering paths (podium / top / hors-top).
- *
- *   1. ``inListEntry`` with rank ≤ 3 → "podium" message visible.
- *   2. ``inListEntry`` with rank 4..100 → stats row visible.
- *   3. ``viewerEntry`` only (out of top-N) → stats row visible with the
- *      absolute viewer rank.
+ * My-rank card — for a viewer outside the list only: their row shows them
+ * otherwise. Stats row visible with the absolute viewer rank.
  */
 import { describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
@@ -24,7 +20,7 @@ function buildEntry(overrides = {}) {
     level: 12,
     tier: 'silver',
     title_key: 'regular',
-    month_xp: 600,
+    period_xp: 600,
     movement: 0,
     selected_title: null,
     title_tier: null,
@@ -35,7 +31,7 @@ function buildEntry(overrides = {}) {
 
 function buildStats(overrides = {}) {
   return {
-    my_xp_month: 600,
+    my_xp: 600,
     my_delta_week: 100,
     projected_end_rank: 5,
     ...overrides,
@@ -54,37 +50,38 @@ function mountCard(props) {
 }
 
 describe('LeaderboardMyRankCard.vue', () => {
-  it('shows the on-podium message when the viewer is in top 3', () => {
+  it('renders the absolute rank and the stats of a viewer outside the list', () => {
     const wrapper = mountCard({
-      inListEntry: buildEntry({ rank: 2 }),
-      stats: buildStats(),
+      viewerRank: 142,
+      viewerEntry: buildEntry({ rank: 142, display_name: 'Me142' }),
+      stats: buildStats({ projected_end_rank: 138 }),
     })
-    expect(wrapper.find('.lb-my-rank-podium-msg').exists()).toBe(true)
-    expect(wrapper.text()).toContain('portal.leaderboard.myRank.onPodium')
-    expect(wrapper.find('.lb-my-rank-stats').exists()).toBe(false)
-    expect(wrapper.find('.lb-my-rank-rank').text()).toBe('#2')
-  })
-
-  it('shows stats row when the viewer is in the top window (rank 4..N)', () => {
-    const wrapper = mountCard({
-      inListEntry: buildEntry({ rank: 7 }),
-      stats: buildStats({ projected_end_rank: 6 }),
-    })
-    expect(wrapper.find('.lb-my-rank-podium-msg').exists()).toBe(false)
+    expect(wrapper.find('.lb-my-rank-rank').text()).toBe('#142')
     expect(wrapper.find('.lb-my-rank-stats').exists()).toBe(true)
-    expect(wrapper.find('.lb-my-rank-rank').text()).toBe('#7')
-    expect(wrapper.text()).toContain('portal.leaderboard.myRank.xpThisMonth')
+    expect(wrapper.text()).toContain('Me142')
+    expect(wrapper.text()).toContain('portal.leaderboard.myRank.xp.month')
+    expect(wrapper.text()).toContain('portal.leaderboard.myRank.deltaWeek')
     expect(wrapper.text()).toContain('portal.leaderboard.myRank.projectedEnd')
   })
 
-  it('renders the absolute rank when the viewer is outside the top window', () => {
-    const wrapper = mountCard({
-      viewerRank: 42,
-      viewerEntry: buildEntry({ rank: 42, display_name: 'Me42' }),
-      stats: buildStats({ projected_end_rank: 38 }),
-    })
-    expect(wrapper.find('.lb-my-rank-rank').text()).toBe('#42')
-    expect(wrapper.find('.lb-my-rank-stats').exists()).toBe(true)
-    expect(wrapper.text()).toContain('Me42')
+  it.each(['today', 'week', 'all'])(
+    'on %s, names the XP of the period and leaves the month outlook out',
+    period => {
+      const wrapper = mountCard({
+        viewerRank: 142,
+        viewerEntry: buildEntry({ rank: 142 }),
+        stats: buildStats({ my_delta_week: null, projected_end_rank: null }),
+        period,
+      })
+      expect(wrapper.text()).toContain(`portal.leaderboard.myRank.xp.${period}`)
+      expect(wrapper.find('.lb-my-rank-stat-value').text()).toBe('600')
+      expect(wrapper.text()).not.toContain('portal.leaderboard.myRank.deltaWeek')
+      expect(wrapper.text()).not.toContain('portal.leaderboard.myRank.projectedEnd')
+    },
+  )
+
+  it('shows nothing without a viewer outside the list', () => {
+    const wrapper = mountCard({ viewerRank: null, viewerEntry: null, stats: buildStats() })
+    expect(wrapper.find('.lb-my-rank').exists()).toBe(false)
   })
 })

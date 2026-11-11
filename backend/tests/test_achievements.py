@@ -61,6 +61,7 @@ async def test_check_all_achievements_unlocks_special_badges_and_stacks_xp(db_se
         display_name="Viewer Nick",
         role="viewer",
         account_active=True,
+        emby_user_id="emby-viewer",
     )
     db_session.add(profile)
     db_session.add_all([

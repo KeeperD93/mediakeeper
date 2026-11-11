@@ -52,8 +52,7 @@
           <div class="ob-main">
             <div class="ob-content">
               <transition name="ob-slide" mode="out-in">
-                <!-- Step 0 — Welcome -->
-                <div v-if="currentStep === 0" key="welcome" class="ob-panel">
+                <div v-if="currentStepId === STEP.WELCOME" key="welcome" class="ob-panel">
                   <div class="ob-welcome-hero">
                     <div class="ob-welcome-orbs" aria-hidden="true">
                       <div class="ob-orb ob-orb-1" />
@@ -84,9 +83,16 @@
                   </div>
                 </div>
 
-                <!-- Step 1 — Emby -->
+                <ObLocaleStep
+                  v-else-if="currentStepId === STEP.LOCALE"
+                  key="locale"
+                  v-model:zone-key="zoneKey"
+                  :zone-rows="zoneRows"
+                  :zone-row="zoneRow"
+                />
+
                 <ObToolStep
-                  v-else-if="currentStep === 1"
+                  v-else-if="currentStepId === STEP.EMBY"
                   key="emby"
                   v-model="emby"
                   icon-bg="rgba(82,181,182,.12)"
@@ -109,9 +115,8 @@
                   @test="testEmby"
                 />
 
-                <!-- Step 2 — TMDB -->
                 <ObToolStep
-                  v-else-if="currentStep === 2"
+                  v-else-if="currentStepId === STEP.TMDB"
                   key="tmdb"
                   v-model="tmdb"
                   icon-bg="rgba(1,212,113,.08)"
@@ -131,9 +136,8 @@
                   @test="testTmdb"
                 />
 
-                <!-- Step 3 — OpenSubtitles -->
                 <ObToolStep
-                  v-else-if="currentStep === 3"
+                  v-else-if="currentStepId === STEP.OPENSUBTITLES"
                   key="opensubs"
                   v-model="openSubs"
                   icon-bg="rgba(168,85,247,.1)"
@@ -146,9 +150,8 @@
                   @test="testOpenSubs"
                 />
 
-                <!-- Step 4 — Folders -->
                 <ObFoldersStep
-                  v-else-if="currentStep === 4"
+                  v-else-if="currentStepId === STEP.FOLDERS"
                   key="folders"
                   :folders="folders"
                   :browse-path="browsePath"
@@ -162,174 +165,49 @@
                   @select-browse-path="selectBrowsePath"
                 />
 
-                <!-- Step 5 — Tour -->
-                <div v-else-if="currentStep === 5" key="tour" class="ob-panel">
-                  <h2 class="ob-panel-title">{{ $t('onboarding.tourTitle') }}</h2>
-                  <p class="ob-panel-desc ob-panel-desc-tight">{{ $t('onboarding.tourDesc') }}</p>
+                <ObTourStep
+                  v-else-if="currentStepId === STEP.TOUR"
+                  key="tour"
+                  v-model:active="tourActive"
+                  :modules="modules"
+                />
 
-                  <div class="ob-tour-grid">
-                    <div
-                      v-for="(mod, i) in modules"
-                      :key="mod.id"
-                      class="ob-tour-card"
-                      :class="{ 'ob-tour-active': tourActive === i }"
-                      @click="tourActive = i"
-                    >
-                      <div class="ob-tour-card-inner">
-                        <div class="ob-tour-icon" :style="{ background: mod.bg }">
-                          <component :is="mod.icon" :size="16" :stroke-width="1.8" />
-                        </div>
-                        <span class="ob-tour-name">{{ mod.name }}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <transition name="ob-fade">
-                    <div v-if="modules[tourActive]" class="ob-tour-detail">
-                      <div class="ob-tour-detail-header">
-                        <div
-                          class="ob-tour-icon-lg"
-                          :style="{ background: modules[tourActive].bg }"
-                        >
-                          <component
-                            :is="modules[tourActive].icon"
-                            :size="22"
-                            :stroke-width="1.8"
-                          />
-                        </div>
-                        <div>
-                          <div class="ob-tour-detail-name">{{ modules[tourActive].name }}</div>
-                          <div class="ob-tour-detail-desc">{{ modules[tourActive].desc }}</div>
-                        </div>
-                      </div>
-                      <div class="ob-tour-features">
-                        <div
-                          v-for="feat in modules[tourActive].features"
-                          :key="feat"
-                          class="ob-tour-feat"
-                        >
-                          <Check :size="11" :stroke-width="2.5" class="ob-feature-check" />
-                          {{ feat }}
-                        </div>
-                      </div>
-                    </div>
-                  </transition>
-                </div>
-
-                <!-- Step 6 — Done -->
-                <div v-else-if="currentStep === 6" key="done" class="ob-panel ob-panel-done">
-                  <div class="ob-done-visual">
-                    <div class="ob-done-ring ob-done-ring-1" />
-                    <div class="ob-done-ring ob-done-ring-2" />
-                    <div class="ob-done-ring ob-done-ring-3" />
-                    <img
-                      src="/assets/icons/mediakeeper.png"
-                      class="ob-done-logo"
-                      alt=""
-                      onerror="this.style.display = 'none'"
-                    />
-                  </div>
-                  <h2 class="ob-done-title">{{ $t('onboarding.doneTitle') }}</h2>
-                  <p class="ob-done-desc">{{ $t('onboarding.doneDesc') }}</p>
-                  <div class="ob-done-summary">
-                    <div
-                      class="ob-done-item"
-                      :class="{
-                        ok: emby.url && (emby.api_key || emby._configured),
-                        skip: !emby.url,
-                      }"
-                    >
-                      <img src="/assets/icons/emby.svg" width="16" height="16" />
-                      <span>Emby</span>
-                      <span class="ob-done-badge">
-                        {{
-                          emby.url && (emby.api_key || emby._configured)
-                            ? $t('onboarding.configured')
-                            : $t('onboarding.skipped')
-                        }}
-                      </span>
-                    </div>
-                    <div
-                      class="ob-done-item"
-                      :class="{
-                        ok: tmdb.api_key || tmdb._configured,
-                        skip: !(tmdb.api_key || tmdb._configured),
-                      }"
-                    >
-                      <img src="/assets/icons/tmdb.svg" width="16" height="16" />
-                      <span>TMDB</span>
-                      <span class="ob-done-badge">
-                        {{
-                          tmdb.api_key || tmdb._configured
-                            ? $t('onboarding.configured')
-                            : $t('onboarding.skipped')
-                        }}
-                      </span>
-                    </div>
-                    <div
-                      class="ob-done-item"
-                      :class="{
-                        ok: openSubs.api_key || openSubs._configured,
-                        skip: !(openSubs.api_key || openSubs._configured),
-                      }"
-                    >
-                      <Captions :size="16" />
-                      <span>OpenSubtitles</span>
-                      <span class="ob-done-badge">
-                        {{
-                          openSubs.api_key || openSubs._configured
-                            ? $t('onboarding.configured')
-                            : $t('onboarding.skipped')
-                        }}
-                      </span>
-                    </div>
-                    <div class="ob-done-item" :class="{ ok: hasFolders, skip: !hasFolders }">
-                      <Folder :size="16" />
-                      <span>{{ $t('onboarding.foldersTitle') }}</span>
-                      <span class="ob-done-badge">
-                        {{
-                          hasFolders
-                            ? folders.filter(f => f.path).length +
-                              ' ' +
-                              $t('onboarding.foldersConfigured')
-                            : $t('onboarding.skipped')
-                        }}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                <ObDoneStep
+                  v-else-if="currentStepId === STEP.DONE"
+                  key="done"
+                  :zone-saved="zoneSaved"
+                  :emby="emby"
+                  :tmdb="tmdb"
+                  :open-subs="openSubs"
+                  :folders="folders"
+                  :has-folders="hasFolders"
+                />
               </transition>
             </div>
 
             <!-- Footer -->
             <div class="ob-footer">
-              <button
-                v-if="currentStep > 0 && currentStep < 6"
-                class="ob-btn ob-btn-ghost"
-                @click="prev"
-              >
+              <button v-if="isMiddleStep" class="ob-btn ob-btn-ghost" @click="prev">
                 <ChevronLeft :size="14" />
                 {{ $t('common.back') }}
               </button>
               <div class="ob-footer-spacer" />
-              <button
-                v-if="currentStep > 0 && currentStep < 6"
-                class="ob-btn ob-btn-skip"
-                @click="skip"
-              >
+              <button v-if="isMiddleStep" class="ob-btn ob-btn-skip" @click="skip">
                 {{ $t('onboarding.skip') }}
               </button>
               <button
-                v-if="currentStep < 6"
+                v-if="currentStepId !== STEP.DONE"
                 class="ob-btn ob-btn-primary"
                 :disabled="saving"
                 @click="next"
               >
                 <span v-if="saving" class="ob-spin" />
                 <span v-else>
-                  {{ currentStep === 5 ? $t('onboarding.finish') : $t('onboarding.next') }}
+                  {{
+                    currentStepId === STEP.TOUR ? $t('onboarding.finish') : $t('onboarding.next')
+                  }}
                 </span>
-                <ChevronRight v-if="!saving && currentStep < 5" :size="14" />
+                <ChevronRight v-if="!saving && currentStepId !== STEP.TOUR" :size="14" />
               </button>
               <button v-else class="ob-btn ob-btn-launch" :disabled="saving" @click="complete">
                 <span v-if="saving" class="ob-spin" />
@@ -345,10 +223,16 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { useOnboarding } from '@/composables/useOnboarding'
+import { useOnboardingModules } from '@/composables/useOnboardingModules'
+import { ONBOARDING_STEP as STEP } from '@/constants/onboarding'
+import ObLocaleStep from './onboarding/ObLocaleStep.vue'
 import ObToolStep from './onboarding/ObToolStep.vue'
 import ObFoldersStep from './onboarding/ObFoldersStep.vue'
-import { Captions, Check, ChevronLeft, ChevronRight, Folder, Zap } from 'lucide-vue-next'
+import ObTourStep from './onboarding/ObTourStep.vue'
+import ObDoneStep from './onboarding/ObDoneStep.vue'
+import { Check, ChevronLeft, ChevronRight, Zap } from 'lucide-vue-next'
 import '@/assets/styles/onboarding-wizard.css'
 
 const emit = defineEmits(['done'])
@@ -356,11 +240,14 @@ const emit = defineEmits(['done'])
 const {
   visible,
   currentStep,
+  currentStepId,
   saving,
   tourActive,
   steps,
-  features,
-  modules,
+  zoneRows,
+  zoneKey,
+  zoneRow,
+  zoneSaved,
   emby,
   tmdb,
   openSubs,
@@ -384,6 +271,8 @@ const {
   complete,
   checkAndShow,
 } = useOnboarding(emit)
+const { features, modules } = useOnboardingModules()
+const isMiddleStep = computed(() => ![STEP.WELCOME, STEP.DONE].includes(currentStepId.value))
 
 defineExpose({ checkAndShow })
 </script>

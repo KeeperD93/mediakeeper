@@ -14,11 +14,52 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Added
+- Leaderboard — Today, Week, Month and All time tabs, also on My profile.
+- Monthly leaderboard — counter of trophies awarded this month.
+- Monthly leaderboard — each player's level shown on every row.
+- Monthly leaderboard — trophies won this month shown on every row.
+
+### Changed
+- Monthly leaderboard — only activity counts (views, sign-ins, requests), no longer trophies.
+- Competitor trophy — based on the leaderboard, once the month is over (2 players minimum).
+- Monthly leaderboard — your row replaces the top bar, with a "See my place" link.
+- Monthly leaderboard — cleaner page: no glows, crown in the corner, more visible bar icons.
+- Leaderboard — fixed page width on desktop, tabs no longer shift between clicks.
+- Leaderboard — Top 10 positions without bubbles, smaller "YOU" label.
+- Leaderboard — podium: metal frame with a turning shine.
+- My profile — ranking: your row as on the Leaderboard page, XP and trophies aligned.
+- Trophies, leaderboard, My profile and What's new today — counted in the time zone of the instance.
+- Regular and Faithful trophies — unlocked on the longest streak, not only the current one.
+- XP and trophies — earned from the first Emby play, even before signing in.
+- Private profile — dedicated "This profile is private" page, without name or avatar.
+
 ### Fixed
+- Watch time — only time really watched counts.
+- Account deletion — the dialog says what is kept.
 - Sign-in — three real tries, counter reset after a successful sign-in.
 - Sign-in — clear messages: wait shown, media server unreachable, inactive account.
 - Sign-in — double press or held Enter: only one try counted.
 - Personal data — the export includes successful sign-ins and account details.
+- Monthly leaderboard — singular respected ("Top 1 player", "1 ranked player", "1 day remaining").
+- Top bar — one row on tablets, tabs scroll when needed.
+- XP — a simultaneous gain no longer overwrites the one just granted.
+- XP — one player's failed trophy check no longer costs the others their watch XP.
+- XP — credited to the account in use when two accounts share one Emby account.
+- Lists — creating a list or changing its visibility no longer shows a false error.
+- Trophies — unlocked even when two checks of the same player overlap.
+- Monthly leaderboard — chosen title also shown from 2nd to 13th place.
+- Monthly leaderboard — compact page on phones, nothing cut off on the right.
+- Monthly leaderboard — readable top ten XP, level color on the avatar only.
+- Monthly leaderboard — translated "YOU" label, always whole, your XP stays visible.
+- Monthly leaderboard — first-place card fully read by screen readers.
+- My profile — ranking readable on laptops: names and levels no longer hidden.
+- My profile — trophies sorted by true rarity, without deactivated or local accounts.
+- Leaderboard — a private profile no longer appears, as the settings promise.
+- My profile — no percentage or bar without a place in the ranking.
+- Portal — leaderboard month, replacement names and maintenance message in the app language.
+- First sign-in — no more popups in a row after choosing a name.
+- My profile and trophies — plays tied to the Emby account, no longer the chosen name.
 
 ## [1.0.0-rc.9] - 2026-10-23
 

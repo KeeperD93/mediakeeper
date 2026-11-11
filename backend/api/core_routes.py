@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.auth import get_current_user, resolve_valid_admin_session
+from constants.auth import NOT_AUTHENTICATED, TOKEN_INVALID
 from core.encryption import get_persistent_fernet_key
 from core.http_client import get_internal_client
 from core.database import engine, get_db
@@ -57,7 +58,8 @@ async def _admin_session_valid(username: str, iat: float | None, db: AsyncSessio
 
 async def _portal_session_valid(username: str, iat: float | None, db: AsyncSession) -> bool:
     """True iff ``username`` maps to an active portal profile whose session
-    predates any force-logout pivot. Mirrors get_current_profile's checks."""
+    predates any force-logout pivot. Mirrors get_current_profile's checks
+    (minus its must-change-password gate, like the admin check)."""
     user = (
         await db.execute(select(User).where(User.username == username))
     ).scalar_one_or_none()
@@ -236,11 +238,11 @@ async def _authenticate_media_proxy_request(request: Request, db: AsyncSession) 
     payload = decode_access_token(jwt_token) if jwt_token else None
     scope = payload.get("scope") if payload else None
     if scope not in ("admin", "portal"):
-        raise HTTPException(status_code=401, detail="not_authenticated")
+        raise HTTPException(status_code=401, detail=NOT_AUTHENTICATED)
 
     username = payload.get("sub")
     if not username:
-        raise HTTPException(status_code=401, detail="token_invalid")
+        raise HTTPException(status_code=401, detail=TOKEN_INVALID)
 
     iat = payload.get("iat")
     valid = (
@@ -249,7 +251,7 @@ async def _authenticate_media_proxy_request(request: Request, db: AsyncSession) 
         else await _portal_session_valid(username, iat, db)
     )
     if not valid:
-        raise HTTPException(status_code=401, detail="not_authenticated")
+        raise HTTPException(status_code=401, detail=NOT_AUTHENTICATED)
     return username
 
 

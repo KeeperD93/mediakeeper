@@ -47,6 +47,7 @@ async def _make_viewer(db_session) -> User:
         display_name="Lucky Viewer",
         role="viewer",
         account_active=True,
+        emby_user_id="emby-lucky-viewer",
     ))
     await db_session.commit()
     return user

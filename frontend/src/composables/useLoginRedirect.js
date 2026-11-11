@@ -17,7 +17,7 @@ export function useLoginRedirect({ username, remember, errorMsg, loggedOutMsg })
   const route = useRoute()
   const router = useRouter()
   const { t } = useI18n()
-  const { checkAuth } = useAuth()
+  const { checkAuth, mustChangePassword } = useAuth()
 
   const backendReady = ref(false)
   const appVersion = ref('')
@@ -103,6 +103,12 @@ export function useLoginRedirect({ username, remember, errorMsg, loggedOutMsg })
     }
 
     if (await checkAuth()) {
+      // A temporary password is changed on the dashboard first: a page that needs
+      // the portal would refuse the admin and send them straight back here.
+      if (mustChangePassword.value) {
+        router.replace('/')
+        return
+      }
       if (redirect && isPortalAdminRedirect) {
         // Admin's mk_token survived but rq_token did not — re-issue the
         // portal session before honouring the deep-link so the destination

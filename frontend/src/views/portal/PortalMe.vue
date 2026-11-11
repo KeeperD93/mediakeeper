@@ -59,7 +59,7 @@
             </div>
 
             <div class="dp-reveal-item dp-reveal-item--d4">
-              <LeaderboardCard :entries="leaderboardDisplay" />
+              <ProfileLeaderboardCard :month-entries="ranking.leaderboard || []" />
             </div>
           </div>
         </div>
@@ -191,7 +191,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick, watch } from 'vue'
+import { ref, onMounted, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 import { useGenreData } from '@/composables/portal/useGenreData'
@@ -205,7 +205,7 @@ import RequestModal from '@/components/portal/RequestModal.vue'
 import RankSidebarCard from '@/components/portal/profile/RankSidebarCard.vue'
 import KpiRow from '@/components/portal/profile/KpiRow.vue'
 import StatsGenreCard from '@/components/portal/profile/StatsGenreCard.vue'
-import LeaderboardCard from '@/components/portal/profile/LeaderboardCard.vue'
+import ProfileLeaderboardCard from '@/components/portal/profile/ProfileLeaderboardCard.vue'
 import TrophyGrid from '@/components/portal/profile/TrophyGrid.vue'
 import TrophyOverlay from '@/components/portal/profile/TrophyOverlay.vue'
 import TrophyUnlockToast from '@/components/portal/profile/TrophyUnlockToast.vue'
@@ -296,8 +296,6 @@ watch(recentUnlock, unlocked => {
     unlockToast.value = null
   }, 5000)
 })
-
-const leaderboardDisplay = computed(() => ranking.value.leaderboard || [])
 
 const focusTrophyId = ref(null)
 async function openTrophyInOverlay(trophy) {

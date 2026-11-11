@@ -8,8 +8,8 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
-from models.user import User
 from models.portal.profile import UserProfile
+from models.user import User
 from services.portal._display_name import resolve_display_name
 from services.portal._rank_tiers import tier_for_level
 from services.portal.avatars import resolve_avatar_url
@@ -91,6 +91,8 @@ def serialize_admin_user_row(profile: UserProfile, user: User) -> dict[str, Any]
         "source": profile.source or (SOURCE_EMBY if profile.emby_user_id else SOURCE_LOCAL),
         "role": profile.role,
         "account_active": bool(profile.account_active and user.is_active),
+        # Deactivated, expired or deleted: tells such an account from one never activated.
+        "deactivated": not user.is_active,
         "emby_is_disabled": profile.emby_is_disabled,
         "level": profile.level,
         "tier": tier_for_level(profile.level or 1),

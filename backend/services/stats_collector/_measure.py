@@ -1,17 +1,22 @@
 """Continuous watch-time measurement, one Emby poll at a time.
 
 Each poll adds the smaller of the elapsed time and the position progress since
-the previous poll: a pause, a stall or a frozen player adds nothing, a seek
+the row's reference: a pause, a stall or a frozen player adds nothing, a seek
 forward only adds the time really spent. Emby keeps advancing the position on
 its side every second, so the precision follows the polling interval.
 """
 import re
+from collections import Counter
 from datetime import datetime, timedelta, timezone
 
 from constants.playback import TICKS_PER_SECOND, WATCH_ITEM_TYPES
 
 # Delay between two polls: the precision of every measured session.
 POLL_INTERVAL_SECONDS = 5
+# The position moves by jerks from one poll to the next: what a poll cannot
+# credit stays available to the next ones, up to this much (a seek or a stall
+# leaves no more behind).
+MAX_CARRY_SECONDS = 10
 # A first poll this close to the start of the title is a real start, not a
 # resume: those seconds were watched before the collector saw the session
 # (players often report the start late, after buffering).
@@ -19,6 +24,11 @@ FRESH_START_MAX_SECONDS = 30
 # Some players make Emby drop a paused session after about a minute: when the
 # same Emby session plays again within this delay, it is the same viewing.
 RESUME_WINDOW = timedelta(minutes=30)
+# With nothing really played for this long, the row ends at its last real second.
+SILENCE_LIMIT = timedelta(minutes=30)
+# A row reopened after Emby dropped the session may start from a position Emby
+# made up: what comes back at once stays within what a player can have buffered.
+MAX_REOPEN_CREDIT_SECONDS = 300
 # A playing player refreshes ``LastActivityDate`` every few seconds. A session
 # first seen with an activity older than this is a leftover, not a playback.
 CLIENT_SILENCE_LIMIT = timedelta(seconds=60)
@@ -81,6 +91,35 @@ def progress_seconds(
     return int(min(elapsed, progressed))
 
 
+def measure_progress(
+    previous_position_ticks: int | None,
+    previous_tick_at: datetime | None,
+    position_ticks: int,
+    now: datetime,
+    *,
+    paused: bool,
+) -> tuple[int, datetime, int]:
+    """Seconds to credit, then the row's new reference (time, position).
+
+    The reference only moves by what was credited, so a jerk of the position
+    is made up by the following polls. A pause leaves nothing to make up.
+    """
+    previous_at = as_utc(previous_tick_at)
+    if previous_at is None or previous_position_ticks is None:
+        return 0, now, position_ticks
+    progressed = (position_ticks - previous_position_ticks) / TICKS_PER_SECOND
+    if paused or progressed < -MAX_CARRY_SECONDS:
+        return progress_seconds(previous_position_ticks, previous_at, position_ticks, now), now, position_ticks
+    elapsed = (now - previous_at).total_seconds()
+    credit = int(min(elapsed, max(progressed, 0)))
+    carried_at = max(previous_at + timedelta(seconds=credit), now - timedelta(seconds=MAX_CARRY_SECONDS))
+    carried_position = max(
+        previous_position_ticks + credit * TICKS_PER_SECOND,
+        position_ticks - MAX_CARRY_SECONDS * TICKS_PER_SECOND,
+    )
+    return credit, carried_at, carried_position
+
+
 def fresh_start_seconds(position_ticks: int | None) -> int:
     """Seconds to credit when a new row is first seen near the title's start."""
     seconds = (position_ticks or 0) / TICKS_PER_SECOND
@@ -128,10 +167,18 @@ def exclusive_shares(progress: list[tuple[object, str, int]]) -> dict[object, in
     """Per user, a poll counts once even when several devices play at once.
 
     ``progress`` holds ``(row, emby_user_id, seconds)``; the row that moved the
-    most gets the user's time for this poll, the others get nothing.
+    most gets the user's time for this poll, the others get nothing. Several
+    rows moving at once are bounded by the poll: a carried jerk of one of them
+    is not extra time for the user.
     """
     best: dict[str, tuple[object, int]] = {}
+    moved: Counter[str] = Counter()
     for row, user_id, seconds in progress:
-        if seconds > 0 and (user_id not in best or seconds > best[user_id][1]):
-            best[user_id] = (row, seconds)
-    return {row: seconds for row, seconds in best.values()}
+        if seconds > 0:
+            moved[user_id] += 1
+            if user_id not in best or seconds > best[user_id][1]:
+                best[user_id] = (row, seconds)
+    return {
+        row: min(seconds, POLL_INTERVAL_SECONDS) if moved[user_id] > 1 else seconds
+        for user_id, (row, seconds) in best.items()
+    }

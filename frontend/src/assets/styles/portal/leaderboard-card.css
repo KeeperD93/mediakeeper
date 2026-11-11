@@ -1,4 +1,4 @@
-/* Leaderboard card — monthly XP ranking list with tier-colored avatars.
+/* Leaderboard card — XP ranking list with tier-colored avatars.
  * Used by LeaderboardCard.vue. Global styles. */
 
 .gc-lb-box {
@@ -55,14 +55,14 @@
   min-height: 0;
 }
 
-/* Separator above the "you" row when the current user is listed after
-   the visible top N — makes it obvious that the leader list ends
-   there and the extra entry is the user's own rank. */
-.gc-lb-rows > .gc-lb-row--me:not(:first-child) {
+/* Separator above the "you" row when the daily digest lists the user after
+   its top 3 — makes it obvious that the leader list ends there and the
+   extra entry is the user's own rank. */
+.gc-lb-box--widget .gc-lb-rows > .gc-lb-row--me:not(:first-child) {
   margin-top: 0.45rem;
   position: relative;
 }
-.gc-lb-rows > .gc-lb-row--me:not(:first-child)::before {
+.gc-lb-box--widget .gc-lb-rows > .gc-lb-row--me:not(:first-child)::before {
   content: '';
   position: absolute;
   top: -0.3rem;
@@ -81,6 +81,22 @@
 .gc-lb-row--me {
   background: rgb(var(--accent-rgb, 99, 102, 241), 0.1);
   border: 1px solid rgb(var(--accent-rgb), 0.15);
+}
+
+/* In a narrow card (a laptop's "My profile" column, a phone), the movement and
+   the XP go under the name rather than squeezing it out of sight. */
+.gc-lb-box .gc-lb-row {
+  flex-wrap: wrap;
+  row-gap: 2px;
+}
+.gc-lb-box .gc-lb-info {
+  flex: 1 1 100px;
+}
+.gc-lb-figures {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-left: auto;
 }
 
 /* Movement arrow + delta (green up / red down, grey dash when flat). */
@@ -215,12 +231,9 @@
 .gc-lb-v {
   font-size: var(--portal-text-xs);
   font-weight: var(--portal-font-bold);
-  /* Intentional exception to the "no accent on text" rule: the monthly
-     XP total is the principal data point of the leaderboard card and
-     gets a saturated blue emphasis on purpose. Promote to a dedicated
-     ``--portal-color-xp`` token if a future palette tweak needs to
-     repaint it independently of the semantic info colour. */
-  color: var(--color-info);
+  /* The XP total is the principal figure of a row: a saturated blue on purpose,
+     which stays readable whatever the accent color of the theme. */
+  color: var(--portal-color-info-light);
   font-family: var(--portal-font-display);
   flex-shrink: 0;
 }

@@ -66,11 +66,7 @@
                     }}
                   </RuUserBadge>
                   <RuUserBadge :variant="user.account_active ? 'success' : 'muted'">
-                    {{
-                      user.account_active
-                        ? $t('requestsAdmin.users.labels.active')
-                        : $t('requestsAdmin.users.labels.inactive')
-                    }}
+                    {{ $t(`requestsAdmin.users.labels.${status}`) }}
                   </RuUserBadge>
                   <RuUserBadge
                     v-if="user.source === USER_SOURCE.EMBY && user.emby_is_disabled"
@@ -205,6 +201,13 @@ const presets = ref(null)
 const loading = ref(false)
 const panelRef = ref(null)
 const closeBtnRef = ref(null)
+
+// Read under the header's v-if="user". An account never activated still earns XP and
+// trophies; a deactivated one no longer does.
+const status = computed(() => {
+  if (user.value.account_active) return 'active'
+  return user.value.deactivated ? 'deactivated' : 'neverActivated'
+})
 
 const api = usePortalAdminUsers()
 

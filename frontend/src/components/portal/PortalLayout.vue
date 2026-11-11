@@ -35,13 +35,13 @@
 
     <SurpriseOverlay v-if="surpriseOpen" @close="surpriseOpen = false" />
 
-    <!-- Auto-opening overlays are gated behind ``mustPickUsername``: when
-         the admin reset a viewer's display name, ForceUsernameModal must
-         stay the topmost layer until they pick a new one, otherwise the
-         What's-new and Daily-digest popups (whose z-index is higher than
-         the portal overlay token) paint over the picker and trap them. -->
+    <!-- Auto-opening overlays wait for the picker: when the admin reset a
+         viewer's display name, ForceUsernameModal must stay the topmost
+         layer until they pick a new one, otherwise the What's-new and
+         Daily-digest popups (whose z-index is higher than the portal
+         overlay token) paint over the picker and trap them. -->
     <NewsPopup
-      v-if="showNewsPopup && !mustPickUsername && !isMaintenancePage"
+      v-if="showNewsPopup && !pickerShownThisVisit && !isMaintenancePage"
       :items="unreadNews"
       @dismiss="dismissNews"
     />
@@ -59,6 +59,7 @@
     <PortalWhatsNewModal
       v-if="!mustPickUsername && !isMaintenancePage"
       :open="whatsNewOpen"
+      :auto="!pickerShownThisVisit"
       @close="whatsNewOpen = false"
     />
 
@@ -67,6 +68,7 @@
     <PortalDailyDigestOverlay
       v-if="!mustPickUsername && !isMaintenancePage"
       :open="dailyDigestOpen"
+      :auto="!pickerShownThisVisit"
       @close="dailyDigestOpen = false"
     />
 
@@ -82,7 +84,11 @@
          :open binding could race with profile arrival on a fresh F5). The
          backend ``display_name_must_set`` flag is the single source of
          truth and only flips back to false on a saved display name. -->
-    <ForceUsernameModal v-if="mustPickUsername" :open="true" :initial="profile?.display_name || ''" />
+    <ForceUsernameModal
+      v-if="mustPickUsername"
+      :open="true"
+      :initial="profile?.display_name || ''"
+    />
   </div>
 </template>
 
@@ -168,6 +174,12 @@ const isAdmin = computed(() => profile.value?.role === USER_ROLE.ADMIN)
 // they can use anything else. Drives both the blocking ForceUsernameModal
 // and the v-if guards on the auto-popping overlays / FAB.
 const mustPickUsername = computed(() => !isAdmin.value && !!profile.value?.display_name_must_set)
+// After the picker, the page comes first: what opens by itself waits for the
+// next portal load. The avatar menu still opens it on demand.
+const pickerShownThisVisit = ref(mustPickUsername.value)
+watch(mustPickUsername, must => {
+  if (must) pickerShownThisVisit.value = true
+})
 // Maintenance lockdown: non-admins are redirected here by the router guard.
 // Hide the whole portal chrome (nav, FAB, banners, auto-popping overlays) so
 // only the holding page — and the first-login username picker — remain.
@@ -206,7 +218,7 @@ async function dismissNews() {
 onMounted(async () => {
   await checkPortalAuth()
   await fetchUnread()
-  if (unreadNews.value.length > 0 && !mustPickUsername.value) {
+  if (unreadNews.value.length > 0 && !pickerShownThisVisit.value) {
     showNewsPopup.value = true
   }
 })
@@ -268,18 +280,6 @@ onMounted(async () => {
   .pt-main > :deep(.vmd2-root) {
     padding-top: 0;
     padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
-  }
-}
-
-/* Legacy narrow-desktop layout (tabs wrap to 2nd row in top bar) */
-@media (min-width: 768px) and (max-width: 920px) {
-  .pt-main > :deep(*) {
-    padding-top: 168px;
-  }
-
-  .pt-main > :deep(.pt-home),
-  .pt-main > :deep(.vmd2-root) {
-    padding-top: 0;
   }
 }
 

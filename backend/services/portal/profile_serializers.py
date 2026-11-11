@@ -110,28 +110,3 @@ def serialize_public_profile(profile: UserProfile, *, lang: str = "fr") -> dict:
 def _resolve_avatar_url(profile: UserProfile) -> str | None:
     """A custom uploaded avatar takes precedence over the Emby-proxied URL."""
     return resolve_avatar_url(profile.avatar_url, profile.avatar_custom_path)
-
-
-def build_private_placeholder(profile: UserProfile, *, lang: str) -> dict:
-    """Minimal payload returned when a non-owner reaches a private profile.
-
-    The leaderboard exposes ``user_id`` for every ranked player (public
-    *and* private accounts), so the dedicated /portal/leaderboard page
-    can — and will — link to a private profile. Surfacing a polite
-    "this profile is private" landing keeps the click meaningful;
-    masking it as 404 would only confuse the user without gaining any
-    privacy (the id is already known).
-
-    The payload deliberately carries only the safe identity bits
-    (anonymised display name + avatar) plus ``is_private=True`` so the
-    SPA can branch on it.
-    """
-    effective_name = None if profile.display_name_must_set else profile.display_name
-    return {
-        "is_private": True,
-        "user_id": profile.user_id,
-        "display_name": resolve_display_name(
-            effective_name, profile.user_id, lang, is_admin=profile.role == ROLE_ADMIN
-        ),
-        "avatar_url": _resolve_avatar_url(profile),
-    }

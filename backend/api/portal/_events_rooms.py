@@ -156,7 +156,6 @@ async def create_mk_event(
     background_tasks.add_task(
         safe_check_all_achievements_in_new_session,
         user.id,
-        user.username,
         "event_created",
     )
     return result

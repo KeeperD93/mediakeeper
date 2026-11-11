@@ -17,6 +17,20 @@ def _auth(client, admin_user) -> None:
     )
 
 
+async def _player(db_session, username: str, **fields) -> int:
+    """A player account for the admin to act on (local creation makes only
+    administrators); returns its profile id."""
+    _, profile = await make_portal_user(
+        db_session, username=username, display_name=fields.pop("display_name", None),
+    )
+    profile_id = profile.id
+    if fields:
+        for name, value in fields.items():
+            setattr(profile, name, value)
+        await db_session.commit()
+    return profile_id
+
+
 @pytest.mark.asyncio
 async def test_role_presets_endpoint(client, admin_user):
     _auth(client, admin_user)
@@ -50,8 +64,9 @@ async def test_list_users_filters(client, admin_user, db_session):
 
 
 @pytest.mark.asyncio
-async def test_create_local_user_then_role_change(client, admin_user, db_session):
+async def test_create_local_user_then_role_change(client, admin_user, db_session, monkeypatch):
     """End-to-end happy path: create local + flip role + audit trail recorded."""
+    monkeypatch.setenv("MK_ADMIN_USERS", "admin,alice")
     db_session.add(UserProfile(
         user_id=admin_user.id,
         display_name="Admin",
@@ -79,7 +94,9 @@ async def test_create_local_user_then_role_change(client, admin_user, db_session
     assert resp.status_code == 200
     detail = resp.json()
     assert detail["source"] == "local"
-    assert detail["display_name"] == "Alice"
+    assert detail["role"] == "admin"
+    assert detail["username"] == "alice"
+    assert detail["email"] == "alice@example.com"
 
     # Role change applies the preset
     resp = await client.patch(
@@ -107,11 +124,7 @@ async def test_patch_quota_updates_and_audits(client, admin_user, db_session):
     await db_session.commit()
     _auth(client, admin_user)
 
-    resp = await client.post("/api/portal/admin/users/local", json={
-        "username": "quotauser", "password": "supersecret",
-    })
-    assert resp.status_code == 200, resp.text
-    pid = resp.json()["profile_id"]
+    pid = await _player(db_session, "quotauser")
 
     resp = await client.patch(
         f"/api/portal/admin/users/{pid}/quota",
@@ -137,10 +150,7 @@ async def test_patch_quota_rejects_inverted_bounds(client, admin_user, db_sessio
     await db_session.commit()
     _auth(client, admin_user)
 
-    resp = await client.post("/api/portal/admin/users/local", json={
-        "username": "quotabounds", "password": "supersecret",
-    })
-    pid = resp.json()["profile_id"]
+    pid = await _player(db_session, "quotabounds")
 
     resp = await client.patch(
         f"/api/portal/admin/users/{pid}/quota", json={"auto_min": 50},
@@ -159,10 +169,7 @@ async def test_patch_quota_switch_to_auto_resets_cap(client, admin_user, db_sess
     await db_session.commit()
     _auth(client, admin_user)
 
-    resp = await client.post("/api/portal/admin/users/local", json={
-        "username": "quotaauto", "password": "supersecret",
-    })
-    pid = resp.json()["profile_id"]
+    pid = await _player(db_session, "quotaauto")
 
     await client.patch(f"/api/portal/admin/users/{pid}/quota", json={"max_allowed": 80})
     resp = await client.patch(
@@ -187,9 +194,7 @@ async def test_patch_quota_flip_to_auto_seeds_band_from_instance(client, admin_u
     await db_session.commit()
     _auth(client, admin_user)
 
-    seeded = (await client.post("/api/portal/admin/users/local", json={
-        "username": "quotaseed", "password": "supersecret",
-    })).json()["profile_id"]
+    seeded = await _player(db_session, "quotaseed")
     # Push a high manual cap first so the flip's reset to START_CAP is visible.
     await client.patch(f"/api/portal/admin/users/{seeded}/quota", json={"max_allowed": 80})
     resp = await client.patch(
@@ -201,9 +206,7 @@ async def test_patch_quota_flip_to_auto_seeds_band_from_instance(client, admin_u
     assert changed["auto_max"]["to"] == 25
     assert changed["max_allowed"]["to"] == 5  # START_CAP clamped into [4, 25]
 
-    explicit = (await client.post("/api/portal/admin/users/local", json={
-        "username": "quotaexplicit", "password": "supersecret",
-    })).json()["profile_id"]
+    explicit = await _player(db_session, "quotaexplicit")
     resp = await client.patch(
         f"/api/portal/admin/users/{explicit}/quota",
         json={"mode": "auto", "auto_min": 7, "auto_max": 9},
@@ -262,12 +265,7 @@ async def test_soft_delete_then_restore(client, admin_user, db_session):
 
     _auth(client, admin_user)
 
-    resp = await client.post("/api/portal/admin/users/local", json={
-        "username": "bob",
-        "password": "supersecret",
-    })
-    assert resp.status_code == 200
-    profile_id = resp.json()["profile_id"]
+    profile_id = await _player(db_session, "bob")
 
     # Delete (soft)
     resp = await client.delete(f"/api/portal/admin/users/{profile_id}")
@@ -304,14 +302,7 @@ async def test_bulk_set_role(client, admin_user, db_session):
 
     _auth(client, admin_user)
 
-    ids = []
-    for username in ("carol", "dave"):
-        resp = await client.post("/api/portal/admin/users/local", json={
-            "username": username,
-            "password": "supersecret",
-        })
-        assert resp.status_code == 200
-        ids.append(resp.json()["profile_id"])
+    ids = [await _player(db_session, username) for username in ("carol", "dave")]
 
     resp = await client.post("/api/portal/admin/users/bulk", json={
         "action": "set_role",
@@ -336,13 +327,7 @@ async def test_bulk_set_quota_applies_and_validates(client, admin_user, db_sessi
     await db_session.commit()
     _auth(client, admin_user)
 
-    ids = []
-    for username in ("erin", "frank"):
-        resp = await client.post("/api/portal/admin/users/local", json={
-            "username": username, "password": "supersecret",
-        })
-        assert resp.status_code == 200
-        ids.append(resp.json()["profile_id"])
+    ids = [await _player(db_session, username) for username in ("erin", "frank")]
 
     # One overlay submit -> manual cap + auto-approve on both accounts.
     resp = await client.post("/api/portal/admin/users/bulk", json={
@@ -391,14 +376,9 @@ async def test_patch_identity_returns_persisted_detail(client, admin_user, db_se
 
     _auth(client, admin_user)
 
-    resp = await client.post("/api/portal/admin/users/local", json={
-        "username": "ellie",
-        "password": "supersecret",
-        "display_name": "Ellie",
-        "email": "ellie@example.com",
-    })
-    assert resp.status_code == 200, resp.text
-    profile_id = resp.json()["profile_id"]
+    profile_id = await _player(
+        db_session, "ellie", display_name="Ellie", email="ellie@example.com",
+    )
 
     resp = await client.patch(
         f"/api/portal/admin/users/{profile_id}",
@@ -445,15 +425,9 @@ async def test_patch_identity_clears_field_when_empty_string(client, admin_user,
 
     _auth(client, admin_user)
 
-    resp = await client.post("/api/portal/admin/users/local", json={
-        "username": "frank",
-        "password": "supersecret",
-        "first_name": "Jean",
-        "last_name": "Dupont",
-        "email": "frank@example.com",
-    })
-    assert resp.status_code == 200, resp.text
-    profile_id = resp.json()["profile_id"]
+    profile_id = await _player(
+        db_session, "frank", first_name="Jean", last_name="Dupont", email="frank@example.com",
+    )
 
     resp = await client.patch(
         f"/api/portal/admin/users/{profile_id}",
@@ -489,12 +463,7 @@ async def test_patch_identity_rejects_empty_display_name(client, admin_user, db_
 
     _auth(client, admin_user)
 
-    resp = await client.post("/api/portal/admin/users/local", json={
-        "username": "grace",
-        "password": "supersecret",
-        "display_name": "Grace",
-    })
-    profile_id = resp.json()["profile_id"]
+    profile_id = await _player(db_session, "grace", display_name="Grace")
 
     resp = await client.patch(
         f"/api/portal/admin/users/{profile_id}",
@@ -594,16 +563,9 @@ async def test_reset_display_name_flags_profile_and_audits(client, admin_user, d
     await db_session.commit()
 
     _auth(client, admin_user)
-    resp = await client.post("/api/portal/admin/users/local", json={
-        "username": "frank",
-        "password": "supersecret",
-        "display_name": "Frank",
-    })
-    assert resp.status_code == 200, resp.text
-    profile_id = resp.json()["profile_id"]
+    profile_id = await _player(db_session, "frank", display_name="Frank")
 
-    # Sanity: the freshly created user starts with the flag cleared
-    # (admin-side identity update sets ``display_name_must_set=False``).
+    # Sanity: the player starts with the flag cleared.
     resp = await client.get(f"/api/portal/admin/users/{profile_id}")
     assert resp.status_code == 200
     assert resp.json()["display_name_must_set"] is False
@@ -639,11 +601,7 @@ async def test_extend_access_sets_end_date(client, admin_user, db_session):
     await db_session.commit()
 
     _auth(client, admin_user)
-    resp = await client.post("/api/portal/admin/users/local", json={
-        "username": "eve",
-        "password": "supersecret",
-    })
-    profile_id = resp.json()["profile_id"]
+    profile_id = await _player(db_session, "eve")
 
     resp = await client.post(
         f"/api/portal/admin/users/{profile_id}/extend-access",

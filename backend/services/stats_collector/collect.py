@@ -5,25 +5,36 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants.playback import WATCH_ITEM_TYPES
+from constants.playback import TICKS_PER_SECOND, WATCH_ITEM_TYPES
 from models.playback_stats import LibraryCache, PlaybackSession
 from services.emby import get_raw_sessions
+from services.portal.gdpr_erased import is_erased, load_erased_identities
 from services.settings import get_active_media_source
 
 from ._cache import _normalize_library_name
 from ._closure import _grant_post_session_xp
 from ._completions import record_completions
 from ._measure import (
+    FRESH_START_MAX_SECONDS,
+    MAX_REOPEN_CREDIT_SECONDS,
     RESUME_WINDOW,
+    SILENCE_LIMIT,
     add_to_hour,
+    as_utc,
     client_is_alive,
     exclusive_shares,
     fresh_start_seconds,
+    measure_progress,
     player_confirms,
-    progress_seconds,
 )
 from ._metadata import genres, session_metadata
 from ._pauses import _process_pause_events
+from ._player_reports import (
+    fetch_stored_positions,
+    forget_other_sessions,
+    player_is_lost,
+    title_key,
+)
 from ._resolver import _session_library_name
 
 __all__ = ["_grant_post_session_xp", "_process_pause_events", "collect_active_sessions"]
@@ -88,6 +99,27 @@ async def _refresh_metadata(
             logger.info("Session %s: library_name resolved → %s", row.session_key, row.library_name)
 
 
+def _is_leftover(lost: bool, position: int, previous: PlaybackSession | None) -> bool:
+    """A listed session that is not a playback: Emby moves it alone, or it still
+    sits exactly where its last row stopped (an isolated sign of activity)."""
+    if lost and position > FRESH_START_MAX_SECONDS * TICKS_PER_SECOND:
+        return True
+    return previous is not None and position > 0 and previous.position_ticks == position
+
+
+def _resumable(row: PlaybackSession | None, now: datetime) -> bool:
+    """Closed moments ago by a pause that made Emby drop the session. A title
+    already watched to the end is never resumed: playing it again is a new
+    viewing."""
+    seen = as_utc(row.last_seen_at) if row else None
+    return seen is not None and row.completed_at is None and seen >= now - RESUME_WINDOW
+
+
+def _silent_too_long(row: PlaybackSession, now: datetime) -> bool:
+    seen = as_utc(row.last_seen_at)
+    return seen is not None and now - seen > SILENCE_LIMIT
+
+
 async def collect_active_sessions(db: AsyncSession, now: datetime | None = None):
     """Measure every tracked Emby session and close the rows whose session is gone.
 
@@ -103,11 +135,19 @@ async def collect_active_sessions(db: AsyncSession, now: datetime | None = None)
         return
 
     now = now or datetime.now(timezone.utc)
-    sessions = [s for s in (await get_raw_sessions(db) or []) if _tracked(s)]
+    # Someone erased at their request is no longer recorded. By Emby id alone: a
+    # namesake is refused an account, but still counts in the statistics.
+    erased = await load_erased_identities(db)
+    sessions = [
+        s for s in (await get_raw_sessions(db) or [])
+        if _tracked(s) and not is_erased(erased, s.get("UserId"), None)
+    ]
 
     await _process_pause_events(db, sessions, now)
+    stored = await fetch_stored_positions(url, api_key, sessions)
 
     keys = {_emby_key(s) for s in sessions}
+    forget_other_sessions(keys)
     active: dict[str, PlaybackSession] = {}
     if keys:
         rows = (await db.execute(
@@ -118,21 +158,16 @@ async def collect_active_sessions(db: AsyncSession, now: datetime | None = None)
         )).scalars().all()
         active = {row.emby_session_key: row for row in rows}
 
-    # Rows closed moments ago by a pause that made Emby drop the session. A
-    # title already watched to the end is never resumed: playing it again is a
-    # new viewing.
-    resumable: dict[str, PlaybackSession] = {}
+    last_closed: dict[str, PlaybackSession] = {}
     missing = [key for key in keys if key not in active]
     if missing:
         rows = (await db.execute(
             select(PlaybackSession).where(
                 PlaybackSession.emby_session_key.in_(missing),
                 PlaybackSession.is_active.is_(False),
-                PlaybackSession.completed_at.is_(None),
-                PlaybackSession.last_seen_at >= now - RESUME_WINDOW,
-            ).order_by(PlaybackSession.last_seen_at)
+            ).order_by(PlaybackSession.last_seen_at, PlaybackSession.id)
         )).scalars().all()
-        resumable = {row.emby_session_key: row for row in rows}
+        last_closed = {row.emby_session_key: row for row in rows}
 
     library_rows = (await db.execute(select(LibraryCache.lib_id, LibraryCache.name))).all()
     aliases = {
@@ -146,37 +181,44 @@ async def collect_active_sessions(db: AsyncSession, now: datetime | None = None)
         paused = s.get("PlayState", {}).get("IsPaused", False)
         position = s.get("PlayState", {}).get("PositionTicks") or 0
         row = active.get(key)
+        previous = last_closed.get(key)
+        lost = player_is_lost(s, key, row, previous, stored.get(title_key(s)), now)
+        reopened = False
         if row is None:
             # Only a live, playing player opens a row: a session first seen
             # paused or silent is a leftover, not a new playback.
-            if paused or not client_is_alive(s, now):
+            if paused or not client_is_alive(s, now) or _is_leftover(lost, position, previous):
                 continue
-            row = resumable.get(key)
-            if row is None:
+            if not _resumable(previous, now):
                 row = active[key] = await _open_row(db, s, key, position, now, url, api_key, aliases)
                 progress.append((row, row.user_id, row.watched_seconds))
                 continue
+            row = active[key] = previous
             row.is_active, row.ended_at = True, None
-            active[key] = row
+            reopened = True
 
-        if not player_confirms(s, row.last_tick_at):
-            # Silent player: what Emby moves on its own is not counted, and the
-            # reference stays on the last confirmed poll, so what the player
-            # really played meanwhile (buffer during a network cut) counts once
-            # it reports again; nothing counts if it never comes back.
-            progress.append((row, row.user_id, 0))
-            continue
-        seconds = progress_seconds(row.last_tick_position_ticks, row.last_tick_at, position, now)
-        row.last_tick_at = now
-        row.last_tick_position_ticks = position
-        row.position_ticks = position
-        row.watched_seconds = (row.watched_seconds or 0) + seconds
-        if not paused:
-            # The last confirmed playback: it becomes ``ended_at`` when the row
-            # closes, so a silent player never extends it.
-            row.last_seen_at = now
-            await _refresh_metadata(row, s, url, api_key, aliases)
+        # Lost or silent player: what Emby moves on its own is not counted, and
+        # the reference stays on the last confirmed poll, so what the player
+        # really played meanwhile (buffer during a network cut) counts once it
+        # reports again; nothing counts if it never comes back.
+        seconds = 0
+        if not lost and player_confirms(s, row.last_tick_at):
+            seconds, row.last_tick_at, row.last_tick_position_ticks = measure_progress(
+                row.last_tick_position_ticks, row.last_tick_at, position, now, paused=paused,
+            )
+            if reopened:
+                seconds = min(seconds, MAX_REOPEN_CREDIT_SECONDS)
+            row.position_ticks = position
+            row.watched_seconds = (row.watched_seconds or 0) + seconds
+            # The last real playback: it becomes ``ended_at`` when the row closes.
+            # Without any position (live channel), activity is all there is.
+            if not paused and (seconds > 0 or position == 0):
+                row.last_seen_at = now
+                await _refresh_metadata(row, s, url, api_key, aliases)
         progress.append((row, row.user_id, seconds))
+        if _silent_too_long(row, now):
+            del active[key]  # closed below, at its last real second
+            logger.info("Playback row %s closed: nothing played for %s (client %s)", row.id, SILENCE_LIMIT, row.client_name)
 
     video = [entry for entry in progress if entry[0].item_type in WATCH_ITEM_TYPES]
     for row, seconds in exclusive_shares(video).items():

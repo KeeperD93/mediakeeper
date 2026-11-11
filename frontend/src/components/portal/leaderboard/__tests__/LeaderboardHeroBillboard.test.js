@@ -28,7 +28,7 @@ function buildEntry(overrides = {}) {
     level: 25,
     tier: 'gold',
     title_key: 'regular',
-    month_xp: 2500,
+    period_xp: 2500,
     movement: 1,
     selected_title: null,
     title_tier: null,
@@ -70,12 +70,39 @@ describe('LeaderboardHeroBillboard.vue', () => {
     expect(wrapper.text()).toContain('portal.leaderboard.hero.leadOverSecond')
   })
 
+  it('puts the crown on the card, apart from the rank', () => {
+    const wrapper = mount(LeaderboardHeroBillboard, {
+      props: { entry: buildEntry() },
+      global: {
+        stubs: {
+          'router-link': RouterLinkStub,
+          MkAvatar: { template: '<div class="mk-avatar-stub" />' },
+        },
+      },
+    })
+    expect(wrapper.find('a > .lb-hero-crown').exists()).toBe(true)
+    expect(wrapper.find('.lb-hero-rank .lb-hero-crown').exists()).toBe(false)
+  })
+
+  it('lets a screen reader read the whole card, not a label in its place', () => {
+    const wrapper = mount(LeaderboardHeroBillboard, {
+      props: { entry: buildEntry() },
+      global: {
+        stubs: {
+          'router-link': RouterLinkStub,
+          MkAvatar: { template: '<div class="mk-avatar-stub" />' },
+        },
+      },
+    })
+    expect(wrapper.find('a').attributes('aria-label')).toBeUndefined()
+  })
+
   it('reaches the target XP at the end of the count-up animation', async () => {
     vi.useFakeTimers({
       toFake: ['performance', 'requestAnimationFrame', 'cancelAnimationFrame'],
     })
     const wrapper = mount(LeaderboardHeroBillboard, {
-      props: { entry: buildEntry({ month_xp: 1500 }) },
+      props: { entry: buildEntry({ period_xp: 1500 }) },
       global: {
         stubs: {
           'router-link': RouterLinkStub,

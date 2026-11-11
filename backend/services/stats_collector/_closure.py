@@ -10,20 +10,16 @@ logger = logging.getLogger("mediakeeper.stats.collector")
 async def _grant_post_session_xp(db: AsyncSession, closed_sessions: list):
     """Grant XP for completed sessions (anti-abuse checks inside grant_watch_xp).
 
-    Two-stage gate:
-    - Lazy-provision: when the Emby username has no MediaKeeper row yet
-      we create one so the user is visible in the admin panel — initial
-      state is ``account_active=False`` (silent shadow account).
-    - XP gate: profiles with ``account_active=True`` always earn XP.
-      Profiles with ``account_active=False`` only earn when the admin
-      explicitly opted in via ``can_earn_xp_offline`` (migration 035) —
-      useful for tracking Emby activity of someone who never logs into
-      MK. Otherwise watches accumulate in ``playback_sessions`` only.
+    An Emby user seen without a MediaKeeper account gets one, unless erased at
+    their request; it cannot sign in until the admin activates it. Every account
+    linked to Emby earns from its plays, signed in or not, until it is deactivated,
+    expires or is deleted.
     """
     try:
+        from models.playback_stats import PlaybackSession
         from models.portal.profile import UserProfile
-        from services.portal.xp import grant_watch_xp
         from services.portal.user_import import ensure_user_for_emby_session
+        from services.portal.xp import grant_watch_xp
         from services.stats import get_exclusions
 
         excl_list = await get_exclusions(db)
@@ -32,8 +28,11 @@ async def _grant_post_session_xp(db: AsyncSession, closed_sessions: list):
             if exc.get("mode") == "exact":
                 excluded_names.add(exc.get("value", ""))
 
-        for sess in closed_sessions:
-            if sess.item_name and sess.item_name in excluded_names:
+        # By id: a failed trophy check rolls the session back, which expires the
+        # rows still to come; ``get`` reloads them (None once deleted meanwhile).
+        for sess_id in [sess.id for sess in closed_sessions]:
+            sess = await db.get(PlaybackSession, sess_id)
+            if sess is None or (sess.item_name and sess.item_name in excluded_names):
                 continue
 
             user = await ensure_user_for_emby_session(
@@ -41,19 +40,15 @@ async def _grant_post_session_xp(db: AsyncSession, closed_sessions: list):
                 emby_username=sess.user_name,
                 emby_user_id=sess.user_id,
             )
-            if not user:
+            # Deactivating, expiring or deleting an account clears ``is_active``;
+            # an account still waiting for its first activation earns.
+            if not user or not user.is_active:
                 continue
 
             profile = (await db.execute(
                 select(UserProfile).where(UserProfile.user_id == user.id)
             )).scalar_one_or_none()
             if not profile:
-                continue
-            # XP gate: profiles with ``account_active=True`` always earn.
-            # Profiles with ``account_active=False`` only earn when the admin
-            # explicitly opted in via ``can_earn_xp_offline`` — useful for
-            # tracking Emby activity of someone who never logs into MK.
-            if not profile.account_active and not profile.can_earn_xp_offline:
                 continue
 
             wall_duration = 0
@@ -74,7 +69,7 @@ async def _grant_post_session_xp(db: AsyncSession, closed_sessions: list):
 
             from services.portal.achievements import safe_check_all_achievements
             await safe_check_all_achievements(
-                db, user.id, sess.user_name, source="playback_close", silent=True,
+                db, user.id, source="playback_close", silent=True,
             )
     except Exception as e:
         logger.warning("[XP] post-session XP grant error: %s", e, exc_info=True)

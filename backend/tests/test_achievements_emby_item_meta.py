@@ -38,7 +38,7 @@ from services.portal.achievements import (
     check_all_achievements,
     seed_achievements,
 )
-from services.portal.playback_algorithms import PILOT_FRESHNESS_DAYS
+from services.portal.playback_pilot import PILOT_FRESHNESS_DAYS
 
 
 # ── Shared helpers ──────────────────────────────────────────────────────
@@ -59,6 +59,7 @@ async def _make_viewer(db, username: str) -> User:
         display_name=username.title(),
         role="viewer",
         account_active=True,
+        emby_user_id=f"emby-{username}",
     ))
     await db.commit()
     return user
@@ -150,7 +151,7 @@ async def test_pilot_unlocks_when_first_viewer_on_fresh_content(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert await _ach_unlocked(db_session, alice.id, "secret_pilot")
 
 
@@ -184,7 +185,7 @@ async def test_pilot_blocked_when_not_first_viewer(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _ach_unlocked(db_session, alice.id, "secret_pilot")
 
 
@@ -218,7 +219,7 @@ async def test_pilot_blocked_when_content_not_fresh(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _ach_unlocked(db_session, alice.id, "secret_pilot")
 
 
@@ -251,7 +252,7 @@ async def test_pilot_blocked_when_date_created_null(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _ach_unlocked(db_session, alice.id, "secret_pilot")
 
 
@@ -276,7 +277,7 @@ async def test_pilot_blocked_when_single_user_universe(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _ach_unlocked(db_session, alice.id, "secret_pilot")
 
 
@@ -302,7 +303,7 @@ async def test_late_unlocks_when_content_added_over_1_year_ago(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert await _ach_unlocked(db_session, alice.id, "secret_late")
 
 
@@ -325,7 +326,7 @@ async def test_late_blocked_when_content_added_under_1_year(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _ach_unlocked(db_session, alice.id, "secret_late")
 
 
@@ -346,7 +347,7 @@ async def test_late_blocked_when_date_created_null(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _ach_unlocked(db_session, alice.id, "secret_late")
 
 
@@ -369,7 +370,7 @@ async def test_late_unlocks_at_exact_365_day_boundary(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert await _ach_unlocked(db_session, alice.id, "secret_late")
 
 

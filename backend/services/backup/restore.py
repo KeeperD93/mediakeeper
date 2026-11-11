@@ -5,14 +5,32 @@ import logging
 import zipfile
 from pathlib import Path
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.gdpr import GDPR_ERASED_KEY_PREFIX
 from models.scheduler_task import SchedulerTask
+from models.settings import Setting
+from models.user import User
+
+from ._restore_memory import apply_restored_settings, apply_restored_watchlist
+from .restore_secrets import check_restored_secrets, is_unreadable_secret
 
 logger = logging.getLogger("mediakeeper.backup")
 
 ENCRYPTION_KEY_ARCHIVE_NAME = "secrets/.encryption_key"
+
+# Not the configuration a backup carries: an old announcement date would announce
+# already announced media again, an old retention would delete what today's one keeps.
+SETTINGS_KEPT_ON_RESTORE = frozenset({
+    "backup.directory",
+    "backup.retention_days",
+    "bug_report.reject_retention_days",
+    "chat.retention_days",
+    "notifications.last_emby_date",
+    "setup.onboarding_done",
+    "subtitle_auto.last_check",
+})
 
 # Restore never writes the Fernet key automatically: an operator must extract
 # it consciously and place it where the next process will pick it up. The
@@ -27,9 +45,8 @@ _ENCRYPTION_KEY_MANUAL_HINT = (
 )
 _ENCRYPTION_KEY_MISSING_HINT = (
     "No encryption key found in this backup. Encrypted settings inside the "
-    "archive will only be decryptable by the instance that produced it. "
-    "Provide the original key on the target host before starting the "
-    "application or expect encrypted values to read back as empty strings."
+    "archive will only be decryptable by the instance that produced it: "
+    "without its key on the target host, they are not restored."
 )
 
 
@@ -48,14 +65,46 @@ class BackupRestoreError(Exception):
 
 
 async def _restore_settings(db: AsyncSession, data: dict) -> str:
+    from services.portal import gdpr
     from services.settings import set_settings_map
-    await set_settings_map(db, data, commit=False)
+
+    gdpr_was_off = not await gdpr.is_gdpr_enabled(db)
+    restored = {
+        k: v for k, v in data.items() if k not in SETTINGS_KEPT_ON_RESTORE and not is_unreadable_secret(v)
+    }
+    await set_settings_map(db, restored, commit=False)
+    # As on the GDPR screen: a deletion frozen while GDPR was off gets a fresh delay.
+    if gdpr_was_off and await gdpr.is_gdpr_enabled(db):
+        await gdpr.refresh_pending_grace(db, delay_days=await gdpr.get_purge_delay_days(db), commit=False)
+    return "ok"
+
+
+async def _replace_settings(db: AsyncSession, data: dict) -> str:
+    """A ZIP holds the whole configuration of its moment: a setting it lacks was still
+    at its default, so it goes back there. An empty file says nothing and removes nothing.
+    People erased since the archive stay remembered."""
+    await _restore_settings(db, data)
+    if data:
+        await db.execute(
+            delete(Setting)
+            .where(Setting.key.not_in([*data, *SETTINGS_KEPT_ON_RESTORE]))
+            .where(Setting.key.not_like(f"{GDPR_ERASED_KEY_PREFIX}%"))
+            .execution_options(synchronize_session="fetch")
+        )
     return "ok"
 
 
 async def _restore_preferences(db: AsyncSession, data: list) -> str:
     from services.settings import upsert_user_preferences
+
+    user_ids = list({pref["user_id"] for pref in data})
+    known = set((await db.execute(select(User.id).where(User.id.in_(user_ids)))).scalars())
+    # An account deleted since the backup has nothing left to restore to.
+    if len(known) < len(user_ids):
+        logger.info("[backup] Preferences of %d deleted account(s) skipped", len(user_ids) - len(known))
     for pref in data:
+        if pref["user_id"] not in known:
+            continue
         await upsert_user_preferences(
             db,
             pref["user_id"],
@@ -96,20 +145,27 @@ async def _run_restore_plan(
 ) -> dict:
     if not plan:
         return results
+    check_restored_secrets(plan, results)
     component = plan[0][0]
-    transaction = db.begin_nested() if db.in_transaction() else db.begin()
     try:
-        async with transaction:
+        async with db.begin_nested():
             for component, payload, handler in plan:
                 await handler(db, payload)
                 results[component] = "ok"
-        return results
+        # The routes have already read through this session: only a commit saves the savepoint.
+        await db.commit()
     except Exception as exc:
         logger.exception("[backup] Restore %s failed: %s", component, exc)
         results[component] = f"error:{type(exc).__name__}"
         if raise_on_error:
             raise BackupRestoreError(component, exc, results) from exc
         return results
+    parts = {part for part, _, _ in plan}
+    if "settings" in parts:
+        await apply_restored_settings(db)
+    if "watchlist" in parts:
+        await apply_restored_watchlist(db)
+    return results
 
 
 def _inspect_encryption_key(zf: zipfile.ZipFile) -> dict:
@@ -150,7 +206,7 @@ def _read_restore_plan(zip_path: Path, opts: dict) -> tuple[list[tuple[str, obje
     """The selected parts the archive holds (``<part>.json``), read and parsed,
     with their handler, and the archive's key status."""
     handlers = {
-        "settings": _restore_settings,
+        "settings": _replace_settings,
         "preferences": _restore_preferences,
         "scheduler": _restore_scheduler,
         "watchlist": _restore_watchlist,

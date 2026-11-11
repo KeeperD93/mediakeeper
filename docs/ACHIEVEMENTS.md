@@ -95,12 +95,22 @@ Pick the right check module depending on the domain:
 
 | Module                                  | Domain                                              |
 |-----------------------------------------|-----------------------------------------------------|
-| `achievements_checks_standard.py`       | Emby sessions (movies, series, languages, marathons). |
+| `achievements_checks_standard.py`       | Emby sessions (movies, series, languages). |
+| `achievements_local_time.py`            | Anything that reads an hour, a day or a weekday: a pure rule, listed in `LOCAL_TIME_RULES`. |
 | `achievements_checks_progression.py`    | Leaderboard, level, profile, community, lists.      |
 | `achievements_checks_secrets_a/b.py`    | Secrets tied to specific conditions.                |
 | `achievements_checks_meta.py`           | Special case `condition_type="meta"` only.          |
 
-Add a branch like:
+A rule that unlocks a trophy on the calendar never reads `started_at` in SQL: it follows
+the time zone of the instance, which only the Python side knows. The finished months behind Competitor
+are cut the same way, so changing the zone can reorder a past month.
+
+Saving a zone does not take back what the UTC clock gave. On an instance that ran without one,
+the debug tools of the portal offer a fix: run the recheck of every trophy until nothing new comes,
+simulate, then apply. Only the trophies of the hour unlocked before the zone was first saved are
+judged, and a backup is made just before.
+
+Elsewhere, add a branch like:
 
 ```python
 if "lists_public_created" in by_type:
@@ -134,7 +144,7 @@ Identify the service that mutates the data (create a list, send a message,
   ```python
   background_tasks.add_task(
       safe_check_all_achievements_in_new_session,
-      user.id, user.username, "list_created",
+      user.id, "list_created",
   )
   ```
 
@@ -142,7 +152,7 @@ Identify the service that mutates the data (create a list, send a message,
   the wrapper is silent by default:
 
   ```python
-  await safe_check_all_achievements(db, user_id, None, source="list_created")
+  await safe_check_all_achievements(db, user_id, source="list_created")
   ```
 
 No duplication: one trigger per operation. If several trophies depend on

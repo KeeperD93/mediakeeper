@@ -7,3 +7,5 @@ pytest-asyncio==1.4.0
 pytest-cov==7.1.0
 pytest-randomly==5.0.0
 aiosqlite==0.22.1
+# Time zone data for the tests on Windows; the image has the system package.
+tzdata==2026.6

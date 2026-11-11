@@ -12,16 +12,15 @@ Two surfaces:
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Header, Request
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, ConfigDict, Field
-from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
 from core.rate_limit import ip_key, limiter
 from models.user import User
 from models.portal.profile import UserProfile
-from api.portal.deps import require_admin
+from api.portal.deps import get_request_lang, require_admin
 from services.portal import maintenance as maintenance_svc
 
 router = APIRouter(tags=["portal-maintenance"])
@@ -36,11 +35,11 @@ router = APIRouter(tags=["portal-maintenance"])
 @limiter.limit("120/minute", key_func=ip_key)
 async def get_maintenance(
     request: Request,
-    accept_language: Optional[str] = Header(default=None),
+    lang: str = Depends(get_request_lang),
     db: AsyncSession = Depends(get_db),
 ):
     """Anonymous read: ``{enabled, text}`` resolved for the client locale."""
-    return await maintenance_svc.get_maintenance_state(db, accept_language or "")
+    return await maintenance_svc.get_maintenance_state(db, lang)
 
 
 # ---------------------------------------------------------------------------
@@ -50,9 +49,9 @@ async def get_maintenance(
 class MaintenanceAdminUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    enabled: Optional[bool] = None
-    text_fr: Optional[str] = Field(None, max_length=2000)
-    text_en: Optional[str] = Field(None, max_length=2000)
+    enabled: bool | None = None
+    text_fr: str | None = Field(None, max_length=2000)
+    text_en: str | None = Field(None, max_length=2000)
 
 
 @router.get("/admin/maintenance")

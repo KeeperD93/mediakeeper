@@ -12,6 +12,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.auth import get_current_user
+from constants.backup import BACKUP_KEY_MISMATCH
 from core.database import get_db
 from core.file_validation import (
     ZIP_MAGIC_PREFIX_BYTES,
@@ -29,6 +30,7 @@ from services.backup import (
     restore_json_backup,
 )
 from services.backup.restore import BackupRestoreError, InvalidBackupArchiveError
+from services.backup.restore_secrets import BackupKeyMismatchError
 
 from ._schemas import RestoreRequest
 from ._shared import (
@@ -91,6 +93,8 @@ async def restore_backup_endpoint(
         results = await restore_backup(db, path, components=req.components)
     except InvalidBackupArchiveError as exc:
         raise HTTPException(status_code=400, detail="invalid_archive_format") from exc
+    except BackupKeyMismatchError as exc:
+        raise HTTPException(status_code=409, detail=BACKUP_KEY_MISMATCH) from exc
     except BackupRestoreError as exc:
         raise HTTPException(status_code=500, detail="backup_restore_failed") from exc
     return {"success": True, "results": results, "warning": _RESTORE_WARNING}
@@ -119,6 +123,8 @@ async def upload_and_restore(
             results = await restore_backup(db, tmp, components=opts)
         except InvalidBackupArchiveError as exc:
             raise HTTPException(status_code=400, detail="invalid_archive_format") from exc
+        except BackupKeyMismatchError as exc:
+            raise HTTPException(status_code=409, detail=BACKUP_KEY_MISMATCH) from exc
         except BackupRestoreError as exc:
             raise HTTPException(status_code=500, detail="backup_restore_failed") from exc
         return {"success": True, "results": results, "warning": _RESTORE_WARNING}
@@ -149,6 +155,8 @@ async def upload_and_restore_json(
         opts = _parse_components_payload(components)
         try:
             results = await restore_json_backup(db, data, components=opts)
+        except BackupKeyMismatchError as exc:
+            raise HTTPException(status_code=409, detail=BACKUP_KEY_MISMATCH) from exc
         except BackupRestoreError as exc:
             raise HTTPException(status_code=500, detail="backup_restore_failed") from exc
         if any(str(status).startswith("error:") for status in results.values()):

@@ -18,6 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.user import User
 from models.portal.profile import UserProfile
 from models.portal.ticket import Ticket
+from services.instance_time import get_instance_zone
 from services.portal.available import get_recently_added
 from services.portal.available_localize import localize_emby_items
 from services.portal.mk_events_crud import list_for_user as list_events_for_user
@@ -172,7 +173,8 @@ async def current_streak(db: AsyncSession, user: User, profile: UserProfile) -> 
     try:
         excl_filters = await get_exclusion_filters(db)
         user_filter = _playback_user_filter(user, profile)
-        return int(await compute_streak(db, user_filter, excl_filters) or 0)
+        zone = await get_instance_zone(db)
+        return int(await compute_streak(db, user_filter, excl_filters, zone) or 0)
     except Exception as e:  # noqa: BLE001
         logger.debug("[DIGEST] streak failed: %s", e)
         return 0
@@ -183,7 +185,7 @@ async def ranking_snapshot(
 ) -> dict:
     """Rank + slimmed top-3 slice for the digest's mini-leaderboard widget."""
     try:
-        r = await compute_ranking(db, user, lang=lang)
+        r = await compute_ranking(db, user, zone=await get_instance_zone(db), lang=lang)
     except Exception as e:  # noqa: BLE001
         logger.debug("[DIGEST] ranking failed: %s", e)
         return {"position": 0, "total": 0, "movement": 0, "top3": []}
@@ -196,12 +198,14 @@ async def ranking_snapshot(
             "user_id": entry.get("user_id"),
             "display_name": entry.get("display_name"),
             "avatar_url": entry.get("avatar_url"),
+            "level": entry.get("level"),
             "tier": entry.get("tier"),
             "title_key": entry.get("title_key"),
             "selected_title": entry.get("selected_title"),
             "title_tier": entry.get("title_tier"),
             "movement": entry.get("movement") or 0,
-            "month_xp": entry.get("month_xp") or 0,
+            "period_xp": entry.get("period_xp") or 0,
+            "trophies_won": entry.get("trophies_won") or 0,
             "is_current_user": entry.get("is_current_user") or False,
         }
 

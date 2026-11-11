@@ -1,16 +1,18 @@
 """Build the achievement payload for the profile page trophy section."""
-from sqlalchemy import select, func, distinct
+from sqlalchemy import distinct, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.achievement import Achievement, UserAchievement
 from models.portal.profile import UserProfile
+from models.user import User
 from services.portal.achievement_defs import (
-    TIER_NAMES, SECRET_THEMES, TITLE_REWARDS, SECONDARY_CATEGORIES,
-    META_TARGET_CATEGORY,
+    META_TARGET_CATEGORY, SECONDARY_CATEGORIES, SECRET_THEMES, TIER_NAMES,
+    TITLE_REWARDS,
 )
 from services.portal.achievement_defs_constants import PLACEHOLDER_IDS
-from services.portal.achievements_utils import _load_user_achievement_map
 from services.portal.achievements_seasonal import _compute_seasonal_years
+from services.portal.achievements_utils import _load_user_achievement_map
+from services.portal.xp import EARNING_ACCOUNT
 
 
 async def get_achievements_for_profile(
@@ -42,11 +44,15 @@ async def get_achievements_for_profile(
         if a.id not in PLACEHOLDER_IDS or a.id in unlocked_placeholder_ids
     ]
 
-    # Rarity: % of active users who unlocked each achievement
+    # Rarity: share of the accounts that may earn which unlocked each
+    # achievement. Both sides follow the same rule, so the share never tops
+    # 100 %; deactivated, local and unlinked accounts keep their trophies but
+    # count on neither side.
     total_users = (await db.execute(
-        select(func.count(UserProfile.id)).where(
-            UserProfile.account_active == True  # noqa: E712
-        )
+        select(func.count(User.id))
+        .select_from(User)
+        .join(UserProfile, UserProfile.user_id == User.id)
+        .where(EARNING_ACCOUNT)
     )).scalar() or 1
 
     rarity_result = await db.execute(
@@ -54,7 +60,10 @@ async def get_achievements_for_profile(
             UserAchievement.achievement_id,
             func.count(distinct(UserAchievement.user_id)).label("cnt"),
         )
-        .where(UserAchievement.unlocked == True)  # noqa: E712
+        .select_from(UserAchievement)
+        .join(User, User.id == UserAchievement.user_id)
+        .join(UserProfile, UserProfile.user_id == User.id)
+        .where(UserAchievement.unlocked == True, EARNING_ACCOUNT)  # noqa: E712
         .group_by(UserAchievement.achievement_id)
     )
     rarity_map = {r.achievement_id: r.cnt for r in rarity_result.all()}

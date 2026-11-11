@@ -1,23 +1,28 @@
 """Portal profile endpoints."""
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.database import get_db
-from models.user import User
-from models.portal.achievement import UserAchievement
-from models.portal.profile import UserProfile
 from api.portal.deps import get_current_profile, get_request_lang
+from core.database import get_db
+from models.portal.profile import UserProfile
+from models.user import User
 from services.portal._display_name import resolve_display_name
 from services.portal._rank_tiers import tier_for_level
-from services.portal.achievement_defs import TITLE_REWARDS
-from services.portal.achievement_defs_meta import META_TARGET_CATEGORY
-from services.portal.avatars import resolve_avatar_url
-from services.portal.profiles import (
-    update_profile, serialize_profile_with_effective_lang,
-)
+from services.portal.achievement_defs import ACHIEVEMENT_DEFS, TITLE_REWARDS
 from services.portal.admin_users_constants import ROLE_ADMIN
+from services.portal.avatars import resolve_avatar_url
+from services.portal.profile_decorations import (
+    avatar_effects_from,
+    stale_decoration_updates,
+    titles_from,
+    unlocked_achievement_ids,
+)
+from services.portal.profiles import (
+    serialize_profile_with_effective_lang,
+    update_profile,
+)
 
 router = APIRouter(prefix="/profiles", tags=["portal-profiles"])
 
@@ -38,68 +43,13 @@ class ProfileUpdate(BaseModel):
     hide_adult: bool | None = None
 
 
-async def _user_unlocked_titles(db: AsyncSession, user_id: int) -> set[str]:
-    """Return the set of title_keys the user has earned via unlocked achievements."""
-    rows = (await db.execute(
-        select(UserAchievement.achievement_id)
-        .where(UserAchievement.user_id == user_id)
-        .where(UserAchievement.unlocked.is_(True))
-    )).scalars().all()
-    return {TITLE_REWARDS[a] for a in rows if a in TITLE_REWARDS}
-
-
-async def _user_unlocked_avatar_effects(db: AsyncSession, user_id: int) -> set[str]:
-    """Return the set of avatar_effect values the user has earned via unlocked
-    meta-achievements. Each Master grants one avatar cosmetic keyed by its
-    target_category (e.g. 'watching', 'dedication'...)."""
-    rows = (await db.execute(
-        select(UserAchievement.achievement_id)
-        .where(UserAchievement.user_id == user_id)
-        .where(UserAchievement.unlocked.is_(True))
-    )).scalars().all()
-    return {META_TARGET_CATEGORY[a] for a in rows if a in META_TARGET_CATEGORY}
-
-
-async def _user_unlocked_achievement_ids(db: AsyncSession, user_id: int) -> set[str]:
-    rows = (await db.execute(
-        select(UserAchievement.achievement_id)
-        .where(UserAchievement.user_id == user_id)
-        .where(UserAchievement.unlocked.is_(True))
-    )).scalars().all()
-    return set(rows)
-
-
-async def _stale_decoration_updates(
-    db: AsyncSession, profile: UserProfile, user_id: int,
-) -> dict:
-    """Equipped cosmetics on ``profile`` that no longer reference an unlocked
-    achievement, as a ``{column: cleaned_value}`` map (empty when nothing is
-    stale). Pure read — the caller decides whether to persist (the owner's own
-    profile) or just hide them for display (a third party's public view)."""
-    updates: dict = {}
-    if profile.selected_title and (
-        profile.selected_title not in await _user_unlocked_titles(db, user_id)
-    ):
-        updates["selected_title"] = None
-    if profile.avatar_effect and (
-        profile.avatar_effect not in await _user_unlocked_avatar_effects(db, user_id)
-    ):
-        updates["avatar_effect"] = None
-    if profile.selected_badges:
-        unlocked = await _user_unlocked_achievement_ids(db, user_id)
-        kept = [b for b in profile.selected_badges if b in unlocked]
-        if len(kept) != len(profile.selected_badges):
-            updates["selected_badges"] = kept or None
-    return updates
-
-
 async def _prune_stale_decorations(
     db: AsyncSession, profile: UserProfile, user_id: int,
 ) -> UserProfile:
     """Clear equipped cosmetics that no longer reference unlocked achievements
     and persist — the dropdowns filter locked items, so without this the user
     keeps cosmetics they cannot re-select. Owner's own profile only (it writes)."""
-    updates = await _stale_decoration_updates(db, profile, user_id)
+    updates = stale_decoration_updates(profile, await unlocked_achievement_ids(db, user_id))
     if updates:
         for field, value in updates.items():
             setattr(profile, field, value)
@@ -127,9 +77,8 @@ async def list_my_titles(
     """List title keys unlocked by the current user, plus the currently equipped
     one and the full catalogue (title → source achievement) so the UI can show
     a "how to unlock" panel."""
-    from services.portal.achievement_defs import TITLE_REWARDS, ACHIEVEMENT_DEFS
     user, profile = up
-    unlocked = await _user_unlocked_titles(db, user.id)
+    unlocked = titles_from(await unlocked_achievement_ids(db, user.id))
     catalogue = []
     for ach_id, title_key in TITLE_REWARDS.items():
         ach_def = next((d for d in ACHIEVEMENT_DEFS if d["id"] == ach_id), None)
@@ -160,7 +109,7 @@ async def list_my_avatar_effects(
     mastered) plus the currently equipped one. The UI uses this to populate
     the "avatar cosmetic" dropdown under titles in the profile edit modal."""
     user, profile = up
-    unlocked = await _user_unlocked_avatar_effects(db, user.id)
+    unlocked = avatar_effects_from(await unlocked_achievement_ids(db, user.id))
     return {
         "effects": sorted(unlocked),
         "avatar_effect": profile.avatar_effect,
@@ -178,15 +127,15 @@ async def update_my_profile(
         raise HTTPException(status_code=403, detail="profile_visibility_locked")
     payload = data.model_dump(exclude_unset=True)
     if "selected_title" in payload and payload["selected_title"] is not None:
-        unlocked = await _user_unlocked_titles(db, user.id)
+        unlocked = titles_from(await unlocked_achievement_ids(db, user.id))
         if payload["selected_title"] not in unlocked:
             raise HTTPException(status_code=403, detail="title_not_unlocked")
     if "avatar_effect" in payload and payload["avatar_effect"]:
-        unlocked_fx = await _user_unlocked_avatar_effects(db, user.id)
+        unlocked_fx = avatar_effects_from(await unlocked_achievement_ids(db, user.id))
         if payload["avatar_effect"] not in unlocked_fx:
             raise HTTPException(status_code=403, detail="avatar_effect_not_unlocked")
     if "selected_badges" in payload and payload["selected_badges"]:
-        unlocked_badges = await _user_unlocked_achievement_ids(db, user.id)
+        unlocked_badges = await unlocked_achievement_ids(db, user.id)
         if not set(payload["selected_badges"]).issubset(unlocked_badges):
             raise HTTPException(status_code=403, detail="badge_not_unlocked")
     updated = await update_profile(db, profile, payload)
@@ -211,7 +160,6 @@ async def search_users(
     is never returned to the caller — accounts that haven't picked a
     portal pseudo render as the localized anonymous alias instead.
     """
-    from sqlalchemy import select, or_
     me, _ = up
     needle = (q or "").strip().lower()
     # Inner-join on UserProfile so soft-deleted accounts can never leak
@@ -281,7 +229,7 @@ async def get_profile(
     # user's row. A viewer must not mutate the profile they look at — that was a
     # write-on-read + lost-update footgun. The owner's row is cleaned for real
     # when they next open their own profile (/me).
-    updates = await _stale_decoration_updates(db, row, row.user_id)
+    updates = stale_decoration_updates(row, await unlocked_achievement_ids(db, row.user_id))
     if updates:
         db.expunge(row)  # detach so the display-only cleanup can never be flushed
         for field, value in updates.items():

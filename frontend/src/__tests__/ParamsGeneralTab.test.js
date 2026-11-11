@@ -14,10 +14,27 @@ vi.mock('@/composables/useUpdateCheck', () => ({
   useUpdateCheck: () => ({ status, load, setEnabled }),
 }))
 vi.mock('@/i18n', () => ({ getLocale: () => 'fr', setLocale: vi.fn(), AVAILABLE_LOCALES: [] }))
+vi.mock('@/components/settings/ParamsTimezoneSection.vue', () => ({
+  default: { render: () => null },
+}))
 
 import ParamsGeneralTab from '@/components/settings/ParamsGeneralTab.vue'
 
 const updateSwitch = w => w.get('[role="switch"]')
+
+describe('ParamsGeneralTab — language', () => {
+  it('uses the shared menu arrow', () => {
+    status.value = { enabled: true, locked: false }
+    const w = mount(ParamsGeneralTab)
+    expect(w.get('select').classes()).toContain('mk-select-chevron')
+  })
+
+  it('names the menu for assistive technology', () => {
+    status.value = { enabled: true, locked: false }
+    const w = mount(ParamsGeneralTab)
+    expect(w.get('select').attributes('aria-label')).toBe('settings.languageLabel')
+  })
+})
 
 describe('ParamsGeneralTab — update check', () => {
   beforeEach(() => {

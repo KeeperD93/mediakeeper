@@ -1,6 +1,10 @@
 """Helpers shareds : parsing de dates Emby, detection DND, mapping events."""
 from datetime import datetime, time as dtime, timezone
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from services.instance_time import get_instance_zone, zone_is_chosen
+
 # Event -> template key mapping (used by send_system_notification)
 EVENT_TO_TPL = {
     "offline":             "server_offline",
@@ -28,11 +32,13 @@ def _parse_date(s: str):
         return None
 
 
-def _is_dnd(rules: dict) -> bool:
-    """Return True when in Do Not Disturb mode (local time range)."""
+async def _is_dnd(db: AsyncSession, rules: dict) -> bool:
+    """Return True inside the Do Not Disturb hours, read in the time zone of the instance."""
     if not rules.get("dnd_enabled"):
         return False
-    now_local = datetime.now().time().replace(second=0, microsecond=0)
+    zone = await get_instance_zone(db)
+    # Until a zone is chosen the hours keep following the clock of the container.
+    now_local = datetime.now(zone if zone_is_chosen(zone) else None).time().replace(second=0, microsecond=0)
     try:
         dnd_start = dtime.fromisoformat(rules.get("dnd_start", "23:00"))
         dnd_end   = dtime.fromisoformat(rules.get("dnd_end",   "07:00"))

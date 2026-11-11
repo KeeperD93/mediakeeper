@@ -1,10 +1,9 @@
 /*
- * Premium /portal/leaderboard page styles — ambient backdrop, particle
- * layer, section headings, "rest" rows treatment.
+ * Premium /portal/leaderboard page styles — particle layer, section
+ * headings, "rest" rows treatment.
  *
- * Lives outside Vue scoped CSS because (1) the backdrop must paint a
- * fixed layer behind every component, (2) the particle nodes are
- * generated inline by the page orchestrator, (3) the gc-lb-row "VOUS"
+ * Lives outside Vue scoped CSS because (1) the particle nodes are
+ * generated inline by the page orchestrator, (2) the gc-lb-row--me
  * highlight is an override of the global leaderboard-card.css rules
  * scoped to ``.pt-leaderboard .lb-rest``.
  *
@@ -15,33 +14,11 @@
 .pt-leaderboard {
   position: relative;
   isolation: isolate;
-  max-width: 1080px;
+  /* One width whatever the tab: as wide as its content, the centered page would
+     move the tabs under the pointer. 880 px keep the longest note on one line. */
+  width: min(100%, 880px);
   margin: 0 auto;
   padding: 24px 20px;
-}
-
-.pt-leaderboard::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-  background:
-    radial-gradient(
-      ellipse 80% 60% at 50% 20%,
-      rgb(var(--portal-color-warning-rgb), 0.05),
-      transparent
-    ),
-    radial-gradient(ellipse 60% 40% at 50% 80%, rgb(var(--accent-rgb), 0.04), transparent);
-  pointer-events: none;
-}
-
-.pt-leaderboard::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background: radial-gradient(ellipse at center, transparent 60%, rgb(0, 0, 0, 0.4));
-  pointer-events: none;
 }
 
 .pt-leaderboard .lb-particles {
@@ -100,25 +77,23 @@
 }
 
 .pt-leaderboard .lb-rest .gc-lb-row--me {
-  border-left: 3px solid var(--accent-500);
-  background: rgb(var(--accent-rgb), 0.1);
+  border-left: var(--portal-border-width-accent) solid var(--portal-accent-500);
+  background: var(--portal-row-me-bg);
   font-weight: var(--portal-font-medium);
-  position: relative;
 }
 
-.pt-leaderboard .lb-rest .gc-lb-row--me::after {
-  content: 'VOUS';
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: var(--portal-text-3xs);
-  font-weight: var(--portal-font-bold);
-  letter-spacing: var(--portal-tracking-widest);
-  padding: 2px 6px;
-  border-radius: var(--portal-radius-pill);
-  background: var(--accent-500);
-  color: var(--portal-text-primary);
+/* The label goes under a name that needs the room, and only the name can be
+   cut: the label and the XP stay whole. */
+.pt-leaderboard .lb-rest .lb-rest-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 6px;
+  min-width: 0;
+}
+
+.pt-leaderboard .lb-rest .gc-lb-n {
+  flex: 0 1 auto;
 }
 
 .pt-leaderboard .lb-fade-enter-active {
@@ -151,12 +126,42 @@
   color: var(--portal-text-primary);
   margin: 0;
 }
+.pt-leaderboard .lb-period-tabs {
+  margin: 10px 0 12px;
+}
 .pt-leaderboard .pt-lb-subtitle {
   margin-top: 4px;
   font-size: var(--portal-text-xs);
   color: var(--portal-text-muted);
   text-transform: uppercase;
   letter-spacing: var(--portal-tracking-caps);
+}
+.pt-leaderboard .pt-lb-note {
+  margin-top: 4px;
+  font-size: var(--portal-text-xs);
+  color: var(--portal-text-secondary);
+}
+.pt-leaderboard .pt-lb-my-place {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: var(--portal-touch-target);
+  padding: 0;
+  background: none;
+  border: none;
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-bold);
+  color: var(--portal-accent-light);
+  cursor: pointer;
+}
+.pt-leaderboard .pt-lb-my-place:focus-visible {
+  outline: var(--portal-focus-ring);
+  outline-offset: 2px;
+}
+@media (hover: hover) {
+  .pt-leaderboard .pt-lb-my-place:hover {
+    text-decoration: underline;
+  }
 }
 .pt-leaderboard .pt-lb-state {
   text-align: center;
@@ -167,5 +172,60 @@
 @media (max-width: 640px) {
   .pt-leaderboard {
     padding: 16px 12px;
+  }
+  /* The titles take their own line, the full width of the row: next to the XP,
+     a long one would not fit on a small phone. */
+  .pt-leaderboard .lb-rest .gc-lb-row {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr) auto auto;
+    row-gap: 0;
+  }
+  .pt-leaderboard .lb-rest .gc-lb-pos,
+  .pt-leaderboard .lb-rest .gc-lb-av {
+    grid-row: 1 / span 2;
+  }
+  .pt-leaderboard .lb-rest .gc-lb-info {
+    display: contents;
+  }
+  .pt-leaderboard .lb-rest .gc-lb-tier {
+    grid-row: 2;
+    grid-column: 3 / -1;
+    white-space: normal;
+  }
+  /* Always the last column: a tab without arrows leaves the one before it empty. */
+  .pt-leaderboard .lb-rest .gc-lb-v {
+    grid-row: 1;
+    grid-column: 5;
+  }
+  /* The trophies go under the XP: next to the name, they would squeeze it. */
+  .pt-leaderboard .lb-rest .lb-rest-trophies {
+    grid-row: 2;
+    grid-column: 4 / -1;
+    place-self: start end;
+  }
+  .pt-leaderboard .lb-rest .gc-lb-row--trophies .gc-lb-tier {
+    grid-column: 3;
+  }
+  /* The XP against the top and the trophies against the bottom, without the space a
+     line of text keeps above its digits: the same room on both sides of the row. */
+  .pt-leaderboard .lb-rest .gc-lb-row--trophies .gc-lb-v,
+  .pt-leaderboard .lb-rest .gc-lb-row--trophies .gc-lb-move {
+    align-self: start;
+    line-height: var(--portal-lh-tight);
+  }
+  .pt-leaderboard .lb-rest .gc-lb-row--trophies .gc-lb-v {
+    text-box: trim-both cap alphabetic;
+  }
+  .pt-leaderboard .lb-rest .gc-lb-row--trophies .lb-rest-trophies {
+    place-self: end;
+  }
+}
+
+/* The XP in a column of its own, as in the top ten: the arrows and the trophies before
+   it line up from row to row, whatever the length of the number. */
+@media (min-width: 640px) {
+  .pt-leaderboard .lb-rest .gc-lb-v {
+    width: var(--portal-leaderboard-xp-width);
+    text-align: right;
   }
 }

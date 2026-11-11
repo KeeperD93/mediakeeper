@@ -20,7 +20,6 @@ PERMISSION_KEYS = (
     "can_portal",
     "can_problems",
     "can_lists",
-    "can_earn_xp_offline",
     "can_report_feedback",
 )
 
@@ -32,7 +31,6 @@ ROLE_PRESETS: dict[str, dict[str, bool]] = {
         "can_portal": True,
         "can_problems": True,
         "can_lists": True,
-        "can_earn_xp_offline": False,
         "can_report_feedback": False,
     },
     ROLE_MODERATOR: {
@@ -40,7 +38,6 @@ ROLE_PRESETS: dict[str, dict[str, bool]] = {
         "can_portal": True,
         "can_problems": True,
         "can_lists": True,
-        "can_earn_xp_offline": False,
         "can_report_feedback": False,
     },
     ROLE_ADMIN: {
@@ -48,14 +45,12 @@ ROLE_PRESETS: dict[str, dict[str, bool]] = {
         "can_portal": True,
         "can_problems": True,
         "can_lists": True,
-        "can_earn_xp_offline": True,
         "can_report_feedback": False,
     },
 }
 
-# Source of an account: imported from Emby/Jellyfin or created locally
-# in MediaKeeper for someone without a streaming account (a partner, a
-# beta tester…).
+# Source of an account: imported from Emby, or created locally in
+# MediaKeeper for an administrator, meant to stay unlinked from Emby.
 SOURCE_EMBY = "emby"
 SOURCE_LOCAL = "local"
 SOURCES = (SOURCE_EMBY, SOURCE_LOCAL)
@@ -86,6 +81,9 @@ ACTION_DEBUG_ACHIEVEMENT_UNLOCKED = "debug.achievement_unlocked"
 ACTION_DEBUG_ACHIEVEMENT_LOCKED = "debug.achievement_locked"
 ACTION_DEBUG_ACHIEVEMENT_RESET_ALL = "debug.achievement_reset_all"
 ACTION_DEBUG_ACHIEVEMENT_RECHECK_ALL = "debug.achievement_recheck_all"
+ACTION_DEBUG_ZONE_CORRECTION = "debug.zone_correction"
+ACTION_DEBUG_ZONE_CORRECTION_PLAYER = "debug.zone_correction_player"
+ACTION_SYSTEM_TIMEZONE_CHANGED = "system.timezone_changed"
 ACTION_USER_TAGS_UPDATED = "user.tags_updated"
 ACTION_USER_NOTIFICATION_SENT = "user.notification_sent"
 ACTION_USER_RGPD_EXPORT = "user.rgpd_export"

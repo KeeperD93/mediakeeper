@@ -58,6 +58,14 @@
   color: var(--portal-text-primary);
 }
 
+/* A summary of several facts, one per line. */
+.pt-debug .pt-debug-facts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  list-style: none;
+}
+
 .pt-debug .pt-debug-input,
 .pt-debug .pt-debug-select {
   min-height: 40px;

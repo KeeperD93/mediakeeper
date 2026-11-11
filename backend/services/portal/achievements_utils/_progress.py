@@ -3,10 +3,11 @@ import logging
 from datetime import datetime, timezone
 
 from sqlalchemy import desc, select, text
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.achievement import Achievement, UserAchievement
-from services.portal.xp import grant_xp
+from services.portal.xp import ACHIEVEMENT_XP_ACTION, achievement_xp_reference, grant_xp
 
 logger = logging.getLogger("mediakeeper.portal.achievements")
 
@@ -36,19 +37,7 @@ async def update_progress(
         ua = await _get_user_achievement_row(db, user_id, achievement_id)
 
     if not ua:
-        # Explicit ``unlocked=False`` here, even though the column has a
-        # ``server_default="false"``: under SQLite the default is stored
-        # as the TEXT 'false' which SQLAlchemy's Boolean type can read
-        # back as Python truthy on subsequent loads. Setting the Python
-        # attribute up front pins the value and avoids that drift.
-        ua = UserAchievement(
-            user_id=user_id,
-            achievement_id=achievement_id,
-            progress=0,
-            unlocked=False,
-            notified=False,
-        )
-        db.add(ua)
+        ua = await _insert_user_achievement(db, user_id, achievement_id)
         if ua_map is not None:
             ua_map[achievement_id] = ua
 
@@ -81,14 +70,53 @@ async def update_progress(
     return None
 
 
+async def _insert_user_achievement(
+    db: AsyncSession, user_id: int, achievement_id: str
+) -> UserAchievement:
+    """Insert the user's row for this trophy, or hand back the one a concurrent
+    check committed after the caller read its map."""
+    # Explicit ``unlocked=False`` here, even though the column has a
+    # ``server_default="false"``: under SQLite the default is stored
+    # as the TEXT 'false' which SQLAlchemy's Boolean type can read
+    # back as Python truthy on subsequent loads. Setting the Python
+    # attribute up front pins the value and avoids that drift.
+    ua = UserAchievement(
+        user_id=user_id,
+        achievement_id=achievement_id,
+        progress=0,
+        unlocked=False,
+        notified=False,
+    )
+    try:
+        # ``begin_nested`` flushes pending changes first: only this insert can roll back.
+        async with db.begin_nested():
+            db.add(ua)
+            await db.flush()
+    except IntegrityError:
+        existing = (await db.execute(
+            select(UserAchievement).where(
+                UserAchievement.user_id == user_id,
+                UserAchievement.achievement_id == achievement_id,
+            )
+        )).scalar_one_or_none()
+        if existing is None:
+            raise  # not a duplicate: the account or the trophy is gone
+        logger.debug(
+            "[ACHIEVEMENT] concurrent insert recovered: user_id=%s achievement=%s",
+            user_id, achievement_id,
+        )
+        return existing
+    return ua
+
+
 async def _grant_xp(
     db: AsyncSession, user_id: int, achievement_id: str, amount: int
 ):
     await grant_xp(
         db,
         user_id,
-        "achievement_unlocked",
-        f"ach:{achievement_id}",
+        ACHIEVEMENT_XP_ACTION,
+        achievement_xp_reference(achievement_id),
         xp_override=amount,
     )
 

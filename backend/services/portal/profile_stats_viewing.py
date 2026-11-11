@@ -1,6 +1,4 @@
-"""Viewing-pattern stats: genre breakdown, marathon chains, movie/series
-ratio, time-of-day buckets, weekday distribution.
-"""
+"""Viewing-pattern stats: genre breakdown, marathon chains, movie/series ratio."""
 import logging
 from collections import Counter
 from datetime import timedelta
@@ -171,56 +169,3 @@ async def compute_media_type_ratio(
     except Exception as e:
         logger.debug("[PROFILE] media type ratio error: %s", e)
     return result
-
-
-async def compute_hour_buckets(
-    db: AsyncSession, user_filter, excl_filters: list,
-) -> list[dict]:
-    """Plays per time-of-day bucket:
-       morning (6-11), afternoon (12-17), evening (18-22), night (23-5).
-    Used on the profile card to paint a night-owl / morning-bird profile."""
-    buckets = {"morning": 0, "afternoon": 0, "evening": 0, "night": 0}
-    try:
-        result = await db.execute(
-            select(
-                func.extract("hour", PlaybackSession.started_at).label("hr"),
-                func.count(PlaybackSession.id).label("cnt"),
-            )
-            .where(user_filter, *excl_filters)
-            .group_by("hr")
-        )
-        for row in result.all():
-            h = int(row.hr)
-            if 6 <= h <= 11:
-                buckets["morning"] += row.cnt
-            elif 12 <= h <= 17:
-                buckets["afternoon"] += row.cnt
-            elif 18 <= h <= 22:
-                buckets["evening"] += row.cnt
-            else:
-                buckets["night"] += row.cnt
-    except Exception as e:
-        logger.debug("[PROFILE] hour stats error: %s", e)
-    return [{"bucket": k, "count": v} for k, v in buckets.items()]
-
-
-async def compute_day_stats(db: AsyncSession, user_filter, excl_filters: list) -> list[dict] | None:
-    """Plays per weekday (Mon=0..Sun=6)."""
-    try:
-        result = await db.execute(
-            select(
-                func.extract("dow", PlaybackSession.started_at).label("dow"),
-                func.count(PlaybackSession.id).label("cnt"),
-            )
-            .where(user_filter, *excl_filters)
-            .group_by("dow")
-        )
-        dow_map = {int(r.dow): r.cnt for r in result.all()}
-        # PostgreSQL: dow 0=Sunday, 1=Monday... Convert to Mon=0..Sun=6
-        return [
-            {"day": i, "count": dow_map.get((i + 1) % 7, 0)}
-            for i in range(7)
-        ]
-    except Exception as e:
-        logger.debug("[PROFILE] day stats error: %s", e)
-        return None

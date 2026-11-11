@@ -273,7 +273,7 @@ async def _process_notifications(db: AsyncSession):
     final_notifications = _group_episodes(ready_items)
     await promote_grouped_items(final_notifications, db)
 
-    if _is_dnd(rules):
+    if await _is_dnd(db, rules):
         logger.info("[NOTIFICATIONS] DND active — media additions not sent")
         remaining_queue.extend(ready_queue_entries)
     else:

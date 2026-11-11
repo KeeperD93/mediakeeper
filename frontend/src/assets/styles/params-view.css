@@ -51,7 +51,37 @@
 .cinema-params .params-section-desc {
   font-size: var(--text-xs);
   color: var(--text-muted);
-  margin-bottom: 12px;
+  margin-bottom: var(--space-3);
+}
+/* Menus of a settings section. */
+.cinema-params .params-control {
+  width: 100%;
+  min-height: var(--touch-target);
+  /* Longhands: the right padding of a menu belongs to the shared chevron class. */
+  padding-block: var(--space-2);
+  padding-left: var(--space-3);
+  border: var(--border-width-thin) solid var(--border);
+  border-radius: var(--radius-btn);
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  font-family: inherit;
+  cursor: pointer;
+}
+.cinema-params .params-control:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+@media (min-width: 768px) {
+  .cinema-params .params-control {
+    min-height: 0;
+  }
+}
+/* iPhone zooms the page on a field under 16px. */
+@supports (-webkit-touch-callout: none) {
+  .cinema-params .params-control {
+    font-size: var(--text-md);
+  }
 }
 .cinema-params .params-cards {
   display: flex;

@@ -10,10 +10,32 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Action
+- Time zone — choose it in Settings → General, or hours stay off.
+- Reverse proxy — proxy setting to redo, see the deployment guide.
+
+### Added
+- Settings — time zone of the instance, pre-filled from the browser.
+- Setup wizard — language and time zone chosen first.
+- Debug tools — take back trophies counted at the wrong hour before the time zone was chosen.
+
 ### Changed
-- Security — uvicorn's FORWARDED_ALLOW_IPS is now ignored: list proxies in TRUSTED_PROXIES.
+- Portal leaderboard — only activity counts: trophies and admin XP changes left out.
+- Dashboard — Leaderboard widget: each player's level and trophies of the month shown.
+- Statistics — days, hours and records counted in the time zone of the instance.
+- Statistics — Streak: the run holds as long as yesterday counts, no more 0 in the morning.
+- Users — every Emby account earns XP and trophies from import until deactivated ("without logging in" box removed).
+- Users — "Never activated" or "Deactivated" status instead of "Inactive".
+- Users — "Create an administrator" replaces "Create user" (temporary password).
 
 ### Fixed
+- Statistics — accurate watch time: cut-off playback not counted, no more undercounting.
+- GDPR — erased account never recreated, plays of its Emby id no longer recorded (update your privacy text).
+- GDPR — erased account: profile photo deleted, name removed from reports, the blacklist and the admin log.
+- Debug tools — player list translated, a failed load is reported.
+- Debug tools — "Run recheck" skips local and unlinked accounts, runs to the end despite an error.
+- Settings — language menu named for screen readers.
+- Notifications — Do Not Disturb follows the chosen time zone.
 - Security — IP behind a proxy: visitor-supplied address ignored (list every proxy).
 - Security — manual username block: applied whatever the letter case.
 - Security — lists always up to date (Refresh button) and errors shown.
@@ -40,6 +62,12 @@ This section intentionally has no date so it is not shown to users.
 - Users — "Never logged in" no longer lists members who have visited.
 - Scheduler — tasks and cache up to date when returning to the tab.
 - Scheduler — "Default" button: duration translated in its tooltip.
+- Users — "Sync Emby IDs" no longer links a local account.
+- Security — temporary password: portal and chat stay closed until it is changed.
+- Dashboard — portal leaderboard without private profiles.
+- Users — Audit tab: debug actions shown in plain words.
+- Backups — restore really saved, settings put back as they were in the backup.
+- Backups — restore refused when its secrets are unreadable, skipped secrets reported.
 
 ## [1.0.0-rc.9] - 2026-10-23
 

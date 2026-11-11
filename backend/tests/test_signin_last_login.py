@@ -42,12 +42,14 @@ def _failing_update(db_session, column: str):
 
 
 @pytest_asyncio.fixture
-async def member(make_user):
-    """A member whose media-server password is RIGHT. The mocked check loads the
-    account in the request's session, as the real one does: a failed flush then
-    expires what the route holds."""
+async def member(make_user, db_session):
+    """A member linked to the media server, whose password there is RIGHT. The
+    mocked check loads the account in the request's session, as the real one
+    does: a failed flush then expires what the route holds."""
     user = await make_user("member-a", role="viewer")
     user_id = user.id
+    (await _profile(db_session, user_id)).emby_user_id = "emby-member-a"
+    await db_session.commit()
 
     async def _emby(db, username, password):
         if password != RIGHT:

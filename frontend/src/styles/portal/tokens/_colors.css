@@ -24,6 +24,7 @@
   --portal-accent-500: #6366f1;
   --portal-accent-500-rgb: 99, 102, 241;
   --portal-accent-600: #4f46e5;
+  --portal-row-me-bg: rgb(var(--portal-accent-500-rgb), 0.1); /* the viewer's row in a ranking */
 
   /* Surfaces (background layers) --------------------------- */
   --portal-surface-1: rgb(255, 255, 255, 0.02); /* subtle tint */

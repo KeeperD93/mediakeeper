@@ -17,14 +17,17 @@ from core.database import get_db
 from models.portal.profile import UserProfile
 from models.user import User
 from services.portal import admin_debug
-from services.portal.admin_users_audit import record_audit
-from services.portal.admin_users_constants import ACTION_DEBUG_ACHIEVEMENT_RECHECK_ALL, ROLE_VIEWER
 from services.portal.achievement_defs import (
     ACHIEVEMENT_DEFS,
     META_TARGET_CATEGORY,
     achievements_for_category,
 )
-
+from services.portal.admin_users_audit import record_audit
+from services.portal.admin_users_constants import (
+    ACTION_DEBUG_ACHIEVEMENT_RECHECK_ALL,
+    ROLE_VIEWER,
+)
+from services.portal.xp import EARNING_ACCOUNT
 
 router = APIRouter(prefix="/admin/debug", tags=["portal-admin-debug"])
 
@@ -214,7 +217,8 @@ async def debug_recheck_all_achievements(
     admin: tuple[User, UserProfile] = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    """Run ``check_all_achievements`` for every active profile.
+    """Run ``check_all_achievements`` for each account that earns (``EARNING_ACCOUNT``),
+    signed in or not; ``users_processed`` counts those accounts only.
 
     Used to backfill trophies after a bug that prevented the post-session
     pipeline from running (the collector usually triggers the check, but
@@ -224,36 +228,39 @@ async def debug_recheck_all_achievements(
     """
     from services.portal.achievements import safe_check_all_achievements
 
-    profiles = (await db.execute(
-        select(UserProfile, User.username)
+    # Plain values, not ORM objects: a failed check rolls the session back,
+    # which expires every instance it holds.
+    admin_id = admin[0].id
+    accounts = (await db.execute(
+        select(UserProfile.user_id, User.username)
         .join(User, User.id == UserProfile.user_id)
-        .where(UserProfile.account_active.is_(True))
+        .where(EARNING_ACCOUNT)
     )).all()
 
     summary = []
     total_unlocks = 0
-    for profile, username in profiles:
+    for user_id, username in accounts:
         unlocks = await safe_check_all_achievements(
-            db, profile.user_id, username, source="admin_recheck", silent=True,
+            db, user_id, source="admin_recheck", silent=True,
         )
         if unlocks:
             total_unlocks += len(unlocks)
             summary.append({
-                "user_id": profile.user_id,
+                "user_id": user_id,
                 "username": username,
                 "newly_unlocked": len(unlocks),
                 "achievement_ids": [u["achievement_id"] for u in unlocks],
             })
-    # Mass mutation (unlocks + XP across every active user) → no single
+    # Mass mutation (unlocks + XP across every account that earns) → no single
     # target; the counts bound the blast radius for after-the-fact review.
     await record_audit(
-        db, admin_user_id=admin[0].id, target_user_id=None,
+        db, admin_user_id=admin_id, target_user_id=None,
         action=ACTION_DEBUG_ACHIEVEMENT_RECHECK_ALL,
-        payload={"users_processed": len(profiles), "total_new_unlocks": total_unlocks},
+        payload={"users_processed": len(accounts), "total_new_unlocks": total_unlocks},
         ip=client_ip(request), user_agent=client_ua(request), commit=True,
     )
     return {
-        "users_processed": len(profiles),
+        "users_processed": len(accounts),
         "users_with_new_unlocks": sum(1 for s in summary if s.get("newly_unlocked")),
         "total_new_unlocks": total_unlocks,
         "details": summary,

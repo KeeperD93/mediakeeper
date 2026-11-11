@@ -12,57 +12,66 @@ The implementation is split across specialized modules to keep each file under 3
   - achievements_checks_progression.py  — leaderboard, level, tickets, events, etc.
   - achievements_checks_secrets_a.py    — first half of secret checks
   - achievements_checks_secrets_b.py    — second half + ultimate collector + placeholders
+  - achievements_checks_local_time.py   — rules that read the local clock of the instance
+  - achievements_local_time.py          — those rules, as pure functions
 
 Consumers import from this file, not the split files, to keep the public API stable.
 """
 import logging
 import time
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models.portal.achievement import Achievement
 from models.playback_stats import PlaybackSession
+from models.portal.achievement import Achievement
+from services.instance_time import get_instance_zone
+from services.portal.achievement_defs_constants import PLACEHOLDER_IDS
+from services.portal.achievements_badges import get_leaderboard, pin_badge, unpin_badge
+from services.portal.achievements_checks_local_time import (
+    LOCAL_TIME_CONDITIONS,
+    check_local_time,
+)
+from services.portal.achievements_checks_meta import check_meta
+from services.portal.achievements_checks_progression import check_progression
+from services.portal.achievements_checks_secrets_a import check_secrets_a
+from services.portal.achievements_checks_secrets_b import check_secrets_b
+from services.portal.achievements_checks_standard import check_standard
+from services.portal.achievements_profile import get_achievements_for_profile
+from services.portal.achievements_seed import seed_achievements
+from services.portal.achievements_utils import (
+    MAX_PINNED_BADGES,
+    _build_pause_user_filter,
+    _build_playback_user_filter,
+    _load_user_achievement_map,
+    update_progress,
+)
 from services.portal.exclusions import (
     get_exclusion_filters,
     get_pause_event_exclusion_filters,
 )
-from services.portal.achievement_defs_constants import PLACEHOLDER_IDS
-from services.portal.achievements_utils import (
-    MAX_PINNED_BADGES,
-    update_progress,
-    _load_user_achievement_map,
-    _build_pause_user_filter,
-    _build_playback_user_filter,
-)
-from services.portal.achievements_seed import seed_achievements
-from services.portal.achievements_profile import get_achievements_for_profile
-from services.portal.achievements_badges import pin_badge, unpin_badge, get_leaderboard
-from services.portal.achievements_checks_standard import check_standard
-from services.portal.achievements_checks_progression import check_progression
-from services.portal.achievements_checks_secrets_a import check_secrets_a
-from services.portal.achievements_checks_secrets_b import check_secrets_b
-from services.portal.achievements_checks_meta import check_meta
+from services.portal.xp import account_earns
 
 logger = logging.getLogger("mediakeeper.portal.achievements")
 
 __all__ = [
-    "seed_achievements",
-    "get_achievements_for_profile",
+    "MAX_PINNED_BADGES",
     "check_all_achievements",
+    "get_achievements_for_profile",
+    "get_leaderboard",
+    "pin_badge",
     "safe_check_all_achievements",
     "safe_check_all_achievements_in_new_session",
-    "update_progress",
-    "pin_badge",
+    "seed_achievements",
     "unpin_badge",
-    "get_leaderboard",
-    "MAX_PINNED_BADGES",
+    "update_progress",
 ]
 
 # condition_types that scan all PlaybackSession rows; load them once.
 _BULK_PLAYBACK_CONDITIONS = (
-    "marathon_hours", "weekend_plays", "season_binge", "library_explorer",
-    "total_watch_hours", "secret_indecisive", "secret_sunday",
-    "secret_bgNoise", "secret_ultramarathon", "secret_butterfly",
+    "season_binge", "library_explorer", "total_watch_hours",
+    "secret_bgNoise", "secret_ultramarathon",
+    *LOCAL_TIME_CONDITIONS,
 )
 
 
@@ -75,21 +84,24 @@ async def _safe_pass(label: str, coro) -> list[dict]:
         return []
 
 
-async def check_all_achievements(
-    db: AsyncSession, user_id: int, user_name: str | None = None
-) -> list[dict]:
+async def check_all_achievements(db: AsyncSession, user_id: int) -> list[dict]:
     """
     Compute current stats from PlaybackSession and update all achievements.
     Returns list of newly unlocked achievements (for notification).
-    Called after watch session closes, on login, on request creation, etc.
+    Called after a watch session closes, on request creation, etc.; never on login.
     """
+    # Whoever or whatever triggers the check, an account that may not earn gets nothing.
+    if not await account_earns(db, user_id):
+        return []
+
     excl_filters = await get_exclusion_filters(db)
     pause_excl_filters = await get_pause_event_exclusion_filters(db)
 
-    user_filter = await _build_playback_user_filter(db, user_id, user_name)
+    user_filter = await _build_playback_user_filter(db, user_id)
     if user_filter is None:
         return []
-    pause_user_filter = await _build_pause_user_filter(db, user_id, user_name)
+    pause_user_filter = await _build_pause_user_filter(db, user_id)
+    zone = await get_instance_zone(db)
 
     all_achs = (await db.execute(select(Achievement))).scalars().all()
     by_type: dict[str, list[Achievement]] = {}
@@ -115,17 +127,29 @@ async def check_all_achievements(
         )).scalars().all()
 
     unlocks: list[dict] = []
-    common_kwargs = dict(
-        by_type=by_type,
-        user_id=user_id,
-        ua_map=ua_map,
-        unlocked_ids=unlocked_ids,
-        user_filter=user_filter,
-        excl_filters=excl_filters,
-        playback_rows=playback_rows,
-    )
+    common_kwargs = {
+        "by_type": by_type,
+        "user_id": user_id,
+        "ua_map": ua_map,
+        "unlocked_ids": unlocked_ids,
+        "user_filter": user_filter,
+        "excl_filters": excl_filters,
+        "playback_rows": playback_rows,
+    }
 
     unlocks.extend(await _safe_pass("standard", check_standard(db, **common_kwargs)))
+    unlocks.extend(await _safe_pass(
+        "local_time",
+        check_local_time(
+            db,
+            by_type=by_type,
+            user_id=user_id,
+            ua_map=ua_map,
+            unlocked_ids=unlocked_ids,
+            rows=playback_rows or [],
+            zone=zone,
+        ),
+    ))
     unlocks.extend(await _safe_pass("progression", check_progression(db, **common_kwargs)))
     unlocks.extend(await _safe_pass("secrets_a", check_secrets_a(db, **common_kwargs)))
     unlocks.extend(await _safe_pass(
@@ -135,6 +159,7 @@ async def check_all_achievements(
             all_achs=all_achs,
             pause_user_filter=pause_user_filter,
             pause_excl_filters=pause_excl_filters,
+            zone=zone,
             **common_kwargs,
         ),
     ))
@@ -152,7 +177,6 @@ async def check_all_achievements(
 async def safe_check_all_achievements(
     db: AsyncSession,
     user_id: int,
-    user_name: str | None,
     source: str,
     *,
     silent: bool = True,
@@ -165,8 +189,13 @@ async def safe_check_all_achievements(
     fired from request handlers) so a regression in one check pass cannot
     break the originating endpoint.
 
+    A failure rolls the session back so the caller can go on with it: nothing
+    the session had not committed survives, and every instance it holds is
+    expired. Callers commit their own work first and touch no ORM object
+    loaded before the call.
+
     ``source`` is a free-form label; conventional values include
-    ``"login"``, ``"playback_close"``, ``"chat_message"``,
+    ``"playback_close"``, ``"chat_message"``,
     ``"request_created"``, ``"request_status_change"``, ``"ticket_created"``,
     ``"avatar_changed"``, ``"event_created"``, ``"list_created"``,
     ``"list_privacy_changed"``, ``"list_items_added"``,
@@ -175,12 +204,19 @@ async def safe_check_all_achievements(
     started = time.perf_counter()
     unlocks: list[dict] = []
     try:
-        unlocks = await check_all_achievements(db, user_id=user_id, user_name=user_name)
+        unlocks = await check_all_achievements(db, user_id=user_id)
     except Exception:
         logger.exception(
             "achievements run failed",
             extra={"user_id": user_id, "source": source},
         )
+        try:
+            await db.rollback()
+        except Exception:
+            logger.exception(
+                "achievements run rollback failed",
+                extra={"user_id": user_id, "source": source},
+            )
         if not silent:
             raise
     finally:
@@ -199,7 +235,6 @@ async def safe_check_all_achievements(
 
 async def safe_check_all_achievements_in_new_session(
     user_id: int,
-    user_name: str | None,
     source: str,
 ) -> list[dict]:
     """Convenience wrapper for FastAPI ``BackgroundTasks``: opens a fresh
@@ -209,5 +244,5 @@ async def safe_check_all_achievements_in_new_session(
     from core.database import AsyncSessionLocal
     async with AsyncSessionLocal() as db:
         return await safe_check_all_achievements(
-            db, user_id=user_id, user_name=user_name, source=source, silent=True,
+            db, user_id=user_id, source=source, silent=True,
         )

@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.auth import BACKOFFICE_FORBIDDEN
 from constants.security import (
     ACCOUNT_DISABLED,
     INVALID_CREDENTIALS,
@@ -102,7 +103,7 @@ async def login(req: LoginRequest, request: Request, response: Response, db: Asy
         logger.warning("[LOGIN] Backoffice refused for user=%r from %s", req.username, client_ip)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="backoffice_forbidden",
+            detail=BACKOFFICE_FORBIDDEN,
         )
 
     # Read before the profile stamp: a failed stamp rolls the session back.

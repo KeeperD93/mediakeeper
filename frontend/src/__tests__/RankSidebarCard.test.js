@@ -14,9 +14,9 @@ const baseProps = {
   iconMap: {},
 }
 
-function makeWrapper(profileData) {
+function makeWrapper(profileData, overrides = {}) {
   return mount(RankSidebarCard, {
-    props: { ...baseProps, profileData },
+    props: { ...baseProps, profileData, ...overrides },
     global: {
       stubs: {
         MkAvatar: {
@@ -25,7 +25,7 @@ function makeWrapper(profileData) {
             '<div class="mk-avatar-stub" :data-src="src" :data-name="name" :data-size="size"></div>',
         },
       },
-      mocks: { $t: key => key },
+      mocks: { $t: (key, params) => (params ? `${key} ${JSON.stringify(params)}` : key) },
     },
   })
 }
@@ -56,5 +56,25 @@ describe('RankSidebarCard avatar delegation', () => {
     const html = w.html()
     expect(html).not.toContain('gc-avatar-letter')
     expect(html).not.toContain('charAt')
+  })
+})
+
+describe('RankSidebarCard ranking block', () => {
+  const profile = { display_name: 'Alice', avatar_url: null, xp: 1000, level: 4 }
+
+  it('shows the place, movement and percentile of a ranked player', () => {
+    const w = makeWrapper(profile)
+    expect(w.find('.gc-ranking-pos').text()).toBe('#12')
+    expect(w.find('.gc-ranking-move').exists()).toBe(true)
+    expect(w.find('.gc-ranking-pct-bar').exists()).toBe(true)
+    expect(w.find('.gc-ranking-pct-text').text()).toBe('portal.profile.topPercent {"percent":30}')
+  })
+
+  it('shows neither movement nor percentile without a place', () => {
+    const w = makeWrapper(profile, { ranking: { position: 0, percentile: 50, movement: 0 } })
+    expect(w.find('.gc-ranking-pos').text()).toBe('#—')
+    expect(w.find('.gc-ranking-move').exists()).toBe(false)
+    expect(w.find('.gc-ranking-pct-bar').exists()).toBe(false)
+    expect(w.find('.gc-ranking-pct-text').exists()).toBe(false)
   })
 })

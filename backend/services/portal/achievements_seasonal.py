@@ -2,8 +2,8 @@
 from sqlalchemy import select, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models.portal.profile import UserProfile
 from models.playback_stats import PlaybackSession
+from services.portal.achievements_utils import _build_playback_user_filter
 from services.portal.exclusions import get_exclusion_filters
 
 
@@ -14,21 +14,11 @@ async def _compute_seasonal_years(
     For each seasonal/dated secret, return a sorted list of years where the
     condition was met (so the UI can show "2026, 2027" badges on the trophy).
     """
-    from models.user import User
-
-    profile = (await db.execute(
-        select(UserProfile).where(UserProfile.user_id == user_id)
-    )).scalar_one_or_none()
-    user_obj = await db.get(User, user_id)
-    names = []
-    for c in (user_obj.username if user_obj else None, profile.display_name if profile else None):
-        if c and c not in names:
-            names.append(c)
-    if not names:
+    base_filter = await _build_playback_user_filter(db, user_id)
+    if base_filter is None:
         return {}
 
     excl = await get_exclusion_filters(db)
-    base_filter = PlaybackSession.user_name.in_(names)
 
     result: dict[str, list[int]] = {}
 

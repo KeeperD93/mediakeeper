@@ -82,22 +82,23 @@
       <div class="gc-ranking-block">
         <div class="gc-ranking-label">{{ $t('portal.profile.ranking') }}</div>
         <div class="gc-ranking-pos">#{{ ranking.position || '—' }}</div>
-        <div v-if="ranking.movement > 0" class="gc-ranking-move gc-ranking-move--up">
-          +{{ ranking.movement }} {{ $t('portal.profile.places') }}
-        </div>
-        <div v-else-if="ranking.movement < 0" class="gc-ranking-move gc-ranking-move--down">
-          {{ ranking.movement }} {{ $t('portal.profile.places') }}
-        </div>
-        <div v-else class="gc-ranking-move gc-ranking-move--same">=</div>
-        <div class="gc-ranking-pct-row">
-          <div class="gc-ranking-pct-bar">
-            <div
-              class="gc-ranking-pct-fill"
-              :style="{ width: 100 - (ranking.percentile || 50) + '%' }"
-            />
+        <template v-if="ranking.position">
+          <div v-if="ranking.movement > 0" class="gc-ranking-move gc-ranking-move--up">
+            +{{ ranking.movement }} {{ $t('portal.profile.places') }}
           </div>
-        </div>
-        <div class="gc-ranking-pct-text">Top {{ ranking.percentile || '—' }}%</div>
+          <div v-else-if="ranking.movement < 0" class="gc-ranking-move gc-ranking-move--down">
+            {{ ranking.movement }} {{ $t('portal.profile.places') }}
+          </div>
+          <div v-else class="gc-ranking-move gc-ranking-move--same">=</div>
+          <div class="gc-ranking-pct-row">
+            <div class="gc-ranking-pct-bar">
+              <div class="gc-ranking-pct-fill" :style="{ width: 100 - ranking.percentile + '%' }" />
+            </div>
+          </div>
+          <div class="gc-ranking-pct-text">
+            {{ $t('portal.profile.topPercent', { percent: ranking.percentile }) }}
+          </div>
+        </template>
       </div>
       <div class="gc-member-since">
         {{ $t('portal.profile.memberSince', { months: memberSince }) }}

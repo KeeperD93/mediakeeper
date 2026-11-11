@@ -10,10 +10,32 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+### Action
+- Fuseau horaire — à choisir dans Paramètres → Général, sinon les heures restent décalées.
+- Proxy inverse — réglage des proxys à refaire, voir le guide de déploiement.
+
+### Added
+- Paramètres — fuseau horaire de l'instance, prérempli avec celui du navigateur.
+- Assistant d'installation — langue et fuseau horaire choisis en premier.
+- Outils de debug — retrait des trophées comptés à la mauvaise heure avant le choix du fuseau.
+
 ### Changed
-- Sécurité — FORWARDED_ALLOW_IPS d'uvicorn désormais ignoré : déclarer les proxys dans TRUSTED_PROXIES.
+- Classement du portail — seule l'activité compte : trophées et ajouts ou retraits d'XP admin exclus.
+- Tableau de bord — widget Classement : niveau et trophées du mois de chaque joueur affichés.
+- Statistiques — jours, heures et records comptés dans le fuseau horaire de l'instance.
+- Statistiques — Streak : la série tient tant que la veille compte, plus de 0 le matin.
+- Utilisateurs — tout compte Emby gagne XP et trophées de l'import à sa désactivation (case « sans connexion » retirée).
+- Utilisateurs — statut « Jamais activé » ou « Désactivé » au lieu de « Inactif ».
+- Utilisateurs — « Créer un administrateur » remplace « Créer un utilisateur » (mot de passe provisoire).
 
 ### Fixed
+- Statistiques — temps de visionnage juste : lecture coupée non comptée, plus de sous-comptage.
+- RGPD — compte effacé jamais recréé, visionnages de son identifiant Emby plus enregistrés (texte de confidentialité à adapter).
+- RGPD — compte effacé : photo de profil supprimée, nom retiré des remontées, de la blacklist et du journal admin.
+- Outils de debug — liste des joueurs traduite, échec de chargement signalé.
+- Outils de debug — « Lancer la vérification » ignore les comptes locaux et non reliés, va au bout malgré une erreur.
+- Paramètres — menu Langue nommé pour les lecteurs d'écran.
+- Notifications — « Ne pas déranger » suit le fuseau horaire choisi.
 - Sécurité — IP derrière un proxy : adresse envoyée par le visiteur ignorée (déclarer chaque proxy).
 - Sécurité — blocage manuel d'un nom : appliqué quelle que soit la casse.
 - Sécurité — listes toujours à jour (bouton Actualiser) et erreurs affichées.
@@ -40,6 +62,12 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Utilisateurs — « Jamais connectés » ne liste plus les membres déjà venus.
 - Planificateur — tâches et cache à jour au retour sur l'onglet.
 - Planificateur — bouton « Défaut » : durée traduite dans l'infobulle.
+- Utilisateurs — « Synchroniser les ID Emby » ne relie plus un compte local.
+- Sécurité — mot de passe provisoire : portail et chat fermés jusqu'à son changement.
+- Tableau de bord — classement du portail sans les profils privés.
+- Utilisateurs — onglet Audit : actions de debug affichées en clair.
+- Sauvegardes — restauration vraiment enregistrée, réglages remis comme à la sauvegarde.
+- Sauvegardes — restauration refusée si ses secrets sont illisibles, secrets ignorés signalés.
 
 ## [1.0.0-rc.9] - 2026-10-23
 

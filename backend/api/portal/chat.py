@@ -224,7 +224,6 @@ async def send_message(
     background_tasks.add_task(
         safe_check_all_achievements_in_new_session,
         user.id,
-        user.username,
         "chat_message",
     )
     return result
@@ -413,7 +412,8 @@ async def _authenticate_ws(websocket: WebSocket) -> tuple[int, datetime, datetim
             select(User).where(User.username == username, User.is_active == True)  # noqa: E712
         )
         user = result.scalar_one_or_none()
-        if not user:
+        # A temporary password opens nothing until it is changed, chat included.
+        if not user or user.must_change_password:
             return None
         profile = await get_or_create_profile(db, user)
         if not profile.chat_enabled or not profile.can_chat or not profile.account_active:

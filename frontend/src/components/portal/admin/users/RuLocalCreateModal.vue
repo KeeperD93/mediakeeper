@@ -7,6 +7,7 @@
         role="dialog"
         aria-modal="true"
         :aria-labelledby="titleId"
+        :aria-describedby="helpId"
         @click.self="close"
       >
         <form
@@ -30,16 +31,10 @@
           </div>
 
           <div class="ru-form atl-body">
+            <p :id="helpId" class="ru-help">{{ $t('requestsAdmin.users.drawerLocal.help') }}</p>
             <label>
               <span>{{ $t('requestsAdmin.users.drawerLocal.username') }} *</span>
-              <input
-                v-model="form.username"
-                type="text"
-                minlength="3"
-                maxlength="50"
-                required
-                autofocus
-              />
+              <input v-model="form.username" type="text" minlength="3" maxlength="50" required />
             </label>
             <label>
               <span>{{ $t('requestsAdmin.users.drawerLocal.password') }} *</span>
@@ -79,14 +74,6 @@
                 <input v-model="form.last_name" type="text" maxlength="100" />
               </label>
             </div>
-            <label>
-              <span>{{ $t('requestsAdmin.users.drawerLocal.role') }}</span>
-              <select v-model="form.role">
-                <option v-for="r in USER_ROLES" :key="r" :value="r">
-                  {{ $t(`requestsAdmin.users.filters.role.${r}`) }}
-                </option>
-              </select>
-            </label>
             <label class="ru-form-row ru-form-row--inline">
               <input v-model="form.account_active" type="checkbox" />
               <span>{{ $t('requestsAdmin.users.drawerLocal.active') }}</span>
@@ -111,18 +98,17 @@
 
 <script setup>
 import { reactive, ref, toRef, watch, useId } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { Eye, EyeOff, X } from 'lucide-vue-next'
 import { usePortalAdminUsers } from '@/composables/portal/usePortalAdminUsers'
+import { resolveScopedError } from '@/composables/useApi'
 import { useFocusTrap } from '@/composables/useFocusTrap'
-import { USER_ROLE, USER_ROLES } from '@/constants/portalAdminUsers'
 import '@/assets/styles/portal/admin-users-modals.css'
 
 const props = defineProps({ open: { type: Boolean, default: false } })
 const emit = defineEmits(['close', 'created'])
 const titleId = useId()
+const helpId = useId()
 
-const { t } = useI18n()
 const api = usePortalAdminUsers()
 
 const empty = () => ({
@@ -132,7 +118,6 @@ const empty = () => ({
   email: '',
   first_name: '',
   last_name: '',
-  role: USER_ROLE.VIEWER,
   account_active: true,
 })
 const form = reactive(empty())
@@ -153,16 +138,25 @@ watch(
   },
 )
 
+// A refusal says why in this screen's words; a rate limit already has its toast.
+function showRefusal(code) {
+  error.value = resolveScopedError('requestsAdmin.users.errors', code, 'common.error')
+}
+
 async function submit() {
   busy.value = true
   error.value = ''
   try {
     const res = await api.createLocalUser({ ...form })
-    if (res?.error) {
-      error.value = t(`requestsAdmin.users.errors.${res.error}`, t('common.error'))
+    if (!res) return // The session ended: the page is leaving for the sign-in.
+    if (res.error) {
+      showRefusal(res.error)
       return
     }
     emit('created', res)
+  } catch (e) {
+    console.error('[RuLocalCreateModal.submit]', e)
+    showRefusal(e instanceof Error ? e.message : '')
   } finally {
     busy.value = false
   }

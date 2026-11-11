@@ -2,12 +2,9 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
-from unittest.mock import AsyncMock, patch
 
 import pytest
-from sqlalchemy import select
 
-from models.playback_stats import PlaybackCompletion, PlaybackSession
 from services.stats_collector._measure import (
     as_utc,
     client_is_alive,
@@ -17,61 +14,12 @@ from services.stats_collector._measure import (
     progress_seconds,
     spread_over_hours,
 )
-from services.stats_collector.collect import collect_active_sessions
-
-TICK = 10_000_000
-T0 = datetime(2026, 3, 7, 20, 0, tzinfo=timezone.utc)
-
-
-def _emby_date(at: datetime) -> str:
-    # Emby writes 7 fractional digits and a trailing Z.
-    return at.strftime("%Y-%m-%dT%H:%M:%S.%f") + "0Z"
-
-
-def _session(
-    *, at: datetime, position_s: float, paused: bool = False, item: str = "MOVIE-1",
-    item_type: str = "Movie", runtime_s: int = 6000, user: str = "EMBY-1",
-    session: str = "S-1", silent_since: datetime | None = None,
-) -> dict:
-    return {
-        "Id": session,
-        "UserId": user,
-        "UserName": "viewer",
-        "Client": "Web",
-        "DeviceName": "PC",
-        "LastActivityDate": _emby_date(silent_since or at),
-        "NowPlayingItem": {
-            "Id": item, "Name": "Sample title", "Type": item_type, "RunTimeTicks": runtime_s * TICK,
-        },
-        "PlayState": {"IsPaused": paused, "PositionTicks": int(position_s * TICK)},
-    }
-
-
-async def _poll(db, at: datetime, *sessions: dict) -> None:
-    source = {"source": "emby", "url": "http://emby.test", "api_key": "k"}
-    with patch("services.stats_collector.collect.get_active_media_source", new=AsyncMock(return_value=source)), \
-         patch("services.stats_collector.collect.get_raw_sessions", new=AsyncMock(return_value=list(sessions))), \
-         patch("services.stats_collector.collect._session_library_name", new=AsyncMock(return_value="Films")), \
-         patch("services.stats_collector.collect._grant_post_session_xp", new=AsyncMock()):
-        await collect_active_sessions(db, now=at)
-
-
-async def _rows(db) -> list[PlaybackSession]:
-    query = select(PlaybackSession).order_by(PlaybackSession.id).execution_options(populate_existing=True)
-    return (await db.execute(query)).scalars().all()
-
-
-async def _completions(db) -> list[PlaybackCompletion]:
-    return (await db.execute(select(PlaybackCompletion))).scalars().all()
-
-
-async def _play(db, start: datetime, positions: list[float], step: timedelta, **kw) -> datetime:
-    """One poll per position, ``step`` apart; returns the time of the last poll."""
-    at = start
-    for i, position in enumerate(positions):
-        at = start + step * i
-        await _poll(db, at, _session(at=at, position_s=position, **kw))
-    return at
+from tests._watch_measurement_helpers import T0, TICK
+from tests._watch_measurement_helpers import completions as _completions
+from tests._watch_measurement_helpers import emby_session as _session
+from tests._watch_measurement_helpers import play as _play
+from tests._watch_measurement_helpers import poll as _poll
+from tests._watch_measurement_helpers import rows as _rows
 
 
 @pytest.mark.asyncio
@@ -303,9 +251,9 @@ async def test_sittings_add_up_to_a_watched_title(db_session):
     await _play(db_session, T0, [5 + 60 * i for i in range(6)], timedelta(minutes=1), runtime_s=600)
     await _poll(db_session, T0 + timedelta(minutes=6))
     assert await _completions(db_session) == []
-    # Next day: resumed where it stopped, watched to the end.
+    # Next day: resumed from the last position the player reported, watched to the end.
     next_day = T0 + timedelta(days=1)
-    await _play(db_session, next_day, [305 + 60 * i for i in range(5)], timedelta(minutes=1), runtime_s=600)
+    await _play(db_session, next_day, [300 + 60 * i for i in range(5)], timedelta(minutes=1), runtime_s=600)
     (done,) = await _completions(db_session)
     assert done.watched_seconds == 305 + 240
 

@@ -16,11 +16,12 @@ from datetime import datetime, timedelta, timezone
 import jwt
 import pytest
 import pytest_asyncio
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 
 import api.portal.chat as chat
 from core.security import ALGORITHM, MAX_TOKEN_LENGTH, SECRET_KEY, create_access_token
 from models.portal.chat import ChatMessage
+from models.user import User
 from tests._chat_ws_helpers import (
     ChatPeer,
     chat_token,
@@ -224,6 +225,24 @@ async def test_handshake_refuses_a_token_without_exp(lounge):
         algorithm=ALGORITHM,
     )
     peer = ChatPeer(no_exp, room.id)
+    task = await open_socket(peer, room.id)
+    await asyncio.wait_for(task, timeout=2)
+    assert not peer.accepted
+    assert peer.close_codes() == [chat.WS_CLOSE_AUTH_FAILED]
+
+
+@pytest.mark.asyncio
+async def test_handshake_refuses_an_account_with_a_temporary_password(lounge, db_session):
+    """A temporary password opens nothing until it is changed, chat included."""
+    users, room = lounge
+    await db_session.execute(
+        update(User)
+        .where(User.id == users["chatter_a"].id)
+        .values(must_change_password=True)
+        .execution_options(synchronize_session="fetch")
+    )
+    await db_session.commit()
+    peer = ChatPeer(chat_token("chatter_a"), room.id)
     task = await open_socket(peer, room.id)
     await asyncio.wait_for(task, timeout=2)
     assert not peer.accepted

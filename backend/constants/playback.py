@@ -10,3 +10,7 @@ TICKS_PER_SECOND = 10_000_000
 # Watch time and watched titles are a video notion: music and other media keep
 # their per-title time but never count as the user's watching.
 WATCH_ITEM_TYPES = frozenset({"Movie", "Episode"})
+
+# History imported from another statistics tool keeps these session key prefixes;
+# the collector never writes them.
+IMPORTED_SESSION_KEY_PREFIXES = ("js_", "jsplugin_")

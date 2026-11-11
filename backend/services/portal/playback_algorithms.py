@@ -14,10 +14,12 @@ Conventions:
 
 * All timestamps are normalised to UTC via :func:`_as_utc` before any
   comparison; naive datetimes are assumed UTC.
+* The night of ``secret_allnight`` and the months of ``secret_king`` start
+  on the clock of the instance zone; durations stay real seconds.
 * ``PlaybackSession.user_id`` stores the **Emby user_id string**, not
   the MK ``users.id``. Callers resolve the matching Emby IDs upstream
-  (the secrets-b module already does this for ``secret_lonely`` /
-  ``secret_sync``) and pass them down via ``emby_user_ids``.
+  (the secrets-b module already does this for ``secret_sync``) and pass
+  them down via ``emby_user_ids``.
 * ``secret_king`` enforces an **N >= 2 distinct active users per month**
   guard: a month with a single active user is *skipped* (it does not
   break the consecutive chain, but it does not count toward it either).
@@ -25,20 +27,21 @@ Conventions:
   ``secret_sync`` — a single-user instance must not unlock a leaderboard
   trophy by default.
 * ``secret_allnight`` allows up to 5-minute gaps between consecutive
-  sessions (and a 40-minute cumulative budget across the 8-hour
-  window) to absorb very short pauses (toilet breaks, device handoff)
-  without invalidating an otherwise-continuous all-nighter.
+  sessions (and a 40-minute cumulative budget across the night) to
+  absorb very short pauses (toilet breaks, device handoff) without
+  invalidating an otherwise-continuous all-nighter.
 """
 from __future__ import annotations
 
 from collections import defaultdict
-from datetime import datetime, time, timedelta, timezone
+from collections.abc import Iterable
+from datetime import UTC, date, datetime, time, timedelta, tzinfo
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.playback_stats import PlaybackSession
-from models.portal.emby_tmdb_index import EmbyTmdbIndex
+from services.instance_time import to_local
 from services.portal.playback_overlap import (
     OPEN_SESSION_FALLBACK,
     _as_utc,
@@ -48,27 +51,23 @@ from services.portal.playback_overlap import (
 
 __all__ = [
     "OPEN_SESSION_FALLBACK",
-    "PILOT_FRESHNESS_DAYS",
+    "all_night_chain_in",
     "has_all_night_chain",
     "has_24h_in_48h_window",
     "has_12_consecutive_top1_months",
-    "is_first_viewer_of_fresh_content",
+    "holds_12_consecutive_top1_months",
+    "king_month_leaders",
+    "king_monthly_totals",
+    "session_spans",
 ]
-
-
-# ``secret_pilot``: how recent an item must be (relative to its Emby
-# ``DateCreated``) for the first-viewer claim to count. 30 days mirrors
-# the "recently added" shelf surfaced on the portal home; revisit if
-# live feedback shows the window is too lax or too strict.
-PILOT_FRESHNESS_DAYS = 30
 
 
 # Tunables for ``secret_allnight``. Kept module-level so the values are
 # discoverable from tests and the docstrings above stay authoritative.
 ALL_NIGHT_MAX_GAP = timedelta(minutes=5)
 ALL_NIGHT_TOTAL_GAP_BUDGET = timedelta(minutes=40)
-ALL_NIGHT_WINDOW_START_HOUR = 22  # inclusive (UTC)
-ALL_NIGHT_WINDOW_END_HOUR = 6     # inclusive (UTC, on day J+1)
+ALL_NIGHT_WINDOW_START_HOUR = 22  # inclusive (local clock)
+ALL_NIGHT_WINDOW_END_HOUR = 6     # inclusive (local clock, on day J+1)
 
 NO_LIFE_WINDOW = timedelta(hours=48)
 NO_LIFE_TARGET_SECONDS = 24 * 3600
@@ -87,7 +86,13 @@ async def _load_user_sessions(
         select(PlaybackSession.started_at, PlaybackSession.ended_at)
         .where(PlaybackSession.user_id.in_(emby_user_ids))
     )).all()
+    return session_spans(rows)
 
+
+def session_spans(
+    rows: Iterable[tuple[datetime | None, datetime | None]],
+) -> list[tuple[datetime, datetime]]:
+    """``(started_at, ended_at)`` pairs as UTC spans sorted by start; NULL ends bounded."""
     sessions: list[tuple[datetime, datetime]] = []
     for started_at, ended_at in rows:
         start = _as_utc(started_at)
@@ -103,19 +108,23 @@ async def _load_user_sessions(
 
 
 async def has_all_night_chain(
-    db: AsyncSession, emby_user_ids: list[str]
+    db: AsyncSession, emby_user_ids: list[str], zone: tzinfo
 ) -> bool:
-    """``True`` iff a continuous chain of sessions covers 22:00 → 06:00 UTC.
+    """``True`` iff a continuous chain of sessions covers 22:00 → 06:00 in ``zone``.
 
     Definition of "chain": consecutive sessions are part of the same chain
     when ``next.start - prev.end <= ALL_NIGHT_MAX_GAP`` AND the cumulative
     gap budget of the chain stays under ``ALL_NIGHT_TOTAL_GAP_BUDGET``.
-    The window spans ``[22:00 UTC day J, 06:00 UTC day J+1]`` and a chain
-    is considered to "cover" it iff
-    ``chain_start <= 22:00 UTC`` and ``chain_end >= 06:00 UTC`` for some
-    anchor day ``J`` derived from the chain's own time range.
+    The window spans ``[22:00 day J, 06:00 day J+1]`` on the clock of ``zone``
+    and a chain is considered to "cover" it iff ``chain_start <= 22:00`` and
+    ``chain_end >= 06:00`` for some anchor day ``J`` derived from the chain's
+    own time range.
     """
-    sessions = await _load_user_sessions(db, emby_user_ids)
+    return all_night_chain_in(await _load_user_sessions(db, emby_user_ids), zone)
+
+
+def all_night_chain_in(sessions: list[tuple[datetime, datetime]], zone: tzinfo) -> bool:
+    """The test of :func:`has_all_night_chain` on spans from :func:`session_spans`."""
     if not sessions:
         return False
 
@@ -142,33 +151,39 @@ async def has_all_night_chain(
     chains.append((chain_start, chain_end))
 
     for cs, ce in chains:
-        if _chain_covers_all_night(cs, ce):
+        if _chain_covers_all_night(cs, ce, zone):
             return True
     return False
 
 
-def _chain_covers_all_night(chain_start: datetime, chain_end: datetime) -> bool:
-    """A chain covers an all-nighter iff some anchor day ``J`` exists with
-    ``chain_start <= 22:00 UTC of J`` and ``chain_end >= 06:00 UTC of J+1``."""
-    # The chain must span at least 8 hours: cheap reject before iterating.
-    if chain_end - chain_start < timedelta(hours=8):
-        return False
+def _clock_moment(day: date, hour: int, zone: tzinfo) -> datetime:
+    """``hour`` o'clock of ``day`` on the clock of ``zone``, as a UTC moment."""
+    return datetime.combine(day, time(hour), tzinfo=zone).astimezone(UTC)
 
-    # Candidate anchor days range from (chain_start.date() - 1) up to
-    # chain_end.date(); any anchor outside that interval cannot match.
-    first_day = chain_start.date() - timedelta(days=1)
-    last_day = chain_end.date()
-    day = first_day
-    while day <= last_day:
-        anchor_22 = datetime.combine(day, time(ALL_NIGHT_WINDOW_START_HOUR), tzinfo=timezone.utc)
-        anchor_06 = datetime.combine(
-            day + timedelta(days=1),
-            time(ALL_NIGHT_WINDOW_END_HOUR),
-            tzinfo=timezone.utc,
-        )
-        if chain_start <= anchor_22 and chain_end >= anchor_06:
-            return True
-        day += timedelta(days=1)
+
+def _chain_covers_all_night(
+    chain_start: datetime, chain_end: datetime, zone: tzinfo
+) -> bool:
+    """A chain covers an all-nighter iff some anchor day ``J`` exists with
+    ``chain_start <= 22:00 of J`` and ``chain_end >= 06:00 of J+1`` in ``zone``.
+
+    The night follows the clock: it is shorter when the clocks go forward and
+    longer when they go back. A chain at the edge of the calendar (year 1, from
+    an import) has no night around it.
+    """
+    try:
+        # Candidate anchor days range from the day before the local start up to
+        # the local end; any anchor outside that interval cannot match.
+        day = to_local(chain_start, zone).date() - timedelta(days=1)
+        last_day = to_local(chain_end, zone).date()
+        while day <= last_day:
+            anchor_22 = _clock_moment(day, ALL_NIGHT_WINDOW_START_HOUR, zone)
+            anchor_06 = _clock_moment(day + timedelta(days=1), ALL_NIGHT_WINDOW_END_HOUR, zone)
+            if chain_start <= anchor_22 and chain_end >= anchor_06:
+                return True
+            day += timedelta(days=1)
+    except OverflowError:
+        return False
     return False
 
 
@@ -214,10 +229,10 @@ async def has_24h_in_48h_window(
 
 
 async def has_12_consecutive_top1_months(
-    db: AsyncSession, emby_user_ids: list[str]
+    db: AsyncSession, emby_user_ids: list[str], zone: tzinfo
 ) -> bool:
     """``True`` iff the observed user holds the monthly #1 spot for at
-    least 12 consecutive *qualifying* months.
+    least 12 consecutive *qualifying* months of the calendar of ``zone``.
 
     A month qualifies iff ``>= 2`` distinct Emby users have at least one
     session starting in that month (anti-trivial guard). Months that do
@@ -233,10 +248,14 @@ async def has_12_consecutive_top1_months(
     rows = (await db.execute(
         select(PlaybackSession.user_id, PlaybackSession.started_at, PlaybackSession.ended_at)
     )).all()
-    if not rows:
-        return False
+    leaders = king_month_leaders(king_monthly_totals(rows, zone))
+    return holds_12_consecutive_top1_months(leaders, emby_user_ids)
 
-    # Aggregate per (year, month, user_id) → total seconds.
+
+def king_monthly_totals(
+    rows: Iterable[tuple[str | None, datetime | None, datetime | None]], zone: tzinfo,
+) -> dict[tuple[int, int], dict[str, float]]:
+    """Seconds watched per Emby user in each month of the calendar of ``zone``."""
     monthly_totals: dict[tuple[int, int], dict[str, float]] = defaultdict(dict)
     for user_id, started_at, ended_at in rows:
         if user_id is None:
@@ -245,95 +264,35 @@ async def has_12_consecutive_top1_months(
         if start is None:
             continue
         end = _effective_end(start, _as_utc(ended_at))
-        bucket = (start.year, start.month)
+        local_start = to_local(start, zone)
+        bucket = (local_start.year, local_start.month)
         seconds = (end - start).total_seconds()
         monthly_totals[bucket][user_id] = monthly_totals[bucket].get(user_id, 0.0) + seconds
+    return monthly_totals
 
-    if not monthly_totals:
-        return False
 
-    observed = set(emby_user_ids)
-    months_sorted = sorted(monthly_totals.keys())
-    streak = 0
-    for ym in months_sorted:
-        per_user = monthly_totals[ym]
+def king_month_leaders(
+    monthly_totals: dict[tuple[int, int], dict[str, float]],
+) -> dict[tuple[int, int], str | None]:
+    """The strict #1 of each qualifying month; ``None`` when the top is tied."""
+    leaders: dict[tuple[int, int], str | None] = {}
+    for ym, per_user in monthly_totals.items():
         if len(per_user) < KING_MIN_DISTINCT_USERS_PER_MONTH:
-            # Month is not eligible; skip without breaking the streak.
             continue
         ranked = sorted(per_user.items(), key=lambda kv: kv[1], reverse=True)
         top_user, top_seconds = ranked[0]
-        runner_seconds = ranked[1][1]
-        if top_seconds <= runner_seconds:
-            # Strict #1 required; tie at the top does not satisfy the trophy.
-            streak = 0
-            continue
-        if top_user in observed:
-            streak += 1
-            if streak >= KING_REQUIRED_CONSECUTIVE_MONTHS:
-                return True
-        else:
-            streak = 0
-    return False
+        leaders[ym] = top_user if top_seconds > ranked[1][1] else None
+    return leaders
 
 
-# ── secret_pilot ───────────────────────────────────────────────────────
-
-
-async def is_first_viewer_of_fresh_content(
-    db: AsyncSession, emby_user_ids: list[str]
+def holds_12_consecutive_top1_months(
+    leaders: dict[tuple[int, int], str | None], emby_user_ids: Iterable[str],
 ) -> bool:
-    """``True`` iff the observed user opened a freshly-added item *before*
-    any other user did.
-
-    "Freshly added" is defined relative to ``EmbyTmdbIndex.date_created``
-    (the cached Emby ``DateCreated`` timestamp): a session qualifies iff
-    ``session.started_at - date_created <= PILOT_FRESHNESS_DAYS``. Items
-    without a cached ``date_created`` are skipped — without the
-    metadata we cannot prove the freshness claim, so they cannot fire
-    the trophy. Timestamps are normalised to UTC via :func:`_as_utc`.
-
-    The "first viewer" guard is a NOT-EXISTS subquery: for each
-    candidate session of the observed user, we look for any session of
-    *another* Emby user on the same item that started strictly before.
-    A negative result on at least one candidate is enough to unlock.
-    Anti-trivial guard (single-user instance) is enforced upstream by
-    the caller, mirroring ``secret_lonely`` / ``secret_sync``.
-    """
-    if not emby_user_ids:
-        return False
-
-    candidates = (await db.execute(
-        select(
-            PlaybackSession.item_id,
-            PlaybackSession.started_at,
-            EmbyTmdbIndex.date_created,
-        )
-        .select_from(PlaybackSession)
-        .join(
-            EmbyTmdbIndex,
-            PlaybackSession.item_id == EmbyTmdbIndex.emby_item_id,
-        )
-        .where(
-            PlaybackSession.user_id.in_(emby_user_ids),
-            EmbyTmdbIndex.date_created.isnot(None),
-        )
-    )).all()
-
-    fresh_window = timedelta(days=PILOT_FRESHNESS_DAYS)
-    for item_id, started_at, date_created in candidates:
-        started = _as_utc(started_at)
-        created = _as_utc(date_created)
-        if started is None or created is None:
-            continue
-        if started - created > fresh_window or started < created:
-            continue
-        earlier = (await db.execute(
-            select(PlaybackSession.id).where(
-                PlaybackSession.item_id == item_id,
-                PlaybackSession.user_id.notin_(emby_user_ids),
-                PlaybackSession.started_at < started_at,
-            ).limit(1)
-        )).first()
-        if earlier is None:
+    """Whether ``emby_user_ids`` lead 12 qualifying months in a row; a tie or another leader resets."""
+    observed = set(emby_user_ids)
+    streak = 0
+    for ym in sorted(leaders):
+        streak = streak + 1 if leaders[ym] in observed else 0
+        if streak >= KING_REQUIRED_CONSECUTIVE_MONTHS:
             return True
     return False

@@ -3,13 +3,14 @@ import { resolveApiError, useApi } from '@/composables/useApi'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import {
+  BACKUP_KEY_MISMATCH,
   BACKUP_RETENTION_MAX_COUNT,
   BACKUP_RETENTION_MAX_DAYS,
   BACKUP_RETENTION_MODE,
 } from '@/constants/backup'
 import { useI18n } from 'vue-i18n'
 import { useConfirm } from '@/composables/useConfirm'
-import { localizedDateTime } from '@/utils/datetime'
+import { formatBackupDate, formatSize } from '@/utils/backupFormat'
 
 const backupInfo = ref(null)
 const backupLoading = ref(false)
@@ -34,21 +35,8 @@ const backupDirLocked = computed(() => !!backupInfo.value?.backup_dir_locked)
 let loadedOnce = false
 // Long enough to read the database restore notice and its pointer to the docs.
 const RESTORE_NOTICE_MS = 10000
-
-function formatSize(bytes) {
-  if (bytes < 1024) return bytes + ' B'
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
-  return (bytes / 1024 / 1024).toFixed(2) + ' MB'
-}
-function formatBackupDate(iso) {
-  return localizedDateTime(new Date(iso), {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
+// A restore refused for its encryption key gives steps to follow.
+const UNTIL_DISMISSED = 0
 
 export function useParamsBackup() {
   const { apiGet, apiFetch } = useApi()
@@ -69,7 +57,9 @@ export function useParamsBackup() {
   // without one (no answer, bare status), the action says what failed.
   function showFailure(where, e, fallbackKey) {
     console.error(`[useParamsBackup.${where}]`, e)
-    showToast(resolveApiError(e?.message, fallbackKey), TOAST_TYPE.ERR)
+    const message = resolveApiError(e?.message, fallbackKey)
+    if (e?.message === BACKUP_KEY_MISMATCH) showToast(message, TOAST_TYPE.ERR, UNTIL_DISMISSED)
+    else showToast(message, TOAST_TYPE.ERR)
   }
 
   // True once the backups and their settings are on screen.
@@ -257,6 +247,14 @@ export function useParamsBackup() {
       showToast(t('backup.restoredParts', { parts: restored.join(', ') }), TOAST_TYPE.OK)
     } else {
       showToast(t('backup.restoredNothing'), TOAST_TYPE.WARN)
+    }
+    const skipped = results?.secrets_skipped
+    if (skipped) {
+      showToast(
+        t('backup.restoreSecretsSkipped', { n: skipped }, skipped),
+        TOAST_TYPE.WARN,
+        RESTORE_NOTICE_MS,
+      )
     }
     if (selectedComponents.value.pg_dump) {
       showToast(t('backup.restoreNoDatabase'), TOAST_TYPE.WARN, RESTORE_NOTICE_MS)

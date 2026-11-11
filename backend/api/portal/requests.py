@@ -198,7 +198,6 @@ async def create_request(
     background_tasks.add_task(
         safe_check_all_achievements_in_new_session,
         target_user_id,
-        None,
         "request_created",
     )
     return result
@@ -229,7 +228,6 @@ async def update_status(
         background_tasks.add_task(
             safe_check_all_achievements_in_new_session,
             requester_id,
-            None,
             "request_status_change",
         )
     return result

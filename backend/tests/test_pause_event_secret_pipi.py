@@ -342,7 +342,7 @@ async def test_secret_pipi_unlocks_with_5_qualifying_pause_events(db_session):
         ))
     await db_session.commit()
 
-    unlocks = await check_all_achievements(db_session, alice.id, alice.username)
+    unlocks = await check_all_achievements(db_session, alice.id)
     unlock_ids = {u.get("achievement_id") or u.get("id") for u in unlocks}
     assert "secret_pipi" in unlock_ids
     assert await _is_unlocked(db_session, alice.id, "secret_pipi")
@@ -360,7 +360,7 @@ async def test_secret_pipi_does_not_unlock_with_4_qualifying_events(db_session):
         ))
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _is_unlocked(db_session, alice.id, "secret_pipi")
 
 
@@ -391,7 +391,7 @@ async def test_secret_pipi_ignores_open_and_out_of_range_events(db_session):
         ))
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _is_unlocked(db_session, alice.id, "secret_pipi")
 
 
@@ -414,7 +414,7 @@ async def test_secret_pipi_skips_excluded_item_name(db_session):
         ))
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _is_unlocked(db_session, alice.id, "secret_pipi")
 
 
@@ -441,7 +441,7 @@ async def test_secret_pipi_mixed_exclusion_below_threshold_no_unlock(db_session)
     ))
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _is_unlocked(db_session, alice.id, "secret_pipi")
 
 
@@ -466,5 +466,5 @@ async def test_secret_pipi_unlocks_with_5_non_excluded_events_alongside_exclusio
         ))
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert await _is_unlocked(db_session, alice.id, "secret_pipi")

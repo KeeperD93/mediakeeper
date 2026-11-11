@@ -15,8 +15,28 @@
   --portal-radius-pill: 999px; /* pill shape (60+ usages) */
   --portal-radius-circle: 50%; /* avatars, close buttons, dots */
 
-  /* Border width — mirrors admin --border-width-thin (cards, sub-dividers). */
+  /* Spacing — mirrors the admin --space-* scale; 0-5 and 1-5 are portal half-steps. */
+  --portal-space-0-5: 2px;
+  --portal-space-1: 4px;
+  --portal-space-1-5: 6px;
+  --portal-space-2: 8px;
+  --portal-space-3: 12px;
+  --portal-space-3-5: 14px;
+  --portal-space-6: 24px;
+
+  /* Border width — mirrors admin --border-width-thin (cards, sub-dividers)
+     and --border-width (inputs, standard strokes). */
   --portal-border-width-thin: 0.5px;
+  --portal-border-width: 1px;
+  --portal-border-width-accent: 3px; /* colored edge of a highlighted row */
+  --portal-border-width-metal: 2px; /* metal frame of the first three places */
+
+  /* Column of the XP in a ranking row: the figures before it line up from row to row. */
+  --portal-leaderboard-xp-width: 110px;
+
+  /* Square of a full-page illustration. */
+  --portal-illustration-size: 20rem;
+  --portal-aspect-square: 1 / 1; /* mirrors admin --aspect-square */
 
   /* Blurs (portal goes deeper than admin for cinema feel) */
   --portal-blur-xs: blur(6px);
@@ -106,6 +126,7 @@
   --portal-touch-target: 44px;
   /* Keyboard focus ring — mirrors admin --focus-ring, in the portal accent. */
   --portal-focus-ring: 2px solid var(--portal-accent-500);
+  --portal-focus-ring-offset: 2px; /* mirrors admin --focus-ring-offset */
 
   /* A control that cannot be used right now (busy, out of range). */
   --portal-opacity-disabled: 0.4;

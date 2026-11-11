@@ -6,6 +6,7 @@ from sqlalchemy import delete, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.playback_stats import PlaybackSession
+from services.portal.gdpr_erased import load_erased_identities
 
 from ._activity import _import_playback_activity
 from ._blocks import _extract_blocks
@@ -42,15 +43,16 @@ async def import_jellystats_backup(db: AsyncSession, data: dict) -> dict:
 
     existing_keys_res = await db.execute(select(PlaybackSession.session_key))
     existing_keys = {r[0] for r in existing_keys_res.all()}
+    erased = await load_erased_identities(db)
 
     jf_activity = _extract_blocks(data, "jf_playback_activity")
-    await _import_playback_activity(db, jf_activity, existing_keys, item_to_library, report, now)
+    await _import_playback_activity(db, jf_activity, existing_keys, erased, item_to_library, report, now)
 
     jf_plugin = _extract_blocks(data, "jf_playback_reporting_plugin_data")
-    await _import_plugin_reporting(db, jf_plugin, existing_keys, item_to_library, report, now)
+    await _import_plugin_reporting(db, jf_plugin, existing_keys, erased, item_to_library, report, now)
 
     jf_users = _extract_blocks(data, "jf_users")
-    await _enrich_usernames(db, jf_users)
+    await _enrich_usernames(db, jf_users, erased)
     await _migrate_library_names(db, item_to_library, report)
 
     await db.commit()

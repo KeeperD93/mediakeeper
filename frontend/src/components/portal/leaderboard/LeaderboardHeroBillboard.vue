@@ -2,9 +2,9 @@
   <router-link
     v-if="entry"
     :to="{ name: 'portal-user-profile', params: { id: entry.user_id } }"
-    class="lb-hero"
-    :aria-label="$t('portal.leaderboard.hero.rankBadge')"
+    class="lb-hero lb-metal lb-metal--gold"
   >
+    <Crown :size="32" :stroke-width="2.5" class="lb-hero-crown" aria-hidden="true" />
     <div class="lb-hero-avatar">
       <div class="lb-hero-avatar-inner">
         <MkAvatar
@@ -18,8 +18,8 @@
 
     <div class="lb-hero-body">
       <div class="lb-hero-rank">
-        <span class="lb-hero-rank-num">#1</span>
-        <Crown :size="32" :stroke-width="2.5" class="lb-hero-crown" aria-hidden="true" />
+        <span class="lb-hero-rank-num lb-metal-digits">#1</span>
+        <LeaderboardMePill v-if="entry.is_current_user" />
       </div>
       <div class="lb-hero-name">{{ entry.display_name }}</div>
       <div class="lb-hero-meta">
@@ -43,9 +43,11 @@
         <span class="lb-hero-xp-value">{{ displayedXp.toLocaleString() }}</span>
         <span class="lb-hero-xp-unit">XP</span>
       </div>
-      <div v-if="leadOver2 > 0" class="lb-hero-lead">
-        <Trophy :size="14" :stroke-width="2.5" aria-hidden="true" />
-        {{ $t('portal.leaderboard.hero.leadOverSecond', { n: leadOver2.toLocaleString() }) }}
+      <div v-if="leadOver2 > 0 || entry.trophies_won > 0" class="lb-hero-chips">
+        <div v-if="leadOver2 > 0" class="lb-hero-lead">
+          {{ $t('portal.leaderboard.hero.leadOverSecond', { n: leadOver2.toLocaleString() }) }}
+        </div>
+        <LeaderboardTrophies :count="entry.trophies_won" large />
       </div>
     </div>
   </router-link>
@@ -53,9 +55,11 @@
 
 <script setup>
 import { computed, toRef } from 'vue'
-import { Crown, Trophy } from 'lucide-vue-next'
+import { Crown } from 'lucide-vue-next'
 
 import MkAvatar from '@/components/common/MkAvatar.vue'
+import LeaderboardMePill from '@/components/portal/leaderboard/LeaderboardMePill.vue'
+import LeaderboardTrophies from '@/components/portal/leaderboard/LeaderboardTrophies.vue'
 import { useCountUp } from '@/composables/portal/useCountUp'
 
 const props = defineProps({
@@ -75,10 +79,10 @@ function tierToRarity(tier) {
 }
 
 const entryRef = toRef(props, 'entry')
-const targetXp = computed(() => entryRef.value?.month_xp || 0)
+const targetXp = computed(() => entryRef.value?.period_xp || 0)
 const leadOver2 = computed(() => Math.max(0, entryRef.value?.lead_over_2 || 0))
 
-const { displayed: displayedXp } = useCountUp(targetXp.value, { duration: 1400 })
+const { displayed: displayedXp } = useCountUp(targetXp, { duration: 1400 })
 </script>
 
 <style scoped>
@@ -91,24 +95,8 @@ const { displayed: displayedXp } = useCountUp(targetXp.value, { duration: 1400 }
   border-radius: var(--portal-radius-lg);
   text-decoration: none;
   color: var(--portal-text-primary);
-  background:
-    radial-gradient(
-      ellipse at center,
-      rgb(var(--portal-color-warning-rgb), 0.18) 0%,
-      transparent 70%
-    ),
-    var(--portal-surface-2);
-  border: 1px solid rgb(var(--portal-color-warning-rgb), 0.35);
-  box-shadow: 0 8px 30px rgb(var(--portal-color-warning-rgb), 0.12);
   position: relative;
   overflow: hidden;
-}
-.lb-hero::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at center, transparent 55%, rgb(0, 0, 0, 0.32));
-  pointer-events: none;
 }
 .lb-hero-avatar {
   width: 140px;
@@ -119,18 +107,13 @@ const { displayed: displayedXp } = useCountUp(targetXp.value, { duration: 1400 }
      spinning legendary rainbow) is drawn by MkAvatar itself via the
      universal :tier prop, so the #1 champion matches every other
      leaderboard surface instead of a static bespoke ring. */
-  position: relative;
-  z-index: 1;
 }
 .lb-hero-avatar-inner {
   width: 100%;
   height: 100%;
   border-radius: var(--portal-radius-circle);
   /* Transparent so the page bg shows through MkAvatar's hollow tier
-     ring (the ring is a border on MkAvatar itself). Clipping is mobile-
-     only (see media query): on desktop it would cut MkAvatar's tier
-     halo box-shadow and the #1 champion would lose the glow the other
-     leaderboard surfaces show. */
+     ring (the ring is a border on MkAvatar itself). */
   background: transparent;
   display: flex;
   align-items: center;
@@ -153,27 +136,24 @@ const { displayed: displayedXp } = useCountUp(targetXp.value, { duration: 1400 }
   display: flex;
   flex-direction: column;
   gap: 6px;
-  position: relative;
-  z-index: 1;
 }
 .lb-hero-rank {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  position: relative;
 }
 .lb-hero-rank-num {
   font-family: var(--portal-font-display);
   font-weight: var(--portal-font-black);
   font-size: clamp(4rem, 8vw, 6rem);
   line-height: 1;
-  color: var(--portal-color-warning);
-  text-shadow: 0 4px 24px rgb(var(--portal-color-warning-rgb), 0.45);
   letter-spacing: var(--portal-tracking-tight);
 }
 .lb-hero-crown {
+  position: absolute;
+  top: var(--portal-space-3);
+  right: var(--portal-space-3);
   color: var(--portal-color-warning);
-  filter: drop-shadow(0 2px 4px rgb(0, 0, 0, 0.3));
 }
 .lb-hero-name {
   font-size: clamp(1.5rem, 3vw, 2rem);
@@ -214,32 +194,84 @@ const { displayed: displayedXp } = useCountUp(targetXp.value, { duration: 1400 }
   color: var(--portal-color-warning);
   opacity: 0.85;
 }
-.lb-hero-lead {
-  align-self: flex-start;
-  display: inline-flex;
+.lb-hero-chips {
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  padding: 4px 12px;
+  margin-top: 4px;
+}
+/* The bubble overhangs on the left: its "+" falls under the first digit of the XP. */
+.lb-hero-lead {
+  --lb-lead-side: var(--portal-space-3);
+
+  margin-left: calc(-1 * var(--lb-lead-side));
+  padding: var(--portal-space-1) var(--lb-lead-side);
   border-radius: var(--portal-radius-pill);
   background: rgb(var(--portal-color-success-rgb), 0.18);
   color: var(--portal-color-success);
   font-size: var(--portal-text-xs);
   font-weight: var(--portal-font-bold);
-  margin-top: 4px;
 }
 @media (max-width: 640px) {
+  /* A compact banner on a phone: the ranking must start within the first screen. */
   .lb-hero {
-    gap: 16px;
-    padding: 18px;
-    min-height: 240px;
+    gap: 12px;
+    padding: 12px 14px;
+    min-height: 0;
   }
   .lb-hero-avatar {
-    width: 96px;
-    height: 96px;
+    width: 64px;
+    height: 64px;
   }
-  /* Crop the fixed 140 px MkAvatar into the smaller mobile slot. */
-  .lb-hero-avatar-inner {
-    overflow: hidden;
+  /* Scale the fixed 140 px MkAvatar into the smaller slot: cropping it would
+     cut its tier ring and halo. */
+  .lb-hero-avatar :deep(.mk-avatar) {
+    flex-shrink: 0;
+    transform: scale(calc(64 / 140));
+  }
+  .lb-hero-body {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 2px 8px;
+  }
+  .lb-hero-meta,
+  .lb-hero-xp,
+  .lb-hero-chips {
+    grid-column: 1 / -1;
+  }
+  .lb-hero-rank-num {
+    font-size: var(--portal-text-2xl);
+  }
+  .lb-hero-crown {
+    top: var(--portal-space-2);
+    right: var(--portal-space-2);
+    width: 18px;
+    height: 18px;
+  }
+  /* The name shares its line with the crown: a long one stops before it. */
+  .lb-hero-name {
+    padding-right: 20px;
+    font-size: var(--portal-text-md);
+  }
+  .lb-hero-meta {
+    font-size: var(--portal-text-3xs);
+  }
+  .lb-hero-xp-value {
+    font-size: var(--portal-text-xl);
+  }
+  .lb-hero-xp-unit {
+    font-size: var(--portal-text-sm);
+  }
+  .lb-hero-chips {
+    margin-top: 2px;
+  }
+  .lb-hero-lead {
+    --lb-lead-side: var(--portal-space-2);
+
+    padding-block: var(--portal-space-0-5);
+    font-size: var(--portal-text-3xs);
   }
 }
 .lb-hero-custom-title--rarity-common {

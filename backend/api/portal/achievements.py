@@ -4,17 +4,18 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.portal.deps import get_current_profile, get_request_lang
+from constants.leaderboard import LeaderboardPeriod
 from core.database import get_db
 from core.rate_limit import limiter, portal_user_or_ip_key
-from models.user import User
 from models.portal.profile import UserProfile
-from api.portal.deps import get_current_profile, get_request_lang
+from models.user import User
 from services.portal import achievements as ach_svc
+from services.portal.admin_users_constants import ROLE_ADMIN
 from services.portal.profile_stats_ranking import (
     LEADERBOARD_FULL_DEFAULT,
     compute_leaderboard_only,
 )
-from services.portal.admin_users_constants import ROLE_ADMIN
 
 router = APIRouter(prefix="/achievements", tags=["portal-achievements"])
 
@@ -47,13 +48,10 @@ async def user_achievements(
 ):
     """Get another user's achievements (only unlocked shown).
 
-    Visibility mirrors the public profile rules in
-    ``profile_settings.public_profile_by_user``: 404 when the target
-    profile is missing, deactivated, or admin (unless the caller is
-    looking at themselves), and 403 when the target keeps their
-    profile private. Without this gate an attacker could enumerate the
-    admin account's trophies even when ``role=admin`` profiles are
-    hidden everywhere else.
+    404 when the target profile is missing, deactivated, private or
+    admin (unless the caller is looking at themselves). Without this
+    gate an attacker could enumerate the admin account's trophies even
+    when ``role=admin`` profiles are hidden everywhere else.
     """
     me, _ = up
     target = (await db.execute(
@@ -65,9 +63,8 @@ async def user_achievements(
     if target.role == ROLE_ADMIN and not is_self:
         raise HTTPException(status_code=404, detail="profile_not_found")
     if not is_self and not target.is_public:
-        # Same fail-closed shape as the public profile endpoint: 404
-        # for any account the caller cannot read, regardless of the
-        # underlying reason.
+        # Fail-closed: 404 for any account the caller cannot read,
+        # regardless of the underlying reason.
         raise HTTPException(status_code=404, detail="profile_not_found")
 
     data = await ach_svc.get_achievements_for_profile(db, user_id)
@@ -89,7 +86,6 @@ async def pin_badge(
     user, _ = up
     ok = await ach_svc.pin_badge(db, user.id, body.achievement_id)
     if not ok:
-        from fastapi import HTTPException
         raise HTTPException(400, "Cannot pin: not unlocked or max 5 reached")
     return {"ok": True}
 
@@ -116,7 +112,7 @@ async def check_achievements(
     """Force-check all achievements for current user. Returns newly unlocked."""
     user, profile = up
     unlocks = await ach_svc.safe_check_all_achievements(
-        db, user.id, user.username, source="manual_check", silent=False,
+        db, user.id, source="manual_check", silent=False,
     )
     return {"unlocked": unlocks}
 
@@ -132,25 +128,26 @@ async def leaderboard(
     return {"items": await ach_svc.get_leaderboard(db, limit, lang=lang)}
 
 
-@router.get("/leaderboard/monthly")
+@router.get("/leaderboard/activity")
 @limiter.limit("60/minute", key_func=portal_user_or_ip_key)
-async def monthly_leaderboard(
+async def activity_leaderboard(
     request: Request,
+    period: LeaderboardPeriod = Query(LeaderboardPeriod.MONTH),
     limit: int = Query(LEADERBOARD_FULL_DEFAULT, ge=1, le=LEADERBOARD_FULL_DEFAULT),
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
     lang: str = Depends(get_request_lang),
 ):
-    """Top players by *monthly* XP — feeds the dedicated /portal/leaderboard page.
+    """Top players by activity XP over ``period`` — feeds the /portal/leaderboard page.
 
     Shares its trust boundary with the profile mini-leaderboard: any
     authenticated portal user can view the full ranking, the excluded
-    users (admin, soft-deleted, deactivated) are filtered out by
+    users (local accounts, soft-deleted, deactivated, private) are filtered out by
     :func:`compute_leaderboard_only` itself. The payload bundles
     ``items`` (gc-lb-* rows), ``viewer_rank`` / ``viewer_entry`` when
     the caller is out of top-N, and ``stats`` for the live bar.
     """
     user, _ = up
     return await compute_leaderboard_only(
-        db, limit=limit, viewer_user_id=user.id, lang=lang,
+        db, period=period, limit=limit, viewer_user_id=user.id, lang=lang,
     )

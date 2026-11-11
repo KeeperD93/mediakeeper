@@ -15,6 +15,7 @@ export interface ToastItem {
   type: ToastType | string
   meta: ToastMeta | null
   module: string
+  persistent: boolean
 }
 
 const toasts = ref<ToastItem[]>([])
@@ -68,7 +69,7 @@ export function useToast(): UseToastApi {
     const id = ++toastId
     const path = _routerInstance?.currentRoute?.value?.path || '/'
     const module = ROUTE_MODULES[path] || 'toastModule.app'
-    toasts.value.push({ id, message, type, meta, module })
+    toasts.value.push({ id, message, type, meta, module, persistent: duration <= 0 })
 
     if (duration > 0) {
       setTimeout(() => {

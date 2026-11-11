@@ -83,7 +83,6 @@ def _profile_to_dict(profile: UserProfile) -> dict[str, Any]:
         "can_portal": profile.can_portal,
         "can_problems": profile.can_problems,
         "can_lists": profile.can_lists,
-        "can_earn_xp_offline": profile.can_earn_xp_offline,
         "can_report_feedback": profile.can_report_feedback,
         "tokens_invalidated_at": _iso(profile.tokens_invalidated_at),
         "created_at": _iso(profile.created_at),

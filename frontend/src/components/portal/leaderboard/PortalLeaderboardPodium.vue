@@ -4,10 +4,10 @@
       v-for="(entry, idx) in entries"
       :key="entry.user_id"
       :to="{ name: 'portal-user-profile', params: { id: entry.user_id } }"
-      class="pt-lb-podium-card"
-      :class="`pt-lb-podium-card--${rankFor(idx)}`"
+      class="pt-lb-podium-card lb-metal"
+      :class="`lb-metal--${metalFor(idx)}`"
     >
-      <div class="pt-lb-podium-rank">#{{ rankFor(idx) }}</div>
+      <div class="pt-lb-podium-rank lb-metal-digits">#{{ rankFor(idx) }}</div>
       <component
         :is="medalFor(idx)"
         :size="22"
@@ -24,37 +24,41 @@
         />
       </div>
       <div class="pt-lb-podium-name">{{ entry.display_name }}</div>
+      <LeaderboardMePill v-if="entry.is_current_user" />
       <div class="pt-lb-podium-meta">
         <span class="pt-lb-podium-level">{{ $t('portal.level') }} {{ entry.level }}</span>
         <span class="pt-lb-podium-title">
           {{ $t(`portal.profile.titles.${entry.title_key || 'spectator'}`) }}
+          <LeaderboardChosenTitle :entry="entry" />
         </span>
       </div>
-      <div class="pt-lb-podium-xp">{{ (entry.month_xp || 0).toLocaleString() }} XP</div>
-      <span
-        class="gc-lb-move pt-lb-podium-move"
-        :class="moveClass(entry.movement)"
-        :title="moveTooltip(entry.movement)"
-      >
-        <ChevronUp v-if="entry.movement > 0" :size="11" :stroke-width="3.5" />
-        <ChevronDown v-else-if="entry.movement < 0" :size="11" :stroke-width="3.5" />
-        <span v-else>—</span>
-        <span v-if="entry.movement">{{ Math.abs(entry.movement) }}</span>
-      </span>
+      <div class="pt-lb-podium-xp">{{ (entry.period_xp || 0).toLocaleString() }} XP</div>
+      <div class="pt-lb-podium-figures">
+        <LeaderboardTrophies :count="entry.trophies_won" />
+        <LeaderboardMove
+          class="pt-lb-podium-move"
+          :movement="entry.movement"
+          :period="period"
+          :size="11"
+        />
+      </div>
     </router-link>
   </div>
 </template>
 
 <script setup>
-import { useI18n } from 'vue-i18n'
-import { Award, ChevronDown, ChevronUp, Medal } from 'lucide-vue-next'
+import { Award, Medal } from 'lucide-vue-next'
 import MkAvatar from '@/components/common/MkAvatar.vue'
+import LeaderboardChosenTitle from '@/components/portal/leaderboard/LeaderboardChosenTitle.vue'
+import LeaderboardMePill from '@/components/portal/leaderboard/LeaderboardMePill.vue'
+import LeaderboardMove from '@/components/portal/leaderboard/LeaderboardMove.vue'
+import LeaderboardTrophies from '@/components/portal/leaderboard/LeaderboardTrophies.vue'
+import { LEADERBOARD_PERIOD } from '@/constants/leaderboard'
 
 defineProps({
   entries: { type: Array, default: () => [] },
+  period: { type: String, default: LEADERBOARD_PERIOD.MONTH },
 })
-
-const { t } = useI18n()
 
 // Parent slices ``items.slice(1, 3)``: idx 0 → rank 2, idx 1 → rank 3.
 function rankFor(idx) {
@@ -63,14 +67,8 @@ function rankFor(idx) {
 function medalFor(idx) {
   return idx === 0 ? Award : Medal
 }
-function moveClass(movement) {
-  if (!movement) return 'gc-lb-move--flat'
-  return movement > 0 ? 'gc-lb-move--up' : 'gc-lb-move--down'
-}
-function moveTooltip(movement) {
-  if (!movement) return t('portal.profile.rankStable')
-  const key = movement > 0 ? 'portal.profile.rankUp' : 'portal.profile.rankDown'
-  return t(key, { n: Math.abs(movement) })
+function metalFor(idx) {
+  return idx === 0 ? 'silver' : 'bronze'
 }
 </script>
 
@@ -96,61 +94,18 @@ function moveTooltip(movement) {
   border-radius: var(--portal-radius-lg);
   text-decoration: none;
   color: var(--portal-text-primary);
-  transition:
-    transform var(--portal-dur-med) var(--portal-ease-emphasis),
-    box-shadow var(--portal-dur-med) var(--portal-ease-emphasis),
-    border-color var(--portal-dur-med) var(--portal-ease-emphasis);
-}
-.pt-lb-podium-card--2 {
-  background:
-    linear-gradient(135deg, rgb(192, 192, 192, 0.08), transparent 70%), var(--portal-surface-1);
-  border: 1px solid rgb(192, 192, 192, 0.3);
-  box-shadow: 0 4px 24px rgb(192, 192, 192, 0.1);
-}
-.pt-lb-podium-card--3 {
-  background:
-    linear-gradient(135deg, rgb(205, 127, 50, 0.08), transparent 70%), var(--portal-surface-1);
-  border: 1px solid rgb(205, 127, 50, 0.3);
-  box-shadow: 0 4px 24px rgb(205, 127, 50, 0.1);
-}
-@media (hover: hover) {
-  .pt-lb-podium-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--portal-shadow-popup);
-  }
-  .pt-lb-podium-card--2:hover {
-    box-shadow:
-      0 10px 30px rgb(192, 192, 192, 0.22),
-      var(--portal-shadow-popup);
-  }
-  .pt-lb-podium-card--3:hover {
-    box-shadow:
-      0 10px 30px rgb(205, 127, 50, 0.22),
-      var(--portal-shadow-popup);
-  }
 }
 .pt-lb-podium-medal {
   position: absolute;
-  top: 14px;
-  right: 14px;
-}
-.pt-lb-podium-card--2 .pt-lb-podium-medal {
-  color: #c0c0c0;
-}
-.pt-lb-podium-card--3 .pt-lb-podium-medal {
-  color: #cd7f32;
+  top: var(--portal-space-3);
+  right: var(--portal-space-3);
+  color: var(--lb-metal-light);
 }
 .pt-lb-podium-rank {
-  font-size: var(--portal-text-2xl);
+  font-size: var(--portal-text-3xl);
   font-weight: var(--portal-font-black);
   font-family: var(--portal-font-display);
   line-height: 1;
-}
-.pt-lb-podium-card--2 .pt-lb-podium-rank {
-  color: #c0c0c0;
-}
-.pt-lb-podium-card--3 .pt-lb-podium-rank {
-  color: #cd7f32;
 }
 .pt-lb-podium-card :deep(.gc-lb-av) {
   width: 84px;
@@ -185,6 +140,7 @@ function moveTooltip(movement) {
   gap: 2px;
   font-size: var(--portal-text-3xs);
   color: var(--portal-text-muted);
+  text-align: center;
   text-transform: uppercase;
   letter-spacing: var(--portal-tracking-caps);
 }
@@ -192,23 +148,52 @@ function moveTooltip(movement) {
   font-size: var(--portal-text-xl);
   font-weight: var(--portal-font-extrabold);
   font-family: var(--portal-font-display);
+  color: var(--lb-metal-light);
 }
-.pt-lb-podium-card--2 .pt-lb-podium-xp {
-  color: #c0c0c0;
-}
-.pt-lb-podium-card--3 .pt-lb-podium-xp {
-  color: #cd7f32;
+.pt-lb-podium-figures {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .pt-lb-podium-move {
   min-width: 36px;
 }
 @media (max-width: 640px) {
+  /* Two small cards side by side: the ranking must start within the first screen. */
   .pt-lb-podium {
-    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
   }
   .pt-lb-podium-card {
-    min-height: 200px;
-    padding: 18px 14px;
+    gap: 4px;
+    min-height: 0;
+    padding: 12px 8px 10px;
+  }
+  .pt-lb-podium-rank {
+    position: absolute;
+    top: 10px;
+    left: 12px;
+    font-size: var(--portal-text-xl);
+  }
+  .pt-lb-podium-medal {
+    top: var(--portal-space-2);
+    right: var(--portal-space-2);
+    width: 16px;
+    height: 16px;
+  }
+  .pt-lb-podium-card :deep(.gc-lb-av) {
+    width: 48px;
+    height: 48px;
+  }
+  .pt-lb-podium-card :deep(.mk-avatar) {
+    flex-shrink: 0;
+    transform: scale(calc(48 / 84));
+  }
+  .pt-lb-podium-name {
+    font-size: var(--portal-text-sm);
+  }
+  .pt-lb-podium-xp {
+    font-size: var(--portal-text-md);
   }
 }
 </style>

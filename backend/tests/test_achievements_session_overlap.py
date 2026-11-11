@@ -51,6 +51,7 @@ async def _make_viewer(db, username: str) -> User:
         display_name=username.title(),
         role="viewer",
         account_active=True,
+        emby_user_id=f"emby-{username}",
     ))
     await db.commit()
     return user
@@ -67,8 +68,8 @@ def _make_session(
     item_type: str = "Movie",
 ) -> None:
     """Insert one ``PlaybackSession`` row with the minimum fields the
-    overlap helpers need. ``user_id`` is the **Emby user_id string**;
-    ``user_name`` is what ``user_filter`` keys off."""
+    overlap helpers need. ``user_id`` is the **Emby user_id string**,
+    which is what ``user_filter`` keys off."""
     db.add(PlaybackSession(
         session_key=f"sess-{user_name}-{item_id}-{int(started_at.timestamp())}",
         user_id=emby_user_id,
@@ -123,7 +124,7 @@ async def test_secret_lonely_unlocks_when_alone_on_nye(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert await _ach_unlocked(db_session, alice.id, "secret_lonely")
 
 
@@ -156,7 +157,7 @@ async def test_secret_lonely_blocked_when_overlap_exists(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _ach_unlocked(db_session, alice.id, "secret_lonely")
 
 
@@ -190,7 +191,7 @@ async def test_secret_lonely_blocked_outside_nye_dates(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _ach_unlocked(db_session, alice.id, "secret_lonely")
 
 
@@ -213,7 +214,7 @@ async def test_secret_lonely_blocked_when_single_user_universe(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _ach_unlocked(db_session, alice.id, "secret_lonely")
 
 
@@ -245,7 +246,7 @@ async def test_secret_sync_unlocks_with_overlap_other_user(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert await _ach_unlocked(db_session, alice.id, "secret_sync")
 
 
@@ -276,7 +277,7 @@ async def test_secret_sync_blocked_without_overlap(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _ach_unlocked(db_session, alice.id, "secret_sync")
 
 
@@ -299,7 +300,7 @@ async def test_secret_sync_blocked_when_single_user_universe(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _ach_unlocked(db_session, alice.id, "secret_sync")
 
 
@@ -358,7 +359,7 @@ async def test_secret_sync_blocked_when_same_user_self_join(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, alice.id, alice.username)
+    await check_all_achievements(db_session, alice.id)
     assert not await _ach_unlocked(db_session, alice.id, "secret_sync")
 
 

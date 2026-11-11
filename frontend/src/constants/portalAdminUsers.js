@@ -30,7 +30,6 @@ export const PERMISSION_KEYS = Object.freeze([
   'can_portal',
   'can_problems',
   'can_lists',
-  'can_earn_xp_offline',
   'can_report_feedback',
 ])
 

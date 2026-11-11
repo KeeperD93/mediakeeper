@@ -207,34 +207,21 @@
   }
 }
 
-@media (max-width: 920px) {
+/* Tablet: one row of three columns, the search being a drawer by now. The tabs
+   take what the icons leave and scroll sideways when they can't all fit, which
+   happens with an admin account at the narrow end. */
+@media (max-width: 1023px) {
   .pt-nav-inner {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    padding: 0.85rem 1rem 0.75rem;
-  }
-  .pt-nav-brand {
-    order: 1;
-  }
-  .pt-nav-quick {
-    order: 2;
-    margin-left: auto;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-  }
-  .pt-nav-search {
-    order: 3;
-    flex: 1 0 100%;
+    grid-template-columns: auto minmax(0, 1fr) auto;
   }
   .pt-nav-tabs {
-    order: 4;
-    flex: 1 0 100%;
-    justify-content: flex-start;
+    /* The padding keeps the keyboard focus ring inside the scrolling area,
+       the matching negative margin keeps the row at its height. */
+    margin: calc(-1 * var(--portal-space-1));
+    padding: var(--portal-space-1);
+    scroll-padding-inline: var(--portal-space-1);
     overflow-x: auto;
     scrollbar-width: none;
-    padding-bottom: 0.2rem;
-    margin-left: 0;
   }
   .pt-nav-tabs::-webkit-scrollbar {
     display: none;
@@ -255,21 +242,14 @@
   }
 }
 
-/* ≤768px: tabs row moves to the fixed bottom nav (PortalBottomNav).
- * Mobile top-bar is minimal — brand + search + bell + avatar only.
- * Everything else (Dashboard, Lists, Calendar, Admin) slides into the
- * avatar popup as "mobile-only" entries. Pattern borrowed from
- * Instagram / LinkedIn / GitHub mobile: the top bar keeps only
- * identity + time-sensitive alerts (notifications), and the rest is one
- * extra tap away via the account menu. */
+/* Below 768px the tabs move to the fixed bottom nav (PortalBottomNav).
+ * The top bar is minimal: brand + search + bell + avatar only. Everything
+ * else (Dashboard, Lists, Calendar, Admin) slides into the avatar popup as
+ * "mobile-only" entries: the bar keeps identity and time-sensitive alerts,
+ * the rest is one extra tap away via the account menu. */
 @media (max-width: 767px) {
-  /* Force a single nav row on phones. Without flex-wrap: nowrap, the
-     ``@media (max-width: 920px)`` rule above sets ``flex-wrap: wrap``
-     and keeps it active here — icons wrap to a second line and the top
-     bar becomes two rows tall (a visible dark band above the hero). */
   .pt-nav-inner {
     display: flex;
-    flex-wrap: nowrap;
     align-items: center;
     gap: 0.25rem;
     padding: 0.4rem 0.6rem;

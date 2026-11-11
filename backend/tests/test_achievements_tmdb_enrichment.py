@@ -51,6 +51,7 @@ async def _make_viewer(db, username: str = "tmdb-viewer") -> User:
         display_name=username.title(),
         role="viewer",
         account_active=True,
+        emby_user_id="emby-viewer",
     ))
     await db.commit()
     return user
@@ -132,7 +133,7 @@ async def test_decades_watched_unlocks_at_thresholds(db_session, decades_count, 
         )
     await db_session.commit()
 
-    unlocks = await check_all_achievements(db_session, user.id, user.username)
+    unlocks = await check_all_achievements(db_session, user.id)
     unlocked_ids = {row["achievement_id"] for row in unlocks}
     assert expected in unlocked_ids
 
@@ -173,7 +174,7 @@ async def test_decades_watched_skips_null_production_year(db_session):
     ))
     await db_session.commit()
 
-    await check_all_achievements(db_session, user.id, user.username)
+    await check_all_achievements(db_session, user.id)
     assert not await _ach_unlocked(db_session, user.id, "time_traveler_1")
 
 
@@ -194,7 +195,7 @@ async def test_secret_classic_unlocks_when_year_lt_1970(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, user.id, user.username)
+    await check_all_achievements(db_session, user.id)
     assert await _ach_unlocked(db_session, user.id, "secret_classic")
 
 
@@ -212,7 +213,7 @@ async def test_secret_classic_does_not_unlock_for_post_1970(db_session):
     )
     await db_session.commit()
 
-    await check_all_achievements(db_session, user.id, user.username)
+    await check_all_achievements(db_session, user.id)
     assert not await _ach_unlocked(db_session, user.id, "secret_classic")
 
 
@@ -250,7 +251,7 @@ async def test_secret_purist_unlocks_at_threshold_50(db_session):
         )
     await db_session.commit()
 
-    await check_all_achievements(db_session, user.id, user.username)
+    await check_all_achievements(db_session, user.id)
     assert await _ach_unlocked(db_session, user.id, "secret_purist")
 
 

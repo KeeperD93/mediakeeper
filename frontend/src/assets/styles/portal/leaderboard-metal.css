@@ -1,0 +1,104 @@
+/* Metal frame of the first three places of the leaderboard: a slow light turns around
+ * a gradient frame. A reflection on the metal: nothing shines around the card.
+ * Used by LeaderboardHeroBillboard.vue and PortalLeaderboardPodium.vue, loaded by the
+ * page. Every selector starts with lb-metal, which nothing else uses. */
+
+@property --lb-metal-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 135deg;
+}
+
+.lb-metal--gold {
+  --lb-metal-light: var(--portal-tier-gold-c1);
+  --lb-metal-base: var(--portal-tier-gold-c2);
+  --lb-metal-dark: var(--portal-tier-gold-c3);
+  --lb-metal-rgb: var(--portal-tier-gold-rgb);
+}
+.lb-metal--silver {
+  --lb-metal-light: var(--portal-tier-silver-c1);
+  --lb-metal-base: var(--portal-tier-silver-c2);
+  --lb-metal-dark: var(--portal-tier-silver-c3);
+  --lb-metal-rgb: var(--portal-tier-silver-rgb);
+}
+.lb-metal--bronze {
+  --lb-metal-light: var(--portal-tier-bronze-light);
+  --lb-metal-base: var(--portal-tier-bronze-c1);
+  --lb-metal-dark: var(--portal-tier-bronze-c3);
+  --lb-metal-rgb: var(--portal-tier-bronze-rgb);
+}
+
+.lb-metal {
+  border: var(--portal-border-width-metal) solid transparent;
+  background:
+    linear-gradient(
+        180deg,
+        rgb(var(--lb-metal-rgb), var(--portal-metal-tint-top)) 0%,
+        rgb(var(--lb-metal-rgb), var(--portal-metal-tint-middle)) 55%,
+        transparent 100%
+      )
+      padding-box,
+    linear-gradient(var(--portal-bg-primary), var(--portal-bg-primary)) padding-box,
+    conic-gradient(
+        from var(--lb-metal-angle),
+        var(--lb-metal-dark) 0deg,
+        var(--lb-metal-base) 70deg,
+        var(--lb-metal-light) 150deg,
+        var(--portal-text-primary-solid) 180deg,
+        var(--lb-metal-light) 210deg,
+        var(--lb-metal-base) 290deg,
+        var(--lb-metal-dark) 360deg
+      )
+      border-box;
+  animation: lb-metal-turn var(--portal-anim-loop-lg) var(--portal-ease-linear) infinite;
+  transition:
+    transform var(--portal-dur-med) var(--portal-ease-emphasis),
+    box-shadow var(--portal-dur-med) var(--portal-ease-emphasis);
+}
+@media (hover: hover) {
+  .lb-metal:hover {
+    transform: translateY(calc(-1 * var(--portal-space-1)));
+    box-shadow: var(--portal-shadow-popup);
+  }
+}
+/* The light is never at the same place on the three cards. */
+.lb-metal--gold.lb-metal {
+  animation-delay: calc(var(--portal-anim-loop-lg) * -2 / 3);
+}
+.lb-metal--bronze.lb-metal {
+  animation-delay: calc(var(--portal-anim-loop-lg) / -3);
+}
+
+.lb-metal-digits {
+  background: linear-gradient(
+    180deg,
+    var(--lb-metal-light) 0%,
+    var(--portal-text-primary-solid) 36%,
+    var(--lb-metal-base) 52%,
+    var(--lb-metal-dark) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@keyframes lb-metal-turn {
+  from {
+    --lb-metal-angle: 0deg;
+  }
+  to {
+    --lb-metal-angle: 360deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lb-metal,
+  .lb-metal--gold.lb-metal,
+  .lb-metal--bronze.lb-metal {
+    animation: none;
+    transition: none;
+  }
+  .lb-metal:hover {
+    transform: none;
+  }
+}

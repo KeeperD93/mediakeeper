@@ -156,11 +156,12 @@ async def create_list(db: AsyncSession, user_id: int, data: dict) -> dict:
                extra={"privacy": lst.privacy, "content_type": lst.content_type})
     await db.commit()
     await db.refresh(lst)
+    list_id = lst.id  # a failed check below expires ``lst``
     # Curator family is gated on the count of public lists; trigger so the
     # Bronze tier unlocks immediately on the first eligible list.
     from services.portal.achievements import safe_check_all_achievements
-    await safe_check_all_achievements(db, user_id, None, source="list_created")
-    return {"success": True, "id": lst.id}
+    await safe_check_all_achievements(db, user_id, source="list_created")
+    return {"success": True, "id": list_id}
 
 
 async def update_list(
@@ -208,9 +209,9 @@ async def update_list(
         if "privacy" in changes:
             from services.portal.achievements import safe_check_all_achievements
             await safe_check_all_achievements(
-                db, user_id, None, source="list_privacy_changed",
+                db, user_id, source="list_privacy_changed",
             )
-    return {"success": True, "id": lst.id, "changes": list(changes.keys())}
+    return {"success": True, "id": list_id, "changes": list(changes.keys())}
 
 
 async def delete_list(db: AsyncSession, list_id: int, user_id: int) -> dict:

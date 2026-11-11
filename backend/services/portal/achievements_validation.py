@@ -40,29 +40,29 @@ logger = logging.getLogger("mediakeeper.portal.achievements")
 # means: declare it here, implement it in a check pass, then add a def.
 KNOWN_CONDITION_TYPES: frozenset[str] = frozenset({
     # check_standard
-    "watch_movies", "watch_series", "night_watch", "audio_languages",
+    "watch_movies", "watch_series", "audio_languages",
     "subtitle_languages", "rewatch_count", "genre_diversity",
-    "requests_created", "chat_messages", "marathon_hours", "streak_days",
-    "weekend_plays", "season_binge", "library_explorer",
+    "requests_created", "chat_messages", "season_binge", "library_explorer",
+    # check_local_time
+    "night_watch", "marathon_hours", "streak_days", "weekend_plays",
+    "speed_runner", "binge_session", "secret_early_bird", "secret_newyear",
+    "secret_friday13", "secret_indecisive", "secret_summer", "secret_ghost",
+    "secret_countdown", "secret_sunday", "secret_butterfly", "secret_triple",
+    "secret_gourmet", "secret_lonely",
     # check_progression
     "leaderboard_top10", "leaderboard_top5", "leaderboard_top3",
     "leaderboard_first", "achievements_unlocked", "profile_level",
     "avatar_changed", "member_years", "title_equipped", "tickets_created",
-    "total_watch_hours", "requests_approved", "speed_runner",
-    "binge_session", "genre_master", "events_created", "surprise_used",
-    "series_completed", "decades_watched",
+    "total_watch_hours", "requests_approved", "genre_master",
+    "events_created", "surprise_used", "series_completed", "decades_watched",
     "lists_public_created", "lists_max_items",
     # check_secrets_a
-    "secret_first_play", "secret_early_bird", "secret_newyear",
-    "secret_classic", "secret_friday13", "secret_indecisive",
-    "secret_summer", "secret_nostalgia", "secret_ghost", "secret_double",
-    "secret_4k",
+    "secret_first_play", "secret_classic", "secret_nostalgia",
+    "secret_double", "secret_4k",
     # check_secrets_b (incl. placeholders)
-    "secret_countdown", "secret_sunday", "secret_bilingual",
-    "secret_bgNoise", "secret_ultramarathon", "secret_butterfly",
-    "secret_triple", "secret_zapper", "secret_gourmet",
-    "secret_ultimate_collector", "secret_purist", "secret_allnight",
-    "secret_no_life", "secret_king", "secret_pilot", "secret_lonely",
+    "secret_bilingual", "secret_bgNoise", "secret_ultramarathon",
+    "secret_zapper", "secret_ultimate_collector", "secret_purist",
+    "secret_allnight", "secret_no_life", "secret_king", "secret_pilot",
     "secret_late", "secret_pipi", "secret_sync",
     # seasonal/themed secrets that have their own condition_type
     "secret_christmas", "secret_halloween", "secret_valentine",

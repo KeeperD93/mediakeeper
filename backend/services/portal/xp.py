@@ -31,15 +31,17 @@ Level curve (quadratic):
   Level 50  =   127,500 XP  (~5 years, max)
 """
 import logging
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import select, func, or_
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from models.portal.xp_ledger import XpLedger
 from models.portal.profile import UserProfile
+from models.portal.xp_ledger import XpLedger
+from models.user import User
 from services.portal._watch_threshold import WATCHED_THRESHOLD
+from services.portal.admin_users_constants import SOURCE_EMBY
 
 logger = logging.getLogger("mediakeeper.portal.xp")
 
@@ -59,6 +61,18 @@ XP_TABLE = {
     "request_created": 5,
 }
 
+# What ranks a player on the monthly leaderboard: what they did, not what they
+# were rewarded. Listed by hand so a future reward never joins the ranking by
+# default; trophy and admin XP still count towards the level.
+ACTIVITY_XP_ACTIONS = ("watch_movie", "watch_episode", "daily_login", "request_created")
+
+# A trophy adds one ledger row, found again under this action and its reference.
+ACHIEVEMENT_XP_ACTION = "achievement_unlocked"
+
+
+def achievement_xp_reference(achievement_id: str) -> str:
+    return f"ach:{achievement_id}"
+
 
 def xp_for_level(level: int) -> int:
     """Total cumulative XP needed to reach a given level."""
@@ -73,6 +87,23 @@ def level_from_xp(total_xp: int) -> int:
     return level
 
 
+# Who earns XP and trophies, whatever triggers the grant: an active player (deactivating,
+# expiring or deleting an account clears ``is_active``) linked to a media-server user;
+# neither a local account nor a never-linked profile. Select User joined to UserProfile.
+EARNING_ACCOUNT = and_(
+    User.is_active.is_(True),
+    UserProfile.source == SOURCE_EMBY,
+    UserProfile.emby_user_id.is_not(None),
+    UserProfile.emby_user_id != "",
+)
+
+
+async def account_earns(db: AsyncSession, user_id: int) -> bool:
+    """Whether an account may earn XP and trophies (``EARNING_ACCOUNT``)."""
+    stmt = select(User.id).join(UserProfile, UserProfile.user_id == User.id)
+    return await db.scalar(stmt.where(User.id == user_id, EARNING_ACCOUNT)) is not None
+
+
 async def grant_xp(
     db: AsyncSession,
     user_id: int,
@@ -82,7 +113,8 @@ async def grant_xp(
 ) -> dict | None:
     """
     Attempt to grant XP for an action. Returns the grant details if
-    successful, or None if blocked by anti-abuse rules.
+    successful, or None if the account may not earn (``account_earns``) or
+    the grant is blocked by anti-abuse rules.
 
     The unique constraint (user_id, action, reference) is the primary
     dedup mechanism — if the exact same grant was already recorded,
@@ -91,14 +123,18 @@ async def grant_xp(
     base_xp = xp_override if xp_override is not None else XP_TABLE.get(action, 0)
     if base_xp <= 0:
         return None
+    # Same rule as the trophy check, including for a request an admin files
+    # on another account's behalf.
+    if not await account_earns(db, user_id):
+        return None
 
     # --- Apply active XP boost multipliers (Christmas, Halloween, etc.) ---
     from services.portal.xp_boost import get_active_multiplier
     multiplier = await get_active_multiplier(db, action)
-    xp_amount = int(round(base_xp * multiplier)) if multiplier != 1.0 else base_xp
+    xp_amount = round(base_xp * multiplier) if multiplier != 1.0 else base_xp
 
     # --- Daily caps ---
-    today_start = datetime.now(timezone.utc).replace(
+    today_start = datetime.now(UTC).replace(
         hour=0, minute=0, second=0, microsecond=0
     )
 
@@ -131,10 +167,13 @@ async def grant_xp(
         return None
 
     # --- Update profile XP + level (row-locked to prevent concurrent-grant loss) ---
+    # populate_existing: the caller often holds this profile already, and the
+    # lock alone would leave its older XP in place to be overwritten.
     profile = (await db.execute(
         select(UserProfile)
         .where(UserProfile.user_id == user_id)
         .with_for_update()
+        .execution_options(populate_existing=True)
     )).scalar_one_or_none()
 
     leveled_up = False
@@ -210,7 +249,7 @@ async def grant_watch_xp(
         return None
 
     # --- 24h cooldown per item ---
-    cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
+    cutoff = datetime.now(UTC) - timedelta(hours=24)
     action = "watch_movie" if item_type == "Movie" else "watch_episode"
     existing = (await db.execute(
         select(XpLedger.id).where(
@@ -230,7 +269,7 @@ async def grant_watch_xp(
 
     # Use a time-bucketed reference so the unique constraint allows
     # the same item after 24h: "item_id:YYYY-MM-DD"
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    today = datetime.now(UTC).strftime("%Y-%m-%d")
     reference = f"{item_id}:{today}"
 
     return await grant_xp(db, user_id, action, reference)
@@ -240,7 +279,7 @@ async def grant_daily_login_xp(
     db: AsyncSession, user_id: int
 ) -> dict | None:
     """Grant daily login XP (max 1 per calendar day)."""
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    today = datetime.now(UTC).strftime("%Y-%m-%d")
     return await grant_xp(db, user_id, "daily_login", today)
 
 

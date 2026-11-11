@@ -13,17 +13,20 @@ Provisioned profiles default to:
 - avatar mirrored from Emby    — for the admin UI
 """
 import logging
-from sqlalchemy import func, select
+
+from sqlalchemy import case, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.security import EXTERNAL_AUTH_PASSWORD_SENTINEL, hash_password
+from models.portal.profile import UserProfile
 from models.user import User
 from models.user_preferences import UserPreference
-from models.portal.profile import UserProfile
 from services.portal._pseudo_words import generate_pseudo
+from services.portal.admin_users_constants import ROLE_VIEWER, SOURCE_EMBY
+from services.portal.gdpr_erased import is_erased, load_erased_identities
 from services.portal.profiles import resolve_unique_display_name
-from services.portal.admin_users_constants import ROLE_VIEWER
+from services.portal.xp import EARNING_ACCOUNT
 
 logger = logging.getLogger("mediakeeper.portal.user_import")
 
@@ -33,13 +36,21 @@ async def _find_existing_emby_user(
 ) -> User | None:
     """Resolve an account already provisioned for this Emby identity,
     preferring the stable Emby GUID over the mutable login name. Returns
-    ``None`` when no MediaKeeper account exists yet."""
+    ``None`` when no MediaKeeper account exists yet.
+
+    Several accounts can share one Emby GUID (an old deactivated one and a
+    newer one, say): the account that may earn comes first, so the player's
+    watch time is credited to the account they actually use."""
     if emby_user_id:
         by_emby_id = (await db.execute(
             select(User)
             .join(UserProfile, UserProfile.user_id == User.id)
             .where(UserProfile.emby_user_id == emby_user_id)
-            .order_by(UserProfile.account_active.desc(), User.id.asc())
+            .order_by(
+                case((EARNING_ACCOUNT, 0), else_=1),
+                UserProfile.account_active.desc(),
+                User.id.asc(),
+            )
             .limit(1)
         )).scalar_one_or_none()
         if by_emby_id:
@@ -63,7 +74,8 @@ async def ensure_user_for_emby_session(
     Created users land with ``account_active=False`` (the admin still has
     to flip the switch to allow portal login) and ``must_set=True`` so
     the first-login modal asks them for a real display name. Returns the
-    user row or ``None`` when the input is malformed.
+    user row, or ``None`` when the input is malformed or the person was
+    erased at their request.
     """
     if not emby_username:
         return None
@@ -81,10 +93,14 @@ async def ensure_user_for_emby_session(
                 if not profile.avatar_url:
                     profile.avatar_url = f"/api/emby/user-image/{emby_user_id}"
                 if not profile.source:
-                    profile.source = "emby"
+                    profile.source = SOURCE_EMBY
                 db.add(profile)
                 await db.commit()
         return existing
+
+    if is_erased(await load_erased_identities(db), emby_user_id, emby_username):
+        logger.info("[USER_IMPORT] no account for an identity erased at its request")
+        return None
 
     # First sighting: create the account. The unique-username INSERT runs
     # inside a SAVEPOINT so a concurrent observation that won the race trips
@@ -120,7 +136,7 @@ async def ensure_user_for_emby_session(
         display_name=unique_name,
         avatar_url=avatar_url,
         role=ROLE_VIEWER,
-        source="emby",
+        source=SOURCE_EMBY,
         emby_user_id=emby_user_id or None,
         account_active=False,
         display_name_must_set=True,
