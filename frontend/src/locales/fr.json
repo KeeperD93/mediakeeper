@@ -2994,7 +2994,9 @@
     },
     "nav": {
       "brand": "MediaKeeper",
-      "bottomNav": "Navigation principale"
+      "bottomNav": "Navigation principale",
+      "quickActions": "Actions rapides",
+      "quickActionsUnread": "Actions rapides, 1 message non lu | Actions rapides, {n} messages non lus"
     },
     "avatar": {
       "menu": "Menu du compte",

@@ -10,7 +10,7 @@
   <Teleport to="body">
     <div ref="fabRef" class="pt-fab">
       <!-- Sub-buttons (expand upward when open) -->
-      <transition-group name="pt-fab-pop" tag="div" class="pt-fab-sub">
+      <transition-group :id="subId" name="pt-fab-pop" tag="div" class="pt-fab-sub">
         <!-- Event creation -->
         <button
           v-if="open"
@@ -51,15 +51,24 @@
         </button>
       </transition-group>
 
-      <!-- Main toggle button -->
-      <button class="pt-fab-main" :class="{ 'pt-fab-main--open': open }" @click.stop="open = !open">
+      <!-- Main toggle button — a disclosure, not aria-haspopup: the sub-buttons
+           are plain buttons in the tab order, not a role="menu" with arrow keys. -->
+      <button
+        class="pt-fab-main"
+        :class="{ 'pt-fab-main--open': open }"
+        :aria-label="
+          showMainBadge
+            ? $t('portal.nav.quickActionsUnread', { n: unreadCount }, unreadCount)
+            : $t('portal.nav.quickActions')
+        "
+        :aria-expanded="open"
+        :aria-controls="subId"
+        @click.stop="open = !open"
+      >
         <Plus :size="24" :stroke-width="2.5" />
         <!-- Unread chat badge — shown on the collapsed FAB only; the
              expanded sub-button below carries its own badge. -->
-        <span
-          v-if="!open && chatAllowed && unreadCount > 0"
-          class="pt-fab-badge pt-fab-badge--main"
-        >
+        <span v-if="showMainBadge" class="pt-fab-badge pt-fab-badge--main">
           {{ unreadCount > 99 ? '99+' : unreadCount }}
         </span>
       </button>
@@ -71,7 +80,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, useId } from 'vue'
 import ChatPanel from './ChatPanel.vue'
 import EventCreateModal from './EventCreateModal.vue'
 import { usePortalChat } from '@/composables/portal/usePortalChat'
@@ -87,7 +96,9 @@ const open = ref(false)
 const chatOpen = ref(false)
 const eventModalOpen = ref(false)
 const fabRef = ref(null)
+const subId = useId()
 const chatAllowed = computed(() => profile.value?.chat_enabled !== false)
+const showMainBadge = computed(() => !open.value && chatAllowed.value && unreadCount.value > 0)
 
 function onChat() {
   if (!chatAllowed.value) return

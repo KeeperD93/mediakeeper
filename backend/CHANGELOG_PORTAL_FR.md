@@ -16,6 +16,9 @@ utilisateurs.
 
 ## [Unreleased]
 
+### Fixed
+- Bouton « + » — annoncé par les lecteurs d'écran (ouvert ou fermé, messages non lus).
+
 ## [1.0.0-rc.10] - 2026-11-11
 
 ### Added
