@@ -23,7 +23,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Outils de debug — retrait des trophées comptés en UTC.
 
 ### Changed
-- Classement du portail — activité seule : trophées et XP donnée par un admin exclus.
+- Classement du portail — activité seule : trophées et XP donné par un admin exclus.
 - Tableau de bord — widget Classement : niveau et trophées du mois.
 - Statistiques — jours, heures et records comptés dans le fuseau horaire de l'instance.
 - Statistiques — Streak : plus remis à 0 le matin.
