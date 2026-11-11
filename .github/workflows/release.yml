@@ -153,10 +153,10 @@ jobs:
           printf '## %s\n\n' "$version" >> "$body_file"
 
           # Extract the section that matches the released version, flatten the
-          # `### Added / Changed / Fixed` sub-headers, keep only the bullets,
-          # and prefix each surface (Admin app, Portal) with a single H3 so
-          # the reader knows which app is concerned. Only `### Action` keeps a
-          # heading: what an admin must do after updating has to stand out.
+          # `### Added / Changed / Fixed` sub-headers into plain bullets, and
+          # prefix each surface (Admin app, Portal) with a single H3 so the
+          # reader knows which app is concerned. `### Action`, always first,
+          # becomes "Action required", and what follows it "Changes".
           extract_section() {
             local file="$1"
             local title="$2"
