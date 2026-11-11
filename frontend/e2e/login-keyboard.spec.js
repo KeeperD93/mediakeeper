@@ -1,5 +1,5 @@
 // Signing in with the keyboard in a real browser: Enter sends one try through
-// the form, a held Enter never sends more, and the page never leaves /login.
+// the form, a held Enter never sends more, and no press reloads the page.
 
 import { test, expect } from '@playwright/test'
 import { mockApi } from './_fixtures/api-mocks.js'
@@ -30,7 +30,17 @@ async function openRefusingLoginPage(page) {
   await page.goto('/login')
   await page.locator('input[autocomplete="username"]').fill('Alice')
   await page.locator('input[autocomplete="current-password"]').fill('not-a-real-password')
+  // A native form submission reloads the page, which drops this marker; the URL
+  // alone cannot tell, the browser lands on /login again.
+  await page.evaluate(() => {
+    window.__stillHere = true
+  })
   return state
+}
+
+async function expectNoReload(page, state) {
+  expect(await page.evaluate(() => window.__stillHere)).toBe(true)
+  expect(state.tracker.unexpected).toEqual([])
 }
 
 // A first keydown is a new press; the ones that follow while the key is still
@@ -60,22 +70,22 @@ test.describe('Login — keyboard sign-in', () => {
 
     await password.press('Enter')
     await expect.poll(() => state.tries).toBe(3)
-
-    await expect(page).toHaveURL(/\/login$/)
-    expect(state.tracker.unexpected).toEqual([])
+    await expectNoReload(page, state)
   })
 
-  test('a held Enter on the focused button sends one try', async ({ page }) => {
+  test('Enter held on the focused button sends no new try', async ({ page }) => {
     const state = await openRefusingLoginPage(page)
 
+    await page.locator('input[autocomplete="current-password"]').press('Enter')
+    await expect(page.locator('.login-error')).toBeVisible()
+    // Pressed on the button while the pause after that refusal still runs, then
+    // held past it: only repeats reach the button once a new try is allowed.
     await page.locator('button.login-submit').focus()
     await page.keyboard.down('Enter')
-    await expect.poll(() => state.tries).toBe(1)
     await holdEnterPastThePause(page)
 
     expect(state.tries).toBe(1)
-    await expect(page).toHaveURL(/\/login$/)
-    expect(state.tracker.unexpected).toEqual([])
+    await expectNoReload(page, state)
   })
 
   test('Enter on the remember box signs in like the button', async ({ page }) => {
@@ -83,8 +93,6 @@ test.describe('Login — keyboard sign-in', () => {
 
     await page.locator('.login-checkbox').press('Enter')
     await expect.poll(() => state.tries).toBe(1)
-
-    await expect(page).toHaveURL(/\/login$/)
-    expect(state.tracker.unexpected).toEqual([])
+    await expectNoReload(page, state)
   })
 })
