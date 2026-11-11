@@ -68,11 +68,11 @@
 
 <script setup>
 import { useI18n } from 'vue-i18n'
-import pkg from '../../../package.json'
+// Named import: the bundle keeps this field only, not the whole package.json.
+import { version as appVersion } from '../../../package.json'
 
 const { t } = useI18n()
 
-const appVersion = pkg.version
 const repoUrl = 'https://github.com/KeeperD93/mediakeeper'
 
 const links = {
