@@ -10,11 +10,11 @@
         <h2 class="ab-h2">{{ t('attribution.about.stackTitle') }}</h2>
         <ul class="ab-list">
           <li>
-            <strong>{{ t('attribution.about.backendLabel') }} :</strong>
+            <strong>{{ t('attribution.about.backendLabel') }}</strong>
             {{ stack.backend }}
           </li>
           <li>
-            <strong>{{ t('attribution.about.frontendLabel') }} :</strong>
+            <strong>{{ t('attribution.about.frontendLabel') }}</strong>
             {{ stack.frontend }}
           </li>
         </ul>

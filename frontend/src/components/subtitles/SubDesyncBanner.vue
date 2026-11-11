@@ -5,14 +5,18 @@
       {{ $t('subtitles.desyncWarning') }}
       <strong>{{ desync.delta_sec > 0 ? '+' : '' }}{{ desync.delta_sec }}s</strong>
       <span class="sub-desync-detail">
-        (SRT: {{ formatDuration(desync.srt_duration_sec) }} / {{ $t('subtitles.source') }}:
-        {{ formatDuration(desync.media_duration_sec) }})
+        {{
+          $t('subtitles.desyncDurations', {
+            srt: formatDuration(desync.srt_duration_sec),
+            source: formatDuration(desync.media_duration_sec),
+          })
+        }}
       </span>
     </span>
   </div>
   <div v-if="encoding && encoding.converted" class="sub-encoding-banner">
     <Check :size="14" />
-    <span>{{ $t('subtitles.encodingFixed') }}: {{ encoding.original_encoding }} → UTF-8</span>
+    <span>{{ $t('subtitles.encodingFixed') }} {{ encoding.original_encoding }} → UTF-8</span>
   </div>
 </template>
 

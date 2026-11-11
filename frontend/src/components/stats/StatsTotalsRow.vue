@@ -56,7 +56,7 @@
         <span class="tot-value">{{ totals.totalUsers }}</span>
         <div class="tot-user-breakdown">
           <span class="tot-sub">
-            {{ $t('stats.disabled') }} :
+            {{ $t('stats.disabled') }}
             <strong>{{ totals.disabledUsers }}</strong>
           </span>
         </div>
@@ -68,7 +68,7 @@
           <div class="transcode-fill" :style="{ width: totals.transcodePct + '%' }" />
         </div>
         <span class="tot-sub">
-          {{ $t('stats.directPlay') }} : {{ (100 - totals.transcodePct).toFixed(1) }}%
+          {{ $t('stats.directPlayPct', { pct: (100 - totals.transcodePct).toFixed(1) }) }}
         </span>
       </div>
     </div>

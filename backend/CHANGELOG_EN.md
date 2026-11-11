@@ -12,6 +12,7 @@ This section intentionally has no date so it is not shown to users.
 
 ### Fixed
 - Notifications — header names the page, bar lasts as long as the message, full message on small phones.
+- Labels — colons placed right in English and French.
 
 ## [1.0.0-rc.10] - 2026-11-11
 
