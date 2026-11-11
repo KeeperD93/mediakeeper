@@ -16,6 +16,9 @@ utilisateurs.
 
 ## [Unreleased]
 
+### Fixed
+- Badges épinglés — deux épinglages rapprochés ne s'écrasent plus.
+
 ## [1.0.0-rc.10] - 2026-11-11
 
 ### Added
