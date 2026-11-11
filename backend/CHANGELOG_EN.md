@@ -10,21 +10,24 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+## [1.0.0-rc.10] - 2026-11-11
+
 ### Action
 - Time zone — choose it in Settings → General, or hours stay off.
 - Reverse proxy — proxy setting to redo, see the deployment guide.
+- Privacy mode — review your privacy policy (what is kept after a deletion).
 
 ### Added
 - Settings — time zone of the instance, pre-filled from the browser.
 - Setup wizard — language and time zone chosen first.
-- Debug tools — take back trophies counted at the wrong hour before the time zone was chosen.
+- Debug tools — take back trophies counted in UTC.
 
 ### Changed
-- Portal leaderboard — only activity counts: trophies and admin XP changes left out.
-- Dashboard — Leaderboard widget: each player's level and trophies of the month shown.
+- Portal leaderboard — activity only: trophies and admin-granted XP left out.
+- Dashboard — Leaderboard widget: level and trophies of the month.
 - Statistics — days, hours and records counted in the time zone of the instance.
-- Statistics — Streak: the run holds as long as yesterday counts, no more 0 in the morning.
-- Users — every Emby account earns XP and trophies from import until deactivated ("without logging in" box removed).
+- Statistics — Streak: no longer back to 0 in the morning.
+- Users — every Emby account earns XP and trophies until deactivated ("without logging in" box removed).
 - Users — "Never activated" or "Deactivated" status instead of "Inactive".
 - Users — "Create an administrator" replaces "Create user" (temporary password).
 
@@ -35,13 +38,13 @@ This section intentionally has no date so it is not shown to users.
 - Statistics — history import: another import and the purge locked during the upload.
 - Scheduler — a change that fails now says why.
 - Scheduler — an interval changed elsewhere shows up when back on the tab.
-- GDPR — erased account never recreated, plays of its Emby id no longer recorded (update your privacy text).
-- GDPR — erased account: profile photo deleted, name removed from reports, the blacklist and the admin log.
+- GDPR — erased account never recreated, its Emby plays no longer recorded.
+- GDPR — erased account: photo deleted, name removed from reports, blacklist and admin log.
 - Debug tools — player list translated, a failed load is reported.
-- Debug tools — "Run recheck" skips local and unlinked accounts, runs to the end despite an error.
+- Debug tools — "Run recheck": local accounts skipped, no stop on an error.
 - Settings — language menu named for screen readers.
 - Notifications — Do Not Disturb follows the chosen time zone.
-- Security — IP behind a proxy: visitor-supplied address ignored (list every proxy).
+- Security — IP behind a proxy: visitor-supplied address ignored.
 - Security — manual username block: applied whatever the letter case.
 - Security — lists always up to date (Refresh button) and errors shown.
 - Security — manual block: address checked, confirmation before "Block IP".
@@ -51,14 +54,14 @@ This section intentionally has no date so it is not shown to users.
 - Sign-in — three real tries per name, reset after a successful sign-in.
 - Sign-in — clear messages: wait shown, media server unreachable, inactive account.
 - Sign-in — double press or held Enter: only one try counted.
-- Security — sign-in page: 3 wrong admin passwords block that account for 10 min.
+- Security — admin account blocked 10 min after 3 wrong passwords.
 - Security — sign-in: nothing about an account shown before its password is checked.
 - Sign-in — no more server error when recording the sign-in fails.
 - Sign-in — no more server error when an account's expiry fails.
 - Security — sign-in: a tampered request no longer fills the log.
 - Logs (admin) — a line with an invalid character is no longer lost.
 - Security — the browser keeps the new password after a change.
-- Security — on phones: block window as a bottom panel, touch-sized fields.
+- Security — on phones: block window at the bottom, touch-sized fields.
 - Security — full password rules shown (12 different characters).
 - Security — encryption key readable again after a PUID change.
 - Security — startup: links planted in place of /data folders ignored.

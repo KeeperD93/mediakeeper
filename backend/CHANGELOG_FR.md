@@ -10,21 +10,24 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+## [1.0.0-rc.10] - 2026-11-11
+
 ### Action
 - Fuseau horaire — à choisir dans Paramètres → Général, sinon les heures restent décalées.
 - Proxy inverse — réglage des proxys à refaire, voir le guide de déploiement.
+- Mode Confidentialité — politique à relire (ce qui reste après une suppression).
 
 ### Added
 - Paramètres — fuseau horaire de l'instance, prérempli avec celui du navigateur.
 - Assistant d'installation — langue et fuseau horaire choisis en premier.
-- Outils de debug — retrait des trophées comptés à la mauvaise heure avant le choix du fuseau.
+- Outils de debug — retrait des trophées comptés en UTC.
 
 ### Changed
-- Classement du portail — seule l'activité compte : trophées et ajouts ou retraits d'XP admin exclus.
-- Tableau de bord — widget Classement : niveau et trophées du mois de chaque joueur affichés.
+- Classement du portail — activité seule : trophées et XP donné par un admin exclus.
+- Tableau de bord — widget Classement : niveau et trophées du mois.
 - Statistiques — jours, heures et records comptés dans le fuseau horaire de l'instance.
-- Statistiques — Streak : la série tient tant que la veille compte, plus de 0 le matin.
-- Utilisateurs — tout compte Emby gagne XP et trophées de l'import à sa désactivation (case « sans connexion » retirée).
+- Statistiques — Streak : plus remis à 0 le matin.
+- Utilisateurs — tout compte Emby gagne XP et trophées jusqu'à sa désactivation (case « sans connexion » retirée).
 - Utilisateurs — statut « Jamais activé » ou « Désactivé » au lieu de « Inactif ».
 - Utilisateurs — « Créer un administrateur » remplace « Créer un utilisateur » (mot de passe provisoire).
 
@@ -35,13 +38,13 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Statistiques — import d'historique : nouvel import et purge bloqués pendant l'envoi.
 - Planificateur — un changement qui échoue affiche sa raison.
 - Planificateur — intervalle modifié ailleurs repris au retour sur l'onglet.
-- RGPD — compte effacé jamais recréé, visionnages de son identifiant Emby plus enregistrés (texte de confidentialité à adapter).
-- RGPD — compte effacé : photo de profil supprimée, nom retiré des remontées, de la blacklist et du journal admin.
+- RGPD — compte effacé jamais recréé, ses lectures Emby plus enregistrées.
+- RGPD — compte effacé : photo supprimée, nom retiré des remontées, blacklist et journal admin.
 - Outils de debug — liste des joueurs traduite, échec de chargement signalé.
-- Outils de debug — « Lancer la vérification » ignore les comptes locaux et non reliés, va au bout malgré une erreur.
+- Outils de debug — « Lancer la vérification » : comptes locaux ignorés, plus d'arrêt sur erreur.
 - Paramètres — menu Langue nommé pour les lecteurs d'écran.
 - Notifications — « Ne pas déranger » suit le fuseau horaire choisi.
-- Sécurité — IP derrière un proxy : adresse envoyée par le visiteur ignorée (déclarer chaque proxy).
+- Sécurité — IP derrière un proxy : adresse fournie par le visiteur ignorée.
 - Sécurité — blocage manuel d'un nom : appliqué quelle que soit la casse.
 - Sécurité — listes toujours à jour (bouton Actualiser) et erreurs affichées.
 - Sécurité — blocage manuel : adresse vérifiée, confirmation avant « Bloquer IP ».
@@ -51,14 +54,14 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Connexion — trois vrais essais par nom, remis à zéro après une connexion réussie.
 - Connexion — messages clairs : attente affichée, serveur média injoignable, compte inactif.
 - Connexion — double appui ou Entrée maintenue : un seul essai compté.
-- Sécurité — page de connexion : 3 erreurs sur un compte admin le bloquent 10 min.
+- Sécurité — compte admin bloqué 10 min après 3 erreurs.
 - Sécurité — connexion : rien n'est révélé sur un compte avant son mot de passe.
 - Connexion — erreur serveur évitée quand l'enregistrement de la connexion échoue.
 - Connexion — erreur serveur évitée quand l'expiration d'un compte échoue.
 - Sécurité — connexion : une requête trafiquée ne remplit plus le journal.
 - Logs (admin) — une ligne avec un caractère invalide n'est plus perdue.
 - Sécurité — le navigateur retient le nouveau mot de passe après un changement.
-- Sécurité — sur téléphone : fenêtre de blocage en panneau du bas, champs à taille tactile.
+- Sécurité — sur téléphone : fenêtre de blocage en bas, champs à taille tactile.
 - Sécurité — règles du mot de passe complètes (12 caractères différents).
 - Sécurité — clé de chiffrement de nouveau lisible après un changement de PUID.
 - Sécurité — démarrage : lien piégé à la place d'un dossier de /data ignoré.

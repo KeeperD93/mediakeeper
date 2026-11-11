@@ -16,6 +16,8 @@ utilisateurs.
 
 ## [Unreleased]
 
+## [1.0.0-rc.10] - 2026-11-11
+
 ### Added
 - Classement — onglets Aujourd'hui, Semaine, Mois et Tout temps, aussi sur Mon profil.
 - Classement du mois — compteur des trophées distribués dans le mois.
@@ -25,13 +27,13 @@ utilisateurs.
 ### Changed
 - Classement du mois — seule l'activité compte (visionnages, connexions, demandes), plus les trophées.
 - Trophée Compétiteur — calculé sur le classement, une fois le mois terminé (2 joueurs minimum).
-- Classement du mois — votre ligne remplace la barre du haut, avec un lien « Voir ma place ».
-- Classement du mois — page épurée : sans halos, couronne en coin, icônes du bandeau plus visibles.
+- Classement du mois — votre ligne remplace la barre du haut (lien « Voir ma place »).
+- Classement du mois — page épurée (sans halos, couronne en coin).
 - Classement — page à largeur fixe sur ordinateur, plus de décalage entre onglets.
 - Classement — positions du Top 10 sans bulle, étiquette « VOUS » plus petite.
 - Classement — podium : cadre de métal avec un éclat qui tourne.
-- Mon profil — classement : votre ligne comme sur la page Classement, XP et trophées alignés.
-- Trophées, classement, Mon profil et Quoi de neuf — comptés dans le fuseau horaire de l'instance.
+- Mon profil — classement aligné sur la page Classement.
+- Trophées, classement, Mon profil, Quoi de neuf aujourd'hui — au fuseau de l'instance.
 - Trophées Régulier et Fidèle — débloqués sur la plus longue série, pas seulement l'actuelle.
 - XP et trophées — gagnés dès la première lecture Emby, même avant toute connexion.
 - Profil privé — page dédiée « Ce profil est privé », sans pseudo ni avatar.
@@ -45,23 +47,23 @@ utilisateurs.
 - Connexion — messages clairs : attente affichée, serveur média injoignable, compte inactif.
 - Connexion — double appui ou Entrée maintenue : un seul essai compté.
 - Données personnelles — l'export inclut les connexions réussies et les informations du compte.
-- Classement du mois — singulier respecté (« Top 1 joueur », « 1 joueur classé », « 1 jour restant »).
+- Classement du mois — singulier respecté (« 1 joueur classé », « 1 jour restant »).
 - Barre du haut — une seule ligne sur tablette, onglets défilants si besoin.
 - XP — un gain simultané n'écrase plus celui qui vient d'être attribué.
-- XP — un échec des trophées d'un joueur ne prive plus les autres de leur XP de visionnage.
+- XP — l'échec des trophées d'un joueur ne prive plus les autres d'XP.
 - XP — versée au compte utilisé quand deux comptes partagent le même compte Emby.
 - Listes — créer une liste ou changer sa visibilité ne signale plus d'erreur à tort.
 - Trophées — débloqués même quand deux vérifications du même joueur se croisent.
 - Classement du mois — titre choisi affiché aussi de la 2e à la 13e place.
 - Classement du mois — page compacte sur téléphone, plus rien de coupé à droite.
-- Classement du mois — XP du Top 10 lisibles, couleur du niveau sur l'avatar seul.
-- Classement du mois — étiquette « VOUS » traduite et toujours entière, vos XP restent visibles.
+- Classement du mois — XP du Top 10 lisibles.
+- Classement du mois — étiquette « VOUS » traduite et entière.
 - Classement du mois — carte du 1er lue en entier par les lecteurs d'écran.
-- Mon profil — classement lisible sur ordinateur portable : pseudos et niveaux ne sont plus masqués.
+- Mon profil — classement lisible sur ordinateur portable.
 - Mon profil — trophées rangés par rareté réelle, sans les comptes désactivés ou locaux.
 - Classement — un profil privé n'y apparaît plus, comme promis dans les réglages.
 - Mon profil — plus de pourcentage ni de barre sans place au classement.
-- Portail — mois du classement, pseudos de remplacement et message de maintenance dans la langue de l'application.
+- Portail — classement, pseudos générés et maintenance dans la langue de l'application.
 - Première connexion — plus de fenêtres enchaînées après le choix du pseudo.
 - Mon profil et trophées — lectures liées au compte Emby, plus au pseudo.
 
