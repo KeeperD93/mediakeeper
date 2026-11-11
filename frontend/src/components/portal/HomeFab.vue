@@ -74,6 +74,7 @@
       </button>
     </div>
 
+    <!-- After the cluster on purpose: same layer, so the panel paints above the "+". -->
     <ChatPanel v-if="chatOpen" @close="closeChat" />
     <EventCreateModal v-if="eventModalOpen" @close="eventModalOpen = false" />
   </Teleport>
@@ -125,7 +126,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside, true
   position: fixed;
   right: 14px;
   bottom: calc(14px + 72px + env(safe-area-inset-bottom, 0px));
-  z-index: 9997;
+  z-index: var(--portal-z-fab);
   display: flex;
   flex-direction: column;
   align-items: center;

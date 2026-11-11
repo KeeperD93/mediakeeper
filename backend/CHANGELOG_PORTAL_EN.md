@@ -17,6 +17,7 @@ This section intentionally has no date so it is not shown to users.
 ### Fixed
 - "+" button — announced by screen readers (open or closed, unread messages).
 - Phone tab bar — full labels on small screens.
+- "+" button and its chat — now stay below open windows.
 
 ## [1.0.0-rc.10] - 2026-11-11
 
