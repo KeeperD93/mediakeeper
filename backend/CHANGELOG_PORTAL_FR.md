@@ -17,7 +17,7 @@ utilisateurs.
 ## [Unreleased]
 
 ### Fixed
-- Bouton « + » — annoncé par les lecteurs d'écran (ouvert ou fermé, messages non lus).
+- Bouton « + » — annoncé par les lecteurs d'écran (messages non lus), menu parcourable au clavier.
 - Barre d'onglets sur téléphone — libellés entiers sur les petits écrans.
 - Bouton « + » et son chat — passent sous les fenêtres ouvertes.
 

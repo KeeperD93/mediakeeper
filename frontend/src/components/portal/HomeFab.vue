@@ -9,48 +9,6 @@
   -->
   <Teleport to="body">
     <div ref="fabRef" class="pt-fab">
-      <!-- Sub-buttons (expand upward when open) -->
-      <transition-group :id="subId" name="pt-fab-pop" tag="div" class="pt-fab-sub">
-        <!-- Event creation -->
-        <button
-          v-if="open"
-          key="event"
-          class="pt-fab-btn"
-          :title="$t('portal.mkEvents.create.title')"
-          :style="{ transitionDelay: '0.04s' }"
-          @click="((eventModalOpen = true), (open = false))"
-        >
-          <CalendarPlus :size="20" />
-        </button>
-
-        <!-- Surprise -->
-        <button
-          v-if="open"
-          key="surprise"
-          class="pt-fab-btn"
-          :title="$t('portal.surprise.title')"
-          :style="{ transitionDelay: '0.02s' }"
-          @click="($emit('open-surprise'), (open = false))"
-        >
-          <Dices :size="20" />
-        </button>
-
-        <!-- Chat -->
-        <button
-          v-if="open && chatAllowed"
-          key="chat"
-          class="pt-fab-btn"
-          :title="$t('portal.chat')"
-          :style="{ transitionDelay: '0s' }"
-          @click="onChat"
-        >
-          <MessageSquare :size="20" />
-          <span v-if="unreadCount > 0" class="pt-fab-badge">
-            {{ unreadCount > 99 ? '99+' : unreadCount }}
-          </span>
-        </button>
-      </transition-group>
-
       <!-- Main toggle button — a disclosure, not aria-haspopup: the sub-buttons
            are plain buttons in the tab order, not a role="menu" with arrow keys. -->
       <button
@@ -66,12 +24,60 @@
         @click.stop="open = !open"
       >
         <Plus :size="24" :stroke-width="2.5" />
-        <!-- Unread chat badge — shown on the collapsed FAB only; the
-             expanded sub-button below carries its own badge. -->
+        <!-- Unread chat badge — shown on the collapsed FAB only; once
+             expanded, the chat sub-button carries its own badge. -->
         <span v-if="showMainBadge" class="pt-fab-badge pt-fab-badge--main">
           {{ unreadCount > 99 ? '99+' : unreadCount }}
         </span>
       </button>
+
+      <!-- Sub-buttons after the toggle, nearest first, so Tab walks them once
+           open; both columns are reversed to stack them upward on screen. -->
+      <transition-group :id="subId" name="pt-fab-pop" tag="div" class="pt-fab-sub">
+        <!-- Chat -->
+        <button
+          v-if="open && chatAllowed"
+          key="chat"
+          class="pt-fab-btn"
+          :title="$t('portal.chat')"
+          :aria-label="
+            unreadCount > 0
+              ? $t('portal.chatUnread', { n: unreadCount }, unreadCount)
+              : $t('portal.chat')
+          "
+          :style="{ transitionDelay: '0s' }"
+          @click="onChat"
+        >
+          <MessageSquare :size="20" />
+          <span v-if="unreadCount > 0" class="pt-fab-badge">
+            {{ unreadCount > 99 ? '99+' : unreadCount }}
+          </span>
+        </button>
+
+        <!-- Surprise -->
+        <button
+          v-if="open"
+          key="surprise"
+          class="pt-fab-btn"
+          :title="$t('portal.surprise.title')"
+          :style="{ transitionDelay: '0.02s' }"
+          @click="($emit('open-surprise'), (open = false))"
+        >
+          <Dices :size="20" />
+        </button>
+
+        <!-- Event creation -->
+        <button
+          v-if="open"
+          key="event"
+          class="pt-fab-btn"
+          :title="$t('portal.mkEvents.create.title')"
+          :style="{ transitionDelay: '0.04s' }"
+          @click="((eventModalOpen = true), (open = false))"
+        >
+          <CalendarPlus :size="20" />
+        </button>
+      </transition-group>
     </div>
 
     <!-- After the cluster on purpose: same layer, so the panel paints above the "+". -->
@@ -128,7 +134,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside, true
   bottom: calc(14px + 72px + env(safe-area-inset-bottom, 0px));
   z-index: var(--portal-z-fab);
   display: flex;
-  flex-direction: column;
+  flex-direction: column-reverse;
   align-items: center;
   gap: 10px;
 }
@@ -139,10 +145,10 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside, true
   }
 }
 
-/* Sub-buttons column (above the main button) */
+/* Sub-buttons column (above the main button, nearest first in the DOM) */
 .pt-fab-sub {
   display: flex;
-  flex-direction: column;
+  flex-direction: column-reverse;
   align-items: center;
   gap: 10px;
 }

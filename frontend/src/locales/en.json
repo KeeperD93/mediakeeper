@@ -2748,6 +2748,7 @@
       "wrapped": "Wrapped"
     },
     "chat": "Chat",
+    "chatUnread": "Chat, 1 unread message | Chat, {n} unread messages",
     "chatEmpty": "No messages yet",
     "chatPlaceholder": "Write a message...",
     "chatReport": "Report this message",

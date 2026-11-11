@@ -76,6 +76,35 @@ describe('HomeFab', () => {
     expect(main.find('.pt-fab-badge').exists()).toBe(false)
   })
 
+  it.each([
+    ['en', 0, 'Chat'],
+    ['en', 1, 'Chat, 1 unread message'],
+    ['en', 3, 'Chat, 3 unread messages'],
+    ['fr', 1, 'Chat, 1 message non lu'],
+    ['fr', 3, 'Chat, 3 messages non lus'],
+  ])('names the chat sub-button with the unread count (%s, %i)', async (locale, unread, name) => {
+    chat.unreadCount = ref(unread)
+    const w = mountFab(locale)
+    await w.find('.pt-fab-main').trigger('click')
+
+    const chatButton = w.find('.pt-fab-btn[title="Chat"]')
+    expect(chatButton.attributes('aria-label')).toBe(name)
+    expect(chatButton.find('.pt-fab-badge').exists()).toBe(unread > 0)
+  })
+
+  it('puts the sub-buttons after the toggle, nearest first, so Tab reaches them', async () => {
+    const w = mountFab()
+    await w.find('.pt-fab-main').trigger('click')
+
+    const order = w.findAll('button').map(b => b.attributes('title') || b.classes()[0])
+    expect(order).toEqual([
+      'pt-fab-main',
+      'portal.chat',
+      'portal.surprise.title',
+      'portal.mkEvents.create.title',
+    ])
+  })
+
   it('reflects the open state in aria-expanded', async () => {
     const w = mountFab()
     // Re-query after each click: the global Teleport stub re-creates the button.

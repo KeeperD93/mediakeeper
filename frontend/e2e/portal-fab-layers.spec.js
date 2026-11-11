@@ -1,7 +1,8 @@
-// Floating "+" of the portal on a phone: above the page, under any open window,
-// and its chat panel above it.
+// Floating "+" of the portal: on a phone above the page, under any open window,
+// and its chat panel above it; with a keyboard, its open menu reachable with Tab.
 
 import { test, expect } from '@playwright/test'
+import AxeBuilder from '@axe-core/playwright'
 import { jsonResponse } from './_fixtures/api-mocks.js'
 import {
   DEFAULT_VIEWER_PROFILE,
@@ -11,8 +12,8 @@ import {
 
 const stub = (name, match, body) => ({ name, match, handler: jsonResponse(body) })
 
-const CHAT_HANDLERS = [
-  stub('chat-unread', url => url.pathname === '/api/portal/chat/unread', { unread: 0 }),
+const chatHandlers = unread => [
+  stub('chat-unread', url => url.pathname === '/api/portal/chat/unread', { unread }),
   stub('chat-rooms', url => url.pathname === '/api/portal/chat/rooms', {
     items: [{ id: 1, name: 'General' }],
   }),
@@ -24,10 +25,10 @@ const CHAT_HANDLERS = [
   stub('chat-mark-read', url => url.pathname === '/api/portal/chat/mark-read', {}),
 ]
 
-async function openTickets(page, profile = {}) {
+async function openTickets(page, profile = {}, unread = 0) {
   const tracker = await mockAuthenticatedPortal(page, {
     profile: { ...DEFAULT_VIEWER_PROFILE, effective_language: 'en', ...profile },
-    pageHandlers: [...portalTicketsHandlers(), ...CHAT_HANDLERS],
+    pageHandlers: [...portalTicketsHandlers(), ...chatHandlers(unread)],
   })
   await page.goto('/portal/tickets')
   await expect(page.getByRole('heading', { level: 1, name: 'Issues' })).toBeVisible()
@@ -79,6 +80,35 @@ test.describe('The floating "+" on a phone', () => {
     await expect(page.locator('.pt-chat')).toBeVisible()
 
     expect(await layerAt(page, '.pt-fab-main')).toBe('chat')
+    expect(tracker.unexpected).toEqual([])
+  })
+})
+
+test.describe('The floating "+" with a keyboard', () => {
+  test('Tab walks the open menu from the "+", nearest button first', async ({ page }) => {
+    const tracker = await openTickets(page, { chat_enabled: true }, 3)
+    const main = page.locator('.pt-fab-main')
+    await expect(main).toHaveAccessibleName('Quick actions, 3 unread messages')
+
+    await main.focus()
+    await page.keyboard.press('Enter')
+    await expect(main).toHaveAttribute('aria-expanded', 'true')
+    // Each stop sits higher on screen: the menu still stacks upward from the "+".
+    let previousTop = (await main.boundingBox()).y
+    for (const name of ['Chat, 3 unread messages', 'Surprise me!', 'Create event']) {
+      await page.keyboard.press('Tab')
+      const focused = page.locator(':focus')
+      await expect(focused).toHaveAccessibleName(name)
+      const top = (await focused.boundingBox()).y
+      expect(top, `${name} above the previous stop`).toBeLessThan(previousTop)
+      previousTop = top
+    }
+
+    const results = await new AxeBuilder({ page })
+      .include('.pt-fab')
+      .withRules(['button-name', 'aria-allowed-attr', 'aria-valid-attr-value'])
+      .analyze()
+    expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([])
     expect(tracker.unexpected).toEqual([])
   })
 })
