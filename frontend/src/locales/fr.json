@@ -323,17 +323,6 @@
     "updateAvailableTitle": "Nouvelle version v{version} disponible — voir les notes de version sur GitHub"
   },
   "toastModule": {
-    "dashboard": "Tableau de bord",
-    "statistics": "Statistiques",
-    "manager": "Gestionnaire",
-    "notifications": "Notifications",
-    "logs": "Journaux",
-    "health": "Santé",
-    "tracking": "Suivi",
-    "duplicates": "Doublons",
-    "subtitles": "Sous-titres",
-    "settings": "Paramètres",
-    "changelog": "Journal des modifications",
     "app": "MediaKeeper"
   },
   "topbar": {

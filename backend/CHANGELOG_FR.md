@@ -11,8 +11,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 ## [Unreleased]
 
 ### Fixed
-- Notifications — barre de progression à la durée réelle de chaque message.
-- Notifications — message entièrement visible sur les petits téléphones.
+- Notifications — en-tête au nom de la page, barre à la bonne durée, message entier sur petits téléphones.
 
 ## [1.0.0-rc.10] - 2026-11-11
 
